@@ -162,6 +162,21 @@ namespace RegressionTests.API
          }
 
          StringAssert.Contains("\"enrolled\":false", Http("GET", SecondFactorPath).body, "The password alone signs in again.");
+
+         // On the hash-chained audit trail: the enrolment and the disable are
+         // both recorded (the secret lives in hMailServer.INI, written outside the
+         // settings chokepoint, so these would otherwise leave nothing in the
+         // tamper-evident record), and the secret the enrolment answered is never
+         // in it. Read with the password alone, which signs in again now that the
+         // factor is off.
+         (int status, string body) trail = Http("GET", "/api/v1/audit?limit=100");
+         ClassicAssert.AreEqual(200, trail.status, trail.body);
+         StringAssert.Contains("\"action\":\"enrolled\"", trail.body,
+            "Enrolling the administrator's second factor is not on the audit trail.");
+         StringAssert.Contains("\"action\":\"disabled\"", trail.body,
+            "Disabling the administrator's second factor is not on the audit trail.");
+         StringAssert.DoesNotContain(secret, trail.body,
+            "The second-factor secret must never reach the audit trail.");
       }
 
       // ----------------------------------------------------------------- helpers

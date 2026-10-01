@@ -38,8 +38,11 @@ Nine rules, in the shape of build/check-authz-choke-point.py:
               settings changed as one act, each recorded by the settings
               chokepoint and the act recorded once with its counts; and by the
               eDiscovery export's download, which writes no row and is the act
-              that takes the custodians' mail off the server. Every one of
-              these calls must be there.
+              that takes the custodians' mail off the server; and the two
+              credential stores that live in ini files, not audited tables - an
+              API key created or revoked over REST, and the administrator's
+              second factor enrolled or disabled over REST and over COM. Every
+              one of these calls must be there.
 
   installed   The actor - who is making the change - is installed at one place
               per interface: RestApiServer::ProcessRequest_ for REST and the
@@ -146,13 +149,14 @@ ALLOWED = {
       "COM/InterfaceAccount.cpp",                   # Account.UnlockMailbox, Account.RemovePushSubscriptions
       "Common/Util/RestApiPush.cpp",                # DELETE /api/v1/accounts/{address}/push
       "COM/InterfaceBackup.cpp",                    # Backup.StartRestore
-      "Common/Util/RestApiServer.cpp",              # POST /api/v1/backup/restore
+      "Common/Util/RestApiServer.cpp",              # POST /api/v1/backup/restore; an API key created or revoked
+      "Common/Util/RestApiOperator.cpp",            # the administrator's second factor enrolled or disabled
       "COM/InterfaceBackupManager.cpp",             # BackupManager.RestoreMailbox and RestoreMessage
       "Common/Util/RestApiBackupMailbox.cpp",       # POST /api/v1/backup/{archive}/mailboxes/{address}/restore
       "Common/Util/RestApiDiscovery.cpp",           # GET /api/v1/discovery/cases/{id}/exports/{export}: an export downloaded writes no row
       "Common/Util/RestApiInboundWebhooks.cpp",     # a message an inbound webhook kept read, retried or removed: its queue is traffic
       "Common/Util/RestApiSettings.cpp",            # POST /api/v1/settings/logon-failures/clear
-      "COM/InterfaceSettings.cpp",                  # Settings.ClearLogonFailureList
+      "COM/InterfaceSettings.cpp",                  # Settings.ClearLogonFailureList; Settings.EnrolAdministratorTOTP and DisableAdministratorTOTP
       "Common/Util/RestApiSpamTraps.cpp",           # DELETE /api/v1/spam-traps/hits
       "COM/InterfaceUtilities.cpp",                 # Utilities.ClearSpamTrapHits
       "Common/Util/RestApiAccountReview.cpp",       # a held message released or discarded, an account's review choices, the compromise lock cleared
@@ -358,6 +362,24 @@ REQUIRED = [
    ("Common/Util/AuditTrail.h",
     "bool Verify(__int64 &firstBroken, __int64 &rowsChecked, String &reason);",
     "the chain can no longer be walked, which is the whole point of chaining it"),
+   ("Common/Util/RestApiServer.cpp",
+    'AuditTrail::Instance()->RecordEvent(_T("api key"), String(id), _T("created"),',
+    "an API key created over REST is no longer recorded - the key store is an ini file, not an audited table, so a credential that can administer the server would be minted with nothing in the tamper-evident record"),
+   ("Common/Util/RestApiServer.cpp",
+    'AuditTrail::Instance()->RecordEvent(_T("api key"), String(id), _T("revoked"),',
+    "an API key revoked over REST is no longer recorded - the key store is an ini file, not an audited table"),
+   ("Common/Util/RestApiOperator.cpp",
+    'AuditTrail::Instance()->RecordEvent(_T("administrator"), _T("second factor"), _T("enrolled"),',
+    "the administrator's second factor enrolled over REST is no longer recorded - the secret lives in hMailServer.INI, written outside the settings chokepoint, so enrolling or replacing it would leave nothing in the tamper-evident record"),
+   ("Common/Util/RestApiOperator.cpp",
+    'AuditTrail::Instance()->RecordEvent(_T("administrator"), _T("second factor"), _T("disabled"),',
+    "the administrator's second factor disabled over REST is no longer recorded - turning off the guard on the full-authority credential must be in the tamper-evident record"),
+   ("COM/InterfaceSettings.cpp",
+    'HM::AuditTrail::Instance()->RecordEvent(_T("administrator"), _T("second factor"), _T("enrolled"),',
+    "the administrator's second factor enrolled over COM - the Control Panel's way - is no longer recorded, where the REST route's is"),
+   ("COM/InterfaceSettings.cpp",
+    'HM::AuditTrail::Instance()->RecordEvent(_T("administrator"), _T("second factor"), _T("disabled"),',
+    "the administrator's second factor disabled over COM - the Control Panel's way - is no longer recorded, where the REST route's is"),
 ]
 
 # The two administrative writes of hm_inisettings each have to reach the

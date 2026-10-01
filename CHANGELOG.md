@@ -220,6 +220,45 @@ The webmail's pages are now served with Trusted Types, whose one policy takes ou
 the elements the page never builds and admits only the page's own two script addresses, and with X-Frame-Options and
 Cross-Origin-Opener-Policy, none of which any earlier version sent.
 
+An account's formatted signature is now given to the webmail only as the subset the webmail's own editor admits -
+basic formatting, links to http(s) and mailto, inline images, a simple table, and nothing else - whatever is stored,
+and the account holder's own save is stored that way. The webmail puts a signature on the screen as markup,
+including in an administrator's support session as the account, and earlier versions cleaned it only in the browser
+that saved it, so a signature written another way could carry script into the browser that later rendered it. The
+signature an administrator sets in the Control Panel, over COM or over the account route is stored as it is written
+and appended to the account's outgoing mail with its styles and hosted images, as before; a domain's signature,
+which no browser renders as markup, is unchanged.
+
+A message attachment is now served only under a media type from a list of those no browser runs, applies or renders
+as a page - pictures, sound, video, PDF, text, the office formats and the archives - and as `application/octet-stream`
+otherwise. Earlier versions kept any declared type that was not one of a few named ones, which left the
+executable-JavaScript media-type aliases a browser also runs; the attachment already carried
+`Content-Disposition: attachment`, `nosniff` and a sandbox policy.
+
+The REST administration listener's plain loopback port now answers only a request whose `Host` it expects and refuses
+any other with 421 before the request is authenticated, so a web page that points a name of its own at this machine
+can no longer reach the console through a browser on it. It answers `localhost`, an IP address, the server's host
+name and the host of each address configured as the one the webmail is reached at from outside. A reverse proxy that
+forwards the browser's own `Host` needs that name to be one of these: upgrading behind such a proxy, set the
+webmail's outside address (for example `confidential_base_url`) or the server's host name to it first
+([DevicesAndSessions.md](hmailserver/docs/DevicesAndSessions.md), Which Host the listener answers). A listener with
+its own certificate is unchanged.
+
+A wrong administrator password over REST now costs a growing delay, capped at ten seconds, before the next one from
+the same address is looked at - on every route that takes it, and from the loopback address too, where the
+brute-force protection of the mail ports does not reach and where every browser behind a reverse proxy on the same
+machine arrives. Earlier versions looked at every guess at once from there. It is a delay, cleared by the right
+password: an address that keeps guessing keeps it waiting while it does, and the administrator's API keys, passkey
+and single sign-on are not touched by it.
+
+A response sent to a browser that came over HTTPS now carries `Strict-Transport-Security` for a year, which no earlier
+version sent, so the browser does not go back over plain HTTP where the credentials could be read; it is never sent on
+the plain loopback path, and it does not include the names under the one the browser used.
+
+Creating or revoking a REST API key, and enrolling or disabling the administrator's second factor over REST or COM,
+are now recorded on the hash-chained audit trail the Deck's Audit view reads, where earlier versions wrote them only
+to the rolling application log or not at all; the key's token and the second-factor secret are never recorded.
+
 The Windows installers, x64 and ARM64, carry OpenSSL 4.0.3, published on 29 September 2026 with fourteen advisories
 against 4.0.x, where 6.3.5's x64 installer carried 4.0.2. Of the two rated above Low, CVE-2026-84782 (High) is in
 DTLS, which hMailServer does not use, and CVE-2026-84783 (Moderate, in 4.0.0 to 4.0.2 only) applies to the Windows

@@ -2254,6 +2254,30 @@ namespace HM
       static bool IsWithinRequestRate_(const AnsiString &identity, bool &firstRefusal);
       static void ClearRequestRates_();
 
+      // The failed-sign-in throttle for the administrator password, on every
+      // route that takes it, which applies even to loopback (where the auto-ban
+      // does not). SessionThrottleRetryMs_ says how long a guess for this
+      // credential and source must still wait (0 when it may be tried);
+      // RegisterSessionFailure_ lengthens that after a genuine credential
+      // failure; ClearSessionFailure_ forgets it when the right credential is
+      // given. BasicUserName_ is the user name an HTTP Basic credential carries,
+      // lower-cased, or empty for any other. See the block comment above the
+      // table in the .cpp.
+      static AnsiString BasicUserName_(const AnsiString &request);
+      static int SessionThrottleRetryMs_(const AnsiString &identity, const IPAddress &peer_address);
+      static void RegisterSessionFailure_(const AnsiString &identity, const IPAddress &peer_address);
+      static void ClearSessionFailure_(const AnsiString &identity, const IPAddress &peer_address);
+      static void ClearSessionFailures_();
+
+      // Whether the request's Host is one this server answers to: a loopback
+      // name, or a name an administrator configured as the address the webmail is
+      // reached at from outside (which a reverse proxy forwards). A request whose
+      // Host is neither is a DNS-rebinding attempt against the loopback listener
+      // and is refused before it is authenticated. A TLS listener, whose
+      // certificate already stops a rebind, is permissive so an administrator
+      // reaching it directly is not locked out. See the definition in the .cpp.
+      bool HostAllowed_(const AnsiString &request) const;
+
       // Records a rejected credential so that Configuration's auto-ban
       // machinery counts it, exactly as the SMTP/IMAP/POP3 front ends do.
       static void RegisterAuthenticationFailure_(const IPAddress &peer_address);

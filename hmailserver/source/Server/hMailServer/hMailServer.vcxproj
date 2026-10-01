@@ -944,6 +944,7 @@ EXIT 0
     <ClCompile Include="..\Common\Util\OutgoingFooters.cpp" />
     <ClCompile Include="..\Common\Util\SealedMessage.cpp" />
     <ClCompile Include="..\Common\Util\SignatureAdder.cpp" />
+    <ClCompile Include="..\Common\Util\SignatureHtmlSanitizer.cpp" />
     <ClCompile Include="..\Common\Util\SnmpAgent.cpp" />
     <ClCompile Include="..\Common\Util\SnmpBer.cpp" />
     <ClCompile Include="..\Common\Util\SnmpEngine.cpp" />
@@ -1865,6 +1866,7 @@ EXIT 0
     <ClInclude Include="..\Common\Util\OutgoingFooters.h" />
     <ClInclude Include="..\Common\Util\SealedMessage.h" />
     <ClInclude Include="..\Common\Util\SignatureAdder.h" />
+    <ClInclude Include="..\Common\Util\SignatureHtmlSanitizer.h" />
     <ClInclude Include="..\Common\Util\Singleton.h" />
     <ClInclude Include="..\Common\Util\SnmpAgent.h" />
     <ClInclude Include="..\Common\Util\SnmpBer.h" />

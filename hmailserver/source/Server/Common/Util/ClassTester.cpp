@@ -62,6 +62,7 @@
 #include "SnmpTester.h"
 #include "XmlTreeTester.h"
 #include "InlineScriptHash.h"
+#include "SignatureHtmlSanitizer.h"
 #include "../AntiVirus/CustomVirusScanner.h"
 #include "../Persistence/SchemaUpgrader.h"
 #include "ServiceAccount.h"
@@ -1364,6 +1365,14 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing InlineScriptHash\n"));
       InlineScriptHashTester inlineScriptHashTester;
       inlineScriptHashTester.Test();
+
+      // The account signature's HTML reduced to the subset the webmail's cleaner
+      // admits: the elements and attributes kept and dropped, a dangerous
+      // element dropped whole, the http(s)/mailto and data: image rules, the
+      // fixed point on the page's own output, and idempotence.
+      OutputDebugString(_T("hMailServer: Testing SignatureHtmlSanitizer\n"));
+      SignatureHtmlSanitizerTester signatureHtmlSanitizerTester;
+      signatureHtmlSanitizerTester.Test();
 
       OutputDebugString(_T("hMailServer: Testing the ACME TLSA record\n"));
       {

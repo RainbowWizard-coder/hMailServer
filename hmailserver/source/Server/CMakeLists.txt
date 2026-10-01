@@ -605,6 +605,21 @@ add_executable(inline-script-hash-tests ${SERVER_DIR}/platform/inline_script_has
 target_link_libraries(inline-script-hash-tests PRIVATE hmailserver_core)
 set_target_properties(inline-script-hash-tests PROPERTIES OUTPUT_NAME inline-script-hash-tests)
 
+# ---------------------------------------------------------------- the account signature's HTML
+#
+# SignatureHtmlSanitizerTester (Common/Util/SignatureHtmlSanitizer.h) as a
+# program of its own, for the reason spf-tests is one: on Windows it runs inside
+# the server through ClassTester, which nothing reaches here. An account's
+# formatted signature is reduced on the server to the subset the webmail's
+# cleaner admits; this holds the result to that cleaner's - the elements and
+# attributes kept and dropped, a dangerous element dropped whole, the
+# http(s)/mailto and data: image rules, the fixed point on the page's own output
+# and idempotence. No database, configuration, file or network. Not installed; a
+# bench tool.
+add_executable(signature-html-sanitizer-tests ${SERVER_DIR}/platform/signature_html_sanitizer_tests_main.cpp)
+target_link_libraries(signature-html-sanitizer-tests PRIVATE hmailserver_core)
+set_target_properties(signature-html-sanitizer-tests PROPERTIES OUTPUT_NAME signature-html-sanitizer-tests)
+
 # ---------------------------------------------------------------- the Public Suffix List's cut
 #
 # PublicSuffixListTester (Common/AntiSpam/DMARC/PublicSuffixList.h) as a program

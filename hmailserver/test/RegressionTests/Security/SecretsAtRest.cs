@@ -139,6 +139,10 @@ namespace RegressionTests.Security
             ClassicAssert.AreEqual(401, wrong.status, wrong.body);
             ClassicAssert.AreEqual(Md5Hex(AdminPassword), AdministratorLine(), "A refused sign-in rewrites nothing.");
 
+            // A wrong administrator password costs half a second before the next
+            // is looked at, from loopback too (RestApiHostAndThrottle).
+            Thread.Sleep(1000);
+
             (int status, string body) right = RestRequest.Send("127.0.0.1", restPort, "GET", "/api/v1/status", Basic("Administrator", AdminPassword), null);
             ClassicAssert.AreEqual(200, right.status, right.body);
             StringAssert.StartsWith("$h1$", AdministratorLine(), "The REST sign-in wrote the password again as PBKDF2.");

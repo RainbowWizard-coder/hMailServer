@@ -3766,6 +3766,70 @@ namespace RegressionTests.API
       }
 
       [Test]
+      [Description("The media type an attachment is served under is an allowlist of inert types, not a blocklist of a few named ones. A part declared one of the executable-JavaScript media-type aliases a browser runs (application/x-javascript and the rest) - which the earlier blocklist did not name and so served as it was declared - and a comma-joined pair, now go out as application/octet-stream; an image keeps its type so an <img> pointed at the route still renders. The negative control is the image part: a type the allowlist keeps must come back as itself, so the coercion is the allowlist at work and not a blanket octet-stream.")]
+      public void AnAttachmentMediaTypeIsAnAllowlist()
+      {
+         byte[] body = Encoding.ASCII.GetBytes("payload");
+
+         string raw =
+            "From: sender@example.com\r\n" +
+            "To: " + Address + "\r\n" +
+            "Subject: Attachment media types\r\n" +
+            "MIME-Version: 1.0\r\n" +
+            "Content-Type: multipart/mixed; boundary=\"b1\"\r\n" +
+            "\r\n" +
+            "--b1\r\n" +
+            "Content-Type: text/plain\r\n" +
+            "\r\n" +
+            "See attached.\r\n" +
+            // 0: an executable-JavaScript alias the old blocklist missed.
+            Base64Part("application/x-javascript", "script.js", body) +
+            // 1: a comma-joined pair - a list of types browsers read differently.
+            Base64Part("image/png,text/javascript", "mixed.png", body) +
+            // 2: a real picture - kept, so an <img> at this route still renders.
+            Base64Part("image/png", "logo.png", body) +
+            // 3: a document on the allowlist - kept.
+            Base64Part("application/pdf", "report.pdf", body) +
+            "--b1--\r\n";
+
+         SmtpClientSimulator.StaticSendRaw("sender@example.com", Address, raw);
+         Pop3ClientSimulator.AssertMessageCount(Address, UserPassword, 1);
+
+         (int status, string body) tree = Http("GET", "/api/v1/me/folders", UserHeader(UserPassword));
+         long inboxId = IdBefore(tree.body, "\"path\":\"INBOX\"");
+         long messageId = IdBefore(Http("GET", "/api/v1/me/folders/" + inboxId + "/messages", UserHeader(UserPassword)).body,
+            "\"subject\":\"Attachment media types\"");
+         string path = "/api/v1/me/messages/" + messageId + "/attachments/";
+
+         // The executable-JavaScript alias: coerced. Against the code before this
+         // fix it came back "application/x-javascript", which a browser runs.
+         Response script = Raw("GET", path + "0", UserHeader(UserPassword), null);
+         Assert.AreEqual(200, script.Status, script.Body);
+         Assert.AreEqual("application/octet-stream", script.Header("Content-Type"),
+            "A JavaScript media-type alias must not be served under its declared type.");
+         Assert.AreEqual("nosniff", script.Header("X-Content-Type-Options"));
+
+         // The comma-joined pair: coerced.
+         Response comma = Raw("GET", path + "1", UserHeader(UserPassword), null);
+         Assert.AreEqual(200, comma.Status, comma.Body);
+         Assert.AreEqual("application/octet-stream", comma.Header("Content-Type"),
+            "A comma-joined list of types must not be served under it.");
+
+         // The picture: kept (the negative control - a type the allowlist admits
+         // round-trips, so the coercions above are the allowlist and not a blanket
+         // octet-stream).
+         Response png = Raw("GET", path + "2", UserHeader(UserPassword), null);
+         Assert.AreEqual(200, png.Status, png.Body);
+         Assert.AreEqual("image/png", png.Header("Content-Type"),
+            "A picture must keep its type, or an <img> pointed at this route stops rendering.");
+
+         // A document on the allowlist: kept.
+         Response pdf = Raw("GET", path + "3", UserHeader(UserPassword), null);
+         Assert.AreEqual(200, pdf.Status, pdf.Body);
+         Assert.AreEqual("application/pdf", pdf.Header("Content-Type"));
+      }
+
+      [Test]
       [Description("q on a folder's listing finds the text in the subject, the sender or the body, whatever its case")]
       public void AFolderIsSearchedBySubjectSenderAndBody()
       {
@@ -4053,6 +4117,69 @@ namespace RegressionTests.API
 
          (int status, string body) admin = Http("GET", "/api/v1/me/settings", AdminHeader());
          Assert.AreEqual(403, admin.status, "Body: " + admin.body);
+      }
+
+      [Test]
+      [Description("The webmail is given an account's formatted signature only as the subset its own cleaner admits, whatever is stored, and the account holder's own save is stored that way: a script, an on* handler and a javascript: link are gone, the allowed formatting is kept. An administrator's signature set over COM - which is also the signature the server appends to mail the account submits - is stored as it was written, styles and all, and reduced only on its way to the webmail. Negative controls: the page's own output round-trips byte for byte, and the administrator's stored signature is not rewritten.")]
+      public void TheFormattedSignatureReachesTheWebmailCleaned()
+      {
+         // Single-quoted attributes so the HTML needs no escaping inside the JSON
+         // body; the sanitiser admits either quote.
+         const string malicious =
+            "<b>Regards</b><script>alert(1)</script>" +
+            "<a href='javascript:alert(1)'>link</a>" +
+            "<img src='x' onerror='alert(1)'>" +
+            "<p style='color:red' onclick='evil()'>Ada</p>";
+
+         // The account holder's own save, by hand rather than through the page:
+         // stored, and answered, as the page's cleaner would have left it.
+         (int status, string body) saved = Http("PUT", "/api/v1/me/settings", UserHeader(UserPassword),
+            "{\"signature\":{\"enabled\":true,\"text\":\"\",\"html\":\"" + malicious + "\"}}");
+         Assert.AreEqual(200, saved.status, "Body: " + saved.body);
+         Assert.AreEqual("<b>Regards</b>link<p>Ada</p>", SignatureHtmlOf(saved.body),
+            "The answer to the save is not the cleaned subset.");
+
+         Account reread = _domain.Accounts.ItemByAddress[Address];
+         Assert.AreEqual("<b>Regards</b>link<p>Ada</p>", (string) reread.SignatureHTML,
+            "The account holder's save was not stored as the cleaned subset.");
+
+         // An administrator's signature over COM, with a script in it and with the
+         // styles a signature for outgoing mail carries: stored as written - it is
+         // the administrator's, and SignatureAdder appends it to submitted mail -
+         // and given to the webmail, which renders it as markup at every sign-in
+         // and in a support session, cleaned. This is the path a stored signature
+         // reaches a browser by, whoever wrote it.
+         const string administrators =
+            "<u>u</u><iframe src='javascript:alert(1)'></iframe><b onmouseover='e()'>b</b>" +
+            "<span style=\"color:#123456\">styled</span><svg onload='alert(1)'><a href='x'>s</a></svg>";
+         reread.SignatureHTML = administrators;
+         reread.Save();
+
+         Account afterCom = _domain.Accounts.ItemByAddress[Address];
+         Assert.AreEqual(administrators, (string) afterCom.SignatureHTML,
+            "An administrator's signature was rewritten in the database; it is also what the server appends to mail.");
+
+         (int status, string body) given = Http("GET", "/api/v1/me/settings", UserHeader(UserPassword));
+         Assert.AreEqual(200, given.status, "Body: " + given.body);
+         Assert.AreEqual("<u>u</u><b>b</b>styled", SignatureHtmlOf(given.body),
+            "A stored signature reached the webmail without being reduced to the subset its cleaner admits.");
+
+         // The negative control: a clean signature - the page's own shape, with a
+         // named character reference of the kind an administrator writes - passes
+         // through unchanged, both ways: a fixed point.
+         const string clean = "<p><b>Ada Lovelace</b> &copy; 2026</p><a href=\"https://example.test/?a=1&amp;b=2\">site</a>";
+         (int status, string body) cleanSaved = Http("PUT", "/api/v1/me/settings", UserHeader(UserPassword),
+            "{\"signature\":{\"enabled\":true,\"text\":\"\",\"html\":\"" + clean.Replace("\"", "\\\"") + "\"}}");
+         Assert.AreEqual(200, cleanSaved.status, "Body: " + cleanSaved.body);
+         Assert.AreEqual(clean, (string) _domain.Accounts.ItemByAddress[Address].SignatureHTML, "A clean formatted signature was altered when saved.");
+         Assert.AreEqual(clean, SignatureHtmlOf(Http("GET", "/api/v1/me/settings", UserHeader(UserPassword)).body),
+            "A clean formatted signature was altered on its way to the webmail.");
+      }
+
+      private static string SignatureHtmlOf(string settingsJson)
+      {
+         var signature = (System.Collections.Generic.Dictionary<string, object>) MiniJson.Object(settingsJson)["signature"];
+         return (string) signature["html"];
       }
 
       [Test]

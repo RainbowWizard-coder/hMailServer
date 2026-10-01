@@ -214,6 +214,13 @@ sent, so the check holds; `X-Forwarded-Proto` is **not** consulted, which is why
 the origin check accepts `https` at the page's host and plain `http` only on a
 loopback name.
 
+Such a proxy, in front of the plain loopback listener, has to forward a name the
+listener answers to - since 6.3.6 it refuses any other with 421, which is what
+stops a page that rebinds its own name to this machine. The server's host name
+and the hosts of the addresses configured as the webmail's outside address pass,
+`passkey_allowed_origins` among them; [DevicesAndSessions.md](DevicesAndSessions.md)
+has the list.
+
 ### The threat model
 
 What a passkey is good against: a password guessed, reused, phished or read out

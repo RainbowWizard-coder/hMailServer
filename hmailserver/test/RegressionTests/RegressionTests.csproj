@@ -746,6 +746,7 @@
     <Compile Include="API\UpdateApply.cs" />
     <Compile Include="API\UpdateSchedule.cs" />
     <Compile Include="API\RestApiCoverage.cs" />
+    <Compile Include="API\RestApiHostAndThrottle.cs" />
     <Compile Include="API\RestApiDomains.cs" />
     <Compile Include="API\RestApiDkimRotation.cs" />
     <Compile Include="API\RestApiReputationWatch.cs" />

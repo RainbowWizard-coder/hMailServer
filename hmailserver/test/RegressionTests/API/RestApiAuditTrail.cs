@@ -384,6 +384,27 @@ namespace RegressionTests.API
       }
 
       [Test]
+      [Description("An API key created and revoked over REST is on the hash-chained audit trail. The key store is an ini file, not an audited table, so these would otherwise leave nothing in the verifiable record the Deck's Audit view walks - and an API key is a credential that can administer the server. The row carries the key's id and names the REST interface; the token the create answered once is never in the trail.")]
+      public void AnApiKeyCreatedAndRevokedIsRecorded()
+      {
+         (string id, string key) made = CreateKey("audit-apikey", "full", null);
+
+         string afterCreate = Read(AuditPath + "?limit=100");
+         string createdRow = RowWith(afterCreate, "\"object\":\"" + made.id + "\"", "\"action\":\"created\"");
+         StringAssert.Contains("\"interface\":\"REST\"", createdRow);
+         StringAssert.Contains("\"object_type\":\"api key\"", createdRow);
+
+         (int status, string body) revoked = Http("DELETE", "/api/v1/apikeys/" + made.id);
+         Assert.AreEqual(200, revoked.status, revoked.body);
+
+         string afterRevoke = Read(AuditPath + "?limit=100");
+         RowWith(afterRevoke, "\"object\":\"" + made.id + "\"", "\"action\":\"revoked\"");
+
+         StringAssert.DoesNotContain(made.key, afterRevoke,
+            "The API key's secret must never reach the audit trail.");
+      }
+
+      [Test]
       [Description("Recording can be switched off, and then nothing is recorded - which is a setting whose own change is the last thing in the trail.")]
       public void RecordingCanBeSwitchedOff()
       {

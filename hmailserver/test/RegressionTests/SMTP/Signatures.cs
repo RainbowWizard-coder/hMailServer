@@ -274,6 +274,24 @@ namespace RegressionTests.SMTP
       }
 
       [Test]
+      [Description("An administrator's formatted account signature - inline styles, a hosted logo, a styled link, the shape a signature generator writes - is appended to a message the account submits exactly as it was written, and stays so in the database. The server reduces an account signature to the webmail's subset only where the webmail is given one (GET /api/v1/me/settings) and where the account holder saves one; reduced on the account itself, every such signature lost its styles and its logo in outgoing mail, and was rewritten at the account's next save. RestApiSelfService.TheFormattedSignatureReachesTheWebmailCleaned is the other half: the same kind of signature reaches the webmail reduced.")]
+      public void AnAdministratorsStyledAccountSignatureIsAppendedAsWritten()
+      {
+         const string styled =
+            "<table style=\"border:0\"><tr><td><img src=\"https://cdn.example.test/logo.png\" width=\"80\" alt=\"Example\"></td>" +
+            "<td style=\"color:#123456;font-family:Arial\">Ada Lovelace &copy; 2026<br>" +
+            "<a href=\"https://example.test/\" style=\"color:#00aa00\">example.test</a></td></tr></table>";
+
+         var message = SendMessageWithSignature("PlainTextSignature", styled,
+            TestResources.EmailWith_TextPlainBody_TextHtmlBody_TextPlainAttachment);
+
+         Assert.IsTrue(message.HTMLBody.Contains(styled), "The signature was not appended as written: " + message.HTMLBody);
+
+         Account reread = _domain.Accounts.ItemByAddress[_account.Address];
+         Assert.AreEqual(styled, (string) reread.SignatureHTML, "The stored signature was rewritten.");
+      }
+
+      [Test]
       public void TestMimeModificationEmailWithPlaintextAttachment()
       {
          var message = SendMessageWithSignature("PlainTextSignature", "HtmlSignature",

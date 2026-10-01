@@ -19,6 +19,7 @@
 #include "StdAfx.h"
 #include "RestApiServer.h"
 #include "AddressTraceEraser.h"
+#include "AuditTrail.h"
 #include "JsonDocument.h"
 #include "MessageExport.h"
 #include "PersonExport.h"
@@ -368,12 +369,31 @@ namespace HM
 
       if (route.kind == RouteAdminSecondFactorDisable)
       {
+         // Asked before it is cleared, so that the trail records a factor taken
+         // off and not a request that found none: a DELETE with nothing enrolled
+         // changes nothing, and a row saying the factor was removed would be a
+         // false entry in the record people read to find out when it was.
+         const bool wasEnrolled = ini->IsAdministratorTotpEnrolled();
+
          if (!ini->SetAdministratorTotpSecret(String()))
             return BuildResponse_(500, "{\"error\":\"The secret could not be removed from hMailServer.INI. Nothing has been changed; see the hMailServer error log.\"}");
 
          SecondFactorGuard::ForgetOwner(_T("administrator"));
 
          LOG_APPLICATION(_T("The administrator's second factor was disabled over the REST API."));
+
+         // On the hash-chained audit trail too. The second factor guards the
+         // full-authority administrator credential; turning it off is a
+         // security-critical change the tamper-evident record the Deck's Audit
+         // view reads must hold. The secret lives in [Security] of
+         // hMailServer.INI, written with WritePrivateProfileString and not
+         // through the settings chokepoint, so it is recorded here. Never the
+         // secret, which is in no log.
+         if (wasEnrolled)
+         {
+            AuditTrail::Instance()->RecordEvent(_T("administrator"), _T("second factor"), _T("disabled"),
+               _T("the administrator's one-time-code second factor was removed"));
+         }
          return BuildResponse_(200, "{\"enrolled\":false}");
       }
 
@@ -403,6 +423,13 @@ namespace HM
       // leaves the server. Enforced from this moment: the next logon with the
       // administrator password needs the code.
       LOG_APPLICATION(_T("The administrator's second factor was enrolled over the REST API."));
+
+      // On the hash-chained audit trail too, for the reason the disable path
+      // gives: enrolling a second factor on the full-authority administrator
+      // credential is a security-critical change, and the secret store it writes
+      // is not an audited table. Never the secret or the URI that carries it.
+      AuditTrail::Instance()->RecordEvent(_T("administrator"), _T("second factor"), _T("enrolled"),
+         _T("a one-time-code second factor was enrolled on the administrator credential"));
       return BuildResponse_(200, "{\"enrolled\":true,\"uri\":\"" + JsonEscape_(Totp::BuildOtpAuthUri("Administrator", secret)) + "\"}");
    }
 

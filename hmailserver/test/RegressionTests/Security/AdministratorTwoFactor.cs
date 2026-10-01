@@ -275,6 +275,46 @@ namespace RegressionTests.Security
          StringAssert.Contains("second_factor_locked", overRest.body);
       }
 
+      [Test]
+      [Description("Enrolling and disabling the administrator's second factor over COM - the Control Panel's way - each leave a row on the hash-chained audit trail, as the REST route's do: the secret lives in hMailServer.INI, outside every audited table and the settings chokepoint, so nothing else would record it. The secret is in neither row. A disable that finds nothing enrolled changes nothing and leaves no row - the negative control, and what keeps the trail from saying a factor was removed when none was.")]
+      public void EnrollingAndDisablingAreOnTheAuditTrail()
+      {
+         EnableRest();
+
+         int enrolledBefore = SecondFactorRows("enrolled");
+         int disabledBefore = SecondFactorRows("disabled");
+
+         _settings.DisableAdministratorTOTP();
+         Assert.AreEqual(disabledBefore, SecondFactorRows("disabled"),
+            "A disable that found nothing enrolled was recorded as a second factor taken off.");
+
+         string secret = Enrol();
+         _settings.DisableAdministratorTOTP();
+
+         Assert.AreEqual(enrolledBefore + 1, SecondFactorRows("enrolled"), "The enrolment over COM is not on the audit trail.");
+         Assert.AreEqual(disabledBefore + 1, SecondFactorRows("disabled"), "The disable over COM is not on the audit trail.");
+
+         var trail = Http("GET", "/api/v1/audit?object_type=administrator&limit=200", BasicHeader(), null);
+         StringAssert.DoesNotContain(secret, trail.body, "The second-factor secret reached the audit trail.");
+      }
+
+      // The administrator's second-factor rows of the audit trail with the given
+      // action, read with the password alone (no factor is enrolled when it is
+      // asked).
+      private int SecondFactorRows(string action)
+      {
+         var trail = Http("GET", "/api/v1/audit?object_type=administrator&limit=200", BasicHeader(), null);
+         Assert.AreEqual(200, trail.status, trail.body);
+
+         int count = 0;
+         foreach (string entry in trail.body.Split(new[] { "},{" }, StringSplitOptions.None))
+         {
+            if (entry.Contains("\"object\":\"second factor\"") && entry.Contains("\"action\":\"" + action + "\""))
+               count++;
+         }
+         return count;
+      }
+
       // ----------------------------------------------------------------------
 
       private string Enrol()

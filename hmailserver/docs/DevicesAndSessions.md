@@ -141,6 +141,17 @@ terminates HTTPS in front of the loopback listener should set
 `X-Forwarded-Proto: https`; one that does not leaves the cookies without `Secure`,
 as they were.
 
+Since 6.3.6 the same answer brings `Strict-Transport-Security: max-age=31536000`,
+on everything the listener sends a browser that came over HTTPS - to its own
+certificate or through that proxy - so the browser goes back over HTTPS for a
+year, and a network that rewrites a later `http://` link to plain HTTP gets
+nothing to read. It is never sent on the plain loopback path, and it names the
+host the browser used and not the hosts under it: there is no
+`includeSubDomains`, because the listener does not own the names below the one
+it is reached at. A browser reads only the first such header it is sent, so a
+proxy that sends its own - with `includeSubDomains` or `preload` - should take
+the server's out (`proxy_hide_header Strict-Transport-Security` in nginx).
+
 | Policy | Server-wide (`hm_settings`, `Settings.*` over COM, the settings group over REST) | Per domain (a field of the domain over REST and the Deck; `Utilities.SetDomainSessionPolicy` over COM) | What it does |
 |---|---|---|---|
 | Idle timeout | `SessionIdleSeconds` / `session_idle_seconds` | `session_idle_seconds` | How long a session may go unused before it ends. 0 is *not set*: 1800 seconds applies. At most 2592000 (thirty days). |
@@ -188,6 +199,41 @@ In the Control Deck the four server-wide values are on the Settings page under
 the server group, and the four per-domain ones are the fifth group of a
 domain's dialog. In the desktop Control Panel the four server-wide values are on
 Connections & protocols > Webmail, the Browser sessions tab, over COM.
+
+Which `Host` the listener answers
+---------------------------------
+
+The plain listener, which listens on the loopback address only, answers a
+request only under a `Host` it expects, and refuses any other with **421** before
+anything is served or any credential is read. A web page that gets a browser to
+send its requests here - a name of the page's own that its DNS answers first with
+the page's address and then with `127.0.0.1` - sends that name, and so is turned
+away. The names that pass:
+
+* no `Host` at all - an HTTP/1.0 client such as `curl` or a script; a browser
+  always sends one;
+* `localhost`, any name under `.localhost`, and any IP address, written as one
+  (`127.0.0.1`, `[::1]`, `192.0.2.10`, with or without a port) - none of them a
+  name anybody's DNS answers for;
+* the server's host name, the name it greets mail with (`Settings.HostName` over
+  COM, `host_name` over REST);
+* the host of each address an administrator has given as the one the webmail is
+  reached at from outside: `confidential_base_url`, `quarantine_digest_base_url`,
+  `import_oauth_redirect_base_url`, `smime_authority_base_url`, `list_base_url`,
+  `oidc_redirect_base_url` (with the address SAML sign-in returns to), and every
+  origin in `passkey_allowed_origins`.
+
+A reverse proxy that sends the listener its own upstream address as the `Host`
+(`127.0.0.1:8045`, nginx's default and Apache's without `ProxyPreserveHost`)
+passes as it is. One that forwards the browser's `Host` - Caddy, Traefik, IIS with
+`preserveHostHeader`, nginx with `proxy_set_header Host $host` - passes when that
+name is the server's host name or the host of one of those addresses; when it is
+neither, set the one that says where the webmail is reached from outside to its
+address (`https://webmail.example.com`), or `passkey_allowed_origins` to its
+origin. The first refusal in any ten minutes is named in the application log.
+A listener with its own certificate is not checked: the certificate is what
+stops a page under another name, which the browser refuses for not being the
+certificate's.
 
 What is stored, and what a backup carries
 -----------------------------------------

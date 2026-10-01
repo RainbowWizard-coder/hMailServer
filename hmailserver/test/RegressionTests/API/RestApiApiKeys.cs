@@ -528,17 +528,28 @@ namespace RegressionTests.API
 
                // 0 is what the helper reports when the server closed the
                // connection without answering, which is how a refused caller
-               // would look. Every one of these must still be an honest 401.
-               Assert.AreEqual(401, wrong.status,
-                  "Attempt " + i + " from 127.0.0.1 must be answered, not refused. Body: " + wrong.body);
+               // would look. Every one of these must still be answered: 401, or
+               // - since 6.3.6 - 429 while the delay a wrong administrator
+               // password costs is running (RestApiHostAndThrottle), which is a
+               // delay on the password and not a ban on the address.
+               Assert.IsTrue(wrong.status == 401 || wrong.status == 429,
+                  "Attempt " + i + " from 127.0.0.1 must be answered, not refused: " + wrong.status + ". Body: " + wrong.body);
 
                Assert.AreEqual(401, Bearer("GET", "/api/v1/status", "hmapi_" + new string('1', 64)).status,
                   "Attempt " + i + " with a bad bearer token must be answered, not refused.");
             }
 
             // The credential that is correct still works, from the same address,
-            // straight after all of that.
-            Assert.AreEqual(200, Basic("GET", "/api/v1/status").status,
+            // once the delay the last wrong one set has passed - capped at ten
+            // seconds, and at most a few after nine guesses this quick.
+            int answered = 0;
+            for (int wait = 0; wait < 24 && answered != 200; wait++)
+            {
+               answered = Basic("GET", "/api/v1/status").status;
+               if (answered == 429)
+                  Thread.Sleep(500);
+            }
+            Assert.AreEqual(200, answered,
                "The administrator must not be locked out of the management interface by their own typing.");
 
             // And nothing was banned: no new IP range, so local mail is

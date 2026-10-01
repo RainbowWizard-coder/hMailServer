@@ -16,6 +16,8 @@
 #include "HttpServer.h"
 #include "HttpCompression.h"
 #include "InlineScriptHash.h"
+#include "InertMediaType.h"
+#include "SignatureHtmlSanitizer.h"
 #include "HttpsClient.h"
 #include "JsonDocument.h"
 #include "Encoding/ModifiedUTF7.h"
@@ -24,6 +26,7 @@
 #include <chrono>
 #include <functional>
 #include <map>
+#include <atomic>
 #include <mutex>
 #include "../Application/MetricsHistoryTask.h"
 #include "ServerStatus.h"
@@ -324,6 +327,205 @@ namespace HM
 
       std::mutex credential_rate_mutex;
       std::vector<CredentialRate> credential_rates;
+
+      // ------------------------------------------------------------------
+      // The failed-sign-in throttle for the administrator password.
+      //
+      // The auto-ban that answers a brute force against the mail ports and this
+      // one is exempt for loopback (RegisterAuthenticationFailure_), because a
+      // ban covering 127.0.0.1 would shut out the server's own local clients and
+      // a reverse proxy on the same host. That exemption leaves the loopback
+      // path - every browser behind a same-host proxy, and anything else on
+      // this machine - with no cost on a wrong guess, so this adds one that
+      // applies even there: after a wrong administrator password, on any route,
+      // the next guess from the same source is refused at once with 429 and
+      // Retry-After until a growing, capped delay has passed. The delay caps low
+      // (the administrator waits seconds, not minutes), decays when no failure
+      // follows, and is cleared the moment the right password is given; but a
+      // source that keeps guessing keeps it closed for everyone at that source,
+      // which behind a proxy is everyone - a delay on a shared secret cannot
+      // tell the guesser from the administrator, and the administrator's API
+      // keys, passkey and single sign-on do not pass through it. Nothing is
+      // slept on a worker thread - a refused attempt returns at once - so a
+      // flood cannot tie the workers up. Keyed per credential and per source, so
+      // an attacker at another source only delays itself.
+      struct SessionFailure
+      {
+         AnsiString key;                  // credential identity + '\n' + source address
+         ULONGLONG last_failure_at = 0;   // for the decay
+         ULONGLONG next_allowed_at = 0;   // a guess before this is refused without being tried
+         int count = 0;                   // consecutive failures, for the growing delay
+      };
+
+      std::mutex session_failure_mutex;
+      std::vector<SessionFailure> session_failures;
+
+      // Doubling from half a second, capped at ten: 0.5, 1, 2, 4, 8, 10, 10...
+      // Ten seconds against a six-digit code and a strong password is a stop; it
+      // is also the most an attacker sharing the loopback bucket can delay the
+      // administrator, which is an annoyance and not a lockout.
+      const ULONGLONG SessionThrottleBaseMs = 500;
+      const ULONGLONG SessionThrottleCapMs = 10ULL * 1000;
+      // A bucket with no failure for this long is forgotten: the delay heals
+      // itself without a sign-in and without a restart.
+      const ULONGLONG SessionFailureDecayMs = 15ULL * 60 * 1000;
+      // A hard bound on the memory, whatever an attacker does with sources.
+      const size_t MaxThrottledSessions = 512;
+
+      ULONGLONG SessionThrottleDelayFor(int count)
+      {
+         ULONGLONG delay = SessionThrottleBaseMs;
+         for (int i = 1; i < count && delay < SessionThrottleCapMs; i++)
+            delay *= 2;
+         return delay > SessionThrottleCapMs ? SessionThrottleCapMs : delay;
+      }
+
+      // ------------------------------------------------------------------
+      // The Host header, for the rebinding check.
+      //
+      // A Host header value reduced to its host, lower case, without the port or
+      // the brackets an IPv6 literal carries: "Mail.Example.COM:8045" becomes
+      // "mail.example.com" and "[::1]:8045" becomes "::1". Empty for an empty
+      // value.
+      AnsiString HostName(const AnsiString &value)
+      {
+         AnsiString host = value;
+         host.Trim();
+         if (host.IsEmpty())
+            return "";
+
+         if (host.GetAt(0) == '[')
+         {
+            const int close = host.Find("]");
+            host = close > 0 ? host.Mid(1, close - 1) : host.Mid(1);
+         }
+         else
+         {
+            // host:port - the single colon a Host header carries. A bare IPv6
+            // literal (several colons, no brackets) is not a legal Host value and
+            // is left to fail the comparison.
+            const int colon = host.Find(":");
+            if (colon >= 0 && host.Find(":", colon + 1) < 0)
+               host = host.Mid(0, colon);
+         }
+
+         host.ToLower();
+         return host;
+      }
+
+      // The host of an absolute URL a setting holds
+      // ("https://mail.example.com/x" -> "mail.example.com"), or empty when the
+      // value is not one. A bare host (the passkey relying party) is taken as it
+      // is by the caller.
+      AnsiString HostFromUrl(const AnsiString &url)
+      {
+         AnsiString text = url;
+         text.Trim();
+         const int scheme = text.Find("://");
+         if (scheme < 0)
+            return "";
+
+         AnsiString rest = text.Mid(scheme + 3);
+         int cut = rest.GetLength();
+         for (int i = 0; i < rest.GetLength(); i++)
+         {
+            const char c = rest.GetAt(i);
+            if (c == '/' || c == '?' || c == '#')
+            {
+               cut = i;
+               break;
+            }
+         }
+         rest = rest.Mid(0, cut);
+
+         const int at = rest.Find("@");
+         if (at >= 0)
+            rest = rest.Mid(at + 1);
+
+         return HostName(rest);
+      }
+
+      // Whether a host (as HostName leaves it) is an IP address written out: an
+      // IPv4 dotted quad, four decimal numbers of at most 255, or an IPv6 literal
+      // - hexadecimal digits, colons and the dots of an embedded IPv4 tail, with
+      // at least two colons. A browser's Host is the name in the address it was
+      // given, and an address literal is not a name anybody's DNS answers for,
+      // so it can never be the name a rebinding page stands under. Strict, so
+      // that a name which merely starts like an address is not taken for one.
+      bool IsAddressLiteral(const AnsiString &host)
+      {
+         const int length = host.GetLength();
+         if (length == 0 || length > 45)
+            return false;
+
+         if (host.Find(":") >= 0)
+         {
+            int colons = 0;
+            for (int i = 0; i < length; i++)
+            {
+               const char c = host.GetAt(i);
+               const bool hex = (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f');
+               if (c == ':')
+                  colons++;
+               else if (!hex && c != '.')
+                  return false;
+            }
+            return colons >= 2;
+         }
+
+         int parts = 0;
+         int digits = 0;
+         int value = 0;
+         for (int i = 0; i <= length; i++)
+         {
+            const char c = i < length ? host.GetAt(i) : '.';
+            if (c == '.')
+            {
+               if (digits == 0 || value > 255)
+                  return false;
+               parts++;
+               digits = 0;
+               value = 0;
+               continue;
+            }
+            if (c < '0' || c > '9' || ++digits > 3)
+               return false;
+            value = value * 10 + (c - '0');
+         }
+         return parts == 4;
+      }
+
+      // A Host refused, said in the application log - at most once in ten
+      // minutes, so that a page hammering the listener under a rebound name, or
+      // a proxy forwarding a name not yet configured, is one line and not a
+      // flood. The name is written with nothing but the characters a host name
+      // has, and cut short, since it is what the client sent.
+      std::atomic<ULONGLONG> refused_host_reported_at(0);
+
+      void ReportRefusedHost(const AnsiString &host)
+      {
+         const ULONGLONG now = GetTickCount64();
+         ULONGLONG last = refused_host_reported_at.load();
+         if (last != 0 && now - last < 10ULL * 60 * 1000)
+            return;
+         if (!refused_host_reported_at.compare_exchange_strong(last, now))
+            return;
+
+         AnsiString shown;
+         for (int i = 0; i < host.GetLength() && shown.GetLength() < 64; i++)
+         {
+            const char c = host.GetAt(i);
+            if ((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '.' || c == '-' || c == ':' || c == '_')
+               shown += c;
+            else
+               shown += '?';
+         }
+
+         LOG_APPLICATION("RestApi: a request for the Host '" + String(shown) + "' was refused with 421: the plain listener "
+            "answers a loopback name, an IP address and the names configured as the webmail's outside address and the "
+            "server's host name. A reverse proxy that forwards the browser's Host needs that name configured; see "
+            "docs/DevicesAndSessions.md. (Said at most once in ten minutes.)");
+      }
 
       // ------------------------------------------------------------------
       // The refused-source set.
@@ -1052,6 +1254,28 @@ namespace HM
          {
             HttpResponse response = ProcessRequest_(request.raw, request.peer);
 
+            // HTTP Strict Transport Security, on every response the browser
+            // reached over TLS - a listener with its own certificate, or the
+            // loopback proxy in front of the plain listener that says
+            // X-Forwarded-Proto: https (BrowserCameOverTls_). The Deck and the
+            // webmail are meant to be reached remotely over TLS, and without this
+            // a network attacker could strip a later navigation - one typed or
+            // linked as http:// - to plain HTTP and read the password and
+            // one-time code as they are typed. Added here, once, so it covers the
+            // Deck, the portal, the API and every download; never on the
+            // plain-loopback path, where there is no TLS to pin. A browser
+            // ignores it for an IP address, which is harmless.
+            //
+            // For the name the browser used and not the names under it: no
+            // includeSubDomains. This listener does not own the names below the
+            // one it is reached at - reached at a domain's own name, it would pin
+            // every host of that domain to HTTPS for a year, an intranet page
+            // served over plain HTTP among them. An administrator who wants the
+            // wider pin, or preloading, sets it at the proxy, which is where the
+            // whole site is known.
+            if (BrowserCameOverTls_(request.raw, request.peer))
+               response.extra_headers += "Strict-Transport-Security: max-age=31536000\r\n";
+
             // Compression is for the server's own documents and nothing
             // built from the database: CompressibleRoute_ above says which,
             // and HttpCompression.cpp says why.
@@ -1147,6 +1371,7 @@ namespace HM
       // is dropped rather than surviving into the next Start().
       ClearRefusedAddresses_();
       ClearRequestRates_();
+      ClearSessionFailures_();
       ClearBrowserSessions_();
       ClearWrongCodes_();
 
@@ -1700,6 +1925,203 @@ namespace HM
       credential_rates.shrink_to_fit();
    }
 
+   // The user name an HTTP Basic credential carries, lower-cased ("administrator"
+   // or an account address), or empty when the request carries no Basic
+   // credential - a bearer token, a session cookie, a passkey or a single sign-on
+   // ticket. Read from the request head only, as Authenticate_ reads it, so the
+   // throttle asks about exactly the credential Authenticate_ is about to judge.
+   AnsiString
+   RestApiServer::BasicUserName_(const AnsiString &request)
+   {
+      const AnsiString header = GetAuthorizationHeader_(request);
+      if (header.GetLength() >= 6 && header.Mid(0, 6).CompareNoCase("basic ") == 0)
+      {
+         AnsiString encoded = header.Mid(6);
+         encoded.Trim();
+         const AnsiString decoded = Base64::Decode(encoded, encoded.GetLength());
+         const int separator = decoded.Find(":");
+         if (separator > 0)
+         {
+            AnsiString user = decoded.Mid(0, separator);
+            user.ToLower();
+            return user;
+         }
+      }
+      return "";
+   }
+
+   // The milliseconds a failed-sign-in throttle still holds this credential and
+   // source, or 0 when a guess may be tried now. A bucket untouched for the decay
+   // window is forgotten here, so the delay heals itself.
+   int
+   RestApiServer::SessionThrottleRetryMs_(const AnsiString &identity, const IPAddress &peer_address)
+   {
+      const AnsiString key = identity + "\n" + peer_address.ToString();
+      const ULONGLONG now = GetTickCount64();
+
+      std::lock_guard<std::mutex> guard(session_failure_mutex);
+
+      for (std::vector<SessionFailure>::iterator it = session_failures.begin(); it != session_failures.end();)
+      {
+         if (now - it->last_failure_at >= SessionFailureDecayMs)
+         {
+            it = session_failures.erase(it);
+            continue;
+         }
+         if (it->key == key)
+            return now < it->next_allowed_at ? (int) (it->next_allowed_at - now) : 0;
+         ++it;
+      }
+
+      return 0;
+   }
+
+   // A failed POST /session for this credential and source: the next guess waits
+   // a little longer than the last, up to the cap. Counted even for loopback,
+   // which the auto-ban leaves alone.
+   void
+   RestApiServer::RegisterSessionFailure_(const AnsiString &identity, const IPAddress &peer_address)
+   {
+      const AnsiString key = identity + "\n" + peer_address.ToString();
+      const ULONGLONG now = GetTickCount64();
+
+      std::lock_guard<std::mutex> guard(session_failure_mutex);
+
+      // Drop the decayed, so the cap below is only reached by live throttles.
+      session_failures.erase(
+         std::remove_if(session_failures.begin(), session_failures.end(),
+            [now](const SessionFailure &entry) { return now - entry.last_failure_at >= SessionFailureDecayMs; }),
+         session_failures.end());
+
+      for (size_t i = 0; i < session_failures.size(); i++)
+      {
+         if (session_failures[i].key == key)
+         {
+            session_failures[i].count++;
+            session_failures[i].last_failure_at = now;
+            session_failures[i].next_allowed_at = now + SessionThrottleDelayFor(session_failures[i].count);
+            return;
+         }
+      }
+
+      SessionFailure entry;
+      entry.key = key;
+      entry.count = 1;
+      entry.last_failure_at = now;
+      entry.next_allowed_at = now + SessionThrottleDelayFor(1);
+
+      if (session_failures.size() < MaxThrottledSessions)
+      {
+         session_failures.push_back(entry);
+         return;
+      }
+
+      // Full: replace the one closest to being forgotten, so this is a hard bound
+      // on memory whatever an attacker does with sources.
+      size_t soonest = 0;
+      for (size_t i = 1; i < session_failures.size(); i++)
+      {
+         if (session_failures[i].last_failure_at < session_failures[soonest].last_failure_at)
+            soonest = i;
+      }
+      session_failures[soonest] = entry;
+   }
+
+   // The right credential was given: the throttle for it is cleared at once, so a
+   // sign-in that a few typos had slowed is not slowed after it succeeds.
+   void
+   RestApiServer::ClearSessionFailure_(const AnsiString &identity, const IPAddress &peer_address)
+   {
+      const AnsiString key = identity + "\n" + peer_address.ToString();
+
+      std::lock_guard<std::mutex> guard(session_failure_mutex);
+
+      session_failures.erase(
+         std::remove_if(session_failures.begin(), session_failures.end(),
+            [&key](const SessionFailure &entry) { return entry.key == key; }),
+         session_failures.end());
+   }
+
+   void
+   RestApiServer::ClearSessionFailures_()
+   {
+      std::lock_guard<std::mutex> guard(session_failure_mutex);
+
+      session_failures.clear();
+      session_failures.shrink_to_fit();
+   }
+
+   // The administration console is reached under a Host this server expects, or
+   // the request is refused before it is authenticated - the defeat of DNS
+   // rebinding against the plain loopback listener. A page a browser was rebound
+   // to this address sends that page's own name, which an attacker controls the
+   // DNS of, and is turned away with no credential ever looked at.
+   //
+   // Which names pass, on the plain listener (which Start allows on loopback
+   // only):
+   //   * no Host at all - an HTTP/1.0 caller (curl, the PowerShell module); a
+   //     browser always sends one, so a missing Host is not the rebinding vector;
+   //   * localhost, any name under .localhost, and any IP address literal - none
+   //     of them a name a rebinding page can stand under, since a page's Host is
+   //     the name it was loaded from and a browser never asks DNS for these;
+   //   * the names an administrator configured: the server's host name
+   //     (Settings.HostName, the name it greets mail with), and the host of each
+   //     address the webmail is reached at from outside - the confidential,
+   //     quarantine-digest, import-redirect, S/MIME-authority and list base URLs,
+   //     the single-sign-in return address and the passkey allowed origins. A
+   //     reverse proxy in front of the loopback listener forwards one of these,
+   //     or its own upstream address (127.0.0.1:port), which passes as an
+   //     address; one that forwards the browser's Host under a name named
+   //     nowhere is refused until the name is configured (docs/DevicesAndSessions.md).
+   // A TLS listener is not checked: its certificate already stops a rebind (the
+   // name the browser asked for is not the one the certificate carries), so an
+   // unexpected Host there is an administrator reaching the console directly by
+   // a name this server was not told, and is answered.
+   bool
+   RestApiServer::HostAllowed_(const AnsiString &request) const
+   {
+      if (use_tls_)
+         return true;
+
+      const AnsiString host = HostName(GetHeader_(request, "host"));
+
+      if (host.IsEmpty())
+         return true;
+
+      if (host == "localhost" || host.EndsWith(".localhost") || IsAddressLiteral(host))
+         return true;
+
+      std::vector<AnsiString> configured;
+      auto add = [&configured](const AnsiString &h) { if (!h.IsEmpty()) configured.push_back(h); };
+      add(HostName(AnsiString(Configuration::Instance()->GetHostName())));
+      add(HostFromUrl(AnsiString(Configuration::Instance()->GetConfidentialBaseUrl())));
+      add(HostFromUrl(AnsiString(Configuration::Instance()->GetQuarantineDigestBaseUrl())));
+      add(HostFromUrl(AnsiString(Configuration::Instance()->GetImportOAuthRedirectBaseUrl())));
+      add(HostFromUrl(AnsiString(Configuration::Instance()->GetSmimeAuthorityBaseUrl())));
+      add(HostFromUrl(AnsiString(Configuration::Instance()->GetListBaseUrl())));
+      // The single-sign-in return address, which a browser reaches by a top-level
+      // navigation back from the identity provider and so under the webmail's
+      // outside name - the same name a reverse proxy forwards. These resolvers are
+      // exactly what OIDC advertises as its redirect_uri and SAML as its assertion
+      // consumer URL (OidcRedirectBaseUrl, else the import redirect base already
+      // added above), so the host always matches the one the provider sends the
+      // browser back to; empty, and skipped, when neither is configured.
+      add(HostFromUrl(OidcSignIn::RedirectUri()));
+      add(HostFromUrl(SamlSignIn::AcsUrl()));
+      const std::vector<AnsiString> origins = PasskeyStore::AllowedOrigins();
+      for (size_t i = 0; i < origins.size(); i++)
+         add(HostFromUrl(origins[i]));
+
+      for (size_t i = 0; i < configured.size(); i++)
+      {
+         if (configured[i] == host)
+            return true;
+      }
+
+      ReportRefusedHost(host);
+      return false;
+   }
+
    bool
    RestApiServer::IsRefusedAddress_(const IPAddress &peer_address)
    {
@@ -1909,6 +2331,16 @@ namespace HM
                              OtelTraceContext::FromHttpRequest(request));
       otelSpan.AddAttribute("http.target", path);
 
+      // The Host, before anything else - before the unauthenticated page is even
+      // served, and before any credential is looked at. A request whose Host is
+      // not one this server answers to is a browser a hostile page rebound to
+      // this address (it sends that page's name, which is neither loopback nor a
+      // name the administrator configured) and is turned away here, which is what
+      // stops DNS rebinding from reaching the loopback console. A reverse proxy's
+      // forwarded Host is one of the configured names and passes.
+      if (!HostAllowed_(request))
+         return BuildResponse_(421, "{\"error\":\"the request's Host is not one this server answers to: a reverse proxy that forwards the browser's Host needs that name configured (docs/DevicesAndSessions.md)\"}");
+
       // The web admin SPA shell is served without authentication (it is a
       // static login page). This is the only unauthenticated route in the
       // listener: everything else goes through Authenticate_ below, once, and
@@ -2117,11 +2549,60 @@ namespace HM
 
       try
       {
+         // A wrong administrator password costs a growing delay, even from
+         // loopback where the auto-ban does not reach - and behind a reverse
+         // proxy on this machine, every browser is loopback. The guess is refused
+         // before it is looked at while its source is still inside that delay, so
+         // a brute force of the administrator password is slowed to a guess every
+         // few seconds, not every few milliseconds, without a worker thread ever
+         // being slept.
+         //
+         // On EVERY route, not only POST /api/v1/session: HTTP Basic with the
+         // administrator's name is accepted on each of them, so a throttle on the
+         // sign-in route alone would leave the same guess open one path over
+         // (GET /api/v1/status answers a right password 200 and a wrong one 401).
+         //
+         // Only the administrator credential: an account's password meets
+         // AccountLogon's per-name lockout on every route, loopback included; the
+         // administrator password is the one credential exempt from both that
+         // lockout (by design - it is not a mailbox name) and the loopback
+         // auto-ban, and so the one this fills. Keyed per source and capped at ten
+         // seconds, and cleared the moment the right password is given; the
+         // administrator's API keys, passkey and single sign-on are not touched by
+         // it. What a delay on a shared secret cannot prevent: whoever shares the
+         // source - the same machine, or the same proxy - and keeps guessing keeps
+         // the password waiting while it does, which is the price of the guesses
+         // not being free.
+         const bool adminBasic = BasicUserName_(request) == "administrator";
+         if (adminBasic)
+         {
+            const int waitMs = SessionThrottleRetryMs_("administrator", peer_address);
+            if (waitMs > 0)
+            {
+               const int retryAfter = (waitMs + 999) / 1000;
+               AnsiString headers;
+               headers.Format("Retry-After: %d\r\n", retryAfter < 1 ? 1 : retryAfter);
+               return BuildResponse_(429, "{\"error\":\"too many sign-in attempts; wait and try again\"}", headers);
+            }
+         }
+
          // Inside the try: authenticating a bearer token reads the key store and
          // recording a failure touches the database, neither of which may turn
          // an unauthenticated request into an unhandled exception on the single
          // REST worker thread.
          Caller caller = Authenticate_(request, peer_address);
+
+         // The outcome of an administrator password feeds the throttle above: a
+         // wrong one lengthens the delay; one that proved out clears it (a missing
+         // or wrong one-time code is the second-factor guard's to count, not a
+         // wrong password, so it is left alone here).
+         if (adminBasic)
+         {
+            if (caller.result == AuthenticatedAsAdministrator)
+               ClearSessionFailure_("administrator", peer_address);
+            else if (caller.result == AuthenticationFailed && !caller.second_factor_required)
+               RegisterSessionFailure_("administrator", peer_address);
+         }
 
          // Cross-site request forgery, closed twice over: the cookie is
          // SameSite=Strict, so another site's request does not carry it, and
@@ -10743,6 +11224,22 @@ namespace HM
          sendFrom.IsEmpty() ? _T("(nobody - it does not send)") : sendFrom.c_str());
       LOG_APPLICATION(created);
 
+      // On the hash-chained audit trail as well as the application log. An API
+      // key is a credential that can administer the server; minting one is a
+      // change the tamper-evident record the Deck's Audit view reads must hold,
+      // beside the password change and the role grant it already holds. The
+      // token is a secret and is in no log; the id, the scope and the limits
+      // only. The key store is an ini file, not an audited table, so neither the
+      // statement nor the setting chokepoint sees this - it is recorded here.
+      String keyDetail;
+      keyDetail.Format(_T("scope %s, role %s, domains %s, expires %s, source %s"),
+         readOnly ? ApiKeyScopeReadOnly : ApiKeyScopeFull,
+         role.IsEmpty() ? _T("(from the scope)") : String(role).c_str(),
+         normalizedDomains.IsEmpty() ? _T("(all)") : normalizedDomains.c_str(),
+         expires.IsEmpty() ? _T("(none)") : String(expires).c_str(),
+         allowedFrom.IsEmpty() ? _T("(any)") : String(allowedFrom).c_str());
+      AuditTrail::Instance()->RecordEvent(_T("api key"), String(id), _T("created"), keyDetail);
+
       // The clear-text token is returned exactly once, here. It is not stored
       // and cannot be recovered afterwards.
       AnsiString body;
@@ -10804,6 +11301,13 @@ namespace HM
       }
 
       LOG_APPLICATION("RestApi: API key '" + label + "' (" + String(id) + ") revoked.");
+
+      // On the hash-chained audit trail too: revoking a credential that can
+      // administer the server is a change the tamper-evident record must hold.
+      // The key store is an ini file, not an audited table, so it is recorded
+      // here, with the key's own label for the detail.
+      AuditTrail::Instance()->RecordEvent(_T("api key"), String(id), _T("revoked"),
+         label.IsEmpty() ? String(_T("(no label)")) : label);
 
       // Its record of what it sent through the send API goes with it: nobody can
       // read it any more, it names addresses (Bcc among them), and with
@@ -18693,27 +19197,30 @@ namespace HM
          return ascii;
       }
 
-      // A media type that a browser would run or render is not served under
-      // it: with the session cookie attached, an attachment that rendered as
-      // a page on this origin could act as the page. Everything else keeps
-      // its type; the disposition, nosniff and the sandbox policy hold too.
+      // The media type an attachment is served under. The part declares it, and
+      // the part is whatever the sender built, so this is a type somebody else
+      // chose - and the response carries nosniff, under which the media type is
+      // what a browser decides the bytes are. A blocklist of the few script and
+      // document types missed the executable-JavaScript aliases a browser also
+      // runs (application/x-javascript, application/ecmascript, text/jscript and
+      // the rest) and a comma-joined pair; so the declared type is kept only when
+      // it is on the list of types no browser runs, applies or renders as a page
+      // - pictures, sound, video, PDF, text, the office formats and the archives
+      // - and is application/octet-stream otherwise (InertMediaType.h, the same
+      // allowlist a file sent as a link and a contact's photo are held to). A
+      // picture kept keeps an <img> pointed at this route rendering, with nosniff
+      // set, as before.
+      //
+      // The part's own parameters are taken off first (MediaType): a mail part
+      // almost always carries name= beside the type ("image/png; name=\"logo.png\""),
+      // and the allowlist admits only a charset parameter, so the bare essence is
+      // what it is held to - otherwise every named attachment, a picture among
+      // them, would fall to octet-stream and an <img> at this route would stop
+      // rendering. A comma-joined pair survives MediaType (it trims at ';', not at
+      // ',') and InertMediaType refuses it, as before.
       AnsiString SafeMediaType(const AnsiString &declared)
       {
-         // The same media type the message listing reports in content_type, so
-         // that a page which decided from that field what the part is gets the
-         // very same type when it fetches the bytes - which is what lets an
-         // <img> pointed at this route render, with nosniff set.
-         AnsiString type = MediaType(declared);
-
-         if (type.IsEmpty())
-            return "application/octet-stream";
-
-         if (type == "text/html" || type == "application/xhtml+xml" || type == "image/svg+xml" ||
-             type == "text/xml" || type == "application/xml" || type.EndsWith("+xml") ||
-             type == "text/javascript" || type == "application/javascript")
-            return "application/octet-stream";
-
-         return type;
+         return InertMediaType::ForDownload(MediaType(declared));
       }
    }
 
@@ -18856,6 +19363,17 @@ namespace HM
    AnsiString
    RestApiServer::SettingsJson_(std::shared_ptr<const Account> account)
    {
+      // The formatted signature is answered as the webmail's cleaner would have
+      // left it (SignatureHtmlSanitizer), whatever is stored. The webmail puts
+      // what this answers on the screen as markup - renderSettings at every
+      // sign-in, the rich editor at every formatted message - and does so in an
+      // administrator's support session too, as the account; this route is
+      // where every one of those renderings comes from, so a signature stored by
+      // any path - the administrator's route, COM, a restore, a row edited by
+      // hand, an earlier version - reaches a browser here reduced to the subset,
+      // and nowhere else. What is stored is not changed by reading it: the
+      // signature an administrator wrote for the mail the account submits, which
+      // SignatureAdder appends, keeps its styles and its hosted images.
       AnsiString json;
       json.Format("{\"name\":{\"first\":\"%hs\",\"last\":\"%hs\"},"
                   "\"forwarding\":{\"enabled\":%hs,\"address\":\"%hs\",\"keep_original\":%hs},"
@@ -18867,7 +19385,7 @@ namespace HM
          account->GetForwardKeepOriginal() ? "true" : "false",
          account->GetEnableSignature() ? "true" : "false",
          JsonEscape_(Utf8_(account->GetSignaturePlainText())).c_str(),
-         JsonEscape_(Utf8_(account->GetSignatureHTML())).c_str());
+         JsonEscape_(Utf8_(SignatureHtmlSanitizer::Sanitize(account->GetSignatureHTML()))).c_str());
       return json;
    }
 
@@ -18941,6 +19459,17 @@ namespace HM
          String html = JsonUtf8Value_(signatureObject, "html");
          if (text.GetLength() > MaxSignatureLength)
             return BuildResponse_(400, "{\"error\":\"a signature is at most 20000 characters\"}");
+         if (Utf8_(html).GetLength() > MaxSignatureHtmlBytes)
+            return BuildResponse_(400, "{\"error\":\"a formatted signature is at most 64 KB (64,000 bytes), its images included\"}");
+
+         // Stored as the webmail's cleaner would have left it: the account
+         // holder's own write, by the page - whose cleaner has already written
+         // exactly this, so it passes unchanged - or by hand, which never ran
+         // that cleaner. The answer below reduces it again on the way out, for a
+         // signature stored another way. Measured again after, because the one
+         // thing the reduction lengthens is a table's start tag, written as the
+         // page's fixed one.
+         html = SignatureHtmlSanitizer::Sanitize(html);
          if (Utf8_(html).GetLength() > MaxSignatureHtmlBytes)
             return BuildResponse_(400, "{\"error\":\"a formatted signature is at most 64 KB (64,000 bytes), its images included\"}");
 

@@ -1156,6 +1156,8 @@ STDMETHODIMP InterfaceSettings::EnrolAdministratorTOTP(BSTR *pVal)
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
@@ -1176,12 +1178,26 @@ STDMETHODIMP InterfaceSettings::EnrolAdministratorTOTP(BSTR *pVal)
       if (secret.IsEmpty())
          return COMError::GenerateError("The random number generator failed, so no second factor was enrolled. Nothing has been stored. See the hMailServer error log.");
 
+      // Over COM an enrolment replaces one already there (the REST route refuses
+      // instead), and the trail says which it was.
+      const bool replacing = ini_file_settings_->IsAdministratorTotpEnrolled();
+
       if (!ini_file_settings_->SetAdministratorTotpSecret(HM::String(secret)))
          return COMError::GenerateError("The secret could not be written to hMailServer.INI. Nothing has been changed; see the hMailServer error log.");
 
       // The codes, wrong or taken, that were about the secret this replaces
       // (SecondFactorGuard) are forgotten with it.
       HM::SecondFactorGuard::ForgetOwner(_T("administrator"));
+
+      // On the hash-chained audit trail, as the REST route records it: the
+      // secret lives in [Security] of hMailServer.INI, written outside the
+      // settings chokepoint, so enrolling or replacing the guard on the
+      // full-authority credential would otherwise leave nothing in the
+      // tamper-evident record - over the Control Panel, which is this method, as
+      // much as over REST. Never the secret or the URI that carries it.
+      HM::AuditTrail::Instance()->RecordEvent(_T("administrator"), _T("second factor"), _T("enrolled"),
+         replacing ? _T("a one-time-code second factor was enrolled on the administrator credential, replacing the one it had")
+                   : _T("a one-time-code second factor was enrolled on the administrator credential"));
 
       // The URI carries the secret, and this is the only moment it leaves the
       // server. Enforced from this moment: the session that enrolled stays
@@ -1200,6 +1216,8 @@ STDMETHODIMP InterfaceSettings::DisableAdministratorTOTP()
 {
    try
    {
+      HM::AuditScope auditScope(GetAuditActor());
+
       if (!config_)
          return NotLoaded_();
 
@@ -1209,10 +1227,23 @@ STDMETHODIMP InterfaceSettings::DisableAdministratorTOTP()
       if (!HM::IniFileSettings::InitializationFileWritable())
          return COMError::GenerateError(HM::IniFileSettings::InitializationFileRefusal(_T("The administrator's second factor"), SecondFactorInstead_()));
 
+      // Asked before it is cleared: a disable with nothing enrolled changes
+      // nothing and is not recorded as a factor taken off.
+      const bool wasEnrolled = ini_file_settings_->IsAdministratorTotpEnrolled();
+
       if (!ini_file_settings_->SetAdministratorTotpSecret(HM::String()))
          return COMError::GenerateError("The secret could not be removed from hMailServer.INI. Nothing has been changed; see the hMailServer error log.");
 
       HM::SecondFactorGuard::ForgetOwner(_T("administrator"));
+
+      // On the hash-chained audit trail, as the REST route records it (see
+      // EnrolAdministratorTOTP): turning off the guard on the full-authority
+      // credential from the Control Panel must be in the record too.
+      if (wasEnrolled)
+      {
+         HM::AuditTrail::Instance()->RecordEvent(_T("administrator"), _T("second factor"), _T("disabled"),
+            _T("the administrator's one-time-code second factor was removed"));
+      }
 
       return S_OK;
    }

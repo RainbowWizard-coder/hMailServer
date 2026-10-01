@@ -328,12 +328,17 @@ namespace RegressionTests.API
 
             // The attack: a page on a sibling host asks the browser for a passkey of the
             // parent domain - which the browser allows - and the client posts the
-            // assertion here naming that sibling in Host. Signature, challenge, relying
-            // party hash and counter are all good; the origin is not this server's.
+            // assertion here. Signature, challenge, relying party hash and counter are
+            // all good; the origin is not this server's. The Host carried is one the
+            // server answers to (a configured origin's host), so that what this
+            // isolates is the passkey origin check and not the Host-header check added
+            // in 6.3.6 - that check (a rebinding page reaching this address under the
+            // sibling's own Host) is covered by the server-hardening fixtures; here the
+            // assertion's own origin is the sibling, which the origin check refuses.
             (string challenge, string cookie) sibling = Challenge();
             (int status, string body) phished = Send("POST", "/api/v1/session", null,
                authenticator.Assertion(sibling.challenge, "https://shop.example.test", Parent, 0), "Cookie: " + sibling.cookie,
-               true, "shop.example.test");
+               true, "mail.example.test");
             Assert.AreEqual(401, phished.status, "An assertion collected at a sibling host signed somebody in: " + phished.body);
 
             // The negative control: the same authenticator at an origin the list names.
