@@ -36,11 +36,15 @@
 //   - an organiser at this server's own domains is the organiser only when an
 //     authenticated session - SMTP AUTH, the webmail's own sends - submitted
 //     the message as that account, or as an account allowed to send as it
-//     (SMTPConnection::SenderPermittedFor, the send-as rules);
+//     (SMTPConnection::SenderPermittedFor, the send-as rules); a message an
+//     application sent through the send API is no account's session, whatever
+//     address its key sent as (Message::FlagSubmittedThroughSendApi);
 //   - an organiser from outside is the organiser only when the policy's
 //     bookers name that address or its @domain AND the message passed DMARC
-//     for that domain (SPF alone vouches for nobody's From); the CANCEL of a
-//     booking the room holds from them needs the DMARC pass and not the list;
+//     for that domain with the organiser as its From - one From naming one
+//     mailbox, the organiser's (SPF alone vouches for nobody's From, and
+//     DMARC for a domain vouches for none of its other senders); the CANCEL
+//     of a booking the room holds from them needs that pass and not the list;
 //   - anything else is not the organiser: its request is not filed, not
 //     answered and changes no booking, and its CANCEL frees nothing. The
 //     delegates are told, at most once an hour per organiser per resource

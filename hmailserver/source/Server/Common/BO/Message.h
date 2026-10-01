@@ -98,7 +98,18 @@ namespace HM
          // message held through ten passes forwards once for the attempt and
          // not ten times; a counted retry clears it, and runs them as every
          // counted retry always has, for the 'delivery attempts' condition.
-         FlagRepeatsAttempt = 8192
+         FlagRepeatsAttempt = 8192,
+
+         // Sent by an application through the send API (RestApiSend.cpp) with
+         // an API key allowed to send as the address. The submitter it records
+         // (GetSubmitterAccountID) is the account the key sent as, so that the
+         // domain rules act on it as on that account's own mail
+         // (RuleApplier::DomainRuleScopes) - but no session of that account
+         // wrote it, so what takes the submitter as proof that the account
+         // itself sent a message (Imip::OriginOf, ResourceBooking::OnDelivery)
+         // does not take it from such a message. Set by the server when it
+         // creates the message, never read from anything a sender wrote.
+         FlagSubmittedThroughSendApi = 16384
       };
 
       Message(bool generateFileName);
@@ -239,6 +250,13 @@ namespace HM
       void SetSubmittedBySignedInUser(bool bNewVal)
       {
          SetFlagBits((short) FlagSubmittedBySignedInUser, bNewVal ? (short) FlagSubmittedBySignedInUser : (short) 0);
+      }
+
+      // See FlagSubmittedThroughSendApi.
+      bool GetSubmittedThroughSendApi() const { return (GetFlags() & FlagSubmittedThroughSendApi) != 0; }
+      void SetSubmittedThroughSendApi(bool bNewVal)
+      {
+         SetFlagBits((short) FlagSubmittedThroughSendApi, bNewVal ? (short) FlagSubmittedThroughSendApi : (short) 0);
       }
 
       // Where the message came from, as the server itself saw it (schema 6101):

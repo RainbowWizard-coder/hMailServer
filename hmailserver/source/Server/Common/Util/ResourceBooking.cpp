@@ -622,6 +622,8 @@ namespace HM
       // own is not enough and is not recorded: it vouches for the connecting
       // address for an envelope domain whatever the From says, and a shared
       // platform named in a domain's SPF record carries other tenants' mail.
+      // The record is kept for the job only when the From was the organiser
+      // (OnDelivery), so a pass here is a pass for the organiser's own From.
       bool Vouched(const AnsiString &authDomains, const AnsiString &domain)
       {
          if (domain.IsEmpty() || authDomains.IsEmpty())
@@ -674,7 +676,7 @@ namespace HM
          }
          if (!Vouched(origin.authDomains, DomainPart(organiser)))
          {
-            why = "its organiser is outside this server's domains, and DMARC did not pass for " + DomainPart(organiser);
+            why = "its organiser is outside this server's domains, and DMARC did not pass for " + DomainPart(organiser) + " with the organiser as the message's From";
             return false;
          }
          return true;
@@ -1068,11 +1070,13 @@ namespace HM
          message->SetSize((int) MessageStore::FileSize(fileName));
          // The server writing for an account of its own, as the webmail's
          // answers are (Message::FlagSubmittedBySignedInUser). The submitter is
-         // the delegate who answered, when one did; otherwise none is
-         // recorded, since nobody signed in wrote it.
+         // the delegate who answered, when one did; otherwise the resource
+         // itself, which only this server ever sends as (nobody can sign in as
+         // it), as a scheduled send records the account it sends for. An
+         // organiser's calendar on this server files the answer only when the
+         // server recorded who sent it (Imip::IsSentBy).
          message->SetSubmittedBySignedInUser(true);
-         if (delegate)
-            message->SetSubmitterAccountID(delegate->GetID());
+         message->SetSubmitterAccountID(delegate ? delegate->GetID() : resource->GetID());
          message->SetState(Message::Delivering);
          if (!PersistentMessage::SaveObject(message))
          {
@@ -1744,9 +1748,13 @@ namespace HM
                      }
                      else
                      {
+                        // The organiser was believed above: the room's own
+                        // booking of the request, never marked as filed
+                        // unverified (Imip::KeepRule).
                         CalendarRecord calendar;
                         CalendarObjectRecord record;
-                        written = Imip::KeepInvitation(resource->GetID(), request, true, false, attendee.address, name, "ACCEPTED", calendar, record, problem);
+                        written = Imip::KeepInvitation(resource->GetID(), request, true, false, attendee.address, name, "ACCEPTED", calendar, record, problem,
+                                                       ImipProvenance::FromOrganiser);
                      }
 
                      if (written)
@@ -2972,9 +2980,21 @@ namespace HM
          if (original)
          {
             job.origin.envelopeSender = original->GetFromAddress();
-            job.origin.submitterAccountId = original->GetSubmitterAccountID();
+            // A message an application sent through the send API records the
+            // account its key sent as, for the domain rules; no session of that
+            // account wrote it (Message::FlagSubmittedThroughSendApi), and an
+            // API key is no organiser's session.
+            job.origin.submitterAccountId = original->GetSubmittedThroughSendApi() ? 0 : original->GetSubmitterAccountID();
             job.origin.authDomains = Utf8Of(original->GetAuthDomains());
             job.origin.authDomains.ToLower();
+            // DMARC vouches for the domain of the From, and the From is the
+            // address that domain let be written: the pass vouches for the
+            // organiser the message names only when the From is that organiser
+            // (Imip::VouchedFromOutside), and is kept only then - another
+            // sender at the organiser's domain is not the organiser.
+            if (!job.origin.authDomains.IsEmpty() &&
+                !Imip::VouchedFromOutside(job.origin.authDomains, Imip::FromAddressOf(PersistentMessage::LoadHeader(fileName, false)), message.organizer))
+               job.origin.authDomains = "";
          }
          job.origin.autoSubmitted = AutoSubmittedIn(fileName);
 

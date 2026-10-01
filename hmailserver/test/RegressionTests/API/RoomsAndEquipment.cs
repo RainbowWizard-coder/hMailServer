@@ -139,6 +139,24 @@ namespace RegressionTests.API
       }
 
       [Test]
+      [Description("The room's own answer reaches the organiser's calendar: an event made on the organiser's page with the room as a guest is accepted by the room, and the organiser's event then lists the room as ACCEPTED - the answer is recorded as the room's own submission, which is what an organiser's calendar on this server believes")]
+      public void TheRoomsAnswerIsFiledIntoTheOrganisersEvent()
+      {
+         DateTime day = DateTime.UtcNow.Date.AddDays(4);
+         string start = day.AddHours(14).ToString("yyyy-MM-dd'T'HH:mm", CultureInfo.InvariantCulture);
+         string end = day.AddHours(15).ToString("yyyy-MM-dd'T'HH:mm", CultureInfo.InvariantCulture);
+         (int status, string body) made = Me("POST", "/api/v1/me/calendar/events",
+            "{\"summary\":\"Planning in the board room\",\"start\":\"" + start + "\",\"end\":\"" + end + "\",\"tz\":\"UTC\",\"attendees\":[\"" + Room + "\"],\"invite\":true}", Alice, Password);
+         Assert.AreEqual(201, made.status, made.body);
+         long eventId = long.Parse(Regex.Match(made.body, "\"id\":(\\d+)").Groups[1].Value);
+
+         string roomAccepted = "\"address\":\"" + Regex.Escape(Room) + "\",\"name\":\"[^\"]*\",\"partstat\":\"ACCEPTED\"";
+         RetryHelper.TryAction(TimeSpan.FromSeconds(30), () =>
+            RetryableAssert.IsTrue(Regex.IsMatch(Me("GET", "/api/v1/me/calendar/events/" + eventId, null, Alice, Password).body, roomAccepted)));
+         CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+      }
+
+      [Test]
       [Description("A request for a slot that is taken is declined with when the room is busy, and never whose booking it is; the booking holding the slot is busy although its organiser sent it as TRANSP:TRANSPARENT, and the decline quotes nothing of the request")]
       public void AConflictIsDeclinedWithTheTimeAndNotWhoseBookingItIs()
       {
@@ -256,6 +274,44 @@ namespace RegressionTests.API
       }
 
       [Test]
+      [Description("An invitation an application sends through the send API, with a key that may send as any address of the domain and the organiser's address as its sender, is no session of the organiser's: it is neither filed nor answered and the delegate is told; the organiser's own request for the slot, signed in, is then accepted")]
+      public void AnInvitationSentThroughTheSendApiIsNotTheOrganisers()
+      {
+         Assert.AreEqual(200, Admin("PUT", "/api/v1/accounts/" + Room + "/booking-policy", "{\"delegates\":[\"" + Deputy + "\"]}").status);
+         (int status, string body) created = Admin("POST", "/api/v1/apikeys", "{\"label\":\"the booking app\",\"scope\":\"full\",\"send_from\":\"*@" + _domain.Name + "\",\"send_per_day\":10}");
+         Assert.AreEqual(201, created.status, created.body);
+         Match keyId = Regex.Match(created.body, "\"id\"\\s*:\\s*(?:\"([^\"]*)\"|(\\d+))");
+         string key = Regex.Match(created.body, "\"key\"\\s*:\\s*\"([^\"]+)\"").Groups[1].Value;
+         Assert.IsTrue(keyId.Success && key.Length > 0, created.body);
+         string id = keyId.Groups[1].Success ? keyId.Groups[1].Value : keyId.Groups[2].Value;
+         try
+         {
+            string start = Slot(18, 10, 0);
+            string end = Slot(18, 11, 0);
+            string mail = Invitation("REQUEST", Alice, "unused", "Through an application", "rooms-sendapi@" + _domain.Name, start, end, 0, Alice);
+            string ics = mail.Substring(mail.IndexOf("\r\n\r\n", StringComparison.Ordinal) + 4);
+            string body = "{\"from\":\"" + Alice + "\",\"to\":[\"" + Room + "\"],\"subject\":\"Invitation: Through an application\",\"text\":\"You are invited.\"," +
+               "\"attachments\":[{\"filename\":\"invite.ics\",\"content_type\":\"text/calendar; method=REQUEST\",\"data\":\"" + Convert.ToBase64String(Encoding.UTF8.GetBytes(ics)) + "\"}]}";
+            Response sent = Raw(RestPort, "POST", "/api/v1/send", "Bearer " + key, body, "application/json", null);
+            Assert.AreEqual(202, sent.Status, sent.Body);
+
+            NoticeContaining(Deputy, "was not honoured", "it was not sent by a signed-in session of this server");
+            CollectionAssert.IsEmpty(Periods(FreeBusyOfRoom(18)), "Not filed: nothing blocks the slot.");
+
+            // Alice's own request for the same slot, signed in, is accepted.
+            string own = "rooms-sendapi-own@" + _domain.Name;
+            SmtpRaw(Alice, Invitation("REQUEST", Alice, "Invitation: Mine after all", "Mine after all", own, start, end, 0, Alice), Alice);
+            ReplyTo(Alice, own, "ACCEPTED", 0);
+            CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+         }
+         finally
+         {
+            Admin("DELETE", "/api/v1/apikeys/" + id, null);
+            _application.Database.ExecuteSQL("delete from hm_apisends");
+         }
+      }
+
+      [Test]
       [Description("An organiser from outside is answered only when named among the bookers and DMARC passed for its domain: named, but from a domain that publishes nothing, the request is neither filed nor answered, nothing leaves the queue, and the delegate is told")]
       public void AnOrganiserFromOutsideIsAnsweredOnlyWhenDmarcVouchesForIt()
       {
@@ -276,7 +332,7 @@ namespace RegressionTests.API
       }
 
       [Test]
-      [Description("An organiser from outside named among the bookers is believed when DMARC passes for its domain - SPF from the sending address, aligned with the From, under a published policy - and answered through the queue, MAIL FROM the room; the same pass for a domain the bookers do not name is not believed, and neither is a named domain whose SPF passes with no DMARC policy to align it")]
+      [Description("An organiser from outside named among the bookers is believed when DMARC passes for its domain - SPF from the sending address, aligned with the From, under a published policy - and answered through the queue, MAIL FROM the room; another sender at that domain, for which DMARC passes too, writing the organiser in - a request and a CANCEL of the organiser's booking - is not believed and frees nothing; the same pass for a domain the bookers do not name is not believed, and neither is a named domain whose SPF passes with no DMARC policy to align it")]
       public void AnOrganiserFromOutsideVouchedForByDmarcIsAnswered()
       {
          const string partner = "planner@rooms-vouched.test";
@@ -321,10 +377,20 @@ namespace RegressionTests.API
             }
             CollectionAssert.AreEqual(new[] { Slot(19, 10, 0) + "/" + Slot(19, 11, 0) + "/busy" }, Periods(FreeBusyOfRoom(19)), "Booked.");
 
+            // Another sender at the partner's domain - DMARC passes for it too -
+            // writing the partner in as the organiser, of a request and of a
+            // CANCEL of the partner's booking: the From is not the organiser.
+            const string colleague = "colleague@rooms-vouched.test";
+            SmtpRaw(colleague, Invitation("REQUEST", colleague, "Invitation: In her name", "In her name", "rooms-inhername@rooms-vouched.test", Slot(19, 12, 0), Slot(19, 13, 0), 0, partner));
+            SmtpRaw(colleague, Invitation("CANCEL", colleague, "Cancelled: Visit", "Visit", "rooms-vouched@rooms-vouched.test", Slot(19, 10, 0), Slot(19, 11, 0), 1, partner));
+            CustomAsserts.AssertFolderMessageCount(RoomInbox(), 3);
+
             // The same pass for a domain the bookers do not name.
             SmtpRaw(stranger, Invitation("REQUEST", stranger, "Invitation: Unnamed", "Unnamed", "rooms-unnamed@rooms-unnamed.test", Slot(19, 14, 0), Slot(19, 15, 0), 0, stranger));
             NoticeContaining(Deputy, "was not honoured", "is not named, by address or @domain, among those who may book");
-            CollectionAssert.AreEqual(new[] { Slot(19, 10, 0) + "/" + Slot(19, 11, 0) + "/busy" }, Periods(FreeBusyOfRoom(19)), "The stranger's request was not filed.");
+            CollectionAssert.AreEqual(new[] { Slot(19, 10, 0) + "/" + Slot(19, 11, 0) + "/busy" }, Periods(FreeBusyOfRoom(19)),
+               "The stranger's request was not filed, the request in the partner's name from another sender was not either, and that sender's CANCEL left the partner's booking.");
+            NoticeContaining(Deputy, "was not honoured", "DMARC did not pass for rooms-vouched.test with the organiser as the message's From");
 
             // A named domain whose SPF passes with no DMARC policy: SPF alone
             // vouches for nobody's From, so it is not believed and not answered.

@@ -33,7 +33,9 @@ namespace RegressionTests.API
       private static int RestPort = 9599;
       private const string UserPassword = "Original-Passw0rd!";
       private const string GuestPassword = "Guest-Passw0rd!";
+      private const string CoGuestPassword = "CoGuest-Passw0rd!";
       private const string AdminPassword = "testar";
+      private const int SmtpPort = 25;
 
       private const string NsDav = "DAV:";
       private const string NsCalDav = "urn:ietf:params:xml:ns:caldav";
@@ -424,6 +426,486 @@ namespace RegressionTests.API
       }
 
       [Test]
+      [Description("iMIP on delivery changes a stored event only for the sender the server verified: a CANCEL in the organiser's name from nobody signed in, the same from a co-guest signed in as itself, and an updated REQUEST in the organiser's name from nobody signed in that would move the event and mark it cancelled, all leave the guest's copy as it was; a REPLY in the guest's name from nobody signed in, and a co-guest's signed-in REPLY answering for the guest - plainly, and as a delegate it is not - and for an address the event does not list, change nothing but the co-guest's own answer, and an account the event does not list, signed in, is not added by answering for itself; the guest's own answers, from the message's card and from a mail program signed in, and the organiser's own CANCEL signed in, are filed")]
+      public void OnlyTheVerifiedSenderChangesAStoredEvent()
+      {
+         string coGuest = "coguest@" + _domain.Name;
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, coGuest, CoGuestPassword);
+         Assert.AreEqual(200, Me("GET", "/api/v1/me/calendars", null, GuestAddress, GuestPassword).status, "The guest's calendar exists before the invitation arrives, so it is filed on delivery.");
+
+         (int status, string body) made = Me("POST", "/api/v1/me/calendar/events",
+            "{\"summary\":\"Board\",\"start\":\"2026-10-26T09:00\",\"end\":\"2026-10-26T10:00\",\"tz\":\"UTC\",\"attendees\":[\"" + GuestAddress + "\",\"" + coGuest + "\"],\"invite\":true}",
+            Address, UserPassword);
+         Assert.AreEqual(201, made.status, made.body);
+         StringAssert.Contains("\"invited\":2", made.body);
+         long organiserEventId = IdOf(made.body);
+         string uid = Regex.Match(made.body, "\"uid\":\"([^\"]+)\"").Groups[1].Value;
+         Assert.IsTrue(uid.Length > 0, "No uid in: " + made.body);
+         string window = "/api/v1/me/calendar/events?start=20261026T000000Z&end=20261027T000000Z";
+         RetryHelper.TryAction(TimeSpan.FromSeconds(20), () => RetryableAssert.StringContains("\"summary\":\"Board\"", Me("GET", window, null, GuestAddress, GuestPassword).body));
+         CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+
+         // At the guest: a CANCEL in the organiser's name - MAIL FROM, From and
+         // ORGANIZER - from nobody signed in; the same from the co-guest, signed
+         // in as itself; and an updated REQUEST in the organiser's name from
+         // nobody signed in, at a higher SEQUENCE, moving the event and marking
+         // it cancelled.
+         string[] guests = { "ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:" + GuestAddress, "ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:" + coGuest };
+         SmtpRaw(Address, GuestAddress, CalendarMail("CANCEL", Address, GuestAddress, "Cancelled: Board forged one", "Board", uid, "20261026T090000Z", "20261026T100000Z", 1, Address, guests));
+         SmtpRaw(coGuest, GuestAddress, CalendarMail("CANCEL", Address, GuestAddress, "Cancelled: Board forged two", "Board", uid, "20261026T090000Z", "20261026T100000Z", 1, Address, guests), coGuest, CoGuestPassword);
+         SmtpRaw(Address, GuestAddress, CalendarMail("REQUEST", Address, GuestAddress, "Updated invitation: Board forged three", "Board", uid, "20261026T150000Z", "20261026T160000Z", 7, Address,
+            guests.Concat(new[] { "STATUS:CANCELLED" }).ToArray()));
+         long forgedCancel = MessageIdOf(GuestAddress, GuestPassword, "Board forged one");
+         MessageIdOf(GuestAddress, GuestPassword, "Board forged two");
+         long forgedUpdate = MessageIdOf(GuestAddress, GuestPassword, "Board forged three");
+         CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+
+         (int status, string body) guestCopy = Me("GET", window, null, GuestAddress, GuestPassword);
+         Assert.AreEqual(1, Regex.Matches(guestCopy.body, "\"uid\":\"" + Regex.Escape(uid) + "\"").Count, "One event. Body: " + guestCopy.body);
+         StringAssert.DoesNotContain("\"status\":\"CANCELLED\"", guestCopy.body, "Nobody the server verified as the organiser cancelled it. Body: " + guestCopy.body);
+         StringAssert.Contains("\"start\":\"20261026T090000Z\"", guestCopy.body, "Nor moved it.");
+         (int status, string body) forgedCard = Me("GET", "/api/v1/me/messages/" + forgedCancel + "/invitation", null, GuestAddress, GuestPassword);
+         Assert.AreEqual(200, forgedCard.status, forgedCard.body);
+         StringAssert.Contains("\"in_calendar\":true", forgedCard.body, "The forged cancellation is an ordinary message: the card finds the event...");
+         StringAssert.DoesNotContain("\"stored_status\":\"CANCELLED\"", forgedCard.body, "...as it was.");
+         StringAssert.Contains("\"calendar_agrees\":false", forgedCard.body, "And says the calendar does not hold the cancellation, so the page does not say it does.");
+         (int status, string body) forgedUpdateCard = Me("GET", "/api/v1/me/messages/" + forgedUpdate + "/invitation", null, GuestAddress, GuestPassword);
+         Assert.AreEqual(200, forgedUpdateCard.status, forgedUpdateCard.body);
+         StringAssert.Contains("\"calendar_agrees\":false", forgedUpdateCard.body, "The calendar does not have the forged update's version of the event.");
+
+         // At the organiser: a REPLY in the guest's name from nobody signed in;
+         // and the co-guest, signed in, declining for the guest - plainly, and
+         // with itself as SENT-BY, a delegate the guest never named - accepting
+         // for itself, and accepting for an address the event does not list.
+         SmtpRaw(GuestAddress, Address, CalendarMail("REPLY", GuestAddress, Address, "Declined: Board forged four", "Board", uid, "20261026T090000Z", "20261026T100000Z", 0, Address,
+            "ATTENDEE;PARTSTAT=DECLINED:mailto:" + GuestAddress));
+         SmtpRaw(coGuest, Address, CalendarMail("REPLY", coGuest, Address, "Answers: Board forged five", "Board", uid, "20261026T090000Z", "20261026T100000Z", 0, Address,
+            "ATTENDEE;PARTSTAT=DECLINED:mailto:" + GuestAddress,
+            "ATTENDEE;SENT-BY=\"mailto:" + coGuest + "\";PARTSTAT=DECLINED:mailto:" + GuestAddress,
+            "ATTENDEE;PARTSTAT=ACCEPTED:mailto:" + coGuest,
+            "ATTENDEE;PARTSTAT=ACCEPTED:mailto:stranger@elsewhere.test"), coGuest, CoGuestPassword);
+         // And an account the event does not list, signed in, accepting for itself.
+         string uninvited = "uninvited@" + _domain.Name;
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, uninvited, CoGuestPassword);
+         SmtpRaw(uninvited, Address, CalendarMail("REPLY", uninvited, Address, "Accepted: Board forged six", "Board", uid, "20261026T090000Z", "20261026T100000Z", 0, Address,
+            "ATTENDEE;PARTSTAT=ACCEPTED:mailto:" + uninvited), uninvited, CoGuestPassword);
+         long forgedReply = MessageIdOf(Address, UserPassword, "Board forged four");
+         MessageIdOf(Address, UserPassword, "Board forged five");
+         MessageIdOf(Address, UserPassword, "Board forged six");
+         CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+
+         RetryHelper.TryAction(TimeSpan.FromSeconds(15), () =>
+            RetryableAssert.StringContains("ACCEPTED", PartstatOf(Me("GET", "/api/v1/me/calendar/events/" + organiserEventId, null, Address, UserPassword).body, coGuest)));
+         (int status, string body) organiserEvent = Me("GET", "/api/v1/me/calendar/events/" + organiserEventId, null, Address, UserPassword);
+         Assert.AreEqual("NEEDS-ACTION", PartstatOf(organiserEvent.body, GuestAddress), "Nobody the server verified as the guest, or as a delegate of the guest's, answered for the guest. Body: " + organiserEvent.body);
+         Assert.AreEqual("", SentByOf(organiserEvent.body, GuestAddress), "No SENT-BY was taken from a sender that is not the guest's delegate.");
+         StringAssert.DoesNotContain("stranger@elsewhere.test", organiserEvent.body, "A REPLY does not add a guest the event does not list.");
+         StringAssert.DoesNotContain(uninvited, organiserEvent.body, "Nor does one from that address itself, signed in.");
+         StringAssert.Contains("\"calendar_agrees\":false", Me("GET", "/api/v1/me/messages/" + forgedReply + "/invitation", null, Address, UserPassword).body,
+            "The forged answer's card does not say the event shows it.");
+
+         // The guest's own answers: from the message's card, which the page
+         // sends as the guest's submission, and from a mail program signed in.
+         long invitationId = MessageIdOf(GuestAddress, GuestPassword, "Invitation: Board");
+         Assert.AreEqual(200, Me("POST", "/api/v1/me/messages/" + invitationId + "/invitation/reply", "{\"action\":\"tentative\"}", GuestAddress, GuestPassword).status);
+         RetryHelper.TryAction(TimeSpan.FromSeconds(20), () =>
+            RetryableAssert.StringContains("TENTATIVE", PartstatOf(Me("GET", "/api/v1/me/calendar/events/" + organiserEventId, null, Address, UserPassword).body, GuestAddress)));
+         SmtpRaw(GuestAddress, Address, CalendarMail("REPLY", GuestAddress, Address, "Accepted: Board from a mail program", "Board", uid, "20261026T090000Z", "20261026T100000Z", 0, Address,
+            "ATTENDEE;PARTSTAT=ACCEPTED:mailto:" + GuestAddress), GuestAddress, GuestPassword);
+         RetryHelper.TryAction(TimeSpan.FromSeconds(20), () =>
+            RetryableAssert.StringContains("ACCEPTED", PartstatOf(Me("GET", "/api/v1/me/calendar/events/" + organiserEventId, null, Address, UserPassword).body, GuestAddress)));
+         StringAssert.Contains("\"calendar_agrees\":true", Me("GET", "/api/v1/me/messages/" + MessageIdOf(Address, UserPassword, "Board from a mail program") + "/invitation", null, Address, UserPassword).body,
+            "The guest's own answer's card says the event shows it.");
+
+         // The organiser's own CANCEL, signed in: the guest's copy is marked cancelled.
+         SmtpRaw(Address, GuestAddress, CalendarMail("CANCEL", Address, GuestAddress, "Cancelled: Board, signed in", "Board", uid, "20261026T090000Z", "20261026T100000Z", 1, Address, guests), Address, UserPassword);
+         RetryHelper.TryAction(TimeSpan.FromSeconds(20), () => RetryableAssert.StringContains("\"status\":\"CANCELLED\"", Me("GET", window, null, GuestAddress, GuestPassword).body));
+         StringAssert.Contains("\"calendar_agrees\":true", Me("GET", "/api/v1/me/messages/" + MessageIdOf(GuestAddress, GuestPassword, "Board, signed in") + "/invitation", null, GuestAddress, GuestPassword).body,
+            "The organiser's own cancellation's card says the calendar holds it.");
+      }
+
+      [Test]
+      [Description("An answer from the account an alias the event lists points at is the attendee's: the organiser invites the guest by an alias, the guest answers from the message's card - as the account's own address - and the organiser's event shows the answer on the alias it lists, adding nobody; a co-guest's answer naming the guest's address changes nothing")]
+      public void AnAnswerFromTheAccountOfAnInvitedAliasIsFiled()
+      {
+         string alias = "g.smith@" + _domain.Name;
+         Alias guestAlias = _domain.Aliases.Add();
+         guestAlias.Name = alias;
+         guestAlias.Value = GuestAddress;
+         guestAlias.Active = true;
+         guestAlias.Save();
+         string coGuest = "coguest@" + _domain.Name;
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, coGuest, CoGuestPassword);
+         Assert.AreEqual(200, Me("GET", "/api/v1/me/calendars", null, GuestAddress, GuestPassword).status, "The guest's calendar exists before the invitation arrives.");
+
+         (int status, string body) made = Me("POST", "/api/v1/me/calendar/events",
+            "{\"summary\":\"Budget by alias\",\"start\":\"2026-10-27T09:00\",\"end\":\"2026-10-27T10:00\",\"tz\":\"UTC\",\"attendees\":[\"" + alias + "\",\"" + coGuest + "\"],\"invite\":true}",
+            Address, UserPassword);
+         Assert.AreEqual(201, made.status, made.body);
+         long organiserEventId = IdOf(made.body);
+         string uid = Regex.Match(made.body, "\"uid\":\"([^\"]+)\"").Groups[1].Value;
+         Assert.IsTrue(uid.Length > 0, "No uid in: " + made.body);
+
+         // A co-guest, signed in, answering in the guest's own address: the
+         // event lists the alias, which is not the co-guest's to answer for.
+         SmtpRaw(coGuest, Address, CalendarMail("REPLY", coGuest, Address, "Declined: Budget by alias, forged", "Budget by alias", uid, "20261027T090000Z", "20261027T100000Z", 0, Address,
+            "ATTENDEE;PARTSTAT=DECLINED:mailto:" + GuestAddress), coGuest, CoGuestPassword);
+         MessageIdOf(Address, UserPassword, "Budget by alias, forged");
+         CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+         (int status, string body) untouched = Me("GET", "/api/v1/me/calendar/events/" + organiserEventId, null, Address, UserPassword);
+         Assert.AreEqual("NEEDS-ACTION", PartstatOf(untouched.body, alias), "Nobody the server verified as the guest answered. Body: " + untouched.body);
+         Assert.AreEqual("", PartstatOf(untouched.body, GuestAddress), "And nobody was added. Body: " + untouched.body);
+
+         // The guest answers from the invitation's card: the REPLY names the
+         // account's own address, and the event lists the alias.
+         long invitationId = MessageIdOf(GuestAddress, GuestPassword, "Invitation: Budget by alias");
+         Assert.AreEqual(200, Me("POST", "/api/v1/me/messages/" + invitationId + "/invitation/reply", "{\"action\":\"accept\"}", GuestAddress, GuestPassword).status);
+         RetryHelper.TryAction(TimeSpan.FromSeconds(20), () =>
+            RetryableAssert.StringContains("ACCEPTED", PartstatOf(Me("GET", "/api/v1/me/calendar/events/" + organiserEventId, null, Address, UserPassword).body, alias)));
+         (int status, string body) answered = Me("GET", "/api/v1/me/calendar/events/" + organiserEventId, null, Address, UserPassword);
+         Assert.AreEqual("", PartstatOf(answered.body, GuestAddress), "The answer is on the alias the event lists, and the account's own address is not added. Body: " + answered.body);
+         StringAssert.Contains("\"calendar_agrees\":true", Me("GET", "/api/v1/me/messages/" + MessageIdOf(Address, UserPassword, "Accepted: Budget by alias") + "/invitation", null, Address, UserPassword).body,
+            "The answer's card says the event shows it.");
+         CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+      }
+
+      [Test]
+      [Description("An answer from a member of a distribution list the event lists is filed beside the list: the organiser invites a list of this server's, a member answers from the message's card, and the organiser's event shows the member's answer; a co-guest's answer in the member's name, and an account that is not in the list answering for itself, signed in, add nobody")]
+      public void AnAnswerFromAMemberOfAnInvitedListIsFiled()
+      {
+         string team = "team@" + _domain.Name;
+         SingletonProvider<TestSetup>.Instance.AddDistributionList(_domain, team, new List<string> { GuestAddress });
+         string coGuest = "coguest@" + _domain.Name;
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, coGuest, CoGuestPassword);
+         string outsider = "outsider@" + _domain.Name;
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, outsider, CoGuestPassword);
+
+         (int status, string body) made = Me("POST", "/api/v1/me/calendar/events",
+            "{\"summary\":\"Team review\",\"start\":\"2026-10-30T09:00\",\"end\":\"2026-10-30T10:00\",\"tz\":\"UTC\",\"attendees\":[\"" + team + "\",\"" + coGuest + "\"],\"invite\":true}",
+            Address, UserPassword);
+         Assert.AreEqual(201, made.status, made.body);
+         long organiserEventId = IdOf(made.body);
+         string uid = Regex.Match(made.body, "\"uid\":\"([^\"]+)\"").Groups[1].Value;
+         Assert.IsTrue(uid.Length > 0, "No uid in: " + made.body);
+         long invitationId = MessageIdOf(GuestAddress, GuestPassword, "Invitation: Team review");
+         CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+
+         // A co-guest, signed in, answering in the member's name; an account
+         // that is not in the list, signed in, answering for itself.
+         SmtpRaw(coGuest, Address, CalendarMail("REPLY", coGuest, Address, "Declined: Team review, forged", "Team review", uid, "20261030T090000Z", "20261030T100000Z", 0, Address,
+            "ATTENDEE;PARTSTAT=DECLINED:mailto:" + GuestAddress), coGuest, CoGuestPassword);
+         SmtpRaw(outsider, Address, CalendarMail("REPLY", outsider, Address, "Accepted: Team review, not in the list", "Team review", uid, "20261030T090000Z", "20261030T100000Z", 0, Address,
+            "ATTENDEE;PARTSTAT=ACCEPTED:mailto:" + outsider), outsider, CoGuestPassword);
+         MessageIdOf(Address, UserPassword, "Team review, forged");
+         MessageIdOf(Address, UserPassword, "Team review, not in the list");
+         CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+         (int status, string body) untouched = Me("GET", "/api/v1/me/calendar/events/" + organiserEventId, null, Address, UserPassword);
+         Assert.AreEqual("", PartstatOf(untouched.body, GuestAddress), "Nobody the server verified as the member answered. Body: " + untouched.body);
+         StringAssert.DoesNotContain(outsider, untouched.body, "An account that is not in the list is not added by answering. Body: " + untouched.body);
+
+         // The member answers from the invitation's card, in the account's own address.
+         Assert.AreEqual(200, Me("POST", "/api/v1/me/messages/" + invitationId + "/invitation/reply", "{\"action\":\"accept\"}", GuestAddress, GuestPassword).status);
+         RetryHelper.TryAction(TimeSpan.FromSeconds(20), () =>
+            RetryableAssert.StringContains("ACCEPTED", PartstatOf(Me("GET", "/api/v1/me/calendar/events/" + organiserEventId, null, Address, UserPassword).body, GuestAddress)));
+         (int status, string body) answered = Me("GET", "/api/v1/me/calendar/events/" + organiserEventId, null, Address, UserPassword);
+         Assert.AreEqual("NEEDS-ACTION", PartstatOf(answered.body, team), "The list's own entry is as it was. Body: " + answered.body);
+         StringAssert.Contains("\"calendar_agrees\":true", Me("GET", "/api/v1/me/messages/" + MessageIdOf(Address, UserPassword, "Accepted: Team review @") + "/invitation", null, Address, UserPassword).body,
+            "The member's answer's card says the event shows it.");
+         CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+      }
+
+      [Test]
+      [Description("A copy filed from an invitation nobody verified does not hold off the organiser's own by the SEQUENCE its writer gave it: a REQUEST in the organiser's name from nobody signed in, at SEQUENCE 40 and another time, reaches a guest before the organiser invites them and is filed; the organiser's own invitation, signed in, at SEQUENCE 0, replaces it - the planted message's card then not agreeing with the calendar, the organiser's agreeing - and another such REQUEST, at SEQUENCE 60, changes nothing")]
+      public void AnUnverifiedCopyDoesNotHoldOffTheOrganisersInvitation()
+      {
+         Assert.AreEqual(200, Me("GET", "/api/v1/me/calendars", null, GuestAddress, GuestPassword).status, "The guest's calendar exists before the invitations arrive.");
+         string uid = "planted-0001@" + _domain.Name;
+         string window = "/api/v1/me/calendar/events?start=20261031T000000Z&end=20261101T000000Z";
+         string guestLine = "ATTENDEE;PARTSTAT=NEEDS-ACTION;RSVP=TRUE:mailto:" + GuestAddress;
+
+         // Planted: the organiser's name as ORGANIZER, From and MAIL FROM, by nobody signed in.
+         SmtpRaw(Address, GuestAddress, CalendarMail("REQUEST", Address, GuestAddress, "Invitation: Planted review", "Planted", uid, "20261031T160000Z", "20261031T170000Z", 40, Address, guestLine));
+         RetryHelper.TryAction(TimeSpan.FromSeconds(20), () => RetryableAssert.StringContains("\"summary\":\"Planted\"", Me("GET", window, null, GuestAddress, GuestPassword).body));
+
+         // The organiser's own invitation, signed in, at SEQUENCE 0.
+         SmtpRaw(Address, GuestAddress, CalendarMail("REQUEST", Address, GuestAddress, "Invitation: Quarterly review", "Quarterly review", uid, "20261031T090000Z", "20261031T100000Z", 0, Address, guestLine),
+            Address, UserPassword);
+         RetryHelper.TryAction(TimeSpan.FromSeconds(20), () => RetryableAssert.StringContains("\"summary\":\"Quarterly review\"", Me("GET", window, null, GuestAddress, GuestPassword).body));
+         (int status, string body) guestCopy = Me("GET", window, null, GuestAddress, GuestPassword);
+         Assert.AreEqual(1, Regex.Matches(guestCopy.body, "\"uid\":\"" + Regex.Escape(uid) + "\"").Count, "One event, replaced, never a second. Body: " + guestCopy.body);
+         StringAssert.Contains("\"start\":\"20261031T090000Z\"", guestCopy.body);
+         StringAssert.DoesNotContain("Planted", guestCopy.body);
+         StringAssert.Contains("\"calendar_agrees\":false", Me("GET", "/api/v1/me/messages/" + MessageIdOf(GuestAddress, GuestPassword, "Planted review") + "/invitation", null, GuestAddress, GuestPassword).body,
+            "The planted message's card does not say the calendar holds it.");
+         StringAssert.Contains("\"calendar_agrees\":true", Me("GET", "/api/v1/me/messages/" + MessageIdOf(GuestAddress, GuestPassword, "Quarterly review") + "/invitation", null, GuestAddress, GuestPassword).body,
+            "The organiser's card does.");
+
+         // Planted again, at SEQUENCE 60: the copy is the organiser's now.
+         SmtpRaw(Address, GuestAddress, CalendarMail("REQUEST", Address, GuestAddress, "Invitation: Planted again", "Planted again", uid, "20261031T180000Z", "20261031T190000Z", 60, Address, guestLine));
+         MessageIdOf(GuestAddress, GuestPassword, "Planted again");
+         CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+         (int status, string body) after = Me("GET", window, null, GuestAddress, GuestPassword);
+         StringAssert.Contains("\"summary\":\"Quarterly review\"", after.body, "Body: " + after.body);
+         StringAssert.DoesNotContain("Planted", after.body);
+      }
+
+      [Test]
+      [Description("A calendar message an application sends through the send API, with a key that may send as any address of the domain and the organiser's address as its sender, changes no stored event: the organiser's CANCEL sent that way leaves the guest's copy as it was, and its card says so; the same CANCEL from the organiser signed in cancels it")]
+      public void ACalendarMessageSentThroughTheSendApiChangesNoStoredEvent()
+      {
+         Assert.AreEqual(200, Me("GET", "/api/v1/me/calendars", null, GuestAddress, GuestPassword).status, "The guest's calendar exists before the invitation arrives.");
+         (int status, string body) made = Me("POST", "/api/v1/me/calendar/events",
+            "{\"summary\":\"Offsite\",\"start\":\"2026-10-29T09:00\",\"end\":\"2026-10-29T10:00\",\"tz\":\"UTC\",\"attendees\":[\"" + GuestAddress + "\"],\"invite\":true}",
+            Address, UserPassword);
+         Assert.AreEqual(201, made.status, made.body);
+         string uid = Regex.Match(made.body, "\"uid\":\"([^\"]+)\"").Groups[1].Value;
+         Assert.IsTrue(uid.Length > 0, "No uid in: " + made.body);
+         string window = "/api/v1/me/calendar/events?start=20261029T000000Z&end=20261030T000000Z";
+         RetryHelper.TryAction(TimeSpan.FromSeconds(20), () => RetryableAssert.StringContains("\"summary\":\"Offsite\"", Me("GET", window, null, GuestAddress, GuestPassword).body));
+         CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+
+         // A key an application holds, that may send as any address of the domain.
+         Response created = Raw(RestPort, "POST", "/api/v1/apikeys", Auth("Administrator", AdminPassword),
+            "{\"label\":\"the calendar app\",\"scope\":\"full\",\"send_from\":\"*@" + _domain.Name + "\",\"send_per_day\":10}", "application/json", null);
+         Assert.AreEqual(201, created.Status, created.Body);
+         Match keyId = Regex.Match(created.Body, "\"id\"\\s*:\\s*(?:\"([^\"]*)\"|(\\d+))");
+         string key = Regex.Match(created.Body, "\"key\"\\s*:\\s*\"([^\"]+)\"").Groups[1].Value;
+         Assert.IsTrue(keyId.Success && key.Length > 0, created.Body);
+         string id = keyId.Groups[1].Success ? keyId.Groups[1].Value : keyId.Groups[2].Value;
+         try
+         {
+            string mail = CalendarMail("CANCEL", Address, GuestAddress, "unused", "Offsite", uid, "20261029T090000Z", "20261029T100000Z", 1, Address,
+               "ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:" + GuestAddress);
+            string ics = mail.Substring(mail.IndexOf("\r\n\r\n", StringComparison.Ordinal) + 4);
+            string body = "{\"from\":\"" + Address + "\",\"to\":[\"" + GuestAddress + "\"],\"subject\":\"Cancelled: Offsite, through the application\",\"text\":\"This event has been cancelled.\"," +
+               "\"attachments\":[{\"filename\":\"invite.ics\",\"content_type\":\"text/calendar; method=CANCEL\",\"data\":\"" + Convert.ToBase64String(Encoding.UTF8.GetBytes(ics)) + "\"}]}";
+            Response sent = Raw(RestPort, "POST", "/api/v1/send", "Bearer " + key, body, "application/json", null);
+            Assert.AreEqual(202, sent.Status, sent.Body);
+            long throughKey = MessageIdOf(GuestAddress, GuestPassword, "Offsite, through the application");
+            CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+
+            StringAssert.DoesNotContain("\"status\":\"CANCELLED\"", Me("GET", window, null, GuestAddress, GuestPassword).body,
+               "A key allowed to send as the organiser's address is no session of the organiser's.");
+            (int status, string body) card = Me("GET", "/api/v1/me/messages/" + throughKey + "/invitation", null, GuestAddress, GuestPassword);
+            Assert.AreEqual(200, card.status, card.body);
+            StringAssert.Contains("\"method\":\"CANCEL\"", card.body);
+            StringAssert.Contains("\"calendar_agrees\":false", card.body);
+
+            // The organiser's own CANCEL, signed in, is filed.
+            SmtpRaw(Address, GuestAddress, CalendarMail("CANCEL", Address, GuestAddress, "Cancelled: Offsite, signed in", "Offsite", uid, "20261029T090000Z", "20261029T100000Z", 1, Address,
+               "ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:" + GuestAddress), Address, UserPassword);
+            RetryHelper.TryAction(TimeSpan.FromSeconds(20), () => RetryableAssert.StringContains("\"status\":\"CANCELLED\"", Me("GET", window, null, GuestAddress, GuestPassword).body));
+         }
+         finally
+         {
+            // The key goes; what it sent is left in hm_apisends, which RestApiSend
+            // empties before each of its own tests. Not through the database
+            // object: the Linux suite has none, and its ignore from a finally
+            // would hide this test's result there.
+            Raw(RestPort, "DELETE", "/api/v1/apikeys/" + id, Auth("Administrator", AdminPassword), null, "application/json", null);
+         }
+      }
+
+      [Test]
+      [Description("iMIP from outside is believed only for the From that DMARC vouched for: with DMARC passing for the partner's domain, a CANCEL in the organiser's name from another sender at that domain leaves the guest's copy and the organiser's own cancels it; a REPLY in a guest's name from another sender at that domain, and one from a guest whose domain publishes no DMARC policy, change nothing, and the guest's own is filed")]
+      public void AnOutsideSenderIsBelievedForItsOwnAddressWhenDmarcPasses()
+      {
+         const string olga = "olga@imip-vouched.test";
+         const string mallory = "mallory@imip-vouched.test";
+         const string nina = "nina@imip-nodmarc.test";
+
+         _application.Settings.AntiSpam.DMARCEnabled = true;
+         SuiteDns.Zone
+            .WithTxt("imip-vouched.test", "v=spf1 ip4:127.0.0.1 -all")
+            .WithTxt("_dmarc.imip-vouched.test", "v=DMARC1; p=none")
+            .WithTxt("imip-nodmarc.test", "v=spf1 ip4:127.0.0.1 -all");
+         try
+         {
+            Assert.AreEqual(200, Me("GET", "/api/v1/me/calendars", null, GuestAddress, GuestPassword).status);
+            string window = "/api/v1/me/calendar/events?start=20261028T000000Z&end=20261029T000000Z";
+
+            // Olga's invitation from outside is filed as it arrived.
+            const string partnerUid = "partner-review-0001@imip-vouched.test";
+            SmtpRaw(olga, GuestAddress, CalendarMail("REQUEST", olga, GuestAddress, "Invitation: Partner review", "Partner review", partnerUid, "20261028T090000Z", "20261028T100000Z", 0, olga,
+               "ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:" + GuestAddress));
+            RetryHelper.TryAction(TimeSpan.FromSeconds(20), () => RetryableAssert.StringContains("\"summary\":\"Partner review\"", Me("GET", window, null, GuestAddress, GuestPassword).body));
+
+            // Mallory, at the same domain - DMARC passes for it - cancels in Olga's name.
+            SmtpRaw(mallory, GuestAddress, CalendarMail("CANCEL", mallory, GuestAddress, "Cancelled: Partner review forged", "Partner review", partnerUid, "20261028T090000Z", "20261028T100000Z", 1, olga,
+               "ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:" + GuestAddress));
+            MessageIdOf(GuestAddress, GuestPassword, "Partner review forged");
+            CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+            StringAssert.DoesNotContain("\"status\":\"CANCELLED\"", Me("GET", window, null, GuestAddress, GuestPassword).body,
+               "DMARC vouches for the domain; the From is Mallory, not the organiser.");
+
+            // Olga's own CANCEL is filed.
+            SmtpRaw(olga, GuestAddress, CalendarMail("CANCEL", olga, GuestAddress, "Cancelled: Partner review", "Partner review", partnerUid, "20261028T090000Z", "20261028T100000Z", 1, olga,
+               "ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:" + GuestAddress));
+            RetryHelper.TryAction(TimeSpan.FromSeconds(20), () => RetryableAssert.StringContains("\"status\":\"CANCELLED\"", Me("GET", window, null, GuestAddress, GuestPassword).body));
+
+            // The organiser's event with Olga and Nina as guests, no invitations mailed.
+            (int status, string body) made = Me("POST", "/api/v1/me/calendar/events",
+               "{\"summary\":\"Partner sync\",\"start\":\"2026-10-28T14:00\",\"end\":\"2026-10-28T15:00\",\"tz\":\"UTC\",\"attendees\":[\"" + olga + "\",\"" + nina + "\"]}",
+               Address, UserPassword);
+            Assert.AreEqual(201, made.status, made.body);
+            long eventId = IdOf(made.body);
+            string uid = Regex.Match(made.body, "\"uid\":\"([^\"]+)\"").Groups[1].Value;
+            Assert.IsTrue(uid.Length > 0, "No uid in: " + made.body);
+
+            // Mallory declines in Olga's name; Nina, whose domain publishes no
+            // DMARC policy (SPF alone vouches for nobody's From), accepts.
+            SmtpRaw(mallory, Address, CalendarMail("REPLY", mallory, Address, "Declined: Partner sync forged", "Partner sync", uid, "20261028T140000Z", "20261028T150000Z", 0, Address,
+               "ATTENDEE;PARTSTAT=DECLINED:mailto:" + olga));
+            SmtpRaw(nina, Address, CalendarMail("REPLY", nina, Address, "Accepted: Partner sync unvouched", "Partner sync", uid, "20261028T140000Z", "20261028T150000Z", 0, Address,
+               "ATTENDEE;PARTSTAT=ACCEPTED:mailto:" + nina));
+            MessageIdOf(Address, UserPassword, "Partner sync forged");
+            MessageIdOf(Address, UserPassword, "Partner sync unvouched");
+            CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+            (int status, string body) organiserEvent = Me("GET", "/api/v1/me/calendar/events/" + eventId, null, Address, UserPassword);
+            Assert.AreEqual("NEEDS-ACTION", PartstatOf(organiserEvent.body, olga), "Mallory's answer for Olga. Body: " + organiserEvent.body);
+            Assert.AreEqual("NEEDS-ACTION", PartstatOf(organiserEvent.body, nina), "Nina's answer, which nothing vouched for. Body: " + organiserEvent.body);
+
+            // Olga's own answer is filed.
+            SmtpRaw(olga, Address, CalendarMail("REPLY", olga, Address, "Accepted: Partner sync", "Partner sync", uid, "20261028T140000Z", "20261028T150000Z", 0, Address,
+               "ATTENDEE;PARTSTAT=ACCEPTED:mailto:" + olga));
+            RetryHelper.TryAction(TimeSpan.FromSeconds(20), () =>
+               RetryableAssert.StringContains("ACCEPTED", PartstatOf(Me("GET", "/api/v1/me/calendar/events/" + eventId, null, Address, UserPassword).body, olga)));
+            CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+         }
+         finally
+         {
+            SuiteDns.Reset();
+         }
+      }
+
+      [Test]
+      [Description("Calendar messages from outside shaped as Outlook and Gmail send them, from a domain DMARC passes for, are applied as before: an organiser's invitation, its update and its cancellation as Outlook writes them (a display name on the From, a base64 text/calendar alternative) reach the guest's copy; a guest's answer as Gmail writes it (a multipart/mixed with the calendar in an alternative and again as an attachment) and an answer Outlook sends for a guest by their assistant (From the guest, Sender the assistant, SENT-BY on the ATTENDEE) reach the organiser's event")]
+      public void OutlookAndGmailShapedMessagesFromOutsideAreApplied()
+      {
+         const string olga = "olga@imip-shapes.test";
+         const string nina = "nina@imip-shapes.test";
+         const string boss = "boss@imip-shapes.test";
+         const string assistant = "assistant@imip-shapes.test";
+
+         _application.Settings.AntiSpam.DMARCEnabled = true;
+         SuiteDns.Zone
+            .WithTxt("imip-shapes.test", "v=spf1 ip4:127.0.0.1 -all")
+            .WithTxt("_dmarc.imip-shapes.test", "v=DMARC1; p=none");
+         try
+         {
+            Assert.AreEqual(200, Me("GET", "/api/v1/me/calendars", null, GuestAddress, GuestPassword).status);
+            string window = "/api/v1/me/calendar/events?start=20261102T000000Z&end=20261103T000000Z";
+            const string uid = "040000008200E00074C5B7101A82E00800000000imip-shapes";
+
+            // Outlook: the invitation, then an update, then the cancellation.
+            SmtpRaw(olga, GuestAddress, OutlookMail(olga, "Olga Organiser", GuestAddress, "Shapes review", "REQUEST", uid, 0, "20261102T090000Z", "20261102T100000Z", ""));
+            RetryHelper.TryAction(TimeSpan.FromSeconds(20), () => RetryableAssert.StringContains("\"summary\":\"Shapes review\"", Me("GET", window, null, GuestAddress, GuestPassword).body));
+            SmtpRaw(olga, GuestAddress, OutlookMail(olga, "Olga Organiser", GuestAddress, "Shapes review", "REQUEST", uid, 1, "20261102T140000Z", "20261102T150000Z", ""));
+            RetryHelper.TryAction(TimeSpan.FromSeconds(20), () => RetryableAssert.StringContains("\"start\":\"20261102T140000Z\"", Me("GET", window, null, GuestAddress, GuestPassword).body));
+            SmtpRaw(olga, GuestAddress, OutlookMail(olga, "Olga Organiser", GuestAddress, "Shapes review", "CANCEL", uid, 2, "20261102T140000Z", "20261102T150000Z", "STATUS:CANCELLED"));
+            RetryHelper.TryAction(TimeSpan.FromSeconds(20), () => RetryableAssert.StringContains("\"status\":\"CANCELLED\"", Me("GET", window, null, GuestAddress, GuestPassword).body));
+
+            // The organiser's event with Nina and the boss as guests, no invitations mailed.
+            (int status, string body) made = Me("POST", "/api/v1/me/calendar/events",
+               "{\"summary\":\"Shapes sync\",\"start\":\"2026-11-02T16:00\",\"end\":\"2026-11-02T17:00\",\"tz\":\"UTC\",\"attendees\":[\"" + nina + "\",\"" + boss + "\"]}",
+               Address, UserPassword);
+            Assert.AreEqual(201, made.status, made.body);
+            long eventId = IdOf(made.body);
+            string eventUid = Regex.Match(made.body, "\"uid\":\"([^\"]+)\"").Groups[1].Value;
+            Assert.IsTrue(eventUid.Length > 0, "No uid in: " + made.body);
+
+            // Gmail: Nina accepts.
+            SmtpRaw(nina, Address, GmailReply(nina, "Nina Guest", Address, "Shapes sync", eventUid, "ACCEPTED", "20261102T160000Z", "20261102T170000Z"));
+            RetryHelper.TryAction(TimeSpan.FromSeconds(20), () =>
+               RetryableAssert.StringContains("ACCEPTED", PartstatOf(Me("GET", "/api/v1/me/calendar/events/" + eventId, null, Address, UserPassword).body, nina)));
+
+            // Outlook: the boss's assistant answers for the boss.
+            string reply = string.Join("\r\n", new[]
+            {
+               "BEGIN:VCALENDAR", "METHOD:REPLY", "PRODID:Microsoft Exchange Server 2010", "VERSION:2.0", "BEGIN:VEVENT",
+               "ATTENDEE;PARTSTAT=TENTATIVE;SENT-BY=\"mailto:" + assistant.ToUpperInvariant() + "\";CN=Bea Boss:mailto:" + boss.ToUpperInvariant(),
+               "ORGANIZER:mailto:" + Address, "UID:" + eventUid, "SEQUENCE:0", "DTSTART:20261102T160000Z", "DTEND:20261102T170000Z",
+               "SUMMARY;LANGUAGE=en-GB:Tentative: Shapes sync", "DTSTAMP:20260928T080000Z", "END:VEVENT", "END:VCALENDAR", ""
+            });
+            SmtpRaw(boss, Address, string.Join("\r\n", new[]
+            {
+               "From: Bea Boss <" + boss + ">", "Sender: Alex Assistant <" + assistant + ">", "To: Sam Self <" + Address + ">",
+               "Subject: Tentative: Shapes sync", "Date: Mon, 28 Sep 2026 08:00:00 +0000", "MIME-Version: 1.0",
+               "Content-Type: text/calendar; charset=\"utf-8\"; method=REPLY", "Content-Transfer-Encoding: base64", "",
+               Convert.ToBase64String(Encoding.UTF8.GetBytes(reply), Base64FormattingOptions.InsertLineBreaks), ""
+            }));
+            RetryHelper.TryAction(TimeSpan.FromSeconds(20), () =>
+               RetryableAssert.StringContains("TENTATIVE", PartstatOf(Me("GET", "/api/v1/me/calendar/events/" + eventId, null, Address, UserPassword).body, boss)));
+            CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+         }
+         finally
+         {
+            SuiteDns.Reset();
+         }
+      }
+
+      // An invitation, an update or a cancellation as Outlook writes one: a
+      // display name on the From, and the calendar as a base64 text/calendar
+      // alternative beside the text, with Exchange's PRODID and a UID of its shape.
+      private static string OutlookMail(string organizer, string name, string to, string summary, string method, string uid, int sequence, string dtstart, string dtend, string extraLine)
+      {
+         var lines = new List<string>
+         {
+            "BEGIN:VCALENDAR", "METHOD:" + method, "PRODID:Microsoft Exchange Server 2010", "VERSION:2.0", "BEGIN:VEVENT",
+            "ORGANIZER;CN=\"" + name + "\":mailto:" + organizer,
+            "ATTENDEE;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;RSVP=TRUE;CN=" + to + ":mailto:" + to,
+            "DESCRIPTION;LANGUAGE=en-GB:\\n", "UID:" + uid, "SUMMARY;LANGUAGE=en-GB:" + summary,
+            "DTSTART:" + dtstart, "DTEND:" + dtend, "CLASS:PUBLIC", "PRIORITY:5", "DTSTAMP:20260928T080000Z", "TRANSP:OPAQUE",
+            "SEQUENCE:" + sequence, "X-MICROSOFT-CDO-BUSYSTATUS:TENTATIVE"
+         };
+         if (extraLine.Length > 0)
+            lines.Add(extraLine);
+         lines.AddRange(new[] { "END:VEVENT", "END:VCALENDAR", "" });
+         string calendar = string.Join("\r\n", lines);
+         string boundary = "_000_outlook_" + method + sequence + "_";
+         return string.Join("\r\n", new[]
+         {
+            "From: " + name + " <" + organizer + ">", "To: \"" + to + "\" <" + to + ">",
+            "Subject: " + (method == "CANCEL" ? "Canceled: " : "") + summary, "Date: Mon, 28 Sep 2026 08:00:00 +0000",
+            "Message-ID: <" + method + sequence + "-imip-shapes@imip-shapes.test>", "Content-Language: en-GB", "MIME-Version: 1.0",
+            "Content-Type: multipart/alternative; boundary=\"" + boundary + "\"", "",
+            "--" + boundary, "Content-Type: text/plain; charset=\"us-ascii\"", "Content-Transfer-Encoding: quoted-printable", "", summary, "",
+            "--" + boundary, "Content-Type: text/calendar; charset=\"utf-8\"; method=" + method, "Content-Transfer-Encoding: base64", "",
+            Convert.ToBase64String(Encoding.UTF8.GetBytes(calendar), Base64FormattingOptions.InsertLineBreaks), "",
+            "--" + boundary + "--", ""
+         });
+      }
+
+      // An answer as Gmail writes one: a multipart/mixed holding the text, the
+      // HTML and the calendar as alternatives, and the calendar again as an
+      // invite.ics attachment.
+      private static string GmailReply(string attendee, string name, string organizer, string summary, string uid, string partstat, string dtstart, string dtend)
+      {
+         string calendar = string.Join("\r\n", new[]
+         {
+            "BEGIN:VCALENDAR", "PRODID:-//Google Inc//Google Calendar 70.9054//EN", "VERSION:2.0", "CALSCALE:GREGORIAN", "METHOD:REPLY", "BEGIN:VEVENT",
+            "DTSTART:" + dtstart, "DTEND:" + dtend, "DTSTAMP:20260928T080000Z", "ORGANIZER:mailto:" + organizer, "UID:" + uid,
+            "ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=" + partstat + ";CN=" + name + ";X-NUM-GUESTS=0:mailto:" + attendee,
+            "CREATED:20260928T080000Z", "LAST-MODIFIED:20260928T080000Z", "LOCATION:", "SEQUENCE:0", "STATUS:CONFIRMED",
+            "SUMMARY:" + summary, "TRANSP:OPAQUE", "END:VEVENT", "END:VCALENDAR", ""
+         });
+         return string.Join("\r\n", new[]
+         {
+            "From: " + name + " <" + attendee + ">", "To: " + organizer, "Subject: Accepted: " + summary,
+            "Date: Mon, 28 Sep 2026 08:00:00 +0000", "Message-ID: <gmail-shaped-reply@imip-shapes.test>", "MIME-Version: 1.0",
+            "Content-Type: multipart/mixed; boundary=\"000000000000mixed\"", "",
+            "--000000000000mixed", "Content-Type: multipart/alternative; boundary=\"000000000000alt\"", "",
+            "--000000000000alt", "Content-Type: text/plain; charset=\"UTF-8\"", "", name + " has accepted this invitation.", "",
+            "--000000000000alt", "Content-Type: text/html; charset=\"UTF-8\"", "", "<p>" + name + " has accepted this invitation.</p>", "",
+            "--000000000000alt", "Content-Type: text/calendar; charset=\"UTF-8\"; method=REPLY", "Content-Transfer-Encoding: 7bit", "", calendar, "",
+            "--000000000000alt--", "",
+            "--000000000000mixed", "Content-Type: application/ics; name=\"invite.ics\"", "Content-Disposition: attachment; filename=\"invite.ics\"",
+            "Content-Transfer-Encoding: base64", "", Convert.ToBase64String(Encoding.UTF8.GetBytes(calendar), Base64FormattingOptions.InsertLineBreaks), "",
+            "--000000000000mixed--", ""
+         });
+      }
+
+      [Test]
       [Description("An invitation shaped as Outlook sends one - a text/calendar alternative whose Content-Type carries method and charset, and no .ics name - is marked as one in the message JSON, and a message with no calendar part is not")]
       public void AnOutlookShapedInvitationIsMarkedAsOne()
       {
@@ -531,6 +1013,85 @@ namespace RegressionTests.API
       {
          Response response = Raw(RestPort, method, path, Auth(address, password), body, "application/json", null);
          return (response.Status, response.Body);
+      }
+
+      // The PARTSTAT, and the SENT-BY, an event's JSON gives the address; ""
+      // when the event does not list it.
+      private static string PartstatOf(string eventJson, string address)
+      {
+         Match match = Regex.Match(eventJson, "\"address\":\"" + Regex.Escape(address) + "\",\"name\":\"[^\"]*\",\"partstat\":\"([^\"]*)\"");
+         return match.Success ? match.Groups[1].Value : "";
+      }
+
+      private static string SentByOf(string eventJson, string address)
+      {
+         Match match = Regex.Match(eventJson, "\"address\":\"" + Regex.Escape(address) + "\",\"name\":\"[^\"]*\",\"partstat\":\"[^\"]*\",\"sent_by\":\"([^\"]*)\"");
+         return match.Success ? match.Groups[1].Value : "";
+      }
+
+      // A mail whose whole body is a calendar object with the method, as a mail
+      // program sends one: From the given address, the event's summary and
+      // organiser, and the lines given (ATTENDEEs, and anything else) inside
+      // the VEVENT.
+      private static string CalendarMail(string method, string from, string to, string subject, string summary, string uid, string dtstart, string dtend, int sequence, string organizer, params string[] lines)
+      {
+         var text = new List<string>
+         {
+            "From: <" + from + ">", "To: <" + to + ">", "Subject: " + subject, "Date: Mon, 28 Sep 2026 08:00:00 +0000", "MIME-Version: 1.0",
+            "Content-Type: text/calendar; charset=utf-8; method=" + method, "",
+            "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//A mail program//EN", "METHOD:" + method, "BEGIN:VEVENT", "UID:" + uid, "DTSTAMP:20260928T080000Z",
+            "DTSTART:" + dtstart, "DTEND:" + dtend, "SUMMARY:" + summary, "SEQUENCE:" + sequence, "ORGANIZER:mailto:" + organizer
+         };
+         text.AddRange(lines);
+         text.AddRange(new[] { "END:VEVENT", "END:VCALENDAR", "" });
+         return string.Join("\r\n", text);
+      }
+
+      // One SMTP session of the test's own, to one recipient: signed in as
+      // login when one is given - the sender's own submission - and not signed
+      // in at all otherwise. MAIL FROM is from; the message's From is its own.
+      // The server's SMTP port as the suite has it (TestPorts): 25 on a
+      // Windows bench, the Linux suite's own elsewhere.
+      private static void SmtpRaw(string from, string to, string message, string login = null, string password = null)
+      {
+         using (var client = new TcpClient(TestPorts.Host, TestPorts.Actual(SmtpPort)))
+         using (NetworkStream stream = client.GetStream())
+         using (var reader = new StreamReader(stream, Encoding.ASCII))
+         using (var writer = new StreamWriter(stream, new UTF8Encoding(false)) { AutoFlush = true, NewLine = "\r\n" })
+         {
+            ExpectSmtp(reader, "220");
+            if (login != null)
+            {
+               writer.WriteLine("EHLO mail.calendar.test");
+               ExpectSmtp(reader, "250");
+               writer.WriteLine("AUTH PLAIN " + Convert.ToBase64String(Encoding.UTF8.GetBytes("\0" + login + "\0" + password)));
+               ExpectSmtp(reader, "235");
+            }
+            else
+            {
+               writer.WriteLine("HELO mail.calendar.test");
+               ExpectSmtp(reader, "250");
+            }
+            writer.WriteLine("MAIL FROM:<" + from + ">");
+            ExpectSmtp(reader, "250");
+            writer.WriteLine("RCPT TO:<" + to + ">");
+            ExpectSmtp(reader, "250");
+            writer.WriteLine("DATA");
+            ExpectSmtp(reader, "354");
+            string text = message.Replace("\r\n.", "\r\n..");
+            writer.Write(text.EndsWith("\r\n") ? text : text + "\r\n");
+            writer.Write(".\r\n");
+            ExpectSmtp(reader, "250");
+            writer.WriteLine("QUIT");
+         }
+      }
+
+      private static void ExpectSmtp(StreamReader reader, string code)
+      {
+         string line = reader.ReadLine();
+         while (line != null && line.Length > 3 && line[3] == '-')
+            line = reader.ReadLine();
+         Assert.IsTrue(line != null && line.StartsWith(code), "SMTP answered " + (line ?? "nothing") + " where " + code + " was expected.");
       }
 
       private static string Event(string uid, string dtstart, string dtend, string summary)

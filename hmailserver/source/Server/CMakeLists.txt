@@ -641,6 +641,20 @@ add_executable(legacy-blowfish-tests ${SERVER_DIR}/platform/legacy_blowfish_test
 target_link_libraries(legacy-blowfish-tests PRIVATE hmailserver_core)
 set_target_properties(legacy-blowfish-tests PROPERTIES OUTPUT_NAME legacy-blowfish-tests)
 
+# ---------------------------------------------------------------- iMIP on delivery
+#
+# ImipTester (Common/Util/Imip.h) as a program of its own, for the reason
+# spf-tests is one: on Windows it runs inside the server through ClassTester,
+# which nothing reaches here. The From a header names and DMARC for exactly its
+# domain - what vouches that mail from outside was sent by an address before
+# its REPLY, CANCEL or updated REQUEST changes a stored event - and what a REPLY
+# or a CANCEL changes given who sent it, with the cases that must not change or
+# vouch for anything. No network, configuration or database. Not installed; a
+# bench tool.
+add_executable(imip-tests ${SERVER_DIR}/platform/imip_tests_main.cpp)
+target_link_libraries(imip-tests PRIVATE hmailserver_core)
+set_target_properties(imip-tests PROPERTIES OUTPUT_NAME imip-tests)
+
 # ---------------------------------------------------------------- the singletons' first call
 #
 # Singleton<T>::Instance (Common/Util/Singleton.h) with eight threads asking for

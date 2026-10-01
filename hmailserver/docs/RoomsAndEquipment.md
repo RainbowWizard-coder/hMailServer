@@ -151,11 +151,19 @@ and `messageauthdomains`):
   account allowed to send as it by the send-as rules that authenticated SMTP
   already obeys (`SMTPConnection::SenderPermittedFor`: an alias of it, the post
   right on its INBOX, a verified or masked address). A message submitted through
-  an API key is no account's session and is not believed.
+  an API key is no account's session and is not believed, even when the key may
+  send as the organiser's address (`Message::FlagSubmittedThroughSendApi`: the
+  send API records that account for the domain rules, and 6.3.4 and 6.3.5 took
+  the record as the organiser's session).
 * **An organiser from outside** is the organiser only when the policy's
   `bookers` name that address or its `@domain`, **and** the message passed DMARC
   for that domain - which DMARC grants to an SPF or DKIM pass aligned with the
-  From. SPF on its own is not enough, and is not recorded: it vouches for the
+  From - with the organiser as its From: one `From:` field naming one mailbox,
+  the organiser's, and written as one, so that no other mail program could read
+  another address in it ([Calendar.md](Calendar.md), "Who may change a stored
+  event"). DMARC vouches for a domain, and the From is the address that domain
+  let be written, so another sender at the organiser's domain is not the
+  organiser. SPF on its own is not enough, and is not recorded: it vouches for the
   connecting address for an envelope domain whatever the From says, and a shared
   platform named in a partner's SPF record carries other tenants' mail. The
   result is the inbound check's own (`AuthenticationResults::PassedDomains`),
@@ -247,7 +255,10 @@ the room by its own name (`CUTYPE=ROOM`, or `RESOURCE` for equipment), with
 `From:` the room, the envelope sender the room - queued through this server's own
 queue like any mail the room sends (restricted delivery, routes and DKIM apply),
 to the organiser the room believed, and marked `Auto-Submitted: auto-replied` so
-the organiser's own out-of-office does not answer it.
+the organiser's own out-of-office does not answer it. The server records it as
+the room's own submission, as it records a delegate's answer as the delegate's,
+so an organiser's calendar on this server files the answer into the event
+([Calendar.md](Calendar.md), "Who may change a stored event").
 
 **A decline quotes nothing of the request.** An acceptance may repeat what it
 accepts ("Accepted: Planning @ ..."); a decline's subject is the room's name and
@@ -414,10 +425,12 @@ Kept to what a small organisation uses. Left out, deliberately:
 
 ## What proves it
 
-`RegressionTests.API.RoomsAndEquipment`, on ports 10210 to 10212, twenty-one
+`RegressionTests.API.RoomsAndEquipment`, on ports 10210 to 10212, twenty-four
 tests, every local organiser who is to be believed sending signed in over SMTP:
 a free slot accepted, with the REPLY's `METHOD`, `PARTSTAT`, `UID`, `SEQUENCE`,
-`CUTYPE` and sender checked and the room busy to a colleague; a conflict with a
+`CUTYPE` and sender checked and the room busy to a colleague; an event made on
+the organiser's page with the room as a guest, and the room's answer filed into
+the organiser's event as `ACCEPTED`; a conflict with a
 booking sent as `TRANSP:TRANSPARENT` declined with the time, without the other
 booking's organiser or title and without a word of the declined request; a
 booking past the window, one outside the working hours and a series with no end
@@ -426,13 +439,17 @@ minutes is the most, and sixty minutes accepted; an organiser the list does not
 name declined and not filed, and one it does accepted for the same slot; a
 request written in Alice's name without her signing in, and one Bob signed in to
 send in her name, neither filed nor answered, the delegate told once, and
-Alice's own request for the same slot then accepted; an outside organiser named
+Alice's own request for the same slot then accepted; a request in Alice's name
+sent through the send API with a key that may send as any address of the domain
+neither filed nor answered, the delegate told, and Alice's own then accepted; an outside organiser named
 among the bookers from a domain that publishes nothing, neither filed nor
 answered, the delegate told without a word of the request, and nothing leaving
 the queue; an outside organiser named among the bookers whose domain the suite's
 DNS zone makes pass DMARC (SPF for the loopback address, aligned with the From),
-accepted and answered through the queue `MAIL FROM` the room, the same pass for
-a domain the bookers do not name not believed, and a named domain with an SPF
+accepted and answered through the queue `MAIL FROM` the room, another sender at
+that domain - for which DMARC passes too - writing the organiser in, of a request
+and of a `CANCEL` of the organiser's booking, neither believed and the booking
+standing, the same pass for a domain the bookers do not name not believed, and a named domain with an SPF
 record and no DMARC policy - the SPF pass alone - not believed either, with
 "DMARC did not pass" and nothing leaving the queue; two forged `CANCEL`s - Bob
 signed in with Alice's `From`, and nobody signed in with Alice's `MAIL FROM` -

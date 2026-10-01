@@ -14,6 +14,7 @@
 #include "../Util/MessageUtilities.h"
 #include "../Util/MessageOrigin.h"
 #include "../Util/ResourceBooking.h"
+#include "../Util/Imip.h"
 #include "../Util/PasswordBreachCheck.h"
 #include "../Util/ObjectStoreSignature.h"
 #include "../Util/ContentPolicy.h"
@@ -594,6 +595,16 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing ResourceBooking\n"));
       ResourceBookingTester resourceBookingTester;
       resourceBookingTester.Test();
+
+      // iMIP on delivery: who may change a stored event - what decides that
+      // mail from outside was sent by an address (the one From a header
+      // names, and DMARC for exactly that address's domain), and what a
+      // REPLY or a CANCEL changes given who sent it - with every case that
+      // must not change or vouch for anything. Functions of values only;
+      // platform/imip_tests_main.cpp runs the same on Linux.
+      OutputDebugString(_T("hMailServer: Testing Imip\n"));
+      ImipTester imipTester;
+      imipTester.Test();
 
       // The message store's container (docs/MessageStore.md): a large part found
       // and cut out at its wire bytes, the container encoded and decoded back to

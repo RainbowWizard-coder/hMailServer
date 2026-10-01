@@ -169,6 +169,18 @@ and CVE-2026-103010 (the decryption, fixed in 6.3.4);
 [work item #49](https://gitlab.com/hmailserver/hmailserver/-/work_items/49) gives the details from the day of the
 release. Upgrade every server running 6.3.5 or earlier.
 
+Calendar messages delivered by mail (iMIP) - a cancellation, an attendee's answer, an updated invitation - changed
+the event stored in the recipient's calendar without the server checking who had sent them, in 6.3.4 and 6.3.5;
+6.3.6 applies one only when the server verified that it came from the event's organiser, or from the answering
+attendee or a delegate of theirs, and delivers anything else as an ordinary message; an invitation filed from a
+sender it could not verify no longer keeps the organiser's own out of the calendar (What changes on upgrade,
+item 16). A room or a piece of equipment took a DMARC pass for an outside organiser's domain as the organiser's
+own, whichever sender at that domain had written the message, in 6.3.4 and 6.3.5; 6.3.6 believes that organiser
+only when the message's From is the organiser's address. A room or a piece of equipment also took an invitation
+an application sent through the send API, with a key allowed to send as the organiser's address, as the
+organiser's own, in 6.3.4 and 6.3.5, where its documentation said such a message is not believed; in 6.3.6
+neither a room nor a calendar takes a message sent through the send API as an account's own.
+
 The Windows installers, x64 and ARM64, carry OpenSSL 4.0.3, published on 29 September 2026 with fourteen advisories
 against 4.0.x, where 6.3.5's x64 installer carried 4.0.2. Of the two rated above Low, CVE-2026-84782 (High) is in
 DTLS, which hMailServer does not use, and CVE-2026-84783 (Moderate, in 4.0.0 to 4.0.2 only) applies to the Windows
@@ -398,6 +410,27 @@ numbers whatever the answer holds.
     in one address family (on 0.0.0.0 and again on 127.0.0.1, say), both of which still bind, and the ACME http-01
     responder, which still takes every address of its port that the REST listener or another web server does not
     hold.
+16. **A calendar message delivered by mail changes a stored event only from a sender the server verified.** A
+    `CANCEL` is applied only from the organiser the stored event names, an updated `REQUEST` replaces the stored
+    copy only from that organiser, and a `REPLY` sets only the answer of an attendee the event already lists who
+    sent it - or whose delegate did, kept as `SENT-BY` in the organiser's copy. A sender at this server's own
+    domains is verified by a signed-in session (SMTP `AUTH`, the webmail, a room answering by itself) as that
+    account or an address it may send as; a sender from outside by a DMARC pass for exactly the domain of a `From:`
+    that is the sender's address, written as that one mailbox - a `From:` that another mail program could read as
+    another address, with a second `<address>`, text after the `>` or an address in a comment or in the display
+    name, verifies nobody. With DMARC off, from an address range spam protection skips, through the send API -
+    whatever address its key may send as - or from an external account, nothing is verified. A `REPLY` from the
+    account an alias the event lists points at is set on that alias; a `REPLY` adds nobody, to the event or to an
+    occurrence the organiser left the guest out of, but a member of a distribution list of this server's that the
+    event lists, answering themselves, is added beside the list with `MEMBER` naming it. A new invitation is filed
+    as before, marked `X-HMAILSERVER-IMIP-UNVERIFIED` when its organiser was not verified, and such a copy does not
+    hold off the organiser's own invitation by its `SEQUENCE`; anything else is delivered as an ordinary message,
+    with a line in the application log, and the webmail's card for it says that the calendar still has the event as
+    it was instead of saying it changed ([Calendar.md](hmailserver/docs/Calendar.md), "Who may change a stored
+    event"). A room or a piece of equipment believes an organiser from outside only when the DMARC pass is for a
+    `From:` that is the organiser's address, and no organiser for a message sent through the send API; its own
+    answers are recorded as its submission, so that an organiser's calendar on this server files them
+    ([RoomsAndEquipment.md](hmailserver/docs/RoomsAndEquipment.md), "Who is asking").
 
 ### Downloads and the release
 

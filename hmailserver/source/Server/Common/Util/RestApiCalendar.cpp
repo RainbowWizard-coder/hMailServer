@@ -2266,6 +2266,13 @@ namespace HM
       bool inCalendar = FindStoredEvent_(account, invitation.uid, calendar, stored);
       AnsiString storedPartstat;
       AnsiString storedStatus;
+      // Whether the calendar holds what the message says: a CANCEL's event
+      // marked cancelled, a REPLY's (first) answer recorded, a REQUEST at this
+      // version or a later one. The delivery filer applies a message only
+      // from a sender it verified (Imip::FileOnDelivery); any other is an
+      // ordinary message and the stored event is as it was, so the page says
+      // the calendar changed only when this says it did.
+      bool calendarAgrees = false;
       if (inCalendar)
       {
          ICalComponent storedTree;
@@ -2277,6 +2284,31 @@ namespace HM
                storedPartstat = MyPartstat(*storedMaster, me);
                storedStatus = Trimmed(storedMaster->Value("STATUS"));
                storedStatus.ToUpper();
+
+               if (invitation.method == "CANCEL")
+                  calendarAgrees = storedStatus == "CANCELLED";
+               else if (invitation.method == "REPLY" && !invitation.attendees.empty())
+               {
+                  const ImipAttendee &answer = invitation.attendees[0];
+                  const std::vector<AnsiString> listed = Imip::ListedAddressesFor(storedTree, answer.address,
+                     [](const AnsiString &one, const AnsiString &other) { return Imip::SameMailbox(one, other); });
+                  for (size_t i = 0; i < listed.size() && !calendarAgrees; i++)
+                     calendarAgrees = MyPartstat(*storedMaster, listed[i]) == answer.partstat;
+               }
+               else if (invitation.method == "REQUEST" && master)
+               {
+                  // A later version stored, or this one: what it says - when,
+                  // what, where, how often, whose - is what the calendar has.
+                  // A later version only when the server verified who sent it:
+                  // a copy filed unverified (Imip::FiledUnverified) is not this
+                  // message's, whatever SEQUENCE its writer gave it.
+                  const int storedSequence = SequenceOf(*storedMaster);
+                  calendarAgrees = (storedSequence > invitation.sequence && !Imip::FiledUnverified(storedTree)) ||
+                     (storedSequence == invitation.sequence && stored.start == invitation.start && stored.end == invitation.end &&
+                      storedMaster->Value("SUMMARY") == master->Value("SUMMARY") && storedMaster->Value("LOCATION") == master->Value("LOCATION") &&
+                      storedMaster->Value("RRULE") == master->Value("RRULE") &&
+                      Imip::AddressOf(storedMaster->Value("ORGANIZER")) == invitation.organizer);
+               }
             }
          }
       }
@@ -2294,7 +2326,8 @@ namespace HM
          ",\"calendar\":" + Int64Text(inCalendar ? calendar.id : 0) +
          ",\"stored_partstat\":\"" + JsonEscape_(storedPartstat) +
          "\",\"stored_status\":\"" + JsonEscape_(storedStatus) +
-         "\",\"i_am_organizer\":" + AnsiString(invitation.organizer == me ? "true" : "false") + ",";
+         "\",\"calendar_agrees\":" + AnsiString(calendarAgrees ? "true" : "false") +
+         ",\"i_am_organizer\":" + AnsiString(invitation.organizer == me ? "true" : "false") + ",";
       json += master ? ComponentFieldsJson(*master, invitation.tree, me) : AnsiString("\"summary\":\"\"");
       json += "}";
       return BuildResponse_(200, json);

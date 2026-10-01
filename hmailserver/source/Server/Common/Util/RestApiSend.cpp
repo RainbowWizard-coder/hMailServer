@@ -617,6 +617,12 @@ namespace HM
       // sandbox leaves it alone unless SandboxInternalMail says otherwise.
       message->SetSubmittedBySignedInUser(true);
 
+      // And by a key, not by a session of the account it names as its sender
+      // (Message::FlagSubmittedThroughSendApi): CheckComposedMessage_ recorded
+      // that account as the submitter, for the domain rules, and a calendar on
+      // this server, or a room, does not take that as the account's own word.
+      message->SetSubmittedThroughSendApi(true);
+
       message->SetState(Message::Delivering);
 
       if (!PersistentMessage::SaveObject(message))

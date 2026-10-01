@@ -371,7 +371,7 @@ namespace RegressionTests.API
       }
 
       [Test]
-      [Description("A delegate answers the owner's invitation on the owner's behalf: allowed to the delegate and the owner, refused 403 to a plain writer and to a reader; the owner's PARTSTAT is set with SENT-BY the delegate, the organiser receives the REPLY with SENT-BY on the ATTENDEE and Sender: the delegate beside From: the owner, and files it; the delegate's own calendar is untouched; the owner's own answer clears SENT-BY; a bad partstat and the owner's own event are 400")]
+      [Description("A delegate answers the owner's invitation on the owner's behalf: allowed to the delegate and the owner, refused 403 to a plain writer and to a reader; the owner's PARTSTAT is set with SENT-BY the delegate, the organiser receives the REPLY with SENT-BY on the ATTENDEE and Sender: the delegate beside From: the owner, and files it with that SENT-BY; the delegate's own calendar is untouched; the owner's own answer clears SENT-BY; a bad partstat and the owner's own event are 400")]
       public void ADelegateAnswersOnTheOwnersBehalf()
       {
          Assert.AreEqual(200, Me("GET", "/api/v1/me/calendars", null, Owner, Password).status);
@@ -440,7 +440,7 @@ namespace RegressionTests.API
          RetryHelper.TryAction(TimeSpan.FromSeconds(15), () =>
          {
             (int status, string body) organiserEvent = Me("GET", "/api/v1/me/calendar/events/" + organiserEventId, null, Organiser, Password);
-            RetryableAssert.StringContains("\"address\":\"" + Owner + "\",\"name\":\"Olivia Owner\",\"partstat\":\"ACCEPTED\"", organiserEvent.body);
+            RetryableAssert.StringContains("\"address\":\"" + Owner + "\",\"name\":\"Olivia Owner\",\"partstat\":\"ACCEPTED\",\"sent_by\":\"" + Deputy + "\"", organiserEvent.body);
          });
 
          // The owner answering in person clears the delegate's mark.
@@ -461,7 +461,7 @@ namespace RegressionTests.API
       }
 
       [Test]
-      [Description("A forged REQUEST cannot rewrite the organiser's event: one carrying the organiser's own UID, a foreign ORGANIZER and a higher SEQUENCE is delivered to the organiser and to a guest and leaves both copies as they were, while the real organiser's resend at a higher SEQUENCE updates the guest's copy")]
+      [Description("A forged REQUEST cannot rewrite the organiser's event: one carrying the organiser's own UID, a foreign ORGANIZER and a higher SEQUENCE is delivered to the organiser and to a guest and leaves both copies as they were; one written in the organiser's own name by nobody signed in leaves the guest's copy as it was too; the real organiser's resend at a higher SEQUENCE, signed in, updates the guest's copy")]
       public void AForgedRequestCannotRewriteTheOrganisersEvent()
       {
          Assert.AreEqual(200, Me("GET", "/api/v1/me/calendars", null, Reader, Password).status);
@@ -488,8 +488,19 @@ namespace RegressionTests.API
          SmtpRaw("attacker@evil.test", Reader, "mail.evil.test", Invitation("attacker@evil.test", Reader, "Invitation: Hijacked", "Hijacked", uid, "20261201T140000Z", "20261201T150000Z", 99, "attacker@evil.test", Reader));
          MessageIdOf(Reader, Password, "Invitation: Hijacked");
 
-         // The control: the real organiser's resend at a higher SEQUENCE does reach the guest's copy.
-         SmtpRaw(Organiser, Reader, "mail." + _domain.Name, Invitation(Organiser, Reader, "Updated invitation: Steering", "Steering (moved)", uid, "20261201T110000Z", "20261201T120000Z", 3, Organiser, Reader));
+         // The organiser's own address written in as ORGANIZER, From and MAIL
+         // FROM, with a higher SEQUENCE and a new time, by nobody signed in: the
+         // server cannot tell that the organiser sent it, so the guest's copy stays.
+         SmtpRaw(Organiser, Reader, "mail.evil.test", Invitation(Organiser, Reader, "Updated invitation: Unsigned steering", "Unsigned", uid, "20261201T160000Z", "20261201T170000Z", 50, Organiser, Reader));
+         MessageIdOf(Reader, Password, "Unsigned steering");
+         CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+         (int status, string body) unchanged = Me("GET", window, null, Reader, Password);
+         StringAssert.Contains("\"summary\":\"Steering\"", unchanged.body, "An update nobody verified leaves the guest's copy as it was. Body: " + unchanged.body);
+         StringAssert.Contains("\"start\":\"20261201T090000Z\"", unchanged.body);
+         StringAssert.DoesNotContain("Unsigned", unchanged.body);
+
+         // The control: the real organiser's resend at a higher SEQUENCE, signed in, does reach the guest's copy.
+         SmtpRaw(Organiser, Reader, "mail." + _domain.Name, Invitation(Organiser, Reader, "Updated invitation: Steering", "Steering (moved)", uid, "20261201T110000Z", "20261201T120000Z", 3, Organiser, Reader), Organiser);
          RetryHelper.TryAction(TimeSpan.FromSeconds(20), () => RetryableAssert.StringContains("\"summary\":\"Steering (moved)\"", Me("GET", window, null, Reader, Password).body));
          (int status, string body) guestCopy = Me("GET", window, null, Reader, Password);
          Assert.AreEqual(1, Regex.Matches(guestCopy.body, "\"uid\":\"" + Regex.Escape(uid) + "\"").Count, "One event, updated, never a second. Body: " + guestCopy.body);
@@ -577,11 +588,13 @@ namespace RegressionTests.API
          StringAssert.Contains("\"my_partstat\":\"ACCEPTED\"", Me("GET", window, null, Reader, Password).body);
 
          // The same REQUEST again, SEQUENCE 0 as the first: the organiser never
-         // got the answer, or sent the original again. The answer stays.
-         SmtpRaw(Organiser, Reader, "mail." + _domain.Name, Invitation(Organiser, Reader, "Resent: Budget review", "Budget review", uid, "20261205T090000Z", "20261205T100000Z", 0, Organiser, Reader));
+         // got the answer, or sent the original again. The answer stays. Every
+         // resend here is the organiser's own, signed in: a copy already stored
+         // is replaced only by what the server verified its organiser sent.
+         SmtpRaw(Organiser, Reader, "mail." + _domain.Name, Invitation(Organiser, Reader, "Resent: Budget review", "Budget review", uid, "20261205T090000Z", "20261205T100000Z", 0, Organiser, Reader), Organiser);
          MessageIdOf(Reader, Password, "Resent: Budget review");
          // A newer one after it, so that the resend's delivery is known to be over.
-         SmtpRaw(Organiser, Reader, "mail." + _domain.Name, Invitation(Organiser, Reader, "Updated invitation: Budget review", "Budget review (moved)", uid, "20261205T110000Z", "20261205T120000Z", 2, Organiser, Reader));
+         SmtpRaw(Organiser, Reader, "mail." + _domain.Name, Invitation(Organiser, Reader, "Updated invitation: Budget review", "Budget review (moved)", uid, "20261205T110000Z", "20261205T120000Z", 2, Organiser, Reader), Organiser);
          RetryHelper.TryAction(TimeSpan.FromSeconds(20), () => RetryableAssert.StringContains("\"summary\":\"Budget review (moved)\"", Me("GET", window, null, Reader, Password).body));
          (int status, string body) after = Me("GET", window, null, Reader, Password);
          Assert.AreEqual(1, Regex.Matches(after.body, "\"uid\":\"" + Regex.Escape(uid) + "\"").Count, "One event through both. Body: " + after.body);
@@ -591,9 +604,9 @@ namespace RegressionTests.API
          // And the same-sequence resend of THAT, after an answer, keeps the answer.
          long moved = MessageIdOf(Reader, Password, "Updated invitation: Budget review");
          Assert.AreEqual(200, Me("POST", "/api/v1/me/messages/" + moved + "/invitation/reply", "{\"action\":\"tentative\"}", Reader, Password).status);
-         SmtpRaw(Organiser, Reader, "mail." + _domain.Name, Invitation(Organiser, Reader, "Resent again: Budget review", "Budget review (moved)", uid, "20261205T110000Z", "20261205T120000Z", 2, Organiser, Reader));
+         SmtpRaw(Organiser, Reader, "mail." + _domain.Name, Invitation(Organiser, Reader, "Resent again: Budget review", "Budget review (moved)", uid, "20261205T110000Z", "20261205T120000Z", 2, Organiser, Reader), Organiser);
          MessageIdOf(Reader, Password, "Resent again: Budget review");
-         SmtpRaw(Organiser, Reader, "mail." + _domain.Name, Invitation(Organiser, Reader, "Marker: Budget review", "Marker", "marker-0001@" + _domain.Name, "20261205T150000Z", "20261205T153000Z", 0, Organiser, Reader));
+         SmtpRaw(Organiser, Reader, "mail." + _domain.Name, Invitation(Organiser, Reader, "Marker: Budget review", "Marker", "marker-0001@" + _domain.Name, "20261205T150000Z", "20261205T153000Z", 0, Organiser, Reader), Organiser);
          RetryHelper.TryAction(TimeSpan.FromSeconds(20), () => RetryableAssert.StringContains("\"summary\":\"Marker\"", Me("GET", window, null, Reader, Password).body));
          after = Me("GET", window, null, Reader, Password);
          string budget = after.body.Split(new[] { "{\"id\":" }, StringSplitOptions.None).FirstOrDefault(item => item.Contains("\"uid\":\"" + uid + "\"")) ?? "";
@@ -917,8 +930,11 @@ namespace RegressionTests.API
          return string.Join("\r\n", lines);
       }
 
-      // One SMTP session of the test's own, so the HELO is the test's to choose.
-      private static void SmtpRaw(string from, string to, string helo, string message)
+      // One SMTP session of the test's own, so the HELO is the test's to choose:
+      // signed in as login, with the fixture's password, when one is given -
+      // the sender's own submission, which is what lets a delivered update
+      // change a stored event - and not signed in at all otherwise.
+      private static void SmtpRaw(string from, string to, string helo, string message, string login = null)
       {
          using (var client = new TcpClient("127.0.0.1", SmtpPort))
          using (NetworkStream stream = client.GetStream())
@@ -926,8 +942,18 @@ namespace RegressionTests.API
          using (var writer = new StreamWriter(stream, Encoding.ASCII) { AutoFlush = true, NewLine = "\r\n" })
          {
             ExpectSmtp(reader, "220");
-            writer.WriteLine("HELO " + helo);
-            ExpectSmtp(reader, "250");
+            if (login != null)
+            {
+               writer.WriteLine("EHLO " + helo);
+               ExpectSmtp(reader, "250");
+               writer.WriteLine("AUTH PLAIN " + Convert.ToBase64String(Encoding.UTF8.GetBytes("\0" + login + "\0" + Password)));
+               ExpectSmtp(reader, "235");
+            }
+            else
+            {
+               writer.WriteLine("HELO " + helo);
+               ExpectSmtp(reader, "250");
+            }
             writer.WriteLine("MAIL FROM:<" + from + ">");
             ExpectSmtp(reader, "250");
             writer.WriteLine("RCPT TO:<" + to + ">");

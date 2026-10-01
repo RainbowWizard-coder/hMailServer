@@ -13981,11 +13981,14 @@
           renderInvitation(m);
         });
       };
+      // What the calendar holds is said only as the server read it
+      // (calendar_agrees): a calendar message is applied on delivery only from
+      // a sender the server verified, and any other leaves the event as it was.
       if (method === 'REPLY') {
         var who2 = inv.attendees && inv.attendees[0];
-        status.textContent = who2 ? tf('{0} has {1}.', who2.name || who2.address, partstatWords(who2.partstat)) + (inv.i_am_organizer && inv.in_calendar ? ' ' + t('Your event has been updated.') : '') : '';
+        status.textContent = who2 ? tf('{0} has {1}.', who2.name || who2.address, partstatWords(who2.partstat)) + (inv.i_am_organizer && inv.in_calendar ? ' ' + (inv.calendar_agrees === true ? t('Your event has been updated.') : t('Your event does not show this answer: an answer is recorded only from a sender the server verified as the guest.')) : '') : '';
       } else if (method === 'CANCEL') {
-        status.textContent = inv.in_calendar ? t('The organiser cancelled this event. It is marked cancelled in your calendar.') : t('The organiser cancelled this event.');
+        status.textContent = !inv.in_calendar ? t('The organiser cancelled this event.') : inv.stored_status === 'CANCELLED' ? t('The organiser cancelled this event. It is marked cancelled in your calendar.') : t('Your calendar still has this event, not cancelled: a cancellation is applied only from a sender the server verified as the organiser.');
         if (inv.in_calendar) { var remove = button(t('Remove from calendar'), 'btn ghost sm'); remove.addEventListener('click', function () { reply('remove'); }); actions.appendChild(remove); }
       } else if (method === 'COUNTER') {
         status.textContent = t('A guest proposes this time instead. Change the event in your calendar to accept it.');
@@ -13994,6 +13997,7 @@
       } else {
         var answered = inv.stored_partstat || '';
         status.textContent = answered ? (inv.stored_status === 'CANCELLED' ? t('This event was cancelled.') : tf('You {0}.', partstatWords(answered)) + ' ' + t('It is in your calendar.')) : t('Not answered yet.');
+        if (inv.in_calendar && inv.calendar_agrees === false && inv.stored_status !== 'CANCELLED') { status.textContent += ' ' + t('Your calendar does not have this version of the event: an update is applied only from a sender the server verified as the organiser.'); }
         [['accept', t('Accept'), 'btn sm'], ['tentative', t('Maybe'), 'btn ghost sm'], ['decline', t('Decline'), 'btn ghost sm']].forEach(function (pair) {
           var b = button(pair[1], pair[2]);
           b.setAttribute('data-invite', pair[0]);

@@ -721,11 +721,15 @@ const INVITED = {
    flags: { seen: true, flagged: false, draft: false }, attachments: []
 };
 let invitationAnswer = '';
+// What the card test sets over the invitation's JSON, to show the card a
+// cancellation, an answer or an update the server did or did not apply.
+let invitationShape = null;
 function invitationJson() {
-   return { method: 'REQUEST', component: 'VEVENT', uid: 'board@example.com', start: '20261019T080000Z', end: '20261019T090000Z', local_start: '2026-10-19T09:00', local_end: '2026-10-19T10:00', recurring: false,
-      in_calendar: invitationAnswer !== '', event_id: invitationAnswer ? 30 : 0, calendar: invitationAnswer ? 1 : 0, stored_partstat: invitationAnswer, stored_status: '', i_am_organizer: false,
+   const base = { method: 'REQUEST', component: 'VEVENT', uid: 'board@example.com', start: '20261019T080000Z', end: '20261019T090000Z', local_start: '2026-10-19T09:00', local_end: '2026-10-19T10:00', recurring: false,
+      in_calendar: invitationAnswer !== '', event_id: invitationAnswer ? 30 : 0, calendar: invitationAnswer ? 1 : 0, stored_partstat: invitationAnswer, stored_status: '', calendar_agrees: invitationAnswer !== '', i_am_organizer: false,
       summary: 'Board meeting', location: 'Room 9', description: 'Bring numbers.', tz: 'Europe/London', rrule: '', alarm_minutes: -1, organizer: 'self@example.com', organizer_name: 'Sam Self',
       attendees: [{ address: 'user@example.com', name: '', partstat: invitationAnswer || 'NEEDS-ACTION' }], my_partstat: invitationAnswer || 'NEEDS-ACTION', status: '', sequence: 0, all_day: false };
+   return invitationShape ? Object.assign(base, invitationShape) : base;
 }
 function answerCalendar(method, path, body) {
    if (path === '/api/v1/me/calendars' && method === 'GET') { return json(200, { calendars: calendarsState }); }
@@ -4751,6 +4755,47 @@ async function main() {
    location.hash = '#/m/102';
    await flush();
    check('a message without an invitation shows no card', document.getElementById('message-invitation').hidden === true);
+
+   // What the card says the calendar holds is what the server read of it
+   // (calendar_agrees, stored_status): a cancellation, an answer or an update
+   // that was not applied on delivery - the server applies one only from a
+   // sender it verified - is never said to be in the calendar.
+   const cardFor = async (shape) => {
+      invitationShape = shape;
+      location.hash = '#/m/102';
+      await flush();
+      location.hash = '#/m/106';
+      await flush();
+      return document.getElementById('message-invitation');
+   };
+   const markedCancelled = words('The organiser cancelled this event. It is marked cancelled in your calendar.');
+   const cancelNotApplied = words('Your calendar still has this event, not cancelled: a cancellation is applied only from a sender the server verified as the organiser.');
+   let card = await cardFor({ method: 'CANCEL', in_calendar: true, event_id: 30, calendar: 1, stored_partstat: 'ACCEPTED', stored_status: '', calendar_agrees: false });
+   check('a cancellation the server did not apply is not said to be in the calendar, and the card says the event is still there and why',
+      card.textContent.indexOf(markedCancelled) < 0 && card.textContent.indexOf(cancelNotApplied) >= 0, card.textContent.slice(0, 400));
+   check('the event can still be removed from the card by hand', findAll(card, (n) => n.tagName === 'BUTTON' && n.textContent === words('Remove from calendar')).length === 1,
+      findAll(card, (n) => n.tagName === 'BUTTON').map((b) => b.textContent).join(','));
+   card = await cardFor({ method: 'CANCEL', in_calendar: true, event_id: 30, calendar: 1, stored_partstat: 'ACCEPTED', stored_status: 'CANCELLED', calendar_agrees: true });
+   check('a cancellation the server applied is said to be marked in the calendar', card.textContent.indexOf(markedCancelled) >= 0 && card.textContent.indexOf(cancelNotApplied) < 0, card.textContent.slice(0, 400));
+
+   const updated = words('Your event has been updated.');
+   const answerNotApplied = words('Your event does not show this answer: an answer is recorded only from a sender the server verified as the guest.');
+   const replyShape = { method: 'REPLY', in_calendar: true, event_id: 30, calendar: 1, stored_partstat: '', stored_status: '', i_am_organizer: true, organizer: 'user@example.com',
+      attendees: [{ address: 'guest@example.net', name: 'Gil Guest', partstat: 'DECLINED' }] };
+   card = await cardFor(Object.assign({ calendar_agrees: false }, replyShape));
+   check('an answer the server did not record is not said to have updated the event, and the card says why',
+      card.textContent.indexOf(updated) < 0 && card.textContent.indexOf(answerNotApplied) >= 0, card.textContent.slice(0, 400));
+   card = await cardFor(Object.assign({ calendar_agrees: true }, replyShape));
+   check('an answer the server recorded is said to have updated the event', card.textContent.indexOf(updated) >= 0 && card.textContent.indexOf(answerNotApplied) < 0, card.textContent.slice(0, 400));
+
+   const updateNotApplied = words('Your calendar does not have this version of the event: an update is applied only from a sender the server verified as the organiser.');
+   card = await cardFor({ in_calendar: true, event_id: 30, calendar: 1, stored_partstat: 'ACCEPTED', stored_status: '', calendar_agrees: false, sequence: 4, start: '20261019T140000Z', end: '20261019T150000Z' });
+   check('an update the server did not apply says the calendar does not have this version', card.textContent.indexOf(updateNotApplied) >= 0, card.textContent.slice(0, 400));
+   card = await cardFor({ in_calendar: true, event_id: 30, calendar: 1, stored_partstat: 'ACCEPTED', stored_status: '', calendar_agrees: true });
+   check('an invitation the calendar holds says nothing of another version', card.textContent.indexOf(updateNotApplied) < 0 && card.textContent.indexOf(words('It is in your calendar.')) >= 0, card.textContent.slice(0, 400));
+   invitationShape = null;
+   location.hash = '#/m/102';
+   await flush();
 
    }
 

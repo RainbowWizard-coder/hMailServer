@@ -102,6 +102,15 @@ means, and it is why such a key must carry a day ceiling. Give `*@domain` to
 an application that is trusted with the whole domain, and an address to any
 other.
 
+What a key sends is still the application's, not the account's own: the
+message records the account as its submitter for the domain rules, and is
+marked as sent through this API (`Message::FlagSubmittedThroughSendApi`), so a
+calendar on this server applies no cancellation, answer or update the key
+sends in an account's name, and a room or a piece of equipment takes no
+invitation it sends as that organiser's ([Calendar.md](Calendar.md), "Who may
+change a stored event"; [RoomsAndEquipment.md](RoomsAndEquipment.md), "Who is
+asking"). The message is delivered, as any other.
+
 The **display name** and **`reply_to`** are the application's own and are not
 checked against anything: `"Your Bank Security" <noreply@example.com>` with a
 `Reply-To` elsewhere is a message the key can send. What the key vouches for is
