@@ -1906,23 +1906,23 @@ counts against that ceiling and against the account's own; found by the project'
   button under the list, and runs with the inbox in one list, putting the account's choice back afterwards - by a
   new sign-in when its own session has ended while the browser ran, and saying so when it cannot.
   `build/readme-shots/bench.ps1` stopped at its first line under Windows PowerShell 5.1, which the pages' `powershell
-  -File` starts. `seed-folder.py` and `webmail-timing.py` take the account's password from `HMPERF_PASSWORD`, as
-  the load generator takes its own from the environment. The recipes now take a pinned Python outside the bench's
-  PATH, where a `python.exe` would change which tests the next gate runs; turn the logging off, which a gate leaves
-  on; run the browser's select-all once, last, with the index on, since it leaves the folder read; wait five
-  minutes after each restart; check the index has caught up by a search, not by its count; measure SMTP out with
-  fsync off, and the Windows bench with fsync off at all; run a warm-up and three counted runs on Windows, each
-  with `--server`; give the commands that put back what `prepare-hmailserver --cleanup` leaves; and give the seed's
-  bytes for the page's own account, 1,322,787,827. `lab.sh numbers` records the served server's logging beside its
-  fsync setting. The seeding, the timing and the load generator were run with the pages' command lines - the load
-  generator's with the Linux process's name and data folder - at a pilot's size, against a server built from this
-  tree on linix with PostgreSQL: 5,000 messages seeded at 50 a second; each search three requests with the index off
-  and one with it on; the browser's search followed twice where it had stopped, and its *Mark as read* changed all
-  5,000 messages where it had changed the Primary tab's 2,999; and `prepare-hmailserver`, `smtp-in`, `smtp-out` and
-  `imap-sessions` with the `/proc` sampler, fsync on and off. `bench.ps1 -Up` and `-Down` ran under Windows
-  PowerShell 5.1 and PowerShell 7 against a stand-in for the COM object, and the pinned Python and Playwright
-  installed as the page says under 5.1. The lab's comparison, imaptest and anything on the Windows bench were not
-  run.
+  -File` starts. `seed-folder.py` and `webmail-timing.py` take the account's password from `HMPERF_PASSWORD`, as the
+  load generator takes its own from the environment. The recipes now take a pinned Python outside the bench's PATH,
+  where a `python.exe` would change which tests the next gate runs; turn the logging off, which a gate leaves on; run
+  the browser's select-all once, last, with the index on, since it leaves the folder read; wait five minutes after
+  each restart; check the index has caught up by a search, not by its count, and leave it a margin after the search
+  first says so; measure SMTP out with fsync off, and the Windows bench with fsync off at all; run a warm-up and
+  three counted runs on Windows, each with `--server`; give the commands that put back what `prepare-hmailserver
+  --cleanup` leaves; and give the seed's bytes for the page's own account, 1,322,787,827. `lab.sh numbers` records
+  the served server's logging beside its fsync setting. The seeding, the timing and the load generator were run with
+  the pages' command lines - the load generator's with the Linux process's name and data folder - at a pilot's size,
+  against a server built from this tree on linix with PostgreSQL: 5,000 messages seeded at 50 a second; each search
+  three requests with the index off and one with it on; the browser's search followed twice where it had stopped, and
+  its *Mark as read* changed all 5,000 messages where it had changed the Primary tab's 2,999; and
+  `prepare-hmailserver`, `smtp-in`, `smtp-out` and `imap-sessions` with the `/proc` sampler, fsync on and off.
+  `bench.ps1 -Up` and `-Down` ran under Windows PowerShell 5.1 and PowerShell 7 against a stand-in for the COM
+  object, and the pinned Python and Playwright installed as the page says under 5.1. The lab's comparison, imaptest
+  and anything on the Windows bench were not run.
 - **Static analysis: the server-logic findings of the 6.3.6 triage.** Besides the fixes above (an account's copy,
   an IP range's priority, the seven catch-alls): a message's copy now copies its base, which holds its id, as an
   account's does; `ChangeNotification`, `WorkQueueTaskInfo`, the work queue's running and pending tasks, the

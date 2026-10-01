@@ -470,7 +470,9 @@ def parse_args(argv):
     args = parser.parse_args(argv)
     if args.port is None:
         args.port = 993 if args.tls else 143
-    if args.password is None and "HMPERF_PASSWORD" in os.environ:
+    # An empty HMPERF_PASSWORD is none, as webmail-timing.py takes it: a shell's
+    # "HMPERF_PASSWORD= python ..." would otherwise send an empty password.
+    if args.password is None and os.environ.get("HMPERF_PASSWORD"):
         args.password = os.environ["HMPERF_PASSWORD"]
     if not args.dry_run and (not args.user or args.password is None):
         parser.error("--user and a password (HMPERF_PASSWORD in the environment, or --password) are needed unless --dry-run")

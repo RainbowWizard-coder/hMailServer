@@ -322,10 +322,10 @@ answered SMTP with STARTTLS and IMAP. Each time is the job's own `BUILT:` or
 2897966924 was cancelled at 22:14 UTC to free linix and the Windows bench for
 other builds, with five of these builds still waiting for linix. By then 93 of
 its jobs had passed - the Windows gate, the Windows packages, every package build
-and install and the release's rehearsal among them - and one had failed,
-`windows-dotnet`, at its checkout, where git could not remove a file left in
-bench150's build folder. So five of the seven targets have passed in a pipeline,
-and Leap 16.0 and Tumbleweed have not.
+and install and the release's rehearsal among them - and one run of a job had
+failed: `windows-dotnet`'s first, at its checkout, where git could not remove a
+file left in bench150's build folder; started again, it passed. So five of the
+seven targets have passed in a pipeline, and Leap 16.0 and Tumbleweed have not.
 
 ### Before any pipeline
 

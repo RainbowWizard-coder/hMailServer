@@ -194,9 +194,10 @@ Restart-Service hMailServer; Start-Sleep -Seconds 300
 & $py build\perf\webmail-timing.py --user self@uicheck.test --mode browser --no-bulk `
     --label "bench, SQL CE, 100k, index off" --json C:\perf\results\perf-index-off-browser.json --markdown C:\perf\results\perf-index-off-browser.md
 
-# Index on: message indexing and the full-text index. Caught up when one search of
-# the folder answers complete, with its 100 hits, in one request: run this until
-# the JSON's http.search.body_word_in_folder says "complete": true and "hits": 100.
+# Index on: message indexing and the full-text index. Run the probe until the JSON's
+# http.search.body_word_in_folder says "complete": true and "hits": 100 - one search
+# of the folder answered in one request - and then leave the index on for a twentieth
+# as long again as that took before the restart below (why: under the recipe).
 # Not MessageIndexing.TotalIndexedCount: that counts the metadata index, which
 # reaches the folder's size long before the full-text index has read it.
 $app = New-Object -ComObject hMailServer.Application; $null = $app.Authenticate('Administrator', 'testar')
@@ -223,6 +224,16 @@ message table for orphaned index rows, right after a restart, and the first open
 would share the database with it. Both passes wait the same, and the folder is
 still read cold, on its first use. The logging may stay off afterwards: the next
 gate's setup switches it on itself.
+
+Why the margin after the probe: a search request reads at most 2,000 message files,
+and stops after about two and a half seconds of reading, and the index spares it only
+the messages it has read whole. So the probe answers complete in one request once
+fewer messages are left for the index than one request may read itself, not only
+once none is: the indexer works through the folder oldest first and the search
+starts at the newest, so up to some 2,000 of the newest messages may still be
+unread by the index when it first passes. At the pace it kept until then, those
+take about a fiftieth of the time from turning the index on; a twentieth leaves a
+margin.
 
 **On Linux** the same two scripts run unchanged against a server with the REST
 listener on, with the same `HMPERF_PASSWORD`: `--base https://host:port --insecure`
