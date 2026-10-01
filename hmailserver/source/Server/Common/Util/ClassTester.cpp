@@ -41,6 +41,7 @@
 #include "../AntiSpam/DKIM/DkimRotationPlan.h"
 #include "../../SMTP/BounceClassifier.h"
 #include "BrandLogo.h"
+#include "InertMediaType.h"
 #include "Compression.h"
 #include "ZipWriter.h"
 #include "ReaderOAuth.h"
@@ -456,6 +457,15 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing BrandLogo\n"));
       BrandLogoTester brandLogoTester;
       brandLogoTester.Test();
+
+      // The type a file sent as a link and a contact's photo go out under: a
+      // type on the list of those no browser runs or renders, or
+      // application/octet-stream - for every JavaScript name, a list of types,
+      // and a parameter other than a charset. Functions of values only;
+      // platform/media_type_tests_main.cpp runs the same on Linux.
+      OutputDebugString(_T("hMailServer: Testing InertMediaType\n"));
+      InertMediaTypeTester inertMediaTypeTester;
+      inertMediaTypeTester.Test();
 
       // Importing with a sign-in: base64url both ways, the S256 challenge against
       // RFC 7636's example, and the address an id_token names.

@@ -860,6 +860,7 @@ EXIT 0
     <ClCompile Include="..\Common\Util\RestApiSessionFollow.cpp" />
     <ClCompile Include="..\Common\Util\RestApiBranding.cpp" />
     <ClCompile Include="..\Common\Util\RestApiFiles.cpp" />
+    <ClCompile Include="..\Common\Util\InertMediaType.cpp" />
     <ClCompile Include="..\Common\Util\RestApiLanguages.cpp" />
     <ClCompile Include="..\Common\Util\RestApiSmime.cpp" />
     <ClCompile Include="..\Common\Util\RestApiSmimeAuthority.cpp" />
@@ -1764,6 +1765,7 @@ EXIT 0
     <ClInclude Include="..\Common\Util\ResourceBooking.h" />
     <ClInclude Include="..\Common\Util\Imip.h" />
     <ClInclude Include="..\Common\Util\BrandLogo.h" />
+    <ClInclude Include="..\Common\Util\InertMediaType.h" />
     <ClInclude Include="..\Common\Util\ReaderOAuth.h" />
     <ClInclude Include="..\Common\Util\MaskedAddresses.h" />
     <ClInclude Include="..\Common\Util\AccountRecovery.h" />

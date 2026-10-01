@@ -49,13 +49,14 @@ override_dh_auto_configure:
 # List's cut of a host name, the backup's exclusions (a scratch data directory
 # under $TMPDIR, removed again), the live update's trust (a configuration file
 # of its own under $TMPDIR, read as the server and root's check read theirs) and
-# the business objects' copies and first values, the TLS contexts' options,
-# read back from the distribution's own OpenSSL, the update feed's release page,
-# who may change a stored event by a delivered calendar message (iMIP), and a
-# written file whose close fails (on /dev/full and a quota under $TMPDIR).
+# the business objects' copies and first values, the TLS contexts' options, read
+# back from the distribution's own OpenSSL, the update feed's release page, who
+# may change a stored event by a delivered calendar message (iMIP), a written
+# file whose close fails (on /dev/full and a quota under $TMPDIR), and the types
+# files sent as links and contacts' photos are served under.
 # None opens a socket, reads the system's configuration, needs a database or
 # needs root, so they run here, with the network refused, in seconds.
-TESTERS := spf-tests script-binding-tests snmp-tests object-store-signature-tests singleton-tests legacy-blowfish-tests xml-tree-tests datetime-tests public-suffix-tests backup-tests trust-anchor-tests business-object-tests tls-options-tests update-feed-tests imip-tests file-utilities-tests
+TESTERS := spf-tests script-binding-tests snmp-tests object-store-signature-tests singleton-tests legacy-blowfish-tests xml-tree-tests datetime-tests public-suffix-tests backup-tests trust-anchor-tests business-object-tests tls-options-tests update-feed-tests imip-tests file-utilities-tests media-type-tests
 
 override_dh_auto_test:
 ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))

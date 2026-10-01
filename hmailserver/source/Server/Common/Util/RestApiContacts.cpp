@@ -45,6 +45,7 @@
 #include "ContactStore.h"
 #include "ContactCard.h"
 #include "ContactGroups.h"
+#include "InertMediaType.h"
 #include "Unicode.h"
 #include "VCard.h"
 #include "../BO/Account.h"
@@ -533,7 +534,11 @@ namespace HM
 
       HttpResponse response;
       response.status = 200;
-      response.content_type = contentType;
+      // The type is the card's, which whoever wrote the card chose - and a
+      // card can be in a book another account shares: a picture on the list
+      // of those no browser runs or renders (InertMediaType.h), or
+      // application/octet-stream.
+      response.content_type = InertMediaType::ForPicture(contentType);
       response.body = bytes;
       response.extra_headers =
          "X-Content-Type-Options: nosniff\r\n"

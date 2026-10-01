@@ -621,6 +621,20 @@ add_executable(public-suffix-tests ${SERVER_DIR}/platform/public_suffix_tests_ma
 target_link_libraries(public-suffix-tests PRIVATE hmailserver_core)
 set_target_properties(public-suffix-tests PROPERTIES OUTPUT_NAME public-suffix-tests)
 
+# ---------------------------------------------------------------- the types files and photos go out under
+#
+# InertMediaTypeTester (Common/Util/InertMediaType.h) as a program of its own,
+# for the reason spf-tests is one: on Windows it runs inside the server through
+# ClassTester, which nothing reaches here. The type a file sent as a link and a
+# contact's photo are served under: a type on the list of those no browser runs,
+# applies or renders as a page, or application/octet-stream - for every
+# JavaScript name, the types a browser applies or renders, a list of types,
+# whitespace or a control character in a type, and a parameter other than a
+# charset. No network, configuration or database. Not installed; a bench tool.
+add_executable(media-type-tests ${SERVER_DIR}/platform/media_type_tests_main.cpp)
+target_link_libraries(media-type-tests PRIVATE hmailserver_core)
+set_target_properties(media-type-tests PROPERTIES OUTPUT_NAME media-type-tests)
+
 # ---------------------------------------------------------------- the OpenPGP writer
 #
 # The one OpenPGP message this server writes - a delivery to a zero-access

@@ -530,6 +530,48 @@ namespace RegressionTests.API
       }
 
       [Test]
+      [Description("A contact's photo goes out under the type its card declares only when that is a picture on the list of types no browser runs or renders, and as application/octet-stream otherwise: a JavaScript type, SVG, a list of types")]
+      public void APhotoGoesOutOnlyUnderAPictureType()
+      {
+         const string pngBase64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==";
+
+         // The PHOTO line of a card, and the type its photo is served under.
+         // The three after the first two went out as the card declared them
+         // before the list. A list of types is refused too; InertMediaTypeTester
+         // holds the type to that, where a card cannot carry one cleanly.
+         string[][] cases =
+         {
+            new[] { "PHOTO:data:image/png;base64," + pngBase64, "image/png" },
+            new[] { "PHOTO:data:IMAGE/JPG;base64," + pngBase64, "image/jpeg" },
+            new[] { "PHOTO:data:text/jscript;base64," + pngBase64, "application/octet-stream" },
+            new[] { "PHOTO:data:application/x-javascript;base64," + pngBase64, "application/octet-stream" },
+            new[] { "PHOTO;ENCODING=b;TYPE=SVG+XML:" + pngBase64, "application/octet-stream" },
+         };
+
+         for (int i = 0; i < cases.Length; i++)
+         {
+            string person = "Typed Photo" + i;
+            string card = string.Join("\r\n", new[]
+            {
+               "BEGIN:VCARD", i < 4 ? "VERSION:4.0" : "VERSION:3.0", "UID:typed-photo-" + i, "FN:" + person, "N:Photo" + i + ";Typed;;;",
+               "EMAIL:typed-photo-" + i + "@example.com", cases[i][0], "END:VCARD", ""
+            });
+            Response created = Put(Book + "typed-photo-" + i + ".vcf", card, "If-None-Match: *\r\n");
+            Assert.AreEqual(201, created.Status, cases[i][0] + ": " + created.Body);
+
+            Response rest = Rest("GET", "/api/v1/me/contacts");
+            string id = System.Text.RegularExpressions.Regex.Match(rest.Body, "\"id\":(\\d+),\"name\":\"" + person + "\"").Groups[1].Value;
+            Assert.IsFalse(string.IsNullOrEmpty(id), cases[i][0] + ": " + rest.Body);
+
+            Response photo = Raw(RestPort, "GET", "/api/v1/me/contacts/" + id + "/photo", Auth(Address, UserPassword), null, null, null);
+            Assert.AreEqual(200, photo.Status, cases[i][0] + ": " + photo.Body);
+            Assert.AreEqual(cases[i][1], photo.Header("Content-Type"), cases[i][0] + ": the type the photo is served under. Headers: " + photo.HeaderText);
+            StringAssert.Contains("nosniff", photo.Header("X-Content-Type-Options"), cases[i][0]);
+            StringAssert.Contains("PNG", photo.Body, cases[i][0] + ": the photo's own bytes.");
+         }
+      }
+
+      [Test]
       [Description("A card without an EMAIL is refused with CARDDAV:valid-address-data and the reason, and nothing is stored; a card that is not a vCard likewise")]
       public void ACardWithoutAnEmailAddressIsRefusedAndNothingIsStored()
       {

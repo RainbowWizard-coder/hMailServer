@@ -24,6 +24,7 @@
 #include "FileUtilities.h"
 #include "FileInfo.h"
 #include "Hashing/HashCreator.h"
+#include "InertMediaType.h"
 #include "../Application/IniFileSettings.h"
 #include "../Application/Application.h"
 #include "../Application/Logger.h"
@@ -222,30 +223,6 @@ namespace HM
          return name;
       }
 
-      // The declared type, if it looks like one; and never a type a browser
-      // would render or run.
-      AnsiString SafeType(const AnsiString &declared)
-      {
-         AnsiString type = declared;
-         type.TrimLeft();
-         type.TrimRight();
-         type.ToLower();
-         if (type.IsEmpty() || type.GetLength() > 100 || type.Find("/") < 0)
-            return "application/octet-stream";
-         for (int i = 0; i < type.GetLength(); i++)
-         {
-            char c = type[i];
-            bool ok = (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '/' || c == '-' || c == '+' || c == '.';
-            if (!ok)
-               return "application/octet-stream";
-         }
-         if (type == "text/html" || type == "application/xhtml+xml" || type == "image/svg+xml" ||
-             type == "text/xml" || type == "application/xml" || type.EndsWith("+xml") ||
-             type == "text/javascript" || type == "application/javascript")
-            return "application/octet-stream";
-         return type;
-      }
-
       AnsiString AsciiName(const String &value)
       {
          AnsiString ascii;
@@ -397,11 +374,14 @@ namespace HM
          Application::Instance()->GetDBManager()->Execute(command);
       }
 
+      // type is the one the link goes out under (HandlePublicFile_), which a
+      // record made before the list of types, or restored from a backup, does
+      // not hold itself.
       AnsiString RowJson(const FileRow &row, __int64 now)
       {
          AnsiString json;
          json.Format("{\"id\":%I64d,\"token\":\"%hs\",\"name\":\"%hs\",\"type\":\"%hs\",\"size\":%I64d,\"stored\":%I64d,\"complete\":%hs,\"created\":%I64d,\"expires\":%I64d,\"expired\":%hs,\"downloads\":%d,\"protected\":%hs,\"link\":\"/files/%hs\"}",
-            row.id, row.token.c_str(), Escape(Utf8(row.name)).c_str(), Escape(row.type).c_str(), row.size, row.stored,
+            row.id, row.token.c_str(), Escape(Utf8(row.name)).c_str(), Escape(InertMediaType::ForDownload(row.type)).c_str(), row.size, row.stored,
             row.complete ? "true" : "false", row.created, row.expires, row.expires <= now ? "true" : "false",
             row.downloads, row.passwordHash.IsEmpty() ? "false" : "true", row.token.c_str());
          return json;
@@ -534,7 +514,11 @@ namespace HM
       String name;
       Unicode::MultiByteToWide(AnsiString(document.GetString("name").c_str()), name);
       name = SafeName(name);
-      const AnsiString type = SafeType(AnsiString(document.GetString("type").c_str()));
+      // Kept as the type the file goes out under (InertMediaType.h): one on
+      // the list of types no browser runs or renders, or
+      // application/octet-stream. Read whole, so that a NUL inside it is seen.
+      const std::string declared = document.GetString("type");
+      const AnsiString type = InertMediaType::ForDownload(AnsiString(declared.data(), declared.size()));
 
       const JsonValue *sizeValue = document.Get("size");
       if (!sizeValue || !sizeValue->IsNumber() || sizeValue->AsNumber() < 1)
@@ -812,7 +796,10 @@ namespace HM
 
       HttpResponse response;
       response.status = 200;
-      response.content_type = SafeType(row.type);
+      // Checked again here, not only when the record was made: a record made
+      // before the list was, or restored from a backup, holds whatever type
+      // was declared then.
+      response.content_type = InertMediaType::ForDownload(row.type);
       response.body_file = path;
       // Never compressed, for the reason the attachment route gives: the type
       // is the one the sender declared, the bytes are whatever they uploaded,

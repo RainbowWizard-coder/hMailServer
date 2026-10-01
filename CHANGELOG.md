@@ -231,6 +231,14 @@ out when the Deck loads a language, as the build already refused it, where 6.3.4
 of the catalogue as it was. And the ids and the counter three of its views take from the server are drawn as
 numbers whatever the answer holds.
 
+A file sent from the webmail as a link (`/files/{token}`) is now served under the type its sender declared only
+when that type is on a list of types no browser runs, applies or renders as a page - pictures other than SVG, sound,
+video, PDF, plain text and CSV, the office documents and the archives - and as `application/octet-stream`
+otherwise, the files links already hold included; every version from 6.3.2 to 6.3.5 refused a few named types and
+served any other as declared. A contact's photo is served under its card's type only when that is one of the same
+list's pictures, and as `application/octet-stream` otherwise, where 6.3.4 and 6.3.5 served it under the type the
+card declared. Found by the project's own review.
+
 ### What changes on upgrade without a switch
 
 1. **COM `Utilities`: the helpers that do work answer a caller that has signed in.** `BlowfishEncrypt`,
@@ -379,6 +387,12 @@ numbers whatever the answer holds.
       them with new codes, `HM7554` and `HM7555`.
     - A device's count of sign-ins (`sign_ins`) stops at 2,147,483,647, the most its column holds; the next sign-in
       would have made it negative.
+    - A file sent as a link whose declared type is not on the list under Security goes out as
+      `application/octet-stream`, which a browser saves under the file's own name, and its record's `type` in
+      `/api/v1/me/files` says so, for a link recorded by an earlier version too; one declared `text/plain` with a
+      charset, which went out as `application/octet-stream`, goes out as `text/plain`. A contact's photo whose card
+      declares a type that is not one of the list's pictures goes out as `application/octet-stream`, and the webmail
+      no longer shows a photo in SVG.
 14. **Event scripts on Linux run in QuickJS 2026-06-04**, Fabrice Bellard's release, in place of 2025-04-26. It fixes
     memory-safety flaws in the engine that a script can reach: CVE-2025-62494 (a type confusion when a string is
     added to a value whose conversion changes it, High), CVE-2025-62493 (a BigInt written as a string, Medium) and

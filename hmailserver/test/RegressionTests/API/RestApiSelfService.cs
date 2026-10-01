@@ -2870,6 +2870,101 @@ namespace RegressionTests.API
       }
 
       [Test]
+      [Description("A file sent as a link goes out under the type it was declared with only when that type is on the list of those no browser runs or renders: the JavaScript names, a style sheet, a list of types and a parameter other than a charset go out as application/octet-stream")]
+      public void AFileLinkGoesOutOnlyUnderATypeNoBrowserRuns()
+      {
+         // The type declared, and the type the record keeps and the link is
+         // served under. Each of the first eight went out as declared before
+         // the list; text/javascript, the comma and the parameter went out as
+         // octet-stream already, and the charset did too.
+         string[][] cases =
+         {
+            new[] { "application/x-javascript", "application/octet-stream" },
+            new[] { "application/ecmascript", "application/octet-stream" },
+            new[] { "text/jscript", "application/octet-stream" },
+            new[] { "text/x-javascript", "application/octet-stream" },
+            new[] { "application/mjs", "application/octet-stream" },
+            new[] { "text/css", "application/octet-stream" },
+            new[] { "application/json", "application/octet-stream" },
+            new[] { "image/x-portable-pixmap", "application/octet-stream" },
+            new[] { "text/javascript", "application/octet-stream" },
+            new[] { "image/png,text/javascript", "application/octet-stream" },
+            new[] { "text/plain; format=flowed", "application/octet-stream" },
+            new[] { "text/plain; charset=utf-8", "text/plain" },
+            new[] { "IMAGE/PNG", "image/png" },
+            new[] { "application/pdf", "application/pdf" },
+            new[] { "video/mp4", "video/mp4" },
+            new[] { "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "application/vnd.openxmlformats-officedocument.wordprocessingml.document" },
+            new[] { "application/zip", "application/zip" },
+         };
+
+         var made = new System.Collections.Generic.List<long>();
+         try
+         {
+            foreach (string[] given in cases)
+            {
+               (int status, string body) created = Http("POST", "/api/v1/me/files", UserHeader(UserPassword),
+                  "{\"name\":\"typed.bin\",\"type\":\"" + given[0] + "\",\"size\":5}");
+               Assert.AreEqual(201, created.status, given[0] + ": " + created.body);
+               long id = long.Parse(Between(created.body, "\"id\":", ","));
+               made.Add(id);
+               string token = Between(created.body, "\"token\":\"", "\"");
+               StringAssert.Contains("\"type\":\"" + given[1] + "\"", created.body, given[0] + ": the type the record keeps.");
+
+               Response bytes = Raw("PUT", "/api/v1/me/files/" + id + "/content?offset=0", UserHeader(UserPassword), "hello");
+               Assert.AreEqual(200, bytes.Status, given[0] + ": " + bytes.Body);
+               Response fetched = Raw("GET", "/files/" + token, null, null);
+               Assert.AreEqual(200, fetched.Status, given[0] + ": " + fetched.Body);
+               Assert.AreEqual(given[1], fetched.Header("Content-Type"), given[0] + ": the type the link is served under.");
+               StringAssert.Contains("nosniff", fetched.Header("X-Content-Type-Options"), given[0]);
+               Assert.AreEqual("hello", fetched.Body, given[0]);
+            }
+         }
+         finally
+         {
+            foreach (long id in made)
+               Http("DELETE", "/api/v1/me/files/" + id, UserHeader(UserPassword));
+         }
+      }
+
+      // A test of its own, not the end of the one above: the type is put into
+      // the record through the database, which the Linux suite's fixture layer
+      // has no route to and skips, and the cases above are to run there too.
+      [Test]
+      [Description("A file link whose record holds a type from before the list - one a browser runs as script - goes out as application/octet-stream: the type is checked as the link is served, not only when the record is made")]
+      public void AFileLinkKeptUnderAScriptTypeGoesOutAsBytes()
+      {
+         // A record made before the list, or restored from a backup, holds
+         // whatever type was declared then: the link is checked as it is
+         // served, not only when the record is made.
+         (int status, string body) old = Http("POST", "/api/v1/me/files", UserHeader(UserPassword), "{\"name\":\"old.txt\",\"type\":\"text/plain\",\"size\":5}");
+         Assert.AreEqual(201, old.status, "Body: " + old.body);
+         long oldId = long.Parse(Between(old.body, "\"id\":", ","));
+         try
+         {
+            string oldToken = Between(old.body, "\"token\":\"", "\"");
+            Response oldBytes = Raw("PUT", "/api/v1/me/files/" + oldId + "/content?offset=0", UserHeader(UserPassword), "hello");
+            Assert.AreEqual(200, oldBytes.Status, oldBytes.Body);
+            Assert.AreEqual("text/plain", Raw("GET", "/files/" + oldToken, null, null).Header("Content-Type"));
+
+            _application.Database.ExecuteSQL("update hm_files set filetype = 'application/x-javascript' where fileid = " + oldId);
+            Response kept = Raw("GET", "/files/" + oldToken, null, null);
+            Assert.AreEqual(200, kept.Status, kept.Body);
+            Assert.AreEqual("application/octet-stream", kept.Header("Content-Type"), "A JavaScript type kept in the record is not served.");
+            Assert.AreEqual("hello", kept.Body);
+
+            // And the account's list says the type the link goes out under.
+            (int status, string body) listed = Http("GET", "/api/v1/me/files", UserHeader(UserPassword));
+            Assert.AreEqual(200, listed.status, "Body: " + listed.body);
+            StringAssert.Contains("\"token\":\"" + oldToken + "\",\"name\":\"old.txt\",\"type\":\"application/octet-stream\"", listed.body);
+         }
+         finally
+         {
+            Http("DELETE", "/api/v1/me/files/" + oldId, UserHeader(UserPassword));
+         }
+      }
+
+      [Test]
       [Description("IMAP keywords are stored, shown by FETCH and the STORE reply, listed by SELECT, advertised with \\*, searched, carried by COPY, taken by APPEND, and seen and set over REST")]
       public void KeywordsAreStoredFetchedSearchedCopiedAndSeenOverRest()
       {
