@@ -394,9 +394,18 @@ particular, check four things:
    delete`, [On GitLab, from 6.3.5](#on-gitlab-from-635)).
 10. **Disclose.** Make the confidential issue public. Request the CVE ID from it,
     if that has not been done, and quote it on the issue. Answer the reporter,
-    and announce the release. The update feed carries the release to every
-    server whose live update is on. A server from 6.2.28 to 6.3.3 still needs
-    the one `UpdateFeedUrl` line (`hmailserver/docs/UpdateFeed.md`).
+    and announce the release. The update feed offers the release to every
+    server whose update check is on; which of them install it by the live
+    update, and which are upgraded by hand, the notes say (as 6.3.6's do in
+    "Signing, and who installs this release by the live update"). A server
+    from 6.2.28 to 6.3.3 is upgraded by hand, once, after the backup
+    `hmailserver/docs/Upgrading.md` describes: it trusts only the GitHub
+    workflow that signed the releases up to 6.3.3, so its live update refuses a
+    release signed on GitLab, even with the `UpdateFeedUrl` line that points it
+    at the feed; so is a server installed from an AArch64 package or an
+    AppImage whose last release was 6.3.3. After that one upgrade the server
+    trusts the group's signer and reads the feed without the line
+    (`hmailserver/docs/UpdateFeed.md`, "A server from 6.2.28 to 6.3.3").
 
 **If Authenticode cannot be had in time**, for example because the identity
 validation has lapsed, the pipeline cannot publish. `release-sbom`, and every

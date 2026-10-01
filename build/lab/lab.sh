@@ -500,8 +500,9 @@ lab_address() {
 # reaches each container at its lab address, not through a published port, and
 # samples the side's containers' cgroups: the served server and its database, or
 # Postfix and Dovecot - each side the whole mail service. Beside each result it
-# records how that side was configured (the fsync setting; postconf -n and
-# doveconf -n), so that the fairness rules can be checked after the fact.
+# records how that side was configured (the fsync setting and the logging;
+# postconf -n and doveconf -n), so that the fairness rules can be checked after
+# the fact.
 cmd_numbers() {
   local target="${1:-}" mode="${2:-}"
   [ -n "$target" ] && [ -n "$mode" ] || die "numbers <hmailserver|postfix-dovecot> <prepare|smtp-in|smtp-out|imap-sessions|imaptest> [loadgen.py arguments]"
@@ -543,6 +544,8 @@ cmd_numbers() {
     echo "== $server, $(date -u +%Y-%m-%dT%H:%M:%SZ)"
     if [ "$target" = hmailserver ]; then
       docker exec "$BENCH" sh -c 'curl -s -u "Administrator:${HMTEST_ADMIN_PASSWORD:-testar}" http://127.0.0.1:8045/api/v1/settings/ini/MessageStoreFsync; echo'
+      # The logging, which the fairness rules state: the served server's is the shipped default.
+      docker exec "$BENCH" sh -c 'curl -s -u "Administrator:${HMTEST_ADMIN_PASSWORD:-testar}" http://127.0.0.1:8045/api/v1/settings/logging; echo'
       if [ "$db" = postgresql ]; then
         docker exec "hmlab-$db-1" psql -U postgres -tA -c "select 'fsync ' || current_setting('fsync') || ', synchronous_commit ' || current_setting('synchronous_commit')" || true
       else

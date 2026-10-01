@@ -111,7 +111,10 @@ same on every run for the same `--seed`: senders shaped like an inbox (people,
 newsletters, social notifications, machine senders, mailing lists, so every tab
 has mail), dates evenly over five years, a fifth of them replies, 5 % with an
 attachment of 20 to 512 KB, most older ones read. A hundred thousand at seed 49
-are 1,323,987,827 bytes, which is what `--dry-run` reports for them. The word
+for `self@uicheck.test`, the account below, are 1,322,787,827 bytes sent, which is
+what `--dry-run --user self@uicheck.test` reports for them (the address is in every
+message's `To:`, so another account's are another size); what the server stores is
+read from it afterwards. The word
 `quokka` is in the body of every 1,000th message (100 hits) and `invoice` in the
 subject of every 100th (1,000 hits).
 
@@ -121,11 +124,21 @@ way; and `--mode browser`, the page itself in headless Chromium through
 Playwright, from an action to the rows it asked for being drawn. Its header
 lists exactly what each measure is. The HTTP select-all adds a keyword to every
 message and takes it off again, so the folder is left as it was; the browser's
-presses *Mark as read*, which leaves the folder read - run it last.
+presses *Mark as read*, which leaves the folder read, after which a second
+*Mark as read* changes nothing ("a message that already has the flag is left alone
+and costs nothing"). So the browser's select-all runs once, last, with the index
+on - the index takes no part in a flag change - and the index-off pass leaves it
+out (`--no-bulk`). The browser runs with the account's inbox in one list, its
+`inbox` preference set for the run and put back afterwards: in tabs, an account's
+default, the box selects the open tab alone, and *Mark as read* would change the
+Primary tab's messages, three in five of the folder at seed 49, not the folder's.
+It signs in again to put the preference back when its first session has ended
+while the browser ran, and says so on standard error when it cannot.
 
 Record with the numbers: the machine, the database (SQL Server Compact, MySQL,
 PostgreSQL or SQL Server), the message store (disk, encrypted, object store),
-whether the full-text index was on and had caught up, and the build.
+whether the full-text index was on and had caught up, the server's logging (off,
+the shipped default), and the build.
 
 Running it
 ----------
@@ -133,35 +146,90 @@ Running it
 Not in CI: it needs a running server with a seeded folder, and a hundred
 thousand messages take a while to make and to walk.
 
-**On the Windows bench**, with the service running the build to be measured:
+**On the Windows bench**, from the root of a checkout of the build to be
+measured, with the service running that build and nothing else running on it: no
+pipeline job and no regression gate, whose setup also deletes every domain, the
+seeded one with it. Every line runs as written in Windows PowerShell 5.1 or in
+PowerShell 7, as an administrator:
 
 ```powershell
-# The REST listener on 127.0.0.1:9530 and a throwaway account, as the README shots use.
-powershell -NoProfile -File build\readme-shots\bench.ps1 -Up
+# Python, pinned and outside the PATH: a python.exe on the machine's PATH changes
+# which tests the bench's next regression gate runs (ContinuousIntegration.md). The
+# Python Software Foundation's own package on nuget.org, at the version and SHA-256
+# libraries\get-libpq-tools.ps1 pins, unpacked into a folder of its own; nothing is
+# installed. Then, for --mode browser, Playwright, pinned with every file's hash,
+# and its Chromium.
+$ProgressPreference = 'SilentlyContinue'
+New-Item -ItemType Directory -Force C:\perf\results | Out-Null
+$nupkg = "$env:TEMP\python.3.14.7.zip"
+Invoke-WebRequest -UseBasicParsing https://api.nuget.org/v3-flatcontainer/python/3.14.7/python.3.14.7.nupkg -OutFile $nupkg
+if ((Get-FileHash $nupkg -Algorithm SHA256).Hash -ne '46a4da5529a92d18ff894911f6e6033a8253198d705b8161bf28c9123c87d46b') { throw 'not the pinned Python' }
+Expand-Archive $nupkg C:\perf\python-package; Move-Item C:\perf\python-package\tools C:\perf\python; Remove-Item $nupkg, C:\perf\python-package -Recurse
+$py = 'C:\perf\python\python.exe'
+& $py -m ensurepip --default-pip
+& $py -m pip install --require-hashes -r build\requirements-dev.txt
+& $py -m playwright install chromium
 
-# No quota on the account: a hundred thousand messages are 1.3 GB at seed 49.
+# The REST listener on 127.0.0.1:9530 and a throwaway account, as the README shots use.
+powershell -NoProfile -ExecutionPolicy Bypass -File build\readme-shots\bench.ps1 -Up
+
+# No quota on the account: a hundred thousand messages are 1.3 GB at seed 49. Logging
+# off, the shipped default: a regression gate leaves every log on, debug included,
+# and that would be timed with the server. What it was is written down first.
 $app = New-Object -ComObject hMailServer.Application; $null = $app.Authenticate('Administrator', 'testar')
 $acc = $app.Domains.ItemByName('uicheck.test').Accounts.ItemByAddress('self@uicheck.test'); $acc.MaxSize = 0; $acc.Save()
+$app.Settings.Logging | Format-List Enabled, LogApplication, LogDebug, LogSMTP, LogPOP3, LogIMAP, LogTCPIP, AWStatsEnabled, KeepFilesOpen
+$app.Settings.Logging.Enabled = $false
 
-# The folder. --connections 4 is faster, and the UIDs then no longer follow the
-# dates exactly.
-python build\perf\seed-folder.py --user self@uicheck.test --password Original-Passw0rd! --count 100000 --seed 49
+# The folder, over one connection. --connections 4 is faster, and the UIDs then no
+# longer follow the dates exactly. The password comes from the environment.
+$env:HMPERF_PASSWORD = 'Original-Passw0rd!'
+& $py build\perf\seed-folder.py --user self@uicheck.test --count 100000 --seed 49
 
-# Cold: restart the service so the first open reads the folder from the database.
-Restart-Service hMailServer
+# Index off, the default. Cold: restart the service, so that the first open reads the
+# folder from the database, and wait five minutes without opening it.
+Restart-Service hMailServer; Start-Sleep -Seconds 300
+& $py build\perf\webmail-timing.py --user self@uicheck.test --mode http `
+    --label "bench, SQL CE, 100k, index off" --json C:\perf\results\perf-index-off-http.json --markdown C:\perf\results\perf-index-off-http.md
+& $py build\perf\webmail-timing.py --user self@uicheck.test --mode browser --no-bulk `
+    --label "bench, SQL CE, 100k, index off" --json C:\perf\results\perf-index-off-browser.json --markdown C:\perf\results\perf-index-off-browser.md
 
-python build\perf\webmail-timing.py --user self@uicheck.test --password Original-Passw0rd! `
-    --mode both --label "bench, SQL CE, 100k, index off" --json perf-index-off.json --markdown perf-index-off.md
+# Index on: message indexing and the full-text index. Caught up when one search of
+# the folder answers complete, with its 100 hits, in one request: run this until
+# the JSON's http.search.body_word_in_folder says "complete": true and "hits": 100.
+# Not MessageIndexing.TotalIndexedCount: that counts the metadata index, which
+# reaches the folder's size long before the full-text index has read it.
+$app = New-Object -ComObject hMailServer.Application; $null = $app.Authenticate('Administrator', 'testar')
+$app.Settings.MessageIndexing.Enabled = $true; $app.Settings.SetIniSetting('IndexerFullText', '1')
+& $py build\perf\webmail-timing.py --user self@uicheck.test --mode http --no-bulk --repeat 0 --pages 1 `
+    --search-requests 1 --json C:\perf\results\probe.json --markdown C:\perf\results\probe.md
 
-# Again with the full-text index on, once the indexer has worked through the folder
-# (IndexerFullText=1 and message indexing enabled; see the README's [Settings] list).
+# Then cold again, and the browser's select-all last: it leaves the folder read.
+Restart-Service hMailServer; Start-Sleep -Seconds 300
+& $py build\perf\webmail-timing.py --user self@uicheck.test --mode http `
+    --label "bench, SQL CE, 100k, index on" --json C:\perf\results\perf-index-on-http.json --markdown C:\perf\results\perf-index-on-http.md
+& $py build\perf\webmail-timing.py --user self@uicheck.test --mode browser `
+    --label "bench, SQL CE, 100k, index on" --json C:\perf\results\perf-index-on-browser.json --markdown C:\perf\results\perf-index-on-browser.md
 
-powershell -NoProfile -File build\readme-shots\bench.ps1 -Down
+# Put back: the index off and emptied; the domain, its messages and the listener gone.
+$app = New-Object -ComObject hMailServer.Application; $null = $app.Authenticate('Administrator', 'testar')
+$app.Settings.DeleteIniSetting('IndexerFullText'); $app.Settings.MessageIndexing.Enabled = $false
+$app.Settings.MessageIndexing.Clear()
+powershell -NoProfile -ExecutionPolicy Bypass -File build\readme-shots\bench.ps1 -Down
 ```
 
+Why the five minutes: with the full-text index on, the indexer's start walks the
+message table for orphaned index rows, right after a restart, and the first open
+would share the database with it. Both passes wait the same, and the folder is
+still read cold, on its first use. The logging may stay off afterwards: the next
+gate's setup switches it on itself.
+
 **On Linux** the same two scripts run unchanged against a server with the REST
-listener on: `--base https://host:port --insecure` for a listener with its own
-certificate, `--port 993 --tls --insecure` for IMAPS.
+listener on, with the same `HMPERF_PASSWORD`: `--base https://host:port --insecure`
+for a listener with its own certificate, `--port 993 --tls --insecure` for IMAPS.
+`GET /api/v1/settings/indexing` and `PUT` of `{"enabled": true}` there, and
+`PUT /api/v1/settings/ini/IndexerFullText` with `{"value": "1"}`, do what the COM
+lines above do.
 
 `seed-folder.py --dry-run` makes the messages without connecting and says how
 many bytes a run would upload. A run stopped part-way is resumed with `--start`
@@ -171,11 +239,16 @@ Results
 -------
 
 Windows bench, SQL Server Compact, message store on disk, 100,000 messages in
-the inbox (seed 49). The rows are the ones `webmail-timing.py --markdown` writes.
+the inbox (seed 49), logging off. The rows are the ones `webmail-timing.py
+--markdown` writes, in its order; it writes one *Result* column a run, so each
+column here is copied, cell by cell, from that pass's two tables, HTTP and
+browser. The first time is the first after a restart, as the recipe runs it. The
+browser's select-all is measured once, with the index on; its index-off cell is
+"-".
 
 | Operation | Mode | Measure | Full-text index off | Full-text index on |
 |---|---|---|---|---|
-| Open | HTTP | first page, first time after a restart (ms) | to be measured on the bench | to be measured on the bench |
+| Open | HTTP | first page, first time (ms) | to be measured on the bench | to be measured on the bench |
 | Open | HTTP | first page, warm median (ms) | to be measured on the bench | to be measured on the bench |
 | Open | HTTP | folder tree, warm median (ms) | to be measured on the bench | to be measured on the bench |
 | Scroll | HTTP | Oldest page in one step (ms) | to be measured on the bench | to be measured on the bench |
@@ -196,7 +269,10 @@ the inbox (seed 49). The rows are the ones `webmail-timing.py --markdown` writes
 | Scroll | Browser | one Older press, median (ms) | to be measured on the bench | to be measured on the bench |
 | Search | Browser | first answer drawn (ms) | to be measured on the bench | to be measured on the bench |
 | Search | Browser | to the end (ms) / continuations | to be measured on the bench | to be measured on the bench |
-| Select-all + flag | Browser | Mark as read over the folder, wall (ms) | to be measured on the bench | to be measured on the bench |
+| Select-all + flag | Browser | Mark as read over the folder, wall (ms) | - | to be measured on the bench |
 
-Seeding itself, for the record: messages a second over one connection, and the
-bytes stored - *to be measured on the bench*.
+Seeding itself, for the record: messages a second over one connection
+(`per_second` in `seed-folder.py`'s summary), and the bytes stored, read from the
+server afterwards (`(Get-ChildItem <DataFolder>\uicheck.test -Recurse -File |
+Measure-Object Length -Sum).Sum`, the `DataFolder` of `hMailServer.ini`,
+`C:\HMTest\Data` on bench150) - *to be measured on the bench*.

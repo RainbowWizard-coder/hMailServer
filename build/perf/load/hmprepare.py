@@ -5,15 +5,20 @@
 """The hMailServer side of a run, made through its REST API as the
 administrator: the domain, the load accounts, the route to the sink, an IP
 range for the generator's address and the message store's fsync. Postfix and
-Dovecot are set up by their own configuration (build/lab/numbers/); this is
-the same for the server under test, so that each side is given only what the
-run needs.
+Dovecot are set up by their own configuration (build/lab/docker-compose.yml,
+profile numbers, and build/lab/dovecot/numbers.conf); this is the same for the
+server under test, so that each side is given only what the run needs.
 
 Everything it makes is named so that --cleanup finds it again: the accounts
 by their template, the route by its domain, the IP range by the name
 "loadgen". Nothing else on the server is touched. MessageStoreFsync is a
 setting that already exists (a row in the settings store, not a new key); the
 run's fsync policy is part of the result and must be stated.
+
+--cleanup removes the accounts, the route and the range. It leaves the domain,
+which may have been there before the run, and MessageStoreFsync as the run set
+it: hmailserver/docs/PublishedNumbers.md gives the two commands that put them
+back.
 """
 
 import base64

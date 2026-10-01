@@ -285,7 +285,27 @@ verified the original.
   on 29 September 2026. 6.3.5, signed that day before the move, carries the identity
   `https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/v6.3.5`, the path the project began at,
   and the same id. A server from 6.3.4 on trusts both paths, the group's only with that id, whatever its update
-  settings say ([UpdateFeed.md](hmailserver/docs/UpdateFeed.md)).
+  settings say ([UpdateFeed.md](hmailserver/docs/UpdateFeed.md)). Check a file of a release from 6.3.6 on with
+  cosign, and then the id with OpenSSL:
+
+  ```
+  cosign verify-blob \
+    --bundle hMailServer-x.y.z-x64.exe.cosign.bundle \
+    --certificate-identity https://gitlab.com/hmailserver/hmailserver//.gitlab-ci.yml@refs/tags/vx.y.z \
+    --certificate-oidc-issuer https://gitlab.com \
+    hMailServer-x.y.z-x64.exe
+  jq -r .verificationMaterial.certificate.rawBytes hMailServer-x.y.z-x64.exe.cosign.bundle \
+    | base64 -d | openssl x509 -inform DER -noout -text | grep -A1 1.3.6.1.4.1.57264.1.15
+  ```
+
+  The first must say `Verified OK`, and the second print `..86730559` under the extension's name (the two dots
+  are the value's DER tag and length). cosign checks the identity, which is a path, and a path could pass to another
+  project were the group or the project renamed or deleted; the id is the project's own, GitLab gives it to no
+  other, and cosign does not check it. OpenSSL reads it from the certificate's extension (Fulcio's source repository
+  identifier, `1.3.6.1.4.1.57264.1.15`), not by a search of the certificate's bytes, which a public key holding the
+  same digits could fool. From a checkout or the source tarball, `python3 build/ci/sigstore-certificate.py
+  repository-id <bundle>` reads the extension the way the server does and prints `id=86730559`. The same check
+  reads the provenance's bundle below, and ContainerImage.md, "Checking an image", gives it for the container image.
 
   From 6.3.6 each file but a compiled file's SBOM also carries its bundle a second time, byte for byte, as
   `<file>.sigstore.json`, the name Sigstore's own clients and OpenSSF Scorecard look for; either name verifies the
@@ -418,6 +438,11 @@ cosign verify-attestation --type cyclonedx \
   --certificate-oidc-issuer https://gitlab.com \
   registry.gitlab.com/hmailserver/hmailserver@sha256:<the platform's digest> | jq -r .payload | base64 -d | jq .predicate
 ```
+
+This checks the attestation by its identity, a path; `cosign verify-attestation` neither checks the project's id nor
+writes out the certificate it read. Read the id from the certificates of the image's own signatures, as
+[ContainerImage.md](hmailserver/docs/ContainerImage.md), "Checking an image", shows: an image whose signatures carry
+`86730559` is this project's, and the channels' registry mirror holds each attestation's certificate to the same id.
 
 What an SBOM cannot say: the Linux libraries other than Boost are the distribution's, found at run time, so their
 version is whatever the machine has installed; the SBOM names the one the package was built against and the range

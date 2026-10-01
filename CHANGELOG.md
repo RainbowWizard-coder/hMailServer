@@ -898,6 +898,18 @@ counts against that ceiling and against the account's own; found by the project'
   GitLab lets it. The ARM64 build is cross-compiled on the x64 Windows runner from libraries built into that runner's
   cache, and has never run on ARM64 hardware; the release notes say so
   ([PackagesWindows.md](hmailserver/docs/PackagesWindows.md), [WindowsOnArm.md](hmailserver/docs/WindowsOnArm.md)).
+- **The release notes and the documents check the signer's project id, not only its path.** The commands the
+  release's verification section, SECURITY.md, ContainerImage.md and the chart's README gave checked the identity
+  cosign verifies, which is a path - one that could pass to another project were the group or the project renamed
+  or deleted - and not the project's own id, `86730559`, which the certificate carries and a server from 6.3.4 on
+  requires at the group's path. Each now reads it as well: OpenSSL prints the certificate's extension
+  `1.3.6.1.4.1.57264.1.15` from a file's bundle, or from each signature of the container image
+  (`cosign download signature`), and from the source tarball `build/ci/sigstore-certificate.py repository-id`
+  reads it as the server does. `container-image-sign` keeps the certificate Fulcio issued for each of the image's
+  signatures (`cosign sign --output-certificate`, `container-image-signed/certificate-<name>.pem`) and fails unless
+  `build/ci/sigstore-certificate.sh` reads `86730559` from its extensions; an attestation's certificate, which
+  `cosign attest` does not write out, is held to the id by the channels' registry mirror, as before.
+  `build/check-release-chain.py` holds the job to the check, with three negative controls.
 - **The SURBL lookups and the MX-record test cut host names by the Public Suffix List, and `tlds.txt` is gone.** To
   ask a URI blocklist about a link's host, and to judge a sender's host that has no MX by its domain's, the server
   cut the name to two labels, or to three under a name in `tlds.txt` - SURBL's list of 2006, which stated no licence
@@ -1814,6 +1826,22 @@ counts against that ceiling and against the account's own; found by the project'
   `.deb` on Ubuntu 26.04 installed 6.3.5 unattended, and one from the `.rpm` on Fedora 44 by hand over REST, both
   without a rollback image. [UpdateFeed.md](hmailserver/docs/UpdateFeed.md), PackagesDeb.md, PackagesRpm.md, the
   packaging README and [Roadmap3.md](Roadmap3.md) say so where they said it was untried.
+- **The documents say what this release's pipelines showed.** PackagesDeb.md and PackagesRpm.md said no install job
+  had run in a pipeline; the nineteen first ran, and passed, in `batch41`'s 2887524317 on 28 September 2026, and
+  every build and install job passed again in 6.3.5's tag pipeline and in `batch42`'s 2896082335 and 2897966924,
+  which built 6.3.6 and hold each package to its licence files - each job's times are there now. PackagesAppImage.md
+  said no pipeline had run the AppImage jobs, which first passed in 6.3.5's tag pipeline and, with both sources
+  tarballs, in both of `batch42`'s; SourcePackages.md, that its seven targets were still to run, of which five have
+  passed and openSUSE Leap 16.0 and Tumbleweed have not; ContainerImage.md, that `linux-image-arm64` had not run;
+  ContinuousIntegration.md, that the AArch64 packages' SBOM jobs and the three scans had not; and Nix.md, that the
+  `nix` job had not, which passed in 2896082335, as Alpine.md now says its three jobs did. The three package
+  documents also said linix's qemu-aarch64 registration had not been seen to come back after a reboot; it came back
+  at linix's reboot of 28 September, and the arm64 jobs ran under it. [Roadmap3.md](Roadmap3.md) says the same in
+  fourteen rows - the chart's package, the `.sigstore.json` copies and the provenance among them, all three in
+  2897966924's rehearsal of the release - and two are done: the package install and test jobs pass in a pipeline, and
+  the texts that said what was no longer true now say what the tree and GitLab show. RELEASE.md's security release,
+  step 10, said a server from 6.2.28 to 6.3.3 needs one `UpdateFeedUrl` line; it is upgraded by hand, once, as these
+  notes say.
 - **`backup-tests` and `trust-anchor-tests`**, two more tester programs `linux-build.sh` runs, and the source
   packages' builds too (`dh_auto_test` and `%check`, [SourcePackages.md](hmailserver/docs/SourcePackages.md)); both
   run in the class tests on Windows as well.
@@ -1870,6 +1898,31 @@ counts against that ceiling and against the account's own; found by the project'
   themselves (`grep -m`), read their input to the end (`sed -n '1,Np'`) or search a file or a here-string. The
   scripts run under `sh` without pipefail, and pipes whose command writes a line or two at once, are unchanged.
 
+- **The performance tools run as their pages say**, for the measurements after this release
+  ([Performance.md](hmailserver/docs/Performance.md), [PublishedNumbers.md](hmailserver/docs/PublishedNumbers.md)).
+  `webmail-timing.py --mode browser` looked for *Search older messages* inside the message list, where 6.3.5 no
+  longer draws it, so its search stopped at the first answer and reported no continuation; and in an inbox shown in
+  tabs, the default, its select-all and *Mark as read* changed the Primary tab's messages alone. It now presses the
+  button under the list, and runs with the inbox in one list, putting the account's choice back afterwards - by a
+  new sign-in when its own session has ended while the browser ran, and saying so when it cannot.
+  `build/readme-shots/bench.ps1` stopped at its first line under Windows PowerShell 5.1, which the pages' `powershell
+  -File` starts. `seed-folder.py` and `webmail-timing.py` take the account's password from `HMPERF_PASSWORD`, as
+  the load generator takes its own from the environment. The recipes now take a pinned Python outside the bench's
+  PATH, where a `python.exe` would change which tests the next gate runs; turn the logging off, which a gate leaves
+  on; run the browser's select-all once, last, with the index on, since it leaves the folder read; wait five
+  minutes after each restart; check the index has caught up by a search, not by its count; measure SMTP out with
+  fsync off, and the Windows bench with fsync off at all; run a warm-up and three counted runs on Windows, each
+  with `--server`; give the commands that put back what `prepare-hmailserver --cleanup` leaves; and give the seed's
+  bytes for the page's own account, 1,322,787,827. `lab.sh numbers` records the served server's logging beside its
+  fsync setting. The seeding, the timing and the load generator were run with the pages' command lines - the load
+  generator's with the Linux process's name and data folder - at a pilot's size, against a server built from this
+  tree on linix with PostgreSQL: 5,000 messages seeded at 50 a second; each search three requests with the index off
+  and one with it on; the browser's search followed twice where it had stopped, and its *Mark as read* changed all
+  5,000 messages where it had changed the Primary tab's 2,999; and `prepare-hmailserver`, `smtp-in`, `smtp-out` and
+  `imap-sessions` with the `/proc` sampler, fsync on and off. `bench.ps1 -Up` and `-Down` ran under Windows
+  PowerShell 5.1 and PowerShell 7 against a stand-in for the COM object, and the pinned Python and Playwright
+  installed as the page says under 5.1. The lab's comparison, imaptest and anything on the Windows bench were not
+  run.
 - **Static analysis: the server-logic findings of the 6.3.6 triage.** Besides the fixes above (an account's copy,
   an IP range's priority, the seven catch-alls): a message's copy now copies its base, which holds its id, as an
   account's does; `ChangeNotification`, `WorkQueueTaskInfo`, the work queue's running and pending tasks, the

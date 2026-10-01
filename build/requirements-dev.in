@@ -10,8 +10,9 @@
 #   PyYAML      build/check-package-manifests.py (the winget manifests) and
 #               hmailserver/source/Server/SMTP/SPF/Conformance/Generate-SPFConformanceSuite.py
 #   jsonschema  build/check-package-manifests.py (the winget schemas)
-#   playwright  build/readme-shots/shots.py (the README's webmail screenshots),
-#               which then needs its browser: python -m playwright install chromium
+#   playwright  build/readme-shots/shots.py (the README's webmail screenshots) and
+#               build/perf/webmail-timing.py --mode browser (Performance.md),
+#               which then need its browser: python -m playwright install chromium
 #
 # build/requirements-dev.txt is made from this file, with every package they pull
 # in pinned and every file's SHA-256, as build/ci/requirements.txt is for the

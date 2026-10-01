@@ -45,12 +45,19 @@ hits and has to read bodies or ask the index; and "invoice" is in the subject
 of every 100th (i % 100 == 3). The summary this prints says how many of each.
 
 THE ACCOUNT needs room: at the defaults a hundred thousand messages are 1.3 GB
-(1,323,987,827 bytes at seed 49; --dry-run says for any other). Give it no
-quota (maximum size 0) or enough, and a maximum message size of at least 1 MB,
-or the server refuses the APPENDs it is right to refuse.
+(1,322,787,827 bytes at seed 49 for self@uicheck.test, the account
+Performance.md fills; the address is in every message's To:, so another
+changes the count, and --dry-run --user says for any). That is what is sent;
+what the server stores is read from it afterwards. Give it no quota (maximum
+size 0) or enough, and a maximum message size of at least 1 MB, or the server
+refuses the APPENDs it is right to refuse.
+
+THE PASSWORD comes from the environment, HMPERF_PASSWORD, as the load
+generator's do (build/perf/load/loadgen.py): a process's arguments are in every
+user's process list. --password still takes one, for a throwaway account.
 
 Usage:
-  python build/perf/seed-folder.py --user perf@example.test --password SECRET \\
+  HMPERF_PASSWORD=SECRET python build/perf/seed-folder.py --user perf@example.test \\
       [--host 127.0.0.1] [--port 143] [--tls | --starttls] [--insecure] \\
       [--folder INBOX] [--count 100000] [--seed 49] [--start 0] \\
       [--batch 50] [--connections 1] [--attachments 0.05] \\
@@ -64,6 +71,7 @@ standard output; progress goes to standard error.
 import argparse
 import datetime
 import json
+import os
 import random
 import socket
 import ssl
@@ -447,7 +455,7 @@ def parse_args(argv):
     parser.add_argument("--starttls", action="store_true")
     parser.add_argument("--insecure", action="store_true", help="do not verify the server's certificate (a bench's own)")
     parser.add_argument("--user", help="the account's address")
-    parser.add_argument("--password")
+    parser.add_argument("--password", help="the account's password; better HMPERF_PASSWORD in the environment")
     parser.add_argument("--folder", default="INBOX")
     parser.add_argument("--count", type=int, default=100000)
     parser.add_argument("--seed", default="49")
@@ -462,8 +470,10 @@ def parse_args(argv):
     args = parser.parse_args(argv)
     if args.port is None:
         args.port = 993 if args.tls else 143
+    if args.password is None and "HMPERF_PASSWORD" in os.environ:
+        args.password = os.environ["HMPERF_PASSWORD"]
     if not args.dry_run and (not args.user or args.password is None):
-        parser.error("--user and --password are needed unless --dry-run")
+        parser.error("--user and a password (HMPERF_PASSWORD in the environment, or --password) are needed unless --dry-run")
     if args.count < 1 or args.start < 0 or args.start >= args.count or args.batch < 1 or args.connections < 1:
         parser.error("--count at least 1, --start below it, --batch and --connections at least 1")
     return args

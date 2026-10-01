@@ -22,7 +22,19 @@
 #       container-image-sbom/hmailserver-image-<arch>.cdx.json, each platform's image's
 #       SBOM, which container-image-sbom made (build/ci/container-image-sbom.sh).
 # Out:  container-image-signed/verification.txt, what cosign verify and cosign
-#       verify-attestation answered, and the commands that check each.
+#       verify-attestation answered, and the commands that check each; and
+#       certificate-<index|amd64|arm64>.pem, the certificate Fulcio issued for each
+#       signature, which must carry this project's id.
+#
+# The identity is a path, which could pass to another project were the group or the
+# project renamed or deleted; the certificate also carries the project's own id,
+# 86730559 (Fulcio's 1.3.6.1.4.1.57264.1.15), which a server requires at the group's
+# path and cosign does not check. So each signature's certificate, as cosign sign wrote
+# it (--output-certificate), is read for the id by build/ci/sigstore-certificate.sh,
+# from the certificate's extensions and never by a search of its bytes - this image has
+# no Python and no openssl, and cosign checks no CI's extension but GitHub's. An
+# attestation's certificate is not written out by cosign attest; the channels' registry
+# mirror holds it to the id (build/ci/channels/registry-mirror.py).
 #
 # A client that pulls a tag gets the index, and then its own platform's image by that
 # image's digest; so the index and each image are signed, each by its own digest. Each
@@ -50,6 +62,8 @@ set -eu
 
 out=container-image-signed
 issuer=https://gitlab.com
+# The project's id, which every certificate of a signature made here must carry.
+project_id=86730559
 # The platforms the image is built for; container-image pushed one image of each.
 platforms="amd64 arm64"
 
@@ -133,15 +147,43 @@ case "$attest_help" in
   *--new-bundle-format*) attest_flags="$attest_flags --new-bundle-format=false" ;;
 esac
 
-# sign NAME IMAGE: IMAGE (<registry image>@sha256:<digest>) signed, and the signature
-# verified as this pipeline's, over that very digest.
+# certificate_id NAME: the project's id in certificate-NAME.pem, the certificate cosign
+# sign wrote for that signature. Its first PEM certificate, the leaf cosign writes, is
+# handed to build/ci/sigstore-certificate.sh as the one certificate of a v0.3 bundle,
+# the form the reader takes; it reads the id from the certificate's extensions.
+certificate_id() {
+  pem="$out/certificate-$1.pem"
+  [ -s "$pem" ] || fail "cosign sign wrote no certificate for the $1 signature"
+  raw=$(tr -d '\r' < "$pem" | awk '
+    /^-----BEGIN CERTIFICATE-----$/ { if (seen) exit; seen = 1; on = 1; next }
+    /^-----END CERTIFICATE-----$/ { if (on) exit }
+    on { printf "%s", $0 }')
+  case "$raw" in
+    "" | *[!A-Za-z0-9+/=]*) fail "certificate-$1.pem holds no PEM certificate" ;;
+  esac
+  printf '{"mediaType": "application/vnd.dev.sigstore.bundle.v0.3+json", "verificationMaterial": {"certificate": {"rawBytes": "%s"}}}\n' \
+    "$raw" > "$out/certificate-$1.json"
+  said=$(sh build/ci/sigstore-certificate.sh repository-id "$out/certificate-$1.json") || said="refused: ${said#refused: }"
+  rm -f "$out/certificate-$1.json"
+  case "$said" in
+    refused:*) fail "the certificate of the $1 signature could not be read for the project's id: ${said#refused: }" ;;
+    "id=$project_id") ;;
+    absent) fail "the certificate of the $1 signature records no repository id, which a server requires at the group's path" ;;
+    *) fail "the certificate of the $1 signature names the repository id '${said#id=}', not $project_id" ;;
+  esac
+  echo "the $1 signature's certificate carries the project's id, $project_id"
+}
+
+# sign NAME IMAGE: IMAGE (<registry image>@sha256:<digest>) signed, the signature
+# verified as this pipeline's, over that very digest, and its certificate held to the
+# project's id.
 sign() {
   echo ""
   echo "== $1: $2"
   # The flags are split into words on purpose, here and below: busybox sh has no arrays.
   # shellcheck disable=SC2086
   # nosemgrep
-  cosign sign $sign_flags "$2" || fail "cosign did not sign $2 ($1)"
+  cosign sign $sign_flags --output-certificate "$out/certificate-$1.pem" "$2" || fail "cosign did not sign $2 ($1)"
   # shellcheck disable=SC2086
   # nosemgrep
   cosign verify $verify_flags --certificate-identity "$identity" --certificate-oidc-issuer "$issuer" \
@@ -149,6 +191,15 @@ sign() {
     || { cat "$out/verify-$1.log"; fail "$2 ($1) does not verify as signed by $identity"; }
   grep -q '"critical"' "$out/verify-$1.json" || fail "cosign verify answered nothing for $2 ($1)"
   grep -q "${2#*@}" "$out/verify-$1.json" || fail "the signature cosign verify found is not over ${2#*@} ($1)"
+  certificate_id "$1"
+}
+
+# id_command IMAGE: the command, for verification.txt, that shows the project's id in
+# the certificates of IMAGE's signatures.
+id_command() {
+  echo "cosign download signature $1 | jq -r 'select(.Cert != null) | .Cert.Raw' \\"
+  echo "  | while read -r raw; do printf '%s' \"\$raw\" | base64 -d | openssl x509 -inform DER -noout -text \\"
+  echo "    | grep -A1 -e 'Subject Alternative Name' -e 1.3.6.1.4.1.57264.1.15; done"
 }
 
 # The index, which every tag names.
@@ -177,6 +228,7 @@ done
   done
   echo "identity:     $identity"
   echo "issuer:       $issuer"
+  echo "project id:   $project_id, in the certificate of each signature made here"
   echo ""
   echo "The index, which every tag names, and each platform's image are signed:"
   echo "cosign verify --certificate-identity $identity \\"
@@ -184,6 +236,14 @@ done
   for arch in $platforms; do
     echo "cosign verify --certificate-identity $identity \\"
     echo "  --certificate-oidc-issuer $issuer $(platform_image "$arch")"
+  done
+  echo ""
+  echo "The project's id, which cosign does not check, in the certificates of each one's signatures"
+  echo "(hmailserver/docs/ContainerImage.md, \"Checking an image\"): each certificate of $identity"
+  echo "must show ..$project_id under 1.3.6.1.4.1.57264.1.15."
+  id_command "$index"
+  for arch in $platforms; do
+    id_command "$(platform_image "$arch")"
   done
   echo ""
   echo "Each platform's SBOM (CycloneDX), attested to that platform's image:"
@@ -194,4 +254,4 @@ done
 } > "$out/verification.txt"
 cat "$out/verification.txt"
 echo ""
-echo "SIGNED: $index and its linux/amd64 and linux/arm64 images, as $identity, each image with its SBOM attested."
+echo "SIGNED: $index and its linux/amd64 and linux/arm64 images, as $identity with the project's id $project_id, each image with its SBOM attested."

@@ -91,8 +91,8 @@ A comparison is only as honest as the two setups are equal where they can be
 and stated where they cannot. The published run keeps these rules;
 `lab.sh numbers` keeps the ones a script can, and records beside every result
 what each side ran with (`postconf -n` and `doveconf -n`; hMailServer's
-`MessageStoreFsync` and the database's flush settings), so that the rest can be
-checked afterwards.
+`MessageStoreFsync`, its logging and the database's flush settings), so that the
+rest can be checked afterwards.
 
 1. **One machine, one side at a time.** Both servers run on the same host, the
    generator beside them, each measured with the other stopped and nothing else
@@ -186,9 +186,10 @@ bash build/lab/lab.sh numbers hmailserver smtp-out --clients 32 --messages 20000
 bash build/lab/lab.sh numbers hmailserver imap-sessions --processes 4 --label "hMailServer, fsync on"
 bash build/lab/lab.sh numbers hmailserver imaptest --clients 50 --seconds 120 --label "hMailServer"
 
-# hMailServer's shipped default, for its own row
+# hMailServer's shipped default, for its own column: SMTP in and out, the same way
 HMLAB_NUMBERS_FSYNC=off bash build/lab/lab.sh numbers hmailserver prepare
 bash build/lab/lab.sh numbers hmailserver smtp-in --clients 32 --messages 20000 --processes 4 --label "hMailServer, fsync off (default)"
+bash build/lab/lab.sh numbers hmailserver smtp-out --clients 32 --messages 20000 --processes 4 --label "hMailServer, fsync off (default)"
 
 bash build/lab/lab.sh unserve
 bash build/lab/lab.sh down mariadb
@@ -214,37 +215,75 @@ How to run it on the Windows bench
 There is no Postfix or Dovecot for Windows, so the Windows bench gives
 hMailServer's own numbers and no comparison; the comparison is on Linux, above.
 (Postfix and Dovecot in WSL2 would run in a virtual machine beside Windows, not
-on the same machine as the service, and are not used.) On the bench, with the
-service running the build to be measured, nothing else running on it, and
-Python 3 on the PATH:
+on the same machine as the service, and are not used.) On the bench, from the
+root of a checkout of the build to be measured, with the service running that
+build, nothing else running on it, and 15 GB free on the data folder's disk (four
+runs of 20,000 messages of about 75 KB stay in the mailboxes until the next
+`prepare`). Every line runs as written in Windows PowerShell 5.1 or PowerShell 7,
+as an administrator. `$py` is a Python outside the PATH, and the logging is off,
+as Performance.md, "Running it", sets them up: a gate leaves every log on, and a
+`python.exe` on the machine's PATH changes which tests the next gate runs.
 
 ```powershell
 # The REST listener on 127.0.0.1:9530, as the README shots use.
-powershell -NoProfile -File build\readme-shots\bench.ps1 -Up
+powershell -NoProfile -ExecutionPolicy Bypass -File build\readme-shots\bench.ps1 -Up
 $env:HMLOAD_ADMIN_PASSWORD = 'testar'
 $env:HMLOAD_PASSWORD = '<a password for the load accounts>'
+$server = 'hMailServer <version>, Windows, <database>'
+New-Item -ItemType Directory -Force C:\perf\results | Out-Null
 
-python build\perf\load\loadgen.py prepare-hmailserver --rest http://127.0.0.1:9530 --accounts 50 `
+& $py build\perf\load\loadgen.py prepare-hmailserver --rest http://127.0.0.1:9530 --accounts 50 `
     --route sink.test=127.0.0.1:10365 --client-range 127.0.0.1-127.0.0.1 --fsync on
 
-python build\perf\load\loadgen.py smtp-in --port 25 --mailboxes 50 --clients 32 --messages 20000 --processes 4 `
-    --verify-imap-port 143 --server-process hMailServer --data-path C:\HMTest\Data `
-    --server "hMailServer <version>, Windows, <database>" --label "Windows bench, fsync on" --json in.json --markdown in.md
-python build\perf\load\loadgen.py smtp-out --port 25 --mail-from load1@example.test --clients 32 --messages 20000 `
-    --processes 4 --sink-listen 127.0.0.1:10365 --server-process hMailServer --data-path C:\HMTest\Data `
-    --label "Windows bench, fsync on" --json out.json --markdown out.md
-python build\perf\load\loadgen.py imap-sessions --port 143 --users 50 --processes 4 --server-process hMailServer `
-    --data-path C:\HMTest\Data --label "Windows bench" --json imap.json --markdown imap.md
+# One warm-up run, not counted, then three (rule 8): runs 0 to 3, a file each.
+foreach ($i in 0..3) {
+    & $py build\perf\load\loadgen.py smtp-in --port 25 --mailboxes 50 --clients 32 --messages 20000 --processes 4 `
+        --verify-imap-port 143 --server-process hMailServer --data-path C:\HMTest\Data --server $server `
+        --label "Windows bench, fsync on, run $i" --json "C:\perf\results\in-on-$i.json" --markdown "C:\perf\results\in-on-$i.md"
+}
+foreach ($i in 0..3) {
+    & $py build\perf\load\loadgen.py smtp-out --port 25 --mail-from load1@example.test --clients 32 --messages 20000 `
+        --processes 4 --sink-listen 127.0.0.1:10365 --server-process hMailServer --data-path C:\HMTest\Data --server $server `
+        --label "Windows bench, fsync on, run $i" --json "C:\perf\results\out-on-$i.json" --markdown "C:\perf\results\out-on-$i.md"
+}
+foreach ($i in 0..3) {
+    & $py build\perf\load\loadgen.py imap-sessions --port 143 --users 50 --processes 4 --server-process hMailServer `
+        --data-path C:\HMTest\Data --server $server --label "Windows bench, run $i" --json "C:\perf\results\imap-$i.json" --markdown "C:\perf\results\imap-$i.md"
+}
 
-python build\perf\load\loadgen.py prepare-hmailserver --rest http://127.0.0.1:9530 --accounts 50 `
+# The shipped default, fsync off, for its own column: SMTP in and out, the same way.
+& $py build\perf\load\loadgen.py prepare-hmailserver --rest http://127.0.0.1:9530 --accounts 50 `
+    --route sink.test=127.0.0.1:10365 --client-range 127.0.0.1-127.0.0.1 --fsync off
+foreach ($i in 0..3) {
+    & $py build\perf\load\loadgen.py smtp-in --port 25 --mailboxes 50 --clients 32 --messages 20000 --processes 4 `
+        --verify-imap-port 143 --server-process hMailServer --data-path C:\HMTest\Data --server $server `
+        --label "Windows bench, fsync off (default), run $i" --json "C:\perf\results\in-off-$i.json" --markdown "C:\perf\results\in-off-$i.md"
+}
+foreach ($i in 0..3) {
+    & $py build\perf\load\loadgen.py smtp-out --port 25 --mail-from load1@example.test --clients 32 --messages 20000 `
+        --processes 4 --sink-listen 127.0.0.1:10365 --server-process hMailServer --data-path C:\HMTest\Data --server $server `
+        --label "Windows bench, fsync off (default), run $i" --json "C:\perf\results\out-off-$i.json" --markdown "C:\perf\results\out-off-$i.md"
+}
+
+# Put back: the accounts, the route and the range; then MessageStoreFsync to its
+# default and the domain prepare made, which --cleanup leaves - leave out the
+# Delete() when the first prepare said "kept as it is", the domain being the
+# bench's own; then the listener.
+& $py build\perf\load\loadgen.py prepare-hmailserver --rest http://127.0.0.1:9530 --accounts 50 `
     --route sink.test=127.0.0.1:10365 --cleanup
-powershell -NoProfile -File build\readme-shots\bench.ps1 -Down
+$app = New-Object -ComObject hMailServer.Application; $null = $app.Authenticate('Administrator', 'testar')
+$app.Settings.DeleteIniSetting('MessageStoreFsync'); $app.Domains.ItemByName('example.test').Delete()
+powershell -NoProfile -ExecutionPolicy Bypass -File build\readme-shots\bench.ps1 -Down
 ```
 
 `--data-path` names the server's `DataFolder` (from `hMailServer.ini`), so that
-the table describes the disk the message store is on. `MessageStoreFsync` is
-left as `prepare-hmailserver` set it; put it back to what the bench had
-(`--fsync off`, the shipped default) after the run. On Windows the service's
+the table describes the disk the message store is on. `prepare-hmailserver
+--cleanup` removes what it made but the domain, which may have been there before
+the run, and leaves `MessageStoreFsync` as the run set it; the two lines after it
+put both back (over REST, `DELETE /api/v1/settings/ini/MessageStoreFsync` and
+`DELETE /api/v1/domains/example.test` do the same). The table takes the median
+of runs 1 to 3 with the lowest and highest beside it; a run whose JSON carries
+`generator.warning` is not counted (rule 9). On Windows the service's
 memory is its working set and private bytes, which are not the cgroup figure
 the Linux comparison uses; the two tables are not compared with each other.
 

@@ -16,16 +16,23 @@ starts the result in a clean container.**
 | Binary packages | `hmailserver`, `hmailserver-cli` | `hmailserver`, `hmailserver-cli` |
 | CI (`.gitlab/ci/source-packages.yml`) | Debian 13, Ubuntu 24.04, Ubuntu 26.04 | Fedora 44, EL 10 (AlmaLinux 10), openSUSE Leap 16.0, Tumbleweed |
 
-**Where it stands (29 September 2026):** built on the laptop - the Debian source
-package with `dpkg-buildpackage` in WSL Ubuntu 26.04, lintian clean of errors and its
-autopkgtest passing in a clean container; the spec with `rpmbuild` in Fedora 44 and
-AlmaLinux 10 containers, rpmlint clean of errors, and the server it builds installed
-and started in a clean container of each. A Fedora server that died
-before `main` on 29 September was a file the laptop's WSL had corrupted, not a
-defect of GCC 16, Fedora's flags or the server
-([The Fedora crash](#the-fedora-crash-of-29-september-2026)). Not yet in a
-pipeline: the seven targets' first run is `batch42`'s pipeline #1, once
-`.gitlab-ci.yml` includes the file. See [What has run](#what-has-run). No
+**Where it stands (30 September 2026):** five of the seven targets have been
+built with the network refused, linted clean of errors, installed and started in
+GitLab's pipelines: Debian 13, Ubuntu 26.04, Fedora 44 and EL 10 in `batch42`'s
+pipeline 2896082335, and Ubuntu 24.04 in 2897966924, once lintian 2.117's five
+`source-is-missing` errors were overridden, with Debian 13 again. openSUSE
+Leap 16.0 and Tumbleweed have not passed in a pipeline: in 2896082335 both
+stopped in their first seconds, their images having no `find`; the script was
+fixed, Tumbleweed's package then built on linix in its job's own image, and in
+2897966924 both jobs were cancelled with the pipeline before they started (see
+[What has run](#what-has-run)). Before the pipelines, both were built on the
+laptop - the Debian source package with `dpkg-buildpackage` in WSL Ubuntu 26.04,
+lintian clean of errors and its autopkgtest passing in a clean container; the
+spec with `rpmbuild` in Fedora 44 and AlmaLinux 10 containers, rpmlint clean of
+errors, and the server it builds installed and started in a clean container of
+each. A Fedora server that died before `main` on 29 September was a file the
+laptop's WSL had corrupted, not a defect of GCC 16, Fedora's flags or the server
+([The Fedora crash](#the-fedora-crash-of-29-september-2026)). No
 distribution carries either yet; Debian's, Fedora's and
 openSUSE's own archives each need a named maintainer (Roadmap3, rows 66, 68 and
 70), and these packages are what that person starts from.
@@ -293,6 +300,35 @@ holds a second entry. A distribution's own changelog is the distribution's.
 What has run
 ------------
 
+### In GitLab's pipelines
+
+`batch42`'s pipelines of 30 September 2026, on linix, each job building from the
+`source-tarball` job's `hmailserver-6.3.6.tar.gz` with the network refused, and
+each install job (`srcpkg-<target>-install`) installing what its build made in a
+clean container, creating a PostgreSQL database and starting the server, which
+answered SMTP with STARTTLS and IMAP. Each time is the job's own `BUILT:` or
+`PACKAGE PASSED:` line.
+
+| Target | 2896082335 (`c26ce1e59`) | 2897966924 (`cec2b151d`) |
+|---|---|---|
+| Debian 13 | built in 1,893 s, lintian: no error, 6 warnings; the autopkgtest passed (50 s) | built in 1,933 s, the same; passed (52 s) |
+| Ubuntu 24.04 | failed: lintian 2.117 reported `source-is-missing` for five files written by hand (below) | built in 1,837 s, no error, 7 warnings; passed (59 s) |
+| Ubuntu 26.04 | built in 1,863 s, no error, 6 warnings; passed (46 s) | cancelled before it started |
+| Fedora 44 | built in 2,235 s, rpmlint: no error, 20 warnings; installed and started (28 s) | cancelled before it started |
+| EL 10 (AlmaLinux 10.2) | built in 2,432 s, no error, 84 warnings; installed and started (24 s) | cancelled before it started |
+| openSUSE Leap 16.0 | failed after 10 s: the image has no `find` (below) | cancelled before it started |
+| openSUSE Tumbleweed | failed after 9 s: the same | cancelled before it started |
+
+2897966924 was cancelled at 22:14 UTC to free linix and the Windows bench for
+other builds, with five of these builds still waiting for linix. By then 93 of
+its jobs had passed - the Windows gate, the Windows packages, every package build
+and install and the release's rehearsal among them - and one had failed,
+`windows-dotnet`, at its checkout, where git could not remove a file left in
+bench150's build folder. So five of the seven targets have passed in a pipeline,
+and Leap 16.0 and Tumbleweed have not.
+
+### Before any pipeline
+
 On the laptop on 28 and 29 September 2026, before any pipeline, from the tarball
 `build/ci/source-tarball.sh` made of the commit that added these files (Git for
 Windows; `check-source-tarball.py --commit` passed it), with the build scripts CI
@@ -479,12 +515,16 @@ What is not done
   kernel is not WSL's, but no one has replayed a link's writes there. A loss in a
   CI build shows only where something runs the damaged bytes: `%check` and the
   install jobs run the server, and the testers, and nothing checks the rest.
-- **Pipeline #1.** Four of the seven targets - Debian 13, Ubuntu 24.04, Leap 16 and
-  Tumbleweed - have not been built anywhere yet (their dependencies resolve and the
-  spec expands on each: above), and no job of the file has run on
-  linix: that is `batch42`'s pipeline. Their lintian (2.117 on Ubuntu 24.04, 2.122
-  on Debian 13) and rpmlint (openSUSE's configuration) may report what the laptop's
-  did not, and the jobs build at `-j4` where the laptop built at `-j2`.
+- **openSUSE in a pipeline.** Leap 16.0 and Tumbleweed have not passed in one
+  ([In GitLab's pipelines](#in-gitlabs-pipelines)). Since their first run the script
+  finds the tarball without `find`, the spec asks openSUSE for `libopenssl-devel`,
+  and the two rpmlint errors Tumbleweed makes about the debug packages are
+  filtered. Tumbleweed's package was then built on linix in its job's image, its
+  `%check` passing, before those filters were added; Leap 16.0's has not been built
+  anywhere with the current spec. The next `batch*` pipeline runs both. The other
+  five targets passed in `batch42`'s pipelines, where lintian 2.117 on Ubuntu 24.04
+  found the five files that the laptop's lintian had not, and every job built at
+  `-j4`.
 - **Manual pages** for `hmailserver` and `hmctl`, which lintian and rpmlint ask for.
 - **The distributions' archives.** Debian's (Roadmap3 row 66), Fedora's (row 68)
   and openSUSE's `server:mail` (row 70) each need a named maintainer, who takes

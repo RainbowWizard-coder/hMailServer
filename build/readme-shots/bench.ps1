@@ -8,7 +8,9 @@
 # down again afterwards.  -Up | -Down
 param([switch]$Up, [switch]$Down, [switch]$Seed, [switch]$Seed4, [switch]$Seed6)
 $ErrorActionPreference = 'Stop'
-$repo = (Resolve-Path (Join-Path $PSScriptRoot '..' '..')).Path
+# Join-Path one child at a time: Windows PowerShell 5.1, which runs this as
+# "powershell -File", takes no third positional argument.
+$repo = (Resolve-Path (Join-Path (Join-Path $PSScriptRoot '..') '..')).Path
 $ini = Join-Path $repo 'hmailserver\source\Server\hMailServer\x64\Release\hMailServer.ini'
 $domainName = 'uicheck.test'
 

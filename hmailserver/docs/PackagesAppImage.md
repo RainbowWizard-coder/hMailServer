@@ -226,15 +226,26 @@ An arm64 AppImage cannot be started under qemu-user on an x86-64 host.
 What was run, and with what result
 ----------------------------------
 
+**In GitLab's pipelines.** The jobs first ran to an end in 6.3.5's tag pipeline
+2892097590 (29 September 2026): both runtimes, the aarch64 compile, both
+AppImages and both tests on Fedora 44 passed, though the 6.3.5 release did not
+collect the images. In `batch42`'s pipelines 2896082335 and 2897966924
+(30 September), where the jobs start by themselves, every one of them passed,
+with `appimage-runtime-sources` and `appimage-bundled-sources` among them, each
+making its tarball twice to the same bytes; each image carried its 19 bundled
+libraries with their licences, and each test found the Control Deck and its 20
+catalogues byte for byte, the AGPL-3.0 text, `bundled.txt` and the copyright
+files and 13 licence texts it names, and ran the image on Fedora 44, the aarch64
+one under qemu-user. In 2897966924 the release's rehearsal collected both images
+and both sources tarballs with the rest. Before that, `batch41`'s pipelines
+2886955494 and 2887115157 (27 September) carried the jobs, where nobody started
+the runtime and compile jobs, which were cancelled with the pipeline without
+having started, and GitLab skipped the rest.
+
 Everything below was run by hand on linix, on 26 September 2026 (the runtime's
 sources on the laptop, on 28 September, and the bundled libraries' licences and
 sources there on 29 September), in containers from the same images and
-digests as the jobs, and not by GitLab. **No GitLab
-pipeline has run any of these jobs yet.** They were in `batch41`'s pipelines
-2886955494 and 2887115157 (27 September 2026), where nobody started the runtime
-and compile jobs, which were cancelled with the pipeline without having started,
-and GitLab skipped the rest; in 2887524317 the three were still waiting to be
-started when this was written, on 28 September 2026 at 00:40 UTC.
+digests as the jobs, and not by GitLab.
 
 ### The first runs
 
@@ -311,9 +322,11 @@ each removed afterwards:
 | gcc's source, which `README.txt` says is on the same mirror | `gcc-15.2.0.tar.xz`, the archive aports' `main/gcc` names at the recorded commit, answers 200 at `distfiles.alpinelinux.org/distfiles/v3.24/`. |
 | `build-appimage.sh`'s `--runtime-licenses` and `appimage-test.sh`'s new checks, each block run on its own under WSL's bash, on the licences and notice of the rows above | **Passed:** the eleven licence files installed under `usr/share/hmailserver/licenses/appimage-runtime/`, and the checks passed on that tree; an empty licence directory was refused, and so was a tree without lzo's or zstd's licence files or with a notice that does not name the release file. |
 
-**Not run for the sources:** the aarch64 runtime job's own record (no qemu-user
-on the laptop), a whole AppImage build with `--runtime-licenses` and
-`appimage-test.sh` on a real image, and the jobs in a pipeline.
+**Not run there for the sources:** the aarch64 runtime job's own record (no
+qemu-user on the laptop), a whole AppImage build with `--runtime-licenses` and
+`appimage-test.sh` on a real image, and the jobs in a pipeline. All three have
+run since, in `batch42`'s pipelines of 30 September 2026 ([In GitLab's
+pipelines](#what-was-run-and-with-what-result)).
 
 ### The bundled libraries' licences and sources
 
@@ -338,8 +351,11 @@ its licence files were those the runtime's sources' check made on 28 September
 | `pack` given a version the archive has dropped (`gnutls28` 3.8.3-1.1ubuntu3.4) with a recorded time of 1 January 2026 | **Packed** from `snapshot.ubuntu.com/ubuntu/20260101T000000Z/`. The snapshot service answered a burst of requests with 503 once; the fetch now retries with a growing wait. |
 | GitHub from that container | Unreachable, as `.no-github` makes it in the job. |
 
-**Not run for the bundled libraries:** the aarch64 AppImage (no qemu-user on the
-laptop: its record was the x86_64 one relabelled), and the jobs in a pipeline.
+**Not run there for the bundled libraries:** the aarch64 AppImage (no qemu-user
+on the laptop: its record was the x86_64 one relabelled), and the jobs in a
+pipeline. Both have run since, in `batch42`'s pipelines of 30 September 2026,
+from each architecture's own record ([In GitLab's
+pipelines](#what-was-run-and-with-what-result)).
 
 ### The re-check of the bundled libraries' licences and sources
 
@@ -360,9 +376,10 @@ digest, one container at a time. What it found and changed:
 
 **Not run:**
 
-- **Any job in a GitLab pipeline** (above). GitLab has created the jobs from
-  the definitions in three pipelines, and `build/check-release-chain.py` and
-  `build/check-ci-image.py` pass with the include in place.
+- **The jobs in a release that carries the images.** Every job has passed in
+  pipelines - 6.3.5's tag pipeline, which did not collect the images, and
+  `batch42`'s two of 30 September, whose rehearsal did (above) - but no
+  published release carries them yet.
 - **Either AppImage on a real arm64 machine,** including the unmodified aarch64
   file with its magic bytes. The project has no arm64 machine.
 - **A server connected to a database or run under a unit.** No step has run the
@@ -642,10 +659,13 @@ What the owner must do
    the flags `OPF`, and `systemd-binfmt` applies it at every boot. The `F` flag
    is what lets a container use the host's interpreter. Without the
    registration, those jobs fail at their first step with "exec format error".
-   linix has not been rebooted since, so the registration at boot has not been
-   seen.
-3. **Let the release collect the AppImages.** Done in batch42 (6.3.6), not yet
-   run in a pipeline:
+   linix rebooted on 28 September 2026 at 18:08 UTC, and `systemd-binfmt`
+   registered the handler at that boot: the aarch64 runtime, packing and test
+   jobs of 6.3.5's tag pipeline 2892097590 ran under it the next morning, and
+   passed.
+3. **Let the release collect the AppImages.** Done in batch42 (6.3.6), and run
+   in `batch42`'s pipeline 2897966924, whose rehearsal of the release collected
+   both images with their SBOMs and both sources tarballs:
    - the `release-packages` job (`.gitlab/ci/release-packages.yml`) needs
      `appimage-x86_64` and `appimage-aarch64` with their artifacts and the two
      test jobs, and `release` needs `release-packages` (a job of its own because
@@ -670,7 +690,9 @@ What the owner must do
    - on a `batch*` branch the jobs now start at once, as on a tag, so that the
      release's rehearsal (`.gitlab/ci/release-rehearsal.yml`) has them; only
      `master` waits for a press.
-4. **The licences.** Done in batch42 (6.3.6), not yet run in a pipeline
+4. **The licences.** Done in batch42 (6.3.6), and run in `batch42`'s pipelines
+   2896082335 and 2897966924: both sources jobs made their tarballs twice to the
+   same bytes, and both image tests found every licence file
    ([Licences](#licences)). The runtime links libfuse3 (LGPL-2.1) and lzo
    (GPL-2.0-or-later), which squashfuse is built with on Alpine, and their
    licences ask for the libraries' own source to go with the binary, not only

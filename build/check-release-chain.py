@@ -1447,6 +1447,16 @@ def check(texts, chain, feed):
                         ('sbom="container-image-sbom/hmailserver-image-$arch.cdx.json"', "the SBOM container-image-sbom made")):
         if needle not in image_script:
             problems.append("build/ci/container-image-sign.sh no longer has %s (%s): the image would go out without its SBOM" % (needle, why))
+    # Each signature's certificate held to the project's id, which the identity, a path,
+    # does not prove (ContainerImage.md, "Checking an image").
+    for needle, why in (('cosign sign $sign_flags --output-certificate "$out/certificate-$1.pem" "$2"', "the certificate of each signature kept"),
+                        ('\n  certificate_id "$1"\n}\n', "each signature's certificate read for the project's id"),
+                        ('said=$(sh build/ci/sigstore-certificate.sh repository-id "$out/certificate-$1.json")', "the id read from the certificate's extensions"),
+                        ('\n    "id=$project_id") ;;\n', "only the project's id taken"),
+                        ('\nproject_id=86730559\n', "the project's id")):
+        if needle not in image_script:
+            problems.append("build/ci/container-image-sign.sh no longer has %s (%s): an image signed by another project at "
+                            "the same path would pass its self-check" % (needle.strip(), why))
     image_sbom = image_jobs.get("container-image-sbom", "")
     if image_sbom and ("bash build/ci/container-image-sbom.sh" not in image_sbom or "- container-image-sbom/" not in image_sbom):
         problems.append("container-image-sbom does not run build/ci/container-image-sbom.sh and keep container-image-sbom/")
@@ -2586,6 +2596,12 @@ def self_test(chain, feed):
            "  variables:\n    HM_IMAGE_DEB_DIR: release-signed\n  script:\n    - bash", "container-image-sbom does not take the .deb from container-image-deb")
     broken("the image signed without its SBOM attested", "image-sign", 'cosign attest $attest_flags --type cyclonedx --predicate "$sbom" "$image"',
            'true', "the image would go out without its SBOM")
+    broken("the image's certificates kept no longer", "image-sign", ' --output-certificate "$out/certificate-$1.pem" "$2"', ' "$2"',
+           "the certificate of each signature kept")
+    broken("the image's signatures no longer read for the id", "image-sign", '\n  certificate_id "$1"\n}\n', "\n}\n",
+           "each signature's certificate read for the project's id")
+    broken("the image's signatures taken with any id", "image-sign", '\n    "id=$project_id") ;;\n', "\n    id=*) ;;\n",
+           "only the project's id taken")
     broken("the image file not included", "ci", "  - local: .gitlab/ci/container-image.yml\n", "", "does not include .gitlab/ci/container-image.yml")
     broken("the image signed as a branch", "image-sign", TAG_SCRIPT_IDENTITY,
            'identity="${repository}//.gitlab-ci.yml@refs/heads/${tag}"', "container-image-sign.sh expects another identity")

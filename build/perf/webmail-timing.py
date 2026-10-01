@@ -37,14 +37,22 @@ What each operation is, in both modes:
           so the folder is left as it was; --bulk-flag flagged or seen does
           that flag instead, set and then cleared. The browser presses the
           bulk bar's Mark as read, the one flag the bar has - which leaves the
-          folder read.
+          folder read. For the inbox, the whole browser run has the account's
+          inbox in one list (the "inbox" preference, put back afterwards): in
+          tabs, the default, the box selects the open tab's messages alone.
+          Putting it back signs in again when the run's own session has ended
+          while the browser ran, and says so on standard error if it cannot.
 
 Not in CI: it needs a running server with a seeded folder. The result is one
-JSON document (--json) and a Markdown table in the shape of Performance.md's
-(--markdown); both also go to standard output when no file is named.
+JSON document (--json) and a Markdown table of one run (--markdown), whose rows
+are Performance.md's; both also go to standard output when no file is named.
+
+The account's password comes from the environment, HMPERF_PASSWORD, as the
+load generator's do (build/perf/load/loadgen.py): a process's arguments are in
+every user's process list. --password still takes one, for a throwaway account.
 
 Usage:
-  python build/perf/webmail-timing.py --user perf@example.test --password SECRET
+  HMPERF_PASSWORD=SECRET python build/perf/webmail-timing.py --user perf@example.test
       [--base http://127.0.0.1:9530] [--insecure] [--folder INBOX]
       [--mode http|browser|both] [--repeat 5] [--pages 0]
       [--needle quokka] [--subject-needle invoice] [--bulk-flag keyword|flagged|seen]
@@ -56,6 +64,7 @@ import base64
 import datetime
 import http.client
 import json
+import os
 import platform
 import ssl
 import statistics
@@ -292,6 +301,10 @@ def http_mode(args):
 
 # ------------------------------------------------------------- browser mode
 
+# The page's "Search older messages" button.
+SEARCH_OLDER = "#list-foot .listfoot button"
+
+
 def browser_mode(args):
     try:
         from playwright.sync_api import sync_playwright
@@ -309,6 +322,48 @@ def browser_mode(args):
     folder_id = folder["id"]
     long_wait = args.timeout * 1000
 
+    # The inbox in one list for the run. In tabs, an account's default, the page
+    # shows the open tab alone, and ticking its box selects that tab's messages:
+    # Mark as read would change the Primary tab's (3 in 5 at seed 49), not the
+    # folder's that HTTP mode changes. The account's own choice is put back at the
+    # end, whatever happens in between.
+    one_list = folder.get("path", "").lower() == "inbox"
+    previous_view = None
+    if one_list:
+        status, prefs, _, _ = client.request("GET", "/api/v1/me/preferences")
+        previous_view = (expect(status, prefs, "the preferences").get("preferences") or {}).get("inbox")
+        expect(*client.request("PUT", "/api/v1/me/preferences", body={"inbox": "all"})[:2], what="the inbox view")
+    result["view"] = "one list" if one_list else "the folder"
+    try:
+        return _browser_run(args, result, tree, folder_id, long_wait, sync_playwright)
+    finally:
+        if one_list:
+            _put_back_view(args, client, previous_view)
+
+
+def _put_back_view(args, client, previous_view):
+    """The account's inbox view as it was before the run (None: the key was not
+    set, and a null removes it). The session this tool signed in with sits idle
+    while the browser runs, and may have ended by then - a session ends after
+    the server's idle time, 30 minutes unless the server or the account's domain
+    sets another - so a refusal signs in once more. What still cannot be put
+    back is said, never passed over, and never raised: the run's result, or its
+    own error, is what the caller gets."""
+    body = {"inbox": previous_view}
+    try:
+        status = client.request("PUT", "/api/v1/me/preferences", body=body)[0]
+        if status != 200:
+            fresh = Client(args.base, args.insecure, args.timeout)
+            fresh.sign_in(args.user, args.password)
+            status = fresh.request("PUT", "/api/v1/me/preferences", body=body)[0]
+    except (SystemExit, OSError, http.client.HTTPException) as error:
+        status = error
+    if status != 200:
+        sys.stderr.write("webmail-timing: the account's inbox is left in one list (%s); set the webmail's "
+                         "Settings, Inbox, back to %s\n" % (status, previous_view or "tabs, the default"))
+
+
+def _browser_run(args, result, tree, folder_id, long_wait, sync_playwright):
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
         context = browser.new_context(viewport={"width": 1440, "height": 900}, ignore_https_errors=args.insecure)
@@ -406,7 +461,10 @@ def browser_mode(args):
         first_answer = time.perf_counter() - started
         presses = 0
         while presses < args.search_requests:
-            more = page.query_selector("#message-list .listfoot button")
+            # Search older messages: the note under the list, #list-foot, beside
+            # #message-list and not in it since 6.3.5 (Portal.js, renderSearchNote:
+            # a listbox holds options and nothing else).
+            more = page.query_selector(SEARCH_OLDER)
             if not more:
                 break
             before = page.evaluate("() => location.hash")
@@ -482,7 +540,7 @@ def main(argv):
     parser.add_argument("--base", default="http://127.0.0.1:9530", help="the REST listener the webmail is served from")
     parser.add_argument("--insecure", action="store_true", help="accept the listener's own certificate")
     parser.add_argument("--user", required=True)
-    parser.add_argument("--password", required=True)
+    parser.add_argument("--password", help="the account's password; better HMPERF_PASSWORD in the environment")
     parser.add_argument("--folder", default="INBOX", help="the folder's path, as the folder tree names it")
     parser.add_argument("--mode", choices=("http", "browser", "both"), default="http")
     parser.add_argument("--repeat", type=int, default=5, help="warm repetitions of open")
@@ -497,6 +555,10 @@ def main(argv):
     parser.add_argument("--json", help="write the result here")
     parser.add_argument("--markdown", help="write the table here")
     args = parser.parse_args(argv)
+    if not args.password:
+        args.password = os.environ.get("HMPERF_PASSWORD", "")
+    if not args.password:
+        parser.error("the account's password: HMPERF_PASSWORD in the environment, or --password")
 
     document = {
         "label": args.label,

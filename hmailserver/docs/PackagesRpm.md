@@ -17,10 +17,14 @@ twelve, each with its SBOM, a line in the sums, a bundle and its `.sigstore.json
 copy: `release-packages` (`.gitlab/ci/release-packages.yml`) gathers them once
 each build's install job has passed.
 
-**The build jobs have run on GitLab; the install jobs have not.** All twelve
-build jobs passed in `batch41`'s pipeline 2887115157 (27 September 2026), four
-of them already in 2886955494; no install job has started in any pipeline yet
-(see [In GitLab's pipelines](#in-gitlabs-pipelines)). Before that, the scripts
+**The build and install jobs have run on GitLab.** All twelve build jobs passed
+in `batch41`'s pipeline 2887115157 (27 September 2026), four of them already in
+2886955494; in 2887524317 (28 September) the twelve install jobs ran for the
+first time, and all twelve passed. Every build and install job passed again in
+`batch41`'s 2890818010 and 2891564033, in 6.3.5's tag pipeline 2892097590, and
+in `batch42`'s 2896082335 and 2897966924 (30 September 2026), which built 6.3.6
+and held each package to its licence files (see
+[In GitLab's pipelines](#in-gitlabs-pipelines)). Before that, the scripts
 were run by hand on linix on 26 September 2026, in the jobs' own images and by
 the same digests, through `build/ci/packages/rpm-local.sh`, which runs each
 pair of jobs the way the runner would. The times under [By hand on
@@ -56,11 +60,41 @@ four passing, and packaged a `/usr/bin/hmailserver` that is a PIE with full
 RELRO; `rpm-fedora44-aarch64` also wrote the generic
 `hmailserver-6.3.5-1.aarch64.rpm`. Among them are the six pairs that had not
 run by hand with the current scripts (below). The twelve install jobs were in both pipelines, and in
-neither did one start before the pipeline was cancelled. Pipeline 2887524317
-(`63d58f8a6`, the same branch) was running when this was written, on
-28 September 2026 at 00:40 UTC: seven of its builds had passed, and none of
-its install jobs had started. Until one has run, the install test is proved
-only by the runs by hand below.
+neither did one start before the pipeline was cancelled.
+
+In pipeline 2887524317 (`63d58f8a6`, the same branch, 28 September 2026) the
+twelve builds passed again, in 496 to 819 s, and the twelve install jobs ran for
+the first time: each package installed with its dependencies in a clean
+container of its release and architecture, ran, carried every file and was
+removed, in 3 to 66 s, the aarch64 ones under qemu-user. All twenty-four jobs
+passed again in `batch41`'s 2890818010 - where the four openSUSE builds passed
+only when started again, nine attempts having failed to connect to
+archives.boost.io for their Boost tarball (`build/ci/packages/fetch-boost.sh`
+has since kept it in the job's cache, retried, and gone on to SourceForge's
+copy) - and 2891564033, in 6.3.5's tag
+pipeline 2892097590 (29 September), and in `batch42`'s two pipelines of
+30 September 2026, which built 6.3.6:
+
+| Job | 2896082335 (`c26ce1e59`): build / install | 2897966924 (`cec2b151d`): build / install |
+|---|---|---|
+| `rpm-fedora44-x86_64` | 598 s / 13 s | 741 s / 13 s |
+| `rpm-fedora44-aarch64` | 676 s / 83 s | 830 s / 81 s |
+| `rpm-fedora43-x86_64` | 746 s / 33 s | 766 s / 15 s |
+| `rpm-fedora43-aarch64` | 916 s / 72 s | 1027 s / 74 s |
+| `rpm-el10-x86_64` | 875 s / 2 s | 956 s / 3 s |
+| `rpm-el10-aarch64` | 760 s / 18 s | 895 s / 15 s |
+| `rpm-el9-x86_64` | 660 s / 4 s | 788 s / 3 s |
+| `rpm-el9-aarch64` | 694 s / 20 s | 815 s / 19 s |
+| `rpm-leap16-x86_64` | 902 s / 16 s | 1085 s / 18 s |
+| `rpm-leap16-aarch64` | 960 s / 74 s | 1121 s / 77 s |
+| `rpm-tumbleweed-x86_64` | 955 s / 14 s | 974 s / 14 s |
+| `rpm-tumbleweed-aarch64` | 1426 s / 312 s | 1147 s / 337 s |
+
+Each time is the job's own line: `BUILT:` for the build, `PACKAGE PASSED:` for
+the install. In both, every build checked its packages' licence files and every
+install job the installed ones (`LICENCES PASSED`, [The licences](#the-licences)),
+and `rpm-fedora44-aarch64-sbom` made the generic aarch64 package's SBOM, 8
+components, from what the build recorded it was built against.
 
 ### By hand on linix
 
@@ -96,16 +130,18 @@ seconds to install (1.3 GB, GCC 16), and it also made the generic
 `hmailserver-6.3.4-1.aarch64.rpm`, which its install test installed, ran and
 removed as well.
 
-**The other six pairs have not run with the current scripts.** They were
-queued on linix when this was written, first behind other work and then behind
-the 6.3.4 release, which comes first there: RHEL 9 x86_64 and aarch64,
+**The other six pairs did not run by hand with the current scripts**; they ran
+in GitLab's pipelines instead, from 2887115157 and 2887524317 on (above). They
+were queued on linix when this was written, first behind other work and then
+behind the 6.3.4 release, which came first there: RHEL 9 x86_64 and aarch64,
 Tumbleweed aarch64, RHEL 10 aarch64, Leap 16.0 x86_64 and Fedora 43 aarch64,
 and after them RHEL 10 x86_64, Leap 16.0 aarch64 and the three x86_64 rows
 above again. Earlier versions of the scripts had built and installed RHEL 9
 x86_64 and aarch64 and Leap 16.0 x86_64; RHEL 10 aarch64, Fedora 43 aarch64 and
-Tumbleweed aarch64 have not been built at all. One RHEL 9 x86_64 run, with the
-first version of the `Suggests` change, built and passed its testers and then
-failed to package; the `Suggests` paragraph below says why and what changed.
+Tumbleweed aarch64 had not been built at all before the pipelines built them.
+One RHEL 9 x86_64 run, with the first version of the `Suggests` change, built
+and passed its testers and then failed to package; the `Suggests` paragraph
+below says why and what changed.
 
 **What the earlier trials found**, each fixed in the scripts above:
 
@@ -501,7 +537,12 @@ files to the tree, by SHA-256, mode, owner and flag: `rpm-build.sh` and
 `linux-build` fail a package without them, and the install test checks them as
 installed.
 
-**Not yet run in a pipeline.** Run on the laptop on 29 September 2026:
+**Run in `batch42`'s pipelines 2896082335 and 2897966924 (30 September 2026).**
+In both, `check-licenses.sh` passed (`LICENCES PASSED`) over every package each
+of the twelve builds made, the generic `hmailserver-6.3.6-1.aarch64.rpm`
+included, over the files every install job installed, and over `linux-build`'s
+generic `hmailserver-6.3.6-1.x86_64.rpm` and what `linux-package-rpm` installed
+of it. Before that, on the laptop on 29 September 2026:
 `linux-build`'s route (Ubuntu 26.04, clang, CPack) made the `.rpm` with the three
 files marked; in `fedora:44`, `rpm-install-test.sh` (dnf resolving every
 `Requires`) and `linux-package-install.sh rpm` passed with it, and the latter
@@ -510,7 +551,7 @@ failed at this step with the package made before the change. Fedora 44's rpmlint
 licence, and accepts the new `License`. A miniature of the tree with the same
 install rules and CPack settings made and installed the `.rpm` with UBI 9's
 (rpm 4.16), Leap 16's and Fedora 44's own CMake, rpm and package manager. No
-per-release build (`rpm-build.sh`) was run.
+per-release build (`rpm-build.sh`) was run there.
 
 The install test
 ----------------
@@ -581,8 +622,10 @@ What is left
    installed Ubuntu's `qemu-user-binfmt` (10.2.1) on linix, whose
    `/usr/lib/binfmt.d/qemu-aarch64.conf` `systemd-binfmt` loads at every boot
    (flags `POF`). The runs in [What has run](#what-has-run) used that handler.
-   linix has not rebooted since, so nobody has yet seen it come back after a
-   reboot.
+   It came back after linix's next reboot, on 28 September 2026 at 18:08 UTC,
+   when `systemd-binfmt` registered it at boot: the aarch64 install jobs of
+   `batch41`'s 2890818010 and 2891564033 and of 6.3.5's tag pipeline 2892097590
+   ran under that registration, and all passed.
 2. **Wiring into the release: done for the generic aarch64 package, for
    6.3.6.** A release can add the thirteen files these jobs make:
    `hmailserver-<v>-1.aarch64.rpm` and the twelve whose names carry a release.
@@ -621,6 +664,7 @@ What is left
    `.gitlab-ci.yml`'s images; whether it follows this included file, and keeps
    a per-architecture digest per-architecture when it moves one, has not been
    checked. Tumbleweed's digest in particular goes stale quickly.
-6. **Watch the first pipeline that runs the install jobs.** The build jobs
-   have passed in pipelines (see [In GitLab's pipelines](#in-gitlabs-pipelines));
-   no install job has run to an end in one yet.
+6. **The first pipeline that runs the install jobs: done.** The install jobs
+   first ran in pipeline 2887524317 on 28 September 2026, and every build and
+   install job has passed in each pipeline since that ran them all to an end,
+   6.3.6's two included (see [In GitLab's pipelines](#in-gitlabs-pipelines)).

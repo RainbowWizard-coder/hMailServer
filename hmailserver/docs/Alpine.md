@@ -302,6 +302,13 @@ from `batch42` with this item's changes, beside `batch42`'s own pipeline:
   still asked for UTF-16's byte order mark after 6.3.6 made the Linux event log
   UTF-8, on glibc as on musl; the test now asks each platform for its own encoding,
   and passed alone against the same server.
+- **The three jobs in `batch42`'s pipeline 2896082335**, 30 September 2026, on
+  linix, all passed: `alpine-package` built hmailserver 6.3.6 from the pipeline's
+  source tarball in 1,781 s, its `check()` running the testers; `alpine-install`
+  installed the packages, `rc-service` started the server as `hmailserver`, SMTP
+  with STARTTLS and IMAP answered, and it reloaded and stopped; and `alpine-suite`
+  ran the whole Linux suite against it, 1899 passed, 332 skipped and none failed of
+  2231. In 2897966924 the three were cancelled with the pipeline before they started.
 
 What is left
 ------------

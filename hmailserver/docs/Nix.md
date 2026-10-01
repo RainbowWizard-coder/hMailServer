@@ -299,8 +299,13 @@ pinned `nixos/nix` image, nixpkgs `nixos-26.05.10882.7fc6f2c20af0`):
   output. In the test's journal PostgreSQL's setup finished before the service
   started.
 
-Not yet run: the `nix` job in a pipeline (pipeline #1), and
-`nix build gitlab:hmailserver/hmailserver/v6.3.6`, which needs the tag.
+In `batch42`'s pipeline 2896082335 (30 September 2026) the `nix` job passed on
+linix in 1,802 s: the flake's inputs, its evaluation, the package in 1,388 s with
+its checks, and the NixOS test under TCG in 352 s, SMTP with STARTTLS and IMAP
+answering. In 2897966924 it was cancelled with the pipeline.
+
+Not yet run: `nix build gitlab:hmailserver/hmailserver/v6.3.6`, which needs the
+tag.
 
 What is left
 ------------

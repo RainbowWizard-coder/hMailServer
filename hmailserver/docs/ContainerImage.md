@@ -115,6 +115,33 @@ carries `arch=amd64` or `arm64`, and its `hmailserver:platform` property says
 `container-image-signed/verification.txt`, has these commands with the release's
 digests filled in.
 
+**And the project's id.** The identity is a path, and a path is only a name: were
+the group or the project renamed or deleted, another project could be made at the
+same path, and its pipeline could sign as that identity. The certificate also
+carries the project's own id, `86730559`, which GitLab gives no other project
+(Fulcio's source repository identifier, the extension `1.3.6.1.4.1.57264.1.15`),
+and a server requires it at the group's path. cosign checks no GitLab claim but the
+identity, so read the id from the certificates of the signatures cosign verified,
+for the tag and for each platform's digest:
+
+```
+cosign download signature registry.gitlab.com/hmailserver/hmailserver:<version> \
+  | jq -r 'select(.Cert != null) | .Cert.Raw' \
+  | while read -r raw; do
+      printf '%s' "$raw" | base64 -d | openssl x509 -inform DER -noout -text \
+        | grep -A1 -e 'Subject Alternative Name' -e '1.3.6.1.4.1.57264.1.15'
+    done
+```
+
+Every certificate whose Subject Alternative Name is the release's identity must
+show `..86730559` under `1.3.6.1.4.1.57264.1.15` (the two dots are the value's DER
+tag and length); a certificate of that identity with any other id, or none, is not
+this project's. OpenSSL reads the extension from the certificate's structure, which
+is what makes this a check: a search of the certificate's bytes for the id could be
+fooled by a public key holding those bytes. The SBOM attestations are checked here
+by their identity; the channels' registry mirror reads their certificates from the
+registry and holds them to the id as well ([Channels.md](Channels.md)).
+
 The identity is the project's path when the image was signed: an image is pushed and
 signed only from the group's path, so it is the group's. The `.deb` the image was
 built from may have been signed before the project moved on 29 September 2026 (6.3.5's
@@ -153,8 +180,15 @@ cosign verify-blob \
   --certificate-identity https://gitlab.com/hmailserver/hmailserver//.gitlab-ci.yml@refs/tags/v<version> \
   --certificate-oidc-issuer https://gitlab.com \
   hmailserver-chart-<version>.tgz
+jq -r .verificationMaterial.certificate.rawBytes hmailserver-chart-<version>.tgz.cosign.bundle \
+  | base64 -d | openssl x509 -inform DER -noout -text | grep -A1 1.3.6.1.4.1.57264.1.15
 helm install mail ./hmailserver-chart-<version>.tgz --set database.host=...
 ```
+
+The second command must print `..86730559` under `1.3.6.1.4.1.57264.1.15`: the
+project's id, as for the image above. From the source tarball or a checkout,
+`python3 build/ci/sigstore-certificate.py repository-id <bundle>` reads the same
+extension as the server does and prints `id=86730559`.
 
 The identity is the project's path when the release was signed, as for every
 file of the release: a release tagged before the project moved into the group on
@@ -481,7 +515,11 @@ pulled byte for byte and rendered with the release's image.
   `HM_IMAGE_ARM64`, the arm64 one as a service of the platform linux/arm64, the
   job's variables reaching the services - is first run there; its checks, and a
   stand-in for that half, were run by hand, as above.
-- `linux-image-arm64` has not run in a pipeline: the first is batch42's.
+- `linux-image-arm64` has run in pipelines, and no other arm64 image job has: in
+  `batch42`'s 2896082335 and 2897966924 (30 September 2026) it built
+  `hmailserver:6.3.6-arm64` under qemu-user from `deb-ubuntu26.04-arm64`'s
+  package, its `RUN` answering `hMailServer 6.3.6 build 45`, and passed its
+  checks, in 122 and 127 s; the image was kept, not pushed.
 - GitLab's registry has not yet taken a Docker manifest list from this project, nor
   keyless signatures of three digests from one job; both were shown against a
   stand-in registry, and with a key, as above.

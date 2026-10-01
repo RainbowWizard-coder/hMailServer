@@ -92,8 +92,16 @@ cosign verify-blob \
   --certificate-identity https://gitlab.com/hmailserver/hmailserver//.gitlab-ci.yml@refs/tags/v<version> \
   --certificate-oidc-issuer https://gitlab.com \
   hmailserver-chart-<version>.tgz
+jq -r .verificationMaterial.certificate.rawBytes hmailserver-chart-<version>.tgz.cosign.bundle \
+  | base64 -d | openssl x509 -inform DER -noout -text | grep -A1 1.3.6.1.4.1.57264.1.15
 helm install mail ./hmailserver-chart-<version>.tgz --set database.host=...
 ```
+
+The second command must print `..86730559` under `1.3.6.1.4.1.57264.1.15`: the
+project's own id, which GitLab gives no other project, read by OpenSSL from the
+certificate's extension (Fulcio's source repository identifier). The identity is
+a path, and a path could pass to another project were the group or the project
+renamed or deleted; the id cannot, and a server requires it.
 
 The identity is the project's path when the release was signed: a release tagged
 before the project moved into the group `hmailserver` on 29 September 2026 (one

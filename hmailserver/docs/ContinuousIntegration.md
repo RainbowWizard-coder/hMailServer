@@ -1859,6 +1859,11 @@ cosign verify \
 The identity and the image are the group's because the image is pushed only
 since the project's move (item 3 below). `container-image-sign` keeps
 `container-image-signed/verification.txt`, with the commands for that release.
+cosign checks the identity, a path; the project's id, `86730559`, which the
+certificate carries too and a server requires, is read from the signatures'
+certificates as ContainerImage.md, "Checking an image", shows, and
+`container-image-sign` itself holds the certificate of each signature it made
+to it.
 
 **What the owner sets on the registry.** Nothing in the pipeline can. As the
 project's API answered on 28 September 2026:
@@ -2071,14 +2076,18 @@ Not yet shown, because 6.3.5 had no image and no AArch64 package:
   Dockerfile's base) on linix on 26 September 2026 and wrote its report;
 - that cosign stores the image's signature in GitLab's registry as
   `sha256-<digest>.sig` with the job's credentials, and that `cosign verify`
-  finds it there;
-- that the AArch64 package builds' record of what they were built against is
-  what `build/asset-sbom.py` reads: `dpkg-query -W` in Ubuntu 26.04's
-  container, with the cross toolchain's `libc6-dev-arm64-cross` and
-  `libstdc++-15-dev-arm64-cross` beside the `:arm64` -dev packages, and
-  `rpm --root` over the aarch64 sysroot dnf installed in Fedora 44's. The
-  readers are tested against records written to that form; neither job has run
-  with the recording, so the SBOM jobs have not either.
+  finds it there.
+
+Shown since in `batch42`'s pipelines 2896082335 and 2897966924 (30 September
+2026), though not yet in a release's: that the AArch64 package builds' record of
+what they were built against is what `build/asset-sbom.py` reads - `dpkg-query
+-W` in Ubuntu 26.04's container, with the cross toolchain's
+`libc6-dev-arm64-cross` and `libstdc++-15-dev-arm64-cross` beside the `:arm64`
+-dev packages, and `rpm --root` over the aarch64 sysroot dnf installed in Fedora
+44's. In both, `deb-ubuntu26.04-arm64-sbom` and `rpm-fedora44-aarch64-sbom` made
+the generic AArch64 packages' SBOMs from those records, 8 components each, and
+in 2897966924 `release-packages` made every per-distribution package's, and the
+release's rehearsal held every SBOM to the file it describes.
 
 Dependency updates
 ------------------
@@ -2669,12 +2678,20 @@ scans what the job's checkout reaches, which may be less than the clone did (fiv
 of the thirty are in a commit only the upstream tags reach) but not more while
 `master` is the project's one branch.
 
-**Proved by hand, not yet in a pipeline.** Each job's script was run on linix
-on 25 September 2026, in a container of the job's own image, with the job's own
-commands, on a copy of the tree checked out as GitLab checks it out (CRLF, the
-scripts LF). The dependency scan was run with `ghcr.io`, `github.com` and
-GitHub's content hosts resolved to 127.0.0.1, and it completed. The numbers
-below come from those runs. What they found is in the two baselines:
+**Proved by hand first, then in the pipelines.** The three jobs have run in
+GitLab's pipelines since the first, 2884863496 on 26 September 2026, which all
+three failed ([What the first pipeline found](#what-the-first-pipeline-found));
+in `batch42`'s 2896082335 (30 September) all three failed again, on findings new
+since their baselines, which `108d3850f` answered the same day - most fixed in
+the code, one taken into the static-analysis baseline with its reason, the
+dependency scan's PyJWT advisories answered by VEX statements and its finding in
+the CI image's OpenSSL by a rebuild of the image - and in 2897966924 all three
+passed. Before any pipeline, each job's script was run on linix on 25 September
+2026, in a container of the job's own image, with the job's own commands, on a
+copy of the tree checked out as GitLab checks it out (CRLF, the scripts LF). The
+dependency scan was run with `ghcr.io`, `github.com` and GitHub's content hosts
+resolved to 127.0.0.1, and it completed. The numbers below come from those runs.
+What they found is in the two baselines:
 
 - `static-analysis`: 1,307 findings. cppcheck made 474 of them, 378 of which
   are `throw;` statements with no exception to rethrow, 376 of them in the

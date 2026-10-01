@@ -18,11 +18,15 @@ line in the sums, a bundle and its `.sigstore.json` copy: `release-packages`
 (`.gitlab/ci/release-packages.yml`) gathers them once each build's install job
 has passed.
 
-**The build jobs have run on GitLab; the install jobs have not.** All seven
-build jobs passed in each of `batch41`'s pipelines 2886955494 and 2887115157
-(27 September 2026), and again in 2887524317; no install job has started in any
-pipeline yet (see [In GitLab's pipelines](#in-gitlabs-pipelines)). Before
-that, the scripts were run by hand on linix on 26 September 2026, in the jobs'
+**The build and install jobs have run on GitLab.** All seven build jobs passed
+in each of `batch41`'s pipelines 2886955494 and 2887115157 (27 September 2026);
+in 2887524317 (28 September) the seven install jobs ran for the first time, and
+all seven passed. Every build and install job passed again in `batch41`'s
+2890818010 and 2891564033, in 6.3.5's tag pipeline 2892097590, and in
+`batch42`'s 2896082335 and 2897966924 (30 September 2026), which built 6.3.6
+and held each package to its licence files (see
+[In GitLab's pipelines](#in-gitlabs-pipelines)). Before that, the scripts were
+run by hand on linix on 26 September 2026, in the jobs'
 own images and by the same digests, through `build/ci/packages/deb-local.sh`,
 which runs each pair of jobs the way the runner would. The times under
 [By hand on linix](#by-hand-on-linix) are those runs, while other package
@@ -52,11 +56,31 @@ Each built 6.3.5 and wrote the file its name says,
 for Ubuntu 26.04. The amd64 builds ran the four tester programs, and all four
 passed; the arm64 builds do not run them (see [The jobs](#the-jobs)). The
 seven install jobs were in both pipelines, and in neither did one start before
-the pipeline was cancelled. Pipeline 2887524317 (`63d58f8a6`, the same branch)
-was running when this was written, on 28 September 2026 at 00:40 UTC: its seven
-builds had passed again, in 746 to 931 s, and its install jobs were waiting for
-linix. Until one has run, the install test is proved only by the runs by hand
-below.
+the pipeline was cancelled.
+
+In pipeline 2887524317 (`63d58f8a6`, the same branch, 28 September 2026) the
+seven builds passed again, in 746 to 931 s, and the seven install jobs ran for
+the first time: each package installed in a clean container of its release and
+architecture, ran, carried its units and came off again, in 4 to 34 s, the arm64
+ones under qemu-user. All fourteen jobs passed again in `batch41`'s 2890818010
+and 2891564033 and in 6.3.5's tag pipeline 2892097590 (29 September), and in
+`batch42`'s two pipelines of 30 September 2026, which built 6.3.6:
+
+| Job | 2896082335 (`c26ce1e59`): build / install | 2897966924 (`cec2b151d`): build / install |
+|---|---|---|
+| `deb-debian12-amd64` | 907 s / 9 s | 979 s / 8 s |
+| `deb-debian12-arm64` | 1191 s / 75 s | 1012 s / 71 s |
+| `deb-debian13-amd64` | 929 s / 10 s | 1031 s / 11 s |
+| `deb-debian13-arm64` | 1070 s / 71 s | 1270 s / 88 s |
+| `deb-ubuntu24.04-amd64` | 885 s / 14 s | 933 s / 12 s |
+| `deb-ubuntu24.04-arm64` | 940 s / 69 s | 990 s / 79 s |
+| `deb-ubuntu26.04-arm64` | 906 s / 93 s | 991 s / 96 s |
+
+Each time is the job's own line: `BUILT:` for the build, `PACKAGE PASSED:` for
+the install. In both, every build checked its package's licence files and every
+install job the installed ones (`LICENCES PASSED`, [The licences](#the-licences)),
+and `deb-ubuntu26.04-arm64-sbom` made the generic arm64 package's SBOM, 8
+components, from what the build recorded it was built against.
 
 ### By hand on linix
 
@@ -451,7 +475,11 @@ distribution's shared libraries, whose packages carry their own copyright files.
 SHA-256, mode and owner: `deb-build.sh` and `linux-build` fail a package
 without them, and the install test checks them as installed.
 
-**Not yet run in a pipeline.** Run on the laptop on 29 September 2026:
+**Run in `batch42`'s pipelines 2896082335 and 2897966924 (30 September 2026).**
+In both, `check-licenses.sh` passed (`LICENCES PASSED`) over the package each of
+the seven builds made, over the files every install job installed, and over
+`linux-build`'s `hmailserver_6.3.6_amd64.deb` and what `linux-package-deb`
+installed of it. Before that, on the laptop on 29 September 2026:
 `linux-build`'s route (Ubuntu 26.04, clang, CPack) made the `.deb` with the
 three files; in `ubuntu:26.04`, `deb-install.sh` and `linux-package-install.sh
 deb` (the server started against PostgreSQL) passed with it, and failed at this
@@ -562,8 +590,11 @@ What is left
      (26 September 2026). Its `/usr/lib/binfmt.d/qemu-aarch64.conf` is loaded
      by `systemd-binfmt` at every boot, with the flags `POF`.
    - The check's own arm64 install test ran under that handler (see
-     [What has run](#what-has-run)). Nobody has yet seen it come back after a
-     reboot.
+     [What has run](#what-has-run)). It came back after linix's next reboot,
+     on 28 September 2026 at 18:08 UTC, when `systemd-binfmt` registered it at
+     boot: the arm64 install jobs of `batch41`'s 2890818010 and 2891564033 and
+     of 6.3.5's tag pipeline 2892097590 ran under that registration, and all
+     passed.
 2. **Wiring into the release: done for the arm64 package, for 6.3.6.** The
    check decided what a release carries:
    - `hmailserver_<v>_amd64.deb` stays `linux-build`'s, as now (see
@@ -583,6 +614,7 @@ What is left
    `release-packages`. `build/check-release-chain.py` holds that job to every
    build and install job here, and none of them may fail or wait for a press
    in a `v*` tag's pipeline.
-3. **Watch the first pipeline that runs the install jobs.** The build jobs
-   have passed in pipelines (see [In GitLab's pipelines](#in-gitlabs-pipelines));
-   no install job has run to an end in one yet.
+3. **The first pipeline that runs the install jobs: done.** The install jobs
+   first ran in pipeline 2887524317 on 28 September 2026, and every build and
+   install job has passed in each pipeline since that ran them all to an end,
+   6.3.6's two included (see [In GitLab's pipelines](#in-gitlabs-pipelines)).
