@@ -1112,6 +1112,7 @@
   "Signing and encryption are unavailable: the browser withholds its cryptography from a page that was not opened over HTTPS.": "签名和加密不可用：浏览器不向未通过 HTTPS 打开的页面提供其加密功能。",
   "Signing in at Gmail or Outlook.com leaves this page and comes back to it reloaded, which forgets the second account. To move mail into {0}, sign in to it on its own.": "登录 Gmail 或 Outlook.com 会离开此页面，并在重新加载后返回，这会忘记第二个账户。要把邮件移到 {0}，请单独登录该账户。",
   "Signing in with": "登录方式",
+  "Single sign-on did not complete: {0}": "单点登录未完成：{0}",
   "Size": "大小",
   "Skip the tour": "跳过导览",
   "Skip to content": "跳到内容",

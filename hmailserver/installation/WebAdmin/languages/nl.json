@@ -1310,6 +1310,7 @@
   "Since (YYYY-MM-DD HH:MM:SS)": "Vanaf (YYYY-MM-DD HH:MM:SS)",
   "Since {0}": "Sinds {0}",
   "Since {0}, until {1}; window {2} min; {3} deferred": "Sinds {0}, tot {1}; venster {2} min; {3} uitgesteld",
+  "Single sign-on did not complete: {0}": "Single sign-on is niet voltooid: {0}",
   "Size": "Grootte",
   "Skip the propagation period": "Propagatieperiode overslaan",
   "Skip the tour": "De rondleiding overslaan",

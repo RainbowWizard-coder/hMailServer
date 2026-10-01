@@ -789,6 +789,38 @@ namespace
    }
 
    bool
+   UpdateChecker::IsReleasePageUrl(const std::string &url)
+   {
+      static const char scheme[] = "https://";
+      const size_t schemeLength = sizeof(scheme) - 1;
+      if (url.size() <= schemeLength || url.size() > 2048)
+         return false;
+
+      // The scheme in any case, as a browser reads it.
+      for (size_t i = 0; i < schemeLength; i++)
+      {
+         if (tolower(static_cast<unsigned char>(url[i])) != scheme[i])
+            return false;
+      }
+
+      // A host after it, not a path, a query, a fragment or an empty one.
+      const char first = url[schemeLength];
+      if (first == '/' || first == '\\' || first == '?' || first == '#' || first == '@' || first == ':')
+         return false;
+
+      // Nothing a browser would drop or read differently: no space, no control
+      // character (a browser removes a tab or a line break inside an address).
+      for (size_t i = 0; i < url.size(); i++)
+      {
+         const unsigned char c = static_cast<unsigned char>(url[i]);
+         if (c <= 0x20 || c == 0x7f)
+            return false;
+      }
+
+      return true;
+   }
+
+   bool
    UpdateChecker::ReadRelease_(const JsonValue &value, Release &release)
    {
       release = Release();
@@ -820,7 +852,11 @@ namespace
       release.found = true;
       release.version = FromUtf8_(tag);
       release.name = FromUtf8_(value.GetString("name"));
-      release.url = FromUtf8_(value.GetString("html_url"));
+      // The release page is shown as a link, so it is kept only as what a
+      // release page is (IsReleasePageUrl); any other value is dropped rather
+      // than the release refused, which then has no page.
+      const std::string page = value.GetString("html_url");
+      release.url = IsReleasePageUrl(page) ? FromUtf8_(page) : String();
       release.published_at = FromUtf8_(value.GetString("published_at"));
       release.draft = value.GetBool("draft");
       release.prerelease = value.GetBool("prerelease");
@@ -1018,5 +1054,72 @@ namespace
       body += ",\"lastError\":" + Quote_(snapshot.last_error);
       body += "}";
       return body;
+   }
+
+   void
+   UpdateCheckerTester::Test()
+   {
+      // The value of html_url as it stands in the feed's JSON (present false:
+      // the release has none), and what ReadRelease_ keeps of it ("": nothing). The
+      // release carries an author with an html_url of its own, as GitHub's shape
+      // does, which is never the release's page.
+      struct Case
+      {
+         std::string json;
+         bool present;
+         std::string kept;
+         const char *what;
+      };
+
+      const std::string longest = "https://example.invalid/" + std::string(2048 - 24, 'a');
+      const Case cases[] =
+      {
+         { "\"https://gitlab.com/hmailserver/hmailserver/-/releases/v6.3.9\"", true, "https://gitlab.com/hmailserver/hmailserver/-/releases/v6.3.9", "the project's release page" },
+         { "\"HTTPS://Example.invalid/releases/6.3.9\"", true, "HTTPS://Example.invalid/releases/6.3.9", "https in capitals" },
+         { "\"https://a\"", true, "https://a", "the shortest https address with a host" },
+         { "\"" + longest + "\"", true, longest, "an https address of 2,048 characters" },
+         { "\"" + longest + "a\"", true, "", "an https address of 2,049 characters" },
+         { "\"http://example.invalid/releases/6.3.9\"", true, "", "plain http" },
+         { "\"javascript:void(0)\"", true, "", "a script address" },
+         { "\"JavaScript:void(0)//https://example.invalid/\"", true, "", "a script address naming an https one" },
+         { "\"data:text/html,notes\"", true, "", "a data address" },
+         { "\"file:///C:/notes.txt\"", true, "", "a file address" },
+         { "\" https://example.invalid/\"", true, "", "a leading space" },
+         { "\"\\thttps://example.invalid/\"", true, "", "a leading tab" },
+         { "\"https://example.invalid/a b\"", true, "", "a space inside" },
+         { "\"https://example.invalid/\\r\\nnotes\"", true, "", "a line break inside" },
+         { "\"https://example.invalid/\\u0000\"", true, "", "a NUL inside" },
+         { "\"https://example.invalid/\\u007f\"", true, "", "a DEL inside" },
+         { "\"https://\"", true, "", "the scheme alone" },
+         { "\"https:///releases/6.3.9\"", true, "", "no host" },
+         { "\"https://\\\\example.invalid/\"", true, "", "a backslash for a host" },
+         { "\"https://@example.invalid/\"", true, "", "an empty user for a host" },
+         { "\"\"", true, "", "an empty value" },
+         { "42", true, "", "a number" },
+         { "", false, "", "no html_url, with the author's beside it" },
+      };
+
+      for (const Case &item : cases)
+      {
+         const std::string document = "{\"tag_name\":\"v6.3.9\",\"name\":\"hMailServer 6.3.9\","
+            "\"author\":{\"login\":\"someone\",\"html_url\":\"https://gitlab.com/someone\"},"
+            + (item.present ? "\"html_url\":" + item.json + "," : std::string()) +
+            "\"published_at\":\"2026-09-30T12:00:00Z\",\"assets\":[]}";
+
+         JsonValue value;
+         std::string parseError;
+         if (!JsonValue::Parse(document, value, parseError))
+            throw std::logic_error(std::string("UpdateCheckerTester: the document for ") + item.what + " is not JSON: " + parseError);
+
+         UpdateChecker::Release release;
+         if (!UpdateChecker::ReadRelease_(value, release) || !release.found || release.version != FromUtf8_("6.3.9"))
+            throw std::logic_error(std::string("UpdateCheckerTester: the release with ") + item.what + " as its html_url was not read; a page it cannot keep must not cost the release");
+
+         if (release.url != FromUtf8_(item.kept))
+         {
+            throw std::logic_error(std::string("UpdateCheckerTester: ") + item.what + " as html_url: " +
+               (item.kept.empty() ? "kept, and only an https:// address with a host and no space or control character may be" : "dropped, and it is a release page"));
+         }
+      }
    }
 }

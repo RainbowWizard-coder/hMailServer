@@ -21,7 +21,11 @@ Checked, for every catalogue:
              verbatim - survive translation;
   markup     no translation carries a character HTML reads (< > & "), since
              the page puts a translation where the English stood, in text and
-             in an attribute alike, without escaping it;
+             in an attribute alike, without escaping it; and the page refuses
+             the same characters again when it loads a catalogue
+             (CATALOGUE_REFUSED, applied by sanitiseCatalogue in loadLanguage),
+             since the file on a server's disk is not the file checked here -
+             the two lists are one list, and this holds the page to it;
   form       the file is what json.dumps writes with a two-space indent,
              sorted keys, the characters as they are and CRLF line endings -
              the portal catalogues' form, so a diff is a change of text;
@@ -52,6 +56,14 @@ SURVIVORS = ["hMailServer.ini", "hMailServer", "OpenAPI", "ManageSieve", "Sieve"
              "ScheduledBackupTime", "ScheduledBackupIntervalMinutes", "ScheduledBackupKeepCount", "ScheduledBackupMaxAgeDays",
              "SettingsOverride",
              "Active Directory", "Windows", "domain_members", "membership", "announcement", "Date"]
+
+# The characters HTML reads, which no translation may carry, and the page's own
+# refusal of them when it loads a catalogue: its script declares the same
+# characters as CATALOGUE_REFUSED and loadLanguage applies them.
+MARKUP = '<>&"'
+MARKUP_CHARACTER = re.compile("[" + re.escape(MARKUP) + "]")
+PAGE_REFUSAL = re.compile(r"const CATALOGUE_REFUSED=/\[([^\]]*)\]/;")
+PAGE_REFUSAL_APPLIED = "applyCatalogue(code,sanitiseCatalogue(data));"
 
 SCRIPT = re.compile(r"<script(?P<attrs>[^>]*)>(?P<body>.*?)</script>", re.S | re.I)
 LITERAL = re.compile(r"""\b(?:t|tf|K)\((?:"((?:[^"\\]|\\.)*)"|'((?:[^'\\]|\\.)*)')""")
@@ -104,6 +116,24 @@ def page_languages():
     return [code for code in LANGUAGE_ENTRY.findall(table.group(1)) if code != "en"]
 
 
+def page_refusal_problems():
+    """The page's own refusal of markup in a catalogue it loads, against MARKUP."""
+    _, script = page_parts()
+    declared = PAGE_REFUSAL.search(script)
+    if not declared:
+        return ["index.html no longer declares const CATALOGUE_REFUSED=/[...]/; - the page inserts a translation "
+                "unescaped, and a catalogue on a server's disk is not the file this check read"]
+    problems = []
+    characters = declared.group(1)
+    if sorted(characters) != sorted(MARKUP):
+        problems.append("index.html refuses [%s] in a catalogue it loads and this check refuses [%s]; they are one list"
+                        % (characters, MARKUP))
+    if PAGE_REFUSAL_APPLIED not in script:
+        problems.append("index.html's loadLanguage no longer hands a catalogue it loads to sanitiseCatalogue (%s)"
+                        % PAGE_REFUSAL_APPLIED)
+    return problems
+
+
 def tokens_of(s):
     found = set(re.findall(r"\{[0-9]+\}", s))
     found.update(re.findall(r"(?<![\w.*:-])-?\d+(?![\w.*:-])", s))
@@ -127,7 +157,7 @@ def main():
         for k in sorted(keys):
             print(k)
         return 0
-    problems = []
+    problems = page_refusal_problems()
     files = sorted(f for f in os.listdir(CATALOGUES) if f.endswith(".json")) if os.path.isdir(CATALOGUES) else []
     if not files:
         problems.append("no catalogues under " + CATALOGUES)
@@ -165,7 +195,7 @@ def main():
             for token in tokens_of(k):
                 if token not in v:
                     problems.append("%s: '%s' lost from: %s" % (code, token, k))
-            if re.search(r'[<>&"]', v):
+            if MARKUP_CHARACTER.search(v):
                 problems.append("%s: a character HTML reads in: %s" % (code, k))
     print("Deck languages: %d keys on the page, %d catalogue(s)" % (len(keys), len(files)))
     if problems:
@@ -174,7 +204,7 @@ def main():
         if len(problems) > 200:
             print("  ... and %d more" % (len(problems) - 200))
         return 1
-    print("  OK    every catalogue has every key and nothing else, no empty translation, every token kept, nothing HTML would read, the form is the catalogues' form, and the switch offers exactly the catalogues there are")
+    print("  OK    every catalogue has every key and nothing else, no empty translation, every token kept, nothing HTML would read, the form is the catalogues' form, the switch offers exactly the catalogues there are, and the page refuses the same characters in a catalogue it loads")
     return 0
 
 

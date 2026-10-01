@@ -564,6 +564,21 @@ function browserLanguage(){
   return "en";
 }
 function languageSelects(){return Array.from(document.querySelectorAll("select[data-lang]"));}
+/* A translation is inserted where the English stood, in markup as in text, and
+   t() does not escape it; build/check-deck-languages.py refuses a translation
+   carrying one of these characters, and the page refuses it again when it
+   loads the catalogue, since the file on the server's disk is not the one the
+   build checked. A value that is not a string, or carries one, is left out and
+   its English is shown. The two lists are one list: the checker reads this. */
+const CATALOGUE_REFUSED=/[<>&"]/;
+function sanitiseCatalogue(data){
+  const kept=Object.create(null);
+  Object.keys(data).forEach(key=>{
+    const value=data[key];
+    if(typeof value==="string"&&!CATALOGUE_REFUSED.test(value))kept[key]=value;
+  });
+  return kept;
+}
 function applyCatalogue(code,data){
   catalogue=data||{};language=code;
   try{if(code==="en")localStorage.removeItem("hmsLang");else localStorage.setItem("hmsLang",code);}catch(_){}
@@ -584,7 +599,7 @@ async function loadLanguage(code){
     if(res.ok)data=await res.json();
   }catch(_){data=null;}
   if(!data||typeof data!=="object"){languageSelects().forEach(s=>{s.value=language;});return false;}
-  applyCatalogue(code,data);
+  applyCatalogue(code,sanitiseCatalogue(data));
   return true;
 }
 languageSelects().forEach(sel=>{
@@ -670,6 +685,21 @@ function escHtml(v){
     .replace(/>/g,"&gt;")
     .replace(/"/g,"&quot;")
     .replace(/'/g,"&#39;");
+}
+/* An address the server handed over - the release page the update feed names,
+   the documentation wiki, an export to download - is drawn as a link only when
+   it is a web address: http: or https:, resolved against this page as the
+   browser resolves it, and drawn as resolved, so what was checked is what is
+   followed. Anything else, or nothing, answers "" and no link is drawn.
+   escHtml keeps a value inside its attribute; it says nothing about where the
+   address leads, so every data-driven href goes through this as well. */
+function safeHref(v){
+  const text=String(v===undefined||v===null?"":v).replace(/^[\x00-\x20]+|[\x00-\x20]+$/g,"");
+  if(!text)return "";
+  try{
+    const url=new URL(text,location.href);
+    return url.protocol==="https:"||url.protocol==="http:"?url.href:"";
+  }catch(_){return "";}
 }
 /* The server's sentence, shown where the request came from. */
 function setErr(id,message){const e=document.getElementById(id);if(e)e.textContent=message||"";}
@@ -1968,7 +1998,10 @@ async function helpShow(name,heading){
     body.appendChild(hmMarkdown.render(text,document,helpLinkOf));
     await helpIndex();
     const wiki=$("#helpWiki");
-    if(helpWiki){wiki.setAttribute("href",helpWiki+name);wiki.hidden=false;}else{wiki.removeAttribute("href");wiki.hidden=true;}
+    // The server refuses a wiki base that is not http(s) when it is set; one
+    // that reached the database another way is still no link.
+    const wikiHref=helpWiki?safeHref(helpWiki+name):"";
+    if(wikiHref){wiki.setAttribute("href",wikiHref);wiki.hidden=false;}else{wiki.removeAttribute("href");wiki.hidden=true;}
   }
   helpScrollTo(helpLineOf(heading));
 }
@@ -4855,6 +4888,25 @@ async function loadSignInMethods(){
     $("#samlBtn").hidden=!methods.saml;
   }catch(_){/* the password is always there */}
 }
+/* A sign-in this tab started at an identity provider, and when. The fragment
+   is whatever the address bar holds, and any link can put one there, so the
+   server's sentence about a sign-in that did not complete is shown only to a
+   tab that went to the identity provider in the last hour, and inside a
+   sentence of the page's own. An hour, not the ten minutes a sign-in lives on
+   the server: a slower return is answered with the server's own sentence that
+   the sign-in took longer than ten minutes, and that is one this tab must
+   show. The mark is spent by the next load of this page, whatever its address
+   holds, so a sign-in abandoned at the identity provider leaves none behind.
+   The webmail reads the same mark under the same name: the server sends a
+   sign-in it no longer knows there, whichever page started it. */
+const SSO_PENDING="hmsSsoPending",SSO_PENDING_MS=60*60*1000;
+function markSsoPending(){try{sessionStorage.setItem(SSO_PENDING,String(Date.now()));}catch(_){}}
+function takeSsoPending(){
+  let at=0;
+  try{at=Number(sessionStorage.getItem(SSO_PENDING))||0;sessionStorage.removeItem(SSO_PENDING);}catch(_){at=0;}
+  const age=Date.now()-at;
+  return at>0&&age>=0&&age<=SSO_PENDING_MS;
+}
 /* The identity provider sent the browser back with a one-use ticket in the
    fragment, or with a sentence saying why it did not. The fragment is taken out
    of the address first, so a reload cannot try to spend a ticket twice. */
@@ -4862,16 +4914,18 @@ async function singleSignOnReturn(){
   const hash=String(location.hash||"");
   const ticket=/^#sso=([A-Za-z0-9_-]+)$/.exec(hash);
   const failed=/^#sso_error=(.*)$/.exec(hash);
-  if(!ticket&&!failed)return false;
+  if(!ticket&&!failed){takeSsoPending();return false;}
   try{history.replaceState(null,"",location.pathname);}catch(_){location.hash="";}
+  const started=takeSsoPending();
   /* decodeURIComponent throws on a broken escape, and the fragment is whatever
      the address bar holds: a crafted link must not be able to reject this
      promise and leave the resumed session unstarted. */
   if(failed){
+    if(!started)return false;
     let sentence;
     try{sentence=decodeURIComponent(String(failed[1]).replace(/\+/g," "));}
     catch(_){sentence=String(failed[1]).replace(/\+/g," ");}
-    $("#loginErr").textContent=sentence;
+    $("#loginErr").textContent=tf("Single sign-on did not complete: {0}",sentence.slice(0,400));
     return false;
   }
   try{
@@ -4883,8 +4937,8 @@ async function singleSignOnReturn(){
   }catch(e){$("#loginErr").textContent=e.message||"";return false;}
 }
 $("#passkeyBtn").onclick=()=>{passkeySignIn();};
-$("#ssoBtn").onclick=()=>{location.href="/portal/oidc/start?deck=1";};
-$("#samlBtn").onclick=()=>{location.href="/portal/saml/start?deck=1";};
+$("#ssoBtn").onclick=()=>{markSsoPending();location.href="/portal/oidc/start?deck=1";};
+$("#samlBtn").onclick=()=>{markSsoPending();location.href="/portal/saml/start?deck=1";};
 
 /* ---------- Quarantine ----------
    What the filters held back rather than delivered, newest first, grouped the
@@ -5478,10 +5532,13 @@ async function renderDiscovery(){
   const holds=(c.holds||[]).map(h=>`<tr><td>${escHtml(h.name||"")}</td><td>${escHtml(discoveryScope(h.scope))}</td><td>${escHtml(auditWhen(h.placed))}</td><td>${escHtml(h.placed_by||"—")}</td>
         <td>${h.live?'<span class="badge info">'+t("On hold")+"</span>":escHtml(t("Hold lifted"))}</td>
         <td style="text-align:right">${manage&&h.live?`<button class="btn ghost sm" data-act="dscrelease" data-id="${escHtml(h.id)}">${t("Lift the hold")}</button>`:""}</td></tr>`).join("");
-  const exports=(c.exports||[]).map(x=>`<tr><td>${escHtml(auditWhen(x.requested))}</td><td>${escHtml(x.requested_by||"—")}</td>
+  const exports=(c.exports||[]).map(x=>{
+    const download=safeHref(x.download);
+    return `<tr><td>${escHtml(auditWhen(x.requested))}</td><td>${escHtml(x.requested_by||"—")}</td>
         <td>${escHtml(discoveryState(x.state))}${x.error?'<div class="err">'+escHtml(x.error)+"</div>":""}</td>
         <td>${x.state==="done"?escHtml(fmtBytes(x.size)):""}</td><td style="word-break:break-all"><code>${escHtml(x.sha256||"")}</code></td>
-        <td style="text-align:right">${x.state==="done"&&may("view_mailbox")?`<a class="btn ghost sm" href="${escHtml(x.download||"")}" download="case-${escHtml(c.id)}-export-${escHtml(x.id)}.zip">${t("Download")}</a>`:""}</td></tr>`).join("");
+        <td style="text-align:right">${x.state==="done"&&download&&may("view_mailbox")?`<a class="btn ghost sm" href="${escHtml(download)}" download="case-${escHtml(c.id)}-export-${escHtml(x.id)}.zip">${t("Download")}</a>`:""}</td></tr>`;
+  }).join("");
   const table=(head,body,columns)=>`<div class="tablewrap"><table><thead><tr>${head}</tr></thead><tbody>${body||'<tr><td colspan="'+columns+'" class="empty">'+t("Nothing here.")+"</td></tr>"}</tbody></table></div>`;
   $("#content").innerHTML=`<div class="view">
     <div class="card flat">
@@ -5636,10 +5693,12 @@ async function renderUpdate(){
     [t("Installer"),installer.name?installer.name+" ("+fmtBytes(installer.size)+")":"—"],[t("Verified"),downloaded.verifiedAt||"—"],[t("Signed by"),downloaded.signer||"—"],[t("Last error"),v.lastError||"—"]);
   const applied=v.apply&&typeof v.apply==="object"?Object.keys(v.apply).filter(k=>String(v.apply[k]||"")!==""):[];
   const apply=applied.map(k=>"<tr><td>"+escHtml(humanise(k))+"</td><td>"+escHtml(String(v.apply[k]))+"</td></tr>").join("");
+  // The feed names the release page; it is a link only as a web address.
+  const releaseHref=safeHref(v.releaseUrl);
   $("#content").innerHTML=`<div class="view"><div class="card view">
     <p class="note">${escHtml(operation("/api/v1/update","get").description||"")}</p>
     ${live?`<p class="note">${t("The server drains first: the listeners close and the delivery queue pauses while the sessions and deliveries in flight finish, then the service stops, installs and starts again.")}</p>`:v.updateAdvice?`<p class="note" id="updateAdvice">${escHtml(v.updateAdvice)}</p>`:""}
-    <p><span class="badge ${badge}">${escHtml(t(UPDATE_STATES[state]||v.stateName||String(state)))}</span> ${v.releaseUrl?'<a href="'+escHtml(v.releaseUrl)+'" target="_blank" rel="noopener">'+t("Release notes")+'</a>':""}</p>
+    <p><span class="badge ${badge}">${escHtml(t(UPDATE_STATES[state]||v.stateName||String(state)))}</span> ${releaseHref?'<a href="'+escHtml(releaseHref)+'" target="_blank" rel="noopener noreferrer">'+t("Release notes")+'</a>':""}</p>
     ${drain?`<h3 style="margin-top:14px">${t("Maintenance mode")}</h3>
     <p class="note" id="drainState">${drain.draining?escHtml(tf("Draining since {0}: {1} session(s) and {2} delivery(ies) in flight.",drain.since||"",String(drain.sessions||0),String(drain.deliveries||0))):t("Not draining: the listeners are open.")}</p>
     <div class="row" style="gap:8px">
@@ -5720,7 +5779,7 @@ let foldersFor="",foldersPick=0,foldersList=[],permEditing=null;
 function permissionsBase(){return "/api/v1/accounts/"+encodeURIComponent(foldersFor)+"/folders/"+foldersPick+"/permissions";}
 const RIGHTS=["lookup","read","write_seen","write_others","insert","post","create","delete_mailbox","write_deleted","expunge","administer"];
 function flattenFolders(list,depth,out){
-  (list||[]).forEach(f=>{out.push({id:f.id,path:f.path||f.name,depth:depth});flattenFolders(f.subfolders,depth+1,out);});
+  (list||[]).forEach(f=>{out.push({id:Number(f.id)||0,path:f.path||f.name,depth:depth});flattenFolders(f.subfolders,depth+1,out);});
   return out;
 }
 async function renderFolders(){
@@ -5743,7 +5802,7 @@ async function renderFolders(){
     $("#content").innerHTML=`<div class="view">${form}</div>`;setErr("err_folders",e.message);return;}
   foldersList=flattenFolders(tree.folders,0,[]);
   if(!foldersPick&&foldersList.length)foldersPick=foldersList[0].id;
-  const picker=`<select data-r="fld-folder" id="fldPick">${foldersList.map(f=>`<option value="${f.id}"${f.id===foldersPick?" selected":""}>${escHtml("\u00a0".repeat(f.depth*2)+f.path)}</option>`).join("")}</select>`;
+  const picker=`<select data-r="fld-folder" id="fldPick">${foldersList.map(f=>`<option value="${Number(f.id)||0}"${f.id===foldersPick?" selected":""}>${escHtml("\u00a0".repeat(f.depth*2)+f.path)}</option>`).join("")}</select>`;
   let permissions=[];
   if(foldersPick){
     try{permissions=asList(await api(permissionsBase()),"permissions");}
@@ -6866,7 +6925,7 @@ async function renderSpamTraps(){
         <td>${h.banned?'<span class="badge warn">'+t("IP banned")+'</span> ':""}${h.blocked?'<span class="badge warn">'+t("Sender blocked")+'</span> ':""}${escHtml(h.note||"")}</td></tr>`).join("");
   $("#content").innerHTML=`<div class="view">
     <div class="card flat"><p class="note">${escHtml(operation("/api/v1/spam-traps/hits","get").description||"")}</p>
-      <p class="note">${tf("Hits since the server started: {0}",String(answer&&answer.hits_since_start!==undefined?answer.hits_since_start:hits.length))}</p></div>
+      <p class="note">${tf("Hits since the server started: {0}",String(Number(answer&&answer.hits_since_start!==undefined?answer.hits_since_start:hits.length)||0))}</p></div>
     <div class="sect"><h2>${t("Recently addressed")}</h2>
       <div class="card flat">
         <div class="tablewrap"><table><thead><tr><th>${t("When")}</th><th>${t("Trap")}</th><th>${t("Domain")}</th><th>${t("Connecting address")}</th><th>${t("Sender")}</th><th>${t("What was done")}</th></tr></thead>
@@ -6898,8 +6957,8 @@ async function renderJournal(){
         <td><code>${escHtml(r.journal_address||"")}</code></td>
         <td>${r.enabled?'<span class="badge ok">'+t("On")+'</span>':'<span class="badge">'+t("Off")+'</span>'}</td>
         <td>${escHtml(r.note||"\u2014")}</td>
-        <td class="right"><button class="btn ghost sm" data-act="jrntoggle" data-id="${r.id}" data-value="${r.enabled?"0":"1"}">${r.enabled?t("Switch off"):t("Switch on")}</button>
-          <button class="btn ghost sm" data-act="jrndel" data-id="${r.id}" data-value="${escHtml(r.target||"")}">${t("Remove")}</button></td></tr>`).join("");
+        <td class="right"><button class="btn ghost sm" data-act="jrntoggle" data-id="${Number(r.id)||0}" data-value="${r.enabled?"0":"1"}">${r.enabled?t("Switch off"):t("Switch on")}</button>
+          <button class="btn ghost sm" data-act="jrndel" data-id="${Number(r.id)||0}" data-value="${escHtml(r.target||"")}">${t("Remove")}</button></td></tr>`).join("");
   $("#content").innerHTML=`<div class="view">
     <div class="card flat"><p class="note">${escHtml(operation("/api/v1/journal-rules","get").description||"")}</p></div>
     <div class="sect"><h2>${t("Journaling rules")}</h2>

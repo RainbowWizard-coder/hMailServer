@@ -1310,6 +1310,7 @@
   "Since (YYYY-MM-DD HH:MM:SS)": "С (YYYY-MM-DD HH:MM:SS)",
   "Since {0}": "С {0}",
   "Since {0}, until {1}; window {2} min; {3} deferred": "С {0} до {1}; окно {2} мин; отложено: {3}",
+  "Single sign-on did not complete: {0}": "Единый вход не был завершён: {0}",
   "Size": "Размер",
   "Skip the propagation period": "Пропустить период распространения",
   "Skip the tour": "Пропустить знакомство",

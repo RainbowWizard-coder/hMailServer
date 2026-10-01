@@ -1310,6 +1310,7 @@
   "Since (YYYY-MM-DD HH:MM:SS)": "Od (YYYY-MM-DD HH:MM:SS)",
   "Since {0}": "Od {0}",
   "Since {0}, until {1}; window {2} min; {3} deferred": "Od {0} do {1}; okno {2} min; odloženo: {3}",
+  "Single sign-on did not complete: {0}": "Jednotné přihlašování nebylo dokončeno: {0}",
   "Size": "Velikost",
   "Skip the propagation period": "Přeskočit dobu šíření",
   "Skip the tour": "Prohlídku přeskočit",

@@ -1112,6 +1112,7 @@
   "Signing and encryption are unavailable: the browser withholds its cryptography from a page that was not opened over HTTPS.": "Assinatura e criptografia indisponíveis: o navegador não fornece sua criptografia a uma página que não foi aberta por HTTPS.",
   "Signing in at Gmail or Outlook.com leaves this page and comes back to it reloaded, which forgets the second account. To move mail into {0}, sign in to it on its own.": "Entrar no Gmail ou no Outlook.com sai desta página e volta a ela recarregada, o que esquece a segunda conta. Para trazer mensagens para {0}, entre nela separadamente.",
   "Signing in with": "Entra com",
+  "Single sign-on did not complete: {0}": "O logon único não foi concluído: {0}",
   "Size": "Tamanho",
   "Skip the tour": "Pular a visita",
   "Skip to content": "Pular para o conteúdo",

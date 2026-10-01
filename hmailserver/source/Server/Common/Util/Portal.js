@@ -2890,12 +2890,33 @@
       });
     }).catch(function () { say('signin-status', t('That did not work. Sign in with your password.'), false); });
   };
+  // A sign-in this tab started at an identity provider, and when. The fragment
+  // is whatever the address bar holds, and any link can put one there, so the
+  // server's sentence about a sign-in that did not complete is shown only to a
+  // tab that went to the identity provider in the last hour, and inside a
+  // sentence of the page's own - an hour, since a return after the ten minutes
+  // a sign-in lives on the server is answered with the server's sentence that
+  // it took too long. The mark is the Control Deck's too (hmsSsoPending, the
+  // same origin and the same tab): the server sends a sign-in it no longer
+  // knows here, whichever page started it. The next load of either page spends
+  // it, whatever its address holds.
+  var SSO_PENDING = 'hmsSsoPending';
+  var SSO_PENDING_MS = 60 * 60 * 1000;
+  var markSsoPending = function () {
+    try { sessionStorage.setItem(SSO_PENDING, String(Date.now())); } catch (e) { /* no storage: no sentence comes back */ }
+  };
+  var takeSsoPending = function () {
+    var at = 0;
+    try { at = Number(sessionStorage.getItem(SSO_PENDING)) || 0; sessionStorage.removeItem(SSO_PENDING); } catch (e) { at = 0; }
+    var age = Date.now() - at;
+    return at > 0 && age >= 0 && age <= SSO_PENDING_MS;
+  };
   el('signin-passkey').addEventListener('click', function () { passkeySignIn(); });
-  el('signin-sso').addEventListener('click', function () { location.href = '/portal/oidc/start'; });
+  el('signin-sso').addEventListener('click', function () { markSsoPending(); location.href = '/portal/oidc/start'; });
   // A SAML identity provider is a second button beside the OpenID Connect one:
   // an installation may front both. It comes back the same way, with a ticket
   // or a sentence in the fragment, which singleSignOnReturn reads for both.
-  el('signin-saml').addEventListener('click', function () { location.href = '/portal/saml/start'; });
+  el('signin-saml').addEventListener('click', function () { markSsoPending(); location.href = '/portal/saml/start'; });
   var loadSignInMethods = function () {
     return call('GET', '/api/v1/signin-methods').then(function (result) {
       if (result.status !== 200 || !result.data) { return; }
@@ -2922,18 +2943,22 @@
     var hash = String(location.hash || '');
     var ticket = /^#sso=([A-Za-z0-9_-]+)$/.exec(hash);
     var failed = /^#sso_error=(.*)$/.exec(hash);
-    if (!ticket && !failed) { return false; }
+    if (!ticket && !failed) { takeSsoPending(); return false; }
     try { history.replaceState(null, '', '#/'); } catch (e) { location.hash = '#/'; }
+    var started = takeSsoPending();
     // The sentence is percent-encoded by this server, but the fragment is
     // whatever the address bar holds, and a crafted link can put a broken
     // escape there. decodeURIComponent throws on one, and this runs while the
     // page is being built, so the throw would leave the reader an inert page
-    // rather than a sign-in form: the raw text is shown instead.
+    // rather than a sign-in form: the raw text is shown instead. A sentence
+    // this tab did not ask for is not shown, and the page loads as it loads
+    // on any other visit.
     if (failed) {
+      if (!started) { return false; }
       var sentence;
       try { sentence = decodeURIComponent(String(failed[1]).replace(/\+/g, ' ')); }
       catch (e) { sentence = String(failed[1]).replace(/\+/g, ' '); }
-      say('signin-status', sentence, false);
+      say('signin-status', tf('Single sign-on did not complete: {0}', sentence.slice(0, 400)), false);
       return true;
     }
     call('POST', '/api/v1/session', { sso_ticket: ticket[1] }).then(function (made) {

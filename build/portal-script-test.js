@@ -8254,6 +8254,9 @@ async function main() {
    // the sign-in password, and the recovery key after a reset
    await zeroAccessSignInChecks();
 
+   // ---- The identity provider's sentence, only for a sign-in this tab started
+   await singleSignOnReturnChecks();
+
    if (failures.length) {
       console.error('\nportal script: ' + failures.length + ' of ' + checks + ' checks failed\n');
       failures.forEach((f) => console.error('  FAILED: ' + f));
@@ -10112,6 +10115,166 @@ async function pushChecks() {
    const bare = await fire({ v: 1, kind: 'mail', count: 2, folder: 'INBOX' });
    check('a worker with no words left for it falls back to English rather than showing nothing',
       bare && bare.title === 'New mail' && bare.options.body === '2 new messages', JSON.stringify(bare));
+}
+
+// The identity provider's sentence, shown only for a sign-in this tab started.
+// The page reads #sso_error= out of its address when it loads, and any link can
+// put a fragment there. So each case here loads the page afresh, as a browser
+// loads it - its own document from the markup, its own address - with the one
+// thing a tab keeps across loads, its sessionStorage, carried from case to case.
+async function singleSignOnReturnChecks() {
+   const tab = new Map();
+   const tabStorage = {
+      getItem: (k) => (tab.has(k) ? tab.get(k) : null),
+      setItem: (k, v) => { tab.set(k, String(v)); },
+      removeItem: (k) => { tab.delete(k); }
+   };
+   const load = async (hash) => {
+      const tree = parseHtml(fs.readFileSync(pagePath, 'utf8'));
+      const doc = new Element('#document');
+      doc.byId = tree.byId;
+      doc.hidden = false;
+      doc.activeElement = null;
+      doc.getElementById = function (id) {
+         const found = tree.byId[id];
+         if (!found) { throw new Error('the script asked for an element the page does not have: #' + id); }
+         return found;
+      };
+      doc.createElement = (tag) => new Element(tag);
+      doc.createTextNode = (text) => new TextNode(String(text));
+      doc.body = (function find(node) {
+         if (node instanceof Element && node.tagName === 'BODY') { return node; }
+         for (const child of node.childNodes) { const hit = find(child); if (hit) { return hit; } }
+         return null;
+      })(tree.root);
+      let top = doc.body;
+      while (top.parentNode && top.parentNode !== tree.root) { top = top.parentNode; }
+      top.parentNode = doc;
+      doc.documentElement = top;
+      const pageWindow = new Element('#window');
+      pageWindow.hmMarkdown = window.hmMarkdown;
+      pageWindow.confirm = () => true;
+      pageWindow.open = () => null;
+      const address = { hash: String(hash || '').replace(/^#/, ''), went: [] };
+      const pageLocation = {
+         origin: 'http://portal.test',
+         pathname: '/portal',
+         get href() { return this.origin + '/portal' + this.hash; },
+         set href(value) { address.went.push(String(value)); },
+         get hash() { return address.hash ? '#' + address.hash : ''; },
+         set hash(value) { address.hash = String(value).replace(/^#/, ''); },
+         replace(value) { address.hash = String(value).replace(/^#/, ''); }
+      };
+      const pageHistory = {
+         length: 1,
+         replaceState(state, title, url) { address.hash = String(url).replace(/^#/, ''); },
+         pushState(state, title, url) { address.hash = String(url).replace(/^#/, ''); },
+         back() {},
+         forward() {}
+      };
+      const asked = [];
+      const pageFetch = (path, options) => {
+         const method = (options && options.method) || 'GET';
+         asked.push(method + ' ' + path);
+         const reply = path === '/api/v1/me' ? json(401, { error: 'Sign in first.' })
+            : path === '/api/v1/signin-methods' ? json(200, { passkeys: false, oidc: true, oidc_label: 'login.example.com', saml: true, saml_label: '' })
+            : json(404, { error: 'No such route: ' + path });
+         return Promise.resolve({
+            status: reply.status,
+            ok: reply.status >= 200 && reply.status < 300,
+            headers: { get: (name) => (name in reply.headers ? reply.headers[name] : null) },
+            text: () => Promise.resolve(reply.body),
+            json: () => Promise.resolve(JSON.parse(reply.body))
+         });
+      };
+      // This browser's own storage, empty: nothing the checks above left there
+      // (a language, a theme) reaches these loads.
+      const kept = new Map();
+      const pageLocalStorage = {
+         getItem: (k) => (kept.has(k) ? kept.get(k) : null),
+         setItem: (k, v) => { kept.set(k, String(v)); },
+         removeItem: (k) => { kept.delete(k); },
+         key: (i) => (i >= 0 && i < kept.size ? Array.from(kept.keys())[i] : null),
+         get length() { return kept.size; }
+      };
+      const context = vm.createContext(Object.assign({}, world, {
+         document: doc, window: pageWindow, location: pageLocation, history: pageHistory, localStorage: pageLocalStorage,
+         sessionStorage: tabStorage, fetch: pageFetch, console, Blob, URL, TextEncoder, TextDecoder, setImmediate
+      }));
+      vm.runInContext(fs.readFileSync(scriptPath, 'utf8'), context, { filename: 'portal.js' });
+      await flush();
+      return {
+         status: () => doc.getElementById('signin-status').textContent,
+         click: async (id) => { doc.getElementById(id).dispatchEvent(makeEvent('click')); await flush(); },
+         address,
+         asked
+      };
+   };
+   const said = (text) => 'Single sign-on did not complete: ' + text;
+   const other = 'A sentence this tab did not ask for.';
+
+   let page = await load('#sso_error=' + encodeURIComponent(other));
+   check('webmail: a sentence in the address of a tab that started no sign-in is not shown, the fragment is taken out, and the page loads as on any visit',
+      page.status() === '' && page.address.hash === '/' && page.asked.indexOf('GET /api/v1/me') >= 0,
+      JSON.stringify(page.status()) + ' #' + page.address.hash + ' ' + page.asked.join(' '));
+
+   page = await load('');
+   await page.click('signin-sso');
+   check('webmail: the identity provider\'s button marks this tab as one that started a sign-in, with the time, before it leaves',
+      /^\d+$/.test(String(tabStorage.getItem('hmsSsoPending'))) && page.address.went.join(' ') === '/portal/oidc/start',
+      String(tabStorage.getItem('hmsSsoPending')) + ' ' + page.address.went.join(' '));
+   page = await load('#sso_error=' + encodeURIComponent('the identity provider did not complete the sign-in (access_denied)'));
+   check('webmail: back from the sign-in it started, the tab shows the server\'s sentence inside its own, and the mark is spent',
+      page.status() === said('the identity provider did not complete the sign-in (access_denied)') &&
+      tabStorage.getItem('hmsSsoPending') === null && page.address.hash === '/', JSON.stringify(page.status()));
+
+   page = await load('#sso_error=' + encodeURIComponent(other));
+   check('webmail: a second sentence after that one, with the mark spent, is not shown', page.status() === '', JSON.stringify(page.status()));
+
+   // A sign-in lives ten minutes on the server, and a return after that is
+   // answered with the server's own sentence saying so.
+   tabStorage.setItem('hmsSsoPending', String(Date.now() - 11 * 60 * 1000));
+   page = await load('#sso_error=' + encodeURIComponent('the sign-in took longer than ten minutes; start it again'));
+   check('webmail: back after longer than the ten minutes a sign-in lives, the tab shows the server\'s sentence that it took too long',
+      page.status() === said('the sign-in took longer than ten minutes; start it again'), JSON.stringify(page.status()));
+
+   tabStorage.setItem('hmsSsoPending', String(Date.now() - 61 * 60 * 1000));
+   page = await load('#sso_error=' + encodeURIComponent(other));
+   check('webmail: not after a mark older than an hour, which is spent all the same',
+      page.status() === '' && tabStorage.getItem('hmsSsoPending') === null, JSON.stringify(page.status()));
+
+   tabStorage.setItem('hmsSsoPending', 'soon');
+   page = await load('#sso_error=' + encodeURIComponent(other));
+   check('webmail: nor after a mark that is not a time', page.status() === '', JSON.stringify(page.status()));
+
+   // The server sends a sign-in it no longer knows to the webmail, whichever
+   // page started it: the Control Deck marks the tab under the same name.
+   const deckPage = fs.readFileSync(require('path').resolve(scriptPath.slice(0, Math.max(scriptPath.lastIndexOf('/'), scriptPath.lastIndexOf('\\')) + 1) +
+      '../../../../installation/WebAdmin/index.html'), 'utf8');
+   check('webmail: the Control Deck marks a tab it sends to the identity provider under the name this page reads',
+      deckPage.indexOf('const SSO_PENDING="hmsSsoPending"') >= 0, 'the Deck no longer declares SSO_PENDING="hmsSsoPending"');
+
+   // A sign-in abandoned at the identity provider leaves no mark for a later
+   // fragment to find: the next load of the page spends it.
+   page = await load('');
+   await page.click('signin-saml');
+   const marked = /^\d+$/.test(String(tabStorage.getItem('hmsSsoPending'))) && page.address.went.join(' ') === '/portal/saml/start';
+   page = await load('#/settings');
+   const spent = tabStorage.getItem('hmsSsoPending') === null;
+   page = await load('#sso_error=' + encodeURIComponent(other));
+   check('webmail: the SAML button marks the tab too, a load with no sign-in in its address spends the mark, and a sentence after it is not shown',
+      marked && spent && page.status() === '', 'marked=' + marked + ' spent=' + spent + ' ' + JSON.stringify(page.status()));
+
+   page = await load('');
+   await page.click('signin-sso');
+   page = await load('#sso_error=' + encodeURIComponent('x'.repeat(1000)));
+   check('webmail: the sentence shown is cut at 400 characters', page.status() === said('x'.repeat(400)), String(page.status().length));
+
+   page = await load('');
+   await page.click('signin-sso');
+   page = await load('#sso_error=%E0%A4%A');
+   check('webmail: a broken escape in a sentence the tab asked for is shown as it came rather than stopping the page',
+      page.status() === said('%E0%A4%A'), JSON.stringify(page.status()));
 }
 
 main().catch((why) => {

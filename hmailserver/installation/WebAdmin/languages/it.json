@@ -1310,6 +1310,7 @@
   "Since (YYYY-MM-DD HH:MM:SS)": "Da (YYYY-MM-DD HH:MM:SS)",
   "Since {0}": "Dal {0}",
   "Since {0}, until {1}; window {2} min; {3} deferred": "Da {0}, fino a {1}; finestra {2} min; {3} rinviate",
+  "Single sign-on did not complete: {0}": "Il single sign-on non è stato completato: {0}",
   "Size": "Dimensione",
   "Skip the propagation period": "Salta il periodo di propagazione",
   "Skip the tour": "Salta la visita",

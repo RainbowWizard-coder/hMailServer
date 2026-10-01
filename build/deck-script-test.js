@@ -479,6 +479,14 @@ let nextId = 100;
 // installed, and a catalogue that lacks a key the page has.
 let catalogueMissing = false;
 let droppedKey = null;
+// A catalogue as a file on the server's disk could hold it, which is not the
+// file the build checked: a function that changes the answer, or null.
+let catalogueTamper = null;
+// The wiki base /api/v1/help answers with, and the spam-trap counter the hits
+// route answers with (null: the number of hits it holds) - both changed by the
+// checks that a value from the server is drawn only as what it must be.
+let helpWikiBase = 'https://wiki.test/';
+let trapHitsSinceStart = null;
 
 const RULES_POST = 'Body: name (required, at most 100 characters, no control characters: it is written into a 550 reply and into the headers of a policy notice), active (default true), all_criteria (default true: every criterion must match; false: any one), criteria and actions as arrays of objects in the order they run. A criterion: field (from, to, cc, subject, body, message_size, recipient_list, delivery_attempts, attachment_name, sensitive_content, attachment_type, external_recipient, content, or header with the header\'s name in header), match (equals, not_equals, contains, not_contains, less_than, greater_than, regex, wildcard) and value (at most 2000 characters; a regex must compile). An action: type and the parameters that type takes - forward: to and abort_spam_flagged; reply: from_name, from_address (required), subject, body and abort_spam_flagged; move_to_folder: folder; script_function: script_function; set_header: header and value; send_using_route: route_id; bind_to_address: value; add_disclaimer: body (the text appended to the message\'s plain and HTML parts); reject: value (one line, no control characters: the text of the 550 the SMTP session answers with, before the message is accepted, when the rule matches there, and of the 403 policy_rejected the self-service send route answers with before it queues; a message that reached delivery another way is dropped, and a sender this server hosts is mailed a notice saying it was not sent); warn_sender: value (the text of a notice mailed to the sender naming the rule, once per message on its first delivery attempt and not again on a release from the quarantine, only when this server hosts the sender\'s domain - the message itself is not held by this action); require_tls, quarantine, delete, stop and copy take none. The sensitive_content condition is the detectors that found something in the readable text, with ; between them: card_number (13 to 19 digits that pass the Luhn check), iban (a country in the IBAN registry, its length and check digits) and account_number (the dlp_account_number_pattern setting\'s regular expression); attachment_type is every attachment\'s type by its first bytes rather than its name (executable, elf, pdf, zip, office_xml, jar, office, rar, 7z, gzip, png, jpeg, gif, rtf, script, text, empty, binary); external_recipient is every recipient this server does not host; content is the readable text itself - the plain and HTML parts and every attachment whose bytes are text - for a pattern of the rule\'s own; a sealed message declines all but attachment_type and external_recipient, as the body condition does. value is also accepted as the parameter the listing shows under that name. An unknown key, word or type, a parameter the type does not take, or a missing one it needs, is refused naming it. Saved as the Control Panel saves a rule; it applies to the next message delivered. Server-wide; refused for domain-restricted keys.';
 
@@ -2059,10 +2067,11 @@ function answer(method, path, headers, raw) {
       if (catalogueMissing || !fs.existsSync(file)) { return json(404, { error: 'no such language' }); }
       const data = JSON.parse(fs.readFileSync(file, 'utf8'));
       if (droppedKey) { delete data[droppedKey]; }
+      if (catalogueTamper) { return json(200, catalogueTamper(data)); }
       return json(200, data);
    }
    if (method === 'GET' && path === '/api/v1/help') {
-      return json(200, { wiki: 'https://wiki.test/', tag: 'deadbeefdeadbeef', pages: helpPages() });
+      return json(200, { wiki: helpWikiBase, tag: 'deadbeefdeadbeef', pages: helpPages() });
    }
    if (method === 'GET' && /^\/api\/v1\/help\/[A-Za-z0-9]+$/.test(path)) {
       const file = nodePath.join(DOCS, path.slice(13) + '.md');
@@ -2179,7 +2188,7 @@ function answer(method, path, headers, raw) {
       if (method === 'DELETE') { state.journalRules = state.journalRules.filter((r) => r.id !== id); return json(200, { deleted: true }); }
    }
    if (/^\/api\/v1\/spam-traps\/hits(\?.*)?$/.test(path)) {
-      if (method === 'GET') { return json(200, { items: state.trapHits, hits_since_start: state.trapHits.length }); }
+      if (method === 'GET') { return json(200, { items: state.trapHits, hits_since_start: trapHitsSinceStart !== null ? trapHitsSinceStart : state.trapHits.length }); }
       if (method === 'DELETE') { const removed = state.trapHits.length; state.trapHits = []; return json(200, { removed: removed }); }
    }
    if (/^\/api\/v1\/spam-traps\/[^/]+$/.test(path) && method === 'DELETE') {
@@ -4055,6 +4064,122 @@ async function main() {
       check('the SAML button starts a Control Deck sign-in at /portal/saml/start?deck=1',
          locationStub.href === '/portal/saml/start?deck=1', String(locationStub.href));
       locationStub.href = hrefBefore;
+   }
+
+   // ---- the identity provider's sentence, only for a sign-in this tab started
+   // The page reads #sso_error= out of the address when it loads. Any link can
+   // put a fragment there, so the sign-in card shows the sentence only when this
+   // tab went to the identity provider in the last hour, inside the page's own
+   // sentence, and once; the next load of the page spends the mark whatever its
+   // address holds. The return is called here as the page's load calls it.
+   {
+      const hrefBefore = locationStub.href;
+      const ssoReturn = () => vm.runInThisContext('singleSignOnReturn()');
+      const said = (text) => 'Single sign-on did not complete: ' + text;
+      const other = 'A sentence this tab did not ask for.';
+      sessionStorage.removeItem('hmsSsoPending');
+      $('#loginErr').textContent = '';
+      locationStub.hash = '#sso_error=' + encodeURIComponent(other);
+      let landed = await ssoReturn();
+      check('a sentence in the address of a tab that started no sign-in is not shown, and the fragment is taken out of the address',
+         landed === false && $('#loginErr').textContent === '' && locationStub.hash === '', JSON.stringify($('#loginErr').textContent));
+
+      click($('#ssoBtn'));
+      check('the identity provider\'s button marks this tab as one that started a sign-in, with the time, before it leaves',
+         /^\d+$/.test(String(sessionStorage.getItem('hmsSsoPending'))) && locationStub.href === '/portal/oidc/start?deck=1',
+         String(sessionStorage.getItem('hmsSsoPending')) + ' ' + locationStub.href);
+      locationStub.href = hrefBefore;
+      locationStub.hash = '#sso_error=' + encodeURIComponent('the identity provider did not complete the sign-in (access_denied)');
+      landed = await ssoReturn();
+      check('back from the sign-in it started, the tab shows the server\'s sentence inside its own, and the mark is spent',
+         landed === false && $('#loginErr').textContent === said('the identity provider did not complete the sign-in (access_denied)') &&
+         sessionStorage.getItem('hmsSsoPending') === null && locationStub.hash === '', JSON.stringify($('#loginErr').textContent));
+
+      $('#loginErr').textContent = '';
+      locationStub.hash = '#sso_error=' + encodeURIComponent(other);
+      landed = await ssoReturn();
+      check('a second sentence after that one, with the mark spent, is not shown',
+         landed === false && $('#loginErr').textContent === '', JSON.stringify($('#loginErr').textContent));
+
+      // A sign-in lives ten minutes on the server, and a return after that is
+      // answered with the server's own sentence saying so: the tab that started
+      // it shows that one, so the mark outlives the sign-in.
+      sessionStorage.setItem('hmsSsoPending', String(Date.now() - 11 * 60 * 1000));
+      $('#loginErr').textContent = '';
+      locationStub.hash = '#sso_error=' + encodeURIComponent('the sign-in took longer than ten minutes; start it again');
+      landed = await ssoReturn();
+      check('back after longer than the ten minutes a sign-in lives, the tab shows the server\'s sentence that it took too long',
+         landed === false && $('#loginErr').textContent === said('the sign-in took longer than ten minutes; start it again') &&
+         sessionStorage.getItem('hmsSsoPending') === null, JSON.stringify($('#loginErr').textContent));
+
+      sessionStorage.setItem('hmsSsoPending', String(Date.now() - 61 * 60 * 1000));
+      $('#loginErr').textContent = '';
+      locationStub.hash = '#sso_error=' + encodeURIComponent(other);
+      landed = await ssoReturn();
+      check('not after a mark older than an hour, which is spent all the same',
+         landed === false && $('#loginErr').textContent === '' && sessionStorage.getItem('hmsSsoPending') === null,
+         JSON.stringify($('#loginErr').textContent));
+
+      sessionStorage.setItem('hmsSsoPending', 'soon');
+      $('#loginErr').textContent = '';
+      locationStub.hash = '#sso_error=' + encodeURIComponent(other);
+      landed = await ssoReturn();
+      check('nor one after a mark that is not a time', landed === false && $('#loginErr').textContent === '', JSON.stringify($('#loginErr').textContent));
+
+      // A sign-in abandoned at the identity provider - Back, or the Deck opened
+      // again in the tab - leaves no mark for a later fragment to find.
+      click($('#ssoBtn'));
+      locationStub.href = hrefBefore;
+      locationStub.hash = '';
+      landed = await ssoReturn();
+      const spentByLoad = sessionStorage.getItem('hmsSsoPending') === null;
+      $('#loginErr').textContent = '';
+      locationStub.hash = '#sso_error=' + encodeURIComponent(other);
+      landed = await ssoReturn();
+      check('a load of the page with no sign-in in its address spends the mark, and a sentence after it is not shown',
+         spentByLoad && landed === false && $('#loginErr').textContent === '', 'spent=' + spentByLoad + ' ' + JSON.stringify($('#loginErr').textContent));
+
+      click($('#samlBtn'));
+      locationStub.href = hrefBefore;
+      $('#loginErr').textContent = '';
+      locationStub.hash = '#sso_error=' + encodeURIComponent('x'.repeat(1000));
+      landed = await ssoReturn();
+      check('the SAML button marks the tab too, and the sentence shown is cut at 400 characters',
+         landed === false && $('#loginErr').textContent === said('x'.repeat(400)), String($('#loginErr').textContent.length));
+
+      click($('#ssoBtn'));
+      locationStub.href = hrefBefore;
+      $('#loginErr').textContent = '';
+      locationStub.hash = '#sso_error=%E0%A4%A';
+      landed = await ssoReturn();
+      check('a broken escape in a sentence the tab asked for is shown as it came rather than stopping the page',
+         landed === false && $('#loginErr').textContent === said('%E0%A4%A'), JSON.stringify($('#loginErr').textContent));
+      $('#loginErr').textContent = '';
+   }
+
+   // ---- safeHref: the one gate every address from the server passes to be a link
+   // The page's own function, on the forms an address takes: http and https,
+   // relative to this page, are drawn as the browser resolves them; every other
+   // scheme, however it is spelled or padded, and nothing at all, are not links.
+   {
+      const safeHref = vm.runInThisContext('safeHref');
+      const admitted = [
+         ['https://example.invalid/releases/6.3.4?x=1#notes', 'https://example.invalid/releases/6.3.4?x=1#notes'],
+         ['http://example.invalid/', 'http://example.invalid/'],
+         ['HTTPS://Example.INVALID/Notes', 'https://example.invalid/Notes'],
+         ['  https://example.invalid/  ', 'https://example.invalid/'],
+         ['/api/v1/discovery/cases/41/exports/5', 'https://deck.test/api/v1/discovery/cases/41/exports/5'],
+         ['https://wiki.test/Backup', 'https://wiki.test/Backup']];
+      const wrongAdmitted = admitted.filter((pair) => safeHref(pair[0]) !== pair[1]);
+      check('safeHref draws an http or https address, and one relative to this page, as the browser resolves it',
+         wrongAdmitted.length === 0, JSON.stringify(wrongAdmitted.map((pair) => [pair[0], safeHref(pair[0])])));
+      const refused = ['', '   ', null, undefined, '\u0001', 'javascript:void(0)', 'JAVASCRIPT:void(0)', ' javascript:void(0)',
+         '\u0000javascript:void(0)', '\u001fjavascript:void(0)', 'java\tscript:void(0)', 'java\r\nscript:void(0)',
+         'data:text/html,notes', 'vbscript:notes', 'file:///C:/notes.txt', 'mailto:notes@example.invalid',
+         'blob:https://deck.test/00000000-0000-0000-0000-000000000000', 'about:blank', 'ftp://example.invalid/', 'ws://example.invalid/', 'http://['];
+      const wrongRefused = refused.filter((address) => safeHref(address) !== '');
+      check('and nothing else: every other scheme, however spelled or padded, an address that does not parse, and no address',
+         wrongRefused.length === 0, JSON.stringify(wrongRefused.map((address) => [address, safeHref(address)])));
    }
 
    // ---- signing in with a passkey rather than the administrator password
@@ -8065,8 +8190,10 @@ async function main() {
       check('Back lists the cases again, and Open reads one case',
          called(before, 'GET', '/api/v1/discovery/cases').length === 1 && called(before, 'GET', '/api/v1/discovery/cases/41').length === 1, paths(before));
       const downloads = content().querySelectorAll('a[download]');
+      // Drawn as the browser resolves it against the page (safeHref), so the
+      // address checked is the address followed.
       check('a finished export is a download link to its own route, named for the case and the export, with its SHA-256 beside it',
-         downloads.length === 1 && downloads[0].attributes.href === '/api/v1/discovery/cases/41/exports/5' &&
+         downloads.length === 1 && downloads[0].attributes.href === 'https://deck.test/api/v1/discovery/cases/41/exports/5' &&
          downloads[0].attributes.download === 'case-41-export-5.zip' &&
          content().textContent.indexOf('9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08') >= 0 &&
          content().textContent.indexOf('1200 read, 14 matched, 1 not searched') >= 0, JSON.stringify(downloads.map((a) => a.attributes)));
@@ -8077,6 +8204,25 @@ async function main() {
       check('Export posts to the search\'s export route and shows the export queued',
          called(before, 'POST', '/api/v1/discovery/cases/41/searches/7/export').length === 1 &&
          toastText().indexOf('one search or export at a time') >= 0 && content().querySelectorAll('a[download]').length === 1, paths(before));
+
+      // An export's download is a link only as a web address: the server
+      // builds it as a path of this origin, and anything else is no link.
+      {
+         const finished = state.discovery.cases.filter((c) => c.id === 41)[0].exports.filter((x) => x.id === 5)[0];
+         const downloadWas = finished.download;
+         for (const address of ['javascript:void(0)', 'data:application/zip,export', '']) {
+            finished.download = address;
+            click(act('dscback'));
+            await flush();
+            click(act('dscopen', { id: 41 }));
+            await flush();
+            check('a finished export whose download is not a web address is drawn with no link: ' + JSON.stringify(address),
+               content().querySelectorAll('a[download]').length === 0 &&
+               content().textContent.indexOf('9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08') >= 0,
+               JSON.stringify(content().querySelectorAll('a[download]').map((a) => a.attributes)));
+         }
+         finished.download = downloadWas;
+      }
 
       // ---- the metric history
       before = requests.length;
@@ -8220,6 +8366,28 @@ async function main() {
          content().textContent.indexOf('<b id="commandMark">apt</b>') >= 0 &&
          $('#updateAdvice') !== null && $('#updateAdvice').textContent === '<img id="adviceMark" src=x onerror=alert(1)>',
          content().textContent.slice(0, 600));
+
+      // ---- the release page the feed names is a link only as a web address
+      // The server keeps html_url only as https://, and the page draws the link
+      // only for http: or https: as well, so a server from before that check,
+      // or anything else the answer holds, draws no link at all.
+      const releaseLinks = () => content().querySelectorAll('a').filter((a) => a.textContent === 'Release notes');
+      state.update = Object.assign(JSON.parse(JSON.stringify(updateWas)), { state: 2, stateName: 'available', availableVersion: '6.3.4',
+         releaseUrl: 'https://example.invalid/releases/6.3.4' });
+      await goTo('update');
+      check('the release page is a link that opens apart from the Deck, with no opener and no referrer',
+         releaseLinks().length === 1 && releaseLinks()[0].attributes.href === 'https://example.invalid/releases/6.3.4' &&
+         releaseLinks()[0].attributes.target === '_blank' && releaseLinks()[0].attributes.rel === 'noopener noreferrer',
+         JSON.stringify(releaseLinks().map((a) => a.attributes)));
+      for (const address of ['javascript:void(0)', ' JavaScript:void(0)', 'java\tscript:void(0)', '\u0001javascript:void(0)',
+         'data:text/plain,notes', 'vbscript:notes', 'file:///C:/notes.txt', 'mailto:notes@example.invalid']) {
+         state.update.releaseUrl = address;
+         await goTo('update');
+         check('a release page that is not a web address draws no link, and the rest of the view is drawn: ' + JSON.stringify(address),
+            releaseLinks().length === 0 && content().querySelectorAll('a').filter((a) => /script|data:|file:|mailto:/i.test(String(a.attributes.href || ''))).length === 0 &&
+            content().textContent.indexOf('Running version') >= 0 && content().textContent.indexOf('6.3.4') >= 0,
+            JSON.stringify(content().querySelectorAll('a').map((a) => a.attributes)));
+      }
       state.update = updateWas;
 
       // ---- the DNS records
@@ -8342,6 +8510,21 @@ async function main() {
          confirmations[confirmations.length - 1].indexOf('Revoke') >= 0 &&
          called(before, 'DELETE', '/api/v1/accounts/' + encodeURIComponent(aclAddress) + '/folders/103/permissions/' + granted).length === 1 &&
          content().textContent.indexOf('Nobody else reaches this folder') >= 0, paths(before));
+
+      // A folder id is a number the server writes, and the picker draws it as
+      // one whatever the answer holds: nothing in it becomes markup.
+      {
+         const sent = state.folders.folders.filter((f) => f.path === 'Sent')[0];
+         const idWas = sent.id;
+         sent.id = '103" data-extra="1';
+         click(act('fldshow'));
+         await flush();
+         const option = $('#fldPick').querySelectorAll('option').filter((o) => o.textContent.indexOf('Sent') >= 0)[0];
+         check('a folder id that is not a number is drawn as 0, and nothing it carries becomes an attribute',
+            !!option && option.attributes.value === '0' && !('data-extra' in option.attributes) && $('#fldPick').querySelectorAll('option').length === 3,
+            JSON.stringify(option && option.attributes));
+         sent.id = idWas;
+      }
 
       // ---- the diagnostic run
       before = requests.length;
@@ -9072,6 +9255,15 @@ async function main() {
    check('and the view comes back empty',
       content().textContent.indexOf('Nothing has addressed a spam trap.') >= 0,
       content().textContent.slice(0, 200));
+   // The counter is a number the server writes, drawn as one whatever the
+   // answer holds: nothing in it is read as markup.
+   trapHitsSinceStart = '<b id="hitsMark">5</b>';
+   click($('#nav button[data-view="spamtraps"]'));
+   await flush();
+   check('a counter that is not a number is drawn as 0, and nothing it carries is read as markup',
+      $('#hitsMark') === null && content().textContent.indexOf('Hits since the server started: 0') >= 0,
+      content().textContent.slice(0, 300));
+   trapHitsSinceStart = null;
 
    // ---- the Journaling view: the rules, switched off and on, added and removed
 
@@ -9143,6 +9335,20 @@ async function main() {
       confirmations[confirmations.length - 1].indexOf('already sent stays') >= 0 &&
       called(before, 'DELETE', '/api/v1/journal-rules/602').length === 1 &&
       content().textContent.indexOf('copy@second-system.example') < 0, paths(before));
+   // A rule's id is a number the server writes, and its buttons carry it as
+   // one whatever the answer holds: nothing in it becomes an attribute.
+   state.journalRules.push({ id: '9" data-extra="1', scope: 'domain', target: 'odd.example', journal_address: 'odd@vault.example',
+      direction: 'both', mode: 'report', enabled: true, note: '' });
+   click($('#nav button[data-view="journal"]'));
+   await flush();
+   {
+      const oddRow = rows().filter((r) => r.textContent.indexOf('odd.example') >= 0)[0];
+      const oddButtons = oddRow ? oddRow.querySelectorAll('button[data-act]') : [];
+      check('a rule id that is not a number is carried by its buttons as 0, and nothing it carries becomes an attribute',
+         oddButtons.length === 2 && oddButtons.every((b) => b.attributes['data-id'] === '0' && !('data-extra' in b.attributes)),
+         JSON.stringify(oddButtons.map((b) => b.attributes)));
+   }
+   state.journalRules = state.journalRules.filter((r) => r.target !== 'odd.example');
 
    click($('#logoutBtn'));
    await flush();
@@ -9210,6 +9416,24 @@ async function main() {
       $('#nav button[data-view="rules"]').textContent.indexOf(fr['Rules']) >= 0 && content().querySelector('th').textContent === fr['Domain'],
       $('#viewTitle').textContent + ' | ' + $('#nav button[data-view="rules"]').textContent);
    droppedKey = null;
+   // The catalogue on the server's disk is not the file the build checked, and
+   // a translation is inserted where the English stood, in markup as in text:
+   // a value that carries a character HTML reads, or is not a string, is left
+   // out when the page loads it and the English is shown; the rest applies.
+   catalogueTamper = (data) => Object.assign(JSON.parse('{"__proto__":{"tampered":"yes"}}'), data, {
+      'Domain': '<b id="langMark">Domäne</b>', 'Edit': 'Bearbeiten & mehr', 'Rules': 'Regeln "neu"', 'Domains': 42 });
+   await choose($('#langSel'), 'de');
+   check('a catalogue value carrying markup is left out, and nothing of it becomes an element',
+      $('#langMark') === null && content().querySelector('th').textContent === 'Domain', content().querySelector('th').textContent);
+   check('so is one with an ampersand, one with a double quote and one that is not a string: each is shown in English',
+      act('domainedit', { name: 'renamed.example' }).textContent === 'Edit' &&
+      $('#nav button[data-view="rules"]').textContent.indexOf('Rules') >= 0 && $('#viewTitle').textContent === 'Domains',
+      act('domainedit', { name: 'renamed.example' }).textContent + ' | ' + $('#nav button[data-view="rules"]').textContent + ' | ' + $('#viewTitle').textContent);
+   check('and the rest of that catalogue applies, with nothing added to every object',
+      document.documentElement.getAttribute('lang') === 'de' && $('#logoutBtn').getAttribute('title') === catalogue('de')['Sign out'] &&
+      ({}).tampered === undefined, $('#logoutBtn').getAttribute('title'));
+   catalogueTamper = null;
+   await choose($('#langSel'), 'fr');
    // A server without the catalogues: the page stays as it was and the switch says so.
    catalogueMissing = true;
    await choose($('#langSel'), 'sv');
@@ -9749,6 +9973,24 @@ async function main() {
       $('#helpHeads').textContent.indexOf('In the archive') >= 0, $('#helpHeads').textContent);
    check('Open on the wiki is the base URL the server answered with the document\'s name',
       $('#helpWiki').hidden === false && $('#helpWiki').getAttribute('href') === 'https://wiki.test/Backup', String($('#helpWiki').getAttribute('href')));
+   // A wiki base that is not a web address - refused by the server when it is
+   // set, but a value can reach the database another way - is no link. The
+   // index is asked once per page, so the page is made to ask again, here by
+   // forgetting what it was told, and the document to be drawn again.
+   {
+      const askAgain = async () => { vm.runInThisContext('helpPages=null;helpShown="";helpAt="";'); await goTo('backup'); };
+      for (const base of ['javascript:void(0);//', 'data:text/html,', 'file:///C:/wiki/']) {
+         helpWikiBase = base;
+         await askAgain();
+         check('a wiki base that is not a web address draws no Open on the wiki link: ' + JSON.stringify(base),
+            $('#helpWiki').hidden === true && $('#helpWiki').getAttribute('href') === null && $('#helpTitle').textContent === 'What the backup carries, and what it does not',
+            String($('#helpWiki').getAttribute('href')));
+      }
+      helpWikiBase = 'https://wiki.test/';
+      await askAgain();
+      check('and the web address is a link again once the server says one',
+         $('#helpWiki').hidden === false && $('#helpWiki').getAttribute('href') === 'https://wiki.test/Backup', String($('#helpWiki').getAttribute('href')));
+   }
    check('the choice to keep the pane open is remembered', localStorage.getItem('hmsHelp') === '1');
    before = requests.length;
    await goTo('rules');

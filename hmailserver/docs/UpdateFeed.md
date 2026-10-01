@@ -788,7 +788,11 @@ has had its certificate since 26 September 2026 (issue #30).
 A release is in the shape of GitHub's Releases API, which is what 6.2.28 and
 every later version read, and it has only the fields the server reads:
 `tag_name`, `name`, `html_url` (the release's page on GitLab), `published_at`
-(UTC), `draft` (always false) and `prerelease`. Each file of the release is
+(UTC), `draft` (always false) and `prerelease`. From 6.3.6 a server keeps
+`html_url` only as an `https://` address with a host and no space or control
+character, since it shows the page as a link (the Control Deck's **Release
+notes**, `Status.AvailableVersionUrl`); a feed or a mirror that gives anything
+else still offers its release, with no page. Each file of the release is
 under `assets`, with its `name`, its `browser_download_url` in the project's
 package registry, and the `size` and `sha256:` `digest` the registry records. A
 download is held to both. Each installer's Sigstore bundle is an asset of its

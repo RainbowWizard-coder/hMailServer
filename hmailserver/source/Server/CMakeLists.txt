@@ -710,6 +710,7 @@ set_target_properties(trust-anchor-tests PROPERTIES OUTPUT_NAME trust-anchor-tes
 add_executable(business-object-tests ${SERVER_DIR}/platform/business_object_tests_main.cpp)
 target_link_libraries(business-object-tests PRIVATE hmailserver_core)
 set_target_properties(business-object-tests PROPERTIES OUTPUT_NAME business-object-tests)
+
 # ---------------------------------------------------------------- the TLS contexts' options
 #
 # SslContextInitializerTester (Common/TCPIP/SslContextInitializer.h) as a program
@@ -724,6 +725,20 @@ set_target_properties(business-object-tests PROPERTIES OUTPUT_NAME business-obje
 add_executable(tls-options-tests ${SERVER_DIR}/platform/tls_options_tests_main.cpp)
 target_link_libraries(tls-options-tests PRIVATE hmailserver_core)
 set_target_properties(tls-options-tests PROPERTIES OUTPUT_NAME tls-options-tests)
+
+# ---------------------------------------------------------------- the update feed's release page
+#
+# UpdateCheckerTester (Common/Util/UpdateChecker.h) as a program of its own, for
+# the reason spf-tests is one: on Windows it runs inside the server through
+# ClassTester, which nothing reaches here. A release's html_url is shown as a
+# link, so the check keeps it only as an https:// address with a host and no
+# space or control character; this reads feed documents with the project's page,
+# the longest kept, and values of every other shape, and requires the one kept,
+# the others dropped and the release read either way. No network or
+# configuration. Not installed; a bench tool.
+add_executable(update-feed-tests ${SERVER_DIR}/platform/update_feed_tests_main.cpp)
+target_link_libraries(update-feed-tests PRIVATE hmailserver_core)
+set_target_properties(update-feed-tests PROPERTIES OUTPUT_NAME update-feed-tests)
 
 include(GNUInstallDirs)
 install(TARGETS hmailserver RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})

@@ -1112,6 +1112,7 @@
   "Signing and encryption are unavailable: the browser withholds its cryptography from a page that was not opened over HTTPS.": "Ondertekenen en versleutelen zijn niet beschikbaar: de browser onthoudt zijn cryptografie aan een pagina die niet via HTTPS is geopend.",
   "Signing in at Gmail or Outlook.com leaves this page and comes back to it reloaded, which forgets the second account. To move mail into {0}, sign in to it on its own.": "Aanmelden bij Gmail of Outlook.com verlaat deze pagina en keert er opnieuw geladen naar terug, waardoor het tweede account wordt vergeten. Om post naar {0} te verplaatsen, meldt u zich daar apart aan.",
   "Signing in with": "Meldt zich aan met",
+  "Single sign-on did not complete: {0}": "Single sign-on is niet voltooid: {0}",
   "Size": "Grootte",
   "Skip the tour": "Rondleiding overslaan",
   "Skip to content": "Naar de inhoud",

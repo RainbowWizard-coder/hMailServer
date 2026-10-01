@@ -1310,6 +1310,7 @@
   "Since (YYYY-MM-DD HH:MM:SS)": "Alkaen (YYYY-MM-DD HH:MM:SS)",
   "Since {0}": "Alkaen {0}",
   "Since {0}, until {1}; window {2} min; {3} deferred": "Alkaen {0}, asti {1}; ikkuna {2} min; {3} lykätty",
+  "Single sign-on did not complete: {0}": "Kertakirjautuminen jäi kesken: {0}",
   "Size": "Koko",
   "Skip the propagation period": "Ohita leviämisaika",
   "Skip the tour": "Ohita kierros",

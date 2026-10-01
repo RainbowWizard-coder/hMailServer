@@ -1310,6 +1310,7 @@
   "Since (YYYY-MM-DD HH:MM:SS)": "Sedan (YYYY-MM-DD HH:MM:SS)",
   "Since {0}": "Sedan {0}",
   "Since {0}, until {1}; window {2} min; {3} deferred": "Sedan {0}, till {1}; fönster {2} min; {3} uppskjutna",
+  "Single sign-on did not complete: {0}": "Enkel inloggning slutfördes inte: {0}",
   "Size": "Storlek",
   "Skip the propagation period": "Hoppa över spridningstiden",
   "Skip the tour": "Hoppa över rundturen",

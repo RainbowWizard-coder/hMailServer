@@ -1112,6 +1112,7 @@
   "Signing and encryption are unavailable: the browser withholds its cryptography from a page that was not opened over HTTPS.": "Podepisování a šifrování nejsou k dispozici: prohlížeč neposkytuje svou kryptografii stránce, která nebyla otevřena přes HTTPS.",
   "Signing in at Gmail or Outlook.com leaves this page and comes back to it reloaded, which forgets the second account. To move mail into {0}, sign in to it on its own.": "Přihlášení ke Gmailu nebo Outlook.com opustí tuto stránku a vrátí se na ni znovu načtenou, čímž se druhý účet zapomene. Chcete-li přenést poštu do {0}, přihlaste se k němu samostatně.",
   "Signing in with": "Přihlašuje se pomocí",
+  "Single sign-on did not complete: {0}": "Jednotné přihlašování nebylo dokončeno: {0}",
   "Size": "Velikost",
   "Skip the tour": "Přeskočit prohlídku",
   "Skip to content": "Přejít na obsah",

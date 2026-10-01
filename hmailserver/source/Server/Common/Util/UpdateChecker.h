@@ -158,6 +158,14 @@ namespace HM
       // recording the failure, when it was not. Either way one application-log line.
       static bool CheckNow(String &error);
 
+      // Whether a release's html_url is kept as its page: an https:// address
+      // with a host after the scheme, at most 2,048 characters, with no space
+      // and no control character. The page is shown as a link - the Control
+      // Deck's "Release notes", Status.AvailableVersionUrl - and a feed is
+      // trusted for nothing, so any other value is dropped and the release has
+      // no page; the release itself is still read.
+      static bool IsReleasePageUrl(const std::string &url);
+
       // The feed's URL: UpdateFeedUrl, or the project's feed for the channel.
       static AnsiString FeedUrl();
       static bool IsPreReleaseChannel();
@@ -252,6 +260,8 @@ namespace HM
       static AnsiString ToJson(const Snapshot &snapshot);
 
    private:
+      friend class UpdateCheckerTester;
+
       struct Release
       {
          Release() : found(false), draft(false), prerelease(false), installer_size(0) {}
@@ -280,5 +290,15 @@ namespace HM
 
       static boost::mutex mutex_;
       static Snapshot snapshot_;
+   };
+
+   // Holds what ReadRelease_ keeps of a release's html_url to examples: an
+   // https:// page kept as it is, anything else dropped with the release still
+   // read. In ClassTester::DoTests on Windows, and as update-feed-tests on
+   // Linux. No network, no configuration.
+   class UpdateCheckerTester
+   {
+   public:
+      void Test();
    };
 }

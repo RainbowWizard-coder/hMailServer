@@ -1310,6 +1310,7 @@
   "Since (YYYY-MM-DD HH:MM:SS)": "시작 (YYYY-MM-DD HH:MM:SS)",
   "Since {0}": "시작 {0}",
   "Since {0}, until {1}; window {2} min; {3} deferred": "{0}부터 {1}까지; 창 {2}분; {3}건 보류",
+  "Single sign-on did not complete: {0}": "싱글 사인온이 완료되지 않았습니다: {0}",
   "Size": "크기",
   "Skip the propagation period": "전파 기간 건너뛰기",
   "Skip the tour": "둘러보기 건너뛰기",

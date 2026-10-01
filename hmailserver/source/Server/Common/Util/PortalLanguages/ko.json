@@ -1112,6 +1112,7 @@
   "Signing and encryption are unavailable: the browser withholds its cryptography from a page that was not opened over HTTPS.": "서명과 암호화를 사용할 수 없습니다. HTTPS로 열리지 않은 페이지에는 브라우저가 암호화 기능을 제공하지 않습니다.",
   "Signing in at Gmail or Outlook.com leaves this page and comes back to it reloaded, which forgets the second account. To move mail into {0}, sign in to it on its own.": "Gmail 또는 Outlook.com 로그인은 이 페이지를 떠났다가 새로 고쳐진 상태로 돌아오므로 두 번째 계정을 잊게 됩니다. {0}(으)로 메일을 옮기려면 해당 계정에 따로 로그인하세요.",
   "Signing in with": "로그인에 쓰는 것",
+  "Single sign-on did not complete: {0}": "싱글 사인온이 완료되지 않았습니다: {0}",
   "Size": "크기",
   "Skip the tour": "둘러보기 건너뛰기",
   "Skip to content": "본문으로 건너뛰기",

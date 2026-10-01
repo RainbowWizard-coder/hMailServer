@@ -1112,6 +1112,7 @@
   "Signing and encryption are unavailable: the browser withholds its cryptography from a page that was not opened over HTTPS.": "署名と暗号化は利用できません。HTTPS で開かれていないページには、ブラウザーが暗号機能を提供しないためです。",
   "Signing in at Gmail or Outlook.com leaves this page and comes back to it reloaded, which forgets the second account. To move mail into {0}, sign in to it on its own.": "Gmail や Outlook.com へのサインインはこのページを離れ、再読み込みされた状態で戻ってくるため、2 つ目のアカウントは忘れられます。{0} にメールを移すには、そのアカウントに単独でサインインしてください。",
   "Signing in with": "サインインに使うもの",
+  "Single sign-on did not complete: {0}": "シングル サインオンが完了しませんでした: {0}",
   "Size": "サイズ",
   "Skip the tour": "ツアーをスキップ",
   "Skip to content": "本文へ移動",

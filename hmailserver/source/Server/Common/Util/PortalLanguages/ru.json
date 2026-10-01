@@ -1112,6 +1112,7 @@
   "Signing and encryption are unavailable: the browser withholds its cryptography from a page that was not opened over HTTPS.": "Подпись и шифрование недоступны: браузер не предоставляет свою криптографию странице, открытой не по HTTPS.",
   "Signing in at Gmail or Outlook.com leaves this page and comes back to it reloaded, which forgets the second account. To move mail into {0}, sign in to it on its own.": "Вход в Gmail или Outlook.com уводит с этой страницы и возвращает на неё перезагруженной, из-за чего вторая учётная запись забывается. Чтобы перенести почту в {0}, войдите в неё отдельно.",
   "Signing in with": "Входит с помощью",
+  "Single sign-on did not complete: {0}": "Единый вход не был завершён: {0}",
   "Size": "Размер",
   "Skip the tour": "Пропустить экскурсию",
   "Skip to content": "Перейти к содержимому",

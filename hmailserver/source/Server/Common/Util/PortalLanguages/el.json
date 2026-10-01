@@ -1112,6 +1112,7 @@
   "Signing and encryption are unavailable: the browser withholds its cryptography from a page that was not opened over HTTPS.": "Η υπογραφή και η κρυπτογράφηση δεν είναι διαθέσιμες: ο περιηγητής δεν παρέχει την κρυπτογραφία του σε σελίδα που δεν ανοίχτηκε μέσω HTTPS.",
   "Signing in at Gmail or Outlook.com leaves this page and comes back to it reloaded, which forgets the second account. To move mail into {0}, sign in to it on its own.": "Η σύνδεση στο Gmail ή στο Outlook.com φεύγει από αυτή τη σελίδα και επιστρέφει σε αυτήν ξαναφορτωμένη, πράγμα που ξεχνά τον δεύτερο λογαριασμό. Για να μεταφέρετε αλληλογραφία στο {0}, συνδεθείτε σε αυτόν ξεχωριστά.",
   "Signing in with": "Συνδέεται με",
+  "Single sign-on did not complete: {0}": "Η ενιαία σύνδεση δεν ολοκληρώθηκε: {0}",
   "Size": "Μέγεθος",
   "Skip the tour": "Παράλειψη της ξενάγησης",
   "Skip to content": "Μετάβαση στο περιεχόμενο",

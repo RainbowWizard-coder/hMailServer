@@ -1112,6 +1112,7 @@
   "Signing and encryption are unavailable: the browser withholds its cryptography from a page that was not opened over HTTPS.": "Signering och kryptering är inte tillgängliga: webbläsaren håller inne sin kryptografi från en sida som inte öppnades över HTTPS.",
   "Signing in at Gmail or Outlook.com leaves this page and comes back to it reloaded, which forgets the second account. To move mail into {0}, sign in to it on its own.": "Inloggning på Gmail eller Outlook.com lämnar den här sidan och kommer tillbaka till den omladdad, vilket glömmer det andra kontot. För att flytta post till {0}, logga in på det för sig.",
   "Signing in with": "Loggar in med",
+  "Single sign-on did not complete: {0}": "Enkel inloggning slutfördes inte: {0}",
   "Size": "Storlek",
   "Skip the tour": "Hoppa över rundturen",
   "Skip to content": "Hoppa till innehållet",

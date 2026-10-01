@@ -1112,6 +1112,7 @@
   "Signing and encryption are unavailable: the browser withholds its cryptography from a page that was not opened over HTTPS.": "التوقيع والتشفير غير متاحين: يحجب المتصفح تشفيره عن صفحة لم تُفتح عبر HTTPS.",
   "Signing in at Gmail or Outlook.com leaves this page and comes back to it reloaded, which forgets the second account. To move mail into {0}, sign in to it on its own.": "تسجيل الدخول إلى Gmail أو Outlook.com يغادر هذه الصفحة ويعود إليها بعد إعادة تحميلها، وهو ما ينسي الحساب الثاني. لنقل البريد إلى {0}، سجّل الدخول إليه بمفرده.",
   "Signing in with": "يسجّل الدخول بـ",
+  "Single sign-on did not complete: {0}": "لم يكتمل تسجيل الدخول الموحّد: {0}",
   "Size": "الحجم",
   "Skip the tour": "تخطّي الجولة",
   "Skip to content": "التخطّي إلى المحتوى",

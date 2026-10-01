@@ -1310,6 +1310,7 @@
   "Since (YYYY-MM-DD HH:MM:SS)": "Desde (YYYY-MM-DD HH:MM:SS)",
   "Since {0}": "Desde {0}",
   "Since {0}, until {1}; window {2} min; {3} deferred": "Desde {0}, hasta {1}; ventana {2} min; {3} aplazados",
+  "Single sign-on did not complete: {0}": "El inicio de sesión único no se completó: {0}",
   "Size": "Tamaño",
   "Skip the propagation period": "Omitir el período de propagación",
   "Skip the tour": "Omitir el recorrido",

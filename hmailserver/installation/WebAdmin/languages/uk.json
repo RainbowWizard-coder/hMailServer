@@ -1310,6 +1310,7 @@
   "Since (YYYY-MM-DD HH:MM:SS)": "Від (YYYY-MM-DD HH:MM:SS)",
   "Since {0}": "Від {0}",
   "Since {0}, until {1}; window {2} min; {3} deferred": "З {0} до {1}; вікно {2} хв; відкладено: {3}",
+  "Single sign-on did not complete: {0}": "Єдиний вхід не було завершено: {0}",
   "Size": "Розмір",
   "Skip the propagation period": "Пропустити період поширення",
   "Skip the tour": "Пропустити знайомство",

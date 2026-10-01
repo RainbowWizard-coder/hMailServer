@@ -126,6 +126,7 @@ namespace
 #include "../Util/CompromiseDetector.h"
 #include "../Util/EventTester.h"
 #include "../Util/HttpCompression.h"
+#include "../Util/UpdateChecker.h"
 #include "../Scripting/ScriptServer.h"
 #include "../SQL/SQLStatement.h"
 #include <boost/pool/object_pool.hpp>
@@ -273,6 +274,13 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing the backup's exclusions\n"));
       BackupExecuterTester backupExecuterTester;
       backupExecuterTester.Test();
+
+      // The update feed's release page: kept only as an https:// address with a
+      // host and nothing a browser would read differently, since it is shown as
+      // a link; anything else is dropped and the release is still read.
+      OutputDebugString(_T("hMailServer: Testing the update feed's release page\n"));
+      UpdateCheckerTester updateCheckerTester;
+      updateCheckerTester.Test();
 
       // The archive index's XML: written byte for byte as every earlier version
       // wrote it, every character read back as written, and indexes that stop

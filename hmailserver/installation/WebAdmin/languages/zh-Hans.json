@@ -1310,6 +1310,7 @@
   "Since (YYYY-MM-DD HH:MM:SS)": "起始（YYYY-MM-DD HH:MM:SS）",
   "Since {0}": "自 {0} 起",
   "Since {0}, until {1}; window {2} min; {3} deferred": "自 {0} 起，至 {1}；窗口 {2} 分钟；已推迟 {3} 封",
+  "Single sign-on did not complete: {0}": "单点登录未完成：{0}",
   "Size": "大小",
   "Skip the propagation period": "跳过传播期",
   "Skip the tour": "跳过导览",

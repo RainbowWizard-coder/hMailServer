@@ -1112,6 +1112,7 @@
   "Signing and encryption are unavailable: the browser withholds its cryptography from a page that was not opened over HTTPS.": "חתימה והצפנה אינן זמינות: הדפדפן מונע את הקריפטוגרפיה שלו מדף שלא נפתח דרך HTTPS.",
   "Signing in at Gmail or Outlook.com leaves this page and comes back to it reloaded, which forgets the second account. To move mail into {0}, sign in to it on its own.": "הכניסה ל-Gmail או ל-Outlook.com עוזבת את הדף הזה וחוזרת אליו לאחר טעינה מחדש, מה ששוכח את החשבון השני. כדי להעביר דואר אל {0}, היכנס אליו בנפרד.",
   "Signing in with": "נכנס עם",
+  "Single sign-on did not complete: {0}": "הכניסה היחידה לא הושלמה: {0}",
   "Size": "גודל",
   "Skip the tour": "דילוג על הסיור",
   "Skip to content": "דילוג לתוכן",

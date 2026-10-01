@@ -1112,6 +1112,7 @@
   "Signing and encryption are unavailable: the browser withholds its cryptography from a page that was not opened over HTTPS.": "İmzalama ve şifreleme kullanılamıyor: tarayıcı, HTTPS üzerinden açılmamış bir sayfaya kriptografisini sunmaz.",
   "Signing in at Gmail or Outlook.com leaves this page and comes back to it reloaded, which forgets the second account. To move mail into {0}, sign in to it on its own.": "Gmail’de veya Outlook.com’da oturum açmak bu sayfadan ayrılır ve sayfaya yeniden yüklenmiş olarak döner; bu da ikinci hesabı unutturur. Postayı {0} hesabına taşımak için o hesaba ayrıca oturum açın.",
   "Signing in with": "Şununla oturum açıyor",
+  "Single sign-on did not complete: {0}": "Çoklu oturum açma tamamlanmadı: {0}",
   "Size": "Boyut",
   "Skip the tour": "Turu atla",
   "Skip to content": "İçeriğe atla",

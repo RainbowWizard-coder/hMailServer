@@ -1310,6 +1310,7 @@
   "Since (YYYY-MM-DD HH:MM:SS)": "開始 (YYYY-MM-DD HH:MM:SS)",
   "Since {0}": "開始 {0}",
   "Since {0}, until {1}; window {2} min; {3} deferred": "{0} から {1} まで。ウィンドウ {2} 分、{3} 件を延期",
+  "Single sign-on did not complete: {0}": "シングル サインオンが完了しませんでした: {0}",
   "Size": "サイズ",
   "Skip the propagation period": "伝播期間を省略する",
   "Skip the tour": "案内をスキップ",

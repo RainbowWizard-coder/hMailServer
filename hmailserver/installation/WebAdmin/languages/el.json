@@ -1310,6 +1310,7 @@
   "Since (YYYY-MM-DD HH:MM:SS)": "Από (YYYY-MM-DD HH:MM:SS)",
   "Since {0}": "Από {0}",
   "Since {0}, until {1}; window {2} min; {3} deferred": "Από {0}, έως {1}· παράθυρο {2} λεπτά· {3} σε αναμονή",
+  "Single sign-on did not complete: {0}": "Η ενιαία σύνδεση δεν ολοκληρώθηκε: {0}",
   "Size": "Μέγεθος",
   "Skip the propagation period": "Παράλειψη της περιόδου διάδοσης",
   "Skip the tour": "Παράλειψη της ξενάγησης",

@@ -1112,6 +1112,7 @@
   "Signing and encryption are unavailable: the browser withholds its cryptography from a page that was not opened over HTTPS.": "Allekirjoitus ja salaus eivät ole käytettävissä: selain ei anna salaustoimintojaan sivulle, jota ei avattu HTTPS-yhteydellä.",
   "Signing in at Gmail or Outlook.com leaves this page and comes back to it reloaded, which forgets the second account. To move mail into {0}, sign in to it on its own.": "Kirjautuminen Gmailiin tai Outlook.comiin poistuu tältä sivulta ja palaa sille uudelleen ladattuna, jolloin toinen tili unohtuu. Siirtääksesi postia tiliin {0} kirjaudu siihen erikseen.",
   "Signing in with": "Kirjautuu tunnisteella",
+  "Single sign-on did not complete: {0}": "Kertakirjautuminen jäi kesken: {0}",
   "Size": "Koko",
   "Skip the tour": "Ohita kierros",
   "Skip to content": "Siirry sisältöön",

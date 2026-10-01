@@ -196,6 +196,18 @@ a photo it shows for that account, or an attachment its offline store answers wi
 the server named only when that is an image type the page shows (or, offline, a PDF); 6.3.4 and 6.3.5 used the type
 as it came.
 
+The Control Deck is held tighter to what the server hands it, found by the project's own review. It draws an
+address - the release page the update feed names, the documentation wiki's, an eDiscovery export's - as a link only
+when it is an http or https address, where 6.3.4 and 6.3.5 drew the address as it came. The update check keeps a
+release's page only as an https address, where every version from 6.2.28 to 6.3.5 kept whatever the feed gave. The
+sign-in card shows a single sign-on error carried in the page's address only in a tab that started a sign-in at the
+identity provider in the last hour and has not loaded the Deck since, inside a sentence of its own, where 6.3.4 and
+6.3.5 showed the text of any such address; the webmail's sign-in page is held to the same rule, where 6.3.4 and
+6.3.5 showed any such text there too. A translation that is not text, or carries a character HTML reads, is left
+out when the Deck loads a language, as the build already refused it, where 6.3.4 and 6.3.5 used the server's copy
+of the catalogue as it was. And the ids and the counter three of its views take from the server are drawn as
+numbers whatever the answer holds.
+
 ### What changes on upgrade without a switch
 
 1. **COM `Utilities`: the helpers that do work answer a caller that has signed in.** `BlowfishEncrypt`,

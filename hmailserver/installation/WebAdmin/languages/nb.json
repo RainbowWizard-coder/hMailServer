@@ -1310,6 +1310,7 @@
   "Since (YYYY-MM-DD HH:MM:SS)": "Siden (YYYY-MM-DD HH:MM:SS)",
   "Since {0}": "Siden {0}",
   "Since {0}, until {1}; window {2} min; {3} deferred": "Siden {0}, til {1}; vindu {2} min; {3} utsatt",
+  "Single sign-on did not complete: {0}": "Enkel pålogging ble ikke fullført: {0}",
   "Size": "Størrelse",
   "Skip the propagation period": "Hopp over spredningsperioden",
   "Skip the tour": "Hopp over omvisningen",

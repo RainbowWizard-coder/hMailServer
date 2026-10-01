@@ -1310,6 +1310,7 @@
   "Since (YYYY-MM-DD HH:MM:SS)": "Seit (YYYY-MM-DD HH:MM:SS)",
   "Since {0}": "Seit {0}",
   "Since {0}, until {1}; window {2} min; {3} deferred": "Seit {0}, bis {1}; Fenster {2} Min.; {3} zurückgestellt",
+  "Single sign-on did not complete: {0}": "Single Sign-on wurde nicht abgeschlossen: {0}",
   "Size": "Größe",
   "Skip the propagation period": "Verbreitungszeit überspringen",
   "Skip the tour": "Rundgang überspringen",

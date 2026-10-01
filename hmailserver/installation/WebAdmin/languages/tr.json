@@ -1310,6 +1310,7 @@
   "Since (YYYY-MM-DD HH:MM:SS)": "Başlangıç (YYYY-MM-DD HH:MM:SS)",
   "Since {0}": "{0} tarihinden beri",
   "Since {0}, until {1}; window {2} min; {3} deferred": "{0} itibarıyla, {1} tarihine kadar; pencere {2} dk; {3} ertelendi",
+  "Single sign-on did not complete: {0}": "Çoklu oturum açma tamamlanmadı: {0}",
   "Size": "Boyut",
   "Skip the propagation period": "Yayılma süresini atla",
   "Skip the tour": "Turu atla",

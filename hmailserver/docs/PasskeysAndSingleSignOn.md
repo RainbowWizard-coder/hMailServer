@@ -533,7 +533,14 @@ A refusal comes back as `#sso_error=` with the sentence, to the page the sign-in
 was started for. **That page is chosen by this server alone**: at the ACS it is
 the one the posted RelayState's own sign-in named, and at the finish the one the
 verified sign-in named; a Response naming another sign-in in its `InResponseTo`
-does not choose it.
+does not choose it. The Control Deck and the webmail show the sentence, once and
+inside words of their own, only in the browser tab whose sign-in card sent it to
+the identity provider in the last hour and has not loaded either page since; any
+other `#sso_error=` is taken out of the address and not shown, and the page loads
+as on any other visit. An hour rather than a sign-in's ten minutes, since a
+slower return is answered with this server's own sentence that the sign-in took
+longer than ten minutes. The two pages share the tab's mark, since a sign-in
+this server no longer knows is sent to the webmail whichever page started it.
 
 **Two sign-ins in one browser.** A second start replaces the cookie, so the
 first sign-in, if its Response still arrives, is refused at the finish; start
