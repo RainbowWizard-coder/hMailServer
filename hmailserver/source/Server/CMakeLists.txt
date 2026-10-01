@@ -589,6 +589,22 @@ add_executable(xml-tree-tests ${SERVER_DIR}/platform/xml_tree_tests_main.cpp)
 target_link_libraries(xml-tree-tests PRIVATE hmailserver_core)
 set_target_properties(xml-tree-tests PROPERTIES OUTPUT_NAME xml-tree-tests)
 
+# ---------------------------------------------------------------- the Control Deck's script hash
+#
+# InlineScriptHashTester (Common/Util/InlineScriptHash.h) as a program of its
+# own, for the reason spf-tests is one: on Windows it runs inside the server
+# through ClassTester, which nothing reaches here. The Deck is served under a
+# script-src that is the SHA-256 of its one inline script; this holds the hash
+# to the text a browser hashes - CR LF and a lone CR made LF, the script found
+# as the HTML tokenizer finds it - against values another implementation
+# computed, and to 'none' for a page with no single inline script. No
+# database, configuration, file or network. Given a page's path, it prints the
+# script-src the server sends that page under instead. Not installed; a bench
+# tool.
+add_executable(inline-script-hash-tests ${SERVER_DIR}/platform/inline_script_hash_tests_main.cpp)
+target_link_libraries(inline-script-hash-tests PRIVATE hmailserver_core)
+set_target_properties(inline-script-hash-tests PROPERTIES OUTPUT_NAME inline-script-hash-tests)
+
 # ---------------------------------------------------------------- the Public Suffix List's cut
 #
 # PublicSuffixListTester (Common/AntiSpam/DMARC/PublicSuffixList.h) as a program

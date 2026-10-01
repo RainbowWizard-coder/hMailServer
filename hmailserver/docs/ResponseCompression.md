@@ -99,6 +99,23 @@ forwards `Accept-Encoding: gzip`, receives `Content-Encoding: gzip`, and hands
 the bytes to a client that did not ask for them; that is the proxy's defect,
 and `Vary` is there to make a caching proxy get it right.
 
+Whatever it does with the encoding, a proxy hands the Control Deck's page on as
+the server wrote it. Since 6.3.6 the page is served under a `script-src` that is
+the SHA-256 of its one inline script, which the server takes from the file it
+serves, so that no other script can run in it. Both of the arrangements above
+keep the page's bytes as they were, and the Deck works through either - measured
+in Chromium, Firefox and WebKit through a proxy of each kind. A proxy that changes
+the page's script on its way through - nginx's `sub_filter` or an IIS outbound
+rewrite rule whose text it matches, a content network's script optimiser or
+minifier - leaves a script whose hash is not the one the server sent, the browser
+refuses it, and the Deck stops at a sign-in card that does nothing. The browser's
+console says so and names the hash the changed script has. Turn the rewriting off
+for the Deck's page (`/` and `/index.html`); there is no setting that loosens the
+policy instead. A script the proxy adds to the page of its own, such as a content
+network's loader, is refused in the same way, and the Deck runs without it. The
+webmail is not affected: its scripts are files of their own, allowed as files of
+this server.
+
 BREACH, and why it does not reach this server
 ---------------------------------------------
 

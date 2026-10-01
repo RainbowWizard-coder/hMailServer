@@ -253,6 +253,10 @@ namespace RegressionTests.API
          StringAssert.Contains("<div id=\"bulk-bar\" hidden>", page.Body);
          Assert.AreEqual("no-store", page.Header("Cache-Control"));
          Assert.AreEqual("nosniff", page.Header("X-Content-Type-Options"));
+         Assert.AreEqual("DENY", page.Header("X-Frame-Options"), "frame-ancestors 'none' for a browser that reads only the older header.");
+         Assert.AreEqual("same-origin", page.Header("Cross-Origin-Opener-Policy"), "A page of another site that opened the webmail keeps no handle on its window.");
+         StringAssert.Contains("require-trusted-types-for 'script'", page.Header("Content-Security-Policy"));
+         StringAssert.IsMatch("trusted-types default(;|$)", page.Header("Content-Security-Policy"), "The one policy Portal.js makes, by its name.");
          StringAssert.Contains("<script src=\"/portal.js\"></script>", page.Body);
          Assert.IsFalse(page.Body.Contains("onclick="), "No inline event handler: the policy would block it.");
 
@@ -263,6 +267,7 @@ namespace RegressionTests.API
          StringAssert.Contains("/api/v1/me/folders", script.Body);
          StringAssert.Contains("'/html' + (allowed ? '?remote=1' : '')", script.Body, "The HTML part is the server's own document, pointed at by src; nothing is built into a srcdoc here.");
          StringAssert.DoesNotContain("frame.srcdoc", script.Body);
+         StringAssert.Contains("window.trustedTypes.createPolicy('default'", script.Body, "The script makes the policy the page's header names, or under Trusted Types no sink would take a string.");
          StringAssert.Contains("carryAttachments", script.Body);
          StringAssert.Contains("before_uid", script.Body);
       }

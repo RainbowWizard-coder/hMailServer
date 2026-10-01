@@ -181,6 +181,17 @@ an application sent through the send API, with a key allowed to send as the orga
 organiser's own, in 6.3.4 and 6.3.5, where its documentation said such a message is not believed; in 6.3.6
 neither a room nor a calendar takes a message sent through the send API as an account's own.
 
+The Control Deck is now served under a script policy that lets its own script run and nothing else - the SHA-256 of
+its one inline script, which the server takes from the page it serves - with Trusted Types, whose one policy refuses
+markup the Deck never builds, and with X-Frame-Options and Cross-Origin-Opener-Policy, where 6.2.28 to 6.3.5 allowed
+any inline script on the page and earlier versions sent it with no policy at all; a proxy in front of the server
+must now pass the page through unchanged ([ResponseCompression.md](hmailserver/docs/ResponseCompression.md), Behind
+a reverse proxy).
+
+The webmail's pages are now served with Trusted Types, whose one policy takes out of what a page puts into itself
+the elements the page never builds and admits only the page's own two script addresses, and with X-Frame-Options and
+Cross-Origin-Opener-Policy, none of which any earlier version sent.
+
 The Windows installers, x64 and ARM64, carry OpenSSL 4.0.3, published on 29 September 2026 with fourteen advisories
 against 4.0.x, where 6.3.5's x64 installer carried 4.0.2. Of the two rated above Low, CVE-2026-84782 (High) is in
 DTLS, which hMailServer does not use, and CVE-2026-84783 (Moderate, in 4.0.0 to 4.0.2 only) applies to the Windows

@@ -60,6 +60,89 @@ namespace RegressionTests.API
       }
 
       /// <summary>
+      ///    The Deck runs its own inline script and nothing else: script-src is
+      ///    the SHA-256 of that script, which the server takes from the page it
+      ///    serves, and this takes again from the bytes that arrived - as a
+      ///    browser takes it, with CR LF and a lone CR made LF. The page is
+      ///    installed with CR LF line ends, and a hash of those bytes is refused
+      ///    by every browser, the Deck's own script with it, so that hash must not
+      ///    be the one sent. No 'unsafe-inline', which would let a script an
+      ///    escaping slip put in a view run; no 'self', which would let a file of
+      ///    this origin whose type a sender chose run as script.
+      /// </summary>
+      [Test]
+      [Description("The Control Deck is served under script-src 'sha256-...' of its one inline script with CR LF made LF, not 'unsafe-inline' or 'self', with Trusted Types under the page's own default policy, img-src 'self', X-Frame-Options: DENY and Cross-Origin-Opener-Policy: same-origin")]
+      public void TheControlDeckRunsOnlyItsOwnScript()
+      {
+         (int status, string headers, string body) = HttpRaw("GET", "/", null, null, null);
+         Assert.AreEqual(200, status, body);
+         StringAssert.Contains("Control Deck", body, "The real page, not the 'not installed' placeholder, which has no script and is served under script-src 'none'.");
+
+         string policy = HeaderValue(headers, "Content-Security-Policy");
+         Assert.IsNotNull(policy, headers);
+         string scriptSource = Directive(policy, "script-src");
+         Assert.IsNotNull(scriptSource, "No script-src in: " + policy);
+
+         System.Text.RegularExpressions.MatchCollection scripts = System.Text.RegularExpressions.Regex.Matches(body,
+            "<script(?=[\\t\\n\\f\\r />])[^>]*>(.*?)</script(?=[\\t\\n\\f\\r />])",
+            System.Text.RegularExpressions.RegexOptions.Singleline | System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+         Assert.AreEqual(1, scripts.Count, "The Deck is one inline script.");
+         string served = scripts[0].Groups[1].Value;
+         string asBrowsersHashIt = served.Replace("\r\n", "\n").Replace("\r", "\n");
+
+         Assert.AreEqual(ScriptHash(asBrowsersHashIt), scriptSource, "script-src is the hash of the page's script and nothing else. Policy: " + policy);
+         StringAssert.DoesNotContain("'unsafe-inline'", scriptSource);
+         StringAssert.DoesNotContain("'self'", scriptSource);
+         Assert.IsTrue(served.Contains("\r\n"), "The page arrives with CR LF line ends, as it is installed; without them the next assertion proves nothing.");
+         Assert.AreNotEqual(ScriptHash(served), scriptSource, "The hash of the bytes as they are on disk, which every browser refuses.");
+
+         // Trusted Types: every string a view hands to innerHTML goes through the
+         // one policy the page's script makes first, named default.
+         Assert.AreEqual("'script'", Directive(policy, "require-trusted-types-for"), "Policy: " + policy);
+         Assert.AreEqual("default", Directive(policy, "trusted-types"), "Policy: " + policy);
+         StringAssert.Contains("trustedTypes.createPolicy(\"default\"", served, "The page makes the policy its header names.");
+
+         Assert.AreEqual("'self'", Directive(policy, "img-src"), "The page draws no data: image.");
+         Assert.AreEqual("'none'", Directive(policy, "default-src"));
+         Assert.AreEqual("'none'", Directive(policy, "frame-ancestors"));
+         Assert.AreEqual("'none'", Directive(policy, "base-uri"));
+         Assert.AreEqual("DENY", HeaderValue(headers, "X-Frame-Options"));
+         Assert.AreEqual("same-origin", HeaderValue(headers, "Cross-Origin-Opener-Policy"));
+         Assert.AreEqual("nosniff", HeaderValue(headers, "X-Content-Type-Options"));
+      }
+
+      // 'sha256-<base64>' of a script's text, encoded as UTF-8, as a browser checks it.
+      private static string ScriptHash(string text)
+      {
+         using (var sha256 = System.Security.Cryptography.SHA256.Create())
+            return "'sha256-" + Convert.ToBase64String(sha256.ComputeHash(Encoding.UTF8.GetBytes(text))) + "'";
+      }
+
+      // A header's value from a response's header block, or null.
+      private static string HeaderValue(string headers, string name)
+      {
+         foreach (string line in headers.Split(new[] { "\r\n" }, StringSplitOptions.None))
+         {
+            int colon = line.IndexOf(':');
+            if (colon > 0 && string.Equals(line.Substring(0, colon).Trim(), name, StringComparison.OrdinalIgnoreCase))
+               return line.Substring(colon + 1).Trim();
+         }
+         return null;
+      }
+
+      // The sources of one directive of a policy, as written, or null.
+      private static string Directive(string policy, string name)
+      {
+         foreach (string directive in policy.Split(';'))
+         {
+            string trimmed = directive.Trim();
+            if (trimmed == name || trimmed.StartsWith(name + " ", StringComparison.Ordinal))
+               return trimmed.Substring(name.Length).Trim();
+         }
+         return null;
+      }
+
+      /// <summary>
       ///    The administrator's browser session: started with the administrator
       ///    password, it is the administrator - full authority, no domain
       ///    restriction - for as long as it lives, and a request that changes

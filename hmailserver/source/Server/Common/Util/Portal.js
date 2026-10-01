@@ -5,6 +5,65 @@
 (function () {
   'use strict';
   var el = function (id) { return document.getElementById(id); };
+  // ---- Trusted Types. The page is served with require-trusted-types-for
+  // 'script' and trusted-types default (RestApiPortal.cpp). In a browser
+  // that has them, every string handed to an HTML sink, or used as a
+  // script's address, passes through this one policy first, and no other
+  // can be made. The page builds its screens with DOM calls rather than
+  // markup; the strings that reach a sink are a list being cleared, the
+  // signature the account saved, and the HTML of messages, read for their
+  // text or cleaned by cleanHtml through DOMParser - a document that runs
+  // nothing, and of which the page shows only what cleanHtml rebuilt (the
+  // reply editor), so those go through as they are. Into the
+  // page itself no string brings an element the page never builds - a
+  // script, a style or link element, a meta refresh, a base, a frame, an
+  // object or embed, a form, the elements that parse differently or
+  // animate attributes: they are taken out, and a string that still holds
+  // one is refused. Script itself is refused by script-src, which names
+  // only this server's files; this refuses what an injected string could
+  // still do without script. The only script addresses the page uses are
+  // its worker's and its OpenPGP module's, and nothing else is one.
+  if (window.trustedTypes && window.trustedTypes.createPolicy) {
+    var NEVER_NAMES = 'script|style|link|meta|base|iframe|frame|frameset|object|embed|applet|form|portal|template|noscript|xmp|plaintext|noembed|noframes|math|foreignobject|animate|animatemotion|animatetransform|set|use';
+    var NEVER = new RegExp('<\\/?(?:' + NEVER_NAMES + ')(?=[\\s\\/>]|$)', 'i');
+    var NEVER_WITH_TEXT = /<(script|style|template|noscript|xmp|noembed|noframes|iframe|object|math)(?=[\s\/>])/gi;
+    var NEVER_TAG = new RegExp('<\\/?(?:' + NEVER_NAMES + ')(?=[\\s\\/>]|$)[^>]*>?', 'gi');
+    // Such an element goes with its text - a style's rules, a script's code -
+    // up to its own end tag; one with no end tag loses only its tag, below.
+    // In one pass: a pattern that looked for the end tag again from every
+    // start tag would take a string of many start tags and no end tag (a
+    // signature an administrator can make any length) quadratic time.
+    var withoutText = function (html) {
+      var out = '', from = 0, unended = {}, start, name, end, close;
+      NEVER_WITH_TEXT.lastIndex = 0;
+      while ((start = NEVER_WITH_TEXT.exec(html))) {
+        name = start[1].toLowerCase();
+        if (unended[name]) { continue; }
+        close = new RegExp('<\\/' + name + '\\s*>', 'gi');
+        close.lastIndex = NEVER_WITH_TEXT.lastIndex;
+        end = close.exec(html);
+        // No end tag after this one means none after a later one either.
+        if (!end) { unended[name] = true; continue; }
+        out += html.slice(from, start.index);
+        from = NEVER_WITH_TEXT.lastIndex = close.lastIndex;
+      }
+      return out + html.slice(from);
+    };
+    window.trustedTypes.createPolicy('default', {
+      createHTML: function (html, type, sink) {
+        html = String(html);
+        if (sink === 'DOMParser parseFromString' || !NEVER.test(html)) { return html; }
+        var kept = withoutText(html).replace(NEVER_TAG, '');
+        if (NEVER.test(kept)) { throw new TypeError('The page refused markup it never builds.'); }
+        return kept;
+      },
+      createScriptURL: function (url) {
+        url = String(url);
+        if (url === '/portal-sw.js' || url === '/portal-openpgp.js') { return url; }
+        throw new TypeError('The page loads no script from ' + url + '.');
+      }
+    });
+  }
   // ---- Language. English is the key; a catalogue maps it to the reader's
   // language. The one the server chose from Accept-Language rides in the
   // page (lang-data, parsed below); a choice kept in this browser or in the

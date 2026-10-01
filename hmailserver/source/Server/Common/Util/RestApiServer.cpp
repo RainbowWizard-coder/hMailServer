@@ -15,6 +15,7 @@
 #include "DavSupport.h"
 #include "HttpServer.h"
 #include "HttpCompression.h"
+#include "InlineScriptHash.h"
 #include "HttpsClient.h"
 #include "JsonDocument.h"
 #include "Encoding/ModifiedUTF7.h"
@@ -919,6 +920,10 @@ namespace HM
       // both, with room over; at most some ten megabytes if every one is
       // asked for, and nothing until it is.
       HttpCompressedCache pageCache_(96);
+
+      // The Control Deck's script-src, the hash of the page's one inline
+      // script, taken once per distinct file as pageCache_ compresses it.
+      InlineScriptHashCache deckScript_;
    }
 
    HttpCompressedCache &
@@ -10859,12 +10864,26 @@ namespace HM
       // the cache is keyed by the bytes, so an upgrade that replaces the file
       // is a new entry, never a stale one.
       pageCache_.Fill(response);
-      // The same discipline the portal gets. This page has inline script and
-      // style of its own, so those are allowed for it; what is refused is
-      // anything from anywhere else, any frame, any form posted off this
-      // origin, and a base tag that would redirect its relative calls.
+      // The same discipline the portal gets. The page's one inline script is
+      // allowed by its hash and nothing else runs: not a handler attribute,
+      // not a javascript: address, not a script in a frame's inline document,
+      // not a script file - this origin serves files whose type a sender or
+      // an account chose, so script-src never names 'self'. The page with no
+      // single script (the stand-in above) gets 'none'. Inline style stays
+      // allowed: the views are built with style attributes. Trusted Types
+      // with trusted-types default: every string the views hand to innerHTML
+      // goes through the one policy the page's script makes first, which
+      // refuses markup the Deck never builds (a meta refresh, a style or link
+      // element, a form, a frame...), and nothing may be used as script or as
+      // a script's address. Refused besides: anything from anywhere else, any
+      // frame of this page or by it, any form posted off this origin, a base
+      // tag that would redirect its relative calls, and an opener's handle on
+      // this window. InlineScriptHash.h says how the hash is taken;
+      // build/check-deck-script.py holds the policy and the page to each other.
       response.extra_headers =
-         "Content-Security-Policy: default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'\r\n"
+         "Content-Security-Policy: default-src 'none'; script-src " + deckScript_.ScriptSource(body) + "; style-src 'unsafe-inline'; img-src 'self'; connect-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'; require-trusted-types-for 'script'; trusted-types default\r\n"
+         "X-Frame-Options: DENY\r\n"
+         "Cross-Origin-Opener-Policy: same-origin\r\n"
          "X-Content-Type-Options: nosniff\r\n"
          "Referrer-Policy: no-referrer\r\n"
          "Cache-Control: no-store\r\n";

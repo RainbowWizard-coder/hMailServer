@@ -25,7 +25,10 @@ builds a small DOM from the markup, stubs fetch with recorded API answers, runs
 the script in it and asserts behaviour - a sign-in that stores nothing secret,
 a listing that renders rows, a keyboard cursor that moves, a cid: image that
 resolves to the attachment download route, the change probe causing a refresh,
-the address bar naming what is shown.
+the address bar naming what is shown. The headers also require Trusted Types
+under the one policy, named default, that Portal.js makes; with them X-Frame-
+Options and Cross-Origin-Opener-Policy; build/trusted-types-test.js then runs
+that policy itself.
 
 The headers literal keeps a shape this can parse:
     const char *PortalHeaders =
@@ -51,6 +54,7 @@ PAGE = os.path.join(UTIL, "Portal.html")
 SCRIPT = os.path.join(UTIL, "Portal.js")
 HEADERS_SOURCE = os.path.join(UTIL, "RestApiPortal.cpp")
 RUNNER = os.path.join(ROOT, "build", "portal-script-test.js")
+TRUSTED_TYPES = os.path.join(ROOT, "build", "trusted-types-test.js")
 
 # "const char *Name =", then only string-literal lines until the one ending in ';'
 DEFINITION = re.compile(r'^\s*const\s+char\s*\*\s*(\w+)\s*=\s*$')
@@ -159,6 +163,17 @@ def main():
                             "but the headers' img-src does not allow 'self': those images cannot load")
     if "frame-ancestors 'none'" not in headers:
         problems.append("the headers do not name frame-ancestors 'none'")
+    if "require-trusted-types-for 'script'" not in headers or not re.search(r"trusted-types default(?:;|\r\n)", headers):
+        problems.append("the headers do not say require-trusted-types-for 'script' and trusted-types default; "
+                        "Portal.js makes the one policy, named default, that every sink is to go through")
+    if "window.trustedTypes.createPolicy('default'" not in script or script.count("createPolicy(") != 1:
+        problems.append("Portal.js does not make exactly one Trusted Types policy, named default")
+    if "\r\nX-Frame-Options: DENY\r\n" not in "\r\n" + headers:
+        problems.append("the headers do not send X-Frame-Options: DENY, frame-ancestors 'none' for a browser "
+                        "that reads only the older header")
+    if "\r\nCross-Origin-Opener-Policy: same-origin\r\n" not in "\r\n" + headers:
+        problems.append("the headers do not send Cross-Origin-Opener-Policy: same-origin; a page of another site "
+                        "that opened the webmail would keep a handle on its window")
     for directive in re.findall(r"(?:default|img|connect|frame|style|script)-src ([^;\r\n]*)", headers):
         for source in directive.split():
             if source.startswith("http") or source.startswith("//") or source == "*":
@@ -177,7 +192,10 @@ def main():
         sys.stderr.write("node is not on PATH; it runs the portal's script. Install node, or pass --no-node.\n")
         return 1
 
-    return subprocess.run([node, RUNNER, PAGE, SCRIPT], cwd=ROOT).returncode
+    run = subprocess.run([node, RUNNER, PAGE, SCRIPT], cwd=ROOT)
+    if run.returncode != 0:
+        return run.returncode
+    return subprocess.run([node, TRUSTED_TYPES, "portal", SCRIPT], cwd=ROOT).returncode
 
 
 if __name__ == "__main__":

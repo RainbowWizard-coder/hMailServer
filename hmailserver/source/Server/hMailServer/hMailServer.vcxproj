@@ -756,6 +756,7 @@ EXIT 0
     <ClCompile Include="..\Common\Util\HttpServer.cpp" />
     <ClCompile Include="..\Common\Util\RestApiServer.cpp" />
     <ClCompile Include="..\Common\Util\RestApiPortal.cpp" />
+    <ClCompile Include="..\Common\Util\InlineScriptHash.cpp" />
     <ClCompile Include="..\Common\Util\RestApiSettings.cpp" />
     <ClCompile Include="..\Common\Util\RestApiWebhooks.cpp" />
     <ClCompile Include="..\Common\Util\RestApiInboundWebhooks.cpp" />
@@ -1746,6 +1747,7 @@ EXIT 0
     <ClInclude Include="..\Common\Util\MetricsServer.h" />
     <ClInclude Include="..\Common\Util\OtelTracer.h" />
     <ClInclude Include="..\Common\Util\HttpCompression.h" />
+    <ClInclude Include="..\Common\Util\InlineScriptHash.h" />
     <ClInclude Include="..\Common\Util\HttpServer.h" />
     <ClInclude Include="..\Common\Util\Reports.h" />
     <ClInclude Include="..\Common\Util\SessionFollow.h" />

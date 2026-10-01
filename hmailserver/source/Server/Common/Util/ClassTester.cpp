@@ -60,6 +60,7 @@
 #include "../../SMTP/WarmupPlanTester.h"
 #include "SnmpTester.h"
 #include "XmlTreeTester.h"
+#include "InlineScriptHash.h"
 #include "../AntiVirus/CustomVirusScanner.h"
 #include "../Persistence/SchemaUpgrader.h"
 #include "ServiceAccount.h"
@@ -1302,6 +1303,15 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing HttpCompression\n"));
       HttpCompressionTester httpCompressionTester;
       httpCompressionTester.Test();
+
+      // The Control Deck's script-src: the SHA-256 of the text a browser
+      // hashes for the page's one inline script - CR LF made LF, the script
+      // found as the tokenizer finds it - against values another
+      // implementation computed, and 'none' for a page with no single inline
+      // script.
+      OutputDebugString(_T("hMailServer: Testing InlineScriptHash\n"));
+      InlineScriptHashTester inlineScriptHashTester;
+      inlineScriptHashTester.Test();
 
       OutputDebugString(_T("hMailServer: Testing the ACME TLSA record\n"));
       {

@@ -511,6 +511,32 @@ pre{background:var(--surface-2);border:1px solid var(--line);border-radius:var(-
 
 <script>
 "use strict";
+/* ---------- Trusted Types ----------
+   The page is served with require-trusted-types-for 'script' and
+   trusted-types default (HandleWebAdminPage_ in RestApiServer.cpp). In a
+   browser that has Trusted Types, every string the script hands to an HTML
+   sink - each view's innerHTML - passes through this one function first; no
+   other policy can be made; and a string meant as script, or as a script's
+   address, has no policy at all and is refused. The views build their markup
+   from values put through escHtml, which this lets through as it is. What it
+   refuses is markup the Deck never builds: a script, a style or link
+   element, a meta refresh, a base, a frame, an object or embed, a form, and
+   the elements that parse differently or animate attributes. Such markup can
+   only come from a value that reached a view unescaped, and that view is
+   then not drawn at all. Script is already refused by the hash in
+   script-src; this refuses what an escaping slip could still do without
+   script - send the tab elsewhere, restyle the page, post a form, look up a
+   name for another site. build/check-deck-script.py holds the views to
+   building none of these elements. */
+(function(){
+  if(!window.trustedTypes||!trustedTypes.createPolicy)return;
+  const NEVER=/<\/?(?:script|style|link|meta|base|iframe|frame|frameset|object|embed|applet|form|portal|template|noscript|xmp|plaintext|noembed|noframes|math|foreignobject|animate|animatemotion|animatetransform|set|use)(?=[\s\/>]|$)/i;
+  trustedTypes.createPolicy("default",{createHTML:html=>{
+    html=String(html);
+    if(NEVER.test(html))throw new TypeError("The Deck refused markup it never builds: a value reached a view unescaped.");
+    return html;
+  }});
+})();
 const $=s=>document.querySelector(s);
 let view="dash", pollTimer=null;
 /* The discovery case on screen, its name and its re-read timer: declared here,
