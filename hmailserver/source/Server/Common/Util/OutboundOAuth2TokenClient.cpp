@@ -3,17 +3,14 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 #include "StdAfx.h"
-#include "../TCPIP/SslContextInitializer.h"
 
 #include "OutboundOAuth2TokenClient.h"
 
 #include "../Application/IniFileSettings.h"
-#include "../TCPIP/CertificateVerifier.h"
 #include "Charset.h"
+#include "HttpsClient.h"
 #include "Parsing/StringParser.h"
 
-#include <boost/asio.hpp>
-#include <boost/asio/ssl.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 
@@ -29,8 +26,9 @@ namespace HM
    namespace
    {
       // A stalled identity provider must cost a bounded wait on the delivery
-      // thread, exactly as a stalled MTA-STS policy host does.
-      const DWORD HttpsTimeoutMilliseconds = 20 * 1000;
+      // thread, exactly as a stalled MTA-STS policy host does: the whole request,
+      // from the name lookup to the end of the answer.
+      const int HttpsTimeoutSeconds = 20;
 
       // A token response is a small JSON object; a megabyte of it is not one.
       const size_t MaxResponseSize = 1024 * 1024;
@@ -207,113 +205,36 @@ namespace HM
    OutboundOAuth2TokenClient::HttpsPost_(const String &host, const AnsiString &path, const AnsiString &body,
                                          AnsiString &responseBody, String &errorMessage)
    {
-      // The same shape as TlsPolicy::HttpsGet_ - certificate verification
-      // included, because the response is a credential.
-      try
+      // Through HttpsClient, whose deadline bounds the whole request - the name
+      // lookup, the connection, the handshake, sending and reading the answer to
+      // its end - on every platform. The synchronous client this replaces handed
+      // SO_RCVTIMEO a DWORD, which Linux refuses (it takes a timeval), and Asio's
+      // synchronous calls on POSIX wait with no timeout anyway: a token endpoint
+      // that accepted and never answered held the delivery thread for good, and
+      // every thread behind it that wanted a token waited on the cache's lock.
+      // Certificate verification against the machine's store with the host name
+      // checked, SNI and the TLS 1.2 floor are HttpsClient's, as they were this
+      // client's; so is a port in the URL, which the old client resolved as part
+      // of the host name, and HttpProxy, which it did not use.
+      HttpsClient::Response response;
+      String error;
+      if (!HttpsClient::Request("POST", AnsiString("https://") + AnsiString(host) + path, std::vector<AnsiString>(),
+                                "application/x-www-form-urlencoded", body, response, error, HttpsTimeoutSeconds, MaxResponseSize))
       {
-         AnsiString narrowHost = host;
-
-         boost::asio::io_context ioContext;
-
-         boost::asio::ip::tcp::resolver resolver(ioContext);
-         boost::asio::ip::tcp::resolver::results_type endpoints =
-            resolver.resolve(std::string(narrowHost.c_str()), "443");
-
-         boost::asio::ssl::context sslContext(boost::asio::ssl::context::tls_client);
-         // An HTTPS client of a web service: TLS 1.2 is the floor whatever the mail
-         // protocol toggles allow, since there is no 2008-era CA, token issuer or
-         // policy host to accommodate.
-         sslContext.set_options(HM_TLS_CONTEXT_FLOOR);
-         sslContext.set_default_verify_paths();
-
-         boost::asio::ssl::stream<boost::asio::ip::tcp::socket> stream(ioContext, sslContext);
-
-         boost::asio::connect(stream.next_layer(), endpoints);
-
-         DWORD timeout = HttpsTimeoutMilliseconds;
-         setsockopt(stream.next_layer().native_handle(), SOL_SOCKET, SO_RCVTIMEO, (const char*) &timeout, sizeof(timeout));
-         setsockopt(stream.next_layer().native_handle(), SOL_SOCKET, SO_SNDTIMEO, (const char*) &timeout, sizeof(timeout));
-
-         stream.set_verify_mode(boost::asio::ssl::verify_peer);
-         stream.set_verify_callback(CertificateVerifier(0, CSSSL, host));
-
-         if (!SSL_set_tlsext_host_name(stream.native_handle(), narrowHost.c_str()))
-         {
-            errorMessage = _T("Could not set the TLS server name for the token endpoint.");
-            return false;
-         }
-
-         stream.handshake(boost::asio::ssl::stream_base::client);
-
-         AnsiString lengthText;
-         lengthText.Format("%d", body.GetLength());
-
-         AnsiString request;
-         request.append("POST ");
-         request.append(path);
-         request.append(" HTTP/1.0\r\nHost: ");
-         request.append(narrowHost);
-         request.append("\r\nUser-Agent: hMailServer\r\nContent-Type: application/x-www-form-urlencoded\r\nContent-Length: ");
-         request.append(lengthText);
-         request.append("\r\nConnection: close\r\n\r\n");
-         request.append(body);
-
-         boost::asio::write(stream, boost::asio::buffer(request.c_str(), request.GetLength()));
-
-         std::string response;
-         char buffer[4096];
-         boost::system::error_code errorCode;
-
-         for (;;)
-         {
-            size_t bytesRead = stream.read_some(boost::asio::buffer(buffer, sizeof(buffer)), errorCode);
-
-            if (bytesRead > 0)
-               response.append(buffer, bytesRead);
-
-            if (errorCode)
-               break;
-
-            if (response.size() > MaxResponseSize)
-               break;
-         }
-
-         size_t headerEnd = response.find("\r\n\r\n");
-         if (headerEnd == std::string::npos)
-         {
-            errorMessage = _T("The token endpoint's response carried no headers.");
-            return false;
-         }
-
-         responseBody = response.substr(headerEnd + 4).c_str();
-
-         // The status is checked AFTER extracting the body: OAuth error
-         // responses are 400s whose JSON carries the reason, and that reason is
-         // worth more than "not 200".
-         size_t firstLineEnd = response.find("\r\n");
-         std::string statusLine = response.substr(0, firstLineEnd);
-         if (statusLine.find(" 200") == std::string::npos)
-         {
-            // Let the caller parse the error JSON; signal only when there is
-            // nothing to parse.
-            if (responseBody.IsEmpty())
-            {
-               errorMessage = String(_T("The token endpoint answered: ")) + String(statusLine.c_str());
-               return false;
-            }
-         }
-
-         return true;
-      }
-      catch (std::exception &e)
-      {
-         errorMessage = String(_T("Could not reach the token endpoint: ")) + String(e.what());
+         errorMessage = String(_T("Could not reach the token endpoint: ")) + error;
          return false;
       }
-      catch (...)
+
+      // An OAuth error is a 400 whose JSON carries the reason, which FetchToken_
+      // reads and which is worth more than "not 200"; only an answer with nothing
+      // to read is an error here.
+      responseBody = response.body;
+      if (response.status_code != 200 && responseBody.IsEmpty())
       {
-         errorMessage = _T("Could not reach the token endpoint.");
+         errorMessage.Format(_T("The token endpoint answered HTTP %d with nothing to read."), response.status_code);
          return false;
       }
+
+      return true;
    }
 }

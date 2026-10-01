@@ -573,69 +573,13 @@ namespace HM
          return metadata;
       }
 
-      // Connects socket to host:port by deadline - directly, or through the proxy
-      // when proxy_host is not empty. For an https target the proxy is asked to
-      // CONNECT and the TLS handshake then runs inside the tunnel, so the proxy sees
-      // the name it was asked for and nothing of what follows. For plain http the
-      // caller has put the absolute URL in its request line and the proxy forwards it.
-      //
-      // public_only (RequestPublic): the name is resolved here, every address it
-      // gave is judged, and the connection is made to the addresses that passed
-      // and to no other - so a name that answers a public address to one lookup
-      // and a private one to the next gains nothing. Never through the proxy,
-      // which would resolve the name itself, out of sight of this.
-      //
-      // not_link_local (RequestNotLinkLocal): the same, with the line drawn at
-      // link-local and the metadata addresses instead of at every private one.
-      bool Connect_(boost::asio::io_context &io, boost::asio::ip::tcp::socket &socket, const AnsiString &host,
-                    const AnsiString &port, bool https, const std::string &proxy_host, const std::string &proxy_port,
-                    const Clock::time_point &deadline, String &error, bool public_only = false, bool not_link_local = false)
+      // Asks the proxy socket is connected to for a tunnel to target (host:port as a
+      // CONNECT names it), by deadline. True when the proxy answered 2xx; false
+      // with error set when it answered anything else. A failure to send or to
+      // read the answer throws, as every step of a request does.
+      bool AskProxyToConnect_(boost::asio::io_context &io, boost::asio::ip::tcp::socket &socket, const std::string &proxy_host,
+                              const std::string &proxy_port, const std::string &target, const Clock::time_point &deadline, String &error)
       {
-         if (public_only || not_link_local)
-         {
-            std::vector<boost::asio::ip::tcp::endpoint> vetted;
-            std::string refused;
-            for (const boost::asio::ip::tcp::endpoint &endpoint : ResolveWithin_(std::string(host.c_str()), std::string(port.c_str()), deadline))
-            {
-               const bool allowed = public_only
-                  ? IsPublicAddress(endpoint.address())
-                  : !IsLinkLocalOrMetadataAddress(endpoint.address());
-
-               if (allowed)
-                  vetted.push_back(endpoint);
-               else if (refused.empty())
-                  refused = endpoint.address().to_string();
-            }
-            if (vetted.empty())
-            {
-               if (public_only)
-               {
-                  error = Formatter::Format(_T("{0} is not a public address (loopback, private, link-local or reserved), and this request reaches only public ones."),
-                     refused.empty() ? String(host) : String(refused.c_str()));
-               }
-               else
-               {
-                  error = Formatter::Format(_T("{0} is a link-local or cloud metadata address, which this request never reaches."),
-                     refused.empty() ? String(host) : String(refused.c_str()));
-               }
-               return false;
-            }
-            ConnectWithin_(io, socket, vetted, deadline);
-            return true;
-         }
-
-         if (proxy_host.empty())
-         {
-            ConnectWithin_(io, socket, ResolveWithin_(std::string(host.c_str()), std::string(port.c_str()), deadline), deadline);
-            return true;
-         }
-
-         ConnectWithin_(io, socket, ResolveWithin_(proxy_host, proxy_port, deadline), deadline);
-
-         if (!https)
-            return true;
-
-         const std::string target = Authority_(host, port, true, true);
          const std::string connectRequest = "CONNECT " + target + " HTTP/1.1\r\nHost: " + target + "\r\nUser-Agent: hMailServer\r\n\r\n";
          WriteWithin_(io, socket, socket, connectRequest.data(), connectRequest.size(), deadline);
 
@@ -672,6 +616,101 @@ namespace HM
          }
 
          return true;
+      }
+
+      // Connects socket to host:port by deadline - directly, or through the proxy
+      // when proxy_host is not empty. For an https target the proxy is asked to
+      // CONNECT and the TLS handshake then runs inside the tunnel, so the proxy sees
+      // the name it was asked for and nothing of what follows. For plain http the
+      // caller has put the absolute URL in its request line and the proxy forwards it.
+      //
+      // public_only (RequestPublic): the name is resolved here, every address it
+      // gave is judged, and the connection is made to the addresses that passed
+      // and to no other - so a name that answers a public address to one lookup
+      // and a private one to the next gains nothing. Never through the proxy by
+      // name, which would have the proxy resolve it, out of sight of this: when
+      // proxy_host is set here (RequestPublicThroughProxy, the one caller that
+      // leaves it set for public_only), the proxy is asked to CONNECT to each
+      // address that passed in turn, written as the address, until one is taken.
+      //
+      // not_link_local (RequestNotLinkLocal): the same, with the line drawn at
+      // link-local and the metadata addresses instead of at every private one.
+      bool Connect_(boost::asio::io_context &io, boost::asio::ip::tcp::socket &socket, const AnsiString &host,
+                    const AnsiString &port, bool https, const std::string &proxy_host, const std::string &proxy_port,
+                    const Clock::time_point &deadline, String &error, bool public_only = false, bool not_link_local = false)
+      {
+         if (public_only || not_link_local)
+         {
+            std::vector<boost::asio::ip::tcp::endpoint> vetted;
+            std::string refused;
+            for (const boost::asio::ip::tcp::endpoint &endpoint : ResolveWithin_(std::string(host.c_str()), std::string(port.c_str()), deadline))
+            {
+               const bool allowed = public_only
+                  ? IsPublicAddress(endpoint.address())
+                  : !IsLinkLocalOrMetadataAddress(endpoint.address());
+
+               if (allowed)
+                  vetted.push_back(endpoint);
+               else if (refused.empty())
+                  refused = endpoint.address().to_string();
+            }
+            if (vetted.empty())
+            {
+               if (public_only)
+               {
+                  error = Formatter::Format(_T("{0} is not a public address (loopback, private, link-local or reserved), and this request reaches only public ones."),
+                     refused.empty() ? String(host) : String(refused.c_str()));
+               }
+               else
+               {
+                  error = Formatter::Format(_T("{0} is a link-local or cloud metadata address, which this request never reaches."),
+                     refused.empty() ? String(host) : String(refused.c_str()));
+               }
+               return false;
+            }
+            if (proxy_host.empty())
+            {
+               ConnectWithin_(io, socket, vetted, deadline);
+               return true;
+            }
+
+            // Through the proxy, to an address that was judged: a tunnel is all a
+            // proxy is asked for here, since a plain-http request would hand it the
+            // name. Request_ sends plain http only to a loopback address, which no
+            // request held to public addresses reaches, so this is said, not met.
+            if (!https)
+            {
+               error = _T("A request held to public addresses goes through the proxy only over https.");
+               return false;
+            }
+
+            // A connection to the proxy for each address, one after another:
+            // Asio's connect to a sequence of endpoints closes the socket before
+            // each attempt, so one the proxy refused is not reused.
+            const std::vector<boost::asio::ip::tcp::endpoint> proxies = ResolveWithin_(proxy_host, proxy_port, deadline);
+            for (const boost::asio::ip::tcp::endpoint &endpoint : vetted)
+            {
+               ConnectWithin_(io, socket, proxies, deadline);
+
+               const std::string target = Authority_(AnsiString(endpoint.address().to_string().c_str()), port, true, true);
+               if (AskProxyToConnect_(io, socket, proxy_host, proxy_port, target, deadline, error))
+                  return true;
+            }
+            return false;
+         }
+
+         if (proxy_host.empty())
+         {
+            ConnectWithin_(io, socket, ResolveWithin_(std::string(host.c_str()), std::string(port.c_str()), deadline), deadline);
+            return true;
+         }
+
+         ConnectWithin_(io, socket, ResolveWithin_(proxy_host, proxy_port, deadline), deadline);
+
+         if (!https)
+            return true;
+
+         return AskProxyToConnect_(io, socket, proxy_host, proxy_port, Authority_(host, port, true, true), deadline, error);
       }
 
       // Whether the host of a URL is an address rather than a name - ParseUrl has
@@ -957,10 +996,19 @@ namespace HM
    }
 
    bool
+   HttpsClient::RequestPublicThroughProxy(const AnsiString &method, const AnsiString &url, const std::vector<AnsiString> &extra_headers,
+                                          const AnsiString &content_type, const AnsiString &body, Response &response, String &error,
+                                          int timeout_seconds, size_t max_response_bytes)
+   {
+      return Request_(method, url, extra_headers, content_type, body, response, error, timeout_seconds, max_response_bytes, true, false,
+                      false, nullptr, true);
+   }
+
+   bool
    HttpsClient::Request_(const AnsiString &method, const AnsiString &url, const std::vector<AnsiString> &extra_headers,
                          const AnsiString &content_type, const AnsiString &body, Response &response, String &error,
                          int timeout_seconds, size_t max_response_bytes, bool public_only, bool not_link_local,
-                         bool keep_head_of_long_answer, const String *ca_file)
+                         bool keep_head_of_long_answer, const String *ca_file, bool public_through_proxy)
    {
       // RequestTrusting's CA file, when it named one.
       const bool trustFile = ca_file != nullptr && !ca_file->IsEmpty();
@@ -982,7 +1030,10 @@ namespace HM
       std::string proxyHost, proxyPort;
       if (!ProxySetting_(proxyHost, proxyPort, error))
          return false;
-      if (public_only || not_link_local || !ThroughProxy_(proxyHost, host))
+      // A request held to some addresses judges them itself and never hands the
+      // proxy a name; only RequestPublicThroughProxy keeps the proxy, which
+      // Connect_ then asks for a tunnel to an address it has judged.
+      if ((public_only && !public_through_proxy) || not_link_local || !ThroughProxy_(proxyHost, host))
       {
          proxyHost.clear();
          proxyPort.clear();

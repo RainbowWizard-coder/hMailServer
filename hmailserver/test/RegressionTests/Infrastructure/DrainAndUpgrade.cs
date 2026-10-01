@@ -523,9 +523,10 @@ namespace RegressionTests.Infrastructure
 
          // The IMAP port is free now, so something else can bind it - as a
          // program started during the maintenance would. On the wildcard address
-         // the bench's acceptors bind: Windows lets a wildcard bind coexist with
-         // a loopback one, so a squatter on 127.0.0.1 alone would not be in the
-         // server's way.
+         // the bench's acceptors bind, which is in their way whatever they set:
+         // a squatter on 127.0.0.1 alone would be in the way only of an acceptor
+         // that claims its port (SO_EXCLUSIVEADDRUSE, set on Windows since 6.3.6),
+         // and Linux refuses either.
          var squatter = new TcpListener(IPAddress.Any, TestPorts.Imap);
          squatter.Start();
 

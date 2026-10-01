@@ -1393,6 +1393,28 @@ namespace HM
             throw 0;
       }
 
+      OutputDebugString(_T("hMailServer: Testing the ACME header lookup\n"));
+      {
+         // The header block is cut at the blank line, so the header that comes last
+         // has no line break after it, and until 6.3.6 the lookup took it for no
+         // header at all: a CA that sent Replay-Nonce last left every request
+         // without a nonce. Field order carries no meaning (RFC 9110 section 5.3).
+         // network-deadline-tests holds the same cases on Linux.
+         const std::string headers = "HTTP/1.1 201 Created\r\nContent-Type: application/json\r\nLocation: https://ca.example/acct/1\r\nReplay-Nonce: last-nonce ";
+         if (AcmeClient::GetHeaderValue(headers, "replay-nonce") != "last-nonce")
+            throw 0;
+         if (AcmeClient::GetHeaderValue(headers, "location") != "https://ca.example/acct/1")
+            throw 0;
+         if (AcmeClient::GetHeaderValue(headers, "content-type") != "application/json")
+            throw 0;
+         if (!AcmeClient::GetHeaderValue(headers, "link").IsEmpty())
+            throw 0;
+
+         // A name that only ends another header's is not that header.
+         if (!AcmeClient::GetHeaderValue("HTTP/1.1 200 OK\r\nContent-Location: https://ca.example/x", "location").IsEmpty())
+            throw 0;
+      }
+
       OutputDebugString(_T("hMailServer: Testing the ACME renewal window against short certificate lifetimes\n"));
       {
          // The renewal decision is a fraction of the lifetime, not a fixed number of

@@ -736,6 +736,13 @@ namespace HM
 
    private:
 
+      // network-deadline-tests (platform/network_deadline_tests_main.cpp) runs the
+      // server's HTTPS clients, whose TLS context reads the protocol versions from
+      // here, in a program with no database to load them from: it publishes a
+      // settings set of its own holding those, and nothing else. The server never
+      // does that.
+      friend class NetworkDeadlineTests;
+
       // Creates the hm_settings rows that a database made before a feature
       // existed has none of, each with the default that is today's behaviour.
       // Runs once per Load, on the set Load is building, before it is published

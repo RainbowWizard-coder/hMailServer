@@ -115,7 +115,11 @@ needs:
 * **SMTP to the recipients' mail servers**, as above.
 * **The recipient domain's MTA-STS policy**, fetched over HTTPS from
   `mta-sts.<domain>` when the domain publishes one (`TlsPolicy.cpp`,
-  `MtaStsEnabled` = 1).
+  `MtaStsEnabled` = 1), and since 6.3.6 only from a public address, judged by
+  the addresses the name resolves to. Through `HttpProxy` when one is set, from
+  6.3.6, asked for a tunnel to one of those addresses rather than to the name,
+  so that proxy also learns them and, from the TLS handshake inside the tunnel,
+  the policy hosts' names.
 
 **Only when an administrator configures it:**
 

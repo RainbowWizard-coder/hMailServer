@@ -10,15 +10,19 @@ namespace HM
 {
    // One HTTP request, synchronously, with the response read to the end.
    //
-   // The third such client in this tree (AcmeClient::Transact_ and
-   // OutboundOAuth2TokenClient::HttpsPost_ are the other two) and the one meant to be
-   // shared from here on: the JWKS fetch and token introspection both need a verified
-   // HTTPS GET or POST with a bounded response, and nothing about that is specific to
-   // either. HTTP/1.0 with Connection: close, so the end of the response is the end of
-   // the stream and no chunked or keep-alive handling is needed.
+   // The one HTTPS client of this tree: the JWKS fetch and token introspection both
+   // need a verified HTTPS GET or POST with a bounded response, and nothing about
+   // that is specific to either. Since 6.3.6 the three that were written before it -
+   // AcmeClient::Transact_, OutboundOAuth2TokenClient::HttpsPost_ and
+   // TlsPolicy::HttpsGet_ (the MTA-STS policy) - go through it too: each set its
+   // timeout on the socket in the Windows form, which Linux refuses, and read with
+   // Asio's synchronous calls, which on POSIX wait with no timeout at all, so on
+   // Linux a peer that took the connection and never answered held the calling
+   // thread for good. HTTP/1.0 with Connection: close, so the end of the response is
+   // the end of the stream and no chunked or keep-alive handling is needed.
    //
    // https is verified against the machine's root store with the host name checked
-   // (CertificateVerifier), exactly as the two older clients do. Plain http is accepted
+   // (CertificateVerifier), as those three did. Plain http is accepted
    // only to a loopback address: a JWKS document or an introspection verdict fetched in
    // the clear from across a network would let whoever is on that network sign tokens
    // or revoke them, while a service on the same machine - or the fixtures - is a
@@ -79,6 +83,23 @@ namespace HM
                                 const AnsiString &content_type, const AnsiString &body, Response &response, String &error,
                                 int timeout_seconds = 10, size_t max_response_bytes = 32 * 1024,
                                 bool keep_head_of_long_answer = false);
+
+      // RequestPublic, through HttpProxy when one is set: for the MTA-STS policy
+      // fetch (TlsPolicy::HttpsGet_), whose host an outsider names - the recipient's
+      // domain - and which a server that reaches the web only through its proxy
+      // still has to make. The name is resolved and every address judged here, as
+      // RequestPublic judges them, and the proxy is asked to CONNECT to an address
+      // that passed, written as that address and not as the name, so that the proxy
+      // reaches what was judged and not what its own lookup answers; the TLS
+      // handshake inside the tunnel still names the host and checks its certificate
+      // against it. When the proxy refuses CONNECT to an address the next address
+      // that passed is tried, and when none is taken the request fails as one with
+      // no way out does - never directly. With no proxy set, or one that is not on
+      // this machine for a host that is, it is RequestPublic exactly. https only,
+      // as RequestPublic is in effect.
+      static bool RequestPublicThroughProxy(const AnsiString &method, const AnsiString &url, const std::vector<AnsiString> &extra_headers,
+                                            const AnsiString &content_type, const AnsiString &body, Response &response, String &error,
+                                            int timeout_seconds, size_t max_response_bytes);
 
       // Request, for an endpoint the administrator named that may be on this
       // server's own network - an inbound webhook's (InboundWebhooks.h) - but
@@ -160,6 +181,7 @@ namespace HM
       static bool Request_(const AnsiString &method, const AnsiString &url, const std::vector<AnsiString> &extra_headers,
                            const AnsiString &content_type, const AnsiString &body, Response &response, String &error,
                            int timeout_seconds, size_t max_response_bytes, bool public_only, bool not_link_local,
-                           bool keep_head_of_long_answer = false, const String *ca_file = nullptr);
+                           bool keep_head_of_long_answer = false, const String *ca_file = nullptr,
+                           bool public_through_proxy = false);
    };
 }

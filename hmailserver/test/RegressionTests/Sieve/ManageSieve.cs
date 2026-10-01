@@ -430,5 +430,65 @@ namespace RegressionTests.Sieve
             _application.Reinitialize();
          }
       }
+
+      /// <summary>
+      ///    The listener serves one session at a time, so a client that connects and
+      ///    then says nothing must be let go after the thirty-second socket timeout for
+      ///    the next client to be greeted at all. Until 6.3.6 that timeout was set in
+      ///    the Windows form, which Linux refuses, so on Linux the idle client held the
+      ///    listener for as long as it stayed connected and nobody else could manage a
+      ///    script: against that code this test fails on Linux, at the read timeout
+      ///    below. Windows honoured the timeout all along, and there it guards it.
+      /// </summary>
+      [Test]
+      [Description("A client that connects to ManageSieve and says nothing is let go, and the next client is greeted.")]
+      public void AnIdleClientIsLetGoAndTheNextOneGreeted()
+      {
+         WriteSetting("ManageSieveServerBindAddress", "127.0.0.1");
+         WriteSetting("ManageSieveServerPort", ManageSievePort.ToString());
+         _application.Reinitialize();
+
+         try
+         {
+            // The listener is up once a session is greeted.
+            using (var first = new Session())
+               StringAssert.Contains("IMPLEMENTATION", first.ReadResponse());
+
+            using (var idle = new TcpClient())
+            using (var next = new TcpClient())
+            {
+               idle.Connect("127.0.0.1", ManageSievePort);
+               next.Connect("127.0.0.1", ManageSievePort);
+
+               // The next client's greeting comes when the idle one is let go, thirty
+               // seconds on; it is given fifty.
+               var watch = System.Diagnostics.Stopwatch.StartNew();
+               NetworkStream stream = next.GetStream();
+               stream.ReadTimeout = 50000;
+
+               string greeting;
+               try
+               {
+                  var buffer = new byte[4096];
+                  int read = stream.Read(buffer, 0, buffer.Length);
+                  greeting = Encoding.UTF8.GetString(buffer, 0, Math.Max(read, 0));
+               }
+               catch (System.IO.IOException e)
+               {
+                  Assert.Fail("The client behind one that said nothing was not greeted in " + watch.Elapsed.TotalSeconds.ToString("0.0") +
+                     " s: the listener is still waiting on the idle client. " + e.Message);
+                  return;
+               }
+
+               StringAssert.Contains("IMPLEMENTATION", greeting, "The client behind an idle one was not greeted.");
+               Assert.Less(watch.Elapsed.TotalSeconds, 50, "The client behind an idle one was greeted only after " + watch.Elapsed.TotalSeconds.ToString("0.0") + " s.");
+            }
+         }
+         finally
+         {
+            WriteSetting("ManageSieveServerPort", "0");
+            _application.Reinitialize();
+         }
+      }
    }
 }

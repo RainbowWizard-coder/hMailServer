@@ -459,8 +459,13 @@ namespace HM
          return false;
       }
 
-      BOOL reuseAddress = TRUE;
-      setsockopt(listen_socket_, SOL_SOCKET, SO_REUSEADDR, (const char*) &reuseAddress, sizeof(reuseAddress));
+      AcceptLoop::AllowRebindPastTimeWait(listen_socket_);
+
+      // Windows: no other socket takes this port's scrapes and probes on a more
+      // specific address, and this listener does not start on the wildcard while
+      // another holds one address of the port. The server binds nothing else on
+      // the metrics port, so nothing of its own is refused (AcceptLoop.h).
+      AcceptLoop::ClaimPortExclusively(listen_socket_);
 
       if (!TryEnableDualStack(listen_socket_, address))
          LOG_APPLICATION("MetricsServer: IPV6_V6ONLY could not be cleared for the :: bind, so this listener will accept IPv6 connections only. Bind 0.0.0.0 instead if IPv4 is what is needed.");
@@ -852,10 +857,10 @@ namespace HM
          // gives no way to bound a blocking SSL_accept without driving it
          // non-blocking through select(), and Stop()'s shutdown() above is what
          // makes that acceptable, because it means such a client can delay this
-         // listener but not the service stop.
-         DWORD timeout = SocketTimeoutMilliseconds;
-         setsockopt(connection.socket, SOL_SOCKET, SO_RCVTIMEO, (const char*) &timeout, sizeof(timeout));
-         setsockopt(connection.socket, SOL_SOCKET, SO_SNDTIMEO, (const char*) &timeout, sizeof(timeout));
+         // listener but not the service stop. In the form each platform takes:
+         // until 6.3.6 Linux was handed the Windows form, refused it, and read
+         // with no timeout at all (AcceptLoop::SetTimeouts).
+         AcceptLoop::SetTimeouts(connection.socket, SocketTimeoutMilliseconds);
 
          // This function is the top of a std::thread. There is nothing above it to
          // catch anything, so an exception that escaped here would be

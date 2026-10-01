@@ -130,6 +130,66 @@ namespace RegressionTests.Infrastructure
          Assert.IsTrue(tcpConnection.TestConnect(143));
       }
 
+      /// <summary>
+      ///    One port number listed twice, on the wildcard and on 127.0.0.1, is two
+      ///    listeners on Windows, the one on 127.0.0.1 taking the connections made to
+      ///    it - an administrator's way of giving local programs a port of their own
+      ///    settings. Since 6.3.6 a mail listener claims its port with
+      ///    SO_EXCLUSIVEADDRUSE, which would refuse the second of such a pair, so
+      ///    IOService leaves it off for a number listed twice in one family. Against a
+      ///    server that set it on every mail listener the 127.0.0.1 listener is refused
+      ///    (HM4316), a connection to 127.0.0.1 is answered by the one on the wildcard,
+      ///    and this fails. The pair is SMTP on 0.0.0.0 and POP3 on 127.0.0.1, so the
+      ///    greeting says which answered. Linux refuses the second bind of such a pair
+      ///    whatever is set; there SetDefault, which no REST route does, skips this.
+      /// </summary>
+      [Test]
+      [Category("TCP/IP implementation")]
+      [Description("A port number listed on 0.0.0.0 and again on 127.0.0.1 is two listeners, each answering its own address.")]
+      public void OneNumberOnTheWildcardAndOnLoopbackIsTwoListeners()
+      {
+         var application = SingletonProvider<TestSetup>.Instance.GetApp();
+
+         application.Settings.TCPIPPorts.SetDefault();
+         application.Stop();
+
+         try
+         {
+            const int shared = 25001;
+
+            var wildcard = application.Settings.TCPIPPorts.Add();
+            wildcard.Protocol = eSessionType.eSTSMTP;
+            wildcard.Address = "0.0.0.0";
+            wildcard.PortNumber = shared;
+            wildcard.Save();
+
+            var loopback = application.Settings.TCPIPPorts.Add();
+            loopback.Protocol = eSessionType.eSTPOP3;
+            loopback.Address = "127.0.0.1";
+            loopback.PortNumber = shared;
+            loopback.Save();
+
+            application.Start();
+
+            using (var connection = new TcpConnection())
+            {
+               Assert.IsTrue(connection.Connect(System.Net.IPAddress.Loopback, shared), "Nothing listens on 127.0.0.1:" + shared + ".");
+               string greeting = connection.Receive();
+               Assert.IsTrue(greeting != null && greeting.StartsWith("+OK"),
+                  "127.0.0.1:" + shared + " was not answered by the POP3 listener on 127.0.0.1 but with: " + greeting);
+            }
+
+            // Neither listener reported a port it could not bind.
+            CustomAsserts.AssertNoReportedError();
+         }
+         finally
+         {
+            application.Stop();
+            application.Settings.TCPIPPorts.SetDefault();
+            application.Start();
+         }
+      }
+
       [Test]
       public void TestDefaultPortCount()
       {

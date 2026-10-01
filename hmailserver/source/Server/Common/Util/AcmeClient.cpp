@@ -8,6 +8,7 @@
 
 #include "AcmeClient.h"
 #include "FileUtilities.h"
+#include "HttpsClient.h"
 #include "OtelTracer.h"
 #include "WebServicesServer.h"
 #include "Encoding/Base64.h"
@@ -21,9 +22,7 @@
 #include "../Persistence/PersistentSSLCertificate.h"
 #include "../Persistence/PersistentTCPIPPort.h"
 #include "../TCPIP/AcceptLoop.h"
-#include "../TCPIP/CertificateVerifier.h"
 #include "../TCPIP/SocketConstants.h"
-#include "../TCPIP/SslContextInitializer.h"
 
 #ifdef HM_PLATFORM_POSIX
 namespace
@@ -44,9 +43,6 @@ namespace
 // SD_SEND is SHUT_WR. Same meaning, same value, different spelling.
 static const int SD_SEND = SHUT_WR;
 #endif
-
-#include <boost/asio.hpp>
-#include <boost/asio/ssl.hpp>
 
 // <ws2tcpip.h> is Winsock's TCP/IP header. Everything this file takes from it -
 // the address structures and the address-conversion calls - comes from
@@ -75,7 +71,9 @@ namespace HM
 {
    namespace
    {
-      const int HttpsTimeoutMilliseconds = 30000;
+      // One ACME request, all of it: the lookup, the connection, the handshake
+      // and the answer (HttpsClient's deadline).
+      const int HttpsTimeoutSeconds = 30;
       const size_t MaxResponseSize = 1024 * 1024;
       const int PollIntervalMilliseconds = 2000;
       const int MaxPollAttempts = 30;
@@ -185,28 +183,6 @@ namespace HM
          }
 
          return !host.IsEmpty();
-      }
-
-      AnsiString GetHeaderValue(const std::string &headers, const std::string &headerName)
-      {
-         std::string lowerHeaders = headers;
-         for (size_t i = 0; i < lowerHeaders.size(); i++)
-            lowerHeaders[i] = (char) tolower((unsigned char) lowerHeaders[i]);
-
-         std::string needle = "\r\n" + headerName + ":";
-
-         size_t position = lowerHeaders.find(needle);
-         if (position == std::string::npos)
-            return "";
-
-         size_t valueStart = position + needle.size();
-         size_t lineEnd = headers.find("\r\n", valueStart);
-         if (lineEnd == std::string::npos)
-            return "";
-
-         AnsiString value = headers.substr(valueStart, lineEnd - valueStart).c_str();
-         value.Trim();
-         return value;
       }
 
       // Extracts the JSON object that encloses the given position.
@@ -543,139 +519,64 @@ namespace HM
    AcmeClient::Transact_(const AnsiString &url, const AnsiString &method, const AnsiString &payload, HttpResponse &response)
    {
       // OpenTelemetry: a client span for the outbound request, whose traceparent
-      // is emitted with the request headers below. No-op unless OtelEndpoint is
+      // goes out with the request's headers below. No-op unless OtelEndpoint is
       // configured.
       OtelSpanScope otelSpan("http.request", OtelSpanKindClient, AnsiString());
 
-      try
+      // https only: RFC 8555 section 6.1 has every ACME request made over HTTPS,
+      // and HttpsClient would also take plain http to a loopback address.
+      AnsiString host;
+      AnsiString port;
+      AnsiString path;
+
+      if (!ParseHttpsUrl(url, host, port, path))
+         return false;
+
+      otelSpan.AddAttribute("http.host", host);
+
+      // Through HttpsClient, whose deadline bounds the whole request - the name
+      // lookup, the connection, the handshake, sending and reading the answer to
+      // its end - on every platform. The synchronous client this replaces handed
+      // SO_RCVTIMEO a DWORD, which Linux refuses (it takes a timeval), and Asio's
+      // synchronous calls on POSIX wait with no timeout anyway: a CA that took the
+      // connection and never answered held the thread - the hourly renewal task's -
+      // for good. Certificate verification against the machine's store with the
+      // host name checked, SNI, the TLS 1.2 floor and the shared client settings
+      // (SslContextInitializer::InitClient) are HttpsClient's, as they were this
+      // client's.
+      //
+      // Accept: */* because HttpsClient asks for JSON unless told otherwise, and a
+      // certificate comes back as application/pem-certificate-chain; the old client
+      // named no type at all.
+      std::vector<AnsiString> headers;
+      headers.push_back("Accept: */*");
+
+      // W3C trace context: propagate this request's span. Empty (and no header at
+      // all) when tracing is disabled.
+      const AnsiString otelTraceparent = otelSpan.GetTraceparentValue();
+      if (!otelTraceparent.IsEmpty())
+         headers.push_back("traceparent: " + otelTraceparent);
+
+      HttpsClient::Response httpsResponse;
+      String error;
+      if (!HttpsClient::Request(method, url, headers, "application/jose+json", payload, httpsResponse, error,
+                                HttpsTimeoutSeconds, MaxResponseSize))
       {
-         AnsiString host;
-         AnsiString port;
-         AnsiString path;
-
-         if (!ParseHttpsUrl(url, host, port, path))
-            return false;
-
-         otelSpan.AddAttribute("http.host", host);
-
-         boost::asio::io_context ioContext;
-
-         boost::asio::ip::tcp::resolver resolver(ioContext);
-         boost::asio::ip::tcp::resolver::results_type endpoints =
-            resolver.resolve(std::string(host.c_str()), std::string(port.c_str()));
-
-         boost::asio::ssl::context sslContext(boost::asio::ssl::context::tls_client);
-         // An HTTPS client of a web service: TLS 1.2 is the floor whatever the mail
-         // protocol toggles allow, since there is no 2008-era CA, token issuer or
-         // policy host to accommodate.
-         sslContext.set_options(HM_TLS_CONTEXT_FLOOR);
-         sslContext.set_default_verify_paths();
-
-         // Through the shared client initialiser, for the same reason the optional
-         // HTTP listeners were moved onto the shared server one: this context was
-         // built here and configured nowhere, so the enabled TLS versions, the
-         // cipher list and the key-exchange groups did not apply to it. The
-         // connection that fetches this server's own certificate was the least
-         // configured TLS in the build. InitClient does not touch the verify mode
-         // or the verify callback set below, so peer verification is unaffected.
-         SslContextInitializer::InitClient(sslContext, false);
-
-         boost::asio::ssl::stream<boost::asio::ip::tcp::socket> stream(ioContext, sslContext);
-
-         boost::asio::connect(stream.next_layer(), endpoints);
-
-         DWORD timeout = HttpsTimeoutMilliseconds;
-         setsockopt(stream.next_layer().native_handle(), SOL_SOCKET, SO_RCVTIMEO, (const char*) &timeout, sizeof(timeout));
-         setsockopt(stream.next_layer().native_handle(), SOL_SOCKET, SO_SNDTIMEO, (const char*) &timeout, sizeof(timeout));
-
-         stream.set_verify_mode(boost::asio::ssl::verify_peer);
-         stream.set_verify_callback(CertificateVerifier(0, CSSSL, String(host)));
-
-         if (!SSL_set_tlsext_host_name(stream.native_handle(), host.c_str()))
-            return false;
-
-         stream.handshake(boost::asio::ssl::stream_base::client);
-
-         AnsiString contentLength;
-         contentLength.Format("%d", payload.GetLength());
-
-         AnsiString request;
-         request.append(method);
-         request.append(" ");
-         request.append(path);
-         request.append(" HTTP/1.0\r\nHost: ");
-         request.append(host);
-         request.append("\r\nUser-Agent: hMailServer-ACME\r\n");
-
-         // W3C trace context: propagate this request's span. Empty (and no
-         // header at all) when tracing is disabled.
-         AnsiString otelTraceparent = otelSpan.GetTraceparentValue();
-         if (!otelTraceparent.IsEmpty())
-         {
-            request.append("traceparent: ");
-            request.append(otelTraceparent);
-            request.append("\r\n");
-         }
-
-         if (method == "POST")
-         {
-            request.append("Content-Type: application/jose+json\r\nContent-Length: ");
-            request.append(contentLength);
-            request.append("\r\n");
-         }
-
-         request.append("Connection: close\r\n\r\n");
-         request.append(payload);
-
-         boost::asio::write(stream, boost::asio::buffer(request.c_str(), request.GetLength()));
-
-         std::string rawResponse;
-         char buffer[4096];
-         boost::system::error_code errorCode;
-
-         for (;;)
-         {
-            size_t bytesRead = stream.read_some(boost::asio::buffer(buffer, sizeof(buffer)), errorCode);
-
-            if (bytesRead > 0)
-               rawResponse.append(buffer, bytesRead);
-
-            if (errorCode)
-               break;
-
-            if (rawResponse.size() > MaxResponseSize)
-               break;
-         }
-
-         size_t firstLineEnd = rawResponse.find("\r\n");
-         size_t headerEnd = rawResponse.find("\r\n\r\n");
-
-         if (firstLineEnd == std::string::npos || headerEnd == std::string::npos)
-            return false;
-
-         // Status line: HTTP/1.x NNN ...
-         std::string statusLine = rawResponse.substr(0, firstLineEnd);
-         size_t spacePosition = statusLine.find(' ');
-         if (spacePosition == std::string::npos)
-            return false;
-
-         response.status_code = atoi(statusLine.c_str() + spacePosition + 1);
-
-         std::string headers = rawResponse.substr(0, headerEnd);
-
-         response.nonce = GetHeaderValue(headers, "replay-nonce");
-         response.location = GetHeaderValue(headers, "location");
-         response.body = rawResponse.substr(headerEnd + 4).c_str();
-
-         if (!response.nonce.IsEmpty())
-            nonce_ = response.nonce;
-
-         return true;
-      }
-      catch (...)
-      {
+         LOG_DEBUG("ACME: " + String(method) + " " + String(url) + " failed: " + error);
          return false;
       }
+
+      response.status_code = httpsResponse.status_code;
+
+      const std::string headerBlock(httpsResponse.headers.c_str());
+      response.nonce = GetHeaderValue(headerBlock, "replay-nonce");
+      response.location = GetHeaderValue(headerBlock, "location");
+      response.body = httpsResponse.body;
+
+      if (!response.nonce.IsEmpty())
+         nonce_ = response.nonce;
+
+      return true;
    }
 
    AnsiString
@@ -713,6 +614,35 @@ namespace HM
    AcmeClient::Base64Url_(const AnsiString &data)
    {
       return Base64Url_((const unsigned char*) data.c_str(), data.GetLength());
+   }
+
+   // static
+   AnsiString
+   AcmeClient::GetHeaderValue(const std::string &headers, const std::string &headerName)
+   {
+      std::string lowerHeaders = headers;
+      for (size_t i = 0; i < lowerHeaders.size(); i++)
+         lowerHeaders[i] = (char) tolower((unsigned char) lowerHeaders[i]);
+
+      std::string needle = "\r\n" + headerName + ":";
+
+      size_t position = lowerHeaders.find(needle);
+      if (position == std::string::npos)
+         return "";
+
+      // The block ends with the last header's value and no line break after it
+      // (HttpsClient cuts it at the blank line, as Transact_ used to), so the
+      // header that comes last runs to the end of the block. Field order carries
+      // no meaning (RFC 9110 section 5.3): a CA that sends Replay-Nonce or Location
+      // last must not have it read as absent, which it was until 6.3.6.
+      size_t valueStart = position + needle.size();
+      size_t lineEnd = headers.find("\r\n", valueStart);
+      if (lineEnd == std::string::npos)
+         lineEnd = headers.size();
+
+      AnsiString value(headers.substr(valueStart, lineEnd - valueStart));
+      value.Trim();
+      return value;
    }
 
    // static
@@ -1762,8 +1692,15 @@ namespace HM
       if (listen_socket_ == INVALID_SOCKET)
          return false;
 
-      BOOL reuseAddress = TRUE;
-      setsockopt(listen_socket_, SOL_SOCKET, SO_REUSEADDR, (const char*) &reuseAddress, sizeof(reuseAddress));
+      AcceptLoop::AllowRebindPastTimeWait(listen_socket_);
+
+      // Not AcceptLoop::ClaimPortExclusively, alone of the server's listeners: this
+      // one binds the wildcard of AcmeHttpPort for the seconds a validation takes,
+      // on a port that another web server, or this server's REST listener, may
+      // hold on one address of the machine (an intranet site on an internal
+      // address, port 80). Without the option the wildcard bind takes every other
+      // address, which is where the CA comes from; with it that bind is refused
+      // (WSAEADDRINUSE, measured on Windows 11) and the certificate not renewed.
 
       if (bind(listen_socket_, reinterpret_cast<const sockaddr*>(&address), sizeof(address)) == SOCKET_ERROR ||
           listen(listen_socket_, 5) == SOCKET_ERROR)
@@ -1819,9 +1756,10 @@ namespace HM
             continue;
          }
 
-         DWORD timeout = 5000;
-         setsockopt(clientSocket, SOL_SOCKET, SO_RCVTIMEO, (const char*) &timeout, sizeof(timeout));
-         setsockopt(clientSocket, SOL_SOCKET, SO_SNDTIMEO, (const char*) &timeout, sizeof(timeout));
+         // Five seconds, in the form each platform takes: until 6.3.6 Linux was
+         // handed the Windows form, refused it, and a client that connected and
+         // sent nothing kept the CA's validation request from being answered.
+         AcceptLoop::SetTimeouts(clientSocket, 5000);
 
          char buffer[4096];
          int bytesRead = recv(clientSocket, buffer, sizeof(buffer) - 1, 0);

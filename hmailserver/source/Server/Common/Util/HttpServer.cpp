@@ -69,6 +69,7 @@
 #include "HttpServer.h"
 #include "HttpCompression.h"
 #include "FileUtilities.h"
+#include "../TCPIP/AcceptLoop.h"
 
 #include <algorithm>
 #include <chrono>
@@ -1136,7 +1137,8 @@ namespace HM
       refused_over_cap_(0),
       pending_accepts_(0),
       large_responses_(0),
-      refused_large_(0)
+      refused_large_(0),
+      dropped_on_accept_(0)
    {
       if (limits_.worker_threads == 0)
          limits_.worker_threads = 1;
@@ -1200,7 +1202,22 @@ namespace HM
             LOG_APPLICATION(String(name_) + ": IPV6_V6ONLY could not be cleared for the :: bind, so this listener will accept IPv6 connections only. Bind 0.0.0.0 instead if IPv4 is what is needed.");
       }
 
+#ifdef HM_PLATFORM_POSIX
+      // SO_REUSEADDR on POSIX only, as TCPServer and AcceptLoop set it: there it
+      // lets a reinitialise bind while the last connections linger in TIME_WAIT;
+      // on Windows it let this listener bind a port another socket with the option
+      // was listening on, and report itself started while the connections went to
+      // the other (AcceptLoop::AllowRebindPastTimeWait has the measurements).
       listener->acceptor.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true), error);
+#else
+      // SO_EXCLUSIVEADDRUSE, so that no other socket takes this port's requests on
+      // a more specific address and this listener does not start on the wildcard
+      // while another holds one address of the port (AcceptLoop::
+      // ClaimPortExclusively has the measurements). The REST and web-services
+      // listeners each bind one address of their own setting per port, so none of
+      // the server's own listeners is refused by it.
+      AcceptLoop::ClaimPortExclusively(listener->acceptor.native_handle());
+#endif
 
       listener->acceptor.bind(endpoint, error);
       if (!error)
@@ -1345,6 +1362,19 @@ namespace HM
          {
             // Constructing the connection can only realistically fail by
             // bad_alloc; the socket is closed by its destructor either way.
+            // Said, as RunWorker_ says what escapes a worker - for the first
+            // connection and then once per OverCapLogInterval with the count, so
+            // that an error that stops every connection writes a line and not a
+            // line per connection. The next accept is queued already; a throw
+            // from the log itself goes to RunWorker_, which says it and goes on.
+            const unsigned dropped = ++self->dropped_on_accept_;
+            if (dropped == 1 || dropped % OverCapLogInterval == 0)
+            {
+               String message;
+               message.Format(_T("%s: An accepted connection could not be started: an unexpected error stopped it, and it was closed. The listener goes on accepting. %u so far."),
+                  String(self->name_).c_str(), dropped);
+               LOG_APPLICATION(message);
+            }
          }
       });
    }

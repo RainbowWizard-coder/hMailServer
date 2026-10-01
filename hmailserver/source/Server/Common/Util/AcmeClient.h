@@ -22,6 +22,9 @@ namespace HM
    public:
       AcmeClient();
       ~AcmeClient();
+      // The destructor frees account_key_: a copy would free it a second time.
+      AcmeClient(const AcmeClient &) = delete;
+      AcmeClient &operator=(const AcmeClient &) = delete;
 
       // When a certificate with these dates should be renewed.
       //
@@ -110,6 +113,13 @@ namespace HM
       // the challenge object, or -1. Public and static so the self-test can
       // pin the real CA's response shape.
       static int FindChallengeOfType(const AnsiString &json, const AnsiString &challengeType);
+
+      // The trimmed value of a header in a response's header block - the status
+      // line and the headers, cut at the blank line - found by its lower-case
+      // name; empty when the block has no such header. Public and static so the
+      // self-test can pin the header that comes last, which has no line break
+      // after it.
+      static AnsiString GetHeaderValue(const std::string &headers, const std::string &headerName);
 
    private:
 

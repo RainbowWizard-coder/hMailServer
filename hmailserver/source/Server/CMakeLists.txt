@@ -741,6 +741,28 @@ add_executable(update-feed-tests ${SERVER_DIR}/platform/update_feed_tests_main.c
 target_link_libraries(update-feed-tests PRIVATE hmailserver_core)
 set_target_properties(update-feed-tests PROPERTIES OUTPUT_NAME update-feed-tests)
 
+# ---------------------------------------------------------------- the network deadlines
+#
+# The server's own network clients and raw-socket listeners held to their
+# deadlines against peers that never answer, as a program of its own: nothing
+# on Windows needs it, where the socket timeouts these used to set were always
+# honoured, and on Linux, where they were refused, it is the only test that can
+# see one hang. The OAuth2 token request, an ACME request, the DANE TLSA query
+# and the ACME http-01 responder, each against a peer of its own on 127.0.0.1;
+# the MTA-STS policy fetch, held to public addresses, refusing the loopback and
+# then going through a silent proxy of its own on 127.0.0.1; and the ACME header
+# lookup (platform/network_deadline_tests_main.cpp says what each must do). A
+# configuration file of its own under the system's temp directory, removed
+# again; no database, no name asked of DNS, no connection but to 127.0.0.1 (the
+# http-01 responder listens on every address for the seconds its case takes),
+# no root - but the loopback, so the source packages' builds, which refuse every
+# socket, leave it out of their lists. About three quarters of a minute: the
+# longest deadline, the cases running at once, then the proxied fetch's. Not
+# installed; a bench tool.
+add_executable(network-deadline-tests ${SERVER_DIR}/platform/network_deadline_tests_main.cpp)
+target_link_libraries(network-deadline-tests PRIVATE hmailserver_core)
+set_target_properties(network-deadline-tests PROPERTIES OUTPUT_NAME network-deadline-tests)
+
 include(GNUInstallDirs)
 install(TARGETS hmailserver RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 install(DIRECTORY ${SERVER_DIR}/../DBScripts/

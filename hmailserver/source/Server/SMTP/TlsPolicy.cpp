@@ -5,14 +5,13 @@
 // Outbound TLS policy support (MTA-STS, DANE TLSA). See TlsPolicy.h.
 
 #include "stdafx.h"
-#include "../Common/TCPIP/SslContextInitializer.h"
 
 #include "TlsPolicy.h"
 
 #include "../Common/TCPIP/DNSResolver.h"
-#include "../Common/TCPIP/CertificateVerifier.h"
 #include "../Common/TCPIP/DnssecResolver.h"
 #include "../Common/TCPIP/SocketConstants.h"
+#include "../Common/Util/HttpsClient.h"
 #include "../Common/Util/TlsRptStore.h"
 
 // <ws2tcpip.h> is Winsock's TCP/IP header. Everything this file takes from it -
@@ -37,7 +36,6 @@
 #endif
 
 #include <openssl/rand.h>
-#include <openssl/ssl.h>
 
 #include <ctime>
 
@@ -64,9 +62,34 @@ namespace HM
       const int RevalidateIntervalSeconds = 3600;
       const int NegativeCacheSeconds = 1800; // Cache "no policy" results for 30 minutes.
       const int DnsTimeoutMilliseconds = 5000;
-      const int HttpsTimeoutMilliseconds = 15000;
+      // The MTA-STS policy fetch, all of it: the lookup, the connection, the
+      // handshake and the answer (HttpsClient's deadline).
+      const int HttpsTimeoutSeconds = 15;
       const unsigned short DnsTypeTlsa = 52;
       const size_t MaxTlsaRecords = 8;
+
+      // Whether the policy host is a DNS name and nothing more: letters, digits,
+      // hyphens, dots and the underscore some names carry. It is
+      // mta-sts.<the recipient's domain>, and it is put into a URL, where a colon
+      // would name another port, a slash another path and an @ another host; RFC
+      // 8461 section 3.3 has the policy fetched from that name on port 443 and
+      // nowhere else. The client this replaced resolved the whole text as a name,
+      // which such a host never was.
+      bool IsPolicyHostName_(const String &host)
+      {
+         if (host.IsEmpty() || host.GetLength() > 253)
+            return false;
+
+         for (int i = 0; i < host.GetLength(); i++)
+         {
+            const auto c = host[i];
+            const bool letterOrDigit = (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9');
+            if (!letterOrDigit && c != '-' && c != '.' && c != '_')
+               return false;
+         }
+
+         return true;
+      }
 
       // Everything that is not one of the four enumerators - a cast from
       // another enum, an uninitialized struct member, an out-of-range
@@ -266,8 +289,12 @@ namespace HM
       max_age = 0;
 
       AnsiString body;
-      if (!HttpsGet_("mta-sts." + domain, "/.well-known/mta-sts.txt", body))
+      String error;
+      if (!HttpsGet_("mta-sts." + domain, "/.well-known/mta-sts.txt", body, error))
+      {
+         LOG_DEBUG("MTA-STS: No policy for " + domain + ": " + error);
          return false;
+      }
 
       if (!ParseStsPolicyBody_(body, policy, max_age))
          return false;
@@ -382,91 +409,51 @@ namespace HM
    }
 
    bool
-   TlsPolicy::HttpsGet_(const String &host, const AnsiString &path, AnsiString &response_body)
+   TlsPolicy::HttpsGet_(const String &host, const AnsiString &path, AnsiString &response_body, String &error)
    {
-      try
+      if (!IsPolicyHostName_(host))
       {
-         AnsiString narrowHost = host;
-
-         boost::asio::io_context ioContext;
-
-         boost::asio::ip::tcp::resolver resolver(ioContext);
-         boost::asio::ip::tcp::resolver::results_type endpoints =
-            resolver.resolve(std::string(narrowHost.c_str()), "443");
-
-         boost::asio::ssl::context sslContext(boost::asio::ssl::context::tls_client);
-         // An HTTPS client of a web service: TLS 1.2 is the floor whatever the mail
-         // protocol toggles allow, since there is no 2008-era CA, token issuer or
-         // policy host to accommodate.
-         sslContext.set_options(HM_TLS_CONTEXT_FLOOR);
-         sslContext.set_default_verify_paths();
-
-         boost::asio::ssl::stream<boost::asio::ip::tcp::socket> stream(ioContext, sslContext);
-
-         boost::asio::connect(stream.next_layer(), endpoints);
-
-         // Apply socket-level timeouts so a stalled policy host cannot hang
-         // the delivery thread indefinitely.
-         DWORD timeout = HttpsTimeoutMilliseconds;
-         setsockopt(stream.next_layer().native_handle(), SOL_SOCKET, SO_RCVTIMEO, (const char*) &timeout, sizeof(timeout));
-         setsockopt(stream.next_layer().native_handle(), SOL_SOCKET, SO_SNDTIMEO, (const char*) &timeout, sizeof(timeout));
-
-         // RFC 8461 requires certificate validation for the policy fetch.
-         stream.set_verify_mode(boost::asio::ssl::verify_peer);
-         stream.set_verify_callback(CertificateVerifier(0, CSSSL, host));
-
-         if (!SSL_set_tlsext_host_name(stream.native_handle(), narrowHost.c_str()))
-            return false;
-
-         stream.handshake(boost::asio::ssl::stream_base::client);
-
-         AnsiString request;
-         request.append("GET ");
-         request.append(path);
-         request.append(" HTTP/1.0\r\nHost: ");
-         request.append(narrowHost);
-         request.append("\r\nUser-Agent: hMailServer\r\nConnection: close\r\n\r\n");
-
-         boost::asio::write(stream, boost::asio::buffer(request.c_str(), request.GetLength()));
-
-         std::string response;
-         char buffer[4096];
-         boost::system::error_code errorCode;
-
-         for (;;)
-         {
-            size_t bytesRead = stream.read_some(boost::asio::buffer(buffer, sizeof(buffer)), errorCode);
-
-            if (bytesRead > 0)
-               response.append(buffer, bytesRead);
-
-            if (errorCode)
-               break;
-
-            if (response.size() > MaxPolicyBodySize)
-               break;
-         }
-
-         // Parse the status line.
-         size_t firstLineEnd = response.find("\r\n");
-         if (firstLineEnd == std::string::npos)
-            return false;
-
-         std::string statusLine = response.substr(0, firstLineEnd);
-         if (statusLine.find(" 200") == std::string::npos)
-            return false;
-
-         size_t headerEnd = response.find("\r\n\r\n");
-         if (headerEnd == std::string::npos)
-            return false;
-
-         response_body = response.substr(headerEnd + 4).c_str();
-         return true;
-      }
-      catch (...)
-      {
+         error = _T("The policy host is not a host name.");
          return false;
       }
+
+      // Through HttpsClient, whose deadline bounds the whole fetch - the name
+      // lookup, the connection, the handshake, the request and the answer to its
+      // end - on every platform. The synchronous client this replaces handed
+      // SO_RCVTIMEO a DWORD, which Linux refuses (it takes a timeval), and Asio's
+      // synchronous calls on POSIX wait with no timeout anyway, so on Linux a
+      // policy host that took the connection and never answered held the delivery
+      // thread for as long as it liked. What RFC 8461 section 3.3 asks of the fetch
+      // is HttpsClient's too: the certificate is verified against the machine's
+      // store with the host name checked, SNI is sent, and no redirect is followed
+      // (a 3xx is not a 200, so there is no policy). An answer longer than
+      // MaxPolicyBodySize is no policy either, where the old client parsed what
+      // it had read by then.
+      //
+      // Held to public addresses (RequestPublicThroughProxy): the policy host is
+      // whatever the recipient's domain names, and a fetch made for a stranger's
+      // domain must not be a way to this server's own network - loopback, the
+      // private ranges, link-local and the cloud metadata addresses are refused,
+      // judged by the addresses the name resolves to, and the connection is made
+      // to those addresses. HttpProxy carries it when one is set, asked for a
+      // tunnel to an address that was judged rather than to the name.
+      //
+      // Accept: */* because HttpsClient asks for JSON unless told otherwise, and the
+      // policy is text/plain; the old client named no type at all.
+      HttpsClient::Response response;
+      const std::vector<AnsiString> headers(1, AnsiString("Accept: */*"));
+      if (!HttpsClient::RequestPublicThroughProxy("GET", AnsiString("https://") + AnsiString(host) + path, headers, "", "",
+                                                  response, error, HttpsTimeoutSeconds, MaxPolicyBodySize))
+         return false;
+
+      if (response.status_code != 200)
+      {
+         error.Format(_T("%s answered the policy request with HTTP %d."), host.c_str(), response.status_code);
+         return false;
+      }
+
+      response_body = response.body;
+      return true;
    }
 
    TlsPolicy::MxDnssecStatus
@@ -877,9 +864,20 @@ namespace HM
       if (udpSocket == INVALID_SOCKET)
          return false;
 
-      DWORD timeout = DnsTimeoutMilliseconds;
-      setsockopt(udpSocket, SOL_SOCKET, SO_RCVTIMEO, (const char*) &timeout, sizeof(timeout));
-      setsockopt(udpSocket, SOL_SOCKET, SO_SNDTIMEO, (const char*) &timeout, sizeof(timeout));
+      // The deadline in the form each platform takes, as DnssecResolver gives it
+      // for its own queries: Winsock a DWORD of milliseconds, POSIX a struct
+      // timeval. Until 6.3.6 Linux was handed the DWORD too, refused it with
+      // EINVAL, and a reply that never came held the delivery thread in recvfrom
+      // for good.
+#ifdef HM_PLATFORM_POSIX
+      struct timeval timeout = {};
+      timeout.tv_sec = static_cast<decltype(timeout.tv_sec)>(DnsTimeoutMilliseconds / 1000);
+      timeout.tv_usec = static_cast<decltype(timeout.tv_usec)>(DnsTimeoutMilliseconds % 1000) * 1000;
+#else
+      const DWORD timeout = DnsTimeoutMilliseconds;
+#endif
+      setsockopt(udpSocket, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<const char*>(&timeout), sizeof(timeout));
+      setsockopt(udpSocket, SOL_SOCKET, SO_SNDTIMEO, reinterpret_cast<const char*>(&timeout), sizeof(timeout));
 
       bool succeeded = false;
 

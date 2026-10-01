@@ -26,6 +26,7 @@
 
 #include "SslContextInitializer.h"
 #include "ProxyProtocol.h"
+#include "AcceptLoop.h"
 
 #include <openssl/ssl.h>
 
@@ -128,7 +129,8 @@ namespace HM
       connection_security_(connection_security),
       client_certificate_policy_(client_certificate_policy),
       client_certificate_ca_file_(client_certificate_ca_file),
-      prepared_(false)
+      prepared_(false),
+      exclusive_address_use_(false)
    {
       sessionType_ = sessionType;
       certificate_ = certificate;
@@ -171,6 +173,19 @@ namespace HM
          acceptor_.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
 #else
          acceptor_.set_option(boost::asio::ip::tcp::acceptor::reuse_address(false));
+
+         // SO_EXCLUSIVEADDRUSE as well, unless another of the configured TCP/IP
+         // ports has this one's number in this one's family (IOService decides,
+         // SetExclusiveAddressUse): no other socket then takes the port's
+         // connections on a more specific address, nor does this listener start on
+         // the wildcard while another holds one address of the port. An
+         // administrator may list one number twice - SMTP on 0.0.0.0 and again on
+         // 127.0.0.1 with other settings - and the option would refuse the second
+         // of those, so there it is left off. A drain left while sessions go on, and
+         // a service restart, bind the same address again, which the option does not
+         // refuse (AcceptLoop::ClaimPortExclusively has the measurements).
+         if (exclusive_address_use_)
+            AcceptLoop::ClaimPortExclusively(acceptor_.native_handle());
 #endif
       }
       catch (const boost::system::system_error &error)

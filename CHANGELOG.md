@@ -365,6 +365,39 @@ numbers whatever the answer holds.
     and `Error.isError` among them - and runs scripts faster (42% on bench-v8 over the release before it, by its
     author's measure). The objects the server gives a script, the time limit and the memory ceiling are unchanged.
     Windows' VBScript and JScript are not affected.
+15. **Three more web requests go through `HttpProxy`, the MTA-STS policy fetch reaches only public addresses, and on
+    Windows the listeners keep their ports to themselves.** The OAuth2 token request (`OutboundOAuth2TokenUrl`), the
+    MTA-STS policy fetch and the ACME client now use the server's one HTTPS client (Operations, *on Linux, some of
+    the server's network waits had no timeout*), so when `HttpProxy` is set they go through it, as the update check,
+    the JWKS fetch and the server's other web requests do; they went direct before. The policy fetch, whose host the
+    recipient's domain names, is made only to a public address, judged by the addresses `mta-sts.<domain>` resolves
+    to: a policy host at a loopback, private, link-local or otherwise reserved address is not asked, and the domain
+    is treated as one with no policy, as RFC 8461 treats a policy host that cannot be reached. Through `HttpProxy`
+    the proxy is asked for a tunnel to one of those addresses and not to the name, so that what it reaches is what
+    was judged; a proxy that allows a tunnel only to a name refuses that, with the same outcome. The policy host is
+    taken as a host name and nothing more, so a domain cannot name a port or a path for it. With it a port in
+    `OutboundOAuth2TokenUrl` is used, where it was taken for part of the host name and the request failed; an MTA-STS
+    policy answer longer than 64 KB is no policy, where what had been read by then was parsed; and an ACME request
+    names itself `hMailServer`, not `hMailServer-ACME`, and accepts any type of answer. The token request and the
+    policy fetch also take the server's TLS settings - the protocol versions, the cipher lists and the key-exchange
+    groups, with TLS 1.2 still the floor - as the ACME client and the other web requests already did, and on Windows
+    too each of the three is given up once its deadline has passed for the whole request (15, 20 and 30 seconds),
+    where there each read had that long. On Windows the metrics, ManageSieve and ACME http-01 listeners and the two
+    web listeners (the REST API with the webmail it serves, and web services) no longer set `SO_REUSEADDR`, as the
+    SMTP, POP3 and IMAP listeners have not for years: given a port that another program listens on with that option,
+    such a listener now fails to bind and says so in the application log, where it bound the port and reported itself
+    started while the connections went to the other program. Linux keeps the option, which there only lets a listener
+    start again while its last connections linger. On Windows the SMTP, POP3 and IMAP listeners, ManageSieve, the
+    metrics listener, the two web listeners and the SNMP agent also claim their ports with `SO_EXCLUSIVEADDRUSE`: no
+    other program can then bind one address of a port such a listener holds on every address and take the connections
+    made to that address, which Windows otherwise allows a program of the same account; and a listener that binds
+    every address of a port another program already holds on one address now fails to bind and says so, where it
+    started and served the other addresses. A listener started again on its own address - a service restart, a
+    reinitialise, a drain that is left while sessions go on - binds as before, whatever its last connections are
+    doing (measured on Windows 11). It is left off in two places: a port number listed twice among the TCP/IP ports
+    in one address family (on 0.0.0.0 and again on 127.0.0.1, say), both of which still bind, and the ACME http-01
+    responder, which still takes every address of its port that the REST listener or another web server does not
+    hold.
 
 ### Downloads and the release
 
@@ -914,6 +947,30 @@ numbers whatever the answer holds.
 
 ### Operations
 
+- **Fixed: on Linux, some of the server's network waits had no timeout.** The MTA-STS policy fetch, the DANE TLSA
+  query, the OAuth2 token request (`OutboundOAuth2TokenUrl`), the ACME client and its http-01 responder, and the
+  ManageSieve and metrics listeners set their socket timeouts in the form Windows takes, which Linux refuses, and the
+  three HTTPS requests among them read with calls that on Linux wait without a timeout in any case. So on Linux a
+  wait on a peer that stopped answering lasted for as long as the connection stayed open. This was so in every
+  release with Linux packages, 6.3.0 to 6.3.5; Windows honoured the timeouts, each of which bounded one read. The
+  three HTTPS requests now go through the server's one HTTPS client, whose deadline bounds each request whole on
+  both platforms - 15 seconds for the MTA-STS policy, 20 for the token, 30 for an ACME request - and the others
+  take their timeouts in the form each platform takes: 5 seconds for the TLSA query, the http-01 responder and the
+  metrics listener, 30 for ManageSieve. What this changes besides is in What changes on upgrade, item 15. A new
+  tester program the Linux build runs, `network-deadline-tests`, holds the token and ACME requests, the TLSA query
+  and the http-01 responder to their deadlines against a peer on 127.0.0.1 that never answers, and the policy fetch
+  to its own through a proxy of its own that never answers, and fails against the code as it was; `HealthProbes`,
+  `ManageSieve` and `OutboundXOAuth2` in the regression suite have a case each.
+
+- **The ACME client reads a header that comes last.** `AcmeClient` looked a response header up in the block cut
+  at the blank line and then wanted a line break after its value, so a `Replay-Nonce` or `Location` that a CA sent
+  as the last header was read as absent. HTTP gives the order of fields no meaning (RFC 9110, section 5.3). A
+  `Replay-Nonce` sent last left the client without a nonce, and every certificate request stopped at its first
+  step; a `Location` sent last left the account's and the order's URLs empty. The last header now runs to the end
+  of the block, as the migration client's lookup already had it, and the self-test and `network-deadline-tests`
+  pin it. Found in the SAST triage of 6.3.6, in the function of a cppcheck finding (AcmeClient.cpp:208) that was
+  itself a false positive.
+
 - **Why the container image waits, said truly.** `.gitlab/ci/container-image.yml`,
   [ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md) ("What the owner sets on the registry", 3),
   Roadmap2's release-chain row, the packaging README and a comment of `build/check-release-chain.py` said, and
@@ -1159,6 +1216,21 @@ numbers whatever the answer holds.
   EncryptionAtRest.md, Reports.md and Snmp.md name the codes.
 
 ### Build and tests
+
+- **The static-analysis findings of the network code, fixed.** Twenty-two findings of the `static-analysis` job are
+  gone from its baseline (`build/ci/static-analysis-baseline.txt`), two of them on GitLab's Security dashboard: the
+  seventeen `dangerousTypeCast` findings on the sockets' timeouts and `SO_REUSEADDR`, which were the two defects under
+  Operations and What changes on upgrade, item 15 - the socket timeouts are now set through `AcceptLoop::SetTimeouts`
+  or in each platform's own form, and `SO_REUSEADDR` through `AcceptLoop::AllowRebindPastTimeWait`, on POSIX only; the
+  two `danglingTemporaryLifetime` findings (High) in `AcmeClient.cpp` and `OutboundOAuth2TokenClient.cpp`, whose code
+  the fixes replaced, though the lifetime they named was sound, since the string class copies; a `cert-err34-c`
+  `atoi` in the ACME client's own status-line parser, which went with it; the empty catch around the start of a
+  connection the REST and web-services listeners have accepted (`HttpServer::Accept_`), which now says in the
+  application log that a connection was dropped, for the first and then once per thousand with the count; and a
+  `bugprone-unused-return-value` in `HTTPClient.cpp`, a plain-HTTP client that nothing in either build called,
+  deleted with the finding. Nothing new is added to the baseline. The new tester program, `network-deadline-tests`,
+  runs in `linux-build` and in the Alpine and Nix package builds, which run every program whose name ends in
+  `-tests`; the source packages' builds, which refuse every socket, leave it out.
 
 - **[Roadmap3.md](Roadmap3.md): the plan for everything the project had on GitHub.** A new file at the
   repository root maps, row by row, what it takes to bring back on GitLab what a user could download, verify and

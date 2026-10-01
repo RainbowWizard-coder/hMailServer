@@ -721,7 +721,6 @@ EXIT 0
     <ClCompile Include="..\Common\Util\Hashing\HashCreator.cpp" />
     <ClCompile Include="..\Common\Util\Hashing\ScramSha256.cpp" />
     <ClCompile Include="..\Common\Util\HeapChecker.cpp" />
-    <ClCompile Include="..\Common\Util\HTTPClient.cpp" />
     <ClCompile Include="..\Common\Util\Language.cpp" />
     <ClCompile Include="..\Common\Util\Languages.cpp" />
     <ClCompile Include="..\Common\Util\MailerDaemonAddressDeterminer.cpp" />
@@ -1718,7 +1717,6 @@ EXIT 0
     <ClInclude Include="..\Common\Util\AddressTraceEraser.h" />
     <ClInclude Include="..\Common\Util\Hashing\ScramSha256.h" />
     <ClInclude Include="..\Common\Util\HeapChecker.h" />
-    <ClInclude Include="..\Common\Util\HTTPClient.h" />
     <ClInclude Include="..\Common\Util\Language.h" />
     <ClInclude Include="..\Common\Util\Languages.h" />
     <ClInclude Include="..\Common\Util\MailerDaemonAddressDeterminer.h" />

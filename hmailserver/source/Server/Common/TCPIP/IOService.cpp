@@ -26,6 +26,9 @@
 #include "../../IMAP/IMAPConnection.h"
 #include "../../POP3/POP3Connection.h"
 
+#include <map>
+#include <utility>
+
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
 #define new DEBUG_NEW
@@ -86,6 +89,14 @@ namespace HM
       // Create one socket for each IP address specified in the multi-homing settings.
       std::vector<std::shared_ptr<TCPIPPort> > vecTCPIPPorts = Configuration::Instance()->GetTCPIPPorts()->GetSnapshot();
 
+      // How many configured ports have each number in each family. A port listed
+      // once claims its number exclusively on Windows (TCPServer::InitAcceptor); a
+      // number listed twice in one family - 0.0.0.0 and 127.0.0.1, say, with other
+      // settings - is bound twice, which that would refuse, so neither claims it.
+      std::map<std::pair<int, bool>, int> listedPerNumber;
+      for (const std::shared_ptr<TCPIPPort> &listed : vecTCPIPPorts)
+         listedPerNumber[std::make_pair(listed->GetPortNumber(), listed->GetAddress().GetAddress().is_v6())]++;
+
       auto iterPort = vecTCPIPPorts.begin();
       auto iterPortEnd = vecTCPIPPorts.end();
 
@@ -138,6 +149,7 @@ namespace HM
          pTCPServer = std::shared_ptr<TCPServer>(new TCPServer(io_context_, address, iPort, st, pSSLCertificate, pConnectionFactory, connection_security,
             pPort->GetClientCertificatePolicy(), pPort->GetClientCertificateCAFile()));
 
+         pTCPServer->SetExclusiveAddressUse(listedPerNumber[std::make_pair(iPort, address.GetAddress().is_v6())] == 1);
          pTCPServer->Run();
 
          {

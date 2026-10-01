@@ -148,6 +148,17 @@ namespace HM
       static std::vector<TlsaRecord> GetTlsaRecords(const String &host_name, int port, TlsaLookupStatus &status,
                                                     MxDnssecStatus mx_status = MxDnssecStatus::Unknown);
 
+      // The two network steps of the lookups above, each bounded by its deadline:
+      // the policy fetch (https://host + path, 15 seconds for all of it, the body
+      // only for a 200, error saying why not otherwise; a host that is not a DNS
+      // name, or that leads to an address that is not public, is refused) and one
+      // DNS query over UDP to one server (5 seconds for the reply). Public so that
+      // network-deadline-tests can hold each to its deadline against a peer that
+      // never answers - on Linux both waited for good until 6.3.6 - and the fetch
+      // to the addresses it may reach, rather than trusting that a constant is used.
+      static bool HttpsGet_(const String &host, const AnsiString &path, AnsiString &response_body, String &error);
+      static bool RunDnsQuery_(const sockaddr_in &server, const AnsiString &name, unsigned short query_type, std::vector<unsigned char> &response);
+
    private:
 
       struct CachedStsPolicy
@@ -161,10 +172,8 @@ namespace HM
       static bool LookupStsDnsRecord_(const String &domain, AnsiString &id);
       static bool FetchStsPolicy_(const String &domain, StsPolicy &policy, int &max_age);
       static bool ParseStsPolicyBody_(const AnsiString &body, StsPolicy &policy, int &max_age);
-      static bool HttpsGet_(const String &host, const AnsiString &path, AnsiString &response_body);
 
       static bool GetDnsServers_(std::vector<sockaddr_in> &servers);
-      static bool RunDnsQuery_(const sockaddr_in &server, const AnsiString &name, unsigned short query_type, std::vector<unsigned char> &response);
       static bool ParseTlsaResponse_(const std::vector<unsigned char> &response, std::vector<TlsaRecord> &records);
       static bool SkipDnsName_(const std::vector<unsigned char> &data, size_t &offset);
       static std::vector<TlsaRecord> LookupTlsaOpportunistic_(const String &host_name, int port);

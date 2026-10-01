@@ -46,6 +46,12 @@ namespace HM
       int GetPort() const { return port_; }
       const IPAddress &GetAddress() const { return ipaddress_; }
 
+      // Whether the listener claims its port exclusively on Windows
+      // (SO_EXCLUSIVEADDRUSE), set before Run: true unless another configured
+      // TCP/IP port has this one's number in this one's family, which the option
+      // would refuse (InitAcceptor says more). Off until set; no effect on POSIX.
+      void SetExclusiveAddressUse(bool exclusive) { exclusive_address_use_ = exclusive; }
+
       // Everything that touches acceptor_ after Run runs on this strand: the
       // accept completion (HandleAccept, which re-posts the accept), and the
       // close and reopen a drain dispatches. The io_context has as many threads
@@ -98,5 +104,8 @@ namespace HM
       // context initialised twice would load the certificate twice, and a port
       // Run refused to start must stay refused.
       bool prepared_;
+
+      // SetExclusiveAddressUse.
+      bool exclusive_address_use_;
    };
 }

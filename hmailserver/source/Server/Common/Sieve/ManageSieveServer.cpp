@@ -395,8 +395,14 @@ namespace HM
       if (listen_socket_ == INVALID_SOCKET)
          return false;
 
-      BOOL reuseAddress = TRUE;
-      setsockopt(listen_socket_, SOL_SOCKET, SO_REUSEADDR, (const char*) &reuseAddress, sizeof(reuseAddress));
+      AcceptLoop::AllowRebindPastTimeWait(listen_socket_);
+
+      // Windows: no other socket takes this port's sessions on a more specific
+      // address, and this listener does not start on the wildcard while another
+      // holds one address of the port. The server binds nothing else on the
+      // ManageSieve port, and a drain that is left binds the same address again,
+      // which the option does not refuse (AcceptLoop.h has the measurements).
+      AcceptLoop::ClaimPortExclusively(listen_socket_);
 
       if (bind(listen_socket_, reinterpret_cast<const sockaddr*>(&address), sizeof(address)) == SOCKET_ERROR ||
           listen(listen_socket_, 5) == SOCKET_ERROR)
@@ -1261,9 +1267,10 @@ namespace HM
    void
    ManageSieveServer::HandleClient_(Connection &connection, const IPAddress &client_address, bool require_tls_for_auth)
    {
-      DWORD timeout = 30000;
-      setsockopt(connection.socket, SOL_SOCKET, SO_RCVTIMEO, (const char*) &timeout, sizeof(timeout));
-      setsockopt(connection.socket, SOL_SOCKET, SO_SNDTIMEO, (const char*) &timeout, sizeof(timeout));
+      // Thirty seconds for each read and write, in the form each platform takes:
+      // until 6.3.6 Linux was handed the Windows form, refused it, and a client that
+      // connected and said nothing held this one-at-a-time listener for good.
+      AcceptLoop::SetTimeouts(connection.socket, 30000);
 
       // Recorded on the connection before the greeting is built, because the greeting
       // is the first thing that has to reflect it: SendCapabilities_ decides whether

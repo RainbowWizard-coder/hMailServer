@@ -258,5 +258,9 @@ namespace HM
       std::atomic<unsigned> pending_accepts_;
       std::atomic<unsigned> large_responses_;
       std::atomic<unsigned> refused_large_;
+      // Accepted connections an unexpected error stopped before they started
+      // (Accept_), counted so that the log line is written for the first and
+      // then once per OverCapLogInterval, as the refusals over the cap are.
+      std::atomic<unsigned> dropped_on_accept_;
    };
 }

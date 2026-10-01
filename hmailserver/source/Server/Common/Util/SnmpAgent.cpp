@@ -19,6 +19,7 @@
 #include "../BO/Message.h"
 #include "../SQL/DatabaseConnectionManager.h"
 #include "../Persistence/PersistentMessage.h"
+#include "../TCPIP/AcceptLoop.h"
 #include "../TCPIP/IPAddress.h"
 #include "../TCPIP/SocketConstants.h"
 
@@ -68,6 +69,18 @@ namespace HM
 
    namespace
    {
+      // SO_EXCLUSIVEADDRUSE on the agent's socket before it is bound, on Windows
+      // (AcceptLoop::ClaimPortExclusively): no other socket then takes the
+      // requests sent to one address of the agent's port, nor does the agent start
+      // on the wildcard while another holds one address of it (measured on Windows
+      // 11 for UDP too: without the option a second socket on 127.0.0.1 took all
+      // 20 datagrams sent there). A datagram socket leaves nothing behind it, so a
+      // restart binds again whatever was sent before. No effect on POSIX.
+      void ClaimExclusively_(boost::asio::ip::udp::socket &udpSocket)
+      {
+         AcceptLoop::ClaimPortExclusively(udpSocket.native_handle());
+      }
+
       // How often the refresher looks, and how old the delivery queue's figures
       // may grow before a request asks for them again: MetricsServer's numbers.
       const ULONGLONG RefresherTickMilliseconds = 1000;
@@ -802,6 +815,9 @@ namespace HM
             udpSocket.set_option(boost::asio::ip::v6_only(false), error);
 
          if (!error)
+            ClaimExclusively_(udpSocket);
+
+         if (!error)
             udpSocket.bind(boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v6(), portNumber), error);
 
          if (error)
@@ -811,6 +827,9 @@ namespace HM
 
             error.clear();
             udpSocket.open(boost::asio::ip::udp::v4(), error);
+
+            if (!error)
+               ClaimExclusively_(udpSocket);
 
             if (!error)
                udpSocket.bind(boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), portNumber), error);
@@ -824,6 +843,9 @@ namespace HM
          {
             const boost::asio::ip::udp::endpoint endpoint(address, portNumber);
             udpSocket.open(endpoint.protocol(), error);
+
+            if (!error)
+               ClaimExclusively_(udpSocket);
 
             if (!error)
                udpSocket.bind(endpoint, error);

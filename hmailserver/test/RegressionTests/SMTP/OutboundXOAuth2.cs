@@ -4,7 +4,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Net;
+using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 using NUnit.Framework;
 using NUnit.Framework.Legacy;
 using RegressionTests.Infrastructure;
@@ -234,6 +237,131 @@ namespace RegressionTests.SMTP
             WriteSetting("OutboundOAuth2Hosts", "smtp.office365.com");
             WriteSetting("OutboundOAuth2FixedToken", "");
             _application.Reinitialize();
+         }
+      }
+
+      /// <summary>
+      ///    A TCP listener on 127.0.0.1 that accepts every connection and never says a
+      ///    word on any of them - a token endpoint that has stopped answering - and
+      ///    counts what it accepted.
+      /// </summary>
+      private sealed class SilentEndpoint : IDisposable
+      {
+         private readonly TcpListener _listener;
+         private readonly List<TcpClient> _held = new List<TcpClient>();
+         private int _accepted;
+
+         public SilentEndpoint(int port)
+         {
+            _listener = new TcpListener(IPAddress.Loopback, port);
+            _listener.Start();
+            _listener.BeginAcceptTcpClient(Accept, null);
+         }
+
+         public int Accepted => Volatile.Read(ref _accepted);
+
+         private void Accept(IAsyncResult result)
+         {
+            TcpClient client;
+            try
+            {
+               client = _listener.EndAcceptTcpClient(result);
+            }
+            catch (Exception stopped) when (stopped is ObjectDisposedException || stopped is SocketException)
+            {
+               // The listener was stopped: nothing more to accept.
+               return;
+            }
+
+            lock (_held)
+               _held.Add(client);
+            Interlocked.Increment(ref _accepted);
+
+            try
+            {
+               _listener.BeginAcceptTcpClient(Accept, null);
+            }
+            catch (Exception stopped) when (stopped is ObjectDisposedException || stopped is SocketException)
+            {
+               // Stopped between the two: the connection just taken is closed with the rest.
+            }
+         }
+
+         public void Dispose()
+         {
+            _listener.Stop();
+            lock (_held)
+            {
+               foreach (TcpClient client in _held)
+                  client.Close();
+            }
+         }
+      }
+
+      /// <summary>
+      ///    A token endpoint that takes the connection and never answers costs the
+      ///    delivery the token request's twenty seconds, on every platform, and the
+      ///    delivery then goes on with the password, as the error log says. Until
+      ///    6.3.6 the token request set its timeout in the Windows form, which Linux
+      ///    refuses, and read with Asio's synchronous calls, which on Linux wait with
+      ///    no timeout: there the delivery thread, and every other that wanted a token
+      ///    behind it, was held for as long as the endpoint stayed connected. The old
+      ///    request also took a port in OutboundOAuth2TokenUrl for part of the host
+      ///    name and failed to resolve it, so this endpoint, on a port of its own, was
+      ///    never reached: against that code the first assertion fails, on both
+      ///    platforms. network-deadline-tests holds the same request to its deadline
+      ///    on Linux without a delivery around it.
+      /// </summary>
+      [Test]
+      [Description("A token endpoint that never answers is given up on at the deadline, and the delivery goes on with the password.")]
+      public void ATokenEndpointThatNeverAnswersIsGivenUpOn()
+      {
+         int tokenPort = TestSetup.GetNextFreePort();
+
+         using (var endpoint = new SilentEndpoint(tokenPort))
+         {
+            WriteSetting("OutboundOAuth2Hosts", "localhost");
+            WriteSetting("OutboundOAuth2FixedToken", "");
+            WriteSetting("OutboundOAuth2TokenUrl", "https://127.0.0.1:" + tokenPort + "/token");
+            WriteSetting("OutboundOAuth2ClientId", "regression-tests");
+            WriteSetting("OutboundOAuth2ClientSecret", "not-a-secret");
+            _application.Reinitialize();
+
+            try
+            {
+               var smtpServerPort = TestSetup.GetNextFreePort();
+               AddAuthedRoute(smtpServerPort, eConnectionSecurity.eCSSTARTTLSRequired);
+
+               var deliveryResults = new Dictionary<string, int> { ["dummy@oauth-relay.test"] = 250 };
+
+               using (var server = new SmtpServerSimulator(1, smtpServerPort, eConnectionSecurity.eCSSTARTTLSRequired))
+               {
+                  // The delivery waits out the token request's twenty seconds first.
+                  server.SecondsToWaitBeforeTerminate = 120;
+                  server.AddRecipientResult(deliveryResults);
+                  server.StartListen();
+
+                  SmtpClientSimulator.StaticSend("sender@example.test", "dummy@oauth-relay.test", "Silent token endpoint", "Body");
+
+                  server.WaitForCompletion();
+
+                  Assert.Greater(endpoint.Accepted, 0,
+                     "The token endpoint's port was never reached: the request did not take the port in OutboundOAuth2TokenUrl.");
+                  Assert.IsEmpty(server.XOAuth2Blob, "A bearer token was presented although none could be obtained.");
+                  Assert.IsTrue(server.MessageData.Contains("Silent token endpoint"),
+                     "The delivery did not go on with the password once the token request was given up.");
+               }
+
+               CustomAsserts.AssertReportedError("Could not reach the token endpoint", "in the time allowed");
+            }
+            finally
+            {
+               WriteSetting("OutboundOAuth2Hosts", "smtp.office365.com");
+               WriteSetting("OutboundOAuth2TokenUrl", "");
+               WriteSetting("OutboundOAuth2ClientId", "");
+               WriteSetting("OutboundOAuth2ClientSecret", "");
+               _application.Reinitialize();
+            }
          }
       }
 

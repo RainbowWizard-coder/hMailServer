@@ -4,6 +4,7 @@
 
 using System;
 using System.IO;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Linq;
@@ -41,8 +42,10 @@ namespace RegressionTests.Infrastructure
 
       // Issues a minimal HTTP/1.0 GET against the metrics listener and returns the
       // parsed status code and body. Retries the initial connect briefly to absorb
-      // the listener bind race right after a server restart.
-      private static (int status, string body) HttpGet(string path)
+      // the listener bind race right after a server restart. readTimeoutMilliseconds
+      // bounds each read of the answer (an IOException when it passes); by default
+      // a read waits as long as the listener takes.
+      private static (int status, string body) HttpGet(string path, int readTimeoutMilliseconds = System.Threading.Timeout.Infinite)
       {
          using (var client = new TcpClient())
          {
@@ -67,6 +70,8 @@ namespace RegressionTests.Infrastructure
             using (NetworkStream stream = client.GetStream())
             using (var memory = new MemoryStream())
             {
+               stream.ReadTimeout = readTimeoutMilliseconds;
+
                byte[] request = Encoding.ASCII.GetBytes("GET " + path + " HTTP/1.0\r\nHost: 127.0.0.1\r\nConnection: close\r\n\r\n");
                stream.Write(request, 0, request.Length);
 
@@ -171,6 +176,163 @@ namespace RegressionTests.Infrastructure
          }
          finally
          {
+            WriteSetting("MetricsServerPort", "0");
+            _application.Reinitialize();
+         }
+      }
+
+      /// <summary>
+      ///    The listener serves one client at a time, so a client that connects and
+      ///    sends nothing - a port scanner, a probe that died half way - must be let go
+      ///    after the five-second socket timeout for the probes behind it to be
+      ///    answered. Until 6.3.6 that timeout was set in the Windows form, which Linux
+      ///    refuses, so on Linux the first read waited for as long as the idle client
+      ///    stayed connected and the load balancer's /livez behind it was never
+      ///    answered: against that code this test fails on Linux, at the read timeout
+      ///    below. Windows honoured the timeout all along, and there it guards it.
+      /// </summary>
+      [Test]
+      [Description("A client that connects to the metrics listener and sends nothing does not stop /livez from being answered.")]
+      public void AnIdleClientIsLetGoAndTheProbeBehindItAnswered()
+      {
+         WriteSetting("MetricsServerBindAddress", "127.0.0.1");
+         WriteSetting("MetricsServerPort", MetricsPort.ToString());
+         _application.Reinitialize();
+
+         try
+         {
+            // The listener is up once a probe is answered.
+            Assert.AreEqual(200, HttpGet("/livez").status, "The metrics listener did not answer /livez at all.");
+
+            using (var idle = new TcpClient())
+            {
+               idle.Connect("127.0.0.1", MetricsPort);
+
+               // Behind the idle client, and given twice the listener's socket timeout
+               // plus a margin to be answered.
+               var watch = System.Diagnostics.Stopwatch.StartNew();
+               (int status, string body) live;
+               try
+               {
+                  live = HttpGet("/livez", 15000);
+               }
+               catch (IOException e)
+               {
+                  Assert.Fail("/livez behind a client that sent nothing was not answered in " + watch.Elapsed.TotalSeconds.ToString("0.0") +
+                     " s: the listener is still waiting on the idle client. " + e.Message);
+                  return;
+               }
+
+               Assert.AreEqual(200, live.status, "/livez behind an idle client. Body: " + live.body);
+               Assert.Less(watch.Elapsed.TotalSeconds, 15, "/livez behind an idle client was answered only after " + watch.Elapsed.TotalSeconds.ToString("0.0") + " s.");
+            }
+         }
+         finally
+         {
+            WriteSetting("MetricsServerPort", "0");
+            _application.Reinitialize();
+         }
+      }
+
+      /// <summary>
+      ///    Until 6.3.6 the metrics listener set SO_REUSEADDR on Windows too, where it
+      ///    lets a socket bind a port that another socket with the option is already
+      ///    listening on: the listener reported itself listening while the connections
+      ///    went to the other program (measured on Windows 11, 20 connections of 20).
+      ///    Without the option the bind fails, and the application log says so. Here
+      ///    the port is held by a listener with the option, as a program ported from
+      ///    POSIX holds one; against the old code the bind succeeds, "Listening on" is
+      ///    written for the port and "Failed to bind" is not, so this fails on Windows.
+      ///    Linux keeps the option, where it never lets two listeners share a port, and
+      ///    there the test passes either way.
+      /// </summary>
+      [Test]
+      [Description("A metrics port that another program listens on with SO_REUSEADDR is refused and reported, not shared.")]
+      public void APortAnotherProgramListensOnIsRefusedNotShared()
+      {
+         int port = TestSetup.GetNextFreePort();
+         var holder = new TcpListener(IPAddress.Loopback, port);
+         holder.ExclusiveAddressUse = false;
+         holder.Server.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+         holder.Start();
+
+         try
+         {
+            // Only what this test's reinitialise writes is read: the log is the day's.
+            int logBefore = LogHandler.ReadCurrentDefaultLog().Length;
+
+            WriteSetting("MetricsServerBindAddress", "127.0.0.1");
+            WriteSetting("MetricsServerPort", port.ToString());
+            _application.Reinitialize();
+
+            Assert.IsTrue(LogHandler.DefaultLogContains("MetricsServer: Failed to bind to 127.0.0.1:" + port + "."),
+               "The metrics listener did not report that it could not bind a port another program listens on.");
+
+            string log = LogHandler.ReadCurrentDefaultLog();
+            string written = log.Length >= logBefore ? log.Substring(logBefore) : log;
+            Assert.IsFalse(written.Contains("MetricsServer: Listening on 127.0.0.1:" + port + " "),
+               "The metrics listener bound a port another program listens on, and reported itself listening.");
+         }
+         finally
+         {
+            WriteSetting("MetricsServerPort", "0");
+            _application.Reinitialize();
+            holder.Stop();
+         }
+      }
+
+      /// <summary>
+      ///    On Windows a socket of the same account could bind 127.0.0.1 on a port the
+      ///    metrics listener held on 0.0.0.0 - with no option at all, which Windows
+      ///    allows for the more specific address - and from then on take every
+      ///    connection made to 127.0.0.1 (measured on Windows 11: 20 connections of
+      ///    20). Since 6.3.6 the listener claims its port with SO_EXCLUSIVEADDRUSE, and
+      ///    that bind is refused. Against the code before, the bind below succeeds and
+      ///    this fails on Windows. Linux refuses that bind whatever the listener sets,
+      ///    and there the test passes either way.
+      /// </summary>
+      [Test]
+      [Description("A socket cannot bind 127.0.0.1 on the port the metrics listener holds on 0.0.0.0 and take its connections.")]
+      public void AMoreSpecificBindCannotTakeTheListenersPort()
+      {
+         WriteSetting("MetricsServerBindAddress", "0.0.0.0");
+         WriteSetting("MetricsServerPort", MetricsPort.ToString());
+         _application.Reinitialize();
+
+         try
+         {
+            // The listener is up once a probe is answered.
+            Assert.AreEqual(200, HttpGet("/livez").status, "The metrics listener did not answer /livez at all.");
+
+            var taker = new TcpListener(IPAddress.Loopback, MetricsPort);
+            taker.ExclusiveAddressUse = false;
+            bool bound;
+            try
+            {
+               taker.Start();
+               bound = true;
+            }
+            catch (SocketException)
+            {
+               bound = false;
+            }
+
+            try
+            {
+               Assert.IsFalse(bound, "A socket bound 127.0.0.1:" + MetricsPort + " under the metrics listener on 0.0.0.0, and would take its connections there.");
+
+               // And the listener still answers on 127.0.0.1.
+               Assert.AreEqual(200, HttpGet("/livez", 15000).status, "/livez on 127.0.0.1 after the refused bind.");
+            }
+            finally
+            {
+               if (bound)
+                  taker.Stop();
+            }
+         }
+         finally
+         {
+            WriteSetting("MetricsServerBindAddress", "127.0.0.1");
             WriteSetting("MetricsServerPort", "0");
             _application.Reinitialize();
          }

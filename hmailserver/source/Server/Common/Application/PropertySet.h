@@ -121,6 +121,11 @@ namespace HM
 
    private:
 
+      // network-deadline-tests fills a set in memory, with no database and so no
+      // rows behind it, for the TLS settings the server's HTTPS clients read
+      // (Configuration.h says more).
+      friend class NetworkDeadlineTests;
+
       void OnPropertyChanged_(std::shared_ptr<Property> pProperty);
 
       std::shared_ptr<Property> GetProperty_(const String &sPropertyName);
