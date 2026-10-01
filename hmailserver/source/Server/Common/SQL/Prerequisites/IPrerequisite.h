@@ -10,7 +10,8 @@ namespace HM
    class IPrerequisite
    {
    public:
-      
+      virtual ~IPrerequisite() = default;
+
       virtual int GetDatabaseVersion() = 0;
       virtual bool Ensure(std::shared_ptr<DALConnection> connection, String &sErrorMessage) = 0;
 

@@ -16,9 +16,11 @@
 // constructor ran once, every thread got the same pointer, and every thread saw
 // the value the constructor set last. The same program built against the old
 // header on 29 September 2026 - GCC 15 and clang 21 on Ubuntu, MSVC 19.51 on
-// Windows - failed all 64 rounds under each, every round making eight T's.
+// Windows - failed all 64 rounds under each, every round making eight T's. It
+// also holds, as it compiles, that nothing but T can make a Singleton<T> or a
+// BusinessObject<T> (below Probe).
 //
-// No server code is linked: the header is all there is to test. GitLab CI's
+// No server code is linked: the headers are all there is to test. GitLab CI's
 // linux-build job runs every *-tests program the CMake build makes
 // (build/ci/linux-build.sh). One line per failed round, and a non-zero exit when
 // there is any.
@@ -27,9 +29,18 @@
 #include <chrono>
 #include <cstdio>
 #include <thread>
+#include <type_traits>
 #include <vector>
 
 #include "../Common/Util/Singleton.h"
+
+// BusinessObject.h is written in the server's dialect, where __int64 is MSVC's
+// keyword; hm_platform.h gives it to this platform as this same macro. Defined
+// here so that the program still links nothing of the server.
+#if !defined(_MSC_VER) && !defined(__int64)
+#define __int64 long long
+#endif
+#include "../Common/BO/BusinessObject.h"
 
 namespace
 {
@@ -52,6 +63,41 @@ namespace
 
       int ready = 0;
    };
+
+   // Only T derives from Singleton<T> (6.3.6): the base's constructor is private
+   // and T is its friend. A class that named another type as its T, and so would
+   // be handed that type's Instance(), does not compile - which a program cannot
+   // show by running - and nothing but T can make the base, which is a trait it
+   // can hold. Against the header before 6.3.6, whose implicit constructor was
+   // public, this program does not compile.
+   static_assert(!std::is_default_constructible<Singleton<Probe<0> > >::value,
+                 "Singleton<T> can be made by something that is not T");
+
+   // BusinessObject<T> is the same shape and is held the same way (6.3.6): only
+   // T can make the base, so a business object that named another type as its T
+   // does not compile. One that names itself is still made and copied as before,
+   // and so is a class derived from one. Against the header before 6.3.6 the
+   // first assertion fails.
+   class Owner : public HM::BusinessObject<Owner>
+   {
+   };
+
+   class DerivedOwner : public Owner
+   {
+   };
+
+   static_assert(!std::is_default_constructible<HM::BusinessObject<Owner> >::value,
+                 "BusinessObject<T> can be made by something that is not T");
+   // One trait to an assertion: two true traits joined by && read to the static
+   // analysis (misc-redundant-expression) as the same operand twice.
+   static_assert(std::is_default_constructible<Owner>::value,
+                 "a business object that names itself can no longer be made");
+   static_assert(std::is_copy_constructible<Owner>::value,
+                 "a business object that names itself can no longer be copied");
+   static_assert(std::is_default_constructible<DerivedOwner>::value,
+                 "a class derived from a business object can no longer be made");
+   static_assert(std::is_copy_constructible<DerivedOwner>::value,
+                 "a class derived from a business object can no longer be copied");
 
    template <int N>
    bool Round()

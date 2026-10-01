@@ -1372,6 +1372,24 @@ numbers whatever the answer holds.
 - **`backup-tests` and `trust-anchor-tests`**, two more tester programs `linux-build.sh` runs, and the source
   packages' builds too (`dh_auto_test` and `%check`, [SourcePackages.md](hmailserver/docs/SourcePackages.md)); both
   run in the class tests on Windows as well.
+- **What the static analysis found in the core's types, its platform layer and its dead code is fixed, not
+  dismissed (the SAST triage of 6.3.6).** None of it changes what the server does. The constructors of
+  `Singleton<T>` and `BusinessObject<T>` are private and `T` is their friend, so a class that named another type as
+  its `T` - a singleton that would be handed that type's `Instance()` - no longer compiles; `singleton-tests` holds
+  both, and does not compile against the old headers. `TCPConnection`, `IMAPCommand`, `IMacroExpander`,
+  `TCPConnectionFactory`, `NotificationClient` and `IPrerequisite` have virtual destructors: every object of theirs
+  was owned by a `shared_ptr` made from its own class, which destroyed it whole, and one deleted through the base now
+  would be too. `MySQLInterface` and `GssapiAcceptor`, and four classes of the same shape that the analysis did not
+  flag - the database layer's connections and recordsets (`DALConnection`, `DALRecordset`), `ByteBuffer` and
+  `FolderManipulationLock` - release a handle, a buffer or a lock in their destructors, and cannot be copied; nothing
+  copied one. The unused `StringTreeParser` is deleted: nothing included it, its `Parse` never returned a node, and
+  an unmatched quote gave `Mid` a negative length. A redundant test in the MIME parameter parser goes, and so do five
+  C-style casts - two in `Unicode.cpp`, three in the POSIX build's `BSTR` functions (`hm_platform.h`) - and the code
+  compiled from them is the same as before; the `ETRN` reply, whose two `else`s were indented as neither of their
+  `if`s was, and four more places are indented as their braces are; and the `timeval`, `tm` and `timespec` of the
+  POSIX `GetLocalTime`, `GetSystemTime` and `GetTickCount64`, and two more `struct tm` locals whose fill was not
+  checked (`DomainSamples.cpp`, `ZipWriter.cpp`), start zeroed. 71 findings leave
+  `build/ci/static-analysis-baseline.txt`, and the job, run over the tree, finds none that is new.
 
 - **No CI script reads a long or still-running output through `head` or `grep -q` under pipefail.** A reader that
   stops at what it wants closes the pipe, and a command still writing then dies of SIGPIPE, which `set -o pipefail`

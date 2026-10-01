@@ -15,6 +15,10 @@ namespace HM
    public:
       DALConnection(std::shared_ptr<DatabaseSettings> pDatabaseSettings);
       virtual ~DALConnection();
+      // The MySQL and PostgreSQL connections close their handle to the database
+      // server in their destructors: a copy would close it a second time.
+      DALConnection(const DALConnection &) = delete;
+      DALConnection &operator=(const DALConnection &) = delete;
 
       enum ConnectionResult
       {

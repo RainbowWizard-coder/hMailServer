@@ -11,6 +11,10 @@ namespace HM
    public:
       FolderManipulationLock(int iAccountID, int iFolderID);
       ~FolderManipulationLock(void);
+      // The destructor releases the folder the lock holds: a copy would release
+      // it a second time, perhaps while another thread holds it.
+      FolderManipulationLock(const FolderManipulationLock &) = delete;
+      FolderManipulationLock &operator=(const FolderManipulationLock &) = delete;
 
       void Lock();
 

@@ -324,15 +324,15 @@ namespace HM
                   "Could not copy the SpamAssassin result over the message file. The message is unchanged and is delivered without the SpamAssassin headers.");
             }
          }
-     } 
-     else 
-     {
-       String logMessage;
-       logMessage.Format(_T("SA: Temp file size did not match what Spamd reported! (temp: %d, spamd: %I64d). Reverting to original message file."),FileUtilities::FileSize(sTempFile),spam_dsize_);
+      } 
+      else 
+      {
+         String logMessage;
+         logMessage.Format(_T("SA: Temp file size did not match what Spamd reported! (temp: %d, spamd: %I64d). Reverting to original message file."),FileUtilities::FileSize(sTempFile),spam_dsize_);
          LOG_DEBUG(logMessage);
-     }
+      }
      
-     *test_completed_ = true;
+      *test_completed_ = true;
    }
 
    int

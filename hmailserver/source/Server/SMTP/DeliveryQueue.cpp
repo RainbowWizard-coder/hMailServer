@@ -181,6 +181,6 @@ namespace HM
          return;
 
       // Tell the deliverer to look for messages to deliver.
-         pDeliverer->SetDeliverMessage();
+      pDeliverer->SetDeliverMessage();
    }
 }

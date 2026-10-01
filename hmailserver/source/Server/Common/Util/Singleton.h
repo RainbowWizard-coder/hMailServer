@@ -34,4 +34,10 @@ public:
 
       return instance;
    }
+
+private:
+   // Only T derives from Singleton<T>: a class that named another type here would
+   // be handed that type's Instance(), and now does not compile.
+   Singleton() = default;
+   friend T;
 };

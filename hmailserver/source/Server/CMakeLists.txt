@@ -645,11 +645,12 @@ set_target_properties(legacy-blowfish-tests PROPERTIES OUTPUT_NAME legacy-blowfi
 #
 # Singleton<T>::Instance (Common/Util/Singleton.h) with eight threads asking for
 # a fresh singleton together, sixty-four times: one T made each time, and every
-# caller given it whole. The header is the whole of what it tests, so nothing of
-# the core is linked and the program builds in a second; linux-build.sh runs it
-# with the other *-tests programs. The Windows build compiles the same header
-# with MSVC, whose function-local statics are as thread-safe as these compilers'.
-# Not installed; a bench tool.
+# caller given it whole. As it compiles, it also holds that nothing but T can make
+# a Singleton<T> or a BusinessObject<T> (Common/BO/BusinessObject.h). The headers
+# are the whole of what it tests, so nothing of the core is linked and the program
+# builds in a second; linux-build.sh runs it with the other *-tests programs. The
+# Windows build compiles the same headers with MSVC, whose function-local statics
+# are as thread-safe as these compilers'. Not installed; a bench tool.
 add_executable(singleton-tests ${SERVER_DIR}/platform/singleton_tests_main.cpp)
 target_link_libraries(singleton-tests PRIVATE Threads::Threads)
 set_target_properties(singleton-tests PROPERTIES OUTPUT_NAME singleton-tests)

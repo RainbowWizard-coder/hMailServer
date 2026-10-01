@@ -198,6 +198,12 @@ public:
       std::call_once(once, []() { instance = new T(); });
       return instance;
    }
+
+private:
+   // As in the real Singleton (6.3.6): only T derives from Singleton<T>, so a
+   // class that named another type here does not compile in this build either.
+   Singleton() = default;
+   friend T;
 };
 
 namespace HM

@@ -193,7 +193,7 @@ namespace HM
       {
          units = ConvertWithIconv(IconvNameForCodePage(codePage), "WCHAR_T",
                                   source, sourceBytes,
-                                  measuring ? 0 : (char *) destination, room * sizeof(wchar_t),
+                                  measuring ? 0 : reinterpret_cast<char *>(destination), room * sizeof(wchar_t),
                                   sizeof(wchar_t));
          if (units == 0)
             return 0;
@@ -227,7 +227,7 @@ namespace HM
       if (sourceUnits > 0)
       {
          bytes = ConvertWithIconv("WCHAR_T", IconvNameForCodePage(codePage),
-                                  (const char *) source, sourceUnits * sizeof(wchar_t),
+                                  reinterpret_cast<const char *>(source), sourceUnits * sizeof(wchar_t),
                                   measuring ? 0 : destination, room,
                                   1);
          if (bytes == 0)

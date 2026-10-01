@@ -39,7 +39,7 @@ namespace HM
       // The entries carry the moment the archive was made, in DOS terms: local
       // time, two-second resolution, years from 1980.
       time_t now = time(0);
-      struct tm local;
+      struct tm local = {};
 #ifdef _WIN32
       localtime_s(&local, &now);
 #else

@@ -12,6 +12,8 @@ namespace HM
    class TCPConnectionFactory
    {
    public:
+      virtual ~TCPConnectionFactory() = default;
+
       virtual std::shared_ptr<TCPConnection> Create(ConnectionSecurity connection_security,
          boost::asio::io_context& io_context, 
          boost::asio::ssl::context& context) = 0;

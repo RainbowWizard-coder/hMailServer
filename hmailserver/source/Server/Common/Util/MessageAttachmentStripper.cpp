@@ -201,8 +201,7 @@ namespace HM
             sHeader += oField.GetValue();
             sHeader += "\r\n";
          }
-         else
-         if (sName.CompareNoCase("content-type") != 0)
+         else if (sName.CompareNoCase("content-type") != 0)
          {
             sHeader += sName;
             sHeader += ": ";

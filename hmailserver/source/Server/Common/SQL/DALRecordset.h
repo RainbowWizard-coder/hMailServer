@@ -13,6 +13,10 @@ namespace HM
    public:
       DALRecordset();
       virtual ~DALRecordset();
+      // Each backend's destructor frees its result (MySQL, PostgreSQL) or closes
+      // its recordset (ADO, SQL CE): a copy would do it a second time.
+      DALRecordset(const DALRecordset &) = delete;
+      DALRecordset &operator=(const DALRecordset &) = delete;
 
       bool Open(std::shared_ptr<DALConnection> pConn, const SQLCommand &command);
 

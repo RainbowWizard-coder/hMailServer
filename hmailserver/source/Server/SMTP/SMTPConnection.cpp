@@ -1064,7 +1064,7 @@ namespace HM
       if (!CheckAccountSendingQuotaAtMailFrom_())
          return;
 
-         current_message_ = std::shared_ptr<Message> (new Message);
+      current_message_ = std::shared_ptr<Message> (new Message);
       current_message_->SetFromAddress(sFromAddress);
       current_message_->SetState(Message::Delivering);
 
@@ -5133,24 +5133,23 @@ namespace HM
                SendResponse_(458, _T("4.3.0"), _T("Unable to queue messages for ") + sETRNDomain.ToLower());
                LOG_SMTP(GetSessionID(), GetIPAddressString(), "SMTPDeliverer - ETRN - 458 Unable to queue messages");      
             }
-         return;
-
-       }
-       else
-       {
-          // Send that we don't accept ETRN for that domain or invalid param
-          SendResponse_(458, _T("4.3.0"), _T("Error getting info for ") + sETRNDomain.ToLower());
-          LOG_SMTP(GetSessionID(), GetIPAddressString(), "SMTPDeliverer - ETRN - Could not get Route values");      
-          return;
-       }
-     }
-     else
-     {
+            return;
+         }
+         else
+         {
+            // Send that we don't accept ETRN for that domain or invalid param
+            SendResponse_(458, _T("4.3.0"), _T("Error getting info for ") + sETRNDomain.ToLower());
+            LOG_SMTP(GetSessionID(), GetIPAddressString(), "SMTPDeliverer - ETRN - Could not get Route values");      
+            return;
+         }
+      }
+      else
+      {
          // Send that we don't accept ETRN for that domain or invalid param
          SendResponse_(501, _T("5.5.4"), _T("ETRN not supported for ") + sETRNDomain.ToLower());
          LOG_SMTP(GetSessionID(), GetIPAddressString(), "SMTPDeliverer - ETRN - Domain is not Route");      
          return;
-     }
+      }
    }
 
    void

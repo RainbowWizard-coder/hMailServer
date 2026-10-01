@@ -537,7 +537,7 @@ namespace HM
             break;
 
          pszParms++;             // pszParams -> parameter value
-         while (*pszParms == ' ' || *pszParms == '\t' && *pszParms > 0)
+         while (*pszParms == ' ' || *pszParms == '\t')
             pszParms++;
 
          // If a parameter value is encoded, it might have the

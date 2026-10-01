@@ -11,6 +11,9 @@ namespace HM
    public:
       ByteBuffer();
       virtual ~ByteBuffer();
+      // The destructor deletes the buffer: a copy would delete it a second time.
+      ByteBuffer(const ByteBuffer &) = delete;
+      ByteBuffer &operator=(const ByteBuffer &) = delete;
 
       bool IsEmpty() const {return buffer_size_ == 0; }
       // Returns true if the buffer is empty.

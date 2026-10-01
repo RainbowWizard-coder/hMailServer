@@ -11,6 +11,7 @@ namespace HM
    class IMacroExpander  
    {
    public:
+      virtual ~IMacroExpander() = default;
 
       virtual bool ProcessMacro(std::shared_ptr<DALConnection> connection, const Macro &macro, String &sErrorMessage) = 0;
 

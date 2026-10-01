@@ -84,6 +84,10 @@ namespace HM
    public:
       MySQLInterface();
       virtual ~MySQLInterface();
+      // One per process (Singleton::Instance), holding the client library's handle,
+      // which the destructor releases: a copy would release it a second time.
+      MySQLInterface(const MySQLInterface &) = delete;
+      MySQLInterface &operator=(const MySQLInterface &) = delete;
 
       bool Load(String &sErrorMessage);
       bool IsLoaded();

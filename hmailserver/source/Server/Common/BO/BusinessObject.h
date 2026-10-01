@@ -10,9 +10,6 @@ namespace HM
    class BusinessObject
    {
    public:
-      // Named without the class qualification: repeating it inside the class is
-      // an MSVC extension that a conforming compiler rejects outright.
-      BusinessObject();
       virtual ~BusinessObject() {};
 
       __int64 GetID() const;
@@ -21,6 +18,14 @@ namespace HM
    protected:
 
      __int64 id_;
+
+   private:
+      // Only T derives from BusinessObject<T>, as with Singleton<T>: a class that
+      // named another type here now does not compile. Named without the class
+      // qualification: repeating it inside the class is an MSVC extension that a
+      // conforming compiler rejects outright.
+      BusinessObject();
+      friend T;
    };
 
    template <class T>

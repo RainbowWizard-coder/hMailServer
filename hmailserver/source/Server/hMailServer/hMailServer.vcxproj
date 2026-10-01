@@ -735,7 +735,6 @@ EXIT 0
     <ClCompile Include="..\Common\Util\MiniDumpInput.cpp" />
     <ClCompile Include="..\Common\Util\Parsing\AddresslistParser.cpp" />
     <ClCompile Include="..\Common\Util\Parsing\StringParser.cpp" />
-    <ClCompile Include="..\Common\Util\Parsing\StringTreeParser.cpp" />
     <ClCompile Include="..\Common\Util\PasswordGenerator.cpp" />
     <ClCompile Include="..\Common\Util\PasswordRemover.cpp" />
     <ClCompile Include="..\Common\Util\PasswordValidator.cpp" />
@@ -1733,7 +1732,6 @@ EXIT 0
     <ClInclude Include="..\Common\Util\MiniDumpInput.h" />
     <ClInclude Include="..\Common\Util\Parsing\AddresslistParser.h" />
     <ClInclude Include="..\Common\Util\Parsing\StringParser.h" />
-    <ClInclude Include="..\Common\Util\Parsing\StringTreeParser.h" />
     <ClInclude Include="..\Common\Util\PasswordGenerator.h" />
     <ClInclude Include="..\Common\Util\PasswordRemover.h" />
     <ClInclude Include="..\Common\Util\PasswordValidator.h" />

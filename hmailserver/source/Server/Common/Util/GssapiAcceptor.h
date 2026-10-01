@@ -34,6 +34,10 @@ namespace HM
 
       GssapiAcceptor();
       ~GssapiAcceptor();
+      // The destructor releases the security context and the credentials impl_
+      // holds, and deletes impl_: a copy would release them a second time.
+      GssapiAcceptor(const GssapiAcceptor &) = delete;
+      GssapiAcceptor &operator=(const GssapiAcceptor &) = delete;
 
       // Whether the mechanism is offered at all: GssapiEnabled=1, on a platform
       // that has it.

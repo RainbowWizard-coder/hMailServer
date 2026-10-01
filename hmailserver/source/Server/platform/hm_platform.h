@@ -284,7 +284,7 @@ inline BSTR SysAllocStringLen(const wchar_t *text, unsigned int characters)
       return nullptr;
    const uint32_t length = (uint32_t) bytes;
    ::memcpy(block, &length, sizeof(uint32_t));
-   wchar_t *characters_out = (wchar_t *) (block + sizeof(uint32_t));
+   wchar_t *characters_out = reinterpret_cast<wchar_t *>(block + sizeof(uint32_t));
    if (text)
       ::wmemcpy(characters_out, text, characters);
    characters_out[characters] = L'\0';
@@ -299,7 +299,7 @@ inline BSTR SysAllocString(const wchar_t *text)
 inline void SysFreeString(BSTR text)
 {
    if (text)
-      ::free((unsigned char *) text - sizeof(uint32_t));
+      ::free(reinterpret_cast<unsigned char *>(text) - sizeof(uint32_t));
 }
 
 inline unsigned int SysStringLen(BSTR text)
@@ -307,7 +307,7 @@ inline unsigned int SysStringLen(BSTR text)
    if (!text)
       return 0;
    uint32_t bytes = 0;
-   ::memcpy(&bytes, (unsigned char *) text - sizeof(uint32_t), sizeof(uint32_t));
+   ::memcpy(&bytes, reinterpret_cast<unsigned char *>(text) - sizeof(uint32_t), sizeof(uint32_t));
    return (unsigned int) (bytes / sizeof(wchar_t));
 }
 
@@ -463,18 +463,18 @@ namespace HMPlatform
 
 inline void GetLocalTime(LPSYSTEMTIME out)
 {
-   struct timeval now;
+   struct timeval now = {};
    ::gettimeofday(&now, nullptr);
-   struct tm parts;
+   struct tm parts = {};
    ::localtime_r(&now.tv_sec, &parts);
    HMPlatform::FillSystemTime(out, parts, now.tv_usec / 1000);
 }
 
 inline void GetSystemTime(LPSYSTEMTIME out)
 {
-   struct timeval now;
+   struct timeval now = {};
    ::gettimeofday(&now, nullptr);
-   struct tm parts;
+   struct tm parts = {};
    ::gmtime_r(&now.tv_sec, &parts);
    HMPlatform::FillSystemTime(out, parts, now.tv_usec / 1000);
 }
@@ -483,7 +483,7 @@ inline void GetSystemTime(LPSYSTEMTIME out)
 // core actually wants and what GetTickCount64 gives them on Windows.
 inline ULONGLONG GetTickCount64()
 {
-   struct timespec ts;
+   struct timespec ts = {};
    ::clock_gettime(CLOCK_MONOTONIC, &ts);
    return (ULONGLONG) ts.tv_sec * 1000ULL + (ULONGLONG) (ts.tv_nsec / 1000000);
 }
