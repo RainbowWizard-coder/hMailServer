@@ -20,8 +20,8 @@
         with -warnaserror, publish as a smoke check;
      4. its tests (ControlPanel.Tests);
      5. the tools solution: restore held to the lock files, Release build with
-        -warnaserror, the Import Tool's tests, and build\build-tools.ps1's
-        publish of every tool the installer ships;
+        -warnaserror, the Import Tool's tests, DBSetup's tests, and
+        build\build-tools.ps1's publish of every tool the installer ships;
      6. dotnet format --verify-no-changes over the tools solution and the
         Control Panel.
 
@@ -62,6 +62,7 @@ $controlPanel = 'hmailserver\source\Tools\ControlPanel\ControlPanel.csproj'
 $controlPanelTests = 'hmailserver\source\Tools\ControlPanel.Tests\ControlPanel.Tests.csproj'
 $tools = 'hmailserver\source\Tools\hMailServer Tools.sln'
 $importToolTests = 'hmailserver\source\Tools\ImportTool.Tests\ImportTool.Tests.csproj'
+$dbSetupTests = 'hmailserver\source\Tools\DBSetup.Tests\DBSetup.Tests.csproj'
 
 $failed = [System.Collections.Generic.List[string]]::new()
 
@@ -120,6 +121,10 @@ if ($wrapper) {
       $null = Invoke-Step 'the Import Tool tests' {
          dotnet test $importToolTests -c Release --no-build `
             --logger 'trx;LogFileName=import-tool-tests.trx' --logger 'console;verbosity=minimal' --results-directory $ResultsDirectory
+      }
+      $null = Invoke-Step 'the DBSetup tests' {
+         dotnet test $dbSetupTests -c Release --no-build `
+            --logger 'trx;LogFileName=dbsetup-tests.trx' --logger 'console;verbosity=minimal' --results-directory $ResultsDirectory
       }
       $null = Invoke-Step 'the tools: publish (build-tools.ps1)' {
          & $shell -NoProfile -ExecutionPolicy Bypass -File build\build-tools.ps1

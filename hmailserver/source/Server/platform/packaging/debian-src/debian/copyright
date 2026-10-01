@@ -28,6 +28,7 @@ Files-Excluded:
  hmailserver/source/Tools/ControlPanel.Tests
  hmailserver/source/Tools/ControlPanel.sln
  hmailserver/source/Tools/DBSetup
+ hmailserver/source/Tools/DBSetup.Tests
  hmailserver/source/Tools/DBSetupQuick
  hmailserver/source/Tools/DBUpdater
  hmailserver/source/Tools/DataDirectorySynchronizer

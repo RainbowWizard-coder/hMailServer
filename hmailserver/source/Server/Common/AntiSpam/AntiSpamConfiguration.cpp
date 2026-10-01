@@ -36,16 +36,32 @@ namespace HM
    bool 
    AntiSpamConfiguration::Load()
    {
-      // Populated before they are published: a session reading the list while a
-      // reload was between the assignment and the Refresh saw an empty one, and
-      // skipped every DNS blacklist for that message (upstream #566).
-      std::shared_ptr<DNSBlackLists> dnsBlackLists = std::shared_ptr<DNSBlackLists>(new DNSBlackLists);
+      // At a reinitialise the lists the previous load made are read again in place
+      // and not replaced: a COM DNSBlackLists or SURBLServers object made before it
+      // holds the list itself, and a change made through it has to reach the list
+      // the server reads, which until 6.3.6 was a new one, so the change waited
+      // for the next reinitialise. Each Refresh reads the rows into a list of its
+      // own and swaps them in under the list's lock (Collection::DBLoad_), so a
+      // session reading it sees the rows before or after, never an empty list
+      // half-way (upstream #566, where an empty one skipped every DNS blacklist for
+      // a message); one that fails leaves the rows as they were.
+      std::shared_ptr<DNSBlackLists> dnsBlackLists = GetDNSBlackLists();
+      std::shared_ptr<SURBLServers> surblServers = GetSURBLServers();
+      if (dnsBlackLists && surblServers)
+      {
+         dnsBlackLists->Refresh();
+         surblServers->Refresh();
+         return true;
+      }
+
+      // The first load: populated before they are published.
+      dnsBlackLists = std::shared_ptr<DNSBlackLists>(new DNSBlackLists);
       dnsBlackLists->Refresh();
 
-      std::shared_ptr<SURBLServers> surblServers = std::shared_ptr<SURBLServers>(new SURBLServers);
+      surblServers = std::shared_ptr<SURBLServers>(new SURBLServers);
       surblServers->Refresh();
 
-      // Swapped under the lock, so that the lists replaced are let go of after it.
+      // Published under the lock; nothing was there before.
       {
          boost::lock_guard<boost::mutex> guard(lists_mutex_);
          dnsBlackLists_.swap(dnsBlackLists);

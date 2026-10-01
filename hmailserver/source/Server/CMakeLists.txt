@@ -847,6 +847,56 @@ add_executable(network-deadline-tests ${SERVER_DIR}/platform/network_deadline_te
 target_link_libraries(network-deadline-tests PRIVATE hmailserver_core)
 set_target_properties(network-deadline-tests PROPERTIES OUTPUT_NAME network-deadline-tests)
 
+# ---------------------------------------------------------------- the live log
+#
+# The Logger's live log switched on and off while four threads log and one drains
+# it (Common/Application/Logger.h, enable_live_log_): no entry appended once the
+# switch is off, the buffer's limit switching it off, and every entry whole. Built
+# with -fsanitize=thread (the program's header says how) it is the harness that
+# holds the switch to being no data race. Linux only: the Windows ClassTester runs
+# inside a live service, whose live log belongs to its Control Panel. No database,
+# configuration of the machine's or network. Not installed; a bench tool.
+add_executable(live-log-tests ${SERVER_DIR}/platform/live_log_tests_main.cpp)
+target_link_libraries(live-log-tests PRIVATE hmailserver_core)
+set_target_properties(live-log-tests PROPERTIES OUTPUT_NAME live-log-tests)
+
+# ---------------------------------------------------------------- COM's languages
+#
+# LanguageTester (Common/Util/Language.h) as a program of its own, for the reason
+# spf-tests is one: on Windows it runs inside the server through ClassTester,
+# which nothing reaches here. With it, a ProgramFolder changed in a configuration
+# file of its own under a loaded set, as a reinitialise reads one: a language
+# taken before keeps the directory its English came from. Scratch files under the
+# system's temp directory; no database or network. Not installed; a bench tool.
+add_executable(language-tests ${SERVER_DIR}/platform/language_tests_main.cpp)
+target_link_libraries(language-tests PRIVATE hmailserver_core)
+set_target_properties(language-tests PROPERTIES OUTPUT_NAME language-tests)
+
+# ---------------------------------------------------------------- the database connection string
+#
+# PGConnectionTester (Common/SQL/PGConnection.h) as a program of its own, for the
+# reason spf-tests is one: on Windows it runs inside the server through
+# ClassTester, which nothing reaches here. The conninfo the server hands libpq,
+# read back by libpq's own parser: passwords, users and database names with
+# quotes, backslashes and spaces byte for byte, and none moving the host, the port
+# or sslmode. No database, configuration or network. Not installed; a bench tool.
+add_executable(connection-string-tests ${SERVER_DIR}/platform/connection_string_tests_main.cpp)
+target_link_libraries(connection-string-tests PRIVATE hmailserver_core)
+set_target_properties(connection-string-tests PROPERTIES OUTPUT_NAME connection-string-tests)
+
+# ---------------------------------------------------------------- the profiles' lock
+#
+# ProfilesTester (Common/Application/Profiles.h) as a program of its own, for the
+# reason spf-tests is one: on Windows it runs inside the server through
+# ClassTester, which nothing reaches here. An apply, a revert, a discard or a
+# decline asked for on the thread that holds the profiles' lock - by an event
+# script one of their own writes ran - refused at once rather than locking the
+# mutex a second time, which here would wait for ever. No database, configuration
+# or network. Not installed; a bench tool.
+add_executable(profiles-tests ${SERVER_DIR}/platform/profiles_tests_main.cpp)
+target_link_libraries(profiles-tests PRIVATE hmailserver_core)
+set_target_properties(profiles-tests PROPERTIES OUTPUT_NAME profiles-tests)
+
 include(GNUInstallDirs)
 install(TARGETS hmailserver RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 install(DIRECTORY ${SERVER_DIR}/../DBScripts/

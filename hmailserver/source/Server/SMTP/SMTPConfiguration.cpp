@@ -33,16 +33,24 @@ namespace HM
    }
 
    bool 
-   SMTPConfiguration::Load()
+   SMTPConfiguration::Load(const std::shared_ptr<SMTPConfiguration> &previous)
    {
-      incoming_relays_ = std::shared_ptr<IncomingRelays>(new IncomingRelays());
+      // The previous load's lists where it has them, read again in place: a COM
+      // Routes, IncomingRelays or RemoteDomainPolicies object made before the
+      // reinitialise holds the list itself, and a change made through it has to
+      // reach the list the server reads. Each Refresh reads the rows into a list of
+      // its own and swaps them in under the list's lock (Collection::DBLoad_), so a
+      // reader sees the rows before or after, never half; one that fails leaves the
+      // rows as they were.
+      incoming_relays_ = previous && previous->incoming_relays_ ? previous->incoming_relays_ : std::shared_ptr<IncomingRelays>(new IncomingRelays());
+      routes_ = previous && previous->routes_ ? previous->routes_ : std::shared_ptr<Routes>(new Routes());
+      remote_domain_policies_ = previous && previous->remote_domain_policies_ ? previous->remote_domain_policies_ :
+         std::shared_ptr<RemoteDomainPolicies>(new RemoteDomainPolicies());
+
       if (!incoming_relays_->Refresh())
          return false;
 
-      routes_ = std::shared_ptr<Routes> (new Routes());
       routes_->Refresh();
-
-      remote_domain_policies_ = std::shared_ptr<RemoteDomainPolicies> (new RemoteDomainPolicies());
       remote_domain_policies_->Refresh();
 
       return true;

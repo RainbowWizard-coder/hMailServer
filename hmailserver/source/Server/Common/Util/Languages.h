@@ -24,7 +24,9 @@ namespace HM
    // which is never changed once published, with no lock held. The mutex is a
    // leaf held for the copy or the swap only: no file is read, and no language
    // released, under it. A Language a caller already holds is the previous
-   // load's and stays whole: it holds the English it was made with.
+   // load's and stays whole: it holds the English it was made with, and the
+   // directory that English was read from, where it reads its translation on its
+   // first use even when ProgramFolder has changed since (Language.h).
    class Languages : public Singleton<Languages>
    {
    public:

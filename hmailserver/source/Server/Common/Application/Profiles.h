@@ -200,4 +200,17 @@ namespace HM
       static void Print_(bool error, const String &line);
       static int OpenForCommand_(const TCHAR *verb);
    };
+
+   /// <summary>
+   /// The four verbs called on the thread that is applying or reverting a profile -
+   /// as an event script run by one of its writes calls them - each refused at once,
+   /// with the sentence, and nothing read or written; and the thread free again
+   /// afterwards. No database is reached. Throws std::logic_error with a sentence.
+   /// ClassTester runs it inside the Windows service; profiles-tests on Linux.
+   /// </summary>
+   class ProfilesTester
+   {
+   public:
+      void Test();
+   };
 }

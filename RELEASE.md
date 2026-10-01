@@ -485,8 +485,9 @@ that administrators upgrade by hand.
      `Version:` and its one `%changelog` entry, `- <version>-1`.
      `build/check-linux-version-stamp.sh` holds both to `Version.h`, each with a
      single entry.
-   * `hmailserver/source/Tools/ImportTool.Tests/packages.lock.json` - the entry
-     for the project's own version. Regenerate it (`dotnet restore
+   * `hmailserver/source/Tools/ImportTool.Tests/packages.lock.json` and
+     `hmailserver/source/Tools/DBSetup.Tests/packages.lock.json` - the entry
+     for the project's own version. Regenerate each (`dotnet restore
      --force-evaluate` on that project) rather than editing it by hand.
      **Nothing enforces this one.** Measured on 10 September 2026: `dotnet
      restore --locked-mode` with a stale project-reference version exits 0,

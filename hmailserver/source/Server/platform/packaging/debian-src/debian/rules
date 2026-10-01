@@ -54,12 +54,14 @@ override_dh_auto_configure:
 # may change a stored event by a delivered calendar message (iMIP), a written
 # file whose close fails (on /dev/full and a quota under $TMPDIR), the types
 # files sent as links and contacts' photos are served under, a stored password
-# hash's iteration count, and a rewrite of hMailServer.ini (its owner and mode,
+# hash's iteration count, a rewrite of hMailServer.ini (its owner and mode,
 # which only root can check; as another user it runs its one case that needs
-# no root).
+# no root), the database connection string read back by libpq, COM's languages
+# and the live log (scratch files under $TMPDIR as well), and the setting
+# profiles' lock.
 # None opens a socket, reads the system's configuration, needs a database or
 # needs root, so they run here, with the network refused, in seconds.
-TESTERS := spf-tests script-binding-tests snmp-tests object-store-signature-tests singleton-tests legacy-blowfish-tests xml-tree-tests datetime-tests public-suffix-tests backup-tests trust-anchor-tests business-object-tests tls-options-tests update-feed-tests imip-tests file-utilities-tests media-type-tests scram-tests ini-file-tests
+TESTERS := spf-tests script-binding-tests snmp-tests object-store-signature-tests singleton-tests legacy-blowfish-tests xml-tree-tests datetime-tests public-suffix-tests backup-tests trust-anchor-tests business-object-tests tls-options-tests update-feed-tests imip-tests file-utilities-tests media-type-tests scram-tests ini-file-tests connection-string-tests language-tests live-log-tests profiles-tests
 
 override_dh_auto_test:
 ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))

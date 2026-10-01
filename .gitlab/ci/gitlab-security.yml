@@ -102,7 +102,7 @@ semgrep-sast:
     # generate-portal-page.py, generate-help-pages.py and generate-portal-languages.py),
     # which hold no code: the webmail's scripts they carry are read as files of their
     # own, and the rest is Markdown and translations.
-    SAST_EXCLUDED_PATHS: "spec, test, tests, tmp, hmailserver/test, hmailserver/source/Tools/ControlPanel.Tests, hmailserver/source/Tools/ImportTool.Tests, build/deck-script-test.js, build/portal-script-test.js, libraries, hmailserver/source/Server/quickjs, hmailserver/source/Server/zlib, security, hmailserver/source/Server/Common/Util/PortalPageData.cpp, hmailserver/source/Server/Common/Util/HelpPagesData.cpp, hmailserver/source/Server/Common/Util/PortalLanguagesData.cpp"
+    SAST_EXCLUDED_PATHS: "spec, test, tests, tmp, hmailserver/test, hmailserver/source/Tools/ControlPanel.Tests, hmailserver/source/Tools/ImportTool.Tests, hmailserver/source/Tools/DBSetup.Tests, build/deck-script-test.js, build/portal-script-test.js, libraries, hmailserver/source/Server/quickjs, hmailserver/source/Server/zlib, security, hmailserver/source/Server/Common/Util/PortalPageData.cpp, hmailserver/source/Server/Common/Util/HelpPagesData.cpp, hmailserver/source/Server/Common/Util/PortalLanguagesData.cpp"
     # No file too large to read, and two minutes for a rule on a file. Semgrep leaves
     # out every file over 1,000,000 bytes, saying so only as a count in its log, and
     # the checkout's CRLF puts the REST server's RestApiServer.cpp over it (1,009,471

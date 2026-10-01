@@ -653,6 +653,72 @@ namespace RegressionTests.API
       }
 
       [Test]
+      [Description("An event script run on the reverting thread by the revert's own write - a way back that writes the scripting switch on, which runs the script's top level - that asks for a profile verb over COM is refused at once with the reason, and the revert finishes. No shipped profile sets the switch, so the way back is written here; an error reported during a write, which fires OnError on the same thread, is the other way such a script runs. Negative control: up to 6.3.5 the verb locked the profiles' mutex a second time on the thread holding it, which MSVC answers by throwing resource_deadlock_would_occur, so the script was told only that an unknown error occurred.")]
+      public void AnEventScriptRunByARevertCannotReenterTheProfiles()
+      {
+         var scripting = _settings.Scripting;
+         string originalLanguage = scripting.Language;
+         bool originalEnabled = scripting.Enabled;
+         putBack_.Add(() =>
+         {
+            var putBack = _settings.Scripting;
+            // settings-store-exempt: this is the event script file, not hMailServer.ini.
+            File.WriteAllText(putBack.CurrentScriptFile, "");
+            putBack.Enabled = originalEnabled;
+            putBack.Language = originalLanguage;
+            putBack.Reload();
+         });
+
+         // Read with scripting off, and not run: nothing runs it until the revert
+         // switches scripting on, on the thread that holds the profiles' lock.
+         scripting.Enabled = false;
+         scripting.Language = "VBScript";
+         LogHandler.DeleteEventLog();
+         // settings-store-exempt: this is the event script file, not hMailServer.ini.
+         File.WriteAllText(scripting.CurrentScriptFile,
+            "On Error Resume Next\r\n" +
+            "Set reentry = CreateObject(\"hMailServer.Application\")\r\n" +
+            "Call reentry.Authenticate(\"Administrator\", \"" + AdminPassword + "\")\r\n" +
+            "Call reentry.Settings.DiscardProfileSnapshot()\r\n" +
+            "If Err.Number = 0 Then\r\n" +
+            "   EventLog.Write(\"reentry: taken\")\r\n" +
+            "Else\r\n" +
+            "   EventLog.Write(\"reentry: \" & Err.Description)\r\n" +
+            "End If\r\n" +
+            "Err.Clear\r\n");
+         scripting.Reload();
+
+         // The way back a profile that switched scripting off would have left - no
+         // shipped profile sets the switch, so it is written here: the revert writes
+         // the switch on again, through its settings row, on this request's thread.
+         long applied = DateTimeOffset.UtcNow.ToUnixTimeSeconds() - 60;
+         _application.Database.ExecuteSQL(
+            "update hm_settings set settingstring = '{\"profile\":\"office\",\"applied\":" + applied +
+            ",\"entries\":[[\"d\",\"usescriptserver\",\"1\",\"0\",1]]}' where settingname = 'ProfileSnapshot'");
+         _application.Reinitialize();
+
+         // The revert returns, where the script's call would have locked the mutex its
+         // thread holds.
+         JsonElement reverted = JsonDocument.Parse(_settings.RevertProfile()).RootElement;
+         ClassicAssert.IsTrue(_settings.Scripting.Enabled, "The revert did not switch scripting back on: " + reverted);
+         ClassicAssert.IsFalse(SnapshotHeld(), "The revert did not clear the way back: " + reverted);
+
+         string eventLog = "";
+         for (int attempt = 0; attempt < 50 && !eventLog.Contains("reentry: "); attempt++)
+         {
+            string file = LogHandler.GetEventLogFileName();
+            if (File.Exists(file))
+               eventLog = File.ReadAllText(file);
+            if (!eventLog.Contains("reentry: "))
+               Thread.Sleep(100);
+         }
+
+         StringAssert.Contains("reentry: A profile could not be discarded: this thread is applying or reverting one", eventLog,
+            "The script's call on the reverting thread was not refused as re-entered.");
+         StringAssert.DoesNotContain("reentry: taken", eventLog);
+      }
+
+      [Test]
       [Description("The verbs refuse while the service runs, and with it stopped: the relay without --confirm exits 3; --if-new leaves a server of ten accounts as it is (exit 5); none records the shipped settings; --once then applies nothing; the office profile applies and a second apply is refused while its way back is held; --revert-profile puts it back; and each is on the audit trail under the command line's name. Negative control: nothing is changed by a refused run.")]
       public void TheVerbsRefuseBesideARunningServiceAndApplyWithItStopped()
       {

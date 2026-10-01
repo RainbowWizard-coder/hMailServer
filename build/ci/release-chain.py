@@ -1496,10 +1496,12 @@ def provenance_problems(assets, version, identity, commit):
     except ValueError as error:
         problems.append("the provenance's certificate could not be read for the repository id: %s" % error)
     else:
+        # Required at either path, as a server requires it from 6.3.6: 6.3.5's
+        # certificate, the one release signed at the first path, records it.
         if recorded is not None and recorded != PROJECT_ID:
             problems.append("the provenance's certificate names the repository id %s, not %s" % (recorded, PROJECT_ID))
-        elif recorded is None and identity.startswith(SIGNING_REPOSITORIES["hmailserver/hmailserver"] + "//"):
-            problems.append("the provenance's certificate, at the group's path, records no repository id")
+        elif recorded is None:
+            problems.append("the provenance's certificate records no repository id, which a server requires at either path")
     entries = (bundle.get("verificationMaterial") or {}).get("tlogEntries") or []
     if not entries or (entries[0].get("kindVersion") or {}).get("kind") != "dsse" or not entries[0].get("integratedTime"):
         problems.append("the provenance's log entry is not a dsse entry of the public log with its integratedTime")
@@ -2717,9 +2719,8 @@ def self_test():
             rawBytes=bundle_["verificationMaterial"]["certificate"]["rawBytes"][:-8]))
         found = provenance_problems(planted, version, tag_identity, built)
         expect(any("certificate does not name" in p for p in found), "a provenance whose certificate is cut short is refused: %s" % found)
-        # The repository id, held as a server holds the release's files to it: this
-        # project's where there is one, and one at the group's path, which is the
-        # path a release is signed as now.
+        # The repository id, held as a server holds the release's files to it from
+        # 6.3.6: this project's, and one there, at either path.
         group_identity = tag_identity
         first_identity = tag_identity.replace("/hmailserver/hmailserver/", "/Progressiverobot/hmailserver/")
         for what, kwargs, at, needle in (
@@ -2729,7 +2730,9 @@ def self_test():
                     "repository_id": "1267388815", "key": b"\x00" * 7 + sigstore_certificate.planted()}, tag_identity,
                  "certificate names the repository id 1267388815"),
                 ("no id, at the group's path", {"repository_id": None, "identity": group_identity}, group_identity,
-                 "at the group's path, records no repository id"),
+                 "records no repository id"),
+                ("no id, at the path the project began at", {"repository_id": None, "identity": first_identity}, first_identity,
+                 "records no repository id"),
                 ("another project's id, at the group's path", {"repository_id": "1267388815", "identity": group_identity},
                  group_identity, "certificate names the repository id 1267388815"),
                 # cosign refuses a key twice; Python's json would take the last.
@@ -2740,9 +2743,9 @@ def self_test():
             fake_provenance(planted, **kwargs)
             found = provenance_problems(planted, version, at, built)
             expect(any(needle in p for p in found), "a provenance with %s is refused: %s" % (what, found))
-        fake_provenance(planted, repository_id=None, identity=first_identity)
+        fake_provenance(planted, identity=first_identity)
         found = provenance_problems(planted, version, first_identity, built)
-        expect(found == [], "a provenance without an id, at the path the project began at, is taken: %s" % found)
+        expect(found == [], "a provenance with this project's id, at the path the project began at, is taken: %s" % found)
         fake_provenance(planted, identity=group_identity)
         found = provenance_problems(planted, version, group_identity, built)
         expect(found == [], "a provenance with this project's id, at the group's path, is taken: %s" % found)

@@ -37,8 +37,21 @@ namespace HM
 
       static String GetExecutableName();
 
-      // --- global 
-      std::shared_ptr<DatabaseConnectionManager> GetDBManager() { return db_manager_; }
+      // --- global
+      // The two are replaced by every reinitialise - ExitInstance lets them go,
+      // InitInstance makes new ones - while COM, the SQL log device's worker and the
+      // other threads a reinitialise does not stop go on asking for them, so the
+      // pointer is copied, assigned and reset under managers_mutex_, as
+      // Configuration's are under its publication_mutex_: a std::shared_ptr copied
+      // on one thread while it is assigned on another is a data race that can leave
+      // the copy holding a freed control block. Empty between the two, as it always
+      // was. The callers here that may run then check for that - COM's Database
+      // and BackupManager objects, the SQL log device's worker - but most of the
+      // server's do not (Collection::DBLoad_, which a COM list's Refresh reaches,
+      // among them): a COM call that reaches one in that moment meets a null
+      // pointer, which the call's catch-all, under /EHa, answers as an unknown
+      // error, as it always has.
+      std::shared_ptr<DatabaseConnectionManager> GetDBManager() const;
 
       // --- overridables
       virtual bool InitInstance(String &sErrorMessage);
@@ -122,7 +135,8 @@ namespace HM
       std::shared_ptr<SMTPDeliveryManager> GetSMTPDeliveryManager() {return smtp_delivery_manager_;} 
       std::shared_ptr<ExternalFetchManager> GetExternalFetchManager() {return external_fetch_manager_;} 
 
-      std::shared_ptr<BackupManager> GetBackupManager() {return backup_manager_; }
+      // Under managers_mutex_ (GetDBManager says why).
+      std::shared_ptr<BackupManager> GetBackupManager() const;
 
       std::shared_ptr<WorkQueue> GetMaintenanceWorkQueue();
       std::shared_ptr<WorkQueue> GetAsyncWorkQueue();
@@ -216,7 +230,11 @@ namespace HM
       bool started_for_database_upgrade_ = false;
 
       std::shared_ptr<DatabaseConnectionManager> db_manager_;
-   
+
+      // Guards db_manager_ and backup_manager_, the pointers only: held to copy,
+      // assign or reset one, never across a call into either - a leaf.
+      mutable boost::mutex managers_mutex_;
+
       // the servers
       std::shared_ptr<SMTPDeliveryManager> smtp_delivery_manager_;
 

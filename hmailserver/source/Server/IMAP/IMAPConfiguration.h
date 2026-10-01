@@ -17,7 +17,11 @@ namespace HM
       IMAPConfiguration();
       virtual ~IMAPConfiguration();
 
-      bool Load();
+      // Reads the public folders and the groups. previous, the configuration a
+      // reinitialise replaces, lends its two lists, which are read again in place
+      // rather than made anew (Configuration::Load says why); at a start there is
+      // none, and they are made here.
+      bool Load(const std::shared_ptr<IMAPConfiguration> &previous);
 
       String GetWelcomeMessage() const;
       void SetWelcomeMessage(const String &sMessage);

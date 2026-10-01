@@ -73,6 +73,20 @@ namespace HM
       // stamped schema version 6006 onto databases that had not got the column.
       static bool HasIgnoreErrorsMarker(const String &sql);
 
+      // A value of the connection - the server's name, the user, the password, the
+      // database's name - as the bytes a client library is handed for it (libpq's
+      // conninfo, the MySQL client's arguments), which reach the server as they
+      // are. On POSIX, UTF-8. On Windows, a value whose every character is U+00FF
+      // or below goes one byte a character, Latin-1, as Unicode::ToANSI - the
+      // CRT's C locale, which this process never changes - wrote it up to 6.3.5:
+      // a password with such a letter that connects today was set in those bytes,
+      // on a database server whose encoding is WIN1252 or LATIN1, and goes on
+      // connecting. Any other value goes as UTF-8, where ToANSI left the whole
+      // value empty - on Windows for a character beyond U+00FF, on POSIX for any
+      // outside ASCII - and the client connected with its own defaults. False, with
+      // nothing written, for text UTF-8 cannot carry (half of a surrogate pair).
+      static bool ClientBytes(const String &value, AnsiString &bytes);
+
       virtual ConnectionResult Connect(String &sErrorMessage) = 0;
       virtual bool Disconnect() = 0;
       virtual ExecutionResult TryExecute(const SQLCommand &command, String &sErrorMessage, __int64 *iInsertID = 0, int iIgnoreErrors = 0) = 0;

@@ -200,9 +200,10 @@ if [ -n "$rehearse" ]; then
 fi
 
 # The repository id (Fulcio's 1.3.6.1.4.1.57264.1.15), which a server requires at the
-# group's path, and which the notes give from the installer's bundle. 6.3.5, the first
-# release signed here, at the path the project began at, showed that Fulcio writes it
-# for GitLab (86730559); the project moved into the group after it.
+# group's path, and from 6.3.6 at the path the project began at too, and which the
+# notes give from the installer's bundle. 6.3.5, the first release signed here, at the
+# path the project began at, showed that Fulcio writes it for GitLab (86730559); the
+# project moved into the group after it.
 # Read from the certificate's extensions by build/ci/sigstore-certificate.py, never by
 # a search of its bytes: its public key, bytes its holder chooses, could hold this
 # project's id in front of the extension naming another's.
@@ -211,7 +212,7 @@ said=$(python3 build/ci/sigstore-certificate.py repository-id "$signed/$installe
   || fail "the certificate of $installer could not be read for the repository id: ${said#refused: }"
 case "$said" in
   id=86730559) id_row="| Repository id | \`86730559\` |" ;;
-  # The server refused such a file above already: at the group's path the id is required.
+  # The server refused such a file above already: at either path the id is required.
   absent) fail "the certificate records no repository id, which a server requires for $repository" ;;
   *) fail "the certificate names the repository id '${said#id=}', not 86730559" ;;
 esac

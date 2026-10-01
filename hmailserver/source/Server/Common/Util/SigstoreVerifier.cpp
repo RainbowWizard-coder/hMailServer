@@ -126,12 +126,17 @@ namespace HM
       // protected tag), so a branch, a merge request's ref or a fork's pipeline
       // presents another identity and is refused. The project id, 86730559, holds
       // it to this project and not to whichever takes the path after a rename or a
-      // transfer of the namespace. The id is checked when the certificate carries
-      // one: no GitLab-issued certificate had been seen when this entry was
-      // written, and a server that refused every one for lacking an extension
-      // Fulcio turned out not to write could install nothing (6.3.5's recorded
-      // 86730559); the path, the issuer and the repository are required either
-      // way.
+      // transfer of the namespace - the project has left it, and a personal
+      // namespace passes to someone else when its owner is renamed. The id is
+      // required, from 6.3.6. Servers 6.3.4 and 6.3.5 checked it only when the
+      // certificate carried one, because no GitLab-issued certificate had been
+      // seen when the entry was written, and a server that refused every one for
+      // lacking an extension Fulcio turned out not to write could have installed
+      // nothing. Fulcio does write it: 6.3.5's certificate, the one this path
+      // signed, records 86730559, so requiring it costs 6.3.5 nothing and refuses
+      // what a project that is not this one could sign at the path, with an id of
+      // its own or none. And as for the group's path below, no setting takes a
+      // certificate that names this path without the id (Verify_).
       const char *GITLAB_IDENTITY_PREFIX = "https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/v";
       const char *GITLAB_ISSUER = "https://gitlab.com";
       const char *GITLAB_REPOSITORY = "https://gitlab.com/Progressiverobot/hmailserver";
@@ -151,12 +156,13 @@ namespace HM
       // is signed here. The prefix is anchored as the entry above's is, and the
       // issuer is the same.
       //
-      // Here the id is required, where the entry above checks it only when the
-      // certificate carries one. That entry's path was the project's own until the
-      // move, in the owner's own namespace, where nobody else can make a project;
-      // its id guards against whoever holds the path now that the project has left
-      // it, and it is optional because a server that refused every certificate for
-      // lacking an extension Fulcio turned out not to write could install nothing.
+      // Here the id was required from the first, where servers 6.3.4 and 6.3.5
+      // checked the entry above's only when the certificate carried one. That
+      // entry's path was the project's own until the move, in the owner's own
+      // namespace, where nobody else can make a project while the owner keeps the
+      // name; its id guards against whoever holds the path now that the project
+      // has left it, and it was optional until a certificate had shown that Fulcio
+      // writes it.
       // This path was not the project's until the move, and the group can be lost,
       // or the project moved on again, and whoever holds the path then can run a
       // pipeline for a v* tag of their own there and be named exactly as this
@@ -616,7 +622,7 @@ namespace HM
       trust.log_key_pem = REKOR_PUBLIC_KEY_PEM;
       trust.signers.push_back(MakeSigner_(GITHUB_IDENTITY_PREFIX, GITHUB_ISSUER, GITHUB_REPOSITORY, GITHUB_REPOSITORY_ID, false,
                                           GITHUB_ISSUED_BEFORE, GITHUB_LAST_VERSION));
-      trust.signers.push_back(MakeSigner_(GITLAB_IDENTITY_PREFIX, GITLAB_ISSUER, GITLAB_REPOSITORY, GITLAB_REPOSITORY_ID, true, 0, ""));
+      trust.signers.push_back(MakeSigner_(GITLAB_IDENTITY_PREFIX, GITLAB_ISSUER, GITLAB_REPOSITORY, GITLAB_REPOSITORY_ID, false, 0, ""));
       trust.signers.push_back(MakeSigner_(GITLAB_GROUP_IDENTITY_PREFIX, GITLAB_ISSUER, GITLAB_GROUP_REPOSITORY, GITLAB_REPOSITORY_ID, false, 0, ""));
       return trust;
    }
@@ -666,9 +672,9 @@ namespace HM
       // Each of the three replaces its part of every signer in the list: a site
       // that signs its own releases sets all three and is left with one signer, its
       // own; one that sets only the repository check off keeps every one of this
-      // project's signers without it (a certificate that names the group's path
-      // still needs the project's id: Verify_ holds it to that whatever is set
-      // here). The repository check can be switched off
+      // project's signers without it (a certificate that names either of the
+      // project's GitLab paths still needs the project's id: Verify_ holds it to
+      // that whatever is set here). The repository check can be switched off
       // with "-"; an empty setting keeps the default, so that the default is what a
       // blank INI gets. What belongs to this project's own signers goes with the
       // part it belongs to: the repository's id with the repository; the GitHub
@@ -1225,29 +1231,36 @@ namespace HM
          repositoryIdMalformed = repositoryIdPresent && !DerUtf8String_(extension, repositoryId);
       }
 
-      // Whatever the settings made of the signers, a certificate that names the
-      // group the project moved to - that project's path in its identity, or
-      // its repository - is this project's only with this project's id, which is
-      // all that tells the project from whoever holds the path then
-      // (GITLAB_GROUP_IDENTITY_PREFIX says why). The group's own entry requires
-      // it; this is so that no setting takes such a certificate without it: not
-      // the repository check off ("-"), which drops every entry's id with its
-      // repository, and not an identity or a repository of the site's own that
-      // names the group's path, where the copy of the first path's entry,
-      // whose id went with its repository, is the one kept. Without regard to
-      // case, which does not tell GitLab's paths apart.
-      String groupRefusal;
+      // Whatever the settings made of the signers, a certificate that names one of
+      // this project's two GitLab paths - the group the project moved to, or the
+      // path it began at and left - in its identity or its repository is this
+      // project's only with this project's id, which is all that tells the project
+      // from whoever holds the path then (GITLAB_IDENTITY_PREFIX and
+      // GITLAB_GROUP_IDENTITY_PREFIX say why). Both entries require it; this is so
+      // that no setting takes such a certificate without it: not the repository
+      // check off ("-"), which drops every entry's id with its repository, and not
+      // an identity or a repository of the site's own that names one of the paths,
+      // where the copy of another entry, whose id went with its repository, may be
+      // the one kept. Without regard to case, which does not tell GitLab's paths
+      // apart.
+      String projectRefusal;
       {
-         const std::string groupPath = LowerAscii_(std::string(GITLAB_GROUP_REPOSITORY) + "//");
-         bool namesGroup = repositoryRecorded && LowerAscii_(repository) == LowerAscii_(GITLAB_GROUP_REPOSITORY);
-         for (size_t i = 0; i < uris.size() && !namesGroup; i++)
-            namesGroup = LowerAscii_(uris[i]).compare(0, groupPath.size(), groupPath) == 0;
-         if (namesGroup && repositoryIdMalformed)
-            groupRefusal = _T("The certificate's source repository identifier is malformed.");
-         else if (namesGroup && !repositoryIdPresent)
-            groupRefusal = _T("The certificate names no source repository identifier.");
-         else if (namesGroup && repositoryId != std::string(GITLAB_REPOSITORY_ID))
-            groupRefusal = Formatter::Format(_T("The certificate is for the repository with the id {0}, not {1}."),
+         const char *const projectPaths[] = { GITLAB_REPOSITORY, GITLAB_GROUP_REPOSITORY };
+         bool namesProject = false;
+         for (const char *projectPath : projectPaths)
+         {
+            const std::string path = LowerAscii_(std::string(projectPath) + "//");
+            if (repositoryRecorded && LowerAscii_(repository) == LowerAscii_(projectPath))
+               namesProject = true;
+            for (size_t i = 0; i < uris.size() && !namesProject; i++)
+               namesProject = LowerAscii_(uris[i]).compare(0, path.size(), path) == 0;
+         }
+         if (namesProject && repositoryIdMalformed)
+            projectRefusal = _T("The certificate's source repository identifier is malformed.");
+         else if (namesProject && !repositoryIdPresent)
+            projectRefusal = _T("The certificate names no source repository identifier.");
+         else if (namesProject && repositoryId != std::string(GITLAB_REPOSITORY_ID))
+            projectRefusal = Formatter::Format(_T("The certificate is for the repository with the id {0}, not {1}."),
                String(repositoryId.c_str()), String(GITLAB_REPOSITORY_ID));
       }
 
@@ -1287,8 +1300,8 @@ namespace HM
             why = _T("The certificate names no source repository identifier.");
          else if (!signer.repository_id.IsEmpty() && repositoryIdPresent && repositoryId != std::string(signer.repository_id.c_str()))
             why = Formatter::Format(_T("The certificate is for the repository with the id {0}, not {1}."), String(repositoryId.c_str()), String(signer.repository_id));
-         else if (!groupRefusal.IsEmpty())
-            why = groupRefusal;
+         else if (!projectRefusal.IsEmpty())
+            why = projectRefusal;
          else if (signer.issued_before > 0 && ASN1_TIME_cmp_time_t(X509_get0_notBefore(leaf.get()), (time_t) signer.issued_before) != -1)
             why = Formatter::Format(_T("The certificate names {0}, a signer this server trusts only for certificates issued before {1}, and this one was issued later."),
                String(named.c_str()), String(UtcText_(signer.issued_before).c_str()));

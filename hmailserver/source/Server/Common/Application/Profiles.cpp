@@ -57,7 +57,9 @@
 #include <climits>
 #include <cstdio>
 #include <ctime>
+#include <functional>
 #include <mutex>
+#include <thread>
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -72,6 +74,53 @@ namespace HM
       // decides, and writes them, and two at once would each decide on what the
       // other is about to replace.
       std::mutex profiles_mutex;
+
+      // Whether this thread holds profiles_mutex. An apply and a revert write
+      // settings through their rows while they hold it, and a write can run an event
+      // script on this same thread: an error reported on the way fires OnError
+      // (ErrorManager::ReportError), and a write of the scripting switch runs the
+      // script's top level (Configuration::SetUseScriptServer, ScriptServer::
+      // SwitchOn) - no shipped profile sets that switch, but a revert writes back
+      // whatever its way back holds. A script that calls back into an apply, a
+      // revert, a discard or a decline over COM - an in-process call, on this
+      // thread - would lock the mutex this thread already holds, which std::mutex
+      // does not allow: MSVC's throws resource_deadlock_would_occur (measured with
+      // the toolset the server is built with, 1 October 2026), which COM answered as
+      // an unknown error, and glibc's waits for ever, with the script, the profile's
+      // writes and every other profile verb behind it. So a call made while this
+      // thread holds it is refused, with the reason, before it locks (Reentered_).
+      // A call that arrives on another thread - a script asking over REST - is not
+      // refused: it waits for the lock as any other caller does. Found by the
+      // re-check of 29 September 2026; refused from 6.3.6.
+      thread_local bool holds_profiles_mutex = false;
+
+      // profiles_mutex, held and marked as this thread's for as long as it lives.
+      class ProfilesLock
+      {
+      public:
+         ProfilesLock() : guard_(profiles_mutex) { holds_profiles_mutex = true; }
+         ~ProfilesLock() { holds_profiles_mutex = false; }
+
+         ProfilesLock(const ProfilesLock &) = delete;
+         ProfilesLock &operator=(const ProfilesLock &) = delete;
+
+      private:
+         // Released after the destructor's body has cleared the mark.
+         std::lock_guard<std::mutex> guard_;
+      };
+
+      // A verb called on the thread that holds profiles_mutex: refused, with the
+      // sentence and a JSON answer, instead of locking it again.
+      bool Reentered_(const TCHAR *verb, String &sentence, AnsiString &json)
+      {
+         if (!holds_profiles_mutex)
+            return false;
+
+         sentence = Formatter::Format("A profile could not be {0}: this thread is applying or reverting one, and wrote a setting that ran an event script, which asked for this. An event script cannot apply, revert, discard or decline a profile while one is being applied or reverted; nothing was changed by this request.",
+            String(verb));
+         json = "{\"reentered\":true}";
+         return true;
+      }
 
       // The widest value hm_settings.settingstring holds.
       const int MaximumRecord = 4000;
@@ -1409,11 +1458,14 @@ namespace HM
    Profiles::Outcome
    Profiles::Apply(const String &name, bool confirmed, const String &token, AnsiString &json, String &sentence)
    {
-      std::lock_guard<std::mutex> guard(profiles_mutex);
+      sentence.Empty();
+      if (Reentered_(_T("applied"), sentence, json))
+         return OutcomeRefused;
+
+      ProfilesLock guard;
 
       Report report;
       std::vector<Evaluated> all;
-      sentence.Empty();
 
       const Outcome outcome = ApplyLocked(name, confirmed, token, report, all, sentence);
 
@@ -1457,7 +1509,10 @@ namespace HM
    Profiles::Outcome
    Profiles::Revert(AnsiString &json, String &sentence)
    {
-      std::lock_guard<std::mutex> guard(profiles_mutex);
+      if (Reentered_(_T("reverted"), sentence, json))
+         return OutcomeRefused;
+
+      ProfilesLock guard;
 
       sentence.Empty();
       String held;
@@ -1637,7 +1692,10 @@ namespace HM
    Profiles::Outcome
    Profiles::Discard(AnsiString &json, String &sentence)
    {
-      std::lock_guard<std::mutex> guard(profiles_mutex);
+      if (Reentered_(_T("discarded"), sentence, json))
+         return OutcomeRefused;
+
+      ProfilesLock guard;
 
       sentence.Empty();
       String held;
@@ -1687,7 +1745,10 @@ namespace HM
    Profiles::Outcome
    Profiles::Decline(AnsiString &json, String &sentence)
    {
-      std::lock_guard<std::mutex> guard(profiles_mutex);
+      if (Reentered_(_T("declined"), sentence, json))
+         return OutcomeRefused;
+
+      ProfilesLock guard;
 
       sentence.Empty();
       String held;
@@ -1862,7 +1923,7 @@ namespace HM
 
          Outcome outcome;
          {
-            std::lock_guard<std::mutex> guard(profiles_mutex);
+            ProfilesLock guard;
             outcome = ApplyLocked(name, confirmed, String(), report, all, sentence);
          }
 
@@ -1951,5 +2012,64 @@ namespace HM
 
       Application::Instance()->ExitInstance();
       return result;
+   }
+
+   void
+   ProfilesTester::Test()
+   {
+      struct Verb
+      {
+         const char *name;
+         std::function<Profiles::Outcome(AnsiString &, String &)> call;
+      };
+
+      const Verb verbs[] =
+      {
+         { "apply", [](AnsiString &json, String &sentence) { return Profiles::Apply(_T("office"), true, String(), json, sentence); } },
+         { "revert", [](AnsiString &json, String &sentence) { return Profiles::Revert(json, sentence); } },
+         { "discard", [](AnsiString &json, String &sentence) { return Profiles::Discard(json, sentence); } },
+         { "decline", [](AnsiString &json, String &sentence) { return Profiles::Decline(json, sentence); } },
+      };
+
+      {
+         // What an event script run by an apply's or a revert's write meets: this
+         // thread holds the lock.
+         ProfilesLock held;
+
+         // Another thread meanwhile is not refused: it would wait for the lock, as it
+         // always has, since the mark is this thread's alone.
+         bool otherRefused = true;
+         std::thread other([&otherRefused]()
+         {
+            String sentence;
+            AnsiString json;
+            otherRefused = Reentered_(_T("applied"), sentence, json);
+         });
+         other.join();
+         if (otherRefused)
+            throw std::logic_error("ProfilesTester: a thread that does not hold the profiles' lock was refused as re-entered");
+
+         for (const Verb &verb : verbs)
+         {
+            AnsiString json;
+            String sentence;
+            const Profiles::Outcome outcome = verb.call(json, sentence);
+            if (outcome != Profiles::OutcomeRefused || sentence.Find(_T("this thread is applying or reverting one")) < 0 ||
+                json != "{\"reentered\":true}")
+            {
+               throw std::logic_error(std::string("ProfilesTester: ") + verb.name +
+                  " on the thread holding the profiles' lock was not refused as re-entered");
+            }
+         }
+      }
+
+      // Let go: this thread is no longer refused, and the lock is free.
+      String sentence;
+      AnsiString json;
+      if (holds_profiles_mutex || Reentered_(_T("applied"), sentence, json))
+         throw std::logic_error("ProfilesTester: the thread is still marked as holding the profiles' lock after it let go");
+      if (!profiles_mutex.try_lock())
+         throw std::logic_error("ProfilesTester: the profiles' lock is still held after the thread let go");
+      profiles_mutex.unlock();
    }
 }

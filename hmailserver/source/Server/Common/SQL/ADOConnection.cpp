@@ -12,6 +12,7 @@
 #include "Macros/MSSQLMacroExpander.h"
 #include "ADOInt64Helper.h"
 #include "../Util/Registry.h"
+#include "../Util/Unicode.h"
 #include "../Application/IniFileSettings.h"
 
 using namespace std;
@@ -151,26 +152,16 @@ namespace HM
          return FatalError;
       }
 
-      String sConnectionString = "Provider=" + sProvider + ";";
-      sConnectionString.append("Server=" + sServer + ";");
-      sConnectionString.append("Initial Catalog=" + sDatabase + ";");
-
-      if (sUsername.IsEmpty())
-      {
-         // Windows authentication.
-         sConnectionString.append(_T("Integrated Security=SSPI;"));
-      }
-      else
-      {
-         // User/password authentication
-         sConnectionString.append(_T("User ID=" + sUsername +";"));
-         sConnectionString.append(_T("Password=" + sPassword + ";"));
-      }
-
-      if (!sServerFailoverPartner.IsEmpty())
-      {
-         sConnectionString.append("FailoverPartner=" + sServerFailoverPartner + ";");
-      }
+      // The server and the database each in the quotes ADO reads a value in, and the
+      // user and the password not in the string at all: Open takes them as its own
+      // arguments (OpenOnce_), where ADO reads nothing in them. Up to 6.3.5 all four
+      // were written into the string as they were, so a semicolon in a password
+      // ended it and began a keyword of its own, and a quote at its start made the
+      // string one OLE DB does not parse ("Format of the initialization string does
+      // not conform to the OLE DB specification") - which DBSetup had to refuse.
+      String sConnectionString;
+      if (!MakeConnectionString(sProvider, sServer, sDatabase, sUsername.IsEmpty(), sServerFailoverPartner, sConnectionString, sErrorMessage))
+         return FatalError;
 
       // [Database] ConnectionStringOptions, verbatim and last. Anything the provider
       // understands can be written there; encryption is TlsMode's now, and
@@ -722,6 +713,186 @@ namespace HM
       }
 
       return majorVersion >= 18;
+   }
+
+   bool
+   ADOConnection::QuoteValue(const String &value, String &quoted)
+   {
+      // ADO parses the string itself before OLE DB sees it, and more narrowly than
+      // OLE DB's own parser (measured with ADO 6.1 and SQLOLEDB on Windows 11, 30
+      // September 2026, by reading the properties ADO made of each string): in
+      // double quotes it takes a single quote, a semicolon, an equals sign and
+      // spaces as the value's; in single quotes a double quote, or a semicolon, but
+      // not both ('a"b;c' is "Format of the initialization string does not conform
+      // to the OLE DB specification"); and a quote doubled inside quotes it does not
+      // read ("""a" fails the same way, where OLE DB takes it). So double quotes,
+      // and single quotes for a value with a double quote and no semicolon; a value
+      // with a double quote and a single quote or a semicolon has no form ADO
+      // reads. Empty is written as nothing, as it always was.
+      quoted.Empty();
+      if (value.IsEmpty())
+         return true;
+
+      if (value.Find(_T("\"")) < 0)
+      {
+         quoted = _T("\"") + value + _T("\"");
+         return true;
+      }
+
+      if (value.Find(_T("'")) < 0 && value.Find(_T(";")) < 0)
+      {
+         quoted = _T("'") + value + _T("'");
+         return true;
+      }
+
+      return false;
+   }
+
+   bool
+   ADOConnection::MakeConnectionString(const String &provider, const String &server, const String &database, bool integratedSecurity,
+                                       const String &failoverPartner, String &connectionString, String &error)
+   {
+      connectionString.Empty();
+      error.Empty();
+
+      // A provider is a name - SQLOLEDB, SQLNCLI, MSOLEDBSQL, MSOLEDBSQL19 - and is
+      // written as it is.
+      for (int i = 0; i < provider.GetLength(); i++)
+      {
+         const wchar_t c = provider[i];
+         if (!((c >= L'A' && c <= L'Z') || (c >= L'a' && c <= L'z') || (c >= L'0' && c <= L'9') || c == L'.' || c == L'_' || c == L'-'))
+         {
+            error = _T("The database provider in hMailServer.ini, ") + provider + _T(", is not a provider's name. The connection was not attempted.");
+            return false;
+         }
+      }
+
+      String quotedServer;
+      if (!QuoteValue(server, quotedServer))
+      {
+         error = _T("The database server's name in hMailServer.ini holds a double quote beside a single quote or a semicolon, which no SQL Server connection string carries. The connection was not attempted.");
+         return false;
+      }
+
+      String quotedDatabase;
+      if (!QuoteValue(database, quotedDatabase))
+      {
+         error = _T("The database name in hMailServer.ini holds a double quote beside a single quote or a semicolon, which no SQL Server connection string carries. The connection was not attempted.");
+         return false;
+      }
+
+      // The failover partner goes into the provider's own string (SQLNCLI's and
+      // MSOLEDBSQL's FailoverPartner), which OLE DB passes on as it stands and the
+      // provider reads without quotes: a host name, and nothing that would end it.
+      for (int i = 0; i < failoverPartner.GetLength(); i++)
+      {
+         const wchar_t c = failoverPartner[i];
+         if (c == L';' || c == L'"' || c == L'\'' || c == L'{' || c == L'}' || c == L'=' || c < 0x20)
+         {
+            error = _T("The failover partner in hMailServer.ini, ") + failoverPartner + _T(", holds a quote, a semicolon, a brace, an equals sign or a control character, which the provider's connection string does not carry. The connection was not attempted.");
+            return false;
+         }
+      }
+
+      connectionString = _T("Provider=") + provider + _T(";");
+      connectionString += _T("Data Source=") + quotedServer + _T(";");
+      connectionString += _T("Initial Catalog=") + quotedDatabase + _T(";");
+
+      // Windows authentication; otherwise the user and the password go to Open.
+      if (integratedSecurity)
+         connectionString += _T("Integrated Security=SSPI;");
+
+      if (!failoverPartner.IsEmpty())
+         connectionString += _T("FailoverPartner=") + failoverPartner + _T(";");
+
+      return true;
+   }
+
+   namespace
+   {
+      void CheckAdo(bool condition, const String &what)
+      {
+         if (!condition)
+            throw std::logic_error(std::string("ADOConnectionTester: ") + Unicode::ToUtf8(what).c_str());
+      }
+
+      // What ADO itself reads for a property out of the string, without opening it.
+      String AdoProperty(const String &connectionString, const TCHAR *name)
+      {
+         _ConnectionPtr connection;
+         if (FAILED(connection.CreateInstance(__uuidof(Connection))))
+            throw std::logic_error("ADOConnectionTester: no ADO Connection could be made");
+
+         connection->PutConnectionString(_bstr_t(connectionString.c_str()));
+         _variant_t value = connection->Properties->GetItem(_variant_t(name))->Value;
+         if (value.vt == VT_EMPTY || value.vt == VT_NULL)
+            return String();
+         return String((const wchar_t *) _bstr_t(value));
+      }
+   }
+
+   void
+   ADOConnectionTester::Test()
+   {
+      // Names ADO must read back as they were given, each in the place of the
+      // server and of the database: a semicolon, an equals sign, spaces, one kind
+      // of quote or the other, a quote first, a keyword's text, an instance's
+      // backslash and a port's comma.
+      const wchar_t *hostile[] =
+      {
+         L"plain",
+         L"HOST\\INSTANCE",
+         L"tcp:db.example,14330",
+         L"semi;colon",
+         L"a=b",
+         L" leading and trailing ",
+         L"it's",
+         L"'single first",
+         L"double\"quote",
+         L"\"double first",
+         L"double\"quote=equals",
+         L"x;Data Source=evil;Initial Catalog=evil",
+         L"p\u00e4ssw\u00f6rd \u65e5\u672c",
+      };
+
+      for (const wchar_t *text : hostile)
+      {
+         const String value(text);
+         String connectionString;
+         String error;
+         CheckAdo(ADOConnection::MakeConnectionString(_T("SQLOLEDB"), value, value, false, String(), connectionString, error),
+            _T("MakeConnectionString refused a name it should write: ") + value + _T(" (") + error + _T(")"));
+
+         CheckAdo(AdoProperty(connectionString, _T("Data Source")) == value,
+            _T("ADO read the server as [") + AdoProperty(connectionString, _T("Data Source")) + _T("] and not [") + value + _T("] from ") + connectionString);
+         CheckAdo(AdoProperty(connectionString, _T("Initial Catalog")) == value,
+            _T("ADO read the database as [") + AdoProperty(connectionString, _T("Initial Catalog")) + _T("] and not [") + value + _T("] from ") + connectionString);
+         CheckAdo(AdoProperty(connectionString, _T("Password")).IsEmpty() && AdoProperty(connectionString, _T("User ID")).IsEmpty(),
+            _T("a name put a user or a password into the string: ") + connectionString);
+      }
+
+      // Windows authentication when there is no user; the credentials are never in
+      // the string.
+      String connectionString;
+      String error;
+      CheckAdo(ADOConnection::MakeConnectionString(_T("SQLOLEDB"), _T("db"), _T("hMailServer"), true, String(), connectionString, error) &&
+               connectionString == _T("Provider=SQLOLEDB;Data Source=\"db\";Initial Catalog=\"hMailServer\";Integrated Security=SSPI;"),
+         _T("the string for Windows authentication is ") + connectionString);
+      CheckAdo(ADOConnection::MakeConnectionString(_T("SQLNCLI"), _T("db"), String(), false, _T("db2\\mirror"), connectionString, error) &&
+               connectionString == _T("Provider=SQLNCLI;Data Source=\"db\";Initial Catalog=;FailoverPartner=db2\\mirror;"),
+         _T("the string with a failover partner and no database is ") + connectionString);
+
+      // What no connection string carries is refused, not written as something else.
+      CheckAdo(!ADOConnection::MakeConnectionString(_T("SQLOLEDB"), _T("both ' and \""), _T("d"), false, String(), connectionString, error) && !error.IsEmpty(),
+         _T("a server name with both kinds of quote was not refused"));
+      CheckAdo(!ADOConnection::MakeConnectionString(_T("SQLOLEDB"), _T("x\";Data Source=evil;\""), _T("d"), false, String(), connectionString, error) && !error.IsEmpty(),
+         _T("a server name with a double quote and a semicolon was not refused"));
+      CheckAdo(!ADOConnection::MakeConnectionString(_T("SQLOLEDB"), _T("s"), _T("both ' and \""), false, String(), connectionString, error) && !error.IsEmpty(),
+         _T("a database name with both kinds of quote was not refused"));
+      CheckAdo(!ADOConnection::MakeConnectionString(_T("SQLOLEDB;Data Source=evil"), _T("s"), _T("d"), false, String(), connectionString, error),
+         _T("a provider that is not a name was not refused"));
+      CheckAdo(!ADOConnection::MakeConnectionString(_T("SQLNCLI"), _T("s"), _T("d"), false, _T("p;Data Source=evil"), connectionString, error),
+         _T("a failover partner with a semicolon was not refused"));
    }
 }
 

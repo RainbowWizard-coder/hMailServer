@@ -207,7 +207,11 @@ namespace HM
       Languages::Instance()->Load();
 
       // Create the backup manager that manages backup tasks...
-      backup_manager_ = std::shared_ptr<BackupManager>(new BackupManager);
+      {
+         std::shared_ptr<BackupManager> backupManager(new BackupManager);
+         boost::lock_guard<boost::mutex> guard(managers_mutex_);
+         backup_manager_.swap(backupManager);
+      }
 
       LOG_DEBUG("Application::InitInstance - Connecting to database...");
       if (!OpenDatabase(sErrorMessage))
@@ -327,8 +331,18 @@ namespace HM
       if (!simulateDatabaseFailureFor.IsEmpty())
          AnnounceDatabaseFaultInjector_(simulateDatabaseFailureFor);
 
-      db_manager_ = std::shared_ptr<DatabaseConnectionManager>(new DatabaseConnectionManager);
-      bool bConnectedSuccessfully = db_manager_->CreateConnections(sErrorMessage);
+      // Published before its connections are made, as it always was: a caller finds
+      // it not yet connected (GetIsConnected) rather than missing. A manager this
+      // replaces - none, after CloseDatabase - is let go of after the lock, since
+      // its destructor may report, and a report may ask for the manager.
+      std::shared_ptr<DatabaseConnectionManager> manager(new DatabaseConnectionManager);
+      std::shared_ptr<DatabaseConnectionManager> replaced = manager;
+      {
+         boost::lock_guard<boost::mutex> guard(managers_mutex_);
+         db_manager_.swap(replaced);
+      }
+      replaced.reset();
+      bool bConnectedSuccessfully = manager->CreateConnections(sErrorMessage);
 
       last_connect_error_message_ = sErrorMessage;
 
@@ -453,9 +467,14 @@ namespace HM
       // reached Running, after which StopServers returns at its own first check.
       RemoveSessionWorkQueues_();
 
-      // Backup manager is created by initinstance so should be destroyed here.
-      if (backup_manager_) 
-         backup_manager_.reset();
+      // Backup manager is created by initinstance so should be destroyed here -
+      // let go of after the lock, by the last holder.
+      std::shared_ptr<BackupManager> backupManager;
+      {
+         boost::lock_guard<boost::mutex> guard(managers_mutex_);
+         backupManager.swap(backup_manager_);
+      }
+      backupManager.reset();
 
       LOG_DEBUG("Application::ExitInstance - Closing database connection...");
       CloseDatabase();
@@ -475,19 +494,40 @@ namespace HM
    // Close the database connection.
    //---------------------------------------------------------------------------()
    {
-      if (db_manager_)
+      // Disconnected while still published, as it always was, so that a caller
+      // meanwhile finds it not connected rather than missing; then taken away
+      // under the lock and let go of after it.
+      std::shared_ptr<DatabaseConnectionManager> manager = GetDBManager();
+      if (manager)
       {
          try
          {
-            db_manager_->Disconnect();
+            manager->Disconnect();
          }
          catch (...)
          {
 
          }
 
-         db_manager_.reset();
+         {
+            boost::lock_guard<boost::mutex> guard(managers_mutex_);
+            db_manager_.reset();
+         }
       }
+   }
+
+   std::shared_ptr<DatabaseConnectionManager>
+   Application::GetDBManager() const
+   {
+      boost::lock_guard<boost::mutex> guard(managers_mutex_);
+      return db_manager_;
+   }
+
+   std::shared_ptr<BackupManager>
+   Application::GetBackupManager() const
+   {
+      boost::lock_guard<boost::mutex> guard(managers_mutex_);
+      return backup_manager_;
    }
 
    String

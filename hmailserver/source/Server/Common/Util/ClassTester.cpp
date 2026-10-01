@@ -130,6 +130,11 @@ namespace
 #include "../Util/EventTester.h"
 #include "../Util/HttpCompression.h"
 #include "../Util/UpdateChecker.h"
+#include "../Util/Language.h"
+#include "../SQL/PGConnection.h"
+#include "../SQL/MySQLConnection.h"
+#include "../SQL/ADOConnection.h"
+#include "../Application/Profiles.h"
 #include "../Scripting/ScriptServer.h"
 #include "../SQL/SQLStatement.h"
 #include <boost/pool/object_pool.hpp>
@@ -324,6 +329,39 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing Compression\n"));
       CompressionTester compressionTester;
       compressionTester.Test();
+
+      // COM's Language reads its translation from the Languages directory its
+      // English came from, not the one ProgramFolder names by its first use.
+      OutputDebugString(_T("hMailServer: Testing Language\n"));
+      LanguageTester languageTester;
+      languageTester.Test();
+
+      // The connection strings: every value of libpq's conninfo read back by
+      // libpq's own parser as given, and the server and database names of SQL
+      // Server's read back by ADO's, whatever quotes, semicolons or backslashes
+      // they hold - a password above all, which up to 6.3.5 could end its value.
+      OutputDebugString(_T("hMailServer: Testing the PostgreSQL connection string\n"));
+      PGConnectionTester pgConnectionTester;
+      pgConnectionTester.Test();
+
+      // MySQL's values as the client is handed them, and the database's name quoted
+      // in the statements that name it.
+      OutputDebugString(_T("hMailServer: Testing the MySQL connection's text\n"));
+      MySQLConnectionTester mySqlConnectionTester;
+      mySqlConnectionTester.Test();
+
+#ifndef HM_PLATFORM_POSIX
+      OutputDebugString(_T("hMailServer: Testing the SQL Server connection string\n"));
+      ADOConnectionTester adoConnectionTester;
+      adoConnectionTester.Test();
+#endif
+
+      // A profile verb asked for by an event script that an apply's or a revert's
+      // own write ran, on the same thread: refused at once, not a second lock of
+      // the mutex that thread holds.
+      OutputDebugString(_T("hMailServer: Testing the profiles' lock\n"));
+      ProfilesTester profilesTester;
+      profilesTester.Test();
 
       // The .zip the person's export and an eDiscovery export are written as:
       // from 65,535 entries on the count goes into the ZIP64 end record, where a

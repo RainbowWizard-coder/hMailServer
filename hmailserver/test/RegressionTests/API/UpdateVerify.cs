@@ -233,15 +233,19 @@ namespace RegressionTests.API
          StringAssert.Contains("Update: hMailServer " + Newer + " downloaded to " + status.UpdateInstallerPath + " and verified: signed by " + identity,
             LogHandler.ReadCurrentDefaultLog());
 
-         // A certificate at that path that records no project id is not refused for
-         // that: the id is checked there when the certificate carries one, as this
-         // entry was written before any GitLab-issued certificate had been seen.
+         // A certificate at that path that records no project id, or another
+         // project's, is refused, from 6.3.6: 6.3.5's, the one release signed there,
+         // records 86730559, and the path is in a personal namespace the project has
+         // left, which passes to someone else when its owner is renamed. Servers 6.3.4
+         // and 6.3.5 checked the id only when the certificate carried one.
          CleanUpdates();
          FakeSigstore.Options withoutId = GitLabSigned(identity);
          withoutId.RepositoryId = null;
-         ServeRelease(_installer, _sigstore.Bundle(_installer, withoutId));
-         Assert.IsTrue(status.CheckForUpdate(), status.UpdateLastError);
-         Assert.IsTrue(status.DownloadUpdate(), "The path, the issuer and the repository are this project's. Error: " + status.UpdateLastError);
+         AssertRefused(status, withoutId, "The certificate names no source repository identifier.");
+         AssertRefused(status, GitLabSigned(identity, repositoryId: "12345678"),
+            "is for the repository with the id 12345678, not " + FakeSigstore.GitLabRepositoryId);
+         AssertRefused(status, GitLabSigned(identity, repositoryId: ""),
+            "is for the repository with the id , not " + FakeSigstore.GitLabRepositoryId);
 
          // The GitHub workflow's bundles, which every release up to 6.3.3 carries,
          // are still trusted - for those releases, which UpdateApply's rollback image
@@ -278,14 +282,11 @@ namespace RegressionTests.API
          AssertRefused(status, GitLabGroupSigned(identity, repositoryId: ""),
             "is for the repository with the id , not " + FakeSigstore.GitLabRepositoryId);
 
-         // The first path still takes a certificate that records no id: what is
-         // required is the group entry's, not every GitLab one's.
+         // Nor, from 6.3.6, does the first path take a certificate that records no id:
+         // both GitLab entries require it.
          FakeSigstore.Options firstWithoutId = GitLabSigned(FakeSigstore.GitLabReleaseIdentityPrefix + Newer);
          firstWithoutId.RepositoryId = null;
-         ServeRelease(_installer, _sigstore.Bundle(_installer, firstWithoutId));
-         Assert.IsTrue(status.CheckForUpdate(), status.UpdateLastError);
-         Assert.IsTrue(status.DownloadUpdate(), "The first path checks the id only when the certificate carries one. Error: " + status.UpdateLastError);
-         CleanUpdates();
+         AssertRefused(status, firstWithoutId, "The certificate names no source repository identifier.");
 
          // The group's identity is one part of its signer, as the first path's is:
          // recording the first path's repository, on another issuer's token, or
@@ -508,11 +509,17 @@ namespace RegressionTests.API
          status = Checked();
          AssertRefused(status, new FakeSigstore.Options {Repository = "https://github.com/someone-else/hmailserver", RepositoryId = "999999999"},
             "which signed no release after " + FakeSigstore.GitHubLastVersion);
-         // At the first path the id goes with the repository check.
-         ServeRelease(_installer, _sigstore.Bundle(_installer, GitLabSigned(FakeSigstore.GitLabReleaseIdentityPrefix + Newer,
-            repository: "https://gitlab.com/someone-else/hmailserver", repositoryId: "12345678")));
+         // At the first path too, from 6.3.6: its identity with another project's
+         // id, or none, is refused, and with the project's id, whatever repository
+         // the certificate records, it is not.
+         string first = FakeSigstore.GitLabReleaseIdentityPrefix + Newer;
+         AssertRefused(status, GitLabSigned(first, repository: "https://gitlab.com/someone-else/hmailserver", repositoryId: "12345678"),
+            "is for the repository with the id 12345678, not " + FakeSigstore.GitLabRepositoryId);
+         AssertRefused(status, GitLabSigned(first, repository: "https://gitlab.com/someone-else/hmailserver", repositoryId: null),
+            "The certificate names no source repository identifier.");
+         ServeRelease(_installer, _sigstore.Bundle(_installer, GitLabSigned(first, repository: "https://gitlab.com/someone-else/hmailserver")));
          Assert.IsTrue(status.CheckForUpdate(), status.UpdateLastError);
-         Assert.IsTrue(status.DownloadUpdate(), "UpdateSourceRepository=- checks no repository. Error: " + status.UpdateLastError);
+         Assert.IsTrue(status.DownloadUpdate(), "UpdateSourceRepository=- checks no repository, and the first path's id is the project's. Error: " + status.UpdateLastError);
          CleanUpdates();
          string group = FakeSigstore.GitLabGroupReleaseIdentityPrefix + Newer;
          AssertRefused(status, GitLabGroupSigned(group, repository: "https://gitlab.com/someone-else/hmailserver", repositoryId: null),
@@ -581,6 +588,16 @@ namespace RegressionTests.API
             "The certificate names no source repository identifier.");
          AssertRefused(status, GitLabGroupSigned("https://gitlab.com/someone-else/hmailserver//.gitlab-ci.yml@refs/tags/v" + Newer, repositoryId: "12345678"),
             "is for the repository with the id 12345678, not " + FakeSigstore.GitLabRepositoryId);
+         // And the same for the path the project began at, from 6.3.6: its identity,
+         // or its repository under another identity, needs the project's id.
+         AssertRefused(status, GitLabSigned(FakeSigstore.GitLabReleaseIdentityPrefix + Newer, repositoryId: null),
+            "The certificate names no source repository identifier.");
+         AssertRefused(status, GitLabSigned("https://gitlab.com/someone-else/hmailserver//.gitlab-ci.yml@refs/tags/v" + Newer, repositoryId: "12345678"),
+            "is for the repository with the id 12345678, not " + FakeSigstore.GitLabRepositoryId);
+         ServeRelease(_installer, _sigstore.Bundle(_installer, GitLabSigned(FakeSigstore.GitLabReleaseIdentityPrefix + Newer)));
+         Assert.IsTrue(status.CheckForUpdate(), status.UpdateLastError);
+         Assert.IsTrue(status.DownloadUpdate(), "The first path's identity with the project's id, under the widest identity. Error: " + status.UpdateLastError);
+         CleanUpdates();
       }
 
       [Test]

@@ -777,6 +777,27 @@ namespace HM
          // object now holds what was published before, and goes here, unlocked.
       }
 
+      // A list COM may hand out and hold (the server messages, the blocked
+      // attachments, the SSL certificates): read again in place when a load has
+      // published it before, so that a COM object made before a reinitialise
+      // holds the list the server reads; made, filled and published at the first
+      // load. The Refresh is the list's own whole swap under its own lock
+      // (Collection::DBLoad_), and runs with publication_mutex_ free.
+      template <class T>
+      void RefreshOrPublish_(std::shared_ptr<T> &member)
+      {
+         std::shared_ptr<T> list = Published_(member);
+         if (list)
+         {
+            list->Refresh();
+            return;
+         }
+
+         list = std::shared_ptr<T>(new T);
+         list->Refresh();
+         Publish_(member, list);
+      }
+
       mutable boost::mutex publication_mutex_;
 
       std::shared_ptr<POP3Configuration> pop3_configuration_;

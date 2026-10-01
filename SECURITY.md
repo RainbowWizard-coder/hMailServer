@@ -446,7 +446,7 @@ with a written reason.
 
 ### Dependencies (software composition analysis)
 
-- **What runs now.** The *dependency-scan* job of `.gitlab-ci.yml` runs Trivy over the eleven NuGet lock files,
+- **What runs now.** The *dependency-scan* job of `.gitlab-ci.yml` runs Trivy over the twelve NuGet lock files,
   the three `packages.config` files and the scanners' own hashed Python requirements, and over the package
   database of the image the Linux server is built in, whose OpenSSL, libpq, libldap and Boost the Linux packages
   are built against. It asks OSV (`api.osv.dev`) about the libraries the Windows server is built with and no

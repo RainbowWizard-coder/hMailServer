@@ -68,7 +68,21 @@ private:
    HRESULT StartMailboxRestore_(const HM::MailboxRestore::Request &request, long *Job);
 
 private:
-   std::shared_ptr<HM::BackupManager> backup_manager_;
+   // The backup manager in force, asked for at each call: a reinitialise replaces
+   // it (Application::InitInstance), and this object may be older than the
+   // reinitialise - the Control Panel keeps one. Up to 6.3.5 it kept the manager
+   // it was made with, whose backup, restore and run slot were no longer the
+   // server's: a backup started through it could run beside one started through
+   // the manager in force. Empty for the moment the server is between
+   // ExitInstance and InitInstance.
+   std::shared_ptr<HM::BackupManager> Manager_() const;
+
+   // What a call says in that moment.
+   HRESULT NotAvailable_() const;
+
+   // Whether LoadSettings let this caller in: a server administrator, on a
+   // server with a backup manager.
+   bool loaded_ = false;
 };
 
 OBJECT_ENTRY_AUTO(__uuidof(BackupManager), InterfaceBackupManager)

@@ -185,14 +185,15 @@ install -d -m 0750 %{buildroot}%{_localstatedir}/log/hmailserver
 # the distribution's own OpenSSL, the update feed's release page, who may change
 # a stored event by a delivered calendar message (iMIP), a written file whose
 # close fails, the types files sent as links and contacts' photos are served
-# under, a stored password hash's iteration count, and a rewrite of
-# hMailServer.ini - the list
+# under, a stored password hash's iteration count, a rewrite of hMailServer.ini,
+# the database connection string, COM's languages, the live log and the setting
+# profiles' lock - the list
 # debian/rules runs. No socket, none of the system's configuration, no database,
 # no root; seconds.
 cd %{hm_builddir}
 echo "== hmailserver --version"
 ./hmailserver --version
-for tester in spf-tests script-binding-tests snmp-tests object-store-signature-tests singleton-tests legacy-blowfish-tests xml-tree-tests datetime-tests public-suffix-tests backup-tests trust-anchor-tests business-object-tests tls-options-tests update-feed-tests imip-tests file-utilities-tests media-type-tests scram-tests ini-file-tests; do
+for tester in spf-tests script-binding-tests snmp-tests object-store-signature-tests singleton-tests legacy-blowfish-tests xml-tree-tests datetime-tests public-suffix-tests backup-tests trust-anchor-tests business-object-tests tls-options-tests update-feed-tests imip-tests file-utilities-tests media-type-tests scram-tests ini-file-tests connection-string-tests language-tests live-log-tests profiles-tests; do
   echo "== $tester"
   ./$tester
 done

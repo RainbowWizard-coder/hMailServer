@@ -353,7 +353,7 @@ repository id.
 | Identity (the certificate's subject alternative name begins with) | `https://github.com/Progressiverobot/hmailserver/.github/workflows/sign-release.yml@` | `https://gitlab.com/Progressiverobot/hmailserver//.gitlab-ci.yml@refs/tags/v` | `https://gitlab.com/hmailserver/hmailserver//.gitlab-ci.yml@refs/tags/v` |
 | Issuer | `https://token.actions.githubusercontent.com` | `https://gitlab.com` | `https://gitlab.com` |
 | Repository | `https://github.com/Progressiverobot/hmailserver` | `https://gitlab.com/Progressiverobot/hmailserver` | `https://gitlab.com/hmailserver/hmailserver` |
-| Repository id (Fulcio's 1.3.6.1.4.1.57264.1.15) | `1267388815`, required | `86730559`, checked when the certificate carries one | `86730559`, required |
+| Repository id (Fulcio's 1.3.6.1.4.1.57264.1.15) | `1267388815`, required | `86730559`, required from 6.3.6 (6.3.4 and 6.3.5 checked it when the certificate carried one) | `86730559`, required |
 | Issued | Before 2026-09-18T00:00:00Z | Any time | Any time |
 | Release | Only a release up to 6.3.3, the last it signed; where the workflow ran for a `v*` tag, that tag | The tag the certificate names | The tag the certificate names |
 
@@ -369,11 +369,15 @@ project's to keep, and because the feed is not the project's word either:
 - **The GitLab signer is held to the project, not the path.** The project
   lived in a personal namespace until 29 September 2026, and a path can pass to
   someone else after a rename or a move. Fulcio records the project's id beside
-  the path, and the id is the project's for ever. The servers up to 6.3.6 were
+  the path, and the id is the project's for ever. Servers 6.3.4 and 6.3.5 were
   written before any GitLab-issued certificate had been seen, so they check the
-  id when the certificate carries one rather than require it: a server that
-  refused every certificate for lacking an extension Fulcio turned out not to
-  write could install nothing. 6.3.5's, the first, records it (`86730559`).
+  id at that path when the certificate carries one rather than require it: a
+  server that refused every certificate for lacking an extension Fulcio turned
+  out not to write could install nothing. 6.3.5's, the first and the only one
+  signed there, records it (`86730559`), so from 6.3.6 the id is required at
+  that path as at the group's, and a certificate for it without the id, or with
+  another project's, is refused - what a project that is not this one, made at
+  the path the project has left, would present.
 - **The path the project moved to was trusted before the move, and only with
   the project's id.** The project left the personal namespace on 29 September
   2026 for the group `hmailserver` (https://gitlab.com/hmailserver), which the
@@ -482,11 +486,12 @@ one signer, its own. A setting that changes a signer's part drops what went with
 it: a new repository, or `-`, drops the repository id; a new identity or issuer
 drops the GitHub cut-off and its last release; a new identity drops the release
 check, since a site's workflow names its refs its own way. One thing no setting
-drops: a certificate that names the group's path
-(`https://gitlab.com/hmailserver/hmailserver//`, in any case) or its
-repository is refused without the project's id `86730559`, whatever the three
-make of the entries - with `UpdateSourceRepository=-`, and with an identity of
-the site's own that names that path, too. A setting that restates a signer's
+drops: a certificate that names one of the project's two GitLab paths - the
+group's (`https://gitlab.com/hmailserver/hmailserver//`) or, from 6.3.6, the one
+it began at (`https://gitlab.com/Progressiverobot/hmailserver//`), in any case -
+or its repository is refused without the project's id `86730559`, whatever the
+three make of the entries - with `UpdateSourceRepository=-`, and with an identity
+of the site's own that names one of those paths, too. A setting that restates a signer's
 own value changes nothing about that signer. And where the settings
 turn one signer into another's identity, issuer and repository without its
 checks - the three GitLab values above, still set after an upgrade, do that to

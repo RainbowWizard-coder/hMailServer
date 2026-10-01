@@ -786,7 +786,10 @@ chart-and-compose:
 # packaging.yml's update-helper job: the live update's Linux apply step,
 # hmailserver-update, run under dash against fakes for every outcome it can write
 # (build/test-hmailserver-update.sh), and the three units read by systemd-analyze.
-# systemd is Ubuntu's package; dash is the image's /bin/sh.
+# systemd is Ubuntu's package; dash is the image's /bin/sh. And the container's
+# entrypoint writing [Database] from HM_DB_* against a stub server
+# (build/test-docker-entrypoint.sh): a value hMailServer.ini would not give back
+# refused, any other written byte for byte.
 update-helper:
   stage: check
   image: ubuntu:26.04@sha256:da6fc2be547864451aa253836dd926da33623312df4a9a243e35dc877c378a78
@@ -800,6 +803,8 @@ update-helper:
         - hmailserver/source/Server/platform/packaging/hmailserver-update.service
         - hmailserver/source/Server/platform/packaging/hmailserver.service
         - build/test-hmailserver-update.sh
+        - hmailserver/source/Server/platform/packaging/docker/docker-entrypoint.sh
+        - build/test-docker-entrypoint.sh
         - .gitlab-ci.yml
   before_script:
     - apt-get update -qq
@@ -807,6 +812,7 @@ update-helper:
   script:
     - ls -l /bin/sh
     - bash build/test-hmailserver-update.sh
+    - bash build/test-docker-entrypoint.sh
     # The only thing systemd-analyze objects to in a checkout is the two executables
     # the package would have installed; they are tolerated by name and nothing else is.
     # GitLab's hosted runners check out with umask 0000, so every file is world-writable,

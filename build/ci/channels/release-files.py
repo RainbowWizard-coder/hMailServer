@@ -29,8 +29,8 @@ the account arrives - with no new release made for it:
                 since a release signed before the project's move into the group on
                 29 September 2026 (6.3.5) may be published after it - and with the
                 project's id (86730559) in the certificate
-                required at the group's path and refused if another, as the server
-                requires (SigstoreVerifier.cpp); the id read from the certificate's
+                required at either path and refused if another, as the server
+                requires it from 6.3.6 (SigstoreVerifier.cpp); the id read from the certificate's
                 extensions by build/ci/sigstore-certificate.py, as container-image-deb.sh
                 reads it in shell. A file that does not verify stops the job before
                 anything is published anywhere.
@@ -300,9 +300,10 @@ def verify_file(path, bundle_path, version, cosign, trusted_root=None, run=subpr
     if recorded is not None and recorded != PROJECT_ID:
         raise Refused("%s's certificate names the repository id %s, not %s: another project's pipeline signed it"
                       % (name, recorded, PROJECT_ID))
-    if recorded is None and identity.startswith(GROUP_REPOSITORY + "//"):
-        raise Refused("%s's certificate, at the group's path, records no repository id: a server refuses it, and so"
-                      " does this job" % name)
+    # Required at either path: 6.3.5's certificate, the one release signed at the first
+    # path, records it, and one for either path without it is another project's.
+    if recorded is None:
+        raise Refused("%s's certificate records no repository id: a server refuses it, and so does this job" % name)
     return identity, recorded
 
 
@@ -670,11 +671,15 @@ def self_test(cosign=None):
                    sorted(record) == sorted(names) and state["verify"] == [identities(version)[0], identities(version)[1]] * 2
                    and record[names[0]]["repository_id"] == "86730559"
                    and record[names[0]]["sha256"] == hashlib.sha256(files[names[0]]).hexdigest())
-            fake_http, run, state = world(identities(version)[0], repository_id=None)
+            fake_http, run, state = world(identities(version)[0])
             globals()["http"] = fake_http
             record = verified_files(version, names, os.path.join(work, "b"), "cosign", run=run)
-            expect("a release signed at the personal path without the id (as before the move) verifies",
-                   record[names[1]]["identity"] == identities(version)[0])
+            expect("a release signed at the personal path with the id (as 6.3.5 was) verifies",
+                   record[names[1]]["identity"] == identities(version)[0] and record[names[1]]["repository_id"] == "86730559")
+            fake_http, run, state = world(identities(version)[0], repository_id=None)
+            globals()["http"] = fake_http
+            refused("the personal path without the project's id", lambda: verified_files(
+                version, names, os.path.join(work, "b2"), "cosign", run=run), "records no repository id")
             fake_http, run, state = world(identities(version)[1], repository_id=None)
             globals()["http"] = fake_http
             refused("the group's path without the project's id", lambda: verified_files(
@@ -752,6 +757,9 @@ def cosign_cases(expect, refused, cosign):
                verify_file(path, path + BUNDLE, version, cosign, root)[0] == identities(version)[0])
         bundle(identity=identities(version)[1], repository=GROUP_REPOSITORY)
         refused("cosign: the group's path without the id", lambda: verify_file(path, path + BUNDLE, version, cosign, root),
+                "records no repository id")
+        bundle(identity=identities(version)[0], repository=REPOSITORIES[0])
+        refused("cosign: the personal path without the id", lambda: verify_file(path, path + BUNDLE, version, cosign, root),
                 "records no repository id")
         bundle(identity=identities(version)[0], repository_id="1267388815")
         refused("cosign: another project's id", lambda: verify_file(path, path + BUNDLE, version, cosign, root), "not 86730559")

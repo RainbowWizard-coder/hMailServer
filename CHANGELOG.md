@@ -1203,17 +1203,16 @@ counts against that ceiling and against the account's own; found by the project'
   container's own `HM_DB_*` variables, the password only in `HM_DB_PASSWORD` or a file, never on a command line.
   `DBSetup.exe /unattended` then creates the database, or uses one that exists and upgrades it with DBUpdater if
   it is older, and ends only at the schema the build requires, its lines in the setup log. Settings it cannot use
-  are refused before anything changes, among them a password file that is not UTF-8 and the characters the server
-  cannot yet pass to its database (a single quote or a backslash for PostgreSQL; for SQL Server a semicolon, or a
-  quote as a value's first character). This is how a silent installation of the ARM64 build, which has no
-  built-in database, finishes; its installer now refuses a silent new installation given no database before
-  anything is installed, rather than open DBSetup's wizard where nobody can answer it. On x64 it is an option
-  beside the built-in database, which stays the silent default unless `HM_DB_TYPE` is set in the machine's or the
-  user's environment, which makes a new installation an external one; the setup log says whether the type came
-  from `/dbtype` or the environment. The x64 installer still does not run on ARM64 under emulation
-  (`x64compatible`), by the maintainers' decision of 28 September 2026, which WindowsOnArm.md records with its
-  reasons. The installer smoke test checks the path with `-DatabaseSettings` (`installer-smoke-run.sh
-  --database`).
+  are refused before anything changes, among them a password file that is not UTF-8, a control character, and a host
+  or user wrapped in quotation marks, which `hMailServer.ini` would take off; a quote, a backslash or a semicolon in
+  a password is passed on as it is (below, "Database passwords"). This is how a silent installation of the ARM64
+  build, which has no built-in database, finishes; its installer now refuses a silent new installation given no
+  database before anything is installed, rather than open DBSetup's wizard where nobody can answer it. On x64 it is
+  an option beside the built-in database, which stays the silent default unless `HM_DB_TYPE` is set in the machine's
+  or the user's environment, which makes a new installation an external one; the setup log says whether the type came
+  from `/dbtype` or the environment. The x64 installer still does not run on ARM64 under emulation (`x64compatible`),
+  by the maintainers' decision of 28 September 2026, which WindowsOnArm.md records with its reasons. The installer
+  smoke test checks the path with `-DatabaseSettings` (`installer-smoke-run.sh --database`).
 
 - **Scripting off runs no script engine.** With scripting off the server no longer compiles the event script and runs
   it once per handler at every start, reinitialise and reload; switching scripting on - by COM, REST or an
@@ -1236,17 +1235,45 @@ counts against that ceiling and against the account's own; found by the project'
   messages, blocked attachments, SSL certificates, DNS blacklists, SURBL servers and the local addresses whole
   before another thread can see them, and hands each over under a lock: a COM call made during one - the Control
   Panel's or a script's - could copy a pointer while it was being replaced, or find the settings not yet read and
-  take every one as missing (0 or empty, and HM5015 in the ERROR log). The logger's level, device and format are read
-  and written whole, and `[Database] UpgradeOnStart` reads as off until the file is first read. Several values read
+  take every one as missing (0 or empty, and HM5015 in the ERROR log). The logger's level, device and format, and
+  whether the live log takes entries, are read and written whole (`live-log-tests`, which `linux-build` runs, and
+  under ThreadSanitizer), and `[Database] UpgradeOnStart` reads as off until the file is first read. Several values read
   one after another are still not read as one set, and a setting changed during a reinitialise, after the new
   settings were read, is stored but not in force until the next reinitialise or start.
+- **Fixed: a list or a manager COM handed out before a reinitialise was not the server's after it.** Each reinitialise
+  made new lists - the incoming relays, routes and remote domain policies, the public folders and groups, the server
+  messages, blocked attachments and SSL certificates, the DNS blacklists and SURBL servers - so a COM object for one
+  of them taken before it, as the Control Panel keeps one while its page is open, held the old list: a route added, a
+  relay deleted or a message changed through it reached the database and the old list, and the server went on without
+  the route, trusting the deleted relay and sending the old text until the next reinitialise or start. The lists are
+  now made at the start and read again in place by every reinitialise, each read whole under its own lock, so every
+  COM object for one holds the list the server reads. `Database.IsConnected` and `EnsurePrerequisites` answer for the
+  database the server is connected to, where an object made before a reinitialise asked the connection manager the
+  reinitialise had closed, and a `BackupManager` object asks for the backup manager in force at each call, so that a
+  backup started through an old one no longer runs beside one started through the new; the two managers are replaced
+  under a lock, where COM, the SQL log device's worker and the other threads a reinitialise does not stop could copy
+  the pointer while it was being replaced, and a restore asked for through a `Backup` object in the moment between the
+  old manager and the new is refused with a sentence, where it reached no manager at all and was answered as an
+  unknown error. Tested in the Windows suite (`SettingsDuringReinitialize`: lists and a Database object held across a
+  reinitialise).
+- **Fixed: a profile verb an event script asked for while a profile was being applied or reverted.** An apply or a
+  revert of a setting profile writes settings while it holds the profiles' lock, and a write can run an event script
+  on the same thread: an error reported fires `OnError`, and a revert whose way back holds the scripting switch runs
+  the script's top level. A script that then asked over COM to apply, revert, discard or decline a profile locked the
+  mutex its own thread held, which the Windows build answered with an unknown error and a POSIX build would never
+  have finished. Such a call is now refused at once, with the reason, and the apply or the revert goes on
+  (`profiles-tests`, and `RestApiProfiles` in the Windows suite, where a revert that switches scripting back on runs
+  a script that asks for a discard).
 - **Active-active nodes: the design, not built** ([ActiveActive.md](hmailserver/docs/ActiveActive.md)). Until it is,
   one service per database.
 - **Fixed: languages read while they were being reloaded.** A reinitialise rebuilt, in place, the translations COM's
   `Languages` and `Language` objects read - a script's or another COM client's; the Control Panel has translations of
   its own - and a language's first `String` call read its file into a table other calls were reading at the same
   time, which could crash the service on Windows (on Linux nothing reads them). Both are now built whole and handed
-  over under a lock, as the settings are since the reinitialise fix.
+  over under a lock, as the settings are since the reinitialise fix. A language reads its translation from the
+  directory its English was read from, where one taken before a reinitialise that changed `ProgramFolder` read the new
+  directory's file through the old directory's English, whose numbered strings need not agree (`language-tests`, and
+  the class tests on Windows).
 - **Fixed: a part of the server that two threads asked for first at the same moment could be made twice.** Each of
   the server's 61 kinds of shared part made on first use (the logger, the caches, the rate limiter, the recipient
   callout's cache, the outgoing OAuth2 token client and the others) was checked for outside its lock and not again
@@ -1441,6 +1468,41 @@ counts against that ceiling and against the account's own; found by the project'
   gaps, a device list past its limit or two SNMP figures that stopped moving left no cause in any log - the trace
   since it came, in 6.2.22's pre-releases, and the other five since 6.3.4. Migration.md, Calendar.md,
   EncryptionAtRest.md, Reports.md and Snmp.md name the codes.
+- **Database passwords are passed on as they are.** The server wrote the host, the user, the password and the database
+  into its connection string as they were: for PostgreSQL between single quotes, so a quote or a backslash in a
+  password ended its value early; for SQL Server ending at a semicolon, and a value that began with a quote was read
+  as a quoted one or did not parse ("Format of the initialization string does not conform to the OLE DB
+  specification"). PostgreSQL's values are now quoted and escaped as libpq reads them, with the root certificate's
+  path in the code page libpq opens it by. SQL Server's user and password are handed to ADO's `Open` beside the
+  string, not in it, and its server and database are in the quotes ADO reads, the server as `Data Source`, OLE DB's
+  own name for it, where it was the provider's `Server`; a name with a double quote beside a single quote or a
+  semicolon, which no string ADO reads can carry, and a failover partner with a quote, a semicolon, a brace or an
+  equals sign, are refused with the reason. MySQL takes each value as an argument of its own, but the server named the
+  database bare in two statements of every connection, so a database whose name MySQL takes only in quotes - with a
+  hyphen in it, say - could not be used; it is quoted now. A PostgreSQL or MySQL value with a character outside ASCII
+  reached the database server as nothing on Linux, and on Windows so did one with a character beyond U+00FF, the
+  client then connecting with its own defaults: such a value now goes in UTF-8. On Windows a value whose characters
+  are all U+00FF or below still goes in Latin-1, as it always did there, so that a password with such a letter that
+  connects today, set on a PostgreSQL server whose encoding is WIN1252 or LATIN1, goes on connecting; such a password
+  on a server in UTF8 is still refused there, as it was (PostgreSQL 17 initialised each way takes only the bytes of
+  its own encoding). So DBSetup no longer refuses a quote, a backslash or a semicolon
+  ([WindowsOnArm.md](hmailserver/docs/WindowsOnArm.md), "What the server passes on"; `DBSetup.Tests`), and the
+  container's entrypoint refuses (exit 64), before `hMailServer.ini` is written, an `HM_DB_*` value the file would not
+  give back: a line break or another control character, white space at either end, or quotation marks around it; a
+  quote or a backslash inside is written as it is. Tested by `connection-string-tests` (every value libpq reads back
+  as given, nothing else moved; the bytes each value is handed over in, and MySQL's quoted database name), by the
+  class tests on Windows (the same, and ADO's own reading of SQL Server's string), by
+  `build/test-docker-entrypoint.sh` in the `update-helper` job, and against PostgreSQL 17, MariaDB 11.4, MySQL 8.4 and
+  SQL Server 2022 with such values on 1 October 2026.
+- **The live update requires the project's id at the path the project began at too.** A certificate for
+  `https://gitlab.com/Progressiverobot/hmailserver`, where 6.3.5 was signed, is now refused without the project's id,
+  86730559, as one for the group's path always was, and no setting takes one without it: servers 6.3.4 and 6.3.5
+  checked the id there only when the certificate carried one, because no GitLab certificate had been seen when the
+  entry was written. 6.3.5's records it, so it installs, and rolls back to, as before; what is refused is what a
+  project that is not this one could sign at the path the project has left, which a personal namespace hands to
+  someone else when its owner is renamed. The release chain's own checks of a release's files, provenance and images
+  (`release-files.py`, `release-chain.py`, `registry-mirror.py`, `container-image-deb.sh`) hold both paths to the id
+  likewise ([UpdateFeed.md](hmailserver/docs/UpdateFeed.md), "What a server built after 6.3.3 checks").
 
 ### Build and tests
 
@@ -1721,6 +1783,15 @@ counts against that ceiling and against the account's own; found by the project'
   POSIX `GetLocalTime`, `GetSystemTime` and `GetTickCount64`, and two more `struct tm` locals whose fill was not
   checked (`DomainSamples.cpp`, `ZipWriter.cpp`), start zeroed. 71 findings leave
   `build/ci/static-analysis-baseline.txt`, and the job, run over the tree, finds none that is new.
+- **`connection-string-tests`, `language-tests`, `live-log-tests` and `profiles-tests`**, four more, run the same
+  ways: the PostgreSQL connection string read back by libpq and the bytes MySQL's values are handed over in, with its
+  database's name quoted, COM's languages across a `ProgramFolder` change, the live log switched on and off beside
+  four logging threads - the harness a ThreadSanitizer build runs, whose header says how - and a profile verb asked
+  for on the thread that holds the profiles' lock. All but `live-log-tests` run in the class tests on Windows too,
+  beside the SQL Server connection string read back by ADO.
+- **`DBSetup.Tests`**, run by the `windows-dotnet` job beside the Import Tool's: how `DBSetup /unattended` reads its
+  `HM_DB_` variables - the quotes, backslashes and semicolons it takes and passes on as given, and the values
+  `hMailServer.ini` or SQL Server's connection string cannot carry, refused before anything is changed.
 
 - **`file-utilities-tests`, and a third mode of `SimulateSpoolWriteFailure`.** The tester program holds
   `File::Close`, `FileUtilities::WriteToFile`, `TraceHeaderWriter`, the message store's `WriteAtomically` and the

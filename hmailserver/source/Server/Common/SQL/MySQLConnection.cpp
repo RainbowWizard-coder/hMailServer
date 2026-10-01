@@ -68,6 +68,22 @@ namespace HM
          if (lDBPort == 0)
             lDBPort = 3306;
 
+         // Each value as the client is handed it (DALConnection::ClientBytes),
+         // refused here, before a connection is tried, when it cannot be written so.
+         // Up to 6.3.5 Unicode::ToANSI wrote them, which on Linux made a value with
+         // any character outside ASCII empty: the password reached the server as
+         // none, and the user as the client's own default.
+         const String *const values[] = { &sServer, &sUsername, &sPassword, &sDatabase };
+         for (const String *value : values)
+         {
+            AnsiString bytes;
+            if (!ClientBytes(*value, bytes))
+            {
+               sErrorMessage = _T("The database server, user, password or database name in hMailServer.ini holds a character UTF-8 cannot carry (half of a surrogate pair), so it cannot be passed to MySQL. The connection was not attempted.");
+               return FatalError;
+            }
+         }
+
          // [Database] TlsMode and TlsCaFile (DatabaseTls.h). A mode this server does
          // not know, or a CA file verify-full cannot read, is a configuration to
          // correct rather than a server to wait for: nothing is attempted, and the
@@ -197,7 +213,7 @@ namespace HM
 
          if (!sDatabase.IsEmpty())
          {
-            String switch_db_command = "use " + sDatabase;
+            String switch_db_command = "use " + QuoteIdentifier(sDatabase);
 
             if (TryExecute(SQLCommand(switch_db_command), sErrorMessage, 0, 0) != DALConnection::DALSuccess)
             {
@@ -279,12 +295,19 @@ namespace HM
       if (!ApplyTlsOptions_(mode, caFile, error))
          return 0;
 
+      // Connect has refused a value ClientBytes cannot write.
+      AnsiString serverText, usernameText, passwordText, databaseText;
+      ClientBytes(server, serverText);
+      ClientBytes(username, usernameText);
+      ClientBytes(password, passwordText);
+      ClientBytes(database, databaseText);
+
       hm_MYSQL *result = client->p_mysql_real_connect(
                   dbconn_,
-                  Unicode::ToANSI(server),
-                  Unicode::ToANSI(username),
-                  Unicode::ToANSI(password),
-                  Unicode::ToANSI(database), port, 0, 0);
+                  serverText.c_str(),
+                  usernameText.c_str(),
+                  passwordText.c_str(),
+                  databaseText.c_str(), port, 0, 0);
 
       if (result == 0)
       {
@@ -732,7 +755,7 @@ namespace HM
          return;
 
       MySQLRecordset rec;
-      if (!rec.Open(shared_from_this(), SQLCommand("SHOW TABLE STATUS in " + database)))
+      if (!rec.Open(shared_from_this(), SQLCommand("SHOW TABLE STATUS in " + QuoteIdentifier(database))))
          return;
 
       int tableCount = 0;
@@ -944,5 +967,71 @@ namespace HM
    {
       std::shared_ptr<MySQLMacroExpander> expander = std::shared_ptr<MySQLMacroExpander>(new MySQLMacroExpander());
       return expander;
+   }
+
+   String
+   MySQLConnection::QuoteIdentifier(const String &name)
+   {
+      String quoted = name;
+      quoted.Replace(_T("`"), _T("``"));
+      return _T("`") + quoted + _T("`");
+   }
+
+   void
+   MySQLConnectionTester::Test()
+   {
+      struct Quoted
+      {
+         const wchar_t *name;
+         const wchar_t *expected;
+      };
+
+      const Quoted quoted[] =
+      {
+         { L"hmailserver", L"`hmailserver`" },
+         { L"hm-mail", L"`hm-mail`" },
+         { L"a`b", L"`a``b`" },
+         { L"``", L"``````" },
+         { L"x`; drop database y; `", L"`x``; drop database y; ```" },
+         { L"", L"``" },
+      };
+
+      for (const Quoted &item : quoted)
+      {
+         if (MySQLConnection::QuoteIdentifier(item.name) != String(item.expected))
+            throw std::logic_error("MySQLConnectionTester: a database name was not quoted as MySQL reads a quoted identifier: " +
+               std::string(Unicode::ToUtf8(String(item.name)).c_str()) + " gave " + std::string(Unicode::ToUtf8(MySQLConnection::QuoteIdentifier(item.name)).c_str()));
+      }
+
+      // ASCII as it is, on every platform.
+      AnsiString bytes;
+      if (!DALConnection::ClientBytes(_T("it's a back\\slash; \"q\""), bytes) || bytes != AnsiString("it's a back\\slash; \"q\""))
+         throw std::logic_error("MySQLConnectionTester: an ASCII value was not handed to the client as it is");
+
+      // Beyond U+00FF, UTF-8 on every platform: p, U+00E4, U+65E5. Up to 6.3.5
+      // nothing at all, here and on Windows.
+      String beyond(L"p");
+      beyond += (wchar_t) 0xE4;
+      beyond += (wchar_t) 0x65E5;
+      if (!DALConnection::ClientBytes(beyond, bytes) || bytes != AnsiString("p\xC3\xA4\xE6\x97\xA5"))
+         throw std::logic_error(std::string("MySQLConnectionTester: a value with a character beyond U+00FF was not handed to the client as UTF-8, but as [") + bytes.c_str() + "]");
+
+      // Within Latin-1: UTF-8 on POSIX, where it was nothing up to 6.3.5; Latin-1 on
+      // Windows, as it always was there (DALConnection.h says why).
+      String latin1(L"p");
+      latin1 += (wchar_t) 0xE4;
+#ifdef HM_PLATFORM_POSIX
+      const AnsiString expected("p\xC3\xA4");
+#else
+      const AnsiString expected("p\xE4");
+#endif
+      if (!DALConnection::ClientBytes(latin1, bytes) || bytes != expected)
+         throw std::logic_error(std::string("MySQLConnectionTester: a value within Latin-1 was handed to the client as [") + bytes.c_str() + "]");
+
+      // Half of a surrogate pair, refused with nothing written.
+      String lone(L"half");
+      lone += (wchar_t) 0xD800;
+      if (DALConnection::ClientBytes(lone, bytes) || !bytes.IsEmpty())
+         throw std::logic_error("MySQLConnectionTester: half of a surrogate pair was not refused");
    }
 }

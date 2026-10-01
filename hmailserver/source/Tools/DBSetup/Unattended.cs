@@ -101,15 +101,18 @@ namespace DBSetup
          bool postgres = settings.Type == hMailServer.eDBtype.hDBTypePostgreSQL;
          bool sqlServer = settings.Type == hMailServer.eDBtype.hDBTypeMSSQL;
 
-         // The server writes these into a connection string without escaping them
-         // (PGConnection::Connect quotes each in single quotes, ADOConnection::Connect
-         // ends each with a semicolon), so a character that ends the value there is
-         // refused here, by name, rather than failing later as a login that does not
-         // exist or a keyword the provider does not know. SQL Server's string also
-         // takes a value whose first character, past any spaces, is a single or a
-         // double quote as a quoted one (OLE DB's syntax), so that is refused for it
-         // too (BeginsWithQuote).
-         string forbidden = postgres ? "'\\" : sqlServer ? ";" : "";
+         // The server passes every value on as it is given, from 6.3.6: PostgreSQL's
+         // quoted and escaped as libpq's conninfo asks (PGConnection::MakeConninfo),
+         // SQL Server's user and password as arguments of their own, outside the
+         // connection string, and its server in the quotes ADO reads
+         // (ADOConnection::MakeConnectionString). Up to 6.3.5 a single quote or a
+         // backslash for PostgreSQL, and a semicolon or a quote first for SQL Server,
+         // were refused here, since the server wrote them into its string as they
+         // were. What is still refused is what the server itself cannot carry: a
+         // control character anywhere; a server name or user name that
+         // hMailServer.ini, where both are written as they are, would not give back
+         // (HoldsInIni); and a SQL Server name with a double quote beside a single
+         // quote or a semicolon, which no form ADO reads can hold.
 
          string create = Value(variable, CreateVariable);
          string createWord = create.ToLowerInvariant();
@@ -129,7 +132,7 @@ namespace DBSetup
             problem = HostVariable + " is not set: it names the database server" + (sqlServer ? ", as HOST or HOST\\INSTANCE, and HOST,PORT for another port." : ", by name or address.");
             return null;
          }
-         if (!Acceptable(settings.Host, forbidden, sqlServer, HostVariable, out problem))
+         if (!Acceptable(settings.Host, sqlServer, HostVariable, out problem))
             return null;
 
          string port = Value(variable, PortVariable);
@@ -174,7 +177,7 @@ namespace DBSetup
             problem = UserVariable + " is not set: " + settings.TypeName + " needs a user name. (SQL Server without one uses Windows authentication.)";
             return null;
          }
-         if (!Acceptable(settings.User, forbidden, sqlServer, UserVariable, out problem))
+         if (!Acceptable(settings.User, false, UserVariable, out problem))
             return null;
 
          string password = variable(PasswordVariable) ?? string.Empty;
@@ -191,21 +194,12 @@ namespace DBSetup
             problem = "a database password is given and " + UserVariable + " is not set: SQL Server without a user name uses Windows authentication, which takes no password.";
             return null;
          }
+         // Any other character is passed on as it is: the password is kept in
+         // hMailServer.ini encrypted, not as text, and reaches the database server
+         // through a quoted value (PostgreSQL) or an argument of its own (SQL Server).
          if (password.Any(char.IsControl))
          {
             problem = "the database password holds a control character, which no database server here takes in a password.";
-            return null;
-         }
-         if (forbidden.Length > 0 && password.IndexOfAny(forbidden.ToCharArray()) >= 0)
-         {
-            problem = "the database password holds " + Describe(forbidden) + ", which hMailServer cannot yet pass to " + settings.TypeName +
-                      " (it writes the password into the connection string as it is). Choose a password without it.";
-            return null;
-         }
-         if (sqlServer && BeginsWithQuote(password))
-         {
-            problem = "the database password begins with a quote, which hMailServer cannot yet pass to " + settings.TypeName +
-                      " (it writes the password into the connection string as it is, and a value there that begins with a quote is read as a quoted one). Choose a password that does not.";
             return null;
          }
          settings.Password = password;
@@ -250,34 +244,25 @@ namespace DBSetup
          return (variable(name) ?? string.Empty).Trim();
       }
 
-      private static bool Acceptable(string value, string forbidden, bool quoteFirstRefused, string name, out string problem)
+      private static bool Acceptable(string value, bool sqlServerName, string name, out string problem)
       {
          problem = null;
          if (value.Any(char.IsControl))
             problem = name + " holds a control character.";
-         else if (forbidden.Length > 0 && value.IndexOfAny(forbidden.ToCharArray()) >= 0)
-            problem = name + " holds " + Describe(forbidden) + ", which hMailServer cannot yet pass to this database server (it writes the value into the connection string as it is).";
-         else if (quoteFirstRefused && BeginsWithQuote(value))
-            problem = name + " begins with a quote, which hMailServer cannot yet pass to this database server (it writes the value into the connection string as it is, and a value there that begins with a quote is read as a quoted one).";
+         else if (!HoldsInIni(value))
+            problem = name + " begins and ends with the same quotation mark, which hMailServer.ini, where it is written as it is, would take off when it is read. Leave the quotes out.";
+         else if (sqlServerName && value.IndexOf('"') >= 0 && (value.IndexOf('\'') >= 0 || value.IndexOf(';') >= 0))
+            problem = name + " holds a double quote beside a single quote or a semicolon, which no SQL Server connection string can carry.";
          return problem == null;
       }
 
-      // SQL Server's connection string (ADOConnection::Connect) is parsed by OLE DB
-      // before the provider is loaded, and a value whose first character past any
-      // spaces is ' or " is a quoted one there: unclosed, the string does not parse
-      // ("Format of the initialization string does not conform to the OLE DB
-      // specification"); closed, the quotes are not part of the value. Measured on 28
-      // September 2026 with ADODB against sqloledb, for Password, User ID and Server
-      // alike; a quote after the first character was taken as it is.
-      private static bool BeginsWithQuote(string value)
+      // hMailServer.ini gives back a value written as it is, but for one wrapped in a
+      // matching pair of single or double quotation marks, which the reading takes off
+      // (GetPrivateProfileString on Windows, IniFile.cpp's reading of it on Linux), and
+      // white space at either end, which Value has taken off already.
+      private static bool HoldsInIni(string value)
       {
-         string rest = value.TrimStart(' ');
-         return rest.Length > 0 && (rest[0] == '\'' || rest[0] == '"');
-      }
-
-      private static string Describe(string forbidden)
-      {
-         return forbidden == ";" ? "a semicolon" : "a single quote or a backslash";
+         return !(value.Length >= 2 && (value[0] == '\'' || value[0] == '"') && value[value.Length - 1] == value[0]);
       }
 
       // The file's text, less the line breaks that end it - as the entrypoint's $(cat

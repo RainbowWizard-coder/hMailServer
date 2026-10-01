@@ -98,13 +98,29 @@ namespace HM
 
       // The four are published together, whether or not they loaded, as they always
       // were: a start that fails here leaves the COM API up, and it reads them.
+      //
+      // The lists in them - the SMTP configuration's incoming relays, routes and
+      // remote domain policies, the IMAP configuration's public folders and groups -
+      // and the server messages, blocked attachments, SSL certificates, DNS
+      // blacklists and SURBL servers below are made at the first load and read again
+      // in place at every later one (Collection::DBLoad_, a whole swap under the
+      // list's lock; the public folders' tree, IMAPFolders::Refresh, is read again
+      // under its lock, emptied first, as a new one began empty), where each load
+      // made new ones until 6.3.6. A COM object for one of them - Settings.Routes, a
+      // route's Save, Settings.ServerMessages, AntiSpam.DNSBlackLists - holds the
+      // list itself, and one made before a reinitialise held the previous load's:
+      // what it added, changed or deleted reached the database and the old list, and
+      // not the one the server read, until the next reinitialise - a relay deleted
+      // through it stayed trusted. The settings those configuration objects read and
+      // write are the published store's (GetSettings), whichever object a caller
+      // holds.
       std::shared_ptr<POP3Configuration> pop3(new POP3Configuration);
       std::shared_ptr<SMTPConfiguration> smtp(new SMTPConfiguration);
       std::shared_ptr<IMAPConfiguration> imap(new IMAPConfiguration);
       std::shared_ptr<CacheConfiguration> cache(new CacheConfiguration);
 
-      const bool smtpLoaded = smtp->Load();
-      const bool imapLoaded = imap->Load();
+      const bool smtpLoaded = smtp->Load(Published_(smtp_configuration_));
+      const bool imapLoaded = imap->Load(Published_(imap_configuration_));
 
       Publish_(pop3_configuration_, pop3);
       Publish_(smtp_configuration_, smtp);
@@ -117,17 +133,9 @@ namespace HM
       if (!anti_spam_configuration_.Load())
          return false;
 
-      std::shared_ptr<ServerMessages> serverMessages(new ServerMessages);
-      serverMessages->Refresh();
-      Publish_(server_messages_, serverMessages);
-
-      std::shared_ptr<BlockedAttachments> blockedAttachments(new BlockedAttachments);
-      blockedAttachments->Refresh();
-      Publish_(blocked_attachments_, blockedAttachments);
-
-      std::shared_ptr<SSLCertificates> sslCertificates(new SSLCertificates);
-      sslCertificates->Refresh();
-      Publish_(ssl_certificates_, sslCertificates);
+      RefreshOrPublish_(server_messages_);
+      RefreshOrPublish_(blocked_attachments_);
+      RefreshOrPublish_(ssl_certificates_);
 
       ScriptServer::Instance()->LoadScripts();
       LocalIPAddresses::Instance()->LoadIPAddresses();

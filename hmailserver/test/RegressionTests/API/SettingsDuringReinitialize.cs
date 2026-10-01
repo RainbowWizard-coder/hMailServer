@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using hMailServer;
 using NUnit.Framework;
 using RegressionTests.Shared;
 
@@ -128,6 +129,152 @@ namespace RegressionTests.API
             _settings.MaxPOP3Connections = oldPop3;
             _settings.WelcomeIMAP = oldWelcome;
          }
+      }
+
+      /// <summary>
+      ///    A list COM hands out and a caller keeps across a reinitialise - the Control
+      ///    Panel keeps one for as long as its page is open - is the list the server
+      ///    reads after it. Up to 6.3.5 each reinitialise made new lists (routes,
+      ///    incoming relays, server messages, DNS blacklists and the rest), so a route
+      ///    added, a relay deleted or a message changed through a list held from before
+      ///    reached the database and the old list only: the server went on without the
+      ///    route, trusting the deleted relay and sending the old text until the next
+      ///    reinitialise. Configuration::Load now reads the lists it made at the start
+      ///    again in place. A fresh Settings.Routes (and the others) is what the server
+      ///    reads, so each change made through a held list must be in it at once.
+      /// </summary>
+      [Test]
+      public void ListsHeldAcrossAReinitialiseAreTheListsTheServerReads()
+      {
+         const string routeDomain = "held-across-reinitialise.test";
+         const string relayName = "held-across-reinitialise";
+         const string blackListHost = "held-across-reinitialise.dnsbl.test";
+         const string messageName = "VIRUS_ATTACHMENT_REMOVED";
+         const string changedText = "Changed through a list held across a reinitialise.";
+
+         Routes routes = _settings.Routes;
+         IncomingRelays relays = _settings.IncomingRelays;
+         ServerMessages messages = _settings.ServerMessages;
+         DNSBlackLists blackLists = _settings.AntiSpam.DNSBlackLists;
+         string originalText = messages.get_ItemByName(messageName).Text;
+
+         _application.Reinitialize();
+
+         try
+         {
+            Route route = routes.Add();
+            route.DomainName = routeDomain;
+            route.TargetSMTPHost = "127.0.0.1";
+            route.TargetSMTPPort = 25;
+            route.NumberOfTries = 1;
+            route.MinutesBetweenTry = 5;
+            route.TreatRecipientAsLocalDomain = false;
+            route.TreatSenderAsLocalDomain = false;
+            route.AllAddresses = false;
+            route.ConnectionSecurity = eConnectionSecurity.eCSNone;
+            route.Save();
+            Assert.That(RouteIds(routeDomain), Has.Count.EqualTo(1),
+               "A route added through a Routes object held across a reinitialise is not in the routes the server reads.");
+
+            IncomingRelay relay = relays.Add();
+            relay.Name = relayName;
+            relay.LowerIP = "10.73.0.1";
+            relay.UpperIP = "10.73.0.9";
+            relay.Save();
+            int relayId = relay.ID;
+            Assert.That(RelayIds(relayName), Has.Count.EqualTo(1),
+               "A relay added through an IncomingRelays object held across a reinitialise is not in the relays the server reads.");
+
+            relays.DeleteByDBID(relayId);
+            Assert.That(RelayIds(relayName), Is.Empty,
+               "A relay deleted through an IncomingRelays object held across a reinitialise is still trusted by the server.");
+
+            ServerMessage message = messages.get_ItemByName(messageName);
+            message.Text = changedText;
+            message.Save();
+            Assert.AreEqual(changedText, _settings.ServerMessages.get_ItemByName(messageName).Text,
+               "A message changed through a ServerMessages object held across a reinitialise is not the text the server sends.");
+
+            DNSBlackList blackList = blackLists.Add();
+            blackList.Active = false;
+            blackList.DNSHost = blackListHost;
+            blackList.RejectMessage = "Listed";
+            blackList.ExpectedResult = "127.0.0.2";
+            blackList.Score = 3;
+            blackList.Save();
+            Assert.That(BlackListIds(blackListHost), Has.Count.EqualTo(1),
+               "A DNS blacklist added through a DNSBlackLists object held across a reinitialise is not in the lists the server asks.");
+         }
+         finally
+         {
+            foreach (int id in RouteIds(routeDomain))
+               _settings.Routes.DeleteByDBID(id);
+            foreach (int id in RelayIds(relayName))
+               _settings.IncomingRelays.DeleteByDBID(id);
+            foreach (int id in BlackListIds(blackListHost))
+               _settings.AntiSpam.DNSBlackLists.DeleteByDBID(id);
+
+            ServerMessage restore = _settings.ServerMessages.get_ItemByName(messageName);
+            restore.Text = originalText;
+            restore.Save();
+         }
+      }
+
+      /// <summary>
+      ///    A Database object made before a reinitialise answers for the database the
+      ///    server is connected to after it: up to 6.3.5 its IsConnected asked the
+      ///    connection manager it was made with, which the reinitialise had closed.
+      /// </summary>
+      [Test]
+      public void ADatabaseObjectHeldAcrossAReinitialiseAnswersForTheDatabaseInUse()
+      {
+         Database database = _application.Database;
+         Assert.IsTrue(database.IsConnected, "Connected before the reinitialise.");
+
+         _application.Reinitialize();
+
+         Assert.IsTrue(database.IsConnected,
+            "A Database object held across a reinitialise answered for the connection manager the reinitialise closed.");
+         Assert.AreEqual(_application.Database.CurrentVersion, database.CurrentVersion);
+      }
+
+      private List<int> RouteIds(string domainName)
+      {
+         var ids = new List<int>();
+         Routes routes = _settings.Routes;
+         for (int i = 0; i < routes.Count; i++)
+         {
+            Route route = routes[i];
+            if (string.Equals(route.DomainName, domainName, StringComparison.OrdinalIgnoreCase))
+               ids.Add(route.ID);
+         }
+         return ids;
+      }
+
+      private List<int> RelayIds(string name)
+      {
+         var ids = new List<int>();
+         IncomingRelays relays = _settings.IncomingRelays;
+         for (int i = 0; i < relays.Count; i++)
+         {
+            IncomingRelay relay = relays[i];
+            if (relay.Name == name)
+               ids.Add(relay.ID);
+         }
+         return ids;
+      }
+
+      private List<int> BlackListIds(string host)
+      {
+         var ids = new List<int>();
+         DNSBlackLists lists = _settings.AntiSpam.DNSBlackLists;
+         for (int i = 0; i < lists.Count; i++)
+         {
+            DNSBlackList list = lists[i];
+            if (list.DNSHost == host)
+               ids.Add(list.ID);
+         }
+         return ids;
       }
    }
 }

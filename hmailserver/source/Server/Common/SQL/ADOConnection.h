@@ -50,6 +50,27 @@ namespace HM
 
       void InitializeCommandParameters(_CommandPtr &adoCommand, const SQLCommand &sqlCommand, String &queryString) const;
 
+      // The connection string Connect hands ADO, less the TLS keywords and
+      // ConnectionStringOptions it appends: Provider, then Data Source (the server,
+      // as HOST, HOST\INSTANCE or HOST,PORT) and Initial Catalog each in the quotes
+      // ADO reads a value in, then Integrated Security=SSPI when there is no user,
+      // and FailoverPartner when there is one. The user and the password are never
+      // in it: Open takes them as arguments, which ADO reads nothing in, so either
+      // may hold any character. False, with the reason, for a value no connection
+      // string carries: a server or database name holding a double quote beside a
+      // single quote or a semicolon (QuoteValue), a provider that is not a plain
+      // name, or a failover partner - written into the provider's own string,
+      // which reads no quotes - with a quote, a semicolon, a brace or an equals
+      // sign in it.
+      static bool MakeConnectionString(const String &provider, const String &server, const String &database, bool integratedSecurity,
+                                       const String &failoverPartner, String &connectionString, String &error);
+
+      // One value as MakeConnectionString writes it: empty as nothing, otherwise in
+      // double quotes when it holds none, else in single quotes when it holds
+      // neither a single quote nor a semicolon - the forms ADO's own parser reads.
+      // False for any other value.
+      static bool QuoteValue(const String &value, String &quoted);
+
    private:
 
       // What one Open came to: opened; refused by the provider with a COM error,
@@ -76,7 +97,18 @@ namespace HM
 
       _ConnectionPtr cADOConnection;  
       bool bConnected;
-      
+
+   };
+
+   // ADOConnection::MakeConnectionString held to ADO's own reading of what it
+   // writes (an ADO Connection given the string, its Data Source and Initial
+   // Catalog properties read back): hostile server and database names read back as
+   // given, none moving another value, and what cannot be written refused. Throws
+   // std::logic_error with a sentence. ClassTester runs it inside the service.
+   class ADOConnectionTester
+   {
+   public:
+      void Test();
    };
 }
 

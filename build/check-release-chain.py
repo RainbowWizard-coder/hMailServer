@@ -28,10 +28,10 @@ refuses it. This checker holds them to each other. It fails when:
     at the group's path the project has been at since 29 September 2026
     (GROUP_PATH), or that one is not this project's path, file and repository
     id; or the verifier stops trusting it once, with the project's id required,
-    or stops requiring that id of every certificate naming the group's path or
-    repository whatever the settings, or stops trusting the path the project
-    began at (FIRST_PATH), which signed 6.3.5; or the scripts sign from any
-    path but the group's, or name the identity twice;
+    or stops trusting the path the project began at (FIRST_PATH), which signed
+    6.3.5, once, with that id required, or stops requiring the id of every
+    certificate naming either path or repository whatever the settings; or the
+    scripts sign from any path but the group's, or name the identity twice;
   * a compiled file the release carries (build/ci/release-chain.py's
     expected_assets: an installer or a package) goes out without its own SBOM,
     <file>.cdx.json, beside it (OpenSSF Baseline OSPS-QA-02.02); release-sbom
@@ -1138,23 +1138,28 @@ def check(texts, chain, feed):
         problems.append("build/ci/release-chain.py expects the identity %s..., not the verifier's %s" % (chain.SIGNER_IDENTITY_PREFIX, expected_group_prefix))
     if not group_repository or group_repository.group(1) != GROUP_PATH:
         problems.append("SigstoreVerifier.cpp's GITLAB_GROUP_REPOSITORY is not %s" % GROUP_PATH)
-    if not re.search(r'trust\.signers\.push_back\(MakeSigner_\(GITLAB_IDENTITY_PREFIX, GITLAB_ISSUER, GITLAB_REPOSITORY, GITLAB_REPOSITORY_ID, (true|false), 0, ""\)\);',
-                     texts["verifier"]):
+    # The first path's id is required too, from 6.3.6: 6.3.5's certificate, the one
+    # release signed there, records it, and a certificate for the path without it is
+    # from a project that is not this one - the path is in a personal namespace the
+    # project has left, which passes to someone else when its owner is renamed.
+    first_signer = 'trust.signers.push_back(MakeSigner_(GITLAB_IDENTITY_PREFIX, GITLAB_ISSUER, GITLAB_REPOSITORY, GITLAB_REPOSITORY_ID, false, 0, ""));'
+    if first_signer not in texts["verifier"] or texts["verifier"].count("MakeSigner_(GITLAB_IDENTITY_PREFIX") != 1:
         problems.append("SigstoreVerifier.cpp's DefaultTrust no longer trusts the GitLab signer at the path the project began at, "
-                        "which signed 6.3.5, with its id")
+                        "which signed 6.3.5, once, with the project's id required: %s" % first_signer)
     group_signer = 'trust.signers.push_back(MakeSigner_(GITLAB_GROUP_IDENTITY_PREFIX, GITLAB_ISSUER, GITLAB_GROUP_REPOSITORY, GITLAB_REPOSITORY_ID, false, 0, ""));'
     if group_signer not in texts["verifier"] or texts["verifier"].count("MakeSigner_(GITLAB_GROUP_IDENTITY_PREFIX") != 1:
         problems.append("SigstoreVerifier.cpp's DefaultTrust no longer trusts the group's signer once, with the project's id required: %s" % group_signer)
-    # And whatever the settings make of the signers, a certificate naming the group's
-    # path or repository needs the project's id: the check in Verify_ that every
-    # signer's match goes through.
-    for needle in ('LowerAscii_(std::string(GITLAB_GROUP_REPOSITORY) + "//")',
-                   'LowerAscii_(repository) == LowerAscii_(GITLAB_GROUP_REPOSITORY)',
+    # And whatever the settings make of the signers, a certificate naming either of the
+    # project's GitLab paths or repositories needs the project's id: the check in
+    # Verify_ that every signer's match goes through, over both paths.
+    for needle in ("const char *const projectPaths[] = { GITLAB_REPOSITORY, GITLAB_GROUP_REPOSITORY };",
+                   'const std::string path = LowerAscii_(std::string(projectPath) + "//");',
+                   "if (repositoryRecorded && LowerAscii_(repository) == LowerAscii_(projectPath))",
                    'repositoryId != std::string(GITLAB_REPOSITORY_ID)',
-                   "         else if (!groupRefusal.IsEmpty())\n            why = groupRefusal;\n"):
+                   "         else if (!projectRefusal.IsEmpty())\n            why = projectRefusal;\n"):
         if needle not in texts["verifier"]:
-            problems.append("SigstoreVerifier.cpp no longer requires the project's id of every certificate naming the group's path "
-                            "or repository, whatever the settings (%s)" % needle.strip())
+            problems.append("SigstoreVerifier.cpp no longer requires the project's id of every certificate naming one of the "
+                            "project's GitLab paths or repositories, whatever the settings (%s)" % needle.strip())
     # The scripts name the identity after the project's path, which must be the group's,
     # with its own repository, and nothing else - not the first path, where a pipeline
     # now is another project's: the case on CI_PROJECT_PATH exactly as below, the one
@@ -1373,7 +1378,7 @@ def check(texts, chain, feed):
                         ('said=$(sh build/ci/sigstore-certificate.sh repository-id "$out/$name.cosign.bundle")',
                          "the project's id read from the certificate's extensions"),
                         ('"id=$project_id") id_said="$project_id" ;;', "the project's id in the certificate"),
-                        ('https://gitlab.com/hmailserver/hmailserver//*) fail', "the id required at the group's path"),
+                        ('      absent) fail "the certificate of $name records no repository id" ;;', "the id required at either path"),
                         ('for name in "$deb" "$deb.cdx.json"; do', "the .deb and its SBOM"),
                         ('for arch in %s; do' % " ".join(IMAGE_PLATFORMS), "each platform's .deb"),
                         ('deb="hmailserver_${version}_${arch}.deb"', "the .deb of each architecture"),
@@ -2466,6 +2471,12 @@ def self_test(chain, feed):
            'GITLAB_GROUP_REPOSITORY, GITLAB_REPOSITORY_ID, true, 0, ""', "the project's id required")
     broken("the group's signer on another id", "verifier", 'GITLAB_GROUP_REPOSITORY, GITLAB_REPOSITORY_ID, false',
            'GITLAB_GROUP_REPOSITORY, GITHUB_REPOSITORY_ID, false', "the project's id required")
+    broken("the first path's signer with its id optional again", "verifier", 'GITLAB_IDENTITY_PREFIX, GITLAB_ISSUER, GITLAB_REPOSITORY, GITLAB_REPOSITORY_ID, false, 0, ""',
+           'GITLAB_IDENTITY_PREFIX, GITLAB_ISSUER, GITLAB_REPOSITORY, GITLAB_REPOSITORY_ID, true, 0, ""', "the path the project began at")
+    broken("the first path's signer on another id", "verifier", 'GITLAB_IDENTITY_PREFIX, GITLAB_ISSUER, GITLAB_REPOSITORY, GITLAB_REPOSITORY_ID, false',
+           'GITLAB_IDENTITY_PREFIX, GITLAB_ISSUER, GITLAB_REPOSITORY, GITHUB_REPOSITORY_ID, false', "the path the project began at")
+    broken("the first path left to the settings", "verifier", "projectPaths[] = { GITLAB_REPOSITORY, GITLAB_GROUP_REPOSITORY };",
+           "projectPaths[] = { GITLAB_GROUP_REPOSITORY };", "whatever the settings")
     broken("a script signing from a third path", "verify", "  hmailserver/hmailserver) repository=https://gitlab.com/hmailserver/hmailserver ;;\n",
            "  hmailserver/hmailserver) repository=https://gitlab.com/hmailserver/hmailserver ;;\n  someone/hmailserver) repository=https://gitlab.com/someone/hmailserver ;;\n",
            "release-verify.sh accepts the paths")
@@ -2516,7 +2527,7 @@ def self_test(chain, feed):
     group_line = 'trust.signers.push_back(MakeSigner_(GITLAB_GROUP_IDENTITY_PREFIX, GITLAB_ISSUER, GITLAB_GROUP_REPOSITORY, GITLAB_REPOSITORY_ID, false, 0, ""));'
     broken("a second group signer before it, its id optional", "verifier", group_line,
            group_line.replace(", false, 0,", ", true, 0,") + "\n      " + group_line, "the project's id required")
-    broken("the group's id left to the settings", "verifier", "         else if (!groupRefusal.IsEmpty())\n            why = groupRefusal;\n", "",
+    broken("the project's id left to the settings", "verifier", "         else if (!projectRefusal.IsEmpty())\n            why = projectRefusal;\n", "",
            "whatever the settings")
     broken("a signature without a timestamp", "authenticode", "/tr $timestampUrl /td SHA256", "/td SHA256", "RFC 3161 timestamp")
     broken("the .deb taken before the release is published", "image", "    - job: release-publish\n      artifacts: false\n", "",
@@ -2552,8 +2563,8 @@ def self_test(chain, feed):
            "    HM_IMAGE_ARCH: amd64\n    HM_IMAGE_DEB_DIR: release-signed\n", "container-image-amd64 does not take the .deb from container-image-deb")
     broken("the .deb taken unverified", "image-deb", '--certificate-identity "$candidate" --certificate-oidc-issuer "$issuer"',
            '--certificate-identity-regexp ".*" --certificate-oidc-issuer-regexp ".*"', "as this project's pipeline")
-    broken("the group's path without the project's id", "image-deb", "https://gitlab.com/hmailserver/hmailserver//*) fail", "nothing) fail",
-           "the id required at the group's path")
+    broken("a certificate without the project's id", "image-deb", '      absent) fail "the certificate of $name records no repository id" ;;',
+           '      absent) id_said="none recorded" ;;', "the id required at either path")
     broken("a token sent where TLS is not checked", "image-deb", 'wget -q -U hmailserver-container-image',
            'wget -q --header "JOB-TOKEN: $CI_JOB_TOKEN" -U hmailserver-container-image', "sends or names a credential")
     broken("the image started otherwise in the job", "image", "--apply-new-install-defaults && exec", "--foreground || exec",

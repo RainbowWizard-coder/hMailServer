@@ -197,15 +197,27 @@ without elevation asks for it, and Windows gives the elevated copy a fresh
 environment, without the variables set in the prompt. Switches and a password
 file get through either way.
 
-**What the server cannot take yet.** The server writes the host, the user and
-the password into its connection string as they are. PostgreSQL's is quoted in
-single quotes, and SQL Server's values end at a semicolon; OLE DB, which parses
-SQL Server's before the provider is loaded, also reads a value that begins with
-a single or a double quote as a quoted one, and without its closing quote the
-string does not parse at all. So DBSetup refuses a single quote or a backslash
-in any of the three for PostgreSQL, and for SQL Server a semicolon, or a quote
-as the first character, by name, rather than fail later with a login that does
-not exist or a connection string that does not parse.
+**What the server passes on, and what it cannot.** From 6.3.6 the server passes
+the host, the user and the password on as they are given, whatever they hold.
+PostgreSQL's connection string has each value in single quotes with every single
+quote and backslash in it escaped, as libpq reads them. A value with a letter
+beyond U+00FF goes in UTF-8, where until 6.3.6 the whole string was left empty
+and libpq connected with its defaults; one whose letters are all U+00FF or below
+goes in Latin-1, as it always did, so that a password with such a letter that
+connects today - set on a PostgreSQL server whose encoding is WIN1252 or LATIN1 -
+goes on connecting. (A role on a server in UTF8 whose password has such a letter
+and none beyond is still refused, as it was: give it a password without one.)
+MySQL's values are handed over the same way. SQL Server's
+user and password are not in its connection string at all but handed to ADO's
+`Open` beside it, and its server and database are in the quotes ADO reads. Up to
+6.3.5 the three were written into the string as they were, so DBSetup refused a
+single quote or a backslash for PostgreSQL, and for SQL Server a semicolon or a
+quote as the first character; it no longer does. It still refuses, by name,
+before anything is changed: a control character in any of them; a host or a
+user that begins and ends with the same quotation mark, which `hMailServer.ini`,
+where both are written as they are, would take off when it is read (the password
+is kept there encrypted); and for SQL Server a host with a double quote beside a
+single quote or a semicolon, which no connection string ADO reads can carry.
 
 **SQL Server with Windows authentication.** The database step runs inside the
 service while it is still `LocalSystem`, so SQL Server sees this machine's

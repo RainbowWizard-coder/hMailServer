@@ -131,7 +131,7 @@ namespace HM
    Logger::Logger()
    {
       log_mask_ = 0;
-      enable_live_log_ = false;
+      enable_live_log_.store(false, std::memory_order_relaxed);
 
       // Files and the default line format until the stored settings arrive, which
       // keeps the entries logged during startup - before Configuration::Load has
@@ -313,7 +313,7 @@ namespace HM
       Entry entry = MakeEntry_(bClient ? _T("SMTPC") : _T("SMTPD"), iSessionID, sRemoteHost, sMessage);
       String sData = Render_(entry);
 
-      if (enable_live_log_)
+      if (LiveLogWanted_())
          LogLive_(sData);
 
       Write_(entry, sData, SMTP);
@@ -330,7 +330,7 @@ namespace HM
       Entry entry = MakeEntry_(bClient ? _T("POP3C") : _T("POP3D"), iSessionID, sRemoteHost, sMessage);
       String sData = Render_(entry);
 
-      if (enable_live_log_)
+      if (LiveLogWanted_())
          LogLive_(sData);
 
       Write_(entry, sData, POP3);
@@ -346,7 +346,7 @@ namespace HM
       Entry entry = MakeEntry_(_T("IMAPD"), iSessionID, sRemoteHost, sMessage);
       String sData = Render_(entry);
 
-      if (enable_live_log_)
+      if (LiveLogWanted_())
          LogLive_(sData);
 
       Write_(entry, sData, IMAP);
@@ -374,7 +374,7 @@ namespace HM
       OutputDebugString(sData);
 #endif
 
-      if (enable_live_log_)
+      if (LiveLogWanted_())
          LogLive_(sData);
 
       if (log_mask_ & LSApplication)
@@ -390,7 +390,7 @@ namespace HM
       Entry entry = MakeEntry_(_T("DEBUG"), -1, _T(""), sMessage);
       String sData = Render_(entry);
 
-      if (enable_live_log_)
+      if (LiveLogWanted_())
          LogLive_(sData);
 
 
@@ -405,7 +405,7 @@ namespace HM
       Entry entry = MakeEntry_(_T("ERROR"), -1, _T(""), sMessage);
       String sData = Render_(entry);
 
-      if (enable_live_log_)
+      if (LiveLogWanted_())
          LogLive_(sData);
 
       // The error log goes to a file whatever device is selected, and that is a
@@ -447,7 +447,7 @@ namespace HM
       Entry entry = MakeEntry_(_T("TCPIP"), -1, _T(""), sMessage);
       String sData = Render_(entry);
 
-      if (enable_live_log_)
+      if (LiveLogWanted_())
          LogLive_(sData);
 
       Write_(entry, sData, Normal);
@@ -1066,7 +1066,7 @@ namespace HM
 
       // Check if we are still enabled. It could be that 
       // we have just disabled ourselves.
-      if (!enable_live_log_)
+      if (!enable_live_log_.load(std::memory_order_relaxed))
          return;
 
       live_log_ += sMessage;
@@ -1075,8 +1075,16 @@ namespace HM
       if (live_log_.GetLength() > LiveLogMaxSize)
       {
          live_log_.Empty();
-         enable_live_log_ = false;
+         enable_live_log_.store(false, std::memory_order_relaxed);
       }
+   }
+
+   bool
+   Logger::LiveLogWanted_() const
+   {
+      // The test every logging thread makes before it takes mtx_LiveLog; the
+      // member's comment in Logger.h says why relaxed is enough.
+      return enable_live_log_.load(std::memory_order_relaxed);
    }
 
    void 
@@ -1085,7 +1093,7 @@ namespace HM
       boost::lock_guard<boost::recursive_mutex> guard(mtx_LiveLog);
       live_log_.Empty();
 
-      enable_live_log_ = bEnable;
+      enable_live_log_.store(bEnable, std::memory_order_relaxed);
    }
 
    bool 
@@ -1109,7 +1117,7 @@ namespace HM
    bool 
    Logger::GetLiveLogEnabled() const
    {
-      return enable_live_log_; 
+      return LiveLogWanted_();
    }
    
    String 

@@ -27,6 +27,29 @@ namespace HM
 
       virtual bool GetSupportsCommandParameters() const {return false; }
 
+      // The conninfo Connect hands PQconnectdb: host, port, user, password and
+      // dbname - postgres when database is empty - then sslmode and sslrootcert
+      // when they are not empty. Every value is in single quotes with each single
+      // quote and backslash in it escaped by a backslash, which is libpq's conninfo
+      // syntax, so that libpq reads back exactly the value given, whatever it holds:
+      // a quote, a backslash, a space, an equals sign, a keyword's text. Up to 6.3.5
+      // the values were written into the quotes as they were, and a password with a
+      // quote or a backslash in it ended the value there, or took the next keyword
+      // into it. The bytes are DALConnection::ClientBytes': UTF-8, which a SCRAM
+      // password and the role and database names of a server in UTF8 are, but on
+      // Windows Latin-1 for a value Latin-1 carries, as such a value always went
+      // there - and sslrootcert, a file libpq opens, is a path in the ANSI code
+      // page on Windows, as fopen reads it. False, with the reason, for a value
+      // that cannot be written so: text with an unpaired surrogate, or a path with
+      // a character the code page does not have.
+      static bool MakeConninfo(const String &server, long port, const String &user, const String &password,
+                               const String &database, const String &sslMode, const String &sslRootCert,
+                               AnsiString &conninfo, String &error);
+
+      // One value as MakeConninfo writes it: the bytes in single quotes, with a
+      // backslash before each single quote and each backslash among them.
+      static AnsiString QuoteConninfoValue(const AnsiString &bytes);
+
       // Whether the server treats a backslash in a string literal as an
       // ordinary character (standard_conforming_strings on, the default since
       // 9.1) - read from the server's own answer when a connection comes up,
@@ -93,6 +116,17 @@ namespace HM
       static std::atomic<bool> standard_conforming_strings_;
 
       bool is_connected_;
+   };
+
+   // PGConnection::MakeConninfo held to libpq's own reading of what it writes
+   // (PQconninfoParse): hostile passwords, users and database names read back
+   // byte for byte, and none of them moving the host, the port or sslmode. Throws
+   // std::logic_error with a sentence. ClassTester runs it inside the Windows
+   // service; connection-string-tests on Linux.
+   class PGConnectionTester
+   {
+   public:
+      void Test();
    };
 
 }

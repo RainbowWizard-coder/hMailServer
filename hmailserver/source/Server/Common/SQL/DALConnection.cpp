@@ -8,6 +8,7 @@
 #include "DatabaseSettings.h"
 #include "DatabaseTls.h"
 #include "../Cache/CacheContainer.h"
+#include "../Util/Unicode.h"
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -81,6 +82,31 @@ namespace HM
       ErrorManager::Instance()->ReportError(ErrorManager::High, 5032, "DALConnection::Execute", sErrorMessage);
 
       return false;
+   }
+
+   bool
+   DALConnection::ClientBytes(const String &value, AnsiString &bytes)
+   {
+      bytes.Empty();
+
+#ifndef HM_PLATFORM_POSIX
+      // DALConnection.h says why: the bytes such a value has always gone as here.
+      bool latin1 = true;
+      for (int i = 0; i < value.GetLength() && latin1; i++)
+         latin1 = (unsigned int) value[i] <= 0xFF;
+
+      if (latin1)
+      {
+         std::string narrow;
+         narrow.reserve((size_t) value.GetLength());
+         for (int i = 0; i < value.GetLength(); i++)
+            narrow += (char) (unsigned char) value[i];
+         bytes = narrow.c_str();
+         return true;
+      }
+#endif
+
+      return Unicode::ToUtf8Exact(value, bytes);
    }
 
    bool

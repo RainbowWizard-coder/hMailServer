@@ -32,14 +32,20 @@ namespace HM
    }
 
    bool
-   IMAPConfiguration::Load()
+   IMAPConfiguration::Load(const std::shared_ptr<IMAPConfiguration> &previous)
    {
+      // The previous load's lists where it has them, read again in place, so that
+      // a COM PublicFolders or Groups object made before the reinitialise holds
+      // the list the server reads (SMTPConfiguration::Load has the same reason).
+      // The groups are swapped whole under their lock (Collection::DBLoad_); the
+      // public folders' tree is emptied and filled again under its own, as it is
+      // whenever it is refreshed, and a read that fails leaves it empty, as a new
+      // one was.
       // Shared public have their AccountID set to zero.
-      public_folders_ = std::shared_ptr<IMAPFolders>(new IMAPFolders(0, -1));
+      public_folders_ = previous && previous->public_folders_ ? previous->public_folders_ : std::shared_ptr<IMAPFolders>(new IMAPFolders(0, -1));
       public_folders_->Refresh();
 
-      // Shared public have their AccountID set to zero.
-      groups_ = std::shared_ptr<Groups>(new Groups());
+      groups_ = previous && previous->groups_ ? previous->groups_ : std::shared_ptr<Groups>(new Groups());
       groups_->Refresh();
 
       return true;

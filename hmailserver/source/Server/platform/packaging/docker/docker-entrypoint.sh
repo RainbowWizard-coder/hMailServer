@@ -125,6 +125,42 @@ needs_writable_ini() {
    fi
 }
 
+# The [Database] values are written into hMailServer.ini as they are - the password
+# too, with Passwordencryption=0 - so each must be one the file gives back: no line
+# break or other control character, which would end the line and could write a
+# line of its own, and no white space at either end or matching quotation marks
+# around it, which the server's reading of the file takes off (IniFile.cpp, as
+# Windows' GetPrivateProfileString does). Anything else - a quote or a backslash
+# inside, a semicolon, a hash - is the value's, and the server hands it to the
+# database as it is (PGConnection::MakeConninfo quotes and escapes it). Refused by
+# name, before the file is touched, rather than started with a value that is not
+# the one given.
+ini_value_ok() {
+   local name="$1" value="$2"
+   case "$value" in
+      *[[:cntrl:]]*)
+         echo "$name holds a line break or another control character, which hMailServer.ini cannot hold" >&2
+         return 1 ;;
+      [[:space:]]*|*[[:space:]])
+         echo "$name begins or ends with white space, which hMailServer.ini does not keep" >&2
+         return 1 ;;
+      \'*\'|\"*\")
+         echo "$name begins and ends with the same quotation mark, which hMailServer.ini takes off when it is read" >&2
+         return 1 ;;
+   esac
+   return 0
+}
+
+database_values_ok() {
+   ini_value_ok HM_DB_HOST "${HM_DB_HOST:-db}" \
+      && ini_value_ok HM_DB_PORT "${HM_DB_PORT:-$default_port}" \
+      && ini_value_ok HM_DB_NAME "${HM_DB_NAME:-hmailserver}" \
+      && ini_value_ok HM_DB_USER "${HM_DB_USER:-hmailserver}" \
+      && ini_value_ok HM_DB_PASSWORD "${HM_DB_PASSWORD:-}" \
+      && ini_value_ok HM_DB_TLS_MODE "${HM_DB_TLS_MODE:-}" \
+      && ini_value_ok HM_DB_TLS_CA "${HM_DB_TLS_CA:-}"
+}
+
 write_database_section() {
    # Everything except the [Database] section is kept as it is; that section is
    # replaced. awk drops the old section (from its header to the next header)
@@ -214,6 +250,7 @@ if [ -n "${HM_DB_TYPE:-}" ]; then
       *) echo "HM_DB_TYPE must be PostgreSQL, MySQL or MSSQL, not '$HM_DB_TYPE'" >&2; exit 64 ;;
    esac
    needs_writable_ini "the [Database] section"
+   database_values_ok || exit 64
    write_database_section
    echo "[Database] written from the environment: $HM_DB_TYPE on ${HM_DB_HOST:-db}:${HM_DB_PORT:-$default_port}, database ${HM_DB_NAME:-hmailserver}"
 fi

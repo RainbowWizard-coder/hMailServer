@@ -97,9 +97,11 @@ STDMETHODIMP InterfaceDatabase::get_IsConnected(VARIANT_BOOL *pVal)
       if (!config_)
          return GetAccessDenied();
 
+      // The manager in force, not the one this object took when it was made - a
+      // reinitialise since has replaced that one, and it is not connected.
       std::shared_ptr<HM::DatabaseConnectionManager> pDBManager = HM::Application::Instance()->GetDBManager();
       if (pDBManager)
-         *pVal = db_manager_->GetIsConnected() ? VARIANT_TRUE : VARIANT_FALSE;
+         *pVal = pDBManager->GetIsConnected() ? VARIANT_TRUE : VARIANT_FALSE;
       else
          *pVal = VARIANT_FALSE;
    
@@ -770,7 +772,13 @@ STDMETHODIMP InterfaceDatabase::EnsurePrerequisites(long DBVersion)
       }
       else
       {
-         if (!db_manager_->EnsuresPrerequisites(DBVersion, sErrorMessage))
+         // The manager in force, not the one this object took when it was made,
+         // which a reinitialise since has replaced.
+         std::shared_ptr<HM::DatabaseConnectionManager> manager = HM::Application::Instance()->GetDBManager();
+         if (!manager)
+            return COMError::GenerateError("The connection to the database is not available. Please check the hMailServer error log for details.");
+
+         if (!manager->EnsuresPrerequisites(DBVersion, sErrorMessage))
          {
             return COMError::GenerateError("Execution of SQL statements failed. Error: " + sErrorMessage);
          }

@@ -85,6 +85,14 @@ namespace HM
 
       virtual std::shared_ptr<IMacroExpander> CreateMacroExpander();
 
+      // A name as MySQL reads a quoted identifier: in backquotes, each backquote
+      // in it doubled. Connect's "use" and the transactions' "SHOW TABLE STATUS
+      // in" name the database so, where they named it bare until 6.3.6 and a
+      // database whose name MySQL takes only quoted - with a hyphen in it, say,
+      // which DBSetup accepts for a database that exists - refused every
+      // connection with a syntax error.
+      static String QuoteIdentifier(const String &name);
+
    private:
 
       // One attempt at the server: a fresh handle (the one before it closed), the
@@ -128,6 +136,19 @@ namespace HM
 
       ColumnPositionCache column_position_cache_;
 
+   };
+
+   // DALConnection::ClientBytes, which the MySQL client's arguments and libpq's
+   // conninfo are written in - UTF-8 on POSIX; on Windows Latin-1 for a value it
+   // carries, as before, and UTF-8 for any other, which reached the server empty -
+   // and MySQLConnection::QuoteIdentifier, a database's name quoted whatever it
+   // holds. Throws std::logic_error with a sentence. connection-string-tests runs
+   // it on Linux, ClassTester inside the Windows service. No database,
+   // configuration or network.
+   class MySQLConnectionTester
+   {
+   public:
+      void Test();
    };
 
 }

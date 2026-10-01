@@ -13,6 +13,7 @@
 # history at v6.3.3) left the suites out for the same reason.
 hmailserver/test/
 hmailserver/source/Tools/ControlPanel.Tests/
+hmailserver/source/Tools/DBSetup.Tests/
 hmailserver/source/Tools/ImportTool.Tests/
 # The Deck's and the webmail's script harnesses, test code of the same kind; one
 # of Semgrep's Express rules also runs past a minute on deck-script-test.js.

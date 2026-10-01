@@ -29,13 +29,17 @@ namespace HM
    Languages::Load()
    {
       // Built whole with no lock held - English and the directory are read here -
-      // and published below. See Languages.h.
-      std::shared_ptr<const Language::EnglishStrings> english = Language::LoadEnglish();
+      // and published below. See Languages.h. The directory is asked for once, and
+      // English, the list of files and every language made are of that one: each
+      // language reads its translation from it on its first use, whatever
+      // ProgramFolder says by then (Language.h, directory_).
+      const String directory = IniFileSettings::Instance()->GetLanguageDirectory();
+      std::shared_ptr<const Language::EnglishStrings> english = Language::LoadEnglish(directory);
 
       std::shared_ptr<LanguageMap> languages = std::make_shared<LanguageMap>();
 
       std::vector<FileInfo> languageFiles =
-         FileUtilities::GetFilesInDirectory(IniFileSettings::Instance()->GetLanguageDirectory(), "^.*[.]ini$");
+         FileUtilities::GetFilesInDirectory(directory, "^.*[.]ini$");
 
       for (FileInfo &fileInfo : languageFiles)
       {
@@ -52,7 +56,7 @@ namespace HM
          if (!IsValidLangauge_(sFormattedLanguage))
             continue;
 
-         (*languages)[sFormattedLanguage] = std::make_shared<Language>(sFormattedLanguage, true, english);
+         (*languages)[sFormattedLanguage] = std::make_shared<Language>(sFormattedLanguage, true, english, directory);
       }
 
       // The set this replaces is released when `previous` goes, after the lock.

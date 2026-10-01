@@ -22,7 +22,11 @@ namespace HM
       SMTPConfiguration();
       virtual ~SMTPConfiguration();
 
-      bool Load();
+      // Reads the incoming relays, the routes and the remote domain policies.
+      // previous, the configuration a reinitialise replaces, lends its three lists,
+      // which are read again in place rather than made anew (Configuration::Load
+      // says why); at a start there is none, and they are made here.
+      bool Load(const std::shared_ptr<SMTPConfiguration> &previous);
 
       void SetMaxSMTPConnections(int newVal);
       void SetAuthAllowPlainText(bool newVal);

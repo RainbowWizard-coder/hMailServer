@@ -208,6 +208,7 @@ namespace HM
       static String BuildJsonEntry_(const String &category, long thread, int session, const String &remoteHost, const String &time, const String &message);
 
       void LogLive_(String &sMessage);
+      bool LiveLogWanted_() const;
       void WriteData_(const String &sData, LogType = Normal);
 
       // A log line that could not be written cannot be reported through the log. Once
@@ -221,8 +222,18 @@ namespace HM
       int GetThreadID_();
 
 
-      bool enable_live_log_;
-      bool sep_svc_logs_;      
+      // Whether the live log (COM's Logging.EnableLiveLogging, the Control Panel's
+      // Live logs) takes entries. Written under mtx_LiveLog by EnableLiveLogging and
+      // by LogLive_ when the buffer outgrows LiveLogMaxSize, and read without it by
+      // every thread that logs, to skip the lock while nobody is watching - which is
+      // almost always. It was a plain bool, a data race to the language for the reason
+      // log_mask_ was one below (left for later on 29 September 2026). Relaxed: a
+      // reader that misses a change of a moment passes one entry to LogLive_, which
+      // reads the flag again under the lock before it appends, or skips one entry of
+      // a live log just switched on; what the buffer holds is decided under the lock
+      // alone.
+      std::atomic<bool> enable_live_log_;
+      bool sep_svc_logs_;
       int  log_level_;      
       int  max_log_line_len_;      
 

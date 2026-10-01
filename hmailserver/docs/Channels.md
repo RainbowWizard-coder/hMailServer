@@ -59,10 +59,11 @@ loads):
    by this project's pipeline for that tag:
    `https://gitlab.com/hmailserver/hmailserver//.gitlab-ci.yml@refs/tags/v<version>`,
    or the same at `Progressiverobot/hmailserver` for a release signed before the
-   project moved on 29 September 2026 (6.3.5), with the issuer `https://gitlab.com`. At the group's path the
+   project moved on 29 September 2026 (6.3.5), with the issuer `https://gitlab.com`. At either path the
    certificate must also carry the project's id, 86730559 (Fulcio's source repository
-   identifier), and any id but that one is refused at either path: the rule every
-   server applies to a live update (`SigstoreVerifier.cpp`). A file that does not
+   identifier), and any id but that one is refused: the rule every server from 6.3.6
+   applies to a live update (`SigstoreVerifier.cpp`; 6.3.5's certificate records it).
+   A file that does not
    verify stops the job before it logs in anywhere, and the log says what cosign
    said. The id is read from the certificate's extensions, not from wherever its
    bytes occur: a public key is bytes its holder chooses. The image is verified in
@@ -122,8 +123,8 @@ release's pipeline pushes it ([ContainerImage.md](ContainerImage.md)).
   `cosign verify-attestation --local-image --type cyclonedx` of its SBOM, both as the
   tag's pipeline (the identities above), and the project's id in every signing and
   every attesting certificate that names the identity, read from its extensions
-  (`build/ci/sigstore-certificate.py`) in the same two manifests: this project's
-  where there is one, and one required at the group's path. A manifest whose keys
+  (`build/ci/sigstore-certificate.py`) in the same two manifests: this project's,
+  and one required at either path. A manifest whose keys
   Go's JSON reader, cosign's, could read otherwise - a field's name in another case
   or outside ASCII, a key twice, a key that is not one of the manifest's or a
   descriptor's fields, an index - is refused.

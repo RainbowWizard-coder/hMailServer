@@ -54,14 +54,6 @@ namespace HM
          String sServer = database_settings_->GetServer();
          String sDatabase = database_settings_->GetDatabaseName();
          long lDBPort = database_settings_->GetPort();
-        
-         String sConnectionString;
-         sConnectionString.Format(_T("host='%s' port='%d' user='%s' password='%s'"), sServer.c_str(), lDBPort, sUsername.c_str(), sPassword.c_str());
-
-         if (sDatabase.IsEmpty())
-            sConnectionString += " dbname='postgres'";
-         else
-            sConnectionString += " dbname='" + sDatabase + "'";
 
          // TLS to the server, from hMailServer.ini rather than from PGSSLMODE in the
          // service's environment. Two pairs of keys say it: PostgreSQLSslMode and
@@ -105,11 +97,7 @@ namespace HM
             sslMode = DatabaseTls::ModeName(tlsMode);
          }
 
-         if (!sslMode.IsEmpty())
-            sConnectionString += " sslmode='" + sslMode + "'";
-
-         // A Windows path, so the backslashes have to be doubled: inside a single-quoted
-         // conninfo value libpq reads a backslash as an escape.
+         // A Windows path's backslashes are escaped with the rest (MakeConninfo).
          String sslRootCert = IniFileSettings::Instance()->GetDatabasePostgreSQLSslRootCert();
          const bool legacySslMode = !IniFileSettings::Instance()->GetDatabasePostgreSQLSslMode().IsEmpty();
          if (sslRootCert.IsEmpty() && !legacySslMode && tlsMode == DatabaseTls::ModeVerifyFull)
@@ -128,14 +116,14 @@ namespace HM
 #endif
          }
 
-         if (!sslRootCert.IsEmpty())
-         {
-            sslRootCert.Replace(_T("\\"), _T("\\\\"));
-            sslRootCert.Replace(_T("'"), _T("\\'"));
-            sConnectionString += " sslrootcert='" + sslRootCert + "'";
-         }
+         // Every value quoted and escaped as libpq's conninfo syntax asks, so that a
+         // password - or a user, a host, a database or a path - with a quote, a
+         // backslash or a space in it reaches the server as it was written.
+         AnsiString conninfo;
+         if (!MakeConninfo(sServer, lDBPort, sUsername, sPassword, sDatabase, sslMode, sslRootCert, conninfo, sErrorMessage))
+            return FatalError;
 
-         dbconn_ = PQconnectdb(Unicode::ToANSI(sConnectionString));
+         dbconn_ = PQconnectdb(conninfo.c_str());
 
 
          if (PQstatus(dbconn_) != CONNECTION_OK)
@@ -558,4 +546,246 @@ namespace HM
       return expander;
    }
 
+   AnsiString
+   PGConnection::QuoteConninfoValue(const AnsiString &bytes)
+   {
+      // libpq, "Connection Strings": "To write an empty value, or a value
+      // containing spaces, surround it with single quotes... Single quotes and
+      // backslashes within a value must be escaped with a backslash, i.e., \' and
+      // \\." Every value is quoted, so that none depends on what it holds.
+      AnsiString quoted = "'";
+      const char *text = bytes.c_str();
+      const int length = bytes.GetLength();
+      for (int i = 0; i < length; i++)
+      {
+         if (text[i] == '\'' || text[i] == '\\')
+            quoted += '\\';
+         quoted += text[i];
+      }
+      quoted += '\'';
+      return quoted;
+   }
+
+   namespace
+   {
+      // A path as libpq's fopen reads it: on Windows the ANSI code page, refusing a
+      // character it does not have rather than writing a best fit that names
+      // another file; elsewhere UTF-8, which is what a POSIX file name is here.
+      bool PathBytes(const String &path, AnsiString &bytes)
+      {
+#ifdef HM_PLATFORM_POSIX
+         return Unicode::ToUtf8Exact(path, bytes);
+#else
+         bytes.Empty();
+         if (path.IsEmpty())
+            return true;
+
+         BOOL defaulted = FALSE;
+         const int size = WideCharToMultiByte(CP_ACP, WC_NO_BEST_FIT_CHARS, path.c_str(), path.GetLength(), nullptr, 0, nullptr, &defaulted);
+         if (size <= 0 || defaulted)
+            return false;
+
+         std::string narrow((size_t) size, '\0');
+         if (WideCharToMultiByte(CP_ACP, WC_NO_BEST_FIT_CHARS, path.c_str(), path.GetLength(), &narrow[0], size, nullptr, &defaulted) != size || defaulted)
+            return false;
+
+         bytes = narrow.c_str();
+         return bytes.GetLength() == size;
+#endif
+      }
+   }
+
+   bool
+   PGConnection::MakeConninfo(const String &server, long port, const String &user, const String &password,
+                              const String &database, const String &sslMode, const String &sslRootCert,
+                              AnsiString &conninfo, String &error)
+   {
+      conninfo.Empty();
+      error.Empty();
+
+      struct Value
+      {
+         const char *keyword;
+         String text;
+         const TCHAR *what;
+      };
+
+      String portText;
+      portText.Format(_T("%d"), (int) port);
+
+      const Value values[] =
+      {
+         { "host", server, _T("The database server's name") },
+         { "port", portText, _T("The database server's port") },
+         { "user", user, _T("The database user") },
+         { "password", password, _T("The database password") },
+         { "dbname", database.IsEmpty() ? String(_T("postgres")) : database, _T("The database name") },
+      };
+
+      for (const Value &value : values)
+      {
+         AnsiString bytes;
+         if (!ClientBytes(value.text, bytes))
+         {
+            error = String(value.what) + _T(" in hMailServer.ini holds a character UTF-8 cannot carry (half of a surrogate pair), so it cannot be passed to PostgreSQL. The connection was not attempted.");
+            conninfo.Empty();
+            return false;
+         }
+
+         if (!conninfo.IsEmpty())
+            conninfo += " ";
+         conninfo += AnsiString(value.keyword) + "=" + QuoteConninfoValue(bytes);
+      }
+
+      if (!sslMode.IsEmpty())
+      {
+         AnsiString bytes;
+         if (!ClientBytes(sslMode, bytes))
+         {
+            error = _T("The PostgreSQL sslmode cannot be written for libpq. The connection was not attempted.");
+            conninfo.Empty();
+            return false;
+         }
+         conninfo += " sslmode=" + QuoteConninfoValue(bytes);
+      }
+
+      if (!sslRootCert.IsEmpty())
+      {
+         AnsiString bytes;
+         if (!PathBytes(sslRootCert, bytes))
+         {
+            error = _T("The PostgreSQL root certificate's path, ") + sslRootCert + _T(", holds a character this system's code page does not have, and libpq opens the file by that name. Move the file to a path without it. The connection was not attempted.");
+            conninfo.Empty();
+            return false;
+         }
+         conninfo += " sslrootcert=" + QuoteConninfoValue(bytes);
+      }
+
+      return true;
+   }
+
+   namespace
+   {
+      void CheckConninfo(bool condition, const std::string &what)
+      {
+         if (!condition)
+            throw std::logic_error("PGConnectionTester: " + what);
+      }
+
+      // The value libpq reads for keyword out of conninfo, by its own parser.
+      bool ParsedValue(const AnsiString &conninfo, const char *keyword, std::string &value, std::string &error)
+      {
+         char *message = nullptr;
+         PQconninfoOption *options = PQconninfoParse(conninfo.c_str(), &message);
+         if (options == nullptr)
+         {
+            error = message != nullptr ? message : "PQconninfoParse refused it";
+            if (message != nullptr)
+               PQfreemem(message);
+            return false;
+         }
+
+         bool found = false;
+         for (PQconninfoOption *option = options; option->keyword != nullptr; option++)
+         {
+            if (std::strcmp(option->keyword, keyword) == 0 && option->val != nullptr)
+            {
+               value = option->val;
+               found = true;
+            }
+         }
+
+         PQconninfoFree(options);
+         if (!found)
+            error = std::string("no ") + keyword + " in it";
+         return found;
+      }
+   }
+
+   void
+   PGConnectionTester::Test()
+   {
+      // Every value MakeConninfo writes read back by libpq's own parser as exactly
+      // the value given - the password above all, in every position a value takes:
+      // quotes, backslashes, spaces, an equals sign, a keyword's text, a value that
+      // is all escape, an empty one, and characters outside ASCII in the bytes the
+      // client is handed them in (DALConnection::ClientBytes, which
+      // MySQLConnectionTester holds to its bytes).
+      const wchar_t *hostile[] =
+      {
+         L"plain",
+         L"",
+         L"'",
+         L"\\",
+         L"\\'",
+         L"x\\",
+         L"it's",
+         L"back\\slash",
+         L"two words",
+         L" leading and trailing ",
+         L"a=b",
+         L"semi;colon",
+         L"double\"quote",
+         L"x' host='evil.example' password='y",
+         L"x\\' host=evil.example",
+         L"''''",
+         L"\\\\\\",
+         L"p\u00e4ssw\u00f6rd",
+         L"\u65e5\u672c\u8a9e\u306e\u30d1\u30b9\u30ef\u30fc\u30c9",
+         L"tab\there",
+      };
+
+      for (const wchar_t *text : hostile)
+      {
+         const String value(text);
+         AnsiString expected;
+         CheckConninfo(DALConnection::ClientBytes(value, expected), "a test value could not be written as the client is handed it");
+
+         AnsiString conninfo;
+         String error;
+         CheckConninfo(PGConnection::MakeConninfo(_T("db.example"), 5432, value, value, value, _T("verify-full"), String(), conninfo, error),
+            "MakeConninfo refused a value it should write: " + std::string(Unicode::ToUtf8(error).c_str()));
+
+         for (const char *keyword : { "user", "password", "dbname" })
+         {
+            // An empty database is postgres, by design (below).
+            const std::string wanted = std::strcmp(keyword, "dbname") == 0 && expected.IsEmpty()
+               ? std::string("postgres") : std::string(expected.c_str(), (size_t) expected.GetLength());
+
+            std::string parsed;
+            std::string why;
+            CheckConninfo(ParsedValue(conninfo, keyword, parsed, why),
+               std::string("libpq did not read ") + keyword + " back from " + conninfo.c_str() + ": " + why);
+            CheckConninfo(parsed == wanted,
+               std::string("libpq read ") + keyword + " as [" + parsed + "] and not [" + wanted + "] from " + conninfo.c_str());
+         }
+
+         // And nothing else: the host, the port and the mode are the ones given,
+         // whatever the other values held.
+         std::string parsed;
+         std::string why;
+         CheckConninfo(ParsedValue(conninfo, "host", parsed, why) && parsed == "db.example", std::string("a value moved the host: ") + conninfo.c_str());
+         CheckConninfo(ParsedValue(conninfo, "port", parsed, why) && parsed == "5432", std::string("a value moved the port: ") + conninfo.c_str());
+         CheckConninfo(ParsedValue(conninfo, "sslmode", parsed, why) && parsed == "verify-full", std::string("a value moved sslmode: ") + conninfo.c_str());
+      }
+
+      // An empty database is postgres; the mode and the root certificate are left
+      // out when not given, and a path's backslashes are the path's.
+      AnsiString conninfo;
+      String error;
+      CheckConninfo(PGConnection::MakeConninfo(_T("h"), 1, _T("u"), _T("p"), String(), String(), _T("C:\\Program Files\\hMailServer\\it's ca.pem"), conninfo, error),
+         "MakeConninfo refused a root certificate's path");
+      std::string parsed;
+      std::string why;
+      CheckConninfo(ParsedValue(conninfo, "dbname", parsed, why) && parsed == "postgres", std::string("an empty database is not postgres: ") + conninfo.c_str());
+      CheckConninfo(ParsedValue(conninfo, "sslrootcert", parsed, why) && parsed == "C:\\Program Files\\hMailServer\\it's ca.pem",
+         std::string("the root certificate's path was not read back as given: ") + conninfo.c_str());
+      CheckConninfo(!ParsedValue(conninfo, "sslmode", parsed, why) || parsed.empty(), std::string("sslmode was written when none was given: ") + conninfo.c_str());
+
+      // A value UTF-8 cannot carry is refused, not written as something else.
+      String lone(L"half");
+      lone += (wchar_t) 0xD800;
+      CheckConninfo(!PGConnection::MakeConninfo(_T("h"), 1, _T("u"), lone, _T("d"), String(), String(), conninfo, error) && conninfo.IsEmpty() && !error.IsEmpty(),
+         "a password with half a surrogate pair was not refused");
+   }
 }

@@ -18,12 +18,23 @@ InterfaceBackupManager::LoadSettings()
    if (!GetIsServerAdmin())
       return false;
 
-   backup_manager_ = HM::Application::Instance()->GetBackupManager();
-   if (!backup_manager_)
+   if (!HM::Application::Instance()->GetBackupManager())
       return false;
 
+   loaded_ = true;
    return true;
+}
 
+std::shared_ptr<HM::BackupManager>
+InterfaceBackupManager::Manager_() const
+{
+   return loaded_ ? HM::Application::Instance()->GetBackupManager() : std::shared_ptr<HM::BackupManager>();
+}
+
+HRESULT
+InterfaceBackupManager::NotAvailable_() const
+{
+   return COMError::GenerateError("The backup manager is not available while the server reinitialises. Try again in a moment.");
 }
 
 STDMETHODIMP 
@@ -31,10 +42,11 @@ InterfaceBackupManager::StartBackup()
 {
    try
    {
-      if (!backup_manager_)
-         return GetAccessDenied();
+      std::shared_ptr<HM::BackupManager> manager = Manager_();
+      if (!manager)
+         return loaded_ ? NotAvailable_() : GetAccessDenied();
 
-      backup_manager_->StartBackup();
+      manager->StartBackup();
       return S_OK;
    }
    catch (...)
@@ -62,8 +74,9 @@ InterfaceBackupManager::LoadEncryptedBackup(BSTR File, BSTR Passphrase, IInterfa
 {
    try
    {
-      if (!backup_manager_)
-         return GetAccessDenied();
+      std::shared_ptr<HM::BackupManager> manager = Manager_();
+      if (!manager)
+         return loaded_ ? NotAvailable_() : GetAccessDenied();
 
       // The archive is opened BEFORE the COM object is made, unlike before: the
       // object used to be created first and leaked on every archive that could not
@@ -77,7 +90,7 @@ InterfaceBackupManager::LoadEncryptedBackup(BSTR File, BSTR Passphrase, IInterfa
       // restore that follows opens the archive the same way; it is stored nowhere
       // and logged nowhere.
       HM::String failureReason;
-      std::shared_ptr<HM::Backup> pBackup = backup_manager_->LoadBackup(File, Passphrase, failureReason);
+      std::shared_ptr<HM::Backup> pBackup = manager->LoadBackup(File, Passphrase, failureReason);
 
       if (!pBackup)
          return COMError::GenerateError(failureReason);
@@ -105,8 +118,9 @@ InterfaceBackupManager::StartMailboxRestore_(const HM::MailboxRestore::Request &
 
    *Job = 0;
 
-   if (!backup_manager_)
-      return GetAccessDenied();
+   std::shared_ptr<HM::BackupManager> manager = Manager_();
+   if (!manager)
+      return loaded_ ? NotAvailable_() : GetAccessDenied();
 
    // Asked again here, on this thread: the question is what installs the
    // actor the audit row below is attributed to. See InterfaceBackup::StartRestore.
@@ -122,7 +136,7 @@ InterfaceBackupManager::StartMailboxRestore_(const HM::MailboxRestore::Request &
    if (!job)
       return COMError::GenerateError(failureReason);
 
-   if (!backup_manager_->StartMailboxRestore(job, failureReason))
+   if (!manager->StartMailboxRestore(job, failureReason))
    {
       // Registered by Prepare and refused the slot: its status says so.
       HM::MailboxRestore::MarkNotStarted(job->GetJob(), failureReason);
@@ -191,7 +205,7 @@ InterfaceBackupManager::DescribeMailbox(BSTR File, BSTR Address, BSTR Passphrase
       if (!Json)
          return COMError::WithoutMessage(E_POINTER);
 
-      if (!backup_manager_)
+      if (!loaded_)
          return GetAccessDenied();
 
       HM::String archiveFile;
@@ -232,7 +246,7 @@ InterfaceBackupManager::MailboxRestoreStatus(long Job, BSTR *Json)
       if (!Json)
          return COMError::WithoutMessage(E_POINTER);
 
-      if (!backup_manager_)
+      if (!loaded_)
          return GetAccessDenied();
 
       HM::MailboxRestore::Outcome outcome;

@@ -57,8 +57,10 @@ namespace HM
    // SHA-256 with the ephemeral key, and records the signature with Rekor, which
    // vouches for the time. The releases up to 6.3.3 were signed by the GitHub
    // Actions workflow sign-release.yml, and their bundles are re-hosted on GitLab
-   // byte for byte; the releases after are to be signed by a job of this project's
-   // GitLab CI pipeline for a v* tag, which no release has been yet. The bundle is
+   // byte for byte; 6.3.4 was released by hand and carries no bundle; 6.3.5 and
+   // every release after are signed by the release-sign job of this project's
+   // GitLab CI pipeline for their v* tag - 6.3.5 at the path the project began at,
+   // the releases from 6.3.6 at the group's it moved to. The bundle is
    // the certificate, the signature, and Rekor's record with its proof. Verifying
    // it means (RFC 9162 for the log, RFC 5280 for the chain):
    //
@@ -87,8 +89,8 @@ namespace HM
       // release up to 6.3.3, and the GitLab CI pipeline for a v* tag - at the path
       // the project began at, Progressiverobot/hmailserver, which signed 6.3.5, and
       // at the group's it moved to on 29 September 2026, hmailserver/hmailserver,
-      // which signs every release from 6.3.6 and where the certificate must record
-      // the project's id.
+      // which signs every release from 6.3.6. At either path the certificate must
+      // record the project's id, 86730559.
       static SigstoreTrust DefaultTrust();
 
       // The trust as configured: DefaultTrust, with any UpdateTrustRootsFile,

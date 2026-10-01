@@ -28,6 +28,11 @@
     <PackageReference Include="System.ServiceProcess.ServiceController" Version="10.0.12" />
   </ItemGroup>
 
+  <!-- The silent mode's reading of its variables (Unattended.cs) is tested there. -->
+  <ItemGroup>
+    <InternalsVisibleTo Include="DBSetup.Tests" />
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\Shared\Shared.csproj" />
     <Reference Include="Interop.hMailServer">

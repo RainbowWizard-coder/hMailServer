@@ -8,7 +8,7 @@
 What replaced GitHub's dependency review (the GitHub workflow dependency-review.yml)
 and Dependabot's alerts. Three scans, one report:
 
-  1. The lock files, with Trivy (trivy fs): the eleven NuGet packages.lock.json,
+  1. The lock files, with Trivy (trivy fs): the twelve NuGet packages.lock.json,
      the three packages.config, and build/ci/security-requirements.txt, the
      scanners' own Python packages. Nothing else in the tree is a manifest: the
      Python tools use the standard library (the three that do not are named by

@@ -188,9 +188,10 @@ namespace HM
       std::shared_ptr<DNSBlackLists> dnsBlackLists_;
       std::shared_ptr<SURBLServers> surblServers_;
 
-      // Guards the two pointers above: Load replaces them at a reinitialise while
-      // other threads copy them (Configuration's publication_mutex_ has the reason).
-      // Held only to copy or swap a pointer - a leaf.
+      // Guards the two pointers above: the first Load publishes them while other
+      // threads may copy them (Configuration's publication_mutex_ has the reason);
+      // a later Load reads the same lists again in place. Held only to copy or
+      // swap a pointer - a leaf.
       mutable boost::mutex lists_mutex_;
 
    };

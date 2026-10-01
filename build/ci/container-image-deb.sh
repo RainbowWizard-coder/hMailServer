@@ -142,8 +142,9 @@ for arch in amd64 arm64; do
     [ -n "$identity" ] || { cat "$out/verify.log"; fail "$name does not verify as signed by this project's pipeline for $tag"; }
 
     # The project's id in the certificate (Fulcio's 1.3.6.1.4.1.57264.1.15, a UTF8String
-    # in an OCTET STRING): required at the group's path, and where it is there at all,
-    # this project's. Read from the certificate's extensions by
+    # in an OCTET STRING): required at either path, and this project's, as a server from
+    # 6.3.6 requires it (SigstoreVerifier.cpp) - 6.3.5's, the one release signed at the
+    # first path, records it. Read from the certificate's extensions by
     # build/ci/sigstore-certificate.sh (this image has no Python, and cosign checks no
     # CI's extension but GitHub's), which build/ci/sigstore-certificate.py holds to its
     # own reading - never by a search of the certificate's bytes, whose public key, bytes
@@ -153,11 +154,7 @@ for arch in amd64 arm64; do
       || fail "the certificate of $name could not be read for the project's id: ${said#refused: }"
     case "$said" in
       "id=$project_id") id_said="$project_id" ;;
-      absent)
-        case "$identity" in
-          https://gitlab.com/hmailserver/hmailserver//*) fail "the certificate of $name, at the group's path, records no repository id" ;;
-        esac
-        id_said="none recorded" ;;
+      absent) fail "the certificate of $name records no repository id" ;;
       *) fail "the certificate of $name names the repository id '${said#id=}', not $project_id" ;;
     esac
 

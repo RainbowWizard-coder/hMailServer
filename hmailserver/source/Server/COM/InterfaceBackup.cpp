@@ -32,8 +32,14 @@ InterfaceBackup::StartRestore()
       if (!GetIsServerAdmin())
          return GetAccessDenied();
 
-      // Start a restore of this backup.
-      const bool started = HM::Application::Instance()->GetBackupManager()->StartRestore(backup_);
+      // Start a restore of this backup, through the backup manager in force: a
+      // reinitialise replaces it, and between letting the old one go and making
+      // the new one there is none.
+      std::shared_ptr<HM::BackupManager> manager = HM::Application::Instance()->GetBackupManager();
+      if (!manager)
+         return COMError::GenerateError("The backup manager is not available while the server reinitialises. Try again in a moment.");
+
+      const bool started = manager->StartRestore(backup_);
 
       // The request, recorded here because nothing the restore itself does can be:
       // it runs on the maintenance work queue, where no actor is installed, so

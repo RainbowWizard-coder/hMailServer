@@ -24,9 +24,9 @@ registry to Docker Hub, Quay.io and, when wanted, Amazon ECR Public
      (either path a server trusts), cosign verify-attestation --local-image of its
      CycloneDX SBOM as the same identity, and the project's id in every signing and
      attesting certificate naming that identity, read from the manifests in the layout
-     (as for the release's files: required at the group's path, and refused if
-     another). No second read of the registry: what cosign verifies is what the id is
-     read from.
+     (as for the release's files: required at either path, and refused if another).
+     No second read of the registry: what cosign verifies is what the id is read
+     from.
   4. For each configured destination: regctl image copy of the source BY ITS DIGEST
      to :<version>; and to :<major>.<minor> and :latest only where the source's own tag
      of that name is the same digest, so an older release mirrored late never moves
@@ -434,13 +434,13 @@ def certificate_ids(body, identity, what):
 
 def held_to_the_project(recorded, identity, what):
     """The rule the release's files are held to (release-files.py, verify_file): each
-    certificate's repository id this project's where there is one, and one there at
-    the group's path."""
+    certificate's repository id this project's, and one there, at either path."""
     for found in recorded:
         if found is not None and found != rf.PROJECT_ID:
             raise Refused("the image's %s certificate names the repository id %s, not %s" % (what, found, rf.PROJECT_ID))
-        if found is None and identity.startswith(rf.GROUP_REPOSITORY + "//"):
-            raise Refused("the image's %s certificate, at the group's path, records no repository id" % what)
+        if found is None:
+            raise Refused("the image's %s certificate, at %s, records no repository id"
+                          % (what, "the group's path" if identity.startswith(rf.GROUP_REPOSITORY + "//") else "the project's first path"))
 
 
 def verify_image(tools, repository, digest, identities, issuer, layout):
@@ -840,6 +840,7 @@ def self_test(cosign=None):
     # The job against a registry, regctl and cosign in memory.
     version = "9.9.9"
     group = rf.identities(version)[1]
+    first = rf.identities(version)[0]
     work = tempfile.mkdtemp(prefix="hm-mirror-test-")
     blobs = {}
 
@@ -1136,6 +1137,10 @@ def self_test(cosign=None):
             ("an image without an attestation manifest", FakeTools(att=[None]), "the image has no attestation there"),
             ("a signature at the group's path without the project's id", FakeTools(sig=[manifest([layer(rid=None)])]),
              "signing certificate, at the group's path, records no repository id"),
+            ("a signature and an attestation at the project's first path without its id",
+             FakeTools(sig=[manifest([layer(rid=None, uris=[first], good=first)])],
+                       att=[manifest([layer(rid=None, uris=[first], good=first, attestation=True)])]),
+             "signing certificate, at the project's first path, records no repository id"),
             ("another project's id", FakeTools(sig=[manifest([layer(rid="1267388815")])]), "not 86730559"),
             # The layer first whose certificate holds the identity's bytes - in its key -
             # and this project's id, before the one that verified, naming another id.
