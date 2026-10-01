@@ -4292,9 +4292,41 @@ async function main() {
    const painted = [blocks[0], dark[0]].reduce((text, block) => text.replace(block, ''), css).match(/#[0-9a-fA-F]{3,8}\b|\brgba?\(/g) || [];
    check('and every colour the page paints with comes from a token: not one literal outside those two blocks',
       painted.length === 0, JSON.stringify(painted));
-   check('everything that takes the keyboard is ringed while it holds it',
-      /:focus-visible\{[^}]*outline:2px solid var\(--accent\)/.test(css) && (css.match(/:focus-visible/g) || []).length >= 4,
+   check('everything that takes the keyboard is ringed while it holds it, in the focus colour',
+      /:focus-visible\{[^}]*outline:2px solid var\(--focus\)/.test(css) && (css.match(/:focus-visible/g) || []).length >= 4,
       (css.match(/:focus-visible/g) || []).length + ' focus-visible rules');
+
+   // ---- where the keyboard is: one violet, the webmail's and the Control
+   // Panel's, declared for both themes and used by every ring and field
+   const tokenOf = (block, name) => { const m = new RegExp('--' + name + ':([^;]+);').exec(block); return m ? m[1].trim() : null; };
+   check('the focus colour and its glow are tokens of both themes: a darker violet on the light theme, a lighter one on the dark',
+      tokenOf(blocks[0], 'focus') === '#7542e5' && tokenOf(dark[0], 'focus') === '#b89cff' &&
+      /^rgba\(117,66,229,\.\d+\)$/.test(String(tokenOf(blocks[0], 'focus-glow'))) && /^rgba\(184,156,255,\.\d+\)$/.test(String(tokenOf(dark[0], 'focus-glow'))),
+      JSON.stringify([tokenOf(blocks[0], 'focus'), tokenOf(blocks[0], 'focus-glow'), tokenOf(dark[0], 'focus'), tokenOf(dark[0], 'focus-glow')]));
+   const cssRules = [];
+   css.replace(/\/\*[\s\S]*?\*\//g, '').replace(/([^{}]+)\{([^{}]*)\}/g, (whole, selector, body) => { cssRules.push({ selector: selector.trim(), body }); return whole; });
+   const fieldRule = cssRules.find((r) => r.selector.indexOf('input:not([type=checkbox]') === 0 && /select:focus,textarea:focus$/.test(r.selector) && r.body.indexOf('box-shadow') >= 0);
+   check('a field being typed in, clicked or tabbed into, has the focus colour for its border, a pixel more of it and a glow outside, and no outline over them',
+      !!fieldRule && /border-color:var\(--focus\)/.test(fieldRule.body) &&
+      /box-shadow:0 0 0 1px var\(--focus\),0 0 \d+px \d+px var\(--focus-glow\)/.test(fieldRule.body) && /outline:none/.test(fieldRule.body) &&
+      /^input:not\([^)]*\):focus,select:focus,textarea:focus$/.test(fieldRule.selector),
+      fieldRule ? fieldRule.selector + ' { ' + fieldRule.body + ' }' : 'no field focus rule');
+   check('and a box to tick, a radio button, a slider, a colour and a file are left out of it, keeping the ring',
+      !!fieldRule && ['checkbox', 'radio', 'range', 'color', 'file'].every((t) => fieldRule.selector.indexOf('[type=' + t + ']') >= 0));
+   const accentRings = cssRules.filter((r) => /:focus/.test(r.selector) && /var\(--accent\)/.test(r.body));
+   check('no ring or field the keyboard is in is drawn in the accent any more', accentRings.length === 0,
+      JSON.stringify(accentRings.map((r) => r.selector)));
+   check('the command bar\'s search box and the help pane\'s find box take the focus colour too',
+      cssRules.some((r) => r.selector === '.search input:focus' && /border-color:var\(--focus\)/.test(r.body)) &&
+      cssRules.some((r) => r.selector === '.helppane .find input:focus' && /border-color:var\(--focus\)/.test(r.body)));
+   check('a field the keyboard scrolls into view stops short of the pane\'s edge, so its ring and glow are not cut off',
+      cssRules.some((r) => r.selector === 'input,select,textarea' && /scroll-margin-block:\d+px/.test(r.body)));
+   check('a field marked invalid keeps the danger colour for its border when it has the keyboard, and the focus glow goes outside it',
+      cssRules.some((r) => /\[aria-invalid="true"\]:focus$/.test(r.selector) && /box-shadow:0 0 0 1px var\(--danger\),0 0 \d+px \d+px var\(--focus-glow\)/.test(r.body)) &&
+      cssRules.some((r) => /\[aria-invalid="true"\]:focus/.test(r.selector) && /border-color:var\(--danger\)/.test(r.body)));
+   check('under a forced-colours theme a field keeps an outline in the system\'s highlight rather than the violet, and the transition stops for reduced motion',
+      /@media \(forced-colors:active\)\{\s*input:not\(\[type=checkbox\][^{]*\{outline:2px solid Highlight/.test(css) &&
+      /@media \(prefers-reduced-motion:reduce\)\{input,select,textarea\{transition:none\}\}/.test(css));
 
    // ---- the shape: the frame the desktop console has, in the Deck's markup
    check('a command bar carries the brand, the view, the search, the link\'s pill and the buttons',

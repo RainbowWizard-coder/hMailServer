@@ -416,7 +416,13 @@ namespace HM
          response.content_type = "text/html; charset=utf-8";
          response.body =
             "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>" + HtmlEscape(title) + "</title>"
-            "<style>body{font-family:system-ui,sans-serif;background:#0f1419;color:#e6edf3;display:flex;justify-content:center;padding:48px 16px}main{max-width:420px;width:100%;background:#161b22;border:1px solid #30363d;border-radius:12px;padding:24px}h1{font-size:18px;margin:0 0 12px}p{margin:8px 0;color:#9aa4ae;font-size:14px}input{width:100%;box-sizing:border-box;padding:10px;border-radius:8px;border:1px solid #30363d;background:#0f1419;color:#e6edf3;font-size:15px;margin:8px 0}button{padding:10px 16px;border-radius:8px;border:0;background:#36c2ff;color:#04121c;font-weight:600;font-size:15px;cursor:pointer}.err{color:#ff7b72}</style></head>"
+            "<style>body{font-family:system-ui,sans-serif;background:#0f1419;color:#e6edf3;display:flex;justify-content:center;padding:48px 16px}main{max-width:420px;width:100%;background:#161b22;border:1px solid #30363d;border-radius:12px;padding:24px}h1{font-size:18px;margin:0 0 12px}p{margin:8px 0;color:#9aa4ae;font-size:14px}input{width:100%;box-sizing:border-box;padding:10px;border-radius:8px;border:1px solid #30363d;background:#0f1419;color:#e6edf3;font-size:15px;margin:8px 0}button{padding:10px 16px;border-radius:8px;border:0;background:#36c2ff;color:#04121c;font-weight:600;font-size:15px;cursor:pointer}.err{color:#ff7b72}"
+            // Where the keyboard is, as on the webmail (Portal.html): the focus
+            // violet as the field's border with a glow outside it, and as the
+            // ring round the button; under forced colours, the system's highlight.
+            "input{outline:none}input:focus{border-color:#b89cff;box-shadow:0 0 0 1px #b89cff,0 0 8px 2px rgba(184,156,255,.28)}"
+            "button:focus-visible{outline:2px solid #b89cff;outline-offset:2px}"
+            "@media (forced-colors:active){input:focus{outline:2px solid Highlight;outline-offset:2px}}</style></head>"
             "<body><main>" + inner + "</main></body></html>";
          response.extra_headers =
             "Content-Security-Policy: default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; base-uri 'none'\r\n"

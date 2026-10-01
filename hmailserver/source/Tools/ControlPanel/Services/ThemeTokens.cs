@@ -89,6 +89,10 @@ namespace hMailServer.ControlPanel.Services
          // that the whole of it lives in one file.
          AccessibleFocus.Register();
 
+         // And the ring and glow round a text field that has the keyboard, in
+         // the focus colour published below.
+         FocusGlow.Register();
+
          Refresh();
 
          try
@@ -300,6 +304,25 @@ namespace hMailServer.ControlPanel.Services
             Publish("TextFillColorTertiaryBrush", FromArgb(tertiary));
          else
             Application.Current?.Resources.Remove("TextFillColorTertiaryBrush");
+
+         // The focus colour (DesignTokens.Focus): the ring FocusGlow draws round
+         // a text field that has the keyboard, the glow outside it, and the
+         // border the navigation draws round the row the keyboard is on. The
+         // theme's own line under a focused text box, password box, number box
+         // and editable combo box takes it too - it is what a field shows where
+         // FocusGlow cannot draw (a window without an adorner layer, a field
+         // drawn as an underline). Under High Contrast those two keys are taken
+         // away again, handing the theme its own, and FocusGlow draws nothing.
+         DesignTokens.FocusArgb focus = DesignTokens.Focus(CurrentChartTheme, CurrentSystemColors);
+         Publish("AppFocusBrush", FromArgb(focus.Ring));
+         Publish("AppFocusGlowBrush", FromArgb(focus.Glow));
+         foreach (string themeKey in new[] { "TextControlFocusedBorderBrush", "ComboBoxBorderBrushFocused" })
+         {
+            if (DesignTokens.FocusGlowFor(CurrentChartTheme))
+               Publish(themeKey, FromArgb(focus.Ring));
+            else
+               Application.Current?.Resources.Remove(themeKey);
+         }
 
          Publish("LogDefaultBrush", logDefault);
          Publish("LogSmtpBrush", logSmtp);

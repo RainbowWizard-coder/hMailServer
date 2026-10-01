@@ -37,6 +37,12 @@
   --shadow:0 1px 2px rgba(60,64,67,.3),0 1px 3px 1px rgba(60,64,67,.15);
   --shadow-2:0 4px 8px 3px rgba(60,64,67,.15),0 1px 3px rgba(60,64,67,.3);
   --scrim:rgba(32,33,36,.55);
+  /* Where the keyboard is: the ring a control holding it shows, and the
+     border and glow of a field being typed in. A violet that is no other
+     colour here, so focus never reads as selected, linked or good; the
+     webmail's and the Control Panel's are the same. 4.7:1 on --surface-3,
+     5.7:1 on --surface; the glow is decoration outside it. */
+  --focus:#7542e5; --focus-glow:rgba(117,66,229,.25);
   /* The console's six steps. A margin, a padding or a gap is one of them. */
   --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:24px; --s6:32px;
   /* Its three radii: a control, a card, a capsule. */
@@ -57,15 +63,17 @@
   --shadow:0 1px 2px rgba(0,0,0,.5),0 1px 3px 1px rgba(0,0,0,.3);
   --shadow-2:0 4px 8px 3px rgba(0,0,0,.35),0 1px 3px rgba(0,0,0,.5);
   --scrim:rgba(0,0,0,.65);
+  --focus:#b89cff; --focus-glow:rgba(184,156,255,.28);
 }
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{height:100%}
 body{font-family:var(--font);font-size:var(--fs-body);line-height:1.45;background:var(--bg);color:var(--text);overflow:hidden;-webkit-font-smoothing:antialiased}
 [hidden]{display:none!important}
 ::selection{background:var(--selected)}
-/* The ring the keyboard leaves behind it, on everything that takes focus. */
+/* The ring the keyboard leaves behind it, on everything that takes focus, in
+   the focus colour. A field being typed in has its own look (the form rules). */
 a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,[tabindex]:focus-visible{
-  outline:2px solid var(--accent);outline-offset:2px;border-radius:var(--radius-control)}
+  outline:2px solid var(--focus);outline-offset:2px;border-radius:var(--radius-control)}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .skip{position:absolute;left:-999px;top:var(--s2);z-index:70;background:var(--surface);color:var(--accent-text);
   padding:var(--s2) var(--s3);border-radius:var(--radius);box-shadow:var(--shadow-2);text-decoration:none}
@@ -93,7 +101,7 @@ code{font-family:var(--mono);font-size:var(--fs-caption)}
 .search{position:relative;display:flex;align-items:center;flex:0 1 300px;min-width:120px}
 .search input{width:100%;height:32px;padding:0 var(--s6) 0 var(--s3);border-radius:var(--pill);
   background:var(--surface-2);border:1px solid transparent;font-size:var(--fs-body)}
-.search input:focus{background:var(--surface);border-color:var(--accent)}
+.search input:focus{background:var(--surface);border-color:var(--focus)}
 .search kbd{position:absolute;right:var(--s2);pointer-events:none}
 kbd{font-family:var(--mono);font-size:var(--fs-caption);background:var(--surface-2);border:1px solid var(--line-2);
   border-bottom-width:2px;border-radius:5px;padding:0 5px;color:var(--text-2);white-space:nowrap}
@@ -116,7 +124,7 @@ kbd{font-family:var(--mono);font-size:var(--fs-caption);background:var(--surface
 .nav button{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:var(--s3);height:var(--row);
   padding:0 var(--s3);border-radius:var(--radius-control);color:var(--text-2);font-size:var(--fs-body);cursor:pointer}
 .nav button:hover{background:var(--surface-2);color:var(--text)}
-.nav button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.nav button:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
 .nav button.on{background:var(--accent-soft);color:var(--accent-text);font-weight:600}
 .nav .ico{width:18px;text-align:center;flex:none}
 .side .foot{margin-top:auto;padding:var(--s3) var(--s3) var(--s2);color:var(--muted);font-size:var(--fs-caption)}
@@ -140,13 +148,13 @@ kbd{font-family:var(--mono);font-size:var(--fs-caption);background:var(--surface
 .helppane .head h2{flex:1;min-width:0;font-size:var(--fs-body);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .helppane .find{padding:var(--s2) var(--s4)}
 .helppane .find input{width:100%;height:30px;padding:0 var(--s3);border-radius:var(--pill);background:var(--surface-2);border:1px solid transparent;font-size:var(--fs-caption)}
-.helppane .find input:focus{background:var(--surface);border-color:var(--accent)}
+.helppane .find input:focus{background:var(--surface);border-color:var(--focus)}
 .helppane .heads{display:flex;flex-direction:column;gap:1px;padding:0 var(--s3) var(--s2);border-bottom:1px solid var(--line);max-height:28vh;overflow:auto}
 .helppane .heads:empty{display:none}
 .helppane .heads button{all:unset;cursor:pointer;padding:2px var(--s2);border-radius:var(--radius-control);font-size:var(--fs-caption);color:var(--accent-text)}
 .helppane .heads button.sub{padding-inline-start:var(--s4)}
 .helppane .heads button:hover{background:var(--surface-2)}
-.helppane .heads button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.helppane .heads button:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
 .helppane .body{flex:1;overflow:auto;padding:var(--s3) var(--s4) var(--s5);font-size:var(--fs-body);line-height:1.5;overflow-wrap:anywhere}
 .helppane .body h2{font-size:var(--fs-subtitle);font-weight:600;margin:var(--s3) 0 var(--s2)}
 .helppane .body h3{font-size:var(--fs-body);font-weight:600;margin:var(--s4) 0 var(--s2)}
@@ -167,7 +175,7 @@ kbd{font-family:var(--mono);font-size:var(--fs-caption);background:var(--surface
 .helppane .body .doclist{list-style:none;padding:0}
 .helppane .body .doclist button{all:unset;cursor:pointer;display:block;width:100%;padding:var(--s1) var(--s2);border-radius:var(--radius-control);color:var(--accent-text)}
 .helppane .body .doclist button:hover{background:var(--surface-2)}
-.helppane .body .doclist button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.helppane .body .doclist button:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
 .helppane .body .doclist small{display:block;color:var(--muted);font-size:var(--fs-caption)}
 .helppane .foot{display:flex;gap:var(--s3);align-items:center;flex-wrap:wrap;padding:var(--s3) var(--s4);border-top:1px solid var(--line);font-size:var(--fs-caption)}
 .helppane .foot a{color:var(--accent-text)}
@@ -206,7 +214,7 @@ tbody tr.cur{background:var(--cursor);box-shadow:inset 2px 0 0 var(--accent)}
   height:32px;padding:0 var(--s4);border-radius:var(--radius-control);font-size:var(--fs-body);font-weight:600;
   background:var(--accent);color:var(--on-accent);white-space:nowrap}
 .btn:hover{box-shadow:var(--shadow)}
-.btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 .btn.ghost{background:var(--surface);border:1px solid var(--line-2);color:var(--accent-text);font-weight:500}
 .btn.ghost:hover{background:var(--accent-soft);box-shadow:none}
 .btn.danger{background:var(--danger);color:var(--on-danger)}
@@ -214,12 +222,35 @@ tbody tr.cur{background:var(--cursor);box-shadow:inset 2px 0 0 var(--accent)}
 .iconbtn{all:unset;box-sizing:border-box;cursor:pointer;width:32px;height:32px;display:inline-flex;align-items:center;
   justify-content:center;border-radius:50%;color:var(--text-2);flex:none;font-size:15px}
 .iconbtn:hover{background:var(--surface-2)}
-.iconbtn:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.iconbtn:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
 
 input,select,textarea{background:var(--surface);border:1px solid var(--line-2);border-radius:var(--radius-control);
   color:var(--text);padding:6px var(--s3);font-size:var(--fs-body);font-family:var(--font);outline:none;max-width:100%}
 textarea{font-family:var(--mono);font-size:13px;line-height:1.6;resize:vertical;width:100%}
-input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+/* A field being typed in - clicked or tabbed into alike - has the focus colour
+   for its border and one pixel more of it outside, then a soft glow beyond:
+   box shadows, which follow the field's corners and move nothing. The two
+   pixels clear 3:1 on every surface by themselves and beside the glow at its
+   strongest; the glow is decoration. The keyboard's outline is not drawn as
+   well. A box to tick, a radio button, a slider, a colour and a file keep the
+   outline: they have no border to colour. A field marked invalid keeps the
+   danger colour for its border, focused or not, and the glow goes outside it.
+   Under a forced-colours theme (Windows High Contrast) the browser drops the
+   shadows and paints the border from the system's palette, so a field keeps an
+   outline in the system's own highlight instead - no violet there. */
+input,select,textarea{transition:border-color .12s,box-shadow .12s}
+input:not([type=checkbox],[type=radio],[type=range],[type=color],[type=file]):focus,select:focus,textarea:focus{
+  border-color:var(--focus);box-shadow:0 0 0 1px var(--focus),0 0 8px 2px var(--focus-glow);outline:none}
+:is(input,select,textarea)[aria-invalid="true"],:is(input,select,textarea)[aria-invalid="true"]:focus{border-color:var(--danger)}
+:is(input,select,textarea)[aria-invalid="true"]:focus{box-shadow:0 0 0 1px var(--danger),0 0 8px 2px var(--focus-glow)}
+/* Room for the ring and glow when the keyboard scrolls a field into view:
+   Chromium brings it to the very edge of the pane that scrolls, which cut
+   the glow and the outer pixel of the ring off along that edge. */
+input,select,textarea{scroll-margin-block:12px}
+@media (prefers-reduced-motion:reduce){input,select,textarea{transition:none}}
+@media (forced-colors:active){
+  input:not([type=checkbox],[type=radio],[type=range],[type=color],[type=file]):focus,select:focus,textarea:focus{outline:2px solid Highlight;outline-offset:2px}
+}
 input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent);padding:0;cursor:pointer}
 option{background:var(--surface);color:var(--text)}
 
@@ -311,7 +342,7 @@ pre{background:var(--surface-2);border:1px solid var(--line);border-radius:var(-
 .qact .ql-good{stroke:var(--good)}
 .qact .ql-bad{stroke:var(--danger)}
 .thsort{all:unset;cursor:pointer;color:inherit;font:inherit}
-.qbox:focus-visible,.qact:focus-visible,.qmini:focus-visible,.qfold:focus-visible,.thsort:focus-visible,.qpick:focus-visible,.qbox-line:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.qbox:focus-visible,.qact:focus-visible,.qmini:focus-visible,.qfold:focus-visible,.thsort:focus-visible,.qpick:focus-visible,.qbox-line:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 .qpick,.qbox-line{all:unset;box-sizing:border-box;cursor:pointer;display:flex;align-items:flex-start;gap:var(--s2);font-weight:600;padding:2px 0}
 .qpick::before{content:"";flex:none;width:16px;height:16px;margin-top:2px;border-radius:50%;border:1.5px solid var(--line-2);background:var(--surface)}
 .qpick[aria-checked="true"]::before{border:5px solid var(--accent)}

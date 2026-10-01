@@ -41,6 +41,11 @@
   /* What is written ON the accent or the danger colour: white on the light
      theme's, dark on the dark theme's pale ones (white there was 2.1:1). */
   --on-accent:#fff; --on-danger:#fff;
+  /* Where the keyboard is: the ring a control holding it shows, and the
+     border and glow of a field being typed in - the Control Deck's and the
+     Control Panel's violet. 4.7:1 on --surface-3, 5.7:1 on --surface; the
+     glow is decoration outside it. */
+  --focus:#7542e5; --focus-glow:rgba(117,66,229,.25);
   color-scheme:light;
 }
 [data-theme="dark"]{
@@ -51,6 +56,7 @@
   --shadow:0 1px 2px rgba(0,0,0,.5),0 1px 3px 1px rgba(0,0,0,.3);
   --shadow-2:0 4px 8px 3px rgba(0,0,0,.35),0 1px 3px rgba(0,0,0,.5);
   --on-accent:#062e6f; --on-danger:#410e0b;
+  --focus:#b89cff; --focus-glow:rgba(184,156,255,.28);
   /* The browser's own parts of a control - an unticked box, a date field's
      calendar button, a scroll bar - drawn for a dark page, not a white one. */
   color-scheme:dark;
@@ -62,6 +68,10 @@ body{font-family:var(--font);font-size:14px;line-height:1.4;background:var(--bg)
 [hidden]{display:none !important}
 a{color:var(--accent-text)}
 button{font:inherit;color:inherit}
+/* The ring the keyboard leaves on whatever holds it and draws no ring of its
+   own - a link, a plain button: the focus colour, as on every control below
+   that does draw one, rather than each browser's own blue or black. */
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 svg.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:none;display:inline-block;vertical-align:middle}
 svg.i.sm{width:16px;height:16px}
 svg.i.filled{fill:currentColor;stroke:none}
@@ -83,7 +93,7 @@ html{--lead:1}
   background:var(--accent);color:#fff;white-space:nowrap;transition:box-shadow .15s,background .15s}
 [data-theme="dark"] .btn{color:#062e6f}
 .btn:hover{box-shadow:var(--shadow)}
-.btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 .btn.ghost{background:transparent;border:1px solid var(--line-2);color:var(--accent-text)}
 .btn.ghost:hover{background:var(--accent-soft);box-shadow:none}
 .btn.quiet{background:transparent;color:var(--text-2)}
@@ -94,7 +104,7 @@ html{--lead:1}
 .btn:disabled{opacity:.5;cursor:default}
 .iconbtn{all:unset;cursor:pointer;width:40px;height:40px;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;color:var(--text-2);flex:none;position:relative}
 .iconbtn:hover{background:var(--surface-2)}
-.iconbtn:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.iconbtn:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
 .iconbtn.sm{width:32px;height:32px}
 .iconbtn.on{color:var(--accent-text);background:var(--accent-soft)}
 .iconbtn[data-tip]:hover::after{content:attr(data-tip);position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;background:#3c4043;color:#fff;font-size:12px;padding:5px 8px;border-radius:4px;white-space:nowrap;z-index:30;pointer-events:none}
@@ -103,7 +113,30 @@ label.inline{display:flex;align-items:center;gap:10px;margin:12px 0;font-weight:
 input,select,textarea{background:var(--surface);border:1px solid var(--line-2);border-radius:var(--radius);color:var(--text);padding:9px 12px;font-size:14px;font-family:var(--font);outline:none;max-width:100%;transition:border-color .15s,box-shadow .15s}
 input[type=text],input[type=email],input[type=tel],input[type=password],input[type=date],input[type=datetime-local],input[type=search],input[type=color],select,textarea{width:100%}
 textarea{min-height:8rem;line-height:1.5;resize:vertical}
-input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+/* A field being typed in - clicked or tabbed into alike - has the focus colour
+   for its border and one pixel more of it outside, then a soft glow beyond:
+   box shadows, which follow the field's corners and move nothing. The two
+   pixels clear 3:1 on every surface by themselves and beside the glow at its
+   strongest; the glow is decoration. The keyboard's outline is not drawn as
+   well. A box to tick, a radio button, a slider, a colour and a file keep the
+   ring the keyboard leaves: they have no border to colour. A field marked
+   invalid keeps the danger colour for its border, focused or not, and the
+   glow goes outside it. Under a forced-colours theme (Windows High Contrast)
+   the browser drops the shadows and paints the border from the system's
+   palette, so a field keeps an outline in the system's own highlight instead -
+   no violet there. Fields with no box of their own - the compose window's,
+   the search box's - say so further down. */
+input:not([type=checkbox],[type=radio],[type=range],[type=color],[type=file]):focus,select:focus,textarea:focus{
+  border-color:var(--focus);box-shadow:0 0 0 1px var(--focus),0 0 8px 2px var(--focus-glow);outline:none}
+:is(input,select,textarea)[aria-invalid="true"],:is(input,select,textarea)[aria-invalid="true"]:focus{border-color:var(--danger)}
+:is(input,select,textarea)[aria-invalid="true"]:focus{box-shadow:0 0 0 1px var(--danger),0 0 8px 2px var(--focus-glow)}
+/* Room for the ring and glow when the keyboard scrolls a field into view:
+   Chromium brings it to the very edge of the pane that scrolls, which cut
+   the glow and the outer pixel of the ring off along that edge. */
+input,select,textarea{scroll-margin-block:12px}
+@media (forced-colors:active){
+  input:not([type=checkbox],[type=radio],[type=range],[type=color],[type=file]):focus,select:focus,textarea:focus{outline:2px solid Highlight;outline-offset:2px}
+}
 /* The browser's grey was 3.6:1 on the dark theme and 3.8:1 in the search box. */
 ::placeholder{color:var(--muted);opacity:1}
 input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent);padding:0;flex:none;cursor:pointer}
@@ -139,7 +172,7 @@ table.list tr:last-child td{border-bottom:none}
 table.list td .btn{margin:0;margin-inline-end:4px}
 table.list tr.clickable{cursor:pointer}
 table.list tr.clickable:hover td{background:var(--surface-2)}
-table.list tr.clickable:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+table.list tr.clickable:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
 ul.plain{list-style:none}
 ul.plain li{padding:6px 0;border-bottom:1px solid var(--line)}
 kbd{font-family:var(--mono);font-size:12px;background:var(--surface-2);border:1px solid var(--line-2);border-bottom-width:2px;border-radius:5px;padding:1px 6px}
@@ -178,7 +211,9 @@ img.avatar{object-fit:cover;vertical-align:middle;margin-inline-end:6px}
 
 /* The search box */
 .search{position:relative;display:flex;align-items:center;flex:1;max-width:720px;height:46px;background:var(--surface-3);border-radius:23px;padding:0;padding-inline:8px 6px;transition:background .15s,box-shadow .15s}
-.search:focus-within{background:var(--surface);box-shadow:var(--shadow)}
+/* The box is the search's, not the field's (the field inside has none): it
+   takes the focus ring and glow while anything in it has the keyboard. */
+.search:focus-within{background:var(--surface);box-shadow:0 0 0 2px var(--focus),0 0 8px 2px var(--focus-glow),var(--shadow)}
 [data-theme="dark"] .search{background:var(--surface-2)}
 .search input[type=search]{flex:1;background:transparent;border:none;box-shadow:none;padding:0 8px;height:44px;font-size:15px;min-width:0}
 .search input[type=search]::-webkit-search-cancel-button{display:none}
@@ -206,7 +241,7 @@ img.avatar{object-fit:cover;vertical-align:middle;margin-inline-end:6px}
 .nav{display:flex;flex-direction:column;gap:1px}
 .nav button,.nav a.item{all:unset;display:flex;align-items:center;gap:14px;height:32px;padding:0;padding-inline:14px 12px;border-start-end-radius:16px;border-end-end-radius:16px;color:var(--text);font-size:14px;cursor:pointer;min-width:0;box-sizing:border-box}
 .nav button:hover{background:var(--surface-3)}
-.nav button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.nav button:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
 .nav button.on{background:var(--selected);color:var(--text);font-weight:700}
 [data-theme="dark"] .nav button.on{background:var(--accent-soft)}
 .nav .ico{width:20px;text-align:center;flex:none;color:var(--text-2);display:inline-flex}
@@ -247,13 +282,13 @@ img.avatar{object-fit:cover;vertical-align:middle;margin-inline-end:6px}
 .helppane .head h2{flex:1;min-width:0;font-size:16px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .helppane .find{padding:8px 16px}
 .helppane .find input{width:100%;height:32px;padding:0 12px;border-radius:16px;background:var(--surface-2);border:1px solid transparent;font-size:13px}
-.helppane .find input:focus{background:var(--surface);border-color:var(--accent)}
+.helppane .find input:focus{background:var(--surface);border-color:var(--focus)}
 .helppane .heads{display:flex;flex-direction:column;gap:1px;padding:0 12px 8px;border-bottom:1px solid var(--line);max-height:28vh;overflow:auto}
 .helppane .heads:empty{display:none}
 .helppane .heads button{all:unset;cursor:pointer;padding:2px 8px;border-radius:8px;font-size:13px;color:var(--accent-text)}
 .helppane .heads button.sub{padding-inline-start:20px}
 .helppane .heads button:hover{background:var(--surface-2)}
-.helppane .heads button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.helppane .heads button:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
 .helppane .body{flex:1;overflow:auto;padding:12px 16px 32px;font-size:14px;line-height:1.5;overflow-wrap:anywhere}
 .helppane .body h2{font-size:18px;font-weight:500;margin:12px 0 8px}
 .helppane .body h3{font-size:15px;font-weight:600;margin:16px 0 8px}
@@ -274,7 +309,7 @@ img.avatar{object-fit:cover;vertical-align:middle;margin-inline-end:6px}
 .helppane .body .doclist{list-style:none;padding:0}
 .helppane .body .doclist button{all:unset;cursor:pointer;display:block;width:100%;box-sizing:border-box;padding:4px 8px;border-radius:8px;color:var(--accent-text)}
 .helppane .body .doclist button:hover{background:var(--surface-2)}
-.helppane .body .doclist button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.helppane .body .doclist button:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
 .helppane .body .doclist small{display:block;color:var(--muted);font-size:12px}
 .helppane .foot{display:flex;gap:12px;align-items:center;flex-wrap:wrap;padding:12px 16px;border-top:1px solid var(--line);font-size:13px}
 .helppane .foot a{color:var(--accent-text)}
@@ -601,8 +636,10 @@ table.keys{border-collapse:collapse;width:100%}
 table.keys td{padding:7px 8px;border-bottom:1px solid var(--line);font-size:13.5px;vertical-align:top}
 table.keys td:first-child{white-space:nowrap;width:40%}
 #palette .sheet{padding:12px}
-#palette-input{border:none;box-shadow:none;font-size:17px;padding:10px 12px}
-#palette-input:focus{box-shadow:none}
+#palette-input{border:none;border-radius:0;box-shadow:none;font-size:17px;padding:10px 12px}
+/* The command palette's field has no box: like the compose window's, it
+   shows the keyboard in a line of the focus colour along its foot. */
+#palette-input:focus{box-shadow:inset 0 -2px 0 var(--focus)}
 #palette-list{list-style:none;max-height:50vh;overflow:auto;margin-top:4px}
 #palette-list li{padding:10px 14px;border-radius:8px;cursor:pointer;font-size:14px;display:flex;gap:12px;align-items:center}
 #palette-list li.hit,#palette-list li:hover{background:var(--surface-2)}
@@ -617,15 +654,29 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 .tabs button:focus-visible,.textbtn:focus-visible,.linkbtn:focus-visible,.msg .star:focus-visible,.msg .imp:focus-visible,
 .more-menu button:focus-visible,.more-menu a:focus-visible,#select-menu button:focus-visible,.list-sect-toggle:focus-visible,
 .cal-daynum:focus-visible,.cal-chip:focus-visible,.cal-ev:focus-visible,.task-title:focus-visible,.field .links button:focus-visible,
-.msg-head .from .to button:focus-visible,.complete button:focus-visible,#conversation .msg-head:focus-visible,.cbhit:focus-within{outline:2px solid var(--accent);outline-offset:-2px}
+.msg-head .from .to button:focus-visible,.complete button:focus-visible,#conversation .msg-head:focus-visible,.cbhit:focus-within{outline:2px solid var(--focus);outline-offset:-2px}
+/* A toast is the page's colours inverted, which the focus colour is not
+   measured against: its button keeps the toast's own text colour. */
 .toast button:focus-visible{outline:2px solid currentColor;outline-offset:-2px}
+/* A day, an event or a chip filled with its calendar's colour or the accent:
+   the ring inside its edge would lie on that fill, which may be any colour -
+   the violet on the accent is 1.3:1 - so a band of the page's surface goes
+   inside the ring, and the ring has the surface on both its sides. */
+.cal-daynum:focus-visible,.cal-chip:focus-visible{box-shadow:inset 0 0 0 3px var(--surface)}
+.cal-ev:focus-visible{box-shadow:inset 0 0 0 3px var(--surface),var(--shadow)}
+/* The compose window's header is dark in both themes: a ring on its buttons
+   takes the dark theme's violet, 4.5:1 on the light theme's #404040 where
+   the light one was 1.8:1. */
+.dock-head{--focus:#b89cff}
+/* A box to tick in a list row is ringed by its hit area, above, not twice. */
+.cbhit input:focus-visible{outline:none}
 /* The compose window's fields have no box of their own: the line under a
-   field turns the accent while it has the keyboard, and the message body
-   shows a bar at its leading edge. The list shows the row under its cursor
-   ringed while the list itself has the keyboard. */
-.field:focus-within{border-bottom-color:var(--accent);box-shadow:0 1px 0 0 var(--accent)}
-#compose-text:focus-visible,.editor:focus-visible{box-shadow:inset calc(2px * var(--lead)) 0 0 var(--accent)}
-#message-list:focus-visible .msg.msg-cursor{outline:2px solid var(--accent);outline-offset:-2px}
+   field turns the focus colour while it has the keyboard, and the message
+   body shows a bar at its leading edge. The list shows the row under its
+   cursor ringed while the list itself has the keyboard. */
+.field:focus-within{border-bottom-color:var(--focus);box-shadow:0 1px 0 0 var(--focus)}
+#compose-text:focus-visible,.editor:focus-visible{box-shadow:inset calc(2px * var(--lead)) 0 0 var(--focus)}
+#message-list:focus-visible .msg.msg-cursor{outline:2px solid var(--focus);outline-offset:-2px}
 .cbhit{display:inline-flex;align-items:center;justify-content:center;margin:0;border-radius:6px;cursor:pointer}
 
 /* ---------- Narrow screens ---------- */

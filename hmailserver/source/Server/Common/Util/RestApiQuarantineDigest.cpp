@@ -114,7 +114,10 @@ namespace
       response.content_type = "text/html; charset=utf-8";
       response.body =
          "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>Held mail</title>"
-         "<style>body{font-family:system-ui,sans-serif;background:#0f1419;color:#e6edf3;display:flex;justify-content:center;padding:48px 16px}main{max-width:460px;width:100%;background:#161b22;border:1px solid #30363d;border-radius:12px;padding:24px}h1{font-size:18px;margin:0 0 12px}p{margin:8px 0;color:#9aa4ae;font-size:14px;overflow-wrap:anywhere}button{margin-top:12px;padding:10px 16px;border-radius:8px;border:0;background:#36c2ff;color:#04121c;font-weight:600;font-size:15px;cursor:pointer}</style></head>"
+         "<style>body{font-family:system-ui,sans-serif;background:#0f1419;color:#e6edf3;display:flex;justify-content:center;padding:48px 16px}main{max-width:460px;width:100%;background:#161b22;border:1px solid #30363d;border-radius:12px;padding:24px}h1{font-size:18px;margin:0 0 12px}p{margin:8px 0;color:#9aa4ae;font-size:14px;overflow-wrap:anywhere}button{margin-top:12px;padding:10px 16px;border-radius:8px;border:0;background:#36c2ff;color:#04121c;font-weight:600;font-size:15px;cursor:pointer}"
+         // The ring round the button the keyboard is on: the webmail's focus
+         // violet (Portal.html), not each browser's own.
+         "button:focus-visible{outline:2px solid #b89cff;outline-offset:2px}</style></head>"
          "<body><main><h1>" + HtmlEscape(heading) + "</h1><p>" + HtmlEscape(detail) + "</p>" + form + "</main></body></html>";
 
       // No script, no remote source, no frame, no referrer, no index; a form may

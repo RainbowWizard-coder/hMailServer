@@ -245,6 +245,173 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Null(DesignTokens.TertiaryTextFor(ChartTheme.HighContrast));
       }
 
+      /// <summary>
+      /// The focus ring - two pixels of the focus colour round a text field that
+      /// has the keyboard - clears 3:1 (WCAG 2.2, SC 1.4.11) against every
+      /// surface a field sits on in its theme and the field's own focused fill,
+      /// and against the glow beside it at the glow's strongest, composited over
+      /// that surface: the glow is decoration, and must not take away what the
+      /// ring has on its own.
+      /// </summary>
+      [Theory]
+      [InlineData(ChartTheme.Light, 0xFFFAFAFAu)]   // the page
+      [InlineData(ChartTheme.Light, 0xFFFEFEFEu)]   // a card on the page
+      [InlineData(ChartTheme.Light, 0xFFF3F3F3u)]   // a dialog
+      [InlineData(ChartTheme.Light, 0xFFEEEEEEu)]   // the darkest solid light surface
+      [InlineData(ChartTheme.Light, 0xFFFFFFFFu)]   // a focused field's fill
+      [InlineData(ChartTheme.Dark, 0xFF202020u)]
+      [InlineData(ChartTheme.Dark, 0xFF2D2D2Du)]
+      [InlineData(ChartTheme.Dark, 0xFF1C1C1Cu)]
+      [InlineData(ChartTheme.Dark, 0xFF282828u)]
+      [InlineData(ChartTheme.Dark, 0xFF1F1F1Fu)]
+      public void TheFocusRingClearsThreeToOneBesideEverySurfaceAndBesideItsGlow(ChartTheme theme, uint surface)
+      {
+         DesignTokens.FocusArgb focus = DesignTokens.Focus(theme, ChartSystemColors.Fallback);
+         Assert.Equal(0xFFu, focus.Ring >> 24);
+
+         double alone = ChartPalette.ContrastRatio(focus.Ring, surface);
+         Assert.True(alone >= 3.0, $"{theme}: the focus ring is {alone:F2}:1 on {surface:X8}, under 3:1.");
+
+         // The glow is the ring's colour, translucent, at its strongest beside the ring.
+         Assert.Equal(focus.Ring & 0xFFFFFFu, focus.Glow & 0xFFFFFFu);
+         Assert.InRange(focus.Glow >> 24, 1u, 0xFEu);
+         uint glow = Over(focus.Glow, (focus.Glow >> 24) / 255.0 * DesignTokens.FocusGlowOpacityAt(0), surface);
+         double beside = ChartPalette.ContrastRatio(focus.Ring, glow);
+         Assert.True(beside >= 3.0, $"{theme}: beside its glow on {surface:X8} the focus ring is {beside:F2}:1, under 3:1.");
+      }
+
+      /// <summary>
+      /// Under High Contrast the focus invents no colour: the ring would be the
+      /// highlight, there is no glow, and none is drawn - the theme's own focus
+      /// visuals stand.
+      /// </summary>
+      [Fact]
+      public void UnderHighContrastTheFocusIsTheHighlightAndNoGlowIsDrawn()
+      {
+         var system = new ChartSystemColors(0xFF112233, 0xFFEEDDCC, 0xFF445566, 0xFF778899, 0xFFAABBCC);
+         DesignTokens.FocusArgb focus = DesignTokens.Focus(ChartTheme.HighContrast, system);
+
+         Assert.Equal(system.Highlight, focus.Ring);
+         Assert.Equal(0u, focus.Glow >> 24);
+         Assert.False(DesignTokens.FocusGlowFor(ChartTheme.HighContrast));
+         Assert.True(DesignTokens.FocusGlowFor(ChartTheme.Light));
+         Assert.True(DesignTokens.FocusGlowFor(ChartTheme.Dark));
+      }
+
+      /// <summary>The glow is strongest beside the ring and fades to nothing at its width; the ring is two pixels.</summary>
+      [Fact]
+      public void TheGlowFadesOutwardAndEndsAtItsWidth()
+      {
+         Assert.Equal(2, DesignTokens.FocusRingThickness);
+         Assert.Equal(1.0, DesignTokens.FocusGlowOpacityAt(0));
+
+         for (int step = 1; step < DesignTokens.FocusGlowWidth; step++)
+         {
+            Assert.True(DesignTokens.FocusGlowOpacityAt(step) < DesignTokens.FocusGlowOpacityAt(step - 1), $"step {step} is not fainter than the one inside it.");
+            Assert.True(DesignTokens.FocusGlowOpacityAt(step) > 0, $"step {step} is not drawn.");
+         }
+
+         Assert.Equal(0, DesignTokens.FocusGlowOpacityAt(DesignTokens.FocusGlowWidth));
+         Assert.Equal(0, DesignTokens.FocusGlowOpacityAt(-1));
+      }
+
+      /// <summary>
+      /// The ring goes round a field with a box - a border on its left, top and
+      /// right; the bottom may be the theme's accent line instead, as Wpf.Ui's
+      /// date picker's is (1,1,1,0) - and nothing else: not round a field drawn
+      /// as an underline (the search palette's, whose underline turns the focus
+      /// colour instead), nor round a value shown as text in a borderless,
+      /// read-only box.
+      /// </summary>
+      [Theory]
+      [InlineData(1, 1, 1, 1, true)]
+      [InlineData(2, 1, 2, 1, true)]
+      [InlineData(1, 1, 1, 0, true)]
+      [InlineData(0, 0, 0, 1, false)]
+      [InlineData(0, 0, 0, 2, false)]
+      [InlineData(0, 0, 0, 0, false)]
+      [InlineData(1, 0, 1, 1, false)]
+      [InlineData(0, 1, 1, 1, false)]
+      public void TheRingGoesOnlyRoundAFieldWithABox(double left, double top, double right, double bottom, bool ringed)
+      {
+         Assert.Equal(ringed, DesignTokens.DrawsFocusRing(left, top, right, bottom));
+      }
+
+      /// <summary>
+      /// The glow goes its whole width past every edge of a field that is in
+      /// view, however tight the viewer round it: a field as wide as a dialog's
+      /// scrolling body (in view exactly 0 to its width) keeps its glow at both
+      /// sides. At an edge a viewer cuts through - a field scrolled half out of
+      /// its page - it stops at the cut and draws nothing beyond the viewer.
+      /// </summary>
+      [Fact]
+      public void TheGlowLeavesEveryEdgeInViewAndStopsAtACut()
+      {
+         double g = DesignTokens.FocusGlowWidth;
+
+         // Nothing clips: all the glow.
+         var free = DesignTokens.FocusGlowBounds(-1e6, -1e6, 1e6, 1e6, 300, 32);
+         Assert.True(free.Left <= -g && free.Top <= -g && free.Right >= 300 + g && free.Bottom >= 32 + g, free.ToString());
+
+         // Flush with a viewer on every side: still all the glow.
+         Assert.Equal((-g, -g, 300 + g, 32 + g), DesignTokens.FocusGlowBounds(0, 0, 300, 32, 300, 32));
+
+         // Less room than the glow at the left and right: the glow's width; more above and below: the room.
+         Assert.Equal((-g, -40, 300 + g, 90), DesignTokens.FocusGlowBounds(-2, -40, 300.3, 90, 300, 32));
+
+         // Cut through at the top (scrolled 16 px out of view) and at the right: the cuts.
+         Assert.Equal((-g, 16, 250, 32 + g), DesignTokens.FocusGlowBounds(0, 16, 250, 32, 300, 32));
+      }
+
+      /// <summary>
+      /// One focus colour across the three interfaces: the Control Deck, the
+      /// webmail and its password-protected message page declare --focus and
+      /// --focus-glow for each theme, and they are these values.
+      /// </summary>
+      [Fact]
+      public void TheWebPagesDeclareTheseFocusColours()
+      {
+         string controlPanel = FindControlPanelDirectory();
+         if (controlPanel == null)
+            return;
+
+         DesignTokens.FocusArgb light = DesignTokens.Focus(ChartTheme.Light, ChartSystemColors.Fallback);
+         DesignTokens.FocusArgb dark = DesignTokens.Focus(ChartTheme.Dark, ChartSystemColors.Fallback);
+         string util = Path.Join(controlPanel, "..", "..", "Server", "Common", "Util");
+
+         // (file, the block the light values are in, the block the dark values are in)
+         var pages = new[]
+         {
+            (Path.Join(controlPanel, "..", "..", "..", "installation", "WebAdmin", "index.html"), @":root\{[^}]*\}", @"\[data-theme=""dark""\]\{[^}]*\}"),
+            (Path.Join(util, "Portal.html"), @":root\{[^}]*\}", @"\[data-theme=""dark""\]\{[^}]*\}"),
+            (Path.Join(util, "PortalProtected.html"), @"prefers-color-scheme: light\)\{:root\{[^}]*\}", @"^:root\{[^}]*\}")
+         };
+
+         foreach ((string path, string lightBlock, string darkBlock) in pages)
+         {
+            if (!File.Exists(path))
+               return;   // sources not available
+
+            string page = File.ReadAllText(path);
+            foreach ((string pattern, DesignTokens.FocusArgb focus, string which) in new[] { (lightBlock, light, "light"), (darkBlock, dark, "dark") })
+            {
+               string block = Regex.Match(page, pattern, RegexOptions.Multiline).Value;
+               Assert.True(block.Length > 0, $"{Path.GetFileName(path)} has no {which} block.");
+               Assert.Contains("--focus:#" + (focus.Ring & 0xFFFFFFu).ToString("x6"), block, StringComparison.OrdinalIgnoreCase);
+               Assert.Contains("--focus-glow:" + CssRgba(focus.Glow), block, StringComparison.OrdinalIgnoreCase);
+            }
+         }
+      }
+
+      /// <summary>0xAARRGGBB as CSS writes it: rgba(r,g,b,.aa), the alpha to two places.</summary>
+      private static string CssRgba(uint argb)
+      {
+         string alpha = Math.Round((argb >> 24) / 255.0, 2).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
+         if (alpha.StartsWith("0.", StringComparison.Ordinal))
+            alpha = alpha.Substring(1);
+         return $"rgba({(argb >> 16) & 0xFF},{(argb >> 8) & 0xFF},{argb & 0xFF},{alpha})";
+      }
+
       /// <summary>An opaque colour laid over a surface at an opacity, as the screen composites it.</summary>
       private static uint Over(uint colour, double opacity, uint surface)
       {
@@ -387,6 +554,10 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Equal(surfaces.CardBorder.ToString("X8"), Colour("AppCardBorderBrush"));
          Assert.Equal(surfaces.CardHover.ToString("X8"), Colour("AppCardHoverBrush"));
          Assert.Equal(surfaces.Divider.ToString("X8"), Colour("AppDividerBrush"));
+
+         DesignTokens.FocusArgb focus = DesignTokens.Focus(ChartTheme.Dark, ChartSystemColors.Fallback);
+         Assert.Equal(focus.Ring.ToString("X8"), Colour("AppFocusBrush"));
+         Assert.Equal(focus.Glow.ToString("X8"), Colour("AppFocusGlowBrush"));
 
          // The status pill's fills and words, declared with the dark table.
          foreach (StatusLevel level in StatusSemantics.AllLevels)

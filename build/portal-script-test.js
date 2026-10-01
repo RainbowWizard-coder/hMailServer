@@ -8257,6 +8257,9 @@ async function main() {
    // ---- The identity provider's sentence, only for a sign-in this tab started
    await singleSignOnReturnChecks();
 
+   // ---- Where the keyboard is: the focus colour, in the stylesheets
+   focusStyleChecks();
+
    if (failures.length) {
       console.error('\nportal script: ' + failures.length + ' of ' + checks + ' checks failed\n');
       failures.forEach((f) => console.error('  FAILED: ' + f));
@@ -10115,6 +10118,74 @@ async function pushChecks() {
    const bare = await fire({ v: 1, kind: 'mail', count: 2, folder: 'INBOX' });
    check('a worker with no words left for it falls back to English rather than showing nothing',
       bare && bare.title === 'New mail' && bare.options.body === '2 new messages', JSON.stringify(bare));
+}
+
+// The webmail's and the password-protected message page's stylesheets, read as
+// text: the focus colour (--focus) and its glow (--focus-glow) are declared for
+// both themes - the violet the Control Deck and the Control Panel use - and a
+// field being typed in takes them for its border and glow, every ring the
+// keyboard leaves takes the focus colour, and a forced-colours theme keeps an
+// outline in the system's highlight instead.
+function focusStyleChecks() {
+   const utilDir = pagePath.slice(0, Math.max(pagePath.lastIndexOf('/'), pagePath.lastIndexOf('\\')) + 1);
+   const styleOf = (file) => { const m = /<style>([\s\S]*?)<\/style>/.exec(fs.readFileSync(utilDir + file, 'utf8')); return m ? m[1] : ''; };
+   const rulesOf = (css) => { const rules = []; css.replace(/\/\*[\s\S]*?\*\//g, '').replace(/([^{}]+)\{([^{}]*)\}/g, (whole, selector, body) => { rules.push({ selector: selector.trim(), body }); return whole; }); return rules; };
+   const tokenOf = (block, name) => { const m = new RegExp('--' + name + ':([^;}]+)[;}]').exec(block || ''); return m ? m[1].trim() : null; };
+
+   const css = styleOf('Portal.html');
+   const root = (css.match(/:root\{[^}]*\}/) || [''])[0];
+   const dark = (css.match(/\[data-theme="dark"\]\{[^}]*\}/) || [''])[0];
+   check('webmail: the focus colour and its glow are tokens of both themes, a darker violet on the light theme and a lighter one on the dark',
+      tokenOf(root, 'focus') === '#7542e5' && tokenOf(dark, 'focus') === '#b89cff' &&
+      /^rgba\(117,66,229,\.\d+\)$/.test(String(tokenOf(root, 'focus-glow'))) && /^rgba\(184,156,255,\.\d+\)$/.test(String(tokenOf(dark, 'focus-glow'))),
+      JSON.stringify([tokenOf(root, 'focus'), tokenOf(root, 'focus-glow'), tokenOf(dark, 'focus'), tokenOf(dark, 'focus-glow')]));
+   const rules = rulesOf(css);
+   const field = rules.find((r) => /^input:not\([^)]*\):focus,select:focus,textarea:focus$/.test(r.selector) && r.body.indexOf('box-shadow') >= 0);
+   check('webmail: a field being typed in, clicked or tabbed into, has the focus colour for its border, a pixel more of it and a glow outside, and no outline over them',
+      !!field && /border-color:var\(--focus\)/.test(field.body) && /box-shadow:0 0 0 1px var\(--focus\),0 0 \d+px \d+px var\(--focus-glow\)/.test(field.body) &&
+      /outline:none/.test(field.body) && ['checkbox', 'radio', 'range', 'color', 'file'].every((t) => field.selector.indexOf('[type=' + t + ']') >= 0),
+      field ? field.selector + ' { ' + field.body + ' }' : 'no field focus rule');
+   check('webmail: whatever else holds the keyboard has the ring in the focus colour, not each browser\'s own',
+      rules.some((r) => r.selector === ':focus-visible' && /outline:2px solid var\(--focus\)/.test(r.body)));
+   const accentRings = rules.filter((r) => /:focus/.test(r.selector) && /var\(--accent\)/.test(r.body));
+   check('webmail: no ring, underline or bar the keyboard leaves is in the accent any more', accentRings.length === 0, JSON.stringify(accentRings.map((r) => r.selector)));
+   check('webmail: the search box - the box round the field, not the field - takes the focus ring and glow while anything in it has the keyboard',
+      rules.some((r) => r.selector === '.search:focus-within' && /box-shadow:0 0 0 2px var\(--focus\),0 0 \d+px \d+px var\(--focus-glow\)/.test(r.body)));
+   check('webmail: the compose window\'s fields, which have no box, underline in the focus colour',
+      rules.some((r) => r.selector === '.field:focus-within' && /border-bottom-color:var\(--focus\)/.test(r.body)));
+   check('webmail: a field the keyboard scrolls into view stops short of the pane\'s edge, so its ring and glow are not cut off',
+      rules.some((r) => r.selector === 'input,select,textarea' && /scroll-margin-block:\d+px/.test(r.body)));
+   check('webmail: a field marked invalid keeps the danger colour for its border when it has the keyboard, the focus glow outside it',
+      rules.some((r) => /\[aria-invalid="true"\]:focus$/.test(r.selector) && /box-shadow:0 0 0 1px var\(--danger\),0 0 \d+px \d+px var\(--focus-glow\)/.test(r.body)));
+   check('webmail: under a forced-colours theme a field keeps an outline in the system\'s highlight rather than the violet',
+      /@media \(forced-colors:active\)\{\s*input:not\(\[type=checkbox\][^{]*\{outline:2px solid Highlight/.test(css));
+   // A ring inside the edge of a calendar day, event or chip lies on its fill,
+   // any colour at all: a band of the surface inside the ring keeps it seen.
+   check('webmail: a calendar day, event or chip filled with a colour keeps a band of the surface inside its ring',
+      rules.some((r) => r.selector === '.cal-daynum:focus-visible,.cal-chip:focus-visible' && /box-shadow:inset 0 0 0 3px var\(--surface\)/.test(r.body)) &&
+      rules.some((r) => r.selector === '.cal-ev:focus-visible' && /box-shadow:inset 0 0 0 3px var\(--surface\),var\(--shadow\)/.test(r.body)));
+   // The compose window's header is dark in both themes: its rings take the
+   // dark theme's violet, the same value as the dark theme's token.
+   const dockHead = rules.find((r) => r.selector === '.dock-head' && /--focus:/.test(r.body));
+   check('webmail: the compose window\'s dark header rings its buttons in the dark theme\'s violet',
+      !!dockHead && tokenOf(dockHead.body + ';', 'focus') === tokenOf(dark, 'focus'), dockHead ? dockHead.body : 'no .dock-head focus token');
+   check('webmail: the command palette\'s field, which has no box, shows the keyboard in a line of the focus colour',
+      rules.some((r) => r.selector === '#palette-input:focus' && /box-shadow:inset 0 -2px 0 var\(--focus\)/.test(r.body)));
+
+   // The password-protected message page: dark by default, light when the
+   // system asks for it, so its two blocks are :root and the light query's.
+   const protectedCss = styleOf('PortalProtected.html');
+   const protectedDark = (protectedCss.match(/^:root\{[^}]*\}/m) || [''])[0];
+   const protectedLight = (protectedCss.match(/prefers-color-scheme: light\)\{:root\{[^}]*\}/) || [''])[0];
+   check('protected message page: the same focus colour and glow, for both themes',
+      tokenOf(protectedLight, 'focus') === '#7542e5' && tokenOf(protectedDark, 'focus') === '#b89cff' &&
+      tokenOf(protectedLight, 'focus-glow') === tokenOf(root, 'focus-glow') && tokenOf(protectedDark, 'focus-glow') === tokenOf(dark, 'focus-glow'),
+      JSON.stringify([tokenOf(protectedLight, 'focus'), tokenOf(protectedDark, 'focus')]));
+   const protectedRules = rulesOf(protectedCss);
+   check('protected message page: its password and reply fields take the focus border and glow, its buttons the ring, and forced colours an outline',
+      protectedRules.some((r) => r.selector === 'input:focus,textarea:focus' && /border-color:var\(--focus\)/.test(r.body) && /box-shadow:0 0 0 1px var\(--focus\),0 0 \d+px \d+px var\(--focus-glow\)/.test(r.body)) &&
+      protectedRules.some((r) => /button:focus-visible$/.test(r.selector) && /outline:2px solid var\(--focus\)/.test(r.body)) &&
+      /@media \(forced-colors:active\)\{input:focus,textarea:focus\{outline:2px solid Highlight/.test(protectedCss));
 }
 
 // The identity provider's sentence, shown only for a sign-in this tab started.

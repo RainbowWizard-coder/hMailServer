@@ -113,6 +113,13 @@
     <SolidColorBrush x:Key="AppDividerBrush" Color="#14FFFFFF" />
     <sys:Double x:Key="AppNoticeTintOpacity">0.12</sys:Double>
 
+    <!-- Where the keyboard is (DesignTokens.Focus): the ring round a text field
+         that has the keyboard and the glow outside it (FocusGlow), and the
+         navigation's border round the row the keyboard is on. Dark values here,
+         the theme's from ThemeTokens. -->
+    <SolidColorBrush x:Key="AppFocusBrush" Color="#B89CFF" />
+    <SolidColorBrush x:Key="AppFocusGlowBrush" Color="#47B89CFF" />
+
     <!-- The status pill's box: a fill per level and the colour of the word and
          mark on it (DesignTokens.StatusFill), and the outline only High
          Contrast draws. Dark values here, the theme's from ThemeTokens. -->

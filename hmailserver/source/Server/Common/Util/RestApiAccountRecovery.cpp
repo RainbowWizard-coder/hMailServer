@@ -120,14 +120,20 @@ namespace HM
          response.body =
             "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>" + title + "</title>"
             "<style>"
-            ":root{--bg:#0f1419;--card:#161b22;--line:#30363d;--text:#e6edf3;--muted:#9aa4ae;--accent:#36c2ff;--on:#04121c;--err:#ff7b72;--ok:#3fb950}"
-            "@media (prefers-color-scheme: light){:root{--bg:#f6f8fa;--card:#ffffff;--line:#d0d7de;--text:#1f2328;--muted:#57606a;--accent:#0969da;--on:#ffffff;--err:#cf222e;--ok:#1a7f37}}"
+            ":root{--bg:#0f1419;--card:#161b22;--line:#30363d;--text:#e6edf3;--muted:#9aa4ae;--accent:#36c2ff;--on:#04121c;--err:#ff7b72;--ok:#3fb950;--focus:#b89cff;--focus-glow:rgba(184,156,255,.28)}"
+            "@media (prefers-color-scheme: light){:root{--bg:#f6f8fa;--card:#ffffff;--line:#d0d7de;--text:#1f2328;--muted:#57606a;--accent:#0969da;--on:#ffffff;--err:#cf222e;--ok:#1a7f37;--focus:#7542e5;--focus-glow:rgba(117,66,229,.25)}}"
             "body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--text);display:flex;justify-content:center;padding:32px 16px;margin:0}"
             "main{max-width:520px;width:100%;box-sizing:border-box;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:24px}"
             "h1{font-size:20px;margin:0 0 12px;overflow-wrap:anywhere}p{margin:8px 0;color:var(--muted);font-size:14px;overflow-wrap:anywhere}"
             "label{display:block;font-size:14px;color:var(--muted);margin-top:12px}"
             "input{width:100%;box-sizing:border-box;padding:10px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-size:15px;margin:6px 0}"
             "button{padding:10px 16px;border-radius:8px;border:0;background:var(--accent);color:var(--on);font-weight:600;font-size:15px;cursor:pointer;margin-top:10px}"
+            // Where the keyboard is, as on the webmail (Portal.html): the focus
+            // violet as a field's border with a glow outside it, and as the
+            // ring round a button; under forced colours, the system's highlight.
+            "input{outline:none}input:focus{border-color:var(--focus);box-shadow:0 0 0 1px var(--focus),0 0 8px 2px var(--focus-glow)}"
+            "a:focus-visible,button:focus-visible{outline:2px solid var(--focus);outline-offset:2px}"
+            "@media (forced-colors:active){input:focus{outline:2px solid Highlight;outline-offset:2px}}"
             ".err{color:var(--err)}.ok{color:var(--ok)}"
             "</style></head><body><main>" + inner + "</main></body></html>";
 

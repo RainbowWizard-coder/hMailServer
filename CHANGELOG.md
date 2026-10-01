@@ -839,6 +839,23 @@ numbers whatever the answer holds.
   (Windows' clipboard history, a remote-desktop client) no longer makes a copy fail after a second's freeze (a chart's
   Copy then showed no confirmation, and the new API key's and app password's Copy an error), and text copied just
   before the Control Panel is closed still pastes after it has gone.
+- **Where the keyboard is shows in one violet, in the Control Panel, the Control Deck and the webmail.** A text field
+  that has the keyboard - clicked or tabbed into alike - takes a focus colour for its border and a soft glow of it
+  outside, the look of Firefox's address bar: in the Control Panel every text box, password box, number box, combo box
+  and date picker with a border round it, the search boxes among them and the fields of every dialog; in the Control
+  Deck and the webmail every input, drop-down and text area with a box of its own and the search boxes, and in the
+  pages the server serves on its own - the password-protected message, account recovery, a confidential message, a
+  shared file's password, a list's subscription page. A field drawn as a line - the Control Panel's search palette,
+  the webmail's compose window and command palette - takes the colour in its line. The ring the keyboard leaves on a
+  button, a link or a row takes the same colour in the Deck and the webmail, as the navigation's keyboard border does
+  in the Control Panel; on the compose window's dark header it is the dark theme's violet, and inside a calendar event
+  filled with its calendar's colour it keeps a band of the page between the two. The violet is #7542E5 on the light
+  themes and #B89CFF on the dark ones, and each clears 3:1 against every surface a field sits on and beside its glow
+  at the glow's strongest (WCAG 2.2, non-text contrast). The glow is drawn outside the field and moves nothing; under
+  Windows High Contrast and a browser's forced colours the system's own colours stay, the web pages giving a field an
+  outline in the system's highlight; the brief fade-in stops when animations are turned off. Tested by
+  `DesignTokensTests` (the contrast, High Contrast, the web pages' copies of the colours) and by `deck-script-test.js`
+  and `portal-script-test.js` (each page's tokens and rules).
 - **Fixed: a switch put back from the audit trail stayed as it was.** Putting a setting back from its audit row
   (`POST /api/v1/audit/{id}/revert`, `Utilities.RevertAuditedChange`, *Put back* in the Deck and the Control Panel)
   wrote a switch's old value, `true` or `false`, into the text column of `hm_settings`, which the server does not

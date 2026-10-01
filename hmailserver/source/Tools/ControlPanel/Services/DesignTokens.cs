@@ -182,6 +182,113 @@ namespace hMailServer.ControlPanel.Services
          => theme == ChartTheme.Light ? LightTertiaryText : null;
 
       /// <summary>
+      /// Where the keyboard is: the colour of the ring round a text field that
+      /// has the focus, and of the glow outside it (<c>FocusGlow</c>), as
+      /// 0xAARRGGBB. The glow is the ring's colour, translucent.
+      /// </summary>
+      public readonly struct FocusArgb
+      {
+         public FocusArgb(uint ring, uint glow)
+         {
+            Ring = ring;
+            Glow = glow;
+         }
+
+         public uint Ring { get; }
+
+         /// <summary>The glow at its strongest, the pixel beside the ring; it fades from there (<see cref="FocusGlowOpacityAt"/>).</summary>
+         public uint Glow { get; }
+      }
+
+      // The violet the Control Deck and the webmail declare as --focus and
+      // --focus-glow, value for value, so that the three interfaces have one
+      // focus colour: darker on the light theme, lighter on the dark. Each ring
+      // clears 3:1 (WCAG 2.2, SC 1.4.11) against every surface a field sits on
+      // and against the glow at its strongest beside it - DesignTokensTests
+      // holds both, and the pages' copies to these values.
+      private const uint LightFocus = 0xFF7542E5;
+      private const uint LightFocusGlow = 0x407542E5;
+      private const uint DarkFocus = 0xFFB89CFF;
+      private const uint DarkFocusGlow = 0x47B89CFF;
+
+      /// <summary>
+      /// The focus colours for a theme. High Contrast invents none: the ring is
+      /// the system's highlight and there is no glow - and <see cref="FocusGlowFor"/>
+      /// says not to draw either, so the theme's own focus visuals stand.
+      /// </summary>
+      public static FocusArgb Focus(ChartTheme theme, ChartSystemColors system)
+      {
+         switch (theme)
+         {
+            case ChartTheme.HighContrast:
+               return new FocusArgb(system.Highlight, 0);
+
+            case ChartTheme.Light:
+               return new FocusArgb(LightFocus, LightFocusGlow);
+
+            default:
+               return new FocusArgb(DarkFocus, DarkFocusGlow);
+         }
+      }
+
+      /// <summary>Whether a focused field is drawn with the ring and glow in this theme: not under High Contrast, whose colours are the user's.</summary>
+      public static bool FocusGlowFor(ChartTheme theme) => theme != ChartTheme.HighContrast;
+
+      /// <summary>
+      /// The ring's width, drawn inside the field's edge over its own border, so
+      /// that it keeps the field's size and corner radius and moves nothing.
+      /// </summary>
+      public const double FocusRingThickness = 2;
+
+      /// <summary>How far the glow reaches outside the field, in one-pixel steps.</summary>
+      public const int FocusGlowWidth = 6;
+
+      /// <summary>
+      /// The glow's opacity at a step outside the ring, as a fraction of
+      /// <see cref="FocusArgb.Glow"/>'s own: all of it beside the ring, falling
+      /// away with the square of the distance, nothing past the last step.
+      /// </summary>
+      public static double FocusGlowOpacityAt(int step)
+      {
+         if (step < 0 || step >= FocusGlowWidth)
+            return 0;
+         double left = (double)(FocusGlowWidth - step) / FocusGlowWidth;
+         return left * left;
+      }
+
+      /// <summary>
+      /// Whether a field with this border has a box for the ring to go round: a
+      /// border on its left, top and right. The bottom need not be the border's:
+      /// Wpf.Ui's date picker draws its bottom edge as the theme's accent line
+      /// (a border of 1,1,1,0) and is a box all the same. A field drawn as an
+      /// underline (the search palette's) shows the focus colour in its
+      /// underline instead, through the theme's own accent line; a field with no
+      /// border at all is a value shown as text, and is not given a box it does
+      /// not have.
+      /// </summary>
+      public static bool DrawsFocusRing(double left, double top, double right, double bottom)
+         => left > 0 && top > 0 && right > 0;
+
+      /// <summary>
+      /// How far the glow may be drawn, in the field's own coordinates (its box
+      /// is 0,0 to width,height), given the part of it in view - what the scroll
+      /// viewers and clipping panels it is in leave of it: past an edge that is
+      /// in view the glow's whole width, so that a field as wide as a dialog's
+      /// scrolling body keeps its glow at the sides; at an edge a viewer cuts
+      /// through, the cut, so that a field scrolled half out of its page draws
+      /// nothing over what is beyond the viewer.
+      /// </summary>
+      public static (double Left, double Top, double Right, double Bottom) FocusGlowBounds(
+         double inViewLeft, double inViewTop, double inViewRight, double inViewBottom, double width, double height)
+      {
+         const double edge = 0.5;
+         return (inViewLeft <= edge ? Math.Min(inViewLeft, -FocusGlowWidth) : inViewLeft,
+                 inViewTop <= edge ? Math.Min(inViewTop, -FocusGlowWidth) : inViewTop,
+                 inViewRight >= width - edge ? Math.Max(inViewRight, width + FocusGlowWidth) : inViewRight,
+                 inViewBottom >= height - edge ? Math.Max(inViewBottom, height + FocusGlowWidth) : inViewBottom);
+      }
+
+      /// <summary>
       /// The pill's outline, in pixels: none in the light and dark themes,
       /// where the fill is the box, and one under High Contrast, where the
       /// fill is the window colour and only an outline can draw the box.

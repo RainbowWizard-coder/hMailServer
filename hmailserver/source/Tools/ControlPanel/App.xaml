@@ -108,8 +108,11 @@
                                     <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
                                     <Setter TargetName="Pill" Property="Opacity" Value="1" />
                                 </Trigger>
+                                <!-- The focus colour, not the brand's: the pill says
+                                     which group is selected, the border where the
+                                     keyboard is, and the two are not one colour. -->
                                 <Trigger Property="IsKeyboardFocused" Value="True">
-                                    <Setter TargetName="Bg" Property="BorderBrush" Value="{DynamicResource AppBrandBrush}" />
+                                    <Setter TargetName="Bg" Property="BorderBrush" Value="{DynamicResource AppFocusBrush}" />
                                 </Trigger>
                                 <Trigger Property="IsEnabled" Value="False">
                                     <Setter Property="Opacity" Value="0.4" />

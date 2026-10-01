@@ -157,7 +157,13 @@ namespace
       "pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px;background:#0f1419;border:1px solid #30363d;border-radius:8px;padding:12px}"
       "label{display:block;margin:12px 0 4px;font-size:14px}input,select{font-size:15px;padding:8px;border-radius:8px;border:1px solid #30363d;background:#0f1419;color:#e6edf3}"
       "button{margin-top:12px;padding:10px 16px;border-radius:8px;border:0;background:#36c2ff;color:#04121c;font-weight:600;font-size:15px;cursor:pointer}"
-      "button.plain{background:#30363d;color:#e6edf3}</style>";
+      "button.plain{background:#30363d;color:#e6edf3}"
+      // Where the keyboard is, as on the webmail (Portal.html): the focus violet
+      // as a field's border with a glow outside it, and as the ring round a
+      // button or a link; under forced colours, the system's highlight.
+      "input,select{outline:none}input:focus,select:focus{border-color:#b89cff;box-shadow:0 0 0 1px #b89cff,0 0 8px 2px rgba(184,156,255,.28)}"
+      "a:focus-visible,button:focus-visible{outline:2px solid #b89cff;outline-offset:2px}"
+      "@media (forced-colors:active){input:focus,select:focus{outline:2px solid Highlight;outline-offset:2px}}</style>";
 
    HttpResponse Page(int status, const AnsiString &title, const AnsiString &heading, const AnsiString &detail, const AnsiString &rest)
    {

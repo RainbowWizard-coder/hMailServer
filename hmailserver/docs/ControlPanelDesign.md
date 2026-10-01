@@ -64,7 +64,7 @@ Five status colours and a neutral, as brushes that `ThemeTokens.Refresh` recompu
 
 | Token | Light | Dark | High Contrast | What it is for |
 |---|---|---|---|---|
-| `AppBrandBrush` | #2F6FE0 | #4C8DFF | Highlight | The selection pill, the focused row's outline, the accent that is not a status. |
+| `AppBrandBrush` | #2F6FE0 | #4C8DFF | Highlight | The selection pill, the accent that is not a status. |
 | `AppSuccessBrush` | #1A7F37 | #3FB950 | WindowText | Good: connected, done, passed. Square. |
 | `AppWarningBrush` | #9A6700 | #D29922 | WindowText | Warning: a backlog, a certificate near expiry, a reconnect in progress. Triangle. |
 | `AppDangerBrush` | #CF222E | #F85149 | WindowText | Critical: a failure, a lost link, a validation message. Cross. |
@@ -75,6 +75,8 @@ Five status colours and a neutral, as brushes that `ThemeTokens.Refresh` recompu
 | `AppCardHoverBrush` | #80F9F9F9 | #15FFFFFF | Window | A card that can be pointed at - a tile, a rail item - under the pointer. |
 | `AppDividerBrush` | #0F000000 | #14FFFFFF | WindowText | The hairline between a card's content and its footer, under the command bar, around the breadcrumb. |
 | `AppNoticeTintOpacity` | 0.12 | 0.12 | 0 | The opacity of the status colour behind an `InlineNotice`. |
+| `AppFocusBrush` | #7542E5 | #B89CFF | Highlight | Where the keyboard is: the ring round a text field that has it, and the navigation's border round the row it is on. 3:1 or more beside every surface and beside its glow. |
+| `AppFocusGlowBrush` | #407542E5 | #47B89CFF | none | The glow outside that ring, at its strongest; it fades over six pixels. |
 | `AppSuccessFillBrush` | #CCF0D6 | #1C4128 | Window | The fill of a Good `StatusPill` - "Connected", "Done". |
 | `AppSuccessFillTextBrush` | #116329 | #56D364 | WindowText | The word and mark on that fill, and a Good notice's word and mark. |
 | `AppInfoFillBrush` | #EBE0FF | #3A2A63 | Window | The fill of an Information pill - "Next step". |
@@ -90,6 +92,8 @@ Five status colours and a neutral, as brushes that `ThemeTokens.Refresh` recompu
 The fill-text shades are not the status colours: those are measured against the page and lose contrast on a tint - the light green on the old grey capsule measured 4.2:1, and on a notice's tint the light warning word measured 4.0:1 and the dark information word on a card 3.6:1. Every fill-text shade clears 5.5:1 on its fill, on a notice's tint, on the page and on a card, and `DesignTokensTests` holds each pair to 4.5:1. `DesignTokens.StatusFill(level, theme, system)` is the table.
 
 The light theme's **tertiary text** is darker than Wpf.Ui's: `ThemeTokens` sets `TextFillColorTertiaryBrush` to black at 58% (`DesignTokens.LightTertiaryText`, #94000000), which composites to #696969 on the page (5.3:1) and #656565 on a hovered row (5.1:1). Wpf.Ui's black at 45% measured 3.3:1, and every field hint, "Applies on save" line and the *Related:* caption is set in it. The dark and High Contrast themes keep the theme's own.
+
+**Focus** is a colour of its own, the violet the Control Deck and the webmail declare as `--focus` and `--focus-glow`: while a text box, password box, number box, combo box or date picker has the keyboard - clicked or tabbed into alike - `FocusGlow` draws a two-pixel ring in `AppFocusBrush` inside its edge, over its border, and a glow outside it that fades over six pixels. It is an adorner, so it keeps the field's size and corner radius and moves nothing, and it is one class handler for every field rather than a template per control. It is drawn on the adorner layer outside any scroll viewer the field is in - a viewer's own layer is clipped to its viewport, and cut the glow off at the sides of every dialog's fields - and clips itself to what of the field is in view, the glow going past only an edge that is (`DesignTokens.FocusGlowBounds`). The theme's own line under a focused field (`TextControlFocusedBorderBrush`, `ComboBoxBorderBrushFocused`) takes the same violet, which is what a field drawn as an underline - the search palette's - shows. It is not drawn under High Contrast, where the theme's focus visuals and colours stand, nor on a disabled field or one with no box - a box is a border on the left, top and right, the bottom being free to be the theme's accent line, as Wpf.Ui's date picker's is; a read-only field takes the keyboard and is ringed; a field whose binding reports a validation error keeps the danger colour for its ring, with the violet glow outside it. The ring fades in over 120 ms unless Windows has animations off. `DesignTokens.Focus(theme, system)` is the table, and `DesignTokensTests` holds the ring to 3:1 beside every surface and its glow, and the web pages' copies to its values.
 
 The rule that goes with the palette: **a status is never carried by colour alone.** `StatusSemantics.For(level)` gives every level a colour key, a fill and fill-text key for a pill, a shape (`ShapeMarkVisuals` draws it) and a word, and the components below draw all three and put the word first in their accessible name. A page that paints a value in a status colour adds the shape and the word itself, as the dashboard's queue badge does.
 
