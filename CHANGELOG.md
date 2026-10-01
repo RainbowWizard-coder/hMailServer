@@ -319,6 +319,15 @@ fixes from there.
       no longer leaves an object behind, and a date made from a NaN reads as no date.
     - `HM4229` reports the same codes in new words, and `HM7277` names `LegacyBlowfish::EncryptToString` as its
       source.
+    - A TLS scanner sees three things change (Operations, *every TLS context switched on every OpenSSL option from
+      bit 32 up*): the Windows server's outgoing TLS 1.3 handshakes no longer carry an Encrypted Client Hello GREASE
+      extension; TLS 1.2 handshakes in both directions offer only the uncompressed elliptic-curve point format, on
+      Windows and wherever the Linux server's OpenSSL is 3.6 or later; and on Linux with OpenSSL 3.2 or later the
+      MTA-STS policy fetch and the OAuth2 token request no longer offer certificate compression.
+    - The error log says six failures it did not (Operations, *six failures that stopped a pass or a step*), two of
+      them with new codes, `HM7554` and `HM7555`.
+    - A device's count of sign-ins (`sign_ins`) stops at 2,147,483,647, the most its column holds; the next sign-in
+      would have made it negative.
 14. **Event scripts on Linux run in QuickJS 2026-06-04**, Fabrice Bellard's release, in place of 2025-04-26. It fixes
     memory-safety flaws in the engine that a script can reach: CVE-2025-62494 (a type confusion when a string is
     added to a value whose conversion changes it, High), CVE-2025-62493 (a BigInt written as a string, Medium) and
@@ -1072,6 +1081,45 @@ fixes from there.
   `HM6812` for the sweep and the discarding, `HM6813` for the unlock and the locks, and `HM7434` for the booking
   records.
 
+- **Fixed: every TLS context switched on every OpenSSL option from bit 32 up.** The mask of options the server sets
+  on each TLS context (`SslContextInitializer`) was held in an `int`. OpenSSL's `SSL_OP_ALL` carries bit 31, so the
+  value was negative, and OpenSSL's 64-bit option word received it with bits 32 to 63 set. Every listener (SMTP,
+  POP3, IMAP, ManageSieve, the metrics and REST listeners, web services) and every outgoing connection set up by the
+  same code (SMTP delivery, the external POP3 accounts' fetch, the SpamAssassin client, the HTTPS client, ACME, the
+  IMAP migration client, the syslog TLS sink) had them, in every release linking an OpenSSL that names options
+  there: on Windows from 6.0.0-B1 to 6.3.5 (OpenSSL 4.0), on Linux from 6.3.0 wherever the distribution's OpenSSL is
+  3.2 or later. What could be seen on the wire: on Windows every outgoing TLS 1.3 handshake carried an Encrypted
+  Client Hello GREASE extension, and TLS 1.2 handshakes in both directions offered the compressed elliptic-curve
+  point formats RFC 8422 deprecates, as they did on Linux with OpenSSL 3.6 or later; on Linux with OpenSSL 3.2 or
+  later certificate compression (RFC 8879) was off in both directions. None of it lowered the protection of a
+  connection as the server sets it up. `SSL_OP_PREFER_NO_DHE_KEX`, among the bits, acts only with
+  `SSL_OP_ALLOW_NO_DHE_KEX`, which the server does not set, so TLS 1.3 resumption kept its (EC)DHE exchange - except
+  on a host whose OpenSSL configuration file allows resumption without one (`Options = AllowNoDHEKEX`, which no
+  distribution sets by default), where the server preferred that for a client offering both, and a session resumed
+  so had no forward secrecy. The other options there act only on what the server does not use (kernel TLS,
+  Encrypted Client Hello keys), and a bit no OpenSSL names yet would have switched on whatever option a later OpenSSL
+  gave it. The mask is a `uint64_t` now and holds only what the server asks for. Certificate compression stays off
+  in both directions, on purpose: it keeps a decompressor that the peer feeds out of the handshake, and saves a mail
+  server nothing it needs. The two HTTPS clients this code does not set up, the MTA-STS policy fetch and the OAuth2
+  token request, keep it off now too: on Linux with OpenSSL 3.2 or later they offered to take the web server's
+  certificate compressed. A new tester program the Linux build and the source packages run, `tls-options-tests`,
+  sets up a listener's and a client's context for every combination of the TLS versions and the cipher-order
+  settings, and the two HTTPS clients' context, and reads back with `SSL_CTX_get_options` what OpenSSL holds; it
+  fails against the code as it was. `SslTlsVersionTests` has a case that reads the EC point formats a listener
+  offers.
+
+- **Fixed: six failures that stopped a pass or a step were said nowhere.** Each is still caught where it was, so
+  nothing else stops with it, and is now written to the error log, once an hour at most: a pass of the migration
+  scheduler that starts and resumes the jobs (`HM7240`); the filing of a delivered calendar reply, cancellation or
+  invitation into the recipient's calendar (`HM7555`, new; the message is delivered all the same); the opening of an
+  encrypted mailbox's key at a sign-in (`HM7366`, once an hour an account; the sign-in stands); the recording of a
+  message trace event (`HM7554`, new; the delivery goes on and the trace has a gap); keeping an account's list of
+  devices to its fifty (`HM6991`); and the SNMP agent's refresh of the delivery queue's two figures (`HM7422`).
+  Until now a migration that did not start, replies that were not filed, a key that did not open, a trace with
+  gaps, a device list past its limit or two SNMP figures that stopped moving left no cause in any log - the trace
+  since it came, in 6.2.22's pre-releases, and the other five since 6.3.4. Migration.md, Calendar.md,
+  EncryptionAtRest.md, Reports.md and Snmp.md name the codes.
+
 ### Build and tests
 
 - **[Roadmap3.md](Roadmap3.md): the plan for everything the project had on GitHub.** A new file at the
@@ -1304,8 +1352,6 @@ fixes from there.
   packages' builds too (`dh_auto_test` and `%check`, [SourcePackages.md](hmailserver/docs/SourcePackages.md)); both
   run in the class tests on Windows as well.
 
-Full notes: [the 6.3.6 release](https://gitlab.com/hmailserver/hmailserver/-/releases/v6.3.6).
-
 - **No CI script reads a long or still-running output through `head` or `grep -q` under pipefail.** A reader that
   stops at what it wants closes the pipe, and a command still writing then dies of SIGPIPE, which `set -o pipefail`
   makes the pipeline's status, 141 (linux-sanitize failed so in pipeline 2887524317). Measured in WSL, 20 runs each:
@@ -1318,6 +1364,7 @@ Full notes: [the 6.3.6 release](https://gitlab.com/hmailserver/hmailserver/-/rel
   the chart-and-compose job, which could pass a chart that wrote the Secret it is there to catch, now read a file
   themselves (`grep -m`), read their input to the end (`sed -n '1,Np'`) or search a file or a here-string. The
   scripts run under `sh` without pipefail, and pipes whose command writes a line or two at once, are unchanged.
+
 - **Static analysis: the server-logic findings of the 6.3.6 triage.** Besides the fixes above (an account's copy,
   an IP range's priority, the seven catch-alls): a message's copy now copies its base, which holds its id, as an
   account's does; `ChangeNotification`, `WorkQueueTaskInfo`, the work queue's running and pending tasks, the
@@ -1332,6 +1379,16 @@ Full notes: [the 6.3.6 release](https://gitlab.com/hmailserver/hmailserver/-/rel
   range's priority to what the update takes; with the fixes undone, the account's, the four types' and the
   priority's checks each fail, and the message's fails when a member is dropped from its copy. The 30 lines of
   `static-analysis-baseline.txt` whose findings these fix are gone.
+
+- **Twenty static-analysis findings in the TLS and error-reporting code, fixed.** Beside the two Operations entries
+  above (the TLS options mask; six failures said), the listeners' and the TLS initialiser's seven catches of
+  `boost::system::system_error` take it by reference rather than copy it; `CipherInfo` throws its `std::logic_error`
+  by value where it threw a pointer that no `std::exception` handler would catch and that leaked (no caller reads an
+  empty `CipherInfo`, so it was never thrown); the DNSSEC resolver's socket timeouts and the journal socket's address
+  are passed with C++ casts; MailboxKeys' reseal record starts with its account id and flag set; and a device's
+  sign-in count saturates rather than overflows. Their lines are gone from `build/ci/static-analysis-baseline.txt`.
+
+Full notes: [the 6.3.6 release](https://gitlab.com/hmailserver/hmailserver/-/releases/v6.3.6).
 
 ---
 

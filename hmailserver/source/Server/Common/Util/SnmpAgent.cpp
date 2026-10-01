@@ -1192,6 +1192,8 @@ namespace HM
    void
    SnmpAgent::Run_Refresher_()
    {
+      ULONGLONG failureSaidAt = 0; // when a failed refresh was last said
+
       for (;;)
       {
          try
@@ -1201,7 +1203,16 @@ namespace HM
          catch (...)
          {
             // The previous figures stay; a database that cannot answer is
-            // reported by whatever else asked it.
+            // reported by whatever else asked it, and anything else here - once
+            // an hour at most, since a refresh is tried every ten seconds while a
+            // manager polls.
+            const ULONGLONG now = GetTickCount64();
+            if (failureSaidAt == 0 || now - failureSaidAt >= 3600000)
+            {
+               failureSaidAt = now;
+               ErrorManager::Instance()->ReportError(ErrorManager::Medium, 7422, "SnmpAgent::Run_Refresher_",
+                  _T("An exception escaped the SNMP agent's refresh of the delivery queue's two figures, which stay as they were until a refresh succeeds; the agent goes on answering. Said once an hour at most."));
+            }
          }
 
          std::unique_lock<std::mutex> lock(cache_mutex_);

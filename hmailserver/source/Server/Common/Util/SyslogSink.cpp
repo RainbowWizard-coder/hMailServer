@@ -930,7 +930,7 @@ namespace HM
       strncpy(address.sun_path, JournalSocketPath, sizeof(address.sun_path) - 1);
 
       const ssize_t written = ::sendto(connection_->journal_socket, payload.c_str(), payload.GetLength(),
-         MSG_NOSIGNAL, (const struct sockaddr*) &address, sizeof(address));
+         MSG_NOSIGNAL, reinterpret_cast<const struct sockaddr *>(&address), sizeof(address));
 
       return written == (ssize_t) payload.GetLength();
 #else

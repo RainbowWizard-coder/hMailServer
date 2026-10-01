@@ -173,7 +173,7 @@ namespace HM
          acceptor_.set_option(boost::asio::ip::tcp::acceptor::reuse_address(false));
 #endif
       }
-      catch (boost::system::system_error error)
+      catch (const boost::system::system_error &error)
       {
          String msg = error.what();
 
@@ -191,7 +191,7 @@ namespace HM
          acceptor_.bind(endpoint);
 
       }
-      catch (boost::system::system_error error)
+      catch (const boost::system::system_error &error)
       {
          String msg = error.what();
 
@@ -215,7 +215,7 @@ namespace HM
       {
          acceptor_.listen();
       }
-      catch (boost::system::system_error error)
+      catch (const boost::system::system_error &error)
       {
          String msg = error.what();
 

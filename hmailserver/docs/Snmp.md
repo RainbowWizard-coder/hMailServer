@@ -433,7 +433,7 @@ When it does not start
 |---|---|
 | 7420 | The port could not be bound: another program holds it (an operating system's own SNMP service, on Windows or Linux, listens on 161 when it is installed), or, on Linux outside the packaged unit, the process lacks `CAP_NET_BIND_SERVICE`. The server runs on without the agent. |
 | 7421 | The engine's seed or this engine's boot count could not be read or written in `hm_settings`, or its row holds something that is not a seed or a count. The agent does not start, for the reason above; the error names the row. Emptying the `SnmpEngineSeed` row makes a new engine with a count of its own (above); emptying the `SnmpBoots` row alone is not the way. |
-| 7422 | An exception left the agent's thread, which has stopped answering. A Reinitialize starts it again. |
+| 7422 | An exception left the agent's thread, which has stopped answering. A Reinitialize starts it again. Or one left a refresh of the delivery queue's two figures, which then stay as they were until a refresh succeeds; the agent goes on answering, and this one is said once an hour at most. |
 
 None of the three can happen while `SnmpEnabled` is off, which is the default.
 

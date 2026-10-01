@@ -472,6 +472,9 @@ hundred of them in a spreadsheet. A value that starts as a spreadsheet formula w
 Two errors reach the server's error log, both about this server rather than the
 source: `HM7240` when a resume mark could not be written (the job goes on, and an
 interruption before the next mark repeats that work without copying anything twice),
+or when a pass of the scheduler that starts and resumes the jobs stopped at an
+unexpected error (the jobs it had not reached wait for the next pass, two seconds
+later; said once an hour at most while it lasts),
 and `HM7241` when a message could not be filed (the job pauses and tries again) - and
 for a job of Outlook data files the same two as `HM7370` and `HM7371` (*Outlook data
 files*, below). What

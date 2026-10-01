@@ -21,6 +21,9 @@
 #include "../SQL/SQLStatement.h"
 #include "../TCPIP/TCPConnection.h"
 
+#include <atomic>
+#include <climits>
+#include <ctime>
 #include <map>
 #include <mutex>
 
@@ -249,7 +252,10 @@ namespace HM
          statement.AddColumn("sicredential", (long) credential);
          statement.AddColumn("sicredentialname", credentialName, 64);
          statement.AddColumnDate("silastseen", Time::GetDateFromSystemDate(now));
-         statement.AddColumn("sicount", (long) (count + 1));
+         // sicount is an int column: a count at INT_MAX stays there rather than
+         // wrapping to a negative one.
+         const int seen = count < INT_MAX ? count + 1 : INT_MAX;
+         statement.AddColumn("sicount", (long) seen);
 
          // A client that signs in again is no longer revoked. A revocation ends
          // the sessions a device holds; it is not a ban, and the row must not go
@@ -349,7 +355,17 @@ namespace HM
       catch (...)
       {
          // A cap that could not be applied leaves a longer list, which is a
-         // cosmetic fault and not one worth failing a sign-in over.
+         // cosmetic fault and not one worth failing a sign-in over. Said, as
+         // RecordFrom's own catch says what stops it, but once an hour at most:
+         // every new device of every account comes here.
+         static std::atomic<long long> lastReport(0);
+         long long last = lastReport.load();
+         const long long now = (long long) std::time(nullptr);
+         if ((last == 0 || now < last || now - last >= 3600) && lastReport.compare_exchange_strong(last, now))
+         {
+            ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6991, "SignInStore::PruneAccount_",
+               _T("An unexpected error occurred while keeping an account's list of devices to its limit; the list may be longer than the limit until the next new device. The sign-in itself was not affected. Said once an hour at most."));
+         }
       }
    }
 

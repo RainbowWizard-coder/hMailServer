@@ -17,8 +17,12 @@
 #include <openssl/x509.h>
 
 #include <cstring>
+#include <iomanip>
 #include <mutex>
 #include <set>
+#include <sstream>
+#include <stdexcept>
+#include <string>
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -90,6 +94,27 @@ namespace HM
 
          return unapplied;
       }
+
+      // RFC 8879 certificate compression, kept off in both directions: the server
+      // neither sends its certificate compressed nor offers to take a peer's so, which
+      // keeps out of every handshake a decompressor that the peer feeds before its
+      // certificate is checked (OpenSSL's CVE-2025-66199 was in it). No release has
+      // compressed a certificate: the Windows builds' OpenSSL has no compression
+      // algorithm, and on Linux every option from bit 32 up was set until 6.3.6 (see
+      // ApplyContextOptions_) - but for the two HTTPS clients set up with the floor
+      // alone, the MTA-STS policy fetch and the OAuth2 token request, which offered to
+      // take one, and which the floor now holds to the same (HM_TLS_CONTEXT_FLOOR).
+      // A mail server gains a few hundred bytes a handshake from it, which is not
+      // worth the code. OpenSSL 3.2 gave the two options bits 32 and 33; the AppImage
+      // is built against Ubuntu 24.04's OpenSSL 3.0, whose headers do not name them,
+      // and runs on the host's libssl.so.3, whose 3.x ABI keeps those bits - so they
+      // are set by number, and held to the names wherever the headers have them. An
+      // OpenSSL without them keeps the bits and ignores them.
+      constexpr uint64_t NoCertificateCompression = HM_TLS_NO_CERTIFICATE_COMPRESSION;
+#if defined(SSL_OP_NO_TX_CERTIFICATE_COMPRESSION) && defined(SSL_OP_NO_RX_CERTIFICATE_COMPRESSION)
+      static_assert(NoCertificateCompression == (SSL_OP_NO_TX_CERTIFICATE_COMPRESSION | SSL_OP_NO_RX_CERTIFICATE_COMPRESSION),
+         "OpenSSL has moved the certificate compression options");
+#endif
 
       // --- TLS session-ticket key rotation -------------------------------------
       //
@@ -309,7 +334,7 @@ namespace HM
             ErrorManager::Instance()->ReportError(ErrorManager::Critical, 5603, "SslContextInitializer::InitServer", Formatter::Format("Unable to enable Diffie - Hellman key agreement.The required file {0} does not exist.", dh2048_file));
          }
       }
-      catch (boost::system::system_error ec)
+      catch (const boost::system::system_error &ec)
       {
          String asioError = ec.what();
 
@@ -331,7 +356,7 @@ namespace HM
       {
          context.use_certificate_file(certificateFile, boost::asio::ssl::context::pem);
       }
-      catch (boost::system::system_error ec)
+      catch (const boost::system::system_error &ec)
       {
          String asioError = ec.what();
 
@@ -348,7 +373,7 @@ namespace HM
       {
          context.use_certificate_chain_file(certificateFile);
       }
-      catch (boost::system::system_error ec)
+      catch (const boost::system::system_error &ec)
       {
          String asioError = ec.what();
 
@@ -376,7 +401,7 @@ namespace HM
             });
          context.use_private_key_file(privateKeyFile, boost::asio::ssl::context::pem);
       }
-      catch (boost::system::system_error ec)
+      catch (const boost::system::system_error &ec)
       {
          String asioError = ec.what();
 
@@ -760,13 +785,14 @@ namespace HM
    void
    SslContextInitializer::SetContextOptions_(boost::asio::ssl::context& context, bool honour_legacy_toggles)
    {
-      bool tlsv10 = Configuration::Instance()->GetSslVersionEnabled(TlsVersion10);
-      bool tlsv11 = Configuration::Instance()->GetSslVersionEnabled(TlsVersion11);
-      bool tlsv12 = Configuration::Instance()->GetSslVersionEnabled(TlsVersion12);
-      bool tlsv13 = Configuration::Instance()->GetSslVersionEnabled(TlsVersion13);
+      ContextOptionChoices choices;
+      choices.tlsv10 = Configuration::Instance()->GetSslVersionEnabled(TlsVersion10);
+      choices.tlsv11 = Configuration::Instance()->GetSslVersionEnabled(TlsVersion11);
+      choices.tlsv12 = Configuration::Instance()->GetSslVersionEnabled(TlsVersion12);
+      choices.tlsv13 = Configuration::Instance()->GetSslVersionEnabled(TlsVersion13);
 
-      bool tlsPreferServerCiphers = Configuration::Instance()->GetTlsOptionEnabled(TlsOptionPreferServerCiphers);
-      bool tlsPrioritizeChaCha = Configuration::Instance()->GetTlsOptionEnabled(TlsOptionPrioritizeChaCha);
+      choices.prefer_server_ciphers = Configuration::Instance()->GetTlsOptionEnabled(TlsOptionPreferServerCiphers);
+      choices.prioritize_chacha = Configuration::Instance()->GetTlsOptionEnabled(TlsOptionPrioritizeChaCha);
 
       // SSLv2 and SSLv3 are disabled unconditionally below, so with all four TLS
       // versions turned off this context can negotiate nothing whatsoever. OpenSSL
@@ -780,29 +806,44 @@ namespace HM
       // same way an unusable key-exchange group list is treated a few functions
       // below - say so in the error log, and install something that works, rather
       // than serve a listener that cannot complete a single handshake.
-      if (!tlsv10 && !tlsv11 && !tlsv12 && !tlsv13)
+      if (!choices.tlsv10 && !choices.tlsv11 && !choices.tlsv12 && !choices.tlsv13)
       {
          ErrorManager::Instance()->ReportError(ErrorManager::High, 5990, "SslContextInitializer::SetContextOptions_",
             "No TLS protocol version is enabled, so no TLS handshake could succeed on any listener. Enable at least one version under Settings -> Advanced -> Protocols (the SslVersions setting; SSLv2 and SSLv3 cannot be enabled at all). Falling back to TLS 1.2 and TLS 1.3 so that TLS keeps working.");
 
-         tlsv12 = true;
-         tlsv13 = true;
+         choices.tlsv12 = true;
+         choices.tlsv13 = true;
       }
 
-      int options = SSL_OP_ALL | SSL_OP_SINGLE_DH_USE | SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_SINGLE_ECDH_USE;
+      ApplyContextOptions_(context, choices, honour_legacy_toggles);
+   }
 
-      if (!tlsv10)
+   void
+   SslContextInitializer::ApplyContextOptions_(boost::asio::ssl::context& context, const ContextOptionChoices &choices, bool honour_legacy_toggles)
+   {
+      // uint64_t, the type SSL_CTX_set_options takes. Until 6.3.6 the mask was an
+      // int: SSL_OP_ALL holds bit 31 (SSL_OP_CRYPTOPRO_TLSEXT_BUG), so the int was
+      // negative, and its conversion to uint64_t set every option from bit 32 up -
+      // on OpenSSL 4.0 the nine from SSL_OP_NO_TX_CERTIFICATE_COMPRESSION to
+      // SSL_OP_ECH_GREASE_RETRY_CONFIG, among them a GREASE ECH extension in every
+      // TLS 1.3 ClientHello the server sent and the legacy EC point formats it
+      // offered, and any a later OpenSSL gives those bits. SSL_OP_NO_SSLv2,
+      // SSL_OP_SINGLE_DH_USE and SSL_OP_SINGLE_ECDH_USE, which it also named, are 0
+      // since OpenSSL 1.1.0. Certificate compression: see NoCertificateCompression.
+      uint64_t options = SSL_OP_ALL | SSL_OP_NO_SSLv3 | NoCertificateCompression;
+
+      if (!choices.tlsv10)
          options = options | SSL_OP_NO_TLSv1;
-      if (!tlsv11)
+      if (!choices.tlsv11)
          options = options | SSL_OP_NO_TLSv1_1;
-      if (!tlsv12)
+      if (!choices.tlsv12)
          options = options | SSL_OP_NO_TLSv1_2;
-      if (!tlsv13)
+      if (!choices.tlsv13)
          options = options | SSL_OP_NO_TLSv1_3;
 
-      if (tlsPreferServerCiphers)
+      if (choices.prefer_server_ciphers)
          options = options | SSL_OP_CIPHER_SERVER_PREFERENCE;
-      if (tlsPrioritizeChaCha && tlsPreferServerCiphers && (tlsv12 || tlsv13))
+      if (choices.prioritize_chacha && choices.prefer_server_ciphers && (choices.tlsv12 || choices.tlsv13))
          options = options | SSL_OP_PRIORITIZE_CHACHA;
 
       // Every context was built with HM_TLS_CONTEXT_FLOOR (see the header), which
@@ -818,10 +859,10 @@ namespace HM
 
       if (honour_legacy_toggles)
       {
-         long reenabled = 0;
-         if (tlsv10)
+         uint64_t reenabled = 0;
+         if (choices.tlsv10)
             reenabled |= SSL_OP_NO_TLSv1;
-         if (tlsv11)
+         if (choices.tlsv11)
             reenabled |= SSL_OP_NO_TLSv1_1;
 
          if (reenabled != 0)
@@ -958,6 +999,186 @@ namespace HM
          ReportGroupListOnce_(ErrorManager::High, 5721,
             Formatter::Format("Failed to set the fallback TLS key exchange groups '{0}'. Message: {1}. TLS will use the OpenSSL default groups.",
                String(classicalGroups), String(GetOpenSslError_())));
+      }
+   }
+
+   namespace
+   {
+      void CheckTlsOptions(bool condition, const std::string &sentence)
+      {
+         if (!condition)
+            throw std::logic_error("TLS context options: " + sentence);
+      }
+
+      // The numbers of the bits set in a mask, "32 33 35", for a failure's sentence.
+      std::string BitList(uint64_t mask)
+      {
+         std::string list;
+         for (int bit = 0; bit < 64; bit++)
+         {
+            if ((mask & ((uint64_t) 1 << bit)) == 0)
+               continue;
+            if (!list.empty())
+               list += " ";
+            list += std::to_string(bit);
+         }
+         return list.empty() ? std::string("none") : list;
+      }
+
+      std::string OptionMask(uint64_t options)
+      {
+         std::ostringstream text;
+         text << "0x" << std::hex << std::setw(16) << std::setfill('0') << options;
+         return text.str();
+      }
+   }
+
+   void
+   SslContextInitializerTester::Test()
+   {
+      // Each combination of the four versions but none of them (SetContextOptions_
+      // turns that into TLS 1.2 and 1.3 before it asks), with and without the two
+      // cipher-order settings; as the mail listeners and the mail client ask, the
+      // TLS 1.0 and 1.1 toggles honoured, and as an HTTPS client asks, not; on a
+      // listener's context and on a client's.
+      for (int versions = 1; versions < 16; versions++)
+      {
+         for (int order = 0; order < 4; order++)
+         {
+            SslContextInitializer::ContextOptionChoices choices;
+            choices.tlsv10 = (versions & 1) != 0;
+            choices.tlsv11 = (versions & 2) != 0;
+            choices.tlsv12 = (versions & 4) != 0;
+            choices.tlsv13 = (versions & 8) != 0;
+            choices.prefer_server_ciphers = (order & 1) != 0;
+            choices.prioritize_chacha = (order & 2) != 0;
+
+            TestChoices_(choices, true, true);
+            TestChoices_(choices, true, false);
+            TestChoices_(choices, false, true);
+            TestChoices_(choices, false, false);
+         }
+      }
+
+      TestFloor_();
+      TestInitClient_();
+   }
+
+   void
+   SslContextInitializerTester::TestFloor_()
+   {
+      // The two HTTPS clients set up with HM_TLS_CONTEXT_FLOOR alone, the MTA-STS
+      // policy fetch (TlsPolicy) and the OAuth2 token request
+      // (OutboundOAuth2TokenClient), as they build their context: certificate
+      // compression off both ways, as every other context has it, and nothing else
+      // from bit 32 up.
+      boost::asio::ssl::context context(boost::asio::ssl::context::tls_client);
+      SSL_CTX *ssl = context.native_handle();
+      const uint64_t before = SSL_CTX_get_options(ssl);
+
+      context.set_options(HM_TLS_CONTEXT_FLOOR);
+      const uint64_t held = SSL_CTX_get_options(ssl);
+
+      // From bit 32 up: what the new context had (nothing, but for an OpenSSL
+      // configuration file's Options) and the two certificate compression bits.
+      const uint64_t fromBit32 = ~static_cast<uint64_t>(0) << 32;
+      const uint64_t expected = (before & fromBit32) | ((uint64_t) 3 << 32);
+      CheckTlsOptions((held & fromBit32) == expected,
+         "a context set up with the floor alone, as the MTA-STS policy fetch and the OAuth2 token request set theirs up, "
+         "holds from bit 32 up bits " + BitList(held & fromBit32) + " where " + BitList(expected) +
+         " were asked for, certificate compression off both ways: it holds " + OptionMask(held));
+   }
+
+   void
+   SslContextInitializerTester::TestChoices_(const SslContextInitializer::ContextOptionChoices &choices, bool honour_legacy_toggles, bool listener)
+   {
+      // Built as TCPServer builds a listener's context, or as HttpsClient builds
+      // its own, with the floor every context of the server starts from.
+      boost::asio::ssl::context context(listener ? boost::asio::ssl::context::sslv23 : boost::asio::ssl::context::tls_client);
+      context.set_options(HM_TLS_CONTEXT_FLOOR);
+
+      SSL_CTX *ssl = context.native_handle();
+      const uint64_t atFloor = SSL_CTX_get_options(ssl);
+
+      SslContextInitializer::ApplyContextOptions_(context, choices, honour_legacy_toggles);
+      const uint64_t held = SSL_CTX_get_options(ssl);
+
+      // What the context is to hold, written out again from the rules rather than
+      // taken from the code under test: OpenSSL's workarounds, SSLv3 off,
+      // certificate compression off both ways (bits 32 and 33), a version the
+      // settings turn off, the two cipher-order options as the settings say - and
+      // TLS 1.0 and 1.1 on again where the toggles are honoured and enable them.
+      uint64_t asked = SSL_OP_ALL | SSL_OP_NO_SSLv3 | ((uint64_t) 3 << 32);
+      if (!choices.tlsv10)
+         asked |= SSL_OP_NO_TLSv1;
+      if (!choices.tlsv11)
+         asked |= SSL_OP_NO_TLSv1_1;
+      if (!choices.tlsv12)
+         asked |= SSL_OP_NO_TLSv1_2;
+      if (!choices.tlsv13)
+         asked |= SSL_OP_NO_TLSv1_3;
+      if (choices.prefer_server_ciphers)
+         asked |= SSL_OP_CIPHER_SERVER_PREFERENCE;
+      if (choices.prefer_server_ciphers && choices.prioritize_chacha && (choices.tlsv12 || choices.tlsv13))
+         asked |= SSL_OP_PRIORITIZE_CHACHA;
+
+      uint64_t expected = atFloor | asked;
+      if (honour_legacy_toggles && choices.tlsv10)
+         expected &= ~(uint64_t) SSL_OP_NO_TLSv1;
+      if (honour_legacy_toggles && choices.tlsv11)
+         expected &= ~(uint64_t) SSL_OP_NO_TLSv1_1;
+
+      std::string which = listener ? "a listener's context" : "a client's context";
+      which += honour_legacy_toggles ? " honouring the TLS 1.0 and 1.1 toggles" : " keeping the TLS 1.2 floor";
+      which += std::string(", TLS 1.0 ") + (choices.tlsv10 ? "on" : "off") + ", 1.1 " + (choices.tlsv11 ? "on" : "off") +
+               ", 1.2 " + (choices.tlsv12 ? "on" : "off") + ", 1.3 " + (choices.tlsv13 ? "on" : "off") +
+               ", server cipher order " + (choices.prefer_server_ciphers ? "on" : "off") +
+               ", ChaCha20 first " + (choices.prioritize_chacha ? "on" : "off");
+
+      const uint64_t unasked = held & ~expected;
+      CheckTlsOptions(unasked == 0,
+         "the context holds options nothing asked for, bits " + BitList(unasked) + ": it holds " + OptionMask(held) + " where " +
+         OptionMask(expected) + " was asked for (" + which + ")");
+
+      const uint64_t missing = expected & ~held;
+      CheckTlsOptions(missing == 0,
+         "the context lacks options it was asked for, bits " + BitList(missing) + ": it holds " + OptionMask(held) + " where " +
+         OptionMask(expected) + " was asked for (" + which + ")");
+   }
+
+   void
+   SslContextInitializerTester::TestInitClient_()
+   {
+      // Only where the server's configuration is loaded - inside the service,
+      // through ClassTester. The POSIX tester program has none, and the choices
+      // above are what it proves.
+      if (!Configuration::Instance()->GetPropertySet())
+         return;
+
+      for (int honour = 0; honour < 2; honour++)
+      {
+         boost::asio::ssl::context context(boost::asio::ssl::context::sslv23);
+         context.set_options(HM_TLS_CONTEXT_FLOOR);
+
+         SSL_CTX *ssl = context.native_handle();
+         const uint64_t atFloor = SSL_CTX_get_options(ssl);
+
+         SslContextInitializer::InitClient(context, honour != 0);
+         const uint64_t held = SSL_CTX_get_options(ssl);
+
+         // Whatever the settings say, these are all SetContextOptions_ can add.
+         const uint64_t mayAdd = SSL_OP_ALL | SSL_OP_NO_SSLv3 | ((uint64_t) 3 << 32) |
+            SSL_OP_NO_TLSv1 | SSL_OP_NO_TLSv1_1 | SSL_OP_NO_TLSv1_2 | SSL_OP_NO_TLSv1_3 |
+            SSL_OP_CIPHER_SERVER_PREFERENCE | SSL_OP_PRIORITIZE_CHACHA;
+
+         const uint64_t unasked = held & ~(atFloor | mayAdd);
+         CheckTlsOptions(unasked == 0,
+            "the mail client's context, set up from this server's settings, holds options nothing asked for, bits " +
+            BitList(unasked) + ": it holds " + OptionMask(held));
+
+         CheckTlsOptions((held & ((uint64_t) 3 << 32)) == ((uint64_t) 3 << 32),
+            "the mail client's context, set up from this server's settings, does not keep certificate compression off: it holds " +
+            OptionMask(held));
       }
    }
 

@@ -14,6 +14,7 @@
 #include "../SQL/DatabaseSettings.h"
 #include "Time.h"
 
+#include <atomic>
 #include <ctime>
 #include <algorithm>
 
@@ -140,11 +141,21 @@ namespace HM
       }
       catch (...)
       {
-         // Swallowed on purpose, and not even reported: this runs on the delivery
-         // path, and a trace that can interrupt a delivery is worse than no trace -
-         // the failure would be invisible in precisely the tool built to make
-         // deliveries visible. A missing row is a gap in a diagnostic; a thrown
-         // exception here is undelivered mail.
+         // Swallowed on purpose: this runs on the delivery path, and a trace that
+         // can interrupt a delivery is worse than no trace. A missing row is a gap
+         // in a diagnostic; a thrown exception here is undelivered mail. Reported,
+         // because the gap would otherwise be invisible in precisely the tool built
+         // to make deliveries visible, and a report lets no exception out but the
+         // interruption a stop is made of; once an hour at most, since every event
+         // of every message would say the same.
+         static std::atomic<long long> lastReport(0);
+         long long last = lastReport.load();
+         const long long now = (long long) std::time(nullptr);
+         if ((last == 0 || now < last || now - last >= 3600) && lastReport.compare_exchange_strong(last, now))
+         {
+            ErrorManager::Instance()->ReportError(ErrorManager::Medium, 7554, "MessageTrace::Record",
+               _T("A message trace event could not be recorded: an unexpected error stopped it. The delivery was not affected; the trace has a gap. Said once an hour at most."));
+         }
       }
    }
 

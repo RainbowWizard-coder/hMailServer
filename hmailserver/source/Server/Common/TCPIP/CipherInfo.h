@@ -47,7 +47,7 @@ namespace HM
       void ThrowIfNotInitialized_() const
       {
          if (!initialized_)
-            throw new std::logic_error("cipherinfo instance is not initialized.");
+            throw std::logic_error("cipherinfo instance is not initialized.");
       }
 
       AnsiString name_;

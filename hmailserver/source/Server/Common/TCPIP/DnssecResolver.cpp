@@ -643,8 +643,8 @@ namespace HM
 #else
          DWORD timeout = DnsTimeoutMilliseconds;
 #endif
-         setsockopt(querySocket, SOL_SOCKET, SO_RCVTIMEO, (const char*) &timeout, sizeof(timeout));
-         setsockopt(querySocket, SOL_SOCKET, SO_SNDTIMEO, (const char*) &timeout, sizeof(timeout));
+         setsockopt(querySocket, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<const char *>(&timeout), sizeof(timeout));
+         setsockopt(querySocket, SOL_SOCKET, SO_SNDTIMEO, reinterpret_cast<const char *>(&timeout), sizeof(timeout));
       }
 
       bool RunUdpQuery(const sockaddr_in &server, const std::vector<unsigned char> &query,

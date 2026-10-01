@@ -1083,6 +1083,12 @@ namespace HM
       {
          // On the success path of a sign-in, which has been proved: the key
          // simply stays as it was, and the session decides with SessionRefusal.
+         // Said once an hour an account at most, as the failures above are.
+         if (account && FirstReportThisHour(account->GetID()))
+         {
+            ErrorManager::Instance()->ReportError(ErrorManager::Medium, CodeRead, "MailboxKeys::OnPasswordLogon",
+               _T("The mailbox key of ") + account->GetAddress() + _T(" could not be opened at its sign-in: an unexpected error stopped it. The key stays as it was, and the next sign-in tries again."));
+         }
       }
    }
 
@@ -1833,8 +1839,8 @@ namespace HM
 
       struct Reseal
       {
-         __int64 account_id;
-         bool on_previous;          // sealed to the key an earlier replacement left
+         __int64 account_id = 0;
+         bool on_previous = false;  // sealed to the key an earlier replacement left
          std::string to_current;    // sealed to the current key: step 0's
          std::string to_new;        // sealed to the new key: step 2's
       };

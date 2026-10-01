@@ -6,6 +6,7 @@
 
 #include "StdAfx.h"
 
+#include <atomic>
 #include <ctime>
 
 #include "Imip.h"
@@ -993,7 +994,20 @@ namespace HM
       }
       catch (...)
       {
-         // Delivery has happened; nothing here may undo it.
+         // Delivery has happened; nothing here may undo it. Said as
+         // ResourceBooking::OnDelivery says it for a room, but with a code of its
+         // own - the rooms' HM7434 fires on no server without a room - and once an
+         // hour at most: a message that makes the filing fail can be sent again
+         // and again.
+         static std::atomic<long long> lastReport(0);
+         long long last = lastReport.load();
+         const long long now = (long long) std::time(nullptr);
+         if ((last == 0 || now < last || now - last >= 3600) && lastReport.compare_exchange_strong(last, now))
+         {
+            ErrorManager::Instance()->ReportError(ErrorManager::Medium, 7555, "Imip::FileOnDelivery",
+               _T("A calendar reply, cancellation or invitation delivered to ") + (account ? account->GetAddress() : String()) +
+               _T(" could not be filed into its calendar: an unexpected error stopped it. The message is in the mailbox. Said once an hour at most."));
+         }
       }
    }
 }

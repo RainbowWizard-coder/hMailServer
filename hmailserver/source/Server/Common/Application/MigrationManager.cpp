@@ -145,6 +145,11 @@ namespace HM
    {
       std::unique_lock<std::mutex> lock(mutex_);
 
+      // When a failing pass was last said: once an hour at most, since it is
+      // tried again every two seconds.
+      bool failureSaid = false;
+      std::chrono::steady_clock::time_point failureSaidAt;
+
       while (!stopping_)
       {
          Reap_(false);
@@ -157,6 +162,19 @@ namespace HM
          {
             // A pass that failed - a database that went away - is tried again
             // two seconds later; the jobs already running are theirs.
+            const std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
+            if (!failureSaid || now - failureSaidAt >= std::chrono::hours(1))
+            {
+               failureSaid = true;
+               failureSaidAt = now;
+
+               // Said with the lock let go: a report runs the OnError event, whose
+               // script may reach this manager.
+               lock.unlock();
+               ErrorManager::Instance()->ReportError(ErrorManager::Medium, 7240, "MigrationManager::SchedulerLoop_",
+                  _T("A scheduling pass of the migrations stopped at an unexpected error; the jobs it had not reached were not started or resumed. It is tried again every two seconds, and this is said once an hour at most."));
+               lock.lock();
+            }
          }
 
          wake_.wait_for(lock, std::chrono::seconds(2), [this]() { return stopping_ || woken_; });

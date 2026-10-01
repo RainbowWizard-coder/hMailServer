@@ -211,6 +211,36 @@ namespace RegressionTests.API
       }
 
       [Test]
+      [Description("A client whose count of sign-ins has reached the most its column holds stays there on its next sign-in, where the count used to turn negative")]
+      public void ASignInCountAtTheColumnsLimitStaysThere()
+      {
+         string mine = SignIn("Mine/1.0");
+         SignIn("Counted/1.0");
+
+         Response listed = Raw("GET", "/api/v1/me/devices", null, null, "Cookie: hmailsession=" + mine + "\r\n");
+         string countedId = MiniJson.Text(EntryWithAgent(DevicesOf(listed.Body), "Counted/1.0"), "id");
+         StringAssert.IsMatch("^[0-9a-f]{32}$", countedId, listed.Body);
+
+         // Two thousand million sign-ins are not made in a test: the count is put at the
+         // column's limit, 2^31 - 1.
+         _application.Database.ExecuteSQL("update hm_signins set sicount = 2147483647 where sidevice = '" + countedId + "'");
+
+         // A revoke forgets the minute's throttle on the client's row, so the next
+         // sign-in is written at once rather than a minute later.
+         Response revoked = Raw("DELETE", "/api/v1/me/devices/" + countedId, null, null,
+            "Cookie: hmailsession=" + mine + "\r\nX-Requested-With: hMailServer\r\n");
+         Assert.AreEqual(200, revoked.Status, revoked.Body);
+
+         SignIn("Counted/1.0");
+
+         Response listedAgain = Raw("GET", "/api/v1/me/devices", null, null, "Cookie: hmailsession=" + mine + "\r\n");
+         Dictionary<string, object> counted = EntryWithAgent(DevicesOf(listedAgain.Body), "Counted/1.0");
+         Assert.IsFalse(MiniJson.Flag(counted, "revoked"), "The sign-in after the revoke was not written. " + listedAgain.Body);
+         Assert.AreEqual(2147483647L, MiniJson.Number(counted, "sign_ins"),
+            "A count at the column's limit must stay there; until 6.3.6 the next sign-in wrote it as -2147483648. " + listedAgain.Body);
+      }
+
+      [Test]
       [Description("An IMAP client is listed with the app password it used by name; revoking it drops the live connection, and with credential=revoke the app password no longer signs in while the account's own password still does")]
       public void AMailClientIsListedAndRevokingItDropsItsConnection()
       {

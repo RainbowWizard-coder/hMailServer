@@ -648,7 +648,7 @@ Errors
 | `HM7363` | A copy between mailboxes could not be re-encoded for the mailbox it goes into, or whether that mailbox is encrypted could not be read, and was not made |
 | `HM7364` | A key row could not be written, restored or put back, or a domain's recovery key in a backup was not a key and was not restored |
 | `HM7365` | A message for an encrypted mailbox could not be stored encrypted - or whether its mailbox is encrypted is not known - and was refused, or held for a later attempt, rather than kept in the clear |
-| `HM7366` | The accounts' keys (`hm_accountkeys`) could not be read into memory: the server answers from what it read last, or - when it has not read them since it started - treats whether a mailbox is encrypted as unknown. Once a minute at most |
+| `HM7366` | The accounts' keys (`hm_accountkeys`) could not be read into memory: the server answers from what it read last, or - when it has not read them since it started - treats whether a mailbox is encrypted as unknown. Once a minute at most. Also a sign-in whose opening of its mailbox key stopped at an unexpected error: the sign-in stands, the key stays as it was, and the next sign-in tries again. Once an hour an account |
 | `HM7367` | The start's sweep of a keyed mailbox's directory failed - a name the file system's conversion refused, a directory gone meanwhile: that directory is passed, and the next start sweeps it again |
 
 A read of an encrypted message while its key is closed is refused, and said only in the

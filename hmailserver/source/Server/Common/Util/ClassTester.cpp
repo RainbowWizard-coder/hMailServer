@@ -76,6 +76,7 @@
 #include "../TCPIP/LocalIPAddresses.h"
 #include "../TCPIP/IPAddress.h"
 #include "../TCPIP/CertificateVerifier.h"
+#include "../TCPIP/SslContextInitializer.h"
 #include "../SQL/DatabaseTls.h"
 #include "Time.h"
 #include "Utilities.h"
@@ -179,6 +180,13 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing the account's copy\n"));
       AccountTester accountTester;
       accountTester.Test();
+
+      // Every TLS context's options read back with SSL_CTX_get_options: exactly what
+      // SetContextOptions_ asks for, nothing from bit 32 up but certificate compression
+      // off, and the mail client's context as this server's settings set it up.
+      OutputDebugString(_T("hMailServer: Testing the TLS contexts' options\n"));
+      SslContextInitializerTester sslContextInitializerTester;
+      sslContextInitializerTester.Test();
 
       // Whether a server certificate is for the host: an address matched against
       // the certificate's iPAddress entries as well as its names, which is what

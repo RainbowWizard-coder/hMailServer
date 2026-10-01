@@ -710,6 +710,20 @@ set_target_properties(trust-anchor-tests PROPERTIES OUTPUT_NAME trust-anchor-tes
 add_executable(business-object-tests ${SERVER_DIR}/platform/business_object_tests_main.cpp)
 target_link_libraries(business-object-tests PRIVATE hmailserver_core)
 set_target_properties(business-object-tests PROPERTIES OUTPUT_NAME business-object-tests)
+# ---------------------------------------------------------------- the TLS contexts' options
+#
+# SslContextInitializerTester (Common/TCPIP/SslContextInitializer.h) as a program
+# of its own, for the reason spf-tests is one: on Windows it runs inside the server
+# through ClassTester, which nothing reaches here. Every combination of the TLS
+# versions and the cipher-order settings, set on a listener's context and a
+# client's as the server sets them, read back with SSL_CTX_get_options against the
+# distribution's OpenSSL: exactly what was asked for, and nothing from bit 32 up
+# but certificate compression off - until 6.3.6 an int held the mask and every
+# option from bit 32 up was set. No database, configuration or network. Not
+# installed; a bench tool.
+add_executable(tls-options-tests ${SERVER_DIR}/platform/tls_options_tests_main.cpp)
+target_link_libraries(tls-options-tests PRIVATE hmailserver_core)
+set_target_properties(tls-options-tests PROPERTIES OUTPUT_NAME tls-options-tests)
 
 include(GNUInstallDirs)
 install(TARGETS hmailserver RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})

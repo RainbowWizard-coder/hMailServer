@@ -180,14 +180,15 @@ install -d -m 0750 %{buildroot}%{_localstatedir}/log/hmailserver
 # request signatures, the singletons, the legacy Blowfish scheme, the backup
 # index's XML, the date class with the date parsers built on it, the Public
 # Suffix List's cut of a host name, the backup's exclusions, the live update's
-# trust (these two on scratch files under $TMPDIR, removed again) and the business
-# objects' copies and first values - the list
+# trust (these two on scratch files under $TMPDIR, removed again), the business
+# objects' copies and first values, and the TLS contexts' options, read back from
+# the distribution's own OpenSSL - the list
 # debian/rules runs. No socket, none of the system's configuration, no database,
 # no root; seconds.
 cd %{hm_builddir}
 echo "== hmailserver --version"
 ./hmailserver --version
-for tester in spf-tests script-binding-tests snmp-tests object-store-signature-tests singleton-tests legacy-blowfish-tests xml-tree-tests datetime-tests public-suffix-tests backup-tests trust-anchor-tests business-object-tests; do
+for tester in spf-tests script-binding-tests snmp-tests object-store-signature-tests singleton-tests legacy-blowfish-tests xml-tree-tests datetime-tests public-suffix-tests backup-tests trust-anchor-tests business-object-tests tls-options-tests; do
   echo "== $tester"
   ./$tester
 done
