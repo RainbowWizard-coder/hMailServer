@@ -1854,11 +1854,20 @@ namespace HM
       // everything below it, the message store included - after the first move,
       // a tree the service writes in, where a link of its making could carry
       // what is handed down somewhere else.
+      //
+      // Nor on AdminUpdate, the work folders of an administrator's install of an
+      // update (Util/AdminUpdate.h): the installer copies, their logs and the
+      // sign-in handoff's secret half are the administrators' alone, and the
+      // service reads the two files there it needs - the last install's outcome
+      // and the mark of one in progress - through entries the Updater writes on
+      // each file.
       for (const String &subfolder : Subfolders_(program))
       {
          bool writable = false;
          for (const wchar_t *name : WritableDefaults_)
             writable = writable || SamePath_(subfolder, FileUtilities::Combine(program, String(name)));
+         if (SamePath_(subfolder, FileUtilities::Combine(program, String(_T("AdminUpdate")))))
+            continue;
          if (!writable)
             grantFolder(subfolder, RightsReadExecute, true, _T("in the program folder"));
       }

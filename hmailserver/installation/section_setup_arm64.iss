@@ -8,3 +8,5 @@ ArchitecturesInstallIn64BitMode=arm64
 ArchitecturesAllowed=arm64
 AppVersion={#HM_APP_VERSION}
 VersionInfoVersion={#HM_VERSION_INFO}
+; As section_setup_64.iss: the architecture the Control Panel's install checks.
+VersionInfoDescription=hMailServer Setup (ARM64)

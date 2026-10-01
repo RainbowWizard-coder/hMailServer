@@ -1409,6 +1409,9 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   <data name="Allow plain-text authentication (AUTH PLAIN/LOGIN)" xml:space="preserve">
     <value>Salli selväkielinen todennus (AUTH PLAIN/LOGIN)</value>
   </data>
+  <data name="Allowed as {0}." xml:space="preserve">
+    <value>Sallittu tilillä {0}.</value>
+  </data>
   <data name="Allowed signing algorithms (comma separated)" xml:space="preserve">
     <value>Sallitut allekirjoitusalgoritmit (pilkuin erotettuina)</value>
   </data>
@@ -1517,6 +1520,9 @@ Täydet tiedot kirjoitettiin tiedostoon:
 {1}
 
 Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittää jatkaa työskentelyä.</value>
+  </data>
+  <data name="An update is already being installed on this server: hMailServer {0}, started at {1} by {2}." xml:space="preserve">
+    <value>Tälle palvelimelle asennetaan jo päivitystä: hMailServer {0}, aloitettu {1}, aloittaja {2}.</value>
   </data>
   <data name="And this is the server's own verdict on what you have built. It is the page to come back to." xml:space="preserve">
     <value>Ja tämä on palvelimen oma tuomio siitä, mitä olet rakentanut. Tälle sivulle kannattaa palata.</value>
@@ -1695,6 +1701,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
   <data name="Ask a keyserver when their domain has no key" xml:space="preserve">
     <value>Kysy avainpalvelimelta, kun heidän verkkotunnuksellaan ei ole avainta</value>
   </data>
+  <data name="Asking the service to take the backup." xml:space="preserve">
+    <value>Pyydetään palvelua ottamaan varmuuskopio.</value>
+  </data>
   <data name="Asks for a confirmation" xml:space="preserve">
     <value>Vaatii vahvistuksen</value>
   </data>
@@ -1868,6 +1877,15 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
   </data>
   <data name="Back_up file (HMBackup*.xml on the server)" xml:space="preserve">
     <value>Varmuuskopio_tiedosto (HMBackup*.xml palvelimella)</value>
+  </data>
+  <data name="Backed up to {0}." xml:space="preserve">
+    <value>Varmuuskopioitu kohteeseen {0}.</value>
+  </data>
+  <data name="Backing up" xml:space="preserve">
+    <value>Varmuuskopiointi</value>
+  </data>
+  <data name="Backing up to {0}." xml:space="preserve">
+    <value>Varmuuskopioidaan kohteeseen {0}.</value>
   </data>
   <data name="Backlog" xml:space="preserve">
     <value>Ruuhka</value>
@@ -2310,8 +2328,14 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
   <data name="Checked shortly after the service starts and every six hours after that. Only hMailServer's own dated log files (hmailserver_*.log and ERROR_hmailserver_*.log) are removed; nothing else in the log folder is touched." xml:space="preserve">
     <value>Tarkistetaan pian palvelun käynnistymisen jälkeen ja sen jälkeen kuuden tunnin välein. Vain hMailServerin omat päivätyt lokitiedostot (hmailserver_*.log ja ERROR_hmailserver_*.log) poistetaan; mihinkään muuhun lokikansiossa ei kosketa.</value>
   </data>
+  <data name="Checking the installer" xml:space="preserve">
+    <value>Asennusohjelman tarkistus</value>
+  </data>
   <data name="Checking what this server still needs done outside it…" xml:space="preserve">
     <value>Tarkistetaan, mitä tämän palvelimen ulkopuolella on vielä tehtävä…</value>
+  </data>
+  <data name="Checking {0}: its signature, its record in the Sigstore transparency log, its version and its architecture." xml:space="preserve">
+    <value>Tarkistetaan {0}: sen allekirjoitus, sen merkintä Sigstoren läpinäkyvyyslokissa, sen versio ja sen arkkitehtuuri.</value>
   </data>
   <data name="Checking…" xml:space="preserve">
     <value>Tarkistetaan…</value>
@@ -4302,6 +4326,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Fetches the newer release's installer and verifies it against its Sigstore bundle before keeping it. The Control Panel waits while it does; an installer is tens of megabytes." xml:space="preserve">
     <value>Noutaa uudemman julkaisun asennusohjelman ja tarkistaa sen Sigstore-pakettia vasten ennen sen säilyttämistä. Control Panel odottaa sillä välin; asennusohjelma on kymmeniä megatavuja.</value>
   </data>
+  <data name="Fetching and checking the hMailServer {0} installer, to put back if {1} does not start." xml:space="preserve">
+    <value>Haetaan ja tarkistetaan hMailServer {0} -asennusohjelma, jotta se voidaan palauttaa, jos {1} ei käynnisty.</value>
+  </data>
   <data name="Fetching {0}…" xml:space="preserve">
     <value>Noudetaan {0}…</value>
   </data>
@@ -5047,6 +5074,24 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
     <value>Asennetaanko päivitys nyt?
 
 Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uusi versio asennetaan ja palvelu käynnistyy uudelleen. Jos se ei palaa, edellinen versio asennetaan uudelleen. Tämä Control Panel menettää yhteytensä sillä välin; yhdistä uudelleen jälkeenpäin nähdäksesi tuloksen täällä.</value>
+  </data>
+  <data name="Install update" xml:space="preserve">
+    <value>Asenna päivitys</value>
+  </data>
+  <data name="Install update stopped before anything was changed: the permissions of {0} could not be checked ({1})." xml:space="preserve">
+    <value>Asenna päivitys pysähtyi ennen kuin mitään muutettiin: kohteen {0} käyttöoikeuksia ei voitu tarkistaa ({1}).</value>
+  </data>
+  <data name="Install update stopped before anything was changed: {0} can be changed by {1} ({2}). A program run from there as an administrator could be one that account put there. Remove that permission - from a Command Prompt run as administrator: {3} - and click Install update again." xml:space="preserve">
+    <value>Asenna päivitys pysähtyi ennen kuin mitään muutettiin: {1} voi muuttaa kohdetta {0} ({2}). Sieltä järjestelmänvalvojana ajettu ohjelma voisi olla sellainen, jonka tuo tili on sinne laittanut. Poista tämä käyttöoikeus - järjestelmänvalvojana ajetusta komentokehotteesta: {3} - ja napsauta Asenna päivitys uudelleen.</value>
+  </data>
+  <data name="Install update stopped before anything was changed: {0}." xml:space="preserve">
+    <value>Asenna päivitys pysähtyi ennen kuin mitään muutettiin: {0}.</value>
+  </data>
+  <data name="Installing" xml:space="preserve">
+    <value>Asennus</value>
+  </data>
+  <data name="Installing hMailServer {0}" xml:space="preserve">
+    <value>Asennetaan hMailServer {0}</value>
   </data>
   <data name="Installing {0}: the service will stop and start" xml:space="preserve">
     <value>Asennetaan {0}: palvelu pysähtyy ja käynnistyy</value>
@@ -6279,6 +6324,15 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="No backup destination is set." xml:space="preserve">
     <value>Varmuuskopion kohdetta ei ole asetettu.</value>
   </data>
+  <data name="No backup first: UpdateBackupBeforeApply is off." xml:space="preserve">
+    <value>Ei varmuuskopiota ensin: UpdateBackupBeforeApply on pois päältä.</value>
+  </data>
+  <data name="No backup first: no backup destination is set (Backup &amp; restore). A rollback puts the previous program back, not the database." xml:space="preserve">
+    <value>Ei varmuuskopiota ensin: varmuuskopioiden kohdetta ei ole asetettu (Varmuuskopiointi ja palautus). Palautus tuo takaisin edellisen ohjelman, ei tietokantaa.</value>
+  </data>
+  <data name="No backup first: you chose to install without one." xml:space="preserve">
+    <value>Ei varmuuskopiota ensin: valitsit asennuksen ilman sitä.</value>
+  </data>
   <data name="No backup has ever completed into {0} - there is no HMBackup archive there." xml:space="preserve">
     <value>Yhtään varmuuskopiota ei ole koskaan valmistunut kohteeseen {0} - siellä ei ole HMBackup-arkistoa.</value>
   </data>
@@ -6492,6 +6546,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="No syntax errors reported." xml:space="preserve">
     <value>Syntaksivirheitä ei raportoitu.</value>
   </data>
+  <data name="No verified installer is waiting; check for updates and download it first." xml:space="preserve">
+    <value>Tarkistettua asennusohjelmaa ei odota; tarkista päivitykset ja lataa se ensin.</value>
+  </data>
   <data name="No virus scanner can run. Attachment blocking still strips the file-name patterns on its own page, but nothing looks inside a message or inside an archive." xml:space="preserve">
     <value>Yksikään virustarkistin ei voi toimia. Liitteiden esto poistaa yhä tiedostonimikuviot omalla sivullaan, mutta mikään ei katso viestin tai arkiston sisään.</value>
   </data>
@@ -6530,6 +6587,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   </data>
   <data name="None." xml:space="preserve">
     <value>Ei mitään.</value>
+  </data>
+  <data name="None: {0}. If {1} does not start, it will need reinstalling by hand." xml:space="preserve">
+    <value>Ei mitään: {0}. Jos {1} ei käynnisty, se on asennettava uudelleen käsin.</value>
   </data>
   <data name="Normal" xml:space="preserve">
     <value>Normaali</value>
@@ -7495,6 +7555,9 @@ Uusia yhteyksiä ei hyväksytä eikä postia toimiteta, ennen kuin se jatketaan.
   </data>
   <data name="Prefer server cipher order" xml:space="preserve">
     <value>Suosi palvelimen salausjärjestystä</value>
+  </data>
+  <data name="Preparing the install of {0}: {1}" xml:space="preserve">
+    <value>Valmistellaan version {0} asennusta: {1}</value>
   </data>
   <data name="Prepend text to subject" xml:space="preserve">
     <value>Lisää teksti aiheen alkuun</value>
@@ -9631,6 +9694,9 @@ Käynnistetäänkö se uudelleen nyt?</value>
   <data name="Signature _method" xml:space="preserve">
     <value>Allekirjoitus_menetelmä</value>
   </data>
+  <data name="Signed by {0} and recorded in the Sigstore log at {1}; version {2}, {3}." xml:space="preserve">
+    <value>Allekirjoittaja {0}, merkitty Sigstore-lokiin {1}; versio {2}, {3}.</value>
+  </data>
   <data name="Signing _algorithm" xml:space="preserve">
     <value>Allekirjoitus_algoritmi</value>
   </data>
@@ -9832,11 +9898,20 @@ Käynnistetäänkö se uudelleen nyt?</value>
   <data name="Stop the spam" xml:space="preserve">
     <value>Pysäytä roskaposti</value>
   </data>
+  <data name="Stop the update? Nothing has been installed yet." xml:space="preserve">
+    <value>Pysäytetäänkö päivitys? Mitään ei ole vielä asennettu.</value>
+  </data>
   <data name="Stopped" xml:space="preserve">
     <value>Pysäytetty</value>
   </data>
   <data name="Stopping" xml:space="preserve">
     <value>Pysähtyy</value>
+  </data>
+  <data name="Stopping new connections" xml:space="preserve">
+    <value>Uusien yhteyksien pysäyttäminen</value>
+  </data>
+  <data name="Stopping…" xml:space="preserve">
+    <value>Pysäytetään…</value>
   </data>
   <data name="Stops mattering at a date" xml:space="preserve">
     <value>Lakkaa pätemästä päivämääränä</value>
@@ -10281,6 +10356,9 @@ Seuraava viesti tähän osoitteeseen lähetetään, ja osoite palaa listalle vas
   <data name="The TCP/IP port list could not be read - {0}" xml:space="preserve">
     <value>TCP/IP-porttiluetteloa ei voitu lukea - {0}</value>
   </data>
+  <data name="The Windows prompt was declined, so nothing was installed and nothing on the server was changed." xml:space="preserve">
+    <value>Windowsin kehote hylättiin, joten mitään ei asennettu eikä palvelimella muutettu mitään.</value>
+  </data>
   <data name="The _HELO name's domain, on the domain white and black list" xml:space="preserve">
     <value>HELO-_nimen verkkotunnus, verkkotunnusten valko- ja mustalla listalla</value>
   </data>
@@ -10358,6 +10436,9 @@ Seuraava viesti tähän osoitteeseen lähetetään, ja osoite palaa listalle vas
   </data>
   <data name="The authserv-id: the first token of every Authentication-Results header this server writes, always lower-cased, and the name a downstream filter checks before trusting the verdicts. The same name decides which arriving Authentication-Results headers are treated as forged: one claiming this identity is removed, while one naming any other identity is left completely untouched." xml:space="preserve">
     <value>authserv-id: jokaisen tämän palvelimen kirjoittaman Authentication-Results-otsakkeen ensimmäinen token, aina pienaakkosin, ja nimi, jonka jälkeenpäin oleva suodatin tarkistaa ennen kuin luottaa tuomioihin. Sama nimi ratkaisee, mitkä saapuvat Authentication-Results-otsakkeet käsitellään väärennettyinä: tätä identiteettiä väittävä poistetaan, kun taas mitä tahansa muuta identiteettiä nimeävä jätetään täysin koskematta.</value>
+  </data>
+  <data name="The backup before the update failed: {0}. See the backup log. Install hMailServer {1} without a backup? A rollback would put {2} back, but not the database as it was." xml:space="preserve">
+    <value>Päivitystä edeltävä varmuuskopiointi epäonnistui: {0}. Katso varmuuskopiointiloki. Asennetaanko hMailServer {1} ilman varmuuskopiota? Palautus toisi takaisin version {2}, mutta ei tietokantaa sellaisena kuin se oli.</value>
   </data>
   <data name="The backup destination {0} does not exist on the server." xml:space="preserve">
     <value>Varmuuskopion kohdetta {0} ei ole palvelimella.</value>
@@ -10621,6 +10702,12 @@ ei voitu ladata. Viesti on todennäköisesti toimitettu eikä ole enää jonossa
   <data name="The indexer has been asked to run; it works in the background and the counts below will not move until it has. As things stand:" xml:space="preserve">
     <value>Indeksoijaa on pyydetty ajamaan; se työskentelee taustalla, eivätkä alla olevat luvut liiku, ennen kuin se on tehnyt sen. Tällä hetkellä:</value>
   </data>
+  <data name="The install of hMailServer {0} was cancelled: {1}" xml:space="preserve">
+    <value>hMailServer {0} -asennus peruutettiin: {1}</value>
+  </data>
+  <data name="The install's outcome could not be read." xml:space="preserve">
+    <value>Asennuksen tulosta ei voitu lukea.</value>
+  </data>
   <data name="The issued certificate EXPIRED on {0}, {1} days ago, and renewal has not replaced it. Clients are refusing this server's TLS. Check the error log for the last renewal attempt: the usual cause is that the CA can no longer reach this server on the http-01 challenge port." xml:space="preserve">
     <value>Myönnetty varmenne VANHENI {0}, {1} päivää sitten, eikä uusinta ole korvannut sitä. Asiakkaat hylkäävät tämän palvelimen TLS:n. Tarkista virhelokista viimeisin uusintayritys: tavallinen syy on, että CA ei enää tavoita tätä palvelinta http-01-haasteportissa.</value>
   </data>
@@ -10810,6 +10897,9 @@ ei voitu ladata. Viesti on todennäköisesti toimitettu eikä ole enää jonossa
   <data name="The per-protocol idle timeouts decide how long a connection may sit doing nothing before it is closed." xml:space="preserve">
     <value>Protokollakohtaiset joutoajan aikakatkaisut päättävät, kuinka kauan yhteys saa olla tekemättä mitään, ennen kuin se suljetaan.</value>
   </data>
+  <data name="The permission is inherited from {0}; the command stops the folder inheriting it." xml:space="preserve">
+    <value>Käyttöoikeus periytyy kohteesta {0}; komento lopettaa sen periytymisen kansioon.</value>
+  </data>
   <data name="The person's data" xml:space="preserve">
     <value>Henkilön tiedot</value>
   </data>
@@ -10895,6 +10985,9 @@ Lisätäänkö silti?</value>
   </data>
   <data name="The relay requires _authentication" xml:space="preserve">
     <value>Välityspalvelin vaatii _todennuksen</value>
+  </data>
+  <data name="The release on offer, {0}, is not a version this Control Panel installs." xml:space="preserve">
+    <value>Tarjottu versio {0} ei ole versio, jonka tämä Control Panel asentaa.</value>
   </data>
   <data name="The resolver is not answering: look in the TCP/IP log for &quot;DNS - Query timed out&quot;. Do not reach for DNSServer as the fix - leave it empty unless you need a specific resolver." xml:space="preserve">
     <value>Nimiselvitin ei vastaa: etsi TCP/IP-lokista merkintää "DNS - Query timed out". Älä tartu DNSServer-asetukseen ratkaisuna - jätä se tyhjäksi, ellet tarvitse tiettyä nimiselvitintä.</value>
@@ -11012,6 +11105,9 @@ Tähän vastaa palvelimen oma nimiselvitin - sama, jota SMTP-toimitus käyttää
   <data name="The server keeps no history: MetricsHistoryDays is 0 in hMailServer.ini. Set it to the days to keep." xml:space="preserve">
     <value>Palvelin ei säilytä historiaa: MetricsHistoryDays on 0 hMailServer.ini-tiedostossa. Aseta se säilytettävien päivien määräksi.</value>
   </data>
+  <data name="The server no longer accepts new connections; the mail in progress is finishing." xml:space="preserve">
+    <value>Palvelin ei enää ota vastaan uusia yhteyksiä; käynnissä oleva posti viedään loppuun.</value>
+  </data>
   <data name="The server remembers who has written to each account and who each account has written to, and says so in the reader the first time an outside sender appears. It costs one database lookup for each message delivered to this domain, and nothing at all while this is off." xml:space="preserve">
     <value>Palvelin muistaa, kuka on kirjoittanut kullekin tilille ja kenelle kukin tili on kirjoittanut, ja kertoo siitä lukijassa, kun ulkopuolinen lähettäjä ilmestyy ensimmäisen kerran. Se maksaa yhden tietokantahaun jokaista tälle toimialueelle toimitettua viestiä kohden, eikä yhtään mitään silloin kun tämä on pois päältä.</value>
   </data>
@@ -11053,6 +11149,9 @@ Tähän vastaa palvelimen oma nimiselvitin - sama, jota SMTP-toimitus käyttää
   </data>
   <data name="The service account cannot be read: {0}" xml:space="preserve">
     <value>Palvelutiliä ei voi lukea: {0}</value>
+  </data>
+  <data name="The service did not prepare the install: {0}" xml:space="preserve">
+    <value>Palvelu ei valmistellut asennusta: {0}</value>
   </data>
   <data name="The service is registered to log on as {0} from its next start. Restart the hMailServer service - in services.msc, or with net stop hMailServer and net start hMailServer - for it to take effect.&#10;&#10;{1}" xml:space="preserve">
     <value>Palvelu on rekisteröity kirjautumaan tilinä {0} seuraavasta käynnistyksestä alkaen. Käynnistä hMailServer-palvelu uudelleen - services.msc-työkalussa tai komennoilla net stop hMailServer ja net start hMailServer - jotta muutos tulee voimaan.
@@ -11136,6 +11235,12 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="The update step could not be run: {0}" xml:space="preserve">
     <value>Päivitysvaihetta ei voitu ajaa: {0}</value>
   </data>
+  <data name="The update was not installed: {0}" xml:space="preserve">
+    <value>Päivitystä ei asennettu: {0}</value>
+  </data>
+  <data name="The update was stopped; nothing was installed." xml:space="preserve">
+    <value>Päivitys pysäytettiin; mitään ei asennettu.</value>
+  </data>
   <data name="The user name is trimmed of surrounding spaces; the password deliberately is not, because whitespace is legitimate inside a password." xml:space="preserve">
     <value>Käyttäjänimestä poistetaan ympäröivät välilyönnit; salasanasta tarkoituksella ei, koska välilyönti on sallittu salasanan sisällä.</value>
   </data>
@@ -11150,6 +11255,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="The verification code is incorrect. Make sure your authenticator app is set up with the new key." xml:space="preserve">
     <value>Vahvistuskoodi on väärä. Varmista, että todennussovelluksesi on määritetty uudella avaimella.</value>
+  </data>
+  <data name="The version to go back to" xml:space="preserve">
+    <value>Versio, johon palataan</value>
   </data>
   <data name="The web services settings could not be read: {0}" xml:space="preserve">
     <value>Verkkopalveluiden asetuksia ei voitu lukea: {0}</value>
@@ -11223,6 +11331,12 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="This Control Panel is connected to a remote server, and the key file is on that machine's disk - it cannot be read from this machine, so nothing about it is verified. This is &quot;unknown&quot;, not &quot;OK&quot;: check it on the server itself, or from its Setup checklist page." xml:space="preserve">
     <value>Tämä Control Panel on yhteydessä etäpalvelimeen, ja avaintiedosto on sen koneen levyllä - sitä ei voi lukea tältä koneelta, joten siitä ei ole varmistettu mitään. Tämä on "ei tiedossa", ei "OK": tarkista se itse palvelimella tai sen Käyttöönoton tarkistuslista -sivulta.</value>
   </data>
+  <data name="This Control Panel is connected to {0}, not to the computer it runs on. The hMailServer service on {0} runs as {1}, which cannot run an installer, so updates there are installed by an administrator at that server: open the hMailServer Control Panel on {0} itself and click Install update there." xml:space="preserve">
+    <value>Tämä Control Panel on yhdistetty palvelimeen {0}, ei tietokoneeseen, jossa se toimii. Palvelimen {0} hMailServer-palvelu toimii tilillä {1}, joka ei voi ajaa asennusohjelmaa, joten siellä päivitykset asentaa järjestelmänvalvoja kyseisellä palvelimella: avaa hMailServer Control Panel itse palvelimella {0} ja napsauta siellä Asenna päivitys.</value>
+  </data>
+  <data name="This Control Panel runs from {0}, not from the installation's own Control Panel ({1}). Open the Control Panel there and click Install update." xml:space="preserve">
+    <value>Tätä Control Panelia ajetaan kohteesta {0}, ei asennuksen omasta Control Panelista ({1}). Avaa Control Panel sieltä ja napsauta Asenna päivitys.</value>
+  </data>
   <data name="This account has a photo." xml:space="preserve">
     <value>Tällä tilillä on kuva.</value>
   </data>
@@ -11251,6 +11365,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="This group has no accounts in it, so any permission granted to it currently applies to nobody." xml:space="preserve">
     <value>Tässä ryhmässä ei ole tilejä, joten mikään sille myönnetty käyttöoikeus ei tällä hetkellä koske ketään.</value>
+  </data>
+  <data name="This installation has no {0}, so it cannot install the update itself. Download hMailServer {1} from {2}, check that Get-AuthenticodeSignature reports it Valid and signed by Progressive Robot Ltd, and run it as an administrator." xml:space="preserve">
+    <value>Tästä asennuksesta puuttuu {0}, joten se ei voi asentaa päivitystä itse. Lataa hMailServer {1} osoitteesta {2}, tarkista, että Get-AuthenticodeSignature ilmoittaa sen olevan Valid ja Progressive Robot Ltd:n allekirjoittama, ja aja se järjestelmänvalvojana.</value>
   </data>
   <data name="This is Protocols &gt; SMTP &gt; Host name, the name the server announces in HELO/EHLO on every outbound delivery (Utilities::ComputerName). Ask the IP's owner to make the PTR of your public IP resolve to exactly this name, and publish an A record for this name pointing back at the same IP - receivers check both directions." xml:space="preserve">
     <value>Tämä on Protokollat &gt; SMTP &gt; Konenimi, nimi, jonka palvelin ilmoittaa HELO/EHLO:ssa jokaisessa lähtevässä toimituksessa (Utilities::ComputerName). Pyydä IP-osoitteen omistajaa saamaan julkisen IP-osoitteesi PTR-tietue selviämään täsmälleen tähän nimeen, ja julkaise tälle nimelle A-tietue, joka osoittaa takaisin samaan IP-osoitteeseen - vastaanottajat tarkistavat molemmat suunnat.</value>
@@ -11338,6 +11455,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="This validates against the domain &quot;{0}&quot;. The server's own computer must be joined to it." xml:space="preserve">
     <value>Tämä tarkistaa toimialuetta "{0}" vastaan. Palvelimen oman tietokoneen on oltava liitetty siihen.</value>
+  </data>
+  <data name="This window closes now so that the installer can replace the Control Panel, and opens again when hMailServer is running, in about two minutes. Do not sign out of Windows until it has." xml:space="preserve">
+    <value>Tämä ikkuna sulkeutuu nyt, jotta asennusohjelma voi korvata Control Panelin, ja avautuu uudelleen, kun hMailServer on käynnissä, noin kahden minuutin kuluttua. Älä kirjaudu ulos Windowsista ennen sitä.</value>
   </data>
   <data name="Thread counts, database connections and caching - what to change when the server is slow." xml:space="preserve">
     <value>Säiemäärät, tietokantayhteydet ja välimuisti - mitä muuttaa, kun palvelin on hidas.</value>
@@ -11768,6 +11888,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="Waiting for the old selector to retire" xml:space="preserve">
     <value>Odotetaan vanhan valitsimen poistoa käytöstä</value>
   </data>
+  <data name="Waiting for you to allow hMailServer to make changes, in the Windows prompt." xml:space="preserve">
+    <value>Odotetaan, että sallit Windowsin kehotteessa hMailServerin tehdä muutoksia.</value>
+  </data>
   <data name="Wakes the indexer instead of waiting for its next pass, and reports how many of this server's messages are currently indexed. The pass itself runs in the background and is bounded by the limits above, so on a large backlog it makes progress rather than finishing. With indexing switched off there is no indexer to wake, and this says so rather than reporting success." xml:space="preserve">
     <value>Herättää indeksoijan sen sijaan, että odottaisi sen seuraavaa kierrosta, ja raportoi, kuinka moni tämän palvelimen viesteistä on tällä hetkellä indeksoitu. Itse kierros ajetaan taustalla ja sitä rajaavat yllä olevat rajat, joten suurella ruuhkalla se etenee sen sijaan että valmistuisi. Kun indeksointi on pois käytöstä, herätettävää indeksoijaa ei ole, ja tämä kertoo sen sen sijaan, että raportoisi onnistumisesta.</value>
   </data>
@@ -12194,6 +12317,15 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="Windows _user name" xml:space="preserve">
     <value>Windows-_käyttäjänimi</value>
   </data>
+  <data name="Windows could not start the install: {0}" xml:space="preserve">
+    <value>Windows ei voinut käynnistää asennusta: {0}</value>
+  </data>
+  <data name="Windows did not run it as an administrator" xml:space="preserve">
+    <value>Windows ei ajanut sitä järjestelmänvalvojana</value>
+  </data>
+  <data name="Windows did not start it from this Control Panel" xml:space="preserve">
+    <value>Windows ei käynnistänyt sitä tästä Control Panelista</value>
+  </data>
   <data name="Windows directory" xml:space="preserve">
     <value>Windows-hakemisto</value>
   </data>
@@ -12208,6 +12340,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="Windows service account - a least-privilege account needs granting outside hMailServer" xml:space="preserve">
     <value>Windows-palvelutili - vähimmän oikeuden tilille on myönnettävä oikeudet hMailServerin ulkopuolella</value>
+  </data>
+  <data name="Windows' permission" xml:space="preserve">
+    <value>Windowsin lupa</value>
   </data>
   <data name="Windows: an inbound block rule per banned address in Windows Defender Firewall, TCP only and scoped to the ports this server listens on, in a rule group named hMailServer auto-ban; removed when the ban expires or the IP range is deleted. Linux: the packaged autoban-hook keeps an nftables set with a timeout, and the service needs CAP_NET_ADMIN for it - the hook says exactly how to grant it. List the addresses you administer from under never-ban first." xml:space="preserve">
     <value>Windows: yksi saapuvan liikenteen estosääntö jokaista estettyä osoitetta kohti Windows Defender Firewall -palomuurissa, vain TCP ja vain niille porteille, joita tämä palvelin kuuntelee, sääntöryhmässä nimeltä hMailServer auto-ban; sääntö poistetaan, kun esto vanhenee tai IP-alue poistetaan. Linux: paketin mukana tuleva autoban-hook ylläpitää nftables-joukkoa aikakatkaisulla, ja palvelu tarvitsee siihen CAP_NET_ADMIN-oikeuden - hook kertoo tarkalleen, miten se myönnetään. Kirjaa ensin osoitteet, joista hallinnoit, kohtaan ”älä koskaan estä”.</value>
@@ -12524,6 +12659,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="_Install update" xml:space="preserve">
     <value>_Asenna päivitys</value>
   </data>
+  <data name="_Install without a backup" xml:space="preserve">
+    <value>_Asenna ilman varmuuskopiota</value>
+  </data>
   <data name="_Job title" xml:space="preserve">
     <value>T_ehtävänimike</value>
   </data>
@@ -12761,6 +12899,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="_Start the walk" xml:space="preserve">
     <value>Aloita _kierros</value>
   </data>
+  <data name="_Stop the update" xml:space="preserve">
+    <value>_Pysäytä päivitys</value>
+  </data>
   <data name="_Tag the subject of mail from outside" xml:space="preserve">
     <value>_Merkitse ulkopuolelta tulevan postin aihe</value>
   </data>
@@ -12833,6 +12974,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="a symbol" xml:space="preserve">
     <value>erikoismerkki</value>
   </data>
+  <data name="a trust file hMailServer.INI names may be changed by someone other than the administrators" xml:space="preserve">
+    <value>hMailServer.INI:n nimeämää luottamustiedostoa voi muuttaa joku muu kuin järjestelmänvalvojat</value>
+  </data>
   <data name="a value of its own is needed, or untick it to take the level above." xml:space="preserve">
     <value>oma arvo tarvitaan, tai poista valinta käyttääksesi ylemmän tason arvoa.</value>
   </data>
@@ -12865,6 +13009,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="and {0} more" xml:space="preserve">
     <value>ja {0} lisää</value>
+  </data>
+  <data name="another administrator's install of an update is under way on this server" xml:space="preserve">
+    <value>toisen järjestelmänvalvojan päivityksen asennus on käynnissä tällä palvelimella</value>
   </data>
   <data name="any algorithm this server can verify - it implements RS256, ES256 and HS256 only, and &quot;{0}&quot; names none of them, so every token is refused whatever key material is installed" xml:space="preserve">
     <value>mikä tahansa algoritmi, jonka tämä palvelin voi tarkistaa - se toteuttaa vain RS256:n, ES256:n ja HS256:n, eikä "{0}" nimeä yhtäkään niistä, joten jokainen token hylätään riippumatta siitä, mitä avainmateriaalia on asennettu</value>
@@ -12937,6 +13084,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="check spf dkim and dmarc" xml:space="preserve">
     <value>tarkista spf dkim ja dmarc</value>
+  </data>
+  <data name="checking the downloaded installer" xml:space="preserve">
+    <value>tarkistetaan ladattua asennusohjelmaa</value>
   </data>
   <data name="clamscan.exe path" xml:space="preserve">
     <value>clamscan.exe-polku</value>
@@ -13052,6 +13202,12 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="external account" xml:space="preserve">
     <value>ulkoinen tili</value>
   </data>
+  <data name="failed" xml:space="preserve">
+    <value>epäonnistui</value>
+  </data>
+  <data name="fetching the version to go back to" xml:space="preserve">
+    <value>haetaan versiota, johon palataan</value>
+  </data>
   <data name="file-name pattern" xml:space="preserve">
     <value>tiedostonimikuvio</value>
   </data>
@@ -13060,6 +13216,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="find out why a message bounced" xml:space="preserve">
     <value>selvitä, miksi viesti palautui</value>
+  </data>
+  <data name="finished" xml:space="preserve">
+    <value>valmis</value>
   </data>
   <data name="forward one address to another" xml:space="preserve">
     <value>edelleenlähetä osoite toiseen</value>
@@ -13085,8 +13244,41 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="hMailServer does not create or manage client certificates. The certificate authority and the client certificates themselves must be produced outside hMailServer (for example with OpenSSL or an internal PKI) - the server only trusts the CA bundle it is given here." xml:space="preserve">
     <value>hMailServer ei luo eikä hallitse asiakasvarmenteita. Varmenneviranomainen ja itse asiakasvarmenteet on tuotettava hMailServerin ulkopuolella (esimerkiksi OpenSSL:llä tai sisäisellä PKI:llä) - palvelin luottaa vain tässä annettuun CA-pakettiin.</value>
   </data>
+  <data name="hMailServer has been updated from {0} to {1}, and the service is running. Installed by {2} at {3}." xml:space="preserve">
+    <value>hMailServer on päivitetty versiosta {0} versioon {1}, ja palvelu on käynnissä. Asentaja {2}, aika {3}.</value>
+  </data>
   <data name="hMailServer is free and open source software, licensed under the GNU AGPLv3. This Control Panel is built with WPF-UI (Fluent design) and LiveCharts2 on .NET 10." xml:space="preserve">
     <value>hMailServer on ilmainen ja avoimen lähdekoodin ohjelmisto, lisensoitu GNU AGPLv3:n alla. Tämä Control Panel on rakennettu WPF-UI:lla (Fluent-muotoilu) ja LiveCharts2:lla .NET 10:llä.</value>
+  </data>
+  <data name="hMailServer was updated: {0} Sign in to see the server." xml:space="preserve">
+    <value>hMailServer päivitettiin: {0} Kirjaudu sisään nähdäksesi palvelimen.</value>
+  </data>
+  <data name="hMailServer {0} did not start, and putting {1} back failed too: {2}. Run {3} as an administrator to reinstall {1}. The logs: {4}" xml:space="preserve">
+    <value>hMailServer {0} ei käynnistynyt, ja myös version {1} palauttaminen epäonnistui: {2}. Aja {3} järjestelmänvalvojana asentaaksesi version {1} uudelleen. Lokit: {4}</value>
+  </data>
+  <data name="hMailServer {0} did not start, and there was no earlier installer to put back: {1}. Reinstall hMailServer {2} from its release page as an administrator. The installer's log: {3}" xml:space="preserve">
+    <value>hMailServer {0} ei käynnistynyt, eikä aiempaa asennusohjelmaa ollut palautettavaksi: {1}. Asenna hMailServer {2} uudelleen sen julkaisusivulta järjestelmänvalvojana. Asennusohjelman loki: {3}</value>
+  </data>
+  <data name="hMailServer {0} did not start, so {1} was put back and is running: {2}. The installer's log: {3}" xml:space="preserve">
+    <value>hMailServer {0} ei käynnistynyt, joten {1} palautettiin ja on käynnissä: {2}. Asennusohjelman loki: {3}</value>
+  </data>
+  <data name="hMailServer {0} is ready to be put back if needed." xml:space="preserve">
+    <value>hMailServer {0} on valmiina palautettavaksi tarvittaessa.</value>
+  </data>
+  <data name="hMailServer {0} replaces {1} on this server. Windows asks for an administrator's permission once; after that everything happens by itself. The server stops accepting mail for a minute or two while it restarts, and if {0} does not start, {1} is put back." xml:space="preserve">
+    <value>hMailServer {0} korvaa version {1} tällä palvelimella. Windows pyytää järjestelmänvalvojan luvan kerran; sen jälkeen kaikki tapahtuu itsestään. Palvelin lakkaa ottamasta vastaan postia minuutiksi tai kahdeksi käynnistyessään uudelleen, ja jos {0} ei käynnisty, {1} palautetaan.</value>
+  </data>
+  <data name="hMailServer {0} was not installed: the installer did not pass the check - {1}. Nothing was changed and the server runs as it did. Download it again; if the check fails again, the copy is kept in {2} for inspection." xml:space="preserve">
+    <value>hMailServer {0} -versiota ei asennettu: asennusohjelma ei läpäissyt tarkistusta - {1}. Mitään ei muutettu, ja palvelin toimii kuten ennenkin. Lataa se uudelleen; jos tarkistus epäonnistuu taas, kopio säilytetään kohteessa {2} tutkittavaksi.</value>
+  </data>
+  <data name="hMailServer {0} was not installed: the revocation server {1} could not be reached, so whether the installer's certificate is revoked could not be checked. Nothing was changed. Click Install update again when it can be reached, or install hMailServer {0} by hand." xml:space="preserve">
+    <value>hMailServer {0} -versiota ei asennettu: sulkupalvelimeen {1} ei saatu yhteyttä, joten ei voitu tarkistaa, onko asennusohjelman varmenne suljettu. Mitään ei muutettu. Napsauta Asenna päivitys uudelleen, kun siihen saadaan yhteys, tai asenna hMailServer {0} käsin.</value>
+  </data>
+  <data name="hMailServer {0} was not installed: {1}. Nothing was changed." xml:space="preserve">
+    <value>hMailServer {0} -versiota ei asennettu: {1}. Mitään ei muutettu.</value>
+  </data>
+  <data name="hMailServer {0} was not installed: {1}. hMailServer {2} is still running, unchanged. The installer's log: {3}" xml:space="preserve">
+    <value>hMailServer {0} -versiota ei asennettu: {1}. hMailServer {2} on yhä käynnissä, muuttumattomana. Asennusohjelman loki: {3}</value>
   </data>
   <data name="hMailServer.INI cannot be reached from this computer, so these selections cannot be edited here. Preview and Apply still work: they run inside the server." xml:space="preserve">
     <value>hMailServer.INI-tiedostoon ei päästä tältä tietokoneelta, joten näitä valintoja ei voi muokata täällä. Esikatselu ja Käytä toimivat silti: ne ajetaan palvelimen sisällä.</value>
@@ -13146,6 +13338,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="https://keys.openpgp.org by default. An https address, or http to a keyserver on this machine." xml:space="preserve">
     <value>Oletuksena https://keys.openpgp.org. https-osoite tai http tämän koneen avainpalvelimelle.</value>
   </data>
+  <data name="in progress" xml:space="preserve">
+    <value>käynnissä</value>
+  </data>
   <data name="in use by a listener" xml:space="preserve">
     <value>kuuntelijan käytössä</value>
   </data>
@@ -13185,6 +13380,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="it cross" xml:space="preserve">
     <value>siinä käytetyt salasanat kulkevat</value>
   </data>
+  <data name="it ended with code {0}" xml:space="preserve">
+    <value>se päättyi koodiin {0}</value>
+  </data>
   <data name="it is" xml:space="preserve">
     <value>sen</value>
   </data>
@@ -13193,6 +13391,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="its 1 account" xml:space="preserve">
     <value>sen 1 tili</value>
+  </data>
+  <data name="its work folder was already there" xml:space="preserve">
+    <value>sen työkansio oli jo olemassa</value>
   </data>
   <data name="its {0} accounts" xml:space="preserve">
     <value>sen {0} tiliä</value>
@@ -13317,6 +13518,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="my spam filter blames my own gateway" xml:space="preserve">
     <value>roskapostisuodattimeni syyttää omaa yhdyskäytävääni</value>
   </data>
+  <data name="named in its certificate" xml:space="preserve">
+    <value>(varmenteessa nimetty)</value>
+  </data>
   <data name="neither the issuer (iss) nor the audience (aud) is checked" xml:space="preserve">
     <value>myöntäjää (iss) eikä yleisöä (aud) tarkisteta</value>
   </data>
@@ -13337,6 +13541,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="no search base is set, so there is nowhere to enumerate from" xml:space="preserve">
     <value>hakukantaa ei ole asetettu, joten ei ole mistä luetella</value>
+  </data>
+  <data name="not started" xml:space="preserve">
+    <value>ei aloitettu</value>
   </data>
   <data name="not used by any listener" xml:space="preserve">
     <value>ei minkään kuuntelijan käytössä</value>
@@ -13370,6 +13577,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="quarantined" xml:space="preserve">
     <value>karanteenissa</value>
+  </data>
+  <data name="ready" xml:space="preserve">
+    <value>valmiina</value>
   </data>
   <data name="reject forged bounce messages" xml:space="preserve">
     <value>hylkää väärennetyt palautusviestit</value>
@@ -13473,6 +13683,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="sign outgoing mail with dkim" xml:space="preserve">
     <value>allekirjoita lähtevä posti dkim:llä</value>
   </data>
+  <data name="skipped" xml:space="preserve">
+    <value>ohitettu</value>
+  </data>
   <data name="solid line" xml:space="preserve">
     <value>yhtenäinen viiva</value>
   </data>
@@ -13490,6 +13703,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="syslog (RFC 5424)" xml:space="preserve">
     <value>syslog (RFC 5424)</value>
+  </data>
+  <data name="taking the backup" xml:space="preserve">
+    <value>otetaan varmuuskopiota</value>
   </data>
   <data name="tell everyone about maintenance" xml:space="preserve">
     <value>kerro kaikille huollosta</value>
@@ -13593,8 +13809,14 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="the password must be changed before the next logon" xml:space="preserve">
     <value>salasana on vaihdettava ennen seuraavaa kirjautumista</value>
   </data>
+  <data name="the permissions of the installation changed after the check; click Install update again to see which" xml:space="preserve">
+    <value>asennuksen käyttöoikeudet muuttuivat tarkistuksen jälkeen; napsauta Asenna päivitys uudelleen nähdäksesi mitkä</value>
+  </data>
   <data name="the private key" xml:space="preserve">
     <value>yksityinen avain</value>
+  </data>
+  <data name="the program Windows was asked to run is not the one the hMailServer service is registered with, or was given something it does not take" xml:space="preserve">
+    <value>ohjelma, jota Windowsia pyydettiin ajamaan, ei ole se, jolla hMailServer-palvelu on rekisteröity, tai se sai jotain, mitä se ei ota vastaan</value>
   </data>
   <data name="the sender's SPF check passed" xml:space="preserve">
     <value>lähettäjän SPF-tarkistus läpäistiin</value>
@@ -13640,6 +13862,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="them is" xml:space="preserve">
     <value>niiden</value>
+  </data>
+  <data name="there is less than 1 GB free on the installation's drive" xml:space="preserve">
+    <value>asennuksen asemalla on vapaata alle 1 Gt</value>
   </data>
   <data name="this secret" xml:space="preserve">
     <value>tämä salaisuus</value>
@@ -13892,6 +14117,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="{0} is on the suppression list of {1}." xml:space="preserve">
     <value>{0} on verkkotunnuksen {1} estolistalla.</value>
+  </data>
+  <data name="{0} is ready to be installed; the install goes on in its window" xml:space="preserve">
+    <value>{0} on valmis asennettavaksi; asennus jatkuu omassa ikkunassaan</value>
   </data>
   <data name="{0} is switched on but cannot run. {1} Every scan it is asked for fails, and a failed scan is not a failed message: the error is logged and the message is delivered as though it had been examined and found clean." xml:space="preserve">
     <value>{0} on kytketty päälle, mutta ei voi toimia. {1} Jokainen siltä pyydetty skannaus epäonnistuu, eikä epäonnistunut skannaus ole epäonnistunut viesti: virhe kirjataan lokiin ja viesti toimitetaan kuin se olisi tutkittu ja todettu puhtaaksi.</value>

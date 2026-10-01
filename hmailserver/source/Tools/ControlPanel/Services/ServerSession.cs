@@ -197,6 +197,31 @@ namespace hMailServer.ControlPanel.Services
       /// </summary>
       public bool SecondFactorRequired { get; private set; }
 
+      /// <summary>
+      /// Whether this session was signed in with a one-time code as well as the
+      /// password. Such a sign-in cannot be carried across an administrator's install
+      /// of an update (AfterUpdateHandoff): the code is spent.
+      /// </summary>
+      public bool UsedSecondFactor { get; private set; }
+
+      /// <summary>
+      /// Writes the sign-in handoff for the Control Panel that opens again after an
+      /// administrator's install (AfterUpdateHandoff), from inside, so that the
+      /// password is revealed only here and only for that.
+      /// </summary>
+      public bool WriteAfterUpdateHandoff(string workId, byte[] entropy, out string error)
+      {
+         lock (gate_)
+         {
+            if (password_ == null || UsedSecondFactor)
+            {
+               error = "no password to carry"; // no-loc: a log line
+               return false;
+            }
+            return AfterUpdateHandoff.Write(workId, Host, UserName, password_.Reveal(), entropy, out error);
+         }
+      }
+
       public bool Connect(string host, string userName, string password, out string error)
       {
          return Connect(host, userName, password, null, out error);
@@ -246,6 +271,7 @@ namespace hMailServer.ControlPanel.Services
          }
 
          SecondFactorRequired = false;
+         UsedSecondFactor = !string.IsNullOrEmpty(code);
 
          lock (gate_)
          {

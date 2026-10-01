@@ -186,8 +186,19 @@ namespace hMailServer.ControlPanel
             }
          };
 
-         // Optional auto-connect: hMailCP.exe /connect <host> <user> <password>
+         // Opened again by hMailServer.Updater after an administrator's install of an
+         // update (docs/ServiceAccount.md, "The live update"): sign in with the
+         // handoff the Control Panel that closed for the installer wrote, and show
+         // the outcome - or the sign-in page with it, where there is no handoff.
          string[] args = Environment.GetCommandLineArgs();
+         int afterUpdate = Array.IndexOf(args, "--after-update"); // no-loc: a switch
+         if (afterUpdate >= 0 && args.Length > afterUpdate + 1 && AdministratorUpdate.IsWorkId(args[afterUpdate + 1]))
+         {
+            string workId = args[afterUpdate + 1];
+            Loaded += async (s, e) => await ResumeAfterUpdate_(workId);
+         }
+
+         // Optional auto-connect: hMailCP.exe /connect <host> <user> <password>
          int flag = Array.IndexOf(args, "/connect");
          if (flag >= 0 && args.Length >= flag + 4)
          {
@@ -201,6 +212,55 @@ namespace hMailServer.ControlPanel
                }
             };
          }
+      }
+
+      private async System.Threading.Tasks.Task ResumeAfterUpdate_(string workId)
+      {
+         // The installation as the service manager has it - where the stage wrote -
+         // or else the one this program is in.
+         string installation;
+         if (!AdministratorUpdate.InstallationFrom(WindowsServiceInfo.ExecutableFrom(WindowsServiceInfo.Query().PathName), out installation))
+            installation = System.IO.Path.GetDirectoryName(System.IO.Path.GetDirectoryName(Environment.ProcessPath ?? ""));
+         if (string.IsNullOrEmpty(installation))
+            return;
+         string work = AdministratorUpdate.WorkFolder(installation, workId);
+
+         AdministratorUpdate.Outcome outcome = AdministratorUpdate.ParseOutcome(AdministratorUpdate.ReadShared(System.IO.Path.Combine(work, "outcome.txt")));
+         byte[] entropy = AfterUpdateHandoff.ReadEntropy(work);
+         AfterUpdateHandoff.DeleteEntropy(work);
+         bool handedOver = AfterUpdateHandoff.TryRead(workId, entropy, out string host, out string user, out string password);
+         if (entropy != null)
+            Array.Clear(entropy, 0, entropy.Length);
+
+         string banner = outcome != null ? AdministratorUpdate.SignInBanner(outcome) : null;
+         StatusLevel level = outcome != null ? AdministratorUpdate.LevelOf(outcome) : StatusLevel.Normal;
+         if (!handedOver)
+         {
+            ContentHost.Content = new ConnectView(OnConnected, banner, level);
+            return;
+         }
+
+         // The service may still be starting: tried for a minute.
+         var session = new ServerSession();
+         bool connected = false;
+         for (int attempt = 0; attempt < 20 && !connected; attempt++)
+         {
+            connected = session.Connect(host, user, password, out _);
+            if (!connected)
+               await System.Threading.Tasks.Task.Delay(3000);
+         }
+         password = null;
+         if (!connected)
+         {
+            ContentHost.Content = new ConnectView(OnConnected, banner, level);
+            return;
+         }
+
+         ServerSession.SetCurrent(session);
+         OnConnected();
+         NavigateTo("status"); // no-loc: a page key
+         if (outcome != null && ContentHost.Content is StatusView status)
+            status.ShowInstallOutcome(outcome);
       }
 
       private void RegisterPages()

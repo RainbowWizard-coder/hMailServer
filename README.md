@@ -365,15 +365,20 @@ refuse the newer schema and the outcome says so. Take a backup before an update
 that moves the schema; the notes of every release say whether it does.
 
 **Under a service account that is not an administrator** - the virtual account
-`NT SERVICE\hMailServer` a new installation runs as - the apply is refused before
-any of that happens: the helper would run the installer as the service's account,
-and the installer takes an administrator. The update is still checked, downloaded
-and verified, and the refusal tells an administrator to download the installer
-from the release page, check its Authenticode signature and run it - never the
-copy in `Data\Updates`, which the service can write; an unattended window says so once in the error log
-(HM7463) rather than taking a backup for nothing. No SYSTEM task stands in for it,
-for the reason [docs/ServiceAccount.md](hmailserver/docs/ServiceAccount.md#the-live-update)
-gives.
+`NT SERVICE\hMailServer` a new installation runs as - the service cannot run the
+installer itself, since the installer takes an administrator. From 6.3.6 an
+administrator installs the update with one click on Install update in the Control
+Panel on the server: it asks Windows for permission once, copies the installer out
+of the service's reach and checks it itself - its Authenticode signature by the
+publisher that signed the installed hMailServer.exe, its Sigstore bundle, a newer
+version for this architecture - before it runs it; the service backs up and drains
+first as an unattended apply does
+([docs/ServiceAccount.md](hmailserver/docs/ServiceAccount.md#the-live-update)). The
+Control Deck and the REST API, which cannot be elevated on the server, say so. An
+unattended window still says once in the error log (HM7463) that it cannot install,
+rather than taking a backup for nothing. A 6.3.4 or 6.3.5 server takes 6.3.6 by
+hand once: download the installer from the release page, check its signature and
+run it - never the copy in `Data\Updates`, which the service can write.
 
 It is off until you opt in, because a server must not call out to anyone until its
 administrator says it may; when it is on, the request is a plain `GET` of the

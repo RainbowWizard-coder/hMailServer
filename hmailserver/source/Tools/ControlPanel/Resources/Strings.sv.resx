@@ -1409,6 +1409,9 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   <data name="Allow plain-text authentication (AUTH PLAIN/LOGIN)" xml:space="preserve">
     <value>Tillåt autentisering i klartext (AUTH PLAIN/LOGIN)</value>
   </data>
+  <data name="Allowed as {0}." xml:space="preserve">
+    <value>Tillåtet som {0}.</value>
+  </data>
   <data name="Allowed signing algorithms (comma separated)" xml:space="preserve">
     <value>Tillåtna signeringsalgoritmer (kommaseparerade)</value>
   </data>
@@ -1517,6 +1520,9 @@ Alla detaljer skrevs till:
 {1}
 
 Starta om Kontrollpanelen nu? Välj Nej för att försöka fortsätta arbeta.</value>
+  </data>
+  <data name="An update is already being installed on this server: hMailServer {0}, started at {1} by {2}." xml:space="preserve">
+    <value>En uppdatering installeras redan på den här servern: hMailServer {0}, startad {1} av {2}.</value>
   </data>
   <data name="And this is the server's own verdict on what you have built. It is the page to come back to." xml:space="preserve">
     <value>Och detta är serverns egen dom över det du har byggt. Det är sidan att komma tillbaka till.</value>
@@ -1695,6 +1701,9 @@ Starta om Kontrollpanelen nu? Välj Nej för att försöka fortsätta arbeta.</v
   <data name="Ask a keyserver when their domain has no key" xml:space="preserve">
     <value>Fråga en nyckelserver när deras domän saknar nyckel</value>
   </data>
+  <data name="Asking the service to take the backup." xml:space="preserve">
+    <value>Tjänsten ombeds ta säkerhetskopian.</value>
+  </data>
   <data name="Asks for a confirmation" xml:space="preserve">
     <value>Kräver en bekräftelse</value>
   </data>
@@ -1868,6 +1877,15 @@ Starta om Kontrollpanelen nu? Välj Nej för att försöka fortsätta arbeta.</v
   </data>
   <data name="Back_up file (HMBackup*.xml on the server)" xml:space="preserve">
     <value>Säkerhetskopierings_fil (HMBackup*.xml på servern)</value>
+  </data>
+  <data name="Backed up to {0}." xml:space="preserve">
+    <value>Säkerhetskopierat till {0}.</value>
+  </data>
+  <data name="Backing up" xml:space="preserve">
+    <value>Säkerhetskopiering</value>
+  </data>
+  <data name="Backing up to {0}." xml:space="preserve">
+    <value>Säkerhetskopierar till {0}.</value>
   </data>
   <data name="Backlog" xml:space="preserve">
     <value>Eftersläpning</value>
@@ -2310,8 +2328,14 @@ Starta om Kontrollpanelen nu? Välj Nej för att försöka fortsätta arbeta.</v
   <data name="Checked shortly after the service starts and every six hours after that. Only hMailServer's own dated log files (hmailserver_*.log and ERROR_hmailserver_*.log) are removed; nothing else in the log folder is touched." xml:space="preserve">
     <value>Kontrolleras kort efter att tjänsten startar och var sjätte timme därefter. Bara hMailServers egna daterade loggfiler (hmailserver_*.log och ERROR_hmailserver_*.log) tas bort; inget annat i loggmappen rörs.</value>
   </data>
+  <data name="Checking the installer" xml:space="preserve">
+    <value>Kontroll av installationsprogrammet</value>
+  </data>
   <data name="Checking what this server still needs done outside it…" xml:space="preserve">
     <value>Kontrollerar vad den här servern fortfarande behöver få gjort utanför sig själv…</value>
+  </data>
+  <data name="Checking {0}: its signature, its record in the Sigstore transparency log, its version and its architecture." xml:space="preserve">
+    <value>Kontrollerar {0}: dess signatur, dess post i Sigstores transparenslogg, dess version och dess arkitektur.</value>
   </data>
   <data name="Checking…" xml:space="preserve">
     <value>Kontrollerar…</value>
@@ -4302,6 +4326,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Fetches the newer release's installer and verifies it against its Sigstore bundle before keeping it. The Control Panel waits while it does; an installer is tens of megabytes." xml:space="preserve">
     <value>Hämtar den nyare versionens installationsprogram och verifierar det mot dess Sigstore-paket innan det behålls. Kontrollpanelen väntar under tiden; ett installationsprogram är tiotals megabyte.</value>
   </data>
+  <data name="Fetching and checking the hMailServer {0} installer, to put back if {1} does not start." xml:space="preserve">
+    <value>Hämtar och kontrollerar installationsprogrammet för hMailServer {0}, för att lägga tillbaka om {1} inte startar.</value>
+  </data>
   <data name="Fetching {0}…" xml:space="preserve">
     <value>Hämtar {0}…</value>
   </data>
@@ -5047,6 +5074,24 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
     <value>Installera uppdateringen nu?
 
 Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen: tjänsten stoppas, den nya versionen installeras och tjänsten startas igen. Om den inte kommer tillbaka installeras den tidigare versionen om. Den här Kontrollpanelen tappar sin anslutning under tiden; anslut igen efteråt för att se resultatet här.</value>
+  </data>
+  <data name="Install update" xml:space="preserve">
+    <value>Installera uppdatering</value>
+  </data>
+  <data name="Install update stopped before anything was changed: the permissions of {0} could not be checked ({1})." xml:space="preserve">
+    <value>Installera uppdatering stoppades innan något ändrades: behörigheterna för {0} kunde inte kontrolleras ({1}).</value>
+  </data>
+  <data name="Install update stopped before anything was changed: {0} can be changed by {1} ({2}). A program run from there as an administrator could be one that account put there. Remove that permission - from a Command Prompt run as administrator: {3} - and click Install update again." xml:space="preserve">
+    <value>Installera uppdatering stoppades innan något ändrades: {0} kan ändras av {1} ({2}). Ett program som körs därifrån som administratör kan vara ett som det kontot har lagt dit. Ta bort den behörigheten - från en kommandotolk som körs som administratör: {3} - och klicka på Installera uppdatering igen.</value>
+  </data>
+  <data name="Install update stopped before anything was changed: {0}." xml:space="preserve">
+    <value>Installera uppdatering stoppades innan något ändrades: {0}.</value>
+  </data>
+  <data name="Installing" xml:space="preserve">
+    <value>Installation</value>
+  </data>
+  <data name="Installing hMailServer {0}" xml:space="preserve">
+    <value>Installerar hMailServer {0}</value>
   </data>
   <data name="Installing {0}: the service will stop and start" xml:space="preserve">
     <value>Installerar {0}: tjänsten kommer att stoppas och startas</value>
@@ -6279,6 +6324,15 @@ Inget som redan finns där tas bort.</value>
   <data name="No backup destination is set." xml:space="preserve">
     <value>Inget mål för säkerhetskopior är angivet.</value>
   </data>
+  <data name="No backup first: UpdateBackupBeforeApply is off." xml:space="preserve">
+    <value>Ingen säkerhetskopia först: UpdateBackupBeforeApply är av.</value>
+  </data>
+  <data name="No backup first: no backup destination is set (Backup &amp; restore). A rollback puts the previous program back, not the database." xml:space="preserve">
+    <value>Ingen säkerhetskopia först: inget mål för säkerhetskopiering är angivet (Säkerhetskopiering &amp; återställning). En återställning lägger tillbaka det tidigare programmet, inte databasen.</value>
+  </data>
+  <data name="No backup first: you chose to install without one." xml:space="preserve">
+    <value>Ingen säkerhetskopia först: du valde att installera utan.</value>
+  </data>
   <data name="No backup has ever completed into {0} - there is no HMBackup archive there." xml:space="preserve">
     <value>Ingen säkerhetskopiering har någonsin slutförts till {0} - det finns inget HMBackup-arkiv där.</value>
   </data>
@@ -6492,6 +6546,9 @@ Inget som redan finns där tas bort.</value>
   <data name="No syntax errors reported." xml:space="preserve">
     <value>Inga syntaxfel rapporterade.</value>
   </data>
+  <data name="No verified installer is waiting; check for updates and download it first." xml:space="preserve">
+    <value>Inget verifierat installationsprogram väntar; sök efter uppdateringar och hämta det först.</value>
+  </data>
   <data name="No virus scanner can run. Attachment blocking still strips the file-name patterns on its own page, but nothing looks inside a message or inside an archive." xml:space="preserve">
     <value>Ingen virusskanner kan köras. Bilageblockering tar fortfarande bort filnamnsmönstren på sin egen sida, men inget tittar inuti ett meddelande eller inuti ett arkiv.</value>
   </data>
@@ -6530,6 +6587,9 @@ Inget som redan finns där tas bort.</value>
   </data>
   <data name="None." xml:space="preserve">
     <value>Inga.</value>
+  </data>
+  <data name="None: {0}. If {1} does not start, it will need reinstalling by hand." xml:space="preserve">
+    <value>Ingen: {0}. Om {1} inte startar måste det installeras om för hand.</value>
   </data>
   <data name="Normal" xml:space="preserve">
     <value>Normal</value>
@@ -7495,6 +7555,9 @@ Inga nya anslutningar tas emot och ingen post levereras förrän den återupptas
   </data>
   <data name="Prefer server cipher order" xml:space="preserve">
     <value>Föredra serverns chifferordning</value>
+  </data>
+  <data name="Preparing the install of {0}: {1}" xml:space="preserve">
+    <value>Förbereder installationen av {0}: {1}</value>
   </data>
   <data name="Prepend text to subject" xml:space="preserve">
     <value>Lägg till text före ämnet</value>
@@ -9631,6 +9694,9 @@ Starta om den nu?</value>
   <data name="Signature _method" xml:space="preserve">
     <value>Signatur_metod</value>
   </data>
+  <data name="Signed by {0} and recorded in the Sigstore log at {1}; version {2}, {3}." xml:space="preserve">
+    <value>Signerat av {0} och registrerat i Sigstore-loggen {1}; version {2}, {3}.</value>
+  </data>
   <data name="Signing _algorithm" xml:space="preserve">
     <value>Signeringsalgorit_m</value>
   </data>
@@ -9832,11 +9898,20 @@ Starta om den nu?</value>
   <data name="Stop the spam" xml:space="preserve">
     <value>Stoppa skräpposten</value>
   </data>
+  <data name="Stop the update? Nothing has been installed yet." xml:space="preserve">
+    <value>Avbryta uppdateringen? Inget har installerats än.</value>
+  </data>
   <data name="Stopped" xml:space="preserve">
     <value>Stoppad</value>
   </data>
   <data name="Stopping" xml:space="preserve">
     <value>Stoppar</value>
+  </data>
+  <data name="Stopping new connections" xml:space="preserve">
+    <value>Stoppar nya anslutningar</value>
+  </data>
+  <data name="Stopping…" xml:space="preserve">
+    <value>Stoppar…</value>
   </data>
   <data name="Stops mattering at a date" xml:space="preserve">
     <value>Slutar gälla ett datum</value>
@@ -10281,6 +10356,9 @@ Nästa meddelande till adressen skickas, och den hamnar på listan igen först e
   <data name="The TCP/IP port list could not be read - {0}" xml:space="preserve">
     <value>Listan över TCP/IP-portar kunde inte läsas - {0}</value>
   </data>
+  <data name="The Windows prompt was declined, so nothing was installed and nothing on the server was changed." xml:space="preserve">
+    <value>Windows-frågan avböjdes, så inget installerades och inget ändrades på servern.</value>
+  </data>
   <data name="The _HELO name's domain, on the domain white and black list" xml:space="preserve">
     <value>HELO-_namnets domän, i vit- och svartlistan för domäner</value>
   </data>
@@ -10358,6 +10436,9 @@ Nästa meddelande till adressen skickas, och den hamnar på listan igen först e
   </data>
   <data name="The authserv-id: the first token of every Authentication-Results header this server writes, always lower-cased, and the name a downstream filter checks before trusting the verdicts. The same name decides which arriving Authentication-Results headers are treated as forged: one claiming this identity is removed, while one naming any other identity is left completely untouched." xml:space="preserve">
     <value>Authserv-id:t: det första ordet i varje Authentication-Results-rubrik den här servern skriver, alltid i gemener, och det namn ett filter längre fram kontrollerar innan det litar på domarna. Samma namn avgör vilka inkommande Authentication-Results-rubriker som behandlas som förfalskade: en som utger sig för den här identiteten tas bort, medan en som namnger någon annan identitet lämnas helt orörd.</value>
+  </data>
+  <data name="The backup before the update failed: {0}. See the backup log. Install hMailServer {1} without a backup? A rollback would put {2} back, but not the database as it was." xml:space="preserve">
+    <value>Säkerhetskopieringen före uppdateringen misslyckades: {0}. Se säkerhetskopieringsloggen. Installera hMailServer {1} utan säkerhetskopia? En återställning skulle lägga tillbaka {2}, men inte databasen som den var.</value>
   </data>
   <data name="The backup destination {0} does not exist on the server." xml:space="preserve">
     <value>Målet för säkerhetskopior {0} finns inte på servern.</value>
@@ -10621,6 +10702,12 @@ kunde inte läsas in. Meddelandet har troligen levererats och finns inte längre
   <data name="The indexer has been asked to run; it works in the background and the counts below will not move until it has. As things stand:" xml:space="preserve">
     <value>Indexeraren har ombetts köra; den arbetar i bakgrunden och siffrorna nedan rör sig inte förrän den har gjort det. Som det ser ut nu:</value>
   </data>
+  <data name="The install of hMailServer {0} was cancelled: {1}" xml:space="preserve">
+    <value>Installationen av hMailServer {0} avbröts: {1}</value>
+  </data>
+  <data name="The install's outcome could not be read." xml:space="preserve">
+    <value>Installationens resultat kunde inte läsas.</value>
+  </data>
   <data name="The issued certificate EXPIRED on {0}, {1} days ago, and renewal has not replaced it. Clients are refusing this server's TLS. Check the error log for the last renewal attempt: the usual cause is that the CA can no longer reach this server on the http-01 challenge port." xml:space="preserve">
     <value>Det utfärdade certifikatet GICK UT {0}, för {1} dagar sedan, och förnyelsen har inte ersatt det. Klienter avvisar den här serverns TLS. Kontrollera felloggen för det senaste förnyelseförsöket: den vanliga orsaken är att CA:n inte längre kan nå den här servern på porten för http-01-utmaningar.</value>
   </data>
@@ -10810,6 +10897,9 @@ kunde inte läsas in. Meddelandet har troligen levererats och finns inte längre
   <data name="The per-protocol idle timeouts decide how long a connection may sit doing nothing before it is closed." xml:space="preserve">
     <value>Inaktivitetsgränserna per protokoll avgör hur länge en anslutning får sitta utan att göra något innan den stängs.</value>
   </data>
+  <data name="The permission is inherited from {0}; the command stops the folder inheriting it." xml:space="preserve">
+    <value>Behörigheten ärvs från {0}; kommandot gör att mappen slutar ärva den.</value>
+  </data>
   <data name="The person's data" xml:space="preserve">
     <value>Personens uppgifter</value>
   </data>
@@ -10895,6 +10985,9 @@ Lägg till det ändå?</value>
   </data>
   <data name="The relay requires _authentication" xml:space="preserve">
     <value>Relät kräver a_utentisering</value>
+  </data>
+  <data name="The release on offer, {0}, is not a version this Control Panel installs." xml:space="preserve">
+    <value>Den erbjudna versionen, {0}, är ingen version som den här Kontrollpanelen installerar.</value>
   </data>
   <data name="The resolver is not answering: look in the TCP/IP log for &quot;DNS - Query timed out&quot;. Do not reach for DNSServer as the fix - leave it empty unless you need a specific resolver." xml:space="preserve">
     <value>Resolvern svarar inte: leta i TCP/IP-loggen efter "DNS - Query timed out". Ta inte till DNSServer som lösning - lämna den tom om du inte behöver en specifik resolver.</value>
@@ -11012,6 +11105,9 @@ Det är serverns egen resolver som svarar - samma som SMTP-leveransen använder,
   <data name="The server keeps no history: MetricsHistoryDays is 0 in hMailServer.ini. Set it to the days to keep." xml:space="preserve">
     <value>Servern sparar ingen historik: MetricsHistoryDays är 0 i hMailServer.ini. Sätt det till antalet dagar att behålla.</value>
   </data>
+  <data name="The server no longer accepts new connections; the mail in progress is finishing." xml:space="preserve">
+    <value>Servern tar inte längre emot nya anslutningar; e-posten som pågår avslutas.</value>
+  </data>
   <data name="The server remembers who has written to each account and who each account has written to, and says so in the reader the first time an outside sender appears. It costs one database lookup for each message delivered to this domain, and nothing at all while this is off." xml:space="preserve">
     <value>Servern minns vem som har skrivit till varje konto och vem varje konto har skrivit till, och säger det i läsaren första gången en avsändare utifrån dyker upp. Det kostar en databasuppslagning för varje meddelande som levereras till den här domänen, och ingenting alls medan det är avstängt.</value>
   </data>
@@ -11053,6 +11149,9 @@ Det är serverns egen resolver som svarar - samma som SMTP-leveransen använder,
   </data>
   <data name="The service account cannot be read: {0}" xml:space="preserve">
     <value>Tjänstekontot kan inte läsas: {0}</value>
+  </data>
+  <data name="The service did not prepare the install: {0}" xml:space="preserve">
+    <value>Tjänsten förberedde inte installationen: {0}</value>
   </data>
   <data name="The service is registered to log on as {0} from its next start. Restart the hMailServer service - in services.msc, or with net stop hMailServer and net start hMailServer - for it to take effect.&#10;&#10;{1}" xml:space="preserve">
     <value>Tjänsten är registrerad att logga in som {0} från nästa start. Starta om hMailServer-tjänsten - i services.msc, eller med net stop hMailServer och net start hMailServer - för att det ska börja gälla.
@@ -11136,6 +11235,12 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="The update step could not be run: {0}" xml:space="preserve">
     <value>Uppdateringssteget kunde inte köras: {0}</value>
   </data>
+  <data name="The update was not installed: {0}" xml:space="preserve">
+    <value>Uppdateringen installerades inte: {0}</value>
+  </data>
+  <data name="The update was stopped; nothing was installed." xml:space="preserve">
+    <value>Uppdateringen avbröts; inget installerades.</value>
+  </data>
   <data name="The user name is trimmed of surrounding spaces; the password deliberately is not, because whitespace is legitimate inside a password." xml:space="preserve">
     <value>Användarnamnet rensas från omgivande mellanslag; lösenordet gör det avsiktligt inte, eftersom blanktecken är legitima i ett lösenord.</value>
   </data>
@@ -11150,6 +11255,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="The verification code is incorrect. Make sure your authenticator app is set up with the new key." xml:space="preserve">
     <value>Verifieringskoden är felaktig. Se till att din autentiseringsapp är inställd med den nya nyckeln.</value>
+  </data>
+  <data name="The version to go back to" xml:space="preserve">
+    <value>Versionen att gå tillbaka till</value>
   </data>
   <data name="The web services settings could not be read: {0}" xml:space="preserve">
     <value>Webbtjänstinställningarna kunde inte läsas: {0}</value>
@@ -11223,6 +11331,12 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="This Control Panel is connected to a remote server, and the key file is on that machine's disk - it cannot be read from this machine, so nothing about it is verified. This is &quot;unknown&quot;, not &quot;OK&quot;: check it on the server itself, or from its Setup checklist page." xml:space="preserve">
     <value>Den här Kontrollpanelen är ansluten till en fjärrserver, och nyckelfilen finns på den datorns disk - den kan inte läsas från den här datorn, så inget om den är verifierat. Det här är "okänt", inte "OK": kontrollera den på själva servern, eller från dess sida Konfigurationschecklista.</value>
   </data>
+  <data name="This Control Panel is connected to {0}, not to the computer it runs on. The hMailServer service on {0} runs as {1}, which cannot run an installer, so updates there are installed by an administrator at that server: open the hMailServer Control Panel on {0} itself and click Install update there." xml:space="preserve">
+    <value>Den här Kontrollpanelen är ansluten till {0}, inte till datorn den körs på. hMailServer-tjänsten på {0} körs som {1}, som inte kan köra ett installationsprogram, så där installeras uppdateringar av en administratör vid den servern: öppna hMailServer Kontrollpanel på {0} självt och klicka på Installera uppdatering där.</value>
+  </data>
+  <data name="This Control Panel runs from {0}, not from the installation's own Control Panel ({1}). Open the Control Panel there and click Install update." xml:space="preserve">
+    <value>Den här Kontrollpanelen körs från {0}, inte från installationens egen Kontrollpanel ({1}). Öppna Kontrollpanelen där och klicka på Installera uppdatering.</value>
+  </data>
   <data name="This account has a photo." xml:space="preserve">
     <value>Det här kontot har ett foto.</value>
   </data>
@@ -11251,6 +11365,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   </data>
   <data name="This group has no accounts in it, so any permission granted to it currently applies to nobody." xml:space="preserve">
     <value>Den här gruppen har inga konton, så varje behörighet som getts till den gäller för närvarande ingen.</value>
+  </data>
+  <data name="This installation has no {0}, so it cannot install the update itself. Download hMailServer {1} from {2}, check that Get-AuthenticodeSignature reports it Valid and signed by Progressive Robot Ltd, and run it as an administrator." xml:space="preserve">
+    <value>Den här installationen saknar {0}, så den kan inte installera uppdateringen själv. Hämta hMailServer {1} från {2}, kontrollera att Get-AuthenticodeSignature rapporterar den som Valid och signerad av Progressive Robot Ltd, och kör den som administratör.</value>
   </data>
   <data name="This is Protocols &gt; SMTP &gt; Host name, the name the server announces in HELO/EHLO on every outbound delivery (Utilities::ComputerName). Ask the IP's owner to make the PTR of your public IP resolve to exactly this name, and publish an A record for this name pointing back at the same IP - receivers check both directions." xml:space="preserve">
     <value>Detta är Protokoll &gt; SMTP &gt; Värdnamn, namnet servern annonserar i HELO/EHLO vid varje utgående leverans (Utilities::ComputerName). Be IP-adressens ägare att låta PTR-posten för din publika IP slå upp till exakt det här namnet, och publicera en A-post för det här namnet som pekar tillbaka på samma IP - mottagare kontrollerar båda riktningarna.</value>
@@ -11338,6 +11455,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   </data>
   <data name="This validates against the domain &quot;{0}&quot;. The server's own computer must be joined to it." xml:space="preserve">
     <value>Detta validerar mot domänen "{0}". Serverns egen dator måste vara ansluten till den.</value>
+  </data>
+  <data name="This window closes now so that the installer can replace the Control Panel, and opens again when hMailServer is running, in about two minutes. Do not sign out of Windows until it has." xml:space="preserve">
+    <value>Det här fönstret stängs nu så att installationsprogrammet kan ersätta Kontrollpanelen, och öppnas igen när hMailServer körs, om ungefär två minuter. Logga inte ut från Windows innan dess.</value>
   </data>
   <data name="Thread counts, database connections and caching - what to change when the server is slow." xml:space="preserve">
     <value>Antal trådar, databasanslutningar och cachning - vad som ska ändras när servern är långsam.</value>
@@ -11768,6 +11888,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   <data name="Waiting for the old selector to retire" xml:space="preserve">
     <value>Väntar på att den gamla selektorn ska avvecklas</value>
   </data>
+  <data name="Waiting for you to allow hMailServer to make changes, in the Windows prompt." xml:space="preserve">
+    <value>Väntar på att du i Windows-frågan tillåter hMailServer att göra ändringar.</value>
+  </data>
   <data name="Wakes the indexer instead of waiting for its next pass, and reports how many of this server's messages are currently indexed. The pass itself runs in the background and is bounded by the limits above, so on a large backlog it makes progress rather than finishing. With indexing switched off there is no indexer to wake, and this says so rather than reporting success." xml:space="preserve">
     <value>Väcker indexeraren i stället för att vänta på dess nästa körning, och rapporterar hur många av den här serverns meddelanden som just nu är indexerade. Själva körningen sker i bakgrunden och begränsas av gränserna ovan, så på en stor eftersläpning gör den framsteg snarare än blir klar. Med indexering avstängd finns ingen indexerare att väcka, och detta säger det i stället för att rapportera framgång.</value>
   </data>
@@ -12194,6 +12317,15 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   <data name="Windows _user name" xml:space="preserve">
     <value>Windows-_användarnamn</value>
   </data>
+  <data name="Windows could not start the install: {0}" xml:space="preserve">
+    <value>Windows kunde inte starta installationen: {0}</value>
+  </data>
+  <data name="Windows did not run it as an administrator" xml:space="preserve">
+    <value>Windows körde det inte som administratör</value>
+  </data>
+  <data name="Windows did not start it from this Control Panel" xml:space="preserve">
+    <value>Windows startade det inte från den här Kontrollpanelen</value>
+  </data>
   <data name="Windows directory" xml:space="preserve">
     <value>Windows-katalog</value>
   </data>
@@ -12208,6 +12340,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   </data>
   <data name="Windows service account - a least-privilege account needs granting outside hMailServer" xml:space="preserve">
     <value>Windows-tjänstekonto - ett konto med minsta privilegium måste tilldelas utanför hMailServer</value>
+  </data>
+  <data name="Windows' permission" xml:space="preserve">
+    <value>Windows tillåtelse</value>
   </data>
   <data name="Windows: an inbound block rule per banned address in Windows Defender Firewall, TCP only and scoped to the ports this server listens on, in a rule group named hMailServer auto-ban; removed when the ban expires or the IP range is deleted. Linux: the packaged autoban-hook keeps an nftables set with a timeout, and the service needs CAP_NET_ADMIN for it - the hook says exactly how to grant it. List the addresses you administer from under never-ban first." xml:space="preserve">
     <value>Windows: en inkommande blockeringsregel per avstängd adress i Windows Defender Firewall, endast TCP och bara för de portar den här servern lyssnar på, i en regelgrupp med namnet hMailServer auto-ban; tas bort när avstängningen löper ut eller IP-intervallet raderas. Linux: den medföljande autoban-hook underhåller en nftables-mängd med timeout, och tjänsten behöver CAP_NET_ADMIN för det - hooken förklarar exakt hur det beviljas. Skriv först in adresserna du administrerar från under ”stäng aldrig av”.</value>
@@ -12524,6 +12659,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   <data name="_Install update" xml:space="preserve">
     <value>_Installera uppdatering</value>
   </data>
+  <data name="_Install without a backup" xml:space="preserve">
+    <value>_Installera utan säkerhetskopia</value>
+  </data>
   <data name="_Job title" xml:space="preserve">
     <value>_Befattning</value>
   </data>
@@ -12761,6 +12899,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   <data name="_Start the walk" xml:space="preserve">
     <value>_Starta rundturen</value>
   </data>
+  <data name="_Stop the update" xml:space="preserve">
+    <value>_Avbryt uppdateringen</value>
+  </data>
   <data name="_Tag the subject of mail from outside" xml:space="preserve">
     <value>Märk _ämnet på post utifrån</value>
   </data>
@@ -12833,6 +12974,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   <data name="a symbol" xml:space="preserve">
     <value>ett specialtecken</value>
   </data>
+  <data name="a trust file hMailServer.INI names may be changed by someone other than the administrators" xml:space="preserve">
+    <value>en förtroendefil som hMailServer.INI nämner kan ändras av någon annan än administratörerna</value>
+  </data>
   <data name="a value of its own is needed, or untick it to take the level above." xml:space="preserve">
     <value>ett eget värde behövs, eller avmarkera den för att ta nivån ovanför.</value>
   </data>
@@ -12865,6 +13009,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   </data>
   <data name="and {0} more" xml:space="preserve">
     <value>och {0} till</value>
+  </data>
+  <data name="another administrator's install of an update is under way on this server" xml:space="preserve">
+    <value>en annan administratörs installation av en uppdatering pågår på den här servern</value>
   </data>
   <data name="any algorithm this server can verify - it implements RS256, ES256 and HS256 only, and &quot;{0}&quot; names none of them, so every token is refused whatever key material is installed" xml:space="preserve">
     <value>någon algoritm den här servern kan verifiera - den implementerar bara RS256, ES256 och HS256, och "{0}" namnger ingen av dem, så varje token avvisas oavsett vilket nyckelmaterial som är installerat</value>
@@ -12937,6 +13084,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   </data>
   <data name="check spf dkim and dmarc" xml:space="preserve">
     <value>kontrollera spf dkim och dmarc</value>
+  </data>
+  <data name="checking the downloaded installer" xml:space="preserve">
+    <value>kontrollerar det hämtade installationsprogrammet</value>
   </data>
   <data name="clamscan.exe path" xml:space="preserve">
     <value>Sökväg till clamscan.exe</value>
@@ -13052,6 +13202,12 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   <data name="external account" xml:space="preserve">
     <value>externt konto</value>
   </data>
+  <data name="failed" xml:space="preserve">
+    <value>misslyckades</value>
+  </data>
+  <data name="fetching the version to go back to" xml:space="preserve">
+    <value>hämtar versionen att gå tillbaka till</value>
+  </data>
   <data name="file-name pattern" xml:space="preserve">
     <value>filnamnsmönster</value>
   </data>
@@ -13060,6 +13216,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   </data>
   <data name="find out why a message bounced" xml:space="preserve">
     <value>ta reda på varför ett meddelande studsade</value>
+  </data>
+  <data name="finished" xml:space="preserve">
+    <value>klart</value>
   </data>
   <data name="forward one address to another" xml:space="preserve">
     <value>vidarebefordra en adress till en annan</value>
@@ -13085,8 +13244,41 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   <data name="hMailServer does not create or manage client certificates. The certificate authority and the client certificates themselves must be produced outside hMailServer (for example with OpenSSL or an internal PKI) - the server only trusts the CA bundle it is given here." xml:space="preserve">
     <value>hMailServer skapar eller hanterar inte klientcertifikat. Certifikatutfärdaren och själva klientcertifikaten måste tas fram utanför hMailServer (till exempel med OpenSSL eller en intern PKI) - servern litar bara på det CA-paket den får här.</value>
   </data>
+  <data name="hMailServer has been updated from {0} to {1}, and the service is running. Installed by {2} at {3}." xml:space="preserve">
+    <value>hMailServer har uppdaterats från {0} till {1}, och tjänsten körs. Installerat av {2} {3}.</value>
+  </data>
   <data name="hMailServer is free and open source software, licensed under the GNU AGPLv3. This Control Panel is built with WPF-UI (Fluent design) and LiveCharts2 on .NET 10." xml:space="preserve">
     <value>hMailServer är fri programvara med öppen källkod, licensierad under GNU AGPLv3. Den här Kontrollpanelen är byggd med WPF-UI (Fluent-design) och LiveCharts2 på .NET 10.</value>
+  </data>
+  <data name="hMailServer was updated: {0} Sign in to see the server." xml:space="preserve">
+    <value>hMailServer uppdaterades: {0} Logga in för att se servern.</value>
+  </data>
+  <data name="hMailServer {0} did not start, and putting {1} back failed too: {2}. Run {3} as an administrator to reinstall {1}. The logs: {4}" xml:space="preserve">
+    <value>hMailServer {0} startade inte, och att lägga tillbaka {1} misslyckades också: {2}. Kör {3} som administratör för att installera om {1}. Loggarna: {4}</value>
+  </data>
+  <data name="hMailServer {0} did not start, and there was no earlier installer to put back: {1}. Reinstall hMailServer {2} from its release page as an administrator. The installer's log: {3}" xml:space="preserve">
+    <value>hMailServer {0} startade inte, och det fanns inget tidigare installationsprogram att lägga tillbaka: {1}. Installera om hMailServer {2} från dess versionssida som administratör. Installationsprogrammets logg: {3}</value>
+  </data>
+  <data name="hMailServer {0} did not start, so {1} was put back and is running: {2}. The installer's log: {3}" xml:space="preserve">
+    <value>hMailServer {0} startade inte, så {1} lades tillbaka och körs: {2}. Installationsprogrammets logg: {3}</value>
+  </data>
+  <data name="hMailServer {0} is ready to be put back if needed." xml:space="preserve">
+    <value>hMailServer {0} är redo att läggas tillbaka vid behov.</value>
+  </data>
+  <data name="hMailServer {0} replaces {1} on this server. Windows asks for an administrator's permission once; after that everything happens by itself. The server stops accepting mail for a minute or two while it restarts, and if {0} does not start, {1} is put back." xml:space="preserve">
+    <value>hMailServer {0} ersätter {1} på den här servern. Windows ber en gång om en administratörs tillåtelse; sedan sker allt av sig självt. Servern slutar ta emot e-post i en minut eller två medan den startar om, och om {0} inte startar läggs {1} tillbaka.</value>
+  </data>
+  <data name="hMailServer {0} was not installed: the installer did not pass the check - {1}. Nothing was changed and the server runs as it did. Download it again; if the check fails again, the copy is kept in {2} for inspection." xml:space="preserve">
+    <value>hMailServer {0} installerades inte: installationsprogrammet klarade inte kontrollen - {1}. Inget ändrades och servern körs som förut. Hämta det igen; om kontrollen misslyckas igen behålls kopian i {2} för granskning.</value>
+  </data>
+  <data name="hMailServer {0} was not installed: the revocation server {1} could not be reached, so whether the installer's certificate is revoked could not be checked. Nothing was changed. Click Install update again when it can be reached, or install hMailServer {0} by hand." xml:space="preserve">
+    <value>hMailServer {0} installerades inte: spärrservern {1} kunde inte nås, så det gick inte att kontrollera om installationsprogrammets certifikat är spärrat. Inget ändrades. Klicka på Installera uppdatering igen när den kan nås, eller installera hMailServer {0} för hand.</value>
+  </data>
+  <data name="hMailServer {0} was not installed: {1}. Nothing was changed." xml:space="preserve">
+    <value>hMailServer {0} installerades inte: {1}. Inget ändrades.</value>
+  </data>
+  <data name="hMailServer {0} was not installed: {1}. hMailServer {2} is still running, unchanged. The installer's log: {3}" xml:space="preserve">
+    <value>hMailServer {0} installerades inte: {1}. hMailServer {2} körs fortfarande, oförändrad. Installationsprogrammets logg: {3}</value>
   </data>
   <data name="hMailServer.INI cannot be reached from this computer, so these selections cannot be edited here. Preview and Apply still work: they run inside the server." xml:space="preserve">
     <value>hMailServer.INI kan inte nås från den här datorn, så de här valen kan inte redigeras här. Förhandsgranska och Tillämpa fungerar ändå: de körs inne i servern.</value>
@@ -13146,6 +13338,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   <data name="https://keys.openpgp.org by default. An https address, or http to a keyserver on this machine." xml:space="preserve">
     <value>https://keys.openpgp.org som standard. En https-adress, eller http till en nyckelserver på den här datorn.</value>
   </data>
+  <data name="in progress" xml:space="preserve">
+    <value>pågår</value>
+  </data>
   <data name="in use by a listener" xml:space="preserve">
     <value>används av en lyssnare</value>
   </data>
@@ -13185,6 +13380,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   <data name="it cross" xml:space="preserve">
     <value>den korsar</value>
   </data>
+  <data name="it ended with code {0}" xml:space="preserve">
+    <value>det avslutades med koden {0}</value>
+  </data>
   <data name="it is" xml:space="preserve">
     <value>det</value>
   </data>
@@ -13193,6 +13391,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   </data>
   <data name="its 1 account" xml:space="preserve">
     <value>dess 1 konto</value>
+  </data>
+  <data name="its work folder was already there" xml:space="preserve">
+    <value>dess arbetsmapp fanns redan</value>
   </data>
   <data name="its {0} accounts" xml:space="preserve">
     <value>dess {0} konton</value>
@@ -13317,6 +13518,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   <data name="my spam filter blames my own gateway" xml:space="preserve">
     <value>mitt skräppostfilter skyller på min egen gateway</value>
   </data>
+  <data name="named in its certificate" xml:space="preserve">
+    <value>som dess certifikat anger</value>
+  </data>
   <data name="neither the issuer (iss) nor the audience (aud) is checked" xml:space="preserve">
     <value>varken utfärdaren (iss) eller mottagaren (aud) kontrolleras</value>
   </data>
@@ -13337,6 +13541,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   </data>
   <data name="no search base is set, so there is nowhere to enumerate from" xml:space="preserve">
     <value>ingen sökbas är satt, så det finns ingenstans att räkna upp från</value>
+  </data>
+  <data name="not started" xml:space="preserve">
+    <value>inte påbörjat</value>
   </data>
   <data name="not used by any listener" xml:space="preserve">
     <value>används inte av någon lyssnare</value>
@@ -13370,6 +13577,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   </data>
   <data name="quarantined" xml:space="preserve">
     <value>satt i karantän</value>
+  </data>
+  <data name="ready" xml:space="preserve">
+    <value>redo</value>
   </data>
   <data name="reject forged bounce messages" xml:space="preserve">
     <value>avvisa förfalskade studsmeddelanden</value>
@@ -13473,6 +13683,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   <data name="sign outgoing mail with dkim" xml:space="preserve">
     <value>signera utgående post med dkim</value>
   </data>
+  <data name="skipped" xml:space="preserve">
+    <value>hoppades över</value>
+  </data>
   <data name="solid line" xml:space="preserve">
     <value>heldragen linje</value>
   </data>
@@ -13490,6 +13703,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   </data>
   <data name="syslog (RFC 5424)" xml:space="preserve">
     <value>syslog (RFC 5424)</value>
+  </data>
+  <data name="taking the backup" xml:space="preserve">
+    <value>tar säkerhetskopian</value>
   </data>
   <data name="tell everyone about maintenance" xml:space="preserve">
     <value>berätta för alla om underhåll</value>
@@ -13593,8 +13809,14 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   <data name="the password must be changed before the next logon" xml:space="preserve">
     <value>lösenordet måste bytas före nästa inloggning</value>
   </data>
+  <data name="the permissions of the installation changed after the check; click Install update again to see which" xml:space="preserve">
+    <value>installationens behörigheter ändrades efter kontrollen; klicka på Installera uppdatering igen för att se vilka</value>
+  </data>
   <data name="the private key" xml:space="preserve">
     <value>den privata nyckeln</value>
+  </data>
+  <data name="the program Windows was asked to run is not the one the hMailServer service is registered with, or was given something it does not take" xml:space="preserve">
+    <value>programmet som Windows ombads köra är inte det som hMailServer-tjänsten är registrerad med, eller så fick det något som det inte tar emot</value>
   </data>
   <data name="the sender's SPF check passed" xml:space="preserve">
     <value>avsändarens SPF-kontroll godkändes</value>
@@ -13640,6 +13862,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   </data>
   <data name="them is" xml:space="preserve">
     <value>dem</value>
+  </data>
+  <data name="there is less than 1 GB free on the installation's drive" xml:space="preserve">
+    <value>det finns mindre än 1 GB ledigt på installationens enhet</value>
   </data>
   <data name="this secret" xml:space="preserve">
     <value>den här hemligheten</value>
@@ -13892,6 +14117,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   </data>
   <data name="{0} is on the suppression list of {1}." xml:space="preserve">
     <value>{0} finns på spärrlistan för {1}.</value>
+  </data>
+  <data name="{0} is ready to be installed; the install goes on in its window" xml:space="preserve">
+    <value>{0} är redo att installeras; installationen fortsätter i sitt fönster</value>
   </data>
   <data name="{0} is switched on but cannot run. {1} Every scan it is asked for fails, and a failed scan is not a failed message: the error is logged and the message is delivered as though it had been examined and found clean." xml:space="preserve">
     <value>{0} är påslagen men kan inte köras. {1} Varje skanning den ombeds göra misslyckas, och en misslyckad skanning är inte ett misslyckat meddelande: felet loggas och meddelandet levereras som om det hade undersökts och befunnits rent.</value>

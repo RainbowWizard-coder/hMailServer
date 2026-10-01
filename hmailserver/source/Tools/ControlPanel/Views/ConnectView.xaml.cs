@@ -16,11 +16,26 @@ namespace hMailServer.ControlPanel.Views
       private readonly Action onConnected_;
       private bool connecting_;
 
-      public ConnectView(Action onConnected)
+      public ConnectView(Action onConnected) : this(onConnected, null, StatusLevel.Normal)
+      {
+      }
+
+      /// <summary>
+      /// The sign-in page with a notice above the fields: after an administrator's
+      /// install of an update, when the Control Panel that opened again could not
+      /// sign in by itself (B-signin), the outcome's first sentence.
+      /// </summary>
+      public ConnectView(Action onConnected, string notice, StatusLevel level)
       {
          InitializeComponent();
          onConnected_ = onConnected;
          BuildLanguageBox_();
+         if (!string.IsNullOrEmpty(notice))
+         {
+            ErrorNotice.Level = level;
+            ErrorNotice.Text = notice;
+            ErrorNotice.Visibility = Visibility.Visible;
+         }
 
          Loaded += (s, e) => PasswordBox.Focus();
          KeyDown += (s, e) =>

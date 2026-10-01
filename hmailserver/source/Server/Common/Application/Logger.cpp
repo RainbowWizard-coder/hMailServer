@@ -402,6 +402,9 @@ namespace HM
    void
    Logger::LogError(const String &sMessage)
    {
+      if (WritesForbidden())
+         return;
+
       Entry entry = MakeEntry_(_T("ERROR"), -1, _T(""), sMessage);
       String sData = Render_(entry);
 
@@ -874,9 +877,39 @@ namespace HM
       return file;
    }
 
+   namespace
+   {
+      std::atomic<bool> writes_forbidden_(false);
+      std::atomic<long> suppressed_writes_(0);
+   }
+
+   void
+   Logger::ForbidWritesForThisProcess()
+   {
+      writes_forbidden_ = true;
+   }
+
+   bool
+   Logger::WritesForbidden()
+   {
+      if (!writes_forbidden_)
+         return false;
+      suppressed_writes_++;
+      return true;
+   }
+
+   long
+   Logger::SuppressedWrites()
+   {
+      return suppressed_writes_;
+   }
+
    void
    Logger::WriteData_(const String &sData, LogType lt)
    {
+      if (WritesForbidden())
+         return;
+
       boost::lock_guard<boost::recursive_mutex> guard(mtx_);
 
       File *file = GetCurrentLogFile_(lt);

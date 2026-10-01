@@ -42,7 +42,16 @@
         service's RFC 3161 timestamp - not optional: the certificate lives about
         three days, and a signature without a timestamp stops verifying with it;
      4. the signature is Valid, carries the timestamp, and the version resource is
-        the one the unsigned installer had; then the file goes to -OutDir.
+        the one the unsigned installer had; and it passes the pin every
+        installation's Control Panel holds it to before its Install update runs
+        it (Common/Util/AuthenticodePublisher.h): the signer's subject exactly
+        CN=Progressive Robot Ltd, O=Progressive Robot Ltd, L=Chester, S=Cheshire
+        West and Chester, C=GB, a chain of four ending in Microsoft ID Verified
+        Code Signing PCA 2021 and Microsoft Identity Verification Root
+        Certificate Authority 2020 by their SHA-256, the code-signing EKU, and
+        the file description naming its architecture, "(x64)" or "(ARM64)" - a
+        release the Control Panel would refuse is never published. Then the
+        file goes to -OutDir.
    The token file is deleted whatever happens.
 
    Exit codes: 0 signed; 2 a setting or a tool is missing; 3 Entra refused the
@@ -179,6 +188,31 @@ try {
    "timestamper: $($signature.TimeStamperCertificate.Subject)"
    $versionAfter = (Get-Item -LiteralPath $signing).VersionInfo.FileVersion
    if ($versionAfter -ne $versionBefore) { Stop-Signing 5 "the version resource changed in signing ($versionBefore, now $versionAfter)" }
+
+   # The pin of an administrator's install (Common/Util/AuthenticodePublisher.h),
+   # the same five attributes, the same two certificates and the same marker, so
+   # that no release is published that every 6.3.6 and later Control Panel would
+   # refuse to install.
+   $certificate = $signature.SignerCertificate
+   $subject = @{}
+   foreach ($part in ($certificate.SubjectName.Format($true) -split "`r?`n")) {
+      if ($part -match '^\s*([A-Za-z]+)=(.*)$') { $subject[$Matches[1]] = $Matches[2].Trim() }
+   }
+   $expected = @{ 'CN' = 'Progressive Robot Ltd'; 'O' = 'Progressive Robot Ltd'; 'L' = 'Chester'; 'S' = 'Cheshire West and Chester'; 'C' = 'GB' }
+   $sameSubject = $subject.Count -eq $expected.Count
+   foreach ($key in $expected.Keys) { if ($subject[$key] -ne $expected[$key]) { $sameSubject = $false } }
+   if (-not $sameSubject) { Stop-Signing 5 "the signer is $($certificate.Subject), not the publisher every installation's Install update is pinned to" }
+   $chain = New-Object System.Security.Cryptography.X509Certificates.X509Chain
+   $chain.ChainPolicy.RevocationMode = 'NoCheck'
+   [void] $chain.Build($certificate)
+   $digests = @($chain.ChainElements | ForEach-Object { [BitConverter]::ToString([Security.Cryptography.SHA256]::HashData($_.Certificate.RawData)).Replace('-', '') })
+   if ($digests.Count -ne 4 -or $digests[2] -ne '3D29798CC5D3F0644A7E0DC9CB1CADE523EA5EC83B335109B605BFEAA7D5F5C1' -or $digests[3] -ne '5367F20C7ADE0E2BCA790915056D086B720C33C1FA2A2661ACF787E3292E1270') {
+      Stop-Signing 5 "the certificate chain ($($digests -join ' <- ')) does not end in Microsoft ID Verified Code Signing PCA 2021 and Microsoft Identity Verification Root Certificate Authority 2020"
+   }
+   if (-not ($certificate.EnhancedKeyUsageList | Where-Object { $_.ObjectId -eq '1.3.6.1.5.5.7.3.3' })) { Stop-Signing 5 "the certificate is not issued for code signing" }
+   $description = (Get-Item -LiteralPath $signing).VersionInfo.FileDescription
+   if ($description -notmatch '\((x64|ARM64)\)\s*$') { Stop-Signing 5 "the file description '$description' names no architecture, (x64) or (ARM64)" }
+   "pin:         subject, PCA 2021 and Root 2020, code signing, '$description'"
 
    if (Test-Path -LiteralPath $OutDir) { Remove-Item -LiteralPath $OutDir -Recurse -Force }
    New-Item -ItemType Directory -Force -Path $OutDir | Out-Null

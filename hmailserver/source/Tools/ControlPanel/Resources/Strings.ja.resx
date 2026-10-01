@@ -1409,6 +1409,9 @@
   <data name="Allow plain-text authentication (AUTH PLAIN/LOGIN)" xml:space="preserve">
     <value>平文認証 (AUTH PLAIN/LOGIN) を許可する</value>
   </data>
+  <data name="Allowed as {0}." xml:space="preserve">
+    <value>{0} として許可されました。</value>
+  </data>
   <data name="Allowed signing algorithms (comma separated)" xml:space="preserve">
     <value>許可する署名アルゴリズム (コンマ区切り)</value>
   </data>
@@ -1517,6 +1520,9 @@
 {1}
 
 コントロールパネルを今すぐ再起動しますか? 作業を続けてみる場合は「いいえ」を選んでください。</value>
+  </data>
+  <data name="An update is already being installed on this server: hMailServer {0}, started at {1} by {2}." xml:space="preserve">
+    <value>このサーバーでは既に更新プログラムのインストールが進行中です: hMailServer {0}、{1} に {2} が開始しました。</value>
   </data>
   <data name="And this is the server's own verdict on what you have built. It is the page to come back to." xml:space="preserve">
     <value>そしてこれが、構築した内容に対するサーバー自身の判定です。何度も戻ってくることになるページです。</value>
@@ -1695,6 +1701,9 @@
   <data name="Ask a keyserver when their domain has no key" xml:space="preserve">
     <value>相手のドメインにキーがない場合はキーサーバーに問い合わせる</value>
   </data>
+  <data name="Asking the service to take the backup." xml:space="preserve">
+    <value>サービスにバックアップの作成を依頼しています。</value>
+  </data>
   <data name="Asks for a confirmation" xml:space="preserve">
     <value>確認が必要</value>
   </data>
@@ -1868,6 +1877,15 @@
   </data>
   <data name="Back_up file (HMBackup*.xml on the server)" xml:space="preserve">
     <value>バックアップ ファイル (サーバー上の HMBackup*.xml)(_U)</value>
+  </data>
+  <data name="Backed up to {0}." xml:space="preserve">
+    <value>{0} にバックアップしました。</value>
+  </data>
+  <data name="Backing up" xml:space="preserve">
+    <value>バックアップ</value>
+  </data>
+  <data name="Backing up to {0}." xml:space="preserve">
+    <value>{0} にバックアップしています。</value>
   </data>
   <data name="Backlog" xml:space="preserve">
     <value>バックログ</value>
@@ -2310,8 +2328,14 @@
   <data name="Checked shortly after the service starts and every six hours after that. Only hMailServer's own dated log files (hmailserver_*.log and ERROR_hmailserver_*.log) are removed; nothing else in the log folder is touched." xml:space="preserve">
     <value>サービスの起動直後と、その後 6 時間ごとにチェックされます。削除されるのは hMailServer 自身の日付付きログ ファイル (hmailserver_*.log と ERROR_hmailserver_*.log) のみで、ログ フォルダー内のほかのものには触れません。</value>
   </data>
+  <data name="Checking the installer" xml:space="preserve">
+    <value>インストーラーの確認</value>
+  </data>
   <data name="Checking what this server still needs done outside it…" xml:space="preserve">
     <value>このサーバーの外側でまだ必要な作業を確認しています…</value>
+  </data>
+  <data name="Checking {0}: its signature, its record in the Sigstore transparency log, its version and its architecture." xml:space="preserve">
+    <value>{0} を確認しています: 署名、Sigstore 透明性ログの記録、バージョン、アーキテクチャ。</value>
   </data>
   <data name="Checking…" xml:space="preserve">
     <value>確認中…</value>
@@ -4302,6 +4326,9 @@
   <data name="Fetches the newer release's installer and verifies it against its Sigstore bundle before keeping it. The Control Panel waits while it does; an installer is tens of megabytes." xml:space="preserve">
     <value>新しいリリースのインストーラーを取得し、保持する前に Sigstore バンドルと照合して検証します。その間コントロールパネルは待機します。インストーラーは数十メガバイトあります。</value>
   </data>
+  <data name="Fetching and checking the hMailServer {0} installer, to put back if {1} does not start." xml:space="preserve">
+    <value>{1} が起動しない場合に戻せるよう、hMailServer {0} のインストーラーを取得して確認しています。</value>
+  </data>
   <data name="Fetching {0}…" xml:space="preserve">
     <value>{0} を取得しています…</value>
   </data>
@@ -5047,6 +5074,24 @@
     <value>今すぐ更新プログラムをインストールしますか?
 
 検証済みのインストーラーが更新ヘルパーに渡されます。サービスが停止し、新しいバージョンがインストールされ、サービスが再び起動します。戻ってこない場合は以前のバージョンが再インストールされます。その間このコントロールパネルは接続を失います。結果をここで確認するには、その後で再接続してください。</value>
+  </data>
+  <data name="Install update" xml:space="preserve">
+    <value>更新をインストール</value>
+  </data>
+  <data name="Install update stopped before anything was changed: the permissions of {0} could not be checked ({1})." xml:space="preserve">
+    <value>「更新をインストール」は何も変更しないうちに停止しました: {0} のアクセス許可を確認できませんでした ({1})。</value>
+  </data>
+  <data name="Install update stopped before anything was changed: {0} can be changed by {1} ({2}). A program run from there as an administrator could be one that account put there. Remove that permission - from a Command Prompt run as administrator: {3} - and click Install update again." xml:space="preserve">
+    <value>「更新をインストール」は何も変更しないうちに停止しました: {1} が {0} を変更できます ({2})。そこから管理者として実行されるプログラムは、そのアカウントが置いたものである可能性があります。このアクセス許可を削除してから (管理者として実行したコマンド プロンプトで: {3})、もう一度「更新をインストール」をクリックしてください。</value>
+  </data>
+  <data name="Install update stopped before anything was changed: {0}." xml:space="preserve">
+    <value>「更新をインストール」は何も変更しないうちに停止しました: {0}。</value>
+  </data>
+  <data name="Installing" xml:space="preserve">
+    <value>インストール</value>
+  </data>
+  <data name="Installing hMailServer {0}" xml:space="preserve">
+    <value>hMailServer {0} をインストールしています</value>
   </data>
   <data name="Installing {0}: the service will stop and start" xml:space="preserve">
     <value>{0} をインストール中: サービスは停止して起動します</value>
@@ -6279,6 +6324,15 @@
   <data name="No backup destination is set." xml:space="preserve">
     <value>バックアップ先が設定されていません。</value>
   </data>
+  <data name="No backup first: UpdateBackupBeforeApply is off." xml:space="preserve">
+    <value>事前のバックアップなし: UpdateBackupBeforeApply がオフです。</value>
+  </data>
+  <data name="No backup first: no backup destination is set (Backup &amp; restore). A rollback puts the previous program back, not the database." xml:space="preserve">
+    <value>事前のバックアップなし: バックアップ先が設定されていません (バックアップと復元)。ロールバックで戻るのは以前のプログラムで、データベースは戻りません。</value>
+  </data>
+  <data name="No backup first: you chose to install without one." xml:space="preserve">
+    <value>事前のバックアップなし: バックアップなしでインストールすることを選択しました。</value>
+  </data>
   <data name="No backup has ever completed into {0} - there is no HMBackup archive there." xml:space="preserve">
     <value>{0} に完了したバックアップは 1 つもありません。そこに HMBackup アーカイブがありません。</value>
   </data>
@@ -6492,6 +6546,9 @@
   <data name="No syntax errors reported." xml:space="preserve">
     <value>構文エラーは報告されていません。</value>
   </data>
+  <data name="No verified installer is waiting; check for updates and download it first." xml:space="preserve">
+    <value>検証済みのインストーラーが待機していません。更新プログラムを確認し、先にダウンロードしてください。</value>
+  </data>
   <data name="No virus scanner can run. Attachment blocking still strips the file-name patterns on its own page, but nothing looks inside a message or inside an archive." xml:space="preserve">
     <value>実行できるウイルス スキャナーがありません。添付ファイルのブロックは、そのページのファイル名パターンを引き続き取り除きますが、メッセージの中やアーカイブの中を見るものは何もありません。</value>
   </data>
@@ -6530,6 +6587,9 @@
   </data>
   <data name="None." xml:space="preserve">
     <value>なし。</value>
+  </data>
+  <data name="None: {0}. If {1} does not start, it will need reinstalling by hand." xml:space="preserve">
+    <value>なし: {0}。{1} が起動しない場合は、手動で再インストールする必要があります。</value>
   </data>
   <data name="Normal" xml:space="preserve">
     <value>Normal</value>
@@ -7495,6 +7555,9 @@
   </data>
   <data name="Prefer server cipher order" xml:space="preserve">
     <value>サーバーの暗号順序を優先する</value>
+  </data>
+  <data name="Preparing the install of {0}: {1}" xml:space="preserve">
+    <value>{0} のインストールを準備しています: {1}</value>
   </data>
   <data name="Prepend text to subject" xml:space="preserve">
     <value>件名の先頭にテキストを付加する</value>
@@ -9631,6 +9694,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="Signature _method" xml:space="preserve">
     <value>署名方式(_M)</value>
   </data>
+  <data name="Signed by {0} and recorded in the Sigstore log at {1}; version {2}, {3}." xml:space="preserve">
+    <value>{0} が署名し、{1} に Sigstore ログに記録されました。バージョン {2}、{3}。</value>
+  </data>
   <data name="Signing _algorithm" xml:space="preserve">
     <value>署名アルゴリズム(_A)</value>
   </data>
@@ -9832,11 +9898,20 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="Stop the spam" xml:space="preserve">
     <value>スパムを止める</value>
   </data>
+  <data name="Stop the update? Nothing has been installed yet." xml:space="preserve">
+    <value>更新を中止しますか? まだ何もインストールされていません。</value>
+  </data>
   <data name="Stopped" xml:space="preserve">
     <value>停止済み</value>
   </data>
   <data name="Stopping" xml:space="preserve">
     <value>停止中</value>
+  </data>
+  <data name="Stopping new connections" xml:space="preserve">
+    <value>新しい接続の停止</value>
+  </data>
+  <data name="Stopping…" xml:space="preserve">
+    <value>停止しています…</value>
   </data>
   <data name="Stops mattering at a date" xml:space="preserve">
     <value>期日を過ぎたら無効にする</value>
@@ -10281,6 +10356,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="The TCP/IP port list could not be read - {0}" xml:space="preserve">
     <value>TCP/IP ポート一覧を読み取れませんでした - {0}</value>
   </data>
+  <data name="The Windows prompt was declined, so nothing was installed and nothing on the server was changed." xml:space="preserve">
+    <value>Windows の確認が拒否されたため、何もインストールされず、サーバー上の何も変更されていません。</value>
+  </data>
   <data name="The _HELO name's domain, on the domain white and black list" xml:space="preserve">
     <value>HELO 名のドメイン、ドメインのホワイトリストとブラックリストへ(_H)</value>
   </data>
@@ -10358,6 +10436,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="The authserv-id: the first token of every Authentication-Results header this server writes, always lower-cased, and the name a downstream filter checks before trusting the verdicts. The same name decides which arriving Authentication-Results headers are treated as forged: one claiming this identity is removed, while one naming any other identity is left completely untouched." xml:space="preserve">
     <value>authserv-id: このサーバーが書くすべての Authentication-Results ヘッダーの最初のトークンで、常に小文字です。下流のフィルターが判定を信頼する前に確認する名前です。同じ名前が、到着した Authentication-Results ヘッダーのどれを偽造として扱うかも決めます。この ID を名乗るものは削除され、他の ID を名乗るものはまったく手を付けられません。</value>
+  </data>
+  <data name="The backup before the update failed: {0}. See the backup log. Install hMailServer {1} without a backup? A rollback would put {2} back, but not the database as it was." xml:space="preserve">
+    <value>更新前のバックアップに失敗しました: {0}。バックアップ ログを参照してください。バックアップなしで hMailServer {1} をインストールしますか? ロールバックすると {2} は戻りますが、データベースは元の状態に戻りません。</value>
   </data>
   <data name="The backup destination {0} does not exist on the server." xml:space="preserve">
     <value>バックアップ先 {0} はサーバー上に存在しません。</value>
@@ -10621,6 +10702,12 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="The indexer has been asked to run; it works in the background and the counts below will not move until it has. As things stand:" xml:space="preserve">
     <value>インデクサーに実行が指示されました。バックグラウンドで動作し、完了するまで下の件数は変化しません。現状:</value>
   </data>
+  <data name="The install of hMailServer {0} was cancelled: {1}" xml:space="preserve">
+    <value>hMailServer {0} のインストールは取り消されました: {1}</value>
+  </data>
+  <data name="The install's outcome could not be read." xml:space="preserve">
+    <value>インストールの結果を読み取れませんでした。</value>
+  </data>
   <data name="The issued certificate EXPIRED on {0}, {1} days ago, and renewal has not replaced it. Clients are refusing this server's TLS. Check the error log for the last renewal attempt: the usual cause is that the CA can no longer reach this server on the http-01 challenge port." xml:space="preserve">
     <value>発行された証明書は {0} に期限切れになりました ({1} 日前)。更新でも置き換えられていません。クライアントはこのサーバーの TLS を拒否しています。直近の更新試行についてエラー ログを確認してください。よくある原因は、CA が http-01 チャレンジ ポートでこのサーバーに到達できなくなったことです。</value>
   </data>
@@ -10810,6 +10897,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="The per-protocol idle timeouts decide how long a connection may sit doing nothing before it is closed." xml:space="preserve">
     <value>プロトコルごとのアイドル タイムアウトは、接続が閉じられるまでに何もせずに待機できる時間を決めます。</value>
   </data>
+  <data name="The permission is inherited from {0}; the command stops the folder inheriting it." xml:space="preserve">
+    <value>このアクセス許可は {0} から継承されています。コマンドはフォルダーによるその継承を停止します。</value>
+  </data>
   <data name="The person's data" xml:space="preserve">
     <value>本人のデータ</value>
   </data>
@@ -10895,6 +10985,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="The relay requires _authentication" xml:space="preserve">
     <value>リレーは認証を必要とする(_A)</value>
+  </data>
+  <data name="The release on offer, {0}, is not a version this Control Panel installs." xml:space="preserve">
+    <value>提供されているリリース {0} は、このコントロールパネルがインストールするバージョンではありません。</value>
   </data>
   <data name="The resolver is not answering: look in the TCP/IP log for &quot;DNS - Query timed out&quot;. Do not reach for DNSServer as the fix - leave it empty unless you need a specific resolver." xml:space="preserve">
     <value>リゾルバーが応答していません。TCP/IP ログで "DNS - Query timed out" を探してください。解決策として DNSServer に手を伸ばさないでください。特定のリゾルバーが必要でない限り、空のままにしてください。</value>
@@ -11012,6 +11105,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="The server keeps no history: MetricsHistoryDays is 0 in hMailServer.ini. Set it to the days to keep." xml:space="preserve">
     <value>サーバーは履歴を保持していません。hMailServer.ini の MetricsHistoryDays が 0 です。保持する日数に設定してください。</value>
   </data>
+  <data name="The server no longer accepts new connections; the mail in progress is finishing." xml:space="preserve">
+    <value>サーバーは新しい接続を受け付けなくなりました。処理中のメールを完了しています。</value>
+  </data>
   <data name="The server remembers who has written to each account and who each account has written to, and says so in the reader the first time an outside sender appears. It costs one database lookup for each message delivered to this domain, and nothing at all while this is off." xml:space="preserve">
     <value>サーバーは、各アカウントに誰が書いたか、各アカウントが誰に書いたかを覚えていて、外部の送信者が初めて現れたときに読み手に知らせます。このドメインに配信されるメッセージごとにデータベース参照が一回かかり、オフの間は何もかかりません。</value>
   </data>
@@ -11053,6 +11149,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="The service account cannot be read: {0}" xml:space="preserve">
     <value>サービス アカウントを読み取れません: {0}</value>
+  </data>
+  <data name="The service did not prepare the install: {0}" xml:space="preserve">
+    <value>サービスはインストールを準備しませんでした: {0}</value>
   </data>
   <data name="The service is registered to log on as {0} from its next start. Restart the hMailServer service - in services.msc, or with net stop hMailServer and net start hMailServer - for it to take effect.&#10;&#10;{1}" xml:space="preserve">
     <value>サービスは次回の起動から {0} としてログオンするよう登録されました。反映するには hMailServer サービスを再起動してください (services.msc で、または net stop hMailServer と net start hMailServer で)。
@@ -11136,6 +11235,12 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="The update step could not be run: {0}" xml:space="preserve">
     <value>更新ステップを実行できませんでした: {0}</value>
   </data>
+  <data name="The update was not installed: {0}" xml:space="preserve">
+    <value>更新はインストールされませんでした: {0}</value>
+  </data>
+  <data name="The update was stopped; nothing was installed." xml:space="preserve">
+    <value>更新は中止されました。何もインストールされていません。</value>
+  </data>
   <data name="The user name is trimmed of surrounding spaces; the password deliberately is not, because whitespace is legitimate inside a password." xml:space="preserve">
     <value>ユーザー名の前後の空白は取り除かれますが、パスワードは意図的に取り除かれません。パスワードの内部では空白が正当だからです。</value>
   </data>
@@ -11150,6 +11255,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="The verification code is incorrect. Make sure your authenticator app is set up with the new key." xml:space="preserve">
     <value>確認コードが正しくありません。認証アプリが新しいキーで設定されていることを確認してください。</value>
+  </data>
+  <data name="The version to go back to" xml:space="preserve">
+    <value>戻す先のバージョン</value>
   </data>
   <data name="The web services settings could not be read: {0}" xml:space="preserve">
     <value>Web サービスの設定を読み取れませんでした: {0}</value>
@@ -11223,6 +11331,12 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="This Control Panel is connected to a remote server, and the key file is on that machine's disk - it cannot be read from this machine, so nothing about it is verified. This is &quot;unknown&quot;, not &quot;OK&quot;: check it on the server itself, or from its Setup checklist page." xml:space="preserve">
     <value>このコントロールパネルはリモート サーバーに接続しており、鍵ファイルはそのマシンのディスク上にあります。このコンピューターからは読み取れないため、それについて何も検証されていません。これは "OK" ではなく "不明" です。サーバー自体で、またはそのセットアップ チェックリスト ページから確認してください。</value>
   </data>
+  <data name="This Control Panel is connected to {0}, not to the computer it runs on. The hMailServer service on {0} runs as {1}, which cannot run an installer, so updates there are installed by an administrator at that server: open the hMailServer Control Panel on {0} itself and click Install update there." xml:space="preserve">
+    <value>このコントロールパネルは、実行中のコンピューターではなく {0} に接続されています。{0} の hMailServer サービスはインストーラーを実行できない {1} として動作しているため、そこでの更新はそのサーバーで管理者がインストールします。{0} 自体で hMailServer コントロールパネルを開き、そこで「更新をインストール」をクリックしてください。</value>
+  </data>
+  <data name="This Control Panel runs from {0}, not from the installation's own Control Panel ({1}). Open the Control Panel there and click Install update." xml:space="preserve">
+    <value>このコントロールパネルは、インストール先のコントロールパネル ({1}) ではなく {0} から実行されています。そちらのコントロールパネルを開いて「更新をインストール」をクリックしてください。</value>
+  </data>
   <data name="This account has a photo." xml:space="preserve">
     <value>このアカウントには写真があります。</value>
   </data>
@@ -11251,6 +11365,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="This group has no accounts in it, so any permission granted to it currently applies to nobody." xml:space="preserve">
     <value>このグループにはアカウントが含まれていないため、このグループに付与された権限は現在誰にも適用されません。</value>
+  </data>
+  <data name="This installation has no {0}, so it cannot install the update itself. Download hMailServer {1} from {2}, check that Get-AuthenticodeSignature reports it Valid and signed by Progressive Robot Ltd, and run it as an administrator." xml:space="preserve">
+    <value>このインストールには {0} がないため、更新を自分でインストールできません。{2} から hMailServer {1} をダウンロードし、Get-AuthenticodeSignature が Valid で Progressive Robot Ltd による署名と報告することを確認してから、管理者として実行してください。</value>
   </data>
   <data name="This is Protocols &gt; SMTP &gt; Host name, the name the server announces in HELO/EHLO on every outbound delivery (Utilities::ComputerName). Ask the IP's owner to make the PTR of your public IP resolve to exactly this name, and publish an A record for this name pointing back at the same IP - receivers check both directions." xml:space="preserve">
     <value>これは「プロトコル」&gt;「SMTP」&gt;「ホスト名」で、サーバーがすべての送信配信で HELO/EHLO に名乗る名前です (Utilities::ComputerName)。IP の所有者に、公開 IP の PTR がこの名前に正確に解決されるように依頼し、この名前の A レコードを同じ IP に向けて公開してください。受信側は両方向を確認します。</value>
@@ -11338,6 +11455,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="This validates against the domain &quot;{0}&quot;. The server's own computer must be joined to it." xml:space="preserve">
     <value>これはドメイン "{0}" に対して検証します。サーバー自身のコンピューターがそのドメインに参加している必要があります。</value>
+  </data>
+  <data name="This window closes now so that the installer can replace the Control Panel, and opens again when hMailServer is running, in about two minutes. Do not sign out of Windows until it has." xml:space="preserve">
+    <value>インストーラーがコントロールパネルを置き換えられるよう、このウィンドウは今閉じ、hMailServer が動作し始めたら、約 2 分後に再び開きます。それまで Windows からサインアウトしないでください。</value>
   </data>
   <data name="Thread counts, database connections and caching - what to change when the server is slow." xml:space="preserve">
     <value>スレッド数、データベース接続、キャッシュ。サーバーが遅いときに変更すべきもの。</value>
@@ -11768,6 +11888,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="Waiting for the old selector to retire" xml:space="preserve">
     <value>古いセレクターの廃止待ち</value>
   </data>
+  <data name="Waiting for you to allow hMailServer to make changes, in the Windows prompt." xml:space="preserve">
+    <value>Windows の確認で hMailServer に変更を許可するのを待っています。</value>
+  </data>
   <data name="Wakes the indexer instead of waiting for its next pass, and reports how many of this server's messages are currently indexed. The pass itself runs in the background and is bounded by the limits above, so on a large backlog it makes progress rather than finishing. With indexing switched off there is no indexer to wake, and this says so rather than reporting success." xml:space="preserve">
     <value>次のパスを待たずにインデクサーを起こし、このサーバーのメッセージのうち現在インデックス済みの数を報告します。パス自体はバックグラウンドで実行され、上の制限に従うため、大きなバックログでは完了するのではなく前進します。インデックス作成がオフの場合、起こすインデクサーがないため、成功を報告するのではなくその旨を表示します。</value>
   </data>
@@ -12194,6 +12317,15 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="Windows _user name" xml:space="preserve">
     <value>Windows ユーザー名(_U)</value>
   </data>
+  <data name="Windows could not start the install: {0}" xml:space="preserve">
+    <value>Windows はインストールを開始できませんでした: {0}</value>
+  </data>
+  <data name="Windows did not run it as an administrator" xml:space="preserve">
+    <value>Windows はそれを管理者として実行しませんでした</value>
+  </data>
+  <data name="Windows did not start it from this Control Panel" xml:space="preserve">
+    <value>Windows はそれをこのコントロールパネルから起動しませんでした</value>
+  </data>
   <data name="Windows directory" xml:space="preserve">
     <value>Windows ディレクトリ</value>
   </data>
@@ -12208,6 +12340,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="Windows service account - a least-privilege account needs granting outside hMailServer" xml:space="preserve">
     <value>Windows サービス アカウント - 最小権限のアカウントには hMailServer の外で権限を付与する必要があります</value>
+  </data>
+  <data name="Windows' permission" xml:space="preserve">
+    <value>Windows の許可</value>
   </data>
   <data name="Windows: an inbound block rule per banned address in Windows Defender Firewall, TCP only and scoped to the ports this server listens on, in a rule group named hMailServer auto-ban; removed when the ban expires or the IP range is deleted. Linux: the packaged autoban-hook keeps an nftables set with a timeout, and the service needs CAP_NET_ADMIN for it - the hook says exactly how to grant it. List the addresses you administer from under never-ban first." xml:space="preserve">
     <value>Windows: BAN したアドレスごとに Windows Defender Firewall の受信ブロック規則を 1 つ作成します。TCP のみで、このサーバーが待ち受けるポートに限定され、hMailServer auto-ban という規則グループに置かれます。BAN の期限切れまたは IP 範囲の削除で規則は取り除かれます。Linux: 同梱の autoban-hook がタイムアウト付きの nftables セットを維持し、そのためにサービスには CAP_NET_ADMIN が必要です。付与の手順は hook 自体が正確に示します。先に、管理に使うアドレスを「BAN しない」に登録してください。</value>
@@ -12524,6 +12659,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="_Install update" xml:space="preserve">
     <value>更新をインストール(_I)</value>
   </data>
+  <data name="_Install without a backup" xml:space="preserve">
+    <value>バックアップなしでインストール(_I)</value>
+  </data>
   <data name="_Job title" xml:space="preserve">
     <value>役職 (_A)</value>
   </data>
@@ -12761,6 +12899,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="_Start the walk" xml:space="preserve">
     <value>案内を開始(_S)</value>
   </data>
+  <data name="_Stop the update" xml:space="preserve">
+    <value>更新を中止(_S)</value>
+  </data>
   <data name="_Tag the subject of mail from outside" xml:space="preserve">
     <value>外部からのメールの件名にタグを付ける(_T)</value>
   </data>
@@ -12833,6 +12974,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="a symbol" xml:space="preserve">
     <value>記号</value>
   </data>
+  <data name="a trust file hMailServer.INI names may be changed by someone other than the administrators" xml:space="preserve">
+    <value>hMailServer.INI が指定する信頼ファイルを、管理者以外の誰かが変更できる可能性があります</value>
+  </data>
   <data name="a value of its own is needed, or untick it to take the level above." xml:space="preserve">
     <value>独自の値が必要です。上のレベルの値を使う場合はチェックを外してください。</value>
   </data>
@@ -12865,6 +13009,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="and {0} more" xml:space="preserve">
     <value>ほか {0} 件</value>
+  </data>
+  <data name="another administrator's install of an update is under way on this server" xml:space="preserve">
+    <value>このサーバーでは別の管理者による更新のインストールが進行中です</value>
   </data>
   <data name="any algorithm this server can verify - it implements RS256, ES256 and HS256 only, and &quot;{0}&quot; names none of them, so every token is refused whatever key material is installed" xml:space="preserve">
     <value>このサーバーが検証できるアルゴリズムのいずれか。実装しているのは RS256、ES256、HS256 のみで、"{0}" はそのどれでもないため、どのような鍵素材をインストールしてもすべてのトークンが拒否されます</value>
@@ -12937,6 +13084,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="check spf dkim and dmarc" xml:space="preserve">
     <value>SPF、DKIM、DMARC を確認する</value>
+  </data>
+  <data name="checking the downloaded installer" xml:space="preserve">
+    <value>ダウンロードしたインストーラーを確認中</value>
   </data>
   <data name="clamscan.exe path" xml:space="preserve">
     <value>clamscan.exe のパス</value>
@@ -13052,6 +13202,12 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="external account" xml:space="preserve">
     <value>外部アカウント</value>
   </data>
+  <data name="failed" xml:space="preserve">
+    <value>失敗</value>
+  </data>
+  <data name="fetching the version to go back to" xml:space="preserve">
+    <value>戻す先のバージョンを取得中</value>
+  </data>
   <data name="file-name pattern" xml:space="preserve">
     <value>件のファイル名パターン</value>
   </data>
@@ -13060,6 +13216,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="find out why a message bounced" xml:space="preserve">
     <value>メッセージがバウンスした理由を調べる</value>
+  </data>
+  <data name="finished" xml:space="preserve">
+    <value>完了</value>
   </data>
   <data name="forward one address to another" xml:space="preserve">
     <value>あるアドレスを別のアドレスに転送する</value>
@@ -13085,8 +13244,41 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="hMailServer does not create or manage client certificates. The certificate authority and the client certificates themselves must be produced outside hMailServer (for example with OpenSSL or an internal PKI) - the server only trusts the CA bundle it is given here." xml:space="preserve">
     <value>hMailServer はクライアント証明書を作成も管理もしません。認証局とクライアント証明書そのものは、hMailServer の外部で用意する必要があります (たとえば OpenSSL や社内 PKI で)。サーバーは、ここで渡された CA バンドルだけを信頼します。</value>
   </data>
+  <data name="hMailServer has been updated from {0} to {1}, and the service is running. Installed by {2} at {3}." xml:space="preserve">
+    <value>hMailServer は {0} から {1} に更新され、サービスは動作しています。{3} に {2} がインストールしました。</value>
+  </data>
   <data name="hMailServer is free and open source software, licensed under the GNU AGPLv3. This Control Panel is built with WPF-UI (Fluent design) and LiveCharts2 on .NET 10." xml:space="preserve">
     <value>hMailServer は GNU AGPLv3 でライセンスされた、無償のオープン ソース ソフトウェアです。このコントロールパネルは、.NET 10 上の WPF-UI (Fluent デザイン) と LiveCharts2 で作られています。</value>
+  </data>
+  <data name="hMailServer was updated: {0} Sign in to see the server." xml:space="preserve">
+    <value>hMailServer が更新されました: {0} サーバーを表示するにはサインインしてください。</value>
+  </data>
+  <data name="hMailServer {0} did not start, and putting {1} back failed too: {2}. Run {3} as an administrator to reinstall {1}. The logs: {4}" xml:space="preserve">
+    <value>hMailServer {0} が起動せず、{1} を戻すことにも失敗しました: {2}。{1} を再インストールするには、{3} を管理者として実行してください。ログ: {4}</value>
+  </data>
+  <data name="hMailServer {0} did not start, and there was no earlier installer to put back: {1}. Reinstall hMailServer {2} from its release page as an administrator. The installer's log: {3}" xml:space="preserve">
+    <value>hMailServer {0} が起動せず、戻せる以前のインストーラーもありませんでした: {1}。リリース ページから hMailServer {2} を管理者として再インストールしてください。インストーラーのログ: {3}</value>
+  </data>
+  <data name="hMailServer {0} did not start, so {1} was put back and is running: {2}. The installer's log: {3}" xml:space="preserve">
+    <value>hMailServer {0} が起動しなかったため、{1} が戻され、動作しています: {2}。インストーラーのログ: {3}</value>
+  </data>
+  <data name="hMailServer {0} is ready to be put back if needed." xml:space="preserve">
+    <value>必要な場合は hMailServer {0} をいつでも戻せます。</value>
+  </data>
+  <data name="hMailServer {0} replaces {1} on this server. Windows asks for an administrator's permission once; after that everything happens by itself. The server stops accepting mail for a minute or two while it restarts, and if {0} does not start, {1} is put back." xml:space="preserve">
+    <value>hMailServer {0} がこのサーバーの {1} を置き換えます。Windows が管理者の許可を一度求めます。その後はすべて自動で進みます。再起動中の 1、2 分間はサーバーがメールを受け付けず、{0} が起動しない場合は {1} が戻されます。</value>
+  </data>
+  <data name="hMailServer {0} was not installed: the installer did not pass the check - {1}. Nothing was changed and the server runs as it did. Download it again; if the check fails again, the copy is kept in {2} for inspection." xml:space="preserve">
+    <value>hMailServer {0} はインストールされませんでした: インストーラーが確認に合格しませんでした - {1}。何も変更されておらず、サーバーはこれまでどおり動作しています。もう一度ダウンロードしてください。再び確認に失敗した場合、コピーは調査用に {2} に保管されます。</value>
+  </data>
+  <data name="hMailServer {0} was not installed: the revocation server {1} could not be reached, so whether the installer's certificate is revoked could not be checked. Nothing was changed. Click Install update again when it can be reached, or install hMailServer {0} by hand." xml:space="preserve">
+    <value>hMailServer {0} はインストールされませんでした: 失効確認サーバー {1} に接続できなかったため、インストーラーの証明書が失効しているかどうかを確認できませんでした。何も変更されていません。接続できるようになったらもう一度「更新をインストール」をクリックするか、hMailServer {0} を手動でインストールしてください。</value>
+  </data>
+  <data name="hMailServer {0} was not installed: {1}. Nothing was changed." xml:space="preserve">
+    <value>hMailServer {0} はインストールされませんでした: {1}。何も変更されていません。</value>
+  </data>
+  <data name="hMailServer {0} was not installed: {1}. hMailServer {2} is still running, unchanged. The installer's log: {3}" xml:space="preserve">
+    <value>hMailServer {0} はインストールされませんでした: {1}。hMailServer {2} は変更されずに動作を続けています。インストーラーのログ: {3}</value>
   </data>
   <data name="hMailServer.INI cannot be reached from this computer, so these selections cannot be edited here. Preview and Apply still work: they run inside the server." xml:space="preserve">
     <value>このコンピューターから hMailServer.INI に到達できないため、これらの選択項目はここでは編集できません。プレビューと適用は引き続き動作します。サーバー内部で実行されるためです。</value>
@@ -13146,6 +13338,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="https://keys.openpgp.org by default. An https address, or http to a keyserver on this machine." xml:space="preserve">
     <value>既定は https://keys.openpgp.org です。https のアドレス、またはこのコンピューター上のキーサーバーへの http。</value>
   </data>
+  <data name="in progress" xml:space="preserve">
+    <value>進行中</value>
+  </data>
   <data name="in use by a listener" xml:space="preserve">
     <value>リスナーが使用中</value>
   </data>
@@ -13185,6 +13380,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="it cross" xml:space="preserve">
     <value>そのリスナーで</value>
   </data>
+  <data name="it ended with code {0}" xml:space="preserve">
+    <value>コード {0} で終了しました</value>
+  </data>
   <data name="it is" xml:space="preserve">
     <value>そのアカウントが</value>
   </data>
@@ -13193,6 +13391,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="its 1 account" xml:space="preserve">
     <value>その 1 件のアカウント</value>
+  </data>
+  <data name="its work folder was already there" xml:space="preserve">
+    <value>作業フォルダーが既に存在しました</value>
   </data>
   <data name="its {0} accounts" xml:space="preserve">
     <value>その {0} 件のアカウント</value>
@@ -13317,6 +13518,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="my spam filter blames my own gateway" xml:space="preserve">
     <value>スパム フィルターが自社のゲートウェイを疑う</value>
   </data>
+  <data name="named in its certificate" xml:space="preserve">
+    <value>(証明書に記載)</value>
+  </data>
   <data name="neither the issuer (iss) nor the audience (aud) is checked" xml:space="preserve">
     <value>発行者 (iss) も対象者 (aud) も確認されません</value>
   </data>
@@ -13337,6 +13541,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="no search base is set, so there is nowhere to enumerate from" xml:space="preserve">
     <value>検索ベースが設定されていないため、列挙の起点がありません</value>
+  </data>
+  <data name="not started" xml:space="preserve">
+    <value>未開始</value>
   </data>
   <data name="not used by any listener" xml:space="preserve">
     <value>どのリスナーも使用していません</value>
@@ -13370,6 +13577,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="quarantined" xml:space="preserve">
     <value>検疫済み</value>
+  </data>
+  <data name="ready" xml:space="preserve">
+    <value>準備完了</value>
   </data>
   <data name="reject forged bounce messages" xml:space="preserve">
     <value>偽造されたバウンス メッセージを拒否する</value>
@@ -13473,6 +13683,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="sign outgoing mail with dkim" xml:space="preserve">
     <value>送信メールに DKIM で署名する</value>
   </data>
+  <data name="skipped" xml:space="preserve">
+    <value>スキップ</value>
+  </data>
   <data name="solid line" xml:space="preserve">
     <value>実線</value>
   </data>
@@ -13490,6 +13703,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="syslog (RFC 5424)" xml:space="preserve">
     <value>syslog (RFC 5424)</value>
+  </data>
+  <data name="taking the backup" xml:space="preserve">
+    <value>バックアップを作成中</value>
   </data>
   <data name="tell everyone about maintenance" xml:space="preserve">
     <value>メンテナンスを全員に知らせる</value>
@@ -13593,8 +13809,14 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   <data name="the password must be changed before the next logon" xml:space="preserve">
     <value>次回のログオン前にパスワードを変更する必要があります</value>
   </data>
+  <data name="the permissions of the installation changed after the check; click Install update again to see which" xml:space="preserve">
+    <value>確認後にインストール先のアクセス許可が変更されました。どれが変わったかを見るには、もう一度「更新をインストール」をクリックしてください</value>
+  </data>
   <data name="the private key" xml:space="preserve">
     <value>秘密鍵</value>
+  </data>
+  <data name="the program Windows was asked to run is not the one the hMailServer service is registered with, or was given something it does not take" xml:space="preserve">
+    <value>Windows に実行を求めたプログラムが hMailServer サービスの登録先のプログラムではないか、受け付けない内容が渡されました</value>
   </data>
   <data name="the sender's SPF check passed" xml:space="preserve">
     <value>送信者の SPF チェックに合格しました</value>
@@ -13640,6 +13862,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="them is" xml:space="preserve">
     <value>それらのアカウントが</value>
+  </data>
+  <data name="there is less than 1 GB free on the installation's drive" xml:space="preserve">
+    <value>インストール先のドライブの空き領域が 1 GB 未満です</value>
   </data>
   <data name="this secret" xml:space="preserve">
     <value>このシークレット</value>
@@ -13892,6 +14117,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="{0} is on the suppression list of {1}." xml:space="preserve">
     <value>{0} は {1} の抑止リストにあります。</value>
+  </data>
+  <data name="{0} is ready to be installed; the install goes on in its window" xml:space="preserve">
+    <value>{0} をインストールする準備ができました。インストールはそのウィンドウで続きます</value>
   </data>
   <data name="{0} is switched on but cannot run. {1} Every scan it is asked for fails, and a failed scan is not a failed message: the error is logged and the message is delivered as though it had been examined and found clean." xml:space="preserve">
     <value>{0} は有効になっていますが実行できません。{1} 要求されたスキャンはすべて失敗します。そして、スキャンの失敗はメッセージの失敗ではありません。エラーはログに記録され、メッセージは検査されて問題なしと判定されたかのように配信されます。</value>

@@ -42,6 +42,10 @@ namespace hMailServer.ControlPanel
          // The words WPF shows by itself - a text box's Copy, Cut and Paste, a scroll
          // bar's menu - in the language chosen above, where the catalogue has it.
          FrameworkWords.Install();
+
+         // A sign-in handoff an administrator's install of an update left and nobody
+         // read in its thirty minutes goes at every start (AfterUpdateHandoff).
+         AfterUpdateHandoff.SweepStale();
       }
 
       protected override void OnExit(ExitEventArgs e)

@@ -38,6 +38,21 @@ namespace HM
       std::vector<SigstoreSigner> signers;
    };
 
+   // The five INI-only settings that replace parts of the default trust
+   // (docs/UpdateFeed.md, "Where the trust is read from"), as values: what
+   // ConfiguredTrust reads from IniFileSettings, and what hMailServer.exe
+   // /InstallUpdate reads from hMailServer.INI itself, before anything of the
+   // server's is loaded (AdminUpdate.h). One reading of them, in
+   // ConfiguredTrustFrom, for both.
+   struct SigstoreTrustSettings
+   {
+      String roots_file;                  // UpdateTrustRootsFile
+      String log_key_file;                // UpdateLogPublicKeyFile
+      String identity;                    // UpdateSigningIdentity
+      String issuer;                      // UpdateSigningIssuer
+      String repository;                  // UpdateSourceRepository
+   };
+
    struct SigstoreVerdict
    {
       SigstoreVerdict() : verified(false), integrated_time(0) {}
@@ -100,6 +115,19 @@ namespace HM
       // False, with error, when a configured file cannot be read.
       static bool ConfiguredTrust(SigstoreTrust &trust, String &error);
 
+      // The same, from the settings given rather than the ones in force.
+      static bool ConfiguredTrustFrom(const SigstoreTrustSettings &values, SigstoreTrust &trust, String &error);
+
+      // The five settings as IniFileSettings holds them.
+      static SigstoreTrustSettings SettingsInForce();
+
+      // Whether an UpdateSigningIdentity names one of this project's own signers
+      // (DefaultTrust's identity prefixes), or nothing. False means a site signs
+      // its own builds, and an administrator's install then holds the installer's
+      // Authenticode signer to the installed hMailServer.exe's own
+      // (AuthenticodePublisher.h) instead of this project's publisher.
+      static bool IsProjectIdentity(const String &identity);
+
       // expectedVersion is the release the file is being installed as ("6.3.4"):
       // a signer with last_version accepts no file as a release after it, and a
       // signer with version_in_ref accepts a certificate whose identity names a
@@ -113,6 +141,14 @@ namespace HM
       // runs it holds the package to an upgrade itself. Nothing that installs a
       // file as a release calls this.
       static bool VerifyFileForAnyRelease(const String &path, const AnsiString &bundleJson, const SigstoreTrust &trust, SigstoreVerdict &verdict);
+
+      // Everything VerifyFile checks, of a SHA-256 the caller read itself rather
+      // than of a file this reads: what hMailServer.exe --verify-bundle is given
+      // by the elevated stage, which hashed the copy it holds (AdminUpdate.h).
+      // VerifyFile hashes the file and verifies that digest the same way; there
+      // is one verification behind both.
+      static bool VerifyDigest(const std::vector<unsigned char> &sha256, const AnsiString &bundleJson, const SigstoreTrust &trust,
+                               SigstoreVerdict &verdict, const String &expectedVersion);
 
       // The bundle's bytes, exactly as cosign wrote them, for VerifyFile. Not
       // ReadCompleteTextFile: that reads text through the wide String and back,
@@ -132,5 +168,7 @@ namespace HM
       // The one verification behind both: expectedVersion empty checks no release.
       static bool Verify_(const String &path, const AnsiString &bundleJson, const SigstoreTrust &trust, SigstoreVerdict &verdict,
                           const String &expectedVersion);
+      static bool VerifyDigestOf_(const std::vector<unsigned char> &fileDigest, const AnsiString &bundleJson, const SigstoreTrust &trust,
+                                SigstoreVerdict &verdict, const String &expectedVersion);
    };
 }

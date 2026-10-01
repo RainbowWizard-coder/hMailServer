@@ -10,6 +10,8 @@
 #include "Unicode.h"
 #include "FileUtilities.h"
 #include "UpdateWindow.h"
+#include "UpdateInstaller.h"
+#include "ServiceAccount.h"
 #include <time.h>
 #include "../Application/IniFileSettings.h"
 #include "../Application/Version.h"
@@ -465,6 +467,8 @@ namespace
       case StateDownloaded: return "downloaded";
       case StateInstalling: return "installing";
       case StateFailed: return "failed";
+      case StatePreparing: return "preparing";
+      case StateReadyForAdministrator: return "ready-for-administrator";
       case StateNotChecked:
       default:
          return "not-checked";
@@ -550,15 +554,22 @@ namespace
          boost::lock_guard<boost::mutex> guard(mutex_);
          // A verified installer of the same version survives the re-check that
          // found it still current; a different version, or a file that has gone,
-         // starts again from available.
-         if (snapshot.state == StateAvailable && snapshot_.state == StateDownloaded &&
+         // starts again from available. So does an install of it under way: an
+         // administrator's install being prepared or ready (a backup can take an
+         // hour, and the scheduled check can run in it), or one handed over.
+         const bool underWay = snapshot_.state == StateDownloaded || snapshot_.state == StatePreparing ||
+                               snapshot_.state == StateReadyForAdministrator || snapshot_.state == StateInstalling;
+         if (snapshot.state == StateAvailable && underWay &&
              snapshot_.available_version == snapshot.available_version && FileUtilities::Exists(snapshot_.installer_path))
          {
-            snapshot.state = StateDownloaded;
+            snapshot.state = snapshot_.state;
             snapshot.installer_path = snapshot_.installer_path;
             snapshot.signer_identity = snapshot_.signer_identity;
             snapshot.integrated_time = snapshot_.integrated_time;
             snapshot.verified_at = snapshot_.verified_at;
+            snapshot.installing_since_unix = snapshot_.installing_since_unix;
+            snapshot.preparation = snapshot_.preparation;
+            snapshot.ready_since_unix = snapshot_.ready_since_unix;
          }
          // The last apply's outcome is not the check's to forget. It is read at
          // start-up, a moment before the start-up check, and 6.3.4 and 6.3.5 lost it
@@ -615,6 +626,55 @@ namespace
       snapshot_.state = StateInstalling;
       snapshot_.installing_since_unix = (__int64) time(nullptr);
       snapshot_.last_error.Empty();
+   }
+
+   bool
+   UpdateChecker::RecordPreparation(State state, const String &version, const String &preparation)
+   {
+      boost::lock_guard<boost::mutex> guard(mutex_);
+      if (version.IsEmpty() || !(snapshot_.available_version == version))
+         return false;
+      snapshot_.state = state;
+      snapshot_.preparation = preparation;
+      snapshot_.ready_since_unix = state == StateReadyForAdministrator ? (__int64) time(nullptr) : 0;
+      snapshot_.last_error.Empty();
+      return true;
+   }
+
+   void
+   UpdateChecker::RecordPreparationFailed(const String &reason, const String &preparation)
+   {
+      boost::lock_guard<boost::mutex> guard(mutex_);
+      snapshot_.state = StateFailed;
+      snapshot_.last_error = reason;
+      snapshot_.preparation = preparation;
+      snapshot_.ready_since_unix = 0;
+   }
+
+   void
+   UpdateChecker::RecordPreparationEnded()
+   {
+      boost::lock_guard<boost::mutex> guard(mutex_);
+      snapshot_.preparation.Empty();
+      snapshot_.ready_since_unix = 0;
+      if (snapshot_.state == StatePreparing || snapshot_.state == StateReadyForAdministrator || snapshot_.state == StateInstalling ||
+          snapshot_.state == StateFailed)
+         snapshot_.state = !snapshot_.installer_path.IsEmpty() && FileUtilities::Exists(snapshot_.installer_path) ? StateDownloaded : StateAvailable;
+      snapshot_.installing_since_unix = 0;
+   }
+
+   bool
+   UpdateChecker::RecordReadyTimedOut(__int64 allowedSeconds)
+   {
+      boost::lock_guard<boost::mutex> guard(mutex_);
+      if (snapshot_.state != StateReadyForAdministrator || snapshot_.ready_since_unix == 0)
+         return false;
+      if ((__int64) time(nullptr) - snapshot_.ready_since_unix < allowedSeconds)
+         return false;
+      snapshot_.state = !snapshot_.installer_path.IsEmpty() && FileUtilities::Exists(snapshot_.installer_path) ? StateDownloaded : StateAvailable;
+      snapshot_.preparation.Empty();
+      snapshot_.ready_since_unix = 0;
+      return true;
    }
 
    void
@@ -1011,6 +1071,16 @@ namespace
          body += ",\"liveUpdate\":" + AnsiString(LiveUpdateApplies(kind) ? "true" : "false");
          body += ",\"updateCommand\":" + Quote_(command);
          body += ",\"updateAdvice\":" + Quote_(advice);
+
+         // Who installs a release here: the service, an administrator at the
+         // server, or whatever installed this one. A client that knows none of
+         // these keys - the Deck before 6.3.6 - reads the rest as before.
+         const bool administrator = UpdateInstaller::NeedsAdministrator();
+         const char *installedBy = administrator ? "administrator" : (!advice.IsEmpty() || !LiveUpdateApplies(kind)) ? "elsewhere" : "service";
+         body += ",\"installedBy\":\"" + AnsiString(installedBy) + "\"";
+         body += ",\"installAdvice\":" + Quote_(administrator ? UpdateInstaller::InstallAdvice() : advice);
+         body += ",\"serviceAccount\":" + Quote_(ServiceAccount::ProcessAccountName());
+         body += ",\"serverName\":" + Quote_(UpdateInstaller::ServerName());
       }
       body += ",\"availableVersion\":" + Quote_(snapshot.available_version);
       body += ",\"releaseName\":" + Quote_(snapshot.release_name);
@@ -1052,6 +1122,11 @@ namespace
       // its first run since the service started.
       body += ",\"nextCheck\":" + Quote_(IniFileSettings::Instance()->GetUpdateCheckEnabled() ? FormatUnixTime(NextCheckUnix(snapshot)) : String());
       body += ",\"lastError\":" + Quote_(snapshot.last_error);
+      // The document UpdateInstaller wrote, as it is, while an administrator's
+      // install is prepared or ready; null otherwise.
+      const bool preparing = snapshot.state == StatePreparing || snapshot.state == StateReadyForAdministrator ||
+                             (snapshot.state == StateFailed && !snapshot.preparation.IsEmpty());
+      body += ",\"preparation\":" + (preparing && !snapshot.preparation.IsEmpty() ? AnsiString(snapshot.preparation) : AnsiString("null"));
       body += "}";
       return body;
    }

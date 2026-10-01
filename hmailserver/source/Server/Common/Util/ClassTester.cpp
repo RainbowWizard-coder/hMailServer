@@ -86,6 +86,10 @@
 #include "Parsing/AddresslistParser.h"
 #include "../../IMAP/IMAPSimpleCommandParser.h"
 #include "LegacyBlowfish.h"
+#ifndef HM_PLATFORM_POSIX
+#include "AdminUpdate.h"
+#include "AdminUpdateTester.h"
+#endif
 
 #ifdef HM_PLATFORM_POSIX
 namespace
@@ -2406,6 +2410,23 @@ namespace HM
             HM_TEST_FAILED();
       }
 
+#ifndef HM_PLATFORM_POSIX
+      // An administrator's install of an update (Util/AdminUpdate.h): the checks
+      // the elevated stage makes - the permission rule, the work folder, the safe
+      // copy, Authenticode and the publisher pin against the real signed
+      // installers, the lowered child - and the stage's protocol with its
+      // Sigstore child, with hMailServer.exe --verify-bundle run as the stage
+      // runs it. Last, because the installers are fixtures fetched onto the bench
+      // (build/fetch-installer-fixtures.ps1), and a bench without them fails here
+      // rather than hiding every tester after it.
+      OutputDebugString(_T("hMailServer: Testing AdminUpdateTester\n"));
+      AdminUpdateTester adminUpdateTester;
+      adminUpdateTester.Test();
+
+      OutputDebugString(_T("hMailServer: Testing AdminUpdateStageTester\n"));
+      AdminUpdateStageTester adminUpdateStageTester;
+      adminUpdateStageTester.Test();
+#endif
    }
 
    void 

@@ -627,13 +627,46 @@ namespace HM
       return trust;
    }
 
+   SigstoreTrustSettings
+   SigstoreVerifier::SettingsInForce()
+   {
+      IniFileSettings *settings = IniFileSettings::Instance();
+      SigstoreTrustSettings values;
+      values.roots_file = settings->GetUpdateTrustRootsFile();
+      values.log_key_file = settings->GetUpdateLogPublicKeyFile();
+      values.identity = settings->GetUpdateSigningIdentity();
+      values.issuer = settings->GetUpdateSigningIssuer();
+      values.repository = settings->GetUpdateSourceRepository();
+      return values;
+   }
+
    bool
    SigstoreVerifier::ConfiguredTrust(SigstoreTrust &trust, String &error)
    {
-      trust = DefaultTrust();
-      IniFileSettings *settings = IniFileSettings::Instance();
+      return ConfiguredTrustFrom(SettingsInForce(), trust, error);
+   }
 
-      String rootsFile = settings->GetUpdateTrustRootsFile();
+   bool
+   SigstoreVerifier::IsProjectIdentity(const String &identity)
+   {
+      if (identity.IsEmpty())
+         return true;
+      const SigstoreTrust defaults = DefaultTrust();
+      const std::string text = Utf8Of_(identity);
+      for (size_t i = 0; i < defaults.signers.size(); i++)
+      {
+         if (text == std::string(defaults.signers[i].identity_prefix.c_str()))
+            return true;
+      }
+      return false;
+   }
+
+   bool
+   SigstoreVerifier::ConfiguredTrustFrom(const SigstoreTrustSettings &values, SigstoreTrust &trust, String &error)
+   {
+      trust = DefaultTrust();
+
+      String rootsFile = values.roots_file;
       if (!rootsFile.IsEmpty())
       {
          if (!FileUtilities::Exists(rootsFile))
@@ -652,7 +685,7 @@ namespace HM
          trust.ca_pems.push_back(pem);
       }
 
-      String keyFile = settings->GetUpdateLogPublicKeyFile();
+      String keyFile = values.log_key_file;
       if (!keyFile.IsEmpty())
       {
          if (!FileUtilities::Exists(keyFile))
@@ -698,9 +731,9 @@ namespace HM
       // project's first path alone, and refuses every release signed after the
       // move, from 6.3.6, until they are cleared, which docs/UpdateFeed.md tells it
       // to do.
-      String identity = settings->GetUpdateSigningIdentity();
-      String issuer = settings->GetUpdateSigningIssuer();
-      String repository = settings->GetUpdateSourceRepository();
+      String identity = values.identity;
+      String issuer = values.issuer;
+      String repository = values.repository;
       const std::string identityText = Utf8Of_(identity);
       const std::string issuerText = Utf8Of_(issuer);
       const std::string repositoryText = Utf8Of_(repository);
@@ -930,8 +963,41 @@ namespace HM
    }
 
    bool
+   SigstoreVerifier::VerifyDigest(const std::vector<unsigned char> &sha256, const AnsiString &bundleJson, const SigstoreTrust &trust,
+                                  SigstoreVerdict &verdict, const String &expectedVersion)
+   {
+      // As VerifyFile: no release to hold the digest to is no reason to accept it.
+      if (expectedVersion.IsEmpty())
+      {
+         verdict = SigstoreVerdict();
+         return Fail_(verdict, _T("There is no release to hold the file to, so nothing shows it is the one to install."));
+      }
+      if (sha256.size() != SHA256_DIGEST_LENGTH)
+      {
+         verdict = SigstoreVerdict();
+         return Fail_(verdict, _T("The digest given is not a SHA-256."));
+      }
+      return VerifyDigestOf_(sha256, bundleJson, trust, verdict, expectedVersion);
+   }
+
+   bool
    SigstoreVerifier::Verify_(const String &path, const AnsiString &bundleJson, const SigstoreTrust &trust, SigstoreVerdict &verdict,
                              const String &expectedVersion)
+   {
+      // The file's own SHA-256, and then the one verification: of that digest.
+      Bytes fileDigest;
+      String hashError;
+      if (!Sha256File(path, fileDigest, hashError))
+      {
+         verdict = SigstoreVerdict();
+         return Fail_(verdict, hashError);
+      }
+      return VerifyDigestOf_(fileDigest, bundleJson, trust, verdict, expectedVersion);
+   }
+
+   bool
+   SigstoreVerifier::VerifyDigestOf_(const std::vector<unsigned char> &fileDigest, const AnsiString &bundleJson, const SigstoreTrust &trust,
+                                   SigstoreVerdict &verdict, const String &expectedVersion)
    {
       verdict = SigstoreVerdict();
 
@@ -979,10 +1045,6 @@ namespace HM
       if (!Base64Of_(message->Get("signature"), signature) || signature.empty())
          return Fail_(verdict, _T("The bundle's signature is malformed."));
 
-      Bytes fileDigest;
-      String hashError;
-      if (!Sha256File(path, fileDigest, hashError))
-         return Fail_(verdict, hashError);
       if (fileDigest != digest)
          return Fail_(verdict, Formatter::Format(_T("The file's SHA-256 ({0}) is not the one the bundle signs ({1}): this is not the file that was signed."),
             String(Hex(fileDigest).c_str()), String(Hex(digest).c_str())));

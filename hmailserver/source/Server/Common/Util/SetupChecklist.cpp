@@ -291,7 +291,7 @@ namespace HM
             { "service_account_root", "The server runs as root, so a flaw reachable through SMTP, IMAP or POP3 would have full control of the machine. The packages run it as a user of its own." },
             { "service_account_own", "The service runs as {0}." },
             { "autoban_firewall_not_permitted", "AutoBanFirewall is on, but {0} cannot write Windows Defender Firewall rules: banned addresses are refused by the server and not blocked in the firewall. Run the service as LocalSystem, or reach a firewall through AutoBanCommand." },
-            { "update_apply_by_administrator", "{0} cannot run an installer, so updates are checked, downloaded and verified here and an administrator installs them." }
+            { "update_apply_by_administrator", "{0} cannot run an installer, so updates are checked, downloaded and verified here and installed by an administrator with Install update in the Control Panel on this server." }
          };
 
          for (const auto &entry : texts)

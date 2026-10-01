@@ -1409,6 +1409,9 @@ Control Panel może czytać pliki wiadomości tylko wtedy, gdy działa na tym sa
   <data name="Allow plain-text authentication (AUTH PLAIN/LOGIN)" xml:space="preserve">
     <value>Zezwalaj na uwierzytelnianie jawnym tekstem (AUTH PLAIN/LOGIN)</value>
   </data>
+  <data name="Allowed as {0}." xml:space="preserve">
+    <value>Zezwolono jako {0}.</value>
+  </data>
   <data name="Allowed signing algorithms (comma separated)" xml:space="preserve">
     <value>Dozwolone algorytmy podpisywania (rozdzielone przecinkami)</value>
   </data>
@@ -1517,6 +1520,9 @@ Pełne szczegóły zapisano w:
 {1}
 
 Uruchomić teraz ponownie aplikację Control Panel? Wybierz Nie, aby spróbować kontynuować pracę.</value>
+  </data>
+  <data name="An update is already being installed on this server: hMailServer {0}, started at {1} by {2}." xml:space="preserve">
+    <value>Na tym serwerze już trwa instalacja aktualizacji: hMailServer {0}, rozpoczęta o {1} przez {2}.</value>
   </data>
   <data name="And this is the server's own verdict on what you have built. It is the page to come back to." xml:space="preserve">
     <value>A to jest własna ocena serwera tego, co powstało. To strona, na którą się wraca.</value>
@@ -1695,6 +1701,9 @@ Uruchomić teraz ponownie aplikację Control Panel? Wybierz Nie, aby spróbować
   <data name="Ask a keyserver when their domain has no key" xml:space="preserve">
     <value>Pytaj serwer kluczy, gdy ich domena nie ma klucza</value>
   </data>
+  <data name="Asking the service to take the backup." xml:space="preserve">
+    <value>Prośba do usługi o wykonanie kopii zapasowej.</value>
+  </data>
   <data name="Asks for a confirmation" xml:space="preserve">
     <value>Wymaga potwierdzenia</value>
   </data>
@@ -1868,6 +1877,15 @@ Uruchomić teraz ponownie aplikację Control Panel? Wybierz Nie, aby spróbować
   </data>
   <data name="Back_up file (HMBackup*.xml on the server)" xml:space="preserve">
     <value>Plik kopii zapa_sowej (HMBackup*.xml na serwerze)</value>
+  </data>
+  <data name="Backed up to {0}." xml:space="preserve">
+    <value>Kopia zapasowa zapisana w {0}.</value>
+  </data>
+  <data name="Backing up" xml:space="preserve">
+    <value>Kopia zapasowa</value>
+  </data>
+  <data name="Backing up to {0}." xml:space="preserve">
+    <value>Tworzenie kopii zapasowej w {0}.</value>
   </data>
   <data name="Backlog" xml:space="preserve">
     <value>Zaległości</value>
@@ -2310,8 +2328,14 @@ Uruchomić teraz ponownie aplikację Control Panel? Wybierz Nie, aby spróbować
   <data name="Checked shortly after the service starts and every six hours after that. Only hMailServer's own dated log files (hmailserver_*.log and ERROR_hmailserver_*.log) are removed; nothing else in the log folder is touched." xml:space="preserve">
     <value>Sprawdzane wkrótce po uruchomieniu usługi i co sześć godzin później. Usuwane są wyłącznie własne datowane pliki dzienników hMailServer (hmailserver_*.log i ERROR_hmailserver_*.log); nic innego w folderze dzienników nie jest ruszane.</value>
   </data>
+  <data name="Checking the installer" xml:space="preserve">
+    <value>Sprawdzanie instalatora</value>
+  </data>
   <data name="Checking what this server still needs done outside it…" xml:space="preserve">
     <value>Sprawdzanie, co jeszcze trzeba zrobić dla tego serwera poza nim samym…</value>
+  </data>
+  <data name="Checking {0}: its signature, its record in the Sigstore transparency log, its version and its architecture." xml:space="preserve">
+    <value>Sprawdzanie {0}: podpisu, wpisu w dzienniku przejrzystości Sigstore, wersji i architektury.</value>
   </data>
   <data name="Checking…" xml:space="preserve">
     <value>Sprawdzanie…</value>
@@ -4302,6 +4326,9 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   <data name="Fetches the newer release's installer and verifies it against its Sigstore bundle before keeping it. The Control Panel waits while it does; an installer is tens of megabytes." xml:space="preserve">
     <value>Pobiera instalator nowszego wydania i przed zachowaniem go weryfikuje względem jego pakietu Sigstore. Control Panel czeka w tym czasie; instalator ma kilkadziesiąt megabajtów.</value>
   </data>
+  <data name="Fetching and checking the hMailServer {0} installer, to put back if {1} does not start." xml:space="preserve">
+    <value>Pobieranie i sprawdzanie instalatora hMailServer {0}, aby przywrócić go, jeśli {1} się nie uruchomi.</value>
+  </data>
   <data name="Fetching {0}…" xml:space="preserve">
     <value>Pobieranie {0}…</value>
   </data>
@@ -5047,6 +5074,24 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
     <value>Zainstalować teraz aktualizację?
 
 Zweryfikowany instalator zostaje przekazany pomocnikowi aktualizacji: usługa jest zatrzymywana, instalowana jest nowa wersja, a następnie usługa jest uruchamiana ponownie. Jeśli nie wróci, instalowana jest z powrotem poprzednia wersja. Ten Control Panel traci w tym czasie połączenie; aby zobaczyć tutaj wynik, należy połączyć się ponownie.</value>
+  </data>
+  <data name="Install update" xml:space="preserve">
+    <value>Zainstaluj aktualizację</value>
+  </data>
+  <data name="Install update stopped before anything was changed: the permissions of {0} could not be checked ({1})." xml:space="preserve">
+    <value>Zainstaluj aktualizację zatrzymało się, zanim cokolwiek zmieniono: nie udało się sprawdzić uprawnień do {0} ({1}).</value>
+  </data>
+  <data name="Install update stopped before anything was changed: {0} can be changed by {1} ({2}). A program run from there as an administrator could be one that account put there. Remove that permission - from a Command Prompt run as administrator: {3} - and click Install update again." xml:space="preserve">
+    <value>Zainstaluj aktualizację zatrzymało się, zanim cokolwiek zmieniono: {1} może zmieniać {0} ({2}). Program uruchomiony stamtąd jako administrator mógłby być takim, który umieściło tam to konto. Usuń to uprawnienie - z wiersza polecenia uruchomionego jako administrator: {3} - i ponownie kliknij Zainstaluj aktualizację.</value>
+  </data>
+  <data name="Install update stopped before anything was changed: {0}." xml:space="preserve">
+    <value>Zainstaluj aktualizację zatrzymało się, zanim cokolwiek zmieniono: {0}.</value>
+  </data>
+  <data name="Installing" xml:space="preserve">
+    <value>Instalowanie</value>
+  </data>
+  <data name="Installing hMailServer {0}" xml:space="preserve">
+    <value>Instalowanie hMailServer {0}</value>
   </data>
   <data name="Installing {0}: the service will stop and start" xml:space="preserve">
     <value>Instalowanie {0}: usługa zostanie zatrzymana i uruchomiona ponownie</value>
@@ -6279,6 +6324,15 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   <data name="No backup destination is set." xml:space="preserve">
     <value>Nie ustawiono miejsca docelowego kopii zapasowej.</value>
   </data>
+  <data name="No backup first: UpdateBackupBeforeApply is off." xml:space="preserve">
+    <value>Najpierw bez kopii zapasowej: UpdateBackupBeforeApply jest wyłączone.</value>
+  </data>
+  <data name="No backup first: no backup destination is set (Backup &amp; restore). A rollback puts the previous program back, not the database." xml:space="preserve">
+    <value>Najpierw bez kopii zapasowej: nie ustawiono miejsca docelowego kopii (Kopia zapasowa i przywracanie). Wycofanie przywraca poprzedni program, a nie bazę danych.</value>
+  </data>
+  <data name="No backup first: you chose to install without one." xml:space="preserve">
+    <value>Najpierw bez kopii zapasowej: wybrano instalację bez niej.</value>
+  </data>
   <data name="No backup has ever completed into {0} - there is no HMBackup archive there." xml:space="preserve">
     <value>Do {0} nigdy nie ukończono żadnej kopii zapasowej - nie ma tam archiwum HMBackup.</value>
   </data>
@@ -6492,6 +6546,9 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   <data name="No syntax errors reported." xml:space="preserve">
     <value>Nie zgłoszono błędów składni.</value>
   </data>
+  <data name="No verified installer is waiting; check for updates and download it first." xml:space="preserve">
+    <value>Nie czeka żaden zweryfikowany instalator; sprawdź aktualizacje i najpierw go pobierz.</value>
+  </data>
   <data name="No virus scanner can run. Attachment blocking still strips the file-name patterns on its own page, but nothing looks inside a message or inside an archive." xml:space="preserve">
     <value>Żaden skaner antywirusowy nie może zostać uruchomiony. Blokowanie załączników nadal usuwa pliki pasujące do wzorców nazw z własnej strony, ale nic nie zagląda do wnętrza wiadomości ani do wnętrza archiwum.</value>
   </data>
@@ -6530,6 +6587,9 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   </data>
   <data name="None." xml:space="preserve">
     <value>Brak.</value>
+  </data>
+  <data name="None: {0}. If {1} does not start, it will need reinstalling by hand." xml:space="preserve">
+    <value>Brak: {0}. Jeśli {1} się nie uruchomi, trzeba go będzie ponownie zainstalować ręcznie.</value>
   </data>
   <data name="Normal" xml:space="preserve">
     <value>Normalny</value>
@@ -7495,6 +7555,9 @@ Do czasu wznowienia nie będą przyjmowane nowe połączenia ani dostarczana poc
   </data>
   <data name="Prefer server cipher order" xml:space="preserve">
     <value>Preferuj kolejność szyfrów serwera</value>
+  </data>
+  <data name="Preparing the install of {0}: {1}" xml:space="preserve">
+    <value>Przygotowywanie instalacji {0}: {1}</value>
   </data>
   <data name="Prepend text to subject" xml:space="preserve">
     <value>Dodaj tekst na początku tematu</value>
@@ -9631,6 +9694,9 @@ Uruchomić ją ponownie teraz?</value>
   <data name="Signature _method" xml:space="preserve">
     <value>_Metoda podpisu</value>
   </data>
+  <data name="Signed by {0} and recorded in the Sigstore log at {1}; version {2}, {3}." xml:space="preserve">
+    <value>Podpisane przez {0} i zapisane w dzienniku Sigstore o {1}; wersja {2}, {3}.</value>
+  </data>
   <data name="Signing _algorithm" xml:space="preserve">
     <value>Alg_orytm podpisywania</value>
   </data>
@@ -9832,11 +9898,20 @@ Uruchomić ją ponownie teraz?</value>
   <data name="Stop the spam" xml:space="preserve">
     <value>Zatrzymaj spam</value>
   </data>
+  <data name="Stop the update? Nothing has been installed yet." xml:space="preserve">
+    <value>Zatrzymać aktualizację? Jeszcze nic nie zainstalowano.</value>
+  </data>
   <data name="Stopped" xml:space="preserve">
     <value>Zatrzymany</value>
   </data>
   <data name="Stopping" xml:space="preserve">
     <value>Zatrzymywanie</value>
+  </data>
+  <data name="Stopping new connections" xml:space="preserve">
+    <value>Zatrzymywanie nowych połączeń</value>
+  </data>
+  <data name="Stopping…" xml:space="preserve">
+    <value>Zatrzymywanie…</value>
   </data>
   <data name="Stops mattering at a date" xml:space="preserve">
     <value>Przestaje obowiązywać w dniu</value>
@@ -10281,6 +10356,9 @@ Następna wiadomość na ten adres zostanie wysłana, a adres wróci na listę d
   <data name="The TCP/IP port list could not be read - {0}" xml:space="preserve">
     <value>Nie udało się odczytać listy portów TCP/IP - {0}</value>
   </data>
+  <data name="The Windows prompt was declined, so nothing was installed and nothing on the server was changed." xml:space="preserve">
+    <value>Monit systemu Windows został odrzucony, więc nic nie zainstalowano i nic nie zmieniono na serwerze.</value>
+  </data>
   <data name="The _HELO name's domain, on the domain white and black list" xml:space="preserve">
     <value>_Domena nazwy HELO, na białej i czarnej liście domen</value>
   </data>
@@ -10358,6 +10436,9 @@ Następna wiadomość na ten adres zostanie wysłana, a adres wróci na listę d
   </data>
   <data name="The authserv-id: the first token of every Authentication-Results header this server writes, always lower-cased, and the name a downstream filter checks before trusting the verdicts. The same name decides which arriving Authentication-Results headers are treated as forged: one claiming this identity is removed, while one naming any other identity is left completely untouched." xml:space="preserve">
     <value>authserv-id: pierwszy token każdego nagłówka Authentication-Results zapisywanego przez ten serwer, zawsze małymi literami, i nazwa, którą sprawdza filtr położony dalej, zanim zaufa werdyktom. Ta sama nazwa rozstrzyga, które przychodzące nagłówki Authentication-Results są traktowane jako sfałszowane: nagłówek podający się za tę tożsamość jest usuwany, a nagłówek wskazujący dowolną inną tożsamość pozostaje całkowicie nietknięty.</value>
+  </data>
+  <data name="The backup before the update failed: {0}. See the backup log. Install hMailServer {1} without a backup? A rollback would put {2} back, but not the database as it was." xml:space="preserve">
+    <value>Kopia zapasowa przed aktualizacją nie powiodła się: {0}. Zobacz dziennik kopii zapasowych. Zainstalować hMailServer {1} bez kopii zapasowej? Wycofanie przywróciłoby {2}, ale nie bazę danych w dawnym stanie.</value>
   </data>
   <data name="The backup destination {0} does not exist on the server." xml:space="preserve">
     <value>Miejsce docelowe kopii zapasowej {0} nie istnieje na serwerze.</value>
@@ -10621,6 +10702,12 @@ Wiadomość została prawdopodobnie dostarczona i nie ma jej już w kolejce.</va
   <data name="The indexer has been asked to run; it works in the background and the counts below will not move until it has. As things stand:" xml:space="preserve">
     <value>Indekser został poproszony o uruchomienie; pracuje w tle, a liczby poniżej nie drgną, dopóki tego nie zrobi. Stan na teraz:</value>
   </data>
+  <data name="The install of hMailServer {0} was cancelled: {1}" xml:space="preserve">
+    <value>Instalacja hMailServer {0} została anulowana: {1}</value>
+  </data>
+  <data name="The install's outcome could not be read." xml:space="preserve">
+    <value>Nie udało się odczytać wyniku instalacji.</value>
+  </data>
   <data name="The issued certificate EXPIRED on {0}, {1} days ago, and renewal has not replaced it. Clients are refusing this server's TLS. Check the error log for the last renewal attempt: the usual cause is that the CA can no longer reach this server on the http-01 challenge port." xml:space="preserve">
     <value>Wystawiony certyfikat WYGASŁ {0}, czyli {1} dni temu, a odnowienie go nie zastąpiło. Klienty odrzucają TLS tego serwera. Należy sprawdzić w dzienniku błędów ostatnią próbę odnowienia: zwykłą przyczyną jest to, że urząd certyfikacji nie może już dosięgnąć tego serwera na porcie wyzwania http-01.</value>
   </data>
@@ -10810,6 +10897,9 @@ Wiadomość została prawdopodobnie dostarczona i nie ma jej już w kolejce.</va
   <data name="The per-protocol idle timeouts decide how long a connection may sit doing nothing before it is closed." xml:space="preserve">
     <value>Limity czasu bezczynności ustawiane osobno dla każdego protokołu decydują o tym, jak długo połączenie może trwać, nic nie robiąc, zanim zostanie zamknięte.</value>
   </data>
+  <data name="The permission is inherited from {0}; the command stops the folder inheriting it." xml:space="preserve">
+    <value>Uprawnienie jest dziedziczone z {0}; polecenie zatrzymuje jego dziedziczenie w folderze.</value>
+  </data>
   <data name="The person's data" xml:space="preserve">
     <value>Dane osoby</value>
   </data>
@@ -10895,6 +10985,9 @@ Dodać mimo to?</value>
   </data>
   <data name="The relay requires _authentication" xml:space="preserve">
     <value>Przekaźnik wymaga _uwierzytelnienia</value>
+  </data>
+  <data name="The release on offer, {0}, is not a version this Control Panel installs." xml:space="preserve">
+    <value>Oferowana wersja {0} nie jest wersją, którą instaluje ten Control Panel.</value>
   </data>
   <data name="The resolver is not answering: look in the TCP/IP log for &quot;DNS - Query timed out&quot;. Do not reach for DNSServer as the fix - leave it empty unless you need a specific resolver." xml:space="preserve">
     <value>Resolwer nie odpowiada: w dzienniku TCP/IP należy poszukać wpisu „DNS - Query timed out”. Nie należy sięgać po DNSServer jako rozwiązanie - pole to powinno pozostać puste, chyba że potrzebny jest konkretny resolwer.</value>
@@ -11012,6 +11105,9 @@ Odpowiada tu własny resolwer serwera - ten sam, którego używa dostarczanie SM
   <data name="The server keeps no history: MetricsHistoryDays is 0 in hMailServer.ini. Set it to the days to keep." xml:space="preserve">
     <value>Serwer nie przechowuje historii: MetricsHistoryDays wynosi 0 w pliku hMailServer.ini. Należy ustawić liczbę dni do zachowania.</value>
   </data>
+  <data name="The server no longer accepts new connections; the mail in progress is finishing." xml:space="preserve">
+    <value>Serwer nie przyjmuje już nowych połączeń; trwająca poczta jest kończona.</value>
+  </data>
   <data name="The server remembers who has written to each account and who each account has written to, and says so in the reader the first time an outside sender appears. It costs one database lookup for each message delivered to this domain, and nothing at all while this is off." xml:space="preserve">
     <value>Serwer pamięta, kto pisał do każdego konta i do kogo pisało każde konto, i mówi o tym w czytniku, gdy nadawca z zewnątrz pojawia się po raz pierwszy. Kosztuje to jedno zapytanie do bazy danych na każdą wiadomość dostarczoną do tej domeny i zupełnie nic, dopóki jest to wyłączone.</value>
   </data>
@@ -11053,6 +11149,9 @@ Odpowiada tu własny resolwer serwera - ten sam, którego używa dostarczanie SM
   </data>
   <data name="The service account cannot be read: {0}" xml:space="preserve">
     <value>Nie można odczytać konta usługi: {0}</value>
+  </data>
+  <data name="The service did not prepare the install: {0}" xml:space="preserve">
+    <value>Usługa nie przygotowała instalacji: {0}</value>
   </data>
   <data name="The service is registered to log on as {0} from its next start. Restart the hMailServer service - in services.msc, or with net stop hMailServer and net start hMailServer - for it to take effect.&#10;&#10;{1}" xml:space="preserve">
     <value>Usługa jest zarejestrowana tak, by od następnego uruchomienia logować się jako {0}. Uruchom ponownie usługę hMailServer - w services.msc albo poleceniami net stop hMailServer i net start hMailServer - aby zmiana zaczęła obowiązywać.
@@ -11136,6 +11235,12 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="The update step could not be run: {0}" xml:space="preserve">
     <value>Nie udało się wykonać kroku aktualizacji: {0}</value>
   </data>
+  <data name="The update was not installed: {0}" xml:space="preserve">
+    <value>Aktualizacja nie została zainstalowana: {0}</value>
+  </data>
+  <data name="The update was stopped; nothing was installed." xml:space="preserve">
+    <value>Aktualizacja została zatrzymana; nic nie zainstalowano.</value>
+  </data>
   <data name="The user name is trimmed of surrounding spaces; the password deliberately is not, because whitespace is legitimate inside a password." xml:space="preserve">
     <value>Nazwa użytkownika jest przycinana ze spacji na początku i końcu; hasło celowo nie jest, ponieważ znaki odstępu są wewnątrz hasła dozwolone.</value>
   </data>
@@ -11150,6 +11255,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="The verification code is incorrect. Make sure your authenticator app is set up with the new key." xml:space="preserve">
     <value>Kod weryfikacyjny jest nieprawidłowy. Należy się upewnić, że aplikacja uwierzytelniająca została skonfigurowana nowym kluczem.</value>
+  </data>
+  <data name="The version to go back to" xml:space="preserve">
+    <value>Wersja do przywrócenia</value>
   </data>
   <data name="The web services settings could not be read: {0}" xml:space="preserve">
     <value>Nie udało się odczytać ustawień usług sieciowych: {0}</value>
@@ -11223,6 +11331,12 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="This Control Panel is connected to a remote server, and the key file is on that machine's disk - it cannot be read from this machine, so nothing about it is verified. This is &quot;unknown&quot;, not &quot;OK&quot;: check it on the server itself, or from its Setup checklist page." xml:space="preserve">
     <value>Ten Control Panel jest połączony ze zdalnym serwerem, a plik klucza znajduje się na dysku tamtego komputera - nie da się go odczytać z tego komputera, więc nic w nim nie zostało zweryfikowane. To stan „nieznane”, a nie „OK”: należy sprawdzić go na samym serwerze albo z jego strony Lista kontrolna konfiguracji.</value>
   </data>
+  <data name="This Control Panel is connected to {0}, not to the computer it runs on. The hMailServer service on {0} runs as {1}, which cannot run an installer, so updates there are installed by an administrator at that server: open the hMailServer Control Panel on {0} itself and click Install update there." xml:space="preserve">
+    <value>Ten Control Panel jest połączony z {0}, a nie z komputerem, na którym działa. Usługa hMailServer na {0} działa jako {1}, które nie może uruchomić instalatora, więc tam aktualizacje instaluje administrator przy tym serwerze: otwórz hMailServer Control Panel na samym {0} i tam kliknij Zainstaluj aktualizację.</value>
+  </data>
+  <data name="This Control Panel runs from {0}, not from the installation's own Control Panel ({1}). Open the Control Panel there and click Install update." xml:space="preserve">
+    <value>Ten Control Panel działa z {0}, a nie z własnego Control Panel instalacji ({1}). Otwórz tam Control Panel i kliknij Zainstaluj aktualizację.</value>
+  </data>
   <data name="This account has a photo." xml:space="preserve">
     <value>To konto ma zdjęcie.</value>
   </data>
@@ -11251,6 +11365,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="This group has no accounts in it, so any permission granted to it currently applies to nobody." xml:space="preserve">
     <value>W tej grupie nie ma żadnych kont, więc każde nadane jej uprawnienie nie dotyczy obecnie nikogo.</value>
+  </data>
+  <data name="This installation has no {0}, so it cannot install the update itself. Download hMailServer {1} from {2}, check that Get-AuthenticodeSignature reports it Valid and signed by Progressive Robot Ltd, and run it as an administrator." xml:space="preserve">
+    <value>W tej instalacji brakuje {0}, więc nie może ona sama zainstalować aktualizacji. Pobierz hMailServer {1} z {2}, sprawdź, czy Get-AuthenticodeSignature zgłasza go jako Valid i podpisany przez Progressive Robot Ltd, i uruchom go jako administrator.</value>
   </data>
   <data name="This is Protocols &gt; SMTP &gt; Host name, the name the server announces in HELO/EHLO on every outbound delivery (Utilities::ComputerName). Ask the IP's owner to make the PTR of your public IP resolve to exactly this name, and publish an A record for this name pointing back at the same IP - receivers check both directions." xml:space="preserve">
     <value>To jest Protokoły &gt; SMTP &gt; Nazwa hosta, czyli nazwa, którą serwer ogłasza w HELO/EHLO przy każdym dostarczeniu wychodzącym (Utilities::ComputerName). Należy poprosić właściciela adresu IP, aby rekord PTR publicznego adresu IP rozwiązywał się dokładnie na tę nazwę, i opublikować dla tej nazwy rekord A wskazujący z powrotem na ten sam adres IP - odbiorcy sprawdzają oba kierunki.</value>
@@ -11338,6 +11455,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="This validates against the domain &quot;{0}&quot;. The server's own computer must be joined to it." xml:space="preserve">
     <value>Sprawdza to konto w domenie „{0}”. Komputer samego serwera musi być do niej przyłączony.</value>
+  </data>
+  <data name="This window closes now so that the installer can replace the Control Panel, and opens again when hMailServer is running, in about two minutes. Do not sign out of Windows until it has." xml:space="preserve">
+    <value>To okno zamyka się teraz, aby instalator mógł zastąpić Control Panel, i otworzy się ponownie, gdy hMailServer będzie działać, za około dwie minuty. Do tego czasu nie wylogowuj się z systemu Windows.</value>
   </data>
   <data name="Thread counts, database connections and caching - what to change when the server is slow." xml:space="preserve">
     <value>Liczby wątków, połączenia z bazą danych i buforowanie - co zmienić, gdy serwer działa wolno.</value>
@@ -11768,6 +11888,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="Waiting for the old selector to retire" xml:space="preserve">
     <value>Oczekiwanie na wycofanie starego selektora</value>
   </data>
+  <data name="Waiting for you to allow hMailServer to make changes, in the Windows prompt." xml:space="preserve">
+    <value>Oczekiwanie, aż w monicie systemu Windows zezwolisz hMailServer na wprowadzenie zmian.</value>
+  </data>
   <data name="Wakes the indexer instead of waiting for its next pass, and reports how many of this server's messages are currently indexed. The pass itself runs in the background and is bounded by the limits above, so on a large backlog it makes progress rather than finishing. With indexing switched off there is no indexer to wake, and this says so rather than reporting success." xml:space="preserve">
     <value>Budzi indeksator zamiast czekać na jego następny przebieg i podaje, ile wiadomości tego serwera jest obecnie zaindeksowanych. Sam przebieg działa w tle i jest ograniczony limitami powyżej, więc przy dużych zaległościach robi postęp, a nie kończy. Przy wyłączonym indeksowaniu nie ma indeksatora do obudzenia i jest to zgłaszane, zamiast raportowania sukcesu.</value>
   </data>
@@ -12194,6 +12317,15 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="Windows _user name" xml:space="preserve">
     <value>Nazwa _użytkownika Windows</value>
   </data>
+  <data name="Windows could not start the install: {0}" xml:space="preserve">
+    <value>System Windows nie mógł rozpocząć instalacji: {0}</value>
+  </data>
+  <data name="Windows did not run it as an administrator" xml:space="preserve">
+    <value>system Windows nie uruchomił go jako administrator</value>
+  </data>
+  <data name="Windows did not start it from this Control Panel" xml:space="preserve">
+    <value>system Windows nie uruchomił go z tego Control Panel</value>
+  </data>
   <data name="Windows directory" xml:space="preserve">
     <value>Katalog Windows</value>
   </data>
@@ -12208,6 +12340,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="Windows service account - a least-privilege account needs granting outside hMailServer" xml:space="preserve">
     <value>Konto usługi Windows - konto o minimalnych uprawnieniach wymaga nadania praw poza hMailServer</value>
+  </data>
+  <data name="Windows' permission" xml:space="preserve">
+    <value>Zgoda systemu Windows</value>
   </data>
   <data name="Windows: an inbound block rule per banned address in Windows Defender Firewall, TCP only and scoped to the ports this server listens on, in a rule group named hMailServer auto-ban; removed when the ban expires or the IP range is deleted. Linux: the packaged autoban-hook keeps an nftables set with a timeout, and the service needs CAP_NET_ADMIN for it - the hook says exactly how to grant it. List the addresses you administer from under never-ban first." xml:space="preserve">
     <value>Windows: jedna przychodząca reguła blokująca na każdy zablokowany adres w Windows Defender Firewall, tylko TCP i tylko dla portów, na których nasłuchuje ten serwer, w grupie reguł o nazwie hMailServer auto-ban; usuwana, gdy blokada wygaśnie lub zakres IP zostanie skasowany. Linux: dołączony autoban-hook utrzymuje zbiór nftables z limitem czasu, a usługa potrzebuje do tego CAP_NET_ADMIN - hook dokładnie opisuje, jak je nadać. Najpierw wpisz adresy, z których administrujesz, do listy „nigdy nie blokuj”.</value>
@@ -12524,6 +12659,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="_Install update" xml:space="preserve">
     <value>_Zainstaluj aktualizację</value>
   </data>
+  <data name="_Install without a backup" xml:space="preserve">
+    <value>_Instaluj bez kopii zapasowej</value>
+  </data>
   <data name="_Job title" xml:space="preserve">
     <value>_Stanowisko</value>
   </data>
@@ -12761,6 +12899,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="_Start the walk" xml:space="preserve">
     <value>_Rozpocznij przewodnik</value>
   </data>
+  <data name="_Stop the update" xml:space="preserve">
+    <value>_Zatrzymaj aktualizację</value>
+  </data>
   <data name="_Tag the subject of mail from outside" xml:space="preserve">
     <value>Oznacz _temat poczty z zewnątrz</value>
   </data>
@@ -12833,6 +12974,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="a symbol" xml:space="preserve">
     <value>znak specjalny</value>
   </data>
+  <data name="a trust file hMailServer.INI names may be changed by someone other than the administrators" xml:space="preserve">
+    <value>plik zaufania, który wskazuje hMailServer.INI, może zmienić ktoś inny niż administratorzy</value>
+  </data>
   <data name="a value of its own is needed, or untick it to take the level above." xml:space="preserve">
     <value>potrzebna jest własna wartość albo odznacz je, aby przyjąć poziom wyżej.</value>
   </data>
@@ -12865,6 +13009,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="and {0} more" xml:space="preserve">
     <value>i jeszcze {0}</value>
+  </data>
+  <data name="another administrator's install of an update is under way on this server" xml:space="preserve">
+    <value>na tym serwerze trwa instalacja aktualizacji przez innego administratora</value>
   </data>
   <data name="any algorithm this server can verify - it implements RS256, ES256 and HS256 only, and &quot;{0}&quot; names none of them, so every token is refused whatever key material is installed" xml:space="preserve">
     <value>jakikolwiek algorytm, który ten serwer potrafi zweryfikować - implementuje on wyłącznie RS256, ES256 i HS256, a „{0}” nie wskazuje żadnego z nich, więc każdy token jest odrzucany niezależnie od zainstalowanego materiału klucza</value>
@@ -12937,6 +13084,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="check spf dkim and dmarc" xml:space="preserve">
     <value>sprawdź SPF, DKIM i DMARC</value>
+  </data>
+  <data name="checking the downloaded installer" xml:space="preserve">
+    <value>sprawdzanie pobranego instalatora</value>
   </data>
   <data name="clamscan.exe path" xml:space="preserve">
     <value>ścieżka do clamscan.exe</value>
@@ -13052,6 +13202,12 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="external account" xml:space="preserve">
     <value>konto zewnętrzne</value>
   </data>
+  <data name="failed" xml:space="preserve">
+    <value>niepowodzenie</value>
+  </data>
+  <data name="fetching the version to go back to" xml:space="preserve">
+    <value>pobieranie wersji do przywrócenia</value>
+  </data>
   <data name="file-name pattern" xml:space="preserve">
     <value>wzorzec nazwy pliku</value>
   </data>
@@ -13060,6 +13216,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="find out why a message bounced" xml:space="preserve">
     <value>sprawdź, dlaczego wiadomość została zwrócona</value>
+  </data>
+  <data name="finished" xml:space="preserve">
+    <value>zakończono</value>
   </data>
   <data name="forward one address to another" xml:space="preserve">
     <value>skieruj jeden adres na inny</value>
@@ -13085,8 +13244,41 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="hMailServer does not create or manage client certificates. The certificate authority and the client certificates themselves must be produced outside hMailServer (for example with OpenSSL or an internal PKI) - the server only trusts the CA bundle it is given here." xml:space="preserve">
     <value>hMailServer nie tworzy certyfikatów klienta ani nimi nie zarządza. Urząd certyfikacji i same certyfikaty klienta muszą powstać poza hMailServer (na przykład za pomocą OpenSSL albo wewnętrznego PKI) - serwer ufa wyłącznie pakietowi certyfikatów CA wskazanemu tutaj.</value>
   </data>
+  <data name="hMailServer has been updated from {0} to {1}, and the service is running. Installed by {2} at {3}." xml:space="preserve">
+    <value>hMailServer został zaktualizowany z {0} do {1}, a usługa działa. Zainstalował {2} o {3}.</value>
+  </data>
   <data name="hMailServer is free and open source software, licensed under the GNU AGPLv3. This Control Panel is built with WPF-UI (Fluent design) and LiveCharts2 on .NET 10." xml:space="preserve">
     <value>hMailServer jest wolnym oprogramowaniem o otwartym źródle, na licencji GNU AGPLv3. Ta aplikacja Control Panel została zbudowana na WPF-UI (Fluent design) i LiveCharts2 w .NET 10.</value>
+  </data>
+  <data name="hMailServer was updated: {0} Sign in to see the server." xml:space="preserve">
+    <value>hMailServer został zaktualizowany: {0} Zaloguj się, aby zobaczyć serwer.</value>
+  </data>
+  <data name="hMailServer {0} did not start, and putting {1} back failed too: {2}. Run {3} as an administrator to reinstall {1}. The logs: {4}" xml:space="preserve">
+    <value>hMailServer {0} się nie uruchomił, a przywrócenie {1} również się nie powiodło: {2}. Uruchom {3} jako administrator, aby ponownie zainstalować {1}. Dzienniki: {4}</value>
+  </data>
+  <data name="hMailServer {0} did not start, and there was no earlier installer to put back: {1}. Reinstall hMailServer {2} from its release page as an administrator. The installer's log: {3}" xml:space="preserve">
+    <value>hMailServer {0} się nie uruchomił i nie było wcześniejszego instalatora do przywrócenia: {1}. Ponownie zainstaluj hMailServer {2} ze strony jego wydania jako administrator. Dziennik instalatora: {3}</value>
+  </data>
+  <data name="hMailServer {0} did not start, so {1} was put back and is running: {2}. The installer's log: {3}" xml:space="preserve">
+    <value>hMailServer {0} się nie uruchomił, więc przywrócono {1} i działa: {2}. Dziennik instalatora: {3}</value>
+  </data>
+  <data name="hMailServer {0} is ready to be put back if needed." xml:space="preserve">
+    <value>hMailServer {0} jest gotowy do przywrócenia w razie potrzeby.</value>
+  </data>
+  <data name="hMailServer {0} replaces {1} on this server. Windows asks for an administrator's permission once; after that everything happens by itself. The server stops accepting mail for a minute or two while it restarts, and if {0} does not start, {1} is put back." xml:space="preserve">
+    <value>hMailServer {0} zastępuje {1} na tym serwerze. System Windows raz prosi o zgodę administratora; potem wszystko dzieje się samo. Serwer przez minutę lub dwie nie przyjmuje poczty, gdy uruchamia się ponownie, a jeśli {0} się nie uruchomi, zostanie przywrócony {1}.</value>
+  </data>
+  <data name="hMailServer {0} was not installed: the installer did not pass the check - {1}. Nothing was changed and the server runs as it did. Download it again; if the check fails again, the copy is kept in {2} for inspection." xml:space="preserve">
+    <value>hMailServer {0} nie został zainstalowany: instalator nie przeszedł sprawdzenia - {1}. Nic nie zmieniono, a serwer działa jak wcześniej. Pobierz go ponownie; jeśli sprawdzenie znów się nie powiedzie, kopia zostanie zachowana w {2} do zbadania.</value>
+  </data>
+  <data name="hMailServer {0} was not installed: the revocation server {1} could not be reached, so whether the installer's certificate is revoked could not be checked. Nothing was changed. Click Install update again when it can be reached, or install hMailServer {0} by hand." xml:space="preserve">
+    <value>hMailServer {0} nie został zainstalowany: serwer odwołań {1} był nieosiągalny, więc nie można było sprawdzić, czy certyfikat instalatora jest odwołany. Nic nie zmieniono. Kliknij ponownie Zainstaluj aktualizację, gdy będzie osiągalny, albo zainstaluj hMailServer {0} ręcznie.</value>
+  </data>
+  <data name="hMailServer {0} was not installed: {1}. Nothing was changed." xml:space="preserve">
+    <value>hMailServer {0} nie został zainstalowany: {1}. Nic nie zmieniono.</value>
+  </data>
+  <data name="hMailServer {0} was not installed: {1}. hMailServer {2} is still running, unchanged. The installer's log: {3}" xml:space="preserve">
+    <value>hMailServer {0} nie został zainstalowany: {1}. hMailServer {2} nadal działa bez zmian. Dziennik instalatora: {3}</value>
   </data>
   <data name="hMailServer.INI cannot be reached from this computer, so these selections cannot be edited here. Preview and Apply still work: they run inside the server." xml:space="preserve">
     <value>Nie można dosięgnąć hMailServer.INI z tego komputera, więc tych wyborów nie da się tu edytować. Podgląd i Zastosuj nadal działają: wykonują się wewnątrz serwera.</value>
@@ -13146,6 +13338,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="https://keys.openpgp.org by default. An https address, or http to a keyserver on this machine." xml:space="preserve">
     <value>Domyślnie https://keys.openpgp.org. Adres https albo http do serwera kluczy na tym komputerze.</value>
   </data>
+  <data name="in progress" xml:space="preserve">
+    <value>w toku</value>
+  </data>
   <data name="in use by a listener" xml:space="preserve">
     <value>używany przez nasłuch</value>
   </data>
@@ -13185,6 +13380,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="it cross" xml:space="preserve">
     <value>tym nasłuchu przechodzą przez</value>
   </data>
+  <data name="it ended with code {0}" xml:space="preserve">
+    <value>zakończył się kodem {0}</value>
+  </data>
   <data name="it is" xml:space="preserve">
     <value>to konto jest</value>
   </data>
@@ -13193,6 +13391,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="its 1 account" xml:space="preserve">
     <value>jej 1 konto</value>
+  </data>
+  <data name="its work folder was already there" xml:space="preserve">
+    <value>jego folder roboczy już istniał</value>
   </data>
   <data name="its {0} accounts" xml:space="preserve">
     <value>jej {0} kont(a)</value>
@@ -13317,6 +13518,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="my spam filter blames my own gateway" xml:space="preserve">
     <value>mój filtr antyspamowy obwinia moją własną bramę</value>
   </data>
+  <data name="named in its certificate" xml:space="preserve">
+    <value>(wskazany w jego certyfikacie)</value>
+  </data>
   <data name="neither the issuer (iss) nor the audience (aud) is checked" xml:space="preserve">
     <value>nie jest sprawdzany ani wystawca (iss), ani odbiorca (aud)</value>
   </data>
@@ -13337,6 +13541,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="no search base is set, so there is nowhere to enumerate from" xml:space="preserve">
     <value>nie ustawiono bazy wyszukiwania, więc nie ma skąd wyliczać wpisów</value>
+  </data>
+  <data name="not started" xml:space="preserve">
+    <value>nie rozpoczęto</value>
   </data>
   <data name="not used by any listener" xml:space="preserve">
     <value>nieużywany przez żaden nasłuch</value>
@@ -13370,6 +13577,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="quarantined" xml:space="preserve">
     <value>poddawana kwarantannie</value>
+  </data>
+  <data name="ready" xml:space="preserve">
+    <value>gotowe</value>
   </data>
   <data name="reject forged bounce messages" xml:space="preserve">
     <value>odrzucaj sfałszowane wiadomości zwrotne</value>
@@ -13473,6 +13683,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="sign outgoing mail with dkim" xml:space="preserve">
     <value>podpisuj pocztę wychodzącą podpisem DKIM</value>
   </data>
+  <data name="skipped" xml:space="preserve">
+    <value>pominięto</value>
+  </data>
   <data name="solid line" xml:space="preserve">
     <value>linia ciągła</value>
   </data>
@@ -13490,6 +13703,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="syslog (RFC 5424)" xml:space="preserve">
     <value>syslog (RFC 5424)</value>
+  </data>
+  <data name="taking the backup" xml:space="preserve">
+    <value>tworzenie kopii zapasowej</value>
   </data>
   <data name="tell everyone about maintenance" xml:space="preserve">
     <value>powiadom wszystkich o pracach konserwacyjnych</value>
@@ -13593,8 +13809,14 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="the password must be changed before the next logon" xml:space="preserve">
     <value>hasło musi zostać zmienione przed następnym logowaniem</value>
   </data>
+  <data name="the permissions of the installation changed after the check; click Install update again to see which" xml:space="preserve">
+    <value>uprawnienia instalacji zmieniły się po sprawdzeniu; ponownie kliknij Zainstaluj aktualizację, aby zobaczyć które</value>
+  </data>
   <data name="the private key" xml:space="preserve">
     <value>klucz prywatny</value>
+  </data>
+  <data name="the program Windows was asked to run is not the one the hMailServer service is registered with, or was given something it does not take" xml:space="preserve">
+    <value>program, który system Windows miał uruchomić, nie jest tym, z którym zarejestrowano usługę hMailServer, albo otrzymał coś, czego nie przyjmuje</value>
   </data>
   <data name="the sender's SPF check passed" xml:space="preserve">
     <value>kontrola SPF nadawcy zakończyła się powodzeniem</value>
@@ -13640,6 +13862,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="them is" xml:space="preserve">
     <value>te konta są</value>
+  </data>
+  <data name="there is less than 1 GB free on the installation's drive" xml:space="preserve">
+    <value>na dysku instalacji jest mniej niż 1 GB wolnego miejsca</value>
   </data>
   <data name="this secret" xml:space="preserve">
     <value>ten sekret</value>
@@ -13892,6 +14117,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="{0} is on the suppression list of {1}." xml:space="preserve">
     <value>{0} jest na liście blokowanych domeny {1}.</value>
+  </data>
+  <data name="{0} is ready to be installed; the install goes on in its window" xml:space="preserve">
+    <value>{0} jest gotowy do instalacji; instalacja trwa dalej w swoim oknie</value>
   </data>
   <data name="{0} is switched on but cannot run. {1} Every scan it is asked for fails, and a failed scan is not a failed message: the error is logged and the message is delivered as though it had been examined and found clean." xml:space="preserve">
     <value>{0} jest włączony, ale nie da się go uruchomić. {1} Każde żądane od niego skanowanie kończy się niepowodzeniem, a nieudane skanowanie nie oznacza odrzucenia wiadomości: błąd jest zapisywany w dzienniku, a wiadomość jest dostarczana tak, jakby została zbadana i uznana za czystą.</value>

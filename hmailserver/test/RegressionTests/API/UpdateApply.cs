@@ -575,6 +575,117 @@ namespace RegressionTests.API
          StringAssert.StartsWith("ok " + Newer, outcome);
       }
 
+      // ---- an administrator's install (6.3.6) -----------------------------------------
+      //
+      // A service that is not an administrator (NT SERVICE\hMailServer) cannot run an
+      // installer; an administrator installs from the Control Panel at the server, which
+      // asks Windows for permission and checks the installer itself (Util/AdminUpdate.h).
+      // The bench runs the service as LocalSystem, which installs as it always did: the
+      // first test holds that path shut there. The second runs only where the service is
+      // registered as another account - the installer smoke VM - and holds what the
+      // service says there.
+
+      [Test]
+      public void ALocalSystemServiceInstallsItselfAndRefusesTheAdministratorsPath()
+      {
+         string account = ServiceLogonAccount();
+         if (account == null || !IsLocalSystem(account))
+            Assert.Ignore("The hMailServer service is registered as " + (account ?? "an account sc.exe did not report") + ", not LocalSystem.");
+
+         var status = Downloaded();
+         Assert.IsFalse(status.UpdateNeedsAdministrator, "LocalSystem may run an installer.");
+         Assert.AreEqual("", status.UpdateInstallAdvice, "There is nothing to advise where the service installs.");
+
+         Assert.IsFalse(status.PrepareUpdateForAdministrator(Newer, false), "LocalSystem installs itself; there is no administrator's install to prepare.");
+         StringAssert.Contains("This service installs updates itself", status.UpdateLastError);
+         Assert.AreEqual(3, status.UpdateState, "A refused preparation leaves the verified installer waiting.");
+         Assert.AreEqual("", status.UpdatePreparation);
+
+         Assert.IsFalse(status.BeginUpdateForAdministrator(Newer), "Nor one to begin.");
+         StringAssert.Contains("This service installs updates itself", status.UpdateLastError);
+         Assert.AreEqual(3, status.UpdateState);
+         status.CancelUpdateForAdministrator("the test cancelled it");
+         Assert.AreEqual(3, status.UpdateState, "A cancel with nothing prepared changes nothing.");
+         Assert.IsFalse(TokenListed(), "No token is issued for an install that was refused.");
+
+         (int code, string body) = Http("GET", "/api/v1/update");
+         Assert.AreEqual(200, code, body);
+         StringAssert.Contains("\"installedBy\":\"service\"", body);
+         StringAssert.Contains("\"installAdvice\":\"\"", body);
+         StringAssert.Contains("\"preparation\":null", body);
+      }
+
+      [Test]
+      public void AServiceThatIsNotAnAdministratorLeavesTheInstallToOne()
+      {
+         string account = ServiceLogonAccount();
+         if (account == null || IsLocalSystem(account))
+            Assert.Ignore("The hMailServer service is registered as " + (account ?? "an account sc.exe did not report") +
+                          "; this runs where it is another account, such as NT SERVICE\\hMailServer on the installer smoke VM.");
+
+         var status = Downloaded();
+         Assert.IsTrue(status.UpdateNeedsAdministrator, account + " is not an administrator and cannot run an installer.");
+         string advice = status.UpdateInstallAdvice;
+         StringAssert.Contains("cannot run an installer, so updates are installed by an administrator at the server", advice);
+         StringAssert.Contains("hMailServer " + Newer, advice);
+
+         // Install update over COM is not an error there: the installer stays verified
+         // and waiting (state 3, not 5), and UpdateLastError says who installs it.
+         Assert.IsFalse(status.InstallUpdate(), "The service cannot run the installer.");
+         Assert.AreEqual(3, status.UpdateState, "The verified installer is still waiting for the administrator.");
+         Assert.AreEqual(advice, status.UpdateLastError);
+         Assert.IsFalse(File.Exists(OutcomePath));
+         Assert.IsFalse(TokenListed(), "No token is issued for an install the service cannot run.");
+
+         // Over REST the same, as a 409 with a code the Deck reads.
+         (int code, string body) = Http("POST", "/api/v1/update/install");
+         Assert.AreEqual(409, code, body);
+         StringAssert.Contains("\"code\":\"update_install_by_administrator\"", body);
+         (code, body) = Http("GET", "/api/v1/update");
+         Assert.AreEqual(200, code, body);
+         StringAssert.Contains("\"installedBy\":\"administrator\"", body);
+         StringAssert.Contains("\"state\":3", body);
+
+         // A begin with nothing prepared is refused and changes nothing.
+         Assert.IsFalse(status.BeginUpdateForAdministrator(Newer));
+         StringAssert.Contains("is not prepared for an administrator's install", status.UpdateLastError);
+         Assert.AreEqual(3, status.UpdateState);
+         Assert.IsFalse(TokenListed());
+      }
+
+      // The account the hMailServer service is registered to log on as (sc.exe qc);
+      // null where that cannot be read.
+      private static string ServiceLogonAccount()
+      {
+         try
+         {
+            var start = new ProcessStartInfo(Path.Combine(Environment.SystemDirectory, "sc.exe"), "qc hMailServer")
+            {
+               UseShellExecute = false,
+               RedirectStandardOutput = true,
+               CreateNoWindow = true
+            };
+            using (Process process = Process.Start(start))
+            {
+               string output = process.StandardOutput.ReadToEnd();
+               process.WaitForExit(10000);
+               Match match = Regex.Match(output, @"SERVICE_START_NAME\s*:\s*(\S.*?)\s*$", RegexOptions.Multiline);
+               return match.Success ? match.Groups[1].Value : null;
+            }
+         }
+         catch (Exception)
+         {
+            return null;
+         }
+      }
+
+      private static bool IsLocalSystem(string account)
+      {
+         return string.Equals(account, "LocalSystem", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(account, @".\LocalSystem", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(account, @"NT AUTHORITY\SYSTEM", StringComparison.OrdinalIgnoreCase);
+      }
+
       // ---- the fixture's installers ---------------------------------------------------
 
       // Each fake carries the version resource a real installer does (Inno Setup

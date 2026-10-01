@@ -260,7 +260,7 @@ and what changed:
 | The COM AppID (`HKCR\AppID`) | Re-written at every start | That write fails, silently and harmlessly | `/Register` writes it, as it always has |
 | The DCOM access and launch permissions | Unchanged | Unchanged | They are about the callers - the Control Panel, scripts - who stay the administrators |
 | Changing its own service entry (COM `Utilities.MakeDependent`, which DBSetup uses to depend on a local database service) | Worked | Refused | The installer sets the database up while the service is LocalSystem; DBSetup run later falls back to `sc.exe config hMailServer depend= RPCSS/<service>` itself, as an administrator. The right is deliberately not granted: a service that may rewrite its own entry may make itself LocalSystem again |
-| The live update | The helper runs the installer | Refused | The update is still checked; an administrator installs it from the release page (below) |
+| The live update | The helper runs the installer | The service cannot run it | The update is still checked, downloaded and verified; an administrator installs it with *Install update* in the Control Panel on the server, after Windows' prompt (below) |
 | The auto-ban's Windows Defender Firewall rules (`AutoBanFirewall`) | Written | Refused | Writing a firewall rule takes an administrator and there is no narrower right to grant. Said once in the error log (HM7460) and in the checklist; banned addresses are still refused by the server. `AutoBanCommand` still runs - as the service account, so a command that asks a router or a cloud firewall works and one that runs `netsh` locally does not. Rules a LocalSystem run left behind cannot be removed by the new account, and are named once (HM7461) with the PowerShell that removes them |
 | A port | Any | Any | Windows lets any account bind any port, and the firewall's rule is per program: nothing to grant |
 | The secret store | Machine-scope DPAPI | The same | Any account on the machine can decrypt it - which is why shared hosting stays declined |
@@ -279,18 +279,145 @@ and what changed:
 ## The live update
 
 The helper that applies an update (`hMailServer.Updater.exe`) is started by the
-service and runs as the service's account; the installer it runs needs an
-administrator. So under an account that is not an administrator, the apply is
-refused before anything happens - before the rollback image is fetched and before
-the drain - with the sentence, which REST, COM and the Deck's Update page show:
-the service runs as `NT SERVICE\hMailServer`, which cannot run an installer, so it
-checks for updates and an administrator installs them - **downloaded from the
-release page, with its Authenticode signature checked** (`Get-AuthenticodeSignature`
-reports it `Valid`), then run as an administrator. The copy the server downloaded
-is not offered to be run: it is in the Updates folder, which the service itself
-can write, and "verified" there is the service's own word. The unattended window
-takes no backup for an apply that cannot happen, and says why once per process in
-the error log (HM7463).
+service and runs as the service's account, and the installer it runs needs an
+administrator. On LocalSystem - an upgraded installation that kept it - nothing
+about the live update changes: the service hands the installer to the helper, in
+the update window or when *Install update* is clicked, as
+[UpdateFeed.md](UpdateFeed.md) describes.
+
+Under an account that is not an administrator the service still checks for the
+update, downloads it and verifies it, and from 6.3.6 **an administrator installs
+it with one click**: *Install update* on the Status page of the Control Panel on
+the server. Windows asks for permission once; everything after that happens by
+itself, and the Control Panel comes back signed in, on the new version, when the
+service is running. The service never runs anything as an administrator, and
+nothing it can write decides what the administrator's side runs.
+
+### What happens after the click
+
+1. **Windows' prompt.** The Control Panel starts `Bin\hMailServer.exe
+   /InstallUpdate` of its own installation elevated (`runas`), for the release the
+   Status page shows. Only a Control Panel on the server does this: one connected
+   to another computer says to open the Control Panel there, and so do the Control
+   Deck and `POST /api/v1/update/install` (409, code
+   `update_install_by_administrator`). A Control Panel that is not the
+   installation's own - a copy run from elsewhere - says to open the installation's.
+   If the prompt is declined, nothing has changed anywhere.
+2. **The elevated stage checks the installation.** It finds the installation from
+   the service's registration and `hMailServer.INI`, which only administrators can
+   write, never from what the service says, and checks that nobody but SYSTEM, the
+   Administrators and TrustedInstaller can change what an administrator's process
+   will run or read there: the folders above the program folder and the program
+   folder itself (deleting in them, deleting them, or changing their permissions or
+   owner), and `Bin` and `ControlPanel` with every folder, program and library in
+   them, `hMailServer.INI`, `AdminUpdate` and the trust files `hMailServer.INI`
+   names (any write). Something others can change stops the install before
+   anything has changed, and the Control Panel
+   names the folder, the account, the right and the `icacls` command that removes
+   it: a program run from there as an administrator could be one that account put
+   there. The same rule is checked by the Control Panel before the prompt, from a
+   table of cases both sides are tested against
+   (`build/testdata/install-permissions-cases.json`).
+3. **It copies the installer out of the service's reach.** `AdminUpdate\<id>` in the
+   program folder - owned by the Administrators, SYSTEM and Administrators alone may
+   change it, the administrator who clicked may read it - is made new for each
+   install, and the installer and its Sigstore bundle are copied into it from
+   `Data\Updates`, which the service writes. `AdminUpdate` itself lets anyone read
+   its permissions, and nothing else of it, so that the Control Panel of every later
+   install can hold it to the rule before the prompt. A name that leads through a
+   link or a junction, a folder where a file should be, or a copy bigger than 1 GB
+   is refused. The copies are held open, so that nothing can change them between
+   the check and the install, and everything below is checked on the held bytes.
+4. **It checks the installer itself**, trusting nothing the service said about it:
+   - the **Authenticode signature**, the primary one, with Windows' own
+     verification, and the **publisher pinned**: the certificate names exactly
+     `CN=Progressive Robot Ltd, O=Progressive Robot Ltd, L=Chester, S=Cheshire West
+     and Chester, C=GB`, its chain ends, by SHA-256, in Microsoft ID Verified Code
+     Signing PCA 2021 and Microsoft Identity Verification Root Certificate Authority
+     2020, it is issued for code signing, and the signature carries a timestamp. A
+     file that Windows trusts but another publisher signed is refused. Where the
+     installed `hMailServer.exe` is signed by somebody else - a site that builds and
+     signs its own - the installer is held to that signer instead, the same name
+     through the same root, and where the installed one is not signed at all there
+     is nothing to hold it to, and the one-click install is refused. A name is
+     compared whole: one with a NUL in it is refused, never read up to the NUL;
+   - **revocation**, online, of the whole chain, within 30 seconds: a certificate
+     that is revoked is refused, and so is one whose revocation could not be
+     checked - said as the revocation server not being reachable, never as revoked;
+   - the **version** in its version resource is the release offered, the
+     **architecture** in its description (`hMailServer Setup (x64)` or `(ARM64)`)
+     is this installation's, and the release is **newer** than the running
+     server, whose version is compiled into the stage;
+   - the **Sigstore bundle** - the pipeline for that release's tag, and the
+     transparency log - checked by a second copy of `hMailServer.exe` that the
+     stage starts with no privilege but change-notify, the Administrators group
+     and every other group UAC takes from an administrator (Backup Operators,
+     Domain Admins and the rest) made deny-only, at low integrity, in a job that
+     holds it to one process and 512 MB, and that is given the bundle and the
+     installer's SHA-256 through a pipe and nothing else. The bundle is parsed
+     there, not in the elevated process, and a child that a crafted bundle took
+     over could write nothing of the administrator's: at medium integrity, the
+     administrator's own unelevated level, it could still have written their
+     profile and registry, which their programs and Windows' auto-elevating ones
+     read. Its answer is not what the install rests on - the Authenticode pin is.
+5. **The service prepares, on the administrator's request** (COM
+   `Status.PrepareUpdateForAdministrator`, asked from this computer only): it
+   checks its own download again, takes the backup (`UpdateBackupBeforeApply`, to
+   the destination *Backup & restore* sets) and fetches the running version's
+   installer as the rollback image. The stage copies the rollback image out and
+   checks it as it checked the installer, held to the running version. A backup
+   that fails asks the administrator whether to install without one; with no
+   destination set, the window says the rollback puts the program back and not the
+   database. Nothing elevated takes anything from the service's answer: the
+   service's part is the backup, the drain and the token.
+6. **The install begins** (`Status.BeginUpdateForAdministrator`): the service
+   issues the database upgrade's single-use token, closes its listeners and lets
+   the mail in progress finish (the drain), and the stage hands over to a copy of
+   `hMailServer.Updater.exe` in the work folder, checked by its SHA-256. The
+   Control Panel closes, so that the installer can replace it.
+7. **The Updater installs** as the administrator: it ends every program still
+   running from the installation, runs the held installer silently - the token in
+   its environment, not on its command line - with its temporary files in the work
+   folder, waits for the service to come back, runs the held rollback image if it
+   does not, and asks Windows to hold off a sign-out or a shutdown while it works
+   (the reason shows on the sign-out screen). It writes the
+   outcome into the work folder, which only administrators can write, puts an
+   entry in the Application log (HM7466 when it starts, HM7467 with the outcome),
+   and opens the Control Panel again as the administrator who clicked, not
+   elevated: as a child of that user's desktop shell, `explorer.exe` in the same
+   session, with the shell's own token.
+8. **The Control Panel comes back** signed in, from a handoff it wrote before it
+   closed - DPAPI for the Windows user who clicked, bound to a key only that user
+   and the Administrators can read in the work folder, good for 30 minutes and
+   deleted when it is read - and shows the outcome. Where the administrator
+   password has a second factor it asks for the sign-in instead. The service
+   reports the outcome at its start, in the application log and the audit trail
+   (object type `update`, interface `Windows`, the Windows account that approved
+   it; [AlertsAndAuditTrail.md](AlertsAndAuditTrail.md)).
+
+The whole of the elevated side writes only into the work folder, never into
+`Data`, `Logs` or anything else the service can change, and `hMailServer.exe` loads
+the libraries it links from `Bin` and System32 only (`/DEPENDENTLOADFLAG`). A
+stage that finds another administrator's install under way on the server says so
+and does nothing. `{app}\AdminUpdate` is removed by the uninstaller.
+
+### The token
+
+The token the installer's database upgrade presents is in the `Updates` folder, in a
+file the service can write (`ProtectedFile`: SYSTEM, the Administrators and the
+service), and a token lets its holder sign in over COM as the server's
+administrator. That is not a way for the service to reach an administrator: a
+service that could forge it holds everything the server's administrator can do
+already, and redeeming it runs nothing elevated. In an administrator's install a
+service that rewrote it could at worst make the genuine installer's database
+upgrade fail, and the Updater put the previous version back - a denial, not a
+compromise. The Updater reads the file only if it is no link, sits where it is
+expected and holds exactly 64 lowercase hexadecimal characters, and gives it to a
+6.3.6 or later installer in its environment (`HM_UPGRADE_TOKEN`), so that it never
+appears on a command line; the installer reads it and removes it from its own
+environment at once.
+
+### Why this and not a scheduled task
 
 A scheduled task running as SYSTEM, which the service could trigger, was
 considered and not built. The only file it could run is one in a folder the
@@ -299,11 +426,31 @@ service cannot reach, verify it there itself - not trusting the service's word,
 which is the whole point - pin the publisher, refuse an older version, and write
 its log and outcome nowhere the service could turn into a link to a system file.
 That is a second updater running as SYSTEM, and a service that can make SYSTEM run
-a file has given back what the account took away. An administrator installing the
-signed release is simpler and safe.
+a file has given back what the account took away.
 
-On LocalSystem - an upgraded installation that kept it - nothing about the live
-update changes.
+The administrator's install does every one of those checks, and differs from the
+task in what starts it: an administrator's click at the server, and Windows'
+prompt, which the service can neither cause, show nor answer. No elevated program
+waits for the service or listens to it; the elevated stage starts from the click
+or not at all, and what it runs is what it checked itself.
+
+### From 6.3.4 and 6.3.5
+
+A server on 6.3.4 or 6.3.5 under this account cannot install 6.3.6 this way: the
+refusal is compiled into those versions, and their *Install update* asks the
+service alone. It is installed by hand once - download the installer from the
+release page, check that `Get-AuthenticodeSignature` reports it `Valid` and signed
+by `CN=Progressive Robot Ltd`, and run it as an administrator, keeping the service
+account on the installer's page. Windows SmartScreen may warn about a file
+downloaded with a browser that it has not yet seen often; the signature is what to
+check. From 6.3.6 on, each update is the one click above, and never meets
+SmartScreen: the installer is not downloaded by a browser, and the Updater starts
+it directly.
+
+The unattended update window does not install under this account: when the window
+is open and an installer is verified, the error log says once per process that an
+administrator installs it with *Install update* in the Control Panel on this server
+(HM7463), and no backup is taken for an install that cannot happen.
 
 ## Where you see it
 
@@ -359,11 +506,18 @@ deleting the `ServiceAccessPaths` key the approvals, if you want them gone.
 | HM7460 | Medium, once per process | `AutoBanFirewall` is on and the account cannot write firewall rules |
 | HM7461 | High, once per process | Auto-ban rules a LocalSystem run left in the firewall cannot be removed by this account |
 | HM7462 | Medium | `/Register` could not set the service's SID type to unrestricted |
-| HM7463 | Medium, once per process | The update window is open and the update cannot be applied unattended by this account |
+| HM7463 | Medium, once per process | The update window is open and the update cannot be applied unattended by this account: an administrator installs it with *Install update* in the Control Panel on this server |
 | HM7464 | Medium | `/Register` was given an account it does not set - one with a password - and registered nothing |
+| HM7465 | Medium | An administrator's install did not stop the service within 10 minutes of its start: the drain is left, the token revoked, and the server accepts mail again. The Updater's log in `AdminUpdate` says how far it got |
+| HM7466 | Information, in the Windows Application log | An administrator's install has started: who, which version over which, and the work folder. Written by `hMailServer.Updater.exe`, with the administrator's account as the entry's user |
+| HM7467 | Information, a warning or an error, in the Windows Application log | An administrator's install ended: installed, cancelled or refused (a warning), or not installed, rolled back or with its rollback failed (an error), with the reason |
+| HM7468 | Medium | The service's preparation of an administrator's install failed: the step (the check of its download, the backup, the rollback image) and the reason |
+| HM7469 | Medium, once per process | The outcome of the last administrator's install could not be read, or an install that began more than an hour ago wrote none - the Windows session it ran in may have been signed out |
 
-None of them fires on a server as it is shipped: the firewall half of the auto-ban
-and the unattended update window are both off until they are switched on.
+None of HM7460 to HM7464 fires on a server as it is shipped: the firewall half of the
+auto-ban and the unattended update window are both off until they are switched on.
+HM7465 to HM7469 come only from an administrator's install. An administrator's install
+that did not succeed is also reported as HM5480, as the unattended apply's is.
 
 ## Tests
 
@@ -394,6 +548,33 @@ and the unattended update window are both off until they are switched on.
 * `API/RestApiSetupChecklist.cs`: the tenth item, judged from the server's own
   token and, beside a running service, checked against the account `sc.exe qc`
   reports.
+* The administrator's install: `AdminUpdateTester` (`Common/Util/AdminUpdateTester.cpp`)
+  holds every check of the elevated stage to its negative - the permission rule
+  against the table of cases the Control Panel's `InstallationPermissionsTests`
+  reads too; the work folder made new and an old one, one with others' rights and
+  a junction refused; the copy through a junction, a link and a stream refused;
+  the architecture marker; the pin alone, a subject with an attribute more or
+  less, another chain, no code-signing use; and the real signed installers of
+  6.3.1 to 6.3.5 (fetched onto the bench by `build/fetch-installer-fixtures.ps1`,
+  checked by their SHA-256) passing, with 6.3.0 (unsigned), a byte changed, a file
+  cut short or grown, the .NET runtime's installer (another publisher, trusted
+  by Windows) and a catalogue-signed system file refused, the site-signer path
+  held to the installed signer's name and root (the same name through another
+  root refused), a name with a NUL in it refused, and a revocation check with no
+  time to run refused as not reachable; and the lowered child's token read back -
+  the Administrators and every group UAC filters deny-only, no privilege but
+  change-notify, low integrity - its job's limit, its timeout and its output cap. `AdminUpdateStageTester`
+  holds the stage's request to its child (a round trip, and every malformed
+  frame refused), the child's answers, the Updater's outcome file, and the real
+  6.3.5 bundle verified through the child as the stage runs it. The Control
+  Panel's `AdministratorUpdateTests`, `AfterUpdateHandoffTests` (a handoff
+  without its key, another user's, an old one and a second read refused) and
+  `UpdateStatusTextTests`; `API/UpdateApply.cs`, which on the bench's LocalSystem
+  service holds the administrator's path shut, and where the service is another
+  account holds the 409 and the state; and `build/check-elevated-verbs.py`,
+  which fails when a verb that runs elevated reaches the log or the crash
+  handler. The whole install, with Windows' prompt, is run by hand on the
+  installer smoke VM.
 * The live registration - a new installation under the virtual account, an upgrade
   that keeps LocalSystem, a move each way, the question the grant asks - is
   exercised by hand on a throwaway machine; nothing here registers a service on

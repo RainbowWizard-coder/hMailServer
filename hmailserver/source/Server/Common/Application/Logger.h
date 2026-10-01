@@ -50,6 +50,22 @@ namespace HM
       Logger();
       ~Logger(void);
 
+      // For the two verbs that run elevated from the Control Panel's Install
+      // update - hMailServer.exe /InstallUpdate and --verify-bundle
+      // (Util/AdminUpdate.h) - which must write nothing where the service can
+      // write: the log folder is the service's, and a file written there by an
+      // administrator's process through a link the service planted is what the
+      // design refuses (docs/ServiceAccount.md, "The live update"). Once this is
+      // called no log line and no error reaches a file, a database, the event
+      // log or a script, in this process, for the rest of its life; each one
+      // that tried is counted instead, and the stage writes the count to its own
+      // log in the administrator-only work folder. Neither verb calls the
+      // logger or ErrorManager on purpose (build/check-elevated-verbs.py); this
+      // is for whatever they reach that does.
+      static void ForbidWritesForThisProcess();
+      static bool WritesForbidden();
+      static long SuppressedWrites();
+
       enum LogSource
       {
          LSEnabled = 1,

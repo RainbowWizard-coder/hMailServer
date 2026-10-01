@@ -12,6 +12,7 @@
 #include "../Util/UpdateChecker.h"
 #include "../Util/UpdateDownloader.h"
 #include "../Util/UpdateInstaller.h"
+#include "../Util/ServiceAccount.h"
 #include "../Util/FileUtilities.h"
 #include "../Util/FileInfo.h"
 #include <ctime>
@@ -72,12 +73,14 @@ namespace HM
             {
                String name = file.GetName();
 
-               // The helper (either platform's), the token and the outcome the
-               // next start reports.
+               // The helper (either platform's), the token, the outcome the
+               // next start reports, and the id of the last administrator's install
+               // reported (UpdateInstaller::ReportAdministratorOutcome_).
                if (name.CompareNoCase(_T("hMailServer.Updater.exe")) == 0 ||
                    name.CompareNoCase(_T("hmailserver-update")) == 0 ||
                    name.CompareNoCase(_T("apply-token")) == 0 ||
-                   name.Find(_T("last-apply")) >= 0)
+                   name.Find(_T("last-apply")) >= 0 ||
+                   name.CompareNoCase(_T("last-admin-install.reported")) == 0)
                   continue;
 
                // A file naming a version still in play. The name carries the
@@ -182,6 +185,10 @@ namespace HM
             ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6893, "UpdateCheckTask::DoWork", reason);
          }
       }
+      // An administrator's install prepared and never begun - the Control Panel
+      // closed at the prompt, say - goes back to the downloaded installer.
+      UpdateInstaller::ExpireReadyPreparation();
+
       if (!settings->GetUpdateCheckEnabled())
          return;
 
@@ -231,7 +238,8 @@ namespace HM
 
       // A service that cannot run an installer - one moved off LocalSystem
       // (docs/ServiceAccount.md) - leaves the verified installer to an
-      // administrator, and takes no backup for an apply that cannot happen.
+      // administrator, who installs it with Install update in the Control Panel
+      // on this server, and takes no backup for an apply that cannot happen.
       // Said once per process: the window stays open for a quarter hour after
       // quarter hour.
       String refusal;
@@ -241,8 +249,10 @@ namespace HM
          if (!said)
          {
             said = true;
+            const String account = ServiceAccount::ProcessAccountName();
             ErrorManager::Instance()->ReportError(ErrorManager::Medium, 7463, "UpdateCheckTask::DoWork",
-               Formatter::Format(_T("The update window ({0}) is open and hMailServer {1} is verified, but it is not applied unattended: {2}"), windowText, snapshot.available_version, refusal));
+               Formatter::Format(_T("The update window ({0}) is open and hMailServer {1} is verified, but it is not applied unattended: this service runs as {2}; an administrator installs it with Install update in the Control Panel on this server."),
+                  windowText, snapshot.available_version, account.IsEmpty() ? String(_T("an account that is not an administrator")) : account));
          }
          return;
       }

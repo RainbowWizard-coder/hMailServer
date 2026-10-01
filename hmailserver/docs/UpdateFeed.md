@@ -232,7 +232,12 @@ clean snapshot for each run, against the published 6.3.5 and this feed:
   `HM7463` once and left the install to an administrator
   ([ServiceAccount.md](ServiceAccount.md)): download the installer from the
   release page, check that `Get-AuthenticodeSignature` reports it Valid, and run
-  it as an administrator. Nothing was left half-installed.
+  it as an administrator. Nothing was left half-installed. That is still how such
+  a server on 6.3.4 or 6.3.5 reaches 6.3.6, once, since the refusal is compiled
+  into them; from 6.3.6 an administrator installs each release with one click,
+  *Install update* in the Control Panel on the server, which asks Windows once
+  and checks the installer itself (below, and
+  [ServiceAccount.md](ServiceAccount.md), "The live update").
 - **On Linux, from the `.deb` and the `.rpm`.** Tried on 29 September 2026 in
   two throwaway systemd containers, each a 6.3.4 server installed from the
   release's package with PostgreSQL 18 beside it, against the published 6.3.5
@@ -560,7 +565,49 @@ are one check.
   The service's check is the only one, and it reads the trust from the same
   file as on Linux. Under `NT SERVICE\hMailServer`, which a new installation
   runs as, the file is read-only to the service, so there too the service cannot
-  choose its trust.
+  choose its trust. And there the service's check is not the only one: from
+  6.3.6 the administrator's install checks the installer again, elevated, on
+  its own copy - the Sigstore bundle against the trust it reads from the same
+  file, in a child process with the administrator's rights taken away, and the
+  Authenticode signature with the publisher pinned, the version and the
+  architecture ([An administrator's install](#an-administrators-install)).
+
+An administrator's install
+--------------------------
+
+A Windows service running as `NT SERVICE\hMailServer` - a new installation's
+account since 6.3.4 - is not an administrator and cannot run an installer. It
+checks for the update, downloads it and verifies it as any server does, and
+from 6.3.6 an administrator installs it with *Install update* on the Status page
+of the Control Panel on the server. Windows asks for permission once; the
+Control Panel then starts `hMailServer.exe /InstallUpdate` elevated, which copies
+the installer and its bundle out of the `Updates` folder into
+`AdminUpdate\<id>`, a folder only administrators can change, and checks the copy
+itself, trusting nothing the service said about it:
+
+- the Sigstore bundle, as the service checked it, with the trust read from
+  `hMailServer.ini` - in a child process whose Administrators group, and every
+  other group UAC takes away, is deny-only, at low integrity and in a job, which
+  is given the bundle and the installer's SHA-256 through a pipe;
+- the Authenticode signature, with the publisher pinned to Progressive Robot
+  Ltd and the Microsoft chain its certificate is issued under, and its
+  revocation checked online - or, where the installed `hMailServer.exe` is
+  signed by another publisher, held to that one and to the root its
+  certificate chains to;
+- the version in the installer's version resource, which must be the release
+  offered and newer than the running server, and the architecture in its
+  description.
+
+The service takes the backup and fetches the rollback image, which the stage
+checks the same way, held to the running version; then it drains, and
+`hMailServer.Updater.exe` runs the installer as the administrator, rolls back if
+the service does not come back, and opens the Control Panel again, signed in, on
+the outcome. `UpdateState` is 6 while the service prepares and 7 when it is
+ready; `GET /api/v1/update` says `installedBy: administrator` and
+`POST /api/v1/update/install` answers 409, code
+`update_install_by_administrator`, with the sentence that says where to click.
+[ServiceAccount.md](ServiceAccount.md), "The live update", has each step, what
+the service can and cannot influence, and the error codes.
 
 What the signing job produces
 -----------------------------

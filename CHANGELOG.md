@@ -134,7 +134,8 @@ when these notes were written. The update is applied by the version already inst
 and 6.3.5 still hold for it:
 
 - a Windows service running as `NT SERVICE\hMailServer` downloads and verifies the installer, then leaves the
-  install to an administrator (`HM7463`);
+  install to an administrator (`HM7463`), whose *Install update* on 6.3.4 and 6.3.5 cannot do it: install this
+  release by hand, once, as the next paragraph says, and every release after it with one click;
 - on Linux, a backup destination inside `/var/lib/hmailserver` fails the backup taken before an unattended apply
   (`HM5014`), and the apply is refused until the destination is moved or the release installed by hand
   ([UpdateFeed.md](hmailserver/docs/UpdateFeed.md), "From 6.3.4 on, by the live update");
@@ -155,6 +156,33 @@ installed from one of this release's per-distribution packages is offered the ne
 live update, which apt refuses on Debian 12 and dnf on EL 9, so there it is upgraded with its package manager and
 its own release's package of the next version, not by the live update
 ([UpdateFeed.md](hmailserver/docs/UpdateFeed.md), "The download links").
+
+**One click installs an update where the service cannot.** A Windows service running as `NT SERVICE\hMailServer`,
+the account a new installation has had since 6.3.4, is not an administrator and cannot run an installer, so up
+to 6.3.5 *Install update* told the administrator to download the release and run it by hand. From 6.3.6 the
+Control Panel on the server installs it: *Install update* on the Status page, one Windows prompt, and everything
+else happens by itself - the installer is checked, the backup taken, the version to go back to fetched, the
+server drained, the release installed, the service started, the previous version put back if it does not start,
+and the Control Panel opened again, signed in, on the outcome. What runs elevated trusts nothing the service
+wrote: `hMailServer.exe /InstallUpdate` checks that only administrators can change the installation, copies the
+installer out of the service's `Updates` folder into `AdminUpdate`, which only administrators can change, and
+checks the copy itself - the Authenticode signature with the publisher pinned to Progressive Robot Ltd and the
+Microsoft chain it is issued under, revocation online, the version and the architecture, a release newer than
+the running one, and the Sigstore bundle, in a child process with the administrator's rights taken away. The
+Control Deck, the REST API and a Control Panel connected to another computer say where to click. The service
+never makes an administrator or SYSTEM run anything ([ServiceAccount.md](hmailserver/docs/ServiceAccount.md),
+"The live update"). On LocalSystem the live update is as it was.
+
+A server on 6.3.4 or 6.3.5 under `NT SERVICE\hMailServer` still says to install this release by hand, since that
+is compiled into it; nothing in the feed or the release can change what it does. Download
+`hMailServer-6.3.6-x64.exe` from this release, check that `Get-AuthenticodeSignature` reports it `Valid` and
+signed by `CN=Progressive Robot Ltd`, and run it as an administrator, keeping the service account on the
+installer's *Service account* page. On a machine that has
+not seen the file before, Windows SmartScreen may say it "prevented an unrecognized app from starting": it
+judges a file by how many machines have run it as well as by its signature, and a new release is new to it.
+*More info* names the publisher, Progressive Robot Ltd; with the signature checked, *Run anyway* installs it.
+The one-click install never meets SmartScreen: the installer is not downloaded by a browser, and the Control
+Panel's updater starts it itself.
 
 ### Security
 
@@ -369,7 +397,31 @@ counts against that ceiling and against the account's own; found by the project'
 12. **Scripting off runs no script engine.** With scripting off the server no longer compiles the event script at
     every start, reinitialise and reload; switching scripting on compiles it first, and a script that does not
     compile is reported then rather than at each start while scripting is off.
-13. **Smaller things a script, a monitor or a log reader may notice.**
+13. **Install update under `NT SERVICE\hMailServer`, and what a script sees of it.** Where the service is not an
+    administrator, the Control Panel's *Install update* installs (above), and:
+    - `Status.InstallUpdate` returns false and leaves `UpdateState` at 3, with `UpdateLastError` saying who
+      installs the update and where; it made the state 5, a failure, which took *Install update* away and
+      offered the download again. `POST /api/v1/update/install` answers 409 with code
+      `update_install_by_administrator` and the same sentence, and the state stays 3. On LocalSystem both are
+      as they were.
+    - `UpdateState` has two new values, 6 while the service prepares an administrator's install and 7 when it is
+      ready, and COM `Status` six new members, `UpdateNeedsAdministrator`, `UpdateInstallAdvice`,
+      `PrepareUpdateForAdministrator`, `UpdatePreparation`, `BeginUpdateForAdministrator` and
+      `CancelUpdateForAdministrator` (dispids 20 to 25; nothing existing moves). The three that act answer only
+      the server's administrator, and only from this computer. `GET /api/v1/update` adds `installedBy`
+      (`service`, `administrator` or `elsewhere`), `installAdvice`, `serviceAccount`, `serverName` and
+      `preparation`, and the Deck's Update page shows the sentence where its Install button stood.
+    - The checklist's `update_apply_by_administrator` and `HM7463` end "installed by an administrator with
+      Install update in the Control Panel on this server", where they said an administrator installs them.
+      `HM7465` to `HM7469` are new, and only an administrator's install raises them; its outcome is an
+      application-log line, `HM5480` when it did not succeed, and an audit event of object type `update` under
+      the Windows account that approved it, interface `Windows`
+      ([AlertsAndAuditTrail.md](hmailserver/docs/AlertsAndAuditTrail.md)).
+    - The program folder gains `AdminUpdate`, made by the first administrator's install, holding each install's
+      copies, log and outcome, which only administrators can change; anyone may read the folder's own
+      permissions, which the Control Panel checks before every later install's prompt. The uninstaller removes it.
+      `hMailServer.exe` loads the libraries it links from `Bin` and System32 only.
+14. **Smaller things a script, a monitor or a log reader may notice.**
     - `GET /api/v1/update` also answers `installKind`, `liveUpdate`, `updateCommand` and `updateAdvice`, which the
       Control Deck shows ([LiveUpdateKinds.md](hmailserver/docs/LiveUpdateKinds.md)).
     - The REST API writes to the application log which method and path it answered 500 after an exception, and the

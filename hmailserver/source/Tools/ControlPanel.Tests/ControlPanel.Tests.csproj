@@ -148,6 +148,17 @@
          takes the connection and says nothing, and a certificate that is the one
          the listener serves - each against a listener the test runs itself. -->
     <Compile Include="..\ControlPanel\Services\RestSettingsClient.cs" />
+
+    <!-- An administrator's install of an update (docs/ServiceAccount.md, "The live
+         update"): the decisions, the stage's command line, the words for what the
+         stage, the service and the Updater say, the permission rule held to the
+         table the elevated stage is held to, the sign-in handoff and its entropy,
+         and the Status page's Update row. Plain logic and file I/O, no WPF and no
+         COM, so each check is tested here rather than only on a server. -->
+    <Compile Include="..\ControlPanel\Services\AdministratorUpdate.cs" />
+    <Compile Include="..\ControlPanel\Services\InstallationPermissions.cs" />
+    <Compile Include="..\ControlPanel\Services\AfterUpdateHandoff.cs" />
+    <Compile Include="..\ControlPanel\Services\UpdateStatusText.cs" />
   </ItemGroup>
 
   <ItemGroup>

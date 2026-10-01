@@ -106,8 +106,11 @@ A move is made after the database is upgraded, and only once the service's folde
 are granted cleanly: an attended installation asks about any folder or key file
 the configuration names outside the program folder, a silent one leaves the
 service on LocalSystem when there is one. Under the virtual account the live
-update is checked and an administrator installs it from the release page, since
-the service cannot run an installer itself, and `hMailServer.INI` is read-only to
+update is checked, downloaded and verified, and an administrator installs it with
+*Install update* in the Control Panel on the server, which asks Windows once and
+checks the installer itself, since the service cannot run an installer - from
+6.3.6; a server on 6.3.4 or 6.3.5 is brought to 6.3.6 from the release page, once,
+as below - and `hMailServer.INI` is read-only to
 the service - the administrator password is then changed with
 `hMailServer.exe /SetAdministratorPassword`. [ServiceAccount.md](ServiceAccount.md)
 has the rest.

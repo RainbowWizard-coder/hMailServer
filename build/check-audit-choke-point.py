@@ -181,6 +181,12 @@ ALLOWED = {
       # A migration job cancelled while it runs: its own thread writes the row,
       # with no actor on it, so the request records who asked.
       "Common/Application/MigrationManager.cpp",
+      # An administrator's install of an update (docs/ServiceAccount.md, "The
+      # live update"): asked for, started and cancelled over COM from the Control
+      # Panel on the server, and its outcome at the next start under the Windows
+      # account the elevated Updater read from its own token. It installs files,
+      # not rows or settings.
+      "Common/Util/UpdateInstaller.cpp",
    },
    "AuditTrail::SetActor(": {
       "Common/Util/AuditTrail.cpp",                 # AuditScope itself
@@ -220,6 +226,12 @@ ALLOWED = {
 
 # The call sites the rules above protect must exist, or they guard nothing.
 REQUIRED = [
+   ("Common/Util/UpdateInstaller.cpp",
+    'AuditTrail::Instance()->RecordEvent(_T("update"), ObjectName_(version), _T("install requested"),',
+    "an administrator's install of an update asked for from the Control Panel is no longer recorded - it writes no audited row, and the only other trace would be an application-log line"),
+   ("Common/Util/UpdateInstaller.cpp",
+    'AuditTrail::Instance()->RecordEvent(_T("update"), ObjectName_(outcome.version), action,',
+    "the outcome of an administrator's install is no longer recorded under the Windows account that approved it"),
    ("Common/SQL/DatabaseConnectionManager.cpp",
     "AuditTrail::Instance()->RecordStatement(command, bResult);",
     "the statement chokepoint no longer records anything"),

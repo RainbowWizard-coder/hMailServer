@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System;
+using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
@@ -35,13 +36,239 @@ namespace hMailServer.ControlPanel.Views
 
       public void OnLeave()
       {
+         settle_?.Stop();
+      }
+
+      // Asking the service again while it still says an install that has ended is
+      // under way (AdministratorUpdate.ShouldAskAgainAfterInstall).
+      private System.Windows.Threading.DispatcherTimer settle_;
+      private int settleAttempts_;
+
+      private void SettleAfterInstall_(int updateState)
+      {
+         if (!AdministratorUpdate.ShouldAskAgainAfterInstall(installOutcome_ != null, updateState, settleAttempts_))
+         {
+            settle_?.Stop();
+            return;
+         }
+         if (settle_ == null)
+         {
+            settle_ = new System.Windows.Threading.DispatcherTimer { Interval = AdministratorUpdate.SettleInterval };
+            settle_.Tick += (s, e) =>
+            {
+               settle_.Stop();
+               settleAttempts_++;
+               Reload();
+            };
+         }
+         settle_.Start();
       }
 
       private void Refresh_Click(object sender, RoutedEventArgs e) => Reload();
 
       private void CheckUpdate_Click(object sender, RoutedEventArgs e) => RunUpdateAction_("check");
       private void DownloadUpdate_Click(object sender, RoutedEventArgs e) => RunUpdateAction_("download");
-      private void InstallUpdate_Click(object sender, RoutedEventArgs e) => RunUpdateAction_("install");
+      private void InstallUpdate_Click(object sender, RoutedEventArgs e)
+      {
+         // A service that cannot run an installer - NT SERVICE\hMailServer, a new
+         // installation's since 6.3.4 - has its update installed from here instead,
+         // after Windows' own prompt (Views/UpdateInstallWindow.cs). Anything else
+         // - LocalSystem, or a server before 6.3.6, which says what to do itself -
+         // goes the way it always went.
+         if (TryAdministratorInstall_())
+            return;
+         RunUpdateAction_("install");
+      }
+
+      /// <summary>
+      /// The outcome of an administrator's install, at the top of the page: set by
+      /// the Control Panel that opened again after it (MainWindow, --after-update).
+      /// </summary>
+      public void ShowInstallOutcome(AdministratorUpdate.Outcome outcome)
+      {
+         // Read again with the outcome known: the notice is drawn with the
+         // warnings, and a service still saying "installing" is asked again.
+         installOutcome_ = outcome;
+         Reload();
+      }
+
+      private AdministratorUpdate.Outcome installOutcome_;
+
+      private void ShowInstallOutcome_()
+      {
+         if (installOutcome_ == null || WarningsPanel == null)
+            return;
+         WarningsPanel.Children.Insert(0, new InlineNotice
+         {
+            Level = AdministratorUpdate.LevelOf(installOutcome_),
+            Text = AdministratorUpdate.OutcomeText(installOutcome_),
+            Margin = new Thickness(0, 0, 0, 8)
+         });
+      }
+
+      // True when this click was an administrator's install - started, or refused
+      // with its reason; false for the service's own install.
+      private bool TryAdministratorInstall_()
+      {
+         dynamic app = ServerSession.Current?.Application;
+         if (app == null)
+            return false;
+
+         bool? needsAdministrator = null;
+         int state = 0;
+         string version = "", releaseUrl = "";
+         int waitSeconds = 180;
+         try
+         {
+            dynamic status = app.Status;
+            state = (int)status.UpdateState;
+            version = (string)status.AvailableVersion;
+            releaseUrl = (string)status.AvailableVersionUrl;
+            try
+            {
+               needsAdministrator = (bool)status.UpdateNeedsAdministrator;
+            }
+            catch (Exception older) when (!ExceptionPolicy.IsFatal(older))
+            {
+               // A server before 6.3.6: it says itself what to do.
+               needsAdministrator = null;
+            }
+            ServerSession.Release(status);
+            try
+            {
+               dynamic settings = app.Settings;
+               waitSeconds = int.TryParse((string)settings.GetIniSetting("UpdateServiceWaitSeconds"), out int wait) ? wait : 180; // no-loc: a setting's name
+               ServerSession.Release(settings);
+            }
+            catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
+            {
+               waitSeconds = 180;
+            }
+         }
+         catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
+         {
+            return false;
+         }
+
+         string caption = L("Install update");
+         switch (AdministratorUpdate.Decide(ServerSession.IsLocalSession, needsAdministrator, state, version))
+         {
+            case AdministratorUpdate.Decision.ServiceInstalls:
+               return false;
+            case AdministratorUpdate.Decision.Remote:
+               MessageBox.Show(AdministratorUpdate.RemoteText(ServerSession.Current.Host, ReadServiceAccount_(app)), caption, MessageBoxButton.OK, MessageBoxImage.Warning);
+               return true;
+            case AdministratorUpdate.Decision.NotReady:
+               MessageBox.Show(L("No verified installer is waiting; check for updates and download it first."), caption, MessageBoxButton.OK, MessageBoxImage.Warning);
+               return true;
+            case AdministratorUpdate.Decision.BadVersion:
+               MessageBox.Show(F("The release on offer, {0}, is not a version this Control Panel installs.", version), caption, MessageBoxButton.OK, MessageBoxImage.Warning);
+               return true;
+         }
+
+         // The installation, as the service manager has it: the stage re-derives it
+         // the same way once elevated.
+         WindowsServiceInfo service = WindowsServiceInfo.Query();
+         if (!AdministratorUpdate.InstallationFrom(WindowsServiceInfo.ExecutableFrom(service.PathName), out string installation))
+         {
+            MessageBox.Show(AdministratorUpdate.MissingFileText("Bin\\hMailServer.exe", version, releaseUrl), caption, MessageBoxButton.OK, MessageBoxImage.Warning); // no-loc: a file name
+            return true;
+         }
+         foreach (string file in AdministratorUpdate.RequiredFiles(installation))
+         {
+            if (!System.IO.File.Exists(file))
+            {
+               MessageBox.Show(AdministratorUpdate.MissingFileText(file, version, releaseUrl), caption, MessageBoxButton.OK, MessageBoxImage.Warning);
+               return true;
+            }
+         }
+         string own = Environment.ProcessPath ?? "";
+         string expected = System.IO.Path.Combine(installation, "ControlPanel", "hMailCP.exe");
+         if (!string.Equals(System.IO.Path.GetFullPath(own), System.IO.Path.GetFullPath(expected), StringComparison.OrdinalIgnoreCase))
+         {
+            MessageBox.Show(AdministratorUpdate.NotInstalledCopyText(own, expected), caption, MessageBoxButton.OK, MessageBoxImage.Warning);
+            return true;
+         }
+
+         // Another administrator's install under way - by a mark written within the
+         // time one can last; an older one is an Updater's that did not finish,
+         // and the stage, which holds the busy file, is the judge of that.
+         string inProgressPath = System.IO.Path.Combine(installation, "AdminUpdate", "in-progress");
+         string inProgress = AdministratorUpdate.ReadShared(inProgressPath);
+         if (inProgress != null && AdministratorUpdate.InProgressMarkIsLive(System.IO.File.GetLastWriteTimeUtc(inProgressPath), DateTime.UtcNow))
+         {
+            MessageBox.Show(AdministratorUpdate.BusyText(AdministratorUpdate.ParseKeyValues(inProgress)), caption, MessageBoxButton.OK, MessageBoxImage.Warning);
+            return true;
+         }
+
+         // The permission rule, before Windows is asked: the one check that cannot
+         // live in the program it protects.
+         Mouse.OverrideCursor = Cursors.Wait;
+         InstallationPermissions.Finding finding;
+         try
+         {
+            finding = InstallationPermissions.CheckInstallation(installation, ReadTrustFiles_(installation));
+         }
+         finally
+         {
+            Mouse.OverrideCursor = null;
+         }
+         if (finding.Failed)
+         {
+            MessageBox.Show(AdministratorUpdate.PermissionText(finding), caption, MessageBoxButton.OK, MessageBoxImage.Warning);
+            return true;
+         }
+
+         var window = new UpdateInstallWindow(Window.GetWindow(this), installation, version, ReadRunningVersion_(app), waitSeconds);
+         window.ShowDialog();
+         // Closed for the installer, the Control Panel is ending: the page is not
+         // read again.
+         if (!window.ClosedForInstaller)
+            Reload();
+         return true;
+      }
+
+      private static string ReadServiceAccount_(dynamic app)
+      {
+         try
+         {
+            WindowsServiceInfo service = WindowsServiceInfo.Query();
+            return service.StartName;
+         }
+         catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
+         {
+            return "";
+         }
+      }
+
+      private static string ReadRunningVersion_(dynamic app)
+      {
+         try
+         {
+            string version = (string)app.Version;
+            int dash = version.IndexOf('-');
+            return dash > 0 ? version.Substring(0, dash) : version;
+         }
+         catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
+         {
+            return "";
+         }
+      }
+
+      // The two Sigstore trust files hMailServer.INI may name, which the install
+      // reads elevated and so must be the administrators' alone.
+      private static IEnumerable<string> ReadTrustFiles_(string installation)
+      {
+         var files = new List<string>();
+         string ini = System.IO.Path.Combine(installation, "Bin", "hMailServer.INI");
+         foreach (string key in new[] { "UpdateTrustRootsFile", "UpdateLogPublicKeyFile" }) // no-loc: setting names
+         {
+            string value = ProfileApi.ReadString("Settings", key, "", ini, 4096); // no-loc: the section's name
+            if (!string.IsNullOrWhiteSpace(value))
+               files.Add(value.Trim());
+         }
+         return files;
+      }
 
       // The three update steps, on the server: a check reads the feed, a download
       // fetches and verifies the installer, an install hands it to the helper. Each
@@ -207,13 +434,26 @@ namespace hMailServer.ControlPanel.Views
             int updateState = (int)status.UpdateState;
             string availableVersion = (string)status.AvailableVersion;
             string applyOutcome = (string)status.UpdateApplyOutcome;
-            SetValue_(UpdateValue, L("Update"), UpdateText_(updateState, availableVersion,
-               (string)status.AvailableVersionPublished, (string)status.UpdateLastChecked, (string)status.UpdateLastError, applyOutcome));
+            string preparationStep = null;
+            if (updateState == 6)
+            {
+               try
+               {
+                  preparationStep = AdministratorUpdate.ParsePreparation((string)status.UpdatePreparation)?.Step;
+               }
+               catch (Exception older) when (!ExceptionPolicy.IsFatal(older))
+               {
+                  preparationStep = null;
+               }
+            }
+            SetValue_(UpdateValue, L("Update"), UpdateStatusText.For(updateState, availableVersion,
+               (string)status.AvailableVersionPublished, (string)status.UpdateLastChecked, (string)status.UpdateLastError, applyOutcome, preparationStep));
             ServerSession.Release(status);
             // Download once a newer release is known (a failed download can be retried);
             // install once one is verified and waiting.
             DownloadUpdateButton.IsEnabled = updateState == 2 || (updateState == 5 && !string.IsNullOrEmpty(availableVersion));
             InstallUpdateButton.IsEnabled = updateState == 3;
+            SettleAfterInstall_(updateState);
          }
          catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
          {
@@ -295,24 +535,6 @@ namespace hMailServer.ControlPanel.Views
       /// what the dashboard's KPI row already does, and doing the same here means
       /// the two pages sound alike.
       /// </summary>
-      // One line for the status card, from Status.UpdateState and its companions. The
-      // last apply's outcome, reported when the service came back, comes first when
-      // there is one: it is what the administrator who clicked Install is waiting for.
-      internal static string UpdateText_(int state, string version, string published, string checkedAt, string error, string applyOutcome = null)
-      {
-         string when = string.IsNullOrEmpty(published) ? "" : F(" (published {0})", published);
-         string outcome = string.IsNullOrEmpty(applyOutcome) ? "" : F("Last update: {0}. ", applyOutcome);
-         switch (state)
-         {
-            case 1: return outcome + L("This is the latest release") + (string.IsNullOrEmpty(checkedAt) ? "" : F(", checked {0}", checkedAt));
-            case 2: return outcome + F("{0} is available", version) + when;
-            case 3: return outcome + F("{0} is downloaded and verified", version) + when + L("; Install update applies it");
-            case 4: return outcome + F("Installing {0}: the service will stop and start", version);
-            case 5: return outcome + F("The last update step failed: {0}", error);
-            default: return outcome + L("Not checked yet (Check for updates, or turn on the daily check under Updates on the API & monitoring page)");
-         }
-      }
-
       private static void SetValue_(TextBlock value, string label, string text)
       {
          value.Text = text;
@@ -375,6 +597,8 @@ namespace hMailServer.ControlPanel.Views
 
          if (count == 0)
             WarningsPanel.Children.Add(new InlineNotice { Level = StatusLevel.Good, Text = L("No configuration warnings."), Margin = new Thickness(0) });
+
+         ShowInstallOutcome_();
       }
 
       /// <summary>

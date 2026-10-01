@@ -4,6 +4,12 @@ var
   g_pageAccessKey: TInputQueryWizardPage;
   g_szAdminPassword: String;
   g_szUpgradeToken: String;
+  // True when the token came in HM_UPGRADE_TOKEN, which only hMailServer.Updater
+  // sets, and only for an administrator's install from the Control Panel
+  // (docs/ServiceAccount.md, "The live update"): it has ended every Control Panel
+  // running from the installation already, so the check for one by its window
+  // title is not made (InitializeSetup).
+  g_bAdministratorUpdate: Boolean;
   
   g_pageDBType: TWizardPage;
   g_bUseInternal : Boolean;
@@ -195,6 +201,26 @@ external 'CloseHandle@kernel32.dll stdcall';
 // did in 6.2.19).
 function SetProcessEnvironmentVariable(lpName: String; lpValue: String): Boolean;
 external 'SetEnvironmentVariableW@kernel32.dll stdcall';
+
+// UpdateApplyToken's form: 64 lowercase hexadecimal characters.
+function IsUpgradeTokenForm(Token: String): Boolean;
+var
+  i: Integer;
+  c: Char;
+begin
+  Result := Length(Token) = 64;
+  if not Result then
+    Exit;
+  for i := 1 to 64 do
+  begin
+    c := Token[i];
+    if not (((c >= '0') and (c <= '9')) or ((c >= 'a') and (c <= 'f'))) then
+    begin
+      Result := False;
+      Exit;
+    end;
+  end;
+end;
 
 // Ports 25, 110 and 143 in use by something other than hMailServer. A bind test
 // over WinSock, which is what the ISC.DLL this replaced did: a 45 KB unsigned DLL
@@ -1536,6 +1562,33 @@ begin
 	// is not a password: it is never written to the ini.
 	g_szUpgradeToken := ExpandConstant('{param:upgradetoken|}');
 
+	// From 6.3.6 the token comes in the environment instead, HM_UPGRADE_TOKEN, when
+	// hMailServer.Updater runs this installer for an administrator's install: an
+	// elevated process's environment is not readable by the administrator's own
+	// unelevated programs, and its command line is. Held to the token's form - 64
+	// lowercase hexadecimal characters - or ignored, and taken out of this
+	// process's environment as soon as it is read, so that no program this
+	// installer starts inherits it.
+	g_bAdministratorUpdate := False;
+	if g_szUpgradeToken = '' then
+	begin
+		g_szUpgradeToken := GetEnv('HM_UPGRADE_TOKEN');
+		SetProcessEnvironmentVariable('HM_UPGRADE_TOKEN', '');
+		if g_szUpgradeToken <> '' then
+		begin
+			if IsUpgradeTokenForm(g_szUpgradeToken) then
+			begin
+				g_bAdministratorUpdate := True;
+				Log('The database upgrade''s token was given in HM_UPGRADE_TOKEN: an administrator''s install from the Control Panel.');
+			end
+			else
+			begin
+				Log('HM_UPGRADE_TOKEN is set but is not a token (64 lowercase hexadecimal characters), so it is ignored.');
+				g_szUpgradeToken := '';
+			end;
+		end;
+	end;
+
 	// Or in the environment, HM_ADMIN_PASSWORD, when neither switch is given - the
 	// name the server's own --set-admin-password reads. Inno Setup's command line
 	// cannot carry every password: a double quote in it only turns quoting on or
@@ -1569,7 +1622,13 @@ begin
 	if NormalizedDatabaseType(g_szDatabaseType) <> '' then
 		g_szDatabaseType := NormalizedDatabaseType(g_szDatabaseType);
 
-	if (FindWindowByWindowName('hMailServer Control Panel') > 0) then
+	// The two checks by window title are for an installation somebody started by
+	// hand. An administrator's install (g_bAdministratorUpdate) comes from
+	// hMailServer.Updater, which has ended every program running from the
+	// installation before it ran this, the Control Panel that asked included; a
+	// window of the same title anywhere else - a stray copy, or any program that
+	// names a window so - would otherwise stop the install it asked for.
+	if (not g_bAdministratorUpdate) and (FindWindowByWindowName('hMailServer Control Panel') > 0) then
 	begin
 		SuppressibleMsgBox('hMailServer Control Panel is started. You must close down this application before starting the installation.',mbInformation, MB_OK, IDOK);	
 		Result := false;
@@ -1578,7 +1637,7 @@ begin
 
 	// Guard against a legacy hMailServer Administrator from an earlier version
 	// still running (it is no longer shipped, but may linger on upgrades).
-	if (FindWindowByWindowName('hMailServer Administrator') > 0) then
+	if (not g_bAdministratorUpdate) and (FindWindowByWindowName('hMailServer Administrator') > 0) then
 	begin
 		SuppressibleMsgBox('hMailServer Administrator is started. You must close down this application before starting the installation.',mbInformation, MB_OK, IDOK);	
 		Result := false;

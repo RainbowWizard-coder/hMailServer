@@ -17,7 +17,7 @@ The page itself is the webmail's design: one `:root` block declares the palette 
 | over REST but not reached by any Deck view | 0 |
 | assignments left out of the count | 5 |
 | COM interfaces in the IDL | 100 |
-| desktop pages read | 70 |
+| desktop pages read | 71 |
 | REST routes (path and method) | 590, 260 of them writes |
 | Deck views | 40 |
 
@@ -768,9 +768,12 @@ Secondary and looser still: a COM method counts as covered when a non-GET route'
 
 | Interface | Method | Desktop page | REST route |
 |---|---|---|---|
+| Status | `BeginUpdateForAdministrator` | UpdateInstallWindow | - |
+| Status | `CancelUpdateForAdministrator` | UpdateInstallWindow | - |
 | Status | `CheckForUpdate` | StatusView | `POST /api/v1/update/check` |
 | Status | `DownloadUpdate` | StatusView | `POST /api/v1/update/download` |
 | Status | `InstallUpdate` | StatusView | `POST /api/v1/update/install` |
+| Status | `PrepareUpdateForAdministrator` | UpdateInstallWindow | - |
 | Settings | `ApplyDirectorySync` | DirectorySyncView | `PUT /api/v1/accounts/{address}/directory`<br>`POST /api/v1/settings/profiles/{name}/apply` |
 | Settings | `ApplyProfile` | ProfilesView | `POST /api/v1/settings/profiles/{name}/apply` |
 | Settings | `ClearLogonFailureList` | ServerSettingsView | `POST /api/v1/remote-domains/verification-cache/clear`<br>`POST /api/v1/settings/logon-failures/clear` |
@@ -779,6 +782,7 @@ Secondary and looser still: a COM method counts as covered when a non-GET route'
 | Settings | `DiscardProfileSnapshot` | ProfilesView | `POST /api/v1/settings/profiles/discard` |
 | Settings | `EnrolAdministratorTOTP` | AdministratorTwoFactorDialog | - |
 | Settings | `GenerateWebPushKeys` | ServerSettingsView | `DELETE /api/v1/accounts/{address}/push`<br>`PUT /api/v1/settings/push` |
+| Settings | `GetIniSetting` | StatusView | - |
 | Settings | `GetProfile` | ProfilesView | - |
 | Settings | `GetProfiles` | ProfilesView | - |
 | Settings | `PreviewDirectorySync` | DirectorySyncView | `DELETE /api/v1/review/{id}`<br>`PUT /api/v1/accounts/{address}/review`<br>`PUT /api/v1/accounts/{address}/directory` |
@@ -1142,7 +1146,7 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `PUT /api/v1/surbl-servers/{id}` | SURBLServer | `active`, `body`, `code`, `dns_host`, `domain`, `domains`, `expected_result`, `field`, `keys`, `message`, `read`, `reject_message`, `score`, `value` | - |
 | `POST /api/v1/update/check` | - | - | - |
 | `POST /api/v1/update/download` | - | - | - |
-| `POST /api/v1/update/install` | - | - | - |
+| `POST /api/v1/update/install` | - | `update_install_by_administrator` | - |
 | `POST /api/v1/warmup` | ? | `accepted`, `action`, `address`, `delivery`, `domain`, `enabled`, `field`, `force`, `from`, `keys`, `plan`, `read`, `started`, `to` | yes |
 | `PUT /api/v1/warmup/{id}` | ? | `accepted`, `action`, `address`, `body`, `delivery`, `domain`, `enabled`, `field`, `force`, `from`, `keys`, `plan`, `read`, `start`, `started`, `to`, `value` | yes |
 | `POST /api/v1/webhooks` | ? | `account`, `address`, `addresses`, `body`, `domain`, `domains`, `enabled`, `events`, `include_subject`, `key`, `list`, `lower`, `manage_server`, `max_per_minute`, `name`, `password`, `port`, `role`, `secret`, `signature`, `subject`, `to`, `url`, `webhook_subjects` | yes |

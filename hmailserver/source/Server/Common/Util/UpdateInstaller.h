@@ -87,8 +87,97 @@ namespace HM
       // how (UpdateChecker::UpdatedElsewhere).
       static bool CanApplyHere(const String &releaseUrl, String &why);
 
+      // ---- An administrator's install (docs/ServiceAccount.md, "The live update")
+      //
+      // Where the service cannot run an installer (CanApplyHere is false on
+      // Windows), the Control Panel on the server installs the update itself,
+      // after Windows' own elevation prompt, and asks the service - over COM,
+      // from this computer only - to do what the unattended apply does first:
+      // the backup, the rollback image, the drain. The elevated part trusts
+      // nothing the service says or wrote (Util/AdminUpdate.h); what is here only
+      // decides what the Control Panel is told and when the server drains.
+
+      // True on Windows when the service cannot run an installer and the
+      // installation is the installer's: an update is installed by an
+      // administrator with Install update in the Control Panel on this server.
+      // False on LocalSystem and on POSIX.
+      static bool NeedsAdministrator();
+
+      // The sentence that says so, which COM's InstallUpdate refuses with, the
+      // REST route answers as installAdvice and the setup checklist shows; empty
+      // when the service installs updates itself.
+      static String InstallAdvice();
+
+      // This computer's DNS name, or its NetBIOS name: where the Control Panel
+      // the sentence sends an administrator to runs.
+      static String ServerName();
+
+      // COM's PrepareUpdateForAdministrator: refused - false with error - unless
+      // an administrator is needed, the installer of version is downloaded and
+      // verified (or a preparation of it failed and is being tried again),
+      // nothing is draining and no preparation is running. Otherwise the state
+      // becomes StatePreparing and a thread of its own checks the installer
+      // again, takes the backup (unless skipBackup, the administrator's choice
+      // after a backup failed, or UpdateBackupBeforeApply is off, or no
+      // destination is set), fetches and verifies the rollback image, and
+      // makes the state StateReadyForAdministrator - or StateFailed with the
+      // reason and the step. No token is issued and nothing drains here.
+      // windowsAccount is the caller's Windows account, for the log and the
+      // audit trail.
+      static bool PrepareForAdministrator(const String &version, bool skipBackup, const String &windowsAccount, String &error);
+
+      // COM's BeginUpdateForAdministrator: refused unless the preparation of
+      // version is ready. Issues the token the new installer's database upgrade
+      // presents, enters the drain, makes the state StateInstalling, and watches:
+      // an outcome from the Updater while this process still runs leaves the
+      // drain and is reported; no stop within ten minutes leaves the drain,
+      // revokes the token and is reported as HM7465.
+      static bool BeginForAdministrator(const String &version, const String &windowsAccount, String &error);
+
+      // COM's CancelUpdateForAdministrator: the preparation stopped where it is,
+      // the token revoked, the drain Begin entered left, and the state back to
+      // the downloaded installer.
+      static void CancelForAdministrator(const String &reason, const String &windowsAccount);
+
+      // From the update task: a preparation ready for 90 minutes that nobody
+      // began goes back to the downloaded installer.
+      static void ExpireReadyPreparation();
+
+      // One administrator's install's outcome, as the Updater writes it into
+      // {app}\AdminUpdate\last-install.txt: the first line "<status> <version>
+      // <detail>" as last-apply.txt has it, then key=value lines. False when the
+      // text is not one.
+      struct AdministratorOutcome
+      {
+         String status;
+         String version;
+         String detail;
+         String id;
+         String by;
+         String from;
+         String installLog;
+      };
+      static bool ParseAdministratorOutcome(const AnsiString &text, AdministratorOutcome &outcome);
+
    private:
       static bool EnsureRollbackImage_(const String &runningVersion, String &rollbackPath, String &why);
+
+      // The preparation's thread (PrepareForAdministrator).
+      static void PrepareForAdministrator_(String version, bool skipBackup, String windowsAccount);
+
+      // The watcher BeginForAdministrator starts, for as long as the drain it
+      // entered is still that drain.
+      static void WatchAdministratorInstall_(String drainSince, String version);
+
+      // The outcome of the last administrator's install, reported once by its id
+      // (AdminUpdate::ReportedIdPath); and an install that began more than an
+      // hour ago and wrote none, once, as HM7469.
+      static void ReportAdministratorOutcome_();
+      static void ReportUnattendedOutcome_();
+
+      // Whether an administrator's install whose outcome is not yet written is
+      // under way: AdminUpdate\in-progress, for an id not yet reported.
+      static bool AdministratorInstallPending_();
 
       // A helper's log in the Updates directory - apply-<version>.log, or on Linux
       // the apply.XXXXXX it writes until it exits - written within the hour and

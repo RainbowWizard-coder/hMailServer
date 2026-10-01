@@ -39,3 +39,9 @@ Filename: "{app}\Bin\hMailServer.exe"; Parameters: "/Unregister"; Flags: runhidd
 Filename: "{app}\MySQL\Bin\mysqld-nt.exe"; Parameters: "--remove hMailServerMySQL"; Flags: runhidden skipifdoesntexist; RunOnceId: "RemoveHMailServerMySQL"
 Filename: "{app}\Bin\hSMTPServer.exe"; Parameters: "unregister"; Flags: runhidden skipifdoesntexist; RunOnceId: "UnregisterHSMTPServer"
 Filename: "{app}\Bin\hPOP3Server.exe"; Parameters: "unregister"; Flags: runhidden skipifdoesntexist; RunOnceId: "UnregisterHPOP3Server"
+
+; The work folders of administrators' installs of updates (docs/ServiceAccount.md,
+; "The live update"): the installer copies, their logs and outcomes. Nothing this
+; installer placed, so named here to be removed with the rest.
+[UninstallDelete]
+Type: filesandordirs; Name: "{app}\AdminUpdate"

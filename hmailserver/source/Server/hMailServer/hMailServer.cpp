@@ -39,6 +39,7 @@
 #include "../Common/Util/ProtectedFile.h"
 #include "../Common/Util/FileUtilities.h"
 #include "../Common/Pst/PstReaderChild.h"
+#include "../Common/Util/AdminUpdate.h"
 
 #include <algorithm>
 #include <cstdio>
@@ -971,6 +972,21 @@ extern "C" int WINAPI _tWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstan
    int readerExitCode = 0;
    if (RunAsPstReader(readerExitCode))
       return readerExitCode;
+
+   // The two verbs of an administrator's install of an update
+   // (Common/Util/AdminUpdate.h), which run elevated from the Control Panel's
+   // Install update: /InstallUpdate, the stage that checks the installer, and
+   // --verify-bundle, its Sigstore check run with the administrator's rights
+   // taken away. Here, before the crash oracle, COM, RegisterAppID and anything
+   // that reads the configuration, as the PST reader is: neither may write where
+   // the service can - a crash dump, a log line or an error in the log folder -
+   // and neither needs anything of the server's but the code that checks. Each
+   // limits DLL loading to Bin and System32 and forbids the logger's writes as
+   // its first act.
+   if (HM::AdminUpdate::IsVerifyBundleCommandLine())
+      return HM::AdminUpdate::RunVerifyBundleChild();
+   if (HM::AdminUpdate::IsInstallUpdateCommandLine())
+      return HM::AdminUpdate::RunInstallUpdateCommand();
 
    // Arm the crash oracle before anything else runs. Both of its hooks are
    // process-wide, so installing them here covers every thread the server creates

@@ -1409,6 +1409,9 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   <data name="Allow plain-text authentication (AUTH PLAIN/LOGIN)" xml:space="preserve">
     <value>Düz metin kimlik doğrulamasına izin ver (AUTH PLAIN/LOGIN)</value>
   </data>
+  <data name="Allowed as {0}." xml:space="preserve">
+    <value>{0} olarak izin verildi.</value>
+  </data>
   <data name="Allowed signing algorithms (comma separated)" xml:space="preserve">
     <value>İzin verilen imzalama algoritmaları (virgülle ayrılmış)</value>
   </data>
@@ -1517,6 +1520,9 @@ Ayrıntıların tamamı şuraya yazıldı:
 {1}
 
 Denetim Masası şimdi yeniden başlatılsın mı? Çalışmayı sürdürmeyi denemek için Hayır'ı seçin.</value>
+  </data>
+  <data name="An update is already being installed on this server: hMailServer {0}, started at {1} by {2}." xml:space="preserve">
+    <value>Bu sunucuda zaten bir güncelleştirme yükleniyor: hMailServer {0}, {1} saatinde {2} tarafından başlatıldı.</value>
   </data>
   <data name="And this is the server's own verdict on what you have built. It is the page to come back to." xml:space="preserve">
     <value>Ve bu, kurduğunuz yapı hakkında sunucunun kendi değerlendirmesidir. Geri dönülecek sayfa burasıdır.</value>
@@ -1695,6 +1701,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Çalışmayı sürdürmeyi de
   <data name="Ask a keyserver when their domain has no key" xml:space="preserve">
     <value>Etki alanlarında anahtar yoksa bir anahtar sunucusuna sor</value>
   </data>
+  <data name="Asking the service to take the backup." xml:space="preserve">
+    <value>Hizmetten yedeği alması isteniyor.</value>
+  </data>
   <data name="Asks for a confirmation" xml:space="preserve">
     <value>Onay ister</value>
   </data>
@@ -1868,6 +1877,15 @@ Denetim Masası şimdi yeniden başlatılsın mı? Çalışmayı sürdürmeyi de
   </data>
   <data name="Back_up file (HMBackup*.xml on the server)" xml:space="preserve">
     <value>_Yedek dosyası (sunucudaki HMBackup*.xml)</value>
+  </data>
+  <data name="Backed up to {0}." xml:space="preserve">
+    <value>{0} konumuna yedeklendi.</value>
+  </data>
+  <data name="Backing up" xml:space="preserve">
+    <value>Yedekleniyor</value>
+  </data>
+  <data name="Backing up to {0}." xml:space="preserve">
+    <value>{0} konumuna yedekleniyor.</value>
   </data>
   <data name="Backlog" xml:space="preserve">
     <value>Birikim</value>
@@ -2310,8 +2328,14 @@ Denetim Masası şimdi yeniden başlatılsın mı? Çalışmayı sürdürmeyi de
   <data name="Checked shortly after the service starts and every six hours after that. Only hMailServer's own dated log files (hmailserver_*.log and ERROR_hmailserver_*.log) are removed; nothing else in the log folder is touched." xml:space="preserve">
     <value>Hizmet başladıktan kısa süre sonra ve ondan sonra her altı saatte bir denetlenir. Yalnızca hMailServer'ın kendi tarihli günlük dosyaları (hmailserver_*.log ve ERROR_hmailserver_*.log) kaldırılır; günlük klasöründeki başka hiçbir şeye dokunulmaz.</value>
   </data>
+  <data name="Checking the installer" xml:space="preserve">
+    <value>Yükleyici denetleniyor</value>
+  </data>
   <data name="Checking what this server still needs done outside it…" xml:space="preserve">
     <value>Bu sunucunun dışında hâlâ nelerin yapılması gerektiği denetleniyor…</value>
+  </data>
+  <data name="Checking {0}: its signature, its record in the Sigstore transparency log, its version and its architecture." xml:space="preserve">
+    <value>{0} denetleniyor: imzası, Sigstore şeffaflık günlüğündeki kaydı, sürümü ve mimarisi.</value>
   </data>
   <data name="Checking…" xml:space="preserve">
     <value>Denetleniyor…</value>
@@ -4302,6 +4326,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Fetches the newer release's installer and verifies it against its Sigstore bundle before keeping it. The Control Panel waits while it does; an installer is tens of megabytes." xml:space="preserve">
     <value>Yeni sürümün yükleyicisini getirir ve saklamadan önce Sigstore paketine karşı doğrular. Denetim Masası bu sırada bekler; bir yükleyici onlarca megabayttır.</value>
   </data>
+  <data name="Fetching and checking the hMailServer {0} installer, to put back if {1} does not start." xml:space="preserve">
+    <value>{1} başlamazsa geri koymak için hMailServer {0} yükleyicisi alınıyor ve denetleniyor.</value>
+  </data>
   <data name="Fetching {0}…" xml:space="preserve">
     <value>{0} getiriliyor…</value>
   </data>
@@ -5047,6 +5074,24 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
     <value>Güncelleştirme şimdi yüklensin mi?
 
 Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, yeni sürüm yüklenir ve hizmet yeniden başlar. Geri gelmezse önceki sürüm yeniden yüklenir. Bu Denetim Masası bu sırada bağlantısını kaybeder; sonucu burada görmek için sonrasında yeniden bağlanın.</value>
+  </data>
+  <data name="Install update" xml:space="preserve">
+    <value>Güncelleştirmeyi yükle</value>
+  </data>
+  <data name="Install update stopped before anything was changed: the permissions of {0} could not be checked ({1})." xml:space="preserve">
+    <value>"Güncelleştirmeyi yükle" hiçbir şey değiştirilmeden durdu: {0} izinleri denetlenemedi ({1}).</value>
+  </data>
+  <data name="Install update stopped before anything was changed: {0} can be changed by {1} ({2}). A program run from there as an administrator could be one that account put there. Remove that permission - from a Command Prompt run as administrator: {3} - and click Install update again." xml:space="preserve">
+    <value>"Güncelleştirmeyi yükle" hiçbir şey değiştirilmeden durdu: {0}, {1} tarafından değiştirilebilir ({2}). Oradan yönetici olarak çalıştırılan bir program, o hesabın oraya koyduğu bir program olabilir. Bu izni kaldırın - yönetici olarak çalıştırılan bir Komut İstemi'nden: {3} - ve "Güncelleştirmeyi yükle"ye yeniden tıklayın.</value>
+  </data>
+  <data name="Install update stopped before anything was changed: {0}." xml:space="preserve">
+    <value>"Güncelleştirmeyi yükle" hiçbir şey değiştirilmeden durdu: {0}.</value>
+  </data>
+  <data name="Installing" xml:space="preserve">
+    <value>Yükleniyor</value>
+  </data>
+  <data name="Installing hMailServer {0}" xml:space="preserve">
+    <value>hMailServer {0} yükleniyor</value>
   </data>
   <data name="Installing {0}: the service will stop and start" xml:space="preserve">
     <value>{0} yükleniyor: hizmet duracak ve başlayacak</value>
@@ -6279,6 +6324,15 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="No backup destination is set." xml:space="preserve">
     <value>Yedek hedefi ayarlanmamış.</value>
   </data>
+  <data name="No backup first: UpdateBackupBeforeApply is off." xml:space="preserve">
+    <value>Önce yedek yok: UpdateBackupBeforeApply kapalı.</value>
+  </data>
+  <data name="No backup first: no backup destination is set (Backup &amp; restore). A rollback puts the previous program back, not the database." xml:space="preserve">
+    <value>Önce yedek yok: yedekleme hedefi ayarlanmamış (Yedekleme ve geri yükleme). Geri alma önceki programı geri koyar, veritabanını değil.</value>
+  </data>
+  <data name="No backup first: you chose to install without one." xml:space="preserve">
+    <value>Önce yedek yok: yedeksiz yüklemeyi seçtiniz.</value>
+  </data>
   <data name="No backup has ever completed into {0} - there is no HMBackup archive there." xml:space="preserve">
     <value>{0} içine hiçbir zaman bir yedekleme tamamlanmamış - orada HMBackup arşivi yok.</value>
   </data>
@@ -6492,6 +6546,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="No syntax errors reported." xml:space="preserve">
     <value>Söz dizimi hatası bildirilmedi.</value>
   </data>
+  <data name="No verified installer is waiting; check for updates and download it first." xml:space="preserve">
+    <value>Bekleyen doğrulanmış bir yükleyici yok; güncelleştirmeleri denetleyin ve önce onu indirin.</value>
+  </data>
   <data name="No virus scanner can run. Attachment blocking still strips the file-name patterns on its own page, but nothing looks inside a message or inside an archive." xml:space="preserve">
     <value>Hiçbir virüs tarayıcısı çalışamıyor. Ek engelleme kendi sayfasındaki dosya adı desenlerini yine çıkarır, ama hiçbir şey bir iletinin ya da bir arşivin içine bakmaz.</value>
   </data>
@@ -6530,6 +6587,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   </data>
   <data name="None." xml:space="preserve">
     <value>Yok.</value>
+  </data>
+  <data name="None: {0}. If {1} does not start, it will need reinstalling by hand." xml:space="preserve">
+    <value>Yok: {0}. {1} başlamazsa elle yeniden yüklenmesi gerekecek.</value>
   </data>
   <data name="Normal" xml:space="preserve">
     <value>Normal</value>
@@ -7495,6 +7555,9 @@ Sürdürülene kadar yeni bağlantı kabul edilmez ve posta teslim edilmez. Wind
   </data>
   <data name="Prefer server cipher order" xml:space="preserve">
     <value>Sunucu şifre sırasını yeğle</value>
+  </data>
+  <data name="Preparing the install of {0}: {1}" xml:space="preserve">
+    <value>{0} yüklemesi hazırlanıyor: {1}</value>
   </data>
   <data name="Prepend text to subject" xml:space="preserve">
     <value>Konunun başına metin ekle</value>
@@ -9631,6 +9694,9 @@ Devam edilsin mi?</value>
   <data name="Signature _method" xml:space="preserve">
     <value>_İmza yöntemi</value>
   </data>
+  <data name="Signed by {0} and recorded in the Sigstore log at {1}; version {2}, {3}." xml:space="preserve">
+    <value>{0} tarafından imzalandı ve {1} saatinde Sigstore günlüğüne kaydedildi; sürüm {2}, {3}.</value>
+  </data>
   <data name="Signing _algorithm" xml:space="preserve">
     <value>_İmzalama algoritması</value>
   </data>
@@ -9832,11 +9898,20 @@ Devam edilsin mi?</value>
   <data name="Stop the spam" xml:space="preserve">
     <value>Spamı durdur</value>
   </data>
+  <data name="Stop the update? Nothing has been installed yet." xml:space="preserve">
+    <value>Güncelleştirme durdurulsun mu? Henüz hiçbir şey yüklenmedi.</value>
+  </data>
   <data name="Stopped" xml:space="preserve">
     <value>Durduruldu</value>
   </data>
   <data name="Stopping" xml:space="preserve">
     <value>Durduruluyor</value>
+  </data>
+  <data name="Stopping new connections" xml:space="preserve">
+    <value>Yeni bağlantılar durduruluyor</value>
+  </data>
+  <data name="Stopping…" xml:space="preserve">
+    <value>Durduruluyor…</value>
   </data>
   <data name="Stops mattering at a date" xml:space="preserve">
     <value>Bir tarihte geçerliliğini yitirir</value>
@@ -10281,6 +10356,9 @@ Bu adrese giden bir sonraki ileti gönderilir; adres ancak eşik değerin gerekt
   <data name="The TCP/IP port list could not be read - {0}" xml:space="preserve">
     <value>TCP/IP port listesi okunamadı - {0}</value>
   </data>
+  <data name="The Windows prompt was declined, so nothing was installed and nothing on the server was changed." xml:space="preserve">
+    <value>Windows istemi reddedildi; bu nedenle hiçbir şey yüklenmedi ve sunucuda hiçbir şey değişmedi.</value>
+  </data>
   <data name="The _HELO name's domain, on the domain white and black list" xml:space="preserve">
     <value>HELO a_dının alan adı, alan adı beyaz ve kara listesinde</value>
   </data>
@@ -10358,6 +10436,9 @@ Bu adrese giden bir sonraki ileti gönderilir; adres ancak eşik değerin gerekt
   </data>
   <data name="The authserv-id: the first token of every Authentication-Results header this server writes, always lower-cased, and the name a downstream filter checks before trusting the verdicts. The same name decides which arriving Authentication-Results headers are treated as forged: one claiming this identity is removed, while one naming any other identity is left completely untouched." xml:space="preserve">
     <value>authserv-id: bu sunucunun yazdığı her Authentication-Results başlığının ilk belirteci, her zaman küçük harfli ve alt akıştaki bir filtrenin kararlara güvenmeden önce denetlediği ad. Aynı ad, gelen hangi Authentication-Results başlıklarının sahte sayılacağına da karar verir: bu kimliği iddia eden kaldırılır, başka herhangi bir kimliği belirten ise tamamen dokunulmadan bırakılır.</value>
+  </data>
+  <data name="The backup before the update failed: {0}. See the backup log. Install hMailServer {1} without a backup? A rollback would put {2} back, but not the database as it was." xml:space="preserve">
+    <value>Güncelleştirmeden önceki yedekleme başarısız oldu: {0}. Yedekleme günlüğüne bakın. hMailServer {1} yedeksiz yüklensin mi? Geri alma {2} sürümünü geri koyar, ancak veritabanını eski hâline getirmez.</value>
   </data>
   <data name="The backup destination {0} does not exist on the server." xml:space="preserve">
     <value>{0} yedek hedefi sunucuda yok.</value>
@@ -10621,6 +10702,12 @@ yüklenemedi. İleti büyük olasılıkla teslim edildi ve artık kuyrukta deği
   <data name="The indexer has been asked to run; it works in the background and the counts below will not move until it has. As things stand:" xml:space="preserve">
     <value>Dizinleyiciden çalışması istendi; arka planda çalışır ve aşağıdaki sayılar o çalışana kadar değişmez. Şu anki durum:</value>
   </data>
+  <data name="The install of hMailServer {0} was cancelled: {1}" xml:space="preserve">
+    <value>hMailServer {0} yüklemesi iptal edildi: {1}</value>
+  </data>
+  <data name="The install's outcome could not be read." xml:space="preserve">
+    <value>Yüklemenin sonucu okunamadı.</value>
+  </data>
   <data name="The issued certificate EXPIRED on {0}, {1} days ago, and renewal has not replaced it. Clients are refusing this server's TLS. Check the error log for the last renewal attempt: the usual cause is that the CA can no longer reach this server on the http-01 challenge port." xml:space="preserve">
     <value>Verilen sertifikanın SÜRESİ {0} tarihinde, {1} gün önce DOLDU ve yenileme onun yerine yenisini koymadı. İstemciler bu sunucunun TLS'sini reddediyor. Son yenileme girişimi için hata günlüğüne bakın: olağan neden, CA'nın bu sunucuya artık http-01 doğrulama portundan ulaşamamasıdır.</value>
   </data>
@@ -10810,6 +10897,9 @@ yüklenemedi. İleti büyük olasılıkla teslim edildi ve artık kuyrukta deği
   <data name="The per-protocol idle timeouts decide how long a connection may sit doing nothing before it is closed." xml:space="preserve">
     <value>Protokol başına boşta kalma zaman aşımları, bir bağlantının kapatılmadan önce ne kadar süre hiçbir şey yapmadan durabileceğine karar verir.</value>
   </data>
+  <data name="The permission is inherited from {0}; the command stops the folder inheriting it." xml:space="preserve">
+    <value>İzin {0} öğesinden devralınıyor; komut klasörün bunu devralmasını durdurur.</value>
+  </data>
   <data name="The person's data" xml:space="preserve">
     <value>Kişinin verileri</value>
   </data>
@@ -10895,6 +10985,9 @@ Yine de eklensin mi?</value>
   </data>
   <data name="The relay requires _authentication" xml:space="preserve">
     <value>Aktarma _kimlik doğrulaması gerektiriyor</value>
+  </data>
+  <data name="The release on offer, {0}, is not a version this Control Panel installs." xml:space="preserve">
+    <value>Sunulan sürüm {0}, bu Denetim Masası'nın yüklediği bir sürüm değil.</value>
   </data>
   <data name="The resolver is not answering: look in the TCP/IP log for &quot;DNS - Query timed out&quot;. Do not reach for DNSServer as the fix - leave it empty unless you need a specific resolver." xml:space="preserve">
     <value>Çözümleyici yanıt vermiyor: TCP/IP günlüğünde "DNS - Query timed out" ifadesini arayın. Çözüm olarak DNSServer'a sarılmayın - belirli bir çözümleyiciye ihtiyacınız yoksa onu boş bırakın.</value>
@@ -11012,6 +11105,9 @@ Yanıt veren sunucunun kendi çözümleyicisi - SMTP teslimatının kullandığ�
   <data name="The server keeps no history: MetricsHistoryDays is 0 in hMailServer.ini. Set it to the days to keep." xml:space="preserve">
     <value>Sunucu geçmiş tutmuyor: hMailServer.ini içinde MetricsHistoryDays 0. Onu tutulacak gün sayısına ayarlayın.</value>
   </data>
+  <data name="The server no longer accepts new connections; the mail in progress is finishing." xml:space="preserve">
+    <value>Sunucu artık yeni bağlantı kabul etmiyor; işlemdeki posta tamamlanıyor.</value>
+  </data>
   <data name="The server remembers who has written to each account and who each account has written to, and says so in the reader the first time an outside sender appears. It costs one database lookup for each message delivered to this domain, and nothing at all while this is off." xml:space="preserve">
     <value>Sunucu, her hesaba kimin yazdığını ve her hesabın kime yazdığını hatırlar ve dışarıdan bir gönderen ilk kez göründüğünde bunu okuyucuda söyler. Bu etki alanına teslim edilen her ileti için bir veritabanı sorgusuna mal olur, kapalıyken ise hiçbir şeye mal olmaz.</value>
   </data>
@@ -11053,6 +11149,9 @@ Yanıt veren sunucunun kendi çözümleyicisi - SMTP teslimatının kullandığ�
   </data>
   <data name="The service account cannot be read: {0}" xml:space="preserve">
     <value>Hizmet hesabı okunamıyor: {0}</value>
+  </data>
+  <data name="The service did not prepare the install: {0}" xml:space="preserve">
+    <value>Hizmet yüklemeyi hazırlamadı: {0}</value>
   </data>
   <data name="The service is registered to log on as {0} from its next start. Restart the hMailServer service - in services.msc, or with net stop hMailServer and net start hMailServer - for it to take effect.&#10;&#10;{1}" xml:space="preserve">
     <value>Hizmet, bir sonraki başlatmadan itibaren {0} olarak oturum açacak şekilde kaydedildi. Etkili olması için hMailServer hizmetini yeniden başlatın - services.msc içinde veya net stop hMailServer ve net start hMailServer ile.
@@ -11136,6 +11235,12 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="The update step could not be run: {0}" xml:space="preserve">
     <value>Güncelleştirme adımı çalıştırılamadı: {0}</value>
   </data>
+  <data name="The update was not installed: {0}" xml:space="preserve">
+    <value>Güncelleştirme yüklenmedi: {0}</value>
+  </data>
+  <data name="The update was stopped; nothing was installed." xml:space="preserve">
+    <value>Güncelleştirme durduruldu; hiçbir şey yüklenmedi.</value>
+  </data>
   <data name="The user name is trimmed of surrounding spaces; the password deliberately is not, because whitespace is legitimate inside a password." xml:space="preserve">
     <value>Kullanıcı adının çevresindeki boşluklar kırpılır; parolanınkiler bilerek kırpılmaz, çünkü parolanın içinde boşluk meşrudur.</value>
   </data>
@@ -11150,6 +11255,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="The verification code is incorrect. Make sure your authenticator app is set up with the new key." xml:space="preserve">
     <value>Doğrulama kodu yanlış. Kimlik doğrulayıcı uygulamanızın yeni anahtarla ayarlandığından emin olun.</value>
+  </data>
+  <data name="The version to go back to" xml:space="preserve">
+    <value>Geri dönülecek sürüm</value>
   </data>
   <data name="The web services settings could not be read: {0}" xml:space="preserve">
     <value>Web hizmetleri ayarları okunamadı: {0}</value>
@@ -11223,6 +11331,12 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="This Control Panel is connected to a remote server, and the key file is on that machine's disk - it cannot be read from this machine, so nothing about it is verified. This is &quot;unknown&quot;, not &quot;OK&quot;: check it on the server itself, or from its Setup checklist page." xml:space="preserve">
     <value>Bu Denetim Masası uzak bir sunucuya bağlı ve anahtar dosyası o makinenin diskinde - bu makineden okunamaz; bu yüzden hakkında hiçbir şey doğrulanmadı. Bu "Tamam" değil, "bilinmiyor" demektir: onu sunucunun kendisinde veya sunucunun Kurulum kontrol listesi sayfasından denetleyin.</value>
   </data>
+  <data name="This Control Panel is connected to {0}, not to the computer it runs on. The hMailServer service on {0} runs as {1}, which cannot run an installer, so updates there are installed by an administrator at that server: open the hMailServer Control Panel on {0} itself and click Install update there." xml:space="preserve">
+    <value>Bu Denetim Masası, üzerinde çalıştığı bilgisayara değil {0} sunucusuna bağlı. {0} üzerindeki hMailServer hizmeti, yükleyici çalıştıramayan {1} olarak çalışıyor; bu nedenle oradaki güncelleştirmeleri o sunucunun başındaki bir yönetici yükler: hMailServer Denetim Masası'nı doğrudan {0} üzerinde açın ve orada "Güncelleştirmeyi yükle"ye tıklayın.</value>
+  </data>
+  <data name="This Control Panel runs from {0}, not from the installation's own Control Panel ({1}). Open the Control Panel there and click Install update." xml:space="preserve">
+    <value>Bu Denetim Masası, yüklemenin kendi Denetim Masası'ndan ({1}) değil {0} konumundan çalışıyor. Denetim Masası'nı orada açın ve "Güncelleştirmeyi yükle"ye tıklayın.</value>
+  </data>
   <data name="This account has a photo." xml:space="preserve">
     <value>Bu hesabın bir fotoğrafı var.</value>
   </data>
@@ -11251,6 +11365,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="This group has no accounts in it, so any permission granted to it currently applies to nobody." xml:space="preserve">
     <value>Bu grupta hiç hesap yok; bu yüzden ona verilen herhangi bir izin şu anda kimse için geçerli değil.</value>
+  </data>
+  <data name="This installation has no {0}, so it cannot install the update itself. Download hMailServer {1} from {2}, check that Get-AuthenticodeSignature reports it Valid and signed by Progressive Robot Ltd, and run it as an administrator." xml:space="preserve">
+    <value>Bu yüklemede {0} yok; bu nedenle güncelleştirmeyi kendisi yükleyemez. hMailServer {1} sürümünü {2} adresinden indirin, Get-AuthenticodeSignature'ın onu Valid ve Progressive Robot Ltd tarafından imzalanmış olarak bildirdiğini denetleyin ve yönetici olarak çalıştırın.</value>
   </data>
   <data name="This is Protocols &gt; SMTP &gt; Host name, the name the server announces in HELO/EHLO on every outbound delivery (Utilities::ComputerName). Ask the IP's owner to make the PTR of your public IP resolve to exactly this name, and publish an A record for this name pointing back at the same IP - receivers check both directions." xml:space="preserve">
     <value>Bu, Protokoller &gt; SMTP &gt; Ana bilgisayar adı; sunucunun her giden teslimde HELO/EHLO'da duyurduğu ad (Utilities::ComputerName). IP'nin sahibinden genel IP'nizin PTR kaydını tam olarak bu ada çözümletmesini isteyin ve bu ad için aynı IP'ye geri işaret eden bir A kaydı yayımlayın - alıcılar her iki yönü de denetler.</value>
@@ -11338,6 +11455,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="This validates against the domain &quot;{0}&quot;. The server's own computer must be joined to it." xml:space="preserve">
     <value>Bu, "{0}" etki alanına karşı doğrular. Sunucunun kendi bilgisayarı ona katılmış olmalı.</value>
+  </data>
+  <data name="This window closes now so that the installer can replace the Control Panel, and opens again when hMailServer is running, in about two minutes. Do not sign out of Windows until it has." xml:space="preserve">
+    <value>Yükleyicinin Denetim Masası'nı değiştirebilmesi için bu pencere şimdi kapanıyor ve hMailServer çalışır duruma geldiğinde, yaklaşık iki dakika içinde yeniden açılıyor. O zamana kadar Windows oturumunu kapatmayın.</value>
   </data>
   <data name="Thread counts, database connections and caching - what to change when the server is slow." xml:space="preserve">
     <value>İş parçacığı sayıları, veritabanı bağlantıları ve önbellekleme - sunucu yavaşken nelerin değiştirileceği.</value>
@@ -11768,6 +11888,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="Waiting for the old selector to retire" xml:space="preserve">
     <value>Eski seçicinin emekliye ayrılması bekleniyor</value>
   </data>
+  <data name="Waiting for you to allow hMailServer to make changes, in the Windows prompt." xml:space="preserve">
+    <value>Windows isteminde hMailServer'ın değişiklik yapmasına izin vermeniz bekleniyor.</value>
+  </data>
   <data name="Wakes the indexer instead of waiting for its next pass, and reports how many of this server's messages are currently indexed. The pass itself runs in the background and is bounded by the limits above, so on a large backlog it makes progress rather than finishing. With indexing switched off there is no indexer to wake, and this says so rather than reporting success." xml:space="preserve">
     <value>Bir sonraki geçişini beklemek yerine dizinleyiciyi uyandırır ve bu sunucunun iletilerinden şu anda kaçının dizinlendiğini bildirir. Geçişin kendisi arka planda çalışır ve yukarıdaki sınırlarla bağlıdır; bu yüzden büyük bir birikimde bitirmek yerine ilerler. Dizinleme kapalıyken uyandırılacak dizinleyici yoktur ve bu, başarı bildirmek yerine bunu söyler.</value>
   </data>
@@ -12194,6 +12317,15 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="Windows _user name" xml:space="preserve">
     <value>Windows _kullanıcı adı</value>
   </data>
+  <data name="Windows could not start the install: {0}" xml:space="preserve">
+    <value>Windows yüklemeyi başlatamadı: {0}</value>
+  </data>
+  <data name="Windows did not run it as an administrator" xml:space="preserve">
+    <value>Windows onu yönetici olarak çalıştırmadı</value>
+  </data>
+  <data name="Windows did not start it from this Control Panel" xml:space="preserve">
+    <value>Windows onu bu Denetim Masası'ndan başlatmadı</value>
+  </data>
   <data name="Windows directory" xml:space="preserve">
     <value>Windows dizini</value>
   </data>
@@ -12208,6 +12340,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="Windows service account - a least-privilege account needs granting outside hMailServer" xml:space="preserve">
     <value>Windows hizmet hesabı - en az ayrıcalıklı bir hesaba hMailServer dışında hak verilmesi gerekir</value>
+  </data>
+  <data name="Windows' permission" xml:space="preserve">
+    <value>Windows izni</value>
   </data>
   <data name="Windows: an inbound block rule per banned address in Windows Defender Firewall, TCP only and scoped to the ports this server listens on, in a rule group named hMailServer auto-ban; removed when the ban expires or the IP range is deleted. Linux: the packaged autoban-hook keeps an nftables set with a timeout, and the service needs CAP_NET_ADMIN for it - the hook says exactly how to grant it. List the addresses you administer from under never-ban first." xml:space="preserve">
     <value>Windows: Windows Defender Firewall içinde yasaklanan her adres için bir gelen engelleme kuralı, yalnızca TCP ve yalnızca bu sunucunun dinlediği bağlantı noktaları için, hMailServer auto-ban adlı bir kural grubunda; yasak sona erdiğinde veya IP aralığı silindiğinde kaldırılır. Linux: paketle gelen autoban-hook, zaman aşımlı bir nftables kümesi tutar ve hizmetin bunun için CAP_NET_ADMIN yetkisine ihtiyacı vardır - hook bunun tam olarak nasıl verileceğini söyler. Önce yönetim yaptığınız adresleri „asla yasaklama“ listesine yazın.</value>
@@ -12524,6 +12659,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="_Install update" xml:space="preserve">
     <value>Güncelleştirmeyi _yükle</value>
   </data>
+  <data name="_Install without a backup" xml:space="preserve">
+    <value>_Yedeklemeden yükle</value>
+  </data>
   <data name="_Job title" xml:space="preserve">
     <value>_Unvan</value>
   </data>
@@ -12761,6 +12899,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="_Start the walk" xml:space="preserve">
     <value>Tura _başla</value>
   </data>
+  <data name="_Stop the update" xml:space="preserve">
+    <value>Güncelleştirmeyi _durdur</value>
+  </data>
   <data name="_Tag the subject of mail from outside" xml:space="preserve">
     <value>_Dışarıdan gelen postanın konusunu etiketle</value>
   </data>
@@ -12833,6 +12974,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="a symbol" xml:space="preserve">
     <value>bir simge</value>
   </data>
+  <data name="a trust file hMailServer.INI names may be changed by someone other than the administrators" xml:space="preserve">
+    <value>hMailServer.INI'nin belirttiği bir güven dosyası yöneticiler dışında biri tarafından değiştirilebilir</value>
+  </data>
   <data name="a value of its own is needed, or untick it to take the level above." xml:space="preserve">
     <value>kendi değeri gerekir ya da üst düzeyi almak için işareti kaldırın.</value>
   </data>
@@ -12865,6 +13009,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="and {0} more" xml:space="preserve">
     <value>ve {0} tane daha</value>
+  </data>
+  <data name="another administrator's install of an update is under way on this server" xml:space="preserve">
+    <value>bu sunucuda başka bir yöneticinin güncelleştirme yüklemesi sürüyor</value>
   </data>
   <data name="any algorithm this server can verify - it implements RS256, ES256 and HS256 only, and &quot;{0}&quot; names none of them, so every token is refused whatever key material is installed" xml:space="preserve">
     <value>bu sunucunun doğrulayabildiği herhangi bir algoritma - sunucu yalnızca RS256, ES256 ve HS256 uygular ve "{0}" bunların hiçbirini adlandırmıyor; bu yüzden hangi anahtar malzemesi yüklü olursa olsun her belirteç reddedilir</value>
@@ -12937,6 +13084,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="check spf dkim and dmarc" xml:space="preserve">
     <value>spf dkim ve dmarc'yi denetle</value>
+  </data>
+  <data name="checking the downloaded installer" xml:space="preserve">
+    <value>indirilen yükleyici denetleniyor</value>
   </data>
   <data name="clamscan.exe path" xml:space="preserve">
     <value>clamscan.exe yolu</value>
@@ -13052,6 +13202,12 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="external account" xml:space="preserve">
     <value>dış hesap</value>
   </data>
+  <data name="failed" xml:space="preserve">
+    <value>başarısız</value>
+  </data>
+  <data name="fetching the version to go back to" xml:space="preserve">
+    <value>geri dönülecek sürüm alınıyor</value>
+  </data>
   <data name="file-name pattern" xml:space="preserve">
     <value>dosya adı deseni</value>
   </data>
@@ -13060,6 +13216,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="find out why a message bounced" xml:space="preserve">
     <value>bir iletinin neden geri döndüğünü öğren</value>
+  </data>
+  <data name="finished" xml:space="preserve">
+    <value>tamamlandı</value>
   </data>
   <data name="forward one address to another" xml:space="preserve">
     <value>bir adresi başka bir adrese ilet</value>
@@ -13085,8 +13244,41 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="hMailServer does not create or manage client certificates. The certificate authority and the client certificates themselves must be produced outside hMailServer (for example with OpenSSL or an internal PKI) - the server only trusts the CA bundle it is given here." xml:space="preserve">
     <value>hMailServer istemci sertifikası oluşturmaz ya da yönetmez. Sertifika otoritesi ve istemci sertifikalarının kendisi hMailServer dışında üretilmelidir (örneğin OpenSSL ya da kurum içi bir PKI ile) - sunucu yalnızca burada kendisine verilen CA paketine güvenir.</value>
   </data>
+  <data name="hMailServer has been updated from {0} to {1}, and the service is running. Installed by {2} at {3}." xml:space="preserve">
+    <value>hMailServer {0} sürümünden {1} sürümüne güncelleştirildi ve hizmet çalışıyor. {3} saatinde {2} tarafından yüklendi.</value>
+  </data>
   <data name="hMailServer is free and open source software, licensed under the GNU AGPLv3. This Control Panel is built with WPF-UI (Fluent design) and LiveCharts2 on .NET 10." xml:space="preserve">
     <value>hMailServer, GNU AGPLv3 ile lisanslanmış özgür ve açık kaynaklı bir yazılımdır. Bu Denetim Masası .NET 10 üzerinde WPF-UI (Fluent tasarım) ve LiveCharts2 ile geliştirilmiştir.</value>
+  </data>
+  <data name="hMailServer was updated: {0} Sign in to see the server." xml:space="preserve">
+    <value>hMailServer güncelleştirildi: {0} Sunucuyu görmek için oturum açın.</value>
+  </data>
+  <data name="hMailServer {0} did not start, and putting {1} back failed too: {2}. Run {3} as an administrator to reinstall {1}. The logs: {4}" xml:space="preserve">
+    <value>hMailServer {0} başlamadı ve {1} sürümünü geri koymak da başarısız oldu: {2}. {1} sürümünü yeniden yüklemek için {3} dosyasını yönetici olarak çalıştırın. Günlükler: {4}</value>
+  </data>
+  <data name="hMailServer {0} did not start, and there was no earlier installer to put back: {1}. Reinstall hMailServer {2} from its release page as an administrator. The installer's log: {3}" xml:space="preserve">
+    <value>hMailServer {0} başlamadı ve geri konacak önceki bir yükleyici yoktu: {1}. hMailServer {2} sürümünü yayın sayfasından yönetici olarak yeniden yükleyin. Yükleyicinin günlüğü: {3}</value>
+  </data>
+  <data name="hMailServer {0} did not start, so {1} was put back and is running: {2}. The installer's log: {3}" xml:space="preserve">
+    <value>hMailServer {0} başlamadı; bu nedenle {1} geri kondu ve çalışıyor: {2}. Yükleyicinin günlüğü: {3}</value>
+  </data>
+  <data name="hMailServer {0} is ready to be put back if needed." xml:space="preserve">
+    <value>hMailServer {0} gerekirse geri konmaya hazır.</value>
+  </data>
+  <data name="hMailServer {0} replaces {1} on this server. Windows asks for an administrator's permission once; after that everything happens by itself. The server stops accepting mail for a minute or two while it restarts, and if {0} does not start, {1} is put back." xml:space="preserve">
+    <value>hMailServer {0}, bu sunucudaki {1} sürümünün yerini alıyor. Windows bir kez yönetici izni ister; ondan sonra her şey kendiliğinden olur. Sunucu yeniden başlarken bir iki dakika posta kabul etmez ve {0} başlamazsa {1} geri konur.</value>
+  </data>
+  <data name="hMailServer {0} was not installed: the installer did not pass the check - {1}. Nothing was changed and the server runs as it did. Download it again; if the check fails again, the copy is kept in {2} for inspection." xml:space="preserve">
+    <value>hMailServer {0} yüklenmedi: yükleyici denetimden geçemedi - {1}. Hiçbir şey değişmedi ve sunucu eskisi gibi çalışıyor. Onu yeniden indirin; denetim yine başarısız olursa kopya incelenmek üzere {2} içinde tutulur.</value>
+  </data>
+  <data name="hMailServer {0} was not installed: the revocation server {1} could not be reached, so whether the installer's certificate is revoked could not be checked. Nothing was changed. Click Install update again when it can be reached, or install hMailServer {0} by hand." xml:space="preserve">
+    <value>hMailServer {0} yüklenmedi: iptal sunucusu {1} erişilemediğinden yükleyicinin sertifikasının iptal edilip edilmediği denetlenemedi. Hiçbir şey değişmedi. Erişilebilir olduğunda "Güncelleştirmeyi yükle"ye yeniden tıklayın veya hMailServer {0} sürümünü elle yükleyin.</value>
+  </data>
+  <data name="hMailServer {0} was not installed: {1}. Nothing was changed." xml:space="preserve">
+    <value>hMailServer {0} yüklenmedi: {1}. Hiçbir şey değişmedi.</value>
+  </data>
+  <data name="hMailServer {0} was not installed: {1}. hMailServer {2} is still running, unchanged. The installer's log: {3}" xml:space="preserve">
+    <value>hMailServer {0} yüklenmedi: {1}. hMailServer {2} değişmeden çalışmaya devam ediyor. Yükleyicinin günlüğü: {3}</value>
   </data>
   <data name="hMailServer.INI cannot be reached from this computer, so these selections cannot be edited here. Preview and Apply still work: they run inside the server." xml:space="preserve">
     <value>hMailServer.INI'ye bu bilgisayardan erişilemiyor; bu yüzden bu seçimler burada düzenlenemez. Ön izle ve Uygula yine çalışır: sunucunun içinde çalışırlar.</value>
@@ -13146,6 +13338,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="https://keys.openpgp.org by default. An https address, or http to a keyserver on this machine." xml:space="preserve">
     <value>Varsayılan https://keys.openpgp.org. Bir https adresi veya bu bilgisayardaki bir anahtar sunucusuna http.</value>
   </data>
+  <data name="in progress" xml:space="preserve">
+    <value>sürüyor</value>
+  </data>
   <data name="in use by a listener" xml:space="preserve">
     <value>bir dinleyici tarafından kullanılıyor</value>
   </data>
@@ -13185,6 +13380,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="it cross" xml:space="preserve">
     <value>onda</value>
   </data>
+  <data name="it ended with code {0}" xml:space="preserve">
+    <value>{0} koduyla sona erdi</value>
+  </data>
   <data name="it is" xml:space="preserve">
     <value>onun</value>
   </data>
@@ -13193,6 +13391,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="its 1 account" xml:space="preserve">
     <value>1 hesabını</value>
+  </data>
+  <data name="its work folder was already there" xml:space="preserve">
+    <value>çalışma klasörü zaten vardı</value>
   </data>
   <data name="its {0} accounts" xml:space="preserve">
     <value>{0} hesabını</value>
@@ -13317,6 +13518,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="my spam filter blames my own gateway" xml:space="preserve">
     <value>spam filtrem kendi ağ geçidimi suçluyor</value>
   </data>
+  <data name="named in its certificate" xml:space="preserve">
+    <value>(sertifikasında adı geçen)</value>
+  </data>
   <data name="neither the issuer (iss) nor the audience (aud) is checked" xml:space="preserve">
     <value>ne veren (iss) ne hedef kitle (aud) denetleniyor</value>
   </data>
@@ -13337,6 +13541,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="no search base is set, so there is nowhere to enumerate from" xml:space="preserve">
     <value>arama tabanı ayarlanmamış; bu yüzden sıralamaya başlanacak bir yer yok</value>
+  </data>
+  <data name="not started" xml:space="preserve">
+    <value>başlamadı</value>
   </data>
   <data name="not used by any listener" xml:space="preserve">
     <value>hiçbir dinleyici tarafından kullanılmıyor</value>
@@ -13370,6 +13577,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="quarantined" xml:space="preserve">
     <value>karantinaya alındı</value>
+  </data>
+  <data name="ready" xml:space="preserve">
+    <value>hazır</value>
   </data>
   <data name="reject forged bounce messages" xml:space="preserve">
     <value>sahte geri dönme iletilerini reddet</value>
@@ -13473,6 +13683,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="sign outgoing mail with dkim" xml:space="preserve">
     <value>giden postayı dkim ile imzala</value>
   </data>
+  <data name="skipped" xml:space="preserve">
+    <value>atlandı</value>
+  </data>
   <data name="solid line" xml:space="preserve">
     <value>düz çizgi</value>
   </data>
@@ -13490,6 +13703,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="syslog (RFC 5424)" xml:space="preserve">
     <value>syslog (RFC 5424)</value>
+  </data>
+  <data name="taking the backup" xml:space="preserve">
+    <value>yedek alınıyor</value>
   </data>
   <data name="tell everyone about maintenance" xml:space="preserve">
     <value>herkese bakımı duyur</value>
@@ -13593,8 +13809,14 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="the password must be changed before the next logon" xml:space="preserve">
     <value>parolanın bir sonraki oturum açmadan önce değiştirilmesi gerekiyor</value>
   </data>
+  <data name="the permissions of the installation changed after the check; click Install update again to see which" xml:space="preserve">
+    <value>yüklemenin izinleri denetimden sonra değişti; hangileri olduğunu görmek için "Güncelleştirmeyi yükle"ye yeniden tıklayın</value>
+  </data>
   <data name="the private key" xml:space="preserve">
     <value>özel anahtar</value>
+  </data>
+  <data name="the program Windows was asked to run is not the one the hMailServer service is registered with, or was given something it does not take" xml:space="preserve">
+    <value>Windows'un çalıştırması istenen program, hMailServer hizmetinin kayıtlı olduğu program değil ya da kabul etmediği bir şey verildi</value>
   </data>
   <data name="the sender's SPF check passed" xml:space="preserve">
     <value>gönderenin SPF denetimi geçti</value>
@@ -13640,6 +13862,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="them is" xml:space="preserve">
     <value>onların</value>
+  </data>
+  <data name="there is less than 1 GB free on the installation's drive" xml:space="preserve">
+    <value>yüklemenin sürücüsünde 1 GB'tan az boş alan var</value>
   </data>
   <data name="this secret" xml:space="preserve">
     <value>bu gizli anahtar</value>
@@ -13892,6 +14117,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="{0} is on the suppression list of {1}." xml:space="preserve">
     <value>{0}, {1} engelleme listesinde.</value>
+  </data>
+  <data name="{0} is ready to be installed; the install goes on in its window" xml:space="preserve">
+    <value>{0} yüklenmeye hazır; yükleme kendi penceresinde sürüyor</value>
   </data>
   <data name="{0} is switched on but cannot run. {1} Every scan it is asked for fails, and a failed scan is not a failed message: the error is logged and the message is delivered as though it had been examined and found clean." xml:space="preserve">
     <value>{0} açık ama çalışamıyor. {1} İstenen her tarama başarısız oluyor ve başarısız bir tarama başarısız bir ileti değildir: hata günlüğe yazılır ve ileti incelenip temiz bulunmuş gibi teslim edilir.</value>

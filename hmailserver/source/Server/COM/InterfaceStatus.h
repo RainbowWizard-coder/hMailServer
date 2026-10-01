@@ -70,8 +70,21 @@ public:
    STDMETHOD(get_UpdateSignerIdentity)(/*[out, retval]*/ BSTR *pVal);
    STDMETHOD(InstallUpdate)(/*[out, retval]*/ VARIANT_BOOL *pVal);
    STDMETHOD(get_UpdateApplyOutcome)(/*[out, retval]*/ BSTR *pVal);
+   STDMETHOD(get_UpdateNeedsAdministrator)(/*[out, retval]*/ VARIANT_BOOL *pVal);
+   STDMETHOD(get_UpdateInstallAdvice)(/*[out, retval]*/ BSTR *pVal);
+   STDMETHOD(PrepareUpdateForAdministrator)(BSTR releaseVersion, VARIANT_BOOL skipBackup, /*[out, retval]*/ VARIANT_BOOL *pVal);
+   STDMETHOD(get_UpdatePreparation)(/*[out, retval]*/ BSTR *pVal);
+   STDMETHOD(BeginUpdateForAdministrator)(BSTR releaseVersion, /*[out, retval]*/ VARIANT_BOOL *pVal);
+   STDMETHOD(CancelUpdateForAdministrator)(BSTR cancelReason);
 
 private:
+
+   // Whether this call comes from a process on this computer (local RPC, whose
+   // transport knows the calling process, where a remote caller's call comes
+   // over TCP), and the caller's Windows account (CoQueryClientBlanket), for the
+   // log and the audit trail. An administrator's install is started from the Control Panel on the
+   // server and nowhere else: a remote administrator cannot be elevated here.
+   static bool LocalCaller_(HM::String &windowsAccount);
 
    HM::ServerStatus *status_;
    HM::Application *application_;

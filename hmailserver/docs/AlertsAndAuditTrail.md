@@ -38,7 +38,7 @@ recording each would bury it. One row per change, in `hm_audit`:
 | `audittime` | When, in seconds since the epoch, UTC. |
 | `auditactor` | Who. `Administrator` over COM; `administrator` or `key:<id>` over REST — the same identity string the REST log line uses. An account signed in with its own password — a domain administrator, a help desk, an auditor — is its address over COM and `account:<address>` over REST and the Deck. |
 | `auditactortype` | `administrator`, `account` or `apikey`. Read from the role the credential holds, never from `AdminLevel` alone: `administrator` is the administrator password and an account whose role is `serveradmin` or `domainadmin`; every other account is `account`, one holding a narrower role such as `helpdesk` included. See [Roles.md](Roles.md). |
-| `auditinterface` | `COM`, `REST` or `Deck`. |
+| `auditinterface` | `COM`, `REST` or `Deck`; `Windows` for the outcome of an administrator's install of an update, which no hMailServer credential made (below). |
 | `auditaddress` | Where from. The peer address for REST and the Deck; empty for COM (see below). |
 | `auditobjecttype` | `domain`, `account`, `alias`, `rule`, `setting`, and so on; `logon failures` for the failure list cleared, `spam trap hits` for the record of trap hits cleared. |
 | `auditobjectname` | The name a person would recognise — the domain name, the address, the setting's name. For a role it is the role's name, and for a role assignment the address of the account it is for. For a greylisting white address it is the address as it was typed (`10.78.0.?`), because the column holds the SQL `LIKE` pattern that was made of it (`10.78.0._`) and that is an address no other surface shows; the detail still carries the stored pattern. |
@@ -196,6 +196,20 @@ recipients and the files in the detail - because the hold's rows are traffic and
 release delivers mail the server was waiting to judge ([Sandbox.md](Sandbox.md)).
 COM's `DeliveryQueue.Remove` of such a message is the same discard, recorded the
 same way, its detail ending `(DeliveryQueue.Remove)`.
+
+An administrator's install of an update ([ServiceAccount.md](ServiceAccount.md), "The
+live update") installs files, not rows, and is recorded as events of object type
+`update`, named `hMailServer <version>`: `install requested`, `install started` and
+`install cancelled` under whoever signed in to the Control Panel that asked, over COM,
+with the Windows account it runs as in the detail ("from this computer as Windows account
+...": the service knows that the call came from a program on the server, and whose it
+was, not which program); and, when the service next starts,
+the outcome - `installed`, `rolled back`, `install cancelled` or `install failed` -
+under the Windows account that approved Windows' prompt, which the elevated
+`hMailServer.Updater.exe` read from its own token and wrote into a folder only
+administrators can change: actor type `administrator`, interface `Windows`, no
+address, and the status, the detail, the version it replaced and the installer's log
+in the detail.
 
 A mailbox renamed, or moved to another domain, is the other shape of the same
 problem. It writes the account row, an alias, a row per distribution list

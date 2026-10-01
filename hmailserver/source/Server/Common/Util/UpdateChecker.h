@@ -56,12 +56,19 @@ namespace HM
          StateAvailable = 2,      // a newer release exists; its details are below
          StateDownloaded = 3,     // its installer is in the data directory and verified
          StateInstalling = 4,     // the installer has been handed to the helper
-         StateFailed = 5          // the last check failed; last_error says why
+         StateFailed = 5,         // the last check failed; last_error says why
+         // Windows, a service that cannot run an installer: the Control Panel on
+         // the server has asked the service to prepare an administrator's install
+         // (UpdateInstaller::PrepareForAdministrator) - the backup, the rollback
+         // image - and the service is at it (6) or has done it (7). preparation
+         // says how far it got. Appended, so that 0 to 5 keep their values.
+         StatePreparing = 6,
+         StateReadyForAdministrator = 7
       };
 
       struct Snapshot
       {
-         Snapshot() : state(StateNotChecked), installer_size(0), integrated_time(0), installing_since_unix(0), last_check_unix(0), check_failures(0) {}
+         Snapshot() : state(StateNotChecked), installer_size(0), integrated_time(0), installing_since_unix(0), ready_since_unix(0), last_check_unix(0), check_failures(0) {}
 
          State state;
          String available_version;     // "6.2.28"; empty unless a newer release is known
@@ -84,6 +91,12 @@ namespace HM
          String apply_version;         // the version that outcome was about
          String apply_detail;          // what the helper said
          __int64 installing_since_unix; // when the installer was handed over, Unix seconds; 0 unless StateInstalling
+         // An administrator's install (StatePreparing, StateReadyForAdministrator):
+         // what the preparation did, as the JSON document UpdateInstaller writes -
+         // {"step":..., "backup":{...}, "rollback":{...}, "error":...} - and when it
+         // became ready, Unix seconds.
+         String preparation;
+         __int64 ready_since_unix;
          String last_checked;          // local time; empty until a check has completed
          __int64 last_check_unix;      // the same as Unix seconds; 0 until then
          String last_error;            // empty unless the last check failed
@@ -197,6 +210,22 @@ namespace HM
 
       // The installer has been handed to the helper.
       static void RecordInstalling();
+
+      // An administrator's install, as the service prepares it
+      // (UpdateInstaller::PrepareForAdministrator): the state becomes
+      // StatePreparing or StateReadyForAdministrator and preparation the document
+      // given. False, and nothing recorded, when the release on offer is no
+      // longer version.
+      static bool RecordPreparation(State state, const String &version, const String &preparation);
+      // The preparation failed: StateFailed, last_error says why, and the
+      // document says which step.
+      static void RecordPreparationFailed(const String &reason, const String &preparation);
+      // Back to StateDownloaded from a preparation that was cancelled or not
+      // begun in time, the installer still waiting; the document cleared.
+      static void RecordPreparationEnded();
+      // True, once, when the preparation has been ready for longer than
+      // allowedSeconds and nobody began the install: back to StateDownloaded.
+      static bool RecordReadyTimedOut(__int64 allowedSeconds);
       // The helper's outcome, read at startup by UpdateInstaller::ReportLastOutcome.
       static void RecordApplyOutcome(const String &status, const String &version, const String &detail);
       // True, once, when the installer was handed over more than allowedSeconds
@@ -256,7 +285,13 @@ namespace HM
       // snapshot it says how this server is updated, from DetectInstallKind at
       // the time of asking: installKind (InstallKindName, "none" for none),
       // liveUpdate (LiveUpdateApplies), and updateCommand and updateAdvice
-      // (UpdatedElsewhere; empty where the live update does it).
+      // (UpdatedElsewhere; empty where the live update does it); installedBy -
+      // "service" where the service installs updates itself, "administrator"
+      // where an administrator installs them with Install update in the Control
+      // Panel on the server (UpdateInstaller::NeedsAdministrator), "elsewhere"
+      // where something else updates this server - with installAdvice, the
+      // sentence that says so, serviceAccount and serverName; and preparation,
+      // the document of an administrator's install being prepared.
       static AnsiString ToJson(const Snapshot &snapshot);
 
    private:

@@ -15,6 +15,11 @@
 #include "../Application/Application.h"
 #include "../Application/IniFileSettings.h"
 #include "../Application/ErrorManager.h"
+#include "../Application/BackupManager.h"
+#include "AuditTrail.h"
+#ifndef HM_PLATFORM_POSIX
+#include "AdminUpdate.h"
+#endif
 
 #include <boost/thread/thread.hpp>
 #include <boost/filesystem.hpp>
@@ -192,19 +197,15 @@ namespace HM
       if (ServiceAccount::ProcessIsAdministrator())
          return true;
 
-      // The copy this server downloaded is NOT offered to be run. It is in the
-      // Updates folder of the data directory, which the service itself may
-      // write, and "verified" is the service's own word for it: an
-      // administrator told to run it elevated would be running whatever a
-      // compromised service put there - exactly the trust docs/ServiceAccount.md
-      // refuses to a SYSTEM task that installs what the service names. So the
-      // administrator is sent to the release itself, and to the signature
-      // Windows checks, which the service cannot forge.
-      const String account = ServiceAccount::ProcessAccountName();
-      why = Formatter::Format(_T("This service runs as {0}, which cannot run an installer - that takes an administrator - so it checks for updates and an administrator installs them (docs/ServiceAccount.md). "),
-         account.IsEmpty() ? String(_T("an account that is not an administrator")) : account);
-      why += Formatter::Format(_T("Download the installer from the release page ({0}), check that Get-AuthenticodeSignature reports its signature Valid, then run it as an administrator. The copy this server downloaded is in a folder the service can write, so it is not the one to run."),
-         releaseUrl.IsEmpty() ? String(_T("the one the update check names")) : releaseUrl);
+      // Installed by an administrator instead, with Install update in the
+      // Control Panel on this server, which copies the installer out of the
+      // folder the service writes and checks it itself - elevated, after
+      // Windows' own prompt - before it runs it (Util/AdminUpdate.h). Never by
+      // anything this service could start: a service that could make an
+      // administrator or SYSTEM run a file has given back what the account took
+      // away (docs/ServiceAccount.md).
+      (void) releaseUrl;
+      why = InstallAdvice();
       return false;
 #endif
    }
@@ -269,6 +270,20 @@ namespace HM
       static std::atomic<bool> asked(false);
       if (asked.exchange(true))
          return;
+
+      // An administrator's install whose Updater has not written its outcome
+      // yet: it writes it once it has seen this service running, as the
+      // unattended helper does.
+      if (AdministratorInstallPending_())
+      {
+         const int seconds = IniFileSettings::Instance()->GetUpdateServiceWaitSeconds() + UPDATE_OUTCOME_GRACE_SECONDS;
+         for (int waited = 0; waited < seconds && AdministratorInstallPending_(); waited++)
+            boost::this_thread::sleep_for(boost::chrono::seconds(1));
+         // Once more, for the file written after the mark was removed.
+         boost::this_thread::sleep_for(boost::chrono::seconds(1));
+         ReportLastOutcome();
+         return;
+      }
 
       String outcome = OutcomePath();
       if (outcome.IsEmpty() || FileUtilities::Exists(outcome) || !HelperStillAtWork_())
@@ -1034,8 +1049,724 @@ namespace HM
 #endif
    }
 
+   // ---- An administrator's install -------------------------------------------
+
+   namespace
+   {
+      // The preparation that runs, and whether it has been told to stop.
+      std::atomic<bool> preparation_running_(false);
+      std::atomic<bool> preparation_cancelled_(false);
+
+      // The drain BeginForAdministrator entered, which Cancel may leave and no
+      // other.
+      boost::mutex administrator_drain_mutex_;
+      String administrator_drain_since_;
+
+      // A preparation ready for this long, and not begun, goes back.
+      const __int64 READY_UNBEGUN_SECONDS = (__int64) 90 * 60;
+
+      // How long an in-progress mark may stand with no outcome before it is
+      // reported as an install that did not finish.
+      const __int64 ADMINISTRATOR_INSTALL_SILENT_SECONDS = 3600;
+
+      // A JSON string, every character outside printable ASCII written as a JSON escape,
+      // so that the document survives the snapshot's String and the ANSI
+      // conversion ToJson makes of it byte for byte.
+      String JsonText_(const String &value)
+      {
+         String out = _T("\"");
+         for (int i = 0; i < value.GetLength(); i++)
+         {
+            const unsigned int c = (unsigned int) (unsigned short) value[i];
+            if (c == '"')
+               out += _T("\\\"");
+            else if (c == '\\')
+               out += _T("\\\\");
+            else if (c < 0x20 || c > 0x7E)
+            {
+               String escaped;
+               escaped.Format(_T("\\u%04x"), c);
+               out += escaped;
+            }
+            else
+               out += (TCHAR) c;
+         }
+         out += _T("\"");
+         return out;
+      }
+
+      struct PreparationDocument_
+      {
+         PreparationDocument_() : backupTaken(false), backupRunning(false), rollbackReady(false) {}
+
+         String step;             // check, backup, rollback, ready, failed, cancelled
+         bool backupTaken;
+         bool backupRunning;
+         String backupSkipped;
+         String backupFailed;
+         String backupPath;
+         String rollbackVersion;
+         bool rollbackReady;
+         String rollbackReason;
+         String error;
+
+         String Json() const
+         {
+            String json = _T("{\"step\":") + JsonText_(step);
+            json += _T(",\"backup\":{\"taken\":") + String(backupTaken ? _T("true") : _T("false"));
+            json += _T(",\"running\":") + String(backupRunning ? _T("true") : _T("false"));
+            json += _T(",\"skipped\":") + JsonText_(backupSkipped);
+            json += _T(",\"failed\":") + JsonText_(backupFailed);
+            json += _T(",\"path\":") + JsonText_(backupPath) + _T("}");
+            json += _T(",\"rollback\":{\"version\":") + JsonText_(rollbackVersion);
+            json += _T(",\"ready\":") + String(rollbackReady ? _T("true") : _T("false"));
+            json += _T(",\"reason\":") + JsonText_(rollbackReason) + _T("}");
+            json += _T(",\"error\":") + JsonText_(error) + _T("}");
+            return json;
+         }
+      };
+
+      String ObjectName_(const String &version)
+      {
+         return _T("hMailServer ") + version;
+      }
+
+      // The backup the preparation takes, as the unattended apply takes it
+      // (UpdateCheckTask): started, waited for for up to an hour, and judged.
+      bool RunBackup_(String &why)
+      {
+         std::shared_ptr<BackupManager> manager = Application::Instance()->GetBackupManager();
+         if (!manager)
+         {
+            why = _T("the backup manager is not running");
+            return false;
+         }
+         if (!manager->StartBackup())
+         {
+            why = _T("another backup or restore is running");
+            return false;
+         }
+         for (int waited = 0; waited < 3600 && manager->IsRunning(); waited += 5)
+         {
+            if (preparation_cancelled_)
+               break;
+            boost::this_thread::sleep_for(boost::chrono::seconds(5));
+         }
+         if (manager->IsRunning())
+         {
+            why = preparation_cancelled_ ? String(_T("the install was cancelled while the backup ran")) : String(_T("the backup was still running after an hour"));
+            return false;
+         }
+         if (!manager->LastBackupSucceeded())
+         {
+            why = _T("the backup failed; the backup log says why");
+            return false;
+         }
+         return true;
+      }
+
+      String ReadSmallFile_(const String &path, AnsiString &text)
+      {
+         text.Empty();
+#ifdef HM_PLATFORM_POSIX
+         (void) path;
+         return _T("not on this platform");
+#else
+         HANDLE file = CreateFileW(path.c_str(), GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING,
+                                   FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OPEN_REPARSE_POINT, nullptr);
+         if (file == INVALID_HANDLE_VALUE)
+            return Formatter::Format(_T("{0} could not be opened (Windows error {1})"), path, (int) GetLastError());
+         FILE_ATTRIBUTE_TAG_INFO tag;
+         memset(&tag, 0, sizeof(tag));
+         LARGE_INTEGER size;
+         size.QuadPart = 0;
+         String why;
+         if (!GetFileInformationByHandleEx(file, FileAttributeTagInfo, &tag, sizeof(tag)) || (tag.FileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0 ||
+             !GetFileSizeEx(file, &size) || size.QuadPart > 16 * 1024)
+            why = Formatter::Format(_T("{0} is a link, or larger than an outcome is"), path);
+         else
+         {
+            std::vector<char> buffer((size_t) size.QuadPart + 1);
+            DWORD got = 0;
+            if (ReadFile(file, buffer.data(), (DWORD) size.QuadPart, &got, nullptr))
+               text = AnsiString(buffer.data(), (int) got);
+            else
+               why = Formatter::Format(_T("{0} could not be read"), path);
+         }
+         CloseHandle(file);
+         return why;
+#endif
+      }
+   }
+
+   bool
+   UpdateInstaller::NeedsAdministrator()
+   {
+#ifdef HM_PLATFORM_POSIX
+      return false;
+#else
+      return UpdateChecker::DetectInstallKind() == UpdateChecker::InstallWindowsInstaller && !ServiceAccount::ProcessIsAdministrator();
+#endif
+   }
+
+   String
+   UpdateInstaller::ServerName()
+   {
+#ifdef HM_PLATFORM_POSIX
+      return String();
+#else
+      wchar_t name[512];
+      DWORD length = 512;
+      if (GetComputerNameExW(ComputerNameDnsFullyQualified, name, &length) && length > 0)
+         return String(name);
+      length = 512;
+      if (GetComputerNameExW(ComputerNameNetBIOS, name, &length) && length > 0)
+         return String(name);
+      return _T("this server");
+#endif
+   }
+
+   String
+   UpdateInstaller::InstallAdvice()
+   {
+      if (!NeedsAdministrator())
+         return String();
+
+      const String account = ServiceAccount::ProcessAccountName();
+      const String version = UpdateChecker::Current().available_version;
+      return Formatter::Format(_T("This service runs as {0}, which cannot run an installer, so updates are installed by an administrator at the server: open the hMailServer Control Panel on {1} and click Install update on its Status page. It asks Windows for permission once, checks the installer itself, and installs {2}."),
+         account.IsEmpty() ? String(_T("an account that is not an administrator")) : account, ServerName(),
+         version.IsEmpty() ? String(_T("the new release")) : _T("hMailServer ") + version);
+   }
+
+   bool
+   UpdateInstaller::PrepareForAdministrator(const String &version, bool skipBackup, const String &windowsAccount, String &error)
+   {
+      error.Empty();
+      if (!NeedsAdministrator())
+      {
+         error = _T("This service installs updates itself; Install update hands the installer to its update helper.");
+         return false;
+      }
+
+      const UpdateChecker::Snapshot snapshot = UpdateChecker::Current();
+      const bool downloaded = snapshot.state == UpdateChecker::StateDownloaded;
+      const bool retry = snapshot.state == UpdateChecker::StateFailed && !snapshot.preparation.IsEmpty();
+      if (!(downloaded || retry) || snapshot.installer_path.IsEmpty() || !FileUtilities::Exists(snapshot.installer_path))
+      {
+         error = _T("No verified installer is waiting; check for updates and download it first.");
+         return false;
+      }
+      if (version.IsEmpty() || !(version == snapshot.available_version))
+      {
+         error = Formatter::Format(_T("The installer waiting is for hMailServer {0}, not {1}; reload the Status page."), snapshot.available_version, version);
+         return false;
+      }
+      if (Application::Instance()->IsDraining())
+      {
+         error = Formatter::Format(_T("The update was not prepared: the server is draining for maintenance since {0}. Leave the drain, or wait for it to end, and click Install update again."),
+            Application::Instance()->GetDrainStatus().since);
+         return false;
+      }
+      if (preparation_running_.exchange(true))
+      {
+         error = _T("An install of this update is already being prepared.");
+         return false;
+      }
+
+      preparation_cancelled_ = false;
+      PreparationDocument_ document;
+      document.step = _T("check");
+      UpdateChecker::RecordPreparation(UpdateChecker::StatePreparing, version, document.Json());
+
+      const String backupWord = skipBackup ? String(_T("skipped: the administrator chose to install without one")) : String(_T("first, where one is configured"));
+      AuditTrail::Instance()->RecordEvent(_T("update"), ObjectName_(version), _T("install requested"),
+         Formatter::Format(_T("from this computer as Windows account {0}; backup {1}; to be installed after the Windows elevation prompt"),
+            windowsAccount, backupWord));
+      LOG_APPLICATION(Formatter::Format(_T("Update: {0} asked, from this computer, to prepare hMailServer {1} for an administrator's install: backup {2}; the rollback image for {3} is fetched."),
+         windowsAccount, version, backupWord, UpdateChecker::RunningVersion()));
+
+      boost::thread(&UpdateInstaller::PrepareForAdministrator_, version, skipBackup, windowsAccount).detach();
+      return true;
+   }
+
+   void
+   UpdateInstaller::PrepareForAdministrator_(String version, bool skipBackup, String windowsAccount)
+   {
+      struct Running_
+      {
+         ~Running_() { preparation_running_ = false; }
+      } runningGuard;
+
+      PreparationDocument_ document;
+      document.step = _T("check");
+
+      auto fail = [&](const String &step, const String &reason)
+      {
+         document.step = _T("failed");
+         document.error = reason;
+         UpdateChecker::RecordPreparationFailed(reason, document.Json());
+         LOG_APPLICATION(Formatter::Format(_T("Update: the preparation of hMailServer {0} for an administrator's install failed at {1}: {2}"), version, step, reason));
+         ErrorManager::Instance()->ReportError(ErrorManager::Medium, 7468, "UpdateInstaller::PrepareForAdministrator_",
+            Formatter::Format(_T("The preparation of hMailServer {0} for an administrator's install failed at {1}: {2}"), version, step, reason));
+      };
+
+#if HM_LIVE_UPDATE
+      // 1. The service's own check of the installer it downloaded: a copy that no
+      // longer verifies fails here, before a backup is taken for nothing. The
+      // administrator's stage checks its own copy again regardless.
+      UpdateDownloader::UpdatesFolders folders;
+      String error;
+      if (!UpdateDownloader::PrepareUpdatesDirectory(folders, error))
+      {
+         fail(_T("check"), error);
+         return;
+      }
+      SigstoreTrust trust;
+      if (!SigstoreVerifier::ConfiguredTrust(trust, error))
+      {
+         fail(_T("check"), error);
+         return;
+      }
+      const UpdateChecker::Snapshot snapshot = UpdateChecker::Current();
+      if (!FileUtilities::Exists(snapshot.installer_path) || !CheckWaitingInstaller_(snapshot, trust, nullptr, error))
+      {
+         fail(_T("check"), error.IsEmpty() ? String(_T("the installer that was waiting is gone; download it again")) : error + _T(" Download it again."));
+         return;
+      }
+      if (preparation_cancelled_)
+         return;
+
+      // 2. The backup, as the unattended apply takes it - but where it cannot be
+      // taken the administrator is told, rather than the install refused: they
+      // are there, and chose to install.
+      document.step = _T("backup");
+      const String destination = Configuration::Instance()->GetBackupDestination();
+      if (skipBackup)
+         document.backupSkipped = _T("chosen");
+      else if (!IniFileSettings::Instance()->GetUpdateBackupBeforeApply())
+         document.backupSkipped = _T("off");
+      else if (destination.IsEmpty())
+         document.backupSkipped = _T("no-destination");
+      else
+      {
+         document.backupRunning = true;
+         document.backupPath = destination;
+         UpdateChecker::RecordPreparation(UpdateChecker::StatePreparing, version, document.Json());
+         LOG_APPLICATION(Formatter::Format(_T("Update: backing up to {0} before an administrator's install of hMailServer {1}."), destination, version));
+         String why;
+         const bool taken = RunBackup_(why);
+         document.backupRunning = false;
+         if (preparation_cancelled_)
+            return;
+         if (!taken)
+         {
+            document.backupFailed = why;
+            fail(_T("backup"), Formatter::Format(_T("The backup before the update failed: {0}."), why));
+            return;
+         }
+         document.backupTaken = true;
+      }
+      UpdateChecker::RecordPreparation(UpdateChecker::StatePreparing, version, document.Json());
+
+      // 3. The rollback image: the running version's installer, fetched and
+      // verified as the unattended apply fetches it. None is not fatal.
+      document.step = _T("rollback");
+      const String running = UpdateChecker::RunningVersion();
+      document.rollbackVersion = running;
+      UpdateChecker::RecordPreparation(UpdateChecker::StatePreparing, version, document.Json());
+      String rollbackPath, rollbackWhy;
+      document.rollbackReady = EnsureRollbackImage_(running, rollbackPath, rollbackWhy) &&
+                               Check_(rollbackPath, running, trust, nullptr, rollbackWhy) == CheckPassed_;
+      if (!document.rollbackReady)
+         document.rollbackReason = rollbackWhy;
+      if (preparation_cancelled_)
+         return;
+
+      // 4. Ready: the Control Panel tells its stage, which checks the rollback
+      // image itself, and then begins.
+      document.step = _T("ready");
+      if (!UpdateChecker::RecordPreparation(UpdateChecker::StateReadyForAdministrator, version, document.Json()))
+      {
+         LOG_APPLICATION(Formatter::Format(_T("Update: the release on offer changed while hMailServer {0} was prepared; the preparation is dropped."), version));
+         return;
+      }
+      LOG_APPLICATION(Formatter::Format(_T("Update: hMailServer {0} is ready for the administrator's install; backup {1}; rollback image {2}."), version,
+         document.backupTaken ? document.backupPath : String(_T("none")),
+         document.rollbackReady ? running : _T("none (") + document.rollbackReason + _T(")")));
+      (void) windowsAccount;
+#else
+      (void) skipBackup;
+      (void) windowsAccount;
+      fail(_T("check"), _T("This build of hMailServer was built without the live update."));
+#endif
+   }
+
+   bool
+   UpdateInstaller::BeginForAdministrator(const String &version, const String &windowsAccount, String &error)
+   {
+      error.Empty();
+      if (!NeedsAdministrator())
+      {
+         error = _T("This service installs updates itself; Install update hands the installer to its update helper.");
+         return false;
+      }
+      const UpdateChecker::Snapshot snapshot = UpdateChecker::Current();
+      if (snapshot.state != UpdateChecker::StateReadyForAdministrator || !(snapshot.available_version == version))
+      {
+         error = Formatter::Format(_T("hMailServer {0} is not prepared for an administrator's install; click Install update again."), version);
+         return false;
+      }
+
+#ifdef HM_PLATFORM_POSIX
+      error = _T("An administrator's install is a Windows installation's.");
+      return false;
+#else
+      // The token the new installer's database upgrade presents, issued now
+      // rather than at the preparation: an hour-long backup cannot outlive it.
+      AnsiString token;
+      String why;
+      if (!UpdateApplyToken::Issue(token, why))
+      {
+         error = why;
+         return false;
+      }
+      SecureZeroMemory((void *) token.c_str(), (size_t) token.GetLength());
+
+      const String drainRefusal = Application::Instance()->EnterDrain();
+      if (!drainRefusal.IsEmpty())
+      {
+         UpdateApplyToken::Revoke();
+         error = Formatter::Format(_T("The update was not installed: the server is {0}. Leave the drain, or wait for it to end, and click Install update again."), drainRefusal);
+         return false;
+      }
+      const String drainSince = Application::Instance()->GetDrainStatus().since;
+      {
+         boost::lock_guard<boost::mutex> guard(administrator_drain_mutex_);
+         administrator_drain_since_ = drainSince;
+      }
+
+      UpdateChecker::RecordInstalling();
+      AuditTrail::Instance()->RecordEvent(_T("update"), ObjectName_(version), _T("install started"),
+         Formatter::Format(_T("from this computer as Windows account {0}; the server has drained"), windowsAccount));
+      LOG_APPLICATION(Formatter::Format(_T("Update: the administrator's install of hMailServer {0} is starting; the server has drained, and the installer stops and starts the service."), version));
+      boost::thread(&UpdateInstaller::WatchAdministratorInstall_, drainSince, version).detach();
+      return true;
+#endif
+   }
+
+   void
+   UpdateInstaller::CancelForAdministrator(const String &reason, const String &windowsAccount)
+   {
+      // Only an administrator's install is cancelled here, and only while there
+      // is one: prepared, being prepared, failed in its preparation, or begun and
+      // not yet handed over. Anything else - above all LocalSystem's own apply
+      // under way, whose token and drain this would take away - is left alone,
+      // and nothing is recorded for a cancel that cancelled nothing.
+      if (!NeedsAdministrator())
+         return;
+      const UpdateChecker::Snapshot snapshot = UpdateChecker::Current();
+      bool begun = false;
+      {
+         boost::lock_guard<boost::mutex> guard(administrator_drain_mutex_);
+         begun = !administrator_drain_since_.IsEmpty();
+      }
+      const bool prepared = snapshot.state == UpdateChecker::StatePreparing || snapshot.state == UpdateChecker::StateReadyForAdministrator ||
+                            (snapshot.state == UpdateChecker::StateFailed && !snapshot.preparation.IsEmpty());
+      if (!prepared && !begun && !preparation_running_)
+         return;
+
+      preparation_cancelled_ = true;
+
+#ifndef HM_PLATFORM_POSIX
+      UpdateApplyToken::Revoke();
+#endif
+      String drainSince;
+      {
+         boost::lock_guard<boost::mutex> guard(administrator_drain_mutex_);
+         drainSince = administrator_drain_since_;
+         administrator_drain_since_.Empty();
+      }
+      const Application::DrainStatus drain = Application::Instance()->GetDrainStatus();
+      const bool leftDrain = !drainSince.IsEmpty() && drain.draining && drain.since == drainSince;
+      if (leftDrain)
+         Application::Instance()->LeaveDrainAsTheServer(Formatter::Format(_T("The administrator's install was cancelled: {0}"), reason));
+
+      UpdateChecker::RecordPreparationEnded();
+      AuditTrail::Instance()->RecordEvent(_T("update"), ObjectName_(snapshot.available_version), _T("install cancelled"),
+         Formatter::Format(_T("from this computer as Windows account {0}: {1}"), windowsAccount, reason));
+      LOG_APPLICATION(Formatter::Format(_T("Update: the administrator's install of hMailServer {0} was cancelled: {1}; the token was revoked{2}."),
+         snapshot.available_version, reason, leftDrain ? String(_T(", and the drain left")) : String()));
+   }
+
+   void
+   UpdateInstaller::ExpireReadyPreparation()
+   {
+      if (UpdateChecker::RecordReadyTimedOut(READY_UNBEGUN_SECONDS))
+         LOG_APPLICATION(_T("Update: an administrator's install was prepared and not begun within 90 minutes; the installer is waiting again, and Install update prepares it afresh."));
+   }
+
+   void
+   UpdateInstaller::WatchAdministratorInstall_(String drainSince, String version)
+   {
+#ifndef HM_PLATFORM_POSIX
+      const ULONGLONG deadline = GetTickCount64() + (ULONGLONG) 10 * 60 * 1000;
+      const String outcomePath = AdminUpdate::LastInstallPath();
+      bool seen = false;
+      for (;;)
+      {
+         Sleep(5000);
+
+         Application::DrainStatus drain = Application::Instance()->GetDrainStatus();
+         if (!drain.draining || drain.since != drainSince)
+            return;
+
+         // An outcome the service has not reported, while it still runs: the
+         // install ended without stopping the service - Inno refused before it
+         // stopped anything, the Control Panel closed without the go code, the
+         // installer was not the file checked. Seen twice, so that the Updater
+         // has finished writing it.
+         AnsiString text;
+         AdministratorOutcome outcome;
+         if (!outcomePath.IsEmpty() && FileUtilities::Exists(outcomePath) && ReadSmallFile_(outcomePath, text).IsEmpty() &&
+             ParseAdministratorOutcome(text, outcome))
+         {
+            AnsiString reported;
+            ReadSmallFile_(AdminUpdate::ReportedIdPath(), reported);
+            reported.Trim();
+            if (!(String(reported) == outcome.id))
+            {
+               if (!seen)
+               {
+                  seen = true;
+                  continue;
+               }
+               LOG_APPLICATION(Formatter::Format(_T("Update: the administrator's install of hMailServer {0} ended while this service still runs ({1}); the drain is left and the outcome reported."),
+                  version, outcome.status));
+               UpdateApplyToken::Revoke();
+               Application::Instance()->LeaveDrainAsTheServer(_T("The administrator's install ended without stopping the service; its outcome is reported now."));
+               // Nothing was installed and this process still runs: the verified
+               // installer is waiting again (state 3), so that Install update is
+               // offered again, rather than the state the outcome would leave it
+               // in - "not checked", which offers neither Install nor the file.
+               UpdateChecker::RecordPreparationEnded();
+               ReportLastOutcome();
+               return;
+            }
+         }
+
+         if (GetTickCount64() >= deadline)
+         {
+            UpdateApplyToken::Revoke();
+            const String message = Formatter::Format(_T("The administrator's install of hMailServer {0} did not stop the service within 10 minutes, so the drain it entered has been left, the token revoked, and the server accepts again. The Updater's log in {1} says how far it got."),
+               version, AdminUpdate::AdminUpdateFolder());
+            ErrorManager::Instance()->ReportError(ErrorManager::Medium, 7465, "UpdateInstaller::WatchAdministratorInstall_", message);
+            UpdateChecker::RecordFailure(message);
+            Application::Instance()->LeaveDrainAsTheServer(_T("The administrator's install did not stop the service within 10 minutes."));
+            return;
+         }
+      }
+#else
+      (void) drainSince;
+      (void) version;
+#endif
+   }
+
+   bool
+   UpdateInstaller::ParseAdministratorOutcome(const AnsiString &text, AdministratorOutcome &outcome)
+   {
+      outcome = AdministratorOutcome();
+      String all;
+      Unicode::MultiByteToWide(text, all);
+      std::vector<String> lines = StringParser::SplitString(all, _T("\n"));
+      if (lines.empty())
+         return false;
+
+      String first = lines[0];
+      first.Trim();
+      const int space = first.Find(_T(" "));
+      if (space <= 0)
+         return false;
+      outcome.status = first.Left(space);
+      String rest = first.Mid(space + 1);
+      const int second = rest.Find(_T(" "));
+      outcome.version = second > 0 ? rest.Left(second) : rest;
+      outcome.detail = second > 0 ? rest.Mid(second + 1) : String();
+
+      const TCHAR *statuses[] = { _T("ok"), _T("failed"), _T("rolled-back"), _T("rollback-failed"), _T("no-rollback"), _T("cancelled"), _T("refused") };
+      bool known = false;
+      for (const TCHAR *status : statuses)
+         known = known || outcome.status == status;
+      if (!known)
+         return false;
+
+      for (size_t i = 1; i < lines.size(); i++)
+      {
+         String line = lines[i];
+         line.Trim();
+         const int equals = line.Find(_T("="));
+         if (equals <= 0)
+            continue;
+         const String key = line.Left(equals);
+         const String value = line.Mid(equals + 1);
+         if (key == _T("id"))
+            outcome.id = value;
+         else if (key == _T("by"))
+            outcome.by = value;
+         else if (key == _T("from"))
+            outcome.from = value;
+         else if (key == _T("install-log"))
+            outcome.installLog = value;
+      }
+
+      // The id is the work folder's: 32 lowercase hex characters, or it is not
+      // an outcome the Updater wrote.
+      if (outcome.id.GetLength() != 32)
+         return false;
+      for (int i = 0; i < outcome.id.GetLength(); i++)
+      {
+         const TCHAR c = outcome.id[i];
+         if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f')))
+            return false;
+      }
+      return true;
+   }
+
+   bool
+   UpdateInstaller::AdministratorInstallPending_()
+   {
+#ifdef HM_PLATFORM_POSIX
+      return false;
+#else
+      const String progress = AdminUpdate::InProgressPath();
+      if (progress.IsEmpty() || !FileUtilities::Exists(progress))
+         return false;
+      AnsiString text, reported;
+      if (!ReadSmallFile_(progress, text).IsEmpty())
+         return false;
+      ReadSmallFile_(AdminUpdate::ReportedIdPath(), reported);
+      reported.Trim();
+      return text.Find("id=" + reported) < 0 || reported.IsEmpty();
+#endif
+   }
+
+   void
+   UpdateInstaller::ReportAdministratorOutcome_()
+   {
+#ifndef HM_PLATFORM_POSIX
+      const String path = AdminUpdate::LastInstallPath();
+      const String reportedPath = AdminUpdate::ReportedIdPath();
+      if (path.IsEmpty() || reportedPath.IsEmpty())
+         return;
+
+      AnsiString reportedText;
+      ReadSmallFile_(reportedPath, reportedText);
+      reportedText.Trim();
+      const String reported(reportedText);
+
+      AnsiString text;
+      AdministratorOutcome outcome;
+      if (FileUtilities::Exists(path))
+      {
+         const String why = ReadSmallFile_(path, text);
+         if (!why.IsEmpty() || !ParseAdministratorOutcome(text, outcome))
+         {
+            static bool said = false;
+            if (!said)
+            {
+               said = true;
+               ErrorManager::Instance()->ReportError(ErrorManager::Medium, 7469, "UpdateInstaller::ReportAdministratorOutcome_",
+                  Formatter::Format(_T("The outcome of the last administrator's install, {0}, could not be read: {1}"), path,
+                     why.IsEmpty() ? String(_T("it is not an outcome the Updater writes")) : why));
+            }
+            return;
+         }
+      }
+
+      if (!outcome.id.IsEmpty() && !(outcome.id == reported))
+      {
+         FileUtilities::WriteToFile(reportedPath, outcome.id, false);
+
+         const String by = outcome.by.IsEmpty() ? String(_T("an administrator")) : outcome.by;
+         UpdateChecker::RecordApplyOutcome(outcome.status, outcome.version, Formatter::Format(_T("{0} (installed by {1})"), outcome.detail, by));
+
+         // The audit row, under the Windows account the elevated Updater read
+         // from its own token, into a file only administrators can write.
+         AuditTrail::Actor actor;
+         actor.present = true;
+         actor.name = by;
+         actor.kind = _T("administrator");
+         actor.interface_name = _T("Windows");
+         {
+            AuditScope scope(actor);
+            const String action = outcome.status == _T("ok") ? String(_T("installed")) : outcome.status == _T("rolled-back") ? String(_T("rolled back"))
+                                : outcome.status == _T("cancelled") ? String(_T("install cancelled")) : String(_T("install failed"));
+            // An install refused or cancelled before the installer ran has no log.
+            AuditTrail::Instance()->RecordEvent(_T("update"), ObjectName_(outcome.version), action,
+               Formatter::Format(_T("{0} {1}: {2}; from {3}"), outcome.status, outcome.version, outcome.detail, outcome.from) +
+                  (outcome.installLog.IsEmpty() ? String() : _T("; log ") + outcome.installLog));
+         }
+
+         if (outcome.status == _T("ok"))
+         {
+            LOG_APPLICATION(Formatter::Format(_T("Update applied by an administrator ({0}): hMailServer {1} is installed and this is it running; {2}."), by, outcome.version, outcome.detail));
+         }
+         else if (outcome.status == _T("cancelled"))
+         {
+            LOG_APPLICATION(Formatter::Format(_T("Update: the administrator's install of hMailServer {0} was cancelled ({1}); nothing was installed."), outcome.version, outcome.detail));
+         }
+         else
+         {
+            const String message = Formatter::Format(_T("Update to hMailServer {0} did not succeed ({1}): {2} (installed by an administrator, {3})"), outcome.version, outcome.status, outcome.detail, by);
+            LOG_APPLICATION(message);
+            ErrorManager::Instance()->ReportError(ErrorManager::High, 5480, "UpdateInstaller::ReportAdministratorOutcome_", message);
+         }
+         return;
+      }
+
+      // An install that began and wrote no outcome within the hour - its
+      // session signed out, or the machine lost power - said once.
+      const String progress = AdminUpdate::InProgressPath();
+      AnsiString progressText;
+      if (progress.IsEmpty() || !FileUtilities::Exists(progress) || !ReadSmallFile_(progress, progressText).IsEmpty())
+         return;
+      String progressWide;
+      Unicode::MultiByteToWide(progressText, progressWide);
+      String id, version, started;
+      std::vector<String> lines = StringParser::SplitString(progressWide, _T("\n"));
+      for (String line : lines)
+      {
+         line.Trim();
+         if (line.Left(3) == _T("id="))
+            id = line.Mid(3);
+         else if (line.Left(8) == _T("version="))
+            version = line.Mid(8);
+         else if (line.Left(8) == _T("started="))
+            started = line.Mid(8);
+      }
+      if (id.IsEmpty() || id == reported)
+         return;
+      std::time_t written = 0;
+      boost::system::error_code timeError;
+      written = boost::filesystem::last_write_time(boost::filesystem::path(std::wstring(progress)), timeError);
+      if (timeError || std::time(nullptr) - written < ADMINISTRATOR_INSTALL_SILENT_SECONDS)
+         return;
+      FileUtilities::WriteToFile(reportedPath, id, false);
+      ErrorManager::Instance()->ReportError(ErrorManager::Medium, 7469, "UpdateInstaller::ReportAdministratorOutcome_",
+         Formatter::Format(_T("An administrator's install of hMailServer {0} started at {1} did not finish: it wrote no outcome (the Windows session it ran in may have been signed out). The Updater's log in {2} says how far it got."),
+            version, started, AdminUpdate::AdminUpdateFolder()));
+#endif
+   }
+
    void
    UpdateInstaller::ReportLastOutcome()
+   {
+      ReportUnattendedOutcome_();
+      ReportAdministratorOutcome_();
+   }
+
+   void
+   UpdateInstaller::ReportUnattendedOutcome_()
    {
       String path = OutcomePath();
       if (path.IsEmpty() || !FileUtilities::Exists(path))

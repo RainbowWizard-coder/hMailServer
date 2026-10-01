@@ -190,7 +190,7 @@ too. The Control Panel shows the item and opens its IP ranges page.
 | `service_account_root` | | The server runs as root, so a flaw reachable through SMTP, IMAP or POP3 would have full control of the machine. The packages run it as a user of its own. (Linux) |
 | `service_account_own` | account | The service runs as {0}. (done) |
 | `autoban_firewall_not_permitted` | account | AutoBanFirewall is on, but {0} cannot write Windows Defender Firewall rules: banned addresses are refused by the server and not blocked in the firewall. Run the service as LocalSystem, or reach a firewall through AutoBanCommand. (Windows, action needed) |
-| `update_apply_by_administrator` | account | {0} cannot run an installer, so updates are checked, downloaded and verified here and an administrator installs them. (Windows, while the update check is on; not_needed - it says how updates are installed) |
+| `update_apply_by_administrator` | account | {0} cannot run an installer, so updates are checked, downloaded and verified here and installed by an administrator with Install update in the Control Panel on this server. (Windows, while the update check is on; not_needed - it says how updates are installed; the sentence up to 6.3.5 ended "and an administrator installs them") |
 
 The three record items look the first twenty active domains up; the rest are
 counted in `domains_not_looked_up`, and the Deck's DNS records view checks any

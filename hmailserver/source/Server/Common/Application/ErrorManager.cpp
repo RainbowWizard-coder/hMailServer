@@ -326,6 +326,11 @@ namespace HM
    void
    ErrorManager::ReportError_(eSeverity iSeverity, int iErrorID, const String &sSource, const String &sDescription)
    {
+      // Nothing at all from an elevated verb: no ERROR log, no event, no script
+      // (Logger::ForbidWritesForThisProcess).
+      if (Logger::WritesForbidden())
+         return;
+
       String sSeverityStr = GetSeverity(iSeverity);
 
       // One normalisation, used for the log line AND for the script event. Those two

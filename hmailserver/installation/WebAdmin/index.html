@@ -5728,14 +5728,15 @@ async function renderMetrics(){
    What the release feed says, the installer downloaded and verified against its
    Sigstore bundle, and the install handed to the helper - the desktop program's
    update page, with the same three verbs. */
-const UPDATE_STATES={0:K("Not checked since the service started"),1:K("Up to date"),2:K("A newer release is available"),3:K("The installer is downloaded and verified"),4:K("Installing"),5:K("The last check failed")};
+const UPDATE_STATES={0:K("Not checked since the service started"),1:K("Up to date"),2:K("A newer release is available"),3:K("The installer is downloaded and verified"),4:K("Installing"),5:K("The last check failed"),
+  6:K("An administrator's install is being prepared at the server"),7:K("Ready for the administrator's install at the server")};
 async function renderUpdate(){
   const v=await api("/api/v1/update");
   const state=Number(v.state)||0;
   // Maintenance mode beside the update, because the update is what it is for:
   // a reader sees the state, a server administrator has the two buttons.
   const drain=may("view_configuration")?await api("/api/v1/server/drain"):null;
-  const badge=state===1?"good":state===5?"bad":state===2||state===3?"info":"warn";
+  const badge=state===1?"good":state===5?"bad":state===2||state===3||state===6||state===7?"info":"warn";
   const installer=v.installer||{};
   const downloaded=v.downloaded||{};
   // A snap, a container or a distribution's build is updated by what installed
@@ -5743,6 +5744,16 @@ async function renderUpdate(){
   // offers no download and no install there. A server from before 6.3.6 sends
   // none of the three, and is offered both as it always was.
   const live=v.liveUpdate!==false;
+  // A service that is not an administrator (NT SERVICE\hMailServer, since
+  // 6.3.6 a new installation's account) downloads and verifies the release,
+  // and an administrator installs it from the Control Panel at the server,
+  // after Windows asks them: the page says so where its Install button stood.
+  // A server before 6.3.6 sends no installedBy, and is offered the button.
+  const byAdministrator=v.installedBy==="administrator";
+  const adviceHtml=byAdministrator?(v.serviceAccount&&v.serverName
+    ?escHtml(tf("This service runs as {0}, which cannot run an installer, so updates are installed by an administrator at the server: open the hMailServer Control Panel on {1} and click Install update on its Status page. It asks Windows for permission once, checks the installer itself, and installs {2}.",
+      v.serviceAccount,v.serverName,v.availableVersion?"hMailServer "+v.availableVersion:t("the new release")))
+    :escHtml(v.installAdvice||"")):"";
   const rows=[[t("Running version"),v.runningVersion||""],[t("Channel"),v.channel||""],[t("Scheduled check"),v.checkEnabled?t("On"):t("Off")]];
   if(v.installKind)rows.push([t("Installed as"),v.installKind]);
   if(v.updateCommand)rows.push([t("Update with"),v.updateCommand]);
@@ -5754,7 +5765,7 @@ async function renderUpdate(){
   const releaseHref=safeHref(v.releaseUrl);
   $("#content").innerHTML=`<div class="view"><div class="card view">
     <p class="note">${escHtml(operation("/api/v1/update","get").description||"")}</p>
-    ${live?`<p class="note">${t("The server drains first: the listeners close and the delivery queue pauses while the sessions and deliveries in flight finish, then the service stops, installs and starts again.")}</p>`:v.updateAdvice?`<p class="note" id="updateAdvice">${escHtml(v.updateAdvice)}</p>`:""}
+    ${byAdministrator&&adviceHtml?`<p class="note" id="updateAdvice">${adviceHtml}</p>`:live?`<p class="note">${t("The server drains first: the listeners close and the delivery queue pauses while the sessions and deliveries in flight finish, then the service stops, installs and starts again.")}</p>`:v.updateAdvice?`<p class="note" id="updateAdvice">${escHtml(v.updateAdvice)}</p>`:""}
     <p><span class="badge ${badge}">${escHtml(t(UPDATE_STATES[state]||v.stateName||String(state)))}</span> ${releaseHref?'<a href="'+escHtml(releaseHref)+'" target="_blank" rel="noopener noreferrer">'+t("Release notes")+'</a>':""}</p>
     ${drain?`<h3 style="margin-top:14px">${t("Maintenance mode")}</h3>
     <p class="note" id="drainState">${drain.draining?escHtml(tf("Draining since {0}: {1} session(s) and {2} delivery(ies) in flight.",drain.since||"",String(drain.sessions||0),String(drain.deliveries||0))):t("Not draining: the listeners are open.")}</p>
@@ -5767,7 +5778,7 @@ async function renderUpdate(){
     <div class="row" style="margin-top:14px;gap:8px">
       ${may("manage_server")?`<button class="btn ghost" data-act="upcheck">${t("Check now")}</button>`:""}
       ${may("manage_server")&&live&&state===2?`<button class="btn" data-act="updownload">${t("Download and verify")}</button>`:""}
-      ${may("manage_server")&&live&&state===3?`<button class="btn danger" data-act="upinstall">${t("Install the update")}</button>`:""}
+      ${may("manage_server")&&live&&!byAdministrator&&state===3?`<button class="btn danger" data-act="upinstall">${t("Install the update")}</button>`:""}
     </div>
     <div class="err" id="err_update" style="margin-top:10px"></div>
     </div></div>`;
@@ -7965,7 +7976,7 @@ const CHECKLIST_TEXT={
   service_account_root:K("The server runs as root, so a flaw reachable through SMTP, IMAP or POP3 would have full control of the machine. The packages run it as a user of its own."),
   service_account_own:K("The service runs as {0}."),
   autoban_firewall_not_permitted:K("AutoBanFirewall is on, but {0} cannot write Windows Defender Firewall rules: banned addresses are refused by the server and not blocked in the firewall. Run the service as LocalSystem, or reach a firewall through AutoBanCommand."),
-  update_apply_by_administrator:K("{0} cannot run an installer, so updates are checked, downloaded and verified here and an administrator installs them.")};
+  update_apply_by_administrator:K("{0} cannot run an installer, so updates are checked, downloaded and verified here and installed by an administrator with Install update in the Control Panel on this server.")};
 function checklistLevel(state){
   if(state==="done")return "good";
   if(state==="action_needed")return "warn";
