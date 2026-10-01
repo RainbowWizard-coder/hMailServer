@@ -23,6 +23,10 @@ line that an earlier version of this script put at the foot of a long opening
 comment. Nothing below the header is touched - a comment that opens a file
 stays, a third-party notice in a block comment stays (Mime.cpp, the Mime
 library's), and a file keeps its own line endings and its byte-order mark.
+A file that opens with a third party's notice whose terms forbid changing it
+and passing the file off as another's (OWN_NOTICE_FIRST, ScriptSite.h) gets no
+header: it keeps that notice first and says below it that it is altered, with
+the project's address and an SPDX line of its own, which --check holds.
 
 Why a script and not an afternoon with an editor: 2,000 files, three comment
 syntaxes, and four traps that each silently corrupt a file if handled by hand -
@@ -60,6 +64,7 @@ Usage:
   python build/add-license-headers.py --check    # CI mode: report, change nothing
 """
 
+import hashlib
 import os
 import re
 import sys
@@ -128,6 +133,32 @@ NO_DESCEND = {os.path.join(ROOT, 'libraries')}
 # worktree that has been built is judged the same as a fresh checkout.
 SKIP_FILES = {'dlldata.c', 'hMailServer_i.c', 'hMailServer_p.c', 'hMailServer.h'}
 
+# Files that open with a third party's notice whose own terms keep it unchanged
+# and forbid passing the file off as another's, so the project's header, which
+# would claim the file, does not go above it: below the notice the
+# file says it is altered, by whom and under what, and ends that with the
+# project's address and an SPDX line of its own. Left alone when applying;
+# --check holds each to it - there, opening with the notice, unchanged, and not
+# the project's header, and carrying that SPDX line in its opening comment.
+# Paths from the top of the tree, with forward slashes, each to (how many lines
+# the notice is, the SHA-256 of those lines joined by LF with any CR taken off,
+# the SPDX line): the notice is held by its digest because its terms forbid any
+# change to it, a reworded line or a line taken out.
+OWN_NOTICE_FIRST = {
+    # VisionTech's ATL Active Script host (2001), which only hMailServer.exe
+    # compiles: "a) This notice may not be removed or changed in any source
+    # distribution. b) Altered source versions must be include [sic] a note to
+    # that effect, and must not be misrepresented as the original. c) The origin
+    # of this software may not be misrepresented"
+    # (hmailserver/docs/SourceTarball.md). Until 6.3.6 this script put the
+    # project's AGPL header above it, which claimed the file as the project's
+    # and said nothing of the alteration. The notice's 31 lines are the ones the
+    # 2026-06-12 baseline (fe45f43c3) opens the file with.
+    'hmailserver/source/Server/Common/Scripting/ScriptSite.h': (
+        31, '83fd885486bb69866746536d0fc3016097e0ce660b0f27c1d4e18d0b0c52e13b',
+        'SPDX-License-Identifier: LicenseRef-ScriptSite AND AGPL-3.0-or-later'),
+}
+
 BOM = b'\xef\xbb\xbf'
 UTF16_BOMS = (b'\xff\xfe', b'\xfe\xff')
 CODING = re.compile(rb'^#.*coding[:=]')
@@ -138,6 +169,8 @@ def candidates():
         dirnames[:] = [] if dirpath in NO_DESCEND else sorted(d for d in dirnames if d not in SKIP_DIRS)
         for name in sorted(filenames):
             if name in SKIP_FILES:
+                continue
+            if os.path.relpath(os.path.join(dirpath, name), ROOT).replace(os.sep, '/') in OWN_NOTICE_FIRST:
                 continue
             ext = BY_NAME.get(name) or os.path.splitext(name)[1].lower()
             if not ext and os.path.basename(dirpath) in SCRIPTLET_DIRS and name in SCRIPTLET_NAMES:
@@ -263,8 +296,48 @@ def normalised(raw, ext):
     return BOM + out if bom else out
 
 
+def own_notice_problems():
+    """What is wrong with each OWN_NOTICE_FIRST file, one sentence each."""
+    problems = []
+    for rel, (notice_lines, notice_sha256, spdx) in sorted(OWN_NOTICE_FIRST.items()):
+        path = os.path.join(ROOT, *rel.split('/'))
+        ext = os.path.splitext(rel)[1].lower()
+        marker = LINE_COMMENT.get(ext)
+        if marker is None:
+            problems.append('%s: no line-comment syntax is known for its extension' % rel)
+            continue
+        try:
+            with open(path, 'rb') as f:
+                raw = f.read()
+        except OSError:
+            problems.append('%s is listed in OWN_NOTICE_FIRST and is not in the tree' % rel)
+            continue
+        body = raw[len(BOM):] if raw.startswith(BOM) else raw
+        lines = body.split(b'\n')
+        m = marker.encode()
+        opening = []
+        for line in lines:
+            s = line.strip()
+            if s == b'' or s.startswith(m):
+                opening.append(s)
+            else:
+                break
+        first = comment_text(lines[0], m) if lines else None
+        if first is not None and replaced(first):
+            problems.append('%s opens with the project header, above the third party\'s notice' % rel)
+        notice = b'\n'.join(line.rstrip(b'\r') for line in lines[:notice_lines])
+        if len(lines) < notice_lines or hashlib.sha256(notice).hexdigest() != notice_sha256:
+            problems.append('%s does not open with the third party\'s notice as its terms keep it: its first %d lines '
+                            'are not that notice, unchanged' % (rel, notice_lines))
+        texts = [comment_text(s, m) for s in opening]
+        if spdx not in texts:
+            problems.append('%s has no "%s" line in its opening comment' % (rel, spdx))
+    return problems
+
+
 def main():
     check = '--check' in sys.argv
+    problems = own_notice_problems()
     touched = []
     for path, ext in candidates():
         with open(path, 'rb') as f:
@@ -277,6 +350,13 @@ def main():
             with open(path, 'wb') as f:
                 f.write(out)
 
+    for problem in problems:
+        print('%s.' % problem)
+    if problems:
+        print('A file of OWN_NOTICE_FIRST keeps its third party\'s notice first and unchanged, and its own SPDX line')
+        print('below it; this script does not write either, so put them back by hand.')
+        print()
+
     if check:
         if touched:
             print('%d source file(s) do not open with the project header in its one form:' % len(touched))
@@ -287,11 +367,14 @@ def main():
             print()
             print('Run  python build/add-license-headers.py  to put it there.')
             return 1
-        print('Every source file opens with the project header.')
+        if problems:
+            return 1
+        print('Every source file opens with the project header, and the %d of OWN_NOTICE_FIRST with their own.'
+              % len(OWN_NOTICE_FIRST))
         return 0
 
     print('Put the project header on %d file(s).' % len(touched))
-    return 0
+    return 1 if problems else 0
 
 
 if __name__ == '__main__':

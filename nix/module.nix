@@ -29,6 +29,11 @@ let
   local = db.createLocally && db.type == "PostgreSQL";
   ini = "/etc/hmailserver/hMailServer.ini";
   hmailserver = "${cfg.package}/bin/hmailserver";
+  # The auto-ban reaches the firewall: AutoBanFirewall=1, from autoBanFirewall or
+  # given in settings. The server then runs the package's autoban-hook, which it
+  # finds in the package (it is told where at build time, CMakeLists.txt), as
+  # the service's account: the hook needs CAP_NET_ADMIN and nft.
+  firewallHook = cfg.autoBanFirewall || toString (cfg.settings.AutoBanFirewall or 0) == "1";
 
   # As root, before the server's own steps. The first start takes the package's
   # configuration (platform/packaging/hMailServer.ini, its ProgramFolder the
@@ -196,6 +201,20 @@ in
       default = false;
       description = "Open SMTP (25, 465, 587), IMAP (143, 993) and POP3 (110, 995) in the firewall.";
     };
+
+    autoBanFirewall = lib.mkOption {
+      type = lib.types.bool;
+      default = false;
+      description = ''
+        Block each address the server auto-bans in the firewall below it, for as
+        long as the ban lasts: AutoBanFirewall=1, with which the server runs the
+        package's autoban-hook, which keeps an nftables set with a timeout. It
+        stores the setting, and gives the service CAP_NET_ADMIN, which it
+        otherwise does not have, and nft. The same is given when settings sets
+        AutoBanFirewall to 1. fail2ban, with the package's filter and jail
+        (etc/fail2ban), is the other way, and needs neither.
+      '';
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -213,6 +232,8 @@ in
       description = "hMailServer";
     };
     users.groups.${cfg.group} = { };
+
+    services.hmailserver.settings = lib.mkIf cfg.autoBanFirewall { AutoBanFirewall = lib.mkDefault 1; };
 
     environment.systemPackages = [ cfg.package ];
 
@@ -258,6 +279,8 @@ in
       # itself), After= on it orders nothing and the service still does.
       after = [ "network-online.target" "postgresql.service" "postgresql.target" "mysql.service" ];
       requires = lib.optional local "postgresql.service";
+      # The auto-ban hook's firewall tool, which it finds on PATH.
+      path = lib.optional firewallHook pkgs.nftables;
 
       serviceConfig = {
         Type = "simple";
@@ -285,8 +308,12 @@ in
         RuntimeDirectory = "hmailserver";
         RuntimeDirectoryMode = "0750";
 
-        AmbientCapabilities = [ "CAP_NET_BIND_SERVICE" ];
-        CapabilityBoundingSet = [ "CAP_NET_BIND_SERVICE" ];
+        # And CAP_NET_ADMIN for the auto-ban hook, only when the firewall is asked
+        # for: the packaged unit leaves it to a drop-in, because a mail server that
+        # can rewrite the host's firewall is a bigger grant than one that can bind
+        # port 25, and here the option is that deliberate step.
+        AmbientCapabilities = [ "CAP_NET_BIND_SERVICE" ] ++ lib.optional firewallHook "CAP_NET_ADMIN";
+        CapabilityBoundingSet = [ "CAP_NET_BIND_SERVICE" ] ++ lib.optional firewallHook "CAP_NET_ADMIN";
         NoNewPrivileges = true;
         ProtectSystem = "strict";
         ProtectHome = true;

@@ -101,6 +101,12 @@ if [ "$kind" = rpm ]; then
   rpm=$(ls "$packages"/hmailserver-*.x86_64.rpm | head -n 1)
   echo "== $(basename "$rpm")"
   rpm -qip "$rpm"
+  # The one dependency every RPM distribution meets with its own package
+  # (CMakeLists.txt): this .rpm is the one the live update offers each of them.
+  # Read, not resolved: --nodeps below leaves it out, and rpm-install-test.sh
+  # installs the per-distribution packages with it.
+  echo "== it requires glibc's character-set converters"
+  rpm -qp --requires "$rpm" | grep -xF '(glibc-gconv-extra(x86-64) or glibc-gconv-modules-extra(x86-64))'
   echo "== install (--nodeps: built on Ubuntu, so its requires name Ubuntu sonames)"
   rpm -Uvh --nodeps "$rpm"
   echo "== every file a working installation needs"

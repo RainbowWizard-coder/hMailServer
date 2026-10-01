@@ -89,7 +89,14 @@ as_service() {
 }
 
 echo "== check the configuration, create the schema, set the administrator password"
-as_service --check-config || fail "--check-config"
+checked=$(as_service --check-config) || { echo "$checked"; fail "--check-config"; }
+echo "$checked"
+# Every character set the server converts text in converts here: Debian's and
+# Ubuntu's libc6 carries every converter, and the RPM spec requires the package
+# that has them on Fedora, EL and openSUSE, which glibc only recommends and the
+# install jobs' containers leave out (srcpkg-install.sh).
+grep -qx 'Character sets: *every one the server converts text in converts here' <<< "$checked" \
+   || fail "the server cannot convert every character set it names: $(grep '^Character sets:' <<< "$checked")"
 as_service --create-database || fail "--create-database"
 echo "$ADMIN_PASSWORD" | /usr/bin/hmailserver --config "$ini" --set-admin-password > /dev/null \
    || fail "--set-admin-password"

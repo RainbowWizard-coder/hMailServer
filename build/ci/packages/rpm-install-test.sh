@@ -11,6 +11,10 @@
 # resolve every Requires from the distribution's own repositories. Then:
 #
 #   hmailserver --version answers, from the installed binary;
+#   glibc's character-set converters came with it, which the package requires
+#   and the image lacks: the server finds every one it names (--check-config),
+#   BIG5 and ISO-2022-JP text converts - and with the converters taken away
+#   again, neither does, which is the check seeing what it checks;
 #   every file a working installation needs is where the package put it;
 #   the licences are there as the tree has them - the AGPL-3.0 text, QuickJS's
 #   and /usr/share/licenses/hmailserver/copyright - installed under the image's
@@ -32,12 +36,19 @@ target="${1:-}"
 arch="${2:-}"
 packages="${HM_OUT_ROOT:-packages-rpm}/$target-$arch"
 
+# converters: the package of glibc's character-set converters beyond its base
+# package's, which the .rpm requires (CMakeLists.txt, CPACK_RPM_PACKAGE_REQUIRES).
 case "$target" in
-  fedora44|fedora43|el10|el9) family=dnf ;;
-  leap16|tumbleweed) family=zypper ;;
+  fedora44|fedora43|el10|el9) family=dnf; converters=glibc-gconv-extra ;;
+  leap16|tumbleweed) family=zypper; converters=glibc-gconv-modules-extra ;;
   *) echo "usage: $0 <fedora44|fedora43|el10|el9|leap16|tumbleweed> <x86_64|aarch64>"; exit 64 ;;
 esac
-case "$arch" in x86_64|aarch64) ;; *) echo "arch is x86_64 or aarch64"; exit 64 ;; esac
+# rpm's name for the architecture in a dependency (%{_isa}).
+case "$arch" in
+  x86_64) isa=x86-64 ;;
+  aarch64) isa=aarch-64 ;;
+  *) echo "arch is x86_64 or aarch64"; exit 64 ;;
+esac
 
 . /etc/os-release
 echo "== $PRETTY_NAME on $(uname -m)"
@@ -95,8 +106,52 @@ install_rpm() {
   esac
 }
 
+# The converters, as the server and the C library answer for them. present: the
+# server names no character set it cannot convert, and a BIG5 and an ISO-2022-JP
+# sample - U+4E2D U+6587 and U+65E5 U+672C, which glibc's base package cannot
+# read - come out as their UTF-8. absent: the server names BIG5 and ISO-2022-JP-2
+# among those it cannot, and neither sample converts. Both through the installed
+# server's --check-config, which opens each character set it converts text in
+# with the C library's iconv, both ways, and through that iconv itself.
+check_charsets() {
+  local expect=$1 answer line big5 jis
+  answer=$(/usr/bin/hmailserver --check-config 2>&1) \
+    || { echo "$answer"; echo "FAILED: hmailserver --check-config"; exit 1; }
+  line=$(grep '^Character sets:' <<< "$answer" || true)
+  echo "  $line"
+  big5=$(printf '\244\244\244\345' | iconv -f BIG5 -t UTF-8 2> /dev/null | od -An -tx1 | tr -d ' \n' || true)
+  jis=$(printf '\033$BF|K\\\033(B' | iconv -f ISO-2022-JP-2 -t UTF-8 2> /dev/null | od -An -tx1 | tr -d ' \n' || true)
+  echo "  BIG5 a4a4a4e5 -> UTF-8 '${big5:-nothing}'; ISO-2022-JP-2 1b244246...1b2842 -> UTF-8 '${jis:-nothing}'"
+  if [ "$expect" = present ]; then
+    [ "$line" = "Character sets:     every one the server converts text in converts here" ] \
+      || { echo "FAILED: with $converters installed, the server still names character sets it cannot convert (above)"; exit 1; }
+    [ "$big5" = e4b8ade69687 ] || { echo "FAILED: BIG5 text did not convert to UTF-8"; exit 1; }
+    [ "$jis" = e697a5e69cac ] || { echo "FAILED: ISO-2022-JP text did not convert to UTF-8"; exit 1; }
+  else
+    case "$line" in
+      *'do not convert here'*BIG5*ISO-2022-JP-2*) ;;
+      *) echo "FAILED: without $converters the server did not name BIG5 and ISO-2022-JP-2 as character sets it cannot convert"; exit 1 ;;
+    esac
+    [ -z "$big5" ] || { echo "FAILED: BIG5 text converted without $converters, so this test cannot tell the package from the image"; exit 1; }
+    [ -z "$jis" ] || { echo "FAILED: ISO-2022-JP text converted without $converters, so this test cannot tell the package from the image"; exit 1; }
+  fi
+}
+
 set -e
 started=$(date +%s)
+echo ""
+echo "== the character-set converters: required, and not in this image"
+# The rich dependency each distribution meets with its own package
+# (CMakeLists.txt); grep reads the whole list (see below, at rpm -qc).
+rpm -qp --requires "$rpm_file" | grep -xF "(glibc-gconv-extra($isa) or glibc-gconv-modules-extra($isa))" > /dev/null \
+  || { echo "FAILED: $(basename "$rpm_file") does not require glibc's converters, glibc-gconv-extra($isa) or glibc-gconv-modules-extra($isa)"; exit 1; }
+echo "$(basename "$rpm_file") requires glibc-gconv-extra($isa) or glibc-gconv-modules-extra($isa)"
+if rpm -q "$converters" > /dev/null 2>&1; then
+  echo "($converters is in the image already, so the install below cannot show it comes with the package)"
+else
+  echo "$converters is not installed: this image, as every container image of $NAME, goes without"
+fi
+
 echo ""
 echo "== install it, with what $family resolves for it from $PRETTY_NAME's repositories"
 install_rpm "$rpm_file" /tmp/install.log \
@@ -107,6 +162,21 @@ echo "installed in $(( $(date +%s) - started )) s"
 echo ""
 echo "== hmailserver --version"
 /usr/bin/hmailserver --version
+
+echo ""
+echo "== the character sets the server converts text in, with the converters the install brought"
+rpm -q --whatprovides "$converters($isa)" > /dev/null \
+  || { echo "FAILED: $family installed the package without $converters($isa)"; exit 1; }
+echo "$(rpm -q --whatprovides "$converters($isa)") came with it"
+check_charsets present
+# And the check, seeing what it checks: with the converters taken away again,
+# behind the package's back, the server names what it has lost and BIG5 text no
+# longer converts. Put back by the generic copy's install below, where there is
+# one, and gone with the container otherwise.
+rpm -e --nodeps "$converters" > /tmp/remove-converters.log 2>&1 \
+  || { cat /tmp/remove-converters.log; echo "FAILED: rpm -e --nodeps $converters"; exit 1; }
+echo "without $converters:"
+check_charsets absent
 
 echo ""
 echo "== every file a working installation needs"
@@ -164,8 +234,12 @@ if [ -n "$generic" ]; then
   release=$(rpm -q --qf '%{RELEASE}' hmailserver)
   [ "$release" = 1 ] || { echo "FAILED: the generic copy's release is $release, not 1"; exit 1; }
   /usr/bin/hmailserver --version
+  # The converters taken away above come back with it: it requires them too.
+  check_charsets present
   rpm -e hmailserver > /tmp/remove.log 2>&1 || { cat /tmp/remove.log; echo "FAILED: rpm -e of the generic copy"; exit 1; }
-  echo "installed, answered and removed"
+  echo "installed, answered, converted and removed"
 fi
 echo ""
+# The line semgrep's baseline knows by its text (build/ci/semgrep-baseline.txt):
+# the converters are said above, where they were checked.
 echo "PACKAGE PASSED: $(basename "$rpm_file") installs on $PRETTY_NAME ($arch) with its dependencies, runs, carries every file, and removes cleanly, in $(( $(date +%s) - started )) s."

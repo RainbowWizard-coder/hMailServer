@@ -255,6 +255,16 @@ server_rpm=$(ls "$out"/hmailserver-[0-9]*.x86_64.rpm)
 server_requires=$(rpm -qp --requires "$server_rpm")
 grep -q '^libboost_' <<< "$server_requires" \
   || fail "the package requires no Boost soname: the server was not linked against the distribution's shared Boost"
+# glibc's character-set converters, which glibc only recommends: the spec names its
+# release's package, for the server's architecture (docs/PackagesRpm.md, "The
+# character sets"); install-time, srcpkg-install.sh's server-starts holds the server
+# to converting every character set it names.
+case "$family" in
+  dnf) converters='glibc-gconv-extra(x86-64)' ;;
+  zypper) converters='glibc-gconv-modules-extra(x86-64)' ;;
+esac
+grep -qxF "$converters" <<< "$server_requires" \
+  || fail "the package does not require $converters, glibc's character-set converters"
 # Each list read whole before it is searched, as $server_requires is: rpm piped into
 # grep -q, which stops at its match, can die of SIGPIPE while still writing, and
 # pipefail then fails the check with the line present.

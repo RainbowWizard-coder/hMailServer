@@ -25,7 +25,8 @@ namespace HM
    //                        "hMailServer auto-ban <address>" in a rule group of
    //                        their own so they can be told from everything else.
    //                        Linux: the hook the package installs at
-   //                        /usr/lib/hmailserver/autoban-hook, which keeps an
+   //                        /usr/lib/hmailserver/autoban-hook (below the build's
+   //                        own prefix elsewhere: PackagedHook), which keeps an
    //                        nftables set with a timeout, or iptables where there
    //                        is no nft. The service needs CAP_NET_ADMIN for that,
    //                        which the unit does not grant by default; the hook
@@ -82,7 +83,9 @@ namespace HM
       static String RuleName(const String &address);
       static const wchar_t *RuleGroup();
 
-      // Where the packaged Linux hook lives.
+      // Where the Linux hook lives: where the build installed it, its
+      // CMAKE_INSTALL_PREFIX's lib/hmailserver/autoban-hook - /usr/lib/... in
+      // every package, the Nix store's in the flake's (CMakeLists.txt).
       static const wchar_t *PackagedHook();
 
    private:

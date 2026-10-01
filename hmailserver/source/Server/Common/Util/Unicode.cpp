@@ -35,37 +35,58 @@ namespace HM
       // client labels an empty or plain English body - failed to convert there
       // (a script's added text was lost; hmailserver/docs/Alpine.md, "What musl
       // changed"). glibc and GNU libiconv take both.
+      //
+      // A table rather than a switch so that CodePageCharacterSets can read it
+      // too: what the server converts and what it checks a machine for are one
+      // list.
+      struct CodePageName
+      {
+         unsigned int codePage;
+         const char *iconvName;
+      };
+
+      const CodePageName CodePageNames[] =
+      {
+         { 950,   "BIG5" },
+         { 1250,  "CP1250" },
+         { 1251,  "CP1251" },
+         { 1252,  "CP1252" },
+         { 1253,  "CP1253" },
+         { 1254,  "CP1254" },
+         { 1255,  "CP1255" },
+         { 1256,  "CP1256" },
+         { 1257,  "CP1257" },
+         { 1258,  "CP1258" },
+         { 20127, "US-ASCII" },
+         { 28592, "ISO-8859-2" },
+         { 28593, "ISO-8859-3" },
+         { 28594, "ISO-8859-4" },
+         { 28595, "ISO-8859-5" },
+         { 28596, "ISO-8859-6" },
+         { 28597, "ISO-8859-7" },
+         { 28598, "ISO-8859-8" },
+         { 28599, "ISO-8859-9" },
+         { 28603, "ISO-8859-13" },
+         { 28605, "ISO-8859-15" },
+         { 50221, "ISO-2022-JP-2" },
+         { 65000, "UTF-7" },
+         { 65001, "UTF-8" }
+      };
+
       const char *IconvNameForCodePage(unsigned int codePage)
       {
-         switch (codePage)
+         // nl_langinfo is safe from any thread while nothing changes the
+         // locale, and the server never calls setlocale or uselocale.
+         if (codePage == 0)
+            return ::nl_langinfo(CODESET); // NOLINT(concurrency-mt-unsafe): see above
+
+         for (const CodePageName &row : CodePageNames)
          {
-         case 0:     return ::nl_langinfo(CODESET);
-         case 950:   return "BIG5";
-         case 1250:  return "CP1250";
-         case 1251:  return "CP1251";
-         case 1252:  return "CP1252";
-         case 1253:  return "CP1253";
-         case 1254:  return "CP1254";
-         case 1255:  return "CP1255";
-         case 1256:  return "CP1256";
-         case 1257:  return "CP1257";
-         case 1258:  return "CP1258";
-         case 20127: return "US-ASCII";
-         case 28592: return "ISO-8859-2";
-         case 28593: return "ISO-8859-3";
-         case 28594: return "ISO-8859-4";
-         case 28595: return "ISO-8859-5";
-         case 28596: return "ISO-8859-6";
-         case 28597: return "ISO-8859-7";
-         case 28598: return "ISO-8859-8";
-         case 28599: return "ISO-8859-9";
-         case 28603: return "ISO-8859-13";
-         case 28605: return "ISO-8859-15";
-         case 50221: return "ISO-2022-JP-2";
-         case 65000: return "UTF-7";
-         case 65001: return "UTF-8";
-         default:    return 0;
+            if (row.codePage == codePage)
+               return row.iconvName;
          }
+
+         return 0;
       }
 
       // One conversion, in the two modes the Win32 pair has: measure, or fill.
@@ -168,6 +189,37 @@ namespace HM
 
          return answer;
       }
+   }
+
+   std::vector<std::string>
+   Unicode::CodePageCharacterSets()
+   {
+      std::vector<std::string> names;
+      for (const CodePageName &row : CodePageNames)
+         names.push_back(row.iconvName);
+      return names;
+   }
+
+   bool
+   Unicode::ConvertsCharacterSet(const char *iconvName)
+   {
+      if (iconvName == 0 || *iconvName == 0)
+         return false;
+
+      // glibc finds and loads the character set's converter when the conversion
+      // is opened, so an open that succeeds is one that converts, and one whose
+      // module is not installed fails here, with EINVAL.
+      iconv_t to = ::iconv_open(iconvName, "WCHAR_T");
+      if (to == (iconv_t) -1)
+         return false;
+      ::iconv_close(to);
+
+      iconv_t from = ::iconv_open("WCHAR_T", iconvName);
+      if (from == (iconv_t) -1)
+         return false;
+      ::iconv_close(from);
+
+      return true;
    }
 
    int

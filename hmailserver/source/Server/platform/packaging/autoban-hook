@@ -5,8 +5,10 @@
 
 # What hMailServer's auto-ban does below the server on Linux.
 #
-# Installed as /usr/lib/hmailserver/autoban-hook and run by the server when
-# AutoBanFirewall=1 is set under [Settings] in hMailServer.ini:
+# Installed as /usr/lib/hmailserver/autoban-hook by the packages - by a build of
+# another prefix below that prefix, as the Nix flake's in its package - and run
+# by the server from where its build installed it, when the setting
+# AutoBanFirewall is 1:
 #
 #    autoban-hook ban   <address> <minutes> <ports>|-   block the address
 #    autoban-hook unban <address>                      release it
@@ -33,6 +35,9 @@
 #      CapabilityBoundingSet=CAP_NET_BIND_SERVICE CAP_NET_ADMIN
 #    systemctl restart hmailserver
 #
+# On NixOS the module's services.hmailserver.autoBanFirewall = true grants it,
+# with nft, and sets AutoBanFirewall (hmailserver/docs/Nix.md).
+#
 # fail2ban is the other half and needs none of this: it runs as root, reads the
 # server's application log, and bans on its own account. The package installs a
 # filter and a jail for it; see /etc/fail2ban/jail.d/hmailserver.conf.
@@ -56,6 +61,8 @@ Grant it once, deliberately, with a drop-in:
      AmbientCapabilities=CAP_NET_BIND_SERVICE CAP_NET_ADMIN
      CapabilityBoundingSet=CAP_NET_BIND_SERVICE CAP_NET_ADMIN
    systemctl restart hmailserver
+On NixOS, where the unit is the module's, set services.hmailserver.autoBanFirewall = true
+instead, which grants it with nft.
 EOF
    exit 2
 }

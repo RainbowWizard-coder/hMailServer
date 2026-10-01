@@ -801,11 +801,12 @@ counts against that ceiling and against the account's own; found by the project'
   one; a local PostgreSQL reached over its socket by peer authentication, root mapped to the same role so that the
   packaging guide's `sudo hmailserver` commands work, and the server started after `postgresql.target`, once
   PostgreSQL's setup has made that role; the database made and upgraded before each start and the first start's
-  secure defaults; and options for another database, an administrator password file, settings and the firewall.
-  `checks.<system>.nixos` starts that machine and asks SMTP (with STARTTLS) and IMAP for their greetings, as the
-  Debian package's autopkgtest does, and the REST API for its status, has root make the stored-secrets key, holds the
-  service to no restart before that, and asks again after a restart, which must keep the key and a database password
-  typed into the file.
+  secure defaults; and options for another database, an administrator password file, settings, the firewall, and
+  the auto-ban's reaching the firewall (`autoBanFirewall`, below). `checks.<system>.nixos` starts that machine and
+  asks SMTP (with STARTTLS) and IMAP for their greetings, as the Debian package's autopkgtest does, and the REST API
+  for its status, has root make the stored-secrets key, holds the service to no restart before that, and asks again
+  after a restart, which must keep the key and a database password typed into the file; then it places an auto-ban
+  through the REST API and requires the address in the hook's nftables set, and out of it once the ban is deleted.
   The new `nix` job (`.gitlab/ci/nix.yml`, `build/ci/nix.sh`; master and `batch*`) holds the lock to
   releases.nixos.org, evaluates every output for both systems, builds the package and runs the NixOS test under
   QEMU's TCG, since linix has no KVM. On 29 September 2026 the test passed with KVM and under TCG, and the job's own
@@ -882,6 +883,18 @@ counts against that ceiling and against the account's own; found by the project'
   `debian/copyright`, the RPM spec and SourcePackages.md no longer list it. A new `datetime-tests` program runs the
   date class's and the date parsers' tests on Linux, where ClassTester does not run, in `linux-build` and in the
   Debian and RPM package builds.
+- **`ScriptSite.h` opens with VisionTech's notice again, and says it is altered.** The ATL Active Script host that
+  only `hMailServer.exe` compiles (`Common/Scripting/ScriptSite.h`) is VisionTech Limited's of 2001, under a notice
+  that may be neither removed nor changed in any source distribution and asks an altered version to say so. Since
+  August 2026 `build/add-license-headers.py` had put the project's header above it - its copyright and
+  `SPDX-License-Identifier: AGPL-3.0-or-later` - which claimed the file as the project's, and nothing said it was
+  altered. The notice is first again, byte for byte as hMailServer's own source had it; below it the file says it
+  is altered, by whom, and that the changes are under the project's licence, ending with the project's address and
+  `SPDX-License-Identifier: LicenseRef-ScriptSite AND AGPL-3.0-or-later`. The header script leaves the file alone
+  (`OWN_NOTICE_FIRST`), and its `--check`, which the checkers job runs, fails when the file opens with the project's
+  header again, when its first lines are not the notice word for word (held by the notice's SHA-256), or when it
+  loses its own SPDX line. `debian/copyright`'s paragraph for the file names the alterations' holders and licence
+  beside VisionTech's ([SourceTarball.md](hmailserver/docs/SourceTarball.md)).
 - **A release's download links work, and each file's bundle is beside it at GitLab's permanent address.** 6.3.5's 18
   links were given the path `/downloads/<name>`, and GitLab, which serves a link's path below
   `/-/releases/<tag>/downloads` itself, served each at `.../downloads/downloads/<name>`: a 404, until the links were
@@ -897,11 +910,28 @@ counts against that ceiling and against the account's own; found by the project'
   ([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md), "The links' names and paths").
 - **The `.deb` and the `.rpm` require `ca-certificates`**, which every HTTPS request the server makes needs, the
   update check's among them; in the first Linux live update PostgreSQL had pulled it in. So do the source packages
-  and the Arch package. Known issue, in every earlier `.rpm` too: neither the `.rpm`s nor the RPM spec require
-  glibc's extra character-set converters - `glibc-gconv-extra` on Fedora and EL, `glibc-gconv-modules-extra` on
-  openSUSE - which the distributions' container images lack, and without them the server converts no text in a
-  character set but Unicode's, US-ASCII, ISO-8859-1, ISO-8859-15 and Windows-1252 - BIG5, ISO-2022-JP, Cyrillic and
-  Central European mail among them - until they are installed.
+  and the Arch package.
+- **The `.rpm` and the RPM spec require glibc's character-set converters**, `glibc-gconv-extra` on Fedora and EL and
+  `glibc-gconv-modules-extra` on openSUSE. glibc only recommends them, so every container image of those
+  distributions, and any installation made without recommended packages, goes without, and there, with every `.rpm`
+  up to 6.3.5, the server read and wrote no text in a character set but Unicode's, US-ASCII, UTF-7, ISO-8859-1,
+  ISO-8859-15 and Windows-1252: a header or a body in BIG5, ISO-2022-JP, Windows-1251 or ISO-8859-2 came out empty,
+  and a PST's text in code page 932, 936, 949 or KOI8 was imported as its ASCII, each byte outside ASCII a replacement
+  character, and an RTF body's read as Windows-1252 (the pinned Fedora 44, UBI 9 and 10, Leap 16.0 and Tumbleweed
+  images, 1 October 2026). Every `.rpm` the project makes, the generic ones and each release's own, now requires
+  `(glibc-gconv-extra(<arch>) or glibc-gconv-modules-extra(<arch>))`, which each distribution meets with its own
+  package, built for the server's architecture: an i686 build of it beside an x86-64 glibc would meet the bare name
+  and convert nothing. The spec requires its distribution's one by name. Where the live update installs an `.rpm` with
+  `rpm -Uvh` - on openSUSE, which has no `dnf` - nothing is installed beside it, so a server there without the
+  converters fails its update to 6.3.6, and stays as it was, until `zypper install glibc-gconv-modules-extra` has run;
+  `dnf` installs them with the package. `rpm-install-test.sh` holds each package to the requirement and, in its
+  release's clean image, which lacks the converters, requires that the installed server finds every character set it
+  names and that BIG5 and ISO-2022-JP text converts, then takes the converters away again and requires that neither
+  holds; the RPM source packages' build reads the requirement and their install test requires the first through
+  `server-starts`, and `linux-package-rpm` reads the requirement in the generic x86-64 `.rpm`. An AppImage runs on its
+  host's glibc and cannot require a package: on Fedora, EL or openSUSE that package is installed by hand
+  ([PackagesAppImage.md](hmailserver/docs/PackagesAppImage.md)), and the server says when it is missing (Operations,
+  below).
 - **The `.rpm`'s `%changelog` is its own**: one entry, from the version's heading in `CHANGELOG.md` and dated by
   `SOURCE_DATE_EPOCH`, in place of CPack's placeholder of 2010.
 - **The Linux update helper runs `apt-get` quietly** (`-q`, `Dpkg::Use-Pty=0`), so the journal no longer holds
@@ -1515,6 +1545,32 @@ counts against that ceiling and against the account's own; found by the project'
   met an unexpected error ended without a word. Nothing was lost, and nothing is: what it had not put in waits on the
   local disk, is read from there, and the next pass takes it up. It now says so in the error log as `HM7473`, once an
   hour at most ([ObjectStorage.md](hmailserver/docs/ObjectStorage.md)).
+- **On Linux the server says which character sets the machine cannot convert.** It converts mail's and IMAP's text
+  with the C library's iconv, which loads a character set's converter only when one is asked for, and a converter
+  that was not installed made the text empty and said nothing. `hmailserver --check-config` now ends with a line
+  `Character sets:` that says every character set the server converts text in - the code page table's 24 and the
+  PST import's - converts here, or names those that do not, with the package that has them on Fedora, EL and
+  openSUSE; and a start with any missing writes the same to standard error, which the journal, OpenRC's console log
+  or an AppImage's terminal keeps, and to the application log. A warning, not a refusal: mail in the other
+  character sets is served, and `--check-config` still exits 0, as the OpenRC service's start needs. The checks of
+  the `.rpm` above read that line (`Unicode::CodePageCharacterSets`, `Unicode::ConvertsCharacterSet`,
+  `platform/main.cpp`; the packaging guide, [step 5](hmailserver/source/Server/platform/packaging/README.md)).
+- **The auto-ban hook is run from where the build installed it, and on NixOS the auto-ban reaches the firewall.**
+  With `AutoBanFirewall=1` the Linux server runs `autoban-hook`, which keeps an nftables set of the banned
+  addresses. It ran `/usr/lib/hmailserver/autoban-hook` whatever prefix it was built for, while the build installs
+  the hook below its own prefix: the packages', `/usr`, had it, and NixOS, where the flake's package is in the Nix
+  store, and a build installed under `/usr/local` did not, so there the setting found no hook (`HM6523`).
+  `CMakeLists.txt` now compiles the hook's installed path into the server (`HM_AUTOBAN_HOOK`,
+  `AutoBanFirewall::PackagedHook`), and refuses a prefix the server could not run as one command; every package's
+  path is the same as before. The NixOS module's new `autoBanFirewall` stores the setting and gives the service
+  `CAP_NET_ADMIN` and `nft`, which the hook needs - the packaged unit leaves that capability to a drop-in, and the
+  option is that deliberate step - and does so too when `settings` sets `AutoBanFirewall` to 1; every program the
+  service starts then has the capability, whatever `AutoBanCommand` names among them. Neither a link at
+  `/usr/lib/hmailserver` on NixOS nor the hook's path as a setting: the first writes outside the store, and the
+  second would be one more program the REST API could name for the server to run with that capability. The NixOS
+  test places a ban through the REST API and reads it in the set, and the ban deleted, out of it; with KVM it
+  passed, and with the server as it was it failed there ([Nix.md](hmailserver/docs/Nix.md), "The auto-ban below
+  the server").
 
 - **Fixed: sixteen more COM look-ups that found nothing left an object behind.** This release makes 67 look-ups look
   before they made the object they answer with; sixteen written as an if and an else were not among them, and still

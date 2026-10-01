@@ -71,6 +71,7 @@
 #include "../Common/Util/ProtectedFile.h"
 #include "../Common/Util/Unicode.h"
 #include "../Common/Pst/PstReaderChild.h"
+#include "../Common/Pst/PstCodePages.h"
 
 namespace
 {
@@ -121,6 +122,52 @@ namespace
       sigaction(SIGPIPE, &ignore, nullptr);
    }
 
+   // The character sets the server converts text in that this machine's iconv
+   // cannot, by iconv's names, sorted: the code page table's, which mail and
+   // IMAP are read and written in (Unicode.cpp), and the PST import's
+   // (PstCodePages.cpp). Without a converter that text is not read or written
+   // at all - a header or a body in BIG5 comes out empty - and nothing else
+   // says so. Fedora's, EL's and openSUSE's glibc keep all but UTF-7, CP1252,
+   // ISO-8859-1 and -15 and Unicode's in a package glibc only recommends, so a
+   // minimal installation or a container image of them has none of the rest;
+   // the .rpm and the RPM spec require it, and an AppImage, which runs on the
+   // host's glibc, cannot. Asked at --check-config and at every start.
+   std::vector<std::string> CharacterSetsWithoutConverter()
+   {
+      std::set<std::string> names;
+      for (const std::string &name : HM::Unicode::CodePageCharacterSets())
+         names.insert(name);
+      for (size_t index = 0; index < HM::PstCodePages::Count(); index++)
+      {
+         int codePage = 0;
+         std::string charset;
+         std::string iconvName;
+         if (HM::PstCodePages::Row(index, codePage, charset, iconvName))
+            names.insert(iconvName);
+      }
+
+      std::vector<std::string> missing;
+      for (const std::string &name : names)
+      {
+         if (!HM::Unicode::ConvertsCharacterSet(name.c_str()))
+            missing.push_back(name);
+      }
+      return missing;
+   }
+
+   // What --check-config prints and a start writes when some are missing: how
+   // many and which, what that means, and the package that has them.
+   std::string DescribeMissingConverters(const std::vector<std::string> &missing)
+   {
+      std::string list;
+      for (const std::string &name : missing)
+         list += (list.empty() ? "" : ", ") + name;
+      return std::to_string(missing.size()) + " character set(s) do not convert here - " + list +
+         ": text in them is neither read nor written, because this machine's C library has no converter for them. "
+         "On Fedora and EL the converters are the package glibc-gconv-extra, on openSUSE glibc-gconv-modules-extra, "
+         "which the .rpm requires: install it, and start the server again.";
+   }
+
    void PrintUsage(const char *program)
    {
       std::printf(
@@ -134,7 +181,8 @@ namespace
          "  --foreground      run in the foreground and log to standard error as\n"
          "                    well as to the log directory. This is the default;\n"
          "                    the option exists so that a unit file can say so.\n"
-         "  --check-config    read the configuration, report what it says, and\n"
+         "  --check-config    read the configuration, report what it says and the\n"
+         "                    character sets this machine cannot convert, and\n"
          "                    exit without opening a listener or the database\n"
          "  --set-admin-password\n"
          "                    read a new administrator password from standard\n"
@@ -1964,6 +2012,14 @@ int main(int argc, char *argv[])
          HM::AnsiString(HM::IniFileSettings::Instance()->GetLogDirectory()).c_str());
       std::printf("Database type:      %d\n",
          (int) HM::IniFileSettings::Instance()->GetDatabaseType());
+      // Said and not failed: a server without some converters still works for
+      // mail in the others, and the OpenRC service and the packages' scripts run
+      // this as a precondition.
+      const std::vector<std::string> missing = CharacterSetsWithoutConverter();
+      if (missing.empty())
+         std::printf("Character sets:     every one the server converts text in converts here\n");
+      else
+         std::printf("Character sets:     %s\n", DescribeMissingConverters(missing).c_str());
       return 0;
    }
 
@@ -1972,6 +2028,18 @@ int main(int argc, char *argv[])
    // installs signal handlers for the memory-safety signals and SIGABRT, and
    // says where its records go once the log is up (below).
    HM::CrashOracle::Install();
+
+   // The character sets this machine cannot convert, said at every start: on
+   // standard error at once, which the journal, OpenRC's console log or the
+   // terminal running an AppImage keeps, and in the log once it is up (below).
+   // A warning and not a refusal: mail in the other character sets is served.
+   // After the crash oracle, as everything else the start does: asking loads
+   // the C library's converter modules. What fprintf returns is not read: a
+   // standard error that cannot be written to leaves nowhere else to say it
+   // now, and the application log says it again below when that log is on.
+   const std::vector<std::string> charsetsMissing = CharacterSetsWithoutConverter();
+   if (!charsetsMissing.empty())
+      (void) std::fprintf(stderr, "hMailServer: %s\n", DescribeMissingConverters(charsetsMissing).c_str());
 
    if (!HM::Application::Instance()->InitInstance(error))
    {
@@ -2010,6 +2078,8 @@ int main(int argc, char *argv[])
    }
 
    HM::CrashOracle::LogInstallationStatus();
+   if (!charsetsMissing.empty())
+      HM::Logger::Instance()->LogApplication(HM::String(DescribeMissingConverters(charsetsMissing).c_str()));
    HM::Logger::Instance()->LogApplication(HM::String(_T("hMailServer ")) + HMAILSERVER_VERSION + _T(" is running. Send SIGTERM to stop it."));
 
    // The wait loop. The application's work happens on its own threads; this

@@ -342,9 +342,12 @@ find_package(Iconv REQUIRED)
 # ways, and refuses one without them, naming GNU libiconv, which has every
 # character set the table names; the Alpine package builds with it
 # (platform/packaging/alpine/APKBUILD). musl's has no ISO-2022-JP-2 either, and
-# writes no BIG5, and a glibc without its extra gconv modules (Fedora's, EL's and
-# openSUSE's glibc-gconv-extra, not installed by default) has neither: messages in
-# those two are not read or written in them there, which is not refused here.
+# writes no BIG5. A glibc has UTF-7 and US-ASCII everywhere; Fedora's, EL's and
+# openSUSE's keep BIG5, ISO-2022-JP and most code pages in a package of their own,
+# which the .rpm requires (CPACK_RPM_PACKAGE_REQUIRES below). That is a question
+# for the machine the server runs on, not the one that built it, so it is not
+# asked here: hmailserver --check-config and every start say what the iconv the
+# server runs with cannot convert (platform/main.cpp).
 # Not asked when cross-compiling, where the program cannot run.
 if(NOT CMAKE_CROSSCOMPILING)
    include(CheckCSourceRuns)
@@ -1022,8 +1025,26 @@ install(FILES
 # which needs no capability at all because fail2ban runs as root and reads the
 # application log. The jail is installed disabled, as Debian asks of a shipped
 # jail; the filter and the jail are configuration, kept on upgrade.
+#
+# The server runs the hook where this rule puts it, which it is told here
+# (HM_AUTOBAN_HOOK, AutoBanFirewall::PackagedHook): /usr/lib/hmailserver/autoban-hook
+# for every package, whose prefix is /usr, and the hook below another prefix where
+# the build has one - the Nix store's for the flake (nix/package.nix), /usr/local
+# for a build installed by hand. Until 6.3.6 the server named /usr/lib/hmailserver
+# whatever the prefix, which NixOS and a /usr/local install do not have.
+set(HM_AUTOBAN_HOOK_DIR lib/hmailserver)
+set(HM_AUTOBAN_HOOK "${CMAKE_INSTALL_PREFIX}/${HM_AUTOBAN_HOOK_DIR}/autoban-hook")
+# A C string literal, and the server splits the command line it runs at spaces
+# (ProcessLauncher): a prefix with a space, a quote or a backslash would make
+# another command of it.
+if(NOT HM_AUTOBAN_HOOK MATCHES "^/[A-Za-z0-9._+/-]*$")
+   message(FATAL_ERROR
+      "The auto-ban hook would be installed at '${HM_AUTOBAN_HOOK}', which the server cannot run as one "
+      "command: CMAKE_INSTALL_PREFIX must be an absolute path of letters, digits and '._+/-' only.")
+endif()
 install(PROGRAMS ${SERVER_DIR}/platform/packaging/autoban-hook
-   DESTINATION lib/hmailserver)
+   DESTINATION ${HM_AUTOBAN_HOOK_DIR})
+target_compile_definitions(hmailserver_core PRIVATE "HM_AUTOBAN_HOOK=\"${HM_AUTOBAN_HOOK}\"")
 install(FILES ${SERVER_DIR}/platform/packaging/fail2ban/filter.d/hmailserver.conf
    DESTINATION /etc/fail2ban/filter.d)
 install(FILES ${SERVER_DIR}/platform/packaging/fail2ban/jail.d/hmailserver.conf
@@ -1080,13 +1101,17 @@ set(CPACK_INSTALL_DEFAULT_DIRECTORY_PERMISSIONS
 set(CPACK_RPM_SPEC_MORE_DEFINE
    "%define use_source_date_epoch_as_buildtime 1\n%define clamp_mtime_to_source_date_epoch 1\n%define _buildhost reproducible")
 
-# The architecture each packager names differently for the same machine.
+# The architecture each packager names differently for the same machine, and
+# rpm's name for it in a dependency on another package's build for the same
+# architecture (%{_isa}: "glibc(x86-64)").
 if(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64|arm64")
    set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE arm64)
    set(CPACK_RPM_PACKAGE_ARCHITECTURE aarch64)
+   set(HM_RPM_ISA aarch-64)
 else()
    set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE amd64)
    set(CPACK_RPM_PACKAGE_ARCHITECTURE x86_64)
+   set(HM_RPM_ISA x86-64)
 endif()
 
 set(CPACK_DEBIAN_FILE_NAME DEB-DEFAULT)
@@ -1110,8 +1135,25 @@ set(CPACK_RPM_PACKAGE_SUGGESTS "p7zip python3")
 # pull it in (29 September 2026). A dependency, not a recommendation: it costs
 # nothing where it is already installed. dpkg-shlibdeps' libraries follow it on
 # the Depends line, and rpm's automatic requirements beside it.
+#
+# And the .rpm requires glibc's character-set converters. Debian's and Ubuntu's
+# libc6 carries every one; Fedora's and EL's glibc keeps all but a few in
+# glibc-gconv-extra, and openSUSE's in glibc-gconv-modules-extra, which glibc only
+# recommends, so that a minimal installation and every container image of those
+# distributions goes without: there the base package has UTF-7, CP1252, ISO-8859-1
+# and -15 and Unicode's, and the server converted no text in BIG5, ISO-2022-JP,
+# the other Windows and ISO-8859 code pages, or the PST import's KOI8 and CP932,
+# 936 and 949 (Fedora 44, UBI 9 and 10, Leap 16.0 and Tumbleweed, 1 October 2026). One
+# dependency that each of them meets with its own package, for every .rpm: the
+# generic one is installed on all of them, and the live update offers it to a
+# server installed from any of them (docs/PackagesRpm.md). A rich dependency, which
+# rpm takes from 4.13 and every release built for has (4.16 and later), and the
+# architecture's own build of the package, as %{_isa} names it: the i686 build
+# of the converters, beside an x86-64 glibc, would satisfy the bare name and
+# convert nothing for this server.
 set(CPACK_DEBIAN_PACKAGE_DEPENDS "ca-certificates")
-set(CPACK_RPM_PACKAGE_REQUIRES "ca-certificates")
+set(CPACK_RPM_PACKAGE_REQUIRES
+   "ca-certificates, (glibc-gconv-extra(${HM_RPM_ISA}) or glibc-gconv-modules-extra(${HM_RPM_ISA}))")
 # An upgrade must not overwrite the configuration. CPack's DEB generator writes no
 # conffiles list of its own, so one is generated here and handed to dpkg with the
 # maintainer scripts; the RPM equivalent is the %config(noreplace) list below.

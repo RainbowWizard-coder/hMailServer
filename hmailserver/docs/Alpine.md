@@ -197,8 +197,10 @@ and a probe of musl's iconv found the rest. Four things, each fixed where it was
    libiconv; the APKBUILD builds against Alpine's `gnu-libiconv` (1.18, the library
    LGPL-2.1), which has every character set the server names. A glibc has UTF-7
    everywhere the project builds, so nothing changes there; Fedora's, EL's and
-   openSUSE's glibc keeps BIG5 and ISO-2022-JP in `glibc-gconv-extra`, which their
-   images do not install - a gap of those packages, not of musl, left as it was.
+   openSUSE's glibc keeps BIG5, ISO-2022-JP and most code pages in a package glibc
+   only recommends, which their images do not install - a gap of those packages,
+   not of musl, which the `.rpm` and the RPM spec close from 6.3.6 by requiring it
+   (PackagesRpm.md, "The character sets").
 4. **MSVC's `%Iu`** (`platform/hm_platform.h`). The tree writes a `size_t` as
    MSVC's `%Iu` 13 times in 10 of the server's formats (and once in the fuzz
    harness), every argument a `size_t`, and the POSIX build's format translator handed it to

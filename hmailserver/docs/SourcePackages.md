@@ -51,6 +51,7 @@ and updated by its package manager, so these differ where that matters:
 | Built by | CMake and CPack | `dpkg-buildpackage` (debhelper 13, `cmake+ninja`) and `rpmbuild` (`%cmake`) |
 | The live update | on: `hmailserver-update` and its two units | off (`-DHM_LIVE_UPDATE=OFF`): no apply step, no helper, no units; the update check names `apt upgrade hmailserver`, `dnf upgrade hmailserver` or `zypper update hmailserver` (`-DHM_UPDATE_COMMAND`, [LiveUpdateKinds.md](LiveUpdateKinds.md)) |
 | Boost | linked statically, so one package installs on every release | the release's shared Boost (`-DHM_BOOST_STATIC=OFF`): its sonames are in `Depends` and `Requires`, and the archive rebuilds the package when its Boost moves |
+| glibc's character-set converters | the `.rpm` requires `(glibc-gconv-extra(<arch>) or glibc-gconv-modules-extra(<arch>))`, one dependency every RPM release meets ([PackagesRpm.md](PackagesRpm.md), "The character sets"); Debian's `libc6` has them all | the spec requires its release's package by name, `glibc-gconv-extra%{?_isa}` on Fedora and EL, `glibc-gconv-modules-extra%{?_isa}` on openSUSE, from 6.3.6; glibc only recommends it, and without it the server reads and writes no text in BIG5, ISO-2022-JP or most code pages |
 | `hmctl` | in the server's package, with Python a recommendation | its own package, `hmailserver-cli`, which depends on `python3`; the server recommends it. Its first line names `/usr/bin/python3` |
 | The account | made by `postinst` or `%post` with `adduser` or `useradd` | a `sysusers.d` file: `dh_installsysusers` on Debian, rpm itself on Fedora 42 and later, `%sysusers_create_compat` on EL, `%sysusers_generate_pre` on openSUSE |
 | The directories | made by `postinst` or `%post` | a `tmpfiles.d` file on Debian; owned by the package with their modes on RPM |
@@ -232,7 +233,11 @@ does (`--check-config`, `--create-database`, `--set-admin-password`,
 `hmailserver`, with `CAP_NET_BIND_SERVICE` alone and no new privileges - and
 requires a `220` greeting, `STARTTLS` among EHLO's extensions (the first start's
 defaults turn it on), `221` to QUIT, and an IMAP `* OK` greeting. On a testbed
-with something already on port 25 it moves the listeners up by 20000 first.
+with something already on port 25 it moves the listeners up by 20000 first. From
+6.3.6 `--check-config` must also say that every character set the server converts
+text in converts here: on an RPM release that holds because the spec requires
+glibc's converters, which the install jobs' containers, taking no recommended
+package, would otherwise lack.
 
 **When:** in a `batch*` branch's pipeline and in master's, wherever `source-tarball`
 runs, since every rule that makes one of these jobs is `.own-runners`' own. Never in

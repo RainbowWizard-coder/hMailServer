@@ -1,7 +1,3 @@
-// https://www.progressiverobot.com
-// Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
-// SPDX-License-Identifier: AGPL-3.0-or-later
-
 /////////////////////////////////////////////////////////////////////////////
 //
 // ATL Active Script Host Wrapper
@@ -33,6 +29,19 @@
 //    would be appreciated, but is not required.
 //
 /////////////////////////////////////////////////////////////////////////////
+//
+// This is an altered version, not VisionTech's original: it was changed for
+// hMailServer by its author, Martin Knafve / hMailServer.com, and in 2026 by
+// Christopher Holloway / Progressive Robot Ltd, whose changes are under
+// hMailServer's licence, the GNU Affero General Public License 3.0 or later.
+// VisionTech's notice above is as VisionTech wrote it, which its condition (a)
+// asks, and comes first, so that no header above it presents the file as the
+// project's own, which (b) and (c) ask; it covers VisionTech's code in it
+// (hmailserver/docs/SourceTarball.md, debian/copyright's "ScriptSite").
+// build/add-license-headers.py leaves this file's header alone.
+//
+// https://www.progressiverobot.com
+// SPDX-License-Identifier: LicenseRef-ScriptSite AND AGPL-3.0-or-later
 
 #pragma once
 

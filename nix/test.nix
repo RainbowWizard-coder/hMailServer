@@ -12,7 +12,11 @@
 # database anew over a database that is already there and must keep the key and a
 # database password typed into the file by hand. Before that restart the service
 # must not have been restarted once: its first start is ordered after PostgreSQL's
-# setup, which makes its role. The flake builds it with pkgs.testers.runNixOSTest.
+# setup, which makes its role. With autoBanFirewall, an auto-ban placed through the
+# REST API reaches the firewall - the server runs the package's autoban-hook,
+# which puts the address into its nftables set - and leaves it when the ban is
+# deleted; the hook without the capability the option grants cannot. The flake
+# builds it with pkgs.testers.runNixOSTest.
 { self }:
 
 {
@@ -28,10 +32,12 @@
       settings = {
         RestApiPort = 8045;
       };
+      autoBanFirewall = true;
     };
 
     environment.systemPackages = [
       pkgs.curl
+      pkgs.nftables
       (pkgs.writeShellScriptBin "hmailserver-probe" (builtins.readFile ./probe.sh))
     ];
 
@@ -40,6 +46,8 @@
   };
 
   testScript = ''
+    import json
+
     machine.wait_for_unit("postgresql.service")
     machine.wait_for_unit("hmailserver.service")
     machine.wait_for_open_port(25)
@@ -86,5 +94,36 @@
     assert after == key, f"the stored-secrets key changed across the restart: {key!r} became {after!r}"
     machine.succeed("grep -qx 'Password=typed-by-hand' /etc/hmailserver/hMailServer.ini")
     machine.succeed("test \"$(stat -c '%a %U %G' /etc/hmailserver/hMailServer.ini)\" = '640 root hmailserver'")
+
+    # The auto-ban below the server (autoBanFirewall). NixOS has no
+    # /usr/lib/hmailserver, where the server looked for the hook until 6.3.6; it
+    # runs the one in its own package, where the build installed it.
+    machine.fail("test -e /usr/lib/hmailserver/autoban-hook")
+    package = machine.succeed("dirname \"$(dirname \"$(readlink -f \"$(command -v hmailserver)\")\")\"").strip()
+    hook = package + "/lib/hmailserver/autoban-hook"
+    machine.succeed(f"test -x {hook}")
+    caps = machine.succeed("systemctl show -p AmbientCapabilities --value hmailserver.service")
+    assert "cap_net_admin" in caps, f"the unit's ambient capabilities are {caps!r}, without cap_net_admin"
+    # Without that capability the hook can change nothing: the service's account
+    # alone is refused, as the hook says it will be.
+    machine.fail(f"runuser -u hmailserver -- {hook} check")
+
+    # A ban as the auto-ban places one - an expiring range for one address, named
+    # "Auto-ban: " - through the REST API. The server reconciles the firewall with
+    # the bans once a minute; within that the address is in the hook's set.
+    expires = machine.succeed("date -d '+30 min' '+%F %T'").strip()
+    body = json.dumps({"name": "Auto-ban: 192.0.2.7", "lower": "192.0.2.7", "upper": "192.0.2.7",
+                       "expires": True, "expires_time": expires})
+    created = machine.succeed(
+        "curl -sf -u Administrator:nixos-test-admin -H 'Content-Type: application/json' "
+        f"--data-binary '{body}' http://127.0.0.1:8045/api/v1/ipranges"
+    )
+    range_id = json.loads(created)["id"]
+    machine.wait_until_succeeds("nft list set inet hmailserver autoban4 | grep -F 192.0.2.7", timeout=180)
+    print(machine.succeed("nft list table inet hmailserver"))
+
+    # And deleting the ban takes the address out of the set again.
+    machine.succeed(f"curl -sf -u Administrator:nixos-test-admin -X DELETE http://127.0.0.1:8045/api/v1/ipranges/{range_id}")
+    machine.wait_until_succeeds("! nft list set inet hmailserver autoban4 | grep -F 192.0.2.7", timeout=180)
   '';
 }

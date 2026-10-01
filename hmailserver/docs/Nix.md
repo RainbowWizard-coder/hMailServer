@@ -46,7 +46,7 @@ The package holds:
 | `bin/hmailserver` | the server |
 | `bin/dh2048.pem` | the data file the server reads from its own directory, as the `.deb` puts it in `/usr/bin` |
 | `share/hmailserver/` | `DBScripts`, the Control Deck (`WebAdmin`) and the licences: the `ProgramFolder` |
-| `lib/hmailserver/autoban-hook` | the auto-ban firewall hook (but see [What is left](#what-is-left)) |
+| `lib/hmailserver/autoban-hook` | the auto-ban firewall hook, which the server runs from here: its build is told where it installs it (`autoBanFirewall`, below) |
 | `etc/hmailserver/hMailServer.ini` | the packaged configuration, its `ProgramFolder` pointing into the package: what an administrator copies |
 | `etc/logrotate.d/`, `etc/fail2ban/` | the logrotate rule and the fail2ban filter and jail, as examples |
 
@@ -105,6 +105,7 @@ machine's own.
 | `adminPasswordFile` | none | a file holding the administrator password, which gates the REST API, hashed into the configuration at each start |
 | `settings` | `{ }` | settings stored in the database with `hmailserver --set-setting` at each start; not for secrets |
 | `openFirewall` | `false` | opens 25, 110, 143, 465, 587, 993 and 995 |
+| `autoBanFirewall` | `false` | blocks each address the server auto-bans in the firewall for as long as the ban lasts: stores `AutoBanFirewall=1` and gives the service `CAP_NET_ADMIN` and `nft` (below) |
 
 Name the two password files as strings, as the example does (`"/run/secrets/..."`,
 where a secrets tool such as sops-nix or agenix puts them): a Nix path literal
@@ -151,7 +152,39 @@ What the module does, and why each part is as it is:
 - **The sandbox** is the packaged unit's (`platform/packaging/hmailserver.service`),
   setting for setting: `CAP_NET_BIND_SERVICE` alone, `ProtectSystem=strict` with
   the data and log directories writable, `UMask=0027`, and the rest; the unit's own
-  comments say why each is there and why the others are not.
+  comments say why each is there and why the others are not. `autoBanFirewall` adds
+  `CAP_NET_ADMIN` (below).
+
+### The auto-ban below the server
+
+With `AutoBanFirewall=1` the server runs its auto-ban hook, `autoban-hook`, for each
+address it bans and again when the ban ends; the hook keeps an nftables set with a
+timeout (`platform/packaging/autoban-hook`). `autoBanFirewall = true` stores that
+setting, puts `nftables` on the service's `PATH` and adds `CAP_NET_ADMIN` to its
+ambient and bounding capabilities, which the hook needs to change the firewall. The
+same two are given when `settings` sets `AutoBanFirewall` to 1. The packaged unit
+leaves that capability to a drop-in, because a mail server that can rewrite the
+host's firewall is a bigger grant than one that can bind port 25; here the option is
+that deliberate step. An ambient capability passes to every program the service
+starts, so whatever `AutoBanCommand` names, when it names anything, runs with it too.
+Set over the REST API or the Control Deck instead, the setting finds the hook
+without the capability: the error log has `HM6523`, the hook having exited with
+code 1, the service's journal has `nft`'s "Operation not permitted", and
+`autoban-hook check` run as the service's account names the capability that is
+missing.
+
+Up to 6.3.5 the server ran the hook from `/usr/lib/hmailserver/autoban-hook`
+whatever prefix it was built for, which NixOS does not have, so the setting found no
+hook. Two ways were weighed: a `systemd.tmpfiles` link at that path to the
+package's hook, and the hook's path as a setting in the database. Neither was
+taken. The build now tells the server where it installs the hook - `CMakeLists.txt`
+compiles `CMAKE_INSTALL_PREFIX/lib/hmailserver/autoban-hook` into it, which is the
+packages' `/usr/lib/hmailserver/autoban-hook` and the Nix store's path here - so the
+server runs the hook of its own package: nothing is written outside the store, the
+path cannot be changed at run time (a setting naming a program the server runs with
+`CAP_NET_ADMIN` would be one more thing the REST API could aim), and a build
+installed under `/usr/local` finds its hook too, which it did not. fail2ban with the
+package's filter and jail (`etc/fail2ban/`) is the other way, and needs neither.
 
 ### Updating
 
@@ -231,7 +264,13 @@ service has not been restarted once (`NRestarts` 0: its first start waited for t
 role PostgreSQL's setup makes); and all of it again after a restart, which sets
 the configuration's directories and database anew over a database that is already
 there, and must leave the key as it was, and a database password typed into the
-file by hand.
+file by hand. Then the auto-ban (`autoBanFirewall`, which the test machine sets):
+`/usr/lib/hmailserver/autoban-hook` does not exist, the package's hook does, the
+unit's ambient capabilities hold `cap_net_admin`, and the hook run as the service's
+account without it is refused; an expiring range named `Auto-ban: 192.0.2.7` is
+made through the REST API, as the auto-ban makes one, and within the minute the
+server takes to reconcile, 192.0.2.7 is in the hook's set `inet hmailserver
+autoban4`; the range deleted, it leaves the set.
 
 A NixOS test wants KVM. **linix has none**: it is a virtual machine itself, with no
 `/dev/kvm` and no `vmx` or `svm` flag (29 September 2026), and its runner passes no
@@ -299,6 +338,26 @@ pinned `nixos/nix` image, nixpkgs `nixos-26.05.10882.7fc6f2c20af0`):
   output. In the test's journal PostgreSQL's setup finished before the service
   started.
 
+- **The auto-ban, 1 October 2026**, the job's script on the tree with
+  `autoBanFirewall` and the hook's path from the build, with the job's
+  `NIX_CONFIG`. On linix, without KVM: the evaluation of both systems and the
+  package (4691 s, under a load of 20 to 40) passed, and the NixOS test did not
+  finish - under TCG on that load the machine was still in its first boot,
+  `initdb` among it, when the test's hour ran out, before its first check. In
+  WSL on the laptop, with KVM, the tree, Nix's store and its build directory on
+  a loop-mounted ext4 image (`df` in the container showed `/src` and `/nix` on
+  `/dev/loop0`): the package in 1915 s, with `--version` and all fourteen
+  testers, and the NixOS test with KVM in 189 s, PASSED - the address in the
+  set 59 s after the range was made (`192.0.2.7 timeout 30m`, the set's ports
+  25, 110, 143 and 587), and out of it 0.06 s after the range was deleted. The
+  same run on the tree with `AutoBanFirewall.cpp` as it was, naming
+  `/usr/lib/hmailserver/autoban-hook`, built (1542 s) and FAILED the test where
+  it must: the address never reached the set, which never existed (`nft`
+  answered "No such file or directory" at every try), and the wait timed out
+  after 181 s. A first pair of WSL runs had the same results with the store on
+  WSL's own ext4, where a loop mount made in an earlier `wsl` call had not
+  held; they are not counted.
+
 In `batch42`'s pipeline 2896082335 (30 September 2026) the `nix` job passed on
 linix in 1,802 s: the flake's inputs, its evaluation, the package in 1,388 s with
 its checks, and the NixOS test under TCG in 352 s, SMTP with STARTTLS and IMAP
@@ -320,7 +379,3 @@ What is left
   would be a spend and a signing key, the owner's.
 - **aarch64-linux** evaluates (the job checks every output of both systems) and is
   built nowhere.
-- **The auto-ban firewall hook** is looked for at `/usr/lib/hmailserver/autoban-hook`
-  (`AutoBanFirewall::PackagedHook`), which NixOS does not have: `AutoBanFirewall=1`
-  finds no hook there. fail2ban with the package's filter and jail
-  (`etc/fail2ban/`), or the server's own auto-ban without the firewall, work.

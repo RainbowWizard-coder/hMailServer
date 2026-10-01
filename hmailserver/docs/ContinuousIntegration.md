@@ -995,7 +995,9 @@ for byte. What a container cannot show is the start under systemd itself, with
 the unit's sandbox in force: the old job's hosted runner had systemd, and a job
 container does not. `update-helper` still verifies the units.
 `linux-package-rpm` installs the `.rpm` in Fedora 44 with `--nodeps`, as before:
-it is built on Ubuntu, so its requirements name Ubuntu's sonames.
+it is built on Ubuntu, so its requirements name Ubuntu's sonames. From 6.3.6 it
+first reads that the package requires glibc's character-set converters
+(PackagesRpm.md, "The character sets"), which `--nodeps` then leaves out.
 
 The package is built on Ubuntu 26.04 now, where the GitHub runner built it on
 24.04; its `Depends` asks for glibc 2.38 or later, which 24.04 has, and the

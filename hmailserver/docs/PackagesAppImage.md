@@ -142,6 +142,25 @@ for example `LDAPTLS_CACERT=/etc/pki/tls/certs/ca-bundle.crt` on RHEL, or
 `/etc/ssl/ca-bundle.pem` on openSUSE. Neither the refusal nor the fix has been
 tried; no LDAP connection has been made from an AppImage.
 
+**Character sets on Fedora, RHEL and openSUSE.** The image carries no glibc -
+`build-appimage.sh` leaves it to the host, as it must - so the server converts
+mail's text with the host's iconv, and that loads each character set's
+converter from the host's glibc. Fedora's and RHEL's glibc keeps all but a few
+in `glibc-gconv-extra`, openSUSE's in `glibc-gconv-modules-extra`, which glibc
+only recommends: a host without it, as every container image of those
+releases is, has UTF-8, US-ASCII, UTF-7, ISO-8859-1, ISO-8859-15 and
+Windows-1252, and the server reads and writes no text in BIG5, ISO-2022-JP or
+the other Windows and ISO-8859 code pages (PackagesRpm.md, "The character
+sets"). The `.rpm` requires that package; an AppImage cannot require anything,
+so there install it by hand:
+
+    sudo dnf install glibc-gconv-extra                 # Fedora, RHEL
+    sudo zypper install glibc-gconv-modules-extra      # openSUSE
+
+From 6.3.6 the server says when it is missing: `--check-config` ends with a
+`Character sets:` line naming what does not convert, and a start writes the
+same to standard error. Debian's and Ubuntu's `libc6` has every converter.
+
 The jobs
 --------
 

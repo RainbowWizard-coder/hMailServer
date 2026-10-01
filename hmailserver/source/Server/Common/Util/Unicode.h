@@ -112,6 +112,17 @@ namespace HM
       //                           caller here already tests for.
       static int FromCodePage(unsigned int codePage, const char *source, int sourceLength, wchar_t *destination, int destinationLength);
       static int ToCodePage(unsigned int codePage, const wchar_t *source, int sourceLength, char *destination, int destinationLength);
+
+      // The character sets of those code pages - every one this server names
+      // but 0, which is the machine's own - by the names iconv knows them by.
+      static std::vector<std::string> CodePageCharacterSets();
+
+      // Whether this machine's iconv converts the character set iconv knows by
+      // that name, both ways: to and from the wide characters the two above
+      // convert through. Not every glibc carries every converter: Fedora's,
+      // EL's and openSUSE's keep most of them in a package of their own, which
+      // glibc only recommends (platform/main.cpp says what is done with this).
+      static bool ConvertsCharacterSet(const char *iconvName);
 #endif
 
    private:

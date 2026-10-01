@@ -84,6 +84,18 @@ Requires:       logrotate
 # The certificate authorities every HTTPS request the server makes is checked
 # against - the update check, a JWKS, an object store, a webhook.
 Requires:       ca-certificates
+# glibc's character-set converters but the few in its base package: BIG5,
+# ISO-2022-JP, the Windows and ISO-8859 code pages but 1252, -1 and -15, and the
+# PST import's KOI8 and CP932, 936 and 949. glibc only recommends them, so a
+# minimal installation goes without, and the server then reads and writes no
+# text in those character sets (hmailserver --check-config names them). The
+# architecture's own build, which %%{_isa} names: an i686 one beside an x86-64
+# glibc would satisfy the bare name and convert nothing for this server.
+%if 0%{?suse_version}
+Requires:       glibc-gconv-modules-extra%{?_isa}
+%else
+Requires:       glibc-gconv-extra%{?_isa}
+%endif
 
 # QuickJS, vendored unmodified under hmailserver/source/Server/quickjs and linked
 # into the server: no distribution this builds for ships it as a library.

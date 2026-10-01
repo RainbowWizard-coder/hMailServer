@@ -168,7 +168,15 @@ namespace HM
    const wchar_t *
    AutoBanFirewall::PackagedHook()
    {
+      // Where the build installs it, which CMakeLists.txt says: the packages'
+      // /usr/lib/hmailserver/autoban-hook, or the same below another prefix (the
+      // Nix store's, /usr/local). The Windows project, which has no hook, does
+      // not define it.
+#ifdef HM_AUTOBAN_HOOK
+      return L"" HM_AUTOBAN_HOOK;
+#else
       return L"/usr/lib/hmailserver/autoban-hook";
+#endif
    }
 
    String

@@ -378,7 +378,13 @@ sudo -u hmailserver hmailserver --check-config
 
 It reads the file, prints the configuration path, the three directories and the
 database type it made of what you wrote, and exits without opening a listener or
-the database. A `Database type: 0` means the `Type` key did not take.
+the database. A `Database type: 0` means the `Type` key did not take. Its last
+line, `Character sets:`, says whether this machine's C library converts every
+character set the server reads and writes mail in; where it names some it does
+not, install the package it names (`glibc-gconv-extra` on Fedora and EL,
+`glibc-gconv-modules-extra` on openSUSE, which the `.rpm` requires - so this
+matters for an AppImage or a build of your own), or mail in them is read as
+nothing.
 
 **6. Start it.**
 

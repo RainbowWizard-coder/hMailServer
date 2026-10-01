@@ -153,10 +153,15 @@ Comment:
 
 Files: hmailserver/source/Server/Common/Scripting/ScriptSite.h
 Copyright: 2001 VisionTech Limited
-License: ScriptSite
+           2005-2014 Martin Knafve / hMailServer.com
+           2026 Christopher Holloway / Progressive Robot Ltd
+License: ScriptSite and AGPL-3+
 Comment:
  The ATL Active Script host, compiled only into the Windows server; the Linux
- build does not read it.
+ build does not read it. VisionTech's code, under its notice, which opens the
+ file unchanged, as its condition (a) asks, altered for hMailServer, whose
+ changes are under the AGPL; the file says so below the notice, as condition
+ (b) asks (SPDX LicenseRef-ScriptSite AND AGPL-3.0-or-later).
 
 Files: hmailserver/test/TestData/DKIM/*
 Copyright: 2005-2009 Messiah College
