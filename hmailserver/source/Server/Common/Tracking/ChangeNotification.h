@@ -36,9 +36,9 @@ namespace HM
 
    private:
 
-      __int64 account_id_;
-      __int64 folder_id_;
-      __int64 data_;
+      __int64 account_id_ = 0;
+      __int64 folder_id_ = 0;
+      __int64 data_ = 0;
       std::vector<__int64> affected_message_ids_;
       NotificationType type_;
 

@@ -27,10 +27,10 @@ namespace HM
    struct WorkQueueTaskInfo
    {
       String name;
-      unsigned int thread_id;
-      unsigned __int64 queue_wait_ms;
-      unsigned __int64 running_ms;
-      bool may_block;
+      unsigned int thread_id = 0;
+      unsigned __int64 queue_wait_ms = 0;
+      unsigned __int64 running_ms = 0;
+      bool may_block = false;
    };
 
    class WorkQueue
@@ -110,17 +110,17 @@ namespace HM
       struct RunningTask
       {
          String name;
-         unsigned int thread_id;
-         unsigned __int64 enqueue_tick;
-         unsigned __int64 start_tick;
-         bool may_block;
+         unsigned int thread_id = 0;
+         unsigned __int64 enqueue_tick = 0;
+         unsigned __int64 start_tick = 0;
+         bool may_block = false;
       };
 
       struct PendingTask
       {
          std::shared_ptr<Task> task;
          String name;
-         unsigned __int64 enqueue_tick;
+         unsigned __int64 enqueue_tick = 0;
       };
 
       void RemoveRunningTask_(unsigned __int64 task_id);

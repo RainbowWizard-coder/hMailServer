@@ -165,6 +165,18 @@ namespace HM
       // written as the UTF-8 it stands for (RestApiAudit.cpp).
       static AnsiString JsonEscapeText(const String &value);
 
+      // The priority a POST /api/v1/ipranges body gives the new range, held to
+      // what PUT /api/v1/ipranges/{id} takes (ReadInteger, RestApiAdministration.cpp):
+      // false, with priority as it was, when the body's "priority" is anything
+      // but a whole number from -2,000,000,000 to 2,000,000,000 - a string or a
+      // true among them. A body without the member, or with null there, leaves
+      // priority as it was and is true. The member is found in the parsed
+      // document, as the create's other members are; a body that does not parse
+      // is searched for a number after the key, held to the same bound, and
+      // with none there leaves priority as it was. Public and static for the
+      // self-test (business-object-tests).
+      static bool ReadIpRangePriority(const AnsiString &requestBody, long &priority);
+
       // An address book the signed-in account can see: one of its own, or one
       // another account shares with it or with its whole domain
       // (RestApiAddressBooks.cpp). Plain fields rather than the store's record,

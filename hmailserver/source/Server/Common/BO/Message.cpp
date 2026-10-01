@@ -37,10 +37,9 @@ namespace HM
 
    }
 
-   Message::Message(const Message& other) 
+   Message::Message(const Message& other) :
+      BusinessObject<Message>(other)
    {
-      id_ = other.id_;
-
       message_size_ = other.message_size_;
       create_time_ = other.create_time_;
       // Every new member must be copied here by hand or it silently vanishes
@@ -65,6 +64,11 @@ namespace HM
 
       submitter_account_id_ = other.submitter_account_id_;
       auth_domains_ = other.auth_domains_;
+
+      // Not copied, on purpose: copied_from_id_, which belongs to the one
+      // object CopyToIMAPFolder saves (a copy saved as well would carry the
+      // recall rows twice), the recipients, which start empty on the copy for
+      // its maker to fill (ExternalDelivery's sealed copy), and the two mutexes.
    }
 
    String

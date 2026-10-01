@@ -22,6 +22,8 @@
 #include "../Persistence/PersistentAccount.h"
 #include "../Cache/AccountSizeCache.h"
 
+#include <cstring>
+
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
 #define new DEBUG_NEW
@@ -100,11 +102,17 @@ namespace HM
    
    }
 
-   Account::Account(const Account &oldAccount)
+   // Every member but the three caches, copied by hand: a member added to the
+   // class and not here is lost by every copy, and the copy is what COM's
+   // Authenticate hands a webmail, which saves it - message_retention_days_
+   // was read uninitialised here from 6.2.25 to 6.3.5 and written back over
+   // the account's own. AccountTester (below) holds each member to it.
+   Account::Account(const Account &oldAccount) :
+      BusinessObject<Account>(oldAccount)
    {
-      id_ = oldAccount.id_;
       domain_id_ = oldAccount.domain_id_;
       account_max_size_ = oldAccount.account_max_size_;
+      message_retention_days_ = oldAccount.message_retention_days_;
       password_encryption_ = oldAccount.password_encryption_;
       address_ = oldAccount.address_;
       password_ = oldAccount.password_;
@@ -144,6 +152,8 @@ namespace HM
       last_logon_time_ = oldAccount.last_logon_time_;
       totp_secret_ = oldAccount.totp_secret_;
       password_changed_ = oldAccount.password_changed_;
+      mailbox_key_wrap_ = oldAccount.mailbox_key_wrap_;
+      // messages_, rules_ and folders_ are caches the copy loads for itself.
    }
 
    std::shared_ptr<Messages>
@@ -650,6 +660,149 @@ namespace HM
    Account::GetEstimatedCachingSize()
    {
       return 1024;
+   }
+
+   namespace
+   {
+      // The first getter whose value a copy does not have, or null.
+      const char *
+      LostByCopy(const Account &source, const Account &copy)
+      {
+         if (copy.GetID() != source.GetID()) return "the id";
+         if (copy.GetDomainID() != source.GetDomainID()) return "DomainID";
+         if (copy.GetAddress() != source.GetAddress()) return "Address";
+         if (copy.GetPassword() != source.GetPassword()) return "Password";
+         if (copy.GetADDomain() != source.GetADDomain()) return "ADDomain";
+         if (copy.GetADUsername() != source.GetADUsername()) return "ADUsername";
+         if (copy.GetActive() != source.GetActive()) return "Active";
+         if (copy.GetIsAD() != source.GetIsAD()) return "IsAD";
+         if (copy.GetAccountMaxSize() != source.GetAccountMaxSize()) return "AccountMaxSize";
+         if (copy.GetMessageRetentionDays() != source.GetMessageRetentionDays()) return "MessageRetentionDays";
+         if (copy.GetVacationMessageIsOn() != source.GetVacationMessageIsOn()) return "VacationMessageIsOn";
+         if (copy.GetVacationMessage() != source.GetVacationMessage()) return "VacationMessage";
+         if (copy.GetVacationSubject() != source.GetVacationSubject()) return "VacationSubject";
+         if (copy.GetVacationExpires() != source.GetVacationExpires()) return "VacationExpires";
+         if (copy.GetVacationExpiresDate() != source.GetVacationExpiresDate()) return "VacationExpiresDate";
+         if (copy.GetVacationBeginDate() != source.GetVacationBeginDate()) return "VacationBeginDate";
+         if (copy.GetVacationAbortSpamFlagged() != source.GetVacationAbortSpamFlagged()) return "VacationAbortSpamFlagged";
+         if (copy.GetVacationDays() != source.GetVacationDays()) return "VacationDays";
+         if (copy.GetVacationInternalSubject() != source.GetVacationInternalSubject()) return "VacationInternalSubject";
+         if (copy.GetVacationInternalMessage() != source.GetVacationInternalMessage()) return "VacationInternalMessage";
+         if (copy.GetVacationInternalOnly() != source.GetVacationInternalOnly()) return "VacationInternalOnly";
+         if (copy.GetAdminLevel() != source.GetAdminLevel()) return "AdminLevel";
+         if (copy.GetPasswordEncryption() != source.GetPasswordEncryption()) return "PasswordEncryption";
+         if (copy.GetPasswordChanged() != source.GetPasswordChanged()) return "PasswordChanged";
+         if (copy.GetTotpSecret() != source.GetTotpSecret()) return "TotpSecret";
+         if (copy.GetForwardAddress() != source.GetForwardAddress()) return "ForwardAddress";
+         if (copy.GetForwardEnabled() != source.GetForwardEnabled()) return "ForwardEnabled";
+         if (copy.GetForwardKeepOriginal() != source.GetForwardKeepOriginal()) return "ForwardKeepOriginal";
+         if (copy.GetForwardAbortSpamFlagged() != source.GetForwardAbortSpamFlagged()) return "ForwardAbortSpamFlagged";
+         if (copy.GetAntiSpamEnabled() != source.GetAntiSpamEnabled()) return "AntiSpamEnabled";
+         if (copy.GetSpamMarkThreshold() != source.GetSpamMarkThreshold()) return "SpamMarkThreshold";
+         if (copy.GetSpamDeleteThreshold() != source.GetSpamDeleteThreshold()) return "SpamDeleteThreshold";
+         if (copy.GetOpenPGPPublish() != source.GetOpenPGPPublish()) return "OpenPGPPublish";
+         if (copy.GetZeroAccess() != source.GetZeroAccess()) return "ZeroAccess";
+         if (copy.GetMailboxKeyWrap() != source.GetMailboxKeyWrap()) return "MailboxKeyWrap";
+         if (copy.GetRestrictedDelivery() != source.GetRestrictedDelivery()) return "RestrictedDelivery";
+         if (copy.GetExternalId() != source.GetExternalId()) return "ExternalId";
+         if (copy.GetKind() != source.GetKind()) return "Kind";
+         if (copy.GetEnableSignature() != source.GetEnableSignature()) return "EnableSignature";
+         if (copy.GetSignaturePlainText() != source.GetSignaturePlainText()) return "SignaturePlainText";
+         if (copy.GetSignatureHTML() != source.GetSignatureHTML()) return "SignatureHTML";
+         if (copy.GetLastLogonTime() != source.GetLastLogonTime()) return "LastLogonTime";
+         if (copy.GetPersonFirstName() != source.GetPersonFirstName()) return "PersonFirstName";
+         if (copy.GetPersonLastName() != source.GetPersonLastName()) return "PersonLastName";
+         return nullptr;
+      }
+   }
+
+   void
+   AccountTester::Test()
+   {
+      // Every field away from what the constructor gives it, so that a copy
+      // that leaves one at its default or at the pattern is told apart. The
+      // three caches (messages, rules, folders) are the copy's own to load and
+      // are not compared; loading them needs the database.
+      Account source;
+      source.SetID(4711);
+      source.SetDomainID(815);
+      source.SetAddress(_T("copy@example.test"));
+      source.SetPassword(_T("the stored hash"));
+      source.SetADDomain(_T("EXAMPLE"));
+      source.SetADUsername(_T("copy"));
+      source.SetActive(true);
+      source.SetIsAD(true);
+      source.SetAccountMaxSize(250);
+      source.SetVacationMessageIsOn(true);
+      source.SetVacationMessage(_T("Away until the second."));
+      source.SetVacationSubject(_T("Out of office"));
+      source.SetVacationExpires(true);
+      source.SetVacationExpiresDate(_T("2031-01-02"));
+      source.SetVacationBeginDate(_T("2030-12-24"));
+      source.SetVacationAbortSpamFlagged(true);
+      source.SetVacationDays(3);
+      source.SetVacationInternalSubject(_T("Out of office (colleagues)"));
+      source.SetVacationInternalMessage(_T("Back on the second; ask the desk."));
+      source.SetVacationInternalOnly(true);
+      source.SetAdminLevel(Account::DomainAdmin);
+      source.SetPasswordEncryption(6);
+      source.SetPasswordChanged(_T("2030-01-01 10:00:00"));
+      source.SetTotpSecret(_T("the second factor"));
+      source.SetForwardAddress(_T("forward@example.test"));
+      source.SetForwardEnabled(true);
+      source.SetForwardKeepOriginal(true);
+      source.SetForwardAbortSpamFlagged(true);
+      source.SetAntiSpamEnabled(false);
+      source.SetSpamMarkThreshold(5);
+      source.SetSpamDeleteThreshold(9);
+      source.SetOpenPGPPublish(true);
+      source.SetZeroAccess(true);
+      source.SetMailboxKeyWrap("wrapped-mailbox-key");
+      source.SetRestrictedDelivery(2);
+      source.SetExternalId(_T("00000000-0000-0000-0000-000000004711"));
+      source.SetKind(Account::KindRoom);
+      source.SetEnableSignature(true);
+      source.SetSignaturePlainText(_T("-- Copy"));
+      source.SetSignatureHTML(_T("<p>-- Copy</p>"));
+      source.SetLastLogonTime(_T("2030-02-03 04:05:06"));
+      source.SetPersonFirstName(_T("Ada"));
+      source.SetPersonLastName(_T("Lovelace"));
+
+      // A positive retention, which the retention sweep deletes by, and -1,
+      // keep for ever; each copied into memory holding zeros and then into
+      // memory holding 0xA5, so that a member the copy leaves unset differs
+      // from the source under one pattern or the other. The storage is bytes,
+      // set before any object is in it; the copy is made in it through the
+      // allocator rather than by a placement new, which the Debug build's
+      // "#define new DEBUG_NEW" above would rewrite.
+      const int retentions[] = { 7, -1 };
+      const unsigned char patterns[] = { 0x00, 0xA5 };
+
+      for (int retention : retentions)
+      {
+         source.SetMessageRetentionDays(retention);
+
+         for (unsigned char pattern : patterns)
+         {
+            alignas(Account) unsigned char storage[sizeof(Account)] = {};
+            memset(storage, pattern, sizeof(storage));
+
+            std::allocator<Account> allocator;
+            Account *copy = reinterpret_cast<Account *>(storage);
+            std::allocator_traits<std::allocator<Account> >::construct(allocator, copy, source);
+
+            const char *lost = LostByCopy(source, *copy);
+            const bool keyWrapKept = copy->GetMailboxKeyWrap() == "wrapped-mailbox-key";
+            const bool retentionKept = copy->GetMessageRetentionDays() == retention;
+
+            std::allocator_traits<std::allocator<Account> >::destroy(allocator, copy);
+
+            if (lost)
+               throw std::logic_error(std::string("a copy of an account lost its ") + lost);
+            if (!retentionKept || !keyWrapKept)
+               throw std::logic_error("a copy of an account lost its retention or its mailbox key wrap");
+         }
+      }
    }
 
 }

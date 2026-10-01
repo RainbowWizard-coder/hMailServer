@@ -22,6 +22,16 @@ namespace HM
          OTAccount = 1005
       };
 
+      // Made whole, with its type: two switches read eType
+      // (ScriptObjectContainer.cpp, ScriptBinding.cpp), and an object made
+      // without one would have them read whatever the heap held there.
+      ScriptObject(const String &name, std::shared_ptr<void> object, ObjectType type) :
+         sName(name),
+         pObject(object),
+         eType(type)
+      {
+      }
+
       String sName;
       std::shared_ptr<void> pObject;
       ObjectType eType;

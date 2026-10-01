@@ -8,6 +8,7 @@
 #include "../Application/TimeoutCalculator.h"
 #include "../BO/MessageData.h"
 #include "../BO/Message.h"
+#include "../BO/Account.h"
 #include "../Mime/MimeTester.h"
 #include "../Util/Utilities.h"
 #include "../Util/MessageUtilities.h"
@@ -171,6 +172,13 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing IPAddress\n"));
       IPAddressTester ipAddressTester;
       ipAddressTester.Test();
+
+      // An account's copy - what COM's Authenticate hands a webmail, which
+      // saves it - holds every member: from 6.2.25 to 6.3.5 it left the
+      // retention unset and dropped the mailbox key wrap (Account.cpp).
+      OutputDebugString(_T("hMailServer: Testing the account's copy\n"));
+      AccountTester accountTester;
+      accountTester.Test();
 
       // Whether a server certificate is for the host: an address matched against
       // the certificate's iPAddress entries as well as its names, which is what

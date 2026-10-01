@@ -796,7 +796,7 @@ namespace HM
       struct Taken
       {
          std::shared_ptr<MessageRecipient> recipient;
-         Command command;
+         Command command = CommandNone;
          std::shared_ptr<const DistributionList> list;
          String verp_member;
       };

@@ -98,7 +98,7 @@ namespace HM
       struct Ban
       {
          String address;
-         int minutesLeft;
+         int minutesLeft = 0;
       };
 
       static std::vector<Ban> ActiveBans_();

@@ -236,7 +236,9 @@ namespace HM
       // MailboxKeys::PrepareForNewPassword and stored by PersistentAccount::
       // SaveObject once the account is saved, so that the key is never wrapped
       // by a password the account does not have. Held on this object only:
-      // never a column, never copied, never in a backup.
+      // never a column, never in a backup. A copy of the object carries it with
+      // the password it goes with, so that saving the copy stores the two
+      // together and never the one without the other.
       AnsiString GetMailboxKeyWrap() const { return mailbox_key_wrap_; }
       void SetMailboxKeyWrap(const AnsiString &newVal) { mailbox_key_wrap_ = newVal; }
 
@@ -340,6 +342,20 @@ namespace HM
       AnsiString last_logon_time_;
 
       AnsiString mailbox_key_wrap_;
+   };
+
+   // The copy constructor held to every member: an account with every field
+   // set away from its default - a positive retention, then -1, and a mailbox
+   // key wrap among them - copied into memory filled with a pattern first, so
+   // that a member the copy does not set reads as the pattern rather than as
+   // whatever the heap held, and every getter compared. No database, no
+   // configuration. ClassTester runs it on Windows, business-object-tests
+   // (platform/business_object_tests_main.cpp) on Linux. Throws
+   // std::logic_error naming the first member a copy lost.
+   class AccountTester
+   {
+   public:
+      void Test();
    };
 
 }

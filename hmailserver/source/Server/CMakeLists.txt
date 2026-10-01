@@ -697,6 +697,20 @@ add_executable(trust-anchor-tests ${SERVER_DIR}/platform/trust_anchor_tests_main
 target_link_libraries(trust-anchor-tests PRIVATE hmailserver_core)
 set_target_properties(trust-anchor-tests PROPERTIES OUTPUT_NAME trust-anchor-tests)
 
+# ---------------------------------------------------------------- the business objects' copies
+#
+# AccountTester (Common/BO/Account.h) and the checks beside it as a program of
+# their own, for the reason spf-tests is one: on Windows AccountTester runs inside
+# the server through ClassTester, which nothing reaches here. An account's copy -
+# what COM's Authenticate hands a webmail, which saves it - holds every member,
+# its retention and its mailbox key wrap among them; a message's copy carries what
+# it is meant to; four types start with every scalar set in memory that held
+# something else; and a REST create takes an IP range's priority as its update
+# does. No database, configuration or network. Not installed; a bench tool.
+add_executable(business-object-tests ${SERVER_DIR}/platform/business_object_tests_main.cpp)
+target_link_libraries(business-object-tests PRIVATE hmailserver_core)
+set_target_properties(business-object-tests PROPERTIES OUTPUT_NAME business-object-tests)
+
 include(GNUInstallDirs)
 install(TARGETS hmailserver RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 install(DIRECTORY ${SERVER_DIR}/../DBScripts/

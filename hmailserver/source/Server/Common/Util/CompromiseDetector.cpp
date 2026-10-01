@@ -770,6 +770,9 @@ namespace HM
       {
          // The message is saved and, when it was to be held, held: what
          // failed here is the record of it, never the delivery decision.
+         Report(6811, "CompromiseDetector::Apply",
+            _T("The compromised-account verdict on ") + assessment.account +
+            _T(" was not carried through: an unexpected error stopped it. The message was saved, and held when it was to be; its record in the baseline, the lock or the alert may be missing."));
       }
    }
 
@@ -1155,6 +1158,8 @@ namespace HM
       }
       catch (...)
       {
+         Report(6813, "CompromiseDetector::Unlock",
+            _T("The compromise lock of ") + address + _T(" could not be lifted: an unexpected error stopped it. Unlock the account again."));
       }
    }
 
@@ -1184,6 +1189,9 @@ namespace HM
       }
       catch (...)
       {
+         Report(6812, "CompromiseDetector::ForgetAccount",
+            _T("The messages held for review from ") + address +
+            _T(" could not all be discarded with the account: an unexpected error stopped it part-way. The sweep discards what is left of an account that no longer exists."));
       }
    }
 
@@ -1211,6 +1219,8 @@ namespace HM
       }
       catch (...)
       {
+         Report(6813, "CompromiseDetector::LoadLocks",
+            _T("The compromise locks could not be read: an unexpected error stopped it. A name locked before this start is not held until the next sweep reads them."));
       }
    }
 
@@ -1320,6 +1330,9 @@ namespace HM
       }
       catch (...)
       {
+         Report(6812, "CompromiseDetector::Sweep",
+            _T("The compromised-account sweep stopped at an unexpected error after discarding ") + StringParser::IntToString(discarded) +
+            _T(" held message(s); what it had not reached waits for its next run."));
       }
       return discarded;
    }

@@ -3093,6 +3093,8 @@ namespace HM
       }
       catch (...)
       {
+         ErrorManager::Instance()->ReportError(ErrorManager::Medium, 7434, "ResourceBooking::ForgetDecision",
+            _T("The booking record of ") + uid + _T(" could not be forgotten: an unexpected error stopped it. It is forgotten when a calendar of the account is next deleted, or with the account."));
       }
    }
 
@@ -3128,6 +3130,9 @@ namespace HM
       }
       catch (...)
       {
+         ErrorManager::Instance()->ReportError(ErrorManager::Medium, 7434, "ResourceBooking::ForgetGoneBookings",
+            _T("The booking records of account ") + StringParser::IntToString(accountId) +
+            _T(" whose calendars are gone could not all be forgotten: an unexpected error stopped the pass. The next calendar deleted from the account runs it again."));
       }
    }
 

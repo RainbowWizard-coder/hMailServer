@@ -18,7 +18,8 @@ namespace HM
       
    }
 
-   DiagnosticResult::DiagnosticResult()
+   DiagnosticResult::DiagnosticResult() :
+      success_(false)
    {
 
    }

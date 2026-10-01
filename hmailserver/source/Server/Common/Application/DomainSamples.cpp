@@ -227,7 +227,7 @@ namespace HM
          return false;
 
       time_t cutoff = time(0) - (time_t) days * 24 * 60 * 60;
-      struct tm parts;
+      struct tm parts = {};
 #ifdef _WIN32
       localtime_s(&parts, &cutoff);
 #else

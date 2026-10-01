@@ -160,6 +160,33 @@ namespace RegressionTests.Infrastructure
          Assert.AreEqual(-1, _application.Domains.get_ItemByName(_domain.Name).Accounts.get_ItemByAddress(_account.Address).MessageRetentionDays);
       }
 
+      [Test]
+      [Description("The account COM's Authenticate hands out - what a webmail's password or out-of-office plugin changes and saves - keeps the account's retention through the save. From 6.2.25 to 6.3.5 its copy constructor left the retention unset, and the save wrote whatever that held over the account's own.")]
+      public void TheAccountAuthenticateHandsOutKeepsItsRetentionThroughASave()
+      {
+         foreach (int days in new[] { 30, -1 })
+         {
+            _account.MessageRetentionDays = days;
+            _account.Save();
+
+            // Held as an object first: COM answers an Account, and the Linux
+            // suite's shim, where this file is also compiled, a bool - which it
+            // never reaches, since its Authenticate skips the test.
+            object handedOut = new Application().Authenticate(_account.Address, "test");
+            Assert.IsNotNull(handedOut);
+            var mine = (Account) handedOut;
+            Assert.AreEqual(days, mine.MessageRetentionDays, "the account Authenticate handed out");
+
+            mine.VacationSubject = "Away " + days;
+            mine.Save();
+
+            _settings.Cache.Clear();
+            var stored = _application.Domains.get_ItemByName(_domain.Name).Accounts.get_ItemByAddress(_account.Address);
+            Assert.AreEqual("Away " + days, stored.VacationSubject, "the save of the account Authenticate handed out");
+            Assert.AreEqual(days, stored.MessageRetentionDays, "the retention after that save");
+         }
+      }
+
       // ----------------------------------------------------------------------
 
       private void Deliver(string subject)

@@ -102,7 +102,7 @@ namespace HM
          // Whether an unknown address at a domain this server has gets a
          // mailbox: read only when one is about to be made, as OIDC always
          // read it.
-         bool (*auto_provision)();
+         bool (*auto_provision)() = nullptr;
 
          // That switch's name and the protocol's, for the log line.
          String auto_provision_name;

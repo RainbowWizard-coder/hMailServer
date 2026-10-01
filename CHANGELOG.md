@@ -838,6 +838,32 @@ fixes from there.
   update's trust, which only `hMailServer.INI` itself changes since 6.3.6, and a setting the server's environment
   sets - each unless the value put back is the one it has already. The help string in the type library is
   unchanged: it says that the call raises why it cannot, within the 260 characters MIDL keeps.
+- **Fixed: an account saved through the object COM's `Authenticate` hands out could lose its retention.**
+  `Application.Authenticate` and `AuthenticateWithCode` hand the caller a copy of the account signed in, and a
+  webmail's password or out-of-office plugin changes that copy and calls `Save()`. From 6.2.25, which brought the
+  account's `MessageRetentionDays`, to 6.3.5 the copy was made without it: the copy's `MessageRetentionDays` held
+  whatever its memory happened to hold, and the save wrote that over the account's own. So an account's retention -
+  a number of days, -1 to keep its mail for ever, or 0 to follow its domain - could become another number once its
+  holder changed a password or an out-of-office reply through such a plugin, and the retention sweep, every six
+  hours, then deleted the account's delivered mail older than the number the save left, or kept it, or followed
+  the domain, where the account had said otherwise. Windows only: the Linux server has no COM. The copy now
+  carries every field of the account, the mailbox key wrap a password change prepares on it among them. After
+  upgrading, check the retention of the accounts whose holders use such a plugin (the account's page in the Control
+  Panel, COM `Account.MessageRetentionDays`, REST `message_retention_days`). `AccountTester`, which the self-test
+  and the Linux program `business-object-tests` run, copies an account with every field set and compares each
+  one, and `MessageRetentionTests.TheAccountAuthenticateHandsOutKeepsItsRetentionThroughASave` saves the account
+  COM hands out and reads the retention back.
+- **Fixed: `POST /api/v1/ipranges` took priorities its update refuses.** Since 6.2.25 the create read `priority` as
+  any run of digits, with `atol`, where `PUT /api/v1/ipranges/{id}` takes a whole number from -2,000,000,000 to
+  2,000,000,000: a number beyond that was stored as given while a 32-bit integer holds it, and past that Windows
+  stored the integer's bound and Linux handed the database a value its column cannot hold; a fraction was cut at its
+  point; a priority written as a string (`"5"`) was passed over, and the range made with priority 0; and the digits
+  were looked for after the first `"priority"` anywhere in the body, so a range named `priority` could be made with 0
+  whatever its priority said. The create now finds the member by name, as it finds the range's name and addresses,
+  takes what the update takes, and answers anything else with 400 "priority must be a whole number between
+  -2000000000 and 2000000000", making no range; a body without a priority, or with `null` there, still makes one of
+  priority 0. The OpenAPI document says so. Tested by `RestApiCoverage.IpRangesRoundTrip` and
+  `business-object-tests`.
 
 ### Operations
 
@@ -1036,6 +1062,15 @@ fixes from there.
   `IncomingRelays.Item`, `ItemByDBID` and `ItemByName`, `Messages.Item` and `ItemByDBID`, `RouteAddresses.ItemByDBID`,
   `Routes.Item`, and `SecurityRanges.Item`, `ItemByDBID` and `ItemByName`. Each now looks first. A sweep of every COM
   method that makes an object, for a return that neither hands it over nor releases it, finds none left.
+- **The compromised-account detection and the rooms' booking records say what an unexpected error stopped.** Since
+  6.3.4, which brought both, seven catch-alls around a whole pass or operation dropped every unexpected error without
+  a word - on Windows, where the server is built with `/EHa`, an access violation among them: the detection's
+  handling of a verdict (the baseline, the lock and the alert), its unlock, its discarding of an account's held
+  messages when the account is deleted, its reading of the locks at start and its sweep; and a room's forgetting of
+  one booking's record and of the records whose calendars are gone. Each still stops there, as it did, and now
+  writes one line to the error log saying what was not done and what happens next: `HM6811` for the verdict,
+  `HM6812` for the sweep and the discarding, `HM6813` for the unlock and the locks, and `HM7434` for the booking
+  records.
 
 ### Build and tests
 
@@ -1283,6 +1318,20 @@ Full notes: [the 6.3.6 release](https://gitlab.com/hmailserver/hmailserver/-/rel
   the chart-and-compose job, which could pass a chart that wrote the Secret it is there to catch, now read a file
   themselves (`grep -m`), read their input to the end (`sed -n '1,Np'`) or search a file or a here-string. The
   scripts run under `sh` without pipefail, and pipes whose command writes a line or two at once, are unchanged.
+- **Static analysis: the server-logic findings of the 6.3.6 triage.** Besides the fixes above (an account's copy,
+  an IP range's priority, the seven catch-alls): a message's copy now copies its base, which holds its id, as an
+  account's does; `ChangeNotification`, `WorkQueueTaskInfo`, the work queue's running and pending tasks, the
+  firewall's ban, `OidcSignIn::Mapping`, the list manager's taken command and the protected messages' lapsed row give
+  every scalar member a first value; `DiagnosticResult`'s empty constructor sets its result to false, which a
+  `hMailServer.DiagnosticResult` made directly over COM had left unset; and a script object is made with its type,
+  which the compiler now requires. None of these was found read unset in the server's own use. The domain-sample
+  prune's `struct tm`, whose fill it did not check, now starts zeroed, so that a day that cannot be converted prunes
+  nothing rather than read what the memory held. `business-object-tests`, a new tester program that `linux-build.sh`
+  and the source packages' builds (`dh_auto_test`, `%check`) run, makes an account's and a message's copies and
+  four of these types over memory filled with a pattern, holds every member to what it should be, and holds the IP
+  range's priority to what the update takes; with the fixes undone, the account's, the four types' and the
+  priority's checks each fail, and the message's fails when a member is dropped from its copy. The 30 lines of
+  `static-analysis-baseline.txt` whose findings these fix are gone.
 
 ---
 

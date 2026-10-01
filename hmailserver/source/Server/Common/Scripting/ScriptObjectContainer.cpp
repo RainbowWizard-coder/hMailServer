@@ -59,9 +59,7 @@ namespace HM
    void 
    ScriptObjectContainer::AddObject(const String &sName, ScriptObject::ObjectType type)
    {
-      std::shared_ptr<ScriptObject> pObject = std::shared_ptr<ScriptObject>(new ScriptObject);
-      pObject->eType = type;
-      pObject->sName = sName;
+      std::shared_ptr<ScriptObject> pObject = std::shared_ptr<ScriptObject>(new ScriptObject(sName, std::shared_ptr<void>(), type));
 
       objects_[sName] = pObject;
    }
@@ -69,10 +67,7 @@ namespace HM
    void 
    ScriptObjectContainer::AddObject(const String &sName, std::shared_ptr<void> pObj, ScriptObject::ObjectType type)
    {
-      std::shared_ptr<ScriptObject> pObject = std::shared_ptr<ScriptObject>(new ScriptObject);
-      pObject->eType = type;
-      pObject->sName = sName;
-      pObject->pObject = pObj;
+      std::shared_ptr<ScriptObject> pObject = std::shared_ptr<ScriptObject>(new ScriptObject(sName, pObj, type));
       objects_[sName] = pObject;
    }
 

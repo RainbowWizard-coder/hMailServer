@@ -178,6 +178,8 @@
 #endif
 
 #include <algorithm>
+#include <cmath>
+#include <cstdlib>
 #include <cstring>
 #include <ctime>
 #include <mutex>
@@ -11815,6 +11817,80 @@ namespace HM
       return BuildResponse_(200, body);
    }
 
+   bool
+   RestApiServer::ReadIpRangePriority(const AnsiString &requestBody, long &priority)
+   {
+      // The document parsed and the member found by name, as the create reads
+      // its name, lower and upper (GetJsonStringValue_): a range named exactly
+      // "priority" is not read as its priority, and the whitespace JSON allows
+      // before the number is whitespace. Then PUT's rule, ReadInteger's: null
+      // or no member leaves the priority as it was, and a member that is not a
+      // whole number from -2,000,000,000 to 2,000,000,000 - a string such as
+      // "5" among them, which the create used to pass over, making the range
+      // with priority 0 - is refused.
+      {
+         JsonValue document;
+         std::string parseError;
+         if (JsonValue::Parse(std::string(requestBody.c_str(), requestBody.size()), document, parseError) && document.IsObject())
+         {
+            const JsonValue *found = FindJsonMember_(document, "priority");
+            if (!found || found->IsNull())
+               return true;
+
+            const double value = found->IsNumber() ? found->AsNumber() : 0.0;
+            if (!found->IsNumber() || std::floor(value) != value || value < -2000000000.0 || value > 2000000000.0)
+               return false;
+
+            priority = (long) value;
+            return true;
+         }
+      }
+
+      // A body that does not parse is read the way the create reads the rest
+      // of one (GetJsonStringValue_'s search): the number written after the
+      // key, up to the next separator.
+      AnsiString needle = "\"priority\"";
+      int keyPosition = requestBody.Find(needle);
+      if (keyPosition < 0)
+         return true;
+
+      int colon = requestBody.Find(":", keyPosition + needle.GetLength());
+      if (colon < 0)
+         return true;
+
+      // The number as JSON writes it - a sign, the digits, a fraction and an
+      // exponent - so that it is judged whole as PUT judges it, not cut short
+      // at its point.
+      AnsiString number;
+      for (int i = colon + 1; i < requestBody.GetLength(); i++)
+      {
+         char c = requestBody[i];
+         if ((c == ' ' || c == '\t' || c == '\r' || c == '\n') && number.IsEmpty())
+            continue;
+         if ((c >= '0' && c <= '9') || c == '-' || c == '+' || c == '.' || c == 'e' || c == 'E')
+         {
+            number += c;
+            continue;
+         }
+         break;
+      }
+      if (number.IsEmpty())
+         return true;
+
+      // PUT's bound. The scan has no length limit, and the atol this replaces
+      // took any run of digits: a value past a long's range was clamped on
+      // Windows and, on 64-bit Linux, made a long the int column cannot hold -
+      // a range created with a priority its update would then refuse.
+      char *end = nullptr;
+      const double value = std::strtod(number.c_str(), &end);
+      if (number[0] == '+' || end != number.c_str() + number.GetLength() || std::floor(value) != value ||
+          value < -2000000000.0 || value > 2000000000.0)
+         return false;
+
+      priority = (long) value;
+      return true;
+   }
+
    HttpResponse
    RestApiServer::HandleCreateIpRange_(const AnsiString &requestBody)
    {
@@ -11832,34 +11908,8 @@ namespace HM
          return BuildResponse_(400, "{\"error\":\"lower and upper must be IP addresses\"}");
 
       long priority = 0;
-      {
-         // A number in the body is not a string, so read it the way the
-         // integer routes do: everything after the key up to the next separator.
-         AnsiString needle = "\"priority\"";
-         int keyPosition = requestBody.Find(needle);
-         if (keyPosition >= 0)
-         {
-            int colon = requestBody.Find(":", keyPosition + needle.GetLength());
-            if (colon >= 0)
-            {
-               AnsiString digits;
-               for (int i = colon + 1; i < requestBody.GetLength(); i++)
-               {
-                  char c = requestBody[i];
-                  if (c == ' ' || c == '\t')
-                     continue;
-                  if ((c >= '0' && c <= '9') || (c == '-' && digits.IsEmpty()))
-                  {
-                     digits += c;
-                     continue;
-                  }
-                  break;
-               }
-               if (!digits.IsEmpty())
-                  priority = atol(digits.c_str());
-            }
-         }
-      }
+      if (!ReadIpRangePriority(requestBody, priority))
+         return BuildResponse_(400, "{\"error\":\"priority must be a whole number between -2000000000 and 2000000000\"}");
 
       std::shared_ptr<SecurityRange> range(new SecurityRange);
       range->SetName(String(name));
@@ -19846,7 +19896,7 @@ namespace HM
          "\"/api/v1/apikeys/{id}\":{\"delete\":{\"summary\":\"Revoke an API key\",\"description\":\"Administrator password only.\",\"responses\":{\"200\":{\"description\":\"Revoked\"}}}},"
          "\"/api/v1/ipranges\":{"
          "\"get\":{\"summary\":\"List the IP ranges\",\"description\":\"Each entry: id, name, lower, upper, priority, the permission flags, expires and expires_time (the time on the server's clock at which an expiring range is removed, as the auto-ban sets it; empty for a range that does not expire). Server-wide; refused for domain-restricted keys.\",\"responses\":{\"200\":{\"description\":\"Array of ranges with their permissions\"}}},"
-         "\"post\":{\"summary\":\"Create an IP range\",\"description\":\"Body: name, lower and upper (required), priority, the permission flags, and expires with expires_time (YYYY-MM-DD HH:MM:SS on the server's clock, or a date alone for midnight; required when expires is true and taken only then). A range that expires is removed once that time passes, as one the auto-ban placed is. The same check as saving the range in the Control Panel. Server-wide; refused for domain-restricted and read-only keys.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"name\",\"lower\",\"upper\"],\"properties\":{\"name\":{\"type\":\"string\"},\"lower\":{\"type\":\"string\"},\"upper\":{\"type\":\"string\"},\"priority\":{\"type\":\"integer\"},\"allow_smtp\":{\"type\":\"boolean\"},\"allow_imap\":{\"type\":\"boolean\"},\"allow_pop3\":{\"type\":\"boolean\"},\"deliver_local_to_local\":{\"type\":\"boolean\"},\"deliver_local_to_remote\":{\"type\":\"boolean\"},\"deliver_remote_to_local\":{\"type\":\"boolean\"},\"deliver_remote_to_remote\":{\"type\":\"boolean\"},\"require_auth_local_to_local\":{\"type\":\"boolean\"},\"require_auth_local_to_remote\":{\"type\":\"boolean\"},\"require_auth_remote_to_local\":{\"type\":\"boolean\"},\"require_auth_remote_to_remote\":{\"type\":\"boolean\"},\"require_tls_for_auth\":{\"type\":\"boolean\"},\"spam_protection\":{\"type\":\"boolean\"},\"virus_protection\":{\"type\":\"boolean\"},\"expires\":{\"type\":\"boolean\"},\"expires_time\":{\"type\":\"string\"}}}}}},\"responses\":{\"201\":{\"description\":\"Created, with its id\"},\"400\":{\"description\":\"Missing name, an address that does not parse, an expiry without its time or a time that is not YYYY-MM-DD HH:MM:SS\"}}}},"
+         "\"post\":{\"summary\":\"Create an IP range\",\"description\":\"Body: name, lower and upper (required), priority (a whole number between -2000000000 and 2000000000, as PUT takes it; 0 when left out), the permission flags, and expires with expires_time (YYYY-MM-DD HH:MM:SS on the server's clock, or a date alone for midnight; required when expires is true and taken only then). A range that expires is removed once that time passes, as one the auto-ban placed is. The same check as saving the range in the Control Panel. Server-wide; refused for domain-restricted and read-only keys.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"name\",\"lower\",\"upper\"],\"properties\":{\"name\":{\"type\":\"string\"},\"lower\":{\"type\":\"string\"},\"upper\":{\"type\":\"string\"},\"priority\":{\"type\":\"integer\",\"minimum\":-2000000000,\"maximum\":2000000000},\"allow_smtp\":{\"type\":\"boolean\"},\"allow_imap\":{\"type\":\"boolean\"},\"allow_pop3\":{\"type\":\"boolean\"},\"deliver_local_to_local\":{\"type\":\"boolean\"},\"deliver_local_to_remote\":{\"type\":\"boolean\"},\"deliver_remote_to_local\":{\"type\":\"boolean\"},\"deliver_remote_to_remote\":{\"type\":\"boolean\"},\"require_auth_local_to_local\":{\"type\":\"boolean\"},\"require_auth_local_to_remote\":{\"type\":\"boolean\"},\"require_auth_remote_to_local\":{\"type\":\"boolean\"},\"require_auth_remote_to_remote\":{\"type\":\"boolean\"},\"require_tls_for_auth\":{\"type\":\"boolean\"},\"spam_protection\":{\"type\":\"boolean\"},\"virus_protection\":{\"type\":\"boolean\"},\"expires\":{\"type\":\"boolean\"},\"expires_time\":{\"type\":\"string\"}}}}}},\"responses\":{\"201\":{\"description\":\"Created, with its id\"},\"400\":{\"description\":\"Missing name, an address that does not parse, a priority that is not a whole number from -2000000000 to 2000000000, an expiry without its time or a time that is not YYYY-MM-DD HH:MM:SS; no range is made\"}}}},"
          "\"/api/v1/ipranges/{id}\":{\"put\":{\"summary\":\"Change an IP range\",\"description\":\"Body: any subset of the fields POST takes - name, lower, upper, priority, the permission flags, expires and expires_time; a field left out keeps its value, and a body that turns expiry on must carry expires_time in it. The same check as saving the range in the Control Panel; nothing changes when it is refused. Server-wide; refused for domain-restricted and read-only keys.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\"}}}},\"responses\":{\"200\":{\"description\":\"The range as saved, as the listing shows it\"},\"400\":{\"description\":\"A field refused (error names it); nothing changed\"},\"404\":{\"description\":\"Unknown id\"}}},"
          "\"delete\":{\"summary\":\"Delete an IP range\",\"responses\":{\"200\":{\"description\":\"Deleted\"},\"404\":{\"description\":\"Unknown id\"}}}},"
          "\"/api/v1/domains/{domain}/lists\":{"

@@ -47,11 +47,12 @@ override_dh_auto_configure:
 # singletons, the legacy Blowfish scheme, the backup index's XML, the date class
 # with the MIME, IMAP and system-date parsers built on it, the Public Suffix
 # List's cut of a host name, the backup's exclusions (a scratch data directory
-# under $TMPDIR, removed again) and the live update's trust (a configuration file
-# of its own under $TMPDIR, read as the server and root's check read theirs).
+# under $TMPDIR, removed again), the live update's trust (a configuration file
+# of its own under $TMPDIR, read as the server and root's check read theirs) and
+# the business objects' copies and first values.
 # None opens a socket, reads the system's configuration, needs a database or
 # needs root, so they run here, with the network refused, in seconds.
-TESTERS := spf-tests script-binding-tests snmp-tests object-store-signature-tests singleton-tests legacy-blowfish-tests xml-tree-tests datetime-tests public-suffix-tests backup-tests trust-anchor-tests
+TESTERS := spf-tests script-binding-tests snmp-tests object-store-signature-tests singleton-tests legacy-blowfish-tests xml-tree-tests datetime-tests public-suffix-tests backup-tests trust-anchor-tests business-object-tests
 
 override_dh_auto_test:
 ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))

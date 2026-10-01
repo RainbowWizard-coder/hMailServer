@@ -381,7 +381,7 @@ namespace RegressionTests.API
       }
 
       [Test]
-      [Description("An IP range is created with its permissions, listed with them, deleted, and gone; a second delete is 404 and an address that does not parse is 400.")]
+      [Description("An IP range is created with its permissions, listed with them, deleted, and gone; a second delete is 404 and an address that does not parse is 400; a create takes the priorities a change takes, and refuses the others with nothing made.")]
       public void IpRangesRoundTrip()
       {
          (int status, string body) created = Http("POST", "/api/v1/ipranges",
@@ -435,6 +435,43 @@ namespace RegressionTests.API
             "{\"name\":\"bad\",\"lower\":\"not-an-address\",\"upper\":\"10.0.0.1\"}").status);
          Assert.AreEqual(400, Http("POST", "/api/v1/ipranges", "{\"lower\":\"10.0.0.1\",\"upper\":\"10.0.0.2\"}").status,
             "a range without a name is refused");
+
+         // The priority a create takes is the one a change takes: a whole number
+         // from -2000000000 to 2000000000. Until 6.3.6 the create read any run of
+         // digits with atol and stored what that made of it - clamped on Windows -
+         // which the change then refused.
+         (int status, string body) tooLarge = Http("POST", "/api/v1/ipranges",
+            "{\"name\":\"rest-range-large\",\"lower\":\"10.99.2.1\",\"upper\":\"10.99.2.2\",\"priority\":99999999999}");
+         Assert.AreEqual(400, tooLarge.status, tooLarge.body);
+         StringAssert.Contains("priority must be a whole number between -2000000000 and 2000000000", tooLarge.body);
+         (int status, string body) fraction = Http("POST", "/api/v1/ipranges",
+            "{\"name\":\"rest-range-fraction\",\"lower\":\"10.99.2.1\",\"upper\":\"10.99.2.2\",\"priority\":1.5}");
+         Assert.AreEqual(400, fraction.status, fraction.body);
+         // A string, which the create passed over and made the range with 0.
+         (int status, string body) text = Http("POST", "/api/v1/ipranges",
+            "{\"name\":\"rest-range-text\",\"lower\":\"10.99.2.1\",\"upper\":\"10.99.2.2\",\"priority\":\"5\"}");
+         Assert.AreEqual(400, text.status, text.body);
+         string afterRefusals = Http("GET", "/api/v1/ipranges").body;
+         StringAssert.DoesNotContain("rest-range-large", afterRefusals, "a refused create makes no range");
+         StringAssert.DoesNotContain("rest-range-fraction", afterRefusals, "a refused create makes no range");
+         StringAssert.DoesNotContain("rest-range-text", afterRefusals, "a refused create makes no range");
+
+         (int status, string body) negative = Http("POST", "/api/v1/ipranges",
+            "{\"name\":\"rest-range-negative\",\"lower\":\"10.99.3.1\",\"upper\":\"10.99.3.2\",\"priority\":-7}");
+         Assert.AreEqual(201, negative.status, negative.body);
+         Assert.AreEqual(-7, _settings.SecurityRanges.get_ItemByName("rest-range-negative").Priority);
+         string negativeId = negative.body.Substring(negative.body.IndexOf(':') + 1).TrimEnd('}');
+         Assert.AreEqual(200, Http("DELETE", "/api/v1/ipranges/" + negativeId).status);
+
+         // A range named "priority": its priority is the member of that name, not
+         // what follows the first "priority" in the body - which the create read
+         // until 6.3.6, and so made this range with 0.
+         (int status, string body) named = Http("POST", "/api/v1/ipranges",
+            "{\"name\":\"priority\",\"lower\":\"10.99.4.1\",\"upper\":\"10.99.4.2\",\"priority\":23}");
+         Assert.AreEqual(201, named.status, named.body);
+         Assert.AreEqual(23, _settings.SecurityRanges.get_ItemByName("priority").Priority);
+         string namedId = named.body.Substring(named.body.IndexOf(':') + 1).TrimEnd('}');
+         Assert.AreEqual(200, Http("DELETE", "/api/v1/ipranges/" + namedId).status);
       }
 
       [Test]
