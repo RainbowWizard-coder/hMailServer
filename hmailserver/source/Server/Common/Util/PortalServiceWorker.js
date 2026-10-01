@@ -82,9 +82,10 @@ self.addEventListener('pushsubscriptionchange', function () { /* the page recove
 // rendered for the message, '<id>/<n>' its n-th attachment). A message's HTML is
 // shown in a frame whose source is the server's route, and an attachment is a
 // link to its route; when the network fails, this answers both out of that
-// store, under the headers the server sends them with, so a kept message reads
-// offline exactly as it read online. The network is always tried first: the
-// store is a fallback, never a cache that could show a stale part.
+// store, under the headers the server sends them with (an attachment's type
+// held to the few offlineType admits), so a kept message reads offline as it
+// read online. The network is always tried first: the store is a fallback,
+// never a cache that could show a stale part.
 var OFFLINE_DB = 'hmPortalOffline';
 var OFFLINE_PART = /^\/api\/v1\/me\/messages\/(\d+)\/(html|attachments\/(\d+))$/;
 var OFFLINE_HTML_POLICY = "default-src 'none'; style-src 'unsafe-inline'; img-src data:; sandbox allow-popups allow-popups-to-escape-sandbox; form-action 'none'; base-uri 'none'; frame-ancestors 'self'";
@@ -117,6 +118,17 @@ function offlinePart(key) {
     }).then(function (part) { try { db.close(); } catch (e) { /* closed already */ } return part; });
   });
 }
+// The type a kept attachment is answered with: the one it was kept under when
+// that is an image type the page shows, or a PDF, which the page previews;
+// anything else goes as application/octet-stream. The type was the server's
+// when the page kept the part, but the store outlives a change to what the
+// server sends, and a same-origin answer is held to what its type allows -
+// so the worker answers only a type nothing runs, whatever is in the store.
+var OFFLINE_TYPES = { 'image/png': 1, 'image/jpeg': 1, 'image/gif': 1, 'image/webp': 1, 'image/bmp': 1, 'image/x-icon': 1, 'image/vnd.microsoft.icon': 1, 'application/pdf': 1 };
+function offlineType(type) {
+  var bare = String(type || '').split(';')[0].trim().toLowerCase();
+  return OFFLINE_TYPES[bare] === 1 ? bare : 'application/octet-stream';
+}
 function asciiName(name) {
   var out = '';
   var text = String(name || 'attachment');
@@ -132,7 +144,7 @@ function offlineAnswer(match) {
   return offlinePart(key).then(function (part) {
     if (!part || !part.blob) { return new Response('', { status: 503, headers: { 'Cache-Control': 'no-store' } }); }
     var headers = {
-      'Content-Type': isHtml ? 'text/html; charset=utf-8' : (part.type || 'application/octet-stream'),
+      'Content-Type': isHtml ? 'text/html; charset=utf-8' : offlineType(part.type),
       'X-Content-Type-Options': 'nosniff',
       'Referrer-Policy': 'no-referrer',
       'Cache-Control': 'no-store'

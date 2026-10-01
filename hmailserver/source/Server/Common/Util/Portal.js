@@ -264,6 +264,16 @@
   };
   var clear = function (n) { while (n.firstChild) { n.removeChild(n.firstChild); } };
   var button = function (text, className) { var b = node('button', text, className || 'btn ghost sm'); b.type = 'button'; return b; };
+  // A file the page holds as bytes - a part it decrypted, or what a download
+  // route answered - is handed to the browser as a blob of one fixed type that
+  // no browser renders, whatever type the message or the response named, as
+  // the reading page for a password-protected message does. A blob: URL is this
+  // page's own origin and carries no headers of its own, so its type is all
+  // that decides what opening the link does; the download attribute names the
+  // file. An image keeps its type only when it is one the page shows.
+  var FILE_TYPE = 'application/octet-stream';
+  var fileUrl = function (bytes) { return URL.createObjectURL(new Blob([bytes], { type: FILE_TYPE })); };
+  var bareType = function (type) { return String(type || '').split(';')[0].trim().toLowerCase(); };
 
   // ---- The keyboard: where a key belongs -----------------------------------
   // A key typed where text is typed is the text's: an input, a text area, a
@@ -3082,6 +3092,14 @@
         show.addEventListener('click', function () {
           apiFetch('/api/v1/me/messages/' + m.id + '/attachments/' + a.index, { cache: 'no-store', credentials: 'same-origin' }).then(function (response) { return response.status === 200 ? response.blob() : null; }).then(function (blob) {
             if (!blob || current !== m) { return; }
+            // The type is application/pdf whatever the route or the message
+            // said, so the bytes go to the browser's own PDF viewer and are
+            // never read as a page. The frame carries no sandbox attribute on
+            // purpose: Chromium refuses to show a PDF in any sandboxed frame,
+            // whatever the sandbox allows, and Firefox's viewer draws nothing
+            // in one that withholds script - measured on 30 September 2026
+            // (Chromium 149, Firefox 151): with sandbox="" the preview was an
+            // error page in the one and blank in the other.
             var frame = document.createElement('iframe');
             frame.setAttribute('referrerpolicy', 'no-referrer'); frame.setAttribute('title', a.name);
             frame.setAttribute('src', URL.createObjectURL(new Blob([blob], { type: 'application/pdf' })));
@@ -5691,7 +5709,7 @@
         attachments.appendChild(node('span', t('Attachments: ')));
         c.attachments.forEach(function (a, i) {
           var link = node('a', a.name + ' (' + a.type + ', ' + format(a.bytes.length) + ')');
-          link.href = URL.createObjectURL(new Blob([a.bytes], { type: a.type }));
+          link.href = fileUrl(a.bytes);
           link.setAttribute('download', a.name);
           if (i > 0) { attachments.appendChild(node('span', ', ')); }
           attachments.appendChild(link);
@@ -6533,7 +6551,7 @@
         attachments.appendChild(node('span', t('Attachments: ')));
         c.attachments.forEach(function (a, i) {
           var link = node('a', a.name + ' (' + a.type + ', ' + format(a.bytes.length) + ')');
-          link.href = URL.createObjectURL(new Blob([a.bytes], { type: a.type }));
+          link.href = fileUrl(a.bytes);
           link.setAttribute('download', a.name);
           if (i > 0) { attachments.appendChild(node('span', ', ')); }
           attachments.appendChild(link);
@@ -12124,7 +12142,7 @@
       }, function () { return null; }).then(function (blob) {
         if (!blob) { toast(t('Could not download it.')); return; }
         var a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
+        a.href = fileUrl(blob);
         a.setAttribute('download', link.getAttribute('download') || 'download');
         document.body.appendChild(a);
         a.click();
@@ -12135,14 +12153,16 @@
   };
   // An image the browser would fetch with the cookie, likewise. The blob URL
   // is released once the image has it, loaded or failed: an image keeps its
-  // pixels, not the URL they came from.
+  // pixels, not the URL they came from. Its type is the response's only when
+  // that is an image type the page shows (FILE_TYPE above says why).
   var imageFrom = function (img, url) {
     if (!onSecond()) { img.src = url; return; }
     apiFetch(url, { cache: 'no-store', credentials: 'same-origin' }).then(function (response) {
       return response.status === 200 ? response.blob() : null;
     }, function () { return null; }).then(function (blob) {
       if (!blob) { return; }
-      var blobUrl = URL.createObjectURL(blob);
+      var type = bareType(blob.type);
+      var blobUrl = URL.createObjectURL(new Blob([blob], { type: RENDERS[type] === 1 ? type : FILE_TYPE }));
       var release = function () { try { URL.revokeObjectURL(blobUrl); } catch (e) { /* gone already */ } };
       img.addEventListener('load', release);
       img.addEventListener('error', release);

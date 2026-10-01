@@ -1382,8 +1382,12 @@ function answerSecondSignIn() {
    secondToken = SECOND_TOKEN;
    return json(201, { address: SECOND_ADDRESS, device: 'web-dev', bearer: true, token: secondToken, idle_seconds: 1800, lifetime_seconds: 43200, one_per_device: false, bound_to_address: false });
 }
+// The type the second account's photo route answers with, when a check sets
+// one; otherwise the route answers as the first account's does.
+let secondPhotoType = '';
 function answerSecond(method, path, body) {
    if (method === 'DELETE' && path === '/api/v1/session') { secondToken = ''; return json(200, { ended: true, bearer: true }); }
+   if (secondPhotoType && method === 'GET' && path === '/api/v1/me/directory/11/photo') { return { status: 200, headers: { 'Content-Type': secondPhotoType }, body: 'PHOTO' }; }
    if (path === '/api/v1/me' && method === 'GET') {
       return json(200, { address: SECOND_ADDRESS, quota: { used_bytes: 1048576, limit_mb: 50 }, vacation: { enabled: false, subject: '', message: '', expires: false, expires_date: '' }, second_factor: false, directory_linked: false, password_changed: '2026-09-10' });
    }
@@ -2190,6 +2194,31 @@ function called(from, method, pattern) {
    return since(from).some((r) => r.method === method && (typeof pattern === 'string' ? r.path === pattern : pattern.test(r.path)));
 }
 const flush = async () => { for (let i = 0; i < 60; i += 1) { await new Promise((r) => setImmediate(r)); } };
+// The blob a blob: URL the page made stands for - Node keeps them as a browser
+// does - so a check reads the type the browser would act on when the link is
+// opened, and the bytes it would save.
+const blobBehind = (url) => require('buffer').resolveObjectURL(String(url || ''));
+// The file links the reader drew for the parts it decrypted, each with its
+// name and the blob behind it.
+const decryptedLinks = async () => {
+   const out = [];
+   for (const n of document.getElementById('message-attachments').children) {
+      if (n.tagName !== 'A') { continue; }
+      const blob = blobBehind(n.href);
+      out.push({ name: n.getAttribute('download'), type: blob ? blob.type : '(no blob)', text: blob ? Buffer.from(await blob.arrayBuffer()).toString('utf8') : '' });
+   }
+   return out;
+};
+// Decrypted parts whose declared types a browser renders or runs - markup, a
+// drawing, script - each with a file name of its own.
+const DECRYPTED_PARTS = [
+   { name: 'invoice.pdf', type: 'text/html', body: '<p>invoice</p>' },
+   { name: 'chart.svg', type: 'image/svg+xml', body: '<svg xmlns="http://www.w3.org/2000/svg"/>' },
+   { name: 'notes.txt', type: 'application/x-javascript', body: 'var a = 1;' }
+];
+const decryptedParts = () => DECRYPTED_PARTS.map((p) => ({ name: p.name, type: p.type, bytes: Uint8Array.from(Buffer.from(p.body, 'utf8')) }));
+const partsAreFiles = (links) => links.length === DECRYPTED_PARTS.length &&
+   links.every((l, i) => l.type === 'application/octet-stream' && l.name === DECRYPTED_PARTS[i].name && l.text === DECRYPTED_PARTS[i].body);
 // Node's own timer, taken before main() puts the hand-fired queue in its
 // place: the reading page's checks wait on real cryptography, which a
 // queue nobody fires would leave the process to exit quietly on.
@@ -5564,6 +5593,23 @@ async function main() {
       check('the worker answers a kept attachment from the store when the network fails, as a download under a sandbox',
          !!image && image.status === 200 && image.headers.get('content-type') === 'image/png' && image.headers.get('content-security-policy') === 'sandbox' &&
          String(image.headers.get('content-disposition')).indexOf('logo.png') >= 0, image ? image.status + ' ' + image.headers.get('content-type') : 'not answered');
+      // A kept attachment of any other type is answered as a file of no type.
+      // The store holds the type the server named when the part was kept - a
+      // text part here, and parts kept under types a browser runs or renders,
+      // which a store filled before a change to the server may still hold - and
+      // an answer of this origin is held only to its type, so the worker names
+      // a type nothing runs; a PDF keeps its own, which the preview needs.
+      const oddParts = { 6: ['application/pdf', 'terms.pdf'], 7: ['application/x-javascript', 'x.js'], 8: ['text/html; charset=utf-8', 'page.html'], 9: ['image/svg+xml', 'chart.svg'] };
+      Object.keys(oddParts).forEach((n) => idbStore('parts').set('102/' + n, { key: '102/' + n, id: 102, type: oddParts[n][0], name: oddParts[n][1], blob: new Blob(['BYTES'], { type: oddParts[n][0] }) }));
+      const keptTypes = [];
+      for (const n of [0, 6, 7, 8, 9]) {
+         const kept = await ask('/api/v1/me/messages/102/attachments/' + n);
+         keptTypes.push(kept ? kept.status + ' ' + kept.headers.get('content-type') + ' ' + kept.headers.get('x-content-type-options') + ' ' + kept.headers.get('content-security-policy') : 'not answered');
+      }
+      Object.keys(oddParts).forEach((n) => idbStore('parts').delete('102/' + n));
+      check('the worker answers a kept attachment as a file of no type unless it is an image the page shows or a PDF, whatever type the store holds',
+         keptTypes.join('|') === ['200 application/octet-stream nosniff sandbox', '200 application/pdf nosniff sandbox', '200 application/octet-stream nosniff sandbox',
+            '200 application/octet-stream nosniff sandbox', '200 application/octet-stream nosniff sandbox'].join('|'), JSON.stringify(keptTypes));
       const html = await ask('/api/v1/me/messages/102/html');
       check('and the HTML document under the policy the server sends it with', !!html && html.status === 200 && String(html.headers.get('content-type')).indexOf('text/html') === 0 &&
          String(html.headers.get('content-security-policy')).indexOf("default-src 'none'") === 0 && String(html.headers.get('content-security-policy')).indexOf('https:') < 0);
@@ -6938,6 +6984,7 @@ async function main() {
          'remote hidden=' + document.getElementById('message-remote').hidden + ' note hidden=' + document.getElementById('message-remote-second').hidden);
       const attachment = document.getElementById('message-attachments').children[0];
       const beforeDownload = requests.length;
+      const blobsBeforeDownload = new Set(blobUrls.keys());
       const attachmentClick = makeEvent('click');
       attachment.dispatchEvent(attachmentClick);
       await flush();
@@ -6946,9 +6993,55 @@ async function main() {
          attachmentClick.defaultPrevented === true && asSecond(beforeDownload).some((r) => r.path === '/api/v1/me/messages/2101/attachments/0'),
          'prevented=' + attachmentClick.defaultPrevented + ' ' + JSON.stringify(since(beforeDownload).map((r) => r.path)));
       check('L50: the link itself still names the route, so the first account\'s links are what they were', (attachment.getAttribute('href') || attachment.href) === '/api/v1/me/messages/2101/attachments/0', String(attachment.getAttribute('href') || attachment.href));
+      // It is saved from a blob of the one type no browser renders, not under
+      // the type the route answered with (application/pdf here): a blob: URL
+      // is the page's own origin, so its type is what opening it would obey.
+      const downloadBlobs = [...blobUrls.entries()].filter((entry) => !blobsBeforeDownload.has(entry[0])).map((entry) => entry[1]);
+      check('L50: the attachment is saved from a blob of no type, whatever type the route answered with',
+         downloadBlobs.length === 1 && downloadBlobs[0] === 'application/octet-stream', JSON.stringify(downloadBlobs));
+      // The PDF preview: a frame of its own, shown from a blob whose type is
+      // always application/pdf - so the bytes go to the browser's PDF viewer
+      // and nowhere else, whatever the route or the message said. The frame is
+      // not sandboxed: Chromium shows no PDF in a sandboxed frame and Firefox's
+      // viewer draws none in one without script (Portal.js says what was
+      // measured), and a stub DOM cannot see a preview that a browser refuses.
+      const previewButton = document.getElementById('message-previews').children.filter((n) => n.tagName === 'BUTTON')[0];
+      const blobsBeforePreview = new Set(blobUrls.keys());
+      if (previewButton) { previewButton.dispatchEvent(makeEvent('click')); }
+      await flush();
+      await flush();
+      const previewFrame = document.getElementById('message-previews').children.filter((n) => n.tagName === 'IFRAME')[0];
+      const previewBlobs = [...blobUrls.entries()].filter((entry) => !blobsBeforePreview.has(entry[0]));
+      check('L50: a PDF is previewed in a frame of its own from a blob typed application/pdf, fetched under the token',
+         !!previewButton && !!previewFrame && previewBlobs.length === 1 && previewBlobs[0][1] === 'application/pdf' && previewFrame.getAttribute('src') === previewBlobs[0][0] &&
+         previewFrame.getAttribute('referrerpolicy') === 'no-referrer' && !previewFrame.hasAttribute('sandbox'),
+         (previewButton ? 'button' : 'no button') + ' ' + (previewFrame ? previewFrame.getAttribute('src') : 'no frame') + ' ' + JSON.stringify(previewBlobs.map((entry) => entry[1])));
       check('L50: the opened message went into neither of the first account\'s stores',
          String(store.get('hmPortalOffline')) === offlineBefore && !idbStore('messages').has(2101) && !idbStore('rows').has(2101),
          'localStorage changed=' + (String(store.get('hmPortalOffline')) !== offlineBefore) + ' idb=' + idbStore('messages').has(2101));
+
+      // A photo shown for the second account is fetched under its token and
+      // shown from a blob: under the route's type when that is an image type
+      // the page shows, and under no type when it is anything else.
+      const photoBlobType = async (type) => {
+         secondPhotoType = type;
+         location.hash = '#/f/21';
+         await flush();
+         location.hash = '#/directory';
+         await flush();
+         await flush();
+         const found = [];
+         (function walk(n) { for (const c of n.children) { if (c.tagName === 'IMG' && String(c.src).indexOf('blob:') === 0) { found.push(c); } walk(c); } })(document.getElementById('directory-list'));
+         const blob = found.length === 1 ? blobBehind(found[0].src) : null;
+         // Loaded, as a browser would say: the page releases the URL then.
+         found.forEach((img) => img.dispatchEvent(makeEvent('load')));
+         return blob ? blob.type : found.length + ' photos from a blob';
+      };
+      const photoAsImage = await photoBlobType('image/png');
+      const photoAsOther = await photoBlobType('text/html');
+      secondPhotoType = '';
+      check('L50: a photo shown for the second account keeps an image type the page shows, and is of no type when the route named another',
+         photoAsImage === 'image/png' && photoAsOther === 'application/octet-stream', photoAsImage + ' / ' + photoAsOther);
 
       // The Settings cards for what stays the first account's say whose it is,
       // and ask the server nothing for the second.
@@ -7923,6 +8016,23 @@ async function main() {
    check('S/MIME authority: a signature the domain\'s own authority certified says so on its badge',
       caBadgeTexts.indexOf(german['Signed by {0}, certified by your organisation'].replace('{0}', 'b@example.net')) >= 0, JSON.stringify(caBadgeTexts));
    smimeChainAnswer = null;
+
+   // A part the page decrypted is saved as a file: its link's blob is of the
+   // one type no browser renders, whatever type the sender gave the part, and
+   // the download attribute carries its name. A blob: URL is the page's own
+   // origin with no headers, so the type is all that decides what opening it does.
+   window.hmSmime = Object.assign({}, smimeStub, {
+      readMessage: async () => ({ layers: ['encrypted'], encrypted: { ok: true }, signed: null,
+         content: { text: 'The invoice is attached.', html: '', attachments: decryptedParts() } })
+   });
+   location.hash = '#/f/1';
+   await flush();
+   location.hash = '#/m/601';
+   await flush();
+   await flush();
+   const smimeFiles = await decryptedLinks();
+   check('S/MIME: a part decrypted in the page is a file of no type under its own name, whatever type its sender named',
+      document.getElementById('message-text').textContent === 'The invoice is attached.' && partsAreFiles(smimeFiles), JSON.stringify(smimeFiles));
    window.hmSmime = smimeStub;
    delete smimeAuthorities['third@example.com'];
    delete authorityCertificates['colleague@example.com'];
@@ -8805,6 +8915,25 @@ async function pgpChecks() {
    check('OpenPGP: and is kept when the reader presses Keep',
       called(beforeChange, 'PUT', '/api/v1/me/openpgp/keys/correspondents'),
       JSON.stringify(since(beforeChange).filter((r) => r.method === 'PUT').map((r) => r.path)));
+   location.hash = '#/f/1';
+   await flush();
+
+   // ---- a part the page decrypted is saved as a file, as the S/MIME reader's
+   // is: the one type no browser renders, whatever type the sender gave it
+   // (The stub answers a copy of pgpMessageResult made through JSON, which
+   // has no bytes; the parts go into its answer as the real module's do.)
+   pgpMessageResult = { layers: ['encrypted'], encrypted: { ok: true, keyId: pgpFingerprint(account).slice(-16) }, signed: null, inline: false, integrityProtected: true,
+      content: { text: 'The invoice is attached.', html: '', attachments: [] }, autocrypt: null };
+   const pgpRead = pgpStub.readMessage;
+   pgpStub.readMessage = async (bytes, keys) => { const result = await pgpRead(bytes, keys); result.content.attachments = decryptedParts(); return result; };
+   location.hash = '#/m/602';
+   await flush();
+   await flush();
+   await flush();
+   const pgpFiles = await decryptedLinks();
+   check('OpenPGP: a part decrypted in the page is a file of no type under its own name, whatever type its sender named',
+      document.getElementById('message-text').textContent === 'The invoice is attached.' && partsAreFiles(pgpFiles), JSON.stringify(pgpFiles));
+   pgpStub.readMessage = pgpRead;
    pgpMessageResult = { layers: [], encrypted: null, signed: null, content: null, autocrypt: null, inline: false };
    location.hash = '#/f/1';
    await flush();

@@ -187,6 +187,15 @@ timing leak in ECDSA signing on curves other than NIST's. Every Windows installe
 use the OpenSSL of the distribution they run on, and the container image its base distribution's, and take OpenSSL's
 fixes from there.
 
+The webmail now hands the browser an attachment it decrypted itself, of an S/MIME message (since 6.3.2) or an
+OpenPGP one (since 6.3.4), as a file of no type (`application/octet-stream`) rather than under the type the message
+named, so that the browser only ever saves it; every version from 6.3.2 to 6.3.5 is affected.
+
+In the same way, a file the webmail saves for a second account shown beside the first is now always of no type, and
+a photo it shows for that account, or an attachment its offline store answers without a connection, keeps the type
+the server named only when that is an image type the page shows (or, offline, a PDF); 6.3.4 and 6.3.5 used the type
+as it came.
+
 ### What changes on upgrade without a switch
 
 1. **COM `Utilities`: the helpers that do work answer a caller that has signed in.** `BlowfishEncrypt`,
