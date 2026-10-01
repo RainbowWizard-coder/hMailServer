@@ -31,7 +31,9 @@ in any of its forms - an account unlocked, a POP3 mailbox lock cleared, the
 logon-failure list cleared - which change no audited row and no setting, and so
 are recorded where they are made; and a mailbox renamed or moved to another
 domain, which is the opposite shape - so many rows, and so plainly one act, that
-recording each would bury it. One row per change, in `hm_audit`:
+recording each would bury it. And, from 6.3.6, one kind of read: somebody's mail
+read through an administrator's REST route (*Mail read through an
+administrator's route*, below). One row per change, in `hm_audit`:
 
 | Column | What it holds |
 |---|---|
@@ -40,9 +42,9 @@ recording each would bury it. One row per change, in `hm_audit`:
 | `auditactortype` | `administrator`, `account` or `apikey`. Read from the role the credential holds, never from `AdminLevel` alone: `administrator` is the administrator password and an account whose role is `serveradmin` or `domainadmin`; every other account is `account`, one holding a narrower role such as `helpdesk` included. See [Roles.md](Roles.md). |
 | `auditinterface` | `COM`, `REST` or `Deck`; `Windows` for the outcome of an administrator's install of an update, which no hMailServer credential made (below). |
 | `auditaddress` | Where from. The peer address for REST and the Deck; empty for COM (see below). |
-| `auditobjecttype` | `domain`, `account`, `alias`, `rule`, `setting`, and so on; `logon failures` for the failure list cleared, `spam trap hits` for the record of trap hits cleared. |
+| `auditobjecttype` | `domain`, `account`, `alias`, `rule`, `setting`, and so on; `logon failures` for the failure list cleared, `spam trap hits` for the record of trap hits cleared; `quarantined message`, `archive` and `archive entry` for a held message read, the archive index searched and one of its entries read. |
 | `auditobjectname` | The name a person would recognise — the domain name, the address, the setting's name. For a role it is the role's name, and for a role assignment the address of the account it is for. For a greylisting white address it is the address as it was typed (`10.78.0.?`), because the column holds the SQL `LIKE` pattern that was made of it (`10.78.0._`) and that is an address no other surface shows; the detail still carries the stored pattern. |
-| `auditaction` | `created`, `updated` or `deleted`; `unlocked` for an account let back in or a mailbox lock cleared; `cleared` for the logon-failure list; `moved` for a mailbox renamed or moved to another domain, and `move failed` for one that failed and could not be put back. |
+| `auditaction` | `created`, `updated` or `deleted`; `unlocked` for an account let back in or a mailbox lock cleared; `cleared` for the logon-failure list; `moved` for a mailbox renamed or moved to another domain, and `move failed` for one that failed and could not be put back; `mailbox-read`, `read`, `searched` and `support-session-opened` for somebody's mail read through an administrator's route (see *Mail read through an administrator's route*). |
 | `auditdetail` | The columns the change carried, or, for a setting, the value it had and the value it was given. When the credential acted under a role, the detail ends with `[role: <name>]` — `[role: helpdesk]`, `[role: serveradmin]` — which is inside the hashed field, so a role edited afterwards breaks the chain like anything else. A row of `hm_roleassignments` is nothing but ids, so a role assignment's detail is written by the code that made the change rather than read from the statement: the role and what it reaches, as they were and as they are - `role: helpdesk -> auditor; domains: the account's own domain -> every domain` - and a role's is its permissions and description, the same way. A row of `hm_spamtraps` is the same shape — a domain id and a local part going in, a row id coming out — so a trap declared or taken back is recorded with the address itself. |
 | `auditprevhash`, `audithash` | The chain. See *Verifying the chain*. |
 
@@ -266,6 +268,99 @@ with the reason it is not recorded. That last rule is what makes a new
 configuration table a decision rather than an omission: folder permissions
 (`hm_acl`) and remote domain policies were simply never added, and the twelve
 syslog setters on COM's `Logging` object wrote with no actor, until it existed.
+
+### Mail read through an administrator's route
+
+From 6.3.6 somebody's mail read through the REST API - and so through the Deck
+and `hmctl` - is on the trail. Whose mail an administrator opened is the
+question a person most needs the record to answer, and a read changes nothing,
+so none of the places above ever saw one: until 6.3.6 the server administrator,
+or a domain administrator in its own domain, could list a mailbox and download
+every message in it and the trail had nothing to say. Each read is recorded by
+`RestApiServer::RecordMailRead_` (`RestApiAccountResources.cpp`), under the
+credential the request was authorised as and the address it came from, as any
+other REST row is:
+
+| Route | Object type, name | Action | Detail |
+|---|---|---|---|
+| `GET /api/v1/accounts/{address}/folders` | `account`, the address | `mailbox-read` | `its folders listed` |
+| `GET /api/v1/accounts/{address}/folders/{id}/permissions` | `account`, the address | `mailbox-read` | `the permissions of folder <id> listed` |
+| `GET /api/v1/accounts/{address}/messages` | `account`, the address | `mailbox-read` | `every message listed` |
+| `GET /api/v1/accounts/{address}/folders/{id}/messages` | `account`, the address | `mailbox-read` | `the messages of folder <id> listed` |
+| `GET /api/v1/accounts/{address}/messages/{id}` | `account`, the address | `mailbox-read` | `message <id>: its header fields read` |
+| `GET /api/v1/accounts/{address}/messages/{id}/source` | `account`, the address | `mailbox-read` | `message <id>: its source read` |
+| `GET /api/v1/backup/{archive}/mailboxes/{address}` | `account`, the address | `mailbox-read` | `its folders and messages in the backup <file> listed`, or `the messages of one of its folders in the backup <file> listed` |
+| `POST /api/v1/accounts/{address}/export` | `account`, the address | `mailbox-read` | `<n> message(s) exported as .eml files to <directory>`, or `everything held on it - <n> message(s), <n> contact(s), <n> calendar object(s) - exported to the archive <path>`; for an export that stopped part of the way, `an export as .eml files to <directory> stopped with an error after <n> message(s); those stay where they were written`, or `an export of everything held on it to the archive <path> stopped with an error; what it had written before then stays there` |
+| `GET /api/v1/accounts/{address}/export.zip` | `account`, the address | `mailbox-read` | `everything held on it downloaded as one archive` |
+| `GET /api/v1/quarantine/{id}/headers` and `/preview` | `quarantined message`, its id | `read` | `its header fields, from <sender> to <recipients>`, or `its text, from ...` |
+| `GET /api/v1/archive` | `archive`, the mailbox or domain searched (`every domain` for neither) | `searched` | `searched for <what was asked: domain, mailbox, sender containing, recipient containing, subject containing, since, until, copies on hold only>; <n> entries answered` |
+| `GET /api/v1/archive/{id}` | `archive entry`, `archiveid <id>` - the name a hold placed on it is recorded by | `read` | `its index entry read: the copy kept for <mailbox>, from <sender> to <recipients>` |
+| `GET /api/v1/discovery/cases/{id}/searches/{search}` | `discovery search`, the case (`case <id>: <name>`), as the search's own row is named | `read` | `search <id>: what it found read - <n> hit(s), and <n> message(s) it could not search` |
+| `POST /api/v1/accounts/{address}/support-session` | `account`, the address | `support-session-opened` | `a support session opened in the webmail as the account, for at most <n> minute(s)` |
+
+They are the routes that need `view_mailbox` - the six under the address and the
+backup's listing, and, beside `view_quarantine`, a held message's headers and its
+text - the two exports, which are the administrator password's alone, the
+support session, which `manage_mailbox` opens, the archive index, which
+`view_archive` reads, and an eDiscovery search's hits, which `view_discovery`
+reads. The archive's entries and a search's hits are the senders, recipients and
+subjects of everybody's mail, which is what a backup's listing of a mailbox is
+recorded for. An archive search is recorded with what was asked for - the
+searcher's words, not the mail's - and names no entry it found; a page of an
+eDiscovery search's hits is recorded by the search and the case, whose own row
+already carries the whole query and who ran it, and whoever reads the hits need
+not be whoever ran it. A page that answers nothing - a search still running -
+read nothing and is not recorded. The two reads of mail that were already on the
+trail stay as they were: an eDiscovery export downloaded
+([Discovery.md](Discovery.md)) and a message an inbound webhook kept
+([InboundWebhooks.md](InboundWebhooks.md)).
+
+**What a row names.** A message and a folder by their ids, a held message by who
+wrote to whom: never a subject, a folder's name or a word of the body. The trail
+is read by people - an auditor among them - who were not given the mail, and a
+row that quoted it would be a copy of it. The id finds the message while it
+exists; the row says it was read when it no longer does.
+
+**Once a minute.** The same read by the same credential, over the same interface,
+from the same address, is the row already written for sixty seconds. The Deck's
+*Shared folders* page reads an account's folder tree again at every click, its
+archive page searches again after every hold, a client pages a listing, and a
+script reads a folder's messages again and again while it waits for a delivery;
+a row each time would bury every other row of the trail. The same read is the
+same account - by its id, since an account removed and made again under the
+same address is somebody else's mailbox - and the same thing read: the folder
+tree, one folder's permissions or messages, every message, one message's header
+fields, one message's source, one backup's listing, one held message's headers
+or text, one archive search - the same words asked for - one archive entry, or
+one eDiscovery search's hits, whatever the page.
+A different message, a different folder, another credential or the same one
+from another address is a row at once, and the same read once the minute is
+over is a row again. An export, an archive downloaded and a support session
+opened are a row every time - an export that stopped part of the way too, since
+what it wrote before it stopped stays on the disk. The server remembers at most
+4,096 reads at once, and past that forgets them, so that the next read of each
+is a row again: it records more, never less.
+
+**A refusal records nothing.** A read the server refused - a message or a folder
+that is not the account's, a held message that is not there, a zero-access
+mailbox's file - read nothing and is not on the trail.
+
+**What is still not recorded.** A read over COM - `Account.Messages`,
+`IMAPFolder.Messages`, a `Message`'s properties, a quarantined message's
+`ReadHeaders` and `ReadPreview` - is not: COM is how the Control Panel and every
+script read mail, and recording it is a decision of its own. Nor is a mailbox
+read over IMAP by the IMAP master user (`ImapMasterUser`, not set by default),
+which carries no actor; nor what a support session does once it is open, each of
+whose requests is a line in the application log; nor an account's reads of its
+own mail through `/api/v1/me`, which are the person's. Nor are the server's
+working lists, which name senders, recipients and subjects but are how the mail
+is run rather than anybody's mailbox: the quarantine's and the review's listings,
+the delivery queue and the message trace. Nor is a managed list's archive of its
+posts, which every member of the list holds, nor an eDiscovery case read - its
+searches' queries, counts and states, its holds and its exports - which is not
+the mail. A role account reading its own mailbox through the administrator's
+routes is recorded, since the route is the administrator's. Nothing is recorded
+while the trail is off (`AuditTrailEnabled` = 0).
 
 ### Verifying the chain
 
@@ -585,8 +680,11 @@ What this does not do
   reached over REST, the Deck, or `hmctl`. A Control Panel page is the next
   piece of work on this row.
 * **A COM row records no address**, for the reason given above.
-* **The audit trail records administrative changes, not reads.** Who looked at
-  a mailbox is a different question and a much larger one.
+* **Of reads, the trail records only somebody's mail read through an
+  administrator's REST route** (*Mail read through an administrator's route*,
+  above). A read over COM, over IMAP by the master user, or within a support
+  session once it is open is not recorded, and neither is any read of anything
+  else - a domain's settings, an account's, the logs.
 * **One logical change can be more than one row** where saving an object writes
   its children as separate statements — a rule with its criteria, a distribution
   list with its recipients. Each row says what it was.

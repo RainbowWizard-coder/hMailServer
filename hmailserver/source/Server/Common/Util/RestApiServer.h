@@ -2686,6 +2686,18 @@ namespace HM
       // (CallerTakesInAccount_).
       HttpResponse HandleAccountResources_(const Caller &caller, const Route &route, const AnsiString &requestBody);
       static AnsiString OpenApiAccountResourcesPaths_();
+      // Somebody's mail read through an administrator's route, put on the
+      // audit trail under the credential the request was authorised as
+      // (RestApiAccountResources.cpp): an account's folders and messages, a
+      // message's header fields and its file, a backup's listing of a
+      // mailbox, a mailbox exported, a held message's headers and preview,
+      // the archive index searched and one of its entries read, and an
+      // eDiscovery search's hits (RestApiDiscovery.cpp).
+      // item names the thing read: the same credential reading it again from
+      // the same address within the minute is not recorded again. Empty, every
+      // read is.
+      static void RecordMailRead_(const String &objectType, const String &objectName, const String &action,
+                                  const String &detail, const String &item);
       // The account groups as a resource (RestApiGroups.cpp): one entry point
       // for the eight routes, the route saying which verb, its record_id the
       // group and its member_account_id the member.

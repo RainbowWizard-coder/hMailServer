@@ -366,6 +366,7 @@
     <Compile Include="..\RegressionTests\API\InboundWebhooks.cs" Link="API\InboundWebhooks.cs" />
     <Compile Include="..\RegressionTests\API\RestApiFolderPermissions.cs" Link="API\RestApiFolderPermissions.cs" />
     <Compile Include="..\RegressionTests\API\RestApiAccountMessages.cs" Link="API\RestApiAccountMessages.cs" />
+    <Compile Include="..\RegressionTests\API\RestApiAuditMailboxReads.cs" Link="API\RestApiAuditMailboxReads.cs" />
     <Compile Include="..\RegressionTests\API\RestApiWebPush.cs" Link="API\RestApiWebPush.cs" />
     <Compile Include="..\RegressionTests\Security\AppPasswords.cs" Link="Security\AppPasswords.cs" />
     <!-- Linked on 26 September 2026 for the coverage programme: each compiled

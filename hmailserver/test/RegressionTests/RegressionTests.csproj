@@ -835,6 +835,7 @@
     <Compile Include="API\RestApiBreachCheck.cs" />
     <Compile Include="API\RestApiFolderPermissions.cs" />
     <Compile Include="API\RestApiAccountMessages.cs" />
+    <Compile Include="API\RestApiAuditMailboxReads.cs" />
     <Compile Include="API\RestApiGroups.cs" />
     <Compile Include="API\RestApiMailboxMove.cs" />
     <Compile Include="API\RestApiAuditTrail.cs" />

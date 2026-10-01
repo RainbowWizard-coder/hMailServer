@@ -38,11 +38,20 @@ Nine rules, in the shape of build/check-authz-choke-point.py:
               settings changed as one act, each recorded by the settings
               chokepoint and the act recorded once with its counts; and by the
               eDiscovery export's download, which writes no row and is the act
-              that takes the custodians' mail off the server; and the two
+              that takes the custodians' mail off the server; the two
               credential stores that live in ini files, not audited tables - an
               API key created or revoked over REST, and the administrator's
-              second factor enrolled or disabled over REST and over COM. Every
-              one of these calls must be there.
+              second factor enrolled or disabled over REST and over COM; and by
+              RestApiServer::RecordMailRead_, for somebody's mail read through
+              an administrator's route - an account's folders and messages, a
+              message's header fields and its file, a backup's listing of a
+              mailbox, the two exports (one that stopped part of the way
+              too), a held message's headers and text, the archive index
+              searched and one of its entries read, an eDiscovery search's
+              hits - which writes nothing at all, and for which a support
+              session opened is the row beside it. RecordMailRead_ is called
+              only from the files that answer those routes. Every one of these
+              calls must be there.
 
   installed   The actor - who is making the change - is installed at one place
               per interface: RestApiServer::ProcessRequest_ for REST and the
@@ -154,6 +163,13 @@ ALLOWED = {
       "COM/InterfaceBackupManager.cpp",             # BackupManager.RestoreMailbox and RestoreMessage
       "Common/Util/RestApiBackupMailbox.cpp",       # POST /api/v1/backup/{archive}/mailboxes/{address}/restore
       "Common/Util/RestApiDiscovery.cpp",           # GET /api/v1/discovery/cases/{id}/exports/{export}: an export downloaded writes no row
+      # Somebody's mail read through an administrator's route - the account's
+      # folders and messages, a backup's listing of a mailbox, the two exports,
+      # a held message's headers and preview, the archive index searched and an
+      # entry of it read - which writes nothing at all:
+      # RestApiServer::RecordMailRead_, the one place every such read is
+      # recorded from (its own entry below names who may call it).
+      "Common/Util/RestApiAccountResources.cpp",
       "Common/Util/RestApiInboundWebhooks.cpp",     # a message an inbound webhook kept read, retried or removed: its queue is traffic
       "Common/Util/RestApiSettings.cpp",            # POST /api/v1/settings/logon-failures/clear
       "COM/InterfaceSettings.cpp",                  # Settings.ClearLogonFailureList; Settings.EnrolAdministratorTOTP and DisableAdministratorTOTP
@@ -198,6 +214,17 @@ ALLOWED = {
    },
    "AuditTrail::ClearActor(": {
       "Common/Util/AuditTrail.cpp",
+   },
+   # A read of somebody's mail recorded: the routes that read it, and nothing
+   # else - a call anywhere else is a read recorded where nobody decided it
+   # was one, under whatever window the item it names happens to share.
+   "RecordMailRead_(": {
+      "Common/Util/RestApiServer.h",
+      "Common/Util/RestApiAccountResources.cpp",    # the account's folders and messages, and the recorder itself
+      "Common/Util/RestApiBackupMailbox.cpp",       # GET /api/v1/backup/{archive}/mailboxes/{address}
+      "Common/Util/RestApiDiscovery.cpp",           # GET /api/v1/discovery/cases/{id}/searches/{search}: a page of its hits
+      "Common/Util/RestApiOperator.cpp",            # POST /api/v1/accounts/{address}/export and GET .../export.zip
+      "Common/Util/RestApiServer.cpp",              # GET /api/v1/quarantine/{id}/headers and /preview, GET /api/v1/archive and /api/v1/archive/{id}
    },
    # The words a row is recorded with, in place of the ones read from its
    # statement. Only for a table whose rows are nothing but ids, or whose name
@@ -341,6 +368,66 @@ REQUIRED = [
    ("Common/Util/RestApiDiscovery.cpp",
     'AuditTrail::Instance()->RecordEvent(_T("discovery export"), DiscoveryStore::CaseLabel(theCase), _T("downloaded"),',
     "an eDiscovery export downloaded is no longer recorded - the download writes no row, and it is the act that takes the custodians' mail off the server"),
+   ("Common/Util/RestApiAccountResources.cpp",
+    "AuditTrail::Instance()->RecordEvent(objectType, objectName, action, detail);",
+    "somebody's mail read through an administrator's route is no longer recorded - a read writes no row and no setting, so no chokepoint sees it, and whose mail an administrator opened is the question the trail exists to answer"),
+   ("Common/Util/RestApiAccountResources.cpp",
+    "if (!FirstReadInWindow(key))",
+    "a read of somebody's mail is no longer held to one row a minute for the same credential, address and item - a page that reads again at every click, and a client that pages a listing, would bury every other row of the trail"),
+   ("Common/Util/RestApiAccountResources.cpp",
+    'return recorded(ListFolders(bridge, account), _T("its folders listed"), _T("folders"));',
+    "an account's folder tree read through GET /api/v1/accounts/{address}/folders is no longer recorded - the names of somebody's folders are their mailbox's"),
+   ("Common/Util/RestApiAccountResources.cpp",
+    "return recorded(ListPermissions(bridge, account, route.folder_id),",
+    "a folder's permissions read through GET /api/v1/accounts/{address}/folders/{id}/permissions are no longer recorded - the route is view_mailbox's, as every read of the mailbox is"),
+   ("Common/Util/RestApiAccountResources.cpp",
+    'return recorded(ListAccountMessages(bridge, account), _T("every message listed"), _T("messages"));',
+    "an account's messages listed through GET /api/v1/accounts/{address}/messages are no longer recorded - who wrote to the person, when, and how much"),
+   ("Common/Util/RestApiAccountResources.cpp",
+    "return recorded(ListFolderMessages(bridge, account, route.folder_id),",
+    "a folder's messages listed through GET /api/v1/accounts/{address}/folders/{id}/messages are no longer recorded"),
+   ("Common/Util/RestApiAccountResources.cpp",
+    "return recorded(GetMessage(bridge, account, route.message_id),",
+    "a message's header fields read through GET /api/v1/accounts/{address}/messages/{id} are no longer recorded - its subject, its sender and its recipients"),
+   ("Common/Util/RestApiAccountResources.cpp",
+    "return recorded(MessageSource(bridge, account, route.message_id),",
+    "a message's whole file read through GET /api/v1/accounts/{address}/messages/{id}/source is no longer recorded - the mail itself, byte for byte"),
+   ("Common/Util/RestApiBackupMailbox.cpp",
+    'RecordMailRead_(_T("account"), address, _T("mailbox-read"), listed,',
+    "a backup's listing of somebody's mailbox is no longer recorded - its senders, dates and subjects are the mailbox as it was"),
+   ("Common/Util/RestApiOperator.cpp",
+    'RecordMailRead_(_T("account"), account->GetAddress(), _T("mailbox-read"), directoryExported, String());',
+    "a mailbox exported to a directory on the server's disk is no longer recorded - the whole of it read, and a copy left behind"),
+   ("Common/Util/RestApiOperator.cpp",
+    'RecordMailRead_(_T("account"), account->GetAddress(), _T("mailbox-read"), archiveExported, String());',
+    "a mailbox exported to an archive on the server's disk is no longer recorded - the whole of it read, and a copy left behind"),
+   ("Common/Util/RestApiOperator.cpp",
+    'RecordMailRead_(_T("account"), account->GetAddress(), _T("mailbox-read"), directoryStopped, String());',
+    "an export to a directory that stopped part of the way is no longer recorded - the messages it copied before it stopped stay on the disk"),
+   ("Common/Util/RestApiOperator.cpp",
+    'RecordMailRead_(_T("account"), account->GetAddress(), _T("mailbox-read"), archiveStopped, String());',
+    "an export to an archive that stopped part of the way is no longer recorded - what it wrote before it stopped stays in the archive on the disk"),
+   ("Common/Util/RestApiOperator.cpp",
+    'RecordMailRead_(_T("account"), account->GetAddress(), _T("mailbox-read"), _T("everything held on it downloaded as one archive"), String());',
+    "a mailbox downloaded whole through GET /api/v1/accounts/{address}/export.zip is no longer recorded - the strongest read there is"),
+   ("Common/Util/RestApiServer.cpp",
+    '_T("its header fields, from ") + message.sender + _T(" to ") + message.recipients,',
+    "a held message's headers read through GET /api/v1/quarantine/{id}/headers are no longer recorded - the message itself, which is why the route asks view_mailbox"),
+   ("Common/Util/RestApiServer.cpp",
+    '_T("its text, from ") + message.sender + _T(" to ") + message.recipients,',
+    "a held message's text read through GET /api/v1/quarantine/{id}/preview is no longer recorded - the message itself, which is why the route asks view_mailbox"),
+   ("Common/Util/RestApiServer.cpp",
+    'RecordMailRead_(_T("archive"), searchedIn, _T("searched"), searched,',
+    "a search of the archive index through GET /api/v1/archive is no longer recorded - the senders, recipients and subjects of the archived copies of everybody's mail"),
+   ("Common/Util/RestApiServer.cpp",
+    'RecordMailRead_(_T("archive entry"), _T("archiveid ") + StringParser::IntToString(archiveId), _T("read"),',
+    "one archive entry read through GET /api/v1/archive/{id} is no longer recorded - who wrote to whom about what, and where the copy lies"),
+   ("Common/Util/RestApiDiscovery.cpp",
+    'RecordMailRead_(_T("discovery search"), DiscoveryStore::CaseLabel(theCase), _T("read"),',
+    "a page of an eDiscovery search's hits read through GET /api/v1/discovery/cases/{id}/searches/{search} is no longer recorded - the custodians' mail as the search found it, read by whoever holds view_discovery, who need not be whoever ran the search"),
+   ("Common/Util/RestApiServer.cpp",
+    'AuditTrail::Instance()->RecordEvent(_T("account"), account->GetAddress(), _T("support-session-opened"), supportDetail);',
+    "a support session opened as an account is no longer recorded - the webmail opened as somebody else, which writes no audited row"),
    ("Common/Util/DiscoveryStore.cpp",
     "AuditDescription words(SearchesTable, CaseLabel(theCase), detail);",
     "an eDiscovery search is no longer recorded with its whole query - the statement's own detail cuts every value at 120 characters, and 'every search logged' is the query as it was asked"),

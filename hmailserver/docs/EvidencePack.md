@@ -676,9 +676,16 @@ COM), what, and the values before and after - with secrets recorded as
 `(changed)`. Each row carries the SHA-256 of the row before it, so an edited or
 removed row is found by `GET /api/v1/audit/verify`; that makes tampering
 detectable, not impossible, since whoever can write the table can recompute the
-chain. It records changes, not reads. Not recorded: creating or revoking an API
-key, releasing or deleting quarantined mail, public folders, the administrator
-password, and what a restore replaces
+chain. It records changes, and from 6.3.6 one kind of read: somebody's mail
+read through an administrator's REST route - an account's folders and
+messages, a message's headers or its source, a backup's listing of a mailbox,
+an export, a held message's headers or text, the archive index searched or an
+entry of it read, an eDiscovery search's hits - and a support session opened,
+the same read by the same credential from the same address once a minute
+([AlertsAndAuditTrail.md](AlertsAndAuditTrail.md), *Mail read through an
+administrator's route*). Not recorded: a read over COM or by the IMAP master
+user, creating or revoking an API key, releasing or deleting quarantined mail,
+public folders, the administrator password, and what a restore replaces
 ([AlertsAndAuditTrail.md](AlertsAndAuditTrail.md), *What this does not do*).
 
 ### Logs

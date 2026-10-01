@@ -612,6 +612,47 @@ namespace RegressionTests.AntiSpam
       }
 
       [Test]
+      [Description("A held message's headers and its text read over REST are each on the audit trail - under the credential and the address that read them, naming who wrote to whom and never the subject - and the headers read again inside the minute are the row already written")]
+      public void ReadingAHeldMessageIsOnTheAuditTrail()
+      {
+         SendSpam("HELO audit.review-helo.test", "outsider@review-sender.test", "Audited subject 31", "Words of the audited message");
+         long id = HeldId("Audited subject 31");
+
+         // Before 6.3.6 none of these wrote anything: the trail recorded changes,
+         // and a read changes nothing.
+         Assert.AreEqual(200, Rest("GET", "/api/v1/quarantine/" + id + "/headers").status);
+         Assert.AreEqual(200, Rest("GET", "/api/v1/quarantine/" + id + "/headers").status);
+         Assert.AreEqual(200, Rest("GET", "/api/v1/quarantine/" + id + "/preview").status);
+
+         (int status, string body) trail = Rest("GET", "/api/v1/audit?object_type=quarantined%20message&action=read&limit=1000");
+         Assert.AreEqual(200, trail.status, trail.body);
+
+         List<Dictionary<string, object>> rows = MiniJson.List(MiniJson.Object(trail.body), "entries")
+            .Cast<Dictionary<string, object>>()
+            .Where(row => MiniJson.Text(row, "object") == id.ToString())
+            .ToList();
+
+         Assert.AreEqual(2, rows.Count, "The headers twice inside the minute and the text once are two rows: " + trail.body);
+         Assert.AreEqual(1, rows.Count(row => MiniJson.Text(row, "detail").StartsWith("its header fields, from ", StringComparison.Ordinal)), trail.body);
+         Assert.AreEqual(1, rows.Count(row => MiniJson.Text(row, "detail").StartsWith("its text, from ", StringComparison.Ordinal)), trail.body);
+
+         foreach (Dictionary<string, object> row in rows)
+         {
+            Assert.AreEqual("administrator", MiniJson.Text(row, "actor"));
+            Assert.AreEqual("REST", MiniJson.Text(row, "interface"));
+            Assert.AreEqual("127.0.0.1", MiniJson.Text(row, "address"));
+            StringAssert.Contains("from outsider@review-sender.test to " + _recipient.Address, MiniJson.Text(row, "detail"));
+            StringAssert.DoesNotContain("Audited subject", MiniJson.Text(row, "detail"),
+               "Who wrote to whom says whose mail was read; the subject would make the trail a copy of it.");
+         }
+
+         // A held message that is not there was not read, and is not recorded.
+         Assert.AreEqual(404, Rest("GET", "/api/v1/quarantine/999999999/preview").status);
+         (int status, string body) after = Rest("GET", "/api/v1/audit?object_type=quarantined%20message&action=read&limit=1000");
+         StringAssert.DoesNotContain("\"object\":\"999999999\"", after.body);
+      }
+
+      [Test]
       [Description("The expired sweep runs over REST: past QuarantineRetentionDays it deletes, and with 0 days it keeps everything")]
       public void TheExpiredSweepRunsOverRest()
       {

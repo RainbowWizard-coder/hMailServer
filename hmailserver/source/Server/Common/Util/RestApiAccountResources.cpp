@@ -92,14 +92,37 @@
 // the destination folder's next UID, the folder's sessions told - into a
 // folder of the same account's tree, which is the only destination COM's
 // Copy reaches either.
+//
+// A read of the mailbox through these routes is somebody's mail read by an
+// administrator, or by a role that holds view_mailbox, and it is on the audit
+// trail: object type "account", the address, action "mailbox-read", and what
+// was read - the folder tree, a folder's permissions, every message, a
+// folder's messages, a message's header fields or its source - by id and
+// never by subject or folder name, so that the trail an auditor reads does
+// not become a copy of the mail. A read writes no row and no setting, so no
+// chokepoint of the trail ever saw one, and until 6.3.6 the one thing a
+// person most needs to know about an administrator - whose mail they opened -
+// was the one thing the record could not say. RecordMailRead_ below is the
+// one place the reads are recorded from: the backup's listing of a mailbox,
+// the two exports, a held message's headers and preview, the archive index
+// searched or one of its entries read, and an eDiscovery search's hits record
+// through it too. The same credential reading the same thing from the same
+// address is one row a minute and not one a request - the Deck's shared
+// folders page reads the tree again at every click, and the Linux suite's COM
+// shim reads a folder's messages every tenth of a second while it waits for a
+// delivery (CustomAsserts) - but a different message, a different folder, a
+// different credential or the same one from another address is a row at once.
+// docs/AlertsAndAuditTrail.md says what is recorded and what is not.
 
 #include "StdAfx.h"
 #include "RestApiServer.h"
+#include "AuditTrail.h"
 #include "JsonDocument.h"
 #include "Unicode.h"
 #include "PasswordPolicy.h"
 #include "PasswordBreachCheck.h"
 #include "FileUtilities.h"
+#include "Hashing/HashCreator.h"
 #include "MessageUtilities.h"
 #include "../Application/Logger.h"
 #include "../Application/Application.h"
@@ -133,9 +156,12 @@
 #include "../../IMAP/IMAPSpecialUse.h"
 #include "../../IMAP/MessagesContainer.h"
 
+#include <chrono>
 #include <cmath>
 #include <fstream>
+#include <initializer_list>
 #include <map>
+#include <mutex>
 #include <set>
 #include <string>
 #include <vector>
@@ -1478,6 +1504,83 @@ namespace
    }
 
    // ------------------------------------------------------------------------
+   // The record of mail read: which reads have been recorded in the last
+   // minute (RestApiServer::RecordMailRead_).
+   // ------------------------------------------------------------------------
+
+   // How long the same read by the same credential from the same address is
+   // the row already written.
+   const std::chrono::seconds MailReadWindow(60);
+
+   // How many of them are remembered. Past this, the ones whose minute is over
+   // are let go; if every one is still inside its minute, all are, so that
+   // the next read of each is a row again. Forgetting records more and never
+   // less.
+   const size_t MailReadMemory = 4096;
+
+   std::mutex mailReadsMutex;
+   std::map<AnsiString, std::chrono::steady_clock::time_point> mailReads;
+
+   // What a read is remembered by: the SHA-256 of the words that name it, and
+   // not the words. They carry what the request asked for - an archive
+   // search's terms, a backup listing's folder - which may be as long as a
+   // request is (64 KB), and 4,096 of those held as text would be half a
+   // gigabyte, or a gigabyte on Linux, where a character is four bytes, which
+   // any role that may search the archive could fill. A digest is 64
+   // characters whatever was asked, and two different reads do not share one,
+   // so no read is held back by another's row. Each field goes in with its
+   // length, so that no two different reads are the same words either, and as
+   // the characters themselves, which lose nothing: an ANSI conversion would
+   // make two names that differ only past Latin-1 the same read.
+   AnsiString MailReadKey(const std::initializer_list<const String *> &fields)
+   {
+      String words;
+      for (const String *field : fields)
+         words += StringParser::IntToString(field->GetLength()) + _T(":") + *field + _T("\n");
+
+      HashCreator hasher(HashCreator::SHA256);
+      return hasher.GenerateHashNoSalt(AnsiString(reinterpret_cast<const char *>(words.c_str()), words.GetLength() * sizeof(words.c_str()[0])),
+                                       HashCreator::hex);
+   }
+
+   // Whether this read is the first of its kind inside the window, and so a
+   // row; remembers that it was. Two threads asking at once for the same read
+   // are one row: the second finds the first's entry.
+   bool FirstReadInWindow(const AnsiString &key)
+   {
+      const std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
+
+      std::lock_guard<std::mutex> guard(mailReadsMutex);
+
+      std::map<AnsiString, std::chrono::steady_clock::time_point>::iterator found = mailReads.find(key);
+      if (found != mailReads.end())
+      {
+         if (now - found->second < MailReadWindow)
+            return false;
+
+         found->second = now;
+         return true;
+      }
+
+      if (mailReads.size() >= MailReadMemory)
+      {
+         for (std::map<AnsiString, std::chrono::steady_clock::time_point>::iterator entry = mailReads.begin(); entry != mailReads.end();)
+         {
+            if (now - entry->second >= MailReadWindow)
+               entry = mailReads.erase(entry);
+            else
+               ++entry;
+         }
+
+         if (mailReads.size() >= MailReadMemory)
+            mailReads.clear();
+      }
+
+      mailReads[key] = now;
+      return true;
+   }
+
+   // ------------------------------------------------------------------------
    // The OpenAPI entries, each beginning with a comma as HandleOpenApi_ asks.
    // ------------------------------------------------------------------------
 
@@ -1490,24 +1593,24 @@ namespace
       "\"/api/v1/accounts/{address}/app-passwords/{id}\":{"
       "\"put\":{\"summary\":\"Rename an app password, or revoke it without deleting (administrator)\",\"description\":\"Body: name and/or active - the two things the COM setters change on a stored app password, saved as InterfaceAppPassword.Save saves them. active false refuses the credential without deleting it, so it can be put back with active true; the secret is never changed here (delete and issue another). A field left out keeps its value. Logged with the account's address.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"active\":{\"type\":\"boolean\"}}}}}},\"responses\":{\"200\":{\"description\":\"id, name, created, last_used, active\"},\"400\":{\"description\":\"An empty name, an unknown field, or a value of the wrong type\"},\"404\":{\"description\":\"No such account, or no app password with that id in it\"}}},"
       "\"delete\":{\"summary\":\"Remove an account's app password (administrator)\",\"description\":\"Through the account's collection, as InterfaceAppPasswords.DeleteByDBID goes; an app password of another account is not found here. Logged with the account's address.\",\"responses\":{\"200\":{\"description\":\"deleted true\"},\"404\":{\"description\":\"No such account, or no app password with that id in it\"}}}},"
-      "\"/api/v1/accounts/{address}/folders\":{\"get\":{\"summary\":\"An account's folders (administrator)\",\"description\":\"The account's own folder tree - what Account.IMAPFolders is over COM - as GET /api/v1/me/folders shows it to the account itself: delimiter, and folders each with its id, name, path, parent_id, subfolders and the rest of that entry, read here without the account's password so that a folder's id can be named in the permission routes. The public namespace and the folders other owners share with the account are not listed; they are not this account's. A key restricted to named domains reaches the accounts of those domains only.\",\"responses\":{\"200\":{\"description\":\"delimiter, folders\"},\"404\":{\"description\":\"No such account\"}}}},"
+      "\"/api/v1/accounts/{address}/folders\":{\"get\":{\"summary\":\"An account's folders (administrator)\",\"description\":\"The account's own folder tree - what Account.IMAPFolders is over COM - as GET /api/v1/me/folders shows it to the account itself: delimiter, and folders each with its id, name, path, parent_id, subfolders and the rest of that entry, read here without the account's password so that a folder's id can be named in the permission routes. The public namespace and the folders other owners share with the account are not listed; they are not this account's. A key restricted to named domains reaches the accounts of those domains only. The read is on the audit trail, action mailbox-read, under the credential and the address it came from; the same read again within a minute is the same row.\",\"responses\":{\"200\":{\"description\":\"delimiter, folders\"},\"404\":{\"description\":\"No such account\"}}}},"
       "\"/api/v1/accounts/{address}/folders/{id}/permissions\":{"
-      "\"get\":{\"summary\":\"A folder's access-control list (administrator)\",\"description\":\"The rows of the folder's ACL - IMAPFolder.Permissions over COM, GETACL over IMAP - read as ACLManager reads them for every decision. Each: id, folder_id, type (user, group or anyone), account_id and account (the address, for a user permission), group_id and group (the name, for a group permission), rights - the eleven RFC 4314 rights by the names eACLPermission gives them (lookup, read, write_seen, write_others, insert, post, create, delete_mailbox, write_deleted, expunge, administer), each true or false - and rights_text, the same as the letters SETACL takes. The folder is one of the account's own; a public folder is not reached here.\",\"responses\":{\"200\":{\"description\":\"Array of permissions\"},\"404\":{\"description\":\"No such account, or no folder with that id in its tree\"}}},"
+      "\"get\":{\"summary\":\"A folder's access-control list (administrator)\",\"description\":\"The rows of the folder's ACL - IMAPFolder.Permissions over COM, GETACL over IMAP - read as ACLManager reads them for every decision. Each: id, folder_id, type (user, group or anyone), account_id and account (the address, for a user permission), group_id and group (the name, for a group permission), rights - the eleven RFC 4314 rights by the names eACLPermission gives them (lookup, read, write_seen, write_others, insert, post, create, delete_mailbox, write_deleted, expunge, administer), each true or false - and rights_text, the same as the letters SETACL takes. The folder is one of the account's own; a public folder is not reached here. The read is on the audit trail, action mailbox-read, under the credential and the address it came from; the same read again within a minute is the same row.\",\"responses\":{\"200\":{\"description\":\"Array of permissions\"},\"404\":{\"description\":\"No such account, or no folder with that id in its tree\"}}},"
       "\"post\":{\"summary\":\"Grant a permission on a folder (administrator)\",\"description\":\"Body: type (required: user, group or anyone); for a user permission account_id or account (the address), for a group permission group_id or group (the name); rights, an object of true/false by right - a right not named is not granted. What InterfaceIMAPFolderPermissions.Add, the setters and Save do, saved by PersistentACLPermission::SaveObject and in force for the next IMAP command. Checked before anything is saved: the shape the store insists on (a user permission names an account and no group, a group permission the reverse, anyone neither), that the account or group exists, and that the account is not the folder's owner - whose rights are implicit and cannot be changed, as SETACL says. Logged with the account's address.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"type\"],\"properties\":{\"type\":{\"type\":\"string\",\"enum\":[\"user\",\"group\",\"anyone\"]},\"account_id\":{\"type\":\"integer\"},\"account\":{\"type\":\"string\"},\"group_id\":{\"type\":\"integer\"},\"group\":{\"type\":\"string\"},\"rights\":{\"type\":\"object\",\"properties\":{\"lookup\":{\"type\":\"boolean\"},\"read\":{\"type\":\"boolean\"},\"write_seen\":{\"type\":\"boolean\"},\"write_others\":{\"type\":\"boolean\"},\"insert\":{\"type\":\"boolean\"},\"post\":{\"type\":\"boolean\"},\"create\":{\"type\":\"boolean\"},\"delete_mailbox\":{\"type\":\"boolean\"},\"write_deleted\":{\"type\":\"boolean\"},\"expunge\":{\"type\":\"boolean\"},\"administer\":{\"type\":\"boolean\"}}}}}}}},\"responses\":{\"201\":{\"description\":\"Created: the permission as the listing shows it, with its id\"},\"400\":{\"description\":\"No type, a type other than the three, an account or group missing or unknown, the folder's owner, an unknown right or field, or a value of the wrong type (error names it); nothing saved\"},\"404\":{\"description\":\"No such account, or no folder with that id in its tree\"}}}},"
       "\"/api/v1/accounts/{address}/folders/{id}/permissions/{pid}\":{"
       "\"put\":{\"summary\":\"Change a permission (administrator)\",\"description\":\"Body: any subset of what POST takes. A field left out keeps its value; a right not named keeps its value; a change of type drops the account and the group unless the body names them, since the old ones could not belong to the new type. The same checks as POST, and nothing changes when one fails.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\"}}}},\"responses\":{\"200\":{\"description\":\"The permission as saved\"},\"400\":{\"description\":\"A field refused; nothing changed\"},\"404\":{\"description\":\"No such account, folder or permission\"}}},"
       "\"delete\":{\"summary\":\"Revoke a permission (administrator)\",\"description\":\"Through the folder's collection as InterfaceIMAPFolderPermissions.DeleteByDBID goes; a permission of another folder is not found here. Logged with the account's address.\",\"responses\":{\"200\":{\"description\":\"deleted true\"},\"404\":{\"description\":\"No such account, folder or permission\"}}}},"
       "\"/api/v1/accounts/{address}/messages\":{"
-      "\"get\":{\"summary\":\"Every message of an account (administrator)\",\"description\":\"What Account.Messages is over COM: every message of the account whatever its folder, in the collection's order, read fresh. total, and messages, each the row as COM's Message reports it: id, uid, folder_id, account_id, size (bytes), state (0 created, 1 delivering, 2 delivered), received, from_address (the envelope sender) and flags - seen, deleted, flagged, answered, draft, recent and keywords. A message flagged deleted and not yet expunged is listed, as it is in the COM collection; the account's own /api/v1/me listing is a reader's view and leaves it out. A key restricted to named domains reaches the accounts of those domains only.\",\"responses\":{\"200\":{\"description\":\"total, messages\"},\"404\":{\"description\":\"No such account\"}}},"
+      "\"get\":{\"summary\":\"Every message of an account (administrator)\",\"description\":\"What Account.Messages is over COM: every message of the account whatever its folder, in the collection's order, read fresh. total, and messages, each the row as COM's Message reports it: id, uid, folder_id, account_id, size (bytes), state (0 created, 1 delivering, 2 delivered), received, from_address (the envelope sender) and flags - seen, deleted, flagged, answered, draft, recent and keywords. A message flagged deleted and not yet expunged is listed, as it is in the COM collection; the account's own /api/v1/me listing is a reader's view and leaves it out. A key restricted to named domains reaches the accounts of those domains only. The read is on the audit trail, action mailbox-read, under the credential and the address it came from; the same read again within a minute is the same row.\",\"responses\":{\"200\":{\"description\":\"total, messages\"},\"404\":{\"description\":\"No such account\"}}},"
       "\"delete\":{\"summary\":\"Delete every message of an account (administrator)\",\"description\":\"What Account.DeleteMessages does over COM, to the call - PersistentAccount::DeleteMessages: the account's messages go with the folders the server does not keep, the inbox and the designated folders stay emptied, and the account's caches are dropped. Logged with the account's address.\",\"responses\":{\"200\":{\"description\":\"deleted true\"},\"404\":{\"description\":\"No such account\"}}}},"
       "\"/api/v1/accounts/{address}/folders/{id}/messages\":{"
-      "\"get\":{\"summary\":\"A folder's messages, every one of them (administrator)\",\"description\":\"What IMAPFolder.Messages is over COM: the folder's whole collection, the live one every IMAP session shares, in UID order - a message flagged deleted and not yet expunged included. folder_id, total, and messages, each the row as GET /api/v1/accounts/{address}/messages describes it. The folder is one of the account's own.\",\"responses\":{\"200\":{\"description\":\"folder_id, total, messages\"},\"404\":{\"description\":\"No such account, or no folder with that id in its tree\"}}},"
+      "\"get\":{\"summary\":\"A folder's messages, every one of them (administrator)\",\"description\":\"What IMAPFolder.Messages is over COM: the folder's whole collection, the live one every IMAP session shares, in UID order - a message flagged deleted and not yet expunged included. folder_id, total, and messages, each the row as GET /api/v1/accounts/{address}/messages describes it. The folder is one of the account's own. The read is on the audit trail, action mailbox-read, under the credential and the address it came from; the same read again within a minute is the same row.\",\"responses\":{\"200\":{\"description\":\"folder_id, total, messages\"},\"404\":{\"description\":\"No such account, or no folder with that id in its tree\"}}},"
       "\"post\":{\"summary\":\"Add a message to a folder from its text (administrator)\",\"description\":\"The body is the message, as a .eml file; a bare-LF body is given CRLF. What Messages.Add and Message.Save do over COM, and what APPEND does: the bytes are written where the server keeps a delivered message, the row saved with its UID and the state delivered, and every session on the folder told. flags= in the query names the flags to store it with, comma-separated from seen, flagged, answered, draft and deleted, as APPEND's flag list goes beside the literal; from= the envelope sender the row carries, as Message.FromAddress sets it. Nothing in the text is changed or added.\",\"requestBody\":{\"content\":{\"message/rfc822\":{\"schema\":{\"type\":\"string\"}}}},\"responses\":{\"201\":{\"description\":\"The row, with its id and uid\"},\"400\":{\"description\":\"An empty body, one that does not begin with a header line, or an unknown flag\"},\"404\":{\"description\":\"No such account, or no folder with that id in its tree\"},\"413\":{\"description\":\"Over 16 MB\"}}}},"
       "\"/api/v1/accounts/{address}/messages/{id}\":{"
-      "\"get\":{\"summary\":\"One message: its row, its header fields and every header (administrator)\",\"description\":\"The row as the listing shows it, then file - the path on the server's own disk, the COM Filename - and file_exists, then subject, from, to, cc and date decoded from the header block, and headers: every field as written, name and value in order, which is what Message.Headers and Message.HeaderValue answer over COM. The header block is read to 64 KB. A message of another account, or in a folder outside the account's tree, is not found.\",\"responses\":{\"200\":{\"description\":\"The message\"},\"404\":{\"description\":\"No such account or message\"}}},"
+      "\"get\":{\"summary\":\"One message: its row, its header fields and every header (administrator)\",\"description\":\"The row as the listing shows it, then file - the path on the server's own disk, the COM Filename - and file_exists, then subject, from, to, cc and date decoded from the header block, and headers: every field as written, name and value in order, which is what Message.Headers and Message.HeaderValue answer over COM. The header block is read to 64 KB. A message of another account, or in a folder outside the account's tree, is not found. The read is on the audit trail, action mailbox-read, under the credential and the address it came from; the same read again within a minute is the same row.\",\"responses\":{\"200\":{\"description\":\"The message\"},\"404\":{\"description\":\"No such account or message\"}}},"
       "\"put\":{\"summary\":\"Change a message's flags (administrator)\",\"description\":\"Body: any of seen, deleted, flagged, answered and draft, true or false; a flag not named keeps its value. Written on the path STORE takes, with the folder's next mod-sequence, and every session told. Answers the row as changed.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"properties\":{\"seen\":{\"type\":\"boolean\"},\"deleted\":{\"type\":\"boolean\"},\"flagged\":{\"type\":\"boolean\"},\"answered\":{\"type\":\"boolean\"},\"draft\":{\"type\":\"boolean\"}}}}}},\"responses\":{\"200\":{\"description\":\"The row\"},\"400\":{\"description\":\"No flag named, an unknown field, or a value that is not true or false\"},\"404\":{\"description\":\"No such account or message\"}}},"
       "\"delete\":{\"summary\":\"Delete a message (administrator)\",\"description\":\"What Messages.DeleteByDBID does over COM and EXPUNGE does for one message: the row and the file go, through the folder's live collection, and every session is told.\",\"responses\":{\"200\":{\"description\":\"deleted true\"},\"404\":{\"description\":\"No such account or message\"}}}},"
-      "\"/api/v1/accounts/{address}/messages/{id}/source\":{\"get\":{\"summary\":\"A message's file (administrator)\",\"description\":\"The bytes as stored, message/rfc822, as a download; up to 16 MB.\",\"responses\":{\"200\":{\"description\":\"The message file\"},\"404\":{\"description\":\"No such account or message, or the file is missing\"},\"413\":{\"description\":\"Over 16 MB\"}}}},"
+      "\"/api/v1/accounts/{address}/messages/{id}/source\":{\"get\":{\"summary\":\"A message's file (administrator)\",\"description\":\"The bytes as stored, message/rfc822, as a download; up to 16 MB. The read is on the audit trail, action mailbox-read, under the credential and the address it came from; the same read again within a minute is the same row.\",\"responses\":{\"200\":{\"description\":\"The message file\"},\"404\":{\"description\":\"No such account or message, or the file is missing\"},\"413\":{\"description\":\"Over 16 MB\"}}}},"
       "\"/api/v1/accounts/{address}/messages/{id}/copy\":{\"post\":{\"summary\":\"Copy a message into another folder of the account (administrator)\",\"description\":\"Body: folder_id (required), a folder of this account's own tree. What Message.Copy does over COM, to the call: the file is copied, the row written with the destination folder's next UID, and every session on that folder told. The source is left as it is, flags included. Answers the copy's row as the listing shows it.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"folder_id\"],\"properties\":{\"folder_id\":{\"type\":\"integer\"}}}}}},\"responses\":{\"201\":{\"description\":\"The copy: id, uid, folder_id, account_id, size, state, received, from_address, flags\"},\"400\":{\"description\":\"folder_id missing or not a folder id, an unknown field, or the body is not a JSON object\"},\"404\":{\"description\":\"No such account or message, or folder_id is not a folder of the account\"}}}}";
 }
 
@@ -1786,6 +1889,33 @@ namespace HM
       return AnsiString(AccountResourcesPaths);
    }
 
+   // Somebody's mail, read through an administrator's route: one row on the
+   // audit trail, under the actor ProcessRequest_ installed for the request,
+   // unless the same actor - the same credential, over the same interface,
+   // from the same address - read the same item in the last minute. Nothing
+   // is remembered while there is no actor or the trail is off: AuditTrail
+   // would write no row, and a read remembered then would hold back the row
+   // of the next one for a minute after the trail was switched back on.
+   void
+   RestApiServer::RecordMailRead_(const String &objectType, const String &objectName, const String &action,
+                                  const String &detail, const String &item)
+   {
+      if (!AuditTrail::HasActor() || !Configuration::Instance()->GetAuditTrailEnabled())
+         return;
+
+      if (!item.IsEmpty())
+      {
+         const AuditTrail::Actor actor = AuditTrail::GetActor();
+
+         const AnsiString key = MailReadKey({ &actor.name, &actor.kind, &actor.interface_name, &actor.address, &objectType, &action, &item });
+
+         if (!FirstReadInWindow(key))
+            return;
+      }
+
+      AuditTrail::Instance()->RecordEvent(objectType, objectName, action, detail);
+   }
+
    // The one entry point the dispatcher reaches for this unit's routes: the
    // kind says which resource and which verb, the identifier the account.
    HttpResponse
@@ -1816,6 +1946,27 @@ namespace HM
          return AccountNotTakenIn_();
       }
 
+      // A read of the mailbox - every route here that view_mailbox decides -
+      // is on the audit trail once it has been answered. A refusal read
+      // nothing and is not recorded: a folder or a message that is not the
+      // account's, or a zero-access mailbox's file. The thing read is named by
+      // the account's id as well as by what was read, because an account
+      // removed and made again under the same address is somebody else's
+      // mailbox, and a read of it is a row of its own.
+      const auto recorded = [&account](HttpResponse response, const String &detail, const String &what) -> HttpResponse
+      {
+         if (response.status == 200)
+         {
+            RecordMailRead_(_T("account"), account->GetAddress(), _T("mailbox-read"), detail,
+                            StringParser::IntToString(account->GetID()) + _T(" ") + what);
+         }
+
+         return response;
+      };
+
+      const String folder = StringParser::IntToString(route.folder_id);
+      const String message = StringParser::IntToString(route.message_id);
+
       switch (route.kind)
       {
       case RouteAccountAppPasswordList:
@@ -1828,9 +1979,10 @@ namespace HM
          return DeleteAppPassword(bridge, account, route.record_id);
 
       case RouteAccountFolderList:
-         return ListFolders(bridge, account);
+         return recorded(ListFolders(bridge, account), _T("its folders listed"), _T("folders"));
       case RouteAccountFolderPermissionList:
-         return ListPermissions(bridge, account, route.folder_id);
+         return recorded(ListPermissions(bridge, account, route.folder_id),
+                         _T("the permissions of folder ") + folder + _T(" listed"), _T("permissions ") + folder);
       case RouteAccountFolderPermissionCreate:
          return CreatePermission(bridge, account, route.folder_id, requestBody);
       case RouteAccountFolderPermissionUpdate:
@@ -1839,15 +1991,17 @@ namespace HM
          return DeletePermission(bridge, account, route.folder_id, route.record_id);
 
       case RouteAccountMessageList:
-         return ListAccountMessages(bridge, account);
+         return recorded(ListAccountMessages(bridge, account), _T("every message listed"), _T("messages"));
       case RouteAccountMessagesDelete:
          return DeleteAccountMessages(bridge, account);
       case RouteAccountFolderMessageList:
-         return ListFolderMessages(bridge, account, route.folder_id);
+         return recorded(ListFolderMessages(bridge, account, route.folder_id),
+                         _T("the messages of folder ") + folder + _T(" listed"), _T("folder ") + folder);
       case RouteAccountFolderMessageCreate:
          return CreateFolderMessage(bridge, account, route.folder_id, requestBody, route.query);
       case RouteAccountMessageGet:
-         return GetMessage(bridge, account, route.message_id);
+         return recorded(GetMessage(bridge, account, route.message_id),
+                         _T("message ") + message + _T(": its header fields read"), _T("message ") + message);
       case RouteAccountMessageFlags:
          return UpdateMessageFlags(bridge, account, route.message_id, requestBody);
       case RouteAccountMessageDelete:
@@ -1859,7 +2013,8 @@ namespace HM
          HttpResponse refusal;
          if (RefuseZeroAccessRead_(account, refusal))
             return refusal;
-         return MessageSource(bridge, account, route.message_id);
+         return recorded(MessageSource(bridge, account, route.message_id),
+                         _T("message ") + message + _T(": its source read"), _T("source ") + message);
       }
       case RouteAccountMessageCopy:
          return CopyMessage(bridge, account, route.message_id, requestBody);

@@ -310,6 +310,11 @@ The size an account declares for a file sent as a link (since 6.3.2) or for a pa
 6.3.4) is now checked against the most either may be before it is made a whole number, so that every declared size
 counts against that ceiling and against the account's own; found by the project's own review.
 
+A read of another account's mail through the REST API by the server's administrator, a domain administrator or a
+role holding `view_mailbox`, `view_archive` or `view_discovery`, and a support session opened as an account, are now
+recorded on the audit trail; 6.3.4 and 6.3.5, the versions with the trail, recorded none of them (Administration,
+below).
+
 ### What changes on upgrade without a switch
 
 1. **COM `Utilities`: the helpers that do work answer a caller that has signed in.** `BlowfishEncrypt`,
@@ -1246,6 +1251,22 @@ counts against that ceiling and against the account's own; found by the project'
   -2000000000 and 2000000000", making no range; a body without a priority, or with `null` there, still makes one of
   priority 0. The OpenAPI document says so. Tested by `RestApiCoverage.IpRangesRoundTrip` and
   `business-object-tests`.
+- **The audit trail records somebody's mail read through an administrator's route.** An account's folder tree, a
+  folder's permissions, every message, a folder's messages, a message's header fields and its source under
+  `/api/v1/accounts/{address}`, a backup's listing of a mailbox, a mailbox exported to the server's disk or downloaded
+  as `export.zip`, a held message's headers and text, the archive index searched or one of its entries read, and a
+  page of an eDiscovery search's hits, are each a row - object type `account` and action `mailbox-read`,
+  `quarantined message` and `read`, `archive` and `searched`, `archive entry` and `read`, or `discovery search` and
+  `read` - under the credential that read them and the address it came from; a support session opened as an account
+  is a row, `support-session-opened`. A row names a message or a folder by its id, a held message or an archive entry
+  by its sender and recipients, an archive search by what was asked for and an eDiscovery search by its id and its
+  case, never by a subject or a folder's name. The same read by the same credential from the same address is one row
+  a minute, so that the Deck's *Shared folders* page and a client paging a listing do not bury the trail; another
+  message, folder or credential is a row at once, and an export or a support session is a row every time - an export
+  that stopped part of the way too, with how far it got. A read the server refuses is not recorded. A read over COM
+  or over IMAP by the master user is not recorded, nor what a support session does once open, which the application
+  log holds request by request ([AlertsAndAuditTrail.md](hmailserver/docs/AlertsAndAuditTrail.md), "Mail read through an
+  administrator's route").
 
 ### Operations
 

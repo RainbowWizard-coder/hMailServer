@@ -216,6 +216,57 @@ namespace RegressionTests.API
       }
 
       [Test]
+      [Description("A search of the archive index and one entry read are each on the audit trail - the search with what was asked for and how many entries it answered, the entry by who wrote to whom and never its subject - and the same search again inside the minute is the row already written. Until 6.3.6 neither was: the index is the senders, recipients and subjects of everybody's archived mail.")]
+      public void ASearchAndAnEntryReadAreOnTheAuditTrail()
+      {
+         string needle = Unique("Audited search");
+         ArchiveOneMessage(needle);
+
+         string search = "/api/v1/archive?domain=example.test&mailbox=bob&subject=" + Uri.EscapeDataString(needle);
+         (int status, string body) = Http("GET", search);
+         Assert.AreEqual(200, status, body);
+         Assert.AreEqual(1, Count(body, "\"id\":"), body);
+         long id = FirstId(body);
+
+         // The Deck's archive page searches again after every hold it places: the
+         // same words from the same credential inside the minute are one row.
+         Assert.AreEqual(200, Http("GET", search).status);
+
+         Assert.AreEqual(200, Http("GET", "/api/v1/archive/" + id).status);
+         Assert.AreEqual(404, Http("GET", "/api/v1/archive/987654321").status, "An entry that is not there was not read.");
+
+         (int searchesStatus, string searches) = Http("GET", "/api/v1/audit?object_type=archive&action=searched&limit=1000");
+         Assert.AreEqual(200, searchesStatus, searches);
+         List<Dictionary<string, object>> searchRows = MiniJson.List(MiniJson.Object(searches), "entries")
+            .Cast<Dictionary<string, object>>()
+            .Where(row => MiniJson.Text(row, "detail").Contains(needle))
+            .ToList();
+
+         Assert.AreEqual(1, searchRows.Count, "The search twice inside the minute is one row: " + searches);
+         Assert.AreEqual("bob@example.test", MiniJson.Text(searchRows[0], "object"), "The row names whose archive was searched.");
+         // The words asked for and the count answered, then the role the
+         // credential read under, as every row of the trail ends.
+         Assert.AreEqual("searched for domain example.test, mailbox bob, subject containing " + needle + "; 1 entry answered [role: serveradmin]",
+            MiniJson.Text(searchRows[0], "detail"));
+         Assert.AreEqual("administrator", MiniJson.Text(searchRows[0], "actor"));
+         Assert.AreEqual("REST", MiniJson.Text(searchRows[0], "interface"));
+         Assert.AreEqual("127.0.0.1", MiniJson.Text(searchRows[0], "address"));
+
+         (int entriesStatus, string entries) = Http("GET", "/api/v1/audit?object_type=archive+entry&action=read&limit=1000");
+         Assert.AreEqual(200, entriesStatus, entries);
+         List<Dictionary<string, object>> entryRows = MiniJson.List(MiniJson.Object(entries), "entries")
+            .Cast<Dictionary<string, object>>()
+            .Where(row => MiniJson.Text(row, "object") == "archiveid " + id)
+            .ToList();
+
+         Assert.AreEqual(1, entryRows.Count, entries);
+         Assert.AreEqual("its index entry read: the copy kept for bob@example.test, from alice@example.test to bob@example.test [role: serveradmin]",
+            MiniJson.Text(entryRows[0], "detail"));
+         StringAssert.DoesNotContain("\"object\":\"archiveid 987654321\"", entries, "A refused read is not recorded.");
+         StringAssert.DoesNotContain(needle, entries, "The entry is named by who wrote to whom; its subject would make the trail a copy of the mail.");
+      }
+
+      [Test]
       [Description("A hold is placed and lifted over REST, read back in the entry, and refused for an unknown id and for a read-only key.")]
       public void HoldsArePlacedAndLiftedOverRest()
       {

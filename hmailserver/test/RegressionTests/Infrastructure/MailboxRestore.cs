@@ -454,6 +454,49 @@ namespace RegressionTests.Infrastructure
       }
 
       [Test]
+      [Description("A backup's listing of somebody's mailbox - their senders, dates and subjects as they were - is on the audit trail as a read of the live mailbox is: one row a minute for the same listing, another for one folder of it, the archive named and the folder not.")]
+      public void ABackupsListingOfAMailboxIsOnTheAuditTrail()
+      {
+         Populate();
+         string archive = TakeBackup();
+
+         // Before 6.3.6 none of these wrote anything: the trail recorded changes,
+         // and a listing changes nothing.
+         Assert.AreEqual(200, Admin("GET", MailboxRoute(archive, _ann.Address), null).status);
+         Assert.AreEqual(200, Admin("GET", MailboxRoute(archive, _ann.Address), null).status);
+         Assert.AreEqual(200, Admin("GET", MailboxRoute(archive, _ann.Address) + "?folder=Projects.Alpha", null).status);
+
+         (int status, string body) trail = Admin("GET", "/api/v1/audit?object_type=account&action=mailbox-read&limit=1000", null);
+         Assert.AreEqual(200, trail.status, trail.body);
+
+         // ann's address is every test's here, and the trail is not emptied; the
+         // archive's name, which carries the time it was taken, is this test's.
+         string[] details;
+         using (JsonDocument document = JsonDocument.Parse(trail.body))
+         {
+            details = document.RootElement.GetProperty("entries").EnumerateArray()
+               .Where(row => row.GetProperty("object").GetString() == _ann.Address &&
+                             row.GetProperty("detail").GetString().Contains(archive))
+               .Select(row =>
+               {
+                  Assert.AreEqual("administrator", row.GetProperty("actor").GetString());
+                  Assert.AreEqual("127.0.0.1", row.GetProperty("address").GetString());
+                  return row.GetProperty("detail").GetString();
+               })
+               .ToArray();
+         }
+
+         Assert.AreEqual(2, details.Length, "The whole listing twice inside the minute is one row, and one folder of it another: " + string.Join(" | ", details));
+         Assert.AreEqual(1, details.Count(detail => detail.StartsWith("its folders and messages in the backup ", StringComparison.Ordinal)), string.Join(" | ", details));
+         Assert.AreEqual(1, details.Count(detail => detail.StartsWith("the messages of one of its folders in the backup ", StringComparison.Ordinal)), string.Join(" | ", details));
+
+         foreach (string detail in details)
+         {
+            StringAssert.DoesNotContain("Alpha", detail, "A folder's name is the mailbox's; the row says that one folder was listed, not which.");
+         }
+      }
+
+      [Test]
       [Description("Replace after new mail has arrived empties the live folders and refills them, so the mailbox is the archive's and the new mail is gone; the other account is untouched.")]
       public void ReplaceMakesTheMailboxTheArchivesAndTheNewMailIsGone()
       {

@@ -179,6 +179,19 @@ namespace HM
       String subjectsNote;
       const bool subjects = MailboxRestore::ReadSubjects(archiveFile, passphrase, mailbox, MAILBOX_RESTORE_OPEN_TIMEOUT_MS, subjectsNote);
 
+      // Senders, dates and subjects of somebody's mail as it was: a read of the
+      // mailbox, on the audit trail as the live mailbox's are
+      // (RestApiAccountResources.cpp, RecordMailRead_). A folder asked for is
+      // not named in the row, as no folder is: its name is the mailbox's.
+      const String listed = folderFilter.IsEmpty()
+         ? _T("its folders and messages in the backup ") + archiveFile + _T(" listed")
+         : _T("the messages of one of its folders in the backup ") + archiveFile + _T(" listed");
+
+      String archiveAddress = address;
+      archiveAddress.ToLower();
+      RecordMailRead_(_T("account"), address, _T("mailbox-read"), listed,
+                      _T("backup ") + archiveFile + _T(" ") + archiveAddress + _T(" ") + folderFilter);
+
       return BuildResponse_(200, Utf8_(MailboxRestore::ListingJson(archiveFile, mailbox, subjects, subjectsNote)));
    }
 

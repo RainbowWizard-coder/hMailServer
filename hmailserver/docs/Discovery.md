@@ -430,6 +430,7 @@ under whoever asked, each row named by its case (`case 3: Smith v. Jones`):
 |---|---|---|
 | `discovery case` | `created`, `updated` | A case opened (named by its name, as the trail keeps it: 120 characters and `...`) and closed |
 | `discovery search` | `created` | A search run - **with its whole query** and who ran it |
+| `discovery search` | `read` | A page of a search's hits, or of what it could not search, read - by whoever read it, with how many hits it has; the same search read again by the same credential from the same address within a minute, whatever the page, is the row already written |
 | `discovery hold` | `created`, `updated` | A hold placed (its scope, what it holds, by whom) and released |
 | `discovery export` | `created` | An export asked for |
 | `discovery export` | `downloaded` | An export downloaded, with its SHA-256 |
@@ -441,8 +442,15 @@ alone, so with the trail off a download is recorded nowhere.
 
 The runner's own writes - a search's progress and result, an export's - carry
 no actor and are not recorded, as a restore's are not; the request that started
-them is. Reading a case or a search's hits is not recorded: the trail records
-changes.
+them is. A search's hits are the custodians' mail as the search found it - who
+wrote to whom, when, about what, and what was attached - and whoever holds
+`view_discovery` reads them, who need not be whoever ran the search: from 6.3.6
+a page of them read is on the trail, as the other reads of somebody's mail
+through an administrator's route are (*Mail read through an administrator's
+route* in [AlertsAndAuditTrail.md](AlertsAndAuditTrail.md)), and like a
+download it is on the trail alone. A search still running answers no hit and
+records nothing. Reading a case - its searches' queries, counts and states,
+its holds and its exports - is not recorded: none of it is the mail.
 
 ## Where it is used
 

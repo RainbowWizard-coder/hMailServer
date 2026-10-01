@@ -149,12 +149,30 @@ namespace HM
          PersonExport::Summary summary;
          String error;
          if (!PersonExport::ExportArchive(account, archive, summary, error))
+         {
+            // An export that stopped part of the way - a message whose file is
+            // gone, a disk that filled - has read the mail it wrote before then,
+            // and the archive is left on the disk as far as it got: on the audit
+            // trail as a finished one is, every time.
+            const String archiveStopped = _T("an export of everything held on it to the archive ") + archive +
+                                          _T(" stopped with an error; what it had written before then stays there");
+            RecordMailRead_(_T("account"), account->GetAddress(), _T("mailbox-read"), archiveStopped, String());
+
             return BuildResponse_(500, "{\"error\":\"" + JsonEscape_(Utf8_(error)) + "\"}");
+         }
 
          String logMessage;
          logMessage.Format(_T("Exported everything held on %s - %d message(s), %d contact(s), %d calendar object(s), %d log line(s) - to an archive on an operator's request over the REST API."),
                            account->GetAddress().c_str(), summary.messages, summary.contacts, summary.calendarObjects, summary.logLines);
          LOG_APPLICATION(logMessage);
+
+         // The whole mailbox read, and a copy of it left on the server's disk:
+         // on the audit trail as every read of somebody's mail through an
+         // administrator's route is (RecordMailRead_), and every time.
+         String archiveExported;
+         archiveExported.Format(_T("everything held on it - %d message(s), %d contact(s), %d calendar object(s) - exported to the archive %s"),
+                                summary.messages, summary.contacts, summary.calendarObjects, archive.c_str());
+         RecordMailRead_(_T("account"), account->GetAddress(), _T("mailbox-read"), archiveExported, String());
 
          AnsiString answer;
          answer.Format("{\"exported\":%d,\"folders\":%d,\"contacts\":%d,\"calendar_objects\":%d,\"log_lines\":%d,\"archive\":\"",
@@ -165,11 +183,24 @@ namespace HM
       int exported = 0;
       String error;
       if (!MessageExport::ExportAccount(account, directory, exported, error))
+      {
+         // The messages copied before the one that failed stay where they
+         // went: read, and on the audit trail as a finished export is.
+         String directoryStopped;
+         directoryStopped.Format(_T("an export as .eml files to %s stopped with an error after %d message(s); those stay where they were written"),
+                                 directory.c_str(), exported);
+         RecordMailRead_(_T("account"), account->GetAddress(), _T("mailbox-read"), directoryStopped, String());
+
          return BuildResponse_(500, "{\"error\":\"" + JsonEscape_(Utf8_(error)) + "\"}");
+      }
 
       String logMessage;
       logMessage.Format(_T("Exported %d message(s) of %s on an operator's request over the REST API."), exported, account->GetAddress().c_str());
       LOG_APPLICATION(logMessage);
+
+      String directoryExported;
+      directoryExported.Format(_T("%d message(s) exported as .eml files to %s"), exported, directory.c_str());
+      RecordMailRead_(_T("account"), account->GetAddress(), _T("mailbox-read"), directoryExported, String());
 
       AnsiString answer;
       answer.Format("{\"exported\":%d,\"directory\":\"", exported);
@@ -276,7 +307,14 @@ namespace HM
             return refusal;
       }
 
-      return ArchiveDownload_(account);
+      // The whole mailbox, downloaded: on the audit trail every time, once
+      // the archive has been built and is on its way (RecordMailRead_). The
+      // account's own download, below, is the person's and is not.
+      HttpResponse response = ArchiveDownload_(account);
+      if (response.status == 200)
+         RecordMailRead_(_T("account"), account->GetAddress(), _T("mailbox-read"), _T("everything held on it downloaded as one archive"), String());
+
+      return response;
    }
 
    HttpResponse
@@ -438,10 +476,10 @@ namespace HM
    {
       static const char *paths =
          ",\"/api/v1/accounts/{address}/export.zip\":{\"get\":{\"summary\":\"Everything the server holds on the account, as one archive\","
-         "\"description\":\"application/zip, as a download: every folder with mail as an mbox under mail/, the address book as contacts.vcf, every calendar object under calendars/, the webmail's preferences, the active Sieve script, the log lines that name the address, an account.xml in the backup's form (settings, rules, app passwords, fetch accounts, sender list, S/MIME keys, files, scheduled mail, password history) less the credentials - no password hash or its scheme, authenticator seed, app password, recovery code, password-history or shared-file password hash, push subscription key or wrapped mailbox key, nor a fetch account's password or token - and a manifest.json that counts what is there: what a person exercising article 20 is handed. A folder past 256 MB is written as mbox parts. Built in the temp directory and sent from there a piece at a time, never held in memory whole; an archive past 500 MB, or mail past 2 GB before anything is built, is refused with 413: write it to disk with the POST and archive instead. One archive at a time for an account (409) and two on the server (429, Retry-After). A zero-access mailbox is refused with 403. The administrator password's alone.\","
+         "\"description\":\"application/zip, as a download: every folder with mail as an mbox under mail/, the address book as contacts.vcf, every calendar object under calendars/, the webmail's preferences, the active Sieve script, the log lines that name the address, an account.xml in the backup's form (settings, rules, app passwords, fetch accounts, sender list, S/MIME keys, files, scheduled mail, password history) less the credentials - no password hash or its scheme, authenticator seed, app password, recovery code, password-history or shared-file password hash, push subscription key or wrapped mailbox key, nor a fetch account's password or token - and a manifest.json that counts what is there: what a person exercising article 20 is handed. A folder past 256 MB is written as mbox parts. Built in the temp directory and sent from there a piece at a time, never held in memory whole; an archive past 500 MB, or mail past 2 GB before anything is built, is refused with 413: write it to disk with the POST and archive instead. One archive at a time for an account (409) and two on the server (429, Retry-After). A zero-access mailbox is refused with 403. The administrator password's alone. Every download is on the audit trail, action mailbox-read.\","
          "\"responses\":{\"200\":{\"description\":\"The archive\"},\"403\":{\"description\":\"A zero-access mailbox\"},\"404\":{\"description\":\"Unknown account\"},\"409\":{\"description\":\"An archive of this account is being built\"},\"413\":{\"description\":\"Past 500 MB, or mail past 2 GB\"},\"429\":{\"description\":\"Two archives are being built on the server\"},\"500\":{\"description\":\"The archive could not be built\"}}}}"
          ",\"/api/v1/accounts/{address}/export\":{\"post\":{\"summary\":\"Write the mailbox to a directory on the server's disk as .eml files, or everything held on the account to one .zip archive there\","
-         "\"description\":\"Every message of the account, one .eml file per message named by its UID, in directories mirroring the folder tree under the directory named - what a person exercising a data-access right is handed, and what Account.ExportMessages does over COM. Stops on the first failure with 500 naming the file, so a partial export never reports success. The administrator password's alone: the directory is anywhere on the server's disk the service can write.\","
+         "\"description\":\"Every message of the account, one .eml file per message named by its UID, in directories mirroring the folder tree under the directory named - what a person exercising a data-access right is handed, and what Account.ExportMessages does over COM. Stops on the first failure with 500 naming the file, so a partial export never reports success. The administrator password's alone: the directory is anywhere on the server's disk the service can write. Every export is on the audit trail, action mailbox-read, with where it went - one that stopped part of the way too, with how far it got.\","
          "\"requestBody\":{\"required\":true,\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"properties\":{\"directory\":{\"type\":\"string\"},\"archive\":{\"type\":\"string\",\"description\":\"The path of the .zip to write on the server's disk; what GET /export.zip downloads, with no size ceiling. One of directory and archive.\"}}}}}},"
          "\"responses\":{\"200\":{\"description\":\"exported (the count) and directory\"},\"400\":{\"description\":\"No directory\"},\"404\":{\"description\":\"Unknown account\"},\"500\":{\"description\":\"A file could not be copied; the export is incomplete\"}}}}"
          ",\"/api/v1/addresses/erase\":{\"post\":{\"summary\":\"Erase every trace of an address that deleting its account leaves\","
