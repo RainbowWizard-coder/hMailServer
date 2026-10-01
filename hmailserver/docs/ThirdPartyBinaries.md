@@ -335,7 +335,16 @@ Not pinned, and why:
   the current list from publicsuffix.org, as its maintainers ask. What the
   build compiles is the generated `PublicSuffixListData.h`, committed with the
   list's own VERSION and COMMIT lines, so the review of that diff is the pin;
-  `-ListFile` regenerates it from a saved copy.
+  `-ListFile` regenerates it from a saved copy, and `-Version` and `-Commit`
+  from a copy out of the list's repository, which carries no such lines. The
+  header was last regenerated that way on 30 September 2026, to add the
+  PRIVATE section's rules as arrays of their own (the SURBL test's lookup by
+  the ICANN section alone): from `public_suffix_list.dat` in Debian's
+  `publicsuffix_20260725.1419.orig.tar.gz` (snapshot.debian.org, SHA-256
+  `d6f19f4a59dacf493080d154f9296f1407adc318dd6b83ea166a9b04753ed4a7`), whose
+  rules came out byte for byte as the published list of VERSION
+  2026-07-25_14-20-03_UTC had made them, since publicsuffix.org serves only
+  today's list.
 * **The container image's packages.** The Dockerfile pins `ubuntu:24.04` by
   digest and installs `ca-certificates`, `libcap2-bin`, `7zip` and `python3`
   from the archive at whatever version it has that day.

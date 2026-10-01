@@ -17,6 +17,22 @@ namespace HM
    class PublicSuffixList
    {
    public:
+      // Which of the list's two sections a lookup reads.
+      enum Sections
+      {
+         // Both, as DMARC reads the list: a shared-hosting suffix of the
+         // PRIVATE section (github.io) separates its tenants as a registry
+         // does.
+         IcannAndPrivateSections = 0,
+
+         // The ICANN section alone: the suffixes registries and registrars
+         // run, under which a hosting company registers its own domain. The
+         // SURBL test asks a URI list about that domain too (SURBL::NamesToAsk),
+         // since a list that is not wildcarded lists a whole hosting domain,
+         // duckdns.org, under that name.
+         IcannSectionOnly = 1
+      };
+
       // Returns how many of the trailing labels of a domain form its public
       // suffix, per the PSL algorithm: exception rules beat all others,
       // otherwise the matching rule with the most labels wins, and a domain
@@ -32,7 +48,10 @@ namespace HM
       // Returns 0 only when the compiled-in tables are empty, which a correct
       // build cannot produce; the caller decides the failure direction for
       // that case (see the comment at the call site in DMARC.cpp).
-      static size_t GetPublicSuffixLabelCount(const std::vector<String> &labels);
+      //
+      // sections says which rules count: both sections, as DMARC counts them,
+      // unless a caller asks for the ICANN section alone.
+      static size_t GetPublicSuffixLabelCount(const std::vector<String> &labels, Sections sections = IcannAndPrivateSections);
 
       // Cuts a host name to the name a URI blocklist is asked about and whose MX
       // records the MX-record spam test falls back to: its registrable domain,
@@ -59,15 +78,20 @@ namespace HM
       // not be read. The list is compiled in now and cannot be missing, so 4335
       // is no longer reported; the number is retired and not to be given to
       // another error.
-      static bool GetRegistrableDomain(String &host, bool &isIPAddress);
+      //
+      // With IcannSectionOnly the PRIVATE section's rules do not count:
+      // tenant.github.io -> github.io, a.b.blogspot.com -> blogspot.com, and
+      // github.io itself is a registrable domain, not a suffix.
+      static bool GetRegistrableDomain(String &host, bool &isIPAddress, Sections sections = IcannAndPrivateSections);
    };
 
    // PublicSuffixList held to what the spam tests need of it: the registrable
    // domain of names under one-label, multi-label, wildcard and exception
    // rules and under PRIVATE suffixes, names that are suffixes themselves,
    // IPv4 addresses, case, trailing dots and empty labels, the names where
-   // the cut differs from the one SURBL's list of 2006 gave, and the same
-   // answer as DMARC's organizational domain for every name that has one. It
+   // the cut differs from the one SURBL's list of 2006 gave, the same answer
+   // as DMARC's organizational domain for every name that has one, and the
+   // cut by the ICANN section alone under PRIVATE names and rules. It
    // runs inside the service with the other class tests (ClassTester, which
    // Utilities.RunTestSuite reaches), and on Linux as public-suffix-tests. It
    // needs no database, no setting, no file and no network, and it reports

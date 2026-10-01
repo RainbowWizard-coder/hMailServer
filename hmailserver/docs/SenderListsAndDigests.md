@@ -33,7 +33,7 @@ and optionally when it stops mattering.
 | `someone@example.com` | That one address, in any case. No wildcards. |
 | `example.com` | `example.com` and every subdomain of it — `mail.example.com`, not `notexample.com`, not `example.com.attacker.net`. |
 | `@example.com` | The same as `example.com`. Stored as `example.com`. |
-| `https://bad.example/anything` | A **URL**: stored as `bad.example/`, and covering a link in the message whose host is `bad.example` or a subdomain of it, whoever sent the message. Its host is read as the link extractor reads a link's: the part after the last `@` (`http://a@b@bad.example/` is `bad.example/`), up to a port, a `/`, `?`, `#` or `\`, percent-decoded, with each leading `www.` dropped while two labels or more are left, and an address in dotted decimal. A host no link can have there — an IPv6 address, a name with a character a name cannot hold, a name of one label — is refused. |
+| `https://bad.example/anything` | A **URL**: stored as `bad.example/`, and covering a link in the message whose host is `bad.example` or a subdomain of it, whoever sent the message. Its host is read as the link extractor reads a link's: the part after the last `@` (`http://a@b@bad.example/` is `bad.example/`), up to a port, a `/`, `?`, `#` or `\`, percent-decoded as UTF-8 with the characters a browser deletes from a host deleted (`sh%C2%ADop.example`, with a soft hyphen, is `shop.example/`), with each leading `www.` dropped while two labels or more are left, and an address in dotted decimal - an IPv4-mapped IPv6 address (`http://[::ffff:192.0.2.61]/`) or one under the NAT64 prefix `64:ff9b::/96` is the IPv4 address it carries (`192.0.2.61/`). A host no link can have there — any other IPv6 address, a name with a character a name cannot hold, a name of one label — is refused. |
 
 An entry covers a message when it matches **either** the envelope sender
 (`MAIL FROM`) **or** the address in the message's `From` header. The header is
@@ -48,15 +48,30 @@ never decided by any list, whatever its `From` header says.
 A URL entry is about what the message points at, not who sent it, and is
 consulted only when neither address decided anything: the links are read from
 the body the way the SURBL check reads them, each for the host it goes to - the
-host after the link's user name, if it has one, without its port, and an address
-in its own order; in a text part also the name before a `)`, `"` or `}` in the
-user name, where a mail program ends the link - and the nearest scope with a URL
-entry covering any of them decides, with the same precedence and the same
-tie-break as for senders. Block, and the message is held or marked for that
-recipient like a blocked sender's; allow, and a link the URL blacklists list —
-a shortener, a newsletter service — no longer marks the message for that
-recipient. The body is read for links only for a recipient whose account,
-domain or server has a URL entry, so an installation with none pays nothing.
+host after the link's user name, if it has one, without its port,
+percent-decoded as UTF-8 with the characters a browser deletes from a host (a
+soft hyphen, a zero-width space) deleted, and an address in its own order, an
+IPv4-mapped IPv6 address (`[::ffff:192.0.2.1]`) as the IPv4 address it carries;
+in a text part also the name before a `)`, `"` or `}` in the user name, where a
+mail program ends the link, and the name before a zero-width no-break space,
+where a webmail's script ends it; a link with no scheme where it opens an HTML
+attribute's value (`href="//host/"`) or a query parameter's (`?u=//host`) - and
+the nearest scope with a URL entry covering any of them decides, with the same
+precedence and the same tie-break as for senders. **Every link counts, however
+many come before it:** until 6.3.6 only the first 16 hosts of a message were
+matched, so an entry's link after sixteen others was never seen. Block, and the
+message is held or marked for that recipient like a blocked sender's; allow, and
+a link the URL blacklists list — a shortener, a newsletter service — no longer
+marks the message for that recipient. The body is read for links only when a
+recipient's account, domain or server has a URL entry, so an installation with
+none pays nothing, and it is read **once for the message**, against the URL
+entries of every scope, however many of its recipients have one: each
+recipient's decision is made from that one reading. Until 6.3.6 the message was
+parsed and read again for each such recipient, which a message with a large text
+part made costly; now a message costs one reading of its text, as the SURBL
+test's does. Each link is looked up by the names an entry for it could have -
+`cdn.shop.example`, `shop.example`, `example` - so the reading's time does not
+grow with the number of entries.
 
 The matching rule is the one the server-wide **Blocked senders** list has always
 used: both now call the same code.
@@ -442,8 +457,13 @@ the digest does not stop mail being held — it is still on the Held mail page.
 What this does not do
 ---------------------
 
-* **URLs** are not list entries. The roadmap row for the server's list names
-  "senders, domains and URLs"; only senders and domains are here.
+* **A link whose host is internationalised** - written in Unicode, or in
+  fullwidth or other characters a browser maps to ASCII - is not read as a
+  browser reads it: the host is not mapped by UTS 46 nor turned into its `xn--`
+  form ([Roadmap3.md](../../Roadmap3.md), "Internationalised link hosts"). A URL
+  entry for the registered name after such a label still covers the link, and so
+  does one for an ASCII host a browser would reach once it deleted a soft hyphen
+  or a zero-width space.
 * An administrator cannot make a domain or server block override an account's
   own safe senders. **Blocked senders** is that mechanism.
 * The digest is not HTML. (The hour, per domain until 23 September 2026, may now

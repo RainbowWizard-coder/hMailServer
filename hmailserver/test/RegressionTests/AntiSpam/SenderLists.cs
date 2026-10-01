@@ -399,6 +399,55 @@ namespace RegressionTests.AntiSpam
       }
 
       [Test]
+      [Description("Every link of a message is matched against the URL entries, however many come before it, and the links are read once for all its recipients")]
+      public void AUrlEntryJudgesEveryLinkReadOnceForAllRecipients()
+      {
+         // Until 6.3.6 the first 16 hosts of a message were
+         // matched, so a link after sixteen others was never seen by any entry,
+         // and the body was parsed and read again for each recipient with a URL
+         // entry. Here the listed links come after twenty others, and three
+         // recipients' entries are decided from one reading of the message.
+         Account byName = AddAccount("linkeverybyname");
+         Account byAddress = AddAccount("linkeverybyaddress");
+         Account unrelated = AddAccount("linkeveryunrelated");
+
+         AddOwnEntry(byName.Address, "https://shop.example/", true);
+
+         // An IPv4-mapped IPv6 address is the IPv4 address a browser reaches,
+         // for an entry as for a link.
+         (int status, string body) mapped = AddOwnEntry(byAddress.Address, "http://[::ffff:192.0.2.62]/", true);
+         StringAssert.Contains("\"value\":\"192.0.2.62/\"", mapped.body);
+
+         AddOwnEntry(unrelated.Address, "https://elsewhere.example/", true);
+
+         var text = new StringBuilder("Twenty links first:");
+         for (int i = 1; i <= 20; i++)
+            text.Append(" http://decoy" + i + ".example/");
+         text.Append(" - then http://cdn.shop.example/sale and http://[::ffff:192.0.2.62]/offer - and nothing else objectionable.");
+
+         LogHandler.DeleteCurrentDefaultLog();
+
+         new SmtpClientSimulator().Send("friend@example.com", new List<string> { byName.Address, byAddress.Address, unrelated.Address },
+            "Many links", text.ToString());
+
+         string byNameCopy = Pop3ClientSimulator.AssertGetFirstMessageText(byName.Address, Password);
+         StringAssert.Contains("X-hMailServer-Spam: YES", byNameCopy, "The entry's link came after twenty others.");
+         StringAssert.Contains("cdn.shop.example is on the account block list as shop.example/", byNameCopy,
+            "The reason header names the link the entry covered.");
+
+         string byAddressCopy = Pop3ClientSimulator.AssertGetFirstMessageText(byAddress.Address, Password);
+         StringAssert.Contains("X-hMailServer-Spam: YES", byAddressCopy, "The address's entry covers the link to it as an IPv4-mapped address.");
+
+         string unrelatedCopy = Pop3ClientSimulator.AssertGetFirstMessageText(unrelated.Address, Password);
+         StringAssert.DoesNotContain("X-hMailServer-Spam", unrelatedCopy, "An entry for a host the message does not link to decided it.");
+
+         // One reading for the three recipients.
+         string log = LogHandler.ReadCurrentDefaultLog();
+         int readings = Regex.Matches(log, Regex.Escape("its links read for the sender lists' URL entries")).Count;
+         ClassicAssert.AreEqual(1, readings, "The message's links were read " + readings + " times for three recipients with URL entries.");
+      }
+
+      [Test]
       [Description("One account's entry is not found by another: neither changed nor removed")]
       public void AnotherAccountsEntryCannotBeChangedOrRemoved()
       {

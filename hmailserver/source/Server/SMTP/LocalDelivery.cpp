@@ -21,7 +21,6 @@
 #include "../Common/AntiSpam/AntiSpamConfiguration.h"
 #include "../Common/AntiSpam/QuarantineStore.h"
 #include "../Common/AntiSpam/SenderListCache.h"
-#include "../Common/AntiSpam/SURBL.h"
 #include "../Common/AntiSpam/DMARC/DMARC.h"
 
 #include "../Common/Cache/CacheContainer.h"
@@ -1595,22 +1594,41 @@ namespace HM
 
       // Nobody listed the sender: the links, if somebody listed a URL for this
       // recipient's account, domain or server. The message is parsed for them
-      // only then - the links are read as the SURBL test reads them, and the
-      // hosts they go to are what is matched: an address in its own order,
-      // not reversed as a DNS list is asked about it (SURBL::ExtractHosts).
-      // It costs a read of the body per recipient that has such an entry.
+      // only then - the links are read as the SURBL test reads them, every one
+      // of them, and the hosts they go to are what is matched: an address in
+      // its own order, not reversed as a DNS list is asked about it
+      // (SURBL::ForEachLinkHost). They are read once for the message, against
+      // the URL entries of every scope, and each recipient's entries are
+      // decided from that reading: the copy's body is the queue message's
+      // here, before this recipient's rules or Sieve script can change it.
+      // Until 6.3.6 the body was parsed and read for each
+      // recipient with such an entry, up to the parser's 80 MB each time.
       if (decision.verdict == SenderListCache::NoOpinion &&
           SenderListCache::HasUrlEntries(account->GetID(), account->GetDomainID()))
       {
-         const String fileName = MessageStore::WorkingFile(account, accountLevelMessage);
-         std::shared_ptr<MessageData> messageData = std::shared_ptr<MessageData>(new MessageData());
-         if (messageData->LoadFromMessage(fileName, accountLevelMessage))
+         // Read again when the list was read again from the database since,
+         // so that an entry added meanwhile is matched too; and for the next
+         // recipient's copy when this one's could not be loaded.
+         if (!url_links_read_ || !SenderListCache::IsCurrent(url_links_))
          {
-            std::vector<String> hosts;
-            SURBL extractor;
-            if (extractor.ExtractHosts(messageData, hosts))
-               decision = SenderListCache::DecideUrls(hosts, account->GetID(), account->GetDomainID());
+            url_links_read_ = false;
+
+            const String fileName = MessageStore::WorkingFile(account, accountLevelMessage);
+            std::shared_ptr<MessageData> messageData = std::shared_ptr<MessageData>(new MessageData());
+            if (messageData->LoadFromMessage(fileName, accountLevelMessage))
+            {
+               SenderListCache::ReadUrlLinks(messageData, url_links_);
+               url_links_read_ = true;
+
+               // The cast names FormatArgument's unsigned __int64 constructor
+               // (SURBL::ExtractUrls says why).
+               LOG_DEBUG(Formatter::Format("SMTPDeliverer - Message {0}: its links read for the sender lists' URL entries; {1} entry host(s) cover one.",
+                  original_message_->GetID(), (unsigned __int64) url_links_.covered.size()));
+            }
          }
+
+         if (url_links_read_)
+            decision = SenderListCache::DecideUrls(url_links_, account->GetID(), account->GetDomainID());
       }
 
       if (decision.verdict == SenderListCache::NoOpinion)

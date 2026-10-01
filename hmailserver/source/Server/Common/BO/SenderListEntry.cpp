@@ -62,6 +62,12 @@ namespace HM
       return SenderPattern::MatchesUrlHost(value_, host);
    }
 
+   String
+   SenderListEntry::UrlHost() const
+   {
+      return SenderPattern::UrlEntryHost(value_);
+   }
+
    bool
    SenderListEntry::HasExpired() const
    {

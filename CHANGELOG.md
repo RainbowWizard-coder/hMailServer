@@ -271,10 +271,15 @@ numbers whatever the answer holds.
 4. **The SURBL test reads a link as a browser does, and a list's error answer is never a listing.** On a server
    with URI block lists (SURBL servers):
    - A link's host is the one after its user name - `http://anything@evil.example/` is asked about as
-     `evil.example`, where it was `anything` - percent-decoded and without its port, and an IPv4 address in any form
-     a browser takes is that address. The host is asked about whole and cut to its registrable domain by the Public
-     Suffix List, as above. Messages whose links escaped every list with a name and an `@` before the host can now
-     be tagged.
+     `evil.example`, where it was `anything` - percent-decoded as UTF-8 and without its port, with a soft hyphen,
+     a zero-width space and the other characters a browser deletes from a host deleted, and an IPv4 address in any
+     form a browser takes is that address, an IPv4-mapped IPv6 address (`[::ffff:192.0.2.1]`) among them. A link
+     with no scheme is read where a browser or a redirector follows one: an HTML attribute's value that begins
+     with two slashes (`href="//evil.example/"`), and a query parameter's (`?u=//evil.example`). The host is asked
+     about whole and cut to its registrable domain by the Public Suffix List, as above, and a host under a
+     shared-hosting suffix also as the domain the list's ICANN section registers (`github.io` for
+     `tenant.github.io`), as 6.3.5 asked. Messages whose links escaped every list in any of these ways can now be
+     tagged.
    - A link to an address is asked about reversed, as a DNS list expects, and only so: it was also asked about in
      its own order.
    - The lists' error codes - `127.255.255.x`, `127.0.0.1`, `127.0.1.255` and `127.0.2.255` - never tag a message,
@@ -288,7 +293,9 @@ numbers whatever the answer holds.
      in the message, not sorted.
    - The sender lists' URL entries are matched against the same host, an address in its own order: an entry for the
      name before an `@` no longer matches, and nor does an address entry written reversed (`1.2.0.192` for a link to
-     `192.0.2.1`). Write such an entry as the address itself.
+     `192.0.2.1`). Write such an entry as the address itself. They are matched against every link of a message,
+     where only the first 16 hosts were, so a message with an entry's link after sixteen others is now held or
+     marked as the entry says.
 5. **Backups leave out the live update's folder, and a destination inside the data directory works.** A backup no
    longer carries `Updates` - the installer or package waiting to be applied, the rollback image, the apply token
    and the last apply's outcome, most of the size of a backup taken before an apply - and a restore leaves this
@@ -827,8 +834,10 @@ numbers whatever the answer holds.
   and was installed beside the binary on every platform. It now cuts to the registrable domain by the Public Suffix
   List it already compiles in for DMARC, PRIVATE section included, as SURBL's own list of today does:
   `mail.example.act.edu.au` is asked about as `example.act.edu.au`, not the suffix `act.edu.au`; `a.b.c.kawasaki.jp`
-  as `b.c.kawasaki.jp`; `tenant.github.io` as itself, not `github.io`; and `mail.gov.je` as `gov.je`, one of the 134
-  names of the old list that are not public suffixes today. SURBL is still asked about the whole host too. A sender
+  as `b.c.kawasaki.jp`; `tenant.github.io` as itself, where the old cut gave `github.io` alone; and `mail.gov.je` as
+  `gov.je`, one of the 134 names of the old list that are not public suffixes today. SURBL is still asked about the
+  whole host too, and a host under a PRIVATE suffix about the domain the ICANN section alone gives as well
+  (`github.io`: see "A host under a shared-hosting suffix", under Anti-spam). A sender
   at a public suffix itself that has no MX, `github.io` or `co.uk`, fails the MX-record test, since there is no
   registrant's domain above it to fall back to; the old cut failed the first and passed the second. Error 4335, the
   list not read, is retired. The installer deletes `Bin\tlds.txt` on upgrade, and the Linux packages no longer carry
@@ -837,25 +846,78 @@ numbers whatever the answer holds.
 
 ### Anti-spam, anti-virus and mail flow rules
 
-- **A link's host is the one after its user name.** The SURBL test asked the URI lists about the characters after
-  `://` that can be in a name, so `http://anything@evil.example/` was asked about as `anything`, and a spammer
-  escaped every list by writing a name and an `@` before the host; a URL entry of the sender lists read the same
-  `anything`. A link is now read as RFC 3986 and the browsers read it: the host follows the last `@` before the
-  path, without its port, and is percent-decoded (`%65vil.example`); `%40` in the user name is not its end; a
-  bracketed IPv6 address is not asked about, since no URI list publishes one; and an IPv4 address in any form a
-  browser takes (`0xC0.0.2.1`, `3221225985`) is that address. `http:`, `http:\\` and `http:///` before a host count
-  as `http://` does, a backslash ends the host as a slash does, and a link written into another's query
-  (`?u=http%3A%2F%2Fx%40evil.example`, `?u=http%3A%5C%5Cevil.example`) is read the same way. In a text part, where
-  the mail program that shows a link decides where it ends, a link it may end before the `@` - Thunderbird ends one
-  at `)`, `"`, `` ` ``, `{` or `}` - is also asked about as the name before that character:
-  `http://evil.example)@innocent.example/` is asked about as `innocent.example` and `evil.example`. In an HTML part
-  the character references are read as a browser reads them (`x&#64;evil.example`, `http&colon;//`), and a quoted
-  attribute's value runs to its closing quote, spaces and a `'` or a `>` in a user name included. Punctuation after
-  a link still ends its host; a host with another character in it (`a!b.evil.example`, a label in Unicode) is asked
-  about as the name before that character and the labels after its label. Not done: an internationalised name is not
-  turned into its `xn--` form, and a host written in fullwidth or other characters a browser maps to ASCII, or with
-  a soft hyphen or another character a browser drops, is not mapped. The reading's tests run in ClassTester and, on
-  Linux, in `public-suffix-tests`.
+- **A link's host is the one after its user name.** The SURBL test asked the URI lists about the characters after `://`
+  that can be in a name, so `http://anything@evil.example/` was asked about as `anything`, and a spammer escaped every
+  list by writing a name and an `@` before the host; a URL entry of the sender lists read the same `anything`. A link is
+  now read as RFC 3986 and the browsers read it: the host follows the last `@` before the path, without its port, and is
+  percent-decoded (`%65vil.example`); `%40` in the user name is not its end; a bracketed IPv6 address is not asked
+  about, since no URI list publishes one, unless it carries an IPv4 address (below); and an IPv4 address in any form a
+  browser takes (`0xC0.0.2.1`, `3221225985`) is that address. `http:`, `http:\\` and `http:///` before a host count as
+  `http://` does, a backslash ends the host as a slash does, and a link written into another's query
+  (`?u=http%3A%2F%2Fx%40evil.example`, `?u=http%3A%5C%5Cevil.example`) is read the same way, however long its run of
+  `%2F`, and so is one whose slashes were left as they are (`?u=http%3A//evil.example`, as Python's `quote` and
+  JavaScript's `escape` write it). In a text part, where the mail program that shows a link decides where it ends, a
+  link it may end before the `@` - Thunderbird ends one at `)`, `"`, `` ` ``, `{` or `}` - is also asked about as the
+  name before that character: `http://evil.example)@innocent.example/` is asked about as `innocent.example` and
+  `evil.example`. In an HTML part the character references are read as a browser reads them (`x&#64;evil.example`,
+  `http&colon;//`), and a quoted attribute's value runs to its closing quote, spaces and a `'` or a `>` in a user name
+  included. Punctuation after a link still ends its host; a host with another character in it (`a!b.evil.example`, a
+  label in Unicode) is asked about as the name before that character and the labels after its label. Not done: an
+  internationalised name is not turned into its `xn--` form, and a host written in fullwidth or other characters a
+  browser maps to ASCII is not mapped ([Roadmap3.md](Roadmap3.md), "Internationalised link hosts"); a soft hyphen and
+  the other characters a browser deletes are deleted (below). The reading's tests run in ClassTester and, on Linux, in
+  `public-suffix-tests`.
+- **Characters a browser deletes from a host no longer hide it.** Before it looks a name up, a browser deletes from the
+  host the code points UTS 46 ignores - a soft hyphen, a zero-width space, a word joiner, a zero-width no-break space,
+  the variation selectors and the rest of the 17 ranges of Unicode's `IdnaMappingTable.txt` 18.0 - and reads its
+  percent-encoding as UTF-8, so `http://ev%C2%ADil.example/`, `http://evil<U+200B>.example/` and, in an HTML part,
+  `http://ev&shy;il.example/` all go to `evil.example`. The server read a percent-encoded byte past ASCII as U+FFFD and
+  deleted nothing, so such a link was no name at all, and a listed name hid behind one character nobody sees. The host
+  is now decoded and cleaned as a browser does, in the SURBL test and for the sender lists' URL entries, which are
+  stored the same way (`http://sh%C2%ADop.example/` is `shop.example/`); HTML's named references for those characters
+  (`&shy;`, `&ZeroWidthSpace;` and twelve more) are read, and a numeric one past U+FFFF (`&#xE0100;`) is the character
+  it names, where it was U+FFFD. A zero-width joiner is not one of them: a browser refuses one except after a virama
+  (RFC 5892's CONTEXTJ rule, which UTS 46 applies), and no name is read from a host that holds one. In a text part,
+  where the mail program that shows a link decides where it ends, a link with a zero-width no-break space in its host is
+  also asked about as the name before it: a webmail's script that ends a link at white space by its `\s` ends it there,
+  and a browser given the whole link deletes it. So are U+180E and U+200B, which older engines count as white space.
+- **A link with no scheme is read.** A browser resolves `<a href="//evil.example/">`, `<img src="\\evil.example/x">` and
+  `href="/\evil.example"` against the page they are on, so from a webmail page they go to `evil.example`, and a
+  redirector's `?u=//evil.example` (or `?u=%2F%2Fevil.example`) sends its visitor there; none was read. Two slashes or
+  backslashes or more are now a link where they open an HTML attribute's value, quoted or not, after the spaces the URL
+  parser drops, and where they follow a query parameter's `=`, in a text part as in an HTML part; elsewhere they are a
+  path's or a comment's, and nothing is read from them. And in a quoted value the tabs and line breaks the URL parser
+  drops are dropped before the slashes after `http:` are skipped: `<a href="http:&#10;//evil.example/">` goes to
+  `evil.example`, where the server stopped at the line break and read nothing. A quoted value with a tab or a line break
+  anywhere in it is also read without them, as the URL parser reads it, so a link written into its query with one in it
+  (`?u=http%3A%2F%2Fev&#9;il.example`) is read as the redirector receives it.
+- **A link to an IPv4-mapped IPv6 address is asked about as its IPv4 address.** `http://[::ffff:192.0.2.1]/`, in any
+  of the forms the WHATWG IPv6 parser takes (`[::FFFF:C000:201]`), is 192.0.2.1 to a dual-stack system, and
+  `http://[64:ff9b::192.0.2.1]/`, under the NAT64 well-known prefix of RFC 6052, is 192.0.2.1 through a translator;
+  no bracketed host was asked about, so a listed address escaped every list in brackets. Both are now asked about as
+  the IPv4 address, reversed, and a sender list's URL entry for one of them is stored as that address. Any other IPv6
+  address, the IPv4-compatible `[::192.0.2.1]` among them, is still not asked about.
+- **A host under a shared-hosting suffix is also asked about as the domain the ICANN section registers.** The Public
+  Suffix List's cut (under Downloads and the release) asks about `tenant.github.io` as itself, since `github.io` is a
+  suffix of the list's PRIVATE section. A list that is wildcarded, as SURBL's multi and the Spamhaus DBL are, answers
+  for `github.io` when it is asked about the host; one that is not, as URIBL is not, answers only for the names it
+  lists, and a whole hosting domain it lists - `duckdns.org`, say - is listed under that name alone. So a link to
+  `evil.duckdns.org` escaped such a listing, which 6.3.5, cutting at two labels, caught. A host under a PRIVATE suffix
+  is now also asked about as its registrable domain by the list's ICANN section alone - `duckdns.org`, `blogspot.com`
+  for `a.b.blogspot.com` - which the generated `PublicSuffixListData.h` makes possible with the PRIVATE section's rules
+  in arrays of their own; DMARC and the MX-record test read both sections as before. The header was regenerated from
+  Debian's copy of the list of 25 July 2026, whose rules are byte for byte those compiled in until now.
+- **The sender lists' URL entries see every link, and a message is read for them once.** The URL entries were matched
+  against the first 16 hosts of a message, the SURBL test's cap, so a message that put the link an entry blocks after
+  sixteen others got past it; and the message was parsed and its text read for each recipient with a URL entry, up to
+  the MIME parser's 80 MB each time, about 30 seconds per recipient for a crafted message. Every link is now matched,
+  and the text is read once for the message against the entries of every scope, however many recipients have one:
+  each link is looked up by the names an entry for it could have, so the reading costs one pass over the text and no
+  more for more entries, and it keeps one record for each entry host a link is under, whatever the message holds. A
+  recipient reached after the list was read again from the database has the links read again. There is no cap on
+  the text: a limit on what is read, like the anti-spam size limit that keeps large messages from the SURBL test,
+  would let a message put the blocked link after it
+  ([SenderListsAndDigests.md](hmailserver/docs/SenderListsAndDigests.md)).
 - **A link to an address is asked about reversed, and only so.** It was asked about in its own order too, which is
   the address the other way round: a link to `192.0.2.1` was tagged when a list had `1.2.0.192`, and a sender
   list's URL entry for `1.2.0.192` blocked or allowed it.

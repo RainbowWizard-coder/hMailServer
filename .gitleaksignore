@@ -131,7 +131,9 @@ c19f5481847677b677d566cb17aea5ee5a6ef3a8:hmailserver/source/Server/Common/Util/H
 # for anything. They are described, not quoted, here, since a quoted one is a finding again.
 # The landing's range scan found them in the fold's commit, and a directory scan of the tree at
 # 108d3850f (the image the job pins, on linix) at the same lines; one line of each form.
+# 1 October 2026: b42-surbl2 moved the two lines; the directory-scan entries follow them to
+# SURBL.cpp 1886 and Basics.cs 504 (the commit-keyed entries name the lines in their own commit).
 37324d9689e55e6d6c592436b7d25589c658a15d:hmailserver/source/Server/Common/AntiSpam/SURBL.cpp:Password in URL:1115
 37324d9689e55e6d6c592436b7d25589c658a15d:hmailserver/test/RegressionTests/AntiSpam/Basics.cs:Password in URL:500
-/builds/hmailserver/hmailserver/hmailserver/source/Server/Common/AntiSpam/SURBL.cpp:Password in URL:1115
-/builds/hmailserver/hmailserver/hmailserver/test/RegressionTests/AntiSpam/Basics.cs:Password in URL:500
+/builds/hmailserver/hmailserver/hmailserver/source/Server/Common/AntiSpam/SURBL.cpp:Password in URL:1886
+/builds/hmailserver/hmailserver/hmailserver/test/RegressionTests/AntiSpam/Basics.cs:Password in URL:504

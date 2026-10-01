@@ -109,24 +109,44 @@ namespace HM
          { L"www.example.\u516C\u53F8.cn", L"example.\u516C\u53F8.cn", false, "an IDN suffix of two labels, Unicode" },
       };
 
+      // The cut by the ICANN section alone (PublicSuffixList::IcannSectionOnly),
+      // which the SURBL test asks a list about as well: the PRIVATE section's
+      // rules - normal and wildcard - do not count, and the ICANN section's
+      // wildcard and exception rules still do.
+      const Cut icannCuts[] =
+      {
+         { L"x.blogspot.com", L"blogspot.com", false, "a tenant of a PRIVATE suffix: the hosting company's domain" },
+         { L"a.b.blogspot.com", L"blogspot.com", false, "a host under a tenant of a PRIVATE suffix" },
+         { L"a.tenant.github.io", L"github.io", false, "github.io, under the ICANN suffix io" },
+         { L"evil.duckdns.org", L"duckdns.org", false, "duckdns.org, which URIBL lists whole" },
+         { L"github.io", L"github.io", false, "a PRIVATE suffix is a registered name in the ICANN section" },
+         { L"blogspot.com", L"blogspot.com", false, "the same, under com" },
+         { L"ec2-192-0-2-1.us-west-2.compute.amazonaws.com", L"amazonaws.com", false, "a PRIVATE wildcard (*.compute.amazonaws.com) does not count" },
+         { L"www.example.co.uk", L"example.co.uk", false, "an ICANN suffix of two labels still counts" },
+         { L"a.b.c.kawasaki.jp", L"b.c.kawasaki.jp", false, "an ICANN wildcard (*.kawasaki.jp) still counts" },
+         { L"www.city.kawasaki.jp", L"city.kawasaki.jp", false, "an ICANN exception (!city.kawasaki.jp) still counts" },
+         { L"mail.example.act.edu.au", L"example.act.edu.au", false, "an ICANN suffix of three labels still counts" },
+         { L"10.20.30.40", L"40.30.20.10", true, "an IPv4 address, reversed as for both sections" },
+         { L"co.uk", nullptr, false, "an ICANN suffix is still no registered name" },
+         { L"com", nullptr, false, "a TLD" },
+      };
+
       void Fail(const Cut &cut, const std::string &what)
       {
          throw std::logic_error("PublicSuffixListTester: " + std::string(cut.why) + " (" +
             std::string(AnsiString(String(cut.host))) + "): " + what);
       }
-   }
 
-   void
-   PublicSuffixListTester::Test()
-   {
-      for (const Cut &cut : cuts)
+      // One cut against its expectation. False where it must be no cut, and
+      // none was made.
+      bool Check(const Cut &cut, PublicSuffixList::Sections sections, String &host)
       {
-         String host = cut.host;
+         host = cut.host;
 
          // Set, so that a result that leaves it alone is seen.
          bool isIPAddress = true;
 
-         const bool cutMade = PublicSuffixList::GetRegistrableDomain(host, isIPAddress);
+         const bool cutMade = PublicSuffixList::GetRegistrableDomain(host, isIPAddress, sections);
 
          if (cut.expected == nullptr)
          {
@@ -136,7 +156,7 @@ namespace HM
             if (host != String(cut.host))
                Fail(cut, "the host was changed to " + std::string(AnsiString(host)) + " although no cut was made");
 
-            continue;
+            return false;
          }
 
          if (!cutMade)
@@ -148,6 +168,19 @@ namespace HM
          if (isIPAddress != cut.isIPAddress)
             Fail(cut, cut.isIPAddress ? "not taken for an address" : "taken for an address");
 
+         return true;
+      }
+   }
+
+   void
+   PublicSuffixListTester::Test()
+   {
+      for (const Cut &cut : cuts)
+      {
+         String host;
+         if (!Check(cut, PublicSuffixList::IcannAndPrivateSections, host))
+            continue;
+
          // A name has one registrable domain whichever of the server's checks
          // asks: DMARC's organizational domain by the list is the same name.
          if (!cut.isIPAddress)
@@ -156,6 +189,12 @@ namespace HM
             if (organizational != host)
                Fail(cut, "DMARC's organizational domain is " + std::string(AnsiString(organizational)) + ", not the cut's " + std::string(AnsiString(host)));
          }
+      }
+
+      for (const Cut &cut : icannCuts)
+      {
+         String host;
+         Check(cut, PublicSuffixList::IcannSectionOnly, host);
       }
    }
 }

@@ -69,7 +69,11 @@ namespace RegressionTests.AntiSpam
             // SurblBlockedAnswerDoesNotSwitchTheListOff: what the Spamhaus ZRD
             // answers every address it is asked about - 127.0.2.255, IP queries
             // not supported - for 192.0.2.47.
-            .WithA("47.2.0.192.multi.surbl.org", "127.0.2.255");
+            .WithA("47.2.0.192.multi.surbl.org", "127.0.2.255")
+            // SurblAsksAboutTheIcannDomainOfAHostUnderAPrivateSuffix: a whole
+            // hosting domain listed, as URIBL, which is not wildcarded, lists
+            // one. Nothing is served for its tenants' names.
+            .WithA("duckdns.org.multi.surbl.org", "127.0.0.2");
       }
 
       [OneTimeTearDown]
@@ -683,6 +687,182 @@ namespace RegressionTests.AntiSpam
 
          Assert.IsTrue(LogHandler.DefaultLogContains("SURBL: Lookup: innocent.example.multi.surbl.org"),
             "The host after the '@', where a browser goes, was not asked about.");
+
+         surblServer.Active = false;
+         surblServer.Save();
+      }
+
+      // An HTML message of one part, whose body is the given HTML.
+      private static string HtmlMessage_(string address, string subject, string html)
+      {
+         return "From: " + address + "\r\n" +
+                "To: " + address + "\r\n" +
+                "Subject: " + subject + "\r\n" +
+                "MIME-Version: 1.0\r\n" +
+                "Content-Type: text/html; charset=us-ascii\r\n" +
+                "\r\n" +
+                "<html><body>" + html + "</body></html>\r\n";
+      }
+
+      [Test]
+      public void SurblDeletesFromAHostWhatABrowserDeletes()
+      {
+         // A browser deletes the code points UTS 46 ignores from a host before it
+         // looks the name up - a soft hyphen, a zero-width space, a zero-width
+         // no-break space - and reads a host's percent-encoding as UTF-8. Until
+         // 6.3.6 each byte past ASCII was U+FFFD and nothing was
+         // deleted, so these links were no name at all, and a spammer hid a
+         // listed name behind one character nobody sees. surbl-userinfo.test is
+         // listed.
+         var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "surbl-ignored@example.test", "test");
+         var surblServer = ArmSurbl_("");
+         var smtp = new SmtpClientSimulator();
+
+         foreach (var link in new[]
+         {
+            "http://surbl-user%C2%ADinfo.test/",
+            "http://surbl-userinfo%E2%80%8B.test/",
+            "http://surbl-%EF%BB%BFuserinfo.test/",
+         })
+         {
+            smtp.Send(account.Address, account.Address, "SURBL-Ignored", "A link: " + link + " here");
+            var text = Pop3ClientSimulator.AssertGetFirstMessageText(account.Address, "test");
+            Assert.IsTrue(text.Contains("X-hMailServer-Spam"), link + " was not looked up as surbl-userinfo.test, which is listed.");
+         }
+
+         // In an HTML part, the named references for them too.
+         SmtpClientSimulator.StaticSendRaw(account.Address, account.Address,
+            HtmlMessage_(account.Address, "SURBL-Ignored-Html", "<a href=\"http://surbl-user&shy;info.test/\">a link</a>"));
+         var html = Pop3ClientSimulator.AssertGetFirstMessageText(account.Address, "test");
+         Assert.IsTrue(html.Contains("X-hMailServer-Spam"), "&shy; in a link's host was not deleted, as a browser deletes it.");
+
+         surblServer.Active = false;
+         surblServer.Save();
+      }
+
+      [Test]
+      public void SurblReadsALinkWithNoScheme()
+      {
+         // An attribute's value that begins with two slashes is a link to the
+         // host after them, with the scheme of the page it is on: from a webmail
+         // page, https. So is a query parameter's value that begins with them -
+         // a redirector's target. Until 6.3.6 neither was read.
+         var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "surbl-no-scheme@example.test", "test");
+         var surblServer = ArmSurbl_("");
+
+         foreach (var html in new[]
+         {
+            "<a href=\"//surbl-userinfo.test/offer\">a link</a>",
+            "<img src='\\\\surbl-userinfo.test/pixel.png'>",
+            "<a href=\"http:&#10;//surbl-userinfo.test/\">a link the URL parser drops a line break from</a>",
+         })
+         {
+            SmtpClientSimulator.StaticSendRaw(account.Address, account.Address, HtmlMessage_(account.Address, "SURBL-No-Scheme", html));
+            var text = Pop3ClientSimulator.AssertGetFirstMessageText(account.Address, "test");
+            Assert.IsTrue(text.Contains("X-hMailServer-Spam"), html + " was not looked up as surbl-userinfo.test, which is listed.");
+         }
+
+         new SmtpClientSimulator().Send(account.Address, account.Address, "SURBL-No-Scheme",
+            "A link: https://www.example.com/redirect?to=//surbl-userinfo.test/ here");
+         var redirect = Pop3ClientSimulator.AssertGetFirstMessageText(account.Address, "test");
+         Assert.IsTrue(redirect.Contains("X-hMailServer-Spam"), "A redirector's target with no scheme was not looked up.");
+
+         // Two slashes that open no value are no link: nothing is tagged.
+         SmtpClientSimulator.StaticSendRaw(account.Address, account.Address,
+            HtmlMessage_(account.Address, "SURBL-Slashes", "<p>see //surbl-userinfo.test/ in the text</p>"));
+         var slashes = Pop3ClientSimulator.AssertGetFirstMessageText(account.Address, "test");
+         Assert.IsFalse(slashes.Contains("X-hMailServer-Spam"), "Two slashes in running text were taken for a link.");
+
+         surblServer.Active = false;
+         surblServer.Save();
+      }
+
+      [Test]
+      public void SurblAsksAboutTheIPv4AddressAMappedIPv6LinkReaches()
+      {
+         // http://[::ffff:192.0.2.45]/ is an IPv4-mapped IPv6 address, which a
+         // dual-stack system connects to as 192.0.2.45; a NAT64 prefix carries
+         // one the same way. Until 6.3.6 no bracketed host was
+         // asked about, and 192.0.2.45, which is listed, escaped the lists
+         // behind brackets. Another IPv6 address is still not asked about.
+         var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "surbl-mapped@example.test", "test");
+         var surblServer = ArmSurbl_("");
+         var smtp = new SmtpClientSimulator();
+
+         LogHandler.DeleteCurrentDefaultLog();
+
+         foreach (var link in new[] { "http://[::ffff:192.0.2.45]/", "http://[::FFFF:C000:022D]:8080/x", "http://[64:ff9b::192.0.2.45]/" })
+         {
+            smtp.Send(account.Address, account.Address, "SURBL-Mapped", "A link: " + link + " here");
+            var text = Pop3ClientSimulator.AssertGetFirstMessageText(account.Address, "test");
+            Assert.IsTrue(text.Contains("X-hMailServer-Spam"), link + " was not looked up as 192.0.2.45, which is listed.");
+         }
+
+         smtp.Send(account.Address, account.Address, "SURBL-IPv6", "A link: http://[2001:db8::45]/ here");
+         var ipv6 = Pop3ClientSimulator.AssertGetFirstMessageText(account.Address, "test");
+         Assert.IsFalse(ipv6.Contains("X-hMailServer-Spam"), "An IPv6 address that carries no IPv4 one was taken for one.");
+
+         Assert.IsTrue(LogHandler.DefaultLogContains("SURBL: Lookup: 45.2.0.192.multi.surbl.org"));
+
+         surblServer.Active = false;
+         surblServer.Save();
+      }
+
+      [Test]
+      public void SurblAsksAboutTheIcannDomainOfAHostUnderAPrivateSuffix()
+      {
+         // duckdns.org is a shared-hosting suffix of the Public Suffix List's
+         // PRIVATE section, so evil.duckdns.org is its own registrable domain.
+         // A list that is not wildcarded, URIBL, lists a whole hosting domain
+         // under the name its ICANN section registers - here duckdns.org, the
+         // only name served - and answers nothing for a tenant's name. 6.3.5,
+         // which cut at two labels, asked about duckdns.org; the cut by the
+         // whole list did not, until it also asked about the domain the ICANN
+         // section alone gives.
+         var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "surbl-icann@example.test", "test");
+         var surblServer = ArmSurbl_("");
+
+         LogHandler.DeleteCurrentDefaultLog();
+
+         new SmtpClientSimulator().Send(account.Address, account.Address, "SURBL-ICANN", "A link: http://evil.duckdns.org/ here");
+         var text = Pop3ClientSimulator.AssertGetFirstMessageText(account.Address, "test");
+         Assert.IsTrue(text.Contains("X-hMailServer-Spam"), "evil.duckdns.org was not looked up as duckdns.org, which is listed.");
+
+         Assert.IsTrue(LogHandler.DefaultLogContains("SURBL: Lookup: evil.duckdns.org.multi.surbl.org"), "The host itself was not asked about first.");
+         Assert.IsTrue(LogHandler.DefaultLogContains("SURBL: Found URL: evil.duckdns.org, asked about as duckdns.org"));
+
+         surblServer.Active = false;
+         surblServer.Save();
+      }
+
+      [Test]
+      public void SurblReadsALinkWhereAScriptEndsItOrAParserDropsABreak()
+      {
+         // Three readings of a link the way the program that follows it reads
+         // it. A webmail's script that ends a link at white space by its \s ends
+         // one at U+FEFF, where a browser given the whole link deletes it: the
+         // name before it is asked about too. An encoder that leaves '/' alone
+         // writes a link in another's query as http%3A//. And the URL parser
+         // deletes a tab from anywhere in an attribute's value, inside a link in
+         // its query too. surbl-userinfo.test is listed; nothing else these
+         // links name is.
+         var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "surbl-ends@example.test", "test");
+         var surblServer = ArmSurbl_("");
+
+         SmtpClientSimulator.StaticSendRaw(account.Address, account.Address,
+            HtmlMessage_(account.Address, "SURBL-Script-End", "<p>See http://surbl-userinfo.test&#xFEFF;more/ now</p>"));
+         var scriptEnd = Pop3ClientSimulator.AssertGetFirstMessageText(account.Address, "test");
+         Assert.IsTrue(scriptEnd.Contains("X-hMailServer-Spam"), "The name before a zero-width no-break space was not asked about.");
+
+         new SmtpClientSimulator().Send(account.Address, account.Address, "SURBL-Encoded-Slashes",
+            "A link: https://www.example.com/redirect?to=http%3A//surbl-userinfo.test/offer here");
+         var encoded = Pop3ClientSimulator.AssertGetFirstMessageText(account.Address, "test");
+         Assert.IsTrue(encoded.Contains("X-hMailServer-Spam"), "A link in a query whose slashes were not encoded was not read.");
+
+         SmtpClientSimulator.StaticSendRaw(account.Address, account.Address,
+            HtmlMessage_(account.Address, "SURBL-Tab", "<a href=\"https://www.example.com/redirect?to=http%3A%2F%2Fsurbl-user&#9;info.test%2F\">a link</a>"));
+         var tab = Pop3ClientSimulator.AssertGetFirstMessageText(account.Address, "test");
+         Assert.IsTrue(tab.Contains("X-hMailServer-Spam"), "A tab in a link in an attribute's query hid the link.");
 
          surblServer.Active = false;
          surblServer.Save();

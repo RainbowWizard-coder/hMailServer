@@ -7,6 +7,8 @@
 #include "SenderPattern.h"
 #include "SURBL.h"
 
+#include <algorithm>
+
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
 #define new DEBUG_NEW
@@ -55,8 +57,8 @@ namespace HM
 
          // Its host as the link reader names the host a link goes to: after the
          // LAST '@' of the user information, without the port, percent-decoded,
-         // an address in dotted decimal and a name without its "www.". Until the
-         // tree after 6.3.6 the entry was cut at its first '@', after "www." had
+         // an address in dotted decimal and a name without its "www.". Until
+         // 6.3.6 the entry was cut at its first '@', after "www." had
          // been looked for at its start, so http://a@b@host/ was "b@host/" and
          // http://user@www.host/ was "www.host/", which no link's host is.
          String host = SURBL::HostOfAuthority(authority);
@@ -77,9 +79,10 @@ namespace HM
 
          if (host.IsEmpty())
          {
-            // Not a host a link can name - an IPv6 address, a character a name
-            // cannot hold, one label, none. Kept as it was typed, after the user
-            // information and before the port, for Validate to refuse as a URL.
+            // Not a host a link can name - an IPv6 address that carries no IPv4
+            // one, a character a name cannot hold, one label, none. Kept as it
+            // was typed, after the user information and before the port, for
+            // Validate to refuse as a URL.
             host = authority;
             const int at = host.ReverseFind('@');
             if (at >= 0)
@@ -103,35 +106,48 @@ namespace HM
       return entry.GetLength() > 1 && entry.Right(1) == _T("/");
    }
 
+   String
+   SenderPattern::UrlEntryHost(const String &pattern)
+   {
+      if (!IsUrl(pattern))
+         return String();
+
+      const String entry = Canonical(pattern);
+      return entry.Left(entry.GetLength() - 1);
+   }
+
+   void
+   SenderPattern::UrlEntryHostsCovering(const String &host, std::vector<String> &entryHosts)
+   {
+      entryHosts.clear();
+
+      // The host as the link reader hands it over (SURBL::ForEachLinkHost),
+      // which it already is; read again the same way an entry's host was, so
+      // that "www." goes or stays alike on both sides.
+      String linkHost = host;
+      linkHost.Trim();
+      linkHost = SURBL::HostOfAuthority(linkHost);
+      if (linkHost.IsEmpty())
+         return;
+
+      // The host itself, and each name it ends in at a label boundary:
+      // "bad.example/" covers "cdn.bad.example" and not "notbad.example".
+      entryHosts.push_back(linkHost);
+      for (int dot = linkHost.Find(_T('.')); dot >= 0; dot = linkHost.Find(_T('.'), static_cast<size_t>(dot) + 1))
+         entryHosts.push_back(linkHost.Mid(dot + 1));
+   }
+
    bool
    SenderPattern::MatchesUrlHost(const String &pattern, const String &host)
    {
       if (!IsUrl(pattern) || host.IsEmpty())
          return false;
 
-      const String entry = Canonical(pattern);
-      const String entryHost = entry.Left(entry.GetLength() - 1);
+      const String entryHost = UrlEntryHost(pattern);
 
-      // The host as the link reader hands it over (SURBL::ExtractHosts), which
-      // it already is; read again the same way the entry's host was, so that
-      // "www." goes or stays alike on both sides.
-      String linkHost = host;
-      linkHost.Trim();
-      linkHost = SURBL::HostOfAuthority(linkHost);
-      if (linkHost.IsEmpty())
-         return false;
-
-      if (linkHost == entryHost)
-         return true;
-
-      // A subdomain, anchored at a label boundary: "bad.example/" covers
-      // "cdn.bad.example" and not "notbad.example".
-      if (linkHost.GetLength() > entryHost.GetLength() &&
-          linkHost.Right(entryHost.GetLength()) == entryHost &&
-          linkHost.GetAt(linkHost.GetLength() - entryHost.GetLength() - 1) == _T('.'))
-         return true;
-
-      return false;
+      std::vector<String> covering;
+      UrlEntryHostsCovering(host, covering);
+      return std::find(covering.begin(), covering.end(), entryHost) != covering.end();
    }
 
    bool
@@ -208,10 +224,11 @@ namespace HM
    SenderPattern::Validate(const String &pattern, String &out_error)
    {
       // A URL entry is judged on its host, which has to be one the link reader
-      // can hand over - a name of two labels or more, or an IPv4 address: a
-      // scheme or a path alone names nothing a link could have, and an IPv6
-      // address, a name with a character a name cannot hold and one label are
-      // never a link's host there, so an entry for one would match nothing.
+      // can hand over - a name of two labels or more, or an IPv4 address, which
+      // an IPv4-mapped IPv6 address has become by now: a scheme or a path
+      // alone names nothing a link could have, and any other IPv6 address, a
+      // name with a character a name cannot hold and one label are never a
+      // link's host there, so an entry for one would match nothing.
       if (IsUrl(pattern))
       {
          const String canonical = Canonical(pattern);

@@ -12,11 +12,15 @@
 #include "../../SMTP/BLCheck.h"
 
 #include "DMARC/PublicSuffixList.h"
+#include "SenderListCache.h"
 #include "SenderPattern.h"
 #include <boost/regex.hpp>
 #include <algorithm>
+#include <chrono>
+#include <set>
 #include <stdexcept>
 #include <string>
+#include <type_traits>
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -73,19 +77,278 @@ namespace HM
          return (c >= L'a' && c <= L'z') || (c >= L'A' && c <= L'Z') || (c >= L'0' && c <= L'9');
       }
 
+      const unsigned int replacementCharacter = 0xFFFD;
+
+      struct CodePointRange
+      {
+         unsigned int first;
+         unsigned int last;
+      };
+
+      // The code points UTS 46 marks "ignored" - IdnaMappingTable.txt of
+      // Unicode 18.0.0, every line with that status, as the table writes
+      // them. A browser deletes them from a host before it looks the name up
+      // (the WHATWG URL standard's "domain to ASCII" maps the host by UTS 46),
+      // so http://ev<SOFT HYPHEN>il.example/ and a zero-width space inside a
+      // name go to evil.example. The rest of UTS 46 - the characters it maps
+      // to others (fullwidth letters, U+3002 for a dot), NFC and Punycode - is
+      // not done here (Roadmap3, "Internationalised link hosts").
+      const CodePointRange ignoredInAHost[] =
+      {
+         { 0x00AD, 0x00AD },     // SOFT HYPHEN
+         { 0x034F, 0x034F },     // COMBINING GRAPHEME JOINER
+         { 0x115F, 0x1160 },     // HANGUL CHOSEONG FILLER..HANGUL JUNGSEONG FILLER
+         { 0x17B4, 0x17B5 },     // KHMER VOWEL INHERENT AQ..KHMER VOWEL INHERENT AA
+         { 0x180B, 0x180E },     // MONGOLIAN FREE VARIATION SELECTOR ONE..MONGOLIAN VOWEL SEPARATOR
+         { 0x180F, 0x180F },     // MONGOLIAN FREE VARIATION SELECTOR FOUR
+         { 0x200B, 0x200B },     // ZERO WIDTH SPACE
+         { 0x2060, 0x2063 },     // WORD JOINER..INVISIBLE SEPARATOR
+         { 0x2064, 0x2064 },     // INVISIBLE PLUS
+         { 0x206A, 0x206F },     // INHIBIT SYMMETRIC SWAPPING..NOMINAL DIGIT SHAPES
+         { 0x3164, 0x3164 },     // HANGUL FILLER
+         { 0xFE00, 0xFE0F },     // VARIATION SELECTOR-1..VARIATION SELECTOR-16
+         { 0xFEFF, 0xFEFF },     // ZERO WIDTH NO-BREAK SPACE
+         { 0xFFA0, 0xFFA0 },     // HALFWIDTH HANGUL FILLER
+         { 0x1BCA0, 0x1BCA3 },   // SHORTHAND FORMAT LETTER OVERLAP..SHORTHAND FORMAT UP STEP
+         { 0x1D173, 0x1D17A },   // MUSICAL SYMBOL BEGIN BEAM..MUSICAL SYMBOL END PHRASE
+         { 0xE0100, 0xE01EF },   // VARIATION SELECTOR-17..VARIATION SELECTOR-256
+      };
+
+      bool IsIgnoredInAHost_(unsigned int codePoint)
+      {
+         for (const CodePointRange &range : ignoredInAHost)
+            if (codePoint >= range.first && codePoint <= range.last)
+               return true;
+         return false;
+      }
+
+      // text[i] as the number it holds, through wchar_t's own unsigned type: a
+      // UTF-16 unit on Windows, where wchar_t is unsigned, and the code point
+      // elsewhere, where it is signed and a value past U+10FFFF stays one.
+      unsigned int UnitAt_(const std::wstring &text, size_t i)
+      {
+         return static_cast<std::make_unsigned<wchar_t>::type>(text[i]);
+      }
+
+      // The code point at text[i], and how many wchar_t it takes. On Windows a
+      // wchar_t is a UTF-16 unit: a pair of surrogates is one code point, and a
+      // surrogate on its own is U+FFFD, as a browser reads a string. Elsewhere
+      // a wchar_t is the code point.
+      unsigned int CodePointAt_(const std::wstring &text, size_t i, size_t &units)
+      {
+         units = 1;
+         const unsigned int unit = UnitAt_(text, i);
+
+         if (sizeof(wchar_t) == 2 && unit >= 0xD800 && unit <= 0xDBFF && i + 1 < text.size())
+         {
+            const unsigned int low = UnitAt_(text, i + 1);
+            if (low >= 0xDC00 && low <= 0xDFFF)
+            {
+               units = 2;
+               return 0x10000 + ((unit - 0xD800) << 10) + (low - 0xDC00);
+            }
+         }
+
+         if ((unit >= 0xD800 && unit <= 0xDFFF) || unit > 0x10FFFF)
+            return replacementCharacter;
+
+         return unit;
+      }
+
+      // A code point appended as one wchar_t, or as a pair of surrogates where a
+      // wchar_t is a UTF-16 unit and the code point is past U+FFFF.
+      void AppendCodePoint_(unsigned int codePoint, std::wstring &text)
+      {
+         if (sizeof(wchar_t) == 2 && codePoint > 0xFFFF)
+         {
+            const unsigned int offset = codePoint - 0x10000;
+            text += static_cast<wchar_t>(0xD800 + (offset >> 10));
+            text += static_cast<wchar_t>(0xDC00 + (offset & 0x3FF));
+            return;
+         }
+
+         text += static_cast<wchar_t>(codePoint);
+      }
+
+      void AppendByte_(unsigned int byte, std::string &bytes)
+      {
+         bytes += static_cast<char>(static_cast<unsigned char>(byte));
+      }
+
+      void AppendUtf8_(unsigned int codePoint, std::string &bytes)
+      {
+         if (codePoint < 0x80)
+         {
+            AppendByte_(codePoint, bytes);
+         }
+         else if (codePoint < 0x800)
+         {
+            AppendByte_(0xC0 | (codePoint >> 6), bytes);
+            AppendByte_(0x80 | (codePoint & 0x3F), bytes);
+         }
+         else if (codePoint < 0x10000)
+         {
+            AppendByte_(0xE0 | (codePoint >> 12), bytes);
+            AppendByte_(0x80 | ((codePoint >> 6) & 0x3F), bytes);
+            AppendByte_(0x80 | (codePoint & 0x3F), bytes);
+         }
+         else
+         {
+            AppendByte_(0xF0 | (codePoint >> 18), bytes);
+            AppendByte_(0x80 | ((codePoint >> 12) & 0x3F), bytes);
+            AppendByte_(0x80 | ((codePoint >> 6) & 0x3F), bytes);
+            AppendByte_(0x80 | (codePoint & 0x3F), bytes);
+         }
+      }
+
+      // The Encoding standard's UTF-8 decoder, as the URL standard runs it on
+      // a percent-decoded host: a byte sequence that is not UTF-8 is U+FFFD,
+      // one for each maximal part of a sequence that is wrong.
+      std::vector<unsigned int> DecodeUtf8_(const std::string &bytes)
+      {
+         std::vector<unsigned int> codePoints;
+         codePoints.reserve(bytes.size());
+
+         unsigned int codePoint = 0;
+         unsigned int bytesNeeded = 0;
+         unsigned int bytesSeen = 0;
+         unsigned int lowerBoundary = 0x80;
+         unsigned int upperBoundary = 0xBF;
+
+         size_t i = 0;
+         while (i < bytes.size())
+         {
+            const unsigned int byte = static_cast<unsigned char>(bytes[i]);
+
+            if (bytesNeeded == 0)
+            {
+               i++;
+
+               if (byte <= 0x7F)
+               {
+                  codePoints.push_back(byte);
+               }
+               else if (byte >= 0xC2 && byte <= 0xDF)
+               {
+                  bytesNeeded = 1;
+                  codePoint = byte & 0x1F;
+               }
+               else if (byte >= 0xE0 && byte <= 0xEF)
+               {
+                  if (byte == 0xE0)
+                     lowerBoundary = 0xA0;
+                  if (byte == 0xED)
+                     upperBoundary = 0x9F;
+                  bytesNeeded = 2;
+                  codePoint = byte & 0xF;
+               }
+               else if (byte >= 0xF0 && byte <= 0xF4)
+               {
+                  if (byte == 0xF0)
+                     lowerBoundary = 0x90;
+                  if (byte == 0xF4)
+                     upperBoundary = 0x8F;
+                  bytesNeeded = 3;
+                  codePoint = byte & 0x7;
+               }
+               else
+               {
+                  codePoints.push_back(replacementCharacter);
+               }
+
+               continue;
+            }
+
+            if (byte < lowerBoundary || byte > upperBoundary)
+            {
+               // The sequence ends before this byte, which is read again as
+               // the start of the next.
+               codePoint = bytesNeeded = bytesSeen = 0;
+               lowerBoundary = 0x80;
+               upperBoundary = 0xBF;
+               codePoints.push_back(replacementCharacter);
+               continue;
+            }
+
+            i++;
+            lowerBoundary = 0x80;
+            upperBoundary = 0xBF;
+            codePoint = (codePoint << 6) | (byte & 0x3F);
+            bytesSeen++;
+
+            if (bytesSeen != bytesNeeded)
+               continue;
+
+            codePoints.push_back(codePoint);
+            codePoint = bytesNeeded = bytesSeen = 0;
+         }
+
+         if (bytesNeeded != 0)
+            codePoints.push_back(replacementCharacter);
+
+         return codePoints;
+      }
+
+      // The URL standard's percent-decoding of a string, then its UTF-8 decoding:
+      // each character as its UTF-8 bytes and each %XX as its byte, the bytes
+      // read as UTF-8. So %C2%AD is a soft hyphen, and a byte that is not
+      // part of a UTF-8 sequence is U+FFFD.
+      std::vector<unsigned int> PercentDecodedCodePoints_(const std::wstring &value)
+      {
+         std::string bytes;
+         bytes.reserve(value.size());
+
+         for (size_t i = 0; i < value.size();)
+         {
+            if (value[i] == L'%' && i + 2 < value.size())
+            {
+               const int high = HexValue_(value[i + 1]);
+               const int low = HexValue_(value[i + 2]);
+               if (high >= 0 && low >= 0)
+               {
+                  AppendByte_(static_cast<unsigned int>(high * 16 + low), bytes);
+                  i += 3;
+                  continue;
+               }
+            }
+
+            size_t units = 1;
+            AppendUtf8_(CodePointAt_(value, i, units), bytes);
+            i += units;
+         }
+
+         return DecodeUtf8_(bytes);
+      }
+
+      std::wstring PercentDecoded_(const std::wstring &value)
+      {
+         std::wstring decoded;
+         decoded.reserve(value.size());
+         for (unsigned int codePoint : PercentDecodedCodePoints_(value))
+            AppendCodePoint_(codePoint, decoded);
+         return decoded;
+      }
+
       struct NamedReference
       {
          const wchar_t *name;
-         wchar_t character;
+         unsigned int character;
       };
 
       // Every named character reference HTML defines for an ASCII character -
       // the 45 written with their semicolon and the 8 legacy ones without it,
-      // the 53 of html.spec.whatwg.org/entities.json - and the two for the
-      // no-break space, which ends a link in text. No named reference stands
-      // for an ASCII letter, digit or hyphen; a numeric one can stand for any.
+      // the 53 of html.spec.whatwg.org/entities.json - the two for the
+      // no-break space, which ends a link in text, and the 14 that stand for
+      // one code point UTS 46 ignores (entities.json again), which a browser
+      // deletes from a host: &shy; is a soft hyphen, &ZeroWidthSpace; and its
+      // four other names a zero-width space. No named reference stands for an
+      // ASCII letter, digit or hyphen; a numeric one can stand for any.
       const NamedReference namedReferences[] =
       {
+         { L"shy;", 0x00AD }, { L"ZeroWidthSpace;", 0x200B }, { L"NegativeVeryThinSpace;", 0x200B },
+         { L"NegativeThinSpace;", 0x200B }, { L"NegativeMediumSpace;", 0x200B }, { L"NegativeThickSpace;", 0x200B },
+         { L"NoBreak;", 0x2060 }, { L"ApplyFunction;", 0x2061 }, { L"af;", 0x2061 }, { L"InvisibleTimes;", 0x2062 },
+         { L"it;", 0x2062 }, { L"InvisibleComma;", 0x2063 }, { L"ic;", 0x2063 },
          { L"Tab;", L'\t' }, { L"NewLine;", L'\n' }, { L"excl;", L'!' }, { L"quot;", L'"' },
          { L"QUOT;", L'"' }, { L"num;", L'#' }, { L"dollar;", L'$' }, { L"percnt;", L'%' },
          { L"amp;", L'&' }, { L"AMP;", L'&' }, { L"apos;", L'\'' }, { L"lpar;", L'(' },
@@ -102,13 +365,14 @@ namespace HM
          // or digit follows, as in an attribute's value.
          { L"amp", L'&' }, { L"AMP", L'&' }, { L"quot", L'"' }, { L"QUOT", L'"' },
          { L"lt", L'<' }, { L"LT", L'<' }, { L"gt", L'>' }, { L"GT", L'>' }, { L"nbsp", 0xA0 },
+         { L"shy", 0x00AD },
       };
 
       // Reads the character reference at text[position] ('&'), as the HTML
       // tokenizer does: numeric, decimal or hexadecimal, with or without its
-      // semicolon, and the named ones above. True, with the character and the
+      // semicolon, and the named ones above. True, with the code point and the
       // reference's length, when there is one.
-      bool ReadCharacterReference_(const std::wstring &text, size_t position, wchar_t &character, size_t &length)
+      bool ReadCharacterReference_(const std::wstring &text, size_t position, unsigned int &character, size_t &length)
       {
          const size_t textLength = text.size();
 
@@ -141,13 +405,14 @@ namespace HM
 
             // NUL, a surrogate, a code point past Unicode's last, and the C1
             // controls - which HTML reads as windows-1252, never as ASCII -
-            // are U+FFFD here. So is a code point outside the Basic
-            // Multilingual Plane, which is never ASCII, never a space, and
-            // would be a surrogate pair on Windows.
-            if (value == 0 || value > 0xFFFF || (value >= 0xD800 && value <= 0xDFFF) || (value >= 0x80 && value <= 0x9F))
-               character = 0xFFFD;
+            // are U+FFFD here. A code point outside the Basic Multilingual
+            // Plane is itself, a pair of surrogates on Windows: it is never
+            // ASCII and never a space, but VARIATION SELECTOR-17 to -256 and a
+            // few others are code points a browser deletes from a host.
+            if (value == 0 || value > 0x10FFFF || (value >= 0xD800 && value <= 0xDFFF) || (value >= 0x80 && value <= 0x9F))
+               character = replacementCharacter;
             else
-               character = static_cast<wchar_t>(value);
+               character = static_cast<unsigned int>(value);
 
             length = i - position;
             return true;
@@ -187,12 +452,15 @@ namespace HM
 
          for (size_t i = 0; i < html.size(); i++)
          {
-            wchar_t character = 0;
+            unsigned int character = 0;
             size_t length = 0;
             if (html[i] == L'&' && ReadCharacterReference_(html, i, character, length))
             {
-               text += character;
-               fromReference.push_back(true);
+               // One flag for each wchar_t written: a pair of surrogates on
+               // Windows is two.
+               const size_t before = text.size();
+               AppendCodePoint_(character, text);
+               fromReference.insert(fromReference.end(), text.size() - before, true);
                i += length - 1;
                continue;
             }
@@ -200,35 +468,6 @@ namespace HM
             text += html[i];
             fromReference.push_back(false);
          }
-      }
-
-      // %XX read as its byte. A byte outside ASCII is U+FFFD: this server asks
-      // the lists about ASCII names only, and an internationalised name is not
-      // turned into its xn-- form.
-      std::wstring PercentDecoded_(const std::wstring &value)
-      {
-         std::wstring decoded;
-         decoded.reserve(value.size());
-
-         for (size_t i = 0; i < value.size(); i++)
-         {
-            if (value[i] == L'%' && i + 2 < value.size())
-            {
-               const int high = HexValue_(value[i + 1]);
-               const int low = HexValue_(value[i + 2]);
-               if (high >= 0 && low >= 0)
-               {
-                  const int byte = high * 16 + low;
-                  decoded += byte < 0x80 ? static_cast<wchar_t>(byte) : static_cast<wchar_t>(0xFFFD);
-                  i += 2;
-                  continue;
-               }
-            }
-
-            decoded += value[i];
-         }
-
-         return decoded;
       }
 
       std::vector<std::wstring> SplitOnDots_(const std::wstring &value)
@@ -419,20 +658,35 @@ namespace HM
          return String(name);
       }
 
-      // A host part percent-decoded, and in lower case.
-      std::wstring LowerDecoded_(const std::wstring &hostPart)
+      // A host part as a browser reads it before it looks the name up: percent-
+      // decoded as UTF-8 (%C2%AD is a soft hyphen), the code points UTS 46
+      // ignores deleted, and ASCII in lower case. Until 6.3.6 a
+      // byte past ASCII was U+FFFD and nothing was deleted, so
+      // http://ev%C2%ADil.example/ and a zero-width space in a name were no
+      // name at all, where a browser goes to evil.example.
+      std::wstring HostDecoded_(const std::wstring &hostPart)
       {
-         std::wstring host = PercentDecoded_(hostPart);
-         for (size_t i = 0; i < host.size(); i++)
-            if (host[i] >= L'A' && host[i] <= L'Z')
-               host[i] = static_cast<wchar_t>(host[i] + (L'a' - L'A'));
+         std::wstring host;
+         host.reserve(hostPart.size());
+
+         for (unsigned int codePoint : PercentDecodedCodePoints_(hostPart))
+         {
+            if (IsIgnoredInAHost_(codePoint))
+               continue;
+
+            if (codePoint >= static_cast<unsigned int>('A') && codePoint <= static_cast<unsigned int>('Z'))
+               codePoint += static_cast<unsigned int>('a' - 'A');
+
+            AppendCodePoint_(codePoint, host);
+         }
+
          return host;
       }
 
       // The hosts one link's host part hands over (SURBL::FindLinkHosts).
       void HostsOfHostPart_(const std::wstring &hostPart, std::vector<String> &hosts)
       {
-         const std::wstring host = LowerDecoded_(hostPart);
+         const std::wstring host = HostDecoded_(hostPart);
 
          // A host whose last label is a number is an address, or nothing a
          // browser can reach.
@@ -491,6 +745,176 @@ namespace HM
             hosts.push_back(registered);
       }
 
+      // The WHATWG URL standard's IPv6 parser, on what is between a host's
+      // brackets: eight pieces of up to four hexadecimal digits, "::" once for
+      // a run of zero pieces, and the last two pieces written as a dotted IPv4
+      // address if wished (four decimal parts of 0 to 255, none with a leading
+      // zero). False where a browser fails the host; a zone ("%25eth0") is one
+      // such.
+      bool ParseIPv6_(const std::wstring &input, unsigned int (&address)[8])
+      {
+         for (unsigned int &piece : address)
+            piece = 0;
+
+         const size_t length = input.size();
+         size_t pointer = 0;
+         size_t pieceIndex = 0;
+         bool compressed = false;
+         size_t compress = 0;
+
+         auto at = [&](size_t i) -> wchar_t { return i < length ? input[i] : 0; };
+
+         if (at(pointer) == L':')
+         {
+            if (at(pointer + 1) != L':')
+               return false;
+            pointer += 2;
+            pieceIndex++;
+            compressed = true;
+            compress = pieceIndex;
+         }
+
+         while (pointer < length)
+         {
+            if (pieceIndex == 8)
+               return false;
+
+            if (at(pointer) == L':')
+            {
+               if (compressed)
+                  return false;
+               pointer++;
+               pieceIndex++;
+               compressed = true;
+               compress = pieceIndex;
+               continue;
+            }
+
+            unsigned int value = 0;
+            size_t digits = 0;
+            while (digits < 4 && pointer < length && HexValue_(at(pointer)) >= 0)
+            {
+               value = value * 16 + static_cast<unsigned int>(HexValue_(at(pointer)));
+               pointer++;
+               digits++;
+            }
+
+            if (at(pointer) == L'.')
+            {
+               if (digits == 0)
+                  return false;
+               pointer -= digits;
+               if (pieceIndex > 6)
+                  return false;
+
+               int numbersSeen = 0;
+               while (pointer < length)
+               {
+                  if (numbersSeen > 0)
+                  {
+                     if (at(pointer) == L'.' && numbersSeen < 4)
+                        pointer++;
+                     else
+                        return false;
+                  }
+
+                  if (at(pointer) < L'0' || at(pointer) > L'9')
+                     return false;
+
+                  int part = -1;
+                  while (at(pointer) >= L'0' && at(pointer) <= L'9')
+                  {
+                     const int number = at(pointer) - L'0';
+                     if (part == -1)
+                        part = number;
+                     else if (part == 0)
+                        return false;
+                     else
+                        part = part * 10 + number;
+
+                     if (part > 255)
+                        return false;
+                     pointer++;
+                  }
+
+                  address[pieceIndex] = address[pieceIndex] * 0x100 + static_cast<unsigned int>(part);
+                  numbersSeen++;
+                  if (numbersSeen == 2 || numbersSeen == 4)
+                     pieceIndex++;
+               }
+
+               if (numbersSeen != 4)
+                  return false;
+
+               break;
+            }
+            else if (at(pointer) == L':')
+            {
+               pointer++;
+               if (pointer >= length)
+                  return false;
+            }
+            else if (pointer < length)
+            {
+               return false;
+            }
+
+            address[pieceIndex] = value;
+            pieceIndex++;
+         }
+
+         if (compressed)
+         {
+            size_t swaps = pieceIndex - compress;
+            pieceIndex = 7;
+            while (pieceIndex != 0 && swaps > 0)
+            {
+               std::swap(address[pieceIndex], address[compress + swaps - 1]);
+               pieceIndex--;
+               swaps--;
+            }
+         }
+         else if (pieceIndex != 8)
+         {
+            return false;
+         }
+
+         return true;
+      }
+
+      // The IPv4 address a browser reaches when a link names an IPv6 address
+      // that carries one: an IPv4-mapped address (::ffff:0:0/96, RFC 4291
+      // section 2.5.5.2), which a dual-stack system connects to over IPv4, and
+      // one under the NAT64 well-known prefix (64:ff9b::/96, RFC 6052), which
+      // exists only to be carried by a translator to the IPv4 address in its
+      // last 32 bits. So http://[::ffff:192.0.2.1]/ and
+      // http://[64:ff9b::c000:201]/ are 192.0.2.1, in dotted decimal. False
+      // for any other IPv6 address, and for text no browser reads as one.
+      bool EmbeddedIPv4_(const std::wstring &bracketed, std::wstring &dotted)
+      {
+         unsigned int address[8];
+         if (!ParseIPv6_(bracketed, address))
+            return false;
+
+         const bool mapped = address[0] == 0 && address[1] == 0 && address[2] == 0 && address[3] == 0 &&
+                             address[4] == 0 && address[5] == 0xFFFF;
+         const bool nat64 = address[0] == 0x64 && address[1] == 0xFF9B && address[2] == 0 && address[3] == 0 &&
+                            address[4] == 0 && address[5] == 0;
+         if (!mapped && !nat64)
+            return false;
+
+         const unsigned int octets[4] = { address[6] >> 8, address[6] & 0xFF, address[7] >> 8, address[7] & 0xFF };
+         dotted.clear();
+         for (int i = 0; i < 4; i++)
+         {
+            if (i > 0)
+               dotted += L'.';
+            dotted += std::to_wstring(octets[i]);
+         }
+
+         return true;
+      }
+
       // The host part of a link's authority. False when there is none to read.
       bool HostPartOfAuthority_(const std::wstring &authority, std::wstring &hostPart)
       {
@@ -500,10 +924,19 @@ namespace HM
          const size_t at = authority.rfind(L'@');
          const std::wstring hostAndPort = at == std::wstring::npos ? authority : authority.substr(at + 1);
 
-         // An IPv6 address, or RFC 3986's IPvFuture. No URI list publishes
-         // either, so neither is asked about.
-         if (hostAndPort.empty() || hostAndPort[0] == L'[')
+         if (hostAndPort.empty())
             return false;
+
+         // An IPv6 address, or RFC 3986's IPvFuture. No URI list publishes
+         // either, so neither is asked about - but an IPv6 address that
+         // carries an IPv4 one a browser reaches is that IPv4 address. Until
+         // 6.3.6 no bracketed host was, so
+         // http://[::ffff:192.0.2.1]/ escaped a listing of 192.0.2.1.
+         if (hostAndPort[0] == L'[')
+         {
+            const size_t close = hostAndPort.find(L']');
+            return close != std::wstring::npos && EmbeddedIPv4_(hostAndPort.substr(1, close - 1), hostPart);
+         }
 
          const size_t colon = hostAndPort.find(L':');
          hostPart = colon == std::wstring::npos ? hostAndPort : hostAndPort.substr(0, colon);
@@ -529,11 +962,18 @@ namespace HM
       // in it would have: the name it starts with, before any port. A userinfo
       // of names alone (http://innocent.example@evil.example/) hands over
       // nothing more: every program goes to the host after it.
+      //
+      // Whether a host was handed over already is looked up, not searched
+      // for among those before it: searched, the time grew with the square of
+      // the number of names in the user name, and a link of a megabyte took
+      // seconds to read.
       void HostsInTheUserinfo_(const std::wstring &authority, std::vector<String> &hosts)
       {
          const size_t lastAt = authority.rfind(L'@');
          if (lastAt == std::wstring::npos)
             return;
+
+         std::set<String> handedOver(hosts.begin(), hosts.end());
 
          size_t start = 0;
          while (start <= lastAt)
@@ -559,7 +999,52 @@ namespace HM
             std::vector<String> found;
             HostsOfHostPart_(colon == std::wstring::npos ? part : part.substr(0, colon), found);
             for (const String &host : found)
-               if (std::find(hosts.begin(), hosts.end(), host) == hosts.end())
+               if (handedOver.insert(host).second)
+                  hosts.push_back(host);
+         }
+      }
+
+      // The code points UTS 46 ignores that a regular expression's \s matches
+      // in some engine: U+FEFF, which JavaScript's \s matches, and U+180E and
+      // U+200B, which were Unicode's spaces until 6.3 and 4.0.1 and still are
+      // to an engine with older tables (Java 8's Character.isWhitespace takes
+      // U+180E). Each is in the Basic Multilingual Plane, one wchar_t on every
+      // platform.
+      const wchar_t spacesToSomeEngine[] = { 0xFEFF, 0x180E, 0x200B };
+
+      // A link in running text is made by the mail program that shows it, and
+      // a webmail's script that ends a link at white space by its \s ends one
+      // at such a code point, where a browser given the whole link deletes it
+      // from the host: http://evil.example<U+FEFF>x/ goes to evil.examplex
+      // from one program and to evil.example from another. So the hosts of
+      // the authority before the first of each of them - where an engine that
+      // takes it, or it among others, for white space ends the link - are
+      // handed over too, after the others. The reading that deleted no code
+      // point handed over the name before one, as the name before any
+      // character a name cannot hold; without this, deleting them lost it.
+      void HostsBeforeASpaceToSomeEngine_(const std::wstring &authority, std::vector<String> &hosts)
+      {
+         std::set<size_t> ends;
+         for (wchar_t space : spacesToSomeEngine)
+         {
+            const size_t at = authority.find(space);
+            if (at != std::wstring::npos)
+               ends.insert(at);
+         }
+
+         if (ends.empty())
+            return;
+
+         std::set<String> handedOver(hosts.begin(), hosts.end());
+         for (size_t end : ends)
+         {
+            const std::wstring before = authority.substr(0, end);
+            std::vector<String> found;
+            HostsOfAuthority_(before, found);
+            HostsInTheUserinfo_(before, found);
+
+            for (const String &host : found)
+               if (handedOver.insert(host).second)
                   hosts.push_back(host);
          }
       }
@@ -574,6 +1059,18 @@ namespace HM
       {
          const size_t length = text.size();
          size_t i = start;
+
+         // In a value the URL parser reads, tabs and line breaks are dropped
+         // before anything else, and every slash and backslash after "http:"
+         // is skipped: <a href="http:&#10;//evil.example/"> goes to
+         // evil.example, where the separator is "http:" alone and the reading
+         // would have stopped at the first slash. Until 6.3.6
+         // it did.
+         if (attribute)
+         {
+            while (i < length && (text[i] == L'/' || text[i] == L'\\' || text[i] == L'\t' || text[i] == L'\r' || text[i] == L'\n'))
+               i++;
+         }
 
          for (; i < length; i++)
          {
@@ -642,6 +1139,37 @@ namespace HM
          return authority;
       }
 
+      // Where a run of "%2F" and "%5C", in either case, and of slashes and
+      // backslashes, that starts at start ends: the slashes and backslashes of
+      // a link written percent-encoded into another's query, which a
+      // redirector decodes and a browser skips. Raw ones are part of the run:
+      // an encoder that leaves '/' alone - Python's urllib.parse.quote,
+      // JavaScript's escape - writes http://evil.example as
+      // http%3A//evil.example, where the reading stopped at the first raw
+      // slash and read nothing, until the raw ones were taken in.
+      size_t SkipEncodedSlashes_(const std::wstring &text, size_t start)
+      {
+         size_t i = start;
+         while (i < text.size())
+         {
+            if (text[i] == L'/' || text[i] == L'\\')
+            {
+               i++;
+               continue;
+            }
+
+            if (i + 2 >= text.size() || text[i] != L'%')
+               break;
+
+            const wchar_t high = text[i + 1];
+            const wchar_t low = static_cast<wchar_t>(text[i + 2] | 0x20);
+            if (!((high == L'2' && low == L'f') || (high == L'5' && low == L'c')))
+               break;
+            i += 3;
+         }
+         return i;
+      }
+
       bool IsDottedDecimal_(const std::wstring &host)
       {
          std::vector<std::wstring> parts = SplitOnDots_(host);
@@ -667,6 +1195,249 @@ namespace HM
       {
          return host == _T("w3.org") || host == _T("w3c.org") || host == _T("schemas.microsoft.com") ||
                 host == _T("fonts.googleapis.com") || host == _T("fonts.gstatic.com");
+      }
+
+      // Reads the links in source - a text part, or an HTML part with its
+      // character references read, fromReference saying which characters a
+      // reference wrote - and hands the hosts they go to to visit, as
+      // SURBL::FindLinkHosts says, finding each by separator (FindLinkHosts
+      // says what it is). False when visit stopped the reading.
+      bool ReadLinks_(const boost::wregex &separator, const std::wstring &source, const std::vector<bool> &fromReference,
+                      bool html, const std::function<bool(const String &host)> &visit)
+      {
+         boost::wsmatch match;
+         std::wstring::const_iterator from = source.begin();
+         boost::match_flag_type flags = boost::match_default;
+
+         while (boost::regex_search(from, source.end(), match, separator, flags))
+         {
+            const size_t matchStart = static_cast<size_t>(match[0].first - source.begin());
+            const bool withScheme = match[1].matched;
+            const bool encoded = withScheme ? match.str(1).find(L'%') != std::wstring::npos : match[3].matched;
+
+            // The rest of the separator's run of slashes: "%2F", "%5C" and raw
+            // slashes and backslashes after an encoded separator; raw, slashes
+            // and backslashes after two with no scheme.
+            size_t separatorEnd = static_cast<size_t>(match[0].second - source.begin());
+            if (encoded)
+               separatorEnd = SkipEncodedSlashes_(source, separatorEnd);
+            else if (match[2].matched)
+            {
+               while (separatorEnd < source.size() && (source[separatorEnd] == L'/' || source[separatorEnd] == L'\\'))
+                  separatorEnd++;
+            }
+
+            // The quote the link was opened by, when a quote came just before
+            // it. In HTML it is an attribute's value when an '=' comes before
+            // the quote: the value runs to the closing quote whatever is inside
+            // it. The URL parser drops the spaces and control characters a
+            // value begins with, so in HTML they may come between the quote and
+            // the link, written as themselves or as references (&#32;, &#9;):
+            // the tokenizer has made them the value's characters either way.
+            wchar_t quote = 0;
+            bool attribute = false;
+            size_t opener = matchStart;
+            if (html)
+            {
+               while (opener > 0 && source[opener - 1] <= 0x20)
+                  opener--;
+            }
+
+            if (opener > 0)
+            {
+               const wchar_t before = source[opener - 1];
+               const bool beforeIsReference = html && fromReference[opener - 1];
+               if ((before == L'"' || before == L'\'') && !beforeIsReference)
+               {
+                  quote = before;
+
+                  if (html)
+                  {
+                     size_t i = opener - 1;
+                     while (i > 0 && source[i - 1] <= 0x20 && !fromReference[i - 1])
+                        i--;
+                     attribute = i > 0 && source[i - 1] == L'=' && !fromReference[i - 1];
+                  }
+               }
+            }
+
+            // A link with no scheme is one where it opens a value: two slashes
+            // an attribute's quoted value begins with (after the spaces the URL
+            // parser drops), or an unquoted one; and two slashes, as themselves
+            // or percent-encoded, just after the '=' of a query parameter
+            // (?u=//evil.example, ?u=%2F%2Fevil.example), in text as in HTML.
+            // An attribute's value that begins with %2F%2F is a path, not a
+            // link.
+            bool isALink = withScheme;
+            if (!withScheme)
+            {
+               const bool encodedSlashes = match[3].matched;
+               if (attribute)
+                  isALink = !encodedSlashes;
+               else if (quote == 0 && opener > 0 && source[opener - 1] == L'=')
+                  isALink = opener == matchStart || (html && !encodedSlashes);
+            }
+
+            size_t resume = separatorEnd;
+            if (isALink)
+            {
+               std::wstring authority;
+               const size_t stopped = ReadAuthority_(source, fromReference, separatorEnd, quote, attribute, encoded, authority);
+
+               if (encoded)
+                  authority = DecodedEncodedAuthority_(authority);
+
+               std::vector<String> hosts;
+               HostsOfAuthority_(authority, hosts);
+               if (!attribute && !encoded)
+               {
+                  HostsInTheUserinfo_(authority, hosts);
+                  HostsBeforeASpaceToSomeEngine_(authority, hosts);
+               }
+
+               for (const String &host : hosts)
+                  if (!visit(host))
+                     return false;
+
+               // The next separator is looked for from the end of this one, so
+               // that "http://a.example;http://b.example/" finds both. After a
+               // long authority it is looked for from where the reading
+               // stopped, so that the text is read in time proportional to its
+               // length - less the six characters of "https:": a reading ends
+               // at a slash or a backslash, and one that took in the scheme of
+               // the link after it
+               // ("http://<300 characters>!http://evil.example/") ended at
+               // that link's own slashes, so the link starts just before the
+               // stop.
+               const size_t longestSchemeBeforeItsSlash = 6;
+               if (stopped - separatorEnd > 256)
+                  resume = stopped - longestSchemeBeforeItsSlash;
+            }
+
+            if (resume >= source.size())
+               return true;
+
+            from = source.begin() + static_cast<std::ptrdiff_t>(resume);
+            flags = boost::match_default | boost::match_prev_avail;
+         }
+         return true;
+      }
+
+      // An HTML attribute's value is given to the URL parser, which deletes
+      // every tab and line break in it before it reads anything - inside a
+      // link written into the value's query too, where the reading of the
+      // whole part stops at one: <a href="https://r.example/?u=http%3A%2F%2F
+      // ev&#9;il.example"> sends its visitor to evil.example through the
+      // redirector, and http%3&#10;A%2F%2F is http%3A%2F%2F to it. So each
+      // quoted value of a tag that holds one is read alone twice, with them
+      // and without, and the hosts only the second reading finds are handed
+      // over too. A value is known as the tokenizer knows it: after an '='
+      // inside a tag, to the matching quote, none of them written by a
+      // reference; a tag the text ends inside is none, and a quote in the
+      // text between tags opens no value. Up to 4,096 hosts of a value are
+      // remembered to tell the two readings apart; past them a host may be
+      // handed over twice, which every reader of the hosts allows. False when
+      // visit stopped the reading.
+      bool ReadValuesWithoutBreaks_(const boost::wregex &separator, const std::wstring &source,
+                                    const std::vector<bool> &fromReference, const std::function<bool(const String &host)> &visit)
+      {
+         const size_t length = source.size();
+         const size_t hostsRemembered = 4096;
+         auto isBreak = [](wchar_t c) { return c == L'\t' || c == L'\r' || c == L'\n'; };
+         auto isLetter = [](wchar_t c) { return (c >= L'a' && c <= L'z') || (c >= L'A' && c <= L'Z'); };
+
+         size_t i = 0;
+         while (i < length)
+         {
+            // A tag opens at a '<' followed by a letter, and ends at a '>'
+            // outside its values.
+            if (source[i] != L'<' || fromReference[i] || i + 1 >= length || !isLetter(source[i + 1]))
+            {
+               i++;
+               continue;
+            }
+
+            size_t j = i + 1;
+            while (j < length && !(source[j] == L'>' && !fromReference[j]))
+            {
+               if (source[j] != L'=' || fromReference[j])
+               {
+                  j++;
+                  continue;
+               }
+
+               size_t open = j + 1;
+               while (open < length && source[open] <= 0x20 && !fromReference[open])
+                  open++;
+               if (open >= length || fromReference[open] || (source[open] != L'"' && source[open] != L'\''))
+               {
+                  j++;
+                  continue;
+               }
+
+               const wchar_t quote = source[open];
+               size_t close = open + 1;
+               bool holdsABreak = false;
+               while (close < length && (source[close] != quote || fromReference[close]))
+               {
+                  holdsABreak = holdsABreak || isBreak(source[close]);
+                  close++;
+               }
+
+               if (close >= length)
+                  return true;
+
+               if (holdsABreak)
+               {
+                  // The value as an attribute's, ="...", as it is and with its
+                  // breaks deleted.
+                  std::wstring asItIs(1, L'=');
+                  asItIs += quote;
+                  std::wstring without = asItIs;
+                  std::vector<bool> asItIsFromReference(2, false);
+                  std::vector<bool> withoutFromReference(2, false);
+                  for (size_t k = open + 1; k < close; k++)
+                  {
+                     asItIs += source[k];
+                     asItIsFromReference.push_back(fromReference[k]);
+                     if (isBreak(source[k]))
+                        continue;
+                     without += source[k];
+                     withoutFromReference.push_back(fromReference[k]);
+                  }
+                  asItIs += quote;
+                  asItIsFromReference.push_back(false);
+                  without += quote;
+                  withoutFromReference.push_back(false);
+
+                  std::set<String> handedOver;
+                  ReadLinks_(separator, asItIs, asItIsFromReference, true, [&](const String &host) -> bool
+                  {
+                     if (handedOver.size() < hostsRemembered)
+                        handedOver.insert(host);
+                     return true;
+                  });
+
+                  const bool goOn = ReadLinks_(separator, without, withoutFromReference, true, [&](const String &host) -> bool
+                  {
+                     if (handedOver.find(host) != handedOver.end())
+                        return true;
+                     if (handedOver.size() < hostsRemembered)
+                        handedOver.insert(host);
+                     return visit(host);
+                  });
+
+                  if (!goOn)
+                     return false;
+               }
+
+               j = close + 1;
+            }
+
+            i = j + 1;
+         }
+
+         return true;
       }
    }
 
@@ -694,86 +1465,37 @@ namespace HM
 
       const std::wstring &source = html ? decoded : static_cast<const std::wstring &>(text);
 
-      // A link written into another's query has its separator percent-encoded,
-      // and a redirector that decodes it reads it as a browser reads any
-      // link: http%3A%5C%5C, http%3A%2F%2F%2F and http%3A are http:// too.
-      const boost::wregex separator(L"https?:[\\\\/]*|https?%3a(?:%2f|%5c)*|%3a%2f%2f(?:%2f|%5c)*|://", boost::wregex::icase);
+      // The first group is a link with a scheme. A link written into another's
+      // query has its separator percent-encoded, and a redirector that decodes
+      // it reads it as a browser reads any link: http%3A%5C%5C,
+      // http%3A%2F%2F%2F and http%3A are http:// too.
+      //
+      // The second and third are a link with no scheme, which a browser
+      // resolves against the page's own: two slashes or backslashes or more
+      // (tabs and line breaks between them are dropped), as themselves or,
+      // for a link in another's query, percent-encoded. <a href="//evil.example/">
+      // goes to evil.example from a webmail page, as does a redirector's
+      // ?u=//evil.example. Such a separator is a link only where it opens an
+      // attribute's value or a query parameter's (below); elsewhere two
+      // slashes are a path's or a comment's. Until 6.3.6 no
+      // link without a scheme was read.
+      //
+      // No alternative repeats a group: boost keeps state for each repetition
+      // of one, and throws when a long run passes its limit, which ends the
+      // reading of the message (5701) with every link after the run unread -
+      // as an expression of this tree that repeated "%2F" did, before any
+      // release had it. A run of percent-encoded slashes and backslashes is
+      // taken after the match instead (SkipEncodedSlashes_), as a run of raw
+      // ones after two with no scheme is; a repeat of one character set, as
+      // the slashes after "http:" are matched, keeps no such state.
+      const boost::wregex separator(
+         L"(https?:[\\\\/]*|https?%3a|%3a%2f%2f|://)|([/\\\\][\\t\\r\\n]*[/\\\\])|(%(?:2f|5c)%(?:2f|5c))",
+         boost::wregex::icase);
 
-      boost::wsmatch match;
-      std::wstring::const_iterator from = source.begin();
-      boost::match_flag_type flags = boost::match_default;
+      if (!ReadLinks_(separator, source, fromReference, html, visit) || !html)
+         return;
 
-      while (boost::regex_search(from, source.end(), match, separator, flags))
-      {
-         const size_t matchStart = static_cast<size_t>(match[0].first - source.begin());
-         const size_t separatorEnd = static_cast<size_t>(match[0].second - source.begin());
-         const bool encoded = match.str(0).find(L'%') != std::wstring::npos;
-
-         // The quote the link was opened by, when a quote came just before it.
-         // In HTML it is an attribute's value when an '=' comes before the
-         // quote: the value runs to the closing quote whatever is inside it.
-         // The URL parser drops the spaces and control characters a value
-         // begins with, so in HTML they may come between the quote and the link,
-         // written as themselves or as references (&#32;, &#9;): the tokenizer
-         // has made them the value's characters either way.
-         wchar_t quote = 0;
-         bool attribute = false;
-         size_t opener = matchStart;
-         if (html)
-         {
-            while (opener > 0 && source[opener - 1] <= 0x20)
-               opener--;
-         }
-
-         if (opener > 0)
-         {
-            const wchar_t before = source[opener - 1];
-            const bool beforeIsReference = html && fromReference[opener - 1];
-            if ((before == L'"' || before == L'\'') && !beforeIsReference)
-            {
-               quote = before;
-
-               if (html)
-               {
-                  size_t i = opener - 1;
-                  while (i > 0 && source[i - 1] <= 0x20 && !fromReference[i - 1])
-                     i--;
-                  attribute = i > 0 && source[i - 1] == L'=' && !fromReference[i - 1];
-               }
-            }
-         }
-
-         std::wstring authority;
-         const size_t stopped = ReadAuthority_(source, fromReference, separatorEnd, quote, attribute, encoded, authority);
-
-         if (encoded)
-            authority = DecodedEncodedAuthority_(authority);
-
-         std::vector<String> hosts;
-         HostsOfAuthority_(authority, hosts);
-         if (!attribute && !encoded)
-            HostsInTheUserinfo_(authority, hosts);
-
-         for (const String &host : hosts)
-            if (!visit(host))
-               return;
-
-         // The next separator is looked for from the end of this one, so that
-         // "http://a.example;http://b.example/" finds both. After a long
-         // authority it is looked for from where the reading stopped, so that
-         // the text is read in time proportional to its length - less the six
-         // characters of "https:": a reading ends at a slash or a backslash,
-         // and one that took in the scheme of the link after it
-         // ("http://<300 characters>!http://evil.example/") ended at that
-         // link's own slashes, so the link starts just before the stop.
-         const size_t longestSchemeBeforeItsSlash = 6;
-         const size_t resume = stopped - separatorEnd > 256 ? stopped - longestSchemeBeforeItsSlash : separatorEnd;
-         if (resume >= source.size())
-            return;
-
-         from = source.begin() + static_cast<std::ptrdiff_t>(resume);
-         flags = boost::match_default | boost::match_prev_avail;
-      }
+      ReadValuesWithoutBreaks_(separator, source, fromReference, visit);
    }
 
    std::vector<String>
@@ -801,6 +1523,21 @@ namespace HM
       if (PublicSuffixList::GetRegistrableDomain(registrable, isIPAddress) && registrable != host)
          names.push_back(registrable);
 
+      // And, for a host under a shared-hosting suffix of the list's PRIVATE
+      // section, the domain registered under its ICANN section: github.io for
+      // tenant.github.io, blogspot.com for x.blogspot.com. A wildcarded list
+      // (SURBL's multi, the Spamhaus DBL) answers for that domain when it is
+      // asked about the host, but one that is not wildcarded (URIBL) answers
+      // only for the names it lists, and lists a whole hosting domain under
+      // that domain alone: a link to evil.duckdns.org is caught by URIBL's
+      // listing of duckdns.org only when duckdns.org is asked about. 6.3.5,
+      // which cut at two labels, asked it; the cut by the whole list, which
+      // replaced that cut in 6.3.6, did not, until this third name.
+      String icannRegistrable = host;
+      if (PublicSuffixList::GetRegistrableDomain(icannRegistrable, isIPAddress, PublicSuffixList::IcannSectionOnly) &&
+          icannRegistrable != host && icannRegistrable != registrable)
+         names.push_back(icannRegistrable);
+
       return names;
    }
 
@@ -815,7 +1552,7 @@ namespace HM
       // a name's characters or an address; and nothing for one that is not,
       // where a link hands over the name before the character and the labels
       // after it: an entry names one host, and is not widened to another.
-      return Canonical_(LowerDecoded_(hostPart));
+      return Canonical_(HostDecoded_(hostPart));
    }
 
    SURBL::AnswerKind
@@ -857,41 +1594,19 @@ namespace HM
       return AnswerVerdict;
    }
 
-   bool
-   SURBL::Collect_(std::shared_ptr<MessageData> pMessageData, bool namesToAsk, std::vector<String> &out)
+   void
+   SURBL::ForEachLinkHost(std::shared_ptr<MessageData> pMessageData, const std::function<bool(const String &host)> &visit)
    {
-      std::set<String> collected;
-      bool full = false;
-
-      auto visit = [&](const String &host) -> bool
+      bool stopped = false;
+      auto visitLink = [&](const String &host) -> bool
       {
          if (IsDocumentTypeHost_(host))
             return true;
 
-         const std::vector<String> names = namesToAsk ? NamesToAsk(host) : std::vector<String>(1, host);
-         for (const String &name : names)
+         if (!visit(host))
          {
-            if (collected.find(name) != collected.end())
-               continue;
-
-            // LOG_DEBUG is an if of its own, so each is in braces.
-            if (namesToAsk && name == host)
-            {
-               LOG_DEBUG(Formatter::Format(_T("SURBL: Found URL: {0}"), name));
-            }
-            else if (namesToAsk)
-            {
-               LOG_DEBUG(Formatter::Format(_T("SURBL: Found URL: {0}, asked about as {1}"), host, name));
-            }
-
-            collected.insert(name);
-            out.push_back(name);
-
-            if (collected.size() > maxURLsToProcess)
-            {
-               full = true;
-               return false;
-            }
+            stopped = true;
+            return false;
          }
 
          return true;
@@ -900,16 +1615,47 @@ namespace HM
       try
       {
          // The text part as text, and the HTML part as HTML, in that order.
-         FindLinkHosts(pMessageData->GetBody(), false, visit);
-         if (!full)
-            FindLinkHosts(pMessageData->GetHTMLBody(), true, visit);
+         FindLinkHosts(pMessageData->GetBody(), false, visitLink);
+         if (!stopped)
+            FindLinkHosts(pMessageData->GetHTMLBody(), true, visitLink);
       }
       catch (std::runtime_error &err) // regex_search throws runtime_error if the expression is too complex.
       {
          ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5701, "SURBL::Run", "Parsing HTML body with regular expression threw a runtime_error", err);
       }
+   }
 
-      return !out.empty();
+   void
+   SURBL::Collect_(std::shared_ptr<MessageData> pMessageData, std::vector<String> &out)
+   {
+      std::set<String> collected;
+
+      ForEachLinkHost(pMessageData, [&](const String &host) -> bool
+      {
+         for (const String &name : NamesToAsk(host))
+         {
+            if (collected.find(name) != collected.end())
+               continue;
+
+            // LOG_DEBUG is an if of its own, so each is in braces.
+            if (name == host)
+            {
+               LOG_DEBUG(Formatter::Format(_T("SURBL: Found URL: {0}"), name));
+            }
+            else
+            {
+               LOG_DEBUG(Formatter::Format(_T("SURBL: Found URL: {0}, asked about as {1}"), host, name));
+            }
+
+            collected.insert(name);
+            out.push_back(name);
+
+            if (collected.size() > maxURLsToProcess)
+               return false;
+         }
+
+         return true;
+      });
    }
 
    bool
@@ -917,7 +1663,7 @@ namespace HM
    {
       LOG_DEBUG("SURBL: Execute");
 
-      Collect_(pMessageData, true, vecUrls);
+      Collect_(pMessageData, vecUrls);
 
       if (vecUrls.empty())
       {
@@ -933,12 +1679,6 @@ namespace HM
       LOG_DEBUG(logMessage);
 
       return true;
-   }
-
-   bool
-   SURBL::ExtractHosts(std::shared_ptr<MessageData> pMessageData, std::vector<String> &hosts)
-   {
-      return Collect_(pMessageData, false, hosts);
    }
 
    bool
@@ -1177,6 +1917,8 @@ namespace HM
          { L"https://r.example/?u=http%3A%2F%2F%2Fevil.example", false, L"r.example|evil.example", "an encoded link with three slashes" },
          { L"https://r.example/?u=https%3Aevil.example&v=1", false, L"r.example|evil.example", "an encoded link with no slash" },
          { L"%3A%2F%2F%5Cbare.example", false, L"bare.example", "no scheme, and a backslash after the slashes" },
+         { L"https://r.example/?u=http%3A//evil.example/x", false, L"r.example|evil.example", "an encoded link whose slashes were left alone, as Python's quote and JavaScript's escape write it" },
+         { L"https://r.example/?u=https%3A%2F/%5C\\evil.example", false, L"r.example|evil.example", "encoded and raw slashes and backslashes mixed" },
 
          // IPv4 addresses, in the forms a browser reads.
          { L"http://192.0.2.1/", false, L"192.0.2.1", "an address" },
@@ -1262,6 +2004,93 @@ namespace HM
          { L"<a href=\"http://ev\r\nil.example/\">", true, L"evil.example", "a line break the URL parser drops" },
          { L"<p>\"http://good.example and write to x@innocent.example</p>", true, L"good.example", "a quote in text is not an attribute's" },
          { L"<a href=http://x@evil.example/>", true, L"evil.example", "an unquoted value" },
+
+         // The code points UTS 46 ignores, which a browser deletes from a host,
+         // and percent-encoding read as UTF-8.
+         { L"http://ev\u00ADil.example/", false, L"evil.example", "a soft hyphen" },
+         { L"http://ev%C2%ADil.example/", false, L"evil.example", "a soft hyphen, percent-encoded as UTF-8" },
+         { L"http://evil\u200B.example/", false, L"evil.example", "a zero-width space" },
+         { L"http://evil%E2%80%8B.example/", false, L"evil.example", "a zero-width space, percent-encoded" },
+         { L"http://e\u2060vil\u2064.exam\uFEFFple/", false, L"evil.example|evil.exam", "a word joiner, an invisible plus and a zero-width no-break space; and in a text part the name before the last, where a script's \\s ends the link" },
+         { L"http://evil\uFE0F.example/", false, L"evil.example", "a variation selector" },
+         { L"http://evil\U000E0100.example/", false, L"evil.example", "VARIATION SELECTOR-17, outside the Basic Multilingual Plane" },
+         { L"http://evil%F3%A0%84%80.example/", false, L"evil.example", "the same, percent-encoded in four bytes" },
+         { L"http://192.0\u00AD.2.1/", false, L"192.0.2.1", "a soft hyphen in an address" },
+         { L"http://evil%C2.example/", false, L"", "a byte that begins UTF-8 and is not followed as UTF-8 goes on is U+FFFD" },
+         { L"http://evil%AD.example/", false, L"", "a byte that cannot begin UTF-8 is U+FFFD, not a soft hyphen" },
+         { L"http://evil\xD800.example/", false, L"", "a surrogate on its own is U+FFFD" },
+         { L"http://evil\u200D.example/", false, L"", "a zero-width joiner is not ignored: a browser refuses it here" },
+         { L"<a href=\"http://ev&shy;il.example/\">", true, L"evil.example", "&shy;" },
+         { L"<a href=\"http://ev&shy&#105;l.example/\">", true, L"evil.example", "&shy without its semicolon" },
+         { L"<a href=\"http://evil&ZeroWidthSpace;.example/\">", true, L"evil.example", "&ZeroWidthSpace;" },
+         { L"<a href=\"http://e&NoBreak;v&it;i&ic;l&af;.example/\">", true, L"evil.example", "&NoBreak;, &it;, &ic; and &af;" },
+         { L"<a href=\"http://evil&#xE0100;.example/\">", true, L"evil.example", "a numeric reference outside the Basic Multilingual Plane" },
+         { L"https://r.example/?u=http%3A%2F%2Fev%C2%ADil.example", false, L"r.example|evil.example", "a soft hyphen in a link in another's query" },
+
+         // Where a mail program's script ends a link in running text at a
+         // code point its \s matches and a browser given the whole link
+         // deletes: both hosts.
+         { L"see http://evil.example\uFEFFmore/ now", false, L"evil.examplemore|evil.example", "a zero-width no-break space, which JavaScript's \\s matches" },
+         { L"http://ev\u00ADil.example\u200Bx.test/", false, L"evil.examplex.test|evil.example", "a zero-width space after a soft hyphen: the name before it, the soft hyphen deleted" },
+         { L"http://x@evil.example\u180E.test@good.example/", false, L"good.example|evil.example.test|evil.example", "a Mongolian vowel separator in the user name" },
+         { L"see https://u\u180Ev@evil.examp\uFEFFle/ now", false, L"evil.example|evil.examp", "a Mongolian vowel separator in the user name and a zero-width no-break space in the host: each is where some engine ends the link" },
+         { L"<p>http://evil.example&#xFEFF;more/</p>", true, L"evil.examplemore|evil.example", "in HTML's text as in a text part" },
+         { L"<a href=\"http://evil.example&#xFEFF;more/\">", true, L"evil.examplemore", "an attribute's value is the link a browser is given, whole" },
+         { L"https://r.example/?u=http%3A%2F%2Fevil.example%EF%BB%BFmore", false, L"r.example|evil.examplemore", "a link in another's query is decoded by a redirector, not ended by a script" },
+         { L"http://evil.example\u00ADmore/", false, L"evil.examplemore", "a soft hyphen, which no engine's \\s matches" },
+
+         // An IPv6 address in brackets that carries an IPv4 one a browser
+         // reaches, and one that does not.
+         { L"http://[::ffff:192.0.2.1]/", false, L"192.0.2.1", "an IPv4-mapped address" },
+         { L"http://[::FFFF:C000:0201]:8080/", false, L"192.0.2.1", "the same in hexadecimal, with a port" },
+         { L"http://[0:0:0:0:0:ffff:192.0.2.1]/", false, L"192.0.2.1", "the same written out" },
+         { L"http://x@[::ffff:c000:201]/", false, L"192.0.2.1", "the same after a user name" },
+         { L"http://[64:ff9b::192.0.2.1]/", false, L"192.0.2.1", "the NAT64 well-known prefix" },
+         { L"http://[64:ff9b::c000:201]/", false, L"192.0.2.1", "the NAT64 well-known prefix, in hexadecimal" },
+         { L"http://[::192.0.2.1]/", false, L"", "an IPv4-compatible address, which nothing carries to IPv4" },
+         { L"http://[::ffff:1:2:3]/", false, L"", "not mapped" },
+         { L"http://[::ffff:192.0.2.01]/", false, L"", "a leading zero in the IPv4 part, which a browser refuses" },
+         { L"http://[::ffff:192.0.2]/", false, L"", "three IPv4 parts" },
+         { L"http://[::ffff:192.0.2.1%25eth0]/", false, L"", "a zone, which a browser refuses" },
+         { L"http://[1::2::3]/", false, L"", "two compressions" },
+         { L"http://[1:2:3:4:5:6:7:8:9]/", false, L"", "nine pieces" },
+         { L"http://[::ffff:192.0.2.1/", false, L"", "no closing bracket" },
+         { L"https://r.example/?u=http%3A%2F%2F%5B%3A%3Affff%3A192.0.2.1%5D%2F", false, L"r.example|192.0.2.1", "a mapped address in a link in another's query" },
+
+         // Links with no scheme, which a browser resolves against the page's.
+         { L"<a href=\"//evil.example/\">", true, L"evil.example", "two slashes at the start of an attribute's value" },
+         { L"<img src='\\\\evil.example/x.png'>", true, L"evil.example", "two backslashes" },
+         { L"<a href=\"/\\evil.example/\">", true, L"evil.example", "a slash and a backslash" },
+         { L"<a href=\"///evil.example/\">", true, L"evil.example", "three slashes" },
+         { L"<a href=\" //x@evil.example/\">", true, L"evil.example", "a space before it, and a user name" },
+         { L"<a href=\"/\n/evil.example/\">", true, L"evil.example", "a line break between the slashes, which the URL parser drops" },
+         { L"<a href=//evil.example/>", true, L"evil.example", "an unquoted value" },
+         { L"<a href=\"/evil.example/\">", true, L"", "one slash is a path on the page's own host" },
+         { L"<a href=\"%2F%2Fevil.example\">", true, L"", "percent-encoded slashes at the start of a value are a path" },
+         { L"<p>see //evil.example/ here</p>", true, L"", "two slashes in text are no link" },
+         { L"<p>x=\"//evil.example/\"</p>", true, L"evil.example", "an attribute's value is known by its '=' and quote, even in text" },
+         { L"see //evil.example/ here", false, L"", "nor in a text part" },
+         { L"https://r.example/?u=//evil.example&v=1", false, L"r.example|evil.example", "a query parameter's value" },
+         { L"https://r.example/?u=%2F%2Fevil.example%2Fx", false, L"r.example|evil.example", "a query parameter's value, percent-encoded" },
+         { L"<a href=\"https://r.example/?u=%2f%5cevil.example\">", true, L"r.example|evil.example", "a slash and a backslash, encoded, in HTML" },
+         { L"http://a.example//evil.example/", false, L"a.example", "two slashes in a path" },
+
+         // What the URL parser drops before it reads a value: a line break or
+         // a tab after the scheme and between the slashes.
+         { L"<a href=\"http:&#10;//evil.example/\">", true, L"evil.example", "a line break after the scheme" },
+         { L"<a href=\"http:/\t/evil.example/\">", true, L"evil.example", "a tab between the slashes" },
+         { L"http:\n//evil.example/", false, L"", "in a text part a line break ends a link" },
+
+         // An attribute's value as the URL parser reads it, without its tabs
+         // and line breaks: a link in its query too.
+         { L"<a href=\"https://r.example/?u=http%3A%2F%2Fev&#9;il.example\">", true, L"r.example|evil.example", "a tab in a link in an attribute's query" },
+         { L"<a href=\"https://r.example/?u=http%3&#10;A%2F%2Fevil.example\">", true, L"r.example|evil.example", "a line break in an encoded separator" },
+         { L"<a href=\"https://r.example/?u=//ev\r\nil.example\">", true, L"r.example|evil.example", "a line break in a query's link with no scheme" },
+         { L"<a title='x' href = 'https://r.example/?u=%2F&#9;%2Fevil.example'>", true, L"r.example|evil.example", "a tab between encoded slashes, in the second value" },
+         { L"<a href=\"https://r.example/?u=http%3A%2F%2Fevil.example%2F\npath\">", true, L"r.example|evil.example", "a line break after the host: nothing more" },
+         { L"<p>a=\"see http://evil.example\nmore\"</p>", true, L"evil.example", "a quote in the text between tags opens no value" },
+         { L"<a href=\"https://r.example/?u=http%3A%2F%2Fev&#9;il.example", true, L"r.example", "a tag the text ends inside is no tag" },
+         { L"<a title=\"&quot;=\" href=\"https://r.example/?u=//ev&#9;il.example\">", true, L"r.example|evil.example", "a quote written by a reference is the value's, not its end" },
       };
 
       String Joined_(const std::vector<String> &values)
@@ -1288,7 +2117,11 @@ namespace HM
          { L"192.0.2.1", L"1.2.0.192", "an address, reversed and only reversed" },
          { L"example.com", L"example.com", "a registered name" },
          { L"mail.example.co.uk", L"mail.example.co.uk|example.co.uk", "a host and its registrable domain" },
-         { L"tenant.github.io", L"tenant.github.io", "a name under a PRIVATE suffix" },
+         { L"tenant.github.io", L"tenant.github.io|github.io", "a name under a PRIVATE suffix, and the domain registered under the ICANN section's io" },
+         { L"a.b.blogspot.com", L"a.b.blogspot.com|b.blogspot.com|blogspot.com", "a host under a PRIVATE suffix: the host, its registrable domain, and the ICANN section's" },
+         { L"evil.duckdns.org", L"evil.duckdns.org|duckdns.org", "duckdns.org, which URIBL lists whole" },
+         { L"github.io", L"github.io", "a PRIVATE suffix itself, registered under io" },
+         { L"www.city.kawasaki.jp", L"www.city.kawasaki.jp|city.kawasaki.jp", "an ICANN exception: both sections cut alike" },
          { L"co.uk", L"co.uk", "a public suffix" },
       };
 
@@ -1344,6 +2177,8 @@ namespace HM
          { L"http://www.example/", L"www.example/", true, "an entry whose www. is kept when one label would be left" },
          { L"http://www.www.example.com/", L"example.com/", true, "an entry with www. twice, read until reading changes nothing" },
          { L"http://[2001:db8::1]/", L"[2001/", false, "an entry of an IPv6 address" },
+         { L"http://[::ffff:192.0.2.61]/", L"192.0.2.61/", true, "an entry of an IPv4-mapped IPv6 address: the IPv4 address a browser reaches" },
+         { L"http://sh%C2%ADop.example/", L"shop.example/", true, "an entry with a soft hyphen, which a browser deletes" },
          { L"https://a!b.example/", L"a!b.example/", false, "an entry with a character a name cannot hold" },
          { L"https://nodot/x", L"nodot/", false, "an entry of one label" },
          { L"https://", L"/", false, "an entry with no host" },
@@ -1368,6 +2203,25 @@ namespace HM
          { L"http://www.example/", L"http://www.example/x", true, "an entry and a link whose www. is kept alike" },
          { L"http://www.www.shop.example/", L"http://www.www.shop.example/x", true, "an entry with www. twice covers its own link" },
          { L"http://0xC0.0.2.61/", L"http://192.0.2.61/", true, "an entry and a link of one address in two forms" },
+         { L"https://shop.example/", L"http://sh\u00ADop.example/", true, "an entry covers a link with a soft hyphen in its host" },
+         { L"http://192.0.2.61/", L"http://[::ffff:192.0.2.61]/", true, "an address's entry covers a link to it as an IPv4-mapped address" },
+         { L"https://shop.example/", L"https://r.example/?u=//cdn.shop.example/", true, "an entry covers a link with no scheme in another's query" },
+      };
+
+      // The entry hosts that cover a link's host (SenderPattern::UrlEntryHostsCovering).
+      struct CoveringCase
+      {
+         const wchar_t *host;
+         const wchar_t *expected;
+         const char *why;
+      };
+
+      const CoveringCase coveringCases[] =
+      {
+         { L"cdn.bad.example", L"cdn.bad.example|bad.example|example", "a host, and each name it ends in" },
+         { L"www.shop.example", L"shop.example|example", "the host read again as an entry is: www. dropped" },
+         { L"192.0.2.61", L"192.0.2.61|0.2.61|2.61|61", "an address" },
+         { L"a!b.example", L"", "no host a link can have" },
       };
 
       void Fail_(const char *why, const String &input, const String &got, const String &expected)
@@ -1411,6 +2265,42 @@ namespace HM
             Fail_("a text of separators", _T("%3A%2F%2F x 20000"), StringParser::IntToString(visits), _T("0"));
       }
 
+      // A long run of what a separator is made of - "%2F" after "http%3A" or
+      // "%3A%2F%2F" or a query parameter's '=', slashes and line breaks - is
+      // read without the regular expression keeping state for each piece of
+      // it, and the link after it is still found. An expression of this tree
+      // that repeated "%2F" made boost throw on such a run, before any release
+      // had it, which ended the reading of the message.
+      {
+         String encodedRun;
+         for (int i = 0; i < 60000; i++)
+            encodedRun += _T("%2f");
+         String brokenRun;
+         for (int i = 0; i < 100000; i++)
+            brokenRun += _T("/\n");
+         String mixedRun;
+         for (int i = 0; i < 60000; i++)
+            mixedRun += _T("%2f/\\");
+
+         const String texts[] =
+         {
+            _T("http%3a") + encodedRun + _T(" http://evil.example/"),
+            _T("%3A%2F%2F") + encodedRun + _T(" http://evil.example/"),
+            _T("?u=") + encodedRun + _T(" http://evil.example/"),
+            _T("?u=") + String(200000, L'/') + _T(" http://evil.example/"),
+            brokenRun + _T(" http://evil.example/"),
+            _T("http%3A") + mixedRun + _T(" http://evil.example/"),
+         };
+
+         for (size_t i = 0; i < sizeof(texts) / sizeof(texts[0]); i++)
+         {
+            std::vector<String> hosts;
+            SURBL::FindLinkHosts(texts[i], false, [&hosts](const String &host) { hosts.push_back(host); return true; });
+            if (Joined_(hosts) != _T("evil.example"))
+               Fail_("a link after a long run of a separator's pieces", texts[i].Left(12) + _T("...") + texts[i].Right(30), Joined_(hosts), _T("evil.example"));
+         }
+      }
+
       // A reading of more than 256 characters that took in the scheme of the
       // link after it: the reading ends at that link's slashes, and the link
       // is still found.
@@ -1430,6 +2320,34 @@ namespace HM
             if (Joined_(hosts) != _T("evil.example"))
                Fail_("a link after a reading of more than 256 characters", texts[i].Right(40), Joined_(hosts), _T("evil.example"));
          }
+      }
+
+      // A link whose user name holds 200,000 names, each where a mail program
+      // may end the link, hands over each of them once and is read in time
+      // proportional to its length: whether a name was handed over already is
+      // looked up. Searched for among those before it, as it was, these
+      // 3.3 MB took 84 s to read on the machine where they now take 0.4 s;
+      // the bound leaves an emulated build room enough.
+      {
+         const int names = 200000;
+         String text = _T("http://");
+         for (int i = 0; i < names; i++)
+            text += _T("a") + StringParser::IntToString(i) + _T(".example)@");
+         text += _T("x.example/");
+
+         size_t visits = 0;
+         String last;
+         const std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
+         SURBL::FindLinkHosts(text, false, [&](const String &host) { visits++; last = host; return true; });
+         const double seconds = std::chrono::duration<double>(std::chrono::steady_clock::now() - start).count();
+
+         if (visits != static_cast<size_t>(names) + 1 || last != _T("a199999.example"))
+            Fail_("each name in a long user name is handed over once", _T("http://a0.example)@...x.example/"),
+               StringParser::IntToString(static_cast<int>(visits)) + _T(" hosts, the last ") + last, _T("200001 hosts, the last a199999.example"));
+
+         if (seconds > 20)
+            Fail_("a long user name is read in time proportional to its length", _T("http://a0.example)@...x.example/"),
+               StringParser::IntToString(static_cast<int>(seconds)) + _T(" s"), _T("well under 20 s"));
       }
 
       for (const NamesCase &test : namesCases)
@@ -1483,6 +2401,52 @@ namespace HM
          if (covered != test.covered)
             Fail_(test.why, String(test.entry) + _T(" and ") + test.link, covered ? String(_T("covered ")) + hosts : String(_T("not covered ")) + hosts,
                test.covered ? String(_T("covered")) : String(_T("not covered")));
+      }
+
+      for (const CoveringCase &test : coveringCases)
+      {
+         std::vector<String> covering;
+         SenderPattern::UrlEntryHostsCovering(test.host, covering);
+         if (Joined_(covering) != String(test.expected))
+            Fail_(test.why, test.host, Joined_(covering), test.expected);
+      }
+
+      // Every link of a message is matched against the URL entries, however
+      // many come before it: until 6.3.6 the first 16 hosts
+      // were, and an entry's link after sixteen others was never seen. The
+      // first link an entry host covers is the one named.
+      {
+         String text;
+         for (int i = 1; i <= 40; i++)
+            text += _T("http://decoy") + StringParser::IntToString(i) + _T(".example/ ");
+         text += _T("http://cdn.shop.example/sale http://192.0.2.61/ http://cdn2.shop.example/");
+
+         std::set<String> entryHosts;
+         entryHosts.insert(_T("shop.example"));
+         entryHosts.insert(_T("192.0.2.61"));
+         entryHosts.insert(_T("elsewhere.example"));
+
+         std::map<String, String> covered;
+         int links = 0;
+         SURBL::FindLinkHosts(text, false, [&](const String &host)
+         {
+            links++;
+            SenderListCache::CoverLink(entryHosts, host, covered);
+            return true;
+         });
+
+         String got;
+         for (const auto &entry : covered)
+         {
+            if (!got.IsEmpty())
+               got += _T("|");
+            got += entry.first + _T("=") + entry.second;
+         }
+
+         const String expected = _T("192.0.2.61=192.0.2.61|shop.example=cdn.shop.example");
+         if (links != 43 || got != expected)
+            Fail_("every link of a message is matched against the URL entries", _T("40 other links first"),
+               StringParser::IntToString(links) + _T(" links, ") + got, _T("43 links, ") + expected);
       }
    }
 }

@@ -6,8 +6,9 @@
 // about and the MX-record spam test falls back to - as a program of its own, for
 // the POSIX build: the counterpart of spf-tests and xml-tree-tests. With it, the
 // SURBL test's reading of the links in a message, which hands the cut its hosts:
-// the host after a link's userinfo, the forms of an address, HTML's character
-// references, and the answers the lists publish as errors.
+// the host after a link's userinfo, the forms of an address, the code points a
+// browser deletes from a host, links with no scheme, HTML's character references,
+// and the answers the lists publish as errors.
 //
 // On Windows PublicSuffixListTester and SURBLTester run inside the service with
 // the other class tests: ClassTester::DoTests calls them and the regression suite
@@ -39,7 +40,7 @@ main(int /*argc*/, char * /*argv*/[])
       return 1;
    }
 
-   printf("ok    the Public Suffix List's cut: hosts, addresses, suffixes, wildcard and exception rules, PRIVATE names, and DMARC's answer for each\n");
+   printf("ok    the Public Suffix List's cut: hosts, addresses, suffixes, wildcard and exception rules, PRIVATE names, DMARC's answer for each, and the cut by the ICANN section alone\n");
 
    try
    {
@@ -52,6 +53,6 @@ main(int /*argc*/, char * /*argv*/[])
       return 1;
    }
 
-   printf("ok    the SURBL test's links: the host after the userinfo, ports, IPv6, percent-encoding, the forms of an address, HTML's references and quotes, the names asked about, the lists' error codes, and the sender lists' URL entries read the same way\n");
+   printf("ok    the SURBL test's links: the host after the userinfo, ports, IPv6 and the IPv4 addresses it carries, percent-encoding as UTF-8, the code points UTS 46 ignores, the forms of an address, links with no scheme, HTML's references and quotes, the names asked about, the lists' error codes, and the sender lists' URL entries read the same way and matched against every link\n");
    return 0;
 }

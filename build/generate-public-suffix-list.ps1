@@ -17,6 +17,20 @@
 # USAGE:
 #   .\generate-public-suffix-list.ps1                          # downloads the current list
 #   .\generate-public-suffix-list.ps1 -ListFile psl.dat        # uses a local copy (reproducible)
+#   .\generate-public-suffix-list.ps1 -ListFile psl.dat -Version <VERSION> -Commit <COMMIT>
+#                                                              # a copy from the list's repository
+#
+# publicsuffix.org serves only the current list, with a VERSION and a COMMIT
+# line its publishing adds. The file in the list's repository - and in the
+# distributions' packages of it, such as Debian's publicsuffix source - has
+# neither, and -Version and -Commit then name the published list it is the
+# same as; given for a file that has its own VERSION line, they must agree with
+# it. The header of 30 September 2026 was regenerated that way, from
+# public_suffix_list.dat in Debian's publicsuffix_20260725.1419.orig.tar.gz
+# (snapshot.debian.org; SHA-256 d6f19f4a59dacf493080d154f9296f1407adc318dd6b83ea166a9b04753ed4a7)
+# with -Version 2026-07-25_14-20-03_UTC and -Commit
+# e1b8015c3b2f0f4f8c18659c2480fc1a22c07b20: its three combined arrays came out
+# byte for byte as the published list of that VERSION had made them.
 #
 # The script is idempotent: run against the same input file it produces a
 # byte-identical header (no timestamps are embedded - the list's own VERSION and
@@ -34,7 +48,12 @@ param(
 
    # Where to write the generated header. Defaults to the location the server
    # project compiles it from.
-   [string] $OutFile
+   [string] $OutFile,
+
+   # The VERSION and COMMIT of the published list, for an input that has no
+   # such lines (see USAGE).
+   [string] $Version,
+   [string] $Commit
 )
 
 $ErrorActionPreference = 'Stop'
@@ -88,6 +107,18 @@ $privateRuleCount = 0
 $normalRules = [System.Collections.Generic.HashSet[string]]::new()
 $wildcardRules = [System.Collections.Generic.HashSet[string]]::new()
 $exceptionRules = [System.Collections.Generic.HashSet[string]]::new()
+
+# The same three for each section on its own. The header carries the three
+# above - both sections, which DMARC reads - and the PRIVATE section's rules
+# again, which a lookup of the ICANN section alone leaves out: the SURBL test
+# also asks a URI list about the domain a registrar registered, github.io for
+# tenant.github.io, because a list that is not wildcarded (URIBL) lists a
+# shared-hosting domain under that name. A rule written in both sections is
+# an ICANN rule.
+$sectionRules = @{
+   icann   = @{ normal = [System.Collections.Generic.HashSet[string]]::new(); wildcard = [System.Collections.Generic.HashSet[string]]::new(); exception = [System.Collections.Generic.HashSet[string]]::new() }
+   private = @{ normal = [System.Collections.Generic.HashSet[string]]::new(); wildcard = [System.Collections.Generic.HashSet[string]]::new(); exception = [System.Collections.Generic.HashSet[string]]::new() }
+}
 
 # The list carries IDN rules in Unicode (e.g. xn--p1ai's rules are written as
 # Cyrillic). Mail almost always carries domains in their ASCII/ACE (xn--) form,
@@ -167,17 +198,20 @@ foreach ($rawLine in $lines)
       # silently emitted table.
       if (($rule -split '\.').Count -lt 2) { throw "Single-label exception rule is not supported: '$line'" }
       Add-Rule $exceptionRules $rule
+      Add-Rule $sectionRules[$section].exception $rule
    }
    elseif ($rule.StartsWith('*.'))
    {
       $rule = $rule.Substring(2)
       if ($rule.Contains('*') -or $rule.Contains('!')) { throw "Wildcard in a non-leftmost position is not supported: '$line'" }
       Add-Rule $wildcardRules $rule
+      Add-Rule $sectionRules[$section].wildcard $rule
    }
    else
    {
       if ($rule.Contains('*') -or $rule.Contains('!')) { throw "Wildcard in a non-leftmost position is not supported: '$line'" }
       Add-Rule $normalRules $rule
+      Add-Rule $sectionRules[$section].normal $rule
    }
 
    if ($rule.StartsWith('.') -or $rule.EndsWith('.') -or $rule.Contains('..'))
@@ -192,7 +226,43 @@ foreach ($rawLine in $lines)
 # ICANN rules and ~3,000 private ones; these floors only catch gross damage.
 if ($icannRuleCount -lt 1000) { throw "Only $icannRuleCount ICANN rules parsed - the input looks truncated." }
 if ($privateRuleCount -lt 100) { throw "Only $privateRuleCount PRIVATE rules parsed - the input looks truncated." }
-if ($versionLine -eq '') { throw 'No VERSION line found - the input is not the canonical list.' }
+
+# The published list's VERSION and COMMIT, from the file or, for a copy from
+# the list's repository, from -Version and -Commit (see USAGE). Both, where
+# both are given, must say the same.
+if ($Version -ne '')
+{
+   if ($Version -notmatch '^\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}_UTC$') { throw "-Version is not a list VERSION such as 2026-07-25_14-20-03_UTC: '$Version'" }
+   if ($versionLine -ne '' -and $versionLine -ne "VERSION: $Version") { throw "-Version $Version does not agree with the file's $versionLine" }
+   $versionLine = "VERSION: $Version"
+}
+if ($Commit -ne '')
+{
+   if ($Commit -notmatch '^[0-9a-f]{40}$') { throw "-Commit is not a full commit id: '$Commit'" }
+   if ($commitLine -ne '' -and $commitLine -ne "COMMIT: $Commit") { throw "-Commit $Commit does not agree with the file's $commitLine" }
+   $commitLine = "COMMIT: $Commit"
+}
+if ($versionLine -eq '') { throw 'No VERSION line found and no -Version given - the input is not the canonical list.' }
+
+# The PRIVATE section's rules that the ICANN section does not also have: what
+# a lookup of the ICANN section alone leaves out. Each set is the combined one
+# less the ICANN section's, so a rule in both sections stays an ICANN rule.
+$privateOnly = @{}
+foreach ($category in 'normal', 'wildcard', 'exception')
+{
+   $set = [System.Collections.Generic.HashSet[string]]::new($sectionRules.private[$category])
+   $set.ExceptWith($sectionRules.icann[$category])
+   $privateOnly[$category] = $set
+}
+
+# The combined sets are the two sections' together, which the lookups rely on:
+# the ICANN section alone is the combined set less the PRIVATE-only one.
+foreach ($pair in @(@('normal', $normalRules), @('wildcard', $wildcardRules), @('exception', $exceptionRules)))
+{
+   $union = [System.Collections.Generic.HashSet[string]]::new($sectionRules.icann[$pair[0]])
+   $union.UnionWith($sectionRules.private[$pair[0]])
+   if (-not $union.SetEquals($pair[1])) { throw "The $($pair[0]) rules of the two sections together are not the combined $($pair[0]) rules." }
+}
 
 # ---------------------------------------------------------------------------
 # Sort. The C++ lookup binary-searches these arrays with wcscmp, which compares
@@ -213,6 +283,9 @@ function Get-SortedArray([System.Collections.Generic.HashSet[string]] $set)
 $sortedNormal = Get-SortedArray $normalRules
 $sortedWildcard = Get-SortedArray $wildcardRules
 $sortedException = Get-SortedArray $exceptionRules
+$sortedPrivateNormal = Get-SortedArray $privateOnly.normal
+$sortedPrivateWildcard = Get-SortedArray $privateOnly.wildcard
+$sortedPrivateException = Get-SortedArray $privateOnly.exception
 
 # The longest candidate the lookup ever needs to consider: a wildcard rule
 # '*.X' matches one label more than X itself has.
@@ -304,6 +377,12 @@ if ($commitLine -ne '') { [void]$out.AppendLine("// $commitLine") }
 [void]$out.AppendLine('// github.io) separate registrants exactly the way ccTLD registries do, and')
 [void]$out.AppendLine('// treating them as one organization would let any tenant DMARC-align as any')
 [void]$out.AppendLine('// other.')
+[void]$out.AppendLine('//')
+[void]$out.AppendLine('// The Private arrays hold the PRIVATE section''s rules again, those the ICANN')
+[void]$out.AppendLine('// section does not also have, so that a lookup can leave them out and read the')
+[void]$out.AppendLine('// ICANN section alone: the SURBL test asks a URI list about github.io for')
+[void]$out.AppendLine('// tenant.github.io as well, since a list that is not wildcarded lists a')
+[void]$out.AppendLine('// shared-hosting domain under the name a registrar registered.')
 [void]$out.AppendLine('')
 [void]$out.AppendLine('#pragma once')
 [void]$out.AppendLine('')
@@ -317,6 +396,12 @@ Emit-RuleArray $out 'WildcardRules' $sortedWildcard
 [void]$out.AppendLine('')
 Emit-RuleArray $out 'ExceptionRules' $sortedException
 [void]$out.AppendLine('')
+Emit-RuleArray $out 'PrivateNormalRules' $sortedPrivateNormal
+[void]$out.AppendLine('')
+Emit-RuleArray $out 'PrivateWildcardRules' $sortedPrivateWildcard
+[void]$out.AppendLine('')
+Emit-RuleArray $out 'PrivateExceptionRules' $sortedPrivateException
+[void]$out.AppendLine('')
 [void]$out.AppendLine('   // The largest number of labels any rule can match; lookups never need to')
 [void]$out.AppendLine('   // consider a longer candidate than this.')
 [void]$out.AppendLine("   const size_t MaxRuleLabels = $maxRuleLabels;")
@@ -328,3 +413,4 @@ Emit-RuleArray $out 'ExceptionRules' $sortedException
 Write-Host "Wrote $OutFile"
 Write-Host ("  {0} ({1} ICANN + {2} PRIVATE rules in the input)" -f $versionLine, $icannRuleCount, $privateRuleCount)
 Write-Host ("  Normal: {0}  Wildcard: {1}  Exception: {2}  MaxRuleLabels: {3}" -f $sortedNormal.Length, $sortedWildcard.Length, $sortedException.Length, $maxRuleLabels)
+Write-Host ("  PRIVATE only - Normal: {0}  Wildcard: {1}  Exception: {2}" -f $sortedPrivateNormal.Length, $sortedPrivateWildcard.Length, $sortedPrivateException.Length)

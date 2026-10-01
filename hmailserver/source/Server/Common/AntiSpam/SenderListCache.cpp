@@ -5,8 +5,12 @@
 #include "StdAfx.h"
 
 #include "SenderListCache.h"
+#include "SenderPattern.h"
+#include "SURBL.h"
 #include "../BO/SenderListEntry.h"
 #include "../BO/SenderListEntries.h"
+
+#include <set>
 
 #include <boost/thread/shared_mutex.hpp>
 #include <boost/thread/locks.hpp>
@@ -25,6 +29,7 @@ namespace HM
 
    std::vector<std::shared_ptr<SenderListEntry> > SenderListCache::entries_;
    bool SenderListCache::need_refresh_ = true;
+   unsigned long long SenderListCache::generation_ = 0;
 
    void
    SenderListCache::SetNeedRefresh()
@@ -51,6 +56,10 @@ namespace HM
       // owned by this call: all is the local collection just loaded; the cache's copy is guarded by the cache's own lock
       entries_ = all.GetConstVector();
       need_refresh_ = false;
+
+      // A message's links read against the entries before this are read
+      // again before they decide anything (IsCurrent).
+      generation_++;
    }
 
    bool
@@ -225,8 +234,75 @@ namespace HM
       return true;
    }
 
+   void
+   SenderListCache::ReadUrlLinks(std::shared_ptr<MessageData> messageData, UrlLinks &links)
+   {
+      // The hosts the entries name, taken under the lock; the message is read
+      // without it.
+      std::set<String> entryHosts;
+      {
+         boost::upgrade_lock<boost::shared_mutex> lock(sender_list_mutex);
+
+         if (need_refresh_)
+         {
+            boost::upgrade_to_unique_lock<boost::shared_mutex> uniqueLock(lock);
+            Refresh_();
+         }
+
+         links.generation = generation_;
+         for (const std::shared_ptr<SenderListEntry> &entry : entries_)
+         {
+            if (entry->IsUrl() && !entry->HasExpired())
+               entryHosts.insert(entry->UrlHost());
+         }
+      }
+
+      links.covered.clear();
+      if (entryHosts.empty())
+         return;
+
+      // Until 6.3.6 the first 16 hosts of a message were
+      // matched, and an entry's link after sixteen others was never seen:
+      // every one is now, each looked up by the names an entry for it could
+      // have (SenderPattern::UrlEntryHostsCovering).
+      SURBL::ForEachLinkHost(messageData, [&](const String &host) -> bool
+      {
+         CoverLink(entryHosts, host, links.covered);
+         return true;
+      });
+   }
+
+   void
+   SenderListCache::CoverLink(const std::set<String> &entryHosts, const String &linkHost, std::map<String, String> &covered)
+   {
+      std::vector<String> covering;
+      SenderPattern::UrlEntryHostsCovering(linkHost, covering);
+
+      // The first link an entry host covers is the one the log and the reason
+      // header name: insert leaves an entry host already recorded as it is.
+      for (const String &entryHost : covering)
+      {
+         if (entryHosts.find(entryHost) != entryHosts.end())
+            covered.insert(std::make_pair(entryHost, linkHost));
+      }
+   }
+
+   bool
+   SenderListCache::IsCurrent(const UrlLinks &links)
+   {
+      boost::upgrade_lock<boost::shared_mutex> lock(sender_list_mutex);
+
+      if (need_refresh_)
+      {
+         boost::upgrade_to_unique_lock<boost::shared_mutex> uniqueLock(lock);
+         Refresh_();
+      }
+
+      return links.generation == generation_;
+   }
+
    SenderListCache::Decision
-   SenderListCache::EvaluateUrls_(const std::vector<String> &hosts, int scope, __int64 ownerId)
+   SenderListCache::EvaluateUrls_(const UrlLinks &links, int scope, __int64 ownerId)
    {
       Decision decision;
       decision.scope = scope;
@@ -238,18 +314,11 @@ namespace HM
          if (entry->GetScope() != scope || entry->GetOwnerID() != ownerId || entry->HasExpired() || !entry->IsUrl())
             continue;
 
-         String matched;
-         for (const String &host : hosts)
-         {
-            if (entry->MatchesUrlHost(host))
-            {
-               matched = host;
-               break;
-            }
-         }
-
-         if (matched.IsEmpty())
+         const auto covered = links.covered.find(entry->UrlHost());
+         if (covered == links.covered.end())
             continue;
+
+         const String matched = covered->second;
 
          const int specificity = entry->Specificity();
          const Verdict verdict = entry->GetBlocked() ? Blocked : Allowed;
@@ -305,11 +374,11 @@ namespace HM
    }
 
    SenderListCache::Decision
-   SenderListCache::DecideUrls(const std::vector<String> &hosts, __int64 accountId, __int64 domainId)
+   SenderListCache::DecideUrls(const UrlLinks &links, __int64 accountId, __int64 domainId)
    {
       Decision decision;
 
-      if (hosts.empty())
+      if (links.covered.empty())
          return decision;
 
       boost::upgrade_lock<boost::shared_mutex> lock(sender_list_mutex);
@@ -336,7 +405,7 @@ namespace HM
          if (!OwnerAtScope_(scope, accountId, domainId, ownerId))
             continue;
 
-         decision = EvaluateUrls_(hosts, scope, ownerId);
+         decision = EvaluateUrls_(links, scope, ownerId);
 
          if (decision.verdict != NoOpinion)
             return decision;

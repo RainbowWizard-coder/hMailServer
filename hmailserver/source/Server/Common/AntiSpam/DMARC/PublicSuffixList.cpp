@@ -36,10 +36,23 @@ namespace HM
                return wcscmp(left, right) < 0;
             });
       }
+
+      // A rule of one kind that counts: in the kind's table of both sections,
+      // and - for a lookup of the ICANN section alone - not among the PRIVATE
+      // section's rules of that kind, which the generator emits again for
+      // this and which the ICANN section does not also have.
+      bool Counts_(const wchar_t *const *rules, size_t ruleCount, const wchar_t *const *privateRules, size_t privateRuleCount,
+                   const wchar_t *candidate, PublicSuffixList::Sections sections)
+      {
+         if (!ContainsRule_(rules, ruleCount, candidate))
+            return false;
+
+         return sections != PublicSuffixList::IcannSectionOnly || !ContainsRule_(privateRules, privateRuleCount, candidate);
+      }
    }
 
    size_t
-   PublicSuffixList::GetPublicSuffixLabelCount(const std::vector<String> &labels)
+   PublicSuffixList::GetPublicSuffixLabelCount(const std::vector<String> &labels, Sections sections)
    {
       using namespace PublicSuffixListData;
 
@@ -80,10 +93,10 @@ namespace HM
          else
             candidate = labels[labelCount - count] + _T(".") + candidate;
 
-         if (ContainsRule_(ExceptionRules, ExceptionRulesCount, candidate.c_str()))
+         if (Counts_(ExceptionRules, ExceptionRulesCount, PrivateExceptionRules, PrivateExceptionRulesCount, candidate.c_str(), sections))
             longestExceptionMatch = count;
 
-         if (ContainsRule_(NormalRules, NormalRulesCount, candidate.c_str()))
+         if (Counts_(NormalRules, NormalRulesCount, PrivateNormalRules, PrivateNormalRulesCount, candidate.c_str(), sections))
             longestListMatch = count;
 
          // A wildcard rule *.X matches a candidate whose leftmost label is
@@ -91,7 +104,7 @@ namespace HM
          // generator strips the "*."), and the remainder of the current
          // candidate is precisely the previous iteration's candidate, so no
          // second string is ever assembled for the wildcard probe.
-         if (count >= 2 && ContainsRule_(WildcardRules, WildcardRulesCount, previousCandidate.c_str()))
+         if (count >= 2 && Counts_(WildcardRules, WildcardRulesCount, PrivateWildcardRules, PrivateWildcardRulesCount, previousCandidate.c_str(), sections))
             longestListMatch = count;
       }
 
@@ -115,7 +128,7 @@ namespace HM
    }
 
    bool
-   PublicSuffixList::GetRegistrableDomain(String &host, bool &isIPAddress)
+   PublicSuffixList::GetRegistrableDomain(String &host, bool &isIPAddress, Sections sections)
    {
       isIPAddress = false;
 
@@ -136,7 +149,7 @@ namespace HM
          return true;
       }
 
-      size_t suffixLabels = GetPublicSuffixLabelCount(labels);
+      size_t suffixLabels = GetPublicSuffixLabelCount(labels, sections);
 
       // 0 means the compiled-in tables are empty, which the generator refuses
       // to produce. Were a broken regeneration ever committed, the implicit

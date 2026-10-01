@@ -7,6 +7,7 @@
 #include "../Common/Sieve/SieveEvaluator.h"
 #include "../Common/Persistence/MessageStore.h"
 #include "../Common/Util/MailboxKeys.h"
+#include "../Common/AntiSpam/SenderListCache.h"
 #include "DeliveryFailure.h"
 
 namespace HM
@@ -107,6 +108,13 @@ namespace HM
       const String &HeaderFromAddress_(std::shared_ptr<const Account> account, std::shared_ptr<Message> accountLevelMessage);
       String header_from_address_;
       bool header_from_read_ = false;
+
+      // The message's links, read for the URL entries of the sender lists once
+      // for all its recipients (SenderListCache::ReadUrlLinks), when the first
+      // recipient with such an entry is reached; read again only when the list
+      // was read again from the database meanwhile.
+      SenderListCache::UrlLinks url_links_;
+      bool url_links_read_ = false;
 
       // The total score the conversation recorded on the message - the
       // X-hMailServer-Reason-Score header, written when "add reason headers" is on

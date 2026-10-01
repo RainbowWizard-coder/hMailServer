@@ -56,8 +56,21 @@ namespace HM
       // Whether the pattern is a URL host: the canonical form ends in '/'.
       static bool IsUrl(const String &pattern);
       // Whether a URL entry covers a link's host: the host itself or a
-      // subdomain of it. False for an entry that is not a URL.
+      // subdomain of it. False for an entry that is not a URL. It is true
+      // exactly when UrlEntryHost(pattern) is one of UrlEntryHostsCovering(host).
       static bool MatchesUrlHost(const String &pattern, const String &host);
+
+      // The host a URL entry names: its canonical form without the '/'.
+      // Empty for an entry that is not a URL.
+      static String UrlEntryHost(const String &pattern);
+
+      // The entry hosts that cover a link's host: the host as MatchesUrlHost
+      // reads it, and each name it ends in at a label boundary -
+      // cdn.bad.example gives cdn.bad.example, bad.example and example. So a
+      // message's links are matched against every URL entry by looking each
+      // of these up (SenderListCache::ReadUrlLinks), not by trying every entry
+      // against every link. Empty for a host no link can have.
+      static void UrlEntryHostsCovering(const String &host, std::vector<String> &entryHosts);
 
       // What a person may type into one of these lists. Empty is refused, a
       // pattern with a space in it is refused, and an address entry has to have
