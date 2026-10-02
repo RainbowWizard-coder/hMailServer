@@ -237,6 +237,14 @@ namespace HM
       //     a version the server did not verify the organiser sent.
       static ImipKeepRule KeepRule(ImipProvenance provenance, bool inCalendar, int storedSequence, bool storedUnverified, int invitationSequence);
 
+      // A component's SEQUENCE as an int: 0 when it has none, and a number past
+      // an int's range (RFC 5545 3.3.8 allows none) held at that end on both
+      // platforms. atoi, which this was, gave INT_MAX on Windows and the low
+      // 32 bits on Linux, where 4294967297 read as 1 and an invitation at that
+      // SEQUENCE was taken for one older than a stored copy at 2. Read, Imip's
+      // stored copies and a room's bookings (ResourceBooking) all ask this.
+      static int SequenceOf(const ICalComponent &component);
+
       // Whether a stored copy is marked as filed from an invitation whose
       // organiser the server did not verify: X-HMAILSERVER-IMIP-UNVERIFIED on
       // one of its VEVENTs or VTODOs. The mark is the server's own: whatever

@@ -96,7 +96,9 @@ namespace HM
          const JsonValue *value = document.Get(name);
          if (!value || !value->IsNumber())
             return -1;
-         return (int) value->AsNumber();
+         // Held to an int's range, so that a number past it is refused by the
+         // range check below rather than converted out of range.
+         return value->AsInt();
       }
 
       // What every write carries: the derivation and the password-wrapped

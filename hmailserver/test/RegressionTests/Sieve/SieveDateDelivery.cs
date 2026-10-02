@@ -213,5 +213,32 @@ namespace RegressionTests.Sieve
             FilesIntoMatchedFolder(FileIntoIf("header :index 2 :last :is \"X-Priority-Route\" \"alpha\""), extraHeaders),
             "':index 2 :last' did not count from the end.");
       }
+
+      /// <summary>
+      ///    An index past an int's reach names an instance no message has. It was
+      ///    narrowed to its low 32 bits, so :index 4294967297 selected the first
+      ///    instance and :index 4294967298 the second; held at the largest int it
+      ///    selects none, and the control shows the same script with :index 1 does.
+      /// </summary>
+      [Test]
+      [Description(":index 4294967297 selects no instance of a header, where its low 32 bits (1) would select the first.")]
+      public void AnIndexPastAnIntSelectsNothing()
+      {
+         const string extraHeaders =
+            "X-Priority-Route: alpha\r\n" +
+            "X-Priority-Route: beta\r\n";
+
+         Assert.IsFalse(
+            FilesIntoMatchedFolder(FileIntoIf("header :index 4294967297 :is \"X-Priority-Route\" \"alpha\""), extraHeaders),
+            "':index 4294967297' selected the first instance of the header: the index was narrowed to its low 32 bits.");
+
+         Assert.IsFalse(
+            FilesIntoMatchedFolder(FileIntoIf("header :index 4294967298 :last :is \"X-Priority-Route\" \"alpha\""), extraHeaders),
+            "':index 4294967298 :last' selected an instance of the header.");
+
+         Assert.IsTrue(
+            FilesIntoMatchedFolder(FileIntoIf("header :index 1 :is \"X-Priority-Route\" \"alpha\""), extraHeaders),
+            "The control: ':index 1' did not select the first instance.");
+      }
    }
 }

@@ -5,7 +5,11 @@
 #include "StdAfx.h"
 #include "JsonDocument.h"
 
+#include <cerrno>
+#include <climits>
+#include <cmath>
 #include <cstdlib>
+#include <stdexcept>
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -504,6 +508,31 @@ namespace HM
       return &items_[index];
    }
 
+   namespace
+   {
+      // 2^63, which a double holds exactly: the first value past an __int64's
+      // largest, and the magnitude of its smallest.
+      const double TwoToThe63 = 9223372036854775808.0;
+
+      // The digits of a number written as an integer, as an __int64, held at
+      // either end when there are too many (strtoll's answer then), and whether
+      // they fitted.
+      __int64 IntegerDigits(const std::string &digits, bool &fitted)
+      {
+         errno = 0;
+#ifdef HM_PLATFORM_POSIX
+         // strtoll is the standard C name for _strtoi64: the same conversion, the
+         // same three arguments, and a long long which is the same 64 bits that
+         // __int64 is here.
+         const __int64 value = ::strtoll(digits.c_str(), nullptr, 10);
+#else
+         const __int64 value = _strtoi64(digits.c_str(), nullptr, 10);
+#endif
+         fitted = errno != ERANGE;
+         return value;
+      }
+   }
+
    __int64
    JsonValue::AsInt64() const
    {
@@ -512,18 +541,120 @@ namespace HM
 
       // From the digits rather than the double, so a 64-bit count such as a log
       // index or a file size is exact. A fraction or an exponent goes through the
-      // double, which is what such a value means.
+      // double, which is what such a value means - range-checked first: a double
+      // past either end converted to an integer is undefined behaviour (x64
+      // answers the smallest __int64 for 1e20 and -1e20 alike), and strtod reads
+      // 1e999 as infinity.
       if (raw_number_.find_first_of(".eE") != std::string::npos)
+      {
+         if (!(number_ < TwoToThe63))
+            return LLONG_MAX;
+         if (!(number_ >= -TwoToThe63))
+            return LLONG_MIN;
          return (__int64) number_;
+      }
 
-#ifdef HM_PLATFORM_POSIX
-      // strtoll is the standard C name for _strtoi64: the same conversion, the
-      // same three arguments, and a long long which is the same 64 bits that
-      // __int64 is here.
-      return ::strtoll(raw_number_.c_str(), nullptr, 10);
-#else
-      return _strtoi64(raw_number_.c_str(), nullptr, 10);
-#endif
+      bool fitted = false;
+      return IntegerDigits(raw_number_, fitted);
+   }
+
+   int
+   JsonValue::AsInt() const
+   {
+      const __int64 value = AsInt64();
+      if (value > INT_MAX)
+         return INT_MAX;
+      if (value < INT_MIN)
+         return INT_MIN;
+      return (int) value;
+   }
+
+   bool
+   JsonValue::IsInt64() const
+   {
+      if (type_ != TypeNumber)
+         return false;
+
+      if (raw_number_.find_first_of(".eE") != std::string::npos)
+         return number_ >= -TwoToThe63 && number_ < TwoToThe63 && std::floor(number_) == number_;
+
+      bool fitted = false;
+      IntegerDigits(raw_number_, fitted);
+      return fitted;
+   }
+
+   namespace
+   {
+      void JsonExpect(bool condition, const std::string &what)
+      {
+         if (!condition)
+            throw std::logic_error("JsonValueTester: " + what);
+      }
+   }
+
+   void
+   JsonValueTester::Test()
+   {
+      struct Case
+      {
+         const char *text;
+         __int64 asInt64;
+         int asInt;
+         bool isInt64;
+      };
+
+      const Case cases[] =
+      {
+         { "0", 0, 0, true },
+         { "42", 42, 42, true },
+         { "-7", -7, -7, true },
+         { "2.0", 2, 2, true },
+         { "1e3", 1000, 1000, true },
+         { "1.5", 1, 1, false },
+         { "-1.5", -1, -1, false },
+         { "1e-5", 0, 0, false },
+         { "2147483647", 2147483647LL, INT_MAX, true },
+         { "2147483648", 2147483648LL, INT_MAX, true },
+         { "4294967297", 4294967297LL, INT_MAX, true },
+         { "-4294967297", -4294967297LL, INT_MIN, true },
+         { "9223372036854775807", LLONG_MAX, INT_MAX, true },
+         { "-9223372036854775808", LLONG_MIN, INT_MIN, true },
+         { "9223372036854775808", LLONG_MAX, INT_MAX, false },
+         { "-9223372036854775809", LLONG_MIN, INT_MIN, false },
+         { "100000000000000000000", LLONG_MAX, INT_MAX, false },
+         { "1e18", 1000000000000000000LL, INT_MAX, true },
+         { "9.2e18", 9200000000000000000LL, INT_MAX, true },
+         { "-9.223372036854775808e18", LLONG_MIN, INT_MIN, true },
+         { "9.223372036854775807e18", LLONG_MAX, INT_MAX, false },
+         { "1e19", LLONG_MAX, INT_MAX, false },
+         { "1e20", LLONG_MAX, INT_MAX, false },
+         { "-1e20", LLONG_MIN, INT_MIN, false },
+         { "4.5e9", 4500000000LL, INT_MAX, true },
+         { "1e999", LLONG_MAX, INT_MAX, false },
+         { "-1e999", LLONG_MIN, INT_MIN, false },
+      };
+
+      for (const Case &c : cases)
+      {
+         JsonValue value;
+         std::string error;
+         JsonExpect(JsonValue::Parse(c.text, value, error) && value.IsNumber(), std::string(c.text) + " did not parse as a number");
+         JsonExpect(value.AsInt64() == c.asInt64, std::string(c.text) + ": AsInt64 answered " + std::to_string(value.AsInt64()));
+         JsonExpect(value.AsInt() == c.asInt, std::string(c.text) + ": AsInt answered " + std::to_string(value.AsInt()));
+         JsonExpect(value.IsInt64() == c.isInt64, std::string(c.text) + ": IsInt64 answered " + (value.IsInt64() ? "true" : "false"));
+      }
+
+      // Not a number at all: 0 and not whole, as before.
+      JsonValue text;
+      std::string error;
+      JsonExpect(JsonValue::Parse("\"12\"", text, error) && text.AsInt64() == 0 && text.AsInt() == 0 && !text.IsInt64(),
+         "a string answered as a number");
+
+      // GetInt64 is AsInt64 of the member.
+      JsonValue object;
+      JsonExpect(JsonValue::Parse("{\"big\":1e20,\"small\":-1e20}", object, error) &&
+                 object.GetInt64("big") == LLONG_MAX && object.GetInt64("small") == LLONG_MIN,
+         "GetInt64 of a member past an __int64's range was not held at its end");
    }
 
    bool

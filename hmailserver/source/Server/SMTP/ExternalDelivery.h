@@ -16,6 +16,7 @@ namespace HM
    class RuleResult;
    class ServerInfo;
    class HostNameAndIpAddress;
+   enum class SmtpTlsResult : int;
 
    class ExternalDelivery
    {
@@ -36,7 +37,9 @@ namespace HM
 
       // message is what goes on the wire: the queued message, or the batch's
       // encrypted copy of it.
-      void DeliverToSingleServer_(std::vector<std::shared_ptr<MessageRecipient> > &vecRecipients, std::shared_ptr<ServerInfo> serverInfo, std::shared_ptr<Message> message);
+      // What became of TLS on the connection is the answer (SmtpTlsResult), for
+      // TLS reporting.
+      SmtpTlsResult DeliverToSingleServer_(std::vector<std::shared_ptr<MessageRecipient> > &vecRecipients, std::shared_ptr<ServerInfo> serverInfo, std::shared_ptr<Message> message);
 
       // Gateway encryption for one batch (Common/Util/GatewayEncryption.h).
       // Writes the encrypted copy to a temporary file named in copyFile, which

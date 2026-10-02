@@ -28,6 +28,7 @@
 #include <boost/system/error_code.hpp>
 
 #include <algorithm>
+#include <chrono>
 #include <mutex>
 #include <set>
 #include <string>
@@ -68,6 +69,21 @@ namespace HM
       // to be idempotent; the packaged one is.
       std::set<String> g_hooked;
       bool g_hookFailureReported = false;
+
+      // Un-bans owed: addresses whose un-ban a command was not run for to an
+      // answer - skipped in a pass in which it had already run past the
+      // external process timeout, or stopped for it itself. Each stays in
+      // g_hooked, so a later pass asks again, until every command has been run
+      // for it. The packaged hook's nftables set lets a ban expire below the
+      // server on its own; with iptables, or a command of the administrator's,
+      // nothing else ever lifts it. A pass whose un-bans run past the timeout
+      // puts the next retry of what is owed further off - the next pass, then a
+      // minute, doubling to an hour - so that a hook which hangs for good costs
+      // one timeout an hour under the lock every ban takes, not one a minute.
+      std::set<String> g_unbanOwed;
+      std::chrono::steady_clock::time_point g_unbanRetryAt;
+      int g_unbanRetrySeconds = 0;
+      const int UnbanRetryLongestSeconds = 3600;
 
       // The never-ban list, parsed from the setting's text and re-parsed only when
       // that text changes, so a list of a few hundred blocks costs nothing per
@@ -499,6 +515,8 @@ namespace HM
       if (commands.empty())
       {
          g_hooked.clear();
+         g_unbanOwed.clear();
+         g_unbanRetrySeconds = 0;
          return;
       }
 
@@ -512,11 +530,28 @@ namespace HM
       // A command that ran past the external process timeout once in this pass
       // is not run again in it. A widened ban is up to 65 addresses told one at
       // a time, under the lock every ban's announcement takes, and a hook that
-      // hangs would otherwise hold it for 65 timeouts rather than one. What it
+      // hangs would otherwise hold it for 65 timeouts rather than one. A ban it
       // was not run for is treated as a failure of it: not asked again, as a
-      // failed run never was.
+      // failed run never was. An un-ban it was not run for is owed, and asked
+      // for again by a later pass (g_unbanOwed above): skipped here, it would
+      // otherwise stay blocked below the server for good.
       std::set<String> hung;
       int skipped = 0;
+
+      // A ban made again since its un-ban was owed is one the hook is right to
+      // hold: nothing is owed for it any more.
+      for (std::set<String>::iterator owed = g_unbanOwed.begin(); owed != g_unbanOwed.end();)
+      {
+         if (desired.find(*owed) != desired.end())
+            owed = g_unbanOwed.erase(owed);
+         else
+            ++owed;
+      }
+
+      const std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
+      const bool retryOwed = now >= g_unbanRetryAt;
+      bool unbanTimedOut = false;
+      int deferred = 0;
 
       // Un-ban first: an address that has expired should stop being blocked
       // before a new one starts, and a hook that is failing altogether should
@@ -530,12 +565,21 @@ namespace HM
 
       for (const String &address : gone)
       {
-         bool ok = true;
+         // Owed from an earlier pass, and the wait after a hook that ran past
+         // the timeout is not over: left for a later pass.
+         if (!retryOwed && g_unbanOwed.find(address) != g_unbanOwed.end())
+         {
+            deferred++;
+            continue;
+         }
+
+         bool owed = false;
          for (const String &command : commands)
          {
             if (hung.find(command) != hung.end())
             {
                skipped++;
+               owed = true;
                continue;
             }
 
@@ -543,9 +587,12 @@ namespace HM
             bool timedOut = false;
             if (!RunHook_(command, _T("unban"), address, 0, ports, failure, timedOut))
             {
-               ok = false;
                if (timedOut)
+               {
                   hung.insert(command);
+                  unbanTimedOut = true;
+                  owed = true;
+               }
                if (!g_hookFailureReported)
                {
                   g_hookFailureReported = true;
@@ -557,11 +604,37 @@ namespace HM
                   LOG_DEBUG(_T("AutoBanFirewall - unban hook failed for ") + address + _T(": ") + failure);
             }
          }
-         // Forgotten either way: the ban is gone from the database, so the hook
-         // will not be told about it again, and asking every minute would be a
-         // stream of the same failure.
-         (void) ok;
+
+         // A command that was not run for it, or was stopped for the timeout,
+         // owes the un-ban: the address stays, and a later pass asks every
+         // command again (each is idempotent). One that ran and answered with an
+         // exit code has said it could not; it is reported, and not asked every
+         // minute for the same answer.
+         if (owed)
+         {
+            g_unbanOwed.insert(address);
+            continue;
+         }
+
+         g_unbanOwed.erase(address);
          g_hooked.erase(address);
+      }
+
+      if (unbanTimedOut)
+      {
+         g_unbanRetryAt = now + std::chrono::seconds(g_unbanRetrySeconds);
+         g_unbanRetrySeconds = g_unbanRetrySeconds == 0 ? 60 : std::min(g_unbanRetrySeconds * 2, UnbanRetryLongestSeconds);
+      }
+      else if (g_unbanOwed.empty())
+      {
+         g_unbanRetrySeconds = 0;
+      }
+
+      if (!g_unbanOwed.empty())
+      {
+         LOG_DEBUG(_T("AutoBanFirewall - ") + StringParser::IntToString((int) g_unbanOwed.size()) +
+                   _T(" un-ban(s) owed to the hook, asked for again by a later pass") +
+                   (deferred > 0 ? _T(" (") + StringParser::IntToString(deferred) + _T(" waiting after a timeout)") : String(_T(""))) + _T("."));
       }
 
       for (const Ban &ban : bans)

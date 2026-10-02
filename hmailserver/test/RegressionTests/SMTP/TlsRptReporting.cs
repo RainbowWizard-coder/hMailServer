@@ -29,20 +29,22 @@ namespace RegressionTests.SMTP
    ///
    ///    The delivery that seeds the statistics is a real one: the suite's DNS
    ///    zone, given this fixture's records, answers the MX lookup with 127.0.0.1,
-   ///    where our own port 25 -
-   ///    temporarily STARTTLS-required with the test certificate - plays the
-   ///    remote server. The outbound client attempts opportunistic STARTTLS,
-   ///    certificate verification fails (self-signed), RFC 7435 forgiveness
-   ///    completes the handshake anyway, and the session lands in the TLS-RPT
-   ///    store. The RCPT is then refused (the My computer range is set to require
-   ///    authentication for local-to-external, and the server-to-server hop is
-   ///    unauthenticated), so the message cannot loop back into the queue.
+   ///    where the suite's SMTP simulator on port 25 plays the remote server and
+   ///    offers STARTTLS with the test certificate. The outbound client attempts
+   ///    opportunistic STARTTLS, certificate verification fails (self-signed), RFC
+   ///    7435 forgiveness completes the handshake anyway, and the session lands in
+   ///    the TLS-RPT store as a successful one. An MX host is always reached on 25,
+   ///    and this server will not connect to a port it listens on itself, so its
+   ///    own SMTP port 25 moves aside for the test and the seed is submitted there.
+   ///    Until 6.3.6 the fixture delivered to this server's own port 25: the
+   ///    connection was refused as one to itself, and the report it read was of a
+   ///    session counted as successful by the connection's security setting alone,
+   ///    which TLS reporting now refuses to do.
    /// </summary>
    [TestFixture]
    public class TlsRptReporting : TestFixtureBase
    {
       private const string RemoteDomain = "rpt.example.test";
-      private const string SeedPort = "25778";
 
       [Test]
       [Description("SendTlsRptReports refuses when TlsRptFromAddress is not configured, naming the setting - running would discard the statistics it was asked to send")]
@@ -65,86 +67,56 @@ namespace RegressionTests.SMTP
 
          eConnectionSecurity originalOutboundSecurity = _settings.SMTPConnectionSecurity;
 
-         SSLCertificate certificate = null;
-         TCPIPPort port25 = null;
-         eConnectionSecurity originalPort25Security = eConnectionSecurity.eCSNone;
-         int originalPort25Certificate = 0;
-         TCPIPPort seedPort = null;
-
          // The three answers this delivery and its discovery ask for: the MX of the
-         // remote domain, the address of that MX host (ourselves), and the
-         // _smtp._tls record naming the rua mailbox. Everything else is NODATA,
-         // which the suite's zone answers by default.
+         // remote domain, the address of that MX host, and the _smtp._tls record
+         // naming the rua mailbox. Everything else is NODATA, which the suite's zone
+         // answers by default.
          SuiteDns.Zone
             .WithMx(RemoteDomain, 10, "mail." + RemoteDomain)
             .WithA("mail." + RemoteDomain, "127.0.0.1")
             .WithTxt("_smtp._tls." + RemoteDomain, "v=TLSRPTv1; rua=mailto:tlsreports@example.test");
 
+         // This server's own SMTP port 25 moves aside: the remote MX is the
+         // simulator, on 25, and the seed is submitted to the port moved to.
+         int submissionPort = TestSetup.GetNextFreePort();
+         TCPIPPort moved = null;
+         TCPIPPorts ports = _settings.TCPIPPorts;
+         for (int i = 0; i < ports.Count; i++)
+         {
+            if (ports[i].PortNumber == 25 && ports[i].Protocol == eSessionType.eSTSMTP)
+               moved = ports[i];
+         }
+         ClassicAssert.IsNotNull(moved, "No SMTP port 25 exists in the test environment.");
+
+         var remote = new SmtpServerSimulator(1, 25, eConnectionSecurity.eCSSTARTTLSOptional);
          try
          {
-            // The test certificate, so port 25 can offer STARTTLS.
-            var sslPath = SslSetup.GetSslCertPath();
-            certificate = _settings.SSLCertificates.Add();
-            certificate.Name = "TlsRptReporting";
-            certificate.CertificateFile = Paths.Combine(sslPath, "example.crt");
-            certificate.PrivateKeyFile = Paths.Combine(sslPath, "example.key");
-            certificate.Save();
+            moved.PortNumber = submissionPort;
+            moved.Save();
+            _application.Stop();
+            _application.Start();
 
-            // Port 25 plays the remote MX. STARTTLS-required rather than
-            // optional so the unauthenticated server-to-server hop cannot
-            // degrade to a session that records nothing.
-            var ports = _settings.TCPIPPorts;
-            for (int i = 0; i < ports.Count; i++)
-            {
-               var candidate = ports[i];
-               if (candidate.PortNumber == 25 && candidate.Protocol == eSessionType.eSTSMTP)
-               {
-                  port25 = candidate;
-                  break;
-               }
-            }
-
-            if (port25 == null)
-               throw new InvalidOperationException("No SMTP port 25 exists in the test environment.");
-
-            originalPort25Security = port25.ConnectionSecurity;
-            originalPort25Certificate = port25.SSLCertificateID;
-
-            port25.ConnectionSecurity = eConnectionSecurity.eCSSTARTTLSRequired;
-            port25.SSLCertificateID = certificate.ID;
-            port25.Save();
-
-            // The seed submission needs a port that is still plaintext.
-            seedPort = ports.Add();
-            seedPort.Address = "0.0.0.0";
-            seedPort.PortNumber = Convert.ToInt32(SeedPort);
-            seedPort.ConnectionSecurity = eConnectionSecurity.eCSNone;
-            seedPort.Protocol = eSessionType.eSTSMTP;
-            seedPort.Save();
+            remote.SetCertificate(SslSetup.GetCertificate());
+            remote.AddRecipientResult(new System.Collections.Generic.Dictionary<string, int> { ["user@" + RemoteDomain] = 250 });
+            remote.StartListen();
 
             // The outbound client attempts opportunistic STARTTLS on MX-path
             // deliveries.
             _settings.SMTPConnectionSecurity = eConnectionSecurity.eCSSTARTTLSOptional;
 
-            // The unauthenticated self-delivery hop must be refused at RCPT,
-            // or the accepted message would resolve MX back to ourselves and
-            // loop until the hop guard. The authenticated seed still passes.
-            var myComputer = _settings.SecurityRanges.get_ItemByName("My computer");
-            myComputer.RequireSMTPAuthLocalToExternal = true;
-            myComputer.Save();
-
             SetIniSetting("DNSQueryTimeout", "5");
             SetIniSetting("TlsRptFromAddress", "postmaster@example.test");
+            _application.Reinitialize();
 
-            RestartServerAndReacquireCom();
-
-            // The seed: a real submission whose delivery is a real MX-path
-            // session. The RCPT of that session is refused; the TLS outcome
-            // was recorded before any RCPT was sent.
+            // The seed: a real submission whose delivery is a real MX-path session,
+            // over STARTTLS to the simulator, which takes the message.
             string errorMessage;
-            new SmtpClientSimulator(false, Convert.ToInt32(SeedPort)).Send(
+            new SmtpClientSimulator(false, submissionPort).Send(
                false, "sender@example.test", "test",
                "sender@example.test", "user@" + RemoteDomain, "tls-rpt seed", "Seed.", out errorMessage);
+
+            remote.WaitForCompletion();
+            StringAssert.Contains("Seed.", remote.MessageData, "The seed was not delivered to the remote MX.");
 
             // Delivery is asynchronous; ask until the session has been
             // recorded and reported. Popping an as-yet-empty day is harmless -
@@ -175,14 +147,13 @@ namespace RegressionTests.SMTP
             StringAssert.Contains("!" + RemoteDomain + "!", report,
                "The attachment filename carries sender!policy-domain!date. Got: " + report);
 
-            // And the report itself.
+            // And the report itself: the one session, a successful one.
             StringAssert.Contains("\"policy-domain\":\"" + RemoteDomain + "\"", report,
                "The JSON must name the policy domain. Got: " + report);
             StringAssert.Contains("\"contact-info\":\"postmaster@example.test\"", report,
                "The JSON must carry the configured contact. Got: " + report);
-            ClassicAssert.IsFalse(
-               report.Contains("\"total-successful-session-count\":0,\"total-failure-session-count\":0"),
-               "The delivery session must have been counted - a report of nothing proves nothing. Got: " + report);
+            StringAssert.Contains("\"total-successful-session-count\":1,\"total-failure-session-count\":0", report,
+               "The delivery's TLS session must have been counted as the one successful session. Got: " + report);
 
             // The pop is destructive by design: the day was taken, so a second
             // call with no new sessions has nothing to send.
@@ -191,50 +162,19 @@ namespace RegressionTests.SMTP
          }
          finally
          {
+            remote.Dispose();
             SuiteDns.Reset();
 
             SetIniSetting("DNSQueryTimeout", null);
             SetIniSetting("TlsRptFromAddress", null);
-
-            // The mid-test service restart killed every COM proxy taken
-            // before it - port25 and the rest point at the old process, and a
-            // Save() on one throws RPC_S_SERVER_UNAVAILABLE out of this very
-            // block (the first run of this fixture proved it). So: restart
-            // first, which re-acquires _application and _settings, then look
-            // everything up afresh and restore by value.
-            RestartServerAndReacquireCom();
-
-            var ports = _settings.TCPIPPorts;
-            for (int i = ports.Count - 1; i >= 0; i--)
-            {
-               var candidate = ports[i];
-               if (candidate.Protocol != eSessionType.eSTSMTP)
-                  continue;
-
-               if (candidate.PortNumber == 25 && port25 != null)
-               {
-                  candidate.ConnectionSecurity = originalPort25Security;
-                  candidate.SSLCertificateID = originalPort25Certificate;
-                  candidate.Save();
-               }
-               else if (candidate.PortNumber == Convert.ToInt32(SeedPort))
-               {
-                  candidate.Delete();
-               }
-            }
-
-            var certificates = _settings.SSLCertificates;
-            for (int i = certificates.Count - 1; i >= 0; i--)
-            {
-               if (certificates[i].Name == "TlsRptReporting")
-                  certificates[i].Delete();
-            }
-
             _settings.SMTPConnectionSecurity = originalOutboundSecurity;
-            _settings.SecurityRanges.SetDefault();
 
-            // Rebind the restored ports; a certificate-less port 25 must not
-            // keep requiring STARTTLS for the fixtures that follow.
+            if (moved != null && moved.PortNumber != 25)
+            {
+               moved.PortNumber = 25;
+               moved.Save();
+            }
+
             _application.Stop();
             _application.Start();
          }

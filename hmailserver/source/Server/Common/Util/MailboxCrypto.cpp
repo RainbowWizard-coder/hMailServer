@@ -996,6 +996,15 @@ namespace HM
             throw std::runtime_error("an error with nothing watching the key");
          (void) secret;
       }
+
+      // StoredSecrets::ImportText's shape: lines read into a vector one by one,
+      // and the scope left by an exception - from an allocation, say - before
+      // the hand-written Forget of each line was reached.
+      void ThrowWhileEachWatched(std::vector<std::string> &lines)
+      {
+         MailboxCrypto::ForgetEachOnExit forget(lines);
+         throw std::runtime_error("an error between reading the lines and forgetting them");
+      }
    }
 
    // MailboxKeys.cpp's private keys are watched by ForgetOnExit: the bytes are
@@ -1047,5 +1056,27 @@ namespace HM
       }
       Assert::IsTrue(caught && unwatched.size() == length && BufferHolds(unwatched, unwatchedBuffer, length, 'k'));
       Forget(unwatched);
+
+      // Every line of a vector, its scope left by an exception: each written over
+      // and emptied, the vector itself left for its owner to free.
+      std::vector<std::string> lines;
+      lines.push_back(std::string(length, 'a'));
+      lines.push_back(std::string(length, 'b'));
+      lines.push_back(std::string(length, 'c'));
+      std::vector<const char *> lineBuffers;
+      for (const std::string &line : lines)
+         lineBuffers.push_back(line.data());
+      caught = false;
+      try
+      {
+         ThrowWhileEachWatched(lines);
+      }
+      catch (const std::runtime_error &)
+      {
+         caught = true;
+      }
+      Assert::IsTrue(caught && lines.size() == 3);
+      for (size_t i = 0; i < lines.size(); ++i)
+         Assert::IsTrue(lines[i].empty() && BufferHolds(lines[i], lineBuffers[i], length, 0));
    }
 }

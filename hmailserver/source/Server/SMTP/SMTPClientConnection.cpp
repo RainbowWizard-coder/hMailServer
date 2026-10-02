@@ -98,6 +98,8 @@ namespace HM
    void
    SMTPClientConnection::OnHandshakeCompleted()
    {
+      NoteTlsResult_(SmtpTlsResult::Established);
+
       if (GetConnectionSecurity() == CSSSL)
          EnqueueRead();
       else if (GetConnectionSecurity() == CSSTARTTLSRequired ||
@@ -111,7 +113,21 @@ namespace HM
    void
    SMTPClientConnection::OnHandshakeFailed()
    {
+      NoteTlsResult_(SmtpTlsResult::HandshakeFailed);
       HandleHandshakeFailed_();
+   }
+
+   void
+   SMTPClientConnection::NoteTlsResult_(SmtpTlsResult result)
+   {
+      if (tls_result_)
+         tls_result_->store(static_cast<int>(result));
+   }
+
+   void
+   SMTPClientConnection::SetTlsResultSink(std::shared_ptr<std::atomic<int> > sink)
+   {
+      tls_result_ = sink;
    }
 
    void
@@ -408,6 +424,27 @@ namespace HM
    {
       if (!IsPositiveCompletion(code))
       {
+         // A server that refuses EHLO offers no STARTTLS either, since STARTTLS is
+         // an extension only EHLO's reply names. Before TLS, then, it is to a TLS
+         // report a host that does not support STARTTLS, as one whose EHLO reply
+         // leaves it out is (SmtpTlsResult). And where a remote domain policy, a
+         // rule, or the destination's TLSA records or MTA-STS policy required the
+         // encryption - tls_policy_reason_ - it is the same deferral as that host's,
+         // 450 / 4.7.0 with the sentence and retried (RFC 7672 section 2.2, RFC
+         // 8461 section 5), where until 6.3.6 it was the permanent 5.5.1 below,
+         // which a route's own STARTTLS (required) keeps.
+         const bool startTlsAsked = !IsSSLConnection() &&
+                                    (GetConnectionSecurity() == CSSTARTTLSRequired || GetConnectionSecurity() == CSSTARTTLSOptional);
+         if (startTlsAsked)
+            NoteTlsResult_(SmtpTlsResult::StartTlsNotOffered);
+
+         if (startTlsAsked && GetConnectionSecurity() == CSSTARTTLSRequired && !tls_policy_reason_.IsEmpty())
+         {
+            UpdateAllRecipientsWithError_(450, AnsiString(tls_policy_reason_), false, _T("4.7.0"), false);
+            SendQUIT_();
+            return;
+         }
+
          bool ehlo_required = GetConnectionSecurity() == CSSTARTTLSRequired ||
                               use_smtpauth_;
 
@@ -487,6 +524,8 @@ namespace HM
             else
             {
                // Remote server does not support STARTTLS
+               NoteTlsResult_(SmtpTlsResult::StartTlsNotOffered);
+
                if (GetConnectionSecurity() == CSSTARTTLSRequired)
                {
                   if (!tls_policy_reason_.IsEmpty())
@@ -573,6 +612,9 @@ namespace HM
       }
       else
       {
+         // Offered, and then refused - 454 "TLS not available due to temporary
+         // reason": to a TLS report it is not supported.
+         NoteTlsResult_(SmtpTlsResult::StartTlsNotOffered);
          HandleHandshakeFailed_();
       }
    }

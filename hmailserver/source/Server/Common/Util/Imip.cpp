@@ -9,6 +9,8 @@
 #include <algorithm>
 #include <atomic>
 #include <chrono>
+#include <climits>
+#include <cstdlib>
 #include <ctime>
 #include <set>
 #include <stdexcept>
@@ -322,8 +324,7 @@ namespace HM
          out.allDay = dtstart->HasParameter("VALUE", "DATE");
          out.tzid = dtstart->Parameter("TZID");
       }
-      AnsiString sequence = Trimmed(master->Value("SEQUENCE"));
-      out.sequence = sequence.IsEmpty() ? 0 : atoi(sequence.c_str());
+      out.sequence = SequenceOf(*master);
 
       if (const ICalProperty *organizer = master->Property("ORGANIZER"))
       {
@@ -654,12 +655,6 @@ namespace HM
             return false;
          }
          return true;
-      }
-
-      int SequenceOf(const ICalComponent &component)
-      {
-         AnsiString text = Trimmed(component.Value("SEQUENCE"));
-         return text.IsEmpty() ? 0 : atoi(text.c_str());
       }
 
       // The address's PARTSTAT on the component, upper-cased, and the SENT-BY
@@ -1942,6 +1937,17 @@ namespace HM
       return false;
    }
 
+   int
+   Imip::SequenceOf(const ICalComponent &component)
+   {
+      AnsiString text = Trimmed(component.Value("SEQUENCE"));
+      if (text.IsEmpty())
+         return 0;
+
+      const long long value = strtoll(text.c_str(), nullptr, 10);
+      return value > INT_MAX ? INT_MAX : (value < INT_MIN ? INT_MIN : static_cast<int>(value));
+   }
+
    ImipKeepRule
    Imip::KeepRule(ImipProvenance provenance, bool inCalendar, int storedSequence, bool storedUnverified, int invitationSequence)
    {
@@ -2063,7 +2069,7 @@ namespace HM
             if (otherOrganiser)
                storedMaster = nullptr;
             else if (storedMaster)
-               storedSequence = SequenceOf(*storedMaster);
+               storedSequence = Imip::SequenceOf(*storedMaster);
          }
          else
             storedTree = invitation.tree;
@@ -2479,6 +2485,55 @@ namespace HM
             throw std::logic_error(std::string("ImipTester: the marked copies did not parse: ") + problem.c_str());
          if (!Imip::FiledUnverified(marked) || Imip::FiledUnverified(plain))
             throw std::logic_error("ImipTester: FiledUnverified did not read the server's mark, or read another.");
+      }
+
+      // SEQUENCE past an int's range, which RFC 5545 does not allow but a
+      // message can carry: held at that end on both platforms. atoi read
+      // 4294967297 as 1 on Linux, so the verified organiser's invitation at that
+      // SEQUENCE was taken for one older than a stored copy at 2 and dropped.
+      {
+         struct SequenceCase
+         {
+            const char *value;
+            int expected;
+         };
+         const SequenceCase sequenceCases[] =
+         {
+            { "", 0 },
+            { "0", 0 },
+            { "7", 7 },
+            { "  12 ", 12 },
+            { "2147483647", INT_MAX },
+            { "2147483648", INT_MAX },
+            { "4294967297", INT_MAX },
+            { "99999999999999999999", INT_MAX },
+            { "-4294967297", INT_MIN },
+            { "x", 0 },
+         };
+         for (const SequenceCase &c : sequenceCases)
+         {
+            const AnsiString text = "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//ImipTester//EN\r\nMETHOD:REQUEST\r\nBEGIN:VEVENT\r\nUID:sequence-0001@example.com\r\n"
+               "DTSTAMP:20260928T080000Z\r\nDTSTART:20261026T090000Z\r\nDTEND:20261026T100000Z\r\nORGANIZER:mailto:olga@partner.example\r\n" +
+               (c.value[0] ? AnsiString("SEQUENCE:") + c.value + "\r\n" : AnsiString()) + "END:VEVENT\r\nEND:VCALENDAR\r\n";
+            ImipMessage message;
+            AnsiString problem;
+            if (!Imip::Read(text, message, problem))
+               throw std::logic_error(std::string("ImipTester: an invitation at SEQUENCE ") + c.value + " did not read: " + problem.c_str());
+            if (message.sequence != c.expected)
+               throw std::logic_error(std::string("ImipTester: SEQUENCE ") + c.value + " was read as " + std::to_string(message.sequence) + ".");
+            const ICalComponent *master = nullptr;
+            for (const ICalComponent &child : message.tree.children)
+            {
+               if (child.name == "VEVENT")
+                  master = &child;
+            }
+            if (!master || Imip::SequenceOf(*master) != c.expected)
+               throw std::logic_error(std::string("ImipTester: SequenceOf read SEQUENCE ") + c.value + " otherwise than Read.");
+         }
+
+         const ImipKeepRule later = Imip::KeepRule(ImipProvenance::FromOrganiser, true, 2, false, INT_MAX);
+         if (!later.useInvitation)
+            throw std::logic_error("ImipTester: the verified organiser's invitation at SEQUENCE 4294967297 did not replace a copy at 2.");
       }
 
       // What a delivered CANCEL or REPLY does to a stored copy of its event,

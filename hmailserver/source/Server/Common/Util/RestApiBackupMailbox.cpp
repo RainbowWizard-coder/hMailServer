@@ -240,10 +240,12 @@ namespace HM
                if (value.IsNull())
                   continue;
 
-               if (!value.IsNumber() || value.AsNumber() < 1.0 || value.AsNumber() != (double) (__int64) value.AsNumber())
+               // A whole number an __int64 holds: the cast this compared with
+               // was itself undefined for 1e20.
+               if (!value.IsInt64() || value.AsInt64() < 1)
                   return BackupRefusal_(400, _T("message must be a message id from the archive's listing"));
 
-               request.message_id = (__int64) value.AsNumber();
+               request.message_id = value.AsInt64();
                continue;
             }
 

@@ -62,9 +62,21 @@ namespace HM
       const std::vector<JsonValue> &Items() const { return items_; }
 
       // Scalars. A value of another type answers the empty string, 0 or false.
+      //
+      // AsInt64 answers a number written as an integer from its digits, exactly,
+      // and one with a fraction or an exponent through the double, its fraction
+      // cut off. A number past either end of an __int64 - 1e20, or twenty digits -
+      // answers that end: never a conversion out of range, which C++ leaves
+      // undefined. AsInt is the same held to an int's range, so that a caller's
+      // own range check refuses 4294967297 rather than seeing the 1 its low 32
+      // bits would make. IsInt64 says whether the number is a whole one that an
+      // __int64 holds exactly - 42, -7, 2.0, 1e3; not 1.5, 1e20 or a twenty-digit
+      // integer - which is what a field that names a row by its id needs.
       const std::string &AsString() const { return string_; }
       double AsNumber() const { return number_; }
       __int64 AsInt64() const;
+      int AsInt() const;
+      bool IsInt64() const;
       bool AsBool() const { return type_ == TypeBool && bool_; }
 
       // Reads text into value. False, with error saying where and why, when the text
@@ -81,5 +93,14 @@ namespace HM
       std::string string_;
       std::vector<JsonValue> items_;
       std::vector<std::pair<std::string, JsonValue> > members_;
+   };
+
+   // AsInt64, AsInt and IsInt64 at both ends of their ranges and past them, in
+   // both notations. Run by ClassTester on Windows and by update-feed-tests on
+   // Linux; throws std::logic_error naming the first value answered wrongly.
+   class JsonValueTester
+   {
+   public:
+      void Test();
    };
 }

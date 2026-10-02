@@ -249,9 +249,11 @@ namespace HM
       const JsonValue *sentValue = document.Get("sent_id");
       if (sentValue && !sentValue->IsNull())
       {
-         if (!sentValue->IsNumber() || sentValue->AsNumber() < 0)
+         // A whole number an __int64 holds: 1e20 converted from its double was
+         // undefined behaviour, and 1.5 was read as 1.
+         if (!sentValue->IsInt64() || sentValue->AsInt64() < 0)
             return BuildResponse_(400, "{\"error\":\"sent_id is the id of the Sent copy, a whole number\"}");
-         sentId = (__int64) sentValue->AsNumber();
+         sentId = sentValue->AsInt64();
       }
 
       // A stale "database away" from earlier work on this pool thread must

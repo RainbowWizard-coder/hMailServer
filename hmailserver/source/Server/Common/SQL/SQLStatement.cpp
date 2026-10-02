@@ -11,6 +11,8 @@
 #include "../Util/VariantDateTime.h"
 #include "../Util/Time.h"
 
+#include <stdexcept>
+
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
 #define new DEBUG_NEW
@@ -417,10 +419,20 @@ namespace HM
    {
       HM::DatabaseSettings::SQLDBType DBType = pSettings->GetType();
       String sSQL;
+
+      // The name is quoted as each dialect quotes an identifier, its own closing
+      // quote doubled inside: until 6.3.6 SQL Server and MySQL had it bare and
+      // PostgreSQL in double quotes it could close, so a name the database takes
+      // only quoted - with a hyphen in it - was a syntax error, and one with the
+      // quote in it ended the name and went on as SQL of its own. The quotes
+      // change nothing about a name that worked bare: SQL Server and MySQL keep
+      // its case as they did, and PostgreSQL had it in quotes already.
+      String quoted = sDatabaseName;
       switch (DBType)
       {
       case DatabaseSettings::TypeMSSQLServer:
-         sSQL.Format(_T("create database %s"), sDatabaseName.c_str());
+         quoted.Replace(_T("]"), _T("]]"));
+         sSQL = _T("create database [") + quoted + _T("]");
          break;
       case DatabaseSettings::TypeMYSQLServer:
          // utf8mb4 under utf8mb4_general_ci, what every table of CreateTablesMySQL.sql
@@ -428,10 +440,12 @@ namespace HM
          // character and refuses anything outside the Basic Multilingual Plane.
          // The tables do not depend on this default; a table that names nothing
          // would, and build/check-mysql-charset.py refuses such a table.
-         sSQL.Format(_T("create database %s character set utf8mb4 collate utf8mb4_general_ci"), sDatabaseName.c_str());
+         quoted.Replace(_T("`"), _T("``"));
+         sSQL = _T("create database `") + quoted + _T("` character set utf8mb4 collate utf8mb4_general_ci");
          break;
       case DatabaseSettings::TypePGServer:
-         sSQL.Format(_T("create database \"%s\" ENCODING = 'UTF8'"), sDatabaseName.c_str());
+         quoted.Replace(_T("\""), _T("\"\""));
+         sSQL = _T("create database \"") + quoted + _T("\" ENCODING = 'UTF8'");
          break;
       default:
          ErrorManager::Instance()->ReportError(ErrorManager::Critical, 5407, "SQLStatement::GetCreateDatabase()", Formatter::Format("Unknown database type: {0}", DBType));
@@ -849,6 +863,7 @@ namespace HM
       TestRepeatedAndCaseSensitiveTokens_();
       TestGeneratedNamesDoNotCollide_();
       TestColumnStartsEmpty_();
+      TestCreateDatabase();
    }
 
    /*
@@ -1054,5 +1069,49 @@ namespace HM
       command.AddParameter("@X2", 9);
 
       AssertQuery_(command, _T("select * from t where a = 9 or b = 9 or c = @x2"));
+   }
+
+   /*
+      CREATE DATABASE names the database as each dialect quotes an identifier,
+      with that dialect's closing quote doubled inside it - for COM's
+      CreateExternalDatabase (DBSetup) and --create-database alike. Until 6.3.6
+      SQL Server and MySQL had the name bare and PostgreSQL in double quotes it
+      could close: "hm-mail" was a syntax error on the first two, and a name with
+      the closing quote in it went on as SQL of its own on all three.
+   */
+   void
+   SQLStatementTester::TestCreateDatabase()
+   {
+      struct Case
+      {
+         HM::DatabaseSettings::SQLDBType type;
+         const wchar_t *name;
+         const wchar_t *expected;
+      };
+
+      const Case cases[] =
+      {
+         { DatabaseSettings::TypeMSSQLServer, L"hMailServer", L"create database [hMailServer]" },
+         { DatabaseSettings::TypeMSSQLServer, L"hm-mail", L"create database [hm-mail]" },
+         { DatabaseSettings::TypeMSSQLServer, L"a]b", L"create database [a]]b]" },
+         { DatabaseSettings::TypeMSSQLServer, L"x]; drop database master; --", L"create database [x]]; drop database master; --]" },
+         { DatabaseSettings::TypeMYSQLServer, L"hmailserver", L"create database `hmailserver` character set utf8mb4 collate utf8mb4_general_ci" },
+         { DatabaseSettings::TypeMYSQLServer, L"hm-mail", L"create database `hm-mail` character set utf8mb4 collate utf8mb4_general_ci" },
+         { DatabaseSettings::TypeMYSQLServer, L"x`; drop database mysql; `", L"create database `x``; drop database mysql; ``` character set utf8mb4 collate utf8mb4_general_ci" },
+         { DatabaseSettings::TypePGServer, L"hmailserver", L"create database \"hmailserver\" ENCODING = 'UTF8'" },
+         { DatabaseSettings::TypePGServer, L"Hm\"Mail", L"create database \"Hm\"\"Mail\" ENCODING = 'UTF8'" },
+         { DatabaseSettings::TypePGServer, L"x\"; drop database postgres; --", L"create database \"x\"\"; drop database postgres; --\" ENCODING = 'UTF8'" },
+      };
+
+      for (const Case &c : cases)
+      {
+         std::shared_ptr<DatabaseSettings> settings(new DatabaseSettings(_T(""), _T("localhost"), _T(""), _T("user"), _T("password"), _T(""), _T(""), c.type, 0));
+         const String actual = SQLStatement::GetCreateDatabase(settings, c.name);
+         if (actual != String(c.expected))
+         {
+            throw std::logic_error(std::string("SQLStatementTester: CREATE DATABASE for [") + AnsiString(String(c.name)).c_str() +
+               "] is [" + AnsiString(actual).c_str() + "], not [" + AnsiString(String(c.expected)).c_str() + "]");
+         }
+      }
    }
 }

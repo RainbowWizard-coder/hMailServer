@@ -96,7 +96,10 @@ namespace HM
          if (member == nullptr || !member->IsNumber())
             return absent;
 
-         return (int) member->AsNumber();
+         // Held to an int's range (JsonValue::AsInt), so that a number past it
+         // reaches SaveChoice's own range check as too large - never converted
+         // out of range, and never wrapped to a small value that passes.
+         return member->AsInt();
       }
    }
 
@@ -329,7 +332,8 @@ namespace HM
       if (!JsonValue::Parse(std::string(requestBody.c_str(), requestBody.size()), document, parseError) || !document.IsObject())
          return BuildResponse_(400, "{\"error\":\"the body must be a JSON object naming the device\"}");
 
-      __int64 id = (__int64) MemberNumber(document, "id", 0);
+      const JsonValue *idMember = document.Get("id");
+      const __int64 id = idMember != nullptr && idMember->IsNumber() ? idMember->AsInt64() : 0;
       if (id <= 0)
          return BuildResponse_(400, "{\"error\":\"name the device with id\"}");
 

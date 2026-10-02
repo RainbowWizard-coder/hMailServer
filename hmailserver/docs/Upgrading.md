@@ -260,7 +260,15 @@ outcome every five seconds, for up to **ten minutes** (a constant,
 written while the service is still running, or the ten minutes passing with no
 stop, and the server leaves the drain itself, records `left` on the audit trail
 as `server`, logs why, and reports the outcome then rather than at the next start
-(`HM7151` when the helper wrote nothing at all). **A reinitialise
+(`HM7151` when the helper wrote nothing at all). On Linux the server also asks
+systemd, at each of those polls, about the unit the helper runs as
+(`hmailserver-update.service`, or `hmailserver-update-<version>.service` when
+`systemd-run` started it): a helper that has ended without stopping the service
+and wrote no outcome - it refused the request, which it reports in its journal and
+nowhere else - has the drain left at that poll, with `HM7151` naming the unit and
+its exit status, rather than after the ten minutes (until 6.3.6 the server refused
+connections for all of them). Where `systemctl` cannot be asked, the ten minutes
+stand. **A reinitialise
 ends maintenance mode**: SIGHUP, the Control Panel's Reinitialize, `POST
 /api/v1/server/reinitialize`, a backup restore and an ACME deployment all stop
 and restart the servers in place, and the restarted servers accept again; the

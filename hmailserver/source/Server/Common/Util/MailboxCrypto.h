@@ -47,6 +47,7 @@
 
 #include <functional>
 #include <string>
+#include <vector>
 
 namespace HM
 {
@@ -164,6 +165,26 @@ namespace HM
          std::string &secret_;
       };
 
+      // The same for every string of a vector: lines of a key file read one by
+      // one, each written over when the scope ends, however it ends. Declared on
+      // the line after the vector, which outlives it.
+      class ForgetEachOnExit
+      {
+      public:
+         explicit ForgetEachOnExit(std::vector<std::string> &secrets) noexcept : secrets_(secrets) {}
+         ~ForgetEachOnExit()
+         {
+            for (std::string &secret : secrets_)
+               Forget(secret);
+         }
+
+         ForgetEachOnExit(const ForgetEachOnExit &) = delete;
+         ForgetEachOnExit &operator=(const ForgetEachOnExit &) = delete;
+
+      private:
+         std::vector<std::string> &secrets_;
+      };
+
       static bool ConstantTimeEquals(const std::string &one, const std::string &two);
 
       // HKDF-SHA256 (RFC 5869), extract and expand, for at most 32 bytes.
@@ -187,7 +208,8 @@ namespace HM
       static void Test();
 
    private:
-      // ForgetOnExit on every way out of a scope, and its control; Test runs it.
+      // ForgetOnExit and ForgetEachOnExit on every way out of a scope, and
+      // their control; Test runs it.
       static void TestForgetOnExit();
    };
 }

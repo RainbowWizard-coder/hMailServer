@@ -795,6 +795,7 @@
     <Compile Include="SMTP\DistributionListHeaders.cs" />
     <Compile Include="SMTP\TlsRptInertReporting.cs" />
     <Compile Include="SMTP\TlsRptReporting.cs" />
+    <Compile Include="SMTP\DaneRequiredTlsDeferral.cs" />
     <Compile Include="AntiSpam\DmarcRptReporting.cs" />
     <Compile Include="AntiSpam\DmarcRpt2Schema.cs" />
     <Compile Include="AntiSpam\DmarcTreeWalkResolution.cs" />
@@ -808,6 +809,7 @@
     <Compile Include="Security\SmtpAuthOnDeliveryPorts.cs" />
     <Compile Include="Security\SmtpAuthOnDeliveryPortsCom.cs" />
     <Compile Include="Security\AutoBanWiden.cs" />
+    <Compile Include="Security\AutoBanHookRetry.cs" />
     <Compile Include="Security\AutoBanWidenCom.cs" />
     <Compile Include="Security\PasswordPolicyTests.cs" />
     <Compile Include="Security\PasswordBreachCheck.cs" />
@@ -851,6 +853,7 @@
     <Compile Include="API\RestApiMailboxMove.cs" />
     <Compile Include="API\RestApiAuditTrail.cs" />
     <Compile Include="API\RestApiAlerts.cs" />
+    <Compile Include="API\RestApiNumberRanges.cs" />
     <Compile Include="API\RestApiSetupChecklist.cs" />
     <Compile Include="API\RestApiProfiles.cs" />
     <Compile Include="API\RestApiSampleDomain.cs" />

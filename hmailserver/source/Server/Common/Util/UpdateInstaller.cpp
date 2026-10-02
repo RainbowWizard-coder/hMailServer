@@ -117,11 +117,94 @@ namespace HM
    }
 
 #if HM_LIVE_UPDATE
+#ifdef HM_PLATFORM_POSIX
+   UpdateInstaller::HelperUnitState
+   UpdateInstaller::ReadHelperUnitState(const AnsiString &showOutput, int &exitStatus)
+   {
+      exitStatus = -1;
+      std::string activeState;
+
+      const std::string text(showOutput.c_str(), showOutput.GetLength());
+      size_t start = 0;
+      while (start < text.size())
+      {
+         size_t end = text.find('\n', start);
+         if (end == std::string::npos)
+            end = text.size();
+         std::string line = text.substr(start, end - start);
+         start = end + 1;
+
+         while (!line.empty() && (line.back() == '\r' || line.back() == ' ' || line.back() == '\t'))
+            line.pop_back();
+
+         const size_t equals = line.find('=');
+         if (equals == std::string::npos)
+            continue;
+
+         const std::string key = line.substr(0, equals);
+         const std::string value = line.substr(equals + 1);
+         if (key == "ActiveState")
+            activeState = value;
+         else if (key == "ExecMainStatus" && !value.empty() && value.size() <= 9 &&
+                  value.find_first_not_of("0123456789") == std::string::npos)
+            exitStatus = static_cast<int>(std::strtol(value.c_str(), nullptr, 10));
+      }
+
+      if (activeState == "activating" || activeState == "active" || activeState == "deactivating" ||
+          activeState == "reloading" || activeState == "refreshing")
+         return HelperUnitAtWork;
+
+      if (activeState == "inactive" || activeState == "failed")
+         return HelperUnitEnded;
+
+      return HelperUnitUnknown;
+   }
+
+   UpdateInstaller::HelperUnitState
+   UpdateInstaller::AskHelperUnitState(const String &systemctlPath, const String &unit, const String &answerFile, int &exitStatus)
+   {
+      exitStatus = -1;
+
+      // A unit name is what systemd names: anything else is not put on a
+      // command line.
+      const std::string name = std::string(AnsiString(unit).c_str());
+      bool nameable = !name.empty() && name.size() <= 128;
+      for (size_t i = 0; nameable && i < name.size(); ++i)
+      {
+         const char c = name[i];
+         nameable = (c >= '0' && c <= '9') || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
+                    c == '.' || c == '-' || c == '_' || c == '@' || c == ':';
+      }
+      if (!nameable || access(std::string(AnsiString(systemctlPath).c_str()).c_str(), X_OK) != 0)
+         return HelperUnitUnknown;
+
+      const String directory = FileUtilities::GetFilePath(answerFile);
+      ProcessLauncher launcher(systemctlPath + _T(" show --property=LoadState --property=ActiveState --property=ExecMainStatus ") + unit, directory);
+      launcher.SetStandardOutputFile(answerFile);
+      launcher.SetMaximumRunTime(10000);
+
+      unsigned int exitCode = 0;
+      const bool ran = launcher.Launch(exitCode) && exitCode == 0;
+      AnsiString answer;
+      if (ran)
+         answer = AnsiString(FileUtilities::ReadCompleteTextFile(answerFile));
+      FileUtilities::DeleteFile(answerFile);
+
+      return ran ? ReadHelperUnitState(answer, exitStatus) : HelperUnitUnknown;
+   }
+#endif
+
    void
-   UpdateInstaller::WatchTheHelper_(const String &drainSince)
+   UpdateInstaller::WatchTheHelper_(const String &drainSince, const String &helperUnit)
    {
       const ULONGLONG deadline = GetTickCount64() + (ULONGLONG) UPDATE_APPLY_DRAIN_MINUTES * 60 * 1000;
       bool outcomeSeen = false;
+#ifdef HM_PLATFORM_POSIX
+      const char *systemctl = access("/usr/bin/systemctl", X_OK) == 0 ? "/usr/bin/systemctl"
+                            : access("/bin/systemctl", X_OK) == 0 ? "/bin/systemctl" : nullptr;
+#else
+      (void) helperUnit;
+#endif
 
       for (;;)
       {
@@ -152,6 +235,42 @@ namespace HM
             ReportLastOutcome();
             return;
          }
+
+#ifdef HM_PLATFORM_POSIX
+         // The helper's unit, asked of systemd. A helper that refuses the request
+         // - an AppImage under the path unit without the --image drop-in, a line
+         // that fails a check - exits before it stops anything and writes
+         // nothing into the Updates directory, which is this service's user's
+         // (hmailserver-update says why). Ended with no outcome while this
+         // service still runs, it is not going to stop it: the drain is left now,
+         // where until 6.3.6 the server refused connections for the ten minutes
+         // below. When systemd cannot be asked, the ten minutes stand.
+         if (systemctl && !helperUnit.IsEmpty())
+         {
+            int exitStatus = -1;
+            const String answerFile = UpdateDownloader::UpdatesDirectory() + FileUtilities::PathSeparator + _T("helper-unit-state.txt");
+            if (AskHelperUnitState(String(systemctl), helperUnit, answerFile, exitStatus) == HelperUnitEnded)
+            {
+               // An outcome written just before it ended is the better account,
+               // and the next poll reports it.
+               if (!outcome.IsEmpty() && FileUtilities::Exists(outcome))
+                  continue;
+
+               String how = _T("");
+               if (exitStatus == 4)
+                  how = _T(": it refused the request (exit status 4)");
+               else if (exitStatus >= 0)
+                  how = Formatter::Format(_T(" (exit status {0})"), exitStatus);
+
+               String message = Formatter::Format(_T("The update helper {0} ended without stopping the service and wrote no outcome{1}, so the drain the apply entered has been left at once and the service accepts again. journalctl -u {2} says why; the verified package is where the download put it, in {3}."),
+                  helperUnit, how, helperUnit, UpdateDownloader::UpdatesDirectory());
+               ErrorManager::Instance()->ReportError(ErrorManager::High, 7151, "UpdateInstaller::WatchTheHelper_", message);
+               UpdateChecker::RecordFailure(message);
+               Application::Instance()->LeaveDrainAsTheServer(Formatter::Format(_T("The update helper {0} ended without stopping the service or writing an outcome."), helperUnit));
+               return;
+            }
+         }
+#endif
 
          if (GetTickCount64() >= deadline)
          {
@@ -509,8 +628,9 @@ namespace HM
 
    bool
    UpdateInstaller::LaunchPosix_(const AnsiString &request, const String &version, const String &helperSource,
-      const String &unit, const String &image, String &error)
+      const String &unit, const String &image, String &helperUnit, String &error)
    {
+      helperUnit.Empty();
       String directory = UpdateDownloader::UpdatesDirectory();
 
       const char *runtimeVariable = getenv("RUNTIME_DIRECTORY");
@@ -534,6 +654,7 @@ namespace HM
             if (RequestTaken_(requestPath))
             {
                LOG_APPLICATION(_T("Update: hmailserver-update.service has taken the request. It stops this unit, installs, starts it and writes the outcome."));
+               helperUnit = _T("hmailserver-update.service");
                return true;
             }
             FileUtilities::DeleteFile(requestPath);
@@ -607,6 +728,7 @@ namespace HM
          if (launcher.Launch(exitCode) && exitCode == 0)
          {
             LOG_APPLICATION(_T("Update: systemd-run started the helper as a unit of its own. It stops this unit, applies, starts it and writes the outcome."));
+            helperUnit = _T("hmailserver-update-") + version + _T(".service");
             return true;
          }
 
@@ -1008,7 +1130,8 @@ namespace HM
       if (kind == UpdateChecker::InstallAppImage)
          request += "image=" + AnsiString(appImage) + "\n";
 
-      if (!LaunchPosix_(request, snapshot.available_version, helperSource, ownUnit, appImage, why))
+      String helperUnit;
+      if (!LaunchPosix_(request, snapshot.available_version, helperSource, ownUnit, appImage, helperUnit, why))
       {
          UpdateChecker::RecordFailure(why);
          LOG_APPLICATION(Formatter::Format(_T("Update apply failed: {0}"), why));
@@ -1020,7 +1143,7 @@ namespace HM
       UpdateChecker::RecordInstalling();
       LOG_APPLICATION(Formatter::Format(_T("Update: hMailServer {0} is being applied by hmailserver-update; the server has drained, the service will stop and start, and the outcome is reported when it does."),
          snapshot.available_version));
-      boost::thread(&UpdateInstaller::WatchTheHelper_, drainSince).detach();
+      boost::thread(&UpdateInstaller::WatchTheHelper_, drainSince, helperUnit).detach();
       return true;
 #else
       AnsiString token;
@@ -1110,7 +1233,7 @@ namespace HM
       UpdateChecker::RecordInstalling();
       LOG_APPLICATION(Formatter::Format(_T("Update: hMailServer {0} is being applied by {1}; the server has drained, the service will stop and start, and the outcome is reported when it does."),
          snapshot.available_version, helper));
-      boost::thread(&UpdateInstaller::WatchTheHelper_, drainSince).detach();
+      boost::thread(&UpdateInstaller::WatchTheHelper_, drainSince, String()).detach();
       return true;
 #endif
 #endif

@@ -566,7 +566,11 @@ stops). So the apply is a request, and the request is taken by root.
    for a symlink between the check and the write. The server notices a request
    that was taken and never answered (its update task, once `wait` plus a
    quarter of an hour has passed with the state still 4 and no restart) and
-   reports it as failed, pointing at that journal.
+   reports it as failed, pointing at that journal. The drain the apply entered
+   is left within seconds of the refusal: the server asks `systemctl show`
+   about the helper's unit every five seconds, and one that has ended with no
+   outcome written will not stop it (HM7151, with the unit and its exit status;
+   4 is a refusal).
 3. It stops the unit, and then makes sure it has stopped: the unit must be
    `inactive` or `failed`, and no process may run as the owner of the Updates
    directory or of any directory above it (root and the helper's own user

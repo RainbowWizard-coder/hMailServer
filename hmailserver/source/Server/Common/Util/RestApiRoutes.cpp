@@ -1394,9 +1394,10 @@ namespace HM
 
          if (member->IsNumber())
          {
-            const double number = member->AsNumber();
-            wellFormed = std::floor(number) == number;
-            word = StringParser::IntToString((int) number);
+            // A whole number, held to an int's range: one past it is refused as
+            // the large number it is, never converted out of range.
+            wellFormed = member->IsInt64();
+            word = StringParser::IntToString(member->AsInt());
          }
          else if (member->IsString())
          {
@@ -1421,9 +1422,8 @@ namespace HM
 
          if (member->IsNumber())
          {
-            const double number = member->AsNumber();
-            wellFormed = std::floor(number) == number;
-            word = StringParser::IntToString((int) number);
+            wellFormed = member->IsInt64();
+            word = StringParser::IntToString(member->AsInt());
          }
          else if (member->IsString())
          {

@@ -122,6 +122,11 @@ namespace HM
    public:
       void Test();
 
+      // GetCreateDatabase for hostile names in each dialect: the name quoted as
+      // the dialect quotes an identifier, its closing quote doubled. Test runs
+      // it; connection-string-tests runs it on Linux, where ClassTester does not.
+      void TestCreateDatabase();
+
    private:
 
       void TestNumberedParameterCollision_();

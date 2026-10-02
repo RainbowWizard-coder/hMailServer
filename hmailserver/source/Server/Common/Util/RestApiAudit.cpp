@@ -317,11 +317,11 @@ namespace HM
             if ((member = document.Get("digest")) != nullptr)
                rule.digest = member->AsBool();
             if ((member = document.Get("threshold")) != nullptr)
-               rule.threshold = (int) member->AsInt64();
+               rule.threshold = member->AsInt();
             if ((member = document.Get("actions")) != nullptr)
-               rule.actions = (int) member->AsInt64();
+               rule.actions = member->AsInt();
             if ((member = document.Get("cooldown_minutes")) != nullptr)
-               rule.cooldown = (int) member->AsInt64();
+               rule.cooldown = member->AsInt();
             if ((member = document.Get("address")) != nullptr && !JsonText(member->AsString(), rule.address))
                return BuildResponse_(400, "{\"error\":\"address is not UTF-8\"}");
             if ((member = document.Get("webhook")) != nullptr && !JsonText(member->AsString(), rule.webhook))

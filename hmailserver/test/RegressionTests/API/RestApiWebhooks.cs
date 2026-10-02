@@ -164,6 +164,29 @@ namespace RegressionTests.API
       }
 
       [Test]
+      [Description("A rate limit past an int's range is refused as the large number it is, on a create and on a change, and not taken as the int its low 32 bits make - 4294967301 and -4294967291 were each 5; one in range is kept as it was.")]
+      public void ARateLimitPastAnIntIsRefusedNotWrapped()
+      {
+         foreach (string limit in new[] { "4294967301", "-4294967291", "1e20" })
+         {
+            (int status, string body) made = Http("POST", WebhooksPath,
+               "{\"name\":\"suite\",\"url\":\"" + EndpointUrl + "\",\"secret\":\"" + Secret + "\",\"max_per_minute\":" + limit + "}");
+            Assert.AreEqual(400, made.status, "A subscription with max_per_minute " + limit + " was made: " + made.body);
+            StringAssert.Contains("rate limit", made.body, "max_per_minute " + limit);
+         }
+
+         Create("suite", "\"max_per_minute\":7");
+
+         (int status, string body) changed = Http("PUT", WebhooksPath + "/suite", "{\"max_per_minute\":4294967301}");
+         Assert.AreEqual(400, changed.status, "A change to max_per_minute 4294967301 was taken: " + changed.body);
+         StringAssert.Contains("\"max_per_minute\":7", Read(WebhooksPath), "A refused change moved the rate limit.");
+
+         (int status, string body) ordinary = Http("PUT", WebhooksPath + "/suite", "{\"max_per_minute\":100000}");
+         Assert.AreEqual(200, ordinary.status, ordinary.body);
+         StringAssert.Contains("\"max_per_minute\":100000", ordinary.body);
+      }
+
+      [Test]
       [Description("Every one of the five events arrives with a timestamp and an HMAC-SHA256 signature over 'timestamp.body' that a receiver can recompute - and a different secret produces a different signature.")]
       public void EachEventArrivesSignedAndAWrongSecretIsDetectable()
       {

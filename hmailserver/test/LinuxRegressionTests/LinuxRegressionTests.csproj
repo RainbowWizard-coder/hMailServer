@@ -129,6 +129,7 @@
     <Compile Include="..\RegressionTests\API\RestApiQueue.cs" Link="API\RestApiQueue.cs" />
     <Compile Include="..\RegressionTests\API\RestApiDirectory.cs" Link="API\RestApiDirectory.cs" />
     <Compile Include="..\RegressionTests\API\RestApiSelfService.cs" Link="API\RestApiSelfService.cs" />
+    <Compile Include="..\RegressionTests\API\RestApiNumberRanges.cs" Link="API\RestApiNumberRanges.cs" />
     <Compile Include="..\RegressionTests\API\RestApiOffline.cs" Link="API\RestApiOffline.cs" />
     <Compile Include="..\RegressionTests\API\RestApiSessionFollow.cs" Link="API\RestApiSessionFollow.cs" />
     <Compile Include="..\RegressionTests\API\RestApiSecondAccount.cs" Link="API\RestApiSecondAccount.cs" />
@@ -293,6 +294,7 @@
     <Compile Include="..\RegressionTests\SMTP\Srs.cs" Link="SMTP\Srs.cs" />
     <Compile Include="..\RegressionTests\SMTP\StartTlsAlreadyActive.cs" Link="SMTP\StartTlsAlreadyActive.cs" />
     <Compile Include="..\RegressionTests\SMTP\TlsRptInertReporting.cs" Link="SMTP\TlsRptInertReporting.cs" />
+    <Compile Include="..\RegressionTests\SMTP\DaneRequiredTlsDeferral.cs" Link="SMTP\DaneRequiredTlsDeferral.cs" />
     <Compile Include="..\RegressionTests\SMTP\XOriginalRcptHeaderTests.cs" Link="SMTP\XOriginalRcptHeaderTests.cs" />
     <Compile Include="..\RegressionTests\SSL\CertificateTypes.cs" Link="SSL\CertificateTypes.cs" />
     <Compile Include="..\RegressionTests\SSL\ListenerTlsConfiguration.cs" Link="SSL\ListenerTlsConfiguration.cs" />
@@ -313,6 +315,7 @@
     <Compile Include="..\RegressionTests\Security\AutoBanNeverBanNames.cs" Link="Security\AutoBanNeverBanNames.cs" />
     <Compile Include="..\RegressionTests\Security\SmtpAuthOnDeliveryPorts.cs" Link="Security\SmtpAuthOnDeliveryPorts.cs" />
     <Compile Include="..\RegressionTests\Security\AutoBanWiden.cs" Link="Security\AutoBanWiden.cs" />
+    <Compile Include="..\RegressionTests\Security\AutoBanHookRetry.cs" Link="Security\AutoBanHookRetry.cs" />
     <Compile Include="..\RegressionTests\Security\Basics.cs" Link="Security\Basics.cs" />
     <Compile Include="..\RegressionTests\Security\EtrnAuthorization.cs" Link="Security\EtrnAuthorization.cs" />
     <Compile Include="..\RegressionTests\Security\HashPolicy.cs" Link="Security\HashPolicy.cs" />

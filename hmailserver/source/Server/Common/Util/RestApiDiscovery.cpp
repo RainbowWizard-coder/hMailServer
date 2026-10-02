@@ -709,7 +709,7 @@ namespace HM
             else if (member.first == "target" && member.second.IsString())
                target = Wide(member.second.AsString());
             else if (member.first == "search" && member.second.IsNumber())
-               searchId = (__int64) member.second.AsNumber();
+               searchId = member.second.AsInt64();
             else
                return refuse(400, Formatter::Format("{0} is not a field of a hold, or not of its type: the fields are scope (account, domain or archive), target (a string) and search (a number).", Wide(member.first)));
          }

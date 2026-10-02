@@ -39,8 +39,10 @@
 #include "../Util/OpenPgpWriter.h"
 #include "../Util/GatewayEncryption.h"
 #include "../Util/XmlDocument.h"
+#include "JsonDocument.h"
 #include "../Util/XmlSignature.h"
 #include "../AntiSpam/DKIM/DkimRotationPlan.h"
+#include "../Persistence/PersistentDkimRotation.h"
 #include "../../SMTP/BounceClassifier.h"
 #include "BrandLogo.h"
 #include "InertMediaType.h"
@@ -147,6 +149,7 @@ namespace
 #include "../SQL/PGConnection.h"
 #include "../SQL/MySQLConnection.h"
 #include "../SQL/ADOConnection.h"
+#include "../SQL/SQLCEConnection.h"
 #include "../Application/Profiles.h"
 #include "../Scripting/ScriptServer.h"
 #include "../SQL/SQLStatement.h"
@@ -317,6 +320,13 @@ namespace HM
       UpdateCheckerTester updateCheckerTester;
       updateCheckerTester.Test();
 
+      // A JSON number as an integer: exact from its digits, and held at the end of
+      // the range it is asked for when it is past it - never a conversion out of
+      // range, which 1e20 was in every REST route that named a row by its id.
+      OutputDebugString(_T("hMailServer: Testing JsonValue's integers\n"));
+      JsonValueTester jsonValueTester;
+      jsonValueTester.Test();
+
       // The archive index's XML: written byte for byte as every earlier version
       // wrote it, every character read back as written, and indexes that stop
       // inside a tag, a declaration, a comment, a CDATA section or quotes, or
@@ -398,6 +408,12 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing the SQL Server connection string\n"));
       ADOConnectionTester adoConnectionTester;
       adoConnectionTester.Test();
+
+      // SQL Server Compact's: the database file's path and its password read back
+      // by ADO whatever semicolons, quotes or equals signs they hold.
+      OutputDebugString(_T("hMailServer: Testing the SQL Server Compact connection string\n"));
+      SQLCEConnectionTester sqlCeConnectionTester;
+      sqlCeConnectionTester.Test();
 #endif
 
       // A profile verb asked for by an event script that an apply's or a revert's
@@ -515,6 +531,13 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing DkimRotationPlan\n"));
       DkimRotationTester dkimRotationTester;
       dkimRotationTester.Test();
+
+      // The rotation's row, written when another node made it between this
+      // pass's lookup and its insert: updated, not left as the other node wrote
+      // it because the refused insert answered success.
+      OutputDebugString(_T("hMailServer: Testing PersistentDkimRotation\n"));
+      PersistentDkimRotationTester persistentDkimRotationTester;
+      persistentDkimRotationTester.Test();
 
       // Bounces read, and the suppression list: the classification that decides
       // whether an address is dead, the report parser that reads hostile input,

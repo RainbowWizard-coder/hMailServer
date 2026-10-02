@@ -1013,13 +1013,17 @@ namespace HM
          // verification it has always had.
          serverInfo->SetAcceptUnauthenticatedTls(daneTlsRequired && !stsEnforced && policyTls < RemoteTlsEncrypted && !_globalRuleResult.GetRequireTls());
 
-         // The sentence a deferral carries when the encryption could not be had.
-         // Empty unless a policy, a rule or (from 6.3.6) a validated TLSA RRset
-         // none of whose records is usable is what required it: an MTA-STS or
-         // DANE failure keeps the wording and the (permanent, for the missing
-         // STARTTLS) classification it has had since those were written, because
-         // changing either would be changing a shipped behaviour that is not this
-         // row's.
+         // The sentence a deferral carries when the encryption could not be had:
+         // a remote domain policy's, a rule's, or - what the destination
+         // published - its TLSA records' or its MTA-STS policy's
+         // (TlsPolicy::PublishedTlsDeferral). Empty only when nothing but this
+         // server's own connection security asked for TLS, whose failure is the
+         // permanent 5.7.0 a misconfigured relay has always had. Until 6.3.6 a
+         // host with usable TLSA records, or under an MTA-STS policy in enforce
+         // mode, that did not offer STARTTLS was bounced at once with that 5.7.0,
+         // while RFC 7672 section 2.2 and RFC 8461 section 5 both ask for the
+         // delivery to be retried - as it was for TLSA records none of which is
+         // usable.
          if (policyTls >= RemoteTlsEncrypted)
          {
             String requirement;
@@ -1055,19 +1059,13 @@ namespace HM
                _globalRuleResult.GetRequireTlsRuleName().c_str());
             serverInfo->SetTlsPolicyReason(reason);
          }
-         else if (daneTlsRequired && !stsEnforced)
+         else
          {
             // A deferral, as a policy's is: the host may offer STARTTLS again
             // before the queue gives up, and what took the offer away may have
             // been on the way rather than at the host.
-            String reason;
-            reason.Format(_T("Delivery deferred: the DNSSEC-validated TLSA records of %s require TLS to it (RFC 7672), and it could not be established. The message has NOT been sent in the clear; it will be retried."),
-               hostAndIp.GetHostName().c_str());
-            serverInfo->SetTlsPolicyReason(reason);
-         }
-         else
-         {
-            serverInfo->SetTlsPolicyReason(_T(""));
+            serverInfo->SetTlsPolicyReason(TlsPolicy::PublishedTlsDeferral(hostAndIp.GetHostName(), recipientDomain,
+               !daneRecords.empty(), daneTlsRequired, stsEnforced));
          }
 
          // Classification for TLS reporting (RFC 8460).
@@ -1075,7 +1073,7 @@ namespace HM
          AnsiString rptPolicyString = !daneRecords.empty() ? "dane tlsa records present" :
             (daneTlsRequired ? "tlsa records present, none usable: tls required" : (stsEnforced ? "mode: enforce" : ""));
 
-         DeliverToSingleServer_(remainingRecipients, serverInfo, batchMessage);
+         const SmtpTlsResult tlsResult = DeliverToSingleServer_(remainingRecipients, serverInfo, batchMessage);
 
          bool retryWithoutStartTls = false;
 
@@ -1088,12 +1086,21 @@ namespace HM
             }
          }
 
+         // A session is reported as what became of its TLS (RFC 8460 section
+         // 4.3): a success only when the handshake completed. Until 6.3.6 every
+         // session whose security asked for TLS was counted a success - a host
+         // that offered no STARTTLS, a certificate that did not match its TLSA
+         // record or verify for MTA-STS, a connection that never got as far - so
+         // a domain's report hid the very failures it is published to learn of.
+         // A session that ended before TLS was asked for is not one.
          if (!serverInfo->GetFixed())
          {
-            if (retryWithoutStartTls)
-               TlsRptStore::Instance()->RecordFailure(recipientDomain, rptPolicyType, rptPolicyString, "validation-failure", hostAndIp.GetHostName());
-            else if (serverInfo->GetEffectiveConnectionSecurity() != CSNone)
+            if (tlsResult == SmtpTlsResult::Established)
                TlsRptStore::Instance()->RecordSuccess(recipientDomain, rptPolicyType, rptPolicyString);
+            else if (tlsResult == SmtpTlsResult::StartTlsNotOffered)
+               TlsRptStore::Instance()->RecordFailure(recipientDomain, rptPolicyType, rptPolicyString, "starttls-not-supported", hostAndIp.GetHostName());
+            else if (tlsResult == SmtpTlsResult::HandshakeFailed || retryWithoutStartTls)
+               TlsRptStore::Instance()->RecordFailure(recipientDomain, rptPolicyType, rptPolicyString, "validation-failure", hostAndIp.GetHostName());
          }
 
          if (retryWithoutStartTls && !serverInfo->GetRequireTls())
@@ -1637,7 +1644,7 @@ namespace HM
       }
    }
 
-   void
+   SmtpTlsResult
    ExternalDelivery::DeliverToSingleServer_(std::vector<std::shared_ptr<MessageRecipient> > &vecRecipients,
                                             std::shared_ptr<ServerInfo> serverInfo,
                                             std::shared_ptr<Message> message)
@@ -1675,6 +1682,9 @@ namespace HM
 
       if (!serverInfo->GetDaneRecords().empty())
          pClientConnection->SetDaneRecords(serverInfo->GetDaneRecords());
+
+      std::shared_ptr<std::atomic<int> > tlsResult = std::make_shared<std::atomic<int> >(static_cast<int>(SmtpTlsResult::NotReached));
+      pClientConnection->SetTlsResultSink(tlsResult);
 
       pClientConnection->SetDelivery(message, vecRecipients);
 
@@ -1749,6 +1759,7 @@ namespace HM
 
       LOG_DEBUG("External delivery process completed");
 
+      return static_cast<SmtpTlsResult>(tlsResult->load());
    }
 
    IPAddress

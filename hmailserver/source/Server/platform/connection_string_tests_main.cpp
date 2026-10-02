@@ -18,7 +18,9 @@
 // password and the database handed to the client in UTF-8, where up to 6.3.5 a
 // value with any character outside ASCII reached it empty on Linux, and the
 // database's name quoted in the statements that name it, where a name MySQL takes
-// only quoted refused every connection (MySQLConnectionTester). No database,
+// only quoted refused every connection (MySQLConnectionTester). And the CREATE
+// DATABASE that --create-database and COM's CreateExternalDatabase send, the name
+// quoted in each dialect (SQLStatementTester::TestCreateDatabase). No database,
 // configuration or network. One line a tester, and a non-zero exit on a failure.
 
 #include <cstdio>
@@ -26,6 +28,7 @@
 
 #include "../Common/SQL/PGConnection.h"
 #include "../Common/SQL/MySQLConnection.h"
+#include "../Common/SQL/SQLStatement.h"
 
 int
 main(int /*argc*/, char * /*argv*/[])
@@ -49,6 +52,18 @@ main(int /*argc*/, char * /*argv*/[])
       HM::MySQLConnectionTester tester;
       tester.Test();
       printf("ok    MySQL: every value handed to the client in UTF-8, half a surrogate pair refused, the database's name quoted\n");
+   }
+   catch (const std::exception &failure)
+   {
+      printf("FAIL  %s\n", failure.what());
+      result = 1;
+   }
+
+   try
+   {
+      HM::SQLStatementTester tester;
+      tester.TestCreateDatabase();
+      printf("ok    CREATE DATABASE: the name quoted in each dialect, its closing quote doubled\n");
    }
    catch (const std::exception &failure)
    {

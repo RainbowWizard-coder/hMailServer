@@ -8,11 +8,25 @@
 #include "../Common/BO/Message.h"
 #include "../Common/TCPIP/TCPConnection.h"
 
+#include <atomic>
+
 
 namespace HM
 {
    class ByteBuffer;
    class MessageRecipient;
+
+   // What became of TLS on one delivery's connection, for TLS reporting (RFC
+   // 8460): read by ExternalDelivery once the connection has ended. A session is
+   // a success only when its handshake completed; until 6.3.6 every attempt the
+   // connection's security asked TLS of was counted as one, whatever happened.
+   enum class SmtpTlsResult : int
+   {
+      NotReached = 0,           // no TLS was asked for, or the session ended before it was
+      Established = 1,          // the handshake completed
+      StartTlsNotOffered = 2,   // no STARTTLS in the EHLO reply, or STARTTLS answered with other than 220
+      HandshakeFailed = 3       // the handshake, or the certificate's check, failed
+   };
   
    class SMTPClientConnection : public TCPConnection
    {
@@ -50,6 +64,9 @@ namespace HM
       // same failure is 450 / 4.7.0 and carries the sentence, so the message
       // waits in the queue and the deferral says which rule held it.
       void SetTlsPolicyReason(const String &reason);
+
+      // Where this connection writes what became of TLS on it (SmtpTlsResult).
+      void SetTlsResultSink(std::shared_ptr<std::atomic<int> > sink);
    protected:
 
       virtual void OnConnected();
@@ -209,6 +226,9 @@ namespace HM
       String password_;
       String oauth_bearer_;
       String tls_policy_reason_;
+      std::shared_ptr<std::atomic<int> > tls_result_;
+
+      void NoteTlsResult_(SmtpTlsResult result);
 
       unsigned int cur_recipient_;
 

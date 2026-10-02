@@ -5,13 +5,17 @@
 #include "StdAfx.h"
 
 #include "PersistentDkimRotation.h"
+#include "PersistentDomain.h"
 
+#include "../BO/Domain.h"
+#include "../Util/GUIDCreator.h"
 #include "../SQL/DALConnection.h"
 #include "../SQL/DALRecordset.h"
 #include "../SQL/SQLCommand.h"
 #include "../SQL/SQLStatement.h"
 
 #include <algorithm>
+#include <stdexcept>
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -147,6 +151,12 @@ namespace HM
       if (rowId > 0)
          return Update(rowId, domainId, state);
 
+      return InsertOrUpdate_(domainId, state);
+   }
+
+   bool
+   PersistentDkimRotation::InsertOrUpdate_(__int64 domainId, const State &state)
+   {
       SQLStatement statement;
       statement.SetStatementType(SQLStatement::STInsert);
       statement.SetTable("hm_dkimrotations");
@@ -157,11 +167,16 @@ namespace HM
       // A collision on the unique index is not a fault: the engine's mutex keeps
       // two passes in this process apart, and a second node sharing the database
       // is the case left - its row is then updated below rather than reported.
+      // The collision is ignored (DALErrorInSQL), and every backend answers an
+      // ignored error with success and no id, so a row written is told from one
+      // refused by its id. Until 6.3.6 the success alone was taken for a write,
+      // the update below never ran, and this pass's state was lost to the other
+      // node's.
       __int64 newId = 0;
-      if (Application::Instance()->GetDBManager()->Execute(statement, &newId, DALConnection::DALErrorInSQL))
+      if (Application::Instance()->GetDBManager()->Execute(statement, &newId, DALConnection::DALErrorInSQL) && newId > 0)
          return true;
 
-      rowId = FindRow(domainId);
+      const __int64 rowId = FindRow(domainId);
       return rowId > 0 && Update(rowId, domainId, state);
    }
 
@@ -245,5 +260,100 @@ namespace HM
       }
 
       return true;
+   }
+
+   namespace
+   {
+      void RotationExpect(bool condition, const char *what)
+      {
+         if (!condition)
+            throw std::logic_error(std::string("PersistentDkimRotationTester: ") + what);
+      }
+
+      __int64 RotationRows(__int64 domainId)
+      {
+         SQLCommand command("select count(*) as rows_ from hm_dkimrotations where dkrdomainid = @DOMAINID");
+         command.AddParameter("@DOMAINID", domainId);
+         std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
+         if (!recordset || recordset->IsEOF())
+            return -1;
+         return recordset->GetInt64Value("rows_");
+      }
+
+      void DeleteRotationRows(__int64 domainId)
+      {
+         SQLCommand command("delete from hm_dkimrotations where dkrdomainid = @DOMAINID");
+         command.AddParameter("@DOMAINID", domainId);
+         Application::Instance()->GetDBManager()->Execute(command);
+      }
+
+      State NamedState(const char *selector, __int64 since)
+      {
+         State state;
+         state.current.selector = selector;
+         state.current.key_file = _T("C:\\rotation-tester\\") + String(selector) + _T(".pem");
+         state.current.since = since;
+         state.last_error = String(selector);
+         state.last_error_time = since;
+         return state;
+      }
+   }
+
+   void
+   PersistentDkimRotationTester::Test()
+   {
+      // A domain of the tester's own, so that no row of the bench's is touched;
+      // the row cascades from it, and both go at the end whatever happened.
+      String name = GUIDCreator::GetGUID();
+      name.Remove(L'{');
+      name.Remove(L'}');
+      name.Remove(L'-');
+      name = _T("rotation-") + name.Mid(0, 12) + _T(".tester.example");
+      name.MakeLower();
+
+      std::shared_ptr<Domain> domain(new Domain());
+      domain->SetName(name);
+      domain->SetIsActive(false);
+
+      String saveError;
+      RotationExpect(PersistentDomain::SaveObject(domain, saveError, PersistenceModeNormal) && domain->GetID() > 0,
+         "the tester's domain could not be made");
+      const __int64 domainId = domain->GetID();
+
+      try
+      {
+         const State theirs = NamedState("theirs", 1000);
+         const State ours = NamedState("ours", 2000);
+
+         // The ordinary first write: no row, so the insert, and its id.
+         RotationExpect(PersistentDkimRotation::InsertOrUpdate_(domainId, theirs), "an insert with no row there was not taken for a write");
+         State read;
+         bool exists = false;
+         RotationExpect(PersistentDkimRotation::Read(domainId, read, exists) && exists && read.current.selector == "theirs",
+            "an insert with no row there did not write the row");
+
+         // The race, with its outcome fixed: the lookup has missed, and another
+         // node has written the row since. The insert collides, and this pass's
+         // state is what the row must say afterwards.
+         RotationExpect(PersistentDkimRotation::InsertOrUpdate_(domainId, ours), "the update after a refused insert failed");
+         RotationExpect(PersistentDkimRotation::Read(domainId, read, exists) && exists, "the row could not be read after the race");
+         RotationExpect(read.current.selector == "ours" && read.current.since == 2000 && read.last_error == _T("ours"),
+            "a refused insert was taken for a write: the row still holds the other node's state");
+         RotationExpect(RotationRows(domainId) == 1, "the race left other than one row");
+
+         // Save itself, over the row that is there: the update.
+         RotationExpect(PersistentDkimRotation::Save(domainId, theirs), "Save over an existing row failed");
+         RotationExpect(PersistentDkimRotation::Read(domainId, read, exists) && exists && read.current.selector == "theirs",
+            "Save over an existing row did not update it");
+      }
+      catch (...)
+      {
+         DeleteRotationRows(domainId);
+         PersistentDomain::DeleteObject(domain);
+         throw;
+      }
+
+      DeleteRotationRows(domainId);
+      PersistentDomain::DeleteObject(domain);
    }
 }

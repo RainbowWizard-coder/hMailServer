@@ -631,6 +631,30 @@ namespace HM
       return records;
    }
 
+   String
+   TlsPolicy::PublishedTlsDeferral(const String &host, const String &recipientDomain, bool daneRecords, bool daneUnusable, bool stsEnforced)
+   {
+      String reason;
+
+      if (daneRecords)
+      {
+         reason.Format(_T("Delivery deferred: the TLSA records of %s require TLS to it, with a certificate they match (RFC 7672), and that could not be established. The message has NOT been sent in the clear; it will be retried."),
+            host.c_str());
+      }
+      else if (stsEnforced)
+      {
+         reason.Format(_T("Delivery deferred: the MTA-STS policy of %s requires TLS to %s, with a certificate that verifies (RFC 8461), and that could not be established. The message has NOT been sent in the clear; it will be retried."),
+            recipientDomain.c_str(), host.c_str());
+      }
+      else if (daneUnusable)
+      {
+         reason.Format(_T("Delivery deferred: the DNSSEC-validated TLSA records of %s require TLS to it (RFC 7672), and it could not be established. The message has NOT been sent in the clear; it will be retried."),
+            host.c_str());
+      }
+
+      return reason;
+   }
+
    TlsPolicy::TlsaLookupStatus
    TlsPolicy::ClassifyValidatedTlsa(const std::vector<TlsaRecord> &records, std::vector<TlsaRecord> &usable)
    {
@@ -1437,5 +1461,34 @@ namespace HM
 
       ExpectDane_(!Handshake_(selfSigned.get(), leafKey.get(), std::vector<X509 *>(), "mx.dane.test", std::vector<TlsaRecord>(1, eeStranger), usage, depth),
          "a server was accepted on a DANE-EE record of another key");
+
+      // What a host whose TLS the destination's own records require is deferred
+      // with when TLS cannot be had: usable TLSA records, an MTA-STS policy in
+      // enforce mode and a validated RRset of none usable alike - retried, never
+      // the permanent 5.7.0 a missing STARTTLS gave the first two until 6.3.6 -
+      // and nothing when the destination published none of the three.
+      {
+         const String host = _T("mx.dane.test");
+         const String domain = _T("dane.test");
+
+         const String usable = TlsPolicy::PublishedTlsDeferral(host, domain, true, false, false);
+         ExpectDane_(usable.Find(_T("Delivery deferred: the TLSA records of mx.dane.test require TLS")) == 0 && usable.Find(_T("will be retried")) > 0,
+            "a host with usable TLSA records is not deferred with their sentence");
+
+         const String sts = TlsPolicy::PublishedTlsDeferral(host, domain, false, false, true);
+         ExpectDane_(sts.Find(_T("Delivery deferred: the MTA-STS policy of dane.test requires TLS to mx.dane.test")) == 0 && sts.Find(_T("will be retried")) > 0,
+            "a host under an MTA-STS policy in enforce mode is not deferred with its sentence");
+
+         const String unusable = TlsPolicy::PublishedTlsDeferral(host, domain, false, true, false);
+         ExpectDane_(unusable.Find(_T("Delivery deferred: the DNSSEC-validated TLSA records of mx.dane.test require TLS")) == 0,
+            "a host whose validated TLSA records are none of them usable is not deferred with their sentence");
+
+         ExpectDane_(TlsPolicy::PublishedTlsDeferral(host, domain, true, false, true) == usable,
+            "DANE was not put before MTA-STS");
+         ExpectDane_(TlsPolicy::PublishedTlsDeferral(host, domain, false, true, true) == sts,
+            "a policy that verifies the certificate was not put before records that do not");
+         ExpectDane_(TlsPolicy::PublishedTlsDeferral(host, domain, false, false, false).IsEmpty(),
+            "a host the destination published nothing for was given a deferral of its own");
+      }
    }
 }

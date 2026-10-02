@@ -395,9 +395,11 @@ namespace HM
 
             if (actionMember->IsNumber())
             {
-               const double number = actionMember->AsNumber();
-               wellFormed = std::floor(number) == number;
-               word = StringParser::IntToString((int) number);
+               // A whole number, held to an int's range: 4294967296 is refused by
+               // ReadAction as the large number it is, never converted out of
+               // range to whatever int that made.
+               wellFormed = actionMember->IsInt64();
+               word = StringParser::IntToString(actionMember->AsInt());
             }
             else if (actionMember->IsString())
             {

@@ -393,10 +393,11 @@ namespace HM
          return count;
       }
 
+      // Imip's reading: 0 when there is none, and past an int's range held at
+      // that end on both platforms, where atoi read 4294967297 as 1 on Linux.
       int SequenceOf(const ICalComponent &component)
       {
-         AnsiString text = Trimmed(component.Value("SEQUENCE"));
-         return text.IsEmpty() ? 0 : atoi(text.c_str());
+         return Imip::SequenceOf(component);
       }
 
       // The instant a component's RECURRENCE-ID names, read in its calendar.

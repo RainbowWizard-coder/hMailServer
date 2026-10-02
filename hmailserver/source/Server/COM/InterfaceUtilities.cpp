@@ -1580,7 +1580,7 @@ STDMETHODIMP InterfaceUtilities::SaveWebhookSubscription(BSTR Json, BSTR *Json2)
          subscription.include_subject = member->AsBool();
 
       if ((member = document.Get("max_per_minute")) != nullptr && member->IsNumber())
-         subscription.max_per_minute = (int) member->AsInt64();
+         subscription.max_per_minute = member->AsInt();
 
       HM::String refusal;
       if (!HM::WebhookManager::Instance()->SaveSubscription(subscription, !exists, refusal))

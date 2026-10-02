@@ -296,6 +296,10 @@ One more hardening change, found by the project's own review: a mailbox key encr
 domain's recovery key, opened, made or sealed again - and the keys derived from it are written over when the code
 holding them is done, however it ends: a return, and now an exception thrown through it as well (from the database,
 an allocation, the log), which left such a key in memory freed without being written over, in 6.3.4 and 6.3.5.
+The lines of a stored-secrets key file that `--import-stored-secrets-key` reads, the key's own line among them, are
+written over the same way, the key's base64 is no longer copied into a string that was freed as it stood, and the line
+being read no longer grows a character at a time into larger buffers, freeing each smaller one - most of the key in
+base64 - as it stood.
 
 In the same way, a file the webmail saves for a second account shown beside the first is now always of no type, and
 a photo it shows for that account, or an attachment its offline store answers without a connection, keeps the type
@@ -812,8 +816,8 @@ upgrade, item 29). In every version up to 6.3.5; found by the project's own revi
     the host sends in its chain when the record holds a digest), name the MX host and be in date. A DANE-EE (3) record
     is matched as before, against the certificate's key or the certificate alone. A delivery to a host that publishes
     only DANE-TA records, and whose certificate does not meet them, is now deferred where until 6.3.6 it went ahead as
-    if no record were published; and such a host that does not offer `STARTTLS` is refused with 5.7.0, as a host with
-    DANE-EE records always has been. A validated set none of whose records is usable here - PKIX-TA (0) and PKIX-EE (1),
+    if no record were published; and such a host that does not offer `STARTTLS` is deferred, as a host with DANE-EE
+    records now is too (item 30). A validated set none of whose records is usable here - PKIX-TA (0) and PKIX-EE (1),
     which SMTP does not use, and records of values or lengths no record has - requires TLS to that host without
     judging its certificate: a host that does not offer `STARTTLS`, or whose handshake fails, is deferred, never
     delivered to in the clear, and TLS reports (RFC 8460) count the host under the policy type `tlsa`. An MTA-STS
@@ -834,6 +838,24 @@ upgrade, item 29). In every version up to 6.3.5; found by the project's own revi
     it was 16, and each list still stops after 10 seconds; when a part's domains do not all fit, they are taken in a
     random order rather than in the order of the links, and when a domain has more than two host names linked, the
     two asked about are drawn at random too. A message with many links makes up to 48 DNS queries per active list.
+30. **A host that the destination's TLSA records or MTA-STS policy require TLS of, and that offers no `STARTTLS`, is
+    deferred; and TLS reports count a session by what became of its TLS.** Such a host was refused with the permanent
+    500 5.7.0 "Server does not support STARTTLS.", and the message bounced at the first attempt; RFC 7672 section 2.2
+    and RFC 8461 section 5 ask for the delivery to be retried, as it already was for TLSA records none of which is
+    usable. A host that refuses `EHLO`, and so offers no `STARTTLS` either, was refused with the permanent 500 5.5.1
+    "Server does not support EHLO command." - there, also where a remote domain policy or a rule required TLS. Each is
+    now 450 4.7.0 with a sentence naming the records, the policy or the rule, and the message waits for the retries; a
+    certificate that does not match the records, or does not verify for MTA-STS, is deferred with the same sentence
+    where it was "Remote server closed connection". A route's own `STARTTLS (required)`, and the server's outbound
+    connection security toward a destination that publishes neither, still refuse permanently. In the TLS-RPT store
+    (RFC 8460) a session counted as successful whenever its connection security asked for TLS - a host that offered no
+    `STARTTLS`, one whose certificate did not match its TLSA records or verify for MTA-STS, a connection that never
+    got that far - so the reports a domain receives hid the failures they are published to show. A session is now a
+    success only when its handshake completed, a failure of type `starttls-not-supported` when there was no
+    `STARTTLS`, it was refused or `EHLO` was, a failure of type `validation-failure` when the handshake or the
+    certificate's check failed, and not counted when it ended before TLS was asked for; each is a debug log line. This
+    holds for every destination reported to, opportunistic deliveries included, which therefore report the hosts that
+    offered no `STARTTLS`.
 
 ### Downloads and the release
 
@@ -1363,7 +1385,10 @@ upgrade, item 29). In every version up to 6.3.5; found by the project's own revi
   above; never for IPv6, nor for a network's own address (RFC 1918, RFC 6598, loopback, link-local), whose
   neighbours are its own machines; a lookup not answered leaves the single address. A hook command that runs past
   `ExternalProcessTimeout` is not run again in the same reconciliation, so a run costs one timeout of a hook that hangs,
-  not one per address; what it was not run for is not asked again, as a failed run never was. COM
+  not one per address. A ban it was not run for is not asked again, as a failed run never was; an un-ban it was not
+  run for, or that the timeout stopped, is owed - with iptables or a command of your own nothing else would lift that
+  block - and asked for again by the next reconciliation, then after a wait of a minute doubling to an hour for as
+  long as the hook still runs past the timeout. COM
   (`Settings.AutoBanWidenByReverseName`), REST (`auto_ban_widen_by_reverse_name`), the Control Panel's Auto-ban page and
   the Deck's Settings; [AutoBan.md](hmailserver/docs/AutoBan.md).
 - **A link's host is the one after its user name.** The SURBL test asked the URI lists about the characters after `://`
@@ -1877,6 +1902,32 @@ upgrade, item 29). In every version up to 6.3.5; found by the project's own revi
   bits too, and so took 4294967297 as one round; it now reads it as SCRAM does, and the two refuse the same hashes
   (since 6.3.0, the first Linux release). `IMAP/Basics.cs` holds SCRAM to that on Windows, and the tester program
   `scram-tests` both on Linux.
+- **Fixed: a number past the range of what it was read into.** A REST body's number with a fraction or an exponent was
+  converted to an integer from its double with no range check - undefined behaviour for `1e20` - and several routes
+  then kept an int's low 32 bits of it, so `4294967301` was taken as 5. Such a number is now held at the end of the
+  range it is read into: a message's `ids`, `max_uid` and `before_uid` in a webmail bulk call, a recall's `sent_id`
+  and a mailbox restore's `message` that are not whole numbers an id can be are refused with their 400 (a fraction of
+  an id was read as the id below it); an alert rule's `threshold`, `actions` and `cooldown_minutes`, a Web Push
+  device's choices, a zero-access key's Argon2 parameters, an account's `restricted_delivery` and `kind`, an
+  impersonation action, a webhook subscription's `max_per_minute` (COM and REST) and an eDiscovery hold's `search`
+  reach their own checks as the large numbers they are. An iMIP invitation's SEQUENCE past an int's range was read as
+  its low 32 bits on Linux, 4294967297 as 1, so the organiser's invitation at that SEQUENCE was taken for an older one
+  than a copy at 2; it is now held at 2147483647 on both platforms, as the calendar routes hold it, by a room's
+  bookings too. A Sieve `:index` past an int's range named an instance by its low 32 bits, so `:index 4294967297`
+  selected the first; it now selects none. `update-feed-tests` (JsonValue's integers), `imip-tests`,
+  `API/RestApiNumberRanges.cs`, `API/RestApiWebhooks.cs`, `API/RestApiSelfService.cs` and `Sieve/SieveDateDelivery.cs`
+  hold it to that.
+- **Fixed: another node's row of a domain's DKIM key rotation could keep a pass's state from being written.** When
+  the row was made by another node between this pass's look for it and its insert, the insert was refused by the
+  unique index and the refusal, which is ignored there, was taken for the write; the pass's state was lost until the
+  next one. A refused insert is told from a written one by its id now, and the row that is there is updated. Since
+  6.3.4, which brought the rotation. The class tests hold it to that on the server's own database.
+- **Fixed: a Linux live update that the helper refused left the server refusing connections for ten minutes.** The
+  helper refuses a request before it stops anything - an AppImage under the path unit with no `--image`, a line that
+  fails a check - and writes its reason to its journal and nowhere else, so the server waited the ten minutes out in
+  the drain the apply entered. It now asks systemd about the helper's unit every five seconds, and one that has
+  ended with no outcome written has the drain left at once, HM7151 naming the unit and its exit status. Since
+  6.3.4, which brought the drain. `update-feed-tests` holds the reading of systemd's answer to its cases.
 - **Fixed: a COM look-up that found nothing left an object behind.** Asking a COM collection for an index, id or name
   it does not hold - `Languages.Item`, `Domains.ItemByName`, `Accounts.ItemByAddress` and 62 other look-ups,
   `IMAPFolders.Add` when the name was taken or the folder could not be saved, and `Application.BackupManager` when no
@@ -2186,6 +2237,14 @@ upgrade, item 29). In every version up to 6.3.5; found by the project's own revi
   class tests on Windows (the same, and ADO's own reading of SQL Server's string), by
   `build/test-docker-entrypoint.sh` in the `update-helper` job, and against PostgreSQL 17, MariaDB 11.4, MySQL 8.4 and
   SQL Server 2022 with such values on 1 October 2026.
+- **Fixed: `CREATE DATABASE` named the database as it stood.** DBSetup's (COM `CreateExternalDatabase`) and
+  `hmailserver --create-database`'s statement had the name bare on SQL Server and MySQL and in double quotes it could
+  close on PostgreSQL, so a name those take only quoted - with a hyphen in it - could not be created, and a quote
+  in it ended the name early. Each now quotes the name as its dialect quotes an identifier,
+  with that quote doubled inside. And the SQL Server Compact connection string had the database file's path and
+  password bare: a data folder with a semicolon in its name ended the path there, and every start failed with
+  "Multiple-step OLE DB operation generated errors". Both are quoted as ADO reads them back now. `connection-string-tests`
+  and the class tests hold both to that.
 - **The live update requires the project's id at the path the project began at too.** A certificate for
   `https://gitlab.com/Progressiverobot/hmailserver`, where 6.3.5 was signed, is now refused without the project's id,
   86730559, as one for the group's path always was, and no setting takes one without it: servers 6.3.4 and 6.3.5

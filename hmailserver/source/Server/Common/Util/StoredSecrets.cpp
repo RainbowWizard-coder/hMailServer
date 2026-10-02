@@ -1134,16 +1134,35 @@ namespace HM
       problem.Empty();
 
       // Three lines, CRLF or LF, a byte order mark and trailing blanks forgiven.
+      // Every line is written over however this scope ends: the key's line is
+      // the key in base64, and until 6.3.6 an exception between reading the
+      // lines and the Forget of each below - an allocation's, a logger's -
+      // freed them as they were.
+      //
+      // And no buffer that held a piece of the key is given back to the heap
+      // unwritten on the way: the line being read and the vector of lines are
+      // each given, before the first character, room for all they can come to,
+      // so that neither grows - a string that grows copies itself into a larger
+      // buffer and frees the old one as it stood, which for the key's line was
+      // most of its base64 (26 of its 44 characters with libstdc++, 43 with
+      // MSVC's library) - and the byte order mark is stepped over rather than
+      // erased, which moved the text down and left its last three bytes past
+      // the end Forget writes over.
       std::vector<std::string> lines;
+      MailboxCrypto::ForgetEachOnExit forgetLines(lines);
       {
          std::string all = BytesOfText_(text);
          MailboxCrypto::ForgetOnExit forgetAll(all);
+         size_t first = 0;
          if (all.size() >= 3 && (unsigned char) all[0] == 0xEF && (unsigned char) all[1] == 0xBB && (unsigned char) all[2] == 0xBF)
-            all.erase(0, 3);
+            first = 3;
+
+         lines.reserve((size_t) std::count(all.begin(), all.end(), '\n') + 1);
 
          std::string current;
          MailboxCrypto::ForgetOnExit forgetCurrent(current);
-         for (size_t i = 0; i <= all.size(); i++)
+         current.reserve(all.size());
+         for (size_t i = first; i <= all.size(); i++)
          {
             if (i == all.size() || all[i] == '\n')
             {
@@ -1162,10 +1181,19 @@ namespace HM
 
       std::string key;
       MailboxCrypto::ForgetOnExit forgetKey(key);
+      // The base64 is copied out of its line into a string that is watched too:
+      // the temporary substr it was read from before was freed unwritten.
+      std::string encoded;
+      MailboxCrypto::ForgetOnExit forgetEncoded(encoded);
       bool wellFormed = lines.size() == 3 && lines[0] == KeyFileTitle &&
                         lines[1].size() == 3 + (size_t) KeyIdLength && lines[1].compare(0, 3, "id ") == 0 &&
-                        lines[2].compare(0, 4, "key ") == 0 &&
-                        MailboxCrypto::FromBase64(lines[2].substr(4), key) && key.size() == MailboxCrypto::KeyBytes;
+                        lines[2].compare(0, 4, "key ") == 0;
+      if (wellFormed)
+      {
+         encoded.assign(lines[2], 4, std::string::npos);
+         wellFormed = MailboxCrypto::FromBase64(encoded, key) && key.size() == MailboxCrypto::KeyBytes;
+      }
+      MailboxCrypto::Forget(encoded);
 
       const AnsiString named(wellFormed ? lines[1].substr(3).c_str() : "");
 

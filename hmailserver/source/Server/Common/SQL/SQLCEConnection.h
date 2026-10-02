@@ -49,6 +49,16 @@ namespace HM
 
       void InitializeCommandParameters(_CommandPtr &adoCommand, const SQLCommand &sqlCommand, String &queryString) const;
 
+      // The provider's connection string for a database file and its password,
+      // each written as a value ADO reads back whole (ADOConnection::QuoteValue).
+      // Until 6.3.6 both were written bare, so a data directory with a semicolon
+      // in its name ended the Data Source there and gave the rest of the path to
+      // the provider as keywords of its own - "Multiple-step OLE DB operation
+      // generated errors" at every start. Windows allows no double quote in a
+      // path, so a path always takes double quotes; a password QuoteValue cannot
+      // carry is written as it always was.
+      static String MakeConnectionString(const String &databaseFile, const String &password);
+
    private:
 
       bool GetRequiresUpgrade_(const String &sConnectionString);
@@ -65,6 +75,17 @@ namespace HM
       bool connected_;
 
 
+   };
+
+   // MakeConnectionString held to ADO's own reading of what it writes: a file
+   // path with a semicolon, an equals sign, a quote or spaces in it, and
+   // passwords of every quoting, each read back by ADO as given, and nothing
+   // else moved. Needs SQL Server Compact 4.0's provider registered, which a
+   // server that runs on it has; ClassTester runs it.
+   class SQLCEConnectionTester
+   {
+   public:
+      void Test();
    };
 }
 

@@ -42,5 +42,23 @@ namespace HM
 
       // Every row, for the stalled-rotation alert.
       static bool ListAll(std::vector<std::pair<__int64, DkimRotationPlan::State> > &rows);
+
+   private:
+      friend class PersistentDkimRotationTester;
+
+      // Save once the lookup has found no row: the insert, and when the unique
+      // index refuses it - another node made the row in between - the update of
+      // the row that now exists.
+      static bool InsertOrUpdate_(__int64 domainId, const DkimRotationPlan::State &state);
+   };
+
+   // Save's race with another node, on the server's own database and a domain of
+   // the tester's own: the lookup has missed and the row is there by the insert,
+   // which must then update it - and an insert with nothing there writes the row.
+   // ClassTester runs it.
+   class PersistentDkimRotationTester
+   {
+   public:
+      void Test();
    };
 }

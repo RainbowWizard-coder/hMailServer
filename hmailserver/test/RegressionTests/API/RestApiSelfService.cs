@@ -1120,6 +1120,53 @@ namespace RegressionTests.API
       }
 
       [Test]
+      [Description("A bulk call takes ids, max_uid and before_uid only as whole numbers an __int64 holds: 1e20, -1e20, 1.5 and twenty digits are each its 400 - never converted out of range or read as another id - and a real id still marks its message")]
+      public void ABulkCallRefusesNumbersNoIdOrUidCanBe()
+      {
+         Deliver(Address, "Bulk numbers", "One.");
+         Pop3ClientSimulator.AssertMessageCount(Address, UserPassword, 1);
+
+         (int status, string body) tree = Http("GET", "/api/v1/me/folders", UserHeader(UserPassword));
+         long inboxId = IdBefore(tree.body, "\"path\":\"INBOX\"");
+         string bulkPath = "/api/v1/me/folders/" + inboxId + "/bulk";
+
+         // 1.5 was read as the id 1, and twenty digits as the largest id there is;
+         // 1e20 went through a conversion C++ leaves undefined.
+         foreach (string id in new[] { "1e20", "-1e20", "1.5", "99999999999999999999", "9223372036854775808" })
+         {
+            (int status, string body) refused = Http("POST", bulkPath, UserHeader(UserPassword), "{\"action\":\"flags\",\"seen\":true,\"ids\":[" + id + "]}");
+            Assert.AreEqual(400, refused.status, "ids [" + id + "]: " + refused.body);
+            StringAssert.Contains("ids is an array of 1 to 1000 message ids", refused.body, "ids [" + id + "]");
+         }
+
+         foreach (string uid in new[] { "1e20", "2.5", "99999999999999999999" })
+         {
+            (int status, string body) refused = Http("POST", bulkPath, UserHeader(UserPassword), "{\"action\":\"flags\",\"seen\":true,\"all\":true,\"max_uid\":" + uid + "}");
+            Assert.AreEqual(400, refused.status, "max_uid " + uid + ": " + refused.body);
+            StringAssert.Contains("all needs max_uid", refused.body, "max_uid " + uid);
+         }
+
+         foreach (string uid in new[] { "-1e20", "2.5", "1e20" })
+         {
+            (int status, string body) refused = Http("POST", bulkPath, UserHeader(UserPassword), "{\"action\":\"flags\",\"seen\":true,\"all\":true,\"max_uid\":100,\"before_uid\":" + uid + "}");
+            Assert.AreEqual(400, refused.status, "before_uid " + uid + ": " + refused.body);
+            StringAssert.Contains("before_uid is a UID", refused.body, "before_uid " + uid);
+         }
+
+         // What was answered before is answered still: the message's own id, even
+         // written with a fraction of zero, marks it seen.
+         (int status, string body) page = Http("GET", "/api/v1/me/folders/" + inboxId + "/messages", UserHeader(UserPassword));
+         long messageId = IdBefore(page.body, "\"subject\":\"Bulk numbers\"");
+         StringAssert.Contains("\"seen\":false", EntryFor(page.body, "Bulk numbers"));
+
+         (int status, string body) marked = Http("POST", bulkPath, UserHeader(UserPassword), "{\"action\":\"flags\",\"seen\":true,\"ids\":[" + messageId + ".0]}");
+         Assert.AreEqual(200, marked.status, "Body: " + marked.body);
+
+         (int status, string body) after = Http("GET", "/api/v1/me/folders/" + inboxId + "/messages", UserHeader(UserPassword));
+         StringAssert.Contains("\"seen\":true", EntryFor(after.body, "Bulk numbers"), "A real id written as " + messageId + ".0 did not mark its message: " + after.body);
+      }
+
+      [Test]
       [Description("DELETE on a message with no Trash folder makes one and moves the message there")]
       public void DeletingWithNoTrashFolderMakesOne()
       {

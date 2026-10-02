@@ -8,6 +8,8 @@
 
 #include "SieveParser.h"
 
+#include <climits>
+
 // For the upload-time compile check on ':regex' keys. The evaluator matches with
 // Boost too (through RuleGuard), so what compiles here is what will run there.
 #include <boost/regex.hpp>
@@ -435,7 +437,10 @@ namespace HM
                return false;
             }
 
-            result.indexValue = static_cast<int>(value->number);
+            // A number past an int's reach names a field no message has, and
+            // held at INT_MAX it still selects none - where its low 32 bits,
+            // which the cast kept, made :index 4294967297 select the first.
+            result.indexValue = value->number > INT_MAX ? INT_MAX : static_cast<int>(value->number);
             result.indexGiven = true;
             i++;
             continue;

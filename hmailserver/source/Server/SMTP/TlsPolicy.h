@@ -164,6 +164,20 @@ namespace HM
       // empty. A function of its argument alone (DaneTester).
       static TlsaLookupStatus ClassifyValidatedTlsa(const std::vector<TlsaRecord> &records, std::vector<TlsaRecord> &usable);
 
+      // The sentence a delivery to host is deferred with - 450 4.7.0, kept in
+      // the queue and retried - when what the destination published requires
+      // TLS of it and TLS could not be had: no STARTTLS, a refused one, a
+      // certificate that does not match. daneRecords: the host's usable TLSA
+      // records (RFC 7672 section 2.2); daneUnusable: a validated TLSA RRset of
+      // which none is usable, which requires TLS without authentication;
+      // stsEnforced: recipientDomain's MTA-STS policy in enforce mode (RFC 8461
+      // section 5, which forbids failing permanently before the policy has been
+      // looked up again). DANE before MTA-STS, as RFC 8461 section 2 ranks them.
+      // Empty when none applies. Until 6.3.6 only daneUnusable deferred; the
+      // other two were bounced at once by the permanent 5.7.0 of a missing
+      // STARTTLS. A function of its arguments (DaneTester).
+      static String PublishedTlsDeferral(const String &host, const String &recipientDomain, bool daneRecords, bool daneUnusable, bool stsEnforced);
+
       // The two network steps of the lookups above, each bounded by its deadline:
       // the policy fetch (https://host + path, 15 seconds for all of it, the body
       // only for a 200, error saying why not otherwise; a host that is not a DNS

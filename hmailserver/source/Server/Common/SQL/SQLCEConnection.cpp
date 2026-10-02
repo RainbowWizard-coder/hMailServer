@@ -9,7 +9,11 @@
 #include "Macros/SQLCEMacroExpander.h"
 #include "DatabaseSettings.h"
 #include "ADOInt64Helper.h"
+#include "ADOConnection.h"
 #include "../Util/Time.h"
+#include "../Util/Unicode.h"
+
+#include <stdexcept>
 // The SQL Server Compact SDK headers, which ship with the Windows redistributable
 // and exist nowhere else. Guarded for the same reason the body below is; see the
 // note above the namespace.
@@ -127,10 +131,22 @@ namespace HM
    String 
    SQLCEConnection::GetConnectionString_(const String &sDatabase, const String &sPassword) const
    {
-      String sDatabaseFile = GetDatabaseFileName_(sDatabase);
+      return MakeConnectionString(GetDatabaseFileName_(sDatabase), sPassword);
+   }
+
+   String
+   SQLCEConnection::MakeConnectionString(const String &databaseFile, const String &password)
+   {
+      String quotedFile;
+      if (!ADOConnection::QuoteValue(databaseFile, quotedFile))
+         quotedFile = databaseFile;
+
+      String quotedPassword;
+      if (!ADOConnection::QuoteValue(password, quotedPassword))
+         quotedPassword = password;
 
       String sConnectionString;
-      sConnectionString.Format(_T("Provider=Microsoft.SQLSERVER.CE.OLEDB.4.0;Data Source=%s;SSCE:Database Password=%s;SSCE:Max Database Size=4000;SSCE:Flush Interval=10;"), sDatabaseFile.c_str(), sPassword.c_str());
+      sConnectionString.Format(_T("Provider=Microsoft.SQLSERVER.CE.OLEDB.4.0;Data Source=%s;SSCE:Database Password=%s;SSCE:Max Database Size=4000;SSCE:Flush Interval=10;"), quotedFile.c_str(), quotedPassword.c_str());
 
       return sConnectionString;
    }
@@ -857,6 +873,83 @@ namespace HM
                adoCommand->Parameters->Append(adoCommand->CreateParameter(_bstr_t(parameterName), adWChar, adParamInput, value.GetLength() < 8000 ? 8000 : value.GetLength(), stringType));
          }
       }
+   }
+
+   namespace
+   {
+      void CheckCe(bool condition, const String &what)
+      {
+         if (!condition)
+            throw std::logic_error(std::string("SQLCEConnectionTester: ") + Unicode::ToUtf8(what).c_str());
+      }
+
+      // What ADO reads for a property out of the string, without opening it - the
+      // provider is loaded to name its own properties, and no file is touched.
+      String CeProperty(const String &connectionString, const TCHAR *name)
+      {
+         _ConnectionPtr connection;
+         if (FAILED(connection.CreateInstance(__uuidof(Connection))))
+            throw std::logic_error("SQLCEConnectionTester: no ADO Connection could be made");
+
+         try
+         {
+            connection->PutConnectionString(_bstr_t(connectionString.c_str()));
+            _variant_t value = connection->Properties->GetItem(_variant_t(name))->Value;
+            if (value.vt == VT_EMPTY || value.vt == VT_NULL)
+               return String();
+            return String((const wchar_t *) _bstr_t(value));
+         }
+         catch (_com_error &error)
+         {
+            // The answer ADO gave the unquoted path with a semicolon: "Multiple-step
+            // OLE DB operation generated errors".
+            return _T("(ADO refused the string: ") + String((const wchar_t *) error.Description()) + _T(")");
+         }
+      }
+   }
+
+   void
+   SQLCEConnectionTester::Test()
+   {
+      const wchar_t *files[] =
+      {
+         L"C:\\Program Files\\hMailServer\\Database\\hMailServer.sdf",
+         L"D:\\Mail;Data\\hMailServer.sdf",
+         L"D:\\a=b\\hMailServer.sdf",
+         L"D:\\it's\\hMailServer.sdf",
+         L"D:\\x;Data Source=E:\\evil\\hMailServer.sdf",
+         L"D:\\Mail \u65e5\u672c\\hMailServer.sdf",
+      };
+
+      const wchar_t *passwords[] =
+      {
+         L"0a1b2c3d4e5f",
+         L"p;w",
+         L"it's",
+         L"double\"quote",
+         L"a=b",
+         L"x;SSCE:Max Database Size=1",
+      };
+
+      for (const wchar_t *file : files)
+      {
+         for (const wchar_t *password : passwords)
+         {
+            const String connectionString = SQLCEConnection::MakeConnectionString(file, password);
+            CheckCe(CeProperty(connectionString, _T("Data Source")) == String(file),
+               _T("ADO read the file as [") + CeProperty(connectionString, _T("Data Source")) + _T("] and not [") + String(file) + _T("] from ") + connectionString);
+            CheckCe(CeProperty(connectionString, _T("SSCE:Database Password")) == String(password),
+               _T("ADO read the password otherwise than given from ") + connectionString);
+            CheckCe(CeProperty(connectionString, _T("SSCE:Max Database Size")) == _T("4000"),
+               _T("a value moved the database size from ") + connectionString);
+         }
+      }
+
+      // What every installation's string was before, byte for byte but for the
+      // quotes, for the file and the password the installer makes.
+      CheckCe(SQLCEConnection::MakeConnectionString(_T("C:\\Data\\hMailServer.sdf"), _T("0a1b2c3d4e5f")) ==
+         _T("Provider=Microsoft.SQLSERVER.CE.OLEDB.4.0;Data Source=\"C:\\Data\\hMailServer.sdf\";SSCE:Database Password=\"0a1b2c3d4e5f\";SSCE:Max Database Size=4000;SSCE:Flush Interval=10;"),
+         _T("the ordinary string is ") + SQLCEConnection::MakeConnectionString(_T("C:\\Data\\hMailServer.sdf"), _T("0a1b2c3d4e5f")));
    }
 }
 

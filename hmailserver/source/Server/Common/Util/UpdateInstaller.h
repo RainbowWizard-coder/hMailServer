@@ -87,6 +87,22 @@ namespace HM
       // only; update-feed-tests holds it to that.
       static String SystemdRunCommand(const String &systemdRun, const String &version, const String &helper,
          const String &requestFile, const String &directory, const String &unit, const String &image);
+
+      // What systemd says of the unit the helper runs as - hmailserver-update.service
+      // on the path unit's route, hmailserver-update-<version>.service on
+      // systemd-run's - read from what `systemctl show --property=LoadState
+      // --property=ActiveState --property=ExecMainStatus <unit>` prints: at work
+      // while it is activating, active, deactivating or reloading; ended once it
+      // is inactive or failed, or unloaded (systemd-run's --collect); unknown when
+      // the answer names no state. exitStatus is ExecMainStatus, or -1 when none
+      // is given. update-feed-tests holds both to their cases.
+      enum HelperUnitState { HelperUnitAtWork, HelperUnitEnded, HelperUnitUnknown };
+      static HelperUnitState ReadHelperUnitState(const AnsiString &showOutput, int &exitStatus);
+
+      // The same, asked of the systemctl at systemctlPath, its answer written to
+      // answerFile (then removed) and read back. Unknown when there is no such
+      // program, or it did not answer within a few seconds.
+      static HelperUnitState AskHelperUnitState(const String &systemctlPath, const String &unit, const String &answerFile, int &exitStatus);
 #endif
 
       // Whether this service may apply an update itself. On Windows the helper
@@ -210,15 +226,19 @@ namespace HM
       // or never gets that far would otherwise leave the server draining for
       // ever, since nothing else would end it. So: an outcome file seen on two
       // consecutive polls, or UPDATE_APPLY_DRAIN_MINUTES with no stop, leaves
-      // the drain as the server, says why, and reports the outcome then.
-      static void WatchTheHelper_(const String &drainSince);
+      // the drain as the server, says why, and reports the outcome then. On Linux
+      // helperUnit is the unit the helper runs as: once systemd says it has ended
+      // with no outcome written - a refused request writes none - the drain is
+      // left at the next poll, not after the ten minutes. Empty on Windows.
+      static void WatchTheHelper_(const String &drainSince, const String &helperUnit);
       // Windows: starts the helper detached with the assembled command line.
       static bool Launch_(const String &commandLine, const String &workingDirectory, String &error);
       // POSIX: hands the request to hmailserver-update through the path unit, or
       // through systemd-run when nothing takes it from /run/hmailserver. The unit
       // and the AppImage (empty for a package) go on the systemd-run command line,
       // since the helper takes them from its command line and not from the request.
+      // helperUnit is the unit the helper was started as, for the watcher.
       static bool LaunchPosix_(const AnsiString &request, const String &version, const String &helperSource,
-         const String &unit, const String &image, String &error);
+         const String &unit, const String &image, String &helperUnit, String &error);
    };
 }

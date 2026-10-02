@@ -399,7 +399,7 @@ namespace HM
          certificate = AnsiString(certificateValue->AsString().c_str());
          notAfter = 0;
          if (notAfterValue && notAfterValue->IsNumber())
-            notAfter = (__int64) notAfterValue->AsNumber();
+            notAfter = notAfterValue->AsInt64();
          return true;
       }
 

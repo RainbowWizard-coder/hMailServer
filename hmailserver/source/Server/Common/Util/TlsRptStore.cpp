@@ -55,6 +55,8 @@ namespace HM
 
       DomainBucket &bucket = GetBucket_(domain, policyType, policyString);
       bucket.successful_sessions++;
+
+      LOG_DEBUG(_T("TLS-RPT: a successful session with ") + domain + _T(" recorded (policy ") + String(policyType) + _T(")."));
    }
 
    void
@@ -67,6 +69,9 @@ namespace HM
 
       AnsiString mx = receivingMx;
       mx.MakeLower();
+
+      LOG_DEBUG(_T("TLS-RPT: a failed session with ") + domain + _T(" recorded: ") + String(resultType) + _T(" at ") +
+                String(mx) + _T(" (policy ") + String(policyType) + _T(")."));
 
       for (FailureDetail &failure : bucket.failures)
       {

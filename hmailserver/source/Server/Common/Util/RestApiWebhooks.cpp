@@ -360,7 +360,11 @@ namespace HM
                if (!member->IsNumber())
                   return BuildResponse_(400, "{\"error\":\"max_per_minute is a whole number\"}");
 
-               subscription.max_per_minute = (int) member->AsInt64();
+               // Held to an int's range (JsonValue::AsInt), as COM's
+               // SaveWebhookSubscription holds it, so that SaveSubscription's
+               // range check sees the large number it was given: the cast of the
+               // __int64 kept its low 32 bits, and 4294967301 was taken as 5.
+               subscription.max_per_minute = member->AsInt();
             }
 
             String refusal;

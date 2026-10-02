@@ -17184,7 +17184,9 @@ namespace HM
          for (size_t i = 0; i < idsMember->Size(); i++)
          {
             const JsonValue *item = idsMember->At(i);
-            if (item == 0 || !item->IsNumber() || item->AsInt64() <= 0)
+            // A whole number an __int64 holds, and above 0: 1e20, 1.5 and twenty
+            // digits are refused here rather than read as some other id.
+            if (item == 0 || !item->IsInt64() || item->AsInt64() <= 0)
                return BuildResponse_(400, "{\"error\":\"ids is an array of 1 to 1000 message ids\"}");
 
             namedIds.insert(item->AsInt64());
@@ -17195,7 +17197,7 @@ namespace HM
       if (all)
       {
          const JsonValue *maxMember = body.Get("max_uid");
-         if (maxMember == 0 || !maxMember->IsNumber() || maxMember->AsInt64() <= 0)
+         if (maxMember == 0 || !maxMember->IsInt64() || maxMember->AsInt64() <= 0)
             return BuildResponse_(400, "{\"error\":\"all needs max_uid: the newest UID there was when the selection was made\"}");
 
          maxUid = BulkUidOf(maxMember->AsInt64());
@@ -17206,7 +17208,7 @@ namespace HM
       const JsonValue *beforeMember = body.Get("before_uid");
       if (beforeMember != 0 && !beforeMember->IsNull())
       {
-         if (!beforeMember->IsNumber() || beforeMember->AsInt64() < 0)
+         if (!beforeMember->IsInt64() || beforeMember->AsInt64() < 0)
             return BuildResponse_(400, "{\"error\":\"before_uid is a UID\"}");
 
          beforeUid = BulkUidOf(beforeMember->AsInt64());
