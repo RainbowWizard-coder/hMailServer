@@ -19,26 +19,45 @@
 #   2. checks every line of it, because the request came from an unprivileged
 #      process and this one is root: every path must lie inside the Updates
 #      directory named by root's own configuration, nothing may be a symlink,
-#      and the unit must be the server's. A request that fails here is refused
+#      and nothing that decides what root RUNS or STOPS is taken from it. The
+#      unit stopped is hmailserver.service, or the one --unit names; the
+#      program that verifies is /usr/bin/hmailserver, or for an AppImage the
+#      image --image names; and an AppImage request is refused unless --image
+#      names one. Those options are on this program's command line, which is
+#      root's: the ExecStart of hmailserver-update.service, or the systemd-run
+#      command of a server that is itself root. The request's own unit= and
+#      image= lines, when it has them, must name the same unit and the same
+#      image, or the request is refused. A request that fails here is refused
 #      in the journal and NOWHERE ELSE: the Updates directory belongs to the
 #      service user, a process of theirs may still be running, and root writes
 #      nothing into a directory whose owner is alive to swap a file for a
 #      symlink between the check and the write. The server notices a request
 #      that was taken and never answered, and reports that;
-#   3. stops the unit, so that nothing runs as the service user while root reads
-#      the files it named or writes beside them. From here on the directory is
-#      quiet (the unit's control group is empty, and the service user has no
-#      session, no cron and no way out of the group), and every file root makes
-#      in it is made under a name nobody could have planted - mktemp, O_EXCL -
-#      and renamed into place, which replaces a symlink and never follows one;
-#   4. verifies the package - and the rollback image - against their Sigstore
-#      bundles AGAIN, as root, with `hmailserver --verify-update`: the same check
-#      the server made, made by a process the server could not have influenced.
-#      A service that has been taken over could write any request it likes; it
-#      cannot forge the release workflow's signature. And a signature is not
-#      enough: every past release is signed too, so the package's own version -
-#      read from the package, not from the request - must be NEWER than the
-#      version the package database says is installed, and a rollback image
+#   3. stops the unit, and then makes sure that it is stopped: the unit must be
+#      inactive (or failed), and no process may run as the owner of the Updates
+#      directory or of any directory above it, other than root and this
+#      program's own user. If either is not so, the unit is started again and
+#      nothing is read, installed or written. From here on the directory is
+#      quiet, and every file root makes in it is made under a name nobody
+#      could have planted - mktemp, O_EXCL - and renamed into place, which
+#      replaces a symlink and never follows one;
+#   4. copies the package and the rollback image, each with its bundle, into a
+#      directory of its own that only root can enter (mktemp -d) - each looked
+#      at again first, now that nobody can change it, and copied only if it is
+#      still a plain file inside the Updates directory - and from here on
+#      reads, verifies, runs and installs those copies alone, so that what is
+#      installed is byte for byte what was verified. A copy is readable by
+#      root alone until it has verified, so that whatever the request named is
+#      never laid open to anyone else. It verifies them
+#      against their Sigstore bundles AGAIN, as root, with `hmailserver
+#      --verify-update`: the same check the server made, made by a program the
+#      server could not have chosen. A service that has been taken over could
+#      write any request it likes; it cannot forge the release workflow's
+#      signature. Nothing the request names is run before it has verified. And
+#      a signature is not enough: every past release is signed too, so the
+#      package's own version - read from the package, not from the request -
+#      must be NEWER than the version the package database (or the configured
+#      image) says is installed, which must be readable, and a rollback image
 #      must be exactly that installed version. A taken-over service cannot
 #      have root put a signed but superseded release back;
 #   5. installs the package (apt-get or dpkg, dnf or rpm) or swaps the AppImage
@@ -68,23 +87,30 @@
 #   package=/var/lib/hmailserver/Updates/hmailserver_<new>_amd64.deb
 #   rollback=/var/lib/hmailserver/Updates/rollback/hmailserver_<running>_amd64.deb
 #   rollback_version=<running>   (both optional: without them there is no rollback)
-#   unit=hmailserver.service     the unit to stop and start
+#   unit=hmailserver.service     the server's unit; must be the one stopped
 #   outcome=/var/lib/hmailserver/Updates/last-apply.txt
 #   log=/var/lib/hmailserver/Updates/apply-<new>.log
 #   wait=180                     seconds to wait for the service to come back
 #   ready_url=http://127.0.0.1:9090/readyz   (optional) the metrics listener's probe
-#   image=/opt/hmailserver/hMailServer.AppImage   (appimage only) the file to swap
+#   image=/opt/hmailserver/hMailServer.AppImage   (appimage only) must be --image
 #
 # A key not in this list is said in the journal and skipped, so that a newer
 # server never strands an older copy of this script (see read_request).
 #
 # Usage:
-#   hmailserver-update apply --request FILE [--updates-dir DIR] [--dry-run]
+#   hmailserver-update apply --request FILE [--updates-dir DIR]
+#                            [--unit UNIT] [--image FILE] [--dry-run]
 #   hmailserver-update check
 #
 # --updates-dir is for the systemd-run route, where the caller is already root:
 # the path unit's route reads DataFolder out of /etc/hmailserver/hMailServer.ini,
 # which is root's file, and takes nothing about WHERE from the request.
+# --unit is the server's unit when it is not hmailserver.service, and --image the
+# AppImage file this machine runs the server from; without --image, a request
+# for an AppImage is refused. Both are root's word, never the request's: the
+# server passes them on the systemd-run route, where it is root itself, and an
+# administrator who runs the AppImage under the path unit puts them in a drop-in
+# for hmailserver-update.service (packaging/README.md, "An AppImage").
 # --dry-run says what would be done and does none of it. `check` says whether
 # this machine can apply an update at all, and what is missing if not.
 #
@@ -113,6 +139,16 @@ PROGRAM=${HMAILSERVER_UPDATE_PROGRAM:-$PROGRAM}
 REQUEST=""
 UPDATES_DIR=""
 DRY_RUN=0
+
+# Root's word, from the command line: the unit to stop and start, and the
+# AppImage this machine runs - which is then the one program that verifies, the
+# file that is swapped, and the only thing that makes an AppImage request
+# acceptable. Never from the request.
+UNIT=$UNIT_DEFAULT
+IMAGE=""
+
+# Where the copies root works on are kept, from the stop to the exit.
+PRIVATE_DIR=""
 
 # ------------------------------------------------------------------ output
 
@@ -145,7 +181,16 @@ open_log()
    [ -n "$LOG_FILE" ] || return 0
    [ "$DRY_RUN" = 1 ] && return 0
    LOG_TMP="$(mktemp "$UPDATES_DIR/apply.XXXXXX" 2>/dev/null)" || { LOG_TMP=""; say "no log file could be made in $UPDATES_DIR; the journal has everything"; return 0; }
-   trap finish_log EXIT
+}
+
+# Whatever way this program ends: the log takes its name, and root's copies go.
+on_exit()
+{
+   finish_log
+   if [ -n "$PRIVATE_DIR" ]; then
+      rm -rf -- "$PRIVATE_DIR"
+      PRIVATE_DIR=""
+   fi
 }
 
 # The log takes the name the request asked for. mv renames: a symlink at that
@@ -175,11 +220,11 @@ VERSION=""
 PACKAGE=""
 ROLLBACK=""
 ROLLBACK_VERSION=""
-UNIT="$UNIT_DEFAULT"
+REQUEST_UNIT=""
 OUTCOME=""
 WAIT=180
 READY_URL=""
-IMAGE=""
+REQUEST_IMAGE=""
 
 read_request()
 {
@@ -222,12 +267,12 @@ read_request()
          package)          PACKAGE=$value ;;
          rollback)         ROLLBACK=$value ;;
          rollback_version) ROLLBACK_VERSION=$value ;;
-         unit)             UNIT=$value ;;
+         unit)             REQUEST_UNIT=$value ;;
          outcome)          OUTCOME=$value ;;
          log)              LOG_FILE=$value ;;
          wait)             WAIT=$value ;;
          ready_url)        READY_URL=$value ;;
-         image)            IMAGE=$value ;;
+         image)            REQUEST_IMAGE=$value ;;
          *) say "ignoring a key this program does not know: $key" ;;
       esac
    done
@@ -331,12 +376,30 @@ check_request()
       deb|rpm|appimage) ;;
       *) refuse "kind must be deb, rpm or appimage: '$KIND'" ;;
    esac
+   # How this machine was installed is root's to say, not the request's: an
+   # AppImage request only where the command line names the image, and only an
+   # AppImage request where it does. A package request is held to the package
+   # database further on, whose installed version must be readable.
+   if [ "$KIND" = appimage ] && [ -z "$IMAGE" ]; then
+      refuse "kind=appimage, and this program's configuration names no AppImage (--image), so this machine is not one this program updates as an AppImage"
+   fi
+   if [ "$KIND" != appimage ] && [ -n "$IMAGE" ]; then
+      refuse "kind=$KIND, and this program's configuration names the AppImage $IMAGE, which is what this machine is updated as"
+   fi
    is_version "$VERSION" || refuse "version is not a version: '$VERSION'"
 
+   # The unit stopped and started is root's: hmailserver.service, or --unit.
+   # The request's unit= line says which unit the server runs under, and is
+   # held to that: a server under some other unit would not be stopped by this
+   # one, and nothing it asks for decides what root stops.
    case "$UNIT" in
+      hmailserver-update*) refuse "the unit to stop is this program's own: '$UNIT'" ;;
       hmailserver.service|hmailserver[0-9A-Za-z@._-]*.service) ;;
-      *) refuse "unit must be the server's own unit: '$UNIT'" ;;
+      *) refuse "the unit to stop must be the server's own unit: '$UNIT'" ;;
    esac
+   if [ -n "$REQUEST_UNIT" ] && [ "$REQUEST_UNIT" != "$UNIT" ]; then
+      refuse "the request says the server runs under '$REQUEST_UNIT', and this program stops $UNIT; give the server's unit with --unit in this program's own configuration"
+   fi
 
    [ -n "$OUTCOME" ] || refuse "the request names no outcome file"
    check_output_file "outcome" "$OUTCOME"
@@ -367,12 +430,10 @@ check_request()
    esac
 
    if [ "$KIND" = appimage ]; then
-      # The image is executed (to verify the new one) and replaced, by whoever
-      # runs this - root, under the units. It has to be that user's already: a
-      # regular file, owned by them, writable by nobody else, in a directory of
-      # the same standing. A path the requester could write to would let it
-      # choose what root runs.
-      [ -n "$IMAGE" ] || refuse "an appimage request names no image"
+      # The image --image names is executed (to verify the new one, and for the
+      # version installed) and replaced, by whoever runs this - root, under the
+      # units. It has to be that user's already: a regular file, owned by them,
+      # writable by nobody else, in a directory of the same standing.
       case "$IMAGE" in
          /*) ;;
          *) refuse "image is not an absolute path: $IMAGE" ;;
@@ -397,9 +458,148 @@ check_request()
          ?[0145][0145]|??[0145][0145]) ;;
          *) refuse "the image's directory is writable by its group or by others (mode $dir_mode): $image_dir" ;;
       esac
+      # The request's image= line is the image the server runs from. It must
+      # be this one: swapping another would not update the server, and the
+      # request never chooses what root runs.
+      if [ -n "$REQUEST_IMAGE" ]; then
+         configured="$(realpath -e -- "$IMAGE" 2>/dev/null)" || configured=$IMAGE
+         requested="$(realpath -e -- "$REQUEST_IMAGE" 2>/dev/null)" || requested=$REQUEST_IMAGE
+         [ "$requested" = "$configured" ] || refuse "the request names the image $REQUEST_IMAGE, and this program's configuration names $IMAGE"
+      fi
    else
-      [ -z "$IMAGE" ] || refuse "image is only for an appimage request"
+      [ -z "$REQUEST_IMAGE" ] || refuse "image is only for an appimage request"
    fi
+}
+
+# After the stop, before anything in the Updates directory is read or written:
+# the unit is down, and nobody but root and this program's own user runs as
+# the owner of that directory or of any directory above it - the users who
+# could otherwise rename what root is about to read, or put a symlink where
+# it is about to write. The unit's control group is emptied by the stop; this
+# is the check that it was the server's unit that stopped, and that nothing of
+# the service user's lives on outside it. The user ids come from each
+# process's status, which says them whatever the process has done to itself.
+confirm_stopped()
+{
+   [ "$DRY_RUN" = 1 ] && return 0
+   state="$(unit_state)"
+   case "$state" in
+      inactive|failed) ;;
+      *)
+         say "hmailserver-update: $UNIT is $state after the stop."
+         return 1
+         ;;
+   esac
+   me="$(id -u)"
+   owners=""
+   directory=$UPDATES_DIR
+   while :; do
+      owner="$(stat -c '%u' -- "$directory" 2>/dev/null)" || break
+      case "$owner" in
+         0|"$me") ;;
+         *)
+            case " $owners " in
+               *" $owner "*) ;;
+               *) owners="$owners $owner" ;;
+            esac
+            ;;
+      esac
+      [ "$directory" != / ] || break
+      directory="$(dirname -- "$directory")"
+   done
+   [ -n "$owners" ] || return 0
+   for status in /proc/[0-9]*/status; do
+      ids="$(sed -n 's/^Uid:[[:space:]]*//p' "$status" 2>/dev/null)" || continue
+      for id in $ids; do
+         case " $owners " in
+            *" $id "*)
+               pid=${status%/status}
+               say "hmailserver-update: process ${pid##*/} runs as uid $id, which owns $UPDATES_DIR or a directory above it, after $UNIT was stopped."
+               return 1
+               ;;
+         esac
+      done
+   done
+   return 0
+}
+
+# The package and the rollback image, each with its bundle when it has one,
+# copied into a directory that this program made and only root can enter.
+# Everything after this reads the copies: the verification, the version, the
+# install - so that nothing can change between what was verified and what is
+# run or installed, whatever else is running. PACKAGE and ROLLBACK name the
+# copies afterwards; COPY_WHY says why, when this answers false.
+#
+# Where: under /var/tmp for a package, which is never run; beside the image
+# for an AppImage, which is run for its version - a directory root's own
+# (check_request holds it to that) and one the image already runs from, where
+# /var/tmp is often mounted noexec.
+COPY_WHY=""
+
+take_copies()
+{
+   [ "$DRY_RUN" = 1 ] && return 0
+   if [ "$KIND" = appimage ]; then
+      base="$(dirname -- "$IMAGE")/.hmailserver-update"
+   else
+      base="${TMPDIR:-/var/tmp}/hmailserver-update"
+   fi
+   PRIVATE_DIR="$(mktemp -d "$base.XXXXXX")" || { PRIVATE_DIR=""; COPY_WHY="no directory could be made at $base.XXXXXX"; return 1; }
+   chmod 0700 -- "$PRIVATE_DIR" || { COPY_WHY="$PRIVATE_DIR could not be made private"; return 1; }
+   copy_one package "the package" "$PACKAGE" || return 1
+   PACKAGE=$copied
+   if [ -n "$ROLLBACK" ]; then
+      copy_one rollback "the rollback image" "$ROLLBACK" || return 1
+      ROLLBACK=$copied
+   fi
+   say "the package and the rollback image are copied into $PRIVATE_DIR; what is verified, run and installed from here on is these copies."
+   return 0
+}
+
+copy_one()
+{
+   # Looked at again, now that nobody else can change it: check_request saw
+   # the file while the service user was still running, and anything it
+   # became since - a symlink, a file somewhere else - is not read by root.
+   if [ -L "$3" ] || [ ! -f "$3" ] || ! inside "$3" "$UPDATES_DIR"; then
+      COPY_WHY="$2 was no longer a plain file inside $UPDATES_DIR when the service had stopped: $3"
+      return 1
+   fi
+   mkdir -m 0700 -- "$PRIVATE_DIR/$1" || { COPY_WHY="$PRIVATE_DIR/$1 could not be made"; return 1; }
+   copied="$PRIVATE_DIR/$1/$(basename -- "$3")"
+   # Root's alone until it has verified (open_copy): a hard link the requester
+   # made to a file of somebody else's is a plain file too, and its copy is
+   # read by nobody but root, and then refused. An AppImage keeps the execute
+   # bit, because it is run for its version once it has verified.
+   if ! cp -- "$3" "$copied" || ! chmod 0600 -- "$copied"; then
+      COPY_WHY="$2 could not be copied to $PRIVATE_DIR (is there room?)"
+      return 1
+   fi
+   if [ "$KIND" = appimage ]; then
+      chmod 0700 -- "$copied" || { COPY_WHY="$copied could not be made executable"; return 1; }
+   fi
+   # The bundle, when there is one and it is a plain file: one that is not is
+   # not copied, and the verification then fails for want of it.
+   if [ -f "$3.cosign.bundle" ] && [ ! -L "$3.cosign.bundle" ]; then
+      if ! cp -- "$3.cosign.bundle" "$copied.cosign.bundle" || ! chmod 0600 -- "$copied.cosign.bundle"; then
+         COPY_WHY="the bundle of $2 could not be copied to $PRIVATE_DIR"
+         return 1
+      fi
+   fi
+   return 0
+}
+
+# A copy that has verified is a signed release, which anybody may read; apt
+# hands a local package to its unprivileged fetcher (_apt), which has to open
+# it by its name. So the package's directories become enterable, not listable,
+# and the package readable - after its verification, never before. An
+# AppImage is run by root alone and stays as it is.
+open_copy()
+{
+   [ "$DRY_RUN" = 1 ] && return 0
+   [ "$KIND" != appimage ] || return 0
+   chmod 0711 -- "$PRIVATE_DIR" "$(dirname -- "$1")" && chmod 0644 -- "$1" \
+      || say "$1 could not be made readable to the package manager's own user; it reads it as root instead."
 }
 
 # ------------------------------------------------------------------ doing
@@ -503,9 +703,10 @@ wait_for_service()
 # and the log recorded, the certificate chains to Fulcio at the time the log
 # recorded it, it names this repository's release workflow, and the log vouches
 # for the entry - with the trust the ROOT-OWNED configuration names, or the
-# public Sigstore instance when it names none. For an AppImage the running image
-# is the verifier, with a scratch home so that it reads nobody's configuration
-# and takes the built-in trust.
+# public Sigstore instance when it names none. For an AppImage the verifier is
+# the image --image names - the one this machine runs, never one the request
+# names - with a scratch home so that it reads nobody's configuration and takes
+# the built-in trust.
 verify_file()
 {
    what=$1
@@ -543,15 +744,22 @@ package_version()
          v="$(rpm -qp --qf '%{VERSION}' "$file" 2>/dev/null)" || v=""
          ;;
       appimage)
-         # A verified image only: this runs it.
-         v="$("$file" --version 2>/dev/null | sed -n 's/^hMailServer \([^ ]*\).*/\1/p' | head -n 1)"
+         # A verified image only - root's own copy of it, which nothing could
+         # have changed since it verified: this runs it. A dry run verifies
+         # nothing and copies nothing, so it runs nothing and takes the
+         # request's word.
+         if [ "$DRY_RUN" = 1 ]; then
+            v=$VERSION
+         else
+            v="$("$file" --version 2>/dev/null | sed -n 's/^hMailServer \([^ ]*\).*/\1/p' | head -n 1)"
+         fi
          ;;
    esac
    printf '%s' "$v"
 }
 
 # The version installed now, from the package database - or, for an AppImage,
-# from the running image. Empty when there is none, or it cannot be read.
+# from the image --image names. Empty when there is none, or it cannot be read.
 installed_version()
 {
    case "$KIND" in
@@ -690,6 +898,7 @@ write_outcome()
 
 apply()
 {
+   trap on_exit EXIT
    read_request
    find_updates_dir
    check_request
@@ -708,16 +917,31 @@ apply()
       say "hmailserver-update: $UNIT could not be stopped, so nothing was installed and nothing is written."
       return 1
    fi
+   # Stopped is what the rest rests on, so it is looked at rather than assumed.
+   # When it is not so, root reads nothing of the Updates directory and writes
+   # nothing there - not the outcome either - and the unit is started again.
+   if ! confirm_stopped; then
+      say "hmailserver-update: so nothing was installed and nothing is written; $UNIT is started again."
+      start_unit
+      return 1
+   fi
    # Nothing runs as the service user now; the Updates directory may be
    # written, and the log starts.
    open_log
    say "$UNIT is stopped."
+
+   if ! take_copies; then
+      start_unit
+      write_outcome "failed" "$VERSION" "$COPY_WHY, so nothing was verified or installed; the service was started again on the version it had"
+      return 1
+   fi
 
    if ! verify_file "the package" "$PACKAGE"; then
       start_unit
       write_outcome "failed" "$VERSION" "the package did not verify against its Sigstore bundle when checked as root, so nothing was installed; the service was started again on the version it had"
       return 1
    fi
+   open_copy "$PACKAGE"
 
    # Signed is not enough: every release ever made is signed. The package must
    # be newer than what the package database says is installed - both read by
@@ -734,17 +958,35 @@ apply()
       say "the request says version $VERSION and the package says $new_version; the package's word is the one reported."
       VERSION=$new_version
    fi
-   if [ -n "$old_version" ] && ! is_newer "$new_version" "$old_version"; then
+   # No installed version, no install: the rule above cannot be held without
+   # one, and a machine whose package database (or image) does not know
+   # hMailServer is not one installed the way the request says. The server
+   # writes kind=deb only where dpkg has hmailserver's record, and kind=rpm
+   # only where rpm -q answers for it.
+   if [ -z "$old_version" ]; then
+      start_unit
+      case "$KIND" in
+         deb) where="dpkg has no installed hmailserver package" ;;
+         rpm) where="rpm has no installed hmailserver package" ;;
+         *) where="the image $IMAGE did not say its version" ;;
+      esac
+      write_outcome "failed" "$VERSION" "the installed version could not be read ($where), so this is not a $KIND installation that can be upgraded and nothing was installed; the service was started again on the version it had"
+      return 1
+   fi
+   if ! is_newer "$new_version" "$old_version"; then
       start_unit
       write_outcome "failed" "$VERSION" "the package is version $new_version and the installed version is $old_version: not an upgrade, so nothing was installed; the service was started again on the version it had"
       return 1
    fi
-   [ -n "$old_version" ] || say "no installed version is recorded for hmailserver; installing $new_version over whatever is here."
 
-   if [ -n "$ROLLBACK" ] && ! verify_file "the rollback image" "$ROLLBACK"; then
-      say "the rollback image did not verify; continuing without one."
-      ROLLBACK=""
-      ROLLBACK_VERSION=""
+   if [ -n "$ROLLBACK" ]; then
+      if verify_file "the rollback image" "$ROLLBACK"; then
+         open_copy "$ROLLBACK"
+      else
+         say "the rollback image did not verify; continuing without one."
+         ROLLBACK=""
+         ROLLBACK_VERSION=""
+      fi
    fi
    # The rollback image, when there is one, must be the version installed now:
    # for a package, checked against the package database; an AppImage rolls
@@ -869,7 +1111,8 @@ check()
 
 usage()
 {
-   echo "usage: hmailserver-update apply --request FILE [--updates-dir DIR] [--dry-run]" >&2
+   echo "usage: hmailserver-update apply --request FILE [--updates-dir DIR]" >&2
+   echo "                                 [--unit UNIT] [--image FILE] [--dry-run]" >&2
    echo "       hmailserver-update check" >&2
    exit 64
 }
@@ -882,6 +1125,8 @@ case "$verb" in
          case "$1" in
             --request) [ $# -ge 2 ] || usage; REQUEST=$2; shift 2 ;;
             --updates-dir) [ $# -ge 2 ] || usage; UPDATES_DIR=$2; shift 2 ;;
+            --unit) [ $# -ge 2 ] && [ -n "$2" ] || usage; UNIT=$2; shift 2 ;;
+            --image) [ $# -ge 2 ] && [ -n "$2" ] || usage; IMAGE=$2; shift 2 ;;
             --dry-run) DRY_RUN=1; shift ;;
             *) usage ;;
          esac

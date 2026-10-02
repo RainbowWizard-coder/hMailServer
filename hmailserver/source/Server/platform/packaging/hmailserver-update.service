@@ -12,7 +12,14 @@
 # the service's job object.
 #
 # What runs is /usr/lib/hmailserver/hmailserver-update, whose header says what
-# it does and what it refuses. The package it installs replaces that very file
+# it does and what it refuses. Its command line is root's word on what the
+# request may not choose: it stops hmailserver.service unless --unit names the
+# server's unit, and takes an AppImage request only when --image names the
+# image this machine runs. A server under another unit, or an AppImage under
+# this path unit, gives them in a drop-in (systemctl edit
+# hmailserver-update.service; packaging/README.md, "An AppImage").
+#
+# The package it installs replaces that very file
 # under it, which is safe: dpkg and rpm write the new file and rename it into
 # place, and the shell keeps reading the old one through the descriptor it
 # already holds.

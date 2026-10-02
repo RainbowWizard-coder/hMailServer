@@ -550,8 +550,11 @@ stops). So the apply is a request, and the request is taken by root.
    which runs `/usr/lib/hmailserver/hmailserver-update apply --request
    /run/hmailserver/apply-request` as root. The script reads the file and
    removes it (once, whatever happens next), and checks every line: `kind` is
-   `deb`, `rpm` or `appimage`; the versions are version-shaped; the unit is
-   `hmailserver*.service`; `outcome` and `log` are directly inside, and
+   `deb`, `rpm` or `appimage`, and `appimage` only where the helper's own
+   command line names the image (`--image`, below); the versions are
+   version-shaped; `unit` is the unit the helper stops, which is
+   `hmailserver.service` or what its command line names with `--unit`, never
+   what the request says; `outcome` and `log` are directly inside, and
    `package` and `rollback` somewhere inside, the Updates directory - which it
    takes from `DataFolder` in `/etc/hmailserver/hMailServer.ini`, root's own
    file, and never from the request; nothing is a symlink, and every path is
@@ -564,25 +567,46 @@ stops). So the apply is a request, and the request is taken by root.
    that was taken and never answered (its update task, once `wait` plus a
    quarter of an hour has passed with the state still 4 and no restart) and
    reports it as failed, pointing at that journal.
-3. It stops the unit. From here no process runs as the service user - the
-   unit's control group is emptied, and the service user has no session, no
-   cron and no way out of it - which is why the Updates directory is only
-   written from here on. What root writes there is made under a random name
-   (`mktemp`, so nothing anyone planted under a guessable name is opened) and
-   renamed into place, which replaces a symlink at the destination and never
-   follows one; the log file and the outcome file are both written that way.
-4. It runs `/usr/bin/hmailserver --verify-update <package>` - the same
-   Sigstore verification the server did (digest, chain at the log's time, the
-   release workflow's identity, the signature, the log's own signature), with
-   the trust `/etc/hmailserver/hMailServer.ini` names or the public instance -
-   and the same for the rollback image. A file that fails is not installed; the
-   unit is started again and the outcome says so. Then the version rule,
-   because a signature alone would let a taken-over service have root put a
-   signed but superseded release back: the version is read from the package
-   itself (`dpkg-deb -f ... Version`, `rpm -qp --qf %{VERSION}`, or the
-   verified AppImage's own `--version`) and compared, with `dpkg
-   --compare-versions` or `sort -V`, with what the package database says is
-   installed (`dpkg-query -W`, `rpm -q`, the running image's `--version`). Not
+3. It stops the unit, and then makes sure it has stopped: the unit must be
+   `inactive` or `failed`, and no process may run as the owner of the Updates
+   directory or of any directory above it (root and the helper's own user
+   aside), read from each process's `/proc/<pid>/status`. Otherwise it starts
+   the unit again and reads, installs and writes nothing, and the journal names
+   the process. That counts a process of a container whose user has the same
+   number as the service user's, which the kernel does not tell apart: a host
+   where one runs applies the update by hand. From here no process
+   runs as the service user - the unit's control group is emptied, and the
+   service user has no session, no cron and no way out of it - which is why the
+   Updates directory is only written from here on. What root writes there is
+   made under a random name (`mktemp`, so nothing anyone planted under a
+   guessable name is opened) and renamed into place, which replaces a symlink
+   at the destination and never follows one; the log file and the outcome file
+   are both written that way.
+4. It looks at the package and the rollback image again, now that nothing of
+   the service user's runs, and copies them, with their bundles, only if each
+   is still a plain file inside the Updates directory - into a directory it
+   makes for them with `mktemp -d`, under `/var/tmp` for a package and beside
+   the image for an AppImage (which is run for its version, and `/var/tmp` is
+   often mounted `noexec`). Only root can enter that directory, and a copy is
+   readable by root alone until it has verified; a verified package is then
+   made readable for apt's own unprivileged user. From here on it works on
+   those copies alone, so that what is installed is what was verified. It
+   runs `/usr/bin/hmailserver
+   --verify-update <copy>` - the same Sigstore verification the server did
+   (digest, chain at the log's time, the release workflow's identity, the
+   signature, the log's own signature), with the trust
+   `/etc/hmailserver/hMailServer.ini` names or the public instance - and the
+   same for the rollback image. A file that fails is not installed, and
+   nothing the request named is ever run before it has verified; the unit is
+   started again and the outcome says so. Then the version rule, because a
+   signature alone would let a taken-over service have root put a signed but
+   superseded release back: the version is read from the package itself
+   (`dpkg-deb -f ... Version`, `rpm -qp --qf %{VERSION}`, or the verified
+   AppImage's own `--version`) and compared, with `dpkg --compare-versions` or
+   `sort -V`, with what the package database says is installed (`dpkg-query
+   -W`, `rpm -q`, the configured image's `--version`). An installed version
+   that cannot be read means a machine not installed the way the request's
+   `kind` says, and nothing is installed. Not
    newer means not installed, and the unit is started again; a rollback image
    whose version is not the installed one is dropped, so the rollback can only
    ever put back what was running; and the request's `version` line is
@@ -619,21 +643,43 @@ stops). So the apply is a request, and the request is taken by root.
 which the AppImage runtime sets before AppRun starts it. The artefact is
 `hMailServer-<version>-<arch>.AppImage` from the release page, verified the
 same way, and the apply is a swap: the new file copied beside the old one
-(same file system, so the rename is atomic), the old kept as `<image>.previous`
-- the rollback puts it back - and the unit restarted. The image must be owned
-by the user applying the update (root under the units) and writable by nobody
-else, in a directory of the same standing, because the running image is what
-verifies the new one and is executed to do it. How the request reaches root
-depends on how the image runs: under a unit with `RuntimeDirectory=hmailserver`
-and the two update units installed from `usr/share/hmailserver/systemd/` inside
-the image, the path route above; as root under a unit of its own, the server
-copies the script out of the image into `Updates/` and starts it with
-`systemd-run --unit=hmailserver-update-<version> --collect`, which is the
-outside-the-cgroup start `systemd-run` exists for; from a terminal, or as an
-ordinary user under a unit, it is told there is nothing to hand the update to,
-and the verified file waits in `Updates/` for `mv` by hand. An AppImage is a
-try-it-out artefact and stays one; this is so that trying it out includes the
-update.
+(same file system, so the rename is atomic), the old kept as `<image>.previous`,
+which the rollback puts back, and the unit restarted. Which image that is, is
+root's to say and never the request's: the helper's `--image <file>` names it,
+and a request for an AppImage is refused where its command line names none
+(and a `.deb` or `.rpm` request where it names one). That image is what
+verifies the new one and is executed to do it, so it must be owned by the user
+applying the update (root under the units) and writable by nobody else, in a
+directory of the same standing; the request's `image=` line must name the same
+file. How the request reaches root depends on how the image runs: under a unit
+with `RuntimeDirectory=hmailserver` and the two update units installed from
+`usr/share/hmailserver/systemd/` inside the image, the path route above, with
+the script copied to `/usr/lib/hmailserver/` and a drop-in for
+`hmailserver-update.service` (`systemctl edit hmailserver-update.service`) that
+gives the helper the image, and the unit when it is not `hmailserver.service`:
+
+```ini
+[Service]
+ExecStart=
+ExecStart=/usr/lib/hmailserver/hmailserver-update apply --request /run/hmailserver/apply-request --image /opt/hmailserver/hMailServer.AppImage
+```
+
+As root under a unit of its own, the server copies the script out of the image
+into `Updates/` and starts it with `systemd-run
+--unit=hmailserver-update-<version> --collect`, which is the outside-the-cgroup
+start `systemd-run` exists for, passing `--unit` (its own unit) and `--image`
+(its `APPIMAGE`) itself, which it may because it is root; from a terminal, or
+as an ordinary user under a unit, it is told there is nothing to hand the
+update to, and the verified file waits in `Updates/` for `mv` by hand. An
+AppImage is a try-it-out artefact and stays one; this is so that trying it out
+includes the update.
+
+**Earlier releases** of the helper took the unit to stop from the request's
+`unit=` line, and for an AppImage the image - which is also the program that
+verifies - from its `image=` line, both of which the service writes. The helper
+now takes both from its own command line only (above), confirms the stop, and
+verifies, runs and installs root's own copies. The CHANGELOG's Security section
+names the releases this changed in.
 
 **What needs root.** Everything from step 2 on, which is why it is a separate
 unit and not something the server forks: a child of the server lives in the

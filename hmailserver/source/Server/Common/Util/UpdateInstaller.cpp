@@ -461,8 +461,31 @@ namespace HM
    // an AppImage run as a service is the case - has it. The helper is copied out
    // of the image first, as the Windows helper is copied out of Bin: the image's
    // mount goes away with the process that mounted it.
+   // A unit named for the version, collected when it is done or has failed, so
+   // that a second attempt at the same version is not refused for the first
+   // one's remains. The unit to stop and the image to swap are the helper's
+   // command line, never the request's alone: from 6.3.6 the helper takes
+   // neither from the request, and refuses an AppImage request whose command
+   // line names no image. On this route the server is root (systemd-run would
+   // not have been allowed otherwise), so what it knows of itself is root's
+   // word. Each is passed only when it can be quoted whole; the helper then
+   // refuses the request, which names it, rather than act on something else.
+   String
+   UpdateInstaller::SystemdRunCommand(const String &systemdRun, const String &version, const String &helper,
+      const String &requestFile, const String &directory, const String &unit, const String &image)
+   {
+      String command = systemdRun + _T(" --unit=hmailserver-update-") + version + _T(" --collect --quiet -- ")
+         + Quote_(helper) + _T(" apply --request ") + Quote_(requestFile) + _T(" --updates-dir ") + Quote_(directory);
+      if (!unit.IsEmpty() && unit.Find(_T("\"")) < 0)
+         command += _T(" --unit ") + Quote_(unit);
+      if (!image.IsEmpty() && image.Find(_T("\"")) < 0)
+         command += _T(" --image ") + Quote_(image);
+      return command;
+   }
+
    bool
-   UpdateInstaller::LaunchPosix_(const AnsiString &request, const String &version, const String &helperSource, String &error)
+   UpdateInstaller::LaunchPosix_(const AnsiString &request, const String &version, const String &helperSource,
+      const String &unit, const String &image, String &error)
    {
       String directory = UpdateDownloader::UpdatesDirectory();
 
@@ -547,11 +570,11 @@ namespace HM
          }
          chmod(std::string(AnsiString(helper).c_str()).c_str(), 0755);
 
-         // A unit named for the version, collected when it is done or has
-         // failed, so that a second attempt at the same version is not refused
-         // for the first one's remains.
-         String command = String(systemdRun) + _T(" --unit=hmailserver-update-") + version + _T(" --collect --quiet -- ")
-            + Quote_(helper) + _T(" apply --request ") + Quote_(requestFile) + _T(" --updates-dir ") + Quote_(directory);
+         // The unit this server runs under, and for an AppImage the image it runs
+         // from, are passed by Apply and go on the helper's command line
+         // (SystemdRunCommand), never taken by the helper from the request alone.
+         String command = SystemdRunCommand(String(systemdRun), version, helper, requestFile, directory,
+            unit, image);
          LOG_APPLICATION(Formatter::Format(_T("Update: {0}; starting the helper with systemd-run: {1}"), untaken, command));
 
          ProcessLauncher launcher(command, directory);
@@ -932,7 +955,20 @@ namespace HM
          request += "rollback=" + AnsiString(rollbackPath) + "\n";
          request += "rollback_version=" + AnsiString(running) + "\n";
       }
-      request += "unit=" + AnsiString(OwnUnitName_().c_str()) + "\n";
+      // The unit this server runs under and, for an AppImage, the image it runs
+      // from, read once here: written into the request for the helper to check
+      // against, and passed to LaunchPosix_ for the systemd-run route, which puts
+      // them on the helper's own (root's) command line. The helper from 6.3.6
+      // takes neither from the request alone.
+      String ownUnit = String(OwnUnitName_().c_str());
+      String appImage;
+      if (kind == UpdateChecker::InstallAppImage)
+      {
+         const char *image = getenv("APPIMAGE");
+         if (image)
+            appImage = String(image);
+      }
+      request += "unit=" + AnsiString(ownUnit) + "\n";
       request += "outcome=" + AnsiString(outcome) + "\n";
       request += "log=" + AnsiString(directory) + "/apply-" + AnsiString(snapshot.available_version) + ".log\n";
       request += "wait=" + AnsiString(Formatter::Format(_T("{0}"), IniFileSettings::Instance()->GetUpdateServiceWaitSeconds())) + "\n";
@@ -944,12 +980,9 @@ namespace HM
       if (!readyUrl.empty())
          request += "ready_url=" + AnsiString(readyUrl.c_str()) + "\n";
       if (kind == UpdateChecker::InstallAppImage)
-      {
-         const char *image = getenv("APPIMAGE");
-         request += "image=" + AnsiString(image ? image : "") + "\n";
-      }
+         request += "image=" + AnsiString(appImage) + "\n";
 
-      if (!LaunchPosix_(request, snapshot.available_version, helperSource, why))
+      if (!LaunchPosix_(request, snapshot.available_version, helperSource, ownUnit, appImage, why))
       {
          UpdateChecker::RecordFailure(why);
          LOG_APPLICATION(Formatter::Format(_T("Update apply failed: {0}"), why));

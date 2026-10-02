@@ -22,19 +22,32 @@
 # apt-get is absent; the .rpm with dnf and its rollback through rpm --oldpackage;
 # the AppImage swap and its rollback; the refusals a root helper owes an
 # unprivileged requester (a package outside the Updates directory, a symlink,
-# a unit that is not the server's, an unknown key, an outcome path elsewhere, a
-# line that is a wildcard) - each refused in the journal alone, with nothing
-# written into the requester's directory; the symlinks a requester might plant where root is about to write,
-# followed by nothing; the root re-verification refusing a tampered file; the
-# version rule (a signed package that is not newer than the installed one is
-# not installed, the request's version line is not believed over the package's,
-# a rollback image that is not the installed version is dropped); an image or
-# a directory anyone else can write to; the log file that is only written after
-# the stop; and --dry-run touching nothing.
+# a unit that is not the one root's configuration names, an unknown key, an
+# outcome path elsewhere, a line that is a wildcard, an AppImage request where
+# root's configuration names no image or another image, a package request where
+# it names one) - each refused in the journal alone, with nothing written into
+# the requester's directory; the symlinks a requester might plant where root is
+# about to write, followed by nothing; a stop that did not stop the unit, and a
+# process of the Updates directory's owner that outlived it, followed by
+# nothing; the root re-verification refusing a tampered file, made by the
+# configured verifier and never by one the request names, on root's own copy,
+# so that a file replaced after the verification is not what is installed or
+# run; a package or a rollback image replaced by a symlink between the check
+# and the stop, neither copied nor read; root's copies readable by root alone
+# until they have verified, and an AppImage's made beside the image rather than
+# under a /var/tmp that may be noexec; the version rule (a signed package that is not newer than the installed
+# one is not installed, nor one where no installed version can be read, the
+# request's version line is not believed over the package's, a rollback image
+# that is not the installed version is dropped); an image or a directory anyone
+# else can write to; the log file that is only written after the stop; and
+# --dry-run touching nothing.
 #
 # What it cannot prove, and says so: that a real dpkg -i under a real unit puts
 # the new binary in place - that needs root and a signed package, and is the
-# packaging README's "what was run for real" paragraph.
+# packaging README's "what was run for real" paragraph. One case, a process of
+# the Updates directory's owner still running after the stop, needs root to run
+# a process as another user; as anyone else it says it is skipped (the
+# update-helper job runs as root).
 #
 # USAGE
 #   build/test-hmailserver-update.sh [--repo-root DIR] [--keep]
@@ -56,7 +69,7 @@ while [ "$#" -gt 0 ]; do
          ;;
       --keep) KEEP=1; shift ;;
       -h|--help)
-         sed -n '5,36p' "${BASH_SOURCE[0]}"
+         sed -n '5,50p' "${BASH_SOURCE[0]}"
          exit 0
          ;;
       *)
@@ -100,7 +113,7 @@ mkdir -p "${FAKE_BIN}" "${REAL_BIN}"
 # these and the fakes - and nothing else, which is how "apt-get is absent" is
 # arranged for the dpkg case. Those that are shell builtins in dash are listed
 # too, for a sh that has them as programs.
-for tool in sh cat head tail sort sed tr realpath stat date sleep mktemp cp chown chmod ln mv rm dirname basename grep id printf echo test; do
+for tool in sh cat head tail sort sed tr realpath stat date sleep mktemp mkdir cp chown chmod ln mv rm dirname basename grep id printf echo test; do
    path="$(command -v "${tool}" 2>/dev/null || true)"
    case "${path}" in
       /*) ln -sf "${path}" "${REAL_BIN}/${tool}" ;;
@@ -114,7 +127,18 @@ cat > "${FAKE_BIN}/systemctl" <<'FAKE'
 echo "systemctl $*" >> "$FAKE_DIR/calls"
 case "$1" in
    stop)
-      echo inactive > "$FAKE_DIR/state"
+      # What the service user did last, just before it was stopped - after
+      # root had checked the request: $FAKE_DIR/on-stop, run once.
+      if [ -f "$FAKE_DIR/on-stop" ]; then
+         sh "$FAKE_DIR/on-stop"
+         rm -f "$FAKE_DIR/on-stop"
+      fi
+      # inactive, unless the case says the stop left the unit otherwise.
+      if [ -f "$FAKE_DIR/stop-state" ]; then
+         cat "$FAKE_DIR/stop-state" > "$FAKE_DIR/state"
+      else
+         echo inactive > "$FAKE_DIR/state"
+      fi
       ;;
    start)
       # One line of the plan per start: active or failed; active when the
@@ -191,6 +215,18 @@ case "$me $1" in
       installed_version; exit 0 ;;
 esac
 echo "$me $*" >> "$FAKE_DIR/calls"
+# The first line of the file it was given to install: what was installed, as
+# against what was verified. And its mode: apt hands a local package to an
+# unprivileged user of its own, who must be able to read it.
+for last in "$@"; do :; done
+case "$last" in
+   /*)
+      if [ -f "$last" ]; then
+         echo "$me $(head -n 1 "$last")" >> "$FAKE_DIR/installed-bytes"
+         echo "$me $(stat -c %a "$last")" >> "$FAKE_DIR/installed-modes"
+      fi
+      ;;
+esac
 code=""
 if [ -f "$FAKE_DIR/install-plan" ]; then
    code="$(head -n 1 "$FAKE_DIR/install-plan")"
@@ -217,19 +253,32 @@ FAKE
 # hmailserver --verify-update FILE: the bundle beside the file, and content
 # that has not been marked. --version answers the installed version, because
 # a copy of this fake stands in for the RUNNING AppImage, whose --version is
-# what the helper takes the installed version from.
+# what the helper takes the installed version from. When the case has written
+# $FAKE_DIR/swap-after-verify, the first file that verifies is followed by a
+# replacement of the file that file names with $FAKE_DIR/swap-with - what a
+# process of the service user that outlived the stop could do to the package
+# in the Updates directory between root's verification and root's install.
 cat > "${FAKE_BIN}/hmailserver" <<'FAKE'
 #!/bin/sh
 if [ "$1" = "--version" ]; then
-   v="$(cat "$FAKE_DIR/installed-version" 2>/dev/null)"
-   echo "hMailServer ${v:-9.9.8} build 0"
+   if [ -f "$FAKE_DIR/installed-version" ]; then v="$(cat "$FAKE_DIR/installed-version")"; else v=9.9.8; fi
+   [ -z "$v" ] || echo "hMailServer $v build 0"
    exit 0
 fi
 echo "hmailserver $*" >> "$FAKE_DIR/calls"
 if [ "$1" = "--verify-update" ]; then
+   # What it was given to read, by its first line, and the modes of the file and
+   # of its directory: what anybody but root could have read of it while it was
+   # being verified.
+   [ -f "$2" ] && head -n 1 "$2" >> "$FAKE_DIR/verified-bytes"
+   echo "$(stat -c %a "$2") $(stat -c %a "$(dirname "$2")")" >> "$FAKE_DIR/verified-modes"
    [ -f "$2.cosign.bundle" ] || { echo "$2 has no Sigstore bundle beside it" >&2; exit 1; }
    if grep -q TAMPERED "$2"; then echo "$2 did not verify" >&2; exit 1; fi
    echo "$2 verifies"
+   if [ -f "$FAKE_DIR/swap-after-verify" ]; then
+      cp "$FAKE_DIR/swap-with" "$(head -n 1 "$FAKE_DIR/swap-after-verify")"
+      rm -f "$FAKE_DIR/swap-after-verify"
+   fi
    exit 0
 fi
 echo "hMailServer 0.0.0 build 0"
@@ -245,6 +294,7 @@ chmod +x "${FAKE_BIN}"/*
 CASE=""
 UPDATES=""
 FAKE_DIR=""
+PRIVATE_TMP=""
 REQUEST=""
 OUTCOME=""
 LOG=""
@@ -258,6 +308,7 @@ setup()
    mkdir -p "${dir}/updates/rollback"
    UPDATES="${dir}/updates"
    FAKE_DIR="${dir}/fake"
+   PRIVATE_TMP="${dir}/tmp"
    mkdir -p "${FAKE_DIR}"
    printf 'new package bytes\n' > "${UPDATES}/hmailserver_9.9.9_amd64.deb"
    printf 'bundle\n' > "${UPDATES}/hmailserver_9.9.9_amd64.deb.cosign.bundle"
@@ -299,11 +350,47 @@ run_helper()
       done
       path="${thinned}:${REAL_BIN}"
    fi
-   OUT="$(env -i PATH="${path}" FAKE_DIR="${FAKE_DIR}" \
+   # TMPDIR is where the helper makes the directory its copies go in, one per
+   # case so that a case can see it made and removed.
+   mkdir -p "${PRIVATE_TMP}"
+   OUT="$(env -i PATH="${path}" FAKE_DIR="${FAKE_DIR}" TMPDIR="${PRIVATE_TMP}" \
       HMAILSERVER_UPDATE_SETTLE_SECONDS=1 HMAILSERVER_UPDATE_POLL_SECONDS=1 HMAILSERVER_UPDATE_PAUSE_SECONDS=0 \
       HMAILSERVER_UPDATE_PROGRAM="${FAKE_BIN}/hmailserver" \
       sh "${HELPER}" apply --request "${REQUEST}" --updates-dir "${UPDATES}" "${@:2}" 2>&1)"
    RC=$?
+}
+
+# A string as an extended regular expression that matches it alone.
+re_quote()
+{
+   printf '%s' "$1" | sed 's/[][\.*^$+?(){}|]/\\&/g'
+}
+
+# The pattern of the copy the helper made of a file it was given: in a
+# directory of its own under TMPDIR, in "package" or "rollback", by the same
+# name.
+copy_of()
+{
+   printf '%s/hmailserver-update\\.[A-Za-z0-9]{6}/%s/%s' "$(re_quote "${PRIVATE_TMP}")" "$1" "$(re_quote "$2")"
+}
+
+expect_call_re()
+{
+   if calls | grep -qE -- "^$1\$"; then pass; else fail "no call matching '$1'; calls were:"; calls | sed 's/^/        /'; fi
+}
+
+# What the fake package manager was handed to install, by its first line.
+expect_installed_bytes()
+{
+   local got
+   got="$(cat "${FAKE_DIR}/installed-bytes" 2>/dev/null)"
+   [ "${got}" = "$1" ] && pass || fail "installed '${got}', expected '$1'"
+}
+
+# The helper's copies are gone when it is.
+expect_no_copies_left()
+{
+   [ -z "$(ls -A "${PRIVATE_TMP}" 2>/dev/null)" ] && pass || fail "the helper left its copies behind: $(ls -A "${PRIVATE_TMP}" | tr '\n' ' ')"
 }
 
 outcome_line()
@@ -372,11 +459,16 @@ expect_rc 0
 expect_outcome_starts "ok 9.9.9 the package was installed and the service is running"
 expect_one_line
 expect_call "systemctl stop hmailserver.service"
-expect_call "hmailserver --verify-update ${UPDATES}/hmailserver_9.9.9_amd64.deb"
-expect_call "hmailserver --verify-update ${UPDATES}/rollback/hmailserver_9.9.8_amd64.deb"
-expect_call "apt-get install -y -q --no-install-recommends -o DPkg::Lock::Timeout=300 -o Dpkg::Use-Pty=0 -o Dpkg::Progress-Fancy=0 ${UPDATES}/hmailserver_9.9.9_amd64.deb"
+# Root verifies and installs its own copies, never the files in the Updates
+# directory, and removes them when it is done.
+expect_call_re "hmailserver --verify-update $(copy_of package hmailserver_9.9.9_amd64.deb)"
+expect_call_re "hmailserver --verify-update $(copy_of rollback hmailserver_9.9.8_amd64.deb)"
+expect_call_re "apt-get install -y -q --no-install-recommends -o DPkg::Lock::Timeout=300 -o Dpkg::Use-Pty=0 -o Dpkg::Progress-Fancy=0 $(copy_of package hmailserver_9.9.9_amd64.deb)"
+expect_installed_bytes "apt-get new package bytes"
+expect_no_copies_left
 expect_call "systemctl start hmailserver.service"
 expect_no_call "dpkg -i"
+expect_no_call "hmailserver --verify-update ${UPDATES}/"
 [ -f "${REQUEST}" ] && fail "the request was not removed" || pass
 [ -f "${LOG}" ] && grep -q "outcome: ok" "${LOG}" && pass || fail "the log file was not written with the outcome"
 # The stop comes first; the verification and the install come after it - and
@@ -388,7 +480,11 @@ grep -q "applying hMailServer 9.9.9" "${LOG}" && fail "the log file holds a line
 # The outcome and the log were made under names of the helper's own choosing
 # and renamed into place: nothing of theirs is left behind, and the forward
 # install was not allowed to be a downgrade.
-[ -z "$(ls "${UPDATES}" | grep -E '^(last-apply|apply)\.[A-Za-z0-9]{6}$')" ] && pass || fail "a temporary file was left in the Updates directory: $(ls "${UPDATES}" | tr '\n' ' ')"
+leftover=""
+for f in "${UPDATES}"/last-apply.?????? "${UPDATES}"/apply.??????; do
+   [ -e "${f}" ] && leftover="${leftover} ${f##*/}"
+done
+[ -z "${leftover}" ] && pass || fail "a temporary file was left in the Updates directory:${leftover}"
 calls | grep -q -- '--allow-downgrades' && fail "the forward install allowed a downgrade" || pass
 [ "$(stat -c %a "${OUTCOME}")" = 640 ] && pass || fail "the outcome file's mode is $(stat -c %a "${OUTCOME}"), not 640"
 
@@ -430,7 +526,8 @@ printf 'failed\nactive\n' > "${FAKE_DIR}/start-plan"
 run_helper
 expect_rc 1
 expect_outcome_starts "rolled-back 9.9.9 the package was installed but the service was not back after 2 seconds (failed); hMailServer 9.9.8 was reinstalled and the service is running"
-expect_call "apt-get install -y -q --no-install-recommends --allow-downgrades -o DPkg::Lock::Timeout=300 -o Dpkg::Use-Pty=0 -o Dpkg::Progress-Fancy=0 ${UPDATES}/rollback/hmailserver_9.9.8_amd64.deb"
+expect_call_re "apt-get install -y -q --no-install-recommends --allow-downgrades -o DPkg::Lock::Timeout=300 -o Dpkg::Use-Pty=0 -o Dpkg::Progress-Fancy=0 $(copy_of rollback hmailserver_9.9.8_amd64.deb)"
+expect_no_copies_left
 [ "$(calls | grep -c 'systemctl stop')" = 2 ] && pass || fail "expected two stops (one before the rollback)"
 [ "$(calls | grep -c 'systemctl start')" = 2 ] && pass || fail "expected two starts"
 
@@ -472,7 +569,7 @@ write_request
 run_helper apt-get
 expect_rc 0
 expect_outcome_starts "ok 9.9.9"
-expect_call "dpkg -i ${UPDATES}/hmailserver_9.9.9_amd64.deb"
+expect_call_re "dpkg -i $(copy_of package hmailserver_9.9.9_amd64.deb)"
 expect_no_call "apt-get"
 
 setup rpm-with-dnf
@@ -482,15 +579,15 @@ printf 'failed\nactive\n' > "${FAKE_DIR}/start-plan"
 run_helper
 expect_rc 1
 expect_outcome_starts "rolled-back 9.9.9"
-expect_call "dnf install -y ${UPDATES}/hmailserver_9.9.9_amd64.deb"
-expect_call "rpm -Uvh --oldpackage ${UPDATES}/rollback/hmailserver_9.9.8_amd64.deb"
+expect_call_re "dnf install -y $(copy_of package hmailserver_9.9.9_amd64.deb)"
+expect_call_re "rpm -Uvh --oldpackage $(copy_of rollback hmailserver_9.9.8_amd64.deb)"
 
 setup rpm-without-dnf
 write_request
 sed -i 's/^kind=.*/kind=rpm/' "${REQUEST}"
 run_helper dnf
 expect_rc 0
-expect_call "rpm -Uvh ${UPDATES}/hmailserver_9.9.9_amd64.deb"
+expect_call_re "rpm -Uvh $(copy_of package hmailserver_9.9.9_amd64.deb)"
 expect_no_call "dnf"
 
 setup refused-outside
@@ -506,7 +603,14 @@ expect_output "the request was refused: package is not inside ${UPDATES}"
 # Updates directory may be alive, and root writes nothing there - not even
 # the outcome.
 [ -f "${OUTCOME}" ] && fail "a refusal wrote the outcome file, into a directory whose owner may be running" || pass
-[ -z "$(ls "${UPDATES}" | grep -vE '^(hmailserver_9\.9\.9_amd64\.deb(\.cosign\.bundle)?|rollback)$')" ] && pass || fail "a refusal left something in the Updates directory: $(ls "${UPDATES}" | tr '\n' ' ')"
+leftover=""
+for f in "${UPDATES}"/*; do
+   case "${f##*/}" in
+      hmailserver_9.9.9_amd64.deb|hmailserver_9.9.9_amd64.deb.cosign.bundle|rollback) ;;
+      *) leftover="${leftover} ${f##*/}" ;;
+   esac
+done
+[ -z "${leftover}" ] && pass || fail "a refusal left something in the Updates directory:${leftover}"
 expect_no_call "systemctl"
 [ -f "${REQUEST}" ] && fail "a refused request was left in place" || pass
 
@@ -565,21 +669,174 @@ expect_outcome_starts "no-rollback 9.9.9"
 expect_output "the rollback image is version '9.9.6' and the installed version is '9.9.8'; continuing without one"
 [ "$(calls | grep -c 'apt-get')" = 1 ] && pass || fail "a rollback image of the wrong version was installed"
 
+# No installed version, no install. The version rule cannot be held without
+# one, and a machine whose package database does not know hmailserver is not
+# one installed the way the request's kind says: a kind=rpm request on a .deb
+# machine reads nothing from rpm -q, and before 6.3.6 that was installed "over
+# whatever is here", signed but of any version.
 setup no-installed-version
 write_request
 printf '' > "${FAKE_DIR}/installed-version"
 run_helper
-expect_rc 0
-expect_outcome_starts "ok 9.9.9"
-expect_output "no installed version is recorded for hmailserver; installing 9.9.9 over whatever is here"
+expect_rc 1
+expect_outcome_starts "failed 9.9.9 the installed version could not be read (dpkg has no installed hmailserver package), so this is not a deb installation that can be upgraded and nothing was installed"
+expect_call "systemctl start hmailserver.service"
+expect_no_call "apt-get"
+expect_no_call "dpkg -i"
 
+# The unit stopped is root's: hmailserver.service, or the one --unit names.
+# The request's unit= is held to it, and refused when it differs - postgresql's
+# unit, and as much a unit of the server's name the helper was not given. Before
+# 6.3.6 the second was stopped in place of the server's, and everything after
+# rested on a stop that had not stopped the server.
 setup refused-unit
 write_request
 sed -i 's/^unit=.*/unit=postgresql.service/' "${REQUEST}"
 run_helper
 expect_rc 4
-expect_output "unit must be the server's own unit"
+expect_output "the request says the server runs under 'postgresql.service', and this program stops hmailserver.service"
 expect_no_call "systemctl"
+
+setup refused-unit-not-configured
+write_request
+sed -i 's/^unit=.*/unit=hmailserver-test.service/' "${REQUEST}"
+run_helper
+expect_rc 4
+expect_output "the request says the server runs under 'hmailserver-test.service', and this program stops hmailserver.service"
+expect_no_call "systemctl"
+[ -f "${OUTCOME}" ] && fail "a refusal wrote the outcome file" || pass
+
+setup configured-unit
+write_request
+sed -i 's/^unit=.*/unit=hmailserver-test.service/' "${REQUEST}"
+run_helper "" --unit hmailserver-test.service
+expect_rc 0
+expect_outcome_starts "ok 9.9.9"
+expect_call "systemctl stop hmailserver-test.service"
+expect_call "systemctl start hmailserver-test.service"
+expect_no_call "systemctl stop hmailserver.service"
+
+# A request without unit= - none the server writes, but the key was always
+# optional - stops the configured unit.
+setup request-without-unit
+write_request
+sed -i '/^unit=/d' "${REQUEST}"
+run_helper
+expect_rc 0
+expect_call "systemctl stop hmailserver.service"
+
+setup refused-own-unit
+write_request
+sed -i 's/^unit=.*/unit=hmailserver-update.service/' "${REQUEST}"
+run_helper "" --unit hmailserver-update.service
+expect_rc 4
+expect_output "the unit to stop is this program's own"
+expect_no_call "systemctl"
+
+# Stopped is looked at, not assumed. A stop that leaves the unit active - a
+# unit that is not the one the server runs under, or one that would not stop -
+# is followed by nothing: no verification, no install, no log and no outcome in
+# a directory whose owner may still be running; the unit is started again.
+setup stop-not-confirmed
+write_request
+printf 'active\n' > "${FAKE_DIR}/stop-state"
+run_helper
+expect_rc 1
+expect_output "hmailserver.service is active after the stop"
+expect_call "systemctl stop hmailserver.service"
+expect_call "systemctl start hmailserver.service"
+expect_no_call "hmailserver --verify-update"
+expect_no_call "apt-get"
+[ -f "${OUTCOME}" ] && fail "an unconfirmed stop wrote the outcome file" || pass
+[ -f "${LOG}" ] && fail "an unconfirmed stop wrote the log file" || pass
+
+# And no process may run as the owner of the Updates directory (or of a
+# directory above it) once the unit has stopped: here one runs as uid 65534,
+# which owns the case's directories. Root alone can arrange that, so as any
+# other user the case says it is skipped.
+if [ "$(id -u)" = 0 ] && command -v setpriv >/dev/null 2>&1; then
+   setup service-user-process-alive
+   write_request
+   chown -R 65534:65534 "${WORK}/${CASE}"
+   setpriv --reuid=65534 --regid=65534 --clear-groups sleep 60 &
+   sleeper=$!
+   run_helper
+   kill "${sleeper}" 2>/dev/null
+   wait "${sleeper}" 2>/dev/null
+   expect_rc 1
+   expect_output "process ${sleeper} runs as uid 65534, which owns ${UPDATES} or a directory above it, after hmailserver.service was stopped"
+   expect_call "systemctl start hmailserver.service"
+   expect_no_call "hmailserver --verify-update"
+   expect_no_call "apt-get"
+   [ -f "${OUTCOME}" ] && fail "a live service user's directory got the outcome file" || pass
+   # The same directories with nobody of theirs running: the apply goes on.
+   rm -f "${FAKE_DIR}/calls"
+   write_request
+   run_helper
+   expect_rc 0
+   expect_outcome_starts "ok 9.9.9"
+   [ "$(stat -c %u "${OUTCOME}")" = 65534 ] && pass || fail "the outcome is not owned like the Updates directory"
+else
+   echo "== service-user-process-alive: skipped (needs root and setpriv)"
+fi
+
+# What is installed is what was verified. A file in the Updates directory that
+# is replaced after root's verification - by a process that outlived the stop -
+# is not what root installs: root verified and installs its own copy.
+setup verified-copy-installed
+write_request
+printf 'SWAPPED bytes\n' > "${FAKE_DIR}/swap-with"
+printf '%s\n' "${UPDATES}/hmailserver_9.9.9_amd64.deb" > "${FAKE_DIR}/swap-after-verify"
+run_helper
+expect_rc 0
+expect_installed_bytes "apt-get new package bytes"
+expect_no_copies_left
+
+# Root's copies are root's alone until they have verified: whatever the
+# requester named - a hard link to a file of somebody else's is a plain file
+# too - is readable by nobody else while it is copied and verified. Once the
+# package has verified it is a signed release, and apt's own unprivileged user
+# reads it by its name.
+setup copies-private-until-verified
+write_request
+run_helper
+expect_rc 0
+modes="$(sort -u "${FAKE_DIR}/verified-modes" 2>/dev/null)"
+[ "${modes}" = "600 700" ] && pass || fail "a file was verified where others could read it (the file, its directory): ${modes:-none recorded}"
+[ "$(cat "${FAKE_DIR}/installed-modes" 2>/dev/null)" = "apt-get 644" ] && pass || fail "the verified package was not readable by apt's own user: $(cat "${FAKE_DIR}/installed-modes" 2>/dev/null)"
+
+# The request is checked while the service user still runs, and what it does
+# after that, before it is stopped, is not believed: a package or a rollback
+# image replaced by a symlink to a file of somebody else's is looked at again
+# once the service has stopped, and is neither copied nor read. The unit is
+# started again and the outcome says why.
+setup swapped-for-symlink-before-stop
+write_request
+secret="${WORK}/${CASE}/secret"
+printf 'SECRET of somebody else\n' > "${secret}"
+chmod 0600 "${secret}"
+printf 'rm -f "%s"; ln -s "%s" "%s"\n' "${UPDATES}/hmailserver_9.9.9_amd64.deb" "${secret}" "${UPDATES}/hmailserver_9.9.9_amd64.deb" > "${FAKE_DIR}/on-stop"
+run_helper
+expect_rc 1
+expect_outcome_starts "failed 9.9.9 the package was no longer a plain file inside ${UPDATES} when the service had stopped"
+expect_call "systemctl start hmailserver.service"
+expect_no_call "hmailserver --verify-update"
+expect_no_call "apt-get"
+grep -q SECRET "${FAKE_DIR}/verified-bytes" 2>/dev/null && fail "root read the symlink's target as the package" || pass
+expect_no_copies_left
+
+setup rollback-swapped-for-symlink-before-stop
+write_request
+secret="${WORK}/${CASE}/secret"
+printf 'SECRET of somebody else\n' > "${secret}"
+chmod 0600 "${secret}"
+printf 'rm -f "%s"; ln -s "%s" "%s"\n' "${UPDATES}/rollback/hmailserver_9.9.8_amd64.deb" "${secret}" "${UPDATES}/rollback/hmailserver_9.9.8_amd64.deb" > "${FAKE_DIR}/on-stop"
+run_helper
+expect_rc 1
+expect_outcome_starts "failed 9.9.9 the rollback image was no longer a plain file inside ${UPDATES} when the service had stopped"
+expect_no_call "apt-get"
+grep -q SECRET "${FAKE_DIR}/verified-bytes" 2>/dev/null && fail "root read the symlink's target as the rollback image" || pass
+expect_no_copies_left
 
 # A key this script does not know is said and skipped, not refused: an AppImage
 # host keeps the script it was given while the swap refreshes the image, so a
@@ -651,6 +908,21 @@ new_image()
    printf 'bundle\n' > "$2.cosign.bundle"
 }
 
+# An AppImage's copies are made beside the image, not under TMPDIR: the copy is
+# run for its version, and /var/tmp is often mounted noexec, while the image's
+# directory - root's own - is one the image already runs from.
+image_copy_of()
+{
+   printf '%s/\\.hmailserver-update\\.[A-Za-z0-9]{6}/%s/%s' "$(re_quote "${IMAGE_DIR}")" "$1" "$(re_quote "$2")"
+}
+
+expect_no_image_copies_left()
+{
+   local left
+   left="$(find "${IMAGE_DIR}" -maxdepth 1 -name '.hmailserver-update.*' 2>/dev/null)"
+   [ -z "${left}" ] && pass || fail "the helper left its copies beside the image: ${left}"
+}
+
 setup appimage-ok
 write_request
 IMAGE_DIR="${WORK}/${CASE}/opt"
@@ -674,7 +946,7 @@ log=${LOG}
 wait=2
 image=${IMAGE}
 EOF
-run_helper
+run_helper "" --image "${IMAGE}"
 expect_rc 0
 expect_outcome_starts "ok 9.9.9"
 grep -q "NEW IMAGE" "${IMAGE}" && pass || fail "the image was not replaced"
@@ -682,6 +954,12 @@ grep -q "NEW IMAGE" "${IMAGE}" && pass || fail "the image was not replaced"
 [ "$(stat -c %a "${IMAGE}")" = 755 ] && pass || fail "the new image did not take the old one's mode"
 expect_no_call "apt-get"
 expect_no_call "dpkg"
+# Verified as root's own copy beside the image, readable and runnable by root
+# alone (the copy, its directory), and gone afterwards.
+expect_call_re "hmailserver --verify-update $(image_copy_of package hMailServer-9.9.9-x86_64.AppImage)"
+expect_no_call "hmailserver --verify-update ${PRIVATE_TMP}/"
+[ "$(head -n 1 "${FAKE_DIR}/verified-modes" 2>/dev/null)" = "700 700" ] && pass || fail "the AppImage was verified where others could read it: $(head -n 1 "${FAKE_DIR}/verified-modes" 2>/dev/null)"
+expect_no_image_copies_left
 
 setup appimage-not-newer
 IMAGE_DIR="${WORK}/${CASE}/opt"
@@ -700,7 +978,7 @@ outcome=${OUTCOME}
 wait=2
 image=${IMAGE}
 EOF
-run_helper
+run_helper "" --image "${IMAGE}"
 expect_rc 1
 expect_outcome_starts "failed 9.9.8 the package is version 9.9.8 and the installed version is 9.9.8: not an upgrade"
 grep -q "verify-update" "${IMAGE}" && pass || fail "the running image was replaced by one that is not newer"
@@ -727,7 +1005,7 @@ wait=2
 image=${IMAGE}
 EOF
 printf 'failed\nactive\n' > "${FAKE_DIR}/start-plan"
-run_helper
+run_helper "" --image "${IMAGE}"
 expect_rc 1
 expect_outcome_starts "rolled-back 9.9.9"
 [ "$(cat "${IMAGE}" | wc -c)" = "${old_sum}" ] && grep -q "verify-update" "${IMAGE}" && pass || fail "the old image was not put back"
@@ -754,7 +1032,7 @@ outcome=${OUTCOME}
 wait=2
 image=${IMAGE}
 EOF
-run_helper
+run_helper "" --image "${IMAGE}"
 expect_rc 4
 expect_output "image is writable by its group or by others"
 expect_no_call "systemctl"
@@ -777,10 +1055,137 @@ outcome=${OUTCOME}
 wait=2
 image=${IMAGE}
 EOF
-run_helper
+run_helper "" --image "${IMAGE}"
 expect_rc 4
 expect_output "the image's directory is writable by its group or by others (mode 730)"
 expect_no_call "systemctl"
+
+# The verifier of an AppImage is the image root's own configuration names
+# (--image), never one the request names, and an AppImage request is refused
+# where none is named. Before 6.3.6 the request's image= was the verifier: any
+# program owned by root that exits 0 - a copy of true here - "verified"
+# anything, and the package, a script the service user wrote into the Updates
+# directory, was then run as root for its version and swapped in over that
+# program. The payload records that it ran; it must not.
+image_setup()
+{
+   IMAGE_DIR="${WORK}/${CASE}/opt"
+   mkdir -p "${IMAGE_DIR}"
+   chmod 0755 "${IMAGE_DIR}"
+   IMAGE="${IMAGE_DIR}/hMailServer.AppImage"
+   cp "${FAKE_BIN}/hmailserver" "${IMAGE}"
+   chmod 0755 "${IMAGE}"
+}
+
+true_copy()
+{
+   TRUE_DIR="${WORK}/${CASE}/usr-bin"
+   mkdir -p "${TRUE_DIR}"
+   chmod 0755 "${TRUE_DIR}"
+   cp "$(type -P true)" "${TRUE_DIR}/true"
+   chmod 0755 "${TRUE_DIR}/true"
+}
+
+payload()
+{
+   printf '#!/bin/sh\necho "ran as $(id -u) with $*" > "%s/PAYLOAD_RAN"\necho "hMailServer 99.0.0 build 0"\n' "${FAKE_DIR}" > "$1"
+   chmod 0755 "$1"
+}
+
+# An AppImage request: $1 the package's name in the Updates directory, $2 the
+# version, $3 the image= line's value (none when empty).
+appimage_request()
+{
+   {
+      echo "kind=appimage"
+      echo "version=$2"
+      echo "package=${UPDATES}/$1"
+      echo "unit=hmailserver.service"
+      echo "outcome=${OUTCOME}"
+      echo "log=${LOG}"
+      echo "wait=2"
+      [ -z "$3" ] || echo "image=$3"
+   } > "${REQUEST}"
+}
+
+expect_no_payload()
+{
+   [ -f "${FAKE_DIR}/PAYLOAD_RAN" ] && fail "the requester's package ran: $(cat "${FAKE_DIR}/PAYLOAD_RAN")" || pass
+}
+
+setup appimage-refused-unconfigured
+true_copy
+payload "${UPDATES}/evil.AppImage"
+appimage_request evil.AppImage 99.0.0 "${TRUE_DIR}/true"
+run_helper
+expect_rc 4
+expect_output "kind=appimage, and this program's configuration names no AppImage (--image)"
+expect_no_payload
+cmp -s "${TRUE_DIR}/true" "$(type -P true)" && pass || fail "the program the request named as the image was replaced"
+expect_no_call "systemctl"
+[ -f "${OUTCOME}" ] && fail "a refusal wrote the outcome file" || pass
+
+setup appimage-refused-other-image
+image_setup
+true_copy
+payload "${UPDATES}/evil.AppImage"
+appimage_request evil.AppImage 99.0.0 "${TRUE_DIR}/true"
+run_helper "" --image "${IMAGE}"
+expect_rc 4
+expect_output "the request names the image ${TRUE_DIR}/true, and this program's configuration names ${IMAGE}"
+expect_no_payload
+cmp -s "${TRUE_DIR}/true" "$(type -P true)" && pass || fail "the program the request named as the image was replaced"
+expect_no_call "systemctl"
+
+# With the image configured, an unsigned package is verified by that image, on
+# root's copy of it, refuses, and is never run.
+setup appimage-unsigned-not-run
+image_setup
+payload "${UPDATES}/evil.AppImage"
+appimage_request evil.AppImage 99.0.0 "${IMAGE}"
+run_helper "" --image "${IMAGE}"
+expect_rc 1
+expect_outcome_starts "failed 99.0.0 the package did not verify against its Sigstore bundle when checked as root"
+expect_call_re "hmailserver --verify-update $(image_copy_of package evil.AppImage)"
+expect_no_payload
+grep -q "verify-update" "${IMAGE}" && pass || fail "the image was replaced by a package that did not verify"
+expect_no_image_copies_left
+
+# What is run for its version, and swapped in, is root's verified copy: the
+# file in the Updates directory replaced by a payload after the verification
+# is neither.
+setup appimage-verified-copy-run
+image_setup
+new_image 9.9.9 "${UPDATES}/hMailServer-9.9.9-x86_64.AppImage"
+payload "${FAKE_DIR}/swap-with"
+printf '%s\n' "${UPDATES}/hMailServer-9.9.9-x86_64.AppImage" > "${FAKE_DIR}/swap-after-verify"
+appimage_request hMailServer-9.9.9-x86_64.AppImage 9.9.9 "${IMAGE}"
+run_helper "" --image "${IMAGE}"
+expect_rc 0
+expect_outcome_starts "ok 9.9.9"
+expect_no_payload
+grep -q "NEW IMAGE" "${IMAGE}" && pass || fail "what was swapped in is not the image that verified"
+
+# An image request on a machine configured as an AppImage is the only kind it
+# takes; a package request there is refused.
+setup deb-refused-on-appimage-host
+image_setup
+write_request
+run_helper "" --image "${IMAGE}"
+expect_rc 4
+expect_output "kind=deb, and this program's configuration names the AppImage ${IMAGE}"
+expect_no_call "systemctl"
+
+# An image that does not say its version cannot be held to the version rule.
+setup appimage-no-installed-version
+image_setup
+printf '' > "${FAKE_DIR}/installed-version"
+new_image 9.9.9 "${UPDATES}/hMailServer-9.9.9-x86_64.AppImage"
+appimage_request hMailServer-9.9.9-x86_64.AppImage 9.9.9 "${IMAGE}"
+run_helper "" --image "${IMAGE}"
+expect_rc 1
+expect_outcome_starts "failed 9.9.9 the installed version could not be read (the image ${IMAGE} did not say its version)"
+grep -q "verify-update" "${IMAGE}" && pass || fail "the image was replaced although the installed version was not known"
 
 setup dry-run
 write_request
@@ -792,6 +1197,7 @@ expect_output "would run: apt-get install"
 expect_output "outcome: ok 9.9.9"
 [ -f "${OUTCOME}" ] && fail "a dry run wrote the outcome file" || pass
 [ -f "${FAKE_DIR}/calls" ] && fail "a dry run ran something: $(calls | tr '\n' ';')" || pass
+expect_no_copies_left
 
 # ---------------------------------------------------------------- the verdict
 

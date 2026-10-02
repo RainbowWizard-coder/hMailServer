@@ -346,6 +346,19 @@ room's booking check) - and, before this release, several seconds of a delivery 
 of its occurrences (What changes on upgrade, item 17), which also asks of the event a few expansions fewer than it
 did. Found by the project's own review.
 
+The Linux live update's apply step, `hmailserver-update`, which runs as root on a request the server's service account
+writes, took the unit it stops from that request, and for an AppImage request the image - the program that checks the
+new file's signature - as well, in 6.3.4 and 6.3.5. A service account that had been taken over could therefore have
+root run a program of its choosing, on a `.deb` or `.rpm` installation with the live update's path unit started (the
+packages' default) as on an AppImage. 6.3.6 takes the unit and the image from the helper's own command line alone,
+refuses an AppImage request where that names no image, checks after the stop that the server's unit is down and that
+nothing of the service account still runs, and verifies, runs and installs only copies it has made after the stop,
+which nobody else can read until they have verified (What changes on upgrade, item 23). Windows is not affected. An
+AppImage run under the path unit keeps the script copied to `/usr/lib/hmailserver/` when its update units were
+installed, which the AppImage's own update does not replace: copy 6.3.6's there and give it `--image`. Until a Linux
+server's helper is 6.3.6's, `systemctl disable --now hmailserver-update.path` turns the apply off, and the check and
+the download go on; install 6.3.6 with the package manager. Found by the project's own review.
+
 ### What changes on upgrade without a switch
 
 1. **COM `Utilities`: the helpers that do work answer a caller that has signed in.** `BlowfishEncrypt`,
@@ -695,6 +708,23 @@ did. Found by the project's own review.
     present the same new triplet at once, the unique key refuses the second insert, which is read back and answered as
     the triplet that is there: deferred and counted while it is pending, let through once it has passed - never let
     through for the refusal ([Greylisting.md](hmailserver/docs/Greylisting.md), "The triplet key").
+23. **The Linux live update's helper takes the unit and the AppImage from its own command line.**
+    `hmailserver-update` stops `hmailserver.service`, or the unit its `--unit` option names, and refuses a request
+    whose `unit=` line names another. It takes an AppImage request only when its `--image` option names the image,
+    which is then the program that verifies the new one, and refuses a request whose `image=` line names another
+    file, and a `.deb` or `.rpm` request where `--image` is given. After the stop it checks that the unit is
+    inactive and that no process runs as the owner of the Updates directory or of a directory above it, and
+    otherwise starts the unit again and does nothing else. It verifies, reads and installs copies of the package and
+    the rollback image, made once the service has stopped and only of plain files still inside the Updates
+    directory, under `/var/tmp` (an AppImage's beside the image), which needs room there for both. A machine whose
+    package database, or image, does not say which version is installed is no longer updated "over whatever is
+    here": the outcome is `failed`. A server installed from the `.deb` or the `.rpm` under the packaged unit needs
+    nothing. One under a unit of another name, through the path unit, needs `--unit` in a drop-in for
+    `hmailserver-update.service`; an AppImage under the path unit needs `--image` there, and 6.3.6's script in
+    `/usr/lib/hmailserver/`, which the AppImage's swap does not replace; an AppImage that runs as root under a unit
+    of its own passes both itself. The update to 6.3.6 is applied by the helper of the version it replaces, and
+    6.3.6's own applies the next one
+    ([packaging/README.md](hmailserver/source/Server/platform/packaging/README.md), An AppImage).
 
 ### Downloads and the release
 

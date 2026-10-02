@@ -71,6 +71,17 @@ namespace HM
       static String HelperSourcePath();
       static String OutcomePath();
 
+#ifdef HM_PLATFORM_POSIX
+      // The systemd-run command that starts the helper as a unit of its own, for
+      // a server that is itself root (LaunchPosix_): the helper's own command
+      // line carries the unit this server runs under and, for an AppImage, the
+      // image (each left out when it is empty or cannot be quoted whole), since
+      // the helper takes neither from the request. Built with the live update
+      // only; update-feed-tests holds it to that.
+      static String SystemdRunCommand(const String &systemdRun, const String &version, const String &helper,
+         const String &requestFile, const String &directory, const String &unit, const String &image);
+#endif
+
       // Whether this service may apply an update itself. On Windows the helper
       // runs the installer as the service's own account, and the installer takes
       // an administrator; LocalSystem is one, and the virtual account
@@ -197,7 +208,10 @@ namespace HM
       // Windows: starts the helper detached with the assembled command line.
       static bool Launch_(const String &commandLine, const String &workingDirectory, String &error);
       // POSIX: hands the request to hmailserver-update through the path unit, or
-      // through systemd-run when nothing takes it from /run/hmailserver.
-      static bool LaunchPosix_(const AnsiString &request, const String &version, const String &helperSource, String &error);
+      // through systemd-run when nothing takes it from /run/hmailserver. The unit
+      // and the AppImage (empty for a package) go on the systemd-run command line,
+      // since the helper takes them from its command line and not from the request.
+      static bool LaunchPosix_(const AnsiString &request, const String &version, const String &helperSource,
+         const String &unit, const String &image, String &error);
    };
 }
