@@ -23,7 +23,7 @@ namespace HM
    }
 
    bool
-   PreReqNoDuplicateFolders::Ensure(std::shared_ptr<DALConnection> connection, String &sErrorMessage)
+   PreReqNoDuplicateFolders::Ensure(std::shared_ptr<DALConnection> connection, const PrerequisiteReport & /*report*/, String &sErrorMessage)
    {
       SQLCommand command("select folderaccountid, folderparentid, foldername from hm_imapfolders "
                          "group by folderaccountid, folderparentid, foldername "

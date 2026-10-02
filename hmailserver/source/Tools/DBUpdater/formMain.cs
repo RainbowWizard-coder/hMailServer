@@ -26,6 +26,30 @@ namespace DBUpdater
       private const string DatabaseTypePGSQL = "PGSQL";
 
       /// <summary>
+      /// The steps whose prerequisite rewrites the rows of a table that may hold
+      /// millions of them, and is correct committed as it goes, each with the schema
+      /// version from which that prerequisite has anything to work on: 6107, which
+      /// gives every greylisting triplet written before schema 6072 its key, deletes
+      /// the rows whose addresses had been cut to 200 characters and leaves a triplet
+      /// one row (PreReqGreyListKeys, in the server), from 6072, which made the key
+      /// columns. Such a prerequisite runs once before the upgrade's transaction,
+      /// where every statement commits, so that an upgrade stopped part-way keeps
+      /// what was done and the next run resumes there; below its version it does
+      /// nothing there. It runs again inside the transaction, just before its step,
+      /// where it finds only what is left.
+      /// </summary>
+      private static readonly Dictionary<int, int> StepsWithLongPrerequisites = new Dictionary<int, int>
+      {
+         { 6107, 6072 },
+      };
+
+      /// <summary>
+      /// The version the steps committed before the current transaction reached, when
+      /// the upgrade has had to commit some (see DoUpgrade); 0 while it has not.
+      /// </summary>
+      private int _committedThrough;
+
+      /// <summary>
       /// True once DoUpgrade has committed successfully. Program.Main turns this
       /// into the process exit code so the installer can detect a failed upgrade.
       /// </summary>
@@ -314,6 +338,7 @@ namespace DBUpdater
          _upgradeScripts.Add(new UpgradeScript(6103, 6104));
          _upgradeScripts.Add(new UpgradeScript(6104, 6105));
          _upgradeScripts.Add(new UpgradeScript(6105, 6106));
+         _upgradeScripts.Add(new UpgradeScript(6106, 6107));
       }
 
       private void buttonClose_Click(object sender, EventArgs e)
@@ -641,6 +666,8 @@ namespace DBUpdater
                return "hMailServer 6.3 (6105)";
             case 6106:
                return "hMailServer 6.3 (6106)";
+            case 6107:
+               return "hMailServer 6.3 (6107)";
             default:
                return "hMailServer (database version " + version + ")";
          }
@@ -663,6 +690,26 @@ namespace DBUpdater
             buttonUpgrade.Enabled = false;
 
             hMailServer.Database database = _application.Database;
+
+            // The prerequisites that rewrite a large table, before any transaction
+            // (StepsWithLongPrerequisites). On a database too old for them they do
+            // nothing here, and the run inside the transaction does the work.
+            foreach (ListViewItem item in listRequiredUpgrades.Items)
+            {
+               UpgradeScript script = (UpgradeScript)item.Tag;
+               if (!StepsWithLongPrerequisites.ContainsKey(script.To))
+                  continue;
+
+               try
+               {
+                  database.EnsurePrerequisites(script.To);
+               }
+               catch (Exception e) when (!ExceptionPolicy.IsFatal(e))
+               {
+                  HandleUpgradeError(database, e, "Prerequisites of " + Path.GetFileName(GetScriptFileName(script)));
+                  return;
+               }
+            }
 
             try
             {
@@ -693,11 +740,64 @@ namespace DBUpdater
             }
 
 
-            foreach (ListViewItem item in listRequiredUpgrades.Items)
+            int segmentStart = 0;
+            int startedAt = listRequiredUpgrades.Items.Count > 0 ? ((UpgradeScript)listRequiredUpgrades.Items[0].Tag).From : 0;
+
+            for (int index = 0; index < listRequiredUpgrades.Items.Count; index++)
             {
+               ListViewItem item = listRequiredUpgrades.Items[index];
                UpgradeScript script = (UpgradeScript)item.Tag;
 
                string scriptToExecute = GetScriptFileName(script);
+
+               // A step with a long prerequisite, reached from below what that
+               // prerequisite fills - so it did nothing before the transaction -
+               // on a backend that commits every ALTER as it runs (SQL Server
+               // Compact, MySQL), where the one transaction never held the schema
+               // anyway: the steps before it are proved by their probes and
+               // committed, and the prerequisite runs outside a transaction. On
+               // Compact a transaction that rewrites a large table is held in a
+               // temporary file whose size is limited, and an interrupted upgrade
+               // then resumes at this step with what the prerequisite did kept. On
+               // SQL Server and PostgreSQL the transaction holds the whole upgrade,
+               // which is worth keeping, and they hold a large one.
+               int worksFrom;
+               if (index > segmentStart && !SchemaChangesAreTransactional() &&
+                   StepsWithLongPrerequisites.TryGetValue(script.To, out worksFrom) && startedAt < worksFrom)
+               {
+                  string segmentError;
+                  if (!VerifyUpgradedSchema(database, segmentStart, index, out segmentError))
+                  {
+                     HandleUpgradeError(database, segmentError, "Schema verification");
+                     return;
+                  }
+
+                  try
+                  {
+                     database.CommitTransaction();
+                  }
+                  catch (Exception e) when (!ExceptionPolicy.IsFatal(e))
+                  {
+                     HandleUpgradeError(database, e, "Transaction");
+                     return;
+                  }
+
+                  _committedThrough = ((UpgradeScript)listRequiredUpgrades.Items[index - 1].Tag).To;
+
+                  try
+                  {
+                     database.EnsurePrerequisites(script.To);
+                     database.BeginTransaction();
+                  }
+                  catch (Exception e) when (!ExceptionPolicy.IsFatal(e))
+                  {
+                     item.SubItems.Add("Error");
+                     HandleUpgradeError(database, e, scriptToExecute);
+                     return;
+                  }
+
+                  segmentStart = index;
+               }
 
                try
                {
@@ -729,7 +829,7 @@ namespace DBUpdater
             // and a missing object can still be rolled back on the two backends
             // that have transactional DDL.
             string verificationError;
-            if (!VerifyUpgradedSchema(database, out verificationError))
+            if (!VerifyUpgradedSchema(database, segmentStart, listRequiredUpgrades.Items.Count, out verificationError))
             {
                HandleUpgradeError(database, verificationError, "Schema verification");
                return;
@@ -799,17 +899,18 @@ namespace DBUpdater
       }
 
       /// <summary>
-      /// Runs the registered schema probes for every step in the upgrade path.
-      /// Returns false, with a message naming the object that is missing, if any
-      /// probe fails.
+      /// Runs the registered schema probes for the steps of the upgrade path from
+      /// index <paramref name="from"/> up to but not including <paramref name="to"/>:
+      /// the steps of the transaction about to be committed. Returns false, with a
+      /// message naming the object that is missing, if any probe fails.
       /// </summary>
-      private bool VerifyUpgradedSchema(hMailServer.Database database, out string error)
+      private bool VerifyUpgradedSchema(hMailServer.Database database, int from, int to, out string error)
       {
          error = null;
 
-         foreach (ListViewItem item in listRequiredUpgrades.Items)
+         for (int index = from; index < to; index++)
          {
-            UpgradeScript script = (UpgradeScript)item.Tag;
+            UpgradeScript script = (UpgradeScript)listRequiredUpgrades.Items[index].Tag;
 
             foreach (SchemaProbe probe in SchemaVerification.GetProbesFor(script.To))
             {
@@ -851,6 +952,13 @@ namespace DBUpdater
 
       private void HandleUpgradeError(hMailServer.Database database, string error, string scriptToExecute)
       {
+         if (_committedThrough > 0)
+         {
+            error += Environment.NewLine + Environment.NewLine + string.Format(
+               "The steps up to version {0} had been committed before this one, so the database is at {0}: running the upgrade again continues from there.",
+               _committedThrough);
+         }
+
          try
          {
             database.RollbackTransaction();
@@ -928,6 +1036,16 @@ namespace DBUpdater
          {
             MessageBox.Show("Notepad could not be started.");
          }
+      }
+
+      /// <summary>
+      /// Whether the backend rolls a schema change back with the transaction: SQL
+      /// Server and PostgreSQL do; SQL Server Compact and MySQL commit each ALTER as
+      /// it runs.
+      /// </summary>
+      private bool SchemaChangesAreTransactional()
+      {
+         return _databaseType == DatabaseTypeMSSQL || _databaseType == DatabaseTypePGSQL;
       }
 
       private string GetPrerequisitesScript()

@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include <atomic>
-
 namespace HM
 {
    class GreyListTriplet;
@@ -16,12 +14,21 @@ namespace HM
       PersistentGreyList(void);
       ~PersistentGreyList(void);
 
-      // The triplet for this sender, recipient and address, or null. Looked up by
-      // the fixed-width key (schema 6072) first; while rows from before that step
-      // remain - their hash columns are NULL - a miss is looked up by the address
-      // columns as they were written then, and a row found that way is given its
-      // key and its full addresses so it is found by the key from then on.
-      static std::shared_ptr<GreyListTriplet> GetRecord(const String &sSenderAddress, const String &sRecipientAddress, const IPAddress &remoteIP);
+      // The triplet with these keys (GreyListTriplet::ComputeKey of the sender
+      // and of the recipient) from this address, or null. The key is the whole
+      // of the lookup: since schema 6107 every row has one and a triplet has one
+      // row (PreReqGreyListKeys finished the migration 6072 began), so a miss is
+      // a miss and the address columns are never asked. Null for an empty key,
+      // which no row has.
+      static std::shared_ptr<GreyListTriplet> GetRecordByKey(const String &senderKey, const String &recipientKey, const IPAddress &remoteIP);
+
+      // Writes a new triplet, with its keys (computed from its addresses where it
+      // has none). True when THIS call wrote the row, with the row's id set on the
+      // triplet; false when it did not - another connection wrote the same
+      // triplet first and the unique key refused this one, or the database
+      // failed, or there is no key to write. The caller then reads the triplet
+      // again: what is there is the triplet, and a refused insert is never taken
+      // for a pass.
       static bool AddObject(std::shared_ptr<GreyListTriplet> pTriplet);
 
       static bool ResetDeletionTime(std::shared_ptr<GreyListTriplet> pTriplet);
@@ -40,21 +47,8 @@ namespace HM
       static void ClearExpiredRecords();
       static void ClearAllRecords();
 
-      // Whether any row still carries no key: 1 yes, 0 no, -1 the question could
-      // not be asked, which is not the same as no. Public for the diagnostics;
-      // the lookup keeps its own answer and asks again only after a sweep.
-      static int AnyLegacyRow();
-
    private:
 
       static std::shared_ptr<GreyListTriplet> ReadTriplet_(std::shared_ptr<DALRecordset> pRS);
-      static std::shared_ptr<GreyListTriplet> FindLegacy_(const String &sSenderAddress, const String &sRecipientAddress, const IPAddress &remoteIP, const String &senderKey, const String &recipientKey);
-      static bool LegacyRowsMayRemain_();
-
-      // True until a count finds no row with a NULL hash; counted at first use and
-      // again after every ClearExpiredRecords, and never set true again, since
-      // every row written since the step carries its key.
-      static std::atomic<bool> legacy_rows_may_remain_;
-      static std::atomic<bool> legacy_rows_counted_;
    };
 }

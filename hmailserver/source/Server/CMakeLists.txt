@@ -697,6 +697,20 @@ add_executable(imip-tests ${SERVER_DIR}/platform/imip_tests_main.cpp)
 target_link_libraries(imip-tests PRIVATE hmailserver_core)
 set_target_properties(imip-tests PROPERTIES OUTPUT_NAME imip-tests)
 
+# ---------------------------------------------------------------- the greylisting key
+#
+# PreReqGreyListKeysTester (Common/SQL/Prerequisites/PreReqGreyListKeys.h) as a
+# program of its own, for the reason spf-tests is one: on Windows it runs inside
+# the server through ClassTester, which nothing reaches here. Schema 6107's
+# cutover: the key every row is given is the one new rows are written with, a
+# row cut to the old columns' 200 characters is deleted and every other keyed,
+# the copy of a triplet kept, and nothing but a key in the statement that writes
+# them. No network, configuration or database (build/db-upgrade-gate.sh runs the
+# pass against PostgreSQL and MariaDB). Not installed; a bench tool.
+add_executable(greylist-keys-tests ${SERVER_DIR}/platform/greylist_keys_tests_main.cpp)
+target_link_libraries(greylist-keys-tests PRIVATE hmailserver_core)
+set_target_properties(greylist-keys-tests PROPERTIES OUTPUT_NAME greylist-keys-tests)
+
 # ---------------------------------------------------------------- the singletons' first call
 #
 # Singleton<T>::Instance (Common/Util/Singleton.h) with eight threads asking for

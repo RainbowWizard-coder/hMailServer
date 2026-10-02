@@ -71,9 +71,9 @@ PostgreSQL - and MySQL where the column's collation is binary - compare byte
 for byte and made them two. Now they are one everywhere, which is what
 discussion #281 asked for. The effect on a live server is that a sender whose
 mail server varies the case of the domain is challenged once rather than once
-per spelling, so it errs towards letting mail through sooner rather than later,
-and it applies to new triplets only: the rows written before the upgrade keep
-being matched by their addresses until they are converted or expire.
+per spelling, so it errs towards letting mail through sooner rather than later.
+Since schema 6107 the rows written before 6072 have the same key, given them at
+the upgrade (below).
 
 That normalisation is frozen: changing any step would orphan every stored key.
 MD5 because this is an index key and not a security boundary - 128 bits separate
@@ -83,30 +83,90 @@ the server's parameter layer speaks text and every backend it supports compares
 a 32-character string identically; the sixteen extra bytes a row buy that.
 
 The address columns are widened to 320 and still hold the address as received,
-for the operator who reads the table; they are no longer part of the key. The
-index is on `(glipaddress1, glipaddress2, glsenderhash, glrecipienthash)`. It is
-**not a unique constraint**, on any backend, and that is deliberate: MySQL and
-PostgreSQL never had one, and on SQL Server the old one turned a race - two
-connections presenting the same new triplet in the same instant - into a failed
-insert, which the code answers by letting the message through. Two rows for one
-triplet cost nothing; a bypass on a race does.
+for the operator who reads the table; they are not part of the key, and since
+schema 6107 nothing looks a triplet up by them. Since 6107 both key columns are
+`NOT NULL` and the key is **unique**: a triplet has one row, on every backend.
 
-**What happens at upgrade.** Nothing is rewritten. Every existing row keeps its
-addresses and gets a NULL key. The server looks a triplet up by its key first;
-while rows without a key remain, a miss is looked up by the address columns as
-they were written - the first 200 characters - and a row found that way is given
-its key and the whole of the addresses, once. A row that is never matched again
-expires as any pending or confirmed row does, and once the sweep finds no row
-without a key the second lookup is never made again. The transition costs one
-extra query per new triplet for as long as legacy rows remain, which on a
-default configuration is at most `GreyListingFinalDelete` (36 days). Two old
-rows that were already one because of the truncation stay one until they
-expire; nothing can tell them apart.
+* **SQL Server and SQL Server Compact**: a unique index on `(glipaddress1,
+  glipaddress2, glsenderhash, glrecipienthash)`. Both count two NULLs as equal,
+  which is what an IPv4 triplet needs: its `glipaddress2` is NULL.
+* **PostgreSQL** counts two NULLs as different, so that index would hold an IPv4
+  triplet to nothing. There are two partial unique indexes instead: the same
+  four columns where `glipaddress2 is not null`, and `(glipaddress1,
+  glsenderhash, glrecipienthash)` where it is null. The lookup's own conditions
+  pick the one that applies.
+* **MySQL and MariaDB** count NULLs as different too and have no partial index.
+  The unique index is on `(glipaddress1, glsenderhash, glrecipienthash,
+  glipaddress2key)`, where `glipaddress2key` is a stored generated column - the
+  second half of the address as text, or `v4` where there is none - that no
+  statement writes.
+
+**A race is not a pass.** Two connections that present the same new triplet in
+the same instant both miss it and both write it, and the unique index refuses the
+second. That refusal is read for what it is - the triplet is there - and the row
+that is there is answered as the triplet: deferred and counted as an attempt
+while it is pending, let through when it says it has passed. Only a database that
+can neither write the triplet nor read it lets the recipient through, as every
+other failure of this server's own does. (Before 6107 the key was not unique, a
+race wrote two rows and the lookup could read either of them later; and a refused
+insert, under the unique index on the address columns that came before 6072, was
+answered 451 whatever the row said - and let through on PostgreSQL, whose
+connection reported the refusal as a failure until 15 September 2026.)
+
+**What the upgrade to 6107 does.** Schema 6072 left every row written before it
+with a NULL key, to be found by its address columns - the first 200 characters -
+once, keyed then, or left to expire: a second query for every new triplet for as
+long as one such row remained, and the old truncation kept alive in the code.
+Schema 6107 finishes it, in the server, because no database can compute the key -
+an MD5 a database takes of its own text would match no lookup. Its prerequisite
+(`PreReqGreyListKeys`) takes every row without a key:
+
+* a row with an address of **200 characters or more**, sender or recipient, is
+  **deleted**. 200 was the old columns' width and every address was written cut to
+  it, so the row may stand for several senders at once, and a key over the stub
+  would match no address anybody sends. Only rows without a key are judged so: a
+  row written since 6072 has its key over the whole address, and a 200-character
+  address there is an address like another;
+* a row whose key cannot be computed - no MD5 from OpenSSL, which a stock build
+  never refuses - is deleted, so that the step's `NOT NULL` cannot stop the upgrade;
+* every other row is **given its key**, computed from the address it holds with
+  the function new rows are written with.
+
+Then a triplet with more than one row - a race before the key was unique, or a
+row from before 6072 that keys to a triplet already keyed (a domain spelt in
+another case, which the key folds) - keeps one: the row that has passed most
+often, and of those the oldest, so a confirmed triplet is never lost to a pending
+copy of itself. The counts are reported - in the output of `--upgrade-database`,
+and in the application log, when application logging is on, for `UpgradeOnStart`
+and for DBUpdater. Those two run before the service has read its settings, while
+its logger writes nothing, so the lines are kept and written once it has: at the
+start `UpgradeOnStart` continues, and for DBUpdater at the reinitialise it asks
+for when the upgrade is committed. Then the step's script makes the key columns
+`NOT NULL` and the key unique. Only greylisting state is deleted: a sender whose
+row goes is greylisted once more.
+
+On a large table that is work, and it is done so that it can stop and resume. The
+rows are taken by ranges of `glid`, a few thousand at a time, and their keys
+written a hundred to a statement. The pass runs first outside the step's
+transaction, each statement committed as it goes, so an upgrade stopped part-way -
+a DBUpdater killed, a power cut - keeps what it did, the database meanwhile still
+a valid one at the schema before; the next run starts at the first row still
+without a key. It runs again inside the step's transaction, just before the
+script, where it finds only what a server still writing to the database added
+meanwhile. An upgrade with DBUpdater from before 6072 - when the key columns do not
+yet exist before the transaction - on SQL Server Compact or MySQL, which commit
+each `ALTER` as it runs anyway, commits the steps before 6107 once their probes
+have passed and runs the pass outside a transaction then; on SQL Server and
+PostgreSQL the upgrade stays the one transaction it was.
 
 `Settings.AntiSpam.ClearGreyListingTriplets` (the Control Panel's **Clear
-greylisting triplets**) empties the table, keys and all, and is the way to skip
-the transition on a server that would rather greylist every sender once than
-keep the old rows.
+greylisting triplets**) empties the table, keys and all. Run before the upgrade,
+it leaves the step nothing to key, at the cost of greylisting every sender once.
+
+| Code | When |
+|---|---|
+| `HM6950` | The key could not be computed - this build's OpenSSL answered no MD5 digest. Greylisting lets every recipient through until it can; reported once a process. |
+| `HM4326` | A new triplet could be neither written nor read back: the database failed, and the recipient is let through. |
 
 The sliding wait and the abuse refusal (#282)
 ---------------------------------------------
@@ -288,8 +348,8 @@ What it does not do
 * **It does not move the initial delay's unit.** The delay is still whole
   minutes, so the regression test that proves the slide takes sixty-six seconds
   and says so.
-* **It does not rewrite old rows at upgrade.** They are converted as they are
-  matched and expire if they are not; the reasons are above.
+* **It does not change the key.** The digest and the normalisation are what 6072
+  wrote; the upgrade to 6107 keyed the old rows with the same function.
 * **The bypass list does not bypass the tests.** SPF, DKIM and DMARC run and
   score as before; the list only decides whether greylisting is skipped, and it
   decides nothing for a message that fails them.
@@ -324,10 +384,15 @@ Where to look when it does not behave
   `header.d`, the `From` domain or `smtp.mailfrom` is a name the pattern covers.
   With debug logging on, the debug log names the entry that was satisfied or
   waited for.
-* An upgraded server greylists a sender it knew: the old row had no key and was
-  matched by its first 200 characters exactly as before, so a known triplet is
-  still known; a sender that is challenged again was not a confirmed triplet or
-  had expired.
+* An upgraded server greylists a sender it knew: its row from before schema 6072
+  held an address of 200 characters or more and was deleted at the upgrade to
+  6107 (what it held was not the address), or was the pending copy of a triplet
+  whose other row was kept, or it had expired - or the sender now spells the
+  local part of its address in other capitals than the row from before 6072
+  holds: the address columns matched that row without regard to case on SQL
+  Server, Compact and MySQL, and the key keeps the local part as it came. Either
+  way the sender waits once more; the upgrade's line says how many rows went
+  and why.
 
 The tests are `RegressionTests.AntiSpam.GreyListingHardened` (the triplet key
 through the abuse threshold, the threshold and its lock, the slide against a
@@ -336,7 +401,16 @@ a HELO suffix at a label boundary, the three negative controls of the identity
 rule - a valid signature from another domain, an SPF pass for an unrelated
 envelope domain under a HELO entry, and a DMARC pass for another `From` domain,
 each paired with the positive case that proves the result really was a pass -
-and a row from before schema 6072 found by its addresses, rewritten with its
-key and then found by the key alone) and
+a triplet found by its key and never by its address columns, the table refusing
+a row without its key and a second row for a triplet from an IPv4 address, and
+eight connections presenting one new triplet at once all deferred),
 `RegressionTests.API.RestApiGreylistBypass` (the resource, its refusals, who
-may reach it, the three settings and their bounds).
+may reach it, the three settings and their bounds), and, for schema 6107, in the
+internal suite `PreReqGreyListKeysTester` (the key against MD5 vectors, the fate
+of a row without one, the copy kept, the statement refusing a value that is not a
+key; on Windows the pass stopped part-way and resumed and the step's script on a
+SQL Server Compact database of its own; on Linux the `greylist-keys-tests`
+program) and `GreyListingTester` (an insert refused by the unique key answered as
+the triplet there - confirmed, pending or absent), and `build/db-upgrade-gate.sh`
+(rows from before 6072 taken through the real upgrade on PostgreSQL and MariaDB,
+their keys held to the documented function computed outside the server).

@@ -4,6 +4,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using NUnit.Framework;
@@ -24,6 +26,10 @@ namespace RegressionTests.AntiSpam
    ///    past the threshold is refused with 550, and a second sender that shares the
    ///    first 240 of its 246 characters is answered 451 as a newcomer, where the old
    ///    200-character columns made it the same triplet and would have answered 550.
+   ///    The end of that migration (schema 6107, work item #50) is held by three more:
+   ///    the lookup asks for the key and never for the address columns; the bench's
+   ///    table refuses a row without a key and a second row for a triplet; and eight
+   ///    connections presenting one new triplet at once are all deferred.
    ///
    ///    The bypass list is a REST resource, made and torn down over the API on a
    ///    port of this fixture's own, so that nothing here needs the new COM
@@ -409,61 +415,183 @@ namespace RegressionTests.AntiSpam
             "a DMARC pass for outlook.com is not a DMARC pass for partner.example");
       }
 
-      // ------------------------------------------------- the row from before the key
+      // ------------------------------------------- the key, the whole of the lookup
 
       [Test]
-      [Description("The migration half of #281. A row is put back the way schema 6071 left it - no key, the addresses cut to 200 " +
-                   "characters - and the next attempt finds it by those addresses, is let through because its window has passed, " +
-                   "and gives the row its key and its whole address there and then; every row still without a key is then deleted " +
-                   "and the sender is still known, so it is the key that found it the second time. The service is restarted in the " +
-                   "middle because the lookup asks once per process whether any keyless row remains, and on a bench that has never " +
-                   "been upgraded the answer is no.")]
-      public void ARowFromBeforeTheKeyIsFoundByItsAddressesAndRewrittenWithItsKey()
+      [Description("Schema 6107 ended the lookup by address columns: the key is the whole of it. After the first attempt the " +
+                   "row's address columns are rewritten to name somebody else and its window put in the past, and the next " +
+                   "attempt is let through - found by its key. Then the row's sender key is changed, and the next attempt is " +
+                   "a newcomer's 451 whatever the addresses say: the key, and nothing else, is what found it.")]
+      public void ATripletIsFoundByItsKeyAndNeverByItsAddressColumns()
       {
-         var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "legacy@example.test", "test");
+         var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "keyonly@example.test", "test");
+         const string sender = "key.only@example.org";
 
-         // The address as a string, because the COM object it came from belongs
-         // to the server process this test restarts below: read through it after
-         // the restart, and the answer is "the RPC server is unavailable".
-         string address = account.Address;
+         Assert.AreEqual("451", Attempt(sender, account.Address), "the first attempt makes the triplet and defers it");
 
-         // 60 + 1 + 63 + 1 + 63 + 1 + 55 + 1 + 4 = 249 characters - the last label
-         // is 49 e's and "legacy" - under RFC 5321's 254 and longer than the 200
-         // the old columns held: the legacy row keeps a prefix of it, the key is
-         // over the whole of it, and the two have to agree for this to be found.
-         string sender = new string('a', 60) + "@" + new string('b', 63) + "." + new string('c', 63) + "." +
-                         new string('e', 49) + "legacy.test";
-
-         Assert.AreEqual(249, sender.Length);
-
-         Assert.AreEqual("451", Attempt(sender, address), "the first attempt makes the triplet and defers it");
-
-         // Written back as the upgrade leaves a row from before schema 6072, with
-         // its window in the past so that finding it shows as an acceptance.
          string past = DateTime.Now.AddHours(-1).ToString("yyyy-MM-dd HH:mm:ss");
-         string future = DateTime.Now.AddHours(24).ToString("yyyy-MM-dd HH:mm:ss");
+         _application.Database.ExecuteSQL(
+            "update hm_greylisting_triplets set glsenderaddress = 'somebody-else@example.org', glrecipientaddress = 'nobody@example.org', " +
+            "glblockendtime = '" + past + "' where glsenderhash = '" + Key(sender) + "'");
+
+         Assert.AreEqual("250", Attempt(sender, account.Address),
+            "the row is found by its key although its address columns name somebody else");
 
          _application.Database.ExecuteSQL(
-            "update hm_greylisting_triplets set glsenderhash = null, glrecipienthash = null, " +
-            "glsenderaddress = '" + sender.Substring(0, 200) + "', " +
-            "glblockendtime = '" + past + "', gldeletetime = '" + future + "' " +
-            "where glsenderaddress = '" + sender + "'");
+            "update hm_greylisting_triplets set glsenderhash = '" + new string('0', 32) + "' where glsenderaddress = 'somebody-else@example.org'");
 
-         RestartServerAndReacquireCom();
-         _antiSpam = _settings.AntiSpam;
-         _hardened = _antiSpam;
+         Assert.AreEqual("451", Attempt(sender, account.Address),
+            "with its key changed the row is no longer the triplet, whatever its address columns hold");
 
-         Assert.AreEqual("250", Attempt(sender, address),
-            "the row from before the step is found by its first 200 characters, and its window has passed");
+         Pop3ClientSimulator.AssertGetFirstMessageText(account.Address, "test");
+      }
 
-         // If the rewrite did not happen, this deletes the triplet and the next
-         // attempt is a newcomer's 451.
-         _application.Database.ExecuteSQL("delete from hm_greylisting_triplets where glsenderhash is null");
+      [Test]
+      [Description("Schema 6107 made both keys NOT NULL and the key unique, on the bench's database as on a new one. A row for " +
+                   "another recipient from the same address is written - the positive control - and then a row with no sender " +
+                   "key is refused, and so is a second row for a triplet that has one, from an IPv4 address: glipaddress2 is " +
+                   "NULL there, which SQL Server and Compact count as equal to another NULL and MySQL and PostgreSQL do not, " +
+                   "which is why the step's index on those two is not over glipaddress2 itself.")]
+      public void TheKeyColumnsRefuseNullAndATripletHasOneRow()
+      {
+         var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "onerow@example.test", "test");
+         const string sender = "one.row@example.org";
 
-         Assert.AreEqual("250", Attempt(sender, address),
-            "the row carries its key now, and nothing else is left to find it by");
+         Assert.AreEqual("451", Attempt(sender, account.Address), "the first attempt makes the triplet");
 
-         Pop3ClientSimulator.AssertGetFirstMessageText(address, "test");
+         string now = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+         const long loopback = 2130706433; // 127.0.0.1, the address the attempt came from
+         Func<string, string, string, string> insert = (recipient, senderKey, recipientKey) =>
+            "insert into hm_greylisting_triplets (glcreatetime, glblockendtime, gldeletetime, glipaddress1, glipaddress2, " +
+            "glsenderaddress, glrecipientaddress, glblockedcount, glpassedcount, glsenderhash, glrecipienthash) values ('" +
+            now + "', '" + now + "', '" + now + "', " + loopback + ", null, '" + sender + "', '" + recipient + "', 0, 0, " +
+            senderKey + ", " + recipientKey + ")";
+
+         try
+         {
+            _application.Database.ExecuteSQL(insert("other@example.test", "'" + Key(sender) + "'", "'" + Key("other@example.test") + "'"));
+
+            AssertRefused(insert("third@example.test", "null", "'" + Key("third@example.test") + "'"), "a row without its sender key");
+            AssertRefused(insert(account.Address, "'" + Key(sender) + "'", "'" + Key(account.Address) + "'"), "a second row for an IPv4 triplet");
+         }
+         finally
+         {
+            _application.Database.ExecuteSQL("delete from hm_greylisting_triplets where glsenderhash = '" + Key(sender) + "'");
+         }
+      }
+
+      [Test]
+      [Description("Eight connections present one new triplet in the same instant - released together after MAIL FROM - and " +
+                   "each is answered 451, none 250: with the key unique every insert but one is refused, and a refused " +
+                   "insert is read as the triplet another connection wrote, never as a pass. Whether the race happens on a " +
+                   "given run is the scheduler's; the case with its outcome fixed - an insert refused because a confirmed " +
+                   "row was written meanwhile, answered 250 - is GreyListingTester, in the internal suite.")]
+      public void EightConnectionsPresentingOneNewTripletAtOnceAreAllDeferred()
+      {
+         var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "burst@example.test", "test");
+         string recipient = account.Address;
+         string sender = "burst-" + Guid.NewGuid().ToString("N") + "@example.org";
+
+         const int connections = 8;
+         var replies = new string[connections];
+         var failures = new string[connections];
+
+         using (var ready = new Barrier(connections))
+         {
+            var threads = new List<Thread>();
+            for (int i = 0; i < connections; i++)
+            {
+               int slot = i;
+               var thread = new Thread(() =>
+               {
+                  var socket = new TcpConnection();
+                  bool released = false;
+                  try
+                  {
+                     if (!socket.Connect(25))
+                        throw new InvalidOperationException("Could not connect to SMTP.");
+
+                     socket.ReadUntil("220");
+                     socket.Send("HELO client.example.test\r\n");
+                     socket.ReadUntil("250");
+                     socket.Send("MAIL FROM:<" + sender + ">\r\n");
+                     socket.ReadUntil("250");
+
+                     released = true;
+                     ready.SignalAndWait(TimeSpan.FromSeconds(30));
+
+                     socket.Send("RCPT TO:<" + recipient + ">\r\n");
+                     replies[slot] = socket.Receive();
+                     socket.Send("QUIT\r\n");
+                  }
+                  catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
+                  {
+                     failures[slot] = ex.Message;
+
+                     // A connection that failed before the barrier must not keep the
+                     // others waiting for it.
+                     if (!released)
+                     {
+                        try { ready.RemoveParticipant(); }
+                        catch (InvalidOperationException) { }
+                     }
+                  }
+                  finally
+                  {
+                     socket.Disconnect();
+                  }
+               });
+               threads.Add(thread);
+               thread.Start();
+            }
+
+            foreach (var thread in threads)
+               Assert.IsTrue(thread.Join(TimeSpan.FromSeconds(60)), "a connection did not finish");
+         }
+
+         for (int i = 0; i < connections; i++)
+         {
+            Assert.IsNull(failures[i], "connection " + i + " failed: " + failures[i]);
+            StringAssert.StartsWith("451", replies[i], "connection " + i + " was answered " + replies[i]);
+         }
+
+         Assert.AreEqual("451", Attempt(sender, recipient), "after the burst the triplet is pending, and the next attempt is deferred");
+      }
+
+      private void AssertRefused(string sql, string what)
+      {
+         Assert.Throws<COMException>(() => _application.Database.ExecuteSQL(sql), what + " was written");
+
+         // The database's refusal is reported to the ERROR log (HM5032) by
+         // DALConnection::Execute; it is this test's, so it is consumed here
+         // rather than left to fail the next test's SetUp.
+         Assert.IsTrue(File.Exists(LogHandler.GetErrorLogFileName()), "the refusal of " + what + " was not reported");
+         Console.WriteLine(LogHandler.ReadAndDeleteErrorLog());
+      }
+
+      /// <summary>
+      ///    The key, as docs/Greylisting.md defines it and GreyListTriplet::ComputeKey
+      ///    computes it: ASCII whitespace off both ends, the domain - after the last @ -
+      ///    lower-cased A to Z, the local part as it came, then the MD5 of its UTF-8 as
+      ///    32 lower-case hex characters.
+      /// </summary>
+      private static string Key(string address)
+      {
+         string trimmed = address.Trim(' ', '\t', '\r', '\n');
+         int at = trimmed.LastIndexOf('@');
+         if (at >= 0)
+         {
+            var domain = new StringBuilder(trimmed.Substring(at + 1));
+            for (int i = 0; i < domain.Length; i++)
+            {
+               if (domain[i] >= 'A' && domain[i] <= 'Z')
+                  domain[i] = (char)(domain[i] - 'A' + 'a');
+            }
+            trimmed = trimmed.Substring(0, at + 1) + domain;
+         }
+
+         using (var md5 = System.Security.Cryptography.MD5.Create())
+            return BitConverter.ToString(md5.ComputeHash(Encoding.UTF8.GetBytes(trimmed))).Replace("-", "").ToLowerInvariant();
       }
 
       // ------------------------------------------------------------------- helpers

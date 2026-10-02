@@ -475,6 +475,8 @@ namespace HM
             return DALConnection::DALConnectionProblem;
          }
 
+         bool failureIgnored = false;
+
          if (MySQLInterface::Instance()->p_mysql_query(dbconn_, sQuery))
          {
             // Classified first, because whether the marker may discard this
@@ -502,6 +504,8 @@ namespace HM
                   sErrorMessage = checkErrorMessage;
                   return result;
                }
+
+               failureIgnored = true;
             }
          }
 
@@ -516,9 +520,19 @@ namespace HM
          // comparison against a null pointer constant, which MSVC accepts and a
          // conforming compiler rejects; != nullptr is the same test spelt in a way
          // both accept, and answers the same for every value a caller can pass.
+         //
+         // None after a statement whose failure was ignored: MySQL documents
+         // mysql_insert_id as undefined after an error, and libmariadb 3 hands
+         // back the id of the connection's last successful insert - measured on
+         // 1 October 2026 against MariaDB 11, an insert into another table, then
+         // a duplicate refused with 1062: the duplicate's id read as the other
+         // table's row's. A caller that ignores DALErrorInSQL reads an id of 0 as
+         // "the row was there already" (PersistentGreyList::AddObject,
+         // PersistentComplaint, DomainReports), as it reads it on the other three
+         // backends.
          if (iInsertID != nullptr)
          {
-            *iInsertID = MySQLInterface::Instance()->p_mysql_insert_id(dbconn_);
+            *iInsertID = failureIgnored ? 0 : MySQLInterface::Instance()->p_mysql_insert_id(dbconn_);
          }
       }
       catch (...)

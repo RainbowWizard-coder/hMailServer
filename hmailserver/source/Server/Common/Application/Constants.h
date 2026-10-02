@@ -1237,4 +1237,12 @@
 //      and the REST API had described as "keep every message" while the POP3
 //      fetcher deleted, has a negative number made 0 - it stops deleting.
 //      FetchAccount::DaysToKeepStoredBefore6106 is the same rule for an archive.
-#define REQUIRED_DB_VERSION            6106
+// 6107 finishes the greylisting key 6072 began (work item #50,
+//      docs/Greylisting.md): hm_greylisting_triplets' glsenderhash and
+//      glrecipienthash NOT NULL and the key unique - on MySQL over the stored
+//      generated column glipaddress2key and on PostgreSQL as two partial
+//      indexes, since both count one NULL glipaddress2 as distinct from
+//      another. Its prerequisite (SQL/Prerequisites/PreReqGreyListKeys) keys
+//      every row written before 6072, deletes those an address of which had
+//      been cut to 200 characters, and leaves a triplet one row.
+#define REQUIRED_DB_VERSION            6107

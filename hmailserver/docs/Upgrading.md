@@ -185,6 +185,8 @@ section, because the difference matters when you plan.
    the same code `hmailserver --upgrade-database` runs, one step at a time, one
    log line per step (`Schema: 6086 -> 6087 (Upgrade6086to6087MSSQLCE.sql)`), each
    step in a transaction where the backend has one - and then continues the start.
+   The lines go to the application log when application logging is on, written as
+   soon as the start has read the settings, since the logger writes nothing before.
    Without it, or when a step fails, the start is refused with `HM5011` as before,
    and the message names the failing step and the version the database is at; the
    steps before it have been applied and a second start resumes there. The key is
@@ -499,6 +501,29 @@ says why each of the three. What it means for the upgrade:
   `longtext`: MySQL widens a column it converts to four bytes a character so that it
   holds as many characters as it did. A fresh database keeps the declared types; the
   server reads both alike.
+
+**Schema 6107 keys the greylisting triplets.** The step gives every greylisting triplet
+written before schema 6072 its key - in the server, since no database can compute it -
+deletes the ones in which an address had been cut to the old columns' 200 characters and
+the second row of any triplet, and then makes the key `NOT NULL` and unique
+([Greylisting.md](Greylisting.md#the-triplet-key-281) says why each). A sender whose row
+was deleted is greylisted once more; the output of `--upgrade-database`, or with
+DBUpdater and `UpgradeOnStart` the application log when application logging is on, says how
+many rows were keyed and deleted. What it means for the upgrade:
+
+* **On a large `hm_greylisting_triplets` the time is the keying**, a few thousand rows a
+  query and a hundred to a statement, and it is done before the step's transaction, each
+  statement committed as it goes. An upgrade stopped part-way keeps what it keyed, the
+  database is meanwhile a valid one at the schema before, and the next run of DBUpdater,
+  `hmailserver --upgrade-database` or `UpgradeOnStart` continues from the first row still
+  without a key.
+* **From before 6072 with DBUpdater on SQL Server Compact or MySQL**, where the key
+  columns do not exist until step 6072 has run, DBUpdater commits the steps up to 6106 once
+  their probes pass and keys the rows outside a transaction then; a failure in step 6107
+  leaves the database at 6106, and the next run continues there. On SQL Server and
+  PostgreSQL the upgrade stays one transaction.
+* **Clear greylisting triplets** (the Control Panel's Anti-spam page, Greylisting tab) before the upgrade
+  leaves the step nothing to key, at the cost of greylisting every sender once.
 
 **Scripts that change the configuration over COM.** Since 6.3.4, a
 COM change to a route (and a route's addresses), an incoming relay, a DNS black

@@ -200,13 +200,14 @@ install -d -m 0750 %{buildroot}%{_localstatedir}/log/hmailserver
 # under, a stored password hash's iteration count, a rewrite of hMailServer.ini,
 # the database connection string, COM's languages, the live log, the setting
 # profiles' lock, the Control Deck's script hash, the webmail signature's
-# reduction and the wiping of mailbox encryption's keys - the list
+# reduction, the wiping of mailbox encryption's keys and the greylisting key
+# schema 6107 gives every row - the list
 # debian/rules runs. No socket, none of the system's configuration, no database,
 # no root; seconds.
 cd %{hm_builddir}
 echo "== hmailserver --version"
 ./hmailserver --version
-for tester in spf-tests script-binding-tests snmp-tests object-store-signature-tests singleton-tests legacy-blowfish-tests xml-tree-tests datetime-tests public-suffix-tests backup-tests trust-anchor-tests business-object-tests tls-options-tests update-feed-tests imip-tests file-utilities-tests media-type-tests scram-tests ini-file-tests connection-string-tests language-tests live-log-tests profiles-tests inline-script-hash-tests signature-html-sanitizer-tests mailbox-crypto-tests; do
+for tester in spf-tests script-binding-tests snmp-tests object-store-signature-tests singleton-tests legacy-blowfish-tests xml-tree-tests datetime-tests public-suffix-tests backup-tests trust-anchor-tests business-object-tests tls-options-tests update-feed-tests imip-tests file-utilities-tests media-type-tests scram-tests ini-file-tests connection-string-tests language-tests live-log-tests profiles-tests inline-script-hash-tests signature-html-sanitizer-tests mailbox-crypto-tests greylist-keys-tests; do
   echo "== $tester"
   ./$tester
 done

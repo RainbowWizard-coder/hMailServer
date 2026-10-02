@@ -66,6 +66,8 @@
 #include "SignatureHtmlSanitizer.h"
 #include "../AntiVirus/CustomVirusScanner.h"
 #include "../Persistence/SchemaUpgrader.h"
+#include "../SQL/Prerequisites/PreReqGreyListKeys.h"
+#include "../../SMTP/GreyListing.h"
 #include "ServiceAccount.h"
 #include "../Persistence/MessageStoreFormat.h"
 #include "MailboxCrypto.h"
@@ -413,6 +415,18 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing SchemaUpgrader\n"));
       SchemaUpgraderTester schemaUpgraderTester;
       schemaUpgraderTester.Test();
+
+      // The end of the greylisting key migration (schema 6107): the key against
+      // MD5 vectors, what becomes of a row without one, which copy of a triplet
+      // is kept; on a Compact database of the tester's own, a pass stopped
+      // part-way and resumed, and the step's script refusing a NULL key and a
+      // second row. Then, on the server's own database, an insert refused by
+      // the unique key answered as the triplet that is there.
+      OutputDebugString(_T("hMailServer: Testing the greylisting key\n"));
+      PreReqGreyListKeysTester greyListKeysTester;
+      greyListKeysTester.Test();
+      GreyListingTester greyListingTester;
+      greyListingTester.Test();
 
 #ifndef HM_PLATFORM_POSIX
       // The grant hMailServer.exe /GrantServiceAccess makes (docs/ServiceAccount.md),

@@ -114,6 +114,23 @@ while ($current -lt $required)
       continue
    }
 
+   # What DBUpdater does before each step's script: the step's prerequisites,
+   # which are the server's own code (PrerequisiteList). The server answering
+   # here is the one the bench database still satisfies - an OLDER build than
+   # this tree, as above - so a prerequisite this tree adds is not in it, and
+   # for that step the call does nothing.
+   $application.Database.EnsurePrerequisites($target)
+
+   # 6107 makes the greylisting key NOT NULL and unique. Its prerequisite, which
+   # keys the rows written before 6072 and leaves a triplet one row, arrives in
+   # the same build as the step, so the server running here has none to run; and
+   # the bench's triplets are only what earlier test runs left. They are cleared,
+   # so that the step finds the table as its prerequisite would have left it.
+   if ($target -eq 6107)
+   {
+      $application.Database.ExecuteSQL('delete from hm_greylisting_triplets')
+   }
+
    foreach ($statement in Split-ScriptStatements (Get-Content -LiteralPath $script.FullName -Raw))
    {
       # [IGNORE-ERRORS] marks a statement whose failure is expected - Compact

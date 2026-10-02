@@ -5,6 +5,7 @@
 #pragma once
 
 #include <functional>
+#include <vector>
 
 #include "../SQL/DatabaseSettings.h"
 
@@ -26,7 +27,10 @@ namespace HM
    // database's version to this build's - found by scanning DBScripts for
    // Upgrade<from>to<n><suffix>.sql, because the numbers are not consecutive -
    // PrerequisiteList::Ensure for the step's target and SQLScriptRunner over the
-   // script, the same parser, the same macros and the same four dialects
+   // script (a prerequisite that rewrites a large table's rows also runs once
+   // before the step's transaction, committed as it goes - see
+   // IPrerequisite::RunsBeforeTransaction), the same parser, the same macros
+   // and the same four dialects
    // (MySQL, PGSQL, MSSQL and MSSQLCE) the COM Database.ExecuteSQLScript runs.
    // Each step is a transaction where the backend has one: a statement that
    // fails leaves the version where the previous step put it, and the outcome
@@ -79,6 +83,28 @@ namespace HM
       // DatabaseConnectionManager builds the pool's, for the command-line
       // callers that have no pool.
       static std::shared_ptr<DatabaseSettings> SettingsFromIni();
+
+      // A line for the application log from an upgrade that runs before the
+      // server has read its settings: the service's own start with UpgradeOnStart
+      // (Application::OnDatabaseConnected), and a prerequisite DBUpdater runs over
+      // COM against a service that refused the database's version. Until
+      // Configuration::Load the logger's mask is 0 and LOG_APPLICATION drops
+      // every line, so such a line is kept here (a thousand at most) and written
+      // by LogNotes, which Application::InitInstance calls once the settings are
+      // loaded - for DBUpdater, at the reinitialise it asks for when the upgrade
+      // is committed. Where the application log is already on, the line is
+      // written at once. Lines kept while application logging stays off are
+      // dropped at LogNotes, as any application-log line is.
+      static void Note(const String &line);
+      static void LogNotes();
+
+      // Note's halves, apart for the tester: whether a line is kept for later
+      // under a logger mask (Logger::GetLogMask), keeping one, and the lines kept
+      // - handed over in the order they came and forgotten.
+      static bool KeepsForLater(int logMask);
+      static void Keep(const String &line);
+      static std::vector<String> TakeNotes();
+      static const size_t MaxNotes = 1000;
    };
 
    // Holds the walk to examples in ClassTester::DoTests, on a SQL Server

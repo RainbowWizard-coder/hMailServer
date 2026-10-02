@@ -50,9 +50,9 @@ namespace HM
 
       // The fixed-width half of the triplet key (schema 6072): the MD5 of the
       // normalised address as 32 lower-case hex characters, so that two addresses
-      // longer than the columns used to be are two triplets. Empty on a row from
-      // before the step, which PersistentGreyList matches by address once and
-      // rewrites.
+      // longer than the columns used to be are two triplets. Every row has both
+      // since schema 6107, whose prerequisite (PreReqGreyListKeys) gave the rows
+      // from before 6072 theirs with this same function.
       void SetSenderHash(const String &sNewVal);
       String GetSenderHash() const;
 

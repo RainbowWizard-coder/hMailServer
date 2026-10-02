@@ -634,6 +634,7 @@ EXIT 0
     <ClCompile Include="..\Common\Sql\MySQLRecordset.cpp" />
     <ClCompile Include="..\Common\SQL\PGConnection.cpp" />
     <ClCompile Include="..\Common\SQL\PGRecordset.cpp" />
+    <ClCompile Include="..\Common\SQL\Prerequisites\PreReqGreyListKeys.cpp" />
     <ClCompile Include="..\Common\SQL\Prerequisites\PreReqNoDuplicateFolders.cpp" />
     <ClCompile Include="..\Common\SQL\Prerequisites\PrerequisiteList.cpp" />
     <ClCompile Include="..\Common\SQL\SQLCEConnection.cpp" />
@@ -1635,6 +1636,7 @@ EXIT 0
     <ClInclude Include="..\Common\SQL\PGConnection.h" />
     <ClInclude Include="..\Common\SQL\PGRecordset.h" />
     <ClInclude Include="..\Common\SQL\Prerequisites\IPrerequisite.h" />
+    <ClInclude Include="..\Common\SQL\Prerequisites\PreReqGreyListKeys.h" />
     <ClInclude Include="..\Common\SQL\Prerequisites\PreReqNoDuplicateFolders.h" />
     <ClInclude Include="..\Common\SQL\Prerequisites\PrerequisiteList.h" />
     <ClInclude Include="..\Common\SQL\SQLCEConnection.h" />

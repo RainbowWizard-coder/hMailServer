@@ -29,7 +29,10 @@
 #      backend's own client.
 #   2. The orphans: a row with an absent parent in each of the seventeen tables
 #      the 6030 step constrains, and the chains that fail only in the wrong
-#      order (build/seed-orphans.py, from that same script).
+#      order (build/seed-orphans.py, from that same script). And greylisting
+#      triplets as a server before schema 6072 wrote them, with no key, some
+#      cut to the old columns' 200 characters, one triplet twice once its
+#      domain is folded (build/db-upgrade-greylist.py).
 #   3. --upgrade-database, exactly as the installer's post-install step runs it.
 #   4. A second database made by --create-database at this build's schema, the
 #      way a new installation is made.
@@ -38,7 +41,10 @@
 #      column with its type, nullability and default (and on MySQL its
 #      collation), every index with its columns, every constraint and foreign
 #      key. A difference fails the gate: the upgraded server would run on a
-#      schema nothing else tests.
+#      schema nothing else tests. And the greylisting triplets are what schema
+#      6107 makes of them - keyed by the documented function, computed apart
+#      from the server, the cuts and the second row gone - in a table that
+#      refuses a row without its key and a second row for a triplet, IPv4 too.
 #   6. The steps that change rows rather than the schema, which step 5 cannot
 #      see: Upgrade6105to6106<dialect>.sql run by the backend's own client over
 #      external accounts of every kind it treats differently, in the upgraded
@@ -190,6 +196,9 @@ echo "-- seeding orphaned rows"
 python3 "$here/seed-orphans.py" "$base_script" "$backend" > "$work/seed.sql"
 run_file "$work/seed.sql"
 echo "   $(grep -c '^insert' "$work/seed.sql") rows in $(grep -c '^insert' "$work/seed.sql") tables, every one with a parent that does not exist"
+python3 "$here/db-upgrade-greylist.py" seed > "$work/greylist.sql"
+run_file "$work/greylist.sql"
+echo "   $(grep -c '^insert' "$work/greylist.sql") greylisting triplets as a server before schema 6072 wrote them: no key, two cut to 200 characters, one triplet twice"
 
 # 3. The upgrade, exactly as the installer's post-install step runs it.
 echo "-- upgrading"
@@ -267,6 +276,25 @@ fi
 failed=""
 if [ "$rc" -ne 0 ] || [ "$version" != "$required" ] || [ "$fks" != "$expected_fks" ]; then
    failed=yes
+fi
+
+# The greylisting triplets, where the upgrade reached schema 6107 (work item #50).
+if [ "$version" -ge 6107 ] 2>/dev/null; then
+   echo "-- the greylisting triplets after the upgrade"
+   if ! query "select concat_ws('|', glsenderaddress, glrecipientaddress, glipaddress1, coalesce(glipaddress2, -1), glpassedcount, glsenderhash, glrecipienthash) from hm_greylisting_triplets order by glid;" \
+         | python3 "$here/db-upgrade-greylist.py" check; then
+      echo "The upgrade did not make of the greylisting triplets what schema 6107 must." >&2
+      failed=yes
+   fi
+   while IFS=$'\t' read -r expect statement; do
+      if query "$statement" >/dev/null 2>&1; then outcome=accept; else outcome=refuse; fi
+      if [ "$outcome" != "$expect" ]; then
+         echo "The upgraded hm_greylisting_triplets did $outcome, and must $expect: $statement" >&2
+         failed=yes
+      fi
+   done < <(python3 "$here/db-upgrade-greylist.py" constraints)
+   query "delete from hm_greylisting_triplets where glrecipientaddress = 'other@example.test';" >/dev/null
+   echo "   a row without its key and a second row for a triplet, IPv4 and IPv6, refused; another triplet accepted"
 fi
 if ! diff -u --label "a new database ($fresh_name)" --label "the upgraded one ($DB_NAME)" \
         "$work/schema-new.txt" "$work/schema-upgraded.txt" > "$work/schema.diff"; then

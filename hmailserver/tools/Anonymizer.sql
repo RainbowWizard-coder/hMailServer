@@ -72,3 +72,6 @@ update hm_settings set settingname = '' where settingname = 'smtprelayerpassword
 
 update hm_greylisting_triplets set glsenderaddress = convert(varchar, glid) + '@e.com'
 update hm_greylisting_triplets set glrecipientaddress = convert(varchar, glid) + '@e.com'
+-- The keys are the MD5 of the real addresses (schema 6072), which a list of addresses reverses: replaced
+-- with the MD5 of the row's id, one per row, which keeps the key NOT NULL and unique (schema 6107).
+update hm_greylisting_triplets set glsenderhash = lower(convert(varchar(32), hashbytes('MD5', 's' + convert(varchar, glid)), 2)), glrecipienthash = lower(convert(varchar(32), hashbytes('MD5', 'r' + convert(varchar, glid)), 2))

@@ -214,6 +214,50 @@ foreach ($upgrade in (Get-ChildItem -LiteralPath $scripts -Filter 'Upgrade*MSSQL
 
 Write-Host ("  OK    {0} Compact Edition upgrade script(s) parse into single statements" -f $checked)
 
+# SQL SERVER: A MARKED STATEMENT WHOSE FAILURE ENDS THE TRANSACTION
+#
+# Every walker runs a step in a transaction on SQL Server, and DBUpdater runs the
+# whole upgrade in one. [IGNORE-ERRORS] lets a statement fail without failing the
+# script, but some failures end the transaction on the server whatever the client
+# says and whatever XACT_ABORT is: a failed ALTER TABLE ... DROP CONSTRAINT (3728,
+# 3727) and a failed CREATE INDEX (1913) roll it back, where a failed DROP INDEX
+# (3701) or ALTER TABLE ... ADD of a column that is there (2705) do not (measured
+# on SQL Server 2022, 1 October 2026). Every statement after such a failure then
+# commits on its own - the version row among them - while the steps before it in
+# DBUpdater's transaction are undone, and the walker's COMMIT finds no transaction.
+# The 6107 script was written so and fixed before it shipped. Step 6072's drop of
+# u_gltriplet is the one such statement in a shipped script; the constraint was
+# there on every database that step met, so it never failed, and it stays.
+$endsTheTransaction = '(?is)^\s*(alter\s+table\s+\S+\s+drop\s+constraint\b|create\s+(unique\s+)?((non)?clustered\s+)?index\b)'
+$shippedSo = @('Upgrade6071to6072MSSQL.sql')
+$serverChecked = 0
+$serverFailures = 0
+
+foreach ($upgrade in (Get-ChildItem -LiteralPath $scripts -Filter 'Upgrade*MSSQL.sql' | Sort-Object Name)) {
+    if ($upgrade.Name -notmatch '^Upgrade\d+to\d+MSSQL\.sql$' -or $shippedSo -contains $upgrade.Name) { continue }
+    $text = (Get-Content -LiteralPath $upgrade.FullName -Raw) -replace "`r`n", "`n"
+
+    foreach ($command in ($text -split "`n`n")) {
+        if ($command -notmatch '\[IGNORE-ERRORS\]') { continue }
+        $statement = (($command -split "`n") | Where-Object { $_ -notmatch '^\s*--' }) -join "`n"
+
+        if ($statement -match $endsTheTransaction) {
+            $failures++
+            $serverFailures++
+            Write-Host ("  FAIL  {0}: a statement marked [IGNORE-ERRORS] whose failure ends the transaction on SQL Server" -f $upgrade.Name) -ForegroundColor Red
+            Write-Host ("        {0}" -f ($statement.Trim() -split "`n")[0]) -ForegroundColor Red
+            Write-Host ('        Leave it out when the object cannot be there, or guard it on one line: ' +
+                        'IF OBJECT_ID(...) IS NOT NULL ...') -ForegroundColor Yellow
+        }
+    }
+
+    $serverChecked++
+}
+
+if ($serverFailures -eq 0) {
+    Write-Host ("  OK    {0} SQL Server upgrade script(s) mark no statement whose failure ends the transaction" -f $serverChecked)
+}
+
 Write-Host ''
 if ($failures -eq 0) {
     Write-Host 'Database scripts are consistent - safe to build an installer.' -ForegroundColor Green

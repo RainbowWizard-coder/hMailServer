@@ -5,7 +5,9 @@
 #include "StdAfx.h"
 #include "SchemaUpgrader.h"
 
+#include <mutex>
 #include <stdexcept>
+#include <vector>
 
 #include "../Application/IniFileSettings.h"
 #include "../SQL/DALConnection.h"
@@ -277,6 +279,24 @@ namespace HM
                report(Formatter::Format(_T("{0}: the database server refused GET_LOCK, so this step is not serialised against another process upgrading the same database. Upgrade from one process at a time."), step));
          }
 
+         // A prerequisite that rewrites the rows of a table which may hold
+         // millions of them (PreReqGreyListKeys, for 6107) runs first here,
+         // outside the step's transaction, each statement committed as it goes:
+         // an upgrade stopped part-way keeps what it did, and the next run
+         // resumes there rather than redoing the whole table in one transaction.
+         // It runs again inside the transaction below, where it finds only what
+         // was left or written meanwhile. The rest wait for the transaction.
+         {
+            PrerequisiteList early;
+            if (!early.EnsureBeforeTransaction(connection, next, report, error))
+            {
+               outcome.failed_step = step;
+               outcome.error = error;
+               outcome.version = ReadSchemaVersion(connection);
+               return outcome;
+            }
+         }
+
          // One transaction per step, where the backend has one: a statement
          // that fails takes the step's earlier statements with it on SQL Server,
          // PostgreSQL and Compact, and the version row - the script's last
@@ -352,7 +372,7 @@ namespace HM
          }
 
          PrerequisiteList prerequisiteList;
-         bool applied = prerequisiteList.Ensure(connection, next, error) &&
+         bool applied = prerequisiteList.Ensure(connection, next, report, error) &&
                         runner.ExecuteScript(connection, path, error);
 
          if (!applied)
@@ -400,6 +420,58 @@ namespace HM
       return std::shared_ptr<DatabaseSettings>(new DatabaseSettings(
          ini->GetDatabaseProvider(), ini->GetDatabaseServer(), ini->GetDatabaseName(), ini->GetUsername(), ini->GetPassword(),
          ini->GetDatabaseDirectory(), ini->GetDatabaseServerFailoverPartner(), ini->GetDatabaseType(), ini->GetDatabasePort()));
+   }
+
+   namespace
+   {
+      std::mutex notes_mutex_;
+      std::vector<String> notes_;
+   }
+
+   bool
+   SchemaUpgrader::KeepsForLater(int logMask)
+   {
+      // Logger::LogApplication writes when the mask has LSApplication, which
+      // SetLogMask gives it only together with LSEnabled.
+      return (logMask & Logger::LSApplication) == 0;
+   }
+
+   void
+   SchemaUpgrader::Keep(const String &line)
+   {
+      std::lock_guard<std::mutex> guard(notes_mutex_);
+      if (notes_.size() < MaxNotes)
+         notes_.push_back(line);
+   }
+
+   std::vector<String>
+   SchemaUpgrader::TakeNotes()
+   {
+      std::vector<String> lines;
+      std::lock_guard<std::mutex> guard(notes_mutex_);
+      lines.swap(notes_);
+      return lines;
+   }
+
+   void
+   SchemaUpgrader::Note(const String &line)
+   {
+      if (!KeepsForLater(Logger::Instance()->GetLogMask()))
+      {
+         LOG_APPLICATION(line);
+         return;
+      }
+
+      Keep(line);
+   }
+
+   void
+   SchemaUpgrader::LogNotes()
+   {
+      for (const String &line : TakeNotes())
+      {
+         LOG_APPLICATION(line);
+      }
    }
 
    // ---- the tester ----------------------------------------------------------

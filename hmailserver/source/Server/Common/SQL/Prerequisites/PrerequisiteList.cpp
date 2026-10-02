@@ -6,6 +6,7 @@
 #include "PrerequisiteList.h"
 
 #include "PreReqNoDuplicateFolders.h"
+#include "PreReqGreyListKeys.h"
 #include "IPrerequisite.h"
 
 
@@ -25,15 +26,36 @@ namespace HM
    {
    }
 
-   void 
+   void
    PrerequisiteList::Initialize_()
    {
       std::shared_ptr<PreReqNoDuplicateFolders> duplicateFolderCheck = std::shared_ptr<PreReqNoDuplicateFolders>(new PreReqNoDuplicateFolders);
       prerequisites_.push_back(std::make_pair(duplicateFolderCheck->GetDatabaseVersion(), duplicateFolderCheck));
+
+      std::shared_ptr<PreReqGreyListKeys> greyListKeys = std::shared_ptr<PreReqGreyListKeys>(new PreReqGreyListKeys);
+      prerequisites_.push_back(std::make_pair(greyListKeys->GetDatabaseVersion(), greyListKeys));
    }
 
    bool
    PrerequisiteList::Ensure(std::shared_ptr<DALConnection> connection, int scriptDatabaseVersion, String &sErrorMessage)
+   {
+      return Ensure_(connection, scriptDatabaseVersion, false, PrerequisiteReport(), sErrorMessage);
+   }
+
+   bool
+   PrerequisiteList::Ensure(std::shared_ptr<DALConnection> connection, int scriptDatabaseVersion, const PrerequisiteReport &report, String &sErrorMessage)
+   {
+      return Ensure_(connection, scriptDatabaseVersion, false, report, sErrorMessage);
+   }
+
+   bool
+   PrerequisiteList::EnsureBeforeTransaction(std::shared_ptr<DALConnection> connection, int scriptDatabaseVersion, const PrerequisiteReport &report, String &sErrorMessage)
+   {
+      return Ensure_(connection, scriptDatabaseVersion, true, report, sErrorMessage);
+   }
+
+   bool
+   PrerequisiteList::Ensure_(std::shared_ptr<DALConnection> connection, int scriptDatabaseVersion, bool beforeTransactionOnly, const PrerequisiteReport &report, String &sErrorMessage)
    {
       auto iter = prerequisites_.begin();
       auto iterEnd = prerequisites_.end();
@@ -46,7 +68,10 @@ namespace HM
          {
             std::shared_ptr<IPrerequisite > prereq = (*iter).second;
 
-            if (!prereq->Ensure(connection, sErrorMessage))
+            if (beforeTransactionOnly && !prereq->RunsBeforeTransaction())
+               continue;
+
+            if (!prereq->Ensure(connection, report, sErrorMessage))
                return false;
          }
       }
@@ -54,5 +79,5 @@ namespace HM
       return true;
    }
 
-   
+
 }

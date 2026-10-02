@@ -77,10 +77,11 @@ time being: after it the project makes security releases only, and the 6.3 line 
 September 2027 (below). 6.3.6 fixes a security flaw and takes OpenSSL 4.0.3 into the Windows installers (both below),
 fixes what 6.3.5's release and the first live updates from 6.3.4 found, replaces with the project's own code the last
 code in the server whose licence a distribution would have had to settle, and carries every file the release pipeline
-makes, the ARM64 Windows installer among them. The schema moves to **6106** in one step that changes no column: it
-gives every external account's *days to keep messages* the one meaning both fetchers now read, keeping each account
-doing what it did or stopping it deleting (What changes on upgrade without a switch, item 21). The security notes
-come first, then what changes on upgrade without a switch. The operator documents named below are in
+makes, the ARM64 Windows installer among them. The schema moves to **6107** in two steps: 6106, which changes no
+column, gives every external account's *days to keep messages* the one meaning both fetchers now read, keeping each
+account doing what it did or stopping it deleting (What changes on upgrade without a switch, item 21), and 6107
+finishes the greylisting key schema 6072 began (item 22). The security notes come first, then what changes on upgrade
+without a switch. The operator documents named below are in
 `hmailserver/docs`, which has nine more of them than it had at 6.3.5.
 
 **Releases pause after this one.** 6.3.6 is the last release for the time being, by the owner's decision of 28
@@ -677,6 +678,23 @@ did. Found by the project's own review.
     case failing against 6.3.5's fetcher), `FetchAccountTester` (the rule, the 6106 translation and a backup from
     before and after it), `BackupRestore`, the 6106 step's rows on PostgreSQL and MariaDB in
     `build/db-upgrade-gate.sh`, and the webmail's and the Deck's script tests.
+22. **The upgrade to schema 6107 finishes the greylisting key, and a greylisting race is never a pass** (work item
+    [#50](https://gitlab.com/hmailserver/hmailserver/-/work_items/50), the follow-up to GitHub discussion 281). Schema
+    6072 left the triplets written before it without a key, to be found by their first 200 characters until they were
+    matched once or expired - a second query for every new triplet for as long as one remained. The upgrade now gives
+    them their key in the server, since no database can compute it, with the function new rows are written with;
+    deletes the rows in which an address had been cut to the old columns' 200 characters, since such a row may stand
+    for several senders and its key would match nobody; and leaves a triplet one row, the one that passed most. Then
+    both key columns are `NOT NULL` and the key is unique - on MySQL and MariaDB over a stored generated column,
+    `glipaddress2key`, and on PostgreSQL as two partial indexes, because both count one NULL `glipaddress2`, an IPv4
+    triplet's, as different from another - and the lookup asks for the key and nothing else. A sender whose row was
+    deleted is greylisted once more; the upgrade's output says how many rows were keyed and deleted, and why (with
+    DBUpdater and `UpgradeOnStart`, in the application log when application logging is on). On a large
+    `hm_greylisting_triplets` the keying runs before the step's transaction, each statement committed as it goes, so
+    an upgrade stopped part-way keeps what it did and the next run continues from there. And when two connections
+    present the same new triplet at once, the unique key refuses the second insert, which is read back and answered as
+    the triplet that is there: deferred and counted while it is pending, let through once it has passed - never let
+    through for the refusal ([Greylisting.md](hmailserver/docs/Greylisting.md), "The triplet key").
 
 ### Downloads and the release
 
@@ -1394,6 +1412,19 @@ did. Found by the project's own review.
 
 ### Operations
 
+- **Fixed: on MySQL and MariaDB an insert refused as a duplicate could be read as one that wrote a row.** A caller
+  that ignores a duplicate - two nodes recording one complaint report or DMARC or TLS report, a greylisting triplet
+  written by two connections at once - tells a written row from a refused one by the id it is handed back. After a
+  refused statement `MySQLConnection` asked the client library for the insert id anyway, which MySQL documents as
+  undefined after an error and which libmariadb answers with the id of the last row the pooled connection wrote, in
+  whatever table (measured against MariaDB 11: a duplicate refused with 1062 after an insert into another table read
+  as that table's id), so a duplicate report was recorded as new. It hands back none after a failure it was told to
+  ignore, as the other three backends do.
+- **Fixed: the lines `[Database] UpgradeOnStart` writes at the service's start were dropped.** Upgrading.md promises
+  a line in the application log for each step; they were written before the service had read its settings, when its
+  logger writes nothing. They are kept and written once the settings are loaded, and so are the counts schema 6107's
+  prerequisite reports when DBUpdater runs it over COM, which DBUpdater's reinitialise at the end of the upgrade now
+  writes ([Greylisting.md](hmailserver/docs/Greylisting.md), "What the upgrade to 6107 does").
 - **Fixed: on Linux, some of the server's network waits had no timeout.** The MTA-STS policy fetch, the DANE TLSA
   query, the OAuth2 token request (`OutboundOAuth2TokenUrl`), the ACME client and its http-01 responder, and the
   ManageSieve and metrics listeners set their socket timeouts in the form Windows takes, which Linux refuses, and the
@@ -2241,6 +2272,13 @@ did. Found by the project's own review.
   implied where they stand - a public-folder test inside the public-folder branch of IMAP `CREATE`, and `== -2`
   beside `< 0` in the update verifier's certificate-expiry check. Their 41 lines are gone from
   `build/ci/static-analysis-baseline.txt`.
+- **`build/check-db-scripts.ps1` refuses a SQL Server upgrade statement marked `[IGNORE-ERRORS]` whose failure ends
+  the transaction.** On SQL Server a failed `ALTER TABLE ... DROP CONSTRAINT` or `CREATE INDEX` rolls back the
+  walker's transaction - DBUpdater's, which holds the whole upgrade, among them - whatever the marker and
+  `XACT_ABORT` say, and the statements after it then commit one by one, the version row among them; a failed
+  `DROP INDEX` does not (measured on SQL Server 2022). The 6107 step's script began with such a drop, of a
+  constraint step 6072 had already removed, and no longer does; step 6072's own, which never failed, is the one
+  exception the check knows by name.
 
 Full notes: [the 6.3.6 release](https://gitlab.com/hmailserver/hmailserver/-/releases/v6.3.6).
 

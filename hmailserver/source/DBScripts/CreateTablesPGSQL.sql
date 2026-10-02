@@ -1150,11 +1150,13 @@ create table hm_greylisting_triplets
 	glrecipientaddress varchar(320) not null,
 	glblockedcount int not null,
 	glpassedcount int not null,
-	glsenderhash varchar(32) null,
-	glrecipienthash varchar(32) null
+	glsenderhash varchar(32) not null,
+	glrecipienthash varchar(32) not null
 );
 
-CREATE INDEX idx_hm_greylisting_triplets_key ON hm_greylisting_triplets (glipaddress1, glipaddress2, glsenderhash, glrecipienthash);
+CREATE UNIQUE INDEX idx_hm_greylisting_triplets_key ON hm_greylisting_triplets (glipaddress1, glipaddress2, glsenderhash, glrecipienthash) WHERE glipaddress2 IS NOT NULL;
+
+CREATE UNIQUE INDEX idx_hm_greylisting_triplets_key4 ON hm_greylisting_triplets (glipaddress1, glsenderhash, glrecipienthash) WHERE glipaddress2 IS NULL;
 
 create table hm_greylisting_whiteaddresses
 (
@@ -2966,4 +2968,4 @@ CREATE INDEX idx_hm_discoveryexports_case ON hm_discoveryexports (exportcaseid);
 
 ALTER TABLE hm_discoveryexports ADD CONSTRAINT fk_hm_discoveryexports_search FOREIGN KEY (exportsearchid) REFERENCES hm_discoverysearches (searchid) ON DELETE CASCADE;
 
-insert into hm_dbversion values (6106);
+insert into hm_dbversion values (6107);

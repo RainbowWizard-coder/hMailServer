@@ -270,6 +270,12 @@ namespace HM
       // application-log line is dropped, whatever logging is set to.
       StoredSecrets::LogNotes();
 
+      // And what a schema upgrade had to say before the logger was configured:
+      // UpgradeOnStart's steps above, or - at the reinitialise DBUpdater asks
+      // for once its upgrade is committed - the counts of a prerequisite it ran
+      // over COM (SchemaUpgrader::Note).
+      SchemaUpgrader::LogNotes();
+
       // Which settings the environment sets, said where an operator reads the
       // start: no interface will change them (docs/EnvironmentConfiguration.md).
       EnvironmentSettings::AnnounceManaged();
@@ -383,10 +389,15 @@ namespace HM
       const int requiredVersion = Configuration::Instance()->GetRequiredDBVersion();
       if (iDBVersion < requiredVersion && IniFileSettings::Instance()->GetDatabaseUpgradeOnStart())
       {
-         LOG_APPLICATION(Formatter::Format("Schema: the database is at version {0} and this build needs {1}; [Database] UpgradeOnStart is set, so the upgrade chain runs now, one step at a time.", iDBVersion, requiredVersion));
+         // These lines are written before Configuration::Load has set the
+         // logger's mask, which drops every application-log line until then:
+         // SchemaUpgrader::Note keeps them, and InitInstance writes them once
+         // the settings are loaded (the upgrade's own counts among them -
+         // PreReqGreyListKeys says how many greylisting rows 6107 keyed).
+         SchemaUpgrader::Note(Formatter::Format("Schema: the database is at version {0} and this build needs {1}; [Database] UpgradeOnStart is set, so the upgrade chain runs now, one step at a time.", iDBVersion, requiredVersion));
 
          SchemaUpgrader::Outcome outcome = GetDBManager()->UpgradeSchema(requiredVersion, IniFileSettings::Instance()->GetDBScriptDirectory(),
-            [](const String &line) { LOG_APPLICATION("Schema: " + line); });
+            [](const String &line) { SchemaUpgrader::Note("Schema: " + line); });
 
          if (!outcome.ok)
          {
@@ -398,7 +409,7 @@ namespace HM
          }
 
          iDBVersion = outcome.version;
-         LOG_APPLICATION(Formatter::Format("Schema: upgraded in {0} step(s); the database is at version {1}.", outcome.steps, iDBVersion));
+         SchemaUpgrader::Note(Formatter::Format("Schema: upgraded in {0} step(s); the database is at version {1}.", outcome.steps, iDBVersion));
       }
 
       if (iDBVersion < Configuration::Instance()->GetRequiredDBVersion()

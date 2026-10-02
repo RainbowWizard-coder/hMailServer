@@ -1933,6 +1933,21 @@ namespace DBUpdater
          // a held message so the quarantine can show it and group by it.
          new SchemaProbe(6105, "hm_quarantine.quarantinehelo",
                          "update hm_quarantine set quarantinehelo = quarantinehelo where 1 = 0"),
+         // Upgrade6106to6107* - the greylisting key made NOT NULL and unique. The
+         // script's only marked statements are the drops of the indexes it then
+         // makes again, unmarked, so a failed CREATE fails the step; what a marked
+         // statement could hide is a NOT NULL that did not happen, and that is
+         // asked of the catalogue, in the 6030 shape: a division by zero unless
+         // the column is NOT NULL. One probe per column, since Compact and MySQL
+         // commit each ALTER as it runs. (Whether the index is unique has no view
+         // all four backends share, so it is not probed; its CREATE is unmarked.)
+         // On MySQL the catalogue is the whole server's, so another database on it
+         // already at 6107 answers for this one, as it does for the 6030 probes: a
+         // probe that can miss there, never one that fails a correct database.
+         new SchemaProbe(6107, "hm_greylisting_triplets.glsenderhash",
+                         "update hm_dbversion set value = value / (value - value) where not exists (select 1 from information_schema.columns where table_name = 'hm_greylisting_triplets' and column_name = 'glsenderhash' and is_nullable = 'NO')"),
+         new SchemaProbe(6107, "hm_greylisting_triplets.glrecipienthash",
+                         "update hm_dbversion set value = value / (value - value) where not exists (select 1 from information_schema.columns where table_name = 'hm_greylisting_triplets' and column_name = 'glrecipienthash' and is_nullable = 'NO')"),
          new SchemaProbe(6058, "hm_spamtraphits.fk_hm_spamtraphits_domain",
                          "update hm_dbversion set value = value / (value - value) where not exists (select 1 from information_schema.table_constraints where constraint_name = 'fk_hm_spamtraphits_domain' and constraint_type = 'FOREIGN KEY')")
       };
