@@ -104,9 +104,13 @@ ENV HM_INSTALL_KIND=container
 
 # What the image says of itself, for a registry and for Artifact Hub's listing
 # of it (hmailserver/docs/ContainerImage.md). The build adds the version, the
-# commit and the commit's time (build/ci/linux-image.sh). ref.name is the base
-# image's, Ubuntu's, until it is said again here.
+# commit and the commit's time (build/ci/linux-image.sh). ref.name and version are
+# the base image's, Ubuntu's ("ubuntu", "24.04"), until they are said again here:
+# a build without HM_IMAGE_VERSION (docker build --build-arg HM_IMAGE_VERSION=<the
+# .deb's version>) says "local" rather than claim Ubuntu's release as its own.
+ARG HM_IMAGE_VERSION
 LABEL org.opencontainers.image.title="hMailServer" \
+      org.opencontainers.image.version="${HM_IMAGE_VERSION:-local}" \
       org.opencontainers.image.description="hMailServer, a mail server for SMTP, IMAP and POP3, on Linux: the release's own .deb, run as its own user, beside a PostgreSQL or MariaDB server of yours" \
       org.opencontainers.image.licenses="AGPL-3.0-or-later" \
       org.opencontainers.image.vendor="Progressive Robot Ltd" \

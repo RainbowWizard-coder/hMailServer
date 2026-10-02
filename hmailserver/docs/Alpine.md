@@ -245,7 +245,8 @@ The CI jobs
 They run for a push to master or a `batch*` branch that changes more than
 documentation, never for a tag, a merge request or a schedule; release needs none of
 them. `alpine-package` joins `linix-package-build`, the resource group of the package
-builds.
+builds, and `alpine-suite` joins `linix-suite` with `linux-suite`, so that the two
+suites, each hours long, never share linix's CPUs.
 
 What has run
 ------------

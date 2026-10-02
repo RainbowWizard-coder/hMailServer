@@ -38,7 +38,7 @@ What runs where
 | `package-templates` | check | GitLab's shared runners | a change to the winget or Chocolatey templates | The templates render and agree, checked offline |
 | `roadmap` | check | GitLab's shared runners | a change to `Roadmap.md` | `build/check-roadmap.ps1` |
 | `cli-packages` | check | GitLab's shared runners | a change to the command-line clients or their packaging, and never a tag | `hmailserver-cli`'s sdist and wheel built twice and compared, held to the tree, `twine check`ed and installed alone (`.gitlab/ci/cli-packages.yml`; [CommandLinePackages.md](CommandLinePackages.md)) |
-| `cli-powershell` | check | GitLab's shared runners | the same | The PowerShell module's manifest and PSScriptAnalyzer from the Gallery, under pwsh (`build/ci/cli-powershell.ps1`) |
+| `cli-powershell` | check | GitLab's shared runners | the same | The PowerShell module's manifest and PSScriptAnalyzer from the Gallery, under pwsh (`build/ci/cli-powershell.ps1`), and the module's half of `build/check-cli.py` against its recorded server |
 | `linux-build` | build | linix | a protected ref | The Linux server with clang, every `*-tests` program the CMake build makes, the OpenPGP writer against GnuPG, and the `.deb` and the `.rpm` (`build/ci/linux-build.sh`) |
 | `linux-build-gcc` | test | linix | `master` or a `batch*` branch; never a tag | The same server and tester programs built with GCC, the distribution's default compiler, and the testers and the OpenPGP round trip run; no packages (`.gitlab/ci/gcc.yml`; [The GCC build](#the-gcc-build)) |
 | `nix` | build | linix | `master` or a `batch*` branch; never a tag | The project's Nix flake: `flake.lock` held to releases.nixos.org, every output evaluated for both systems, `nix build .#hmailserver` with its tester programs, and the NixOS test under QEMU's TCG, since linix has no KVM (`.gitlab/ci/nix.yml`, `build/ci/nix.sh`; [Nix.md](Nix.md)) |
@@ -260,7 +260,14 @@ request on what it brings (`.gitlab/ci/mr-checks.yml`, and one checker):
   `.gitlab/ci/gitlab-security.yml` (the analyzer, its pin, its options),
   `.gitlab/sast-ruleset.toml` (GitLab's custom ruleset, of which none is
   committed), `build/ci/security-gate.py` or `build/ci/security-findings.py` -
-  every finding in the tree counts. A missing report, or one whose scan did not finish, holds it
+  or what reaches it or runs the gate - `.gitlab-ci.yml`, whose variables for
+  every job (`SAST_EXCLUDED_PATHS`, say) reach the analyzer as the security
+  file's own do, and `.gitlab/ci/mr-checks.yml` (both since 6.3.6) - every
+  finding in the tree counts. The findings outside the changed files are
+  counted in the log, never described: the log of a merge request's job is
+  public, and those are the tree's unaccepted findings, which the release's gate
+  holds and a maintainer reads in the scan's own artifact (until 6.3.6 the first
+  twenty were printed). A missing report, or one whose scan did not finish, holds it
   as well. This is OpenSSF Baseline OSPS-VM-06.02: a change with a weakness above
   the threshold is blocked unless it is declared not exploitable. On 28 September
   2026 GitLab's analyzer, run in the job's own image on two CPUs with the job's
@@ -285,10 +292,17 @@ request on what it brings (`.gitlab/ci/mr-checks.yml`, and one checker):
   affects a version when its `versions` list names it or one of its ECOSYSTEM or
   SEMVER ranges holds it, compared as NuGet and PEP 440 order versions; a
   withdrawn one affects nothing. Its severity is the GitHub advisory database's
-  rating where OSV carries it, else the CVSS 3.x base score of its vector, else
-  the highest of its aliases', and a malicious package (OSV's `MAL-` records) is
-  Critical; one with no rating anywhere is listed and holds nothing, as at a
-  release. A vulnerability OSV carries under several ids (a GHSA and its PYSEC)
+  rating where OSV carries it, else the CVSS 3.x score of its vector, else the
+  CVSS 4.0 score of its vector (since 6.3.6, FIRST's calculator's method, the
+  same as Red Hat's `cvss` 3.6 on every base vector with each Exploit Maturity
+  and on 300,000 random ones with environmental metrics), else the highest of
+  its aliases', and a malicious package (OSV's `MAL-` records) is Critical; one
+  with no rating anywhere is listed and holds nothing, as at a release. An
+  advisory it cannot decide - the added version, or a version bounding one of
+  the advisory's ranges, is one it cannot order as the ecosystem does, and no
+  `versions` list names the added one - is not passed over: Critical or High,
+  it holds the merge request as one that MAY affect the version (since 6.3.6;
+  until then it passed). A vulnerability OSV carries under several ids (a GHSA and its PYSEC)
   is said once, by the record that rates it highest. On 28 September 2026 a
   fixture commit adding `urllib3` 1.26.4 and NuGet's `System.Text.Json` 8.0.0 was
   held on six High advisories of the first and two of the second, one that
@@ -564,6 +578,25 @@ bench), plus these:
   and `windows-packages-x64` both built their installers by hand as LocalSystem
   under the gate lock ([PackagesWindows.md](PackagesWindows.md), "What was run
   by hand on bench150").
+- **Nothing a cancelled job left running, before a checkout.** In pipeline
+  2897966924 (30 September 2026) a cancelled build left `cl.exe` and
+  `mspdbsrv.exe` running in the runner's checkout, holding a precompiled header
+  open, and the next job's checkout of that directory failed until they were
+  killed by hand: GitLab stops a cancelled job's process tree, but `mspdbsrv`
+  detaches by design and a compiler started through MSBuild's tracker can
+  outlive its parent. Since 6.3.6 every job on bench150 takes
+  `.bench150-leftovers`' `pre_get_sources_script` (`.gitlab-ci.yml`), which runs
+  before anything is fetched and stops each process of the runner's own account
+  (LocalSystem) named `cl`, `link`, `lib`, `mspdbsrv`, `midl`, `rc`, `cvtres`,
+  `mt`, `vctip`, `MSBuild`, `Tracker`, `VBCSCompiler`, `csc`, `dotnet`,
+  `testhost` or `ISCC` whose working directory is the job's `CI_PROJECT_DIR`
+  or under it, or whose command line names it, and says in the log which and
+  why. It never stops another account's process (the maintainer's split gate),
+  its own shell or the runner, a process in another job's directory, or
+  `hMailServer.exe`, which is not on the list; the gate's service runs from
+  `C:\bench\hmailserver`, outside the runner's builds. The working directory is
+  read from the process's own memory (its PEB, 64- or 32-bit), which Windows
+  shows nowhere else. A check that cannot run says so and the job goes on.
 
 ### Re-creating a runner
 
@@ -1016,7 +1049,9 @@ ends with `hmailserver --version`, so the server runs on the image's platform, w
 image's libraries, during the build: for arm64 on linix, an x86-64 machine,
 through its qemu-aarch64 binfmt handler, whose F flag lets kaniko's
 unprivileged container run arm64 programs without the emulator in it (162 to
-217 s on 29 September 2026, beside a pipeline; the amd64 build 44 to 50 s). Neither job
+217 s on 29 September 2026, beside a pipeline; the amd64 build 44 to 50 s). Before
+it builds for arm64, `linux-image.sh` runs `build/ci/arm64-emulation.sh`, which
+refuses by name when that handler is gone (PackagesDeb.md, "What is left"). Neither job
 runs the image; that needs a daemon. The tarballs are not kept: for a `v*` tag,
 `container-image-amd64` and `container-image-arm64` build the images again from
 the `.deb` files the release carries, and `container-image` pushes both
@@ -1545,7 +1580,8 @@ runbook.
 as soon as its own needs have finished, so `release` needs every job of
 `.gitlab-ci.yml` that can fail the tag's pipeline, and waits for the four
 security scans whose reports it reads (`static-analysis`, `semgrep`,
-`dependency-scan` and `semgrep-sast`), which are `allow_failure`: it reads
+`dependency-scan` and `semgrep-sast`); the last two are `allow_failure`, and the
+first two fail only on a finding new to their baselines. It reads
 their reports and refuses on what they found
 ([Before a release](#before-a-release-the-scans-hold-it)). Of the package
 jobs of `.gitlab/ci/packages-*.yml`, which a tag's pipeline runs too, it needs
@@ -1651,7 +1687,7 @@ a `.sigstore.json` copy of each primary file's bundle, and the SLSA provenance:
 | Each compiled file's and the tarball's own SBOM, `<file>.cdx.json` (CycloneDX 1.6; SECURITY.md, "Software bills of materials") | 27 | `linux-build`, the two generic AArch64 packages' SBOM jobs, `release-packages`, and `release-sbom` for the two installers |
 | The SPDX and CycloneDX SBOMs of the tree | 2 | `linux-sbom` |
 | `<file>.cosign.bundle` beside each of those 60; `<file>.sigstore.json`, a byte-identical copy, beside each of the 33 but a compiled file's SBOM | 93 | `release-sign` |
-| `hmailserver-<v>.intoto.sigstore.json`, the SLSA v1 build provenance: an in-toto statement naming all 60 by their SHA-256, the commit and the tag's pipeline, signed with `cosign attest-blob` | 1 | `release-sbom` writes the statement, `release-sign` attests it |
+| `hmailserver-<v>.intoto.sigstore.json`, the SLSA v1 build provenance: an in-toto statement naming all 60 by their SHA-256, the commit and the tag's pipeline, signed with `cosign attest-blob`. One file, named as the Sigstore bundle it is; no `.intoto.jsonl` copy, the only name Scorecard counts as provenance, which would misdescribe its format (SECURITY.md, "Build provenance"), so Scorecard counts it as a signature; `repo-hygiene`'s Signed-Releases counts it as provenance | 1 | `release-sbom` writes the statement, `release-sign` attests it |
 
 6.3.5 carries nine files: the installer, the x86-64 `.deb` and `.rpm`, the sums,
 their SBOMs and the tree's, each with a bundle. The AArch64 packages, each
@@ -2428,7 +2464,7 @@ measured times after the first pipelines.
 | `windows-dotnet` | 10 to 20 min, estimated | 4 h | Two restores (cold for LocalSystem the first time), two Release builds, MIDL, the tests and five publishes; the timeout allows 200 minutes of waiting for the lock |
 | `linux-fuzz` | 65 min | 2 h | Three harnesses of 20 minutes, plus about 3 minutes to build and replay (by hand: 3.5 minutes all told with one minute a harness) |
 | `linux-coverage` | about 3 h, estimated | 4 h | By hand on linix on 26 September 2026, in the job's image: the whole suite against the instrumented server took 126 minutes, and the 29 fixtures linked that day 20 minutes more in a run of their own; the testers took under a minute and the report seconds. The instrumented build was not timed on its own; `linux-build`'s took 20 minutes in the first pipeline |
-| `static-analysis` | 35 to 50 min | 90 min | Its script, run by hand on linix on 25 September 2026 in the job's image with four CPUs where the job has six, beside other work: 51 min 28 s, of which cppcheck took 2 min 22 s and clang-tidy 49 min for 741 files |
+| `static-analysis` | 35 to 75 min | 120 min | Its script, run by hand on linix on 25 September 2026 in the job's image with four CPUs where the job has six, beside other work: 51 min 28 s, of which cppcheck took 2 min 22 s and clang-tidy 49 min for 741 files. 44 min in `batch42`'s pipeline 2897966924; 72 min by hand on linix on 2 October 2026 with six, beside other agents' work (load 17 to 21 on 16 CPUs), clang-tidy 67 min of it for 814 files. Two hours since 6.3.6, when the job lost `allow_failure` and a run cut off fails the pipeline |
 | `semgrep` | 3 to 5 min | 30 min | The same, with one CPU: 2 min 36 s to 2 min 50 s, the install and the rules' download included |
 | `ci-image-packages` | under a minute | 10 min | The copy takes a second; the rest is the job's start |
 | `dependency-scan` | 1 to 2 min | 30 min | The same, with one CPU: 15 to 17 s, the vulnerability database's download included |
@@ -2594,7 +2630,9 @@ What each job leaves behind
 - **`windows-dotnet`** leaves its clone in `C:\GitLab-Runner\builds` with the
   build output in it (the next job's checkout cleans that), the NuGet packages
   in LocalSystem's profile, which the next run reuses, and its TRX files as the
-  artifact for seven days. No MSBuild or compiler server is left running.
+  artifact for seven days. No MSBuild or compiler server is left running; one a
+  cancelled job leaves is stopped before the next job's checkout
+  ([bench150](#bench150)).
 - **`windows-gate`** leaves the bench as the split gate leaves it: the bench's
   checkout at the gated commit, the service running that build, `C:\HMTest` as
   the suite left it, and the fetched objects in the checkout's `.git`. The
@@ -2621,9 +2659,30 @@ September 2026: CodeQL, dependency review (with Dependabot's alerts), and
 OpenSSF Scorecard. Since 25 September 2026 five jobs in the test stage stand
 for them. They run on linix, for a protected ref only (`.own-runners`, like the
 builds), and **nothing they use is downloaded from GitHub**: not a tool, not a
-rule, not a database. Every job is `allow_failure: true` until its first
-findings are triaged, so none of them can fail a pipeline yet; but four of them
-hold a release ([Before a release](#before-a-release-the-scans-hold-it)).
+rule, not a database. `static-analysis` and `semgrep` fail a pipeline on a new
+finding; the other scans are `allow_failure`. Four of them hold a release
+([Before a release](#before-a-release-the-scans-hold-it)).
+
+`static-analysis` and `semgrep` lost `allow_failure` in 6.3.6 (follow-up N02),
+once each had passed over `batch42` with that change folded in, run on linix in
+its own image on 2 October 2026. Their last pipeline on `batch42`, 2897966924 on
+30 September 2026, had passed both; what each found new since was read first:
+
+- `static-analysis`: a cast in QuickJS's `quickjs.h`, which `batch42`'s QuickJS
+  update brought in through `ScriptBinding.cpp`, the one server file that
+  includes it. It is upstream's code, and `build/ci/cppcheck-suppressions.txt`
+  now leaves every cppcheck finding in the vendored engine's directory out, as
+  the job already left out its C and clang-tidy's configuration its headers.
+- `semgrep`: a `subprocess.run` with an argument list and no shell in
+  `build/check-deck-script.py`, marked `# nosemgrep` with its reason, and the
+  MD5 of the greylisting key that `build/db-upgrade-greylist.py` recomputes as
+  the server does, in the baseline with its reason.
+
+From then a finding new to a baseline fails a `batch*` branch's pipeline, and a
+tag's, where `release` then cannot start; a scan with a hole fails it too, and
+so does a run past the job's timeout, which is two hours for `static-analysis`
+for that reason ([How long each job takes](#how-long-each-job-takes)).
+`build/check-release-chain.py` fails when either job is `allow_failure` again.
 
 Two more come from GitLab's own templates (`.gitlab/ci/gitlab-security.yml`,
 included from `.gitlab-ci.yml`): `semgrep-sast`, GitLab's Semgrep analyzer and
@@ -2723,8 +2782,10 @@ it too (exit 2).
 
 ### Before a release: the scans hold it
 
-`allow_failure` keeps a finding from stopping a push's pipeline. It does not let
-one into a release. A `v*` tag's `release` job needs four scans of the tagged
+`allow_failure` keeps a `dependency-scan` or `semgrep-sast` finding from
+stopping a push's pipeline, and a baseline keeps a known `static-analysis` or
+`semgrep` finding from it. Neither lets one into a release. A `v*` tag's
+`release` job needs four scans of the tagged
 commit - `static-analysis`, `semgrep`, `dependency-scan` and GitLab's
 `semgrep-sast`, which `.gitlab/ci/gitlab-security.yml` runs for a protected `v*`
 tag for this - with their artifacts, and not optionally, so a tag's pipeline
@@ -2915,8 +2976,8 @@ fires on two identical lines of one file, their order counts too.
   or of stack, failed while matching, or stopped at too many matches, each also
   only a warning. A hole is never a pass, and no baseline excuses it.
 
-So the day `allow_failure` comes off a job, a new finding fails the pipeline and
-an old one does not.
+So without `allow_failure`, which `static-analysis` and `semgrep` have not had
+since 6.3.6, a new finding fails the pipeline and an old one does not.
 
 To triage a new finding:
 

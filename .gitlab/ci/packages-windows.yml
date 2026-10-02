@@ -8,11 +8,16 @@
 # .own-runners rules these jobs take: never for a merge request, a scheduled
 # pipeline or a downstream pipeline. Both count: a failed build fails the pipeline.
 #
-#   windows-packages-x64    the x64 server, tools, Control Panel and installer:
-#                           hMailServer-<version>-x64.exe for a v* tag, the name a
-#                           Windows server looks for, and
-#                           hMailServer-<version>-<commit>-x64.exe for a branch; a
-#                           release rehearsal on a batch* branch collects it;
+#   windows-packages-x64    the x64 server, tools, Control Panel and installer,
+#                           hMailServer-<version>-<commit>-x64.exe, on a branch only;
+#                           a release rehearsal on a batch* branch collects it. Never
+#                           in a v* tag's pipeline: a release's x64 installer is
+#                           windows-installer's (.gitlab-ci.yml), built in the bench's
+#                           checkout of the gated commit, and a second x64 build
+#                           there would cost the release pipeline another build
+#                           under the gate lock for bytes nothing carries (the
+#                           maintainers' decision, 1 October 2026: Roadmap3, "The x64
+#                           installer made and signed by the pipeline");
 #   windows-packages-arm64  the same for Windows on ARM, -arm64.exe, with the ARM64
 #                           libraries built once into a cache on the bench, and
 #                           libpq's build tools fetched once beside them. It stops
@@ -41,10 +46,11 @@
 # windows-installer (optional: it is in a tag's pipeline only), which is why they sit
 # in the release stage: a job can need a job of its own or an earlier stage only. On a
 # v* tag the release job needs windows-packages-arm64, whose installer it collects, so a
-# maintainer can start release once both builds are done: the x64 one took about six
-# minutes in batch41's pipeline 2887115157, and the ARM64 one, with its libraries
-# cached, about as long (PackagesWindows.md). release-authenticode, on bench150 too,
-# comes after release and so after both.
+# maintainer can start release once windows-installer and the ARM64 build are done (the
+# x64 build took about six minutes in batch41's pipeline 2887115157, and the ARM64 one,
+# with its libraries cached, about as long: PackagesWindows.md); a tag has no
+# windows-packages-x64. release-authenticode, on bench150 too, comes after release and
+# so after both.
 #
 # The x64 libraries are the bench's own (C:\Dev\hMailLibs, as windows-gate's); the
 # ARM64 ones live in C:\bench\hMailLibs-arm64, apart from them.
@@ -65,6 +71,7 @@
   extends: .own-runners
   stage: release
   tags: [bench150]
+  hooks: !reference [.bench150-leftovers, hooks]
   needs:
     - job: windows-gate
       artifacts: false
@@ -133,8 +140,15 @@
 # Inno Setup 6 is missing: that allowance was made while bench150 had no Inno Setup for
 # the machine. It has had one since 26 September 2026 (docs/ContinuousIntegration.md,
 # "bench150"), and this job passed with it in pipeline 2887115157.
+#
+# Not for a v* tag (above): its refusal first, then .own-runners' rules, which make
+# the job for a protected branch as .windows-packages' would.
 windows-packages-x64:
   extends: .windows-packages
+  rules:
+    - if: $CI_COMMIT_TAG
+      when: never
+    - !reference [.own-runners, rules]
   variables:
     HM_PACKAGE_PLATFORM: x64
     HM_PACKAGE_FOLDER: x64
@@ -145,9 +159,11 @@ windows-packages-x64:
 # which build/check-release-chain.py holds it to. The whole job passed by hand as
 # LocalSystem on bench150 on 29 September 2026 (hmailserver/docs/PackagesWindows.md).
 #
-# After windows-packages-x64 as well: side by side, whichever took the lock second
-# would wait for the other's whole build, and the ARM64 job's first run (its
-# libraries too) may take longer than the 90 minutes the x64 job waits.
+# After windows-packages-x64 as well, on a branch: side by side, whichever took the
+# lock second would wait for the other's whole build, and the ARM64 job's first run
+# (its libraries too) may take longer than the 90 minutes the x64 job waits. Optional,
+# since a v* tag's pipeline has no windows-packages-x64; there this job follows
+# windows-installer instead, for the same reason.
 windows-packages-arm64:
   extends: .windows-packages
   needs:
@@ -160,6 +176,7 @@ windows-packages-arm64:
       optional: true
     - job: windows-packages-x64
       artifacts: false
+      optional: true
   variables:
     HM_PACKAGE_PLATFORM: ARM64
     HM_PACKAGE_FOLDER: arm64

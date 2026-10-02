@@ -233,7 +233,7 @@ pack() {
   echo "SOURCE_DATE_EPOCH=$SOURCE_DATE_EPOCH"
 
   if ! command -v curl > /dev/null 2>&1 || ! command -v xz > /dev/null 2>&1 || [ ! -f /etc/ssl/certs/ca-certificates.crt ]; then
-    DEBIAN_FRONTEND=noninteractive apt-get update -qq
+    DEBIAN_FRONTEND=noninteractive apt-get update -qq -o Acquire::Retries=3
     DEBIAN_FRONTEND=noninteractive apt-get install -y -qq -o Acquire::Retries=3 --no-install-recommends \
       curl xz-utils ca-certificates > /dev/null
   fi

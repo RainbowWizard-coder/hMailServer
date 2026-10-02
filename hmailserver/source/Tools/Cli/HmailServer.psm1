@@ -50,7 +50,10 @@ function Connect-HmServer {
 
         -Insecure accepts a certificate nobody verified, and is refused for any
         host but the loopback: sending an administrator password to a remote
-        host over an unverified connection is not a convenience.
+        host over an unverified connection is not a convenience. Under Windows
+        PowerShell 5.1, which has no -SkipCertificateCheck, it accepts the
+        certificate of that loopback address and port alone, for each call, and
+        leaves every other connection of the session to be judged as before.
     .EXAMPLE
         Connect-HmServer -Url https://mail.example.com:8045
     .EXAMPLE
@@ -169,6 +172,13 @@ function Invoke-HmApi {
         throw 'No server: run Connect-HmServer first, or pass -Url and a credential.'
     }
 
+    # The loopback rule Connect-HmServer applies, held here too: -Url and -Insecure on
+    # one call reach this without it.
+    $target = [System.Uri] $session.Url
+    if ($session.Insecure -and -not $target.IsLoopback) {
+        throw "-Insecure is refused for $($target.Host): it is allowed for the loopback only, because it would send the credential to a host nobody verified. Give the server a certificate the client trusts."
+    }
+
     $headers = @{ Accept = 'application/json' }
 
     if ($session.ApiKey) {
@@ -206,6 +216,52 @@ function Invoke-HmApi {
 
     if ($session.Insecure -and $PSVersionTable.PSVersion.Major -ge 6) {
         $arguments['SkipCertificateCheck'] = $true
+        # -SkipCertificateCheck holds for a redirect too, wherever it leads: an
+        # -Insecure call follows none, and a redirect is an error.
+        $arguments['MaximumRedirection'] = 0
+    }
+
+    # Windows PowerShell 5.1 has no -SkipCertificateCheck: what it judges a server
+    # certificate by is the process's ServicePointManager callback. For an -Insecure
+    # call it is replaced, for the call alone, by one that accepts the certificate of
+    # this loopback address and port and hands every other connection to the callback
+    # it replaces (or, with none, to the system's own verdict), and put back after.
+    $previousCallback = $null
+    $replacedCallback = $false
+    if ($session.Insecure -and $PSVersionTable.PSVersion.Major -lt 6) {
+        if (-not ('HmailServerLoopbackCertificate' -as [type])) {
+            Add-Type -TypeDefinition @'
+using System;
+using System.Net;
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
+
+public static class HmailServerLoopbackCertificate
+{
+    public static RemoteCertificateValidationCallback For(Uri server, RemoteCertificateValidationCallback previous)
+    {
+        return delegate (object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors errors)
+        {
+            // Address is where the request is now, after any redirect; RequestUri is
+            // where it was sent. Both must be this loopback server.
+            HttpWebRequest request = sender as HttpWebRequest;
+            if (request != null && server.IsLoopback && request.RequestUri.IsLoopback && request.Address.IsLoopback
+                && Uri.Compare(request.RequestUri, server, UriComponents.SchemeAndServer, UriFormat.SafeUnescaped,
+                               StringComparison.OrdinalIgnoreCase) == 0
+                && Uri.Compare(request.Address, server, UriComponents.SchemeAndServer, UriFormat.SafeUnescaped,
+                               StringComparison.OrdinalIgnoreCase) == 0)
+            {
+                return true;
+            }
+            return previous != null ? previous(sender, certificate, chain, errors) : errors == SslPolicyErrors.None;
+        };
+    }
+}
+'@
+        }
+        $previousCallback = [System.Net.ServicePointManager]::ServerCertificateValidationCallback
+        [System.Net.ServicePointManager]::ServerCertificateValidationCallback = [HmailServerLoopbackCertificate]::For($target, $previousCallback)
+        $replacedCallback = $true
     }
 
     try {
@@ -249,6 +305,11 @@ function Invoke-HmApi {
             403 { throw "Forbidden (403)$(if ($detail) { ': ' + $detail })." }
             404 { throw "Not found (404): $Path$(if ($detail) { ' - ' + $detail })." }
             default { throw "$Method $Path failed$(if ($status) { " ($status)" })$(if ($detail) { ': ' + $detail })." }
+        }
+    }
+    finally {
+        if ($replacedCallback) {
+            [System.Net.ServicePointManager]::ServerCertificateValidationCallback = $previousCallback
         }
     }
 }

@@ -21,6 +21,14 @@
 #       that signed it. A release without either architecture's .deb, or its SBOM,
 #       stops the job: the image is built for both platforms or not at all.
 #
+# A signature binds bytes, not a name: every file the release carries is signed by the
+# same pipeline, so a link that named one file and served another, signed, would verify.
+# So each .deb is held as well to the SHA-256 the release's signed sums file,
+# hmailserver-linux-<v>-SHA256SUMS.txt, gives its name, and each SBOM to naming that
+# .deb's SHA-256 as its subject (build/asset-sbom.py writes it there): an arm64 .deb
+# served under the amd64 name, or one .deb's SBOM under the other's, stops the job here
+# rather than in the image's build, or not at all.
+#
 # Why from the release and not from release-sign's artifact: the image jobs may run
 # weeks after the tag - the project's CI/CD variable HM_PUBLISH_IMAGE, which this
 # checks first, is set only with the project at its lasting path, the group's since
@@ -114,11 +122,10 @@ grep -qF "\"tag_name\":\"$tag\"" "$out/release.json" || fail "$api/releases/$tag
 
 rows=""
 signed_as=""
-# The two architectures the image is built for, each a .deb the release carries
-# (linux-build's amd64 one and deb-ubuntu26.04-arm64's), and each .deb's SBOM.
-for arch in amd64 arm64; do
-  deb="hmailserver_${version}_${arch}.deb"
-  for name in "$deb" "$deb.cdx.json"; do
+# take NAME: the release's file NAME and its bundle, downloaded and verified as signed by
+# this project's pipeline for this tag, with the project's id; its SHA-256 left in $sum.
+take() {
+    name=$1
     url="$api/packages/generic/hmailserver/$version/$name"
     grep -qF "\"url\":\"$url\"" "$out/release.json" \
       || fail "the release $tag has no link to $url: it does not carry $name"
@@ -166,6 +173,25 @@ for arch in amd64 arm64; do
     echo "$name  $sum  verifies as $identity (repository id: $id_said)"
     rows="$rows$name  $sum
   "
+}
+
+# The release's sums, signed as the rest: what binds each .deb's name to its bytes.
+sums="hmailserver-linux-$version-SHA256SUMS.txt"
+take "$sums"
+# The two architectures the image is built for, each a .deb the release carries
+# (linux-build's amd64 one and deb-ubuntu26.04-arm64's), and each .deb's SBOM.
+for arch in amd64 arm64; do
+  deb="hmailserver_${version}_${arch}.deb"
+  for name in "$deb" "$deb.cdx.json"; do
+    take "$name"
+    if [ "$name" = "$deb" ]; then
+      deb_sum="$sum"
+      { grep -Fxq "$deb_sum  $deb" "$out/$sums" || grep -Fxq "$deb_sum *$deb" "$out/$sums"; } \
+        || fail "$deb is $deb_sum, which is not what $sums gives that name: the release serves another signed file under it"
+    else
+      grep -Fq "$deb_sum" "$out/$name" \
+        || fail "$name does not name $deb_sum, the $deb it describes: it is the SBOM of another file"
+    fi
   done
 done
 rm -f "$out/release.json" "$out/verify.log" "$out/wget.log"
@@ -178,4 +204,4 @@ rm -f "$out/release.json" "$out/verify.log" "$out/wget.log"
   printf '%s' "$rows"
 } > "$out/verification.txt"
 cat "$out/verification.txt"
-echo "TAKEN: hmailserver_${version}_amd64.deb and hmailserver_${version}_arm64.deb and their SBOMs from the published release $tag, all verified as $signed_as."
+echo "TAKEN: hmailserver_${version}_amd64.deb and hmailserver_${version}_arm64.deb and their SBOMs from the published release $tag, all verified as $signed_as, each .deb as $sums names it and each SBOM naming its .deb."

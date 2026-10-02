@@ -3685,3 +3685,180 @@ exceptions:
     reviewed-by: Progressiverobot
     reviewed: 2026-09-26
     expires: 2027-03-26
+
+  # Read on 2 October 2026 (6.3.6, follow-up N02): the 22 High findings of GitLab's semgrep
+  # analyzer, run on linix as the semgrep-sast job runs it, over batch42 at d10e57924 with the
+  # branch b42-ci folded in, that no entry above accepted - lines added or changed since the
+  # scan the entries above were made from. Each was read against the code by an AI agent under the owner's delegation, not line
+  # by line by the owner, so reviewed-by names the owner, who delegated the reading; none is a
+  # defect, and each reason names what holds.
+
+  # hmailserver/source/Server/Common/Util/AdminUpdate.cpp
+  - scan: semgrep-sast
+    finding: 363499f9857462bf882e
+    what: 'MultiByteToWideChar sizing call in AdminUpdate.cpp''s Wide_ (Windows)'
+    reason: 'Wide_ asks MultiByteToWideChar for the length first, with a null output buffer and an output size of 0, so nothing is written; the input is the std::string''s own data() and size(), an empty string returning before the call.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-10-02
+    expires: 2027-10-01
+  - scan: semgrep-sast
+    finding: b108f0d252551974452c
+    what: 'MultiByteToWideChar conversion call in AdminUpdate.cpp''s Wide_ (Windows)'
+    reason: 'The output is a std::wstring of exactly needed wide characters, the count the sizing call returned, and the call is given that same needed as its output size in characters (cchWideChar), so input bytes and output characters are not confused; it runs only when needed > 0. The strings it widens are bounded by the request reader''s StringCap_ (4 MB) or are the build''s own constants.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-10-02
+    expires: 2027-10-01
+  - scan: semgrep-sast
+    finding: da7634a030492a795680
+    what: 'memcpy in Reader_::Raw, the --verify-bundle request reader in AdminUpdate.cpp (Windows)'
+    reason: 'Raw copies length bytes only after checking data_.size() - offset_ >= length, and every reader method keeps offset_ <= data_.size(), so the source never runs past the request. Its one caller, the --verify-bundle request check, passes char magic[4] with length 4, so the destination holds exactly what is copied.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-10-02
+    expires: 2027-10-01
+
+  # hmailserver/source/Server/Common/Util/AdminUpdateTester.cpp
+  - scan: semgrep-sast
+    finding: 0ccf64d55dbdcb4e9ede
+    what: 'memcpy of the substitute name into the mount point reparse buffer in AdminUpdateTester.cpp (test code)'
+    reason: 'Test code: AdminUpdateTester runs from ClassTester, the password-guarded test suite (hMailServer.exe /Test). The buffer is a std::vector of 8 + 8 + pathBytes bytes, pathBytes being (substitute.size() + 1 + print.size() + 1) wide characters; this memcpy writes (substitute.size() + 1) of them at offset 16, the terminator included, inside it.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-10-02
+    expires: 2027-10-01
+  - scan: semgrep-sast
+    finding: 8429430e5b1e53877117
+    what: 'memcpy of the print name into the mount point reparse buffer in AdminUpdateTester.cpp (test code)'
+    reason: 'Test code run only from the password-guarded test suite. The print name''s (print.size() + 1) wide characters go right after the substitute name''s at offset 16 + (substitute.size() + 1) wide characters, so the two copies end exactly at 16 + pathBytes, the vector''s size.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-10-02
+    expires: 2027-10-01
+  - scan: semgrep-sast
+    finding: 8aef9fb25c9b51375a07
+    what: 'ImpersonateLoggedOnUser in AdminUpdateTester.cpp''s CanReadPermissionsAs_ (test code)'
+    reason: 'Test code run only from the password-guarded test suite. The return of ImpersonateLoggedOnUser is checked, and the function returns false with GetLastError() when it fails; the token impersonated is a restricted copy of the tester''s own (CreateRestrictedToken with groups disabled and DISABLE_MAX_PRIVILEGE), so a failed RevertToSelf would leave the thread with fewer rights, never more.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-10-02
+    expires: 2027-10-01
+
+  # hmailserver/source/Server/Common/Application/BackupExecuter.cpp
+  - scan: semgrep-sast
+    finding: f47f862fa4c1f62c289a
+    what: 'memcpy of the lower half of FILE_ID_INFO''s 128-bit file id in BackupExecuter.cpp (Windows)'
+    reason: 'FILE_ID_INFO.FileId.Identifier is a 16-byte array, zeroed and filled by GetFileInformationByHandleEx with sizeof(longIdentifier); this copies sizeof(identity.low), 8 bytes, from offset 0 into an unsigned long long.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-10-02
+    expires: 2027-10-01
+  - scan: semgrep-sast
+    finding: 41f5307b102ead19d8e7
+    what: 'memcpy of the upper half of FILE_ID_INFO''s 128-bit file id in BackupExecuter.cpp (Windows)'
+    reason: 'Copies sizeof(identity.high), 8 bytes, from offset 8 of the 16-byte FileId.Identifier into an unsigned long long: bytes 8 to 15, inside the array.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-10-02
+    expires: 2027-10-01
+
+  # hmailserver/source/Server/Common/Util/LegacyBlowfish.cpp
+  - scan: semgrep-sast
+    finding: 731e678b316dd7e15bfe
+    what: 'memcpy of the Blowfish P-array''s initial values in LegacyBlowfish::SetKey_'
+    reason: 'p_ is uint32_t[18] (LegacyBlowfish.h) and PiP is const uint32_t[18]; the copy is sizeof(p_), the size of both.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-10-02
+    expires: 2027-10-01
+  - scan: semgrep-sast
+    finding: 21a11b1614fbee07c004
+    what: 'memcpy of the Blowfish S-boxes'' initial values in LegacyBlowfish::SetKey_'
+    reason: 's_ is uint32_t[4][256] (LegacyBlowfish.h) and PiS is const uint32_t[4][256]; the copy is sizeof(s_), the size of both.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-10-02
+    expires: 2027-10-01
+  - scan: semgrep-sast
+    finding: 3731389720a72b4ec005
+    what: 'memcpy of the narrowed plain text into the block buffer in LegacyBlowfish::EncryptToString'
+    reason: 'A text longer than MaxPlainLength (248) is refused before it. bytes is a vector of WholeBlocks(characters) bytes, characters rounded up to the 8-byte block, and taken is strnlen of the narrowed text bounded by characters, so taken <= characters <= bytes.size(); the copy is skipped when taken is 0.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-10-02
+    expires: 2027-10-01
+  - scan: semgrep-sast
+    finding: f0bd0f811e81ad0ede67
+    what: 'strlen in LegacyBlowfish.cpp''s FromHex, the published test vectors'' reader'
+    reason: 'FromHex is called only by CheckVector in LegacyBlowfish''s self-test, with Eric Young''s published Blowfish vectors: string literals of this file, NUL-terminated by the compiler, and for the set_key vectors the c_str() of an AnsiString holding a prefix of one of them, NUL-terminated by the string; no input from outside reaches it.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-10-02
+    expires: 2027-10-01
+
+  # hmailserver/source/Server/Common/Util/InlineScriptHash.cpp
+  - scan: semgrep-sast
+    finding: 344decceded046d3d679
+    what: 'strlen of the tag word in InlineScriptHash.cpp''s FindTag'
+    reason: 'FindTag''s three callers in InlineScriptHash::ScriptText pass the string literals "<script" and "</script" as word, NUL-terminated by the compiler; the page''s own text is a std::string read by index, with at + length checked against its size first.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-10-02
+    expires: 2027-10-01
+  - scan: semgrep-sast
+    finding: e22bec567a5802eaa7fd
+    what: 'strlen("<script") in InlineScriptHash::ScriptText'
+    reason: 'The argument is the string literal "<script", so strlen is the constant 7; the sum is an offset FindTag found inside the preprocessed page, and ReadAttributes reads the page by index against its size.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-10-02
+    expires: 2027-10-01
+  - scan: semgrep-sast
+    finding: 001a07f9251add9cb0ec
+    what: 'strlen("</script") in InlineScriptHash::ScriptText'
+    reason: 'The argument is the string literal "</script", so strlen is the constant 8, added to an offset FindTag found; FindTag checks every position against the text''s size.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-10-02
+    expires: 2027-10-01
+
+  # hmailserver/source/Server/Common/AntiSpam/SURBL.cpp
+  - scan: semgrep-sast
+    finding: 4b852016042ed947cc48
+    what: 'wcslen of a named character reference in SURBL.cpp''s table of HTML entities'
+    reason: 'reference.name comes from namedReferences, a constant table of this file whose every name is a non-empty wide string literal (L"shy;", L"Tab;" and so on), NUL-terminated by the compiler; the text being decoded is compared with wcsncmp only after position + 1 + nameLength is checked against its length.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-10-02
+    expires: 2027-10-01
+
+  # hmailserver/source/Server/hMailServer.Updater/hMailServer.Updater.cpp
+  - scan: semgrep-sast
+    finding: f785c879f6652c1f2f0d
+    what: 'wcslen walk over the GetEnvironmentStringsW block in the updater''s InstallerEnvironment (Windows)'
+    reason: 'The block comes from GetEnvironmentStringsW, which the system guarantees is a run of NUL-terminated strings ending in an empty one; the loop checks entry for null and stops at that empty string, and each wcslen stops at its own entry''s terminator. The same walk as EnvironmentSettings::ReadProcessEnvironment, accepted above.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-10-02
+    expires: 2027-10-01
+
+  # hmailserver/source/Tools/DBSetup/Unattended.cs
+  - scan: semgrep-sast
+    finding: 47046edc229e524f9fef
+    what: 'ProcessStartInfo.FileName of DBUpdater in Unattended.RunDatabaseUpgrade'
+    reason: 'FileName is Path.Join(AppContext.BaseDirectory, "DBUpdater.exe"), a full path in DBSetup''s own folder, with UseShellExecute false, so there is neither a search nor a shell; no input names the program.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-10-02
+    expires: 2027-10-01
+  - scan: semgrep-sast
+    finding: 6c779b4e90fdd005dbd0
+    what: 'Process.Start of DBUpdater in Unattended.RunDatabaseUpgrade'
+    reason: 'The arguments are only the constants /SilentIfOk and /silent, each its own ArgumentList element, and UseShellExecute is false; the database credential travels in the child''s environment (Authenticator.PasswordVariable), never on its command line, as DBSetupQuick''s UpgradeDatabase does (accepted above).'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-10-02
+    expires: 2027-10-01
+  - scan: semgrep-sast
+    finding: be78f1cb16b7119b4afb
+    what: 'ProcessStartInfo.FileName of sc.exe in Unattended.SetDependency'
+    reason: 'FileName is Path.Combine(Environment.SystemDirectory, "sc.exe"), the system directory''s sc.exe by its full path, with UseShellExecute false: no search and no shell.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-10-02
+    expires: 2027-10-01
+  - scan: semgrep-sast
+    finding: c327d62b092f301b4bd8
+    what: 'sc.exe''s argument string in Unattended.SetDependency'
+    reason: 'The string is config hMailServer depend= "RPCSS/<service>", and <service> is HM_DB_SERVICE, which UnattendedSettings refuses when it holds white space, a control character, a slash, a backslash or a double quote, or names hMailServer, and which must name an installed service (ServiceExists) before anything is changed; so it stays inside the one quoted argument and cannot add another. The value comes from the environment of the elevated process that runs the setup, whose user may run sc.exe already.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-10-02
+    expires: 2027-10-01
+  - scan: semgrep-sast
+    finding: a04690c2df4c38165046
+    what: 'Process.Start of sc.exe in Unattended.SetDependency'
+    reason: 'Starts the System32 sc.exe of the entry above with the argument string that entry describes, UseShellExecute false and its output read; it runs only when the server''s own MakeDependent refused.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-10-02
+    expires: 2027-10-01

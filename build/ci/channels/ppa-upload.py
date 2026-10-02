@@ -25,6 +25,12 @@ named (hmailserver/docs/Channels.md, "Ubuntu PPA").
      release in LAUNCHPAD_SERIES (default "noble resolute", 24.04 and 26.04) that the
      PPA does not have the version for, a changelog entry for that release, version
      <the package's>~<release>1, dpkg-buildpackage -S, and debsign with the key.
+     Every upload carries the orig (-sa) while the PPA has none, and none (-sd) once
+     it has one (series_flags): Launchpad takes a file it already holds when the
+     bytes are the same and refuses it when they differ (its "Troubleshoot package
+     upload errors"), and an upload that only names the orig is refused while the
+     PPA does not hold it - so each upload stands alone, whatever order Launchpad
+     takes them in and whether an earlier one was refused.
   5. dput to ppa.launchpad.net, which takes the upload on its signature alone.
      Launchpad mails its answer to the key's address and shows it on the PPA's page;
      the job reads the PPA back after a while and says what it lists.
@@ -156,6 +162,14 @@ def tar_contents(path):
 
 # ---------------------------------------------------------------- the job
 
+def series_flags(wanted, ppa_has_orig):
+    """dpkg-buildpackage's orig flag for each release's upload, in order: the orig
+    carried by every one (-sa) while the PPA holds none, so that no upload rests on
+    another having been taken first, and by none (-sd) once the PPA holds it, whose
+    bytes the uploads are then built against."""
+    return [(s, "-sd" if ppa_has_orig else "-sa") for s in wanted]
+
+
 def ppa_upload(out, environ=None, run=subprocess.run):
     environ = os.environ if environ is None else environ
     fix = rf.fixture(environ)
@@ -254,7 +268,6 @@ def ppa_upload(out, environ=None, run=subprocess.run):
         if repack.returncode != 0 or not os.path.isfile(orig):
             raise Refused("mk-origtargz could not repack the tarball: %s" % (repack.stderr or repack.stdout).strip()[-400:])
         spent = [v for s, v in have if v and upstream_of(v) == upstream]
-        first_flag = "-sa"
         if spent:
             url = "%s/~%s/+archive/ubuntu/%s/+sourcefiles/%s/%s/%s" % (LAUNCHPAD, owner, ppa, source, spent[0],
                                                                          os.path.basename(orig))
@@ -264,12 +277,11 @@ def ppa_upload(out, environ=None, run=subprocess.run):
                 raise Refused("the PPA's %s is not this release's tarball repacked, file by file: nothing was uploaded"
                               % os.path.basename(orig))
             os.replace(theirs, orig)
-            first_flag = "-sd"
             say("the PPA has %s already (from %s): uploading against it" % (os.path.basename(orig), spent[0]))
 
         unpacked = os.path.join(work, "%s-%s" % (source, upstream))
         uploads = []
-        for index, s in enumerate(wanted):
+        for s, flag in series_flags(wanted, bool(spent)):
             if os.path.exists(unpacked):
                 shutil.rmtree(unpacked)
             with tarfile.open(orig) as archive:
@@ -282,7 +294,6 @@ def ppa_upload(out, environ=None, run=subprocess.run):
             with open(os.path.join(unpacked, "debian", "changelog"), "w", encoding="utf-8", newline="\n") as f:
                 f.write(changelog_entry(source, upload_version, s, maintainer, datetime.datetime.now(datetime.timezone.utc))
                         + changelog)
-            flag = first_flag if index == 0 else "-sd"
             built = run(["dpkg-buildpackage", "-S", "-d", "-nc", "-us", "-uc", flag], cwd=unpacked, capture_output=True,
                         text=True, env=gpg_env)
             if built.returncode != 0:
@@ -355,6 +366,10 @@ def self_test():
                             datetime.datetime(2026, 10, 2, 12, 0, tzinfo=datetime.timezone.utc))
     expect("a changelog entry dpkg-parsechangelog reads", entry.startswith("hmailserver (9.9.9+ds-1~noble1) noble; urgency=medium")
            and " -- Upload Key <ppa@example.org>  Fri, 02 Oct 2026 12:00:00 +0000\n" in entry)
+    expect("with no orig in the PPA, every release's upload carries it",
+           series_flags(["noble", "resolute"], False) == [("noble", "-sa"), ("resolute", "-sa")])
+    expect("  ... and with the PPA's own, none does",
+           series_flags(["noble", "resolute"], True) == [("noble", "-sd"), ("resolute", "-sd")])
     expect("the PPA named by owner and name", ppa_parts(None) == ["hmailserver", "hmailserver"]
            and ppa_parts("~someone/test-ppa") == ["someone", "test-ppa"])
     refused("a PPA named otherwise", lambda: ppa_parts("ppa:hmailserver"), "<owner>/<name>")

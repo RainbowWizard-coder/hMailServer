@@ -71,7 +71,9 @@ start applies a new installation's defaults ([SecureDefaults.md](SecureDefaults.
 To build it yourself for your own machine's platform, put that architecture's
 `.deb` in `packages/` beside the Dockerfile and run `docker build` there (BuildKit,
 Docker's builder since Docker 23, sets `TARGETARCH`; with the older builder, add
-`--build-arg TARGETARCH=amd64` or `arm64`).
+`--build-arg TARGETARCH=amd64` or `arm64`). Add `--build-arg
+HM_IMAGE_VERSION=<the .deb's version>` for the image's version label; without it
+the label says `local` (until 6.3.6 it said Ubuntu's `24.04`, the base image's).
 
 The image's labels, which a registry and Artifact Hub show: the OCI ones
 (`org.opencontainers.image.title`, `description`, `licenses`, `vendor`, `url`,
@@ -243,11 +245,11 @@ installs nothing ([UpdateFeed.md](UpdateFeed.md)). Then:
 
 | Job | Where | What it does |
 |---|---|---|
-| `container-image-deb` | GitLab's shared runners, in cosign's image (`HM_COSIGN_IMAGE`); **started by hand** | Takes `hmailserver_<version>_amd64.deb`, `hmailserver_<version>_arm64.deb` and their SBOMs from the published release, with their Sigstore bundles, and verifies each with `cosign verify-blob` as signed by this project's pipeline for the tag, at either of the project's two paths, with the project's id `86730559` required in the certificate's extensions at the group's path, read from the v0.3 bundle cosign verified by `build/ci/sigstore-certificate.sh` (`build/ci/container-image-deb.sh`). A release without either `.deb`, or its SBOM, stops it: the image is built for both platforms or not at all |
+| `container-image-deb` | GitLab's shared runners, in cosign's image (`HM_COSIGN_IMAGE`); **started by hand** | Takes `hmailserver_<version>_amd64.deb`, `hmailserver_<version>_arm64.deb` and their SBOMs from the published release, with their Sigstore bundles, and verifies each with `cosign verify-blob` as signed by this project's pipeline for the tag, at either of the project's two paths, with the project's id `86730559` required in the certificate's extensions at the group's path, read from the v0.3 bundle cosign verified by `build/ci/sigstore-certificate.sh` (`build/ci/container-image-deb.sh`). Since 6.3.6 it also takes the release's `hmailserver-linux-<version>-SHA256SUMS.txt`, verified the same way, and holds each `.deb` to the SHA-256 it gives that name and each SBOM to naming its `.deb`'s SHA-256: a signature binds bytes, not a name, so another file the pipeline signed, served under a `.deb`'s name, would verify. A release without either `.deb`, or its SBOM, stops it: the image is built for both platforms or not at all |
 | `container-image-amd64`, `container-image-arm64` | linix, in kaniko's image | Each builds the Dockerfile for its platform from its own architecture's `.deb` - the arm64 one under qemu-user - checks the image's platform, user, entrypoint, healthcheck, ports, file capability, `HM_INSTALL_KIND` and labels and that the server answered `--version` in the build, and keeps the image's tarball for `container-image`; neither pushes (`build/ci/linux-image.sh`, `HM_IMAGE_RELEASE=1`) |
 | `container-image` | GitLab's shared runners, in regctl's image | Holds each tarball to what its job checked, joins the two images under one index, checks that the index names exactly linux/amd64 and linux/arm64, and only then pushes: each image by its digest, the index as `:<version>` (and `:<major>.<minor>` and `:latest` for a release without a suffix, each only forward: see below). It reads every tag it wrote back (`build/ci/container-image-push.sh`) |
 | `container-image-sbom` | linix, in the Linux CI image | For each platform, Syft's reading of that platform's pushed image by its digest, with what that architecture's `.deb`'s own SBOM names inside the binary (`build/ci/container-image-sbom.sh`) |
-| `container-image-sign` | GitLab's shared runners, in cosign's image | Signs the index and each platform's image by its digest, attests each platform's SBOM to its image, and verifies all of it (`build/ci/container-image-sign.sh`) |
+| `container-image-sign` | GitLab's shared runners, in cosign's image, after both start tests (since 6.3.6) | Signs the index and each platform's image by its digest, attests each platform's SBOM to its image, and verifies all of it (`build/ci/container-image-sign.sh`): only an image that has started and answered is signed |
 | `container_scanning`, `container_scanning_arm64` | GitLab's shared runners | GitLab's Container Scanning over each platform's pushed image by its digest; a finding is a warning, and its report is the job's artifact |
 | `container-image-start`, `container-image-start-arm64` | linix, in the Linux CI image | Starts each platform's pushed image by its digest as a service beside PostgreSQL - the arm64 one as a service of that platform, under qemu-user - and asks it for SMTP on 25 and for the REST API over TLS (The start test, below) |
 
@@ -347,10 +349,10 @@ the tags.
 `container-image` reads its tags back after it pushes them, and
 `container-image-start` and `container-image-start-arm64` run after the push. If
 one fails, the tags name an image that did not pass: the job's log names them, and
-they are deleted by hand (Deploy, Container registry), with the signature and
-attestation tags (`sha256-<digest>.sig` and `.att`, of the index and of each
-platform's image) if `container-image-sign` ran. Then the fix is released as a new
-version; a tag is spent once.
+they are deleted by hand (Deploy, Container registry). `container-image-sign`
+waits for both start tests, so such an image is never signed (until 6.3.6 it was
+signed beside them, and its `sha256-<digest>.sig` and `.att` tags were deleted with
+it). Then the fix is released as a new version; a tag is spent once.
 
 ### The start test
 

@@ -16,3 +16,13 @@ missingIncludeSystem
 
 # cppcheck's own summary of which checkers ran, not a finding.
 checkersReport
+
+# QuickJS, vendored under hmailserver/source/Server/quickjs. Its C is not analysed:
+# static-analysis.sh leaves the directory out with -i and out of the file list, and
+# clang-tidy leaves its headers out (clang-tidy.yaml, ExcludeHeaderFilterRegex). But
+# -i matches source files only, so a header of it that a server file includes -
+# quickjs.h, from Common/Scripting/ScriptBinding.cpp - is read with that file, and
+# the QuickJS update batch42 took (6.3.6) brought a finding of upstream's code in with
+# it (a cast in __js_rc). Upstream's code is upstream's to fix, and a new QuickJS is
+# taken by its update, not reviewed by this job. Every id, in that directory alone.
+*:*/hmailserver/source/Server/quickjs/*

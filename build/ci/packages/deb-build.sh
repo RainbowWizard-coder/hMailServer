@@ -119,6 +119,15 @@ elif [ "$host" = amd64 ] && [ "$arch" = arm64 ]; then
 else
   refuse "a $arch package cannot be built in a $host container: arm64 is cross-compiled from amd64, and nothing else is."
 fi
+# The install job that follows an arm64 build runs the package in an arm64 container,
+# which starts only where this machine's kernel runs aarch64 programs; that container's
+# shell is an aarch64 program too, so it cannot ask. Asked here, before the build, so
+# that a missing qemu-aarch64 handler is named here rather than met there as "exec
+# format error" (build/ci/arm64-emulation.sh).
+if [ "$route" = cross ]; then
+  sh build/ci/arm64-emulation.sh "deb-$distro-arm64-install, which installs this package in an arm64 container," \
+    || refuse "this machine cannot run the arm64 container the install job needs (above)."
+fi
 
 version=$(sed -n 's/^#define[[:space:]]*HMAILSERVER_VERSION[[:space:]]*"\([0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\)".*/\1/p' \
   hmailserver/source/Server/Common/Application/Version.h)

@@ -1541,6 +1541,18 @@ message is the server administrator's alone (What changes on upgrade, item 25). 
   log holds request by request ([AlertsAndAuditTrail.md](hmailserver/docs/AlertsAndAuditTrail.md), "Mail read through an
   administrator's route").
 
+- **`-Insecure` works on Windows PowerShell 5.1, and `hmctl --version` says the release's version.** The
+  `HmailServer` module's `-Insecure`, which accepts the self-signed certificate of a server on the loopback, had no
+  effect on Windows PowerShell 5.1, which has no `-SkipCertificateCheck`. There it now puts a certificate check in the
+  process's place for that call alone, one that accepts the certificate of the session's loopback address and port
+  and hands every other connection to the check it replaced, and puts that back when the call ends; on PowerShell 7 an
+  `-Insecure` call follows no redirect, since the skipped check would follow it. `Invoke-HmApi` refuses `-Insecure`
+  for a host other than the loopback as `Connect-HmServer` does. Against a loopback server with a self-signed
+  certificate, on 5.1 and 7.5, 14 of 14 cases pass, where the module as it was failed three on 5.1 and two on 7.
+  `hmctl --version` said `hmctl 1.0`, and its requests `hmctl/1.0`, whatever the release; it says the server's
+  version now, stamped with the release (RELEASE.md, step 7), and `build/check-cli-packages.py` fails `checkers` while
+  `hmctl`'s `VERSION` is not `Version.h`'s, with a `--self-test` case the check as it was passed.
+
 ### Operations
 
 - **Fixed: on MySQL and MariaDB an insert refused as a duplicate could be read as one that wrote a row.** A caller
@@ -2410,6 +2422,145 @@ message is the server administrator's alone (What changes on upgrade, item 25). 
   `DROP INDEX` does not (measured on SQL Server 2022). The 6107 step's script began with such a drop, of a
   constraint step 6072 had already removed, and no longer does; step 6072's own, which never failed, is the one
   exception the check knows by name.
+- **`channels-check` runs when `.gitlab-ci.yml` changes.** The job that runs every release channel script's
+  self-test and proves their verification with the pinned cosign ran only when a channel's own files changed;
+  `.gitlab-ci.yml`, which pins that cosign (`HM_COSIGN_IMAGE`), and `.gitlab/ci/no-github.yml`, whose `.no-github`
+  the job takes first, now count among them.
+
+- **One Linux suite at a time on linix.** `linux-suite` and `alpine-suite` (`.gitlab/ci/alpine.yml`) share the
+  resource group `linix-suite`, so that the two, each hours long, no longer run side by side on linix's runner,
+  which takes more than one job at once, and two pipelines' suites no longer share it either.
+
+- **The AppImage runtime's sources outlast a short outage of Alpine's hosts.** `appimage-runtime-sources.sh` tried
+  a download three times, and only after a timeout or a 408, 429 or 5xx answer; a connection refused or dropped
+  failed the job at once, and the aports fetch and `apk add` were tried once. A failed, timed-out or dropped
+  download is now tried again with a growing wait for up to ten minutes, as `appimage-bundled-sources.sh` already
+  did (a 404 is not, and still sends it to `edge/`'s mirror at once), and the aports fetch and `apk add` three
+  times over a minute and a half; every file is still held to the SHA-512 its `APKBUILD` gives and every aports
+  directory to its commit. `appimage-bundled-sources.sh`'s `apt-get update` retries as its install did. In the
+  job's `alpine:3.24` against a loopback server, a download dropped twice and then served arrives, which the old
+  function gave up on at the first drop, and a 404 is asked for once.
+
+- **`check-release-chain.py` refuses a third platform's scan or start.** Its rule that the container image is built
+  for linux/amd64 and linux/arm64 alone skipped every job named `container-image-start*` and never read the
+  `container_scanning_*` jobs, so a `container-image-start-riscv64` or a `container_scanning_riscv64` passed it; both
+  are refused now, and the push script's check that each image is for the architecture its job is named for is held
+  to the file too. Three new `--self-test` cases, each passed by the checker as it was.
+
+- **`repo-hygiene`'s Pinned-Dependencies reads the included CI files.** It read the images of `.gitlab-ci.yml` alone,
+  27 of them, and the installs of `build/*.sh` and `build/ci/*.sh`; most of the jobs are in `.gitlab/ci/*.yml`. It
+  now reads the images and installs of every file `.gitlab-ci.yml` includes and of every shell script under
+  `build/`: 91 images in 23 files, every one pinned by digest or, for the CI image, by its Dockerfile's hash, and no
+  piped download. A `pip install --no-index` of a local wheel, which no index can change, is not taken for an
+  unpinned install (`cli-packages` installs its own wheel so). Its `--self-test`, which the `checkers` job runs,
+  has four new cases - an image, a service and an unhashed `pip install` in an included file, each caught, which the
+  check as it was passed, and a `--no-index` install, passed.
+
+- **Both halves of `build/check-cli.py` run in CI.** The PowerShell module's half - its commands against the recorded
+  server, 502 checks - never ran in a pipeline: the `checkers` image has no pwsh, so the run there skipped it.
+  `cli-powershell` (`.gitlab/ci/cli-packages.yml`), in the .NET SDK image whose pwsh `psgallery-publish` uses, now runs
+  `build/check-cli.py --powershell` after the manifest and analyzer checks, and runs when the checker changes too;
+  `checkers` runs `hmctl`'s half (`--python`, 1,124 checks) by name. Asked for alone, the PowerShell half that cannot
+  run now fails rather than passing as skipped. In the job's image on linix the module's 502 checks passed; a route
+  planted wrong in `HmailServer.psm1` failed three of them.
+
+- **The arm64 jobs ask whether linix still runs aarch64 programs, and say so when it does not.** On 29 September
+  a privileged container running systemd unregistered every binfmt_misc handler on linix as it stopped, and every
+  arm64 job after it failed with "exec format error", most before their scripts started. The arm64 and aarch64
+  builds of the `.deb` and `.rpm` packages, `appimage-aarch64-compile` and `linux-image.sh` for arm64 now run
+  `build/ci/arm64-emulation.sh` first: it writes a 132-byte aarch64 program that exits with 42, runs it, and refuses
+  the job by name, with what to do on linix, when anything else comes back. The install and AppImage jobs that run
+  in arm64 containers cannot ask for themselves - their shells are aarch64 programs - so the build before each asks;
+  `appimage-runtime-aarch64`, which follows nothing, still meets the error itself. Proven on linix in the images of
+  the jobs that run it (busybox, dash and bash; kaniko without `/tmp`), and refused in a user namespace with an empty
+  binfmt_misc of its own, the host's 31 handlers untouched.
+
+- **A tag builds the x64 installer once.** A `v*` tag's pipeline built it twice on bench150: in `windows-installer`,
+  whose file the release carries and `release-authenticode` signs, and in `windows-packages-x64`, whose bytes nothing
+  took, at the cost of another build under the gate lock before the ARM64 build, which `release` waits for. The
+  maintainers decided on 1 October 2026 that a tag builds it once, in `windows-installer`: `windows-packages-x64`
+  refuses a tag, and `windows-packages-arm64` follows `windows-installer` there instead of it (an optional need, which
+  a branch still meets). `build/check-release-chain.py` holds both, each with a negative control; the batch and
+  master pipelines, and the release rehearsal, still build and collect `windows-packages-x64`'s installer
+  (PackagesWindows.md, "One x64 installer for a tag").
+
+- **A cancelled job's compilers no longer break the next checkout on bench150.** In pipeline 2897966924 a cancelled
+  build left `cl.exe` and `mspdbsrv.exe` running in the runner's checkout, holding a precompiled header open, and the
+  next job's checkout failed until they were killed by hand. Every job on bench150 now runs
+  `.bench150-leftovers`' `pre_get_sources_script` before anything is fetched: it stops each process of the runner's
+  account named as a compiler, MSBuild, its tracker, the .NET build server or test host or Inno Setup's compiler whose
+  working directory - read from the process itself - is the job's own directory or under it, or whose command line
+  names it, and logs which and why; never another account's process, the runner, another job's directory or
+  `hMailServer.exe`. `build/check-release-chain.py` holds every bench150 job to it. On the laptop, five planted
+  leftovers (64- and 32-bit, by directory and by command line, one holding a file open) were stopped and four that
+  must stay were left; without the step all five stayed and the open file could not be deleted.
+
+- **`build-openssl.ps1` finds a version Debian's pool has dropped, and cleans up its download.** It takes OpenSSL's
+  release archive from Debian's archive, which ships it unchanged, and stopped with "find it on snapshot.debian.org"
+  once a version had left the pool; and the download it made stayed in the library folder. It now looks the version up
+  through snapshot.debian.org's API and downloads the `.orig.tar.gz` by the SHA-1 snapshot gives
+  (`Get-DebianOrigArchive` in `libraries/build-common.ps1`, which tries a failed download again three times and never
+  follows a redirect), holds it to the same pinned SHA-256 as before - a file that does not match is deleted and
+  refused - and deletes its download once the tree is extracted; a copy given with `-Archive` is still the caller's.
+  Under PowerShell 7 and 5.1: 4.0.3 from the pool (x64 and ARM64) and 4.0.1, gone from the pool, from snapshot, each
+  extracted with nothing left behind; a wrong digest and a version in neither place refused. The script as it was
+  failed all five.
+
+- **The merge request checks, tightened.** `semgrep-sast-gate` printed up to twenty of the tree's unaccepted
+  Critical and High findings outside a merge request's changed files in its public log; it counts them now and
+  describes none, the release's gate holding them as before. A merge request that changes `.gitlab-ci.yml`, whose
+  variables for every job reach the analyzer, or `.gitlab/ci/mr-checks.yml`, which runs the gate, answers for every
+  finding in the tree, as one that changes the scan's own file did. `mr-dependency-check` rated an advisory by its
+  GitHub label or CVSS 3.x vector alone, so one carrying only a CVSS 4.0 vector held nothing; it now scores CVSS 4.0
+  vectors by FIRST's method - the same as Red Hat's `cvss` 3.6 on all 419,904 base vectors with each Exploit
+  Maturity and on 300,000 random ones with environmental metrics - and reads a malformed one, such as `E:AP` or an
+  empty value, as no vector, as it does a malformed 3.x one, where a first cut stopped the check with an error. And
+  an advisory it could not decide - a version, or a range's bound, that it cannot order as NuGet or PEP 440 does -
+  passed; Critical or High, it now holds the merge request as one that may affect the version. Each with
+  `--self-test` cases the checks as they were failed.
+
+- **The container image jobs, hardened.** `container-image-deb` verified each `.deb` and SBOM it took from the
+  published release as signed by the release's pipeline, but a signature binds bytes, not a name: another file the
+  pipeline signed, served under a `.deb`'s name, verified too. It now also takes the release's signed
+  `hmailserver-linux-<version>-SHA256SUMS.txt` and holds each `.deb` to the SHA-256 it gives that name, and each SBOM
+  to naming its `.deb`'s SHA-256. Against a mirror of 6.3.5's published files, the release as it is passed, and its
+  `.rpm` under the `.deb`'s name and the `.rpm`'s SBOM under the `.deb`'s were refused - both of which the job as it was
+  took. `container-image-sign` waits for both start tests, so an image that does not start is never signed. And a
+  plain `docker build` of the Dockerfile no longer labels the image with Ubuntu's `24.04` as its version: it says
+  `local`, or the version given with `--build-arg HM_IMAGE_VERSION`, which `linux-image.sh` now passes as well as its
+  label. `build/check-release-chain.py` holds the three, each with a negative control.
+
+- **The build provenance keeps its one name, and `repo-hygiene` counts it.**
+  `hmailserver-<version>.intoto.sigstore.json` is a Sigstore bundle holding the provenance's DSSE envelope, and is
+  named as one; OpenSSF Scorecard counts only `*.intoto.jsonl` as provenance, the SLSA generator's name for JSON
+  Lines of bare DSSE envelopes, so it counts this file as a signature. Decided: no copy under that name, which would
+  misdescribe the file's format to raise a score (SECURITY.md, "Build provenance"). `repo-hygiene`'s Signed-Releases
+  check, which read the same name alone, counts it as provenance now, and says why Scorecard does not.
+
+- **Each PPA upload stands alone.** `ppa-upload` sent the release's orig tarball with its first Ubuntu release's
+  upload alone, and the next upload only named it: had Launchpad taken the second first, or refused the first, the
+  second would have been refused too. While the PPA holds no orig of the version, every release's upload now carries
+  it, the same bytes each time, which Launchpad takes again as it is ("Troubleshoot package upload errors": it refuses
+  a file it holds only when the bytes differ); once the PPA holds one, none does (`series_flags`, with a
+  `--self-test` case for each).
+- **`static-analysis` and `semgrep` fail the pipeline on a new finding.** The two source scans, cppcheck and
+  clang-tidy and Semgrep's open rules, held their findings to committed baselines but were `allow_failure`, so a new
+  finding was a warning in a branch's pipeline and only the release's gate read it. They are not `allow_failure`
+  now: a finding new to its baseline, or a scan with a hole, fails a `batch*` branch's pipeline and a tag's, and
+  `build/check-release-chain.py` fails while either is `allow_failure` again (a `--self-test` case for each, which
+  the check as it was passed). Each passed first over `batch42` with the change folded in, on linix in its own
+  image, once what it found new since its last pipeline was read: a cast in the vendored QuickJS header that the
+  QuickJS update brought in, upstream's code, which cppcheck now leaves out with the rest of the engine as
+  clang-tidy did; a `subprocess.run` with an argument list in `build/check-deck-script.py`, marked where it is; and
+  the MD5 of the greylisting key the database-upgrade gate recomputes, in the baseline with its reason. And
+  cppcheck is given `_T` as the POSIX build defines it, since it does not read the header the build forces into
+  every file from the compile database: two literals joined, `_T("a") _T("b")`, made it give up on a test program's
+  file, a hole in the scan that fails the job. A cppcheck finding planted in the report fails the job. `static-analysis` has two hours where it had 90 minutes, since a
+  run cut off now fails the pipeline: it took 72 minutes on a busy linix. GitLab's `semgrep-sast` over the same
+  tree had 22 High findings that no exception accepted; each was read against the code - a buffer sized and given
+  in characters, copies bounded by their arrays, string literals, the system's environment block, and two programs
+  started by full path with arguments that cannot be split - none is a defect, and each is accepted in
+  `.gitlab/security-exceptions.yml` with its reason, for a year.
 
 Full notes: [the 6.3.6 release](https://gitlab.com/hmailserver/hmailserver/-/releases/v6.3.6).
 

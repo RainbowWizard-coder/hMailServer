@@ -23,12 +23,18 @@ is no better.
 
 The PowerShell half is skipped, with a reason, where `pwsh` is not on the path.
 Both halves are skipped if the file they test is missing, which cannot happen in
-a checkout and can happen in a partial copy.
+a checkout and can happen in a partial copy. Asked for alone (--powershell), the
+PowerShell half that cannot run is a failure, not a skip: that is how CI runs it.
+
+In CI the halves run apart: the `checkers` job runs `--python` (its image has no
+pwsh), and `cli-powershell` (.gitlab/ci/cli-packages.yml), in the .NET SDK image
+whose pwsh is the one psgallery-publish uses, runs `--powershell`.
 
 Usage:
-  python build/check-cli.py            # both clients
-  python build/check-cli.py --python   # hmctl only
-  python build/check-cli.py --verbose  # print every request that arrived
+  python build/check-cli.py               # both clients
+  python build/check-cli.py --python      # hmctl only
+  python build/check-cli.py --powershell  # the PowerShell module only; fails without pwsh
+  python build/check-cli.py --verbose     # print every request that arrived
 """
 
 import argparse
@@ -2565,6 +2571,9 @@ def main():
             print("  PROBLEM %s" % line)
         print("")
         print("%d of %d checks failed." % (len(PROBLEMS), CHECKS[0]))
+        return 1
+    if arguments.powershell and not arguments.python and not powershell_ran:
+        print("The PowerShell half was asked for alone and could not run (above): nothing of the module was checked.")
         return 1
 
     print("%d checks passed%s." % (CHECKS[0], "" if powershell_ran or arguments.python else ", PowerShell skipped"))

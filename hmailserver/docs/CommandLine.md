@@ -17,7 +17,7 @@ the same thing to twenty servers.
 |---|---|
 | `hmailserver/source/Tools/Cli/hmctl` | One Python 3 file, no dependencies beyond the standard library. The Linux packages install it as `/usr/bin/hmctl`. |
 | `hmailserver/source/Tools/Cli/HmailServer.psm1` | The PowerShell module: `Get-HmDomain`, `New-HmAccount`, `Set-HmSetting` and the rest, answering objects rather than text. |
-| `build/check-cli.py` | Runs both against a recorded server and asserts what each one sent, so the two cannot drift apart in what they ask for. In CI. |
+| `build/check-cli.py` | Runs both against a recorded server and asserts what each one sent, so the two cannot drift apart in what they ask for. In CI: `hmctl`'s half in the `checkers` job of every pipeline, the module's in `cli-powershell` when the clients change. |
 | `hmailserver/source/Tools/Cli/HmailServer.psd1` | The module's manifest: its version (the server's) and the functions it exports. |
 | `hmailserver/source/Tools/Cli/python/` | `hmctl` as the PyPI package `hmailserver-cli`, built from the same file ([CommandLinePackages.md](CommandLinePackages.md)). |
 

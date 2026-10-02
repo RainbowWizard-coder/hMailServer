@@ -69,6 +69,8 @@
 # channels-check, in a merge request's or a branch's pipeline when a channel's files
 # change, runs every script's self-test, and proves the verification with the pinned
 # cosign itself against a Sigstore of its own (build/ci/channels/fake-sigstore.py).
+# .gitlab-ci.yml is one of those files, since it pins the cosign that proof runs
+# (HM_COSIGN_IMAGE); so is no-github.yml, whose .no-github the job takes first.
 
 .channels-changes:
   rules:
@@ -86,6 +88,8 @@
         - build/make-package-manifests.ps1
         - build/ci/cli-packages.py
         - build/ci/release-chain.py
+        - .gitlab-ci.yml
+        - .gitlab/ci/no-github.yml
 
 .channels-publish:
   rules:
@@ -300,6 +304,7 @@ chocolatey-release:
 chocolatey-publish:
   stage: release
   tags: [bench150]
+  hooks: !reference [.bench150-leftovers, hooks]
   needs:
     - job: chocolatey-release
       artifacts: true

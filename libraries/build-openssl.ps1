@@ -41,7 +41,10 @@
     Debian's archive: Debian ships OpenSSL's own release tarball unchanged as
     openssl_<Version>.orig.tar.gz, in the pool while the version is current
     (https://deb.debian.org/debian/pool/main/o/openssl/) and at
-    https://snapshot.debian.org once it has left it. OpenSSL's own download address
+    https://snapshot.debian.org once it has left it, where the script looks for it
+    by itself when the pool has it no more (Get-DebianOrigArchive in
+    build-common.ps1). The download is deleted once it is extracted, or once it is
+    refused. OpenSSL's own download address
     (openssl.org/source) redirects to its GitHub releases, and this project fetches
     nothing from GitHub since GitHub suspended its account on 18 September 2026.
     Checked on 26 September 2026: Debian's openssl_4.0.2.orig.tar.gz has exactly
@@ -169,28 +172,32 @@ if ($Archive)
 else
 {
     # The pool holds the versions Debian ships now; snapshot.debian.org every one it
-    # ever shipped. The digest check below is what makes either trustworthy.
-    $orig = "openssl_$Version.orig.tar.gz"
-    $poolUrl = "https://deb.debian.org/debian/pool/main/o/openssl/$orig"
+    # ever shipped. The digest check is what makes either trustworthy: the function
+    # refuses, and deletes, a file that does not match it.
     $download = Join-Path -Path $libsPath -ChildPath "openssl-$Version.tar.gz"
-    Write-Host "Downloading OpenSSL $Version's release tarball from Debian's archive: $poolUrl"
-    try
-    {
-        Invoke-WebRequest -Uri $poolUrl -OutFile $download -UseBasicParsing -MaximumRedirection 0
-    }
-    catch
-    {
-        Throw "OpenSSL $Version is not in Debian's pool ($poolUrl): it may have left it. Find $orig on https://snapshot.debian.org/package/openssl/ and pass it, renamed openssl-$Version.tar.gz, with -Archive. It is checked against the pinned SHA-256 $digest."
-    }
+    Get-DebianOrigArchive -Package openssl -Version $Version -OutFile $download -Sha256 $digest `
+        -Instead "Give a copy obtained elsewhere with -Archive, named openssl-$Version.tar.gz."
     $tarUrl = $download
 }
-if ($targetDir)
+# A download is this script's own file, and goes once the tree is extracted (or the
+# extraction fails); a copy given with -Archive is the caller's, and stays.
+try
 {
-    Get-SourceArchive -Url $tarUrl -SrcDir (Join-Path -Path $libsPath -ChildPath "openssl-$Version") -LibsPath $libsPath -Sha256 $digest -TargetDir $targetDir
+    if ($targetDir)
+    {
+        Get-SourceArchive -Url $tarUrl -SrcDir (Join-Path -Path $libsPath -ChildPath "openssl-$Version") -LibsPath $libsPath -Sha256 $digest -TargetDir $targetDir
+    }
+    else
+    {
+        Get-SourceArchive -Url $tarUrl -SrcDir $srcDir -LibsPath $libsPath -Sha256 $digest
+    }
 }
-else
+finally
 {
-    Get-SourceArchive -Url $tarUrl -SrcDir $srcDir -LibsPath $libsPath -Sha256 $digest
+    if (-not $Archive -and (Test-Path -LiteralPath $download))
+    {
+        Remove-Item -LiteralPath $download -Force
+    }
 }
 
 # --- Import the VS x64 build environment ---------------------------------------

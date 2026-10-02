@@ -463,7 +463,12 @@ is not in the release, and its `README.txt` says where Alpine's is.
     (`distfiles.alpinelinux.org/distfiles/<branch>/`, or `edge/` when the
     branch's has none), never from the address the `APKBUILD` names, which for
     libfuse, squashfuse, zstd, lz4 and xz is GitHub's; no redirect is followed,
-    and the job keeps GitHub out of itself (`.no-github`);
+    and the job keeps GitHub out of itself (`.no-github`). A download whose
+    connection fails, times out or is dropped, or that is answered 408, 429 or
+    5xx, is tried again with a growing wait for up to ten minutes (a 404 is
+    not: it sends the job to `edge/`), and the aports fetch and `apk add` are
+    tried three times over a minute and a half, so that a short outage of
+    Alpine's hosts no longer fails a tag's pipeline;
   - each source file held to the SHA-512 the `APKBUILD` gives it, the `APKBUILD`
     read as `abuild` reads it for each architecture that linked the library, and
     its version held to the package installed.
@@ -682,6 +687,11 @@ What the owner must do
    registered the handler at that boot: the aarch64 runtime, packing and test
    jobs of 6.3.5's tag pipeline 2892097590 ran under it the next morning, and
    passed.
+   Since 6.3.6 `appimage-aarch64-compile` asks first
+   (`build/ci/arm64-emulation.sh`) and refuses by name, so that
+   `appimage-aarch64` and `appimage-test-aarch64`, which follow it, are not
+   started; `appimage-runtime-aarch64`, which follows nothing, still meets the
+   error itself.
 3. **Let the release collect the AppImages.** Done in batch42 (6.3.6), and run
    in `batch42`'s pipeline 2897966924, whose rehearsal of the release collected
    both images with their SBOMs and both sources tarballs:
@@ -761,7 +771,9 @@ This branch was made from 6399e08a5. By the time it was checked, batch40
 - **`HelpMap.cs`.** This branch adds `PackagesAppImage.md` to `ReferenceOnly`;
   pk-deb and pk-windows add their own pages beside it.
 - **Checkers that read `.gitlab-ci.yml` alone.** `build/ci/repo-hygiene.py`'s
-  Pinned-Dependencies check and `build/check-release-chain.py` do not follow
-  `include:`, so neither sees the images or the jobs in `.gitlab/ci/*.yml`. Every
-  image in `packages-appimage.yml` is pinned by digest, but no checker holds it
-  to that.
+  Pinned-Dependencies check and `build/check-release-chain.py` did not follow
+  `include:`, so neither saw the images or the jobs in `.gitlab/ci/*.yml`. Every
+  image in `packages-appimage.yml` was pinned by digest, but no checker held it
+  to that. Both follow it now: `check-release-chain.py` reads the included jobs
+  a release depends on, and since 6.3.6 Pinned-Dependencies reads the images and
+  installs of every included file and every shell script under `build/`.

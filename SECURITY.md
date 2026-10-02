@@ -332,6 +332,10 @@ verified the original.
   It says `Verified OK` only when the file's SHA-256 is one the statement names and the statement was signed by that
   identity, at the group's path, where every release that carries a provenance (from 6.3.6) is signed. To read
   the statement itself: `jq -r .dsseEnvelope.payload hmailserver-x.y.z.intoto.sigstore.json | base64 -d | jq .`.
+  The file is named for what it is, a Sigstore bundle (`.sigstore.json`, the name Sigstore's clients take), and not
+  `.intoto.jsonl`, the SLSA generator's name for JSON Lines of bare DSSE envelopes, which the GitHub releases up to
+  6.3.3 carried: OpenSSF Scorecard, which reads a file's name alone, counts it as a signature rather than as
+  provenance, and a copy under the other name would misdescribe its format to get the higher score.
 
 - **Authenticode.** Since 6.3.1 the Windows installer is also Authenticode-signed; the Linux packages are not.
   Neither signature above replaces it: Windows SmartScreen and the UAC prompt read only Authenticode. In
@@ -522,7 +526,8 @@ with a written reason.
   translation unit the Linux build compiles, and *semgrep* runs Semgrep's open rules over the C#, Python,
   JavaScript and shell sources, the Control Deck's and the webmail's scripts among them. Each holds its findings
   to a committed baseline (`build/ci/static-analysis-baseline.txt`, `build/ci/semgrep-baseline.txt`), so that it
-  can fail on a new finding only; both are allow_failure until the baselines are triaged. Neither reads the
+  fails on a new finding only, and fails the pipeline then (since 6.3.6; before, both were allow_failure while
+  their baselines were triaged). Neither reads the
   Windows-only sources (the COM API, the service host, the ADO and SQL Server Compact backends), which only an
   MSVC build compiles.
 - **What ran on GitHub.** CodeQL (the workflow `codeql.yml` and its configuration, in the git history at `v6.3.3`) analysed the

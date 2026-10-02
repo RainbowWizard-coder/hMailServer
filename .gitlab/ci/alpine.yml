@@ -37,7 +37,8 @@
 # master's, wherever the source-tarball job runs, and never in a v* tag's, nor for a
 # merge request or a schedule; release needs none of them - as the source packages'
 # jobs (.gitlab/ci/source-packages.yml). The build joins linix-package-build, the
-# resource group of the package builds.
+# resource group of the package builds, and the suite joins linix-suite, linux-suite's,
+# so that the two suites never run side by side.
 
 .alpine-image:
   image:
@@ -102,6 +103,8 @@ alpine-suite:
   # As linux-suite's: the runners' maximum, and not cut off by a later push.
   timeout: 4 hours
   interruptible: false
+  # linux-suite's group: one whole suite at a time on linix.
+  resource_group: linix-suite
   rules:
     - !reference [.alpine-rules, rules]
   services:

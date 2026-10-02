@@ -14,6 +14,9 @@
         captured to that log: Start-BuildLog, Write-Log, Invoke-BuildStep.
       - The build-environment plumbing every script shares: Resolve-HMailServerLibs,
         Resolve-VcVars64, Import-VsEnvironment, Get-PinnedDigest and Get-SourceArchive.
+      - Get-DebianOrigArchive, an upstream release tarball from Debian's archive - its
+        pool, or snapshot.debian.org once it has left the pool - held to its pinned
+        SHA-256, with Invoke-DownloadWithRetry under it.
 
     Usage from a build script:
 
@@ -382,6 +385,141 @@ function Get-PinnedDigest
     }
 
     Throw "No SHA-256 digest is pinned for $Library $Version. Add it to the digest table in this script, taken from the project's published .sha256 file, or pass it with -Sha256."
+}
+
+# Download a URL to a file, trying again after 5, 15 and 45 seconds when the server or
+# the network fails; an answer that says the file is not there (4xx) is not tried again.
+# snapshot.debian.org answers a burst of requests with 503 for a while. No redirect is
+# followed. Throws with the last error once every try has failed.
+function Invoke-DownloadWithRetry
+{
+    param(
+        [Parameter(Mandatory = $true)][string]$Uri,
+        [Parameter(Mandatory = $true)][string]$OutFile
+    )
+    $previousProgress = $ProgressPreference
+    $ProgressPreference = 'SilentlyContinue'
+    try
+    {
+        foreach ($wait in 5, 15, 45, 0)
+        {
+            try
+            {
+                Invoke-WebRequest -Uri $Uri -OutFile $OutFile -UseBasicParsing -MaximumRedirection 0
+                return
+            }
+            catch
+            {
+                Remove-Item -LiteralPath $OutFile -Force -ErrorAction SilentlyContinue
+                $status = $null
+                if ($_.Exception.Response) { $status = [int]$_.Exception.Response.StatusCode }
+                if (($status -ge 400 -and $status -lt 500 -and $status -ne 408 -and $status -ne 429) -or $wait -eq 0) { throw }
+                Write-Log "$Uri failed ($($_.Exception.Message)); trying again in $wait seconds"
+                Start-Sleep -Seconds $wait
+            }
+        }
+    }
+    finally
+    {
+        $ProgressPreference = $previousProgress
+    }
+}
+
+# A release tarball that Debian ships unchanged as <package>_<version>.orig.tar.gz, to
+# -OutFile, held to -Sha256 - the upstream project's own digest - before it is returned.
+# From Debian's pool while the version is current there; else from snapshot.debian.org,
+# which keeps every file Debian ever shipped, found through its machine-readable API
+# (https://snapshot.debian.org, "API"): the package's versions, then for each Debian
+# version of this upstream version its source files with their SHA-1s, and the
+# .orig.tar.gz by its SHA-1 from /file/. Neither place is trusted beyond the digest: a
+# file that does not match it is deleted and refused, wherever it came from.
+function Get-DebianOrigArchive
+{
+    param(
+        [Parameter(Mandatory = $true)][string]$Package,
+        [Parameter(Mandatory = $true)][string]$Version,
+        [Parameter(Mandatory = $true)][string]$OutFile,
+        [Parameter(Mandatory = $true)]
+        [ValidatePattern('^[0-9a-fA-F]{64}$')]
+        [string]$Sha256,
+        [string]$Instead = 'A copy obtained elsewhere can be given to the build script instead.',
+        [string]$PoolBase = 'https://deb.debian.org/debian/pool/main',
+        [string]$SnapshotBase = 'https://snapshot.debian.org'
+    )
+    $orig = "$($Package)_$Version.orig.tar.gz"
+    $section = if ($Package.StartsWith('lib')) { $Package.Substring(0, 4) } else { $Package.Substring(0, 1) }
+    $poolUrl = "$PoolBase/$section/$Package/$orig"
+    $failures = @()
+    $from = $null
+    Write-Log "Downloading $orig from Debian's pool: $poolUrl"
+    try
+    {
+        Invoke-DownloadWithRetry -Uri $poolUrl -OutFile $OutFile
+        $from = $poolUrl
+    }
+    catch
+    {
+        $failures += "the pool ($poolUrl): $($_.Exception.Message)"
+    }
+    if (-not $from)
+    {
+        Write-Log "$orig is not in Debian's pool; looking for it on $SnapshotBase"
+        try
+        {
+            $previousProgress = $ProgressPreference
+            $ProgressPreference = 'SilentlyContinue'
+            try
+            {
+                $versions = @((Invoke-RestMethod -Uri "$SnapshotBase/mr/package/$Package/" -UseBasicParsing -MaximumRedirection 0).result |
+                    ForEach-Object { $_.version } | Where-Object { $_ -match ('^([0-9]+:)?' + [regex]::Escape($Version) + '-') })
+                $sha1 = $null
+                foreach ($debianVersion in $versions)
+                {
+                    $files = Invoke-RestMethod -Uri "$SnapshotBase/mr/package/$Package/$([uri]::EscapeDataString($debianVersion))/srcfiles?fileinfo=1" -UseBasicParsing -MaximumRedirection 0
+                    foreach ($entry in @($files.result))
+                    {
+                        if (@($files.fileinfo.($entry.hash) | Where-Object { $_.name -eq $orig }).Count)
+                        {
+                            $sha1 = $entry.hash
+                            break
+                        }
+                    }
+                    if ($sha1) { break }
+                }
+            }
+            finally
+            {
+                $ProgressPreference = $previousProgress
+            }
+            if (-not $sha1)
+            {
+                throw "no Debian version of $Package $Version there lists $orig (versions: $($versions -join ', '))"
+            }
+            if ($sha1 -notmatch '^[0-9a-f]{40}$')
+            {
+                throw "it named the file by '$sha1', which is not a SHA-1"
+            }
+            $snapshotUrl = "$SnapshotBase/file/$sha1"
+            Write-Log "Downloading $orig from snapshot.debian.org: $snapshotUrl"
+            Invoke-DownloadWithRetry -Uri $snapshotUrl -OutFile $OutFile
+            $from = $snapshotUrl
+        }
+        catch
+        {
+            $failures += "snapshot.debian.org: $($_.Exception.Message)"
+        }
+    }
+    if (-not $from)
+    {
+        Throw "$orig could be downloaded from neither Debian's pool nor snapshot.debian.org ($($failures -join '; ')). $Instead It is checked against the pinned SHA-256 $($Sha256.ToLowerInvariant())."
+    }
+    $actual = (Get-FileHash -LiteralPath $OutFile -Algorithm SHA256).Hash.ToLowerInvariant()
+    if ($actual -ne $Sha256.ToLowerInvariant())
+    {
+        Remove-Item -LiteralPath $OutFile -Force
+        Throw "$orig from $from does not match its pinned SHA-256 and has been deleted. Expected $($Sha256.ToLowerInvariant()), got $actual."
+    }
+    Write-Log "SHA-256 verified: $actual ($from)"
 }
 
 # Fetch a source tarball, verify it against its pinned SHA-256 and extract it under

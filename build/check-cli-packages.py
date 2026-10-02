@@ -14,7 +14,8 @@ HmailServer.psd1. build/check-cli.py tests what the two clients DO against a
 recorded server; this checks what they are packaged AS, and fails when:
 
   the version
-    * HmailServer.psd1's ModuleVersion is not Common/Application/Version.h's
+    * HmailServer.psd1's ModuleVersion, or hmctl's VERSION, is not
+      Common/Application/Version.h's
       version (it is stamped with it at a release, RELEASE.md step 7);
     * python/pyproject.toml writes a version at all: the package's is derived from
       Version.h when it is built, and a literal would be a second place to stamp;
@@ -545,12 +546,17 @@ def import_time_problems(statements, where, in_class=False):
     return problems
 
 
-def check_hmctl(root):
+def check_hmctl(root, version=None):
     problems = []
     try:
         source = read(root, HMCTL, "rb")
     except OSError:
         return ["%s is missing" % HMCTL]
+    if version is None:
+        try:
+            version = read_version(root)
+        except (OSError, ValueError):
+            version = None
     if b"\r\n" in source:
         problems.append("%s has CRLF line endings: it is checked out LF on every platform (.gitattributes), and the"
                         " package and /usr/bin/hmctl carry it as it is" % HMCTL)
@@ -578,6 +584,13 @@ def check_hmctl(root):
                                 " declares no dependency" % (HMCTL, node.lineno, name))
     if not any(isinstance(n, ast.FunctionDef) and n.name == "main" for n in tree.body):
         problems.append("%s has no main(): the console script calls hmailserver_cli.hmctl:main" % HMCTL)
+    # hmctl --version and its User-Agent say the server's version, stamped at a release.
+    said = [n.value.value for n in tree.body if isinstance(n, ast.Assign) and len(n.targets) == 1
+            and isinstance(n.targets[0], ast.Name) and n.targets[0].id == "VERSION" and isinstance(n.value, ast.Constant)]
+    if version is not None and said != [version]:
+        problems.append("%s says VERSION %s and %s says %s: hmctl is stamped with the server's version at a release"
+                        " (RELEASE.md, 'Version stamp')" % (HMCTL, " and ".join(repr(s) for s in said) or "nothing", VERSION_H,
+                                                             version))
     problems += import_time_problems(tree.body, HMCTL)
     return problems
 
@@ -735,6 +748,8 @@ def self_test():
 
         broken("the manifest's version behind Version.h", PSD1, "ModuleVersion        = '%s'" % version,
                "ModuleVersion        = '0.0.1'", "ModuleVersion '0.0.1'")
+        broken("hmctl's version behind Version.h", HMCTL, 'VERSION = "%s"' % version, 'VERSION = "1.0"',
+               "says VERSION '1.0'")
         broken("a function exported and not listed", PSD1, "        'Get-HmDomain',\n", "",
                "FunctionsToExport does not list")
         broken("a function listed and not exported", PSD1, "'Add-HmGroupMember',", "'Add-HmGroupMember', 'Get-HmNothing',",

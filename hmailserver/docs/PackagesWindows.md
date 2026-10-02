@@ -6,7 +6,9 @@ Every protected pipeline builds both Windows installers on bench150: master, a
 carried. The ARM64 installer is for Windows on ARM, and from 6.3.6 a release
 carries it too ([Signing, and the release](#signing-and-the-release)). Both are
 built unsigned and kept as the job's artifact. The jobs are in
-`.gitlab/ci/packages-windows.yml`, which `.gitlab-ci.yml` includes.
+`.gitlab/ci/packages-windows.yml`, which `.gitlab-ci.yml` includes. On a `v*` tag
+the x64 installer is built once, by `windows-installer`, and
+`windows-packages-x64` does not run ([One x64 installer for a tag](#one-x64-installer-for-a-tag)).
 
 **Both jobs have built their installer on bench150, and both count.** They were
 written and parse-checked on 26 September 2026 on the maintainer's laptop
@@ -29,8 +31,8 @@ What each job makes
 
 | Job | Runs on | Makes | Fails the pipeline |
 |---|---|---|---|
-| `windows-packages-x64` | bench150 (shell, pwsh), stage `release`, after `windows-gate` and `windows-dotnet` (and `windows-installer` on a tag) | the x64 server, tools, Control Panel and installer | yes |
-| `windows-packages-arm64` | bench150, the same, and after `windows-packages-x64` | the ARM64 server, tools, Control Panel and installer; the ARM64 libraries and libpq's build tools once | yes |
+| `windows-packages-x64` | bench150 (shell, pwsh), stage `release`, after `windows-gate` and `windows-dotnet`; on a branch only, never a `v*` tag | the x64 server, tools, Control Panel and installer | yes |
+| `windows-packages-arm64` | bench150, the same, and after `windows-packages-x64` on a branch or `windows-installer` on a tag | the ARM64 server, tools, Control Panel and installer; the ARM64 libraries and libpq's build tools once | yes |
 
 Each job builds in the runner's own checkout of the commit, as `windows-dotnet`
 does. It does not use the bench's checkout (`C:\bench\hmailserver`), where
@@ -48,14 +50,16 @@ need `windows-gate` and `windows-dotnet`, and on a `v*` tag `windows-installer`
 (an optional need, because that job is only in a tag's pipeline). A job can only
 need jobs of its own or an earlier stage, which is why they are in the `release`
 stage. On a `v*` tag the `release` job needs `windows-packages-arm64`, whose
-installer it collects, and so waits for both builds; `release` is started by
-hand after every gate in any case. A failed gate or .NET job means no installer
-from that pipeline.
+installer it collects, and so waits for it and for `windows-installer`; `release`
+is started by hand after every gate in any case. A failed gate or .NET job means
+no installer from that pipeline.
 
-The ARM64 job also needs `windows-packages-x64`. Side by side, whichever job took
-the lock second would wait for the other's whole build, and the ARM64 job's first
-run, with its libraries, may take longer than the 90 minutes the x64 job waits. A
-failed x64 build means no ARM64 build in that pipeline.
+On a branch the ARM64 job also needs `windows-packages-x64`. Side by side,
+whichever job took the lock second would wait for the other's whole build, and
+the ARM64 job's first run, with its libraries, may take longer than the 90
+minutes the x64 job waits. A failed x64 build means no ARM64 build in that
+pipeline. The need is optional, because a tag's pipeline has no
+`windows-packages-x64`; there the ARM64 job follows `windows-installer` instead.
 
 They wait up to 90 minutes for the lock, and the job timeout is 4 hours, the
 runners' own `maximum_timeout`. A longer `timeout:` would be cut to 4 hours, and
@@ -226,7 +230,10 @@ OpenSSL publishes its release archives only on GitHub (`openssl.org/source`
 redirects there), and this project's CI downloads nothing from GitHub.
 `libraries/build-openssl.ps1` takes the archive from Debian's archive instead,
 `https://deb.debian.org/debian/pool/main/o/openssl/`, or snapshot.debian.org once
-a version has left the pool: the same bytes, held to the SHA-256 the script pins
+a version has left the pool, which the script finds there by itself through
+snapshot's API since 6.3.6 (`Get-DebianOrigArchive` in
+`libraries/build-common.ps1`), deleting the download once the tree is extracted:
+the same bytes, held to the SHA-256 the script pins
 (for 4.0.3, `325b5c80...16d9`, the value in Debian's signed
 `openssl_4.0.3-1.dsc`, with OpenSSL's own signature of the archive checked on 30
 September 2026; for 4.0.2, `736b4675...43a8`, measured against Debian's copy on
@@ -363,13 +370,30 @@ every protected pipeline. Only a release's installers are signed, by
 `build/check-release-chain.py` reads `packages-windows.yml` and holds every one
 of those places, with a negative control for each in its `--self-test`.
 
-For a tag, `windows-packages-x64` builds the same x64 installer as
-`windows-installer`, which builds it in the bench's checkout after the gate.
-The release still takes `windows-installer`'s. Whether to keep both, or to
-retire `windows-installer` in favour of `windows-packages-x64` (and drop
-`windows-packages-*` from tag pipelines, or the other way round), is the
-integrator's and the owner's choice. Keeping both costs one more x64 build under
-the lock in a release pipeline.
+### One x64 installer for a tag
+
+Until 6.3.6, a `v*` tag's pipeline built the x64 installer twice: in
+`windows-installer`, in the bench's checkout after the gate, which the release
+collects, and in `windows-packages-x64`, in the runner's checkout, whose bytes
+nothing took. The maintainers decided on 1 October 2026 that a tag builds it once,
+in `windows-installer`:
+
+- `windows-installer` made the x64 installer 6.3.5 carried, the first release
+  the pipeline made, where the gate built and tested the same commit, and
+  `release-authenticode` signs its file. Retiring it for `windows-packages-x64`
+  would change the release's own build path for no gain.
+- The second build proved nothing new. The tag's commit has already been built by
+  `windows-packages-x64` in its `batch*` or `master` pipeline, from a clean clone
+  of the same tree, and the release rehearsal on the `batch*` branch collects that
+  installer.
+- It cost the release pipeline another x64 build under the gate lock, and up to
+  90 minutes' wait for the lock, before `windows-packages-arm64`, which waited for
+  it and which `release` needs.
+
+So `windows-packages-x64` refuses a `v*` tag before `.own-runners`' rules, and
+`windows-packages-arm64`'s need on it is optional and follows `windows-installer`
+on a tag. `build/check-release-chain.py` holds both, with a negative control for
+each in its `--self-test`.
 
 What was the owner's to do, and where it stands
 -----------------------------------------------

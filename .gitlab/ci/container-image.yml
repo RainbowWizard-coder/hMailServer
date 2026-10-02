@@ -281,11 +281,17 @@ container-image-sign:
   image:
     name: $HM_COSIGN_IMAGE
     entrypoint: [""]
+  # After both start tests too: the pipeline signs only an image that has started and
+  # answered as a user starts it, so a signature never vouches for one that did not.
   needs:
     - job: container-image
       artifacts: true
     - job: container-image-sbom
       artifacts: true
+    - job: container-image-start
+      artifacts: false
+    - job: container-image-start-arm64
+      artifacts: false
   timeout: 15 minutes
   interruptible: false
   rules:
@@ -408,6 +414,11 @@ container-image-start-arm64:
     - !reference [.release-rules, rules]
   variables:
     HM_START_WAIT: "600"
+  # Its service is an arm64 container, which does not start where linix's kernel has
+  # lost its qemu-aarch64 handler: the job's own container, linix's platform, asks first
+  # and says so by name, rather than the test timing out on a service that never came.
+  before_script:
+    - sh build/ci/arm64-emulation.sh "container-image-start-arm64, whose service is the linux/arm64 image,"
   services:
     - name: postgres:16@sha256:1a6ab3f5345eb6dbe04a1349529caabdb0ab09293a09590fad07b2246bfa4b54
       alias: db

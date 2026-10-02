@@ -49,9 +49,12 @@ are made at, and the builder says so.
 
 The command is the console script `hmctl = hmailserver_cli.hmctl:main`, so pipx and
 pip make an `hmctl` (an `hmctl.exe` on Windows) that calls the same `main()`
-`/usr/bin/hmctl` does. `hmctl --version` says `hmctl 1.0`, which is the client's own
-version and has not moved since it was written; the package's version is the
-server's (`pipx list`, `pip show hmailserver-cli`).
+`/usr/bin/hmctl` does. `hmctl --version` says the server's version, `hmctl 6.3.6`, as
+the package's version does (`pipx list`, `pip show hmailserver-cli`), and its requests
+name it in their `User-Agent`. Until 6.3.6 it said `hmctl 1.0`, the client's own first
+version, which never moved. `VERSION` in `hmctl` is a literal, since the script runs
+as it is from `/usr/bin` with no `Version.h` beside it, so it is stamped with the
+release (RELEASE.md, step 7).
 
 `build/check-cli-packages.py` holds the package to that shape, in the `checkers` job
 of every push's and merge request's pipeline:
@@ -68,6 +71,7 @@ of every push's and merge request's pipeline:
   when it is imported beyond defining its names. The package imports it as a module,
   and OpenSSF Package Analysis installs every new PyPI upload in its sandbox and
   imports it, so an import defines things and does nothing else;
+* `hmctl`'s `VERSION` is `Version.h`'s version;
 * with `--dist`, the built sdist and wheel hold exactly the files above at
   `Version.h`'s version, `hmctl.py` byte for byte, no `Requires-Dist`, and the one
   console script.
@@ -115,10 +119,23 @@ manifest, PSScriptAnalyzer 1.25.0, `Connect-HmServer`, `Get-HmDomain` and the do
 and address completion against a test server, on Windows PowerShell 5.1 and
 PowerShell 7.5 on Windows and PowerShell 7.6 on Ubuntu 26.04.
 
-`-Insecure` skips the certificate check on PowerShell 7 only
-(`-SkipCertificateCheck`); on Windows PowerShell 5.1 it has no effect, so a server
-with a self-signed certificate is reached from 5.1 only once the certificate is
-trusted.
+`-Insecure`, which `Connect-HmServer` and `Invoke-HmApi` take for the loopback alone,
+skips the certificate check of that server's calls on both. On PowerShell 7 it is
+`-SkipCertificateCheck`, and such a call follows no redirect, since the check would
+be skipped wherever it led. Windows PowerShell 5.1 has no `-SkipCertificateCheck`:
+what judges a certificate there is the process's
+`ServicePointManager.ServerCertificateValidationCallback`, so for an `-Insecure` call
+the module puts in its place, for that call alone, one that accepts the certificate
+of the loopback address and port the session names, sent there and answered from
+there, and hands every other connection to the callback it replaced (or, with none,
+to the system's own verdict); it puts the first back when the call ends. Until 6.3.6
+`-Insecure` had no effect on 5.1, so a server with a self-signed certificate was
+reached from 5.1 only once the certificate was trusted. Tested on 2 October 2026
+against a loopback server with a self-signed certificate, on Windows PowerShell 5.1
+and PowerShell 7.5: the certificate refused without `-Insecure` and taken with it,
+the process's callback as it was after the call, a request of the session outside
+the module still refused, `-Insecure` for a remote host refused by `Invoke-HmApi`
+too, and a redirect to another port of the loopback refused.
 
 Building and checking by hand
 -----------------------------
@@ -149,7 +166,10 @@ powershell -NoProfile -ExecutionPolicy Bypass -File build/ci/cli-powershell.ps1
 `cli-powershell.ps1` runs `Test-ModuleManifest`, imports the module through its
 manifest, and runs PSScriptAnalyzer, which it downloads from the PowerShell Gallery at
 a pinned version and holds to the SHA-512 the Gallery published for that package
-before it loads it. `build/check-cli.py` is still the test of what the two clients do.
+before it loads it. `build/check-cli.py` is still the test of what the two clients do:
+the `checkers` job runs its `hmctl` half (`--python`) in every pipeline, and
+`cli-powershell` its PowerShell half (`--powershell`), which fails there, rather than
+skipping, when pwsh cannot run it.
 
 The jobs
 --------
@@ -159,7 +179,7 @@ The jobs
 | Job | When | What |
 |---|---|---|
 | `cli-packages` | a merge request's or a branch's pipeline that changes the clients or their packaging; never a tag's | Both checkers' self-tests, the sdist and the wheel built, built again and compared, held to the tree, `twine check --strict`, and the wheel installed alone (`--no-index`) into a clean environment where `hmctl` and `python -m hmailserver_cli` run and `hmctl` refuses cleanly with no server there |
-| `cli-powershell` | the same | `build/ci/cli-powershell.ps1` under pwsh on Linux, in Microsoft's .NET SDK image |
+| `cli-powershell` | the same | `build/ci/cli-powershell.ps1` under pwsh on Linux, in Microsoft's .NET SDK image, then the module against `build/check-cli.py`'s recorded server (`--powershell`) |
 | `pypi-publish` | a `master` pipeline, started by hand | The release's `hmailserver-cli` to PyPI ([Publishing](#publishing)) |
 | `psgallery-publish` | a `master` pipeline, started by hand | The release's module to the PowerShell Gallery |
 

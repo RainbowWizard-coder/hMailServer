@@ -595,6 +595,21 @@ What is left
      boot: the arm64 install jobs of `batch41`'s 2890818010 and 2891564033 and
      of 6.3.5's tag pipeline 2892097590 ran under that registration, and all
      passed.
+   - On 29 September 2026 a privileged container whose first process was
+     systemd unregistered every handler on linix as it stopped, and each arm64
+     job after it failed with "exec format error". Since 6.3.6 each arm64 build
+     asks first: `build/ci/arm64-emulation.sh` writes a 132-byte aarch64
+     program that exits with 42 and runs it, and refuses the job by name, with
+     what to do (`systemctl restart systemd-binfmt` as root on linix), when
+     anything else comes back. The install job cannot ask for itself, since its
+     container's shell is an aarch64 program that does not start without the
+     handler, so the build before it asks. `rpm-build.sh` (aarch64),
+     `appimage-cross.sh` and `linux-image.sh` (arm64) ask the same, and so does
+     `container-image-start-arm64`, from its own container, before the test of
+     its arm64 service.
+     `appimage-runtime-aarch64` has no job before it: without the handler it
+     still fails with "exec format error", beside `appimage-aarch64-compile`'s
+     refusal, which names the cause.
 2. **Wiring into the release: done for the arm64 package, for 6.3.6.** The
    check decided what a release carries:
    - `hmailserver_<v>_amd64.deb` stays `linux-build`'s, as now (see

@@ -47,6 +47,10 @@ if [ "$ID" != "ubuntu" ] || [ "$VERSION_ID" != "24.04" ] || [ "$(uname -m)" != "
   echo "This is $PRETTY_NAME on $(uname -m). It cross-compiles in Ubuntu 24.04 on x86-64; run it in the image the job names."
   exit 2
 fi
+# appimage-aarch64 packs this server, and appimage-test-aarch64 runs it, in arm64
+# containers, which start only where this machine's kernel runs aarch64 programs and
+# whose own shells cannot ask. Asked here, first (build/ci/arm64-emulation.sh).
+sh build/ci/arm64-emulation.sh "appimage-aarch64, which packs and runs this server in an arm64 container," || exit 2
 mkdir -p "$out"
 
 export DEBIAN_FRONTEND=noninteractive

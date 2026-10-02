@@ -194,8 +194,10 @@ them.
 
 No build step downloads from GitHub, the owner's rule since GitHub suspended the project's account.
 OpenSSL publishes its release archives only there, so `libraries\build-openssl.ps1` takes the same archive from
-Debian's archive, which ships it unchanged as `openssl_<version>.orig.tar.gz`, and holds it to OpenSSL's own
-SHA-256 pinned in the script (`-Archive` takes a copy you have instead). `build-appimage.sh` no longer uses
+Debian's archive, which ships it unchanged as `openssl_<version>.orig.tar.gz` - from its pool, or from
+snapshot.debian.org, which the script looks up by itself once a version has left the pool - and holds it to
+OpenSSL's own SHA-256 pinned in the script (`-Archive` takes a copy you have instead); the download is deleted
+once it is extracted. `build-appimage.sh` no longer uses
 linuxdeploy: the AppImage's runtime is the project's own, `platform/packaging/appimage/runtime.c`, built by
 `build/ci/packages/appimage-runtime.sh` from Alpine's packages, and the script packs the AppDir with ldd, patchelf
 and mksquashfs from the distribution. `build-pgsql.ps1` names

@@ -37,8 +37,8 @@
 #
 # The exit status is build/ci/security-findings.py's: 0 when nothing is new beyond
 # build/ci/static-analysis-baseline.txt, 1 when something is, 2 when a tool failed
-# or could not analyse a file. The job is allow_failure for now; the day it is not,
-# a new finding fails the pipeline and an old one does not.
+# or could not analyse a file. The job is not allow_failure (since 6.3.6): a new
+# finding fails the pipeline and an old one does not.
 #
 # To regenerate the baseline (after triage: see the document):
 #   bash build/ci/static-analysis.sh --write-baseline
@@ -128,6 +128,13 @@ echo "== cppcheck"
 # too old to have Argon2id, which the build never compiles, and cppcheck gave up on
 # the file there (unknownMacro, measured on 25 September 2026). So the version of
 # the OpenSSL the build does compile against is read from its header and given.
+#
+# _T is given too, as platform/hm_platform.h defines it on POSIX (a wide literal).
+# The build forces portable_stdafx.h, which defines it, into every file with
+# -include, and cppcheck (2.19) does not take -include from the compile database: it
+# took _T for an unknown function, and two literals joined, _T("a") _T("b"), as an
+# unknown macro, and gave up on the file (update_feed_tests_main.cpp, 2 October
+# 2026), which fails the job.
 ossl=/usr/include/openssl/opensslv.h
 ossl_part() { sed -n "s/^# *define OPENSSL_VERSION_$1 *\([0-9][0-9]*\).*/\1/p" "$ossl" | head -n 1; }
 ossl_major=$(ossl_part MAJOR); ossl_minor=$(ossl_part MINOR); ossl_patch=$(ossl_part PATCH)
@@ -142,7 +149,7 @@ cppcheck --project="$database" \
   -i "$root/hmailserver/source/Server/quickjs" \
   --enable=warning,portability --inline-suppr \
   --suppressions-list=build/ci/cppcheck-suppressions.txt \
-  -D__linux__ -D__unix__ -U_WIN32 -U_MSC_VER \
+  -D__linux__ -D__unix__ -U_WIN32 -U_MSC_VER '-D_T(x)=L##x' \
   -DOPENSSL_VERSION_NUMBER="$ossl_number" \
   -DOPENSSL_VERSION_TEXT="\"OpenSSL $ossl_major.$ossl_minor.$ossl_patch\"" \
   --platform=unix64 --library=posix --library=gnu --library=boost --library=openssl --library=zlib \

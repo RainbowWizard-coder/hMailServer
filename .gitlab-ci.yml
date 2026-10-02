@@ -264,9 +264,14 @@ checkers:
           build/check-deck-script.py|build/check-portal-script.py) continue ;;
           # Rewrites hmailserver/docs/DeckParity.md: deck_parity below.
           build/check-deck-parity.py) continue ;;
+          # hmctl's half alone, below; this image has no pwsh, and cli-powershell
+          # (.gitlab/ci/cli-packages.yml) runs the PowerShell module's half.
+          build/check-cli.py) continue ;;
         esac
         check python3 "$script"
       done
+      # hmctl against a recorded server: what it sends and what it prints.
+      check python3 build/check-cli.py --python
 
       # The negative controls: each breaks its rules in a copy and proves the check
       # still reports it, so a check that has stopped seeing the source fails too.
@@ -514,6 +519,10 @@ linux-suite:
   timeout: 4 hours
   # A later push does not cut the suite off half-way (default:, above).
   interruptible: false
+  # One whole suite at a time on linix, this one or alpine-suite's
+  # (.gitlab/ci/alpine.yml): the runner takes more than one job, and two suites side
+  # by side would share its CPUs for hours, which the suite's timed fixtures feel.
+  resource_group: linix-suite
   services:
     # The same PostgreSQL the Linux suite has always run against, by digest.
     - name: postgres:16@sha256:1a6ab3f5345eb6dbe04a1349529caabdb0ab09293a09590fad07b2246bfa4b54
@@ -584,6 +593,133 @@ db-matrix:
     reports:
       junit: db-matrix/junit.xml
 
+# Before every job on bench150 fetches or checks anything out: what a cancelled job left
+# running in this job's directory is stopped. A job cancelled mid-build (pipeline #11,
+# 2897966924, on 30 September 2026) left cl.exe and mspdbsrv.exe running in the runner's
+# checkout, holding a precompiled header open, and the next job's checkout of the same
+# directory failed on it until they were killed by hand. GitLab stops a cancelled job's
+# own process tree, but mspdbsrv detaches by design and a compiler started by MSBuild's
+# tracker can outlive its parent.
+#
+# What is stopped: a process of the runner's own account (LocalSystem), named in the
+# list below - the compilers and their servers, MSBuild and its tracker, the .NET build
+# server and test host, Inno Setup's compiler - whose working directory is this job's
+# CI_PROJECT_DIR or under it, or whose command line names it. Nothing else: not another
+# account's process (the maintainer's split gate over SSH), not this shell or the runner
+# that started it, not a process in another job's directory, and never hMailServer,
+# which is not in the list: the gate's service runs from the bench's own checkout,
+# C:\bench\hmailserver, outside the runner's builds directory. The working directory is
+# read from the process itself (its PEB, 64- or 32-bit), since Windows offers it nowhere
+# else; a process it cannot be read from is judged by its command line alone. Each one
+# stopped is named in the log with why; a failure here is reported and the job goes on,
+# since the checkout itself is then the check. Taken by each bench150 job as
+# hooks: !reference [.bench150-leftovers, hooks] (docs/ContinuousIntegration.md,
+# "bench150").
+.bench150-leftovers:
+  hooks:
+    pre_get_sources_script:
+      - |
+        & {
+          try {
+            $names = 'cl', 'link', 'lib', 'mspdbsrv', 'midl', 'rc', 'cvtres', 'mt', 'vctip', 'MSBuild', 'Tracker',
+                     'VBCSCompiler', 'csc', 'dotnet', 'testhost', 'ISCC'
+            $dir = [IO.Path]::GetFullPath(($env:CI_PROJECT_DIR -replace '/', '\')).TrimEnd('\')
+            $me = [Security.Principal.WindowsIdentity]::GetCurrent().Name
+            if (-not ('HmBench150Leftovers' -as [type])) {
+              Add-Type -TypeDefinition @'
+        using System;
+        using System.Runtime.InteropServices;
+        using System.Text;
+        public static class HmBench150Leftovers {
+            [StructLayout(LayoutKind.Sequential)]
+            struct BasicInformation { public IntPtr ExitStatus; public IntPtr Peb; public IntPtr Affinity; public IntPtr Priority; public IntPtr Pid; public IntPtr ParentPid; }
+            [DllImport("ntdll.dll")] static extern int NtQueryInformationProcess(IntPtr process, int kind, ref BasicInformation info, int size, out int written);
+            [DllImport("ntdll.dll")] static extern int NtQueryInformationProcess(IntPtr process, int kind, out IntPtr info, int size, out int written);
+            [DllImport("kernel32.dll", SetLastError = true)] static extern IntPtr OpenProcess(int access, bool inherit, int pid);
+            [DllImport("kernel32.dll", SetLastError = true)] static extern bool ReadProcessMemory(IntPtr process, IntPtr address, byte[] buffer, IntPtr size, out IntPtr read);
+            [DllImport("kernel32.dll", SetLastError = true)] static extern bool IsWow64Process(IntPtr process, out bool wow64);
+            [DllImport("kernel32.dll")] static extern bool CloseHandle(IntPtr handle);
+            static byte[] Read(IntPtr process, long address, int size) {
+                byte[] buffer = new byte[size];
+                IntPtr read;
+                if (size <= 0 || !ReadProcessMemory(process, new IntPtr(address), buffer, new IntPtr(size), out read) || read.ToInt64() != size) return null;
+                return buffer;
+            }
+            // The process's current directory: RTL_USER_PROCESS_PARAMETERS.CurrentDirectory.DosPath,
+            // through the 32-bit PEB for a WOW64 process; null when it cannot be read.
+            public static string CurrentDirectory(int pid) {
+                IntPtr process = OpenProcess(0x0410, false, pid); // PROCESS_QUERY_INFORMATION | PROCESS_VM_READ
+                if (process == IntPtr.Zero) return null;
+                try {
+                    bool wow64;
+                    if (!IsWow64Process(process, out wow64)) return null;
+                    int written;
+                    if (wow64) {
+                        IntPtr peb32;
+                        if (NtQueryInformationProcess(process, 26, out peb32, IntPtr.Size, out written) != 0 || peb32 == IntPtr.Zero) return null;
+                        byte[] parameters = Read(process, peb32.ToInt64() + 0x10, 4);
+                        if (parameters == null) return null;
+                        byte[] path = Read(process, BitConverter.ToUInt32(parameters, 0) + 0x24L, 8);
+                        if (path == null) return null;
+                        byte[] text = Read(process, BitConverter.ToUInt32(path, 4), BitConverter.ToUInt16(path, 0));
+                        return text == null ? null : Encoding.Unicode.GetString(text);
+                    } else {
+                        BasicInformation info = new BasicInformation();
+                        if (NtQueryInformationProcess(process, 0, ref info, Marshal.SizeOf(info), out written) != 0 || info.Peb == IntPtr.Zero) return null;
+                        byte[] parameters = Read(process, info.Peb.ToInt64() + 0x20, 8);
+                        if (parameters == null) return null;
+                        byte[] path = Read(process, BitConverter.ToInt64(parameters, 0) + 0x38, 16);
+                        if (path == null) return null;
+                        byte[] text = Read(process, BitConverter.ToInt64(path, 8), BitConverter.ToUInt16(path, 0));
+                        return text == null ? null : Encoding.Unicode.GetString(text);
+                    }
+                } finally {
+                    CloseHandle(process);
+                }
+            }
+        }
+        '@
+            }
+            # This shell and every process above it - the runner - are never stopped.
+            $keep = @{}
+            $up = Get-CimInstance Win32_Process -Filter "ProcessId=$PID"
+            while ($up -and -not $keep.ContainsKey([int]$up.ProcessId)) {
+              $keep[[int]$up.ProcessId] = $true
+              $up = Get-CimInstance Win32_Process -Filter "ProcessId=$($up.ParentProcessId)" -ErrorAction SilentlyContinue
+            }
+            $named = '(?i)(^|[\s"''=])(' + [regex]::Escape($dir) + '|' + [regex]::Escape(($dir -replace '\\', '/')) + ')($|[\\/\s"''])'
+            $stopped = @()
+            foreach ($process in @(Get-CimInstance Win32_Process)) {
+              $id = [int]$process.ProcessId
+              if ($keep.ContainsKey($id) -or $names -notcontains [IO.Path]::GetFileNameWithoutExtension([string]$process.Name)) { continue }
+              $owner = Invoke-CimMethod -InputObject $process -MethodName GetOwner -ErrorAction SilentlyContinue
+              if (-not $owner -or $owner.ReturnValue -ne 0 -or "$($owner.Domain)\$($owner.User)" -ne $me) { continue }
+              $cwd = [HmBench150Leftovers]::CurrentDirectory($id)
+              $cwdPath = if ($cwd) { ($cwd -replace '/', '\').TrimEnd('\') } else { '' }
+              $why = $null
+              if ($cwdPath -and ($cwdPath -eq $dir -or $cwdPath.StartsWith($dir + '\', [StringComparison]::OrdinalIgnoreCase))) {
+                $why = "working in $cwdPath"
+              } elseif ([string]$process.CommandLine -match $named) {
+                $why = "its command line names $dir"
+              }
+              if (-not $why) { continue }
+              "Stopping $($process.Name) (process $id, started $($process.CreationDate)), left by an earlier job: $why."
+              Stop-Process -Id $id -Force -ErrorAction SilentlyContinue
+              $stopped += $id
+            }
+            if ($stopped.Count) {
+              Wait-Process -Id $stopped -Timeout 30 -ErrorAction SilentlyContinue
+              $left = @($stopped | Where-Object { Get-Process -Id $_ -ErrorAction SilentlyContinue })
+              if ($left.Count) { "WARNING: still running after 30 seconds: process $($left -join ', ')." }
+              else { "Stopped $($stopped.Count) process(es) an earlier job left in $dir." }
+            } else {
+              "No compiler, MSBuild node or test host of $me left running in $dir."
+            }
+          } catch {
+            "WARNING: the check for what an earlier job left running in $env:CI_PROJECT_DIR did not run: $($_.Exception.Message)"
+          }
+        }
+
 # The whole Windows suite in the second bench's own checkout, C:\bench\hmailserver,
 # because the bench's hMailServer service is registered from that path: GIT_STRATEGY
 # none, and the commit is fetched into that checkout from GitLab. The gate scripts
@@ -605,6 +741,7 @@ windows-gate:
   extends: .own-runners
   stage: test
   tags: [bench150]
+  hooks: !reference [.bench150-leftovers, hooks]
   needs: []
   timeout: 4 hours
   # A later push does not cut the suite off half-way, nor leave the bench mid-build.
@@ -1060,6 +1197,7 @@ windows-dotnet:
   extends: .own-runners
   stage: test
   tags: [bench150]
+  hooks: !reference [.bench150-leftovers, hooks]
   needs: []
   timeout: 4 hours
   allow_failure:
@@ -1194,19 +1332,20 @@ linux-coverage:
 # each job's script says where each of its tools comes from, and every image is
 # pinned by digest (or is the CI image, by its Dockerfile's hash).
 #
-# Every one is allow_failure while its findings are triaged. Each publishes GitLab's
-# own report format (SAST, dependency scanning) and a JUnit report: GitLab's free
-# tier stores the first and offers it for download, and shows the second in the
-# pipeline's Tests tab (docs/ContinuousIntegration.md, "Security scanning"). The two
-# source scans hold their findings to a committed baseline, so that without
-# allow_failure they fail on a NEW finding only.
+# dependency-scan, ci-image-packages and repo-hygiene are allow_failure while their
+# findings are triaged; static-analysis and semgrep are not (since 6.3.6, once both had
+# passed over batch42: docs/ContinuousIntegration.md, "Security scanning"). Each
+# publishes GitLab's own report format (SAST, dependency scanning) and a JUnit report:
+# GitLab's free tier stores the first and offers it for download, and shows the
+# second in the pipeline's Tests tab. The two source scans hold their findings to a
+# committed baseline, so they fail on a NEW finding only, and on a scan with a hole.
 #
-# allow_failure keeps a finding from stopping a push's pipeline; it does not let one
-# into a release. For a v* tag the release job needs static-analysis, semgrep and
-# dependency-scan (and GitLab's semgrep-sast) with their artifacts, and refuses while
-# one of them did not finish or found something SECURITY.md's policy counts that no
-# baseline and no exception in .gitlab/security-exceptions.yml accepts
-# (build/ci/security-gate.py).
+# For a v* tag the release job needs static-analysis, semgrep and dependency-scan
+# (and GitLab's semgrep-sast) with their artifacts, and refuses while one of them did
+# not finish or found something SECURITY.md's policy counts that no baseline and no
+# exception in .gitlab/security-exceptions.yml accepts (build/ci/security-gate.py).
+# allow_failure on dependency-scan keeps its finding from stopping a push's pipeline;
+# it does not let one into a release.
 #
 # In the test stage with needs: [] - beside the builds, not after the checks: linix
 # takes one job at a time, and the Windows gate on bench150 is longer than
@@ -1216,8 +1355,11 @@ static-analysis:
   extends: .linix
   stage: test
   needs: []
-  timeout: 90 minutes
-  allow_failure: true
+  # Two hours: it fails the pipeline now, and runs beside the builds. It took 44
+  # minutes in batch42's pipeline 2897966924, and 72 on linix on 2 October 2026 beside
+  # other work, clang-tidy 67 of them (docs/ContinuousIntegration.md, "How long each
+  # job takes").
+  timeout: 120 minutes
   script:
     - bash build/ci/static-analysis.sh
   artifacts:
@@ -1240,7 +1382,6 @@ semgrep:
   stage: test
   needs: []
   timeout: 30 minutes
-  allow_failure: true
   script:
     - bash build/ci/semgrep.sh
   artifacts:
@@ -1427,6 +1568,7 @@ renovate:
 windows-installer:
   stage: release
   tags: [bench150]
+  hooks: !reference [.bench150-leftovers, hooks]
   needs: [windows-gate]
   timeout: 2 hours
   interruptible: false
@@ -1496,9 +1638,10 @@ windows-installer:
 # tarball, and gathers them, each but the two sources files with an SBOM: a job may need
 # fifty jobs at most on GitLab.com. helm-chart-package makes the chart, and
 # linux-image-arm64 (.gitlab/ci/container-image.yml) builds the linux/arm64 image
-# beside linux-image's linux/amd64 one. The scans are
-# allow_failure, so their failure does not stop the pipeline: release-chain.py collect
-# reads their reports instead (build/ci/security-gate.py) and refuses while a scan did
+# beside linux-image's linux/amd64 one. dependency-scan is allow_failure, and
+# static-analysis and semgrep fail only on a new finding, so none of them stops the
+# pipeline on a known one: release-chain.py collect
+# reads their reports (build/ci/security-gate.py) and refuses while a scan did
 # not finish, or found something SECURITY.md's policy counts that is in no baseline and
 # not accepted in .gitlab/security-exceptions.yml. semgrep-sast is GitLab's, in
 # .gitlab/ci/gitlab-security.yml, which runs it for a v* tag for this. Not waited for:
@@ -1627,6 +1770,7 @@ release:
 release-authenticode:
   stage: release
   tags: [bench150]
+  hooks: !reference [.bench150-leftovers, hooks]
   needs:
     - job: release
       artifacts: true

@@ -483,8 +483,13 @@ def evaluate(root, artifacts, today=None, exceptions_text=None, say=print):
 # .gitlab/sast-ruleset.toml is the file GitLab's analyzers read a custom ruleset
 # from (rules disabled, overridden or added): none is committed, and the one that
 # is added changes the scan as much as an edit of its job does.
-SAST_CONFIG = (".gitlab/ci/gitlab-security.yml", ".gitlab/sast-ruleset.toml", "build/ci/security-gate.py",
-               "build/ci/security-findings.py")
+# The files whose change can change what semgrep-sast finds anywhere, or what this gate
+# makes of it: a merge request that changes one answers for every finding in the tree.
+# .gitlab-ci.yml among them, since a variable it sets for every job (SAST_EXCLUDED_PATHS,
+# SAST_EXCLUDED_ANALYZERS, SAST_RULESET_GIT_REFERENCE...) reaches the scan as
+# gitlab-security.yml's own do; and mr-checks.yml, which runs this gate.
+SAST_CONFIG = (".gitlab-ci.yml", ".gitlab/ci/gitlab-security.yml", ".gitlab/ci/mr-checks.yml", ".gitlab/sast-ruleset.toml",
+               "build/ci/security-gate.py", "build/ci/security-findings.py")
 
 
 def merge_request_evaluate(root, artifacts, exceptions_text, changed, today=None, say=print):
@@ -505,11 +510,13 @@ def merge_request_evaluate(root, artifacts, exceptions_text, changed, today=None
             "counts" % ", ".join(whole))
     else:
         say("%d file(s) changed; a finding counts in those alone" % len(scope))
+    # The findings outside the changed files are counted, never described: a merge
+    # request's job log is public, and those are the tree's unaccepted Critical and
+    # High findings, which the release's gate holds and a maintainer reads from the
+    # scan's own artifact. A finding in a changed file is the change's, and is named.
     say("semgrep-sast %5d finding(s) in the report; %d accepted by an exception; %d Critical or High outside the "
-        "changed files (the release's gate holds those); %d holding this merge request" % (
+        "changed files, not described here (the release's gate holds those); %d holding this merge request" % (
             total, len(taken), len(outside), len(found)))
-    for line in outside[:20]:
-        say("  not this merge request's: " + line)
     return problems + found
 
 
@@ -790,6 +797,26 @@ def self_test():
         expect(any(p.startswith("semgrep-sast: High") for p in found), "a High finding in a changed file holds it: %s" % found)
         expect(gate(critical, ["src/other.cpp"]) == [],
                "a Critical finding in a file the merge request does not change is the release's, not the merge request's")
+        # ... and is counted in the public log, never described.
+        said = []
+        lay(critical)
+        held_root = findings_module.ROOT
+        findings_module.ROOT = root
+        findings_module._lines_cache.clear()
+        try:
+            merge_request_evaluate(root, artifacts, empty, ["src/other.cpp"], today, say=said.append)
+        finally:
+            findings_module.ROOT = held_root
+            findings_module._lines_cache.clear()
+        expect(any("1 Critical or High outside the changed files, not described here" in s for s in said),
+               "a finding outside the changed files is counted: %s" % said)
+        expect(not any("src/a.cpp" in s or "fingerprint" in s or "strcpy" in s for s in said),
+               "a finding outside the changed files is not described in the merge request's log: %s" % said)
+        for config in (".gitlab-ci.yml", ".gitlab/ci/mr-checks.yml"):
+            found = gate(critical, ["src/other.cpp", config])
+            expect(any(p.startswith("semgrep-sast: Critical") for p in found),
+                   "a merge request that changes %s, which can change the scan or this gate, answers for every finding: %s"
+                   % (config, found))
         found = gate(critical, ["src/other.cpp", ".gitlab/ci/gitlab-security.yml"])
         expect(any(p.startswith("semgrep-sast: Critical") for p in found),
                "a merge request that changes the scan itself answers for every finding: %s" % found)

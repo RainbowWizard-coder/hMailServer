@@ -53,6 +53,13 @@ refuses it. This checker holds them to each other. It fails when:
     must keep linux-sbom's ARM64 component list for its SBOM; release-sign.sh must
     take it signed with its SBOM; and the rehearsal must need
     windows-packages-arm64 too;
+  * windows-packages-x64 is in a v* tag's pipeline, whose x64 installer is
+    windows-installer's alone, or windows-packages-arm64 needs it without
+    optional: true, which would keep a tag's pipeline from being created;
+  * a job or template of the CI files that runs on bench150 does not take
+    hooks: !reference [.bench150-leftovers, hooks], the step that stops before
+    its checkout what a cancelled job left running in its directory, or
+    .bench150-leftovers has no pre_get_sources_script;
   * the release or release-publish job can start without a person (when: manual,
     allow_failure: false), a release job can run for anything but a protected v*
     tag, or the jobs' needs no longer put Authenticode before Sigstore, Sigstore
@@ -127,6 +134,8 @@ refuses it. This checker holds them to each other. It fails when:
     optionally, with their artifacts - the scans build/ci/security-gate.py reads -
     semgrep-sast must run for a protected v* tag and keep gl-sast-report.json as a
     file whatever it found, and collect must ask the gate before it copies anything;
+    or static-analysis or semgrep, which fail on a finding new to their baselines,
+    is allow_failure, so that a new finding would pass a branch's pipeline unseen;
     or .gitlab/security-exceptions.yml is not a file the gate reads, or accepts a
     finding without a reason, a reviewer or an expiry within a year of the review, or
     is not the owner's in .gitlab/CODEOWNERS (nor .gitleaksignore, the secret scan's
@@ -311,7 +320,7 @@ IMAGE_JOBS = {
     "container-image-arm64": ["container-image-deb"],
     "container-image": ["container-image-amd64", "container-image-arm64"],
     "container-image-sbom": ["container-image", "container-image-deb"],
-    "container-image-sign": ["container-image", "container-image-sbom"],
+    "container-image-sign": ["container-image", "container-image-sbom", "container-image-start", "container-image-start-arm64"],
     "container_scanning": ["container-image"],
     "container_scanning_arm64": ["container-image"],
     "container-image-start": ["container-image"],
@@ -391,6 +400,9 @@ CARRIED_PACKAGES = {
 # (.gitlab/ci/packages-windows.yml), where it leaves it with the SHA256SUMS it writes,
 # and the folder release-authenticode signs it into.
 ARM64_INSTALLER_JOB = "windows-packages-arm64"
+# The branch's x64 installer (packages-windows.yml): never in a tag's pipeline, whose x64
+# installer is windows-installer's.
+BRANCH_X64_INSTALLER_JOB = "windows-packages-x64"
 ARM64_INSTALLER_DIR = "packages-windows/arm64/"
 ARM64_SIGNED_DIR = "release-authenticode-arm64"
 # The job that gathers every other file a release carries from the package jobs
@@ -438,6 +450,9 @@ COLLECTED = ["linux-build", "linux-sbom", "windows-installer", "windows-packages
 # needed, not optionally, with their artifacts. semgrep-sast is GitLab's, in
 # .gitlab/ci/gitlab-security.yml; the others are the CI file's own, on linix.
 SCANNED = ["static-analysis", "semgrep", "dependency-scan", "semgrep-sast"]
+# The two of them that fail a pipeline on a finding new to their committed baselines
+# (since 6.3.6), and are therefore never allow_failure.
+BLOCKING_SCANS = ["static-analysis", "semgrep"]
 # The files a change to which is the owner's alone to accept.
 OWNED = ["/.gitlab/security-exceptions.yml", "/.gitleaksignore"]
 COSIGN_IMAGE = re.compile(r'^\s*HM_COSIGN_IMAGE:\s*"?(\S+?)"?\s*$', re.MULTILINE)
@@ -1275,6 +1290,18 @@ def check(texts, chain, feed):
         for escape in tag_escapes(ARM64_INSTALLER_JOB, dict(jobs, **windows_jobs)):
             problems.append("%s can let release start in a v* tag's pipeline without its having passed (%s): release would "
                             "carry %s past it" % (ARM64_INSTALLER_JOB, escape, feed.installer_names("9.9.9")["windows-arm64"]))
+        # A tag's x64 installer is windows-installer's alone (Roadmap3, "The x64 installer
+        # made and signed by the pipeline"): windows-packages-x64 refuses a tag first, and
+        # the ARM64 job, which follows it for the gate lock on a branch, needs it optionally.
+        x64_entry = need_entries(windows_jobs[ARM64_INSTALLER_JOB]).get(BRANCH_X64_INSTALLER_JOB)
+        if x64_entry is not None and not re.search(r"optional: true", x64_entry):
+            problems.append("%s needs %s without optional: true, and a v* tag's pipeline, which has no %s, would not be "
+                            "created" % (ARM64_INSTALLER_JOB, BRANCH_X64_INSTALLER_JOB, BRANCH_X64_INSTALLER_JOB))
+    x64_job = windows_jobs.get(BRANCH_X64_INSTALLER_JOB, "")
+    if x64_job and not re.search(r"^  rules:\s*\n    - if: \$CI_COMMIT_TAG\s*\n      when: never\s*\n", x64_job, re.MULTILINE):
+        problems.append("%s does not refuse a v* tag first (rules: - if: $CI_COMMIT_TAG, when: never): a release pipeline "
+                        "would build a second x64 installer under the gate lock, which it does not carry - windows-installer's "
+                        "is the one" % BRANCH_X64_INSTALLER_JOB)
     where = chain.sources("9.9.9")
     arm64_name = feed.installer_names("9.9.9")["windows-arm64"]
     if (where.get(arm64_name) or "").replace(os.sep, "/") != ARM64_INSTALLER_DIR + arm64_name or \
@@ -1382,7 +1409,13 @@ def check(texts, chain, feed):
                         ('for name in "$deb" "$deb.cdx.json"; do', "the .deb and its SBOM"),
                         ('for arch in %s; do' % " ".join(IMAGE_PLATFORMS), "each platform's .deb"),
                         ('deb="hmailserver_${version}_${arch}.deb"', "the .deb of each architecture"),
-                        ('"$api/packages/generic/hmailserver/$version/$name"', "from the release's own files")):
+                        ('"$api/packages/generic/hmailserver/$version/$name"', "from the release's own files"),
+                        ('sums="hmailserver-linux-$version-SHA256SUMS.txt"\ntake "$sums"\n',
+                         "the release's signed sums taken and verified as the rest"),
+                        ('      { grep -Fxq "$deb_sum  $deb" "$out/$sums" || grep -Fxq "$deb_sum *$deb" "$out/$sums"; } \\\n'
+                         '        || fail', "each .deb held to the SHA-256 the release's signed sums give its name"),
+                        ('      grep -Fq "$deb_sum" "$out/$name" \\\n        || fail',
+                         "each SBOM held to naming its .deb's SHA-256")):
         if needle not in fetch:
             problems.append("build/ci/container-image-deb.sh no longer has %s (%s)" % (needle, why))
     # busybox's wget checks no server certificate: nothing it sends may be a credential.
@@ -1815,6 +1848,17 @@ def check(texts, chain, feed):
                 problems.append("%s in %s triggers a pipeline of a project (trigger: project): GitLab refuses a multi-project "
                                 "trigger into the project that runs it (invalid_bridge_trigger, as 6.3.5's update-feed was), "
                                 "and a project's path changes when it moves into the group" % (name, where))
+    # Every job (or template) that names bench150 stops, before its checkout, what a
+    # cancelled job left running in its directory: windows-installer and
+    # release-authenticode are a release's (.gitlab-ci.yml, .bench150-leftovers).
+    for where, text in [(".gitlab-ci.yml", ci)] + sorted(texts.get("ci-includes", {}).items()):
+        for name, block in sorted(blocks(text).items()):
+            if re.search(r"^  tags:[ \t]*\[[^\]\n]*\bbench150\b", block, re.MULTILINE) and \
+                    not re.search(r"^  hooks: !reference \[\.bench150-leftovers, hooks\]\s*$", block, re.MULTILINE):
+                problems.append("%s in %s runs on bench150 without hooks: !reference [.bench150-leftovers, hooks]: a compiler a "
+                                "cancelled job left running there can hold a file its checkout must replace" % (name, where))
+    if "pre_get_sources_script:" not in jobs.get(".bench150-leftovers", ""):
+        problems.append(".gitlab-ci.yml's .bench150-leftovers has no hooks: pre_get_sources_script, which the bench150 jobs take")
     for name, text in sorted(jobs.items()):
         if name.startswith(".") or name in RESERVED or name in RELEASE_JOBS:
             continue
@@ -1938,6 +1982,14 @@ def check(texts, chain, feed):
             problems.append("release does not bring %s's artifacts: the gate would find no report and hold every release" % name)
         if re.search(r"optional: true", entry):
             problems.append("release needs %s optionally: a tag's pipeline without that scan would be released past it" % name)
+    for name in BLOCKING_SCANS:
+        text = inherited(name, jobs) + "\n" + rules_text(name, jobs)
+        # Any allow_failure but false: true, exit codes in either style, and YAML 1.1's
+        # other spellings of true (yes, on), which GitLab's parser reads as true too.
+        if name not in jobs or re.search(r"^\s*allow_failure:(?![ \t]*false[ \t]*$)", text, re.MULTILINE):
+            problems.append("%s may fail without failing the pipeline (allow_failure): it holds its findings to a "
+                            "baseline so that a new one fails a branch's pipeline, and it must (docs/ContinuousIntegration.md, "
+                            "'Security scanning')" % name)
     sast = blocks(texts["security"]).get("semgrep-sast", "")
     if "- if: " + TAG_ONLY not in sast:
         problems.append("semgrep-sast does not run for a protected v* tag (- if: %s): the release job needs its report, "
@@ -2099,9 +2151,17 @@ def image_platform_problems(texts, jobs, image_jobs):
                             "HM_IMAGE_ARCH: %s) and keep container-image-%s/ for container-image" % (name, arch, arch, arch))
         if "artifacts: true" not in need_entries(block).get("container-image-deb", ""):
             problems.append("%s does not take container-image-deb's artifact, the release's .deb files" % name)
+    # And no job for a third platform: neither an image built, nor the twin of the scan or
+    # of the start that container_scanning_arm64 and container-image-start-arm64 are.
     for name in image_jobs:
-        if re.match(r"^container-image-(?!deb$|sbom$|sign$|start)", name) and name[len("container-image-"):] not in IMAGE_PLATFORMS:
-            problems.append("%s builds an image of a platform the image is not built for (%s)" % (name, platforms))
+        for prefix, does, own in (("container-image-start-", "starts", ()),
+                                  ("container_scanning_", "scans", ()),
+                                  ("container-image-", "builds", ("deb", "sbom", "sign", "start"))):
+            if name.startswith(prefix):
+                rest = name[len(prefix):]
+                if rest not in own and rest not in IMAGE_PLATFORMS:
+                    problems.append("%s %s an image of a platform the image is not built for (%s)" % (name, does, platforms))
+                break
 
     # The push: both platforms' images, in regctl's image pinned by digest, under one index.
     push = image_jobs.get("container-image", "")
@@ -2125,6 +2185,8 @@ def image_platform_problems(texts, jobs, image_jobs):
     script = texts["image-push"]
     for needle, why in (('platforms="%s"' % platforms, "both platforms' images"),
                         ('( cd "$dir" && sha256sum -c SHA256SUMS.txt )', "each tarball the one its job checked"),
+                        ('grep -q "\\"architecture\\":\\"$arch\\"" "$dir/image.json" || fail',
+                         "each image refused unless it is for the architecture its job is named for"),
                         ("--media-type application/vnd.docker.distribution.manifest.list.v2+json", "one index"),
                         ('--ref "$layout:amd64" --ref "$layout:arm64"', "naming both platforms' images"),
                         ('regctl image digest --platform "linux/$arch" "$layout:$version"', "each platform's entry checked"),
@@ -2587,7 +2649,8 @@ def self_test(chain, feed):
            "  variables:\n    HM_PUBLISH_IMAGE: \"1\"\n    HM_IMAGE_RELEASE: \"1\"\n", "sets HM_PUBLISH_IMAGE")
     broken("the switch turned on for every job", "ci", "\nvariables:\n", "\nvariables:\n  HM_PUBLISH_IMAGE: \"1\"\n", "sets HM_PUBLISH_IMAGE")
     broken("the image signed for another audience", "image", "      aud: sigstore", "      aud: fulcio", "container-image-sign has no id_tokens")
-    broken("the image signed before it is pushed", "image", "  needs:\n    - job: container-image\n      artifacts: true\n    - job: container-image-sbom\n      artifacts: true\n  timeout: 15 minutes",
+    broken("the image signed before it is pushed", "image", "  needs:\n    - job: container-image\n      artifacts: true\n    - job: container-image-sbom\n      artifacts: true\n"
+           "    - job: container-image-start\n      artifacts: false\n    - job: container-image-start-arm64\n      artifacts: false\n  timeout: 15 minutes",
            "  needs: []\n  timeout: 15 minutes", "container-image-sign does not need container-image")
     broken("the scan without the image's name", "image", "  dependencies: [container-image]\n", "", "container_scanning does not take")
     broken("the image signed before its SBOM is made", "image", "    - job: container-image-sbom\n      artifacts: true\n", "",
@@ -2627,6 +2690,21 @@ def self_test(chain, feed):
            "    HM_IMAGE_ARCH: amd64\n    HM_IMAGE_DEB_DIR", "container-image-arm64 does not build the release's linux/arm64 image")
     broken("a third platform's image", "image", "\ncontainer-image-arm64:\n", "\ncontainer-image-riscv64:\n  stage: release\n\ncontainer-image-arm64:\n",
            "container-image-riscv64 builds an image of a platform")
+    broken("a third platform's start", "image", "\ncontainer-image-start-arm64:\n",
+           "\ncontainer-image-start-riscv64:\n  stage: release\n\ncontainer-image-start-arm64:\n",
+           "container-image-start-riscv64 starts an image of a platform")
+    broken("a third platform's scan", "image", "\ncontainer_scanning_arm64:\n",
+           "\ncontainer_scanning_riscv64:\n  stage: release\n\ncontainer_scanning_arm64:\n",
+           "container_scanning_riscv64 scans an image of a platform")
+    broken("the image signed before it has started", "image", "    - job: container-image-start\n      artifacts: false\n", "",
+           "container-image-sign does not need container-image-start")
+    broken("the deb taken by a name its digest does not hold", "image-deb", '      { grep -Fxq "$deb_sum  $deb" "$out/$sums"',
+           '      { true', "each .deb held to the SHA-256 the release's signed sums give its name")
+    broken("an SBOM taken without naming its .deb", "image-deb", '      grep -Fq "$deb_sum" "$out/$name" \\\n',
+           '      true \\\n', "each SBOM held to naming its .deb's SHA-256")
+    broken("the push not checking each image's architecture", "image-push",
+           'grep -q "\\"architecture\\":\\"$arch\\"" "$dir/image.json" || fail', 'true || fail',
+           "each image refused unless it is for the architecture")
     broken("the push without the arm64 image", "image", "    - job: container-image-arm64\n      artifacts: true\n", "",
            "container-image does not need container-image-arm64")
     broken("the push leaving arm64 out", "image-push", 'platforms="amd64 arm64"', 'platforms="amd64"', "both platforms' images")
@@ -2684,6 +2762,16 @@ def self_test(chain, feed):
            "release does not need semgrep-sast")
     broken("a release that does not bring the dependency scan's report", "ci", "    - job: dependency-scan\n      artifacts: true\n",
            "    - job: dependency-scan\n      artifacts: false\n", "release does not bring dependency-scan's artifacts")
+    broken("the source scan allow_failure again", "ci", "  timeout: 120 minutes\n  script:\n    - bash build/ci/static-analysis.sh\n",
+           "  timeout: 120 minutes\n  allow_failure: true\n  script:\n    - bash build/ci/static-analysis.sh\n",
+           "static-analysis may fail without failing the pipeline")
+    broken("semgrep allowed to fail on some exit codes", "ci", "  timeout: 30 minutes\n  script:\n    - bash build/ci/semgrep.sh\n",
+           "  timeout: 30 minutes\n  allow_failure:\n    exit_codes: [1]\n  script:\n    - bash build/ci/semgrep.sh\n",
+           "semgrep may fail without failing the pipeline")
+    broken("semgrep allowed to fail in YAML 1.1's other spelling of true", "ci",
+           "  timeout: 30 minutes\n  script:\n    - bash build/ci/semgrep.sh\n",
+           "  timeout: 30 minutes\n  allow_failure: yes\n  script:\n    - bash build/ci/semgrep.sh\n",
+           "semgrep may fail without failing the pipeline")
     broken("a release that needs a scan optionally", "ci", "    - job: static-analysis\n      artifacts: true\n",
            "    - job: static-analysis\n      artifacts: true\n      optional: true\n", "release needs static-analysis optionally")
     broken("GitLab's SAST not run for a release tag", "security",
@@ -2820,12 +2908,12 @@ def self_test(chain, feed):
            "    - job: windows-packages-arm64\n      artifacts: true\n", "    - job: windows-packages-arm64\n      artifacts: true\n      optional: true\n",
            "release needs windows-packages-arm64 optionally")
     broken("the ARM64 installer's job allowed to fail", "packages-windows",
-           "      artifacts: false\n  variables:\n    HM_PACKAGE_PLATFORM: ARM64",
-           "      artifacts: false\n  allow_failure: true\n  variables:\n    HM_PACKAGE_PLATFORM: ARM64",
+           "      artifacts: false\n      optional: true\n  variables:\n    HM_PACKAGE_PLATFORM: ARM64",
+           "      artifacts: false\n      optional: true\n  allow_failure: true\n  variables:\n    HM_PACKAGE_PLATFORM: ARM64",
            "windows-packages-arm64 can let release start in a v* tag's pipeline without its having passed")
     broken("the ARM64 installer's job allowed to fail with an exit code", "packages-windows",
-           "      artifacts: false\n  variables:\n    HM_PACKAGE_PLATFORM: ARM64",
-           "      artifacts: false\n  allow_failure:\n    exit_codes: [3]\n  variables:\n    HM_PACKAGE_PLATFORM: ARM64",
+           "      artifacts: false\n      optional: true\n  variables:\n    HM_PACKAGE_PLATFORM: ARM64",
+           "      artifacts: false\n      optional: true\n  allow_failure:\n    exit_codes: [3]\n  variables:\n    HM_PACKAGE_PLATFORM: ARM64",
            "windows-packages-arm64 can let release start in a v* tag's pipeline without its having passed "
            "(windows-packages-arm64 says allow_failure: exit_codes: [3])")
     broken("the ARM64 installer's template allowed to fail with an exit code, in flow style", "packages-windows",
@@ -2835,6 +2923,28 @@ def self_test(chain, feed):
            "(.windows-packages says allow_failure: {exit_codes: [2]})")
     broken("the ARM64 installer's job gone", "packages-windows", "\nwindows-packages-arm64:\n", "\nwindows-packages-arm65:\n",
            "has no job windows-packages-arm64")
+    broken("a bench150 job without the leftovers' hook", "ci",
+           "  tags: [bench150]\n  hooks: !reference [.bench150-leftovers, hooks]\n  needs:\n    - job: release\n",
+           "  tags: [bench150]\n  needs:\n    - job: release\n",
+           "release-authenticode in .gitlab-ci.yml runs on bench150 without hooks")
+    # The same in an included file, which the rule reads as the CI file includes it.
+    windows_file = ".gitlab/ci/packages-windows.yml"
+    hooked = "  tags: [bench150]\n  hooks: !reference [.bench150-leftovers, hooks]\n"
+    if hooked not in texts["ci-includes"].get(windows_file, ""):
+        failures.append("a bench150 template without the leftovers' hook: the text to break is not in %s" % windows_file)
+    else:
+        copy = dict(texts, **{"ci-includes": dict(texts["ci-includes"], **{
+            windows_file: texts["ci-includes"][windows_file].replace(hooked, "  tags: [bench150]\n", 1)})})
+        found, _ = check(copy, chain, feed)
+        if not any(".windows-packages in .gitlab/ci/packages-windows.yml runs on bench150 without hooks" in p for p in found):
+            failures.append("a bench150 template without the leftovers' hook is caught: %s" % found)
+    broken("the branch's x64 installer built for a tag too", "packages-windows",
+           "  rules:\n    - if: $CI_COMMIT_TAG\n      when: never\n    - !reference [.own-runners, rules]\n", "",
+           "windows-packages-x64 does not refuse a v* tag first")
+    broken("the ARM64 build needing the branch's x64 build on a tag", "packages-windows",
+           "    - job: windows-packages-x64\n      artifacts: false\n      optional: true\n",
+           "    - job: windows-packages-x64\n      artifacts: false\n",
+           "windows-packages-arm64 needs windows-packages-x64 without optional: true")
     broken("release-authenticode going on to the ARM64 installer when the x64 one was not signed", "ci",
            "-OutDir release-authenticode\n      if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }\n", "-OutDir release-authenticode\n",
            "release-authenticode does not stop when the x64 installer's call fails")

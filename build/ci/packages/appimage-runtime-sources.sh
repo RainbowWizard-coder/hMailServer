@@ -60,7 +60,10 @@
 #     gets the tarball, SHA256SUMS.txt naming it, and the licences.
 #
 # Run in alpine:3.24 from the root of a checkout; pack needs network access to the two
-# Alpine hosts above and installs git, curl, GNU tar, gzip and xz with apk.
+# Alpine hosts above and installs git, curl, GNU tar, gzip and xz with apk. Every step
+# that reaches the network is tried again for some minutes before the job fails: an
+# outage of Alpine's mirror or GitLab that short no longer stops a tag's pipeline, and
+# what arrives is held to the same SHA-512s and commit ids as before.
 set -eu
 
 # The libraries whose source the release file carries, by aports origin, and the files
@@ -176,10 +179,14 @@ version_h() {
     hmailserver/source/Server/Common/Application/Version.h | tr -d '\r'
 }
 
-# fetch URL FILE: one https GET, no redirect followed, retried; 0 when the file came.
+# fetch URL FILE: one https GET, no redirect followed; 0 when the file came. A failed
+# connection, a timeout, a reset or a 408, 429 or 5xx answer is tried again with a
+# growing wait (curl doubles it from one second, and keeps to a Retry-After) for up to
+# ten minutes; an answer such as 404, which says the file is not there, is not, so
+# that the branch's mirror missing a file still falls through to edge's at once.
 fetch() {
-  code=$(curl -sS --proto =https --max-redirs 0 --retry 3 --retry-delay 5 --connect-timeout 30 --max-time 900 \
-    -o "$2" -w '%{http_code}' "$1" 2> /dev/null) || code=000
+  code=$(curl -sS --proto =https --max-redirs 0 --retry 8 --retry-all-errors --retry-max-time 600 \
+    --connect-timeout 30 --max-time 900 -o "$2" -w '%{http_code}' "$1" 2> /dev/null) || code=000
   if [ "$code" = 200 ]; then
     return 0
   fi
@@ -189,6 +196,21 @@ fetch() {
 
 sha512_of() {
   sha512sum "$1" | cut -d' ' -f1
+}
+
+# attempt WHAT COMMAND...: the command, and twice more after 30 and then 60 seconds
+# when it fails; its status the last time.
+attempt() {
+  what=$1
+  shift
+  for wait in 30 60 none; do
+    if "$@"; then
+      return 0
+    fi
+    [ "$wait" = none ] && return 1
+    echo "$what failed; trying again in $wait seconds"
+    sleep "$wait"
+  done
 }
 
 pack() {
@@ -208,7 +230,7 @@ pack() {
   name="hmailserver-$version-appimage-runtime-sources.tar.gz"
   top="hmailserver-$version-appimage-runtime-sources"
 
-  apk add --no-cache --quiet git curl tar gzip xz
+  attempt "apk add" apk add --no-cache --quiet git curl tar gzip xz || die "apk could not install git, curl, tar, gzip and xz"
 
   if [ -z "${SOURCE_DATE_EPOCH:-}" ]; then
     SOURCE_DATE_EPOCH=$(git -c safe.directory="$PWD" log -1 --format=%ct HEAD 2> /dev/null) \
@@ -266,7 +288,10 @@ pack() {
   git -C "$aports" config protocol.version 2
   git -C "$aports" remote add origin "$APORTS"
   cut -d' ' -f3 "$work/units" | LC_ALL=C sort -u > "$work/commits"
-  xargs git -C "$aports" fetch -q --no-tags --depth 1 --filter=tree:0 origin < "$work/commits" \
+  fetch_aports() {
+    xargs git -C "$aports" fetch -q --no-tags --depth 1 --filter=tree:0 origin < "$work/commits"
+  }
+  attempt "fetching aports" fetch_aports \
     || die "aports could not be fetched at $(tr '\n' ' ' < "$work/commits")from $APORTS"
 
   # Each library, version and commit: where it is in aports, and that directory's tree.

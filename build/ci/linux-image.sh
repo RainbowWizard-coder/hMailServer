@@ -79,6 +79,12 @@ case "$arch" in
     exit 2
     ;;
 esac
+# kaniko runs an arm64 image's RUN under qemu-user, and without the kernel's handler it
+# fails there, deep in its log, with "exec format error": asked first
+# (build/ci/arm64-emulation.sh).
+if [ "$arch" = arm64 ]; then
+  sh build/ci/arm64-emulation.sh "the linux/arm64 image's RUN, which kaniko runs under qemu-user," || exit 2
+fi
 if [ "$release" = 1 ]; then
   out="${HM_OUT_DIR:-container-image-$arch}"
 elif [ "$arch" = amd64 ]; then
@@ -179,6 +185,7 @@ esac
     --dockerfile "$PWD/$context/Dockerfile" \
     --custom-platform "linux/$arch" \
     --build-arg "TARGETARCH=$arch" \
+    --build-arg "HM_IMAGE_VERSION=$version" \
     --no-push --destination "hmailserver:$version-$arch" ${HM_KANIKO_FLAGS:-} \
     --tar-path "$out/hmailserver-image.tar" \
     --label "org.opencontainers.image.version=$version" \

@@ -704,7 +704,11 @@ What is left
 
 1. **The binfmt handler on linix: done by the owner.** The aarch64 install jobs,
    and the testers in the aarch64 builds, need the `qemu-aarch64` handler, with
-   the `F` flag, in linix's kernel. The first trials registered it with
+   the `F` flag, in linix's kernel. Since 6.3.6 an aarch64 build refuses at once,
+   by name, when this machine cannot run an aarch64 program
+   (`build/ci/arm64-emulation.sh`; PackagesDeb.md, "What is left", 1), where it
+   used to build without running its testers and leave its install job to fail
+   with "exec format error". The first trials registered it with
    `docker run --privileged --rm tonistiigi/binfmt --install arm64`, which did
    not survive linix's reboot at 04:37 UTC on 26 September. The owner then
    installed Ubuntu's `qemu-user-binfmt` (10.2.1) on linix, whose
@@ -730,16 +734,16 @@ What is left
    packages a release carries - the generic AArch64 one (`CARRIED_PACKAGES`:
    the build, the SBOM job and the install job) and, through `release-packages`,
    every build and install job here and every job those wait for - and for the
-   old routes. `build/ci/repo-hygiene.py` reads none of them: its
-   Pinned-Dependencies check reads the images of `.gitlab-ci.yml` only, and the
-   scripts of `build/*.sh` and `build/ci/*.sh` only, not `.gitlab/ci/*.yml` or
-   `build/ci/packages/`. Its own functions, run over this file and these
-   scripts, find every image pinned by digest and no piped download, so
-   widening it would not fail this tree. Its Token-Permissions check reads
-   `.gitlab-ci.yml` alone too; a version of it that reads the included files
-   and judges each rule that makes a job on its own, run over this file, found
-   all 24 jobs it held then asking for a protected ref and refusing a merge
-   request.
+   old routes. `build/ci/repo-hygiene.py`'s Pinned-Dependencies check read the
+   images of `.gitlab-ci.yml` only, and the scripts of `build/*.sh` and
+   `build/ci/*.sh` only, not `.gitlab/ci/*.yml` or `build/ci/packages/`; since
+   6.3.6 it reads the images and installs of every file `.gitlab-ci.yml`
+   includes and of every shell script under `build/`, and finds every image
+   (91 in 23 files) pinned by digest and no piped download. Its
+   Token-Permissions check read `.gitlab-ci.yml` alone too; it reads the
+   included files now and judges each rule that makes a job on its own, and run
+   over this file it found all 24 jobs it held then asking for a protected ref
+   and refusing a merge request.
 4. **`docs/ContinuousIntegration.md`: the integrator's change.** Its table of
    jobs does not list these 25, its `master` row says every job but the release
    jobs, `linux-fuzz` and `installer-smoke` runs there, where these builds wait

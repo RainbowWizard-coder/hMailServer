@@ -21,7 +21,9 @@
 #                       through its manifest, and PSScriptAnalyzer - from the
 #                       PowerShell Gallery, pinned and held to its SHA-512 - clean
 #                       over the manifest and the module (build/ci/cli-powershell.ps1),
-#                       under pwsh on Linux;
+#                       under pwsh on Linux; then the module's half of
+#                       build/check-cli.py, its commands against a recorded server
+#                       (checkers runs hmctl's half in every pipeline);
 #   pypi-publish        by hand, in a master pipeline: the release's hmailserver-cli to
 #                       PyPI through a trusted publisher, with a PyPI publish
 #                       attestation per file;
@@ -92,6 +94,7 @@
         - build/ci/cli-packages.py
         - build/ci/cli-packages-requirements.txt
         - build/ci/cli-powershell.ps1
+        - build/check-cli.py
         - .gitlab/ci/cli-packages.yml
 
 .cli-packages-publish:
@@ -162,8 +165,17 @@ cli-powershell:
   timeout: 15 minutes
   rules:
     - !reference [.cli-packages-changes, rules]
+  before_script:
+    # python3 for build/check-cli.py, which stands the recorded server in front of the
+    # module; pwsh is the image's.
+    - apt-get update -qq
+    - DEBIAN_FRONTEND=noninteractive apt-get install -y -qq -o Acquire::Retries=3 --no-install-recommends python3 > /dev/null
   script:
     - pwsh -NoProfile -NonInteractive -File build/ci/cli-powershell.ps1
+    # The module against a recorded server, as checkers runs hmctl: the method, path,
+    # credentials and body each command sends, and what it prints. It fails here when
+    # pwsh cannot run it, where the run with both halves would skip it.
+    - python3 build/check-cli.py --powershell
 
 pypi-publish:
   stage: release

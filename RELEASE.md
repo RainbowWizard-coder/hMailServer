@@ -110,8 +110,9 @@ merge request whose pipeline passed (`hmailserver/docs/ContinuousIntegration.md`
 3. **Start `release`** once every job before it has passed, within three days of
    the tag's pipeline (`linux-build`'s artifact is kept three days; retry
    `linux-build` otherwise). GitLab offers the button only when every job of
-   `.gitlab-ci.yml` that can fail the pipeline has passed and `static-analysis`,
-   `semgrep`, `dependency-scan` and `semgrep-sast` have finished, whatever they
+   `.gitlab-ci.yml` that can fail the pipeline has passed - `static-analysis`
+   and `semgrep` among them, which fail on a finding new to their baselines -
+   and `dependency-scan` and `semgrep-sast` have finished, whatever they
    found; it does not wait for `ci-image-packages` or `repo-hygiene`, which are
    `allow_failure`, or for the manual `db-matrix`. Of the package jobs of
    `.gitlab/ci/packages-*.yml` it waits for the two whose generic files the
@@ -471,15 +472,19 @@ that administrators upgrade by hand.
    several steps past the last stable - and it was missing from this step until
    6.2.23.
 
-7. **Version stamp**, fifteen files. The Windows nine: `Version.h` (version,
+7. **Version stamp**, sixteen files. The Windows nine: `Version.h` (version,
    numeric, build), `section_setup_64.iss`, and all seven `.csproj`
-   `<Version>` values. Then six outside the Windows build:
+   `<Version>` values. Then seven outside the Windows build:
    * `hmailserver/source/Tools/Cli/HmailServer.psd1` - `ModuleVersion`, the
      PowerShell module's version on the PowerShell Gallery. A data file cannot
      read `Version.h`, so it is written; `build/check-cli-packages.py` fails the
      `checkers` job while it differs. The PyPI package `hmailserver-cli` is not on
      this list: `build/ci/cli-packages.py` takes its version from `Version.h` when
      it builds it ([CommandLinePackages.md](hmailserver/docs/CommandLinePackages.md)).
+   * `hmailserver/source/Tools/Cli/hmctl` - `VERSION`, what `hmctl --version`
+     says and its requests' `User-Agent` names. The script runs as it is from
+     `/usr/bin` with no `Version.h` beside it, so it is written;
+     `build/check-cli-packages.py` fails the `checkers` job while it differs.
    * `hmailserver/source/Server/platform/packaging/PKGBUILD` - `pkgver`, which
      is also the tag the PKGBUILD fetches. It cannot be derived: `makepkg`
      parses the PKGBUILD as a shell script and never runs CMake.

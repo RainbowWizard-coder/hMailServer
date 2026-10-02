@@ -19,12 +19,14 @@ counted as a pass):
                        rule - and each of their tags carries an SSH signature by a
                        key in .gitlab/allowed_signers, which git verifies here.
   Security-Policy      SECURITY.md, with a way to report a vulnerability privately.
-  Pinned-Dependencies  every image in .gitlab-ci.yml and every FROM in a Dockerfile
+  Pinned-Dependencies  every image in .gitlab-ci.yml and the local files it
+                       includes (.gitlab/ci/*.yml), and every FROM in a Dockerfile,
                        pinned by digest (or, for the CI image, by the tag made from
                        its Dockerfile's hash that build/check-ci-image.py enforces);
-                       no pip install without hashes, npm install, or piped curl in
-                       a CI script; a NuGet lock file beside every project that
-                       has package references.
+                       no pip install from an index without hashes, npm install,
+                       or piped curl in those CI files or a shell script under
+                       build/; a NuGet lock file beside every project that has
+                       package references.
   Binary-Artifacts     no executable or compiled file tracked in git (by content,
                        not only by extension).
   Token-Permissions    no job that a merge request or an unprotected ref can start
@@ -57,7 +59,9 @@ over CI files made to break it - a condition whose protected-ref clause sits
 inside an OR, parentheses or a comment, rules the check could misread (a list at
 another indentation, inline, by an alias, behind a merge key), tags and extends
 written as block lists, id_tokens and the job token reached through a template,
-an include it cannot open - and fails if any is judged wrongly.
+an include it cannot open - and Pinned-Dependencies' CI half over a CI file and
+the file it includes, with an image by tag, a service by tag and an unhashed pip
+install put in the included file; it fails if any is judged wrongly.
 
 The project and the API come from GitLab CI's own variables (CI_API_V4_URL,
 CI_PROJECT_ID, CI_PROJECT_URL) and default to gitlab.com's copy of this project.
@@ -206,7 +210,17 @@ def check_branch_protection():
 # ---------------------------------------------------------------- Signed-Releases
 
 SIGNATURE_SUFFIXES = (".sigstore.json", ".sigstore", ".cosign.bundle", ".sig", ".asc", ".minisig", ".sign")
-PROVENANCE_SUFFIXES = (".intoto.jsonl",)
+# Build provenance: the SLSA generator's JSON Lines of DSSE envelopes, which the GitHub
+# releases to 6.3.3 carried and the only name Scorecard counts as provenance, and from
+# 6.3.6 this project's own, hmailserver-<v>.intoto.sigstore.json, a Sigstore bundle
+# holding the DSSE envelope (build/ci/release-chain.py, provenance_name), which
+# Scorecard, reading the name alone, counts as one more signature.
+PROVENANCE_SUFFIXES = (".intoto.jsonl", ".intoto.sigstore.json")
+
+
+def release_assets(names):
+    """(signature assets, provenance assets) among a release's asset names."""
+    return ([n for n in names if n.endswith(SIGNATURE_SUFFIXES)], [n for n in names if n.endswith(PROVENANCE_SUFFIXES)])
 
 
 def verify_tags(names):
@@ -259,8 +273,7 @@ def check_signed_releases():
     with_provenance = 0
     for rel in newest:
         names = [link["name"] for link in rel.get("assets", {}).get("links", [])]
-        signatures = [n for n in names if n.endswith(SIGNATURE_SUFFIXES)]
-        provenance = [n for n in names if n.endswith(PROVENANCE_SUFFIXES)]
+        signatures, provenance = release_assets(names)
         with_provenance += 1 if provenance else 0
         if signatures:
             r.ok("%s: %d signature asset(s) for %d asset(s)%s" % (
@@ -268,8 +281,9 @@ def check_signed_releases():
                 ", and build provenance (%s)" % provenance[0] if provenance else ""))
         else:
             r.fail("%s: no signature asset among its %d asset(s)" % (rel["tag_name"], len(names)))
-    r.note("%d of %d carry build provenance (in-toto); Scorecard scored provenance above signatures alone" % (
-        with_provenance, len(newest)))
+    r.note("%d of %d carry build provenance (in-toto); Scorecard scores provenance above signatures alone, and counts "
+           "only a *.intoto.jsonl as provenance, so this project's *.intoto.sigstore.json counts there as a signature"
+           % (with_provenance, len(newest)))
     tags = [rel["tag_name"] for rel in newest]
     verified = verify_tags(tags)
     if verified is None:
@@ -346,21 +360,30 @@ def ci_images(text):
 
 def check_pinned_dependencies(files):
     r = Result("Pinned-Dependencies", "images, base images and installs pinned to a digest, hash or lock file")
-    ci = read(".gitlab-ci.yml") if os.path.exists(os.path.join(ROOT, ".gitlab-ci.yml")) else ""
-    unpinned = []
-    images = ci_images(ci)
-    for line, image in images:
-        if "@sha256:" in image:
-            continue
-        if CI_IMAGE_TAG.match(image):
-            continue
-        if image.startswith("$"):
-            continue
-        unpinned.append("%s (.gitlab-ci.yml line %d)" % (image, line))
-    if unpinned:
-        r.fail("%d image(s) in .gitlab-ci.yml named by a tag that can move: %s" % (len(unpinned), "; ".join(unpinned)))
+    # .gitlab-ci.yml and every local file it includes: most of the jobs, and so most of
+    # the images, are in .gitlab/ci/*.yml.
+    ci_texts, unread = ci_files() if os.path.exists(os.path.join(ROOT, ".gitlab-ci.yml")) else ([], [])
+    unpinned, count = [], 0
+    for path, text in ci_texts:
+        images = ci_images(text)
+        count += len(images)
+        for line, image in images:
+            if "@sha256:" in image:
+                continue
+            if CI_IMAGE_TAG.match(image):
+                continue
+            if image.startswith("$"):
+                continue
+            unpinned.append("%s (%s line %d)" % (image, path, line))
+    if not ci_texts:
+        r.fail("no .gitlab-ci.yml")
+    elif unpinned:
+        r.fail("%d image(s) in the CI files named by a tag that can move: %s" % (len(unpinned), "; ".join(unpinned)))
     else:
-        r.ok("all %d image(s) in .gitlab-ci.yml pinned by digest, or the CI image by its Dockerfile's hash" % len(images))
+        r.ok("all %d image(s) in .gitlab-ci.yml and the %d file(s) it includes pinned by digest, or the CI image by "
+             "its Dockerfile's hash" % (count, len(ci_texts) - 1))
+    for includer, what in unread:
+        r.unknown("%s includes %s, which this check cannot read for its images" % (includer, what))
 
     dockerfiles = [f for f in files if re.search(r"(^|/)([^/]*\.)?Dockerfile(\.[^/]*)?$", f)]
     loose = []
@@ -381,8 +404,9 @@ def check_pinned_dependencies(files):
     # September 2026 (they are in the history, at v6.3.3 for instance), so the
     # check that their actions were pinned by commit is retired with them.
 
-    scripts = [f for f in files if f == ".gitlab-ci.yml" or re.match(r"^build/(ci/)?[^/]+\.sh$", f)
-               or (f.startswith("build/ci/") and f.endswith(".Dockerfile")) or f in dockerfiles]
+    ci_paths = [path for path, _ in ci_texts]
+    scripts = ci_paths + [f for f in files if f not in ci_paths and (re.match(r"^build/.+\.sh$", f)
+                          or (f.startswith("build/ci/") and f.endswith(".Dockerfile")) or f in dockerfiles)]
     risky = []
     for path in scripts:
         # A command continued over several lines is read as one, so that its
@@ -400,8 +424,10 @@ def check_pinned_dependencies(files):
             code = line.split("#", 1)[0] if not path.endswith(".yml") else line
             if re.match(r"^\s*#", line):
                 continue
-            if re.search(r"\bpip3?[\"']?\s+install\b", code) and "--require-hashes" not in code:
-                risky.append("%s line %d: pip install without --require-hashes" % (path, i + 1))
+            # --no-index installs from local files alone (cli-packages' own wheel), so
+            # no index can hand it anything newer.
+            if re.search(r"\bpip3?[\"']?\s+install\b", code) and "--require-hashes" not in code and "--no-index" not in code:
+                risky.append("%s line %d: pip install without --require-hashes or --no-index" % (path, i + 1))
             if re.search(r"\bnpm\s+(install|i)\b", code):
                 risky.append("%s line %d: npm install (npm ci installs from the lock file)" % (path, i + 1))
             if re.search(r"\b(curl|wget)\b[^|]*\|\s*(sudo\s+)?(ba|z|da)?sh\b", code):
@@ -411,8 +437,8 @@ def check_pinned_dependencies(files):
     if risky:
         r.fail("installs that take whatever is newest: %s" % "; ".join(risky[:15]))
     else:
-        r.ok("no unhashed pip install, npm install or piped download in .gitlab-ci.yml, build/*.sh,"
-             " build/ci/*.sh or a Dockerfile (%d files)" % len(scripts))
+        r.ok("no pip install from an index without hashes, npm install or piped download in .gitlab-ci.yml, .gitlab/ci/*.yml,"
+             " a shell script under build/ or a Dockerfile (%d files)" % len(scripts))
 
     projects = [f for f in files if f.endswith(".csproj")]
     missing = []
@@ -1365,9 +1391,79 @@ probe:
 ]
 
 
+# Pinned-Dependencies' CI half: a .gitlab-ci.yml that includes a file of its own, with
+# every image pinned; each case puts something into the included file, and says
+# whether the check must then fail.
+PINNED_TEST_BASE = """\
+include:
+  - local: .gitlab/ci/included.yml
+
+top-job:
+  image: alpine:3.24@sha256:294b683cb724975bec92580e1e685676bd4b50bda910ddb8c51d4cabeaec77e6
+  script: [echo]
+"""
+PINNED_TEST_INCLUDED = """\
+included-job:
+  image:
+    name: python:3.14-slim-trixie@sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d
+  services:
+    - name: postgres:16@sha256:1a6ab3f5345eb6dbe04a1349529caabdb0ab09293a09590fad07b2246bfa4b54
+      alias: postgres
+  script:
+    - pip install --require-hashes -r requirements.txt
+"""
+PINNED_TEST_CASES = [
+    ("an included job's image by tag", ("python:3.14-slim-trixie@sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d",
+                                         "python:3.14-slim-trixie"), True),
+    ("an included job's service by tag", ("postgres:16@sha256:1a6ab3f5345eb6dbe04a1349529caabdb0ab09293a09590fad07b2246bfa4b54",
+                                           "postgres:16"), True),
+    ("an unhashed pip install in an included job", ("pip install --require-hashes -r", "pip install -r"), True),
+    ("a local wheel installed with --no-index", ("pip install --require-hashes -r requirements.txt",
+                                                 "pip install --no-index dist/hmailserver_cli-9.9.9-py3-none-any.whl"), False),
+]
+
+
+def self_test_pinned():
+    """Pinned-Dependencies' CI half against PINNED_TEST_BASE and each case; the number
+    judged wrongly."""
+    global ROOT
+    saved, wrong = ROOT, 0
+    try:
+        for name, (old, new), must_fail in [("the pinned base and its include", ("", ""), False)] + PINNED_TEST_CASES:
+            scratch = tempfile.mkdtemp(prefix="repo-hygiene-self-test-")
+            try:
+                ROOT = scratch
+                os.makedirs(os.path.join(scratch, ".gitlab", "ci"))
+                with open(os.path.join(scratch, ".gitlab-ci.yml"), "w", encoding="utf-8", newline="\n") as f:
+                    f.write(PINNED_TEST_BASE)
+                included = PINNED_TEST_INCLUDED.replace(old, new, 1) if old else PINNED_TEST_INCLUDED
+                if old and included == PINNED_TEST_INCLUDED:
+                    raise AssertionError("the self-test's case %r changes nothing" % name)
+                with open(os.path.join(scratch, ".gitlab", "ci", "included.yml"), "w", encoding="utf-8", newline="\n") as f:
+                    f.write(included)
+                result = check_pinned_dependencies([".gitlab-ci.yml", ".gitlab/ci/included.yml"])
+            finally:
+                ROOT = saved
+                shutil.rmtree(scratch, ignore_errors=True)
+            failed = result.status == "FAIL"
+            right = failed == must_fail
+            wrong += 0 if right else 1
+            print("%-6s Pinned-Dependencies, %s: %s, as %s" % (
+                "ok" if right else "WRONG", name, result.status,
+                "it must" if right else ("it must fail" if must_fail else "it must not fail")))
+            if not right or failed:
+                for line in result.lines:
+                    if line.startswith("FAIL"):
+                        print("         " + line[9:][:300])
+    finally:
+        ROOT = saved
+    return wrong
+
+
 def self_test():
     """Token-Permissions against SELF_TEST_BASE and each case: the base and the
-    cases that must pass are not FAILed, and every other case is."""
+    cases that must pass are not FAILed, and every other case is. Then
+    Pinned-Dependencies' CI half (self_test_pinned)."""
     global ROOT
     saved, wrong = ROOT, 0
     try:
@@ -1395,7 +1491,20 @@ def self_test():
                         print("         " + line[9:][:300])
     finally:
         ROOT = saved
-    print("%d case(s), %d judged wrongly" % (len(SELF_TEST_CASES) + 1, wrong))
+    wrong += self_test_pinned()
+    # Signed-Releases' reading of a release's assets: 6.3.6's provenance is provenance.
+    six = ["hmailserver_6.3.6_amd64.deb", "hmailserver_6.3.6_amd64.deb.cosign.bundle", "hmailserver_6.3.6_amd64.deb.sigstore.json",
+           "hmailserver-6.3.6.intoto.sigstore.json"]
+    for name, names, signatures, provenance in (
+            ("6.3.6's assets", six, 3, ["hmailserver-6.3.6.intoto.sigstore.json"]),
+            ("6.3.3's assets", ["hMailServer-6.3.3.exe", "hMailServer-6.3.3.exe.sigstore.json", "hmailserver-v6.3.3.intoto.jsonl"],
+             1, ["hmailserver-v6.3.3.intoto.jsonl"]),
+            ("6.3.5's assets", ["hmailserver_6.3.5_amd64.deb", "hmailserver_6.3.5_amd64.deb.cosign.bundle"], 1, [])):
+        got = release_assets(names)
+        right = len(got[0]) == signatures and got[1] == provenance
+        wrong += 0 if right else 1
+        print("%-6s Signed-Releases, %s: %d signature(s), provenance %s" % ("ok" if right else "WRONG", name, len(got[0]), got[1]))
+    print("%d case(s), %d judged wrongly" % (len(SELF_TEST_CASES) + 1 + len(PINNED_TEST_CASES) + 1 + 3, wrong))
     return 1 if wrong else 0
 
 
@@ -1403,7 +1512,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("--out", default=os.path.join("security", "repo-hygiene"))
     parser.add_argument("--self-test", action="store_true",
-                        help="prove Token-Permissions against CI files made to break it, offline, and exit")
+                        help="prove Token-Permissions and Pinned-Dependencies' CI half against CI files made to "
+                             "break them, offline, and exit")
     args = parser.parse_args()
     if args.self_test:
         return self_test()

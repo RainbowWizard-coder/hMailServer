@@ -206,7 +206,12 @@ each Ubuntu release: `noble` (24.04) and `resolute` (26.04) unless
   version>~<release>1` (`6.3.6+ds-1~noble1`, which sorts before Ubuntu's own
   `6.3.6+ds-1` and after the release before it), `dpkg-buildpackage -S`, `debsign`
   with the key, and `dput` to `ppa.launchpad.net`, which takes an upload on its
-  signature alone.
+  signature alone. While the PPA holds no orig of the version, every release's
+  upload carries it (`-sa`), the same bytes each time; once it holds one, none does
+  (`-sd`). Launchpad takes a file it already holds when its bytes are the same and
+  refuses one whose bytes differ, and refuses an upload that names an orig it does
+  not hold: so no upload rests on another having been taken first (until 6.3.6 the
+  first release's upload alone carried it).
 - **The owner, once.** On Launchpad: the team `~hmailserver` and its PPA
   `hmailserver`, with arm64 builds enabled. The maintainers make a dedicated upload
   key (`gpg --quick-generate-key "hMailServer PPA upload <...>" ed25519 sign 2y`); the
@@ -416,7 +421,9 @@ Trying a channel on a laptop
 Each script has a `--self-test` that needs no network, no credential and no tool
 (`chocolatey-publish.ps1 -SelfTest` for the PowerShell one); the `channels-check`
 job runs them all, in merge request and branch pipelines, when a channel's files
-change, and proves the verification with the pinned cosign itself.
+change, and proves the verification with the pinned cosign itself. `.gitlab-ci.yml`
+counts as one of those files, since it pins that cosign, and so does
+`.gitlab/ci/no-github.yml`, which the job takes first.
 
 `build/ci/channels/fake-sigstore.py` is a Sigstore of the jobs' own, as
 `hmailserver/test/RegressionTests/Shared/FakeSigstore.cs` is the server's: a

@@ -91,6 +91,15 @@ case "$arch" in
   x86_64|aarch64) ;;
   *) usage ;;
 esac
+# An aarch64 build runs its testers under qemu-user, and the install job after it runs
+# the package in an aarch64 container, whose shell, an aarch64 program, cannot ask
+# whether this machine runs aarch64 programs. Asked here, before the build
+# (build/ci/arm64-emulation.sh), so that a missing qemu-aarch64 handler fails this job
+# by name rather than leaving the testers unrun and the install job to an "exec format
+# error".
+if [ "$arch" = aarch64 ]; then
+  sh build/ci/arm64-emulation.sh "rpm-$target-aarch64-install, which installs this package in an aarch64 container," || exit 2
+fi
 
 # ---------------------------------------------------------------- the targets
 #

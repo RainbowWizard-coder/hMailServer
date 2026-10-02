@@ -270,7 +270,11 @@ def main():
     try:
         run = subprocess.run([node, RUNNER, page_copy, code], cwd=ROOT)
         if run.returncode == 0:
-            run = subprocess.run([node, TRUSTED_TYPES, "deck", page_copy], cwd=ROOT)
+            # An argument list and no shell: node as PATH finds it on the machine that runs the
+            # check, the checker's own script under build/, a constant and the page's copy in the
+            # folder made above. Nothing is parsed as a command line. (Semgrep takes whatever
+            # follows "nosemgrep:" as rule ids, so the reason is here.)
+            run = subprocess.run([node, TRUSTED_TYPES, "deck", page_copy], cwd=ROOT)  # nosemgrep
     finally:
         if not args.keep:
             shutil.rmtree(where, ignore_errors=True)
