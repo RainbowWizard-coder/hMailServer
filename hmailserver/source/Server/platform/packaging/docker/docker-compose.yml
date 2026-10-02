@@ -29,8 +29,8 @@ services:
   db:
     # PostgreSQL 18, which keeps its data in a directory named for its major
     # version, /var/lib/postgresql/18/docker, under one volume at
-    # /var/lib/postgresql. A deployment made from this file before 6.3.6 has
-    # PostgreSQL 16's data at the top of hm-db: 18 does not open it and stops at
+    # /var/lib/postgresql. A deployment made from this file while it named
+    # PostgreSQL 16 has 16's data at the top of hm-db: 18 does not open it and stops at
     # each start ("Error: in 18+ ..." in `docker compose logs db`), and the server
     # waits for it, 16's data left as it was. hmailserver/docs/ContainerImage.md,
     # "Updates", moves the database to 18: a dump taken on 16, loaded into 18.

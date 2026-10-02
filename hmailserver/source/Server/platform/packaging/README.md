@@ -859,8 +859,8 @@ Compose and Helm
 Beside the image, the two files people expect, in the tree since 15 September
 2026:
 
-* `docker/docker-compose.yml` - the server beside a PostgreSQL 18 (16 until
-  6.3.5; `docs/ContainerImage.md`, "PostgreSQL 16 to 18, in the Compose file",
+* `docker/docker-compose.yml` - the server beside a PostgreSQL 18 (16 in the
+  releases before; `docs/ContainerImage.md`, "PostgreSQL 16 to 18, in the Compose file",
   moves a deployment's database), the two passwords as Compose secrets from `./secrets/`, the REST listener (the
   Control Deck and the webmail) bound off loopback and so over TLS with a
   certificate and key from `./certs/`, the three volumes the image declares,
