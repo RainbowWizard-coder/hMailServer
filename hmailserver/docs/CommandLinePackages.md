@@ -12,8 +12,9 @@ administrator installs such a thing from without the server:
 
 **Neither is published yet.** Both are built and checked in CI now, and each is
 published by a job that stays dormant until its account exists ([What the owner
-sets](#what-the-owner-sets)). The Gallery job also waits for the module's
-Authenticode signature, which the release makes and the tree does not have
+sets](#what-the-owner-sets)). The Gallery is sent the module as a release
+signs it: from 6.3.6 every release carries `HmailServer.psd1` and
+`HmailServer.psm1` Authenticode-signed, each with its Sigstore bundle
 ([Publishing](#publishing), step 5). Until then, `hmctl` comes with the `.deb` and
 the `.rpm` as `/usr/bin/hmctl`, and the module is the file in the tree.
 
@@ -217,11 +218,25 @@ The publish jobs publish a release, not the commit their pipeline is for. In ord
    reason.
 5. **Its tree.** The package is built from that tag's tree, with the tag commit's
    time as `SOURCE_DATE_EPOCH`, and held to the version; the module's two files are
-   taken from it and its manifest held to the version. The module must also carry an
-   Authenticode signature block: the Gallery is to have the module the release signs
-   (Roadmap3, "PowerShell Gallery"), and a version it has it keeps for good. The tag's
-   tree never has a signed module, so until `psgallery-publish` takes the module from
-   the release that signs it, it refuses here, before anything is sent.
+   taken from it and its manifest held to the version. Then the module's two files
+   as the release carries them: `release` collects them from the tagged tree,
+   unsigned, and `release-authenticode` signs them with Authenticode, by the same
+   Azure Artifact Signing profile and pin as the installers, so `release-sign` signs
+   the signed bytes with Sigstore ([ContinuousIntegration.md](ContinuousIntegration.md),
+   "The release"). `psgallery-publish` downloads each, and its `.cosign.bundle`, from
+   the release's package `hmailserver/<version>`; verifies the bundle with
+   `sigstore` (hashed in `build/ci/cli-packages-requirements.txt`, installed into a
+   virtual environment of the job's own) as signed by the tag's pipeline,
+   `https://gitlab.com/hmailserver/hmailserver//.gitlab-ci.yml@refs/tags/v<version>`,
+   for this repository (`86730559`) at the tag's commit, and recorded in Sigstore's
+   public log; and requires the file to be the tag's own bytes with one signature
+   block appended and nothing else. The Gallery keeps a version for good, so a
+   release without the signed module (6.3.5 and before), a bundle that does not
+   verify, or a file that is not the tag's own is refused here, before anything is
+   sent. A user who downloads the two files from the release checks them the same
+   ways: `Get-AuthenticodeSignature .\HmailServer.psm1` (Valid, signed by
+   Progressive Robot Ltd), and `cosign verify-blob` with the file's bundle as
+   [SECURITY.md](../../SECURITY.md) shows for the installer.
 6. **Signed as this pipeline.** `pypi-publish` signs each file with Sigstore (ID
    token audience `sigstore`) as a PyPI publish attestation (`pypi-attestations`),
    and `twine upload --attestations` sends each file with its attestation. PyPI

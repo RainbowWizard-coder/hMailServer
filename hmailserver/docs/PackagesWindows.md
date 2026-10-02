@@ -345,8 +345,8 @@ every protected pipeline. Only a release's installers are signed, by
    `hMailServer-<version>-arm64.exe.cdx.json`, from the signed bytes with
    `build/asset-sbom.py`'s `windows-arm64` kind and `linux-sbom`'s
    `native-dependencies-arm64.json`; `publish` requires the feed to give an
-   ARM64 Windows server its file and bundle. A release is 60 files and 154
-   links.
+   ARM64 Windows server its file and bundle. A release is 62 files and 160
+   links (with the PowerShell module's two signed files, also from 6.3.6).
 2. `.gitlab-ci.yml`: `release` needs `windows-packages-arm64` with
    `artifacts: true` and keeps `native-dependencies-arm64.json` in
    `release-tools/`; `windows-packages-arm64` has no `allow_failure`.
@@ -361,7 +361,7 @@ every protected pipeline. Only a release's installers are signed, by
 4. `build/ci/release-sign.sh`: takes each installer signed from its own folder,
    with the same "not byte for byte the unsigned one" check, holds each
    installer's SBOM and the provenance's statement to its signed SHA-256, and
-   cosign signs both with the rest (60 files); `release-verify.sh` counts 60
+   cosign signs both with the rest (62 files); `release-verify.sh` counts 62
    files and 27 SBOMs.
 5. The rehearsal on a `batch*` branch (`.gitlab/ci/release-rehearsal.yml`)
    needs `windows-packages-arm64` too and collects its commit-stamped

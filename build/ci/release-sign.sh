@@ -18,9 +18,12 @@
 #                              everything but the signed installers and their SBOMs
 #       release-authenticode/  the x64 Windows installer as release-authenticode signed it,
 #       release-authenticode-arm64/
-#                              and the ARM64 one (not in a rehearsal, which has no
-#                              Authenticode: its installers are collect's, the bytes of
-#                              windows-packages-x64 and windows-packages-arm64)
+#                              and the ARM64 one,
+#       release-authenticode-module/
+#                              and the PowerShell module's two files (not in a rehearsal,
+#                              which has no Authenticode: its installers are collect's, the
+#                              bytes of windows-packages-x64 and windows-packages-arm64, and
+#                              its module the tree's)
 #       release-sbom/          each installer's own SBOM, and the provenance's statement
 #                              over every file (build/ci/release-chain.py sbom)
 # Out:  release-signed/        every file, with <file>.cosign.bundle beside it; each primary
@@ -103,6 +106,9 @@ fi
 # folder of its own.
 installer_x64="hMailServer-${version}-x64.exe"
 installer_arm64="hMailServer-${version}-arm64.exe"
+# The PowerShell module's manifest and script, signed by release-authenticode's third
+# call into a folder of their own (build/ci/release-chain.py, MODULE_FILES).
+module_files="HmailServer.psd1 HmailServer.psm1"
 statement="hmailserver-${version}.intoto.json"
 provenance="hmailserver-${version}.intoto.sigstore.json"
 # The project's path, and nothing else: a pipeline at any other path, the first one
@@ -126,14 +132,16 @@ cosign version 2>&1 | grep -E 'GitVersion|GitCommit' || true
 [ -d "$in" ] || fail "$in is not here: the release job's artifact did not arrive"
 [ -f "$sboms/$statement" ] || fail "$sboms/$statement is not here: release-sbom wrote no provenance statement"
 
-# Where an installer's shipped bytes are: release-authenticode's folder for it, the
-# ARM64 one's with -arm64 after the name; in a rehearsal, collect's own.
+# Where an installer's or a module file's shipped bytes are: release-authenticode's
+# folder for it, the ARM64 one's with -arm64 after the name and the module's with
+# -module; in a rehearsal, collect's own.
 shipped_of() {
   if [ -n "$rehearse" ]; then
     echo "$in/$1"
   else
     case "$1" in
       *-arm64.exe) echo "$authenticode-arm64/$1" ;;
+      HmailServer.psd1|HmailServer.psm1) echo "$authenticode-module/$1" ;;
       *) echo "$authenticode/$1" ;;
     esac
   fi
@@ -162,12 +170,32 @@ for installer in "$installer_x64" "$installer_arm64"; do
     || fail "$statement does not name the signed installer $installer (SHA-256 $signed_sha256)"
 done
 
+# The module's two files: each signed (its bytes changed), and named in the provenance
+# by the signed bytes. That signing added a signature block and changed nothing else
+# release-sbom has held each to (build/ci/release-chain.py, module_signature_problems).
+for module_file in $module_files; do
+  [ -f "$in/$module_file" ] || fail "$in/$module_file is not here"
+  shipped=$(shipped_of "$module_file")
+  if [ -z "$rehearse" ]; then
+    [ -f "$shipped" ] || fail "$shipped is not here: release-authenticode did not hand back the signed module"
+    if cmp -s "$in/$module_file" "$shipped"; then
+      fail "the module file release-authenticode handed back is byte for byte the unsigned one: $module_file"
+    fi
+  fi
+  signed_sha256=$(sha256sum "$shipped" | cut -d' ' -f1)
+  grep -q "\"sha256\": \"$signed_sha256\"" "$sboms/$statement" \
+    || fail "$statement does not name the module file $module_file as signed (SHA-256 $signed_sha256)"
+done
+
 rm -rf "$out"
 mkdir -p "$out"
 cp "$in"/* "$out"/
 for installer in "$installer_x64" "$installer_arm64"; do
   cp "$(shipped_of "$installer")" "$out/$installer"
   cp "$sboms/$installer.cdx.json" "$out/$installer.cdx.json"
+done
+for module_file in $module_files; do
+  cp "$(shipped_of "$module_file")" "$out/$module_file"
 done
 
 # The flags every cosign from 2.4 on reads the same way; --use-signing-config exists
@@ -232,10 +260,11 @@ done
 # the two installers, x64 and ARM64; the generic .deb and .rpm for x86-64 and AArch64;
 # each Debian, Ubuntu, Fedora, EL and openSUSE release's .deb or .rpm for both
 # (eighteen); the two AppImages; the source of the libraries linked into their runtime;
-# the source of the libraries they carry in usr/lib; the source tarball; the Helm chart;
-# the sums; the tree's two SBOMs; and the twenty-seven SBOMs of the compiled files and
-# the tarball (build/ci/release-chain.py, expected_assets).
-expected=60
+# the source of the libraries they carry in usr/lib; the source tarball; the PowerShell
+# module's manifest and script; the Helm chart; the sums; the tree's two SBOMs; and the
+# twenty-seven SBOMs of the compiled files and the tarball (build/ci/release-chain.py,
+# expected_assets).
+expected=62
 [ "$signed" -eq "$expected" ] || fail "$signed file(s) signed; a release is $expected"
 
 # The provenance: the statement release-sbom wrote, attested as this pipeline.

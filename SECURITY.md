@@ -337,9 +337,11 @@ verified the original.
   6.3.3 carried: OpenSSF Scorecard, which reads a file's name alone, counts it as a signature rather than as
   provenance, and a copy under the other name would misdescribe its format to get the higher score.
 
-- **Authenticode.** Since 6.3.1 the Windows installer is also Authenticode-signed; the Linux packages are not.
-  Neither signature above replaces it: Windows SmartScreen and the UAC prompt read only Authenticode. In
-  PowerShell, `Get-AuthenticodeSignature .\hMailServer-x.y.z-x64.exe` shows it.
+- **Authenticode.** Since 6.3.1 the Windows installer is also Authenticode-signed, and from 6.3.6 the PowerShell
+  module's `HmailServer.psd1` and `HmailServer.psm1` in the release; the Linux packages are not.
+  Neither signature above replaces it: Windows SmartScreen and the UAC prompt read only Authenticode, and
+  PowerShell's AllSigned policy reads it for a module. In PowerShell,
+  `Get-AuthenticodeSignature .\hMailServer-x.y.z-x64.exe` shows it.
 
 ## Supply chain
 

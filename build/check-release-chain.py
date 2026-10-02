@@ -60,6 +60,18 @@ refuses it. This checker holds them to each other. It fails when:
     hooks: !reference [.bench150-leftovers, hooks], the step that stops before
     its checkout what a cancelled job left running in its directory, or
     .bench150-leftovers has no pre_get_sources_script;
+  * the PowerShell module's HmailServer.psd1 and HmailServer.psm1 are not files every
+    release carries, collected unsigned from hmailserver/source/Tools/Cli and signed
+    after collect, without an SBOM; release-authenticode does not sign them by a call
+    of their own, made only when the ARM64 installer's signed, into
+    release-authenticode-module/, which it keeps and release-chain.py's sbom and
+    release-sign.sh read; or windows-authenticode.ps1 stops holding each signed file
+    to its unsigned bytes followed by one signature block;
+  * the job build-inputs-authenticode (.gitlab/ci/packages-windows.yml), which holds
+    the build inputs to the Authenticode signatures third-party-binaries.json records,
+    is missing, runs elsewhere than bench150 or outside .own-runners' rules, goes on to
+    its self-test after the check failed, or can let a job that needs it start without
+    its having passed; or the Windows package jobs or windows-installer do not need it;
   * the release or release-publish job can start without a person (when: manual,
     allow_failure: false), a release job can run for anything but a protected v*
     tag, or the jobs' needs no longer put Authenticode before Sigstore, Sigstore
@@ -438,6 +450,11 @@ ARM64_INSTALLER_JOB = "windows-packages-arm64"
 BRANCH_X64_INSTALLER_JOB = "windows-packages-x64"
 ARM64_INSTALLER_DIR = "packages-windows/arm64/"
 ARM64_SIGNED_DIR = "release-authenticode-arm64"
+# The folder release-authenticode signs the PowerShell module into, and the job on
+# bench150 that holds the build inputs to the signatures the manifest records
+# (.gitlab/ci/packages-windows.yml), which every build placing them needs.
+MODULE_SIGNED_DIR = "release-authenticode-module"
+BUILD_INPUTS_JOB = "build-inputs-authenticode"
 # The job that gathers every other file a release carries from the package jobs
 # (.gitlab/ci/release-packages.yml): each distribution release's .deb and .rpm, the
 # AppImages and the source tarball, each with its SBOM; and the chart's job.
@@ -878,7 +895,7 @@ def probe_registry(chain, feed):
     cases = [
         ("an empty registry", Registry(), False),
         ("the Linux files, the sums and the SBOMs with the same bytes, as a publish that stopped part-way leaves them",
-         Registry(*[(n, "a" * 64) for n in digests if n not in (names["windows"], names["windows-arm64"])]), False),
+         Registry(*[(n, "a" * 64) for n in digests if n not in chain.made_after_collect(version)]), False),
         ("a .deb with other bytes", Registry((names["deb-amd64"], "b" * 64)), True),
         ("a .deb held twice, the older with other bytes", Registry((names["deb-amd64"], "b" * 64), (names["deb-amd64"], "a" * 64)), True),
         ("the installer, which Authenticode makes after collect", Registry((names["windows"], "a" * 64)), True),
@@ -886,6 +903,7 @@ def probe_registry(chain, feed):
         ("the ARM64 installer, which Authenticode makes after collect", Registry((names["windows-arm64"], "a" * 64)), True),
         ("the ARM64 installer's SBOM, which release-sbom makes after collect",
          Registry((chain.sbom_name(names["windows-arm64"]), "a" * 64)), True),
+        ("the PowerShell module's script, which Authenticode makes after collect", Registry(("HmailServer.psm1", "a" * 64)), True),
         ("a bundle, which Sigstore makes after collect", Registry(("hmailserver.spdx.json.cosign.bundle", "c" * 64)), True),
         ("a bundle's .sigstore.json copy, which release-sign makes", Registry(("hmailserver.spdx.json.sigstore.json", "c" * 64)), True),
         ("the provenance, which release-sign attests", Registry((chain.provenance_name(version), "c" * 64)), True),
@@ -1369,6 +1387,58 @@ def check(texts, chain, feed):
         if texts["sign"].count(needle) != times:
             problems.append("build/ci/release-sign.sh no longer has %s %s (%s)" % (needle, "once" if times == 1 else "%d times" % times, why))
 
+    # The PowerShell module (Roadmap3, "The PowerShell Gallery"): its two files carried by
+    # every release as primary files without an SBOM, collected unsigned from the tree and
+    # signed after collect; signed by release-authenticode's own call, made only when the
+    # ARM64 one signed, into the folder release-chain.py's sbom and release-sign.sh read;
+    # and taken from there by release-sign.sh.
+    module = list(getattr(chain, "MODULE_FILES", ()))
+    if module != ["HmailServer.psd1", "HmailServer.psm1"] or any(
+            n not in chain.primary_assets("9.9.9") or n in chain.compiled_assets("9.9.9") or n not in chain.made_after_collect("9.9.9")
+            or (chain.sources("9.9.9").get(n) or "").replace(os.sep, "/") != "hmailserver/source/Tools/Cli/" + n for n in module):
+        problems.append("build/ci/release-chain.py does not carry the PowerShell module's HmailServer.psd1 and HmailServer.psm1 as "
+                        "primary files, collected from hmailserver/source/Tools/Cli and signed after collect")
+    module_call = "-File build\\ci\\windows-authenticode.ps1 -Module release-assets -OutDir %s\n" % MODULE_SIGNED_DIR
+    if module_call not in authenticode or not re.search(r"^      - %s/\s*$" % re.escape(MODULE_SIGNED_DIR), authenticode, re.MULTILINE) \
+            or getattr(chain, "MODULE_SIGNED_DIR", None) != MODULE_SIGNED_DIR:
+        problems.append("release-authenticode does not sign the PowerShell module (%s) and keep %s/, where release-chain.py's "
+                        "sbom reads it: the Gallery and the release would carry it unsigned" % (module_call.strip(), MODULE_SIGNED_DIR))
+    arm64_call = '-Installer "release-assets\\%s" -OutDir %s\n' % (arm64, ARM64_SIGNED_DIR)
+    if arm64_call + "      if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }\n" not in authenticode:
+        problems.append("release-authenticode does not stop when the ARM64 installer's call fails (%sif ($LASTEXITCODE -ne 0) "
+                        "{ exit $LASTEXITCODE }): the job would pass on the module call's exit alone" % arm64_call.replace("\n", "; "))
+    for needle, why in (('module_files="HmailServer.psd1 HmailServer.psm1"', "the module's two files"),
+                        ('      HmailServer.psd1|HmailServer.psm1) echo "$authenticode-module/$1" ;;', "the module taken signed, from "
+                         "release-authenticode-module/")):
+        if texts["sign"].count(needle) != 1:
+            problems.append("build/ci/release-sign.sh no longer has %s once (%s)" % (needle, why))
+    if "function Get-BlockProblems(" not in ps1 or "$problems += @(Get-BlockProblems " not in ps1 or "-Module" not in ps1:
+        problems.append("build/ci/windows-authenticode.ps1 no longer signs the module (-Module) holding each file to its unsigned "
+                        "bytes and one signature block (Get-BlockProblems)")
+
+    # The build inputs' signatures (Roadmap3, "Every committed binary checked against its
+    # manifest in CI"): a job on bench150, on protected refs alone, that every build
+    # placing them needs, and that cannot let one start without having passed.
+    inputs_job = windows_jobs.get(BUILD_INPUTS_JOB)
+    if inputs_job is None:
+        problems.append("%s has no job %s, which checks the build inputs' Authenticode signatures before any build uses them" % (
+            FILES["packages-windows"], BUILD_INPUTS_JOB))
+    else:
+        if not re.search(r"^  tags: \[bench150\]\s*$", inputs_job, re.MULTILINE) or not re.search(r"^  extends: \.own-runners\s*$", inputs_job, re.MULTILINE):
+            problems.append("%s does not run on bench150 under .own-runners' rules (protected refs, never a merge request)" % BUILD_INPUTS_JOB)
+        for script in ("build\\ci\\build-inputs-authenticode.ps1", "build\\ci\\authenticode-selftest.ps1"):
+            if "-File %s\n" % script not in inputs_job:
+                problems.append("%s does not run %s" % (BUILD_INPUTS_JOB, script))
+        if "build-inputs-authenticode.ps1\n      if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }\n" not in inputs_job:
+            problems.append("%s does not stop when the build inputs' check fails: the self-test's exit alone would end it" % BUILD_INPUTS_JOB)
+        for escape in tag_escapes(BUILD_INPUTS_JOB, dict(jobs, **windows_jobs)):
+            problems.append("%s can let a build start without its having passed (%s)" % (BUILD_INPUTS_JOB, escape))
+        for builder, builder_text in ((".windows-packages", windows_jobs.get(".windows-packages", "")), ("windows-installer", jobs["windows-installer"])):
+            entry = need_entries(builder_text).get(BUILD_INPUTS_JOB) if builder_text else None
+            if BUILD_INPUTS_JOB not in (needs(builder_text) if builder_text else []) or (
+                    entry is not None and re.search(r"optional: true", entry)):
+                problems.append("%s does not need %s: it would build from inputs whose signatures were not checked" % (builder, BUILD_INPUTS_JOB))
+
     # The container image, in a file of its own that .gitlab-ci.yml includes. Its
     # !reference [.release-rules, rules] names the CI file's template.
     if not re.search(r"^  - local: \.gitlab/ci/container-image\.yml\s*$", ci, re.MULTILINE):
@@ -1792,10 +1862,12 @@ def check(texts, chain, feed):
                             "!reference [.no-github, before_script]" % (job, FILES["packages-appimage"], FILES["no-github"]))
     # Every Linux file the release carries, the chart and the AppImages' two sources
     # files, with a line in the release's sums: linux-build's own two, then sums_members.
+    # Not the installers and the PowerShell module, which Authenticode signs after collect
+    # writes the sums.
     names_999 = feed.installer_names("9.9.9")
     unsummed = sorted(set(primaries) - set(chain.sums_members("9.9.9")) - {
         names_999["windows"], names_999["windows-arm64"], names_999["deb-amd64"], names_999["rpm-x86_64"], chain.sums_name("9.9.9"),
-        "hmailserver.spdx.json", "hmailserver.cyclonedx.json"})
+        "hmailserver.spdx.json", "hmailserver.cyclonedx.json"} - set(getattr(chain, "MODULE_FILES", ())))
     if unsummed:
         problems.append("the release carries %s with no line in the release's sums (build/ci/release-chain.py, sums_members)"
                         % ", ".join(unsummed))
@@ -2528,8 +2600,8 @@ def self_test(chain, feed):
     broken("the old bundle format", "sign", 'sign_flags="--yes --new-bundle-format', 'sign_flags="--yes', "--new-bundle-format")
     broken("another log", "sign", "--rekor-url https://rekor.sigstore.dev --fulcio", "--rekor-url https://log2025-1.rekor.sigstore.dev --fulcio", "Rekor v1 log")
     broken("the signing configuration left on", "sign", "--use-signing-config=false", "--use-signing-config=true", "signing configuration off")
-    broken("another count of files", "sign", "expected=60", "expected=13", "a release carries")
-    broken("verify counting another number of files", "verify", '[ "$verified" -eq 60 ]', '[ "$verified" -eq 13 ]', "release-verify.sh counts 13")
+    broken("another count of files", "sign", "expected=62", "expected=13", "a release carries")
+    broken("verify counting another number of files", "verify", '[ "$verified" -eq 62 ]', '[ "$verified" -eq 13 ]', "release-verify.sh counts 13")
     # The AArch64 packages a release carries, from the package jobs.
     broken("release not waiting for the arm64 .deb's install", "ci", "    - job: deb-ubuntu26.04-arm64-install\n      artifacts: false\n", "",
            "release does not need deb-ubuntu26.04-arm64-install")
@@ -3137,12 +3209,15 @@ def self_test(chain, feed):
            "release-authenticode in .gitlab-ci.yml runs on bench150 without hooks")
     # The same in an included file, which the rule reads as the CI file includes it.
     windows_file = ".gitlab/ci/packages-windows.yml"
-    hooked = "  tags: [bench150]\n  hooks: !reference [.bench150-leftovers, hooks]\n"
+    # The template's own lines: build-inputs-authenticode, before it in the file, takes
+    # the hook too.
+    template_head = ".windows-packages:\n  extends: .own-runners\n  stage: release\n  tags: [bench150]\n"
+    hooked = template_head + "  hooks: !reference [.bench150-leftovers, hooks]\n"
     if hooked not in texts["ci-includes"].get(windows_file, ""):
         failures.append("a bench150 template without the leftovers' hook: the text to break is not in %s" % windows_file)
     else:
         copy = dict(texts, **{"ci-includes": dict(texts["ci-includes"], **{
-            windows_file: texts["ci-includes"][windows_file].replace(hooked, "  tags: [bench150]\n", 1)})})
+            windows_file: texts["ci-includes"][windows_file].replace(hooked, template_head, 1)})})
         found, _ = check(copy, chain, feed)
         if not any(".windows-packages in .gitlab/ci/packages-windows.yml runs on bench150 without hooks" in p for p in found):
             failures.append("a bench150 template without the leftovers' hook is caught: %s" % found)
@@ -3166,6 +3241,51 @@ def self_test(chain, feed):
            "release does not keep linux-sbom's ARM64 component list")
     broken("release-sign.sh taking the x64 installer alone", "sign", 'for installer in "$installer_x64" "$installer_arm64"; do',
            'for installer in "$installer_x64"; do', "both installers taken")
+    # The PowerShell module, signed by its own call after the installers.
+    broken("release-authenticode going on to the module when the ARM64 installer was not signed", "ci",
+           "-OutDir release-authenticode-arm64\n      if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }\n", "-OutDir release-authenticode-arm64\n",
+           "release-authenticode does not stop when the ARM64 installer's call fails")
+    broken("the module not signed", "ci",
+           "      & (Get-Process -Id $PID).Path -NoProfile -ExecutionPolicy Bypass -File build\\ci\\windows-authenticode.ps1 -Module release-assets -OutDir release-authenticode-module\n",
+           "", "release-authenticode does not sign the PowerShell module")
+    broken("the signed module not kept", "ci", "      - release-authenticode-module/\n", "", "release-authenticode does not sign the PowerShell module")
+    broken("release-sign.sh taking the module unsigned, from collect", "sign",
+           '      HmailServer.psd1|HmailServer.psm1) echo "$authenticode-module/$1" ;;\n', "", "the module taken signed")
+    broken("windows-authenticode.ps1 signing the module without holding it to its own bytes", "authenticode",
+           "$problems += @(Get-BlockProblems ", "$problems += @(Write-Output ", "(Get-BlockProblems)")
+    held_module = chain.MODULE_FILES
+    try:
+        chain.MODULE_FILES = ()
+        found, _ = check(texts, chain, feed)
+        if not any("does not carry the PowerShell module's" in p for p in found):
+            failures.append("a release that no longer carries the module is caught: %s" % found)
+    finally:
+        chain.MODULE_FILES = held_module
+    # The build inputs' signatures, checked on bench150 before any build uses them.
+    inputs_head = "build-inputs-authenticode:\n  extends: .own-runners\n  stage: build\n  tags: [bench150]\n  hooks: !reference [.bench150-leftovers, hooks]\n  needs: []\n"
+    broken("the build inputs' job gone", "packages-windows", "\nbuild-inputs-authenticode:\n", "\nbuild-inputs-authenticode-2:\n",
+           "has no job build-inputs-authenticode")
+    broken("the build inputs' job allowed to fail", "packages-windows", inputs_head, inputs_head + "  allow_failure: true\n",
+           "build-inputs-authenticode can let a build start without its having passed")
+    broken("the build inputs' job waiting for a press", "packages-windows", inputs_head, inputs_head + "  when: manual\n",
+           "build-inputs-authenticode can let a build start without its having passed")
+    broken("the build inputs' job on another runner", "packages-windows", inputs_head, inputs_head.replace("[bench150]", "[linix]"),
+           "build-inputs-authenticode does not run on bench150")
+    broken("the build inputs' job without .own-runners' rules", "packages-windows", inputs_head,
+           inputs_head.replace("  extends: .own-runners\n", ""), "build-inputs-authenticode does not run on bench150 under .own-runners")
+    broken("the build inputs' job going on to the self-test after its check failed", "packages-windows",
+           "build\\ci\\build-inputs-authenticode.ps1\n      if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }\n",
+           "build\\ci\\build-inputs-authenticode.ps1\n", "does not stop when the build inputs' check fails")
+    broken("the build inputs' job without its self-test", "packages-windows",
+           "      & $shell -NoProfile -ExecutionPolicy Bypass -File build\\ci\\authenticode-selftest.ps1\n", "",
+           "build-inputs-authenticode does not run build\\ci\\authenticode-selftest.ps1")
+    broken("the Windows packages built without the build inputs' job", "packages-windows",
+           "    - job: build-inputs-authenticode\n      artifacts: false\n", "", ".windows-packages does not need build-inputs-authenticode")
+    broken("the Windows packages needing the build inputs' job optionally", "packages-windows",
+           "    - job: build-inputs-authenticode\n      artifacts: false\n",
+           "    - job: build-inputs-authenticode\n      artifacts: false\n      optional: true\n", ".windows-packages does not need build-inputs-authenticode")
+    broken("windows-installer built without the build inputs' job", "ci", "needs: [windows-gate, build-inputs-authenticode]",
+           "needs: [windows-gate]", "windows-installer does not need build-inputs-authenticode")
     broken("release-sign.sh taking the ARM64 installer unsigned", "sign", '      *-arm64.exe) echo "$authenticode-arm64/$1" ;;\n', "",
            "the ARM64 installer taken signed")
     broken("a job of the rehearsal's file that is not the rehearsal's", "rehearsal", "\nrelease-rehearsal-verify:\n",

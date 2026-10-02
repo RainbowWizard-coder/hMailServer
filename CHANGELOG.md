@@ -95,7 +95,7 @@ maintainers write in SECURITY.md whether support continues, and if nothing is wr
 still no maintenance branches: an installation of 6.3.5, 6.2 or anything older is upgraded in place to the newest
 release.
 
-**What the release carries**: 60 files and 154 links (ContinuousIntegration.md, "What a release carries"). Beside
+**What the release carries**: 62 files and 160 links (ContinuousIntegration.md, "What a release carries"). Beside
 the x64 installer is `hMailServer-6.3.6-arm64.exe`, for Windows on ARM, Authenticode-signed like it. It is a
 preview: the ARM64 build is cross-compiled on the project's x64 Windows runner and has never run on ARM64 hardware,
 so read it as built to work ([WindowsOnArm.md](hmailserver/docs/WindowsOnArm.md)). If you install it on an ARM64
@@ -850,8 +850,8 @@ message is the server administrator's alone (What changes on upgrade, item 25). 
   manual `master` jobs `pypi-publish` (a PyPI trusted publisher, with PyPI attestations) and `psgallery-publish`
   (`PSGALLERY_API_KEY`) say "not configured" until each account is set up. They publish only a release the update
   feed lists, rebuilt from its owner-signed tag, and never a version twice: `pypi-publish` finishes an upload that
-  stopped halfway and fails when a PyPI publisher that once worked stops matching, and `psgallery-publish` refuses
-  a module with no Authenticode signature, which the release does not sign yet
+  stopped halfway and fails when a PyPI publisher that once worked stops matching, and `psgallery-publish` sends
+  the module only as the release signed it (below, "The PowerShell module is Authenticode-signed in the release")
   ([CommandLinePackages.md](hmailserver/docs/CommandLinePackages.md)).
 
 - **A source tarball with nothing non-free in it, which the Linux build and suite run from** (the release
@@ -876,12 +876,13 @@ message is the server administrator's alone (What changes on upgrade, item 25). 
   `HM_SOURCE_TARBALL`; `build/native-dependencies.ps1 -LinuxOnly` gives the packages' SBOMs their components
   without the Windows build's inputs. See [SourceTarball.md](hmailserver/docs/SourceTarball.md).
 
-- **The release carries every file the pipeline makes for it**. From 6.3.6 a release is 60 files and 154 links: the
+- **The release carries every file the pipeline makes for it**. From 6.3.6 a release is 62 files and 160 links: the
   x64 and ARM64 installers (the ARM64 one below); the generic `.deb` and `.rpm` for x86-64 and AArch64; each Debian 12
   and 13, Ubuntu 24.04, Fedora 44 and 43, EL 10 and 9, openSUSE Leap 16.0 and Tumbleweed release's own package for both
   architectures (`hmailserver_<v>-1~<release>_<arch>.deb`, `hmailserver-<v>-1.<release>.<arch>.rpm`); both AppImages,
   with the project's own runtime (work item 36), the source of the libraries linked into it and the source of the
-  libraries they carry in `usr/lib` (below); the source tarball; the Helm chart; the sums of every Linux file, the
+  libraries they carry in `usr/lib` (below); the source tarball; the PowerShell module's `HmailServer.psd1` and
+  `HmailServer.psm1`, Authenticode-signed (below); the Helm chart; the sums of every Linux file, the
   two AppImage sources files and the chart; an SBOM for each of the 26 compiled files and the tarball, and the tree's
   two; a Sigstore bundle beside each, a byte-identical `<file>.sigstore.json` of each primary file's bundle, and
   `hmailserver-<v>.intoto.sigstore.json`, SLSA v1 build provenance naming every file by its SHA-256, signed as the
@@ -1182,7 +1183,7 @@ message is the server administrator's alone (What changes on upgrade, item 25). 
   SHA-256 that job wrote; `release-authenticode` signs it with Authenticode by a second call, and stops if the x64
   installer was not signed; `release-sbom` makes its `.cdx.json` from the signed bytes and `linux-sbom`'s ARM64
   component list; `release-sign` signs it with Sigstore, with its `.sigstore.json` copy, and the provenance names it.
-  A release is 60 files and 154 links. A server's update check asks for its own processor's installer by name - as
+  A release is 62 files and 160 links. A server's update check asks for its own processor's installer by name - as
   6.3.4 and 6.3.5 do - so an x64 server is never offered the ARM64 one, and `/download/hMailServer-arm64.exe` on the
   update site leads to it. The rehearsal on a `batch*` branch collects it too. `build/check-release-chain.py` holds
   every one of those places, and refuses a job the release needs that is allowed to fail, in either of the ways
@@ -1216,6 +1217,34 @@ message is the server administrator's alone (What changes on upgrade, item 25). 
   list not read, is retired. The installer deletes `Bin\tlds.txt` on upgrade, and the Linux packages no longer carry
   it. The cut's tests run in ClassTester and, on Linux, as the new `public-suffix-tests` program, in `linux-build`
   and in the Debian and RPM package builds.
+
+- **The PowerShell module is Authenticode-signed in the release, and only that signed module goes to the
+  PowerShell Gallery.** Each release from 6.3.6 carries `HmailServer.psd1` and `HmailServer.psm1`, which `release`
+  collects from the tagged tree, unsigned, and `release-authenticode` signs by a third call of
+  `build/ci/windows-authenticode.ps1 -Module`, made only when both installers signed, through the same Azure
+  Artifact Signing profile: each signature must be valid, timestamped and by the publisher, chain and code-signing
+  use the installers are held to, and each file the tree's bytes with one signature block appended and nothing
+  else, which `release-sbom` checks again before the provenance names the signed bytes and `release-sign` signs
+  them with Sigstore (sixty-two files, 160 links). `psgallery-publish` no longer reads the module from the tag's
+  tree: it downloads both files and their bundles from the release's package, verifies each bundle with
+  `sigstore` (hashed, in a virtual environment of the job's own) as the tag's pipeline, for this repository at the
+  tag's commit, and requires each file to be the tag's bytes with one signature block, refusing anything else
+  before the Gallery is sent a version it would keep for good. `windows-authenticode.ps1 -Check <file>` holds a
+  downloaded installer or module file to the same pin
+  ([CommandLinePackages.md](hmailserver/docs/CommandLinePackages.md), "Publishing").
+
+- **The build inputs' Authenticode signatures are checked again, on bench150, before any build uses them.** The
+  new protected job `build-inputs-authenticode` (`.gitlab/ci/packages-windows.yml`), which
+  `windows-packages-x64`, `windows-packages-arm64` and `windows-installer` need, downloads every build input
+  afresh - `build-inputs-1`'s files from the package registry, 7-Zip's archive from 7-zip.org - holds each to its
+  pinned SHA-256 and each file the installers take from one to its own, and requires each of those files that
+  `third-party-binaries.json` records as signed (one, the SQL Server Compact runtime) to carry a valid, timestamped
+  signature by exactly the signer recorded, each recorded unsigned to carry none, and each to have one of those two
+  records (`build/ci/build-inputs-authenticode.ps1`). What the GitHub workflow's Windows job did until 18 September
+  2026. It then runs `build/ci/authenticode-selftest.ps1`: that check refusing a wrong signer, a wrong or missing
+  record and a wrong hash, and `windows-authenticode.ps1`'s pin refusing a throwaway certificate's signature,
+  another publisher's and a module file changed in or after signing, the throwaway key deleted after it is used
+  ([ThirdPartyBinaries.md](hmailserver/docs/ThirdPartyBinaries.md), "What checks it").
 
 ### Anti-spam, anti-virus and mail flow rules
 

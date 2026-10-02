@@ -29,7 +29,12 @@
 #                           that check on a report of the check's own fault; run by
 #                           hand as LocalSystem on bench150 on 29 September 2026, the
 #                           whole job passed (PackagesWindows.md, "What was run by
-#                           hand on bench150").
+#                           hand on bench150");
+#   build-inputs-authenticode
+#                           first, for both and for windows-installer: the
+#                           third-party files they place from the build inputs,
+#                           each held to its pinned SHA-256 and to the Authenticode
+#                           signature the manifest records (below).
 #
 # Both build in the runner's own checkout of the commit, as windows-dotnet does, not in
 # the bench's checkout that windows-gate tests and whose hMailServer service runs from
@@ -67,12 +72,50 @@
 # that anything that reaches for GitHub fails by name (docs/ContinuousIntegration.md,
 # "bench150").
 
+# The Authenticode record of every third-party file the installers carry from a build
+# input (hmailserver/docs/third-party-binaries.json), checked before any build of the
+# pipeline uses one (build/ci/build-inputs-authenticode.ps1): each input - the
+# build-inputs-<n> release's files in the package registry, 7-Zip's archive from
+# 7-zip.org - downloaded afresh and held to its SHA-256, each file taken from it held to
+# its own, and to the signature the manifest records: Valid, by the signer recorded,
+# with a timestamp (the SQL Server Compact runtime, Microsoft's), or none. Then
+# build/ci/authenticode-selftest.ps1: that check, and the step of
+# build/ci/windows-authenticode.ps1 that holds release-authenticode's signatures to the
+# pin, each refusing what it must, tested on the machine that signs.
+# Get-AuthenticodeSignature is Windows' own, so this runs on bench150, protected refs
+# alone (.own-runners); it needs no secret, and takes no gate lock, since it touches
+# neither the bench's checkout nor its service. Every job that builds an installer from
+# these inputs needs it: windows-packages-x64 and windows-packages-arm64 here, and
+# windows-installer for a v* tag (.gitlab-ci.yml).
+build-inputs-authenticode:
+  extends: .own-runners
+  stage: build
+  tags: [bench150]
+  hooks: !reference [.bench150-leftovers, hooks]
+  needs: []
+  timeout: 30 minutes
+  variables:
+    # No prompt for a credential, ever: under LocalSystem there is nobody to answer it.
+    GIT_TERMINAL_PROMPT: "0"
+    GCM_INTERACTIVE: "Never"
+  script:
+    - |
+      # Started with the PowerShell running this, by its path: LocalSystem has the
+      # machine PATH only.
+      $shell = (Get-Process -Id $PID).Path
+      & $shell -NoProfile -ExecutionPolicy Bypass -File build\ci\build-inputs-authenticode.ps1
+      if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      & $shell -NoProfile -ExecutionPolicy Bypass -File build\ci\authenticode-selftest.ps1
+      exit $LASTEXITCODE
+
 .windows-packages:
   extends: .own-runners
   stage: release
   tags: [bench150]
   hooks: !reference [.bench150-leftovers, hooks]
   needs:
+    - job: build-inputs-authenticode
+      artifacts: false
     - job: windows-gate
       artifacts: false
     - job: windows-dotnet

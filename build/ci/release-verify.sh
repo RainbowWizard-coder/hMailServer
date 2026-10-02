@@ -143,8 +143,8 @@ for file in "$signed"/*; do
 done
 rm -rf "$scratch"
 
-# The sixty files a release carries (build/ci/release-chain.py, expected_assets).
-[ "$verified" -eq 60 ] || fail "$verified file(s) verified; a release is 60"
+# The sixty-two files a release carries (build/ci/release-chain.py, expected_assets).
+[ "$verified" -eq 62 ] || fail "$verified file(s) verified; a release is 62"
 
 # Each compiled file's own SBOM describes that very file (build/asset-sbom.py verify:
 # well formed, and its subject's SHA-256 is the file's), as a user checks it

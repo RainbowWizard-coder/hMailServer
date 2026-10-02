@@ -790,7 +790,7 @@ waits for the repositories: until they exist, that command would find nothing.
 
 ### How much the site holds
 
-A release as 6.3.6 is has 154 links (Roadmap3, "Release collects every file"). The
+A release as 6.3.6 is has 160 links (Roadmap3, "Release collects every file"). The
 site that carries it (`build/ci/release-chain.py`'s `check_budget`, which the
 `release` job runs before anything is signed and `release-publish` before anything
 is uploaded, both refusing past a limit, with the apt and dnf repositories kept as

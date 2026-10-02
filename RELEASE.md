@@ -177,8 +177,11 @@ merge request whose pipeline passed (`hmailserver/docs/ContinuousIntegration.md`
    pipeline states it. 6.3.5's section gave no such hash, and nothing was
    compared.
 4. **`release-authenticode`, `release-sbom`, `release-sign` and `release-verify`
-   follow by themselves.** `release-authenticode` signs the x64 installer and the
-   ARM64 one, `windows-packages-arm64`'s, each by its own call.
+   follow by themselves.** `release-authenticode` signs the x64 installer, the
+   ARM64 one, `windows-packages-arm64`'s, and the PowerShell module's
+   `HmailServer.psd1` and `HmailServer.psm1`, which `release` collected from the
+   tree, each by its own call; `psgallery-publish` later sends the Gallery those
+   signed files ([CommandLinePackages.md](hmailserver/docs/CommandLinePackages.md)).
    `release-sbom` makes each signed installer's own SBOM
    and the statement of the release's SLSA v1 provenance, which names every file
    by its SHA-256; the x86-64 `.deb`'s and `.rpm`'s SBOMs come from `linux-build`,
@@ -186,7 +189,7 @@ merge request whose pipeline passed (`hmailserver/docs/ContinuousIntegration.md`
    `rpm-fedora44-aarch64-sbom`, and every other package's, both AppImages' and the
    tarball's from `release-packages`, and every compiled file goes out with its
    `<file>.cdx.json` (SECURITY.md, "Software bills of materials"). From 6.3.6 a
-   release is sixty files, each with its bundle: the two installers, x64 and ARM64; the generic
+   release is sixty-two files, each with its bundle: the two installers, x64 and ARM64; the generic
    `.deb` and `.rpm` for x86-64 and for AArch64; a `.deb` for Debian 12 and 13 and
    Ubuntu 24.04 and an `.rpm` for Fedora 44 and 43, EL 10 and 9, openSUSE Leap 16.0
    and Tumbleweed, each for both, eighteen; the two AppImages; the source of the
@@ -195,12 +198,13 @@ merge request whose pipeline passed (`hmailserver/docs/ContinuousIntegration.md`
    (hmailserver/docs/PackagesAppImage.md, "Licences"); the source of the libraries
    they carry in `usr/lib`, `hmailserver-X.Y.Z-appimage-bundled-sources.tar.gz`,
    Ubuntu's source packages, which the LGPL of GnuTLS and six others asks for and
-   each AppImage names in `bundled.txt`; the source tarball; the Helm chart; the
+   each AppImage names in `bundled.txt`; the source tarball; the PowerShell
+   module's `HmailServer.psd1` and `HmailServer.psm1`, Authenticode-signed; the Helm chart; the
    sums of every Linux file, the two sources files and the chart;
    the twenty-seven SBOMs of the compiled files and the tarball, and the tree's two.
    Each primary file's bundle goes out a second time as `<file>.sigstore.json`,
    and `hmailserver-X.Y.Z.intoto.sigstore.json` is the provenance, signed as the
-   pipeline with `cosign attest-blob`: 154 links in all. `release-sign` finds every
+   pipeline with `cosign attest-blob`: 160 links in all. `release-sign` finds every
    file in the provenance with cosign, and `release-verify` holds the provenance
    and the copies to the files. Read `release-verify`'s `verification.md`: the identity must
    be `https://gitlab.com/hmailserver/hmailserver//.gitlab-ci.yml@refs/tags/vX.Y.Z`,
@@ -222,7 +226,7 @@ merge request whose pipeline passed (`hmailserver/docs/ContinuousIntegration.md`
    started it, and the package protection rules let only an Owner push to the
    package `hmailserver`: started by anyone else, its uploads are refused
    (`hmailserver/docs/ContinuousIntegration.md`, "What waits for the owner").
-   It uploads the release's 154 files - the sixty, their bundles, the
+   It uploads the release's 160 files - the sixty-two, their bundles, the
    `.sigstore.json` copies and the provenance - to
    the package `hmailserver/X.Y.Z` - refusing, before it sends anything, a
    compiled file whose SBOM is missing or describes other bytes, a copy that is
@@ -874,7 +878,7 @@ is the one that matters.
 ### On GitLab, from 6.3.5
 
 The `release-authenticode` job (`build/ci/windows-authenticode.ps1`, on bench150)
-signs the installer with **Azure Artifact Signing** through SignTool and
+signs the installers, and from 6.3.6 the PowerShell module, with **Azure Artifact Signing** through SignTool and
 Microsoft's Artifact Signing plugin, with an RFC 3161 timestamp from
 `http://timestamp.acs.microsoft.com`, and holds no secret: the job's GitLab ID
 token, with the audience `api://AzureADTokenExchange`, is what Microsoft Entra

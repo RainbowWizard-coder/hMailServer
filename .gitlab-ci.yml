@@ -51,8 +51,9 @@
 #   release               by hand: the tag, the version stamp and the settings checked, the
 #                         security scans' reports read (build/ci/security-gate.py), and
 #                         every file the release carries collected (build/ci/release-chain.py);
-#   release-authenticode  bench150: the two installers Authenticode-signed through Azure Artifact
-#                         Signing with the job's ID token (build/ci/windows-authenticode.ps1);
+#   release-authenticode  bench150: the two installers and the PowerShell module Authenticode-signed
+#                         through Azure Artifact Signing with the job's ID token
+#                         (build/ci/windows-authenticode.ps1);
 #   release-sbom          each signed installer's own SBOM, <installer>.cdx.json; the x86-64 .deb's
 #                         and .rpm's are linux-build's, and the AArch64 ones' their SBOM jobs'
 #                         (.gitlab/ci/packages-*.yml; build/asset-sbom.py, build/ci/release-chain.py);
@@ -1537,7 +1538,8 @@ renovate:
 #                         Version.h against the tag, the cosign pin and the Azure
 #                         settings, and collects the files a release carries, each
 #                         package with its own SBOM;
-#   release-authenticode  bench150: the two installers signed with Authenticode;
+#   release-authenticode  bench150: the two installers and the PowerShell module signed
+#                         with Authenticode;
 #   release-sbom          GitLab's shared runners: each signed installer's own SBOM;
 #   release-sign          GitLab's shared runners: every file signed with Sigstore;
 #   release-verify        linix: every bundle checked with this commit's own server;
@@ -1569,7 +1571,9 @@ windows-installer:
   stage: release
   tags: [bench150]
   hooks: !reference [.bench150-leftovers, hooks]
-  needs: [windows-gate]
+  # build-inputs-authenticode (.gitlab/ci/packages-windows.yml): the third-party files
+  # this build places, held to the signatures the manifest records first.
+  needs: [windows-gate, build-inputs-authenticode]
   timeout: 2 hours
   interruptible: false
   rules:
@@ -1759,11 +1763,13 @@ release:
       - release-assets/
       - release-tools/
 
-# Authenticode, before Sigstore: it changes the installers' bytes, and cosign signs the
-# bytes that ship. Two calls, the x64 installer's and the ARM64 one's, each into its own
-# folder, since windows-authenticode.ps1 empties the one it is given; the job exits with
-# the first call's code that is not 0, and signs the ARM64 one only when the x64 one
-# was signed. The job's ID token, audience api://AzureADTokenExchange, is what Entra
+# Authenticode, before Sigstore: it changes the installers' and the PowerShell module's
+# bytes, and cosign signs the bytes that ship. Three calls, the x64 installer's, the
+# ARM64 one's and the module's (its manifest and script, which release collected from the
+# tree, unsigned: build/ci/release-chain.py, MODULE_FILES), each into its own folder,
+# since windows-authenticode.ps1 empties the one it is given; the job exits with the
+# first call's code that is not 0, and makes each call only when the one before it
+# signed. The job's ID token, audience api://AzureADTokenExchange, is what Entra
 # ID exchanges for the signing service's token through the federated credential the
 # owner creates (RELEASE.md, "Authenticode"); there is no client secret. It stops,
 # naming what is missing, while a setting or the plugin is absent, and sends nothing.
@@ -1790,12 +1796,15 @@ release-authenticode:
       & (Get-Process -Id $PID).Path -NoProfile -ExecutionPolicy Bypass -File build\ci\windows-authenticode.ps1 -Installer "release-assets\hMailServer-$version-x64.exe" -OutDir release-authenticode
       if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       & (Get-Process -Id $PID).Path -NoProfile -ExecutionPolicy Bypass -File build\ci\windows-authenticode.ps1 -Installer "release-assets\hMailServer-$version-arm64.exe" -OutDir release-authenticode-arm64
+      if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      & (Get-Process -Id $PID).Path -NoProfile -ExecutionPolicy Bypass -File build\ci\windows-authenticode.ps1 -Module release-assets -OutDir release-authenticode-module
       exit $LASTEXITCODE
   artifacts:
     expire_in: 30 days
     paths:
       - release-authenticode/
       - release-authenticode-arm64/
+      - release-authenticode-module/
 
 # Each installer's own software bill of materials, made from the bytes Authenticode
 # signed, before Sigstore signs it with every other file: each compiled file a release

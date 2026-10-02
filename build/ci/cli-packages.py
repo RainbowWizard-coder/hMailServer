@@ -39,11 +39,17 @@ PowerShell Gallery (hmailserver/docs/CommandLinePackages.md; .gitlab/ci/cli-pack
 
   psgallery-publish  the release's HmailServer module to the PowerShell Gallery with
                      the key in PSGALLERY_API_KEY: the same release, the same tag
-                     check, the module's two files from the tag's tree, the manifest
-                     held to the version first, and an unsigned module refused (the
-                     Gallery is to have the one the release signs, Roadmap3 row 99).
-                     Dormant: without the key it says "not configured" and exits 0,
-                     and a version the Gallery has already is not sent again.
+                     check, the manifest in the tag's tree held to the version first;
+                     then the module's two files as the release carries them,
+                     Authenticode-signed by its release-authenticode job, from the
+                     release's package hmailserver/<version>, each published only
+                     when its Sigstore bundle verifies as the tag's pipeline, for this
+                     repository at the tag's commit (sigstore, hashed in
+                     cli-packages-requirements.txt), and when it is the tag's own
+                     bytes followed by one signature block and nothing else
+                     (Roadmap3, "The PowerShell Gallery"). Dormant: without the key
+                     it says "not configured" and exits 0, and a version the Gallery
+                     has already is not sent again.
 
 Neither publish command prints a credential or passes one on a command line: the
 PyPI token minted from the job's ID token reaches twine in its environment, and the
@@ -83,8 +89,6 @@ FEED_TAG = FEED + "tags/%s"
 PYPI = "https://pypi.org"
 GALLERY = "https://www.powershellgallery.com"
 USER_AGENT = "hmailserver-cli-packages (+https://gitlab.com/hmailserver/hmailserver)"
-# How Set-AuthenticodeSignature opens the block it appends to a PowerShell file.
-SIGNATURE_BLOCK = b"# SIG # Begin signature block"
 
 # What a release's tree must hold for each channel.
 TREE_PATHS = [
@@ -484,8 +488,49 @@ def gallery_versions(fetch_text=None):
     return set(re.findall(r"<d:Version>([^<]+)</d:Version>", text))
 
 
+def release_file(chain, version, name):
+    """The bytes of <name> in the release's generic package hmailserver/<version>, where
+    its link points (build/ci/release-chain.py, registry_url), or None when the package
+    has no such file."""
+    url = chain.registry_url(version, name)
+    request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
+    try:
+        with urllib.request.urlopen(request, timeout=120) as response:
+            return response.read()
+    except urllib.error.HTTPError as error:
+        if error.code == 404:
+            return None
+        raise Refused("the package registry answered %s for %s" % (error.code, url))
+    except (urllib.error.URLError, OSError) as error:
+        raise Refused("the package registry could not be reached for %s: %s" % (url, error))
+
+
+def sigstore_verify(data, bundle, identity, issuer, project_id, commit):
+    """data is what the bundle signs, signed as identity by issuer's token, for the
+    repository project_id at commit, and recorded in Sigstore's public log: sigstore
+    (build/ci/cli-packages-requirements.txt, hashed), with the trust root it fetches
+    through TUF. Refused, naming why, when it is not."""
+    try:
+        from sigstore.models import Bundle
+        from sigstore.verify import Verifier
+        from sigstore.verify.policy import AllOf, Identity, OIDCSourceRepositoryDigest, OIDCSourceRepositoryIdentifier
+    except ImportError:
+        raise Refused("sigstore is not installed here: the job installs build/ci/cli-packages-requirements.txt, whose sigstore "
+                      "verifies the module's bundles before anything is published")
+    try:
+        parsed = Bundle.from_json(bundle)
+    except Exception as error:  # sigstore raises several kinds for a bundle it cannot read
+        raise Refused("the bundle is not a Sigstore bundle: %s" % error)
+    policy = AllOf([Identity(identity=identity, issuer=issuer), OIDCSourceRepositoryIdentifier(project_id),
+                    OIDCSourceRepositoryDigest(commit)])
+    try:
+        Verifier.production().verify_artifact(input_=data, bundle=parsed, policy=policy)
+    except Exception as error:  # VerificationError, or the log's or the trust root's own errors
+        raise Refused("the bundle does not verify as %s for the repository %s at %s: %s" % (identity, project_id, commit, error))
+
+
 def psgallery_publish(out, environ=None, fetch=http_json, run=subprocess.run, root=ROOT, fetch_text=None,
-                      tree_fn=release_tree):
+                      tree_fn=release_tree, fetch_file=None, verify=sigstore_verify):
     environ = os.environ if environ is None else environ
 
     # Set up at all? Asked first, as pypi-publish does.
@@ -503,7 +548,7 @@ def psgallery_publish(out, environ=None, fetch=http_json, run=subprocess.run, ro
         return 0
 
     tree = os.path.join(out, "tree")
-    tree_fn(version, tree, root=root, run=run)
+    commit = tree_fn(version, tree, root=root, run=run)
     check = checker()
     source = os.path.join(tree, check.CLI)
     if not os.path.isfile(os.path.join(source, "HmailServer.psd1")):
@@ -512,23 +557,38 @@ def psgallery_publish(out, environ=None, fetch=http_json, run=subprocess.run, ro
     if problems:
         raise Refused("v%s's module manifest is not what build/check-cli-packages.py holds it to:\n  %s"
                       % (version, "\n  ".join(problems)))
-    # The Gallery is to have the module Authenticode-signed (Roadmap3, "PowerShell
-    # Gallery": the manifest and the signature are the tag's), and a version it has
-    # it keeps for good, so an unsigned module is never sent. The signature is made in
-    # the release, not in the tree; until this job takes the module the release signed,
-    # it refuses here, before anything is sent.
-    with open(os.path.join(source, "HmailServer.psm1"), "rb") as f:
-        if SIGNATURE_BLOCK not in f.read():
-            raise Refused("v%s's HmailServer.psm1 carries no Authenticode signature block: the Gallery takes the module"
-                          " the release signs, and a version it has had is never replaced, so nothing unsigned is sent."
-                          " Nothing was published." % version)
+    # The Gallery has the module as the release signed it (Roadmap3, "The PowerShell
+    # Gallery"), and a version it has it keeps for good. So each of the two files is
+    # the release's own, from its package: release-authenticode signed it, and
+    # release-sign signed that as the tag's pipeline. Its bundle must verify as that
+    # pipeline, for this repository at the tag's commit, in Sigstore's public log; and
+    # the file must be the tag's own bytes, as the tree has them, followed by one
+    # Authenticode signature block and nothing else. Anything else is refused before
+    # anything is sent.
+    chain = load("release_chain", os.path.join("build", "ci", "release-chain.py"), root)
+    identity = chain.SIGNER_IDENTITY_PREFIX + "v" + version
+    fetch_file = fetch_file or (lambda wanted, name: release_file(chain, wanted, name))
     module = os.path.join(out, "module", GALLERY_NAME)
     if os.path.exists(os.path.dirname(module)):
         shutil.rmtree(os.path.dirname(module))
     os.makedirs(module)
-    for name in ("HmailServer.psd1", "HmailServer.psm1"):
-        shutil.copyfile(os.path.join(source, name), os.path.join(module, name))
-        print("%s  %s" % (sha256(os.path.join(module, name)), name))
+    for name in chain.MODULE_FILES:
+        signed = fetch_file(version, name)
+        bundle = fetch_file(version, name + chain.BUNDLE)
+        if signed is None or bundle is None:
+            raise Refused("v%s's release carries no %s%s: the first release whose module is signed is 6.3.6. Nothing was "
+                          "published." % (version, name, "" if signed is None else chain.BUNDLE))
+        verify(signed, bundle, identity, chain.SIGNER_ISSUER, chain.PROJECT_ID, commit)
+        print("%s  %s: its bundle verifies as %s, for the repository %s at %s" % (
+            hashlib.sha256(signed).hexdigest(), name, identity, chain.PROJECT_ID, commit))
+        with open(os.path.join(source, name), "rb") as f:
+            unsigned = f.read()
+        problems = chain.module_signature_problems(name, unsigned, signed)
+        if problems:
+            raise Refused("v%s's %s is not the tag's own, signed: %s. Nothing was published." % (version, name, "; ".join(problems)))
+        with open(os.path.join(module, name), "wb") as f:
+            f.write(signed)
+        print("%s  %s: the tag's bytes and one Authenticode signature block" % (sha256(os.path.join(module, name)), name))
 
     # The key is read from pwsh's own environment; this command line names the
     # variable and never its value.
@@ -669,22 +729,52 @@ def publish_cases(expect, refused):
     sdist = "%s-%s.tar.gz" % (MODULE, version)
     wheel = "%s-%s-py3-none-any.whl" % (MODULE, version)
 
-    def tree_of(signed):
-        def tree_fn(wanted, into, root=None, run=None):
-            for relative in TREE_PATHS:
-                source, target = os.path.join(ROOT, relative), os.path.join(into, relative)
-                if os.path.isdir(source):
-                    shutil.copytree(source, target, ignore=shutil.ignore_patterns("__pycache__"))
-                else:
-                    os.makedirs(os.path.dirname(target), exist_ok=True)
-                    shutil.copyfile(source, target)
-            if signed:
-                with open(os.path.join(into, check.PSM1), "ab") as f:
-                    f.write(b"\r\n" + SIGNATURE_BLOCK + b"\r\n# MIIxxx\r\n# SIG # End signature block\r\n")
-            return "0" * 40
-        return tree_fn
+    def tree_fn(wanted, into, root=None, run=None):
+        if os.path.exists(into):
+            shutil.rmtree(into)
+        for relative in TREE_PATHS:
+            source, target = os.path.join(ROOT, relative), os.path.join(into, relative)
+            if os.path.isdir(source):
+                shutil.copytree(source, target, ignore=shutil.ignore_patterns("__pycache__"))
+            else:
+                os.makedirs(os.path.dirname(target), exist_ok=True)
+                shutil.copyfile(source, target)
+        return "0" * 40
 
-    tree_fn = tree_of(signed=False)
+    # The release's package as the Gallery cases need it: each module file as
+    # release-authenticode signs it - the tree's bytes and one signature block - with a
+    # bundle the stand-in verifier below takes for exactly those bytes.
+    chain = load("release_chain", os.path.join("build", "ci", "release-chain.py"))
+    block = chain.SIGNATURE_BEGIN + b"# MIIxxABC+/=\r\n# U5pU\r\n" + chain.SIGNATURE_END
+
+    def stand_in_bundle(data):
+        return b"a bundle of " + hashlib.sha256(data).hexdigest().encode("ascii")
+
+    def package(change=None):
+        files = {}
+        for name in chain.MODULE_FILES:
+            with open(os.path.join(ROOT, check.CLI, name), "rb") as f:
+                files[name] = f.read() + block
+        if change:
+            change(files)
+        for name in chain.MODULE_FILES:
+            if name in files and name + chain.BUNDLE not in files:
+                files[name + chain.BUNDLE] = stand_in_bundle(files[name])
+        return files
+
+    def gallery(files, refuse=False):
+        """(fetch_file, verify, asked): the package and Sigstore, held in memory."""
+        asked = []
+
+        def fetch_file(wanted, name):
+            asked.append(("fetch", wanted, name))
+            return files.get(name)
+
+        def verify(data, bundle, identity, issuer, project_id, commit):
+            asked.append(("verify", identity, issuer, project_id, commit))
+            if refuse or bundle != stand_in_bundle(data):
+                raise Refused("the bundle does not verify (stand-in)")
+        return fetch_file, verify, asked
 
     def world(minted=None, held=None, project=None):
         """(fetch, run, calls): the feed, PyPI and git as the cases need them. project:
@@ -824,21 +914,61 @@ def publish_cases(expect, refused):
                and not os.path.exists(os.path.join(work, "g1", "tree")))
         key = "oy2kbGalleryKeyValue7q"
         fetch, run, calls = world()
+        files = package()
+        fetch_file, verify, asked = gallery(files)
         code, said = quiet(lambda: psgallery_publish(os.path.join(work, "g2"), dict(base, PSGALLERY_API_KEY=key), fetch,
-                                                      run, fetch_text=lambda url: "", tree_fn=tree_of(signed=True)))
+                                                      run, fetch_text=lambda url: "", tree_fn=tree_fn,
+                                                      fetch_file=fetch_file, verify=verify))
         pwsh = [c for c in calls if c[0] == "run" and c[1][0] == "pwsh"]
-        expect("the Gallery with the key and a signed module: Publish-PSResource of the module's folder, the key by"
-               " name alone",
+        published = os.path.join(work, "g2", "module", GALLERY_NAME)
+        expect("the Gallery with the key and the release's signed module: Publish-PSResource of the module's folder,"
+               " the key by name alone",
                code == 0 and len(pwsh) == 1 and "Publish-PSResource" in pwsh[0][1][-1]
                and "$env:PSGALLERY_API_KEY" in pwsh[0][1][-1] and key not in " ".join(pwsh[0][1]) and key not in said
-               and sorted(os.listdir(os.path.join(work, "g2", "module", GALLERY_NAME))) == ["HmailServer.psd1",
-                                                                                           "HmailServer.psm1"])
-        fetch, run, calls = world()
-        refused("the Gallery with the key and the tag's module unsigned: refused, nothing sent",
-                lambda: quiet(lambda: psgallery_publish(os.path.join(work, "g2b"), dict(base, PSGALLERY_API_KEY=key),
-                                                        fetch, run, fetch_text=lambda url: "", tree_fn=tree_fn)),
-                "carries no Authenticode signature")
-        expect("  ... and pwsh never ran", not any(c[0] == "run" and c[1][0] == "pwsh" for c in calls))
+               and sorted(os.listdir(published)) == ["HmailServer.psd1", "HmailServer.psm1"])
+        expect("  ... the folder holds the release's signed bytes, each file's and its bundle's fetched from the release's"
+               " package, the version's",
+               all(open(os.path.join(published, n), "rb").read() == files[n] for n in chain.MODULE_FILES)
+               and sorted(a[2] for a in asked if a[0] == "fetch") == sorted(
+                   list(chain.MODULE_FILES) + [n + chain.BUNDLE for n in chain.MODULE_FILES])
+               and all(a[1] == version for a in asked if a[0] == "fetch"))
+        expect("  ... each bundle verified as the tag's pipeline at the group's path, for this repository at the tag's"
+               " commit",
+               [a[1:] for a in asked if a[0] == "verify"] == [
+                   ("https://gitlab.com/hmailserver/hmailserver//.gitlab-ci.yml@refs/tags/v" + version, "https://gitlab.com",
+                    "86730559", "0" * 40)] * 2)
+        for what, change, refuse, needle in (
+                ("a release without the module (6.3.5 and before)", lambda f: f.clear(), False, "carries no HmailServer.psd1"),
+                ("a release whose script has no bundle", lambda f: f.update({"HmailServer.psm1.cosign.bundle": None}),
+                 False, "carries no HmailServer.psm1.cosign.bundle"),
+                ("a bundle that does not verify", None, True, "does not verify"),
+                ("a script that is not the bytes its bundle signed", None, False, "does not verify"),
+                ("a script signed over other code", lambda f: f.update({"HmailServer.psm1": b"function Get-Other {}\r\n" + block}),
+                 False, "does not begin with the module's own bytes"),
+                ("a script the release carries unsigned", lambda f: f.update({"HmailServer.psm1": f["HmailServer.psm1"][:-len(block)]}),
+                 False, "followed by one Authenticode signature block"),
+                ("a script with a statement after its signature block",
+                 lambda f: f.update({"HmailServer.psm1": f["HmailServer.psm1"] + b"Remove-Item C:\\ -Recurse\r\n"}),
+                 False, "followed by one Authenticode signature block")):
+            files = package(change)
+            if what == "a script that is not the bytes its bundle signed":
+                files["HmailServer.psm1"] = files["HmailServer.psm1"].replace(b"function", b"Function", 1)
+            fetch_file, verify, asked = gallery(files, refuse)
+            fetch, run, calls = world()
+            refused("the Gallery with the key and %s: refused before anything is sent" % what,
+                    lambda: quiet(lambda: psgallery_publish(os.path.join(work, "g2b"), dict(base, PSGALLERY_API_KEY=key),
+                                                            fetch, run, fetch_text=lambda url: "", tree_fn=tree_fn,
+                                                            fetch_file=fetch_file, verify=verify)),
+                    needle)
+            expect("  ... and pwsh never ran", not any(c[0] == "run" and c[1][0] == "pwsh" for c in calls))
+        try:
+            import sigstore  # noqa: F401 - only asked whether it is here
+        except ImportError:
+            print("skip  sigstore_verify on a bundle that is not one: sigstore is not installed here (the job installs it)")
+        else:
+            refused("sigstore_verify on a bundle that is not one: refused before Sigstore is asked anything",
+                    lambda: sigstore_verify(b"data", b"{not a bundle", "https://gitlab.com/x", "https://gitlab.com", "1", "0" * 40),
+                    "is not a Sigstore bundle")
         fetch, run, calls = world()
         code, said = quiet(lambda: psgallery_publish(os.path.join(work, "g3"), dict(base, PSGALLERY_API_KEY=key), fetch,
                                                       run, fetch_text=lambda url: "<d:Version>%s</d:Version>" % version,

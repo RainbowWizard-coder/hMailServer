@@ -44,7 +44,8 @@ file (build/ci/release-sign.sh), release-verify runs `check-provenance`, and
             and .rpm, linux-build's; the AArch64 .deb and .rpm, from the package
             jobs deb-ubuntu26.04-arm64 and rpm-fedora44-aarch64, with their SBOM
             jobs' SBOMs; what release-packages gathered; the Helm chart,
-            helm-chart-package's; the two SBOMs of the tree - are gathered into one
+            helm-chart-package's; the two SBOMs of the tree; the PowerShell module's
+            manifest and script, from the checkout and unsigned - are gathered into one
             directory under the names a release carries, each package, AppImage and
             the chart held to the SHA-256 its build job wrote and each SBOM to the
             file it describes, and the sums of every Linux file and the chart
@@ -60,7 +61,9 @@ file (build/ci/release-sign.sh), release-verify runs `check-provenance`, and
             with an SBOM of its own, <file>.cdx.json (OpenSSF Baseline
             OSPS-QA-02.02; SECURITY.md, "Software bills of materials") - and the
             statement of the release's SLSA v1 build provenance, which names every
-            file by its SHA-256, for release-sign to attest.
+            file by its SHA-256 - the installers and the PowerShell module as
+            Authenticode signed them, the module each the tree's bytes with one
+            signature block appended - for release-sign to attest.
 
   check-provenance
             (release-verify) each primary file's .sigstore.json is its bundle, and
@@ -401,10 +404,10 @@ def compiled_assets(version):
 def primary_assets(version):
     """Every file a release carries but the compiled files' SBOMs: each has a bundle
     and a .sigstore.json copy of it. Beside the compiled files, the source of the
-    AppImages' runtime's libraries and of the libraries they carry, the chart, the
-    sums and the tree's two SBOMs."""
-    return compiled_assets(version) + [build["name"] for build in gathered_builds(version) if not build["sbom"]] + [
-        chart_name(version), sums_name(version), "hmailserver.spdx.json", "hmailserver.cyclonedx.json"]
+    AppImages' runtime's libraries and of the libraries they carry, the PowerShell
+    module's two files (MODULE_FILES), the chart, the sums and the tree's two SBOMs."""
+    return compiled_assets(version) + [build["name"] for build in gathered_builds(version) if not build["sbom"]] + list(
+        MODULE_FILES) + [chart_name(version), sums_name(version), "hmailserver.spdx.json", "hmailserver.cyclonedx.json"]
 
 
 def expected_assets(version):
@@ -432,10 +435,11 @@ def sums_members(version):
 
 
 def made_after_collect(version):
-    """What the jobs after collect make: each installer's signed bytes (Authenticode) and
-    each installer's SBOM, which describes those bytes (release-sbom)."""
+    """What the jobs after collect make: each installer's signed bytes (Authenticode),
+    each installer's SBOM, which describes those bytes (release-sbom), and the
+    PowerShell module's two files as Authenticode signed them."""
     installers = windows_installers(version)
-    return installers + [sbom_name(installer) for installer in installers]
+    return installers + [sbom_name(installer) for installer in installers] + list(MODULE_FILES)
 
 
 def collected_assets(version):
@@ -465,6 +469,42 @@ REHEARSAL_INSTALLER_DIR = "packages-windows/x64"
 # hMailServer-<version>-<first 8 of the commit>-arm64.exe on a branch, with its SHA-256
 # in SHA256SUMS beside it (build/ci/packages/windows-packages.ps1).
 ARM64_INSTALLER_DIR = "packages-windows/arm64"
+# The PowerShell module (hmailserver/docs/CommandLinePackages.md), from 6.3.6: its
+# manifest and its script, taken by collect from the tagged tree, unsigned, and
+# Authenticode-signed by release-authenticode's third call (build/ci/windows-
+# authenticode.ps1 -Module) into release-authenticode-module/, which release-sbom and
+# release-sign.sh read them from (Roadmap3, "The PowerShell Gallery"). A release carries
+# them under their own names, which the manifest's RootModule and Import-Module need;
+# the package hmailserver/<version> holds one release's files, so the names need no
+# version. Scripts, not compiled: no SBOM. psgallery-publish publishes these signed
+# bytes, each held first to its bundle and to the tag's tree (build/ci/cli-packages.py).
+MODULE_SOURCE_DIR = "hmailserver/source/Tools/Cli"
+MODULE_FILES = ("HmailServer.psd1", "HmailServer.psm1")
+MODULE_SIGNED_DIR = "release-authenticode-module"
+# What SignTool's PowerShell SIP appends to a script it signs, after the script's own
+# bytes, which it leaves as they are: the block, lines of base64 behind "# ", and its
+# end (seen with SignTool 10.0.26100 on both files, 2 October 2026).
+SIGNATURE_BEGIN = b"\r\n# SIG # Begin signature block\r\n"
+SIGNATURE_END = b"# SIG # End signature block\r\n"
+SIGNATURE_LINE = re.compile(rb"\A# [A-Za-z0-9+/=]+\Z")
+
+
+def module_signature_problems(name, unsigned, signed):
+    """The signed module file is the unsigned one with one Authenticode signature block
+    appended and nothing else: the script's own bytes first, as they are, then the
+    block. Problems as sentences. Whether the signature is good is Windows' to say
+    (release-authenticode); this holds what was signed to the tree."""
+    if SIGNATURE_BEGIN.strip() in unsigned:
+        return ["%s carries a signature block before it is signed: the module the tree holds is unsigned" % name]
+    if not signed.startswith(unsigned):
+        return ["%s as signed does not begin with the module's own bytes: what was signed is not the tree's script" % name]
+    block = signed[len(unsigned):]
+    if not block.startswith(SIGNATURE_BEGIN) or not block.endswith(SIGNATURE_END):
+        return ["%s as signed is not the module's own bytes followed by one Authenticode signature block" % name]
+    lines = block[len(SIGNATURE_BEGIN):-len(SIGNATURE_END)].split(b"\r\n")
+    if len(lines) < 2 or lines[-1] != b"" or not all(SIGNATURE_LINE.match(line) for line in lines[:-1]):
+        return ["%s as signed has something in its signature block that is not the signature's base64" % name]
+    return []
 
 
 def rehearsal_installer(version, commit, arch="x64"):
@@ -489,7 +529,7 @@ def sources(version, rehearsal=None):
     a rehearsal (rehearsal = the commit) the rehearsal job's. The sums file is
     linux-build's, to which collect adds a line for every other Linux file
     (release_sums). The gathered files, each with its SBOM where it has one, are
-    release-packages'."""
+    release-packages'. The PowerShell module's two files are the checkout's own."""
     names = feed.installer_names(version)
     deb_arm64 = os.path.join(ARM64_DEB_DIR, names["deb-arm64"])
     rpm_aarch64 = os.path.join(AARCH64_RPM_DIR, "generic", names["rpm-aarch64"])
@@ -512,6 +552,8 @@ def sources(version, rehearsal=None):
         "hmailserver.cyclonedx.json": os.path.join("sbom", "hmailserver.cyclonedx.json"),
         chart_name(version): os.path.join(CHART_DIR, chart_name(version)),
     }
+    for name in MODULE_FILES:
+        places[name] = local(MODULE_SOURCE_DIR + "/" + name)
     for build in gathered_builds(version):
         places[build["name"]] = os.path.join(GATHERED, build["name"])
         if build["sbom"]:
@@ -1017,6 +1059,16 @@ def collect(root, tag, out, env, run=subprocess.run, api=None, rehearse=False):
         if not os.path.isfile(os.path.join(root, relative)):
             problems.append("%s, the sums of the build that made %s, is not in this job's artifacts: the job that makes it "
                             "failed or did not run" % (relative, name))
+    # The module goes to release-authenticode as the tree has it, and unsigned: a block
+    # already in it would be signed over, and psgallery-publish holds the signed file to
+    # the tag's own bytes.
+    for name in MODULE_FILES:
+        path = os.path.join(root, places[name])
+        if os.path.isfile(path):
+            with open(path, "rb") as f:
+                if SIGNATURE_BEGIN.strip() in f.read():
+                    problems.append("%s carries an Authenticode signature block in the tree: the release signs the module, "
+                                    "and the tree holds it unsigned" % places[name].replace(os.sep, "/"))
     if not problems:
         names = feed.installer_names(version)
         problems.extend(check_sums(os.path.join(root, places[sums_name(version)]),
@@ -2030,27 +2082,32 @@ def self_test():
         bundled_sources = "hmailserver-6.3.5-appimage-bundled-sources.tar.gz"
         primaries = [names["windows"], "hMailServer-6.3.5-arm64.exe", names["deb-amd64"], names["rpm-x86_64"], names["deb-arm64"],
                      names["rpm-aarch64"]] + more + [
-            runtime_sources, bundled_sources, "hmailserver-chart-6.3.5.tgz", sums_name(version), "hmailserver.spdx.json",
-            "hmailserver.cyclonedx.json"]
+            runtime_sources, bundled_sources, "HmailServer.psd1", "HmailServer.psm1", "hmailserver-chart-6.3.5.tgz",
+            sums_name(version), "hmailserver.spdx.json", "hmailserver.cyclonedx.json"]
         with_sbom = primaries[:6] + more
         expect(len(every_deb) == 6 and len(every_rpm) == 12 and sorted(primary_assets(version)) == sorted(primaries),
                "the primary files are the two installers, the four generic packages, the 18 distribution releases' packages, the "
                "two AppImages, the source of their runtime's libraries and of the libraries they carry, the tarball, the "
-               "chart, the sums and the two tree SBOMs: %s" % sorted(set(primary_assets(version)) ^ set(primaries)))
+               "PowerShell module's two files, the chart, the sums and the two tree SBOMs: %s"
+               % sorted(set(primary_assets(version)) ^ set(primaries)))
+        expect(all(n in collected_assets(version) and n in made_after_collect(version) and n not in compiled_assets(version)
+                   and sbom_name(n) not in expected_assets(version) for n in MODULE_FILES)
+               and sources(version)["HmailServer.psm1"].replace(os.sep, "/") == "hmailserver/source/Tools/Cli/HmailServer.psm1",
+               "the module's two files are collected from the checkout, signed after collect, and go out without an SBOM")
         expect(runtime_sources_name(version) == runtime_sources and runtime_sources not in compiled_assets(version)
                and sbom_name(runtime_sources) not in expected_assets(version),
                "the runtime's sources go out as source, without an SBOM: %s" % runtime_sources_name(version))
         expect(bundled_sources_name(version) == bundled_sources and bundled_sources not in compiled_assets(version)
                and sbom_name(bundled_sources) not in expected_assets(version),
                "the bundled libraries' sources go out as source, without an SBOM: %s" % bundled_sources_name(version))
-        expect(sorted(expected_assets(version)) == sorted(primaries + [n + ".cdx.json" for n in with_sbom]) and len(expected_assets(version)) == 60,
-               "every compiled file and the tarball go out with <file>.cdx.json, the two AppImage sources files and the chart "
-               "without, 60 files in all: %d" % len(expected_assets(version)))
+        expect(sorted(expected_assets(version)) == sorted(primaries + [n + ".cdx.json" for n in with_sbom]) and len(expected_assets(version)) == 62,
+               "every compiled file and the tarball go out with <file>.cdx.json, the two AppImage sources files, the module "
+               "and the chart without, 62 files in all: %d" % len(expected_assets(version)))
         expect(sorted(release_files(version)) == sorted(expected_assets(version) + [n + ".cosign.bundle" for n in expected_assets(version)]
                                                         + [n + ".sigstore.json" for n in primaries] + ["hmailserver-6.3.5.intoto.sigstore.json"])
-               and len(release_files(version)) == 154,
-               "a release is those 60, a bundle beside each, a .sigstore.json copy of each of the 33 primary files' bundles, "
-               "and the provenance: 154 files and links: %d" % len(release_files(version)))
+               and len(release_files(version)) == 160,
+               "a release is those 62, a bundle beside each, a .sigstore.json copy of each of the 35 primary files' bundles, "
+               "and the provenance: 160 files and links: %d" % len(release_files(version)))
         expect(sorted(gathered) == sorted(set(expected_assets(version)) - {names["windows"] + ".cdx.json", names["windows-arm64"] + ".cdx.json"}),
                "collect gathers every one of them but the installers' SBOMs: %s" % sorted(set(expected_assets(version)) - set(gathered)))
         released_sums = b""
@@ -2064,9 +2121,10 @@ def self_test():
                "line for every other Linux file and the chart: %r" % released_sums)
         listed = set(line.split()[1] for line in released_sums.decode("ascii").splitlines())
         expect(listed == set(n for n in primaries if n not in (names["windows"], names["windows-arm64"], sums_name(version),
-                                                               "hmailserver.spdx.json", "hmailserver.cyclonedx.json")),
-               "every primary file but the two installers, which Authenticode changes after collect, and the sums and tree "
-               "SBOMs has a line in the sums: %s" % sorted(listed))
+                                                               "hmailserver.spdx.json", "hmailserver.cyclonedx.json")
+                             and n not in MODULE_FILES),
+               "every primary file but the two installers and the module, which Authenticode changes after collect, and the "
+               "sums and tree SBOMs has a line in the sums: %s" % sorted(listed))
         if not gathered:
             # So that publishing is still tested when collecting failed.
             os.makedirs(out, exist_ok=True)
@@ -2128,9 +2186,11 @@ def self_test():
                 api=FakeGitLab().seed(names["deb-arm64"] + ".sigstore.json", b"{}"))
         refused("a provenance an earlier run left in the registry", "%s, which an earlier run's signing made" % provenance_name(version),
                 api=FakeGitLab().seed(provenance_name(version), b"{}"))
+        refused("a signed module an earlier run left in the registry", "HmailServer.psm1, which an earlier run's signing made",
+                api=FakeGitLab().seed("HmailServer.psm1", b"function x {}"))
         held = FakeGitLab()
         for name in collected_assets(version):
-            if name not in windows_installers(version):
+            if name not in made_after_collect(version):
                 # As release-publish sent them: collect's files, the sums as collect wrote them.
                 with open(os.path.join(out, name), "rb") as f:
                     held.seed(name, f.read())
@@ -2279,6 +2339,15 @@ def self_test():
                 put_back = swap(sources(version)[sbom_name(name)], None)
                 refused("%s without its SBOM" % name, "%s is not in this job's artifacts" % sbom_name(name), run=with_tarball_check)
                 put_back()
+        # The module, from the checkout: present, and unsigned there.
+        for name in MODULE_FILES:
+            put_back = swap(sources(version)[name], None)
+            refused("a tree without %s" % name, "%s is not in this job's artifacts" % name, run=with_tarball_check)
+            put_back()
+        put_back = swap(sources(version)["HmailServer.psm1"], b"function Get-HmDomain {}\r\n" + SIGNATURE_BEGIN + b"# MIIx\r\n" + SIGNATURE_END)
+        refused("a module the tree holds signed already", "HmailServer.psm1 carries an Authenticode signature block in the tree",
+                run=with_tarball_check)
+        put_back()
         tarball_check["code"] = 1
         refused("a tarball build/check-source-tarball.py refuses", "is not the source tarball of", run=with_tarball_check)
         tarball_check["code"] = 0
@@ -2392,13 +2461,58 @@ def self_test():
         sbom_env = dict(env, CI_COMMIT_TAG=tag, CI_PROJECT_PATH="hmailserver/hmailserver")
         both = {"windows": (os.path.join(signed_dir, names["windows"]), os.path.join(work, "none.json")),
                 "windows-arm64": (os.path.join(arm_signed_dir, names["windows-arm64"]), os.path.join(work, "none.json"))}
+        # The module as release-authenticode hands it back: each of the two files collect
+        # gathered with one signature block appended, which is all signing may change.
+        block = SIGNATURE_BEGIN + b"# MIIxxABC+/=\r\n# U5pU\r\n" + SIGNATURE_END
+        module_dir = os.path.join(work, MODULE_SIGNED_DIR)
+        os.makedirs(module_dir)
+        for name in MODULE_FILES:
+            with open(os.path.join(out, name), "rb") as f:
+                unsigned_module = f.read()
+            with open(os.path.join(module_dir, name), "wb") as f:
+                f.write(unsigned_module + block)
+            expect(module_signature_problems(name, unsigned_module, unsigned_module + block) == [],
+                   "%s with one signature block appended is the module signed" % name)
+        expect(module_signature_problems("m", b"code\r\n", b"code\r\n") != [], "a module file with no block is not signed")
+        expect(module_signature_problems("m", b"code\r\n", b"Code\r\n" + block) != [],
+               "a module file whose script changed in signing is refused")
+        expect(module_signature_problems("m", b"code\r\n", b"code\r\n" + block + b"Write-Host 1\r\n") != [],
+               "a module file with a line after its block is refused")
+        expect(module_signature_problems("m", b"code\r\n", b"code\r\n" + block.replace(b"# U5pU", b"Write-Host 1")) != [],
+               "a module file with a statement inside its block is refused")
+        expect(module_signature_problems("m", b"code\r\n" + block, b"code\r\n" + block + block) != [],
+               "a module the tree holds signed already is refused")
+        try:
+            release_sbom(root, sbom_env, out, both, os.path.join(work, "release-sbom"))
+            failures.append("release-sbom without the signed module is refused")
+        except ReleaseError as e:
+            expect("no folder was given for the signed module" in str(e), "release-sbom without the signed module is refused: %s" % e)
+        unsigned_dir = os.path.join(work, "module-unsigned")
+        os.makedirs(unsigned_dir)
+        for name in MODULE_FILES:
+            shutil.copyfile(os.path.join(out, name), os.path.join(unsigned_dir, name))
+        try:
+            release_sbom(root, sbom_env, out, both, os.path.join(work, "release-sbom"), module_dir=unsigned_dir)
+            failures.append("release-sbom with the module as collect gathered it, unsigned, is refused")
+        except ReleaseError as e:
+            expect("followed by one Authenticode signature block" in str(e),
+                   "release-sbom with the module unsigned is refused: %s" % e)
+        with open(os.path.join(unsigned_dir, "HmailServer.psm1"), "wb") as f:
+            f.write(b"function Get-Other {}\r\n" + block)
+        shutil.copyfile(os.path.join(module_dir, "HmailServer.psd1"), os.path.join(unsigned_dir, "HmailServer.psd1"))
+        try:
+            release_sbom(root, sbom_env, out, both, os.path.join(work, "release-sbom"), module_dir=unsigned_dir)
+            failures.append("release-sbom with a signed module that is not the tree's is refused")
+        except ReleaseError as e:
+            expect("does not begin with the module's own bytes" in str(e),
+                   "release-sbom with a signed module that is not the tree's is refused: %s" % e)
         try:
             release_sbom(root, sbom_env, out, {"windows": both["windows"]}, os.path.join(work, "release-sbom"))
             failures.append("release-sbom asked for the x64 installer's SBOM alone is refused")
         except ReleaseError as e:
             expect("a release carries the installers of" in str(e), "release-sbom asked for one installer's SBOM is refused: %s" % e)
         try:
-            release_sbom(root, sbom_env, out, both, os.path.join(work, "release-sbom"))
+            release_sbom(root, sbom_env, out, both, os.path.join(work, "release-sbom"), module_dir=module_dir)
             failures.append("release-sbom without the component lists is refused")
         except ReleaseError as e:
             expect("could not be made" in str(e) and not os.path.isdir(os.path.join(work, "release-sbom")),
@@ -2460,9 +2574,9 @@ def self_test():
             failures.append("a complete signed release is published: %s" % e)
         if payload:
             links = payload["assets"]["links"]
-            expect(len(links) == 154 and all(l["name"] == urllib.parse.unquote(feed.REGISTRY_LINK.match(l["url"]).group(3)) for l in links),
-                   "154 links, each named after the file it points at")
-            expect(len(set(l["direct_asset_path"] for l in links)) == 154 and link_problems(links) == [],
+            expect(len(links) == 160 and all(l["name"] == urllib.parse.unquote(feed.REGISTRY_LINK.match(l["url"]).group(3)) for l in links),
+                   "160 links, each named after the file it points at")
+            expect(len(set(l["direct_asset_path"] for l in links)) == 160 and link_problems(links) == [],
                    "every permanent download path is its own, and one GitLab takes: %s" % link_problems(links))
             paths = dict((l["name"], l["direct_asset_path"]) for l in links)
             expect(paths.get(names["deb-arm64"]) == "/hmailserver_arm64.deb"
@@ -2483,7 +2597,7 @@ def self_test():
                    "the notes are the CHANGELOG section and the verification")
             uploads = [c for c in api.calls if c[0] == "PUT"]
             created = [i for i, c in enumerate(api.calls) if c[0] == "POST"]
-            expect(len(uploads) == 154 and created and all(api.calls.index(u) < created[0] for u in uploads),
+            expect(len(uploads) == 160 and created and all(api.calls.index(u) < created[0] for u in uploads),
                    "every file is uploaded before the release links to it")
             # And the feed, rendered from what was published, gives each kind of server its file.
             tree, latest, warnings = feed.render(*feed.load(api.feed_get))
@@ -2576,7 +2690,7 @@ def self_test():
         try:
             publish(signed, tag, publish_env, retried, section, verification, render_check=False)
             sent = [urllib.parse.unquote(c[1].rsplit("/", 1)[1]) for c in retried.calls if c[0] == "PUT"]
-            expect(len(sent) == 149 and not set(sent) & set(up_already), "a retry sends only what is not up already: %s" % sent)
+            expect(len(sent) == 155 and not set(sent) & set(up_already), "a retry sends only what is not up already: %s" % sent)
             expect(all(len(v) == 1 for v in [[e for e in retried.files[(PACKAGE, version)] if e["file_name"] == n] for n in os.listdir(signed)]),
                    "a retry leaves one record of each file")
             expect(len(retried.releases) == 1, "a retry creates the release")
@@ -2665,7 +2779,7 @@ def self_test():
                and statement["predicate"]["runDetails"]["builder"]["id"] == tag_identity
                and statement["predicate"]["buildDefinition"]["resolvedDependencies"][0]["digest"]["gitCommit"] == built
                and statement["predicate"]["runDetails"]["metadata"]["startedOn"] == "2026-10-02T08:00:00Z",
-               "the statement names all 60 files by SHA-256, the tag's pipeline as the builder and the commit: %s" % statement.get("subject", [])[:2])
+               "the statement names all 62 files by SHA-256, the tag's pipeline as the builder and the commit: %s" % statement.get("subject", [])[:2])
         try:
             write_statement(version, tag_identity, dict(list(files.items())[1:]), publish_env, statement_dir)
             failures.append("a statement that leaves a file out is refused")
@@ -2775,9 +2889,9 @@ def self_test():
         digests = dict((n, sha256_of(os.path.join(signed, n))) for n in release_files(version))
         sizes = dict((n, os.path.getsize(os.path.join(signed, n))) for n in release_files(version))
         expect(check_budget(None, tag, version, digests, sizes, out=said.append) == [], "one release is well within every limit")
-        expect(len(said) == 2 and "60 files and 154 links (33 primary files, 27 SBOMs, 60 bundles, 33 .sigstore.json copies" in said[0]
+        expect(len(said) == 2 and "62 files and 160 links (35 primary files, 27 SBOMs, 62 bundles, 35 .sigstore.json copies" in said[0]
                and "_redirects 33 rules" in said[1] and "the feed's 17, the repositories' 16, 16 of them this release's" in said[1],
-               "the counts: 154 links; _redirects the feed's seventeen rules (the download page and eight kinds of file with their "
+               "the counts: 160 links; _redirects the feed's seventeen rules (the download page and eight kinds of file with their "
                "bundles) and the repositories' sixteen: %s" % said)
         crowded = FakeGitLab()
         for minor in range(40):
@@ -2946,14 +3060,40 @@ def self_test():
 
 # ---------------------------------------------------------------- main
 
-def release_sbom(root, env, assets, installers, out, rehearse=False):
+def signed_module(assets, module_dir, rehearse=False):
+    """{name: path} of the PowerShell module's two files as the release carries them:
+    release-authenticode's, each the file collect gathered with one signature block
+    appended and nothing else (module_signature_problems), or in a rehearsal, which
+    has no Authenticode, collect's own."""
+    if not rehearse and not module_dir:
+        raise ReleaseError("no folder was given for the signed module: release-authenticode leaves it in %s/" % MODULE_SIGNED_DIR)
+    files = {}
+    for name in MODULE_FILES:
+        unsigned = os.path.join(assets, name)
+        path = unsigned if rehearse else os.path.join(module_dir, name)
+        if not os.path.isfile(path):
+            raise ReleaseError("%s is not here: release-authenticode's artifact (%s/) did not arrive" % (path, MODULE_SIGNED_DIR))
+        if not rehearse:
+            with open(unsigned, "rb") as f:
+                before = f.read()
+            with open(path, "rb") as f:
+                after = f.read()
+            problems = module_signature_problems(name, before, after)
+            if problems:
+                raise ReleaseError("; ".join(problems))
+        files[name] = path
+    return files
+
+
+def release_sbom(root, env, assets, installers, out, rehearse=False, module_dir=None):
     """The sbom command: each installer's own SBOM (make_installer_sbom), then the
     provenance's statement over every file the release carries - collect's, the
-    installers as Authenticode signed them, and their SBOMs - for release-sign to
-    attest. installers: {platform: (the signed installer, its component list)}, for
-    "windows" and "windows-arm64". In a rehearsal the installers are collect's and the
-    identity the branch's. out is emptied first, and left empty when an SBOM cannot
-    be made."""
+    installers and the PowerShell module as Authenticode signed them, and the
+    installers' SBOMs - for release-sign to attest. installers: {platform: (the signed
+    installer, its component list)}, for "windows" and "windows-arm64"; module_dir:
+    where release-authenticode left the signed module. In a rehearsal the installers
+    and the module are collect's and the identity the branch's. out is emptied first,
+    and left empty when an SBOM cannot be made."""
     tag = None if rehearse else env.get("CI_COMMIT_TAG", "")
     version = read_version_h(root) if rehearse else version_of(tag)
     if sorted(installers) != sorted(INSTALLER_SBOMS):
@@ -2962,6 +3102,7 @@ def release_sbom(root, env, assets, installers, out, rehearse=False):
     if os.path.isdir(out):
         shutil.rmtree(out)
     files = dict((name, os.path.join(assets, name)) for name in collected_assets(version))
+    files.update(signed_module(assets, module_dir, rehearse))
     try:
         for platform in sorted(installers):
             installer_path, dependencies_path = installers[platform]
@@ -2993,6 +3134,8 @@ def main():
                         help="sbom: where the signed x64 installer is")
     parser.add_argument("--arm64-installer-dir", default=INSTALLER_SBOMS["windows-arm64"]["signed"],
                         help="sbom: where the signed ARM64 installer is")
+    parser.add_argument("--module-dir", default=MODULE_SIGNED_DIR,
+                        help="sbom: where the signed PowerShell module's two files are")
     parser.add_argument("--assets", default="release-signed", help="publish, check-provenance: the signed files and "
                         "their bundles")
     parser.add_argument("--verification", default=os.path.join("release-verified", "verification.md"),
@@ -3021,7 +3164,8 @@ def main():
             installers = dict((platform, (os.path.join(ROOT, places[platform], feed.installer_names(version)[platform]),
                                           os.path.join(ROOT, lists[platform]))) for platform in INSTALLER_SBOMS)
             release_sbom(ROOT, os.environ, os.path.join(ROOT, "release-assets"), installers,
-                         os.path.join(ROOT, args.out or "release-sbom"), args.rehearse)
+                         os.path.join(ROOT, args.out or "release-sbom"), args.rehearse,
+                         module_dir=os.path.join(ROOT, args.module_dir))
             return 0
         if args.command == "collect":
             if args.rehearse:

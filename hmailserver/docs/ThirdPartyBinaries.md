@@ -178,7 +178,8 @@ legitimate vendor patch bump. The gathered MSVC runtime is checked by version
 rather than by hash, and its signer is recorded in the manifest; the SQL CE MSI is
 checked by hash. Until 18 September 2026 a Windows job of the provenance workflow
 also fetched the build inputs and checked that the MSI's signature was valid and
-its signer the one recorded - see "What checks it" below.
+its signer the one recorded; from 6.3.6 the bench150 job `build-inputs-authenticode`
+does so again, for every fetched file - see "What checks it" below.
 
 The inventory
 -------------
@@ -244,9 +245,38 @@ extension (the `.tlb` type libraries were two). A Windows job of the same
 workflow fetched the build inputs, checked their hashes, and checked the
 signature of every fetched file the manifest records as signed.
 
-It does not run on GitLab, and nothing there runs it yet. By hand,
-`build/get-installer-binaries.ps1 -Verify` answers the second question for what
-is in place on the machine; the other two have no script outside the workflow.
+On GitLab, from 6.3.6, two jobs do what it did. `checkers` runs
+`build/check-binary-manifest.py` in every pipeline, merge requests included: the
+first and third questions over every tracked file. And `build-inputs-authenticode`,
+on bench150 for every protected ref (`.gitlab/ci/packages-windows.yml`), runs
+`build/ci/build-inputs-authenticode.ps1` before any build of the pipeline uses the
+inputs - `windows-packages-x64`, `windows-packages-arm64` and `windows-installer`
+need it:
+
+1. every entry of `build_inputs` is downloaded afresh into an empty folder, from
+   the package registry for a `build-inputs-<n>` release and from the publisher's
+   address, following no redirect, for an https one, and must have its pinned
+   SHA-256;
+2. every fetched artifact, x64 and ARM64, is taken from its input - the input
+   itself, or the member of an archive, extracted as
+   `build/get-installer-binaries.ps1` extracts it - and must have its own pinned
+   SHA-256;
+3. a file whose `authenticode` is `Valid` must have a valid signature by exactly
+   the `authenticode_signer` recorded, with an RFC 3161 timestamp; one recorded
+   `NotSigned` must carry none. A fetched file recorded any other way - with no
+   record, `NotRecorded`, or either word spelt otherwise - is refused, since it
+   would pass unchecked; so is a manifest that records no fetched file as `Valid`,
+   since the job would then check no signature.
+
+On 2 October 2026 it passed on the maintainer's laptop: the three inputs had their
+hashes, the SQL Server Compact runtime its Microsoft signature and timestamp, and
+the twenty-two unsigned files no signature. `build/ci/authenticode-selftest.ps1`,
+which the job runs next, takes the inputs once and refuses a manifest recording
+another signer, an unsigned file as `Valid`, the signed one as `NotSigned`, a
+fetched file as `NotRecorded` or `notsigned`, another hash or no `Valid` file; the
+key of the throwaway certificate it signs with is made by a name of its own and
+deleted when SignTool is done. By hand, `build/get-installer-binaries.ps1 -Verify` answers
+the second question for what is in place on the machine.
 
 Updating the manifest
 ---------------------
