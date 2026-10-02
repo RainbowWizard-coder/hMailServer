@@ -62,6 +62,7 @@ build/source-exclusions.txt text eol=lf
 flake.nix text eol=lf
 flake.lock text eol=lf
 nix/** text eol=lf
+snap/** text eol=lf
 
 ###############################################################################
 # The OpenPGP fixtures, byte for byte.

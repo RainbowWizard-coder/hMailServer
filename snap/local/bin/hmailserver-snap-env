@@ -1,0 +1,91 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# shellcheck shell=bash
+# The variables here are the sourcing commands'.
+# shellcheck disable=SC2034
+
+# Sourced by the snap's commands (hmailserver/docs/Snap.md): where the snap keeps
+# its configuration, data, log and secrets, all under $SNAP_COMMON, which a refresh
+# keeps and every revision shares; and the two steps every command takes before the
+# server runs - the directories made as root, then the configuration made as the
+# account the server runs as.
+
+HM_SNAP_USER=snap_daemon
+HM_SNAP_CONF_DIR="$SNAP_COMMON/etc"
+HM_SNAP_DATA="$SNAP_COMMON/data"
+HM_SNAP_LOG="$SNAP_COMMON/log"
+HM_SNAP_SECRETS="$SNAP_COMMON/secrets"
+HM_SNAP_DB_PASSWORD_FILE="$HM_SNAP_SECRETS/database-password"
+HM_INI="$HM_SNAP_CONF_DIR/hMailServer.ini"
+export HM_INI
+
+# The libraries the .deb needs and core24 lacks (libpq5, libldap2, libmariadb3 and
+# theirs), which snapcraft staged under the snap's own usr/lib.
+case "${SNAP_ARCH:-}" in
+   amd64) hm_snap_triplet=x86_64-linux-gnu ;;
+   arm64) hm_snap_triplet=aarch64-linux-gnu ;;
+   *) echo "hmailserver: this snap is built for amd64 and arm64, not '${SNAP_ARCH:-}'" >&2; exit 1 ;;
+esac
+export LD_LIBRARY_PATH="$SNAP/usr/lib/$hm_snap_triplet:$SNAP/usr/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+
+# As root: the four directories directly under $SNAP_COMMON - etc, data and log the
+# server account's, secrets root's - each made with its owner and mode when it is not
+# there, and given back to its owner when it is someone else's. Root does no more
+# than that. Under strict confinement snapd's AppArmor profile gives a snap's root
+# CAP_CHOWN towards the account it drops to, and neither CAP_DAC_OVERRIDE,
+# CAP_DAC_READ_SEARCH nor CAP_FOWNER (snapd's privDropAndChownRules: "traditional
+# DAC to be enforced for root"), so root can neither look inside the account's
+# directories, make anything in them nor change their mode: what is inside them, and
+# their modes, the account sees to itself (hm_snap_prepare_own, in hmailserver-start).
+# $SNAP_COMMON is root's, so nobody else can put a symbolic link or a file where one
+# of the four belongs; one found there is refused, never followed.
+hm_snap_dir() {
+   local path="$1" owner="$2" mode="$3" uid
+   if [ -L "$path" ] || { [ -e "$path" ] && [ ! -d "$path" ]; }; then
+      echo "hmailserver: $path is a symbolic link or not a directory; the snap keeps its files in $SNAP_COMMON itself and does not follow one" >&2
+      return 1
+   fi
+   uid="$(id -u "$owner")" || return 1
+   if [ ! -e "$path" ]; then
+      mkdir -m "$mode" "$path" || return 1
+   fi
+   if [ "$(stat -c %u:%g "$path")" != "$uid:$uid" ]; then
+      chown -h "$owner:$owner" "$path" || return 1
+   fi
+}
+
+hm_snap_prepare() {
+   hm_snap_dir "$HM_SNAP_CONF_DIR" "$HM_SNAP_USER" 0700 &&
+   hm_snap_dir "$HM_SNAP_DATA" "$HM_SNAP_USER" 0750 &&
+   hm_snap_dir "$HM_SNAP_LOG" "$HM_SNAP_USER" 0750 &&
+   hm_snap_dir "$HM_SNAP_SECRETS" root 0700 &&
+   chmod 0700 "$HM_SNAP_SECRETS"
+}
+
+# As the server's account, once root has made the three directories its: their modes,
+# as the .deb's postinst gives /var/lib/hmailserver and its subdirectories, and the
+# subdirectories of data the configuration names.
+hm_snap_prepare_own() {
+   local sub
+   chmod 0700 "$HM_SNAP_CONF_DIR" && chmod 0750 "$HM_SNAP_DATA" "$HM_SNAP_LOG" || return 1
+   for sub in temp events database; do
+      [ -d "$HM_SNAP_DATA/$sub" ] || mkdir -m 0750 "$HM_SNAP_DATA/$sub" || return 1
+   done
+}
+
+# The steps after root's: run as the server's account, with nothing of root's own
+# session (snapd gives root a HOME and a runtime directory the account cannot use),
+# with the capability to bind ports below 1024 when "$1" is "ports", and with no way
+# back to more privilege. setpriv is core24's own.
+hm_snap_as_server() {
+   local ports="$1"
+   shift
+   export HOME="$HM_SNAP_DATA"
+   unset XDG_RUNTIME_DIR
+   if [ "$ports" = ports ]; then
+      exec setpriv --reuid="$HM_SNAP_USER" --regid="$HM_SNAP_USER" --clear-groups \
+         --inh-caps=+net_bind_service --ambient-caps=+net_bind_service --no-new-privs -- "$@"
+   fi
+   exec setpriv --reuid="$HM_SNAP_USER" --regid="$HM_SNAP_USER" --clear-groups --no-new-privs -- "$@"
+}

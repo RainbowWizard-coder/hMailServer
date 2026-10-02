@@ -1,0 +1,41 @@
+#!/bin/bash
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# The command hmailserver (hmailserver/docs/Snap.md): the server's own verbs
+# (hmailserver/docs/CommandLine.md) against the snap's configuration,
+#
+#   sudo hmailserver --check-config
+#   printf '%s\n' '<password>' | sudo hmailserver --set-admin-password
+#   sudo hmailserver --create-stored-secrets-key
+#
+# Run by root, the directories are made as the service makes them and the verb then
+# runs as snap_daemon, the account the service runs as, as every command in the
+# container image runs as its hmailserver account: whatever it writes - the
+# configuration, the stored-secrets key, the data directory's files, the log - is the
+# server's to read afterwards, never root's. A file a verb writes or reads by a path
+# of yours (--export-stored-secrets-key, --import-stored-secrets-key) must be one
+# snap_daemon can write or read under /var/snap/hmailserver/common, the one place the
+# snap may reach: in practice in its data directory, since common itself is root's.
+#
+# Run by anyone else, it runs as them; the configuration is snap_daemon's alone, so
+# only --version and --help work so.
+set -eu
+
+# shellcheck source=snap/local/bin/hmailserver-snap-env
+. "$SNAP/bin/hmailserver-snap-env"
+
+case "${1:-}" in
+   --version|--help|-h|'')
+      exec "$SNAP/usr/bin/hmailserver" "$@"
+      ;;
+esac
+
+if [ "$(id -u)" != 0 ]; then
+   echo "hmailserver: the configuration is the service's; run this with sudo, which runs the verb as the service's account" >&2
+   exit 77
+fi
+
+hm_snap_prepare
+hm_snap_as_server none "$SNAP/bin/hmailserver-start" cli "$@"

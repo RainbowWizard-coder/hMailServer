@@ -1,0 +1,20 @@
+#!/bin/sh
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# The configure hook, which snapd runs after every snap set hmailserver ... and at
+# install (hmailserver/docs/Snap.md). A key under db, rest, setting or property the
+# snap does not read, a value it cannot pass on, or a key that would hold a secret
+# makes snap set fail with the reason, and snapd then keeps the configuration as it
+# was. A misspelt top-level key is not seen at all: snapctl answers only for the keys
+# it is asked about, and the snap asks for its own. A change that passes is the
+# service's at its next start, which this asks for at once when the service is
+# running.
+set -eu
+
+"$SNAP/bin/hmailserver-snap-config" check
+
+if snapctl services hmailserver.daemon | awk 'NR > 1 && $3 == "active" { found = 1 } END { exit !found }'; then
+   snapctl restart hmailserver.daemon
+fi

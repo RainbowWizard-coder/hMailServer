@@ -2737,6 +2737,42 @@ upgrade, item 29). In every version up to 6.3.5; found by the project's own revi
   and refusing another anchor, a missing one, another name and an expired certificate, DANE-EE authenticating its key
   alone. Both run in ClassTester and, on Linux, in `linux-build` and in the Debian and RPM source packages' own
   builds; `SURBLTester` (in `public-suffix-tests`) gains the choice of names the URI blocklists are asked about.
+- **The snap: `hmailserver`, strictly confined, on core24, for amd64 and arm64**
+  ([Snap.md](hmailserver/docs/Snap.md)). `snap/snapcraft.yaml` makes it from the release's own Ubuntu 24.04
+  `.deb`, unchanged, with libpq, libldap, the MariaDB client and 7-Zip from Ubuntu 24.04's archive. The service
+  (`hmailserver.daemon`) is installed but not started; `snap set hmailserver db.type=... db.host=...` and the other
+  keys of the container image's environment, checked by a configure hook, become that environment, and the image's
+  entrypoint, unchanged, makes the configuration, creates or upgrades the database and applies the settings at each
+  start. No secret is a `snap set` value, since snapd gives a snap's configuration to every command of the snap and
+  `snap get` to every user: the hook refuses a key that names a password or a secret, and a `setting.*` or
+  `property.*` the server itself counts as a secret by its name (`IniSettingStore::IsSecretName`, its lists compared
+  with the server's source at each build), which lets the password policy and a hash's work factors through; the
+  database password goes in through `hmailserver.set-database-password` into a root-only file, and the
+  administrator's through `sudo hmailserver --set-admin-password`. snapd starts the service as root; it makes the
+  three directories directly under `/var/snap/hmailserver/common` and gives them to `snap_daemon`
+  (`system-usernames`) - nothing inside them, since snapd's AppArmor profile gives a snap's root no
+  `CAP_DAC_OVERRIDE`, `CAP_DAC_READ_SEARCH` or `CAP_FOWNER` - and then runs the rest through `setpriv` as
+  `snap_daemon`, with `CAP_NET_BIND_SERVICE` as its one capability and `no_new_privs`, as the `.deb`'s unit runs it
+  as its own user; the account makes what is inside its directories, and the first start applies a new
+  installation's defaults as the unit's does. The snap carries Ubuntu 24.04's `timeout`, which the entrypoint runs
+  while it waits for the database (`db.wait-seconds`) and which the profile does not let it run from core24, and
+  sets `PGGSSENCMODE=disable`, so that libpq does not look for a Kerberos credential the snap cannot have. `sudo hmailserver <verb>` runs the
+  server's own verbs as `snap_daemon` against the snap's configuration. The new `snap-build-amd64` and
+  `snap-build-arm64` jobs (`.gitlab/ci/snap.yml`) build it on linix after `deb-ubuntu24.04-<arch>`, in `batch*`
+  pipelines and on `master`, never for a tag: snapcraft and core24 come from the Snap Store at a pinned revision,
+  held to the SHA3-384 of the store's signed assertion and unpacked without snapd (`build/ci/snap-tools.sh`), and
+  snapcraft packs in destructive mode in the job's Ubuntu 24.04 container - no LXD, no remote build, no
+  privilege, nothing from GitHub. `snap-upload` now takes both jobs' snaps and runs on linix with the same snapcraft
+  instead of on the privileged runner. `build/ci/snap-install-test.sh`, run by hand on linix in a privileged Ubuntu
+  24.04 container with systemd and snapd (binfmt and AppArmor kept out of it, the host's handlers and profiles
+  counted before and after), installed the amd64 snap and passed 62 checks: the refused `snap set`s, a database
+  named only in the configuration file, SMTP, POP3 and IMAP with STARTTLS, the server as `snap_daemon` with that one
+  capability, REST, the update check's `snap` kind, and a clean `snap remove --purge`; four copies of the snap, each
+  with one thing taken out, failed it. With `--remote` the same test runs on a machine of its own and requires
+  AppArmor there: in a throwaway Ubuntu 24.04 VM under QEMU on linix, so that no profile reached linix's kernel, it
+  passed 63 checks, the server under its enforced profile and no AppArmor denial of the snap in the kernel's log.
+  The arm64 snap installed, a MySQL database under AppArmor and the store's review have not run. The Snap Store
+  waits for the owner's account and the name (Snap.md, "The Snap Store").
 
 Full notes: [the 6.3.6 release](https://gitlab.com/hmailserver/hmailserver/-/releases/v6.3.6).
 

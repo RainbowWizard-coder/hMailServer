@@ -17,6 +17,8 @@
 *.suo
 
 bin/
+# The snap's commands (snap/snapcraft.yaml), which bin/ would hide.
+!/snap/local/bin/
 obj/
 _ReSharper.*/
 
@@ -192,3 +194,9 @@ credentials.json
 # rpm-local.sh): the Boost Debian 12 builds (.cache/boost) and the Boost tarball
 # (.cache/boost-tarball, build/ci/packages/fetch-boost.sh). In CI they are the jobs' cache.
 /.cache/
+# What build/ci/snap-build.sh and snapcraft leave in the checkout.
+/snap-build/
+/snap/*.snap
+/parts/
+/stage/
+/prime/

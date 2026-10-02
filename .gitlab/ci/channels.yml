@@ -29,9 +29,10 @@
 #   chocolatey-release  then chocolatey-publish on bench150: the installer verified on
 #                       a Linux runner, then the Chocolatey package packed from those
 #                       bytes and pushed (build/ci/channels/chocolatey-publish.ps1);
-#   snap-upload         the snap snap-build made in the same pipeline
-#                       (.gitlab/ci/snap.yml), uploaded to the Snap Store's edge and
-#                       candidate channels (build/ci/channels/snap-upload.py).
+#   snap-upload         the snaps snap-build-amd64 and snap-build-arm64 made in the
+#                       same pipeline (.gitlab/ci/snap.yml), uploaded to the Snap
+#                       Store's edge and candidate channels
+#                       (build/ci/channels/snap-upload.py).
 #
 # Each publishes a RELEASE, never the commit its pipeline is for: the one the
 # project's CI/CD variable HM_CHANNEL_VERSION names, or else the update feed's
@@ -333,14 +334,23 @@ chocolatey-publish:
       - chocolatey-publish/*.nupkg
       - chocolatey-publish/manifests/chocolatey/
 
-# The snap snap-build made in this pipeline (.gitlab/ci/snap.yml; hmailserver/docs/Snap.md),
-# on the runner snap-build uses, where snapd and snapcraft run. The need is optional
-# so that this file stands without snap.yml; without the snap the job refuses.
+# The snaps snap-build-amd64 and snap-build-arm64 made in this pipeline
+# (.gitlab/ci/snap.yml; hmailserver/docs/Snap.md), on linix in the Ubuntu 24.04 image
+# they use, with snapcraft as they have it: from the Snap Store at a pinned revision,
+# without snapd (build/ci/snap-tools.sh), which snapcraft upload does not need. The
+# needs are optional so that this file stands without snap.yml; without a snap the job
+# refuses.
 snap-upload:
   stage: release
-  tags: [linix-systemd]
+  tags: [linix]
+  image:
+    name: ubuntu:24.04@sha256:496754492fb28b4d3049432f2ca787449331e23fb14f0dd3fffea86bf5a93eb4
+    pull_policy: if-not-present
   needs:
-    - job: snap-build
+    - job: snap-build-amd64
+      artifacts: true
+      optional: true
+    - job: snap-build-arm64
       artifacts: true
       optional: true
   timeout: 30 minutes
@@ -351,6 +361,10 @@ snap-upload:
   environment:
     name: snap-store
     url: https://snapcraft.io/hmailserver
+  before_script:
+    - !reference [.no-github, before_script]
+    # snapcraft, unsquashfs and python3 (snap-tools.sh says from where).
+    - bash build/ci/snap-tools.sh
   script:
     - python3 build/ci/channels/snap-upload.py --snaps snap --out snap-upload
   artifacts:

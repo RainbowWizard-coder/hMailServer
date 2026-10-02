@@ -1,0 +1,68 @@
+#!/bin/bash
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# The service snap.hmailserver.daemon, which snapd starts as root
+# (hmailserver/docs/Snap.md). Root does three things and then gives itself up:
+#
+#   1. the directories directly under $SNAP_COMMON, made the server account's
+#      (hm_snap_prepare in hmailserver-snap-env) - and nothing inside them, which
+#      snapd's AppArmor profile keeps root out of;
+#   2. the snap's configuration (snap set hmailserver db.host=... and the rest)
+#      read and turned into the HM_* environment the container image's entrypoint
+#      reads (hmailserver-snap-config env), and the database password from the
+#      file hmailserver.set-database-password wrote, which only root reads;
+#   3. hmailserver-start daemon run as snap_daemon, with CAP_NET_BIND_SERVICE as
+#      its one capability, for ports 25, 110, 143, 465, 587, 993 and 995, and
+#      no_new_privs - as the .deb's unit runs the server as its own user.
+#
+# With no database named anywhere - neither db.type nor a [Database] Type in the
+# configuration - hmailserver-start, which reads the configuration as the server's
+# account, says what to do and exits 0, so that snapd does not start it again and
+# again; it is not started at install for that reason (install-mode).
+set -eu
+
+# shellcheck source=snap/local/bin/hmailserver-snap-env
+. "$SNAP/bin/hmailserver-snap-env"
+
+if [ "$(id -u)" != 0 ]; then
+   echo "hmailserver: the service runs as root and gives that up itself; this is $(id -un)" >&2
+   exit 1
+fi
+
+hm_snap_prepare
+
+# The configuration's HM_* variables, NUL-separated NAME=VALUE pairs, each name
+# checked by the helper: exported as they are, never evaluated. Through a file, so
+# that the helper's refusal stops the start rather than leaving the variables unset.
+pairs="$(mktemp)"
+if ! "$SNAP/bin/hmailserver-snap-config" env > "$pairs"; then
+   rm -f "$pairs"
+   echo "hmailserver: the snap's configuration is refused (above); not starting" >&2
+   exit 1
+fi
+while IFS= read -r -d '' pair; do
+   # shellcheck disable=SC2163 # $pair is NAME=VALUE, exported as it is
+   export "$pair"
+done < "$pairs"
+rm -f "$pairs"
+
+if [ -e "$HM_SNAP_DB_PASSWORD_FILE" ] || [ -L "$HM_SNAP_DB_PASSWORD_FILE" ]; then
+   if [ -L "$HM_SNAP_DB_PASSWORD_FILE" ] || [ ! -f "$HM_SNAP_DB_PASSWORD_FILE" ]; then
+      echo "hmailserver: $HM_SNAP_DB_PASSWORD_FILE is not a plain file; write it again with hmailserver.set-database-password" >&2
+      exit 1
+   fi
+   if [ "$(stat -c '%u %a' "$HM_SNAP_DB_PASSWORD_FILE")" != "0 600" ]; then
+      echo "hmailserver: $HM_SNAP_DB_PASSWORD_FILE must be root's with mode 0600 (sudo chown root:root and sudo chmod 0600 it), since it holds the database password; not starting" >&2
+      exit 1
+   fi
+   if [ -z "${HM_DB_TYPE:-}" ]; then
+      echo "hmailserver: $HM_SNAP_DB_PASSWORD_FILE is there, but db.type is not set, so the [Database] section is not written from the snap's configuration and the file is not used"
+   else
+      HM_DB_PASSWORD="$(cat "$HM_SNAP_DB_PASSWORD_FILE")"
+      export HM_DB_PASSWORD
+   fi
+fi
+
+hm_snap_as_server ports "$SNAP/bin/hmailserver-start" daemon

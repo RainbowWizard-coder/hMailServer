@@ -16,8 +16,10 @@ replace itself with the project's file. From 6.3.6 it does not. The check still
 says when a newer release exists, and names what updates the server instead.
 
 *Written on 28 September 2026 for 6.3.6. The snap and the container were tested
-by starting a built server with their environment (below); there is no snap of
-hMailServer yet, and the image was not built for this document.*
+by starting a built server with their environment (below); the image was not built
+for this document. The snap itself came later (Snap.md): on 2 October 2026 the
+installed snap's update check reported `installKind` `snap` and `snap refresh
+hmailserver`.*
 
 How the server tells where it runs
 ----------------------------------

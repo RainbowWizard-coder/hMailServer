@@ -311,16 +311,19 @@ Windows. Pressing `chocolatey-release` starts both.
 
 ### Snap Store
 
-`snap-upload` (`build/ci/channels/snap-upload.py`) takes the snap that `snap-build`
-made in the same pipeline ([Snap.md](Snap.md), `.gitlab/ci/snap.yml`) and uploads
-it to the `edge` and `candidate` channels; `stable` is promoted by hand, once a
-maintainer has installed the candidate (`snapcraft release hmailserver <revision>
-stable`). It runs on the runner `snap-build` uses, where snapd and snapcraft do.
+`snap-upload` (`build/ci/channels/snap-upload.py`) takes the snaps that
+`snap-build-amd64` and `snap-build-arm64` made in the same pipeline
+([Snap.md](Snap.md), `.gitlab/ci/snap.yml`) and uploads them to the `edge` and
+`candidate` channels; `stable` is promoted by hand, once a maintainer has installed
+the candidate (`snapcraft release hmailserver <revision> stable`). It runs on linix
+in the Ubuntu 24.04 image the builds use, with snapcraft as they have it - from the
+Snap Store at a pinned revision, without snapd (`build/ci/snap-tools.sh`), which
+`snapcraft upload` does not need.
 
-The contract with `snap-build`:
+The contract with the two builds:
 
-- `snap-build` leaves `snap/hmailserver_<version>_<arch>.snap` (`amd64`, `arm64`) in
-  its artifacts, `<version>` the release's;
+- each leaves `snap/hmailserver_<version>_<arch>.snap` (`amd64`, `arm64`) in its
+  artifacts, `<version>` the release's;
 - and, when it built from the release's source tarball,
   `snap/hmailserver_<version>_<arch>.snap.source`: one line, `<SHA-256>
   hmailserver-<version>.tar.gz`.
@@ -331,7 +334,7 @@ line's SHA-256 must be that of the release's tarball, which it verifies; without
 `.source` line, the pipeline's own commit must be the release tag's, checked as the
 release job checks a tag. A snap of `master` after the release is refused.
 
-The snap itself is not a signed file of the release: it is `snap-build`'s output in
+The snap itself is not a signed file of the release: it is the builds' output in
 this pipeline, built from the verified tarball (or the tag's tree) with `master`'s
 `snap/` packaging, and what ties it to the release is that check, not a Sigstore
 bundle of its own.

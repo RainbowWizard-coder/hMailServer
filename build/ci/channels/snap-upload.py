@@ -7,11 +7,11 @@
 Snap Store's edge and candidate channels; stable is promoted by hand
 (hmailserver/docs/Channels.md, "Snap Store").
 
-The snap is not a file of the release: the job snap-build (.gitlab/ci/snap.yml,
-hmailserver/docs/Snap.md) makes it in the same pipeline, and this job takes it. The
-contract between the two:
+The snap is not a file of the release: the jobs snap-build-amd64 and
+snap-build-arm64 (.gitlab/ci/snap.yml, hmailserver/docs/Snap.md) make it in the same
+pipeline, and this job takes it. The contract between them:
 
-  - snap-build leaves snap/hmailserver_<version>_<arch>.snap (amd64, arm64) in its
+  - each leaves snap/hmailserver_<version>_<arch>.snap (amd64, arm64) in its
     artifacts, <version> the release's;
   - and snap/hmailserver_<version>_<arch>.snap.source, one line "<SHA-256>
     hmailserver-<version>.tar.gz", when it built the snap from the release's
@@ -41,7 +41,7 @@ This job, in order:
   5. snapcraft upload --release=edge,candidate for each, which reads the credentials
      from its environment itself. A snap the store has already is said and passed.
 
-Usage, from the root of a checkout, where snapcraft runs (the runner snap-build uses):
+Usage, from the root of a checkout, where snapcraft runs (build/ci/snap-tools.sh):
   python3 build/ci/channels/snap-upload.py [--snaps DIR] [--out DIR]
   python3 build/ci/channels/snap-upload.py --self-test
 """
@@ -208,8 +208,8 @@ def snap_upload(out, snaps="snap", environ=None, run=subprocess.run, http=None):
         return 0
 
     if not shutil.which("snapcraft", path=environ.get("PATH")) and not (fix and fix.get("snapcraft")):
-        raise Refused("there is no snapcraft here: snap-upload runs where snap-build does (snap install snapcraft"
-                      " --classic, from the Snap Store)")
+        raise Refused("there is no snapcraft here: snap-upload runs where snapcraft does (build/ci/snap-tools.sh,"
+                      " or snap install snapcraft --classic, from the Snap Store)")
     snapcraft = (fix.get("snapcraft") if fix else None) or "snapcraft"
     for path in pending:
         answer = run([snapcraft, "upload", "--release=" + CHANNELS, path], capture_output=True, text=True,

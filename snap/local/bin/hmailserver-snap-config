@@ -1,0 +1,406 @@
+#!/usr/bin/python3
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+"""The snap's configuration (snap set hmailserver ...), checked and turned into the
+HM_* environment of the container image's entrypoint (hmailserver/docs/Snap.md).
+
+  hmailserver-snap-config check   the configure hook: exit 1 with the reason when a
+                                  key is not one the snap reads, a value is not one
+                                  it can pass on, or a key would hold a secret
+  hmailserver-snap-config env     the daemon: the same checks, then NAME=VALUE pairs,
+                                  each ended by a NUL, for it to export
+  hmailserver-snap-config --self-test [--source CHECKOUT]   the cases below, and the
+                                  server's secret-name lists compared with its source
+
+The keys, and the variable each becomes (ContainerImage.md says what each does):
+
+  db.type             HM_DB_TYPE            postgresql (postgres, pgsql) or mysql (mariadb)
+  db.host             HM_DB_HOST
+  db.port             HM_DB_PORT            1 to 65535
+  db.name             HM_DB_NAME
+  db.user             HM_DB_USER
+  db.tls-mode         HM_DB_TLS_MODE        disable, prefer, require or verify-full
+  db.tls-ca           HM_DB_TLS_CA          a file under /var/snap/hmailserver/common
+  db.wait-seconds     HM_DB_WAIT_SECONDS    0 to 999999
+  rest.port           HM_REST_PORT          0 (off) to 65535
+  rest.bind-address   HM_REST_BIND_ADDRESS
+  rest.certificate-file, rest.private-key-file
+                      HM_REST_CERTIFICATE_FILE, HM_REST_PRIVATE_KEY_FILE
+  profile             HM_PROFILE            office, gateway, relay, sender or none
+  profile-confirm     HM_PROFILE_CONFIRM    yes or no
+  create-database     HM_CREATE_DATABASE    true or false
+  upgrade-database    HM_UPGRADE_DATABASE   true or false
+  setting.<key>       HM_SETTING_<key>      any [Settings] key, in lower case
+  property.<name>     HM_PROPERTY_<name>    any hm_settings row, in lower case
+
+The server's --apply-environment checks each setting's name and value itself, at the
+service's start, and refuses them all when it refuses one.
+
+No secret is a snap set value: snapd gives the configuration to every command of the
+snap, and snap get to every user of the machine. A key whose name says password,
+secret or passphrase is refused, and so is a setting.<key> or property.<name> the
+server itself counts as a secret by its name (server_secret_name), each with where
+the value goes instead.
+"""
+
+import json
+import os
+import re
+import subprocess
+import sys
+
+SCALARS = {
+    "db": {
+        "type": "HM_DB_TYPE",
+        "host": "HM_DB_HOST",
+        "port": "HM_DB_PORT",
+        "name": "HM_DB_NAME",
+        "user": "HM_DB_USER",
+        "tls-mode": "HM_DB_TLS_MODE",
+        "tls-ca": "HM_DB_TLS_CA",
+        "wait-seconds": "HM_DB_WAIT_SECONDS",
+    },
+    "rest": {
+        "port": "HM_REST_PORT",
+        "bind-address": "HM_REST_BIND_ADDRESS",
+        "certificate-file": "HM_REST_CERTIFICATE_FILE",
+        "private-key-file": "HM_REST_PRIVATE_KEY_FILE",
+    },
+}
+TOP = {
+    "profile": "HM_PROFILE",
+    "profile-confirm": "HM_PROFILE_CONFIRM",
+    "create-database": "HM_CREATE_DATABASE",
+    "upgrade-database": "HM_UPGRADE_DATABASE",
+}
+MAPS = {"setting": "HM_SETTING_", "property": "HM_PROPERTY_"}
+KEYS = sorted(list(SCALARS) + list(TOP) + list(MAPS))
+
+DB_TYPES = {"postgresql": "PostgreSQL", "postgres": "PostgreSQL", "pgsql": "PostgreSQL",
+            "mysql": "MySQL", "mariadb": "MySQL"}
+TLS_MODES = ("disable", "prefer", "require", "verify-full")
+PROFILES = ("office", "gateway", "relay", "sender", "none")
+NAME = re.compile(r"^[a-z0-9]+$")
+SECRET = re.compile(r"password|secret|passphrase", re.IGNORECASE)
+COMMON = "/var/snap/hmailserver/common/"
+LONGEST = 4096
+
+# The server's own rule for a setting whose value is a secret, which it withholds
+# from every listing and export: IniSettingStore::IsSecretName over
+# AuditTrail::IsSecretName. A name holding one of these fragments is a secret...
+SECRET_FRAGMENTS = (
+    "password", "passwd", "secret", "privatekey", "private_key", "apikey", "api_key", "token", "totp", "hash",
+    "salt", "pepper", "credential", "keyfile", "passphrase", "encryptkey", "idpcertificate", "ihurl", "community",
+)
+# ...unless it is one of these, the trail's named exceptions...
+NOT_SECRET_NAMES = (
+    "passwordpolicyhistorycount", "passwordpolicymaximumagedays", "passwordpolicyminimumlength",
+    "passwordpolicyrejectcommon", "passwordpolicyrequiredigit", "passwordpolicyrequiremixedcase",
+    "passwordpolicyrequirenonalphanumeric", "preferredhashalgorithm", "minimumacceptedhashalgorithm",
+    "passwordhashiterations", "passwordhashmemorykb", "passwordhashtimecost", "protectstoredsecretswithdpapi",
+    "oauth2publickeyfile", "updatelogpublickeyfile", "indexerfulltextmaxtokenspermessage",
+    "indexerfulltextmintokenlength", "outboundoauth2tokenurl",
+)
+# ...or of one of the settings store's shapes: a path to a file, an address, the
+# password policy, a hash algorithm, the full-text indexer, a hash's work factor.
+SOURCE_LISTS = ("hmailserver/source/Server/Common/Util/AuditTrail.cpp",
+                {"SecretFragments": SECRET_FRAGMENTS, "NotSecretNames": NOT_SECRET_NAMES})
+
+
+def server_secret_name(name):
+    """Whether the server counts the setting or property NAME as a secret, as
+    IniSettingStore::IsSecretName does: the same fragments, exceptions and shapes."""
+    lower = name.lower()
+    if lower in NOT_SECRET_NAMES or not any(fragment in lower for fragment in SECRET_FRAGMENTS):
+        return False
+    if lower.endswith("file") or lower.endswith("url") or lower.startswith("passwordpolicy"):
+        return False
+    if "hashalgorithm" in lower or lower.startswith("indexerfulltext") or lower.startswith("passwordhash"):
+        return False
+    return lower != "protectstoredsecretswithdpapi"
+
+
+class Refused(Exception):
+    pass
+
+
+def text(key, value):
+    """A value as the environment carries it: a string as it is, a whole number in
+    digits, true and false as 1 and 0. Anything else - a list, an object, a value with
+    a control character in it - is refused by its key."""
+    if isinstance(value, bool):
+        return "1" if value else "0"
+    if isinstance(value, int):
+        return str(value)
+    if isinstance(value, float) and value.is_integer():
+        return str(int(value))
+    if not isinstance(value, str):
+        raise Refused("%s is %s; it takes one value, a word or a number" % (key, json.dumps(value)))
+    if len(value) > LONGEST:
+        raise Refused("%s is longer than %d characters" % (key, LONGEST))
+    if any(ord(c) < 32 or ord(c) == 127 for c in value):
+        raise Refused("%s holds a line break or another control character, which no setting can hold" % key)
+    return value
+
+
+def number(key, value, low, high):
+    if isinstance(value, bool):
+        raise Refused("%s is a whole number from %d to %d, not %s" % (key, low, high, json.dumps(value)))
+    value = text(key, value)
+    if not re.fullmatch(r"[0-9]{1,6}", value) or not low <= int(value) <= high:
+        raise Refused("%s is a whole number from %d to %d, not '%s'" % (key, low, high, value))
+    return str(int(value))
+
+
+def one_of(key, value, choices):
+    value = text(key, value).lower()
+    if value not in choices:
+        raise Refused("%s is one of %s, not '%s'" % (key, ", ".join(choices), value))
+    return value
+
+
+def under_common(key, value):
+    value = text(key, value)
+    if value and (not value.startswith(COMMON) or "/../" in value + "/" or "/./" in value + "/"):
+        raise Refused("%s names %s; the snap reads files under %s only, so put the file there" % (key, value, COMMON))
+    return value
+
+
+def switch(key, value):
+    if isinstance(value, bool):
+        return "1" if value else "0"
+    value = text(key, value).lower()
+    if value in ("1", "true", "yes", "on"):
+        return "1"
+    if value in ("0", "false", "no", "off"):
+        return "0"
+    raise Refused("%s is true or false, not '%s'" % (key, value))
+
+
+def secret(key, is_secret=None):
+    if SECRET.search(key) if is_secret is None else is_secret:
+        raise Refused(
+            "%s would hold a secret, and snapd gives the snap's configuration to every command of the snap and to "
+            "every user of the machine (snap get): unset it (sudo snap unset hmailserver %s). The database password "
+            "goes in with hmailserver.set-database-password, the administrator's with sudo hmailserver "
+            "--set-admin-password, and any other secret setting with sudo hmailserver --set-setting (Snap.md)"
+            % (key, key))
+
+
+def environment(config):
+    """The HM_* variables for the snap's configuration, a dict of the top-level keys
+    snapctl gave, as (name, value) pairs; Refused for the first thing wrong."""
+    pairs = []
+    for top, value in sorted(config.items()):
+        if value is None:
+            continue
+        secret(top)
+        if top in SCALARS:
+            if not isinstance(value, dict):
+                raise Refused("%s is a group of keys (%s), not a value" % (
+                    top, ", ".join("%s.%s" % (top, k) for k in sorted(SCALARS[top]))))
+            for key, inner in sorted(value.items()):
+                full = "%s.%s" % (top, key)
+                secret(full)
+                if key not in SCALARS[top]:
+                    raise Refused("%s is not a key the snap reads; it reads %s" % (
+                        full, ", ".join("%s.%s" % (top, k) for k in sorted(SCALARS[top]))))
+                if inner is None:
+                    continue
+                if full == "db.type":
+                    inner = DB_TYPES.get(one_of(full, inner, tuple(DB_TYPES)))
+                elif full in ("db.port",):
+                    inner = number(full, inner, 1, 65535)
+                elif full == "rest.port":
+                    inner = number(full, inner, 0, 65535)
+                elif full == "db.wait-seconds":
+                    inner = number(full, inner, 0, 999999)
+                elif full == "db.tls-mode":
+                    inner = one_of(full, inner, TLS_MODES)
+                elif full in ("db.tls-ca", "rest.certificate-file", "rest.private-key-file"):
+                    inner = under_common(full, inner)
+                else:
+                    inner = text(full, inner)
+                pairs.append((SCALARS[top][key], inner))
+        elif top in TOP:
+            if top == "profile":
+                value = one_of(top, value, PROFILES)
+            elif top == "profile-confirm":
+                value = "yes" if switch(top, value) == "1" else "no"
+            else:
+                value = switch(top, value)
+            pairs.append((TOP[top], value))
+        elif top in MAPS:
+            if not isinstance(value, dict):
+                raise Refused("%s takes %s.<name>=<value>, not a value of its own" % (top, top))
+            for name, inner in sorted(value.items()):
+                full = "%s.%s" % (top, name)
+                # The server's rule, not the word list above: it refuses more (a
+                # token, an API key, an SNMP community) and lets the password
+                # policy and a hash's work factors through, which hold no secret.
+                secret(full, server_secret_name(name))
+                if not NAME.match(name):
+                    raise Refused("%s: a setting's name is its letters and digits, in lower case" % full)
+                if inner is None:
+                    continue
+                pairs.append((MAPS[top] + name, text(full, inner)))
+        else:
+            raise Refused("%s is not a key the snap reads; it reads %s" % (top, ", ".join(KEYS)))
+    return pairs
+
+
+def snapctl_config():
+    """Each top-level key the snap reads, from snapctl, the ones not set left out. A
+    key the snap does not read cannot be listed by snapctl, so it is not seen here and
+    does nothing."""
+    config = {}
+    for key in KEYS:
+        answer = subprocess.run(["snapctl", "get", "-d", key], capture_output=True, text=True)
+        if answer.returncode != 0:
+            raise Refused("snapctl get %s failed: %s" % (key, answer.stderr.strip()))
+        document = json.loads(answer.stdout or "{}")
+        if key in document:
+            config[key] = document[key]
+    return config
+
+
+def server_lists(root):
+    """The fragments and exceptions as the server's source has them, each a tuple, by
+    the array's name; None when ROOT holds no source."""
+    path = os.path.join(root, SOURCE_LISTS[0])
+    if not os.path.isfile(path):
+        return None
+    with open(path, encoding="utf-8") as f:
+        source = f.read()
+    found = {}
+    for array in SOURCE_LISTS[1]:
+        match = re.search(r"\b%s\[\]\s*=\s*\{(.*?)\};" % array, source, re.S)
+        if match:
+            body = re.sub(r"//[^\n]*", "", match.group(1))
+            found[array] = tuple(re.findall(r'L"([^"]*)"', body))
+    return found
+
+
+def self_test(source=None):
+    failures = []
+
+    def expect(what, got, want):
+        if got != want:
+            failures.append("%s: got %r, want %r" % (what, got, want))
+
+    # The lists above against the server's own, so that a fragment the server adds
+    # is not one the snap lets into its configuration. From a checkout the script is
+    # three directories down; snap-build.sh names the checkout.
+    root = source or os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..")
+    lists = server_lists(root)
+    if lists is None:
+        if source:
+            failures.append("the server's secret-name lists: no %s under %s" % (SOURCE_LISTS[0], source))
+        else:
+            print("the server's secret-name lists: not compared (no source tree here)")
+    else:
+        for array, ours in SOURCE_LISTS[1].items():
+            expect("%s, as AuditTrail.cpp has it" % array, tuple(sorted(lists.get(array, ()))), tuple(sorted(ours)))
+
+    for name, want in (("metricspassword", True), ("snmpv2ccommunity", True), ("webhooktoken", True),
+                       ("relayapikey", True), ("smtprelayercredential", True), ("SrsSecret", True),
+                       ("passwordpolicyminimumlength", False), ("passwordhashiterations", False),
+                       ("passwordhashnewwork", False), ("preferredhashalgorithm", False),
+                       ("restapiprivatekeyfile", False), ("outboundoauth2tokenurl", False),
+                       ("protectstoredsecretswithdpapi", False), ("indexerfulltextmintokenlength", False),
+                       ("maxmessagesize", False)):
+        expect("the server counts %s as %s" % (name, "a secret" if want else "no secret"),
+               server_secret_name(name), want)
+
+    def taken(what, config, want):
+        try:
+            expect(what, environment(config), want)
+        except Refused as error:
+            failures.append("%s: refused (%s)" % (what, error))
+
+    def refused(what, config, says):
+        try:
+            got = environment(config)
+        except Refused as error:
+            if says not in str(error):
+                failures.append("%s: refused, but saying %r, not %r" % (what, str(error), says))
+            return
+        failures.append("%s: not refused (%r)" % (what, got))
+
+    expect("a full configuration", dict(environment({
+        "db": {"type": "postgres", "host": "192.0.2.10", "port": 5432, "name": "hm", "user": "hm",
+               "tls-mode": "Require", "tls-ca": COMMON + "ca.pem", "wait-seconds": 60},
+        "rest": {"port": 8045, "bind-address": "0.0.0.0"},
+        "profile": "office", "profile-confirm": True, "create-database": False,
+        "setting": {"maxsubmissionsperipperminute": 30}, "property": {"maxmessagesize": "20480"}})), {
+        "HM_DB_TYPE": "PostgreSQL", "HM_DB_HOST": "192.0.2.10", "HM_DB_PORT": "5432", "HM_DB_NAME": "hm",
+        "HM_DB_USER": "hm", "HM_DB_TLS_MODE": "require", "HM_DB_TLS_CA": COMMON + "ca.pem",
+        "HM_DB_WAIT_SECONDS": "60", "HM_REST_PORT": "8045", "HM_REST_BIND_ADDRESS": "0.0.0.0",
+        "HM_PROFILE": "office", "HM_PROFILE_CONFIRM": "yes", "HM_CREATE_DATABASE": "0",
+        "HM_SETTING_maxsubmissionsperipperminute": "30", "HM_PROPERTY_maxmessagesize": "20480"})
+    expect("mariadb is MySQL", environment({"db": {"type": "MariaDB"}}), [("HM_DB_TYPE", "MySQL")])
+    expect("nothing set", environment({}), [])
+    expect("an unset key", environment({"db": {"host": None}, "profile": None}), [])
+    refused("db.password", {"db": {"password": "x"}}, "hmailserver.set-database-password")
+    refused("a secret setting", {"setting": {"metricspassword": "x"}}, "--set-setting")
+    refused("a secret property", {"property": {"srssecret": "x"}}, "would hold a secret")
+    refused("an SNMP community", {"setting": {"snmpv2ccommunity": "x"}}, "would hold a secret")
+    refused("a token", {"property": {"webhooktoken": "x"}}, "would hold a secret")
+    refused("an API key", {"setting": {"relayapikey": "x"}}, "would hold a secret")
+    taken("the password policy is no secret", {"setting": {"passwordpolicyminimumlength": 12}},
+          [("HM_SETTING_passwordpolicyminimumlength", "12")])
+    taken("a hash's work factor is no secret", {"property": {"passwordhashiterations": 310000}},
+          [("HM_PROPERTY_passwordhashiterations", "310000")])
+    taken("a key's path is no secret", {"setting": {"restapiprivatekeyfile": COMMON + "data/k.pem"}},
+          [("HM_SETTING_restapiprivatekeyfile", COMMON + "data/k.pem")])
+    refused("a port that is true", {"db": {"port": True}}, "from 1 to 65535")
+    refused("an unknown db key", {"db": {"hots": "x"}}, "db.hots is not a key the snap reads")
+    refused("an unknown top key", {"dbs": {"host": "x"}}, "dbs is not a key the snap reads")
+    refused("db as a value", {"db": "postgresql"}, "is a group of keys")
+    refused("setting as a value", {"setting": "x"}, "setting.<name>=<value>")
+    refused("a database type", {"db": {"type": "oracle"}}, "db.type is one of")
+    refused("mssql", {"db": {"type": "mssql"}}, "db.type is one of")
+    refused("a port too high", {"db": {"port": 70000}}, "from 1 to 65535")
+    refused("a port that is a word", {"db": {"port": "5432; rm"}}, "from 1 to 65535")
+    refused("a fractional wait", {"db": {"wait-seconds": 1.5}}, "one value")
+    refused("a control character", {"db": {"host": "a\nb"}}, "control character")
+    refused("a list", {"db": {"host": ["a"]}}, "one value")
+    refused("a CA outside the snap", {"db": {"tls-ca": "/etc/ssl/ca.pem"}}, "under " + COMMON)
+    refused("a CA climbing out", {"db": {"tls-ca": COMMON + "../../../etc/shadow"}}, "under " + COMMON)
+    refused("a profile", {"profile": "open"}, "profile is one of")
+    refused("a switch", {"create-database": "maybe"}, "true or false")
+    refused("an upper-case setting name", {"setting": {"Max": 1}}, "lower case")
+    refused("a setting name with a hyphen", {"setting": {"max-x": 1}}, "lower case")
+    refused("a long value", {"db": {"host": "x" * (LONGEST + 1)}}, "longer than")
+    for line in failures:
+        print("FAIL " + line)
+    print("%s: %d failure(s)" % ("PASS" if not failures else "FAIL", len(failures)))
+    return 1 if failures else 0
+
+
+def main(argv):
+    if argv[1:] == ["--self-test"]:
+        return self_test()
+    if argv[1:2] == ["--self-test"] and len(argv) == 4 and argv[2] == "--source":
+        return self_test(argv[3])
+    if argv[1:] not in (["check"], ["env"]):
+        print("usage: hmailserver-snap-config check | env | --self-test", file=sys.stderr)
+        return 64
+    try:
+        pairs = environment(snapctl_config())
+    except Refused as error:
+        print("hmailserver: %s" % error, file=sys.stderr)
+        return 1
+    if argv[1] == "env":
+        for name, value in pairs:
+            if not re.fullmatch(r"HM_[A-Za-z0-9_]+", name) or "\0" in value:
+                print("hmailserver: %s cannot be passed on" % name, file=sys.stderr)
+                return 1
+        sys.stdout.write("".join("%s=%s\0" % pair for pair in pairs))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv))

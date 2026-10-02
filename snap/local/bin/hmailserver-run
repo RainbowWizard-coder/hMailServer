@@ -1,0 +1,28 @@
+#!/bin/bash
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# The command the container image's entrypoint runs last in the snap
+# (hmailserver/docs/Snap.md), as snap_daemon: what the .deb's unit runs before every
+# start, then the server itself.
+#
+#   - hmailserver --apply-new-install-defaults --if-marked: a database
+#     --create-database made a moment ago gets a new installation's defaults
+#     (docs/SecureDefaults.md) - a self-signed certificate, STARTTLS on 25, 587, 110
+#     and 143, and a password refused without TLS from any address but this
+#     machine's - and every other start does nothing. As the unit's ExecStartPre=-,
+#     its failure is said and does not stop the server.
+#   - the passwords the entrypoint wrote into the configuration taken out of the
+#     environment, so that the server's own does not carry them;
+#   - hmailserver --foreground, in place of this script, so that snapd's signals
+#     reach it.
+set -u
+
+if ! "$SNAP/usr/bin/hmailserver" --config "$HM_INI" --apply-new-install-defaults --if-marked; then
+   echo "hmailserver: --apply-new-install-defaults --if-marked did not finish (above); the server starts without it, and the setup checklist says what is left"
+fi
+
+unset HM_DB_PASSWORD HM_ADMIN_PASSWORD HM_DB_PASSWORD_FILE HM_ADMIN_PASSWORD_FILE
+
+exec "$SNAP/usr/bin/hmailserver" --config "$HM_INI" --foreground

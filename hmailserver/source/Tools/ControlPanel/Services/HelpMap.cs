@@ -203,6 +203,7 @@ namespace hMailServer.ControlPanel.Services
          "SharedAddressBooks.md",
          "Signatures.md",
          "SmimeAuthority.md",
+         "Snap.md",
          "TestLab.md",
          "Snmp.md",
          "SourcePackages.md",

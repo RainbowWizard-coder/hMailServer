@@ -1,0 +1,119 @@
+#!/bin/bash
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# The snap's second step, run as the server's account (snap_daemon) by
+# hmailserver-daemon and hmailserver-cli once root has made the directories
+# (hmailserver/docs/Snap.md):
+#
+#   hmailserver-start daemon   the configuration made or brought up to date, then
+#                              - unless no database is named anywhere, which is said
+#                              and ends the start with status 0 - the container
+#                              image's entrypoint (hmailserver-entrypoint, unchanged),
+#                              which writes [Database] from the HM_* environment,
+#                              creates or upgrades the database, applies the settings
+#                              and the profile, and runs hmailserver-run
+#   hmailserver-start cli ARG...
+#                              the configuration made, then the server's own verb
+#                              against it: hmailserver --config <it> ARG...
+#
+# Both first give the account's three directories their modes and make data's
+# subdirectories (hm_snap_prepare_own), which root, without CAP_DAC_OVERRIDE under
+# snapd's AppArmor profile, cannot make inside a directory of the account's.
+#
+# The configuration is $SNAP_COMMON/etc/hMailServer.ini, made at the first start from
+# the .deb's own (etc/hmailserver/hMailServer.ini in the snap) with the directories
+# under $SNAP_COMMON. ProgramFolder - the DBScripts, the Control Deck and the licences
+# - is the running revision's, so it is set again at every start: a refresh mounts the
+# new revision at another path. Every other line is the administrator's and is left as
+# it is.
+set -eu
+
+# shellcheck source=snap/local/bin/hmailserver-snap-env
+. "$SNAP/bin/hmailserver-snap-env"
+
+umask 077
+
+hm_snap_prepare_own
+
+# The file with [Directories] as the snap has it: ProgramFolder always, and the other
+# five only when the file is new ("all"). Keys are found as the server finds them
+# (IniFileSettings.cpp): without case, with the spaces around a name left out.
+hm_snap_directories() {
+   local source="$1" which="$2" tmp
+   tmp="$(mktemp "$HM_SNAP_CONF_DIR/.hMailServer.ini.XXXXXX")"
+   if ! awk -v which="$which" \
+            -v program="$SNAP/usr/share/hmailserver" \
+            -v data="$HM_SNAP_DATA" \
+            -v logdir="$HM_SNAP_LOG" '
+      function trim(text) { sub(/^[[:space:]]+/, "", text); sub(/[[:space:]]+$/, "", text); return text }
+      BEGIN { section = "" }
+      /^[[:space:]]*\[/ {
+         header = trim($0); end = index(header, "]")
+         section = (end > 0) ? tolower(trim(substr(header, 2, end - 2))) : ""
+         print; next
+      }
+      section == "directories" && index($0, "=") > 0 {
+         key = tolower(trim(substr($0, 1, index($0, "=") - 1)))
+         if (key == "programfolder") { print "ProgramFolder=" program; next }
+         if (which == "all") {
+            if (key == "datafolder") { print "DataFolder=" data; next }
+            if (key == "logfolder") { print "LogFolder=" logdir; next }
+            if (key == "tempfolder") { print "TempFolder=" data "/temp"; next }
+            if (key == "eventfolder") { print "EventFolder=" data "/events"; next }
+            if (key == "databasefolder") { print "DatabaseFolder=" data "/database"; next }
+         }
+      }
+      { print }
+   ' "$source" > "$tmp"; then
+      rm -f "$tmp"
+      echo "hmailserver: $source could not be read" >&2
+      return 1
+   fi
+   mv -f "$tmp" "$HM_INI"
+}
+
+if [ ! -e "$HM_INI" ]; then
+   hm_snap_directories "$SNAP/etc/hmailserver/hMailServer.ini" all
+   echo "hmailserver: $HM_INI made, with its directories under $SNAP_COMMON"
+elif ! grep -qxF "ProgramFolder=$SNAP/usr/share/hmailserver" "$HM_INI"; then
+   hm_snap_directories "$HM_INI" program
+fi
+
+cd "$HM_SNAP_DATA"
+
+# The [Database] section's Type as the server reads the file (IniFileSettings.cpp):
+# the section and the key in any case, with the spaces around them left out.
+hm_snap_database_type() {
+   awk '
+      function trim(text) { sub(/^[[:space:]]+/, "", text); sub(/[[:space:]]+$/, "", text); return text }
+      { sub(/\r$/, "") }
+      /^[[:space:]]*\[/ { header = trim($0); end = index(header, "]"); s = (end > 0 && tolower(trim(substr(header, 2, end - 2))) == "database"); next }
+      s && index($0, "=") > 0 && tolower(trim(substr($0, 1, index($0, "=") - 1))) == "type" { print trim(substr($0, index($0, "=") + 1)); exit }
+   ' "$HM_INI"
+}
+
+case "${1:-}" in
+   daemon)
+      # No database named anywhere - neither db.type nor a Type in the file's
+      # [Database] - is said, with what to do, and the service ends with status 0,
+      # so that snapd does not start it again and again.
+      if [ -z "${HM_DB_TYPE:-}" ] && [ -z "$(hm_snap_database_type)" ]; then
+         echo "hmailserver: no database is configured, so the server does not start. Name one, then start the service:"
+         echo "  sudo snap set hmailserver db.type=postgresql db.host=<address> db.name=hmailserver db.user=hmailserver"
+         printf '%s\n' "  printf '%s\\n' '<the password>' | sudo hmailserver.set-database-password"
+         echo "  sudo snap start --enable hmailserver.daemon"
+         exit 0
+      fi
+      exec "$SNAP/bin/hmailserver-entrypoint" "$SNAP/bin/hmailserver-run"
+      ;;
+   cli)
+      shift
+      exec "$SNAP/usr/bin/hmailserver" --config "$HM_INI" "$@"
+      ;;
+   *)
+      echo "hmailserver-start daemon | cli ARG..." >&2
+      exit 64
+      ;;
+esac

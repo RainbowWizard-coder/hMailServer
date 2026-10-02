@@ -1,0 +1,161 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# The snap (hmailserver/docs/Snap.md). It is made from the Ubuntu 24.04 .deb of
+# the same pipeline (deb-ubuntu24.04-<arch>, .gitlab/ci/packages-deb.yml), which
+# core24 - Ubuntu 24.04's runtime - runs as it is, by build/ci/snap-build.sh:
+# snapcraft from the Snap Store, pinned by revision and SHA3-384, in destructive
+# mode in an Ubuntu 24.04 container of the snap's own architecture. Nothing is
+# compiled here; the server is the .deb's, byte for byte.
+#
+# Strict confinement: a mail server needs the network and its listening ports
+# (network, network-bind) and nothing of the machine's own files, so nothing
+# here asks for classic, which the store grants only to a few kinds of tool and
+# which would confine nothing. The server runs as snap_daemon, not root: the
+# daemon's wrapper drops to it with the one capability it keeps for its ports
+# below 1024, as the .deb's unit does with its own user (Snap.md, "Why strict").
+
+name: hmailserver
+title: hMailServer
+base: core24
+adopt-info: hmailserver
+summary: A mail server for SMTP, IMAP and POP3, with a REST API
+description: |
+  hMailServer is a mail server: SMTP in and out, IMAP and POP3, with spam and
+  virus checks, DKIM, SPF, DMARC and ARC, and its administration over a REST API
+  and the Control Deck page that API serves. It keeps its accounts and settings
+  in a PostgreSQL or MariaDB/MySQL database of yours, reached over the network,
+  and its messages under /var/snap/hmailserver/common.
+
+  After installing, point it at its database and start it:
+
+      sudo snap set hmailserver db.type=postgresql db.host=192.0.2.10 \
+          db.name=hmailserver db.user=hmailserver
+      printf '%s\n' 'the database password' | sudo hmailserver.set-database-password
+      sudo snap start --enable hmailserver.daemon
+
+  The documentation: https://gitlab.com/hmailserver/hmailserver/-/blob/master/hmailserver/docs/Snap.md
+license: AGPL-3.0-or-later
+grade: stable
+confinement: strict
+contact: https://gitlab.com/hmailserver/hmailserver/-/issues
+issues: https://gitlab.com/hmailserver/hmailserver/-/issues
+source-code: https://gitlab.com/hmailserver/hmailserver
+website: https://www.progressiverobot.com
+
+# Each snap is built on its own architecture: build/ci/snap-build.sh runs in an
+# Ubuntu 24.04 container of that architecture (arm64 under linix's qemu-user).
+platforms:
+  amd64:
+  arm64:
+
+# The account the server runs as. snapd makes it at install (uid and gid 584788)
+# and lets the snaps that ask for it change to it: it is shared between them, and
+# what keeps another snap running as snap_daemon out of /var/snap/hmailserver is
+# that snap's own AppArmor profile, which a machine without AppArmor does not
+# enforce (Snap.md, "Why strict, and as snap_daemon"). Its directories are not
+# world-readable.
+system-usernames:
+  snap_daemon: shared
+
+# libpq, unless told otherwise, looks for a Kerberos credential before every
+# connection to try GSSAPI encryption (gssencmode=prefer), and in doing so reads
+# /etc/gss/mech.d, which the snap's AppArmor profile denies, once per connection, in
+# the kernel's log. A strictly confined service has no Kerberos credential to offer,
+# so the snap tells libpq not to look: the connection is encrypted with TLS, or not,
+# as the configuration's TlsMode says (DatabaseTls.md), as it would be anyway.
+environment:
+  PGGSSENCMODE: disable
+
+# The MariaDB client is opened with dlopen when a MySQL database is configured, so
+# the library linter, which reads the server's DT_NEEDED, takes it for unused.
+lint:
+  ignore:
+    - library:
+        - usr/lib/*/libmariadb.so.3
+
+apps:
+  # The service: snap.hmailserver.daemon. Not started at install, since it has no
+  # database yet; a start without one says so, and Snap.md how to enable it.
+  daemon:
+    command: bin/hmailserver-daemon
+    daemon: simple
+    install-mode: disable
+    restart-condition: on-failure
+    restart-delay: 5s
+    start-timeout: 300s
+    stop-timeout: 300s
+    plugs: [network, network-bind]
+  # The server's own verbs against the snap's configuration: sudo hmailserver
+  # --check-config, --set-admin-password, --create-stored-secrets-key and the rest
+  # (CommandLine.md), run as snap_daemon, the service's account.
+  hmailserver:
+    command: bin/hmailserver-cli
+    plugs: [network]
+  # The REST API's command-line client.
+  hmctl:
+    command: usr/bin/hmctl
+    plugs: [network]
+  # The database password, read from standard input into a file only root reads.
+  # Never a snap set value: those can be read back by more than root.
+  set-database-password:
+    command: bin/hmailserver-set-database-password
+
+parts:
+  hmailserver:
+    plugin: nil
+    # The .deb snap-build.sh put here for this architecture; dpkg-deb unpacks it
+    # as it is. Its version, without the Debian revision, is the snap's.
+    override-build: |
+      deb="$CRAFT_PROJECT_DIR/snap-build/input/hmailserver_${CRAFT_ARCH_BUILD_FOR}.deb"
+      if [ ! -f "$deb" ]; then
+        echo "No $deb: build/ci/snap-build.sh puts the Ubuntu 24.04 .deb there" >&2
+        exit 1
+      fi
+      dpkg-deb -x "$deb" "$CRAFT_PART_INSTALL"
+      version="$(dpkg-deb -f "$deb" Version)"
+      craftctl set version="${version%%-*}"
+    # The .deb's Depends that core24 does not carry (libpq5, libldap2 and theirs),
+    # the MariaDB client the server opens when a MySQL database is configured,
+    # and 7-Zip, which it runs to look inside archives.
+    stage-packages:
+      - libpq5
+      - libldap2
+      - libmariadb3
+      - 7zip
+    # Left out: what only a package manager's install uses - the systemd units,
+    # the live update's helper (snapd updates a snap), the auto-ban hook (the
+    # snap may not change the machine's firewall), logrotate's and fail2ban's
+    # files. etc/hmailserver/hMailServer.ini stays, as the template the daemon's
+    # wrapper copies the snap's own configuration from.
+    prime:
+      - -etc/fail2ban
+      - -etc/logrotate.d
+      - -usr/lib/systemd
+      - -usr/lib/hmailserver
+
+  # timeout(1), which the container image's entrypoint runs to bound each attempt of
+  # its wait for the database server (db.wait-seconds). core24 has it, but snapd's
+  # AppArmor profile lets a strict snap run only a list of the base's programs, and
+  # timeout is not on that list, while a program in the snap itself may run; the
+  # snap's usr/bin comes before the base's on its PATH. Ubuntu 24.04's coreutils, as
+  # core24 carries it, and nothing else of it.
+  timeout:
+    plugin: nil
+    stage-packages:
+      - coreutils
+    stage:
+      - usr/bin/timeout
+      - usr/share/doc/coreutils/copyright
+
+  # snap/local/bin: the daemon's wrapper and the commands above.
+  wrappers:
+    plugin: dump
+    source: snap/local
+    override-build: |
+      craftctl default
+      # The container image's entrypoint, unchanged: the same HM_* contract makes
+      # the snap's configuration as it makes the container's.
+      entrypoint="$CRAFT_PROJECT_DIR/hmailserver/source/Server/platform/packaging/docker/docker-entrypoint.sh"
+      install -D -m 0755 "$entrypoint" "$CRAFT_PART_INSTALL/bin/hmailserver-entrypoint"

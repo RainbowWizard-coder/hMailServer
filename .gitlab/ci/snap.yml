@@ -1,0 +1,56 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# The snap (snap/snapcraft.yaml; hmailserver/docs/Snap.md). Included by .gitlab-ci.yml.
+#
+#   snap-build-amd64   linix: build/ci/snap-build.sh in Ubuntu 24.04, amd64, from
+#                      deb-ubuntu24.04-amd64's hmailserver_<v>-1~ubuntu24.04_amd64.deb
+#   snap-build-arm64   linix: the same in Ubuntu 24.04, arm64, under qemu-user through
+#                      linix's qemu-aarch64 binfmt handler, from deb-ubuntu24.04-arm64's
+#
+# Each leaves snap/hmailserver_<v>_<arch>.snap, which snap-upload
+# (.gitlab/ci/channels.yml) takes on master, and snap-build/<arch>/: the snap's
+# meta/snap.yaml, its file list, its SHA-256 and SHA3-384 and snapcraft's log.
+#
+# snapcraft is itself a snap, and these job containers have no snapd: snap-tools.sh
+# takes snapcraft and core24 from the Snap Store at a pinned revision, holds each to
+# the SHA3-384 of the store's signed assertion for it, and unpacks them where snapd
+# would mount them; snapcraft then packs in destructive mode, in this container,
+# which is the Ubuntu 24.04 core24 is. No LXD, no remote build, no privilege, and
+# nothing from GitHub: the rest comes from Ubuntu's archive.
+#
+# When: as the install jobs - .own-runners' own rules, so a batch* pipeline builds the
+# snap once its .deb is built, and master builds it once the .deb's manual build has
+# been played; never a merge request, an unprotected ref, a schedule or a downstream
+# pipeline. A check only, like package-systemd: never on a v* tag, whose tree has
+# passed it in the batch's pipeline, and not among release's needs; the snap is not a
+# file of the release (Channels.md, "Snap Store").
+#
+# The images are packages-deb.yml's Ubuntu 24.04 ones, pinned by each architecture's
+# own manifest digest.
+.snap-build:
+  extends: .no-github
+  stage: test
+  tags: [linix]
+  timeout: 45 minutes
+  rules:
+    - if: $CI_COMMIT_TAG
+      when: never
+    - !reference [.own-runners, rules]
+  script:
+    - bash build/ci/snap-build.sh
+  artifacts:
+    when: always
+    expire_in: 14 days
+    paths:
+      - snap/*.snap
+      - snap-build/
+
+snap-build-amd64:
+  extends: [.snap-build, .deb-image-ubuntu24.04-amd64]
+  needs: [deb-ubuntu24.04-amd64]
+
+snap-build-arm64:
+  extends: [.snap-build, .deb-image-ubuntu24.04-arm64]
+  needs: [deb-ubuntu24.04-arm64]
