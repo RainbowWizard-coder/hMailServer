@@ -2131,6 +2131,26 @@ upgrade, item 29). In every version up to 6.3.5; found by the project's own revi
   link it. The `.deb` and `.rpm` help pages, which said no Roadmap2 row carried choosing a package by
   distribution, now name the Roadmap3.md row that does.
 
+- **The packages started under their own systemd unit, with systemd as PID 1.** Two new jobs,
+  `package-systemd-ubuntu26.04` and `package-systemd-fedora44` (`.gitlab/ci/package-systemd.yml`,
+  `build/ci/package-systemd-test.sh`). They take `linux-build`'s `.deb` and `rpm-fedora44-x86_64`'s `.rpm` and run
+  each in the distribution's own image with systemd as PID 1. There they check the package scripts' systemd
+  branches, `systemd-analyze verify`, and the unit's first start, which must make the STARTTLS certificate. The
+  unit's journal must not say that systemd ignored part of its sandbox, and the jobs read the sandbox from the
+  running server: `hmailserver`'s uid, `CAP_NET_BIND_SERVICE` alone, no new
+  privileges, a seccomp filter, and a read-only system with its two directories writable, a private `/tmp` and a
+  `/dev` of its own, another tmpfs than the container's. SMTP on 25 and 587, POP3, IMAP and the REST API must
+  answer. Then the server is reloaded, which must replace its listening sockets in the same process, stopped,
+  started again and removed while running. Until now no job had started the unit itself, since the install jobs'
+  containers have no systemd. The jobs run on linix's privileged runner entry, through podman. The container
+  systemd runs in is not privileged: it gets `CAP_SYS_ADMIN` only, and its image masks `systemd-binfmt`, after a
+  privileged systemd container removed the host's binfmt handlers on 29 September. The job counts those handlers
+  before and after, and fails if any went. Both passed by hand on linix with batch42's packages. Nine negative
+  controls each failed at the check they target: an extra capability, `ProtectSystem=no`, `PrivateDevices=no`, no
+  first-start step, a reload that does nothing, a stop that cannot end cleanly, systemd's "ignoring" line in the
+  journal, no `CAP_SYS_ADMIN` and an unprivileged job container; and an image whose `systemd-binfmt` is not
+  masked is told apart from one whose is (`hmailserver/docs/PackagesDeb.md`, "Started under systemd").
+
 - **Ten static-analysis findings of numbers held to their range, fixed; `ini-file-tests` and `scram-tests`.** The
   fixes are the filter hook's score and the Sieve quantifier (Anti-spam, above) and the configuration file's owner,
   the calendar's SEQUENCE and PRIORITY and the iteration count SCRAM and a password logon read (Operations, above);

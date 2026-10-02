@@ -1,0 +1,80 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# The package started under its own systemd unit, with systemd as PID 1
+# (hmailserver/docs/PackagesDeb.md, "Started under systemd"). Included by
+# .gitlab-ci.yml.
+#
+#   package-systemd-ubuntu26.04  linux-build's hmailserver_<v>_amd64.deb, in Ubuntu 26.04
+#   package-systemd-fedora44     rpm-fedora44-x86_64's hmailserver-<v>-1.fc44.x86_64.rpm,
+#                                in Fedora 44
+#
+# Each runs build/ci/package-systemd-test.sh: an image of the distribution's own,
+# pinned by digest, with systemd added; systemd as PID 1 in it, under podman; the
+# package installed with apt or dnf; the unit started, its sandbox read from the
+# running process, SMTP, submission, POP3, IMAP and the REST API asked whether they
+# answer; reloaded, stopped, started again and removed with the server running.
+#
+# The runner: linix's second runner entry, tag linix-systemd (runner 56932743),
+# protected refs only, like runner 56743206 beside it, and privileged, since podman
+# needs that to run a container in the job's. The container systemd runs in is
+# not privileged: it has CAP_SYS_ADMIN, so that systemd can build the unit's mount
+# namespace, and /proc/sys and /sys read-only, and its image masks systemd-binfmt.
+# A systemd in a privileged container on linix removed the host's binfmt_misc
+# handlers when it stopped (29 September 2026); the script counts them before and
+# after and fails the job if any went.
+#
+# When: by .own-runners' own rules, each after the job whose package it starts: in a
+# batch* branch's pipeline at once; on master the .deb's after linux-build, and the
+# .rpm's once its build, which is by hand there, has been run. Never for a merge
+# request or an unprotected ref, and never in a scheduled or downstream pipeline. A
+# check only, like linux-live-update: never on a v* tag, whose tree has passed it in
+# the batch's pipeline, so the release neither waits for linix-systemd nor needs it.
+#
+# The images: the job's is Ubuntu 26.04 by linux-package-deb's digest, and its
+# PostgreSQL that job's; the ones systemd runs in are the script's defaults for
+# HM_SYSTEMD_UBUNTU_IMAGE and HM_SYSTEMD_FEDORA_IMAGE, by digest, which Renovate's
+# HM_*_IMAGE manager reads: Ubuntu's by that same digest and Fedora's by
+# packages-rpm.yml's .rpm-image-fedora44-x86_64. Nothing is fetched
+# from GitHub: podman from Ubuntu's archive, the images from Docker Hub and
+# registry.fedoraproject.org, the package's dependencies from each distribution's
+# archive; .no-github keeps GitHub's hosts out of the job and, through the hosts
+# file podman hands on, out of the container.
+.package-systemd:
+  extends: .no-github
+  stage: test
+  tags: [linix-systemd]
+  image:
+    name: ubuntu:26.04@sha256:da6fc2be547864451aa253836dd926da33623312df4a9a243e35dc877c378a78
+    pull_policy: if-not-present
+  timeout: 45 minutes
+  rules:
+    - if: $CI_COMMIT_TAG
+      when: never
+    - !reference [.own-runners, rules]
+  services:
+    - name: postgres:18@sha256:5a5a84b19854a9ffaa54082c166ff4ec27473a361e496e5ea167f298f2da9722
+      alias: postgres
+      pull_policy: if-not-present
+      variables:
+        POSTGRES_USER: hmailserver
+        POSTGRES_PASSWORD: hmtest
+        POSTGRES_DB: hmsystemd
+  artifacts:
+    when: always
+    expire_in: 7 days
+    paths:
+      - package-systemd/
+
+package-systemd-ubuntu26.04:
+  extends: .package-systemd
+  needs: [linux-build]
+  script:
+    - bash build/ci/package-systemd-test.sh ubuntu26.04
+
+package-systemd-fedora44:
+  extends: .package-systemd
+  needs: [rpm-fedora44-x86_64]
+  script:
+    - bash build/ci/package-systemd-test.sh fedora44

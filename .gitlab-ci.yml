@@ -144,6 +144,8 @@ include:
   - local: .gitlab/ci/alpine.yml
   # The release channels: a signed release published to Docker Hub, Quay, ECR Public, the AUR, a Launchpad PPA, Copr, OBS, Chocolatey and the Snap Store, by hand on master, each dormant until its account exists (docs/Channels.md).
   - local: .gitlab/ci/channels.yml
+  # The .deb and the Fedora 44 .rpm started under their own systemd unit, systemd as PID 1, on linix's privileged runner entry (docs/PackagesDeb.md, "Started under systemd").
+  - local: .gitlab/ci/package-systemd.yml
 
 stages:
   - check

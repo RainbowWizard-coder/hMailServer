@@ -517,7 +517,132 @@ architecture:
 **What the test does not do.** It does not start the server against a database,
 and it has no systemd to start the unit.
 `build/ci/linux-package-install.sh` does the first for linux-build's amd64
-package in the `linux-package-deb` job, and says what a container cannot prove.
+package in the `linux-package-deb` job, and `package-systemd-ubuntu26.04` does
+the second ([Started under systemd](#started-under-systemd)).
+
+Started under systemd
+---------------------
+
+`package-systemd-ubuntu26.04` starts `linux-build`'s `hmailserver_<v>_amd64.deb`
+under its own unit, with systemd as PID 1, and `package-systemd-fedora44` does the
+same for `rpm-fedora44-x86_64`'s `hmailserver-<v>-1.fc44.x86_64.rpm`
+([PackagesRpm.md](PackagesRpm.md), "Started under systemd"). No other job does: the
+install tests and `linux-package-deb` run in containers without systemd, and
+`linux-package-install.sh` starts the server the way the unit would, not under it.
+So the unit's sandbox, its first-start step and the package scripts' systemd
+branches had run on no machine of the project's. The jobs are in
+`.gitlab/ci/package-systemd.yml`, and both run `build/ci/package-systemd-test.sh`
+on linix's privileged runner entry, `linix-systemd`
+([ContinuousIntegration.md](ContinuousIntegration.md), "linix"), in a `batch*`
+branch's pipeline and on master, never on a `v*` tag: they are checks, like
+`linux-live-update`, and the release does not wait for them.
+
+1. podman, from Ubuntu's archive, in the job's container. With it, an image of the
+   distribution's own, pinned by digest, with systemd added and `systemd-binfmt`
+   masked. systemd runs as PID 1 in it (`podman run --systemd=always`), in the
+   job's network namespace, beside the job's PostgreSQL service.
+2. The package installed with `apt-get` or `dnf`, which resolve its dependencies
+   from the distribution's archive. The package's scripts then run with systemd
+   up: `hmailserver.service` must be enabled and not started, and
+   `hmailserver-update.path` enabled and started. `systemd-analyze verify` must
+   pass the three units on the distribution's own systemd. Each step that fetches
+   (podman, the image, the package's dependencies) is tried up to three times,
+   15 seconds apart, when its output shows only that the archive or registry could
+   not be reached, and fails at once otherwise, as the install tests' steps do.
+3. The configuration, as `packaging/README.md` tells an administrator: the INI
+   pointed at the database, `--check-config` and `--create-database` as
+   `hmailserver`, the administrator's password and `RestApiPort` set.
+4. `systemctl start`. The unit's journal must not hold a line in which systemd
+   says it is ignoring part of the sandbox, as it does where a container forbids
+   it ("ProtectHostname=yes is configured, but UTS namespace setup is prohibited
+   (container manager?), ignoring namespace setup"). The sandbox is read from the
+   running process: it must run as `hmailserver`, hold `CAP_NET_BIND_SERVICE`
+   and nothing else (effective, permitted, bounding and ambient), have
+   `NoNewPrivs` and a seccomp filter, and have a mount namespace of its own. In
+   that namespace `/`, `/usr`, `/etc` and
+   `/var` must be read-only, `/var/lib/hmailserver` and `/var/log/hmailserver`
+   writable, `/tmp` the unit's private one and `/dev` its own tmpfs: another
+   tmpfs than PID 1's, since podman gives the container a tmpfs `/dev` as well.
+   `systemd-analyze security` is kept with the job's artifacts.
+5. SMTP on 25 and 587 (a 220, and EHLO offering STARTTLS), POP3 on 110, and IMAP
+   on 143 (CAPABILITY offering STARTTLS). STARTTLS is there only because the
+   unit's first start ran `--apply-new-install-defaults --if-marked`, which made
+   the certificate. That step must have exited 0 and removed `.new-installation`.
+   The REST API answers `GET /api/v1/status` with the administrator's password,
+   refuses a wrong one with 401, and serves the Control Deck at `GET /`.
+6. `systemctl reload` must reinitialise the server in the same process. The
+   server answers the unit's SIGHUP by stopping its servers and starting them
+   again, so the socket listening on 25 must be a new one within a minute, and
+   SMTP and the REST API must answer again. `systemctl stop` must end with the
+   result `success` and nothing listening.
+7. Started again, the package is removed with the server running. Its scripts
+   must stop the server and disable both units, leaving nothing running, listening
+   or linked.
+8. The container stops as a system does (`SIGRTMIN+3`), and it and its image are
+   removed.
+
+**Why the container systemd runs in is not privileged.** linix's privileged
+runner entry is there because podman needs privilege to run a container inside
+the job's. The container systemd runs in has `CAP_SYS_ADMIN`, which systemd needs
+to build the unit's mount namespace. Without it, Ubuntu 26.04's systemd 259 does
+not start the unit at all: it fails at the step USER ("Failed to keep
+CAP_SYS_ADMIN: Operation not permitted", status 217). Nothing else is granted: `/proc/sys` and
+`/sys` stay read-only, as in any unprivileged container. This matters because a
+privileged container shares the host's kernel settings, and its systemd treats
+them as its own. On 29 September 2026 a systemd in a privileged container on
+linix removed every binfmt_misc handler of the host when it stopped, and the
+arm64 jobs then failed with "exec format error". The image masks
+`systemd-binfmt` as well, and the script counts the host's handlers through a
+read-only mount, before and after; if any went, the job fails and says how to
+restore them (`sudo systemctl restart systemd-binfmt` on linix).
+
+**What has run.** Both jobs' script, by hand on linix on 2 October 2026, as the
+runner runs it: a privileged `ubuntu:26.04` job container by the job's digest,
+with six CPUs and 8 GB, beside a `postgres:18` service (18.6) by the job's digest
+and with `.no-github`'s hosts entries. It ran with `batch42`'s packages from
+pipeline 2897966924 (`cec2b151d`: `linux-build` job 16842363185,
+`rpm-fedora44-x86_64` job 16842363163), and both passed, with systemd 259 on each
+distribution and an exposure of 1.7 ("OK") from `systemd-analyze security`. Each
+run took under two minutes, from installing podman to removing the image: the last
+ones, with the script as it is now, 95 s for Ubuntu 26.04 and 101 s for Fedora 44,
+and 100 s for Ubuntu with a drop-in that changes nothing, which the script put in
+and took out again. linix's 32 binfmt_misc handlers, the 31 of qemu among them,
+were there before and after every run. Each check was shown to fail when what it
+checks is not so:
+
+| Negative control | Where it failed |
+|---|---|
+| a drop-in adding `CAP_SYS_ADMIN` to the unit's capabilities | "CapEff is 0000000000200400, not CAP_NET_BIND_SERVICE alone" |
+| a drop-in setting `ProtectSystem=no` | "/ is not read-only to the server (ProtectSystem=strict): 'rw,relatime'" |
+| a drop-in setting `PrivateDevices=no` | "/dev is not the unit's own tmpfs (PrivateDevices): the server's is tmpfs 0:150, PID 1's 0:150" |
+| a drop-in clearing `ExecStartPre` | "25 does not offer STARTTLS: the first start did not apply the new installation's defaults" |
+| a drop-in making `ExecReload` `/bin/true` | "the reload did not reinitialise the server: 60 seconds after it the socket listening on 25 is '1072541', and was 1072541" |
+| a drop-in making the stop signal `SIGCONT`, with five seconds to stop | "hmailserver.service is 'failed' (is-active), not inactive" |
+| a drop-in whose `ExecStartPre` writes systemd's own "is configured, but ... ignoring namespace setup" line to the journal | "systemd left part of the unit's sandbox out" |
+| the systemd container without `CAP_SYS_ADMIN` | "the REST API did not answer on 8046: the unit is 'activating', and a unit that stays active is given 90 seconds" (it failed at step USER, status 217, and was waiting to restart) |
+| the job container not privileged | "REFUSED: binfmt_misc cannot be mounted here: this is not the privileged runner" |
+| `systemd-binfmt` not masked | `systemctl is-enabled` answers "static", not "masked" |
+
+The drop-ins go in through `HM_SYSTEMD_TEST_DROPIN`, which no job sets; the
+script takes its own drop-in out again before it looks for what the removal left.
+The control with the journal line writes the line itself: a real one comes only
+from a container that forbids part of the sandbox, where the unit then either
+starts without it or, as without `CAP_SYS_ADMIN`, does not start. The binfmt
+guard itself, the count falling during a run, was not provoked: that would take
+linix's handlers away. The jobs have not yet run in a pipeline: the first is
+`batch42`'s next.
+
+The re-check of 2 October found two checks that held without what they check,
+and the third and fifth rows are what replaced them. podman gives the container a
+tmpfs `/dev` of its own, so a `/dev` of type tmpfs proved nothing about
+`PrivateDevices`; and a reload was taken as done when the same process answered
+afterwards, which it also does when the signal changes nothing. With
+`PrivateDevices=no` and `ExecReload=/bin/true` together, the first version of the
+script passed both checks and every one after them but the last, which failed only
+on the drop-in's own directory: the reason the script now takes it out, so that a
+control which changes nothing passes. The same day a run failed
+when Fedora's mirror list timed out from linix, which is why the steps that fetch
+are now tried again.
 
 The live update
 ---------------

@@ -490,6 +490,18 @@ What the host needs:
 Nothing else is installed on the host for CI. The toolchains, the .NET SDK,
 PowerShell, Syft and the database clients are in the image.
 
+The same runner service has a second entry, `linix-systemd`, runner 56932743 on
+GitLab (1 October 2026). It is privileged, has the one tag `linix-systemd`, and,
+like the first, takes protected refs only and no untagged job. Its other settings
+are the first entry's: the docker executor, `ubuntu:26.04`, six CPUs and 8 GB for
+each job, `if-not-present`. The two entries share the service's `concurrent`.
+`package-systemd-ubuntu26.04` and `package-systemd-fedora44` use it, since podman
+needs privilege to run the container systemd runs in inside the job's. That inner
+container is not privileged, and its image masks `systemd-binfmt`
+([PackagesDeb.md](PackagesDeb.md), "Started under systemd", says why). A job on this
+entry is root on linix in effect, so nothing that runs a merge request's or a
+fork's code may take its tag.
+
 ### bench150
 
 The second Windows regression bench at 192.168.11.150: Windows Server 2025 with
@@ -1029,7 +1041,10 @@ with `CAP_NET_BIND_SERVICE` alone and no new privileges, through `setpriv` - and
 asks whether the REST API answers and whether `GET /` is the Control Deck, byte
 for byte. What a container cannot show is the start under systemd itself, with
 the unit's sandbox in force: the old job's hosted runner had systemd, and a job
-container does not. `update-helper` still verifies the units.
+container does not. `package-systemd-ubuntu26.04` and `package-systemd-fedora44`
+show it, on linix's privileged runner entry: the `.deb` and Fedora 44's `.rpm`
+started under their unit with systemd as PID 1 (PackagesDeb.md, "Started under
+systemd"). `update-helper` still verifies the units.
 `linux-package-rpm` installs the `.rpm` in Fedora 44 with `--nodeps`, as before:
 it is built on Ubuntu, so its requirements name Ubuntu's sonames. From 6.3.6 it
 first reads that the package requires glibc's character-set converters

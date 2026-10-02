@@ -26,7 +26,9 @@
 #
 # What a container cannot prove, and the hosted runner did: the start under
 # systemd itself, with the unit's whole sandbox (ProtectSystem=strict, the
-# syscall filter) in force. The unit's syntax is verified by the update-helper
+# syscall filter) in force. The package-systemd jobs prove that, with systemd as
+# PID 1 on linix's privileged runner entry (build/ci/package-systemd-test.sh).
+# The unit's syntax is verified by the update-helper
 # job's systemd-analyze, and the unit's user, directory and capability are
 # reproduced here with setpriv. The privileged listeners bind in any case in a
 # container, because docker sets net.ipv4.ip_unprivileged_port_start to 0.

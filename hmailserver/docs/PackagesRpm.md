@@ -676,7 +676,8 @@ package's architecture:
 **What the test does not do.** It does not start the server against a database,
 and it has no systemd to start the unit. `build/ci/linux-package-install.sh`
 does the first for `linux-build`'s packages in the `linux-package-*` jobs, and
-says what a container cannot prove.
+`package-systemd-fedora44` does both for Fedora 44's x86_64 package
+([Started under systemd](#started-under-systemd)).
 
 **When the repository cannot be reached.** Both scripts try a package
 manager's step up to three times when its output shows it could not reach the
@@ -687,6 +688,28 @@ under qemu, where apt's fall-back from an unreachable IPv6 address often gave up
 (`docs/PackagesDeb.md`), and force IPv4. dnf and zypper fetch through libcurl,
 which tries IPv6 and IPv4 side by side, and none of the RPM runs met a failure
 to connect, so they do not force IPv4.
+
+Started under systemd
+---------------------
+
+`package-systemd-fedora44` (`.gitlab/ci/package-systemd.yml`) installs
+`rpm-fedora44-x86_64`'s `hmailserver-<v>-1.fc44.x86_64.rpm` with `dnf` in Fedora 44
+with systemd as PID 1. It starts the unit, reads the sandbox from the running
+server, asks SMTP, POP3, IMAP and the REST API whether they answer, then reloads,
+stops, starts and removes it. `package-systemd-ubuntu26.04` does the same for
+the `.deb`, and [PackagesDeb.md](PackagesDeb.md), "Started under systemd", says
+what each step holds the package to and what has run. What the Fedora job adds:
+
+- `%post`'s and `%preun`'s systemd branches run with systemd up. The install
+  must leave `hmailserver.service` enabled and not started, and
+  `hmailserver-update.path` enabled and started. `dnf remove` with the server
+  running must stop it and disable both units.
+- Fedora's image has no `runuser` ([The install test](#the-install-test)), so the
+  server's verbs run as `hmailserver` through `podman exec --user`. Its systemd
+  needs `dbus-broker`, or `systemd-logind` fails and the system is "degraded".
+  Both the image's systemd and D-Bus are installed with weak dependencies off.
+- It runs on Fedora 44's systemd (259 on 2 October 2026), with Fedora's own drop-in
+  for every service (`10-timeout-abort.conf`) in force.
 
 Running a job by hand
 ---------------------
