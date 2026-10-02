@@ -6,6 +6,8 @@
 #include "AutoBanFirewall.h"
 
 #include "AlertManager.h"
+#include "AutoBanWidener.h"
+#include "NeverBanNameList.h"
 #include "../Application/Application.h"
 #include "../Threading/Task.h"
 #include "../Threading/WorkQueue.h"
@@ -289,17 +291,18 @@ namespace HM
       for (std::shared_ptr<SecurityRange> range : ranges->GetVector())
       {
          // An auto-ban is a single address, expiring, named by the code that made
-         // it. Nothing else on the IP ranges page is ours to mirror: a permanent
-         // block an administrator wrote belongs in the firewall only if they put
-         // it there themselves.
+         // it - or, once AutoBanWidener has widened it, a run of IPv4 addresses
+         // inside one /24. Nothing else on the IP ranges page is ours to mirror: a
+         // permanent block an administrator wrote belongs in the firewall only if
+         // they put it there themselves, and a range of any other shape is not one
+         // the auto-ban writes.
          if (!range->GetExpires())
             continue;
          if (!range->GetName().StartsWith(RangeNamePrefix))
             continue;
 
-         IPAddress lower = range->GetLowerIP();
-         IPAddress upper = range->GetUpperIP();
-         if (!(lower == upper))
+         Ban ban;
+         if (!AutoBanWidener::MirrorShape(range->GetLowerIP(), range->GetUpperIP(), ban.address, ban.members))
             continue;
 
          DateTimeSpan left = range->GetExpiresTime() - now;
@@ -307,8 +310,6 @@ namespace HM
          if (seconds <= 0)
             continue;
 
-         Ban ban;
-         ban.address = String(lower.ToString());
          ban.minutesLeft = (int) ((seconds + 59) / 60);
          bans.push_back(ban);
       }
@@ -319,58 +320,123 @@ namespace HM
    void
    AutoBanFirewall::Banned(const IPAddress &address, int minutes, const String &username, int failures)
    {
-      // The one line fail2ban and a person reading the log are both after: what
-      // was banned, for how long, and why. Written whether or not anything below
-      // the server is told, because the ban itself has happened.
-      LOG_APPLICATION(_T("Auto-ban: ") + String(address.ToString()) + _T(" is banned for ") + StringParser::IntToString(minutes) +
-         _T(" minutes after ") + StringParser::IntToString(failures) + _T(" failed logons; last user name ") + username);
+      const String text = String(address.ToString());
 
-      // Counted, not alerted: one ban is ordinary and a hundred in an hour is
-      // not, and only the second is worth telling anybody about. AlertTask asks
-      // for the count once a minute and compares it with the rule's threshold.
-      AlertManager::Instance()->NoteAutoBan();
+      // Everything a ban does below its range, run now - or, while the never-ban
+      // list by reverse name has rows and nothing is known yet about this
+      // address, once its reverse name has been looked up on the name lookup
+      // queue, and not at all if that spares it (NeverBanNameList::VerifyBan).
+      // An empty list runs it here, exactly as before.
+      NeverBanNameList::VerifyBan(address, [address, text, minutes, username, failures]()
+      {
+         // The one line fail2ban and a person reading the log are both after: what
+         // was banned, for how long, and why. Written whether or not anything below
+         // the server is told, because the ban itself has happened.
+         LOG_APPLICATION(_T("Auto-ban: ") + text + _T(" is banned for ") + StringParser::IntToString(minutes) +
+            _T(" minutes after ") + StringParser::IntToString(failures) + _T(" failed logons; last user name ") + username);
 
-      Synchronise(_T("ban"));
+         // Counted, not alerted: one ban is ordinary and a hundred in an hour is
+         // not, and only the second is worth telling anybody about. AlertTask asks
+         // for the count once a minute and compares it with the rule's threshold.
+         AlertManager::Instance()->NoteAutoBan();
+
+         Synchronise(_T("ban"));
+
+         // Widened to its reverse-name neighbours, in the background, when
+         // AutoBanWidenByReverseName is on (AutoBanWidener.h): queued here, and
+         // never looked up here.
+         AutoBanWidener::Banned(address);
+      });
    }
 
    void
    AutoBanFirewall::BannedForSpamTrap(const IPAddress &address, int minutes, const String &trapAddress)
    {
-      // The same shape as the line above, with the reason a trap gives. Written
-      // whether or not anything below the server is told, because the ban itself
-      // has happened - and it is what the fail2ban filter counts.
-      LOG_APPLICATION(_T("Auto-ban: ") + String(address.ToString()) + _T(" is banned for ") + StringParser::IntToString(minutes) +
-         _T(" minutes after addressing the spam trap ") + trapAddress);
+      const String text = String(address.ToString());
 
-      // Counted with the logon bans: a hundred bans in an hour is worth telling
-      // somebody about however they were earned.
-      AlertManager::Instance()->NoteAutoBan();
+      // Run now, or after the never-ban list by reverse name has had its answer,
+      // as Banned above says. Its lookup is never made on this thread.
+      NeverBanNameList::VerifyBan(address, [address, text, minutes, trapAddress]()
+      {
+         // The same shape as the line above, with the reason a trap gives. Written
+         // whether or not anything below the server is told, because the ban itself
+         // has happened - and it is what the fail2ban filter counts.
+         LOG_APPLICATION(_T("Auto-ban: ") + text + _T(" is banned for ") + StringParser::IntToString(minutes) +
+            _T(" minutes after addressing the spam trap ") + trapAddress);
 
-      // NOT on this thread. This one is inside RCPT TO, and the reply that
-      // follows is supposed to be indistinguishable from the one an address
-      // this server has never had gets. Synchronise takes a global lock, reads
-      // every security range and may run a firewall API or spawn the packaged
-      // hook - hundreds of milliseconds that an unknown address does not spend,
-      // and a difference a harvester can time. The ban itself is already saved
-      // and already refuses the address at accept; this only mirrors it below
-      // the server, where a fraction of a second later is the same thing.
-      SynchroniseLater_(_T("spam trap"));
+         // Counted with the logon bans: a hundred bans in an hour is worth telling
+         // somebody about however they were earned.
+         AlertManager::Instance()->NoteAutoBan();
+
+         // NOT on this thread. This one is inside RCPT TO, and the reply that
+         // follows is supposed to be indistinguishable from the one an address
+         // this server has never had gets. Synchronise takes a global lock, reads
+         // every security range and may run a firewall API or spawn the packaged
+         // hook - hundreds of milliseconds that an unknown address does not spend,
+         // and a difference a harvester can time. The ban itself is already saved
+         // and already refuses the address at accept; this only mirrors it below
+         // the server, where a fraction of a second later is the same thing.
+         SynchroniseLater_(_T("spam trap"));
+
+         // Widened in the background, as Banned above says; only queued here, so
+         // the RCPT TO reply waits for nothing.
+         AutoBanWidener::Banned(address);
+      });
    }
 
    void
    AutoBanFirewall::BannedForNullSender(const IPAddress &address, int minutes)
    {
-      // The same shape again, with this reason, for the fail2ban filter and for a
-      // person reading the log.
-      LOG_APPLICATION(_T("Auto-ban: ") + String(address.ToString()) + _T(" is banned for ") + StringParser::IntToString(minutes) +
-         _T(" minutes after a null sender named more than one recipient"));
+      const String text = String(address.ToString());
 
-      AlertManager::Instance()->NoteAutoBan();
+      // Run now, or after the never-ban list by reverse name has had its answer,
+      // as Banned above says.
+      NeverBanNameList::VerifyBan(address, [address, text, minutes]()
+      {
+         // The same shape again, with this reason, for the fail2ban filter and for a
+         // person reading the log.
+         LOG_APPLICATION(_T("Auto-ban: ") + text + _T(" is banned for ") + StringParser::IntToString(minutes) +
+            _T(" minutes after a null sender named more than one recipient"));
 
-      // Placed inside RCPT TO, as a trap's ban is, and for the same reason not
-      // done on this thread: the refusal is answered at once and the firewall
-      // catches up a fraction of a second later, or within the minute in any case.
-      SynchroniseLater_(_T("null sender"));
+         AlertManager::Instance()->NoteAutoBan();
+
+         // Placed inside RCPT TO, as a trap's ban is, and for the same reason not
+         // done on this thread: the refusal is answered at once and the firewall
+         // catches up a fraction of a second later, or within the minute in any case.
+         SynchroniseLater_(_T("null sender"));
+
+         // Widened in the background, as Banned above says.
+         AutoBanWidener::Banned(address);
+      });
+   }
+
+   void
+   AutoBanFirewall::BannedForAuthOnDeliveryPort(const IPAddress &address, int minutes, int port,
+                                                const String &mechanism, const String &mode)
+   {
+      const String text = String(address.ToString());
+
+      // Run now, or after the never-ban list by reverse name has had its answer,
+      // as Banned above says.
+      NeverBanNameList::VerifyBan(address, [address, text, minutes, port, mechanism, mode]()
+      {
+         // The one line the ban writes: the same shape as the three above, so the
+         // fail2ban filter matches it as it matches them, with what was asked of
+         // which listener. The mechanism is the word the caller made safe to log;
+         // what followed it - a user name, a password - is never written.
+         LOG_APPLICATION(_T("Auto-ban: ") + text + _T(" is banned for ") + StringParser::IntToString(minutes) +
+            _T(" minutes after AUTH on a delivery port (port ") + StringParser::IntToString(port) +
+            _T(", mechanism ") + mechanism + _T(", listener ") + mode + _T(")"));
+
+         AlertManager::Instance()->NoteAutoBan();
+
+         // Placed inside the AUTH command, whose 502 is answered at once; the
+         // firewall catches up a fraction of a second later, or within the minute.
+         SynchroniseLater_(_T("AUTH on a delivery port"));
+
+         // Widened in the background, as Banned above says.
+         AutoBanWidener::Banned(address);
+      });
    }
 
    void
@@ -400,6 +466,9 @@ namespace HM
       String command = ini->GetAutoBanCommand();
 
       std::vector<Ban> bans = ActiveBans_();
+
+      // One Windows Defender Firewall rule per ban, named for its address or, for
+      // a widened ban, for its run ("lower-upper").
       std::set<String> desired;
       for (const Ban &ban : bans)
          desired.insert(ban.address);
@@ -433,9 +502,21 @@ namespace HM
          return;
       }
 
+      // A hook is told one address at a time, as it always was - a widened ban is
+      // each address of its run - so that a program written for "ban <address>"
+      // is never handed a range it cannot read.
       std::set<String> desired;
       for (const Ban &ban : bans)
-         desired.insert(ban.address);
+         desired.insert(ban.members.begin(), ban.members.end());
+
+      // A command that ran past the external process timeout once in this pass
+      // is not run again in it. A widened ban is up to 65 addresses told one at
+      // a time, under the lock every ban's announcement takes, and a hook that
+      // hangs would otherwise hold it for 65 timeouts rather than one. What it
+      // was not run for is treated as a failure of it: not asked again, as a
+      // failed run never was.
+      std::set<String> hung;
+      int skipped = 0;
 
       // Un-ban first: an address that has expired should stop being blocked
       // before a new one starts, and a hook that is failing altogether should
@@ -452,10 +533,19 @@ namespace HM
          bool ok = true;
          for (const String &command : commands)
          {
+            if (hung.find(command) != hung.end())
+            {
+               skipped++;
+               continue;
+            }
+
             String failure;
-            if (!RunHook_(command, _T("unban"), address, 0, ports, failure))
+            bool timedOut = false;
+            if (!RunHook_(command, _T("unban"), address, 0, ports, failure, timedOut))
             {
                ok = false;
+               if (timedOut)
+                  hung.insert(command);
                if (!g_hookFailureReported)
                {
                   g_hookFailureReported = true;
@@ -476,32 +566,53 @@ namespace HM
 
       for (const Ban &ban : bans)
       {
-         if (g_hooked.find(ban.address) != g_hooked.end())
-            continue;
-
-         for (const String &command : commands)
+         for (const String &member : ban.members)
          {
-            String failure;
-            if (!RunHook_(command, _T("ban"), ban.address, ban.minutesLeft, ports, failure))
+            if (g_hooked.find(member) != g_hooked.end())
+               continue;
+
+            for (const String &command : commands)
             {
-               if (!g_hookFailureReported)
+               if (hung.find(command) != hung.end())
                {
-                  g_hookFailureReported = true;
-                  ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6523, "AutoBanFirewall::Synchronise",
-                     "The auto-ban hook could not be run to ban " + ban.address + ": " + failure +
-                     ". The address is still refused by the server itself; it is not blocked below it. Reported once; later failures are in the debug log.");
+                  skipped++;
+                  continue;
                }
-               else
-                  LOG_DEBUG(_T("AutoBanFirewall - ban hook failed for ") + ban.address + _T(": ") + failure);
+
+               String failure;
+               bool timedOut = false;
+               if (!RunHook_(command, _T("ban"), member, ban.minutesLeft, ports, failure, timedOut))
+               {
+                  if (timedOut)
+                     hung.insert(command);
+
+                  if (!g_hookFailureReported)
+                  {
+                     g_hookFailureReported = true;
+                     ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6523, "AutoBanFirewall::Synchronise",
+                        "The auto-ban hook could not be run to ban " + member + ": " + failure +
+                        ". The address is still refused by the server itself; it is not blocked below it. Reported once; later failures are in the debug log.");
+                  }
+                  else
+                     LOG_DEBUG(_T("AutoBanFirewall - ban hook failed for ") + member + _T(": ") + failure);
+               }
             }
+            g_hooked.insert(member);
          }
-         g_hooked.insert(ban.address);
+      }
+
+      if (skipped > 0)
+      {
+         LOG_DEBUG(_T("AutoBanFirewall - ") + StringParser::IntToString(skipped) +
+                   _T(" hook run(s) skipped in this pass: the command ran past the external process timeout once already."));
       }
    }
 
    bool
-   AutoBanFirewall::RunHook_(const String &command, const String &verb, const String &address, int minutes, const String &ports, String &failure)
+   AutoBanFirewall::RunHook_(const String &command, const String &verb, const String &address, int minutes, const String &ports, String &failure, bool &timedOut)
    {
+      timedOut = false;
+
       String commandLine = command + _T(" ") + verb + _T(" ") + address;
       if (verb == _T("ban"))
          commandLine += _T(" ") + StringParser::IntToString(minutes) + _T(" ") + (ports.IsEmpty() ? String(_T("-")) : ports);
@@ -515,6 +626,7 @@ namespace HM
       ProcessLauncher::FailureReason reason = ProcessLauncher::FailureReason::None;
       if (!launcher.Launch(exitCode, reason))
       {
+         timedOut = reason == ProcessLauncher::FailureReason::TimedOut;
          failure = reason == ProcessLauncher::FailureReason::TimedOut
             ? _T("it ran for more than the external process timeout and was stopped")
             : _T("it could not be started (check the path, and that the service account may execute it)");
@@ -629,7 +741,12 @@ namespace HM
 
          String name = AutoBanFirewall::RuleName(address);
          rule->put_Name(CComBSTR(name.c_str()));
-         rule->put_Description(CComBSTR(L"Created by hMailServer auto-ban after repeated failed logons from this address. hMailServer removes it when the ban expires or when the matching IP range is deleted; delete the IP range rather than this rule."));
+         // A widened ban's rule is named for its run, "lower-upper", which is also
+         // how RemoteAddresses takes a range.
+         const bool run = address.Find(_T("-")) >= 0;
+         rule->put_Description(CComBSTR(run
+            ? L"Created by hMailServer auto-ban for a ban widened to the neighbouring addresses whose reverse names share its domain. hMailServer removes it when the ban expires or when the matching IP range is deleted; delete the IP range rather than this rule."
+            : L"Created by hMailServer auto-ban after repeated failed logons from this address. hMailServer removes it when the ban expires or when the matching IP range is deleted; delete the IP range rather than this rule."));
          rule->put_Grouping(CComBSTR(AutoBanFirewall::RuleGroup()));
          rule->put_Direction(NET_FW_RULE_DIR_IN);
          rule->put_Action(NET_FW_ACTION_BLOCK);

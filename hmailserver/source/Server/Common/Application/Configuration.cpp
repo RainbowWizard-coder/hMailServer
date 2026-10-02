@@ -234,6 +234,10 @@ namespace HM
       // server always has.
       settings.EnsureLong(PROPERTY_REFUSE_HELO_NOT_FQDN, 0);
       settings.EnsureLong(PROPERTY_REFUSE_MAIL_FROM_DOMAIN_NOT_FQDN, 0);
+      // An auto-ban widened to its reverse-name neighbours (Util/AutoBanWidener.h,
+      // GitLab work item #55). Off, as the work item asks: every ban a single
+      // address, as it always was, until an administrator chooses otherwise.
+      settings.EnsureLong(PROPERTY_AUTOBAN_WIDEN_BY_REVERSE_NAME, 0);
 
       // The reputation watch: on, the four lists that answer an ordinary resolver
       // for nothing, and no address of its own. Schema 6049 seeds the same three
@@ -1858,6 +1862,18 @@ namespace HM
    Configuration::GetAutoBanMinutes() 
    {
       return GetSettings()->GetLong(PROPERTY_AUTOBAN_MINUTES);
+   }
+
+   bool
+   Configuration::GetAutoBanWidenByReverseName()
+   {
+      return GetSettings()->GetBool(PROPERTY_AUTOBAN_WIDEN_BY_REVERSE_NAME);
+   }
+
+   void
+   Configuration::SetAutoBanWidenByReverseName(bool newVal)
+   {
+      GetSettings()->SetBool(PROPERTY_AUTOBAN_WIDEN_BY_REVERSE_NAME, newVal);
    }
 
    int

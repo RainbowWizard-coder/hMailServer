@@ -96,6 +96,8 @@ LOCALISED = {
    "Views/RulesView.xaml.cs",
    "Views/ServerSettingsView.xaml",
    "Views/ServerSettingsView.xaml.cs",
+   "Views/ServerSettingsView.NeverBanNames.cs",
+   "Services/NeverBanNames.cs",
    "Services/SettingClaims.cs",
    "Views/SslCertificatesView.xaml",
    "Views/SslCertificatesView.xaml.cs",

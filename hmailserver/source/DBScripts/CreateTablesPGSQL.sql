@@ -40,6 +40,8 @@ select hm_drop_table('hm_spamtraphits');
 
 select hm_drop_table('hm_domainpolicylist');
 
+select hm_drop_table('hm_neverbannames');
+
 select hm_drop_table('hm_calendarobjects');
 
 select hm_drop_table('hm_calendars');
@@ -1198,7 +1200,8 @@ create table hm_tcpipports
 	portconnectionsecurity smallint not null,
 	portsslcertificateid bigint not null,
 	portclientcertificatepolicy smallint not null default 0,
-	portclientcertificatecafile varchar(255) not null default ''
+	portclientcertificatecafile varchar(255) not null default '',
+	portsmtpauth smallint not null default 0
 );
 
 create table hm_whitelist
@@ -2551,6 +2554,16 @@ create table hm_domainpolicylist
 
 CREATE UNIQUE INDEX idx_hm_domainpolicylist_pattern ON hm_domainpolicylist (dplpattern, dplmatchon);
 
+create table hm_neverbannames
+(
+	nbnid serial not null primary key,
+	nbnpattern varchar(255) not null,
+	nbnnote varchar(255) not null,
+	nbncreated timestamp not null
+);
+
+CREATE UNIQUE INDEX idx_hm_neverbannames_pattern ON hm_neverbannames (nbnpattern);
+
 create table hm_journalrules
 (
 	jrid bigserial not null primary key,
@@ -2968,4 +2981,4 @@ CREATE INDEX idx_hm_discoveryexports_case ON hm_discoveryexports (exportcaseid);
 
 ALTER TABLE hm_discoveryexports ADD CONSTRAINT fk_hm_discoveryexports_search FOREIGN KEY (exportsearchid) REFERENCES hm_discoverysearches (searchid) ON DELETE CASCADE;
 
-insert into hm_dbversion values (6107);
+insert into hm_dbversion values (6108);

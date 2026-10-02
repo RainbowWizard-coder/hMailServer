@@ -134,6 +134,11 @@
 #define PROPERTY_MAX_INVALID_LOGON_ATTEMPTS     _T("MaxInvalidLogonAttempts")
 #define PROPERTY_LOGON_ATTEMPTS_WITHIN          _T("LogonAttemptsWithinMinutes")
 #define PROPERTY_AUTOBAN_MINUTES                _T("AutoBanMinutes")
+// An auto-ban widened in the background to the contiguous run of its /24 whose
+// reverse names share its registrable domain (Util/AutoBanWidener.h, GitLab work
+// item #55). In hm_settings with its row created by EnsureSettingDefaults_; off,
+// which is every ban a single address, as it always was.
+#define PROPERTY_AUTOBAN_WIDEN_BY_REVERSE_NAME  _T("AutoBanWidenByReverseName")
 
 #define PROPERTY_IMAP_HIERARCHY_DELIMITER       _T("IMAPHierarchyDelimiter")
 #define PROPERTY_MESSAGE_INDEXING               _T("MessageIndexing")
@@ -1252,4 +1257,15 @@
 //      another. Its prerequisite (SQL/Prerequisites/PreReqGreyListKeys) keys
 //      every row written before 6072, deletes those an address of which had
 //      been cut to 200 characters, and leaves a triplet one row.
-#define REQUIRED_DB_VERSION            6107
+// 6108 adds hm_neverbannames (Util/NeverBanNameList.h, BO/NeverBanName.h,
+//      GitLab work item #56): the never-ban list by reverse name - patterns,
+//      mail.example.net or .example.net, under which an address whose reverse
+//      name the pattern covers and resolves back to the address is never
+//      auto-banned. Unique on the pattern; empty after the step, so an upgraded
+//      server bans exactly as it did. The same step adds hm_tcpipports.portsmtpauth
+//      (GitLab work item #54, SMTPAuthenticationMode in TCPIP/SocketConstants.h):
+//      what an SMTP listener does with AUTH - 0 On, 1 Off, 2 Honeypot - 0 for
+//      every listener the step finds, so an upgraded server's port 25 takes AUTH
+//      as it did until an administrator changes it. (6106 and 6107 are other
+//      rows' steps of the same release, folded before this one.)
+#define REQUIRED_DB_VERSION            6108

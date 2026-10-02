@@ -101,6 +101,12 @@ namespace HM
          { L"hm_senderlist",                  L"sender list entry" },
          { L"hm_spamtraps",                   L"spam trap" },
          { L"hm_domainpolicylist",            L"domain policy list entry" },
+         // A provider spared from every auto-ban by the reverse names of its
+         // hosts (Util/NeverBanNameList.h): who decided an address may fail
+         // logons and address spam traps without being banned is the question
+         // the trail exists to answer. Named by its pattern, delete included
+         // (PersistentNeverBanName).
+         { L"hm_neverbannames",               L"never-ban name" },
          { L"hm_journalrules",                L"journal rule" },
          { L"hm_servermessages",              L"server message" },
          { L"hm_groups",                      L"group" },

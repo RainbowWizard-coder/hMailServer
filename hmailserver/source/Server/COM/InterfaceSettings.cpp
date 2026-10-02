@@ -9,6 +9,7 @@
 
 #include "InterfaceSettings.h"
 #include "../Common/Util/CountryBlocking.h"
+#include "../Common/Util/NeverBanNameList.h"
 #include "InterfaceLogging.h"
 #include "InterfaceAntiVirus.h"
 #include "InterfaceCache.h"
@@ -6572,6 +6573,164 @@ STDMETHODIMP InterfaceSettings::get_MessageStoreStatus(BSTR *pVal)
       // whenever the last is a quarter of an hour old, as the doc says.
       HM::String json = HM::MessageStoreMaintenance::TotalsJson(HM::MessageStoreMaintenance::MeasureIfDue);
       *pVal = json.AllocSysString();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+// ---- the never-ban list by reverse name (Common/Util/NeverBanNameList.h) ----
+//
+// Server-wide, as AutoBanNeverBan is, and so the server administrator's alone.
+// The audit trail records the row the persister writes, under its pattern.
+
+STDMETHODIMP InterfaceSettings::get_AutoBanNeverBanNames(BSTR *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      if (!GetIsServerAdmin())
+         return GetAccessDenied();
+
+      bool readable = false;
+      HM::AnsiString document = HM::NeverBanNameList::Document(readable);
+
+      if (!readable)
+         return COMError::GenerateError("The never-ban list could not be read; see the error log.");
+
+      HM::String wide;
+      HM::Unicode::MultiByteToWide(document, wide);
+
+      *pVal = wide.AllocSysString();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::AddAutoBanNeverBanName(BSTR Pattern, BSTR Note, long *ID)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return NotLoaded_();
+
+      if (!GetIsServerAdmin())
+         return GetAccessDenied();
+
+      __int64 id = 0;
+      HM::String refusal;
+
+      if (!HM::NeverBanNameList::Add(Pattern, Note, id, refusal))
+         return COMError::GenerateError(refusal);
+
+      *ID = (long) id;
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::RemoveAutoBanNeverBanName(long ID, VARIANT_BOOL *Removed)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return NotLoaded_();
+
+      if (!GetIsServerAdmin())
+         return GetAccessDenied();
+
+      bool found = false;
+
+      if (!HM::NeverBanNameList::Remove(ID, found))
+         return COMError::GenerateError("The never-ban list entry could not be removed; see the error log.");
+
+      *Removed = found ? VARIANT_TRUE : VARIANT_FALSE;
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::CheckAutoBanNeverBanName(BSTR Address, BSTR *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      if (!GetIsServerAdmin())
+         return GetAccessDenied();
+
+      // Looked up now, on this COM thread: a check is asked for by a person
+      // waiting for its answer, and it keeps nothing.
+      HM::AnsiString document;
+      HM::String refusal;
+
+      if (!HM::NeverBanNameList::Check(Address, document, refusal))
+         return COMError::GenerateError(refusal);
+
+      HM::String wide;
+      HM::Unicode::MultiByteToWide(document, wide);
+
+      *pVal = wide.AllocSysString();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+// ---- an auto-ban widened to its reverse-name neighbours (Common/Util/AutoBanWidener.h) ----
+
+STDMETHODIMP InterfaceSettings::get_AutoBanWidenByReverseName(VARIANT_BOOL *pVal)
+{
+   try
+   {
+      if (!config_)
+         return NotLoaded_();
+
+      *pVal = config_->GetAutoBanWidenByReverseName() ? VARIANT_TRUE : VARIANT_FALSE;
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceSettings::put_AutoBanWidenByReverseName(VARIANT_BOOL newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return NotLoaded_();
+
+      config_->SetAutoBanWidenByReverseName(newVal == VARIANT_TRUE);
 
       return S_OK;
    }

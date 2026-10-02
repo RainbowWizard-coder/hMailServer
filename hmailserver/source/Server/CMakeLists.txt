@@ -623,6 +623,31 @@ add_executable(public-suffix-tests ${SERVER_DIR}/platform/public_suffix_tests_ma
 target_link_libraries(public-suffix-tests PRIVATE hmailserver_core)
 set_target_properties(public-suffix-tests PROPERTIES OUTPUT_NAME public-suffix-tests)
 
+# ---------------------------------------------------------------- the never-ban list by reverse name
+#
+# NeverBanNameListTester (Common/Util/NeverBanNameList.h, GitLab work item #56)
+# as a program of its own, for the reason public-suffix-tests is one: on Windows
+# it runs inside the server through ClassTester, which nothing reaches here. The
+# patterns the list holds and refuses, the reverse names it may match, the
+# forward confirmation of a covered name in both address families, and the
+# verdicts it keeps and forgets. No network - the tester answers its own forward
+# lookups - no configuration, no database. Not installed; a bench tool.
+add_executable(never-ban-tests ${SERVER_DIR}/platform/never_ban_tests_main.cpp)
+target_link_libraries(never-ban-tests PRIVATE hmailserver_core)
+set_target_properties(never-ban-tests PROPERTIES OUTPUT_NAME never-ban-tests)
+
+# ---------------------------------------------------------------- an auto-ban widened to its neighbours
+#
+# AutoBanWidenerTester (Common/Util/AutoBanWidener.h, GitLab work item #55) as a
+# program of its own, for the same reason: the run of a shared registrable domain
+# inside one /24, each direction's stops, the banned address's own reverse name
+# forward-confirmed, a lookup not answered leaving the single address, and the
+# shapes the firewall mirrors. No network - the tester answers its own lookups -
+# no configuration, no database. Not installed; a bench tool.
+add_executable(autoban-widen-tests ${SERVER_DIR}/platform/autoban_widen_tests_main.cpp)
+target_link_libraries(autoban-widen-tests PRIVATE hmailserver_core)
+set_target_properties(autoban-widen-tests PROPERTIES OUTPUT_NAME autoban-widen-tests)
+
 # ---------------------------------------------------------------- the types files and photos go out under
 #
 # InertMediaTypeTester (Common/Util/InertMediaType.h) as a program of its own,

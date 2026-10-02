@@ -132,7 +132,7 @@ namespace RegressionTests.Security
       }
 
       [Test]
-      [Description("Refused while the service runs (exit 4, nothing changed); with it stopped, applied to the bench made into a database the create step has just made - its mark written, the stock listeners and ranges, no certificate, no account, no domain, no route: a self-signed certificate under the data directory, STARTTLS optional on 25, 587, 110 and 143 with it, the Internet range requiring TLS for authentication and My computer unchanged, and the mark gone - a mark two days old, which a run by hand acts on though the Linux unit's start would not. From a non-loopback address a password is refused before STARTTLS on SMTP, IMAP and POP3 and taken after it; from 127.0.0.1 it is taken without TLS, as before. Negative control: a second run, the mark gone, finds a database this installation did not just create and changes nothing (exit 5).")]
+      [Description("Refused while the service runs (exit 4, nothing changed); with it stopped, applied to the bench made into a database the create step has just made - its mark written, the stock listeners and ranges, no certificate, no account, no domain, no route: a self-signed certificate under the data directory, STARTTLS optional on 25, 587, 110 and 143 with it, port 25's SMTP authentication Honeypot and the other three listeners' On, the Internet range requiring TLS for authentication and My computer unchanged, and the mark gone - a mark two days old, which a run by hand acts on though the Linux unit's start would not. From a non-loopback address a password is refused before STARTTLS on SMTP, IMAP and POP3 and taken after it; from 127.0.0.1 it is taken without TLS, as before. Negative control: a second run, the mark gone, finds a database this installation did not just create and changes nothing (exit 5).")]
       public void ANewInstallationTakesAPasswordFromAnotherMachineOnlyOverTls()
       {
          if (TestSetup.ConsoleServer)
@@ -188,6 +188,7 @@ namespace RegressionTests.Security
             ClassicAssert.AreEqual(0, applied.ExitCode, applied.Output);
             StringAssert.Contains("Made a self-signed certificate", applied.Output);
             StringAssert.Contains("STARTTLS is offered on port 25, 110, 143, 587", applied.Output);
+            StringAssert.Contains("Port 25 takes no password: its SMTP authentication is Honeypot", applied.Output);
             StringAssert.Contains("now takes a password only over TLS", applied.Output);
 
             // The mark went with the decision, so the same database is no longer
@@ -216,6 +217,12 @@ namespace RegressionTests.Security
             TCPIPPort port = _settings.TCPIPPorts[i];
             ClassicAssert.AreEqual(eConnectionSecurity.eCSSTARTTLSOptional, port.ConnectionSecurity, "Port " + port.PortNumber);
             ClassicAssert.AreEqual(certificate.ID, port.SSLCertificateID, "Port " + port.PortNumber);
+
+            // Port 25 a honeypot for AUTH, every other listener On (GitLab work item
+            // #54). Through dynamic: the suite's interop comes from the registered
+            // type library, which a bench older than the property does not have.
+            int expected = port.Protocol == eSessionType.eSTSMTP && port.PortNumber == 25 ? 2 : 0;
+            ClassicAssert.AreEqual(expected, (int) ((dynamic) port).SMTPAuthentication, "SMTP authentication of port " + port.PortNumber);
          }
 
          ClassicAssert.IsTrue(_settings.SecurityRanges.get_ItemByName("Internet").RequireSSLTLSForAuth, "The Internet range requires TLS for authentication.");

@@ -572,7 +572,7 @@ namespace hMailServer.ControlPanel.Services
 
       /// <summary>
       /// The first-hour items the server judges itself (Common/Util/SetupChecklist.h):
-      /// a setting profile on a young server, a domain, an account, TLS on the submission port, passwords only over TLS, SPF, DMARC, a backup
+      /// a setting profile on a young server, a domain, an account, TLS on the submission port, passwords only over TLS, no password on port 25, SPF, DMARC, a backup
       /// destination, a second factor on the administrator password and the stored-secrets key made and exported. Read over
       /// COM as Utilities.GetSetupChecklist without DNS lookups - the SPF and DMARC
       /// records are looked up here, off the window thread, by the same probes the
@@ -674,6 +674,18 @@ namespace hMailServer.ControlPanel.Services
                   Action = L("Where a port named below has no TLS, give it a certificate and STARTTLS on the TCP/IP ports page first; then, on the IP ranges page, turn on Require TLS for auth for each range named below. This computer's own clients are not affected."),
                   Page = "ipranges"
                };
+            // GitLab work item #54 (docs/SmtpAuthOnDeliveryPorts.md): a new
+            // installation's port 25 is a honeypot already; an upgraded server's is
+            // On until the administrator changes it, which is what arms the ban - so
+            // the step is theirs, on the page, and the finding carries no fix.
+            case "delivery_port_auth":
+               return new SetupItem
+               {
+                  Title = L("No password on port 25 - the port other servers deliver to"),
+                  Purpose = L("Port 25 is where other servers deliver mail, and no mail client should sign in there: an AUTH on it is a password being guessed."),
+                  Action = L("On the TCP/IP ports page, open the SMTP port 25 and set its SMTP authentication to Honeypot or Off, then reinitialize. Mail clients that still sign in on 25 are refused and banned from then on, so move them to 587 first."),
+                  Page = "ports"
+               };
             case "spf":
                return new SetupItem
                {
@@ -738,6 +750,12 @@ namespace hMailServer.ControlPanel.Services
          ["profile_declined"] = N("The settings this version ships with were chosen on {0}, and no profile applied; any of the four can still be compared with this server."),
          ["profile_failed"] = N("The {0} profile could not be applied in full on {1}: some of its settings were not written. Put back what it wrote, or keep it, and apply it again."),
          ["domain_none"] = N("No domain has been added yet."),
+         ["delivery_port_auth_on"] = N("Port {0} still accepts AUTH: it is where other servers deliver mail, and a password tried there is a guess. Set its SMTP authentication to Honeypot or Off, and sign mail clients in on 587."),
+         ["delivery_port_auth_honeypot"] = N("Port {0} takes no password: EHLO offers AUTH there as bait, and an address that sends one is refused and banned."),
+         ["delivery_port_auth_off"] = N("Port {0} takes no password: EHLO does not offer AUTH there, and an address that sends one anyway is refused and banned."),
+         ["delivery_port_auth_no_ban"] = N("Port {0} takes no password, but AutoBanMinutes is 0, so an address that sends AUTH there is refused and not banned."),
+         ["delivery_port_auth_disabled"] = N("Port {0} does not offer AUTH: DisableAUTHList names it, and an AUTH sent there is refused without a ban."),
+         ["delivery_port_none"] = N("No SMTP listener is on port 25, so no delivery port takes a password."),
          ["domain_none_active"] = N("{0} domains, none of them active."),
          ["domain_count"] = N("Active domains: {0} of {1}."),
          ["sample_domain"] = N("{0} is the sample domain and is not counted here; remove it when you are done with it."),

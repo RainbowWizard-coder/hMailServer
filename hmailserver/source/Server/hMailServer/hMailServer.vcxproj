@@ -363,6 +363,11 @@ EXIT 0
     <ClCompile Include="..\Common\Persistence\PersistentDomainPolicyEntry.cpp" />
     <ClCompile Include="..\Common\AntiSpam\DomainPolicyList.cpp" />
     <ClCompile Include="..\Common\AntiSpam\FqdnCheck.cpp" />
+    <ClCompile Include="..\Common\BO\NeverBanName.cpp" />
+    <ClCompile Include="..\Common\BO\NeverBanNames.cpp" />
+    <ClCompile Include="..\Common\Persistence\PersistentNeverBanName.cpp" />
+    <ClCompile Include="..\Common\Util\NeverBanNameList.cpp" />
+    <ClCompile Include="..\Common\Util\AutoBanWidener.cpp" />
     <ClCompile Include="..\Common\AntiSpam\SURBL.cpp" />
     <ClCompile Include="..\Common\AntiSpam\WhiteListCache.cpp" />
     <ClCompile Include="..\Common\AntiVirus\AntiVirusConfiguration.cpp" />
@@ -798,6 +803,7 @@ EXIT 0
     <ClCompile Include="..\Common\Util\RestApiSenderLists.cpp" />
     <ClCompile Include="..\Common\Util\RestApiSpamTraps.cpp" />
     <ClCompile Include="..\Common\Util\RestApiDomainPolicyList.cpp" />
+    <ClCompile Include="..\Common\Util\RestApiNeverBanNames.cpp" />
     <ClCompile Include="..\Common\Util\RestApiQuarantineDigest.cpp" />
     <ClCompile Include="..\Common\Util\RestApiFetchAccounts.cpp" />
     <ClCompile Include="..\Common\Util\RemoteDomainThrottle.cpp" />
@@ -1356,6 +1362,11 @@ EXIT 0
     <ClInclude Include="..\Common\Persistence\PersistentDomainPolicyEntry.h" />
     <ClInclude Include="..\Common\AntiSpam\DomainPolicyList.h" />
     <ClInclude Include="..\Common\AntiSpam\FqdnCheck.h" />
+    <ClInclude Include="..\Common\BO\NeverBanName.h" />
+    <ClInclude Include="..\Common\BO\NeverBanNames.h" />
+    <ClInclude Include="..\Common\Persistence\PersistentNeverBanName.h" />
+    <ClInclude Include="..\Common\Util\NeverBanNameList.h" />
+    <ClInclude Include="..\Common\Util\AutoBanWidener.h" />
     <ClInclude Include="..\Common\AntiSpam\SURBL.h" />
     <ClInclude Include="..\Common\AntiSpam\WhiteListCache.h" />
     <ClInclude Include="..\Common\AntiVirus\AntiVirusConfiguration.h" />

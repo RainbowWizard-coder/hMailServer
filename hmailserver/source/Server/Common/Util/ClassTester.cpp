@@ -121,6 +121,8 @@ namespace
 #include "Totp.h"
 #include "../AntiSpam/DMARC/DmarcTreeWalk.h"
 #include "../AntiSpam/DMARC/PublicSuffixList.h"
+#include "NeverBanNameList.h"
+#include "AutoBanWidener.h"
 #include "../AntiSpam/SURBL.h"
 #include "RateLimiter.h"
 #include "TransparentTransmissionBuffer.h"
@@ -329,6 +331,23 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing PublicSuffixList\n"));
       PublicSuffixListTester publicSuffixListTester;
       publicSuffixListTester.Test();
+
+      // The never-ban list by reverse name (GitLab work item #56): the patterns
+      // it holds and refuses, the reverse names it may match, the forward
+      // confirmation that keeps anybody from naming their own scanner after a
+      // listed provider, and the verdicts it keeps and forgets.
+      OutputDebugString(_T("hMailServer: Testing NeverBanNameList\n"));
+      NeverBanNameListTester neverBanNameListTester;
+      neverBanNameListTester.Test();
+
+      // An auto-ban widened to its reverse-name neighbours (GitLab work item
+      // #55): the run of a shared registrable domain inside one /24, each
+      // direction's stops, the banned address's own name forward-confirmed,
+      // a lookup not answered leaving the single address, and the shapes the
+      // firewall mirrors.
+      OutputDebugString(_T("hMailServer: Testing AutoBanWidener\n"));
+      AutoBanWidenerTester autoBanWidenerTester;
+      autoBanWidenerTester.Test();
 
       // The host each link in a message goes to, as a browser reads the link:
       // after the last '@' of its userinfo, without its port, percent-decoded,

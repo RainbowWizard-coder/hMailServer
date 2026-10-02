@@ -18,7 +18,8 @@ namespace HM
       port_protocol_(STUnknown),
       sslcertificate_id_(0),
       connection_security_(CSNone),
-      client_certificate_policy_(CCPOff)
+      client_certificate_policy_(CCPOff),
+      smtp_authentication_(SAMOn)
    {
 
    }
@@ -47,6 +48,7 @@ namespace HM
       pNode->AppendAttr(_T("ConnectionSecurity"), StringParser::IntToString(connection_security_));
       pNode->AppendAttr(_T("ClientCertificatePolicy"), StringParser::IntToString(client_certificate_policy_));
       pNode->AppendAttr(_T("ClientCertificateCAFile"), client_certificate_ca_file_);
+      pNode->AppendAttr(_T("SMTPAuthentication"), StringParser::IntToString(smtp_authentication_));
       pNode->AppendAttr(_T("Address"), String(address_.ToString()));
       
       if (sslcertificate_id_ > 0)
@@ -72,6 +74,14 @@ namespace HM
       // than on an accidental "request" or "require".
       client_certificate_policy_ = (ClientCertificatePolicy) _ttoi(pNode->GetAttrValue(_T("ClientCertificatePolicy")));
       client_certificate_ca_file_ = pNode->GetAttrValue(_T("ClientCertificateCAFile"));
+
+      // The same for the listener's AUTH mode (GitLab work item #54): a backup
+      // taken before 6.3.6 has no attribute, and _ttoi("") is 0, On - what every
+      // listener did then. A value this version does not know is On as well, and
+      // so is anything on a port that is not SMTP, which has no other mode.
+      const int smtpAuthentication = _ttoi(pNode->GetAttrValue(_T("SMTPAuthentication")));
+      smtp_authentication_ = port_protocol_ == STSMTP && (smtpAuthentication == SAMOff || smtpAuthentication == SAMHoneypot)
+         ? (SMTPAuthenticationMode) smtpAuthentication : SAMOn;
 
       // Backwards compatibiltiy
       if (pNode->GetAttrValue(_T("UseSSL")) == _T("1"))

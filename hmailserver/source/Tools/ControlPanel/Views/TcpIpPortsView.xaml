@@ -50,6 +50,7 @@
                         <DataGridTextColumn Header="{loc:L 'Port'}" Binding="{Binding Port}" Width="90"
                                             ElementStyle="{StaticResource GridNumberText}" HeaderStyle="{StaticResource GridNumberHeader}" />
                         <DataGridTextColumn Header="{loc:L 'Security'}" Binding="{Binding Security}" Width="180" />
+                        <DataGridTextColumn Header="{loc:L 'SMTP authentication'}" Binding="{Binding Auth}" Width="170" />
                         <!-- A shape as well as a word, so the difference between a live
                              port and a dead one survives greyscale, colour blindness and
                              High Contrast. The mark itself is built in the code-behind by

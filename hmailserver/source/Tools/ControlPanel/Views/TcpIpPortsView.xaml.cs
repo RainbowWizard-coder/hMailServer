@@ -24,10 +24,13 @@ namespace hMailServer.ControlPanel.Views
          public string Security { get; set; }
          public string Certificate { get; set; }
 
+         /// <summary>What an SMTP port does with AUTH - On, Off or Honeypot - and empty for POP3 and IMAP.</summary>
+         public string Auth { get; set; }
+
          // What a screen reader says for the row: its cells, not the name of
          // this class, which is what a grid row is announced as otherwise.
          public override string ToString()
-            => string.Join(", ", new[] { Protocol + " " + Address + ":" + Port, Security, ListeningWord, Certificate }.Where(s => !string.IsNullOrWhiteSpace(s)));
+            => string.Join(", ", new[] { Protocol + " " + Address + ":" + Port, Security, string.IsNullOrEmpty(Auth) ? "" : F("AUTH {0}", Auth), ListeningWord, Certificate }.Where(s => !string.IsNullOrWhiteSpace(s)));
 
          /// <summary>"Listening", "Not listening", "Server off" or "Unknown".</summary>
          public string ListeningWord { get; set; }
@@ -40,6 +43,33 @@ namespace hMailServer.ControlPanel.Views
       }
 
       private static readonly string[] SecurityNames = { L("None"), L("SSL/TLS"), L("STARTTLS (optional)"), L("STARTTLS (required)") };
+
+      // SMTPAuthenticationMode's three values (GitLab work item #54), as the port
+      // dialog's box names them first.
+      private static readonly string[] SmtpAuthNames = { L("On"), L("Off"), L("Honeypot") };
+
+      /// <summary>
+      /// The AUTH cell: empty for POP3 and IMAP, which have no such choice; On for
+      /// a server older than 6.3.6, which has no SMTPAuthentication and on which
+      /// every port takes AUTH.
+      /// </summary>
+      private static string SmtpAuthName(dynamic port, int protocol)
+      {
+         if (protocol != ServerSession.SessionSmtp)
+            return "";
+
+         int mode;
+         try
+         {
+            mode = (int)port.SMTPAuthentication;
+         }
+         catch (System.Exception ex) when (!ExceptionPolicy.IsFatal(ex))
+         {
+            mode = 0;
+         }
+
+         return mode >= 0 && mode < SmtpAuthNames.Length ? SmtpAuthNames[mode] : "#" + mode;
+      }
 
       public TcpIpPortsView()
       {
@@ -84,7 +114,9 @@ namespace hMailServer.ControlPanel.Views
                dynamic port = ports.Item[i];
                int security = (int)port.ConnectionSecurity;
                int certId = (int)port.SSLCertificateID;
-               string protocol = ProtocolName((int)port.Protocol);
+               int protocolNumber = (int)port.Protocol;
+               string protocol = ProtocolName(protocolNumber);
+               string auth = SmtpAuthName((object)port, protocolNumber);
                string address = (string)port.Address;
                int portNumber = (int)port.PortNumber;
 
@@ -101,6 +133,7 @@ namespace hMailServer.ControlPanel.Views
                   Port = portNumber,
                   Security = security >= 0 && security < SecurityNames.Length ? SecurityNames[security] : "#" + security,
                   Certificate = certId > 0 && certNames.TryGetValue(certId, out string n) ? n : "",
+                  Auth = auth,
                   ListeningWord = ListenerProbe.WordFor(state),
                   ListeningTip = ListenerProbe.WordFor(state) + ". " + ListenerProbe.ExplainFor(state, protocol),
                   ListeningMark = MakeListeningMark(presentation)
@@ -355,7 +388,7 @@ namespace hMailServer.ControlPanel.Views
       private void RestoreDefaults_Click(object sender, RoutedEventArgs e)
       {
          if (MessageBox.Show(
-                L("Replace ALL configured ports with the defaults?\n\nSMTP 25 and 587, POP3 110, IMAP 143 - without connection security. TLS ports and custom bindings will be removed. The change takes effect when the server is reinitialized."),
+                L("Replace ALL configured ports with the defaults?\n\nSMTP 25 and 587, POP3 110, IMAP 143 - without connection security, and with SMTP authentication On on both SMTP ports, so a port 25 that is a honeypot takes AUTH again. TLS ports and custom bindings will be removed. The change takes effect when the server is reinitialized."),
                 L("Control Panel"), MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
             return;
 

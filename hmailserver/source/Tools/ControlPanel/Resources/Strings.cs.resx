@@ -680,6 +680,9 @@ Přesto toto slabé heslo uložit?</value>
   <data name="A modern administration app for hMailServer: live dashboard, domains and accounts, delivery queue, log streaming, full server settings and the 6.x transport-security features (DANE, MTA-STS, ARC, TLS-RPT, ACME)." xml:space="preserve">
     <value>Moderní aplikace pro správu hMailServeru: živý přehled, domény a účty, doručovací fronta, streamování logů, kompletní nastavení serveru a funkce zabezpečení přenosu z řady 6.x (DANE, MTA-STS, ARC, TLS-RPT, ACME).</value>
   </data>
+  <data name="A name is required." xml:space="preserve">
+    <value>Název je povinný.</value>
+  </data>
   <data name="A new address is required." xml:space="preserve">
     <value>Je vyžadována nová adresa.</value>
   </data>
@@ -772,6 +775,9 @@ Přesto toto slabé heslo uložit?</value>
   </data>
   <data name="A scanner that cannot run does not refuse the message. The error is written to the log and the scan continues to the next scanner; when none of them can answer, the message is treated exactly as if it had been examined and found clean. That is why this page reports whether each scanner can run rather than whether it is switched on." xml:space="preserve">
     <value>Skener, který nelze spustit, zprávu neodmítne. Chyba se zapíše do logu a kontrola pokračuje dalším skenerem; když nedokáže odpovědět žádný z nich, se zprávou se naloží přesně tak, jako by byla prověřena a shledána čistou. Proto tato stránka hlásí, zda lze každý skener spustit, a ne zda je zapnutý.</value>
+  </data>
+  <data name="A scanner working through 203.0.113.10, .11 and .12 under one reverse domain earns a ban and a firewall rule for each. With this on, the ban is still written at once for the one address, and then widened in the background to the run of addresses around it, inside its /24, whose reverse names share its registrable domain: one range and one firewall rule, said in the application log." xml:space="preserve">
+    <value>Skener, který prochází adresy 203.0.113.10, .11 a .12 pod jednou reverzní doménou, dostane zákaz a pravidlo firewallu pro každou z nich. Když je toto zapnuto, zákaz se stále zapíše hned pro tu jednu adresu a pak se na pozadí rozšíří na souvislou řadu adres kolem ní, uvnitř jejího /24, jejichž reverzní názvy sdílejí její registrovatelnou doménu: jeden rozsah a jedno pravidlo firewallu, zaznamenané v protokolu aplikace.</value>
   </data>
   <data name="A schedule creates and updates accounts with nobody watching. It never disables one, whatever the checkbox above is set to - departures are left to a person who has read a preview. Switch this on only after a preview has told you what it is going to do." xml:space="preserve">
     <value>Plán vytváří a aktualizuje účty, aniž by se kdokoli díval. Nikdy žádný nezakáže, ať je políčko výše nastaveno jakkoli – odchody se ponechávají na člověku, který si přečetl náhled. Zapněte to teprve poté, co vám náhled řekl, co se bude dít.</value>
@@ -922,6 +928,9 @@ Přesto toto slabé heslo uložit?</value>
   </data>
   <data name="AUTH is normally offered on every SMTP port. List the local TCP ports where it should not be, for example a port 25 that only accepts inbound mail from other servers." xml:space="preserve">
     <value>AUTH se běžně nabízí na každém SMTP portu. Uveďte místní TCP porty, kde nabízeno být nemá, například port 25, který přijímá pouze příchozí poštu od jiných serverů.</value>
+  </data>
+  <data name="AUTH {0}" xml:space="preserve">
+    <value>AUTH {0}</value>
   </data>
   <data name="AWStats-compatible log" xml:space="preserve">
     <value>Log kompatibilní s AWStats</value>
@@ -1120,6 +1129,9 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   </data>
   <data name="Add a listener - 587 with STARTTLS, or 465 for implicit TLS." xml:space="preserve">
     <value>Přidejte listener – 587 se STARTTLS, nebo 465 pro implicitní TLS.</value>
+  </data>
+  <data name="Add a name to the never-ban list" xml:space="preserve">
+    <value>Přidat název na seznam nikdy nezakazovaných</value>
   </data>
   <data name="Add a_lias" xml:space="preserve">
     <value>Přidat a_lias</value>
@@ -1480,6 +1492,9 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   </data>
   <data name="An address is required." xml:space="preserve">
     <value>Je vyžadována adresa.</value>
+  </data>
+  <data name="An address is spared only when one of its reverse names is covered AND resolves back to the address, since anybody who holds an address can write its reverse name. It applies to the next ban." xml:space="preserve">
+    <value>Adresa je ušetřena jen tehdy, když je jeden z jejích reverzních názvů pokryt A ZÁROVEŇ se překládá zpět na tuto adresu, protože kdokoli, kdo má adresu, si může její reverzní název napsat sám. Platí od dalšího zákazu.</value>
   </data>
   <data name="An address this server hosts is refused: the list only applies to mail leaving the server." xml:space="preserve">
     <value>Adresa, kterou tento server hostuje, je odmítnuta: seznam platí jen pro poštu opouštějící server.</value>
@@ -2130,6 +2145,9 @@ Restartovat nyní Control Panel? Volbou Ne se pokusíte pokračovat v práci.</v
   <data name="C_A certificate bundle (PEM) that client certificates must chain to" xml:space="preserve">
     <value>_Balík certifikátů CA (PEM), ke kterému musí klientské certifikáty vést řetězem</value>
   </data>
+  <data name="C_heck an address…" xml:space="preserve">
+    <value>Ově_řit adresu…</value>
+  </data>
   <data name="C_hoose a photo..." xml:space="preserve">
     <value>_Vybrat fotografii...</value>
   </data>
@@ -2285,6 +2303,9 @@ Restartovat nyní Control Panel? Volbou Ne se pokusíte pokračovat v práci.</v
   </data>
   <data name="Check _policy (HTTPS)" xml:space="preserve">
     <value>_Zkontrolovat politiku (HTTPS)</value>
+  </data>
+  <data name="Check an address" xml:space="preserve">
+    <value>Ověřit adresu</value>
   </data>
   <data name="Check every message" xml:space="preserve">
     <value>Zaškrtnout každou zprávu</value>
@@ -4428,6 +4449,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="For a MinIO or Ceph gateway behind a CA of your own. The host name is checked either way." xml:space="preserve">
     <value>Pro bránu MinIO nebo Ceph za vlastní certifikační autoritou. Název hostitele se kontroluje v každém případě.</value>
   </data>
+  <data name="For a provider whose hosts share a reverse name and whose addresses move: a connecting address is never auto-banned - for failed logons, a spam trap or a null sender - when one of its reverse names is covered by a name here and resolves back to the address. Nothing else is skipped: greylisting, SPF, DKIM, DMARC and the domain white and black list still apply. Empty, the default, changes nothing." xml:space="preserve">
+    <value>Pro poskytovatele, jehož hostitelé sdílejí reverzní název a jehož adresy se mění: připojující se adresa se nikdy automaticky nezakáže - kvůli neúspěšným přihlášením, pasti na spam ani prázdnému odesílateli - když je jeden z jejích reverzních názvů pokryt názvem zde a překládá se zpět na tuto adresu. Nic jiného se nevynechává: greylisting, SPF, DKIM, DMARC a bílá a černá listina domén platí dál. Prázdný seznam, výchozí stav, nic nemění.</value>
+  </data>
   <data name="For a record of who corresponds with whom, keeping it for ever should be a decision rather than a default - which is why 0 is offered as an option instead of being one." xml:space="preserve">
     <value>U záznamu o tom, kdo si s kým dopisuje, by mělo být uchovávání navždy rozhodnutím, ne výchozím stavem - proto se 0 nabízí jako volba, místo aby jí byla.</value>
   </data>
@@ -4737,6 +4761,12 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Holds the refusal of a wrong password for a while before sending it: the first failure on a connection waits this many seconds, the second twice as long, and so on up to 30 seconds, on SMTP, POP3 and IMAP alike. A correct password is never delayed. The wait is a timer on the connection, not a thread asleep, so a flood of failed logons costs the server nothing but the sockets they arrive on - the reason the old TarpitDelay was a stub for a decade is that the naive version is a self-inflicted outage." xml:space="preserve">
     <value>Zadržuje odmítnutí špatného hesla na chvíli před odesláním: první selhání na spojení čeká tolik sekund, druhé dvakrát tolik, a tak dál až do 30 sekund, stejně na SMTP, POP3 i IMAP. Správné heslo se nikdy nezdržuje. Čekání je časovač na spojení, ne spící vlákno, takže záplava neúspěšných přihlášení server nestojí nic než sokety, na kterých přicházejí - důvod, proč byl starý TarpitDelay deset let jen pahýl, je ten, že naivní verze je výpadek, který si člověk způsobí sám.</value>
   </data>
+  <data name="Honeypot" xml:space="preserve">
+    <value>Návnada</value>
+  </data>
+  <data name="Honeypot - offer AUTH; refuse it and ban the address" xml:space="preserve">
+    <value>Návnada – nabízet AUTH; odmítnout jej a zablokovat adresu</value>
+  </data>
   <data name="Honor recipient DANE/TLSA records when sending" xml:space="preserve">
     <value>Respektovat záznamy DANE/TLSA příjemce při odesílání</value>
   </data>
@@ -4949,6 +4979,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="IP ranges…" xml:space="preserve">
     <value>Rozsahy IP…</value>
+  </data>
+  <data name="IPv4 or IPv6 address" xml:space="preserve">
+    <value>Adresa IPv4 nebo IPv6</value>
   </data>
   <data name="I_P address" xml:space="preserve">
     <value>Ad_resa IP</value>
@@ -6153,6 +6186,9 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="NCSA Common Log Format writes one line per entry as host, ident, session, [date], &quot;category and message&quot;, status, bytes - so a log analyser can count 5xx replies without knowing anything about hMailServer. Ident and bytes are always &quot;-&quot; (the server never queries identd and the logger is not told transfer sizes), and the AWStats journal is a separate file that this setting does not change: its own switch is above." xml:space="preserve">
     <value>NCSA Common Log Format zapisuje jeden řádek na položku ve tvaru hostitel, ident, relace, [datum], „kategorie a zpráva“, stav, bajty – aby analyzátor logů dokázal spočítat odpovědi 5xx, aniž by o hMailServeru cokoli věděl. Ident a bajty jsou vždy „-“ (server se nikdy neptá identd a loggeru se velikosti přenosů nesdělují) a žurnál AWStats je samostatný soubor, který toto nastavení nemění: má vlastní přepínač výše.</value>
   </data>
+  <data name="N_ote" xml:space="preserve">
+    <value>Po_známka</value>
+  </data>
   <data name="N_otice text (mailed to a sender this server hosts, naming the rule)" xml:space="preserve">
     <value>Text up_ozornění (zasílá se odesílateli hostovanému na tomto serveru, s názvem pravidla)</value>
   </data>
@@ -6161,6 +6197,9 @@ Nic, co tam již je, se neodstraní.</value>
   </data>
   <data name="Name for the new certificate" xml:space="preserve">
     <value>Název nového certifikátu</value>
+  </data>
+  <data name="Name or suffix" xml:space="preserve">
+    <value>Název nebo přípona</value>
   </data>
   <data name="Name servers" xml:space="preserve">
     <value>Jmenné servery</value>
@@ -6180,6 +6219,9 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="Names" xml:space="preserve">
     <value>Názvy</value>
   </data>
+  <data name="Names that are never auto-banned" xml:space="preserve">
+    <value>Názvy, které se nikdy automaticky nezakazují</value>
+  </data>
   <data name="Negotiate (Kerberos/NTLM) - the password never crosses the network" xml:space="preserve">
     <value>Negotiate (Kerberos/NTLM) – heslo nikdy neprochází sítí</value>
   </data>
@@ -6195,11 +6237,17 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="Never" xml:space="preserve">
     <value>Nikdy</value>
   </data>
+  <data name="Never auto-ban by reverse name" xml:space="preserve">
+    <value>Nikdy automaticky nezakazovat podle reverzního názvu</value>
+  </data>
   <data name="Never auto-ban these addresses (comma separated; CIDR blocks allowed)" xml:space="preserve">
     <value>Tyto adresy nikdy automaticky nezakazovat (oddělené čárkami; bloky CIDR povoleny)</value>
   </data>
   <data name="Never judged by country (addresses and CIDR ranges, comma separated)" xml:space="preserve">
     <value>Nikdy neposuzovány podle země (adresy a rozsahy CIDR, oddělené čárkami)</value>
+  </data>
+  <data name="Never-ban list status" xml:space="preserve">
+    <value>Stav seznamu nikdy nezakazovaných</value>
   </data>
   <data name="New IMAP folder" xml:space="preserve">
     <value>Nová IMAP složka</value>
@@ -6290,6 +6338,9 @@ Nic, co tam již je, se neodstraní.</value>
   </data>
   <data name="No MX records were found from this machine, so the server would fall back to its own host name." xml:space="preserve">
     <value>Z tohoto počítače nebyly nalezeny žádné MX záznamy, takže by se server vrátil ke svému vlastnímu názvu hostitele.</value>
+  </data>
+  <data name="No SMTP listener is on port 25, so no delivery port takes a password." xml:space="preserve">
+    <value>Na portu 25 nenaslouchá žádný SMTP posluchač, takže žádný doručovací port nepřijímá heslo.</value>
   </data>
   <data name="No SSL certificates are configured, so there are no key files to check." xml:space="preserve">
     <value>Nejsou nastaveny žádné SSL certifikáty, takže neexistují žádné soubory klíčů ke kontrole.</value>
@@ -6492,8 +6543,17 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="No passphrase stored" xml:space="preserve">
     <value>Není uloženo žádné přístupové heslo</value>
   </data>
+  <data name="No password on port 25 - the port other servers deliver to" xml:space="preserve">
+    <value>Žádné heslo na portu 25 – portu, na který doručují ostatní servery</value>
+  </data>
   <data name="No password was typed, so no logon was tested - the infrastructure half all works." xml:space="preserve">
     <value>Nebylo zadáno žádné heslo, takže se netestovalo žádné přihlášení – infrastrukturní polovina funguje celá.</value>
+  </data>
+  <data name="No pattern covers {0}, and it does not resolve back to {1}, so no pattern would spare the address." xml:space="preserve">
+    <value>Žádný vzor nepokrývá {0} a název se nepřekládá zpět na {1}, takže žádný vzor by adresu neušetřil.</value>
+  </data>
+  <data name="No pattern covers {0}. It resolves back to {1}, so a pattern covering it would spare the address." xml:space="preserve">
+    <value>Žádný vzor nepokrývá {0}. Název se překládá zpět na {1}, takže vzor, který by jej pokrýval, by adresu ušetřil.</value>
   </data>
   <data name="No port has a client certificate policy, so no CA bundle or client certificates are required." xml:space="preserve">
     <value>Žádný port nemá politiku klientských certifikátů, takže není potřeba ani balík CA, ani klientské certifikáty.</value>
@@ -6795,6 +6855,9 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="Off" xml:space="preserve">
     <value>Vypnuto</value>
   </data>
+  <data name="Off - do not offer AUTH; refuse it and ban the address" xml:space="preserve">
+    <value>Vypnuto – nenabízet AUTH; odmítnout jej a zablokovat adresu</value>
+  </data>
   <data name="Off by default because it costs a term table of a few kilobytes per message and a backfill pass over every message already delivered - an administrator's decision, never an upgrade's. Results are identical on and off: the index only narrows which messages the substring scan has to read. Requires message indexing (above) to be enabled; on its own this indexes nothing." xml:space="preserve">
     <value>Ve výchozím nastavení vypnuto, protože to stojí tabulku termů o několika kilobajtech na zprávu a doplňovací průchod přes každou už doručenou zprávu – to je rozhodnutí správce, nikdy ne aktualizace. Výsledky jsou zapnuto i vypnuto stejné: index jen zužuje, které zprávy musí prohledávání podřetězců přečíst. Vyžaduje zapnuté indexování zpráv (výše); samo o sobě neindexuje nic.</value>
   </data>
@@ -6827,6 +6890,9 @@ Nic, co tam již je, se neodstraní.</value>
   </data>
   <data name="Off by default. MAIL FROM:&lt;&gt; is no excuse: a delivery report from a server that greets with an address is refused like any other mail from it." xml:space="preserve">
     <value>Ve výchozím stavu vypnuto. MAIL FROM:&lt;&gt; není omluva: zpráva o doručení ze serveru, který se představí adresou, se odmítne jako každá jiná pošta z něj.</value>
+  </data>
+  <data name="Off by default. Only when the banned address's own reverse name resolves back to it; at most 32 addresses each way; never into another /24, across an address either never-ban list above spares, or across an IP range of yours that covers one address and not the other; never for IPv6. A reverse lookup that is not answered leaves the single address. A hosting net whose customers all carry one reverse domain is widened whole: list it above, or leave this off." xml:space="preserve">
+    <value>Ve výchozím stavu vypnuto. Jen když vlastní reverzní název zakázané adresy ukazuje zpět na ni; nejvýše 32 adres na každou stranu; nikdy do jiného /24, přes adresu, kterou ušetří kterýkoli ze dvou seznamů výše, ani přes váš rozsah IP, který pokrývá jednu adresu a druhou ne; nikdy pro IPv6. Reverzní dotaz, na který nepřijde odpověď, ponechá jedinou adresu. Hostingová síť, jejíž zákazníci všichni nesou jednu reverzní doménu, se rozšíří celá: uveďte ji výše, nebo nechte toto vypnuté.</value>
   </data>
   <data name="Off by default. Operators who drop this in a script today can delete the script when this is on." xml:space="preserve">
     <value>Ve výchozím stavu vypnuto. Kdo to dnes odmítá skriptem, může skript smazat, jakmile je toto zapnuto.</value>
@@ -6897,6 +6963,9 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="On" xml:space="preserve">
     <value>Zapnuto</value>
   </data>
+  <data name="On - offer AUTH and check the password" xml:space="preserve">
+    <value>Zapnuto – nabízet AUTH a ověřovat heslo</value>
+  </data>
   <data name="On by default, and inert until somebody sets a recovery address." xml:space="preserve">
     <value>Ve výchozím stavu zapnuto a bez účinku, dokud někdo nenastaví adresu pro obnovení.</value>
   </data>
@@ -6959,6 +7028,9 @@ Nic, co tam již je, se neodstraní.</value>
   </data>
   <data name="On the TCP/IP ports page, give the submission port (587) STARTTLS with a certificate from the SSL certificates page, or add port 465 with implicit TLS." xml:space="preserve">
     <value>Na stránce Porty TCP/IP dejte portu pro odesílání (587) STARTTLS s certifikátem ze stránky Certifikáty SSL, nebo přidejte port 465 s implicitním TLS.</value>
+  </data>
+  <data name="On the TCP/IP ports page, open the SMTP port 25 and set its SMTP authentication to Honeypot or Off, then reinitialize. Mail clients that still sign in on 25 are refused and banned from then on, so move them to 587 first." xml:space="preserve">
+    <value>Na stránce Porty TCP/IP otevřete SMTP port 25, nastavte jeho ověřování SMTP na Návnada nebo Vypnuto a pak server reinicializujte. Poštovní klienti, kteří se na portu 25 stále přihlašují, budou od té chvíle odmítnuti a zablokováni, proto je nejprve přesuňte na port 587.</value>
   </data>
   <data name="On the server, from an elevated prompt in the Bin folder: hMailServer.exe --create-stored-secrets-key makes the key, and hMailServer.exe --export-stored-secrets-key FILE exports it. Keep the file with the database backups, stored apart from them." xml:space="preserve">
     <value>Na serveru, z příkazového řádku se zvýšenými oprávněními ve složce Bin: hMailServer.exe --create-stored-secrets-key vytvoří klíč a hMailServer.exe --export-stored-secrets-key FILE jej exportuje. Soubor uchovávejte se zálohami databáze, ale odděleně od nich.</value>
@@ -7115,6 +7187,9 @@ Nic, co tam již je, se neodstraní.</value>
   </data>
   <data name="Open the Control Panel on the server itself to change the account the service runs as or grant it its folders." xml:space="preserve">
     <value>Otevřete Control Panel přímo na serveru, chcete-li změnit účet služby nebo jí udělit její složky.</value>
+  </data>
+  <data name="Open the SMTP port 25 and set its SMTP authentication to Honeypot or Off: AUTH there is refused without the password being looked at, and the address that sent it is banned." xml:space="preserve">
+    <value>Otevřete SMTP port 25 a nastavte jeho ověřování SMTP na Návnada nebo Vypnuto: AUTH je tam odmítnuto, aniž by se na heslo kdo díval, a adresa, která ho poslala, je zablokována.</value>
   </data>
   <data name="Open the delivery queue" xml:space="preserve">
     <value>Otevřít doručovací frontu</value>
@@ -7541,11 +7616,20 @@ Do obnovení nebudou přijímána žádná nová připojení a nebude doručová
   <data name="Port 25 is judged differently from the rest and deliberately so: the peer there is normally another mail server, and requiring encryption on it refuses mail from senders that cannot offer any. On every other port the peer is a client with a password." xml:space="preserve">
     <value>Port 25 se posuzuje jinak než ostatní, a to záměrně: protějškem je tam obvykle jiný poštovní server a vyžadování šifrování na něm odmítne poštu od odesílatelů, kteří žádné nabídnout neumějí. Na každém jiném portu je protějškem klient s heslem.</value>
   </data>
+  <data name="Port 25 is where other servers deliver mail, and no mail client should sign in there. Off and Honeypot never look at a password: AUTH is answered 502, and the first one of a session bans the address for the auto-ban minutes - never this computer, nor an address on the never-ban lists. Honeypot goes on offering AUTH, as bait. Mail clients sign in on 587." xml:space="preserve">
+    <value>Port 25 je místo, kam doručují poštu ostatní servery, a žádný poštovní klient by se na něm neměl přihlašovat. Vypnuto a Návnada se na heslo nikdy nedívají: AUTH dostane odpověď 502 a první AUTH relace zablokuje adresu na dobu automatického blokování – nikdy však tento počítač ani adresu ze seznamů adres, které se nikdy neblokují. Návnada nabízí AUTH dál, jako návnadu. Poštovní klienti se přihlašují na portu 587.</value>
+  </data>
+  <data name="Port 25 is where other servers deliver mail, and no mail client should sign in there: an AUTH on it is a password being guessed." xml:space="preserve">
+    <value>Port 25 je místo, kam doručují poštu ostatní servery, a žádný poštovní klient by se na něm neměl přihlašovat: AUTH na něm je hádání hesla.</value>
+  </data>
   <data name="Port binding" xml:space="preserve">
     <value>Vazba portu</value>
   </data>
   <data name="Port for http-01 challenges" xml:space="preserve">
     <value>Port pro výzvy http-01</value>
+  </data>
+  <data name="Port {0} does not offer AUTH: DisableAUTHList names it, and an AUTH sent there is refused without a ban." xml:space="preserve">
+    <value>Port {0} nenabízí AUTH: uvádí jej DisableAUTHList a AUTH, které tam přijde, je odmítnuto bez zablokování.</value>
   </data>
   <data name="Port {0} is set to TLS but has no certificate, so TLS cannot start." xml:space="preserve">
     <value>Port {0} je nastaven na TLS, ale nemá certifikát, takže TLS nelze zahájit.</value>
@@ -7555,6 +7639,18 @@ Do obnovení nebudou přijímána žádná nová připojení a nebude doručová
   </data>
   <data name="Port {0} offers TLS with {1}, the self-signed certificate this installation made: mail clients warn about it until it is replaced with one a certificate authority issued, which ACME can fetch from Let's Encrypt." xml:space="preserve">
     <value>Port {0} nabízí TLS s certifikátem {1}, certifikátem podepsaným sám sebou, který vytvořila tato instalace: poštovní klienti před ním varují, dokud jej nenahradí certifikát vydaný certifikační autoritou, který může ACME získat od Let's Encrypt.</value>
+  </data>
+  <data name="Port {0} still accepts AUTH: it is where other servers deliver mail, and a password tried there is a guess. Set its SMTP authentication to Honeypot or Off, and sign mail clients in on 587." xml:space="preserve">
+    <value>Port {0} stále přijímá AUTH: doručují na něj poštu ostatní servery a heslo zkoušené tam je jen pokus o uhodnutí. Nastavte jeho ověřování SMTP na Návnada nebo Vypnuto a poštovní klienty přihlašujte na portu 587.</value>
+  </data>
+  <data name="Port {0} takes no password, but AutoBanMinutes is 0, so an address that sends AUTH there is refused and not banned." xml:space="preserve">
+    <value>Port {0} nepřijímá žádné heslo, ale AutoBanMinutes je 0, takže adresa, která tam pošle AUTH, je odmítnuta a nezablokována.</value>
+  </data>
+  <data name="Port {0} takes no password: EHLO does not offer AUTH there, and an address that sends one anyway is refused and banned." xml:space="preserve">
+    <value>Port {0} nepřijímá žádné heslo: EHLO tam AUTH nenabízí a adresa, která ho přesto pošle, je odmítnuta a zablokována.</value>
+  </data>
+  <data name="Port {0} takes no password: EHLO offers AUTH there as bait, and an address that sends one is refused and banned." xml:space="preserve">
+    <value>Port {0} nepřijímá žádné heslo: EHLO tam nabízí AUTH jako návnadu a adresa, která ho pošle, je odmítnuta a zablokována.</value>
   </data>
   <data name="Port {0} takes submission without TLS, so passwords and mail would cross the network in the clear." xml:space="preserve">
     <value>Port {0} přijímá odesílání bez TLS, takže hesla a pošta by putovaly sítí v otevřené podobě.</value>
@@ -7894,6 +7990,9 @@ Do obnovení nebudou přijímána žádná nová připojení a nebude doručová
   </data>
   <data name="Re_move action" xml:space="preserve">
     <value>Odeb_rat akci</value>
+  </data>
+  <data name="Re_move name" xml:space="preserve">
+    <value>Odeb_rat název</value>
   </data>
   <data name="Re_move the rule" xml:space="preserve">
     <value>Odeb_rat pravidlo</value>
@@ -8241,6 +8340,9 @@ Spusťte to, pokud klienti hlásí zprávy pod špatným UID, nebo po obnovení 
   <data name="Remove from the domain list" xml:space="preserve">
     <value>Odebrat ze seznamu domén</value>
   </data>
+  <data name="Remove from the never-ban list" xml:space="preserve">
+    <value>Odebrat ze seznamu nikdy nezakazovaných</value>
+  </data>
   <data name="Remove from the suppression list" xml:space="preserve">
     <value>Odebrat ze seznamu blokovaných</value>
   </data>
@@ -8282,6 +8384,11 @@ Spusťte to, pokud klienti hlásí zprávy pod špatným UID, nebo po obnovení 
 
 Černá doména se hned znovu přijímá; bílá doména se od další relace vrací pod greylisting a antispamové skóre.</value>
   </data>
+  <data name="Remove {0} from the never-ban list?&#10;&#10;An address it spared can be auto-banned again from the next ban on." xml:space="preserve">
+    <value>Odebrat {0} ze seznamu nikdy nezakazovaných?
+
+Adresu, kterou ušetřil, lze od dalšího zákazu znovu automaticky zakázat.</value>
+  </data>
   <data name="Remove {0} from {1}?&#13;&#10;&#13;&#10;Any access this group has been granted stops applying to that account." xml:space="preserve">
     <value>Odstranit {0} z {1}?
 
@@ -8311,10 +8418,10 @@ Poštovní schránka a její zprávy se přesunou na novou adresu. Pošta odesla
 
 Každý vlastní rozsah – včetně všech položek auto-banu – bude odstraněn a nahrazen rozsahy „Můj počítač“ (127.0.0.1) a „Internet“ (vše ostatní). Tím se okamžitě změní, kdo se smí připojit a relayovat.</value>
   </data>
-  <data name="Replace ALL configured ports with the defaults?&#10;&#10;SMTP 25 and 587, POP3 110, IMAP 143 - without connection security. TLS ports and custom bindings will be removed. The change takes effect when the server is reinitialized." xml:space="preserve">
+  <data name="Replace ALL configured ports with the defaults?&#10;&#10;SMTP 25 and 587, POP3 110, IMAP 143 - without connection security, and with SMTP authentication On on both SMTP ports, so a port 25 that is a honeypot takes AUTH again. TLS ports and custom bindings will be removed. The change takes effect when the server is reinitialized." xml:space="preserve">
     <value>Nahradit VŠECHNY nakonfigurované porty výchozími?
 
-SMTP 25 a 587, POP3 110, IMAP 143 – bez zabezpečení připojení. TLS porty a vlastní vazby budou odstraněny. Změna se projeví po reinicializaci serveru.</value>
+SMTP 25 a 587, POP3 110, IMAP 143 – bez zabezpečení připojení a s ověřováním SMTP Zapnuto na obou portech SMTP, takže port 25, který je návnadou, bude opět přijímat AUTH. TLS porty a vlastní vazby budou odstraněny. Změna se projeví po reinicializaci serveru.</value>
   </data>
   <data name="Replace the certificate here; the expiry date of each one is listed." xml:space="preserve">
     <value>Certifikát vyměňte zde; u každého je uvedeno datum vypršení platnosti.</value>
@@ -8843,6 +8950,9 @@ Pokračovat?</value>
   </data>
   <data name="SURBL servers are checked against the links inside the message." xml:space="preserve">
     <value>Servery SURBL se dotazují na odkazy uvnitř zprávy.</value>
+  </data>
+  <data name="S_MTP authentication" xml:space="preserve">
+    <value>Ověřování S_MTP</value>
   </data>
   <data name="S_witch the rule over" xml:space="preserve">
     <value>Pře_pnout pravidlo</value>
@@ -11025,6 +11135,12 @@ Přesto přidat?</value>
   <data name="The retry counts and intervals are here, along with what happens when they run out." xml:space="preserve">
     <value>Zde jsou počty pokusů a intervaly a také to, co se stane, když se vyčerpají.</value>
   </data>
+  <data name="The reverse lookup of {0} was not answered, so the list cannot spare it now. Try again, or list the address in AutoBanNeverBan." xml:space="preserve">
+    <value>Reverzní dotaz na {0} nebyl zodpovězen, takže seznam ji teď nemůže ušetřit. Zkuste to znovu, nebo adresu uveďte v AutoBanNeverBan.</value>
+  </data>
+  <data name="The reverse name {0} is an address or a public suffix, which the list never matches. List the address in AutoBanNeverBan instead." xml:space="preserve">
+    <value>Reverzní název {0} je adresa nebo veřejná přípona, kterou seznam nikdy neporovnává. Adresu místo toho uveďte v AutoBanNeverBan.</value>
+  </data>
   <data name="The rotation refused: {0}" xml:space="preserve">
     <value>Rotace odmítla: {0}</value>
   </data>
@@ -11161,6 +11277,12 @@ Odpovídá vlastní resolver serveru - tentýž, který používá doručování
   </data>
   <data name="The server's answer could not be read: {0}" xml:space="preserve">
     <value>Odpověď serveru nelze přečíst: {0}</value>
+  </data>
+  <data name="The server's answer has no list of entries." xml:space="preserve">
+    <value>Odpověď serveru neobsahuje seznam položek.</value>
+  </data>
+  <data name="The server's answer has no verdict." xml:space="preserve">
+    <value>Odpověď serveru neobsahuje výsledek.</value>
   </data>
   <data name="The server's answer is not a settings group." xml:space="preserve">
     <value>Odpověď serveru není skupina nastavení.</value>
@@ -12329,6 +12451,12 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="Why it is listed" xml:space="preserve">
     <value>Proč je na seznamu</value>
   </data>
+  <data name="Widen a ban to its neighbours" xml:space="preserve">
+    <value>Rozšířit zákaz na sousedy</value>
+  </data>
+  <data name="Widen an auto-ban to the neighbouring addresses whose reverse names share its domain" xml:space="preserve">
+    <value>Rozšířit automatický zákaz na sousední adresy, jejichž reverzní názvy sdílejí jeho doménu</value>
+  </data>
   <data name="Wiki the help pane's &quot;Open on the wiki&quot; link points at (empty hides the link)" xml:space="preserve">
     <value>Wiki, na kterou odkazuje „Otevřít na wiki“ v panelu nápovědy (prázdné odkaz skryje)</value>
   </data>
@@ -12466,6 +12594,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="_Add folder" xml:space="preserve">
     <value>_Přidat složku</value>
+  </data>
+  <data name="_Add name…" xml:space="preserve">
+    <value>_Přidat název…</value>
   </data>
   <data name="_Add rule" xml:space="preserve">
     <value>_Přidat pravidlo</value>
@@ -12763,6 +12894,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="_Name" xml:space="preserve">
     <value>_Název</value>
+  </data>
+  <data name="_Name or suffix" xml:space="preserve">
+    <value>_Název nebo přípona</value>
   </data>
   <data name="_New accounts start with their keys published" xml:space="preserve">
     <value>_Nové účty začínají se zveřejněnými klíči</value>
@@ -13512,6 +13646,12 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="mail is stuck" xml:space="preserve">
     <value>pošta se zasekla</value>
   </data>
+  <data name="mail.example.net is that name alone; .example.net is the name and every name beneath it. Never a public suffix such as .com, and never a cloud whose customers' machines carry the provider's name." xml:space="preserve">
+    <value>mail.example.net je pouze tento název; .example.net je název a každý název pod ním. Nikdy veřejná přípona jako .com a nikdy cloud, jehož zákaznické stroje nesou název poskytovatele.</value>
+  </data>
+  <data name="mail.example.net is that name alone; .example.net is the name and every name beneath it. The reverse lookup is never waited for on a connection: a ban placed before the answer is in is lifted once it is, before the firewall or fail2ban is told. A net with no reverse name, or one you do not trust, still belongs in the address list above." xml:space="preserve">
+    <value>mail.example.net je pouze tento název; .example.net je název a každý název pod ním. Na reverzní dotaz se u spojení nikdy nečeká: zákaz uložený dříve, než přijde odpověď, se zruší, jakmile přijde, ještě než se to dozví firewall nebo fail2ban. Síť bez reverzního názvu, nebo s takovým, kterému nedůvěřujete, patří dál do seznamu adres výše.</value>
+  </data>
   <data name="make awstats work" xml:space="preserve">
     <value>zprovoznit awstats</value>
   </data>
@@ -13736,6 +13876,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="stop forwarded mail failing spf" xml:space="preserve">
     <value>zabránit tomu, aby přeposlaná pošta neprošla spf</value>
+  </data>
+  <data name="stop password guessing on port 25 with a honeypot" xml:space="preserve">
+    <value>zastavit hádání hesel na portu 25 pomocí návnady</value>
   </data>
   <data name="stop spam" xml:space="preserve">
     <value>zastavit spam</value>
@@ -14127,6 +14270,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} has no postmaster address configured, and this page will not invent a mailbox - enter the address that should receive the reports. Until one is entered there is no record to copy." xml:space="preserve">
     <value>{0} nemá nastavenou adresu postmastera a tato stránka si poštovní schránku nevymyslí – zadejte adresu, která má hlášení přijímat. Dokud není zadána, není žádný záznam ke zkopírování.</value>
   </data>
+  <data name="{0} has no reverse name, so no pattern can spare it. List the address in AutoBanNeverBan instead." xml:space="preserve">
+    <value>{0} nemá reverzní název, takže ji žádný vzor nemůže ušetřit. Adresu místo toho uveďte v AutoBanNeverBan.</value>
+  </data>
   <data name="{0} held, showing the {1} most recent. The rest are still there - work through these, or let the retention sweep age them out." xml:space="preserve">
     <value>{0} pozdrženo, zobrazeno {1} nejnovějších. Ostatní tam stále jsou – projděte tyto, nebo je nechte zestárnout v úklidu uchovávání.</value>
   </data>
@@ -14142,17 +14288,29 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} is available" xml:space="preserve">
     <value>{0} je k dispozici</value>
   </data>
+  <data name="{0} is covered by {1} but does not resolve back to {2}, so it is not spared: anybody who holds an address can write its reverse name." xml:space="preserve">
+    <value>{0} je pokryt vzorem {1}, ale nepřekládá se zpět na {2}, takže adresa ušetřena není: kdokoli, kdo má adresu, si může její reverzní název napsat sám.</value>
+  </data>
+  <data name="{0} is covered by {1}, but its forward lookup was not answered, so {2} is not spared now." xml:space="preserve">
+    <value>{0} je pokryt vzorem {1}, ale jeho dopředný dotaz nebyl zodpovězen, takže {2} teď ušetřena není.</value>
+  </data>
   <data name="{0} is downloaded and verified" xml:space="preserve">
     <value>{0} je stažen a ověřen</value>
   </data>
   <data name="{0} is here with the mailboxes {1}, the list {2} and one rule that files invoices. The one password for all of them was shown when it was made and was not kept - remove the sample and make it again to be given another. It is left out of the first-hour checklist, because a sample domain is not this server's first domain." xml:space="preserve">
     <value>{0} je zde se schránkami {1}, seznamem {2} a jedním pravidlem, které zakládá faktury. Jedno heslo pro všechny schránky bylo zobrazeno při vytvoření ukázky a nebylo uloženo; odstraňte ukázku a vytvořte ji znovu, chcete-li dostat další. V kontrolním seznamu první hodiny se nezapočítává, protože ukázková doména není první doménou tohoto serveru.</value>
   </data>
+  <data name="{0} is never auto-banned: its reverse name {1} resolves back to it and is covered by {2}." xml:space="preserve">
+    <value>{0} se nikdy automaticky nezakáže: její reverzní název {1} se překládá zpět na ni a je pokryt vzorem {2}.</value>
+  </data>
   <data name="{0} is on but scores 0, so it costs a lookup on every message and can never change the outcome. Give it a score, or turn it off." xml:space="preserve">
     <value>{0} je zapnuto, ale má skóre 0, takže stojí vyhledání u každé zprávy a nikdy nemůže změnit výsledek. Dejte mu skóre, nebo je vypněte.</value>
   </data>
   <data name="{0} is on the list. It applies to the next session from that domain." xml:space="preserve">
     <value>{0} je na seznamu. Platí od další relace z této domény.</value>
+  </data>
+  <data name="{0} is on the never-ban list. It applies to the next ban." xml:space="preserve">
+    <value>{0} je na seznamu nikdy nezakazovaných. Platí od dalšího zákazu.</value>
   </data>
   <data name="{0} is on the suppression list of {1}." xml:space="preserve">
     <value>{0} je na seznamu blokovaných domény {1}.</value>
@@ -14340,8 +14498,14 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} was not on the list any more." xml:space="preserve">
     <value>{0} už na seznamu nebyla.</value>
   </data>
+  <data name="{0} was not on the never-ban list any more." xml:space="preserve">
+    <value>{0} už na seznamu nikdy nezakazovaných nebyl.</value>
+  </data>
   <data name="{0} was removed from the list." xml:space="preserve">
     <value>{0} byla ze seznamu odebrána.</value>
+  </data>
+  <data name="{0} was removed from the never-ban list." xml:space="preserve">
+    <value>{0} byl odebrán ze seznamu nikdy nezakazovaných.</value>
   </data>
   <data name="{0} was removed: {1} mailbox(es), {2} distribution list(s), {3} rule(s) and {4} message(s) went with it." xml:space="preserve">
     <value>{0} odstraněna: odešlo {1} schránek, {2} distribučních seznamů, {3} pravidel a {4} zpráv.</value>

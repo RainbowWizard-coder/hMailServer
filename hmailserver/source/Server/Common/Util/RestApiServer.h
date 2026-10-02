@@ -809,6 +809,16 @@ namespace HM
          RouteDomainPolicyCreate,
          RouteDomainPolicyUpdate,
          RouteDomainPolicyDelete,
+
+         // The never-ban list by reverse name (RestApiNeverBanNames.cpp, GitLab
+         // work item #56): providers spared from auto-ban by the reverse names
+         // of their hosts, in the shape of the list above, and the check of what
+         // the list would decide about one address.
+         RouteNeverBanNameList,
+         RouteNeverBanNameCreate,
+         RouteNeverBanNameUpdate,
+         RouteNeverBanNameDelete,
+         RouteNeverBanNameCheck,
          // An account's resources under its address (RestApiAccountResources.cpp):
          // its app passwords, its folders and their ACLs, its messages. Each
          // scoped to the address's domain in Authorize_ as the account routes are.
@@ -2667,6 +2677,11 @@ namespace HM
       // (RestApiDomainPolicyList.cpp): one entry point for its four routes.
       HttpResponse HandleDomainPolicyList_(RouteKind kind, __int64 id, const AnsiString &requestBody);
       static AnsiString OpenApiDomainPolicyListPaths_();
+
+      // The never-ban list by reverse name as a resource
+      // (RestApiNeverBanNames.cpp): one entry point for its five routes.
+      HttpResponse HandleNeverBanNames_(RouteKind kind, __int64 id, const AnsiString &requestBody);
+      static AnsiString OpenApiNeverBanNamePaths_();
       // Whether the quarantine digest reaches the signed-in account, read and
       // written by its owner (RestApiSenderLists.cpp).
       HttpResponse HandleMeQuarantineDigest_(const Caller &caller, const AnsiString &method, const AnsiString &requestBody);

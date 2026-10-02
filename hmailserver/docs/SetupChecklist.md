@@ -1,7 +1,7 @@
 # The first-hour checklist
 
 What a new server still needs before it is a mail server anybody can use, judged
-by the server itself rather than by whoever is reading the documentation. Twelve
+by the server itself rather than by whoever is reading the documentation. Thirteen
 items, in the order a new installation meets them:
 
 | Key | Item | Done when |
@@ -11,6 +11,7 @@ items, in the order a new installation meets them:
 | `account` | An account | at least one account exists in any domain |
 | `submission` | TLS on the submission port | every SMTP listener other than port 25 has STARTTLS or implicit TLS and a certificate that exists, other than the self-signed one a new installation made ([SecureDefaults.md](SecureDefaults.md)), which mail clients warn about |
 | `sign_in_tls` | Passwords only over TLS | every IP range that lets a client connect from an address other than this computer's requires TLS for authentication, or reaches only listeners that start TLS before a password ([SecureDefaults.md](SecureDefaults.md)) |
+| `delivery_port_auth` | No password on port 25 | every SMTP listener on port 25 - the port other servers deliver to - has SMTP authentication Honeypot or Off, or is named by `DisableAUTHList`; a listener bound to a loopback address only is not judged, and without a listener on 25 the item is not needed ([SmtpAuthOnDeliveryPorts.md](SmtpAuthOnDeliveryPorts.md)). A new installation's port 25 is a honeypot; an upgraded server's takes AUTH until it is changed, and the finding carries no fix, since changing it is what arms the ban |
 | `spf` | An SPF record | every active domain has a TXT record beginning `v=spf1` |
 | `dkim` | DKIM signing | every active domain signs, its selector and key file are set, the key file exists, and a TXT record with a `p=` tag is at `<selector>._domainkey.<domain>` |
 | `dmarc` | A DMARC record | every active domain has a TXT record beginning `v=DMARC1` at `_dmarc.<domain>` |
@@ -166,6 +167,12 @@ too. The Control Panel shows the item and opens its IP ranges page.
 | `sign_in_tls_required` | range | The IP range {0} takes a password only over TLS. |
 | `sign_in_tls_ports` | range | Every port the IP range {0} may use starts TLS before it takes a password. |
 | `sign_in_local_only` | | Only this computer may connect, so no password crosses a network. (not_needed) |
+| `delivery_port_auth_on` | port | Port {0} still accepts AUTH: it is where other servers deliver mail, and a password tried there is a guess. Set its SMTP authentication to Honeypot or Off, and sign mail clients in on 587. (action_needed, no `fix`) |
+| `delivery_port_auth_honeypot` | port | Port {0} takes no password: EHLO offers AUTH there as bait, and an address that sends one is refused and banned. |
+| `delivery_port_auth_off` | port | Port {0} takes no password: EHLO does not offer AUTH there, and an address that sends one anyway is refused and banned. |
+| `delivery_port_auth_no_ban` | port | Port {0} takes no password, but AutoBanMinutes is 0, so an address that sends AUTH there is refused and not banned. (done) |
+| `delivery_port_auth_disabled` | port | Port {0} does not offer AUTH: DisableAUTHList names it, and an AUTH sent there is refused without a ban. (done) |
+| `delivery_port_none` | | No SMTP listener is on port 25, so no delivery port takes a password. (not_needed) |
 | `no_active_domain` | | No active domain, so there is nothing to publish yet. |
 | `record_published` | domain, kind, host | {0}: the {1} record at {2} is published. |
 | `record_missing` | domain, kind, host | {0}: no {1} record at {2}. |
@@ -239,11 +246,12 @@ renamed away with the store's files left in place) and
 is the route; `InterfaceUtilities::GetSetupChecklist` the COM method; the Deck's
 view is `renderChecklist` in `installation/WebAdmin/index.html`; the Control
 Panel's items are `ExternalSetupChecks.FirstHourItems`. The regression fixture is
-`test/RegressionTests/API/RestApiSetupChecklist.cs`: the twelve items in order,
+`test/RegressionTests/API/RestApiSetupChecklist.cs`: the thirteen items in order,
 the records looked up in the suite's own zone for two domains, the skipped lookup
 saying so, the submission port judged with a certificate that exists and with the
 self-signed one a new installation makes, the passwords item's fix sent as the
-finding gives it and withheld while a listener has no TLS, the backup destination
+finding gives it and withheld while a listener has no TLS, port 25 judged On,
+Honeypot, Off and with the ban minutes at 0, the backup destination
 judged on disk, and the account the server runs as judged from its own token and,
 beside the server, against what `sc.exe qc` reports. The Deck's button is
 `build/deck-script-test.js`'s.

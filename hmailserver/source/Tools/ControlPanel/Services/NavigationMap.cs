@@ -768,7 +768,7 @@ namespace hMailServer.ControlPanel.Services
                // beside IP ranges, which is where the ban it creates ends up.
                Page("autoban", N("Auto-ban"),
                   N("Lock out an address that keeps failing to log on - and let one back in that should not have been locked out."),
-                  aliases: "Auto-ban & SSL/TLS|Autoban|Brute force|Bruteforce|Lockout|Locked out|Failed logons|Failed logins|Password guessing|Dictionary attack|Fail2ban|Hammering|Temporary ban|Logon failure list",
+                  aliases: "Auto-ban & SSL/TLS|Autoban|Brute force|Bruteforce|Lockout|Locked out|Failed logons|Failed logins|Password guessing|Dictionary attack|Fail2ban|Hammering|Temporary ban|Logon failure list|Never ban|Never-ban list|Do not ban|Reverse name|Provider banned|Widen ban|Neighbours|Neighbors|PTR|Subnet ban",
                   // "tls" is here, and "autoban" is on the SSL/TLS page, so a
                   // reader who followed an old note about the combined page and
                   // wanted the other half has a way across. Only the first three

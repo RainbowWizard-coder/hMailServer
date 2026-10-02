@@ -25,7 +25,7 @@
 // credential may. Only sign_in_plain has one.
 //
 // The items, in the order a new server meets them: profile, domain, account,
-// submission, sign_in_tls, spf, dkim, dmarc, backup, second_factor,
+// submission, sign_in_tls, delivery_port_auth, spf, dkim, dmarc, backup, second_factor,
 // stored_secrets_key, and last the account the server runs as, service_account
 // (docs/ServiceAccount.md). The profile item is first
 // because a profile sets thirty of the settings the rest of the first hour is
@@ -72,6 +72,17 @@
 //   sign_in_tls_ports        Every port the IP range {0} may use starts TLS
 //                            before it takes a password.
 //   sign_in_local_only       Only this computer may connect. (not needed)
+//   delivery_port_auth_on    Port {0} still accepts AUTH ... (action, no fix:
+//                            changing it arms the ban, so it is the
+//                            administrator's step)
+//   delivery_port_auth_honeypot  Port {0} takes no password: EHLO offers AUTH
+//                            there as bait ...
+//   delivery_port_auth_off   Port {0} takes no password: EHLO does not offer it ...
+//   delivery_port_auth_no_ban  Port {0} takes no password, but AutoBanMinutes
+//                            is 0 ... (done)
+//   delivery_port_auth_disabled  Port {0} does not offer AUTH: DisableAUTHList
+//                            names it ... (done)
+//   delivery_port_none       No SMTP listener is on port 25. (not needed)
 //   no_active_domain         No active domain, so nothing to publish yet.
 //   record_published         {0}: the {1} record at {2} is published.
 //   record_missing           {0}: no {1} record at {2}.
@@ -183,6 +194,7 @@
 
 #include <algorithm>
 #include <ctime>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -267,6 +279,12 @@ namespace HM
             { "sign_in_tls_required", "The IP range {0} takes a password only over TLS." },
             { "sign_in_tls_ports", "Every port the IP range {0} may use starts TLS before it takes a password." },
             { "sign_in_local_only", "Only this computer may connect, so no password crosses a network." },
+            { "delivery_port_auth_on", "Port {0} still accepts AUTH: it is where other servers deliver mail, and a password tried there is a guess. Set its SMTP authentication to Honeypot or Off, and sign mail clients in on 587." },
+            { "delivery_port_auth_honeypot", "Port {0} takes no password: EHLO offers AUTH there as bait, and an address that sends one is refused and banned." },
+            { "delivery_port_auth_off", "Port {0} takes no password: EHLO does not offer AUTH there, and an address that sends one anyway is refused and banned." },
+            { "delivery_port_auth_no_ban", "Port {0} takes no password, but AutoBanMinutes is 0, so an address that sends AUTH there is refused and not banned." },
+            { "delivery_port_auth_disabled", "Port {0} does not offer AUTH: DisableAUTHList names it, and an AUTH sent there is refused without a ban." },
+            { "delivery_port_none", "No SMTP listener is on port 25, so no delivery port takes a password." },
             { "no_active_domain", "No active domain, so there is nothing to publish yet." },
             { "record_published", "{0}: the {1} record at {2} is published." },
             { "record_missing", "{0}: no {1} record at {2}." },
@@ -836,6 +854,54 @@ namespace HM
             Add(signIn, StateNotNeeded, "sign_in_local_only");
       }
       items.push_back(signIn);
+
+      // Port 25 and AUTH (GitLab work item #54, docs/SmtpAuthOnDeliveryPorts.md):
+      // the port other servers deliver to, where no client should sign in. A new
+      // installation makes it a honeypot; an upgraded server keeps it On, and this
+      // says so until it is changed - changing it is what arms the ban, so it is
+      // the administrator's step, and the finding carries no fix. Each SMTP
+      // listener on 25 is judged, but one bound to a loopback address alone,
+      // which nothing outside this computer reaches.
+      Item deliveryPort;
+      deliveryPort.key = "delivery_port_auth";
+      {
+         const std::set<int> authDisabledOnPorts = IniFileSettings::Instance()->GetAuthDisabledOnPorts();
+         const bool bans = Configuration::Instance()->GetAutoBanMinutes() > 0;
+
+         bool anyDeliveryPort = false;
+         // owned by this call: ports is a local collection loaded above
+         for (std::shared_ptr<TCPIPPort> port : ports.GetVector())
+         {
+            if (!port || port->GetProtocol() != STSMTP || port->GetPortNumber() != 25)
+               continue;
+
+            if (LocalIPAddresses::Instance()->IsWithinLoopbackRange(port->GetAddress()) && !port->GetAddress().IsAny())
+               continue;
+
+            anyDeliveryPort = true;
+            const AnsiString portNumber = Number(port->GetPortNumber());
+
+            switch (port->GetSMTPAuthentication())
+            {
+            case SAMHoneypot:
+               Add(deliveryPort, StateDone, bans ? "delivery_port_auth_honeypot" : "delivery_port_auth_no_ban", { portNumber });
+               break;
+            case SAMOff:
+               Add(deliveryPort, StateDone, bans ? "delivery_port_auth_off" : "delivery_port_auth_no_ban", { portNumber });
+               break;
+            default:
+               if (authDisabledOnPorts.find(port->GetPortNumber()) != authDisabledOnPorts.end())
+                  Add(deliveryPort, StateDone, "delivery_port_auth_disabled", { portNumber });
+               else
+                  Add(deliveryPort, StateActionNeeded, "delivery_port_auth_on", { portNumber });
+               break;
+            }
+         }
+
+         if (!anyDeliveryPort)
+            Add(deliveryPort, StateNotNeeded, "delivery_port_none");
+      }
+      items.push_back(deliveryPort);
 
       Item spf;
       spf.key = "spf";

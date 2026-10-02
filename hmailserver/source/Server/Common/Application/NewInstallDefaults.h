@@ -12,7 +12,7 @@ namespace HM
    /// What a new installation starts with, so that it is secure before anyone
    /// configures it (docs/SecureDefaults.md).
    ///
-   /// THE THREE CHANGES. A self-signed certificate made for this machine - an RSA
+   /// THE FOUR CHANGES. A self-signed certificate made for this machine - an RSA
    /// 2048 key written readable by the server's account and the administrators
    /// only, a certificate for 825 days naming the host - under the data
    /// directory's Certificates folder, and a certificate record naming it
@@ -23,7 +23,12 @@ namespace HM
    /// which the next change leaves alone. And the Internet range requiring TLS
    /// for authentication, so that a password from any address but this
    /// computer's is refused until TLS is up; the My computer range is left as it
-   /// is.
+   /// is. And port 25's SMTP authentication Honeypot, in the same save as its
+   /// certificate (GitLab work item #54, SMTPAuthenticationMode): EHLO there
+   /// offers AUTH as before, and an AUTH is refused without the password being
+   /// evaluated and bans the address; 587, where clients submit, stays On. An
+   /// upgraded server never gets it - nothing here runs for one - so its port 25
+   /// goes on taking AUTH, and the setup checklist says so (delivery_port_auth).
    ///
    /// ONLY A DATABASE THIS INSTALLATION CREATED. Never one that existed before,
    /// whatever its size: a small server in service with the stock listeners and
@@ -41,7 +46,7 @@ namespace HM
    /// server has run without the defaults since, or the clock cannot say - and
    /// keeps it for a run by hand, which has no such limit. And it still asks the
    /// shape a new database has: the four listeners
-   /// with no TLS and no certificate, the two IP ranges with the options
+   /// with no TLS, no certificate and AUTH On, the two IP ranges with the options
    /// CreateTables*.sql gives them, no certificate at all, no account, no domain
    /// (the sample domain and its accounts not counted) and no route. Anything else
    /// is left as it is, exit 5. A database that cannot be read well enough to

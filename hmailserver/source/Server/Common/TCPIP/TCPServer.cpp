@@ -119,7 +119,8 @@ namespace HM
    }
 
    TCPServer::TCPServer(boost::asio::io_context& io_context, const IPAddress &ipaddress, int port, SessionType sessionType, std::shared_ptr<SSLCertificate> certificate, std::shared_ptr<TCPConnectionFactory> connectionFactory, ConnectionSecurity connection_security,
-      ClientCertificatePolicy client_certificate_policy, const String &client_certificate_ca_file) :
+      ClientCertificatePolicy client_certificate_policy, const String &client_certificate_ca_file,
+      SMTPAuthenticationMode smtp_authentication) :
       strand_(boost::asio::make_strand(io_context)),
       acceptor_(io_context),
       context_(boost::asio::ssl::context::sslv23),
@@ -129,6 +130,7 @@ namespace HM
       connection_security_(connection_security),
       client_certificate_policy_(client_certificate_policy),
       client_certificate_ca_file_(client_certificate_ca_file),
+      smtp_authentication_(smtp_authentication),
       prepared_(false),
       exclusive_address_use_(false)
    {
@@ -384,6 +386,11 @@ namespace HM
          // That covers both SSL ports (handshake at accept) and STARTTLS ports
          // (handshake whenever the client issues STARTTLS).
          pNewConnection->SetInboundClientCertificatePolicy(client_certificate_policy_);
+
+         // The same for what the listener does with AUTH: decided at EHLO and at
+         // AUTH from what the port was configured with when it started listening,
+         // as every other property of a port is.
+         pNewConnection->SetListenerSMTPAuthentication(smtp_authentication_);
 
          // Bound to the strand: the completion runs where the drain's close and
          // reopen run, so the re-posted accept and a close can never be on two

@@ -111,6 +111,26 @@ namespace HM
          return false;
       }
 
+      // What an SMTP port does with AUTH (SMTPAuthenticationMode, GitLab work
+      // item #54), in the words the Control Panel and the Deck show.
+      const char *SmtpAuthenticationWord(SMTPAuthenticationMode mode)
+      {
+         switch (mode)
+         {
+         case SAMOff: return "off";
+         case SAMHoneypot: return "honeypot";
+         default: return "on";
+         }
+      }
+
+      bool ParseSmtpAuthenticationWord(const AnsiString &word, SMTPAuthenticationMode &mode)
+      {
+         if (word == "on") { mode = SAMOn; return true; }
+         if (word == "off") { mode = SAMOff; return true; }
+         if (word == "honeypot") { mode = SAMHoneypot; return true; }
+         return false;
+      }
+
       // A number in the body, as the IP range route reads its priority: the
       // digits after the key's colon, up to the next separator. A number a
       // client sent as a string ("2565") is taken as well, since nothing is
@@ -187,7 +207,8 @@ namespace HM
          AnsiString entry;
          entry.Format("{\"id\":%I64d,\"protocol\":\"%hs\",\"address\":\"%hs\",\"port\":%d,"
                       "\"connection_security\":\"%hs\",\"certificate_id\":%I64d,"
-                      "\"client_certificate_policy\":\"%hs\",\"client_certificate_ca_file\":\"%hs\"}",
+                      "\"client_certificate_policy\":\"%hs\",\"client_certificate_ca_file\":\"%hs\","
+                      "\"smtp_authentication\":\"%hs\"}",
             port->GetID(),
             ProtocolWord(port->GetProtocol()),
             escapedAddress.c_str(),
@@ -195,7 +216,8 @@ namespace HM
             SecurityWord(port->GetConnectionSecurity()),
             port->GetSSLCertificateID(),
             PolicyWord(port->GetClientCertificatePolicy()),
-            escapedCaFile.c_str());
+            escapedCaFile.c_str(),
+            SmtpAuthenticationWord(port->GetSMTPAuthentication()));
          return entry;
       }
 
@@ -210,6 +232,7 @@ namespace HM
          AnsiString address;
          AnsiString security;
          AnsiString policy;
+         AnsiString smtpAuthentication;
          String caFile;
          bool hasPort;
          __int64 port;
@@ -285,6 +308,16 @@ namespace HM
             return false;
          }
 
+         // On when the body does not say, as for every other field; Off and
+         // Honeypot on a port that is not SMTP are refused by SaveObject, in the
+         // sentence the Control Panel shows.
+         SMTPAuthenticationMode smtpAuthentication = SAMOn;
+         if (!request.smtpAuthentication.IsEmpty() && !ParseSmtpAuthenticationWord(request.smtpAuthentication, smtpAuthentication))
+         {
+            error = "smtp_authentication must be on, off or honeypot";
+            return false;
+         }
+
          port->SetProtocol(protocol);
          port->SetPortNumber((int) request.port);
          port->SetAddress(address);
@@ -292,6 +325,7 @@ namespace HM
          port->SetSSLCertificateID((int) certificateId);
          port->SetClientCertificatePolicy(policy);
          port->SetClientCertificateCAFile(request.caFile);
+         port->SetSMTPAuthentication(smtpAuthentication);
 
          return true;
       }
@@ -347,10 +381,10 @@ namespace HM
          "\"/api/v1/certificates/{id}\":{"
          "\"delete\":{\"summary\":\"Delete an SSL certificate\",\"description\":\"Refused while a TCP/IP port binds the certificate; the refusal names the port. Delete or rebind the port first. Server-wide; refused for domain-restricted keys.\",\"responses\":{\"200\":{\"description\":\"Deleted\"},\"404\":{\"description\":\"Unknown id\"},\"409\":{\"description\":\"A port binds the certificate\"}}}},"
          "\"/api/v1/ports\":{"
-         "\"get\":{\"summary\":\"List the TCP/IP ports\",\"description\":\"Every listener the server is configured with: id, protocol (smtp, pop3, imap), address, port, connection_security (none, tls, starttls_optional, starttls_required), certificate_id (0 when none), client_certificate_policy (off, request, require) and client_certificate_ca_file. Read from the database, so a port written by any route is listed at once; whether it is on the wire is a matter of when the server last started. Server-wide; refused for domain-restricted keys.\",\"responses\":{\"200\":{\"description\":\"Array of ports\"}}},"
-         "\"post\":{\"summary\":\"Add a TCP/IP port\",\"description\":\"The listeners are created when the server starts, so a port added here takes effect when the server restarts. address defaults to 0.0.0.0, connection_security to none, certificate_id to 0 and client_certificate_policy to off. tls and both starttls values need a certificate_id, and a client certificate policy other than off needs a CA file and a security that runs a handshake - the same refusals the Control Panel meets, in the same words. Server-wide; refused for domain-restricted keys.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"protocol\",\"port\"],\"properties\":{\"protocol\":{\"type\":\"string\",\"enum\":[\"smtp\",\"pop3\",\"imap\"]},\"address\":{\"type\":\"string\"},\"port\":{\"type\":\"integer\"},\"connection_security\":{\"type\":\"string\",\"enum\":[\"none\",\"tls\",\"starttls_optional\",\"starttls_required\"]},\"certificate_id\":{\"type\":\"integer\"},\"client_certificate_policy\":{\"type\":\"string\",\"enum\":[\"off\",\"request\",\"require\"]},\"client_certificate_ca_file\":{\"type\":\"string\"}}}}}},\"responses\":{\"201\":{\"description\":\"Created, as the listing shows it\"},\"400\":{\"description\":\"A missing or unrecognised field, a TLS security without a certificate, a certificate_id that names no certificate, or a client certificate policy the port cannot enforce\"},\"409\":{\"description\":\"A port already listens on that address and port number\"}}}},"
+         "\"get\":{\"summary\":\"List the TCP/IP ports\",\"description\":\"Every listener the server is configured with: id, protocol (smtp, pop3, imap), address, port, connection_security (none, tls, starttls_optional, starttls_required), certificate_id (0 when none), client_certificate_policy (off, request, require), client_certificate_ca_file and smtp_authentication (on, off, honeypot: what an SMTP port does with AUTH; always on for POP3 and IMAP). Read from the database, so a port written by any route is listed at once; whether it is on the wire is a matter of when the server last started. Server-wide; refused for domain-restricted keys.\",\"responses\":{\"200\":{\"description\":\"Array of ports\"}}},"
+         "\"post\":{\"summary\":\"Add a TCP/IP port\",\"description\":\"The listeners are created when the server starts, so a port added here takes effect when the server restarts. address defaults to 0.0.0.0, connection_security to none, certificate_id to 0, client_certificate_policy to off and smtp_authentication to on. tls and both starttls values need a certificate_id, a client certificate policy other than off needs a CA file and a security that runs a handshake, and smtp_authentication off or honeypot needs an SMTP port - the same refusals the Control Panel meets, in the same words. smtp_authentication off: EHLO does not offer AUTH; honeypot: EHLO offers it as on does; on both, an AUTH is answered 502 5.5.1 without the account being looked up or the password evaluated, and the first of a session bans the address for minutes_to_ban (never the loopback, an address the AutoBanNeverBan setting lists or one the never-ban list by reverse name spares). Server-wide; refused for domain-restricted keys.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"protocol\",\"port\"],\"properties\":{\"protocol\":{\"type\":\"string\",\"enum\":[\"smtp\",\"pop3\",\"imap\"]},\"address\":{\"type\":\"string\"},\"port\":{\"type\":\"integer\"},\"connection_security\":{\"type\":\"string\",\"enum\":[\"none\",\"tls\",\"starttls_optional\",\"starttls_required\"]},\"certificate_id\":{\"type\":\"integer\"},\"client_certificate_policy\":{\"type\":\"string\",\"enum\":[\"off\",\"request\",\"require\"]},\"client_certificate_ca_file\":{\"type\":\"string\"},\"smtp_authentication\":{\"type\":\"string\",\"enum\":[\"on\",\"off\",\"honeypot\"],\"description\":\"What an SMTP port does with AUTH. on: EHLO offers it and the password is checked. off: EHLO does not offer it. honeypot: EHLO offers it as on does. On off and honeypot an AUTH is answered 502 without the password being looked at, and the first of a session bans the address. Port 25 is where other servers deliver, and no mail client should sign in there; clients sign in on 587. Always on for POP3 and IMAP.\"}}}}}},\"responses\":{\"201\":{\"description\":\"Created, as the listing shows it\"},\"400\":{\"description\":\"A missing or unrecognised field, a TLS security without a certificate, a certificate_id that names no certificate, a client certificate policy the port cannot enforce, or smtp_authentication off or honeypot on a port that is not SMTP\"},\"409\":{\"description\":\"A port already listens on that address and port number\"}}}},"
          "\"/api/v1/ports/{id}\":{"
-         "\"put\":{\"summary\":\"Replace a TCP/IP port\",\"description\":\"The whole record, with the fields and defaults of POST: a field left out takes its default, so send back what GET returned with the change made. Takes effect when the server restarts. Server-wide; refused for domain-restricted keys.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"protocol\",\"port\"],\"properties\":{\"protocol\":{\"type\":\"string\",\"enum\":[\"smtp\",\"pop3\",\"imap\"]},\"address\":{\"type\":\"string\"},\"port\":{\"type\":\"integer\"},\"connection_security\":{\"type\":\"string\",\"enum\":[\"none\",\"tls\",\"starttls_optional\",\"starttls_required\"]},\"certificate_id\":{\"type\":\"integer\"},\"client_certificate_policy\":{\"type\":\"string\",\"enum\":[\"off\",\"request\",\"require\"]},\"client_certificate_ca_file\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"Replaced, as the listing shows it\"},\"400\":{\"description\":\"As for POST\"},\"404\":{\"description\":\"Unknown id\"},\"409\":{\"description\":\"Another port already listens on that address and port number\"}}},"
+         "\"put\":{\"summary\":\"Replace a TCP/IP port\",\"description\":\"The whole record, with the fields and defaults of POST: a field left out takes its default, so send back what GET returned with the change made. Takes effect when the server restarts. Server-wide; refused for domain-restricted keys.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"protocol\",\"port\"],\"properties\":{\"protocol\":{\"type\":\"string\",\"enum\":[\"smtp\",\"pop3\",\"imap\"]},\"address\":{\"type\":\"string\"},\"port\":{\"type\":\"integer\"},\"connection_security\":{\"type\":\"string\",\"enum\":[\"none\",\"tls\",\"starttls_optional\",\"starttls_required\"]},\"certificate_id\":{\"type\":\"integer\"},\"client_certificate_policy\":{\"type\":\"string\",\"enum\":[\"off\",\"request\",\"require\"]},\"client_certificate_ca_file\":{\"type\":\"string\"},\"smtp_authentication\":{\"type\":\"string\",\"enum\":[\"on\",\"off\",\"honeypot\"],\"description\":\"What an SMTP port does with AUTH. on: EHLO offers it and the password is checked. off: EHLO does not offer it. honeypot: EHLO offers it as on does. On off and honeypot an AUTH is answered 502 without the password being looked at, and the first of a session bans the address. Port 25 is where other servers deliver, and no mail client should sign in there; clients sign in on 587. Always on for POP3 and IMAP.\"}}}}}},\"responses\":{\"200\":{\"description\":\"Replaced, as the listing shows it\"},\"400\":{\"description\":\"As for POST\"},\"404\":{\"description\":\"Unknown id\"},\"409\":{\"description\":\"Another port already listens on that address and port number\"}}},"
          "\"delete\":{\"summary\":\"Delete a TCP/IP port\",\"description\":\"The row is gone at once; the listener stays up until the server restarts. Server-wide; refused for domain-restricted keys.\",\"responses\":{\"200\":{\"description\":\"Deleted\"},\"404\":{\"description\":\"Unknown id\"}}}}";
 
       return AnsiString(paths);
@@ -530,6 +564,7 @@ namespace HM
       request.security = GetJsonStringValue_(requestBody, "connection_security");
       request.policy = GetJsonStringValue_(requestBody, "client_certificate_policy");
       request.caFile = JsonUtf8Value_(requestBody, "client_certificate_ca_file");
+      request.smtpAuthentication = GetJsonStringValue_(requestBody, "smtp_authentication");
       request.hasPort = GetJsonInteger(requestBody, "port", request.port);
       request.hasCertificateId = GetJsonInteger(requestBody, "certificate_id", request.certificateId);
 
@@ -578,7 +613,8 @@ namespace HM
 
       LOG_APPLICATION("RestApi: Port " + DescribePort(port) + " created with id " + StringParser::IntToString(port->GetID()) +
          ", connection security " + String(SecurityWord(port->GetConnectionSecurity())) +
-         ", certificate " + StringParser::IntToString(port->GetSSLCertificateID()) + ". Takes effect when the server restarts.");
+         ", certificate " + StringParser::IntToString(port->GetSSLCertificateID()) +
+         ", SMTP authentication " + String(SmtpAuthenticationWord(port->GetSMTPAuthentication())) + ". Takes effect when the server restarts.");
 
       return BuildResponse_(201, PortEntryJson(port,
          JsonEscape_(Utf8_(port->GetAddressString())),
@@ -602,6 +638,7 @@ namespace HM
       request.security = GetJsonStringValue_(requestBody, "connection_security");
       request.policy = GetJsonStringValue_(requestBody, "client_certificate_policy");
       request.caFile = JsonUtf8Value_(requestBody, "client_certificate_ca_file");
+      request.smtpAuthentication = GetJsonStringValue_(requestBody, "smtp_authentication");
       request.hasPort = GetJsonInteger(requestBody, "port", request.port);
       request.hasCertificateId = GetJsonInteger(requestBody, "certificate_id", request.certificateId);
 
@@ -645,7 +682,8 @@ namespace HM
 
       LOG_APPLICATION("RestApi: Port " + StringParser::IntToString(portId) + " updated: " + before + " is now " + DescribePort(port) +
          ", connection security " + String(SecurityWord(port->GetConnectionSecurity())) +
-         ", certificate " + StringParser::IntToString(port->GetSSLCertificateID()) + ". Takes effect when the server restarts.");
+         ", certificate " + StringParser::IntToString(port->GetSSLCertificateID()) +
+         ", SMTP authentication " + String(SmtpAuthenticationWord(port->GetSMTPAuthentication())) + ". Takes effect when the server restarts.");
 
       return BuildResponse_(200, PortEntryJson(port,
          JsonEscape_(Utf8_(port->GetAddressString())),

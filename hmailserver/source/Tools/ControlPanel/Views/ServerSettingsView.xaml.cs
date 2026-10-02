@@ -2990,6 +2990,32 @@ namespace hMailServer.ControlPanel.Views
          Tab(L("Auto-ban")).Cards.Add(ban);
          Tab(L("Auto-ban")).Cards.Add(below);
 
+         // The never-ban list by reverse name (GitLab work item #56): beside the
+         // list of addresses above, for a provider whose addresses move. A table
+         // of the server's, written by its own buttons; see NeverBanNameRows.
+         var byName = Card(L("Never auto-ban by reverse name"),
+            L("For a provider whose hosts share a reverse name and whose addresses move: a connecting address is never auto-banned - for failed logons, a spam trap or a null sender - when one of its reverse names is covered by a name here and resolves back to the address. Nothing else is skipped: greylisting, SPF, DKIM, DMARC and the domain white and black list still apply. Empty, the default, changes nothing."));
+         byName.Settings.Add(new NeverBanNameRows
+         {
+            Path = "AutoBanNeverBanNames",
+            Label = L("Names that are never auto-banned"),
+            Blurb = L("mail.example.net is that name alone; .example.net is the name and every name beneath it. The reverse lookup is never waited for on a connection: a ban placed before the answer is in is lifted once it is, before the firewall or fail2ban is told. A net with no reverse name, or one you do not trust, still belongs in the address list above.")
+         });
+         Tab(L("Auto-ban")).Cards.Add(byName);
+
+         // An auto-ban widened to its reverse-name neighbours (GitLab work item
+         // #55): a setting of the database's, over COM, off by default. Below the
+         // two never-ban lists because both of them stop the widening too.
+         var widen = Card(L("Widen a ban to its neighbours"),
+            L("A scanner working through 203.0.113.10, .11 and .12 under one reverse domain earns a ban and a firewall rule for each. With this on, the ban is still written at once for the one address, and then widened in the background to the run of addresses around it, inside its /24, whose reverse names share its registrable domain: one range and one firewall rule, said in the application log."));
+         widen.Settings.Add(new ComBool
+         {
+            Path = "AutoBanWidenByReverseName",
+            Label = L("Widen an auto-ban to the neighbouring addresses whose reverse names share its domain"),
+            Blurb = L("Off by default. Only when the banned address's own reverse name resolves back to it; at most 32 addresses each way; never into another /24, across an address either never-ban list above spares, or across an IP range of yours that covers one address and not the other; never for IPv6. A reverse lookup that is not answered leaves the single address. A hosting net whose customers all carry one reverse domain is widened whole: list it above, or leave this off.")
+         });
+         Tab(L("Auto-ban")).Cards.Add(widen);
+
          // The other half of the same subject, and the reason it is on this page:
          // auto-ban counts per ADDRESS, so a distributed attack that spends a few
          // guesses per address against one mailbox never trips it. This counts per

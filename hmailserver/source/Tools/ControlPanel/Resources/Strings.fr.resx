@@ -680,6 +680,9 @@ Enregistrer quand même ce mot de passe faible ?</value>
   <data name="A modern administration app for hMailServer: live dashboard, domains and accounts, delivery queue, log streaming, full server settings and the 6.x transport-security features (DANE, MTA-STS, ARC, TLS-RPT, ACME)." xml:space="preserve">
     <value>Une application d'administration moderne pour hMailServer : tableau de bord en direct, domaines et comptes, file de livraison, flux de journaux, tous les réglages du serveur et les fonctions de sécurité de transport de la 6.x (DANE, MTA-STS, ARC, TLS-RPT, ACME).</value>
   </data>
+  <data name="A name is required." xml:space="preserve">
+    <value>Un nom est obligatoire.</value>
+  </data>
   <data name="A new address is required." xml:space="preserve">
     <value>Une nouvelle adresse est requise.</value>
   </data>
@@ -772,6 +775,9 @@ Enregistrer quand même ce mot de passe faible ?</value>
   </data>
   <data name="A scanner that cannot run does not refuse the message. The error is written to the log and the scan continues to the next scanner; when none of them can answer, the message is treated exactly as if it had been examined and found clean. That is why this page reports whether each scanner can run rather than whether it is switched on." xml:space="preserve">
     <value>Un analyseur qui ne peut pas s'exécuter ne refuse pas le message. L'erreur est écrite dans le journal et l'analyse passe à l'analyseur suivant ; quand aucun d'eux ne peut répondre, le message est traité exactement comme s'il avait été examiné et trouvé sain. C'est pourquoi cette page indique si chaque analyseur peut s'exécuter plutôt que s'il est activé.</value>
+  </data>
+  <data name="A scanner working through 203.0.113.10, .11 and .12 under one reverse domain earns a ban and a firewall rule for each. With this on, the ban is still written at once for the one address, and then widened in the background to the run of addresses around it, inside its /24, whose reverse names share its registrable domain: one range and one firewall rule, said in the application log." xml:space="preserve">
+    <value>Un scanner qui parcourt 203.0.113.10, .11 et .12 sous un même domaine inverse reçoit un bannissement et une règle de pare-feu pour chacune. Avec cette option, le bannissement est toujours écrit aussitôt pour cette seule adresse, puis étendu en arrière-plan à la suite d'adresses qui l'entoure, dans son /24, dont les noms inverses partagent son domaine enregistrable : une seule plage et une seule règle de pare-feu, consignées dans le journal de l'application.</value>
   </data>
   <data name="A schedule creates and updates accounts with nobody watching. It never disables one, whatever the checkbox above is set to - departures are left to a person who has read a preview. Switch this on only after a preview has told you what it is going to do." xml:space="preserve">
     <value>Une planification crée et met à jour des comptes sans que personne ne regarde. Elle n'en désactive jamais un, quelle que soit la case ci-dessus - les départs sont laissés à une personne qui a lu un aperçu. N'activez ceci qu'après qu'un aperçu vous a dit ce qu'elle va faire.</value>
@@ -922,6 +928,9 @@ Enregistrer quand même ce mot de passe faible ?</value>
   </data>
   <data name="AUTH is normally offered on every SMTP port. List the local TCP ports where it should not be, for example a port 25 that only accepts inbound mail from other servers." xml:space="preserve">
     <value>AUTH est normalement proposé sur chaque port SMTP. Listez les ports TCP locaux où il ne doit pas l'être, par exemple un port 25 qui n'accepte que le courrier entrant d'autres serveurs.</value>
+  </data>
+  <data name="AUTH {0}" xml:space="preserve">
+    <value>AUTH {0}</value>
   </data>
   <data name="AWStats-compatible log" xml:space="preserve">
     <value>Journal compatible AWStats</value>
@@ -1120,6 +1129,9 @@ Le Control Panel ne peut lire les fichiers de messages que lorsqu'il s'exécute 
   </data>
   <data name="Add a listener - 587 with STARTTLS, or 465 for implicit TLS." xml:space="preserve">
     <value>Ajouter un écouteur - 587 avec STARTTLS, ou 465 pour TLS implicite.</value>
+  </data>
+  <data name="Add a name to the never-ban list" xml:space="preserve">
+    <value>Ajouter un nom à la liste des jamais bannis</value>
   </data>
   <data name="Add a_lias" xml:space="preserve">
     <value>Ajouter un a_lias</value>
@@ -1480,6 +1492,9 @@ Le Control Panel ne peut lire les fichiers de messages que lorsqu'il s'exécute 
   </data>
   <data name="An address is required." xml:space="preserve">
     <value>Une adresse est requise.</value>
+  </data>
+  <data name="An address is spared only when one of its reverse names is covered AND resolves back to the address, since anybody who holds an address can write its reverse name. It applies to the next ban." xml:space="preserve">
+    <value>Une adresse n'est épargnée que si l'un de ses noms inverses est couvert ET se résout vers l'adresse, car quiconque détient une adresse peut écrire lui-même son nom inverse. S'applique au prochain bannissement.</value>
   </data>
   <data name="An address this server hosts is refused: the list only applies to mail leaving the server." xml:space="preserve">
     <value>Une adresse hébergée par ce serveur est refusée : la liste ne s'applique qu'au courrier qui quitte le serveur.</value>
@@ -2130,6 +2145,9 @@ Redémarrer le Control Panel maintenant ? Choisissez Non pour essayer de continu
   <data name="C_A certificate bundle (PEM) that client certificates must chain to" xml:space="preserve">
     <value>Bundle de certificats d'_AC (PEM) auquel les certificats client doivent se rattacher</value>
   </data>
+  <data name="C_heck an address…" xml:space="preserve">
+    <value>_Vérifier une adresse…</value>
+  </data>
   <data name="C_hoose a photo..." xml:space="preserve">
     <value>_Choisir une photo...</value>
   </data>
@@ -2285,6 +2303,9 @@ Redémarrer le Control Panel maintenant ? Choisissez Non pour essayer de continu
   </data>
   <data name="Check _policy (HTTPS)" xml:space="preserve">
     <value>Vérifier la _politique (HTTPS)</value>
+  </data>
+  <data name="Check an address" xml:space="preserve">
+    <value>Vérifier une adresse</value>
   </data>
   <data name="Check every message" xml:space="preserve">
     <value>Cocher tous les messages</value>
@@ -4428,6 +4449,9 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="For a MinIO or Ceph gateway behind a CA of your own. The host name is checked either way." xml:space="preserve">
     <value>Pour une passerelle MinIO ou Ceph derrière une autorité de certification à vous. Le nom d'hôte est vérifié dans tous les cas.</value>
   </data>
+  <data name="For a provider whose hosts share a reverse name and whose addresses move: a connecting address is never auto-banned - for failed logons, a spam trap or a null sender - when one of its reverse names is covered by a name here and resolves back to the address. Nothing else is skipped: greylisting, SPF, DKIM, DMARC and the domain white and black list still apply. Empty, the default, changes nothing." xml:space="preserve">
+    <value>Pour un fournisseur dont les hôtes partagent un nom inverse et dont les adresses changent : une adresse qui se connecte n'est jamais bannie automatiquement - pour des connexions échouées, un piège à spam ou un expéditeur nul - quand l'un de ses noms inverses est couvert par un nom d'ici et se résout vers l'adresse. Rien d'autre n'est sauté : la liste grise, SPF, DKIM, DMARC et la liste blanche et noire des domaines s'appliquent toujours. Vide, la valeur par défaut, ne change rien.</value>
+  </data>
   <data name="For a record of who corresponds with whom, keeping it for ever should be a decision rather than a default - which is why 0 is offered as an option instead of being one." xml:space="preserve">
     <value>Pour un enregistrement de qui correspond avec qui, le garder pour toujours devrait être une décision plutôt qu'un défaut - c'est pourquoi 0 est proposé comme option au lieu d'en être une.</value>
   </data>
@@ -4737,6 +4761,12 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="Holds the refusal of a wrong password for a while before sending it: the first failure on a connection waits this many seconds, the second twice as long, and so on up to 30 seconds, on SMTP, POP3 and IMAP alike. A correct password is never delayed. The wait is a timer on the connection, not a thread asleep, so a flood of failed logons costs the server nothing but the sockets they arrive on - the reason the old TarpitDelay was a stub for a decade is that the naive version is a self-inflicted outage." xml:space="preserve">
     <value>Retient un moment le refus d'un mauvais mot de passe avant de l'envoyer : le premier échec sur une connexion attend ce nombre de secondes, le second deux fois plus, et ainsi de suite jusqu'à 30 secondes, sur SMTP, POP3 et IMAP pareillement. Un mot de passe correct n'est jamais retardé. L'attente est un minuteur sur la connexion, pas un thread endormi, donc une avalanche d'échecs de connexion ne coûte au serveur rien d'autre que les sockets sur lesquels ils arrivent - la raison pour laquelle l'ancien TarpitDelay est resté un bouchon pendant une décennie est que la version naïve est une panne auto-infligée.</value>
   </data>
+  <data name="Honeypot" xml:space="preserve">
+    <value>Leurre</value>
+  </data>
+  <data name="Honeypot - offer AUTH; refuse it and ban the address" xml:space="preserve">
+    <value>Leurre - proposer AUTH ; le refuser et bannir l'adresse</value>
+  </data>
   <data name="Honor recipient DANE/TLSA records when sending" xml:space="preserve">
     <value>Honorer les enregistrements DANE/TLSA du destinataire lors de l'envoi</value>
   </data>
@@ -4949,6 +4979,9 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   </data>
   <data name="IP ranges…" xml:space="preserve">
     <value>Plages IP…</value>
+  </data>
+  <data name="IPv4 or IPv6 address" xml:space="preserve">
+    <value>Adresse IPv4 ou IPv6</value>
   </data>
   <data name="I_P address" xml:space="preserve">
     <value>Adre_sse IP</value>
@@ -6153,6 +6186,9 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   <data name="NCSA Common Log Format writes one line per entry as host, ident, session, [date], &quot;category and message&quot;, status, bytes - so a log analyser can count 5xx replies without knowing anything about hMailServer. Ident and bytes are always &quot;-&quot; (the server never queries identd and the logger is not told transfer sizes), and the AWStats journal is a separate file that this setting does not change: its own switch is above." xml:space="preserve">
     <value>Le NCSA Common Log Format écrit une ligne par entrée sous la forme hôte, ident, session, [date], « catégorie et message », statut, octets - un analyseur de journaux peut donc compter les réponses 5xx sans rien connaître de hMailServer. Ident et octets valent toujours « - » (le serveur n'interroge jamais identd, et les tailles de transfert ne sont pas communiquées à la journalisation), et le journal AWStats est un fichier séparé que ce réglage ne change pas : son propre interrupteur est ci-dessus.</value>
   </data>
+  <data name="N_ote" xml:space="preserve">
+    <value>N_ote</value>
+  </data>
   <data name="N_otice text (mailed to a sender this server hosts, naming the rule)" xml:space="preserve">
     <value>Texte de l'avis (env_oyé à un expéditeur hébergé sur ce serveur, avec le nom de la règle)</value>
   </data>
@@ -6161,6 +6197,9 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   </data>
   <data name="Name for the new certificate" xml:space="preserve">
     <value>Nom du nouveau certificat</value>
+  </data>
+  <data name="Name or suffix" xml:space="preserve">
+    <value>Nom ou suffixe</value>
   </data>
   <data name="Name servers" xml:space="preserve">
     <value>Serveurs de noms</value>
@@ -6180,6 +6219,9 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   <data name="Names" xml:space="preserve">
     <value>Noms</value>
   </data>
+  <data name="Names that are never auto-banned" xml:space="preserve">
+    <value>Noms jamais bannis automatiquement</value>
+  </data>
   <data name="Negotiate (Kerberos/NTLM) - the password never crosses the network" xml:space="preserve">
     <value>Negotiate (Kerberos/NTLM) - le mot de passe ne traverse jamais le réseau</value>
   </data>
@@ -6195,11 +6237,17 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   <data name="Never" xml:space="preserve">
     <value>Jamais</value>
   </data>
+  <data name="Never auto-ban by reverse name" xml:space="preserve">
+    <value>Ne jamais bannir automatiquement par nom inverse</value>
+  </data>
   <data name="Never auto-ban these addresses (comma separated; CIDR blocks allowed)" xml:space="preserve">
     <value>Ne jamais bannir automatiquement ces adresses (séparées par des virgules ; blocs CIDR admis)</value>
   </data>
   <data name="Never judged by country (addresses and CIDR ranges, comma separated)" xml:space="preserve">
     <value>Jamais évaluées par pays (adresses et plages CIDR, séparées par des virgules)</value>
+  </data>
+  <data name="Never-ban list status" xml:space="preserve">
+    <value>État de la liste des jamais bannis</value>
   </data>
   <data name="New IMAP folder" xml:space="preserve">
     <value>Nouveau dossier IMAP</value>
@@ -6290,6 +6338,9 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   </data>
   <data name="No MX records were found from this machine, so the server would fall back to its own host name." xml:space="preserve">
     <value>Aucun enregistrement MX n'a été trouvé depuis cette machine : le serveur se rabattrait donc sur son propre nom d'hôte.</value>
+  </data>
+  <data name="No SMTP listener is on port 25, so no delivery port takes a password." xml:space="preserve">
+    <value>Aucun écouteur SMTP n'est sur le port 25 : aucun port de remise n'accepte donc de mot de passe.</value>
   </data>
   <data name="No SSL certificates are configured, so there are no key files to check." xml:space="preserve">
     <value>Aucun certificat SSL n'est configuré : il n'y a donc aucun fichier de clé à vérifier.</value>
@@ -6492,8 +6543,17 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   <data name="No passphrase stored" xml:space="preserve">
     <value>Aucune phrase secrète stockée</value>
   </data>
+  <data name="No password on port 25 - the port other servers deliver to" xml:space="preserve">
+    <value>Aucun mot de passe sur le port 25 - le port où les autres serveurs remettent le courrier</value>
+  </data>
   <data name="No password was typed, so no logon was tested - the infrastructure half all works." xml:space="preserve">
     <value>Aucun mot de passe n'a été saisi, aucune connexion n'a donc été testée - toute la moitié infrastructure fonctionne.</value>
+  </data>
+  <data name="No pattern covers {0}, and it does not resolve back to {1}, so no pattern would spare the address." xml:space="preserve">
+    <value>Aucun motif ne couvre {0}, et le nom ne se résout pas vers {1} : aucun motif n'épargnerait l'adresse.</value>
+  </data>
+  <data name="No pattern covers {0}. It resolves back to {1}, so a pattern covering it would spare the address." xml:space="preserve">
+    <value>Aucun motif ne couvre {0}. Le nom se résout vers {1} : un motif qui le couvre épargnerait l'adresse.</value>
   </data>
   <data name="No port has a client certificate policy, so no CA bundle or client certificates are required." xml:space="preserve">
     <value>Aucun port n'a de politique de certificat client : aucun bundle d'AC ni certificat client n'est donc requis.</value>
@@ -6795,6 +6855,9 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   <data name="Off" xml:space="preserve">
     <value>Désactivé</value>
   </data>
+  <data name="Off - do not offer AUTH; refuse it and ban the address" xml:space="preserve">
+    <value>Désactivé - ne pas proposer AUTH ; le refuser et bannir l'adresse</value>
+  </data>
   <data name="Off by default because it costs a term table of a few kilobytes per message and a backfill pass over every message already delivered - an administrator's decision, never an upgrade's. Results are identical on and off: the index only narrows which messages the substring scan has to read. Requires message indexing (above) to be enabled; on its own this indexes nothing." xml:space="preserve">
     <value>Désactivé par défaut, parce que cela coûte une table de termes de quelques kilooctets par message et une passe de rattrapage sur chaque message déjà livré - c'est la décision d'un administrateur, jamais celle d'une mise à niveau. Les résultats sont identiques, activé ou désactivé : l'index ne fait que restreindre les messages que le balayage de sous-chaîne doit lire. Nécessite que l'indexation des messages (ci-dessus) soit activée ; à lui seul, ceci n'indexe rien.</value>
   </data>
@@ -6827,6 +6890,9 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   </data>
   <data name="Off by default. MAIL FROM:&lt;&gt; is no excuse: a delivery report from a server that greets with an address is refused like any other mail from it." xml:space="preserve">
     <value>Désactivé par défaut. MAIL FROM:&lt;&gt; n'est pas une excuse : un rapport de remise d'un serveur qui salue avec une adresse est refusé comme tout autre courrier de sa part.</value>
+  </data>
+  <data name="Off by default. Only when the banned address's own reverse name resolves back to it; at most 32 addresses each way; never into another /24, across an address either never-ban list above spares, or across an IP range of yours that covers one address and not the other; never for IPv6. A reverse lookup that is not answered leaves the single address. A hosting net whose customers all carry one reverse domain is widened whole: list it above, or leave this off." xml:space="preserve">
+    <value>Désactivé par défaut. Seulement quand le nom inverse de l'adresse bannie elle-même se résout de nouveau vers elle ; au plus 32 adresses de chaque côté ; jamais dans un autre /24, jamais au-delà d'une adresse que l'une des deux listes ci-dessus épargne, ni au-delà d'une de vos plages IP qui couvre une adresse et pas l'autre ; jamais pour IPv6. Une recherche inverse restée sans réponse laisse l'adresse seule. Un réseau d'hébergement dont tous les clients portent un même domaine inverse est étendu en entier : inscrivez-le ci-dessus, ou laissez cette option désactivée.</value>
   </data>
   <data name="Off by default. Operators who drop this in a script today can delete the script when this is on." xml:space="preserve">
     <value>Désactivé par défaut. Les opérateurs qui rejettent cela aujourd'hui dans un script peuvent supprimer le script une fois ceci activé.</value>
@@ -6897,6 +6963,9 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   <data name="On" xml:space="preserve">
     <value>Activé</value>
   </data>
+  <data name="On - offer AUTH and check the password" xml:space="preserve">
+    <value>Activé - proposer AUTH et vérifier le mot de passe</value>
+  </data>
   <data name="On by default, and inert until somebody sets a recovery address." xml:space="preserve">
     <value>Activé par défaut, et sans effet tant que personne ne définit d'adresse de récupération.</value>
   </data>
@@ -6959,6 +7028,9 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   </data>
   <data name="On the TCP/IP ports page, give the submission port (587) STARTTLS with a certificate from the SSL certificates page, or add port 465 with implicit TLS." xml:space="preserve">
     <value>Sur la page Ports TCP/IP, donnez au port de soumission (587) STARTTLS avec un certificat de la page Certificats SSL, ou ajoutez le port 465 en TLS implicite.</value>
+  </data>
+  <data name="On the TCP/IP ports page, open the SMTP port 25 and set its SMTP authentication to Honeypot or Off, then reinitialize. Mail clients that still sign in on 25 are refused and banned from then on, so move them to 587 first." xml:space="preserve">
+    <value>Sur la page Ports TCP/IP, ouvrez le port SMTP 25, réglez son authentification SMTP sur Leurre ou Désactivé, puis réinitialisez. Les clients de messagerie qui s'authentifient encore sur le 25 seront dès lors refusés et bannis : déplacez-les d'abord vers le 587.</value>
   </data>
   <data name="On the server, from an elevated prompt in the Bin folder: hMailServer.exe --create-stored-secrets-key makes the key, and hMailServer.exe --export-stored-secrets-key FILE exports it. Keep the file with the database backups, stored apart from them." xml:space="preserve">
     <value>Sur le serveur, depuis une invite de commandes avec élévation dans le dossier Bin : hMailServer.exe --create-stored-secrets-key crée la clé, et hMailServer.exe --export-stored-secrets-key FILE l'exporte. Conservez le fichier avec les sauvegardes de la base de données, mais séparément.</value>
@@ -7115,6 +7187,9 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   </data>
   <data name="Open the Control Panel on the server itself to change the account the service runs as or grant it its folders." xml:space="preserve">
     <value>Ouvrez le Control Panel sur le serveur lui-même pour changer le compte du service ou lui accorder ses dossiers.</value>
+  </data>
+  <data name="Open the SMTP port 25 and set its SMTP authentication to Honeypot or Off: AUTH there is refused without the password being looked at, and the address that sent it is banned." xml:space="preserve">
+    <value>Ouvrez le port SMTP 25 et réglez son authentification SMTP sur Leurre ou Désactivé : AUTH y est refusé sans que le mot de passe soit examiné, et l'adresse qui l'a envoyé est bannie.</value>
   </data>
   <data name="Open the delivery queue" xml:space="preserve">
     <value>Ouvrir la file de livraison</value>
@@ -7541,11 +7616,20 @@ Aucune nouvelle connexion ne sera acceptée et aucun courrier ne sera livré jus
   <data name="Port 25 is judged differently from the rest and deliberately so: the peer there is normally another mail server, and requiring encryption on it refuses mail from senders that cannot offer any. On every other port the peer is a client with a password." xml:space="preserve">
     <value>Le port 25 est jugé différemment des autres, et délibérément : le pair y est normalement un autre serveur de messagerie, et y exiger le chiffrement refuse le courrier des expéditeurs qui ne peuvent en offrir aucun. Sur tous les autres ports, le pair est un client avec un mot de passe.</value>
   </data>
+  <data name="Port 25 is where other servers deliver mail, and no mail client should sign in there. Off and Honeypot never look at a password: AUTH is answered 502, and the first one of a session bans the address for the auto-ban minutes - never this computer, nor an address on the never-ban lists. Honeypot goes on offering AUTH, as bait. Mail clients sign in on 587." xml:space="preserve">
+    <value>Le port 25 est celui où les autres serveurs remettent le courrier, et aucun client de messagerie ne devrait s'y authentifier. Désactivé et Leurre ne regardent jamais un mot de passe : AUTH reçoit 502, et le premier d'une session bannit l'adresse pour les minutes de bannissement automatique - jamais cet ordinateur, ni une adresse des listes d'adresses jamais bannies. Leurre continue de proposer AUTH, comme appât. Les clients de messagerie s'authentifient sur le 587.</value>
+  </data>
+  <data name="Port 25 is where other servers deliver mail, and no mail client should sign in there: an AUTH on it is a password being guessed." xml:space="preserve">
+    <value>Le port 25 est celui où les autres serveurs remettent le courrier, et aucun client de messagerie ne devrait s'y authentifier : un AUTH sur ce port est un mot de passe que l'on tente de deviner.</value>
+  </data>
   <data name="Port binding" xml:space="preserve">
     <value>Liaison de port</value>
   </data>
   <data name="Port for http-01 challenges" xml:space="preserve">
     <value>Port pour les défis http-01</value>
+  </data>
+  <data name="Port {0} does not offer AUTH: DisableAUTHList names it, and an AUTH sent there is refused without a ban." xml:space="preserve">
+    <value>Le port {0} ne propose pas AUTH : DisableAUTHList le nomme, et un AUTH envoyé là est refusé sans bannissement.</value>
   </data>
   <data name="Port {0} is set to TLS but has no certificate, so TLS cannot start." xml:space="preserve">
     <value>Le port {0} est réglé sur TLS mais n'a pas de certificat ; TLS ne peut donc pas démarrer.</value>
@@ -7555,6 +7639,18 @@ Aucune nouvelle connexion ne sera acceptée et aucun courrier ne sera livré jus
   </data>
   <data name="Port {0} offers TLS with {1}, the self-signed certificate this installation made: mail clients warn about it until it is replaced with one a certificate authority issued, which ACME can fetch from Let's Encrypt." xml:space="preserve">
     <value>Le port {0} propose TLS avec {1}, le certificat auto-signé créé par cette installation : les clients de messagerie avertissent à son sujet jusqu'à ce qu'il soit remplacé par un certificat émis par une autorité de certification, qu'ACME peut obtenir auprès de Let's Encrypt.</value>
+  </data>
+  <data name="Port {0} still accepts AUTH: it is where other servers deliver mail, and a password tried there is a guess. Set its SMTP authentication to Honeypot or Off, and sign mail clients in on 587." xml:space="preserve">
+    <value>Le port {0} accepte encore AUTH : c'est là que les autres serveurs remettent le courrier, et un mot de passe essayé là est une tentative au hasard. Réglez son authentification SMTP sur Leurre ou Désactivé, et faites s'authentifier les clients de messagerie sur le 587.</value>
+  </data>
+  <data name="Port {0} takes no password, but AutoBanMinutes is 0, so an address that sends AUTH there is refused and not banned." xml:space="preserve">
+    <value>Le port {0} n'accepte aucun mot de passe, mais AutoBanMinutes vaut 0 : une adresse qui y envoie AUTH est refusée et non bannie.</value>
+  </data>
+  <data name="Port {0} takes no password: EHLO does not offer AUTH there, and an address that sends one anyway is refused and banned." xml:space="preserve">
+    <value>Le port {0} n'accepte aucun mot de passe : EHLO n'y propose pas AUTH, et une adresse qui en envoie un quand même est refusée et bannie.</value>
+  </data>
+  <data name="Port {0} takes no password: EHLO offers AUTH there as bait, and an address that sends one is refused and banned." xml:space="preserve">
+    <value>Le port {0} n'accepte aucun mot de passe : EHLO y propose AUTH comme appât, et une adresse qui en envoie un est refusée et bannie.</value>
   </data>
   <data name="Port {0} takes submission without TLS, so passwords and mail would cross the network in the clear." xml:space="preserve">
     <value>Le port {0} accepte la soumission sans TLS ; les mots de passe et le courrier traverseraient donc le réseau en clair.</value>
@@ -7894,6 +7990,9 @@ Aucune nouvelle connexion ne sera acceptée et aucun courrier ne sera livré jus
   </data>
   <data name="Re_move action" xml:space="preserve">
     <value>_Supprimer l'action</value>
+  </data>
+  <data name="Re_move name" xml:space="preserve">
+    <value>Re_tirer le nom</value>
   </data>
   <data name="Re_move the rule" xml:space="preserve">
     <value>Supprimer la règ_le</value>
@@ -8241,6 +8340,9 @@ Exécutez ceci si des clients signalent des messages apparaissant sous le mauvai
   <data name="Remove from the domain list" xml:space="preserve">
     <value>Retirer de la liste de domaines</value>
   </data>
+  <data name="Remove from the never-ban list" xml:space="preserve">
+    <value>Retirer de la liste des jamais bannis</value>
+  </data>
   <data name="Remove from the suppression list" xml:space="preserve">
     <value>Retirer de la liste de suppression</value>
   </data>
@@ -8282,6 +8384,11 @@ Exécutez ceci si des clients signalent des messages apparaissant sous le mauvai
 
 Un domaine noir est de nouveau accepté aussitôt ; un domaine blanc repasse sous le greylisting et le score antispam dès la prochaine session.</value>
   </data>
+  <data name="Remove {0} from the never-ban list?&#10;&#10;An address it spared can be auto-banned again from the next ban on." xml:space="preserve">
+    <value>Retirer {0} de la liste des jamais bannis ?
+
+Une adresse qu'il épargnait peut de nouveau être bannie automatiquement dès le prochain bannissement.</value>
+  </data>
   <data name="Remove {0} from {1}?&#13;&#10;&#13;&#10;Any access this group has been granted stops applying to that account." xml:space="preserve">
     <value>Retirer {0} de {1} ?
 
@@ -8311,10 +8418,10 @@ La boîte et ses messages passent à la nouvelle adresse. Le courrier envoyé à
 
 Chaque plage personnalisée - y compris les entrées de bannissement automatique - sera supprimée et remplacée par « My computer » (127.0.0.1) et « Internet » (tout le reste). Cela change immédiatement qui peut se connecter et relayer.</value>
   </data>
-  <data name="Replace ALL configured ports with the defaults?&#10;&#10;SMTP 25 and 587, POP3 110, IMAP 143 - without connection security. TLS ports and custom bindings will be removed. The change takes effect when the server is reinitialized." xml:space="preserve">
+  <data name="Replace ALL configured ports with the defaults?&#10;&#10;SMTP 25 and 587, POP3 110, IMAP 143 - without connection security, and with SMTP authentication On on both SMTP ports, so a port 25 that is a honeypot takes AUTH again. TLS ports and custom bindings will be removed. The change takes effect when the server is reinitialized." xml:space="preserve">
     <value>Remplacer TOUS les ports configurés par ceux par défaut ?
 
-SMTP 25 et 587, POP3 110, IMAP 143 - sans sécurité de connexion. Les ports TLS et les liaisons personnalisées seront supprimés. Le changement prend effet à la réinitialisation du serveur.</value>
+SMTP 25 et 587, POP3 110, IMAP 143 - sans sécurité de connexion et avec l'authentification SMTP Activé sur les deux ports SMTP : un port 25 qui est un leurre accepte donc de nouveau AUTH. Les ports TLS et les liaisons personnalisées seront supprimés. Le changement prend effet à la réinitialisation du serveur.</value>
   </data>
   <data name="Replace the certificate here; the expiry date of each one is listed." xml:space="preserve">
     <value>Remplacez le certificat ici ; la date d'expiration de chacun est listée.</value>
@@ -8843,6 +8950,9 @@ Continuer ?</value>
   </data>
   <data name="SURBL servers are checked against the links inside the message." xml:space="preserve">
     <value>Les serveurs SURBL sont consultés pour les liens contenus dans le message.</value>
+  </data>
+  <data name="S_MTP authentication" xml:space="preserve">
+    <value>Authentification S_MTP</value>
   </data>
   <data name="S_witch the rule over" xml:space="preserve">
     <value>Ba_sculer la règle</value>
@@ -11025,6 +11135,12 @@ L'ajouter quand même ?</value>
   <data name="The retry counts and intervals are here, along with what happens when they run out." xml:space="preserve">
     <value>Les nombres de tentatives et les intervalles sont ici, ainsi que ce qui se passe quand ils sont épuisés.</value>
   </data>
+  <data name="The reverse lookup of {0} was not answered, so the list cannot spare it now. Try again, or list the address in AutoBanNeverBan." xml:space="preserve">
+    <value>La recherche inverse de {0} n'a pas reçu de réponse, la liste ne peut donc pas l'épargner maintenant. Réessayez, ou inscrivez l'adresse dans AutoBanNeverBan.</value>
+  </data>
+  <data name="The reverse name {0} is an address or a public suffix, which the list never matches. List the address in AutoBanNeverBan instead." xml:space="preserve">
+    <value>Le nom inverse {0} est une adresse ou un suffixe public, que la liste ne compare jamais. Inscrivez plutôt l'adresse dans AutoBanNeverBan.</value>
+  </data>
   <data name="The rotation refused: {0}" xml:space="preserve">
     <value>La rotation a refusé : {0}</value>
   </data>
@@ -11161,6 +11277,12 @@ C'est le propre résolveur du serveur qui répond - le même que celui qu'utilis
   </data>
   <data name="The server's answer could not be read: {0}" xml:space="preserve">
     <value>La réponse du serveur n'a pas pu être lue : {0}</value>
+  </data>
+  <data name="The server's answer has no list of entries." xml:space="preserve">
+    <value>La réponse du serveur ne contient pas de liste d'entrées.</value>
+  </data>
+  <data name="The server's answer has no verdict." xml:space="preserve">
+    <value>La réponse du serveur ne contient pas de verdict.</value>
   </data>
   <data name="The server's answer is not a settings group." xml:space="preserve">
     <value>La réponse du serveur n'est pas un groupe de réglages.</value>
@@ -12329,6 +12451,12 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   <data name="Why it is listed" xml:space="preserve">
     <value>Pourquoi elle est listée</value>
   </data>
+  <data name="Widen a ban to its neighbours" xml:space="preserve">
+    <value>Étendre un bannissement à ses voisins</value>
+  </data>
+  <data name="Widen an auto-ban to the neighbouring addresses whose reverse names share its domain" xml:space="preserve">
+    <value>Étendre un bannissement automatique aux adresses voisines dont les noms inverses partagent son domaine</value>
+  </data>
   <data name="Wiki the help pane's &quot;Open on the wiki&quot; link points at (empty hides the link)" xml:space="preserve">
     <value>Wiki vers lequel pointe « Ouvrir sur le wiki » du volet d'aide (vide masque le lien)</value>
   </data>
@@ -12466,6 +12594,9 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   </data>
   <data name="_Add folder" xml:space="preserve">
     <value>_Ajouter un dossier</value>
+  </data>
+  <data name="_Add name…" xml:space="preserve">
+    <value>_Ajouter un nom…</value>
   </data>
   <data name="_Add rule" xml:space="preserve">
     <value>_Ajouter une règle</value>
@@ -12763,6 +12894,9 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   </data>
   <data name="_Name" xml:space="preserve">
     <value>_Nom</value>
+  </data>
+  <data name="_Name or suffix" xml:space="preserve">
+    <value>_Nom ou suffixe</value>
   </data>
   <data name="_New accounts start with their keys published" xml:space="preserve">
     <value>Les _nouveaux comptes commencent avec leurs clés publiées</value>
@@ -13512,6 +13646,12 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   <data name="mail is stuck" xml:space="preserve">
     <value>le courrier est coincé</value>
   </data>
+  <data name="mail.example.net is that name alone; .example.net is the name and every name beneath it. Never a public suffix such as .com, and never a cloud whose customers' machines carry the provider's name." xml:space="preserve">
+    <value>mail.example.net est ce nom seul ; .example.net est le nom et tous les noms en dessous. Jamais un suffixe public comme .com, et jamais un cloud dont les machines des clients portent le nom du fournisseur.</value>
+  </data>
+  <data name="mail.example.net is that name alone; .example.net is the name and every name beneath it. The reverse lookup is never waited for on a connection: a ban placed before the answer is in is lifted once it is, before the firewall or fail2ban is told. A net with no reverse name, or one you do not trust, still belongs in the address list above." xml:space="preserve">
+    <value>mail.example.net est ce nom seul ; .example.net est le nom et tous les noms en dessous. La recherche inverse n'est jamais attendue pendant une connexion : un bannissement posé avant la réponse est levé dès qu'elle arrive, avant que le pare-feu ou fail2ban n'en soit informé. Un réseau sans nom inverse, ou avec un nom auquel vous ne faites pas confiance, a toujours sa place dans la liste d'adresses ci-dessus.</value>
+  </data>
   <data name="make awstats work" xml:space="preserve">
     <value>faire fonctionner awstats</value>
   </data>
@@ -13736,6 +13876,9 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   </data>
   <data name="stop forwarded mail failing spf" xml:space="preserve">
     <value>empêcher le courrier transféré d'échouer à spf</value>
+  </data>
+  <data name="stop password guessing on port 25 with a honeypot" xml:space="preserve">
+    <value>arrêter les essais de mots de passe sur le port 25 avec un leurre</value>
   </data>
   <data name="stop spam" xml:space="preserve">
     <value>arrêter le spam</value>
@@ -14127,6 +14270,9 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   <data name="{0} has no postmaster address configured, and this page will not invent a mailbox - enter the address that should receive the reports. Until one is entered there is no record to copy." xml:space="preserve">
     <value>{0} n'a pas d'adresse postmaster configurée, et cette page n'inventera pas de boîte - saisissez l'adresse qui doit recevoir les rapports. Tant qu'aucune n'est saisie, il n'y a pas d'enregistrement à copier.</value>
   </data>
+  <data name="{0} has no reverse name, so no pattern can spare it. List the address in AutoBanNeverBan instead." xml:space="preserve">
+    <value>{0} n'a pas de nom inverse, aucun motif ne peut donc l'épargner. Inscrivez plutôt l'adresse dans AutoBanNeverBan.</value>
+  </data>
   <data name="{0} held, showing the {1} most recent. The rest are still there - work through these, or let the retention sweep age them out." xml:space="preserve">
     <value>{0} retenus, les {1} plus récents sont affichés. Le reste est toujours là - traitez ceux-ci, ou laissez le balayage de rétention les supprimer quand ils auront vieilli.</value>
   </data>
@@ -14142,17 +14288,29 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   <data name="{0} is available" xml:space="preserve">
     <value>{0} est disponible</value>
   </data>
+  <data name="{0} is covered by {1} but does not resolve back to {2}, so it is not spared: anybody who holds an address can write its reverse name." xml:space="preserve">
+    <value>{0} est couvert par {1} mais ne se résout pas vers {2}, l'adresse n'est donc pas épargnée : quiconque détient une adresse peut écrire lui-même son nom inverse.</value>
+  </data>
+  <data name="{0} is covered by {1}, but its forward lookup was not answered, so {2} is not spared now." xml:space="preserve">
+    <value>{0} est couvert par {1}, mais sa recherche directe n'a pas reçu de réponse, {2} n'est donc pas épargnée pour l'instant.</value>
+  </data>
   <data name="{0} is downloaded and verified" xml:space="preserve">
     <value>{0} est téléchargé et vérifié</value>
   </data>
   <data name="{0} is here with the mailboxes {1}, the list {2} and one rule that files invoices. The one password for all of them was shown when it was made and was not kept - remove the sample and make it again to be given another. It is left out of the first-hour checklist, because a sample domain is not this server's first domain." xml:space="preserve">
     <value>{0} est là, avec les boîtes {1}, la liste {2} et une règle qui classe les factures. L'unique mot de passe des boîtes a été affiché à la création de l'exemple et n'a pas été conservé ; supprimez l'exemple et recréez-le pour en obtenir un autre. Il est laissé hors de la liste de la première heure, car un domaine d'exemple n'est pas le premier domaine de ce serveur.</value>
   </data>
+  <data name="{0} is never auto-banned: its reverse name {1} resolves back to it and is covered by {2}." xml:space="preserve">
+    <value>{0} n'est jamais bannie automatiquement : son nom inverse {1} se résout vers elle et est couvert par {2}.</value>
+  </data>
   <data name="{0} is on but scores 0, so it costs a lookup on every message and can never change the outcome. Give it a score, or turn it off." xml:space="preserve">
     <value>{0} est activé mais son score est 0 : il coûte une recherche sur chaque message et ne peut jamais changer le résultat. Donnez-lui un score, ou désactivez-le.</value>
   </data>
   <data name="{0} is on the list. It applies to the next session from that domain." xml:space="preserve">
     <value>{0} est sur la liste. Cela s'applique à la prochaine session venant de ce domaine.</value>
+  </data>
+  <data name="{0} is on the never-ban list. It applies to the next ban." xml:space="preserve">
+    <value>{0} est sur la liste des jamais bannis. S'applique au prochain bannissement.</value>
   </data>
   <data name="{0} is on the suppression list of {1}." xml:space="preserve">
     <value>{0} figure sur la liste de suppression de {1}.</value>
@@ -14340,8 +14498,14 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   <data name="{0} was not on the list any more." xml:space="preserve">
     <value>{0} ne figurait plus sur la liste.</value>
   </data>
+  <data name="{0} was not on the never-ban list any more." xml:space="preserve">
+    <value>{0} n'était plus sur la liste des jamais bannis.</value>
+  </data>
   <data name="{0} was removed from the list." xml:space="preserve">
     <value>{0} a été retirée de la liste.</value>
+  </data>
+  <data name="{0} was removed from the never-ban list." xml:space="preserve">
+    <value>{0} a été retiré de la liste des jamais bannis.</value>
   </data>
   <data name="{0} was removed: {1} mailbox(es), {2} distribution list(s), {3} rule(s) and {4} message(s) went with it." xml:space="preserve">
     <value>{0} a été supprimé : {1} boîtes, {2} listes de diffusion, {3} règles et {4} messages sont partis avec lui.</value>

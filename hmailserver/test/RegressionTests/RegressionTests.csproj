@@ -801,6 +801,12 @@
     <Compile Include="POP3\Pipelining.cs" />
     <Compile Include="Security\AppPasswords.cs" />
     <Compile Include="Security\AutoBanFirewall.cs" />
+    <Compile Include="Security\AutoBanNeverBanNames.cs" />
+    <Compile Include="Security\AutoBanNeverBanNamesCom.cs" />
+    <Compile Include="Security\SmtpAuthOnDeliveryPorts.cs" />
+    <Compile Include="Security\SmtpAuthOnDeliveryPortsCom.cs" />
+    <Compile Include="Security\AutoBanWiden.cs" />
+    <Compile Include="Security\AutoBanWidenCom.cs" />
     <Compile Include="Security\PasswordPolicyTests.cs" />
     <Compile Include="Security\PasswordBreachCheck.cs" />
     <Compile Include="Security\PasswordExpiryTests.cs" />

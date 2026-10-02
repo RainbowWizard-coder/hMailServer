@@ -65,8 +65,13 @@ namespace HM
          if (vecObjects[0]->GetPortNumber() == 25 && vecObjects[0]->GetProtocol() == STSMTP && vecObjects[0]->GetConnectionSecurity() == CSNone &&
             vecObjects[1]->GetPortNumber() == 110 && vecObjects[1]->GetProtocol() == STPOP3 && vecObjects[1]->GetConnectionSecurity() == CSNone &&
             vecObjects[2]->GetPortNumber() == 143 && vecObjects[2]->GetProtocol() == STIMAP && vecObjects[2]->GetConnectionSecurity() == CSNone &&
-            vecObjects[3]->GetPortNumber() == 587 && vecObjects[3]->GetProtocol() == STSMTP && vecObjects[3]->GetConnectionSecurity() == CSNone)
+            vecObjects[3]->GetPortNumber() == 587 && vecObjects[3]->GetProtocol() == STSMTP && vecObjects[3]->GetConnectionSecurity() == CSNone &&
+            vecObjects[0]->GetSMTPAuthentication() == SAMOn && vecObjects[3]->GetSMTPAuthentication() == SAMOn)
          {
+            // ... and both SMTP ports take AUTH as a create script makes them
+            // (GitLab work item #54): the defaults are the listeners a database
+            // starts with, not a new installation's, whose port 25 is a honeypot
+            // (NewInstallDefaults), and restoring them is never what arms a ban.
             // no changes are needed.
             return true;
          }

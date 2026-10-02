@@ -388,6 +388,16 @@ END_COM_MAP()
    STDMETHOD(put_MessageStoreDedupMinKB)(/*[in]*/ long newVal);
    STDMETHOD(get_MessageStoreStatus)(/*[out, retval]*/ BSTR *pVal);
 
+   // The never-ban list by reverse name (Common/Util/NeverBanNameList.h).
+   STDMETHOD(get_AutoBanNeverBanNames)(/*[out, retval]*/ BSTR *pVal);
+   STDMETHOD(AddAutoBanNeverBanName)(/*[in]*/ BSTR Pattern, /*[in]*/ BSTR Note, /*[out, retval]*/ long *ID);
+   STDMETHOD(RemoveAutoBanNeverBanName)(/*[in]*/ long ID, /*[out, retval]*/ VARIANT_BOOL *Removed);
+   STDMETHOD(CheckAutoBanNeverBanName)(/*[in]*/ BSTR Address, /*[out, retval]*/ BSTR *pVal);
+
+   // An auto-ban widened to its reverse-name neighbours (Common/Util/AutoBanWidener.h).
+   STDMETHOD(get_AutoBanWidenByReverseName)(/*[out, retval]*/ VARIANT_BOOL *pVal);
+   STDMETHOD(put_AutoBanWidenByReverseName)(/*[in]*/ VARIANT_BOOL newVal);
+
    // The [Settings] section of hMailServer.INI. See the IDL for why these exist and
    // for the two things they deliberately do not do.
    STDMETHOD(GetIniSetting)(/*[in]*/ BSTR Name, /*[out, retval]*/ BSTR *pVal);

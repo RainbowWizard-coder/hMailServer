@@ -123,7 +123,7 @@ namespace hMailServer.ControlPanel.Services
             ["ldap"] = new HelpTarget("PasskeysAndSingleSignOn.md", "Single sign-on (OpenID Connect)"),
             ["directorysync"] = new HelpTarget("Directory.md"),
             ["adminaccess"] = new HelpTarget("Roles.md"),
-            ["autoban"] = new HelpTarget("CompromisedAccounts.md", "The four signals"),
+            ["autoban"] = new HelpTarget("AutoBan.md"),
             ["ipranges"] = new HelpTarget("CountryBlocking.md"),
 
             // The server itself.

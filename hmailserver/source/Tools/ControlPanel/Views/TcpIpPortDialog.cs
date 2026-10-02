@@ -33,6 +33,7 @@ namespace hMailServer.ControlPanel.Views
       private readonly ComboBox security_ = new();
       private readonly ComboBox certificate_ = new();
       private readonly ComboBox clientCertPolicy_ = new();
+      private readonly ComboBox smtpAuth_ = new();
       private readonly TextBox clientCertCaFile_ = new();
       private readonly InlineNotice clientCertNotice_ = DialogFields.Notice();
       private readonly InlineNotice notice_ = DialogFields.Notice();
@@ -62,6 +63,17 @@ namespace hMailServer.ControlPanel.Views
          body.Children.Add(Label(L("_Connection security"), security_));
 
          body.Children.Add(Label(L("SSL c_ertificate (required for SSL/TLS and STARTTLS)"), certificate_));
+
+         // What an SMTP port does with AUTH (GitLab work item #54): the three values
+         // of SMTPAuthenticationMode in SocketConstants.h, spelled out as what each
+         // does to a client that sends AUTH. A POP3 or IMAP port has no such choice,
+         // so for one the box shows On and cannot be changed.
+         smtpAuth_.Items.Add(DialogFields.Combo(L("On - offer AUTH and check the password"), 0));
+         smtpAuth_.Items.Add(DialogFields.Combo(L("Off - do not offer AUTH; refuse it and ban the address"), 1));
+         smtpAuth_.Items.Add(DialogFields.Combo(L("Honeypot - offer AUTH; refuse it and ban the address"), 2));
+         body.Children.Add(Label(L("S_MTP authentication"), smtpAuth_)
+            .WithHint(L("Port 25 is where other servers deliver mail, and no mail client should sign in there. Off and Honeypot never look at a password: AUTH is answered 502, and the first one of a session bans the address for the auto-ban minutes - never this computer, nor an address on the never-ban lists. Honeypot goes on offering AUTH, as bait. Mail clients sign in on 587.")));
+         protocol_.SelectionChanged += (s, e) => UpdateSmtpAuthentication();
 
          // Client certificates (mutual TLS), per port. The three options are the
          // three values of ClientCertificatePolicy in SocketConstants.h, spelled
@@ -167,6 +179,8 @@ namespace hMailServer.ControlPanel.Views
             LoadCertificates((int)p.SSLCertificateID);
             DialogFields.SelectCombo(clientCertPolicy_, (int)p.ClientCertificatePolicy, orFirst: true);
             clientCertCaFile_.Text = (string)p.ClientCertificateCAFile ?? "";
+            DialogFields.SelectCombo(smtpAuth_, SmtpAuthentication((object)p), orFirst: true);
+            UpdateSmtpAuthentication();
             UpdateClientCertificateValidation();
             ServerSession.Release(p);
          }
@@ -218,6 +232,12 @@ namespace hMailServer.ControlPanel.Views
             p.SSLCertificateID = DialogFields.ComboValue(certificate_);
             p.ClientCertificatePolicy = DialogFields.ComboValue(clientCertPolicy_);
             p.ClientCertificateCAFile = clientCertCaFile_.Text.Trim();
+            // Written only when the server has the property and something other
+            // than On is chosen or was there: a server older than 6.3.6 has no
+            // SMTPAuthentication, and its every port is On already.
+            int smtpAuthentication = DialogFields.ComboValue(smtpAuth_);
+            if (smtpAuthentication != 0 || SmtpAuthentication((object)p) != 0)
+               p.SMTPAuthentication = smtpAuthentication;
             p.Save();
             ServerSession.Release(p);
             Saved = true;
@@ -231,6 +251,37 @@ namespace hMailServer.ControlPanel.Views
          {
             ServerSession.Release(ports);
          }
+      }
+
+      // ---- SMTP authentication ----
+
+      /// <summary>
+      /// The port's SMTPAuthentication, or 0 (On) from a server older than 6.3.6,
+      /// which does not have the property and on which every port takes AUTH.
+      /// </summary>
+      private static int SmtpAuthentication(object port)
+      {
+         try
+         {
+            return (int)((dynamic)port).SMTPAuthentication;
+         }
+         catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
+         {
+            return 0;
+         }
+      }
+
+      /// <summary>
+      /// AUTH is a question for an SMTP port only; the server refuses Off and
+      /// Honeypot on any other (PersistentTCPIPPort), so the box is On and fixed
+      /// while the protocol is POP3 or IMAP.
+      /// </summary>
+      private void UpdateSmtpAuthentication()
+      {
+         bool smtp = DialogFields.ComboValue(protocol_) == ServerSession.SessionSmtp;
+         if (!smtp)
+            DialogFields.SelectCombo(smtpAuth_, 0, orFirst: true);
+         smtpAuth_.IsEnabled = smtp;
       }
 
       // ---- client certificate validation ----

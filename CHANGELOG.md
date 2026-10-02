@@ -77,11 +77,12 @@ time being: after it the project makes security releases only, and the 6.3 line 
 September 2027 (below). 6.3.6 fixes a security flaw and takes OpenSSL 4.0.3 into the Windows installers (both below),
 fixes what 6.3.5's release and the first live updates from 6.3.4 found, replaces with the project's own code the last
 code in the server whose licence a distribution would have had to settle, and carries every file the release pipeline
-makes, the ARM64 Windows installer among them. The schema moves to **6107** in two steps: 6106, which changes no
+makes, the ARM64 Windows installer among them. The schema moves to **6108** in three steps: 6106, which changes no
 column, gives every external account's *days to keep messages* the one meaning both fetchers now read, keeping each
-account doing what it did or stopping it deleting (What changes on upgrade without a switch, item 21), and 6107
-finishes the greylisting key schema 6072 began (item 22). The security notes come first, then what changes on upgrade
-without a switch. The operator documents named below are in
+account doing what it did or stopping it deleting (What changes on upgrade without a switch, item 21); 6107 finishes
+the greylisting key schema 6072 began (item 22); and 6108 adds the never-ban list by reverse name and, for each SMTP
+listener, what it does with `AUTH`, On for every listener an upgrade finds (item 24). The security notes come first,
+then what changes on upgrade without a switch. The operator documents named below are in
 `hmailserver/docs`, which has nine more of them than it had at 6.3.5.
 
 **Releases pause after this one.** 6.3.6 is the last release for the time being, by the owner's decision of 28
@@ -725,6 +726,18 @@ the download go on; install 6.3.6 with the package manager. Found by the project
     of its own passes both itself. The update to 6.3.6 is applied by the helper of the version it replaces, and
     6.3.6's own applies the next one
     ([packaging/README.md](hmailserver/source/Server/platform/packaging/README.md), An AppImage).
+24. **Port 25 still takes AUTH, and the setup checklist says so** (GitLab work item #54). The schema step 6107 to
+    6108 gives every TCP/IP port an SMTP authentication and writes On into every row, so no listener of an upgraded
+    server answers `AUTH` differently, and nobody is banned on the morning of the upgrade: clients that still sign in
+    on 25 go on doing so. The setup checklist has a thirteenth item, *No password on port 25*
+    (`delivery_port_auth`), action needed with no one-click fix while an SMTP listener on 25 is On - setting it to
+    Honeypot or Off is what arms the ban, so move such clients to 587 first
+    ([SmtpAuthOnDeliveryPorts.md](hmailserver/docs/SmtpAuthOnDeliveryPorts.md)). `GET /api/v1/ports` gives each port
+    `smtp_authentication`, and a `PUT` of a port that leaves it out writes `on`, as it writes the default of every field
+    it leaves out. `TCPIPPorts.SetDefault` - *Restore defaults* - writes both SMTP ports On, and says so. A backup
+    taken before 6.3.6 restores every port On. The type library adds `TCPIPPort.SMTPAuthentication` (dispid 12). The
+    error HM6099, a ban's range that could not be saved, no longer says the address reached the failed-logon limit,
+    which a spam trap's or a null sender's ban never did.
 
 ### Downloads and the release
 
@@ -1164,6 +1177,58 @@ the download go on; install 6.3.6 with the package manager. Found by the project
 
 ### Anti-spam, anti-virus and mail flow rules
 
+- **A provider can be spared from every auto-ban by its reverse name** (GitLab work item #56; schema 6108,
+  `hm_neverbannames`). `AutoBanNeverBan` lists addresses, and a provider whose outbound hosts share a reverse name and
+  whose addresses move had nowhere to say "never ban this name". The never-ban list by reverse name holds patterns in
+  the domain list's form - `mail.example.net` that name alone, `.example.net` the name and every name beneath it - and
+  refuses a public suffix, an address, a network and a `*`. An address is spared from all three auto-bans (failed
+  logons, a spam trap, a multi-recipient null sender) - no IP range, no firewall rule, no ban line for fail2ban - when
+  one of its reverse names is covered and resolves back to the address (A or AAAA): forward-confirmed, because anybody
+  who holds an address can write its reverse name. Nothing is looked up on a session's thread: the SMTP session's own
+  reverse lookup feeds the list, and a ban placed before the answer is in is written, resolved on the name lookup
+  queue and lifted if the address is spared, before the log line, the alert count or the firewall is told. The failed
+  logons counted before that answer - over IMAP, POP3, ManageSieve or REST, which look nothing up until the logon
+  that bans - still write their `logon failure` lines, which the packaged fail2ban jail counts on its own: with
+  `MaxInvalidLogonAttempts` at five or more, the jail's `maxretry`, fail2ban can ban a listed provider below the
+  server. Nothing
+  else is skipped, and the list is empty by default. COM (`Settings.AutoBanNeverBanNames`, `AddAutoBanNeverBanName`,
+  `RemoveAutoBanNeverBanName`, `CheckAutoBanNeverBanName`), REST (`/api/v1/never-ban-names` and
+  `/api/v1/never-ban-names/check`), the Control Panel's Auto-ban page with a check of what the list would decide about
+  an address, and the Deck's Lists view; [AutoBan.md](hmailserver/docs/AutoBan.md).
+- **Port 25 takes no password: an SMTP listener's AUTH is On, Off or Honeypot** (GitLab work item #54; schema 6108,
+  `hm_tcpipports.portsmtpauth`). Port 25 is where other servers deliver mail, and up to 6.3.5 every SMTP listener
+  offered `AUTH` there after `EHLO` and checked the password - a spray target on the port every scanner reaches. Each
+  SMTP listener now has an SMTP authentication: **On**, as before; **Off**, which does not offer `AUTH`; and
+  **Honeypot**, which offers it exactly as On does. On Off and Honeypot an `AUTH` is answered `502 5.5.1 AUTH not
+  permitted on this port.` without the account being looked up or the password evaluated - the same answer in the same
+  time for every mechanism, user name and password - and the first `AUTH` of a session bans the address for
+  `AutoBanMinutes` through the auto-ban's own writer, mirrored to the firewall when `AutoBanFirewall` or
+  `AutoBanCommand` is on: one range per address while it lasts, named `Auto-ban: AUTH on a delivery port <address>`,
+  however many `AUTH` lines and sessions it sends. Never this computer, an address `AutoBanNeverBan` lists (where an
+  incoming relay that sends `AUTH` is named), one the never-ban list by reverse name spares or an authenticated
+  session; nothing with `AutoBanMinutes` at 0. One line in the application log names the address, the port, the
+  mechanism (as a SASL mechanism name, never what followed it) and the listener's mode; the packaged fail2ban filter
+  matches the ban's. Unauthenticated `MAIL FROM` stays inbound delivery. A new installation's port 25 is a Honeypot and
+  587 On; an upgraded server's listeners stay On (below). POP3 and IMAP listeners are always On. COM
+  (`TCPIPPort.SMTPAuthentication`), REST (`smtp_authentication` on `/api/v1/ports`), the Control Panel's TCP/IP port
+  dialog and ports list, the Deck's Ports view, and the setup checklist's *No password on port 25*;
+  [SmtpAuthOnDeliveryPorts.md](hmailserver/docs/SmtpAuthOnDeliveryPorts.md).
+- **An auto-ban can be widened to its reverse-name neighbours** (GitLab work item #55; `AutoBanWidenByReverseName`,
+  off by default). A scanner working through `203.0.113.10`, `.11`, `.12` under one reverse domain earned a ban, a
+  firewall rule and a sweep for each. With the switch on, the ban is still written at once for the one address, and is
+  then widened in the background, on the name lookup queue, to the contiguous run of addresses around it inside its
+  IPv4 `/24` whose reverse names share its registrable domain (the public suffix list's, so
+  `mail5.outbound.example.net` is `example.net`): one IP range and one Windows Defender Firewall rule for the run, each
+  address of it told to `AutoBanCommand` and the Linux hook, and the before and after in the application log. Only
+  when one of the banned address's own reverse names resolves back to it, so a scanner cannot name itself after its
+  neighbours; at most 32 lookups each way; never across an address on `AutoBanNeverBan`, one the never-ban list by
+  reverse name covers, or one an administrator's IP range tells apart from it or lets in at the ban's priority or
+  above; never for IPv6, nor for a network's own address (RFC 1918, RFC 6598, loopback, link-local), whose
+  neighbours are its own machines; a lookup not answered leaves the single address. A hook command that runs past
+  `ExternalProcessTimeout` is not run again in the same reconciliation, so a run costs one timeout of a hook that hangs,
+  not one per address; what it was not run for is not asked again, as a failed run never was. COM
+  (`Settings.AutoBanWidenByReverseName`), REST (`auto_ban_widen_by_reverse_name`), the Control Panel's Auto-ban page and
+  the Deck's Settings; [AutoBan.md](hmailserver/docs/AutoBan.md).
 - **A link's host is the one after its user name.** The SURBL test asked the URI lists about the characters after `://`
   that can be in a name, so `http://anything@evil.example/` was asked about as `anything`, and a spammer escaped every
   list by writing a name and an `@` before the host; a URL entry of the sender lists read the same `anything`. A link is

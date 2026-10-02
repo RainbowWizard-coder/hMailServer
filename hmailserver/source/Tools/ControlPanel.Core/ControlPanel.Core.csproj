@@ -26,6 +26,10 @@
     <!-- The suppression list's two JSON documents, read into rows. No WPF, so the
          tests can pin the shape BounceTracker writes. -->
     <Compile Include="..\ControlPanel\Services\SuppressionListReport.cs" />
+    <!-- The never-ban list by reverse name's two documents, read into rows and a
+         verdict, and the sentence the Auto-ban page says about a verdict. No WPF,
+         so the tests can pin the shape NeverBanNameList writes. -->
+    <Compile Include="..\ControlPanel\Services\NeverBanNames.cs" />
     <!-- The Quarantine page's grouping, folding, sorting and three-state checks,
          and the Quarantine.Bulk request and answer. No WPF, so the tests hold
          what the page shows and what it sends without a window. -->

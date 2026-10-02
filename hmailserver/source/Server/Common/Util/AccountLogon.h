@@ -125,6 +125,29 @@ namespace HM
       // address on AutoBanNeverBan.
       bool BanForNullSenderAbuse(const IPAddress &ipaddress, int hours);
 
+      // AUTH arrived on an SMTP listener whose authentication is Off or Honeypot
+      // (GitLab work item #54, SMTPAuthenticationMode): the same expiring range,
+      // named "Auto-ban: AUTH on a delivery port <address>", for minutes. One
+      // range per address while it lasts, not one per AUTH line or per session:
+      // when a range of that name is in force already, nothing is written and
+      // alreadyBanned says so; one whose time has run out and that the sweep
+      // has not lifted yet is replaced. True when the address is banned -
+      // written now or already - and false when the range could not be saved.
+      // port, mechanism and mode are for the one line the ban writes
+      // (AutoBanFirewall::BannedForAuthOnDeliveryPort); the mechanism is the
+      // caller's sanitised word, never the client's argument.
+      //
+      // Whether the address MAY be banned is the caller's decision, made first:
+      // the loopback, AutoBanNeverBan, the never-ban list by reverse name and an
+      // authenticated session never arrive here. See
+      // SMTPConnection::RefuseAuthOnDeliveryPort_.
+      bool BanForAuthOnDeliveryPort(const IPAddress &ipaddress, int minutes, int port,
+                                    const String &mechanism, const String &mode, bool &alreadyBanned);
+
+      // The range name a ban for AUTH on a delivery port is written under, which
+      // is how the next AUTH from the address finds it in force.
+      static String AuthOnDeliveryPortRangeName(const IPAddress &ipaddress);
+
    private:
 
       // True if the range was saved, which is the only case in which the address
@@ -132,6 +155,9 @@ namespace HM
       bool CreateIPRange(const IPAddress &ipaddress, const String &username, int minutes);
 
       String GetIPRangeName_(const String &username);
+
+      // What follows "Auto-ban: " in AuthOnDeliveryPortRangeName.
+      static String AuthOnDeliveryPortReason_(const IPAddress &ipaddress);
 
       static boost::recursive_mutex ip_range_creation_mutex_;
    };

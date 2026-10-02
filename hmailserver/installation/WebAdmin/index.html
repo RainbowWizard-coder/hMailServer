@@ -1337,6 +1337,7 @@ $("#content").addEventListener("click",e=>{
   else if(d.act==="colledit")openCollectionItem(d.coll,Number(d.id));
   else if(d.act==="colldel")deleteCollectionItem(d.coll,Number(d.id),d.label);
   else if(d.act==="collsave")saveCollectionItem();
+  else if(d.act==="collcheck")checkCollectionAddress(d.coll);
   else if(d.act==="msgsave")saveMessage(d.name,Number(d.i));
   else if(d.act==="backupstart")startBackup();
   else if(d.act==="backupstatus")render();
@@ -1977,7 +1978,7 @@ const HELP_MAP={
   routes:["RemoteDomains.md","A policy is not a route"],
   remotedomains:["RemoteDomains.md"],
   certs:["RemoteDomains.md","Outbound TLS"],
-  ports:["SecureDefaults.md","What a new installation starts with"],
+  ports:["SmtpAuthOnDeliveryPorts.md"],
   roles:["Roles.md"],
   devices:["DevicesAndSessions.md"],
   logs:["DiagnosingStalledMail.md","Turn on debug logging first"],
@@ -6375,6 +6376,7 @@ async function renderPorts(){
         <td>${escHtml(humanise(p.connection_security))}</td>
         <td>${escHtml(certName(p.certificate_id))}</td>
         <td>${escHtml(humanise(p.client_certificate_policy))}${p.client_certificate_ca_file?'<div class="hint muted">'+escHtml(p.client_certificate_ca_file)+'</div>':""}</td>
+        <td>${p.protocol==="smtp"&&p.smtp_authentication?escHtml(humanise(p.smtp_authentication)):"—"}</td>
         <td style="text-align:right;white-space:nowrap">
           <button class="btn ghost sm" data-act="portedit" data-id="${escHtml(p.id)}">${t("Edit")}</button>
           <button class="btn danger sm" data-act="portdel" data-id="${escHtml(p.id)}" data-label="${escHtml(p.protocol+" "+p.address+":"+p.port)}">${t("Delete")}</button>
@@ -6388,8 +6390,8 @@ async function renderPorts(){
     <div class="card flat">
       <p class="note">${escHtml(operation("/api/v1/ports","get").description||"")}</p>
       ${noticeHtml("warn",restartWording)}
-      <div class="tablewrap"><table><thead><tr><th>${t("Protocol")}</th><th>${t("Listens on")}</th><th>${t("Security")}</th><th>${t("Certificate")}</th><th>${t("Client certificate")}</th><th></th></tr></thead>
-      <tbody>${rows||'<tr><td colspan="6" class="empty">'+t("No listeners are configured.")+'</td></tr>'}</tbody></table></div>
+      <div class="tablewrap"><table><thead><tr><th>${t("Protocol")}</th><th>${t("Listens on")}</th><th>${t("Security")}</th><th>${t("Certificate")}</th><th>${t("Client certificate")}</th><th>${t("SMTP authentication")}</th><th></th></tr></thead>
+      <tbody>${rows||'<tr><td colspan="7" class="empty">'+t("No listeners are configured.")+'</td></tr>'}</tbody></table></div>
       <div class="row" style="margin-top:16px">
         <button class="btn" data-act="portnew">${t("Add a port")}</button>
         <button class="btn ghost" data-act="portapply">${t("Restart the services now")}</button>
@@ -6980,7 +6982,16 @@ const COLLECTIONS=[
   // selects on its own.
   {id:"domainpolicy",path:"/api/v1/domain-policy-list",title:K("Domain white and black list"),columns:["pattern","match_on","action","note"],
     add:K("Add a domain"),fresh:K("New domain list entry"),edit:K("Edit domain list entry {0}"),save:K("Save domain list entry"),ask:K("Delete the domain list entry {0}?"),saved:K("Domain list entry saved"),deleted:K("Domain list entry deleted"),
-    defaults:{match_on:"both",action:"white"},hints:{pattern:K("example.com for that domain alone, or .example.com for the domain and everything beneath it."),match_on:K("What the pattern is compared with: the envelope sender's domain, the HELO name, or either."),action:K("White skips greylisting and the score's refusals while every test still runs and logs; black is refused at MAIL FROM before any test runs."),note:K("Why the entry is there.")}}
+    defaults:{match_on:"both",action:"white"},hints:{pattern:K("example.com for that domain alone, or .example.com for the domain and everything beneath it."),match_on:K("What the pattern is compared with: the envelope sender's domain, the HELO name, or either."),action:K("White skips greylisting and the score's refusals while every test still runs and logs; black is refused at MAIL FROM before any test runs."),note:K("Why the entry is there.")}},
+  // The never-ban list by reverse name (GitLab work item #56): providers no
+  // auto-ban ever bans, named by the reverse names of their hosts - the
+  // Auto-ban page's list on the desktop. Last, so the tables before it keep
+  // their places, and the one collection with a check: what the list would
+  // decide about an address, which the server looks up when asked.
+  {id:"neverban",path:"/api/v1/never-ban-names",title:K("Never-ban list by reverse name"),columns:["pattern","note","created"],
+    add:K("Add a name"),fresh:K("New never-ban name"),edit:K("Edit never-ban name {0}"),save:K("Save never-ban name"),ask:K("Delete the never-ban name {0}?"),saved:K("Never-ban name saved"),deleted:K("Never-ban name deleted"),
+    defaults:{},hints:{pattern:K("mail.example.net for that name alone, or .example.net for the name and every name beneath it. An address is spared only when its reverse name also resolves back to it."),note:K("Why the entry is there.")},
+    check:"/api/v1/never-ban-names/check"}
 ];
 function collectionById(id){return COLLECTIONS.filter(c=>c.id===id)[0];}
 function collectionProps(c){
@@ -7111,6 +7122,10 @@ async function renderLists(){
         <div class="tablewrap"><table><thead><tr>${c.columns.map(k=>'<th>'+escHtml(humanise(k))+'</th>').join("")}<th></th></tr></thead>
         <tbody>${rows||'<tr><td colspan="'+(c.columns.length+1)+'" class="empty">'+t("Nothing here.")+'</td></tr>'}</tbody></table></div>
         <div class="row" style="margin-top:16px"><button class="btn" data-act="collnew" data-coll="${c.id}">${t(c.add)}</button></div>
+        ${c.check?`<div class="row" style="margin-top:12px">
+          <input id="chk_${c.id}" placeholder="192.0.2.10" aria-label="${t("Address to check")}" style="flex:1;min-width:220px;max-width:320px">
+          <button class="btn ghost" data-act="collcheck" data-coll="${c.id}">${t("Check an address")}</button></div>
+        <div class="err" id="err_chk_${c.id}"></div><div id="out_chk_${c.id}"></div>`:""}
       </div></div>`;
   }).join("");
   $("#content").innerHTML=`<div class="view">
@@ -7149,6 +7164,27 @@ async function saveCollectionItem(){
     else await api(c.path,{method:"POST",body:JSON.stringify(body)});
     editing=null;toast(t(c.saved));await render();
   }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_colledit",e.message);}
+}
+/* What a collection with a check - the never-ban list by reverse name - would
+   decide about one address: the server looks its reverse names up now and says
+   whether one is covered and resolves back. Nothing is kept or changed. The
+   reason is the server's own sentence; each reverse name is a row of the
+   answer's own keys. */
+async function checkCollectionAddress(collId){
+  const c=collectionById(collId);
+  const input=document.getElementById("chk_"+collId), out=document.getElementById("out_chk_"+collId);
+  setErr("err_chk_"+collId,"");
+  if(out)out.innerHTML="";
+  const address=input?String(input.value||"").trim():"";
+  if(!address){setErr("err_chk_"+collId,t("Type an address first."));return;}
+  try{
+    const r=await api(c.check,{method:"POST",body:JSON.stringify({address:address})});
+    const names=Array.isArray(r.reverse_names)?r.reverse_names:[];
+    const keys=["name","usable","pattern","resolves_back"];
+    const rows=names.map(n=>'<tr>'+keys.map(k=>'<td>'+(typeof n[k]==="boolean"?yesNo(n[k]):escHtml(n[k]===undefined||n[k]===null||n[k]===""?"—":n[k]))+'</td>').join("")+'</tr>').join("");
+    if(out)out.innerHTML=`<p class="note"><strong>${escHtml(r.spared?t("Spared from auto-ban"):t("Not spared"))}</strong> ${escHtml(r.address||address)}: ${escHtml(r.reason||"")}</p>
+      ${rows?`<div class="tablewrap"><table><thead><tr>${keys.map(k=>'<th>'+escHtml(humanise(k))+'</th>').join("")}</tr></thead><tbody>${rows}</tbody></table></div>`:""}`;
+  }catch(e){if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}setErr("err_chk_"+collId,e.message);}
 }
 async function deleteCollectionItem(collId,id,label){
   const c=collectionById(collId);
@@ -7914,7 +7950,7 @@ async function verifyAuditChain(){
    What is checked, and which lists, are settings (reputation_watch_addresses,
    reputation_watch_lists) and so live on the Settings page with every other one;
    this view is the answer and the button that asks again. */
-/* The first-hour checklist: twelve items the server judges itself (SetupChecklist.cpp),
+/* The first-hour checklist: thirteen items the server judges itself (SetupChecklist.cpp),
    the first of them a setting profile (docs/Profiles.md), the stored-secrets key
    made and exported (docs/SecretsAtRest.md) next to last, and the last the account
    the server runs as (docs/ServiceAccount.md), which the dashboard names as well.
@@ -7922,7 +7958,7 @@ async function verifyAuditChain(){
    sentence, so the sentence is rendered from the catalogue here and the server's
    own is the fallback for a code this page does not know. */
 const CHECKLIST_TITLE={profile:K("A profile for this server"),domain:K("A domain"),account:K("An account"),submission:K("TLS on the submission port"),
-  sign_in_tls:K("Passwords only over TLS"),spf:K("An SPF record"),dkim:K("DKIM signing"),dmarc:K("A DMARC record"),backup:K("A backup destination"),
+  sign_in_tls:K("Passwords only over TLS"),delivery_port_auth:K("No password on port 25"),spf:K("An SPF record"),dkim:K("DKIM signing"),dmarc:K("A DMARC record"),backup:K("A backup destination"),
   second_factor:K("A second factor for the administrator"),stored_secrets_key:K("The stored-secrets key"),service_account:K("The account the server runs as")};
 const CHECKLIST_PURPOSE={
   profile:K("A profile sets the thirty or so settings one kind of server needs - which, to what and why - shows the difference from this server before anything changes, and keeps what it replaces so that it can be put back."),
@@ -7930,6 +7966,7 @@ const CHECKLIST_PURPOSE={
   account:K("An account is a mailbox in a domain: the address people write to, and what a client signs in as."),
   submission:K("Mail clients send through the submission port, and without TLS their passwords cross the network in the clear."),
   sign_in_tls:K("A mail client signs in with a password, and from any address but this computer's the password should cross the network only inside TLS."),
+  delivery_port_auth:K("Port 25 is where other servers deliver mail, and no mail client should sign in there: an AUTH on it is a password being guessed."),
   spf:K("SPF tells receivers which servers may send this domain's mail; without it the mail is more likely to be refused or filed as spam."),
   dkim:K("DKIM signs outgoing mail so receivers can verify it left this domain unchanged; the public key has to be published in DNS."),
   dmarc:K("DMARC tells receivers what to do with mail that fails SPF and DKIM, and where to report it."),
@@ -7962,6 +7999,12 @@ const CHECKLIST_TEXT={
   sign_in_tls_required:K("The IP range {0} takes a password only over TLS."),
   sign_in_tls_ports:K("Every port the IP range {0} may use starts TLS before it takes a password."),
   sign_in_local_only:K("Only this computer may connect, so no password crosses a network."),
+  delivery_port_auth_on:K("Port {0} still accepts AUTH: it is where other servers deliver mail, and a password tried there is a guess. Set its SMTP authentication to Honeypot or Off, and sign mail clients in on 587."),
+  delivery_port_auth_honeypot:K("Port {0} takes no password: EHLO offers AUTH there as bait, and an address that sends one is refused and banned."),
+  delivery_port_auth_off:K("Port {0} takes no password: EHLO does not offer AUTH there, and an address that sends one anyway is refused and banned."),
+  delivery_port_auth_no_ban:K("Port {0} takes no password, but AutoBanMinutes is 0, so an address that sends AUTH there is refused and not banned."),
+  delivery_port_auth_disabled:K("Port {0} does not offer AUTH: DisableAUTHList names it, and an AUTH sent there is refused without a ban."),
+  delivery_port_none:K("No SMTP listener is on port 25, so no delivery port takes a password."),
   no_active_domain:K("No active domain, so there is nothing to publish yet."),
   record_published:K("{0}: the {1} record at {2} is published."),
   record_missing:K("{0}: no {1} record at {2}."),
@@ -8010,7 +8053,10 @@ function checklistText(finding){
    decides, as it does for any request. The server offers that fix only while
    every listener the range uses can start TLS; where one cannot, the finding is
    sign_in_no_tls, which says to give those listeners a certificate and STARTTLS
-   first, and its button opens the Ports view where that is done. */
+   first, and its button opens the Ports view where that is done. So does the
+   button of delivery_port_auth_on, a port 25 that still takes AUTH (GitLab work
+   item #54): the server offers no fix for it, since changing the listener is what
+   arms the ban, and the step is the administrator's, in the port's editor. */
 const CHECKLIST_FIX={sign_in_plain:K("Require TLS for sign-in from this range")};
 const CHECKLIST_FIX_CONFIRM={sign_in_plain:K("Require TLS for sign-in from the IP range {0}? From then on a client there that signs in before STARTTLS is refused.")};
 let checklistFixes_=[];
@@ -8021,7 +8067,7 @@ function checklistFixRange(finding){
   return match?match[1]:"";
 }
 function checklistFixButton(finding){
-  if(finding&&finding.code==="sign_in_no_tls")
+  if(finding&&(finding.code==="sign_in_no_tls"||finding.code==="delivery_port_auth_on"))
     return ' <button class="btn ghost sm" data-act="checklistgo" data-to="ports">'+escHtml(t("Ports"))+"</button>";
   if(!checklistFixRange(finding)||!may("manage_settings"))return "";
   checklistFixes_.push(finding);

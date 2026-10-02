@@ -24,7 +24,8 @@ namespace HM
    {
    public:
       TCPServer(boost::asio::io_context& io_context, const IPAddress &ipaddress, int port, SessionType sessionType, std::shared_ptr<SSLCertificate> certificate, std::shared_ptr<TCPConnectionFactory> connectionFactory, ConnectionSecurity connection_security,
-         ClientCertificatePolicy client_certificate_policy, const String &client_certificate_ca_file);
+         ClientCertificatePolicy client_certificate_policy, const String &client_certificate_ca_file,
+         SMTPAuthenticationMode smtp_authentication = SAMOn);
       ~TCPServer(void);
 
       void Run();
@@ -98,6 +99,10 @@ namespace HM
       // loaded once into context_, which every connection's ssl stream shares.
       ClientCertificatePolicy client_certificate_policy_;
       String client_certificate_ca_file_;
+
+      // What the TCPIPPort says this listener does with AUTH (GitLab work item
+      // #54), handed to every accepted connection; only SMTPConnection reads it.
+      SMTPAuthenticationMode smtp_authentication_;
 
       // Set by Run once the TLS context and the client-certificate policy have
       // been accepted, which is everything RestartAccept must not redo: a

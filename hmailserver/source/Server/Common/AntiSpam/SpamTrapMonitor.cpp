@@ -33,6 +33,7 @@
 #include "../Util/AccountLogon.h"
 #include "../Util/AuditTrail.h"
 #include "../Util/AutoBanFirewall.h"
+#include "../Util/NeverBanNameList.h"
 #include "../Util/FileUtilities.h"
 #include "../../SMTP/SPF/SPF.h"
 #include "../Util/GUIDCreator.h"
@@ -499,6 +500,11 @@ namespace HM
       String banNote;
       const int banMinutes = Configuration::Instance()->GetSpamTrapBanMinutes();
 
+      // The never-ban list by reverse name, as far as it is already known - the
+      // session's own reverse lookup usually has the answer by RCPT TO, and it is
+      // never looked up here (Util/NeverBanNameList.h).
+      NeverBanNameList::Verdict sparedByName;
+
       if (banMinutes <= 0)
          banNote = _T("not banned: SpamTrapBanMinutes is 0");
       else if (authenticated)
@@ -511,6 +517,8 @@ namespace HM
          banNote = _T("not banned: it is an incoming relay");
       else if (AutoBanFirewall::IsNeverBanned(address))
          banNote = _T("not banned: AutoBanNeverBan lists it");
+      else if (NeverBanNameList::IsSpared(address, sparedByName))
+         banNote = _T("not banned: ") + sparedByName.reason;
       else if (bannedEarlierInSession)
       {
          outcome.banned = true;

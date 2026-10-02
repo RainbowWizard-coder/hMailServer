@@ -170,6 +170,12 @@ namespace HM
       // the other.
       void SetInboundClientCertificatePolicy(ClientCertificatePolicy policy) { inbound_client_certificate_policy_ = policy; }
 
+      // What the listening SMTP port does with AUTH (SMTPAuthenticationMode, GitLab
+      // work item #54), set by TCPServer before the connection starts. On for a
+      // connection no listener accepted, and ignored by every protocol but SMTP.
+      void SetListenerSMTPAuthentication(SMTPAuthenticationMode mode) { listener_smtp_authentication_ = mode; }
+      SMTPAuthenticationMode GetListenerSMTPAuthentication() const { return listener_smtp_authentication_; }
+
       // The subject of the client certificate this inbound session presented,
       // set only when the certificate chained to the port's CA bundle. Empty
       // otherwise. This is the hook through which the verified identity could
@@ -410,6 +416,9 @@ namespace HM
       // Inbound-only; see SetInboundClientCertificatePolicy. CCPOff keeps the
       // handshake exactly as it always was (verify_none).
       ClientCertificatePolicy inbound_client_certificate_policy_ = CCPOff;
+
+      // Inbound-only; see SetListenerSMTPAuthentication.
+      SMTPAuthenticationMode listener_smtp_authentication_ = SAMOn;
 
       // Set only for an inbound session whose client certificate verified
       // against the port's CA bundle; see GetVerifiedClientCertificateSubject.

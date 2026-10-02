@@ -239,6 +239,10 @@ ALLOWED = {
       # pattern that what the administrator typed was converted into. The NAME
       # only: the detail is still read from the statement's own columns.
       "Common/Persistence/PersistentGreyListingWhiteAddress.cpp",
+      # hm_neverbannames, whose delete statement carries only the row's id: a
+      # row is named by its pattern, on the save as on the delete. The NAME
+      # only: the detail is still read from the statement's own columns.
+      "Common/Persistence/PersistentNeverBanName.cpp",
       # hm_migrationjobs, whose row names its target account by number: a job is
       # recorded as "source user -> target address" by the store that writes it.
       "Common/Util/MigrationStore.cpp",

@@ -22,6 +22,8 @@ if exists (select * from sysobjects where id = object_id('hm_spamtraphits') and 
 
 if exists (select * from sysobjects where id = object_id('hm_domainpolicylist') and objectproperty(id, 'isusertable') = 1) drop table hm_domainpolicylist
 
+if exists (select * from sysobjects where id = object_id('hm_neverbannames') and objectproperty(id, 'isusertable') = 1) drop table hm_neverbannames
+
 if exists (select * from sysobjects where id = object_id('hm_dmarcreportrecords') and objectproperty(id, 'isusertable') = 1) drop table hm_dmarcreportrecords
 if exists (select * from sysobjects where id = object_id('hm_dmarcreports') and objectproperty(id, 'isusertable') = 1) drop table hm_dmarcreports
 if exists (select * from sysobjects where id = object_id('hm_tlsreports') and objectproperty(id, 'isusertable') = 1) drop table hm_tlsreports
@@ -1387,7 +1389,8 @@ create table hm_tcpipports
 	portconnectionsecurity tinyint not null,
 	portsslcertificateid bigint not null,
 	portclientcertificatepolicy tinyint not null default 0,
-	portclientcertificatecafile nvarchar(255) not null default ''
+	portclientcertificatecafile nvarchar(255) not null default '',
+	portsmtpauth tinyint not null default 0
 ) 
 
 ALTER TABLE hm_tcpipports ADD CONSTRAINT hm_tcpipports_pk PRIMARY KEY NONCLUSTERED (portid) 
@@ -2842,6 +2845,18 @@ ALTER TABLE hm_domainpolicylist ADD CONSTRAINT hm_domainpolicylist_pk PRIMARY KE
 
 CREATE UNIQUE CLUSTERED INDEX idx_hm_domainpolicylist_pattern ON hm_domainpolicylist (dplpattern, dplmatchon)
 
+create table hm_neverbannames
+(
+	nbnid int identity(1,1) not null,
+	nbnpattern nvarchar(255) not null,
+	nbnnote nvarchar(255) not null,
+	nbncreated datetime not null
+)
+
+ALTER TABLE hm_neverbannames ADD CONSTRAINT hm_neverbannames_pk PRIMARY KEY NONCLUSTERED (nbnid)
+
+CREATE UNIQUE CLUSTERED INDEX idx_hm_neverbannames_pattern ON hm_neverbannames (nbnpattern)
+
 create table hm_journalrules
 (
 	jrid int identity(1,1) not null,
@@ -3299,4 +3314,4 @@ CREATE CLUSTERED INDEX idx_hm_discoveryexports_case ON hm_discoveryexports (expo
 
 ALTER TABLE hm_discoveryexports ADD CONSTRAINT fk_hm_discoveryexports_search FOREIGN KEY (exportsearchid) REFERENCES hm_discoverysearches (searchid) ON DELETE CASCADE
 
-insert into hm_dbversion values (6107)
+insert into hm_dbversion values (6108)

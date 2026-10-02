@@ -8,6 +8,7 @@
 
 #include "../Persistence/PersistentSecurityRange.h"
 #include "../Util/AutoBanFirewall.h"
+#include "../Util/NeverBanNameList.h"
 #include "../Persistence/PersistentLogonFailure.h"
 #include "../AntiSpam/SpamTrapMonitor.h"
 #include "../Util/ApiSends.h"
@@ -74,6 +75,19 @@ namespace HM
       // firewall should show, and this pass is what un-bans an address below the
       // server once its range has gone.
       AutoBanFirewall::Synchronise(_T("expiry pass"));
+
+      // The bans whose address's reverse lookup was not answered when they were
+      // placed, asked about again, so that a resolver that was down for a minute
+      // does not leave a provider on the never-ban list by reverse name banned
+      // for the whole ban. Nothing while there are none.
+      try
+      {
+         NeverBanNameList::RetryUnverified();
+      }
+      catch (...)
+      {
+         LOG_DEBUG("RemoveExpiredRecords: the unverified auto-bans could not be asked about again this minute; the next run tries again.");
+      }
 
       if (Configuration::Instance()->GetAutoBanLogonEnabled())
       {

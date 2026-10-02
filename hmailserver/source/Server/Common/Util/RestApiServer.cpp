@@ -3048,6 +3048,12 @@ namespace HM
          case RouteDomainPolicyUpdate:
          case RouteDomainPolicyDelete:
             return HandleDomainPolicyList_(route.kind, route.record_id, GetRequestBody_(request));
+         case RouteNeverBanNameList:
+         case RouteNeverBanNameCreate:
+         case RouteNeverBanNameUpdate:
+         case RouteNeverBanNameDelete:
+         case RouteNeverBanNameCheck:
+            return HandleNeverBanNames_(route.kind, route.record_id, GetRequestBody_(request));
          case RouteGroupList:
          case RouteGroupCreate:
          case RouteGroupGet:
@@ -6374,6 +6380,16 @@ namespace HM
          }
       }
 
+      // What the never-ban list by reverse name would decide about one address
+      // (RestApiNeverBanNames.cpp): ahead of the collections below, whose /{id}
+      // takes only a number.
+      if (path == "/api/v1/never-ban-names/check")
+      {
+         if (method == "POST")
+            route.kind = RouteNeverBanNameCheck;
+         return;
+      }
+
       // The five small collections (RestApiAntiSpamLists.cpp), each in the
       // IP range's shape: a list and a create at the collection's path, an
       // update and a delete at /{id}.
@@ -6399,6 +6415,7 @@ namespace HM
             { "/api/v1/greylisting-bypass", RouteGreylistBypassList, RouteGreylistBypassCreate, RouteGreylistBypassUpdate, RouteGreylistBypassDelete },
             { "/api/v1/sender-list", RouteSenderListList, RouteSenderListCreate, RouteSenderListUpdate, RouteSenderListDelete },
             { "/api/v1/domain-policy-list", RouteDomainPolicyList, RouteDomainPolicyCreate, RouteDomainPolicyUpdate, RouteDomainPolicyDelete },
+            { "/api/v1/never-ban-names", RouteNeverBanNameList, RouteNeverBanNameCreate, RouteNeverBanNameUpdate, RouteNeverBanNameDelete },
          };
 
          for (const SmallCollection &collection : collections)
@@ -8081,6 +8098,13 @@ namespace HM
       case RouteDomainPolicyCreate:
       case RouteDomainPolicyUpdate:
       case RouteDomainPolicyDelete:
+      // A row of the never-ban list decides whether an address is banned at
+      // all; the check makes this server send lookups about an address the
+      // caller chose, which a read-only credential should not cause.
+      case RouteNeverBanNameCreate:
+      case RouteNeverBanNameUpdate:
+      case RouteNeverBanNameDelete:
+      case RouteNeverBanNameCheck:
       case RouteMeQuarantineDigestPut:
       case RouteGroupCreate:
       case RouteGroupUpdate:
@@ -8755,6 +8779,8 @@ namespace HM
       // The domain white and black list: anti-spam configuration like the
       // lists above, server-wide, and refused to a confined credential below.
       case RouteDomainPolicyList:
+      // The never-ban list by reverse name, likewise.
+      case RouteNeverBanNameList:
       case RoutePortalFilesPolicy:
       case RouteDomainAliasList:
       case RouteRuleMatch:
@@ -9322,6 +9348,13 @@ namespace HM
       case RouteDomainPolicyCreate:
       case RouteDomainPolicyUpdate:
       case RouteDomainPolicyDelete:
+      // The never-ban list by reverse name: a row decides whether an address
+      // is banned at all. The check acts as the server - it sends lookups about
+      // an address the caller chose - as the breach check's test does.
+      case RouteNeverBanNameCreate:
+      case RouteNeverBanNameUpdate:
+      case RouteNeverBanNameDelete:
+      case RouteNeverBanNameCheck:
       // A remote domain policy, and the verification cache whose clearing
       // changes what the next RCPT TO decides.
       case RouteRemoteDomainCreate:
@@ -10109,6 +10142,13 @@ namespace HM
       case RouteDomainPolicyCreate:
       case RouteDomainPolicyUpdate:
       case RouteDomainPolicyDelete:
+      // The never-ban list by reverse name: an auto-ban is a server-wide range
+      // made before anything knows which domain a client is for.
+      case RouteNeverBanNameList:
+      case RouteNeverBanNameCreate:
+      case RouteNeverBanNameUpdate:
+      case RouteNeverBanNameDelete:
+      case RouteNeverBanNameCheck:
       // The record of every domain's spam trap hits, and its clearing: one
       // list across every domain, so a credential confined to some of them is
       // refused it and reads its own domains' hits instead.
@@ -20596,6 +20636,7 @@ namespace HM
       openApiJson += OpenApiSenderListPaths_();
       openApiJson += OpenApiSpamTrapPaths_();
       openApiJson += OpenApiDomainPolicyListPaths_();
+      openApiJson += OpenApiNeverBanNamePaths_();
       openApiJson += OpenApiDistributionListMembersPath_();
       openApiJson += OpenApiMailingListPaths_();
       openApiJson += OpenApiMailboxPaths_();

@@ -5,11 +5,12 @@
 // The first-hour checklist: what a new server still needs done, judged by the
 // server itself rather than by whoever is reading the documentation.
 //
-// Twelve items, the ones every installation has to get past before it is a
+// Thirteen items, the ones every installation has to get past before it is a
 // mail server anybody can use: a profile chosen for the kind of server it is
 // (on a young server; docs/Profiles.md), a domain, an account in it, TLS on the port
 // clients submit through, passwords taken only over TLS from any address but
-// this computer's (docs/SecureDefaults.md), an SPF record, DKIM signing with its
+// this computer's (docs/SecureDefaults.md), no password taken on port 25, the
+// port other servers deliver to (docs/SmtpAuthOnDeliveryPorts.md), an SPF record, DKIM signing with its
 // record published, a DMARC record, a backup destination, a second factor on the
 // administrator password, the stored-secrets key made and exported
 // (docs/SecretsAtRest.md), and an account for the server that is not the most

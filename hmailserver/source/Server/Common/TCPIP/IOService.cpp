@@ -147,7 +147,8 @@ namespace HM
          }
 
          pTCPServer = std::shared_ptr<TCPServer>(new TCPServer(io_context_, address, iPort, st, pSSLCertificate, pConnectionFactory, connection_security,
-            pPort->GetClientCertificatePolicy(), pPort->GetClientCertificateCAFile()));
+            pPort->GetClientCertificatePolicy(), pPort->GetClientCertificateCAFile(),
+            st == STSMTP ? pPort->GetSMTPAuthentication() : SAMOn));
 
          pTCPServer->SetExclusiveAddressUse(listedPerNumber[std::make_pair(iPort, address.GetAddress().is_v6())] == 1);
          pTCPServer->Run();

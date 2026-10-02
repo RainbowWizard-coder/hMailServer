@@ -49,6 +49,13 @@ namespace HM
       pObject->SetClientCertificatePolicy((ClientCertificatePolicy) pRS->GetLongValue("portclientcertificatepolicy"));
       pObject->SetClientCertificateCAFile(pRS->GetStringValue("portclientcertificatecafile"));
 
+      // A value this version does not know, written into the table by hand, is
+      // On - the behaviour the listener had before the column existed - and so
+      // is anything on a port that is not SMTP (SMTPAuthenticationMode).
+      const long smtpAuthentication = pRS->GetLongValue("portsmtpauth");
+      pObject->SetSMTPAuthentication(pObject->GetProtocol() == STSMTP && (smtpAuthentication == SAMOff || smtpAuthentication == SAMHoneypot)
+         ? (SMTPAuthenticationMode) smtpAuthentication : SAMOn);
+
       return true;
    }
 
@@ -61,6 +68,22 @@ namespace HM
              (pObject->GetConnectionSecurity() == CSSSL || pObject->GetConnectionSecurity() == CSSTARTTLSOptional || pObject->GetConnectionSecurity() == CSSTARTTLSRequired))
          {
             errorMessage = "Certificate must be specified.";
+            return false;
+         }
+
+         // AUTH is a question for an SMTP listener only (GitLab work item #54):
+         // POP3 and IMAP have no delivery port, and a mode they would ignore is a
+         // setting that says something the server does not do.
+         if (pObject->GetSMTPAuthentication() != SAMOn && pObject->GetProtocol() != STSMTP)
+         {
+            errorMessage = "SMTP authentication can be Off or Honeypot on an SMTP port only.";
+            return false;
+         }
+
+         if (pObject->GetSMTPAuthentication() != SAMOn && pObject->GetSMTPAuthentication() != SAMOff &&
+             pObject->GetSMTPAuthentication() != SAMHoneypot)
+         {
+            errorMessage = "SMTP authentication must be 0 (On), 1 (Off) or 2 (Honeypot).";
             return false;
          }
 
@@ -129,6 +152,7 @@ namespace HM
       oStatement.AddColumn("portconnectionsecurity", pObject->GetConnectionSecurity());
       oStatement.AddColumn("portclientcertificatepolicy", pObject->GetClientCertificatePolicy());
       oStatement.AddColumn("portclientcertificatecafile", pObject->GetClientCertificateCAFile());
+      oStatement.AddColumn("portsmtpauth", pObject->GetProtocol() == STSMTP ? (long) pObject->GetSMTPAuthentication() : (long) SAMOn);
       
       bool bNewObject = pObject->GetID() == 0;
 

@@ -206,6 +206,21 @@ namespace HM
       void ProtocolEHLO_(const String &sRequest);
       void ProtocolHELO_(const String &sRequest);
       void ProtocolAUTH_(const String &sRequest);
+
+      // AUTH on a listener whose authentication is Off or Honeypot (GitLab work
+      // item #54): 502 5.5.1, no account looked up and no password evaluated, and
+      // the session's first one bans the address. See the definition.
+      void RefuseAuthOnDeliveryPort_(const String &sRequest);
+
+      // The mechanism an AUTH command names, as a word that is safe to log: a SASL
+      // mechanism name (RFC 4422: one to twenty of A-Z, 0-9, - and _, in upper
+      // case), "(none)" when the command names none and "(not a mechanism name)"
+      // for anything else. Never the argument that follows it.
+      static String AuthMechanismForLog_(const String &sRequest);
+
+      // 127.0.0.0/8, ::1 and ::ffff:127.0.0.0/104: this computer, which is never
+      // banned for AUTH on a delivery port.
+      static bool IsLoopbackAddress_(const IPAddress &address);
       void ProtocolNOOP_();
       void ProtocolRSET_();
 
@@ -357,6 +372,11 @@ namespace HM
 
       bool GetAuthIsEnabled_();
 
+      // Whether EHLO and HELP name AUTH on this connection's listener: never when
+      // its authentication is Off, always when it is a Honeypot (the advertisement
+      // is the bait), and when it is On, unless DisableAUTHList names the port.
+      bool GetAuthIsAdvertised_();
+
       void HandleUnableToSaveMessageDataFile_(const String &file_name);
 
       String GetSpamTestResultMessage_(std::set<std::shared_ptr<SpamTestResult> > testResult) const;
@@ -491,6 +511,13 @@ namespace HM
       // Whether this session's address has already been banned for it, so a
       // client that keeps naming recipients earns one ban and not one per RCPT.
       bool banned_for_null_sender_;
+
+      // Whether this session has already sent AUTH to a listener whose
+      // authentication is Off or Honeypot, so that a pipelined spray of AUTH lines
+      // is judged - and written to the application log - once, and every line
+      // after the first is answered and written to the debug log only. Forgotten
+      // by XCLIENT, which begins a session for another client.
+      bool auth_on_delivery_port_seen_;
 
       // Set by DoSpamProtection_ when it answered 451 for an SPF temperror
       // rather than 550 for the score, so the caller at RCPT TO does not write

@@ -355,6 +355,47 @@ STDMETHODIMP InterfaceTCPIPPort::get_ClientCertificateCAFile(BSTR *pVal)
    }
 }
 
+STDMETHODIMP InterfaceTCPIPPort::put_SMTPAuthentication(long newVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      // Refused rather than coerced, as the client certificate policy is: a value
+      // the server does not know would be read back as On, and a script that
+      // meant to close the port to passwords would have left it open with
+      // nothing having said so. Off or Honeypot on a port that is not SMTP is
+      // refused by Save, which knows the protocol the port ends up with.
+      if (newVal != HM::SAMOn && newVal != HM::SAMOff && newVal != HM::SAMHoneypot)
+         return COMError::GenerateError("Invalid SMTP authentication. Valid values are 0 (On), 1 (Off) and 2 (Honeypot).");
+
+      object_->SetSMTPAuthentication((HM::SMTPAuthenticationMode) newVal);
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceTCPIPPort::get_SMTPAuthentication(long *pVal)
+{
+   try
+   {
+      if (!object_)
+         return GetAccessDenied();
+
+      *pVal = (long) object_->GetSMTPAuthentication();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
 STDMETHODIMP InterfaceTCPIPPort::Delete()
 {
    try

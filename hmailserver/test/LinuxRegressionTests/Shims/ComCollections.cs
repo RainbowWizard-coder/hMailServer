@@ -547,7 +547,8 @@ namespace hMailServer
             Address = ServerApi.StringOf(element, "address"),
             PortNumber = (int) ServerApi.LongOf(element, "port"),
             ConnectionSecurity = TCPIPPort.SecurityOf(ServerApi.StringOf(element, "connection_security")),
-            SSLCertificateID = ServerApi.LongOf(element, "certificate_id")
+            SSLCertificateID = ServerApi.LongOf(element, "certificate_id"),
+            SMTPAuthentication = TCPIPPort.SmtpAuthenticationOf(ServerApi.StringOf(element, "smtp_authentication"))
          };
       }
 
@@ -623,6 +624,33 @@ namespace hMailServer
       public long SSLCertificateID { get; set; }
       public string ClientCertificatePolicy { get; set; } = "off";
       public string ClientCertificateCAFile { get; set; } = string.Empty;
+
+      /// <summary>
+      ///    COM's TCPIPPort.SMTPAuthentication: 0 On, 1 Off, 2 Honeypot, which the
+      ///    route spells on, off and honeypot (GitLab work item #54). Read back from
+      ///    the listing and sent with every save, since PUT takes the whole port.
+      /// </summary>
+      public int SMTPAuthentication { get; set; }
+
+      internal static int SmtpAuthenticationOf(string word)
+      {
+         switch (word)
+         {
+            case "off": return 1;
+            case "honeypot": return 2;
+            default: return 0;
+         }
+      }
+
+      internal static string SmtpAuthenticationName(int mode)
+      {
+         switch (mode)
+         {
+            case 1: return "off";
+            case 2: return "honeypot";
+            default: return "on";
+         }
+      }
 
       /// <summary>The COM flag that stands for eCSTLS, which is how the port is stored.</summary>
       public bool UseSSL
@@ -718,7 +746,8 @@ namespace hMailServer
                 ",\"address\":" + ServerApi.Quote(Address) +
                 ",\"port\":" + PortNumber +
                 ",\"connection_security\":" + ServerApi.Quote(RegressionTests.Shared.TestSetup.ConnectionSecurityName(ConnectionSecurity)) +
-                ",\"certificate_id\":" + SSLCertificateID + "}";
+                ",\"certificate_id\":" + SSLCertificateID +
+                ",\"smtp_authentication\":" + ServerApi.Quote(SmtpAuthenticationName(SMTPAuthentication)) + "}";
       }
    }
 

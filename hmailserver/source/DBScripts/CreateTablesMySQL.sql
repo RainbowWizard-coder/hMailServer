@@ -34,6 +34,8 @@ drop table if exists hm_spamtraphits;
 
 drop table if exists hm_domainpolicylist;
 
+drop table if exists hm_neverbannames;
+
 drop table if exists hm_dmarcreportrecords;
 
 drop table if exists hm_dmarcreports;
@@ -1204,7 +1206,8 @@ create table hm_tcpipports
 	portconnectionsecurity tinyint not null,
 	portsslcertificateid bigint not null,
 	portclientcertificatepolicy tinyint not null default 0,
-	portclientcertificatecafile varchar(255) not null default ''
+	portclientcertificatecafile varchar(255) not null default '',
+	portsmtpauth tinyint not null default 0
 ) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 create table hm_whitelist
@@ -2708,6 +2711,18 @@ CREATE UNIQUE INDEX idx_hm_domainpolicylist_pattern ON hm_domainpolicylist (dplp
 
 ALTER TABLE hm_domainpolicylist ENGINE=InnoDB;
 
+create table hm_neverbannames
+(
+	nbnid int auto_increment not null, primary key(`nbnid`), unique(`nbnid`),
+	nbnpattern varchar(255) not null,
+	nbnnote varchar(255) not null,
+	nbncreated datetime not null
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE UNIQUE INDEX idx_hm_neverbannames_pattern ON hm_neverbannames (nbnpattern);
+
+ALTER TABLE hm_neverbannames ENGINE=InnoDB;
+
 create table hm_journalrules
 (
 	jrid int auto_increment not null, primary key(`jrid`), unique(`jrid`),
@@ -3165,4 +3180,4 @@ ALTER TABLE hm_discoveryexports ENGINE=InnoDB;
 
 ALTER TABLE hm_discoveryexports ADD CONSTRAINT fk_hm_discoveryexports_search FOREIGN KEY (exportsearchid) REFERENCES hm_discoverysearches (searchid) ON DELETE CASCADE;
 
-insert into hm_dbversion values (6107);
+insert into hm_dbversion values (6108);

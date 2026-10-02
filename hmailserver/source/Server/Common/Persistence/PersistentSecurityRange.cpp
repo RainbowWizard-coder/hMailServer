@@ -272,7 +272,35 @@ namespace HM
       return false;
    }
 
-   bool 
+   bool
+   PersistentSecurityRange::WidenAutoBan(__int64 id, const IPAddress &address, const IPAddress &lower, const IPAddress &upper)
+   {
+      if (id <= 0 || address.GetType() != IPAddress::IPV4 || lower.GetType() != IPAddress::IPV4 || upper.GetType() != IPAddress::IPV4)
+         return false;
+
+      const __int64 was = (__int64) address.GetAddress1();
+      const __int64 newLower = (__int64) lower.GetAddress1();
+      const __int64 newUpper = (__int64) upper.GetAddress1();
+
+      if (newLower > was || newUpper < was)
+         return false;
+
+      // Conditional on everything the row was when it was read, so that an
+      // administrator's edit or a lift made while the neighbours were looked up
+      // wins. No parameter's name begins another's.
+      SQLCommand command(_T("update hm_securityranges set rangelowerip1 = @NEWLOWER, rangeupperip1 = @NEWUPPER ")
+                         _T("where rangeid = @RANGEID and rangelowerip1 = @WASLOWER and rangeupperip1 = @WASUPPER ")
+                         _T("and rangelowerip2 is null and rangeupperip2 is null and rangeexpires = 1"));
+      command.AddParameter("@NEWLOWER", newLower);
+      command.AddParameter("@NEWUPPER", newUpper);
+      command.AddParameter("@RANGEID", id);
+      command.AddParameter("@WASLOWER", was);
+      command.AddParameter("@WASUPPER", was);
+
+      return Application::Instance()->GetDBManager()->Execute(command);
+   }
+
+   bool
    PersistentSecurityRange::Validate(std::shared_ptr<SecurityRange> pSR, String &result)
    {
       if (pSR->GetName().IsEmpty())

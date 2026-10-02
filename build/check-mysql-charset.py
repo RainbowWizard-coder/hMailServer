@@ -411,8 +411,10 @@ def check_probe(name, text, problems):
                         % (name, PROBE_TABLE, PROBE_TABLE, PROBE_TABLE))
 
 
-def check_step(text, tables, problems):
-    """The step rule: the 6102 script converts every table of the create script."""
+def check_step(text, tables, problems, born_utf8mb4=frozenset()):
+    """The step rule: the 6102 script converts every table of the create script
+    but those a later step first makes, which are born utf8mb4 and held to the
+    options rule by their own step (born_utf8mb4)."""
     converted = {}
     database = False
     for line, command in commands(text):
@@ -430,6 +432,8 @@ def check_step(text, tables, problems):
         problems.append("%s: does not alter the database's default to %s %s, so a table a later script creates "
                         "without naming one would not be utf8mb4" % (CONVERSION, CHARSET, COLLATION))
     for name, table in tables.items():
+        if name not in converted and name in born_utf8mb4:
+            continue
         if name not in converted:
             problems.append("%s: %s is not converted; every table the create script makes is"
                             % (CONVERSION, name))
@@ -508,8 +512,17 @@ def check(scripts, sources):
             check_options(name, scripts[name], problems)
         elif step and int(step.group(1)) >= PROBE_FROM:
             check_probe(name, scripts[name], problems)
+    # The tables a step after the conversion first makes: a database that ran
+    # the conversion did not have them yet, and the step that makes them is held
+    # to the options rule above, so they are born utf8mb4 (hm_neverbannames, 6108).
+    born = set()
+    for name in scripts:
+        step = STEP.match(name)
+        if step and int(step.group(1)) >= FIRST_CHECKED_STEP:
+            later, _ = schema(scripts[name])
+            born.update(later)
     if CONVERSION in scripts:
-        check_step(scripts[CONVERSION], tables, problems)
+        check_step(scripts[CONVERSION], tables, problems, frozenset(born))
     else:
         problems.append("%s is missing: nothing converts the tables of a database made before schema 6102"
                         % CONVERSION)

@@ -427,6 +427,11 @@ namespace HM
       int GetAutoBanMinutes();
       void SetAutoBanMinutes(int iNewVal);
 
+      // Whether an auto-ban is widened to the run of its /24 whose reverse names
+      // share its registrable domain (Util/AutoBanWidener.h). Off by default.
+      bool GetAutoBanWidenByReverseName();
+      void SetAutoBanWidenByReverseName(bool newVal);
+
       // The quota policy the domains inherit: how far past its limit a mailbox
       // still accepts incoming mail (0 is not at all), and the share of the
       // limit at which the account stops sending (0 is never).

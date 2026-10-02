@@ -88,6 +88,9 @@ public:
    STDMETHOD(get_ClientCertificateCAFile)(/*[out, retval]*/ BSTR *pVal);
    STDMETHOD(put_ClientCertificateCAFile)(/*[in]*/ BSTR newVal);
 
+   STDMETHOD(get_SMTPAuthentication)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(put_SMTPAuthentication)(/*[in]*/ long newVal);
+
 };
 
 OBJECT_ENTRY_AUTO(__uuidof(TCPIPPort), InterfaceTCPIPPort)

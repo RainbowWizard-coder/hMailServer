@@ -32,6 +32,14 @@ namespace HM
 
       static bool Exists(const String &name);
 
+      // An auto-ban's row widened to lower..upper (Util/AutoBanWidener.h): the
+      // row with that id, and only while it is still the single expiring IPv4
+      // address it was written as - a row an administrator has edited since, or
+      // one already lifted, is not touched. All three addresses IPv4. True when
+      // the statement ran; the caller reads the row back to learn whether it
+      // matched.
+      static bool WidenAutoBan(__int64 id, const IPAddress &address, const IPAddress &lower, const IPAddress &upper);
+
    private:
 
       static bool Validate(std::shared_ptr<SecurityRange> pSR, String &result);

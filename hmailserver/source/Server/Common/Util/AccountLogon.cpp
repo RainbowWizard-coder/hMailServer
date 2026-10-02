@@ -8,6 +8,7 @@
 #include "AccountLockout.h"
 #include "CountryBlocking.h"
 #include "AutoBanFirewall.h"
+#include "NeverBanNameList.h"
 #include "../Application/IniFileSettings.h"
 #include "PasswordValidator.h"
 #include "PasswordHistory.h"
@@ -302,6 +303,28 @@ namespace HM
          return;
       }
 
+      // The never-ban list by reverse name, as far as it is already known - it is
+      // never looked up here (NeverBanNameList.h). A spared address is treated as
+      // one on AutoBanNeverBan: not counted, so that no "logon failure" line is
+      // written for fail2ban to count either. Said once per verdict in the
+      // application log, then in the debug log.
+      NeverBanNameList::Verdict spared;
+      if (NeverBanNameList::IsSpared(ipaddress, spared))
+      {
+         const String line = "Auto-ban: " + String(ipaddress.ToString()) + " is not counted or banned for failed logons: " + spared.reason;
+
+         if (spared.first_use)
+         {
+            LOG_APPLICATION(line);
+         }
+         else
+         {
+            LOG_DEBUG(line);
+         }
+
+         return;
+      }
+
       // Log on has failed.
       PersistentLogonFailure logonFailure;
       int failureCount = logonFailure.GetCurrrentFailureCount(ipaddress) + 1; // +1 because we count the current failure as well.
@@ -401,6 +424,72 @@ namespace HM
       return true;
    }
 
+   String
+   AccountLogon::AuthOnDeliveryPortRangeName(const IPAddress &ipaddress)
+   {
+      // "Auto-ban: " is what the firewall reconciliation mirrors and the expiry
+      // sweep lifts; the address makes the name one per address, which is what
+      // lets the next AUTH find the ban in force. 34 characters and an address
+      // of at most 45 fit the column's 100.
+      return _T("Auto-ban: ") + AuthOnDeliveryPortReason_(ipaddress);
+   }
+
+   String
+   AccountLogon::AuthOnDeliveryPortReason_(const IPAddress &ipaddress)
+   {
+      return _T("AUTH on a delivery port ") + String(ipaddress.ToString());
+   }
+
+   bool
+   AccountLogon::BanForAuthOnDeliveryPort(const IPAddress &ipaddress, int minutes, int port,
+                                          const String &mechanism, const String &mode, bool &alreadyBanned)
+   {
+      alreadyBanned = false;
+
+      if (minutes < 1)
+         return false;
+
+      // The lock CreateIPRange takes, taken around the question and the write
+      // together: sessions from one address that send AUTH at the same moment -
+      // a pipelined spray over parallel connections - are answered one at a time
+      // here, and only the first writes a range. Recursive, so CreateIPRange
+      // takes it again below.
+      boost::lock_guard<boost::recursive_mutex> guard(ip_range_creation_mutex_);
+
+      const String name = AuthOnDeliveryPortRangeName(ipaddress);
+
+      std::shared_ptr<SecurityRange> existing = std::shared_ptr<SecurityRange>(new SecurityRange);
+      if (PersistentSecurityRange::ReadObject(existing, name) && existing->GetID() > 0)
+      {
+         // In force: no expiry (an administrator made it permanent) or one still
+         // ahead. The window is the ban's own, so one AUTH a window is one ban.
+         if (!existing->GetExpires() || DateTime::GetCurrentTime() < existing->GetExpiresTime())
+         {
+            alreadyBanned = true;
+            return true;
+         }
+
+         // Run out, and not yet lifted by RemoveExpiredRecords, which does it
+         // once a minute: it bans nothing, so it is replaced rather than left to
+         // give the address up to a minute in which a new AUTH writes nothing.
+         // A delete that fails leaves the address unbanned, which is said where
+         // an administrator looks, as a range that could not be saved is (HM6099).
+         if (!PersistentSecurityRange::DeleteObject(existing))
+         {
+            ErrorManager::Instance()->ReportError(ErrorManager::High, 7642, "AccountLogon::BanForAuthOnDeliveryPort",
+               "The expired auto-ban IP range '" + name + "' could not be deleted to be written again, so the address that sent AUTH to a delivery port has NOT been banned.");
+            return false;
+         }
+      }
+
+      if (!CreateIPRange(ipaddress, AuthOnDeliveryPortReason_(ipaddress), minutes))
+         return false;
+
+      AutoBanFirewall::BannedForAuthOnDeliveryPort(ipaddress, minutes, port, mechanism, mode);
+
+      return true;
+   }
+
    bool
    AccountLogon::CreateIPRange(const IPAddress &ipaddress, const String &username, int minutes)
    {
@@ -439,7 +528,7 @@ namespace HM
       if (!PersistentSecurityRange::SaveObject(pSecurityRange))
       {
          ErrorManager::Instance()->ReportError(ErrorManager::High, 6099, "AccountLogon::CreateIPRange",
-            "The auto-ban IP range '" + pSecurityRange->GetName() + "' could not be saved, so the address has NOT been blocked despite reaching the failed-logon limit.");
+            "The auto-ban IP range '" + pSecurityRange->GetName() + "' could not be saved, so the address has NOT been blocked although it earned the ban the name gives.");
          return false;
       }
 

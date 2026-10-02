@@ -52,6 +52,13 @@ namespace RegressionTests.API
       // A stock listener a test gave STARTTLS, each with the step that puts it back
       // as it was: the Linux suite's listeners are not reset between fixtures either.
       private readonly List<Action> _listenersToPutBack = new List<Action>();
+      // The SMTP port 25 record the delivery-port test judged: written by it on the
+      // Linux suite, whose listener is 2525 (and so deleted again), or the bench's
+      // own, whose SMTP authentication it puts back.
+      private long _port25Written;
+      private long _port25Changed;
+      private string _port25ModeBefore;
+      private long _minutesToBanBefore = -1;
 
       [SetUp]
       public void StartRestApi()
@@ -104,7 +111,7 @@ namespace RegressionTests.API
       }
 
       [Test]
-      [Description("Twelve items in the order a new server meets them - a setting profile first, the account the server runs as last - each in one of the four states, each finding with a code, its arguments and a sentence; the fixture's domain and account are done.")]
+      [Description("Thirteen items in the order a new server meets them - a setting profile first, the account the server runs as last - each in one of the four states, each finding with a code, its arguments and a sentence; the fixture's domain and account are done.")]
       public void TenItemsEachWithAState()
       {
          JsonDocument document = Get(Path);
@@ -134,7 +141,7 @@ namespace RegressionTests.API
             counted++;
          }
 
-         CollectionAssert.AreEqual(new[] { "profile", "domain", "account", "submission", "sign_in_tls", "spf", "dkim", "dmarc", "backup", "second_factor", "stored_secrets_key", "service_account" }, keys);
+         CollectionAssert.AreEqual(new[] { "profile", "domain", "account", "submission", "sign_in_tls", "delivery_port_auth", "spf", "dkim", "dmarc", "backup", "second_factor", "stored_secrets_key", "service_account" }, keys);
 
          int summed = root.GetProperty("done").GetInt32() + root.GetProperty("action_needed").GetInt32() +
                       root.GetProperty("cannot_tell").GetInt32() + root.GetProperty("not_needed").GetInt32();
@@ -191,7 +198,7 @@ namespace RegressionTests.API
          {
             ClassicAssert.IsFalse(com.RootElement.GetProperty("dns_looked_up").GetBoolean());
             ClassicAssert.AreEqual("record_not_looked_up", FirstCode(com.RootElement, "spf"));
-            ClassicAssert.AreEqual(12, com.RootElement.GetProperty("items").GetArrayLength());
+            ClassicAssert.AreEqual(13, com.RootElement.GetProperty("items").GetArrayLength());
          }
 
          using (JsonDocument com = JsonDocument.Parse(_application.Utilities.GetSetupChecklist(true)))
@@ -353,6 +360,41 @@ namespace RegressionTests.API
          JsonDocument again = Get(Path + "?dns=0");
          ClassicAssert.IsTrue(HasFinding(again.RootElement, "sign_in_tls", "sign_in_plain", "Internet"), Item(again.RootElement, "sign_in_tls").ToString());
          ClassicAssert.IsTrue(FindingWithCode(again.RootElement, "sign_in_tls", "sign_in_plain").TryGetProperty("fix", out _));
+      }
+
+      [Test]
+      [Description("No password on port 25 (GitLab work item #54): an SMTP listener on 25 whose authentication is On - an upgraded server's - needs action, with no fix, since changing it is what arms the ban; a honeypot and an Off listener are done, and with the ban minutes at 0 the finding says nobody is banned. Negative control: the same listener On again needs action again.")]
+      public void Port25ThatStillTakesAuthNeedsAction()
+      {
+         long id = Port25Record();
+
+         JsonDocument on = Get(Path + "?dns=0");
+         ClassicAssert.AreEqual("action_needed", StateOf(on.RootElement, "delivery_port_auth"), Item(on.RootElement, "delivery_port_auth").ToString());
+         ClassicAssert.IsTrue(HasFinding(on.RootElement, "delivery_port_auth", "delivery_port_auth_on", "25"), Item(on.RootElement, "delivery_port_auth").ToString());
+         JsonElement onFinding = FindingWithCode(on.RootElement, "delivery_port_auth", "delivery_port_auth_on");
+         ClassicAssert.IsFalse(onFinding.TryGetProperty("fix", out _), "Changing the listener arms the ban; the checklist does not offer it as a click: " + onFinding);
+         StringAssert.Contains("587", onFinding.GetProperty("text").GetString());
+
+         SetSmtpAuthentication(id, "honeypot");
+         JsonDocument honeypot = Get(Path + "?dns=0");
+         ClassicAssert.AreEqual("done", StateOf(honeypot.RootElement, "delivery_port_auth"), Item(honeypot.RootElement, "delivery_port_auth").ToString());
+         ClassicAssert.IsTrue(HasFinding(honeypot.RootElement, "delivery_port_auth", "delivery_port_auth_honeypot", "25"));
+
+         SetSmtpAuthentication(id, "off");
+         JsonDocument off = Get(Path + "?dns=0");
+         ClassicAssert.AreEqual("done", StateOf(off.RootElement, "delivery_port_auth"));
+         ClassicAssert.IsTrue(HasFinding(off.RootElement, "delivery_port_auth", "delivery_port_auth_off", "25"));
+
+         _minutesToBanBefore = Get("/api/v1/settings").RootElement.GetProperty("minutes_to_ban").GetInt64();
+         (int status, string body) noBan = Http("PUT", "/api/v1/settings", "{\"minutes_to_ban\":0}");
+         ClassicAssert.AreEqual(200, noBan.status, noBan.body);
+         JsonDocument unbanned = Get(Path + "?dns=0");
+         ClassicAssert.IsTrue(HasFinding(unbanned.RootElement, "delivery_port_auth", "delivery_port_auth_no_ban", "25"), Item(unbanned.RootElement, "delivery_port_auth").ToString());
+         PutMinutesToBanBack();
+
+         SetSmtpAuthentication(id, "on");
+         JsonDocument onAgain = Get(Path + "?dns=0");
+         ClassicAssert.AreEqual("action_needed", StateOf(onAgain.RootElement, "delivery_port_auth"), "Negative control: On again is not done.");
       }
 
       [Test]
@@ -573,8 +615,87 @@ namespace RegressionTests.API
          return false;
       }
 
+      /// <summary>
+      ///    The id of the SMTP listener record on port 25: the bench's own, its
+      ///    authentication remembered for the teardown, or - where there is none, as
+      ///    on the Linux suite, which listens on 2525 - one written for the test.
+      ///    The checklist reads the table, so the record is never bound: nothing
+      ///    reinitialises while it exists.
+      /// </summary>
+      private long Port25Record()
+      {
+         foreach (JsonElement port in Get("/api/v1/ports").RootElement.EnumerateArray())
+         {
+            if (port.GetProperty("protocol").GetString() == "smtp" && port.GetProperty("port").GetInt32() == 25)
+            {
+               _port25Changed = port.GetProperty("id").GetInt64();
+               _port25ModeBefore = port.GetProperty("smtp_authentication").GetString();
+               if (_port25ModeBefore != "on")
+                  SetSmtpAuthentication(_port25Changed, "on");
+               return _port25Changed;
+            }
+         }
+
+         (int status, string body) created = Http("POST", "/api/v1/ports", "{\"protocol\":\"smtp\",\"address\":\"0.0.0.0\",\"port\":25}");
+         ClassicAssert.AreEqual(201, created.status, created.body);
+         using (JsonDocument document = JsonDocument.Parse(created.body))
+            _port25Written = document.RootElement.GetProperty("id").GetInt64();
+         return _port25Written;
+      }
+
+      /// <summary>PUT takes the whole port: what the listing says, with the mode changed.</summary>
+      private static void SetSmtpAuthentication(long id, string mode)
+      {
+         foreach (JsonElement port in Get("/api/v1/ports").RootElement.EnumerateArray())
+         {
+            if (port.GetProperty("id").GetInt64() != id)
+               continue;
+
+            var body = new Dictionary<string, object>
+            {
+               ["protocol"] = port.GetProperty("protocol").GetString(),
+               ["address"] = port.GetProperty("address").GetString(),
+               ["port"] = port.GetProperty("port").GetInt32(),
+               ["connection_security"] = port.GetProperty("connection_security").GetString(),
+               ["certificate_id"] = port.GetProperty("certificate_id").GetInt64(),
+               ["client_certificate_policy"] = port.GetProperty("client_certificate_policy").GetString(),
+               ["client_certificate_ca_file"] = port.GetProperty("client_certificate_ca_file").GetString(),
+               ["smtp_authentication"] = mode
+            };
+
+            (int status, string answer) = Http("PUT", "/api/v1/ports/" + id, JsonSerializer.Serialize(body));
+            ClassicAssert.AreEqual(200, status, answer);
+            return;
+         }
+
+         Assert.Fail("No port " + id + " is listed.");
+      }
+
+      private void PutMinutesToBanBack()
+      {
+         if (_minutesToBanBefore < 0)
+            return;
+
+         Http("PUT", "/api/v1/settings", "{\"minutes_to_ban\":" + _minutesToBanBefore + "}");
+         _minutesToBanBefore = -1;
+      }
+
       private void RemoveWhatWasAdded()
       {
+         PutMinutesToBanBack();
+
+         if (_port25Written != 0)
+         {
+            Http("DELETE", "/api/v1/ports/" + _port25Written);
+            _port25Written = 0;
+         }
+
+         if (_port25Changed != 0)
+         {
+            SetSmtpAuthentication(_port25Changed, _port25ModeBefore ?? "on");
+            _port25Changed = 0;
+         }
+
          TCPIPPorts ports = _settings.TCPIPPorts;
          for (int i = ports.Count - 1; i >= 0; i--)
          {

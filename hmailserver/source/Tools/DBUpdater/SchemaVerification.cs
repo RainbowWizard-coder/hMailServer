@@ -1948,6 +1948,14 @@ namespace DBUpdater
                          "update hm_dbversion set value = value / (value - value) where not exists (select 1 from information_schema.columns where table_name = 'hm_greylisting_triplets' and column_name = 'glsenderhash' and is_nullable = 'NO')"),
          new SchemaProbe(6107, "hm_greylisting_triplets.glrecipienthash",
                          "update hm_dbversion set value = value / (value - value) where not exists (select 1 from information_schema.columns where table_name = 'hm_greylisting_triplets' and column_name = 'glrecipienthash' and is_nullable = 'NO')"),
+         // Upgrade6107to6108* - the never-ban list by reverse name (GitLab work
+         // item #56): one table, and this is its last column.
+         new SchemaProbe(6108, "hm_neverbannames.nbncreated",
+                         "update hm_neverbannames set nbncreated = nbncreated where 1 = 0"),
+         // The same step - what an SMTP listener does with AUTH (GitLab work item
+         // #54): On, Off or Honeypot, 0 for every listener the step finds.
+         new SchemaProbe(6108, "hm_tcpipports.portsmtpauth",
+                         "update hm_tcpipports set portsmtpauth = portsmtpauth where 1 = 0"),
          new SchemaProbe(6058, "hm_spamtraphits.fk_hm_spamtraphits_domain",
                          "update hm_dbversion set value = value / (value - value) where not exists (select 1 from information_schema.table_constraints where constraint_name = 'fk_hm_spamtraphits_domain' and constraint_type = 'FOREIGN KEY')")
       };

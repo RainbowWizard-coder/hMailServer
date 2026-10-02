@@ -121,6 +121,11 @@ PATH_SCOPE = {
     # RemoveDomainPolicyListEntry), which are not properties of a row
     # interface and have no resource of their own.
     'domain-policy-list': ['AntiSpam'],
+    # The never-ban list by reverse name (GitLab work item #56): rows reached
+    # over COM through Settings' AutoBanNeverBanNames, AddAutoBanNeverBanName,
+    # RemoveAutoBanNeverBanName and CheckAutoBanNeverBanName, which are not
+    # properties of a row interface; the check at .../check is the same scope.
+    'never-ban-names': ['Settings'],
     'fetch-accounts': ['FetchAccount'],
     # Migration jobs (/api/v1/migrations and its jobs): no COM interface is
     # behind them. Scoped to a name no interface has, since an empty scope

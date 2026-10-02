@@ -850,6 +850,10 @@ namespace
       { "minutes_to_ban", KindInteger, ReadWrite, EffectNow, nullptr,
         "How long the ban lasts, in minutes.",
         ROW_NUMBER(Config()->GetAutoBanMinutes()), ROW_SET(Config()->SetAutoBanMinutes((int) v.number)), ROW_NO_CHECK },
+      // GitLab work item #55 (Util/AutoBanWidener.h).
+      { "auto_ban_widen_by_reverse_name", KindBoolean, ReadWrite, EffectNow, nullptr,
+        "Whether an auto-ban is widened, in the background, to the contiguous run of addresses around it inside its IPv4 /24 whose reverse names share its registrable domain - 203.0.113.14 becomes 203.0.113.10-203.0.113.22 via example.net, one range and one firewall rule, said in the application log. The ban itself is written as before, at once. Only when one of the banned address's own reverse names resolves back to it; at most 32 lookups each way; never across an address on AutoBanNeverBan, one the never-ban list by reverse name covers, or one an IP range an administrator wrote tells apart from the banned address or lets in at the ban's priority or above; never for IPv6, nor for a network's own address (RFC 1918, RFC 6598, loopback, link-local); a lookup not answered leaves the single address. Off by default.",
+        ROW_FLAG(Config()->GetAutoBanWidenByReverseName()), ROW_SET(Config()->SetAutoBanWidenByReverseName(v.flag)), ROW_NO_CHECK },
 
       // The quota policy the domains inherit. QuotaWarningPercent itself is an
       // ini key, read where the warning is decided, and stays where it is.

@@ -680,6 +680,9 @@
   <data name="A modern administration app for hMailServer: live dashboard, domains and accounts, delivery queue, log streaming, full server settings and the 6.x transport-security features (DANE, MTA-STS, ARC, TLS-RPT, ACME)." xml:space="preserve">
     <value>Сучасна програма адміністрування для hMailServer: жива інформаційна панель, домени та облікові записи, черга доставки, потокове передавання журналів, повні параметри сервера та функції безпеки транспорту 6.x (DANE, MTA-STS, ARC, TLS-RPT, ACME).</value>
   </data>
+  <data name="A name is required." xml:space="preserve">
+    <value>Ім'я обов'язкове.</value>
+  </data>
   <data name="A new address is required." xml:space="preserve">
     <value>Потрібна нова адреса.</value>
   </data>
@@ -772,6 +775,9 @@
   </data>
   <data name="A scanner that cannot run does not refuse the message. The error is written to the log and the scan continues to the next scanner; when none of them can answer, the message is treated exactly as if it had been examined and found clean. That is why this page reports whether each scanner can run rather than whether it is switched on." xml:space="preserve">
     <value>Сканер, який не може запуститися, не відхиляє повідомлення. Помилка записується до журналу, а перевірка переходить до наступного сканера; коли жоден із них не може відповісти, повідомлення обробляється точно так, ніби його перевірили й визнали чистим. Саме тому ця сторінка показує, чи може кожен сканер запуститися, а не чи його ввімкнено.</value>
+  </data>
+  <data name="A scanner working through 203.0.113.10, .11 and .12 under one reverse domain earns a ban and a firewall rule for each. With this on, the ban is still written at once for the one address, and then widened in the background to the run of addresses around it, inside its /24, whose reverse names share its registrable domain: one range and one firewall rule, said in the application log." xml:space="preserve">
+    <value>Сканер, що перебирає 203.0.113.10, .11 і .12 під одним зворотним доменом, отримує бан і правило брандмауера на кожну адресу. Коли це ввімкнено, бан, як і раніше, одразу записується для однієї цієї адреси, а потім у фоні розширюється на безперервний ряд адрес навколо неї в межах її /24, зворотні імена яких належать до того самого реєстровного домену: один діапазон і одне правило брандмауера, із записом у журналі застосунку.</value>
   </data>
   <data name="A schedule creates and updates accounts with nobody watching. It never disables one, whatever the checkbox above is set to - departures are left to a person who has read a preview. Switch this on only after a preview has told you what it is going to do." xml:space="preserve">
     <value>Розклад створює й оновлює облікові записи без нагляду людини. Він ніколи не вимикає жодного з них, хоч би як було встановлено прапорець вище, — звільнення залишено людині, яка ознайомилася з попереднім переглядом. Вмикайте це лише після того, як попередній перегляд покаже вам, що саме буде зроблено.</value>
@@ -922,6 +928,9 @@
   </data>
   <data name="AUTH is normally offered on every SMTP port. List the local TCP ports where it should not be, for example a port 25 that only accepts inbound mail from other servers." xml:space="preserve">
     <value>AUTH зазвичай пропонується на кожному порту SMTP. Перелічіть локальні TCP-порти, де його пропонувати не слід, наприклад порт 25, який приймає лише вхідну пошту від інших серверів.</value>
+  </data>
+  <data name="AUTH {0}" xml:space="preserve">
+    <value>AUTH {0}</value>
   </data>
   <data name="AWStats-compatible log" xml:space="preserve">
     <value>Журнал, сумісний з AWStats</value>
@@ -1120,6 +1129,9 @@
   </data>
   <data name="Add a listener - 587 with STARTTLS, or 465 for implicit TLS." xml:space="preserve">
     <value>Додайте слухача — 587 зі STARTTLS або 465 для неявного TLS.</value>
+  </data>
+  <data name="Add a name to the never-ban list" xml:space="preserve">
+    <value>Додати ім'я до списку «ніколи не банити»</value>
   </data>
   <data name="Add a_lias" xml:space="preserve">
     <value>Додати _псевдонім</value>
@@ -1480,6 +1492,9 @@
   </data>
   <data name="An address is required." xml:space="preserve">
     <value>Потрібна адреса.</value>
+  </data>
+  <data name="An address is spared only when one of its reverse names is covered AND resolves back to the address, since anybody who holds an address can write its reverse name. It applies to the next ban." xml:space="preserve">
+    <value>Адресу звільняють лише тоді, коли одне з її зворотних імен покрито І воно розв'язується назад у цю адресу, адже будь-хто, хто має адресу, може сам записати її зворотне ім'я. Діє з наступного бану.</value>
   </data>
   <data name="An address this server hosts is refused: the list only applies to mail leaving the server." xml:space="preserve">
     <value>Адресу, яку обслуговує цей сервер, відхиляють: список діє лише для пошти, що залишає сервер.</value>
@@ -2130,6 +2145,9 @@
   <data name="C_A certificate bundle (PEM) that client certificates must chain to" xml:space="preserve">
     <value>Пакет _сертифікатів ЦС (PEM), до якого мають вибудовувати ланцюжок клієнтські сертифікати</value>
   </data>
+  <data name="C_heck an address…" xml:space="preserve">
+    <value>_Перевірити адресу…</value>
+  </data>
   <data name="C_hoose a photo..." xml:space="preserve">
     <value>Вибрати фотографію... (_G)</value>
   </data>
@@ -2285,6 +2303,9 @@
   </data>
   <data name="Check _policy (HTTPS)" xml:space="preserve">
     <value>_Перевірити політику (HTTPS)</value>
+  </data>
+  <data name="Check an address" xml:space="preserve">
+    <value>Перевірити адресу</value>
   </data>
   <data name="Check every message" xml:space="preserve">
     <value>Позначити кожне повідомлення</value>
@@ -4428,6 +4449,9 @@
   <data name="For a MinIO or Ceph gateway behind a CA of your own. The host name is checked either way." xml:space="preserve">
     <value>Для шлюзу MinIO або Ceph за власним центром сертифікації. Ім'я вузла перевіряється в будь-якому разі.</value>
   </data>
+  <data name="For a provider whose hosts share a reverse name and whose addresses move: a connecting address is never auto-banned - for failed logons, a spam trap or a null sender - when one of its reverse names is covered by a name here and resolves back to the address. Nothing else is skipped: greylisting, SPF, DKIM, DMARC and the domain white and black list still apply. Empty, the default, changes nothing." xml:space="preserve">
+    <value>Для постачальника, чиї вузли мають спільне зворотне ім'я, а адреси змінюються: адреса, що підключається, ніколи не баниться автоматично - за невдалі входи, пастку для спаму чи порожнього відправника - якщо одне з її зворотних імен покрито іменем звідси і розв'язується назад у цю адресу. Більше нічого не пропускається: сірі списки, SPF, DKIM, DMARC і білий та чорний список доменів і далі діють. Порожній список (за замовчуванням) нічого не змінює.</value>
+  </data>
   <data name="For a record of who corresponds with whom, keeping it for ever should be a decision rather than a default - which is why 0 is offered as an option instead of being one." xml:space="preserve">
     <value>Для запису про те, хто з ким листується, зберігання назавжди має бути рішенням, а не типовим значенням - тому 0 пропонується як варіант, а не є ним.</value>
   </data>
@@ -4737,6 +4761,12 @@
   <data name="Holds the refusal of a wrong password for a while before sending it: the first failure on a connection waits this many seconds, the second twice as long, and so on up to 30 seconds, on SMTP, POP3 and IMAP alike. A correct password is never delayed. The wait is a timer on the connection, not a thread asleep, so a flood of failed logons costs the server nothing but the sockets they arrive on - the reason the old TarpitDelay was a stub for a decade is that the naive version is a self-inflicted outage." xml:space="preserve">
     <value>Затримує відмову на неправильний пароль на деякий час перед надсиланням: перша невдача на з'єднанні чекає стільки секунд, друга - удвічі довше, і так далі до 30 секунд, однаково для SMTP, POP3 та IMAP. Правильний пароль ніколи не затримується. Очікування - це таймер на з'єднанні, а не приспаний потік, тому злива невдалих входів не коштує серверу нічого, крім сокетів, якими вони приходять - причина, чому старий TarpitDelay десятиліття був заглушкою, у тому, що наївна версія є самозаподіяною відмовою.</value>
   </data>
+  <data name="Honeypot" xml:space="preserve">
+    <value>Пастка</value>
+  </data>
+  <data name="Honeypot - offer AUTH; refuse it and ban the address" xml:space="preserve">
+    <value>Пастка — пропонувати AUTH; відхиляти його й блокувати адресу</value>
+  </data>
   <data name="Honor recipient DANE/TLSA records when sending" xml:space="preserve">
     <value>Враховувати записи DANE/TLSA отримувача при надсиланні</value>
   </data>
@@ -4949,6 +4979,9 @@
   </data>
   <data name="IP ranges…" xml:space="preserve">
     <value>Діапазони IP…</value>
+  </data>
+  <data name="IPv4 or IPv6 address" xml:space="preserve">
+    <value>Адреса IPv4 або IPv6</value>
   </data>
   <data name="I_P address" xml:space="preserve">
     <value>I_P-адреса</value>
@@ -6153,6 +6186,9 @@
   <data name="NCSA Common Log Format writes one line per entry as host, ident, session, [date], &quot;category and message&quot;, status, bytes - so a log analyser can count 5xx replies without knowing anything about hMailServer. Ident and bytes are always &quot;-&quot; (the server never queries identd and the logger is not told transfer sizes), and the AWStats journal is a separate file that this setting does not change: its own switch is above." xml:space="preserve">
     <value>NCSA Common Log Format записує по одному рядку на запис як host, ident, session, [date], "category and message", status, bytes — тож аналізатор журналів може порахувати відповіді 5xx, нічого не знаючи про hMailServer. Ident і bytes завжди «-» (сервер ніколи не запитує identd, а журналювальнику не повідомляють розміри передач), а журнал AWStats — окремий файл, якого цей параметр не змінює: його власний перемикач вище.</value>
   </data>
+  <data name="N_ote" xml:space="preserve">
+    <value>При_мітка</value>
+  </data>
   <data name="N_otice text (mailed to a sender this server hosts, naming the rule)" xml:space="preserve">
     <value>Текст сповіщення (надсилається відправнику, якого обслуговує цей сервер, із назвою правила) (_N)</value>
   </data>
@@ -6161,6 +6197,9 @@
   </data>
   <data name="Name for the new certificate" xml:space="preserve">
     <value>Ім’я нового сертифіката</value>
+  </data>
+  <data name="Name or suffix" xml:space="preserve">
+    <value>Ім'я або суфікс</value>
   </data>
   <data name="Name servers" xml:space="preserve">
     <value>Сервери імен</value>
@@ -6180,6 +6219,9 @@
   <data name="Names" xml:space="preserve">
     <value>Імена</value>
   </data>
+  <data name="Names that are never auto-banned" xml:space="preserve">
+    <value>Імена, які ніколи не банять автоматично</value>
+  </data>
   <data name="Negotiate (Kerberos/NTLM) - the password never crosses the network" xml:space="preserve">
     <value>Negotiate (Kerberos/NTLM) — пароль ніколи не передається мережею</value>
   </data>
@@ -6195,11 +6237,17 @@
   <data name="Never" xml:space="preserve">
     <value>Ніколи</value>
   </data>
+  <data name="Never auto-ban by reverse name" xml:space="preserve">
+    <value>Ніколи не банити автоматично за зворотним іменем</value>
+  </data>
   <data name="Never auto-ban these addresses (comma separated; CIDR blocks allowed)" xml:space="preserve">
     <value>Ніколи не банити автоматично ці адреси (через кому; дозволено блоки CIDR)</value>
   </data>
   <data name="Never judged by country (addresses and CIDR ranges, comma separated)" xml:space="preserve">
     <value>Ніколи не оцінюються за країною (адреси та діапазони CIDR, через кому)</value>
+  </data>
+  <data name="Never-ban list status" xml:space="preserve">
+    <value>Стан списку «ніколи не банити»</value>
   </data>
   <data name="New IMAP folder" xml:space="preserve">
     <value>Нова папка IMAP</value>
@@ -6290,6 +6338,9 @@
   </data>
   <data name="No MX records were found from this machine, so the server would fall back to its own host name." xml:space="preserve">
     <value>З цього комп’ютера MX-записів не знайдено, тому сервер повернувся б до власного імені вузла.</value>
+  </data>
+  <data name="No SMTP listener is on port 25, so no delivery port takes a password." xml:space="preserve">
+    <value>На порту 25 немає SMTP-прослуховувача, тож жоден порт доставки не приймає пароль.</value>
   </data>
   <data name="No SSL certificates are configured, so there are no key files to check." xml:space="preserve">
     <value>Сертифікати SSL не налаштовано, тому файлів ключів для перевірки немає.</value>
@@ -6492,8 +6543,17 @@
   <data name="No passphrase stored" xml:space="preserve">
     <value>Парольну фразу не збережено</value>
   </data>
+  <data name="No password on port 25 - the port other servers deliver to" xml:space="preserve">
+    <value>Без пароля на порту 25 — порту, на який доставляють інші сервери</value>
+  </data>
   <data name="No password was typed, so no logon was tested - the infrastructure half all works." xml:space="preserve">
     <value>Пароль не введено, тому вхід не перевірявся — інфраструктурна половина повністю працює.</value>
+  </data>
+  <data name="No pattern covers {0}, and it does not resolve back to {1}, so no pattern would spare the address." xml:space="preserve">
+    <value>Жоден шаблон не покриває {0}, і ім'я не розв'язується назад у {1}, тож жоден шаблон не звільнив би адресу.</value>
+  </data>
+  <data name="No pattern covers {0}. It resolves back to {1}, so a pattern covering it would spare the address." xml:space="preserve">
+    <value>Жоден шаблон не покриває {0}. Ім'я розв'язується назад у {1}, тож шаблон, що його покриває, звільнив би адресу.</value>
   </data>
   <data name="No port has a client certificate policy, so no CA bundle or client certificates are required." xml:space="preserve">
     <value>Жоден порт не має політики клієнтських сертифікатів, тому ані пакет ЦС, ані клієнтські сертифікати не потрібні.</value>
@@ -6795,6 +6855,9 @@
   <data name="Off" xml:space="preserve">
     <value>Вимкнено</value>
   </data>
+  <data name="Off - do not offer AUTH; refuse it and ban the address" xml:space="preserve">
+    <value>Вимкнено — не пропонувати AUTH; відхиляти його й блокувати адресу</value>
+  </data>
   <data name="Off by default because it costs a term table of a few kilobytes per message and a backfill pass over every message already delivered - an administrator's decision, never an upgrade's. Results are identical on and off: the index only narrows which messages the substring scan has to read. Requires message indexing (above) to be enabled; on its own this indexes nothing." xml:space="preserve">
     <value>Типово вимкнено, бо коштує таблиці термів у кілька кілобайтів на повідомлення та проходу заповнення по кожному вже доставленому повідомленню — це рішення адміністратора, а ніколи не оновлення. Результати однакові як з увімкненим, так і з вимкненим: індекс лише звужує, які повідомлення має читати пошук підрядка. Потребує ввімкненого індексування повідомлень (вище); саме по собі нічого не індексує.</value>
   </data>
@@ -6827,6 +6890,9 @@
   </data>
   <data name="Off by default. MAIL FROM:&lt;&gt; is no excuse: a delivery report from a server that greets with an address is refused like any other mail from it." xml:space="preserve">
     <value>Типово вимкнено. MAIL FROM:&lt;&gt; не виправдання: звіт про доставку від сервера, який вітається адресою, відхиляється, як і будь-яка інша пошта від нього.</value>
+  </data>
+  <data name="Off by default. Only when the banned address's own reverse name resolves back to it; at most 32 addresses each way; never into another /24, across an address either never-ban list above spares, or across an IP range of yours that covers one address and not the other; never for IPv6. A reverse lookup that is not answered leaves the single address. A hosting net whose customers all carry one reverse domain is widened whole: list it above, or leave this off." xml:space="preserve">
+    <value>Типово вимкнено. Лише коли власне зворотне ім'я забаненої адреси розв'язується назад у неї; не більше 32 адрес у кожен бік; ніколи в іншу /24, через адресу, яку щадить будь-який із двох списків вище, або через ваш діапазон IP, що охоплює одну адресу, але не іншу; ніколи для IPv6. Зворотний запит без відповіді залишає одиночну адресу. Хостингова мережа, усі клієнти якої мають один зворотний домен, розширюється повністю: внесіть її вище або залиште це вимкненим.</value>
   </data>
   <data name="Off by default. Operators who drop this in a script today can delete the script when this is on." xml:space="preserve">
     <value>Типово вимкнено. Ті, хто нині відхиляє це скриптом, можуть видалити скрипт, коли це ввімкнено.</value>
@@ -6897,6 +6963,9 @@
   <data name="On" xml:space="preserve">
     <value>Увімкнено</value>
   </data>
+  <data name="On - offer AUTH and check the password" xml:space="preserve">
+    <value>Увімкнено — пропонувати AUTH і перевіряти пароль</value>
+  </data>
   <data name="On by default, and inert until somebody sets a recovery address." xml:space="preserve">
     <value>Типово ввімкнено й не діє, доки хтось не задасть адресу відновлення.</value>
   </data>
@@ -6959,6 +7028,9 @@
   </data>
   <data name="On the TCP/IP ports page, give the submission port (587) STARTTLS with a certificate from the SSL certificates page, or add port 465 with implicit TLS." xml:space="preserve">
     <value>На сторінці Порти TCP/IP задайте порту надсилання (587) STARTTLS із сертифікатом зі сторінки Сертифікати SSL або додайте порт 465 з неявним TLS.</value>
+  </data>
+  <data name="On the TCP/IP ports page, open the SMTP port 25 and set its SMTP authentication to Honeypot or Off, then reinitialize. Mail clients that still sign in on 25 are refused and banned from then on, so move them to 587 first." xml:space="preserve">
+    <value>На сторінці «Порти TCP/IP» відкрийте SMTP-порт 25, установіть для його автентифікації SMTP значення «Пастка» або «Вимкнено» і виконайте повторну ініціалізацію. Поштові клієнти, які все ще входять через порт 25, відтоді відхилятимуться й блокуватимуться, тож спершу перенесіть їх на 587.</value>
   </data>
   <data name="On the server, from an elevated prompt in the Bin folder: hMailServer.exe --create-stored-secrets-key makes the key, and hMailServer.exe --export-stored-secrets-key FILE exports it. Keep the file with the database backups, stored apart from them." xml:space="preserve">
     <value>На сервері, у командному рядку з підвищеними правами в папці Bin: hMailServer.exe --create-stored-secrets-key створює ключ, а hMailServer.exe --export-stored-secrets-key FILE експортує його. Зберігайте файл разом із резервними копіями бази даних, але окремо від них.</value>
@@ -7115,6 +7187,9 @@
   </data>
   <data name="Open the Control Panel on the server itself to change the account the service runs as or grant it its folders." xml:space="preserve">
     <value>Відкрийте Control Panel на самому сервері, щоб змінити обліковий запис служби або надати їй її папки.</value>
+  </data>
+  <data name="Open the SMTP port 25 and set its SMTP authentication to Honeypot or Off: AUTH there is refused without the password being looked at, and the address that sent it is banned." xml:space="preserve">
+    <value>Відкрийте SMTP-порт 25 і встановіть для його автентифікації SMTP значення «Пастка» або «Вимкнено»: AUTH там відхиляється без перевірки пароля, а адресу, яка його надіслала, блокується.</value>
   </data>
   <data name="Open the delivery queue" xml:space="preserve">
     <value>Відкрити чергу доставки</value>
@@ -7541,11 +7616,20 @@
   <data name="Port 25 is judged differently from the rest and deliberately so: the peer there is normally another mail server, and requiring encryption on it refuses mail from senders that cannot offer any. On every other port the peer is a client with a password." xml:space="preserve">
     <value>Порт 25 оцінюється інакше, ніж решта, і навмисно: співрозмовник там зазвичай інший поштовий сервер, і вимога шифрування на ньому відхиляє пошту від відправників, які не можуть його запропонувати. На кожному іншому порту співрозмовник — клієнт із паролем.</value>
   </data>
+  <data name="Port 25 is where other servers deliver mail, and no mail client should sign in there. Off and Honeypot never look at a password: AUTH is answered 502, and the first one of a session bans the address for the auto-ban minutes - never this computer, nor an address on the never-ban lists. Honeypot goes on offering AUTH, as bait. Mail clients sign in on 587." xml:space="preserve">
+    <value>На порт 25 інші сервери доставляють пошту, і жоден поштовий клієнт не повинен входити через нього. «Вимкнено» і «Пастка» ніколи не дивляться на пароль: на AUTH відповідається 502, а перший AUTH у сеансі блокує адресу на хвилини автоблокування — але ніколи не цей комп’ютер і не адресу зі списків адрес, які ніколи не блокуються. «Пастка» далі пропонує AUTH як приманку. Поштові клієнти входять через порт 587.</value>
+  </data>
+  <data name="Port 25 is where other servers deliver mail, and no mail client should sign in there: an AUTH on it is a password being guessed." xml:space="preserve">
+    <value>На порт 25 інші сервери доставляють пошту, і жоден поштовий клієнт не повинен входити через нього: AUTH на ньому — це підбирання пароля.</value>
+  </data>
   <data name="Port binding" xml:space="preserve">
     <value>Прив’язка порту</value>
   </data>
   <data name="Port for http-01 challenges" xml:space="preserve">
     <value>Порт для викликів http-01</value>
+  </data>
+  <data name="Port {0} does not offer AUTH: DisableAUTHList names it, and an AUTH sent there is refused without a ban." xml:space="preserve">
+    <value>Порт {0} не пропонує AUTH: його вказано в DisableAUTHList, і надісланий туди AUTH відхиляється без блокування.</value>
   </data>
   <data name="Port {0} is set to TLS but has no certificate, so TLS cannot start." xml:space="preserve">
     <value>Порт {0} налаштовано на TLS, але без сертифіката, тому TLS не може розпочатися.</value>
@@ -7555,6 +7639,18 @@
   </data>
   <data name="Port {0} offers TLS with {1}, the self-signed certificate this installation made: mail clients warn about it until it is replaced with one a certificate authority issued, which ACME can fetch from Let's Encrypt." xml:space="preserve">
     <value>Порт {0} пропонує TLS із сертифікатом {1} - самопідписаним сертифікатом, який створила ця інсталяція: поштові клієнти попереджають про нього, доки його не замінять сертифікатом, виданим центром сертифікації, який ACME може отримати від Let's Encrypt.</value>
+  </data>
+  <data name="Port {0} still accepts AUTH: it is where other servers deliver mail, and a password tried there is a guess. Set its SMTP authentication to Honeypot or Off, and sign mail clients in on 587." xml:space="preserve">
+    <value>Порт {0} усе ще приймає AUTH: на нього інші сервери доставляють пошту, і пароль, спробуваний там, — це здогадка. Установіть для його автентифікації SMTP значення «Пастка» або «Вимкнено», а поштові клієнти підключайте через 587.</value>
+  </data>
+  <data name="Port {0} takes no password, but AutoBanMinutes is 0, so an address that sends AUTH there is refused and not banned." xml:space="preserve">
+    <value>Порт {0} не приймає пароль, але AutoBanMinutes дорівнює 0, тож адреса, яка надіслала туди AUTH, відхиляється й не блокується.</value>
+  </data>
+  <data name="Port {0} takes no password: EHLO does not offer AUTH there, and an address that sends one anyway is refused and banned." xml:space="preserve">
+    <value>Порт {0} не приймає пароль: EHLO там не пропонує AUTH, і адреса, яка все ж надіслала його, відхиляється й блокується.</value>
+  </data>
+  <data name="Port {0} takes no password: EHLO offers AUTH there as bait, and an address that sends one is refused and banned." xml:space="preserve">
+    <value>Порт {0} не приймає пароль: EHLO там пропонує AUTH як приманку, і адреса, яка надіслала його, відхиляється й блокується.</value>
   </data>
   <data name="Port {0} takes submission without TLS, so passwords and mail would cross the network in the clear." xml:space="preserve">
     <value>Порт {0} приймає надсилання без TLS, тому паролі й пошта йшли б мережею відкритим текстом.</value>
@@ -7894,6 +7990,9 @@
   </data>
   <data name="Re_move action" xml:space="preserve">
     <value>Вилу_чити дію</value>
+  </data>
+  <data name="Re_move name" xml:space="preserve">
+    <value>_Вилучити ім'я</value>
   </data>
   <data name="Re_move the rule" xml:space="preserve">
     <value>Ви_лучити правило</value>
@@ -8241,6 +8340,9 @@
   <data name="Remove from the domain list" xml:space="preserve">
     <value>Вилучити зі списку доменів</value>
   </data>
+  <data name="Remove from the never-ban list" xml:space="preserve">
+    <value>Вилучити зі списку «ніколи не банити»</value>
+  </data>
   <data name="Remove from the suppression list" xml:space="preserve">
     <value>Вилучити зі списку придушення</value>
   </data>
@@ -8282,6 +8384,11 @@
 
 Чорний домен одразу знову приймається; білий домен з наступного сеансу знову підпадає під greylisting і антиспам-бал.</value>
   </data>
+  <data name="Remove {0} from the never-ban list?&#10;&#10;An address it spared can be auto-banned again from the next ban on." xml:space="preserve">
+    <value>Вилучити {0} зі списку «ніколи не банити»?
+
+Адресу, яку він звільняв, з наступного бану знову можуть забанити автоматично.</value>
+  </data>
   <data name="Remove {0} from {1}?&#13;&#10;&#13;&#10;Any access this group has been granted stops applying to that account." xml:space="preserve">
     <value>Вилучити {0} з {1}?
 
@@ -8311,10 +8418,10 @@
 
 Кожен власний діапазон — включно з будь-якими записами автоблокування — буде вилучено й замінено на «Мій комп’ютер» (127.0.0.1) та «Інтернет» (усе інше). Це негайно змінює, хто може підключатися та ретранслювати.</value>
   </data>
-  <data name="Replace ALL configured ports with the defaults?&#10;&#10;SMTP 25 and 587, POP3 110, IMAP 143 - without connection security. TLS ports and custom bindings will be removed. The change takes effect when the server is reinitialized." xml:space="preserve">
+  <data name="Replace ALL configured ports with the defaults?&#10;&#10;SMTP 25 and 587, POP3 110, IMAP 143 - without connection security, and with SMTP authentication On on both SMTP ports, so a port 25 that is a honeypot takes AUTH again. TLS ports and custom bindings will be removed. The change takes effect when the server is reinitialized." xml:space="preserve">
     <value>Замінити ВСІ налаштовані порти типовими?
 
-SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключення. Порти TLS і власні прив’язки буде вилучено. Зміна набуває чинності після повторної ініціалізації сервера.</value>
+SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключення та з автентифікацією SMTP «Увімкнено» на обох SMTP-портах, тож порт 25, який був пасткою, знову приймає AUTH. Порти TLS і власні прив’язки буде вилучено. Зміна набуває чинності після повторної ініціалізації сервера.</value>
   </data>
   <data name="Replace the certificate here; the expiry date of each one is listed." xml:space="preserve">
     <value>Замініть сертифікат тут; для кожного зазначено дату закінчення терміну дії.</value>
@@ -8843,6 +8950,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="SURBL servers are checked against the links inside the message." xml:space="preserve">
     <value>Сервери SURBL перевіряються за посиланнями всередині повідомлення.</value>
+  </data>
+  <data name="S_MTP authentication" xml:space="preserve">
+    <value>Автентифікація S_MTP</value>
   </data>
   <data name="S_witch the rule over" xml:space="preserve">
     <value>_Перемкнути правило</value>
@@ -11025,6 +11135,12 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The retry counts and intervals are here, along with what happens when they run out." xml:space="preserve">
     <value>Тут кількість спроб та інтервали, а також що відбувається, коли вони вичерпуються.</value>
   </data>
+  <data name="The reverse lookup of {0} was not answered, so the list cannot spare it now. Try again, or list the address in AutoBanNeverBan." xml:space="preserve">
+    <value>Зворотний запит для {0} лишився без відповіді, тож список не може звільнити її зараз. Спробуйте ще раз або внесіть адресу до AutoBanNeverBan.</value>
+  </data>
+  <data name="The reverse name {0} is an address or a public suffix, which the list never matches. List the address in AutoBanNeverBan instead." xml:space="preserve">
+    <value>Зворотне ім'я {0} — це адреса або публічний суфікс, які список ніколи не зіставляє. Натомість внесіть адресу до AutoBanNeverBan.</value>
+  </data>
   <data name="The rotation refused: {0}" xml:space="preserve">
     <value>Ротація відмовила: {0}</value>
   </data>
@@ -11161,6 +11277,12 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="The server's answer could not be read: {0}" xml:space="preserve">
     <value>Не вдалося прочитати відповідь сервера: {0}</value>
+  </data>
+  <data name="The server's answer has no list of entries." xml:space="preserve">
+    <value>Відповідь сервера не містить списку записів.</value>
+  </data>
+  <data name="The server's answer has no verdict." xml:space="preserve">
+    <value>Відповідь сервера не містить вердикту.</value>
   </data>
   <data name="The server's answer is not a settings group." xml:space="preserve">
     <value>Відповідь сервера не є групою параметрів.</value>
@@ -12329,6 +12451,12 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Why it is listed" xml:space="preserve">
     <value>Чому вона у списку</value>
   </data>
+  <data name="Widen a ban to its neighbours" xml:space="preserve">
+    <value>Розширювати бан на сусідів</value>
+  </data>
+  <data name="Widen an auto-ban to the neighbouring addresses whose reverse names share its domain" xml:space="preserve">
+    <value>Розширювати автоматичний бан на сусідні адреси, зворотні імена яких належать до того самого домену</value>
+  </data>
   <data name="Wiki the help pane's &quot;Open on the wiki&quot; link points at (empty hides the link)" xml:space="preserve">
     <value>Вікі, на яку веде посилання «Відкрити у вікі» панелі довідки (порожнє приховує посилання)</value>
   </data>
@@ -12466,6 +12594,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="_Add folder" xml:space="preserve">
     <value>_Додати папку</value>
+  </data>
+  <data name="_Add name…" xml:space="preserve">
+    <value>_Додати ім'я…</value>
   </data>
   <data name="_Add rule" xml:space="preserve">
     <value>_Додати правило</value>
@@ -12763,6 +12894,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="_Name" xml:space="preserve">
     <value>_Назва</value>
+  </data>
+  <data name="_Name or suffix" xml:space="preserve">
+    <value>_Ім'я або суфікс</value>
   </data>
   <data name="_New accounts start with their keys published" xml:space="preserve">
     <value>_Нові облікові записи починають з опублікованими ключами</value>
@@ -13512,6 +13646,12 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="mail is stuck" xml:space="preserve">
     <value>пошта застрягла</value>
   </data>
+  <data name="mail.example.net is that name alone; .example.net is the name and every name beneath it. Never a public suffix such as .com, and never a cloud whose customers' machines carry the provider's name." xml:space="preserve">
+    <value>mail.example.net — лише це ім'я; .example.net — ім'я та всі імена під ним. Ніколи не публічний суфікс на зразок .com і ніколи не хмара, де машини клієнтів носять ім'я постачальника.</value>
+  </data>
+  <data name="mail.example.net is that name alone; .example.net is the name and every name beneath it. The reverse lookup is never waited for on a connection: a ban placed before the answer is in is lifted once it is, before the firewall or fail2ban is told. A net with no reverse name, or one you do not trust, still belongs in the address list above." xml:space="preserve">
+    <value>mail.example.net — лише це ім'я; .example.net — ім'я та всі імена під ним. Зворотного запиту під час з'єднання ніколи не чекають: бан, накладений до відповіді, знімається, щойно відповідь надходить, ще до того, як дізнаються брандмауер чи fail2ban. Мережа без зворотного імені або з таким, якому ви не довіряєте, і далі належить до списку адрес вище.</value>
+  </data>
   <data name="make awstats work" xml:space="preserve">
     <value>змусити AWStats працювати</value>
   </data>
@@ -13736,6 +13876,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="stop forwarded mail failing spf" xml:space="preserve">
     <value>припинити провали SPF у пересланої пошти</value>
+  </data>
+  <data name="stop password guessing on port 25 with a honeypot" xml:space="preserve">
+    <value>зупинити підбирання паролів на порту 25 за допомогою пастки</value>
   </data>
   <data name="stop spam" xml:space="preserve">
     <value>зупинити спам</value>
@@ -14127,6 +14270,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0} has no postmaster address configured, and this page will not invent a mailbox - enter the address that should receive the reports. Until one is entered there is no record to copy." xml:space="preserve">
     <value>Для {0} не налаштовано адресу postmaster, а ця сторінка не вигадуватиме поштову скриньку — введіть адресу, яка має отримувати звіти. Доки її не введено, копіювати нема якого запису.</value>
   </data>
+  <data name="{0} has no reverse name, so no pattern can spare it. List the address in AutoBanNeverBan instead." xml:space="preserve">
+    <value>У {0} немає зворотного імені, тож жоден шаблон не може її звільнити. Натомість внесіть адресу до AutoBanNeverBan.</value>
+  </data>
   <data name="{0} held, showing the {1} most recent. The rest are still there - work through these, or let the retention sweep age them out." xml:space="preserve">
     <value>Утримано {0}, показано {1} найновіших. Решта досі там — опрацюйте ці або дайте очищенню за терміном зберігання їх зістарити.</value>
   </data>
@@ -14142,17 +14288,29 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0} is available" xml:space="preserve">
     <value>{0} доступна</value>
   </data>
+  <data name="{0} is covered by {1} but does not resolve back to {2}, so it is not spared: anybody who holds an address can write its reverse name." xml:space="preserve">
+    <value>{0} покрито шаблоном {1}, але воно не розв'язується назад у {2}, тож адресу не звільнено: будь-хто, хто має адресу, може сам записати її зворотне ім'я.</value>
+  </data>
+  <data name="{0} is covered by {1}, but its forward lookup was not answered, so {2} is not spared now." xml:space="preserve">
+    <value>{0} покрито шаблоном {1}, але прямий запит лишився без відповіді, тож {2} зараз не звільнено.</value>
+  </data>
   <data name="{0} is downloaded and verified" xml:space="preserve">
     <value>{0} завантажено й перевірено</value>
   </data>
   <data name="{0} is here with the mailboxes {1}, the list {2} and one rule that files invoices. The one password for all of them was shown when it was made and was not kept - remove the sample and make it again to be given another. It is left out of the first-hour checklist, because a sample domain is not this server's first domain." xml:space="preserve">
     <value>{0} тут: скриньки {1}, список {2} і одне правило, що розкладає рахунки. Єдиний пароль для всіх скриньок був показаний під час створення зразка і не зберігався; вилучіть зразок і створіть його знову, щоб отримати новий. У контрольному списку першої години він не враховується, бо зразковий домен не є першим доменом цього сервера.</value>
   </data>
+  <data name="{0} is never auto-banned: its reverse name {1} resolves back to it and is covered by {2}." xml:space="preserve">
+    <value>{0} ніколи не банять автоматично: її зворотне ім'я {1} розв'язується назад у неї і покрите шаблоном {2}.</value>
+  </data>
   <data name="{0} is on but scores 0, so it costs a lookup on every message and can never change the outcome. Give it a score, or turn it off." xml:space="preserve">
     <value>{0} увімкнено, але дає оцінку 0, тому коштує пошуку на кожне повідомлення й ніколи не може змінити результат. Задайте оцінку або вимкніть.</value>
   </data>
   <data name="{0} is on the list. It applies to the next session from that domain." xml:space="preserve">
     <value>{0} у списку. Діє з наступного сеансу з цього домену.</value>
+  </data>
+  <data name="{0} is on the never-ban list. It applies to the next ban." xml:space="preserve">
+    <value>{0} є у списку «ніколи не банити». Діє з наступного бану.</value>
   </data>
   <data name="{0} is on the suppression list of {1}." xml:space="preserve">
     <value>{0} є у списку придушення домену {1}.</value>
@@ -14340,8 +14498,14 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0} was not on the list any more." xml:space="preserve">
     <value>{0} вже не було у списку.</value>
   </data>
+  <data name="{0} was not on the never-ban list any more." xml:space="preserve">
+    <value>{0} уже не було у списку «ніколи не банити».</value>
+  </data>
   <data name="{0} was removed from the list." xml:space="preserve">
     <value>{0} вилучено зі списку.</value>
+  </data>
+  <data name="{0} was removed from the never-ban list." xml:space="preserve">
+    <value>{0} вилучено зі списку «ніколи не банити».</value>
   </data>
   <data name="{0} was removed: {1} mailbox(es), {2} distribution list(s), {3} rule(s) and {4} message(s) went with it." xml:space="preserve">
     <value>{0} вилучено: разом з ним пішли {1} скриньок, {2} списків розсилки, {3} правил і {4} повідомлень.</value>

@@ -229,6 +229,11 @@ namespace hMailServer.ControlPanel.Services
          // which is not where the setting is.
          new IntentEntry(N("do not offer authentication on port 25"), "authentication",
             N("List the local ports where AUTH should not be advertised - typically a port 25 that only takes inbound mail.")),
+         // What an SMTP listener does with AUTH is the port's own setting (GitLab
+         // work item #54), on the TCP/IP ports page; "honeypot" is the word
+         // anybody who has heard of the feature would type for it.
+         new IntentEntry(N("stop password guessing on port 25 with a honeypot"), "ports",
+            N("Open the SMTP port 25 and set its SMTP authentication to Honeypot or Off: AUTH there is refused without the password being looked at, and the address that sent it is banned.")),
 
          // ---- Getting mail in and out --------------------------------------
          new IntentEntry(N("send all mail through my provider"), "delivery",

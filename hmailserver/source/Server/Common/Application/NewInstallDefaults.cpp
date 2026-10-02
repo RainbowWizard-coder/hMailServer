@@ -683,7 +683,8 @@ namespace HM
                continue;
 
             if (!port->GetAddress().IsAny() || port->GetConnectionSecurity() != CSNone ||
-                port->GetSSLCertificateID() != 0 || port->GetClientCertificatePolicy() != CCPOff)
+                port->GetSSLCertificateID() != 0 || port->GetClientCertificatePolicy() != CCPOff ||
+                port->GetSMTPAuthentication() != SAMOn)
             {
                why = Formatter::Format("port {0} has been configured since the database was made", shipped.number);
                return false;
@@ -936,9 +937,16 @@ namespace HM
       Print_(false, Formatter::Format("Made a self-signed certificate for {0}, valid until {1}, as the record \"{2}\": {3}, with its key in {4}, which only this server's account and the administrators can read.",
          WideOf(host), UtcDay(notAfter), String(CertificateName()), certificateFile, keyFile));
 
-      // 4. The listeners read in step 0, each on its own.
+      // 4. The listeners read in step 0, each on its own. Port 25 also becomes a
+      // honeypot for AUTH (GitLab work item #54, docs/SmtpAuthOnDeliveryPorts.md):
+      // it is where other servers deliver, and no client of a new installation
+      // has ever been told to sign in there, so EHLO goes on offering AUTH and an
+      // AUTH is refused without the password being looked at and bans the
+      // address. 587 is where clients submit, and stays On. In the same save as
+      // the certificate, so a port is changed in full or not at all.
       std::vector<int> offered;
       std::vector<int> refused;
+      bool honeypot = false;
       String firstRefusal;
       for (int i = 0; i < ports.GetCount(); i++)
       {
@@ -946,12 +954,20 @@ namespace HM
          if (!port)
             continue;
 
+         const bool deliveryPort = port->GetProtocol() == STSMTP && port->GetPortNumber() == 25;
+
          port->SetConnectionSecurity(CSSTARTTLSOptional);
          port->SetSSLCertificateID((int) certificate->GetID());
+         if (deliveryPort)
+            port->SetSMTPAuthentication(SAMHoneypot);
 
          String error;
          if (PersistentTCPIPPort::SaveObject(port, error, PersistenceModeNormal))
+         {
             offered.push_back(port->GetPortNumber());
+            if (deliveryPort)
+               honeypot = true;
+         }
          else
          {
             refused.push_back(port->GetPortNumber());
@@ -965,6 +981,9 @@ namespace HM
 
       if (!offered.empty())
          Print_(false, Formatter::Format("STARTTLS is offered on port {0} with it, and optional: a client or a server that cannot start TLS is still served.", JoinPorts(offered)));
+
+      if (honeypot)
+         Print_(false, _T("Port 25 takes no password: its SMTP authentication is Honeypot, so EHLO offers AUTH there, an AUTH is refused without the password being looked at, and the address that sent it is banned for AutoBanMinutes. Mail clients sign in on port 587."));
 
       if (!refused.empty())
       {
@@ -1022,8 +1041,8 @@ namespace HM
          internet->GetName()));
       Print_(false, _T("Mail clients warn about a self-signed certificate. Replace it with one a certificate authority issued: ACME gets one from Let's Encrypt and gives it to these ports itself (docs/SecureDefaults.md)."));
 
-      LOG_APPLICATION(Formatter::Format("New installation: a self-signed certificate for {0} was made, STARTTLS is offered on port {1}, and the IP range \"{2}\" requires TLS for authentication.",
-         WideOf(host), JoinPorts(offered), internet->GetName()));
+      LOG_APPLICATION(Formatter::Format("New installation: a self-signed certificate for {0} was made, STARTTLS is offered on port {1}, the IP range \"{2}\" requires TLS for authentication, and port 25's SMTP authentication is {3}.",
+         WideOf(host), JoinPorts(offered), internet->GetName(), String(honeypot ? _T("Honeypot") : _T("On"))));
 
       return 0;
    }

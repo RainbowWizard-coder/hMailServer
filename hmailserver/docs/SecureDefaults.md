@@ -14,7 +14,7 @@ from anywhere but this computer waits for TLS.
 
 | | Before | A new installation now | An upgraded server |
 |---|---|---|---|
-| Port 25, SMTP | no TLS | STARTTLS offered, optional | as it was |
+| Port 25, SMTP | no TLS | STARTTLS offered, optional; **SMTP authentication Honeypot**: `AUTH` offered, refused without the password being looked at, the address banned ([SmtpAuthOnDeliveryPorts.md](SmtpAuthOnDeliveryPorts.md)) | as it was, AUTH On; the checklist flags it |
 | Port 587, SMTP submission | no TLS | STARTTLS offered, optional | as it was |
 | Port 110, POP3 | no TLS | STARTTLS (STLS) offered, optional | as it was |
 | Port 143, IMAP | no TLS | STARTTLS offered, optional | as it was |
@@ -32,6 +32,9 @@ So, on a new installation:
 * **From this computer** - a webmail on the same machine, a script, a monitoring
   check on 127.0.0.1 - nothing has changed.
 * **Mail from other servers** on port 25 is taken with or without TLS, as before.
+  Nobody signs in there: an `AUTH` on port 25 is answered `502 5.5.1` and bans the
+  address that sent it for `AutoBanMinutes` - never this computer, nor an address
+  on `AutoBanNeverBan`. Mail clients sign in on 587.
 
 ### Why STARTTLS is optional and not required
 
@@ -122,7 +125,8 @@ asking for the defaults now, and the mark the unit kept is there for it. And it
 still asks the shape the create script leaves:
 
 * the four listeners - SMTP 25 and 587, POP3 110, IMAP 143 - on every address,
-  with no TLS, no certificate and no client certificate asked for, and no fifth;
+  with no TLS, no certificate, no client certificate asked for and SMTP
+  authentication On, and no fifth;
 * the two IP ranges with the options, priorities and addresses the create scripts
   give them, and no third;
 * no certificate at all;
@@ -290,6 +294,11 @@ the same way, new or upgraded:
 * **TLS on the submission port** says `submission_self_signed`, action needed,
   while the port's certificate is the self-signed one - with the sentence that
   says to replace it and that ACME can.
+* **No password on port 25** (`delivery_port_auth`) says `delivery_port_auth_on`,
+  action needed and with no fix, while an SMTP listener on 25 takes AUTH - an
+  upgraded server's does until it is changed, because changing it is what arms
+  the ban. A new installation's port 25 is a honeypot, and the item is done
+  ([SmtpAuthOnDeliveryPorts.md](SmtpAuthOnDeliveryPorts.md)).
 
 ## The regression benches
 

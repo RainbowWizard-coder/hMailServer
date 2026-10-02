@@ -310,6 +310,9 @@
     <Compile Include="..\RegressionTests\Security\AdministratorTwoFactor.cs" Link="Security\AdministratorTwoFactor.cs" />
     <Compile Include="..\RegressionTests\Security\AuthenticatedSenderCheck.cs" Link="Security\AuthenticatedSenderCheck.cs" />
     <Compile Include="..\RegressionTests\Security\AutoBan.cs" Link="Security\AutoBan.cs" />
+    <Compile Include="..\RegressionTests\Security\AutoBanNeverBanNames.cs" Link="Security\AutoBanNeverBanNames.cs" />
+    <Compile Include="..\RegressionTests\Security\SmtpAuthOnDeliveryPorts.cs" Link="Security\SmtpAuthOnDeliveryPorts.cs" />
+    <Compile Include="..\RegressionTests\Security\AutoBanWiden.cs" Link="Security\AutoBanWiden.cs" />
     <Compile Include="..\RegressionTests\Security\Basics.cs" Link="Security\Basics.cs" />
     <Compile Include="..\RegressionTests\Security\EtrnAuthorization.cs" Link="Security\EtrnAuthorization.cs" />
     <Compile Include="..\RegressionTests\Security\HashPolicy.cs" Link="Security\HashPolicy.cs" />

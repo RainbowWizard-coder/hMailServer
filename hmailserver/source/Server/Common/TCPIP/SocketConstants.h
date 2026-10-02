@@ -57,6 +57,28 @@ namespace HM
       CCPRequire = 2
    };
 
+   // What an SMTP listener does with AUTH (GitLab work item #54,
+   // docs/SmtpAuthOnDeliveryPorts.md). Stored per port in
+   // hm_tcpipports.portsmtpauth and exposed through COM (TCPIPPort.SMTPAuthentication)
+   // and REST (smtp_authentication), so the numbers must never change. 0 must
+   // remain "on": every listener of a database upgraded from an earlier schema
+   // keeps exactly the behaviour it had. POP3 and IMAP listeners are always on.
+   enum SMTPAuthenticationMode
+   {
+      // EHLO advertises AUTH and AUTH checks the password, as every listener
+      // did before the setting existed. DisableAUTHList still applies.
+      SAMOn = 0,
+
+      // EHLO does not advertise AUTH. An AUTH is answered 502 5.5.1 without the
+      // account being looked up or the password evaluated, and the first one
+      // of a session bans the address (AccountLogon::BanForAuthOnDeliveryPort).
+      SAMOff = 1,
+
+      // EHLO advertises AUTH as On does - the advertisement is the bait - and an
+      // AUTH is then answered and banned exactly as Off answers and bans it.
+      SAMHoneypot = 2
+   };
+
    enum ConnectionState
    {
       StatePendingConnect = 0,

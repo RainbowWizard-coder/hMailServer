@@ -680,6 +680,9 @@ Tallennetaanko tämä heikko salasana silti?</value>
   <data name="A modern administration app for hMailServer: live dashboard, domains and accounts, delivery queue, log streaming, full server settings and the 6.x transport-security features (DANE, MTA-STS, ARC, TLS-RPT, ACME)." xml:space="preserve">
     <value>Nykyaikainen hallintasovellus hMailServerille: reaaliaikainen koontinäyttö, verkkotunnukset ja tilit, toimitusjono, lokien suoratoisto, kaikki palvelinasetukset ja 6.x-version siirtoturvallisuusominaisuudet (DANE, MTA-STS, ARC, TLS-RPT, ACME).</value>
   </data>
+  <data name="A name is required." xml:space="preserve">
+    <value>Nimi vaaditaan.</value>
+  </data>
   <data name="A new address is required." xml:space="preserve">
     <value>Uusi osoite vaaditaan.</value>
   </data>
@@ -772,6 +775,9 @@ Tallennetaanko tämä heikko salasana silti?</value>
   </data>
   <data name="A scanner that cannot run does not refuse the message. The error is written to the log and the scan continues to the next scanner; when none of them can answer, the message is treated exactly as if it had been examined and found clean. That is why this page reports whether each scanner can run rather than whether it is switched on." xml:space="preserve">
     <value>Tarkistin joka ei voi suorittaa tarkistusta ei hylkää viestiä. Virhe kirjoitetaan lokiin ja tarkistus jatkuu seuraavaan tarkistimeen; kun yksikään niistä ei voi vastata, viestiä käsitellään täsmälleen kuin se olisi tutkittu ja todettu puhtaaksi. Siksi tämä sivu kertoo, voiko kukin tarkistin suorittaa tarkistuksen, eikä sitä onko se kytketty päälle.</value>
+  </data>
+  <data name="A scanner working through 203.0.113.10, .11 and .12 under one reverse domain earns a ban and a firewall rule for each. With this on, the ban is still written at once for the one address, and then widened in the background to the run of addresses around it, inside its /24, whose reverse names share its registrable domain: one range and one firewall rule, said in the application log." xml:space="preserve">
+    <value>Skanneri, joka käy läpi osoitteet 203.0.113.10, .11 ja .12 saman käänteisen verkkotunnuksen alla, saa eston ja palomuurisäännön jokaisesta. Kun tämä on päällä, esto kirjoitetaan edelleen heti tälle yhdelle osoitteelle, ja se laajennetaan sitten taustalla sitä ympäröivään yhtenäiseen osoitejonoon sen /24-verkon sisällä, jonka käänteiset nimet ovat samassa rekisteröitävässä verkkotunnuksessa: yksi alue ja yksi palomuurisääntö, kirjattuna sovelluslokiin.</value>
   </data>
   <data name="A schedule creates and updates accounts with nobody watching. It never disables one, whatever the checkbox above is set to - departures are left to a person who has read a preview. Switch this on only after a preview has told you what it is going to do." xml:space="preserve">
     <value>Ajastus luo ja päivittää tilejä kenenkään valvomatta. Se ei koskaan poista tiliä käytöstä, olipa yllä oleva valintaruutu asetettu miten tahansa – lähtijät jätetään ihmiselle, joka on lukenut esikatselun. Kytke tämä päälle vasta kun esikatselu on kertonut, mitä se aikoo tehdä.</value>
@@ -922,6 +928,9 @@ Tallennetaanko tämä heikko salasana silti?</value>
   </data>
   <data name="AUTH is normally offered on every SMTP port. List the local TCP ports where it should not be, for example a port 25 that only accepts inbound mail from other servers." xml:space="preserve">
     <value>AUTH tarjotaan normaalisti jokaisessa SMTP-portissa. Luettele ne paikalliset TCP-portit joissa sitä ei pidä tarjota, esimerkiksi portti 25 joka ottaa vastaan vain muilta palvelimilta saapuvaa postia.</value>
+  </data>
+  <data name="AUTH {0}" xml:space="preserve">
+    <value>AUTH {0}</value>
   </data>
   <data name="AWStats-compatible log" xml:space="preserve">
     <value>AWStats-yhteensopiva loki</value>
@@ -1120,6 +1129,9 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   </data>
   <data name="Add a listener - 587 with STARTTLS, or 465 for implicit TLS." xml:space="preserve">
     <value>Lisää kuuntelija – 587 STARTTLS:llä tai 465 implisiittiselle TLS:lle.</value>
+  </data>
+  <data name="Add a name to the never-ban list" xml:space="preserve">
+    <value>Lisää nimi ei koskaan estettävien listaan</value>
   </data>
   <data name="Add a_lias" xml:space="preserve">
     <value>Lisää _alias</value>
@@ -1480,6 +1492,9 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   </data>
   <data name="An address is required." xml:space="preserve">
     <value>Osoite on pakollinen.</value>
+  </data>
+  <data name="An address is spared only when one of its reverse names is covered AND resolves back to the address, since anybody who holds an address can write its reverse name. It applies to the next ban." xml:space="preserve">
+    <value>Osoite säästetään vain, kun jokin sen käänteisistä nimistä on katettu JA osoittaa takaisin osoitteeseen, koska kuka tahansa osoitteen haltija voi kirjoittaa sen käänteisen nimen itse. Koskee seuraavasta estosta alkaen.</value>
   </data>
   <data name="An address this server hosts is refused: the list only applies to mail leaving the server." xml:space="preserve">
     <value>Tämän palvelimen isännöimä osoite hylätään: lista koskee vain palvelimelta lähtevää postia.</value>
@@ -2130,6 +2145,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
   <data name="C_A certificate bundle (PEM) that client certificates must chain to" xml:space="preserve">
     <value>_CA-varmennepaketti (PEM), johon asiakasvarmenteiden on ketjuuduttava</value>
   </data>
+  <data name="C_heck an address…" xml:space="preserve">
+    <value>Ta_rkista osoite…</value>
+  </data>
   <data name="C_hoose a photo..." xml:space="preserve">
     <value>_Valitse kuva...</value>
   </data>
@@ -2285,6 +2303,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
   </data>
   <data name="Check _policy (HTTPS)" xml:space="preserve">
     <value>Tarkista _käytäntö (HTTPS)</value>
+  </data>
+  <data name="Check an address" xml:space="preserve">
+    <value>Tarkista osoite</value>
   </data>
   <data name="Check every message" xml:space="preserve">
     <value>Valitse kaikki viestit</value>
@@ -4428,6 +4449,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="For a MinIO or Ceph gateway behind a CA of your own. The host name is checked either way." xml:space="preserve">
     <value>Omaan varmentajaan nojaavalle MinIO- tai Ceph-yhdyskäytävälle. Isäntänimi tarkistetaan joka tapauksessa.</value>
   </data>
+  <data name="For a provider whose hosts share a reverse name and whose addresses move: a connecting address is never auto-banned - for failed logons, a spam trap or a null sender - when one of its reverse names is covered by a name here and resolves back to the address. Nothing else is skipped: greylisting, SPF, DKIM, DMARC and the domain white and black list still apply. Empty, the default, changes nothing." xml:space="preserve">
+    <value>Palveluntarjoajalle, jonka palvelimilla on yhteinen käänteinen nimi ja jonka osoitteet vaihtuvat: yhdistävää osoitetta ei koskaan estetä automaattisesti - epäonnistuneista kirjautumisista, roskapostiansasta tai tyhjästä lähettäjästä - kun jokin sen käänteisistä nimistä on tässä olevan nimen kattama ja osoittaa takaisin osoitteeseen. Mitään muuta ei ohiteta: harmaalistaus, SPF, DKIM, DMARC sekä verkkotunnusten salli- ja estolista ovat yhä voimassa. Tyhjä, oletus, ei muuta mitään.</value>
+  </data>
   <data name="For a record of who corresponds with whom, keeping it for ever should be a decision rather than a default - which is why 0 is offered as an option instead of being one." xml:space="preserve">
     <value>Kun kyse on tiedosta, kuka kirjoittaa kenelle, ikuisen säilytyksen pitäisi olla päätös eikä oletus - siksi 0 tarjotaan vaihtoehtona sen sijaan, että se olisi oletus.</value>
   </data>
@@ -4737,6 +4761,12 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Holds the refusal of a wrong password for a while before sending it: the first failure on a connection waits this many seconds, the second twice as long, and so on up to 30 seconds, on SMTP, POP3 and IMAP alike. A correct password is never delayed. The wait is a timer on the connection, not a thread asleep, so a flood of failed logons costs the server nothing but the sockets they arrive on - the reason the old TarpitDelay was a stub for a decade is that the naive version is a self-inflicted outage." xml:space="preserve">
     <value>Pidättää väärän salasanan hylkäystä hetken ennen sen lähettämistä: yhteyden ensimmäinen epäonnistuminen odottaa näin monta sekuntia, toinen kaksi kertaa niin kauan, ja niin edelleen 30 sekuntiin asti, samoin SMTP:ssä, POP3:ssa ja IMAP:ssa. Oikeaa salasanaa ei koskaan viivytetä. Odotus on yhteyden ajastin, ei nukkuva säie, joten epäonnistuneiden kirjautumisten tulva ei maksa palvelimelle mitään muuta kuin pistokkeet, joista ne saapuvat - syy siihen, että vanha TarpitDelay oli vuosikymmenen ajan tynkä, on se, että naiivi versio on itse aiheutettu käyttökatko.</value>
   </data>
+  <data name="Honeypot" xml:space="preserve">
+    <value>Hunajapurkki</value>
+  </data>
+  <data name="Honeypot - offer AUTH; refuse it and ban the address" xml:space="preserve">
+    <value>Hunajapurkki - tarjoa AUTH; hylkää se ja estä osoite</value>
+  </data>
   <data name="Honor recipient DANE/TLSA records when sending" xml:space="preserve">
     <value>Noudata vastaanottajan DANE/TLSA-tietueita lähetettäessä</value>
   </data>
@@ -4949,6 +4979,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   </data>
   <data name="IP ranges…" xml:space="preserve">
     <value>IP-alueet…</value>
+  </data>
+  <data name="IPv4 or IPv6 address" xml:space="preserve">
+    <value>IPv4- tai IPv6-osoite</value>
   </data>
   <data name="I_P address" xml:space="preserve">
     <value>I_P-osoite</value>
@@ -6153,6 +6186,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="NCSA Common Log Format writes one line per entry as host, ident, session, [date], &quot;category and message&quot;, status, bytes - so a log analyser can count 5xx replies without knowing anything about hMailServer. Ident and bytes are always &quot;-&quot; (the server never queries identd and the logger is not told transfer sizes), and the AWStats journal is a separate file that this setting does not change: its own switch is above." xml:space="preserve">
     <value>NCSA Common Log Format kirjoittaa yhden rivin merkintää kohden muodossa kone, ident, istunto, [päivämäärä], "luokka ja viesti", tila, tavut - joten lokianalysaattori voi laskea 5xx-vastaukset tietämättä mitään hMailServeristä. Ident ja tavut ovat aina "-" (palvelin ei koskaan kysy identd:tä eikä lokittajalle kerrota siirtokokoja), ja AWStats-päiväkirja on erillinen tiedosto, jota tämä asetus ei muuta: sen oma kytkin on yllä.</value>
   </data>
+  <data name="N_ote" xml:space="preserve">
+    <value>_Huomautus</value>
+  </data>
   <data name="N_otice text (mailed to a sender this server hosts, naming the rule)" xml:space="preserve">
     <value>Ilmoit_uksen teksti (lähetetään tämän palvelimen isännöimälle lähettäjälle, säännön nimen kera)</value>
   </data>
@@ -6161,6 +6197,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   </data>
   <data name="Name for the new certificate" xml:space="preserve">
     <value>Uuden varmenteen nimi</value>
+  </data>
+  <data name="Name or suffix" xml:space="preserve">
+    <value>Nimi tai pääte</value>
   </data>
   <data name="Name servers" xml:space="preserve">
     <value>Nimipalvelimet</value>
@@ -6180,6 +6219,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="Names" xml:space="preserve">
     <value>Nimet</value>
   </data>
+  <data name="Names that are never auto-banned" xml:space="preserve">
+    <value>Nimet, joita ei koskaan estetä automaattisesti</value>
+  </data>
   <data name="Negotiate (Kerberos/NTLM) - the password never crosses the network" xml:space="preserve">
     <value>Negotiate (Kerberos/NTLM) - salasana ei koskaan kulje verkon yli</value>
   </data>
@@ -6195,11 +6237,17 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="Never" xml:space="preserve">
     <value>Ei koskaan</value>
   </data>
+  <data name="Never auto-ban by reverse name" xml:space="preserve">
+    <value>Älä koskaan estä automaattisesti käänteisen nimen perusteella</value>
+  </data>
   <data name="Never auto-ban these addresses (comma separated; CIDR blocks allowed)" xml:space="preserve">
     <value>Älä koskaan estä automaattisesti näitä osoitteita (pilkuin eroteltuina; CIDR-lohkot sallittu)</value>
   </data>
   <data name="Never judged by country (addresses and CIDR ranges, comma separated)" xml:space="preserve">
     <value>Ei koskaan arvioida maan mukaan (osoitteet ja CIDR-alueet pilkuin eroteltuina)</value>
+  </data>
+  <data name="Never-ban list status" xml:space="preserve">
+    <value>Ei koskaan estettävien listan tila</value>
   </data>
   <data name="New IMAP folder" xml:space="preserve">
     <value>Uusi IMAP-kansio</value>
@@ -6290,6 +6338,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   </data>
   <data name="No MX records were found from this machine, so the server would fall back to its own host name." xml:space="preserve">
     <value>Tältä koneelta ei löytynyt MX-tietueita, joten palvelin turvautuisi omaan konenimeensä.</value>
+  </data>
+  <data name="No SMTP listener is on port 25, so no delivery port takes a password." xml:space="preserve">
+    <value>Portissa 25 ei ole SMTP-kuuntelijaa, joten mikään toimitusportti ei ota vastaan salasanaa.</value>
   </data>
   <data name="No SSL certificates are configured, so there are no key files to check." xml:space="preserve">
     <value>SSL-varmenteita ei ole määritetty, joten tarkistettavia avaintiedostoja ei ole.</value>
@@ -6492,8 +6543,17 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="No passphrase stored" xml:space="preserve">
     <value>Tunnuslausetta ei tallennettu</value>
   </data>
+  <data name="No password on port 25 - the port other servers deliver to" xml:space="preserve">
+    <value>Ei salasanaa portissa 25 - portissa, johon muut palvelimet toimittavat</value>
+  </data>
   <data name="No password was typed, so no logon was tested - the infrastructure half all works." xml:space="preserve">
     <value>Salasanaa ei kirjoitettu, joten kirjautumista ei testattu - infrastruktuuripuolisko toimii kokonaan.</value>
+  </data>
+  <data name="No pattern covers {0}, and it does not resolve back to {1}, so no pattern would spare the address." xml:space="preserve">
+    <value>Mikään malli ei kata nimeä {0}, eikä se osoita takaisin osoitteeseen {1}, joten mikään malli ei säästäisi osoitetta.</value>
+  </data>
+  <data name="No pattern covers {0}. It resolves back to {1}, so a pattern covering it would spare the address." xml:space="preserve">
+    <value>Mikään malli ei kata nimeä {0}. Se osoittaa takaisin osoitteeseen {1}, joten sen kattava malli säästäisi osoitteen.</value>
   </data>
   <data name="No port has a client certificate policy, so no CA bundle or client certificates are required." xml:space="preserve">
     <value>Millään portilla ei ole asiakasvarmennekäytäntöä, joten CA-pakettia tai asiakasvarmenteita ei tarvita.</value>
@@ -6795,6 +6855,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="Off" xml:space="preserve">
     <value>Pois</value>
   </data>
+  <data name="Off - do not offer AUTH; refuse it and ban the address" xml:space="preserve">
+    <value>Pois - älä tarjoa AUTHia; hylkää se ja estä osoite</value>
+  </data>
   <data name="Off by default because it costs a term table of a few kilobytes per message and a backfill pass over every message already delivered - an administrator's decision, never an upgrade's. Results are identical on and off: the index only narrows which messages the substring scan has to read. Requires message indexing (above) to be enabled; on its own this indexes nothing." xml:space="preserve">
     <value>Oletuksena pois päältä, koska se maksaa muutaman kilotavun termitaulun viestiä kohden ja täydennysajon jokaisen jo toimitetun viestin yli - ylläpitäjän päätös, ei koskaan päivityksen. Tulokset ovat samat päällä ja pois: indeksi vain kaventaa, mitkä viestit osajonoskannauksen on luettava. Vaatii viestien indeksoinnin (yllä) käyttöönottoa; yksinään tämä ei indeksoi mitään.</value>
   </data>
@@ -6827,6 +6890,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   </data>
   <data name="Off by default. MAIL FROM:&lt;&gt; is no excuse: a delivery report from a server that greets with an address is refused like any other mail from it." xml:space="preserve">
     <value>Oletuksena pois. MAIL FROM:&lt;&gt; ei ole tekosyy: toimitusraportti palvelimelta, joka tervehtii osoitteella, hylätään kuten mikä tahansa muu sen posti.</value>
+  </data>
+  <data name="Off by default. Only when the banned address's own reverse name resolves back to it; at most 32 addresses each way; never into another /24, across an address either never-ban list above spares, or across an IP range of yours that covers one address and not the other; never for IPv6. A reverse lookup that is not answered leaves the single address. A hosting net whose customers all carry one reverse domain is widened whole: list it above, or leave this off." xml:space="preserve">
+    <value>Oletuksena pois päältä. Vain kun estetyn osoitteen oma käänteinen nimi osoittaa takaisin siihen; enintään 32 osoitetta kumpaankin suuntaan; ei koskaan toiseen /24-verkkoon, ei sellaisen osoitteen yli, jonka jompikumpi yllä olevista listoista vapauttaa, eikä sellaisen oman IP-alueesi yli, joka kattaa toisen osoitteen mutta ei toista; ei koskaan IPv6-osoitteille. Käänteinen haku, johon ei vastata, jättää yksittäisen osoitteen ennalleen. Palvelinverkko, jonka kaikilla asiakkailla on sama käänteinen verkkotunnus, laajennetaan kokonaan: lisää se yllä olevaan listaan tai jätä tämä pois päältä.</value>
   </data>
   <data name="Off by default. Operators who drop this in a script today can delete the script when this is on." xml:space="preserve">
     <value>Oletuksena pois. Ne, jotka hylkäävät tämän nykyään skriptillä, voivat poistaa skriptin, kun tämä on päällä.</value>
@@ -6897,6 +6963,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="On" xml:space="preserve">
     <value>Päällä</value>
   </data>
+  <data name="On - offer AUTH and check the password" xml:space="preserve">
+    <value>Päällä - tarjoa AUTH ja tarkista salasana</value>
+  </data>
   <data name="On by default, and inert until somebody sets a recovery address." xml:space="preserve">
     <value>Oletuksena päällä, ja vaikutukseton, kunnes joku asettaa palautusosoitteen.</value>
   </data>
@@ -6959,6 +7028,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   </data>
   <data name="On the TCP/IP ports page, give the submission port (587) STARTTLS with a certificate from the SSL certificates page, or add port 465 with implicit TLS." xml:space="preserve">
     <value>Anna sivulla TCP/IP-portit lähetysportille (587) STARTTLS varmenteella sivulta SSL-varmenteet, tai lisää portti 465 implisiittisellä TLS:llä.</value>
+  </data>
+  <data name="On the TCP/IP ports page, open the SMTP port 25 and set its SMTP authentication to Honeypot or Off, then reinitialize. Mail clients that still sign in on 25 are refused and banned from then on, so move them to 587 first." xml:space="preserve">
+    <value>Avaa TCP/IP-portit-sivulla SMTP-portti 25, aseta sen SMTP-todennukseksi Hunajapurkki tai Pois ja alusta palvelin sitten uudelleen. Postiohjelmat, jotka kirjautuvat yhä porttiin 25, hylätään ja estetään siitä lähtien, joten siirrä ne ensin porttiin 587.</value>
   </data>
   <data name="On the server, from an elevated prompt in the Bin folder: hMailServer.exe --create-stored-secrets-key makes the key, and hMailServer.exe --export-stored-secrets-key FILE exports it. Keep the file with the database backups, stored apart from them." xml:space="preserve">
     <value>Palvelimella, korotetuin oikeuksin avatussa komentokehotteessa Bin-kansiossa: hMailServer.exe --create-stored-secrets-key luo avaimen, ja hMailServer.exe --export-stored-secrets-key FILE vie sen. Säilytä tiedosto tietokannan varmuuskopioiden kanssa, mutta erillään niistä.</value>
@@ -7115,6 +7187,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   </data>
   <data name="Open the Control Panel on the server itself to change the account the service runs as or grant it its folders." xml:space="preserve">
     <value>Avaa Control Panel itse palvelimella vaihtaaksesi palvelun tilin tai myöntääksesi sille sen kansiot.</value>
+  </data>
+  <data name="Open the SMTP port 25 and set its SMTP authentication to Honeypot or Off: AUTH there is refused without the password being looked at, and the address that sent it is banned." xml:space="preserve">
+    <value>Avaa SMTP-portti 25 ja aseta sen SMTP-todennukseksi Hunajapurkki tai Pois: AUTH hylätään siellä katsomatta salasanaa, ja sen lähettänyt osoite estetään.</value>
   </data>
   <data name="Open the delivery queue" xml:space="preserve">
     <value>Avaa toimitusjono</value>
@@ -7541,11 +7616,20 @@ Uusia yhteyksiä ei hyväksytä eikä postia toimiteta, ennen kuin se jatketaan.
   <data name="Port 25 is judged differently from the rest and deliberately so: the peer there is normally another mail server, and requiring encryption on it refuses mail from senders that cannot offer any. On every other port the peer is a client with a password." xml:space="preserve">
     <value>Porttia 25 arvioidaan eri tavalla kuin muita, ja tarkoituksella: vastapuoli siellä on yleensä toinen postipalvelin, ja salauksen vaatiminen siinä hylkää postin lähettäjiltä, jotka eivät voi tarjota sitä. Jokaisessa muussa portissa vastapuoli on asiakas, jolla on salasana.</value>
   </data>
+  <data name="Port 25 is where other servers deliver mail, and no mail client should sign in there. Off and Honeypot never look at a password: AUTH is answered 502, and the first one of a session bans the address for the auto-ban minutes - never this computer, nor an address on the never-ban lists. Honeypot goes on offering AUTH, as bait. Mail clients sign in on 587." xml:space="preserve">
+    <value>Porttiin 25 muut palvelimet toimittavat postia, eikä mikään postiohjelma saisi kirjautua siihen. Pois ja Hunajapurkki eivät koskaan katso salasanaa: AUTHiin vastataan 502, ja istunnon ensimmäinen estää osoitteen automaattisen eston minuuteiksi - ei koskaan tätä tietokonetta eikä osoitetta, joka on koskaan estämättömien luetteloissa. Hunajapurkki tarjoaa AUTHia edelleen, syöttinä. Postiohjelmat kirjautuvat porttiin 587.</value>
+  </data>
+  <data name="Port 25 is where other servers deliver mail, and no mail client should sign in there: an AUTH on it is a password being guessed." xml:space="preserve">
+    <value>Porttiin 25 muut palvelimet toimittavat postia, eikä mikään postiohjelma saisi kirjautua siihen: siihen tuleva AUTH on salasanan arvaamista.</value>
+  </data>
   <data name="Port binding" xml:space="preserve">
     <value>Portin sidonta</value>
   </data>
   <data name="Port for http-01 challenges" xml:space="preserve">
     <value>Portti http-01-haasteille</value>
+  </data>
+  <data name="Port {0} does not offer AUTH: DisableAUTHList names it, and an AUTH sent there is refused without a ban." xml:space="preserve">
+    <value>Portti {0} ei tarjoa AUTHia: DisableAUTHList nimeää sen, ja sinne lähetetty AUTH hylätään ilman estoa.</value>
   </data>
   <data name="Port {0} is set to TLS but has no certificate, so TLS cannot start." xml:space="preserve">
     <value>Portti {0} on asetettu TLS:lle, mutta sillä ei ole varmennetta, joten TLS ei voi käynnistyä.</value>
@@ -7555,6 +7639,18 @@ Uusia yhteyksiä ei hyväksytä eikä postia toimiteta, ennen kuin se jatketaan.
   </data>
   <data name="Port {0} offers TLS with {1}, the self-signed certificate this installation made: mail clients warn about it until it is replaced with one a certificate authority issued, which ACME can fetch from Let's Encrypt." xml:space="preserve">
     <value>Portti {0} tarjoaa TLS:n varmenteella {1}, jonka tämä asennus loi itse allekirjoitettuna: sähköpostiohjelmat varoittavat siitä, kunnes se korvataan varmentajan myöntämällä varmenteella, jonka ACME voi hakea palvelusta Let's Encrypt.</value>
+  </data>
+  <data name="Port {0} still accepts AUTH: it is where other servers deliver mail, and a password tried there is a guess. Set its SMTP authentication to Honeypot or Off, and sign mail clients in on 587." xml:space="preserve">
+    <value>Portti {0} ottaa yhä vastaan AUTHin: siihen muut palvelimet toimittavat postia, ja siinä kokeiltu salasana on arvaus. Aseta sen SMTP-todennukseksi Hunajapurkki tai Pois, ja kirjaa postiohjelmat porttiin 587.</value>
+  </data>
+  <data name="Port {0} takes no password, but AutoBanMinutes is 0, so an address that sends AUTH there is refused and not banned." xml:space="preserve">
+    <value>Portti {0} ei ota vastaan salasanoja, mutta AutoBanMinutes on 0, joten sinne AUTHin lähettävä osoite hylätään eikä sitä estetä.</value>
+  </data>
+  <data name="Port {0} takes no password: EHLO does not offer AUTH there, and an address that sends one anyway is refused and banned." xml:space="preserve">
+    <value>Portti {0} ei ota vastaan salasanoja: EHLO ei tarjoa siellä AUTHia, ja osoite, joka silti lähettää sellaisen, hylätään ja estetään.</value>
+  </data>
+  <data name="Port {0} takes no password: EHLO offers AUTH there as bait, and an address that sends one is refused and banned." xml:space="preserve">
+    <value>Portti {0} ei ota vastaan salasanoja: EHLO tarjoaa siellä AUTHia syöttinä, ja osoite, joka lähettää sellaisen, hylätään ja estetään.</value>
   </data>
   <data name="Port {0} takes submission without TLS, so passwords and mail would cross the network in the clear." xml:space="preserve">
     <value>Portti {0} ottaa lähetyksiä vastaan ilman TLS:ää, joten salasanat ja posti kulkisivat verkossa selväkielisinä.</value>
@@ -7894,6 +7990,9 @@ Uusia yhteyksiä ei hyväksytä eikä postia toimiteta, ennen kuin se jatketaan.
   </data>
   <data name="Re_move action" xml:space="preserve">
     <value>Poi_sta toiminto</value>
+  </data>
+  <data name="Re_move name" xml:space="preserve">
+    <value>_Poista nimi</value>
   </data>
   <data name="Re_move the rule" xml:space="preserve">
     <value>Poista _sääntö</value>
@@ -8241,6 +8340,9 @@ Aja tämä, jos asiakkaat raportoivat viestien näkyvän väärän UID:n alla, t
   <data name="Remove from the domain list" xml:space="preserve">
     <value>Poista verkkotunnusluettelosta</value>
   </data>
+  <data name="Remove from the never-ban list" xml:space="preserve">
+    <value>Poista ei koskaan estettävien listalta</value>
+  </data>
   <data name="Remove from the suppression list" xml:space="preserve">
     <value>Poista estolistalta</value>
   </data>
@@ -8282,6 +8384,11 @@ Aja tämä, jos asiakkaat raportoivat viestien näkyvän väärän UID:n alla, t
 
 Musta verkkotunnus hyväksytään heti uudelleen; valkoinen verkkotunnus palaa greylistingin ja roskapostipisteytyksen piiriin seuraavasta istunnosta alkaen.</value>
   </data>
+  <data name="Remove {0} from the never-ban list?&#10;&#10;An address it spared can be auto-banned again from the next ban on." xml:space="preserve">
+    <value>Poistetaanko {0} ei koskaan estettävien listalta?
+
+Sen säästämä osoite voidaan estää automaattisesti taas seuraavasta estosta alkaen.</value>
+  </data>
   <data name="Remove {0} from {1}?&#13;&#10;&#13;&#10;Any access this group has been granted stops applying to that account." xml:space="preserve">
     <value>Poistetaanko {0} ryhmästä {1}?
 
@@ -8311,10 +8418,10 @@ Postilaatikko ja sen viestit siirtyvät uuteen osoitteeseen. Vanhaan osoitteesee
 
 Jokainen mukautettu alue - myös kaikki automaattisen eston merkinnät - poistetaan ja korvataan alueilla 'Oma tietokone' (127.0.0.1) ja 'Internet' (kaikki muu). Tämä muuttaa heti, kuka saa yhdistää ja välittää.</value>
   </data>
-  <data name="Replace ALL configured ports with the defaults?&#10;&#10;SMTP 25 and 587, POP3 110, IMAP 143 - without connection security. TLS ports and custom bindings will be removed. The change takes effect when the server is reinitialized." xml:space="preserve">
+  <data name="Replace ALL configured ports with the defaults?&#10;&#10;SMTP 25 and 587, POP3 110, IMAP 143 - without connection security, and with SMTP authentication On on both SMTP ports, so a port 25 that is a honeypot takes AUTH again. TLS ports and custom bindings will be removed. The change takes effect when the server is reinitialized." xml:space="preserve">
     <value>Korvataanko KAIKKI määritetyt portit oletuksilla?
 
-SMTP 25 ja 587, POP3 110, IMAP 143 - ilman yhteyden suojausta. TLS-portit ja mukautetut sidonnat poistetaan. Muutos tulee voimaan, kun palvelin alustetaan uudelleen.</value>
+SMTP 25 ja 587, POP3 110, IMAP 143 - ilman yhteyden suojausta ja SMTP-todennus Päällä molemmissa SMTP-porteissa, joten hunajapurkkina toimiva portti 25 ottaa taas AUTHin vastaan. TLS-portit ja mukautetut sidonnat poistetaan. Muutos tulee voimaan, kun palvelin alustetaan uudelleen.</value>
   </data>
   <data name="Replace the certificate here; the expiry date of each one is listed." xml:space="preserve">
     <value>Korvaa varmenne täällä; jokaisen vanhenemispäivä on lueteltu.</value>
@@ -8843,6 +8950,9 @@ Jatketaanko?</value>
   </data>
   <data name="SURBL servers are checked against the links inside the message." xml:space="preserve">
     <value>SURBL-palvelimia vasten tarkistetaan viestin sisällä olevat linkit.</value>
+  </data>
+  <data name="S_MTP authentication" xml:space="preserve">
+    <value>S_MTP-todennus</value>
   </data>
   <data name="S_witch the rule over" xml:space="preserve">
     <value>_Vaihda säännön tila</value>
@@ -11025,6 +11135,12 @@ Lisätäänkö silti?</value>
   <data name="The retry counts and intervals are here, along with what happens when they run out." xml:space="preserve">
     <value>Uudelleenyritysten määrät ja välit ovat täällä, samoin se, mitä tapahtuu, kun ne loppuvat.</value>
   </data>
+  <data name="The reverse lookup of {0} was not answered, so the list cannot spare it now. Try again, or list the address in AutoBanNeverBan." xml:space="preserve">
+    <value>Osoitteen {0} käänteiseen hakuun ei vastattu, joten lista ei voi säästää sitä nyt. Yritä uudelleen tai lisää osoite kohtaan AutoBanNeverBan.</value>
+  </data>
+  <data name="The reverse name {0} is an address or a public suffix, which the list never matches. List the address in AutoBanNeverBan instead." xml:space="preserve">
+    <value>Käänteinen nimi {0} on osoite tai julkinen pääte, jota lista ei koskaan vertaa. Lisää osoite sen sijaan kohtaan AutoBanNeverBan.</value>
+  </data>
   <data name="The rotation refused: {0}" xml:space="preserve">
     <value>Kierrätys kieltäytyi: {0}</value>
   </data>
@@ -11161,6 +11277,12 @@ Tähän vastaa palvelimen oma nimiselvitin - sama, jota SMTP-toimitus käyttää
   </data>
   <data name="The server's answer could not be read: {0}" xml:space="preserve">
     <value>Palvelimen vastausta ei voitu lukea: {0}</value>
+  </data>
+  <data name="The server's answer has no list of entries." xml:space="preserve">
+    <value>Palvelimen vastauksessa ei ole merkintöjen listaa.</value>
+  </data>
+  <data name="The server's answer has no verdict." xml:space="preserve">
+    <value>Palvelimen vastauksessa ei ole tulosta.</value>
   </data>
   <data name="The server's answer is not a settings group." xml:space="preserve">
     <value>Palvelimen vastaus ei ole asetusryhmä.</value>
@@ -12329,6 +12451,12 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="Why it is listed" xml:space="preserve">
     <value>Miksi se on listalla</value>
   </data>
+  <data name="Widen a ban to its neighbours" xml:space="preserve">
+    <value>Laajenna esto naapureihin</value>
+  </data>
+  <data name="Widen an auto-ban to the neighbouring addresses whose reverse names share its domain" xml:space="preserve">
+    <value>Laajenna automaattinen esto naapuriosoitteisiin, joiden käänteiset nimet ovat samassa verkkotunnuksessa</value>
+  </data>
   <data name="Wiki the help pane's &quot;Open on the wiki&quot; link points at (empty hides the link)" xml:space="preserve">
     <value>Wiki, johon ohjepaneelin ”Avaa wikissä” osoittaa (tyhjä piilottaa linkin)</value>
   </data>
@@ -12466,6 +12594,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="_Add folder" xml:space="preserve">
     <value>_Lisää kansio</value>
+  </data>
+  <data name="_Add name…" xml:space="preserve">
+    <value>_Lisää nimi…</value>
   </data>
   <data name="_Add rule" xml:space="preserve">
     <value>_Lisää sääntö</value>
@@ -12763,6 +12894,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="_Name" xml:space="preserve">
     <value>_Nimi</value>
+  </data>
+  <data name="_Name or suffix" xml:space="preserve">
+    <value>_Nimi tai pääte</value>
   </data>
   <data name="_New accounts start with their keys published" xml:space="preserve">
     <value>_Uudet tilit alkavat avaimet julkaistuina</value>
@@ -13512,6 +13646,12 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="mail is stuck" xml:space="preserve">
     <value>posti on jumissa</value>
   </data>
+  <data name="mail.example.net is that name alone; .example.net is the name and every name beneath it. Never a public suffix such as .com, and never a cloud whose customers' machines carry the provider's name." xml:space="preserve">
+    <value>mail.example.net on vain tuo nimi; .example.net on nimi ja jokainen sen alla oleva nimi. Ei koskaan julkinen pääte kuten .com, eikä koskaan pilvi, jonka asiakkaiden koneet kantavat palveluntarjoajan nimeä.</value>
+  </data>
+  <data name="mail.example.net is that name alone; .example.net is the name and every name beneath it. The reverse lookup is never waited for on a connection: a ban placed before the answer is in is lifted once it is, before the firewall or fail2ban is told. A net with no reverse name, or one you do not trust, still belongs in the address list above." xml:space="preserve">
+    <value>mail.example.net on vain tuo nimi; .example.net on nimi ja jokainen sen alla oleva nimi. Käänteistä hakua ei koskaan odoteta yhteyden aikana: ennen vastausta asetettu esto puretaan, kun vastaus tulee, ennen kuin palomuurille tai fail2banille kerrotaan. Verkko, jolla ei ole käänteistä nimeä tai jonka nimeen et luota, kuuluu yhä yllä olevaan osoitelistaan.</value>
+  </data>
   <data name="make awstats work" xml:space="preserve">
     <value>saa awstats toimimaan</value>
   </data>
@@ -13736,6 +13876,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="stop forwarded mail failing spf" xml:space="preserve">
     <value>estä edelleenlähetettyä postia epäonnistumasta spf:ssä</value>
+  </data>
+  <data name="stop password guessing on port 25 with a honeypot" xml:space="preserve">
+    <value>estä salasanojen arvailu portissa 25 hunajapurkilla</value>
   </data>
   <data name="stop spam" xml:space="preserve">
     <value>pysäytä roskaposti</value>
@@ -14127,6 +14270,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="{0} has no postmaster address configured, and this page will not invent a mailbox - enter the address that should receive the reports. Until one is entered there is no record to copy." xml:space="preserve">
     <value>{0}:lle ei ole määritetty postmaster-osoitetta, eikä tämä sivu keksi postilaatikkoa - syötä osoite, jonka pitäisi vastaanottaa raportit. Kunnes sellainen on syötetty, ei ole tietuetta kopioitavaksi.</value>
   </data>
+  <data name="{0} has no reverse name, so no pattern can spare it. List the address in AutoBanNeverBan instead." xml:space="preserve">
+    <value>Osoitteella {0} ei ole käänteistä nimeä, joten mikään malli ei voi säästää sitä. Lisää osoite sen sijaan kohtaan AutoBanNeverBan.</value>
+  </data>
   <data name="{0} held, showing the {1} most recent. The rest are still there - work through these, or let the retention sweep age them out." xml:space="preserve">
     <value>{0} pidätetty, näytetään {1} uusinta. Loput ovat yhä tallessa - käy nämä läpi tai anna säilytyssiivouksen vanhentaa ne.</value>
   </data>
@@ -14142,17 +14288,29 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="{0} is available" xml:space="preserve">
     <value>{0} on saatavilla</value>
   </data>
+  <data name="{0} is covered by {1} but does not resolve back to {2}, so it is not spared: anybody who holds an address can write its reverse name." xml:space="preserve">
+    <value>{0} on mallin {1} kattama, mutta se ei osoita takaisin osoitteeseen {2}, joten osoitetta ei säästetä: kuka tahansa osoitteen haltija voi kirjoittaa sen käänteisen nimen itse.</value>
+  </data>
+  <data name="{0} is covered by {1}, but its forward lookup was not answered, so {2} is not spared now." xml:space="preserve">
+    <value>{0} on mallin {1} kattama, mutta sen suoraan hakuun ei vastattu, joten osoitetta {2} ei nyt säästetä.</value>
+  </data>
   <data name="{0} is downloaded and verified" xml:space="preserve">
     <value>{0} on ladattu ja tarkistettu</value>
   </data>
   <data name="{0} is here with the mailboxes {1}, the list {2} and one rule that files invoices. The one password for all of them was shown when it was made and was not kept - remove the sample and make it again to be given another. It is left out of the first-hour checklist, because a sample domain is not this server's first domain." xml:space="preserve">
     <value>{0} on täällä: postilaatikot {1}, lista {2} ja yksi sääntö, joka arkistoi laskut. Kaikkien postilaatikoiden yhteinen salasana näytettiin näytettä luotaessa eikä sitä tallennettu; poista näyte ja luo se uudelleen saadaksesi uuden. Se jätetään ensimmäisen tunnin tarkistuslistan ulkopuolelle, koska näytetoimialue ei ole tämän palvelimen ensimmäinen toimialue.</value>
   </data>
+  <data name="{0} is never auto-banned: its reverse name {1} resolves back to it and is covered by {2}." xml:space="preserve">
+    <value>Osoitetta {0} ei koskaan estetä automaattisesti: sen käänteinen nimi {1} osoittaa takaisin siihen ja on mallin {2} kattama.</value>
+  </data>
   <data name="{0} is on but scores 0, so it costs a lookup on every message and can never change the outcome. Give it a score, or turn it off." xml:space="preserve">
     <value>{0} on päällä, mutta sen pistemäärä on 0, joten se maksaa haun jokaisesta viestistä eikä voi koskaan muuttaa lopputulosta. Anna sille pistemäärä tai kytke se pois.</value>
   </data>
   <data name="{0} is on the list. It applies to the next session from that domain." xml:space="preserve">
     <value>{0} on luettelossa. Se koskee seuraavaa istuntoa siitä verkkotunnuksesta.</value>
+  </data>
+  <data name="{0} is on the never-ban list. It applies to the next ban." xml:space="preserve">
+    <value>{0} on ei koskaan estettävien listalla. Koskee seuraavasta estosta alkaen.</value>
   </data>
   <data name="{0} is on the suppression list of {1}." xml:space="preserve">
     <value>{0} on verkkotunnuksen {1} estolistalla.</value>
@@ -14340,8 +14498,14 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="{0} was not on the list any more." xml:space="preserve">
     <value>{0} ei ollut enää listalla.</value>
   </data>
+  <data name="{0} was not on the never-ban list any more." xml:space="preserve">
+    <value>{0} ei ollut enää ei koskaan estettävien listalla.</value>
+  </data>
   <data name="{0} was removed from the list." xml:space="preserve">
     <value>{0} poistettiin listalta.</value>
+  </data>
+  <data name="{0} was removed from the never-ban list." xml:space="preserve">
+    <value>{0} poistettiin ei koskaan estettävien listalta.</value>
   </data>
   <data name="{0} was removed: {1} mailbox(es), {2} distribution list(s), {3} rule(s) and {4} message(s) went with it." xml:space="preserve">
     <value>{0} poistettiin: mukana lähti {1} postilaatikkoa, {2} jakelulistaa, {3} sääntöä ja {4} viestiä.</value>

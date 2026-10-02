@@ -523,9 +523,10 @@ const PORT_PROPS = {
    connection_security: { type: 'string', enum: ['none', 'tls', 'starttls_optional', 'starttls_required'] },
    certificate_id: { type: 'integer' },
    client_certificate_policy: { type: 'string', enum: ['off', 'request', 'require'] },
-   client_certificate_ca_file: { type: 'string' }
+   client_certificate_ca_file: { type: 'string' },
+   smtp_authentication: { type: 'string', enum: ['on', 'off', 'honeypot'] }
 };
-const PORTS_POST = 'The listeners are created when the server starts, so a port added here takes effect when the server restarts. address defaults to 0.0.0.0, connection_security to none, certificate_id to 0 and client_certificate_policy to off. tls and both starttls values need a certificate_id, and a client certificate policy other than off needs a CA file and a security that runs a handshake - the same refusals the Control Panel meets, in the same words. Server-wide; refused for domain-restricted keys.';
+const PORTS_POST = 'The listeners are created when the server starts, so a port added here takes effect when the server restarts. address defaults to 0.0.0.0, connection_security to none, certificate_id to 0, client_certificate_policy to off and smtp_authentication to on. tls and both starttls values need a certificate_id, and a client certificate policy other than off needs a CA file and a security that runs a handshake - the same refusals the Control Panel meets, in the same words. Server-wide; refused for domain-restricted keys.';
 const PORTS_PUT = 'The whole record, with the fields and defaults of POST: a field left out takes its default, so send back what GET returned with the change made. Takes effect when the server restarts. Server-wide; refused for domain-restricted keys.';
 const PORTS_DELETE = 'The row is gone at once; the listener stays up until the server restarts. Server-wide; refused for domain-restricted keys.';
 const REINITIALIZE = 'What the Control Panel\'s Reinitialize does: every service is stopped, the configuration reloaded and the services started again in the same process, so that a port, a certificate binding or a setting the document marks as taking effect on restart takes effect now. Answers before it happens, because the REST listener itself restarts: poll GET /api/v1/status until it answers again. Server-wide; refused for domain-restricted and read-only keys.';
@@ -651,7 +652,12 @@ const COLLECTION_SPECS = {
    // words are enums in the document, which the form draws as selects.
    '/api/v1/domain-policy-list': { props: { pattern: { type: 'string' }, match_on: { type: 'string', 'enum': ['envelope', 'helo', 'both'] }, action: { type: 'string', 'enum': ['white', 'black'] }, note: { type: 'string' } }, required: ['pattern'], noun: 'domain policy list entry',
       get: 'The sending organisations this server has decided about by domain rather than by address (AntiSpam.DomainPolicyList over COM). Each entry: id, pattern, match_on, action, note and created. Server-wide; refused for domain-restricted keys.',
-      post: 'Body: pattern (required; a domain, or .domain for the domain and everything beneath it), match_on (envelope, helo or both; both by default), action (white or black; white by default) and note. The pair of pattern and match_on is unique. In force for the next session. Server-wide; refused for domain-restricted and read-only keys.' }
+      post: 'Body: pattern (required; a domain, or .domain for the domain and everything beneath it), match_on (envelope, helo or both; both by default), action (white or black; white by default) and note. The pair of pattern and match_on is unique. In force for the next session. Server-wide; refused for domain-restricted and read-only keys.' },
+   // The never-ban list by reverse name (RestApiNeverBanNames.cpp): the
+   // eleventh, a pattern and a note, and the one collection with a check.
+   '/api/v1/never-ban-names': { props: { pattern: { type: 'string' }, note: { type: 'string' } }, required: ['pattern'], noun: 'never-ban list entry',
+      get: 'Providers this server never auto-bans, named by the reverse names of their hosts (Settings.AutoBanNeverBanNames over COM). Each entry: id, pattern, note and created. Server-wide; refused for domain-restricted keys.',
+      post: 'Body: pattern (required; a host name, or .domain for the domain and every name beneath it) and note. The pattern is unique. In force for the next ban. Server-wide; refused for domain-restricted and read-only keys.' }
 };
 const COLLECTION_PUT = 'Body: any subset of the fields POST takes; a field left out keeps its value. Nothing changes when the body is refused. Server-wide; refused for domain-restricted and read-only keys.';
 function collectionPaths() {
@@ -1624,7 +1630,8 @@ const state = {
       '/api/v1/incoming-relays': [{ id: 17, name: 'Front relay', lower_ip: '192.0.2.1', upper_ip: '192.0.2.1' }],
       '/api/v1/sender-list': [{ id: 18, scope: 'server', value: 'partner.example', blocked: false, reason: 'Their invoices kept scoring', expires: false, expires_time: '', expired: false, created: '2026-09-15 08:00:00' }],
       '/api/v1/greylisting-bypass': [{ id: 19, pattern: '.mail.partner.example', match: 'helo', require_spf: true, require_dkim: true, require_dmarc: false, note: 'Their gateway retries on a timer' }],
-      '/api/v1/domain-policy-list': [{ id: 19, pattern: '.sloppy-partner.example', match_on: 'helo', action: 'white', note: 'Their SPF has been broken since 2019', created: '2026-09-18 08:00:00' }]
+      '/api/v1/domain-policy-list': [{ id: 19, pattern: '.sloppy-partner.example', match_on: 'helo', action: 'white', note: 'Their SPF has been broken since 2019', created: '2026-09-18 08:00:00' }],
+      '/api/v1/never-ban-names': [{ id: 20, pattern: '.google.com', note: "Gmail's outbound hosts", created: '2026-10-01 09:00:00' }]
    },
    groups: [{ id: 3, name: 'Support' }, { id: 4, name: 'Everyone' }],
    groupMembers: { 3: [{ id: 30, group_id: 3, account_id: 1, account: 'anna@example.com' }], 4: [] },
@@ -1852,8 +1859,8 @@ const state = {
    ],
    certificates: [{ id: 2, name: 'mail.example.com', certificate_file: '/etc/ssl/mail.pem', private_key_file: '/etc/ssl/mail.key' }],
    ports: [
-      { id: 1, protocol: 'smtp', address: '0.0.0.0', port: 25, connection_security: 'starttls_optional', certificate_id: 2, client_certificate_policy: 'off', client_certificate_ca_file: '' },
-      { id: 2, protocol: 'imap', address: '0.0.0.0', port: 143, connection_security: 'none', certificate_id: 0, client_certificate_policy: 'off', client_certificate_ca_file: '' }
+      { id: 1, protocol: 'smtp', address: '0.0.0.0', port: 25, connection_security: 'starttls_optional', certificate_id: 2, client_certificate_policy: 'off', client_certificate_ca_file: '', smtp_authentication: 'honeypot' },
+      { id: 2, protocol: 'imap', address: '0.0.0.0', port: 143, connection_security: 'none', certificate_id: 0, client_certificate_policy: 'off', client_certificate_ca_file: '', smtp_authentication: 'on' }
    ],
    logs: [
       { name: 'hmailserver_2026-09-14.log', size: 2048, created: '2026-09-14 00:00:01' },
@@ -1936,6 +1943,10 @@ const state = {
             // A range whose listeners have no TLS to start: no fix - requiring TLS
             // there would lock everybody out - and a button to the Ports view.
             { state: 'action_needed', code: 'sign_in_no_tls', args: ['Lab', '8025'], text: 'the server sentence the page does not use' }] },
+         // Port 25 still takes AUTH (GitLab work item #54): no fix - changing the
+         // listener arms the ban - and a button to the Ports view.
+         { key: 'delivery_port_auth', state: 'action_needed', findings: [
+            { state: 'action_needed', code: 'delivery_port_auth_on', args: ['25'], text: 'the server sentence the page does not use' }] },
          { key: 'spf', state: 'action_needed', findings: [{ state: 'action_needed', code: 'record_missing', args: ['example.com', 'SPF', 'example.com'], text: 'example.com: no SPF record at example.com.' }] },
          { key: 'dkim', state: 'cannot_tell', findings: [{ state: 'cannot_tell', code: 'lookup_failed', args: ['example.com', 'DKIM', 'mail._domainkey.example.com'], text: 'example.com: the lookup for mail._domainkey.example.com failed, which says nothing about the DKIM record.' }] },
          { key: 'dmarc', state: 'done', findings: [{ state: 'done', code: 'record_published', args: ['example.com', 'DMARC', '_dmarc.example.com'], text: 'example.com: the DMARC record at _dmarc.example.com is published.' }] },
@@ -2921,6 +2932,20 @@ function answer(method, path, headers, raw) {
       }
       if (at < 0) { return json(404, { error: 'ip range not found' }); }
       if (method === 'DELETE') { state.ranges.splice(at, 1); return json(200, { deleted: true }); }
+   }
+
+   // What the never-ban list would decide about an address, as
+   // NeverBanNameList::Check answers it: one address the recorded server
+   // spares, any other not, and text that is not an address refused.
+   if (path === '/api/v1/never-ban-names/check' && method === 'POST') {
+      const address = String(parsed.address || '').trim();
+      if (!/^[0-9a-fA-F.:]+$/.test(address)) { return json(400, { error: 'address must be an IPv4 or IPv6 address, such as 192.0.2.10 or 2001:db8::25' }); }
+      if (address === '209.85.220.41') {
+         return json(200, { address: address, reverse_names: [{ name: 'mail-sor-f41.google.com', usable: true, pattern: '.google.com', resolves_back: true }], answered: true, spared: true,
+            name: 'mail-sor-f41.google.com', pattern: '.google.com', reason: 'its reverse name mail-sor-f41.google.com resolves back to it and is covered by .google.com on the never-ban list' });
+      }
+      return json(200, { address: address, reverse_names: [{ name: 'mail.google.com', usable: true, pattern: '.google.com', resolves_back: false }], answered: true, spared: false,
+         name: 'mail.google.com', pattern: '.google.com', reason: 'its reverse name mail.google.com is covered by .google.com on the never-ban list but does not resolve back to it, so anybody could have written it' });
    }
 
    // The seven small collections, each in the same shape: the body read
@@ -6172,17 +6197,21 @@ async function main() {
    await goTo('lists');
    check('the Lists view reads the nine collections', Object.keys(COLLECTION_SPECS).every((p) => called(before, 'GET', p).length === 1) && $('#viewTitle').textContent === 'Lists', paths(before));
    const tables = content().querySelectorAll('table');
-   check('one table per collection, each with its entry\'s own columns and a row per entry', tables.length === 10 && tables.every((t) => t.querySelectorAll('tbody tr').length === 1) &&
+   check('one table per collection, each with its entry\'s own columns and a row per entry', tables.length === 11 && tables.every((t) => t.querySelectorAll('tbody tr').length === 1) &&
       tables[0].querySelectorAll('th').map((h) => h.textContent).join(',') === 'Active,DNS host,Expected result,Reject message,Score,' &&
       tables[7].querySelectorAll('th').map((h) => h.textContent).join(',') === 'Name,Lower IP,Upper IP,' &&
       tables[8].querySelectorAll('th').map((h) => h.textContent).join(',') === 'Pattern,Match,Require SPF,Require DKIM,Require DMARC,Note,' &&
-      tables[9].querySelectorAll('th').map((h) => h.textContent).join(',') === 'Pattern,Match on,Action,Note,', tables.length + ' tables');
+      tables[9].querySelectorAll('th').map((h) => h.textContent).join(',') === 'Pattern,Match on,Action,Note,' &&
+      tables[10].querySelectorAll('th').map((h) => h.textContent).join(',') === 'Pattern,Note,Created,', tables.length + ' tables');
    check('a flag is yes or no, and the values are the entries\' own', tables[0].querySelector('.badge.good') !== null && tables[1].querySelector('.badge.warn') !== null &&
       tables[0].textContent.indexOf('zen.spamhaus.org') >= 0 && tables[4].textContent.indexOf('*.exe') >= 0 && tables[5].textContent.indexOf('partner.example') >= 0 &&
       tables[6].textContent.indexOf('10.0.0.*') >= 0 && tables[7].textContent.indexOf('Front relay') >= 0 && tables[8].textContent.indexOf('.mail.partner.example') >= 0 &&
       tables[9].textContent.indexOf('.sloppy-partner.example') >= 0);
    check('each section carries its route\'s own sentence and an Add', content().textContent.indexOf('AntiVirus.BlockedAttachments over COM') >= 0 &&
-      COLLECTION_SPECS && ['dnsbl', 'surbl', 'whitelist', 'blocked', 'attachments', 'senderlist', 'greylist', 'relays', 'greybypass', 'domainpolicy'].every((id) => act('collnew', { coll: id }) !== null));
+      COLLECTION_SPECS && ['dnsbl', 'surbl', 'whitelist', 'blocked', 'attachments', 'senderlist', 'greylist', 'relays', 'greybypass', 'domainpolicy', 'neverban'].every((id) => act('collnew', { coll: id }) !== null));
+   const checkButtons = content().querySelectorAll('button[data-act="collcheck"]');
+   check('the never-ban list is the one collection with a check, and the others have none', checkButtons.length === 1 && checkButtons[0].attributes['data-coll'] === 'neverban' &&
+      document.getElementById('chk_neverban') !== null && ['dnsbl', 'domainpolicy', 'greybypass'].every((id) => document.getElementById('chk_' + id) === null), JSON.stringify(checkButtons.map((b) => b.attributes)));
    click(act('collnew', { coll: 'dnsbl' }));
    await flush();
    const drawnColl = content().querySelectorAll('input, select, textarea').map((el) => el.id).filter((id) => id.indexOf('coll_') === 0).map((id) => id.slice(5)).sort();
@@ -6297,6 +6326,34 @@ async function main() {
    click(act('colldel', { coll: 'whitelist', id: 13 }));
    await flush();
    check('a refused delete is shown on its row', document.getElementById('err_coll_whitelist_13').textContent === 'The white list is in use.');
+   // The never-ban list's check: nothing is asked without an address, an
+   // address the server spares says so with its reverse name, one it does not
+   // says that too and why, and text that is not an address is the server's
+   // refusal - each beside the case it must not be taken for.
+   before = requests.length;
+   click(act('collcheck', { coll: 'neverban' }));
+   await flush();
+   check('a check with no address asks the server nothing and says why', called(before, 'POST', '/api/v1/never-ban-names/check').length === 0 &&
+      document.getElementById('err_chk_neverban').textContent === 'Type an address first.');
+   setValue('chk_neverban', ' 209.85.220.41 ');
+   before = requests.length;
+   click(act('collcheck', { coll: 'neverban' }));
+   await flush();
+   posted = lastBody(before, 'POST', '/api/v1/never-ban-names/check');
+   const spareOut = document.getElementById('out_chk_neverban').textContent;
+   check('a check posts the trimmed address alone and shows a spared verdict with its reverse name', JSON.stringify(posted) === '{"address":"209.85.220.41"}' &&
+      spareOut.indexOf('Spared from auto-ban') >= 0 && spareOut.indexOf('Not spared') < 0 && spareOut.indexOf('mail-sor-f41.google.com') >= 0 &&
+      document.getElementById('out_chk_neverban').querySelectorAll('tbody tr').length === 1, spareOut);
+   setValue('chk_neverban', '203.0.113.9');
+   click(act('collcheck', { coll: 'neverban' }));
+   await flush();
+   const refuseOut = document.getElementById('out_chk_neverban').textContent;
+   check('an address it does not spare says so, and why', refuseOut.indexOf('Not spared') >= 0 && refuseOut.indexOf('Spared from auto-ban') < 0 && refuseOut.indexOf('does not resolve back') >= 0, refuseOut);
+   setValue('chk_neverban', 'not an address');
+   click(act('collcheck', { coll: 'neverban' }));
+   await flush();
+   check('text that is not an address is the server\'s refusal, and the last verdict is gone', document.getElementById('err_chk_neverban').textContent.indexOf('must be an IPv4 or IPv6 address') >= 0 &&
+      document.getElementById('out_chk_neverban').textContent === '');
 
    // ---- the delivery queue
    before = requests.length;
@@ -7203,6 +7260,9 @@ async function main() {
    await goTo('ports');
    check('the ports view reads the ports and the certificates', called(before, 'GET', '/api/v1/ports').length === 1 && called(before, 'GET', '/api/v1/certificates').length === 1 && rows().length === 2);
    check('a port row names its certificate rather than its id', rows()[0].textContent.indexOf('mail.example.com') >= 0 && rows()[0].textContent.indexOf('0.0.0.0:25') >= 0 && rows()[1].textContent.indexOf('—') >= 0);
+   check('an SMTP port says its SMTP authentication, and one that is not SMTP says none, whatever the listing gives it',
+      rows()[0].querySelectorAll('td')[5].textContent === 'Honeypot' && rows()[1].querySelectorAll('td')[5].textContent === '—',
+      rows()[0].querySelectorAll('td')[5].textContent + ' / ' + rows()[1].querySelectorAll('td')[5].textContent);
    check('the restart wording is the document\'s', content().textContent.indexOf('takes effect when the server restarts') >= 0 && content().textContent.indexOf(REINITIALIZE.slice(0, 40)) >= 0);
    check('and it is a notice at the warning level, with the mark and the word beside the colour',
       content().querySelector('.notice[data-level="warn"]') !== null && content().querySelector('.notice .mark').textContent === '\u25b2' &&
@@ -7211,7 +7271,8 @@ async function main() {
    click(act('portnew'));
    await flush();
    check('a new port starts at the defaults the document states in prose', document.getElementById('port_address').value === '0.0.0.0' && document.getElementById('port_connection_security').value === 'none' &&
-      document.getElementById('port_client_certificate_policy').value === 'off' && document.getElementById('port_certificate_id').tagName === 'SELECT' && document.getElementById('port_certificate_id').value === '0',
+      document.getElementById('port_client_certificate_policy').value === 'off' && document.getElementById('port_certificate_id').tagName === 'SELECT' && document.getElementById('port_certificate_id').value === '0' &&
+      document.getElementById('port_smtp_authentication').tagName === 'SELECT' && document.getElementById('port_smtp_authentication').value === 'on',
       'address=' + document.getElementById('port_address').value + ' cert=' + document.getElementById('port_certificate_id').value);
    check('the certificate choice lists the certificates by name', document.getElementById('port_certificate_id').textContent.indexOf('mail.example.com') >= 0 && document.getElementById('port_certificate_id').textContent.indexOf('(none)') >= 0);
    setValue('port_protocol', 'pop3');
@@ -7222,7 +7283,8 @@ async function main() {
    click(act('portsave'));
    await flush();
    posted = lastBody(before, 'POST', '/api/v1/ports');
-   check('saving a new port posts the record with the certificate id as a number', !!posted && posted.protocol === 'pop3' && posted.port === 995 && posted.connection_security === 'tls' && posted.certificate_id === 2 && posted.address === '0.0.0.0',
+   check('saving a new port posts the record with the certificate id as a number', !!posted && posted.protocol === 'pop3' && posted.port === 995 && posted.connection_security === 'tls' && posted.certificate_id === 2 && posted.address === '0.0.0.0' &&
+      posted.smtp_authentication === 'on',
       JSON.stringify(posted));
    check('and the re-read list has three', rows().length === 3 && rows()[2].textContent.indexOf('0.0.0.0:995') >= 0);
    click(act('portedit', { id: 2 }));
@@ -8661,7 +8723,7 @@ async function main() {
    before = requests.length;
    await goTo('checklist');
    check('the checklist view reads the list', called(before, 'GET', '/api/v1/setup/checklist').length === 1, paths(before));
-   check('one card per item, ten of them', content().querySelectorAll('.checkitem').length === 10,
+   check('one card per item, eleven of them', content().querySelectorAll('.checkitem').length === 11,
       String(content().querySelectorAll('.checkitem').length));
    check('the first item is the profile, drawn from this page\'s own words for its code',
       content().querySelectorAll('.checkitem')[0].attributes['data-key'] === 'profile' &&
@@ -8685,6 +8747,14 @@ async function main() {
       content().querySelector('.checkitem[data-key="submission"]').textContent.indexOf('Port 587 takes submission without TLS') >= 0 &&
       content().querySelector('.checkitem[data-key="submission"]').textContent.indexOf('Port 465 offers TLS with the certificate Example.') >= 0,
       content().querySelector('.checkitem[data-key="submission"]').textContent);
+   check('a port 25 that still takes AUTH is drawn as a warning in this page\'s words, with the Ports view and no fix to send',
+      content().querySelector('.checkitem[data-key="delivery_port_auth"] .pill[data-level="warn"]') !== null &&
+      content().querySelector('.checkitem[data-key="delivery_port_auth"]').textContent.indexOf('No password on port 25') >= 0 &&
+      content().querySelector('.checkitem[data-key="delivery_port_auth"]').textContent.indexOf('Port 25 still accepts AUTH') >= 0 &&
+      content().querySelector('.checkitem[data-key="delivery_port_auth"]').textContent.indexOf('the server sentence the page does not use') < 0 &&
+      content().querySelector('.checkitem[data-key="delivery_port_auth"] [data-act="checklistgo"][data-to="ports"]') !== null &&
+      content().querySelector('.checkitem[data-key="delivery_port_auth"] [data-act="checklistfix"]') === null,
+      content().querySelector('.checkitem[data-key="delivery_port_auth"]') ? content().querySelector('.checkitem[data-key="delivery_port_auth"]').innerHTML : 'no item');
    check('a lookup that failed reads as cannot tell, not as missing',
       content().querySelector('.checkitem[data-key="dkim"]').textContent.indexOf('Cannot tell') >= 0 &&
       content().querySelector('.checkitem[data-key="dkim"]').textContent.indexOf('says nothing about the DKIM record') >= 0 &&
@@ -8733,8 +8803,8 @@ async function main() {
    check('a range whose listeners have no TLS to start says to give them STARTTLS first, and offers the Ports view rather than a fix',
       content().querySelector('.checkitem[data-key="sign_in_tls"]').textContent.indexOf('The IP range Lab takes a password without TLS, and port 8025 has no TLS a client could start') >= 0 &&
       content().querySelectorAll('button[data-act="checklistfix"]').length === 1 &&
-      content().querySelectorAll('button[data-act="checklistgo"]').length === 1 &&
-      content().querySelector('button[data-act="checklistgo"]').textContent === 'Ports',
+      content().querySelectorAll('.checkitem[data-key="sign_in_tls"] button[data-act="checklistgo"]').length === 1 &&
+      content().querySelector('.checkitem[data-key="sign_in_tls"] button[data-act="checklistgo"]').textContent === 'Ports',
       content().querySelector('.checkitem[data-key="sign_in_tls"]').textContent);
    click(act('checklistgo'));
    await flush();

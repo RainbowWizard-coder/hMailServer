@@ -81,6 +81,7 @@
 #include "../Common/AntiSpam/FqdnCheck.h"
 #include "../Common/AntiSpam/AntiSpamConfiguration.h"
 #include "../Common/Util/AutoBanFirewall.h"
+#include "../Common/Util/NeverBanNameList.h"
 #include "../Common/Util/Journaling.h"
 #include "../Common/AntiSpam/AuthenticationResults.h"
 #include "../Common/AntiSpam/AuthenticationResultsWriter.h"
@@ -146,6 +147,7 @@ namespace HM
       domain_policy_(DomainPolicyList::VerdictNone),
       multi_recipient_null_sender_(false),
       banned_for_null_sender_(false),
+      auth_on_delivery_port_seen_(false),
       spam_protection_deferred_(false),
       authentication_failure_count_(0),
       esmtp_session_(false),
@@ -239,7 +241,8 @@ namespace HM
 
       std::vector<String> results;
       DNSResolver dns_resolver;
-      if (dns_resolver.GetPTRRecords(lookup_address, results) && results.size() > 0)
+      const bool answered = dns_resolver.GetPTRRecords(lookup_address, results);
+      if (answered && results.size() > 0)
       {
          ptr_host = results[0];
       }
@@ -248,10 +251,21 @@ namespace HM
          LOG_DEBUG("Could not retrieve PTR record for IP (false)! " + lookup_address);
       }
 
-      boost::lock_guard<boost::mutex> guard(ptr_result_mutex_);
-      ptr_record_host_ = ptr_host;
-      ptr_record_for_ip_ = lookup_address;
-      ptr_lookup_completed_ = true;
+      {
+         boost::lock_guard<boost::mutex> guard(ptr_result_mutex_);
+         ptr_record_host_ = ptr_host;
+         ptr_record_for_ip_ = lookup_address;
+         ptr_lookup_completed_ = true;
+      }
+
+      // Every name the lookup got, to the never-ban list by reverse name, on this
+      // worker and after the Received header's name is stored: a name the list
+      // covers is forward-confirmed here and the verdict kept, so that a ban this
+      // session earns later is decided without a lookup on the session's thread.
+      // Nothing at all while the list is empty.
+      IPAddress peer;
+      if (peer.TryParse(lookup_address, false))
+         NeverBanNameList::Learn(peer, results, answered);
    }
 
    void
@@ -2183,10 +2197,15 @@ namespace HM
          std::shared_ptr<IncomingRelays> incomingRelays = Configuration::Instance()->GetSMTPConfiguration()->GetIncomingRelays();
          const bool incomingRelay = incomingRelays && incomingRelays->IsIncomingRelay(GetRemoteEndpointAddress());
 
+         // Known already or not at all: never looked up inside RCPT TO.
+         NeverBanNameList::Verdict sparedByName;
+
          if (incomingRelay)
             banNote = _T("not banned: it is an incoming relay");
          else if (AutoBanFirewall::IsNeverBanned(GetRemoteEndpointAddress()))
             banNote = _T("not banned: AutoBanNeverBan lists it");
+         else if (NeverBanNameList::IsSpared(GetRemoteEndpointAddress(), sparedByName))
+            banNote = _T("not banned: ") + sparedByName.reason;
          else
          {
             AccountLogon logon;
@@ -3680,7 +3699,10 @@ namespace HM
          GetConnectionSecurity() == CSSTARTTLSRequired ||
          GetSecurityRange()->GetRequireTLSForAuth();
 
-      if (GetAuthIsEnabled_() && (IsSSLConnection() || !authRefusedOnCleartext))
+      // A Honeypot listener advertises exactly what an On one would - the same
+      // mechanisms on the same conditions - so that nothing in the reply tells the
+      // two apart; an Off one advertises nothing (GetAuthIsAdvertised_).
+      if (GetAuthIsAdvertised_() && (IsSSLConnection() || !authRefusedOnCleartext))
       {
          String sAuth = "\r\n250-AUTH LOGIN";
 
@@ -4224,6 +4246,10 @@ namespace HM
       ResetCurrentMessage_();
       current_state_ = INITIAL;
 
+      // Another client, judged afresh: its first AUTH on an Off or Honeypot
+      // listener is its own, not one the upstream's previous client spent.
+      auth_on_delivery_port_seen_ = false;
+
       EnqueueWrite_(GetBannerText_());
    }
 
@@ -4257,7 +4283,7 @@ namespace HM
       // it is implemented but not advertised.
       String helpCommands = "DATA EHLO HELO HELP MAIL NOOP QUIT RCPT RSET BDAT";
 
-      if (GetAuthIsEnabled_() && (IsSSLConnection() || GetConnectionSecurity() != CSSTARTTLSRequired))
+      if (GetAuthIsAdvertised_() && (IsSSLConnection() || GetConnectionSecurity() != CSSTARTTLSRequired))
          helpCommands += " AUTH";
 
       if (!IsSSLConnection() &&
@@ -4717,6 +4743,16 @@ namespace HM
       // to every command other than NOOP, EHLO, STARTTLS, or QUIT.
       if (!CheckStartTlsRequired_())
          return;
+
+      // A listener that takes no password (GitLab work item #54) answers before
+      // anything below can look at the mechanism's state, the account or the
+      // password - and before the 503 for a session that has authenticated, so
+      // that a delivery port gives every AUTH the same answer.
+      if (GetListenerSMTPAuthentication() != SAMOn)
+      {
+         RefuseAuthOnDeliveryPort_(sRequest);
+         return;
+      }
 
       if (!GetAuthIsEnabled_())
       {
@@ -6485,6 +6521,149 @@ namespace HM
    {
       const auto authDisabledOnPorts = IniFileSettings::Instance()->GetAuthDisabledOnPorts();
       return authDisabledOnPorts.find(GetLocalEndpointPort()) == authDisabledOnPorts.end();
+   }
+
+   bool
+   SMTPConnection::GetAuthIsAdvertised_()
+   {
+      switch (GetListenerSMTPAuthentication())
+      {
+      case SAMOff:
+         return false;
+      case SAMHoneypot:
+         return true;
+      default:
+         return GetAuthIsEnabled_();
+      }
+   }
+
+   String
+   SMTPConnection::AuthMechanismForLog_(const String &sRequest)
+   {
+      // The word after AUTH, cut at the first space; what follows it - an initial
+      // response, which for PLAIN is the password itself - is never looked at.
+      String rest = sRequest.GetLength() > 4 ? sRequest.Mid(4) : String();
+      rest.TrimLeft();
+
+      const int space = rest.Find(_T(" "));
+      String word = space >= 0 ? rest.Left(space) : rest;
+
+      if (word.IsEmpty())
+         return _T("(none)");
+
+      if (word.GetLength() > 20)
+         return _T("(not a mechanism name)");
+
+      word.MakeUpper();
+
+      for (int i = 0; i < word.GetLength(); i++)
+      {
+         const wchar_t c = word[i];
+         const bool allowed = (c >= L'A' && c <= L'Z') || (c >= L'0' && c <= L'9') || c == L'-' || c == L'_';
+         if (!allowed)
+            return _T("(not a mechanism name)");
+      }
+
+      return word;
+   }
+
+   void
+   SMTPConnection::RefuseAuthOnDeliveryPort_(const String &sRequest)
+   {
+      // GitLab work item #54 (docs/SmtpAuthOnDeliveryPorts.md). Port 25 is where
+      // other servers deliver mail, and nobody has a password to give it; an AUTH
+      // that arrives there is a guess. On an Off or a Honeypot listener it is not a
+      // password check at all: no account is looked up and nothing the client sent
+      // is evaluated, so that the answer and the time it takes are the same for
+      // every user name and every password - there is no "invalid credentials" to
+      // tell a real account from a made-up one. Every AUTH is answered 502 5.5.1,
+      // whatever its mechanism and its argument.
+      //
+      // The first AUTH of a session bans the address for AutoBanMinutes, through
+      // the ban writer the other auto-bans use, so AutoBanFirewall mirrors it below
+      // the server when that is on and the expiry sweep lifts it. Not when the
+      // address is this computer's own (the loopback), on AutoBanNeverBan or spared
+      // by the never-ban list by reverse name - an incoming relay that sends AUTH
+      // is named there - and not for a session that has authenticated, which on a
+      // delivery port only a trusted XCLIENT upstream can have vouched for. One ban
+      // per address while it lasts: AccountLogon finds the range in force and
+      // writes nothing for a second session, and this session's later AUTH lines
+      // are answered without being judged again.
+      //
+      // MAIL FROM from an unauthenticated client is inbound delivery, before this
+      // and after it, as on any listener; RequireSMTPAuthLocalToLocal is decided
+      // where it always was.
+      const String mode = GetListenerSMTPAuthentication() == SAMHoneypot ? _T("honeypot") : _T("off");
+      const String mechanism = AuthMechanismForLog_(sRequest);
+      const int port = GetLocalEndpointPort();
+      const IPAddress peer = GetRemoteEndpointAddress();
+
+      const String described = String(peer.ToString()) + _T(" sent AUTH to port ") + StringParser::IntToString(port) +
+                               _T(" (mechanism ") + mechanism + _T(", listener ") + mode + _T(")");
+
+      if (auth_on_delivery_port_seen_)
+      {
+         LOG_DEBUG(_T("AUTH on a delivery port: ") + described + _T("; refused, judged at its first AUTH in this session."));
+      }
+      else
+      {
+         auth_on_delivery_port_seen_ = true;
+
+         String outcome;
+         bool bannedNow = false;
+
+         // Known already or not at all: never looked up inside the command.
+         NeverBanNameList::Verdict sparedByName;
+         const int minutes = Configuration::Instance()->GetAutoBanMinutes();
+
+         if (isAuthenticated_)
+            outcome = _T("not banned: the session had authenticated");
+         else if (IsLoopbackAddress_(peer))
+            outcome = _T("not banned: it is this computer's loopback address");
+         else if (AutoBanFirewall::IsNeverBanned(peer))
+            outcome = _T("not banned: AutoBanNeverBan lists it");
+         else if (NeverBanNameList::IsSpared(peer, sparedByName))
+            outcome = _T("not banned: ") + sparedByName.reason;
+         else if (minutes < 1)
+            outcome = _T("not banned: AutoBanMinutes is 0");
+         else
+         {
+            AccountLogon logon;
+            bool alreadyBanned = false;
+
+            if (!logon.BanForAuthOnDeliveryPort(peer, minutes, port, mechanism, mode, alreadyBanned))
+               outcome = _T("not banned: the ban could not be saved");
+            else if (alreadyBanned)
+               outcome = _T("banned already");
+            else
+               bannedNow = true;
+         }
+
+         // A ban written now has its own line - AutoBanFirewall's, the one the
+         // fail2ban filter matches - so that the event is one line, not two. Every
+         // other outcome is said here, in a shape no filter line matches: an
+         // address that is not banned must not be banned by fail2ban either.
+         if (!bannedNow)
+            LOG_APPLICATION(_T("AUTH on a delivery port: ") + described + _T("; refused, ") + outcome + _T("."));
+      }
+
+      SendErrorResponse_(502, _T("AUTH not permitted on this port."));
+   }
+
+   bool
+   SMTPConnection::IsLoopbackAddress_(const IPAddress &address)
+   {
+      // 127.0.0.0/8 and ::1, and an IPv4 loopback address in its IPv6-mapped
+      // form, which a dual-stack listener may hand over as ::ffff:127.0.0.1.
+      const boost::asio::ip::address asioAddress = address.GetAddress();
+
+      if (asioAddress.is_loopback())
+         return true;
+
+      if (asioAddress.is_v6() && asioAddress.to_v6().is_v4_mapped())
+         return boost::asio::ip::make_address_v4(boost::asio::ip::v4_mapped, asioAddress.to_v6()).is_loopback();
+
+      return false;
    }
 
    void 

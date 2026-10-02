@@ -55,6 +55,7 @@ AuditTrailEnabled server
 authallowplaintext server
 AutoBanMinutes server
 AutoBanOnLogonFailureEnabled server
+AutoBanWidenByReverseName server
 avaction server
 avclamwindb server
 avclamwinenable server

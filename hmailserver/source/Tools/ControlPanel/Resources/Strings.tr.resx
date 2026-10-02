@@ -680,6 +680,9 @@ Bu zayıf parola yine de kaydedilsin mi?</value>
   <data name="A modern administration app for hMailServer: live dashboard, domains and accounts, delivery queue, log streaming, full server settings and the 6.x transport-security features (DANE, MTA-STS, ARC, TLS-RPT, ACME)." xml:space="preserve">
     <value>hMailServer için modern bir yönetim uygulaması: canlı pano, etki alanları ve hesaplar, teslim kuyruğu, günlük akışı, eksiksiz sunucu ayarları ve 6.x aktarım güvenliği özellikleri (DANE, MTA-STS, ARC, TLS-RPT, ACME).</value>
   </data>
+  <data name="A name is required." xml:space="preserve">
+    <value>Ad gerekli.</value>
+  </data>
   <data name="A new address is required." xml:space="preserve">
     <value>Yeni bir adres gerekli.</value>
   </data>
@@ -772,6 +775,9 @@ Bu zayıf parola yine de kaydedilsin mi?</value>
   </data>
   <data name="A scanner that cannot run does not refuse the message. The error is written to the log and the scan continues to the next scanner; when none of them can answer, the message is treated exactly as if it had been examined and found clean. That is why this page reports whether each scanner can run rather than whether it is switched on." xml:space="preserve">
     <value>Çalışamayan bir tarayıcı iletiyi reddetmez. Hata günlüğe yazılır ve tarama bir sonraki tarayıcıyla sürer; hiçbiri yanıt veremediğinde ileti, tam olarak incelenmiş ve temiz bulunmuş gibi işlenir. Bu sayfanın her tarayıcının açık olup olmadığını değil, çalışıp çalışamadığını bildirmesinin nedeni budur.</value>
+  </data>
+  <data name="A scanner working through 203.0.113.10, .11 and .12 under one reverse domain earns a ban and a firewall rule for each. With this on, the ban is still written at once for the one address, and then widened in the background to the run of addresses around it, inside its /24, whose reverse names share its registrable domain: one range and one firewall rule, said in the application log." xml:space="preserve">
+    <value>Tek bir ters etki alanı altında 203.0.113.10, .11 ve .12 adreslerini sırayla deneyen bir tarayıcı, her biri için bir yasak ve bir güvenlik duvarı kuralı kazanır. Bu açıkken yasak yine o tek adres için hemen yazılır, ardından arka planda, onun /24 bloğu içinde, ters adları onun kaydedilebilir etki alanını paylaşan çevresindeki kesintisiz adres dizisine genişletilir: tek bir aralık ve tek bir güvenlik duvarı kuralı, uygulama günlüğünde belirtilir.</value>
   </data>
   <data name="A schedule creates and updates accounts with nobody watching. It never disables one, whatever the checkbox above is set to - departures are left to a person who has read a preview. Switch this on only after a preview has told you what it is going to do." xml:space="preserve">
     <value>Zamanlama, hesapları kimse izlemezken oluşturur ve günceller. Yukarıdaki onay kutusu nasıl ayarlanırsa ayarlansın hiçbir hesabı devre dışı bırakmaz - ayrılanlar, bir önizlemeyi okumuş bir kişiye bırakılır. Bunu ancak bir önizleme size ne yapacağını söyledikten sonra açın.</value>
@@ -922,6 +928,9 @@ Bu zayıf parola yine de kaydedilsin mi?</value>
   </data>
   <data name="AUTH is normally offered on every SMTP port. List the local TCP ports where it should not be, for example a port 25 that only accepts inbound mail from other servers." xml:space="preserve">
     <value>AUTH normalde her SMTP portunda sunulur. Sunulmaması gereken yerel TCP portlarını listeleyin; örneğin yalnızca diğer sunuculardan gelen postaları kabul eden bir 25 portu.</value>
+  </data>
+  <data name="AUTH {0}" xml:space="preserve">
+    <value>AUTH {0}</value>
   </data>
   <data name="AWStats-compatible log" xml:space="preserve">
     <value>AWStats uyumlu günlük</value>
@@ -1120,6 +1129,9 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   </data>
   <data name="Add a listener - 587 with STARTTLS, or 465 for implicit TLS." xml:space="preserve">
     <value>Bir dinleyici ekleyin - STARTTLS ile 587 veya örtük TLS için 465.</value>
+  </data>
+  <data name="Add a name to the never-ban list" xml:space="preserve">
+    <value>Asla yasaklanmayanlar listesine ad ekle</value>
   </data>
   <data name="Add a_lias" xml:space="preserve">
     <value>Diğer _ad ekle</value>
@@ -1480,6 +1492,9 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   </data>
   <data name="An address is required." xml:space="preserve">
     <value>Bir adres gerekli.</value>
+  </data>
+  <data name="An address is spared only when one of its reverse names is covered AND resolves back to the address, since anybody who holds an address can write its reverse name. It applies to the next ban." xml:space="preserve">
+    <value>Bir adres yalnızca ters adlarından biri kapsanıyor VE adrese geri çözümleniyorsa korunur; çünkü bir adrese sahip olan herkes onun ters adını kendisi yazabilir. Bir sonraki yasaklamadan itibaren geçerlidir.</value>
   </data>
   <data name="An address this server hosts is refused: the list only applies to mail leaving the server." xml:space="preserve">
     <value>Bu sunucunun barındırdığı bir adres reddedilir: liste yalnızca sunucudan çıkan postaya uygulanır.</value>
@@ -2130,6 +2145,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Çalışmayı sürdürmeyi de
   <data name="C_A certificate bundle (PEM) that client certificates must chain to" xml:space="preserve">
     <value>_İstemci sertifikalarının zincirleneceği CA sertifika paketi (PEM)</value>
   </data>
+  <data name="C_heck an address…" xml:space="preserve">
+    <value>_Bir adresi denetle…</value>
+  </data>
   <data name="C_hoose a photo..." xml:space="preserve">
     <value>B_ir fotoğraf seç...</value>
   </data>
@@ -2285,6 +2303,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Çalışmayı sürdürmeyi de
   </data>
   <data name="Check _policy (HTTPS)" xml:space="preserve">
     <value>İl_keyi denetle (HTTPS)</value>
+  </data>
+  <data name="Check an address" xml:space="preserve">
+    <value>Bir adresi denetle</value>
   </data>
   <data name="Check every message" xml:space="preserve">
     <value>Her iletiyi işaretle</value>
@@ -4428,6 +4449,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="For a MinIO or Ceph gateway behind a CA of your own. The host name is checked either way." xml:space="preserve">
     <value>Kendi sertifika yetkilisinin arkasındaki bir MinIO veya Ceph ağ geçidi için. Ana bilgisayar adı her durumda doğrulanır.</value>
   </data>
+  <data name="For a provider whose hosts share a reverse name and whose addresses move: a connecting address is never auto-banned - for failed logons, a spam trap or a null sender - when one of its reverse names is covered by a name here and resolves back to the address. Nothing else is skipped: greylisting, SPF, DKIM, DMARC and the domain white and black list still apply. Empty, the default, changes nothing." xml:space="preserve">
+    <value>Ana makineleri ortak bir ters adı paylaşan ve adresleri değişen bir sağlayıcı için: bağlanan bir adres, ters adlarından biri buradaki bir adla kapsanıyor ve adrese geri çözümleniyorsa hiçbir zaman otomatik yasaklanmaz - başarısız oturum açmalar, bir istenmeyen posta tuzağı ya da boş bir gönderen için. Başka hiçbir şey atlanmaz: gri liste, SPF, DKIM, DMARC ve alan adlarının beyaz ve kara listesi geçerli olmaya devam eder. Boş liste (varsayılan) hiçbir şeyi değiştirmez.</value>
+  </data>
   <data name="For a record of who corresponds with whom, keeping it for ever should be a decision rather than a default - which is why 0 is offered as an option instead of being one." xml:space="preserve">
     <value>Kimin kiminle yazıştığının kaydını sonsuza dek saklamak varsayılan değil, bir karar olmalı - 0'ın varsayılan olmak yerine bir seçenek olarak sunulmasının nedeni budur.</value>
   </data>
@@ -4737,6 +4761,12 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Holds the refusal of a wrong password for a while before sending it: the first failure on a connection waits this many seconds, the second twice as long, and so on up to 30 seconds, on SMTP, POP3 and IMAP alike. A correct password is never delayed. The wait is a timer on the connection, not a thread asleep, so a flood of failed logons costs the server nothing but the sockets they arrive on - the reason the old TarpitDelay was a stub for a decade is that the naive version is a self-inflicted outage." xml:space="preserve">
     <value>Yanlış bir parolanın reddini göndermeden önce bir süre bekletir: bir bağlantıdaki ilk hata bu kadar saniye bekler, ikincisi iki katı ve böyle devam ederek 30 saniyeye kadar çıkar; SMTP, POP3 ve IMAP'te aynı biçimde. Doğru bir parola asla geciktirilmez. Bekleme, uykuya yatan bir iş parçacığı değil, bağlantı üzerindeki bir zamanlayıcıdır; bu yüzden başarısız oturum açma seli sunucuya, geldikleri soketlerden başka hiçbir şeye mal olmaz - eski TarpitDelay'in on yıl boyunca bir taslak olarak kalmasının nedeni, naif sürümün kendi kendine yol açılan bir kesinti olmasıdır.</value>
   </data>
+  <data name="Honeypot" xml:space="preserve">
+    <value>Bal küpü</value>
+  </data>
+  <data name="Honeypot - offer AUTH; refuse it and ban the address" xml:space="preserve">
+    <value>Bal küpü - AUTH sun; reddet ve adresi yasakla</value>
+  </data>
   <data name="Honor recipient DANE/TLSA records when sending" xml:space="preserve">
     <value>Gönderirken alıcı DANE/TLSA kayıtlarına uy</value>
   </data>
@@ -4949,6 +4979,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   </data>
   <data name="IP ranges…" xml:space="preserve">
     <value>IP aralıkları…</value>
+  </data>
+  <data name="IPv4 or IPv6 address" xml:space="preserve">
+    <value>IPv4 veya IPv6 adresi</value>
   </data>
   <data name="I_P address" xml:space="preserve">
     <value>I_P adresi</value>
@@ -6153,6 +6186,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="NCSA Common Log Format writes one line per entry as host, ident, session, [date], &quot;category and message&quot;, status, bytes - so a log analyser can count 5xx replies without knowing anything about hMailServer. Ident and bytes are always &quot;-&quot; (the server never queries identd and the logger is not told transfer sizes), and the AWStats journal is a separate file that this setting does not change: its own switch is above." xml:space="preserve">
     <value>NCSA Common Log Format, girdi başına bir satırı ana bilgisayar, ident, oturum, [tarih], "kategori ve ileti", durum, bayt olarak yazar - böylece bir günlük çözümleyici hMailServer hakkında hiçbir şey bilmeden 5xx yanıtlarını sayabilir. Ident ve bayt her zaman "-" olur (sunucu hiçbir zaman identd sorgulamaz ve günlükleyiciye aktarım boyutları söylenmez); AWStats günlüğü ise bu ayarın değiştirmediği ayrı bir dosyadır: kendi anahtarı yukarıdadır.</value>
   </data>
+  <data name="N_ote" xml:space="preserve">
+    <value>_Not</value>
+  </data>
   <data name="N_otice text (mailed to a sender this server hosts, naming the rule)" xml:space="preserve">
     <value>Bildirim me_tni (bu sunucunun barındırdığı bir göndericiye, kuralın adıyla gönderilir)</value>
   </data>
@@ -6161,6 +6197,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   </data>
   <data name="Name for the new certificate" xml:space="preserve">
     <value>Yeni sertifika için ad</value>
+  </data>
+  <data name="Name or suffix" xml:space="preserve">
+    <value>Ad veya sonek</value>
   </data>
   <data name="Name servers" xml:space="preserve">
     <value>Ad sunucuları</value>
@@ -6180,6 +6219,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="Names" xml:space="preserve">
     <value>Adlar</value>
   </data>
+  <data name="Names that are never auto-banned" xml:space="preserve">
+    <value>Hiçbir zaman otomatik yasaklanmayan adlar</value>
+  </data>
   <data name="Negotiate (Kerberos/NTLM) - the password never crosses the network" xml:space="preserve">
     <value>Negotiate (Kerberos/NTLM) - parola ağdan hiç geçmez</value>
   </data>
@@ -6195,11 +6237,17 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="Never" xml:space="preserve">
     <value>Hiçbir zaman</value>
   </data>
+  <data name="Never auto-ban by reverse name" xml:space="preserve">
+    <value>Ters ada göre hiçbir zaman otomatik yasaklama</value>
+  </data>
   <data name="Never auto-ban these addresses (comma separated; CIDR blocks allowed)" xml:space="preserve">
     <value>Bu adresleri hiçbir zaman otomatik yasaklama (virgülle ayrılmış; CIDR blokları kullanılabilir)</value>
   </data>
   <data name="Never judged by country (addresses and CIDR ranges, comma separated)" xml:space="preserve">
     <value>Asla ülkeye göre değerlendirilmez (adresler ve CIDR aralıkları, virgülle ayrılmış)</value>
+  </data>
+  <data name="Never-ban list status" xml:space="preserve">
+    <value>Asla yasaklanmayanlar listesinin durumu</value>
   </data>
   <data name="New IMAP folder" xml:space="preserve">
     <value>Yeni IMAP klasörü</value>
@@ -6290,6 +6338,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   </data>
   <data name="No MX records were found from this machine, so the server would fall back to its own host name." xml:space="preserve">
     <value>Bu makineden hiçbir MX kaydı bulunamadı; bu yüzden sunucu kendi ana bilgisayar adına geri dönerdi.</value>
+  </data>
+  <data name="No SMTP listener is on port 25, so no delivery port takes a password." xml:space="preserve">
+    <value>Port 25'te SMTP dinleyicisi yok, bu nedenle hiçbir teslim portu parola kabul etmiyor.</value>
   </data>
   <data name="No SSL certificates are configured, so there are no key files to check." xml:space="preserve">
     <value>Hiç SSL sertifikası yapılandırılmamış; bu yüzden denetlenecek anahtar dosyası yok.</value>
@@ -6492,8 +6543,17 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="No passphrase stored" xml:space="preserve">
     <value>Saklanan parola ifadesi yok</value>
   </data>
+  <data name="No password on port 25 - the port other servers deliver to" xml:space="preserve">
+    <value>Port 25'te parola yok - diğer sunucuların teslim ettiği port</value>
+  </data>
   <data name="No password was typed, so no logon was tested - the infrastructure half all works." xml:space="preserve">
     <value>Parola yazılmadı; bu yüzden oturum açma sınanmadı - altyapı yarısının tamamı çalışıyor.</value>
+  </data>
+  <data name="No pattern covers {0}, and it does not resolve back to {1}, so no pattern would spare the address." xml:space="preserve">
+    <value>Hiçbir desen {0} adını kapsamıyor ve ad {1} adresine geri çözümlenmiyor, bu yüzden hiçbir desen adresi korumaz.</value>
+  </data>
+  <data name="No pattern covers {0}. It resolves back to {1}, so a pattern covering it would spare the address." xml:space="preserve">
+    <value>Hiçbir desen {0} adını kapsamıyor. Ad {1} adresine geri çözümleniyor, bu yüzden onu kapsayan bir desen adresi korur.</value>
   </data>
   <data name="No port has a client certificate policy, so no CA bundle or client certificates are required." xml:space="preserve">
     <value>Hiçbir portta istemci sertifikası ilkesi yok; bu yüzden CA paketi ya da istemci sertifikası gerekmiyor.</value>
@@ -6795,6 +6855,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="Off" xml:space="preserve">
     <value>Kapalı</value>
   </data>
+  <data name="Off - do not offer AUTH; refuse it and ban the address" xml:space="preserve">
+    <value>Kapalı - AUTH sunma; reddet ve adresi yasakla</value>
+  </data>
   <data name="Off by default because it costs a term table of a few kilobytes per message and a backfill pass over every message already delivered - an administrator's decision, never an upgrade's. Results are identical on and off: the index only narrows which messages the substring scan has to read. Requires message indexing (above) to be enabled; on its own this indexes nothing." xml:space="preserve">
     <value>Varsayılan olarak kapalıdır, çünkü ileti başına birkaç kilobaytlık bir terim tablosuna ve zaten teslim edilmiş her ileti üzerinde bir geri doldurma geçişine mal olur - bu bir yöneticinin kararıdır, asla bir yükseltmenin değil. Sonuçlar açıkken de kapalıyken de aynıdır: indeks yalnızca alt dize taramasının okuması gereken iletileri daraltır. İleti indekslemenin (yukarıda) etkin olmasını gerektirir; tek başına hiçbir şeyi indekslemez.</value>
   </data>
@@ -6827,6 +6890,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   </data>
   <data name="Off by default. MAIL FROM:&lt;&gt; is no excuse: a delivery report from a server that greets with an address is refused like any other mail from it." xml:space="preserve">
     <value>Varsayılan olarak kapalı. MAIL FROM:&lt;&gt; bir mazeret değildir: bir adresle selamlayan bir sunucudan gelen teslim raporu, ondan gelen diğer her posta gibi reddedilir.</value>
+  </data>
+  <data name="Off by default. Only when the banned address's own reverse name resolves back to it; at most 32 addresses each way; never into another /24, across an address either never-ban list above spares, or across an IP range of yours that covers one address and not the other; never for IPv6. A reverse lookup that is not answered leaves the single address. A hosting net whose customers all carry one reverse domain is widened whole: list it above, or leave this off." xml:space="preserve">
+    <value>Varsayılan olarak kapalı. Yalnızca yasaklanan adresin kendi ters adı yeniden ona çözümlendiğinde; her yönde en fazla 32 adres; asla başka bir /24 bloğuna girmez, yukarıdaki iki listeden birinin esirgediği bir adresin ya da bir adresi kapsayıp diğerini kapsamayan bir IP aralığınızın ötesine geçmez; IPv6 için asla. Yanıtlanmayan bir ters sorgu tek adresi olduğu gibi bırakır. Tüm müşterileri tek bir ters etki alanı taşıyan bir barındırma ağı bütünüyle genişletilir: onu yukarıya ekleyin ya da bunu kapalı bırakın.</value>
   </data>
   <data name="Off by default. Operators who drop this in a script today can delete the script when this is on." xml:space="preserve">
     <value>Varsayılan olarak kapalı. Bunu bugün bir betikle reddedenler, bu açıldığında betiği silebilir.</value>
@@ -6897,6 +6963,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="On" xml:space="preserve">
     <value>Açık</value>
   </data>
+  <data name="On - offer AUTH and check the password" xml:space="preserve">
+    <value>Açık - AUTH sun ve parolayı denetle</value>
+  </data>
   <data name="On by default, and inert until somebody sets a recovery address." xml:space="preserve">
     <value>Varsayılan olarak açık ve biri bir kurtarma adresi ayarlayana kadar etkisiz.</value>
   </data>
@@ -6959,6 +7028,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   </data>
   <data name="On the TCP/IP ports page, give the submission port (587) STARTTLS with a certificate from the SSL certificates page, or add port 465 with implicit TLS." xml:space="preserve">
     <value>TCP/IP portları sayfasında gönderim bağlantı noktasına (587) SSL sertifikaları sayfasından bir sertifikayla STARTTLS verin veya örtük TLS ile 465 numaralı bağlantı noktasını ekleyin.</value>
+  </data>
+  <data name="On the TCP/IP ports page, open the SMTP port 25 and set its SMTP authentication to Honeypot or Off, then reinitialize. Mail clients that still sign in on 25 are refused and banned from then on, so move them to 587 first." xml:space="preserve">
+    <value>TCP/IP portları sayfasında SMTP port 25'i açın, SMTP kimlik doğrulamasını Bal küpü veya Kapalı yapın ve ardından sunucuyu yeniden başlatın (Reinitialize). Hâlâ 25'te oturum açan e-posta istemcileri o andan itibaren reddedilir ve yasaklanır; bu yüzden önce onları 587'ye taşıyın.</value>
   </data>
   <data name="On the server, from an elevated prompt in the Bin folder: hMailServer.exe --create-stored-secrets-key makes the key, and hMailServer.exe --export-stored-secrets-key FILE exports it. Keep the file with the database backups, stored apart from them." xml:space="preserve">
     <value>Sunucuda, Bin klasöründe yükseltilmiş bir komut isteminden: hMailServer.exe --create-stored-secrets-key anahtarı oluşturur, hMailServer.exe --export-stored-secrets-key FILE ise dışa aktarır. Dosyayı veritabanı yedekleriyle birlikte, ama onlardan ayrı saklayın.</value>
@@ -7115,6 +7187,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   </data>
   <data name="Open the Control Panel on the server itself to change the account the service runs as or grant it its folders." xml:space="preserve">
     <value>Hizmetin çalıştığı hesabı değiştirmek veya ona klasörlerini vermek için Denetim Masası'nı sunucunun kendisinde açın.</value>
+  </data>
+  <data name="Open the SMTP port 25 and set its SMTP authentication to Honeypot or Off: AUTH there is refused without the password being looked at, and the address that sent it is banned." xml:space="preserve">
+    <value>SMTP port 25'i açın ve SMTP kimlik doğrulamasını Bal küpü veya Kapalı yapın: oradaki AUTH parolaya bakılmadan reddedilir ve onu gönderen adres yasaklanır.</value>
   </data>
   <data name="Open the delivery queue" xml:space="preserve">
     <value>Teslim kuyruğunu aç</value>
@@ -7541,11 +7616,20 @@ Sürdürülene kadar yeni bağlantı kabul edilmez ve posta teslim edilmez. Wind
   <data name="Port 25 is judged differently from the rest and deliberately so: the peer there is normally another mail server, and requiring encryption on it refuses mail from senders that cannot offer any. On every other port the peer is a client with a password." xml:space="preserve">
     <value>Port 25 diğerlerinden farklı değerlendirilir ve bu bilinçlidir: oradaki eş olağan olarak başka bir posta sunucusudur ve orada şifreleme gerektirmek, hiçbirini sunamayan gönderenlerden gelen postayı reddeder. Diğer her portta eş, parolası olan bir istemcidir.</value>
   </data>
+  <data name="Port 25 is where other servers deliver mail, and no mail client should sign in there. Off and Honeypot never look at a password: AUTH is answered 502, and the first one of a session bans the address for the auto-ban minutes - never this computer, nor an address on the never-ban lists. Honeypot goes on offering AUTH, as bait. Mail clients sign in on 587." xml:space="preserve">
+    <value>Port 25 diğer sunucuların posta teslim ettiği yerdir ve hiçbir e-posta istemcisi orada oturum açmamalıdır. Kapalı ve Bal küpü hiçbir zaman parolaya bakmaz: AUTH'a 502 ile yanıt verilir ve bir oturumdaki ilk AUTH adresi otomatik yasaklama dakikaları boyunca yasaklar - bu bilgisayarı ve hiç yasaklanmayan adres listelerindeki bir adresi asla. Bal küpü AUTH sunmayı yem olarak sürdürür. E-posta istemcileri 587'de oturum açar.</value>
+  </data>
+  <data name="Port 25 is where other servers deliver mail, and no mail client should sign in there: an AUTH on it is a password being guessed." xml:space="preserve">
+    <value>Port 25 diğer sunucuların posta teslim ettiği yerdir ve hiçbir e-posta istemcisi orada oturum açmamalıdır: oradaki bir AUTH, tahmin edilmeye çalışılan bir paroladır.</value>
+  </data>
   <data name="Port binding" xml:space="preserve">
     <value>Port bağlaması</value>
   </data>
   <data name="Port for http-01 challenges" xml:space="preserve">
     <value>http-01 doğrulamaları için port</value>
+  </data>
+  <data name="Port {0} does not offer AUTH: DisableAUTHList names it, and an AUTH sent there is refused without a ban." xml:space="preserve">
+    <value>Port {0} AUTH sunmuyor: DisableAUTHList onu adlandırıyor ve oraya gönderilen bir AUTH yasaklama olmadan reddediliyor.</value>
   </data>
   <data name="Port {0} is set to TLS but has no certificate, so TLS cannot start." xml:space="preserve">
     <value>{0} numaralı bağlantı noktası TLS'ye ayarlı ama sertifikası yok; bu yüzden TLS başlayamaz.</value>
@@ -7555,6 +7639,18 @@ Sürdürülene kadar yeni bağlantı kabul edilmez ve posta teslim edilmez. Wind
   </data>
   <data name="Port {0} offers TLS with {1}, the self-signed certificate this installation made: mail clients warn about it until it is replaced with one a certificate authority issued, which ACME can fetch from Let's Encrypt." xml:space="preserve">
     <value>{0} bağlantı noktası TLS'yi {1} ile sunuyor; bu, bu kurulumun oluşturduğu kendinden imzalı sertifikadır: posta istemcileri, bir sertifika yetkilisinin verdiği ve ACME'nin Let's Encrypt'ten alabileceği bir sertifikayla değiştirilene kadar bu konuda uyarır.</value>
+  </data>
+  <data name="Port {0} still accepts AUTH: it is where other servers deliver mail, and a password tried there is a guess. Set its SMTP authentication to Honeypot or Off, and sign mail clients in on 587." xml:space="preserve">
+    <value>Port {0} hâlâ AUTH kabul ediyor: diğer sunucular postayı oraya teslim eder ve orada denenen bir parola bir tahmindir. SMTP kimlik doğrulamasını Bal küpü veya Kapalı yapın ve e-posta istemcilerini 587'de oturum açtırın.</value>
+  </data>
+  <data name="Port {0} takes no password, but AutoBanMinutes is 0, so an address that sends AUTH there is refused and not banned." xml:space="preserve">
+    <value>Port {0} parola kabul etmiyor, ancak AutoBanMinutes 0 olduğundan oraya AUTH gönderen bir adres reddediliyor ve yasaklanmıyor.</value>
+  </data>
+  <data name="Port {0} takes no password: EHLO does not offer AUTH there, and an address that sends one anyway is refused and banned." xml:space="preserve">
+    <value>Port {0} parola kabul etmiyor: EHLO orada AUTH sunmuyor ve yine de AUTH gönderen bir adres reddedilip yasaklanıyor.</value>
+  </data>
+  <data name="Port {0} takes no password: EHLO offers AUTH there as bait, and an address that sends one is refused and banned." xml:space="preserve">
+    <value>Port {0} parola kabul etmiyor: EHLO orada yem olarak AUTH sunuyor ve AUTH gönderen bir adres reddedilip yasaklanıyor.</value>
   </data>
   <data name="Port {0} takes submission without TLS, so passwords and mail would cross the network in the clear." xml:space="preserve">
     <value>{0} numaralı bağlantı noktası gönderimi TLS olmadan kabul ediyor; parolalar ve posta ağdan açık metin olarak geçerdi.</value>
@@ -7894,6 +7990,9 @@ Sürdürülene kadar yeni bağlantı kabul edilmez ve posta teslim edilmez. Wind
   </data>
   <data name="Re_move action" xml:space="preserve">
     <value>Eylemi kaldı_r</value>
+  </data>
+  <data name="Re_move name" xml:space="preserve">
+    <value>Adı ka_ldır</value>
   </data>
   <data name="Re_move the rule" xml:space="preserve">
     <value>Kuralı kaldı_r</value>
@@ -8241,6 +8340,9 @@ Her klasör için sayaç, o klasörün gerçekten tuttuğu en yüksek ileti UID'
   <data name="Remove from the domain list" xml:space="preserve">
     <value>Alan adı listesinden kaldır</value>
   </data>
+  <data name="Remove from the never-ban list" xml:space="preserve">
+    <value>Asla yasaklanmayanlar listesinden kaldır</value>
+  </data>
   <data name="Remove from the suppression list" xml:space="preserve">
     <value>Engelleme listesinden kaldır</value>
   </data>
@@ -8282,6 +8384,11 @@ Her klasör için sayaç, o klasörün gerçekten tuttuğu en yüksek ileti UID'
 
 Kara bir alan adı hemen yeniden kabul edilir; beyaz bir alan adı bir sonraki oturumdan itibaren yeniden greylisting ve spam puanına tabi olur.</value>
   </data>
+  <data name="Remove {0} from the never-ban list?&#10;&#10;An address it spared can be auto-banned again from the next ban on." xml:space="preserve">
+    <value>{0} asla yasaklanmayanlar listesinden kaldırılsın mı?
+
+Koruduğu bir adres, bir sonraki yasaklamadan itibaren yeniden otomatik yasaklanabilir.</value>
+  </data>
   <data name="Remove {0} from {1}?&#13;&#10;&#13;&#10;Any access this group has been granted stops applying to that account." xml:space="preserve">
     <value>{0}, {1} grubundan kaldırılsın mı?
 
@@ -8311,10 +8418,10 @@ Posta kutusu ve iletileri yeni adrese taşınır. Eski adrese gönderilen posta,
 
 Otomatik yasaklama girdileri dâhil her özel aralık kaldırılır ve yerine 'Bilgisayarım' (127.0.0.1) ile 'İnternet' (diğer her şey) konur. Bu, kimin bağlanıp aktarma yapabileceğini hemen değiştirir.</value>
   </data>
-  <data name="Replace ALL configured ports with the defaults?&#10;&#10;SMTP 25 and 587, POP3 110, IMAP 143 - without connection security. TLS ports and custom bindings will be removed. The change takes effect when the server is reinitialized." xml:space="preserve">
+  <data name="Replace ALL configured ports with the defaults?&#10;&#10;SMTP 25 and 587, POP3 110, IMAP 143 - without connection security, and with SMTP authentication On on both SMTP ports, so a port 25 that is a honeypot takes AUTH again. TLS ports and custom bindings will be removed. The change takes effect when the server is reinitialized." xml:space="preserve">
     <value>Yapılandırılmış TÜM portlar varsayılanlarla değiştirilsin mi?
 
-SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan. TLS portları ve özel bağlamalar kaldırılır. Değişiklik sunucu yeniden başlatıldığında (Reinitialize) geçerli olur.</value>
+SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki SMTP portunda SMTP kimlik doğrulaması Açık olarak; bu nedenle bal küpü olan bir port 25 yeniden AUTH kabul eder. TLS portları ve özel bağlamalar kaldırılır. Değişiklik sunucu yeniden başlatıldığında (Reinitialize) geçerli olur.</value>
   </data>
   <data name="Replace the certificate here; the expiry date of each one is listed." xml:space="preserve">
     <value>Sertifikayı burada değiştirin; her birinin süre sonu tarihi listelenir.</value>
@@ -8843,6 +8950,9 @@ Devam edilsin mi?</value>
   </data>
   <data name="SURBL servers are checked against the links inside the message." xml:space="preserve">
     <value>SURBL sunucuları, iletinin içindeki bağlantılara karşı denetlenir.</value>
+  </data>
+  <data name="S_MTP authentication" xml:space="preserve">
+    <value>S_MTP kimlik doğrulaması</value>
   </data>
   <data name="S_witch the rule over" xml:space="preserve">
     <value>Kuralı de_ğiştir</value>
@@ -11025,6 +11135,12 @@ Yine de eklensin mi?</value>
   <data name="The retry counts and intervals are here, along with what happens when they run out." xml:space="preserve">
     <value>Yeniden deneme sayıları ve aralıkları burada; tükendiklerinde ne olacağıyla birlikte.</value>
   </data>
+  <data name="The reverse lookup of {0} was not answered, so the list cannot spare it now. Try again, or list the address in AutoBanNeverBan." xml:space="preserve">
+    <value>{0} için ters sorgu yanıtlanmadı, bu yüzden liste onu şimdi koruyamaz. Yeniden deneyin ya da adresi AutoBanNeverBan içine yazın.</value>
+  </data>
+  <data name="The reverse name {0} is an address or a public suffix, which the list never matches. List the address in AutoBanNeverBan instead." xml:space="preserve">
+    <value>Ters ad {0} bir adres ya da genel bir sonek; liste bunları hiçbir zaman eşleştirmez. Bunun yerine adresi AutoBanNeverBan içine yazın.</value>
+  </data>
   <data name="The rotation refused: {0}" xml:space="preserve">
     <value>Döndürme reddetti: {0}</value>
   </data>
@@ -11161,6 +11277,12 @@ Yanıt veren sunucunun kendi çözümleyicisi - SMTP teslimatının kullandığ�
   </data>
   <data name="The server's answer could not be read: {0}" xml:space="preserve">
     <value>Sunucunun yanıtı okunamadı: {0}</value>
+  </data>
+  <data name="The server's answer has no list of entries." xml:space="preserve">
+    <value>Sunucunun yanıtında girdi listesi yok.</value>
+  </data>
+  <data name="The server's answer has no verdict." xml:space="preserve">
+    <value>Sunucunun yanıtında karar yok.</value>
   </data>
   <data name="The server's answer is not a settings group." xml:space="preserve">
     <value>Sunucunun yanıtı bir ayar grubu değil.</value>
@@ -12329,6 +12451,12 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="Why it is listed" xml:space="preserve">
     <value>Neden listede</value>
   </data>
+  <data name="Widen a ban to its neighbours" xml:space="preserve">
+    <value>Bir yasağı komşularına genişlet</value>
+  </data>
+  <data name="Widen an auto-ban to the neighbouring addresses whose reverse names share its domain" xml:space="preserve">
+    <value>Otomatik bir yasağı, ters adları onun etki alanını paylaşan komşu adreslere genişlet</value>
+  </data>
   <data name="Wiki the help pane's &quot;Open on the wiki&quot; link points at (empty hides the link)" xml:space="preserve">
     <value>Yardım bölmesindeki "Wikide aç" bağlantısının gösterdiği wiki (boş bırakılırsa bağlantı gizlenir)</value>
   </data>
@@ -12466,6 +12594,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="_Add folder" xml:space="preserve">
     <value>_Klasör ekle</value>
+  </data>
+  <data name="_Add name…" xml:space="preserve">
+    <value>_Ad ekle…</value>
   </data>
   <data name="_Add rule" xml:space="preserve">
     <value>_Kural ekle</value>
@@ -12763,6 +12894,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="_Name" xml:space="preserve">
     <value>_Ad</value>
+  </data>
+  <data name="_Name or suffix" xml:space="preserve">
+    <value>_Ad veya sonek</value>
   </data>
   <data name="_New accounts start with their keys published" xml:space="preserve">
     <value>_Yeni hesaplar anahtarları yayımlanmış olarak başlar</value>
@@ -13512,6 +13646,12 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="mail is stuck" xml:space="preserve">
     <value>posta sıkıştı</value>
   </data>
+  <data name="mail.example.net is that name alone; .example.net is the name and every name beneath it. Never a public suffix such as .com, and never a cloud whose customers' machines carry the provider's name." xml:space="preserve">
+    <value>mail.example.net yalnızca o addır; .example.net ad ve altındaki her addır. Hiçbir zaman .com gibi genel bir sonek değil ve hiçbir zaman müşteri makineleri sağlayıcının adını taşıyan bir bulut değil.</value>
+  </data>
+  <data name="mail.example.net is that name alone; .example.net is the name and every name beneath it. The reverse lookup is never waited for on a connection: a ban placed before the answer is in is lifted once it is, before the firewall or fail2ban is told. A net with no reverse name, or one you do not trust, still belongs in the address list above." xml:space="preserve">
+    <value>mail.example.net yalnızca o addır; .example.net ad ve altındaki her addır. Bir bağlantıda ters sorgu hiçbir zaman beklenmez: yanıt gelmeden konan bir yasak, yanıt gelir gelmez, güvenlik duvarına ya da fail2ban'a bildirilmeden kaldırılır. Ters adı olmayan ya da güvenmediğiniz bir ters ada sahip bir ağ yine yukarıdaki adres listesine aittir.</value>
+  </data>
   <data name="make awstats work" xml:space="preserve">
     <value>awstats'ı çalıştır</value>
   </data>
@@ -13736,6 +13876,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="stop forwarded mail failing spf" xml:space="preserve">
     <value>iletilen postanın spf'de başarısız olmasını durdur</value>
+  </data>
+  <data name="stop password guessing on port 25 with a honeypot" xml:space="preserve">
+    <value>port 25'te parola tahminini bal küpüyle durdur</value>
   </data>
   <data name="stop spam" xml:space="preserve">
     <value>spam'i durdur</value>
@@ -14127,6 +14270,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="{0} has no postmaster address configured, and this page will not invent a mailbox - enter the address that should receive the reports. Until one is entered there is no record to copy." xml:space="preserve">
     <value>{0} için yapılandırılmış bir postmaster adresi yok ve bu sayfa bir posta kutusu uydurmaz - raporları alması gereken adresi girin. Biri girilene kadar kopyalanacak kayıt yoktur.</value>
   </data>
+  <data name="{0} has no reverse name, so no pattern can spare it. List the address in AutoBanNeverBan instead." xml:space="preserve">
+    <value>{0} adresinin ters adı yok, bu yüzden hiçbir desen onu koruyamaz. Bunun yerine adresi AutoBanNeverBan içine yazın.</value>
+  </data>
   <data name="{0} held, showing the {1} most recent. The rest are still there - work through these, or let the retention sweep age them out." xml:space="preserve">
     <value>{0} bekletiliyor, en son {1} tanesi gösteriliyor. Geri kalanlar hâlâ orada - bunları elden geçirin ya da saklama taramasının onları eskitip kaldırmasına bırakın.</value>
   </data>
@@ -14142,17 +14288,29 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="{0} is available" xml:space="preserve">
     <value>{0} kullanılabilir</value>
   </data>
+  <data name="{0} is covered by {1} but does not resolve back to {2}, so it is not spared: anybody who holds an address can write its reverse name." xml:space="preserve">
+    <value>{0}, {1} tarafından kapsanıyor ama {2} adresine geri çözümlenmiyor, bu yüzden adres korunmuyor: bir adrese sahip olan herkes onun ters adını kendisi yazabilir.</value>
+  </data>
+  <data name="{0} is covered by {1}, but its forward lookup was not answered, so {2} is not spared now." xml:space="preserve">
+    <value>{0}, {1} tarafından kapsanıyor ama ileri sorgusu yanıtlanmadı, bu yüzden {2} şimdi korunmuyor.</value>
+  </data>
   <data name="{0} is downloaded and verified" xml:space="preserve">
     <value>{0} indirildi ve doğrulandı</value>
   </data>
   <data name="{0} is here with the mailboxes {1}, the list {2} and one rule that files invoices. The one password for all of them was shown when it was made and was not kept - remove the sample and make it again to be given another. It is left out of the first-hour checklist, because a sample domain is not this server's first domain." xml:space="preserve">
     <value>{0} burada: {1} posta kutuları, {2} listesi ve faturaları dosyalayan bir kural. Tüm posta kutularının tek parolası örnek oluşturulurken gösterildi ve saklanmadı; yenisini almak için örneği kaldırıp yeniden oluşturun. İlk saatin denetim listesinde sayılmaz, çünkü bir örnek etki alanı bu sunucunun ilk etki alanı değildir.</value>
   </data>
+  <data name="{0} is never auto-banned: its reverse name {1} resolves back to it and is covered by {2}." xml:space="preserve">
+    <value>{0} hiçbir zaman otomatik yasaklanmaz: ters adı {1} ona geri çözümleniyor ve {2} tarafından kapsanıyor.</value>
+  </data>
   <data name="{0} is on but scores 0, so it costs a lookup on every message and can never change the outcome. Give it a score, or turn it off." xml:space="preserve">
     <value>{0} açık ama 0 puan veriyor; bu yüzden her iletide bir aramaya mal oluyor ve sonucu hiçbir zaman değiştiremiyor. Bir puan verin ya da kapatın.</value>
   </data>
   <data name="{0} is on the list. It applies to the next session from that domain." xml:space="preserve">
     <value>{0} listede. O alan adından gelen bir sonraki oturum için geçerli.</value>
+  </data>
+  <data name="{0} is on the never-ban list. It applies to the next ban." xml:space="preserve">
+    <value>{0} asla yasaklanmayanlar listesinde. Bir sonraki yasaklamadan itibaren geçerlidir.</value>
   </data>
   <data name="{0} is on the suppression list of {1}." xml:space="preserve">
     <value>{0}, {1} engelleme listesinde.</value>
@@ -14340,8 +14498,14 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="{0} was not on the list any more." xml:space="preserve">
     <value>{0} artık listede değildi.</value>
   </data>
+  <data name="{0} was not on the never-ban list any more." xml:space="preserve">
+    <value>{0} artık asla yasaklanmayanlar listesinde değildi.</value>
+  </data>
   <data name="{0} was removed from the list." xml:space="preserve">
     <value>{0} listeden kaldırıldı.</value>
+  </data>
+  <data name="{0} was removed from the never-ban list." xml:space="preserve">
+    <value>{0} asla yasaklanmayanlar listesinden kaldırıldı.</value>
   </data>
   <data name="{0} was removed: {1} mailbox(es), {2} distribution list(s), {3} rule(s) and {4} message(s) went with it." xml:space="preserve">
     <value>{0} kaldırıldı: {1} posta kutusu, {2} dağıtım listesi, {3} kural ve {4} ileti onunla birlikte gitti.</value>

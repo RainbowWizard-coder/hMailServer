@@ -680,6 +680,9 @@ Vil du lagre dette svake passordet likevel?</value>
   <data name="A modern administration app for hMailServer: live dashboard, domains and accounts, delivery queue, log streaming, full server settings and the 6.x transport-security features (DANE, MTA-STS, ARC, TLS-RPT, ACME)." xml:space="preserve">
     <value>En moderne administrasjonsapp for hMailServer: sanntidsoversikt, domener og kontoer, leveringskø, loggstrømming, alle serverinnstillinger og transportsikkerhetsfunksjonene i 6.x (DANE, MTA-STS, ARC, TLS-RPT, ACME).</value>
   </data>
+  <data name="A name is required." xml:space="preserve">
+    <value>Et navn er påkrevd.</value>
+  </data>
   <data name="A new address is required." xml:space="preserve">
     <value>En ny adresse kreves.</value>
   </data>
@@ -772,6 +775,9 @@ Vil du lagre dette svake passordet likevel?</value>
   </data>
   <data name="A scanner that cannot run does not refuse the message. The error is written to the log and the scan continues to the next scanner; when none of them can answer, the message is treated exactly as if it had been examined and found clean. That is why this page reports whether each scanner can run rather than whether it is switched on." xml:space="preserve">
     <value>En skanner som ikke kan kjøre avviser ikke meldingen. Feilen skrives til loggen og skanningen går videre til neste skanner; når ingen av dem kan svare, behandles meldingen nøyaktig som om den var undersøkt og funnet ren. Derfor rapporterer denne siden om hver skanner kan kjøre, i stedet for om den er slått på.</value>
+  </data>
+  <data name="A scanner working through 203.0.113.10, .11 and .12 under one reverse domain earns a ban and a firewall rule for each. With this on, the ban is still written at once for the one address, and then widened in the background to the run of addresses around it, inside its /24, whose reverse names share its registrable domain: one range and one firewall rule, said in the application log." xml:space="preserve">
+    <value>En skanner som jobber seg gjennom 203.0.113.10, .11 og .12 under ett omvendt domene, får en utestenging og en brannmurregel for hver. Med dette slått på skrives utestengingen fortsatt med en gang for den ene adressen, og utvides deretter i bakgrunnen til den sammenhengende rekken av adresser rundt den, innenfor dens /24, der de omvendte navnene deler dens registrerbare domene: ett område og én brannmurregel, notert i programloggen.</value>
   </data>
   <data name="A schedule creates and updates accounts with nobody watching. It never disables one, whatever the checkbox above is set to - departures are left to a person who has read a preview. Switch this on only after a preview has told you what it is going to do." xml:space="preserve">
     <value>En tidsplan oppretter og oppdaterer kontoer uten at noen ser på. Den deaktiverer aldri en konto, uansett hva avkrysningsboksen ovenfor er satt til - de som slutter overlates til en person som har lest en forhåndsvisning. Slå dette på først etter at en forhåndsvisning har fortalt deg hva den kommer til å gjøre.</value>
@@ -922,6 +928,9 @@ Vil du lagre dette svake passordet likevel?</value>
   </data>
   <data name="AUTH is normally offered on every SMTP port. List the local TCP ports where it should not be, for example a port 25 that only accepts inbound mail from other servers." xml:space="preserve">
     <value>AUTH tilbys normalt på hver SMTP-port. List opp de lokale TCP-portene der den ikke skal tilbys, for eksempel en port 25 som bare tar imot innkommende e-post fra andre servere.</value>
+  </data>
+  <data name="AUTH {0}" xml:space="preserve">
+    <value>AUTH {0}</value>
   </data>
   <data name="AWStats-compatible log" xml:space="preserve">
     <value>AWStats-kompatibel logg</value>
@@ -1120,6 +1129,9 @@ Control Panel kan bare lese meldingsfiler når det kjører på den samme maskine
   </data>
   <data name="Add a listener - 587 with STARTTLS, or 465 for implicit TLS." xml:space="preserve">
     <value>Legg til en lytter - 587 med STARTTLS, eller 465 for implisitt TLS.</value>
+  </data>
+  <data name="Add a name to the never-ban list" xml:space="preserve">
+    <value>Legg til et navn i listen over aldri-utestengte</value>
   </data>
   <data name="Add a_lias" xml:space="preserve">
     <value>Legg _til alias</value>
@@ -1480,6 +1492,9 @@ Control Panel kan bare lese meldingsfiler når det kjører på den samme maskine
   </data>
   <data name="An address is required." xml:space="preserve">
     <value>En adresse er påkrevd.</value>
+  </data>
+  <data name="An address is spared only when one of its reverse names is covered AND resolves back to the address, since anybody who holds an address can write its reverse name. It applies to the next ban." xml:space="preserve">
+    <value>En adresse spares bare når ett av dens omvendte navn er dekket OG peker tilbake til adressen, for den som har en adresse, kan selv skrive dens omvendte navn. Gjelder fra neste utestenging.</value>
   </data>
   <data name="An address this server hosts is refused: the list only applies to mail leaving the server." xml:space="preserve">
     <value>En adresse denne serveren er vert for, avvises: listen gjelder bare e-post som forlater serveren.</value>
@@ -2130,6 +2145,9 @@ Vil du starte Control Panel på nytt nå? Velg Nei for å prøve å fortsette å
   <data name="C_A certificate bundle (PEM) that client certificates must chain to" xml:space="preserve">
     <value>_CA-sertifikatbunt (PEM) som klientsertifikater må kjede til</value>
   </data>
+  <data name="C_heck an address…" xml:space="preserve">
+    <value>_Kontroller en adresse…</value>
+  </data>
   <data name="C_hoose a photo..." xml:space="preserve">
     <value>_Velg et bilde...</value>
   </data>
@@ -2285,6 +2303,9 @@ Vil du starte Control Panel på nytt nå? Velg Nei for å prøve å fortsette å
   </data>
   <data name="Check _policy (HTTPS)" xml:space="preserve">
     <value>Sjekk _policy (HTTPS)</value>
+  </data>
+  <data name="Check an address" xml:space="preserve">
+    <value>Kontroller en adresse</value>
   </data>
   <data name="Check every message" xml:space="preserve">
     <value>Merk alle meldinger</value>
@@ -4428,6 +4449,9 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="For a MinIO or Ceph gateway behind a CA of your own. The host name is checked either way." xml:space="preserve">
     <value>For en MinIO- eller Ceph-gateway bak en egen CA. Vertsnavnet kontrolleres uansett.</value>
   </data>
+  <data name="For a provider whose hosts share a reverse name and whose addresses move: a connecting address is never auto-banned - for failed logons, a spam trap or a null sender - when one of its reverse names is covered by a name here and resolves back to the address. Nothing else is skipped: greylisting, SPF, DKIM, DMARC and the domain white and black list still apply. Empty, the default, changes nothing." xml:space="preserve">
+    <value>For en leverandør der vertene deler et omvendt navn og adressene flytter seg: en tilkoblende adresse utestenges aldri automatisk - for mislykkede pålogginger, en søppelpostfelle eller en tom avsender - når ett av dens omvendte navn er dekket av et navn her og peker tilbake til adressen. Ingenting annet hoppes over: gråliste, SPF, DKIM, DMARC og domenenes hvit- og svarteliste gjelder fortsatt. Tom, standard, endrer ingenting.</value>
+  </data>
   <data name="For a record of who corresponds with whom, keeping it for ever should be a decision rather than a default - which is why 0 is offered as an option instead of being one." xml:space="preserve">
     <value>For en oversikt over hvem som korresponderer med hvem, bør det å beholde den for alltid være en beslutning heller enn en standard - som er grunnen til at 0 tilbys som et alternativ i stedet for å være ett.</value>
   </data>
@@ -4737,6 +4761,12 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="Holds the refusal of a wrong password for a while before sending it: the first failure on a connection waits this many seconds, the second twice as long, and so on up to 30 seconds, on SMTP, POP3 and IMAP alike. A correct password is never delayed. The wait is a timer on the connection, not a thread asleep, so a flood of failed logons costs the server nothing but the sockets they arrive on - the reason the old TarpitDelay was a stub for a decade is that the naive version is a self-inflicted outage." xml:space="preserve">
     <value>Holder tilbake avvisningen av et feil passord en stund før den sendes: den første feilen på en forbindelse venter så mange sekunder, den andre dobbelt så lenge, og så videre opp til 30 sekunder, på SMTP, POP3 og IMAP likt. Et riktig passord forsinkes aldri. Ventingen er en tidtaker på forbindelsen, ikke en sovende tråd, så en flom av mislykkede pålogginger koster serveren ingenting annet enn socketene de kommer inn på - grunnen til at den gamle TarpitDelay var en stubb i et tiår, er at den naive versjonen er et selvpåført driftsavbrudd.</value>
   </data>
+  <data name="Honeypot" xml:space="preserve">
+    <value>Honningkrukke</value>
+  </data>
+  <data name="Honeypot - offer AUTH; refuse it and ban the address" xml:space="preserve">
+    <value>Honningkrukke - tilby AUTH; avvis det og utesteng adressen</value>
+  </data>
   <data name="Honor recipient DANE/TLSA records when sending" xml:space="preserve">
     <value>Respekter mottakerens DANE/TLSA-oppføringer ved sending</value>
   </data>
@@ -4949,6 +4979,9 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   </data>
   <data name="IP ranges…" xml:space="preserve">
     <value>IP-områder…</value>
+  </data>
+  <data name="IPv4 or IPv6 address" xml:space="preserve">
+    <value>IPv4- eller IPv6-adresse</value>
   </data>
   <data name="I_P address" xml:space="preserve">
     <value>IP-adre_sse</value>
@@ -6153,6 +6186,9 @@ Ingenting som allerede er der, fjernes.</value>
   <data name="NCSA Common Log Format writes one line per entry as host, ident, session, [date], &quot;category and message&quot;, status, bytes - so a log analyser can count 5xx replies without knowing anything about hMailServer. Ident and bytes are always &quot;-&quot; (the server never queries identd and the logger is not told transfer sizes), and the AWStats journal is a separate file that this setting does not change: its own switch is above." xml:space="preserve">
     <value>NCSA Common Log Format skriver én linje per oppføring som vert, ident, økt, [dato], "kategori og melding", status, byte - så et logganalyseverktøy kan telle 5xx-svar uten å vite noe om hMailServer. Ident og byte er alltid "-" (serveren spør aldri identd, og loggeren får ikke vite overføringsstørrelser), og AWStats-journalen er en egen fil som denne innstillingen ikke endrer: dens egen bryter er ovenfor.</value>
   </data>
+  <data name="N_ote" xml:space="preserve">
+    <value>N_otat</value>
+  </data>
   <data name="N_otice text (mailed to a sender this server hosts, naming the rule)" xml:space="preserve">
     <value>Varseltekst (sendes til en avsender denne serveren er vert f_or, med regelens navn)</value>
   </data>
@@ -6161,6 +6197,9 @@ Ingenting som allerede er der, fjernes.</value>
   </data>
   <data name="Name for the new certificate" xml:space="preserve">
     <value>Navn på det nye sertifikatet</value>
+  </data>
+  <data name="Name or suffix" xml:space="preserve">
+    <value>Navn eller suffiks</value>
   </data>
   <data name="Name servers" xml:space="preserve">
     <value>Navneservere</value>
@@ -6180,6 +6219,9 @@ Ingenting som allerede er der, fjernes.</value>
   <data name="Names" xml:space="preserve">
     <value>Navn</value>
   </data>
+  <data name="Names that are never auto-banned" xml:space="preserve">
+    <value>Navn som aldri utestenges automatisk</value>
+  </data>
   <data name="Negotiate (Kerberos/NTLM) - the password never crosses the network" xml:space="preserve">
     <value>Negotiate (Kerberos/NTLM) - passordet krysser aldri nettverket</value>
   </data>
@@ -6195,11 +6237,17 @@ Ingenting som allerede er der, fjernes.</value>
   <data name="Never" xml:space="preserve">
     <value>Aldri</value>
   </data>
+  <data name="Never auto-ban by reverse name" xml:space="preserve">
+    <value>Utesteng aldri automatisk etter omvendt navn</value>
+  </data>
   <data name="Never auto-ban these addresses (comma separated; CIDR blocks allowed)" xml:space="preserve">
     <value>Utesteng aldri disse adressene automatisk (kommaseparert; CIDR-blokker tillatt)</value>
   </data>
   <data name="Never judged by country (addresses and CIDR ranges, comma separated)" xml:space="preserve">
     <value>Vurderes aldri etter land (adresser og CIDR-områder, kommaseparert)</value>
+  </data>
+  <data name="Never-ban list status" xml:space="preserve">
+    <value>Status for listen over aldri-utestengte</value>
   </data>
   <data name="New IMAP folder" xml:space="preserve">
     <value>Ny IMAP-mappe</value>
@@ -6290,6 +6338,9 @@ Ingenting som allerede er der, fjernes.</value>
   </data>
   <data name="No MX records were found from this machine, so the server would fall back to its own host name." xml:space="preserve">
     <value>Ingen MX-oppføringer ble funnet fra denne maskinen, så serveren ville falle tilbake til sitt eget vertsnavn.</value>
+  </data>
+  <data name="No SMTP listener is on port 25, so no delivery port takes a password." xml:space="preserve">
+    <value>Ingen SMTP-lytter er på port 25, så ingen leveringsport tar imot et passord.</value>
   </data>
   <data name="No SSL certificates are configured, so there are no key files to check." xml:space="preserve">
     <value>Ingen SSL-sertifikater er konfigurert, så det er ingen nøkkelfiler å kontrollere.</value>
@@ -6492,8 +6543,17 @@ Ingenting som allerede er der, fjernes.</value>
   <data name="No passphrase stored" xml:space="preserve">
     <value>Ingen passfrase lagret</value>
   </data>
+  <data name="No password on port 25 - the port other servers deliver to" xml:space="preserve">
+    <value>Ikke noe passord på port 25 - porten andre servere leverer til</value>
+  </data>
   <data name="No password was typed, so no logon was tested - the infrastructure half all works." xml:space="preserve">
     <value>Ingen passord ble skrevet inn, så ingen pålogging ble testet - infrastrukturhalvdelen fungerer helt.</value>
+  </data>
+  <data name="No pattern covers {0}, and it does not resolve back to {1}, so no pattern would spare the address." xml:space="preserve">
+    <value>Ingen mønstre dekker {0}, og navnet peker ikke tilbake til {1}, så ingen mønstre ville spare adressen.</value>
+  </data>
+  <data name="No pattern covers {0}. It resolves back to {1}, so a pattern covering it would spare the address." xml:space="preserve">
+    <value>Ingen mønstre dekker {0}. Navnet peker tilbake til {1}, så et mønster som dekker det, ville spare adressen.</value>
   </data>
   <data name="No port has a client certificate policy, so no CA bundle or client certificates are required." xml:space="preserve">
     <value>Ingen port har en klientsertifikatpolicy, så ingen CA-pakke eller klientsertifikater kreves.</value>
@@ -6795,6 +6855,9 @@ Ingenting som allerede er der, fjernes.</value>
   <data name="Off" xml:space="preserve">
     <value>Av</value>
   </data>
+  <data name="Off - do not offer AUTH; refuse it and ban the address" xml:space="preserve">
+    <value>Av - ikke tilby AUTH; avvis det og utesteng adressen</value>
+  </data>
   <data name="Off by default because it costs a term table of a few kilobytes per message and a backfill pass over every message already delivered - an administrator's decision, never an upgrade's. Results are identical on and off: the index only narrows which messages the substring scan has to read. Requires message indexing (above) to be enabled; on its own this indexes nothing." xml:space="preserve">
     <value>Av som standard fordi det koster en termtabell på noen få kilobyte per melding og en etterfyllingsrunde over hver melding som allerede er levert - en administrators beslutning, aldri en oppgraderings. Resultatene er identiske av og på: indeksen begrenser bare hvilke meldinger delstrengskanningen må lese. Krever at meldingsindeksering (ovenfor) er aktivert; alene indekserer dette ingenting.</value>
   </data>
@@ -6827,6 +6890,9 @@ Ingenting som allerede er der, fjernes.</value>
   </data>
   <data name="Off by default. MAIL FROM:&lt;&gt; is no excuse: a delivery report from a server that greets with an address is refused like any other mail from it." xml:space="preserve">
     <value>Av som standard. MAIL FROM:&lt;&gt; er ingen unnskyldning: en leveringsrapport fra en server som hilser med en adresse, avvises som all annen e-post fra den.</value>
+  </data>
+  <data name="Off by default. Only when the banned address's own reverse name resolves back to it; at most 32 addresses each way; never into another /24, across an address either never-ban list above spares, or across an IP range of yours that covers one address and not the other; never for IPv6. A reverse lookup that is not answered leaves the single address. A hosting net whose customers all carry one reverse domain is widened whole: list it above, or leave this off." xml:space="preserve">
+    <value>Av som standard. Bare når den utestengte adressens eget omvendte navn peker tilbake til den; høyst 32 adresser i hver retning; aldri inn i et annet /24, forbi en adresse som en av de to listene over unntar, eller forbi et av dine IP-områder som dekker den ene adressen og ikke den andre; aldri for IPv6. Et omvendt oppslag som ikke besvares, lar den ene adressen stå alene. Et vertsnett der alle kundene bærer ett omvendt domene, utvides i sin helhet: før det opp over, eller la dette være av.</value>
   </data>
   <data name="Off by default. Operators who drop this in a script today can delete the script when this is on." xml:space="preserve">
     <value>Av som standard. Den som i dag avviser dette i et skript, kan slette skriptet når dette er på.</value>
@@ -6897,6 +6963,9 @@ Ingenting som allerede er der, fjernes.</value>
   <data name="On" xml:space="preserve">
     <value>På</value>
   </data>
+  <data name="On - offer AUTH and check the password" xml:space="preserve">
+    <value>På - tilby AUTH og kontroller passordet</value>
+  </data>
   <data name="On by default, and inert until somebody sets a recovery address." xml:space="preserve">
     <value>På som standard, og uten virkning til noen angir en gjenopprettingsadresse.</value>
   </data>
@@ -6959,6 +7028,9 @@ Ingenting som allerede er der, fjernes.</value>
   </data>
   <data name="On the TCP/IP ports page, give the submission port (587) STARTTLS with a certificate from the SSL certificates page, or add port 465 with implicit TLS." xml:space="preserve">
     <value>Gi innleveringsporten (587) STARTTLS med et sertifikat fra siden SSL-sertifikater på siden TCP/IP-porter, eller legg til port 465 med implisitt TLS.</value>
+  </data>
+  <data name="On the TCP/IP ports page, open the SMTP port 25 and set its SMTP authentication to Honeypot or Off, then reinitialize. Mail clients that still sign in on 25 are refused and banned from then on, so move them to 587 first." xml:space="preserve">
+    <value>Åpne SMTP-port 25 på siden TCP/IP-porter, sett SMTP-autentiseringen til Honningkrukke eller Av, og reinitialiser deretter. E-postklienter som fortsatt logger på port 25, blir fra da av avvist og utestengt, så flytt dem til 587 først.</value>
   </data>
   <data name="On the server, from an elevated prompt in the Bin folder: hMailServer.exe --create-stored-secrets-key makes the key, and hMailServer.exe --export-stored-secrets-key FILE exports it. Keep the file with the database backups, stored apart from them." xml:space="preserve">
     <value>På serveren, fra en ledetekst med forhøyede rettigheter i mappen Bin: hMailServer.exe --create-stored-secrets-key lager nøkkelen, og hMailServer.exe --export-stored-secrets-key FILE eksporterer den. Oppbevar filen sammen med databasens sikkerhetskopier, men atskilt fra dem.</value>
@@ -7115,6 +7187,9 @@ Ingenting som allerede er der, fjernes.</value>
   </data>
   <data name="Open the Control Panel on the server itself to change the account the service runs as or grant it its folders." xml:space="preserve">
     <value>Åpne Control Panel på selve serveren for å bytte kontoen tjenesten kjører som, eller gi den mappene sine.</value>
+  </data>
+  <data name="Open the SMTP port 25 and set its SMTP authentication to Honeypot or Off: AUTH there is refused without the password being looked at, and the address that sent it is banned." xml:space="preserve">
+    <value>Åpne SMTP-port 25 og sett SMTP-autentiseringen til Honningkrukke eller Av: AUTH avvises der uten at passordet blir sett på, og adressen som sendte det, utestenges.</value>
   </data>
   <data name="Open the delivery queue" xml:space="preserve">
     <value>Åpne leveringskøen</value>
@@ -7541,11 +7616,20 @@ Ingen nye forbindelser godtas og ingen post leveres før den gjenopptas. Windows
   <data name="Port 25 is judged differently from the rest and deliberately so: the peer there is normally another mail server, and requiring encryption on it refuses mail from senders that cannot offer any. On every other port the peer is a client with a password." xml:space="preserve">
     <value>Port 25 bedømmes annerledes enn resten, og det med vilje: motparten der er normalt en annen e-postserver, og å kreve kryptering på den avviser post fra avsendere som ikke kan tilby noen. På hver annen port er motparten en klient med et passord.</value>
   </data>
+  <data name="Port 25 is where other servers deliver mail, and no mail client should sign in there. Off and Honeypot never look at a password: AUTH is answered 502, and the first one of a session bans the address for the auto-ban minutes - never this computer, nor an address on the never-ban lists. Honeypot goes on offering AUTH, as bait. Mail clients sign in on 587." xml:space="preserve">
+    <value>Port 25 er der andre servere leverer e-post, og ingen e-postklient skal logge på der. Av og Honningkrukke ser aldri på et passord: AUTH besvares med 502, og den første i en økt utestenger adressen i auto-ban-minuttene - aldri denne datamaskinen, og aldri en adresse på listene over adresser som aldri utestenges. Honningkrukke fortsetter å tilby AUTH, som agn. E-postklienter logger på port 587.</value>
+  </data>
+  <data name="Port 25 is where other servers deliver mail, and no mail client should sign in there: an AUTH on it is a password being guessed." xml:space="preserve">
+    <value>Port 25 er der andre servere leverer e-post, og ingen e-postklient skal logge på der: en AUTH der er et passord som gjettes.</value>
+  </data>
   <data name="Port binding" xml:space="preserve">
     <value>Portbinding</value>
   </data>
   <data name="Port for http-01 challenges" xml:space="preserve">
     <value>Port for http-01-utfordringer</value>
+  </data>
+  <data name="Port {0} does not offer AUTH: DisableAUTHList names it, and an AUTH sent there is refused without a ban." xml:space="preserve">
+    <value>Port {0} tilbyr ikke AUTH: DisableAUTHList nevner den, og en AUTH sendt dit avvises uten utestengelse.</value>
   </data>
   <data name="Port {0} is set to TLS but has no certificate, so TLS cannot start." xml:space="preserve">
     <value>Port {0} er satt til TLS, men har ikke noe sertifikat, så TLS kan ikke starte.</value>
@@ -7555,6 +7639,18 @@ Ingen nye forbindelser godtas og ingen post leveres før den gjenopptas. Windows
   </data>
   <data name="Port {0} offers TLS with {1}, the self-signed certificate this installation made: mail clients warn about it until it is replaced with one a certificate authority issued, which ACME can fetch from Let's Encrypt." xml:space="preserve">
     <value>Port {0} tilbyr TLS med {1}, det selvsignerte sertifikatet denne installasjonen laget: e-postprogrammer advarer om det til det erstattes med et som en sertifiseringsinstans har utstedt, og som ACME kan hente fra Let's Encrypt.</value>
+  </data>
+  <data name="Port {0} still accepts AUTH: it is where other servers deliver mail, and a password tried there is a guess. Set its SMTP authentication to Honeypot or Off, and sign mail clients in on 587." xml:space="preserve">
+    <value>Port {0} tar fortsatt imot AUTH: det er der andre servere leverer e-post, og et passord som prøves der, er en gjetning. Sett SMTP-autentiseringen til Honningkrukke eller Av, og la e-postklienter logge på port 587.</value>
+  </data>
+  <data name="Port {0} takes no password, but AutoBanMinutes is 0, so an address that sends AUTH there is refused and not banned." xml:space="preserve">
+    <value>Port {0} tar ikke imot passord, men AutoBanMinutes er 0, så en adresse som sender AUTH dit, avvises og utestenges ikke.</value>
+  </data>
+  <data name="Port {0} takes no password: EHLO does not offer AUTH there, and an address that sends one anyway is refused and banned." xml:space="preserve">
+    <value>Port {0} tar ikke imot passord: EHLO tilbyr ikke AUTH der, og en adresse som likevel sender en, avvises og utestenges.</value>
+  </data>
+  <data name="Port {0} takes no password: EHLO offers AUTH there as bait, and an address that sends one is refused and banned." xml:space="preserve">
+    <value>Port {0} tar ikke imot passord: EHLO tilbyr AUTH der som agn, og en adresse som sender en, avvises og utestenges.</value>
   </data>
   <data name="Port {0} takes submission without TLS, so passwords and mail would cross the network in the clear." xml:space="preserve">
     <value>Port {0} tar imot innlevering uten TLS, så passord og post ville gå i klartekst over nettet.</value>
@@ -7894,6 +7990,9 @@ Ingen nye forbindelser godtas og ingen post leveres før den gjenopptas. Windows
   </data>
   <data name="Re_move action" xml:space="preserve">
     <value>F_jern handling</value>
+  </data>
+  <data name="Re_move name" xml:space="preserve">
+    <value>_Fjern navn</value>
   </data>
   <data name="Re_move the rule" xml:space="preserve">
     <value>Fje_rn regelen</value>
@@ -8241,6 +8340,9 @@ Kjør dette hvis klienter melder om meldinger som dukker opp under feil UID, ell
   <data name="Remove from the domain list" xml:space="preserve">
     <value>Fjern fra domenelisten</value>
   </data>
+  <data name="Remove from the never-ban list" xml:space="preserve">
+    <value>Fjern fra listen over aldri-utestengte</value>
+  </data>
   <data name="Remove from the suppression list" xml:space="preserve">
     <value>Fjern fra sperrelisten</value>
   </data>
@@ -8282,6 +8384,11 @@ Kjør dette hvis klienter melder om meldinger som dukker opp under feil UID, ell
 
 Et svart domene godtas straks igjen; et hvitt domene havner under greylisting og søppelpostpoengsummen igjen fra neste økt.</value>
   </data>
+  <data name="Remove {0} from the never-ban list?&#10;&#10;An address it spared can be auto-banned again from the next ban on." xml:space="preserve">
+    <value>Fjerne {0} fra listen over aldri-utestengte?
+
+En adresse den sparte, kan utestenges automatisk igjen fra neste utestenging.</value>
+  </data>
   <data name="Remove {0} from {1}?&#13;&#10;&#13;&#10;Any access this group has been granted stops applying to that account." xml:space="preserve">
     <value>Fjerne {0} fra {1}?
 
@@ -8311,10 +8418,10 @@ Postboksen og meldingene dens flyttes til den nye adressen. Post sendt til den g
 
 Hvert egendefinerte område - inkludert eventuelle oppføringer fra automatisk blokkering - fjernes og erstattes med «Min datamaskin» (127.0.0.1) og «Internett» (alt annet). Dette endrer hvem som kan koble til og relaye, umiddelbart.</value>
   </data>
-  <data name="Replace ALL configured ports with the defaults?&#10;&#10;SMTP 25 and 587, POP3 110, IMAP 143 - without connection security. TLS ports and custom bindings will be removed. The change takes effect when the server is reinitialized." xml:space="preserve">
+  <data name="Replace ALL configured ports with the defaults?&#10;&#10;SMTP 25 and 587, POP3 110, IMAP 143 - without connection security, and with SMTP authentication On on both SMTP ports, so a port 25 that is a honeypot takes AUTH again. TLS ports and custom bindings will be removed. The change takes effect when the server is reinitialized." xml:space="preserve">
     <value>Erstatte ALLE konfigurerte porter med standardene?
 
-SMTP 25 og 587, POP3 110, IMAP 143 - uten tilkoblingssikkerhet. TLS-porter og egendefinerte bindinger fjernes. Endringen trer i kraft når serveren reinitialiseres.</value>
+SMTP 25 og 587, POP3 110, IMAP 143 - uten tilkoblingssikkerhet og med SMTP-autentisering På på begge SMTP-portene, så en port 25 som er en honningkrukke, tar imot AUTH igjen. TLS-porter og egendefinerte bindinger fjernes. Endringen trer i kraft når serveren reinitialiseres.</value>
   </data>
   <data name="Replace the certificate here; the expiry date of each one is listed." xml:space="preserve">
     <value>Bytt ut sertifikatet her; utløpsdatoen til hvert av dem er oppført.</value>
@@ -8843,6 +8950,9 @@ Fortsette?</value>
   </data>
   <data name="SURBL servers are checked against the links inside the message." xml:space="preserve">
     <value>SURBL-servere sjekkes mot lenkene inne i meldingen.</value>
+  </data>
+  <data name="S_MTP authentication" xml:space="preserve">
+    <value>S_MTP-autentisering</value>
   </data>
   <data name="S_witch the rule over" xml:space="preserve">
     <value>_Slå regelen om</value>
@@ -11025,6 +11135,12 @@ Legg til likevel?</value>
   <data name="The retry counts and intervals are here, along with what happens when they run out." xml:space="preserve">
     <value>Antall forsøk og intervallene er her, sammen med hva som skjer når de tar slutt.</value>
   </data>
+  <data name="The reverse lookup of {0} was not answered, so the list cannot spare it now. Try again, or list the address in AutoBanNeverBan." xml:space="preserve">
+    <value>Det omvendte oppslaget av {0} ble ikke besvart, så listen kan ikke spare adressen nå. Prøv igjen, eller sett adressen i AutoBanNeverBan.</value>
+  </data>
+  <data name="The reverse name {0} is an address or a public suffix, which the list never matches. List the address in AutoBanNeverBan instead." xml:space="preserve">
+    <value>Det omvendte navnet {0} er en adresse eller et offentlig suffiks, som listen aldri sammenligner. Sett adressen i AutoBanNeverBan i stedet.</value>
+  </data>
   <data name="The rotation refused: {0}" xml:space="preserve">
     <value>Rotasjonen avviste: {0}</value>
   </data>
@@ -11161,6 +11277,12 @@ Dette er serverens egen resolver som svarer - den samme som SMTP-levering bruker
   </data>
   <data name="The server's answer could not be read: {0}" xml:space="preserve">
     <value>Serverens svar kunne ikke leses: {0}</value>
+  </data>
+  <data name="The server's answer has no list of entries." xml:space="preserve">
+    <value>Serverens svar inneholder ingen liste over oppføringer.</value>
+  </data>
+  <data name="The server's answer has no verdict." xml:space="preserve">
+    <value>Serverens svar inneholder ingen avgjørelse.</value>
   </data>
   <data name="The server's answer is not a settings group." xml:space="preserve">
     <value>Serverens svar er ikke en innstillingsgruppe.</value>
@@ -12329,6 +12451,12 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   <data name="Why it is listed" xml:space="preserve">
     <value>Hvorfor den er listet</value>
   </data>
+  <data name="Widen a ban to its neighbours" xml:space="preserve">
+    <value>Utvid en utestenging til naboene</value>
+  </data>
+  <data name="Widen an auto-ban to the neighbouring addresses whose reverse names share its domain" xml:space="preserve">
+    <value>Utvid en automatisk utestenging til naboadressene der de omvendte navnene deler domenet</value>
+  </data>
   <data name="Wiki the help pane's &quot;Open on the wiki&quot; link points at (empty hides the link)" xml:space="preserve">
     <value>Wiki som hjelpepanelets «Åpne på wikien» peker til (tomt skjuler lenken)</value>
   </data>
@@ -12466,6 +12594,9 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   </data>
   <data name="_Add folder" xml:space="preserve">
     <value>_Legg til mappe</value>
+  </data>
+  <data name="_Add name…" xml:space="preserve">
+    <value>Legg til _navn…</value>
   </data>
   <data name="_Add rule" xml:space="preserve">
     <value>Legg _til regel</value>
@@ -12763,6 +12894,9 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   </data>
   <data name="_Name" xml:space="preserve">
     <value>_Navn</value>
+  </data>
+  <data name="_Name or suffix" xml:space="preserve">
+    <value>_Navn eller suffiks</value>
   </data>
   <data name="_New accounts start with their keys published" xml:space="preserve">
     <value>_Nye kontoer starter med nøklene publisert</value>
@@ -13512,6 +13646,12 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   <data name="mail is stuck" xml:space="preserve">
     <value>post sitter fast</value>
   </data>
+  <data name="mail.example.net is that name alone; .example.net is the name and every name beneath it. Never a public suffix such as .com, and never a cloud whose customers' machines carry the provider's name." xml:space="preserve">
+    <value>mail.example.net er nettopp det navnet; .example.net er navnet og alle navn under det. Aldri et offentlig suffiks som .com, og aldri en sky der kundenes maskiner bærer leverandørens navn.</value>
+  </data>
+  <data name="mail.example.net is that name alone; .example.net is the name and every name beneath it. The reverse lookup is never waited for on a connection: a ban placed before the answer is in is lifted once it is, before the firewall or fail2ban is told. A net with no reverse name, or one you do not trust, still belongs in the address list above." xml:space="preserve">
+    <value>mail.example.net er nettopp det navnet; .example.net er navnet og alle navn under det. Det ventes aldri på det omvendte oppslaget for en tilkobling: en utestenging lagt før svaret har kommet, oppheves når det kommer, før brannmuren eller fail2ban får beskjed. Et nett uten omvendt navn, eller med et du ikke stoler på, hører fortsatt hjemme i adresselisten over.</value>
+  </data>
   <data name="make awstats work" xml:space="preserve">
     <value>få awstats til å virke</value>
   </data>
@@ -13736,6 +13876,9 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   </data>
   <data name="stop forwarded mail failing spf" xml:space="preserve">
     <value>hindre at videresendt post feiler spf</value>
+  </data>
+  <data name="stop password guessing on port 25 with a honeypot" xml:space="preserve">
+    <value>stopp passordgjetting på port 25 med en honningkrukke</value>
   </data>
   <data name="stop spam" xml:space="preserve">
     <value>stopp spam</value>
@@ -14127,6 +14270,9 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   <data name="{0} has no postmaster address configured, and this page will not invent a mailbox - enter the address that should receive the reports. Until one is entered there is no record to copy." xml:space="preserve">
     <value>{0} har ingen postmasteradresse konfigurert, og denne siden finner ikke på en postboks - skriv inn adressen som skal motta rapportene. Før én er skrevet inn, finnes det ingen oppføring å kopiere.</value>
   </data>
+  <data name="{0} has no reverse name, so no pattern can spare it. List the address in AutoBanNeverBan instead." xml:space="preserve">
+    <value>{0} har ikke noe omvendt navn, så ingen mønstre kan spare adressen. Sett adressen i AutoBanNeverBan i stedet.</value>
+  </data>
   <data name="{0} held, showing the {1} most recent. The rest are still there - work through these, or let the retention sweep age them out." xml:space="preserve">
     <value>{0} holdt tilbake, viser de {1} nyeste. Resten er der fortsatt - gå gjennom disse, eller la oppbevaringsfeiingen la dem eldes ut.</value>
   </data>
@@ -14142,17 +14288,29 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   <data name="{0} is available" xml:space="preserve">
     <value>{0} er tilgjengelig</value>
   </data>
+  <data name="{0} is covered by {1} but does not resolve back to {2}, so it is not spared: anybody who holds an address can write its reverse name." xml:space="preserve">
+    <value>{0} er dekket av {1}, men peker ikke tilbake til {2}, så adressen spares ikke: den som har en adresse, kan selv skrive dens omvendte navn.</value>
+  </data>
+  <data name="{0} is covered by {1}, but its forward lookup was not answered, so {2} is not spared now." xml:space="preserve">
+    <value>{0} er dekket av {1}, men det fremoverrettede oppslaget ble ikke besvart, så {2} spares ikke nå.</value>
+  </data>
   <data name="{0} is downloaded and verified" xml:space="preserve">
     <value>{0} er lastet ned og verifisert</value>
   </data>
   <data name="{0} is here with the mailboxes {1}, the list {2} and one rule that files invoices. The one password for all of them was shown when it was made and was not kept - remove the sample and make it again to be given another. It is left out of the first-hour checklist, because a sample domain is not this server's first domain." xml:space="preserve">
     <value>{0} er her, med postkassene {1}, listen {2} og én regel som arkiverer fakturaer. Det ene passordet for alle postkassene ble vist da prøven ble laget, og ble ikke tatt vare på; fjern prøven og lag den på nytt for å få et nytt. Det holdes utenfor sjekklisten for den første timen, fordi et prøvedomene ikke er denne serverens første domene.</value>
   </data>
+  <data name="{0} is never auto-banned: its reverse name {1} resolves back to it and is covered by {2}." xml:space="preserve">
+    <value>{0} utestenges aldri automatisk: dens omvendte navn {1} peker tilbake til den og er dekket av {2}.</value>
+  </data>
   <data name="{0} is on but scores 0, so it costs a lookup on every message and can never change the outcome. Give it a score, or turn it off." xml:space="preserve">
     <value>{0} er på, men gir 0 poeng, så den koster et oppslag på hver melding og kan aldri endre utfallet. Gi den en poengsum, eller slå den av.</value>
   </data>
   <data name="{0} is on the list. It applies to the next session from that domain." xml:space="preserve">
     <value>{0} er på listen. Det gjelder neste økt fra det domenet.</value>
+  </data>
+  <data name="{0} is on the never-ban list. It applies to the next ban." xml:space="preserve">
+    <value>{0} står på listen over aldri-utestengte. Gjelder fra neste utestenging.</value>
   </data>
   <data name="{0} is on the suppression list of {1}." xml:space="preserve">
     <value>{0} står på sperrelisten for {1}.</value>
@@ -14340,8 +14498,14 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   <data name="{0} was not on the list any more." xml:space="preserve">
     <value>{0} sto ikke lenger på listen.</value>
   </data>
+  <data name="{0} was not on the never-ban list any more." xml:space="preserve">
+    <value>{0} sto ikke lenger på listen over aldri-utestengte.</value>
+  </data>
   <data name="{0} was removed from the list." xml:space="preserve">
     <value>{0} ble fjernet fra listen.</value>
+  </data>
+  <data name="{0} was removed from the never-ban list." xml:space="preserve">
+    <value>{0} ble fjernet fra listen over aldri-utestengte.</value>
   </data>
   <data name="{0} was removed: {1} mailbox(es), {2} distribution list(s), {3} rule(s) and {4} message(s) went with it." xml:space="preserve">
     <value>{0} ble fjernet: {1} postkasser, {2} distribusjonslister, {3} regler og {4} meldinger fulgte med.</value>

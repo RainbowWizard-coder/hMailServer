@@ -680,6 +680,9 @@
   <data name="A modern administration app for hMailServer: live dashboard, domains and accounts, delivery queue, log streaming, full server settings and the 6.x transport-security features (DANE, MTA-STS, ARC, TLS-RPT, ACME)." xml:space="preserve">
     <value>面向 hMailServer 的现代管理应用：实时仪表板、域与账户、投递队列、日志流、完整的服务器设置，以及 6.x 的传输安全功能（DANE、MTA-STS、ARC、TLS-RPT、ACME）。</value>
   </data>
+  <data name="A name is required." xml:space="preserve">
+    <value>名称为必填项。</value>
+  </data>
   <data name="A new address is required." xml:space="preserve">
     <value>需要新地址。</value>
   </data>
@@ -772,6 +775,9 @@
   </data>
   <data name="A scanner that cannot run does not refuse the message. The error is written to the log and the scan continues to the next scanner; when none of them can answer, the message is treated exactly as if it had been examined and found clean. That is why this page reports whether each scanner can run rather than whether it is switched on." xml:space="preserve">
     <value>无法运行的扫描器并不会拒收邮件。错误会写入日志，扫描继续交给下一个扫描器；当所有扫描器都无法作答时，该邮件会被完全当作已经检查过且未发现问题来处理。这正是本页报告每个扫描器是否能够运行、而不是报告它是否被打开的原因。</value>
+  </data>
+  <data name="A scanner working through 203.0.113.10, .11 and .12 under one reverse domain earns a ban and a firewall rule for each. With this on, the ban is still written at once for the one address, and then widened in the background to the run of addresses around it, inside its /24, whose reverse names share its registrable domain: one range and one firewall rule, said in the application log." xml:space="preserve">
+    <value>一个在同一反向域下依次尝试 203.0.113.10、.11 和 .12 的扫描器，会为每个地址各得到一个封禁和一条防火墙规则。启用此项后，封禁仍会立即只针对该地址写入，然后在后台扩展到其 /24 内、反向名称共享其可注册域的周围连续地址：一个范围、一条防火墙规则，并记入应用程序日志。</value>
   </data>
   <data name="A schedule creates and updates accounts with nobody watching. It never disables one, whatever the checkbox above is set to - departures are left to a person who has read a preview. Switch this on only after a preview has told you what it is going to do." xml:space="preserve">
     <value>计划会在无人看管的情况下创建和更新账户。无论上面的复选框如何设置，它都绝不会禁用账户 - 人员离职留给已经看过预览的人来处理。请只在预览已经告诉您它将要做什么之后，再打开此项。</value>
@@ -922,6 +928,9 @@
   </data>
   <data name="AUTH is normally offered on every SMTP port. List the local TCP ports where it should not be, for example a port 25 that only accepts inbound mail from other servers." xml:space="preserve">
     <value>AUTH 通常在每个 SMTP 端口上提供。请列出不应提供它的本地 TCP 端口，例如只接收来自其他服务器的入站邮件的 25 端口。</value>
+  </data>
+  <data name="AUTH {0}" xml:space="preserve">
+    <value>AUTH {0}</value>
   </data>
   <data name="AWStats-compatible log" xml:space="preserve">
     <value>AWStats 兼容日志</value>
@@ -1120,6 +1129,9 @@
   </data>
   <data name="Add a listener - 587 with STARTTLS, or 465 for implicit TLS." xml:space="preserve">
     <value>添加一个监听器 - 使用 STARTTLS 的 587，或者使用隐式 TLS 的 465。</value>
+  </data>
+  <data name="Add a name to the never-ban list" xml:space="preserve">
+    <value>向永不封禁列表添加名称</value>
   </data>
   <data name="Add a_lias" xml:space="preserve">
     <value>添加别名(_L)</value>
@@ -1480,6 +1492,9 @@
   </data>
   <data name="An address is required." xml:space="preserve">
     <value>需要地址。</value>
+  </data>
+  <data name="An address is spared only when one of its reverse names is covered AND resolves back to the address, since anybody who holds an address can write its reverse name. It applies to the next ban." xml:space="preserve">
+    <value>只有当地址的某个反向名称被覆盖、并且该名称正向解析回此地址时，地址才会被豁免，因为任何持有地址的人都能自行写入其反向名称。自下一次封禁起生效。</value>
   </data>
   <data name="An address this server hosts is refused: the list only applies to mail leaving the server." xml:space="preserve">
     <value>本服务器托管的地址会被拒绝：列表只适用于离开服务器的邮件。</value>
@@ -2130,6 +2145,9 @@
   <data name="C_A certificate bundle (PEM) that client certificates must chain to" xml:space="preserve">
     <value>客户端证书必须链接到的 CA 证书包(_A)（PEM）</value>
   </data>
+  <data name="C_heck an address…" xml:space="preserve">
+    <value>检查地址(_H)…</value>
+  </data>
   <data name="C_hoose a photo..." xml:space="preserve">
     <value>选择照片... (_G)</value>
   </data>
@@ -2285,6 +2303,9 @@
   </data>
   <data name="Check _policy (HTTPS)" xml:space="preserve">
     <value>检查策略(_P)（HTTPS）</value>
+  </data>
+  <data name="Check an address" xml:space="preserve">
+    <value>检查地址</value>
   </data>
   <data name="Check every message" xml:space="preserve">
     <value>勾选所有邮件</value>
@@ -4428,6 +4449,9 @@
   <data name="For a MinIO or Ceph gateway behind a CA of your own. The host name is checked either way." xml:space="preserve">
     <value>适用于位于自有证书颁发机构后面的 MinIO 或 Ceph 网关。无论如何都会验证主机名。</value>
   </data>
+  <data name="For a provider whose hosts share a reverse name and whose addresses move: a connecting address is never auto-banned - for failed logons, a spam trap or a null sender - when one of its reverse names is covered by a name here and resolves back to the address. Nothing else is skipped: greylisting, SPF, DKIM, DMARC and the domain white and black list still apply. Empty, the default, changes nothing." xml:space="preserve">
+    <value>适用于主机共用一个反向名称、地址经常变动的提供商：当连接地址的某个反向名称被此处的名称覆盖、并且正向解析回该地址时，该地址永远不会被自动封禁——无论是登录失败、垃圾邮件陷阱还是空发件人。其他检查一概不跳过：灰名单、SPF、DKIM、DMARC 以及域的白名单和黑名单仍然适用。为空（默认）时不做任何改变。</value>
+  </data>
   <data name="For a record of who corresponds with whom, keeping it for ever should be a decision rather than a default - which is why 0 is offered as an option instead of being one." xml:space="preserve">
     <value>对于谁与谁通信的记录，永久保留应当是一个决定而不是默认值 - 这就是为什么 0 只是作为选项提供，而不是默认值。</value>
   </data>
@@ -4737,6 +4761,12 @@
   <data name="Holds the refusal of a wrong password for a while before sending it: the first failure on a connection waits this many seconds, the second twice as long, and so on up to 30 seconds, on SMTP, POP3 and IMAP alike. A correct password is never delayed. The wait is a timer on the connection, not a thread asleep, so a flood of failed logons costs the server nothing but the sockets they arrive on - the reason the old TarpitDelay was a stub for a decade is that the naive version is a self-inflicted outage." xml:space="preserve">
     <value>在发送错误密码的拒绝应答之前先等待一段时间：连接上的第一次失败等待这么多秒，第二次等待两倍时间，依此类推，最多 30 秒，SMTP、POP3 和 IMAP 一视同仁。正确的密码永远不会被延迟。这个等待是连接上的定时器，而不是休眠的线程，因此大量失败登录除了它们所到达的套接字之外不会给服务器带来任何开销 - 旧的 TarpitDelay 之所以十年来一直是个空壳，就是因为朴素的实现会造成自我引发的停机。</value>
   </data>
+  <data name="Honeypot" xml:space="preserve">
+    <value>蜜罐</value>
+  </data>
+  <data name="Honeypot - offer AUTH; refuse it and ban the address" xml:space="preserve">
+    <value>蜜罐 - 提供 AUTH；拒绝并封禁该地址</value>
+  </data>
   <data name="Honor recipient DANE/TLSA records when sending" xml:space="preserve">
     <value>发送时遵循收件方的 DANE/TLSA 记录</value>
   </data>
@@ -4949,6 +4979,9 @@
   </data>
   <data name="IP ranges…" xml:space="preserve">
     <value>IP 范围…</value>
+  </data>
+  <data name="IPv4 or IPv6 address" xml:space="preserve">
+    <value>IPv4 或 IPv6 地址</value>
   </data>
   <data name="I_P address" xml:space="preserve">
     <value>IP 地址(_P)</value>
@@ -6153,6 +6186,9 @@
   <data name="NCSA Common Log Format writes one line per entry as host, ident, session, [date], &quot;category and message&quot;, status, bytes - so a log analyser can count 5xx replies without knowing anything about hMailServer. Ident and bytes are always &quot;-&quot; (the server never queries identd and the logger is not told transfer sizes), and the AWStats journal is a separate file that this setting does not change: its own switch is above." xml:space="preserve">
     <value>NCSA 通用日志格式每个条目写一行，格式为 host、ident、session、[date]、"category and message"、status、bytes - 这样日志分析器无需了解 hMailServer 的任何知识就能统计 5xx 应答。ident 和 bytes 始终为 "-"（服务器从不查询 identd，日志记录器也不知道传输大小），而 AWStats 日志是一个独立的文件，此设置不会改变它：它自己的开关在上面。</value>
   </data>
+  <data name="N_ote" xml:space="preserve">
+    <value>备注(_O)</value>
+  </data>
   <data name="N_otice text (mailed to a sender this server hosts, naming the rule)" xml:space="preserve">
     <value>通知文本 (发送给此服务器托管的发件人，并注明规则名称) (_O)</value>
   </data>
@@ -6161,6 +6197,9 @@
   </data>
   <data name="Name for the new certificate" xml:space="preserve">
     <value>新证书的名称</value>
+  </data>
+  <data name="Name or suffix" xml:space="preserve">
+    <value>名称或后缀</value>
   </data>
   <data name="Name servers" xml:space="preserve">
     <value>名称服务器</value>
@@ -6180,6 +6219,9 @@
   <data name="Names" xml:space="preserve">
     <value>名称</value>
   </data>
+  <data name="Names that are never auto-banned" xml:space="preserve">
+    <value>永不自动封禁的名称</value>
+  </data>
   <data name="Negotiate (Kerberos/NTLM) - the password never crosses the network" xml:space="preserve">
     <value>Negotiate（Kerberos/NTLM）- 密码从不经过网络</value>
   </data>
@@ -6195,11 +6237,17 @@
   <data name="Never" xml:space="preserve">
     <value>从不</value>
   </data>
+  <data name="Never auto-ban by reverse name" xml:space="preserve">
+    <value>按反向名称永不自动封禁</value>
+  </data>
   <data name="Never auto-ban these addresses (comma separated; CIDR blocks allowed)" xml:space="preserve">
     <value>永不自动封禁这些地址（逗号分隔；允许 CIDR 块）</value>
   </data>
   <data name="Never judged by country (addresses and CIDR ranges, comma separated)" xml:space="preserve">
     <value>从不按国家判断（地址和 CIDR 范围，逗号分隔）</value>
+  </data>
+  <data name="Never-ban list status" xml:space="preserve">
+    <value>永不封禁列表状态</value>
   </data>
   <data name="New IMAP folder" xml:space="preserve">
     <value>新建 IMAP 文件夹</value>
@@ -6290,6 +6338,9 @@
   </data>
   <data name="No MX records were found from this machine, so the server would fall back to its own host name." xml:space="preserve">
     <value>从本机未找到任何 MX 记录，因此服务器将回退到它自己的主机名。</value>
+  </data>
+  <data name="No SMTP listener is on port 25, so no delivery port takes a password." xml:space="preserve">
+    <value>端口 25 上没有 SMTP 侦听器，因此没有投递端口接受密码。</value>
   </data>
   <data name="No SSL certificates are configured, so there are no key files to check." xml:space="preserve">
     <value>未配置任何 SSL 证书，因此没有可检查的密钥文件。</value>
@@ -6492,8 +6543,17 @@
   <data name="No passphrase stored" xml:space="preserve">
     <value>未存储密码短语</value>
   </data>
+  <data name="No password on port 25 - the port other servers deliver to" xml:space="preserve">
+    <value>端口 25 不接受密码 - 其他服务器投递邮件的端口</value>
+  </data>
   <data name="No password was typed, so no logon was tested - the infrastructure half all works." xml:space="preserve">
     <value>未输入密码，因此未测试登录 - 基础设施这一半全部正常。</value>
+  </data>
+  <data name="No pattern covers {0}, and it does not resolve back to {1}, so no pattern would spare the address." xml:space="preserve">
+    <value>没有模式覆盖 {0}，且它不会正向解析回 {1}，因此任何模式都不会豁免此地址。</value>
+  </data>
+  <data name="No pattern covers {0}. It resolves back to {1}, so a pattern covering it would spare the address." xml:space="preserve">
+    <value>没有模式覆盖 {0}。它会正向解析回 {1}，因此覆盖它的模式会豁免此地址。</value>
   </data>
   <data name="No port has a client certificate policy, so no CA bundle or client certificates are required." xml:space="preserve">
     <value>没有任何端口设置客户端证书策略，因此不需要 CA 证书包或客户端证书。</value>
@@ -6795,6 +6855,9 @@
   <data name="Off" xml:space="preserve">
     <value>关闭</value>
   </data>
+  <data name="Off - do not offer AUTH; refuse it and ban the address" xml:space="preserve">
+    <value>关闭 - 不提供 AUTH；拒绝并封禁该地址</value>
+  </data>
   <data name="Off by default because it costs a term table of a few kilobytes per message and a backfill pass over every message already delivered - an administrator's decision, never an upgrade's. Results are identical on and off: the index only narrows which messages the substring scan has to read. Requires message indexing (above) to be enabled; on its own this indexes nothing." xml:space="preserve">
     <value>默认关闭，因为它的代价是每封邮件几千字节的词条表，以及对每封已投递邮件的一次回填遍历 - 这是管理员的决定，绝不是升级的决定。打开和关闭的结果完全相同：索引只是缩小了子串扫描必须读取的邮件范围。需要启用（上面的）邮件索引；单独打开此项不会索引任何内容。</value>
   </data>
@@ -6827,6 +6890,9 @@
   </data>
   <data name="Off by default. MAIL FROM:&lt;&gt; is no excuse: a delivery report from a server that greets with an address is refused like any other mail from it." xml:space="preserve">
     <value>默认关闭。MAIL FROM:&lt;&gt; 不是豁免理由：来自以地址问候的服务器的投递报告，会像它发来的其他邮件一样被拒绝。</value>
+  </data>
+  <data name="Off by default. Only when the banned address's own reverse name resolves back to it; at most 32 addresses each way; never into another /24, across an address either never-ban list above spares, or across an IP range of yours that covers one address and not the other; never for IPv6. A reverse lookup that is not answered leaves the single address. A hosting net whose customers all carry one reverse domain is widened whole: list it above, or leave this off." xml:space="preserve">
+    <value>默认关闭。仅当被封禁地址自身的反向名称能解析回该地址时才进行；每个方向最多 32 个地址；绝不进入另一个 /24，绝不越过上方任一列表豁免的地址，也绝不越过您设置的只覆盖其中一个地址的 IP 范围；绝不用于 IPv6。未得到应答的反向查询会保持单个地址不变。所有客户都使用同一反向域的托管网络会被整体扩展：请将其列入上方，或保持此项关闭。</value>
   </data>
   <data name="Off by default. Operators who drop this in a script today can delete the script when this is on." xml:space="preserve">
     <value>默认关闭。目前用脚本拒绝这种邮件的管理员，在开启后可以删除该脚本。</value>
@@ -6897,6 +6963,9 @@
   <data name="On" xml:space="preserve">
     <value>打开</value>
   </data>
+  <data name="On - offer AUTH and check the password" xml:space="preserve">
+    <value>打开 - 提供 AUTH 并检查密码</value>
+  </data>
   <data name="On by default, and inert until somebody sets a recovery address." xml:space="preserve">
     <value>默认打开，在有人设置恢复地址之前不起作用。</value>
   </data>
@@ -6959,6 +7028,9 @@
   </data>
   <data name="On the TCP/IP ports page, give the submission port (587) STARTTLS with a certificate from the SSL certificates page, or add port 465 with implicit TLS." xml:space="preserve">
     <value>在TCP/IP 端口页面，为提交端口 (587) 设置 STARTTLS 并使用SSL 证书页面的证书，或添加使用隐式 TLS 的端口 465。</value>
+  </data>
+  <data name="On the TCP/IP ports page, open the SMTP port 25 and set its SMTP authentication to Honeypot or Off, then reinitialize. Mail clients that still sign in on 25 are refused and banned from then on, so move them to 587 first." xml:space="preserve">
+    <value>在“TCP/IP 端口”页面上打开 SMTP 端口 25，将其 SMTP 身份验证设为“蜜罐”或“关闭”，然后重新初始化。此后仍在端口 25 登录的邮件客户端会被拒绝并封禁，因此请先把它们改到 587。</value>
   </data>
   <data name="On the server, from an elevated prompt in the Bin folder: hMailServer.exe --create-stored-secrets-key makes the key, and hMailServer.exe --export-stored-secrets-key FILE exports it. Keep the file with the database backups, stored apart from them." xml:space="preserve">
     <value>在服务器上，从 Bin 文件夹中以管理员身份运行的命令提示符：hMailServer.exe --create-stored-secrets-key 创建密钥，hMailServer.exe --export-stored-secrets-key FILE 将其导出。请将该文件与数据库备份一起保存，但要与备份分开存放。</value>
@@ -7115,6 +7187,9 @@
   </data>
   <data name="Open the Control Panel on the server itself to change the account the service runs as or grant it its folders." xml:space="preserve">
     <value>请在服务器本机上打开控制面板，以更改服务运行所用的账户或授予其文件夹。</value>
+  </data>
+  <data name="Open the SMTP port 25 and set its SMTP authentication to Honeypot or Off: AUTH there is refused without the password being looked at, and the address that sent it is banned." xml:space="preserve">
+    <value>打开 SMTP 端口 25，将其 SMTP 身份验证设为“蜜罐”或“关闭”：那里的 AUTH 会在不查看密码的情况下被拒绝，发送它的地址会被封禁。</value>
   </data>
   <data name="Open the delivery queue" xml:space="preserve">
     <value>打开投递队列</value>
@@ -7541,11 +7616,20 @@
   <data name="Port 25 is judged differently from the rest and deliberately so: the peer there is normally another mail server, and requiring encryption on it refuses mail from senders that cannot offer any. On every other port the peer is a client with a password." xml:space="preserve">
     <value>端口 25 的判定标准与其他端口不同，而且是有意如此：那里的对端通常是另一台邮件服务器，在它上面要求加密会拒绝来自无法提供任何加密的发件方的邮件。在其他所有端口上，对端都是带密码的客户端。</value>
   </data>
+  <data name="Port 25 is where other servers deliver mail, and no mail client should sign in there. Off and Honeypot never look at a password: AUTH is answered 502, and the first one of a session bans the address for the auto-ban minutes - never this computer, nor an address on the never-ban lists. Honeypot goes on offering AUTH, as bait. Mail clients sign in on 587." xml:space="preserve">
+    <value>端口 25 是其他服务器投递邮件的端口，任何邮件客户端都不应在那里登录。“关闭”和“蜜罐”从不查看密码：AUTH 一律答复 502，会话中的第一个 AUTH 会在自动封禁的分钟数内封禁该地址——但从不封禁本机，也不封禁永不封禁列表中的地址。“蜜罐”继续提供 AUTH，作为诱饵。邮件客户端在 587 登录。</value>
+  </data>
+  <data name="Port 25 is where other servers deliver mail, and no mail client should sign in there: an AUTH on it is a password being guessed." xml:space="preserve">
+    <value>端口 25 是其他服务器投递邮件的端口，任何邮件客户端都不应在那里登录：在该端口上的 AUTH 就是在猜密码。</value>
+  </data>
   <data name="Port binding" xml:space="preserve">
     <value>端口绑定</value>
   </data>
   <data name="Port for http-01 challenges" xml:space="preserve">
     <value>http-01 质询使用的端口</value>
+  </data>
+  <data name="Port {0} does not offer AUTH: DisableAUTHList names it, and an AUTH sent there is refused without a ban." xml:space="preserve">
+    <value>端口 {0} 不提供 AUTH：DisableAUTHList 列出了它，发往该端口的 AUTH 会被拒绝但不封禁。</value>
   </data>
   <data name="Port {0} is set to TLS but has no certificate, so TLS cannot start." xml:space="preserve">
     <value>端口 {0} 设置为 TLS，但没有证书，因此 TLS 无法启动。</value>
@@ -7555,6 +7639,18 @@
   </data>
   <data name="Port {0} offers TLS with {1}, the self-signed certificate this installation made: mail clients warn about it until it is replaced with one a certificate authority issued, which ACME can fetch from Let's Encrypt." xml:space="preserve">
     <value>端口 {0} 使用 {1} 提供 TLS，这是本次安装创建的自签名证书：在替换为证书颁发机构签发的证书之前，邮件客户端会对此发出警告；ACME 可以从 Let's Encrypt 获取证书。</value>
+  </data>
+  <data name="Port {0} still accepts AUTH: it is where other servers deliver mail, and a password tried there is a guess. Set its SMTP authentication to Honeypot or Off, and sign mail clients in on 587." xml:space="preserve">
+    <value>端口 {0} 仍接受 AUTH：其他服务器向它投递邮件，在那里尝试的密码都是猜测。请将其 SMTP 身份验证设为“蜜罐”或“关闭”，并让邮件客户端在 587 登录。</value>
+  </data>
+  <data name="Port {0} takes no password, but AutoBanMinutes is 0, so an address that sends AUTH there is refused and not banned." xml:space="preserve">
+    <value>端口 {0} 不接受密码，但 AutoBanMinutes 为 0，因此向该端口发送 AUTH 的地址会被拒绝但不会被封禁。</value>
+  </data>
+  <data name="Port {0} takes no password: EHLO does not offer AUTH there, and an address that sends one anyway is refused and banned." xml:space="preserve">
+    <value>端口 {0} 不接受密码：EHLO 在那里不提供 AUTH，仍发送 AUTH 的地址会被拒绝并封禁。</value>
+  </data>
+  <data name="Port {0} takes no password: EHLO offers AUTH there as bait, and an address that sends one is refused and banned." xml:space="preserve">
+    <value>端口 {0} 不接受密码：EHLO 在那里把 AUTH 作为诱饵提供，发送 AUTH 的地址会被拒绝并封禁。</value>
   </data>
   <data name="Port {0} takes submission without TLS, so passwords and mail would cross the network in the clear." xml:space="preserve">
     <value>端口 {0} 在没有 TLS 的情况下接受提交，密码和邮件会以明文穿过网络。</value>
@@ -7894,6 +7990,9 @@
   </data>
   <data name="Re_move action" xml:space="preserve">
     <value>移除操作(_M)</value>
+  </data>
+  <data name="Re_move name" xml:space="preserve">
+    <value>删除名称(_M)</value>
   </data>
   <data name="Re_move the rule" xml:space="preserve">
     <value>移除规则(_M)</value>
@@ -8241,6 +8340,9 @@
   <data name="Remove from the domain list" xml:space="preserve">
     <value>从域列表中移除</value>
   </data>
+  <data name="Remove from the never-ban list" xml:space="preserve">
+    <value>从永不封禁列表中删除</value>
+  </data>
   <data name="Remove from the suppression list" xml:space="preserve">
     <value>从抑制列表移除</value>
   </data>
@@ -8282,6 +8384,11 @@
 
 黑名单域会立即重新被接受；白名单域从下一个会话起重新受灰名单和垃圾邮件分数约束。</value>
   </data>
+  <data name="Remove {0} from the never-ban list?&#10;&#10;An address it spared can be auto-banned again from the next ban on." xml:space="preserve">
+    <value>要将 {0} 从永不封禁列表中删除吗？
+
+它豁免过的地址自下一次封禁起可能再次被自动封禁。</value>
+  </data>
   <data name="Remove {0} from {1}?&#13;&#10;&#13;&#10;Any access this group has been granted stops applying to that account." xml:space="preserve">
     <value>是否将 {0} 从 {1} 中移除？
 
@@ -8311,10 +8418,10 @@
 
 每一个自定义范围 - 包括所有自动封禁条目 - 都会被移除，并替换为 'My computer'（127.0.0.1）和 'Internet'（其余全部）。这会立即改变谁可以连接和中继。</value>
   </data>
-  <data name="Replace ALL configured ports with the defaults?&#10;&#10;SMTP 25 and 587, POP3 110, IMAP 143 - without connection security. TLS ports and custom bindings will be removed. The change takes effect when the server is reinitialized." xml:space="preserve">
+  <data name="Replace ALL configured ports with the defaults?&#10;&#10;SMTP 25 and 587, POP3 110, IMAP 143 - without connection security, and with SMTP authentication On on both SMTP ports, so a port 25 that is a honeypot takes AUTH again. TLS ports and custom bindings will be removed. The change takes effect when the server is reinitialized." xml:space="preserve">
     <value>是否将所有已配置的端口替换为默认值？
 
-SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自定义绑定将被移除。更改在重新初始化服务器后生效。</value>
+SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端口的 SMTP 身份验证均为“打开”，因此作为蜜罐的端口 25 将再次接受 AUTH。TLS 端口和自定义绑定将被移除。更改在重新初始化服务器后生效。</value>
   </data>
   <data name="Replace the certificate here; the expiry date of each one is listed." xml:space="preserve">
     <value>在此更换证书；每一张证书的到期日期都已列出。</value>
@@ -8843,6 +8950,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="SURBL servers are checked against the links inside the message." xml:space="preserve">
     <value>SURBL 服务器用于核查邮件内部的链接。</value>
+  </data>
+  <data name="S_MTP authentication" xml:space="preserve">
+    <value>SMTP 身份验证(_M)</value>
   </data>
   <data name="S_witch the rule over" xml:space="preserve">
     <value>切换规则(_W)</value>
@@ -11025,6 +11135,12 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="The retry counts and intervals are here, along with what happens when they run out." xml:space="preserve">
     <value>重试次数和间隔在这里，以及用尽之后会发生什么。</value>
   </data>
+  <data name="The reverse lookup of {0} was not answered, so the list cannot spare it now. Try again, or list the address in AutoBanNeverBan." xml:space="preserve">
+    <value>{0} 的反向查询没有得到应答，因此列表现在无法豁免它。请重试，或将该地址列入 AutoBanNeverBan。</value>
+  </data>
+  <data name="The reverse name {0} is an address or a public suffix, which the list never matches. List the address in AutoBanNeverBan instead." xml:space="preserve">
+    <value>反向名称 {0} 是地址或公共后缀，列表从不匹配这类名称。请改为将该地址列入 AutoBanNeverBan。</value>
+  </data>
   <data name="The rotation refused: {0}" xml:space="preserve">
     <value>轮换拒绝了操作：{0}</value>
   </data>
@@ -11161,6 +11277,12 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="The server's answer could not be read: {0}" xml:space="preserve">
     <value>无法读取服务器的响应：{0}</value>
+  </data>
+  <data name="The server's answer has no list of entries." xml:space="preserve">
+    <value>服务器的应答中没有条目列表。</value>
+  </data>
+  <data name="The server's answer has no verdict." xml:space="preserve">
+    <value>服务器的应答中没有判定结果。</value>
   </data>
   <data name="The server's answer is not a settings group." xml:space="preserve">
     <value>服务器的答复不是设置组。</value>
@@ -12329,6 +12451,12 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="Why it is listed" xml:space="preserve">
     <value>列入原因</value>
   </data>
+  <data name="Widen a ban to its neighbours" xml:space="preserve">
+    <value>将封禁扩展到相邻地址</value>
+  </data>
+  <data name="Widen an auto-ban to the neighbouring addresses whose reverse names share its domain" xml:space="preserve">
+    <value>将自动封禁扩展到反向名称与其共享域的相邻地址</value>
+  </data>
   <data name="Wiki the help pane's &quot;Open on the wiki&quot; link points at (empty hides the link)" xml:space="preserve">
     <value>帮助窗格中“在 Wiki 中打开”链接指向的 Wiki（留空则隐藏链接）</value>
   </data>
@@ -12466,6 +12594,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="_Add folder" xml:space="preserve">
     <value>添加文件夹(_A)</value>
+  </data>
+  <data name="_Add name…" xml:space="preserve">
+    <value>添加名称(_A)…</value>
   </data>
   <data name="_Add rule" xml:space="preserve">
     <value>添加规则(_A)</value>
@@ -12763,6 +12894,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="_Name" xml:space="preserve">
     <value>名称(_N)</value>
+  </data>
+  <data name="_Name or suffix" xml:space="preserve">
+    <value>名称或后缀(_N)</value>
   </data>
   <data name="_New accounts start with their keys published" xml:space="preserve">
     <value>新账户一开始就发布其密钥(_N)</value>
@@ -13512,6 +13646,12 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="mail is stuck" xml:space="preserve">
     <value>邮件卡住</value>
   </data>
+  <data name="mail.example.net is that name alone; .example.net is the name and every name beneath it. Never a public suffix such as .com, and never a cloud whose customers' machines carry the provider's name." xml:space="preserve">
+    <value>mail.example.net 仅表示该名称；.example.net 表示该名称及其下的所有名称。切勿使用 .com 之类的公共后缀，也切勿使用客户机器带有提供商名称的云。</value>
+  </data>
+  <data name="mail.example.net is that name alone; .example.net is the name and every name beneath it. The reverse lookup is never waited for on a connection: a ban placed before the answer is in is lifted once it is, before the firewall or fail2ban is told. A net with no reverse name, or one you do not trust, still belongs in the address list above." xml:space="preserve">
+    <value>mail.example.net 仅表示该名称；.example.net 表示该名称及其下的所有名称。连接过程中从不等待反向查询：在应答到达之前设下的封禁，会在应答到达后、通知防火墙或 fail2ban 之前解除。没有反向名称、或反向名称不可信的网络，仍应列入上方的地址列表。</value>
+  </data>
   <data name="make awstats work" xml:space="preserve">
     <value>让 AWStats 正常工作</value>
   </data>
@@ -13736,6 +13876,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="stop forwarded mail failing spf" xml:space="preserve">
     <value>不让转发的邮件在 SPF 上失败</value>
+  </data>
+  <data name="stop password guessing on port 25 with a honeypot" xml:space="preserve">
+    <value>用蜜罐阻止端口 25 上的密码猜测</value>
   </data>
   <data name="stop spam" xml:space="preserve">
     <value>阻止垃圾邮件</value>
@@ -14127,6 +14270,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="{0} has no postmaster address configured, and this page will not invent a mailbox - enter the address that should receive the reports. Until one is entered there is no record to copy." xml:space="preserve">
     <value>{0} 没有配置 postmaster 地址，而本页不会凭空编造一个邮箱 - 请输入应当接收这些报告的地址。在输入之前，没有可复制的记录。</value>
   </data>
+  <data name="{0} has no reverse name, so no pattern can spare it. List the address in AutoBanNeverBan instead." xml:space="preserve">
+    <value>{0} 没有反向名称，因此任何模式都无法豁免它。请改为将该地址列入 AutoBanNeverBan。</value>
+  </data>
   <data name="{0} held, showing the {1} most recent. The rest are still there - work through these, or let the retention sweep age them out." xml:space="preserve">
     <value>已暂挂 {0} 封，显示其中最近的 {1} 封。其余的仍然在那里 - 请把这些处理完，或者让保留清理按时间把它们清出去。</value>
   </data>
@@ -14142,17 +14288,29 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="{0} is available" xml:space="preserve">
     <value>{0} 可用</value>
   </data>
+  <data name="{0} is covered by {1} but does not resolve back to {2}, so it is not spared: anybody who holds an address can write its reverse name." xml:space="preserve">
+    <value>{0} 被 {1} 覆盖，但不会正向解析回 {2}，因此不予豁免：任何持有地址的人都能自行写入其反向名称。</value>
+  </data>
+  <data name="{0} is covered by {1}, but its forward lookup was not answered, so {2} is not spared now." xml:space="preserve">
+    <value>{0} 被 {1} 覆盖，但其正向查询没有得到应答，因此 {2} 现在不予豁免。</value>
+  </data>
   <data name="{0} is downloaded and verified" xml:space="preserve">
     <value>{0} 已下载并通过验证</value>
   </data>
   <data name="{0} is here with the mailboxes {1}, the list {2} and one rule that files invoices. The one password for all of them was shown when it was made and was not kept - remove the sample and make it again to be given another. It is left out of the first-hour checklist, because a sample domain is not this server's first domain." xml:space="preserve">
     <value>{0} 已存在：邮箱 {1}、列表 {2}，以及一条归档发票的规则。所有邮箱共用的密码在创建样例时显示过一次，并未保存；如需新密码，请先移除样例再重新创建。它不计入第一小时的检查清单，因为样例域不是此服务器的第一个域。</value>
   </data>
+  <data name="{0} is never auto-banned: its reverse name {1} resolves back to it and is covered by {2}." xml:space="preserve">
+    <value>{0} 永远不会被自动封禁：其反向名称 {1} 正向解析回该地址，且被 {2} 覆盖。</value>
+  </data>
   <data name="{0} is on but scores 0, so it costs a lookup on every message and can never change the outcome. Give it a score, or turn it off." xml:space="preserve">
     <value>{0} 已开启，但分数为 0，因此它对每封邮件都要付出一次查找，却永远无法改变结果。请给它一个分数，或者把它关掉。</value>
   </data>
   <data name="{0} is on the list. It applies to the next session from that domain." xml:space="preserve">
     <value>{0} 已在列表中。适用于来自该域的下一个会话。</value>
+  </data>
+  <data name="{0} is on the never-ban list. It applies to the next ban." xml:space="preserve">
+    <value>{0} 已在永不封禁列表中。自下一次封禁起生效。</value>
   </data>
   <data name="{0} is on the suppression list of {1}." xml:space="preserve">
     <value>{0} 在 {1} 的抑制列表中。</value>
@@ -14340,8 +14498,14 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   <data name="{0} was not on the list any more." xml:space="preserve">
     <value>{0} 已不在列表中。</value>
   </data>
+  <data name="{0} was not on the never-ban list any more." xml:space="preserve">
+    <value>{0} 已不在永不封禁列表中。</value>
+  </data>
   <data name="{0} was removed from the list." xml:space="preserve">
     <value>已将 {0} 从列表移除。</value>
+  </data>
+  <data name="{0} was removed from the never-ban list." xml:space="preserve">
+    <value>{0} 已从永不封禁列表中删除。</value>
   </data>
   <data name="{0} was removed: {1} mailbox(es), {2} distribution list(s), {3} rule(s) and {4} message(s) went with it." xml:space="preserve">
     <value>已移除 {0}：{1} 个邮箱、{2} 个通讯组列表、{3} 条规则和 {4} 封邮件随之移除。</value>
