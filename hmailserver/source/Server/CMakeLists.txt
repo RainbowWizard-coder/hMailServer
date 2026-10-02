@@ -678,6 +678,21 @@ add_executable(autoban-widen-tests ${SERVER_DIR}/platform/autoban_widen_tests_ma
 target_link_libraries(autoban-widen-tests PRIVATE hmailserver_core)
 set_target_properties(autoban-widen-tests PROPERTIES OUTPUT_NAME autoban-widen-tests)
 
+# ---------------------------------------------------------------- the sign-in tables' room
+#
+# SignInBudgetTester (Common/Util/SignInBudget.h) as a program of its own, for
+# the reason spf-tests is one: on Windows it runs inside the server through
+# ClassTester, which nothing reaches here. Who may push whom out of a full table
+# of browser sessions or of pending single sign-on and passkey sign-ins - a
+# holder at its cap gives up its own oldest, a full table the oldest of the
+# holder with the most - and the source a pending sign-in counts against: the
+# address, an IPv6 one as its /64, X-Forwarded-For from this machine only; and
+# PasskeyStoreTester, whose challenge tables are held by the same rule. No
+# network, configuration or database. Not installed; a bench tool.
+add_executable(sign-in-budget-tests ${SERVER_DIR}/platform/sign_in_budget_tests_main.cpp)
+target_link_libraries(sign-in-budget-tests PRIVATE hmailserver_core)
+set_target_properties(sign-in-budget-tests PROPERTIES OUTPUT_NAME sign-in-budget-tests)
+
 # ---------------------------------------------------------------- the types files and photos go out under
 #
 # InertMediaTypeTester (Common/Util/InertMediaType.h) as a program of its own,

@@ -30,6 +30,7 @@
 #include "OidcSignIn.h"
 #include "PasskeyStore.h"
 #include "SamlSignIn.h"
+#include "SignInBudget.h"
 #include "../Application/Logger.h"
 #include "../BO/Account.h"
 #include "../Persistence/PersistentAccount.h"
@@ -56,7 +57,7 @@ namespace HM
    RestApiServer::OpenApiOidcPaths_()
    {
       static const char *paths =
-         ",\"/portal/oidc/start\":{\"get\":{\"summary\":\"Start a sign-in at the organisation's identity provider\",\"description\":\"No credential. Redirects to the issuer's authorization endpoint with the authorization-code flow and PKCE (S256), and sets the hmoidc cookie (HttpOnly, SameSite=Lax, ten minutes) the callback needs. ?deck=1 starts one for the Control Deck, which lands as the administrator when the address is in OidcAdministrators; without it the sign-in is the webmail's. Redirects back to the sign-in page with ?sso_error=<sentence> when single sign-on is not set up.\",\"responses\":{\"302\":{\"description\":\"To the issuer, or back to the page with an error\"}}}},"
+         ",\"/portal/oidc/start\":{\"get\":{\"summary\":\"Start a sign-in at the organisation's identity provider\",\"description\":\"No credential. Redirects to the issuer's authorization endpoint with the authorization-code flow and PKCE (S256), and sets the hmoidc cookie (HttpOnly, SameSite=Lax, ten minutes) the callback needs. ?deck=1 starts one for the Control Deck, which lands as the administrator when the address is in OidcAdministrators; without it the sign-in is the webmail's. Redirects back to the sign-in page with ?sso_error=<sentence> when single sign-on is not set up. Pending sign-ins are kept per source - the address, an IPv6 one by its /64, and behind a proxy on this machine the last address of X-Forwarded-For - at most 256 a source in a table of 4,096: a source past its share gives up its own oldest, and a full table the oldest of the source holding the most.\",\"responses\":{\"302\":{\"description\":\"To the issuer, or back to the page with an error\"}}}},"
          "\"/portal/oidc/callback\":{\"get\":{\"summary\":\"Where the identity provider sends the browser back\",\"description\":\"No credential. The state must name a sign-in started here in the last ten minutes and the browser must carry the cookie it was given. The code is exchanged at the token endpoint, the id_token is verified against the issuer's JWK Set (signature, iss, aud, exp, nonce) and its verified email is mapped to a local account - or to the administrator, for a Deck sign-in whose address is in OidcAdministrators. On success the browser is sent to the page with a one-use ticket in the URL fragment, which the page exchanges at POST /api/v1/session, and the hmsso cookie (HttpOnly, SameSite=Strict, Path=/api/v1/session, two minutes) without which that exchange refuses it, so that only this browser can spend the ticket; otherwise back with ?sso_error=<sentence>.\",\"responses\":{\"302\":{\"description\":\"Back to the page, with a ticket or an error\"}}}}";
       return AnsiString(paths);
    }
@@ -83,7 +84,7 @@ namespace HM
       const AnsiString page = deck ? AnsiString("/") : AnsiString("/portal");
 
       AnsiString url, cookie, problem;
-      if (!OidcSignIn::Begin(deck, url, cookie, problem))
+      if (!OidcSignIn::Begin(deck, SignInBudget::PendingSource(request, peer_address), url, cookie, problem))
       {
          return BuildResponse_(302, "{}", "Location: " + page + "#sso_error=" +
             HttpsClient::FormEncode(problem) + "\r\nCache-Control: no-store\r\n");

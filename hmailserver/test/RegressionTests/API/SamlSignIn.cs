@@ -637,8 +637,11 @@ namespace RegressionTests.API
       [Test]
       [Description("The tables: an assertion's ID taken once - the same assertion in a Response to a second, fresh " +
                    "sign-in is refused by the replay cache - beside its negative control, the first; and the table of " +
-                   "sign-ins waiting for their Response evicts its oldest when two hundred newer ones arrive, while the " +
-                   "newest still works.")]
+                   "sign-ins waiting for their Response makes room out of the asker's own: one source that asks three " +
+                   "hundred times gives up its own oldest while its newest still works, and a person's sign-in from " +
+                   "another source, started before them and before three hundred more from as many sources, still " +
+                   "finishes. The source behind a proxy on this machine is the address the proxy wrote last in " +
+                   "X-Forwarded-For. Until 6.3.6 the table held two hundred and dropped its oldest whoever held it.")]
       public void ReplayAndTheTables()
       {
          Account account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "saml-tables@" + _domain.Name, "Saml-Passw0rd!");
@@ -651,16 +654,22 @@ namespace RegressionTests.API
          Refused("an assertion already used, in a Response to another sign-in",
             s => SignedResponse(new Spec(s, account.Address) { assertionId = assertionId }), "used to sign in already");
 
-         // Eviction: the oldest waiting sign-in goes when two hundred newer ones arrive.
-         Started oldest = Start(false);
+         // A person behind the proxy, then one source asking over and over, then
+         // many sources once each.
+         Started person = Start(false, "X-Forwarded-For: 203.0.113.9, 198.51.100.4");
+         Started oldest = Start(false, "X-Forwarded-For: 203.0.113.9");
          Started newest = oldest;
-         for (int i = 0; i < 200; i++)
-            newest = Start(false);
+         for (int i = 0; i < 300; i++)
+            newest = Start(false, "X-Forwarded-For: 203.0.113.9");
+         for (int i = 0; i < 300; i++)
+            Start(false, "X-Forwarded-For: 2001:db8:" + (i + 1).ToString("x") + "::7");
 
          (int status, string location) evicted = Acs(SignedResponse(new Spec(oldest, account.Address)), oldest.relay);
-         StringAssert.StartsWith("/portal#sso_error=", evicted.location, "A sign-in two hundred newer ones pushed out was answered.");
+         StringAssert.StartsWith("/portal#sso_error=", evicted.location, "The source that asked over and over kept its oldest sign-in.");
          StringAssert.Contains("not started here", Why(evicted.location));
          Assert.IsNotEmpty(SignIn(newest, SignedResponse(new Spec(newest, account.Address))), "The newest sign-in did not work.");
+         Assert.IsNotEmpty(SignIn(person, SignedResponse(new Spec(person, account.Address))),
+            "The person's sign-in from another source did not survive the others' starts.");
       }
 
       // ------------------------------------------------------------------ the settings and the metadata
@@ -1065,10 +1074,10 @@ namespace RegressionTests.API
       ///    GET /portal/saml/start as a browser of its own, and what it got back: the
       ///    AuthnRequest the redirect carries, inflated, the RelayState and the cookie.
       /// </summary>
-      private static Started Start(bool deck)
+      private static Started Start(bool deck, string extraHeader = null)
       {
          (int status, string body, string headers) answer =
-            SendRaw("GET", "/portal/saml/start" + (deck ? "?deck=1" : ""), null, null, null, null);
+            SendRaw("GET", "/portal/saml/start" + (deck ? "?deck=1" : ""), null, null, null, extraHeader);
          Assert.AreEqual(302, answer.status, answer.headers);
 
          Match location = Regex.Match(answer.headers, @"Location: (\S+)");

@@ -3935,6 +3935,11 @@ namespace hMailServer
          throw NotOnThisServer.Skipped(NotOnThisServer.NoAccountTotp);
       }
 
+      public void DisableTOTP()
+      {
+         throw NotOnThisServer.Skipped(NotOnThisServer.NoAccountTotp);
+      }
+
       // The directory link: ad_enabled, ad_username and ad_domain of
       // PUT /api/v1/accounts/{address}, read back from the account's document.
       public bool IsAD

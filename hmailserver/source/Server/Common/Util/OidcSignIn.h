@@ -73,8 +73,10 @@ namespace HM
       // webmail: the two come back to the same callback and are told apart by
       // what the state remembers, so one link cannot be used to reach the other
       // page. url is where the browser is sent; cookie is what it must carry
-      // back.
-      static bool Begin(bool deck, AnsiString &url, AnsiString &cookie, AnsiString &problem);
+      // back. source is where the start came from (SignInBudget::PendingSource):
+      // whom the pending sign-in counts against while the table makes room, so
+      // that one source asking for starts spends its own and nobody else's.
+      static bool Begin(bool deck, const std::string &source, AnsiString &url, AnsiString &cookie, AnsiString &problem);
 
       struct Result
       {

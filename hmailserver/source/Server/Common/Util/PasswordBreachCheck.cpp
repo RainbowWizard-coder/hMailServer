@@ -405,6 +405,28 @@ namespace HM
       };
    }
 
+   // NetworkFetcher, held to public addresses: the probe a credential other than
+   // the server administrator asks for (Probe, publicOnly). The name is resolved
+   // here and every address judged; through HttpProxy when one is set, asked to
+   // CONNECT to an address that passed.
+   PasswordBreachCheck::Fetcher
+   PasswordBreachCheck::PublicFetcher_()
+   {
+      return [](const AnsiString &url, int &status, AnsiString &body, String &error) -> bool
+      {
+         std::vector<AnsiString> headers;
+         headers.push_back("Add-Padding: true");
+
+         HttpsClient::Response response;
+         if (!HttpsClient::RequestPublicThroughProxy("GET", url, headers, "", "", response, error, RequestTimeoutSeconds, MaxResponseBytes))
+            return false;
+
+         status = response.status_code;
+         body = response.body;
+         return true;
+      };
+   }
+
    BreachCheckConfig
    PasswordBreachCheck::GetConfiguredCheck()
    {
@@ -486,7 +508,7 @@ namespace HM
 
    bool
    PasswordBreachCheck::Probe(const String &url, int &out_status, int &out_entries, bool &out_padded,
-                              int &out_milliseconds, String &out_error)
+                              int &out_milliseconds, String &out_error, bool publicOnly)
    {
       out_status = 0;
       out_entries = 0;
@@ -511,7 +533,8 @@ namespace HM
       try
       {
          // 00000 is a prefix, not a password: the probe tells the endpoint nothing.
-         answered = NetworkFetcher()(RangeUrl(AnsiString(endpoint), "00000"), status, body, fetchError);
+         const Fetcher fetch = publicOnly ? PublicFetcher_() : NetworkFetcher();
+         answered = fetch(RangeUrl(AnsiString(endpoint), "00000"), status, body, fetchError);
       }
       catch (...)
       {

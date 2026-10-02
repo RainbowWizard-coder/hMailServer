@@ -142,12 +142,17 @@ namespace HM
 
       // The registration challenge, held against the session that asked, and
       // spent by the registration that follows.
-      static bool OfferRegistration(const AnsiString &sessionKey, AnsiString &challenge);
+      // holder is the credential asking (RestApiServer's caller identity): whom
+      // the challenge counts against when the table makes room, fifty a holder
+      // (SignInBudget.h).
+      static bool OfferRegistration(const std::string &holder, const AnsiString &sessionKey, AnsiString &challenge);
       static bool TakeRegistration(const AnsiString &sessionKey, AnsiString &challenge);
 
       // The sign-in challenge. There is no session yet, so the browser carries
-      // a nonce in a cookie and the challenge is held against it.
-      static bool OfferSignIn(AnsiString &nonce, AnsiString &challenge);
+      // a nonce in a cookie and the challenge is held against it. source is
+      // where the request came from (SignInBudget::PendingSource): whom the
+      // challenge counts against when the table makes room.
+      static bool OfferSignIn(const std::string &source, AnsiString &nonce, AnsiString &challenge);
       static bool TakeSignIn(const AnsiString &nonce, AnsiString &challenge);
 
       // Forgets every challenge. For Reinitialize and the tests.
@@ -155,9 +160,10 @@ namespace HM
    };
 
    // The challenge tables' own behaviour, which has nothing to do with the
-   // database: a challenge is spent once, and a full table evicts rather than
-   // refuses. The second is the property a stranger would otherwise be able to
-   // turn into a switch, so it is proved on every debug start.
+   // database: a challenge is spent once, and a flooded table evicts rather than
+   // refuses - the flooding source's own challenges, not anybody else's
+   // (SignInBudget.h). The second is the property a stranger would otherwise be
+   // able to turn into a switch, so it is proved on every debug start.
    class PasskeyStoreTester
    {
    public:

@@ -338,6 +338,46 @@ namespace RegressionTests.API
          }
       }
 
+      [Test]
+      [Description("Sign-in starts asked for over and over spend the asker's own pending sign-ins and nobody else's: a person's sign-in, started before three hundred starts from one other source, three hundred from as many sources and three hundred from this machine naming nobody, still finishes when the browser comes back; the one source's own oldest start is what went. The source behind a proxy on this machine is the address the proxy wrote last in X-Forwarded-For. Until 6.3.6 the table held two hundred and dropped its oldest whoever held it, so the person's sign-in was refused as one never started here.")]
+      public void StartsAskedForOverAndOverLeaveAnotherSourcesSignIn()
+      {
+         Account account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "sso-flood@" + _domain.Name, "Sso-Passw0rd!");
+
+         using (var rsa = RSA.Create(2048))
+         using (var issuer = new FakeHttpEndpoint(IssuerPort, 404, "{}", "application/json"))
+         {
+            Publish(issuer, rsa);
+            Configure();
+
+            // The person, behind the proxy: the client wrote its own entry first,
+            // the proxy appended the address it saw.
+            Started person = Start(false, "X-Forwarded-For: 203.0.113.9, 198.51.100.4");
+
+            // One source over and over; it is past its own share by the end.
+            Started firstOfFlood = Start(false, "X-Forwarded-For: 203.0.113.9");
+            for (int i = 0; i < 300; i++)
+               Start(false, "X-Forwarded-For: 203.0.113.9");
+
+            // Many sources, one start each - a /64 apiece.
+            for (int i = 0; i < 300; i++)
+               Start(false, "X-Forwarded-For: 2001:db8:" + (i + 1).ToString("x") + "::7");
+
+            // And this machine, naming nobody.
+            for (int i = 0; i < 300; i++)
+               Start(false);
+
+            Token(issuer, rsa, Issuer, ClientId, person.nonce, account.Address, true, 600);
+            Ticket ticket = Complete(person, "/portal");
+            Assert.AreEqual(201, Send("POST", "/api/v1/session", null, "{\"sso_ticket\":\"" + ticket.value + "\"}",
+               "Cookie: " + ticket.cookie).status, "The person's sign-in finished, whatever else was asked for meanwhile.");
+
+            Token(issuer, rsa, Issuer, ClientId, firstOfFlood.nonce, account.Address, true, 600);
+            StringAssert.Contains("sso_error", Callback(firstOfFlood).location,
+               "The source that asked over and over gave up its own oldest start.");
+         }
+      }
+
       // ---------------------------------------------------------------- helpers
 
       private struct Started
@@ -395,11 +435,15 @@ namespace RegressionTests.API
          return signingInput + "." + Base64Url(signature);
       }
 
-      /// <summary>GET /portal/oidc/start, and what the redirect and the cookie say.</summary>
-      private static Started Start(bool deck)
+      /// <summary>
+      ///    GET /portal/oidc/start, and what the redirect and the cookie say. extraHeader
+      ///    is one more header line - an X-Forwarded-For, which a request from this
+      ///    machine is believed for as a reverse proxy's.
+      /// </summary>
+      private static Started Start(bool deck, string extraHeader = null)
       {
          (int status, string body, string headers) answer =
-            SendRaw("GET", "/portal/oidc/start" + (deck ? "?deck=1" : ""), null, null, null);
+            SendRaw("GET", "/portal/oidc/start" + (deck ? "?deck=1" : ""), null, null, extraHeader);
          Assert.AreEqual(302, answer.status, answer.headers);
 
          Match location = Regex.Match(answer.headers, @"Location: (\S+)");

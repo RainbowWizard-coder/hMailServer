@@ -124,8 +124,9 @@ namespace HM
 
       // Starts a sign-in: url is the identity provider's sign-in URL with the
       // AuthnRequest and the RelayState in its query, and cookie the value the
-      // browser must carry back to the finish. deck as OidcSignIn::Begin.
-      static bool Begin(bool deck, AnsiString &url, AnsiString &cookie, AnsiString &problem);
+      // browser must carry back to the finish. deck and source as
+      // OidcSignIn::Begin.
+      static bool Begin(bool deck, const std::string &source, AnsiString &url, AnsiString &cookie, AnsiString &problem);
 
       // The ACS: the SAMLResponse and RelayState form fields as the browser
       // posted them, verified. On success what was verified is kept under

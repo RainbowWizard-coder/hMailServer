@@ -249,10 +249,14 @@ The passkey it enrolled is refused with them.
 
 The challenge a sign-in answers is handed out to anybody, because a person
 signing in with a passkey has no credential to present yet. The table holding
-those challenges **evicts its oldest entry** when it is full rather than refusing
-the newest, and single sign-on's table of unfinished sign-ins does the same: a
-table that refused would be a switch a stranger could throw with a few hundred
-requests, turning both buttons off for everybody for the next few minutes.
+those challenges **makes room** when it is full rather than refusing the newest,
+and single sign-on's table of unfinished sign-ins does the same: a table that
+refused would be a switch a stranger could throw with a few hundred requests,
+turning both buttons off for everybody for the next few minutes. The room comes
+out of the entries of whoever asked most, never out of another person's while
+one source asks (What a stranger can make the server hold, below); until 6.3.6
+the oldest entry went, whoever's it was, which was the same switch at a hundred
+requests a second.
 
 Single sign-on (OpenID Connect)
 -------------------------------
@@ -497,9 +501,10 @@ key descriptor).
 
 **Two bindings: the request, at the ACS, and the browser, a step later.** Every
 request's ID is kept here with the RelayState that went out beside it and the
-value of the cookie the start set, for ten minutes and one use, in a table of
-two hundred that evicts its oldest entry rather than refusing the newest (the
-same rule, for the same reason, as OpenID Connect's). A Response is taken only
+value of the cookie the start set, for ten minutes and one use, in a table
+that makes room rather than refusing the newest, out of the entries of the
+source that asked most (the same rule, for the same reason, as OpenID Connect's;
+What a stranger can make the server hold, below). A Response is taken only
 when its `InResponseTo` is one of those IDs, not yet answered, and it comes back
 with the same RelayState.
 
@@ -727,6 +732,71 @@ it.
   signature is checked over `SignedInfo` before the signed element is
   canonicalised at all. `XmlCanonicalizationTester` holds a worst-case document
   of 256 KB - every ceiling spent where it costs most - to a time bound.
+
+What a stranger can make the server hold
+---------------------------------------
+
+A passkey sign-in's challenge (`POST /api/v1/passkeys/challenge`), and the start
+of an OpenID Connect or SAML sign-in (`/portal/oidc/start`, `/portal/saml/start`),
+are handed to anybody - nobody has signed in yet, which is the point - and each
+leaves something in the server's memory until the browser comes back: the
+challenge, or the verifier, nonce and cookie the callback checks. Each table holds
+at most **4,096** of them, for five or ten minutes, and makes room under one rule
+(the one the browser sessions follow, [DevicesAndSessions.md](DevicesAndSessions.md),
+How many sessions, and who makes room):
+
+1. a *source* already holding **256** gives up its own oldest;
+2. a full table gives up the oldest of the source holding the most - the one
+   asking, when it is among them;
+3. among sources tied for the most, one of the largest *group* gives up its
+   oldest: an IPv6 source's `/48`, an IPv4 source's `/24`.
+
+So a client that asks over and over spends its own entries and nobody else's. A
+person's sign-in is the one taken only when the table is full of single entries
+from as many sources and the person's group is as large as any other's - four
+thousand sources from four thousand different `/48`s or `/24`s, asking inside the
+minute the person spends at the identity provider. A `/48`, which a tunnel broker
+hands anybody for nothing, holds 65,536 `/64`s; its thousands of single-entry
+sources are one group, and give up their own. A full table is weighed once for a
+batch of a sixty-fourth of its size rather than once per request, so that keeping
+it full does not make each request cost the server the weighing. Until 6.3.6 the
+tables held two hundred (OpenID Connect, SAML) and a thousand (passkeys) and
+dropped the oldest whoever held it, so a stranger asking a few times a second -
+a hundred a second for passkeys - made every other person's sign-in fail when
+their browser came back ("this sign-in was not started here"), for as long as
+they kept asking.
+
+The **source** is the address the request came from, an IPv6 address counted by
+its `/64`. Behind a reverse proxy on this machine every browser arrives from
+`127.0.0.1`, so for a request from this machine the source is the **last address
+of the last `X-Forwarded-For` line** - the one the proxy itself wrote, whatever
+the client put before it - which nginx (`proxy_set_header X-Forwarded-For
+$proxy_add_x_forwarded_for;` or `$remote_addr`), Apache's `mod_proxy`, Caddy,
+Traefik, HAProxy's `option forwardfor` and IIS's ARR all write. **Set it in the
+proxy.** A request from this machine that names no such address - or names one
+on this machine, as a second proxy on this host in front of the first writes its
+own `127.0.0.1` for every browser - counts against one shared source with no cap
+of its own, held by the table's size alone, as every request was before 6.3.6.
+What the proxy nearest this server writes is what counts: behind a load balancer
+or a CDN in front of it, that is the balancer's or the CDN's address for every
+browser that came through it, one source of 256, unless the proxy is told to take
+the client's address from the hop before it (nginx's `real_ip_header` and
+`set_real_ip_from`, Apache's `mod_remoteip`). A proxy on another machine, in
+front of the listener's TLS port, is not believed at all: its own address is the
+source of everybody behind it. And a proxy that passes on a client's own
+`X-Forwarded-For` without adding the address it saw - nginx with no
+`proxy_set_header` for it does - lets the client name a source of its choosing:
+a fresh one for each request, which leaves the table's size, or another
+person's address, whose 256 it then spends as 6.3.5 let anybody spend the whole
+table. The header is believed for this budget and for nothing else - not for the
+administrator password's delay, the auto-ban or any decision about who somebody
+is. The code is `Common/Util/SignInBudget.h`.
+
+The registration challenge, which needs a session, is held against the session
+that asked and counts against the credential that asked: fifty a credential, in a
+table of a thousand, under the same rule - so that an account asking from session
+after session, or from address after address, spends its own registrations and
+not another person's.
 
 Where it lives
 --------------

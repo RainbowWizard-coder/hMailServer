@@ -271,7 +271,88 @@ namespace RegressionTests.API
          }
       }
 
+      [Test]
+      [Description("A [Settings] key's row is put back by the administrator password alone, as /api/v1/settings/ini is written: an account holding serveradmin - manage_settings over every domain - is answered 403 for it and the key keeps its value, while a database setting's row is still the role's to put back; the administrator password puts the same [Settings] row back. Until 6.3.6 the role put it back.")]
+      public void ASettingsKeysRowIsPutBackByTheAdministratorPasswordAlone()
+      {
+         // A [Settings] key the server reads (IniSettingsBaseline.h), changed only for
+         // the length of the test: how many earlier passwords a new one may not repeat.
+         const string Key = "PasswordPolicyHistoryCount";
+         const string RolePassword = "Role-Passw0rd-6116";
+
+         (int status, string body) storedAnswer = Http("GET", "/api/v1/settings/ini/" + Key);
+         ClassicAssert.AreEqual(200, storedAnswer.status, storedAnswer.body);
+         bool present;
+         string original;
+         using (JsonDocument document = JsonDocument.Parse(storedAnswer.body))
+         {
+            present = document.RootElement.GetProperty("present").GetBoolean();
+            original = document.RootElement.GetProperty("value").GetString();
+         }
+
+         string after = original == "7" ? "8" : "7";
+
+         Account holder = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "audit-revert-role@" + _domain.Name, RolePassword);
+         string roleCredential = "Basic " + Convert.ToBase64String(Encoding.UTF8.GetBytes(holder.Address + ":" + RolePassword));
+
+         try
+         {
+            (int status, string body) assigned = Http("PUT", "/api/v1/role-assignments/" + holder.Address, "{\"role\":\"serveradmin\",\"domains\":\"\"}");
+            ClassicAssert.AreEqual(200, assigned.status, assigned.body);
+
+            ClassicAssert.AreEqual(200, Http("PUT", "/api/v1/settings/ini/" + Key, "{\"value\":\"" + after + "\"}").status);
+            long row = NewestRowFor(Key, " -> " + after);
+
+            // The role reaches the trail and the route, and is refused the row.
+            (int status, string body) refused = RestRequest.Send("127.0.0.1", RestPort, "POST", AuditPath + "/" + row + "/revert", roleCredential, "{}");
+            ClassicAssert.AreEqual(403, refused.status, "A [Settings] key is the administrator password's: " + refused.body);
+            StringAssert.Contains("administrator password only", refused.body);
+            ClassicAssert.AreEqual(after, IniValue(Key), "Nothing was written by the refusal.");
+
+            // A database setting's row is still the role's to put back.
+            string hostBefore = Setting("host_name");
+            ClassicAssert.AreEqual(200, Http("PUT", "/api/v1/settings", "{\"host_name\":\"role-revert.example\"}").status);
+            (long id, string setting) hostRow = NewestSettingRowWith("role-revert.example");
+            (int status, string body) byRole = RestRequest.Send("127.0.0.1", RestPort, "POST", AuditPath + "/" + hostRow.id + "/revert", roleCredential, "{}");
+            ClassicAssert.AreEqual(200, byRole.status, "manage_settings puts a database setting back: " + byRole.body);
+            ClassicAssert.AreEqual(hostBefore, Setting("host_name"));
+
+            // The administrator password puts the [Settings] row back.
+            (int status, string body) reverted = Http("POST", AuditPath + "/" + row + "/revert", "{}");
+            ClassicAssert.AreEqual(200, reverted.status, reverted.body);
+            if (present)
+               ClassicAssert.AreEqual(original, IniValue(Key), "The administrator password put the value it had back.");
+            else
+               ClassicAssert.IsFalse(IniPresent(Key), "The administrator password put the key back to its default.");
+         }
+         finally
+         {
+            Http("DELETE", "/api/v1/role-assignments/" + holder.Address);
+
+            if (present)
+               Http("PUT", "/api/v1/settings/ini/" + Key, "{\"value\":" + JsonSerializer.Serialize(original) + "}");
+            else
+               Http("DELETE", "/api/v1/settings/ini/" + Key);
+         }
+      }
+
       // ----------------------------------------------------------------- helpers
+
+      private static string IniValue(string key)
+      {
+         (int status, string body) answer = Http("GET", "/api/v1/settings/ini/" + key);
+         ClassicAssert.AreEqual(200, answer.status, answer.body);
+         using (JsonDocument document = JsonDocument.Parse(answer.body))
+            return document.RootElement.GetProperty("value").GetString();
+      }
+
+      private static bool IniPresent(string key)
+      {
+         (int status, string body) answer = Http("GET", "/api/v1/settings/ini/" + key);
+         ClassicAssert.AreEqual(200, answer.status, answer.body);
+         using (JsonDocument document = JsonDocument.Parse(answer.body))
+            return document.RootElement.GetProperty("present").GetBoolean();
+      }
 
       private static string Setting(string key)
       {

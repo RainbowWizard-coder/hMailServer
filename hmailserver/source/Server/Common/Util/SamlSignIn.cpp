@@ -6,6 +6,7 @@
 #include "SamlSignIn.h"
 #include "GatewayEncryption.h"
 #include "HttpsClient.h"
+#include "SignInBudget.h"
 #include "Unicode.h"
 #include "WebAuthn.h"
 #include "XmlDocument.h"
@@ -59,7 +60,15 @@ namespace HM
       // The error this unit reports (7320-7329 are SAML's).
       const int ErrorCertificateUnreadable = 7320;
 
-      const size_t MostPending = 200;
+      // The pending sign-ins, under SignInBudget's rule, as OidcSignIn's: a
+      // source holds at most MostPendingPerSource and gives up its own oldest
+      // past that, and a full table gives up the oldest of the source holding
+      // the most. Until 6.3.6 two hundred, the oldest dropped whoever held it.
+      const size_t MostPending = 4096;
+      const size_t MostPendingPerSource = 256;
+      // The sign-ins the ACS verified, waiting for their browsers: made only
+      // after a signed answer, dropped oldest first as they always were.
+      const size_t MostFinished = 200;
       const size_t MostSeen = 5000;
       const int MinimumRsaBits = 2048;
       const int MinimumEcBits = 256;
@@ -76,6 +85,11 @@ namespace HM
          // Counted under the lock: created is accurate to the second, and a
          // flood makes hundreds inside one, so this is what "the oldest" means.
          unsigned __int64 order = 0;
+         // Where the start came from (SignInBudget::PendingSource): whom the
+         // entry counts against when the table makes room; and its group
+         // (SignInBudget::SourceGroup) for the rule's tie-break.
+         std::string source;
+         std::string group;
       };
 
       // A sign-in the ACS verified, waiting for its browser at the finish.
@@ -396,9 +410,8 @@ namespace HM
          return true;
       }
 
-      // A full table drops its oldest entry and takes the new one: /portal/saml/start
-      // carries no credential, and a table that refused when it filled would let
-      // a stranger switch SAML sign-in off for everybody with two hundred requests.
+      // A full table of answers seen or sign-ins finished drops its oldest entry
+      // and takes the new one; both are written only after a signed answer.
       template <typename Table>
       void MakeRoomLocked(Table &table, size_t most)
       {
@@ -412,6 +425,23 @@ namespace HM
             }
             table.erase(oldest);
          }
+      }
+
+      // Room for one more pending sign-in from source. /portal/saml/start carries
+      // no credential, so a table that refused when it filled would let a
+      // stranger switch SAML sign-in off for everybody, and one that dropped its
+      // oldest entry whoever held it let them do the same by asking a few times a
+      // second (SignInBudget.h): a source gives up its own oldest, and a full
+      // table the oldest of the source holding the most - of the largest group
+      // among those tied.
+      void MakeRoomForPendingLocked(const std::string &source)
+      {
+         SignInBudget::MakeRoom(pending, source,
+            source.empty() ? 0 : MostPendingPerSource, MostPending,
+            [](const std::pair<const std::string, Pending> &entry) -> const std::string & { return entry.second.source; },
+            [](const std::pair<const std::string, Pending> &entry) -> const std::string & { return entry.second.group; },
+            [](const std::pair<const std::string, Pending> &entry) { return entry.second.order; },
+            [](const std::pair<const std::string, Pending> &) { return false; });
       }
 
       bool SamlAutoProvision()
@@ -591,7 +621,7 @@ namespace HM
    }
 
    bool
-   SamlSignIn::Begin(bool deck, AnsiString &url, AnsiString &cookie, AnsiString &problem)
+   SamlSignIn::Begin(bool deck, const std::string &source, AnsiString &url, AnsiString &cookie, AnsiString &problem)
    {
       if (!Configured())
       {
@@ -646,12 +676,14 @@ namespace HM
       entry.relay = relay;
       entry.cookie = browser;
       entry.created = time(nullptr);
+      entry.source = source;
+      entry.group = SignInBudget::SourceGroup(source);
 
       {
          boost::lock_guard<boost::mutex> guard(stateLock);
          entry.order = nextOrder++;
          PruneLocked(entry.created);
-         MakeRoomLocked(pending, MostPending);
+         MakeRoomForPendingLocked(source);
          pending[id] = entry;
       }
 
@@ -1217,7 +1249,7 @@ namespace HM
          boost::lock_guard<boost::mutex> guard(stateLock);
          waiting.order = nextOrder++;
          PruneLocked(waiting.created);
-         MakeRoomLocked(finished, MostPending);
+         MakeRoomLocked(finished, MostFinished);
          finished[token] = waiting;
       }
 

@@ -246,6 +246,17 @@ The endpoint's answer itself is never returned by any of these: a route that mak
 the server fetch a URL of the caller's choosing must not also be a way to read that
 URL through the server.
 
+What is returned - whether something answered, its status, how many entries and how
+long it took - is still a reading of whatever the URL reached. So the REST test asked
+by any credential but the administrator password (a full-scope API key, an account
+holding a role with `manage_settings`) reaches **a public address only**, over https,
+through `HttpProxy` when one is set - the body's endpoint and the saved one alike -
+and answers `reachable: false` with the reason for an endpoint on this machine or the
+server's own network; 6.3.4 and 6.3.5 tested any address for any of them. The
+administrator password, the Control Panel and COM test a mirror on the server's own
+network as before. Saving such an endpoint is still `manage_settings`', which is the
+server administrator's equal ([Roles.md](Roles.md), What manage_settings reaches).
+
 Running your own mirror
 -----------------------
 

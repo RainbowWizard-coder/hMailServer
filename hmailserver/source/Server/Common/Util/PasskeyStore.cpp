@@ -4,6 +4,7 @@
 
 #include "StdAfx.h"
 #include "PasskeyStore.h"
+#include "SignInBudget.h"
 #include "WebAuthn.h"
 #include "Unicode.h"
 #include "../Application/Application.h"
@@ -41,6 +42,12 @@ namespace HM
          // accurate to the second, and a flood makes a thousand of these inside
          // one, so this is what "the oldest" means when the table is full.
          unsigned __int64 order = 0;
+         // Whom the challenge counts against when its table makes room: where
+         // a sign-in challenge was asked for (SignInBudget::PendingSource), the
+         // credential that asked for a registration's (the caller's identity);
+         // and its group for the rule's tie-break (SignInBudget::SourceGroup).
+         std::string source;
+         std::string group;
       };
 
       boost::mutex challengeLock;
@@ -48,9 +55,26 @@ namespace HM
       std::map<AnsiString, PendingChallenge> signIns;
       unsigned __int64 nextOrder = 1;
 
-      // A thousand of each is far past any real load and is what stops a script
-      // from filling memory by asking for challenges it never answers.
+      // A thousand registrations is far past any real load and is what stops a
+      // script from filling memory by asking for challenges it never answers.
+      // They are under SignInBudget's rule too, held by the credential that
+      // asked: fifty a credential, as it holds fifty sessions, its own oldest
+      // going past that, and a full table taking from whoever holds the most.
+      // Until 6.3.6's re-check the oldest went whoever held it, so that one
+      // account asking from a session it held or from address after address
+      // of an IPv6 /64 pushed out every other person's registration while they
+      // were answering their authenticator.
       const size_t MostPending = 1000;
+      const size_t MostRegistrationsPerHolder = 50;
+
+      // The sign-in challenges, which anybody may ask for, under SignInBudget's
+      // rule: a source holds at most MostSignInsPerSource and gives up its own
+      // oldest past that, and a full table gives up the oldest of the source
+      // holding the most. Until 6.3.6 a thousand, the oldest dropped whoever
+      // held it, which a hundred requests a second turned into nobody signing
+      // in with a passkey at all.
+      const size_t MostSignIns = 4096;
+      const size_t MostSignInsPerSource = 256;
 
       void PruneLocked(std::map<AnsiString, PendingChallenge> &pending, time_t now)
       {
@@ -63,26 +87,24 @@ namespace HM
          }
       }
 
-      // A full table drops its OLDEST entry and takes the new one; it does not
-      // refuse the new one. The sign-in challenge is handed out to anybody -
-      // there is no session yet, which is the point of a passkey - so a table
-      // that refused when it filled would be a switch a stranger could throw:
-      // a thousand requests, a second's work, and nobody can sign in with a
-      // passkey for the next five minutes. Evicting turns that into an
-      // attacker spending their own slots, which is what browser_sessions and
-      // the rate windows in RestApiServer.cpp already do for the same reason.
-      void MakeRoomLocked(std::map<AnsiString, PendingChallenge> &pending)
+      // Room for one more challenge of holder; it never refuses the new one. The
+      // sign-in challenge is handed out to anybody - there is no session yet,
+      // which is the point of a passkey - so a table that refused when it filled
+      // would be a switch a stranger could throw, and one that dropped its oldest
+      // whoever held it was the same switch at a hundred requests a second
+      // (SignInBudget.h). A holder spends its own slots: at its cap its own
+      // oldest goes, and a full table gives up the oldest of the holder holding
+      // the most, of the largest group among those tied. A holder of no source
+      // of its own has no cap of its own.
+      void MakeRoomLocked(std::map<AnsiString, PendingChallenge> &pending, const std::string &holder,
+                          size_t perHolder, size_t most)
       {
-         while (pending.size() >= MostPending)
-         {
-            auto oldest = pending.begin();
-            for (auto it = pending.begin(); it != pending.end(); ++it)
-            {
-               if (it->second.order < oldest->second.order)
-                  oldest = it;
-            }
-            pending.erase(oldest);
-         }
+         SignInBudget::MakeRoom(pending, holder,
+            holder.empty() ? 0 : perHolder, most,
+            [](const std::pair<const AnsiString, PendingChallenge> &entry) -> const std::string & { return entry.second.source; },
+            [](const std::pair<const AnsiString, PendingChallenge> &entry) -> const std::string & { return entry.second.group; },
+            [](const std::pair<const AnsiString, PendingChallenge> &entry) { return entry.second.order; },
+            [](const std::pair<const AnsiString, PendingChallenge> &) { return false; });
       }
 
       bool RandomText(AnsiString &text, size_t bytes)
@@ -94,7 +116,12 @@ namespace HM
          return true;
       }
 
-      bool Offer(std::map<AnsiString, PendingChallenge> &pending, const AnsiString &key, AnsiString &challenge)
+      // holder: whom the challenge counts against (MakeRoomLocked), perHolder and
+      // most the table's own numbers. A second challenge under the same key - a
+      // session asking again - replaces the first before room is made, so it
+      // never costs anybody else an entry.
+      bool Offer(std::map<AnsiString, PendingChallenge> &pending, const AnsiString &key, AnsiString &challenge,
+                 const std::string &holder, size_t perHolder, size_t most)
       {
          if (key.IsEmpty() || !RandomText(challenge, 32))
             return false;
@@ -102,11 +129,14 @@ namespace HM
          PendingChallenge entry;
          entry.challenge = challenge;
          entry.created = time(nullptr);
+         entry.source = holder;
+         entry.group = SignInBudget::SourceGroup(holder);
 
          boost::lock_guard<boost::mutex> guard(challengeLock);
          entry.order = nextOrder++;
          PruneLocked(pending, entry.created);
-         MakeRoomLocked(pending);
+         pending.erase(key);
+         MakeRoomLocked(pending, holder, perHolder, most);
          pending[key] = entry;
          return true;
       }
@@ -486,9 +516,9 @@ namespace HM
    }
 
    bool
-   PasskeyStore::OfferRegistration(const AnsiString &sessionKey, AnsiString &challenge)
+   PasskeyStore::OfferRegistration(const std::string &holder, const AnsiString &sessionKey, AnsiString &challenge)
    {
-      return Offer(registrations, sessionKey, challenge);
+      return Offer(registrations, sessionKey, challenge, holder, MostRegistrationsPerHolder, MostPending);
    }
 
    bool
@@ -498,11 +528,11 @@ namespace HM
    }
 
    bool
-   PasskeyStore::OfferSignIn(AnsiString &nonce, AnsiString &challenge)
+   PasskeyStore::OfferSignIn(const std::string &source, AnsiString &nonce, AnsiString &challenge)
    {
       if (!RandomText(nonce, 32))
          return false;
-      return Offer(signIns, nonce, challenge);
+      return Offer(signIns, nonce, challenge, source, MostSignInsPerSource, MostSignIns);
    }
 
    bool
@@ -536,7 +566,7 @@ namespace HM
 
       // A challenge is answerable once, by the nonce it was handed out with.
       AnsiString nonce, challenge, taken;
-      expect(PasskeyStore::OfferSignIn(nonce, challenge) && !nonce.IsEmpty() && !challenge.IsEmpty(),
+      expect(PasskeyStore::OfferSignIn("198.51.100.4", nonce, challenge) && !nonce.IsEmpty() && !challenge.IsEmpty(),
              "PasskeyStoreTester: a sign-in challenge is handed out with its nonce.");
       expect(!PasskeyStore::TakeSignIn("not the nonce", taken),
              "PasskeyStoreTester: another nonce does not answer it.");
@@ -545,39 +575,64 @@ namespace HM
       expect(!PasskeyStore::TakeSignIn(nonce, taken),
              "PasskeyStoreTester: and it is spent, so an assertion cannot be replayed.");
 
-      // A full table evicts its oldest entry rather than refusing the newest.
-      // A thousand unanswered challenges is what a stranger can make in about a
-      // second, and the person who presses the button afterwards must still be
-      // handed one.
-      AnsiString firstNonce, firstChallenge;
-      expect(PasskeyStore::OfferSignIn(firstNonce, firstChallenge), "PasskeyStoreTester: the first of many.");
+      // A table a stranger floods still hands out challenges, and the flood
+      // spends the stranger's own: a person's challenge, asked for before five
+      // thousand from another source, still answers. Until 6.3.6 the table
+      // dropped its oldest whoever held it, and the person's went.
+      AnsiString personNonce, personChallenge;
+      expect(PasskeyStore::OfferSignIn("198.51.100.4", personNonce, personChallenge), "PasskeyStoreTester: a person asks first.");
 
-      for (int i = 0; i < 1200; i++)
+      AnsiString firstNonce, firstChallenge;
+      expect(PasskeyStore::OfferSignIn("203.0.113.9", firstNonce, firstChallenge), "PasskeyStoreTester: the first of many.");
+
+      for (int i = 0; i < 5000; i++)
       {
          AnsiString floodNonce, floodChallenge;
-         expect(PasskeyStore::OfferSignIn(floodNonce, floodChallenge),
-                "PasskeyStoreTester: a full table still hands out a challenge.");
+         expect(PasskeyStore::OfferSignIn("203.0.113.9", floodNonce, floodChallenge),
+                "PasskeyStoreTester: a flooded table still hands out a challenge.");
       }
 
       AnsiString afterFlood, afterFloodChallenge, redeemed;
-      expect(PasskeyStore::OfferSignIn(afterFlood, afterFloodChallenge),
+      expect(PasskeyStore::OfferSignIn("203.0.113.9", afterFlood, afterFloodChallenge),
              "PasskeyStoreTester: and one more after the flood.");
       expect(PasskeyStore::TakeSignIn(afterFlood, redeemed) && redeemed == afterFloodChallenge,
              "PasskeyStoreTester: which is the one that answers - the newest is kept.");
       expect(!PasskeyStore::TakeSignIn(firstNonce, redeemed),
-             "PasskeyStoreTester: the oldest is what went, which is the attacker's own slot and not the next person's.");
+             "PasskeyStoreTester: the flood's oldest is what went, the attacker's own slot.");
+      expect(PasskeyStore::TakeSignIn(personNonce, redeemed) && redeemed == personChallenge,
+             "PasskeyStoreTester: and the person's challenge, from another source, still answers.");
 
       // The registration table is the same table with a different key, and the
       // key there is the session rather than a cookie nonce.
       AnsiString registration;
-      expect(PasskeyStore::OfferRegistration("s:a-session", registration) && !registration.IsEmpty(),
+      expect(PasskeyStore::OfferRegistration("account:person@example.test", "s:a-session", registration) && !registration.IsEmpty(),
              "PasskeyStoreTester: a registration challenge is held against the session that asked.");
       expect(!PasskeyStore::TakeRegistration("s:another-session", redeemed),
              "PasskeyStoreTester: another session cannot answer it.");
       expect(PasskeyStore::TakeRegistration("s:a-session", redeemed) && redeemed == registration,
              "PasskeyStoreTester: its own session can, once.");
-      expect(!PasskeyStore::OfferRegistration("", redeemed),
+      expect(!PasskeyStore::OfferRegistration("account:person@example.test", "", redeemed),
              "PasskeyStoreTester: a challenge with no key to hold it against is not made.");
+
+      // One credential asking for registration after registration under keys of
+      // its own - session after session, or address after address - spends its
+      // own fifty and nobody else's: a person's registration, asked for first,
+      // still answers. Until 6.3.6's re-check the table dropped its oldest
+      // whoever held it, and the person's went.
+      AnsiString personRegistration;
+      expect(PasskeyStore::OfferRegistration("account:person@example.test", "s:person", personRegistration),
+             "PasskeyStoreTester: a person asks for a registration.");
+      for (int i = 0; i < 1200; i++)
+      {
+         AnsiString floodRegistration;
+         expect(PasskeyStore::OfferRegistration("account:flood@example.test", "c:account:flood@example.test@2001:db8::" + AnsiString(std::to_string(i + 1).c_str()), floodRegistration),
+                "PasskeyStoreTester: a flooded registration table still hands out a challenge.");
+      }
+      expect(PasskeyStore::TakeRegistration("s:person", redeemed) && redeemed == personRegistration,
+             "PasskeyStoreTester: and the person's registration, another credential's, still answers.");
+      expect(!PasskeyStore::TakeRegistration("c:account:flood@example.test@2001:db8::1", redeemed) &&
+             PasskeyStore::TakeRegistration("c:account:flood@example.test@2001:db8::1200", redeemed),
+             "PasskeyStoreTester: the flooding credential's oldest went, and its newest answers.");
 
       PasskeyStore::Clear();
    }

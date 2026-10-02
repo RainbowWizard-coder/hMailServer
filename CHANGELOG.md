@@ -400,6 +400,37 @@ plain-text part's before the HTML part's, so that links ahead of a listed one co
 test now reads every link of both parts and chooses what to ask by a rule a message cannot steer (What changes on
 upgrade, item 29). In every version up to 6.3.5; found by the project's own review.
 
+The REST listener's tables of sign-in state no longer let one person push other people out of them. A full table
+of browser sessions dropped its least recently used session whoever held it, so any account holder signing in over
+and over with their own password could sign out every webmail tab and every other browser on the server that sat
+idle for a minute, from 6.2.28 to 6.3.5, and the administrator's Control Deck with them from 6.3.0. The pending
+halves of a single sign-on and of a passkey sign-in, which anybody may start, were held the same way, so a client
+asking for sign-in starts a few times a second - a hundred a second for passkeys - made every other person's OpenID
+Connect, SAML or passkey sign-in fail when their browser came back, in 6.3.4 and 6.3.5. In 6.3.6 a holder at its cap
+gives up its own oldest entry and a full table the oldest of whoever holds the most, of the largest group among those
+tied (an account's domain, an IPv6 `/48`, an IPv4 `/24`): an account or the administrator holds at most fifty
+sessions, the administrator's are never taken for anybody else's sign-in, a source holds at most 256 pending sign-ins
+of a table of 4,096, and a credential at most fifty pending passkey registrations (What changes on upgrade, items 31
+and 32). Found by the project's own review.
+
+An account holding a role with `manage_settings` could put a key of the `[Settings]` section back to an earlier value
+through the audit trail's put-back, in 6.3.4 and 6.3.5, where that section answers to the administrator password
+alone everywhere else; and the breach check's endpoint test, asked by an API key or such an account, reached
+addresses on the server's own network and reported whether and how fast something answered there, in 6.3.4 and
+6.3.5. Both are now the administrator password's: the put-back refuses such a row to anybody else, and their test
+reaches public addresses only (What changes on upgrade, item 33). `manage_settings` remains the server
+administrator's equal - it names the hosts the server connects to and the commands it runs - and is documented so
+([Roles.md](hmailserver/docs/Roles.md), What manage_settings reaches). Found by the project's own review.
+
+The administrator password's failed-sign-in delay over REST, new in this release, now counts an IPv6 address by its
+`/64`, and holds the password asked again at an administrator passkey's registration too, where it read only the
+`Authorization: Basic` header; the listener's own short refusal after the auto-ban's limit covers the `/64` of an IPv6
+address as well (What changes on upgrade, item 34). Behind a reverse proxy on the same machine every browser shares
+one source, so one client's wrong guesses keep the password sign-in waiting for everyone while they last; the
+administrator's API keys, passkey and single sign-on are not touched by it
+([DevicesAndSessions.md](hmailserver/docs/DevicesAndSessions.md), The administrator password's delay). Found by the
+project's own review.
+
 ### What changes on upgrade without a switch
 
 1. **COM `Utilities`: the helpers that do work answer a caller that has signed in.** `BlowfishEncrypt`,
@@ -801,7 +832,6 @@ upgrade, item 29). In every version up to 6.3.5; found by the project's own revi
     caller as it did. The new `Application.CreateMessage()` gives a program a message that carries the credential of
     the `Application` it is called on; a .NET program built against an earlier type library reaches it once rebuilt
     against 6.3.6's, or late-bound ([Roles.md](hmailserver/docs/Roles.md)).
-
 26. **The packaging Compose file's database is PostgreSQL 18.** `docker-compose.yml` beside the Dockerfile runs
     `postgres:18` with its `hm-db` volume at `/var/lib/postgresql`, where it ran `postgres:16` with the volume at
     `/var/lib/postgresql/data`. PostgreSQL 18 does not open 16's data: a deployment made from an earlier copy of the
@@ -856,6 +886,43 @@ upgrade, item 29). In every version up to 6.3.5; found by the project's own revi
     certificate's check failed, and not counted when it ended before TLS was asked for; each is a debug log line. This
     holds for every destination reported to, opportunistic deliveries included, which therefore report the hosts that
     offered no `STARTTLS`.
+31. **An account, or the administrator, holds at most fifty REST browser sessions, and a full table takes from whoever
+    holds the most.** A fifty-first sign-in of the same account - webmail tabs, bearer sessions of a second account,
+    a script that signs in and never signs out - ends that account's least recently used session, where it used to
+    end the least recently used session on the server; a support session counts against the credential that opened
+    it. A table of a thousand that is full gives up a session of the holder with the most - among holders tied, one
+    of the domain holding the most - and opening a support session on a full table makes room as a sign-in does where
+    it was answered 503. The administrator's sessions are held by the administrator's own fifty alone: they do not
+    count towards the thousand and nobody else's sign-in takes one
+    ([DevicesAndSessions.md](hmailserver/docs/DevicesAndSessions.md), How many sessions, and who makes room).
+32. **A pending single sign-on or passkey sign-in counts against where it came from; a proxy on the same machine
+    should send `X-Forwarded-For`.** The tables of OpenID Connect and SAML starts and of passkey sign-in challenges
+    hold 4,096 each (200, 200 and 1,000 before), a source at most 256, and make room out of the source holding the
+    most - among sources tied, out of the largest `/48` or `/24`. The source of a request from this machine is the
+    last address of its last `X-Forwarded-For` line, which the proxy writes; a reverse proxy in front of the loopback
+    listener that does not send one, or a second proxy on this machine whose own `127.0.0.1` is that last address,
+    leaves every browser behind it one source with no cap of its own, held by the table's size as before - set
+    `proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;` in nginx, or the proxy's equivalent, and behind a
+    load balancer or a CDN have the proxy take the client's address from it (nginx's `set_real_ip_from`), or every
+    browser that came through it is one source of 256
+    ([PasskeysAndSingleSignOn.md](hmailserver/docs/PasskeysAndSingleSignOn.md), What a stranger can make the server
+    hold). The header is believed for this and for nothing else. A passkey registration's challenge counts against
+    the credential that asked for it, fifty a credential, where the table of a thousand dropped its oldest.
+33. **A `[Settings]` key's audit row is put back by the administrator password alone, and the breach check's test
+    reaches public addresses only for anybody else.** `POST /api/v1/audit/{id}/revert` answers 403 to an account
+    holding a role for a row of a `[Settings]` key, with the sentence `/api/v1/settings/ini` refuses it with; a
+    database setting's row is the role's as before. `POST /api/v1/settings/breach-check/test` asked by an API key or
+    an account holding a role tests an endpoint at a public address only, over https and through `HttpProxy` when
+    one is set, and answers `reachable: false` with the reason for one on the server's own network; the
+    administrator password, the Control Panel and COM test a mirror there as before
+    ([Roles.md](hmailserver/docs/Roles.md), What manage_settings reaches).
+34. **The administrator password's delay counts an IPv6 address by its `/64`, and covers a passkey's registration.**
+    Wrong administrator passwords from any address of one IPv6 `/64` share one growing delay, and the password asked
+    again when the administrator registers a passkey from a session is held to the delay too: a guess inside it is
+    answered 429 with `Retry-After` before it is looked at. When the auto-ban's limit is reached at the REST
+    listener, an IPv6 address's whole `/64` is refused there for the five minutes, and the application log names the
+    `/64`; the auto-ban's IP range stays the one address
+    ([DevicesAndSessions.md](hmailserver/docs/DevicesAndSessions.md), The administrator password's delay).
 
 ### Downloads and the release
 

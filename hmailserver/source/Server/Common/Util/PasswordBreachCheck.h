@@ -131,11 +131,19 @@ namespace HM
       // belongs to no password in particular, and reports what came back. Empty url
       // means the configured one. False when the endpoint could not be used, with
       // out_error set; out_status is the HTTP status, or 0 when none arrived.
+      //
+      // publicOnly: the endpoint is reached only at a public address, over https,
+      // as HttpsClient::RequestPublicThroughProxy reaches one - for a test asked by
+      // a credential other than the server administrator's (the REST route), whose
+      // answer reports the status and the time of whatever the URL reached.
       static bool Probe(const String &url, int &out_status, int &out_entries, bool &out_padded,
-                        int &out_milliseconds, String &out_error);
+                        int &out_milliseconds, String &out_error, bool publicOnly = false);
 
    private:
       static bool IsLoopbackHost_(const AnsiString &host);
+
+      // NetworkFetcher held to public addresses (Probe, publicOnly).
+      static Fetcher PublicFetcher_();
 
       // Why an answer with no entries in it is not a verdict, for the error log.
       static String EmptyAnswerReason_();

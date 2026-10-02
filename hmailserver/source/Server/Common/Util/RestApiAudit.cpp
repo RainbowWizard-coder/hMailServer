@@ -38,6 +38,7 @@
 
 #include "AuditRevert.h"
 #include "AuditTrail.h"
+#include "../Application/IniSettingStore.h"
 #include "AlertManager.h"
 #include "JsonDocument.h"
 #include "Unicode.h"
@@ -174,7 +175,7 @@ namespace HM
    }
 
    HttpResponse
-   RestApiServer::HandleAudit_(const Route &route, const AnsiString &requestBody)
+   RestApiServer::HandleAudit_(const Route &route, const AnsiString &requestBody, bool administrator)
    {
       AnsiString (*escape)(const AnsiString &) = &RestApiServer::JsonEscape_;
 
@@ -252,6 +253,18 @@ namespace HM
             AuditTrail::Entry entry;
             if (!AuditTrail::Instance()->Read(route.record_id, entry))
                return BuildResponse_(404, "{\"error\":\"no audit row has that id\"}");
+
+            // A key of the [Settings] section - AutoBanCommand, the addresses
+            // trusted to name a client, the live update's checks - answers to the
+            // administrator password and to nothing else, here as at
+            // /api/v1/settings/ini: an account holding a role with
+            // manage_settings reaches this route for the database's settings,
+            // and until 6.3.6 it could put a [Settings] key back to an earlier
+            // value through it. The same sentence the ini routes refuse a role
+            // with; refused before anything is read or written.
+            String spelling;
+            if (!administrator && IniSettingStore::IsSettingTheServerReads(entry.object_name, spelling))
+               return BuildResponse_(403, "{\"error\":\"the api keys and the [Settings] section of hMailServer.ini, including the list of what this server has changed from stock, answer to the administrator password only\"}");
 
             String restored;
             String reason;
@@ -452,8 +465,8 @@ namespace HM
          "{\"name\":\"offset\",\"in\":\"query\",\"schema\":{\"type\":\"integer\"},\"description\":\"Rows to skip.\"}"
          "],\"responses\":{\"200\":{\"description\":\"The page of entries and the total that match.\"}}}}"
          ",\"/api/v1/audit/{id}/revert\":{\"post\":{\"summary\":\"Put a setting back to the value an audit row says it had\","
-         "\"description\":\"The row must record a setting's change - name: old -> new in its detail - and the old value is written into the column the server reads the setting from, through the setter that writes it - a switch (true -> false) as a switch, a number as a number, a text as a text - so the put-back is itself a row in the trail made by whoever asked. Refused with 409 for a row that is not a setting's, for a setting's row whose detail does not hold the two values, for a secret (the trail never holds its values), for a value the trail cut at 120 characters, for a row whose values hold the arrow themselves unless it is the setting's latest change in the trail and exactly one place to divide it leaves the value the setting has now as the new side (a [Settings] key's such row always), for a number's row that holds no number, for a [Settings] value the store cannot hold, and for a setting this server no longer has; and, with the sentence every other way of changing it is refused with, for one of the five [Settings] keys of the live update's trust (UpdateSigningIdentity, UpdateSigningIssuer, UpdateSourceRepository, UpdateTrustRootsFile, UpdateLogPublicKeyFile), which only hMailServer.INI itself changes, and for a setting this server's environment sets (hmailserver --apply-environment), each unless the value put back is the one the setting has already. A write that fails is answered with 409 and says so. A [Settings] key whose old side is (default) is returned to its default. Needs manage_settings; refused to every API key.\","
-         "\"responses\":{\"200\":{\"description\":\"reverted, id, setting and value\"},\"404\":{\"description\":\"No such row\"},\"409\":{\"description\":\"The row cannot be put back, with the reason\"}}}}"
+         "\"description\":\"The row must record a setting's change - name: old -> new in its detail - and the old value is written into the column the server reads the setting from, through the setter that writes it - a switch (true -> false) as a switch, a number as a number, a text as a text - so the put-back is itself a row in the trail made by whoever asked. Refused with 409 for a row that is not a setting's, for a setting's row whose detail does not hold the two values, for a secret (the trail never holds its values), for a value the trail cut at 120 characters, for a row whose values hold the arrow themselves unless it is the setting's latest change in the trail and exactly one place to divide it leaves the value the setting has now as the new side (a [Settings] key's such row always), for a number's row that holds no number, for a [Settings] value the store cannot hold, and for a setting this server no longer has; and, with the sentence every other way of changing it is refused with, for one of the five [Settings] keys of the live update's trust (UpdateSigningIdentity, UpdateSigningIssuer, UpdateSourceRepository, UpdateTrustRootsFile, UpdateLogPublicKeyFile), which only hMailServer.INI itself changes, and for a setting this server's environment sets (hmailserver --apply-environment), each unless the value put back is the one the setting has already. A write that fails is answered with 409 and says so. A [Settings] key whose old side is (default) is returned to its default. Needs manage_settings; refused to every API key; and a [Settings] key's row is put back by the administrator password alone, as /api/v1/settings/ini is written - an account holding a role is answered 403 for one, before anything is read or written (since 6.3.6).\","
+         "\"responses\":{\"200\":{\"description\":\"reverted, id, setting and value\"},\"403\":{\"description\":\"A [Settings] key's row, asked by an account holding a role rather than the administrator password\"},\"404\":{\"description\":\"No such row\"},\"409\":{\"description\":\"The row cannot be put back, with the reason\"}}}}"
          ",\"/api/v1/audit/verify\":{\"get\":{\"summary\":\"Verify the audit chain\","
          "\"description\":\"Walks the hash chain from the first row and reports the first row whose stored hash is not the hash its contents produce, or which does not carry the hash of the row before it. Refused to every API key. The administrator password, or an account whose role holds view_audit and reaches every domain.\","
          "\"responses\":{\"200\":{\"description\":\"intact, rows_checked, first_broken_id and the reason.\"}}}}"

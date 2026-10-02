@@ -55,7 +55,7 @@ domains is refused them whatever it holds.
 | `manage_queue` | Retrying or deleting a queued message *(server-wide)* | ✅ | | | |
 | `manage_quarantine` | Releasing or deleting held mail *(server-wide)* | ✅ | ✅ | | |
 | `manage_archive` | Holding and releasing archived messages *(server-wide)* | ✅ | | | |
-| `manage_settings` | Every setting, listener, certificate, route, rule and anti-spam list (the server's allow and block list among them), an alert rule, a test alert, the breach check's endpoint test, and clearing the record of spam trap hits *(server-wide)* - which name the hosts and addresses this server connects to, an alert rule's webhook among them, inside its own network as well ([Webhooks.md](Webhooks.md)); the webmail's branding and its file-link policy (`PUT /api/v1/portal/branding` and `/api/v1/portal/files`), whose domain is in the body: a confined credential sets its own domains' and is refused the server's and any other's | ✅ | | | |
+| `manage_settings` | Every setting, listener, certificate, route, rule and anti-spam list (the server's allow and block list among them), an alert rule, a test alert, the breach check's endpoint test, and clearing the record of spam trap hits *(server-wide)* - which name the hosts and addresses this server connects to, an alert rule's webhook among them, inside its own network as well ([Webhooks.md](Webhooks.md)), and the commands it runs: **the server administrator's equal**, see [What manage_settings reaches](#what-manage_settings-reaches); the webmail's branding and its file-link policy (`PUT /api/v1/portal/branding` and `/api/v1/portal/files`), whose domain is in the body: a confined credential sets its own domains' and is refused the server's and any other's | ✅ | | | |
 | `manage_domains` | Which domains exist *(server-wide)* | ✅ | | | |
 | `manage_server` | Reinitialise, back up, reload scripts, clear caches, install an update, run the alert pass, the DKIM key rotation pass, the suppression list's sweep or the feedback loops' sweep, the DKIM key rotation pass, a reputation check or a pass over the scheduled sends now *(server-wide)* | ✅ | | | |
 | `manage_roles` | Roles and who holds them *(server-wide)* | ✅ | | | |
@@ -71,7 +71,10 @@ nothing else — not to an account holding `serveradmin`, and not to a key of an
 scope. A key that could mint keys could issue itself a replacement with no restriction
 on it, and the file holds the server's secrets. An account is refused with a 403 and
 the reason; a key with the 401 that keeps "valid but not permitted" indistinguishable
-from "not a key".
+from "not a key". The same holds for putting a `[Settings]` key back from its audit
+row (`POST /api/v1/audit/{id}/revert`): a role holding `manage_settings` puts a
+database setting back from the trail, and is refused a `[Settings]` key's row with the
+same 403 - since 6.3.6; 6.3.4 and 6.3.5 put it back.
 
 The **audit trail** (`/api/v1/audit`) and the **alerts** (`/api/v1/alerts/...`) are refused to
 every API key too, whatever its scope or role, and with the same 401: a stolen key must not
@@ -204,6 +207,48 @@ not an account there that administers another domain, or reaches every domain �
 server administrator, by admin level or by role, and an auditor given no list. Before
 SCIM was added it took in every account, whatever its list said.
 
+### What `manage_settings` reaches
+
+**`manage_settings` is the server administrator's equal, and is to be given only to
+somebody you would give the administrator password.** That holds for a custom role
+holding it over every domain, for an account assigned `serveradmin`, and for an API
+key of `"scope":"full"`, which is `serveradmin`. It is not a narrower permission than
+it looks; it is decided so, in 6.3.6, because it cannot be made one without taking
+the settings themselves away from it:
+
+* **Network reach.** The settings name the hosts the server connects to, and the
+  server connects to them as itself, inside its own network as well as outside: the
+  breach check's endpoint (`breach_check_url`), the key server (`keyserver_url`), the
+  sandbox's (`sandbox_*_url`), SpamAssassin and ClamAV (`spamassassin_host`,
+  `clamav_host`), the syslog host (`syslog_host`), the message store's object storage
+  (`message_store_object_endpoint`), the identity provider (`oidc_issuer`), the mail
+  importers' token addresses (`import_oauth_*_token_url`), an alert rule's webhook. A
+  holder of `manage_settings` makes the server reach what the server reaches, which on
+  most networks is more than the holder reaches.
+* **Commands.** The external virus scanner's command line (`custom_scanner_executable`,
+  `clamwin_executable`) is a setting, and the server runs it as its service account.
+* **Not the `[Settings]` section, not the key store.** `AutoBanCommand` and the other
+  keys of the `[Settings]` section, and the API keys, stay the administrator
+  password's alone - written, put back from the audit trail, or listed (above).
+
+What is held to less than the administrator is the one **reading** of the network that
+needed no setting changed and reached API keys as well: the breach check's endpoint
+test (`POST /api/v1/settings/breach-check/test`) takes any URL in its body and reports
+at once whether something answered, its status, how many entries came back and how
+long it took. (The coarser readings that come with the reach itself stay with it: an
+alert rule's webhook says whether its endpoint answered 2xx in the events' delivery
+state, and a webhook subscription's test, run and last error say whether its endpoint
+answered, refused or timed out - for an account whose role holds `manage_settings`
+or `manage_server` respectively, never for an API key; [Webhooks.md](Webhooks.md).)
+Asked by any credential but the
+administrator password - an API key, an account holding a role - since 6.3.6 it
+reaches a public address only, over https, through `HttpProxy` when one is set, the
+body's endpoint and the configured one alike, and answers `reachable: false` with the
+reason for one on the server's own network; 6.3.4 and 6.3.5 tested any address for
+any of them. The administrator password tests a mirror on the server's own network as
+before. An inbound webhook route made by any credential but the administrator is held
+to public addresses in the same way ([InboundWebhooks.md](InboundWebhooks.md)).
+
 ### The message trace
 
 The trace search matches an address as a substring across every message the server
@@ -296,7 +341,10 @@ an empty role name to take it away; `Account.RoleName`, `RoleDomains` and
 
 **An API key:** `POST /api/v1/apikeys` with `"role":"helpdesk"` writes a `Role=` line
 to the key store. A key without one is what it always was: `Scope=full` is
-`serveradmin` and `Scope=readonly` is `auditor`. `Domains=` confines a key with a role
+`serveradmin` and `Scope=readonly` is `auditor`. A full key unconfined is the server
+administrator's equal - it holds `manage_settings` over every domain ([What
+manage_settings reaches](#what-manage_settings-reaches)) - and is kept as the
+administrator password is. `Domains=` confines a key with a role
 exactly as it confines one without; an empty `Domains=` is every domain for a key,
 whatever its role.
 

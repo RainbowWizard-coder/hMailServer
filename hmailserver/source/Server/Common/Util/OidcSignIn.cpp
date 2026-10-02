@@ -9,6 +9,7 @@
 #include "JwksKeySet.h"
 #include "OAuth2TokenValidator.h"
 #include "ReaderOAuth.h"
+#include "SignInBudget.h"
 #include "Unicode.h"
 #include "WebAuthn.h"
 #include "Crypt.h"
@@ -43,7 +44,21 @@ namespace HM
    namespace
    {
       const time_t PendingSeconds = 10 * 60;
-      const size_t MostPending = 200;
+
+      // The pending sign-ins, under SignInBudget's rule: a source holds at most
+      // MostPendingPerSource of them and gives up its own oldest past that, and
+      // a full table gives up the oldest of the source that holds the most. Until
+      // 6.3.6 the table was two hundred and simply dropped its oldest, so a
+      // stranger asking for starts a few times a second pushed every other
+      // person's sign-in out before their browser came back from the identity
+      // provider. An entry is some three hundred bytes; the table about one MB.
+      const size_t MostPending = 4096;
+      const size_t MostPendingPerSource = 256;
+
+      // The tickets a verified sign-in leaves for its browser (MintTicket): made
+      // only after the identity provider vouched for somebody, redeemed within
+      // seconds, and dropped oldest first as they always were.
+      const size_t MostTickets = 200;
       const int DiscoverySeconds = 3600;
       const int JwksCacheSeconds = 3600;
       const int ClockSkewSeconds = 60;
@@ -68,6 +83,11 @@ namespace HM
          // the second and a flood makes hundreds inside one, so this is what
          // "the oldest" means when a full table has to make room.
          unsigned __int64 order = 0;
+         // Where the start came from (SignInBudget::PendingSource), which is
+         // whom the entry counts against when the table makes room, and its
+         // group (SignInBudget::SourceGroup) for the rule's tie-break.
+         std::string source;
+         std::string group;
       };
 
       struct Ticket
@@ -163,16 +183,11 @@ namespace HM
          }
       }
 
-      // A full table drops its oldest entry and takes the new one. /portal/oidc/start
-      // carries no credential - the person has not signed in anywhere yet - so a
-      // table that refused when it filled would let a stranger switch single
-      // sign-on off for everybody with two hundred requests, and the sentence
-      // the sign-in page would then show blames the issuer. Evicting costs the
-      // flooder their own unfinished sign-ins instead.
+      // A full ticket table drops its oldest ticket and takes the new one.
       template <typename Table>
-      void MakeRoomLocked(Table &table)
+      void MakeRoomLocked(Table &table, size_t most)
       {
-         while (table.size() >= MostPending)
+         while (table.size() >= most)
          {
             auto oldest = table.begin();
             for (auto it = table.begin(); it != table.end(); ++it)
@@ -182,6 +197,26 @@ namespace HM
             }
             table.erase(oldest);
          }
+      }
+
+      // Room for one more pending sign-in from source. /portal/oidc/start carries
+      // no credential - the person has not signed in anywhere yet - so a table
+      // that refused when it filled would let a stranger switch single sign-on
+      // off for everybody, and one that dropped its oldest entry whoever held it
+      // let them do the same by asking a few times a second (SignInBudget.h): a
+      // source gives up its own oldest, and a full table the oldest of the source
+      // holding the most - of the largest group among those tied, so that one
+      // /48's thousands of /64s spend their own. A start with no source of its
+      // own (a loopback request naming no forwarded address) has no cap of its
+      // own.
+      void MakeRoomForPendingLocked(const std::string &source)
+      {
+         SignInBudget::MakeRoom(pending, source,
+            source.empty() ? 0 : MostPendingPerSource, MostPending,
+            [](const std::pair<const AnsiString, Pending> &entry) -> const std::string & { return entry.second.source; },
+            [](const std::pair<const AnsiString, Pending> &entry) -> const std::string & { return entry.second.group; },
+            [](const std::pair<const AnsiString, Pending> &entry) { return entry.second.order; },
+            [](const std::pair<const AnsiString, Pending> &) { return false; });
       }
 
       // The issuer's own description of itself. Cached for an hour: it names
@@ -462,7 +497,7 @@ namespace HM
    }
 
    bool
-   OidcSignIn::Begin(bool deck, AnsiString &url, AnsiString &cookie, AnsiString &problem)
+   OidcSignIn::Begin(bool deck, const std::string &source, AnsiString &url, AnsiString &cookie, AnsiString &problem)
    {
       if (!Configured())
       {
@@ -484,12 +519,14 @@ namespace HM
 
       entry.deck = deck;
       entry.created = time(nullptr);
+      entry.source = source;
+      entry.group = SignInBudget::SourceGroup(source);
 
       {
          boost::lock_guard<boost::mutex> guard(stateLock);
          entry.order = nextOrder++;
          PruneLocked(entry.created);
-         MakeRoomLocked(pending);
+         MakeRoomForPendingLocked(source);
          pending[state] = entry;
       }
 
@@ -737,7 +774,7 @@ namespace HM
       boost::lock_guard<boost::mutex> guard(stateLock);
       entry.order = nextOrder++;
       PruneLocked(entry.created);
-      MakeRoomLocked(tickets);
+      MakeRoomLocked(tickets, MostTickets);
       tickets[ticket] = entry;
       return true;
    }

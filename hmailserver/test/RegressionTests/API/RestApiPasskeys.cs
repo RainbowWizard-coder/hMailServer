@@ -387,6 +387,100 @@ namespace RegressionTests.API
          }
       }
 
+      [Test]
+      [Description("Sign-in challenges asked for over and over spend the asker's own and nobody else's: a person's challenge, asked for before eleven hundred from one other source and eleven hundred from as many sources, still signs them in with their passkey. The source behind a proxy on this machine is the address the proxy wrote last in X-Forwarded-For. Until 6.3.6 the table held a thousand and dropped its oldest whoever held it.")]
+      public void ChallengesAskedForOverAndOverLeaveAnotherSourcesChallenge()
+      {
+         Account account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "passkey-flood@" + _domain.Name, Password);
+         string me = Basic(account.Address, Password);
+
+         using (var authenticator = new SoftwareAuthenticator())
+         {
+            Register(authenticator, me, "Phone", Password);
+
+            (string challenge, string cookie) person = Challenge("X-Forwarded-For: 198.51.100.4");
+
+            for (int i = 0; i < 1100; i++)
+               Challenge("X-Forwarded-For: 203.0.113.9");
+
+            for (int i = 0; i < 1100; i++)
+               Challenge("X-Forwarded-For: 2001:db8:" + (i + 1).ToString("x") + "::7");
+
+            (int status, string body, string headers) session = SendRaw("POST", "/api/v1/session", null,
+               authenticator.Assertion(person.challenge, Origin, Host, 0), "Cookie: " + person.cookie);
+            Assert.AreEqual(201, session.status, "The person's challenge still answers after the flood: " + session.body);
+         }
+      }
+
+      [Test]
+      [Description("Challenges asked for from thousands of /64s of one /48 - one each, more than the table of 4,096 holds - spend that /48's own and not a person's from elsewhere, though every source holds one and the person's is the oldest. As the rule was first written in 6.3.6 the oldest of the sources tied went, which a tunnel broker's free /48 aimed at everybody; until 6.3.6 the table held a thousand and dropped its oldest.")]
+      public void ChallengesFromThousandsOfOneSitesAddressesLeaveAnotherSourcesChallenge()
+      {
+         Account account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "passkey-site@" + _domain.Name, Password);
+         string me = Basic(account.Address, Password);
+
+         using (var authenticator = new SoftwareAuthenticator())
+         {
+            Register(authenticator, me, "Phone", Password);
+
+            (string challenge, string cookie) person = Challenge("X-Forwarded-For: 198.51.100.4");
+
+            for (int i = 0; i < 4300; i++)
+               Challenge("X-Forwarded-For: 2001:db8:1:" + (i + 1).ToString("x") + "::7");
+
+            (int status, string body, string headers) session = SendRaw("POST", "/api/v1/session", null,
+               authenticator.Assertion(person.challenge, Origin, Host, 0), "Cookie: " + person.cookie);
+            Assert.AreEqual(201, session.status, "The person's challenge still answers after one /48's flood: " + session.body);
+         }
+      }
+
+      [Test]
+      [Description("Behind a second proxy on this machine every browser's X-Forwarded-For ends in 127.0.0.1: that is no source of its own, so eleven hundred challenges asked for through it are held by the table of 4,096 alone and a person's, asked for first through the same proxy, still answers. As the rule was first written in 6.3.6 the browsers behind such a chain were one source capped at 256, so 256 requests pushed every one of them out; until 6.3.6 the table held a thousand.")]
+      public void ChallengesBehindASecondProxyOnThisMachineAreNoCappedSource()
+      {
+         Account account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "passkey-chain@" + _domain.Name, Password);
+         string me = Basic(account.Address, Password);
+
+         using (var authenticator = new SoftwareAuthenticator())
+         {
+            Register(authenticator, me, "Phone", Password);
+
+            (string challenge, string cookie) person = Challenge("X-Forwarded-For: 198.51.100.4, 127.0.0.1");
+
+            for (int i = 0; i < 1100; i++)
+               Challenge("X-Forwarded-For: 127.0.0.1");
+
+            (int status, string body, string headers) session = SendRaw("POST", "/api/v1/session", null,
+               authenticator.Assertion(person.challenge, Origin, Host, 0), "Cookie: " + person.cookie);
+            Assert.AreEqual(201, session.status, "The person's challenge still answers behind the chain: " + session.body);
+         }
+      }
+
+      [Test]
+      [Description("The administrator password asked again at a passkey registration is held to the same failed-sign-in throttle as the password itself: from an administrator session that did not need the password, a wrong one is refused 403, and the next guess inside the delay 429 with Retry-After before it is looked at. Until 6.3.6 the throttle read only an Authorization: Basic header.")]
+      public void TheAdministratorPasswordAskedAtARegistrationIsThrottled()
+      {
+         (int status, string body, string headers) signedIn = SendRaw("POST", "/api/v1/session", Basic("Administrator", AdminPassword), null, null);
+         Assert.AreEqual(201, signedIn.status, signedIn.body);
+         Match cookie = Regex.Match(signedIn.headers, @"Set-Cookie: (hmailsession=[^;]+);");
+         Assert.IsTrue(cookie.Success, signedIn.headers);
+
+         string wrongPassword = "{\"name\":\"Console\",\"password\":\"" + AdminPassword + "-wrong\",\"credential\":{}}";
+
+         (int status, string body, string headers) first = SendRaw("POST", "/api/v1/passkeys", null, wrongPassword, "Cookie: " + cookie.Groups[1].Value);
+         Assert.AreEqual(403, first.status, first.body);
+         StringAssert.Contains("the password is not correct", first.body);
+
+         (int status, string body, string headers) second = SendRaw("POST", "/api/v1/passkeys", null, wrongPassword, "Cookie: " + cookie.Groups[1].Value);
+         Assert.AreEqual(429, second.status, "A second guess inside the delay is refused before it is looked at: " + second.body);
+         Match retryAfter = Regex.Match(second.headers, @"Retry-After: (\d+)");
+         Assert.IsTrue(retryAfter.Success, second.headers);
+
+         // The delay passes, and the right password clears it for the fixtures after.
+         Thread.Sleep((int.Parse(retryAfter.Groups[1].Value) + 1) * 1000);
+         Assert.AreEqual(200, Admin("GET", "/api/v1/status", null).status, "The right password is taken once the delay has passed.");
+      }
+
       // ---------------------------------------------------------------- helpers
 
       /// <summary>
@@ -406,10 +500,14 @@ namespace RegressionTests.API
          return Regex.Match(made.body, "\"id\":(\\d+)").Groups[1].Value;
       }
 
-      /// <summary>A sign-in challenge and the cookie it was handed out with.</summary>
-      private static (string challenge, string cookie) Challenge()
+      /// <summary>
+      ///    A sign-in challenge and the cookie it was handed out with. extraHeader is
+      ///    one more header line - an X-Forwarded-For, which a request from this
+      ///    machine is believed for as a reverse proxy's.
+      /// </summary>
+      private static (string challenge, string cookie) Challenge(string extraHeader = null)
       {
-         (int status, string body, string headers) answer = SendRaw("POST", "/api/v1/passkeys/challenge", null, "{}", null);
+         (int status, string body, string headers) answer = SendRaw("POST", "/api/v1/passkeys/challenge", null, "{}", extraHeader);
          Assert.AreEqual(200, answer.status, answer.body);
          Match cookie = Regex.Match(answer.headers, @"Set-Cookie: (hmpasskey=[^;]+);");
          Assert.IsTrue(cookie.Success, "The challenge was handed out without its cookie: " + answer.headers);

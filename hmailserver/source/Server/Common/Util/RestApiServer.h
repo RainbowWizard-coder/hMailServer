@@ -2519,7 +2519,10 @@ namespace HM
       HttpResponse HandleScriptingReload_();
       HttpResponse HandleScriptingCheck_();
       // POST /api/v1/settings/breach-check/test: Settings.TestBreachCheckEndpoint.
-      HttpResponse HandleBreachCheckTest_(const AnsiString &requestBody);
+      // administrator: the caller is the administrator password (or its session,
+      // passkey or single sign-on); every other caller's test reaches public
+      // addresses only.
+      HttpResponse HandleBreachCheckTest_(const AnsiString &requestBody, bool administrator);
       // Settings.Cache and Settings.MessageIndexing over REST (RestApiSettings.cpp).
       HttpResponse HandleSettingsCache_();
       HttpResponse HandleSettingsCachePut_(const AnsiString &requestBody);
@@ -2788,8 +2791,10 @@ namespace HM
       static AuditTrail::Actor AuditActorFor_(const Caller &caller);
 
       // GET /api/v1/audit, /api/v1/audit/verify and the alert rules and events.
-      // In RestApiAudit.cpp.
-      HttpResponse HandleAudit_(const Route &route, const AnsiString &requestBody);
+      // In RestApiAudit.cpp. administrator: the caller is the administrator
+      // password (or its session, passkey or single sign-on), the one credential
+      // a [Settings] key's row may be put back by.
+      HttpResponse HandleAudit_(const Route &route, const AnsiString &requestBody, bool administrator);
       static AnsiString OpenApiAuditPaths_();
 
       // The suppression list, the bounce counts, classify and the sweep. In

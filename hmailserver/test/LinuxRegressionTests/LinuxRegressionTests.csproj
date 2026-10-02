@@ -391,6 +391,7 @@
     <Compile Include="..\RegressionTests\API\RestApiMaskedAddresses.cs" Link="API\RestApiMaskedAddresses.cs" />
     <Compile Include="..\RegressionTests\API\RestApiMessageRecall.cs" Link="API\RestApiMessageRecall.cs" />
     <Compile Include="..\RegressionTests\API\RestApiOidcSignIn.cs" Link="API\RestApiOidcSignIn.cs" />
+    <Compile Include="..\RegressionTests\API\RestApiPasskeys.cs" Link="API\RestApiPasskeys.cs" />
     <Compile Include="..\RegressionTests\API\RestApiOpenPgpKeys.cs" Link="API\RestApiOpenPgpKeys.cs" />
     <Compile Include="..\RegressionTests\API\RestApiPersonExport.cs" Link="API\RestApiPersonExport.cs" />
     <Compile Include="..\RegressionTests\API\RestApiProtectedMessages.cs" Link="API\RestApiProtectedMessages.cs" />

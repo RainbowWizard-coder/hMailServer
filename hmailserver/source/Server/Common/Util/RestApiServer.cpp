@@ -92,6 +92,7 @@
 #include "PasskeyStore.h"
 #include "OidcSignIn.h"
 #include "SamlSignIn.h"
+#include "SignInBudget.h"
 #include "DirectoryStore.h"
 #include "CompromiseDetector.h"
 #include "ConfidentialMessages.h"
@@ -186,6 +187,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
+#include <limits>
 #include <mutex>
 
 #include <openssl/ssl.h>
@@ -348,10 +350,14 @@ namespace HM
       // keys, passkey and single sign-on do not pass through it. Nothing is
       // slept on a worker thread - a refused attempt returns at once - so a
       // flood cannot tie the workers up. Keyed per credential and per source, so
-      // an attacker at another source only delays itself.
+      // an attacker at another source only delays itself; the source of an IPv6
+      // peer is its /64 (SignInBudget::GuessSource), since 6.3.6, because one
+      // host is given a /64 and can guess from a fresh address of it each time.
+      // X-Forwarded-For is never believed here: any process on this machine can
+      // write one, and a throttle it could rotate away is no throttle.
       struct SessionFailure
       {
-         AnsiString key;                  // credential identity + '\n' + source address
+         AnsiString key;                  // credential identity + '\n' + source (SignInBudget::GuessSource)
          ULONGLONG last_failure_at = 0;   // for the decay
          ULONGLONG next_allowed_at = 0;   // a guess before this is refused without being tried
          int count = 0;                   // consecutive failures, for the growing delay
@@ -576,6 +582,10 @@ namespace HM
       //    AutoBanMinutes=0 ("disconnect, but do not block") is honoured as a
       //    brief refusal rather than ignored, which is what stops the flood of
       //    logon-failure rows that setting would otherwise still pay for.
+      //  - An IPv6 address is refused with its /64 (RefusedLowHalf), since
+      //    6.3.6: the host that earned the refusal holds the rest of it. The
+      //    auto-ban's own range, which every protocol shares and the firewall
+      //    mirrors, stays the one address.
       //
       // Nothing here fires on the shipped default configuration: the listener
       // does not run unless RestApiPort is set, and an address only enters the
@@ -666,6 +676,14 @@ namespace HM
          ULONGLONG idle_milliseconds = 0;
          ULONGLONG lifetime_milliseconds = 0;
          bool bind_to_address = false;
+
+         // Whom the session counts against when the table makes room
+         // (MakeRoomForSession_): the administrator, one account, or the
+         // credential that opened a support session; and the group that holder
+         // is in for the rule's tie-break - an account's domain, otherwise the
+         // holder itself.
+         std::string holder;
+         std::string group;
       };
 
       const char *SessionCookieName = "hmailsession";
@@ -691,8 +709,64 @@ namespace HM
       const ULONGLONG SessionAbsoluteMilliseconds = (ULONGLONG) SessionPolicies::DefaultLifetimeSeconds * 1000;
       const size_t MaxBrowserSessions = 1000;
 
+      // How many sessions one holder may have at once: the administrator, one
+      // account (its bearer sessions among them), or one credential's support
+      // sessions. Fifty, as an account's list of clients keeps fifty
+      // (SignInStore) - far past a person's browsers and devices, and a twentieth
+      // of the table, so that no one password can fill it.
+      const size_t MaxSessionsPerHolder = 50;
+
       std::mutex browser_sessions_mutex;
       std::vector<BrowserSession> browser_sessions;
+
+      std::string SessionHolder_(bool administrator, __int64 accountId, const AnsiString &supportBy)
+      {
+         if (!supportBy.IsEmpty())
+            return "support:" + std::string(supportBy.c_str());
+         if (administrator)
+            return "administrator";
+         return "account:" + std::to_string(accountId);
+      }
+
+      // The group of a session's holder (SignInBudget.h, rule 3): an account's
+      // own sessions are its domain's, so that a domain whose thousand accounts
+      // fill the table gives up its own; a support session's and the
+      // administrator's are their holder's.
+      std::string SessionGroup_(const std::string &holder, bool supportSession, __int64 domainId)
+      {
+         if (supportSession || holder == "administrator")
+            return holder;
+         return "domain:" + std::to_string(domainId);
+      }
+
+      // Room for one more session of holder, under browser_sessions_mutex and
+      // with the expired sessions already gone (SignInBudget.h). Until 6.3.6 a
+      // full table dropped its least recently used session whoever held it, so
+      // that one account signing in over and over with its own password signed
+      // every idle browser on the server out, the administrator's Control Deck
+      // among them. Now a holder at its cap gives up its own least recently
+      // used session; a full table gives up one of the holder that has the
+      // most, the newcomer when it is among them, and among holders tied for the
+      // most one of the largest group's. The administrator's sessions are
+      // exempt: they count against the administrator's own fifty and never
+      // towards the table's thousand, and nobody else's sign-in takes one.
+      void MakeRoomForSession_(const std::string &holder, bool administrator)
+      {
+         for (;;)
+         {
+            std::vector<BrowserSession>::iterator victim = SignInBudget::Victim(browser_sessions, holder,
+               MaxSessionsPerHolder, administrator ? std::numeric_limits<size_t>::max() : MaxBrowserSessions,
+               [](const BrowserSession &session) -> const std::string & { return session.holder; },
+               [](const BrowserSession &session) -> const std::string & { return session.group; },
+               [](const BrowserSession &session) { return session.last_seen_at; },
+               [](const BrowserSession &session) { return session.administrator; });
+
+            if (victim == browser_sessions.end())
+               return;
+
+            browser_sessions.erase(victim);
+         }
+      }
 
       // The policy in force for one session. Resolved with browser_sessions_mutex
       // NOT held: the account, the domain and their own values of the four
@@ -740,6 +814,20 @@ namespace HM
       bool IsSameAddress(const RefusedAddress &entry, int family, unsigned __int64 high, unsigned __int64 low)
       {
          return entry.family == family && entry.address_high == high && entry.address_low == low;
+      }
+
+      // The low half the refused set holds an address by. An IPv6 address is
+      // held by its /64 - the low half is not kept - since 6.3.6, because one
+      // host is given a /64 and could otherwise come back from the next address
+      // of it the moment one was refused. The addresses whose high half is zero
+      // (::1, an IPv4 address carried in IPv6, the other special forms) are
+      // held whole, as an IPv4 address is.
+      unsigned __int64 RefusedLowHalf(const IPAddress &peer_address)
+      {
+         const unsigned __int64 low = peer_address.GetAddress2();
+         if (peer_address.GetType() != IPAddress::IPV6 || peer_address.GetAddress1() == 0)
+            return low;
+         return 0;
       }
 
       AnsiString BytesToLowerHex(const unsigned char *data, int length)
@@ -1956,7 +2044,7 @@ namespace HM
    int
    RestApiServer::SessionThrottleRetryMs_(const AnsiString &identity, const IPAddress &peer_address)
    {
-      const AnsiString key = identity + "\n" + peer_address.ToString();
+      const AnsiString key = identity + "\n" + AnsiString(SignInBudget::GuessSource(peer_address).c_str());
       const ULONGLONG now = GetTickCount64();
 
       std::lock_guard<std::mutex> guard(session_failure_mutex);
@@ -1982,7 +2070,7 @@ namespace HM
    void
    RestApiServer::RegisterSessionFailure_(const AnsiString &identity, const IPAddress &peer_address)
    {
-      const AnsiString key = identity + "\n" + peer_address.ToString();
+      const AnsiString key = identity + "\n" + AnsiString(SignInBudget::GuessSource(peer_address).c_str());
       const ULONGLONG now = GetTickCount64();
 
       std::lock_guard<std::mutex> guard(session_failure_mutex);
@@ -2032,7 +2120,7 @@ namespace HM
    void
    RestApiServer::ClearSessionFailure_(const AnsiString &identity, const IPAddress &peer_address)
    {
-      const AnsiString key = identity + "\n" + peer_address.ToString();
+      const AnsiString key = identity + "\n" + AnsiString(SignInBudget::GuessSource(peer_address).c_str());
 
       std::lock_guard<std::mutex> guard(session_failure_mutex);
 
@@ -2134,7 +2222,7 @@ namespace HM
 
       const int family = static_cast<int>(peer_address.GetType());
       const unsigned __int64 high = peer_address.GetAddress1();
-      const unsigned __int64 low = peer_address.GetAddress2();
+      const unsigned __int64 low = RefusedLowHalf(peer_address);
       const ULONGLONG now = GetTickCount64();
 
       std::lock_guard<std::mutex> guard(refused_addresses_mutex);
@@ -2171,7 +2259,7 @@ namespace HM
 
       const int family = static_cast<int>(peer_address.GetType());
       const unsigned __int64 high = peer_address.GetAddress1();
-      const unsigned __int64 low = peer_address.GetAddress2();
+      const unsigned __int64 low = RefusedLowHalf(peer_address);
       const ULONGLONG now = GetTickCount64();
       const ULONGLONG expiresAt = now + RefusedAddressMilliseconds;
 
@@ -2278,10 +2366,11 @@ namespace HM
             // One line per ban, not one per refused request: a line per
             // connection would answer a flood of cheap requests with a flood of
             // log writes, which is the shape of problem being fixed. The
-            // refusals themselves are visible under debug logging only.
+            // refusals themselves are visible under debug logging only. What is
+            // refused is named as it is held: an IPv6 address's /64.
             String message;
             message.Format(_T("REST API: Refusing requests from %s for %d minutes after repeated authentication failures."),
-               String(peer_address.ToString()).c_str(), RefusedAddressMinutes);
+               String(AnsiString(SignInBudget::GuessSource(peer_address).c_str())).c_str(), RefusedAddressMinutes);
             LOG_APPLICATION(message);
          }
       }
@@ -3071,7 +3160,7 @@ namespace HM
          case RouteAlertEventList:
          case RouteAlertTest:
          case RouteAlertRun:
-            return HandleAudit_(route, GetRequestBody_(request));
+            return HandleAudit_(route, GetRequestBody_(request), caller.result == AuthenticatedAsAdministrator);
 
          case RouteRuleMatch:
             return HandleRuleMatch_(GetRequestBody_(request));
@@ -3245,7 +3334,7 @@ namespace HM
          case RouteScriptingCheck:
             return HandleScriptingCheck_();
          case RouteBreachCheckTest:
-            return HandleBreachCheckTest_(GetRequestBody_(request));
+            return HandleBreachCheckTest_(GetRequestBody_(request), caller.result == AuthenticatedAsAdministrator);
          case RouteSettingsCacheGet:
             return HandleSettingsCache_();
          case RouteSettingsCachePut:
@@ -14396,9 +14485,10 @@ namespace HM
 
          const ULONGLONG now = GetTickCount64();
 
-         // Expired sessions go first, so the table holds what is live; then,
-         // if it is still full, the least recently used one goes. The cap is
-         // what stops a script from filling memory with sign-ins.
+         // Expired sessions go first, so the table holds what is live; then
+         // room is made under the rule in MakeRoomForSession_. The caps are
+         // what stop a script from filling memory with sign-ins, and the rule
+         // is what stops it signing other people out while it tries.
          browser_sessions.erase(
             std::remove_if(browser_sessions.begin(), browser_sessions.end(),
                [now](const BrowserSession &session)
@@ -14427,19 +14517,12 @@ namespace HM
                browser_sessions.end());
          }
 
-         if (browser_sessions.size() >= MaxBrowserSessions)
-         {
-            size_t oldest = 0;
-            for (size_t i = 1; i < browser_sessions.size(); i++)
-            {
-               if (browser_sessions[i].last_seen_at < browser_sessions[oldest].last_seen_at)
-                  oldest = i;
-            }
-
-            browser_sessions.erase(browser_sessions.begin() + oldest);
-         }
+         const std::string holder = SessionHolder_(administrator, administrator ? 0 : account->GetID(), AnsiString());
+         MakeRoomForSession_(holder, administrator);
 
          BrowserSession session;
+         session.holder = holder;
+         session.group = SessionGroup_(holder, false, administrator ? 0 : account->GetDomainID());
          session.token_hash = tokenHash;
          session.account_id = administrator ? 0 : account->GetID();
          session.administrator = administrator;
@@ -18472,9 +18555,26 @@ namespace HM
       {
          std::lock_guard<std::mutex> guard(browser_sessions_mutex);
          const ULONGLONG now = GetTickCount64();
-         if (browser_sessions.size() >= MaxBrowserSessions)
-            return BuildResponse_(503, "{\"error\":\"the session table is full\"}");
+
+         // Room is made as for any sign-in (MakeRoomForSession_), the expired
+         // first: until 6.3.6 a table that somebody else had filled answered
+         // the administrator 503 here, and the expired sessions were never
+         // dropped first. The support session counts against the credential
+         // that opened it, not against the account it is opened as.
+         browser_sessions.erase(
+            std::remove_if(browser_sessions.begin(), browser_sessions.end(),
+               [now](const BrowserSession &existing)
+               {
+                  return HasExpired_(existing, now);
+               }),
+            browser_sessions.end());
+
+         const std::string holder = SessionHolder_(false, account->GetID(), caller.identity);
+         MakeRoomForSession_(holder, false);
+
          BrowserSession session;
+         session.holder = holder;
+         session.group = SessionGroup_(holder, !caller.identity.IsEmpty(), account->GetDomainID());
          session.token_hash = tokenHash;
          session.account_id = account->GetID();
          session.administrator = false;
@@ -20461,7 +20561,7 @@ namespace HM
          "\"/api/v1/me\":{\"get\":{\"summary\":\"The signed-in account's own state\",\"description\":\"HTTP Basic with the account's address and password - the same credential and the same checks as an IMAP logon, including a per-name lockout and the auto-ban. Refused for the administrator password and for API keys.\",\"responses\":{\"200\":{\"description\":\"address, domain, active, quota (limit_mb, used_bytes), vacation (enabled, active, subject, message, expires, expires_date), password_changed, second_factor, directory_linked\"},\"401\":{\"description\":\"Not an account's credentials\"},\"403\":{\"description\":\"The administrator password or an API key was presented\"}}}},"
          "\"/api/v1/me/password\":{\"post\":{\"summary\":\"Change the signed-in account's password\",\"description\":\"Body: current and new. current has to be the account password itself, not an app password. An account with a second factor sends the code in X-hMailServer-OTP; without it the answer is 401 with X-hMailServer-OTP: required. The password policy, the reuse history and the breach check apply exactly as when an administrator sets a password; a breach-check refusal carries reason (breached or breach_check_unavailable) beside error, for a page to translate.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"current\",\"new\"],\"properties\":{\"current\":{\"type\":\"string\"},\"new\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"Changed\"},\"400\":{\"description\":\"Missing fields, the policy refused the new password (the reason is in error), or it was found in the published breach corpus (reason: breached)\"},\"403\":{\"description\":\"The current password did not match\"},\"409\":{\"description\":\"A directory-linked account, or a recently used password\"},\"503\":{\"description\":\"The breach check could not reach its endpoint and breach_check_unreachable_action is refuse (reason: breach_check_unavailable); nothing changed\"}}}},"
          "\"/api/v1/me/vacation\":{\"put\":{\"summary\":\"Set the signed-in account's automatic reply\",\"description\":\"The whole state at once: enabled (required), subject, message, expires and expires_date (YYYY-MM-DD, required when expires is true).\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"enabled\"],\"properties\":{\"enabled\":{\"type\":\"boolean\"},\"subject\":{\"type\":\"string\"},\"message\":{\"type\":\"string\"},\"expires\":{\"type\":\"boolean\"},\"expires_date\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"The state as saved\"},\"400\":{\"description\":\"enabled missing, a field over its length, or a malformed expires_date\"}}}},"
-         "\"/api/v1/session\":{\"post\":{\"summary\":\"Start a browser session for the signed-in account, or for the administrator\",\"description\":\"HTTP Basic, once: an account's address and password, or the administrator's name and password - and, when a second factor is enrolled on the administrator credential, the one-time code in X-hMailServer-OTP (without it the answer is 401 with X-hMailServer-OTP: required). A code is taken once: the same code a second time is refused with the same 401, though not counted as a wrong code, and five wrong codes in fifteen minutes refuse every code, the right one included, with 429 and Retry-After for fifteen minutes - so a script signs in here once and uses the cookie, or uses an API key, rather than sending the password and a code with every request. Answers 201 with a Set-Cookie (hmailsession; HttpOnly, SameSite=Strict, Secure over TLS or behind a loopback proxy that says X-Forwarded-Proto: https). The cookie then authenticates as the credential itself would - an account reaches the /api/v1/me endpoints, the administrator reaches everything but them - without a password, for 30 minutes of idleness and 12 hours at most; a request that changes something must also carry X-Requested-With: hMailServer. A password change ends the account's other sessions, and a change of the administrator password ends every administrator session. An API key cannot start one. The bearer form, ?bearer=1, is for an account only: the session is the same in every respect, but the token is answered in the body as token and no cookie is set, and it is then accepted as Authorization: Bearer <token> and in no Cookie header (a cookie's value is not accepted as a bearer either). It is what the webmail asks for when a person adds a second account beside the one whose cookie the browser already holds - a cookie is one per origin. The page holds the token in memory only, so a reload forgets it; it ends after the same idle time and lifetime as any session of that account, a password change ends it, its rows in GET /api/v1/me/sessions say bearer true, and DELETE /api/v1/session with the bearer ends it without touching the cookie. What the form means: a token a page holds in script is a credential a cross-site script in that page could read, which the cookie is not; the webmail is served under a policy that allows no inline script and no eval, which is why the form is acceptable there and why it is never minted for the administrator (403). For the same reason a bearer session is the mailbox and nothing more: an account that holds an administrative role - an admin level, or a role assignment - reaches the administration API on its password and on its cookie, and never on a bearer, which is refused there (403) as an ordinary account is and answers administrative false to GET /api/v1/session. And the account the request's own cookie stands for is refused the form (409): it is the account the browser is already signed in as, and signing it in again from the same device would end the cookie's session under the one-per-device policy.\",\"responses\":{\"201\":{\"description\":\"address (an account) or administrator true, with idle_seconds and lifetime_seconds; the cookie in Set-Cookie - or, with ?bearer=1, bearer true and the token in the body and no Set-Cookie\"},\"401\":{\"description\":\"Not an account's or the administrator's credentials\"},\"403\":{\"description\":\"A session cookie or an API key was presented, or the bearer form was asked for with the administrator password\"},\"409\":{\"description\":\"The bearer form was asked for with the password of the account the request's cookie already stands for\"}}},\"delete\":{\"summary\":\"End the browser session the request came with\",\"responses\":{\"200\":{\"description\":\"Ended; the cookie is cleared - or, for a session presented as a bearer, ended and bearer true, with no Set-Cookie\"},\"400\":{\"description\":\"The request carried a password, not a session\"}}},\"get\":{\"summary\":\"What this credential is, and what it may do\",\"description\":\"What the credential this request came in on is, and what it may do: identity, credential (administrator, apikey or account), administrative, role, permissions and domains. Answered to every credential that authenticated, an API key included: a caller must be able to learn what it may do without trying things and reading the 403s, which is what lets the Control Deck leave a view out rather than show one whose every button is refused.\",\"responses\":{\"200\":{\"description\":\"identity, credential, administrative, role, permissions, domains\"}}}},"
+         "\"/api/v1/session\":{\"post\":{\"summary\":\"Start a browser session for the signed-in account, or for the administrator\",\"description\":\"HTTP Basic, once: an account's address and password, or the administrator's name and password - and, when a second factor is enrolled on the administrator credential, the one-time code in X-hMailServer-OTP (without it the answer is 401 with X-hMailServer-OTP: required). A code is taken once: the same code a second time is refused with the same 401, though not counted as a wrong code, and five wrong codes in fifteen minutes refuse every code, the right one included, with 429 and Retry-After for fifteen minutes - so a script signs in here once and uses the cookie, or uses an API key, rather than sending the password and a code with every request. Answers 201 with a Set-Cookie (hmailsession; HttpOnly, SameSite=Strict, Secure over TLS or behind a loopback proxy that says X-Forwarded-Proto: https). The cookie then authenticates as the credential itself would - an account reaches the /api/v1/me endpoints, the administrator reaches everything but them - without a password, for 30 minutes of idleness and 12 hours at most; a request that changes something must also carry X-Requested-With: hMailServer. An account, or the administrator, holds at most fifty sessions at once - a fifty-first sign-in ends its own least recently used one - and a full table of a thousand makes room out of the sessions of whoever holds the most, never out of the administrator's, which are held by their own fifty alone. A password change ends the account's other sessions, and a change of the administrator password ends every administrator session. An API key cannot start one. The bearer form, ?bearer=1, is for an account only: the session is the same in every respect, but the token is answered in the body as token and no cookie is set, and it is then accepted as Authorization: Bearer <token> and in no Cookie header (a cookie's value is not accepted as a bearer either). It is what the webmail asks for when a person adds a second account beside the one whose cookie the browser already holds - a cookie is one per origin. The page holds the token in memory only, so a reload forgets it; it ends after the same idle time and lifetime as any session of that account, a password change ends it, its rows in GET /api/v1/me/sessions say bearer true, and DELETE /api/v1/session with the bearer ends it without touching the cookie. What the form means: a token a page holds in script is a credential a cross-site script in that page could read, which the cookie is not; the webmail is served under a policy that allows no inline script and no eval, which is why the form is acceptable there and why it is never minted for the administrator (403). For the same reason a bearer session is the mailbox and nothing more: an account that holds an administrative role - an admin level, or a role assignment - reaches the administration API on its password and on its cookie, and never on a bearer, which is refused there (403) as an ordinary account is and answers administrative false to GET /api/v1/session. And the account the request's own cookie stands for is refused the form (409): it is the account the browser is already signed in as, and signing it in again from the same device would end the cookie's session under the one-per-device policy.\",\"responses\":{\"201\":{\"description\":\"address (an account) or administrator true, with idle_seconds and lifetime_seconds; the cookie in Set-Cookie - or, with ?bearer=1, bearer true and the token in the body and no Set-Cookie\"},\"401\":{\"description\":\"Not an account's or the administrator's credentials\"},\"403\":{\"description\":\"A session cookie or an API key was presented, or the bearer form was asked for with the administrator password\"},\"409\":{\"description\":\"The bearer form was asked for with the password of the account the request's cookie already stands for\"}}},\"delete\":{\"summary\":\"End the browser session the request came with\",\"responses\":{\"200\":{\"description\":\"Ended; the cookie is cleared - or, for a session presented as a bearer, ended and bearer true, with no Set-Cookie\"},\"400\":{\"description\":\"The request carried a password, not a session\"}}},\"get\":{\"summary\":\"What this credential is, and what it may do\",\"description\":\"What the credential this request came in on is, and what it may do: identity, credential (administrator, apikey or account), administrative, role, permissions and domains. Answered to every credential that authenticated, an API key included: a caller must be able to learn what it may do without trying things and reading the 403s, which is what lets the Control Deck leave a view out rather than show one whose every button is refused.\",\"responses\":{\"200\":{\"description\":\"identity, credential, administrative, role, permissions, domains\"}}}},"
          "\"/api/v1/me/contacts\":{\"get\":{\"summary\":\"The signed-in account's address book\",\"description\":\"q= narrows to names and addresses containing the text, case-insensitively, which is what the To field's completion asks; limit= caps the answer (200 by default); source=manual is what the person kept and source=collected what they merely wrote to; kind=person or kind=group answers one kind, and without it both are listed; fields=card puts the stored vCard on each contact. Each contact carries kind (person), birthday, note, phones and has_photo, read from the card a phone stored. A group (see /api/v1/me/contacts/groups) is listed with kind group, an empty address, its members and its recipients, so that the completion can offer it by name and expand it. Recipients of what the account sends through the API are added on their own, marked collected.\",\"responses\":{\"200\":{\"description\":\"contacts (id, name, address, source manual|collected, created, kind), count, total\"}}},\"post\":{\"summary\":\"Add a contact\",\"description\":\"Body: address (one e-mail address, or Name <address>), name (optional). One row per address per account.\",\"responses\":{\"201\":{\"description\":\"The contact\"},\"400\":{\"description\":\"Not one address\"},\"409\":{\"description\":\"That address is already a contact; id says which\"}}}},"
          "\"/api/v1/me/contacts/{id}/photo\":{\"get\":{\"summary\":\"The photo on the contact's card\",\"description\":\"The image a phone stored on the card, its bytes as they are, under the type the card gives when that is a picture on the list of types no browser runs or renders (never SVG) and as application/octet-stream otherwise, with nosniff and a sandbox policy; 404 for a contact with no card, no photo, or a photo that is only a URL.\",\"responses\":{\"200\":{\"description\":\"The image\"},\"404\":{\"description\":\"No photo\"}}}},"
          "\"/api/v1/me/contacts/{id}\":{\"put\":{\"summary\":\"Change a contact's name or address, or keep a collected address as a contact\",\"description\":\"Body: name and/or address, and/or source, which can only be set to manual - what the person wrote to becomes a contact by their choice, and is served to their phones from then on. Another account's contact is 404.\",\"responses\":{\"200\":{\"description\":\"The contact\"},\"404\":{\"description\":\"No such contact\"},\"409\":{\"description\":\"The new address is already a contact\"}}},\"delete\":{\"summary\":\"Remove a contact\",\"responses\":{\"200\":{\"description\":\"Removed\"},\"404\":{\"description\":\"No such contact\"}}}},"

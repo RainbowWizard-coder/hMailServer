@@ -3850,7 +3850,7 @@ namespace
       "\"/api/v1/settings/indexing/clear\":{\"post\":{\"summary\":\"Empty the message index\",\"description\":\"What Settings.MessageIndexing.Clear does over COM: every indexed message's metadata, the full-text terms and the backfill cursor go, so the indexer starts again from the first message when it next runs. Server-wide; refused for domain-restricted and read-only keys.\",\"responses\":{\"200\":{\"description\":\"{cleared: true}\"}}}}";
 
    const char *BreachCheckTestPath =
-      ",\"/api/v1/settings/breach-check/test\":{\"post\":{\"summary\":\"Ask the password breach check endpoint for a range\",\"description\":\"What Settings.TestBreachCheckEndpoint does over COM: the endpoint - url in the body, or breach_check_url when the body has none - is asked for the prefix 00000, which belongs to no password, with the padding header and the timeout a real check uses, and the answer is reported: reachable, the HTTP status, how many entries came back, whether any was padding, and how long it took. The body of the answer is never returned. A url the check would not accept is a 400 with the reason. Nothing is changed. Server-wide; refused for domain-restricted and read-only keys.\",\"requestBody\":{\"required\":false,\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"properties\":{\"url\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"{reachable: true, status, entries, padded, milliseconds}, or {reachable: false, status (0 when no answer arrived), error, milliseconds}\"},\"400\":{\"description\":\"The body is not a JSON object, url is not a string, or the url is not one the check accepts (the reason is in error)\"}}}}";
+      ",\"/api/v1/settings/breach-check/test\":{\"post\":{\"summary\":\"Ask the password breach check endpoint for a range\",\"description\":\"What Settings.TestBreachCheckEndpoint does over COM: the endpoint - url in the body, or breach_check_url when the body has none - is asked for the prefix 00000, which belongs to no password, with the padding header and the timeout a real check uses, and the answer is reported: reachable, the HTTP status, how many entries came back, whether any was padding, and how long it took. The body of the answer is never returned. A url the check would not accept is a 400 with the reason. Nothing is changed. Asked by any credential but the administrator password - an API key, an account holding a role - the endpoint, the body's or the configured one, is reached only at a public address and over https, through HttpProxy when one is set, and one on this server's own network is answered reachable false with the reason (since 6.3.6); the administrator password tests one on the server's own network as well. Server-wide; refused for domain-restricted and read-only keys.\",\"requestBody\":{\"required\":false,\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"properties\":{\"url\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"{reachable: true, status, entries, padded, milliseconds}, or {reachable: false, status (0 when no answer arrived), error, milliseconds}\"},\"400\":{\"description\":\"The body is not a JSON object, url is not a string, or the url is not one the check accepts (the reason is in error)\"}}}}";
 
    const char *EnvironmentPath =
       ",\"/api/v1/settings/environment\":{\"get\":{\"summary\":\"The settings this server's environment sets\",\"description\":\"Every setting the last hmailserver --apply-environment wrote (docs/EnvironmentConfiguration.md): HM_SETTING_<key> for a [Settings] key, HM_PROPERTY_<name> for an hm_settings row, either with _FILE to read the value from a file, and the four HM_REST_* variables the container has always taken. Each is {variable, store, name, source}: the variable as the server recorded it, ini or database, the setting's own name, and variable or file for where the value came from. NEVER a value - a file's is a Secret's, and the rest are read where the setting is read. The environment wins at every start, so the settings routes answer <key>_environment (and managed on the ini route) beside each of these and refuse a change to one with 409; an --apply-environment run with the variable unset takes it off this list, and the setting is the administrator's again. As this server last loaded the record: a run against a running server reaches this list, as its values reach the server, at the next reinitialise or start. Server-wide; a read-only key may read it, a key restricted to named domains may not.\",\"responses\":{\"200\":{\"description\":\"{settings: [{variable, store, name, source}]}\"}}}}";
@@ -4097,8 +4097,18 @@ namespace HM
    // Settings.TestBreachCheckEndpoint over REST. The answer carries what the
    // endpoint said about itself and never what it sent: an administrator's key
    // must not turn this into a way of reading an arbitrary URL through the server.
+   //
+   // And what it does report - whether something answered, its status, how long
+   // it took - is a reading of whatever the URL reached, so a caller other than
+   // the server administrator (an API key, an account holding a role with
+   // manage_settings) is answered for a public address only, over https, as an
+   // inbound webhook route one of them makes is posted: since 6.3.6, before which
+   // the test reached this server's own network for any of them. The URL may be
+   // the body's or the configured one; the rule is the caller's either way. The
+   // administrator tests an endpoint on the server's own network, a mirror on
+   // 10.x included, as before.
    HttpResponse
-   RestApiServer::HandleBreachCheckTest_(const AnsiString &requestBody)
+   RestApiServer::HandleBreachCheckTest_(const AnsiString &requestBody, bool administrator)
    {
       Bridge bridge = { &RestApiServer::JsonEscape_, &RestApiServer::BuildResponse_ };
 
@@ -4132,7 +4142,7 @@ namespace HM
       bool padded = false;
       int milliseconds = 0;
       String error;
-      const bool reachable = PasswordBreachCheck::Probe(url, status, entries, padded, milliseconds, error);
+      const bool reachable = PasswordBreachCheck::Probe(url, status, entries, padded, milliseconds, error, !administrator);
 
       AnsiString body;
       if (reachable)

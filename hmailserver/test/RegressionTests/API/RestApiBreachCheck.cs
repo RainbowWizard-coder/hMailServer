@@ -503,6 +503,51 @@ namespace RegressionTests.API
       }
 
       [Test]
+      [Description("A test asked by any credential but the administrator password reaches a public address only: a full-scope API key's test of an endpoint on this machine - named in the body, or configured - is answered reachable false and the endpoint is never asked, while the administrator password's test of the same endpoint is answered as before. Until 6.3.6 the key's test reached the server's own network and reported what answered there and how fast.")]
+      public void AKeysTestReachesPublicAddressesOnly()
+      {
+         (int status, string body) key = Http("POST", "/api/v1/apikeys", AdminHeader(),
+            "{\"label\":\"regression - breach check test, public\",\"scope\":\"full\"}");
+         Assert.AreEqual(201, key.status, key.body);
+         Match token = Regex.Match(key.body, "\"key\":\"([^\"]+)\"");
+         Assert.IsTrue(token.Success, key.body);
+         Match id = Regex.Match(key.body, "\"id\":\"?([^\",}]+)");
+
+         try
+         {
+            using (var corpus = new FakeBreachCorpus())
+            {
+               corpus.AddHash("00000" + "ABCDEF0123456789ABCDEF0123456789ABC", 2);
+
+               (int status, string body) named = Http("POST", "/api/v1/settings/breach-check/test", "Bearer " + token.Groups[1].Value,
+                  "{\"url\":\"" + FakeBreachCorpus.Url + "\"}");
+               Assert.AreEqual(200, named.status, named.body);
+               StringAssert.Contains("\"reachable\":false", named.body, "A key's test of this machine is not made.");
+               StringAssert.Contains("\"status\":0", named.body);
+               ClassicAssert.AreEqual(0, corpus.Requests.Count, "The endpoint on this machine was never asked for a key.");
+
+               // The configured endpoint is held to the same rule: the caller is what decides.
+               Enable();
+               (int status, string body) configured = Http("POST", "/api/v1/settings/breach-check/test", "Bearer " + token.Groups[1].Value, null);
+               Assert.AreEqual(200, configured.status, configured.body);
+               StringAssert.Contains("\"reachable\":false", configured.body);
+               ClassicAssert.AreEqual(0, corpus.Requests.Count, "The configured endpoint on this machine was never asked for a key either.");
+
+               // The administrator password tests it as it always did.
+               (int status, string body) byAdministrator = Http("POST", "/api/v1/settings/breach-check/test", AdminHeader(), null);
+               Assert.AreEqual(200, byAdministrator.status, byAdministrator.body);
+               StringAssert.Contains("\"reachable\":true", byAdministrator.body);
+               ClassicAssert.AreEqual(1, corpus.Requests.Count);
+            }
+         }
+         finally
+         {
+            if (id.Success)
+               Http("DELETE", "/api/v1/apikeys/" + id.Groups[1].Value, AdminHeader());
+         }
+      }
+
+      [Test]
       [Description("The OpenAPI document names the four keys, both reason words and the test route")]
       public void TheOpenApiDocumentNamesTheKeysTheReasonsAndTheRoute()
       {

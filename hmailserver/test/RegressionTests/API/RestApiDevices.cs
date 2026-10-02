@@ -532,6 +532,84 @@ namespace RegressionTests.API
 
       // ------------------------------------------------------------ helpers ---
 
+      [Test]
+      [Description("Accounts signing in over and over with their own passwords sign nobody else out: twenty-one accounts making fifty sessions each fill the table of a thousand, and the administrator's idle session and another account's idle session both still work; an account at its fifty gives up its own least recently used session and keeps its newest. Until 6.3.6 a full table dropped the least recently used session whoever held it, so any one account could sign out every idle browser on the server, the administrator's Control Deck included.")]
+      public void SignInsFillingTheTableSignNobodyElseOut()
+      {
+         const string FloodPassword = "Flood-Passw0rd-6116";
+
+         // Two people whose sessions sit idle while the others sign in.
+         string administratorSession = SignInAs("Administrator", AdminPassword, "Deck/1.0");
+         string otherSession = SignIn("Idle/1.0");
+
+         var flooders = new List<string>();
+         for (int i = 0; i < 21; i++)
+            flooders.Add(SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "devices-flood" + i + "@" + _domain.Name, FloodPassword).Address);
+
+         // Round by round, so that no one account meets the per-credential rate
+         // window, until each holds fifty and the table is past full.
+         string firstOfFirst = null;
+         for (int round = 0; round < 50; round++)
+         {
+            foreach (string flooder in flooders)
+            {
+               string session = SignInAs(flooder, FloodPassword, "Flood/1.0");
+               if (firstOfFirst == null)
+                  firstOfFirst = session;
+            }
+         }
+
+         // The first account five times more: past its fifty.
+         string newestOfFirst = null;
+         for (int i = 0; i < 5; i++)
+            newestOfFirst = SignInAs(flooders[0], FloodPassword, "Flood/1.0");
+
+         Response administrator = Raw("GET", "/api/v1/status", null, null, "Cookie: hmailsession=" + administratorSession + "\r\n");
+         Assert.AreEqual(200, administrator.Status, "The administrator's idle session must survive other people's sign-ins. " + administrator.Body);
+
+         Response other = Raw("GET", "/api/v1/me", null, null, "Cookie: hmailsession=" + otherSession + "\r\n");
+         Assert.AreEqual(200, other.Status, "Another account's idle session must survive other people's sign-ins. " + other.Body);
+
+         Response newest = Raw("GET", "/api/v1/me", null, null, "Cookie: hmailsession=" + newestOfFirst + "\r\n");
+         Assert.AreEqual(200, newest.Status, "An account keeps its newest session. " + newest.Body);
+
+         Response oldest = Raw("GET", "/api/v1/me", null, null, "Cookie: hmailsession=" + firstOfFirst + "\r\n");
+         Assert.AreEqual(401, oldest.Status, "An account past its fifty gives up its own least recently used session. " + oldest.Body);
+      }
+
+      [Test]
+      [Description("The administrator's sessions are never taken for anybody else's sign-in: with the administrator holding fifty - more than any account - and twenty-one accounts signing in forty-eight times each, more than the table of a thousand holds, the administrator's first and idle session still works and the accounts give up their own. As the rule was first written in 6.3.6 the administrator's sessions counted towards the thousand and were taken from the holder with the most, which here was the administrator; until 6.3.6 a full table dropped the least recently used session, which was the administrator's.")]
+      public void TheAdministratorsSessionsAreNeverTakenForAnybodyElsesSignIn()
+      {
+         const string FloodPassword = "Flood-Passw0rd-6117";
+
+         string administratorFirst = SignInAs("Administrator", AdminPassword, "Deck/1.0");
+         for (int i = 1; i < 50; i++)
+            SignInAs("Administrator", AdminPassword, "Deck/1.0");
+
+         var flooders = new List<string>();
+         for (int i = 0; i < 21; i++)
+            flooders.Add(SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "devices-busy" + i + "@" + _domain.Name, FloodPassword).Address);
+
+         // Round by round, so that no one account meets the per-credential rate
+         // window, to forty-eight each: 1,008 sessions, past the thousand.
+         for (int round = 0; round < 48; round++)
+         {
+            foreach (string flooder in flooders)
+               SignInAs(flooder, FloodPassword, "Busy/1.0");
+         }
+
+         Response administrator = Raw("GET", "/api/v1/status", null, null, "Cookie: hmailsession=" + administratorFirst + "\r\n");
+         Assert.AreEqual(200, administrator.Status, "The administrator's first and idle session must survive other people's sign-ins. " + administrator.Body);
+      }
+
+      private string SignInAs(string user, string password, string agent)
+      {
+         Response started = Raw("POST", "/api/v1/session", BasicHeader(user, password), null, "User-Agent: " + agent + "\r\n");
+         Assert.AreEqual(201, started.Status, user + ": " + started.Body);
+         return CookieOf(started.Header("Set-Cookie"));
+      }
+
       private string SignIn(string agent)
       {
          Response started = Raw("POST", "/api/v1/session", UserHeader(UserPassword), null, "User-Agent: " + agent + "\r\n");

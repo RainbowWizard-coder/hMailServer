@@ -57,6 +57,7 @@
 #include "../Pst/PstReaderWireTester.h"
 #include "WebAuthn.h"
 #include "PasskeyStore.h"
+#include "SignInBudget.h"
 #include "MaskedAddresses.h"
 #include "ListManager.h"
 #include "ListArchive.h"
@@ -644,6 +645,12 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing PasskeyStore\n"));
       PasskeyStoreTester passkeyStoreTester;
       passkeyStoreTester.Test();
+
+      // Who may push whom out of a full table of sign-in state: the browser
+      // sessions, and the pending single sign-on and passkey sign-ins.
+      OutputDebugString(_T("hMailServer: Testing SignInBudget\n"));
+      SignInBudgetTester signInBudgetTester;
+      signInBudgetTester.Test();
 
       // Masked addresses: the local part a label gives.
       OutputDebugString(_T("hMailServer: Testing MaskedAddresses\n"));

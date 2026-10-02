@@ -433,7 +433,10 @@ property (for the few it names no one column for, the one the values show). The 
 it and never a quiet edit of history. The answer names the setting and the
 value (`true` or `false` for a switch); a `[Settings]` key whose old side is
 `(default)` is returned to its default. It needs `manage_settings` and is
-refused to every API key, like the rest of the trail. Until 29 September 2026
+refused to every API key, like the rest of the trail; and a `[Settings]` key's
+row is put back by the administrator password alone, as the `[Settings]`
+section is written ([Roles.md](Roles.md)) - an account holding a role is
+answered 403 for it, since 6.3.6, where 6.3.4 and 6.3.5 put it back. Until 29 September 2026
 a switch was written back as the text `true` or `false`, which the server does
 not read, and the answer said it was put back when it was not; and a value
 holding ` -> ` was cut at its first arrow.

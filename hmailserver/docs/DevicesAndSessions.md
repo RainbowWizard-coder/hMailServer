@@ -200,6 +200,80 @@ the server group, and the four per-domain ones are the fifth group of a
 domain's dialog. In the desktop Control Panel the four server-wide values are on
 Connections & protocols > Webmail, the Browser sessions tab, over COM.
 
+How many sessions, and who makes room
+-------------------------------------
+
+The listener holds at most **1,000** browser sessions at once, in memory, for
+every account and every support session together, and each *holder* - the
+administrator, one account (its bearer sessions included), or one credential's
+support sessions - at most **50**, as an account's list of clients keeps fifty.
+When a sign-in needs room:
+
+1. a holder already at fifty gives up its own least recently used session;
+2. a full table gives up the least recently used session of the holder that has
+   the most - the one signing in, when it is among them - so whoever fills the
+   table pays for it out of their own sessions, and a person with one session
+   loses it only when no holder has more than one;
+3. among holders tied for the most, one of the domain with the most sessions
+   gives up its least recently used, so that a domain whose thousand accounts
+   fill the table with one session each takes from its own accounts and not from
+   another domain's;
+4. the administrator's sessions are never taken for anybody else's sign-in and
+   do not count towards the thousand: they are held by the administrator's own
+   fifty alone.
+
+Expired sessions go first, always. Until 6.3.6 a full table dropped its least
+recently used session whoever held it, so any account holder signing in over and
+over with their own password could sign out every browser on the server that sat
+idle for a minute - the webmail tabs in the background, and from 6.3.0 the
+administrator's Control Deck on any page but the dashboard - and an administrator
+opening a support session on a full table was answered 503. Both are gone: a
+support session makes room by the same rule, counted against the credential that
+opened it. The same rule holds the pending single sign-on and passkey sign-ins
+([PasskeysAndSingleSignOn.md](PasskeysAndSingleSignOn.md), What a stranger can
+make the server hold); the code is `Common/Util/SignInBudget.h`, proved by
+`SignInBudgetTester` (ClassTester on Windows, `sign-in-budget-tests` on Linux) and
+by `SignInsFillingTheTableSignNobodyElseOut` in
+`RegressionTests/API/RestApiDevices.cs`.
+
+The administrator password's delay
+----------------------------------
+
+A wrong administrator password over REST - an `Authorization: Basic` header on any
+route, or the password asked again when the administrator registers a passkey -
+makes the next guess from the same source wait: half a second, then doubling to
+ten seconds at most, refused with **429** and `Retry-After` before it is looked
+at, forgotten after fifteen minutes without a failure and cleared by the right
+password. The *source* is the address the request came from; an IPv6 address is
+counted by its `/64`, since 6.3.6, because one host is given a `/64` and could
+otherwise guess from a fresh address of it every time. When the auto-ban refuses
+an address at this listener after repeated failures, an IPv6 one is refused with
+its `/64` for those five minutes too; the auto-ban's own IP range, which every
+protocol shares and the firewall mirrors, stays the one address. The auto-ban
+still counts failures per address, as it does on every protocol, so a guesser who
+takes a fresh address of its `/64` for each guess never reaches its limit: what
+holds such a guesser is this delay - one guess in ten seconds for the whole
+`/64` - and not the auto-ban.
+
+There is no server-wide budget across sources, by decision: a budget that delayed
+every source after enough failures from anywhere would hand any client on the
+internet a switch that turns the administrator password off for everybody. A
+server whose listener is reachable from outside is better served by a long
+administrator password, the administrator's second factor (the one-time code,
+[AccountRecovery.md](AccountRecovery.md)) and the auto-ban.
+
+**Behind a reverse proxy on the same machine, one client's wrong guesses keep the
+administrator password waiting for everyone.** Every browser behind such a proxy
+reaches the listener from `127.0.0.1`, so they share one source: somebody who
+sends a wrong administrator password every few seconds keeps the Deck's password
+sign-in, `hmctl` and scripts that send the password answering 429 for as long as
+they do. The delay never reaches past ten seconds and never locks the password
+out, and it does not touch the administrator's API keys, passkey or single
+sign-on, which is what to use while it lasts; or put the Deck behind a proxy rule
+that only the administrators' network reaches. The delay does not believe
+`X-Forwarded-For`: any program on this machine can connect to `127.0.0.1` and
+write one, and a delay it could rotate away would be none.
+
 Which `Host` the listener answers
 ---------------------------------
 
