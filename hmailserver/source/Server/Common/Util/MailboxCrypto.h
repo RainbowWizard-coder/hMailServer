@@ -141,7 +141,28 @@ namespace HM
 
       // Written over with zeros, then emptied: what is done with every
       // private key and derived key this code holds, as soon as it is done.
-      static void Forget(std::string &secret);
+      static void Forget(std::string &secret) noexcept;
+
+      // Forgets the string it watches when its scope ends, however it ends: a
+      // return, a break, or an exception thrown through it - from the database
+      // layer, an allocation, a logger - which a hand-written Forget before each
+      // return does not see, and which left a private key in memory freed without
+      // being written over. Declared on the line after the string it watches, so
+      // that nothing can throw between the two; the string outlives it, so it is
+      // whole when this runs. A Forget written earlier, to end a key's life before
+      // the scope does, stays: forgetting an empty string does nothing.
+      class ForgetOnExit
+      {
+      public:
+         explicit ForgetOnExit(std::string &secret) noexcept : secret_(secret) {}
+         ~ForgetOnExit() { Forget(secret_); }
+
+         ForgetOnExit(const ForgetOnExit &) = delete;
+         ForgetOnExit &operator=(const ForgetOnExit &) = delete;
+
+      private:
+         std::string &secret_;
+      };
 
       static bool ConstantTimeEquals(const std::string &one, const std::string &two);
 
@@ -164,5 +185,9 @@ namespace HM
       // and every construction above round-tripped with its refusals: a wrong
       // secret, a changed byte, a wrong key, a copy made for another purpose.
       static void Test();
+
+   private:
+      // ForgetOnExit on every way out of a scope, and its control; Test runs it.
+      static void TestForgetOnExit();
    };
 }

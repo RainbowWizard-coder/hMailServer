@@ -2511,6 +2511,9 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   <data name="Collapse the navigation" xml:space="preserve">
     <value>Navigatie samenvouwen</value>
   </data>
+  <data name="Collapse {0}" xml:space="preserve">
+    <value>{0} samenvouwen</value>
+  </data>
   <data name="Collector host name or address" xml:space="preserve">
     <value>Hostnaam of adres van de collector</value>
   </data>
@@ -3296,8 +3299,8 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   <data name="Days the soft bounces are counted within (1 to 365)" xml:space="preserve">
     <value>Dagen waarbinnen de zachte bounces worden geteld (1 tot 365)</value>
   </data>
-  <data name="Days to keep on server (0 = delete after download)" xml:space="preserve">
-    <value>Dagen bewaren op de server (0 = verwijderen na het downloaden)</value>
+  <data name="Days to keep on server (0 = never delete, -1 = delete after download)" xml:space="preserve">
+    <value>Dagen bewaren op de server (0 = nooit verwijderen, -1 = verwijderen na het downloaden)</value>
   </data>
   <data name="Days until the entry expires" xml:space="preserve">
     <value>Dagen tot de vermelding verloopt</value>
@@ -4194,6 +4197,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Expand the navigation" xml:space="preserve">
     <value>Navigatie uitvouwen</value>
   </data>
+  <data name="Expand {0}" xml:space="preserve">
+    <value>{0} uitvouwen</value>
+  </data>
   <data name="Expected audience (aud)" xml:space="preserve">
     <value>Verwachte audience (aud)</value>
   </data>
@@ -4692,6 +4698,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Help for this page. Keyboard shortcut F1." xml:space="preserve">
     <value>Help bij deze pagina. Sneltoets F1.</value>
   </data>
+  <data name="Hide password" xml:space="preserve">
+    <value>Wachtwoord verbergen</value>
+  </data>
   <data name="Hide the new API key" xml:space="preserve">
     <value>De nieuwe API-sleutel verbergen</value>
   </data>
@@ -4887,8 +4896,8 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="IMAP" xml:space="preserve">
     <value>IMAP</value>
   </data>
-  <data name="IMAP - the INBOX, collected once by UID; kept on the server unless Days to keep is 0" xml:space="preserve">
-    <value>IMAP - de INBOX, één keer opgehaald op UID; blijft op de server tenzij Dagen bewaren 0 is</value>
+  <data name="IMAP - the INBOX, collected once by UID; deleted from the server only as Days to keep says" xml:space="preserve">
+    <value>IMAP - de INBOX, één keer opgehaald op UID; alleen van de server verwijderd zoals Dagen bewaren aangeeft</value>
   </data>
   <data name="IMAP connections" xml:space="preserve">
     <value>IMAP-verbindingen</value>
@@ -7281,8 +7290,8 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="POP3" xml:space="preserve">
     <value>POP3</value>
   </data>
-  <data name="POP3 - download and (unless kept for N days) delete" xml:space="preserve">
-    <value>POP3 - downloaden en (tenzij N dagen bewaard) verwijderen</value>
+  <data name="POP3 - download, then delete from the server as Days to keep says" xml:space="preserve">
+    <value>POP3 - downloaden en daarna van de server verwijderen zoals Dagen bewaren aangeeft</value>
   </data>
   <data name="POP3 client maximum timeout (s)" xml:space="preserve">
     <value>Maximale time-out POP3-client (s)</value>
@@ -9624,6 +9633,9 @@ Nu opnieuw starten?</value>
   </data>
   <data name="Show me around this page" xml:space="preserve">
     <value>Rondleiding door deze pagina</value>
+  </data>
+  <data name="Show password" xml:space="preserve">
+    <value>Wachtwoord weergeven</value>
   </data>
   <data name="Show senders' brand logos (BIMI)" xml:space="preserve">
     <value>Merklogo's van afzenders tonen (BIMI)</value>
@@ -13406,6 +13418,15 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="keys" xml:space="preserve">
     <value>sleutels</value>
+  </data>
+  <data name="last hour" xml:space="preserve">
+    <value>laatste uur</value>
+  </data>
+  <data name="last minute" xml:space="preserve">
+    <value>laatste minuut</value>
+  </data>
+  <data name="last second" xml:space="preserve">
+    <value>laatste seconde</value>
   </data>
   <data name="last {0} hours" xml:space="preserve">
     <value>laatste {0} uur</value>

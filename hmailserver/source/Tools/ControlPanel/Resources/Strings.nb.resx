@@ -2511,6 +2511,9 @@ Vil du starte Control Panel på nytt nå? Velg Nei for å prøve å fortsette å
   <data name="Collapse the navigation" xml:space="preserve">
     <value>Skjul navigasjonen</value>
   </data>
+  <data name="Collapse {0}" xml:space="preserve">
+    <value>Skjul {0}</value>
+  </data>
   <data name="Collector host name or address" xml:space="preserve">
     <value>Samlerens vertsnavn eller adresse</value>
   </data>
@@ -3296,8 +3299,8 @@ Vil du starte Control Panel på nytt nå? Velg Nei for å prøve å fortsette å
   <data name="Days the soft bounces are counted within (1 to 365)" xml:space="preserve">
     <value>Dager de myke returmeldingene telles innenfor (1 til 365)</value>
   </data>
-  <data name="Days to keep on server (0 = delete after download)" xml:space="preserve">
-    <value>Dager som skal beholdes på serveren (0 = slett etter nedlasting)</value>
+  <data name="Days to keep on server (0 = never delete, -1 = delete after download)" xml:space="preserve">
+    <value>Dager som skal beholdes på serveren (0 = slett aldri, -1 = slett etter nedlasting)</value>
   </data>
   <data name="Days until the entry expires" xml:space="preserve">
     <value>Dager til oppføringen utløper</value>
@@ -4194,6 +4197,9 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="Expand the navigation" xml:space="preserve">
     <value>Vis navigasjonen</value>
   </data>
+  <data name="Expand {0}" xml:space="preserve">
+    <value>Utvid {0}</value>
+  </data>
   <data name="Expected audience (aud)" xml:space="preserve">
     <value>Forventet publikum (aud)</value>
   </data>
@@ -4692,6 +4698,9 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="Help for this page. Keyboard shortcut F1." xml:space="preserve">
     <value>Hjelp for denne siden. Tastatursnarvei F1.</value>
   </data>
+  <data name="Hide password" xml:space="preserve">
+    <value>Skjul passordet</value>
+  </data>
   <data name="Hide the new API key" xml:space="preserve">
     <value>Skjul den nye API-nøkkelen</value>
   </data>
@@ -4887,8 +4896,8 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="IMAP" xml:space="preserve">
     <value>IMAP</value>
   </data>
-  <data name="IMAP - the INBOX, collected once by UID; kept on the server unless Days to keep is 0" xml:space="preserve">
-    <value>IMAP - INBOX, hentet én gang etter UID; beholdt på serveren med mindre Dager å beholde er 0</value>
+  <data name="IMAP - the INBOX, collected once by UID; deleted from the server only as Days to keep says" xml:space="preserve">
+    <value>IMAP - INBOX, hentet én gang etter UID; slettes fra serveren bare slik Dager å beholde angir</value>
   </data>
   <data name="IMAP connections" xml:space="preserve">
     <value>IMAP-tilkoblinger</value>
@@ -7281,8 +7290,8 @@ Ingenting som allerede er der, fjernes.</value>
   <data name="POP3" xml:space="preserve">
     <value>POP3</value>
   </data>
-  <data name="POP3 - download and (unless kept for N days) delete" xml:space="preserve">
-    <value>POP3 - last ned og (med mindre de beholdes i N dager) slett</value>
+  <data name="POP3 - download, then delete from the server as Days to keep says" xml:space="preserve">
+    <value>POP3 - last ned, og slett deretter fra serveren slik Dager å beholde angir</value>
   </data>
   <data name="POP3 client maximum timeout (s)" xml:space="preserve">
     <value>Største tidsavbrudd for POP3-klient (s)</value>
@@ -9624,6 +9633,9 @@ Starte den på nytt nå?</value>
   </data>
   <data name="Show me around this page" xml:space="preserve">
     <value>Vis meg rundt på denne siden</value>
+  </data>
+  <data name="Show password" xml:space="preserve">
+    <value>Vis passordet</value>
   </data>
   <data name="Show senders' brand logos (BIMI)" xml:space="preserve">
     <value>Vis avsendernes merkelogoer (BIMI)</value>
@@ -13406,6 +13418,15 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   </data>
   <data name="keys" xml:space="preserve">
     <value>nøkler</value>
+  </data>
+  <data name="last hour" xml:space="preserve">
+    <value>siste time</value>
+  </data>
+  <data name="last minute" xml:space="preserve">
+    <value>siste minutt</value>
+  </data>
+  <data name="last second" xml:space="preserve">
+    <value>siste sekund</value>
   </data>
   <data name="last {0} hours" xml:space="preserve">
     <value>siste {0} timer</value>

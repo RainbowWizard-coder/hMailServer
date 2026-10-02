@@ -53,6 +53,17 @@ namespace HM
       // copy or the rename fails.
       static bool CopyOver(const String &sFrom, const String &sTo);
 
+      // Move's counterpart of CopyOver, for a file that may be on another volume
+      // than sTo: sFrom is moved to a temporary name beside sTo - a rename where it
+      // can be one, a copy to that new name where it cannot, sFrom removed only once
+      // the copy is whole - and renamed over sTo, in one directory and one step.
+      // A move between volumes is a copy, and Move's onto an existing sTo empties
+      // it first (MoveFileExW with MOVEFILE_COPY_ALLOWED), so a disk that filled
+      // part-way left sTo short. False, sTo as it was and nothing left beside it,
+      // when either step fails; sFrom is then still there unless the first step
+      // was a rename.
+      static bool MoveOver(const String &sFrom, const String &sTo);
+
       // The size of a file, or 0 when it cannot be read. long is 32 bits here, so a
       // size over LONG_MAX is SATURATED rather than truncated - see the definition
       // for why the previous truncation turned three "> maximum" guards into

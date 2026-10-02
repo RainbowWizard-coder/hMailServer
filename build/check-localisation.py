@@ -155,6 +155,7 @@ LOCALISED = {
    "Views/QuarantineView.cs",
    "Views/QuarantineListDialog.cs",
    "Services/QuarantineReview.cs",
+   "Services/ChartWindowWords.cs",
    "Views/SuppressionListView.cs",
    "Views/DiscoveryView.cs",
    "Views/ScriptsView.cs",

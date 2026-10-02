@@ -17,7 +17,8 @@ namespace RegressionTests.ExternalAccounts
    ///    An external account of ServerType 1 (IMAP) collects a remote INBOX into a local
    ///    account: every message once, by UID, remembered across polls as
    ///    "&lt;UIDVALIDITY&gt;:&lt;UID&gt;"; deleted on the far side straight after collection
-   ///    when DaysToKeepMessages is 0 and left there otherwise. The far side is a
+   ///    when DaysToKeepMessages is negative, as POP3 does, and left there at 0 (see
+   ///    RemoteRetention, which holds the meaning for both fetchers). The far side is a
    ///    ScriptedImapServer, one session per poll, so a test can see exactly what the
    ///    fetcher asked for and make the server misbehave on purpose.
    /// </summary>
@@ -158,11 +159,11 @@ namespace RegressionTests.ExternalAccounts
       }
 
       [Test]
-      [Description("With DaysToKeepMessages 0 the collected messages are flagged \\Deleted and expunged in the same session; the local copies stay.")]
+      [Description("With DaysToKeepMessages -1 the collected messages are flagged \\Deleted and expunged in the same session; the local copies stay.")]
       public void CollectedMessagesAreDeletedFromTheFarSideWhenAsked()
       {
          var mailbox = Mailbox("Take me", "And me");
-         var fetchAccount = CreateImapFetchAccount(PortDeletedWhenAsked, 0);
+         var fetchAccount = CreateImapFetchAccount(PortDeletedWhenAsked, -1);
 
          using (var server = new ScriptedImapServer(PortDeletedWhenAsked, mailbox))
          {

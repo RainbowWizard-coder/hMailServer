@@ -704,7 +704,7 @@ const FETCH_PROPS = {
    enable_route_recipients: { type: 'boolean' }, mime_recipient_headers: { type: 'string' }, mirror_folders: { type: 'boolean' }
 };
 const FETCH_GET = 'The remote POP3 or IMAP mailboxes the server collects into this account - Account.FetchAccounts over COM. Each entry: id, name, server_address, port, server_type (pop3 or imap), username, enabled, minutes_between_fetch, days_to_keep_messages, connection_security, process_mime_recipients, process_mime_date, use_antispam, use_antivirus, enable_route_recipients, mime_recipient_headers, mirror_folders, locked (a collection is running now) and next_download_time. The remote password is never emitted. A key restricted to named domains reaches the accounts of those domains only.';
-const FETCH_POST = 'Body: name, server_address and port (required); server_type (pop3, the default, or imap), username, password (write-only), enabled (default true), minutes_between_fetch (default 30), days_to_keep_messages (default 0: delete after collecting; -1 keeps every message; for IMAP the remote INBOX is collected once by UID and left intact when this says so), connection_security (none, starttls_optional, starttls_required, tls; default none), process_mime_recipients, process_mime_date, use_antispam, use_antivirus, enable_route_recipients, mime_recipient_headers, mirror_folders. What InterfaceFetchAccounts.Add and Save do; the first collection is scheduled at once. Everything is checked before anything is saved: an unknown field, a value of the wrong type or a value out of range is a 400 naming it.';
+const FETCH_POST = 'Body: name, server_address and port (required); server_type (pop3, the default, or imap), username, password (write-only), enabled (default true), minutes_between_fetch (default 30), days_to_keep_messages (default 0: every message stays on the remote server; -1 deletes each message there once it has been collected; N deletes it N days after it was collected - one meaning for POP3 and IMAP, whose remote INBOX is collected once by UID), connection_security (none, starttls_optional, starttls_required, tls; default none), process_mime_recipients, process_mime_date, use_antispam, use_antivirus, enable_route_recipients, mime_recipient_headers, mirror_folders. What InterfaceFetchAccounts.Add and Save do; the first collection is scheduled at once. Everything is checked before anything is saved: an unknown field, a value of the wrong type or a value out of range is a 400 naming it.';
 const FETCH_PUT = 'Body: any subset of the fields POST takes; a field left out keeps its value, and a password left out is kept. The same checks as POST, and nothing changes when one fails. What the setters and Save do over COM.';
 // A fetch account as FetchAccountJson emits it, at the constructor's defaults.
 function fetchRecord(id, name) {
@@ -5927,6 +5927,30 @@ async function main() {
    put = lastBody(before, 'PUT', fetchList + '/7');
    check('saving an existing one PUTs the form by id without a password it was not given', !!put && put.minutes_between_fetch === 15 && put.name === 'ISP POP3' && !('password' in put), JSON.stringify(put));
    check('and the list shows the change', rows()[0].textContent.indexOf('15 min') >= 0);
+   // What is left on the remote server, as the server means it for POP3 and IMAP
+   // alike (FetchAccount.h): 0 everything, -1 nothing once collected, N days.
+   // Until 6.3.6 the editor's hint had 0 and -1 the other way round, and the list
+   // read "keep 0 days" for an account that keeps everything.
+   check('the list says an account at 0 keeps its mail on the server', rows()[0].textContent.indexOf('keep on the server') >= 0 && rows()[0].textContent.indexOf('keep 0 days') < 0,
+      rows()[0].textContent);
+   click(act('fetchedit', { id: 7 }));
+   await flush();
+   check('the editor says 0 keeps every message and -1 deletes it after the download',
+      document.getElementById('fetch_days_to_keep_messages').closest('.fr').textContent.indexOf('0 keeps every message, -1 deletes it after the download') >= 0,
+      document.getElementById('fetch_days_to_keep_messages').closest('.fr').textContent);
+   setValue('fetch_days_to_keep_messages', '-1');
+   before = requests.length;
+   click(act('fetchsave'));
+   await flush();
+   put = lastBody(before, 'PUT', fetchList + '/7');
+   check('-1 is saved as -1 and the list says the mail is deleted after the download', !!put && put.days_to_keep_messages === -1 &&
+      rows()[0].textContent.indexOf('delete after the download') >= 0, rows()[0].textContent);
+   click(act('fetchedit', { id: 7 }));
+   await flush();
+   setValue('fetch_days_to_keep_messages', '7');
+   click(act('fetchsave'));
+   await flush();
+   check('and 7 days is 7 days', rows()[0].textContent.indexOf('keep 7 days') >= 0, rows()[0].textContent);
    before = requests.length;
    click(act('fetchnow', { id: 7 }));
    await flush();

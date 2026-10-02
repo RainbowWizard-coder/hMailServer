@@ -476,6 +476,11 @@ public:
       return NOERROR;
    };
 
+public:
+   // Terminates its engine when it goes: a copy would terminate it twice.
+   CScriptSiteImpl(const CScriptSiteImpl &) = delete;
+   CScriptSiteImpl &operator=(const CScriptSiteImpl &) = delete;
+
 protected:
    ~CScriptSiteImpl()
    {

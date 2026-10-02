@@ -625,6 +625,31 @@ namespace RegressionTests.Infrastructure
          fa.UseAntiVirus = true;
          fa.Save();
 
+         // Two more, never collected from: an IMAP account that leaves every message on
+         // the remote server (0) and a POP3 one that deletes each as it is collected (-1).
+         // An archive written since 6.3.6 says its DaysToKeep is in the one meaning both
+         // fetchers read (FetchAccount.cpp, DaysToKeepSchema) and is restored as it is; one
+         // written before goes through the translation of schema 6106, which would make
+         // the IMAP account's 0 a -1.
+         var imapKeeps = account.FetchAccounts.Add();
+         imapKeeps.Enabled = false;
+         imapKeeps.Name = "imap keeps";
+         imapKeeps.ServerType = 1;
+         imapKeeps.ServerAddress = "127.0.0.1";
+         imapKeeps.Port = _fetchAccountPort;
+         imapKeeps.Username = "test";
+         imapKeeps.DaysToKeepMessages = 0;
+         imapKeeps.Save();
+
+         var pop3Deletes = account.FetchAccounts.Add();
+         pop3Deletes.Enabled = false;
+         pop3Deletes.Name = "pop3 deletes";
+         pop3Deletes.ServerAddress = "127.0.0.1";
+         pop3Deletes.Port = _fetchAccountPort;
+         pop3Deletes.Username = "test";
+         pop3Deletes.DaysToKeepMessages = -1;
+         pop3Deletes.Save();
+
          DownloadFromExternalAccount(account, fa);
 
          var rule = account.Rules.Add();
@@ -650,6 +675,20 @@ namespace RegressionTests.Infrastructure
          action.Save();
 
          rule.Save();
+      }
+
+      private static FetchAccount FetchAccountNamed(Account account, string name)
+      {
+         var fetchAccounts = account.FetchAccounts;
+         for (var i = 0; i < fetchAccounts.Count; i++)
+         {
+            var fetchAccount = fetchAccounts.get_Item(i);
+            if (fetchAccount.Name == name)
+               return fetchAccount;
+         }
+
+         Assert.Fail("The restored account has no external account named " + name + ".");
+         return null;
       }
 
       private void DownloadFromExternalAccount(Account account, FetchAccount fa)
@@ -998,7 +1037,7 @@ namespace RegressionTests.Infrastructure
          Assert.AreEqual("SUBJ", account.VacationSubject);
 
          // Confirm fetch account
-         var fa = account.FetchAccounts.get_Item(0);
+         var fa = FetchAccountNamed(account, "test");
          Assert.AreEqual(5, fa.DaysToKeepMessages);
          Assert.IsTrue(fa.Enabled);
          Assert.AreEqual(10, fa.MinutesBetweenFetch);
@@ -1011,6 +1050,13 @@ namespace RegressionTests.Infrastructure
          Assert.AreEqual("127.0.0.1", fa.ServerAddress);
          Assert.IsTrue(fa.UseAntiSpam);
          Assert.IsTrue(fa.UseAntiVirus);
+
+         var imapKeeps = FetchAccountNamed(account, "imap keeps");
+         Assert.AreEqual(1, imapKeeps.ServerType);
+         Assert.AreEqual(0, imapKeeps.DaysToKeepMessages, "An IMAP account archived at 0 - leave every message - is restored at 0.");
+         var pop3Deletes = FetchAccountNamed(account, "pop3 deletes");
+         Assert.AreEqual(0, pop3Deletes.ServerType);
+         Assert.AreEqual(-1, pop3Deletes.DaysToKeepMessages, "A POP3 account archived at -1 is restored at -1.");
 
          // Make sur no additional mail is downloaded. We have already downloaded it.
          DownloadFromExternalAccount(account, fa);

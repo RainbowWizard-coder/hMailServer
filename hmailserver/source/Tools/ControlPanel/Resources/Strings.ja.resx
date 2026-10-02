@@ -2511,6 +2511,9 @@
   <data name="Collapse the navigation" xml:space="preserve">
     <value>ナビゲーションを折りたたむ</value>
   </data>
+  <data name="Collapse {0}" xml:space="preserve">
+    <value>{0} を折りたたむ</value>
+  </data>
   <data name="Collector host name or address" xml:space="preserve">
     <value>コレクターのホスト名またはアドレス</value>
   </data>
@@ -3296,8 +3299,8 @@
   <data name="Days the soft bounces are counted within (1 to 365)" xml:space="preserve">
     <value>一時的なバウンスを数える日数 (1 から 365)</value>
   </data>
-  <data name="Days to keep on server (0 = delete after download)" xml:space="preserve">
-    <value>サーバーに残す日数 (0 = ダウンロード後に削除)</value>
+  <data name="Days to keep on server (0 = never delete, -1 = delete after download)" xml:space="preserve">
+    <value>サーバーに残す日数 (0 = 削除しない、-1 = ダウンロード後に削除)</value>
   </data>
   <data name="Days until the entry expires" xml:space="preserve">
     <value>エントリーが期限切れになるまでの日数</value>
@@ -4194,6 +4197,9 @@
   <data name="Expand the navigation" xml:space="preserve">
     <value>ナビゲーションを展開する</value>
   </data>
+  <data name="Expand {0}" xml:space="preserve">
+    <value>{0} を展開</value>
+  </data>
   <data name="Expected audience (aud)" xml:space="preserve">
     <value>期待するオーディエンス (aud)</value>
   </data>
@@ -4692,6 +4698,9 @@
   <data name="Help for this page. Keyboard shortcut F1." xml:space="preserve">
     <value>このページのヘルプ。キーボード ショートカット F1。</value>
   </data>
+  <data name="Hide password" xml:space="preserve">
+    <value>パスワードを隠す</value>
+  </data>
   <data name="Hide the new API key" xml:space="preserve">
     <value>新しい API キーを隠す</value>
   </data>
@@ -4887,8 +4896,8 @@
   <data name="IMAP" xml:space="preserve">
     <value>IMAP</value>
   </data>
-  <data name="IMAP - the INBOX, collected once by UID; kept on the server unless Days to keep is 0" xml:space="preserve">
-    <value>IMAP - INBOX を UID で 1 回だけ収集します。「サーバーに残す日数」が 0 でない限りサーバーに残されます</value>
+  <data name="IMAP - the INBOX, collected once by UID; deleted from the server only as Days to keep says" xml:space="preserve">
+    <value>IMAP - INBOX を UID で 1 回だけ収集します。サーバーからは「サーバーに残す日数」の設定どおりにのみ削除されます</value>
   </data>
   <data name="IMAP connections" xml:space="preserve">
     <value>IMAP 接続</value>
@@ -7281,8 +7290,8 @@
   <data name="POP3" xml:space="preserve">
     <value>POP3</value>
   </data>
-  <data name="POP3 - download and (unless kept for N days) delete" xml:space="preserve">
-    <value>POP3 - ダウンロードし、(N 日間保持する設定でない限り) 削除します</value>
+  <data name="POP3 - download, then delete from the server as Days to keep says" xml:space="preserve">
+    <value>POP3 - ダウンロードし、「サーバーに残す日数」の設定どおりにサーバーから削除します</value>
   </data>
   <data name="POP3 client maximum timeout (s)" xml:space="preserve">
     <value>POP3 クライアントの最大タイムアウト (秒)</value>
@@ -9624,6 +9633,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="Show me around this page" xml:space="preserve">
     <value>このページの案内</value>
+  </data>
+  <data name="Show password" xml:space="preserve">
+    <value>パスワードを表示</value>
   </data>
   <data name="Show senders' brand logos (BIMI)" xml:space="preserve">
     <value>送信者のブランド ロゴを表示する (BIMI)</value>
@@ -13406,6 +13418,15 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはあり
   </data>
   <data name="keys" xml:space="preserve">
     <value>件のキー</value>
+  </data>
+  <data name="last hour" xml:space="preserve">
+    <value>直近 1 時間</value>
+  </data>
+  <data name="last minute" xml:space="preserve">
+    <value>直近 1 分</value>
+  </data>
+  <data name="last second" xml:space="preserve">
+    <value>直近 1 秒</value>
   </data>
   <data name="last {0} hours" xml:space="preserve">
     <value>直近 {0} 時間</value>

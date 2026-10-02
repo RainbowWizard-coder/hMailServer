@@ -180,7 +180,7 @@ namespace RegressionTests.API
       ///    every mailbox the app registration was granted. Before the fix a reader
       ///    made one for outlook.office365.com with the CEO's address, or renamed the
       ///    user on one an administrator had set up, and collected (and, with
-      ///    days_to_keep_messages 0, deleted) that mailbox; a domain-restricted key
+      ///    days_to_keep_messages -1, deleted) that mailbox; a domain-restricted key
       ///    and a domain administrator over COM could do the same. Each of the
       ///    refusals below was a 201, a 200 or a successful Save against the old
       ///    code, which compared server_address with nothing; the server

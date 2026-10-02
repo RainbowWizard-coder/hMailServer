@@ -2511,6 +2511,9 @@
   <data name="Collapse the navigation" xml:space="preserve">
     <value>折叠导航</value>
   </data>
+  <data name="Collapse {0}" xml:space="preserve">
+    <value>折叠“{0}”</value>
+  </data>
   <data name="Collector host name or address" xml:space="preserve">
     <value>收集器主机名或地址</value>
   </data>
@@ -3296,8 +3299,8 @@
   <data name="Days the soft bounces are counted within (1 to 365)" xml:space="preserve">
     <value>统计软退信的天数（1 到 365）</value>
   </data>
-  <data name="Days to keep on server (0 = delete after download)" xml:space="preserve">
-    <value>在服务器上保留的天数（0 = 下载后删除）</value>
+  <data name="Days to keep on server (0 = never delete, -1 = delete after download)" xml:space="preserve">
+    <value>在服务器上保留的天数（0 = 从不删除，-1 = 下载后删除）</value>
   </data>
   <data name="Days until the entry expires" xml:space="preserve">
     <value>条目过期前的天数</value>
@@ -4194,6 +4197,9 @@
   <data name="Expand the navigation" xml:space="preserve">
     <value>展开导航</value>
   </data>
+  <data name="Expand {0}" xml:space="preserve">
+    <value>展开“{0}”</value>
+  </data>
   <data name="Expected audience (aud)" xml:space="preserve">
     <value>预期的受众（aud）</value>
   </data>
@@ -4692,6 +4698,9 @@
   <data name="Help for this page. Keyboard shortcut F1." xml:space="preserve">
     <value>此页面的帮助。键盘快捷键 F1。</value>
   </data>
+  <data name="Hide password" xml:space="preserve">
+    <value>隐藏密码</value>
+  </data>
   <data name="Hide the new API key" xml:space="preserve">
     <value>隐藏新的 API 密钥</value>
   </data>
@@ -4887,8 +4896,8 @@
   <data name="IMAP" xml:space="preserve">
     <value>IMAP</value>
   </data>
-  <data name="IMAP - the INBOX, collected once by UID; kept on the server unless Days to keep is 0" xml:space="preserve">
-    <value>IMAP - INBOX，按 UID 收取一次；除非“保留天数”为 0，否则保留在服务器上</value>
+  <data name="IMAP - the INBOX, collected once by UID; deleted from the server only as Days to keep says" xml:space="preserve">
+    <value>IMAP - INBOX，按 UID 收取一次；仅按“保留天数”的设置从服务器删除</value>
   </data>
   <data name="IMAP connections" xml:space="preserve">
     <value>IMAP 连接</value>
@@ -7281,8 +7290,8 @@
   <data name="POP3" xml:space="preserve">
     <value>POP3</value>
   </data>
-  <data name="POP3 - download and (unless kept for N days) delete" xml:space="preserve">
-    <value>POP3 - 下载并（除非保留 N 天）删除</value>
+  <data name="POP3 - download, then delete from the server as Days to keep says" xml:space="preserve">
+    <value>POP3 - 下载，然后按“保留天数”的设置从服务器删除</value>
   </data>
   <data name="POP3 client maximum timeout (s)" xml:space="preserve">
     <value>POP3 客户端最大超时（秒）</value>
@@ -9624,6 +9633,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="Show me around this page" xml:space="preserve">
     <value>本页导览</value>
+  </data>
+  <data name="Show password" xml:space="preserve">
+    <value>显示密码</value>
   </data>
   <data name="Show senders' brand logos (BIMI)" xml:space="preserve">
     <value>显示发件人的品牌徽标（BIMI）</value>
@@ -13406,6 +13418,15 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全。TLS 端口和自
   </data>
   <data name="keys" xml:space="preserve">
     <value>密钥</value>
+  </data>
+  <data name="last hour" xml:space="preserve">
+    <value>最近 1 小时</value>
+  </data>
+  <data name="last minute" xml:space="preserve">
+    <value>最近 1 分钟</value>
+  </data>
+  <data name="last second" xml:space="preserve">
+    <value>最近 1 秒</value>
   </data>
   <data name="last {0} hours" xml:space="preserve">
     <value>最近 {0} 小时</value>

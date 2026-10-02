@@ -851,7 +851,7 @@ namespace HM
          download_finalized_ = true;
          transmission_buffer_.reset();
 
-         if (GetDaysToKeep_(uidKey) == 0)
+         if (FetchAccount::DeletesOnCollection(GetDaysToKeep_(uidKey)))
             delete_uids_.push_back(current_uid_);
 
          next_pending_++;
@@ -899,7 +899,7 @@ namespace HM
       download_finalized_ = true;
       transmission_buffer_.reset();
 
-      if (GetDaysToKeep_(uidKey) == 0)
+      if (FetchAccount::DeletesOnCollection(GetDaysToKeep_(uidKey)))
          delete_uids_.push_back(current_uid_);
 
       next_pending_++;
@@ -930,12 +930,14 @@ namespace HM
          if (!record)
             continue;
 
-         // The same rule as the POP3 fetcher's: 0 means the message goes as soon as
-         // it has been collected, N means it goes once it has been on record for
-         // more than N days, and a negative answer (the script said keep) means it
-         // stays.
+         // The POP3 fetcher's rule, from FetchAccount.h: a negative number means the
+         // message goes as soon as it has been collected, 0 means it stays, N means
+         // it goes once it has been on record for more than N days. (From 6.2.25 to
+         // 6.3.5 this fetcher read 0 as "delete" and a negative number as "keep",
+         // the other way round from the POP3 fetcher, the COM API and the event's
+         // answers; schema 6106 translated its accounts' stored values.)
          const int daysToKeep = GetDaysToKeep_(key);
-         if (daysToKeep == 0)
+         if (FetchAccount::DeletesOnCollection(daysToKeep))
          {
             delete_uids_.push_back(uid);
          }
@@ -944,7 +946,7 @@ namespace HM
             DateTime dtCreation = record->GetCreationDate();
             DateTime dtNow = Time::GetDateFromSystemDate(Time::GetCurrentDateTime());
             DateTimeSpan dtSpan = dtNow - dtCreation;
-            if (dtSpan.GetNumberOfDays() > daysToKeep)
+            if (FetchAccount::RemoteCopyDue(daysToKeep, dtSpan.GetNumberOfDays()))
                delete_uids_.push_back(uid);
          }
       }

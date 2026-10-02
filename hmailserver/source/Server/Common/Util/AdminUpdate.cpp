@@ -180,14 +180,17 @@ namespace HM
          return binary;
       }
 
-      bool EnablePrivilege_(const wchar_t *name)
+      // A privilege of this process's token switched on, or off again. Held by an
+      // elevated administrator's token either way; enabled, it is in force without
+      // a further step for this process and for every process it starts.
+      bool SetPrivilege_(const wchar_t *name, bool enabled)
       {
          HANDLE token = nullptr;
          if (!OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &token))
             return false;
          TOKEN_PRIVILEGES privileges;
          privileges.PrivilegeCount = 1;
-         privileges.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
+         privileges.Privileges[0].Attributes = enabled ? SE_PRIVILEGE_ENABLED : 0;
          bool ok = LookupPrivilegeValueW(nullptr, name, &privileges.Privileges[0].Luid) &&
                    AdjustTokenPrivileges(token, FALSE, &privileges, 0, nullptr, nullptr) && GetLastError() == ERROR_SUCCESS;
          CloseHandle(token);
@@ -342,6 +345,9 @@ namespace HM
       {
       public:
          StageFiles_() : status_(INVALID_HANDLE_VALUE), log_(INVALID_HANDLE_VALUE) {}
+         // Releases what it holds when it goes: a copy would release it twice.
+         StageFiles_(const StageFiles_ &) = delete;
+         StageFiles_ &operator=(const StageFiles_ &) = delete;
          ~StageFiles_()
          {
             if (status_ != INVALID_HANDLE_VALUE)
@@ -424,6 +430,9 @@ namespace HM
       {
          HeldCopy_() : held(INVALID_HANDLE_VALUE), size(0) {}
          ~HeldCopy_() { Release(); }
+         // Releases what it holds when it goes: a copy would release it twice.
+         HeldCopy_(const HeldCopy_ &) = delete;
+         HeldCopy_ &operator=(const HeldCopy_ &) = delete;
          void Release()
          {
             if (held != INVALID_HANDLE_VALUE)
@@ -673,8 +682,15 @@ namespace HM
          }
 
          // A standard user's Control Panel, where an administrator's credentials
-         // were typed at the prompt, is another user's process.
-         EnablePrivilege_(SE_DEBUG_NAME);
+         // were typed at the prompt, is another user's process. SeDebugPrivilege is
+         // on while it and its token are read, and off again however this returns,
+         // so that it is not left enabled for the rest of the stage and for what the
+         // stage starts.
+         SetPrivilege_(SE_DEBUG_NAME, true);
+         struct DebugPrivilegeOff_
+         {
+            ~DebugPrivilegeOff_() { SetPrivilege_(SE_DEBUG_NAME, false); }
+         } debugPrivilegeOff;
          parent = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION | SYNCHRONIZE | PROCESS_DUP_HANDLE, FALSE, expected);
          if (!parent)
          {
@@ -1286,6 +1302,11 @@ namespace HM
       // how it ended.
       struct Holds_
       {
+         Holds_(HANDLE first, HANDLE second, HANDLE third, HANDLE fourth) : handles{ first, second, third, fourth } {}
+         // Releases what it holds when it goes: a copy would release it twice.
+         Holds_(const Holds_ &) = delete;
+         Holds_ &operator=(const Holds_ &) = delete;
+
          HANDLE handles[4];
          ~Holds_()
          {
@@ -1295,7 +1316,7 @@ namespace HM
                   CloseHandle(handle);
             }
          }
-      } holds = { { workHeld, parent, busy, adminUpdateHeld } };
+      } holds(workHeld, parent, busy, adminUpdateHeld);
 
       // 9. The data folder and the trust, from the INI that passed the rule.
       std::wstring programFolder = readIni(L"Directories", L"ProgramFolder");
@@ -1400,13 +1421,18 @@ namespace HM
       }
       struct Events_
       {
+         Events_(HANDLE first, HANDLE second) : a(first), b(second) {}
+         // Releases what it holds when it goes: a copy would release it twice.
+         Events_(const Events_ &) = delete;
+         Events_ &operator=(const Events_ &) = delete;
+
          HANDLE a, b;
          ~Events_()
          {
             CloseHandle(a);
             CloseHandle(b);
          }
-      } events = { ready, cancel };
+      } events(ready, cancel);
       const unsigned long long readyInPanel = DuplicateInto_(parent, ready, EVENT_MODIFY_STATE | SYNCHRONIZE);
       const unsigned long long cancelInPanel = DuplicateInto_(parent, cancel, EVENT_MODIFY_STATE | SYNCHRONIZE);
       if (readyInPanel == 0 || cancelInPanel == 0)

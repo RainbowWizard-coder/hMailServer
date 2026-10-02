@@ -39,6 +39,12 @@
 #      collation), every index with its columns, every constraint and foreign
 #      key. A difference fails the gate: the upgraded server would run on a
 #      schema nothing else tests.
+#   6. The steps that change rows rather than the schema, which step 5 cannot
+#      see: Upgrade6105to6106<dialect>.sql run by the backend's own client over
+#      external accounts of every kind it treats differently, in the upgraded
+#      database put back to 6105, and each value compared with what
+#      FetchAccount::DaysToKeepStoredBefore6106 says it becomes. A value that
+#      changes wrongly here changes what is deleted on somebody's remote server.
 #
 # Until 26 September 2026 step 1 made the database at this build's schema and
 # wound it back to 6029, dropping what it read each later step's script to add.
@@ -272,4 +278,64 @@ if [ -n "$failed" ]; then
    echo "GATE FAILED: a 6029 database holding orphaned rows did not upgrade cleanly to a new database's schema on $backend" >&2
    exit 1
 fi
-echo "GATE PASSED on $backend: 6029 to $required, and the same schema as a new database"
+
+# 6. The 6106 step's rows: DaysToKeepMessages given the one meaning both fetchers
+#    read (Server/Common/BO/FetchAccount.h). An IMAP account's 0 was "delete" and
+#    becomes -1, its negative number was "keep" and becomes 0; a POP3 account made
+#    or moved by somebody other than a server administrator (faorigin not 0) has a
+#    negative number made 0; everything else is as it was. Each row is
+#    "name servertype origin stored expected". The rows belong to no account, so
+#    their foreign key is set aside - for the session on MySQL; on PostgreSQL, where
+#    that needs a superuser, by dropping the constraint from this database, which
+#    the gate has finished judging and drops on its next run.
+step6106="$HM_SCRIPTS/Upgrade6105to6106$( [ "$backend" = pgsql ] && echo PGSQL || echo MySQL ).sql"
+if [ -f "$step6106" ]; then
+   echo "-- the 6106 step's translation of DaysToKeepMessages, by ${step6106##*/}"
+   retention_rows=(
+      "imap-zero 1 0 0 -1"
+      "imap-minus-one 1 1 -1 0"
+      "imap-minus-five 1 0 -5 0"
+      "imap-seven 1 2 7 7"
+      "pop3-admin-minus-one 0 0 -1 -1"
+      "pop3-admin-zero 0 0 0 0"
+      "pop3-admin-seven 0 0 7 7"
+      "pop3-reader-minus-one 0 1 -1 0"
+      "pop3-restricted-minus-one 0 2 -1 0"
+      "pop3-reader-zero 0 1 0 0"
+      "pop3-reader-thirty 0 1 30 30"
+   )
+   {
+      if [ "$backend" = pgsql ]; then
+         echo "alter table hm_fetchaccounts drop constraint if exists fk_hm_fetchaccounts_account;"
+      else
+         echo "set foreign_key_checks = 0;"
+      fi
+      echo "delete from hm_fetchaccounts_uids;"
+      echo "delete from hm_fetchaccounts;"
+      for row in "${retention_rows[@]}"; do
+         read -r name type origin stored _ <<< "$row"
+         echo "insert into hm_fetchaccounts (faactive, faaccountid, faaccountname, faserveraddress, faserverport, faservertype, fausername, fapassword, faminutes, fanexttry, fadaystokeep, falocked, faprocessmimerecipients, faprocessmimedate, faconnectionsecurity, fauseantispam, fauseantivirus, faenablerouterecipients, faoauthtoken, famirrorskip, famirrorseen, faorigin) values (0, 1, '$name', 'remote.example', 110, $type, 'user', '', 30, '2026-10-01 00:00:00', $stored, 0, 0, 0, 0, 1, 1, 0, '', '', '', $origin);"
+      done
+      echo "update hm_dbversion set value = 6105;"
+   } > "$work/retention-seed.sql"
+   run_file "$work/retention-seed.sql"
+   run_file "$step6106"
+   step_version=$(query "select value from hm_dbversion;")
+   [ "$step_version" = 6106 ] || { echo "GATE FAILED: ${step6106##*/} left the version at $step_version" >&2; exit 1; }
+   wrong=0
+   for row in "${retention_rows[@]}"; do
+      read -r name type origin stored expected <<< "$row"
+      got=$(query "select fadaystokeep from hm_fetchaccounts where faaccountname = '$name';")
+      if [ "$got" != "$expected" ]; then
+         echo "   $name (server type $type, origin $origin) stored $stored: became $got, should be $expected"
+         wrong=$((wrong + 1))
+      fi
+   done
+   query "delete from hm_fetchaccounts;" > /dev/null
+   if [ "$wrong" -ne 0 ]; then
+      echo "GATE FAILED: the 6106 step gave $wrong of ${#retention_rows[@]} external accounts the wrong DaysToKeepMessages on $backend" >&2
+      exit 1
+   fi
+   echo "   ${#retention_rows[@]} external accounts, each given the value it should have"
+fi
+echo "GATE PASSED on $backend: 6029 to $required, the same schema as a new database, and the steps' rows as they should be"

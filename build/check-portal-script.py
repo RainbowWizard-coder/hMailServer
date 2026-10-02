@@ -174,6 +174,25 @@ def main():
     if "\r\nCross-Origin-Opener-Policy: same-origin\r\n" not in "\r\n" + headers:
         problems.append("the headers do not send Cross-Origin-Opener-Policy: same-origin; a page of another site "
                         "that opened the webmail would keep a handle on its window")
+    # all:unset puts box-sizing back to content-box, whatever "*" said, so a
+    # control reset with it and given a width of 100% elsewhere is that width
+    # plus its padding and border: the sign-in card's Sign in button ran 32 px
+    # past its fields until 6.3.6, in every browser. Such a rule says
+    # box-sizing:border-box again, or the width rule does.
+    styles = re.sub(r"/\*.*?\*/", "", "".join(re.findall(r"<style[^>]*>(.*?)</style>", html, re.S)), flags=re.S)
+    rules = re.findall(r"([^{}]+)\{([^{}]*)\}", styles)
+    for selectors, body in rules:
+        if "all:unset" not in body.replace(" ", "") or "box-sizing:border-box" in body.replace(" ", ""):
+            continue
+        for selector in [s.strip() for s in selectors.split(",")]:
+            if not re.fullmatch(r"\.[\w-]+", selector):
+                continue
+            pattern = re.compile(r"(^|[\s>+~,])" + re.escape(selector) + r"(?![\w-])")
+            for other, other_body in rules:
+                flat = other_body.replace(" ", "")
+                if pattern.search(other.strip()) and re.search(r"(^|;)(max-)?width:100%", flat) and "box-sizing:border-box" not in flat:
+                    problems.append("%s resets with all:unset, which leaves box-sizing at content-box, and %s gives it a width of "
+                                    "100%%: it is wider than its container by its padding - say box-sizing:border-box" % (selector, other.strip()))
     for directive in re.findall(r"(?:default|img|connect|frame|style|script)-src ([^;\r\n]*)", headers):
         for source in directive.split():
             if source.startswith("http") or source.startswith("//") or source == "*":

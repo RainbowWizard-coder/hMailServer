@@ -19,6 +19,10 @@ namespace HM
    public:
       IMAPCommandAppend();
       virtual ~IMAPCommandAppend();
+      // Removes the message an APPEND left unfinished when it goes: a copy would
+      // remove it twice, the second time a message somebody else may hold.
+      IMAPCommandAppend(const IMAPCommandAppend &) = delete;
+      IMAPCommandAppend &operator=(const IMAPCommandAppend &) = delete;
 
       virtual IMAPResult ExecuteCommand(std::shared_ptr<IMAPConnection> pConnection, std::shared_ptr<IMAPCommandArgument> pArgument);
       void ParseBinary(std::shared_ptr<IMAPConnection> pConnection, std::shared_ptr<ByteBuffer> pBuf);

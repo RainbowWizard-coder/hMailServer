@@ -23,9 +23,10 @@ namespace HM
    // POP3), SELECT INBOX, UID SEARCH ALL, one UID FETCH BODY.PEEK[] per message
    // not yet collected - the literal goes to the spool through the same
    // transmission buffer the POP3 fetcher uses, in its byte-transparent mode -
-   // then the deletion the account's DaysToKeepMessages asks for (0: delete what
-   // was just collected; N: delete what was collected more than N days ago) as
-   // UID STORE \Deleted and one EXPUNGE, then LOGOUT. Everything that happens to
+   // then the deletion the account's DaysToKeepMessages asks for (FetchAccount.h,
+   // the same for POP3: -1 deletes what was just collected, 0 deletes nothing, N
+   // deletes what was collected more than N days ago) as UID STORE \Deleted and
+   // one EXPUNGE, then LOGOUT. Everything that happens to
    // a collected message afterwards is ExternalFetchClientBase's and shared with
    // POP3: headers, recipients, spam protection, the script event, the save and
    // the hand-off to delivery.

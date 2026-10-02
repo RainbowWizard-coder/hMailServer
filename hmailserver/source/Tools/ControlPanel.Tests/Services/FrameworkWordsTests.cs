@@ -300,6 +300,72 @@ namespace hMailServer.ControlPanel.Tests.Services
          }
       }
 
+      /// <summary>
+      /// The navigation's chevrons and a password box's eye had no name to a screen
+      /// reader in any language (measured through UI Automation's client: nine buttons
+      /// "Expander" and one "RevealButton", each named ''). Each is named as it is first
+      /// laid out, by a binding that follows its state: the chevron by its group's own
+      /// name and whether the group is open, the eye by whether the password shows.
+      /// </summary>
+      [Fact]
+      public void TheNavigationsChevronsAndAPasswordsEye_AreNamedByWhatTheyDo()
+      {
+         string source = ReadControlPanelFile(Path.Join("Services", "FrameworkWords.cs"));
+         string handler = WithheldRowTests.MemberText(source, "private static void OnButtonSized(object sender, SizeChangedEventArgs e)");
+         Assert.True(handler != null, "FrameworkWords.OnButtonSized is gone.");
+
+         Assert.Contains("if (sender is ToggleButton expander && expander.Name == \"Expander\" && expander.TemplatedParent is TreeViewItem group)", handler);
+         Assert.Contains("if (Unnamed_(expander))", handler);
+         Assert.Contains("new MultiBinding { Converter = ExpanderButtonNames, Mode = BindingMode.OneWay }", handler);
+         Assert.Contains("name.Bindings.Add(new Binding(nameof(TreeViewItem.IsExpanded)) { Source = group, Mode = BindingMode.OneWay });", handler);
+         Assert.Contains("Path = new PropertyPath(AutomationProperties.NameProperty)", handler);
+         Assert.Contains("expander.SetBinding(AutomationProperties.NameProperty, name);", handler);
+
+         Assert.Contains("if (sender is ButtonBase reveal && reveal.Name == \"RevealButton\" && reveal.TemplatedParent is Wpf.Ui.Controls.PasswordBox passwordBox)", handler);
+         Assert.Contains("if (Unnamed_(reveal))", handler);
+         Assert.Contains("reveal.SetBinding(AutomationProperties.NameProperty, new Binding(nameof(Wpf.Ui.Controls.PasswordBox.IsPasswordRevealed))", handler);
+         Assert.Contains("Converter = RevealButtonNames", handler);
+
+         // Both before the calendar's test, which returns for any other button.
+         int calendar = handler.IndexOf("button.TemplatedParent is not CalendarItem item", StringComparison.Ordinal);
+         Assert.True(calendar > handler.IndexOf("expander.Name == \"Expander\"", StringComparison.Ordinal) &&
+                     calendar > handler.IndexOf("reveal.Name == \"RevealButton\"", StringComparison.Ordinal),
+            "The chevron or the eye is tested after the calendar's buttons, whose test leaves every other button.");
+
+         // The template still names its chevron so (MainWindow.xaml), and WPF-UI 4.3.0's
+         // password box its eye (Wpf.Ui.dll's template).
+         Assert.Contains("<ToggleButton x:Name=\"Expander\"", ReadControlPanelFile("MainWindow.xaml"));
+
+         string expander = WithheldRowTests.MemberText(source, "public static string ExpanderButton(bool expanded, string group)");
+         Assert.True(expander != null, "FrameworkWords.ExpanderButton is gone.");
+         Assert.Contains("expanded ? F(\"Collapse {0}\", group ?? \"\") : F(\"Expand {0}\", group ?? \"\")", expander);
+         string reveal = WithheldRowTests.MemberText(source, "public static string RevealButton(bool revealed)");
+         Assert.True(reveal != null, "FrameworkWords.RevealButton is gone.");
+         Assert.Contains("revealed ? L(\"Hide password\") : L(\"Show password\")", reveal);
+      }
+
+      /// <summary>Every catalogue has the four, the two of each pair different.</summary>
+      [Fact]
+      public void EveryLanguage_NamesTheChevronsAndTheEyeEachWay()
+      {
+         string resources = ControlPanelDirectory("Resources");
+         Assert.True(resources != null, "ControlPanel/Resources could not be found from the test binaries.");
+
+         string[] catalogues = Directory.GetFiles(resources, "Strings.*.resx");
+         Assert.True(catalogues.Length >= 17, "Expected seventeen languages, found " + catalogues.Length + ".");
+         foreach (string path in catalogues)
+         {
+            Dictionary<string, string> strings = XDocument.Load(path).Root.Elements("data")
+               .ToDictionary(d => (string)d.Attribute("name"), d => (string)d.Element("value") ?? "");
+            string name = Path.GetFileName(path);
+            string Word(string english) => strings.TryGetValue(english, out string word) ? word.Trim() : "";
+            Assert.True(Word("Expand {0}").Contains("{0}") && Word("Collapse {0}").Contains("{0}"), name + " lacks the chevron's names, or their group.");
+            Assert.True(Word("Show password").Length > 0 && Word("Hide password").Length > 0, name + " lacks the eye's names.");
+            Assert.True(!string.Equals(Word("Expand {0}"), Word("Collapse {0}"), StringComparison.CurrentCultureIgnoreCase), name + " names both of the chevron's states alike.");
+            Assert.True(!string.Equals(Word("Show password"), Word("Hide password"), StringComparison.CurrentCultureIgnoreCase), name + " names both of the eye's states alike.");
+         }
+      }
+
       private static IEnumerable<(string, string, string)> Items_(string code)
          => Regex.Matches(code, @"Item_\(L\(""([^""]+)""\), ""(\w+)"", ScrollBar\.(\w+)\)")
             .Select(m => (m.Groups[1].Value, m.Groups[2].Value, m.Groups[3].Value));

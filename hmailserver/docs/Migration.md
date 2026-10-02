@@ -141,11 +141,16 @@ name exactly as the remote holds it.
    a server that does not offer it, the fetcher logs in with nothing and says so in
    the error log.
 3. Decide what happens on the far side. **Days to keep messages** is per collected
-   message, as for any external account: 0 deletes each message from the remote
-   folder once it is safely filed here - a move - and any other value leaves it
-   there, so the two servers stay in step for as long as the account polls. A
-   migration usually runs with the messages left in place until the cut-over, then
-   one last poll and the account is disabled.
+   message, and means what it means for any external account, POP3 or IMAP: -1
+   deletes each message from the remote folder once it is safely filed here - a
+   move; 0, the default, leaves every message there, so the two servers stay in
+   step for as long as the account polls; a number of days N deletes a message N
+   days after it was collected. A migration usually runs with the messages left in
+   place until the cut-over, then one last poll and the account is disabled. (From
+   6.2.25 to 6.3.5 an IMAP account read 0 as "delete" and -1 as "keep", the other
+   way round from a POP3 account; the upgrade to 6.3.6, schema 6106, translated
+   each IMAP account's value so that it goes on doing what it did, and the Control
+   Panel, the Deck, the webmail and the REST API now all describe the one meaning.)
 4. Poll. **Download now** starts a collection at once; otherwise the account polls
    at its interval. A large mailbox is collected over several polls if the remote
    server ends the session first; nothing is lost, because a message is recorded

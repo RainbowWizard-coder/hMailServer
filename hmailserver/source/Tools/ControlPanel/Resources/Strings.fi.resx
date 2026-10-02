@@ -2511,6 +2511,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
   <data name="Collapse the navigation" xml:space="preserve">
     <value>Pienennä navigointi</value>
   </data>
+  <data name="Collapse {0}" xml:space="preserve">
+    <value>Kutista {0}</value>
+  </data>
   <data name="Collector host name or address" xml:space="preserve">
     <value>Keräimen isäntänimi tai osoite</value>
   </data>
@@ -3296,8 +3299,8 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
   <data name="Days the soft bounces are counted within (1 to 365)" xml:space="preserve">
     <value>Päivät, joiden sisällä pehmeät palautukset lasketaan (1–365)</value>
   </data>
-  <data name="Days to keep on server (0 = delete after download)" xml:space="preserve">
-    <value>Palvelimella säilytettävät päivät (0 = poista latauksen jälkeen)</value>
+  <data name="Days to keep on server (0 = never delete, -1 = delete after download)" xml:space="preserve">
+    <value>Palvelimella säilytettävät päivät (0 = älä koskaan poista, -1 = poista latauksen jälkeen)</value>
   </data>
   <data name="Days until the entry expires" xml:space="preserve">
     <value>Päivät merkinnän vanhenemiseen</value>
@@ -4194,6 +4197,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Expand the navigation" xml:space="preserve">
     <value>Laajenna navigointi</value>
   </data>
+  <data name="Expand {0}" xml:space="preserve">
+    <value>Laajenna {0}</value>
+  </data>
   <data name="Expected audience (aud)" xml:space="preserve">
     <value>Odotettu yleisö (aud)</value>
   </data>
@@ -4692,6 +4698,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Help for this page. Keyboard shortcut F1." xml:space="preserve">
     <value>Ohje tähän sivuun. Pikanäppäin F1.</value>
   </data>
+  <data name="Hide password" xml:space="preserve">
+    <value>Piilota salasana</value>
+  </data>
   <data name="Hide the new API key" xml:space="preserve">
     <value>Piilota uusi API-avain</value>
   </data>
@@ -4887,8 +4896,8 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="IMAP" xml:space="preserve">
     <value>IMAP</value>
   </data>
-  <data name="IMAP - the INBOX, collected once by UID; kept on the server unless Days to keep is 0" xml:space="preserve">
-    <value>IMAP - INBOX, noudetaan kerran UID:n mukaan; säilytetään palvelimella, ellei Säilytettävät päivät ole 0</value>
+  <data name="IMAP - the INBOX, collected once by UID; deleted from the server only as Days to keep says" xml:space="preserve">
+    <value>IMAP - INBOX, noudetaan kerran UID:n mukaan; poistetaan palvelimelta vain Säilytettävät päivät -asetuksen mukaan</value>
   </data>
   <data name="IMAP connections" xml:space="preserve">
     <value>IMAP-yhteydet</value>
@@ -7281,8 +7290,8 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="POP3" xml:space="preserve">
     <value>POP3</value>
   </data>
-  <data name="POP3 - download and (unless kept for N days) delete" xml:space="preserve">
-    <value>POP3 - lataa ja (ellei säilytetä N päivää) poista</value>
+  <data name="POP3 - download, then delete from the server as Days to keep says" xml:space="preserve">
+    <value>POP3 - lataa ja poista sitten palvelimelta Säilytettävät päivät -asetuksen mukaan</value>
   </data>
   <data name="POP3 client maximum timeout (s)" xml:space="preserve">
     <value>POP3-asiakkaan enimmäisaikakatkaisu (s)</value>
@@ -9624,6 +9633,9 @@ Käynnistetäänkö se uudelleen nyt?</value>
   </data>
   <data name="Show me around this page" xml:space="preserve">
     <value>Esittelykierros tällä sivulla</value>
+  </data>
+  <data name="Show password" xml:space="preserve">
+    <value>Näytä salasana</value>
   </data>
   <data name="Show senders' brand logos (BIMI)" xml:space="preserve">
     <value>Näytä lähettäjien tuotemerkkilogot (BIMI)</value>
@@ -13406,6 +13418,15 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="keys" xml:space="preserve">
     <value>avainta</value>
+  </data>
+  <data name="last hour" xml:space="preserve">
+    <value>viimeinen tunti</value>
+  </data>
+  <data name="last minute" xml:space="preserve">
+    <value>viimeinen minuutti</value>
+  </data>
+  <data name="last second" xml:space="preserve">
+    <value>viimeinen sekunti</value>
   </data>
   <data name="last {0} hours" xml:space="preserve">
     <value>viimeiset {0} h</value>

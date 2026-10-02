@@ -814,6 +814,30 @@
     return entity.body;
   }
 
+  // The extension a part with no name of its own is saved with, by the type it
+  // declares, from this list alone: "part" and nothing else for any other type.
+  // Only the name changes. The page hands the browser every decrypted part as a
+  // blob of the one type no browser renders (Portal.js, FILE_TYPE), whatever the
+  // part declared, so a type here makes the browser show or run nothing; and the
+  // list holds no extension a browser renders as a page (html, svg, xml) or a
+  // desktop runs on a double click (exe, js, hta, cmd, ...), so a file saved
+  // under one opens in the program for documents of its kind, as a named
+  // attachment of that type would.
+  const NAMELESS_EXTENSIONS = {
+    'text/plain': 'txt', 'text/csv': 'csv', 'text/calendar': 'ics', 'text/vcard': 'vcf', 'text/x-vcard': 'vcf',
+    'application/pdf': 'pdf', 'application/zip': 'zip', 'application/pgp-keys': 'asc', 'message/rfc822': 'eml',
+    'image/png': 'png', 'image/jpeg': 'jpg', 'image/gif': 'gif', 'image/webp': 'webp',
+    'audio/mpeg': 'mp3', 'video/mp4': 'mp4',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'xlsx',
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation': 'pptx'
+  };
+  function namelessPartName(type) {
+    const extension = Object.prototype.hasOwnProperty.call(NAMELESS_EXTENSIONS, String(type || '').toLowerCase())
+      ? NAMELESS_EXTENSIONS[String(type).toLowerCase()] : '';
+    return extension ? 'part.' + extension : 'part';
+  }
+
   // The text, the HTML and the attachments of an entity, the way the page
   // shows a message: the first text/plain and text/html that are not
   // attachments, everything else listed.
@@ -829,7 +853,7 @@
       const isAttachment = e.disposition === 'attachment' || (e.filename && type.indexOf('text/') !== 0);
       if (!isAttachment && type === 'text/plain' && !out.text) { out.text = decodeText(decodeBody(e), e.contentType.params.charset); return; }
       if (!isAttachment && type === 'text/html' && !out.html) { out.html = decodeText(decodeBody(e), e.contentType.params.charset); return; }
-      out.attachments.push({ name: e.filename || 'part', type: type, bytes: decodeBody(e), contentId: (e.header('Content-ID') || '').replace(/^<|>$/g, '') });
+      out.attachments.push({ name: e.filename || namelessPartName(type), type: type, bytes: decodeBody(e), contentId: (e.header('Content-ID') || '').replace(/^<|>$/g, '') });
     };
     walk(entity);
     return out;

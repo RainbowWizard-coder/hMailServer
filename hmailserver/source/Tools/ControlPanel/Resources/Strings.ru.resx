@@ -2511,6 +2511,9 @@ Control Panel может читать файлы сообщений только
   <data name="Collapse the navigation" xml:space="preserve">
     <value>Свернуть навигацию</value>
   </data>
+  <data name="Collapse {0}" xml:space="preserve">
+    <value>Свернуть «{0}»</value>
+  </data>
   <data name="Collector host name or address" xml:space="preserve">
     <value>Имя узла или адрес сборщика</value>
   </data>
@@ -3296,8 +3299,8 @@ Control Panel может читать файлы сообщений только
   <data name="Days the soft bounces are counted within (1 to 365)" xml:space="preserve">
     <value>Дней, в пределах которых учитываются временные отказы (от 1 до 365)</value>
   </data>
-  <data name="Days to keep on server (0 = delete after download)" xml:space="preserve">
-    <value>Сколько дней хранить на сервере (0 — удалять после загрузки)</value>
+  <data name="Days to keep on server (0 = never delete, -1 = delete after download)" xml:space="preserve">
+    <value>Сколько дней хранить на сервере (0 — никогда не удалять, -1 — удалять после загрузки)</value>
   </data>
   <data name="Days until the entry expires" xml:space="preserve">
     <value>Дней до истечения записи</value>
@@ -4194,6 +4197,9 @@ Control Panel может читать файлы сообщений только
   <data name="Expand the navigation" xml:space="preserve">
     <value>Развернуть навигацию</value>
   </data>
+  <data name="Expand {0}" xml:space="preserve">
+    <value>Развернуть «{0}»</value>
+  </data>
   <data name="Expected audience (aud)" xml:space="preserve">
     <value>Ожидаемая аудитория (aud)</value>
   </data>
@@ -4692,6 +4698,9 @@ Control Panel может читать файлы сообщений только
   <data name="Help for this page. Keyboard shortcut F1." xml:space="preserve">
     <value>Справка по этой странице. Сочетание клавиш F1.</value>
   </data>
+  <data name="Hide password" xml:space="preserve">
+    <value>Скрыть пароль</value>
+  </data>
   <data name="Hide the new API key" xml:space="preserve">
     <value>Скрыть новый ключ API</value>
   </data>
@@ -4887,8 +4896,8 @@ Control Panel может читать файлы сообщений только
   <data name="IMAP" xml:space="preserve">
     <value>IMAP</value>
   </data>
-  <data name="IMAP - the INBOX, collected once by UID; kept on the server unless Days to keep is 0" xml:space="preserve">
-    <value>IMAP — папка INBOX, собирается по одному разу по UID; сохраняется на сервере, если только «Дней хранения» не равно 0</value>
+  <data name="IMAP - the INBOX, collected once by UID; deleted from the server only as Days to keep says" xml:space="preserve">
+    <value>IMAP — папка INBOX, собирается по одному разу по UID; удаляется с сервера только так, как задано в «Дней хранения»</value>
   </data>
   <data name="IMAP connections" xml:space="preserve">
     <value>Подключения IMAP</value>
@@ -7281,8 +7290,8 @@ Control Panel может читать файлы сообщений только
   <data name="POP3" xml:space="preserve">
     <value>POP3</value>
   </data>
-  <data name="POP3 - download and (unless kept for N days) delete" xml:space="preserve">
-    <value>POP3 — скачивание и удаление (если не задано хранение в течение N дней)</value>
+  <data name="POP3 - download, then delete from the server as Days to keep says" xml:space="preserve">
+    <value>POP3 — скачивание, затем удаление с сервера так, как задано в «Дней хранения»</value>
   </data>
   <data name="POP3 client maximum timeout (s)" xml:space="preserve">
     <value>Максимальный тайм-аут клиента POP3 (с)</value>
@@ -9624,6 +9633,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Show me around this page" xml:space="preserve">
     <value>Экскурсия по этой странице</value>
+  </data>
+  <data name="Show password" xml:space="preserve">
+    <value>Показать пароль</value>
   </data>
   <data name="Show senders' brand logos (BIMI)" xml:space="preserve">
     <value>Показывать логотипы брендов отправителей (BIMI)</value>
@@ -13406,6 +13418,15 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="keys" xml:space="preserve">
     <value>ключей</value>
+  </data>
+  <data name="last hour" xml:space="preserve">
+    <value>последний час</value>
+  </data>
+  <data name="last minute" xml:space="preserve">
+    <value>последняя минута</value>
+  </data>
+  <data name="last second" xml:space="preserve">
+    <value>последняя секунда</value>
   </data>
   <data name="last {0} hours" xml:space="preserve">
     <value>последние {0} ч</value>

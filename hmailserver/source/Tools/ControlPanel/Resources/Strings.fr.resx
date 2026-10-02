@@ -2511,6 +2511,9 @@ Redémarrer le Control Panel maintenant ? Choisissez Non pour essayer de continu
   <data name="Collapse the navigation" xml:space="preserve">
     <value>Réduire la navigation</value>
   </data>
+  <data name="Collapse {0}" xml:space="preserve">
+    <value>Réduire {0}</value>
+  </data>
   <data name="Collector host name or address" xml:space="preserve">
     <value>Nom d'hôte ou adresse du collecteur</value>
   </data>
@@ -3296,8 +3299,8 @@ Redémarrer le Control Panel maintenant ? Choisissez Non pour essayer de continu
   <data name="Days the soft bounces are counted within (1 to 365)" xml:space="preserve">
     <value>Jours dans lesquels les rebonds temporaires sont comptés (1 à 365)</value>
   </data>
-  <data name="Days to keep on server (0 = delete after download)" xml:space="preserve">
-    <value>Jours à conserver sur le serveur (0 = supprimer après téléchargement)</value>
+  <data name="Days to keep on server (0 = never delete, -1 = delete after download)" xml:space="preserve">
+    <value>Jours à conserver sur le serveur (0 = ne jamais supprimer, -1 = supprimer après téléchargement)</value>
   </data>
   <data name="Days until the entry expires" xml:space="preserve">
     <value>Jours avant l'expiration de l'entrée</value>
@@ -4194,6 +4197,9 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="Expand the navigation" xml:space="preserve">
     <value>Développer la navigation</value>
   </data>
+  <data name="Expand {0}" xml:space="preserve">
+    <value>Développer {0}</value>
+  </data>
   <data name="Expected audience (aud)" xml:space="preserve">
     <value>Audience attendue (aud)</value>
   </data>
@@ -4692,6 +4698,9 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="Help for this page. Keyboard shortcut F1." xml:space="preserve">
     <value>Aide pour cette page. Raccourci clavier F1.</value>
   </data>
+  <data name="Hide password" xml:space="preserve">
+    <value>Masquer le mot de passe</value>
+  </data>
   <data name="Hide the new API key" xml:space="preserve">
     <value>Masquer la nouvelle clé d'API</value>
   </data>
@@ -4887,8 +4896,8 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="IMAP" xml:space="preserve">
     <value>IMAP</value>
   </data>
-  <data name="IMAP - the INBOX, collected once by UID; kept on the server unless Days to keep is 0" xml:space="preserve">
-    <value>IMAP - INBOX, relevée une fois par UID ; gardée sur le serveur sauf si Jours à conserver est 0</value>
+  <data name="IMAP - the INBOX, collected once by UID; deleted from the server only as Days to keep says" xml:space="preserve">
+    <value>IMAP - INBOX, relevée une fois par UID ; supprimée du serveur seulement selon Jours à conserver</value>
   </data>
   <data name="IMAP connections" xml:space="preserve">
     <value>Connexions IMAP</value>
@@ -7281,8 +7290,8 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   <data name="POP3" xml:space="preserve">
     <value>POP3</value>
   </data>
-  <data name="POP3 - download and (unless kept for N days) delete" xml:space="preserve">
-    <value>POP3 - télécharger et (sauf conservation pendant N jours) supprimer</value>
+  <data name="POP3 - download, then delete from the server as Days to keep says" xml:space="preserve">
+    <value>POP3 - télécharger, puis supprimer du serveur selon Jours à conserver</value>
   </data>
   <data name="POP3 client maximum timeout (s)" xml:space="preserve">
     <value>Délai maximal du client POP3 (s)</value>
@@ -9624,6 +9633,9 @@ Le redémarrer maintenant ?</value>
   </data>
   <data name="Show me around this page" xml:space="preserve">
     <value>Visite guidée de cette page</value>
+  </data>
+  <data name="Show password" xml:space="preserve">
+    <value>Afficher le mot de passe</value>
   </data>
   <data name="Show senders' brand logos (BIMI)" xml:space="preserve">
     <value>Afficher les logos de marque des expéditeurs (BIMI)</value>
@@ -13406,6 +13418,15 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   </data>
   <data name="keys" xml:space="preserve">
     <value>clés</value>
+  </data>
+  <data name="last hour" xml:space="preserve">
+    <value>dernière heure</value>
+  </data>
+  <data name="last minute" xml:space="preserve">
+    <value>dernière minute</value>
+  </data>
+  <data name="last second" xml:space="preserve">
+    <value>dernière seconde</value>
   </data>
   <data name="last {0} hours" xml:space="preserve">
     <value>{0} dernières heures</value>

@@ -709,6 +709,7 @@ namespace HM
 
             std::string publicKey;
             std::string privateKey;
+            MailboxCrypto::ForgetOnExit forgetPrivateKey(privateKey);
             String problem;
             if (!MailboxKeys::OpenPrivateWithRecovery(accountId, passphrase, publicKey, privateKey, problem))
             {

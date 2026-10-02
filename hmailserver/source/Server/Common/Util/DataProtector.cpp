@@ -621,13 +621,18 @@ namespace HM
 
       struct Restore
       {
+         explicit Restore(const String &keyFile) : file(keyFile) {}
+         // Deletes the key file when it goes: a copy would delete it twice.
+         Restore(const Restore &) = delete;
+         Restore &operator=(const Restore &) = delete;
+
          String file;
          ~Restore()
          {
             DataProtector::SetKeyFileForTest(_T(""));
             FileUtilities::DeleteFile(file);
          }
-      } restore = { keyFile };
+      } restore(keyFile);
 
       AnsiString protectedBlob;
       if (!DataProtector::Protect(secret, protectedBlob))

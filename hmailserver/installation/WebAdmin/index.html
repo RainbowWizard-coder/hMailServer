@@ -6817,7 +6817,7 @@ const FETCH_HINTS={
   connection_security:K("How the connection to the remote server is secured."),username:K("The user name at the remote server."),
   password:K("The password at the remote server. Accepted here and never shown."),
   minutes_between_fetch:K("Minutes between downloads."),
-  days_to_keep_messages:K("Days to keep a message on the remote server; 0 deletes it after the download, -1 keeps every message."),
+  days_to_keep_messages:K("Days to keep a message on the remote server; 0 keeps every message, -1 deletes it after the download."),
   use_antispam:K("Run anti-spam on downloaded mail."),use_antivirus:K("Run anti-virus on downloaded mail."),
   mirror_folders:K("Mirror every folder (IMAP only): a migration, verbatim, with flags and dates, nothing delivered."),
   process_mime_recipients:K("Read the recipients from the message's headers and deliver to the local ones found there; when none are, to this account."),
@@ -6825,6 +6825,16 @@ const FETCH_HINTS={
   enable_route_recipients:K("Also deliver to a recipient found in the headers when a route covers its domain."),
   mime_recipient_headers:K("The headers the recipients are read from, comma-separated.")
 };
+/* What an external account leaves on the remote server, in the server's one
+   meaning for POP3 and IMAP (FetchAccount.h): 0 every message, -1 nothing once
+   it has been collected, N days. Until 6.3.6 this list read "keep 0 days" for
+   an account that keeps everything. */
+function fetchKeepWords(days){
+  const n=Number(days);
+  if(n<0)return t("delete after the download");
+  if(n===0)return t("keep on the server");
+  return tf("keep {0} days",String(n));
+}
 function fetchProps(){
   const props=properties("/api/v1/accounts/{address}/fetch-accounts","post"), out={};
   Object.keys(props).forEach(k=>{out[k]=Object.assign({},props[k]);if(!out[k].description&&FETCH_HINTS[k])out[k].description=FETCH_HINTS[k];});
@@ -6844,7 +6854,7 @@ async function renderFetch(){
         <td>${x.enabled?'<span class="badge good">'+t("On")+'</span>':'<span class="badge warn">'+t("Off")+'</span>'}${x.locked?' <span class="badge info">'+t("collecting")+'</span>':""}</td>
         <td><code>${escHtml(x.server_address)}:${escHtml(x.port)}</code><div class="hint muted">${escHtml(humanise(x.server_type))}, ${escHtml(humanise(x.connection_security))}</div></td>
         <td>${escHtml(x.username||"—")}</td>
-        <td>${tf("{0} min",escHtml(x.minutes_between_fetch))}<div class="hint muted">${tf("keep {0} days",escHtml(x.days_to_keep_messages))}</div></td>
+        <td>${tf("{0} min",escHtml(x.minutes_between_fetch))}<div class="hint muted">${escHtml(fetchKeepWords(x.days_to_keep_messages))}</div></td>
         <td>${escHtml(x.next_download_time||"—")}</td>
         <td style="text-align:right;white-space:nowrap">
           <button class="btn ghost sm" data-act="fetchnow" data-id="${escHtml(x.id)}">${t("Collect now")}</button>

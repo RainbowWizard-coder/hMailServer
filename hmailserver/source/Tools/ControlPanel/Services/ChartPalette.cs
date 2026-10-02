@@ -142,7 +142,12 @@ namespace hMailServer.ControlPanel.Services
       /// <summary>"solid line", "dashed line", ... in the Control Panel's language, for an accessible name.</summary>
       public string PatternText => ChartPalette.DescribePattern(Pattern);
 
-      /// <summary>"circle", "square", ... for use in an accessible name.</summary>
+      /// <summary>
+      /// "circle", "square", ... in English. Shown nowhere: no accessible name, legend or
+      /// table reads it (the chart draws no marker in its legend, AccessibleChartCard),
+      /// and only ChartPaletteTests asks for it. A caller that shows it puts it through
+      /// the catalogue first, as PatternText's words are.
+      /// </summary>
       public string MarkerText => ChartPalette.DescribeMarker(Marker);
    }
 

@@ -74,6 +74,9 @@ namespace HM
    public:
       WebServicesServer();
       ~WebServicesServer();
+      // Stops its listeners when it goes: a copy would stop them twice.
+      WebServicesServer(const WebServicesServer &) = delete;
+      WebServicesServer &operator=(const WebServicesServer &) = delete;
 
       bool Start(const String &bind_address, int http_port, int https_port,
                  const String &certificate_file, const String &private_key_file);

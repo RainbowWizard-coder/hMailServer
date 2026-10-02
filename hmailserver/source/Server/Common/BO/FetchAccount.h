@@ -18,8 +18,8 @@ namespace HM
       enum ServerType
       {
          POP3 = 0,
-         // The remote INBOX collected once by UID, and left intact when the account
-         // says so. See IMAPClientConnection.
+         // The remote INBOX collected once by UID, and left intact unless
+         // DaysToKeepMessages says otherwise. See IMAPClientConnection.
          IMAP = 1,
       };
 
@@ -58,8 +58,39 @@ namespace HM
       int GetMinutesBetweenTry() const {return minutes_; }
       void SetMinutesBetweenTry(int iMinutes) {minutes_ = iMinutes; }
 
+      // DaysToKeepMessages has one meaning, whichever fetcher reads it and whatever
+      // writes it - the meaning the COM API, the old Administrator and WebAdmin gave
+      // it from hMailServer 5 on, and the one the POP3 fetcher has always kept:
+      //   negative (-1)  delete the message from the remote server as soon as it
+      //                  has been collected;
+      //   0              never delete it: every message stays on the remote server;
+      //   N > 0          delete it once it has been on record here for more than
+      //                  N days.
+      // The OnExternalAccountDownload event's answers map onto the same three (1 is
+      // -1, 2 is its parameter, 3 is 0; ExternalFetchClientBase::GetDaysToKeep_).
+      // From 6.2.25 to 6.3.5 the IMAP fetcher read 0 and a negative number the other
+      // way round; schema 6106 translated what its accounts had stored, so that each
+      // kept doing what it did (Upgrade6105to6106*.sql). Both fetchers ask these two,
+      // so the meaning cannot part again.
       int GetDaysToKeep() const {return days_to_keep_; }
-      void SetDaysToKeep(int iMinutes) {days_to_keep_ = iMinutes; }
+      void SetDaysToKeep(int iDays) {days_to_keep_ = iDays; }
+
+      // True when a message is to be deleted on the remote server in the session
+      // that collects it.
+      static bool DeletesOnCollection(int daysToKeep) { return daysToKeep < 0; }
+
+      // True when a message on record for daysOnRecord days is due to be deleted on
+      // the remote server.
+      static bool RemoteCopyDue(int daysToKeep, double daysOnRecord)
+      {
+         if (daysToKeep < 0)
+            return true;
+
+         if (daysToKeep == 0)
+            return false;
+
+         return daysOnRecord > daysToKeep;
+      }
 
       bool GetActive() const {return is_active_; }
       void SetActive(bool bActive) {is_active_ = bActive; }
@@ -156,6 +187,19 @@ namespace HM
       // saved (InterfaceFetchAccount::Save).
       void KeepStricterOrigin(Origin stored) { if (stored == OriginReader) origin_ = OriginReader; else if (stored == OriginWithoutServerAuthority) MarkWithoutServerAuthority(); }
 
+      // What a DaysToKeepMessages stored before schema 6106 - by 6.2.25 to 6.3.5 -
+      // is in the one meaning above. Upgrade6105to6106*.sql does the same to the
+      // database, and XMLLoad to an archive written before 6.3.6:
+      //   IMAP: 0 was "delete on collection" and is -1; a negative number was
+      //     "keep" and is 0. The account goes on doing what it did.
+      //   POP3 made or moved by somebody other than a server administrator (the
+      //     webmail, a reader, a restricted key - the surfaces that described -1
+      //     as "keep every message", while the fetcher deleted): a negative
+      //     number is 0, so the fetcher stops deleting what the person asked it
+      //     to leave. Nothing that was being kept starts to be deleted.
+      //   Anything else is as it was.
+      static int DaysToKeepStoredBefore6106(ServerType serverType, Origin origin, int stored);
+
       bool XMLStore(XNode *pFetchAccountsNode, int iOptions);
       bool XMLLoad(XNode *pNode, int iOptions);
       bool XMLLoadSubItems(XNode *pNode, int iOptions);
@@ -191,5 +235,17 @@ namespace HM
       String mirror_seen_;
       Origin origin_;
       ConnectionSecurity connection_security_;
+   };
+
+   // DaysToKeepMessages's one meaning (DeletesOnCollection, RemoteCopyDue), what a
+   // value stored before schema 6106 means in it (DaysToKeepStoredBefore6106), and
+   // an archive written before 6.3.6 read through that rule while one written
+   // since is read as it is. No database, configuration or network. ClassTester
+   // runs it on Windows, business-object-tests (platform/business_object_tests_main.cpp)
+   // on Linux. Throws std::logic_error naming the first case that is wrong.
+   class FetchAccountTester
+   {
+   public:
+      void Test();
    };
 }

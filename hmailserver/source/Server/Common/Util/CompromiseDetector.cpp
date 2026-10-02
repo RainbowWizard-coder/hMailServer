@@ -1158,7 +1158,9 @@ namespace HM
       }
       catch (...)
       {
-         Report(6813, "CompromiseDetector::Unlock",
+         // A code of its own: HM6813 is the locks not read at start, which an
+         // administrator's unlock that failed is not.
+         Report(7561, "CompromiseDetector::Unlock",
             _T("The compromise lock of ") + address + _T(" could not be lifted: an unexpected error stopped it. Unlock the account again."));
       }
    }
@@ -1189,7 +1191,9 @@ namespace HM
       }
       catch (...)
       {
-         Report(6812, "CompromiseDetector::ForgetAccount",
+         // A code of its own: HM6812 is the sweep's, which runs on its own and
+         // finishes what this left; this is a deletion of an account.
+         Report(7562, "CompromiseDetector::ForgetAccount",
             _T("The messages held for review from ") + address +
             _T(" could not all be discarded with the account: an unexpected error stopped it part-way. The sweep discards what is left of an account that no longer exists."));
       }

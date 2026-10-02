@@ -1227,4 +1227,14 @@
 //      held, so that the review queue can show it and group by it. A message
 //      held later, at delivery, takes it from the Received header this server
 //      wrote for it. Rows held before the step have it empty.
-#define REQUIRED_DB_VERSION            6105
+// 6106 changes no column: it gives every stored hm_fetchaccounts.fadaystokeep
+//      the one meaning both fetchers now read (BO/FetchAccount.h: negative
+//      deletes on collection, 0 never deletes, N after N days). From 6.2.25 to
+//      6.3.5 the IMAP fetcher read 0 as "delete" and a negative number as
+//      "keep", so an IMAP account's 0 becomes -1 and its negative number 0, and
+//      it goes on doing what it did; a POP3 account made or moved by somebody
+//      other than a server administrator (faorigin not 0), whose -1 the webmail
+//      and the REST API had described as "keep every message" while the POP3
+//      fetcher deleted, has a negative number made 0 - it stops deleting.
+//      FetchAccount::DaysToKeepStoredBefore6106 is the same rule for an archive.
+#define REQUIRED_DB_VERSION            6106

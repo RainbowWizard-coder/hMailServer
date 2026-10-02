@@ -30,6 +30,9 @@
          and the Quarantine.Bulk request and answer. No WPF, so the tests hold
          what the page shows and what it sends without a window. -->
     <Compile Include="..\ControlPanel\Services\QuarantineReview.cs" />
+    <!-- How much time a chart covers, in words: one of a unit is a sentence of its
+         own. No WPF, so the tests hold every count's words. -->
+    <Compile Include="..\ControlPanel\Services\ChartWindowWords.cs" />
     <!-- The Discovery page's reading of the REST API: the cases, a case's rows of
          the audit trail (so the audit trail's own reader is here with it), and
          where the listener is. No WPF and no network, so the tests can pin the

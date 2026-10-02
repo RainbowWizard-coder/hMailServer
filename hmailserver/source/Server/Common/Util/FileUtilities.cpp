@@ -473,6 +473,36 @@ namespace HM
    }
 
    bool
+   FileUtilities::MoveOver(const String &sFrom, const String &sTo)
+   {
+      const String temporary = sTo + _T(".writing-") + GUIDCreator::GetGUID();
+
+      // Beside sTo first: a rename when the two are on one volume. Across volumes
+      // Windows' rename copies (MOVEFILE_COPY_ALLOWED) to the new name, and POSIX's
+      // refuses (EXDEV) - then it is copied here - and in both a copy that fails
+      // leaves sTo untouched.
+      boost::system::error_code renameError;
+      boost::filesystem::rename(sFrom.c_str(), temporary.c_str(), renameError);
+      const bool copied = !!renameError;
+      if (copied && !Copy(sFrom, temporary, false))
+      {
+         DeleteFile(temporary);
+         return false;
+      }
+
+      if (!Move(temporary, sTo))
+      {
+         DeleteFile(temporary);
+         return false;
+      }
+
+      if (copied)
+         DeleteFile(sFrom);
+
+      return true;
+   }
+
+   bool
    FileUtilities::FileSize64(const String &sFileName, unsigned __int64 &size)
    {
       size = 0;

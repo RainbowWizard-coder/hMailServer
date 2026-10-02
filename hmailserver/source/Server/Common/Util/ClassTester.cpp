@@ -9,6 +9,7 @@
 #include "../BO/MessageData.h"
 #include "../BO/Message.h"
 #include "../BO/Account.h"
+#include "../BO/FetchAccount.h"
 #include "../Mime/MimeTester.h"
 #include "../Util/Utilities.h"
 #include "../Util/MessageUtilities.h"
@@ -194,6 +195,13 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing the account's copy\n"));
       AccountTester accountTester;
       accountTester.Test();
+
+      // DaysToKeepMessages: one meaning for both fetchers, what a value stored
+      // before schema 6106 means in it, and an archive written before 6.3.6 read
+      // through that rule (FetchAccount.h).
+      OutputDebugString(_T("hMailServer: Testing the fetch account's retention\n"));
+      FetchAccountTester fetchAccountTester;
+      fetchAccountTester.Test();
 
       // Every TLS context's options read back with SSL_CTX_get_options: exactly what
       // SetContextOptions_ asks for, nothing from bit 32 up but certificate compression

@@ -159,6 +159,7 @@ namespace HM
       AnsiString KeyIdOf_(const std::string &key)
       {
          std::string labelled = std::string("hMailServer stored secrets key id\n") + key;
+         MailboxCrypto::ForgetOnExit forgetLabelled(labelled);
          const AnsiString keyId = MailboxCrypto::Fingerprint(labelled);
          MailboxCrypto::Forget(labelled);
          return keyId;
@@ -178,6 +179,7 @@ namespace HM
             return false;
 
          std::string plainBytes = Utf8Of_(plain);
+         MailboxCrypto::ForgetOnExit forgetPlainBytes(plainBytes);
          std::string cipher;
          std::string tag;
          const bool sealed = MailboxCrypto::Encrypt(key, nonce, AssociatedDataOf_(keyId, purpose), plainBytes, cipher, tag);
@@ -232,6 +234,7 @@ namespace HM
             return String();
 
          std::string plainBytes;
+         MailboxCrypto::ForgetOnExit forgetPlainBytes(plainBytes);
          if (!MailboxCrypto::Decrypt(key, nonce, AssociatedDataOf_(keyId, purpose), cipher, tag, plainBytes))
             return String();
 
@@ -256,6 +259,7 @@ namespace HM
 
          StoredSecrets::KeyState state = StoredSecrets::KeyNone;
          std::string key;
+         MailboxCrypto::ForgetOnExit forgetKey(key);
          AnsiString keyId;
 
          if (!line.IsEmpty())
@@ -623,6 +627,7 @@ namespace HM
          return false;
 
       std::string key;
+      MailboxCrypto::ForgetOnExit forgetKey(key);
       AnsiString keyId;
       if (!CopyHeld_(key, keyId))
          return false;
@@ -656,6 +661,7 @@ namespace HM
       opened = false;
 
       std::string key;
+      MailboxCrypto::ForgetOnExit forgetKey(key);
       AnsiString keyId;
       if (!CopyHeld_(key, keyId))
          return String();
@@ -1017,6 +1023,7 @@ namespace HM
       }
 
       std::string key = MailboxCrypto::RandomBytes(MailboxCrypto::KeyBytes);
+      MailboxCrypto::ForgetOnExit forgetKey(key);
       if (key.size() != MailboxCrypto::KeyBytes)
       {
          MailboxCrypto::Forget(key);
@@ -1069,6 +1076,7 @@ namespace HM
       keyId.Empty();
 
       std::string key;
+      MailboxCrypto::ForgetOnExit forgetKey(key);
       if (!CopyHeld_(key, keyId))
       {
          problem = State() == KeyUnopenable
@@ -1095,6 +1103,7 @@ namespace HM
       // Appended into one buffer reserved up front, so that no temporary copy of
       // the key in base64 is left behind; the caller wipes the text.
       std::string base64 = MailboxCrypto::Base64(key);
+      MailboxCrypto::ForgetOnExit forgetBase64(base64);
       MailboxCrypto::Forget(key);
 
       text.reserve(128 + base64.size());
@@ -1128,10 +1137,12 @@ namespace HM
       std::vector<std::string> lines;
       {
          std::string all = BytesOfText_(text);
+         MailboxCrypto::ForgetOnExit forgetAll(all);
          if (all.size() >= 3 && (unsigned char) all[0] == 0xEF && (unsigned char) all[1] == 0xBB && (unsigned char) all[2] == 0xBF)
             all.erase(0, 3);
 
          std::string current;
+         MailboxCrypto::ForgetOnExit forgetCurrent(current);
          for (size_t i = 0; i <= all.size(); i++)
          {
             if (i == all.size() || all[i] == '\n')
@@ -1150,6 +1161,7 @@ namespace HM
       }
 
       std::string key;
+      MailboxCrypto::ForgetOnExit forgetKey(key);
       bool wellFormed = lines.size() == 3 && lines[0] == KeyFileTitle &&
                         lines[1].size() == 3 + (size_t) KeyIdLength && lines[1].compare(0, 3, "id ") == 0 &&
                         lines[2].compare(0, 4, "key ") == 0 &&

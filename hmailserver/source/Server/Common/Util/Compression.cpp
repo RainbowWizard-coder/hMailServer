@@ -141,6 +141,22 @@ namespace HM
       // it is.
       String listFile = FileUtilities::Combine(targetDirectory, _T("hMailServer-members.txt"));
 
+      if (!WriteMemberList(listFile, members))
+         return false;
+
+      String commandLine = Formatter::Format("\"{0}\" x \"{1}\" \"@{2}\" -o\"{3}\" -y -scsUTF-8",
+         GetExecutableFullPath_(), zipFile, listFile, targetDirectory);
+
+      const bool result = LaunchCommand_(commandLine, passphrase);
+
+      FileUtilities::DeleteFile(listFile);
+
+      return result;
+   }
+
+   bool
+   Compression::WriteMemberList(const String &listFile, const std::vector<String> &members)
+   {
       {
          // A narrow path on POSIX: libstdc++'s streams take no wide one.
 #ifdef HM_PLATFORM_POSIX
@@ -155,7 +171,7 @@ namespace HM
 
          out.write("\xEF\xBB\xBF", 3);
 
-         for (size_t i = 0; i < members.size(); i++)
+         for (size_t i = 0; i < members.size() && out; i++)
          {
             AnsiString utf8;
             Unicode::WideToMultiByte(members[i], utf8);
@@ -163,18 +179,16 @@ namespace HM
             out.write("\r\n", 2);
          }
 
-         if (!out)
-            return false;
+         // The close writes what is still buffered, and its answer is the only one
+         // there is for the list's last lines: a stream's destructor closes it and
+         // says nothing.
+         out.close();
+         if (!out.fail())
+            return true;
       }
 
-      String commandLine = Formatter::Format("\"{0}\" x \"{1}\" \"@{2}\" -o\"{3}\" -y -scsUTF-8",
-         GetExecutableFullPath_(), zipFile, listFile, targetDirectory);
-
-      const bool result = LaunchCommand_(commandLine, passphrase);
-
       FileUtilities::DeleteFile(listFile);
-
-      return result;
+      return false;
    }
 
    Compression::ArchiveEncryption

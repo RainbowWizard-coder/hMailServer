@@ -274,6 +274,12 @@ namespace HM
       skipped = false;
       struct SecondLook
       {
+         explicit SecondLook(std::set<__int64> &written) : accounts(written) {}
+         // Drops what the index holds of the accounts when it goes: a copy would
+         // drop it twice.
+         SecondLook(const SecondLook &) = delete;
+         SecondLook &operator=(const SecondLook &) = delete;
+
          std::set<__int64> &accounts;
          ~SecondLook()
          {
@@ -291,7 +297,7 @@ namespace HM
                // at the account, or the switch-on's own drop, stands.
             }
          }
-      } secondLook = { termsWritten };
+      } secondLook(termsWritten);
 
       for (const PersistentMessageIndex::IndexableMessage &messageToIndex : messages)
       {

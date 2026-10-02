@@ -51,6 +51,13 @@ namespace hMailServer.ControlPanel.Services
    /// just "button" to a screen reader, in every language (measured through UI
    /// Automation's client). They are named from the catalogue in every language too,
    /// by the button's type, which the title bar switches between Maximise and Restore.
+   ///
+   /// Two more had no name either (measured the same way): the chevron that folds each
+   /// of the navigation's nine groups, "Expander", and a password box's eye, WPF-UI's
+   /// "RevealButton", on the sign-in card and every page with a password. The chevron is
+   /// named for what pressing it does to its group - "Expand Monitoring", "Collapse
+   /// Monitoring" - and the eye for what it does to the password, "Show password" or
+   /// "Hide password", each as its state changes.
    /// </summary>
    public static class FrameworkWords
    {
@@ -59,6 +66,8 @@ namespace hMailServer.ControlPanel.Services
       private static readonly CalendarButtonName PreviousName = new(next: false);
       private static readonly CalendarButtonName NextName = new(next: true);
       private static readonly WindowButtonName WindowButtonNames = new();
+      private static readonly ExpanderButtonName ExpanderButtonNames = new();
+      private static readonly RevealButtonName RevealButtonNames = new();
 
       /// <summary>
       /// Puts the catalogue's words in place of WPF's and the theme's. Called once, from
@@ -176,6 +185,36 @@ namespace hMailServer.ControlPanel.Services
             return;
          }
 
+         // The navigation's chevron, in the group's template (MainWindow.xaml): named by
+         // the group's own name and whether it is open.
+         if (sender is ToggleButton expander && expander.Name == "Expander" && expander.TemplatedParent is TreeViewItem group)
+         {
+            if (Unnamed_(expander))
+            {
+               var name = new MultiBinding { Converter = ExpanderButtonNames, Mode = BindingMode.OneWay };
+               name.Bindings.Add(new Binding(nameof(TreeViewItem.IsExpanded)) { Source = group, Mode = BindingMode.OneWay });
+               name.Bindings.Add(new Binding { Source = group, Path = new PropertyPath(AutomationProperties.NameProperty), Mode = BindingMode.OneWay });
+               expander.SetBinding(AutomationProperties.NameProperty, name);
+            }
+            return;
+         }
+
+         // A password box's eye, in WPF-UI's template: named by whether it shows the
+         // password now.
+         if (sender is ButtonBase reveal && reveal.Name == "RevealButton" && reveal.TemplatedParent is Wpf.Ui.Controls.PasswordBox passwordBox)
+         {
+            if (Unnamed_(reveal))
+            {
+               reveal.SetBinding(AutomationProperties.NameProperty, new Binding(nameof(Wpf.Ui.Controls.PasswordBox.IsPasswordRevealed))
+               {
+                  Source = passwordBox,
+                  Mode = BindingMode.OneWay,
+                  Converter = RevealButtonNames
+               });
+            }
+            return;
+         }
+
          if (sender is not ButtonBase button || button.TemplatedParent is not CalendarItem item || item.TemplatedParent is not Calendar calendar)
             return;
 
@@ -244,6 +283,41 @@ namespace hMailServer.ControlPanel.Services
             default:
                return "";
          }
+      }
+
+      /// <summary>
+      /// The name of the chevron that folds a group of the navigation, by what pressing
+      /// it does, in the Control Panel's language.
+      /// </summary>
+      public static string ExpanderButton(bool expanded, string group)
+         => expanded ? F("Collapse {0}", group ?? "") : F("Expand {0}", group ?? "");
+
+      /// <summary>
+      /// The name of a password box's eye, by what pressing it does, in the Control
+      /// Panel's language.
+      /// </summary>
+      public static string RevealButton(bool revealed)
+         => revealed ? L("Hide password") : L("Show password");
+
+      /// <summary>A group's state and name to its chevron's name.</summary>
+      private sealed class ExpanderButtonName : IMultiValueConverter
+      {
+         public object Convert(object[] values, System.Type targetType, object parameter, System.Globalization.CultureInfo culture)
+            => ExpanderButton(values != null && values.Length > 0 && values[0] is bool expanded && expanded,
+                              values != null && values.Length > 1 ? values[1] as string : null);
+
+         public object[] ConvertBack(object value, System.Type[] targetTypes, object parameter, System.Globalization.CultureInfo culture)
+            => throw new System.NotSupportedException();
+      }
+
+      /// <summary>Whether a password box shows its password, to its eye's name.</summary>
+      private sealed class RevealButtonName : IValueConverter
+      {
+         public object Convert(object value, System.Type targetType, object parameter, System.Globalization.CultureInfo culture)
+            => RevealButton(value is bool revealed && revealed);
+
+         public object ConvertBack(object value, System.Type targetType, object parameter, System.Globalization.CultureInfo culture)
+            => throw new System.NotSupportedException();
       }
 
       /// <summary>A title bar button's type to its name.</summary>

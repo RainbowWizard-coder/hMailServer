@@ -19,6 +19,8 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <stdexcept>
+#include <string>
 #include <vector>
 
 #ifdef _DEBUG
@@ -177,7 +179,7 @@ namespace HM
    }
 
    void
-   MailboxCrypto::Forget(std::string &secret)
+   MailboxCrypto::Forget(std::string &secret) noexcept
    {
       if (!secret.empty())
          OPENSSL_cleanse(&secret[0], secret.size());
@@ -490,6 +492,7 @@ namespace HM
       }
 
       std::string ephemeralPrivate;
+      ForgetOnExit forgetEphemeralPrivate(ephemeralPrivate);
       std::string ephemeralPublic;
       if (!GenerateKeyPair(ephemeralPrivate, ephemeralPublic))
       {
@@ -498,6 +501,7 @@ namespace HM
       }
 
       std::string shared = Agree(ephemeralPrivate, recipientPublic);
+      ForgetOnExit forgetShared(shared);
       Forget(ephemeralPrivate);
       if (shared.empty())
       {
@@ -506,6 +510,7 @@ namespace HM
       }
 
       std::string key = SealKey(shared, recipientPublic, ephemeralPublic, "hMailServer sealed " + purpose);
+      ForgetOnExit forgetKey(key);
       Forget(shared);
 
       const std::string nonce = RandomBytes(NonceBytes);
@@ -546,6 +551,7 @@ namespace HM
 
       const std::string recipientPublic = PublicKeyOf(recipientPrivate);
       std::string shared = Agree(recipientPrivate, ephemeralPublic);
+      ForgetOnExit forgetShared(shared);
       if (recipientPublic.empty() || shared.empty())
       {
          problem = _T("the agreement with the sealed copy's key failed");
@@ -553,6 +559,7 @@ namespace HM
       }
 
       std::string key = SealKey(shared, recipientPublic, ephemeralPublic, "hMailServer sealed " + purpose);
+      ForgetOnExit forgetKey(key);
       Forget(shared);
 
       const std::string cipher = body.substr(0, body.size() - TagBytes);
@@ -590,6 +597,7 @@ namespace HM
       }
 
       std::string key;
+      ForgetOnExit forgetKey(key);
       std::string header;
 
       if (Argon2Available())
@@ -651,6 +659,7 @@ namespace HM
       }
 
       std::string key;
+      ForgetOnExit forgetKey(key);
       size_t next = 0;
 
       if (fields[1] == "a2" && fields.size() == 8)
@@ -750,6 +759,7 @@ namespace HM
       }
 
       std::string ephemeralPrivate;
+      ForgetOnExit forgetEphemeralPrivate(ephemeralPrivate);
       std::string ephemeralPublic;
       if (!GenerateKeyPair(ephemeralPrivate, ephemeralPublic))
       {
@@ -758,6 +768,7 @@ namespace HM
       }
 
       std::string shared = Agree(ephemeralPrivate, recipientPublic);
+      ForgetOnExit forgetShared(shared);
       Forget(ephemeralPrivate);
       if (shared.empty())
       {
@@ -766,6 +777,7 @@ namespace HM
       }
 
       std::string key = Hkdf(shared, ephemeralPublic + recipientPublic, StageInfo, KeyBytes);
+      ForgetOnExit forgetKey(key);
       Forget(shared);
 
       const std::string nonce = RandomBytes(NonceBytes);
@@ -780,6 +792,7 @@ namespace HM
       if (ok)
       {
          std::string check;
+         ForgetOnExit forgetCheck(check);
          ok = Decrypt(key, nonce, aad, cipher, tag, check) && check == plain;
          Forget(check);
       }
@@ -818,6 +831,7 @@ namespace HM
       const std::string tag = parameters.substr(1 + 2 * KeyBytes + NonceBytes, TagBytes);
 
       std::string privateKey;
+      ForgetOnExit forgetPrivateKey(privateKey);
       if (!keys || !keys(recipientPublic, privateKey, problem))
       {
          if (problem.IsEmpty())
@@ -826,6 +840,7 @@ namespace HM
       }
 
       std::string shared = Agree(privateKey, ephemeralPublic);
+      ForgetOnExit forgetShared(shared);
       Forget(privateKey);
       if (shared.empty())
       {
@@ -834,6 +849,7 @@ namespace HM
       }
 
       std::string key = Hkdf(shared, ephemeralPublic + recipientPublic, StageInfo, KeyBytes);
+      ForgetOnExit forgetKey(key);
       Forget(shared);
 
       const bool opened = Decrypt(key, nonce, context + recipientPublic + ephemeralPublic, cipher, tag, plain);
@@ -936,5 +952,100 @@ namespace HM
 
       Forget(mailboxPrivate);
       Assert::IsTrue(mailboxPrivate.empty());
+
+      TestForgetOnExit();
+   }
+
+   namespace
+   {
+      // Every byte of the first length bytes of the string's buffer is the byte.
+      // The buffer is the string's own still - Forget clears it without giving
+      // it back - so what is read is what the guard left there.
+      bool BufferHolds(const std::string &watched, const char *buffer, size_t length, char byte)
+      {
+         if (watched.capacity() < length)
+            return false;
+
+         for (size_t i = 0; i < length; ++i)
+         {
+            if (buffer[i] != byte)
+               return false;
+         }
+
+         return true;
+      }
+
+      void ThrowWhileWatched(std::string &secret)
+      {
+         MailboxCrypto::ForgetOnExit forget(secret);
+         throw std::runtime_error("an error between the key's use and the end of its scope");
+      }
+
+      bool ReturnWhileWatched(std::string &secret, bool early)
+      {
+         MailboxCrypto::ForgetOnExit forget(secret);
+         if (early)
+            return false;
+
+         return secret.size() == 48;
+      }
+
+      void LeaveUnwatched(std::string &secret, bool fail)
+      {
+         if (fail)
+            throw std::runtime_error("an error with nothing watching the key");
+         (void) secret;
+      }
+   }
+
+   // MailboxKeys.cpp's private keys are watched by ForgetOnExit: the bytes are
+   // written over whether the scope ends by a return, early or late, or by an
+   // exception thrown through it - and, the control, a key nothing watches is
+   // still there after the same exception, so a probe that sees zeros is seeing
+   // the guard's work.
+   void
+   MailboxCrypto::TestForgetOnExit()
+   {
+      // Longer than any short-string buffer, so the bytes are on the heap as a
+      // key's are.
+      const size_t length = 48;
+
+      std::string thrown(length, 'k');
+      const char *thrownBuffer = thrown.data();
+      bool caught = false;
+      try
+      {
+         ThrowWhileWatched(thrown);
+      }
+      catch (const std::runtime_error &)
+      {
+         caught = true;
+      }
+      Assert::IsTrue(caught && thrown.empty() && BufferHolds(thrown, thrownBuffer, length, 0));
+
+      std::string early(length, 'k');
+      const char *earlyBuffer = early.data();
+      Assert::IsFalse(ReturnWhileWatched(early, true));
+      Assert::IsTrue(early.empty() && BufferHolds(early, earlyBuffer, length, 0));
+
+      std::string late(length, 'k');
+      const char *lateBuffer = late.data();
+      Assert::IsTrue(ReturnWhileWatched(late, false));
+      Assert::IsTrue(late.empty() && BufferHolds(late, lateBuffer, length, 0));
+
+      // The control: the same exception with nothing watching leaves every byte.
+      std::string unwatched(length, 'k');
+      const char *unwatchedBuffer = unwatched.data();
+      caught = false;
+      try
+      {
+         LeaveUnwatched(unwatched, true);
+      }
+      catch (const std::runtime_error &)
+      {
+         caught = true;
+      }
+      Assert::IsTrue(caught && unwatched.size() == length && BufferHolds(unwatched, unwatchedBuffer, length, 'k'));
+      Forget(unwatched);
    }
 }

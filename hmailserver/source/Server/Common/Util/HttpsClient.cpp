@@ -1277,6 +1277,10 @@ namespace HM
                      if (sink && !first.empty())
                         sink->write(first.data(), (std::streamsize) first.size());
                      pending.clear();
+                     // A file that refused a write is not read into any further:
+                     // the download says so once the response is over.
+                     if (sink && !*sink)
+                        return true;
                   }
                   else if (pending.size() > 64 * 1024)
                      return false;   // headers that never end are not a response
@@ -1290,7 +1294,11 @@ namespace HM
                      return true;
                   }
                   if (sink)
+                  {
                      sink->write(buffer, (std::streamsize) bytesRead);
+                     if (!*sink)
+                        return true;
+                  }
                }
             }
             if (errorCode)
@@ -1461,7 +1469,12 @@ namespace HM
             return false;
          }
 
+         // The close writes what the last writes left buffered, and its answer, with
+         // the writes', is whether the file holds the body: a disk that filled or a
+         // quota left it short while the response read as a 200, and a short file
+         // was answered as a download.
          sink.close();
+         const bool sinkWritten = !sink.fail();
 
          if (!responded)
          {
@@ -1512,6 +1525,15 @@ namespace HM
          {
             FileUtilities::DeleteFile(path);
             error = Formatter::Format(_T("The response from {0} exceeded the size limit."), String(host));
+            return false;
+         }
+
+         // A 200 whose body the file did not take in full: said only now, after the
+         // status, so that a redirect or a refusal is reported as what it was.
+         if (!sinkWritten)
+         {
+            FileUtilities::DeleteFile(path);
+            error = Formatter::Format(_T("What {0} sent could not be written in full to {1}: the disk may be full."), String(host), path);
             return false;
          }
 

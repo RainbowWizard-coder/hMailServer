@@ -839,7 +839,11 @@ let fetchAccountsState = [
    { id: 72, name: 'Catch-all', server_address: 'mail.example.com', port: 110, server_type: 'pop3', username: 'catchall',
      minutes_between_fetch: 5, days_to_keep_messages: 0, connection_security: 'none', mime_recipient_headers: 'To,CC', enabled: true,
      process_mime_recipients: true, process_mime_date: false, use_antispam: true, use_antivirus: true, enable_route_recipients: false,
-     mirror_folders: false, locked: false, next_download_time: '2026-09-17 13:05:00' }
+     mirror_folders: false, locked: false, next_download_time: '2026-09-17 13:05:00' },
+   { id: 73, name: 'Week provider', server_address: 'imap.week-provider.example', port: 993, server_type: 'imap', username: 'me@week-provider.example',
+     minutes_between_fetch: 60, days_to_keep_messages: 7, connection_security: 'tls', mime_recipient_headers: '', enabled: true,
+     process_mime_recipients: false, process_mime_date: false, use_antispam: true, use_antivirus: true, enable_route_recipients: false,
+     mirror_folders: false, locked: false, next_download_time: '2026-09-17 15:00:00' }
 ];
 // Send mail as: one address waiting for its code, at a domain that rejects
 // mail it did not send, and one verified.
@@ -4969,8 +4973,24 @@ async function main() {
       await flush();
       check('the Other accounts page reads the reader\'s other accounts', called(beforeAccounts, 'GET', '/api/v1/me/fetch-accounts'));
       check('it is a page of the settings', document.getElementById('accounts-section').hidden === false && document.getElementById('settings-head').hidden === false);
-      check('a row per account, with where it collects from', fetchRows().length === 2 && rowNamed('Old provider').textContent.indexOf('pop.old-provider.example:995') >= 0,
+      check('a row per account, with where it collects from', fetchRows().length === 3 && rowNamed('Old provider').textContent.indexOf('pop.old-provider.example:995') >= 0,
          fetchRows().map((r) => r.textContent).join(' | '));
+
+      // What is left on the other server: one meaning for POP3 and IMAP, the
+      // server's (FetchAccount.h) - 0 leaves every message there, -1 deletes each
+      // one once it has been collected, N deletes it N days after. Until 6.3.6 the
+      // page sent -1 for "Leave the mail there", which the POP3 fetcher took as
+      // "delete at once".
+      const keepChoices = (id) => document.getElementById(id).children.map((o) => o.getAttribute('value') + '=' + o.textContent);
+      const keepShown = (id) => { const select = document.getElementById(id); const chosen = select.children.filter((o) => o.getAttribute('value') === select.value)[0]; return chosen ? chosen.textContent : '(none)'; };
+      check('Leave the mail there is 0 and Delete it there is -1, for an account added and for an import alike',
+         JSON.stringify(keepChoices('fetch-keep').slice(0, 3)) === JSON.stringify(['0=' + words('Leave the mail there'), '-1=' + words('Delete it there'), '30=' + words('Delete it there after 30 days')]) &&
+         JSON.stringify(keepChoices('import-keep')) === JSON.stringify(['0=' + words('Leave the mail there'), '-1=' + words('Delete it there')]),
+         keepChoices('fetch-keep').join(' | ') + ' / ' + keepChoices('import-keep').join(' | '));
+      // A select no script has set shows its first choice, which this DOM, having
+      // no layout, leaves as an empty value.
+      check('a new account starts at Leave the mail there', (document.getElementById('fetch-keep').value === '' || document.getElementById('fetch-keep').value === '0') &&
+         document.getElementById('fetch-keep').children[0].getAttribute('value') === '0', document.getElementById('fetch-keep').value);
       check('an account an administrator set up is shown and not offered for a change',
          !!rowNamed('Catch-all') && !buttonIn(rowNamed('Catch-all'), 'Edit') && !buttonIn(rowNamed('Catch-all'), 'Remove') && !!buttonIn(rowNamed('Catch-all'), 'Collect now'),
          rowNamed('Catch-all') ? rowNamed('Catch-all').textContent : 'no row');
@@ -4996,17 +5016,29 @@ async function main() {
       document.getElementById('fetch-host').value = 'imap.gmail.com';
       document.getElementById('fetch-user').value = 'me@gmail.example';
       document.getElementById('fetch-password').value = 'app-password';
-      document.getElementById('fetch-keep').value = '-1';
       document.getElementById('fetch-mirror').checked = true;
       const beforeAdd = requests.length;
       document.getElementById('fetch-form').dispatchEvent(makeEvent('submit'));
       await flush();
       const added = bodyOf(beforeAdd, 'POST', '/api/v1/me/fetch-accounts');
-      check('adding sends the server, the account, the password, what to leave there and the folders',
+      check('adding sends the server, the account, the password, what to leave there - everything, 0 - and the folders',
          !!added && added.server_address === 'imap.gmail.com' && added.port === 993 && added.server_type === 'imap' && added.connection_security === 'tls' &&
-         added.username === 'me@gmail.example' && added.password === 'app-password' && added.days_to_keep_messages === -1 && added.mirror_folders === true &&
+         added.username === 'me@gmail.example' && added.password === 'app-password' && added.days_to_keep_messages === 0 && added.mirror_folders === true &&
          added.minutes_between_fetch === 30, JSON.stringify(added));
-      check('and the page lists it and clears the password', fetchRows().length === 3 && document.getElementById('fetch-password').value === '');
+      check('and the page lists it and clears the password', fetchRows().length === 4 && document.getElementById('fetch-password').value === '');
+
+      buttonIn(rowNamed('Week provider'), 'Edit').dispatchEvent(makeEvent('click'));
+      await flush();
+      check('an account an administrator set to keep mail 7 days is shown as 7 days, not as 30',
+         document.getElementById('fetch-keep').value === '7' && keepShown('fetch-keep') === words('Delete it there after 30 days').replace('30', '7'),
+         document.getElementById('fetch-keep').value + ' ' + keepShown('fetch-keep'));
+      const beforeWeek = requests.length;
+      document.getElementById('fetch-form').dispatchEvent(makeEvent('submit'));
+      await flush();
+      const week = bodyOf(beforeWeek, 'PUT', '/api/v1/me/fetch-accounts/73');
+      check('and saving it keeps the 7 days', !!week && week.days_to_keep_messages === 7, JSON.stringify(week));
+      check('the 7-day choice goes when the form is cleared', document.getElementById('fetch-keep').value === '0' &&
+         keepChoices('fetch-keep').length === 3, keepChoices('fetch-keep').join(' | '));
 
       const beforeCollect = requests.length;
       buttonIn(rowNamed('Old provider'), 'Collect now').dispatchEvent(makeEvent('click'));
@@ -5022,9 +5054,10 @@ async function main() {
 
       buttonIn(rowNamed('Old provider'), 'Edit').dispatchEvent(makeEvent('click'));
       await flush();
-      check('Edit puts the account in the form, the password left blank',
+      check('Edit puts the account in the form, the password left blank, and -1 shown as Delete it there',
          document.getElementById('fetch-host').value === 'pop.old-provider.example' && document.getElementById('fetch-port').value === '995' &&
-         document.getElementById('fetch-password').value === '' && document.getElementById('fetch-cancel').hidden === false);
+         document.getElementById('fetch-password').value === '' && document.getElementById('fetch-cancel').hidden === false &&
+         document.getElementById('fetch-keep').value === '-1' && keepShown('fetch-keep') === words('Delete it there'), keepShown('fetch-keep'));
       document.getElementById('fetch-port').value = '110';
       const beforeSave = requests.length;
       document.getElementById('fetch-form').dispatchEvent(makeEvent('submit'));
@@ -5098,13 +5131,13 @@ async function main() {
          called(beforeChoice, 'POST', '/api/v1/me/fetch-accounts/90/download') && document.getElementById('fetch-folders').hidden === true, JSON.stringify(choice));
 
       document.getElementById('import-mirror').checked = true;
-      document.getElementById('import-keep').value = '-1';
+      document.getElementById('import-keep').value = '0';
       const beforeStart = requests.length;
       document.getElementById('import-google').dispatchEvent(makeEvent('click'));
       await flush();
       const start = bodyOf(beforeStart, 'POST', '/api/v1/me/fetch-accounts/import');
-      check('Sign in to Gmail starts the sign-in with the reader\'s choices and goes to the provider',
-         !!start && start.provider === 'google' && start.mirror_folders === true && start.days_to_keep_messages === -1 &&
+      check('Sign in to Gmail starts the sign-in with the reader\'s choices - the mail left there, 0 - and goes to the provider',
+         !!start && start.provider === 'google' && start.mirror_folders === true && start.days_to_keep_messages === 0 &&
          navigatedTo[navigatedTo.length - 1] === 'https://accounts.google.example/auth?state=abc&code_challenge=xyz', JSON.stringify(start) + ' ' + navigatedTo.join(' '));
 
       location.hash = '#/settings';

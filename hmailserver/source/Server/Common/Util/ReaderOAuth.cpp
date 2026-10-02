@@ -69,7 +69,7 @@ namespace HM
          AnsiString verifier;
          AnsiString nonce;
          bool mirror = false;
-         int days_to_keep = -1;
+         int days_to_keep = 0;
          time_t created = 0;
          unsigned __int64 order = 0;     // when it was admitted, among the others
       };

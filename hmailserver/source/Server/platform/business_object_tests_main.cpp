@@ -28,6 +28,11 @@
 //   - A ScriptObject is made with its type.
 //   - RestApiServer::ReadIpRangePriority holds a POST /api/v1/ipranges priority to
 //     what PUT takes: a whole number from -2,000,000,000 to 2,000,000,000.
+//   - An external account's DaysToKeepMessages has one meaning for POP3 and IMAP
+//     (FetchAccountTester, Common/BO/FetchAccount.cpp): from 6.2.25 to 6.3.5 the
+//     IMAP fetcher read 0 and -1 the other way round. What a value stored before
+//     schema 6106 means in it, and an archive written before 6.3.6 read through
+//     that rule while one written since is read as it is.
 //
 // No database, configuration or network. It prints a line per check and exits
 // non-zero when one fails.
@@ -39,6 +44,7 @@
 #include <string>
 
 #include "../Common/BO/Account.h"
+#include "../Common/BO/FetchAccount.h"
 #include "../Common/BO/Message.h"
 #include "../Common/Diagnostics/DiagnosticResult.h"
 #include "../Common/Tracking/ChangeNotification.h"
@@ -293,6 +299,13 @@ namespace
       HM::AccountTester tester;
       tester.Test();
    }
+
+   void
+   TestFetchAccountRetention()
+   {
+      HM::FetchAccountTester tester;
+      tester.Test();
+   }
 }
 
 int
@@ -300,6 +313,7 @@ main(int /*argc*/, char * /*argv*/[])
 {
    int failed = 0;
    failed += Run(&TestAccountCopy, "an account's copy: every member, the retention and the mailbox key wrap among them");
+   failed += Run(&TestFetchAccountRetention, "an external account's DaysToKeepMessages: one meaning for POP3 and IMAP, and what a value stored before schema 6106 or archived before 6.3.6 means in it");
    failed += Run(&TestMessageCopy, "a message's copy: every member it carries, and the one it leaves out");
    failed += Run(&TestDiagnosticResult, "a DiagnosticResult made empty is not a success");
    failed += Run(&TestChangeNotification, "a ChangeNotification has no account, folder or data it was not given");

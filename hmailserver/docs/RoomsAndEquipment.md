@@ -86,7 +86,11 @@ goes with the booking - declined, cancelled whole, deleted, written back under
 another UID, moved to another account's calendar, or gone with a calendar
 deleted - and stays while any calendar of the room still holds the UID, so a
 booking moved between two of its calendars keeps it, a CalDAV client's move (a
-`PUT` into one, then a `DELETE` from the other) included.
+`PUT` into one, then a `DELETE` from the other) included. A pass that forgets
+these records - one booking's when it goes, or every record whose calendar is
+gone when a calendar is deleted - and is stopped by an unexpected error writes an
+HM7434 line to the error log: the record is forgotten when a calendar of the
+account is next deleted, or with the account.
 
 **Only a delegate answers for it.** A plain write share of the room's calendar
 lets its holder change and delete what is there, and a decline written from a

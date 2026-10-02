@@ -225,38 +225,19 @@ set(WINDOWS_ONLY_SOURCES
    Common/Util/Registry.cpp                     # the registry; the INI is the POSIX answer
 )
 
-# Files that are in the tree but in NO build - not this one and not
-# hMailServer.vcxproj, which is the only thing that produces the shipping server.
-# They are leftovers: LoggerFile.h still derives from HIS_Logger and names
-# HIS_String, from before the program was renamed; ServerThreads.h includes a
-# ThreadIdentifier.h that no longer exists; OutboundPortConnection.h includes a
-# ProtocolParser.h that no longer exists; SMTPCommandHelp.cpp calls
-# SMTPConnection::SendData, which was removed. Nothing includes any of their
-# headers.
-#
-# The rule this list follows is simply that the POSIX build compiles the set the
-# Windows project compiles, less the Windows-only rows above. Six of these do
-# still compile here, and are excluded anyway: a file the shipping server has not
-# built for years is not something this build should be the first to link.
-#
-# Each was checked against hMailServer.vcxproj by path, case-insensitively - the
-# project spells some directories differently from the filesystem ("Common\Bo"),
-# so a case-sensitive comparison reports nearly the whole tree as missing.
-set(UNREFERENCED_SOURCES
-   Common/Application/LoggerFile.cpp
-   Common/Application/ServerThreads.cpp
-   Common/BO/Collection.cpp
-   Common/Cache/AccountCache.cpp
-   Common/Cache/Cache.cpp
-   Common/Cache/CacheReaderWithDbFallback.cpp
-   Common/Diagnostics/OutboundPortConnection.cpp
-   Common/Diagnostics/TestConnectionResult.cpp
-   Common/Util/Mutex.cpp
-   SMTP/SMTPCommands/ISMTPCommand.cpp
-   SMTP/SMTPCommands/SMTPCommandHelp.cpp
-)
+# A file in the tree that no build compiles - not this one and not
+# hMailServer.vcxproj, which is the only thing that produces the shipping server -
+# is deleted rather than listed. Eleven such sources were listed here until 6.3.6
+# (LoggerFile, ServerThreads, Collection.cpp, AccountCache, Cache.cpp,
+# CacheReaderWithDbFallback.cpp, OutboundPortConnection, TestConnectionResult.cpp,
+# Mutex, ISMTPCommand and SMTPCommandHelp) are gone, and with them the seven headers
+# of theirs that nothing that builds includes, IThread.h, and COM/InterfaceDKIM,
+# which no build compiled either. Collection.h, Cache.h, CacheReaderWithDbFallback.h
+# and TestConnectionResult.h stay - they are used - and their .cpp files, which held
+# nothing, went. The rule this build follows is simply that it compiles the set the
+# Windows project compiles, less the Windows-only rows above.
 
-foreach(relative IN LISTS WINDOWS_ONLY_SOURCES UNREFERENCED_SOURCES)
+foreach(relative IN LISTS WINDOWS_ONLY_SOURCES)
    list(REMOVE_ITEM CORE_SOURCES ${SERVER_DIR}/${relative})
 endforeach()
 
@@ -652,6 +633,19 @@ set_target_properties(public-suffix-tests PROPERTIES OUTPUT_NAME public-suffix-t
 add_executable(media-type-tests ${SERVER_DIR}/platform/media_type_tests_main.cpp)
 target_link_libraries(media-type-tests PRIVATE hmailserver_core)
 set_target_properties(media-type-tests PROPERTIES OUTPUT_NAME media-type-tests)
+
+# ---------------------------------------------------------------- mailbox encryption's cryptography
+#
+# MailboxCrypto::Test (Common/Util/MailboxCrypto.h) as a program of its own, for
+# the reason spf-tests is one: on Windows it runs inside the server through
+# ClassTester, which nothing reaches here, and until 6.3.6 nothing ran it on
+# Linux. X25519 and HKDF against their RFCs' vectors, every seal, wrap and stage
+# with its refusals, and ForgetOnExit - a private key written over on every way
+# out of its scope, an exception among them. No network, configuration or
+# database. Not installed; a bench tool.
+add_executable(mailbox-crypto-tests ${SERVER_DIR}/platform/mailbox_crypto_tests_main.cpp)
+target_link_libraries(mailbox-crypto-tests PRIVATE hmailserver_core)
+set_target_properties(mailbox-crypto-tests PROPERTIES OUTPUT_NAME mailbox-crypto-tests)
 
 # ---------------------------------------------------------------- the OpenPGP writer
 #

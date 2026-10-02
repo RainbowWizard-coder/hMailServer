@@ -2437,6 +2437,11 @@ namespace HM
          {
          }
 
+         // Gives the room's drain back when it goes unrun: a copy would give it
+         // back twice.
+         BookingDrain(const BookingDrain &) = delete;
+         BookingDrain &operator=(const BookingDrain &) = delete;
+
          virtual ~BookingDrain()
          {
             // Destroyed without having run: its queue was stopping. What waits

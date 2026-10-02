@@ -259,6 +259,9 @@ namespace HM
          PACL dacl;
 
          Permissions_() : descriptor(nullptr), dacl(nullptr) {}
+         // Releases what it holds when it goes: a copy would release it twice.
+         Permissions_(const Permissions_ &) = delete;
+         Permissions_ &operator=(const Permissions_ &) = delete;
          ~Permissions_()
          {
             if (descriptor)
@@ -452,6 +455,11 @@ namespace HM
 
       struct SidRelease_
       {
+         explicit SidRelease_(PSID held) : sid(held) {}
+         // Releases what it holds when it goes: a copy would release it twice.
+         SidRelease_(const SidRelease_ &) = delete;
+         SidRelease_ &operator=(const SidRelease_ &) = delete;
+
          PSID sid;
          ~SidRelease_() { if (sid) LocalFree(sid); }
       };
@@ -569,7 +577,7 @@ namespace HM
             detail = Formatter::Format(_T("{0} is not a SID"), sidText);
             return ServiceAccount::GrantFailed;
          }
-         SidRelease_ releaseSid = { sid };
+         SidRelease_ releaseSid(sid);
 
          PathPin_ pin;
          const String folder = FolderOf_(Normalised_(file));
@@ -590,9 +598,14 @@ namespace HM
 
          struct HandleRelease_
          {
+            explicit HandleRelease_(HANDLE held) : handle(held) {}
+            // Releases what it holds when it goes: a copy would release it twice.
+            HandleRelease_(const HandleRelease_ &) = delete;
+            HandleRelease_ &operator=(const HandleRelease_ &) = delete;
+
             HANDLE handle;
             ~HandleRelease_() { CloseHandle(handle); }
-         } releaseHandle = { handle };
+         } releaseHandle(handle);
 
          BY_HANDLE_FILE_INFORMATION information;
          if (!GetFileInformationByHandle(handle, &information))
@@ -1508,7 +1521,7 @@ namespace HM
          detail = Formatter::Format(_T("{0} is not a SID"), sid);
          return GrantFailed;
       }
-      SidRelease_ release = { binary };
+      SidRelease_ release(binary);
 
       Permissions_ permissions;
       if (!ReadPermissions_(path, permissions, detail))

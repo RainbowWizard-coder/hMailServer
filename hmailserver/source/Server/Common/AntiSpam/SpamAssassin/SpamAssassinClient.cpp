@@ -306,8 +306,11 @@ namespace HM
          // destination before renaming over it.
          if (IniFileSettings::Instance()->GetSAMoveVsCopy())
          {
-            // Move temp file overwriting message file
-            if (FileUtilities::Move(sTempFile, message_file_))
+            // Moved beside the message file and renamed over it, never moved onto
+            // it: the result is in the temporary folder, and where that is on
+            // another volume than the data folder the move is a copy, which onto the
+            // message emptied it first (FileUtilities::MoveOver).
+            if (FileUtilities::MoveOver(sTempFile, message_file_))
             {
                LOG_DEBUG("SA - Move used");
             }

@@ -348,6 +348,7 @@
     <Compile Include="Domains\SettingLevels.cs" />
     <Compile Include="ExternalAccounts\HostileRemoteServer.cs" />
     <Compile Include="ExternalAccounts\ImapFetch.cs" />
+    <Compile Include="ExternalAccounts\RemoteRetention.cs" />
     <Compile Include="ExternalAccounts\ImapMirror.cs" />
     <Compile Include="ExternalAccounts\ScriptedPop3Server.cs" />
     <Compile Include="ExternalAccounts\ScriptedImapServer.cs" />

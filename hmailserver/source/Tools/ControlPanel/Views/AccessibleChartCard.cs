@@ -184,15 +184,7 @@ namespace hMailServer.ControlPanel.Views
          if (times_.Count < 2)
             return L("collecting");
 
-         TimeSpan span = times_[times_.Count - 1] - times_[0];
-
-         if (span.TotalSeconds < 90)
-            return F("last {0} seconds", Math.Max(1, (int)Math.Round(span.TotalSeconds)));
-
-         if (span.TotalMinutes < 90)
-            return F("last {0} minutes", Math.Max(1, (int)Math.Round(span.TotalMinutes)));
-
-         return F("last {0} hours", Math.Max(1, (int)Math.Round(span.TotalHours)));
+         return ChartWindowWords.Of(times_[times_.Count - 1] - times_[0]);
       }
 
       /// <summary>Switches between the chart and the table view.</summary>

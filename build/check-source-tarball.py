@@ -537,7 +537,7 @@ def check_tree(tracked, read, list_text):
             problems.append("%s reads the directory %s whole, and %s leaves out %s inside it" %
                             (reader, path, EXCLUSIONS, ", ".join(inside)))
 
-    left_out = cmake_list(cmake_text, "WINDOWS_ONLY_SOURCES") | cmake_list(cmake_text, "UNREFERENCED_SOURCES")
+    left_out = cmake_list(cmake_text, "WINDOWS_ONLY_SOURCES")
     for path in sorted(tracked):
         if not path.startswith(SERVER + "/") or not path.endswith(SOURCE_SUFFIXES):
             continue

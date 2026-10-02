@@ -784,14 +784,17 @@ namespace
       return CreateWellKnownSid(WinBuiltinAdministratorsSid, nullptr, buffer, &size) && CheckTokenMembership(nullptr, buffer, &member) && member;
    }
 
-   bool EnablePrivilege(const wchar_t *name)
+   // A privilege of this process's token switched on, or off again. Enabled, it is
+   // in force for this process and for every process it starts - the installer
+   // among them.
+   bool SetPrivilege(const wchar_t *name, bool enabled)
    {
       HANDLE token = nullptr;
       if (!OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &token))
          return false;
       TOKEN_PRIVILEGES privileges;
       privileges.PrivilegeCount = 1;
-      privileges.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
+      privileges.Privileges[0].Attributes = enabled ? SE_PRIVILEGE_ENABLED : 0;
       const bool ok = LookupPrivilegeValueW(nullptr, name, &privileges.Privileges[0].Luid) &&
                       AdjustTokenPrivileges(token, FALSE, &privileges, 0, nullptr, nullptr) && GetLastError() == ERROR_SUCCESS;
       CloseHandle(token);
@@ -1043,6 +1046,11 @@ namespace
          if (thread_ && ready_)
             WaitForSingleObject(ready_, 10000);
       }
+
+      // Closes its thread and event and posts to its window when it goes, and
+      // the thread holds this object's address: a copy would close them twice.
+      ShutdownBlock(const ShutdownBlock &) = delete;
+      ShutdownBlock &operator=(const ShutdownBlock &) = delete;
 
       ~ShutdownBlock()
       {
@@ -1387,8 +1395,13 @@ namespace
 
       // 3. The programs running from {app} ended - a Control Panel open in
       // another session above all - since the installer replaces their files.
-      EnablePrivilege(SE_DEBUG_NAME);
-      Log(L"Installation: " + admin.app + L"; " + std::to_wstring(EndProcessesUnder(admin.app, arguments.service)) + L" program(s) running from it ended before the installer runs.");
+      // SeDebugPrivilege only for that: off again before the installer, which would
+      // otherwise start with it enabled.
+      SetPrivilege(SE_DEBUG_NAME, true);
+      const int ended = EndProcessesUnder(admin.app, arguments.service);
+      const bool debugOff = SetPrivilege(SE_DEBUG_NAME, false);
+      Log(L"Installation: " + admin.app + L"; " + std::to_wstring(ended) + L" program(s) running from it ended before the installer runs." +
+          (debugOff ? L"" : L" SeDebugPrivilege could not be switched off again, so the installer starts with it enabled."));
 
       ShutdownBlock block;
 
@@ -1450,7 +1463,9 @@ namespace
       // unattended apply runs it.
       Log(L"Rolling back to hMailServer " + arguments.rollback_version + L": " + reason);
       const std::wstring rollbackLog = admin.work + L"\\rollback-" + arguments.rollback_version + L".log";
+      SetPrivilege(SE_DEBUG_NAME, true);
       EndProcessesUnder(admin.app, arguments.service);
+      SetPrivilege(SE_DEBUG_NAME, false);
       int rollbackCode = 0;
       {
          HeldFile rollback;

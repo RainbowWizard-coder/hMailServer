@@ -198,6 +198,21 @@ clamped.
 | `compromise_score_to_lock` | 3 | The score that is a takeover; sensitivity shifts it by one either way. 1 to 6. |
 | `compromise_held_days` | 7 | How long a held message waits for a review before the sweep discards it. 1 to 90. |
 
+In the error log
+----------------
+
+Each is one line, saying what was not done and what happens next.
+
+| Code | When |
+|---|---|
+| HM6810 | A submission could not be recorded in the account's baseline (`hm_accountactivity`); the baseline is short by one message. |
+| HM6811 | A verdict was not carried through: a message kept out of the delivery queue for review whose review row could not be written - the sweep lists it as an orphan and discards it - or an unexpected error that stopped the verdict, after which the message is saved, and held when it was to be, and its record in the baseline, the lock or the alert may be missing. |
+| HM6812 | The sweep could not discard a held message past `compromise_held_days`, or stopped at an unexpected error; what it did not reach waits for its next run. |
+| HM6813 | The compromise locks could not be read at start; a name locked before the start is not held until the next sweep reads them. |
+| HM7380 | A held message that names an address being erased could not be discarded, and the erasure fails until it is ([PersonalData.md](PersonalData.md)). |
+| HM7561 | An unlock was stopped by an unexpected error, and the lock stays: unlock the account again. |
+| HM7562 | The messages held for review from an account that was deleted could not all be discarded with it; the sweep discards what is left of an account that no longer exists. |
+
 What it does not do
 -------------------
 

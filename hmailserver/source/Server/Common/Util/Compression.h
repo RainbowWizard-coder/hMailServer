@@ -48,6 +48,13 @@ namespace HM
       // nothing and answers true.
       bool UncompressMembers(const String &zipFile, const String &targetDirectory, const std::vector<String> &members, const String &passphrase = String());
 
+      // The list file UncompressMembers hands 7-Zip: UTF-8 with the byte-order mark
+      // 7-Zip recognises, one member per line. False, and no file left, when it was
+      // not written in full - the stream's close writes what is still buffered, and
+      // a list cut short there would have 7-Zip extract fewer members than asked
+      // while the restore went on as if it had them all.
+      static bool WriteMemberList(const String &listFile, const std::vector<String> &members);
+
       // A ceiling on how long one archiver run may take, in milliseconds. Zero -
       // the default - is no ceiling, which is what writing a backup needs: 7za
       // legitimately runs for hours over a large message store and killing it

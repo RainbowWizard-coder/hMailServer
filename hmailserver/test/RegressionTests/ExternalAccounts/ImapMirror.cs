@@ -254,12 +254,12 @@ namespace RegressionTests.ExternalAccounts
       }
 
       [Test]
-      [Description("With DaysToKeepMessages 0 every collected message is flagged and expunged in its own mailbox - a move, folder by folder - and the local copies stay.")]
-      public void DaysToKeepZeroDeletesFromEveryFolderAfterCollection()
+      [Description("With DaysToKeepMessages -1 every collected message is flagged and expunged in its own mailbox - a move, folder by folder - and the local copies stay.")]
+      public void DaysToKeepMinusOneDeletesFromEveryFolderAfterCollection()
       {
          var inbox = Mailbox("INBOX", "Move me");
          var archive = Mailbox("Archive", "And me", "Me too");
-         var fetchAccount = CreateFetchAccount(PortDelete, 0, true);
+         var fetchAccount = CreateFetchAccount(PortDelete, -1, true);
 
          using (var server = new ScriptedImapServer(PortDelete, new[] { inbox, archive }))
          {

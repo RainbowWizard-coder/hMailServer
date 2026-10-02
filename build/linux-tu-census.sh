@@ -89,27 +89,6 @@ cp "$SERVER/platform/pch/StdAfx.h" "$OUT/pch-lower/stdafx.h"
 # which is Windows by definition and has its own roadmap row), not zlib (vendored
 # C with its own upstream build), not the three Windows executables, not the fuzz
 # harness (which has its own shim and its own build script).
-# Eleven sources under Server/ are in no build at all: hMailServer.vcxproj does
-# not list them, so MSVC has never compiled them either. LoggerFile.h still
-# derives from a class the program had before it was renamed; ServerThreads.h and
-# OutboundPortConnection.h include headers that exist nowhere in the repository;
-# SMTPCommandHelp.cpp calls a method that was removed. They are tree residue, not
-# work owed, and counting them as failures would misstate the measurement. The
-# list is the same one hmailserver/source/Server/CMakeLists.txt excludes.
-UNREFERENCED_SOURCES=(
-   Common/Application/LoggerFile.cpp
-   Common/Application/ServerThreads.cpp
-   Common/BO/Collection.cpp
-   Common/Cache/AccountCache.cpp
-   Common/Cache/Cache.cpp
-   Common/Cache/CacheReaderWithDbFallback.cpp
-   Common/Diagnostics/OutboundPortConnection.cpp
-   Common/Diagnostics/TestConnectionResult.cpp
-   Common/Util/Mutex.cpp
-   SMTP/SMTPCommands/ISMTPCommand.cpp
-   SMTP/SMTPCommands/SMTPCommandHelp.cpp
-)
-
 mapfile -t SOURCES < <(find "$SERVER" -name '*.cpp' \
    -not -path "$SERVER/COM/*" \
    -not -path "$SERVER/zlib/*" \
@@ -117,15 +96,6 @@ mapfile -t SOURCES < <(find "$SERVER" -name '*.cpp' \
    -not -path "$SERVER/hMailServer.Minidump/*" \
    -not -path "$SERVER/hMailServer.Updater/*" \
    | sort)
-
-for unreferenced in "${UNREFERENCED_SOURCES[@]}"; do
-   for index in "${!SOURCES[@]}"; do
-      if [ "${SOURCES[$index]}" = "$SERVER/$unreferenced" ]; then
-         unset 'SOURCES[index]'
-      fi
-   done
-done
-SOURCES=("${SOURCES[@]}")
 
 if [ -n "$FILTER" ]; then
    mapfile -t SOURCES < <(printf '%s\n' "${SOURCES[@]}" | grep -- "$FILTER")

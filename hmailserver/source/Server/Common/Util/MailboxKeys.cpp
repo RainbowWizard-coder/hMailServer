@@ -379,7 +379,10 @@ namespace HM
          static std::string salt;
          std::call_once(once, [] { salt = MailboxCrypto::RandomBytes(32); });
 
-         std::string input = salt + Bytes(secret);
+         std::string passwordBytes = Bytes(secret);
+         MailboxCrypto::ForgetOnExit forgetPasswordBytes(passwordBytes);
+         std::string input = salt + passwordBytes;
+         MailboxCrypto::ForgetOnExit forgetInput(input);
          unsigned char digest[SHA256_DIGEST_LENGTH] = {};
          SHA256((const unsigned char *) input.data(), input.size(), digest);
          MailboxCrypto::Forget(input);
@@ -480,19 +483,20 @@ namespace HM
             return false;
 
          AnsiString text;
+         MailboxCrypto::ForgetOnExit forgetText(text);
          if (!DataProtector::Unprotect(row.pending, text))
             return false;
 
          std::string encoded = Bytes(text);
+         MailboxCrypto::ForgetOnExit forgetEncoded(encoded);
          std::string raw;
+         MailboxCrypto::ForgetOnExit forgetRaw(raw);
          const bool ok = MailboxCrypto::FromBase64(encoded, raw) && MailboxCrypto::PublicKeyOf(raw) == row.public_key;
          MailboxCrypto::Forget(encoded);
+         MailboxCrypto::Forget(text);
 
          if (!ok)
-         {
-            MailboxCrypto::Forget(raw);
             return false;
-         }
 
          privateKey.swap(raw);
          return true;
@@ -557,12 +561,12 @@ namespace HM
          privateKey.clear();
 
          std::string opened;
+         MailboxCrypto::ForgetOnExit forgetOpened(opened);
          if (!MailboxCrypto::UnwrapWithSecret(passphrase, MailboxKeys::DomainPurpose(recovery.public_key), Bytes(recovery.sealed), opened, problem))
             return false;
 
          if (MailboxCrypto::PublicKeyOf(opened) != recovery.public_key)
          {
-            MailboxCrypto::Forget(opened);
             problem = _T("what the passphrase opened is not the domain's recovery key");
             return false;
          }
@@ -577,12 +581,12 @@ namespace HM
          privateKey.clear();
 
          std::string opened;
+         MailboxCrypto::ForgetOnExit forgetOpened(opened);
          if (!MailboxCrypto::OpenSealed(recoveryPrivate, MailboxKeys::RecoveryPurpose(row.public_key), Bytes(row.recovery_seal), opened, problem))
             return false;
 
          if (MailboxCrypto::PublicKeyOf(opened) != row.public_key)
          {
-            MailboxCrypto::Forget(opened);
             problem = _T("what the recovery key opened is not the account's mailbox key");
             return false;
          }
@@ -974,22 +978,24 @@ namespace HM
             return;
 
          AnsiString secret = Utf8(password);
+         MailboxCrypto::ForgetOnExit forgetSecret(secret);
          const std::string digest = PasswordDigest(secret);
 
+         // Forgotten however this ends - a return below, or an exception from the
+         // database or the log, which the catch at the end takes.
          std::string privateKey;
+         MailboxCrypto::ForgetOnExit forgetPrivateKey(privateKey);
          std::string knownDigest;
          if (OpenPrivateOf(accountId, row.public_key, privateKey, &knownDigest, true))
          {
             // Open already. The quick path: this password is the one that
             // opened it, and the key is wrapped by a password, not pending.
             if (!knownDigest.empty() && MailboxCrypto::ConstantTimeEquals(knownDigest, digest) && !row.password_wrap.IsEmpty() && row.pending.IsEmpty())
-            {
-               MailboxCrypto::Forget(privateKey);
                return;
-            }
 
             // Wrapped by this password: nothing to do but remember it.
             std::string opened;
+            MailboxCrypto::ForgetOnExit forgetOpened(opened);
             String problem;
             if (!row.password_wrap.IsEmpty() && row.pending.IsEmpty() &&
                 MailboxCrypto::UnwrapWithSecret(secret, PasswordPurpose(row.public_key), Bytes(row.password_wrap), opened, problem) &&
@@ -1017,7 +1023,6 @@ namespace HM
                }
             }
 
-            MailboxCrypto::Forget(privateKey);
             return;
          }
 
@@ -1046,7 +1051,6 @@ namespace HM
                // Opened all the same, for this sign-in: the machine copy is
                // still there, and the next sign-in tries the wrap again.
                OpenInMemory(accountId, row.public_key, privateKey, std::string());
-               MailboxCrypto::Forget(privateKey);
                return;
             }
 
@@ -1064,7 +1068,6 @@ namespace HM
              MailboxCrypto::PublicKeyOf(privateKey) == row.public_key)
          {
             OpenInMemory(accountId, row.public_key, privateKey, digest);
-            MailboxCrypto::Forget(privateKey);
             return;
          }
          MailboxCrypto::Forget(privateKey);
@@ -1205,16 +1208,20 @@ namespace HM
       // Not a use: an administrator's password set wraps the key and does not
       // keep it open for the person (docs/EncryptionAtRest.md, "Passwords").
       std::string privateKey;
+      MailboxCrypto::ForgetOnExit forgetPrivateKey(privateKey);
       if (!OpenPrivateOf(account->GetID(), row.public_key, privateKey, nullptr, false) && !OpenPending(row, privateKey))
       {
          refusal = failed ? UnreadableSentence() : ClosedKeySentence();
          return false;
       }
 
+      AnsiString passwordBytes = Utf8(password);
+      MailboxCrypto::ForgetOnExit forgetPasswordBytes(passwordBytes);
       std::string wrapped;
       String problem;
-      const bool ok = MailboxCrypto::WrapWithSecret(Utf8(password), PasswordPurpose(row.public_key), privateKey, wrapped, problem);
+      const bool ok = MailboxCrypto::WrapWithSecret(passwordBytes, PasswordPurpose(row.public_key), privateKey, wrapped, problem);
       MailboxCrypto::Forget(privateKey);
+      MailboxCrypto::Forget(passwordBytes);
 
       if (!ok)
       {
@@ -1420,6 +1427,7 @@ namespace HM
       }
 
       std::string privateKey;
+      MailboxCrypto::ForgetOnExit forgetPrivateKey(privateKey);
       std::string publicKey;
       if (!MailboxCrypto::GenerateKeyPair(privateKey, publicKey))
       {
@@ -1431,17 +1439,23 @@ namespace HM
       String sealProblem;
       if (!MailboxCrypto::SealToPublic(recovery.public_key, RecoveryPurpose(publicKey), privateKey, sealed, sealProblem))
       {
-         MailboxCrypto::Forget(privateKey);
          problem = "the key could not be sealed to the domain's recovery key: " + Utf8(sealProblem);
          return false;
       }
 
       // Until the first sign-in with the password, under this machine's key:
-      // nothing here has the password to wrap it by.
+      // nothing here has the password to wrap it by. The key's base64 is a key
+      // too, and is forgotten with it.
+      std::string encodedPrivate = MailboxCrypto::Base64(privateKey);
+      MailboxCrypto::ForgetOnExit forgetEncodedPrivate(encodedPrivate);
+      AnsiString encodedText(encodedPrivate.c_str());
+      MailboxCrypto::ForgetOnExit forgetEncodedText(encodedText);
       AnsiString pending;
-      if (!DataProtector::Protect(AnsiString(MailboxCrypto::Base64(privateKey).c_str()), pending) || pending.IsEmpty())
+      const bool held = DataProtector::Protect(encodedText, pending) && !pending.IsEmpty();
+      MailboxCrypto::Forget(encodedText);
+      MailboxCrypto::Forget(encodedPrivate);
+      if (!held)
       {
-         MailboxCrypto::Forget(privateKey);
          problem = "the key could not be held for the first sign-in under this machine's secret store (on Linux, the key file inside the data directory; the error log says why)";
          return false;
       }
@@ -1465,7 +1479,6 @@ namespace HM
       __int64 id = 0;
       if (!Application::Instance()->GetDBManager()->Execute(statement, &id) || id == 0)
       {
-         MailboxCrypto::Forget(privateKey);
          problem = "the key could not be stored";
          return false;
       }
@@ -1629,6 +1642,7 @@ namespace HM
       }
 
       std::string recoveryPrivate;
+      MailboxCrypto::ForgetOnExit forgetRecoveryPrivate(recoveryPrivate);
       if (!OpenRecoveryPrivate(opener, passphrase, recoveryPrivate, problem))
       {
          problem = _T("the passphrase does not open the domain's recovery key");
@@ -1673,6 +1687,7 @@ namespace HM
 
       std::string publicKey;
       std::string privateKey;
+      MailboxCrypto::ForgetOnExit forgetPrivateKey(privateKey);
       String why;
       if (!OpenPrivateWithRecovery(account->GetID(), passphrase, publicKey, privateKey, why))
       {
@@ -1682,7 +1697,6 @@ namespace HM
       }
 
       OpenInMemory(account->GetID(), publicKey, privateKey, std::string());
-      MailboxCrypto::Forget(privateKey);
 
       status = 200;
       return true;
@@ -1737,7 +1751,10 @@ namespace HM
       Recovery existing;
       const bool replacing = GetRecovery(domainId, existing);
 
+      // Each private key below is forgotten however this ends: the refusals
+      // return early, and a write can throw.
       std::string newPrivate;
+      MailboxCrypto::ForgetOnExit forgetNewPrivate(newPrivate);
       std::string newPublic;
       if (!MailboxCrypto::GenerateKeyPair(newPrivate, newPublic))
       {
@@ -1805,23 +1822,23 @@ namespace HM
       // opens every account meanwhile (RecoveryFor).
       if (currentPassphrase.IsEmpty())
       {
-         MailboxCrypto::Forget(newPrivate);
          problem = "current_passphrase: the domain has a recovery key, and replacing it needs the passphrase that opens it, since every account's key is sealed to it again";
          status = 409;
          return false;
       }
 
       std::string currentPrivate;
+      MailboxCrypto::ForgetOnExit forgetCurrentPrivate(currentPrivate);
       String why;
       if (!OpenRecoveryPrivate(existing, currentPassphrase, currentPrivate, why))
       {
-         MailboxCrypto::Forget(newPrivate);
          problem = "current_passphrase does not open the domain's recovery key";
          status = 403;
          return false;
       }
 
       std::string previousPrivate;
+      MailboxCrypto::ForgetOnExit forgetPreviousPrivate(previousPrivate);
       if (!existing.previous_public.empty())
       {
          Recovery previous;
@@ -1829,8 +1846,6 @@ namespace HM
          previous.sealed = existing.previous_sealed;
          if (!OpenRecoveryPrivate(previous, currentPassphrase, previousPrivate, why))
          {
-            MailboxCrypto::Forget(currentPrivate);
-            MailboxCrypto::Forget(newPrivate);
             problem = "the key an earlier replacement of this recovery key left beside it does not open with current_passphrase; nothing was changed";
             status = 409;
             return false;
@@ -1854,9 +1869,6 @@ namespace HM
          std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
          if (!recordset)
          {
-            MailboxCrypto::Forget(previousPrivate);
-            MailboxCrypto::Forget(currentPrivate);
-            MailboxCrypto::Forget(newPrivate);
             problem = "the domain's mailbox keys could not be read";
             return false;
          }
@@ -1875,9 +1887,6 @@ namespace HM
             // still finds the recovery key it was sealed to.
             if (row.public_key.size() != (size_t) MailboxCrypto::KeyBytes)
             {
-               MailboxCrypto::Forget(previousPrivate);
-               MailboxCrypto::Forget(currentPrivate);
-               MailboxCrypto::Forget(newPrivate);
                problem = "the recovery key was not replaced, and nothing was changed: the mailbox key row of " + Utf8(address) + " holds no key, so it cannot be sealed to the new one. " + Utf8(DamagedWords());
                status = 409;
                return false;
@@ -1890,6 +1899,7 @@ namespace HM
             const bool known = row.recovery_public == existing.public_key || reseal.on_previous;
 
             std::string accountPrivate;
+            MailboxCrypto::ForgetOnExit forgetAccountPrivate(accountPrivate);
             String sealProblem;
             bool ok = known &&
                       OpenAccountFromRecovery(row, reseal.on_previous ? previousPrivate : currentPrivate, accountPrivate, sealProblem) &&
@@ -1902,9 +1912,6 @@ namespace HM
 
             if (!ok)
             {
-               MailboxCrypto::Forget(previousPrivate);
-               MailboxCrypto::Forget(currentPrivate);
-               MailboxCrypto::Forget(newPrivate);
                if (!known)
                   sealProblem = _T("it is sealed to a recovery key this domain does not have - another domain's, or one replaced before");
                problem.Format("the mailbox key of account %I64d could not be sealed to the new recovery key (%s); nothing was changed", row.account_id, Utf8(sealProblem).c_str());

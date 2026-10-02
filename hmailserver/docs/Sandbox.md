@@ -409,3 +409,4 @@ The errors
 | HM7275 | the examination of a message ended in an unexpected error; the message is delivered without a verdict, as a message the scanner could not examine is by default |
 | HM7276 | a decision could not be recorded; the message stays held and the next poll tries again |
 | HM7277 | a value was not encrypted with the legacy Blowfish scheme because it is longer than the 248 characters it holds - any protected setting while `ProtectStoredSecretsWithDPAPI` is 0, or DPAPI failing; nothing is written in its place |
+| HM7560 | the poller's interval, `SandboxPollSeconds`, could not be read because of an unexpected error (at most once an hour); the poller goes on every 30 seconds until it can |

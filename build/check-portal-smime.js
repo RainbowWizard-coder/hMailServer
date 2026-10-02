@@ -259,6 +259,27 @@ function openssl(args, input) {
   check(many.attachments.length === 64 && many.html.split('data:image/png').length === 2 && many.html.split('cid:').length === 65, 'at most 64 images become parts and the next stays a data: URL, as on the server: ' + many.attachments.length + ' part(s)');
   const untouchedHtml = '<img data-src="data:image/png;base64,' + logo + '"><img src="data:image/svg+xml;base64,PHN2Zz4=">';
   check(smime.extractContent(smime.parseMime(smime.buildMime({ text: 'x', html: untouchedHtml }))).html === untouchedHtml, 'a data-src and an SVG are left as they were');
+
+  // A part with no name of its own: saved as "part" with the extension of its
+  // declared type when the type is on the module's short list, and as "part"
+  // alone otherwise - never with an extension a browser renders or a desktop
+  // runs - and a named part keeps its name. Until 6.3.6 every nameless part was
+  // "part", which opened in nothing once the page stopped handing the browser
+  // the part's own type.
+  const nameless = (type, extra) => 'MIME-Version: 1.0\r\nContent-Type: multipart/mixed; boundary="b"\r\n\r\n--b\r\nContent-Type: text/plain\r\n\r\nbody\r\n' +
+    '--b\r\nContent-Type: ' + type + '\r\nContent-Disposition: attachment' + (extra || '') + '\r\nContent-Transfer-Encoding: base64\r\n\r\nQUJD\r\n--b--\r\n';
+  const savedAs = (type, extra) => {
+    const parts = smime.extractContent(smime.parseMime(Buffer.from(nameless(type, extra), 'latin1'))).attachments;
+    return parts.length === 1 ? parts[0].name : '(' + parts.length + ' parts)';
+  };
+  check(savedAs('application/pdf') === 'part.pdf' && savedAs('IMAGE/PNG') === 'part.png' && savedAs('text/calendar; method=REQUEST') === 'part.ics' &&
+        savedAs('application/vnd.openxmlformats-officedocument.wordprocessingml.document') === 'part.docx',
+        'a nameless part of a listed type is saved with its extension: ' + [savedAs('application/pdf'), savedAs('IMAGE/PNG'), savedAs('text/calendar; method=REQUEST')].join(', '));
+  check(savedAs('text/html') === 'part' && savedAs('image/svg+xml') === 'part' && savedAs('application/x-msdownload') === 'part' &&
+        savedAs('application/javascript') === 'part' && savedAs('application/hta') === 'part' && savedAs('application/x-unknown') === 'part',
+        'a nameless part of any other type is saved as "part" alone: ' + [savedAs('text/html'), savedAs('image/svg+xml'), savedAs('application/x-msdownload')].join(', '));
+  check(savedAs('application/pdf', '; filename="report.html"') === 'report.html' && savedAs('application/x-msdownload', '; filename="tool.exe"') === 'tool.exe',
+        'a named part keeps its own name, as a named attachment always has');
   const signedLogo = await smime.composeMessage({ headers: { from: 'alice@example.test', to: 'bob@example.test', subject: 'Logo' }, text: withLogo.text, html: withLogo.html, sign: signer });
   const logoTmp = fs.mkdtempSync(path.join(os.tmpdir(), 'hm-smime-logo-'));
   fs.writeFileSync(path.join(logoTmp, 'logo.eml'), signedLogo, 'binary');

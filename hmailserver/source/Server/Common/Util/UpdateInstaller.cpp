@@ -900,6 +900,9 @@ namespace HM
       struct LeaveDrainOnFailure
       {
          LeaveDrainOnFailure() : keep(false) {}
+         // Leaves the drain when it goes: a copy would leave it twice.
+         LeaveDrainOnFailure(const LeaveDrainOnFailure &) = delete;
+         LeaveDrainOnFailure &operator=(const LeaveDrainOnFailure &) = delete;
          ~LeaveDrainOnFailure()
          {
             if (keep)

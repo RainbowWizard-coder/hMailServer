@@ -299,10 +299,11 @@ namespace RegressionTests.SMTP
          fetchAccount.ServerAddress = "localhost";
          fetchAccount.Port = port;
          fetchAccount.ProcessMIMERecipients = false;
-         // 0: the IMAP fetcher flags a collected message \Deleted and expunges it in
+         // -1: the IMAP fetcher flags a collected message \Deleted and expunges it in
          // the same session (IMAPClientConnection, as
-         // ImapFetch.CollectedMessagesAreDeletedFromTheFarSideWhenAsked holds it).
-         fetchAccount.DaysToKeepMessages = 0;
+         // ImapFetch.CollectedMessagesAreDeletedFromTheFarSideWhenAsked holds it), so
+         // the assertion below that nothing was flagged means something.
+         fetchAccount.DaysToKeepMessages = -1;
          fetchAccount.UseAntiSpam = false;
          fetchAccount.UseAntiVirus = false;
          fetchAccount.Save();

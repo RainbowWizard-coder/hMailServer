@@ -31,8 +31,8 @@ namespace hMailServer.ControlPanel.Views
       /// </summary>
       private static readonly (int Value, string Label)[] ServerTypeOptions =
       {
-         (0, L("POP3 - download and (unless kept for N days) delete")),
-         (1, L("IMAP - the INBOX, collected once by UID; kept on the server unless Days to keep is 0"))
+         (0, L("POP3 - download, then delete from the server as Days to keep says")),
+         (1, L("IMAP - the INBOX, collected once by UID; deleted from the server only as Days to keep says"))
       };
 
       private static readonly (int Value, string Label)[] ConnectionSecurityOptions =
@@ -397,7 +397,10 @@ namespace hMailServer.ControlPanel.Views
             new FieldSpec { Prop = "Username", Label = L("User name"), ShowInGrid = false, Default = "" },
             new FieldSpec { Prop = "Password", Label = L("Password"), Kind = FieldKind.Password, ShowInGrid = false, Default = "" },
             new FieldSpec { Prop = "MinutesBetweenFetch", Label = L("Minutes between downloads"), Kind = FieldKind.Number, ShowInGrid = false, Default = 15 },
-            new FieldSpec { Prop = "DaysToKeepMessages", Label = L("Days to keep on server (0 = delete after download)"), Kind = FieldKind.Number, ShowInGrid = false, Default = 0 },
+            // The server's one meaning, for POP3 and IMAP alike (FetchAccount.h): this
+            // said "0 = delete after download" from 6.2.0 to 6.3.5, while the POP3
+            // fetcher read 0 as "never delete".
+            new FieldSpec { Prop = "DaysToKeepMessages", Label = L("Days to keep on server (0 = never delete, -1 = delete after download)"), Kind = FieldKind.Number, ShowInGrid = false, Default = 0 },
             // Was a "Use SSL/TLS" checkbox, which could not express STARTTLS at
             // all. The COM property behind that checkbox is UseSSL, and its
             // getter is ConnectionSecurity == CSSSL while its setter writes

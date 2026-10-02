@@ -120,6 +120,7 @@ namespace HM
       // The poller's own bookkeeping, read and written on its thread alone.
       __int64 last_sweep = 0;
       __int64 last_poll_failure_report = 0;
+      __int64 last_interval_failure_report = 0;
       __int64 resume_after = 0;
 
       // Attempts per message at recording a hold or reading its data.
@@ -129,6 +130,19 @@ namespace HM
       __int64 NowSeconds()
       {
          return (__int64) time(nullptr);
+      }
+
+      // Whether a failure the poller keeps meeting is to be said now: the first
+      // time, then once FailureReportIntervalSeconds have passed since it was last
+      // said (or the clock went back), because a failure that repeats at every
+      // poll is one condition, not one a second.
+      bool ReportDue(__int64 &lastReport, __int64 now)
+      {
+         if (lastReport != 0 && now - lastReport < FailureReportIntervalSeconds && now >= lastReport)
+            return false;
+
+         lastReport = now;
+         return true;
       }
 
       String ClipText(const String &value, int maximum)
@@ -2304,13 +2318,26 @@ namespace HM
          boost::this_thread::sleep_for(boost::chrono::seconds(1));
          waited++;
 
+         // The getter reports a missing setting itself (HM5015) and answers its
+         // default; what is left to throw here is an allocation or a lock that
+         // failed. The poller goes on every 30 seconds then, and says so - once an
+         // hour at most, as a failed pass is said - rather than nothing at all.
          int period = 30;
          try
          {
             period = Configuration::Instance()->GetSandboxPollSeconds();
          }
+         catch (const boost::thread_interrupted &)
+         {
+            throw;
+         }
          catch (...)
          {
+            if (ReportDue(last_interval_failure_report, NowSeconds()))
+            {
+               ReportSandboxError(7560, _T("Sandbox::WorkerLoop_"),
+                  _T("The sandbox poller's interval (SandboxPollSeconds) could not be read because of an unexpected error. The poller goes on every 30 seconds until it can be read."));
+            }
          }
 
          // A message just held has its files submitted now, not at the next
@@ -2335,10 +2362,8 @@ namespace HM
          {
             // Contained, so the thread goes on polling; said at most once an
             // hour, because a failure that repeats every poll is one condition.
-            const __int64 now = NowSeconds();
-            if (last_poll_failure_report == 0 || now - last_poll_failure_report >= FailureReportIntervalSeconds || now < last_poll_failure_report)
+            if (ReportDue(last_poll_failure_report, NowSeconds()))
             {
-               last_poll_failure_report = now;
                ReportSandboxError(7274, _T("Sandbox::WorkerLoop_"),
                   _T("A pass of the sandbox's poller ended in an unexpected error. Held messages wait for the next pass; the hold's timeout still applies."));
             }

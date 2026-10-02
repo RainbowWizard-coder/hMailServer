@@ -111,7 +111,7 @@ namespace HM
 
       struct Grant
       {
-         Grant() : account_id(0), migration_job_id(0), mirror(false), days_to_keep(-1) {}
+         Grant() : account_id(0), migration_job_id(0), mirror(false), days_to_keep(0) {}
 
          __int64 account_id;
          __int64 migration_job_id;   // a migration job's sign-in, and then account_id is 0

@@ -609,7 +609,7 @@ namespace HM
          const bool duplicateWithinThisListing =
             uids_seen_this_session_.find(sCurrentUID) != uids_seen_this_session_.end();
 
-         if (bMessageDownloaded && duplicateWithinThisListing && GetDaysToKeep_(sCurrentUID) == -1)
+         if (bMessageDownloaded && duplicateWithinThisListing && FetchAccount::DeletesOnCollection(GetDaysToKeep_(sCurrentUID)))
             bMessageDownloaded = false;
 
          uids_seen_this_session_.insert(sCurrentUID);
@@ -1177,6 +1177,9 @@ namespace HM
       int iIndex = (*cur_cleanup_).first;
       String sUID = (*cur_cleanup_).second;
 
+      // DaysToKeepMessages as FetchAccount.h says, the same for both fetchers:
+      // negative deletes now, 0 never, N once the message has been on record for
+      // more than N days.
       int iDaysToKeep = GetDaysToKeep_(sUID);
 
       String sResponse;
@@ -1186,7 +1189,7 @@ namespace HM
          // Never delete messages
          return false;
       }
-      else if (iDaysToKeep > 0)
+      else if (!FetchAccount::DeletesOnCollection(iDaysToKeep))
       {
          // Check wether we should delete this UID.
          std::shared_ptr<FetchAccountUID> pUID = GetUIDList_()->GetUID(sUID);
@@ -1213,7 +1216,7 @@ namespace HM
 
          DateTimeSpan dtSpan = dtNow - dtCreation;
 
-         if (dtSpan.GetNumberOfDays() <= iDaysToKeep)
+         if (!FetchAccount::RemoteCopyDue(iDaysToKeep, dtSpan.GetNumberOfDays()))
          {
             // No, we should not delete this UID.
             return false;

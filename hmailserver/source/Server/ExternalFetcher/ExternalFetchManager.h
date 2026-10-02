@@ -18,6 +18,9 @@ namespace HM
    public:
       ExternalFetchManager(void);
       ~ExternalFetchManager(void);
+      // Removes its work queue when it goes: a copy would remove it twice.
+      ExternalFetchManager(const ExternalFetchManager &) = delete;
+      ExternalFetchManager &operator=(const ExternalFetchManager &) = delete;
 
       void DoWork();
       

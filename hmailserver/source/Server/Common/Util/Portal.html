@@ -89,7 +89,7 @@ html{--lead:1}
 @keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 
 /* ---------- Buttons and fields ---------- */
-.btn{all:unset;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:0 16px;height:36px;border-radius:18px;font-size:14px;font-weight:500;
+.btn{all:unset;box-sizing:border-box;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:0 16px;height:36px;border-radius:18px;font-size:14px;font-weight:500;
   background:var(--accent);color:#fff;white-space:nowrap;transition:box-shadow .15s,background .15s}
 [data-theme="dark"] .btn{color:#062e6f}
 .btn:hover{box-shadow:var(--shadow)}
@@ -1719,7 +1719,7 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 <div id="import-signin" hidden>
 <h3>Moving from Gmail or Outlook.com</h3>
 <p class="hint">Sign in there, and your server collects with the permission you give it. No password is kept here, and you can take the permission back there at any time.</p>
-<div class="row"><label for="import-keep">After collecting</label><select id="import-keep"><option value="-1">Leave the mail there</option><option value="0">Delete it there</option></select></div>
+<div class="row"><label for="import-keep">After collecting</label><select id="import-keep"><option value="0">Leave the mail there</option><option value="-1">Delete it there</option></select></div>
 <label class="inline"><input id="import-mirror" type="checkbox" checked> Bring the folders over: you choose which once the other server has listed them</label>
 <div class="row"><button class="btn" type="button" id="import-google" hidden>Sign in to Gmail</button><button class="btn" type="button" id="import-microsoft" hidden>Sign in to Outlook.com</button></div>
 <p class="note" id="import-second" hidden></p>
@@ -1737,7 +1737,7 @@ table.keys td:first-child{white-space:nowrap;width:40%}
 <div class="row"><label for="fetch-host">Server</label><input id="fetch-host" type="text" maxlength="255" placeholder="imap.example.com" required><label for="fetch-port">Port</label><input id="fetch-port" type="number" min="1" max="65535" value="993"></div>
 <div class="row"><label for="fetch-type">Protocol</label><select id="fetch-type"><option value="imap">IMAP</option><option value="pop3">POP3</option></select><label for="fetch-security">Encryption</label><select id="fetch-security"><option value="tls">TLS</option><option value="starttls_required">STARTTLS</option><option value="none">None - the password travels in the clear</option></select></div>
 <div class="row"><label for="fetch-user">User name</label><input id="fetch-user" type="text" maxlength="255" autocomplete="off"><label for="fetch-password">Password</label><input id="fetch-password" type="password" autocomplete="new-password"></div>
-<div class="row"><label for="fetch-keep">After collecting</label><select id="fetch-keep"><option value="-1">Leave the mail there</option><option value="0">Delete it there</option><option value="30">Delete it there after 30 days</option></select><label for="fetch-every">Every</label><select id="fetch-every"><option value="15">15 minutes</option><option value="30" selected>30 minutes</option><option value="60">hour</option><option value="360">6 hours</option></select></div>
+<div class="row"><label for="fetch-keep">After collecting</label><select id="fetch-keep"><option value="0">Leave the mail there</option><option value="-1">Delete it there</option><option value="30">Delete it there after 30 days</option></select><label for="fetch-every">Every</label><select id="fetch-every"><option value="15">15 minutes</option><option value="30" selected>30 minutes</option><option value="60">hour</option><option value="360">6 hours</option></select></div>
 <label class="inline"><input id="fetch-mirror" type="checkbox"> Bring the folders over too (IMAP only): each folder there becomes a folder here</label>
 <div class="row"><button class="btn" type="submit" id="fetch-save">Add the account</button><button class="btn ghost" type="button" id="fetch-cancel" hidden>Cancel</button></div>
 </form>

@@ -77,8 +77,10 @@ time being: after it the project makes security releases only, and the 6.3 line 
 September 2027 (below). 6.3.6 fixes a security flaw and takes OpenSSL 4.0.3 into the Windows installers (both below),
 fixes what 6.3.5's release and the first live updates from 6.3.4 found, replaces with the project's own code the last
 code in the server whose licence a distribution would have had to settle, and carries every file the release pipeline
-makes, the ARM64 Windows installer among them. The schema stays at **6105**: this release has no schema step. The
-security notes come first, then what changes on upgrade without a switch. The operator documents named below are in
+makes, the ARM64 Windows installer among them. The schema moves to **6106** in one step that changes no column: it
+gives every external account's *days to keep messages* the one meaning both fetchers now read, keeping each account
+doing what it did or stopping it deleting (What changes on upgrade without a switch, item 21). The security notes
+come first, then what changes on upgrade without a switch. The operator documents named below are in
 `hmailserver/docs`, which has nine more of them than it had at 6.3.5.
 
 **Releases pause after this one.** 6.3.6 is the last release for the time being, by the owner's decision of 28
@@ -168,8 +170,11 @@ wrote: `hMailServer.exe /InstallUpdate` checks that only administrators can chan
 installer out of the service's `Updates` folder into `AdminUpdate`, which only administrators can change, and
 checks the copy itself - the Authenticode signature with the publisher pinned to Progressive Robot Ltd and the
 Microsoft chain it is issued under, revocation online, the version and the architecture, a release newer than
-the running one, and the Sigstore bundle, in a child process with the administrator's rights taken away. The
-Control Deck, the REST API and a Control Panel connected to another computer say where to click. The service
+the running one, and the Sigstore bundle, in a child process with the administrator's rights taken away.
+`SeDebugPrivilege`, which the stage needs to read a Control Panel of another user's and the Updater to end the
+programs running from the installation folder, is switched on for that alone and off again before anything else
+runs, the installer included. The Control Deck, the REST API and a Control Panel connected to another computer say
+where to click. The service
 never makes an administrator or SYSTEM run anything ([ServiceAccount.md](hmailserver/docs/ServiceAccount.md),
 "The live update"). On LocalSystem the live update is as it was.
 
@@ -279,7 +284,16 @@ fixes from there.
 
 The webmail now hands the browser an attachment it decrypted itself, of an S/MIME message (since 6.3.2) or an
 OpenPGP one (since 6.3.4), as a file of no type (`application/octet-stream`) rather than under the type the message
-named, so that the browser only ever saves it; every version from 6.3.2 to 6.3.5 is affected.
+named, so that the browser only ever saves it; every version from 6.3.2 to 6.3.5 is affected. Such a part that names
+no file is saved as `part` with the extension of the type it declares when that type is on a short list - plain text,
+CSV, a calendar, a contact card, PDF, ZIP, a key, a forwarded message, PNG, JPEG, GIF, WebP, MP3, MP4 and the three
+Office documents - and as `part` alone otherwise; no extension a browser renders as a page or a desktop runs is ever
+given, and the file's type stays `application/octet-stream`.
+
+One more hardening change, found by the project's own review: a mailbox key encrypted at rest - an account's or a
+domain's recovery key, opened, made or sealed again - and the keys derived from it are written over when the code
+holding them is done, however it ends: a return, and now an exception thrown through it as well (from the database,
+an allocation, the log), which left such a key in memory freed without being written over, in 6.3.4 and 6.3.5.
 
 In the same way, a file the webmail saves for a second account shown beside the first is now always of no type, and
 a photo it shows for that account, or an attachment its offline store answers without a connection, keeps the type
@@ -618,6 +632,51 @@ did. Found by the project's own review.
     delivery thread for a 20 MB message. A block or allow entry for a link after the limit no longer decides such
     a message, and a link the limit cuts through is left out rather than read as the part of its host before the
     cut ([SenderListsAndDigests.md](hmailserver/docs/SenderListsAndDigests.md)).
+21. **An external account's *days to keep messages* means one thing for POP3 and IMAP, and the upgrade starts no
+    account deleting remote mail it was not deleting.** The setting has always meant, to the POP3 fetcher, the COM API
+    and the `OnExternalAccountDownload` event: -1 deletes each message on the remote server as soon as it has been
+    collected, 0 leaves every message there, and a number of days N deletes a message N days after it was collected.
+    From 6.2.25 to 6.3.5 the IMAP fetcher read 0 as "delete" and -1 as "keep"; the Control Panel (from 6.2.0), the
+    Deck, the webmail's *Other accounts* and the REST API described that reversed meaning for both kinds of account;
+    and the webmail sent -1 for *Leave the mail there*, its default. Who was affected:
+    - an **IMAP** external account at 0 - the default of COM, the Control Panel and the REST API - had its remote
+      INBOX emptied as it was collected, and every mirrored folder when it mirrors folders, where the setting's own
+      meaning is to leave everything; one at -1, the webmail's *Leave the mail there*, kept what -1 deletes;
+    - a **POP3** external account added, moved or changed in the webmail (6.3.4 and 6.3.5) with *Leave the mail
+      there*, or given -1 through the REST API or the Deck, which called -1 "keeps every message", had each message
+      deleted on the remote server once collected; one given *Delete it there* kept everything;
+    - an event script that answered 3 ("never delete") for a message of an IMAP account had it deleted, and one that
+      answered 1 ("delete now") had it kept.
+
+    A message deleted on a remote server had been collected first and is in the local mailbox; the upgrade cannot put
+    it back on the remote server. Both fetchers now ask one rule (`FetchAccount.h`), and the upgrade to schema 6106
+    translates what is stored so that every account goes on doing what it did or stops deleting, and none starts: an
+    IMAP account's 0 becomes -1 and its negative number 0; a POP3 account made or moved by somebody other than a
+    server administrator - in the webmail, by a reader, by a key restricted to named domains or by a domain
+    administrator - has a negative number made 0, so that it stops deleting what that person asked to leave; every
+    other value is as it was. A backup made before 6.3.6 is restored through the same translation, and one made by
+    6.3.6 as it is. What the upgrade does not change is what an event script answers: an `OnExternalAccountDownload`
+    script that answers 1 (*delete now*) for a message of an IMAP account had it kept, and from 6.3.6 has it deleted,
+    as the event has always said - look at such a script before upgrading. **After upgrading, look at your IMAP
+    external accounts:** one that was emptying its remote INBOX against your intention now shows -1, *delete after
+    download*, and goes on doing it until you set it to 0. **Look at your POP3 external accounts at -1 too:** the
+    upgrade cannot tell one a server administrator set to -1 through the REST API or the Deck to keep its mail, or one
+    a reader set to *Leave the mail there* in the webmail on an account a server administrator made, from one set to
+    -1 through COM or the old Administrator to delete it, so it goes on deleting until you set it to 0; one a domain
+    administrator made over COM with -1 to delete it, as COM has always meant, now keeps its mail until it is set to
+    -1 again; and one set to 0 in the Control Panel to delete after download has kept everything, and goes on keeping
+    it until you set it to -1. **A program or script that writes the value** - over COM, the REST API or the Deck -
+    now has -1 delete and 0 keep for an IMAP account too; one written to the IMAP fetcher's earlier meaning is to be
+    changed before it next writes it. A webmail or Deck page loaded before the upgrade says the earlier meaning until
+    it is reloaded, and the webmail's sends -1 for *Leave the mail there*. The Control Panel (*Days to keep on server
+    (0 = never delete, -1 = delete after download)*), the Deck, the webmail, the COM help text and the REST API's
+    description now all say the same thing; the webmail shows an account's number of days that its list does not offer
+    as that number, where it showed and saved back 30; and an account the webmail imports with a sign-in leaves the
+    mail on the other server unless asked otherwise ([Migration.md](hmailserver/docs/Migration.md), step 3). Tests:
+    `ExternalAccounts/RemoteRetention` (both fetchers at -1 and 0, and the event's 1 and 3 on IMAP and POP3, each IMAP
+    case failing against 6.3.5's fetcher), `FetchAccountTester` (the rule, the 6106 translation and a backup from
+    before and after it), `BackupRestore`, the 6106 step's rows on PostgreSQL and MariaDB in
+    `build/db-upgrade-gate.sh`, and the webmail's and the Deck's script tests.
 
 ### Downloads and the release
 
@@ -1219,6 +1278,13 @@ did. Found by the project's own review.
   outline in the system's highlight; the brief fade-in stops when animations are turned off. Tested by
   `DesignTokensTests` (the contrast, High Contrast, the web pages' copies of the colours) and by `deck-script-test.js`
   and `portal-script-test.js` (each page's tokens and rules).
+- **Fixed: the webmail's Sign in button was wider than its fields.** On the sign-in card the button ran 32 pixels
+  past the right edge of the E-mail address and Password fields, and *Send the link* past its field on the reset card,
+  in every browser and both themes: the buttons' `all: unset` put back `box-sizing: content-box`, so a width of 100%
+  had their padding added to it. They are as wide as the fields now (measured in headless Chromium and Firefox, light
+  and dark), and `build/check-portal-script.py` refuses a control reset with `all: unset` that is given a width of
+  100% without saying `box-sizing: border-box` again. The Deck's sign-in card and the password-protected message's
+  page were not affected.
 - **Fixed: two copies of work item 48 that were not yet the Control Panel's own.** Text copied from the help pane
   put RTF and XAML on the clipboard beside the text, in the theme's colours, and its right-click menu was the
   document viewer's, in English (measured in German and Swedish); Ctrl+C, the menu's Copy and a selection dragged
@@ -1250,7 +1316,10 @@ did. Found by the project's own review.
   ("Previous month", "Next decade"), in the Control Panel's language.
 - **Fixed: the Control Panel window's own buttons had no name for a screen reader.** Minimise, Maximise (Restore
   down while the window is maximised) and Close in the title bar were each read as just "button", in every
-  language; they now carry their names, in the Control Panel's language.
+  language; they now carry their names, in the Control Panel's language. So do the chevron that folds each of the
+  navigation's nine groups ("Collapse Maintenance", "Expand Maintenance") and a password box's eye ("Show password",
+  "Hide password"), each as its state changes; both were nameless in every version of the Control Panel. A chart's
+  time axis says "last second" where it said "last 1 seconds".
 - **Fixed: a switch put back from the audit trail stayed as it was.** Putting a setting back from its audit row
   (`POST /api/v1/audit/{id}/revert`, `Utilities.RevertAuditedChange`, *Put back* in the Deck and the Control Panel)
   wrote a switch's old value, `true` or `false`, into the text column of `hm_settings`, which the server does not
@@ -1616,7 +1685,18 @@ did. Found by the project's own review.
   and the server went on with it as if it were whole. The result is now copied beside the message and renamed over it
   once it is whole; a copy that fails leaves the message as it came, delivered without SpamAssassin's headers, as
   when spamd cannot be reached (`HM5861`). A result whose file did not close cleanly is not applied either. Tested by
-  `file-utilities-tests` (`FileUtilities::CopyOver`, against a quota and a full disk).
+  `file-utilities-tests` (`FileUtilities::CopyOver`, against a quota and a full disk). With `SAMoveVsCopy=1` the
+  result was moved onto the message instead, which is a copy onto it when the temporary folder and the data folder
+  are on two volumes; it is now moved beside the message and renamed over it in the same way
+  (`FileUtilities::MoveOver`), and a move whose copy fails leaves the message as it came (`HM5860`).
+- **Fixed: two more files whose last bytes went unchecked.** The list of members a backup restore hands 7-Zip, and a
+  file the live update downloads (the installer and its Sigstore bundle), were taken for whole when their close
+  failed, in every version that has them: a restore could extract fewer
+  members than it asked for and go on, and the live update could take a short installer or Sigstore bundle for
+  whole until its check refused it. Both now take the close's answer:
+  the restore stops with the list's file removed, and the download fails, says that the disk may be full and leaves
+  nothing behind. Tested by `file-utilities-tests`, with a loopback server for the download, against a quota and a
+  full disk, and each beside its control where the disk takes it.
 - **The object store's committer says what ends a pass.** Since 6.3.4, which brought the object store, a pass that
   met an unexpected error ended without a word. Nothing was lost, and nothing is: what it had not put in waits on the
   local disk, is read from there, and the next pass takes it up. It now says so in the error log as `HM7473`, once an
@@ -1662,8 +1742,10 @@ did. Found by the project's own review.
   messages when the account is deleted, its reading of the locks at start and its sweep; and a room's forgetting of
   one booking's record and of the records whose calendars are gone. Each still stops there, as it did, and now
   writes one line to the error log saying what was not done and what happens next: `HM6811` for the verdict,
-  `HM6812` for the sweep and the discarding, `HM6813` for the unlock and the locks, and `HM7434` for the booking
-  records.
+  `HM6812` for the sweep, `HM6813` for the locks, `HM7561` for the unlock, `HM7562` for the discarding with a
+  deleted account, and `HM7434` for the booking records
+  ([CompromisedAccounts.md](hmailserver/docs/CompromisedAccounts.md), "In the error log";
+  [RoomsAndEquipment.md](hmailserver/docs/RoomsAndEquipment.md)).
 
 - **Fixed: every TLS context switched on every OpenSSL option from bit 32 up.** The mask of options the server sets
   on each TLS context (`SslContextInitializer`) was held in an `int`. OpenSSL's `SSL_OP_ALL` carries bit 31, so the
@@ -1702,7 +1784,9 @@ did. Found by the project's own review.
   Until now a migration that did not start, replies that were not filed, a key that did not open, a trace with
   gaps, a device list past its limit or two SNMP figures that stopped moving left no cause in any log - the trace
   since it came, in 6.2.22's pre-releases, and the other five since 6.3.4. Migration.md, Calendar.md,
-  EncryptionAtRest.md, Reports.md and Snmp.md name the codes.
+  EncryptionAtRest.md, Reports.md and Snmp.md name the codes. A seventh, the sandbox poller's reading of its own
+  interval, is said too (`HM7560`, new, Sandbox.md; the poller goes on every 30 seconds until the interval can be
+  read): it was swallowed without a word since 6.3.4.
 - **Database passwords are passed on as they are.** The server wrote the host, the user, the password and the database
   into its connection string as they were: for PostgreSQL between single quotes, so a quote or a backslash in a
   password ended its value early; for SQL Server ending at a semicolon, and a value that began with a quote was read
@@ -1940,6 +2024,11 @@ did. Found by the project's own review.
   and keywords tests), and the quota warning, which is queued before the message that crosses the threshold is
   stored, is found by being the one message not sent rather than as the last one. About 290 other tests that deliver
   several messages were read and left as they are: they count, compare sets, find by content, or already wait.
+- **`build/check-changelog.py` holds a release section's "Full notes" line to the section's end.** The line that sends
+  the reader to the release page must be its section's last paragraph, once, linking that section's own release;
+  release-publish ends the GitLab release's notes with the section's text, and a fold of parallel work on 1 October
+  2026 had left 6.3.6's in the middle of it. Four self-test cases: the line mid-section, twice, linking another
+  release, and not in its form.
 - **`build/check-release-chain.py` holds the AppImages' two sources jobs to `.no-github`.**
   `appimage-runtime-sources` and `appimage-bundled-sources` fetch sources whose recipes name GitHub for five Alpine
   libraries; the checker now fails when either stops running `.no-github`'s `before_script` - taken out of its
@@ -2033,7 +2122,18 @@ did. Found by the project's own review.
   `if`s was, and four more places are indented as their braces are; and the `timeval`, `tm` and `timespec` of the
   POSIX `GetLocalTime`, `GetSystemTime` and `GetTickCount64`, and two more `struct tm` locals whose fill was not
   checked (`DomainSamples.cpp`, `ZipWriter.cpp`), start zeroed. 71 findings leave
-  `build/ci/static-analysis-baseline.txt`, and the job, run over the tree, finds none that is new.
+  `build/ci/static-analysis-baseline.txt`, and the job, run over the tree, finds none that is new. A sweep of the rest
+  of the tree for the same shape - a class whose destructor frees, closes, ends or gives back what it holds and that
+  could still be copied - found sixteen more, and they cannot be copied now either: the external fetcher's manager,
+  IMAP `APPEND`'s handler, the web services listener, the rooms' drain task, the event-script site, the live update's
+  drain guard and the Updater's shutdown block, the indexer's second look, a test's key-file guard and seven handle,
+  SID and security-descriptor holders of the elevated update stage and the service account's grants; nothing copied
+  one. Twenty-two files that no build compiled are deleted: the eleven `CMakeLists.txt` listed as in no build
+  (`LoggerFile`, `ServerThreads`, `AccountCache`, `OutboundPortConnection`, `Mutex`, `ISMTPCommand` and
+  `SMTPCommandHelp` with their headers, and the empty `Collection.cpp`, `Cache.cpp`, `CacheReaderWithDbFallback.cpp`
+  and `TestConnectionResult.cpp`), `IThread.h` and the DKIM COM class's three files, which no project named; the
+  list goes from `CMakeLists.txt`, `build/linux-tu-census.sh` and `build/check-source-tarball.py`. The Debug build
+  compiles again (`AutoBanFirewall.cpp` used `DEBUG_NEW` without defining it).
 - **`connection-string-tests`, `language-tests`, `live-log-tests` and `profiles-tests`**, four more, run the same
   ways: the PostgreSQL connection string read back by libpq and the bytes MySQL's values are handed over in, with its
   database's name quoted, COM's languages across a `ProgramFolder` change, the live log switched on and off beside

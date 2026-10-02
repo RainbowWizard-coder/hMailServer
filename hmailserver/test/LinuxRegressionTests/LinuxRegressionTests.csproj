@@ -163,6 +163,7 @@
     <Compile Include="..\RegressionTests\ExternalAccounts\FetchXOAuth2.cs" Link="ExternalAccounts\FetchXOAuth2.cs" />
     <Compile Include="..\RegressionTests\ExternalAccounts\HostileRemoteServer.cs" Link="ExternalAccounts\HostileRemoteServer.cs" />
     <Compile Include="..\RegressionTests\ExternalAccounts\ImapFetch.cs" Link="ExternalAccounts\ImapFetch.cs" />
+    <Compile Include="..\RegressionTests\ExternalAccounts\RemoteRetention.cs" Link="ExternalAccounts\RemoteRetention.cs" />
     <Compile Include="..\RegressionTests\IMAP\ACL.cs" Link="IMAP\ACL.cs" />
     <Compile Include="..\RegressionTests\IMAP\Append.cs" Link="IMAP\Append.cs" />
     <Compile Include="..\RegressionTests\IMAP\AppendInternalDate.cs" Link="IMAP\AppendInternalDate.cs" />

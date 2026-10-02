@@ -58,10 +58,11 @@ override_dh_auto_configure:
 # which only root can check; as another user it runs its one case that needs
 # no root), the database connection string read back by libpq, COM's languages
 # and the live log (scratch files under $TMPDIR as well), the setting profiles'
-# lock, the Control Deck's script hash and the webmail signature's reduction.
+# lock, the Control Deck's script hash, the webmail signature's reduction and
+# the wiping of mailbox encryption's keys however their scope ends.
 # None opens a socket, reads the system's configuration, needs a database or
 # needs root, so they run here, with the network refused, in seconds.
-TESTERS := spf-tests script-binding-tests snmp-tests object-store-signature-tests singleton-tests legacy-blowfish-tests xml-tree-tests datetime-tests public-suffix-tests backup-tests trust-anchor-tests business-object-tests tls-options-tests update-feed-tests imip-tests file-utilities-tests media-type-tests scram-tests ini-file-tests connection-string-tests language-tests live-log-tests profiles-tests inline-script-hash-tests signature-html-sanitizer-tests
+TESTERS := spf-tests script-binding-tests snmp-tests object-store-signature-tests singleton-tests legacy-blowfish-tests xml-tree-tests datetime-tests public-suffix-tests backup-tests trust-anchor-tests business-object-tests tls-options-tests update-feed-tests imip-tests file-utilities-tests media-type-tests scram-tests ini-file-tests connection-string-tests language-tests live-log-tests profiles-tests inline-script-hash-tests signature-html-sanitizer-tests mailbox-crypto-tests
 
 override_dh_auto_test:
 ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))

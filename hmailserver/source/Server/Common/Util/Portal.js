@@ -11697,6 +11697,35 @@
   var fetchPoll = null;
   var importOffered = { google: false, microsoft: false };
   var fetchChoosing = null;
+  // What the server keeps on the other server (FetchAccount.h, one meaning for
+  // POP3 and IMAP): 0 leaves every message there, -1 deletes each one once it has
+  // been collected, N deletes it N days after. An account set to a number of days
+  // the list does not offer - by an administrator - is shown as that number, in
+  // the words of the 30-day choice, and saved as it is, rather than shown and
+  // saved as 30; a choice made for an earlier account is taken away again.
+  var fetchKeepChoice = function (days) {
+    var select = el('fetch-keep');
+    Array.prototype.slice.call(select.children).forEach(function (option) {
+      if (option.getAttribute('data-days')) { select.removeChild(option); }
+    });
+    var value = typeof days === 'number' && isFinite(days) ? Math.round(days) : 0;
+    if (value < 0) { value = -1; }
+    if (value > 0 && value !== 30) {
+      var option = document.createElement('option');
+      option.setAttribute('value', String(value));
+      option.setAttribute('data-days', '1');
+      // The 30-day choice's words with the number changed, in the digits the
+      // language writes it in (Persian's own); a language that writes 30 some
+      // other way gets the number after its words.
+      var words = t('Delete it there after 30 days');
+      var persian = words.indexOf('\u06F3\u06F0') >= 0;
+      var thirty = persian ? '\u06F3\u06F0' : '30';
+      var shown = persian ? String(value).replace(/[0-9]/g, function (digit) { return String.fromCharCode(0x06F0 + Number(digit)); }) : String(value);
+      option.textContent = words.indexOf(thirty) >= 0 ? words.replace(thirty, shown) : words + ' (' + String(value) + ')';
+      select.appendChild(option);
+    }
+    select.value = String(value);
+  };
   var fetchFormReset = function () {
     fetchEditing = null;
     ['fetch-name', 'fetch-host', 'fetch-user', 'fetch-password'].forEach(function (id) { el(id).value = ''; });
@@ -11704,7 +11733,7 @@
     el('fetch-port').value = '993';
     el('fetch-type').value = 'imap';
     el('fetch-security').value = 'tls';
-    el('fetch-keep').value = '-1';
+    fetchKeepChoice(0);
     el('fetch-every').value = '30';
     el('fetch-mirror').checked = false;
     el('fetch-hint').hidden = true;
@@ -11777,7 +11806,7 @@
           el('fetch-security').value = f.connection_security === 'starttls_optional' ? 'starttls_required' : f.connection_security;
           el('fetch-user').value = f.username || '';
           el('fetch-password').value = '';
-          el('fetch-keep').value = String(f.days_to_keep_messages === 0 || f.days_to_keep_messages === -1 ? f.days_to_keep_messages : 30);
+          fetchKeepChoice(f.days_to_keep_messages);
           el('fetch-every').value = String(f.minutes_between_fetch >= 360 ? 360 : f.minutes_between_fetch >= 60 ? 60 : f.minutes_between_fetch >= 30 ? 30 : 15);
           el('fetch-mirror').checked = !!f.mirror_folders;
           el('fetch-save').textContent = t('Save the account');
@@ -11851,7 +11880,7 @@
     try { history.replaceState(null, '', '#/accounts'); } catch (e) { /* the message is shown; the address stays */ }
   };
   var startImport = function (provider) {
-    var body = { provider: provider, mirror_folders: !!el('import-mirror').checked, days_to_keep_messages: el('import-keep').value === '0' ? 0 : -1 };
+    var body = { provider: provider, mirror_folders: !!el('import-mirror').checked, days_to_keep_messages: el('import-keep').value === '-1' ? -1 : 0 };
     el('import-google').disabled = true;
     el('import-microsoft').disabled = true;
     call('POST', '/api/v1/me/fetch-accounts/import', body).then(function (result) {
@@ -11934,7 +11963,7 @@
       server_type: el('fetch-type').value,
       connection_security: el('fetch-security').value,
       username: el('fetch-user').value.trim(),
-      days_to_keep_messages: el('fetch-keep').value === '' ? -1 : Number(el('fetch-keep').value),
+      days_to_keep_messages: el('fetch-keep').value === '' ? 0 : Number(el('fetch-keep').value),
       minutes_between_fetch: Number(el('fetch-every').value) || 30,
       mirror_folders: el('fetch-type').value === 'imap' && el('fetch-mirror').checked
     };
