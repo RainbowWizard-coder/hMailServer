@@ -44,6 +44,50 @@ namespace HM
       // client's on one of COM's own threads, which never runs one.
       static bool CallerIsEventScript();
 
+      // The credential of the calling process. A program outside the service
+      // signs in on an Application and then, as scripts always have, creates
+      // the message it sends itself - Set m = CreateObject("hMailServer.Message")
+      // - or a FetchAccount. Such an object makes a credential of its own that
+      // never signs in, and since 6.3.6 that is refused outside an event script
+      // (CallerIsEventScript). Marked by AnswerForCallingProcess, it now answers
+      // every question below, call by call, with the credential of an
+      // Application that its COM client process holds and has signed in on -
+      // the most privileged of them where the process holds several, the latest
+      // signed in among equals - and with none once that Application is
+      // released or a later Authenticate on it fails. Nothing is granted that
+      // the process does not hold already: it can ask the very same credential
+      // for Application.CreateMessage, or reach the account's FetchAccounts.
+      //
+      // The process is the one the call came from over local RPC, COM's
+      // transport between processes of one machine: the id that RPC has from
+      // the kernel with the call, and the creation time that id has now, the
+      // same as when the Application signed in - so a process given the id of
+      // one that ended while its Application was still held (COM lets go of an
+      // abandoned object minutes later) is not taken for it. A call that did
+      // not come over local RPC - from another machine, or from inside the
+      // service - answers for no process.
+      static void SignedInFromCallingProcess(const void *application, const std::shared_ptr<COMAuthentication> &credential);
+      static void ForgetSignIn(const void *application);
+      void AnswerForCallingProcess() { answers_for_calling_process_ = true; }
+
+      // Whether mail this credential queues may claim to be from anybody: the
+      // server administrator's may, and so may an event script's objects,
+      // which carry no credential. Every other credential is held to the
+      // addresses it may send as (MaySendAs).
+      bool SendsAsAnyAddress() const;
+
+      // Whether mail this credential queues may claim to be from address: the
+      // rule authenticated SMTP applies to MAIL FROM when
+      // SmtpAuthenticatedSenderCheck is on, and the webmail's send route always
+      // (SMTPConnection::SenderPermittedFor - the account's own address, an
+      // alias that resolves to it, a mailbox whose owner granted it the post
+      // right on their INBOX, an address it verified or a masked address of
+      // its own; the null sender), and for a domain's administrator any
+      // address of a domain this server holds that it administers, save an
+      // account there whose authority it does not take in (TakesInAccount).
+      // Reason says why not, for the log.
+      bool MaySendAs(const String &address, String &reason) const;
+
       // The two questions this API has asked since 2007, and the ~315 places
       // in COM/Interface*.cpp that ask them, are now questions for
       // RoleManager: AdministerServer and AdministerDomain are permissions
@@ -85,11 +129,12 @@ namespace HM
       // folder, a queued message): what reaches it is gated where it is
       // reached. An account that is gone is the server administrator's alone
       // to tidy. An unauthenticated holder is answered yes on an event
-      // script's thread, as Account.Save leaves it, and no anywhere else
-      // (CallerIsEventScript): until 6.3.6 it was yes for every one, so a
-      // client that created a FetchAccount or a Message itself, or made its
-      // Application fail an Authenticate, changed any account's content.
-      // The same holds for the three questions below.
+      // script's thread, as Account.Save leaves it, as its calling process's
+      // credential answers when it takes that (SignedInFromCallingProcess),
+      // and no anywhere else (CallerIsEventScript): until 6.3.6 it was yes
+      // for every one, so a client that created a FetchAccount or a Message
+      // itself, or made its Application fail an Authenticate, changed any
+      // account's content. The same holds for the three questions below.
       bool MayChangeAccount(__int64 accountID) const;
 
       // A rule's owner, by the rule's AccountID and DomainID: an account's
@@ -110,7 +155,7 @@ namespace HM
 
       // What this credential holds, for the actor the audit trail records and
       // for the Control Panel, which hides a page a role may not use.
-      const RoleGrant &GetGrant() const { return grant_; }
+      RoleGrant GetGrant() const;
 
       // Who is acting, as RoleManager holds it. Installed beside the audit
       // trail's actor below, at the same moments and from the same grant, so
@@ -163,6 +208,25 @@ namespace HM
       void ResolveGrant_();
       void InstallActor_() const;
 
+      // GetActor and GetAuditActor of this credential's own sign-in, never
+      // its calling process's: what those answer when this credential answers
+      // for itself. A question it answers with its calling process's
+      // credential is asked of that one before any actor is installed, and
+      // that one installs its own.
+      RoleActor OwnActor_() const;
+      AuditTrail::Actor OwnAuditActor_() const;
+
+      // The credential this one answers with for the call being made: that of
+      // its calling process (SignedInFromCallingProcess) while it is marked
+      // to and holds none of its own and the caller is no event script; null
+      // otherwise, when it answers for itself.
+      std::shared_ptr<const COMAuthentication> CallingProcessCredential_() const;
+
+      // How much a credential that signed in may do, for choosing among the
+      // ones a process holds: the server administrator 3, a domain
+      // administrator 2, any other 1.
+      int Rank_() const;
+
       // An account's credential that matched one of its app passwords rather
       // than its own password is not a COM logon: account_ is left empty. See
       // Authenticate.
@@ -175,5 +239,9 @@ namespace HM
       // session may do until it authenticates again - the same rule the REST
       // caller follows, for the same reason.
       RoleGrant grant_;
+
+      // Set on the credential a directly created Message or FetchAccount makes
+      // for itself (AnswerForCallingProcess), and on no other.
+      bool answers_for_calling_process_ = false;
    };
 }

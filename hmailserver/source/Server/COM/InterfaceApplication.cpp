@@ -67,6 +67,28 @@ InterfaceApplication::InterfaceApplication()
    authentication_->AttempAnonymousAuthentication();
 }
 
+void
+InterfaceApplication::FinalRelease()
+{
+   HM::COMAuthentication::ForgetSignIn(this);
+}
+
+namespace
+{
+   // After an Authenticate: the process that called it now holds this
+   // Application signed in as the account, or holds it signed in as nobody.
+   // A Message or FetchAccount that process creates for itself answers with
+   // the credential of the most privileged Application it holds signed in
+   // (COMAuthentication::SignedInFromCallingProcess).
+   void RecordSignIn(const InterfaceApplication *application, const std::shared_ptr<HM::COMAuthentication> &authentication, bool signedIn)
+   {
+      if (signedIn)
+         HM::COMAuthentication::SignedInFromCallingProcess(application, authentication);
+      else
+         HM::COMAuthentication::ForgetSignIn(application);
+   }
+}
+
 STDMETHODIMP InterfaceApplication::Start()
 {
    try
@@ -359,6 +381,7 @@ STDMETHODIMP InterfaceApplication::AuthenticateWithCode(BSTR sUsername, BSTR sPa
       // none of them has anywhere to present a code - which is what app passwords are
       // for. See PasswordValidator::ValidatePassword.
       std::shared_ptr<const HM::Account> pAccount = authentication_->Authenticate(sUsername, sPassword, sCode);
+      RecordSignIn(this, authentication_, pAccount != nullptr);
 
       if (pAccount)
       {
@@ -387,6 +410,7 @@ STDMETHODIMP InterfaceApplication::Authenticate(BSTR sUsername, BSTR sPassword, 
    {
       // Authenticates the user and returns the account object.
       std::shared_ptr<const HM::Account> pAccount = authentication_->Authenticate(sUsername, sPassword);
+      RecordSignIn(this, authentication_, pAccount != nullptr);
    
       if (pAccount)
       {

@@ -32,6 +32,9 @@
 #include "../Common/Persistence/PersistentAccount.h"
 
 #include "../Common/Mime/Mime.h"
+#include "../Common/Util/Imip.h"
+#include "../Common/Util/Unicode.h"
+#include "../Common/Application/Logger.h"
 
 #include "atlsafe.h"
 
@@ -41,11 +44,245 @@ namespace
    // (COMAuthentication::CallerIsEventScript). Until 6.3.6 a message a client had
    // created for itself, which carries none, was saved for anybody: with an
    // administrator password set, any local user queued mail from any sender to
-   // any recipient through it.
+   // any recipient through it. Since then such a message answers with the
+   // credential of an Application its process holds signed in
+   // (COMAuthentication::SignedInFromCallingProcess), and is refused only where
+   // the process holds none.
    const wchar_t *const SavedWithoutCredential =
       L"You do not have access to this property / method. A message that carries no credential - one created "
-      L"directly as hMailServer.Message outside an event script - cannot be saved or copied: create it with "
-      L"Application.CreateMessage() on an Application that has called Authenticate().";
+      L"directly as hMailServer.Message by a program that holds no hMailServer.Application on which Authenticate() "
+      L"succeeded - cannot be saved or copied: sign in on an Application first and keep it while the message is "
+      L"saved, or create the message with Application.CreateMessage().";
+
+   // What Save answers mail to be queued that claims to be from an address
+   // the credential may not send as (COMAuthentication::MaySendAs).
+   const wchar_t *const NotYoursToSendAs =
+      L"You do not have access to this property / method. This credential may not send mail as ";
+
+   // What the caller wrote, fit for one line of the log and of the error: a
+   // control character - a line break that would start a log line of its
+   // own - shown as '?', and no more than 200 characters of it.
+   HM::String Printable(const HM::String &value)
+   {
+      HM::String printable = value.Mid(0, 200);
+
+      for (int i = 0; i < printable.GetLength(); i++)
+      {
+         if (printable.GetAt(i) < 0x20 || printable.GetAt(i) == 0x7F)
+            printable.SetAt(i, '?');
+      }
+
+      return printable;
+   }
+
+   // What Save answers mail to be queued whose header is not written as one
+   // header (WrittenAsOneHeader), for a credential held to the addresses it
+   // may send as.
+   const wchar_t *const NotOneHeader =
+      L"You do not have access to this property / method. A message this credential queues has a header written as "
+      L"one: each field on a line of its own under a name of printable characters, and no line break in a value.";
+
+   // The one mailbox a From or Sender field's value names, lower-cased, read
+   // as the server reads a From where a sender's word decides something
+   // (Imip::FromAddressOf: one mailbox, that the address list parser and the
+   // DMARC check read alike, written as one mailbox is written); empty for
+   // any other value - a list, a group, an address in a comment or in the
+   // display name, a second <address>. Of the value as the header holds it,
+   // and of the same value decoded (UTF-8), which is what a mail program
+   // shows.
+   HM::AnsiString OneMailboxAsWritten(const HM::AnsiString &value)
+   {
+      return HM::Imip::FromAddressOf(HM::AnsiString("From: ") + value + HM::AnsiString("\r\n\r\n"));
+   }
+
+   HM::AnsiString OneMailboxAsDecoded(const HM::String &value)
+   {
+      HM::AnsiString utf8;
+      HM::Unicode::WideToMultiByte(value, utf8);
+      return OneMailboxAsWritten(utf8);
+   }
+
+   // Whether the header as Save writes it - MimeHeader::Store, which both of
+   // MimeBody::SaveAllToFile's paths write - is one header that every program
+   // reads alike, so that the fields ClaimsOnlyWhatItMaySendAs reads are the
+   // ones the recipient's programs read: every line ends in CRLF, with no
+   // NUL, lone CR or lone LF anywhere, which some programs end a line at and
+   // this server does not; a line is a field - a name of printable ASCII
+   // other than the colon, then the colon - or the continuation of the field
+   // above it, which starts with a space or a tab and holds more than white
+   // space, which some programs take for the empty line; and the one empty
+   // line is the last. COM writes a value as it is given, line breaks and
+   // all: a Subject that holds "\r\nFrom: ..." would add a From field that
+   // the parsed message this checks does not have, and a field named "From "
+   // is written "From :", which RFC 5322's obsolete syntax reads as From.
+   bool WrittenAsOneHeader(const HM::AnsiString &header, HM::String &reason)
+   {
+      const char *text = header.c_str();
+      const int length = header.GetLength();
+      bool inField = false;
+      int lineStart = 0;
+
+      for (int i = 0; i < length; i++)
+      {
+         const char c = text[i];
+
+         if (c == '\0')
+         {
+            reason = "the header holds a NUL.";
+            return false;
+         }
+
+         if (c == '\n')
+         {
+            reason = "a value in the header holds a line feed with no carriage return before it.";
+            return false;
+         }
+
+         if (c != '\r')
+            continue;
+
+         if (i + 1 >= length || text[i + 1] != '\n')
+         {
+            reason = "a value in the header holds a carriage return with no line feed after it.";
+            return false;
+         }
+
+         const int lineEnd = i;
+         i++;
+
+         if (lineEnd == lineStart)
+         {
+            // The empty line that ends the header, which Store writes last.
+            if (i + 1 != length)
+            {
+               reason = "a value in the header holds an empty line, where the header would end.";
+               return false;
+            }
+
+            return true;
+         }
+
+         const char first = text[lineStart];
+         if (first == ' ' || first == '\t')
+         {
+            if (!inField)
+            {
+               reason = "the header's first field name starts with white space.";
+               return false;
+            }
+
+            bool onlyWhiteSpace = true;
+            for (int j = lineStart; j < lineEnd && onlyWhiteSpace; j++)
+               onlyWhiteSpace = text[j] == ' ' || text[j] == '\t';
+
+            if (onlyWhiteSpace)
+            {
+               reason = "a value in the header holds a line of nothing but white space.";
+               return false;
+            }
+         }
+         else
+         {
+            int colon = -1;
+            for (int j = lineStart; j < lineEnd; j++)
+            {
+               const unsigned char n = static_cast<unsigned char>(text[j]);
+               if (n == ':')
+               {
+                  colon = j;
+                  break;
+               }
+
+               if (n < 33 || n > 126)
+               {
+                  reason = "a field name in the header holds a space, a control character or a character outside ASCII.";
+                  return false;
+               }
+            }
+
+            if (colon <= lineStart)
+            {
+               reason = "a line of the header is neither a field nor the continuation of one.";
+               return false;
+            }
+
+            inField = true;
+         }
+
+         lineStart = i + 1;
+      }
+
+      reason = "the header does not end with an empty line.";
+      return false;
+   }
+
+   // Whether mail the credential queues may claim to be from what this
+   // message names: its envelope sender, and the mailbox in its From field
+   // and in its Sender field as the header is written (WrittenAsOneHeader),
+   // each one the credential may send as. The envelope is what authenticated
+   // SMTP holds to the same rule; the fields are what the recipient reads,
+   // which COM - unlike SMTP, where the client writes the fields after the
+   // server has answered MAIL FROM, and the webmail, which writes them from
+   // the one address it checked - lets the caller write apart from it. A
+   // field written more than once, or that names anything but one mailbox -
+   // as written, or once decoded, so that an address in an encoded word of
+   // the display name counts - is refused: another program could read
+   // another address in it. A message with no From field claims nobody's.
+   bool ClaimsOnlyWhatItMaySendAs(const HM::COMAuthentication &credential, const HM::String &envelopeSender,
+                                  const HM::AnsiString &header, HM::String &claimed, HM::String &reason)
+   {
+      claimed = envelopeSender;
+      if (!credential.MaySendAs(envelopeSender, reason))
+         return false;
+
+      HM::MimeHeader written;
+      written.Load(header.c_str(), header.GetLength(), true);
+
+      const char *const names[] = { "From", "Sender" };
+
+      for (const char *name : names)
+      {
+         int occurrences = 0;
+         HM::AnsiString value;
+
+         for (HM::MimeField &field : written.Fields())
+         {
+            if (field.GetName() && ::_stricmp(field.GetName(), name) == 0)
+            {
+               occurrences++;
+               value = field.GetValue() ? field.GetValue() : "";
+            }
+         }
+
+         if (occurrences == 0)
+            continue;
+
+         const HM::String decoded = HM::MimeHeader::GetUnicodeFieldValue(name, value);
+         claimed = decoded;
+
+         if (occurrences > 1)
+         {
+            reason = HM::String(L"the message has ") + HM::String(name) + L" more than once.";
+            return false;
+         }
+
+         const HM::AnsiString asWritten = OneMailboxAsWritten(value);
+         if (asWritten.IsEmpty() || asWritten != OneMailboxAsDecoded(decoded))
+         {
+            reason = HM::String(L"its ") + HM::String(name) + L" field does not name one mailbox written as one.";
+            return false;
+         }
+
+         HM::String mailbox;
+         HM::Unicode::MultiByteToWide(asWritten, mailbox);
+
+         claimed = mailbox;
+         if (!credential.MaySendAs(mailbox, reason))
+            return false;
+      }
+
+      return true;
+   }
 }
 
 STDMETHODIMP 
@@ -67,6 +304,12 @@ InterfaceMessage::InterfaceSupportsErrorInfo(REFIID riid)
 InterfaceMessage::InterfaceMessage()
 {
    object_ = std::shared_ptr<HM::Message>(new HM::Message());
+
+   // Created directly (hMailServer.Message), this message holds no credential
+   // of its own: it answers with the one its client process signed in with,
+   // while it holds one. A message handed out by another object is given
+   // that object's credential instead (SetAuthentication), which never does.
+   authentication_->AnswerForCallingProcess();
 }
 
 STDMETHODIMP InterfaceMessage::get_ID(hyper *pVal)
@@ -450,6 +693,47 @@ STDMETHODIMP InterfaceMessage::Save()
       // (COMAuthentication::MayChangeAccount).
       if (!authentication_->MayChangeAccount(object_->GetAccountID()))
          return COMError::GenerateError(HM::COMAuthentication::NotTakenIn);
+
+      // Mail to be queued for delivery (case 1 below), and mail in the queue
+      // written again (case 3: the file its delivery reads, which a program
+      // that saved a message keeps the object of, and may change and save
+      // again until the message has been delivered), claims to be from no
+      // address the credential may not send as, in a header written as one -
+      // asked before anything is written. Until 6.3.6 nothing here asked who
+      // queued mail claims to be from, whoever queued it. The server
+      // administrator and the event scripts send as anybody, as they always
+      // have.
+      const HM::Message::State queuedState = object_->GetState();
+      if ((queuedState == HM::Message::Created || queuedState == HM::Message::Delivering) &&
+          object_->GetFolderID() == 0 && object_->GetAccountID() == 0 && !authentication_->SendsAsAnyAddress())
+      {
+         HM::String claimed;
+         HM::String reason;
+
+         // The header as Write will write it: MimeHeader::Store, which both of
+         // MimeBody::SaveAllToFile's paths call. With no message to store, none,
+         // which is no header written as one.
+         HM::AnsiString header;
+         const std::shared_ptr<HM::MimeBody> mime = GetMessageData_()->GetMimeMessage();
+         if (mime)
+            mime->HM::MimeHeader::Store(header);
+
+         if (!WrittenAsOneHeader(header, reason))
+         {
+            using namespace HM;
+            LOG_APPLICATION("COM: a message was not queued, because its header is not written as one: " + Printable(reason));
+            return COMError::GenerateError(NotOneHeader);
+         }
+
+         if (!ClaimsOnlyWhatItMaySendAs(*authentication_, object_->GetFromAddress(), header, claimed, reason))
+         {
+            // The reason to the log, not to the caller, as the webmail's send
+            // route does: it can say whether an account exists.
+            using namespace HM;
+            LOG_APPLICATION("COM: a message was not queued, because it claims to be from " + Printable(claimed) + ": " + Printable(reason));
+            return COMError::GenerateError(HM::String(NotYoursToSendAs) + Printable(claimed) + L".");
+         }
+      }
 
       // Check that the message has a valid date header.
       HM::String sDate = GetMessageData_()->GetSentTime();

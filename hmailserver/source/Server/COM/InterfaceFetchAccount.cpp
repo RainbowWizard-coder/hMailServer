@@ -17,6 +17,9 @@
 InterfaceFetchAccount::InterfaceFetchAccount()
 {
    object_ = std::shared_ptr<HM::FetchAccount>(new HM::FetchAccount());
+
+   // Created directly (hMailServer.FetchAccount): as InterfaceMessage's.
+   authentication_->AnswerForCallingProcess();
 }
 
 STDMETHODIMP InterfaceFetchAccount::get_ID(LONG* pVal)

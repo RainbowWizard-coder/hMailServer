@@ -1,9 +1,10 @@
 Sending as another address
 ==========================
 
-Who an account may write as - in the webmail's **From** and in `MAIL FROM` on an
-authenticated SMTP session when `SmtpAuthenticatedSenderCheck` is on - is four kinds of
-address:
+Who an account may write as - in the webmail's **From**, in `MAIL FROM` on an
+authenticated SMTP session when `SmtpAuthenticatedSenderCheck` is on, and in the envelope,
+`From` and `Sender` of mail a program signed in as the account queues over COM
+([Roles.md](Roles.md)) - is four kinds of address:
 
 | Kind | Given by | How |
 |---|---|---|

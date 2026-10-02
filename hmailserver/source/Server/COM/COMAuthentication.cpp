@@ -16,6 +16,10 @@
 #include "../Common/Util/Parsing/StringParser.h"
 #include "../Common/Util/AuditTrail.h"
 #include "../Common/Scripting/ScriptServer.h"
+#include "../Common/Application/ObjectCache.h"
+#include "../Common/BO/DomainAliases.h"
+#include "../Common/Cache/CacheContainer.h"
+#include "../SMTP/SMTPConnection.h"
 
 #include "COMError.h"
 #include "../Common/Application/Application.h"
@@ -23,10 +27,162 @@
 #include "../Common/SQL/DALRecordset.h"
 #include "../Common/SQL/DatabaseConnectionManager.h"
 
+#include <rpc.h>
+#include <rpcasync.h>
+#include <cstddef>
+#include <map>
+#include <mutex>
+#include <vector>
+
+#pragma comment(lib, "rpcrt4.lib")
+
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
 #define new DEBUG_NEW
 #endif
+
+namespace
+{
+   // An Application that signed in, and the process it was signed in from
+   // (COMAuthentication::SignedInFromCallingProcess).
+   struct SignIn
+   {
+      DWORD process_id = 0;
+      ULONGLONG process_created = 0;
+      std::weak_ptr<HM::COMAuthentication> credential;
+      unsigned long long order = 0;
+   };
+
+   std::mutex &SignInsLock()
+   {
+      static std::mutex lock;
+      return lock;
+   }
+
+   // By the Application, which is never dereferenced here: its address names
+   // it until it is released, and it takes itself out when it is.
+   std::map<const void *, SignIn> &SignIns()
+   {
+      static std::map<const void *, SignIn> signIns;
+      return signIns;
+   }
+
+   unsigned long long &LastSignInOrder()
+   {
+      static unsigned long long order = 0;
+      return order;
+   }
+
+   // The process that made the COM call this thread is answering, by the id
+   // local RPC (ncalrpc, COM's transport between processes of one machine)
+   // has for it - the kernel's, sent with the call, which the caller does not
+   // write. False for anything else: a call from another machine, a thread
+   // answering no call (the service's own threads, an event script), or a
+   // call from inside the service.
+   bool CallingProcessId(DWORD &processId)
+   {
+      RPC_CALL_ATTRIBUTES_V2_W attributes = {};
+      attributes.Version = 2;
+      attributes.Flags = RPC_QUERY_CLIENT_PID;
+
+      if (RpcServerInqCallAttributesW(nullptr, &attributes) != RPC_S_OK)
+         return false;
+
+      if (attributes.ProtocolSequence != RPC_PROTSEQ_LRPC || attributes.ClientPID == nullptr)
+         return false;
+
+      processId = static_cast<DWORD>(reinterpret_cast<ULONG_PTR>(attributes.ClientPID));
+      return processId != 0 && processId != GetCurrentProcessId();
+   }
+
+   // SYSTEM_PROCESS_INFORMATION (winternl.h) as far as UniqueProcessId, with
+   // the fields winternl.h calls Reserved1 named: CreateTime is the eighth of
+   // its 48 bytes.
+   struct ProcessRecord
+   {
+      ULONG NextEntryOffset;
+      ULONG NumberOfThreads;
+      LARGE_INTEGER WorkingSetPrivateSize;
+      ULONG HardFaultCount;
+      ULONG NumberOfThreadsHighWatermark;
+      ULONGLONG CycleTime;
+      LARGE_INTEGER CreateTime;
+      LARGE_INTEGER UserTime;
+      LARGE_INTEGER KernelTime;
+      USHORT ImageNameLength;
+      USHORT ImageNameMaximumLength;
+      PWSTR ImageNameBuffer;
+      LONG BasePriority;
+      HANDLE UniqueProcessId;
+   };
+
+   static_assert(offsetof(ProcessRecord, CreateTime) == 32, "SYSTEM_PROCESS_INFORMATION.CreateTime");
+   static_assert(offsetof(ProcessRecord, UniqueProcessId) == (sizeof(void *) == 8 ? 80 : 68), "SYSTEM_PROCESS_INFORMATION.UniqueProcessId");
+
+   // When the process with this id was created, from the system's list of
+   // processes (NtQuerySystemInformation, SystemProcessInformation). That
+   // list needs no access to the process: the service's own virtual account
+   // (NT SERVICE\hMailServer) may not open another user's process, whose
+   // DACL names only that user, SYSTEM and its logon session, so
+   // OpenProcess and GetProcessTimes would answer for LocalSystem alone.
+   bool ProcessCreationTime(DWORD processId, ULONGLONG &created)
+   {
+      typedef LONG (WINAPI *QuerySystemInformation)(ULONG, PVOID, ULONG, PULONG);
+
+      static const QuerySystemInformation query =
+         reinterpret_cast<QuerySystemInformation>(GetProcAddress(GetModuleHandleW(L"ntdll.dll"), "NtQuerySystemInformation"));
+
+      if (!query)
+         return false;
+
+      const ULONG systemProcessInformation = 5;
+      const LONG infoLengthMismatch = static_cast<LONG>(0xC0000004L);
+
+      std::vector<ULONGLONG> buffer(64 * 1024);
+
+      for (int attempt = 0; attempt < 8; attempt++)
+      {
+         const ULONG size = static_cast<ULONG>(buffer.size() * sizeof(ULONGLONG));
+         ULONG needed = 0;
+
+         const LONG status = query(systemProcessInformation, buffer.data(), size, &needed);
+
+         if (status == infoLengthMismatch)
+         {
+            // Processes start between the two calls: room for more than asked.
+            const ULONG wanted = (needed > size ? needed : size) + 64 * 1024;
+            buffer.resize(wanted / sizeof(ULONGLONG) + 1);
+            continue;
+         }
+
+         if (status < 0)
+            return false;
+
+         const unsigned char *base = reinterpret_cast<const unsigned char *>(buffer.data());
+         size_t offset = 0;
+
+         while (offset + sizeof(ProcessRecord) <= size)
+         {
+            const ProcessRecord *record = reinterpret_cast<const ProcessRecord *>(base + offset);
+
+            if (reinterpret_cast<ULONG_PTR>(record->UniqueProcessId) == processId)
+            {
+               created = static_cast<ULONGLONG>(record->CreateTime.QuadPart);
+               return true;
+            }
+
+            if (record->NextEntryOffset == 0)
+               break;
+
+            offset += record->NextEntryOffset;
+         }
+
+         return false;
+      }
+
+      return false;
+   }
+}
 
 namespace HM
 {
@@ -326,10 +482,13 @@ namespace HM
       ResolveGrant_();
    }
 
-   bool 
+   bool
    COMAuthentication::GetIsAuthenticated() const
    {
-      return account_ != 0;
+      if (account_)
+         return true;
+
+      return CallingProcessCredential_() != nullptr;
    }
 
    bool
@@ -338,22 +497,228 @@ namespace HM
       return ScriptServer::IsScriptRunningOnThisThread();
    }
 
-   __int64 
+   void
+   COMAuthentication::SignedInFromCallingProcess(const void *application, const std::shared_ptr<COMAuthentication> &credential)
+   {
+      DWORD processId = 0;
+      ULONGLONG created = 0;
+
+      // Signed in from no process this can name again - another machine, the
+      // service itself - or from one whose creation time cannot be read: no
+      // object answers with this credential but the ones it hands out.
+      if (!application || !credential || !credential->account_ || !CallingProcessId(processId) || !ProcessCreationTime(processId, created))
+      {
+         ForgetSignIn(application);
+         return;
+      }
+
+      std::lock_guard<std::mutex> guard(SignInsLock());
+
+      SignIn &signIn = SignIns()[application];
+      signIn.process_id = processId;
+      signIn.process_created = created;
+      signIn.credential = credential;
+      signIn.order = ++LastSignInOrder();
+   }
+
+   void
+   COMAuthentication::ForgetSignIn(const void *application)
+   {
+      std::lock_guard<std::mutex> guard(SignInsLock());
+
+      SignIns().erase(application);
+   }
+
+   std::shared_ptr<const COMAuthentication>
+   COMAuthentication::CallingProcessCredential_() const
+   {
+      if (account_ || !answers_for_calling_process_)
+         return nullptr;
+
+      // An event script's objects carry no credential and need none
+      // (CallerIsEventScript); a script never speaks for a client.
+      if (CallerIsEventScript())
+         return nullptr;
+
+      {
+         std::lock_guard<std::mutex> guard(SignInsLock());
+
+         if (SignIns().empty())
+            return nullptr;
+      }
+
+      DWORD processId = 0;
+      if (!CallingProcessId(processId))
+         return nullptr;
+
+      std::vector<SignIn> candidates;
+
+      {
+         std::lock_guard<std::mutex> guard(SignInsLock());
+
+         for (const auto &entry : SignIns())
+         {
+            if (entry.second.process_id == processId)
+               candidates.push_back(entry.second);
+         }
+      }
+
+      if (candidates.empty())
+         return nullptr;
+
+      // The id may have passed to another process since the Application
+      // signed in: only the process that signed in, by its creation time.
+      ULONGLONG created = 0;
+      if (!ProcessCreationTime(processId, created))
+         return nullptr;
+
+      std::shared_ptr<const COMAuthentication> chosen;
+      int chosenRank = 0;
+      unsigned long long chosenOrder = 0;
+
+      for (const SignIn &candidate : candidates)
+      {
+         if (candidate.process_created != created)
+            continue;
+
+         std::shared_ptr<const COMAuthentication> credential = candidate.credential.lock();
+         if (!credential || !credential->account_)
+            continue;
+
+         const int rank = credential->Rank_();
+         if (rank > chosenRank || (rank == chosenRank && candidate.order > chosenOrder))
+         {
+            chosen = credential;
+            chosenRank = rank;
+            chosenOrder = candidate.order;
+         }
+      }
+
+      return chosen;
+   }
+
+   int
+   COMAuthentication::Rank_() const
+   {
+      if (!account_)
+         return 0;
+
+      if (RoleManager::Allows(grant_, RolePermission::AdministerServer))
+         return 3;
+
+      if (RoleManager::Allows(grant_, RolePermission::AdministerDomain))
+         return 2;
+
+      return 1;
+   }
+
+   bool
+   COMAuthentication::SendsAsAnyAddress() const
+   {
+      if (!account_)
+      {
+         if (CallerIsEventScript())
+            return true;
+
+         std::shared_ptr<const COMAuthentication> calling = CallingProcessCredential_();
+         return calling && calling->SendsAsAnyAddress();
+      }
+
+      return GetIsServerAdmin();
+   }
+
+   bool
+   COMAuthentication::MaySendAs(const String &address, String &reason) const
+   {
+      if (!account_)
+      {
+         if (CallerIsEventScript())
+            return true;
+
+         std::shared_ptr<const COMAuthentication> calling = CallingProcessCredential_();
+         if (calling)
+            return calling->MaySendAs(address, reason);
+
+         reason = "nobody has signed in.";
+         return false;
+      }
+
+      if (GetIsServerAdmin())
+         return true;
+
+      // The null sender, as authenticated SMTP takes it: a bounce.
+      if (address.IsEmpty())
+         return true;
+
+      if (SMTPConnection::SenderPermittedFor(account_->GetAddress(), address, reason))
+         return true;
+
+      // A domain's administrator may send as anybody of a domain it
+      // administers - its own, or those a domainadmin role it was given names -
+      // since it may already set their passwords and read their mail. An
+      // address of one of a domain's aliases is the domain's. The domain is
+      // one this server holds: a role given every domain ("*", or no list)
+      // reaches any name RoleManager is asked about, and a domain held
+      // elsewhere is nobody's here to administer. And an account there whose
+      // authority it does not take in (TakesInAccount) - the server
+      // administrator's mailbox, an administrator of another domain - is not
+      // one it may set the password of, nor speak for.
+      if (GetIsDomainAdmin())
+      {
+         const String claimed = ObjectCache::Instance()->GetDomainAliases()->ApplyAliasesOnAddress(address);
+         const String claimedDomain = StringParser::ExtractDomain(claimed);
+
+         if (!claimedDomain.IsEmpty() && CacheContainer::Instance()->GetDomain(claimedDomain) &&
+             AllowsForDomain(RolePermission::AdministerDomain, claimedDomain))
+         {
+            std::shared_ptr<const Account> claimedAccount = CacheContainer::Instance()->GetAccount(claimed);
+            if (!claimedAccount || TakesInAccount(claimedAccount->GetID()))
+               return true;
+         }
+
+         reason = "the domain administrator " + account_->GetAddress() + " does not own " + address + ", and its domain is not one this server holds that it administers, or the account there holds authority it does not.";
+      }
+
+      return false;
+   }
+
+   __int64
    COMAuthentication::GetAccountID() const
    {
       // Nothing authenticated is not an account, and answering 0 is what every
       // caller of this already treats as "not that account" - where throwing
       // through a COM boundary would be a crash with no message.
       if (!account_)
-         return 0;
+      {
+         std::shared_ptr<const COMAuthentication> calling = CallingProcessCredential_();
+         return calling ? calling->GetAccountID() : 0;
+      }
 
       return account_->GetID();
    }
 
-   __int64 
+   __int64
    COMAuthentication::GetDomainID() const
    {
+      // As GetAccountID: 0 for nothing authenticated, where this dereferenced
+      // the empty account.
+      if (!account_)
+      {
+         std::shared_ptr<const COMAuthentication> calling = CallingProcessCredential_();
+         return calling ? calling->GetDomainID() : 0;
+      }
+
       return account_->GetDomainID();
+   }
+
+   RoleGrant
+   COMAuthentication::GetGrant() const
+   {
+      std::shared_ptr<const COMAuthentication> calling = CallingProcessCredential_();
+      if (calling)
+         return calling->GetGrant();
+
+      return grant_;
    }
 
    void
@@ -405,6 +770,10 @@ namespace HM
    bool
    COMAuthentication::GetIsDomainAdmin() const
    {
+      std::shared_ptr<const COMAuthentication> calling = CallingProcessCredential_();
+      if (calling)
+         return calling->GetIsDomainAdmin();
+
       InstallActor_();
 
       // Reads exactly as it did: serveradmin holds every permission, so
@@ -419,6 +788,10 @@ namespace HM
    bool
    COMAuthentication::GetIsServerAdmin() const
    {
+      std::shared_ptr<const COMAuthentication> calling = CallingProcessCredential_();
+      if (calling)
+         return calling->GetIsServerAdmin();
+
       InstallActor_();
 
       return RoleManager::Allows(grant_, RolePermission::AdministerServer);
@@ -427,6 +800,10 @@ namespace HM
    bool
    COMAuthentication::Allows(RolePermission permission) const
    {
+      std::shared_ptr<const COMAuthentication> calling = CallingProcessCredential_();
+      if (calling)
+         return calling->Allows(permission);
+
       InstallActor_();
 
       return RoleManager::Allows(grant_, permission);
@@ -435,6 +812,10 @@ namespace HM
    bool
    COMAuthentication::AllowsForDomain(RolePermission permission, const String &domainName) const
    {
+      std::shared_ptr<const COMAuthentication> calling = CallingProcessCredential_();
+      if (calling)
+         return calling->AllowsForDomain(permission, domainName);
+
       InstallActor_();
 
       String reason;
@@ -444,6 +825,10 @@ namespace HM
    bool
    COMAuthentication::TakesInAccount(__int64 accountID) const
    {
+      std::shared_ptr<const COMAuthentication> calling = CallingProcessCredential_();
+      if (calling)
+         return calling->TakesInAccount(accountID);
+
       InstallActor_();
 
       std::shared_ptr<Account> stored = std::shared_ptr<Account>(new Account());
@@ -461,10 +846,17 @@ namespace HM
    bool
    COMAuthentication::MayChangeAccount(__int64 accountID) const
    {
-      InstallActor_();
-
       if (!account_)
+      {
+         std::shared_ptr<const COMAuthentication> calling = CallingProcessCredential_();
+         if (calling)
+            return calling->MayChangeAccount(accountID);
+
+         InstallActor_();
          return CallerIsEventScript();
+      }
+
+      InstallActor_();
 
       if (accountID <= 0)
          return true;
@@ -485,10 +877,17 @@ namespace HM
    bool
    COMAuthentication::MayChangeRuleOwnedBy(__int64 accountID, __int64 domainID) const
    {
-      InstallActor_();
-
       if (!account_)
+      {
+         std::shared_ptr<const COMAuthentication> calling = CallingProcessCredential_();
+         if (calling)
+            return calling->MayChangeRuleOwnedBy(accountID, domainID);
+
+         InstallActor_();
          return CallerIsEventScript();
+      }
+
+      InstallActor_();
 
       if (accountID > 0)
          return MayChangeAccount(accountID);
@@ -503,7 +902,13 @@ namespace HM
    COMAuthentication::MayChangeRule(__int64 ruleID) const
    {
       if (!account_)
+      {
+         std::shared_ptr<const COMAuthentication> calling = CallingProcessCredential_();
+         if (calling)
+            return calling->MayChangeRule(ruleID);
+
          return CallerIsEventScript();
+      }
 
       if (ruleID <= 0)
          return true;
@@ -522,7 +927,13 @@ namespace HM
    COMAuthentication::MayChangeFolder(__int64 folderID) const
    {
       if (!account_)
+      {
+         std::shared_ptr<const COMAuthentication> calling = CallingProcessCredential_();
+         if (calling)
+            return calling->MayChangeFolder(folderID);
+
          return CallerIsEventScript();
+      }
 
       if (folderID <= 0)
          return true;
@@ -540,6 +951,10 @@ namespace HM
    bool
    COMAuthentication::ReachesEveryDomain() const
    {
+      std::shared_ptr<const COMAuthentication> calling = CallingProcessCredential_();
+      if (calling)
+         return calling->ReachesEveryDomain();
+
       InstallActor_();
 
       return RoleManager::ReachesEveryDomain(grant_);
@@ -547,6 +962,16 @@ namespace HM
 
    RoleActor
    COMAuthentication::GetActor() const
+   {
+      std::shared_ptr<const COMAuthentication> calling = CallingProcessCredential_();
+      if (calling)
+         return calling->GetActor();
+
+      return OwnActor_();
+   }
+
+   RoleActor
+   COMAuthentication::OwnActor_() const
    {
       RoleActor actor;
 
@@ -587,6 +1012,16 @@ namespace HM
    */
    AuditTrail::Actor
    COMAuthentication::GetAuditActor() const
+   {
+      std::shared_ptr<const COMAuthentication> calling = CallingProcessCredential_();
+      if (calling)
+         return calling->GetAuditActor();
+
+      return OwnAuditActor_();
+   }
+
+   AuditTrail::Actor
+   COMAuthentication::OwnAuditActor_() const
    {
       AuditTrail::Actor actor;
 

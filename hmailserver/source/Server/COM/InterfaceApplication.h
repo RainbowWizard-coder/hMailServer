@@ -40,9 +40,9 @@ END_COM_MAP()
       return S_OK;
    }
    
-   void FinalRelease() 
-   {
-   }
+   // Released: the objects its client process creates for themselves no
+   // longer answer with its credential (COMAuthentication::ForgetSignIn).
+   void FinalRelease();
 
 public:
 

@@ -364,8 +364,11 @@ attachments and a fetch account that a program creates for itself carry no crede
 `Application` handed out once a later `Authenticate` on it fails. With an administrator password set, a local Windows
 user with no hMailServer credential could through them queue mail, read and write files as the service's account, and
 attach a fetch account to any account. This is in every version up to 6.3.5, as in the original hMailServer. Outside
-the server's own event scripts these are now refused, and reading or writing a file on the server's disk through a
-message is the server administrator's alone (What changes on upgrade, item 25). Found by the project's own review.
+the server's own event scripts these are now refused, unless the program's own process holds an `Application` that
+signed in, whose credential they then take; reading or writing a file on the server's disk through a message is the
+server administrator's alone, and mail a signed-in account queues claims to be from only an address it may send as
+(What changes on upgrade, item 25). Found by the project's own review.
+
 An IMAP session that has turned compression on (`COMPRESS=DEFLATE`, RFC 4978) no longer has the server inflate
 whatever one read of its compressed input expands to. Every version from 6.2.28, the release that brought the
 extension, inflated all of it at once, and from 6.3.4 kept what did not fit the receive buffer and took each command
@@ -771,19 +774,28 @@ upgrade, item 29). In every version up to 6.3.5; found by the project's own revi
     taken before 6.3.6 restores every port On. The type library adds `TCPIPPort.SMTPAuthentication` (dispid 12). The
     error HM6099, a ban's range that could not be saved, no longer says the address reached the failed-logon limit,
     which a spam trap's or a null sender's ban never did.
-25. **COM: a message or fetch account a program creates itself, and the objects of an `Application` whose later
-    `Authenticate` failed, are refused outside an event script.** With an administrator password set, `Message.Save`
-    and `Copy`, `FetchAccount.AccountID` and `Save`, `Account.Save` and the other writes to an account's rules,
-    folders and folder permissions refuse an object that carries no credential - a `hMailServer.Message` or
-    `hMailServer.FetchAccount` a program created with `CreateObject` or `new`, or an object an `Application` handed
-    out before a later `Authenticate` on it failed. `Attachments.Add`, which reads a file from the server's disk, and
-    `Attachment.SaveAs`, which writes one, answer the server administrator alone: a domain administrator or an
-    account that signed in is refused them. The server's event scripts, which create these objects without signing
-    in, work as before, and a server with no administrator password and no second factor answers every caller as it
-    did. A program outside the service that sends mail through COM - a scheduled VBScript, a PowerShell script, a
-    tool of your own - creates `hMailServer.Application`, calls `Authenticate`, and makes its message with the new
-    `Application.CreateMessage()` where it called `CreateObject("hMailServer.Message")`; to attach a file it signs in
-    as the administrator. A .NET program built against an earlier type library reaches `CreateMessage` once rebuilt
+25. **COM: a message or fetch account a program creates itself answers with the credential of an `Application` the
+    program signed in on, and is refused outside an event script when there is none; a signed-in account queues mail
+    only as itself.** Most scripts need no change: one that creates `hMailServer.Application`, calls `Authenticate` and
+    then makes its message with `CreateObject("hMailServer.Message")` works as before, as long as it keeps the
+    `Application` until the message is saved (a .NET program with `GC.KeepAlive`). With an administrator password set,
+    `Message.Save` and `Copy`, `FetchAccount.AccountID` and `Save`, `Account.Save` and the other writes to an account's
+    rules, folders and folder permissions refuse an object that carries no credential. A `hMailServer.Message` or
+    `hMailServer.FetchAccount` a program creates with `CreateObject` or `new` carries none of its own: it takes the
+    credential of an `Application` the same program holds and has signed in on - the most privileged, where it holds
+    several - and has none in a program that never signed in, or once that `Application` is released or a later
+    `Authenticate` on it fails. The objects an `Application` handed out before a later `Authenticate` on it failed are
+    refused too. `Attachments.Add`, which reads a file from the server's disk, and `Attachment.SaveAs`, which writes
+    one, answer the server administrator alone: a program signed in as a domain administrator or an account is refused
+    them. Mail that a program signed in as an account queues, or saves again while it waits in the queue, claims to be
+    from only an address the account may send as - its own, an alias of it, one granted to it or verified
+    ([SendAs.md](hmailserver/docs/SendAs.md)) - in its envelope and in its `From` and `Sender` fields, with no line
+    break inside a value of its header, and a domain administrator's from an address of a domain this server holds and
+    it administers, other than an account there with authority it does not hold; to send as anybody, a program signs in
+    as the server administrator, as it must to attach a file. The server's event scripts, which create these objects
+    without signing in, work as before, and a server with no administrator password and no second factor answers every
+    caller as it did. The new `Application.CreateMessage()` gives a program a message that carries the credential of
+    the `Application` it is called on; a .NET program built against an earlier type library reaches it once rebuilt
     against 6.3.6's, or late-bound ([Roles.md](hmailserver/docs/Roles.md)).
 
 26. **The packaging Compose file's database is PostgreSQL 18.** `docker-compose.yml` beside the Dockerfile runs

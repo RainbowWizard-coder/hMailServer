@@ -140,12 +140,59 @@ and `RemovePushSubscriptions`. Each asks that the credential reach the account a
 the account itself — and take in its authority; a domain's or the server's rules answer
 to that domain's administrator or to the server administrator. An event script's
 objects carry no credential and are left as they were, on the thread running the
-script. Anywhere else an object without a credential is refused every one of these
-(since 6.3.6): a `Message` or `FetchAccount` a program created itself, and what an
-`Application` handed out before a later `Authenticate` on it failed. A program composes
-mail with `Application.CreateMessage` after `Authenticate`. `Attachments.Add` and
-`Attachment.SaveAs`, which read and write a file on the server's disk by its path, answer
-the server administrator and the event scripts alone.
+script. A `Message` or `FetchAccount` a program creates itself (`CreateObject`, `new`)
+carries none of its own either, and since 6.3.6 answers each of these with the
+credential of an `Application` that the program's own process holds and has called
+`Authenticate` on: the most privileged of them where it holds several (the server
+administrator, then a domain administrator, then any other, and the latest signed in
+among equals), and none once that `Application` is released or a later `Authenticate`
+on it fails. That gives the process nothing it does not hold already: it could ask the
+same `Application` for `CreateMessage`, or reach the account's `FetchAccounts`. The
+process is the one the call came from over local RPC, COM's transport between the
+processes of one machine - by the process id the kernel hands RPC with the call and that
+process's creation time, which must be the one it had when it signed in, so a process
+given the id of one that has ended is not taken for it. A call from another machine
+answers for no process. The process is the unit: one that also runs code it does not
+trust - a web server that runs several sites or applications in one process - lends its
+sign-in to all of them, as it shares its memory with them, so a program signs in from a
+process of its own there. A .NET program keeps its `Application` alive (`GC.KeepAlive`)
+until the message is saved: the garbage collector releases one that the program no
+longer uses, and with it the sign-in. Anywhere else an object without a credential is
+refused every one of these: a `Message` or `FetchAccount` a program created itself while
+its process holds no `Application` signed in, and what an `Application` handed out
+before a later `Authenticate` on it failed. A program may also compose mail with
+`Application.CreateMessage` after `Authenticate`. `Attachments.Add` and
+`Attachment.SaveAs`, which read and write a file on the server's disk by its path,
+answer the server administrator and the event scripts alone.
+
+Mail that a COM credential queues - `Message.Save` of a new message to deliver, and of
+one already in the queue, whose file its delivery reads - claims to be from only an
+address that credential may send as (since 6.3.6): its envelope sender, and the one
+mailbox in its `From` field and in its `Sender` field, read in the header as it is
+written. The server administrator and the event scripts send as anybody. An account
+sends as the addresses authenticated SMTP lets it write in `MAIL FROM` when
+`SmtpAuthenticatedSenderCheck` is on, and the webmail's send route always
+(`SMTPConnection::SenderPermittedFor`, [SendAs.md](SendAs.md)): its own address, an
+alias of it, a mailbox whose owner granted it the post right on their INBOX, an address
+it verified, a masked address of its own, and the null sender. A domain administrator
+sends as those and as any address of a domain it administers - its own, or the ones a
+`domainadmin` role given to it names - or of that domain's aliases, whose passwords it
+may already set and whose mail it may already read: a domain this server holds, since a
+role given every domain (`*`) reaches any name, and not an account there whose authority
+it does not take in, such as the server administrator's mailbox or an administrator of
+another domain. For them a `From` or `Sender` field written more than once, or naming
+anything but one mailbox written as one - a list, an address in a comment or in the
+display name, as written or once its encoded words are decoded - is refused, since
+another program could read another address in it. So is a header not written as one: COM
+writes a value as it is given, and a line break in one - a `Subject` that holds a line
+`From: ...` - would add a field this never read, so for them every field stands on a
+line of its own under a name of printable ASCII, with no NUL, lone carriage return or
+line feed, or line of white space alone in a value. COM holds an account to this
+whatever `SmtpAuthenticatedSenderCheck` says, as the webmail does: COM writes the
+envelope and the fields apart, so it is the fields that the recipient reads that matter,
+and before 6.3.6 no mail queued over COM carried an account's credential (a message a
+program made itself carried none), so there is no signed-in sender's habit to keep, as
+the switch keeps SMTP's.
 
 The server administrator's own mailbox may sit in a domain somebody else administers;
 that domain's administrator is refused all of these on it, over both interfaces.

@@ -16,13 +16,15 @@ namespace RegressionTests.API
 {
    /// <summary>
    ///    The COM objects that hold a live object without a credential behind them: a
-   ///    Message or a FetchAccount a client creates itself, and every object an Application
-   ///    handed out once that Application has failed a later Authenticate (they share its
-   ///    credential, which the failure empties). Since 6.3.6 such a holder may not save,
-   ///    copy, attach a file from the server's disk, write an attachment to it, or point
-   ///    anything at an account - outside the server's own event scripts, which
-   ///    API/Events.cs covers - and Application.CreateMessage gives an authenticated client
-   ///    a message that carries its credential.
+   ///    Message or a FetchAccount a client creates itself in a process that holds no
+   ///    Application signed in (where it does, the object answers with that Application's
+   ///    credential - ComCallingProcess), and every object an Application handed out once
+   ///    that Application has failed a later Authenticate (they share its credential, which
+   ///    the failure empties). Since 6.3.6 such a holder may not save, copy, attach a file
+   ///    from the server's disk, write an attachment to it, or point anything at an account -
+   ///    outside the server's own event scripts, which API/Events.cs covers - and
+   ///    Application.CreateMessage gives an authenticated client a message that carries its
+   ///    credential.
    ///
    ///    Windows only - it is COM - and so linked into RegressionTests alone.
    /// </summary>
@@ -127,9 +129,20 @@ namespace RegressionTests.API
          Pop3ClientSimulator.AssertMessageCount(address, password, 1);
       }
 
+      // What a script run as a process of its own printed for a member it was refused.
+      private static void Refused(List<string> problems, string printed, string expected, string member)
+      {
+         if (!printed.Contains(expected))
+            problems.Add(member + " was not refused: " + printed);
+         else if (!printed.Contains("You do not have access"))
+            problems.Add(member + " failed, but not as refused: " + printed);
+      }
+
       [Test]
-      [Description("A message a client creates itself carries no credential: outside an event script its Save and " +
-                   "Attachments.Add are refused, and nothing it was given reaches anybody.")]
+      [Description("A message a client creates itself, in a process that holds no Application signed in, carries " +
+                   "no credential: outside an event script its Save and Attachments.Add are refused, and nothing it " +
+                   "was given reaches anybody. Created by a script run as a process of its own, since this one holds " +
+                   "the suite's signed-in Application.")]
       public void AMessageCreatedDirectlyIsRefusedItsSaveAndAFileFromTheServer()
       {
          RequireAnAdministratorPassword();
@@ -138,14 +151,10 @@ namespace RegressionTests.API
          var recipient = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "recipient@example.test", "test");
          var source = WriteFile("source.txt", "composed without a credential");
 
-         var message = new hMailServer.Message();
-         message.FromAddress = "someone@example.test";
-         message.AddRecipient("", recipient.Address);
-         message.Subject = "Composed without a credential";
-         message.Body = "Body";
-
-         Try(problems, () => message.Attachments.Add(source), "Attachments.Add");
-         Try(problems, () => message.Save(), "Message.Save");
+         Refused(problems, ComScripts.SendDirectly(_scratch, "-", "-", "someone@example.test", "-", recipient.Address,
+            "Composed without a credential", source), "ADD-REFUSED", "Attachments.Add");
+         Refused(problems, ComScripts.SendDirectly(_scratch, "-", "-", "someone@example.test", "-", recipient.Address,
+            "Composed without a credential", "-"), "SAVE-REFUSED", "Message.Save");
          AssertNone(problems);
 
          // A message sent afterwards over SMTP is the only one that arrives.
@@ -155,8 +164,9 @@ namespace RegressionTests.API
       }
 
       [Test]
-      [Description("A fetch account a client creates itself carries no credential: outside an event script it may " +
-                   "not be pointed at an account, nor saved, and no fetch account appears on the account.")]
+      [Description("A fetch account a client creates itself, in a process that holds no Application signed in, " +
+                   "carries no credential: outside an event script it may not be pointed at an account, nor saved, " +
+                   "and no fetch account appears on the account. Created by a script run as a process of its own.")]
       public void AFetchAccountCreatedDirectlyIsRefusedAnAccountAndItsSave()
       {
          RequireAnAdministratorPassword();
@@ -164,13 +174,9 @@ namespace RegressionTests.API
 
          var target = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "target@example.test", "test");
 
-         var fetchAccount = new hMailServer.FetchAccount();
-         fetchAccount.Name = "Created without a credential";
-         fetchAccount.ServerAddress = "fetch.example.test";
-         fetchAccount.Username = "user";
-
-         Try(problems, () => fetchAccount.AccountID = target.ID, "FetchAccount.AccountID");
-         Try(problems, () => fetchAccount.Save(), "FetchAccount.Save");
+         var printed = ComScripts.FetchAccountDirectly(_scratch, "-", "-", target.ID);
+         Refused(problems, printed, "ACCOUNTID-REFUSED", "FetchAccount.AccountID");
+         Refused(problems, printed, "SAVE-REFUSED", "FetchAccount.Save");
 
          if (target.FetchAccounts.Count != 0)
             problems.Add("a fetch account was stored on the account");
