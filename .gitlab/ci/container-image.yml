@@ -39,6 +39,14 @@
 #                         :<version>, and for a release without a suffix as
 #                         :<major>.<minor> and :latest too; a pre-release (v6.3.6-rc1)
 #                         never moves those two (build/ci/container-image-push.sh);
+#   container-image-artifacthub
+#                         GitLab's shared runners, in the same regctl image: Artifact
+#                         Hub's metadata for the image's repository
+#                         (packaging/docker/artifacthub-repo.yml) pushed under the tag
+#                         artifacthub.io, once that file holds the repository ID
+#                         Artifact Hub gave; until then nothing. Nothing waits for it,
+#                         and in the default branch's pipeline it is there to start by
+#                         hand (build/ci/container-image-artifacthub.sh);
 #   container-image-sbom  linix: each platform's image's software bill of materials -
 #                         Syft's reading of the pushed image by its digest, with what
 #                         that architecture's .deb's own SBOM names inside the binary
@@ -249,6 +257,39 @@ container-image:
       - container-image/
     reports:
       dotenv: container-image/image.env
+
+# Artifact Hub's metadata for the image's repository, the tree's
+# packaging/docker/artifacthub-repo.yml, pushed under the tag artifacthub.io once it
+# holds the repository ID Artifact Hub gave (build/ci/container-image-artifacthub.sh;
+# hmailserver/docs/ContainerImage.md, "Artifact Hub"); until then it pushes nothing and
+# passes. In a v* tag's pipeline it follows container-image, and nothing waits for it.
+# In the default branch's, a maintainer starts it by hand once the ID is committed, so
+# that the listing need not wait for the next release; its need of container-image is
+# optional for that pipeline, which has none. In the same regctl image as container-image,
+# and for the same reason without .no-github.
+container-image-artifacthub:
+  stage: release
+  image:
+    name: docker.io/regclient/regctl:v0.11.6-alpine@sha256:5fe7c6a6206e1d9d71af719674c9db03e74a4ae221a32089b691f5b55533d6ea
+    entrypoint: [""]
+  needs:
+    - job: container-image
+      artifacts: false
+      optional: true
+  timeout: 10 minutes
+  interruptible: false
+  rules:
+    - !reference [.release-rules, rules]
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_COMMIT_REF_PROTECTED == "true"
+      when: manual
+      allow_failure: true
+  script:
+    - sh build/ci/container-image-artifacthub.sh
+  artifacts:
+    when: always
+    expire_in: 90 days
+    paths:
+      - container-image-artifacthub/
 
 # Each platform's image's SBOM, for container-image-sign to attest: in the Linux CI
 # image, which has Syft, and with the release's .deb files and their own SBOMs from

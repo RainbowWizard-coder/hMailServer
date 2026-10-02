@@ -26,18 +26,44 @@
 # of (artifacthub.io/images, :latest in the tree); and artifacthub.io/prerelease for
 # a version with a suffix. The tree's Chart.yaml carries none of these
 # (build/check-linux-version-stamp.sh refuses a version literal under packaging/).
-# The packaged chart is then read back - helm show chart, and helm template with the
-# values a real installation needs - and held to what was stamped.
+# The image's platforms in that annotation are not stamped: they are the two the
+# release's image index holds (build/ci/container-image-push.sh), linux/amd64 and
+# linux/arm64, and the annotation must list exactly those, in the tree and in the
+# package. The packaged chart is then read back - helm show chart, and helm template
+# with the values a real installation needs - and held to what was stamped.
 set -eu
 
 out=helm-chart
 chart=hmailserver/source/Server/platform/packaging/helm/hmailserver
 version_h=hmailserver/source/Server/Common/Application/Version.h
 image=registry.gitlab.com/hmailserver/hmailserver
+platforms="linux/amd64 linux/arm64"
 
 fail() {
   echo "HELM-CHART-PACKAGE FAILED: $*"
   exit 1
+}
+
+# images_block FILE: the artifacthub.io/images annotation's text in FILE - a Chart.yaml,
+# or what helm show chart prints - one line per line of the block, without its
+# indentation, which helm may write differently from the tree.
+images_block() {
+  awk '
+    inside {
+      match($0, /^ */)
+      if ($0 !~ /^[[:space:]]*$/ && RLENGTH <= indent) { inside = 0 }
+      else { sub(/^[[:space:]]+/, ""); if ($0 != "") print; next }
+    }
+    /^ *artifacthub\.io\/images: *\|[-+]? *$/ { inside = 1; match($0, /^ */); indent = RLENGTH }
+  ' "$1"
+}
+
+# images_wanted TAG: that block as it must read, naming the image at TAG on each platform.
+images_wanted() {
+  printf '%s\n' "- name: hmailserver" "image: $image:$1" "platforms:"
+  for platform in $platforms; do
+    printf -- '- %s\n' "$platform"
+  done
 }
 
 command -v helm > /dev/null 2>&1 || fail "there is no helm here (Alpine: apk add helm)"
@@ -75,6 +101,12 @@ stamped="$work/hmailserver/Chart.yaml"
 # was written for.
 [ "$(grep -c "^      image: $image:latest\$" "$stamped")" = 1 ] || fail "Chart.yaml names the image $image:latest in artifacthub.io/images other than once"
 [ "$(grep -c '^  artifacthub.io/prerelease: "false"$' "$stamped")" = 1 ] || fail "Chart.yaml has no artifacthub.io/prerelease: \"false\" line"
+[ "$(images_block "$stamped")" = "$(images_wanted latest)" ] \
+  || fail "Chart.yaml's artifacthub.io/images is not the one image $image:latest on exactly $platforms: $(images_block "$stamped" | tr '\n' ' ')"
+[ "$(grep -c '^      platforms:$' "$stamped")" = 1 ] || fail "Chart.yaml's artifacthub.io/images has no platforms: line where the image's is, or more than one"
+for platform in $platforms; do
+  [ "$(grep -c "^        - $platform\$" "$stamped")" = 1 ] || fail "Chart.yaml's artifacthub.io/images does not list $platform once under the image's platforms"
+done
 sed -i "s|^      image: $image:latest\$|      image: $image:$version|" "$stamped"
 sed -i "s|^  artifacthub.io/prerelease: \"false\"\$|  artifacthub.io/prerelease: \"$prerelease\"|" "$stamped"
 
@@ -90,6 +122,8 @@ grep -Eqx "version: \"?$version\"?" "$work/chart.txt" || fail "the packaged char
 grep -Eqx "appVersion: \"?$version\"?" "$work/chart.txt" || fail "the packaged chart's appVersion is not $version"
 grep -Eq "image: $image:$version\$" "$work/chart.txt" || fail "the packaged chart's artifacthub.io/images does not name $image:$version"
 grep -Eq "artifacthub.io/prerelease: \"?$prerelease\"?\$" "$work/chart.txt" || fail "the packaged chart's artifacthub.io/prerelease is not $prerelease"
+[ "$(images_block "$work/chart.txt")" = "$(images_wanted "$version")" ] \
+  || fail "the packaged chart's artifacthub.io/images is not the one image $image:$version on exactly $platforms: $(images_block "$work/chart.txt" | tr '\n' ' ')"
 helm template mail "$out/$name" --set database.host=db --set database.password=x --set administrator.password=y \
   --set rest.tlsSecretName=mail-tls > "$work/rendered.yaml"
 grep -q "image: \"$image:$version\"" "$work/rendered.yaml" || fail "the packaged chart does not install $image:$version by default"
@@ -100,4 +134,4 @@ tar -tzf "$out/$name" | grep -qx 'hmailserver/README.md' || fail "the packaged c
 
 ( cd "$out" && sha256sum "$name" > SHA256SUMS.txt && cat SHA256SUMS.txt )
 ls -l "$out"
-echo "PACKAGED: $out/$name, the chart $version, installing $image:$version."
+echo "PACKAGED: $out/$name, the chart $version, installing $image:$version (for Artifact Hub, on $platforms)."

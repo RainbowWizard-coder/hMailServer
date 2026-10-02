@@ -827,7 +827,19 @@ message is the server administrator's alone (What changes on upgrade, item 25). 
 - **The Helm chart as a file of each release, served from `https://updates.progressiverobot.com/helm/`**.
   The release carries it, signed, with its `.sigstore.json` copy. `helm-chart-package` packages `hmailserver-chart-<version>.tgz` at the release's version,
   naming the release's image, and `build/ci/helm-repo.py` writes the repository's index and Artifact Hub's metadata
-  from the update feed in `package-repos`.
+  from the update feed in `package-repos`. The chart's `artifacthub.io/images` annotation names the image's two
+  platforms, `linux/amd64` and `linux/arm64`, and `helm-chart-package.sh` refuses a tree's chart, or a package, that
+  lists any other set.
+
+- **Artifact Hub's metadata for the container image's repository, pushed under the tag `artifacthub.io`**. The new
+  job `container-image-artifacthub` pushes the tree's `platform/packaging/docker/artifacthub-repo.yml` with regctl, in
+  the shape Artifact Hub documents (an empty configuration and one layer, each of Artifact Hub's media type), and
+  reads it back byte for byte: after `container-image` in each release's pipeline, and by hand in the default
+  branch's, so that the image's listing gets its Verified publisher label without waiting for a release. It pushes
+  nothing until a maintainer has added the repository on Artifact Hub and committed the repository ID it gives,
+  refuses a file with anything else in it, and pushes only at the group's path while `HM_PUBLISH_IMAGE` is 1. Nothing
+  waits for it. Against a stand-in registry on linix it pushed what an independent reader, following Artifact Hub's
+  documentation, read the ID from ([ContainerImage.md](hmailserver/docs/ContainerImage.md), "Artifact Hub").
 
 - **`hmctl` as a PyPI package, `hmailserver-cli`, and the PowerShell module with a Gallery manifest** (neither
   published yet: the two accounts do not exist). `build/ci/cli-packages.py` builds `hmailserver-cli`'s sdist and wheel from

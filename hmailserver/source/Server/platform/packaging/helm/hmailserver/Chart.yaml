@@ -33,15 +33,21 @@ maintainers:
     url: https://www.progressiverobot.com
 # What Artifact Hub reads (hmailserver/docs/ContainerImage.md, "Artifact Hub").
 # The image line names :latest here and the release's version in a packaged
-# chart; prerelease is "true" in the package of a release whose version has a
-# suffix. The chart is signed with Sigstore like every file of the release, not
-# with Helm's own PGP provenance, so no artifacthub.io/signKey is given.
+# chart; its platforms are the two the release's image index holds, which
+# container-image-push.sh refuses to push without (build/ci/helm-chart-package.sh
+# holds the packaged chart to both); prerelease is "true" in the package of a
+# release whose version has a suffix. The chart is signed with Sigstore like
+# every file of the release, not with Helm's own PGP provenance, so no
+# artifacthub.io/signKey is given.
 annotations:
   artifacthub.io/license: AGPL-3.0-or-later
   artifacthub.io/prerelease: "false"
   artifacthub.io/images: |
     - name: hmailserver
       image: registry.gitlab.com/hmailserver/hmailserver:latest
+      platforms:
+        - linux/amd64
+        - linux/arm64
   artifacthub.io/links: |
     - name: Source
       url: https://gitlab.com/hmailserver/hmailserver

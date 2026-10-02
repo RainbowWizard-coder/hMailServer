@@ -168,7 +168,21 @@ refuses it. This checker holds them to each other. It fails when:
     job of its own, push both under one index with regctl pinned by digest (the -alpine
     variant of the release HM_REGCTL_IMAGE pins), make, sign and attest each
     platform's SBOM, sign the index, scan each platform's image and start each, the
-    arm64 one as a service of that platform;
+    arm64 one as a service of that platform; and the chart's artifacthub.io/images
+    annotation, and helm-chart-package.sh, which holds the packaged chart to it, must
+    list exactly those platforms;
+  * Artifact Hub's metadata for the image's repository can be pushed but by
+    container-image-artifacthub (.gitlab/ci/container-image.yml): it must take
+    .release-rules and, beside them, only a manual rule for the protected default
+    branch that may fail; need container-image optionally and without its artifacts,
+    and nothing may need it; run in container-image's regctl image; and
+    build/ci/container-image-artifacthub.sh must refuse unless HM_PUBLISH_IMAGE is 1,
+    push to the group's path alone, under the tag artifacthub.io alone - regctl run for
+    nothing but its login, its logout, reads and that one artifact put - the tree's
+    packaging/docker/artifacthub-repo.yml as the one layer of the media type Artifact
+    Hub reads, with the empty configuration of its type, and read it back byte for
+    byte; and that file may hold nothing but comments, blank lines and one
+    "repositoryID: <a UUID>";
   * container-image-push.sh can move :latest or :<major>.<minor> backwards: it must
     list the repository's tags, make a tag that does not exist, read the version label
     of the image an existing one names, move it for this version or an older one and
@@ -282,6 +296,12 @@ FILES = {
     "image-sbom": os.path.join("build", "ci", "container-image-sbom.sh"),
     "dockerfile": os.path.join("hmailserver", "source", "Server", "platform", "packaging", "docker", "Dockerfile"),
     "image-start": os.path.join("build", "ci", "container-image-start-test.sh"),
+    # Artifact Hub: the image's repository's metadata and its push; the chart, whose
+    # images annotation names the image's platforms, and its packaging.
+    "image-artifacthub": os.path.join("build", "ci", "container-image-artifacthub.sh"),
+    "image-artifacthub-file": os.path.join("hmailserver", "source", "Server", "platform", "packaging", "docker", "artifacthub-repo.yml"),
+    "chart": os.path.join("hmailserver", "source", "Server", "platform", "packaging", "helm", "hmailserver", "Chart.yaml"),
+    "chart-package": os.path.join("build", "ci", "helm-chart-package.sh"),
     "export": os.path.join(".gitlab", "ci", "forge-export.yml"),
     # The package builds (.gitlab-ci.yml includes them): held to the old routes too.
     "packages-deb": os.path.join(".gitlab", "ci", "packages-deb.yml"),
@@ -347,7 +367,20 @@ IMAGE_FIRST = "container-image-deb"
 # pipeline is made, and would leave that release without them. The two scripts that
 # fetch and push refuse, exiting non-zero, unless it is "1". Nothing committed may set it.
 RUNTIME_GATE = 'if [ "${HM_PUBLISH_IMAGE:-}" != 1 ]; then'
-GATED_SCRIPTS = ("image-deb", "image-build", "image-push")
+GATED_SCRIPTS = ("image-deb", "image-build", "image-push", "image-artifacthub")
+# Artifact Hub's metadata for the image's repository: the tree's file, pushed under the
+# tag Artifact Hub reads by a job of the image's file that nothing waits for - after
+# container-image in a v* tag's pipeline, and by hand in the default branch's, whose
+# rule is ARTIFACTHUB_MANUAL - which pushes nothing until the file holds the ID
+# Artifact Hub gave (build/ci/container-image-artifacthub.sh).
+ARTIFACTHUB_JOB = "container-image-artifacthub"
+ARTIFACTHUB_MANUAL = ('if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_COMMIT_REF_PROTECTED == "true"\n'
+                      '      when: manual\n      allow_failure: true')
+# The regctl commands container-image-artifacthub.sh may run beside its one artifact put
+# and regctl version: none of them writes or removes a tag.
+ARTIFACTHUB_REGCTL = (("registry", "login"), ("registry", "logout"), ("manifest", "get"), ("artifact", "get"),
+                      ("image", "digest"))
+ARTIFACTHUB_LINE = re.compile(r"^(?:[ \t]*|#.*|repositoryID: [0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$")
 # Jobs that need not begin with REFUSAL, because their own rules match nothing a
 # downstream pipeline (source "pipeline", on master) is, or run in one on purpose -
 # each with the text that makes it so. None of them is a gate of a tag's pipeline,
@@ -1390,7 +1423,7 @@ def check(texts, chain, feed):
     # would otherwise push to the first path, an address the image would lose with it.
     # linux-image.sh builds a release's image for nowhere else, and container-image-push.sh
     # pushes nowhere else.
-    for key in ("image-build", "image-push"):
+    for key in ("image-build", "image-push", "image-artifacthub"):
         if not re.search(r"^[ \t]+registry\.gitlab\.com/hmailserver/hmailserver\) ;;$", texts[key], re.MULTILINE) or \
                 re.search(r"^[ \t]*[^#\n]*registry\.gitlab\.com/progressiverobot/hmailserver[^\n]*\)[ \t]*;;", texts[key], re.MULTILINE):
             problems.append("%s does not push to registry.gitlab.com/hmailserver/hmailserver alone: "
@@ -1424,6 +1457,7 @@ def check(texts, chain, feed):
             problems.append("build/ci/container-image-deb.sh line %d sends or names a credential, over a TLS its wget does not "
                             "check: %s" % (number, line.strip()))
     problems += image_platform_problems(texts, jobs, image_jobs)
+    problems += artifacthub_problems(texts, merged, image_jobs)
     found, said = image_tag_problems(texts)
     problems += found
     notes += said
@@ -2095,6 +2129,89 @@ def byte_search_problems(texts):
     return problems
 
 
+def artifacthub_problems(texts, jobs, image_jobs):
+    """Artifact Hub's metadata for the image's repository: the job that pushes it, its
+    script and the tree's file. jobs are .gitlab-ci.yml's and the image file's."""
+    problems = []
+    job = image_jobs.get(ARTIFACTHUB_JOB, "")
+    if not job:
+        return ["%s has no %s job: Artifact Hub's metadata would not reach the image's repository" % (FILES["image"], ARTIFACTHUB_JOB)]
+    items = [re.sub(r"\s+", " ", item.strip()) for item in rule_items(job, jobs)]
+    release = [re.sub(r"\s+", " ", item.strip()) for item in rule_items(jobs.get(".release-rules", ""), jobs)]
+    if not release or items != release + [re.sub(r"\s+", " ", ARTIFACTHUB_MANUAL)]:
+        problems.append("%s's rules are not .release-rules and then the protected default branch's, by hand and allowed to fail "
+                        "(%s): %s" % (ARTIFACTHUB_JOB, re.sub(r"\s+", " ", ARTIFACTHUB_MANUAL), items))
+    if TAG_ONLY not in rules_text(ARTIFACTHUB_JOB, jobs):
+        problems.append("%s does not run for a protected v* tag (.release-rules)" % ARTIFACTHUB_JOB)
+    if any("$HM_PUBLISH_IMAGE" in item for item in items):
+        problems.append("%s reads $HM_PUBLISH_IMAGE in its rules; its script reads it as the job runs" % ARTIFACTHUB_JOB)
+    if re.search(r"^  trigger:", job, re.MULTILINE):
+        problems.append("%s is a trigger" % ARTIFACTHUB_JOB)
+    entries = need_entries(job)
+    entry = entries.get("container-image", "")
+    if sorted(entries) != ["container-image"] or not re.search(r"^\s*optional: true\s*$", entry, re.MULTILINE) or \
+            not re.search(r"^\s*artifacts: false\s*$", entry, re.MULTILINE):
+        problems.append("%s does not need container-image alone, optionally (the default branch's pipeline has none) and "
+                        "without its artifacts" % ARTIFACTHUB_JOB)
+    for name, block in sorted(jobs.items()):
+        if ARTIFACTHUB_JOB in needs(block):
+            problems.append("%s needs %s, which may fail and pushes nothing of the image: nothing may wait for it"
+                            % (name, ARTIFACTHUB_JOB))
+    own = re.search(r"^    name: (\S+)\s*$", job, re.MULTILINE)
+    push = re.search(r"^    name: (\S+)\s*$", image_jobs.get("container-image", ""), re.MULTILINE)
+    if not own or not push or own.group(1) != push.group(1) or not REGCTL_ALPINE.match(own.group(1)):
+        problems.append("%s does not run in container-image's regctl image, pinned by digest (%s)"
+                        % (ARTIFACTHUB_JOB, own.group(1) if own else "no image"))
+    if "- sh build/ci/container-image-artifacthub.sh" not in job or not re.search(r"^      - container-image-artifacthub/\s*$", job, re.MULTILINE):
+        problems.append("%s does not run build/ci/container-image-artifacthub.sh and keep container-image-artifacthub/" % ARTIFACTHUB_JOB)
+    script = texts["image-artifacthub"]
+    for needle, why in (("metadata=hmailserver/source/Server/platform/packaging/docker/artifacthub-repo.yml", "the tree's file"),
+                        ("metadata_tag=artifacthub.io", "the tag Artifact Hub reads"),
+                        ("config_type=application/vnd.cncf.artifacthub.config.v1+yaml", "the configuration's media type"),
+                        ("layer_type=application/vnd.cncf.artifacthub.repository-metadata.layer.v1.yaml", "the layer Artifact Hub reads"),
+                        ('regctl artifact put --config-type "$config_type" --config-file "$work/empty"', "the empty configuration"),
+                        ('--file-media-type "$layer_type" --file artifacthub-repo.yml --file-title', "the file as the one layer, titled"),
+                        ('regctl artifact get "$repository:$metadata_tag" --file-media-type "$layer_type"', "the layer read back"),
+                        ('cmp -s "$out/artifacthub-repo.yml" "$metadata"', "and held to the file byte for byte"),
+                        ('regctl registry login "$CI_REGISTRY" --user "$CI_REGISTRY_USER" --pass-stdin', "the password on standard input"),
+                        ('if [ "$ids" = 0 ]; then', "nothing pushed without an ID")):
+        if needle not in script:
+            problems.append("%s no longer has %s (%s)" % (FILES["image-artifacthub"], needle, why))
+    # What regctl is run to do: log in and out, read, and one artifact put. Any other
+    # command of it - image copy, tag delete, manifest put, index create - could write
+    # or remove a tag, whatever the tag is spelled as.
+    puts = 0
+    for number, line in enumerate(script.split("\n"), 1):
+        if line.lstrip().startswith("#"):
+            continue
+        for tag in re.findall(r'"?\$\{?repository\}?:(\$\{?[A-Za-z_]+\}?|[A-Za-z0-9_.\-]*)', line):
+            if tag != "$metadata_tag":
+                problems.append("%s line %d names a tag other than artifacthub.io: %s" % (FILES["image-artifacthub"], number, line.strip()))
+        for command, sub in re.findall(r"(?:^|[|&;(])\s*(?:\$\(\s*)?regctl\s+([A-Za-z_-]+)(?:\s+([A-Za-z_-]+))?", line):
+            if command == "artifact" and sub == "put":
+                puts += 1
+            elif command != "version" and (command, sub) not in ARTIFACTHUB_REGCTL:
+                problems.append("%s line %d runs regctl %s %s, which is not one of the commands it may run (%s): %s"
+                                % (FILES["image-artifacthub"], number, command, sub,
+                                   ", ".join("%s %s" % pair for pair in ARTIFACTHUB_REGCTL), line.strip()))
+        if re.search(r"\$\{?CI_REGISTRY_PASSWORD", line) and "| regctl registry login" not in line and \
+                not re.search(r'\[ -n "\$\{CI_REGISTRY_PASSWORD:-\}" \]', line):
+            problems.append("%s line %d hands the registry password to something but regctl's standard input: %s"
+                            % (FILES["image-artifacthub"], number, line.strip()))
+    if puts != 1:
+        problems.append("%s runs regctl artifact put %d times, not once" % (FILES["image-artifacthub"], puts))
+    lines = texts["image-artifacthub-file"].split("\n")
+    if lines and lines[-1] == "":
+        lines.pop()
+    bad = [line for line in lines if not ARTIFACTHUB_LINE.match(line)]
+    if not texts["image-artifacthub-file"] or bad:
+        problems.append("%s holds a line that is not a comment, a blank line or \"repositoryID: <a UUID>\", which "
+                        "container-image-artifacthub.sh would refuse to push: %s" % (FILES["image-artifacthub-file"], bad[:1]))
+    if sum(1 for line in lines if line.startswith("repositoryID:")) > 1:
+        problems.append("%s names more than one repository ID" % FILES["image-artifacthub-file"])
+    return problems
+
+
 def image_platform_problems(texts, jobs, image_jobs):
     """Every place a platform of the container image (IMAGE_PLATFORMS) could be left
     out: the Dockerfile, the build script, the branch's jobs, the tag's build, push,
@@ -2156,12 +2273,26 @@ def image_platform_problems(texts, jobs, image_jobs):
     for name in image_jobs:
         for prefix, does, own in (("container-image-start-", "starts", ()),
                                   ("container_scanning_", "scans", ()),
-                                  ("container-image-", "builds", ("deb", "sbom", "sign", "start"))):
+                                  ("container-image-", "builds", ("deb", "sbom", "sign", "start", "artifacthub"))):
             if name.startswith(prefix):
                 rest = name[len(prefix):]
                 if rest not in own and rest not in IMAGE_PLATFORMS:
                     problems.append("%s %s an image of a platform the image is not built for (%s)" % (name, does, platforms))
                 break
+
+    # The chart tells Artifact Hub the image's platforms: exactly these, under the one
+    # image it names, and helm-chart-package.sh holds the package to the same.
+    block = re.search(r"^  artifacthub\.io/images: \|\n((?:    [^\n]*\n|[ \t]*\n)*)", texts["chart"] + "\n", re.MULTILINE)
+    listed = [line.strip() for line in block.group(1).split("\n") if line.strip()] if block else []
+    wanted = ["- name: hmailserver", "image: registry.gitlab.com/hmailserver/hmailserver:latest", "platforms:"] + \
+        ["- linux/" + arch for arch in IMAGE_PLATFORMS]
+    if listed != wanted:
+        problems.append("%s's artifacthub.io/images is not the one image on exactly %s: %s"
+                        % (FILES["chart"], ", ".join("linux/" + arch for arch in IMAGE_PLATFORMS), listed))
+    if ('platforms="%s"' % " ".join("linux/" + arch for arch in IMAGE_PLATFORMS)) not in texts["chart-package"] or \
+            texts["chart-package"].count('[ "$(images_block "$') != 2:
+        problems.append("%s does not hold the tree's chart and the packaged one to the image's platforms, %s"
+                        % (FILES["chart-package"], " ".join("linux/" + arch for arch in IMAGE_PLATFORMS)))
 
     # The push: both platforms' images, in regctl's image pinned by digest, under one index.
     push = image_jobs.get("container-image", "")
@@ -2729,6 +2860,74 @@ def self_test(chain, feed):
            "not the release HM_REGCTL_IMAGE pins")
     broken("the push in ghcr.io's regctl", "image", "docker.io/regclient/regctl:%s-alpine@" % regctl,
            "ghcr.io/regclient/regctl:%s-alpine@" % regctl, "does not run in docker.io/regclient/regctl")
+    # Artifact Hub: the chart's platforms, and the metadata tag's job, script and file.
+    broken("the chart telling Artifact Hub of amd64 alone", "chart", "        - linux/amd64\n        - linux/arm64\n",
+           "        - linux/amd64\n", "artifacthub.io/images is not the one image on exactly linux/amd64, linux/arm64")
+    broken("the chart naming no platform", "chart", "      platforms:\n        - linux/amd64\n        - linux/arm64\n", "",
+           "artifacthub.io/images is not the one image")
+    broken("the chart's package held to amd64 alone", "chart-package", 'platforms="linux/amd64 linux/arm64"', 'platforms="linux/amd64"',
+           "does not hold the tree's chart and the packaged one to the image's platforms")
+    broken("the packaged chart not read back for its platforms", "chart-package", '[ "$(images_block "$work/chart.txt")"', '[ "$(true)"',
+           "does not hold the tree's chart and the packaged one to the image's platforms")
+    broken("the Artifact Hub job gone", "image", "\ncontainer-image-artifacthub:\n", "\ncontainer-image-artifacthub-old:\n",
+           "has no container-image-artifacthub job")
+    broken("the Artifact Hub job on the default branch without a press", "image",
+           '$CI_COMMIT_REF_PROTECTED == "true"\n      when: manual\n      allow_failure: true\n  script:\n    - sh build/ci/container-image-artifacthub.sh',
+           '$CI_COMMIT_REF_PROTECTED == "true"\n      allow_failure: true\n  script:\n    - sh build/ci/container-image-artifacthub.sh',
+           "container-image-artifacthub's rules are not .release-rules")
+    broken("the Artifact Hub job blocking the default branch", "image",
+           "      when: manual\n      allow_failure: true\n  script:\n    - sh build/ci/container-image-artifacthub.sh",
+           "      when: manual\n  script:\n    - sh build/ci/container-image-artifacthub.sh", "container-image-artifacthub's rules are not .release-rules")
+    broken("the Artifact Hub job on any branch", "image", "    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_COMMIT_REF_PROTECTED",
+           "    - if: $CI_COMMIT_REF_PROTECTED", "container-image-artifacthub's rules are not .release-rules")
+    broken("the Artifact Hub job without .release-rules", "image",
+           "  rules:\n    - !reference [.release-rules, rules]\n    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH",
+           "  rules:\n    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH", "container-image-artifacthub does not run for a protected v* tag")
+    broken("the Artifact Hub job needing container-image outright", "image",
+           "    - job: container-image\n      artifacts: false\n      optional: true\n", "    - job: container-image\n      artifacts: false\n",
+           "does not need container-image alone, optionally")
+    broken("a job waiting for the Artifact Hub job", "image", "    - job: container-image-sbom\n      artifacts: true\n",
+           "    - job: container-image-sbom\n      artifacts: true\n    - job: container-image-artifacthub\n", "needs container-image-artifacthub")
+    broken("the Artifact Hub job in another regctl", "image",
+           "container-image-artifacthub:\n  stage: release\n  image:\n    name: docker.io/regclient/regctl:%s-alpine@" % regctl,
+           "container-image-artifacthub:\n  stage: release\n  image:\n    name: docker.io/regclient/regctl:%s9-alpine@" % regctl,
+           "container-image-artifacthub does not run in container-image's regctl image")
+    broken("the metadata pushed without the switch", "image-artifacthub", RUNTIME_GATE, 'if false; then',
+           "container-image-artifacthub.sh does not refuse")
+    broken("the metadata pushed to the project's first path", "image-artifacthub", "\n  registry.gitlab.com/hmailserver/hmailserver) ;;\n",
+           "\n  registry.gitlab.com/progressiverobot/hmailserver) ;;\n", "container-image-artifacthub.sh does not push to registry.gitlab.com/hmailserver/hmailserver alone")
+    broken("the metadata under another tag", "image-artifacthub", "metadata_tag=artifacthub.io", "metadata_tag=latest", "the tag Artifact Hub reads")
+    broken("the metadata also written to :latest", "image-artifacthub", '    "$repository:$metadata_tag" ) ||',
+           '    "$repository:latest" ) ||', "names a tag other than artifacthub.io")
+    broken("the metadata written to ${repository}:latest", "image-artifacthub", '    "$repository:$metadata_tag" ) ||',
+           '    "${repository}:latest" ) ||', "names a tag other than artifacthub.io")
+    broken("the metadata's tag copied to another", "image-artifacthub", "\nregctl manifest get ",
+           '\nregctl image copy "$repository@x" "$CI_REGISTRY_IMAGE:latest"\nregctl manifest get ', "runs regctl image copy")
+    broken("a tag of the repository deleted", "image-artifacthub", "manifest_digest=$(regctl image digest ",
+           "manifest_digest=$(regctl tag delete ", "runs regctl tag delete")
+    broken("the metadata put twice", "image-artifacthub", "\nregctl manifest get ",
+           '\n( cd "$work/file" && regctl artifact put --file artifacthub-repo.yml "$repository:$metadata_tag" )\nregctl manifest get ',
+           "runs regctl artifact put 2 times")
+    broken("the metadata never put", "image-artifacthub", '( cd "$work/file" && regctl artifact put ', '( cd "$work/file" && true ',
+           "runs regctl artifact put 0 times")
+    broken("the metadata as a layer Artifact Hub does not read", "image-artifacthub",
+           "layer_type=application/vnd.cncf.artifacthub.repository-metadata.layer.v1.yaml", "layer_type=application/yaml",
+           "the layer Artifact Hub reads")
+    broken("the metadata's configuration regctl's own", "image-artifacthub", ' --config-file "$work/empty"', "", "the empty configuration")
+    broken("the metadata not read back", "image-artifacthub", 'cmp -s "$out/artifacthub-repo.yml" "$metadata"', "true",
+           "held to the file byte for byte")
+    broken("the registry password on a command line", "image-artifacthub",
+           'printf \'%s\' "$CI_REGISTRY_PASSWORD" | regctl registry login "$CI_REGISTRY" --user "$CI_REGISTRY_USER" --pass-stdin',
+           'regctl registry login "$CI_REGISTRY" --user "$CI_REGISTRY_USER" --pass "$CI_REGISTRY_PASSWORD"',
+           "hands the registry password to something but regctl's standard input")
+    broken("the metadata pushed without an ID", "image-artifacthub", 'if [ "$ids" = 0 ]; then', 'if false; then', "nothing pushed without an ID")
+    broken("the metadata file with another key", "image-artifacthub-file", "# here: the script refuses anything else.\n",
+           "# here: the script refuses anything else.\nowners:\n", "holds a line that is not a comment")
+    broken("the metadata file with an upper-case ID", "image-artifacthub-file", "# here: the script refuses anything else.\n",
+           "# here: the script refuses anything else.\nrepositoryID: 0B5EBE9C-0E33-4F5B-9A2D-9A0FBC8A1C55\n", "holds a line that is not a comment")
+    broken("the metadata file with two IDs", "image-artifacthub-file", "# here: the script refuses anything else.\n",
+           "# here: the script refuses anything else.\nrepositoryID: 0b5ebe9c-0e33-4f5b-9a2d-9a0fbc8a1c55\n"
+           "repositoryID: 0b5ebe9c-0e33-4f5b-9a2d-9a0fbc8a1c56\n", "names more than one repository ID")
     broken("the .deb taken for amd64 alone", "image-deb", "for arch in amd64 arm64; do", "for arch in amd64; do", "each platform's .deb")
     broken("the SBOM of amd64 alone", "image-sbom", "platforms=(amd64 arm64)", "platforms=(amd64)", "every platform's SBOM")
     broken("an SBOM that does not name its platform", "image-sbom", '--image "$image" --arch "$arch"', '--image "$image"',

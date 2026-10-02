@@ -216,13 +216,39 @@ owner's account, `progressiverobot89`, and the organization `hmailserver` exist.
   pages job then writes it into `helm/artifacthub-repo.yml` beside the index, which
   gives the listing its Verified publisher label. The chart's annotations name its
   licence (`artifacthub.io/license`), its image (`artifacthub.io/images`, stamped
-  with the release's version), its links, and whether it is a pre-release. The
+  with the release's version, with the image's two platforms, `linux/amd64` and
+  `linux/arm64`, which `helm-chart-package.sh` holds the tree's chart and the
+  package to), its links, and whether it is a pre-release. The
   Official label is requested through a GitHub issue, and is not.
-- **The image.** A repository of kind Container images, with the image's address,
-  lists it from its labels, which both platforms' images carry alike. Its Verified publisher label needs the same metadata
-  file pushed to the image's repository under the tag `artifacthub.io`; the tool
-  for that is `regctl`, from its image on Docker Hub (`regclient/regctl`), since
-  ORAS comes from GitHub. That push is not written yet.
+- **The image.** A repository of kind Container images, with the address
+  `oci://registry.gitlab.com/hmailserver/hmailserver`, lists it from its labels,
+  which both platforms' images carry alike. Its Verified publisher label needs a
+  metadata file of its own, with the repository ID Artifact Hub gives that
+  repository, pushed to the image's repository under the tag `artifacthub.io`.
+  That file is `platform/packaging/docker/artifacthub-repo.yml` in the tree: once a
+  maintainer has added the repository to the organization, the ID goes into it as
+  a line `repositoryID: <the ID>`, and the job `container-image-artifacthub` pushes
+  it. That job runs in every release's pipeline after `container-image`, and in the
+  default branch's a maintainer starts it by hand, so that the label need not wait
+  for a release. Until the file holds an ID it pushes nothing, and passes. It
+  pushes with `regctl` (`artifact put`), from the image `container-image` runs in,
+  since ORAS comes from GitHub, in the shape Artifact Hub documents for
+  `oras push`: an empty configuration of the type
+  `application/vnd.cncf.artifacthub.config.v1+yaml`, and the file as the one layer,
+  of the type `application/vnd.cncf.artifacthub.repository-metadata.layer.v1.yaml`,
+  titled `artifacthub-repo.yml`. It reads the tag back and holds the layer to the
+  file byte for byte (`build/ci/container-image-artifacthub.sh`). The registry's
+  cleanup policy does not keep that tag by name (ContinuousIntegration.md, "What
+  the owner sets on the registry"): before the policy is switched on, the
+  maintainers add `^artifacthub\.io$` to the tags it keeps. Nor does the
+  registry's protected-tag rule cover it, and the file under that tag is also
+  what Artifact Hub checks an ownership claim of the listing against (its
+  `owners`): before the repository is added, the maintainers protect
+  `^artifacthub\.io$` as they protect the release's tags, push Maintainer and
+  delete Owner (the same place). Should somebody else have added the
+  repository first, the listing is taken back by such a claim, which needs an
+  `owners` list naming the claimant in the file; the script refuses that key,
+  so allowing it would be a change to the script, reviewed as such.
 
 ## Updates
 
@@ -328,6 +354,7 @@ that does not exist (empty, pg_dump's exit status 1) or in one cut short.
 | `container-image-deb` | GitLab's shared runners, in cosign's image (`HM_COSIGN_IMAGE`); **started by hand** | Takes `hmailserver_<version>_amd64.deb`, `hmailserver_<version>_arm64.deb` and their SBOMs from the published release, with their Sigstore bundles, and verifies each with `cosign verify-blob` as signed by this project's pipeline for the tag, at either of the project's two paths, with the project's id `86730559` required in the certificate's extensions at the group's path, read from the v0.3 bundle cosign verified by `build/ci/sigstore-certificate.sh` (`build/ci/container-image-deb.sh`). Since 6.3.6 it also takes the release's `hmailserver-linux-<version>-SHA256SUMS.txt`, verified the same way, and holds each `.deb` to the SHA-256 it gives that name and each SBOM to naming its `.deb`'s SHA-256: a signature binds bytes, not a name, so another file the pipeline signed, served under a `.deb`'s name, would verify. A release without either `.deb`, or its SBOM, stops it: the image is built for both platforms or not at all |
 | `container-image-amd64`, `container-image-arm64` | linix, in kaniko's image | Each builds the Dockerfile for its platform from its own architecture's `.deb` - the arm64 one under qemu-user - checks the image's platform, user, entrypoint, healthcheck, ports, file capability, `HM_INSTALL_KIND` and labels and that the server answered `--version` in the build, and keeps the image's tarball for `container-image`; neither pushes (`build/ci/linux-image.sh`, `HM_IMAGE_RELEASE=1`) |
 | `container-image` | GitLab's shared runners, in regctl's image | Holds each tarball to what its job checked, joins the two images under one index, checks that the index names exactly linux/amd64 and linux/arm64, and only then pushes: each image by its digest, the index as `:<version>` (and `:<major>.<minor>` and `:latest` for a release without a suffix, each only forward: see below). It reads every tag it wrote back (`build/ci/container-image-push.sh`) |
+| `container-image-artifacthub` | GitLab's shared runners, in regctl's image; in the default branch's pipeline, **started by hand** | Pushes the tree's `platform/packaging/docker/artifacthub-repo.yml` under the tag `artifacthub.io`, as Artifact Hub reads it, once it holds the repository ID, and reads it back; until then nothing ([Artifact Hub](#artifact-hub)). Nothing waits for it (`build/ci/container-image-artifacthub.sh`) |
 | `container-image-sbom` | linix, in the Linux CI image | For each platform, Syft's reading of that platform's pushed image by its digest, with what that architecture's `.deb`'s own SBOM names inside the binary (`build/ci/container-image-sbom.sh`) |
 | `container-image-sign` | GitLab's shared runners, in cosign's image, after both start tests (since 6.3.6) | Signs the index and each platform's image by its digest, attests each platform's SBOM to its image, and verifies all of it (`build/ci/container-image-sign.sh`): only an image that has started and answered is signed |
 | `container_scanning`, `container_scanning_arm64` | GitLab's shared runners | GitLab's Container Scanning over each platform's pushed image by its digest; a finding is a warning, and its report is the job's artifact |
@@ -556,6 +583,22 @@ scripts, in the jobs' own images, unprivileged, as the jobs run them:
     left `:latest`, saying so;
   - 6.4.0 made `:6.4` and moved `:latest`, and 6.3.12 after it moved `:6.3` alone;
   - 6.3.13-rc1 wrote its own tag only.
+- **Artifact Hub's metadata, against a stand-in.** On 2 October 2026, against the
+  same kind of stand-in, `container-image-artifacthub.sh` ran in the job's regctl
+  image as the image's own user. With the tree's file, which holds no ID, it
+  pushed nothing and passed. With an ID added it pushed `:artifacthub.io` and
+  nothing else: an OCI image manifest whose configuration was the empty one of
+  Artifact Hub's type and whose one layer was the file, of Artifact Hub's type,
+  titled `artifacthub-repo.yml`; the same file pushed again, from the default
+  branch, made the same manifest, and another ID replaced it. A reader written
+  apart from regctl (Python, the registry's HTTP API) did what Artifact Hub
+  documents - the tag's manifest, its layer of that type, the layer read as YAML -
+  and found the ID. Fourteen refusals stopped it before anything was sent: the
+  switch unset or 0, the project's first path, an unprotected ref, a tag not
+  `v*`, a branch other than the default, neither, no registry password, an ID in
+  upper case or followed by more, another key (`owners:`), two IDs, CRLF line
+  endings and no file. Its read-back failed a push whose layer was another type, a
+  configuration regctl writes by itself (`{}`), and a layer without its title.
 
 ### Packaging and serving the chart
 
@@ -586,7 +629,14 @@ September 2026, in Alpine 3.24 with its Helm 3.19.0: the chart linted and render
 `v6.3.5-rc1` (a pre-release, marked so) and refused `v6.3.9`, `v6.3.5rc1` and a
 `Chart.yaml` whose image line had changed; and the example repository, served by
 `python3 -m http.server`, was added with `helm repo add`, searched, and the chart
-pulled byte for byte and rendered with the release's image.
+pulled byte for byte and rendered with the release's image. On 2 October 2026, with
+the image's platforms in `artifacthub.io/images`: the chart linted and rendered as
+`chart-and-compose` asks, `helm-repo.py --self-test` passed, and
+`helm-chart-package.sh` packaged it for a branch, `v6.3.6` and `v6.3.6-rc1`, `helm
+show chart` printing both platforms under the release's image; it refused a
+`Chart.yaml` without `linux/arm64`, with a third platform, with `linux/amd64`
+twice, with a second image and without the platforms (this file's chart before),
+and a package whose platforms had changed after the tree's were checked.
 
 ## What is not shown yet
 
@@ -607,3 +657,12 @@ pulled byte for byte and rendered with the release's image.
   stand-in registry, and with a key, as above.
 - No arm64 machine has run the image: only linix's qemu-user.
 - No chart has been published or listed on Artifact Hub.
+- No metadata has been pushed to GitLab's registry: `container-image-artifacthub`
+  first pushes once the image's repository has been added to Artifact Hub and its
+  ID committed, and whether GitLab's registry takes an artifact of Artifact Hub's
+  configuration type, and Artifact Hub then shows the Verified publisher label, is
+  first seen then. GitLab's registry refuses a manifest with a media type outside
+  its list; both of Artifact Hub's are on that list (the container registry's
+  `docs/supported-media-types.md`, read on 2 October 2026), and the manifest regctl
+  0.11.6 writes with the job's options, read whole from an OCI layout on linix that
+  day, names no other: no `artifactType`, and no annotation but the layer's title.
