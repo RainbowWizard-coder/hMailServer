@@ -549,6 +549,13 @@
 #define PROPERTY_BAN_MULTI_RCPT_NULL_SENDER     _T("BanMultiRcptNullSender")
 #define PROPERTY_BAN_MULTI_RCPT_NULL_SENDER_HOURS _T("BanMultiRcptNullSenderHours")
 
+// A HELO name or an envelope sender's domain that is not a fully qualified
+// domain name, refused at MAIL FROM (GitLab issue 51, AntiSpam/FqdnCheck.h). In
+// hm_settings with rows created by EnsureSettingDefaults_, both 0, which is the
+// server as it was: no schema step.
+#define PROPERTY_REFUSE_HELO_NOT_FQDN           _T("RefuseHeloNotFqdn")
+#define PROPERTY_REFUSE_MAIL_FROM_DOMAIN_NOT_FQDN _T("RefuseMailFromDomainNotFqdn")
+
 // Bounces read, and a suppression list (SMTP/BounceTracker.h). In hm_settings, by
 // the rule of 15 September 2026, with rows created at start by EnsureLong when a
 // database has none. Every default is the server as it was: processing off, so

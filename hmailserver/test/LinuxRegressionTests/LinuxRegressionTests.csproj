@@ -125,6 +125,7 @@
     <Compile Include="..\RegressionTests\API\RestApiAuditRevert.cs" Link="API\RestApiAuditRevert.cs" />
     <Compile Include="..\RegressionTests\API\RestApiSpamTraps.cs" Link="API\RestApiSpamTraps.cs" />
     <Compile Include="..\RegressionTests\API\RestApiGreylistBypass.cs" Link="API\RestApiGreylistBypass.cs" />
+    <Compile Include="..\RegressionTests\API\RestApiFqdnRefusal.cs" Link="API\RestApiFqdnRefusal.cs" />
     <Compile Include="..\RegressionTests\API\RestApiQueue.cs" Link="API\RestApiQueue.cs" />
     <Compile Include="..\RegressionTests\API\RestApiDirectory.cs" Link="API\RestApiDirectory.cs" />
     <Compile Include="..\RegressionTests\API\RestApiSelfService.cs" Link="API\RestApiSelfService.cs" />
@@ -155,6 +156,7 @@
     <Compile Include="..\RegressionTests\AntiSpam\SenderBlacklist.cs" Link="AntiSpam\SenderBlacklist.cs" />
     <Compile Include="..\RegressionTests\AntiSpam\SpfEvaluation.cs" Link="AntiSpam\SpfEvaluation.cs" />
     <Compile Include="..\RegressionTests\AntiSpam\SmtpPolicy.cs" Link="AntiSpam\SmtpPolicy.cs" />
+    <Compile Include="..\RegressionTests\AntiSpam\FqdnRefusal.cs" Link="AntiSpam\FqdnRefusal.cs" />
     <Compile Include="..\RegressionTests\AntiSpam\SpamAssassinLearning.cs" Link="AntiSpam\SpamAssassinLearning.cs" />
     <Compile Include="..\RegressionTests\AntiSpam\SpamAssassinUserHeader.cs" Link="AntiSpam\SpamAssassinUserHeader.cs" />
     <Compile Include="..\RegressionTests\Domains\DomainDeleteCascade.cs" Link="Domains\DomainDeleteCascade.cs" />

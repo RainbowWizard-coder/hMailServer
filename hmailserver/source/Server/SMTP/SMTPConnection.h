@@ -133,6 +133,14 @@ namespace HM
       // the spam tests only.
       bool CheckDomainPolicy_(const String &sFromAddress);
 
+      // RefuseHeloNotFqdn and RefuseMailFromDomainNotFqdn (GitLab issue 51,
+      // AntiSpam/FqdnCheck.h), at MAIL FROM. True when the HELO name or the
+      // envelope sender's domain is not a fully qualified domain name and its
+      // switch is on: the session has then been answered 550 5.7.1 and the
+      // caller returns. Unauthenticated sessions the spam tests run for, never
+      // from an incoming relay.
+      bool CheckSessionNames_(const String &sFromAddress);
+
       // MAIL FROM:<> naming more than one recipient (discussion #283). True when
       // this RCPT TO would be the second recipient of a null sender and
       // RejectMultiRcptNullSender is on: it has then been refused with a 550,

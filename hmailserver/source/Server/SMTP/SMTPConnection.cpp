@@ -78,6 +78,7 @@
 #include "../Common/AntiSpam/SpamProtection.h"
 #include "../Common/AntiSpam/SpamTrapMonitor.h"
 #include "../Common/AntiSpam/DomainPolicyList.h"
+#include "../Common/AntiSpam/FqdnCheck.h"
 #include "../Common/AntiSpam/AntiSpamConfiguration.h"
 #include "../Common/Util/AutoBanFirewall.h"
 #include "../Common/Util/Journaling.h"
@@ -1003,6 +1004,12 @@ namespace HM
       // before scoring and before a single lookup is paid for; white is
       // remembered for the transaction. See CheckDomainPolicy_.
       if (CheckDomainPolicy_(sFromAddress))
+         return;
+
+      // A HELO name or a sender's domain that is not a name - an address, one
+      // label, a public suffix - refused where the operator asked, and before
+      // DNSBLChecksAfterMailFrom pays for a lookup. See CheckSessionNames_.
+      if (CheckSessionNames_(sFromAddress))
          return;
 
       // Apply domain name aliases to this domain name.
@@ -1975,6 +1982,63 @@ namespace HM
       String logLine;
       logLine.Format(_T("hMailServer SpamProtection rejected MAIL FROM: the domain policy list marks %s%s black (%s) (Sender: %s, IP: %s)"),
          keyWord.c_str(), decision.matchedName.c_str(), decision.pattern.c_str(), sFromAddress.c_str(), String(GetIPAddressString()).c_str());
+      LOG_APPLICATION(logLine);
+
+      AWStats::LogDeliveryFailure(GetIPAddressString(), sFromAddress, _T(""), 550, 0);
+
+      return true;
+   }
+
+   bool
+   SMTPConnection::CheckSessionNames_(const String &sFromAddress)
+   //---------------------------------------------------------------------------()
+   // DESCRIPTION:
+   // RefuseHeloNotFqdn and RefuseMailFromDomainNotFqdn (GitLab issue 51): a
+   // session whose HELO name, or whose envelope sender's domain, is not a fully
+   // qualified domain name - an address with or without brackets, a single
+   // label, a public suffix - is answered 550 5.7.1 here and true is returned
+   // so the caller stops. At MAIL FROM, not at HELO, because AUTH has had its
+   // chance by now. Judged only where InitializeSpamProtectionType_ has just
+   // said the spam tests run before the data (type_ SPPreTransmission): not for
+   // a range that does not run them, nor a sender the anti-spam white list
+   // covers (SPNone), nor an incoming relay (SPPostTransmission), and never for
+   // an authenticated session. Both switches off - the default - is two reads
+   // of the settings and nothing else. The decision itself is FqdnCheck's.
+   //---------------------------------------------------------------------------()
+   {
+      AntiSpamConfiguration &config = Configuration::Instance()->GetAntiSpamConfiguration();
+
+      const bool refuseHelo = config.GetRefuseHeloNotFqdn();
+      const bool refuseSender = config.GetRefuseMailFromDomainNotFqdn();
+
+      if (!refuseHelo && !refuseSender)
+         return false;
+
+      FqdnCheck::Session session;
+      session.authenticated = isAuthenticated_;
+      session.spamTestsRun = type_ != SPNone;
+      session.incomingRelay = type_ == SPPostTransmission;
+      session.helo = helo_host_;
+      session.envelopeSender = sFromAddress;
+
+      const FqdnCheck::Decision decision = FqdnCheck::Decide(refuseHelo, refuseSender, session);
+
+      if (decision.limb == FqdnCheck::LimbNone)
+         return false;
+
+      const bool helo = decision.limb == FqdnCheck::LimbHelo;
+      const String what = FqdnCheck::Describe(decision.verdict);
+
+      // 5.7.1 = delivery not authorized, message refused (RFC 3463). The reply
+      // says which name and what it is, and does not repeat the name: it is
+      // the client's own text, and the client knows it.
+      SendResponse_(550, _T("5.7.1"), String(helo ? _T("The HELO name") : _T("The sender's domain")) +
+         _T(" is not a fully qualified domain name: it is ") + what + _T("."));
+
+      // One line, with the HELO, the envelope and the peer.
+      String logLine;
+      logLine.Format(_T("hMailServer SpamProtection rejected MAIL FROM: the %s is not a fully qualified domain name, it is %s (HELO: %s, Sender: <%s>, IP: %s)"),
+         helo ? _T("HELO name") : _T("sender's domain"), what.c_str(), helo_host_.c_str(), sFromAddress.c_str(), String(GetIPAddressString()).c_str());
       LOG_APPLICATION(logLine);
 
       AWStats::LogDeliveryFailure(GetIPAddressString(), sFromAddress, _T(""), 550, 0);

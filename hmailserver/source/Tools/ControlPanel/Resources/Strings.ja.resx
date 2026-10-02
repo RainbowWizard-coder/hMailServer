@@ -806,6 +806,9 @@
   <data name="A service account password from an earlier version is stored in hMailServer.INI in plain text, and nothing reads it any more: the service is registered from the installer or the buttons on the Windows service account card, and Windows keeps its own copy of any password. Delete the ServiceAccountPassword line from hMailServer.INI with an elevated editor, and the setting with DELETE /api/v1/settings/ini/ServiceAccountPassword, so that the database's copy goes too." xml:space="preserve">
     <value>以前のバージョンのサービス アカウントのパスワードが hMailServer.INI に平文で保存されていますが、もう何もそれを読み取りません。サービスはインストーラーまたは「Windows サービス アカウント」カードのボタンで登録され、Windows はすべてのパスワードの独自のコピーを保持します。管理者として実行したエディターで hMailServer.INI から ServiceAccountPassword の行を削除し、DELETE /api/v1/settings/ini/ServiceAccountPassword で設定も削除して、データベースのコピーも消してください。</value>
   </data>
+  <data name="A session that greets with HELO 192.0.2.7, HELO [192.0.2.7] or HELO localhost, or sends MAIL FROM:&lt;user@192.0.2.7&gt;, has given no name for itself, and a message it sends is held or scored with nothing to list it by. Off, the server accepts it as it always has. On, it is answered 550 5.7.1 at MAIL FROM, before the spam tests run: an address with or without brackets, a single label, a public suffix such as co.uk, and anything that is not a host name are refused, while mail.co.uk is a name. No DNS is asked; the suffixes are the Public Suffix List's, the list the quarantine groups by. Only unauthenticated sessions of an IP range that runs the spam tests are judged, after AUTH has had its chance - never a sender on the anti-spam white list, and never an incoming relay, whose HELO is your own gateway's." xml:space="preserve">
+    <value>HELO 192.0.2.7、HELO [192.0.2.7]、HELO localhost で挨拶する、または MAIL FROM:&lt;user@192.0.2.7&gt; を送るセッションは、自分の名前を何も示しておらず、そのセッションが送るメッセージは、リストに載せる手がかりがないまま保留またはスコア付けされます。オフの場合、サーバーは従来どおり受け入れます。オンの場合、スパムテストの実行前に MAIL FROM で 550 5.7.1 を返します。角かっこの有無にかかわらずアドレス、単一ラベル、co.uk のようなパブリック接尾辞、ホスト名でないものはすべて拒否され、mail.co.uk は名前として扱われます。DNS には何も問い合わせません。接尾辞は、検疫がグループ化に使うリストである Public Suffix List のものです。判定の対象は、スパムテストを実行する IP 範囲からの未認証セッションのみで、AUTH の機会が過ぎた後に行います。アンチスパムのホワイトリストにある送信者と、HELO が自組織のゲートウェイのものである受信リレーは決して対象になりません。</value>
+  </data>
   <data name="A share of connections, never more than the delivery threads: the accounts of one hosted domain, or all relayed mail together, cannot hold every delivery thread. The per-account sending limit is the volume control; this is not one." xml:space="preserve">
     <value>接続の割り当てであり、配信スレッド数を超えることはありません。ホストする 1 つのドメインのアカウント、あるいは中継メール全体が、すべての配信スレッドを占有することはできません。量を制御するのはアカウントごとの送信上限であり、これはそうではありません。</value>
   </data>
@@ -4620,6 +4623,9 @@
   <data name="HELO name" xml:space="preserve">
     <value>HELO 名</value>
   </data>
+  <data name="HELO names and sender domains that are not host names" xml:space="preserve">
+    <value>ホスト名ではない HELO 名と送信者ドメイン</value>
+  </data>
   <data name="HS256 is in OAuth2AllowedAlgorithms but OAuth2HmacSecret is empty, so HS256 tokens can never verify. Set the shared secret, or remove HS256 from the list." xml:space="preserve">
     <value>HS256 が OAuth2AllowedAlgorithms に含まれていますが OAuth2HmacSecret が空のため、HS256 トークンは決して検証できません。共有シークレットを設定するか、リストから HS256 を削除してください。</value>
   </data>
@@ -6819,6 +6825,9 @@
   <data name="Off by default. Its community crosses the network in the clear, so anyone who can see the traffic can read what the agent serves." xml:space="preserve">
     <value>既定ではオフです。コミュニティ名はネットワーク上を平文で流れるため、通信を見られる人は誰でもエージェントが返す内容を読めます。</value>
   </data>
+  <data name="Off by default. MAIL FROM:&lt;&gt; is no excuse: a delivery report from a server that greets with an address is refused like any other mail from it." xml:space="preserve">
+    <value>既定ではオフです。MAIL FROM:&lt;&gt; は免除の理由になりません。アドレスで挨拶するサーバーからの配信レポートは、そのサーバーからの他のメールと同様に拒否されます。</value>
+  </data>
   <data name="Off by default. Operators who drop this in a script today can delete the script when this is on." xml:space="preserve">
     <value>既定ではオフです。現在これをスクリプトで拒否している運用者は、これをオンにすればそのスクリプトを削除できます。</value>
   </data>
@@ -6842,6 +6851,9 @@
   </data>
   <data name="Off by default. With unprotected LDAP and a simple bind, the server does NOT send the password and does NOT guess what you meant: it refuses the logon and reports the contradiction, once per minute. Turning this on sends passwords in the clear and should only ever happen on a network you control end to end." xml:space="preserve">
     <value>既定ではオフです。保護されていない LDAP でシンプル バインドを使う場合、サーバーはパスワードを送信せず、意図を推測もしません: ログオンを拒否し、その矛盾を 1 分に 1 回報告します。これをオンにするとパスワードが平文で送信されるため、端から端まで自分で管理しているネットワークでのみ行ってください。</value>
+  </data>
+  <data name="Off by default. user@[192.0.2.7], user@localhost and user@co.uk are refused; MAIL FROM:&lt;&gt; has no domain and is not judged by this switch." xml:space="preserve">
+    <value>既定ではオフです。user@[192.0.2.7]、user@localhost、user@co.uk は拒否されます。MAIL FROM:&lt;&gt; にはドメインがないため、このスイッチでは判定されません。</value>
   </data>
   <data name="Off by default: a full mailbox is usually emptied, and listing it would stop mail to somebody who reads it next week." xml:space="preserve">
     <value>既定ではオフです。満杯のメールボックスは通常空けられるので、リストに載せると、来週読む人へのメールを止めてしまいます。</value>
@@ -8052,6 +8064,9 @@
   <data name="Refusal te_xt (what the 550 says to the sender)" xml:space="preserve">
     <value>拒否テキスト（550 が送信者に伝える文）(_X)</value>
   </data>
+  <data name="Refuse a HELO name that is not a fully qualified domain name" xml:space="preserve">
+    <value>完全修飾ドメイン名 (FQDN) ではない HELO 名を拒否する</value>
+  </data>
   <data name="Refuse a full mailbox during the conversation (452 4.2.2)" xml:space="preserve">
     <value>通信中に満杯のメールボックスを拒否する (452 4.2.2)</value>
   </data>
@@ -8063,6 +8078,9 @@
   </data>
   <data name="Refuse a null sender that names more than one recipient" xml:space="preserve">
     <value>複数の宛先を指定する空の送信者を拒否する</value>
+  </data>
+  <data name="Refuse a sender whose domain is not a fully qualified domain name" xml:space="preserve">
+    <value>ドメインが完全修飾ドメイン名 (FQDN) ではない送信者を拒否する</value>
   </data>
   <data name="Refuse a session from any address but the one it began on" xml:space="preserve">
     <value>開始したアドレス以外からのセッションを拒否する</value>

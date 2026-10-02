@@ -806,6 +806,9 @@ Dieses schwache Passwort trotzdem speichern?</value>
   <data name="A service account password from an earlier version is stored in hMailServer.INI in plain text, and nothing reads it any more: the service is registered from the installer or the buttons on the Windows service account card, and Windows keeps its own copy of any password. Delete the ServiceAccountPassword line from hMailServer.INI with an elevated editor, and the setting with DELETE /api/v1/settings/ini/ServiceAccountPassword, so that the database's copy goes too." xml:space="preserve">
     <value>Ein Dienstkonto-Kennwort aus einer früheren Version ist im Klartext in hMailServer.INI gespeichert, und nichts liest es mehr: Der Dienst wird vom Installationsprogramm oder über die Schaltflächen der Karte Windows-Dienstkonto registriert, und Windows behält eine eigene Kopie jedes Kennworts. Löschen Sie die Zeile ServiceAccountPassword mit einem Editor mit erhöhten Rechten aus hMailServer.INI und die Einstellung mit DELETE /api/v1/settings/ini/ServiceAccountPassword, damit auch die Kopie in der Datenbank verschwindet.</value>
   </data>
+  <data name="A session that greets with HELO 192.0.2.7, HELO [192.0.2.7] or HELO localhost, or sends MAIL FROM:&lt;user@192.0.2.7&gt;, has given no name for itself, and a message it sends is held or scored with nothing to list it by. Off, the server accepts it as it always has. On, it is answered 550 5.7.1 at MAIL FROM, before the spam tests run: an address with or without brackets, a single label, a public suffix such as co.uk, and anything that is not a host name are refused, while mail.co.uk is a name. No DNS is asked; the suffixes are the Public Suffix List's, the list the quarantine groups by. Only unauthenticated sessions of an IP range that runs the spam tests are judged, after AUTH has had its chance - never a sender on the anti-spam white list, and never an incoming relay, whose HELO is your own gateway's." xml:space="preserve">
+    <value>Eine Sitzung, die mit HELO 192.0.2.7, HELO [192.0.2.7] oder HELO localhost grüßt oder MAIL FROM:&lt;user@192.0.2.7&gt; sendet, hat keinen Namen für sich genannt, und eine Nachricht von ihr wird zurückgehalten oder bewertet, ohne dass es etwas gibt, wonach man sie auf eine Liste setzen könnte. Aus: der Server nimmt sie an wie bisher. Ein: sie wird bei MAIL FROM mit 550 5.7.1 beantwortet, bevor die Spamtests laufen: eine Adresse mit oder ohne eckige Klammern, ein einzelnes Label, ein öffentliches Suffix wie co.uk und alles, was kein Hostname ist, wird abgewiesen, während mail.co.uk ein Name ist. DNS wird nicht gefragt; die Suffixe sind die der Public Suffix List, nach der die Quarantäne gruppiert. Beurteilt werden nur nicht authentifizierte Sitzungen eines IP-Bereichs, der die Spamtests ausführt, und erst nachdem AUTH seine Gelegenheit hatte - nie ein Absender auf der Anti-Spam-Weißliste und nie ein eingehendes Relay, dessen HELO das Ihres eigenen Gateways ist.</value>
+  </data>
   <data name="A share of connections, never more than the delivery threads: the accounts of one hosted domain, or all relayed mail together, cannot hold every delivery thread. The per-account sending limit is the volume control; this is not one." xml:space="preserve">
     <value>Ein Anteil an Verbindungen, nie mehr als die Zustellthreads: die Konten einer gehosteten Domäne oder alle weitergeleitete Post zusammen können nicht jeden Zustellthread belegen. Die Sendegrenze pro Konto steuert die Menge; dies tut es nicht.</value>
   </data>
@@ -4620,6 +4623,9 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   <data name="HELO name" xml:space="preserve">
     <value>HELO-Name</value>
   </data>
+  <data name="HELO names and sender domains that are not host names" xml:space="preserve">
+    <value>HELO-Namen und Absenderdomains, die keine Hostnamen sind</value>
+  </data>
   <data name="HS256 is in OAuth2AllowedAlgorithms but OAuth2HmacSecret is empty, so HS256 tokens can never verify. Set the shared secret, or remove HS256 from the list." xml:space="preserve">
     <value>HS256 ist in OAuth2AllowedAlgorithms, aber OAuth2HmacSecret ist leer, HS256-Tokens können also nie verifiziert werden. Setzen Sie das gemeinsame Geheimnis oder entfernen Sie HS256 aus der Liste.</value>
   </data>
@@ -6819,6 +6825,9 @@ Nichts, was schon dort ist, wird entfernt.</value>
   <data name="Off by default. Its community crosses the network in the clear, so anyone who can see the traffic can read what the agent serves." xml:space="preserve">
     <value>Standardmäßig aus. Seine Community geht im Klartext über das Netz, sodass jeder, der den Verkehr sieht, lesen kann, was der Agent liefert.</value>
   </data>
+  <data name="Off by default. MAIL FROM:&lt;&gt; is no excuse: a delivery report from a server that greets with an address is refused like any other mail from it." xml:space="preserve">
+    <value>Standardmäßig aus. MAIL FROM:&lt;&gt; ist keine Entschuldigung: ein Zustellbericht von einem Server, der mit einer Adresse grüßt, wird abgewiesen wie jede andere Mail von ihm.</value>
+  </data>
   <data name="Off by default. Operators who drop this in a script today can delete the script when this is on." xml:space="preserve">
     <value>Standardmäßig aus. Wer das heute in einem Skript abweist, kann das Skript löschen, sobald dies eingeschaltet ist.</value>
   </data>
@@ -6842,6 +6851,9 @@ Nichts, was schon dort ist, wird entfernt.</value>
   </data>
   <data name="Off by default. With unprotected LDAP and a simple bind, the server does NOT send the password and does NOT guess what you meant: it refuses the logon and reports the contradiction, once per minute. Turning this on sends passwords in the clear and should only ever happen on a network you control end to end." xml:space="preserve">
     <value>In der Vorgabe aus. Bei ungeschütztem LDAP mit einem einfachen Bind sendet der Server das Passwort NICHT und rät NICHT, was gemeint war: er lehnt die Anmeldung ab und meldet den Widerspruch, einmal pro Minute. Dies einzuschalten sendet Passwörter im Klartext und sollte nur in einem Netz geschehen, das Sie von Ende zu Ende kontrollieren.</value>
+  </data>
+  <data name="Off by default. user@[192.0.2.7], user@localhost and user@co.uk are refused; MAIL FROM:&lt;&gt; has no domain and is not judged by this switch." xml:space="preserve">
+    <value>Standardmäßig aus. user@[192.0.2.7], user@localhost und user@co.uk werden abgewiesen; MAIL FROM:&lt;&gt; hat keine Domain und wird von diesem Schalter nicht beurteilt.</value>
   </data>
   <data name="Off by default: a full mailbox is usually emptied, and listing it would stop mail to somebody who reads it next week." xml:space="preserve">
     <value>Standardmäßig aus: Ein volles Postfach wird meist geleert, und es zu listen würde Nachrichten an jemanden stoppen, der es nächste Woche liest.</value>
@@ -8052,6 +8064,9 @@ Führen Sie dies aus, wenn Clients melden, dass Nachrichten unter der falschen U
   <data name="Refusal te_xt (what the 550 says to the sender)" xml:space="preserve">
     <value>Ablehnungste_xt (was 550 dem Absender sagt)</value>
   </data>
+  <data name="Refuse a HELO name that is not a fully qualified domain name" xml:space="preserve">
+    <value>Einen HELO-Namen abweisen, der kein vollqualifizierter Domainname ist</value>
+  </data>
   <data name="Refuse a full mailbox during the conversation (452 4.2.2)" xml:space="preserve">
     <value>Ein volles Postfach während des Dialogs ablehnen (452 4.2.2)</value>
   </data>
@@ -8063,6 +8078,9 @@ Führen Sie dies aus, wenn Clients melden, dass Nachrichten unter der falschen U
   </data>
   <data name="Refuse a null sender that names more than one recipient" xml:space="preserve">
     <value>Einen leeren Absender abweisen, der mehr als einen Empfänger nennt</value>
+  </data>
+  <data name="Refuse a sender whose domain is not a fully qualified domain name" xml:space="preserve">
+    <value>Einen Absender abweisen, dessen Domain kein vollqualifizierter Domainname ist</value>
   </data>
   <data name="Refuse a session from any address but the one it began on" xml:space="preserve">
     <value>Eine Sitzung von jeder anderen Adresse als der, auf der sie begann, ablehnen</value>

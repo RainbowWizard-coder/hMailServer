@@ -614,8 +614,11 @@ set_target_properties(signature-html-sanitizer-tests PROPERTIES OUTPUT_NAME sign
 # addresses, and DMARC's organizational domain the same name. With it
 # SURBLTester (Common/AntiSpam/SURBL.h), the links the cut is handed: the host
 # after a link's userinfo, ports, IPv6, percent-encoding, the forms of an IPv4
-# address, HTML's character references, and the lists' error codes. No network,
-# no configuration, no database. Not installed; a bench tool.
+# address, HTML's character references, and the lists' error codes. And
+# FqdnCheckTester (Common/AntiSpam/FqdnCheck.h), a HELO name or a sender's domain
+# that is not a fully qualified domain name by the same list, and the carve-outs
+# of the refusal made with it. No network, no configuration, no database. Not
+# installed; a bench tool.
 add_executable(public-suffix-tests ${SERVER_DIR}/platform/public_suffix_tests_main.cpp)
 target_link_libraries(public-suffix-tests PRIVATE hmailserver_core)
 set_target_properties(public-suffix-tests PROPERTIES OUTPUT_NAME public-suffix-tests)

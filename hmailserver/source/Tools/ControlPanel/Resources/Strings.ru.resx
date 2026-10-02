@@ -806,6 +806,9 @@
   <data name="A service account password from an earlier version is stored in hMailServer.INI in plain text, and nothing reads it any more: the service is registered from the installer or the buttons on the Windows service account card, and Windows keeps its own copy of any password. Delete the ServiceAccountPassword line from hMailServer.INI with an elevated editor, and the setting with DELETE /api/v1/settings/ini/ServiceAccountPassword, so that the database's copy goes too." xml:space="preserve">
     <value>Пароль учётной записи службы из прежней версии хранится в hMailServer.INI открытым текстом, и его больше ничто не читает: служба регистрируется установщиком или кнопками на карточке «Учётная запись службы Windows», а Windows хранит собственную копию любого пароля. Удалите строку ServiceAccountPassword из hMailServer.INI редактором с повышенными правами, а параметр — командой DELETE /api/v1/settings/ini/ServiceAccountPassword, чтобы исчезла и копия в базе данных.</value>
   </data>
+  <data name="A session that greets with HELO 192.0.2.7, HELO [192.0.2.7] or HELO localhost, or sends MAIL FROM:&lt;user@192.0.2.7&gt;, has given no name for itself, and a message it sends is held or scored with nothing to list it by. Off, the server accepts it as it always has. On, it is answered 550 5.7.1 at MAIL FROM, before the spam tests run: an address with or without brackets, a single label, a public suffix such as co.uk, and anything that is not a host name are refused, while mail.co.uk is a name. No DNS is asked; the suffixes are the Public Suffix List's, the list the quarantine groups by. Only unauthenticated sessions of an IP range that runs the spam tests are judged, after AUTH has had its chance - never a sender on the anti-spam white list, and never an incoming relay, whose HELO is your own gateway's." xml:space="preserve">
+    <value>Сеанс, который приветствует HELO 192.0.2.7, HELO [192.0.2.7] или HELO localhost либо отправляет MAIL FROM:&lt;user@192.0.2.7&gt;, не назвал себя никаким именем, и отправленное им письмо задерживается или получает баллы, а внести его в список не по чему. Выключено: сервер принимает его, как и всегда. Включено: на MAIL FROM даётся 550 5.7.1 ещё до запуска антиспам-проверок: адрес в квадратных скобках или без них, одиночная метка, публичный суффикс вроде co.uk и всё, что не является именем хоста, отклоняются, тогда как mail.co.uk - это имя. DNS ни о чём не спрашивается; суффиксы берутся из Public Suffix List, списка, по которому группирует карантин. Оцениваются только неаутентифицированные сеансы из диапазона IP, для которого выполняются антиспам-проверки, и только после того, как у AUTH был шанс, - никогда отправитель из белого антиспам-списка и никогда входящий ретранслятор, чей HELO принадлежит вашему собственному шлюзу.</value>
+  </data>
   <data name="A share of connections, never more than the delivery threads: the accounts of one hosted domain, or all relayed mail together, cannot hold every delivery thread. The per-account sending limit is the volume control; this is not one." xml:space="preserve">
     <value>Доля соединений, никогда не больше потоков доставки: учётные записи одного размещённого домена или вся ретранслируемая почта вместе не могут занять все потоки доставки. Объём контролирует лимит отправки на учётную запись; это не он.</value>
   </data>
@@ -4620,6 +4623,9 @@ Control Panel может читать файлы сообщений только
   <data name="HELO name" xml:space="preserve">
     <value>Имя HELO</value>
   </data>
+  <data name="HELO names and sender domains that are not host names" xml:space="preserve">
+    <value>Имена HELO и домены отправителей, которые не являются именами хостов</value>
+  </data>
   <data name="HS256 is in OAuth2AllowedAlgorithms but OAuth2HmacSecret is empty, so HS256 tokens can never verify. Set the shared secret, or remove HS256 from the list." xml:space="preserve">
     <value>HS256 есть в OAuth2AllowedAlgorithms, но OAuth2HmacSecret пуст, поэтому токены HS256 никогда не смогут пройти проверку. Задайте общий секрет либо уберите HS256 из списка.</value>
   </data>
@@ -6819,6 +6825,9 @@ Control Panel может читать файлы сообщений только
   <data name="Off by default. Its community crosses the network in the clear, so anyone who can see the traffic can read what the agent serves." xml:space="preserve">
     <value>По умолчанию выключено. Его community передаётся по сети открытым текстом, поэтому любой, кто видит трафик, может читать то, что отдаёт агент.</value>
   </data>
+  <data name="Off by default. MAIL FROM:&lt;&gt; is no excuse: a delivery report from a server that greets with an address is refused like any other mail from it." xml:space="preserve">
+    <value>По умолчанию выключено. MAIL FROM:&lt;&gt; не оправдание: отчёт о доставке от сервера, который приветствует адресом, отклоняется, как и любая другая почта от него.</value>
+  </data>
   <data name="Off by default. Operators who drop this in a script today can delete the script when this is on." xml:space="preserve">
     <value>По умолчанию выключено. Те, кто сегодня отклоняет это скриптом, могут удалить скрипт, когда это включено.</value>
   </data>
@@ -6842,6 +6851,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Off by default. With unprotected LDAP and a simple bind, the server does NOT send the password and does NOT guess what you meant: it refuses the logon and reports the contradiction, once per minute. Turning this on sends passwords in the clear and should only ever happen on a network you control end to end." xml:space="preserve">
     <value>По умолчанию выключено. При незащищённом LDAP и простой привязке сервер НЕ отправляет пароль и НЕ угадывает, что имелось в виду: он отклоняет вход и сообщает о противоречии раз в минуту. Включение этого параметра отправляет пароли открытым текстом и допустимо только в сети, которую вы контролируете от начала до конца.</value>
+  </data>
+  <data name="Off by default. user@[192.0.2.7], user@localhost and user@co.uk are refused; MAIL FROM:&lt;&gt; has no domain and is not judged by this switch." xml:space="preserve">
+    <value>По умолчанию выключено. user@[192.0.2.7], user@localhost и user@co.uk отклоняются; у MAIL FROM:&lt;&gt; нет домена, и этот переключатель его не оценивает.</value>
   </data>
   <data name="Off by default: a full mailbox is usually emptied, and listing it would stop mail to somebody who reads it next week." xml:space="preserve">
     <value>По умолчанию выключено: переполненный ящик обычно освобождают, а занесение его в список остановило бы почту для того, кто прочтёт её на следующей неделе.</value>
@@ -8052,6 +8064,9 @@ Control Panel может читать файлы сообщений только
   <data name="Refusal te_xt (what the 550 says to the sender)" xml:space="preserve">
     <value>Текст отказа (что 550 говорит отправителю) (_X)</value>
   </data>
+  <data name="Refuse a HELO name that is not a fully qualified domain name" xml:space="preserve">
+    <value>Отклонять имя HELO, которое не является полным доменным именем</value>
+  </data>
   <data name="Refuse a full mailbox during the conversation (452 4.2.2)" xml:space="preserve">
     <value>Отклонять переполненный почтовый ящик прямо в ходе диалога (452 4.2.2)</value>
   </data>
@@ -8063,6 +8078,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Refuse a null sender that names more than one recipient" xml:space="preserve">
     <value>Отклонять пустого отправителя, называющего более одного получателя</value>
+  </data>
+  <data name="Refuse a sender whose domain is not a fully qualified domain name" xml:space="preserve">
+    <value>Отклонять отправителя, чей домен не является полным доменным именем</value>
   </data>
   <data name="Refuse a session from any address but the one it began on" xml:space="preserve">
     <value>Отклонять сеанс с любого адреса, кроме того, с которого он начался</value>

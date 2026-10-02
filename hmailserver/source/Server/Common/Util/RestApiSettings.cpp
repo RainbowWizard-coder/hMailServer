@@ -1791,6 +1791,14 @@ namespace
       { "check_ptr_score", KindInteger, ReadWrite, EffectNow, nullptr,
         "The score a missing PTR record adds.",
         ROW_NUMBER(AntiSpam().GetCheckPTRScore()), ROW_SET(AntiSpam().SetCheckPTRScore((int) v.number)), ROW_NO_CHECK },
+      // A HELO name or a sender's domain that is not a fully qualified domain
+      // name (GitLab issue 51): a refusal, not a score, beside the host checks.
+      { "refuse_helo_not_fqdn", KindBoolean, ReadWrite, EffectNow, nullptr,
+        "Whether a session whose HELO/EHLO name is not a fully qualified domain name is refused at MAIL FROM with 550 5.7.1: an address with or without brackets, a single label such as localhost, a public suffix such as co.uk, or anything that is not a host name. No DNS is asked; the suffix is the Public Suffix List's. MAIL FROM:<> does not excuse the HELO. Off by default; unauthenticated sessions of an IP range that runs the spam tests only, never a sender the anti-spam white list covers and never an incoming relay.",
+        ROW_FLAG(AntiSpam().GetRefuseHeloNotFqdn()), ROW_SET(AntiSpam().SetRefuseHeloNotFqdn(v.flag)), ROW_NO_CHECK },
+      { "refuse_mail_from_domain_not_fqdn", KindBoolean, ReadWrite, EffectNow, nullptr,
+        "Whether a session whose envelope sender's domain is not a fully qualified domain name is refused at MAIL FROM with 550 5.7.1: user@192.0.2.7, user@[192.0.2.7], an IPv6 literal, a single label, a public suffix. MAIL FROM:<> has no domain and is not judged by this. Off by default; the same sessions as refuse_helo_not_fqdn, and independent of it.",
+        ROW_FLAG(AntiSpam().GetRefuseMailFromDomainNotFqdn()), ROW_SET(AntiSpam().SetRefuseMailFromDomainNotFqdn(v.flag)), ROW_NO_CHECK },
       { "dkim_verification_enabled", KindBoolean, ReadWrite, EffectNow, nullptr,
         "Whether DKIM signatures are verified.",
         ROW_FLAG(AntiSpam().GetDKIMVerificationEnabled()), ROW_SET(AntiSpam().SetDKIMVerificationEnabled(v.flag)), ROW_NO_CHECK },

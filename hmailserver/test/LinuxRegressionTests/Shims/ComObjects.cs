@@ -1938,6 +1938,18 @@ namespace hMailServer
          set { SettingsApi.Put(SettingsApi.AntiSpam, "ban_multi_rcpt_null_sender_hours", value); }
       }
 
+      public bool RefuseHeloNotFqdn
+      {
+         get { return SettingsApi.GetBool(SettingsApi.AntiSpam, "refuse_helo_not_fqdn"); }
+         set { SettingsApi.Put(SettingsApi.AntiSpam, "refuse_helo_not_fqdn", value); }
+      }
+
+      public bool RefuseMailFromDomainNotFqdn
+      {
+         get { return SettingsApi.GetBool(SettingsApi.AntiSpam, "refuse_mail_from_domain_not_fqdn"); }
+         set { SettingsApi.Put(SettingsApi.AntiSpam, "refuse_mail_from_domain_not_fqdn", value); }
+      }
+
       private const string DomainPolicyPath = "/api/v1/domain-policy-list";
 
       /// <summary>The list as COM's AntiSpam.DomainPolicyList gives it: a document with items.</summary>

@@ -224,6 +224,8 @@ RecallDays account
 RecoverDeletedDays account
 RecoveryResetLinkMinutes server
 RecoveryVerifyLinkHours server
+RefuseHeloNotFqdn server
+RefuseMailFromDomainNotFqdn server
 RejectMultiRcptNullSender server
 relaymode server
 ReputationWatchAddresses server

@@ -1,15 +1,16 @@
 # SMTP policy the score cannot express
 
-Three things one operator asked for in discussions #283, #285 and #286, each
-of them a decision the spam score cannot make on its own, and every one of them
-**off by default**: a stock installation behaves exactly as it did before they
-existed.
+Three things one operator asked for in discussions #283, #285 and #286, and a
+fourth from GitLab issue 51, each of them a decision the spam score cannot make
+on its own, and every one of them **off by default**: a stock installation
+behaves exactly as it did before they existed.
 
 | | What it is | Off means |
 |---|---|---|
 | **SPF's other results, scored on their own** (#286) | SoftFail, TempError and PermError each get a score of their own, and TempError can instead be answered `451` | The three scores are 0 and add nothing; a TempError is accepted, as it always was |
 | **A null sender with several recipients** (#283) | `MAIL FROM:<>` naming more than one `RCPT TO` is refused, and optionally the connecting address is banned for a while | Accepted, as it always was |
 | **A domain white and black list** (#285) | Sending organisations decided about by their **domain** - envelope domain or HELO suffix - rather than by the IP address of the week | The list is empty, and an empty list changes nothing |
+| **Names that are not names** (GitLab issue 51) | A HELO name, or an envelope sender's domain, that is not a fully qualified domain name - an address, a single label, a public suffix - is refused at `MAIL FROM` | Accepted, as it always was |
 
 Everything here applies to **inbound, unauthenticated** sessions of an IP range
 that runs the spam tests, and never to a session whose sender the anti-spam
@@ -96,6 +97,121 @@ Where they are: `Settings.AntiSpam` over COM, `PUT /api/v1/settings/antispam`
 *Host checks* (the card *Null sender with several recipients*), and the Deck's
 Settings view. Operators who drop this in an `OnSMTPData` script today can
 delete the script.
+
+## Names that are not names (GitLab issue 51)
+
+A client that greets with `HELO 192.0.2.7`, `HELO [192.0.2.7]` or
+`HELO localhost`, or sends `MAIL FROM:<user@192.0.2.7>`, has given no name for
+itself. The server has always accepted that, and since 6.3.5 the quarantine
+review treats such a name as having **no organization domain** - so a message
+held from it has nothing useful to be grouped under or listed by. The same is
+true of a public suffix used as a host: `HELO co.uk`, `user@co.uk`.
+
+| Setting | Meaning | Default |
+|---|---|---|
+| `RefuseHeloNotFqdn` | A session whose HELO/EHLO name is not a fully qualified domain name is answered `550 5.7.1` at `MAIL FROM` | off |
+| `RefuseMailFromDomainNotFqdn` | A session whose envelope sender's domain is not a fully qualified domain name is answered `550 5.7.1` at `MAIL FROM` | off |
+
+The two are independent, because the names are wrong for different reasons:
+a HELO that is an address is usually a misconfigured or a hostile client,
+while a sender at an address literal is usually a script. Either may be on
+without the other.
+
+**A fully qualified domain name, here**, is judged without DNS: by its shape
+and by the Public Suffix List compiled into the server, the list the
+quarantine review groups by. With one trailing root dot taken off
+(`mail.example.com.` is `mail.example.com`), a name is one when:
+
+- it is not empty, and not the root `.` alone;
+- it is not an address - nothing in brackets (`[192.0.2.7]`,
+  `[IPv6:2001:db8::7]`, or whatever else a client brackets), and no IPv4 or
+  IPv6 address without them;
+- every label holds something, and holds only letters, digits, hyphens and
+  underscores, or characters beyond ASCII (an internationalised name). A space
+  or an `@` is in no host's name, so `HELO mail.example.com extra` is not one;
+- it has **two labels or more**: `localhost` is not;
+- its last label is not all digits, which no top-level domain is (RFC 3696):
+  `192.0.2` and `192.0.2.300` are neither names nor addresses;
+- it is **not itself a public suffix**: `com`, `co.uk` and `github.io` name no
+  host and no organization, so they are refused, while `mail.co.uk` and
+  `tenant.github.io` are names.
+
+Underscores and a label that begins or ends with a hyphen are let through:
+both are outside the host-name grammar and both are on real mail servers'
+HELO lines, and this check is about names that are not names at all, not
+about spelling.
+
+**When it is judged.** At `MAIL FROM`, not at `HELO`: a submission client may
+greet with whatever its stack puts there and then authenticate, and by
+`MAIL FROM` AUTH has either happened or it has not. It runs once the domain
+white and black list has had its say, and before greylisting, the score and
+the spam tests' lookups - those `DNSBLChecksAfterMailFrom` brings forward to
+`MAIL FROM` included - so a refused session costs no spam test anything.
+
+**`MAIL FROM:<>` is no excuse for the HELO.** The null reverse-path has no
+domain, so `RefuseMailFromDomainNotFqdn` has nothing to judge; but
+`RefuseHeloNotFqdn` judges the HELO of a null sender as it judges any other,
+so a delivery report from a server that greets with an address is refused like
+the rest of its mail.
+
+**Who is never judged:**
+
+- an **authenticated** session (or one a trusted XCLIENT says authenticated);
+- a session from an **IP range that does not run the spam tests**;
+- a sender the **anti-spam white list** covers;
+- a session from an **incoming relay**. Its HELO is your own gateway's, not the
+  originator's, and a refusal of its envelope here would not reach the sender:
+  it would become your gateway's bounce of mail it had already accepted. For
+  mail behind a gateway, the gateway is where this check belongs.
+
+The domain white list does **not** excuse a session, as it does not excuse the
+multi-recipient null sender: a name that is not a name is a protocol fault, not
+a score. A correspondent whose server greets with an address and whose mail you
+want goes on the anti-spam white list, by its address.
+
+**Before switching either on**, look at what sends to this server without
+AUTH from a range that runs the spam tests:
+
+- The *My computer* range (127.0.0.1) that a new installation is created with
+  runs them. A program on the same machine that hands its mail to this server
+  without signing in - a web application, a script, a scanner's or a monitoring
+  tool's notice - and greets with the machine's own short name or `localhost`,
+  or sends as `user@localhost`, is refused like any other client. Give it a
+  name (and an account to sign in with), turn the spam tests off for its range,
+  or put it on the anti-spam white list.
+- A name the Public Suffix List makes a suffix through a wildcard rule is a
+  public suffix here even when it is a host's real name. The list's
+  `*.compute-1.amazonaws.com` makes the name every Amazon EC2 instance of
+  us-east-1 is given - `ec2-198-51-100-7.compute-1.amazonaws.com` - a suffix of
+  its own, so a server there that greets with it is refused; one of another
+  region (`ec2-198-51-100-7.eu-west-1.compute.amazonaws.com`) has a label more
+  and is a name. The refusal's log line says which name and why; a
+  correspondent refused for this goes on the anti-spam white list.
+
+The reply names which of the two names failed and what it is, and does not echo
+the name back: `550 5.7.1 The HELO name is not a fully qualified domain name: it
+is an address literal.` or `550 5.7.1 The sender's domain is not a fully
+qualified domain name: it is a public suffix.` The words after "it is" are one
+of: empty, an address literal, an IP address, not a host name, a single label,
+numeric where its top-level domain should be, a public suffix. One line goes to
+the log with the HELO, the envelope and the peer:
+
+```
+hMailServer SpamProtection rejected MAIL FROM: the HELO name is not a fully qualified domain name, it is an address literal (HELO: [192.0.2.7], Sender: <someone@example.com>, IP: 198.51.100.7)
+```
+
+With both switches off nothing is read but the two settings, and nothing
+changes - including 6.3.5's grouping: a HELO or a sender that is an address
+still has no organization domain in the quarantine review, and never becomes
+the Public Suffix List's `2.7`.
+
+Where they are: `Settings.AntiSpam` over COM (`RefuseHeloNotFqdn`,
+`RefuseMailFromDomainNotFqdn`), `PUT /api/v1/settings/antispam`
+(`refuse_helo_not_fqdn`, `refuse_mail_from_domain_not_fqdn`), the Control
+Panel's Anti-spam page under *Host checks* (the card *HELO names and sender
+domains that are not host names*), and the Deck's Settings view, beside the
+host checks. Both are rows of the settings table, created at the next start
+with the value 0; there is no schema step.
 
 ## The domain white and black list (#285)
 
@@ -213,6 +329,12 @@ Every change is in the audit trail as a `domain policy list entry`.
 - The white verdict does not touch the DNS blacklists' or SpamAssassin's
   *running* - only what the resulting score is allowed to do. An operator who
   wants no tests at all for a host has the anti-spam white list.
+- The check for names that are not names asks no DNS: `mail.nowhere.example`
+  is shaped like a name and is one here, whether or not it resolves. Whether a
+  HELO resolves to the connecting address, and whether a sender's domain has an
+  MX or an A record, are the scored host checks beside it; SPF, DKIM and DMARC
+  are not touched. It is not a score, it bans nobody, and it does not change
+  what the quarantine review groups by.
 
 ## What proves it
 
@@ -227,3 +349,16 @@ range and lifted; a black envelope domain and a black HELO suffix refused at
 past greylisting, past a softfail at the delete threshold, and past the
 TempError deferral, with the message delivered each time; and the list and the
 settings refusing what they are given in words.
+
+`RegressionTests/AntiSpam/FqdnRefusal.cs`: with both switches off, a session
+whose HELO and sender are both address literals delivers its message; each
+switch refuses its own name at `MAIL FROM` for the item's examples and accepts
+`mail.co.uk` beside `co.uk`; the null sender refused for a bad HELO and accepted
+for a good one, and accepted under the sender's switch alone; the two switches
+independent; an authenticated session, a range without the spam tests, a
+white-listed sender and an incoming relay each refused without the carve-out
+and accepted with it; and the log line. `API/RestApiFqdnRefusal.cs`: both
+settings over REST, read back on their own and by COM, a value that is not a
+boolean refused, and the OpenAPI document. `FqdnCheckTester` (in the class
+tests, and on Linux in `public-suffix-tests`): every rule name by name, and the
+decision's switches and carve-outs one at a time.

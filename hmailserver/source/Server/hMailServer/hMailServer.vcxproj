@@ -362,6 +362,7 @@ EXIT 0
     <ClCompile Include="..\Common\BO\DomainPolicyEntries.cpp" />
     <ClCompile Include="..\Common\Persistence\PersistentDomainPolicyEntry.cpp" />
     <ClCompile Include="..\Common\AntiSpam\DomainPolicyList.cpp" />
+    <ClCompile Include="..\Common\AntiSpam\FqdnCheck.cpp" />
     <ClCompile Include="..\Common\AntiSpam\SURBL.cpp" />
     <ClCompile Include="..\Common\AntiSpam\WhiteListCache.cpp" />
     <ClCompile Include="..\Common\AntiVirus\AntiVirusConfiguration.cpp" />
@@ -1354,6 +1355,7 @@ EXIT 0
     <ClInclude Include="..\Common\BO\DomainPolicyEntries.h" />
     <ClInclude Include="..\Common\Persistence\PersistentDomainPolicyEntry.h" />
     <ClInclude Include="..\Common\AntiSpam\DomainPolicyList.h" />
+    <ClInclude Include="..\Common\AntiSpam\FqdnCheck.h" />
     <ClInclude Include="..\Common\AntiSpam\SURBL.h" />
     <ClInclude Include="..\Common\AntiSpam\WhiteListCache.h" />
     <ClInclude Include="..\Common\AntiVirus\AntiVirusConfiguration.h" />

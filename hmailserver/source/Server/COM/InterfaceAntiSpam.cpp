@@ -1934,6 +1934,78 @@ STDMETHODIMP InterfaceAntiSpam::put_BanMultiRcptNullSenderHours(long newVal)
    }
 }
 
+STDMETHODIMP InterfaceAntiSpam::get_RefuseHeloNotFqdn(VARIANT_BOOL *pVal)
+{
+   try
+   {
+      if (!config_)
+         return GetAccessDenied();
+
+      *pVal = config_->GetAntiSpamConfiguration().GetRefuseHeloNotFqdn() ? VARIANT_TRUE : VARIANT_FALSE;
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAntiSpam::put_RefuseHeloNotFqdn(VARIANT_BOOL newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return GetAccessDenied();
+
+      config_->GetAntiSpamConfiguration().SetRefuseHeloNotFqdn(newVal == VARIANT_TRUE);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAntiSpam::get_RefuseMailFromDomainNotFqdn(VARIANT_BOOL *pVal)
+{
+   try
+   {
+      if (!config_)
+         return GetAccessDenied();
+
+      *pVal = config_->GetAntiSpamConfiguration().GetRefuseMailFromDomainNotFqdn() ? VARIANT_TRUE : VARIANT_FALSE;
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAntiSpam::put_RefuseMailFromDomainNotFqdn(VARIANT_BOOL newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return GetAccessDenied();
+
+      config_->GetAntiSpamConfiguration().SetRefuseMailFromDomainNotFqdn(newVal == VARIANT_TRUE);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
 STDMETHODIMP InterfaceAntiSpam::get_DomainPolicyList(BSTR *pVal)
 {
    try

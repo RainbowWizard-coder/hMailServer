@@ -20,6 +20,7 @@
 #include "../Util/ObjectStoreSignature.h"
 #include "../Util/ContentPolicy.h"
 #include "../AntiSpam/QuarantineReview.h"
+#include "../AntiSpam/FqdnCheck.h"
 #include "../Util/WebPush.h"
 #include "../Util/PushSubscriptions.h"
 #include "../Util/PushNotifier.h"
@@ -273,6 +274,13 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing QuarantineReview\n"));
       QuarantineReviewTester quarantineReviewTester;
       quarantineReviewTester.Test();
+
+      // A HELO name or a sender's domain that is not a fully qualified domain
+      // name (GitLab issue 51): addresses in and out of brackets, one label, the
+      // public suffixes by the same list, and the carve-outs of the refusal.
+      OutputDebugString(_T("hMailServer: Testing FqdnCheck\n"));
+      FqdnCheckTester fqdnCheckTester;
+      fqdnCheckTester.Test();
 
       OutputDebugString(_T("hMailServer: Testing ExternalSenderTagger\n"));
       ExternalSenderTaggerTester externalSenderTaggerTester;

@@ -2381,6 +2381,26 @@ namespace hMailServer.ControlPanel.Views
          nullSender.Settings.Add(new ComText { Path = "AntiSpam.BanMultiRcptNullSenderHours", Label = L("Ban for (hours, 1 to 8760)"), Numeric = true });
          Tab(L("Host checks")).Cards.Add(nullSender);
 
+         // GitLab issue 51. A refusal like the null sender's, not a score: a
+         // name that is not a name is answered 550 at MAIL FROM. Two switches,
+         // because a HELO and a sender's domain are wrong for different reasons
+         // and an operator may trust one and not the other.
+         var names = Card(L("HELO names and sender domains that are not host names"),
+            L("A session that greets with HELO 192.0.2.7, HELO [192.0.2.7] or HELO localhost, or sends MAIL FROM:<user@192.0.2.7>, has given no name for itself, and a message it sends is held or scored with nothing to list it by. Off, the server accepts it as it always has. On, it is answered 550 5.7.1 at MAIL FROM, before the spam tests run: an address with or without brackets, a single label, a public suffix such as co.uk, and anything that is not a host name are refused, while mail.co.uk is a name. No DNS is asked; the suffixes are the Public Suffix List's, the list the quarantine groups by. Only unauthenticated sessions of an IP range that runs the spam tests are judged, after AUTH has had its chance - never a sender on the anti-spam white list, and never an incoming relay, whose HELO is your own gateway's."));
+         names.Settings.Add(new ComBool
+         {
+            Path = "AntiSpam.RefuseHeloNotFqdn",
+            Label = L("Refuse a HELO name that is not a fully qualified domain name"),
+            Blurb = L("Off by default. MAIL FROM:<> is no excuse: a delivery report from a server that greets with an address is refused like any other mail from it.")
+         });
+         names.Settings.Add(new ComBool
+         {
+            Path = "AntiSpam.RefuseMailFromDomainNotFqdn",
+            Label = L("Refuse a sender whose domain is not a fully qualified domain name"),
+            Blurb = L("Off by default. user@[192.0.2.7], user@localhost and user@co.uk are refused; MAIL FROM:<> has no domain and is not judged by this switch.")
+         });
+         Tab(L("Host checks")).Cards.Add(names);
+
          var grey = Card(L("Greylisting"), L("Temporarily rejects mail from unknown senders; legitimate servers retry and pass."));
          grey.Settings.Add(new ComBool { Path = "AntiSpam.GreyListingEnabled", Label = L("Enable greylisting") });
          grey.Settings.Add(new ComText { Path = "AntiSpam.GreyListingInitialDelay", Label = L("Initial delay (minutes)"), Numeric = true });

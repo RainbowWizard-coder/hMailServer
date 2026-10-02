@@ -551,6 +551,30 @@ namespace HM
       GetSettings_()->SetLong(PROPERTY_BAN_MULTI_RCPT_NULL_SENDER_HOURS, newVal);
    }
 
+   bool
+   AntiSpamConfiguration::GetRefuseHeloNotFqdn()
+   {
+      return GetSettings_()->GetBool(PROPERTY_REFUSE_HELO_NOT_FQDN);
+   }
+
+   void
+   AntiSpamConfiguration::SetRefuseHeloNotFqdn(bool newVal)
+   {
+      GetSettings_()->SetBool(PROPERTY_REFUSE_HELO_NOT_FQDN, newVal);
+   }
+
+   bool
+   AntiSpamConfiguration::GetRefuseMailFromDomainNotFqdn()
+   {
+      return GetSettings_()->GetBool(PROPERTY_REFUSE_MAIL_FROM_DOMAIN_NOT_FQDN);
+   }
+
+   void
+   AntiSpamConfiguration::SetRefuseMailFromDomainNotFqdn(bool newVal)
+   {
+      GetSettings_()->SetBool(PROPERTY_REFUSE_MAIL_FROM_DOMAIN_NOT_FQDN, newVal);
+   }
+
    void
    AntiSpamConfiguration::SetSpamAssassinEnabled(bool newVal)
    {

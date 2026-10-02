@@ -577,6 +577,7 @@
     <Compile Include="AntiSpam\AuthenticationResultsHeader.cs" />
     <Compile Include="AntiSpam\SpfEvaluation.cs" />
     <Compile Include="AntiSpam\SmtpPolicy.cs" />
+    <Compile Include="AntiSpam\FqdnRefusal.cs" />
     <Compile Include="AntiSpam\DmarcOrganizationalDomain.cs" />
     <Compile Include="AntiSpam\FilterHook.cs" />
     <Compile Include="AntiSpam\DmarcNonExistentSubdomainPolicy.cs" />
@@ -754,6 +755,7 @@
     <Compile Include="API\ReputationWatchCom.cs" />
     <Compile Include="API\RestApiSpamTraps.cs" />
     <Compile Include="API\RestApiGreylistBypass.cs" />
+    <Compile Include="API\RestApiFqdnRefusal.cs" />
     <Compile Include="API\RestApiFetchAccounts.cs" />
     <Compile Include="API\RestApiSettings.cs" />
     <Compile Include="API\SettingsDuringReinitialize.cs" />

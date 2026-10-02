@@ -118,6 +118,15 @@ namespace HM
       int GetBanMultiRcptNullSenderHours();
       void SetBanMultiRcptNullSenderHours(int newVal);
 
+      // A HELO name, or an envelope sender's domain, that is not a fully
+      // qualified domain name (GitLab issue 51, FqdnCheck.h): refused with a 550
+      // at MAIL FROM. Two switches, each off by default.
+      bool GetRefuseHeloNotFqdn();
+      void SetRefuseHeloNotFqdn(bool newVal);
+
+      bool GetRefuseMailFromDomainNotFqdn();
+      void SetRefuseMailFromDomainNotFqdn(bool newVal);
+
 
       int GetSpamMarkThreshold();
       void SetSpamMarkThreshold(int bNewVal);

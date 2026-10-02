@@ -198,6 +198,13 @@ public:
    STDMETHOD(AddDomainPolicyListEntry)(/*[in]*/ BSTR Pattern, /*[in]*/ BSTR MatchOn, /*[in]*/ BSTR Action, /*[in]*/ BSTR Note, /*[out, retval]*/ long *ID);
    STDMETHOD(RemoveDomainPolicyListEntry)(/*[in]*/ long ID, /*[out, retval]*/ VARIANT_BOOL *Removed);
 
+   // A HELO name or a sender's domain that is not a fully qualified domain name
+   // (GitLab issue 51).
+   STDMETHOD(get_RefuseHeloNotFqdn)(/*[out, retval]*/ VARIANT_BOOL *pVal);
+   STDMETHOD(put_RefuseHeloNotFqdn)(/*[in]*/ VARIANT_BOOL newVal);
+   STDMETHOD(get_RefuseMailFromDomainNotFqdn)(/*[out, retval]*/ VARIANT_BOOL *pVal);
+   STDMETHOD(put_RefuseMailFromDomainNotFqdn)(/*[in]*/ VARIANT_BOOL newVal);
+
 private:
 
    HM::Configuration* config_;

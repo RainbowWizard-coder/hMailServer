@@ -229,6 +229,12 @@ namespace HM
       settings.EnsureLong(PROPERTY_BAN_MULTI_RCPT_NULL_SENDER, 0);
       settings.EnsureLong(PROPERTY_BAN_MULTI_RCPT_NULL_SENDER_HOURS, 24);
 
+      // A HELO name or a sender's domain that is not a fully qualified domain
+      // name (GitLab issue 51): both off, which accepts such a session as the
+      // server always has.
+      settings.EnsureLong(PROPERTY_REFUSE_HELO_NOT_FQDN, 0);
+      settings.EnsureLong(PROPERTY_REFUSE_MAIL_FROM_DOMAIN_NOT_FQDN, 0);
+
       // The reputation watch: on, the four lists that answer an ordinary resolver
       // for nothing, and no address of its own. Schema 6049 seeds the same three
       // rows; these are here for the same reason the syslog sink's are, because a

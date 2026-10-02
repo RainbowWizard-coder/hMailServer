@@ -1253,6 +1253,21 @@ did. Found by the project's own review.
   true of every message and `size :under 9999999999G` of none. The product is now held at the largest 64-bit number,
   as a number written without a quantifier already was. Since 6.2.3, which brought the Sieve interpreter.
   `Sieve/SieveEvaluation.cs` holds it to that.
+- **A HELO name or a sender's domain that is not a name can be refused**
+  ([work item #51](https://gitlab.com/hmailserver/hmailserver/-/work_items/51)). Two settings, both off by default, so
+  nothing changes until one is switched on: `RefuseHeloNotFqdn` answers `550 5.7.1` at `MAIL FROM` to a session whose
+  HELO/EHLO name is not a fully qualified domain name, and `RefuseMailFromDomainNotFqdn` to one whose envelope sender's
+  domain is not - an address with or without brackets (`192.0.2.7`, `[192.0.2.7]`, an IPv6 literal), a single label
+  (`localhost`), a public suffix (`co.uk`, `com`) or anything that is not a host name, while `mail.co.uk` is a name.
+  No DNS is asked; the suffixes are the Public Suffix List's, the list the quarantine review groups by. At `MAIL FROM`
+  rather than at `HELO`, so AUTH has had its chance; `MAIL FROM:<>` has no domain to judge and is no excuse for a bad
+  HELO. Never judged: an authenticated session, an IP range that does not run the spam tests, a sender on the
+  anti-spam white list, and an incoming relay, whose HELO is the gateway's own. One log line names the HELO, the
+  envelope and the peer. On `Settings.AntiSpam` over COM, `PUT /api/v1/settings/antispam` (`refuse_helo_not_fqdn`,
+  `refuse_mail_from_domain_not_fqdn`), the Control Panel's Anti-spam page under Host checks in every language, and
+  the Deck's settings; rows of the settings table, so no schema step. docs/SmtpPolicy.md says what a name is here;
+  `AntiSpam/FqdnRefusal.cs` and `API/RestApiFqdnRefusal.cs` hold the sessions and the settings to it, and
+  `FqdnCheckTester` every rule, in the class tests and in the Linux `public-suffix-tests`.
 
 ### Administration
 

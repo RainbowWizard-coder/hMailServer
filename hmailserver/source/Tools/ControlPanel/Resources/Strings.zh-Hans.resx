@@ -806,6 +806,9 @@
   <data name="A service account password from an earlier version is stored in hMailServer.INI in plain text, and nothing reads it any more: the service is registered from the installer or the buttons on the Windows service account card, and Windows keeps its own copy of any password. Delete the ServiceAccountPassword line from hMailServer.INI with an elevated editor, and the setting with DELETE /api/v1/settings/ini/ServiceAccountPassword, so that the database's copy goes too." xml:space="preserve">
     <value>早期版本的服务账户密码以明文形式保存在 hMailServer.INI 中，而且已不再被任何程序读取：服务由安装程序或“Windows 服务账户”卡片上的按钮注册，Windows 会自行保存每个密码的副本。请用以管理员身份运行的编辑器从 hMailServer.INI 中删除 ServiceAccountPassword 行，并用 DELETE /api/v1/settings/ini/ServiceAccountPassword 删除该设置，使数据库中的副本也一并删除。</value>
   </data>
+  <data name="A session that greets with HELO 192.0.2.7, HELO [192.0.2.7] or HELO localhost, or sends MAIL FROM:&lt;user@192.0.2.7&gt;, has given no name for itself, and a message it sends is held or scored with nothing to list it by. Off, the server accepts it as it always has. On, it is answered 550 5.7.1 at MAIL FROM, before the spam tests run: an address with or without brackets, a single label, a public suffix such as co.uk, and anything that is not a host name are refused, while mail.co.uk is a name. No DNS is asked; the suffixes are the Public Suffix List's, the list the quarantine groups by. Only unauthenticated sessions of an IP range that runs the spam tests are judged, after AUTH has had its chance - never a sender on the anti-spam white list, and never an incoming relay, whose HELO is your own gateway's." xml:space="preserve">
+    <value>以 HELO 192.0.2.7、HELO [192.0.2.7] 或 HELO localhost 问候、或发送 MAIL FROM:&lt;user@192.0.2.7&gt; 的会话，没有为自己给出任何名称，它发送的邮件会被暂扣或计分，却没有任何可据以列入名单的依据。关闭时，服务器像以往一样接受它。开启时，在运行反垃圾邮件测试之前，于 MAIL FROM 阶段回应 550 5.7.1：带或不带方括号的地址、单个标签、co.uk 这样的公共后缀，以及任何不是主机名的内容都会被拒绝，而 mail.co.uk 是名称。不查询 DNS；后缀来自 Public Suffix List，即隔离区分组所用的列表。只评判来自运行反垃圾邮件测试的 IP 范围的未认证会话，且在 AUTH 有机会完成之后进行；绝不评判反垃圾邮件白名单中的发件人，也绝不评判 HELO 属于您自己网关的传入中继。</value>
+  </data>
   <data name="A share of connections, never more than the delivery threads: the accounts of one hosted domain, or all relayed mail together, cannot hold every delivery thread. The per-account sending limit is the volume control; this is not one." xml:space="preserve">
     <value>这是连接的份额，永远不超过投递线程数：一个托管域名的账户，或全部中继邮件加在一起，都不能占用所有投递线程。控制数量的是每账户发送上限；这不是。</value>
   </data>
@@ -4620,6 +4623,9 @@
   <data name="HELO name" xml:space="preserve">
     <value>HELO 名称</value>
   </data>
+  <data name="HELO names and sender domains that are not host names" xml:space="preserve">
+    <value>不是主机名的 HELO 名称和发件人域</value>
+  </data>
   <data name="HS256 is in OAuth2AllowedAlgorithms but OAuth2HmacSecret is empty, so HS256 tokens can never verify. Set the shared secret, or remove HS256 from the list." xml:space="preserve">
     <value>HS256 在 OAuth2AllowedAlgorithms 中，但 OAuth2HmacSecret 为空，因此 HS256 令牌永远无法通过验证。请设置共享机密，或者从列表中移除 HS256。</value>
   </data>
@@ -6819,6 +6825,9 @@
   <data name="Off by default. Its community crosses the network in the clear, so anyone who can see the traffic can read what the agent serves." xml:space="preserve">
     <value>默认关闭。其团体名以明文在网络上传输，任何能看到流量的人都能读取代理提供的内容。</value>
   </data>
+  <data name="Off by default. MAIL FROM:&lt;&gt; is no excuse: a delivery report from a server that greets with an address is refused like any other mail from it." xml:space="preserve">
+    <value>默认关闭。MAIL FROM:&lt;&gt; 不是豁免理由：来自以地址问候的服务器的投递报告，会像它发来的其他邮件一样被拒绝。</value>
+  </data>
   <data name="Off by default. Operators who drop this in a script today can delete the script when this is on." xml:space="preserve">
     <value>默认关闭。目前用脚本拒绝这种邮件的管理员，在开启后可以删除该脚本。</value>
   </data>
@@ -6842,6 +6851,9 @@
   </data>
   <data name="Off by default. With unprotected LDAP and a simple bind, the server does NOT send the password and does NOT guess what you meant: it refuses the logon and reports the contradiction, once per minute. Turning this on sends passwords in the clear and should only ever happen on a network you control end to end." xml:space="preserve">
     <value>默认关闭。在未受保护的 LDAP 配合简单绑定时，服务器不会发送密码，也不会猜测您的本意：它会拒绝登录并每分钟报告一次这一矛盾。打开此项会以明文发送密码，只应在您端到端完全掌控的网络上进行。</value>
+  </data>
+  <data name="Off by default. user@[192.0.2.7], user@localhost and user@co.uk are refused; MAIL FROM:&lt;&gt; has no domain and is not judged by this switch." xml:space="preserve">
+    <value>默认关闭。user@[192.0.2.7]、user@localhost 和 user@co.uk 会被拒绝；MAIL FROM:&lt;&gt; 没有域，此开关不评判它。</value>
   </data>
   <data name="Off by default: a full mailbox is usually emptied, and listing it would stop mail to somebody who reads it next week." xml:space="preserve">
     <value>默认关闭：已满的邮箱通常会被清空，将其列入会让下周才阅读邮件的人收不到邮件。</value>
@@ -8052,6 +8064,9 @@
   <data name="Refusal te_xt (what the 550 says to the sender)" xml:space="preserve">
     <value>拒绝文本（550 告知发件人的内容）(_X)</value>
   </data>
+  <data name="Refuse a HELO name that is not a fully qualified domain name" xml:space="preserve">
+    <value>拒绝不是完全限定域名的 HELO 名称</value>
+  </data>
   <data name="Refuse a full mailbox during the conversation (452 4.2.2)" xml:space="preserve">
     <value>在会话期间拒绝已满的邮箱（452 4.2.2）</value>
   </data>
@@ -8063,6 +8078,9 @@
   </data>
   <data name="Refuse a null sender that names more than one recipient" xml:space="preserve">
     <value>拒绝指定多个收件人的空发件人</value>
+  </data>
+  <data name="Refuse a sender whose domain is not a fully qualified domain name" xml:space="preserve">
+    <value>拒绝域不是完全限定域名的发件人</value>
   </data>
   <data name="Refuse a session from any address but the one it began on" xml:space="preserve">
     <value>拒绝来自会话起始地址以外任何地址的会话</value>

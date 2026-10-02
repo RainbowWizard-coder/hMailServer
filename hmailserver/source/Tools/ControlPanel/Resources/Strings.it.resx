@@ -806,6 +806,9 @@ Salvare comunque questa password debole?</value>
   <data name="A service account password from an earlier version is stored in hMailServer.INI in plain text, and nothing reads it any more: the service is registered from the installer or the buttons on the Windows service account card, and Windows keeps its own copy of any password. Delete the ServiceAccountPassword line from hMailServer.INI with an elevated editor, and the setting with DELETE /api/v1/settings/ini/ServiceAccountPassword, so that the database's copy goes too." xml:space="preserve">
     <value>Una password dell'account del servizio di una versione precedente è salvata in chiaro in hMailServer.INI, e ormai nulla la legge: il servizio viene registrato dal programma di installazione o dai pulsanti della scheda Account del servizio Windows, e Windows conserva una propria copia di qualsiasi password. Eliminate la riga ServiceAccountPassword da hMailServer.INI con un editor con privilegi elevati, e l'impostazione con DELETE /api/v1/settings/ini/ServiceAccountPassword, così che sparisca anche la copia nel database.</value>
   </data>
+  <data name="A session that greets with HELO 192.0.2.7, HELO [192.0.2.7] or HELO localhost, or sends MAIL FROM:&lt;user@192.0.2.7&gt;, has given no name for itself, and a message it sends is held or scored with nothing to list it by. Off, the server accepts it as it always has. On, it is answered 550 5.7.1 at MAIL FROM, before the spam tests run: an address with or without brackets, a single label, a public suffix such as co.uk, and anything that is not a host name are refused, while mail.co.uk is a name. No DNS is asked; the suffixes are the Public Suffix List's, the list the quarantine groups by. Only unauthenticated sessions of an IP range that runs the spam tests are judged, after AUTH has had its chance - never a sender on the anti-spam white list, and never an incoming relay, whose HELO is your own gateway's." xml:space="preserve">
+    <value>Una sessione che saluta con HELO 192.0.2.7, HELO [192.0.2.7] o HELO localhost, o invia MAIL FROM:&lt;user@192.0.2.7&gt;, non ha dato alcun nome per sé, e un messaggio che invia viene trattenuto o valutato senza nulla con cui inserirlo in una lista. Disattivato, il server la accetta come ha sempre fatto. Attivato, riceve 550 5.7.1 a MAIL FROM, prima che vengano eseguiti i test antispam: un indirizzo con o senza parentesi quadre, un'etichetta singola, un suffisso pubblico come co.uk e tutto ciò che non è un nome host vengono rifiutati, mentre mail.co.uk è un nome. Il DNS non viene interrogato; i suffissi sono quelli della Public Suffix List, la lista con cui la quarantena raggruppa. Vengono giudicate solo le sessioni non autenticate di un intervallo IP che esegue i test antispam, dopo che AUTH ha avuto la sua occasione - mai un mittente nella lista bianca antispam e mai un relay in ingresso, il cui HELO è quello del vostro gateway.</value>
+  </data>
   <data name="A share of connections, never more than the delivery threads: the accounts of one hosted domain, or all relayed mail together, cannot hold every delivery thread. The per-account sending limit is the volume control; this is not one." xml:space="preserve">
     <value>Una quota di connessioni, mai più dei thread di consegna: gli account di un dominio ospitato, o tutta la posta inoltrata insieme, non possono occupare ogni thread di consegna. Il limite di invio per account controlla il volume; questo no.</value>
   </data>
@@ -4620,6 +4623,9 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="HELO name" xml:space="preserve">
     <value>Nome HELO</value>
   </data>
+  <data name="HELO names and sender domains that are not host names" xml:space="preserve">
+    <value>Nomi HELO e domini mittente che non sono nomi host</value>
+  </data>
   <data name="HS256 is in OAuth2AllowedAlgorithms but OAuth2HmacSecret is empty, so HS256 tokens can never verify. Set the shared secret, or remove HS256 from the list." xml:space="preserve">
     <value>HS256 è in OAuth2AllowedAlgorithms ma OAuth2HmacSecret è vuoto, quindi i token HS256 non potranno mai essere verificati. Imposta il segreto condiviso, oppure rimuovi HS256 dall'elenco.</value>
   </data>
@@ -6819,6 +6825,9 @@ Nulla di ciò che è già presente viene rimosso.</value>
   <data name="Off by default. Its community crosses the network in the clear, so anyone who can see the traffic can read what the agent serves." xml:space="preserve">
     <value>Disattivato per impostazione predefinita. La sua community attraversa la rete in chiaro, quindi chiunque veda il traffico può leggere ciò che l'agente fornisce.</value>
   </data>
+  <data name="Off by default. MAIL FROM:&lt;&gt; is no excuse: a delivery report from a server that greets with an address is refused like any other mail from it." xml:space="preserve">
+    <value>Disattivato per impostazione predefinita. MAIL FROM:&lt;&gt; non è una scusa: un rapporto di consegna da un server che saluta con un indirizzo viene rifiutato come qualsiasi altra posta da esso.</value>
+  </data>
   <data name="Off by default. Operators who drop this in a script today can delete the script when this is on." xml:space="preserve">
     <value>Disattivato per impostazione predefinita. Chi oggi lo rifiuta in uno script può eliminare lo script quando questo è attivo.</value>
   </data>
@@ -6842,6 +6851,9 @@ Nulla di ciò che è già presente viene rimosso.</value>
   </data>
   <data name="Off by default. With unprotected LDAP and a simple bind, the server does NOT send the password and does NOT guess what you meant: it refuses the logon and reports the contradiction, once per minute. Turning this on sends passwords in the clear and should only ever happen on a network you control end to end." xml:space="preserve">
     <value>Disattivato per impostazione predefinita. Con LDAP non protetto e un bind semplice, il server NON invia la password e NON indovina l'intenzione: rifiuta l'accesso e segnala la contraddizione, una volta al minuto. Attivarlo invia le password in chiaro e dovrebbe avvenire soltanto su una rete controllata da un capo all'altro.</value>
+  </data>
+  <data name="Off by default. user@[192.0.2.7], user@localhost and user@co.uk are refused; MAIL FROM:&lt;&gt; has no domain and is not judged by this switch." xml:space="preserve">
+    <value>Disattivato per impostazione predefinita. user@[192.0.2.7], user@localhost e user@co.uk vengono rifiutati; MAIL FROM:&lt;&gt; non ha un dominio e questo interruttore non lo giudica.</value>
   </data>
   <data name="Off by default: a full mailbox is usually emptied, and listing it would stop mail to somebody who reads it next week." xml:space="preserve">
     <value>Disattivato per impostazione predefinita: una casella piena di solito viene svuotata, e metterla in lista fermerebbe la posta di qualcuno che la leggerà la settimana prossima.</value>
@@ -8052,6 +8064,9 @@ Esegui questa operazione se i client segnalano messaggi che compaiono con l'UID 
   <data name="Refusal te_xt (what the 550 says to the sender)" xml:space="preserve">
     <value>Testo di rifiuto (ciò che il 550 dice al mittente) (_X)</value>
   </data>
+  <data name="Refuse a HELO name that is not a fully qualified domain name" xml:space="preserve">
+    <value>Rifiuta un nome HELO che non è un nome di dominio completo (FQDN)</value>
+  </data>
   <data name="Refuse a full mailbox during the conversation (452 4.2.2)" xml:space="preserve">
     <value>Rifiuta una casella piena durante la conversazione (452 4.2.2)</value>
   </data>
@@ -8063,6 +8078,9 @@ Esegui questa operazione se i client segnalano messaggi che compaiono con l'UID 
   </data>
   <data name="Refuse a null sender that names more than one recipient" xml:space="preserve">
     <value>Rifiuta un mittente vuoto che nomina più di un destinatario</value>
+  </data>
+  <data name="Refuse a sender whose domain is not a fully qualified domain name" xml:space="preserve">
+    <value>Rifiuta un mittente il cui dominio non è un nome di dominio completo (FQDN)</value>
   </data>
   <data name="Refuse a session from any address but the one it began on" xml:space="preserve">
     <value>Rifiutare una sessione da qualsiasi indirizzo diverso da quello in cui è iniziata</value>
