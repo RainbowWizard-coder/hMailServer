@@ -16,6 +16,7 @@
 #include "InterfaceBackupManager.h"
 #include "InterfaceGlobalObjects.h"
 #include "InterfaceLinks.h"
+#include "InterfaceMessage.h"
 
 #include "../Common/Persistence/PersistentAccount.h"
 #include "../Common/BO/Account.h"
@@ -935,6 +936,34 @@ STDMETHODIMP InterfaceApplication::UnlockAccount(BSTR Address)
       logged.Format(_T("COM: %s was unlocked by %s."),
                     account->GetAddress().c_str(), HM::String(authentication_->GetActor().identity).c_str());
       LogRoleAction_(logged);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceApplication::CreateMessage(IInterfaceMessage **pVal)
+{
+   try
+   {
+      if (!pVal)
+         return COMError::WithoutMessage(E_POINTER);
+
+      // A message to send that carries this Application's credential - what a
+      // message created directly (hMailServer.Message) cannot: it gets a
+      // credential of its own that never authenticated, and since 6.3.6 such a
+      // message is saved, copied or given a file from the server's disk only by
+      // an event script (COMAuthentication::CallerIsEventScript). Asks nothing
+      // here: the message is composed in memory, and what it may do with the
+      // credential is asked where it does it - Save, Copy, Attachments.Add.
+      CComObject<InterfaceMessage> *pMessage = new CComObject<InterfaceMessage>();
+      pMessage->SetAuthentication(authentication_);
+      pMessage->AddRef();
+
+      *pVal = pMessage;
 
       return S_OK;
    }

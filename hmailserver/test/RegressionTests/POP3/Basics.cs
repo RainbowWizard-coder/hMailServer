@@ -273,7 +273,7 @@ namespace RegressionTests.POP3
             sim.QUIT();
 
 
-            var message = new Message();
+            var message = SingletonProvider<TestSetup>.Instance.CreateMessage();
 
             try
             {

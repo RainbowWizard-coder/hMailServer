@@ -22,7 +22,7 @@ namespace RegressionTests.API
       {
          var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "encode3@example.test", "test");
 
-         var message = new hMailServer.Message();
+         var message = SingletonProvider<TestSetup>.Instance.CreateMessage();
          //message.AddRecipient("Тестов Тест ТестостероновичТестостероновичТестостероновичТестостероновичТестостероновичТестостероновичТестостероновичТестостероновичТестостероновичТестостероновичТестостероновичТестостеронович", account.Address);
          message.AddRecipient(
             "ТестовТестТестостероноТестовТестТестостероноТестовТестТестостероноТестовТестТестостероноТестовТестТестостероноТестовТестТестостероноТестовТестТестостероноТестовТестТестостероноТестовТестТестостероноТестовТестТестостероноТестовТестТестостероноТестовТестТестостероноТестовТестТестостероноТестовТестТестостероноТестовТестТестостероноТестовТестТестостероно",
@@ -73,7 +73,7 @@ namespace RegressionTests.API
       {
          var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "encode@example.test", "test");
 
-         var message = new hMailServer.Message();
+         var message = SingletonProvider<TestSetup>.Instance.CreateMessage();
          message.AddRecipient("Tестов Тест Тестостеронович", account.Address);
          message.Subject = "Test";
          message.Charset = "utf-8";
@@ -99,7 +99,7 @@ namespace RegressionTests.API
       {
          var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "encode3@example.test", "test");
 
-         var message = new hMailServer.Message();
+         var message = SingletonProvider<TestSetup>.Instance.CreateMessage();
          message.AddRecipient("Ö", account.Address);
          message.Charset = "utf-8";
          message.Body = "Test body.";
@@ -115,7 +115,7 @@ namespace RegressionTests.API
       {
          var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "encode3@example.test", "test");
 
-         var message = new hMailServer.Message();
+         var message = SingletonProvider<TestSetup>.Instance.CreateMessage();
          message.AddRecipient("Ö", account.Address);
          message.Charset = "utf-8";
          message.Body = "Test ÅÄÖ Test.";
@@ -131,7 +131,7 @@ namespace RegressionTests.API
 
          var croatianAndDanish = "ʒʥʨPiskefløde";
 
-         var message = new hMailServer.Message();
+         var message = SingletonProvider<TestSetup>.Instance.CreateMessage();
          message.AddRecipient("test", account.Address);
          message.From = "Test";
          message.FromAddress = account.Address;
@@ -198,7 +198,7 @@ namespace RegressionTests.API
          var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "encode@example.test", "test");
 
          var croatianAndDanish = "ʒʥʨPiskefløde";
-         var message = new hMailServer.Message();
+         var message = SingletonProvider<TestSetup>.Instance.CreateMessage();
          message.Subject = croatianAndDanish;
          message.AddRecipient("", account.Address);
          message.Save();
@@ -217,7 +217,7 @@ namespace RegressionTests.API
       {
          var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "test@example.test", "test");
 
-         var message = new hMailServer.Message();
+         var message = SingletonProvider<TestSetup>.Instance.CreateMessage();
          message.AddRecipient("test", account.Address);
          message.From = "Test";
          message.FromAddress = account.Address;
@@ -262,7 +262,7 @@ namespace RegressionTests.API
          var filename = Paths.Combine(Path.GetTempPath(), attachmentName);
          File.WriteAllText(filename, "tjena moss");
 
-         var message = new hMailServer.Message();
+         var message = SingletonProvider<TestSetup>.Instance.CreateMessage();
          message.AddRecipient("test", account.Address);
          message.From = "Test";
          message.FromAddress = account.Address;
@@ -289,7 +289,7 @@ namespace RegressionTests.API
          File.WriteAllText(filename, swedish);
 
 
-         var message = new hMailServer.Message();
+         var message = SingletonProvider<TestSetup>.Instance.CreateMessage();
          message.AddRecipient("test", account.Address);
          message.Attachments.Add(filename);
          message.From = swedish;
@@ -314,7 +314,7 @@ namespace RegressionTests.API
       {
          var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "encode@example.test", "test");
 
-         var message = new hMailServer.Message();
+         var message = SingletonProvider<TestSetup>.Instance.CreateMessage();
          message.AddRecipient("Test Recipient: Тест", account.Address);
          message.Subject = "Test Subject: Тест";
          message.Charset = "utf-8";
@@ -341,7 +341,7 @@ namespace RegressionTests.API
 
          var manyLanguages = "中文åäöん文t͡ɬɪŋ";
 
-         var message = new hMailServer.Message();
+         var message = SingletonProvider<TestSetup>.Instance.CreateMessage();
          message.AddRecipient("test", account.Address);
          message.From = manyLanguages;
          message.FromAddress = account.Address;
@@ -368,7 +368,7 @@ namespace RegressionTests.API
          var filename = Paths.Combine(Path.GetTempPath(), attachmentName);
          File.WriteAllText(filename, swedishAndChinese);
 
-         var message = new hMailServer.Message();
+         var message = SingletonProvider<TestSetup>.Instance.CreateMessage();
          message.AddRecipient("test", account.Address);
          message.From = "Test";
          message.FromAddress = account.Address;
@@ -392,7 +392,7 @@ namespace RegressionTests.API
       {
          var body = "underscore_in_body\r\n";
 
-         var message = new hMailServer.Message();
+         var message = SingletonProvider<TestSetup>.Instance.CreateMessage();
          message.Body = body;
          Assert.AreEqual(body, message.Body);
       }

@@ -208,7 +208,8 @@ STDMETHODIMP InterfaceRule::get_Actions(IInterfaceRuleActions **pVal)
          return GetAccessDenied();
 
       CComObject<InterfaceRuleActions>* pItem = new CComObject<InterfaceRuleActions >();
-   
+      pItem->SetAuthentication(authentication_);
+
       std::shared_ptr<HM::RuleActions> pRuleActions = object_->GetActions();
    
       if (pRuleActions)

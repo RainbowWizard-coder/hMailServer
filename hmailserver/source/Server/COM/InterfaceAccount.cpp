@@ -514,6 +514,14 @@ STDMETHODIMP InterfaceAccount::Save()
       if (!object_)
          return GetAccessDenied();
 
+      // The unauthenticated holder the rule below leaves alone is the event
+      // script host, and only on a script's thread is it that: an Application
+      // that fails a later Authenticate leaves the account objects it handed
+      // out holding no credential in a client's hands
+      // (COMAuthentication::CallerIsEventScript).
+      if (!authentication_->GetIsAuthenticated() && !HM::COMAuthentication::CallerIsEventScript())
+         return GetAccessDenied();
+
       // Only server administrators have access to change settings for server administrators.
       // Without this check, a domain administrator could change the settings for a server administrator, such
       // as his password and the log on as server administrator.

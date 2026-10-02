@@ -737,7 +737,7 @@ namespace RegressionTests.Infrastructure
             // The start reads the table, and cannot.
             RestartServerAndReacquireCom();
 
-            var message = new hMailServer.Message();
+            var message = SingletonProvider<TestSetup>.Instance.CreateMessage();
             message.FromAddress = "sender@example.test";
             message.AddRecipient("", plain);
             message.Subject = "Held " + word;
@@ -802,7 +802,7 @@ namespace RegressionTests.Infrastructure
          try
          {
             string word = Word("kinkajou");
-            var message = new hMailServer.Message();
+            var message = SingletonProvider<TestSetup>.Instance.CreateMessage();
             message.FromAddress = sender;
             message.AddRecipient("", damaged);
             message.AddRecipient("", plain);

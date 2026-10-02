@@ -45,7 +45,7 @@ namespace RegressionTests.IMAP
 
       private void SendMessage(string subject, string body, string to, string cc)
       {
-         var message = new Message();
+         var message = SingletonProvider<TestSetup>.Instance.CreateMessage();
 
          message.Charset = "UTF-8";
          message.AddRecipient("test", "meta'data@example.test");

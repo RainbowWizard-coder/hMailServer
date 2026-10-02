@@ -15,6 +15,7 @@
 #include "../Common/Application/RoleManager.h"
 #include "../Common/Util/Parsing/StringParser.h"
 #include "../Common/Util/AuditTrail.h"
+#include "../Common/Scripting/ScriptServer.h"
 
 #include "COMError.h"
 #include "../Common/Application/Application.h"
@@ -331,6 +332,12 @@ namespace HM
       return account_ != 0;
    }
 
+   bool
+   COMAuthentication::CallerIsEventScript()
+   {
+      return ScriptServer::IsScriptRunningOnThisThread();
+   }
+
    __int64 
    COMAuthentication::GetAccountID() const
    {
@@ -457,7 +464,7 @@ namespace HM
       InstallActor_();
 
       if (!account_)
-         return true;
+         return CallerIsEventScript();
 
       if (accountID <= 0)
          return true;
@@ -481,7 +488,7 @@ namespace HM
       InstallActor_();
 
       if (!account_)
-         return true;
+         return CallerIsEventScript();
 
       if (accountID > 0)
          return MayChangeAccount(accountID);
@@ -495,7 +502,10 @@ namespace HM
    bool
    COMAuthentication::MayChangeRule(__int64 ruleID) const
    {
-      if (!account_ || ruleID <= 0)
+      if (!account_)
+         return CallerIsEventScript();
+
+      if (ruleID <= 0)
          return true;
 
       SQLCommand command("select ruleaccountid, ruledomainid from hm_rules where ruleid = @RULEID");
@@ -511,7 +521,10 @@ namespace HM
    bool
    COMAuthentication::MayChangeFolder(__int64 folderID) const
    {
-      if (!account_ || folderID <= 0)
+      if (!account_)
+         return CallerIsEventScript();
+
+      if (folderID <= 0)
          return true;
 
       SQLCommand command("select folderaccountid from hm_imapfolders where folderid = @FOLDERID");

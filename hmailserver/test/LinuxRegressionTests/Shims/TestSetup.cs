@@ -68,6 +68,17 @@ namespace RegressionTests.Shared
       }
 
       /// <summary>
+      ///    A new message to send, as the Windows suite's TestSetup.CreateMessage makes one
+      ///    over COM (Application.CreateMessage, which carries the suite's credential). Over
+      ///    REST every request carries the credential, so here it is the shim's own new
+      ///    message, composed until Save.
+      /// </summary>
+      public Message CreateMessage()
+      {
+         return new Message();
+      }
+
+      /// <summary>
       ///    What runs before every test. The delivery queue is drained first, for the
       ///    reason the Windows base class gives at length: a message still queued when
       ///    its recipient is deleted becomes an HM5165 in the next test's log.

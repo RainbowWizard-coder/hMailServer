@@ -705,7 +705,7 @@ namespace RegressionTests.API
          var account1 = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "test@example.test", "test");
 
          // Send a message to the account.
-         var message = new hMailServer.Message();
+         var message = SingletonProvider<TestSetup>.Instance.CreateMessage();
 
          Assert.AreEqual(0, message.State);
 

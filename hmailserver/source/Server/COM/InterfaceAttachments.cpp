@@ -105,6 +105,16 @@ InterfaceAttachments::Add(BSTR sFilename)
       if (!attachments_)
          return GetAccessDenied();
 
+      // The name is a path on the server, and the file is read as the service
+      // account - every mailbox, the database, the keys and the configuration,
+      // and on a LocalSystem service any file of the machine. Until 6.3.6 any
+      // holder of a message could do it, a local user's message created
+      // directly among them; now the server administrator and the server's
+      // own event scripts can (COMAuthentication::CallerIsEventScript).
+      if (!GetIsServerAdmin() && !HM::COMAuthentication::CallerIsEventScript())
+         return COMError::GenerateError(L"You do not have access to this property / method. Attaching a file from the "
+                                        L"server's disk is for the server administrator and the server's event scripts.");
+
       if (!attachments_->Add(sFilename))
       {
          return COMError::GenerateError("Failed to attach file.");

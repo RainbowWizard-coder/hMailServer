@@ -502,7 +502,7 @@ namespace RegressionTests.IMAP
          var filename = Paths.Combine(Path.GetTempPath(), attachmentName);
          File.WriteAllText(filename, marker);
 
-         var message = new Message();
+         var message = SingletonProvider<TestSetup>.Instance.CreateMessage();
          message.Charset = "utf-8";
          message.AddRecipient("test", account.Address);
          message.From = "Test";

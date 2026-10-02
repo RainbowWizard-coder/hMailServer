@@ -27,7 +27,7 @@ namespace RegressionTests.API
          var filename = Paths.Combine(Path.GetTempPath(), "dummy.txt");
          File.WriteAllText(filename, "tjena moss");
 
-         var message = new hMailServer.Message();
+         var message = SingletonProvider<TestSetup>.Instance.CreateMessage();
          message.AddRecipient("", account.Address);
          message.Attachments.Add(filename);
          message.Body = "Hello";
@@ -51,7 +51,7 @@ namespace RegressionTests.API
          var account1 = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "test@example.test", "test");
 
          // Send a message to the account.
-         var message = new hMailServer.Message();
+         var message = SingletonProvider<TestSetup>.Instance.CreateMessage();
          Assert.AreEqual(0, message.State);
 
          var scripting = SingletonProvider<TestSetup>.Instance.GetApp().Settings.Scripting;
@@ -90,7 +90,7 @@ namespace RegressionTests.API
          var account1 = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "test@example.test", "test");
 
          // Send a message to the account.
-         var message = new hMailServer.Message();
+         var message = SingletonProvider<TestSetup>.Instance.CreateMessage();
          Assert.AreEqual(0, message.State);
 
          var scripting = SingletonProvider<TestSetup>.Instance.GetApp().Settings.Scripting;
@@ -133,7 +133,7 @@ namespace RegressionTests.API
          var account1 = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "test@example.test", "test");
 
          // Send a message to the account.
-         var message = new hMailServer.Message();
+         var message = SingletonProvider<TestSetup>.Instance.CreateMessage();
          Assert.AreEqual(0, message.State);
 
          var scripting = SingletonProvider<TestSetup>.Instance.GetApp().Settings.Scripting;
@@ -175,7 +175,7 @@ namespace RegressionTests.API
       {
          var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "encode@example.test", "test");
 
-         var message = new hMailServer.Message();
+         var message = SingletonProvider<TestSetup>.Instance.CreateMessage();
          message.AddRecipient("", account.Address);
          message.HTMLBody = "Hello";
          message.Save();
@@ -196,7 +196,7 @@ namespace RegressionTests.API
       {
          var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "encode@example.test", "test");
 
-         var message = new hMailServer.Message();
+         var message = SingletonProvider<TestSetup>.Instance.CreateMessage();
          message.AddRecipient("", account.Address);
          message.HTMLBody = "HTMLBody";
          message.Body = "PlainTextBody";
@@ -219,7 +219,7 @@ namespace RegressionTests.API
       {
          var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "encode@example.test", "test");
 
-         var message = new hMailServer.Message();
+         var message = SingletonProvider<TestSetup>.Instance.CreateMessage();
          message.AddRecipient("", account.Address);
          message.Body = "PlainTextBody";
          message.HTMLBody = "HTMLBody";
@@ -242,7 +242,7 @@ namespace RegressionTests.API
       {
          var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "encode@example.test", "test");
 
-         var message = new hMailServer.Message();
+         var message = SingletonProvider<TestSetup>.Instance.CreateMessage();
          message.AddRecipient("", account.Address);
          message.Body = "Hello";
          message.Save();
@@ -266,7 +266,7 @@ namespace RegressionTests.API
          var filename = Paths.Combine(Path.GetTempPath(), "dummy.txt");
          File.WriteAllText(filename, "tjena moss");
 
-         var message = new hMailServer.Message();
+         var message = SingletonProvider<TestSetup>.Instance.CreateMessage();
          message.AddRecipient("", account.Address);
          message.Charset = "utf-8";
          message.Attachments.Add(filename);
@@ -292,7 +292,7 @@ namespace RegressionTests.API
       {
          var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "encode@example.test", "test");
 
-         var message = new hMailServer.Message();
+         var message = SingletonProvider<TestSetup>.Instance.CreateMessage();
          message.AddRecipient("", account.Address);
          message.Charset = "utf-8";
          message.Body = "Test of message... 日本語";

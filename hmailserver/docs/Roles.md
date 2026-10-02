@@ -139,7 +139,13 @@ and `RemovePushSubscriptions`. Each asks that the credential reach the account a
 `Links.Account` decides — the server administrator, an administrator of its domain, or
 the account itself — and take in its authority; a domain's or the server's rules answer
 to that domain's administrator or to the server administrator. An event script's
-objects carry no credential and are left as they were.
+objects carry no credential and are left as they were, on the thread running the
+script. Anywhere else an object without a credential is refused every one of these
+(since 6.3.6): a `Message` or `FetchAccount` a program created itself, and what an
+`Application` handed out before a later `Authenticate` on it failed. A program composes
+mail with `Application.CreateMessage` after `Authenticate`. `Attachments.Add` and
+`Attachment.SaveAs`, which read and write a file on the server's disk by its path, answer
+the server administrator and the event scripts alone.
 
 The server administrator's own mailbox may sit in a domain somebody else administers;
 that domain's administrator is refused all of these on it, over both interfaces.

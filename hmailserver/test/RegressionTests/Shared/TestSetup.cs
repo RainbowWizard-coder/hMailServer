@@ -666,6 +666,18 @@ namespace RegressionTests.Shared
          return application;
       }
 
+      // A new message to send, carrying the suite's credential: Application.CreateMessage.
+      // A message created directly (new hMailServer.Message()) carries a credential of its
+      // own that never authenticated, and since 6.3.6 its Save, Copy and Attachments.Add are
+      // refused outside an event script. Reached through dynamic, as DirectoryCom reaches the
+      // members it added: the interop assembly is made from the REGISTERED type library, and
+      // late binding finds the member wherever the server describes it.
+      public Message CreateMessage()
+      {
+         dynamic app = application;
+         return (Message) app.CreateMessage();
+      }
+
       public void ClearDomains()
       {
          var domains = application.Domains;

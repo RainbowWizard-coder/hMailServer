@@ -1494,6 +1494,72 @@ namespace RegressionTests.API
          }
       }
 
+      [TestCase("Sub OnAcceptMessage(oClient, oMessage)")]
+      [TestCase("Sub OnDeliverMessage(oMessage)")]
+      [Description("An event script still composes a message of its own without signing in - CreateObject(\"hMailServer.Message\"), " +
+                   "a file from the server's disk attached, that attachment written back to disk, the message saved to the " +
+                   "delivery queue - although since 6.3.6 a client in another process holding such a message is refused " +
+                   "all three (API/ComWithoutCredential.cs).")]
+      public void AnEventScriptComposesAndSavesAMessageWithAFileWithoutSigningIn(string handler)
+      {
+         var trigger = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "trigger@example.test", "test");
+         var composed = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "composed@example.test", "test");
+
+         var scratch = Path.Combine(Path.GetTempPath(), "hm-script-compose-" + Guid.NewGuid().ToString("N"));
+         Directory.CreateDirectory(scratch);
+         var source = Path.Combine(scratch, "source.txt");
+         var written = Path.Combine(scratch, "written.txt");
+         File.WriteAllText(source, "attached by an event script");
+
+         try
+         {
+            var script =
+               handler + "\r\n" +
+               "   If oMessage.Subject <> \"Trigger\" Then Exit Sub\r\n" +
+               "   Dim oNew\r\n" +
+               "   Set oNew = CreateObject(\"hMailServer.Message\")\r\n" +
+               "   oNew.FromAddress = \"script@example.test\"\r\n" +
+               "   oNew.AddRecipient \"\", \"" + composed.Address + "\"\r\n" +
+               "   oNew.Subject = \"Composed by the script\"\r\n" +
+               "   oNew.Body = \"Body\"\r\n" +
+               "   oNew.Attachments.Add \"" + source + "\"\r\n" +
+               "   oNew.Attachments.Item(0).SaveAs \"" + written + "\"\r\n" +
+               "   oNew.Save\r\n" +
+               "End Sub\r\n";
+
+            var scripting = _settings.Scripting;
+            scripting.Language = "VBScript";
+            File.WriteAllText(scripting.CurrentScriptFile, script);
+            scripting.Enabled = true;
+            scripting.Reload();
+
+            SmtpClientSimulator.StaticSend("someone@example.test", trigger.Address, "Trigger", "Body");
+
+            Pop3ClientSimulator.AssertMessageCount(trigger.Address, "test", 1);
+            var message = Pop3ClientSimulator.AssertGetFirstMessageText(composed.Address, "test");
+
+            StringAssert.Contains("Subject: Composed by the script", message);
+            StringAssert.Contains("source.txt", message);
+            ClassicAssert.AreEqual("attached by an event script", File.ReadAllText(written),
+               "The script's Attachment.SaveAs did not write the attachment.");
+         }
+         finally
+         {
+            LeaveAnEmptyVBScriptScriptLoaded();
+
+            try
+            {
+               Directory.Delete(scratch, true);
+            }
+            catch (IOException)
+            {
+            }
+            catch (UnauthorizedAccessException)
+            {
+            }
+         }
+      }
+
       private static void AssertAnswered(string message, string via, string member, string expected)
       {
          StringAssert.Contains("X-" + via + "-" + member + ": [" + expected + "]", message,

@@ -35,6 +35,19 @@
 
 #include "atlsafe.h"
 
+namespace
+{
+   // What Save and Copy answer a holder of no credential outside an event script
+   // (COMAuthentication::CallerIsEventScript). Until 6.3.6 a message a client had
+   // created for itself, which carries none, was saved for anybody: with an
+   // administrator password set, any local user queued mail from any sender to
+   // any recipient through it.
+   const wchar_t *const SavedWithoutCredential =
+      L"You do not have access to this property / method. A message that carries no credential - one created "
+      L"directly as hMailServer.Message outside an event script - cannot be saved or copied: create it with "
+      L"Application.CreateMessage() on an Application that has called Authenticate().";
+}
+
 STDMETHODIMP 
 InterfaceMessage::InterfaceSupportsErrorInfo(REFIID riid)
 {
@@ -430,6 +443,9 @@ STDMETHODIMP InterfaceMessage::Save()
       if (!object_)
          return GetAccessDenied();
 
+      if (!authentication_->GetIsAuthenticated() && !HM::COMAuthentication::CallerIsEventScript())
+         return COMError::GenerateError(SavedWithoutCredential);
+
       // The account this belongs to must be one this credential may change
       // (COMAuthentication::MayChangeAccount).
       if (!authentication_->MayChangeAccount(object_->GetAccountID()))
@@ -562,6 +578,9 @@ STDMETHODIMP InterfaceMessage::Copy(long lDestinationFolderID)
    {
       if (!object_)
          return GetAccessDenied();
+
+      if (!authentication_->GetIsAuthenticated() && !HM::COMAuthentication::CallerIsEventScript())
+         return COMError::GenerateError(SavedWithoutCredential);
 
       if (!authentication_->MayChangeAccount(object_->GetAccountID()))
          return COMError::GenerateError(HM::COMAuthentication::NotTakenIn);

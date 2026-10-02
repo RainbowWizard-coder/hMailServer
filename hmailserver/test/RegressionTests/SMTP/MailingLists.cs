@@ -1106,7 +1106,7 @@ namespace RegressionTests.SMTP
          _settings.SMTPNoOfTries = 3;
 
          // Made through COM, which writes no Received field; and without a From.
-         var held = new hMailServer.Message();
+         var held = SingletonProvider<TestSetup>.Instance.CreateMessage();
          held.FromAddress = Poster;
          held.AddRecipient("", ListAddress);
          held.Subject = "Held posting";
@@ -1145,7 +1145,7 @@ namespace RegressionTests.SMTP
          // server failed, not the list.
          _settings.SMTPNoOfTries = 0;
 
-         var lost = new hMailServer.Message();
+         var lost = SingletonProvider<TestSetup>.Instance.CreateMessage();
          lost.FromAddress = Poster;
          lost.AddRecipient("", ListAddress);
          lost.Subject = "No retries";

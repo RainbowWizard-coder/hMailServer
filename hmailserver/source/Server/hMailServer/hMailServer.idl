@@ -1640,7 +1640,7 @@ interface IInterfaceMessage : IDispatch
    [propget, id(7), helpstring("The HTML contents of the e-mail.")] HRESULT HTMLBody([out, retval] BSTR *pVal);
    [propput, id(7), helpstring("The HTML contents of the e-mail.")] HRESULT HTMLBody([in] BSTR newVal);
    [propget, id(8), helpstring("The attachments of the message.")] HRESULT Attachments([out, retval] IInterfaceAttachments* *pVal);
-   [id(9), helpstring("Saves the email. If this is a new email, it will be delivered after save.")] HRESULT Save();
+   [id(9), helpstring("Saves the email. If this is a new email, it will be delivered after save. Needs a signed-in credential that may change the account the message belongs to; a message that carries none - one created directly as hMailServer.Message - is saved only by an event script, so a program makes its message with Application.CreateMessage.")] HRESULT Save();
    [propget, id(10), helpstring("The To-header of the email.")] HRESULT To([out, retval] BSTR *pVal);
    [id(11), helpstring("Adds a recipient to the e-mail.")] HRESULT AddRecipient([in]BSTR sName, [in]BSTR sAddress);
    [propget, id(12), helpstring("The From address specified in the message envelope.")] HRESULT FromAddress([out, retval] BSTR *pVal);
@@ -1664,7 +1664,7 @@ interface IInterfaceMessage : IDispatch
    [propget, id(26), helpstring("The main character set of the email.")] HRESULT Charset([out, retval] BSTR *pVal);
    [propput, id(26), helpstring("The main character set of the email.")] HRESULT Charset([in] BSTR newVal);
 
-   [id(27), helpstring("Copies the message to the specified IMAP folder")] HRESULT Copy([in] long iDestinationFolderID);
+   [id(27), helpstring("Copies the message to the specified IMAP folder of its own account. Needs a signed-in credential that may change that account; a message that carries none is copied only by an event script.")] HRESULT Copy([in] long iDestinationFolderID);
    [propget, id(28), helpstring("The mailbox-unique identifier for the e-mail.")] HRESULT UID([out, retval] long *pVal);
 };
 
@@ -1906,7 +1906,7 @@ interface IInterfaceAttachment : IDispatch
 {
    [propget, id(1), helpstring("The filename of the attachment.")] HRESULT Filename([out, retval] BSTR *pVal);
    [propget, id(2), helpstring("The size of the attachment.")] HRESULT Size([out, retval] long *pVal);
-   [id(3), helpstring("Saves the attachment to a file with the given name.")] HRESULT SaveAs(BSTR sName);
+   [id(3), helpstring("Saves the attachment to a file with the given name: a path on the server, written as the service's account. For the server administrator and the server's event scripts alone.")] HRESULT SaveAs(BSTR sName);
    [id(4), helpstring("Removes this attachment from the message.")] HRESULT Delete();
 };
 [
@@ -1922,7 +1922,7 @@ interface IInterfaceAttachments : IDispatch
    [propget, id(0), defaultbind, helpstring("Returns an attachment by its given index.")] HRESULT Item([in] long Index, [out, retval] IInterfaceAttachment* *pVal);
    [propget, id(1), helpstring("The number of objects in the collection.")] HRESULT Count([out, retval] long *pVal);
    [id(2), helpstring("Removes all attachments from the message.")] HRESULT Clear();
-   [id(3), helpstring("Adds an attachment to the collection.")] HRESULT Add([in] BSTR sFilename);
+   [id(3), helpstring("Adds an attachment to the collection: the file at the given path on the server, read as the service's account. For the server administrator and the server's event scripts alone.")] HRESULT Add([in] BSTR sFilename);
 };
 
 
@@ -2413,6 +2413,7 @@ interface IInterfaceApplication : IDispatch{
    [id(27), helpstring("Give an account a role, in named domains (comma-separated; * for every domain; empty means every domain for serveradmin and auditor, and the account's own domain for every other role). An empty role name takes the role away. A credential may not hand out a permission it does not itself hold.")] HRESULT AssignRole([in] BSTR Address, [in] BSTR Role, [in] BSTR Domains);
    [id(28), helpstring("Set an account's password, by address, and clear its failed-authentication lockout. The password policy, the reuse history and the configured hash apply as they do to Account.Password. Needs the reset_password permission in the account's domain - the one thing the help-desk role exists to do - and an account holding authority this credential does not, a domain administrator's to a help desk among them, is refused. An address this credential may not reach reads exactly as one that does not exist.")] HRESULT ResetPassword([in] BSTR Address, [in] BSTR Password);
    [id(29), helpstring("Let an account back in, by address: its failed-authentication lockout and its POP3 mailbox lock are both cleared. Needs the unlock_account permission in the account's domain. An address this credential may not reach reads exactly as one that does not exist.")] HRESULT UnlockAccount([in] BSTR Address);
+   [id(30), helpstring("A new message to send, carrying this Application's credential: once authenticated, Save puts it in the delivery queue, and the server administrator's can be given a file from the server's disk with Attachments.Add. A message created directly (hMailServer.Message) carries no credential of its own, and outside an event script its Save, Copy and Attachments.Add are refused.")] HRESULT CreateMessage([out, retval] IInterfaceMessage** pVal);
 };
 
 [

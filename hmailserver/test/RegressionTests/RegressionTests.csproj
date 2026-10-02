@@ -381,6 +381,7 @@
     <Compile Include="AntiSpam\SpamAssassinUserHeader.cs" />
     <Compile Include="AntiSpam\SpamAssassinLearning.cs" />
     <Compile Include="API\Basics.cs" />
+    <Compile Include="API\ComWithoutCredential.cs" />
     <Compile Include="Infrastructure\Cache.cs" />
     <Compile Include="Infrastructure\CustomAsserts.cs" />
     <Compile Include="Infrastructure\DnsResolution.cs" />

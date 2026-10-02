@@ -53,6 +53,15 @@ STDMETHODIMP InterfaceAttachment::SaveAs(BSTR sName)
       if (!attachment_)
          return GetAccessDenied();
 
+      // The name is a path on the server, and the file is written as the
+      // service account - over any file it may write, which on a LocalSystem
+      // service is any file of the machine. Until 6.3.6 any holder of an
+      // attachment could do it; now the server administrator and the server's
+      // own event scripts can (COMAuthentication::CallerIsEventScript).
+      if (!GetIsServerAdmin() && !HM::COMAuthentication::CallerIsEventScript())
+         return COMError::GenerateError(L"You do not have access to this property / method. Writing a file to the "
+                                        L"server's disk is for the server administrator and the server's event scripts.");
+
       attachment_->SaveAs(sName);
       return S_OK;
    }

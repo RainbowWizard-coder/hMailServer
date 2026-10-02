@@ -359,6 +359,13 @@ AppImage run under the path unit keeps the script copied to `/usr/lib/hmailserve
 installed, which the AppImage's own update does not replace: copy 6.3.6's there and give it `--image`. Until a Linux
 server's helper is 6.3.6's, `systemctl disable --now hmailserver-update.path` turns the apply off, and the check and
 the download go on; install 6.3.6 with the package manager. Found by the project's own review.
+Some COM objects that carry no credential were not refused what only a signed-in caller may do. A message, its
+attachments and a fetch account that a program creates for itself carry no credential, and neither do the objects an
+`Application` handed out once a later `Authenticate` on it fails. With an administrator password set, a local Windows
+user with no hMailServer credential could through them queue mail, read and write files as the service's account, and
+attach a fetch account to any account. This is in every version up to 6.3.5, as in the original hMailServer. Outside
+the server's own event scripts these are now refused, and reading or writing a file on the server's disk through a
+message is the server administrator's alone (What changes on upgrade, item 25). Found by the project's own review.
 
 ### What changes on upgrade without a switch
 
@@ -738,6 +745,20 @@ the download go on; install 6.3.6 with the package manager. Found by the project
     taken before 6.3.6 restores every port On. The type library adds `TCPIPPort.SMTPAuthentication` (dispid 12). The
     error HM6099, a ban's range that could not be saved, no longer says the address reached the failed-logon limit,
     which a spam trap's or a null sender's ban never did.
+25. **COM: a message or fetch account a program creates itself, and the objects of an `Application` whose later
+    `Authenticate` failed, are refused outside an event script.** With an administrator password set, `Message.Save`
+    and `Copy`, `FetchAccount.AccountID` and `Save`, `Account.Save` and the other writes to an account's rules,
+    folders and folder permissions refuse an object that carries no credential - a `hMailServer.Message` or
+    `hMailServer.FetchAccount` a program created with `CreateObject` or `new`, or an object an `Application` handed
+    out before a later `Authenticate` on it failed. `Attachments.Add`, which reads a file from the server's disk, and
+    `Attachment.SaveAs`, which writes one, answer the server administrator alone: a domain administrator or an
+    account that signed in is refused them. The server's event scripts, which create these objects without signing
+    in, work as before, and a server with no administrator password and no second factor answers every caller as it
+    did. A program outside the service that sends mail through COM - a scheduled VBScript, a PowerShell script, a
+    tool of your own - creates `hMailServer.Application`, calls `Authenticate`, and makes its message with the new
+    `Application.CreateMessage()` where it called `CreateObject("hMailServer.Message")`; to attach a file it signs in
+    as the administrator. A .NET program built against an earlier type library reaches `CreateMessage` once rebuilt
+    against 6.3.6's, or late-bound ([Roles.md](hmailserver/docs/Roles.md)).
 
 ### Downloads and the release
 

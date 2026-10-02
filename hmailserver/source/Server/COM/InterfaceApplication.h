@@ -59,6 +59,7 @@ public:
    STDMETHOD(AssignRole)(/*[in]*/ BSTR Address, /*[in]*/ BSTR Role, /*[in]*/ BSTR Domains);
    STDMETHOD(ResetPassword)(/*[in]*/ BSTR Address, /*[in]*/ BSTR Password);
    STDMETHOD(UnlockAccount)(/*[in]*/ BSTR Address);
+   STDMETHOD(CreateMessage)(/*[out, retval]*/ IInterfaceMessage **pVal);
    STDMETHOD(SubmitEMail)();
    STDMETHOD(Stop)();
    STDMETHOD(Start)();

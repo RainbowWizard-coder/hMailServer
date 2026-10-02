@@ -30,6 +30,20 @@ namespace HM
 
       bool GetIsAuthenticated() const;
 
+      // Whether the calling thread is running one of the server's own event
+      // scripts (ScriptServer::IsScriptRunningOnThisThread). A credential that
+      // never authenticated is held by one of two callers: that script host,
+      // whose objects - the message, account and fetch account an event hands
+      // it, and any it creates - carry no credential; or a COM client in another
+      // process that never authenticated, or whose Application failed a later
+      // Authenticate and so dropped the credential every object it handed out
+      // shares. With an administrator password set, the second may be any
+      // local user. Only the first is given what an unauthenticated object
+      // could do before 6.3.6, and this tells them apart: a script's calls on
+      // an hMailServer object run on the thread running the script, and a
+      // client's on one of COM's own threads, which never runs one.
+      static bool CallerIsEventScript();
+
       // The two questions this API has asked since 2007, and the ~315 places
       // in COM/Interface*.cpp that ask them, are now questions for
       // RoleManager: AdministerServer and AdministerDomain are permissions
@@ -70,9 +84,12 @@ namespace HM
       // (TakesInAccount). An account id of 0 is no account's (a public
       // folder, a queued message): what reaches it is gated where it is
       // reached. An account that is gone is the server administrator's alone
-      // to tidy. An unauthenticated holder is the script host - an event
-      // script's objects carry no credential and no client reaches an
-      // account's content without one - and is left as Account.Save leaves it.
+      // to tidy. An unauthenticated holder is answered yes on an event
+      // script's thread, as Account.Save leaves it, and no anywhere else
+      // (CallerIsEventScript): until 6.3.6 it was yes for every one, so a
+      // client that created a FetchAccount or a Message itself, or made its
+      // Application fail an Authenticate, changed any account's content.
+      // The same holds for the three questions below.
       bool MayChangeAccount(__int64 accountID) const;
 
       // A rule's owner, by the rule's AccountID and DomainID: an account's
