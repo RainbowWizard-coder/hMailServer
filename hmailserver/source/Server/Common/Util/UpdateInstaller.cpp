@@ -900,7 +900,9 @@ namespace HM
    UpdateInstaller::Apply(String &error, const String &backupFolder)
    {
       error.Empty();
-      // Only the Windows helper reads it (RecordBackupForHelper_).
+      // The Windows helper reads it from a note in the Updates folder
+      // (RecordBackupForHelper_), hmailserver-update from the request's backup=
+      // line (below). Unused in a build without the live update.
       (void) backupFolder;
 
       UpdateChecker::Snapshot snapshot = UpdateChecker::Current();
@@ -1089,7 +1091,10 @@ namespace HM
       // DBUpdater presents in place of the administrator password; the .deb and
       // the .rpm run the schema upgrade in their own post-install step, as the
       // service user, with `hmailserver --upgrade-database`, which needs no
-      // credential - and an AppImage swap moves no schema at all.
+      // credential; an AppImage's schema moves only at the new image's start,
+      // with [Database] UpgradeOnStart. Either way the helper reads the
+      // database's version before and after, and rolls back only onto the
+      // database the earlier version left.
       //
       // The request, one key=value per line, in the form hmailserver-update's
       // header documents. Paths only, no quoting: the helper checks each one
@@ -1129,6 +1134,22 @@ namespace HM
          request += "ready_url=" + AnsiString(readyUrl.c_str()) + "\n";
       if (kind == UpdateChecker::InstallAppImage)
          request += "image=" + AnsiString(appImage) + "\n";
+      // Where the backup taken for this apply went, if one was (the update task's
+      // UpdateBackupBeforeApply), and when it finished: text the helper puts into
+      // the outcome of an update it does not put back because the new version's
+      // schema step has moved the database, or may have - restoring that backup is
+      // the way back to the earlier version then - and nothing else; it opens no
+      // path it names. Left out when the destination holds a character that would
+      // break the line. A helper that does not know the key says so and goes on
+      // (read_request).
+      if (!backupFolder.IsEmpty())
+      {
+         bool printable = true;
+         for (int i = 0; i < backupFolder.GetLength(); i++)
+            printable = printable && backupFolder[i] >= 0x20 && backupFolder[i] != 0x7F;
+         if (printable)
+            request += "backup=" + AnsiString(backupFolder) + " (finished " + AnsiString(Time::GetCurrentDateTime()) + ")\n";
+      }
 
       String helperUnit;
       if (!LaunchPosix_(request, snapshot.available_version, helperSource, ownUnit, appImage, helperUnit, why))
@@ -1916,7 +1937,7 @@ namespace HM
          }
          else if (outcome.status == _T("upgraded-incomplete"))
          {
-            const String message = Formatter::Format(_T("Update to hMailServer {0} did not complete after its database step had changed the database, so the earlier version was not put back ({1}): {2} (installed by an administrator, {3})"),
+            const String message = Formatter::Format(_T("Update to hMailServer {0} did not complete after its database step had changed the database, or may have, so the earlier version was not put back ({1}): {2} (installed by an administrator, {3})"),
                outcome.version, outcome.status, outcome.detail, by);
             LOG_APPLICATION(message);
             ErrorManager::Instance()->ReportError(ErrorManager::High, 5481, "UpdateInstaller::ReportAdministratorOutcome_", message);
@@ -2025,7 +2046,7 @@ namespace HM
       // about it is not what HM5480's is (docs/Upgrading.md).
       if (status == _T("upgraded-incomplete"))
       {
-         message = Formatter::Format(_T("Update to hMailServer {0} did not complete after its database step had changed the database, so the earlier version was not put back ({1}): {2}"),
+         message = Formatter::Format(_T("Update to hMailServer {0} did not complete after its database step had changed the database, or may have, so the earlier version was not put back ({1}): {2}"),
             version, status, detail);
          LOG_APPLICATION(message);
          ErrorManager::Instance()->ReportError(ErrorManager::High, 5481, "UpdateInstaller::ReportLastOutcome", message);

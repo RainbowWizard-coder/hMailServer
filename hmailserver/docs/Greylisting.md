@@ -154,10 +154,15 @@ a valid one at the schema before; the next run starts at the first row still
 without a key. It runs again inside the step's transaction, just before the
 script, where it finds only what a server still writing to the database added
 meanwhile. An upgrade with DBUpdater from before 6072 - when the key columns do not
-yet exist before the transaction - on SQL Server Compact or MySQL, which commit
-each `ALTER` as it runs anyway, commits the steps before 6107 once their probes
-have passed and runs the pass outside a transaction then; on SQL Server and
-PostgreSQL the upgrade stays the one transaction it was.
+yet exist before the transaction - commits the steps before 6107 once their probes
+have passed and runs the pass outside a transaction then, on MySQL, which commits
+each `ALTER` as it runs anyway, and on SQL Server Compact, which would hold the
+whole pass in its transaction's temporary file, whose size is limited (128 MB, the
+provider's default). On Compact that costs the earlier steps' rollback, which its
+transaction would otherwise make, DDL and all: an upgrade that fails from 6107 on
+leaves the database at 6106, and the installer, finding it changed, does not put the
+earlier version back ([Upgrading.md](Upgrading.md), "If the upgrade fails"). On SQL
+Server and PostgreSQL the upgrade stays the one transaction it was.
 
 `Settings.AntiSpam.ClearGreyListingTriplets` (the Control Panel's **Clear
 greylisting triplets**) empties the table, keys and all. Run before the upgrade,

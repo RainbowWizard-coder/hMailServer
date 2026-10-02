@@ -105,6 +105,12 @@
           "System.ServiceProcess.ServiceController": "[10.0.12, )"
         }
       },
+      "dbsetupquick": {
+        "type": "Project",
+        "dependencies": {
+          "Shared": "[6.3.6, )"
+        }
+      },
       "shared": {
         "type": "Project"
       }

@@ -39,8 +39,12 @@ namespace RegressionTests.Infrastructure
          try
          {
             // The server re-reads the version and refuses the database - the
-            // reinitialise itself reports that, as an upgrade's first symptom.
-            try { _application.Reinitialize(); } catch (COMException) { }
+            // reinitialise itself reports that, as an upgrade's first symptom,
+            // with the reason. Until 6.3.6 a local of the same name hid it from
+            // InitInstance's caller, and the reinitialise answered S_OK.
+            var refused = Assert.Throws<COMException>(() => _application.Reinitialize(), "A reinitialise onto a refused database succeeded.");
+            StringAssert.Contains("The database is too old for this version of hMailServer", refused.Message);
+            StringAssert.Contains("Database version: " + (required - 1), refused.Message);
 
             // A fresh object, as DBUpdater makes one.
             var updater = new Application();

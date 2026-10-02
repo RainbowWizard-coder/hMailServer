@@ -91,10 +91,14 @@ namespace DBUpdater
                          "update hm_imapfolders set folderspecialuse = folderspecialuse where 1 = 0"),
 
          // Upgrade6006to6007* - two columns, and therefore two probes rather than one.
-         // SQL CE commits each ALTER implicitly and cannot roll back, so this step can
-         // half-apply: the first column lands, the second fails, and the version row is
-         // never reached. A single probe on either column alone would then either miss
-         // the failure or misreport a database that is genuinely fine.
+         // Both ALTERs are marked [IGNORE-ERRORS] (but for PostgreSQL's), so this step
+         // can half-apply: the first column lands, the second fails, the failure is
+         // discarded and the version row is stamped all the same; and MySQL commits each
+         // ALTER as it runs, so there a step stopped between them keeps the first. (SQL
+         // Server Compact does not: the upgrade's transaction rolls its DDL back, as
+         // SQL Server's and PostgreSQL's do.) A single probe on either column alone
+         // would then either miss the failure or misreport a database that is
+         // genuinely fine.
          new SchemaProbe(6007, "hm_domains.domaindkimsecondaryselector",
                          "update hm_domains set domaindkimsecondaryselector = domaindkimsecondaryselector where 1 = 0"),
          new SchemaProbe(6007, "hm_domains.domaindkimsecondaryprivatekeyfile",
@@ -121,8 +125,8 @@ namespace DBUpdater
          // One probe per COLUMN even though a CREATE TABLE cannot half-apply the way a
          // multi-column ALTER can. Two reasons it is still right here. The step is not
          // one statement: on MSSQL and SQL CE the table is created and then two
-         // constraints are added by separate ALTERs, and SQL CE commits each of those as
-         // it executes, so "the table exists" does not mean "the step finished". And a
+         // constraints are added by separate ALTERs, so "the table exists" does not mean
+         // "the step finished". And a
          // probe naming a column is what rule 7 of check-schema-versions.ps1 uses to
          // confirm the same column exists in all three CreateTables scripts - which is
          // the check that catches a new table added to the upgrade path but forgotten in
@@ -146,8 +150,8 @@ namespace DBUpdater
          // Upgrade6011to6012* - the rule-criteria value column widened to 2000
          // (probing the column proves it exists, not its width; the width is the
          // upgrade script's to get right) and the vacation begin date on
-         // accounts. One probe per column, as ever: SQL CE commits each ALTER
-         // implicitly, so a two-column step can half-apply.
+         // accounts. One probe per column, as ever: MySQL commits each ALTER as it
+         // runs, so there a two-column step can half-apply.
          new SchemaProbe(6012, "hm_rule_criterias.criteriamatchvalue",
                          "update hm_rule_criterias set criteriamatchvalue = criteriamatchvalue where 1 = 0"),
          new SchemaProbe(6012, "hm_accounts.accountvacationbegindate",
@@ -173,8 +177,8 @@ namespace DBUpdater
          // Upgrade6015to6016* - app passwords: a per-account credential that can
          // be revoked on its own, which is what makes per-account 2FA possible for
          // clients that have nowhere to type a code. One probe per column, because
-         // SQL CE commits each statement implicitly and a multi-column step can
-         // half-apply.
+         // MySQL commits each DDL statement as it runs and a multi-column step can
+         // half-apply there.
          new SchemaProbe(6016, "hm_apppasswords.aphash",
                          "update hm_apppasswords set aphash = aphash where 1 = 0"),
          new SchemaProbe(6016, "hm_apppasswords.aplastused",
@@ -189,8 +193,8 @@ namespace DBUpdater
                          "update hm_accounts set accounttotpsecret = accounttotpsecret where 1 = 0"),
 
          // Upgrade6017to6018* - the quarantine store. One probe per column that the
-         // server writes, because SQL CE commits each statement implicitly and a
-         // multi-column step can half-apply.
+         // server writes, because MySQL commits each DDL statement as it runs and a
+         // multi-column step can half-apply there.
          new SchemaProbe(6018, "hm_quarantine.quarantinefilename",
                          "update hm_quarantine set quarantinefilename = quarantinefilename where 1 = 0"),
          new SchemaProbe(6018, "hm_quarantine.quarantinerecipients",
@@ -365,8 +369,8 @@ namespace DBUpdater
          new SchemaProbe(6031, "hm_fetchaccounts.famirrorfolders",
                          "update hm_fetchaccounts set famirrorfolders = famirrorfolders where 1 = 0"),
          // Upgrade6031to6032* - the account's address book (hm_contacts): one
-         // probe per column, since Compact Edition commits each statement as it
-         // goes and a half-applied table must be seen as such. The identity
+         // probe per column, since MySQL commits each DDL statement as it goes
+         // and a half-applied table must be seen as such. The identity
          // column is not probed: Compact Edition refuses to update one even
          // where 1 = 0, and the other columns cannot exist without it.
          new SchemaProbe(6032, "hm_contacts.contactaccountid",
@@ -683,9 +687,9 @@ namespace DBUpdater
          new SchemaProbe(6046, "hm_domains.domainquarantinedigesthour",
                          "update hm_domains set domainquarantinedigesthour = domainquarantinedigesthour where 1 = 0"),
          // Upgrade6046to6047* - the named roles (hm_roles) and who holds them
-         // (hm_roleassignments). One probe per column, because Compact Edition
-         // commits each statement of a step on its own and a half-applied step
-         // is what this list exists to find.
+         // (hm_roleassignments). One probe per column, because MySQL commits each
+         // DDL statement of a step on its own and a half-applied step is what this
+         // list exists to find.
          new SchemaProbe(6047, "hm_roles.rolename",
                          "update hm_roles set rolename = rolename where 1 = 0"),
          new SchemaProbe(6047, "hm_roles.roledescription",
@@ -1230,9 +1234,9 @@ namespace DBUpdater
 
          // Upgrade6075to6076* - the recovery address, the one-shot links that
          // prove it and reset a password, and the recovery codes. One probe per
-         // table: SQL Server Compact commits each statement as it runs, so a step
-         // that stopped after the first CREATE TABLE would otherwise stamp a
-         // version onto a database holding one table of three.
+         // table: a step that a statement's failure ended part-way, or one that
+         // never made its second table, must not pass as a database holding all
+         // three - MySQL commits each CREATE TABLE as it runs, and keeps the first.
          new SchemaProbe(6076, "hm_accountrecovery.acrverified",
                          "update hm_accountrecovery set acrverified = acrverified where 1 = 0"),
          new SchemaProbe(6076, "hm_recoverytokens.rttoken",
@@ -1463,7 +1467,7 @@ namespace DBUpdater
          // Upgrade6091to6092* - the list manager: a distribution list with its
          // manager switched on answers its own addresses, keeps an archive, sends
          // digests and counts its members' bounces. Twenty-two ALTERs on two tables
-         // every installation has rows in, each probed on its own because SQL CE
+         // every installation has rows in, each probed on its own because MySQL
          // commits each one as it goes, and the archive table through the column
          // the pages and the digest read.
          new SchemaProbe(6092, "hm_distributionlists.distributionlistmanaged",
@@ -1552,8 +1556,8 @@ namespace DBUpdater
                          "update hm_warmupcounts set wcplanday = wcplanday where 1 = 0"),
          // Upgrade6093to6094* - gateway encryption to a partner domain: the
          // method, the partner's key and the fallback, three ALTERs on a table
-         // an installation may hold rows in, one probe each because SQL CE
-         // commits each ALTER on its own and the step could stop half way.
+         // an installation may hold rows in, one probe each because MySQL
+         // commits each ALTER on its own and the step could stop half way there.
          new SchemaProbe(6094, "hm_remotedomainpolicies.policyencrypt",
                          "update hm_remotedomainpolicies set policyencrypt = policyencrypt where 1 = 0"),
          new SchemaProbe(6094, "hm_remotedomainpolicies.policyencryptkey",
@@ -1938,8 +1942,12 @@ namespace DBUpdater
          // makes again, unmarked, so a failed CREATE fails the step; what a marked
          // statement could hide is a NOT NULL that did not happen, and that is
          // asked of the catalogue, in the 6030 shape: a division by zero unless
-         // the column is NOT NULL. One probe per column, since Compact and MySQL
-         // commit each ALTER as it runs. (Whether the index is unique has no view
+         // the column is NOT NULL. One probe per column: the marked ALTERs can each
+         // fail in silence, and MySQL commits each ALTER as it runs. (SQL Server
+         // Compact does not: inside the upgrade's transaction its DDL is rolled back
+         // with the rest, as on SQL Server and PostgreSQL - the installer smoke VM
+         // showed a CREATE TABLE and an ALTER TABLE ADD made through COM gone after
+         // the rollback, 2 October 2026.) (Whether the index is unique has no view
          // all four backends share, so it is not probed; its CREATE is unmarked.)
          // On MySQL the catalogue is the whole server's, so another database on it
          // already at 6107 answers for this one, as it does for the 6030 probes: a

@@ -317,10 +317,20 @@ version the new build needs (`REQUIRED_DB_VERSION`, which the installer is compi
 with), or past it, is still known unchanged: nothing in the step moves such a database,
 DBUpdater having no step to run on it and the service's own start none either. So an
 update that changes no schema, and whose new service does not start, ends with 10 and
-is put back. A database step on SQL Server Compact, SQL Server or PostgreSQL that fails
-moves nothing, since DBUpdater runs the whole chain in one transaction there - except a
-chain that crosses 6107 from below on SQL Server Compact, where DBUpdater commits the steps
-before 6107 so that 6107's greylisting keying can run on its own ([Greylisting.md](Greylisting.md#the-triplet-key-281),
+is put back. So does one whose database step could not run at all: `DBSetupQuick.exe`,
+which the step starts, exits with **4** when it cannot reach the hMailServer service
+through COM - the service does not start, or does not answer - having started no
+DBUpdater, and says why in the installer's log ("DBSetupQuick.exe returned 4:" and its
+reason, the COM error's HRESULT among it); with `[Database] UpgradeOnStart` off, the
+service's own start ran no step either, and the database is known unchanged ("Database
+step left the database unchanged ... DBSetupQuick.exe could not reach the hMailServer
+service (exit code 4)"). Until 6.3.6 it died of the COM error unhandled, with exit code
+-532462766, and said nothing anywhere. A database step on SQL Server Compact, SQL Server
+or PostgreSQL that fails moves nothing, since DBUpdater runs the whole chain in one
+transaction there, which takes the schema's changes back with the rest on all three -
+except a chain from a database older than 6072 that crosses 6107 on SQL Server Compact,
+where DBUpdater commits the steps before 6107 so that 6107's greylisting keying runs
+outside the transaction, whose temporary file Compact limits in size ([Greylisting.md](Greylisting.md#the-triplet-key-281),
 "The triplet key"), so that a failure from 6107 on leaves the database at 6106 and setup ends
 with 11; on MySQL and
 MariaDB each step's DDL commits as it goes, so a chain of steps can stop part-way, and
@@ -385,6 +395,37 @@ is as the earlier version left it**:
 An Updater from 6.3.5 or earlier knows neither: it rolls back only when the service
 does not come back, and does not tell the installer to stop. So the update *to* 6.3.6
 from those versions is made as before, and these rules hold from the update after it.
+
+**On Linux the live update holds to the same rule.** There the schema step is the
+package's own: the `.deb`'s `postinst` and the `.rpm`'s `%post` run `hmailserver
+--upgrade-database` as the service user while the package is installed, and a server
+with `[Database] UpgradeOnStart=1` - an AppImage's too - runs the chain at its own start.
+Either can move the database before the new version's server fails to come back.
+`hmailserver-update`, the helper that installs the update as root, reads the database's
+version with `hmailserver --schema-version` (which prints `required <n>`, the version
+that program needs, and then `database <n>`, the database's `hm_dbversion`; exit 0, or
+1 when the database's cannot be read, or 2 with no `[Database]`), run as the user the
+unit runs the server as, before it installs and again when the new version is not back.
+It reinstalls the earlier version only while that version is what it was before - or,
+where it cannot be read afterwards, was already at or past what the new version needs,
+which nothing in the install moves. Otherwise it puts nothing back, with a rollback
+image or without one, and the outcome is `upgraded-incomplete`, reported at the server's
+next start as HM5481: what did not come back, how the database moved ("the database
+was at schema version 6105 before the install and is at 6108 now", with "short of the
+6108 hMailServer 6.3.7 needs" when its upgrade stopped part-way) or that its version
+could not be read, and what to do - put right what keeps the service from starting
+(`journalctl -u hmailserver`) and start it, finish an upgrade that stopped part-way
+with `sudo -u hmailserver hmailserver --upgrade-database`, or restore the backup the
+update took (`UpdateBackupBeforeApply`; the outcome names where, from the request the
+server writes) and reinstall the earlier version. A version that cannot be read before
+the install - a database the earlier version's program cannot reach, or a program from
+before 6.3.6, which has no `--schema-version` - leaves nothing to hold the database to
+afterwards, and nothing is put back. On MySQL and MariaDB a step that failed may have
+left part of itself behind without moving the version, as on Windows (above). The update
+*to* 6.3.6 is made by 6.3.5's helper, which puts the earlier version back whenever the
+service does not come back; the rule holds from the update after it.
+`sudo /usr/lib/hmailserver/hmailserver-update check` says whether the database's
+version can be read on a machine.
 
 If it does fail, the service may be installed but the schema only partly upgraded.
 The server does not paper over that: on startup it compares the database's version

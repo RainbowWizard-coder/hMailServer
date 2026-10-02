@@ -2193,6 +2193,35 @@ begin
    App := Unassigned;
 end;
 
+// Whether hMailServer.INI sets [Database] UpgradeOnStart, on which the service's own
+// start runs the schema steps (Application::OnDatabaseConnected): any value but none,
+// empty or 0 is taken as set, so that a value the service might read as 1 is never
+// taken for off.
+function UpgradeOnStartSet(): Boolean;
+var
+   szValue: String;
+begin
+   szValue := Trim(GetIniString('Database', 'UpgradeOnStart', '', GetInifile()));
+   Result := (szValue <> '') and (szValue <> '0');
+end;
+
+// What DBSetupQuick.exe said about a failure, from the report it was told to write
+// (report:PATH; a Windows program started here has no output to read): into this
+// installation's log, its lines after the first unstamped, as the grant's report
+// is, and back for a message. Empty when it wrote nothing.
+function ReadDBSetupQuickReport(szReport: String; ResultCode: Integer): String;
+var
+   szLines: AnsiString;
+begin
+   Result := '';
+   if LoadStringFromFile(szReport, szLines) then
+      Result := Trim(String(szLines));
+   if Result <> '' then
+      Log('DBSetupQuick.exe returned ' + IntToStr(ResultCode) + ':' + #13#10 + Result)
+   else if ResultCode <> 0 then
+      Log('DBSetupQuick.exe returned ' + IntToStr(ResultCode) + ' and wrote nothing to ' + szReport + '.');
+end;
+
 // The version this installation replaces, for its messages.
 function PreviousVersionText(): String;
 begin
@@ -2245,9 +2274,13 @@ end;
 // needed back most - a database that was already at the version this build needs
 // (HM_REQUIRED_DB_VERSION), or past it, is still known unchanged: nothing in the
 // step moves such a database, so a release that changes no schema is put back as
-// any other failed step is. Otherwise a version that cannot be read leaves the
+// any other failed step is. So is one whose step could not run at all
+// (bStepRanNothing): DBSetupQuick could not reach the service through COM (exit
+// code 4), so neither it nor DBUpdater ran, and the one other thing that moves a
+// database here, the service's own start with [Database] UpgradeOnStart, is off
+// (UpgradeOnStartSet). Otherwise a version that cannot be read leaves the
 // database "may have changed", and nothing is put back.
-procedure EndDatabaseStep();
+procedure EndDatabaseStep(bStepRanNothing: Boolean);
 begin
    if (IsServiceRunning('hMailServer') = false) then
    begin
@@ -2265,6 +2298,16 @@ begin
       g_bDatabaseChanged := false;
       Log('Database step left the database unchanged, at version ' + IntToStr(g_iDatabaseVersionBefore) + ': this build needs version {#HM_REQUIRED_DB_VERSION}, ' +
           'which the database had reached before the step, and nothing in the step moves a database at or past it, though its version after the step could not be read.');
+   end
+   else if bStepRanNothing and (g_iDatabaseVersionAfter <= 0) and (UpgradeOnStartSet() = false) then
+   begin
+      g_bDatabaseChanged := false;
+      if g_iDatabaseVersionBefore > 0 then
+         Log('Database step left the database unchanged, at version ' + IntToStr(g_iDatabaseVersionBefore) + ': DBSetupQuick.exe could not reach the hMailServer service (exit code 4), ' +
+             'so neither it nor DBUpdater ran, and [Database] UpgradeOnStart is not set, so the service''s own start ran no schema step, though its version after the step could not be read.')
+      else
+         Log('Database step left the database unchanged: DBSetupQuick.exe could not reach the hMailServer service (exit code 4), so neither it nor DBUpdater ran, ' +
+             'and [Database] UpgradeOnStart is not set, so the service''s own start ran no schema step, though its version could not be read before the step or after it.');
    end
    else if (g_iDatabaseVersionBefore > 0) and (g_iDatabaseVersionAfter > 0) then
       Log('Database step changed the database: ' + DatabaseVersionsText() + '.')
@@ -2325,6 +2368,8 @@ function RunPostInstallTasks() : Boolean;
       szParameters: AnsiString;
       szCredential: String;
       szDBSetupSaid: String;
+      szQuickReport: String;
+      szQuickSaid: String;
       szNotComplete: String;
       bRuntimeReady: Boolean;
       bDatabaseBackendReady: Boolean;
@@ -2486,24 +2531,36 @@ begin
 
             ResultCode := 0;
             bStarted := false;
+            szQuickSaid := '';
+            // What DBSetupQuick says about a failure goes into a file of this
+            // installation's (report:PATH, on its command line), which is copied
+            // into this log below: it is a Windows program, whose output nothing
+            // here could read. Until 6.3.6 it said nothing anywhere, and a service
+            // it could not reach killed it with -532462766.
+            szQuickReport := ExpandConstant('{tmp}\dbsetupquick-report.txt');
+            DeleteFile(szQuickReport);
             if not SetProcessEnvironmentVariable('HM_ADMIN_PASSWORD', szCredential) then
                SuppressibleMsgBox('The hMailServer database step could not be started: the administrator password could not be handed to DBSetupQuick.exe. Run DBSetupQuick.exe from the hMailServer Bin folder to retry.', mbError, MB_OK, IDOK)
             else
             begin
                try
-                  bStarted := Exec(ExpandConstant('{app}\Bin\DBSetupQuick.exe'), szParameters, '', SW_SHOWNORMAL, ewWaitUntilTerminated, ResultCode);
+                  bStarted := Exec(ExpandConstant('{app}\Bin\DBSetupQuick.exe'), Trim(szParameters + ' "report:' + szQuickReport + '"'), '', SW_SHOWNORMAL, ewWaitUntilTerminated, ResultCode);
                   if (bStarted = False) then
                      SuppressibleMsgBox(SysErrorMessage(ResultCode), mbError, MB_OK, IDOK);
                finally
                   SetProcessEnvironmentVariable('HM_ADMIN_PASSWORD', '');
                end;
+               if bStarted then
+                  szQuickSaid := ReadDBSetupQuickReport(szQuickReport, ResultCode);
             end;
 
             // The database's version now, whatever the step's result: the step
             // can fail after it has moved it - a chain of steps on MySQL, whose DDL
             // commits as it goes, or the service's own start with UpgradeOnStart=1.
+            // Exit code 4 is DBSetupQuick's for a service it could not reach, so
+            // that neither it nor DBUpdater ran (DBSetupQuick's ExitServiceNotReached).
             if bDatabaseStepOnExisting then
-               EndDatabaseStep();
+               EndDatabaseStep(bStarted and (ResultCode = 4));
 
             if (bStarted = False) then
             begin
@@ -2511,9 +2568,20 @@ begin
                if bDatabaseStepOnExisting and g_bDatabaseChanged then
                   SayDatabaseStepStoppedPartWay();
             end
+            else if (ResultCode = 4) then
+            begin
+               SuppressibleMsgBox('The hMailServer database step could not run: DBSetupQuick.exe could not reach the hMailServer service (exit code 4), so neither it nor DBUpdater changed the database.' + #13#10#13#10 +
+                      szQuickSaid + #13#10#13#10 +
+                      'Check that the hMailServer service starts - the Windows Application log and the hMailServer error log say why it does not - and run DBSetupQuick.exe from the hMailServer Bin folder to retry.', mbError, MB_OK, IDOK);
+               Result := false;
+               if bDatabaseStepOnExisting and g_bDatabaseChanged then
+                  SayDatabaseStepStoppedPartWay();
+            end
             else if (ResultCode <> 0) then
             begin
-               SuppressibleMsgBox('The hMailServer database could not be created or upgraded (exit code ' + IntToStr(ResultCode) + ').' #13#13
+               if szQuickSaid <> '' then
+                  szQuickSaid := #13#13 + szQuickSaid;
+               SuppressibleMsgBox('The hMailServer database could not be created or upgraded (exit code ' + IntToStr(ResultCode) + ').' + szQuickSaid + #13#13
                       'The hMailServer service may not work until the database has been upgraded. Run DBSetupQuick.exe from the hMailServer Bin folder to retry.', mbError, MB_OK, IDOK);
                Result := false;
                if bDatabaseStepOnExisting and g_bDatabaseChanged then

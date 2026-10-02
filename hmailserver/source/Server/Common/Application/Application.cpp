@@ -415,7 +415,11 @@ namespace HM
       if (iDBVersion < Configuration::Instance()->GetRequiredDBVersion()
           || iDBVersion > Configuration::Instance()->GetRequiredDBVersion())
       {
-         String sErrorMessage;
+         // Into the caller's message, which a local of the same name hid until 6.3.6:
+         // on Linux the start printed "hMailServer could not start: " and nothing after
+         // it, and a server that refused its database said why only in the error log -
+         // where an update's outcome sends an administrator to the journal first.
+         sErrorMessage.Empty();
 
          if (iDBVersion > Configuration::Instance()->GetRequiredDBVersion())
             sErrorMessage = "The database is too new for this version of hMailServer. Please upgrade hMailServer.";

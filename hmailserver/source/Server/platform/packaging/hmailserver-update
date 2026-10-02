@@ -60,16 +60,28 @@
 #      image) says is installed, which must be readable, and a rollback image
 #      must be exactly that installed version. A taken-over service cannot
 #      have root put a signed but superseded release back;
-#   5. installs the package (apt-get or dpkg, dnf or rpm) or swaps the AppImage
-#      file under the unit, starts the unit, and waits for it to stay up and,
-#      where the metrics listener is on, for /readyz to answer;
-#   6. if it does not come back, reinstalls the previous version the same way and
-#      waits again;
+#   5. reads the database's schema version (`hmailserver --schema-version`, as
+#      the unit's user), installs the package (apt-get or dpkg, dnf or rpm) or
+#      swaps the AppImage file under the unit, starts the unit, and waits for it
+#      to stay up and, where the metrics listener is on, for /readyz to answer;
+#   6. if it does not come back, reads the database's version again, with the
+#      program now installed: a rollback puts back the program and never the
+#      database, and the earlier version refuses a database newer than the one
+#      it needs - which the package's own schema step (postinst's or %post's
+#      --upgrade-database) or the new server's start with [Database]
+#      UpgradeOnStart may have made it. So only while the version is what it was
+#      before the install - or, where it cannot be read now, was already at or
+#      past what the new version needs, which nothing in the install moves - is
+#      the previous version reinstalled the same way, and waited for again;
+#      otherwise nothing is put back, and the outcome says how the database
+#      moved, or that it may have, and what to do;
 #   7. writes ONE line to the outcome file - "<status> <version> <detail>", the
-#      line hMailServer.Updater.exe writes, with the same five statuses: ok,
-#      failed, rolled-back, rollback-failed, no-rollback - which the server reads
-#      and reports the next time its update task runs, and the Control Deck and
-#      GET /api/v1/update show unchanged.
+#      line hMailServer.Updater.exe writes, with the same six statuses: ok,
+#      failed, rolled-back, rollback-failed, no-rollback and
+#      upgraded-incomplete (the database moved, or may have, and nothing was put
+#      back: HM5481) - which the server reads and reports the next time its
+#      update task runs, and the Control Deck and GET /api/v1/update show
+#      unchanged.
 #
 # How it is started. The packaged unit gives the server /run/hmailserver
 # (RuntimeDirectory=), the server writes the request there, and
@@ -93,6 +105,10 @@
 #   wait=180                     seconds to wait for the service to come back
 #   ready_url=http://127.0.0.1:9090/readyz   (optional) the metrics listener's probe
 #   image=/opt/hmailserver/hMailServer.AppImage   (appimage only) must be --image
+#   backup=/var/backups/hmailserver (finished 2026-10-02 03:00:00)   (optional)
+#                                where the backup taken before the update is:
+#                                text for the outcome of an update that is not
+#                                put back, never a path this program opens
 #
 # A key not in this list is said in the journal and skipped, so that a newer
 # server never strands an older copy of this script (see read_request).
@@ -225,6 +241,7 @@ OUTCOME=""
 WAIT=180
 READY_URL=""
 REQUEST_IMAGE=""
+BACKUP=""
 
 read_request()
 {
@@ -273,6 +290,7 @@ read_request()
          wait)             WAIT=$value ;;
          ready_url)        READY_URL=$value ;;
          image)            REQUEST_IMAGE=$value ;;
+         backup)           BACKUP=$value ;;
          *) say "ignoring a key this program does not know: $key" ;;
       esac
    done
@@ -428,6 +446,18 @@ check_request()
       http://127.0.0.1:[0-9]*/readyz|http://localhost:[0-9]*/readyz|http://\[::1\]:[0-9]*/readyz) ;;
       *) say "ready_url is not a loopback /readyz and is ignored: $READY_URL"; READY_URL="" ;;
    esac
+
+   # Where the backup is, as text for a person: no control character, and short
+   # enough for one line of the outcome. Anything else is left out rather than
+   # refused - it decides nothing - and the outcome then names the backup in
+   # general.
+   case "$BACKUP" in
+      *[[:cntrl:]]*) say "backup holds a control character and is left out"; BACKUP="" ;;
+   esac
+   if [ ${#BACKUP} -gt 400 ]; then
+      say "backup is longer than 400 characters and is left out"
+      BACKUP=""
+   fi
 
    if [ "$KIND" = appimage ]; then
       # The image --image names is executed (to verify the new one, and for the
@@ -894,6 +924,201 @@ write_outcome()
    mv -f -- "$tmp" "$OUTCOME"
 }
 
+# ------------------------------------------------------------------ the database
+
+# What a rollback rests on. It reinstalls the earlier version's program and
+# never its database, and that version refuses a database newer than the one it
+# needs ("The database is too new for this version of hMailServer"): a server
+# with no mail. The new version's own schema step may have moved the database
+# before its server failed to come back - the package's postinst or %post runs
+# `hmailserver --upgrade-database` as the service user, and a server with
+# [Database] UpgradeOnStart=1 runs the chain at its own start, an AppImage's
+# too. So the database's version is read before the install and again when the
+# new version is not back, and the earlier version is put back only while it is
+# what it was - hMailServer.Updater's rule on Windows, where the installer reads
+# it (docs/Upgrading.md, "If the upgrade fails").
+
+# The program to ask: the one installed at the time - before the install the
+# earlier version's, after it the new one's.
+installed_program()
+{
+   if [ "$KIND" = appimage ]; then
+      printf '%s' "$IMAGE"
+   else
+      printf '%s' "$PROGRAM"
+   fi
+}
+
+# `<program> --schema-version`: "required <n>", the version that program needs,
+# said before it reads anything, and then "database <n>", the database's
+# hm_dbversion as the server's own start reads it. Asked the way the unit runs
+# the server: as its User= when it has one, so that the configuration and the
+# database's credentials are read, and any line logged is written, as that
+# user, as the server's are - and for an AppImage with the unit's
+# HMAILSERVER_HOME and XDG_DATA_HOME, which say where its configuration is.
+# Within a minute: a database that does not answer is a version that cannot be
+# read. Sets SCHEMA_REQUIRED and SCHEMA_DATABASE to the numbers said, each empty
+# when none was, and SCHEMA_WHY to why the database's was not read, and answers
+# false then. Its variables have names of their own: shell variables are global,
+# and apply's $code is the install step's.
+SCHEMA_REQUIRED=""
+SCHEMA_DATABASE=""
+SCHEMA_WHY=""
+
+read_schema()
+{
+   SCHEMA_REQUIRED=""
+   SCHEMA_DATABASE=""
+   SCHEMA_WHY=""
+   schema_program=$1
+   schema_user="$(systemctl show -p User --value "$UNIT" 2>/dev/null)" || schema_user=""
+   case "$schema_user" in
+      ""|root|0) schema_user="" ;;
+      -*|*[!A-Za-z0-9._-]*)
+         SCHEMA_WHY="$UNIT runs the server as '$schema_user', which is not a user name this program runs anything as"
+         return 1
+         ;;
+   esac
+   schema_environment=""
+   if [ "$KIND" = appimage ]; then
+      set -f
+      for schema_word in $(systemctl show -p Environment --value "$UNIT" 2>/dev/null); do
+         case "$schema_word" in
+            HMAILSERVER_HOME=/*|XDG_DATA_HOME=/*)
+               case "$schema_word" in
+                  *[!A-Za-z0-9_=/.,+:@-]*) ;;
+                  *) schema_environment="$schema_environment $schema_word" ;;
+               esac
+               ;;
+         esac
+      done
+      set +f
+   fi
+   schema_bound=""
+   if command -v timeout >/dev/null 2>&1; then
+      schema_bound="timeout 60"
+   fi
+   if [ -n "$schema_user" ]; then
+      if ! command -v runuser >/dev/null 2>&1; then
+         SCHEMA_WHY="there is no runuser to ask $schema_program as $schema_user, the user $UNIT runs the server as"
+         return 1
+      fi
+      # Words on purpose: the bound and the variables, each checked above.
+      # shellcheck disable=SC2086
+      schema_answer="$($schema_bound runuser -u "$schema_user" -- env $schema_environment "$schema_program" --schema-version 2>&1 </dev/null)"
+      schema_code=$?
+   else
+      # shellcheck disable=SC2086
+      schema_answer="$($schema_bound env $schema_environment "$schema_program" --schema-version 2>&1 </dev/null)"
+      schema_code=$?
+   fi
+   SCHEMA_REQUIRED="$(printf '%s\n' "$schema_answer" | sed -n 's/^required \([0-9]\{1,9\}\)$/\1/p' | head -n 1)"
+   if [ "$schema_code" = 0 ]; then
+      SCHEMA_DATABASE="$(printf '%s\n' "$schema_answer" | sed -n 's/^database \([0-9]\{1,9\}\)$/\1/p' | head -n 1)"
+   fi
+   if [ -z "$SCHEMA_DATABASE" ]; then
+      # What else it said - why, in the program's words and the database
+      # server's - on one line with no control character, for the outcome.
+      schema_rest="$(printf '%s\n' "$schema_answer" | sed -e '/^required [0-9]*$/d' -e '/^database [0-9]*$/d' | tr '\n\r\t' '   ' | tr -d '[:cntrl:]' | cut -c 1-300 | sed 's/ *$//')"
+      SCHEMA_WHY="$schema_program --schema-version exited with $schema_code${schema_rest:+: $schema_rest}"
+      return 1
+   fi
+   return 0
+}
+
+# Before the install, with the earlier version's own program.
+DB_BEFORE=""
+DB_BEFORE_WHY=""
+
+read_database_before()
+{
+   if [ "$DRY_RUN" = 1 ]; then
+      say "would read the database's schema version with $(installed_program) --schema-version"
+      return 0
+   fi
+   if read_schema "$(installed_program)"; then
+      DB_BEFORE=$SCHEMA_DATABASE
+      say "the database is at schema version $DB_BEFORE before the install."
+   else
+      DB_BEFORE_WHY=$SCHEMA_WHY
+      say "the database's schema version could not be read before the install ($SCHEMA_WHY): if the new version does not come back, nothing can show the database unchanged, and the earlier version is not put back."
+   fi
+}
+
+# After the new version did not come back, with the program installed now.
+# DB_STATE is unchanged, changed or unknown; DB_SAID says what was found, as a
+# clause; DB_PARTWAY is 1 when the database moved and is still short of what
+# the new version needs - its schema step stopped part-way.
+DB_STATE=""
+DB_SAID=""
+DB_PARTWAY=0
+
+judge_database()
+{
+   DB_PARTWAY=0
+   if [ -z "$DB_BEFORE" ]; then
+      DB_STATE=unknown
+      DB_SAID="the database's schema version could not be read before the install ($DB_BEFORE_WHY), so nothing shows that the install left it unchanged"
+      return 0
+   fi
+   if read_schema "$(installed_program)"; then
+      if [ "$SCHEMA_DATABASE" = "$DB_BEFORE" ]; then
+         DB_STATE=unchanged
+         DB_SAID="the database is at schema version $DB_BEFORE, as before the install"
+         return 0
+      fi
+      DB_STATE=changed
+      DB_SAID="the database was at schema version $DB_BEFORE before the install and is at $SCHEMA_DATABASE now"
+      if [ -n "$SCHEMA_REQUIRED" ] && [ "$SCHEMA_DATABASE" -lt "$SCHEMA_REQUIRED" ]; then
+         DB_PARTWAY=1
+         DB_SAID="$DB_SAID, short of the $SCHEMA_REQUIRED hMailServer $VERSION needs"
+      fi
+      return 0
+   fi
+   # Not readable now - the new program does not run, or does not reach the
+   # database. A database that was already at or past what the new version
+   # needs is one nothing in the install moves: --upgrade-database and
+   # UpgradeOnStart run no step on it.
+   if [ -n "$SCHEMA_REQUIRED" ] && [ "$DB_BEFORE" -ge "$SCHEMA_REQUIRED" ]; then
+      DB_STATE=unchanged
+      DB_SAID="the database was at schema version $DB_BEFORE before the install, at or past the $SCHEMA_REQUIRED hMailServer $VERSION needs, so nothing in the install moved it, though its version now could not be read ($SCHEMA_WHY)"
+      return 0
+   fi
+   DB_STATE=unknown
+   DB_SAID="the database was at schema version $DB_BEFORE before the install, and its version now could not be read ($SCHEMA_WHY)${SCHEMA_REQUIRED:+; hMailServer $VERSION needs $SCHEMA_REQUIRED}, so the install may have moved it"
+   return 0
+}
+
+# Where the backup is, for the outcome: the request's backup= when the server
+# took one for this update, the setting that takes one otherwise.
+backup_text()
+{
+   if [ -n "$BACKUP" ]; then
+      printf 'the backup taken before the update, in %s,' "$BACKUP"
+   else
+      printf 'the backup taken before the update, if one was taken (UpdateBackupBeforeApply: the newest archive in the backup destination),'
+   fi
+}
+
+# The outcome's detail when nothing is put back because the database moved, or
+# may have: what did not come back, how the database moved, and what to do -
+# finish the upgrade, or go back by the backup.
+upgraded_incomplete_detail()
+{
+   if [ "$KIND" = appimage ]; then
+      finish="$IMAGE --upgrade-database"
+   else
+      finish="hmailserver --upgrade-database"
+   fi
+   if [ "$DB_PARTWAY" = 1 ]; then
+      todo="the database upgrade stopped part-way: once its cause is put right, finish it with $finish, run as the user the service runs as, and start the service; or restore $(backup_text) and reinstall hMailServer $old_version"
+   else
+      todo="put right what keeps the service from starting (journalctl -u $UNIT) and start it - a schema step that did not finish is finished with $finish, run as the user the service runs as; or, to go back to hMailServer $old_version, restore $(backup_text) and reinstall it"
+   fi
+   printf '%s; %s; hMailServer %s was not put back, since it may not run on that database; %s; see %s' \
+      "$1" "$DB_SAID" "$old_version" "$todo" "${LOG_FILE:-the journal of hmailserver-update.service}"
+}
+
 # ------------------------------------------------------------------ apply
 
 apply()
@@ -1002,6 +1227,10 @@ apply()
       fi
    fi
 
+   # The database's version as the version installed now leaves it, which is
+   # what a rollback would have to meet (judge_database, below).
+   read_database_before
+
    install_package "$PACKAGE" 0
    code=$?
    say "the install step exited with $code."
@@ -1029,8 +1258,21 @@ apply()
       reason="the install step exited with $code and the service was not back ($WAIT_WHY)"
    fi
 
+   # Only onto the database the earlier version left. Once the new version's
+   # schema step has moved it, or nothing can show that it has not, nothing is
+   # put back - with a rollback image or without one - since the earlier
+   # version may refuse it: upgraded-incomplete, which the server reports as
+   # HM5481, with how the database moved and the way forward or back.
+   judge_database
+   say "$DB_SAID."
+   if [ "$DB_STATE" != unchanged ]; then
+      say "hMailServer $old_version is not put back: the database has moved, or may have, and it may not run on it."
+      write_outcome "upgraded-incomplete" "$VERSION" "$(upgraded_incomplete_detail "$reason")"
+      return 1
+   fi
+
    if [ -z "$ROLLBACK" ]; then
-      write_outcome "no-rollback" "$VERSION" "$reason; no rollback image was available; see ${LOG_FILE:-the journal of hmailserver-update.service}"
+      write_outcome "no-rollback" "$VERSION" "$reason; $DB_SAID; no rollback image was available; see ${LOG_FILE:-the journal of hmailserver-update.service}"
       return 1
    fi
 
@@ -1045,11 +1287,11 @@ apply()
    fi
    start_unit
    if wait_for_service; then
-      write_outcome "rolled-back" "$VERSION" "$reason; hMailServer $ROLLBACK_VERSION was reinstalled and the service is running; see ${LOG_FILE:-the journal of hmailserver-update.service}"
+      write_outcome "rolled-back" "$VERSION" "$reason; $DB_SAID; hMailServer $ROLLBACK_VERSION was reinstalled and the service is running; see ${LOG_FILE:-the journal of hmailserver-update.service}"
       return 1
    fi
 
-   write_outcome "rollback-failed" "$VERSION" "$reason; the rollback to $ROLLBACK_VERSION exited with $rollback_code and the service is not back ($WAIT_WHY); see ${LOG_FILE:-the journal of hmailserver-update.service}"
+   write_outcome "rollback-failed" "$VERSION" "$reason; $DB_SAID; the rollback to $ROLLBACK_VERSION exited with $rollback_code and the service is not back ($WAIT_WHY); see ${LOG_FILE:-the journal of hmailserver-update.service}"
    return 1
 }
 
@@ -1083,6 +1325,15 @@ check()
       else
          echo "runtime dir: $UNIT_DEFAULT has no RuntimeDirectory=hmailserver; a server started under an older unit cannot write the request until it is restarted under this one"
          problems=$((problems + 1))
+      fi
+      # What a rollback rests on, read as an apply reads it (read_schema).
+      if [ -x "$PROGRAM" ]; then
+         if read_schema "$PROGRAM"; then
+            echo "database:    at schema version $SCHEMA_DATABASE (this server needs ${SCHEMA_REQUIRED:-what it did not say}); an update that does not come back is put back only while it stays there"
+         else
+            echo "database:    its schema version could not be read ($SCHEMA_WHY), so an update that does not come back would not be put back"
+            problems=$((problems + 1))
+         fi
       fi
    else
       echo "systemd:     not running here; there is no unit to stop and start, so there is no live update on this machine"

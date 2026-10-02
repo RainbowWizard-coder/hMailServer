@@ -231,7 +231,7 @@ it behaves.
 How it is administered: the Control Panel and COM are Windows, so a Linux
 server is administered through its configuration file, its own command line
 (`--set-admin-password`, `--create-database`, `--upgrade-database`,
-`--check-database`, `--set-setting`, `--check-config`), the REST API and the **Control Deck** at `/`, the browser
+`--check-database`, `--schema-version`, `--set-setting`, `--check-config`), the REST API and the **Control Deck** at `/`, the browser
 front end for that API, which the packages install. Since 6.3.3 the API writes
 a domain whole - its limits, its signature, its relay host, its DKIM signing
 (selector, key file, canonicalisation, the secondary key) and its aliases -
@@ -362,10 +362,12 @@ or ten minutes with no stop, and the server leaves the drain itself, records the
 upgrade would otherwise need: it is 32 random bytes in a file only the machine's
 administrators can read, good for one hour and one use, accepted by
 `Application.Authenticate` as `token:<hex>` exactly once. A rollback reinstalls the
-previous binaries and cannot take the database back, so on Windows it is made only
-while the database is as the previous version left it; once the schema has moved,
-nothing is put back and the outcome (`upgraded-incomplete`, HM5481) names the step
-that did not complete and the backup the update took. Take a backup before an update
+previous binaries and cannot take the database back, so it is made only while the
+database is as the previous version left it - on Windows read by the installer, on
+Linux by `hmailserver-update` with `hmailserver --schema-version` before and after
+the install; once the schema has moved, or nothing can show it has not, nothing is
+put back and the outcome (`upgraded-incomplete`, HM5481) names what did not complete
+and the backup the update took. Take a backup before an update
 that moves the schema; the notes of every release say whether it does.
 
 **Under a service account that is not an administrator** - the virtual account

@@ -559,13 +559,21 @@ namespace HM
       default and therefore the case that matters most.
 
       BeginTrans/CommitTrans/RollbackTrans are accepted by the provider and are
-      issued here, so DML inside a transaction is atomic in the ordinary sense.
-      What is not covered is DDL: SQL CE commits schema changes as they are
-      executed, so an upgrade step that ALTERs three tables and fails on the
-      third cannot be rolled back to the state before the first. That is what
-      the original comment on these three functions was reaching for, and it is
-      why DBUpdater's SchemaVerification proves each marked step before the
-      commit rather than trusting the commit to undo it.
+      issued here, so what runs inside a transaction is atomic in the ordinary
+      sense - DDL too: a CREATE TABLE and an ALTER TABLE ADD run through
+      Database.BeginTransaction and ExecuteSQL were both gone after
+      RollbackTransaction on the installer smoke VM (2 October 2026). An upgrade
+      step that ALTERs three tables and fails on the third is taken back whole,
+      by DBUpdater's transaction and by SchemaUpgrader's alike, both of which
+      are this class's. Earlier text here said SQL CE committed schema changes
+      as they ran; it does not. What a transaction cannot undo is a statement
+      marked [IGNORE-ERRORS] whose failure was discarded, since nothing then
+      fails: that is why DBUpdater's SchemaVerification proves each marked step
+      before the commit rather than trusting the commit. And it is held in a
+      temporary file of limited size (SSCE:Temp File Max Size, 128 MB unless
+      the connection string says otherwise, which the one above does not), so
+      DBUpdater commits before a step whose prerequisite rewrites a large table
+      (formMain.SplitsAtLongPrerequisites).
 
       Separately, and true on every backend: DatabaseConnectionManager::Execute
       takes no connection, so it borrows a *different* pooled connection for each

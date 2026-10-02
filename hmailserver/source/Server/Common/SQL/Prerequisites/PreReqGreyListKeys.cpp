@@ -900,8 +900,10 @@ namespace HM
          Expect_(TryExec_(Insert_(ipB, false, ipB2 + 1, _T("carol@example.org"), _T("dave@example.test"), carolKey, daveKey, 0)),
             _T("After 6107 another triplet - another address in the same /64 - could not be written."));
 
-         // Compact commits each statement of a script, so a step stopped before
-         // its last statement is run again whole: the script must allow that.
+         // Run outside a transaction, as here, Compact commits each statement of a
+         // script as it runs, so a step stopped before its last statement is run
+         // again whole over what it did: the script must allow that. (Inside the
+         // upgrade's transaction its DDL is taken back with the rest.)
          Exec_(_T("update hm_dbversion set value = 6106"));
          if (!runner.ExecuteScript(Connection_, script, error))
             Fail_(_T("The 6107 Compact script failed when run a second time over its own work: ") + error);

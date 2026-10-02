@@ -21,6 +21,12 @@
     <Copyright>Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd</Copyright>
   </PropertyGroup>
 
+  <!-- What the program does when the hMailServer service cannot be reached (Reach, Say)
+       is tested there. -->
+  <ItemGroup>
+    <InternalsVisibleTo Include="DBSetup.Tests" />
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\Shared\Shared.csproj" />
     <Reference Include="Interop.hMailServer">

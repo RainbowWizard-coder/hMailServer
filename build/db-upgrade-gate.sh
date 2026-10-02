@@ -33,7 +33,12 @@
 #      triplets as a server before schema 6072 wrote them, with no key, some
 #      cut to the old columns' 200 characters, one triplet twice once its
 #      domain is folded (build/db-upgrade-greylist.py).
-#   3. --upgrade-database, exactly as the installer's post-install step runs it.
+#   3. --upgrade-database, exactly as the installer's post-install step runs it,
+#      with --schema-version before and after it: what the live update's helper
+#      reads to put an earlier version back only onto the database it left
+#      ("required <this build's>", "database 6029", then "database <this
+#      build's>"), and - in step 5 - what it says with no database to reach
+#      (exit 1, the first line still) and with no [Database] (exit 2).
 #   4. A second database made by --create-database at this build's schema, the
 #      way a new installation is made.
 #   5. The verdict: the upgrade exited 0, the version is REQUIRED_DB_VERSION,
@@ -200,12 +205,18 @@ python3 "$here/db-upgrade-greylist.py" seed > "$work/greylist.sql"
 run_file "$work/greylist.sql"
 echo "   $(grep -c '^insert' "$work/greylist.sql") greylisting triplets as a server before schema 6072 wrote them: no key, two cut to 200 characters, one triplet twice"
 
-# 3. The upgrade, exactly as the installer's post-install step runs it.
+# 3. The upgrade, exactly as the installer's post-install step runs it - with the
+#    schema versions read as the live update's helper reads them before and after
+#    it (--schema-version), and judged in step 5.
 echo "-- upgrading"
 make_installation "$work/upgraded" "$DB_NAME"
 set +e
+schema_before=$("$HM_BIN" --config "$work/upgraded/program/hMailServer.ini" --schema-version </dev/null)
+schema_before_rc=$?
 "$HM_BIN" --config "$work/upgraded/program/hMailServer.ini" --upgrade-database </dev/null
 rc=$?
+schema_after=$("$HM_BIN" --config "$work/upgraded/program/hMailServer.ini" --schema-version </dev/null)
+schema_after_rc=$?
 set -e
 version=$(query "select value from hm_dbversion;")
 
@@ -277,6 +288,38 @@ failed=""
 if [ "$rc" -ne 0 ] || [ "$version" != "$required" ] || [ "$fks" != "$expected_fks" ]; then
    failed=yes
 fi
+
+# --schema-version, which hmailserver-update reads to put an earlier version back
+# only onto the database it left: what this build needs and the database's
+# hm_dbversion, before the upgrade and after it; and with no database to reach -
+# a port nothing listens on - what this build needs still, and exit 1; and with
+# no [Database] at all, exit 2.
+echo "-- --schema-version before and after the upgrade"
+expect_schema() {
+   local what="$1" got="$2" got_rc="$3" want="$4" want_rc="$5"
+   if [ "$got" != "$want" ] || [ "$got_rc" != "$want_rc" ]; then
+      echo "--schema-version $what said '$(printf '%s' "$got" | tr '\n' '|')' with exit $got_rc, and should say '$(printf '%s' "$want" | tr '\n' '|')' with exit $want_rc" >&2
+      failed=yes
+   else
+      echo "   $what: $(printf '%s' "$got" | tr '\n' ' ') (exit $got_rc)"
+   fi
+}
+expect_schema "on the 6029 database" "$schema_before" "$schema_before_rc" "$(printf 'required %s\ndatabase 6029' "$required")" 0
+expect_schema "after the upgrade" "$schema_after" "$schema_after_rc" "$(printf 'required %s\ndatabase %s' "$required" "$required")" 0
+make_installation "$work/unreachable" "$DB_NAME"
+sed -i 's/^Port=.*/Port=1/' "$work/unreachable/program/hMailServer.ini"
+set +e
+schema_unreachable=$("$HM_BIN" --config "$work/unreachable/program/hMailServer.ini" --schema-version </dev/null 2>/dev/null)
+schema_unreachable_rc=$?
+set -e
+expect_schema "with no database to reach (standard output)" "$schema_unreachable" "$schema_unreachable_rc" "required $required" 1
+make_installation "$work/unconfigured" "$DB_NAME"
+sed -i '/^\[Database\]/,/^\[Settings\]/{/^\[Settings\]/!d}' "$work/unconfigured/program/hMailServer.ini"
+set +e
+schema_unconfigured=$("$HM_BIN" --config "$work/unconfigured/program/hMailServer.ini" --schema-version </dev/null 2>/dev/null)
+schema_unconfigured_rc=$?
+set -e
+expect_schema "with no [Database] (standard output)" "$schema_unconfigured" "$schema_unconfigured_rc" "required $required" 2
 
 # The greylisting triplets, where the upgrade reached schema 6107 (work item #50).
 if [ "$version" -ge 6107 ] 2>/dev/null; then

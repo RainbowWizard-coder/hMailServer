@@ -39,8 +39,16 @@
 # one is not installed, nor one where no installed version can be read, the
 # request's version line is not believed over the package's, a rollback image
 # that is not the installed version is dropped); an image or a directory anyone
-# else can write to; the log file that is only written after the stop; and
-# --dry-run touching nothing.
+# else can write to; the log file that is only written after the stop;
+# --dry-run touching nothing; and the database rule - the earlier version put
+# back only onto the database it left, its schema version read with
+# `hmailserver --schema-version` as the unit's user before the install and
+# after the new version did not come back: a version the package's schema step
+# or the new server's start moved (all the way, or part-way), one that cannot be
+# read before or after, one that did not move and one at what the new version
+# needs that cannot be read after, with and without a rollback image, for a
+# .deb and an AppImage, and the backup the server names in the outcome of the
+# update not put back.
 #
 # What it cannot prove, and says so: that a real dpkg -i under a real unit puts
 # the new binary in place - that needs root and a signed package, and is the
@@ -113,7 +121,7 @@ mkdir -p "${FAKE_BIN}" "${REAL_BIN}"
 # these and the fakes - and nothing else, which is how "apt-get is absent" is
 # arranged for the dpkg case. Those that are shell builtins in dash are listed
 # too, for a sh that has them as programs.
-for tool in sh cat head tail sort sed tr realpath stat date sleep mktemp mkdir cp chown chmod ln mv rm dirname basename grep id printf echo test; do
+for tool in sh cat head tail sort sed tr cut env timeout realpath stat date sleep mktemp mkdir cp chown chmod ln mv rm dirname basename grep id printf echo test; do
    path="$(command -v "${tool}" 2>/dev/null || true)"
    case "${path}" in
       /*) ln -sf "${path}" "${REAL_BIN}/${tool}" ;;
@@ -150,11 +158,21 @@ case "$1" in
       fi
       [ -n "$plan" ] || plan=active
       echo "$plan" > "$FAKE_DIR/state"
+      # The server's own schema step at its first start ([Database]
+      # UpgradeOnStart=1): the database's version moved, once.
+      if [ -f "$FAKE_DIR/start-moves-db-to" ]; then
+         cat "$FAKE_DIR/start-moves-db-to" > "$FAKE_DIR/db-version"
+         rm -f "$FAKE_DIR/start-moves-db-to"
+      fi
       ;;
    show)
+      # The unit's User= and Environment=, as the case sets them; empty
+      # otherwise, which is root and nothing.
       case "$*" in
          *ActiveState*) cat "$FAKE_DIR/state" 2>/dev/null || echo inactive ;;
          *NRestarts*) echo 0 ;;
+         *"-p User "*) cat "$FAKE_DIR/unit-user" 2>/dev/null || echo "" ;;
+         *"-p Environment "*) cat "$FAKE_DIR/unit-environment" 2>/dev/null || echo "" ;;
          *) echo "" ;;
       esac
       ;;
@@ -215,6 +233,20 @@ case "$me $1" in
       installed_version; exit 0 ;;
 esac
 echo "$me $*" >> "$FAKE_DIR/calls"
+# A forward install - not the rollback's downgrade - puts the new program in
+# place, which says the version $FAKE_DIR/install-required names and answers
+# --schema-version, and runs the package's schema step (postinst's
+# --upgrade-database), which moves the database to $FAKE_DIR/install-moves-db-to,
+# or leaves it unreadable with $FAKE_DIR/install-breaks-db-read.
+case " $* " in
+   *" --allow-downgrades "*|*" --oldpackage "*) ;;
+   *)
+      rm -f "$FAKE_DIR/no-schema-verb"
+      [ ! -f "$FAKE_DIR/install-required" ] || cat "$FAKE_DIR/install-required" > "$FAKE_DIR/required"
+      [ ! -f "$FAKE_DIR/install-moves-db-to" ] || cat "$FAKE_DIR/install-moves-db-to" > "$FAKE_DIR/db-version"
+      [ ! -f "$FAKE_DIR/install-breaks-db-read" ] || : > "$FAKE_DIR/db-unreadable"
+      ;;
+esac
 # The first line of the file it was given to install: what was installed, as
 # against what was verified. And its mode: apt hands a local package to an
 # unprivileged user of its own, who must be able to read it.
@@ -266,6 +298,28 @@ if [ "$1" = "--version" ]; then
    exit 0
 fi
 echo "hmailserver $*" >> "$FAKE_DIR/calls"
+# --schema-version as the server answers it: the version this program needs
+# ($FAKE_DIR/required, 6108 when the case has not said), then the database's
+# ($FAKE_DIR/db-version, 6108 likewise), or why not - a database it cannot
+# reach ($FAKE_DIR/db-unreadable), or a program from before the option
+# ($FAKE_DIR/no-schema-verb, which a forward install removes). What it was given
+# of the environment that says where an AppImage's configuration is goes to
+# $FAKE_DIR/schema-env.
+if [ "$1" = "--schema-version" ]; then
+   if [ -f "$FAKE_DIR/no-schema-verb" ]; then
+      echo "Unknown option: --schema-version" >&2
+      echo "Try --help." >&2
+      exit 2
+   fi
+   env | grep -E '^(HMAILSERVER_HOME|XDG_DATA_HOME|EVIL)=' >> "$FAKE_DIR/schema-env"
+   if [ -f "$FAKE_DIR/required" ]; then echo "required $(cat "$FAKE_DIR/required")"; else echo "required 6108"; fi
+   if [ -f "$FAKE_DIR/db-unreadable" ]; then
+      echo "Could not connect to the database: (fake) connection refused" >&2
+      exit 1
+   fi
+   if [ -f "$FAKE_DIR/db-version" ]; then echo "database $(cat "$FAKE_DIR/db-version")"; else echo "database 6108"; fi
+   exit 0
+fi
 if [ "$1" = "--verify-update" ]; then
    # What it was given to read, by its first line, and the modes of the file and
    # of its directory: what anybody but root could have read of it while it was
@@ -282,6 +336,16 @@ if [ "$1" = "--verify-update" ]; then
    exit 0
 fi
 echo "hMailServer 0.0.0 build 0"
+FAKE
+
+# runuser -u USER -- COMMAND: recorded, and COMMAND run as whoever runs the
+# test - what the helper asks as the unit's user is what the case looks at.
+cat > "${FAKE_BIN}/runuser" <<'FAKE'
+#!/bin/sh
+echo "runuser $*" >> "$FAKE_DIR/calls"
+[ "$1" = "-u" ] && [ "$3" = "--" ] || { echo "the fake runuser takes -u USER -- COMMAND only" >&2; exit 2; }
+shift 3
+exec "$@"
 FAKE
 
 chmod +x "${FAKE_BIN}"/*
@@ -413,6 +477,16 @@ expect_outcome_starts()
    esac
 }
 
+expect_outcome_contains()
+{
+   local line
+   line="$(outcome_line)"
+   case "${line}" in
+      *"$1"*) pass ;;
+      *) fail "outcome is '${line}', expected it to contain '$1'" ;;
+   esac
+}
+
 expect_rc()
 {
    [ "${RC}" = "$1" ] && pass || fail "exit status ${RC}, expected $1"
@@ -525,7 +599,7 @@ write_request
 printf 'failed\nactive\n' > "${FAKE_DIR}/start-plan"
 run_helper
 expect_rc 1
-expect_outcome_starts "rolled-back 9.9.9 the package was installed but the service was not back after 2 seconds (failed); hMailServer 9.9.8 was reinstalled and the service is running"
+expect_outcome_starts "rolled-back 9.9.9 the package was installed but the service was not back after 2 seconds (failed); the database is at schema version 6108, as before the install; hMailServer 9.9.8 was reinstalled and the service is running"
 expect_call_re "apt-get install -y -q --no-install-recommends --allow-downgrades -o DPkg::Lock::Timeout=300 -o Dpkg::Use-Pty=0 -o Dpkg::Progress-Fancy=0 $(copy_of rollback hmailserver_9.9.8_amd64.deb)"
 expect_no_copies_left
 [ "$(calls | grep -c 'systemctl stop')" = 2 ] && pass || fail "expected two stops (one before the rollback)"
@@ -537,7 +611,7 @@ sed -i '/^rollback/d' "${REQUEST}"
 printf 'failed\n' > "${FAKE_DIR}/start-plan"
 run_helper
 expect_rc 1
-expect_outcome_starts "no-rollback 9.9.9 the package was installed but the service was not back after 2 seconds (failed); no rollback image was available"
+expect_outcome_starts "no-rollback 9.9.9 the package was installed but the service was not back after 2 seconds (failed); the database is at schema version 6108, as before the install; no rollback image was available"
 [ "$(calls | grep -c 'apt-get')" = 1 ] && pass || fail "expected exactly one install"
 
 setup rollback-failed-deb
@@ -546,7 +620,7 @@ printf 'failed\nfailed\n' > "${FAKE_DIR}/start-plan"
 printf '0\n7\n' > "${FAKE_DIR}/install-plan"
 run_helper
 expect_rc 1
-expect_outcome_starts "rollback-failed 9.9.9 the package was installed but the service was not back after 2 seconds (failed); the rollback to 9.9.8 exited with 7 and the service is not back (failed)"
+expect_outcome_starts "rollback-failed 9.9.9 the package was installed but the service was not back after 2 seconds (failed); the database is at schema version 6108, as before the install; the rollback to 9.9.8 exited with 7 and the service is not back (failed)"
 
 setup failed-but-running-deb
 write_request
@@ -562,7 +636,7 @@ printf '2\n' > "${FAKE_DIR}/install-plan"
 printf 'failed\nactive\n' > "${FAKE_DIR}/start-plan"
 run_helper
 expect_rc 1
-expect_outcome_starts "rolled-back 9.9.9 the install step exited with 2 and the service was not back (failed); hMailServer 9.9.8 was reinstalled"
+expect_outcome_starts "rolled-back 9.9.9 the install step exited with 2 and the service was not back (failed); the database is at schema version 6108, as before the install; hMailServer 9.9.8 was reinstalled"
 
 setup dpkg-fallback
 write_request
@@ -903,7 +977,8 @@ expect_output "the rollback image did not verify; continuing without one"
 # from. The new image answers --version too: a verified image is run for it.
 new_image()
 {
-   printf '#!/bin/sh\n# NEW IMAGE\necho "hMailServer %s build 0"\n' "$1" > "$2"
+   # It answers --schema-version as the fake server does, from the case's plan.
+   printf '#!/bin/sh\n# NEW IMAGE\n[ "$1" = "--schema-version" ] && exec "%s" --schema-version\necho "hMailServer %s build 0"\n' "${FAKE_BIN}/hmailserver" "$1" > "$2"
    chmod 0755 "$2"
    printf 'bundle\n' > "$2.cosign.bundle"
 }
@@ -1194,10 +1269,192 @@ expect_rc 0
 expect_output "would run: systemctl stop hmailserver.service"
 expect_output "would verify the package"
 expect_output "would run: apt-get install"
+expect_output "would read the database's schema version with ${FAKE_BIN}/hmailserver --schema-version"
 expect_output "outcome: ok 9.9.9"
 [ -f "${OUTCOME}" ] && fail "a dry run wrote the outcome file" || pass
 [ -f "${FAKE_DIR}/calls" ] && fail "a dry run ran something: $(calls | tr '\n' ';')" || pass
 expect_no_copies_left
+
+# ---------------------------------------------------------------- the database
+#
+# A rollback puts back the earlier version's program and never its database, and
+# that version refuses a database newer than the one it needs. The new version's
+# schema step - the package's postinst running --upgrade-database, or the server's
+# start with UpgradeOnStart - may have moved the database before its server failed
+# to come back. So the helper reads the database's version with
+# `hmailserver --schema-version`, as the unit's user, before the install and again
+# then, and puts the earlier version back only while it is unchanged: once it has
+# moved, or nothing can show it has not, the outcome is upgraded-incomplete and
+# nothing is reinstalled. Before 6.3.6 every one of these was rolled back.
+
+# The program as the unit runs it, and the calls in the order they came: the
+# read before the install, the install, the read after it.
+schema_read_as()
+{
+   printf 'runuser -u %s -- env %s --schema-version' "$1" "$(re_quote "${FAKE_BIN}/hmailserver")"
+}
+
+setup db-moved-not-rolled-back
+write_request
+printf 'hmailserver\n' > "${FAKE_DIR}/unit-user"
+printf '6105' > "${FAKE_DIR}/db-version"
+printf '6105' > "${FAKE_DIR}/required"
+printf '6108' > "${FAKE_DIR}/install-required"
+printf '6108' > "${FAKE_DIR}/install-moves-db-to"
+printf 'failed\nactive\n' > "${FAKE_DIR}/start-plan"
+run_helper
+expect_rc 1
+expect_outcome_starts "upgraded-incomplete 9.9.9 the package was installed but the service was not back after 2 seconds (failed); the database was at schema version 6105 before the install and is at 6108 now; hMailServer 9.9.8 was not put back, since it may not run on that database; put right what keeps the service from starting (journalctl -u hmailserver.service) and start it - a schema step that did not finish is finished with hmailserver --upgrade-database, run as the user the service runs as; or, to go back to hMailServer 9.9.8, restore the backup taken before the update, if one was taken (UpdateBackupBeforeApply: the newest archive in the backup destination), and reinstall it; see ${LOG}"
+expect_one_line
+[ "$(calls | grep -c '^apt-get')" = 1 ] && pass || fail "the earlier version was put back onto the database the new one's schema step had moved: $(calls | grep '^apt-get' | tr '\n' ';')"
+[ "$(calls | grep -c '^systemctl stop')" = 1 ] && pass || fail "the unit was stopped again for a rollback"
+[ "$(calls | grep -cE "^$(schema_read_as hmailserver)\$")" = 2 ] && pass || fail "the database's version was not read twice as the unit's user, hmailserver: $(calls | grep -E 'schema' | tr '\n' ';')"
+order="$(calls | grep -E '^(runuser|apt-get|systemctl start)' | cut -d' ' -f1-2 | tr '\n' ',')"
+[ "${order}" = "runuser -u,apt-get install,systemctl start,runuser -u," ] && pass || fail "the reads were not one before the install and one after the start: ${order}"
+expect_output "hMailServer 9.9.8 is not put back: the database has moved, or may have"
+grep -q "the database is at schema version 6105 before the install" "${LOG}" && pass || fail "the log lacks the version read before the install"
+expect_no_copies_left
+
+# The schema step stopped part-way: moved, and short of what the new one needs.
+setup db-moved-part-way-not-rolled-back
+write_request
+printf '6105' > "${FAKE_DIR}/db-version"
+printf '6105' > "${FAKE_DIR}/required"
+printf '6108' > "${FAKE_DIR}/install-required"
+printf '6106' > "${FAKE_DIR}/install-moves-db-to"
+printf 'failed\nactive\n' > "${FAKE_DIR}/start-plan"
+run_helper
+expect_rc 1
+expect_outcome_starts "upgraded-incomplete 9.9.9 the package was installed but the service was not back after 2 seconds (failed); the database was at schema version 6105 before the install and is at 6106 now, short of the 6108 hMailServer 9.9.9 needs; hMailServer 9.9.8 was not put back, since it may not run on that database; the database upgrade stopped part-way: once its cause is put right, finish it with hmailserver --upgrade-database, run as the user the service runs as, and start the service; or restore the backup taken before the update, if one was taken (UpdateBackupBeforeApply: the newest archive in the backup destination), and reinstall hMailServer 9.9.8"
+[ "$(calls | grep -c '^apt-get')" = 1 ] && pass || fail "a database the schema step left part-way was rolled back"
+
+# A schema-changing release whose step did not move the database (it failed at
+# its first step, which a transaction takes back): unchanged, and put back - and
+# the outcome says what the rollback rested on.
+setup db-unchanged-rolled-back
+write_request
+printf 'hmailserver\n' > "${FAKE_DIR}/unit-user"
+printf '6105' > "${FAKE_DIR}/db-version"
+printf '6105' > "${FAKE_DIR}/required"
+printf '6108' > "${FAKE_DIR}/install-required"
+printf 'failed\nactive\n' > "${FAKE_DIR}/start-plan"
+run_helper
+expect_rc 1
+expect_outcome_starts "rolled-back 9.9.9 the package was installed but the service was not back after 2 seconds (failed); the database is at schema version 6105, as before the install; hMailServer 9.9.8 was reinstalled and the service is running"
+expect_call_re "apt-get install -y -q --no-install-recommends --allow-downgrades -o DPkg::Lock::Timeout=300 -o Dpkg::Use-Pty=0 -o Dpkg::Progress-Fancy=0 $(copy_of rollback hmailserver_9.9.8_amd64.deb)"
+[ "$(calls | grep -cE "^$(schema_read_as hmailserver)\$")" = 2 ] && pass || fail "the database's version was not read twice as hmailserver"
+
+# Not readable after the install - the new program does not reach the database -
+# with a database short of what the new version needs: the install may have
+# moved it, and nothing is put back.
+setup db-unreadable-after-not-rolled-back
+write_request
+printf '6105' > "${FAKE_DIR}/db-version"
+printf '6105' > "${FAKE_DIR}/required"
+printf '6108' > "${FAKE_DIR}/install-required"
+: > "${FAKE_DIR}/install-breaks-db-read"
+printf 'failed\nactive\n' > "${FAKE_DIR}/start-plan"
+run_helper
+expect_rc 1
+expect_outcome_starts "upgraded-incomplete 9.9.9 the package was installed but the service was not back after 2 seconds (failed); the database was at schema version 6105 before the install, and its version now could not be read (${FAKE_BIN}/hmailserver --schema-version exited with 1: Could not connect to the database: (fake) connection refused); hMailServer 9.9.9 needs 6108, so the install may have moved it; hMailServer 9.9.8 was not put back"
+[ "$(calls | grep -c '^apt-get')" = 1 ] && pass || fail "a database that may have moved was rolled back"
+
+# The same, with a database already at what the new version needs: nothing in
+# the install moves such a database, so it is unchanged, and put back.
+setup db-unreadable-at-required-rolled-back
+write_request
+: > "${FAKE_DIR}/install-breaks-db-read"
+printf 'failed\nactive\n' > "${FAKE_DIR}/start-plan"
+run_helper
+expect_rc 1
+expect_outcome_starts "rolled-back 9.9.9 the package was installed but the service was not back after 2 seconds (failed); the database was at schema version 6108 before the install, at or past the 6108 hMailServer 9.9.9 needs, so nothing in the install moved it, though its version now could not be read (${FAKE_BIN}/hmailserver --schema-version exited with 1: Could not connect to the database: (fake) connection refused); hMailServer 9.9.8 was reinstalled"
+[ "$(calls | grep -c '^apt-get')" = 2 ] && pass || fail "an update that changes no schema was not put back"
+
+# Not readable before the install - a program from before --schema-version -
+# leaves nothing to hold the database to afterwards: not put back.
+setup db-unreadable-before-not-rolled-back
+write_request
+: > "${FAKE_DIR}/no-schema-verb"
+printf 'failed\nactive\n' > "${FAKE_DIR}/start-plan"
+run_helper
+expect_rc 1
+expect_outcome_starts "upgraded-incomplete 9.9.9 the package was installed but the service was not back after 2 seconds (failed); the database's schema version could not be read before the install (${FAKE_BIN}/hmailserver --schema-version exited with 2: Unknown option: --schema-version Try --help.), so nothing shows that the install left it unchanged; hMailServer 9.9.8 was not put back"
+expect_output "the database's schema version could not be read before the install"
+[ "$(calls | grep -c '^apt-get')" = 1 ] && pass || fail "the earlier version was put back with nothing to show the database unchanged"
+
+# No rollback image, and the database moved: upgraded-incomplete, not
+# no-rollback - what has to be done about it is not the same.
+setup db-moved-without-rollback-image
+write_request
+sed -i '/^rollback/d' "${REQUEST}"
+printf '6105' > "${FAKE_DIR}/db-version"
+printf '6108' > "${FAKE_DIR}/install-moves-db-to"
+printf 'failed\n' > "${FAKE_DIR}/start-plan"
+run_helper
+expect_rc 1
+expect_outcome_starts "upgraded-incomplete 9.9.9 the package was installed but the service was not back after 2 seconds (failed); the database was at schema version 6105 before the install and is at 6108 now; hMailServer 9.9.8 was not put back"
+
+# The backup the server took for this update, named in the outcome; a value with
+# a control character in it is left out, and the backup named in general.
+setup db-moved-backup-named
+write_request
+echo "backup=/var/backups/hmailserver (finished 2026-10-02 03:00:00)" >> "${REQUEST}"
+printf '6105' > "${FAKE_DIR}/db-version"
+printf '6108' > "${FAKE_DIR}/install-moves-db-to"
+printf 'failed\nactive\n' > "${FAKE_DIR}/start-plan"
+run_helper
+expect_rc 1
+expect_outcome_contains "or, to go back to hMailServer 9.9.8, restore the backup taken before the update, in /var/backups/hmailserver (finished 2026-10-02 03:00:00), and reinstall it"
+grep -q "ignoring a key this program does not know: backup" <<< "${OUT}" && fail "the backup key was not known" || pass
+
+setup db-moved-backup-with-control-character
+write_request
+printf 'backup=/var/backups/\033[31mhmailserver\n' >> "${REQUEST}"
+printf '6105' > "${FAKE_DIR}/db-version"
+printf '6108' > "${FAKE_DIR}/install-moves-db-to"
+printf 'failed\nactive\n' > "${FAKE_DIR}/start-plan"
+run_helper
+expect_rc 1
+expect_output "backup holds a control character and is left out"
+expect_outcome_contains "restore the backup taken before the update, if one was taken (UpdateBackupBeforeApply: the newest archive in the backup destination), and reinstall it"
+grep -q "$(printf '\033')" "${OUTCOME}" && fail "the control character reached the outcome" || pass
+
+# The unit's User= is root's word, but not a user name is not run as anybody.
+setup db-unit-user-not-a-name
+write_request
+printf 'some one\n' > "${FAKE_DIR}/unit-user"
+printf 'failed\nactive\n' > "${FAKE_DIR}/start-plan"
+run_helper
+expect_rc 1
+expect_outcome_starts "upgraded-incomplete 9.9.9 the package was installed but the service was not back after 2 seconds (failed); the database's schema version could not be read before the install (hmailserver.service runs the server as 'some one', which is not a user name this program runs anything as)"
+expect_no_call "runuser"
+expect_no_call "hmailserver --schema-version"
+
+# An AppImage whose new image moved the database at its own start
+# (UpgradeOnStart): not put back, the new image kept, and the version read with
+# the unit's HMAILSERVER_HOME and XDG_DATA_HOME and nothing else of its
+# environment.
+setup appimage-db-moved-at-start-not-put-back
+image_setup
+new_image 9.9.9 "${UPDATES}/hMailServer-9.9.9-x86_64.AppImage"
+printf 'OLD IMAGE\n' > "${UPDATES}/rollback/hMailServer-9.9.8-x86_64.AppImage"
+printf 'bundle\n' > "${UPDATES}/rollback/hMailServer-9.9.8-x86_64.AppImage.cosign.bundle"
+appimage_request hMailServer-9.9.9-x86_64.AppImage 9.9.9 "${IMAGE}"
+{
+   echo "rollback=${UPDATES}/rollback/hMailServer-9.9.8-x86_64.AppImage"
+   echo "rollback_version=9.9.8"
+} >> "${REQUEST}"
+printf '6105' > "${FAKE_DIR}/db-version"
+printf '6108' > "${FAKE_DIR}/start-moves-db-to"
+printf 'HMAILSERVER_HOME=/srv/hm "XDG_DATA_HOME=/srv/a b" EVIL=/x XDG_DATA_HOME=/srv/xdg\n' > "${FAKE_DIR}/unit-environment"
+printf 'failed\nactive\n' > "${FAKE_DIR}/start-plan"
+run_helper "" --image "${IMAGE}"
+expect_rc 1
+expect_outcome_starts "upgraded-incomplete 9.9.9 the package was installed but the service was not back after 2 seconds (failed); the database was at schema version 6105 before the install and is at 6108 now; hMailServer 9.9.8 was not put back"
+expect_outcome_contains "finished with ${IMAGE} --upgrade-database"
+grep -q "NEW IMAGE" "${IMAGE}" && pass || fail "the earlier image was put back onto the database the new one had moved"
+[ "$(sort -u "${FAKE_DIR}/schema-env" 2>/dev/null | tr '\n' ' ')" = "HMAILSERVER_HOME=/srv/hm XDG_DATA_HOME=/srv/xdg " ] && pass || fail "the version was not read with the unit's HMAILSERVER_HOME and XDG_DATA_HOME alone: $(sort -u "${FAKE_DIR}/schema-env" 2>/dev/null | tr '\n' ' ')"
+expect_no_image_copies_left
 
 # ---------------------------------------------------------------- the verdict
 

@@ -2129,6 +2129,60 @@ project's own review.
   refused the database as too new: no mail); and a 6.3.10 that changes no schema, whose service could not start, was
   put back and 6.3.9 served mail (built before this change: 11, nothing put back, no mail) - the same again as the
   service's own unattended apply on a server whose service runs as LocalSystem.
+- **The Linux live update puts the earlier version back only onto the database it left, too.** `hmailserver-update`
+  reinstalled the previous `.deb`, `.rpm` or AppImage whenever the new version's server did not come back, without
+  looking at the database; but the package's own post-install step runs `hmailserver --upgrade-database`, and a
+  server with `[Database] UpgradeOnStart=1` runs the chain at its own start, so the earlier version could be put back
+  onto a database its schema step had already moved, which that version refuses as too new: no mail. The helper now
+  reads the database's version before it installs and again when the new version is not back, with the new
+  **`hmailserver --schema-version`** (`required <n>`, the version the program needs, said before it reads anything,
+  then `database <n>`, its `hm_dbversion`; exit 1 when that cannot be read, 2 with no `[Database]`), run as the
+  unit's `User=` - for an AppImage with the unit's `HMAILSERVER_HOME` and `XDG_DATA_HOME` - and puts the earlier
+  version back only while it is unchanged, or, where it cannot be read afterwards, was already at or past what the new
+  version needs. Otherwise nothing is put back, with a rollback image or without one, and the outcome is
+  `upgraded-incomplete` (HM5481): how the database moved, or that it may have, and what to do - start the service once
+  what keeps it down is put right, finish an upgrade that stopped part-way with `--upgrade-database`, or restore the
+  backup the update took, which the server now names in its request (`backup=`), and reinstall the earlier version.
+  A version that cannot be read before the install leaves nothing to hold the database to, and nothing is put back.
+  The server's own HM5481 sentence now says the database step changed the database "or may have", on both platforms,
+  and `hmailserver-update check` says whether the version can be read. The update to 6.3.6 is made by 6.3.5's helper,
+  so the rule holds from the update after it. Tested by `build/test-hmailserver-update.sh` (eleven cases more: a
+  version the package's schema step moved all the way and part-way, one a new AppImage's start moved, one that did
+  not move, one that cannot be read after the install - short of what the new version needs, and at it - and one that
+  cannot be read before, with and without a rollback image, the backup named and one with a control character left
+  out, a unit user that is no user name; every one fails on the helper before this change, 32 of 276 checks), by
+  `build/db-upgrade-gate.sh`'s `--schema-version` on PostgreSQL and MySQL before and after the real chain from 6029,
+  with no database to reach and with none configured, and end to end on the lab VM, in containers with PostgreSQL 18,
+  this tree's `.deb` and a 6.3.7 made of it whose server needs schema 6110: a 6.3.7 whose post-install step moved the
+  database to 6109 and stopped, and whose server then could not start, was not put back - the outcome said 6108 to
+  6109, short of 6110, and named the backup - and once the step was put right and finished, 6.3.7 started, reported
+  HM5481 and served mail; one whose step moved nothing was put back, and 6.3.6 served mail again. The helper before
+  this change put 6.3.6 back onto the database at 6109, which 6.3.6 refused: rollback-failed, no mail.
+- **A server that refuses its database for its version says why to whoever started it.** A variable of the same
+  name hid the reason from the caller of the start: on Linux the start printed "hMailServer could not start: " and
+  nothing after it, and COM's `Application.Reinitialize` onto such a database answered success with nothing loaded
+  (the REST API's reinitialise logged it completed, SIGHUP's nothing). The reason ("The database is too new for this
+  version of hMailServer ... Database version: 6109, Required database version: 6108") now reaches all of them; the
+  error log's HM5011 is as it was. Tested by `DatabaseRefused.TheUpdatersPathStaysOpenOnARefusedDatabase`.
+- **DBSetupQuick says why it could not run, and the installer reads it as a database step that changed nothing.**
+  When the hMailServer service could not be reached through COM, the installer's database tool died of the
+  unhandled COMException (exit code -532462766) and wrote the reason nowhere; the installer took that for a database
+  step that may have changed the database. It now exits with **4**, having started no DBUpdater, and writes why - the
+  COM error with its HRESULT, and that nothing was changed - to standard error and into a report the installer names
+  on its command line (`report:PATH`) and copies into its log, as it now does whatever DBSetupQuick says about a
+  failure; with `[Database] UpgradeOnStart` off, the installer then knows the database unchanged ("Database step left
+  the database unchanged ... DBSetupQuick.exe could not reach the hMailServer service (exit code 4)"), and on an update
+  ends with 10, so that the earlier version is put back. A failure of the sign-in or of the question of which database
+  on a new installation is said the same way and ends with 1 rather than the crash. Tested by
+  `DBSetup.Tests.QuickServiceNotReachedTests` (eight).
+- **DBUpdater's and the server's comments, and Greylisting.md and Upgrading.md, no longer say that SQL Server Compact
+  commits each `ALTER` as it runs.** It does not: inside the upgrade's transaction its DDL is rolled back with the rest,
+  through DBUpdater's COM transaction as through the server's own (`SchemaUpgrader`), both a `SQLCEConnection`'s ADO
+  transaction - shown on the installer smoke VM, where a CREATE TABLE and an ALTER TABLE ADD were gone after the
+  rollback. DBUpdater still commits the steps before 6107 on Compact when a chain starts below 6072, for the size of
+  the transaction its greylisting rewrite would need in Compact's temporary file; the cost is the earlier steps'
+  rollback, so a failure from 6107 on leaves 6106, which the installer reads as changed (exit code 11). The method is
+  now `SplitsAtLongPrerequisites`, and nothing it does has changed.
 - **The administrator's install refuses an installer whose certificates' revocation could not be checked, as it
   said it did.** Windows' Authenticode check takes a revocation server that does not answer as good; the
   elevated stage now reads the revocation status of each certificate in the chain Windows built, the root aside,

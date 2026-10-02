@@ -32,7 +32,7 @@ from `hMailServer.sln` and installed by the Inno Setup scripts under
 | `alpine/APKBUILD`, `alpine/hmailserver.pre-install`, `alpine/hmailserver.post-upgrade` | The Alpine Linux package, built with musl from the same tarball with the same options: `-openrc` and `-cli` subpackages, the account made before install, the schema upgraded after an upgrade. For aports. [Alpine.md](../../../../docs/Alpine.md). |
 | `openrc/hmailserver.initd`, `openrc/hmailserver.confd` | The OpenRC service, installed by the APKBUILD as `/etc/init.d/hmailserver` and `/etc/conf.d/hmailserver`: the unit's account, capability, umask and first-start defaults, as far as OpenRC can say them. |
 | `build-appimage.sh` | Wraps an already-built tree as an AppImage. Read the paragraph at the top of it before using the result for anything. |
-| `hmailserver-update` | The live update's apply step: the Linux counterpart of `hMailServer.Updater.exe`, installed as `/usr/lib/hmailserver/hmailserver-update` and carried inside the AppImage. A POSIX sh script that reads the server's request, checks every line of it, verifies the package again as root, stops the unit, installs (or swaps the AppImage), starts the unit, rolls back when it does not come back, and writes the same one-line outcome the Windows helper writes. `apply`, `check`, `--dry-run`; the header is the specification. |
+| `hmailserver-update` | The live update's apply step: the Linux counterpart of `hMailServer.Updater.exe`, installed as `/usr/lib/hmailserver/hmailserver-update` and carried inside the AppImage. A POSIX sh script that reads the server's request, checks every line of it, verifies the package again as root, stops the unit, installs (or swaps the AppImage), starts the unit, rolls back when it does not come back - only onto the database the earlier version left, read with `hmailserver --schema-version` before and after - and writes the same one-line outcome the Windows helper writes. `apply`, `check`, `--dry-run`; the header is the specification. |
 | `hmailserver-update.path` | Watches `/run/hmailserver/apply-request` as root and starts the service below when the server writes it. Enabled and started by `postinst` / `%post`. |
 | `hmailserver-update.service` | A `oneshot` that runs `hmailserver-update apply` as root, outside the server's cgroup, so that stopping the server does not kill the helper. |
 | `cpack-licenses.cmake` | Puts the copyright file into the `.deb` as `/usr/share/doc/hmailserver/copyright` and into the `.rpm` as `/usr/share/licenses/hmailserver/copyright`, where each format's distributions look for it. CPack runs it for each package (`CPACK_INSTALL_SCRIPTS`); a plain `cmake --install` does not, so the source packages place their own. The file is the Debian source package's `debian-src/debian/copyright`. |
@@ -543,8 +543,10 @@ stops). So the apply is a request, and the request is taken by root.
    image (`Updates/rollback/`), exactly as on Windows, and writes
    `/run/hmailserver/apply-request`: `kind`, `version`, `package`, `rollback`,
    `rollback_version`, `unit` (read from its own cgroup), `outcome`, `log`,
-   `wait` (`UpdateServiceWaitSeconds`), and `ready_url` when the metrics
-   listener is on loopback without TLS. It waits up to fifteen seconds for the
+   `wait` (`UpdateServiceWaitSeconds`), `ready_url` when the metrics
+   listener is on loopback without TLS, and `backup` - where the backup it
+   took for an unattended apply went, and when it finished - which the helper
+   only ever quotes. It waits up to fifteen seconds for the
    file to be taken, then answers state 4 (installing).
 2. `hmailserver-update.path` sees the file and starts `hmailserver-update.service`,
    which runs `/usr/lib/hmailserver/hmailserver-update apply --request
@@ -628,15 +630,35 @@ stops). So the apply is a request, and the request is taken by root.
    else `dpkg -i`; `dnf install -y` or `rpm -Uvh` on an rpm system. Only the rollback passes `--allow-downgrades`.
    The package's own `postinst` / `%post` runs the schema upgrade as the
    service user (`hmailserver --upgrade-database`) as it does on any upgrade;
-   no token is needed, which is why none is issued here.
+   no token is needed, which is why none is issued here. Before it installs,
+   it reads the database's schema version with the installed program's
+   `--schema-version` (`required <n>`, then `database <n>`), run as the
+   unit's `User=` with `runuser` - as root where the unit names none, and for
+   an AppImage with the unit's `HMAILSERVER_HOME` and `XDG_DATA_HOME` - within
+   a minute.
 6. It starts the unit and waits up to `wait` seconds for it to be `active`,
    unrestarted, for ten seconds in a row - a unit under `Restart=on-failure`
    that keeps dying reads active a moment at a time - and for `/readyz` to
    answer 200 when there is one to ask.
-7. If the service is not back: `rpm -Uvh --oldpackage` or `apt-get ...
-   --allow-downgrades` with the rollback image, start, wait again.
+7. If the service is not back, it reads the database's version again, with
+   the program installed now. A rollback puts back the program and never the
+   database, and the earlier version refuses a database newer than it needs,
+   which the package's schema step or the new server's start with `[Database]
+   UpgradeOnStart` may have made it. So only while the version is what it was
+   before the install - or, where it cannot be read now, was already at or
+   past the `required` the new program says, which nothing in the install
+   moves - does it run `rpm -Uvh --oldpackage` or `apt-get ...
+   --allow-downgrades` with the rollback image (or put the AppImage's
+   `.previous` back), start, and wait again. Otherwise it puts nothing back,
+   with a rollback image or without one, and says how the database moved, or
+   that it may have, and what to do (Upgrading.md, "If the upgrade fails").
+   A version that cannot be read before the install leaves nothing to hold
+   it to, and nothing is put back either.
 8. It writes one line to `<DataFolder>/Updates/last-apply.txt` - `ok`,
-   `failed`, `rolled-back`, `rollback-failed` or `no-rollback`, the version,
+   `failed`, `rolled-back`, `rollback-failed`, `no-rollback` or
+   `upgraded-incomplete` (the database moved, or may have, and nothing was
+   put back: the server reports it as HM5481, naming the backup the update
+   took when the request's `backup=` says where), the version,
    the detail - owned by the service user, and exits. The server's update task
    reads the file at its next run (within fifteen minutes of the start), logs
    it, records it for `GET /api/v1/update` and the Deck's *The last install*,
@@ -715,7 +737,17 @@ package's; a rollback image that is not the installed version dropped; no
 installed version recorded), an image with any write bit for its group or
 others (0777, 0620, 0642, 0664) and a directory with one, the log written only
 after the stop, and `--dry-run` running nothing: 138 checks, green on Ubuntu
-26.04 (dash 0.5.12). It runs in GitLab CI's
+26.04 (dash 0.5.12). From 2 October 2026 it holds the rollback to the database
+too (step 7), with an `hmailserver --schema-version` and a `runuser` among the
+fakes and a package tool whose install moves the database as a `postinst`
+would: a version the package's schema step moved all the way and part-way, one
+a new AppImage's start moved, one that did not move, one that cannot be read
+after the install - short of what the new version needs, and at it - and one
+that cannot be read before, with and without a rollback image, the backup the
+request names in the outcome and one with a control character left out, and a
+unit `User=` that is no user name: fifty-nine cases and 276 checks, of which
+the helper before that change fails 32, in every one of the eleven new cases.
+It runs in GitLab CI's
 `update-helper` job on every change to these files, beside
 `systemd-analyze verify` of the three units; the `.deb` and `.rpm` file
 assertions of the `linux-package-deb` and `linux-package-rpm` jobs

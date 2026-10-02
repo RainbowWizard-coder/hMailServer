@@ -211,6 +211,16 @@ namespace
          "                    configured. Changes nothing; runs beside a server,\n"
          "                    and with --config tries a file before the server is\n"
          "                    given it (docs/DatabaseTls.md).\n"
+         "  --schema-version  print the schema version this build needs\n"
+         "                    (\"required 6108\") and then the one the database\n"
+         "                    [Database] names is at (\"database 6105\"), one line\n"
+         "                    each, and exit: 0 both read, 1 the database's not\n"
+         "                    (no connection, or no hm_dbversion row), 2 not\n"
+         "                    configured. The first line needs no database.\n"
+         "                    Changes nothing; runs beside a server. The live\n"
+         "                    update's helper reads it before an update and after\n"
+         "                    one whose server did not come back, and puts the\n"
+         "                    earlier version back only onto the database it left.\n"
          "  --set-setting NAME=VALUE\n"
          "  --set-setting NAME\n"
          "                    store one [Settings] value in the database, which is\n"
@@ -711,6 +721,45 @@ namespace
       }
 
       std::printf("Upgraded in %d step%s; the database is at schema version %d.\n", outcome.steps, outcome.steps == 1 ? "" : "s", outcome.version);
+      return 0;
+   }
+
+   // --schema-version: the schema version this build needs, and the one the
+   // database [Database] names is at, its hm_dbversion as the server's own start
+   // reads it - "required <n>", then "database <n>", one line each on standard
+   // output, and why not on standard error. For hmailserver-update
+   // (platform/packaging), which reads it as the server's unit's user before it
+   // installs an update and again when the new version's server does not come
+   // back: the earlier version is put back only while the database is at the
+   // version it left, since the package's own schema step (postinst's or %post's
+   // --upgrade-database) or the server's start with [Database] UpgradeOnStart may
+   // have moved it, and the earlier version refuses a newer database. The first
+   // line is said before anything is read, so that a server that cannot reach
+   // its database still says what it needs: the helper knows a database already
+   // at it, or past it, to be one nothing in the update moves. Opens no listener
+   // and changes nothing, so it runs beside a server.
+   int PrintSchemaVersion()
+   {
+      std::printf("required %d\n", REQUIRED_DB_VERSION);
+      std::fflush(stdout);
+
+      std::shared_ptr<HM::DatabaseSettings> withDatabase, serverOnly;
+      if (!ReadDatabaseSettings(withDatabase, serverOnly))
+         return 2;
+
+      std::shared_ptr<HM::DALConnection> database = Connect(withDatabase, "the database");
+      if (!database)
+         return 1;
+
+      const int version = ReadSchemaVersion(database);
+      database->Disconnect();
+      if (version <= 0)
+      {
+         std::fprintf(stderr, "The database has no hm_dbversion row that could be read, so it is not an hMailServer database or was never created.\n");
+         return 1;
+      }
+
+      std::printf("database %d\n", version);
       return 0;
    }
 
@@ -1568,6 +1617,7 @@ int main(int argc, char *argv[])
    bool create_database = false;
    bool upgrade_database = false;
    bool check_database = false;
+   bool schema_version = false;
    bool apply_environment = false;
    std::string apply_profile;
    bool revert_profile = false;
@@ -1623,6 +1673,11 @@ int main(int argc, char *argv[])
       if (argument == "--check-database")
       {
          check_database = true;
+         continue;
+      }
+      if (argument == "--schema-version")
+      {
+         schema_version = true;
          continue;
       }
       if (argument == "--apply-environment")
@@ -1888,6 +1943,10 @@ int main(int argc, char *argv[])
    // listener and changes nothing, so it runs beside a server.
    if (check_database)
       return HM::DatabaseTls::RunCheckCommand();
+
+   // The schema versions, for the live update's helper (PrintSchemaVersion).
+   if (schema_version)
+      return PrintSchemaVersion();
 
    if (create_database)
       return CreateDatabase();

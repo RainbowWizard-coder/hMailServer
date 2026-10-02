@@ -20,9 +20,12 @@
        against a running server and a database server, so neither is testable here.
        What is: how the silent mode reads its HM_DB_ variables - what it takes, what it
        refuses before anything is changed, and that a password reaches the server as it
-       was given - reached through InternalsVisibleTo. -->
+       was given - reached through InternalsVisibleTo. And DBSetupQuick, the installer's
+       database step: what it says and answers when the hMailServer service cannot be
+       reached, the same way. -->
   <ItemGroup>
     <ProjectReference Include="..\DBSetup\DBSetup.csproj" />
+    <ProjectReference Include="..\DBSetupQuick\DBSetupQuick.csproj" />
   </ItemGroup>
 
   <ItemGroup>

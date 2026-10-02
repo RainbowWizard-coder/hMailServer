@@ -297,7 +297,7 @@ namespace RegressionTests.API
 
          _application.Reinitialize();
          WaitUntil(() => File.Exists(OutcomePath + ".reported"), 30, "The outcome was not reported at startup.");
-         StringAssert.Contains("Update to hMailServer " + Newer + " did not complete after its database step had changed the database, so the earlier version was not put back (upgraded-incomplete)",
+         StringAssert.Contains("Update to hMailServer " + Newer + " did not complete after its database step had changed the database, or may have, so the earlier version was not put back (upgraded-incomplete)",
             LogHandler.ReadErrorLog());
          StringAssert.Contains("Code: HM5481", LogHandler.ReadErrorLog(), "An upgraded database not put back has an error of its own.");
          StringAssert.DoesNotContain("did not succeed", LogHandler.ReadErrorLog());

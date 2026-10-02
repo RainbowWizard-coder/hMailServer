@@ -755,17 +755,24 @@ namespace DBUpdater
 
                // A step with a long prerequisite, reached from below what that
                // prerequisite fills - so it did nothing before the transaction -
-               // on a backend that commits every ALTER as it runs (SQL Server
-               // Compact, MySQL), where the one transaction never held the schema
-               // anyway: the steps before it are proved by their probes and
-               // committed, and the prerequisite runs outside a transaction. On
-               // Compact a transaction that rewrites a large table is held in a
-               // temporary file whose size is limited, and an interrupted upgrade
-               // then resumes at this step with what the prerequisite did kept. On
-               // SQL Server and PostgreSQL the transaction holds the whole upgrade,
-               // which is worth keeping, and they hold a large one.
+               // on MySQL or SQL Server Compact (SplitsAtLongPrerequisites): the
+               // steps before it are proved by their probes and committed, and the
+               // prerequisite runs outside a transaction, so that an interrupted
+               // upgrade resumes at this step with what the prerequisite did kept.
+               // On MySQL that costs nothing, its DDL committing as it runs. On
+               // Compact it costs the rollback of those steps, which its
+               // transaction would otherwise take back with the rest: a failure
+               // from this step on leaves the database at the version before it,
+               // which the installer then reads as changed (exit code 11, nothing
+               // put back). It is kept there for the size: Compact holds a
+               // transaction in a temporary file of limited size (Temp File Max
+               // Size, 128 MB unless the connection says otherwise, and the
+               // server's does not), and the prerequisite rewrites a table that
+               // may be large. On SQL Server and PostgreSQL the transaction holds
+               // the whole upgrade, which is worth keeping, and they hold a large
+               // one.
                int worksFrom;
-               if (index > segmentStart && !SchemaChangesAreTransactional() &&
+               if (index > segmentStart && SplitsAtLongPrerequisites() &&
                    StepsWithLongPrerequisites.TryGetValue(script.To, out worksFrom) && startedAt < worksFrom)
                {
                   string segmentError;
@@ -1042,13 +1049,20 @@ namespace DBUpdater
       }
 
       /// <summary>
-      /// Whether the backend rolls a schema change back with the transaction: SQL
-      /// Server and PostgreSQL do; SQL Server Compact and MySQL commit each ALTER as
-      /// it runs.
+      /// Whether the upgrade commits the steps before one with a long prerequisite
+      /// (StepsWithLongPrerequisites), when it starts below what that prerequisite
+      /// fills: on MySQL, which commits each DDL statement as it runs, so that the
+      /// one transaction never held its schema anyway; and on SQL Server Compact,
+      /// whose DDL the transaction does roll back - through this program's COM
+      /// transaction as through the server's own (SchemaUpgrader), both a
+      /// SQLCEConnection's ADO transaction, which the installer smoke VM showed
+      /// taking a CREATE TABLE and an ALTER TABLE ADD back on 2 October 2026 - but
+      /// which holds a transaction in a temporary file of limited size (DoUpgrade
+      /// says what that costs). SQL Server and PostgreSQL keep the one transaction.
       /// </summary>
-      private bool SchemaChangesAreTransactional()
+      private bool SplitsAtLongPrerequisites()
       {
-         return _databaseType == DatabaseTypeMSSQL || _databaseType == DatabaseTypePGSQL;
+         return _databaseType != DatabaseTypeMSSQL && _databaseType != DatabaseTypePGSQL;
       }
 
       private string GetPrerequisitesScript()

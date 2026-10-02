@@ -42,6 +42,12 @@ namespace HM
    // has changed the database it ends with 11, on which the helper puts nothing
    // back and reports upgraded-incomplete, naming the backup the update took - the
    // case for a backup before an update, which UpdateBackupBeforeApply arranges.
+   // On Linux too: hmailserver-update reads the database's version with
+   // `hmailserver --schema-version` before it installs and again when the new
+   // version does not come back - the package's post-install step, or the
+   // server's own start with [Database] UpgradeOnStart, may have moved it - and
+   // puts the earlier version back only while it is unchanged; otherwise it
+   // reports upgraded-incomplete, naming the backup from the request's backup=.
    class UpdateInstaller
    {
    public:
