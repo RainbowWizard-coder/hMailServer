@@ -212,6 +212,20 @@
     },
     {
       "customType": "regex",
+      "description": "Images named in a variable rather than on an image: line, which the gitlabci manager does not read: HM_COSIGN_IMAGE (.gitlab-ci.yml), the cosign every signing job runs in, HM_REGCTL_IMAGE (.gitlab/ci/channels.yml), the regctl the channels' jobs take out of its image, and a script's default for one, HM_START_POSTGRES_IMAGE in build/ci/container-image-start-test.sh, which is container-image-start's PostgreSQL. Each is written <image>:<tag>@sha256:<digest> and moves with the other container images, by the rules below: container-image.yml's regctl:<version>-alpine, which build/check-release-chain.py holds to HM_REGCTL_IMAGE's release, is read by the gitlabci manager and moves in the same merge request.",
+      "managerFilePatterns": [
+        "/^\\.gitlab-ci\\.yml$/",
+        "/^\\.gitlab/ci/[^/]+\\.yml$/",
+        "/^build/ci/[^/]+\\.sh$/"
+      ],
+      "matchStrings": [
+        "HM_[A-Z0-9_]+_IMAGE(?::\\s*\"|:-)(?<depName>[a-z0-9][a-z0-9._/\\-]*):(?<currentValue>[A-Za-z0-9._\\-]+)@(?<currentDigest>sha256:[0-9a-f]{64})"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker"
+    },
+    {
+      "customType": "regex",
       "description": "7-Zip's standalone console (7za.exe), which the installer carries: the build input the binary manifest names.",
       "managerFilePatterns": ["/^hmailserver/docs/third-party-binaries\\.json$/"],
       "matchStrings": ["7za-(?<currentValue>\\d+\\.\\d+)\\.exe"],
@@ -290,16 +304,23 @@
       "enabled": false
     },
     {
-      "description": "The test lab (build/lab/docker-compose.yml): its matrix - MySQL 8.4, MariaDB 11.4 LTS, PostgreSQL 17, SQL Server 2022 and the peers it tests against - is chosen, and docs/TestLab.md's results are for those versions. A new version there is a new run of the matrix, made by hand; only the digests move.",
+      "description": "The test lab (build/lab/docker-compose.yml): its matrix - MySQL 8.4, MariaDB 11.8 LTS, PostgreSQL 17, SQL Server 2022 and the peers it tests against - is chosen, and docs/TestLab.md's results are for those versions. A new version there is a new run of the matrix, made by hand; only the digests move.",
       "matchDatasources": ["docker"],
       "matchFileNames": ["build/lab/**"],
       "matchUpdateTypes": ["major", "minor", "patch"],
       "enabled": false
     },
     {
-      "description": "The databases the CI jobs test against - PostgreSQL 16 for the Linux suite, the upgrade gates and the package tests, MariaDB 11 for the MySQL upgrade gate - and the packaging compose file's PostgreSQL, which is what users deploy: PostgreSQL 18 does not open that file's PostgreSQL 16 data directory, the hm-db volume, without pg_upgrade. And GitLab's security analyzers: semgrep-sast is one of the four scans the release job reads (build/ci/security-gate.py), with its accepted findings in .gitlab/security-exceptions.yml, and an analyzer's major version changes its rules and so its findings. Each stays on its major version, and its digest moves; a new major version is a decision and a run, made by hand by changing this rule.",
+      "description": "The databases the CI jobs test against - PostgreSQL 18 for the Linux suite, the upgrade gates and the package, live-update and container start tests, MariaDB 13 for the MySQL upgrade gate - and the packaging compose file's PostgreSQL, which is what users deploy: a PostgreSQL major version does not open the data directory of the one before, so a new one there is a move of each deployment's hm-db volume, as 16 to 18 was (docs/ContainerImage.md, Updates). And GitLab's security analyzers: semgrep-sast is one of the four scans the release job reads (build/ci/security-gate.py), with its accepted findings in .gitlab/security-exceptions.yml, and an analyzer's major version changes its rules and so its findings. Each stays on its major version, and its digest moves; a new major version is a decision and a run, made by hand by changing this rule.",
       "matchDatasources": ["docker"],
       "matchPackageNames": ["postgres", "mariadb", "mysql", "registry.gitlab.com/security-products/**"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false
+    },
+    {
+      "description": "cosign stays on its major version, 2: the release scripts were written for cosign 2, and cosign 3 follows Sigstore's signing configuration, which can send a signature to Rekor v2 with another key and no integratedTime, which no server built after 6.3.3 reads (build/ci/release-sign.sh says so). Its digest moves; a new major version is a decision and a run of the release chain, made by hand by changing this rule.",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["gcr.io/projectsigstore/cosign"],
       "matchUpdateTypes": ["major"],
       "enabled": false
     },

@@ -3,7 +3,7 @@
 # Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-# The Linux server on a database of the test lab's matrix - MySQL 8.4, MariaDB 11.4 or
+# The Linux server on a database of the test lab's matrix - MySQL 8.4, MariaDB 11.8 or
 # PostgreSQL 17 on linix (build/lab/docker-compose.yml) - laid out as the linux-suite
 # job lays it out (build/ci/linux-suite.sh: the listeners off the privileged ports,
 # auto-ban off, the test domain, the administrator password), then the Linux

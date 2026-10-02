@@ -19,7 +19,7 @@
 #
 #   (none)       kuma                           always on
 #   mysql        MySQL 8.4                      the database matrix
-#   mariadb      MariaDB 11.4 LTS
+#   mariadb      MariaDB 11.8 LTS
 #   postgresql   PostgreSQL 17 (not the host's PostgreSQL 18, which the Linux
 #                bench uses and this never touches)
 #   mssql        SQL Server 2022 (about 2 GB; the Windows server's backend: the
@@ -81,9 +81,13 @@ services:
   mariadb:
     <<: *db
     profiles: [mariadb]
-    image: mariadb:11.4@sha256:70cc072b29b4a89ae07abb2d4da2c64678a7f2dfe092751bb51c87d67dc1338b
+    image: mariadb:11.8@sha256:88acb8b5f037e8462531db9359ee5725ddd374a271c1ae5f299402f44323ae78
     environment:
       MARIADB_ROOT_PASSWORD: ${HMLAB_MARIADB_ROOT_PASSWORD:-}
+      # A volume a former version made (11.4's, until 2 October 2026) has its system
+      # tables brought up to this one's at the first start: without it the server
+      # starts on tables of the version before and logs that it skipped the upgrade.
+      MARIADB_AUTO_UPGRADE: "1"
     command: ["--innodb-buffer-pool-size=128M", "--max-connections=200"]
     ports: ["10311:3306"]
     volumes: [mariadb-data:/var/lib/mysql]

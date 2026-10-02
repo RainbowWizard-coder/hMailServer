@@ -524,8 +524,8 @@ linux-suite:
   # by side would share its CPUs for hours, which the suite's timed fixtures feel.
   resource_group: linix-suite
   services:
-    # The same PostgreSQL the Linux suite has always run against, by digest.
-    - name: postgres:16@sha256:1a6ab3f5345eb6dbe04a1349529caabdb0ab09293a09590fad07b2246bfa4b54
+    # PostgreSQL 18, by digest: the one every job here that needs PostgreSQL runs against.
+    - name: postgres:18@sha256:5a5a84b19854a9ffaa54082c166ff4ec27473a361e496e5ea167f298f2da9722
       alias: postgres
       pull_policy: if-not-present
       variables:
@@ -555,8 +555,8 @@ linux-suite:
       junit: linux-suite/junit.xml
 
 # The database matrix, started by hand: the linux-build server against MySQL 8.4,
-# MariaDB 11.4 or PostgreSQL 17 in the test lab on linix (build/lab/, docs/TestLab.md)
-# instead of the PostgreSQL 16 service linux-suite runs on - the database-sensitive
+# MariaDB 11.8 or PostgreSQL 17 in the test lab on linix (build/lab/, docs/TestLab.md)
+# instead of the PostgreSQL 18 service linux-suite runs on - the database-sensitive
 # fixtures by default, HM_SUITE_FILTER=all for the whole suite. Set HM_LAB_DB (mysql,
 # mariadb or postgresql) when starting it. The database has to be up in the lab first
 # (bash build/lab/lab.sh up <db> on linix: the lab's databases start on demand), and
@@ -1058,7 +1058,7 @@ linux-sanitize:
 linux-db-upgrade-pgsql:
   extends: .linux-db-upgrade
   services:
-    - name: postgres:16@sha256:1a6ab3f5345eb6dbe04a1349529caabdb0ab09293a09590fad07b2246bfa4b54
+    - name: postgres:18@sha256:5a5a84b19854a9ffaa54082c166ff4ec27473a361e496e5ea167f298f2da9722
       alias: postgres
       pull_policy: if-not-present
       variables:
@@ -1074,7 +1074,7 @@ linux-db-upgrade-mysql:
     # root with no password: the service is reachable from this job's container
     # alone, and no password is written here (repo-hygiene, Token-Permissions).
     # build/ci/linux-db-upgrade.sh logs in as root with none.
-    - name: mariadb:11@sha256:79d59758afc91b89b120b0a8904d637f5a3b3e1c4900f29b740d6d46c72fef68
+    - name: mariadb:13@sha256:2fd6d83be13d6f95119fe7823c4a445a771d973ce15a4f4621e3c14898f9f1ab
       alias: mariadb
       pull_policy: if-not-present
       variables:
@@ -1099,7 +1099,7 @@ linux-package-deb:
   needs: [linux-build]
   timeout: 20 minutes
   services:
-    - name: postgres:16@sha256:1a6ab3f5345eb6dbe04a1349529caabdb0ab09293a09590fad07b2246bfa4b54
+    - name: postgres:18@sha256:5a5a84b19854a9ffaa54082c166ff4ec27473a361e496e5ea167f298f2da9722
       alias: postgres
       pull_policy: if-not-present
       variables:
@@ -1296,7 +1296,7 @@ linux-coverage:
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule" && $CI_PIPELINE_SCHEDULE_DESCRIPTION == "coverage" && $CI_COMMIT_REF_PROTECTED == "true"
   services:
-    - name: postgres:16@sha256:1a6ab3f5345eb6dbe04a1349529caabdb0ab09293a09590fad07b2246bfa4b54
+    - name: postgres:18@sha256:5a5a84b19854a9ffaa54082c166ff4ec27473a361e496e5ea167f298f2da9722
       alias: postgres
       pull_policy: if-not-present
       variables:

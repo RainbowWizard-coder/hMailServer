@@ -44,19 +44,19 @@ What runs where
 | `nix` | build | linix | `master` or a `batch*` branch; never a tag | The project's Nix flake: `flake.lock` held to releases.nixos.org, every output evaluated for both systems, `nix build .#hmailserver` with its tester programs, and the NixOS test under QEMU's TCG, since linix has no KVM (`.gitlab/ci/nix.yml`, `build/ci/nix.sh`; [Nix.md](Nix.md)) |
 | `alpine-package` | build | linix | `master` or a `batch*` branch; never a tag | The server built with musl by its APKBUILD and abuild on Alpine 3.24 from the source tarball, `check()` running its tester programs, and `apkbuild-lint` (`.gitlab/ci/alpine.yml`, `build/ci/alpine.sh`; [Alpine.md](Alpine.md)) |
 | `alpine-install` | test | linix | the same | Those packages installed in a clean Alpine container, the server started with `rc-service` against PostgreSQL, SMTP (with STARTTLS) and IMAP asked, then a reload and a stop |
-| `alpine-suite` | test | linix | the same | The whole of `LinuxRegressionTests` against the installed Alpine server, in Alpine, on PostgreSQL 16 |
+| `alpine-suite` | test | linix | the same | The whole of `LinuxRegressionTests` against the installed Alpine server, in Alpine, on PostgreSQL 18 |
 | `pages` | release | GitLab's shared runners | `master`, a `v*` tag after `release-publish`, a schedule on `master` | Renders the update feed from the project's releases into `public/`; it deploys nothing itself (`pages: false`, from `.gitlab/ci/package-repos.yml`) (see [The update feed](#the-update-feed)) |
 | `package-repos` | release | GitLab's shared runners | wherever `pages` runs, after it | Adds the signed apt and dnf repositories to `pages`' `public/`, or, without the signing key, nothing, and the project's OpenSSF Scorecard result when there is one ([OpenSSF Scorecard](#openssf-scorecard)), and GitLab Pages publishes the result at https://updates.progressiverobot.com ([PackageManagers.md](PackageManagers.md), "apt and dnf") |
-| `linux-suite` | test | linix | a protected ref | The whole of `LinuxRegressionTests` against that server on PostgreSQL 16 (`build/ci/linux-suite.sh`) |
+| `linux-suite` | test | linix | a protected ref | The whole of `LinuxRegressionTests` against that server on PostgreSQL 18 (`build/ci/linux-suite.sh`) |
 | `linux-cross` | test | linix | a protected ref | Every core translation unit compiled for AArch64 (`build/ci/linux-cross.sh`) |
 | `linux-sanitize` | test | linix | a protected ref | `snmp-tests` under AddressSanitizer; says SKIPPED and passes while the tree has no `HM_SANITIZE` (`build/ci/linux-sanitize.sh`) |
-| `linux-db-upgrade-pgsql`, `linux-db-upgrade-mysql` | test | linix | a protected ref | A database made by 6029's own create script, with orphaned rows, upgrades to this schema and to the schema of a new database, on PostgreSQL 16 and MariaDB 11 (`build/ci/linux-db-upgrade.sh`) |
+| `linux-db-upgrade-pgsql`, `linux-db-upgrade-mysql` | test | linix | a protected ref | A database made by 6029's own create script, with orphaned rows, upgrades to this schema and to the schema of a new database, on PostgreSQL 18 and MariaDB 13 (`build/ci/linux-db-upgrade.sh`) |
 | `linux-package-deb`, `linux-package-rpm` | test | linix | a protected ref | The packages installed in clean Ubuntu 26.04 and Fedora 44 containers; the `.deb` configured, started and asked for the Deck (`build/ci/linux-package-install.sh`) |
 | `linux-image` | test | linix | a protected ref | The container image for linux/amd64 built from the `.deb` with kaniko and inspected, not pushed (`build/ci/linux-image.sh`) |
 | `linux-image-arm64` | test | linix | a protected ref, once `deb-ubuntu26.04-arm64` has passed (on `master` that build is started by hand) | The container image for linux/arm64 built with kaniko from that job's `.deb`, its `RUN` under qemu-user, and inspected as `linux-image` inspects its own, not pushed (`.gitlab/ci/container-image.yml`, `build/ci/linux-image.sh` with `HM_IMAGE_ARCH=arm64`) |
 | `linux-sbom` | test | linix | a protected ref | The SPDX and CycloneDX SBOMs of the tree, kept 90 days (`build/ci/linux-sbom.sh`) |
 | `linux-repro` | test | linix | a protected ref, after `linux-build` | `linux-build`'s binary, `.deb` and `.rpm` made a second time from a copy of the tree at another path with other file modes, in another build directory, started under another umask and in another time zone, and compared: all three must be byte for byte identical (`build/ci/linux-repro.sh`; [ReproducibleBuilds.md](ReproducibleBuilds.md)) |
-| `db-matrix` | test | linix | a protected ref, started by hand | The `linux-build` server against MySQL 8.4, MariaDB 11.4 or PostgreSQL 17 in the test lab (`HM_LAB_DB`), the database-sensitive fixtures or the whole suite (`HM_SUITE_FILTER`); `build/lab/db-suite.sh`, [TestLab.md](TestLab.md) |
+| `db-matrix` | test | linix | a protected ref, started by hand | The `linux-build` server against MySQL 8.4, MariaDB 11.8 or PostgreSQL 17 in the test lab (`HM_LAB_DB`), the database-sensitive fixtures or the whole suite (`HM_SUITE_FILTER`); `build/lab/db-suite.sh`, [TestLab.md](TestLab.md) |
 | `windows-gate` | test | bench150 | a protected ref | The whole Windows suite in the bench's own checkout (`build/ci/windows-gate.ps1`) |
 | `windows-dotnet` | test | bench150 | a protected ref | The Control Panel and the tools built with warnings as errors, published and tested, and `dotnet format` (`build/ci/windows-dotnet.ps1`) |
 | `linux-fuzz` | test | linix | the schedule described `fuzz`, and nothing else | The three MIME harnesses under libFuzzer (`build/ci/linux-fuzz.sh`); its findings are its artifact, for Developers and above |
@@ -473,10 +473,10 @@ What the host needs:
 - Docker (29.1 today) and the runner.
 - The job image, `hmailserver-ci/linux:<tag>`, built on the host (see
   [The image](#the-image)).
-- `postgres:16` at the digest the CI file names. It is pulled on first use, and
+- `postgres:18` at the digest the CI file names. It is pulled on first use, and
   it is on the host already.
 - The other images the ported jobs name, each by digest, each pulled on first
-  use: `mariadb:11` (the MySQL upgrade gate's service) and `ubuntu:26.04` from
+  use: `mariadb:13` (the MySQL upgrade gate's service) and `ubuntu:26.04` from
   Docker Hub, `registry.fedoraproject.org/fedora:44`, and
   `gcr.io/kaniko-project/executor:v1.24.0-debug`. If the runner's `config.toml`
   restricts images (`allowed_images`) or registries, these must be allowed.
@@ -938,7 +938,7 @@ pinned by digest where the CI file names it.
 | `linux-build`, `linux-build-gcc`, `linux-suite`, `linux-cross`, `linux-sanitize`, `linux-db-upgrade-*`, `linux-sbom`, `linux-repro`, `linux-fuzz` | `hmailserver-ci/linux` (built on linix) | Ubuntu's packages; the .NET SDK and PowerShell from Microsoft's SDK image; Syft 1.52.0 from `anchore/syft` on Docker Hub ([The image](#the-image)) |
 | `semgrep-sast-gate`, `mr-dependency-check` | `python:3.14-slim-trixie` (Docker Hub) | git from Debian's archive; OSV's export from Google Cloud Storage (`osv-vulnerabilities.storage.googleapis.com`); the checkers are the standard library's Python |
 | `scorecard` | `nixos/nix:2.35.2` (Docker Hub) | OpenSSF Scorecard 5.5.0 and its closure from `cache.nixos.org`, by its Nix store path and pinned NAR hash, each path checked against the signature of the `cache.nixos.org-1` key the image trusts ([OpenSSF Scorecard](#openssf-scorecard)) |
-| `linux-db-upgrade-*` services | `postgres:16`, `mariadb:11` (Docker Hub) | the database servers |
+| `linux-db-upgrade-*` services | `postgres:18`, `mariadb:13` (Docker Hub) | the database servers |
 | `linux-package-deb` | `ubuntu:26.04` | the package's dependencies, PostgreSQL's client, curl and iproute2 from Ubuntu's archive |
 | `linux-package-rpm` | `registry.fedoraproject.org/fedora:44` (Fedora) | `rpm`, in the image |
 | `linux-image`, `linux-image-arm64` | `gcr.io/kaniko-project/executor:v1.24.0-debug` (Google) | kaniko, and its busybox; the image it builds installs the `.deb` from Ubuntu's archive, the arm64 one Ubuntu's arm64 packages, run under linix's qemu-user |
@@ -1119,7 +1119,7 @@ server with `-DHM_COVERAGE=ON` (clang's `-fprofile-instr-generate
 -fcoverage-mapping`, counters written continuously so that a server stopped by
 SIGKILL still leaves them), runs the `*-tests` programs, then
 `build/ci/linux-suite.sh` - the whole of LinuxRegressionTests on the same
-PostgreSQL 16 service - against the instrumented server, and merges the
+PostgreSQL 18 service - against the instrumented server, and merges the
 counters with `llvm-profdata`. Its artifact, kept 30 days, is `summary.txt`
 (lines, regions, branches and functions), `report.txt` (one line per file),
 `coverage.json`, `lcov.info` and the suite's results; GitLab reads the line
@@ -2171,6 +2171,7 @@ limit is a mitigation, not a proven cure; the job's debug log
 | The .NET SDK | `global.json` | `nuget` | `dotnet-version`: Microsoft's release metadata | never: a rule turns it off (below) |
 | NuGet, the `packages.config` projects | RegressionTests, StressTest, VMTestRunner.Console | a regex manager | `nuget`: api.nuget.org | waits on the dashboard |
 | Container images | `build/ci/linux.Dockerfile`, `.gitlab-ci.yml` and the files it includes, the packaging Dockerfile and compose file, `test/Docker/Dockerfile`, the lab's compose file | `dockerfile`, `gitlabci`, `docker-compose` | `docker`: Docker Hub, mcr.microsoft.com and each distribution's and GitLab's own registry | "container images", weekly, every image pinned by digest; a new major version, where one is allowed, in a merge request of its own |
+| Images named in a variable | `HM_COSIGN_IMAGE` (`.gitlab-ci.yml`), `HM_REGCTL_IMAGE` (`.gitlab/ci/channels.yml`), and the default of `HM_START_POSTGRES_IMAGE` in `build/ci/container-image-start-test.sh` - a job's `image: $VARIABLE` the `gitlabci` manager cannot read | a regex manager (`HM_<NAME>_IMAGE: "<image>:<tag>@sha256:<digest>"`, or `:-` in a script) | `docker`: gcr.io, Docker Hub | with the container images: `container-image.yml`'s `regctl:<version>-alpine`, which `build/check-release-chain.py` holds to `HM_REGCTL_IMAGE`'s release, moves in the same merge request; cosign stays on 2 (below) |
 | Python | the `.in` files of `build/` and `build/ci/` (Semgrep's packages, the build scripts', the command-line package's build tools) and the command-line package's `pyproject.toml`; never the locked `.txt` files uv makes from the `.in` files, which are in `ignorePaths` | `pip_requirements` (the `.in` files only), `pep621` | `pypi`: pypi.org | "Python packages", weekly; the locked files are remade on the branch (below) |
 | npm | nothing in the tree today | `npm` | `npm`: registry.npmjs.org | one merge request, weekly, once a `package.json` exists |
 | OpenSSL | `hMailServer.vcxproj`, `hMailServer64.iss`, `post-build.bat` | a regex manager | `custom.openssl`: openssl-library.org/source/, the page only (its archive links point at GitHub and are never followed) | a patch release on any day, in "OpenSSL patch release"; otherwise "native libraries", weekly; same major version |
@@ -2224,6 +2225,10 @@ rule in `renovate.json` says what to add when the supply-chain row pins it.
   that rule is the way to take the upgrade:
   - OpenSSL, Boost, libpq, zlib and the MariaDB client stay on their major
     version, and Microsoft's SDK image stays on .NET 10.
+  - cosign (`HM_COSIGN_IMAGE`) stays on 2, the version the release scripts were
+    written for: cosign 3 follows Sigstore's signing configuration, which can send
+    a signature to Rekor v2 with no `integratedTime`, which no server built after
+    6.3.3 reads (`build/ci/release-sign.sh`). Its digest moves.
   - `global.json`'s SDK is not proposed at all. With `rollForward: latestFeature`
     it is the lowest .NET 10 SDK a build accepts, not the one it uses, which is
     already the newest installed; raising it builds nothing differently and
@@ -2246,10 +2251,11 @@ rule in `renovate.json` says what to add when the supply-chain row pins it.
   - The test lab (`build/lab/docker-compose.yml`) moves by digest only: its
     matrix is chosen, and [TestLab.md](TestLab.md)'s results are for those
     versions.
-  - The databases the CI jobs test against (PostgreSQL 16, MariaDB 11) and the
+  - The databases the CI jobs test against (PostgreSQL 18, MariaDB 13) and the
     packaging compose file's PostgreSQL, which users deploy and whose data
-    directory a new major version does not open without `pg_upgrade`, stay on
-    their major version; so do GitLab's security analyzers, whose major versions
+    directory a new major version does not open - each deployment's volume is
+    moved, as from 16 to 18 in 6.3.6 ([ContainerImage.md](ContainerImage.md),
+    Updates) - stay on their major version; so do GitLab's security analyzers, whose major versions
     change their rules and so their findings (`semgrep-sast` is one of the four
     scans the release job reads).
 - **The dependency dashboard.** An issue, "Dependency updates (Renovate)", lists
@@ -2625,7 +2631,7 @@ What each job leaves behind
   anonymous data volume it leaves. `linux-suite/` stays until the next job's checkout cleans it. The
   artifact expires after seven days.
 - **linix** keeps the image, each older tag of it until somebody removes it,
-  `postgres:16`, `mariadb:11`, `ubuntu:26.04`, `fedora:44`, the kaniko image,
+  `postgres:18`, `mariadb:13`, `ubuntu:26.04`, `fedora:44`, the kaniko image,
   the runner's helper image and its build and cache volumes.
 - **`windows-dotnet`** leaves its clone in `C:\GitLab-Runner\builds` with the
   build output in it (the next job's checkout cleans that), the NuGet packages

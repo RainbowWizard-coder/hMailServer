@@ -24,7 +24,7 @@ after, its data kept in a volume.
 |---|---|---|---|---|
 | Uptime Kuma 2.5.5 | none: **always on** | 10300 | `louislam/uptime-kuma:2.5.5-slim` (Docker Hub) | 146 MiB |
 | MySQL 8.4.11 | `mysql` | 10310 | `mysql:8.4` (Docker Hub, official) | 324 MiB during a suite run |
-| MariaDB 11.4.13 LTS | `mariadb` | 10311 | `mariadb:11.4` (Docker Hub, official) | 244 MiB during a suite run, 165 MiB fresh |
+| MariaDB 11.8.9 LTS | `mariadb` | 10311 | `mariadb:11.8` (Docker Hub, official) | 178 MiB during a suite run, 2 October 2026 (11.4.13, before it: 244 MiB, 165 MiB fresh) |
 | PostgreSQL 17.11 | `postgresql` | 10312 | `postgres:17` (Docker Hub, official) | 113 MiB during a suite run, 69 MiB idle |
 | SQL Server 2022 (RTM-CU27, 16.0.4295.3) | `mssql` | 10313 | `mcr.microsoft.com/mssql/server:2022-latest` (Microsoft's registry) | 796 MiB after making a database; held to 2 GB by `MSSQL_MEMORY_LIMIT_MB` |
 | Keycloak 26.7.4 | `idp` | 10320 (HTTP), 10321 (HTTPS) | `quay.io/keycloak/keycloak:26.7.4` (quay.io) | 593 MiB |
@@ -82,9 +82,9 @@ The Linux server has two database backends: PostgreSQL, through libpq, and MySQL
 through a client library it loads at run time (`libmariadb.so.3` first,
 `MySQLInterface.cpp`). SQL Server is reached through ADO, which exists only on
 Windows, so the Linux server refuses it (HM6390). The CI's `linux-suite` job runs on
-PostgreSQL 16 alone. The lab adds:
+PostgreSQL 18 alone. The lab adds:
 
-* **MySQL 8.4 and MariaDB 11.4 LTS**, the other half of what the Linux server
+* **MySQL 8.4 and MariaDB 11.8 LTS**, the other half of what the Linux server
   supports, which no automated run had reached before;
 * **PostgreSQL 17**, beside the host's PostgreSQL 18 that the hand-run Linux bench uses
   and that the lab never touches;
@@ -129,7 +129,7 @@ network, against `192.168.11.154:10311` - the `db-matrix` job's own path (below)
 ### The Linux suite against a database
 
 `lab.sh suite <db> [filter]` lays the Linux server out on that database exactly as
-the `linux-suite` job lays it out on PostgreSQL 16 - the listeners moved off the
+the `linux-suite` job lays it out on PostgreSQL 18 - the listeners moved off the
 privileged ports, auto-ban off, the test domain, the administrator password - and runs
 `LinuxRegressionTests` against it (`build/lab/db-suite.sh`). One thing differs: the
 test domain is made through `POST /api/v1/domains` once the server is up, and not by
@@ -168,6 +168,17 @@ backup fixtures, run again on MariaDB, passed, that test among them (1 min 3 s).
 on all three databases **nothing in the database-sensitive set fails**. The 93
 skipped are the same 93 on each: fixtures that need a COM member the REST API has no
 route for, which the Linux shims skip with the route they lack.
+
+On 2 October 2026 the lab's MariaDB moved from 11.4.13 to 11.8.9 LTS (`mariadb:11.8`),
+the version Ubuntu 26.04 ships, with `MARIADB_AUTO_UPGRADE` set in the compose file.
+Started so on a copy of the lab's own volume, which 11.4.13 had made, the server backed
+up its system database and ran `mariadb-upgrade` before it took connections, and
+`mariadb-upgrade --check-if-upgrade-is-needed` then found nothing to do; started
+without the setting (the negative control) it ran on 11.4's system tables, logged that
+it had skipped the upgrade, and the check said one was needed. On the upgraded copy,
+with the server built from 6.3.6's tree (`ae37d209d`, schema 6105), the
+database-sensitive fixtures: **227 passed, 100 skipped, none failed, of 327**, in 16
+minutes.
 
 The whole suite (`all`) was not run against a lab database on 25 September: linix
 was shared with the integrator's Linux build and suite and with other rows' work,

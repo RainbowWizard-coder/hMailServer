@@ -21,7 +21,7 @@
 #                    for their greetings, then a reload and a stop
 #   alpine-suite     linix: build/ci/alpine.sh suite - the whole of
 #                    LinuxRegressionTests against the installed package's server,
-#                    through build/ci/linux-suite.sh, beside the same PostgreSQL 16
+#                    through build/ci/linux-suite.sh, beside the same PostgreSQL 18
 #                    service linux-suite runs against; the suite and the .NET SDK
 #                    (Alpine's dotnet10-sdk, the 10.0.303 global.json names) run in
 #                    Alpine too, since a musl server does not run elsewhere
@@ -108,7 +108,7 @@ alpine-suite:
   rules:
     - !reference [.alpine-rules, rules]
   services:
-    - name: postgres:16@sha256:1a6ab3f5345eb6dbe04a1349529caabdb0ab09293a09590fad07b2246bfa4b54
+    - name: postgres:18@sha256:5a5a84b19854a9ffaa54082c166ff4ec27473a361e496e5ea167f298f2da9722
       alias: postgres
       pull_policy: if-not-present
       variables:

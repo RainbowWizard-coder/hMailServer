@@ -232,9 +232,89 @@ finding a newer release, says so and names the image to pull, and downloads and
 installs nothing ([UpdateFeed.md](UpdateFeed.md)). Then:
 
 - Compose: set the new version on the `image:` line, `docker compose pull`,
-  `docker compose up -d`; the entrypoint upgrades the database at the start.
+  `docker compose up -d`; the entrypoint upgrades the database at the start. The
+  file's own PostgreSQL moved from 16 to 18 in 6.3.6: see below.
 - Helm: `helm repo update`, then `helm upgrade mail hmailserver/hmailserver
   --reuse-values`.
+
+### PostgreSQL 16 to 18, in the Compose file
+
+From 6.3.6 the Compose file's database is PostgreSQL 18, with its volume `hm-db`
+mounted at `/var/lib/postgresql`: the `postgres:18` image keeps each major version's
+data in a directory of its own there (`18/docker`), so that a later move can be made
+beside the old data. Until 6.3.5 it was PostgreSQL 16, with `hm-db` mounted at
+`/var/lib/postgresql/data`. A deployment that keeps its own copy of the file keeps
+PostgreSQL 16, on which 6.3.6 runs as before (PostgreSQL supports 16 until November
+2028); what follows is for taking the file's PostgreSQL 18.
+
+PostgreSQL 18 does not open PostgreSQL 16's data. On a deployment made from an
+earlier copy of the file, the new file's `db` stops as it starts - `docker compose
+logs db` begins `Error: in 18+, these Docker images are configured to store database
+data in a format which is compatible with "pg_ctlcluster"` - and `hmailserver`, which
+waits for a healthy database, is not started. PostgreSQL 16's data is not changed:
+the failed start leaves only an empty directory, `18/docker`, beside it, which 16
+ignores and step 2 below moves aside with the rest, and putting the old file back
+starts the deployment as it was.
+
+The database is moved once, by a dump taken on 16 and loaded into 18, with nothing
+but PostgreSQL's own images. In the directory of the Compose file:
+
+```
+# 1. On the old file (postgres:16): stop the server, dump its database, stop the rest.
+#    The dump holds every account and its password hash: it is made readable by you
+#    alone (umask 077), and removed at the end.
+docker compose stop hmailserver
+(umask 077; docker compose exec -T db pg_dump -U hmailserver -d hmailserver > hmailserver-pg16.sql)
+# A whole dump ends with this line: 1 here, or the dump failed - go no further
+# (docker compose start hmailserver brings the server back on 16).
+grep -c '^-- PostgreSQL database dump complete' hmailserver-pg16.sql
+docker compose down
+
+# 2. Take the new file (postgres:18, hm-db at /var/lib/postgresql). Move PostgreSQL
+#    16's files aside in the volume, into pg16/, where 18 does not look.
+docker compose run --rm --no-deps --entrypoint bash db -c \
+  'cd /var/lib/postgresql && mkdir pg16 && find . -mindepth 1 -maxdepth 1 ! -name pg16 -exec mv -t pg16 {} +'
+
+# 3. Start the new database alone, load the dump into it, then start the server.
+docker compose up -d --wait db
+docker compose exec -T db psql -U hmailserver -d hmailserver -v ON_ERROR_STOP=1 -q < hmailserver-pg16.sql
+docker compose up -d
+
+# 4. Once the server is as it was: remove PostgreSQL 16's files and the dump.
+docker compose exec db rm -rf /var/lib/postgresql/pg16
+rm hmailserver-pg16.sql
+```
+
+`psql` prints a line or two for each sequence the dump sets (`setval`); it stops at
+the first error with an exit status other than 0. The way back, at any point before
+step 4: `docker compose down`, then, still on the new file,
+
+```
+docker compose run --rm --no-deps --entrypoint bash db -c \
+  'cd /var/lib/postgresql && rm -rf 18 && find pg16 -mindepth 1 -maxdepth 1 -exec mv -t . {} + && rmdir pg16'
+```
+
+and the old file, `docker compose up -d`. The way back returns the database to the
+moment of the dump: mail delivered and changes made on 18 since are in 18's database
+alone, which it removes, and the files of those messages stay in `hm-data` with no
+row in 16's. The messages themselves are files in `hm-data`, which none of these
+steps touches.
+
+On 2 October 2026, on linix (Docker 29.1.3, Compose 2.40.3), with an image built
+from the Dockerfile and 6.3.6's `.deb`: a deployment on the old file, PostgreSQL
+16.15, a domain made over the REST API; the new file without the move - `db`
+restarting with that error, `hmailserver` created and never started, `PG_VERSION`
+still 16 at the volume's top; the four steps - a dump of 131 tables, the restore's
+exit status 0, PostgreSQL 18.6 with its data in `/var/lib/postgresql/18/docker`,
+schema 6105, the domain answered by the REST API and a new one made, and the database
+restarted after step 4 with both; the way back - the server on 16.15 again with the
+domain made before the move; and a new deployment on the new file - 18.6, the schema
+created, a domain made. The same day, with PostgreSQL's two images alone: after the
+new file's failed start, which left the empty `18/docker` at the volume's top, the
+old file put back started 16.15 with its data; and a volume taken through that
+failed start, step 2 and 18's first start, then the way back, did too. Step 1's
+check found its line in a whole dump from 16.15, and not in a dump of a database
+that does not exist (empty, pg_dump's exit status 1) or in one cut short.
 
 ## How the pipeline makes them
 

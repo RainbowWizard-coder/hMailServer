@@ -75,6 +75,13 @@
 # name: registry.gitlab.com's security-products/semgrep:6 and
 # security-products/secrets:7 as they were on 26 September 2026. Renovate's gitlabci manager reads this file through the include
 # and proposes a new digest; a new major version is a change to the tag here.
+# The registry also has a semgrep:7 (7.0.0, 13 May 2026), which Renovate offers as
+# the next major version. It is not one: GitLab released it for GitLab 19.0 and
+# withdrew it the next day (the analyzer's merge requests !723 and !724), has no v7
+# tag in the analyzer's repository, and kept releasing 6, which its own template still
+# names; 7.0.0 carries Semgrep 1.145.0 and rules 2.9.1, where 6.26.1 carries 1.174.0
+# and 2.10.1. Over batch42 (ae37d209d), run as this job runs on linix on 1 October
+# 2026, the two found the same 316 findings, rule, file and line alike.
 #
 # Security/SAST.gitlab-ci.yml and Security/Secret-Detection.gitlab-ci.yml, the names
 # GitLab's older documentation gives, are one-line files that include these two.

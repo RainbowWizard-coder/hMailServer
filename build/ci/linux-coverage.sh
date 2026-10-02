@@ -19,7 +19,7 @@
 #
 #   docker network create hmcov
 #   docker run -d --name hmcov-pg --network hmcov -e POSTGRES_USER=hmailserver \
-#       -e POSTGRES_PASSWORD=hmtest -e POSTGRES_DB=hmtest postgres:16
+#       -e POSTGRES_PASSWORD=hmtest -e POSTGRES_DB=hmtest postgres:18
 #   docker run --rm --network hmcov -e HM_PG_HOST=hmcov-pg -v "$PWD":/src -w /src \
 #       hmailserver-ci/linux:<tag> bash build/ci/linux-coverage.sh
 #

@@ -27,7 +27,14 @@ name: hmailserver
 
 services:
   db:
-    image: postgres:16@sha256:1a6ab3f5345eb6dbe04a1349529caabdb0ab09293a09590fad07b2246bfa4b54
+    # PostgreSQL 18, which keeps its data in a directory named for its major
+    # version, /var/lib/postgresql/18/docker, under one volume at
+    # /var/lib/postgresql. A deployment made from this file before 6.3.6 has
+    # PostgreSQL 16's data at the top of hm-db: 18 does not open it and stops at
+    # each start ("Error: in 18+ ..." in `docker compose logs db`), and the server
+    # waits for it, 16's data left as it was. hmailserver/docs/ContainerImage.md,
+    # "Updates", moves the database to 18: a dump taken on 16, loaded into 18.
+    image: postgres:18@sha256:5a5a84b19854a9ffaa54082c166ff4ec27473a361e496e5ea167f298f2da9722
     restart: unless-stopped
     environment:
       POSTGRES_USER: hmailserver
@@ -36,7 +43,7 @@ services:
     secrets:
       - db_password
     volumes:
-      - hm-db:/var/lib/postgresql/data
+      - hm-db:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U hmailserver -d hmailserver"]
       interval: 10s

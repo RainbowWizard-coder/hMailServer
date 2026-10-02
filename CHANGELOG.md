@@ -760,6 +760,15 @@ message is the server administrator's alone (What changes on upgrade, item 25). 
     as the administrator. A .NET program built against an earlier type library reaches `CreateMessage` once rebuilt
     against 6.3.6's, or late-bound ([Roles.md](hmailserver/docs/Roles.md)).
 
+26. **The packaging Compose file's database is PostgreSQL 18.** `docker-compose.yml` beside the Dockerfile runs
+    `postgres:18` with its `hm-db` volume at `/var/lib/postgresql`, where it ran `postgres:16` with the volume at
+    `/var/lib/postgresql/data`. PostgreSQL 18 does not open 16's data: a deployment made from an earlier copy of the
+    file that takes this one finds `db` stopping at each start with "Error: in 18+, these Docker images are
+    configured to store database data in a format which is compatible with "pg_ctlcluster"" and the server not
+    started, 16's data unchanged, until the database is moved once - a dump taken on 16 and loaded into 18, four steps with a way
+    back ([ContainerImage.md](hmailserver/docs/ContainerImage.md), "PostgreSQL 16 to 18, in the Compose file").
+    A deployment that keeps its own copy of the file keeps PostgreSQL 16, on which 6.3.6 runs as before.
+
 ### Downloads and the release
 
 - **The AArch64 `.deb` and `.rpm` are in the release again**. The releases up to 6.3.3
@@ -2185,6 +2194,37 @@ message is the server administrator's alone (What changes on upgrade, item 25). 
   keeps the CI's databases, the compose file's PostgreSQL and GitLab's analyzers on their major version, no longer
   proposes `global.json`'s SDK, brings an OpenSSL patch release on any day in a merge request of its own, and asks
   Fedora's registry, which lost a lookup on each of three days, one request at a time.
+
+- **Renovate moves the images a job names through a variable: cosign, regctl and the container start test's
+  PostgreSQL.** `image: $HM_COSIGN_IMAGE` is nothing Renovate's `gitlabci` manager can read, so the cosign every
+  signing job runs in (`HM_COSIGN_IMAGE`) and the regctl the channels' jobs take (`HM_REGCTL_IMAGE`) were pinned
+  once and never proposed again - while `container-image.yml`'s `regctl:<version>-alpine`, which
+  `build/check-release-chain.py` holds to `HM_REGCTL_IMAGE`'s release, was read, so a new regctl would have
+  arrived as a merge request the checkers fail. A regex manager in `renovate.json` now reads
+  `HM_<NAME>_IMAGE: "<image>:<tag>@sha256:<digest>"` in the CI files and a script's `HM_<NAME>_IMAGE:-` default
+  (`build/ci/container-image-start-test.sh`), and the three move with the other container images, regctl's two
+  in one merge request; cosign stays on 2, which the release scripts were written for. The self-tests of
+  `check-release-chain.py` and `check-channels.py` read cosign's and regctl's pins from the files instead of
+  naming them, so a moved pin no longer fails them. Renovate 44.115.13's lookup dry run found the three at their
+  pins; given cosign 2.6.4-dev it proposed 2.6.5-dev's digest and held 3.1.3-dev back; with the old
+  `renovate.json` it found none of them.
+
+- **The CI's databases are PostgreSQL 18 and MariaDB 13, the packaging Compose file's is PostgreSQL 18, and the
+  test lab's MariaDB is 11.8 LTS.** `linux-suite`, `linux-coverage`, `alpine-suite`, the PostgreSQL upgrade gate,
+  `linux-package-deb`, `linux-live-update` and the two container start tests run beside `postgres:18` (18.6)
+  instead of `postgres:16`, and the MySQL upgrade gate beside `mariadb:13` (13.0.2, MariaDB's newest stable
+  release, a rolling one; its long-term ones are 11.8 and 12.3) instead of `mariadb:11`, which is 11.8 LTS - the version Ubuntu 26.04 ships and the one the lab now
+  runs: its MariaDB moves from 11.4 LTS to 11.8 LTS, with `MARIADB_AUTO_UPGRADE` set so that the lab's volume has
+  its system tables upgraded at the first start. The Compose file's database moves too (What changes on upgrade,
+  item 26). GitLab's Semgrep analyzer stays on 6: the `semgrep:7` Renovate offers is 7.0.0, released for GitLab
+  19.0 and withdrawn by GitLab the next day, older inside than 6.26.1 (Semgrep 1.145.0 against 1.174.0), and over
+  this tree the two found the same 316 findings. Run on linix in the CI image beside the new servers, 2 October
+  2026: the whole Linux suite on PostgreSQL 18.6, 1922 passed, 338 skipped, none failed, of 2260; both upgrade
+  gates, 6029 to 6105 and the same schema as a new database, on 18.6 and 13.0.2; the `.deb`'s install test; the
+  live-update check, 156 passed; the container start test; and the lab's database-sensitive fixtures on a copy of
+  the lab's own volume upgraded to 11.8.9, 227 passed, 100 skipped, none failed. `alpine-suite` and
+  `linux-coverage` run the same suite beside the same service, and `alpine-install` already makes its database on
+  Alpine's PostgreSQL 18; their first run beside `postgres:18` is a pipeline's.
 
 - **The semgrep job counts a file Semgrep could not parse, or parsed leaving more than ten of its lines unread, as a
   hole in the scan**, as it did a rule that timed out: Semgrep reports both only as a warning, and the job had taken

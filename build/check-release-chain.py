@@ -2337,6 +2337,14 @@ def self_test(chain, feed):
     problems, notes = check(texts, chain, feed)
     if problems:
         failures.append("the tree passes: %s" % problems)
+    # cosign's and regctl's pins as the files have them: Renovate moves both
+    # (renovate.json, the HM_*_IMAGE manager and the gitlabci manager), so the cases
+    # below break what is there rather than a digest or a release written here. One
+    # that is not found leaves its case's text missing, which fails the case.
+    cosign = COSIGN_IMAGE.search(texts["ci"])
+    cosign = cosign.group(1) if cosign else "HM_COSIGN_IMAGE not found"
+    regctl = re.search(r"docker\.io/regclient/regctl:(v[0-9][A-Za-z0-9._\-]*)-alpine@sha256:", texts["image"])
+    regctl = regctl.group(1) if regctl else "regctl not found"
 
     def broken(what, key, old, new, needle):
         copy = dict(texts)
@@ -2522,8 +2530,8 @@ def self_test(chain, feed):
            "  timeout: 4 hours", "windows-gate can be cancelled half-way")
     broken("a busy bench let past in a tag's pipeline", "ci", "if ($taken -eq 1 -and -not $env:CI_COMMIT_TAG) { \"the bench is busy - no gate",
            "if ($taken -eq 1) { \"the bench is busy - no gate", "windows-gate lets an exit code fail")
-    broken("the cosign placeholder back", "ci", 'cosign:v2.6.5-dev@sha256:76029a0246bcfde96caa72469a62a1094f6e0978dc3f537f5cafd4c5f6c6a417"',
-           'cosign:v2.6.5-dev@sha256:PIN-THE-DIGEST"', "is the placeholder")
+    broken("the cosign placeholder back", "ci", '"%s"' % cosign, '"%s@sha256:PIN-THE-DIGEST"' % cosign.split("@")[0],
+           "is the placeholder")
     # The fuzz job's findings, and the secret scan's.
     broken("fuzz findings public", "ci", "    access: developer\n    paths:\n      - fuzz-results/", "    paths:\n      - fuzz-results/",
            "linux-fuzz does not keep fuzz-results/")
@@ -2715,11 +2723,12 @@ def self_test(chain, feed):
     broken("the push without the switch", "image-push", RUNTIME_GATE, 'if false; then', "container-image-push.sh does not refuse")
     broken("the push to the project's first path", "image-push", "\n  registry.gitlab.com/hmailserver/hmailserver) ;;\n",
            "\n  registry.gitlab.com/progressiverobot/hmailserver) ;;\n", "container-image-push.sh does not push to registry.gitlab.com/hmailserver/hmailserver alone")
-    broken("the push in regctl by tag alone", "image", "regctl:v0.11.6-alpine@sha256:", "regctl:v0.11.6-alpine@sha25:", "pinned by digest")
-    broken("the push in another regctl than the channels'", "image", "regctl:v0.11.6-alpine@", "regctl:v0.11.5-alpine@",
+    broken("the push in regctl by tag alone", "image", "regctl:%s-alpine@sha256:" % regctl, "regctl:%s-alpine@sha25:" % regctl,
+           "pinned by digest")
+    broken("the push in another regctl than the channels'", "image", "regctl:%s-alpine@" % regctl, "regctl:%s9-alpine@" % regctl,
            "not the release HM_REGCTL_IMAGE pins")
-    broken("the push in ghcr.io's regctl", "image", "docker.io/regclient/regctl:v0.11.6-alpine@", "ghcr.io/regclient/regctl:v0.11.6-alpine@",
-           "does not run in docker.io/regclient/regctl")
+    broken("the push in ghcr.io's regctl", "image", "docker.io/regclient/regctl:%s-alpine@" % regctl,
+           "ghcr.io/regclient/regctl:%s-alpine@" % regctl, "does not run in docker.io/regclient/regctl")
     broken("the .deb taken for amd64 alone", "image-deb", "for arch in amd64 arm64; do", "for arch in amd64; do", "each platform's .deb")
     broken("the SBOM of amd64 alone", "image-sbom", "platforms=(amd64 arm64)", "platforms=(amd64)", "every platform's SBOM")
     broken("an SBOM that does not name its platform", "image-sbom", '--image "$image" --arch "$arch"', '--image "$image"',

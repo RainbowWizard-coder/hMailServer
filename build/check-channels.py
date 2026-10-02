@@ -169,6 +169,12 @@ def problems_of(root):
 
 def self_test():
     failures = []
+    # regctl's release as the channels' file pins it: Renovate moves it (renovate.json's
+    # HM_*_IMAGE manager), so the case below breaks what is there. Not found, the case's
+    # text is missing, and the case fails.
+    with open(os.path.join(ROOT, CI), encoding="utf-8") as f:
+        regctl = re.search(r'HM_REGCTL_IMAGE: "docker\.io/regclient/regctl:(v[0-9][A-Za-z0-9._\-]*)@sha256:', f.read())
+    regctl = regctl.group(1) if regctl else "HM_REGCTL_IMAGE not found"
     names = [CI, os.path.join(".copr", "Makefile"), ".gitattributes",
              os.path.join("hmailserver", "source", "Server", "platform", "packaging", "PKGBUILD"),
              os.path.join("hmailserver", "source", "Server", "platform", "packaging", "obs", "_service"),
@@ -188,7 +194,7 @@ def self_test():
         ("a shared-runner job without .no-github", CI,
          "  before_script:\n    - !reference [.no-github, before_script]\n  script:\n    - python3 build/ci/channels/obs-publish.py",
          "  script:\n    - python3 build/ci/channels/obs-publish.py", "obs-publish, on GitLab's shared runners"),
-        ("regctl by tag alone", CI, "regctl:v0.11.6@sha256:", "regctl:v0.11.6-x@sha25:", "pinned by digest"),
+        ("regctl by tag alone", CI, "regctl:%s@sha256:" % regctl, "regctl:%s-x@sha25:" % regctl, "pinned by digest"),
         ("the PKGBUILD from a git tag", names[3], 'source=("https://gitlab.com/api/v4/projects/86730559/packages/generic/'
          'hmailserver/${pkgver}/hmailserver-${pkgver}.tar.gz")', 'source=("git+${url}.git#tag=v${pkgver}")', "source="),
         ("the PKGBUILD with the live update", names[3], "      -DHM_LIVE_UPDATE=OFF \\\n", "", "builds the live update"),

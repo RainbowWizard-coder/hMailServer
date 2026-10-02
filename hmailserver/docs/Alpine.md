@@ -238,7 +238,7 @@ The CI jobs
   a reload and the same again, and `rc-service hmailserver stop`.
 - **`alpine-suite`** (test): `build/ci/alpine.sh suite` - the installed package's
   `/usr/bin/hmailserver` run through `build/ci/linux-suite.sh` (the whole of
-  `LinuxRegressionTests`) beside the PostgreSQL 16 service `linux-suite` uses. The
+  `LinuxRegressionTests`) beside the PostgreSQL 18 service `linux-suite` uses. The
   suite runs in Alpine, since a musl server does not run elsewhere, with Alpine's
   `dotnet10-sdk`, which is the 10.0.303 `global.json` names.
 
