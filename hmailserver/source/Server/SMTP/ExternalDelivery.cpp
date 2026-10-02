@@ -894,6 +894,11 @@ namespace HM
          std::vector<TlsaRecord> daneRecords;
          bool daneValidated = false;
 
+         // RFC 7672 section 2.2: DNSSEC-validated TLSA records of which none is
+         // usable. TLS is required to the host, and its certificate is not
+         // judged by DANE - there is nothing to judge it with.
+         bool daneTlsRequired = false;
+
          if (daneEnabled && !hostAndIp.GetHostName().IsEmpty())
          {
             // The RFC 7672 section 2.2 status of THIS host: the MX RRset validated,
@@ -923,17 +928,25 @@ namespace HM
             }
 
             daneValidated = tlsaStatus == TlsPolicy::TlsaLookupStatus::DnssecValidated;
+            daneTlsRequired = tlsaStatus == TlsPolicy::TlsaLookupStatus::Unusable;
 
             if (!daneRecords.empty())
             {
                if (daneValidated)
                {
-                  LOG_APPLICATION("SMTPDeliverer - Message " + StringParser::IntToString(original_message_->GetID()) + ": DNSSEC-validated DANE-EE TLSA records found for " + hostAndIp.GetHostName() + ". TLS with TLSA certificate matching is required.");
+                  LOG_APPLICATION("SMTPDeliverer - Message " + StringParser::IntToString(original_message_->GetID()) + ": DNSSEC-validated DANE TLSA records found for " + hostAndIp.GetHostName() + ". TLS with TLSA certificate matching is required.");
                }
                else
                {
-                  LOG_APPLICATION("SMTPDeliverer - Message " + StringParser::IntToString(original_message_->GetID()) + ": DANE-EE TLSA records found for " + hostAndIp.GetHostName() + " (unvalidated). TLS with TLSA certificate matching is required.");
+                  LOG_APPLICATION("SMTPDeliverer - Message " + StringParser::IntToString(original_message_->GetID()) + ": DANE TLSA records found for " + hostAndIp.GetHostName() + " (unvalidated). TLS with TLSA certificate matching is required.");
                }
+            }
+            else if (daneTlsRequired)
+            {
+               // Until 6.3.6 this was delivery as if no record were published:
+               // opportunistic, and in the clear when the STARTTLS offer was
+               // taken away on the way.
+               LOG_APPLICATION("SMTPDeliverer - Message " + StringParser::IntToString(original_message_->GetID()) + ": DNSSEC-validated TLSA records found for " + hostAndIp.GetHostName() + ", none of them usable. TLS is required, without certificate matching (RFC 7672 section 2.2).");
             }
          }
 
@@ -992,13 +1005,21 @@ namespace HM
          attemptedHosts++;
 
          serverInfo->SetDaneRecords(daneRecords);
-         serverInfo->SetRequireTls(stsEnforced || !daneRecords.empty() || policyTls >= RemoteTlsEncrypted || _globalRuleResult.GetRequireTls());
+         serverInfo->SetRequireTls(stsEnforced || !daneRecords.empty() || daneTlsRequired || policyTls >= RemoteTlsEncrypted || _globalRuleResult.GetRequireTls());
+
+         // The certificate is forgiven as on opportunistic STARTTLS when the
+         // unusable TLSA records are all that require TLS: they ask for TLS and
+         // not for authentication. Anything else that requires TLS keeps the
+         // verification it has always had.
+         serverInfo->SetAcceptUnauthenticatedTls(daneTlsRequired && !stsEnforced && policyTls < RemoteTlsEncrypted && !_globalRuleResult.GetRequireTls());
 
          // The sentence a deferral carries when the encryption could not be had.
-         // Empty unless a policy is what required it: an MTA-STS or DANE failure
-         // keeps the wording and the (permanent, for the missing STARTTLS)
-         // classification it has had since those were written, because changing
-         // either would be changing a shipped behaviour that is not this row's.
+         // Empty unless a policy, a rule or (from 6.3.6) a validated TLSA RRset
+         // none of whose records is usable is what required it: an MTA-STS or
+         // DANE failure keeps the wording and the (permanent, for the missing
+         // STARTTLS) classification it has had since those were written, because
+         // changing either would be changing a shipped behaviour that is not this
+         // row's.
          if (policyTls >= RemoteTlsEncrypted)
          {
             String requirement;
@@ -1034,14 +1055,25 @@ namespace HM
                _globalRuleResult.GetRequireTlsRuleName().c_str());
             serverInfo->SetTlsPolicyReason(reason);
          }
+         else if (daneTlsRequired && !stsEnforced)
+         {
+            // A deferral, as a policy's is: the host may offer STARTTLS again
+            // before the queue gives up, and what took the offer away may have
+            // been on the way rather than at the host.
+            String reason;
+            reason.Format(_T("Delivery deferred: the DNSSEC-validated TLSA records of %s require TLS to it (RFC 7672), and it could not be established. The message has NOT been sent in the clear; it will be retried."),
+               hostAndIp.GetHostName().c_str());
+            serverInfo->SetTlsPolicyReason(reason);
+         }
          else
          {
             serverInfo->SetTlsPolicyReason(_T(""));
          }
 
          // Classification for TLS reporting (RFC 8460).
-         AnsiString rptPolicyType = !daneRecords.empty() ? "tlsa" : (stsEnforced ? "sts" : "no-policy-found");
-         AnsiString rptPolicyString = !daneRecords.empty() ? "dane-ee tlsa records present" : (stsEnforced ? "mode: enforce" : "");
+         AnsiString rptPolicyType = !daneRecords.empty() || daneTlsRequired ? "tlsa" : (stsEnforced ? "sts" : "no-policy-found");
+         AnsiString rptPolicyString = !daneRecords.empty() ? "dane tlsa records present" :
+            (daneTlsRequired ? "tlsa records present, none usable: tls required" : (stsEnforced ? "mode: enforce" : ""));
 
          DeliverToSingleServer_(remainingRecipients, serverInfo, batchMessage);
 
@@ -1631,6 +1663,9 @@ namespace HM
       // for this connection.
       if (serverInfo->GetRequirePeerVerification())
          pClientConnection->SetRequirePeerVerification();
+
+      if (serverInfo->GetAcceptUnauthenticatedTls())
+         pClientConnection->SetAcceptUnauthenticatedTls();
 
       // Which rule required the TLS, if one did. Decides whether a failure to
       // get it is a deferral naming the rule or the permanent refusal that

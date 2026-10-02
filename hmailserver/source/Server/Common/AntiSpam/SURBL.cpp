@@ -17,6 +17,8 @@
 #include <boost/regex.hpp>
 #include <algorithm>
 #include <chrono>
+#include <map>
+#include <random>
 #include <set>
 #include <stdexcept>
 #include <string>
@@ -31,8 +33,6 @@ namespace HM
 {
    namespace
    {
-      const int maxURLsToProcess = 15;
-
       // The longest name DNS carries, and the longest label (RFC 1035 section
       // 2.3.4). The Windows resolver refuses a longer one outright, and a
       // lookup that fails abandons the list for the message.
@@ -1675,37 +1675,254 @@ namespace HM
       }
    }
 
+   namespace
+   {
+      // One registrable domain a message links to, and what it is asked about
+      // as: its own names (NamesToAsk's, less a host's own) and then host
+      // names under it, MaxHostNamesPerDomain of them at most - drawn from
+      // hosts, every host name under it the message links to, when there are
+      // more than that.
+      struct LinkedDomain_
+      {
+         std::vector<String> names;
+         std::vector<String> hosts;
+         std::set<String> hosts_seen;
+      };
+
+      void AddName_(LinkedDomain_ &domain, const String &name)
+      {
+         if (std::find(domain.names.begin(), domain.names.end(), name) == domain.names.end())
+            domain.names.push_back(name);
+      }
+
+      // Fisher-Yates over mt19937's own output, which the standard specifies,
+      // rather than std::shuffle, whose draws each standard library makes its
+      // own way: one seed shuffles alike on every platform.
+      void Shuffle_(std::vector<LinkedDomain_> &domains, unsigned int seed)
+      {
+         std::mt19937 engine(seed);
+         for (size_t i = domains.size(); i > 1; i--)
+         {
+            const size_t j = static_cast<size_t>(engine() % i);
+            std::swap(domains[i - 1], domains[j]);
+         }
+      }
+   }
+
+   std::vector<String>
+   SURBL::ChooseNamesToAsk(const std::vector<String> &html_hosts, const std::vector<String> &text_hosts, size_t max_names, unsigned int seed)
+   {
+      // The domains linked, each once, in the order first linked: the HTML
+      // part's, then those only the text part links to.
+      std::vector<LinkedDomain_> tiers[2];
+      std::map<String, std::pair<int, size_t> > where;
+
+      const std::vector<String> *parts[2] = { &html_hosts, &text_hosts };
+      for (int tier = 0; tier < 2; tier++)
+      {
+         for (const String &host : *parts[tier])
+         {
+            const std::vector<String> names = NamesToAsk(host);
+            if (names.empty())
+               continue;
+
+            // The registrable domain by the whole Public Suffix List, which
+            // NamesToAsk asks about too; an address is its own.
+            String key = names[0];
+            if (!IsDottedDecimal_(host))
+            {
+               String registrable = host;
+               bool isIPAddress = false;
+               if (PublicSuffixList::GetRegistrableDomain(registrable, isIPAddress))
+                  key = registrable;
+            }
+
+            std::map<String, std::pair<int, size_t> >::const_iterator found = where.find(key);
+            if (found == where.end())
+            {
+               tiers[tier].push_back(LinkedDomain_());
+               where[key] = std::make_pair(tier, tiers[tier].size() - 1);
+
+               // The domain's own names first: itself and, under a suffix of
+               // the list's private section, its ICANN section's domain.
+               LinkedDomain_ &added = tiers[tier].back();
+               for (const String &name : names)
+               {
+                  if (name != host || name == key)
+                     AddName_(added, name);
+               }
+
+               found = where.find(key);
+            }
+
+            LinkedDomain_ &domain = tiers[found->second.first][found->second.second];
+
+            // Then the host itself, when it is not the domain - a list that is
+            // not wildcarded may list a host and not its domain. Every one is
+            // kept here, and a few of them asked about.
+            if (host != key && names[0] == host &&
+                std::find(domain.names.begin(), domain.names.end(), host) == domain.names.end() &&
+                domain.hosts_seen.insert(host).second)
+            {
+               domain.hosts.push_back(host);
+            }
+         }
+      }
+
+      // The host names asked about under each domain: all of them when they
+      // fit, and otherwise MaxHostNamesPerDomain drawn by the seed - never the
+      // first ones linked, or two made-up hosts linked before a listed one
+      // under the same domain would keep it from every list that lists the
+      // host and not the domain.
+      std::mt19937 hostDraw(seed ^ 0x9E3779B9u);
+      const size_t hostCap = MaxHostNamesPerDomain;
+      for (std::vector<LinkedDomain_> &domains : tiers)
+      {
+         for (LinkedDomain_ &domain : domains)
+         {
+            std::vector<String> &hosts = domain.hosts;
+            const size_t take = std::min(hosts.size(), hostCap);
+
+            if (hosts.size() > take)
+            {
+               // The first take places of a Fisher-Yates shuffle (Shuffle_ says
+               // why not std::shuffle).
+               for (size_t i = 0; i < take; i++)
+               {
+                  const size_t j = i + static_cast<size_t>(hostDraw() % (hosts.size() - i));
+                  std::swap(hosts[i], hosts[j]);
+               }
+            }
+
+            domain.names.insert(domain.names.end(), hosts.begin(), hosts.begin() + static_cast<std::ptrdiff_t>(take));
+         }
+      }
+
+      std::vector<String> chosen;
+      std::set<String> asked;
+
+      for (int tier = 0; tier < 2 && chosen.size() < max_names; tier++)
+      {
+         std::vector<LinkedDomain_> &domains = tiers[tier];
+
+         size_t names = 0;
+         for (const LinkedDomain_ &domain : domains)
+            names += domain.names.size();
+
+         // Not all of them can be asked about: they are taken in an order the
+         // message does not choose, so that links put before another cannot
+         // keep it from being asked.
+         if (chosen.size() + names > max_names)
+            Shuffle_(domains, seed + static_cast<unsigned int>(tier));
+
+         // Each domain's first name, then each one's second, and so on: as many
+         // domains as the budget allows are asked about before any twice.
+         for (size_t round = 0; chosen.size() < max_names; round++)
+         {
+            bool more = false;
+            for (const LinkedDomain_ &domain : domains)
+            {
+               if (round >= domain.names.size())
+                  continue;
+
+               more = true;
+               const String &name = domain.names[round];
+               if (asked.insert(name).second)
+               {
+                  chosen.push_back(name);
+                  if (chosen.size() >= max_names)
+                     break;
+               }
+            }
+
+            if (!more)
+               break;
+         }
+      }
+
+      return chosen;
+   }
+
    void
    SURBL::Collect_(std::shared_ptr<MessageData> pMessageData, std::vector<String> &out)
    {
-      std::set<String> collected;
+      // Every link of both parts, each host once: the HTML part's first, then
+      // the text part's. Until 6.3.6 the reading stopped at the sixteenth name,
+      // in the order the links came and the text part first.
+      std::vector<String> htmlHosts;
+      std::vector<String> textHosts;
+      std::set<String> seen;
 
-      ForEachLinkHost(pMessageData, [&](const String &host) -> bool
+      auto collectInto = [&seen](std::vector<String> &hosts)
       {
-         for (const String &name : NamesToAsk(host))
+         return [&seen, &hosts](const String &host) -> bool
          {
-            if (collected.find(name) != collected.end())
-               continue;
+            if (!IsDocumentTypeHost_(host) && seen.insert(host).second)
+               hosts.push_back(host);
+            return true;
+         };
+      };
 
-            // LOG_DEBUG is an if of its own, so each is in braces.
-            if (name == host)
+      try
+      {
+         FindLinkHosts(pMessageData->GetHTMLBody(), true, collectInto(htmlHosts));
+         FindLinkHosts(pMessageData->GetBody(), false, collectInto(textHosts));
+      }
+      catch (std::runtime_error &err) // regex_search throws runtime_error if the expression is too complex.
+      {
+         ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5701, "SURBL::Run", "Parsing HTML body with regular expression threw a runtime_error", err);
+      }
+
+      // A seed the sender cannot know, for when not every name can be asked.
+      const unsigned int seed = std::random_device()() ^
+         static_cast<unsigned int>(std::chrono::steady_clock::now().time_since_epoch().count());
+
+      out = ChooseNamesToAsk(htmlHosts, textHosts, MaxNamesAsked, seed);
+
+      // The cast names FormatArgument's unsigned __int64 constructor (ExtractUrls
+      // says why).
+      LOG_DEBUG(Formatter::Format(_T("SURBL: {0} host(s) linked from the HTML part and {1} more from the text part; {2} name(s) to ask about."),
+         (unsigned __int64) htmlHosts.size(), (unsigned __int64) textHosts.size(), (unsigned __int64) out.size()));
+
+      // Each name with the link host that gave it, as 6.3.5 logged them: "asked
+      // about as" when the name is not a host linked itself. Worked out only
+      // when the debug log is on.
+      if (Logger::Instance()->GetLogMask() & Logger::LSDebug)
+      {
+         std::map<String, String> origin;
+         auto mapHosts = [&origin](const std::vector<String> &hosts, bool derived)
+         {
+            for (const String &host : hosts)
+            {
+               if (!derived)
+               {
+                  origin[host] = host;
+                  continue;
+               }
+
+               for (const String &name : NamesToAsk(host))
+                  origin.emplace(name, host);
+            }
+         };
+
+         mapHosts(htmlHosts, false);
+         mapHosts(textHosts, false);
+         mapHosts(htmlHosts, true);
+         mapHosts(textHosts, true);
+
+         for (const String &name : out)
+         {
+            std::map<String, String>::const_iterator found = origin.find(name);
+            if (found == origin.end() || found->second == name)
             {
                LOG_DEBUG(Formatter::Format(_T("SURBL: Found URL: {0}"), name));
             }
             else
             {
-               LOG_DEBUG(Formatter::Format(_T("SURBL: Found URL: {0}, asked about as {1}"), host, name));
+               LOG_DEBUG(Formatter::Format(_T("SURBL: Found URL: {0}, asked about as {1}"), found->second, name));
             }
-
-            collected.insert(name);
-            out.push_back(name);
-
-            if (collected.size() > maxURLsToProcess)
-               return false;
          }
-
-         return true;
-      });
+      }
    }
 
    bool
@@ -1766,7 +1983,7 @@ namespace HM
             return true;
          }
 
-         if (processedAddresses > maxURLsToProcess)
+         if (processedAddresses >= static_cast<int>(MaxNamesAsked))
          {
             LOG_DEBUG("SURBL: Aborting. Too many urls.");
             reportIfEveryLookupWasBlocked();
@@ -2587,6 +2804,104 @@ namespace HM
          if (links != 43 || got != expected)
             Fail_("every link of a message is matched against the URL entries", _T("40 other links first"),
                StringParser::IntToString(links) + _T(" links, ") + got, _T("43 links, ") + expected);
+      }
+
+      // The names the URI lists are asked about (ChooseNamesToAsk). Until
+      // 6.3.6 the first 16 names in the order of the links, the text part's
+      // first: 16 harmless links in a text part an HTML mail program never
+      // shows kept the HTML part's listed link from every list.
+      {
+         std::vector<String> padding;
+         for (int i = 1; i <= 16; i++)
+            padding.push_back(_T("pad") + StringParser::IntToString(i) + _T(".example"));
+
+         // The HTML part's link is asked about first, whatever the text part holds.
+         std::vector<String> html(1, String(_T("listed.example")));
+         std::vector<String> chosen = SURBL::ChooseNamesToAsk(html, padding, SURBL::MaxNamesAsked, 1);
+         if (chosen.size() != 17 || chosen[0] != _T("listed.example"))
+            Fail_("a link of the HTML part is asked about before the text part's", _T("16 text links, then one HTML link"),
+               Joined_(chosen), _T("listed.example first, 17 names"));
+
+         // 16 links before it in one part: it is asked about too.
+         std::vector<String> text = padding;
+         text.push_back(_T("listed.example"));
+         chosen = SURBL::ChooseNamesToAsk(std::vector<String>(), text, SURBL::MaxNamesAsked, 1);
+         if (std::find(chosen.begin(), chosen.end(), String(_T("listed.example"))) == chosen.end())
+            Fail_("a link after 16 others is asked about", _T("16 links, then the listed one"), Joined_(chosen), _T("listed.example among them"));
+
+         // More than the budget in the text part: the HTML part's one link
+         // comes first, and the budget is kept.
+         std::vector<String> many;
+         for (int i = 1; i <= 100; i++)
+            many.push_back(_T("many") + StringParser::IntToString(i) + _T(".example"));
+         chosen = SURBL::ChooseNamesToAsk(html, many, SURBL::MaxNamesAsked, 7);
+         if (chosen.size() != SURBL::MaxNamesAsked || chosen[0] != _T("listed.example"))
+            Fail_("more links than the budget: the HTML part's first, the budget kept", _T("100 text links, one HTML link"),
+               Joined_(chosen).Left(80), _T("listed.example first, 48 names"));
+
+         // More than the budget in one part, the listed link last: the names
+         // are not the first 48 in the order of the links, but a draw the
+         // message cannot steer - the listed link is in some of 64 draws, and
+         // in no more than chance puts it (48 of 101 in each).
+         std::vector<String> crowded = many;
+         crowded.push_back(_T("listed.example"));
+         int drawn = 0;
+         for (unsigned int seed = 1; seed <= 64; seed++)
+         {
+            chosen = SURBL::ChooseNamesToAsk(crowded, std::vector<String>(), SURBL::MaxNamesAsked, seed);
+            if (chosen.size() != SURBL::MaxNamesAsked)
+               Fail_("a crowded part keeps the budget", _T("101 HTML links"), StringParser::IntToString(static_cast<int>(chosen.size())), _T("48"));
+            if (std::find(chosen.begin(), chosen.end(), String(_T("listed.example"))) != chosen.end())
+               drawn++;
+         }
+         if (drawn < 10 || drawn > 54)
+            Fail_("the names of a crowded part are drawn, not taken in order", _T("100 links, then the listed one, 64 seeds"),
+               StringParser::IntToString(drawn) + _T(" draws with it"), _T("about half"));
+
+         // One registrable domain is one domain: its own name, then two of its
+         // hosts, however many it has; a domain both parts link to, once.
+         std::vector<String> twoHosts;
+         twoHosts.push_back(_T("h1.shop.example"));
+         twoHosts.push_back(_T("h2.shop.example"));
+         chosen = SURBL::ChooseNamesToAsk(twoHosts, std::vector<String>(1, String(_T("shop.example"))), SURBL::MaxNamesAsked, 1);
+         if (Joined_(chosen) != _T("shop.example|h1.shop.example|h2.shop.example"))
+            Fail_("one domain's hosts are one domain", _T("h1 and h2.shop.example, and shop.example in the text part"),
+               Joined_(chosen), _T("shop.example|h1.shop.example|h2.shop.example"));
+
+         // More hosts under one domain than are asked about: two of them, drawn,
+         // not the first two linked - two made-up hosts linked first kept a
+         // listed one under the same domain from every list that lists hosts.
+         std::vector<String> hosts;
+         for (int i = 1; i <= 10; i++)
+            hosts.push_back(_T("h") + StringParser::IntToString(i) + _T(".shop.example"));
+         int lastDrawn = 0;
+         for (unsigned int seed = 1; seed <= 64; seed++)
+         {
+            chosen = SURBL::ChooseNamesToAsk(hosts, std::vector<String>(1, String(_T("shop.example"))), SURBL::MaxNamesAsked, seed);
+            if (chosen.size() != 3 || chosen[0] != _T("shop.example") || chosen[1] == chosen[2] ||
+                std::find(hosts.begin(), hosts.end(), chosen[1]) == hosts.end() || std::find(hosts.begin(), hosts.end(), chosen[2]) == hosts.end())
+               Fail_("one domain's hosts are one domain, and two of them are asked about", _T("h1..h10.shop.example, and shop.example in the text part"),
+                  Joined_(chosen), _T("shop.example, then two of the ten hosts"));
+            if (chosen[1] == _T("h10.shop.example") || chosen[2] == _T("h10.shop.example"))
+               lastDrawn++;
+         }
+         if (lastDrawn < 2 || lastDrawn > 40)
+            Fail_("the hosts of a domain are drawn, not taken in order", _T("h1..h10.shop.example, 64 seeds"),
+               StringParser::IntToString(lastDrawn) + _T(" draws with h10"), _T("about one in five"));
+
+         // Every domain's first name before any domain's second.
+         std::vector<String> two;
+         two.push_back(_T("www2.first.example"));
+         two.push_back(_T("second.example"));
+         chosen = SURBL::ChooseNamesToAsk(two, std::vector<String>(), SURBL::MaxNamesAsked, 1);
+         if (Joined_(chosen) != _T("first.example|second.example|www2.first.example"))
+            Fail_("each domain's own name before any host name", _T("www2.first.example, second.example"),
+               Joined_(chosen), _T("first.example|second.example|www2.first.example"));
+
+         // An address is asked about reversed, as itself a domain.
+         chosen = SURBL::ChooseNamesToAsk(std::vector<String>(1, String(_T("192.0.2.7"))), std::vector<String>(), SURBL::MaxNamesAsked, 1);
+         if (Joined_(chosen) != _T("7.2.0.192"))
+            Fail_("an address is asked about reversed", _T("192.0.2.7"), Joined_(chosen), _T("7.2.0.192"));
       }
    }
 }

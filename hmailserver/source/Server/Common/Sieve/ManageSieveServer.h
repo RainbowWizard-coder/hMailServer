@@ -5,6 +5,7 @@
 #pragma once
 
 #include <atomic>
+#include <chrono>
 #include <condition_variable>
 #include <mutex>
 #include <thread>
@@ -124,6 +125,33 @@ namespace HM
       // most CAPABILITY, STARTTLS, CAPABILITY and AUTHENTICATE.
       enum { MaxPreAuthenticationCommands = 25 };
 
+      // The clock every read, write and handshake on a connection is held to.
+      // Run_ serves one connection at a time, so a client that kept a read going
+      // held the whole service: until 6.3.6 the only bound was 30 seconds for
+      // each read, which a client sending one octet every 29 seconds never
+      // met. The connection's socket is non-blocking, and no wait for it lasts
+      // past the deadline of the step in progress (Connection):
+      //
+      //   IdleSeconds              the longest one wait may last: nothing
+      //                            arriving or leaving for this long ends the
+      //                            session, as the socket timeouts did
+      //   LineSeconds              a command line, whole, from when it is
+      //                            waited for - which is also how long a session
+      //                            may sit idle between commands - and the TLS
+      //                            handshake after STARTTLS
+      //   LiteralSeconds           a literal (a script, a SASL response), and
+      //                            each response written
+      //   PreAuthenticationSeconds everything before AUTHENTICATE succeeds,
+      //                            from the connection on: the greeting, STARTTLS
+      //                            and its handshake, the commands and the logon
+      //
+      // Far above what a client needs. Constants, as MaxScriptSize is: no
+      // operator has a reason to choose a number in between.
+      enum { IdleSeconds = 30 };
+      enum { LineSeconds = 30 };
+      enum { LiteralSeconds = 300 };
+      enum { PreAuthenticationSeconds = 60 };
+
       // Largest script PUTSCRIPT and CHECKSCRIPT will accept, and the figure
       // HAVESPACE answers against. One megabyte is the same order as the limit
       // other ManageSieve implementations ship with, and a Sieve script that
@@ -156,7 +184,11 @@ namespace HM
          explicit Connection(SOCKET client_socket) :
             socket(client_socket),
             tls_session(nullptr),
-            require_tls_for_auth(false)
+            require_tls_for_auth(false),
+            step_deadline(std::chrono::steady_clock::time_point::max()),
+            session_deadline(std::chrono::steady_clock::time_point::max()),
+            out_of_time(false),
+            write_failed(false)
          {
          }
 
@@ -178,6 +210,17 @@ namespace HM
          bool require_tls_for_auth;
 
          std::string buffer;
+
+         // The deadline of the step in progress (a line, a literal, a response,
+         // the handshake) and of the phase (until authentication; the end of
+         // time after it). No wait for the socket goes past the earlier.
+         std::chrono::steady_clock::time_point step_deadline;
+         std::chrono::steady_clock::time_point session_deadline;
+
+         // A wait ran out of time; a response could not be written whole. Either
+         // ends the session at the next read.
+         bool out_of_time;
+         bool write_failed;
       };
 
       void Run_();
@@ -248,8 +291,14 @@ namespace HM
       static void Send_(Connection &connection, const AnsiString &data);
 
       // Single point where bytes come off the wire, so that the plain-socket and
-      // TLS cases cannot get out of step.
+      // TLS cases cannot get out of step. Waits no later than the connection's
+      // deadlines; 0 or less is the end of the session.
       static int Receive_(Connection &connection, char *buffer, int size);
+
+      // Waits for the non-blocking socket to be readable (or writable), no longer
+      // than IdleSeconds and no later than deadline. False when the time is up,
+      // which is recorded on the connection.
+      static bool WaitForSocket_(Connection &connection, bool for_write, std::chrono::steady_clock::time_point deadline);
 
       SOCKET listen_socket_;
       std::thread worker_;

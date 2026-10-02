@@ -26,10 +26,11 @@
 
 namespace HM
 {
-   CertificateVerifier::CertificateVerifier(int session_id, ConnectionSecurity connection_security, const String &host_name) :
+   CertificateVerifier::CertificateVerifier(int session_id, ConnectionSecurity connection_security, const String &host_name, bool forgive_failure) :
       session_id_(session_id),
       connection_security_(connection_security),
-      host_name_(host_name)
+      host_name_(host_name),
+      forgive_failure_(forgive_failure)
    {
 
    }
@@ -310,7 +311,7 @@ namespace HM
    {
       if (result == false)
       {
-         if (connection_security_ == CSSTARTTLSOptional)
+         if (connection_security_ == CSSTARTTLSOptional || forgive_failure_)
             return true;
          else
             return false;

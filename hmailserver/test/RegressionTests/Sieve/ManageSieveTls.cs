@@ -49,6 +49,9 @@ namespace RegressionTests.Sieve
       // round-trip fixture (24190) or the auto-ban fixture (24191).
       private const int ManageSievePort = 24192;
 
+      // Must match ManageSieveServer::LineSeconds, which the TLS handshake is held to.
+      private const int LineSeconds = 30;
+
       // The TLS supported-group codepoints and the raw-ClientHello probe that reads
       // the group a listener prefers both moved to Shared/TlsHandshakeProbe once the
       // REST API and Web Services HTTPS listeners needed the same proof. Kept as a
@@ -265,6 +268,53 @@ namespace RegressionTests.Sieve
             _active.Flush();
          }
 
+         // Sends the octets one at a time, intervalMilliseconds apart, until the
+         // server closes the connection. The seconds that took, or -1 when it was
+         // still open after maxSeconds.
+         public double TrickleUntilClosed(byte[] octets, int intervalMilliseconds, int maxSeconds)
+         {
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+            int next = 0;
+            while (watch.Elapsed.TotalSeconds < maxSeconds)
+            {
+               if (IsClosedByServer())
+                  return watch.Elapsed.TotalSeconds;
+
+               try
+               {
+                  _networkStream.WriteByte(octets[next % octets.Length]);
+                  _networkStream.Flush();
+                  next++;
+               }
+               catch (IOException)
+               {
+                  return watch.Elapsed.TotalSeconds;
+               }
+
+               System.Threading.Thread.Sleep(intervalMilliseconds);
+            }
+
+            return IsClosedByServer() ? watch.Elapsed.TotalSeconds : -1;
+         }
+
+         // Readable with nothing to read: the server has closed its side.
+         private bool IsClosedByServer()
+         {
+            Socket socket = _client.Client;
+            try
+            {
+               return socket.Poll(0, SelectMode.SelectRead) && socket.Available == 0;
+            }
+            catch (SocketException)
+            {
+               return true;
+            }
+            catch (ObjectDisposedException)
+            {
+               return true;
+            }
+         }
+
          public string SendCommand(string command)
          {
             SendRaw(command + "\r\n");
@@ -321,6 +371,48 @@ namespace RegressionTests.Sieve
       // owns both next.
       // ---------------------------------------------------------------------------
 
+
+      [Test]
+      [Description("A TLS handshake whose first record arrives an octet at a time is cut off when its deadline passes; until 6.3.6 each octet renewed a 30-second read timeout and SSL_accept held the one-at-a-time listener for as long as octets kept coming.")]
+      public void AHandshakeSentAnOctetAtATimeIsCutOffAtItsDeadline()
+      {
+         StartListenerWithTls();
+
+         try
+         {
+            using (var session = new Session())
+            {
+               session.ReadResponse(); // greeting
+               StringAssert.StartsWith("OK", session.SendCommand("STARTTLS").TrimStart());
+
+               // A handshake record's header announcing 512 octets, then those octets,
+               // one a second: the server's handshake waits for the whole record.
+               var record = new byte[5 + 512];
+               record[0] = 0x16;
+               record[1] = 0x03;
+               record[2] = 0x01;
+               record[3] = 0x02;
+               record[4] = 0x00;
+
+               double seconds = session.TrickleUntilClosed(record, 1000, LineSeconds + 20);
+
+               Assert.IsTrue(seconds >= 0,
+                  "The connection was still open after " + (LineSeconds + 20) + " seconds of a handshake that never completed.");
+               Assert.IsTrue(seconds >= LineSeconds - 5,
+                  "The handshake was cut after " + seconds + " seconds, well before its " + LineSeconds + "-second deadline.");
+            }
+
+            // The listener serves the next client at once.
+            using (var session = new Session())
+            {
+               StringAssert.Contains("STARTTLS", session.ReadResponse(), "The next client is greeted.");
+            }
+         }
+         finally
+         {
+            StopListener();
+         }
+      }
 
       [Test]
       [Description("The capability list advertises STARTTLS when a TLS certificate is available, and stops advertising it once TLS is active.")]

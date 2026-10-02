@@ -29,6 +29,9 @@
 #include <map>
 #include <utility>
 
+#include <openssl/err.h>
+#include <openssl/ssl.h>
+
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
 #define new DEBUG_NEW
@@ -68,6 +71,17 @@ namespace HM
    IOService::Initialize()
    {
       SslContextInitializer::InitClient(client_context_);
+
+      // The shared state OpenSSL's DANE needs, made once for the context every
+      // outbound connection is made from, before any of them exists. A
+      // connection only uses it when it is armed with TLSA records
+      // (DaneVerifier::Arm); one armed when this failed fails its handshake.
+      if (SSL_CTX_dane_enable(client_context_.native_handle()) <= 0)
+      {
+         ERR_clear_error();
+         ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5510, "IOService::Initialize",
+            "OpenSSL's DANE support could not be enabled. Deliveries to hosts that publish DNSSEC-validated TLSA records will be deferred.");
+      }
    }
 
    void

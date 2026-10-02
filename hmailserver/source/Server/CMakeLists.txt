@@ -604,6 +604,36 @@ add_executable(signature-html-sanitizer-tests ${SERVER_DIR}/platform/signature_h
 target_link_libraries(signature-html-sanitizer-tests PRIVATE hmailserver_core)
 set_target_properties(signature-html-sanitizer-tests PROPERTIES OUTPUT_NAME signature-html-sanitizer-tests)
 
+# ---------------------------------------------------------------- the DEFLATE streams
+#
+# DeflateStreamsTester (Common/TCPIP/DeflateStreams.h) as a program of its own,
+# for the reason spf-tests is one: on Windows it runs inside the server through
+# ClassTester, which nothing reaches here. IMAP's COMPRESS=DEFLATE inflates what
+# a client sends through it; this holds it to a round trip, to a stream of
+# command lines hundreds of times its compressed size coming out in pieces no
+# larger than the limit the connection asks for and whole when put together -
+# what zlib still holds once the input is all taken included - to a limit of
+# nothing, and to a corrupt stream refused. No database, configuration, file or
+# network. Not installed; a bench tool.
+add_executable(deflate-tests ${SERVER_DIR}/platform/deflate_tests_main.cpp)
+target_link_libraries(deflate-tests PRIVATE hmailserver_core)
+set_target_properties(deflate-tests PROPERTIES OUTPUT_NAME deflate-tests)
+
+# ---------------------------------------------------------------- DANE
+#
+# DaneTester (SMTP/TlsPolicy.h) as a program of its own, for the reason spf-tests
+# is one: on Windows it runs inside the server through ClassTester, which nothing
+# reaches here. Which TLSA records are usable, what a DNSSEC-validated RRset of
+# none of them means (TLS required without authentication, RFC 7672 section
+# 2.2), and TLS handshakes over a BIO pair against the distribution's OpenSSL:
+# DANE-TA authenticating a chain that carries its anchor and refusing another
+# anchor, a missing one, another name and an expired certificate, DANE-EE
+# authenticating its key alone. No database, configuration, file or network. Not
+# installed; a bench tool.
+add_executable(dane-tests ${SERVER_DIR}/platform/dane_tests_main.cpp)
+target_link_libraries(dane-tests PRIVATE hmailserver_core)
+set_target_properties(dane-tests PROPERTIES OUTPUT_NAME dane-tests)
+
 # ---------------------------------------------------------------- the Public Suffix List's cut
 #
 # PublicSuffixListTester (Common/AntiSpam/DMARC/PublicSuffixList.h) as a program

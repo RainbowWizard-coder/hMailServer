@@ -18,10 +18,34 @@ namespace HM
       ~SURBL(void);
 
       // The names the URI lists are asked about for the links in a message:
-      // for each link's host the names NamesToAsk gives, at most 16 names in
-      // all. The text part is read as text and the HTML part as HTML
-      // (ForEachLinkHost). False when there is none.
+      // every link of the text part (read as text) and of the HTML part (read
+      // as HTML), and of the names NamesToAsk gives for their hosts the ones
+      // ChooseNamesToAsk chooses, MaxNamesAsked at most. False when there is
+      // none.
       bool ExtractUrls(std::shared_ptr<MessageData> pMessageData, std::vector<String> &vecUrls);
+
+      // The most names one list is asked about for one message - each list
+      // also stops after ten seconds - and the most host names of one
+      // registrable domain among them, beside the domain's own names.
+      static constexpr size_t MaxNamesAsked = 48;
+      static constexpr size_t MaxHostNamesPerDomain = 2;
+
+      // Which of the names a message's links give the lists are asked about, in
+      // the order they are asked: html_hosts are the hosts the HTML part links
+      // to and text_hosts the text part's, each in the order linked. The links
+      // are taken by registrable domain, each domain once, and a domain the
+      // HTML part links to - what an HTML mail program shows - before one only
+      // the text part does. Within that, every domain's own name is asked
+      // before any domain's second name, and so on, up to max_names. When a
+      // part's domains do not all fit, they are taken in an order shuffled by
+      // seed, and when a domain has more host names than MaxHostNamesPerDomain
+      // the ones asked about are drawn by seed too - never in the order the
+      // message gives: until 6.3.6 the first 16
+      // names in the order of the links were asked, so a message that put 16
+      // harmless links first - in a text part an HTML mail program never shows
+      // - kept its listed one from every list.
+      static std::vector<String> ChooseNamesToAsk(const std::vector<String> &html_hosts, const std::vector<String> &text_hosts,
+                                                  size_t max_names, unsigned int seed);
 
       // No limit on the text read (FindLinkHosts, ForEachLinkHost).
       static constexpr size_t WholeText = static_cast<size_t>(-1);
@@ -32,9 +56,10 @@ namespace HM
       // has it, an IPv4 address in its own order. The names an HTML
       // document's type and fonts name (w3.org, fonts.googleapis.com and the
       // like) are left out. Every link, however many: the URL entries of the
-      // sender lists read them all (SenderListCache::ReadUrlLinks), where the
-      // SURBL test stops at 16 names (ExtractUrls). maxCharacters, when
-      // given, is how much of each of the two parts is read (FindLinkHosts).
+      // sender lists read them all (SenderListCache::ReadUrlLinks), as the
+      // SURBL test does before it chooses what to ask (ExtractUrls).
+      // maxCharacters, when given, is how much of each of the two parts is
+      // read (FindLinkHosts).
       static void ForEachLinkHost(std::shared_ptr<MessageData> pMessageData, const std::function<bool(const String &host)> &visit,
                                   size_t maxCharacters = WholeText);
 

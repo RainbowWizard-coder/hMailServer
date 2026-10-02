@@ -9,7 +9,9 @@
 // DANE lookups are DNSSEC-validated in-process (see DnssecResolver):
 // the chain of trust is verified from the TLSA RRset up to the IANA
 // root trust anchors. Validation results follow RFC 7672:
-//   secure   -> TLSA records are enforced
+//   secure   -> TLSA records are enforced; a secure RRset none of whose
+//               records is usable still requires TLS, unauthenticated
+//               (section 2.2)
 //   insecure -> treated as if no TLSA records exist
 //   bogus    -> the MX host must not be used
 //
@@ -83,7 +85,11 @@ namespace HM
          DnssecValidated,  // records returned and DNSSEC-validated
          Unvalidated,      // records returned without validation
                            // (DnssecValidationEnabled=0)
-         NoRecords,        // no usable records - deliver without DANE
+         NoRecords,        // no records, or not DNSSEC-validated - deliver
+                           // without DANE
+         Unusable,         // a DNSSEC-validated RRset of records none of
+                           // which this server can use (RFC 7672 section
+                           // 2.2): TLS is required, authentication is not
          Bogus             // DNSSEC validation failed - do not use host
       };
 
@@ -136,9 +142,11 @@ namespace HM
                                                    DnssecResolver::ChainStatus mx_chain_status,
                                                    const std::vector<String> &validated_mx_hosts);
 
-      // Returns DANE-EE (usage 3) TLSA records published for the given
-      // MX host and port. An empty result means no usable records exist;
-      // status describes the DNSSEC validation outcome. mx_status carries
+      // Returns the usable TLSA records - DANE-TA (usage 2) and DANE-EE
+      // (usage 3), DaneVerifier::IsUsable - published for the given MX host
+      // and port. An empty result means no usable records exist; status
+      // describes the DNSSEC validation outcome, and is Unusable when a
+      // validated RRset was there and nothing in it could be used. mx_status carries
       // the RFC 7672 section 2.2 status of the MX RRset that named the host;
       // it is trailing and defaulted so that a caller which cannot yet
       // supply it keeps the previous behaviour rather than losing DANE.
@@ -147,6 +155,14 @@ namespace HM
       // the wrong enum into it all give the same fail-open result.
       static std::vector<TlsaRecord> GetTlsaRecords(const String &host_name, int port, TlsaLookupStatus &status,
                                                     MxDnssecStatus mx_status = MxDnssecStatus::Unknown);
+
+      // What a DNSSEC-validated (secure) TLSA RRset means for the connection
+      // (RFC 7672 section 2.2), with usable set to the records in it this
+      // server can authenticate a host with: DnssecValidated when there is
+      // one, Unusable when the RRset holds records and none of them is - TLS
+      // is still required, without authentication - and NoRecords when it is
+      // empty. A function of its argument alone (DaneTester).
+      static TlsaLookupStatus ClassifyValidatedTlsa(const std::vector<TlsaRecord> &records, std::vector<TlsaRecord> &usable);
 
       // The two network steps of the lookups above, each bounded by its deadline:
       // the policy fetch (https://host + path, 15 seconds for all of it, the body
@@ -182,5 +198,25 @@ namespace HM
 
       static boost::recursive_mutex sts_cache_mutex_;
       static std::map<String, CachedStsPolicy> sts_cache_;
+   };
+
+   // DANE as the outbound connection does it, in memory: which TLSA records are
+   // usable (DaneVerifier::IsUsable), what a DNSSEC-validated RRset means for the
+   // connection (TlsPolicy::ClassifyValidatedTlsa - TLS required without
+   // authentication when none of its records is usable, RFC 7672 section 2.2),
+   // how many records a connection is armed with (DaneVerifier::Arm), and TLS
+   // handshakes over a BIO pair against certificates made for the purpose:
+   // DANE-TA (2 1 1) authenticating a server whose chain carries the anchor, and
+   // refusing another anchor, an anchor the server did not send, a certificate
+   // for another name or out of date; DANE-EE (3 1 1) authenticating a
+   // self-signed certificate for another name, and refusing another key. Until
+   // 6.3.6 only DANE-EE was used, and an RRset without it was taken for none.
+   // No database, configuration, file or network. Runs inside the service with
+   // the other class tests (ClassTester) and on Linux as dane-tests. Throws
+   // std::logic_error naming the first thing that is wrong.
+   class DaneTester
+   {
+   public:
+      void Test();
    };
 }

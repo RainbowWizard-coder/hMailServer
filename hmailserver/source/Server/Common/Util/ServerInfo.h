@@ -43,6 +43,13 @@ namespace HM
       void SetDaneRecords(const std::vector<TlsaRecord> &records) { dane_records_ = records; }
       const std::vector<TlsaRecord>& GetDaneRecords() const { return dane_records_; }
 
+      // TLS required, its certificate forgiven as on opportunistic STARTTLS:
+      // RFC 7672 section 2.2's DNSSEC-validated TLSA records of which none is
+      // usable, when nothing else requires TLS (TCPConnection::
+      // SetAcceptUnauthenticatedTls).
+      void SetAcceptUnauthenticatedTls(bool value) { accept_unauthenticated_tls_ = value; }
+      bool GetAcceptUnauthenticatedTls() const { return accept_unauthenticated_tls_; }
+
       // Which rule demanded the TLS, in words an administrator can read.
       //
       // Empty for a delivery that is merely trying TLS; set when a remote domain
@@ -69,6 +76,7 @@ namespace HM
       bool require_tls_ = false;
       bool require_peer_verification_ = false;
       std::vector<TlsaRecord> dane_records_;
+      bool accept_unauthenticated_tls_ = false;
       String tls_policy_reason_;
 
    };

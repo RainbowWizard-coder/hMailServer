@@ -157,10 +157,17 @@ namespace HM
       // MTA-STS enforced deliveries (RFC 8461).
       void SetRequirePeerVerification() { require_peer_verification_ = true; }
 
-      // Supplies DANE-EE TLSA records for this connection. When present,
-      // certificate verification is performed against these records
-      // instead of the PKIX chain (RFC 7672).
+      // Supplies DANE TLSA records (DANE-EE and DANE-TA) for this connection.
+      // When present, certificate verification is performed against these
+      // records instead of the PKIX trust store (RFC 7672, DaneVerifier).
       void SetDaneRecords(const std::vector<TlsaRecord> &records) { dane_records_ = records; }
+
+      // TLS is required on this connection, and a certificate that does not
+      // verify is accepted as on an opportunistic one - unless
+      // SetRequirePeerVerification asked for verification too. RFC 7672
+      // section 2.2: a DNSSEC-validated TLSA RRset none of whose records is
+      // usable requires TLS, but not authentication.
+      void SetAcceptUnauthenticatedTls() { accept_unauthenticated_tls_ = true; }
 
       // Mutual TLS for INBOUND sessions: set by TCPServer from the listening
       // port's configuration before the connection starts. Deliberately separate
@@ -299,9 +306,26 @@ namespace HM
       void StartCompressedRead_();
       void AsyncCompressedReadCompleted(const boost::system::error_code& error, size_t bytes_transferred);
       bool CompressedReadSatisfied_(size_t &available);
+      // What the pending compressed read can do next: complete, fail on a line
+      // past the ceiling, inflate what is already here, or read the socket.
+      enum CompressedReadStep
+      {
+         CompressedReadComplete,
+         CompressedReadOverflow,
+         CompressedReadInflate,
+         CompressedReadSocket
+      };
+      // Brings the read as far as what has arrived allows, without inflating (the
+      // step it stops at says what it needs). Called before every compressed read
+      // and after every inflation.
+      CompressedReadStep NextCompressedReadStep_(size_t &available);
+      // Inflates what compressed_buffer_ holds into inflated_pending_, no more
+      // than InflatedBacklogFactor times receive_buffer_'s ceiling. False when the
+      // stream cannot be read, which has been reported and the connection closed.
+      bool InflateBuffered_();
       // Moves as much of inflated_pending_ into receive_buffer_ as its ceiling
-      // leaves room for.
-      void MoveInflated_();
+      // leaves room for. True when anything was moved.
+      bool MoveInflated_();
       void AsyncRead(const AnsiString &delimitor);
       void AsyncHandshake();
       void AsyncDelay(int seconds);
@@ -373,8 +397,22 @@ namespace HM
       // Inflated bytes receive_buffer_ had no room for yet. One read of a few
       // hundred compressed octets can inflate to a thousand times as many, more
       // than receive_buffer_'s ceiling; the tail waits here, and a read takes it
-      // before the socket is read again.
+      // before the socket is read again. Taken from the front by an offset rather
+      // than erased: until 6.3.6 each command line erased its few octets from the
+      // front of the whole backlog, a copy of tens of megabytes per command, and
+      // the backlog was all one read inflated to. It is now refilled only when it
+      // has been taken whole, and with no more than InflatedBacklogFactor times
+      // receive_buffer_'s ceiling; the compressed octets that would inflate past
+      // that wait in compressed_buffer_, and zlib's own leftovers are marked by
+      // inflate_more_pending_.
       std::string inflated_pending_;
+      size_t inflated_offset_ = 0;
+      bool inflate_more_pending_ = false;
+      static const size_t InflatedBacklogFactor = 2;
+      // Where CompressedReadSatisfied_ goes on looking for the delimiter: what it
+      // has searched already, for the read in progress. A long line that arrives
+      // in many small pieces is searched once, not once for each piece.
+      size_t compressed_search_from_ = 0;
       AnsiString compressed_read_delimiter_;
       std::shared_ptr<ByteBuffer> compressed_write_buffer_;
       // Set when the write that announces compression is dispatched; the deflater
@@ -412,6 +450,7 @@ namespace HM
       bool allow_connect_to_self_;
       bool require_peer_verification_ = false;
       std::vector<TlsaRecord> dane_records_;
+      bool accept_unauthenticated_tls_ = false;
 
       // Inbound-only; see SetInboundClientCertificatePolicy. CCPOff keeps the
       // handshake exactly as it always was (verify_none).

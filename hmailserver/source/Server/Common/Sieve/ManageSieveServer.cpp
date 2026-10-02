@@ -34,6 +34,14 @@
 #include <ws2tcpip.h>
 #endif
 
+#ifdef HM_PLATFORM_POSIX
+#include <fcntl.h>
+#include <poll.h>
+#endif
+
+#include <algorithm>
+#include <chrono>
+
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
 #define new DEBUG_NEW
@@ -43,6 +51,35 @@ namespace HM
 {
    namespace
    {
+      // The connection's socket made non-blocking, so that no read, write or
+      // handshake step can wait past the deadline ManageSieveServer holds it to.
+      bool MakeNonBlocking(SOCKET socket)
+      {
+#ifdef HM_PLATFORM_POSIX
+         const int flags = fcntl(socket, F_GETFL, 0);
+         return flags >= 0 && fcntl(socket, F_SETFL, flags | O_NONBLOCK) == 0;
+#else
+         u_long nonBlocking = 1;
+         return ioctlsocket(socket, FIONBIO, &nonBlocking) == 0;
+#endif
+      }
+
+      // A read or write on the non-blocking socket that has nothing to do yet.
+      bool WouldBlock()
+      {
+#ifdef HM_PLATFORM_POSIX
+         return errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR;
+#else
+         const int error = WSAGetLastError();
+         return error == WSAEWOULDBLOCK || error == WSAEINTR;
+#endif
+      }
+
+      std::chrono::steady_clock::time_point SecondsFromNow(int seconds)
+      {
+         return std::chrono::steady_clock::now() + std::chrono::seconds(seconds);
+      }
+
       void SkipSpaces(const String &line, int &pos)
       {
          while (pos < line.GetLength() && (line[pos] == L' ' || line[pos] == L'\t'))
@@ -830,7 +867,8 @@ namespace HM
       {
          // One attempt at close_notify, not a loop: this also runs on the path where
          // the exception barrier has just fired, and a peer that is not reading must
-         // not be able to hold the accept loop here. The send timeout bounds it.
+         // not be able to hold the accept loop here. The socket is non-blocking, so
+         // the attempt does not wait.
          SSL_shutdown(connection.tls_session);
          SSL_free(connection.tls_session);
          connection.tls_session = nullptr;
@@ -964,7 +1002,31 @@ namespace HM
 
       SSL_set_fd(session, static_cast<int>(connection.socket));
 
-      if (SSL_accept(session) != 1)
+      // The handshake is a step of its own, under the phase's deadline too: a
+      // client that sent its ClientHello an octet at a time held SSL_accept, and
+      // the service with it, for as long as it liked until 6.3.6.
+      connection.step_deadline = SecondsFromNow(LineSeconds);
+      const std::chrono::steady_clock::time_point deadline = std::min(connection.step_deadline, connection.session_deadline);
+
+      bool accepted = false;
+      for (;;)
+      {
+         const int result = SSL_accept(session);
+         if (result == 1)
+         {
+            accepted = true;
+            break;
+         }
+
+         const int error = SSL_get_error(session, result);
+         if (error != SSL_ERROR_WANT_READ && error != SSL_ERROR_WANT_WRITE)
+            break;
+
+         if (!WaitForSocket_(connection, error == SSL_ERROR_WANT_WRITE, deadline))
+            break;
+      }
+
+      if (!accepted)
       {
          // A failed handshake is client-driven - an unsupported TLS version, a
          // rejected certificate, a port scanner - so it is a debug note rather than
@@ -988,30 +1050,162 @@ namespace HM
       return true;
    }
 
+   bool
+   ManageSieveServer::WaitForSocket_(Connection &connection, bool for_write, std::chrono::steady_clock::time_point deadline)
+   {
+      const std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
+      if (now >= deadline)
+      {
+         connection.out_of_time = true;
+         return false;
+      }
+
+      const long long remaining = std::chrono::duration_cast<std::chrono::milliseconds>(deadline - now).count() + 1;
+      const int milliseconds = static_cast<int>(std::min<long long>(remaining, IdleSeconds * 1000LL));
+
+#ifdef HM_PLATFORM_POSIX
+      pollfd waiting = {};
+      waiting.fd = connection.socket;
+      waiting.events = for_write ? POLLOUT : POLLIN;
+      int ready = poll(&waiting, 1, milliseconds);
+      while (ready < 0 && errno == EINTR)
+         ready = poll(&waiting, 1, milliseconds);
+#else
+      // select, which on Winsock takes a socket of any value; one socket, so the
+      // set's size is no limit either.
+      fd_set set;
+      FD_ZERO(&set);
+      FD_SET(connection.socket, &set);
+      timeval timeout = {};
+      timeout.tv_sec = milliseconds / 1000;
+      timeout.tv_usec = (milliseconds % 1000) * 1000;
+      const int ready = select(0, for_write ? nullptr : &set, for_write ? &set : nullptr, nullptr, &timeout);
+#endif
+
+      if (ready == 0)
+         connection.out_of_time = true;
+
+      // Readable or writable, or an error or a hang-up the next call reports.
+      return ready > 0;
+   }
+
    int
    ManageSieveServer::Receive_(Connection &connection, char *buffer, int size)
    {
-      if (connection.tls_session != nullptr)
-         return SSL_read(connection.tls_session, buffer, size);
+      const std::chrono::steady_clock::time_point deadline = std::min(connection.step_deadline, connection.session_deadline);
 
-      return recv(connection.socket, buffer, size, 0);
+      for (;;)
+      {
+         bool waitToWrite = false;
+
+         if (connection.tls_session != nullptr)
+         {
+            const int received = SSL_read(connection.tls_session, buffer, size);
+            if (received > 0)
+               return received;
+
+            const int error = SSL_get_error(connection.tls_session, received);
+            if (error == SSL_ERROR_WANT_WRITE)
+               waitToWrite = true;
+            else if (error != SSL_ERROR_WANT_READ)
+            {
+               // The end of the session, whichever way it came; nothing of it is
+               // left on this thread's OpenSSL error queue for another call.
+               ERR_clear_error();
+               return -1;
+            }
+         }
+         else
+         {
+            const int received = recv(connection.socket, buffer, size, 0);
+            if (received >= 0)
+               return received;
+
+            if (!WouldBlock())
+               return -1;
+         }
+
+         if (!WaitForSocket_(connection, waitToWrite, deadline))
+            return -1;
+      }
    }
 
    void
    ManageSieveServer::Send_(Connection &connection, const AnsiString &data)
    {
-      if (connection.tls_session != nullptr)
-      {
-         SSL_write(connection.tls_session, data.c_str(), static_cast<int>(data.GetLength()));
+      if (connection.write_failed)
          return;
-      }
 
-      send(connection.socket, data.c_str(), static_cast<int>(data.GetLength()), 0);
+      // Each response within LiteralSeconds - a script can be a megabyte - and,
+      // before authentication, within the phase's deadline.
+      const std::chrono::steady_clock::time_point deadline = std::min(SecondsFromNow(LiteralSeconds), connection.session_deadline);
+
+      const char *bytes = data.c_str();
+      size_t left = static_cast<size_t>(data.GetLength());
+
+      while (left > 0)
+      {
+         bool waitToRead = false;
+         const int chunk = static_cast<int>(std::min<size_t>(left, static_cast<size_t>(1024) * 1024));
+
+         if (connection.tls_session != nullptr)
+         {
+            // Retried with the same octets after a WANT_ code, as OpenSSL asks;
+            // a write it takes, it takes whole.
+            const int written = SSL_write(connection.tls_session, bytes, chunk);
+            if (written > 0)
+            {
+               bytes += written;
+               left -= static_cast<size_t>(written);
+               continue;
+            }
+
+            const int error = SSL_get_error(connection.tls_session, written);
+            if (error == SSL_ERROR_WANT_READ)
+               waitToRead = true;
+            else if (error != SSL_ERROR_WANT_WRITE)
+            {
+               ERR_clear_error();
+               connection.write_failed = true;
+               return;
+            }
+         }
+         else
+         {
+            const int written = send(connection.socket, bytes, chunk, 0);
+            if (written > 0)
+            {
+               bytes += written;
+               left -= static_cast<size_t>(written);
+               continue;
+            }
+
+            if (written < 0 && !WouldBlock())
+            {
+               connection.write_failed = true;
+               return;
+            }
+         }
+
+         if (!WaitForSocket_(connection, !waitToRead, deadline))
+         {
+            connection.write_failed = true;
+            return;
+         }
+      }
    }
 
    bool
    ManageSieveServer::ReadLine_(Connection &connection, String &line)
    {
+      // A response that could not be written whole leaves the client and this
+      // server out of step, and a client that does not read is not served.
+      if (connection.write_failed)
+         return false;
+
+      // The whole line within LineSeconds of now, however it is cut up.
+      connection.step_deadline = SecondsFromNow(LineSeconds);
+
       for (;;)
       {
          size_t pos = connection.buffer.find("\r\n");
@@ -1038,6 +1232,12 @@ namespace HM
    bool
    ManageSieveServer::ReadBytes_(Connection &connection, int count, String &data)
    {
+      if (connection.write_failed)
+         return false;
+
+      // The whole literal within LiteralSeconds of now.
+      connection.step_deadline = SecondsFromNow(LiteralSeconds);
+
       while (static_cast<int>(connection.buffer.size()) < count)
       {
          char temp[4096];
@@ -1267,10 +1467,20 @@ namespace HM
    void
    ManageSieveServer::HandleClient_(Connection &connection, const IPAddress &client_address, bool require_tls_for_auth)
    {
-      // Thirty seconds for each read and write, in the form each platform takes:
-      // until 6.3.6 Linux was handed the Windows form, refused it, and a client that
-      // connected and said nothing held this one-at-a-time listener for good.
-      AcceptLoop::SetTimeouts(connection.socket, 30000);
+      // Every wait for this socket is held to the connection's deadlines
+      // (IdleSeconds, LineSeconds, LiteralSeconds, PreAuthenticationSeconds),
+      // which a non-blocking socket lets each read, write and handshake step
+      // keep to. Until 6.3.6 each read had 30 seconds and nothing bounded the
+      // whole, so a client that sent an octet every 29 seconds held this
+      // one-at-a-time listener for good; and before that, on Linux, a client
+      // that said nothing did (the Windows form of the timeout, refused).
+      if (!MakeNonBlocking(connection.socket))
+      {
+         LOG_DEBUG("ManageSieveServer: The connection's socket could not be made non-blocking. Closing the connection.");
+         return;
+      }
+
+      connection.session_deadline = SecondsFromNow(PreAuthenticationSeconds);
 
       // Recorded on the connection before the greeting is built, because the greeting
       // is the first thing that has to reflect it: SendCapabilities_ decides whether
@@ -1302,7 +1512,17 @@ namespace HM
       {
          String line;
          if (!ReadLine_(connection, line))
+         {
+            if (connection.out_of_time)
+            {
+               String message;
+               message.Format(_T("ManageSieveServer: The connection from %s took longer than it is allowed to and was closed."),
+                  String(client_address.ToString()).c_str());
+               LOG_DEBUG(message);
+            }
+
             break;
+         }
 
          // Counted before the line is parsed, so that empty lines - which take the
          // "Empty command." path below and never reach any other counter - are
@@ -1429,6 +1649,9 @@ namespace HM
             {
                authenticated = true;
                accountAddress = authenticatedAddress;
+
+               // Signed in: each step keeps its own deadline, the session has none.
+               connection.session_deadline = std::chrono::steady_clock::time_point::max();
             }
 
             continue;
@@ -1450,6 +1673,11 @@ namespace HM
             // reset the auto-ban bookkeeping mid-connection.
             authenticated = false;
             accountAddress = _T("");
+
+            // Unauthenticated again, and as much time to sign in as a new
+            // connection has.
+            connection.session_deadline = SecondsFromNow(PreAuthenticationSeconds);
+
             Send_(connection, "OK\r\n");
             continue;
          }

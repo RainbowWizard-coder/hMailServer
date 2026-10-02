@@ -5,6 +5,11 @@
 #include "StdAfx.h"
 #include "DeflateStreams.h"
 
+#include <algorithm>
+#include <limits>
+#include <stdexcept>
+#include <string>
+
 // zlib: on Windows the copy vendored under Server/zlib, which hMailServer.exe
 // compiles in; on POSIX the distribution's, whose library CMakeLists.txt links,
 // so the header and the library are one version (and the source tarball can
@@ -94,23 +99,41 @@ namespace HM
    }
 
    bool
-   DeflateStreams::Inflate(const char *compressed, size_t length, std::string &output, std::string &error)
+   DeflateStreams::Inflate(const char *compressed, size_t length, size_t output_limit, std::string &output,
+                           size_t &consumed, bool &limit_reached, std::string &error)
    {
+      consumed = 0;
+      limit_reached = false;
+
       if (!started_)
       {
          error = "compression is not active";
          return false;
       }
 
+      // zlib counts in uInt; what is offered beyond that is simply not consumed,
+      // and the caller gives it again.
+      const uInt offered = length > std::numeric_limits<uInt>::max() ? std::numeric_limits<uInt>::max() : (uInt) length;
+
       z_stream &stream = state_->inflate;
       stream.next_in = (Bytef *) compressed;
-      stream.avail_in = (uInt) length;
+      stream.avail_in = offered;
 
+      size_t produced_in_all = 0;
       char buffer[16384];
-      while (stream.avail_in > 0)
+      for (;;)
       {
+         // Until 6.3.6 there was no limit: one read of 64 KB of zeros inflated to
+         // some 45 MB, all of it held for the connection at once.
+         if (produced_in_all >= output_limit)
+         {
+            limit_reached = true;
+            break;
+         }
+
+         const size_t room = std::min(sizeof(buffer), output_limit - produced_in_all);
          stream.next_out = (Bytef *) buffer;
-         stream.avail_out = sizeof(buffer);
+         stream.avail_out = (uInt) room;
 
          int code = inflate(&stream, Z_SYNC_FLUSH);
          if (code != Z_OK && code != Z_BUF_ERROR && code != Z_STREAM_END)
@@ -119,9 +142,12 @@ namespace HM
             return false;
          }
 
-         size_t produced = sizeof(buffer) - stream.avail_out;
+         const size_t produced = room - stream.avail_out;
          if (produced > 0)
+         {
             output.append(buffer, produced);
+            produced_in_all += produced;
+         }
 
          // Z_STREAM_END: the peer finished its stream, which RFC 4978 does not
          // provide for. Whatever follows is not DEFLATE; stop here rather than
@@ -136,12 +162,16 @@ namespace HM
             break;
          }
 
-         // Nothing consumed and nothing produced: zlib wants more input than it
-         // has, which is the normal state between segments.
-         if (code == Z_BUF_ERROR && produced == 0)
+         // Room left over: zlib has used all the input it can and has nothing more
+         // to give until more arrives, which is the normal state between segments.
+         // A buffer filled to the last octet may have more behind it - a match
+         // that runs on past it - even when the input is all consumed, so that is
+         // asked again rather than left in zlib until the peer sends something.
+         if (stream.avail_out != 0)
             break;
       }
 
+      consumed = offered - stream.avail_in;
       return true;
    }
 
@@ -182,5 +212,150 @@ namespace HM
       }
 
       return true;
+   }
+
+   // ---- the tester --------------------------------------------------------
+
+   namespace
+   {
+      void ExpectInflation_(bool condition, const std::string &message)
+      {
+         if (!condition)
+            throw std::logic_error("DeflateStreamsTester: " + message);
+      }
+
+      std::string Deflated_(const std::string &plain)
+      {
+         DeflateStreams writer;
+         ExpectInflation_(writer.Start(), "zlib refused to start a deflater");
+
+         std::string compressed;
+         std::string error;
+         ExpectInflation_(writer.Deflate(plain.data(), plain.size(), compressed, error), "Deflate failed: " + error);
+         return compressed;
+      }
+
+      // Everything of compressed, inflated in calls of no more than output_limit plain
+      // octets each, as TCPConnection inflates: what a call did not take is given
+      // to the next, and a call the limit stopped is followed by another even
+      // when no input is left, for what zlib still holds.
+      std::string InflatedInPieces_(const std::string &compressed, size_t output_limit, size_t &calls)
+      {
+         DeflateStreams reader;
+         ExpectInflation_(reader.Start(), "zlib refused to start an inflater");
+
+         std::string whole;
+         size_t offset = 0;
+         calls = 0;
+
+         for (;;)
+         {
+            std::string piece;
+            size_t consumed = 0;
+            bool limit_reached = false;
+            std::string error;
+
+            ExpectInflation_(reader.Inflate(compressed.data() + offset, compressed.size() - offset, output_limit, piece, consumed, limit_reached, error),
+               "a piece did not inflate: " + error);
+            ExpectInflation_(piece.size() <= output_limit,
+               "a call made " + std::to_string(piece.size()) + " octets with a limit of " + std::to_string(output_limit));
+            ExpectInflation_(consumed <= compressed.size() - offset, "a call took more octets than it was given");
+            ExpectInflation_(limit_reached || consumed == compressed.size() - offset,
+               "a call stopped short of its input with the limit not reached");
+
+            whole += piece;
+            offset += consumed;
+            calls++;
+
+            if (!limit_reached)
+               break;
+
+            ExpectInflation_(calls <= compressed.size() * 1100 / (output_limit > 0 ? output_limit : 1) + 16, "the pieces never came to an end");
+         }
+
+         return whole;
+      }
+   }
+
+   void
+   DeflateStreamsTester::Test()
+   {
+      // A round trip of two responses, with room to spare.
+      {
+         const std::string text = "* CAPABILITY IMAP4rev1 COMPRESS=DEFLATE\r\nA1 OK CAPABILITY completed\r\n";
+         const std::string compressed = Deflated_(text);
+
+         DeflateStreams reader;
+         ExpectInflation_(reader.Start(), "zlib refused to start an inflater");
+
+         std::string plain;
+         size_t consumed = 0;
+         bool limitReached = true;
+         std::string error;
+         ExpectInflation_(reader.Inflate(compressed.data(), compressed.size(), 1 << 20, plain, consumed, limitReached, error), "the round trip did not inflate: " + error);
+         ExpectInflation_(plain == text, "the round trip came back as something else");
+         ExpectInflation_(consumed == compressed.size() && !limitReached, "the round trip did not take all of its input");
+      }
+
+      // Four megabytes of one command line, which DEFLATE makes some hundreds of
+      // times smaller: what one read of a mailbox user's COMPRESS session can
+      // carry. Inflated with the limit TCPConnection uses - twice its receive
+      // buffer's 250,000 octets - it comes out in pieces no larger than that, and
+      // whole. Until 6.3.6 one call made all of it.
+      {
+         const size_t fourMegabytes = static_cast<size_t>(4) * 1024 * 1024;
+         std::string lines;
+         lines.reserve(fourMegabytes);
+         while (lines.size() < fourMegabytes)
+            lines += "a NOOP\r\n";
+
+         const std::string compressed = Deflated_(lines);
+         ExpectInflation_(compressed.size() * 100 < lines.size(),
+            "four megabytes of one line deflated to " + std::to_string(compressed.size()) + " octets, which is not the ratio this test is about");
+
+         size_t calls = 0;
+         const std::string whole = InflatedInPieces_(compressed, 500000, calls);
+         ExpectInflation_(whole == lines, "the pieces put together are not the lines that were deflated");
+         ExpectInflation_(calls > lines.size() / 500000, "the lines came out in " + std::to_string(calls) + " calls, fewer than the limit allows");
+      }
+
+      // One octet at a time: the limit stops zlib inside a match, with every
+      // input octet taken and the rest of the match still in zlib, which the
+      // next call - given no input at all - has to bring out.
+      {
+         const std::string run = std::string(100000, 'A') + "\r\n";
+         size_t calls = 0;
+         const std::string whole = InflatedInPieces_(Deflated_(run), 1, calls);
+         ExpectInflation_(whole == run, "a run inflated one octet at a time came back as something else");
+      }
+
+      // A limit of nothing makes nothing and takes nothing.
+      {
+         const std::string compressed = Deflated_("A1 NOOP\r\n");
+
+         DeflateStreams reader;
+         ExpectInflation_(reader.Start(), "zlib refused to start an inflater");
+
+         std::string plain;
+         size_t consumed = 1;
+         bool limitReached = false;
+         std::string error;
+         ExpectInflation_(reader.Inflate(compressed.data(), compressed.size(), 0, plain, consumed, limitReached, error), "a limit of nothing failed: " + error);
+         ExpectInflation_(plain.empty() && consumed == 0 && limitReached, "a limit of nothing made or took something");
+      }
+
+      // A block type DEFLATE does not have (11) is refused, not read on.
+      {
+         DeflateStreams reader;
+         ExpectInflation_(reader.Start(), "zlib refused to start an inflater");
+
+         const std::string corrupt("\xff\xff\xff\xff", 4);
+         std::string plain;
+         size_t consumed = 0;
+         bool limitReached = false;
+         std::string error;
+         ExpectInflation_(!reader.Inflate(corrupt.data(), corrupt.size(), 1 << 20, plain, consumed, limitReached, error), "a corrupt stream was inflated");
+         ExpectInflation_(!error.empty(), "a corrupt stream was refused without saying why");
+      }
    }
 }

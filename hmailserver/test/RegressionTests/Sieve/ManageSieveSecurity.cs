@@ -75,6 +75,10 @@ namespace RegressionTests.Sieve
       // Must match ManageSieveServer::MaxSaslResponseSize.
       private const int MaxSaslResponseSize = 8192;
 
+      // Must match ManageSieveServer::LineSeconds and PreAuthenticationSeconds.
+      private const int LineSeconds = 30;
+      private const int PreAuthenticationSeconds = 60;
+
       private void WriteSetting(string key, string value)
       {
          IniFileSetting.Write(key, value);
@@ -252,6 +256,53 @@ namespace RegressionTests.Sieve
             byte[] bytes = Encoding.UTF8.GetBytes(text);
             _stream.Write(bytes, 0, bytes.Length);
             _stream.Flush();
+         }
+
+         // Sends the octets one at a time, intervalMilliseconds apart, until the
+         // server closes the connection. The seconds that took, or -1 when it was
+         // still open after maxSeconds.
+         public double TrickleUntilClosed(byte[] octets, int intervalMilliseconds, int maxSeconds)
+         {
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+            int next = 0;
+            while (watch.Elapsed.TotalSeconds < maxSeconds)
+            {
+               if (IsClosedByServer())
+                  return watch.Elapsed.TotalSeconds;
+
+               try
+               {
+                  _stream.WriteByte(octets[next % octets.Length]);
+                  _stream.Flush();
+                  next++;
+               }
+               catch (IOException)
+               {
+                  return watch.Elapsed.TotalSeconds;
+               }
+
+               System.Threading.Thread.Sleep(intervalMilliseconds);
+            }
+
+            return IsClosedByServer() ? watch.Elapsed.TotalSeconds : -1;
+         }
+
+         // Readable with nothing to read: the server has closed its side.
+         private bool IsClosedByServer()
+         {
+            Socket socket = _client.Client;
+            try
+            {
+               return socket.Poll(0, SelectMode.SelectRead) && socket.Available == 0;
+            }
+            catch (SocketException)
+            {
+               return true;
+            }
+            catch (ObjectDisposedException)
+            {
+               return true;
+            }
          }
 
          public string SendCommand(string command)
@@ -468,6 +519,92 @@ namespace RegressionTests.Sieve
                // pre-authentication limit, not a command limit.
                for (int i = 0; i < MaxPreAuthenticationCommands * 2; i++)
                   StringAssert.StartsWith("OK", session.SendCommand("NOOP").TrimStart());
+            }
+         }
+         finally
+         {
+            StopListener();
+         }
+      }
+
+      [Test]
+      [Description("A command line that arrives an octet at a time is cut off when its deadline passes, and the next client is served; until 6.3.6 each octet renewed a 30-second read timeout and the line held the one-at-a-time listener for as long as octets kept coming.")]
+      public void ALineSentAnOctetAtATimeIsCutOffAtItsDeadline()
+      {
+         StartListener();
+
+         try
+         {
+            using (var session = new Session())
+            {
+               session.ReadResponse(); // greeting
+
+               // An octet a second, and never a line break.
+               double seconds = session.TrickleUntilClosed(Encoding.ASCII.GetBytes("NOOP"), 1000, LineSeconds + 20);
+
+               Assert.IsTrue(seconds >= 0,
+                  "The connection was still open after " + (LineSeconds + 20) + " seconds of a line that never ended: nothing bounds a line as a whole.");
+               Assert.IsTrue(seconds >= LineSeconds - 5,
+                  "The line was cut after " + seconds + " seconds, well before its " + LineSeconds + "-second deadline.");
+            }
+
+            // The listener is free again, and serves the next client at once.
+            using (var session = new Session())
+            {
+               StringAssert.Contains("OK", session.ReadResponse(), "The next client is greeted.");
+               StringAssert.Contains("IMPLEMENTATION", session.SendCommand("CAPABILITY"));
+            }
+         }
+         finally
+         {
+            StopListener();
+         }
+      }
+
+      [Test]
+      [Description("A client that sends complete commands but never signs in is cut off when the pre-authentication deadline passes, well before the command budget would stop it.")]
+      public void AClientThatNeverSignsInIsCutOffAtThePreAuthenticationDeadline()
+      {
+         StartListener();
+
+         try
+         {
+            using (var session = new Session())
+            {
+               session.ReadResponse(); // greeting
+
+               // A NOOP every ten seconds: each line arrives whole and in time, and
+               // seven of them are far inside the budget of 25. Until 6.3.6 the
+               // session lasted until the budget was spent, some four minutes.
+               var watch = System.Diagnostics.Stopwatch.StartNew();
+               bool closed = false;
+               while (watch.Elapsed.TotalSeconds < PreAuthenticationSeconds + 20)
+               {
+                  string response;
+                  try
+                  {
+                     response = session.SendCommand("NOOP");
+                  }
+                  catch (IOException)
+                  {
+                     closed = true;
+                     break;
+                  }
+
+                  if (response.Length == 0)
+                  {
+                     closed = true;
+                     break;
+                  }
+
+                  System.Threading.Thread.Sleep(10000);
+               }
+
+               double seconds = watch.Elapsed.TotalSeconds;
+               Assert.IsTrue(closed,
+                  "A client that never signed in was still served after " + (int) seconds + " seconds; the pre-authentication phase has no deadline.");
+               Assert.IsTrue(seconds >= PreAuthenticationSeconds - 5,
+                  "The session was cut after " + (int) seconds + " seconds, well before the " + PreAuthenticationSeconds + "-second deadline.");
             }
          }
          finally

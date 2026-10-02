@@ -17,8 +17,11 @@ namespace HM
       /// The type of the function object's result.
       typedef bool result_type;
 
-      /// Constructor.
-      CertificateVerifier(int session_id, ConnectionSecurity connection_security,  const String &host_name);
+      /// Constructor. forgive_failure: a certificate that does not verify is
+      /// accepted, as on an opportunistic connection, although TLS itself is
+      /// required - RFC 7672 section 2.2's DNSSEC-validated TLSA records of
+      /// which none is usable, where TLS is required and authentication not.
+      CertificateVerifier(int session_id, ConnectionSecurity connection_security,  const String &host_name, bool forgive_failure = false);
 
       /// Perform certificate verification.
       bool operator()(bool preverified, boost::asio::ssl::verify_context& ctx) const;
@@ -46,6 +49,7 @@ namespace HM
       ConnectionSecurity connection_security_;
       String host_name_;
       int session_id_;
+      bool forgive_failure_;
    };
 
    // Verifies the certificate an INBOUND session presents when a port's

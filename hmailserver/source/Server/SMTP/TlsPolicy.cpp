@@ -35,9 +35,15 @@
 #include <cstring>
 #endif
 
+#include <openssl/err.h>
+#include <openssl/evp.h>
 #include <openssl/rand.h>
+#include <openssl/ssl.h>
+#include <openssl/x509v3.h>
 
 #include <ctime>
+#include <stdexcept>
+#include <string>
 
 #ifdef _MSC_VER
 #pragma comment(lib, "iphlpapi.lib")
@@ -590,9 +596,10 @@ namespace HM
          {
          case DnssecResolver::ChainStatus::Secure:
             {
-               std::vector<TlsaRecord> usable = FilterUsableTlsaRecords_(rawRecords);
+               std::vector<TlsaRecord> usable;
+               status = ClassifyValidatedTlsa(rawRecords, usable);
 
-               if (!usable.empty() && mx_status == MxDnssecStatus::Unknown)
+               if (status == TlsaLookupStatus::DnssecValidated && mx_status == MxDnssecStatus::Unknown)
                {
                   // The caller did not supply the MX RRset's DNSSEC status, so
                   // the section 2.2 check could not be completed. Enforce the
@@ -601,7 +608,9 @@ namespace HM
                   LOG_DEBUG("DANE: Enforcing TLSA records for " + host_name + " without knowing whether the MX RRset that named it was DNSSEC-validated (RFC 7672 section 2.2).");
                }
 
-               status = usable.empty() ? TlsaLookupStatus::NoRecords : TlsaLookupStatus::DnssecValidated;
+               if (status == TlsaLookupStatus::Unusable)
+                  LOG_DEBUG("DANE: The DNSSEC-validated TLSA records of " + host_name + " include none this server can use. TLS is required, without authentication (RFC 7672 section 2.2).");
+
                return usable;
             }
 
@@ -622,22 +631,35 @@ namespace HM
       return records;
    }
 
+   TlsPolicy::TlsaLookupStatus
+   TlsPolicy::ClassifyValidatedTlsa(const std::vector<TlsaRecord> &records, std::vector<TlsaRecord> &usable)
+   {
+      usable = FilterUsableTlsaRecords_(records);
+
+      if (!usable.empty())
+         return TlsaLookupStatus::DnssecValidated;
+
+      // RFC 7672 section 2.2: a secure, non-empty RRset none of whose records
+      // is usable still says the host does TLS, and any connection to it MUST
+      // be made over TLS, unauthenticated. Until 6.3.6 it was taken for no
+      // records at all, and an attacker who took the STARTTLS offer away had
+      // the message in the clear - for every domain publishing DANE-TA records
+      // only, which this server did not use before 6.3.6 either.
+      return records.empty() ? TlsaLookupStatus::NoRecords : TlsaLookupStatus::Unusable;
+   }
+
    std::vector<TlsaRecord>
    TlsPolicy::FilterUsableTlsaRecords_(const std::vector<TlsaRecord> &records)
    {
-      // Keep only records we can act on: DANE-EE (usage 3) with a
-      // supported selector and matching type.
+      // Keep only records we can act on: DANE-TA (usage 2) and DANE-EE
+      // (usage 3) with a supported selector and matching type and data
+      // OpenSSL takes for them (DaneVerifier::IsUsable). Until 6.3.6, DANE-EE
+      // alone.
       std::vector<TlsaRecord> result;
 
       for (const TlsaRecord &record : records)
       {
-         if (record.usage != 3)
-            continue;
-         if (record.selector != 0 && record.selector != 1)
-            continue;
-         if (record.matching_type < 0 || record.matching_type > 2)
-            continue;
-         if (record.data.empty())
+         if (!DaneVerifier::IsUsable(record))
             continue;
 
          result.push_back(record);
@@ -1019,5 +1041,401 @@ namespace HM
       }
 
       return true;
+   }
+   // ---- the tester --------------------------------------------------------
+
+   namespace
+   {
+      void ExpectDane_(bool condition, const std::string &message)
+      {
+         if (!condition)
+         {
+            ERR_clear_error();
+            throw std::logic_error("DaneTester: " + message);
+         }
+      }
+
+      struct KeyFree_ { void operator()(EVP_PKEY *key) const { EVP_PKEY_free(key); } };
+      struct CertificateFree_ { void operator()(X509 *certificate) const { X509_free(certificate); } };
+      typedef std::unique_ptr<EVP_PKEY, KeyFree_> TestKey_;
+      typedef std::unique_ptr<X509, CertificateFree_> TestCertificate_;
+
+      TestKey_ NewKey_()
+      {
+         TestKey_ key(EVP_EC_gen("prime256v1"));
+         ExpectDane_(key != nullptr, "OpenSSL made no P-256 key");
+         return key;
+      }
+
+      void AddExtension_(X509 *certificate, X509 *issuer, int nid, const char *value)
+      {
+         X509V3_CTX context;
+         X509V3_set_ctx_nodb(&context);
+         X509V3_set_ctx(&context, issuer, certificate, nullptr, nullptr, 0);
+
+         X509_EXTENSION *extension = X509V3_EXT_conf_nid(nullptr, &context, nid, value);
+         ExpectDane_(extension != nullptr, std::string("the extension ") + value + " was not made");
+         const bool added = X509_add_ext(certificate, extension, -1) == 1;
+         X509_EXTENSION_free(extension);
+         ExpectDane_(added, std::string("the extension ") + value + " was not added");
+      }
+
+      // A certificate for key, issued by issuer with issuer_key (itself when
+      // issuer is null): an authority, or a server certificate naming dns_name,
+      // valid from an hour ago for valid_days days (a negative number: expired).
+      TestCertificate_ NewCertificate_(const char *common_name, EVP_PKEY *key, X509 *issuer, EVP_PKEY *issuer_key,
+                                       bool authority, const char *dns_name, long valid_days)
+      {
+         TestCertificate_ certificate(X509_new());
+         ExpectDane_(certificate != nullptr, "OpenSSL made no certificate");
+
+         static long serial = 1;
+         X509_set_version(certificate.get(), X509_VERSION_3);
+         ASN1_INTEGER_set(X509_get_serialNumber(certificate.get()), serial++);
+
+         // A name of its own, set as the subject: OpenSSL 4 hands back the
+         // certificate's own as const.
+         X509_NAME *name = X509_NAME_new();
+         ExpectDane_(name != nullptr, "OpenSSL made no name");
+         const bool named = X509_NAME_add_entry_by_txt(name, "CN", MBSTRING_ASC, reinterpret_cast<const unsigned char *>(common_name), -1, -1, 0) == 1 &&
+                            X509_set_subject_name(certificate.get(), name) == 1 &&
+                            X509_set_issuer_name(certificate.get(), issuer != nullptr ? X509_get_subject_name(issuer) : name) == 1;
+         X509_NAME_free(name);
+         ExpectDane_(named, std::string("the certificate ") + common_name + " was not named");
+
+         if (valid_days >= 0)
+         {
+            X509_gmtime_adj(X509_getm_notBefore(certificate.get()), -3600);
+            X509_gmtime_adj(X509_getm_notAfter(certificate.get()), valid_days * 86400);
+         }
+         else
+         {
+            X509_gmtime_adj(X509_getm_notBefore(certificate.get()), (valid_days - 30) * 86400);
+            X509_gmtime_adj(X509_getm_notAfter(certificate.get()), valid_days * 86400);
+         }
+
+         X509_set_pubkey(certificate.get(), key);
+
+         X509 *signer = issuer != nullptr ? issuer : certificate.get();
+         if (authority)
+         {
+            AddExtension_(certificate.get(), signer, NID_basic_constraints, "critical,CA:TRUE");
+            AddExtension_(certificate.get(), signer, NID_key_usage, "critical,keyCertSign,cRLSign");
+         }
+         else
+         {
+            AddExtension_(certificate.get(), signer, NID_basic_constraints, "critical,CA:FALSE");
+            AddExtension_(certificate.get(), signer, NID_ext_key_usage, "serverAuth");
+            std::string alternative = std::string("DNS:") + dns_name;
+            AddExtension_(certificate.get(), signer, NID_subject_alt_name, alternative.c_str());
+         }
+
+         ExpectDane_(X509_sign(certificate.get(), issuer_key != nullptr ? issuer_key : key, EVP_sha256()) > 0,
+            std::string("the certificate ") + common_name + " was not signed");
+         return certificate;
+      }
+
+      std::string Sha256_(const std::string &data)
+      {
+         unsigned char digest[EVP_MAX_MD_SIZE];
+         unsigned int length = 0;
+         ExpectDane_(EVP_Digest(data.data(), data.size(), digest, &length, EVP_sha256(), nullptr) == 1, "SHA-256 failed");
+         return std::string(reinterpret_cast<const char *>(digest), length);
+      }
+
+      std::string Sha512_(const std::string &data)
+      {
+         unsigned char digest[EVP_MAX_MD_SIZE];
+         unsigned int length = 0;
+         ExpectDane_(EVP_Digest(data.data(), data.size(), digest, &length, EVP_sha512(), nullptr) == 1, "SHA-512 failed");
+         return std::string(reinterpret_cast<const char *>(digest), length);
+      }
+
+      std::string CertificateDer_(X509 *certificate)
+      {
+         const int length = i2d_X509(certificate, nullptr);
+         ExpectDane_(length > 0, "a certificate had no DER form");
+         std::string der(static_cast<size_t>(length), '\0');
+         unsigned char *cursor = reinterpret_cast<unsigned char *>(&der[0]);
+         i2d_X509(certificate, &cursor);
+         return der;
+      }
+
+      std::string SpkiDer_(EVP_PKEY *key)
+      {
+         const int length = i2d_PUBKEY(key, nullptr);
+         ExpectDane_(length > 0, "a key had no SubjectPublicKeyInfo");
+         std::string der(static_cast<size_t>(length), '\0');
+         unsigned char *cursor = reinterpret_cast<unsigned char *>(&der[0]);
+         i2d_PUBKEY(key, &cursor);
+         return der;
+      }
+
+      TlsaRecord Record_(int usage, int selector, int matching_type, const std::string &data)
+      {
+         TlsaRecord record;
+         record.usage = usage;
+         record.selector = selector;
+         record.matching_type = matching_type;
+         record.data = data;
+         return record;
+      }
+
+      // The verify callback a connection gets, through DaneVerifier itself.
+      int VerifyThroughDaneVerifier_(int preverified, X509_STORE_CTX *store)
+      {
+         boost::asio::ssl::verify_context context(store);
+         return DaneVerifier(0)(preverified != 0, context) ? 1 : 0;
+      }
+
+      // One TLS handshake in memory: a server presenting leaf and chain, a
+      // client armed with records for host_name as TCPConnection arms an
+      // outbound connection. True when the client finished it with the
+      // certificate verified; usage and depth are those of the record that
+      // authenticated it (SSL_get0_dane_tlsa), -1 when none did.
+      bool Handshake_(X509 *leaf, EVP_PKEY *leaf_key, const std::vector<X509 *> &chain, const char *host_name,
+                      const std::vector<TlsaRecord> &records, int &usage, int &depth)
+      {
+         usage = -1;
+         depth = -1;
+
+         SSL_CTX *serverContext = SSL_CTX_new(TLS_server_method());
+         SSL_CTX *clientContext = SSL_CTX_new(TLS_client_method());
+         ExpectDane_(serverContext != nullptr && clientContext != nullptr, "OpenSSL made no context");
+
+         bool ready = SSL_CTX_use_certificate(serverContext, leaf) == 1 &&
+                      SSL_CTX_use_PrivateKey(serverContext, leaf_key) == 1 &&
+                      SSL_CTX_dane_enable(clientContext) > 0;
+         for (X509 *certificate : chain)
+            ready = ready && SSL_CTX_add1_chain_cert(serverContext, certificate) == 1;
+
+         SSL *server = ready ? SSL_new(serverContext) : nullptr;
+         SSL *client = ready ? SSL_new(clientContext) : nullptr;
+         ready = ready && server != nullptr && client != nullptr;
+
+         bool finished = false;
+         if (ready)
+         {
+            SSL_set_verify(client, SSL_VERIFY_PEER, &VerifyThroughDaneVerifier_);
+
+            if (DaneVerifier::Arm(client, host_name, records, 0) > 0)
+            {
+               BIO *clientEnd = nullptr;
+               BIO *serverEnd = nullptr;
+               ExpectDane_(BIO_new_bio_pair(&clientEnd, 0, &serverEnd, 0) == 1, "OpenSSL made no BIO pair");
+               SSL_set_bio(client, clientEnd, clientEnd);
+               SSL_set_bio(server, serverEnd, serverEnd);
+               SSL_set_connect_state(client);
+               SSL_set_accept_state(server);
+
+               bool clientDone = false;
+               bool serverDone = false;
+               bool failed = false;
+               for (int round = 0; round < 64 && !failed && !(clientDone && serverDone); round++)
+               {
+                  if (!clientDone)
+                  {
+                     const int result = SSL_do_handshake(client);
+                     const int error = result == 1 ? SSL_ERROR_NONE : SSL_get_error(client, result);
+                     clientDone = result == 1;
+                     failed = !clientDone && error != SSL_ERROR_WANT_READ && error != SSL_ERROR_WANT_WRITE;
+                  }
+
+                  if (!serverDone && !failed)
+                  {
+                     const int result = SSL_do_handshake(server);
+                     const int error = result == 1 ? SSL_ERROR_NONE : SSL_get_error(server, result);
+                     serverDone = result == 1;
+                     // The server's own failure is the client's refusal, read
+                     // on the next round; it ends the loop either way.
+                     if (!serverDone && error != SSL_ERROR_WANT_READ && error != SSL_ERROR_WANT_WRITE)
+                        break;
+                  }
+               }
+
+               finished = clientDone && !failed && SSL_get_verify_result(client) == X509_V_OK;
+
+               uint8_t matchedUsage = 0;
+               const int matchedDepth = SSL_get0_dane_tlsa(client, &matchedUsage, nullptr, nullptr, nullptr, nullptr);
+               if (finished && matchedDepth >= 0)
+               {
+                  usage = matchedUsage;
+                  depth = matchedDepth;
+               }
+            }
+         }
+
+         SSL_free(client);
+         SSL_free(server);
+         SSL_CTX_free(clientContext);
+         SSL_CTX_free(serverContext);
+         ERR_clear_error();
+
+         ExpectDane_(ready, "the handshake's contexts could not be set up");
+         return finished;
+      }
+   }
+
+   void
+   DaneTester::Test()
+   {
+      // The keys and certificates: an authority, an intermediate it issued
+      // (the DANE-TA records' anchor), server certificates for mx.dane.test,
+      // for another name and out of date, a self-signed certificate for
+      // DANE-EE, and a key nothing is issued to.
+      TestKey_ rootKey = NewKey_();
+      TestKey_ intermediateKey = NewKey_();
+      TestKey_ leafKey = NewKey_();
+      TestKey_ strangerKey = NewKey_();
+
+      TestCertificate_ root = NewCertificate_("DANE test root", rootKey.get(), nullptr, nullptr, true, nullptr, 365);
+      TestCertificate_ intermediate = NewCertificate_("DANE test intermediate", intermediateKey.get(), root.get(), rootKey.get(), true, nullptr, 365);
+      TestCertificate_ leaf = NewCertificate_("mx.dane.test", leafKey.get(), intermediate.get(), intermediateKey.get(), false, "mx.dane.test", 30);
+      TestCertificate_ otherName = NewCertificate_("other.example", leafKey.get(), intermediate.get(), intermediateKey.get(), false, "other.example", 30);
+      TestCertificate_ expired = NewCertificate_("mx.dane.test", leafKey.get(), intermediate.get(), intermediateKey.get(), false, "mx.dane.test", -1);
+      TestCertificate_ selfSigned = NewCertificate_("unrelated.example", leafKey.get(), nullptr, nullptr, false, "unrelated.example", 30);
+
+      const std::string intermediateSpki = SpkiDer_(intermediateKey.get());
+      const TlsaRecord taIntermediate = Record_(2, 1, 1, Sha256_(intermediateSpki));
+      const TlsaRecord taStranger = Record_(2, 1, 1, Sha256_(SpkiDer_(strangerKey.get())));
+      const TlsaRecord taRootCertificate = Record_(2, 0, 1, Sha256_(CertificateDer_(root.get())));
+      const TlsaRecord eeSelfSigned = Record_(3, 1, 1, Sha256_(SpkiDer_(leafKey.get())));
+      const TlsaRecord eeStranger = Record_(3, 1, 1, Sha256_(SpkiDer_(strangerKey.get())));
+
+      // Which records are usable (RFC 7672 sections 3.1 and 2.2).
+      {
+         struct UsableCase
+         {
+            TlsaRecord record;
+            bool usable = false;
+            const char *why = nullptr;
+         };
+
+         const UsableCase cases[] =
+         {
+            { taIntermediate, true, "DANE-TA, the key's SHA-256 (2 1 1)" },
+            { eeStranger, true, "DANE-EE, the key's SHA-256 (3 1 1)" },
+            { Record_(2, 0, 2, Sha512_(CertificateDer_(intermediate.get()))), true, "DANE-TA, the certificate's SHA-512 (2 0 2)" },
+            { Record_(2, 0, 0, CertificateDer_(intermediate.get())), true, "DANE-TA, the whole certificate (2 0 0)" },
+            { Record_(2, 1, 0, intermediateSpki), true, "DANE-TA, the whole key (2 1 0)" },
+            { Record_(0, 1, 1, taIntermediate.data), false, "PKIX-TA, which SMTP does not use (0 1 1)" },
+            { Record_(1, 1, 1, taIntermediate.data), false, "PKIX-EE, which SMTP does not use (1 1 1)" },
+            { Record_(4, 1, 1, taIntermediate.data), false, "a usage that does not exist (4 1 1)" },
+            { Record_(2, 2, 1, taIntermediate.data), false, "a selector that does not exist (2 2 1)" },
+            { Record_(2, 1, 3, taIntermediate.data), false, "a matching type that does not exist (2 1 3)" },
+            { Record_(2, 1, 1, taIntermediate.data.substr(1)), false, "a SHA-256 an octet short" },
+            { Record_(2, 1, 2, taIntermediate.data), false, "a SHA-512 the length of a SHA-256" },
+            { Record_(2, 1, 1, std::string()), false, "no data" },
+            { Record_(2, 0, 0, std::string("\x30\x03\x02\x01\x00", 5)), false, "a whole certificate that does not parse" },
+            { Record_(2, 1, 0, intermediateSpki + std::string(1, '\0')), false, "a whole key with an octet after it" },
+         };
+
+         for (const UsableCase &test : cases)
+            ExpectDane_(DaneVerifier::IsUsable(test.record) == test.usable,
+               std::string(test.why) + (test.usable ? " was taken as unusable" : " was taken as usable"));
+      }
+
+      // What a DNSSEC-validated RRset means for the connection (section 2.2).
+      // Until 6.3.6 every RRset without a DANE-EE record was NoRecords: no
+      // TLS required, and the message in the clear when STARTTLS was taken
+      // away; DANE-TA records were not used at all.
+      {
+         std::vector<TlsaRecord> usable;
+         ExpectDane_(TlsPolicy::ClassifyValidatedTlsa(std::vector<TlsaRecord>(), usable) == TlsPolicy::TlsaLookupStatus::NoRecords && usable.empty(),
+            "an empty RRset was not taken for no records");
+
+         std::vector<TlsaRecord> unusable;
+         unusable.push_back(Record_(0, 1, 1, taIntermediate.data));
+         unusable.push_back(Record_(1, 1, 1, taIntermediate.data));
+         unusable.push_back(Record_(2, 1, 1, taIntermediate.data.substr(1)));
+         ExpectDane_(TlsPolicy::ClassifyValidatedTlsa(unusable, usable) == TlsPolicy::TlsaLookupStatus::Unusable && usable.empty(),
+            "an RRset of PKIX and malformed records was not taken for one that requires TLS without authentication");
+
+         std::vector<TlsaRecord> trustAnchorsOnly(1, taIntermediate);
+         ExpectDane_(TlsPolicy::ClassifyValidatedTlsa(trustAnchorsOnly, usable) == TlsPolicy::TlsaLookupStatus::DnssecValidated && usable.size() == 1,
+            "an RRset of one DANE-TA record (2 1 1) was not taken for a usable one");
+
+         std::vector<TlsaRecord> mixed(unusable);
+         mixed.push_back(eeStranger);
+         ExpectDane_(TlsPolicy::ClassifyValidatedTlsa(mixed, usable) == TlsPolicy::TlsaLookupStatus::DnssecValidated &&
+                     usable.size() == 1 && usable[0].usage == 3,
+            "the one usable record of a mixed RRset was not the one kept");
+      }
+
+      // Arming a connection: the records OpenSSL took, none when none is usable.
+      {
+         SSL_CTX *context = SSL_CTX_new(TLS_client_method());
+         ExpectDane_(context != nullptr && SSL_CTX_dane_enable(context) > 0, "a client context could not have DANE");
+         SSL *ssl = SSL_new(context);
+         ExpectDane_(ssl != nullptr, "OpenSSL made no connection");
+
+         std::vector<TlsaRecord> unusable;
+         unusable.push_back(Record_(0, 1, 1, taIntermediate.data));
+         unusable.push_back(Record_(1, 0, 1, taIntermediate.data));
+         const int armedWithNone = DaneVerifier::Arm(ssl, "mx.dane.test", unusable, 0);
+         SSL_free(ssl);
+
+         ssl = SSL_new(context);
+         std::vector<TlsaRecord> two;
+         two.push_back(taIntermediate);
+         two.push_back(eeStranger);
+         const int armedWithTwo = DaneVerifier::Arm(ssl, "mx.dane.test", two, 0);
+         SSL_free(ssl);
+         SSL_CTX_free(context);
+         ERR_clear_error();
+
+         ExpectDane_(armedWithNone == 0, "a connection was armed with records none of which is usable");
+         ExpectDane_(armedWithTwo == 2, "a connection was armed with " + std::to_string(armedWithTwo) + " of two usable records");
+      }
+
+      std::vector<X509 *> chain(1, intermediate.get());
+      int usage = -1;
+      int depth = -1;
+
+      // DANE-TA: the server's chain carries the anchor the record names, and
+      // its certificate names the host. Until 6.3.6 such a record was not used.
+      ExpectDane_(Handshake_(leaf.get(), leafKey.get(), chain, "mx.dane.test", std::vector<TlsaRecord>(1, taIntermediate), usage, depth),
+         "a server whose chain carries the DANE-TA record's anchor was refused");
+      ExpectDane_(usage == 2 && depth == 1,
+         "the DANE-TA handshake was authenticated by usage " + std::to_string(usage) + " at depth " + std::to_string(depth) + ", not by the anchor at depth 1");
+
+      // The same with a DANE-EE record that does not match beside it: the
+      // DANE-TA record still authenticates.
+      {
+         std::vector<TlsaRecord> both;
+         both.push_back(eeStranger);
+         both.push_back(taIntermediate);
+         ExpectDane_(Handshake_(leaf.get(), leafKey.get(), chain, "mx.dane.test", both, usage, depth) && usage == 2,
+            "a matching DANE-TA record did not authenticate beside a DANE-EE record that does not match");
+      }
+
+      // A DANE-TA record for a key nobody issued with: refused.
+      ExpectDane_(!Handshake_(leaf.get(), leafKey.get(), chain, "mx.dane.test", std::vector<TlsaRecord>(1, taStranger), usage, depth),
+         "a server was accepted on a DANE-TA record that names another anchor");
+
+      // The anchor's digest with the anchor not in the chain: nothing to match.
+      ExpectDane_(!Handshake_(leaf.get(), leafKey.get(), std::vector<X509 *>(), "mx.dane.test", std::vector<TlsaRecord>(1, taIntermediate), usage, depth),
+         "a server that did not send the DANE-TA record's anchor was accepted");
+
+      // An anchor above the chain the server sent, by digest: not in the chain either.
+      ExpectDane_(!Handshake_(leaf.get(), leafKey.get(), chain, "mx.dane.test", std::vector<TlsaRecord>(1, taRootCertificate), usage, depth),
+         "a server was accepted on the digest of a root it did not send");
+
+      // DANE-TA is a trust anchor and nothing more: the certificate must name
+      // the host (section 3.2.2) and be in date (section 3.1.2).
+      ExpectDane_(!Handshake_(otherName.get(), leafKey.get(), chain, "mx.dane.test", std::vector<TlsaRecord>(1, taIntermediate), usage, depth),
+         "a certificate for another name was accepted under a DANE-TA record");
+      ExpectDane_(!Handshake_(expired.get(), leafKey.get(), chain, "mx.dane.test", std::vector<TlsaRecord>(1, taIntermediate), usage, depth),
+         "an expired certificate was accepted under a DANE-TA record");
+
+      // DANE-EE: the key itself is the anchor, whatever the certificate names
+      // and whoever signed it (section 3.1.1).
+      ExpectDane_(Handshake_(selfSigned.get(), leafKey.get(), std::vector<X509 *>(), "mx.dane.test", std::vector<TlsaRecord>(1, eeSelfSigned), usage, depth),
+         "a self-signed certificate for another name was refused under the DANE-EE record of its key");
+      ExpectDane_(usage == 3 && depth == 0,
+         "the DANE-EE handshake was authenticated by usage " + std::to_string(usage) + " at depth " + std::to_string(depth));
+
+      ExpectDane_(!Handshake_(selfSigned.get(), leafKey.get(), std::vector<X509 *>(), "mx.dane.test", std::vector<TlsaRecord>(1, eeStranger), usage, depth),
+         "a server was accepted on a DANE-EE record of another key");
    }
 }

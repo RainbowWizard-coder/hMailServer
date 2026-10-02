@@ -366,6 +366,32 @@ user with no hMailServer credential could through them queue mail, read and writ
 attach a fetch account to any account. This is in every version up to 6.3.5, as in the original hMailServer. Outside
 the server's own event scripts these are now refused, and reading or writing a file on the server's disk through a
 message is the server administrator's alone (What changes on upgrade, item 25). Found by the project's own review.
+An IMAP session that has turned compression on (`COMPRESS=DEFLATE`, RFC 4978) no longer has the server inflate
+whatever one read of its compressed input expands to. Every version from 6.2.28, the release that brought the
+extension, inflated all of it at once, and from 6.3.4 kept what did not fit the receive buffer and took each command
+line off the front of all of it, at a cost in proportion to everything still waiting: a signed-in mailbox user could
+hold tens of megabytes of memory per session and keep one of the TCP/IP worker threads busy for hours. The server now
+inflates no more than twice its receive buffer ahead of the commands it has read, keeps the rest compressed until
+those are taken, and takes each line at a cost of its own length. Found by the project's own review.
+
+Outbound DANE (RFC 7672) used TLSA records of usage DANE-EE (3) alone. A recipient's MX host whose DNSSEC-validated
+records were all of another kind - DANE-TA (2), the usual record for a certificate from an authority, or records this
+server cannot use - was delivered to as if it published none: over TLS when it was offered, and in the clear when it
+was not seen. The server now verifies DANE-TA as well as DANE-EE, through OpenSSL's own DANE support, and treats a
+validated set none of whose records it can use as section 2.2 of the RFC asks: TLS is required to that host, without
+authentication, a delivery that cannot have it is deferred, and TLS reports count the host under the policy type
+`tlsa` (What changes on upgrade, item 27). In every version up to 6.3.5; found by the project's own review.
+
+The ManageSieve service (off by default, and on the loopback when it is turned on) serves one connection at a time,
+and each read on a connection had a limit of its own with nothing bounding a command line, the TLS handshake after
+`STARTTLS` or the time before authentication as a whole, so one client that had not signed in could hold the service
+for as long as it kept its connection going. Every wait now runs to a deadline (What changes on upgrade, item 28).
+Since 6.2.3, the release that brought ManageSieve; found by the project's own review.
+
+The URI blocklists (SURBL, URIBL, the Spamhaus DBL) were asked about the first 16 names a message's links gave, the
+plain-text part's before the HTML part's, so that links ahead of a listed one could keep it from every list. The SURBL
+test now reads every link of both parts and chooses what to ask by a rule a message cannot steer (What changes on
+upgrade, item 29). In every version up to 6.3.5; found by the project's own review.
 
 ### What changes on upgrade without a switch
 
@@ -768,6 +794,34 @@ message is the server administrator's alone (What changes on upgrade, item 25). 
     started, 16's data unchanged, until the database is moved once - a dump taken on 16 and loaded into 18, four steps with a way
     back ([ContainerImage.md](hmailserver/docs/ContainerImage.md), "PostgreSQL 16 to 18, in the Compose file").
     A deployment that keeps its own copy of the file keeps PostgreSQL 16, on which 6.3.6 runs as before.
+27. **DANE-TA records authenticate a recipient's MX host, and a validated set of none this server can use requires
+    TLS.** A DNSSEC-validated TLSA record of usage DANE-TA (2) - selector 0 or 1, matching type 0, 1 or 2 - is now
+    used, through OpenSSL's own DANE support: the host's certificate must chain to the anchor the record names (which
+    the host sends in its chain when the record holds a digest), name the MX host and be in date. A DANE-EE (3) record
+    is matched as before, against the certificate's key or the certificate alone. A delivery to a host that publishes
+    only DANE-TA records, and whose certificate does not meet them, is now deferred where until 6.3.6 it went ahead as
+    if no record were published; and such a host that does not offer `STARTTLS` is refused with 5.7.0, as a host with
+    DANE-EE records always has been. A validated set none of whose records is usable here - PKIX-TA (0) and PKIX-EE (1),
+    which SMTP does not use, and records of values or lengths no record has - requires TLS to that host without
+    judging its certificate: a host that does not offer `STARTTLS`, or whose handshake fails, is deferred, never
+    delivered to in the clear, and TLS reports (RFC 8460) count the host under the policy type `tlsa`. An MTA-STS
+    policy in enforce mode, a remote-domain policy or a rule that asks for a certificate that verifies still has it
+    verified. Error 5510 is logged when a connection's records could not be given to OpenSSL; that delivery is
+    deferred rather than made without them.
+28. **A ManageSieve connection is held to deadlines.** A command line must arrive whole within 30 seconds of the
+    server waiting for it, which is also how long a session may sit idle between commands, as before; the TLS
+    handshake after `STARTTLS` has 30 seconds; a literal (a script, a SASL response) and the writing of each response
+    have 300 seconds; and a connection must complete `AUTHENTICATE` within 60 seconds of being accepted, or of
+    `UNAUTHENTICATE`. A connection that runs past one is closed, with a debug log line naming the client. The figures
+    are constants, far above what a client needs, and there is no setting for them.
+29. **The URI blocklists are asked about more of a message's links, chosen by a rule the message cannot steer.** The
+    SURBL test reads every link of the text part and of the HTML part of a message within the anti-spam size limit,
+    takes the hosts of one registrable domain (by the Public Suffix List) as one domain - its own names, then at most
+    two host names under it - and asks about the domains the HTML part links to before those only the text part names,
+    every domain's first name before any domain's second. Up to 48 names are asked of each list for a message, where
+    it was 16, and each list still stops after 10 seconds; when a part's domains do not all fit, they are taken in a
+    random order rather than in the order of the links, and when a domain has more than two host names linked, the
+    two asked about are drawn at random too. A message with many links makes up to 48 DNS queries per active list.
 
 ### Downloads and the release
 
@@ -2642,6 +2696,15 @@ message is the server administrator's alone (What changes on upgrade, item 25). 
   in characters, copies bounded by their arrays, string literals, the system's environment block, and two programs
   started by full path with arguments that cannot be split - none is a defect, and each is accepted in
   `.gitlab/security-exceptions.yml` with its reason, for a year.
+- **Two more tester programs: `deflate-tests` and `dane-tests`.** `DeflateStreamsTester` holds IMAP compression's
+  inflation to the limit the connection asks for - a round trip, a stream of command lines hundreds of times its
+  compressed size inflated in pieces no larger than the limit and put back whole, what zlib still holds once the input
+  is all taken, a limit of nothing and a corrupt stream refused. `DaneTester` holds outbound DANE to RFC 7672: which
+  TLSA records are usable, what a validated set of none of them means, how many records a connection is armed with,
+  and TLS handshakes in memory against certificates it makes - DANE-TA authenticating a chain that carries its anchor
+  and refusing another anchor, a missing one, another name and an expired certificate, DANE-EE authenticating its key
+  alone. Both run in ClassTester and, on Linux, in `linux-build` and in the Debian and RPM source packages' own
+  builds; `SURBLTester` (in `public-suffix-tests`) gains the choice of names the URI blocklists are asked about.
 
 Full notes: [the 6.3.6 release](https://gitlab.com/hmailserver/hmailserver/-/releases/v6.3.6).
 

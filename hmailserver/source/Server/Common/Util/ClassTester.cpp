@@ -61,6 +61,7 @@
 #include "../../SMTP/BounceTracker.h"
 #include "../../SMTP/DestinationBackoffTester.h"
 #include "../../SMTP/WarmupPlanTester.h"
+#include "../../SMTP/TlsPolicy.h"
 #include "SnmpTester.h"
 #include "XmlTreeTester.h"
 #include "InlineScriptHash.h"
@@ -84,6 +85,7 @@
 #include "../TCPIP/LocalIPAddresses.h"
 #include "../TCPIP/IPAddress.h"
 #include "../TCPIP/CertificateVerifier.h"
+#include "../TCPIP/DeflateStreams.h"
 #include "../TCPIP/SslContextInitializer.h"
 #include "../SQL/DatabaseTls.h"
 #include "Time.h"
@@ -1422,6 +1424,21 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing SignatureHtmlSanitizer\n"));
       SignatureHtmlSanitizerTester signatureHtmlSanitizerTester;
       signatureHtmlSanitizerTester.Test();
+
+      // IMAP COMPRESS=DEFLATE's inflation, in pieces no larger than the limit the
+      // connection asks for: a round trip, a stream of command lines hundreds of
+      // times its compressed size put back whole, what zlib holds after the input
+      // is all taken, a limit of nothing, and a corrupt stream refused.
+      OutputDebugString(_T("hMailServer: Testing DeflateStreams\n"));
+      DeflateStreamsTester deflateStreamsTester;
+      deflateStreamsTester.Test();
+
+      // DANE as an outbound connection does it: the usable TLSA records, a
+      // validated RRset of none requiring TLS without authentication, and
+      // handshakes in memory for DANE-TA and DANE-EE.
+      OutputDebugString(_T("hMailServer: Testing DANE\n"));
+      DaneTester daneTester;
+      daneTester.Test();
 
       OutputDebugString(_T("hMailServer: Testing the ACME TLSA record\n"));
       {

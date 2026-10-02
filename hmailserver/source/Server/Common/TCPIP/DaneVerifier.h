@@ -2,7 +2,7 @@
 // Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-// DANE-EE (RFC 7672) certificate verification for outbound SMTP connections.
+// DANE (RFC 7672) certificate verification for outbound SMTP connections.
 
 #pragma once
 
@@ -21,25 +21,44 @@ namespace HM
       std::string data;
    };
 
-   // Verify callback used during the TLS handshake when DANE-EE TLSA
-   // records exist for the remote host. Per RFC 7672 section 3.1.1,
-   // DANE-EE(3) matches are authenticated without PKIX chain validation
-   // or name checks - the TLSA record itself is the trust anchor.
+   // DANE (RFC 7672) for an outbound SMTP connection, done by OpenSSL's own
+   // DANE support (SSL_dane_enable, RFC 7671): a DANE-EE(3) record matches the
+   // server's certificate itself, with no chain, name or date checked - the
+   // record is the trust anchor (RFC 7672 section 3.1.1); a DANE-TA(2) record
+   // matches a certificate of the chain the server sends, or holds the trust
+   // anchor's whole certificate or key, and the server's certificate must then
+   // chain to it, be in date and name the MX host (sections 3.1.2 and 3.2).
+   // PKIX-TA(0) and PKIX-EE(1) are unusable in SMTP (section 3.1.3).
+   //
+   // Until 6.3.6 only DANE-EE was matched, by a callback of this class's own,
+   // and a domain that published DANE-TA records alone was delivered to as if
+   // it published none - without TLS, if the STARTTLS offer was taken away.
    class DaneVerifier
    {
    public:
-      DaneVerifier(int session_id, const std::vector<TlsaRecord> &records);
+      explicit DaneVerifier(int session_id);
 
+      // Whether a record is one this server can authenticate a server with:
+      // DANE-TA(2) or DANE-EE(3), selector 0 or 1, matching type 0, 1 or 2,
+      // and data OpenSSL takes for them - a digest of the digest's length, or
+      // a certificate or key that parses. A secure RRset with none of these is
+      // "unusable" in RFC 7672's sense (section 2.2): TLS is still required.
+      static bool IsUsable(const TlsaRecord &record);
+
+      // Arms OpenSSL's DANE for one connection before its handshake, with
+      // host_name (the MX host) as the TLSA base domain and the name a
+      // DANE-TA chain must carry. The number of records OpenSSL took, which is
+      // 0 when none could be added or DANE could not be enabled at all - and
+      // the handshake must then fail, never go on unauthenticated.
+      static int Arm(SSL *ssl, const AnsiString &host_name, const std::vector<TlsaRecord> &records, int session_id);
+
+      // The handshake's verify callback once Arm has run: OpenSSL has done the
+      // DANE matching, and preverified is its verdict at each depth. Logged at
+      // the end-entity certificate.
       bool operator() (bool preverified, boost::asio::ssl::verify_context& ctx) const;
 
    private:
 
-      bool MatchesRecord_(X509 *certificate, const TlsaRecord &record) const;
-      static bool GetCertificateDer_(X509 *certificate, std::vector<unsigned char> &output);
-      static bool GetSubjectPublicKeyInfoDer_(X509 *certificate, std::vector<unsigned char> &output);
-      static bool MatchData_(const std::vector<unsigned char> &candidate, int matching_type, const std::string &expected);
-
       int session_id_;
-      std::vector<TlsaRecord> records_;
    };
 }

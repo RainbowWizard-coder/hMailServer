@@ -696,9 +696,22 @@ namespace HM
                 
          if (!dane_records_.empty())
          {
-            // DANE-EE verification: match the remote certificate against the
-            // published TLSA records rather than the PKIX chain.
-            ssl_socket_.set_verify_callback(DaneVerifier(session_id_, dane_records_), error_code);
+            // DANE: the remote certificate is authenticated by the published
+            // TLSA records - DANE-EE against the certificate itself, DANE-TA
+            // as the anchor of its chain - rather than by the PKIX trust store,
+            // through OpenSSL's own DANE (DaneVerifier). Records that cannot be
+            // armed must not leave the handshake to the trust store, which is
+            // what OpenSSL does when none is added: it is failed instead.
+            if (DaneVerifier::Arm(ssl_socket_.native_handle(), expected_remote_hostname_, dane_records_, session_id_) == 0)
+            {
+               String errorMessage = Formatter::Format(_T("None of the TLSA records of host {0} could be used for the TLS handshake."), expected_remote_hostname_);
+               ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5510, "TCPConnection::AsyncHandshake", errorMessage);
+               HandshakeFailed_(boost::asio::error::make_error_code(boost::asio::error::invalid_argument), true);
+               return;
+            }
+
+            // The call answers the error it writes into error_code as well.
+            error_code = ssl_socket_.set_verify_callback(DaneVerifier(session_id_), error_code);
 
             if (error_code.value() != 0)
             {
@@ -710,7 +723,8 @@ namespace HM
          }
          else if (!expected_remote_hostname_.IsEmpty())
          {
-            ssl_socket_.set_verify_callback(CertificateVerifier(session_id_, connection_security_, expected_remote_hostname_), error_code);
+            error_code = ssl_socket_.set_verify_callback(CertificateVerifier(session_id_, connection_security_, expected_remote_hostname_,
+               accept_unauthenticated_tls_ && !require_peer_verification_), error_code);
 
             if (error_code.value() != 0)
             {
@@ -1040,7 +1054,10 @@ namespace HM
 
       if (compression_read_enabled_)
       {
+         // A new read: what the last one left in receive_buffer_ has been taken
+         // from its front since, so the search for the delimiter starts again.
          compressed_read_delimiter_ = delimitor;
+         compressed_search_from_ = 0;
          StartCompressedRead_();
          return;
       }
@@ -1483,58 +1500,156 @@ namespace HM
       if (compressed_read_delimiter_.GetLength() == 0)
          return available > 0;
 
+      // From where the last search of this read stopped, less the delimiter's
+      // length but one: a delimiter split between two pieces is still found.
+      const size_t from = std::min(compressed_search_from_, available);
+
       boost::asio::streambuf::const_buffers_type data = receive_buffer_.data();
       boost::asio::buffers_iterator<boost::asio::streambuf::const_buffers_type> begin = boost::asio::buffers_begin(data);
       boost::asio::buffers_iterator<boost::asio::streambuf::const_buffers_type> end = boost::asio::buffers_end(data);
       std::string delimiter(compressed_read_delimiter_.c_str());
-      boost::asio::buffers_iterator<boost::asio::streambuf::const_buffers_type> found = std::search(begin, end, delimiter.begin(), delimiter.end());
+      boost::asio::buffers_iterator<boost::asio::streambuf::const_buffers_type> found = std::search(begin + (std::ptrdiff_t) from, end, delimiter.begin(), delimiter.end());
       if (found == end)
+      {
+         compressed_search_from_ = available >= delimiter.size() ? available - (delimiter.size() - 1) : 0;
          return false;
+      }
 
       available = (size_t) std::distance(begin, found) + delimiter.size();
       return true;
    }
 
-   void
+   bool
    TCPConnection::MoveInflated_()
    {
-      if (inflated_pending_.empty())
-         return;
+      const size_t pending = inflated_pending_.size() - inflated_offset_;
+      if (pending == 0)
+         return false;
 
       const size_t room = receive_buffer_.max_size() - receive_buffer_.size();
-      const size_t count = std::min(room, inflated_pending_.size());
+      const size_t count = std::min(room, pending);
       if (count == 0)
-         return;
+         return false;
 
       // prepare, not an ostream: a stream write past the ceiling fails into the
       // stream's badbit and drops the rest without a word.
       boost::asio::streambuf::mutable_buffers_type target = receive_buffer_.prepare(count);
-      boost::asio::buffer_copy(target, boost::asio::buffer(inflated_pending_.data(), count));
+      boost::asio::buffer_copy(target, boost::asio::buffer(inflated_pending_.data() + inflated_offset_, count));
       receive_buffer_.commit(count);
-      inflated_pending_.erase(0, count);
+
+      // Taken by the offset; the string is emptied once it has all been taken,
+      // which is the only time it is refilled (NextCompressedReadStep_).
+      inflated_offset_ += count;
+      if (inflated_offset_ == inflated_pending_.size())
+      {
+         inflated_pending_.clear();
+         inflated_offset_ = 0;
+      }
+
+      return true;
+   }
+
+   TCPConnection::CompressedReadStep
+   TCPConnection::NextCompressedReadStep_(size_t &available)
+   {
+      for (;;)
+      {
+         // What the read asked for may be here already. Asked first, before
+         // anything is moved: until 6.3.6 every read moved inflated octets into
+         // receive_buffer_ before it looked, and with the buffer full of command
+         // lines each move was a copy of the whole buffer (the streambuf
+         // compacting itself) for the few octets one line had freed.
+         if (CompressedReadSatisfied_(available))
+            return CompressedReadComplete;
+
+         // What an earlier read inflated beyond the buffer's ceiling comes next.
+         if (MoveInflated_())
+            continue;
+
+         // Full, and still no end of line: the ceiling async_read_until enforces,
+         // answered as it answers it (OnExcessiveDataReceived, through not_found).
+         if (receive_buffer_.size() >= receive_buffer_.max_size())
+            return CompressedReadOverflow;
+
+         // The backlog is empty here - MoveInflated_ had room for it. Compressed
+         // octets kept back by the inflation limit, or output zlib still holds,
+         // come before the socket.
+         if (compressed_buffer_.size() > 0 || inflate_more_pending_)
+            return CompressedReadInflate;
+
+         return CompressedReadSocket;
+      }
+   }
+
+   bool
+   TCPConnection::InflateBuffered_()
+   {
+      // Refilled only once it is empty (NextCompressedReadStep_), so the offset is
+      // zero and the string holds nothing; reset both all the same.
+      inflated_pending_.erase(0, inflated_offset_);
+      inflated_offset_ = 0;
+
+      const size_t ceiling = receive_buffer_.max_size() * InflatedBacklogFactor;
+      const size_t limit = inflated_pending_.size() < ceiling ? ceiling - inflated_pending_.size() : 0;
+
+      boost::asio::const_buffer input = compressed_buffer_.data();
+      const size_t offered = input.size();
+
+      size_t consumed = 0;
+      bool limitReached = false;
+      std::string zlibError;
+      bool inflated = deflate_streams_ &&
+         deflate_streams_->Inflate(static_cast<const char *>(input.data()), offered, limit, inflated_pending_, consumed, limitReached, zlibError);
+
+      // Neither a byte taken nor a byte given, with input there to take: zlib
+      // would say the same the next time, and the read would go round for good.
+      if (inflated && consumed == 0 && inflated_pending_.empty() && !limitReached && offered > 0)
+      {
+         inflated = false;
+         zlibError = "the stream made no progress";
+      }
+
+      if (!inflated)
+      {
+         ReportError(ErrorManager::Medium, 6291, "TCPConnection::AsyncCompressedReadCompleted",
+            Formatter::Format(_T("The peer's DEFLATE stream could not be read: {0}"), String(zlibError.c_str())));
+         operation_queue_.Pop(IOOperation::BCTRead);
+         EnqueueDisconnect();
+         return false;
+      }
+
+      // What zlib did not take waits where it is for the next inflation, which
+      // comes once the backlog has drained; the socket is not read meanwhile.
+      compressed_buffer_.consume(consumed);
+      inflate_more_pending_ = limitReached;
+      return true;
    }
 
    void
    TCPConnection::StartCompressedRead_()
    {
-      // What an earlier read inflated beyond the buffer's ceiling comes first.
-      MoveInflated_();
-
       size_t available = 0;
-      if (CompressedReadSatisfied_(available))
+      switch (NextCompressedReadStep_(available))
       {
+      case CompressedReadComplete:
          // What the read asked for has already been inflated: complete it on the
          // strand, as the socket would have.
          boost::asio::post(strand_, std::bind(&TCPConnection::AsyncReadCompleted, shared_from_this(), boost::system::error_code(), available));
          return;
-      }
 
-      // Full, and still no end of line: the ceiling async_read_until enforces,
-      // answered as it answers it (OnExcessiveDataReceived, through not_found).
-      if (receive_buffer_.size() >= receive_buffer_.max_size())
-      {
+      case CompressedReadOverflow:
          boost::asio::post(strand_, std::bind(&TCPConnection::AsyncReadCompleted, shared_from_this(), boost::asio::error::make_error_code(boost::asio::error::not_found), (size_t) 0));
          return;
+
+      case CompressedReadInflate:
+         // Inflated in a completion on the strand, as what the socket delivers is,
+         // and not here: a stream that cannot be read closes the connection, which
+         // is the completion's to do.
+         boost::asio::post(strand_, std::bind(&TCPConnection::AsyncCompressedReadCompleted, shared_from_this(), boost::system::error_code(), (size_t) 0));
+         return;
+
+      case CompressedReadSocket:
+         break;
       }
 
       auto handler = boost::asio::bind_executor(strand_,
@@ -1558,48 +1673,39 @@ namespace HM
          return;
       }
 
-      boost::asio::streambuf::const_buffers_type data = compressed_buffer_.data();
-      std::string raw(boost::asio::buffers_begin(data), boost::asio::buffers_end(data));
-      compressed_buffer_.consume(compressed_buffer_.size());
-
-      std::string plain;
-      std::string zlibError;
-      if (!deflate_streams_ || !deflate_streams_->Inflate(raw.data(), raw.size(), plain, zlibError))
-      {
-         ReportError(ErrorManager::Medium, 6291, "TCPConnection::AsyncCompressedReadCompleted",
-            Formatter::Format(_T("The peer's DEFLATE stream could not be read: {0}"), String(zlibError.c_str())));
-         operation_queue_.Pop(IOOperation::BCTRead);
-         EnqueueDisconnect();
-         return;
-      }
-
       // A few hundred compressed octets of zeros inflate to a thousand times as
       // many, past receive_buffer_'s ceiling. Written with an ostream, the tail
       // past it was lost without a word (the stream's badbit), and in binary
       // mode what was left went on as an APPEND literal: a stored message cut
-      // short and the session out of step. Now the tail waits in
-      // inflated_pending_ for the next read, which takes it before the socket.
-      if (!plain.empty())
-         inflated_pending_.append(plain);
-
-      MoveInflated_();
-
-      size_t available = 0;
-      if (CompressedReadSatisfied_(available))
+      // short and the session out of step. The tail waits in inflated_pending_
+      // for the next read, which takes it before the socket - and since 6.3.6
+      // no more of it is made at once than InflatedBacklogFactor times the
+      // buffer's ceiling: the rest stays compressed until the backlog is taken.
+      for (;;)
       {
-         AsyncReadCompleted(boost::system::error_code(), available);
-         return;
-      }
+         size_t available = 0;
+         switch (NextCompressedReadStep_(available))
+         {
+         case CompressedReadComplete:
+            AsyncReadCompleted(boost::system::error_code(), available);
+            return;
 
-      // A line that never ends: the same ceiling async_read_until enforces, and
-      // the same answer (OnExcessiveDataReceived, through the not_found path).
-      if (receive_buffer_.size() >= receive_buffer_.max_size())
-      {
-         AsyncReadCompleted(boost::asio::error::make_error_code(boost::asio::error::not_found), 0);
-         return;
-      }
+         case CompressedReadOverflow:
+            // A line that never ends: the same ceiling async_read_until enforces,
+            // and the same answer (OnExcessiveDataReceived, through not_found).
+            AsyncReadCompleted(boost::asio::error::make_error_code(boost::asio::error::not_found), 0);
+            return;
 
-      StartCompressedRead_();
+         case CompressedReadInflate:
+            if (!InflateBuffered_())
+               return;
+            continue;
+
+         case CompressedReadSocket:
+            StartCompressedRead_();
+            return;
+         }
+      }
    }
 
    void
