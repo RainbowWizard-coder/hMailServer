@@ -356,22 +356,24 @@ namespace HM
       HttpsClient::Response response;
 
       // The endpoint is whatever a person's browser - or the person - handed
-      // over, so it is reached only at a public address (RequestPublic), with
-      // the one exception PushSubscriptions::Save takes from this machine
-      // alone: plain http to its own loopback. The reason a request failed is
+      // over, so it is reached only at a public address, and through HttpProxy
+      // when one is set (RequestPublicThroughProxy; until 6.3.6 it never was,
+      // and a server that reaches the web only through its proxy notified no
+      // device), with the one exception PushSubscriptions::Save takes from
+      // this machine alone: plain http to its own loopback. The reason a request failed is
       // the administrator's, in the application log; what the person is shown
       // says only that it failed, since "refused", "timed out" and a TLS error
       // from an address they chose would map the network for them.
       String transportError;
       // A loopback endpoint saved while the regression suite's switch was on is
-      // sent to with RequestPublic once it is off, which refuses it.
+      // sent to with RequestPublicThroughProxy once it is off, which refuses it.
       const bool loopbackForTests = PushSubscriptions::IsLoopbackHttp(subscription.endpoint) &&
                                     Configuration::Instance()->GetWebPushLoopbackHttpForTests();
       const bool answered = loopbackForTests
          ? HttpsClient::Request("POST", AnsiString(subscription.endpoint), headers, "application/octet-stream",
                                 body, response, transportError, timeoutSeconds, MaximumAnswerBytes)
-         : HttpsClient::RequestPublic("POST", AnsiString(subscription.endpoint), headers, "application/octet-stream",
-                                      body, response, transportError, timeoutSeconds, MaximumAnswerBytes);
+         : HttpsClient::RequestPublicThroughProxy("POST", AnsiString(subscription.endpoint), headers, "application/octet-stream",
+                                                  body, response, transportError, timeoutSeconds, MaximumAnswerBytes);
       if (!answered)
       {
          AnsiString audience;

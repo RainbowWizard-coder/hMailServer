@@ -314,6 +314,22 @@ A read of another account's mail through the REST API by the server's administra
 role holding `view_mailbox`, `view_archive` or `view_discovery`, and a support session opened as an account, are now
 recorded on the audit trail; 6.3.4 and 6.3.5, the versions with the trail, recorded none of them (Administration,
 below).
+When the server declines to reach an address that is not public for somebody who named it - a list's one-click
+unsubscribe and a correspondent's key from their domain's Web Key Directory in the webmail, the server of another
+account a reader adds there, the delivery of an inbound webhook route an API key made - the reason it gives now names
+the host as it was given and never the address the server resolved it to, and for another account's server says the
+same whether the name does not resolve or leads inside the network. From 6.3.2 the unsubscribe's answer, and from
+6.3.4 the others, named the private address a host led to. A refusal by `HttpProxy`, which these requests go
+through from 6.3.6 (What changes on upgrade, item 19), is reported to such a person as the setting's, by its status
+code alone, and neither by the proxy's address nor in the words of its answer. Found by the project's own review.
+
+Expanding a recurring event now looks each occurrence up among the event's excluded dates (`EXDATE`) by halving a
+sorted list, where it went through every one of them in turn. An event can carry tens of thousands of excluded
+dates in the megabyte an invitation may have, and an invitation is filed in the calendar on delivery, so such an
+event cost about a third of a second each time a calendar was read over a span it covers (the webmail, CalDAV, a
+room's booking check) - and, before this release, several seconds of a delivery thread for a cancellation of some
+of its occurrences (What changes on upgrade, item 17), which also asks of the event a few expansions fewer than it
+did. Found by the project's own review.
 
 ### What changes on upgrade without a switch
 
@@ -563,6 +579,45 @@ below).
     `From:` that is the organiser's address, and no organiser for a message sent through the send API; its own
     answers are recorded as its submission, so that an organiser's calendar on this server files them
     ([RoomsAndEquipment.md](hmailserver/docs/RoomsAndEquipment.md), "Who is asking").
+17. **A cancellation of occurrences takes those occurrences out of a guest's calendar and leaves the rest of the
+    series.** A `CANCEL` whose every event carries a `RECURRENCE-ID` (RFC 5546 section 3.2.5), from the organiser
+    the stored event names, takes those occurrences out of the guest's copy: each one's override is dropped and an
+    `EXDATE` written on the series, and from an occurrence named with `RANGE=THISANDFUTURE` on the series ends, its
+    later overrides and `RDATE`s dropped and its `RRULE` given an `UNTIL` the moment before it in place of any
+    `COUNT`. The copy is marked cancelled only when those occurrences are everything it holds, as for a `CANCEL` of
+    the whole event. In 6.3.4 and 6.3.5 such a `CANCEL` marked the guest's whole series cancelled. The webmail's
+    card for the message says the event is no longer in the calendar once its occurrences are out, and its "Remove
+    from calendar" - `POST /api/v1/me/messages/{id}/invitation/reply` with `remove`, which then answers
+    `occurrences: true` - takes out those occurrences alone, where it removed the whole series
+    ([Calendar.md](hmailserver/docs/Calendar.md), "Filed on delivery"). A room or a piece of equipment took
+    occurrences out of a booking already.
+18. **The answer from an invitation's card replaces a copy of its UID that nobody verified, whatever organiser that
+    copy names.** A copy filed from an invitation whose organiser the server could not verify - marked, item 16 -
+    that names another organiser than the invitation no longer makes the reader's Accept, Maybe or Decline on the
+    invitation's card fail with `422`: the answer replaces it with the invitation's event, marked as the card's
+    answers mark what they write. A copy planted under the UID of an invitation before it arrived, naming somebody
+    else, so keeps the invitation out of the calendar only until the reader answers it. Delivery still replaces no
+    copy that names another organiser, verified or not, since a sender verified as the organiser it names is not
+    the owner of the UID; and a copy the server did not mark - the organiser's own, verified, one the reader or a
+    phone put in, and every copy filed before 6.3.6 - still refuses an answer that names another organiser
+    ([Calendar.md](hmailserver/docs/Calendar.md), "Who may change a stored event").
+19. **Five more web requests go through `HttpProxy`.** A sender's brand logo, a correspondent's OpenPGP key from
+    their domain's Web Key Directory, a Web Push notification, a one-click unsubscribe and the post of an inbound
+    webhook route held to public addresses - one that anybody but the server's administrator made - go through
+    `HttpProxy` when it is set, where until 6.3.6 they went directly whatever it said, so that a server that
+    reaches the web only through its proxy could make none of them. Each is still made only to a public address,
+    judged by the addresses its host's name resolves to on this server, and the proxy is asked for a tunnel to one
+    of those addresses and never to the name, as for the MTA-STS policy fetch (item 15): a proxy that allows a
+    tunnel only to a name refuses it, and the request fails as one with no way out. A route the server's
+    administrator made, which may reach this server's own network, still posts directly.
+20. **The sender lists' URL entries read a large message only as far as the anti-spam size limit.** A message
+    larger than the limit past which the SURBL test and the other tests after `DATA` do not look at a message
+    (`maximum_message_size_kb` of `/api/v1/settings/antispam`, COM `AntiSpam.MaximumMessageSize`, 1024 KB unless
+    changed; 0 is the MIME parser's 80 MB) is judged by the links in the first part of its text and of its HTML,
+    as far as that limit into each, where every character up to the parser's 80 MB was read - some 8 seconds of a
+    delivery thread for a 20 MB message. A block or allow entry for a link after the limit no longer decides such
+    a message, and a link the limit cuts through is left out rather than read as the part of its host before the
+    cut ([SenderListsAndDigests.md](hmailserver/docs/SenderListsAndDigests.md)).
 
 ### Downloads and the release
 

@@ -47,9 +47,10 @@
 // domain and read the answer. It is draft-koch-openpgp-webkey-service in the
 // client direction: the advanced method under openpgpkey.<domain> first, then
 // the direct method on the domain itself, and - only when the administrator has
-// turned it on - the keyserver's HKP /vks/v1/by-email/. Every fetch goes
-// through HttpsClient::RequestPublic, so a domain whose name resolves to an
-// address inside this network is refused before a connection is made, the
+// turned it on - the keyserver's HKP /vks/v1/by-email/. Every directory fetch
+// goes through HttpsClient::RequestPublicThroughProxy (FetchFromDirectory), so
+// a domain whose name resolves to an address inside this network is refused
+// before a connection is made, HttpProxy carries it when one is set, the
 // answer is capped, and the whole thing has a deadline a REST worker can wait
 // on. What comes back is parsed before it is answered, so the page is never
 // handed something that is not a key.
@@ -176,6 +177,17 @@ namespace HM
       // administrator turned it on - from the keyserver. Never throws; a
       // failure is an empty key_base64 with a sentence in error.
       static Found Lookup(const String &address);
+
+      // One GET of a Web Key Directory leg of Lookup: https to a host that
+      // resolves to public addresses alone, the connection made to those
+      // addresses - or, with HttpProxy set, the proxy asked for a tunnel to
+      // one of them, written as the address (HttpsClient::
+      // RequestPublicThroughProxy; until 6.3.6 the proxy was never used, so a
+      // server that reaches the web only through it found no key in any
+      // directory) - at most maxBytes, within timeout seconds. True for a 200,
+      // with its body; otherwise status is the answer's, 0 when none came,
+      // and error says why there was none.
+      static bool FetchFromDirectory(const AnsiString &url, int timeout, size_t maxBytes, AnsiString &body, int &status, String &error);
 
       // A domain whose key directory took three seconds or more to ask - both
       // legs together, whatever they answered, a key included - is held for an

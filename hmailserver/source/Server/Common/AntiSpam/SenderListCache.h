@@ -119,8 +119,12 @@ namespace HM
       // unexpired URL entry, at every scope. Memory is one map entry for each
       // entry host a link is under, whatever the message holds, and the time
       // is one reading of the text and, for each link, one lookup for each of
-      // its labels.
-      static void ReadUrlLinks(std::shared_ptr<MessageData> messageData, UrlLinks &links);
+      // its labels. maxCharacters is how much of the text part and of the
+      // HTML part is read (SURBL::FindLinkHosts): a message larger than the
+      // anti-spam size limit is judged by the links in the first part of each
+      // (LocalDelivery passes SpamProtection::MaxSizeToScanKB), so that the
+      // time a message costs is bounded by that limit and not by its size.
+      static void ReadUrlLinks(std::shared_ptr<MessageData> messageData, UrlLinks &links, size_t maxCharacters);
 
       // One link's host matched against the entry hosts: each entry host
       // that covers it (SenderPattern::UrlEntryHostsCovering) is recorded with

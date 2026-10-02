@@ -2271,6 +2271,54 @@ namespace RegressionTests.API
       }
 
       [Test]
+      [Description("With HttpProxy set, a one-click unsubscribe to a public https address goes through the proxy, which is asked for a tunnel to the address that was judged; a private address is still refused, and the proxy is not asked about it")]
+      public void AnUnsubscribeGoesThroughTheProxy()
+      {
+         // Until 6.3.6 the POST went straight to the list's address whatever
+         // HttpProxy said, so a server that reaches the web only through its
+         // proxy could not unsubscribe anybody. The proxy here refuses every
+         // tunnel, so nothing leaves the machine: 192.88.99.1 is a public
+         // address that is never connected to.
+         SmtpClientSimulator.StaticSendRaw("news@example.com", Address,
+            "From: news@example.com\r\nTo: " + Address + "\r\nSubject: Public list\r\nList-Unsubscribe: <https://192.88.99.1/leave?u=1>\r\nList-Unsubscribe-Post: List-Unsubscribe=One-Click\r\n\r\nA list on a public address.\r\n");
+         SmtpClientSimulator.StaticSendRaw("news@example.com", Address,
+            "From: news@example.com\r\nTo: " + Address + "\r\nSubject: Private list\r\nList-Unsubscribe: <https://10.0.0.1/leave?u=1>\r\nList-Unsubscribe-Post: List-Unsubscribe=One-Click\r\n\r\nA list on a private address.\r\n");
+         Pop3ClientSimulator.AssertMessageCount(Address, UserPassword, 2);
+
+         (int status, string body) tree = Http("GET", "/api/v1/me/folders", UserHeader(UserPassword));
+         long inboxId = IdBefore(tree.body, "\"path\":\"INBOX\"");
+         (int status, string body) page = Http("GET", "/api/v1/me/folders/" + inboxId + "/messages", UserHeader(UserPassword));
+         long publicList = IdBefore(page.body, "\"subject\":\"Public list\"");
+         long privateList = IdBefore(page.body, "\"subject\":\"Private list\"");
+
+         using (var proxy = new FakeHttpProxy(true))
+         {
+            IniFileSetting.Write("HttpProxy", proxy.Address);
+            _application.Reinitialize();
+            try
+            {
+               (int status, string body) inside = Http("POST", "/api/v1/me/messages/" + privateList + "/unsubscribe", UserHeader(UserPassword));
+               Assert.AreEqual(502, inside.status, "Body: " + inside.body);
+               StringAssert.Contains("is not a public address", inside.body);
+               CollectionAssert.IsEmpty(proxy.Targets, "The proxy was asked for a tunnel to a private address.");
+
+               (int status, string body) proxied = Http("POST", "/api/v1/me/messages/" + publicList + "/unsubscribe", UserHeader(UserPassword));
+               Assert.AreEqual(502, proxied.status, "Body: " + proxied.body);
+               StringAssert.Contains("HttpProxy refused CONNECT to 192.88.99.1:443 with status 403", proxied.body, "The proxy's refusal is what failed the request.");
+               StringAssert.DoesNotContain(proxy.Address, proxied.body, "Where the proxy is on the network is not the reader's to learn.");
+               StringAssert.DoesNotContain("Forbidden", proxied.body, "The proxy's own words are not the reader's to read: its status code is.");
+               CollectionAssert.AreEqual(new[] { "192.88.99.1:443" }, proxy.Targets,
+                  "The proxy is asked for one tunnel, to the address the list's name was judged by.");
+            }
+            finally
+            {
+               IniFileSetting.Delete("HttpProxy");
+               _application.Reinitialize();
+            }
+         }
+      }
+
+      [Test]
       [Description("A folder listing carries, for every message, the recipient, whether it has attachments, a snippet of its text and the inbox tab it belongs under - primary, social, promotions, updates or forums - decided from the header")]
       public void TheListingSaysWhichTabAMessageBelongsUnder()
       {

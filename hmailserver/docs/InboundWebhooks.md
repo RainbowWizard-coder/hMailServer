@@ -301,9 +301,14 @@ gains nothing. A route saved by anybody but the server's administrator is held t
 public addresses from then on, even one the administrator made first.
 
 No redirect is followed. Plain `http` is accepted only to this machine: the body
-is the message itself. The request is made directly, never through `HttpProxy`,
-which would resolve the name out of sight of the check - an endpoint this server
-can reach only through a proxy cannot be a route's.
+is the message itself. A route held to public addresses posts through
+`HttpProxy` when one is set, the proxy asked for a tunnel to the address the
+name was judged by and never to the name, which the proxy would resolve out of
+sight of the check; until 6.3.6 it posted directly whatever `HttpProxy` said, so
+on a server that reaches the web only through its proxy it reached no endpoint.
+A route the server's administrator made, which may reach this server's own
+network, is posted directly, never through `HttpProxy`: an endpoint such a route
+can reach only through a proxy cannot be its endpoint.
 
 ---
 
@@ -417,7 +422,9 @@ None of them is raised on a server with no route.
 * **No setting of its own.** The attempts and the retention are the outbound
   webhooks' (`WebhookMaxAttempts`, `WebhookRetentionDays`), and a route is on or
   off by itself. `WebhooksEnabled` silences the outbound webhooks and not these.
-* **No redirect is followed, and no proxy is used.** See *Where an endpoint may be*.
+* **No redirect is followed, and a route the server's administrator made uses no
+  proxy.** A route held to public addresses goes through `HttpProxy` when one is
+  set, from 6.3.6. See *Where an endpoint may be*.
 * **No per-route retry ladder**, and no signature overlap during a secret
   rotation - as for the outbound webhooks.
 * **One post per route per message**, with the route's recipients in
@@ -483,6 +490,14 @@ and the Linux one both run, on ports 10180 to 10189:
   the URL's scheme and host, and refused a kept message without `view_mailbox`;
   an auditor reading and refused a change; the secret never read back, and a
   route switched off refusing RCPT TO for an address that has nothing else;
+* with `HttpProxy` set to a proxy of the test's own that refuses every tunnel, so
+  that nothing leaves the machine, a key's route - held to public addresses -
+  posting through it: the proxy asked for one tunnel, to the address its URL was
+  judged by, the message not taken for delivered, and the delivery's error, as
+  the key reads it, naming the proxy as `HttpProxy`, not by its address, and
+  its answer by the status code alone, not in the proxy's own words; and with
+  the same proxy set, an administrator's route posting straight to its endpoint
+  on this machine, delivered, the proxy asked for nothing;
 * the audit trail naming a route made and removed by its address, and never its
   URL; an erasure taking what the address sent out of the queue; a route going
   with its domain; `WebhooksEnabled` off silencing no route.
@@ -513,8 +528,9 @@ one's up to the route's choice; a message over 80 MB; the rows surviving a
 restart; the secret's protection at rest, which is the outbound webhooks'; the
 retention sweep, and the waits of the retry ladder after its first step; the
 pass's bound of 60 seconds; a route that delivers as well reached through another
-route; that no proxy is used; a list's posting rules refusing a sender at RCPT TO
-under a route that delivers as well, which is the list's own check, unchanged.
+route; that a route the server's administrator made uses no proxy; a list's
+posting rules refusing a sender at RCPT TO under a route that delivers as well,
+which is the list's own check, unchanged.
 
 ## Where it lives
 
@@ -522,7 +538,7 @@ under a route that delivers as well, which is the list's own check, unchanged.
 |---|---|
 | Server | `hmailserver/source/Server/Common/Util/InboundWebhooks.h` and `.cpp` |
 | Recipients | `hmailserver/source/Server/SMTP/RecipientParser.cpp`, and the delivery path in `SMTPDeliverer.cpp`, before `ListManager::TakeListRecipients` |
-| The connection's rule | `HttpsClient::RequestNotLinkLocal` and `RequestPublic` |
+| The connection's rule | `HttpsClient::RequestNotLinkLocal` and `RequestPublicThroughProxy` |
 | REST | `hmailserver/source/Server/Common/Util/RestApiInboundWebhooks.cpp` |
 | Schema | `hm_inboundhooks` and `hm_inboundhookqueue`, from 6100 |
 | Deck | the Inbound webhooks view in `hmailserver/installation/WebAdmin/index.html` |

@@ -121,6 +121,56 @@ namespace RegressionTests.API
          }
       }
 
+      [Test]
+      [Description("With HttpProxy set, a brand's logo at a public address is fetched through the proxy, which is asked for a tunnel to that address; a logo at a private address is still refused, and the proxy is not asked about it")]
+      public void ALogoIsFetchedThroughTheProxy()
+      {
+         // Until 6.3.6 the logo was fetched straight from its address whatever
+         // HttpProxy said, so a server that reaches the web only through its
+         // proxy showed no brand's logo. The proxy here refuses every tunnel, so
+         // nothing leaves the machine: 192.88.99.1 is a public address that is
+         // never connected to. Two domains of their own, since every answer is
+         // kept a day per domain.
+         string address = "brand-proxied@" + _domain.Name;
+         _settings.SetAdministratorPassword(AdminPassword);
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, address, UserPassword);
+
+         FakeDnsServer zone = SuiteDns.Zone;
+         DmarcAndSpf(zone, "proxied.logo-test.test", "reject", "v=spf1 ip4:127.0.0.1 -all");
+         zone.WithTxt("default._bimi.proxied.logo-test.test", "v=BIMI1; l=https://192.88.99.1/logo.svg");
+         DmarcAndSpf(zone, "inside.logo-test.test", "reject", "v=spf1 ip4:127.0.0.1 -all");
+         zone.WithTxt("default._bimi.inside.logo-test.test", "v=BIMI1; l=https://10.255.255.2/logo.svg");
+
+         using (var proxy = new FakeHttpProxy(true))
+         {
+            try
+            {
+               ServerIniFile.SetSetting("DNSQueryTimeout", "5");
+               ServerIniFile.SetSetting("HttpProxy", proxy.Address);
+               RestPort = RestListener.Start(RestPort);
+               RestartServerAndReacquireCom();
+
+               string user = "Basic " + Convert.ToBase64String(Encoding.UTF8.GetBytes(address + ":" + UserPassword));
+
+               AssertOutcome(Send("GET", "/api/v1/me/brand-logo?domain=inside.logo-test.test", user, null), 404, "fetch_failed");
+               CollectionAssert.IsEmpty(proxy.Targets, "The proxy was asked for a tunnel to a private address.");
+
+               (int status, string body) proxied = Send("GET", "/api/v1/me/brand-logo?domain=proxied.logo-test.test", user, null);
+               AssertOutcome(proxied, 404, "fetch_failed");
+               CollectionAssert.AreEqual(new[] { "192.88.99.1:443" }, proxy.Targets,
+                  "The proxy is asked for one tunnel, to the address the logo's location was judged by. Body: " + proxied.body);
+            }
+            finally
+            {
+               SuiteDns.Reset();
+               ServerIniFile.SetSetting("HttpProxy", null);
+               ServerIniFile.SetSetting("DNSQueryTimeout", null);
+               RestListener.Stop();
+               RestartServerAndReacquireCom();
+            }
+         }
+      }
+
       private static void AssertOutcome((int status, string body) answer, int status, string outcome)
       {
          Assert.AreEqual(status, answer.status, answer.body);

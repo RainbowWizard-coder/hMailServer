@@ -335,7 +335,9 @@ namespace HM
          {
             // An address an outsider chose, so it is reached only if it is
             // public - judged by the addresses the name resolves to, and
-            // connected to those very addresses (HttpsClient::RequestPublic)
+            // connected to those very addresses, or asked of HttpProxy as
+            // those addresses when one is set, which until 6.3.6 it was not
+            // (HttpsClient::RequestPublicThroughProxy)
             // - and with a short deadline and a small cap, since this runs
             // on a REST worker: a slow list must not hold one for long, and
             // it waits its turn with the other requests that reach out.
@@ -345,8 +347,8 @@ namespace HM
 
             HttpsClient::Response response;
             String error;
-            bool ok = HttpsClient::RequestPublic("POST", https, std::vector<AnsiString>(), "application/x-www-form-urlencoded",
-                                                 "List-Unsubscribe=One-Click", response, error, 10, 32 * 1024);
+            bool ok = HttpsClient::RequestPublicThroughProxy("POST", https, std::vector<AnsiString>(), "application/x-www-form-urlencoded",
+                                                             "List-Unsubscribe=One-Click", response, error, 10, 32 * 1024);
             AnsiString json;
             json.Format("{\"method\":\"one-click\",\"ok\":%hs,\"status\":%d,\"error\":\"%hs\"}",
                (ok && response.status_code >= 200 && response.status_code < 300) ? "true" : "false",

@@ -984,6 +984,103 @@ namespace RegressionTests.API
       }
 
       [Test]
+      [Description("With HttpProxy set, a route the server's administrator made still posts straight to its endpoint on this server's own network, and the proxy is asked for nothing")]
+      public void AnAdministratorsRouteStillPostsDirectlyWithHttpProxySet()
+      {
+         // Since 6.3.6 a route held to public addresses goes through HttpProxy
+         // (ARouteHeldToPublicAddressesPostsThroughTheProxy). One the
+         // administrator made may reach this server's own network, which a
+         // proxy elsewhere could not reach for it, and is posted directly as
+         // before. This proxy, on this machine, refuses every tunnel and would
+         // forward a plain-http request: it must be asked for neither.
+         string address = "intranet@" + _domainName;
+         SingletonProvider<TestSetup>.Instance.AddAccount(CurrentDomain(), address, AccountPassword);
+
+         using (var proxy = new FakeHttpProxy(true))
+         using (var endpoint = new FakeHttpEndpoint(IPAddress.Loopback, EndpointPort, 200, "{}", "application/json"))
+         {
+            IniFileSetting.Write("HttpProxy", proxy.Address);
+            _application.Reinitialize();
+            try
+            {
+               Create(address);
+               StringAssert.Contains("\"private_network\":true", Read(RoutesPath + "/" + Uri.EscapeDataString(address)));
+
+               SmtpClientSimulator.StaticSend("outsider@example.net", address, "To the intranet", "A body.");
+
+               Assert.AreEqual(1, WaitForRequests(endpoint, 1).Count,
+                  "The administrator's route did not reach its endpoint: " + Read(RoutesPath + "/deliveries?limit=50"));
+               string queue = RunUntil(RoutesPath + "/deliveries?limit=50", "\"state\":\"delivered\"");
+               StringAssert.Contains("\"state\":\"delivered\"", queue, queue);
+               CollectionAssert.IsEmpty(proxy.Targets, "The proxy was asked for: " + string.Join(", ", proxy.Targets));
+            }
+            finally
+            {
+               RemoveEveryRoute();
+               IniFileSetting.Delete("HttpProxy");
+               _application.Reinitialize();
+            }
+         }
+      }
+
+      [Test]
+      [Description("With HttpProxy set, a route held to public addresses - one an API key made - posts through the proxy, which is asked for a tunnel to the address its URL was judged by, and the message is not taken for delivered")]
+      public void ARouteHeldToPublicAddressesPostsThroughTheProxy()
+      {
+         // Until 6.3.6 such a route posted straight to its endpoint whatever
+         // HttpProxy said, so on a server that reaches the web only through its
+         // proxy it could reach no endpoint at all. The proxy here refuses every
+         // tunnel, so nothing leaves the machine: 192.88.99.1 is a public address
+         // that is never connected to.
+         MakeRole("inboundtest-proxied", "view_configuration,manage_inbound_webhooks");
+         string key = MakeKey("inbound app behind a proxy", null, "inboundtest-proxied");
+
+         string address = "proxied@" + _domainName;
+         (int status, string body) made = AsKey(key, "POST", RoutesPath,
+            "{\"address\":\"" + address + "\",\"url\":\"https://192.88.99.1/inbound\",\"secret\":\"" + Secret + "\"}");
+         Assert.AreEqual(201, made.status, made.body);
+         StringAssert.Contains("\"private_network\":false", made.body, made.body);
+
+         using (var proxy = new FakeHttpProxy(true))
+         {
+            IniFileSetting.Write("HttpProxy", proxy.Address);
+            _application.Reinitialize();
+            try
+            {
+               SmtpClientSimulator.StaticSend("outsider@example.net", address, "Through the proxy", "A body.");
+
+               bool asked = WaitUntil(() =>
+               {
+                  Http("POST", RoutesPath + "/run", "{}");
+                  return proxy.Targets.Count > 0;
+               }, 30);
+               Assert.IsTrue(asked, "The proxy was never asked for a tunnel: " + Read(RoutesPath + "/deliveries?limit=50"));
+               CollectionAssert.AreEqual(new[] { "192.88.99.1:443" }, proxy.Targets.Distinct().ToList(),
+                  "The proxy is asked for a tunnel to the address the route's URL was judged by, and to nothing else.");
+
+               string queue = Read(RoutesPath + "/deliveries?limit=50&route=" + Uri.EscapeDataString(address));
+               StringAssert.DoesNotContain("\"state\":\"delivered\"", queue, "The proxy refused the tunnel: " + queue);
+
+               // The key reads the delivery's error: the proxy's refusal, named as
+               // HttpProxy and not by where the proxy is.
+               (int status, string body) asKey = AsKey(key, "GET", RoutesPath + "/deliveries?limit=50&route=" + Uri.EscapeDataString(address), null);
+               Assert.AreEqual(200, asKey.status, asKey.body);
+               StringAssert.Contains("HttpProxy refused CONNECT to 192.88.99.1:443 with status 403", asKey.body, asKey.body);
+               StringAssert.DoesNotContain(proxy.Address, asKey.body, "Where the proxy is on the network is not the key's to learn.");
+               StringAssert.DoesNotContain("Forbidden", asKey.body, "The proxy's own words are not the key's to read: its status code is.");
+            }
+            finally
+            {
+               // The route goes before the proxy does, so that no retry of it goes
+               // out without one.
+               RemoveEveryRoute();
+               IniFileSetting.Delete("HttpProxy");
+               _application.Reinitialize();
+            }
+         }
+      }
+
+      [Test]
       [Description("A route made and removed is on the audit trail under its address both times - the removal too - and its URL is recorded as changed, never by its value.")]
       public void TheAuditTrailNamesARouteByItsAddressAndNeverItsUrl()
       {

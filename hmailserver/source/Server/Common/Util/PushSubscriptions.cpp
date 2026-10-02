@@ -250,8 +250,8 @@ namespace HM
       // A push service on this machine's loopback, from anywhere but this
       // machine, is somebody using the server to reach a port only it can: the
       // push goes out with HttpsClient::Request, which reaches loopback. Every
-      // https endpoint goes out with RequestPublic, which reaches no address
-      // inside the network whatever it was saved as.
+      // https endpoint goes out with RequestPublicThroughProxy, which reaches no
+      // address inside the network whatever it was saved as.
       //
       // And only while the regression suite's switch is on
       // (WebPushLoopbackHttpForTests, off by default): a reverse proxy on this

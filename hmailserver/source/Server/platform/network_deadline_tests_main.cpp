@@ -34,13 +34,19 @@
 // time as the others, a host that carries a port (127.0.0.1:<a peer's port>) is
 // refused and that peer never reached, and 127.0.0.1 is refused as written and as
 // 2130706433, the same address as one number, which the system's resolver reads
-// without asking DNS. Then, once those cases have ended, with HttpProxy set to a
+// without asking DNS - the refusal naming 2130706433 and not the 127.0.0.1 it led
+// to, since 6.3.6. Then, once those cases have ended, with HttpProxy set to a
 // proxy of its own on 127.0.0.1 that takes a request and never answers it: 127.0.0.1
 // is still refused and the proxy never asked, and 3227017985 - 192.88.99.1, an
 // address the client counts public, written as one number - goes to the proxy as
 // CONNECT 192.88.99.1:443, the address that was judged and not the text it was
-// given, and the fetch gives up at its 15 seconds. Nothing is sent to 192.88.99.1:
-// the proxy is the only peer, and it says nothing.
+// given, and the fetch gives up at its 15 seconds. Then, through the same proxy,
+// a Web Key Directory's fetch (OpenPgpRing::FetchFromDirectory), whose host the
+// address a person typed names, and which until 6.3.6 went direct whatever
+// HttpProxy said: 2130706433 is refused, without the address it led to, and the
+// proxy not asked, and 3227017985
+// is asked of it as CONNECT 192.88.99.1:443, given up at five seconds. Nothing is
+// sent to 192.88.99.1: the proxy is the only peer, and it says nothing.
 //
 // Each one must end in its own time and not much before it - a quick failure for
 // another reason is not a deadline - and each peer must have been reached, so a
@@ -57,7 +63,7 @@
 // it cannot run where sockets are refused altogether: the source packages' builds
 // run under build/ci/packages/offline.c, and their tester lists (debian/rules,
 // hmailserver.spec) leave it out. About three quarters of a minute: the ACME case's
-// deadline, then the proxied fetch's.
+// deadline, then the two proxied fetches'.
 //
 // It prints one line per case and exits non-zero when any fails.
 
@@ -90,6 +96,7 @@
 #include "../Common/Application/Property.h"
 #include "../Common/Application/PropertySet.h"
 #include "../Common/Util/AcmeClient.h"
+#include "../Common/Util/OpenPgpRing.h"
 #include "../Common/Util/OutboundOAuth2TokenClient.h"
 #include "../SMTP/TlsPolicy.h"
 
@@ -700,7 +707,10 @@ RunNetworkDeadlineTests()
    cases.push_back(Start("the MTA-STS policy fetch, a host at a private address", 5, [](std::string &said)
    {
       // As written, and as one number, which the system's resolver reads as the
-      // same address: the address it leads to is judged, not the text.
+      // same address: the address it leads to is judged, not the text. The
+      // refusal names the host as it was given and not the address the number
+      // led to (since 6.3.6): which private address a name leads to is not for
+      // whoever named it.
       for (const char *host : { "127.0.0.1", "2130706433" })
       {
          HM::AnsiString body;
@@ -713,8 +723,13 @@ RunNetworkDeadlineTests()
             said = std::string(host) + " was not refused as a private address: " + reason;
             return false;
          }
+         if (std::string(host) != "127.0.0.1" && reason.find("127.0.0.1") != std::string::npos)
+         {
+            said = std::string(host) + " was refused naming the address it led to: " + reason;
+            return false;
+         }
       }
-      said = "127.0.0.1 and 2130706433 refused as private addresses";
+      said = "127.0.0.1 and 2130706433 refused as private addresses, the second without the address it led to";
       return true;
    }));
 
@@ -969,6 +984,86 @@ RunNetworkDeadlineTests()
             printf("FAIL  %s: still waiting after %s - a proxy that never answers holds it\n", proxied[0].name.c_str(), Seconds(SecondsSince(second)).c_str());
             failures++;
             stuck = true;
+         }
+
+         // Then, through the same proxy, a Web Key Directory's fetch, whose
+         // host an address a person typed names (OpenPgpRing::FetchFromDirectory):
+         // held to public addresses as the policy fetch is, and since 6.3.6 asked
+         // of the proxy as the address that was judged, where until then it went
+         // direct whatever HttpProxy said. Five seconds, as the lookup would give
+         // a leg with five seconds left.
+         if (!stuck)
+         {
+            proxied.push_back(Start("the Web Key Directory fetch through HttpProxy", 5 + 15, [&proxy](std::string &said)
+            {
+               HM::AnsiString body;
+               int status = 0;
+               HM::String why;
+               const size_t linesBefore = proxy.RequestLines().size();
+               const int acceptedBefore = proxy.Accepted();
+
+               // A private address is refused before the proxy is asked anything,
+               // and the refusal - which the person who typed the address reads -
+               // does not name the address the host led to.
+               if (HM::OpenPgpRing::FetchFromDirectory("https://2130706433/.well-known/openpgpkey/hu/x?l=a", 5, 4096, body, status, why) ||
+                   HM::AnsiString(why).Find("not a public address") < 0 || HM::AnsiString(why).Find("127.0.0.1") >= 0)
+               {
+                  said = std::string("2130706433 was not refused as a private address, or the refusal named the address it led to: ") + HM::AnsiString(why).c_str();
+                  return false;
+               }
+               if (proxy.Accepted() != acceptedBefore)
+               {
+                  said = "the proxy was asked for a tunnel to a private address";
+                  return false;
+               }
+
+               // A public one goes through it, as the address that was judged.
+               const Clock::time_point started = Clock::now();
+               const bool fetched = HM::OpenPgpRing::FetchFromDirectory("https://3227017985/.well-known/openpgpkey/hu/x?l=a", 5, 4096, body, status, why);
+               const double seconds = SecondsSince(started);
+               const std::string reason = HM::AnsiString(why).c_str();
+               const std::vector<std::string> lines = proxy.RequestLines();
+
+               if (fetched)
+               {
+                  said = "a key was fetched through a proxy that never answered";
+                  return false;
+               }
+               if (lines.size() != linesBefore + 1 || lines.back() != "CONNECT 192.88.99.1:443 HTTP/1.1")
+               {
+                  said = "the proxy was not asked for one tunnel to 192.88.99.1:443 but for: ";
+                  for (size_t i = linesBefore; i < lines.size(); i++)
+                     said += "'" + lines[i] + "' ";
+                  said += "(" + reason + ")";
+                  return false;
+               }
+               if (reason.find("in the time allowed") == std::string::npos)
+               {
+                  said = "it did not end at the deadline: " + reason;
+                  return false;
+               }
+               if (!EndedAtItsDeadline(seconds, 5, said))
+                  return false;
+
+               said = "2130706433 refused with the proxy never asked; 3227017985 asked of the proxy as CONNECT 192.88.99.1:443, and " + said;
+               return true;
+            }));
+
+            const Clock::time_point third = Clock::now();
+            while (!proxied[1].outcome->finished && SecondsSince(third) <= proxied[1].deadline_seconds)
+               std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+            if (proxied[1].outcome->finished)
+            {
+               printf("%s  %s: %s\n", proxied[1].outcome->passed ? "ok  " : "FAIL", proxied[1].name.c_str(), proxied[1].outcome->said.c_str());
+               failures += proxied[1].outcome->passed ? 0 : 1;
+            }
+            else
+            {
+               printf("FAIL  %s: still waiting after %s - a proxy that never answers holds it\n", proxied[1].name.c_str(), Seconds(SecondsSince(third)).c_str());
+               failures++;
+               stuck = true;
+            }
          }
       }
    }

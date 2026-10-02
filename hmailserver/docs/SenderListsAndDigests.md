@@ -71,7 +71,19 @@ parsed and read again for each such recipient, which a message with a large text
 part made costly; now a message costs one reading of its text, as the SURBL
 test's does. Each link is looked up by the names an entry for it could have -
 `cdn.shop.example`, `shop.example`, `example` - so the reading's time does not
-grow with the number of entries.
+grow with the number of entries. **A message larger than the anti-spam size
+limit** (`maximum_message_size_kb` of `/api/v1/settings/antispam`, COM
+`AntiSpam.MaximumMessageSize`, 1024 KB unless changed - the size past which the
+SURBL test and the other tests after `DATA` do not look at a message at all) is
+judged by the links in the first part of
+its text and of its HTML, as far as that limit into each: since 6.3.6 the
+reading stops there, where it went on to the end of a message of up to the MIME
+parser's 80 MB - some 8 seconds of a delivery thread for 20 MB. A link the limit
+cuts through is left out rather than read as the part of its host before the
+cut, so no host is matched that the whole message does not link to, and a link
+after the limit is not seen: a block entry's link there does not hold the
+message, and an allow entry's does not rescue it. With the limit set to 0 the
+parser's 80 MB is the limit, as it is for the tests.
 
 The matching rule is the one the server-wide **Blocked senders** list has always
 used: both now call the same code.

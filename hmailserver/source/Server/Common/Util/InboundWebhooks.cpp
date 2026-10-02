@@ -2245,7 +2245,7 @@ namespace HM
       // so at length has taken it.
       const bool answered = route.private_network
          ? HttpsClient::RequestNotLinkLocal("POST", url, headers, contentType, body, response, error, RequestTimeoutSeconds, MaxResponseBytes, true)
-         : HttpsClient::RequestPublic("POST", url, headers, contentType, body, response, error, RequestTimeoutSeconds, MaxResponseBytes, true);
+         : HttpsClient::RequestPublicThroughProxy("POST", url, headers, contentType, body, response, error, RequestTimeoutSeconds, MaxResponseBytes, true);
 
       if (!answered)
       {

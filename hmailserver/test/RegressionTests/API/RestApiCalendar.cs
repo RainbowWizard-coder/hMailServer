@@ -650,6 +650,133 @@ namespace RegressionTests.API
       }
 
       [Test]
+      [Description("A copy filed from an invitation nobody verified, naming another organiser under the UID of the organiser's own, does not make the organiser's invitation's card fail: delivered, the organiser's invitation leaves that copy where it is - a sender verified as the organiser it names is not the owner of the UID - and its card says the calendar does not have it; the guest's Accept on the card replaces the planted copy with the organiser's event, answered, and another planted REQUEST then changes nothing. A copy the server did not mark - one a phone put in with no organiser - still refuses an Accept under its UID")]
+      public void AnUnverifiedCopyNamingAnotherOrganiserGivesWayToTheGuestsAnswer()
+      {
+         // Until 6.3.6 the Accept below answered 422, "the stored event has
+         // another organiser", and the planted copy stayed in the calendar.
+         Assert.AreEqual(200, Me("GET", "/api/v1/me/calendars", null, GuestAddress, GuestPassword).status, "The guest's calendar exists before the invitations arrive.");
+         string uid = "planted-0002@" + _domain.Name;
+         string window = "/api/v1/me/calendar/events?start=20261103T000000Z&end=20261104T000000Z";
+         string guestLine = "ATTENDEE;PARTSTAT=NEEDS-ACTION;RSVP=TRUE:mailto:" + GuestAddress;
+         string mallory = "mallory@planted.test";
+
+         // Planted: another organiser's name as ORGANIZER, From and MAIL FROM, by
+         // nobody the server could verify, before the organiser invites the guest.
+         SmtpRaw(mallory, GuestAddress, CalendarMail("REQUEST", mallory, GuestAddress, "Invitation: Planted elsewhere", "Planted elsewhere", uid, "20261103T160000Z", "20261103T170000Z", 0, mallory, guestLine));
+         RetryHelper.TryAction(TimeSpan.FromSeconds(20), () => RetryableAssert.StringContains("\"summary\":\"Planted elsewhere\"", Me("GET", window, null, GuestAddress, GuestPassword).body));
+
+         // The organiser's own invitation, signed in: delivered, and the planted
+         // copy is left where it is.
+         SmtpRaw(Address, GuestAddress, CalendarMail("REQUEST", Address, GuestAddress, "Invitation: Design review", "Design review", uid, "20261103T090000Z", "20261103T100000Z", 0, Address, guestLine),
+            Address, UserPassword);
+         long real = MessageIdOf(GuestAddress, GuestPassword, "Design review");
+         CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+         StringAssert.Contains("\"summary\":\"Planted elsewhere\"", Me("GET", window, null, GuestAddress, GuestPassword).body,
+            "A sender verified as the organiser it names does not own the UID: delivery replaces no copy of another organiser's.");
+         StringAssert.Contains("\"calendar_agrees\":false", Me("GET", "/api/v1/me/messages/" + real + "/invitation", null, GuestAddress, GuestPassword).body,
+            "The organiser's card says the calendar does not have its event.");
+
+         // The guest accepts the organiser's invitation from its card.
+         (int status, string body) accepted = Me("POST", "/api/v1/me/messages/" + real + "/invitation/reply", "{\"action\":\"accept\"}", GuestAddress, GuestPassword);
+         Assert.AreEqual(200, accepted.status, "The Accept on the organiser's card was refused: " + accepted.body);
+         StringAssert.Contains("\"stored\":true", accepted.body);
+         CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+
+         (int status, string body) guestCopy = Me("GET", window, null, GuestAddress, GuestPassword);
+         Assert.AreEqual(1, Regex.Matches(guestCopy.body, "\"uid\":\"" + Regex.Escape(uid) + "\"").Count, "One event, replaced, never a second. Body: " + guestCopy.body);
+         StringAssert.Contains("\"summary\":\"Design review\"", guestCopy.body);
+         StringAssert.Contains("\"start\":\"20261103T090000Z\"", guestCopy.body);
+         StringAssert.Contains("\"organizer\":\"" + Address + "\"", guestCopy.body);
+         StringAssert.Contains("\"my_partstat\":\"ACCEPTED\"", guestCopy.body);
+         StringAssert.DoesNotContain("Planted", guestCopy.body);
+
+         // Another planted REQUEST, nobody verified: the copy now in the calendar
+         // is not replaced by it.
+         SmtpRaw(mallory, GuestAddress, CalendarMail("REQUEST", mallory, GuestAddress, "Invitation: Planted again elsewhere", "Planted again", uid, "20261103T180000Z", "20261103T190000Z", 9, mallory, guestLine));
+         MessageIdOf(GuestAddress, GuestPassword, "Planted again elsewhere");
+         CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+         StringAssert.Contains("\"summary\":\"Design review\"", Me("GET", window, null, GuestAddress, GuestPassword).body);
+
+         // A copy the server did not mark - a phone's, with no organiser - is the
+         // guest's own: an Accept under its UID is refused, and it stays.
+         string phoneUid = "phone-0002@" + _domain.Name;
+         Response put = Raw(WebServicesPort, "PUT", GuestHome + "calendar/phone-0002.ics", Auth(GuestAddress, GuestPassword),
+            Event(phoneUid, "20261103T120000Z", "20261103T130000Z", "Lunch"), "text/calendar; charset=utf-8", "X-Forwarded-Proto: https\r\nIf-None-Match: *\r\n");
+         Assert.AreEqual(201, put.Status, put.Body);
+         SmtpRaw(Address, GuestAddress, CalendarMail("REQUEST", Address, GuestAddress, "Invitation: Lunch taken over", "Lunch taken over", phoneUid, "20261103T120000Z", "20261103T130000Z", 0, Address, guestLine),
+            Address, UserPassword);
+         long takeover = MessageIdOf(GuestAddress, GuestPassword, "Lunch taken over");
+         CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+         (int status, string body) refused = Me("POST", "/api/v1/me/messages/" + takeover + "/invitation/reply", "{\"action\":\"accept\"}", GuestAddress, GuestPassword);
+         Assert.AreEqual(422, refused.status, refused.body);
+         StringAssert.Contains("another organiser", refused.body);
+         StringAssert.Contains("\"summary\":\"Lunch\"", Me("GET", window, null, GuestAddress, GuestPassword).body);
+      }
+
+      [Test]
+      [Description("A CANCEL of one occurrence of a recurring event, from the organiser signed in, takes that occurrence out of the guest's copy and keeps the others, not cancelled, and its card says the calendar holds it and offers nothing to remove; one from nobody signed in changes nothing, its card saying so, and the card's remove takes out that occurrence alone; a CANCEL of the occurrence and every one after it ends the series there; a CANCEL of the whole event still cancels what is left")]
+      public void ACancelOfOneOccurrenceTakesOutThatOccurrenceAlone()
+      {
+         // Until 6.3.6 a CANCEL of one occurrence marked the whole series cancelled
+         // in the guest's calendar, and the card's remove took the whole series out.
+         Assert.AreEqual(200, Me("GET", "/api/v1/me/calendars", null, GuestAddress, GuestPassword).status, "The guest's calendar exists before the invitation arrives.");
+         (int status, string body) made = Me("POST", "/api/v1/me/calendar/events",
+            "{\"summary\":\"Weekly sync\",\"start\":\"2026-11-02T09:00\",\"end\":\"2026-11-02T10:00\",\"tz\":\"UTC\",\"rrule\":\"FREQ=WEEKLY;COUNT=5\",\"attendees\":[\"" + GuestAddress + "\"],\"invite\":true}",
+            Address, UserPassword);
+         Assert.AreEqual(201, made.status, made.body);
+         string uid = Regex.Match(made.body, "\"uid\":\"([^\"]+)\"").Groups[1].Value;
+         Assert.IsTrue(uid.Length > 0, "No uid in: " + made.body);
+         string window = "/api/v1/me/calendar/events?start=20261101T000000Z&end=20261201T000000Z";
+         Func<string> guestStarts = () => string.Join("|", Starts(Me("GET", window, null, GuestAddress, GuestPassword).body));
+         string allFive = "20261102T090000Z|20261109T090000Z|20261116T090000Z|20261123T090000Z|20261130T090000Z";
+         RetryHelper.TryAction(TimeSpan.FromSeconds(20), () => RetryableAssert.IsTrue(guestStarts() == allFive));
+         CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+         string guestLine = "ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:" + GuestAddress;
+
+         // In the organiser's name, from nobody signed in: the fourth occurrence.
+         SmtpRaw(Address, GuestAddress, CalendarMail("CANCEL", Address, GuestAddress, "Cancelled: Weekly sync forged fourth", "Weekly sync", uid, "20261123T090000Z", "20261123T100000Z", 1, Address,
+            guestLine, "RECURRENCE-ID:20261123T090000Z", "STATUS:CANCELLED"));
+         long forged = MessageIdOf(GuestAddress, GuestPassword, "forged fourth");
+         CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+         Assert.AreEqual(allFive, guestStarts(), "Nobody the server verified as the organiser cancelled the occurrence.");
+         (int status, string body) forgedCard = Me("GET", "/api/v1/me/messages/" + forged + "/invitation", null, GuestAddress, GuestPassword);
+         StringAssert.Contains("\"in_calendar\":true", forgedCard.body, forgedCard.body);
+         StringAssert.Contains("\"calendar_agrees\":false", forgedCard.body, "The calendar still holds the occurrence.");
+
+         // The organiser's own, signed in: the third occurrence, and no other.
+         SmtpRaw(Address, GuestAddress, CalendarMail("CANCEL", Address, GuestAddress, "Cancelled: Weekly sync third occurrence", "Weekly sync", uid, "20261116T090000Z", "20261116T100000Z", 1, Address,
+            guestLine, "RECURRENCE-ID:20261116T090000Z", "STATUS:CANCELLED"), Address, UserPassword);
+         string withoutThird = "20261102T090000Z|20261109T090000Z|20261123T090000Z|20261130T090000Z";
+         RetryHelper.TryAction(TimeSpan.FromSeconds(20), () => RetryableAssert.IsTrue(guestStarts() == withoutThird));
+         StringAssert.DoesNotContain("\"status\":\"CANCELLED\"", Me("GET", window, null, GuestAddress, GuestPassword).body,
+            "The occurrences the CANCEL does not name are not cancelled.");
+         (int status, string body) card = Me("GET", "/api/v1/me/messages/" + MessageIdOf(GuestAddress, GuestPassword, "third occurrence") + "/invitation", null, GuestAddress, GuestPassword);
+         StringAssert.Contains("\"calendar_agrees\":true", card.body, "The card says the calendar holds the cancellation. Body: " + card.body);
+         StringAssert.Contains("\"in_calendar\":false", card.body, "The occurrence is no longer in the calendar, so there is nothing to remove.");
+
+         // The forged card's remove, the guest's own choice: that occurrence alone.
+         (int status, string body) removed = Me("POST", "/api/v1/me/messages/" + forged + "/invitation/reply", "{\"action\":\"remove\"}", GuestAddress, GuestPassword);
+         Assert.AreEqual(200, removed.status, removed.body);
+         StringAssert.Contains("\"removed\":true", removed.body);
+         Assert.AreEqual("20261102T090000Z|20261109T090000Z|20261130T090000Z", guestStarts(), "The remove took out more than the occurrence its message names.");
+
+         // The organiser's CANCEL of the second occurrence and every one after it:
+         // the series ends before it.
+         SmtpRaw(Address, GuestAddress, CalendarMail("CANCEL", Address, GuestAddress, "Cancelled: Weekly sync from the second", "Weekly sync", uid, "20261109T090000Z", "20261109T100000Z", 2, Address,
+            guestLine, "RECURRENCE-ID;RANGE=THISANDFUTURE:20261109T090000Z", "STATUS:CANCELLED"), Address, UserPassword);
+         RetryHelper.TryAction(TimeSpan.FromSeconds(20), () => RetryableAssert.IsTrue(guestStarts() == "20261102T090000Z"));
+         StringAssert.DoesNotContain("\"status\":\"CANCELLED\"", Me("GET", window, null, GuestAddress, GuestPassword).body);
+
+         // And a CANCEL of the whole event: what is left is marked cancelled.
+         SmtpRaw(Address, GuestAddress, CalendarMail("CANCEL", Address, GuestAddress, "Cancelled: Weekly sync all of it", "Weekly sync", uid, "20261102T090000Z", "20261102T100000Z", 3, Address,
+            guestLine, "STATUS:CANCELLED"), Address, UserPassword);
+         RetryHelper.TryAction(TimeSpan.FromSeconds(20), () => RetryableAssert.StringContains("\"status\":\"CANCELLED\"", Me("GET", window, null, GuestAddress, GuestPassword).body));
+         Assert.AreEqual("20261102T090000Z", guestStarts());
+         CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+      }
+
+      [Test]
       [Description("A calendar message an application sends through the send API, with a key that may send as any address of the domain and the organiser's address as its sender, changes no stored event: the organiser's CANCEL sent that way leaves the guest's copy as it was, and its card says so; the same CANCEL from the organiser signed in cancels it")]
       public void ACalendarMessageSentThroughTheSendApiChangesNoStoredEvent()
       {

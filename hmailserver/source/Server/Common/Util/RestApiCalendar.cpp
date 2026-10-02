@@ -2312,6 +2312,13 @@ namespace HM
       // from a sender it verified (Imip::FileOnDelivery); any other is an
       // ordinary message and the stored event is as it was, so the page says
       // the calendar changed only when this says it did.
+      //
+      // A CANCEL of occurrences is about those occurrences: the calendar holds
+      // what it says when it holds none of them - they are taken out of the
+      // series, as the delivery filer takes them out - or when they were all
+      // it held and it is marked cancelled; and the event is in the calendar
+      // (in_calendar) only while it still holds one of them, so the page
+      // offers to remove what is there to remove and nothing else.
       bool calendarAgrees = false;
       if (inCalendar)
       {
@@ -2325,7 +2332,18 @@ namespace HM
                storedStatus = Trimmed(storedMaster->Value("STATUS"));
                storedStatus.ToUpper();
 
-               if (invitation.method == "CANCEL")
+               if (invitation.method == "CANCEL" && Imip::CancelsOccurrences(invitation))
+               {
+                  const ImipOccurrences held = Imip::OccurrencesHeld(storedTree, invitation.tree);
+                  calendarAgrees = held == ImipOccurrences::NoneHeld || (held == ImipOccurrences::All && storedStatus == "CANCELLED");
+                  if (held == ImipOccurrences::NoneHeld)
+                  {
+                     inCalendar = false;
+                     storedPartstat = "";
+                     storedStatus = "";
+                  }
+               }
+               else if (invitation.method == "CANCEL")
                   calendarAgrees = storedStatus == "CANCELLED";
                else if (invitation.method == "REPLY" && !invitation.attendees.empty())
                {
@@ -2409,6 +2427,28 @@ namespace HM
       {
          if (!inCalendar)
             return BuildResponse_(200, "{\"removed\":false}");
+
+         // A cancellation of occurrences removes those occurrences, and the
+         // rest of the series stays (Imip::TakeOutOccurrences); the event goes
+         // only when they were all it held. Until 6.3.6 the whole event went.
+         if (invitation.method == "CANCEL" && Imip::CancelsOccurrences(invitation))
+         {
+            ICalComponent tree;
+            if (!ICalendar::Parse(Utf8_(stored.data), tree, problem))
+               return BuildResponse_(500, "{\"error\":\"the stored object cannot be read\"}");
+            const ImipOccurrences held = Imip::TakeOutOccurrences(tree, invitation.tree);
+            if (held == ImipOccurrences::NoneHeld)
+               return BuildResponse_(200, "{\"removed\":false}");
+            if (held == ImipOccurrences::Some)
+            {
+               Visible target;
+               target.calendar = calendar;
+               if (!Store(target, tree, stored, false, problem))
+                  return BuildResponse_(500, "{\"error\":\"the occurrences could not be removed\"}");
+               return BuildResponse_(200, "{\"removed\":true,\"occurrences\":true}");
+            }
+         }
+
          __int64 token = 0;
          if (!CalendarStore::Delete(account->GetID(), calendar.id, stored.id, token))
             return BuildResponse_(500, "{\"error\":\"the event could not be removed\"}");
@@ -2745,8 +2785,8 @@ namespace HM
          "\"post\":{\"summary\":\"Add a task\",\"description\":\"Body: summary (required), due (YYYY-MM-DD, or YYYY-MM-DDTHH:MM with tz), description, priority (0-9), calendar (id; the first when absent).\",\"responses\":{\"201\":{\"description\":\"the task\"},\"400\":{\"description\":\"a field is wrong\"}}}},"
          "\"/api/v1/me/tasks/{id}\":{\"put\":{\"summary\":\"Change a task, or tick it off\",\"description\":\"Any of summary, description, due (empty to clear), tz, priority, calendar, and completed: true writes STATUS:COMPLETED, COMPLETED and PERCENT-COMPLETE:100 as a client does; false clears them.\",\"responses\":{\"200\":{\"description\":\"the task\"},\"404\":{\"description\":\"not found\"}}},"
          "\"delete\":{\"summary\":\"Delete a task\",\"responses\":{\"200\":{\"description\":\"removed\"},\"404\":{\"description\":\"not found\"}}}},"
-         "\"/api/v1/me/messages/{id}/invitation\":{\"get\":{\"summary\":\"The invitation a message carries\",\"description\":\"The first text/calendar part or .ics attachment, read: method (REQUEST, REPLY, CANCEL, COUNTER, ...), the event's summary, when (UTC and local), where, organizer, attendees with their answers, my_partstat, and whether the event is already in one of the caller's calendars (in_calendar, event_id, stored_partstat, stored_status). 404 for a message without one.\",\"responses\":{\"200\":{\"description\":\"the invitation\"},\"404\":{\"description\":\"no invitation\"}}}},"
-         "\"/api/v1/me/messages/{id}/invitation/reply\":{\"post\":{\"summary\":\"Answer an invitation\",\"description\":\"Body: action - accept, tentative or decline keep the event in the caller's default calendar with their PARTSTAT set (updating the copy a REQUEST delivered to the account already filed there, never adding a second) and mail the organiser a METHOD:REPLY (RFC 6047), which this server files into the organiser's own event when they are on it and which Exchange, Microsoft 365 and Google file into theirs; remove takes the event out of the calendar (what a CANCEL asks for); counter, with start and optionally end and tz, mails the organiser a METHOD:COUNTER proposing that time. comment travels in the mail.\",\"responses\":{\"200\":{\"description\":\"stored, replied, or countered\"},\"400\":{\"description\":\"the action is unknown, or the caller is the organiser\"},\"404\":{\"description\":\"no invitation\"}}}},"
+         "\"/api/v1/me/messages/{id}/invitation\":{\"get\":{\"summary\":\"The invitation a message carries\",\"description\":\"The first text/calendar part or .ics attachment, read: method (REQUEST, REPLY, CANCEL, COUNTER, ...), the event's summary, when (UTC and local), where, organizer, attendees with their answers, my_partstat, and whether the event is already in one of the caller's calendars (in_calendar, event_id, stored_partstat, stored_status), and calendar_agrees, whether the calendar holds what the message says: a CANCEL's event marked cancelled, a REPLY's answer recorded, a REQUEST at its version or a later one not filed unverified. For a CANCEL of occurrences (every event in it has a RECURRENCE-ID) in_calendar says whether the calendar still holds one of them, and calendar_agrees is true when it holds none, or when they were all it held and it is marked cancelled. 404 for a message without one.\",\"responses\":{\"200\":{\"description\":\"the invitation\"},\"404\":{\"description\":\"no invitation\"}}}},"
+         "\"/api/v1/me/messages/{id}/invitation/reply\":{\"post\":{\"summary\":\"Answer an invitation\",\"description\":\"Body: action - accept, tentative or decline keep the event in the caller's default calendar with their PARTSTAT set (updating the copy a REQUEST delivered to the account already filed there, never adding a second) and mail the organiser a METHOD:REPLY (RFC 6047), which this server files into the organiser's own event when they are on it and which Exchange, Microsoft 365 and Google file into theirs; remove takes the event out of the calendar (what a CANCEL asks for) - for a CANCEL of occurrences (every event in it has a RECURRENCE-ID), those occurrences alone, the rest of the series kept, answered removed and occurrences true, and the event only when they were all it held; counter, with start and optionally end and tz, mails the organiser a METHOD:COUNTER proposing that time. comment travels in the mail.\",\"responses\":{\"200\":{\"description\":\"stored, replied, or countered\"},\"400\":{\"description\":\"the action is unknown, or the caller is the organiser\"},\"404\":{\"description\":\"no invitation\"}}}},"
          "\"/api/v1/me/calendar/events/{id}/reply\":{\"post\":{\"summary\":\"Answer an invitation that is in a calendar - as its owner, or as a delegate on the owner's behalf\",\"description\":\"Body: partstat - ACCEPTED, TENTATIVE or DECLINED - and an optional comment. Allowed to the calendar's owner and to a sharee whose share is a delegation (not to a plain writer or a reader: 403). The OWNER's PARTSTAT on the event is set and the organiser is mailed a METHOD:REPLY whose ATTENDEE is the owner; when a delegate answered, that ATTENDEE carries SENT-BY=mailto:the delegate (RFC 5545 section 3.2.18), kept in the stored event so the owner's page shows who answered, and the mail is From: the owner with Sender: the delegate, sent from the delegate's own address - what a mail client shows as on behalf of. The delegate's own calendar is not touched. The owner that is a room or a piece of equipment answers only the organiser it recorded when it accepted the booking itself, while the booking still names them: for a booking it did not accept, or whose ORGANIZER was changed since, the answer is stored (a decline takes the booking out of its calendar) and nothing is mailed - replied false, to empty. 400 when the event names no organiser or the owner organises it.\",\"responses\":{\"200\":{\"description\":\"event_id, partstat, on_behalf_of, replied, to\"},\"400\":{\"description\":\"partstat is not one of the three, the owner organises the event, or the owner is not among its guests\"},\"403\":{\"description\":\"not the owner and not a delegate\"},\"404\":{\"description\":\"no such event\"}}}},"
          "\"/api/v1/me/freebusy\":{\"get\":{\"summary\":\"When an account of the caller's domain is busy\",\"description\":\"address= an account of the caller's own domain (an alias domain's spelling resolved); from= and to= the window, at most 62 days apart, as YYYY-MM-DD, YYYY-MM-DDTHH:MM[:SS] with Z or an offset, or YYYYMMDDTHHMMSSZ. The answer is the busy periods of that account's own calendars over the window - every event instance expanded, recurrences included, an event that is TRANSP:TRANSPARENT or STATUS:CANCELLED or that the account declined left out - merged and sorted, each with kind busy or tentative (tentative when the account's PARTSTAT is TENTATIVE or NEEDS-ACTION), with no title, location or description. 404 for an address that is not an active account of the caller's domain, one that does not exist, and one whose freebusy preference is nobody: one answer, so nothing is enumerated. The CalDAV free-busy-query REPORT answers the same computation as a VFREEBUSY.\",\"responses\":{\"200\":{\"description\":\"address, from, to, busy: [{start, end, kind}]\"},\"400\":{\"description\":\"the address or the window is missing, or the window is over 62 days\"},\"404\":{\"description\":\"not an account of the caller's domain that shows when it is busy\"}}}}";
    }

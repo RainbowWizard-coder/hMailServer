@@ -575,10 +575,16 @@ namespace HM
 
       // Asks the proxy socket is connected to for a tunnel to target (host:port as a
       // CONNECT names it), by deadline. True when the proxy answered 2xx; false
-      // with error set when it answered anything else. A failure to send or to
-      // read the answer throws, as every step of a request does.
+      // with error set when it answered anything else, naming the proxy by its
+      // address and quoting its status line - or, when name_the_proxy is false,
+      // as HttpProxy and by the status code alone: a request held to public
+      // addresses hands its reason to people who are not this server's
+      // administrator, and where the proxy is on the network, or what it says
+      // of itself, is not theirs to learn. A failure to send or to read the
+      // answer throws, as every step of a request does.
       bool AskProxyToConnect_(boost::asio::io_context &io, boost::asio::ip::tcp::socket &socket, const std::string &proxy_host,
-                              const std::string &proxy_port, const std::string &target, const Clock::time_point &deadline, String &error)
+                              const std::string &proxy_port, const std::string &target, const Clock::time_point &deadline, String &error,
+                              bool name_the_proxy = true)
       {
          const std::string connectRequest = "CONNECT " + target + " HTTP/1.1\r\nHost: " + target + "\r\nUser-Agent: hMailServer\r\n\r\n";
          WriteWithin_(io, socket, socket, connectRequest.data(), connectRequest.size(), deadline);
@@ -610,8 +616,21 @@ namespace HM
 
          if (status < 200 || status > 299)
          {
-            error = Formatter::Format(_T("The proxy {0} refused CONNECT to {1}: {2}"),
-               String((proxy_host + ":" + proxy_port).c_str()), String(target.c_str()), String(statusLine.c_str()));
+            if (name_the_proxy)
+            {
+               error = Formatter::Format(_T("The proxy {0} refused CONNECT to {1}: {2}"),
+                  String((proxy_host + ":" + proxy_port).c_str()), String(target.c_str()), String(statusLine.c_str()));
+            }
+            else
+            {
+               // By its status code alone, not by its status line: the line is
+               // the proxy's own words - up to 16 KB of them, or the banner of
+               // whatever HttpProxy points at when that is no proxy - which can
+               // name the proxy or what it is.
+               error = status > 0
+                  ? Formatter::Format(_T("HttpProxy refused CONNECT to {0} with status {1}."), String(target.c_str()), status)
+                  : Formatter::Format(_T("HttpProxy refused CONNECT to {0} with an answer that is not HTTP."), String(target.c_str()));
+            }
             return false;
          }
 
@@ -658,8 +677,15 @@ namespace HM
             {
                if (public_only)
                {
-                  error = Formatter::Format(_T("{0} is not a public address (loopback, private, link-local or reserved), and this request reaches only public ones."),
-                     refused.empty() ? String(host) : String(refused.c_str()));
+                  // The host as it was given, never the address it resolved to:
+                  // a request held to public addresses is one whose host an
+                  // outsider named, and its reason reaches people who are not
+                  // this server's administrator - the reader of a list's
+                  // unsubscribe, of a key lookup, an API key's route - to whom
+                  // which private address a name leads is this network's
+                  // business. Until 6.3.6 the first such address was named.
+                  error = Formatter::Format(_T("{0} is not a public address, nor a name that leads to one (loopback, private, link-local and reserved addresses are refused), and this request reaches only public ones."),
+                     String(host));
                }
                else
                {
@@ -692,8 +718,10 @@ namespace HM
             {
                ConnectWithin_(io, socket, proxies, deadline);
 
+               // The target is an address the outsider's name resolved to, and
+               // public: theirs to know. The proxy's address is not.
                const std::string target = Authority_(AnsiString(endpoint.address().to_string().c_str()), port, true, true);
-               if (AskProxyToConnect_(io, socket, proxy_host, proxy_port, target, deadline, error))
+               if (AskProxyToConnect_(io, socket, proxy_host, proxy_port, target, deadline, error, false))
                   return true;
             }
             return false;
@@ -948,21 +976,25 @@ namespace HM
    bool
    HttpsClient::HostIsPublic(const AnsiString &host, String &error)
    {
+      // One sentence whatever the reason, naming the host as it was given: the
+      // person who named it learns neither the address it leads to nor whether
+      // it resolves inside this network at all (HttpsClient.h).
+      const String refusal = Formatter::Format(_T("{0} does not resolve, or is not a public address (loopback, private, link-local and reserved addresses are refused)."),
+         String(host));
       try
       {
          const Clock::time_point deadline = Clock::now() + std::chrono::seconds(5);
          const std::vector<boost::asio::ip::tcp::endpoint> endpoints = ResolveWithin_(std::string(host.c_str()), "143", deadline);
          if (endpoints.empty())
          {
-            error = Formatter::Format(_T("{0} does not resolve."), String(host));
+            error = refusal;
             return false;
          }
          for (const boost::asio::ip::tcp::endpoint &endpoint : endpoints)
          {
             if (!IsPublicAddress(endpoint.address()))
             {
-               error = Formatter::Format(_T("{0} is at {1}, which is not a public address (loopback, private, link-local or reserved)."),
-                  String(host), String(endpoint.address().to_string().c_str()));
+               error = refusal;
                return false;
             }
          }
@@ -970,7 +1002,7 @@ namespace HM
       }
       catch (...)
       {
-         error = Formatter::Format(_T("{0} does not resolve."), String(host));
+         error = refusal;
          return false;
       }
    }
@@ -998,10 +1030,10 @@ namespace HM
    bool
    HttpsClient::RequestPublicThroughProxy(const AnsiString &method, const AnsiString &url, const std::vector<AnsiString> &extra_headers,
                                           const AnsiString &content_type, const AnsiString &body, Response &response, String &error,
-                                          int timeout_seconds, size_t max_response_bytes)
+                                          int timeout_seconds, size_t max_response_bytes, bool keep_head_of_long_answer)
    {
       return Request_(method, url, extra_headers, content_type, body, response, error, timeout_seconds, max_response_bytes, true, false,
-                      false, nullptr, true);
+                      keep_head_of_long_answer, nullptr, true);
    }
 
    bool

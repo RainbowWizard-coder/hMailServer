@@ -448,6 +448,46 @@ namespace RegressionTests.AntiSpam
       }
 
       [Test]
+      [Description("A message larger than the anti-spam size limit is judged by the links in the first part of its text, as far as that limit: an entry's link within it decides, and one after it does not")]
+      public void AUrlEntryJudgesALargeMessageByTheFirstPartOfItsText()
+      {
+         // Until 6.3.6 every character of a message was read for its links,
+         // up to the MIME parser's 80 MB, some 8 seconds of a delivery thread
+         // for 20 MB; the text is now read as far as the limit the SURBL test
+         // is held to. 64 KB here, with 100 KB of text around the link.
+         _settings.AntiSpam.MaximumMessageSize = 64;
+         try
+         {
+            Account early = AddAccount("linkfirstpart");
+            Account late = AddAccount("linkpastthelimit");
+            AddOwnEntry(early.Address, "https://shop.example/", true);
+            AddOwnEntry(late.Address, "https://shop.example/", true);
+
+            var filler = new StringBuilder();
+            for (int i = 0; i < 2000; i++)
+               filler.Append("A line of the newsletter that says nothing at all, number " + i.ToString("D5") + ".\r\n");
+            ClassicAssert.Greater(filler.Length, 100 * 1024, "The text around the link is longer than the limit.");
+
+            new SmtpClientSimulator().Send("friend@example.com", early.Address, "The link first",
+               "A sale: http://cdn.shop.example/sale - read on.\r\n" + filler);
+            new SmtpClientSimulator().Send("friend@example.com", late.Address, "The link last",
+               filler + "A sale: http://cdn.shop.example/sale - the end.\r\n");
+
+            string earlyCopy = Pop3ClientSimulator.AssertGetFirstMessageText(early.Address, Password);
+            StringAssert.Contains("X-hMailServer-Spam: YES", earlyCopy, "The entry's link is in the first 64 KB of the text.");
+            StringAssert.Contains("cdn.shop.example is on the account block list as shop.example/", earlyCopy);
+
+            string lateCopy = Pop3ClientSimulator.AssertGetFirstMessageText(late.Address, Password);
+            StringAssert.DoesNotContain("X-hMailServer-Spam", lateCopy,
+               "The entry's link comes after the first 64 KB of the text, which is as far as a message over the limit is read.");
+         }
+         finally
+         {
+            _settings.AntiSpam.MaximumMessageSize = 0;
+         }
+      }
+
+      [Test]
       [Description("One account's entry is not found by another: neither changed nor removed")]
       public void AnotherAccountsEntryCannotBeChangedOrRemoved()
       {

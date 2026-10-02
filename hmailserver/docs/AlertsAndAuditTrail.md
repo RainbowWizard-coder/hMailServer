@@ -627,7 +627,11 @@ their endpoint is not answering. The events route shows the state:
     ... "webhook":"dead-lettered","webhook_attempts":5 ...
 
 Only https, or plain http to a loopback address — the rule `HttpsClient` applies
-to every outbound request in this server.
+to every outbound request in this server. Any address is reached, this server's
+own network included, since a receiver beside the server is the common case: so
+whoever may change a rule (`manage_settings`, below) may point this server at an
+address only it can reach, as a webhook subscription's `manage_server` may
+([Webhooks.md](Webhooks.md), "Who can set a subscription's URL").
 
 ### The routes
 

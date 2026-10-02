@@ -109,7 +109,7 @@ namespace HM
       // Plain http to 127.0.0.0/8, localhost or ::1, judged by the host of the
       // URL: the one exception to "an endpoint is https", and the same exception
       // HttpsClient makes. PushNotifier sends to such an endpoint with
-      // HttpsClient::Request and to every other with RequestPublic.
+      // HttpsClient::Request and to every other with RequestPublicThroughProxy.
       static bool IsLoopbackHttp(const String &endpoint);
 
       // The person's choice about an existing row; the keys are never changed by

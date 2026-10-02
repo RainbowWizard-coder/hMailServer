@@ -71,7 +71,16 @@ namespace HM
       // answer differently. Not through HttpProxy: the proxy would resolve the name
       // itself, out of sight of this. Shorter deadline and cap than Request's, since
       // the caller is a REST worker with a request of its own to answer. Otherwise
-      // the server could be made to reach what only it can reach.
+      // the server could be made to reach what only it can reach. A caller uses
+      // RequestPublicThroughProxy, which is this when no HttpProxy is set: a server
+      // that reaches the web only through its proxy could not make this request.
+      // A refusal's error names the host as the URL gave it, never the address it
+      // resolved to, and a proxy that refuses the tunnel is named as HttpProxy and
+      // not by its address, with its status code and not its status line, which
+      // is the proxy's own words: the error reaches the person, or the key, who
+      // named the host (an unsubscribe's answer, a key lookup's, an inbound
+      // webhook route's delivery), and none of these is theirs to learn. Until
+      // 6.3.6 the address was named.
       //
       // keep_head_of_long_answer is for a caller that judges an answer by its
       // status alone (an inbound webhook's POST): an answer longer than
@@ -84,22 +93,31 @@ namespace HM
                                 int timeout_seconds = 10, size_t max_response_bytes = 32 * 1024,
                                 bool keep_head_of_long_answer = false);
 
-      // RequestPublic, through HttpProxy when one is set: for the MTA-STS policy
-      // fetch (TlsPolicy::HttpsGet_), whose host an outsider names - the recipient's
-      // domain - and which a server that reaches the web only through its proxy
-      // still has to make. The name is resolved and every address judged here, as
-      // RequestPublic judges them, and the proxy is asked to CONNECT to an address
-      // that passed, written as that address and not as the name, so that the proxy
-      // reaches what was judged and not what its own lookup answers; the TLS
-      // handshake inside the tunnel still names the host and checks its certificate
-      // against it. When the proxy refuses CONNECT to an address the next address
-      // that passed is tried, and when none is taken the request fails as one with
-      // no way out does - never directly. With no proxy set, or one that is not on
-      // this machine for a host that is, it is RequestPublic exactly. https only,
-      // as RequestPublic is in effect.
+      // RequestPublic, through HttpProxy when one is set: for every request whose
+      // host an outsider names, which a server that reaches the web only through
+      // its proxy still has to make - the MTA-STS policy fetch
+      // (TlsPolicy::HttpsGet_; the recipient's domain names the host) and, since
+      // 6.3.6, a brand's logo (BrandLogo), an inbound webhook route's endpoint
+      // that the server's administrator did not make (InboundWebhooks), a Web Key
+      // Directory (OpenPgpRing), a Web Push endpoint (PushNotifier) and a one-click
+      // List-Unsubscribe address (RestApiServer::HandleMeMessageUnsubscribe_). The
+      // name is resolved and every address judged here, as RequestPublic judges
+      // them, and the proxy is asked to CONNECT to an address that passed, written
+      // as that address and not as the name, so that the proxy reaches what was
+      // judged and not what its own lookup answers; the TLS handshake inside the
+      // tunnel still names the host and checks its certificate against it. When
+      // the proxy refuses CONNECT to an address the next address that passed is
+      // tried, and when none is taken the request fails as one with no way out
+      // does - never directly. With no proxy set, or one that is not on this
+      // machine for a host that is, it is RequestPublic exactly. https only, as
+      // RequestPublic is in effect. The name is still resolved by this server,
+      // so a server whose resolver answers no name outside its own network
+      // cannot make the request through its proxy either. keep_head_of_long_answer
+      // as for RequestPublic.
       static bool RequestPublicThroughProxy(const AnsiString &method, const AnsiString &url, const std::vector<AnsiString> &extra_headers,
                                             const AnsiString &content_type, const AnsiString &body, Response &response, String &error,
-                                            int timeout_seconds, size_t max_response_bytes);
+                                            int timeout_seconds, size_t max_response_bytes,
+                                            bool keep_head_of_long_answer = false);
 
       // Request, for an endpoint the administrator named that may be on this
       // server's own network - an inbound webhook's (InboundWebhooks.h) - but
@@ -161,9 +179,14 @@ namespace HM
       // Whether a host - a name, or an address written as one - leads only to
       // public addresses, judged as RequestPublic judges them: every address the
       // name resolves to within five seconds, none loopback, private, link-local
-      // or reserved. False with error set otherwise, and when it does not resolve.
-      // For a connection made later by something else (a fetch account), this is
-      // the check at the moment it is asked, not a guarantee about the next lookup.
+      // or reserved. False with error set otherwise, and when it does not resolve:
+      // one sentence for both, naming the host as it was given and never an
+      // address it resolved to, since the error reaches the person who named the
+      // host (a reader's other account), and which private address a name leads
+      // to, or whether it resolves inside this network at all, is not theirs to
+      // learn. Until 6.3.6 it named the address. For a connection made later by
+      // something else (a fetch account), this is the check at the moment it is
+      // asked, not a guarantee about the next lookup.
       static bool HostIsPublic(const AnsiString &host, String &error);
 
       // Whether one address, written as text (a.b.c.d, or IPv6 without brackets),

@@ -19,7 +19,10 @@ namespace RegressionTests.Shared
    ///    it was asked for is recorded, oldest first, in the form the client sent it -
    ///    "host:port" for CONNECT, the URL for a forwarded request. A CONNECT to a port
    ///    nothing listens on is answered 502, which is the refusal path the server
-   ///    reports by the proxy's name.
+   ///    reports by the proxy's name. Made to refuse tunnels, it answers every CONNECT
+   ///    403 at once and connects nowhere: what a test of a request to a public
+   ///    address needs, which is to see what the proxy was asked for without anything
+   ///    leaving the machine.
    /// </summary>
    public sealed class FakeHttpProxy : IDisposable
    {
@@ -27,9 +30,17 @@ namespace RegressionTests.Shared
       private readonly object _lock = new object();
       private readonly List<string> _targets = new List<string>();
       private volatile bool _stopping;
+      private readonly bool _refuseTunnels;
 
-      public FakeHttpProxy()
+      public FakeHttpProxy() : this(false)
       {
+      }
+
+      /// <param name="refuseTunnels">Every CONNECT is recorded and answered 403, and
+      /// nothing is connected to.</param>
+      public FakeHttpProxy(bool refuseTunnels)
+      {
+         _refuseTunnels = refuseTunnels;
          _listener = new TcpListener(IPAddress.Loopback, 0);
          _listener.Start();
          Port = ((IPEndPoint) _listener.LocalEndpoint).Port;
@@ -126,6 +137,12 @@ namespace RegressionTests.Shared
                string target = requestLine[1];
                lock (_lock)
                   _targets.Add(target);
+
+               if (method == "CONNECT" && _refuseTunnels)
+               {
+                  Write(stream, "HTTP/1.1 403 Forbidden\r\nContent-Length: 0\r\nConnection: close\r\n\r\n");
+                  return;
+               }
 
                if (method == "CONNECT")
                {

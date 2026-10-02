@@ -397,9 +397,16 @@ introspection of OAuth 2 authentication, which use the same client. For an `http
 address the proxy is asked to `CONNECT` and the TLS handshake runs inside the
 tunnel, so the certificate is verified against the real host exactly as it is on a
 direct connection and the proxy sees the name it was asked for and nothing else. A
-proxy that refuses is reported with its own name and answer, so it is clear which
-hop said no. There is no place for proxy credentials: a proxy that demands them
-refuses, and that refusal is what you see. An address on this machine (`localhost`,
+request whose host somebody else named - the MTA-STS policy, a brand's logo, a Web
+Key Directory, a Web Push notification, a one-click unsubscribe, an inbound webhook
+route held to public addresses - is held to public addresses: this server resolves
+the name and the proxy is asked to `CONNECT` to an address that passed, written as
+that address, so a proxy that allows tunnels only to names refuses it, and that
+refusal is reported to the person who named the host as `HttpProxy`'s, by its
+status code, without the proxy's address or the words of its answer. Any other refusal
+by the proxy is reported with its own name and answer, so it is clear which hop said no.
+There is no place for proxy credentials: a proxy that demands them refuses, and
+that refusal is what you see. An address on this machine (`localhost`,
 `127.0.0.0/8`, `::1`) is reached directly unless the proxy is on this machine too,
 since a proxy anywhere else would reach its own loopback, not this server's.
 
@@ -688,6 +695,7 @@ Administration and monitoring:
                                  ; makes as a client: the feed and its downloads, JWKS, token introspection.
                                  ; CONNECT for https, the absolute URL for http. Empty = direct. No credentials.
                                  ; An address on this machine goes direct unless the proxy is on this machine too.
+                                 ; A host somebody else named is asked of it as the public address it was judged by (6.3.6).
    UpdateTrustRootsFile=         ; PEM certificates trusted to have issued the release's signing certificate
                                  ; (empty = Sigstore's public Fulcio root and intermediate, embedded)
    UpdateLogPublicKeyFile=       ; the transparency log's public key (empty = Sigstore's public Rekor, embedded)

@@ -82,6 +82,15 @@ namespace HM
       Unverified
    };
 
+   // What a stored copy of an event holds of the occurrences a CANCEL names
+   // (Imip::OccurrencesHeld, Imip::TakeOutOccurrences).
+   enum class ImipOccurrences
+   {
+      NoneHeld,   // none of them: taken out already, or never in the copy
+      Some,       // some of them or all, and other occurrences besides
+      All         // every occurrence the copy holds is one of them
+   };
+
    // What KeepInvitation does with an invitation, decided from values alone
    // (Imip::KeepRule).
    struct ImipKeepRule
@@ -182,16 +191,24 @@ namespace HM
       // The invitation's event kept in the account's calendars: the copy that
       // holds the UID replaced when the invitation is the same or a later
       // sequence, an older invitation not undoing a newer, and a copy whose
-      // ORGANIZER is not the invitation's never replaced at all - a UID is
-      // mailed to every guest, so anybody who saw an invitation could
-      // otherwise rewrite the event under it; a new object in the default
-      // calendar when nothing holds the UID - made when createDefault, else
-      // refused when there is none. At the same sequence the answer the
-      // address already gave (a PARTSTAT that is not NEEDS-ACTION, with its
-      // SENT-BY) is carried into the replacement, since a resend does not
-      // undo an answer. cancelled marks every component STATUS:CANCELLED; a
-      // partstat, when given, is set for the address (with the name) before
-      // the object is written. The page's answer and the delivery filer are
+      // ORGANIZER is not the invitation's never replaced - a UID is mailed to
+      // every guest, so anybody who saw an invitation could otherwise rewrite
+      // the event under it - but by the account's own answer to an invitation
+      // (AccountsAnswer, not cancelled) when that copy is marked as filed
+      // unverified (FiledUnverified): nobody verified who the copy names as
+      // its organiser, and the account chose this invitation over it, so a
+      // copy planted under the UID before the real invitation came neither
+      // keeps the real one out nor makes its card's answer fail. Until 6.3.6
+      // it did both. A new object in the default calendar when nothing holds
+      // the UID - made when createDefault, else refused when there is none. At
+      // the same sequence the answer the address already gave (a PARTSTAT
+      // that is not NEEDS-ACTION, with its SENT-BY) is carried into the
+      // replacement, since a resend does not undo an answer. cancelled marks
+      // every component STATUS:CANCELLED - but for a CANCEL of occurrences
+      // (CancelsOccurrences) of the copy the organiser holds, which has those
+      // occurrences taken out (TakeOutOccurrences) and the rest of its series
+      // kept, as ApplyToStored does; a partstat, when given, is set for the
+      // address (with the name) before the object is written. The page's answer and the delivery filer are
       // this one path, so a REQUEST filed on delivery and then answered from
       // the message is one event, never two. What was written comes back in
       // calendar and record. What may be replaced, and what is marked, is
@@ -247,8 +264,13 @@ namespace HM
       //     of who is in it), is added beside the list on the components that
       //     list it and not them, with MEMBER naming the list (RFC 5545
       //     section 3.2.11) - the organiser invited them through it.
-      //   - A CANCEL: every component STATUS:CANCELLED, when the stored
-      //     event's ORGANIZER is the CANCEL's and sentBy vouches for it.
+      //   - A CANCEL, when the stored event's ORGANIZER is the CANCEL's and
+      //     sentBy vouches for it: of the whole event, every component
+      //     STATUS:CANCELLED; of occurrences (CancelsOccurrences), those
+      //     taken out of the copy (TakeOutOccurrences) and the rest of the
+      //     series left as it was - or, when they are every occurrence the
+      //     copy holds, every component STATUS:CANCELLED, as for the whole.
+      //     Until 6.3.6 a CANCEL of one occurrence cancelled the series.
       // refused counts the answers, or the cancellation, left as they were.
       // True when the copy changed.
       static bool ApplyToStored(ICalComponent &tree, const ImipMessage &message, const AnsiString &me,
@@ -257,6 +279,36 @@ namespace HM
                                 const std::function<bool(const AnsiString &listed, const AnsiString &named)> &sameMailbox,
                                 const std::function<bool(const AnsiString &list, const AnsiString &named)> &listMember,
                                 size_t &refused);
+
+      // Whether a CANCEL cancels occurrences of an event rather than the
+      // event: every VEVENT and VTODO it carries has a RECURRENCE-ID (RFC 5546
+      // section 3.2.5). One without names the whole event, whatever else the
+      // CANCEL carries.
+      static bool CancelsOccurrences(const ImipMessage &message);
+
+      // What a stored copy holds of the occurrences cancel names. Each event
+      // of cancel with a RECURRENCE-ID names the occurrence it places - read
+      // in cancel's own time zones, and matched by instant - and, with
+      // RANGE=THISANDFUTURE, every occurrence after it as well; one that
+      // cannot be placed names nothing. An occurrence is held when the copy
+      // has an override of it, or its series makes it (an RRULE or an RDATE
+      // not taken out by an EXDATE, or the DTSTART of a master that does not
+      // recur).
+      static ImipOccurrences OccurrencesHeld(const ICalComponent &stored, const ICalComponent &cancel);
+
+      // The occurrences cancel names taken out of a stored copy that holds
+      // them and others besides (Some), as a guest's calendar takes out an
+      // occurrence its organiser cancelled: each one's override dropped and,
+      // where the series makes it, an EXDATE written on the master in the
+      // form of its DTSTART - a day for a series of days, floating for a
+      // floating one, else in UTC, which reads as the same instant in the
+      // master's own zone. From an occurrence named with RANGE=THISANDFUTURE
+      // on, every override and RDATE is dropped too, and an RRULE that went
+      // on past it ends there: UNTIL the moment before it, in the form RFC
+      // 5545 asks of the DTSTART, in place of any COUNT or UNTIL it had. For
+      // NoneHeld and All nothing is changed: for All the caller cancels or
+      // removes the whole copy.
+      static ImipOccurrences TakeOutOccurrences(ICalComponent &stored, const ICalComponent &cancel);
 
       // Whether the address is a member of the distribution list of this
       // server that list is, by the list's own record of its members
@@ -367,7 +419,14 @@ namespace HM
    // whether mail from outside was sent by an address, ApplyToStored's rule
    // for a REPLY and a CANCEL given who sent it (an alias the event lists,
    // an occurrence a guest was left out of, a member of a list the event
-   // lists), KeepRule's for an invitation by who stands behind it, and
+   // lists, a CANCEL of occurrences taken out of the series and nothing
+   // else - one, two, one an override moved, one and every one after it, in
+   // a zone, of a series of days, floating, with RDATEs, 1,500 at once in
+   // the time of a few expansions, three decades apart, 17 among 58,000
+   // EXDATEs, past occurrences out already, and as Exchange, Google and
+   // Apple write them - and
+   // TakeOutOccurrences, which a card's remove calls), KeepRule's for an
+   // invitation by who stands behind it, and
    // OriginOf, which never takes a message sent through the send API for an
    // account's session - each with the cases that must not change or vouch
    // for anything. Functions of

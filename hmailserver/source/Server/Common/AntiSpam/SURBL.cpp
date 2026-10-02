@@ -1201,9 +1201,13 @@ namespace HM
       // character references read, fromReference saying which characters a
       // reference wrote - and hands the hosts they go to to visit, as
       // SURBL::FindLinkHosts says, finding each by separator (FindLinkHosts
-      // says what it is). False when visit stopped the reading.
+      // says what it is). cut: source is the first part of a longer text, and
+      // a link whose authority runs on to its end is not handed over - the
+      // text after the cut could have taken the host on - and ends the
+      // reading, since every link after it would too. False when visit
+      // stopped the reading.
       bool ReadLinks_(const boost::wregex &separator, const std::wstring &source, const std::vector<bool> &fromReference,
-                      bool html, const std::function<bool(const String &host)> &visit)
+                      bool html, const std::function<bool(const String &host)> &visit, bool cut = false)
       {
          boost::wsmatch match;
          std::wstring::const_iterator from = source.begin();
@@ -1283,6 +1287,9 @@ namespace HM
             {
                std::wstring authority;
                const size_t stopped = ReadAuthority_(source, fromReference, separatorEnd, quote, attribute, encoded, authority);
+
+               if (cut && stopped >= source.size())
+                  return true;
 
                if (encoded)
                   authority = DecodedEncodedAuthority_(authority);
@@ -1450,9 +1457,50 @@ namespace HM
    {
    }
 
-   void
-   SURBL::FindLinkHosts(const String &text, bool html, const std::function<bool(const String &host)> &visit)
+   String
+   SURBL::FirstPartForLinks(const String &text, bool html, size_t maxCharacters)
    {
+      if (text.size() <= maxCharacters)
+         return text;
+
+      size_t end = maxCharacters;
+
+      // A character reference the cut would split is read as another text by
+      // itself - "&#10" for "&#109;", an m - so it is left out with what
+      // follows it: the last '&' when nothing but the characters a reference
+      // is written in comes after it before the cut. A reference written
+      // with leading zeros is as long as its writer chose, so the search
+      // goes back as far as those characters do.
+      if (html)
+      {
+         const std::wstring &characters = text;
+         size_t at = end;
+         while (at > 0)
+         {
+            const wchar_t c = characters[at - 1];
+            const bool referenceCharacter = c == L'#' || (c >= L'0' && c <= L'9') || (c >= L'a' && c <= L'z') || (c >= L'A' && c <= L'Z');
+            if (!referenceCharacter)
+               break;
+            at--;
+         }
+         if (at > 0 && characters[at - 1] == L'&')
+            end = at - 1;
+      }
+
+      // By length, not by c_str alone: a part may hold a NUL.
+      return String(text.c_str(), end);
+   }
+
+   void
+   SURBL::FindLinkHosts(const String &text, bool html, const std::function<bool(const String &host)> &visit, size_t maxCharacters)
+   {
+      // A text longer than maxCharacters is read as far as its first part,
+      // and a link that runs on to the end of that part is not handed over
+      // (ReadLinks_'s cut).
+      const bool cut = text.size() > maxCharacters;
+      const String firstPart = cut ? FirstPartForLinks(text, html, maxCharacters) : String();
+      const String &read = cut ? firstPart : text;
+
       // Until 6.3.6 a regular expression took the characters after "://" that
       // could be in a name, so http://anything@evil.example/ was looked up as
       // "anything", and evil.example never was: a spammer escaped every list by
@@ -1461,9 +1509,9 @@ namespace HM
       std::wstring decoded;
       std::vector<bool> fromReference;
       if (html)
-         DecodeCharacterReferences_(text, decoded, fromReference);
+         DecodeCharacterReferences_(read, decoded, fromReference);
 
-      const std::wstring &source = html ? decoded : static_cast<const std::wstring &>(text);
+      const std::wstring &source = html ? decoded : static_cast<const std::wstring &>(read);
 
       // The first group is a link with a scheme. A link written into another's
       // query has its separator percent-encoded, and a redirector that decodes
@@ -1492,9 +1540,11 @@ namespace HM
          L"(https?:[\\\\/]*|https?%3a|%3a%2f%2f|://)|([/\\\\][\\t\\r\\n]*[/\\\\])|(%(?:2f|5c)%(?:2f|5c))",
          boost::wregex::icase);
 
-      if (!ReadLinks_(separator, source, fromReference, html, visit) || !html)
+      if (!ReadLinks_(separator, source, fromReference, html, visit, cut) || !html)
          return;
 
+      // A value that the cut leaves open is not read again: its closing quote
+      // is past the cut (ReadValuesWithoutBreaks_ stops there).
       ReadValuesWithoutBreaks_(separator, source, fromReference, visit);
    }
 
@@ -1595,7 +1645,7 @@ namespace HM
    }
 
    void
-   SURBL::ForEachLinkHost(std::shared_ptr<MessageData> pMessageData, const std::function<bool(const String &host)> &visit)
+   SURBL::ForEachLinkHost(std::shared_ptr<MessageData> pMessageData, const std::function<bool(const String &host)> &visit, size_t maxCharacters)
    {
       bool stopped = false;
       auto visitLink = [&](const String &host) -> bool
@@ -1615,9 +1665,9 @@ namespace HM
       try
       {
          // The text part as text, and the HTML part as HTML, in that order.
-         FindLinkHosts(pMessageData->GetBody(), false, visitLink);
+         FindLinkHosts(pMessageData->GetBody(), false, visitLink, maxCharacters);
          if (!stopped)
-            FindLinkHosts(pMessageData->GetHTMLBody(), true, visitLink);
+            FindLinkHosts(pMessageData->GetHTMLBody(), true, visitLink, maxCharacters);
       }
       catch (std::runtime_error &err) // regex_search throws runtime_error if the expression is too complex.
       {
@@ -2348,6 +2398,96 @@ namespace HM
          if (seconds > 20)
             Fail_("a long user name is read in time proportional to its length", _T("http://a0.example)@...x.example/"),
                StringParser::IntToString(static_cast<int>(seconds)) + _T(" s"), _T("well under 20 s"));
+      }
+
+      // A text read only as far as its first part (the sender lists' URL
+      // entries, for a message over the anti-spam size limit): the links that
+      // end before the cut, as the whole text has them, and no host that the
+      // whole text does not hand over - a link the cut runs through is left
+      // out, not read as the part of its host before the cut.
+      {
+         struct CutCase
+         {
+            const wchar_t *text;
+            bool html;
+            size_t maxCharacters;
+            const wchar_t *expected;
+            const char *why;
+         };
+         const CutCase cutCases[] =
+         {
+            { L"http://one.example/ http://two.example/", false, 20, L"one.example",
+              "a link after the cut is not read" },
+            { L"http://one.example/ http://evil.example.com/", false, 36, L"one.example",
+              "a link the cut runs through hands over nothing - not evil.exam" },
+            { L"http://one.example/ http://evil.example/x", false, 40, L"one.example|evil.example",
+              "a link that ends before the cut is read whole" },
+            { L"http://one.example/ http://two.example/", false, 1000, L"one.example|two.example",
+              "a text no longer than the limit is read whole" },
+            { L"http://one.example/ http://two.example/", false, 39, L"one.example|two.example",
+              "a text exactly as long as the limit is read whole" },
+            { L"<p>http://one.example/ http://evil.ex&#97;mple.com/x</p>", true, 40, L"one.example",
+              "a character reference the cut would split is left out, not read as a tab (&#9) that ends the host - not evil.ex" },
+            { L"<p>http://one.example/ http://evil.ex&#97;mple.com/x</p>", true, 1000, L"one.example|evil.example.com",
+              "the same HTML read whole" },
+            { L"<a href=\"http://one.example/\">x</a><a href=\"https://evil.exa\nmple.com/\">y</a>", true, 65, L"one.example",
+              "a value the cut runs through hands over nothing - not evil.example" },
+            { L"<a href=\"http://one.example/\">x</a><a href=\"https://evil.exa\nmple.com/\">y</a>", true, 1000, L"one.example|evil.example.com",
+              "the same value, whole, its line break dropped" },
+            { L"see http%3A%2F%2Fevil.example.com%2Fx and more", false, 30, L"",
+              "an encoded link the cut runs through hands over nothing - not evil.example" },
+            { L"see http%3A%2F%2Fevil.example.com%2Fx and more", false, 1000, L"evil.example.com",
+              "the same encoded link read whole" },
+            { L"http:", false, 3, L"",
+              "a cut inside the scheme" },
+         };
+
+         for (const CutCase &test : cutCases)
+         {
+            std::vector<String> hosts;
+            SURBL::FindLinkHosts(test.text, test.html, [&hosts](const String &host) { hosts.push_back(host); return true; }, test.maxCharacters);
+            if (Joined_(hosts) != String(test.expected))
+               Fail_(test.why, test.text, Joined_(hosts), test.expected);
+         }
+
+         // The first part itself: a reference the cut would split goes, with
+         // its '&', however many leading zeros it was written with, and
+         // nothing else does.
+         struct PartCase
+         {
+            const wchar_t *text;
+            bool html;
+            size_t maxCharacters;
+            const wchar_t *expected;
+         };
+         const PartCase partCases[] =
+         {
+            { L"abc&#0000000000000000000000000000000000000000000109;def", true, 40, L"abc" },
+            { L"abc&amp;def", true, 8, L"abc&amp;" },
+            { L"abc&amp;def", true, 7, L"abc" },
+            { L"abc&amp;def", false, 7, L"abc&amp" },
+            { L"a & b and more", true, 6, L"a & b " },
+            { L"abcdefgh", true, 4, L"abcd" },
+            { L"abcd", true, 4, L"abcd" },
+         };
+         for (const PartCase &test : partCases)
+         {
+            const String got = SURBL::FirstPartForLinks(test.text, test.html, test.maxCharacters);
+            if (got != String(test.expected))
+               Fail_("the first part of a text cut for its links", test.text, got, test.expected);
+         }
+
+         // A long text read only as far as its limit: the links after the cut
+         // are never read, so the time is the limit's and not the text's.
+         String many;
+         for (int i = 0; i < 100000; i++)
+            many += _T("http://a") + StringParser::IntToString(i % 10) + _T(".example/ ");
+         size_t visits = 0;
+         SURBL::FindLinkHosts(many, false, [&visits](const String &) { visits++; return true; }, 2000);
+         // Each link is 19 characters with its space: 105 end before the cut.
+         if (visits != 105)
+            Fail_("a long text is read only as far as its limit", _T("http://a0.example/ x 100000, 2000 characters"),
+               StringParser::IntToString(static_cast<int>(visits)) + _T(" hosts"), _T("105 hosts"));
       }
 
       for (const NamesCase &test : namesCases)

@@ -185,6 +185,35 @@ named domains is refused, and why no API key reaches these routes at all.
 Deleting one needs only `manage_settings`: it is the one change that cannot make
 the server reach anything.
 
+**Who can set a subscription's URL**, and so point this server at an address of
+their choosing - checked against the code for 6.3.6, the same since outbound
+webhooks came in 6.3.4 (schema 6051):
+
+| Surface | Who |
+|---|---|
+| `POST /api/v1/webhooks`, `PUT /api/v1/webhooks/{name}` (and `POST /test`, `POST /run`, which make the server connect) | The administrator password, or an account whose role holds `manage_server` and is not confined to named domains: the built-in server administrator role (an account with the server administrator's level), or a custom role an administrator made with `manage_server` in it |
+| COM `Utilities.SaveWebhookSubscription` | A COM session signed in as the server administrator (`AdministerServer`, which no custom role can hold: the administrator password, or an account with the server administrator's level or role) |
+| Anything else | Nobody: no API key, whatever its scope or role (401); no role confined to named domains (403); no domain administrator, whose role holds no `manage_server`; no account through the webmail or `/api/v1/me` |
+
+That is the same set of credentials that may let an inbound webhook route reach
+this server's own network ([InboundWebhooks.md](InboundWebhooks.md): a
+credential that is not an API key, holds `manage_server` and reaches every
+domain), so nobody short of those credentials can make a subscription post to
+an address only this server can reach, and a subscription is posted with the
+plain HTTPS client: loopback and the private ranges are reached on purpose,
+since an administrator's own receiver on the same network is the common case.
+Giving a custom role `manage_server` gives its holders that reach; give it to
+those you would let act as the server. A post goes through `HttpProxy` when
+one is set, except to an address on this machine, as the server's other
+requests to an address an administrator named do.
+
+A subscription is not the only address an administrator names that this server
+connects to. An alert rule's webhook is posted with the same plain HTTPS client,
+and `manage_settings` sets it ([AlertsAndAuditTrail.md](AlertsAndAuditTrail.md));
+the same permission sets the server's settings, among them the hosts of its
+other clients. A custom role given `manage_settings` can therefore point this
+server at its own network as well ([Roles.md](Roles.md)).
+
 ### The secret
 
 It can be set and it can be replaced, and it is never handed back. The listing

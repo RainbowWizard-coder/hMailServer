@@ -102,17 +102,8 @@ namespace HM
 
       AntiSpamConfiguration &config = Configuration::Instance()->GetAntiSpamConfiguration();
 
-      // Limit scanning by message size. The hard ceiling is the MIME parser's own
-      // limit (MessageData::LoadFromMessage ignores messages over 80 MB): scanning
-      // above it cannot load the message, and the post-scan rewrite would then
-      // write an empty MIME body over the original - i.e. destroy the message.
-      // Messages this large are very unlikely to be spam anyway.
-
-      const int maxParserSizeKB = 1024 * 80;
-      int maxSizeToScanKB = maxParserSizeKB;
-
-      if (config.GetAntiSpamMaxSizeKB() > 0)
-         maxSizeToScanKB = std::min(config.GetAntiSpamMaxSizeKB(), maxSizeToScanKB);
+      // Limit scanning by message size (MaxSizeToScanKB).
+      const int maxSizeToScanKB = MaxSizeToScanKB();
 
       int messageSizeKB = FileUtilities::FileSize(fileName) / 1024;
       if (messageSizeKB > maxSizeToScanKB)
@@ -138,6 +129,20 @@ namespace HM
       std::set<std::shared_ptr<SpamTestResult> > setResult = spam_test_runner_->RunSpamTest(pTestData, SpamTest::PostTransmission, maxScore);
 
       return setResult;
+   }
+
+   int
+   SpamProtection::MaxSizeToScanKB()
+   {
+      // The hard ceiling is the MIME parser's own limit (MessageData::LoadFromMessage
+      // ignores messages over 80 MB): scanning above it cannot load the message, and
+      // the post-scan rewrite would then write an empty MIME body over the original -
+      // i.e. destroy the message. Messages this large are very unlikely to be spam
+      // anyway.
+      const int maxParserSizeKB = 1024 * 80;
+
+      const int configured = Configuration::Instance()->GetAntiSpamConfiguration().GetAntiSpamMaxSizeKB();
+      return configured > 0 ? std::min(configured, maxParserSizeKB) : maxParserSizeKB;
    }
 
    SpamProtection::GreyListingVerdict

@@ -2150,12 +2150,20 @@ namespace HM
                }
             }
 
+            // Sorted, and each instance looked up by halving: an object of an
+            // iMIP message's size may hold some 58,000 EXDATEs, and walking them
+            // all for each of up to MaxInstances instances took a third of a
+            // second an expansion - one a CANCEL of occurrences asks for a few
+            // dozen times (Imip.cpp, Held). Until 6.3.6 they were walked.
+            std::sort(excludedInstants.begin(), excludedInstants.end());
+            std::sort(excludedDays.begin(), excludedDays.end());
+
             for (size_t i = 0; i < starts.size(); i++)
             {
                __int64 start = starts[i];
-               if (std::find(excludedInstants.begin(), excludedInstants.end(), start) != excludedInstants.end())
+               if (std::binary_search(excludedInstants.begin(), excludedInstants.end(), start))
                   continue;
-               if (!excludedDays.empty() && std::find(excludedDays.begin(), excludedDays.end(), DayOf(locals[i])) != excludedDays.end())
+               if (!excludedDays.empty() && std::binary_search(excludedDays.begin(), excludedDays.end(), DayOf(locals[i])))
                   continue;
 
                ICalInstance instance;
@@ -2221,7 +2229,7 @@ namespace HM
                      instance.end = when.instant + duration;
                   }
                   instance.recurrenceId = instance.start;
-                  if (std::find(excludedInstants.begin(), excludedInstants.end(), instance.start) != excludedInstants.end())
+                  if (std::binary_search(excludedInstants.begin(), excludedInstants.end(), instance.start))
                      continue;
                   generated.push_back(instance);
                }

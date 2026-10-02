@@ -8,7 +8,9 @@
 
 #include <algorithm>
 #include <atomic>
+#include <chrono>
 #include <ctime>
+#include <set>
 #include <stdexcept>
 
 #include "Imip.h"
@@ -705,6 +707,469 @@ namespace HM
          }
       }
 
+      // ---- the occurrences a CANCEL names (Imip::OccurrencesHeld) ----------
+
+      // One occurrence a CANCEL names: the instant its RECURRENCE-ID places,
+      // and whether every occurrence after it is named too.
+      struct NamedOccurrence
+      {
+         __int64 instant;
+         bool andAfter;
+      };
+
+      bool IsEventLike(const ICalComponent &component)
+      {
+         return component.name == "VEVENT" || component.name == "VTODO";
+      }
+
+      // The occurrences cancel's events name, each placed in cancel's own
+      // zones; one whose RECURRENCE-ID cannot be placed names nothing.
+      std::vector<NamedOccurrence> NamedOccurrences(const ICalComponent &cancel)
+      {
+         std::vector<NamedOccurrence> named;
+         for (size_t i = 0; i < cancel.children.size(); i++)
+         {
+            const ICalComponent &component = cancel.children[i];
+            if (!IsEventLike(component))
+               continue;
+            const ICalProperty *recurrenceId = component.Property("RECURRENCE-ID");
+            if (!recurrenceId)
+               continue;
+            ICalTime time;
+            AnsiString ignored;
+            if (!ICalendar::ParseTime(*recurrenceId, &cancel, time, ignored))
+               continue;
+            AnsiString range = Trimmed(recurrenceId->Parameter("RANGE"));
+            range.ToUpper();
+            NamedOccurrence occurrence = {};
+            occurrence.instant = time.instant;
+            occurrence.andAfter = range == "THISANDFUTURE";
+            named.push_back(occurrence);
+         }
+         return named;
+      }
+
+      // The instant a stored component's RECURRENCE-ID names, read in the
+      // stored object's zones.
+      bool RecurrenceIdOf(const ICalComponent &component, const ICalComponent &tree, __int64 &instant)
+      {
+         const ICalProperty *recurrenceId = component.Property("RECURRENCE-ID");
+         if (!recurrenceId)
+            return false;
+         ICalTime time;
+         AnsiString ignored;
+         if (!ICalendar::ParseTime(*recurrenceId, &tree, time, ignored))
+            return false;
+         instant = time.instant;
+         return true;
+      }
+
+      // The component of the object without a RECURRENCE-ID - its series -
+      // or null when it holds overrides alone.
+      const ICalComponent *SeriesMasterOf(const ICalComponent &tree)
+      {
+         for (size_t i = 0; i < tree.children.size(); i++)
+         {
+            if (IsEventLike(tree.children[i]) && !tree.children[i].Property("RECURRENCE-ID"))
+               return &tree.children[i];
+         }
+         return nullptr;
+      }
+
+      ICalComponent *MutableSeriesMasterOf(ICalComponent &tree)
+      {
+         for (size_t i = 0; i < tree.children.size(); i++)
+         {
+            if (IsEventLike(tree.children[i]) && !tree.children[i].Property("RECURRENCE-ID"))
+               return &tree.children[i];
+         }
+         return nullptr;
+      }
+
+      // The object with its master alone - its zones kept, its overrides
+      // gone - for asking what the series itself makes.
+      ICalComponent SeriesOnly(const ICalComponent &tree)
+      {
+         ICalComponent series = tree;
+         series.children.clear();
+         for (size_t i = 0; i < tree.children.size(); i++)
+         {
+            const ICalComponent &component = tree.children[i];
+            if (!IsEventLike(component) || !component.Property("RECURRENCE-ID"))
+               series.children.push_back(component);
+         }
+         return series;
+      }
+
+      // Whether a named occurrence covers an instant.
+      bool Covers(const std::vector<NamedOccurrence> &named, __int64 instant)
+      {
+         for (size_t i = 0; i < named.size(); i++)
+         {
+            if (named[i].instant == instant || (named[i].andAfter && instant >= named[i].instant))
+               return true;
+         }
+         return false;
+      }
+
+      // The occurrences the series of tree makes - not its overrides - from
+      // windowStart to windowEnd, at most maxInstances, by the start the
+      // recurrence gives each. False when the object cannot be expanded.
+      // cutShort, when given, says whether the expansion stopped at
+      // maxInstances before the end of the window.
+      bool SeriesInstances(const ICalComponent &tree, __int64 windowStart, __int64 windowEnd, size_t maxInstances, std::vector<__int64> &recurrenceIds,
+                           bool *cutShort = nullptr)
+      {
+         recurrenceIds.clear();
+         if (cutShort)
+            *cutShort = false;
+         if (!SeriesMasterOf(tree))
+            return true;
+         std::vector<ICalInstance> instances;
+         bool truncated = false;
+         AnsiString problem;
+         if (!ICalendar::Expand(SeriesOnly(tree), windowStart, windowEnd, maxInstances, instances, truncated, problem))
+            return false;
+         if (cutShort)
+            *cutShort = truncated;
+         for (size_t i = 0; i < instances.size(); i++)
+            recurrenceIds.push_back(instances[i].recurrenceId);
+         return true;
+      }
+
+      // The earliest start of anything the object holds, a little before it,
+      // as the window an expansion from the beginning starts at.
+      __int64 BeginningOf(const ICalComponent &tree)
+      {
+         ICalendar::Summary summary;
+         AnsiString problem;
+         if (!ICalendar::Summarize(tree, summary, problem))
+            return 0;
+         return summary.first - 1;
+      }
+
+      // The most instances MadeOfNamed asks one expansion for (the most
+      // ICalendar::Expand gives), and the most expansions it makes.
+      const size_t MaxSpanInstances = 10000;
+      const size_t MaxSpanWindows = 16;
+
+      // Which of the occurrences named alone (not with every one after it)
+      // the series of tree makes: one of its instances, after its EXDATEs,
+      // starts there. Every expansion walks the rule from its DTSTART, and a
+      // CANCEL may name as many occurrences as a calendar object holds
+      // components, so they are not asked one expansion each - which cost two
+      // expansions an occurrence, on a delivery thread and on a REST worker
+      // reading the card - but by one over the span from the first to the
+      // last. A span holding more than MaxSpanInstances instances is read on
+      // from the first named occurrence that expansion did not find, at most
+      // MaxSpanWindows expansions in all; one still not found then is taken as
+      // not made, which changes nothing for it.
+      std::set<__int64> MadeOfNamed(const ICalComponent &tree, const std::vector<NamedOccurrence> &named)
+      {
+         std::set<__int64> wanted;
+         for (size_t i = 0; i < named.size(); i++)
+         {
+            if (!named[i].andAfter)
+               wanted.insert(named[i].instant);
+         }
+
+         std::set<__int64> made;
+         std::set<__int64>::const_iterator next = wanted.begin();
+         for (size_t window = 0; next != wanted.end() && window < MaxSpanWindows; window++)
+         {
+            std::vector<__int64> instances;
+            bool cutShort = false;
+            if (!SeriesInstances(tree, *next - 1, *wanted.rbegin() + 1, MaxSpanInstances, instances, &cutShort))
+               break;
+            for (size_t i = 0; i < instances.size(); i++)
+            {
+               if (wanted.count(instances[i]) > 0)
+                  made.insert(instances[i]);
+            }
+            if (!cutShort)
+               break;
+
+            // On from the first one after this window's start that it did not
+            // find: past where the expansion stopped, or one the series does
+            // not make, which the next window passes over in turn.
+            const __int64 from = *next;
+            next = wanted.upper_bound(from);
+            while (next != wanted.end() && made.count(*next) > 0)
+               ++next;
+         }
+         return made;
+      }
+
+      // Whether the series of tree makes, from windowStart to windowEnd, an
+      // occurrence that test takes, asked of its first ones: the first ask,
+      // and when that expansion stops short with none taken, the most one
+      // expansion gives. An expansion stops at a number of the rule's own
+      // occurrences before its EXDATEs take any out (ICalendar::Expand), so a
+      // series whose next occurrences are out already - a guest's copy that
+      // took earlier CANCELs - answers none at first and more when asked
+      // again. Two expansions at most, not more growing ones: each reads
+      // every EXDATE the object holds, which an object of an iMIP message's
+      // size may hold tens of thousands of. A series that cannot be
+      // expanded, or that still stops short at the most, answers whenUnknown.
+      bool SeriesMakesOne(const ICalComponent &tree, __int64 windowStart, __int64 windowEnd, size_t ask,
+                          const std::function<bool(__int64 recurrenceId)> &test, bool whenUnknown)
+      {
+         ask = std::min<size_t>(std::max<size_t>(ask, 1), ICalendar::MaxInstances);
+         while (true)
+         {
+            std::vector<__int64> made;
+            bool cutShort = false;
+            if (!SeriesInstances(tree, windowStart, windowEnd, ask, made, &cutShort))
+               return whenUnknown;
+            for (size_t i = 0; i < made.size(); i++)
+            {
+               if (test(made[i]))
+                  return true;
+            }
+            if (!cutShort)
+               return false;
+            if (ask >= ICalendar::MaxInstances)
+               return whenUnknown;
+            ask = ICalendar::MaxInstances;
+         }
+      }
+
+      // Whether the series of tree makes an occurrence at from or after it,
+      // however many from there on are out already.
+      bool SeriesMakesFrom(const ICalComponent &tree, __int64 from)
+      {
+         return SeriesMakesOne(tree, from, ICalendar::Forever, 64, [from](__int64 made) { return made >= from; }, false);
+      }
+
+      // How the master's DTSTART is written, which an EXDATE and an UNTIL
+      // written into it follow: a day, floating, or an instant.
+      enum class StartForm { Instant, Floating, Day };
+
+      StartForm StartFormOf(const ICalComponent &master, const ICalComponent &tree)
+      {
+         const ICalProperty *dtstart = master.Property("DTSTART");
+         if (!dtstart)
+            return StartForm::Instant;
+         ICalTime time;
+         AnsiString ignored;
+         if (!ICalendar::ParseTime(*dtstart, &tree, time, ignored))
+            return StartForm::Instant;
+         if (time.isDate)
+            return StartForm::Day;
+         return time.floating ? StartForm::Floating : StartForm::Instant;
+      }
+
+      // YYYYMMDD of the UTC day an instant falls on.
+      AnsiString DayText(__int64 instant)
+      {
+         int y = 0, m = 0, d = 0, hh = 0, mm = 0, ss = 0;
+         ICalendar::InstantToLocal("UTC", instant, y, m, d, hh, mm, ss);
+         AnsiString text;
+         text.Format("%04d%02d%02d", y, m, d);
+         return text;
+      }
+
+      // An instant written in a form: the day it falls on, as a floating
+      // time (the server reads a floating time as UTC, so the same digits
+      // name the same instant), or in UTC.
+      AnsiString TimeText(__int64 instant, StartForm form)
+      {
+         if (form == StartForm::Day)
+            return DayText(instant);
+         AnsiString utc = ICalendar::FormatUtc(instant);
+         if (form == StartForm::Floating && utc.EndsWith("Z"))
+            utc = utc.Mid(0, utc.GetLength() - 1);
+         return utc;
+      }
+
+      // The occurrence at instant left out of the series: an EXDATE in the
+      // form of the master's DTSTART.
+      void AddExdate(ICalComponent &master, const ICalComponent &tree, __int64 instant)
+      {
+         const StartForm form = StartFormOf(master, tree);
+         ICalProperty exdate;
+         exdate.name = "EXDATE";
+         if (form == StartForm::Day)
+            exdate.parameters.push_back(std::make_pair(AnsiString("VALUE"), AnsiString("DATE")));
+         exdate.value = TimeText(instant, form);
+         master.properties.push_back(exdate);
+      }
+
+      // Every override whose RECURRENCE-ID a test takes, dropped.
+      void DropOverrides(ICalComponent &tree, const std::function<bool(__int64 instant)> &drop)
+      {
+         for (size_t i = 0; i < tree.children.size();)
+         {
+            __int64 instant = 0;
+            if (IsEventLike(tree.children[i]) && RecurrenceIdOf(tree.children[i], tree, instant) && drop(instant))
+            {
+               tree.children.erase(tree.children.begin() + i);
+               continue;
+            }
+            i++;
+         }
+      }
+
+      // The RDATE values of the master at from or after it, dropped, and an
+      // RDATE left with none dropped with them. A PERIOD is placed by its
+      // start; a value that cannot be placed is kept.
+      void DropRdatesFrom(ICalComponent &master, const ICalComponent &tree, __int64 from)
+      {
+         for (size_t p = 0; p < master.properties.size();)
+         {
+            ICalProperty &property = master.properties[p];
+            if (property.name != "RDATE")
+            {
+               p++;
+               continue;
+            }
+
+            AnsiString kept;
+            AnsiString rest = property.value;
+            while (true)
+            {
+               const int comma = rest.Find(",");
+               const AnsiString value = comma >= 0 ? rest.Mid(0, comma) : rest;
+               const int slash = value.Find("/");
+               ICalProperty one = property;
+               one.value = Trimmed(slash > 0 ? value.Mid(0, slash) : value);
+               ICalTime time;
+               AnsiString ignored;
+               const bool placed = ICalendar::ParseTime(one, &tree, time, ignored);
+               if (!placed || time.instant < from)
+                  kept += (kept.IsEmpty() ? "" : ",") + value;
+               if (comma < 0)
+                  break;
+               rest = rest.Mid(comma + 1);
+            }
+
+            if (kept.IsEmpty())
+            {
+               master.properties.erase(master.properties.begin() + p);
+               continue;
+            }
+            property.value = kept;
+            p++;
+         }
+      }
+
+      // The master's RRULE ended before from: UNTIL the moment before it, in
+      // the form RFC 5545 asks of the DTSTART (a day for a series of days,
+      // floating for a floating one, else UTC), in place of any COUNT or
+      // UNTIL the rule had - only where the rule went on past from, since
+      // an UNTIL in place of a COUNT that ended before it would add
+      // occurrences.
+      void EndRuleBefore(ICalComponent &master, const ICalComponent &tree, __int64 from)
+      {
+         ICalProperty *rrule = nullptr;
+         for (size_t p = 0; p < master.properties.size() && !rrule; p++)
+         {
+            if (master.properties[p].name == "RRULE")
+               rrule = &master.properties[p];
+         }
+         if (!rrule)
+            return;
+
+         // What the rule makes on its own: the series without its RDATEs and
+         // EXDATEs.
+         ICalComponent ruleOnly = SeriesOnly(tree);
+         if (ICalComponent *ruleMaster = MutableSeriesMasterOf(ruleOnly))
+         {
+            for (size_t p = 0; p < ruleMaster->properties.size();)
+            {
+               const AnsiString &name = ruleMaster->properties[p].name;
+               if (name == "RDATE" || name == "EXDATE")
+                  ruleMaster->properties.erase(ruleMaster->properties.begin() + p);
+               else
+                  p++;
+            }
+         }
+         if (!SeriesMakesFrom(ruleOnly, from))
+            return;
+
+         AnsiString rule;
+         AnsiString rest = rrule->value;
+         while (true)
+         {
+            const int semicolon = rest.Find(";");
+            const AnsiString part = Trimmed(semicolon >= 0 ? rest.Mid(0, semicolon) : rest);
+            AnsiString key = part;
+            const int equals = key.Find("=");
+            if (equals >= 0)
+               key = key.Mid(0, equals);
+            key.ToUpper();
+            if (!part.IsEmpty() && key != "COUNT" && key != "UNTIL")
+               rule += (rule.IsEmpty() ? "" : ";") + part;
+            if (semicolon < 0)
+               break;
+            rest = rest.Mid(semicolon + 1);
+         }
+         rule += ";UNTIL=" + TimeText(from - 1, StartFormOf(master, tree));
+         rrule->value = rule;
+      }
+
+      // What tree holds of the named occurrences, and of others. madeOfNamed,
+      // when given, is set to the occurrences named alone that the series
+      // makes (MadeOfNamed), which TakeOutOccurrences then takes out without
+      // asking again.
+      ImipOccurrences Held(const ICalComponent &tree, const std::vector<NamedOccurrence> &named, std::set<__int64> *madeOfNamed = nullptr)
+      {
+         if (named.empty())
+            return ImipOccurrences::NoneHeld;
+
+         bool namedHeld = false;
+         bool otherHeld = false;
+
+         // The overrides.
+         for (size_t i = 0; i < tree.children.size(); i++)
+         {
+            __int64 instant = 0;
+            if (!IsEventLike(tree.children[i]) || !RecurrenceIdOf(tree.children[i], tree, instant))
+               continue;
+            if (Covers(named, instant))
+               namedHeld = true;
+            else
+               otherHeld = true;
+         }
+
+         // The series: each occurrence named is held when the series makes
+         // it (MadeOfNamed; one named with every one after it, when the series
+         // makes one from the earliest such on), and another is held when the
+         // series makes any occurrence that none of them names - which an
+         // expansion from the beginning to the first occurrence named with
+         // every one after it finds within a few more instances than are
+         // named, asked again for more while those it gave are out already
+         // (SeriesMakesOne). A few expansions, whatever the number named. A
+         // series that cannot be read so far is taken to hold others, so that
+         // no more than the occurrences named is taken out of it: never the
+         // whole series for a CANCEL of its first occurrence because the next
+         // ones are out already.
+         if (SeriesMasterOf(tree))
+         {
+            __int64 from = ICalendar::Forever;
+            for (size_t i = 0; i < named.size(); i++)
+            {
+               if (named[i].andAfter)
+                  from = std::min(from, named[i].instant);
+            }
+            const std::set<__int64> made = MadeOfNamed(tree, named);
+            if (madeOfNamed)
+               *madeOfNamed = made;
+            if (!made.empty() || (from != ICalendar::Forever && SeriesMakesFrom(tree, from)))
+               namedHeld = true;
+
+            if (!otherHeld)
+            {
+               otherHeld = SeriesMakesOne(tree, BeginningOf(tree), from, named.size() + 2,
+                  [&named](__int64 made) { return !Covers(named, made); }, true);
+            }
+         }
+
+         if (!namedHeld)
+            return ImipOccurrences::NoneHeld;
+         return otherHeld ? ImipOccurrences::Some : ImipOccurrences::All;
+      }
+
       // Why KeepInvitation refused an invitation whose organiser the server
       // could not verify sent it, when a copy of its UID was already stored.
       const char *NotReplacedUnverified = "a copy of the event is stored, and the server could not verify that the invitation's organiser sent it";
@@ -1341,11 +1806,108 @@ namespace HM
             refused++;
             return false;
          }
+
+         // Of occurrences, those alone (RFC 5546 section 3.2.5): taken out of
+         // the copy, and the rest of the series kept. Until 6.3.6 the whole
+         // series was marked cancelled. When they are everything the copy
+         // holds, it is cancelled as a CANCEL of the whole event cancels it.
+         if (CancelsOccurrences(message))
+         {
+            switch (TakeOutOccurrences(tree, message.tree))
+            {
+            case ImipOccurrences::NoneHeld:
+               return false;
+            case ImipOccurrences::Some:
+               return true;
+            case ImipOccurrences::All:
+               break;
+            }
+         }
+
          MarkCancelled(tree);
          return true;
       }
 
       return false;
+   }
+
+   bool
+   Imip::CancelsOccurrences(const ImipMessage &message)
+   {
+      bool any = false;
+      for (size_t i = 0; i < message.tree.children.size(); i++)
+      {
+         const ICalComponent &component = message.tree.children[i];
+         if (!IsEventLike(component))
+            continue;
+         if (!component.Property("RECURRENCE-ID"))
+            return false;
+         any = true;
+      }
+      return any;
+   }
+
+   ImipOccurrences
+   Imip::OccurrencesHeld(const ICalComponent &stored, const ICalComponent &cancel)
+   {
+      return Held(stored, NamedOccurrences(cancel));
+   }
+
+   ImipOccurrences
+   Imip::TakeOutOccurrences(ICalComponent &stored, const ICalComponent &cancel)
+   {
+      const std::vector<NamedOccurrence> named = NamedOccurrences(cancel);
+      std::set<__int64> made;
+      const ImipOccurrences held = Held(stored, named, &made);
+      if (held != ImipOccurrences::Some)
+         return held;
+
+      // What the series makes is asked of the copy as it was, before any of
+      // it is taken out.
+      const ICalComponent before = stored;
+
+      __int64 from = ICalendar::Forever;
+      for (size_t i = 0; i < named.size(); i++)
+      {
+         if (named[i].andAfter)
+            from = std::min(from, named[i].instant);
+      }
+
+      DropOverrides(stored, [&named](__int64 instant) { return Covers(named, instant); });
+
+      ICalComponent *master = MutableSeriesMasterOf(stored);
+      if (master)
+      {
+         // One EXDATE for each occurrence named alone that the series makes -
+         // as Held found them in the copy as it was - before any named with
+         // every one after it (those go below).
+         for (const __int64 instant : made)
+         {
+            if (instant < from)
+               AddExdate(*master, stored, instant);
+         }
+
+         if (from != ICalendar::Forever)
+         {
+            DropRdatesFrom(*master, stored, from);
+            EndRuleBefore(*master, before, from);
+
+            // What the series still makes from there on - its DTSTART, which
+            // an UNTIL before it may not take out, when it is that late and
+            // an override or an RDATE before it is held - left out by EXDATE.
+            std::vector<__int64> left;
+            if (SeriesInstances(stored, from, ICalendar::Forever, 8, left))
+            {
+               for (size_t i = 0; i < left.size(); i++)
+               {
+                  if (left[i] >= from)
+                     AddExdate(*master, stored, left[i]);
+               }
+            }
+         }
+      }
+
+      return ImipOccurrences::Some;
    }
 
    bool
@@ -1472,20 +2034,36 @@ namespace HM
          if (ICalendar::Parse(Utf8Of(stored.data), storedTree, ignored))
          {
             storedMaster = MasterOf(storedTree);
+            storedUnverified = FiledUnverified(storedTree);
             // The stored event's organiser must be the invitation's. A UID is
             // mailed to every guest, so anybody who saw an invitation could
             // otherwise send a REQUEST under it, with themselves as organiser
             // and a higher SEQUENCE, and rewrite the event in the account's own
             // calendar on delivery. An event the account made itself has the
             // account, or nobody, as organiser and is refused the same way.
-            if (storedMaster && AddressOf(storedMaster->Value("ORGANIZER")) != invitation.organizer)
+            //
+            // But for the account's own answer to an invitation over a copy
+            // marked as filed unverified: nobody verified the organiser that
+            // copy names, so it is no more the organiser's than this one, and
+            // the account has chosen this one - the copy is replaced, as if
+            // the calendar had none, and what is written is marked as the
+            // account's answer marks it. Until 6.3.6 a copy planted under the
+            // UID, naming another organiser, before the real invitation came,
+            // kept the real one out of the calendar on delivery - which it
+            // still does, since a verified sender is not the UID's owner - and
+            // made the real invitation's own card answer 422. A copy the
+            // server did not mark (the organiser's, verified; the account's
+            // own) stays refused, and so does a CANCEL.
+            const bool otherOrganiser = storedMaster && AddressOf(storedMaster->Value("ORGANIZER")) != invitation.organizer;
+            if (otherOrganiser && (provenance != ImipProvenance::AccountsAnswer || cancelled || !storedUnverified))
             {
                problem = "the stored event has another organiser";
                return false;
             }
-            if (storedMaster)
+            if (otherOrganiser)
+               storedMaster = nullptr;
+            else if (storedMaster)
                storedSequence = SequenceOf(*storedMaster);
-            storedUnverified = FiledUnverified(storedTree);
          }
          else
             storedTree = invitation.tree;
@@ -1501,6 +2079,24 @@ namespace HM
          problem = NotReplacedUnverified;
          return false;
       }
+
+      // A CANCEL of occurrences of the copy its organiser holds: those taken
+      // out, and the rest of the series kept with the answer set on it - not
+      // the copy replaced by the CANCEL's events, which are the cancelled
+      // occurrences alone and would have left the calendar holding them and
+      // nothing else of the series. When they are all it holds it is
+      // cancelled whole, as ApplyToStored cancels it.
+      if (cancelled && storedMaster && CancelsOccurrences(invitation))
+      {
+         ICalComponent kept = storedTree;
+         if (TakeOutOccurrences(kept, invitation.tree) == ImipOccurrences::All)
+            MarkCancelled(kept);
+         if (!partstat.IsEmpty())
+            SetPartstat(kept, address, name, partstat);
+         record = stored;
+         return WriteObject(accountId, calendar.id, kept, record, false, problem);
+      }
+
       const bool useInvitation = rule.useInvitation;
 
       // A resend at the same SEQUENCE carries NEEDS-ACTION for the account -
@@ -1989,6 +2585,557 @@ namespace HM
          ICalComponent tree = storedEvent("");
          expect(!Imip::ApplyToStored(tree, deliveredMessage("CANCEL", olga, guestLines), guest, sentOnlyBy(olga), noDelegate, noAlias, noList, refused) && !isCancelled(tree),
             "a CANCEL cancelled an event that names no organiser");
+      }
+
+      // CANCEL of occurrences, at a guest (RFC 5546 section 3.2.5): those
+      // occurrences go, and the rest of the series stays - where until 6.3.6
+      // the whole series was marked cancelled. What the copy shows is read
+      // back as the calendar reads it, by expanding it: each occurrence's
+      // start, with an x when it is marked cancelled.
+      {
+         auto parsed = [](const AnsiString &text) -> ICalComponent
+         {
+            ICalComponent tree;
+            AnsiString problem;
+            if (!ICalendar::Parse(text, tree, problem))
+               throw std::logic_error(std::string("ImipTester: a calendar object did not parse: ") + problem.c_str());
+            return tree;
+         };
+         auto shown = [](const ICalComponent &tree) -> AnsiString
+         {
+            __int64 from = 0;
+            __int64 to = 0;
+            ICalendar::ParseUtc("20261001T000000Z", from);
+            ICalendar::ParseUtc("20270101T000000Z", to);
+            std::vector<ICalInstance> instances;
+            bool truncated = false;
+            AnsiString problem;
+            if (!ICalendar::Expand(tree, from, to, 100, instances, truncated, problem))
+               return "(does not expand: " + problem + ")";
+            ICalendar::Summary summary;
+            if (!ICalendar::Summarize(tree, summary, problem))
+               return "(would not be stored: " + problem + ")";
+            AnsiString out;
+            for (size_t i = 0; i < instances.size(); i++)
+            {
+               AnsiString status = Trimmed(tree.children[instances[i].component].Value("STATUS"));
+               status.ToUpper();
+               out += (out.IsEmpty() ? "" : "|") + ICalendar::FormatUtc(instances[i].start) + (status == "CANCELLED" ? "x" : "");
+            }
+            return out;
+         };
+         const AnsiString seriesUid = "UID:series-0001@example.com\r\n";
+         const AnsiString people = "ORGANIZER:mailto:" + olga + "\r\nATTENDEE;PARTSTAT=ACCEPTED:mailto:" + guest + "\r\n";
+         const AnsiString head = "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//ImipTester//EN\r\n";
+         // A weekly series of four from 2 November, its second occurrence moved
+         // to the afternoon by an override.
+         auto weekly = [&]() -> ICalComponent
+         {
+            return parsed(head +
+               "BEGIN:VEVENT\r\n" + seriesUid + "DTSTAMP:20260928T080000Z\r\nDTSTART:20261102T090000Z\r\nDTEND:20261102T100000Z\r\n"
+               "RRULE:FREQ=WEEKLY;COUNT=4\r\nSUMMARY:Weekly\r\nSEQUENCE:0\r\n" + people + "END:VEVENT\r\n"
+               "BEGIN:VEVENT\r\n" + seriesUid + "RECURRENCE-ID:20261109T090000Z\r\nDTSTAMP:20260928T080000Z\r\nDTSTART:20261109T140000Z\r\n"
+               "DTEND:20261109T150000Z\r\nSUMMARY:Weekly, later\r\nSEQUENCE:0\r\n" + people + "END:VEVENT\r\nEND:VCALENDAR\r\n");
+         };
+         // The organiser's CANCEL of the occurrences each line names.
+         auto cancelOf = [&](const std::vector<AnsiString> &recurrenceIds) -> ImipMessage
+         {
+            AnsiString text = head + "METHOD:CANCEL\r\n";
+            for (size_t i = 0; i < recurrenceIds.size(); i++)
+            {
+               text += "BEGIN:VEVENT\r\n" + seriesUid + recurrenceIds[i] + "\r\nDTSTAMP:20260929T080000Z\r\n"
+                  "SEQUENCE:1\r\nSTATUS:CANCELLED\r\n" + people + "END:VEVENT\r\n";
+            }
+            text += "END:VCALENDAR\r\n";
+            ImipMessage message;
+            AnsiString problem;
+            if (!Imip::Read(text, message, problem))
+               throw std::logic_error(std::string("ImipTester: the CANCEL did not parse: ") + problem.c_str());
+            return message;
+         };
+         const AnsiString wholeSeries = "20261102T090000Z|20261109T140000Z|20261116T090000Z|20261123T090000Z";
+         if (shown(weekly()) != wholeSeries)
+            throw std::logic_error(std::string("ImipTester: the stored series reads as ") + shown(weekly()).c_str());
+
+         struct OccurrenceCase
+         {
+            std::vector<AnsiString> recurrenceIds;
+            bool applied;
+            const char *shows;
+            const char *why;
+         };
+         const OccurrenceCase occurrenceCases[] =
+         {
+            { { "RECURRENCE-ID:20261116T090000Z" }, true, "20261102T090000Z|20261109T140000Z|20261123T090000Z",
+              "a CANCEL of one occurrence took out more, or less, than that occurrence" },
+            { { "RECURRENCE-ID:20261109T090000Z" }, true, "20261102T090000Z|20261116T090000Z|20261123T090000Z",
+              "a CANCEL of the occurrence an override moved left the override, or the occurrence, in the series" },
+            { { "RECURRENCE-ID:20261116T090000Z", "RECURRENCE-ID:20261123T090000Z" }, true, "20261102T090000Z|20261109T140000Z",
+              "a CANCEL of two occurrences did not take out both" },
+            { { "RECURRENCE-ID;RANGE=THISANDFUTURE:20261116T090000Z" }, true, "20261102T090000Z|20261109T140000Z",
+              "a CANCEL of an occurrence and every one after it did not end the series before it" },
+            { { "RECURRENCE-ID;RANGE=THISANDFUTURE:20261109T090000Z" }, true, "20261102T090000Z",
+              "a CANCEL of the overridden occurrence and those after it left the override, or one after it" },
+            { { "RECURRENCE-ID;RANGE=THISANDFUTURE:20261102T090000Z" }, true, "20261102T090000Zx|20261109T140000Zx|20261116T090000Zx|20261123T090000Zx",
+              "a CANCEL from the first occurrence on did not cancel the whole event, as a CANCEL of the event does" },
+            { { "RECURRENCE-ID;RANGE=THISANDFUTURE:20261130T090000Z" }, false, wholeSeries,
+              "a CANCEL from after the series' last occurrence changed it" },
+            { { "RECURRENCE-ID:20261103T090000Z" }, false, wholeSeries,
+              "a CANCEL of an occurrence the series does not have changed it" },
+            { { "RECURRENCE-ID;TZID=Europe/London:20261116T090000" }, true, "20261102T090000Z|20261109T140000Z|20261123T090000Z",
+              "a CANCEL whose RECURRENCE-ID is written in a zone was not matched by the instant it names" },
+         };
+         for (const OccurrenceCase &k : occurrenceCases)
+         {
+            ICalComponent tree = weekly();
+            const ImipMessage cancel = cancelOf(k.recurrenceIds);
+            expect(Imip::CancelsOccurrences(cancel), "a CANCEL whose every event has a RECURRENCE-ID was not taken for one of occurrences");
+            const bool applied = Imip::ApplyToStored(tree, cancel, guest, sentOnlyBy(olga), noDelegate, noAlias, noList, refused);
+            if (applied != k.applied || shown(tree) != k.shows || refused != 0)
+               throw std::logic_error(std::string("ImipTester: ApplyToStored: ") + k.why + ": the copy shows " + shown(tree).c_str() +
+                                      " where " + k.shows + " was expected.");
+            if (k.applied && Imip::OccurrencesHeld(tree, cancel.tree) != (shown(tree).Find("x") >= 0 ? ImipOccurrences::All : ImipOccurrences::NoneHeld))
+               throw std::logic_error(std::string("ImipTester: OccurrencesHeld: ") + k.why + ": the copy that took the CANCEL still reads as holding the occurrences.");
+         }
+
+         // Nobody verified as the organiser: the series stays as it was.
+         {
+            ICalComponent tree = weekly();
+            expect(!Imip::ApplyToStored(tree, cancelOf({ "RECURRENCE-ID:20261116T090000Z" }), guest, nobody, noDelegate, noAlias, noList, refused) &&
+                   shown(tree) == wholeSeries && refused == 1,
+               "a CANCEL of an occurrence that nobody verified changed the series");
+         }
+
+         // A CANCEL with an event that has no RECURRENCE-ID is of the whole event.
+         expect(!Imip::CancelsOccurrences(deliveredMessage("CANCEL", olga, guestLines)), "a CANCEL of the whole event was taken for one of occurrences");
+
+         // What is written into the series: the EXDATE in the DTSTART's form
+         // - a day for a series of days, floating for a floating series, and
+         // UTC for one in a zone, which is the instant the zone reads - and
+         // the RRULE ended with an UNTIL in place of its COUNT.
+         auto valueOf = [](const ICalComponent &tree, const char *name) -> AnsiString
+         {
+            const ICalComponent *master = MasterOf(tree);
+            AnsiString out;
+            for (size_t i = 0; master && i < master->properties.size(); i++)
+            {
+               const ICalProperty &property = master->properties[i];
+               if (property.name != name)
+                  continue;
+               AnsiString one = property.value;
+               for (size_t p = 0; p < property.parameters.size(); p++)
+                  one = property.parameters[p].first + "=" + property.parameters[p].second + ":" + one;
+               out += (out.IsEmpty() ? "" : "|") + one;
+            }
+            return out;
+         };
+         {
+            ICalComponent days = parsed(head +
+               "BEGIN:VEVENT\r\n" + seriesUid + "DTSTAMP:20260928T080000Z\r\nDTSTART;VALUE=DATE:20261102\r\nDTEND;VALUE=DATE:20261103\r\n"
+               "RRULE:FREQ=DAILY;COUNT=3\r\nSUMMARY:Away\r\n" + people + "END:VEVENT\r\nEND:VCALENDAR\r\n");
+            expect(Imip::ApplyToStored(days, cancelOf({ "RECURRENCE-ID;VALUE=DATE:20261103" }), guest, sentOnlyBy(olga), noDelegate, noAlias, noList, refused) &&
+                   shown(days) == "20261102T000000Z|20261104T000000Z" && valueOf(days, "EXDATE") == "VALUE=DATE:20261103",
+               "a CANCEL of one day of a series of days did not take it out as a day");
+
+            ICalComponent floating = parsed(head +
+               "BEGIN:VEVENT\r\n" + seriesUid + "DTSTAMP:20260928T080000Z\r\nDTSTART:20261102T090000\r\nDTEND:20261102T100000\r\n"
+               "RRULE:FREQ=WEEKLY;COUNT=3\r\nSUMMARY:Floating\r\n" + people + "END:VEVENT\r\nEND:VCALENDAR\r\n");
+            expect(Imip::ApplyToStored(floating, cancelOf({ "RECURRENCE-ID;RANGE=THISANDFUTURE:20261109T090000" }), guest, sentOnlyBy(olga), noDelegate, noAlias, noList, refused) &&
+                   shown(floating) == "20261102T090000Z" && valueOf(floating, "RRULE") == "FREQ=WEEKLY;UNTIL=20261109T085959",
+               "a CANCEL from an occurrence of a floating series on did not end it with a floating UNTIL in place of its COUNT");
+
+            ICalComponent london = parsed(head +
+               "BEGIN:VEVENT\r\n" + seriesUid + "DTSTAMP:20260928T080000Z\r\nDTSTART;TZID=Europe/London:20261019T090000\r\n"
+               "DTEND;TZID=Europe/London:20261019T093000\r\nRRULE:FREQ=WEEKLY;COUNT=3\r\nSUMMARY:Standup\r\n" + people + "END:VEVENT\r\nEND:VCALENDAR\r\n");
+            expect(Imip::ApplyToStored(london, cancelOf({ "RECURRENCE-ID;TZID=Europe/London:20261026T090000" }), guest, sentOnlyBy(olga), noDelegate, noAlias, noList, refused) &&
+                   shown(london) == "20261019T080000Z|20261102T090000Z" && valueOf(london, "EXDATE") == "20261026T090000Z",
+               "a CANCEL of an occurrence of a series in a zone, after the clocks went back, did not take out that occurrence by its instant");
+
+            // An RDATE from the occurrence on goes, and a COUNT that ended
+            // before it is not made an UNTIL that would add occurrences.
+            ICalComponent withDates = parsed(head +
+               "BEGIN:VEVENT\r\n" + seriesUid + "DTSTAMP:20260928T080000Z\r\nDTSTART:20261102T090000Z\r\nDTEND:20261102T100000Z\r\n"
+               "RRULE:FREQ=WEEKLY;COUNT=2\r\nRDATE:20261120T090000Z,20261127T090000Z\r\nSUMMARY:Dates\r\n" + people + "END:VEVENT\r\nEND:VCALENDAR\r\n");
+            expect(Imip::ApplyToStored(withDates, cancelOf({ "RECURRENCE-ID;RANGE=THISANDFUTURE:20261127T090000Z" }), guest, sentOnlyBy(olga), noDelegate, noAlias, noList, refused) &&
+                   shown(withDates) == "20261102T090000Z|20261109T090000Z|20261120T090000Z" && valueOf(withDates, "RRULE") == "FREQ=WEEKLY;COUNT=2" &&
+                   valueOf(withDates, "RDATE") == "20261120T090000Z",
+               "a CANCEL from an RDATE on did not take out that RDATE alone, or made the COUNT an UNTIL");
+         }
+
+         // A guest invited to one occurrence holds that occurrence alone: its
+         // CANCEL cancels everything the copy holds, as a CANCEL of the event does.
+         {
+            ICalComponent one = parsed(head +
+               "BEGIN:VEVENT\r\n" + seriesUid + "RECURRENCE-ID:20261116T090000Z\r\nDTSTAMP:20260928T080000Z\r\nDTSTART:20261116T090000Z\r\n"
+               "DTEND:20261116T100000Z\r\nSUMMARY:Weekly, with a guest\r\nSEQUENCE:0\r\n" + people + "END:VEVENT\r\nEND:VCALENDAR\r\n");
+            expect(Imip::ApplyToStored(one, cancelOf({ "RECURRENCE-ID:20261116T090000Z" }), guest, sentOnlyBy(olga), noDelegate, noAlias, noList, refused) &&
+                   shown(one) == "20261116T090000Zx",
+               "a CANCEL of the one occurrence a guest holds did not cancel it");
+         }
+
+         // What a card's "remove" takes out: the occurrences, and the event only
+         // when they are all it holds.
+         {
+            ICalComponent tree = weekly();
+            expect(Imip::TakeOutOccurrences(tree, cancelOf({ "RECURRENCE-ID:20261123T090000Z" }).tree) == ImipOccurrences::Some &&
+                   shown(tree) == "20261102T090000Z|20261109T140000Z|20261116T090000Z",
+               "taking out one occurrence took out more, or less");
+            expect(Imip::TakeOutOccurrences(tree, cancelOf({ "RECURRENCE-ID:20261123T090000Z" }).tree) == ImipOccurrences::NoneHeld &&
+                   shown(tree) == "20261102T090000Z|20261109T140000Z|20261116T090000Z",
+               "an occurrence taken out already was taken out again");
+            expect(Imip::TakeOutOccurrences(tree, cancelOf({ "RECURRENCE-ID;RANGE=THISANDFUTURE:20261102T090000Z" }).tree) == ImipOccurrences::All &&
+                   shown(tree) == "20261102T090000Z|20261109T140000Z|20261116T090000Z",
+               "occurrences that are all the copy holds were not answered All, or the copy was changed");
+         }
+
+         // A CANCEL may name as many occurrences as a calendar object holds
+         // components, and finding whether the series makes one walks its rule
+         // from the DTSTART: that is asked of one expansion over the span they
+         // cover, not of two for each. A daily series from 1900, 1,500 of its
+         // occurrences in 2099 named: those, and no other, taken out in the
+         // time of a few of its expansions - measured here, at the best of
+         // five, so that a slower machine, or one emulating another, is held
+         // to the same count - where two for each occurrence named, as until
+         // 6.3.6, took 3,000 (4.8 s in the CI image on linix, at 1.2 ms an
+         // expansion, where the whole of this tester takes a quarter of a
+         // second).
+         {
+            ICalComponent daily = parsed(head +
+               "BEGIN:VEVENT\r\n" + seriesUid + "DTSTAMP:20260928T080000Z\r\nDTSTART:19000101T090000Z\r\nDTEND:19000101T100000Z\r\n"
+               "RRULE:FREQ=DAILY\r\nSUMMARY:Every day\r\n" + people + "END:VEVENT\r\nEND:VCALENDAR\r\n");
+            __int64 first = 0;
+            ICalendar::ParseUtc("20990101T090000Z", first);
+            const __int64 named = 1500;
+            std::vector<AnsiString> recurrenceIds;
+            for (__int64 i = 0; i < named; i++)
+               recurrenceIds.push_back("RECURRENCE-ID:" + ICalendar::FormatUtc(first + i * 86400));
+            const ImipMessage many = cancelOf(recurrenceIds);
+
+            double expansion = 1e9;
+            for (int attempt = 0; attempt < 5; attempt++)
+            {
+               std::vector<ICalInstance> one;
+               bool cut = false;
+               AnsiString ignored;
+               const std::chrono::steady_clock::time_point began = std::chrono::steady_clock::now();
+               ICalendar::Expand(daily, first - 1, first + 1, 50, one, cut, ignored);
+               expansion = std::min(expansion, std::chrono::duration<double>(std::chrono::steady_clock::now() - began).count());
+            }
+
+            const std::chrono::steady_clock::time_point started = std::chrono::steady_clock::now();
+            const bool applied = Imip::ApplyToStored(daily, many, guest, sentOnlyBy(olga), noDelegate, noAlias, noList, refused);
+            const double seconds = std::chrono::duration<double>(std::chrono::steady_clock::now() - started).count();
+
+            // The day before the first named and the day after the last, and
+            // nothing between them.
+            std::vector<ICalInstance> left;
+            bool truncated = false;
+            AnsiString problem;
+            const bool expanded = ICalendar::Expand(daily, first - 86400, first + (named + 1) * 86400, 2000, left, truncated, problem);
+            AnsiString took;
+            took.Format("%.3f s, where one expansion of the series takes %.4f s", seconds, expansion);
+            AnsiString count;
+            count.Format("%d", static_cast<int>(left.size()));
+            if (!applied || !expanded || left.size() != 2 || seconds >= 50 * expansion + 0.25)
+               throw std::logic_error(std::string("ImipTester: ApplyToStored: a CANCEL naming 1,500 occurrences of a daily series took ") +
+                                      took.c_str() + " (less than 50 expansions and a quarter of a second expected), or left " + count.c_str() +
+                                      " occurrences of those and the two beside them where 2 were expected.");
+         }
+
+         // A span holding more occurrences than one expansion gives: a daily
+         // series, its first, its 12,000th and its 20,500th occurrences named,
+         // 56 years apart, each taken out - the last two by an expansion from
+         // the first one the one before it did not reach - and the day after
+         // each kept.
+         {
+            ICalComponent spread = parsed(head +
+               "BEGIN:VEVENT\r\n" + seriesUid + "DTSTAMP:20260928T080000Z\r\nDTSTART:20270101T090000Z\r\nDTEND:20270101T100000Z\r\n"
+               "RRULE:FREQ=DAILY\r\nSUMMARY:Every day for decades\r\n" + people + "END:VEVENT\r\nEND:VCALENDAR\r\n");
+            __int64 start = 0;
+            ICalendar::ParseUtc("20270101T090000Z", start);
+            const __int64 picks[] = { 0, 11999, 20499 };
+            std::vector<AnsiString> recurrenceIds;
+            for (const __int64 pick : picks)
+               recurrenceIds.push_back("RECURRENCE-ID:" + ICalendar::FormatUtc(start + pick * 86400));
+            expect(Imip::ApplyToStored(spread, cancelOf(recurrenceIds), guest, sentOnlyBy(olga), noDelegate, noAlias, noList, refused),
+               "a CANCEL of three occurrences of a daily series, further apart than one expansion reaches, changed nothing");
+            for (const __int64 pick : picks)
+            {
+               const __int64 at = start + pick * 86400;
+               std::vector<ICalInstance> around;
+               bool truncated = false;
+               AnsiString problem;
+               expect(ICalendar::Expand(spread, at - 1, at + 86401, 10, around, truncated, problem) && around.size() == 1 && around[0].start == at + 86400,
+                  "a CANCEL of occurrences further apart than one expansion reaches did not take out each of them, and that alone");
+            }
+         }
+
+         // A copy whose series holds as many EXDATEs as an invitation's
+         // megabyte has room for - its first 58,000 days out - and a CANCEL of
+         // 17 occurrences spread over the 40,000 days after them. An expansion
+         // of the 10,000 days after those out costs what one of the series
+         // without them does and a reading of its EXDATEs, a few readings of
+         // the copy at most; and those 17 are taken out, the day after each
+         // kept, in the time of a few such expansions. Measured here, at the
+         // best of three, so that a slower machine, or one emulating another,
+         // is held to the same counts. Until 6.3.6 each instance an expansion
+         // made was looked for among every EXDATE in turn: an expansion of this
+         // copy took 0.3 s in the CI image on linix, where reading it takes
+         // 0.008 s, and taking these occurrences out of it 1.5 s of a delivery
+         // thread.
+         {
+            __int64 dayOne = 0;
+            ICalendar::ParseUtc("19900101T090000Z", dayOne);
+            const __int64 aDay = 86400;
+            const __int64 out = 58000;
+            AnsiString exdates = "EXDATE:";
+            for (__int64 day = 0; day < out; day++)
+               exdates += AnsiString(day > 0 ? "," : "") + ICalendar::FormatUtc(dayOne + day * aDay);
+            auto dailyWith = [&](const AnsiString &extra) -> AnsiString
+            {
+               return head + "BEGIN:VEVENT\r\n" + seriesUid + "DTSTAMP:20260928T080000Z\r\nDTSTART:19900101T090000Z\r\nDTEND:19900101T100000Z\r\n"
+                  "RRULE:FREQ=DAILY\r\n" + extra + "SUMMARY:Every day\r\n" + people + "END:VEVENT\r\nEND:VCALENDAR\r\n";
+            };
+            const AnsiString crowdedText = dailyWith(exdates + "\r\n");
+            ICalComponent crowded = parsed(crowdedText);
+            const ICalComponent plain = parsed(dailyWith(""));
+
+            auto bestOfThree = [](const std::function<void()> &work) -> double
+            {
+               double best = 1e9;
+               for (int attempt = 0; attempt < 3; attempt++)
+               {
+                  const std::chrono::steady_clock::time_point began = std::chrono::steady_clock::now();
+                  work();
+                  best = std::min(best, std::chrono::duration<double>(std::chrono::steady_clock::now() - began).count());
+               }
+               return best;
+            };
+            const __int64 afterOut = dayOne + out * aDay;
+            size_t madeCrowded = 0;
+            size_t madePlain = 0;
+            auto expansionOf = [&](const ICalComponent &tree, size_t &made) -> std::function<void()>
+            {
+               return [&tree, &made, afterOut]()
+               {
+                  std::vector<ICalInstance> instances;
+                  bool truncated = false;
+                  AnsiString problem;
+                  ICalendar::Expand(tree, afterOut - 1, ICalendar::Forever, 10000, instances, truncated, problem);
+                  made = instances.size();
+               };
+            };
+            const double reading = bestOfThree([&crowdedText]()
+            {
+               ICalComponent again;
+               AnsiString ignored;
+               ICalendar::Parse(crowdedText, again, ignored);
+            });
+            const double plainExpansion = bestOfThree(expansionOf(plain, madePlain));
+            const double crowdedExpansion = bestOfThree(expansionOf(crowded, madeCrowded));
+            AnsiString costs;
+            costs.Format("%.4f s for 10,000 days after 58,000 EXDATEs, %.4f s without them, %.4f s to read the copy", crowdedExpansion, plainExpansion,
+                          reading);
+            if (madeCrowded != madePlain || madeCrowded < 9000 || crowdedExpansion >= plainExpansion + 4 * reading + 0.02)
+               throw std::logic_error(std::string("ImipTester: an expansion of a series with 58,000 EXDATEs took ") + costs.c_str() +
+                                      " (less than the series without them, four readings and 0.02 s expected), or did not make the days the series without them makes.");
+
+            const __int64 picks = 17;
+            std::vector<AnsiString> recurrenceIds;
+            for (__int64 k = 0; k < picks; k++)
+               recurrenceIds.push_back("RECURRENCE-ID:" + ICalendar::FormatUtc(afterOut + k * 2500 * aDay));
+            const ImipMessage spreadCancel = cancelOf(recurrenceIds);
+
+            const std::chrono::steady_clock::time_point started = std::chrono::steady_clock::now();
+            const ImipOccurrences tookOut = Imip::TakeOutOccurrences(crowded, spreadCancel.tree);
+            const double seconds = std::chrono::duration<double>(std::chrono::steady_clock::now() - started).count();
+
+            // The first, the middle and the last named: each out, the day after
+            // it kept.
+            bool each = true;
+            for (const __int64 k : { static_cast<__int64>(0), picks / 2, picks - 1 })
+            {
+               const __int64 at = afterOut + k * 2500 * aDay;
+               std::vector<ICalInstance> around;
+               bool truncated = false;
+               AnsiString problem;
+               each = each && ICalendar::Expand(crowded, at - 1, at + aDay + 1, 10, around, truncated, problem) && around.size() == 1 &&
+                      around[0].start == at + aDay;
+            }
+            AnsiString took;
+            took.Format("%.3f s, where %s", seconds, costs.c_str());
+            if (tookOut != ImipOccurrences::Some || !each || seconds >= 25 * crowdedExpansion + 0.25)
+               throw std::logic_error(std::string("ImipTester: TakeOutOccurrences: a CANCEL of 17 occurrences of a series with 58,000 EXDATEs took ") +
+                                      took.c_str() + " (less than 25 of those expansions and a quarter of a second expected), or did not take out each of them alone.");
+         }
+
+         // A copy that has lost occurrences already - it took earlier CANCELs,
+         // each an EXDATE - is asked what else it holds past them: an
+         // expansion stops at a number of the rule's own occurrences before
+         // its EXDATEs take any out. The first occurrence of a weekly series
+         // cancelled after its second and third were leaves the three after
+         // them, not cancelled, both on delivery and by a card's remove; and a
+         // CANCEL from the 71st day of a daily series on, whose 71st to 140th
+         // days are out already, ends the series before it, where taking 64 of
+         // them for all there is found nothing to cancel.
+         {
+            const AnsiString gapsText = head +
+               "BEGIN:VEVENT\r\n" + seriesUid + "DTSTAMP:20260928T080000Z\r\nDTSTART:20261102T090000Z\r\nDTEND:20261102T100000Z\r\n"
+               "RRULE:FREQ=WEEKLY;COUNT=6\r\nEXDATE:20261109T090000Z,20261116T090000Z\r\nSUMMARY:Weekly\r\nSEQUENCE:0\r\n" + people +
+               "END:VEVENT\r\nEND:VCALENDAR\r\n";
+            const AnsiString afterFirst = "20261123T090000Z|20261130T090000Z|20261207T090000Z";
+            const ImipMessage first = cancelOf({ "RECURRENCE-ID:20261102T090000Z" });
+            ICalComponent filed = parsed(gapsText);
+            expect(Imip::OccurrencesHeld(filed, first.tree) == ImipOccurrences::Some,
+               "a series whose next occurrences are out already was read as holding the first of them and nothing else");
+            expect(Imip::ApplyToStored(filed, first, guest, sentOnlyBy(olga), noDelegate, noAlias, noList, refused) && shown(filed) == afterFirst,
+               "a CANCEL of the first occurrence of a series whose next two are out already cancelled the series, or took out more");
+            ICalComponent removed = parsed(gapsText);
+            expect(Imip::TakeOutOccurrences(removed, first.tree) == ImipOccurrences::Some && shown(removed) == afterFirst,
+               "a card's remove of the first occurrence of a series whose next two are out already would remove the series");
+
+            AnsiString dailyText = head +
+               "BEGIN:VEVENT\r\n" + seriesUid + "DTSTAMP:20260928T080000Z\r\nDTSTART:20260501T090000Z\r\nDTEND:20260501T100000Z\r\n"
+               "RRULE:FREQ=DAILY;COUNT=160\r\nSUMMARY:Every day\r\n" + people;
+            __int64 dayOne = 0;
+            ICalendar::ParseUtc("20260501T090000Z", dayOne);
+            const __int64 aDay = 86400;
+            for (__int64 day = 70; day < 140; day++)
+               dailyText += "EXDATE:" + ICalendar::FormatUtc(dayOne + day * aDay) + "\r\n";
+            dailyText += "END:VEVENT\r\nEND:VCALENDAR\r\n";
+            ICalComponent daily = parsed(dailyText);
+            const AnsiString from71 = "RECURRENCE-ID;RANGE=THISANDFUTURE:" + ICalendar::FormatUtc(dayOne + 70 * aDay);
+            expect(Imip::ApplyToStored(daily, cancelOf({ from71 }), guest, sentOnlyBy(olga), noDelegate, noAlias, noList, refused) &&
+                   valueOf(daily, "RRULE") == "FREQ=DAILY;UNTIL=20260710T085959Z",
+               "a CANCEL from an occurrence on, past 70 occurrences out already, did not end the series before it");
+            std::vector<ICalInstance> kept;
+            bool truncated = false;
+            AnsiString problem;
+            expect(ICalendar::Expand(daily, dayOne - 1, ICalendar::Forever, 1000, kept, truncated, problem) && kept.size() == 70 &&
+                   kept.back().start == dayOne + 69 * aDay,
+               "a CANCEL from an occurrence on, past 70 occurrences out already, left one after it, or took one before it");
+         }
+
+         // Cancellations as calendar programs write them, each from the
+         // organiser of the copy its own invitation filed: one occurrence
+         // taken out, matched by the instant its RECURRENCE-ID names in the
+         // CANCEL's own VTIMEZONE (a quoted Windows zone name from Exchange,
+         // an Olson name from Google and Apple), across the October clock
+         // change; an all-day one by its day; and Exchange's CANCEL of the
+         // whole series, which still cancels everything that is left.
+         {
+            auto withCrlf = [](AnsiString text) -> AnsiString
+            {
+               text.Replace("\n", "\r\n");
+               return text;
+            };
+            auto clientMessage = [&](const AnsiString &text) -> ImipMessage
+            {
+               ImipMessage message;
+               AnsiString problem;
+               if (!Imip::Read(withCrlf(text), message, problem))
+                  throw std::logic_error(std::string("ImipTester: a client's CANCEL did not parse: ") + problem.c_str());
+               return message;
+            };
+            const AnsiString exchangeZone =
+               "BEGIN:VTIMEZONE\nTZID:GMT Standard Time\nBEGIN:STANDARD\nDTSTART:16010101T020000\nTZOFFSETFROM:+0100\nTZOFFSETTO:+0000\n"
+               "RRULE:FREQ=YEARLY;INTERVAL=1;BYDAY=-1SU;BYMONTH=10\nEND:STANDARD\nBEGIN:DAYLIGHT\nDTSTART:16010101T010000\nTZOFFSETFROM:+0000\n"
+               "TZOFFSETTO:+0100\nRRULE:FREQ=YEARLY;INTERVAL=1;BYDAY=-1SU;BYMONTH=3\nEND:DAYLIGHT\nEND:VTIMEZONE\n";
+            const AnsiString exchangeUid = "UID:040000008200E00074C5B7101A82E00800000000E07A6E3C5B4FDC010000000000000000100000003B2B5E9D0C1F2A4C8D6E7F8091A2B3C4\n";
+            const AnsiString exchangePeople =
+               "ORGANIZER;CN=Olga Organiser:mailto:" + olga + "\nATTENDEE;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;RSVP=TRUE;CN=" + guest + ":mailto:" + guest + "\n";
+            const AnsiString exchangeRule = "RRULE:FREQ=WEEKLY;UNTIL=20261130T100000Z;INTERVAL=1;BYDAY=MO;WKST=MO\n";
+            ICalComponent exchange = parsed(withCrlf("BEGIN:VCALENDAR\nPRODID:Microsoft Exchange Server 2010\nVERSION:2.0\n" + exchangeZone +
+               "BEGIN:VEVENT\n" + exchangePeople + "DESCRIPTION;LANGUAGE=en-GB:\\n\n" + exchangeRule + exchangeUid +
+               "SUMMARY;LANGUAGE=en-GB:Weekly review\nDTSTART;TZID=GMT Standard Time:20261019T100000\nDTEND;TZID=GMT Standard Time:20261019T103000\n"
+               "CLASS:PUBLIC\nPRIORITY:5\nDTSTAMP:20260928T080000Z\nTRANSP:OPAQUE\nSTATUS:CONFIRMED\nSEQUENCE:0\nLOCATION;LANGUAGE=en-GB:Room 1\n"
+               "X-MICROSOFT-CDO-APPT-SEQUENCE:0\nX-MICROSOFT-CDO-BUSYSTATUS:TENTATIVE\nX-MICROSOFT-CDO-INTENDEDSTATUS:BUSY\n"
+               "X-MICROSOFT-CDO-ALLDAYEVENT:FALSE\nX-MICROSOFT-CDO-IMPORTANCE:1\nX-MICROSOFT-CDO-INSTTYPE:1\nX-MICROSOFT-LOCATIONS:[]\n"
+               "END:VEVENT\nEND:VCALENDAR\n"));
+            const AnsiString sevenMondays = "20261019T090000Z|20261026T100000Z|20261102T100000Z|20261109T100000Z|20261116T100000Z|20261123T100000Z|20261130T100000Z";
+            expect(shown(exchange) == sevenMondays, "Exchange's weekly series does not read as its seven Mondays across the clock change");
+
+            const ImipMessage exchangeOne = clientMessage("BEGIN:VCALENDAR\nMETHOD:CANCEL\nPRODID:Microsoft Exchange Server 2010\nVERSION:2.0\n" + exchangeZone +
+               "BEGIN:VEVENT\n" + exchangePeople + "DESCRIPTION;LANGUAGE=en-GB:\\n\nRECURRENCE-ID;TZID=\"GMT Standard Time\":20261026T100000\n" + exchangeUid +
+               "SUMMARY;LANGUAGE=en-GB:Canceled: Weekly review\nDTSTART;TZID=\"GMT Standard Time\":20261026T100000\n"
+               "DTEND;TZID=\"GMT Standard Time\":20261026T103000\nCLASS:PUBLIC\nPRIORITY:1\nDTSTAMP:20260929T080000Z\nTRANSP:TRANSPARENT\n"
+               "STATUS:CANCELLED\nSEQUENCE:1\nLOCATION;LANGUAGE=en-GB:Room 1\nX-MICROSOFT-CDO-APPT-SEQUENCE:1\nX-MICROSOFT-CDO-BUSYSTATUS:FREE\n"
+               "X-MICROSOFT-CDO-INTENDEDSTATUS:FREE\nX-MICROSOFT-CDO-ALLDAYEVENT:FALSE\nX-MICROSOFT-CDO-IMPORTANCE:2\nX-MICROSOFT-CDO-INSTTYPE:3\n"
+               "END:VEVENT\nEND:VCALENDAR\n");
+            expect(Imip::CancelsOccurrences(exchangeOne) && Imip::OccurrencesHeld(exchange, exchangeOne.tree) == ImipOccurrences::Some,
+               "Exchange's CANCEL of one occurrence was not read as one the copy holds among others");
+            expect(Imip::ApplyToStored(exchange, exchangeOne, guest, sentOnlyBy(olga), noDelegate, noAlias, noList, refused) && refused == 0 &&
+                   shown(exchange) == "20261019T090000Z|20261102T100000Z|20261109T100000Z|20261116T100000Z|20261123T100000Z|20261130T100000Z" &&
+                   valueOf(exchange, "EXDATE") == "20261026T100000Z" && Imip::OccurrencesHeld(exchange, exchangeOne.tree) == ImipOccurrences::NoneHeld,
+               "Exchange's CANCEL of the occurrence after the clock change, its RECURRENCE-ID in a quoted Windows zone, did not take out that occurrence alone");
+
+            const ImipMessage exchangeAll = clientMessage("BEGIN:VCALENDAR\nMETHOD:CANCEL\nPRODID:Microsoft Exchange Server 2010\nVERSION:2.0\n" + exchangeZone +
+               "BEGIN:VEVENT\n" + exchangePeople + exchangeRule + exchangeUid +
+               "SUMMARY;LANGUAGE=en-GB:Canceled: Weekly review\nDTSTART;TZID=GMT Standard Time:20261019T100000\nDTEND;TZID=GMT Standard Time:20261019T103000\n"
+               "CLASS:PUBLIC\nPRIORITY:1\nDTSTAMP:20260930T080000Z\nTRANSP:TRANSPARENT\nSTATUS:CANCELLED\nSEQUENCE:2\nX-MICROSOFT-CDO-INSTTYPE:1\n"
+               "END:VEVENT\nEND:VCALENDAR\n");
+            expect(!Imip::CancelsOccurrences(exchangeAll) &&
+                   Imip::ApplyToStored(exchange, exchangeAll, guest, sentOnlyBy(olga), noDelegate, noAlias, noList, refused) &&
+                   shown(exchange) == "20261019T090000Zx|20261102T100000Zx|20261109T100000Zx|20261116T100000Zx|20261123T100000Zx|20261130T100000Zx",
+               "Exchange's CANCEL of the whole series did not cancel what was left of it");
+
+            const AnsiString olsonZone =
+               "BEGIN:VTIMEZONE\nTZID:Europe/London\nX-LIC-LOCATION:Europe/London\nBEGIN:DAYLIGHT\nTZOFFSETFROM:+0000\nTZOFFSETTO:+0100\nTZNAME:BST\n"
+               "DTSTART:19700329T010000\nRRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=-1SU\nEND:DAYLIGHT\nBEGIN:STANDARD\nTZOFFSETFROM:+0100\nTZOFFSETTO:+0000\n"
+               "TZNAME:GMT\nDTSTART:19701025T020000\nRRULE:FREQ=YEARLY;BYMONTH=10;BYDAY=-1SU\nEND:STANDARD\nEND:VTIMEZONE\n";
+            const AnsiString googleUid = "UID:4h1k2j3l4m5n6o7p8q9r0s1t2u@google.com\n";
+            const AnsiString googlePeople =
+               "ORGANIZER;CN=Olga Organiser:mailto:" + olga + "\n"
+               "ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;RSVP=TRUE;CN=" + guest + ";X-NUM-GUESTS=0:mailto:" + guest + "\n"
+               "ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;RSVP=TRUE;CN=Olga Organiser;X-NUM-GUESTS=0:mailto:" + olga + "\n";
+            ICalComponent google = parsed(withCrlf("BEGIN:VCALENDAR\nPRODID:-//Google Inc//Google Calendar 70.9054//EN\nVERSION:2.0\nCALSCALE:GREGORIAN\n" + olsonZone +
+               "BEGIN:VEVENT\nDTSTART;TZID=Europe/London:20261019T100000\nDTEND;TZID=Europe/London:20261019T103000\nRRULE:FREQ=WEEKLY;WKST=MO;COUNT=7;BYDAY=MO\n"
+               "DTSTAMP:20260928T080000Z\n" + googlePeople + googleUid + "CREATED:20260928T075900Z\nDESCRIPTION:\nLAST-MODIFIED:20260928T080000Z\nLOCATION:\n"
+               "SEQUENCE:0\nSTATUS:CONFIRMED\nSUMMARY:Weekly review\nTRANSP:OPAQUE\nEND:VEVENT\nEND:VCALENDAR\n"));
+            expect(shown(google) == sevenMondays, "Google's weekly series does not read as its seven Mondays across the clock change");
+            const ImipMessage googleOne = clientMessage("BEGIN:VCALENDAR\nPRODID:-//Google Inc//Google Calendar 70.9054//EN\nVERSION:2.0\nCALSCALE:GREGORIAN\nMETHOD:CANCEL\n" +
+               olsonZone + "BEGIN:VEVENT\nDTSTART;TZID=Europe/London:20261102T100000\nDTEND;TZID=Europe/London:20261102T103000\nDTSTAMP:20260929T080000Z\n" +
+               googlePeople + googleUid + "RECURRENCE-ID;TZID=Europe/London:20261102T100000\nCREATED:20260928T075900Z\nDESCRIPTION:\n"
+               "LAST-MODIFIED:20260929T080000Z\nLOCATION:\nSEQUENCE:1\nSTATUS:CANCELLED\nSUMMARY:Weekly review\nTRANSP:OPAQUE\nEND:VEVENT\nEND:VCALENDAR\n");
+            expect(Imip::ApplyToStored(google, googleOne, guest, sentOnlyBy(olga), noDelegate, noAlias, noList, refused) && refused == 0 &&
+                   shown(google) == "20261019T090000Z|20261026T100000Z|20261109T100000Z|20261116T100000Z|20261123T100000Z|20261130T100000Z",
+               "Google's CANCEL of one occurrence did not take out that occurrence alone");
+
+            const AnsiString appleZone =
+               "BEGIN:VTIMEZONE\nTZID:Europe/London\nBEGIN:DAYLIGHT\nDTSTART:19810329T010000\nRRULE:FREQ=YEARLY;BYDAY=-1SU;BYMONTH=3\nTZNAME:BST\n"
+               "TZOFFSETFROM:+0000\nTZOFFSETTO:+0100\nEND:DAYLIGHT\nBEGIN:STANDARD\nDTSTART:19961027T020000\nRRULE:FREQ=YEARLY;BYDAY=-1SU;BYMONTH=10\n"
+               "TZNAME:GMT\nTZOFFSETFROM:+0100\nTZOFFSETTO:+0000\nEND:STANDARD\nEND:VTIMEZONE\n";
+            const AnsiString appleUid = "UID:2D8A3F7E-1B4C-4E5A-9F0D-6C7B8A9E0F12\n";
+            const AnsiString appleGuest = "ATTENDEE;CN=" + guest + ";CUTYPE=INDIVIDUAL;EMAIL=" + guest +
+               ";PARTSTAT=NEEDS-ACTION;ROLE=REQ-PARTICIPANT;RSVP=TRUE:mailto:" + guest + "\n";
+            const AnsiString appleOrganiser = "ORGANIZER;CN=\"Olga Organiser\";EMAIL=" + olga + ":mailto:" + olga + "\n";
+            ICalComponent apple = parsed(withCrlf("BEGIN:VCALENDAR\nCALSCALE:GREGORIAN\nPRODID:-//Apple Inc.//iOS 18.0//EN\nVERSION:2.0\n" + appleZone +
+               "BEGIN:VEVENT\n" + appleGuest + "ATTENDEE;CN=\"Olga Organiser\";CUTYPE=INDIVIDUAL;EMAIL=" + olga + ";PARTSTAT=ACCEPTED;ROLE=CHAIR:mailto:" + olga + "\n"
+               "CREATED:20260928T075900Z\nDTEND;TZID=Europe/London:20261019T103000\nDTSTAMP:20260928T080000Z\nDTSTART;TZID=Europe/London:20261019T100000\n"
+               "LAST-MODIFIED:20260928T080000Z\n" + appleOrganiser + "RRULE:FREQ=WEEKLY;COUNT=7\nSEQUENCE:0\nSUMMARY:Weekly review\nTRANSP:OPAQUE\n" + appleUid +
+               "END:VEVENT\nEND:VCALENDAR\n"));
+            expect(shown(apple) == sevenMondays, "Apple's weekly series does not read as its seven Mondays across the clock change");
+            const ImipMessage appleOne = clientMessage("BEGIN:VCALENDAR\nCALSCALE:GREGORIAN\nMETHOD:CANCEL\nPRODID:-//Apple Inc.//iOS 18.0//EN\nVERSION:2.0\n" + appleZone +
+               "BEGIN:VEVENT\n" + appleGuest + "DTEND;TZID=Europe/London:20261109T103000\nDTSTAMP:20260929T080000Z\nDTSTART;TZID=Europe/London:20261109T100000\n" +
+               appleOrganiser + "RECURRENCE-ID;TZID=Europe/London:20261109T100000\nSEQUENCE:0\nSTATUS:CANCELLED\nSUMMARY:Weekly review\n" + appleUid +
+               "END:VEVENT\nEND:VCALENDAR\n");
+            expect(Imip::ApplyToStored(apple, appleOne, guest, sentOnlyBy(olga), noDelegate, noAlias, noList, refused) && refused == 0 &&
+                   shown(apple) == "20261019T090000Z|20261026T100000Z|20261102T100000Z|20261116T100000Z|20261123T100000Z|20261130T100000Z",
+               "Apple's CANCEL of one occurrence did not take out that occurrence alone");
+
+            const AnsiString awayUid = "UID:040000008200E00074C5B7101A82E00800000000F17B7F4D6C5FDC01000000000000000010000000AABBCCDDEEFF00112233445566778899\n";
+            ICalComponent away = parsed(withCrlf("BEGIN:VCALENDAR\nPRODID:Microsoft Exchange Server 2010\nVERSION:2.0\nBEGIN:VEVENT\n" + exchangePeople +
+               "RRULE:FREQ=WEEKLY;COUNT=4;INTERVAL=1;BYDAY=MO;WKST=MO\n" + awayUid + "SUMMARY;LANGUAGE=en-GB:Away\nDTSTART;VALUE=DATE:20261102\n"
+               "DTEND;VALUE=DATE:20261103\nCLASS:PUBLIC\nDTSTAMP:20260928T080000Z\nTRANSP:TRANSPARENT\nSTATUS:CONFIRMED\nSEQUENCE:0\n"
+               "X-MICROSOFT-CDO-ALLDAYEVENT:TRUE\nEND:VEVENT\nEND:VCALENDAR\n"));
+            const ImipMessage awayOne = clientMessage("BEGIN:VCALENDAR\nMETHOD:CANCEL\nPRODID:Microsoft Exchange Server 2010\nVERSION:2.0\nBEGIN:VEVENT\n" +
+               exchangePeople + "RECURRENCE-ID;VALUE=DATE:20261109\n" + awayUid + "SUMMARY;LANGUAGE=en-GB:Canceled: Away\nDTSTART;VALUE=DATE:20261109\n"
+               "DTEND;VALUE=DATE:20261110\nDTSTAMP:20260929T080000Z\nSTATUS:CANCELLED\nSEQUENCE:1\nX-MICROSOFT-CDO-ALLDAYEVENT:TRUE\n"
+               "END:VEVENT\nEND:VCALENDAR\n");
+            expect(Imip::ApplyToStored(away, awayOne, guest, sentOnlyBy(olga), noDelegate, noAlias, noList, refused) && refused == 0 &&
+                   shown(away) == "20261102T000000Z|20261116T000000Z|20261123T000000Z" && valueOf(away, "EXDATE") == "VALUE=DATE:20261109",
+               "Exchange's CANCEL of one day of an all-day series did not take out that day alone");
+         }
       }
 
       // REPLY, at the organiser: the stored event is the account's own.

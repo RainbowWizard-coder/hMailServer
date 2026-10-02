@@ -378,6 +378,46 @@ namespace RegressionTests.API
       }
 
       /// <summary>
+      ///    Until 6.3.6 a push went straight to the push service whatever HttpProxy
+      ///    said, so a server that reaches the web only through its proxy notified
+      ///    no device. With HttpProxy set, the proxy is now asked for a tunnel to the
+      ///    address the endpoint's host was judged by. The proxy here refuses every
+      ///    tunnel, so nothing leaves the machine: 192.88.99.1 is a public address
+      ///    that is never connected to. Against the old code the proxy was asked for
+      ///    nothing.
+      /// </summary>
+      [Test]
+      [Description("With HttpProxy set, a push to an https endpoint at a public address goes through the proxy, which is asked for a tunnel to that address, and the person is told only that the service could not be reached.")]
+      public void APushGoesThroughTheProxy()
+      {
+         Device device = Device.Make(this, "https://192.88.99.1/push/proxied");
+         long id = Subscribe(device, "\"device\":\"Behind a proxy\"");
+
+         using (var proxy = new FakeHttpProxy(true))
+         {
+            IniFileSetting.Write("HttpProxy", proxy.Address);
+            _application.Reinitialize();
+            try
+            {
+               (int status, string body) sent = Http("POST", MePath + "/test", UserHeader(), "{\"id\":" + id + "}");
+               Assert.AreEqual(502, sent.status, sent.body);
+               StringAssert.Contains("could not be reached", sent.body);
+               StringAssert.DoesNotContain("192.88.99.1", sent.body, "The transport's reason reached the person.");
+               CollectionAssert.AreEqual(new[] { "192.88.99.1:443" }, proxy.Targets,
+                  "The proxy is asked for one tunnel, to the address the endpoint's host was judged by.");
+            }
+            finally
+            {
+               // Removed before the proxy is, so that no retry of it goes out
+               // without one.
+               Http("DELETE", MePath + "/subscriptions/" + id, UserHeader());
+               IniFileSetting.Delete("HttpProxy");
+               _application.Reinitialize();
+            }
+         }
+      }
+
+      /// <summary>
       ///    OUT-3. Plain http to this machine's loopback is the push fixture's endpoint,
       ///    and a push is sent to it with HttpsClient::Request, which reaches the
       ///    loopback - so it is taken only from a request made on this machine and

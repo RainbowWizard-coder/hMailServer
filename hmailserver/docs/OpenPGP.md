@@ -485,9 +485,15 @@ domain and read the answer.
 Every WKD fetch goes through the client that resolves the name and **refuses
 every address inside this network** before a connection is made, caps what it
 reads and has a deadline a REST worker can wait on; otherwise anyone with a
-mailbox here could aim this server at whatever only this server can reach. The
-keyserver is a URL an administrator set, so it is allowed to be an `http`
-address on this machine and nothing else in the clear.
+mailbox here could aim this server at whatever only this server can reach. With
+`HttpProxy` set it goes through the proxy, which is asked for a tunnel to the
+address the name was judged by, not to the name; until 6.3.6 it went directly
+whatever `HttpProxy` said, so a server that reaches the web only through its
+proxy found no key in any directory. The name is still resolved by this
+server. The keyserver is a URL an administrator set, so it is allowed to be an
+`http` address on this machine and nothing else in the clear, and it goes
+through `HttpProxy` as the server's other requests to an address an
+administrator named do.
 
 An address that is not at a domain name has no directory, and none is asked:
 an address literal (`someone@[192.0.2.1]`), a name of one label, and a name
@@ -902,7 +908,13 @@ which can never be delivered to.
 `API/RestApiOpenPgpKeys` proves the server's half — the store, the refusals, the
 lookup against a keyserver the fixture serves itself, and the Autocrypt header on
 a message — and `Infrastructure/BackupAccountStores` proves the ring comes back
-from an archive with its secret key byte for byte. Three tests of the same
+from an archive with its secret key byte for byte. `network-deadline-tests`, a
+tester program of the Linux build, holds a Web Key Directory fetch through
+`HttpProxy` (`OpenPgpRing::FetchFromDirectory`) to a proxy of its own that never
+answers: an address inside the network is refused with the proxy never asked,
+and a public one is asked of the proxy as `CONNECT 192.88.99.1:443` — the
+address that was judged, not the name — and given up at its five seconds; nothing
+is sent to that address. Three tests of the same
 fixture prove the trust half: the first key seen is remembered and a different
 one for the address is filed as a change and stays unaccepted until accepted;
 the mark needs the account's own session (an app password is refused and

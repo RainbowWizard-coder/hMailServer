@@ -21,6 +21,7 @@
 #include "../Common/AntiSpam/AntiSpamConfiguration.h"
 #include "../Common/AntiSpam/QuarantineStore.h"
 #include "../Common/AntiSpam/SenderListCache.h"
+#include "../Common/AntiSpam/SpamProtection.h"
 #include "../Common/AntiSpam/DMARC/DMARC.h"
 
 #include "../Common/Cache/CacheContainer.h"
@@ -1617,7 +1618,11 @@ namespace HM
             std::shared_ptr<MessageData> messageData = std::shared_ptr<MessageData>(new MessageData());
             if (messageData->LoadFromMessage(fileName, accountLevelMessage))
             {
-               SenderListCache::ReadUrlLinks(messageData, url_links_);
+               // As far into the text and the HTML as the anti-spam size limit
+               // the SURBL test is held to: until 6.3.6 every character of a
+               // message up to the parser's 80 MB was read, some 8 seconds of
+               // a delivery thread for a 20 MB one.
+               SenderListCache::ReadUrlLinks(messageData, url_links_, static_cast<size_t>(SpamProtection::MaxSizeToScanKB()) * 1024);
                url_links_read_ = true;
 
                // The cast names FormatArgument's unsigned __int64 constructor

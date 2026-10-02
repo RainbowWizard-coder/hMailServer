@@ -54,6 +54,14 @@ namespace HM
 
       static bool IsWhiteListed(const String &sFromAddress, const IPAddress & iIPAddress);
 
+      // The largest message, in KB, the tests after DATA look at - the SURBL
+      // test among them: AntiSpamMaxSizeKB when it is set and smaller, else
+      // the MIME parser's own 80 MB. A larger message is not scanned at all
+      // (RunPostTransmissionTests); the sender lists' URL entries read the
+      // links of a larger one only as far as this into its text and its HTML
+      // (SenderListCache::ReadUrlLinks).
+      static int MaxSizeToScanKB();
+
       GreyListingVerdict PerformGreyListing(std::shared_ptr<Message> message, const std::set<std::shared_ptr<SpamTestResult> > &spamTestResults, const String &toAddress, const IPAddress &ipaddress, const String &heloHost, bool afterData);
    private:
       

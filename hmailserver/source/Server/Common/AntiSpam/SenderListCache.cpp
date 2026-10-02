@@ -235,7 +235,7 @@ namespace HM
    }
 
    void
-   SenderListCache::ReadUrlLinks(std::shared_ptr<MessageData> messageData, UrlLinks &links)
+   SenderListCache::ReadUrlLinks(std::shared_ptr<MessageData> messageData, UrlLinks &links, size_t maxCharacters)
    {
       // The hosts the entries name, taken under the lock; the message is read
       // without it.
@@ -269,7 +269,7 @@ namespace HM
       {
          CoverLink(entryHosts, host, links.covered);
          return true;
-      });
+      }, maxCharacters);
    }
 
    void

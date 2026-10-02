@@ -76,6 +76,12 @@ namespace RegressionTests.API
          (int status, string body) refused = Send("POST", "/api/v1/me/fetch-accounts", me, body);
          Assert.AreEqual(400, refused.status, refused.body);
          StringAssert.Contains("not a public address", refused.body);
+         // Which address the host leads to is not the reader's to learn: the
+         // refusal names the host as they gave it (until 6.3.6 it named the
+         // address).
+         StringAssert.Contains("localhost", refused.body);
+         StringAssert.DoesNotContain("127.0.0.1", refused.body, "The refusal named the address the host led to.");
+         StringAssert.DoesNotContain("::1", refused.body, "The refusal named the address the host led to.");
          Assert.AreEqual(0, reader.FetchAccounts.Count, "Nothing is saved when the host is refused.");
 
          Assert.AreEqual(200, Admin("PUT", "/api/v1/settings", "{\"reader_fetch_accounts_private_addresses\":true}").status);

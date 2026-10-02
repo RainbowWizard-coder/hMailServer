@@ -150,6 +150,12 @@ any address inside its own network, or at a keyserver (`OpenPGPLookupKeyserver`
 *(unreleased)*; fetching a sender's brand logo, which also needs
 `AuthenticationResultsEnabled` (0) ([BrandLogos.md](BrandLogos.md))
 *(unreleased)*; and a one-click unsubscribe, posted to a public address only.
+These three, a Web Push notification and an inbound webhook route held to
+public addresses go through `HttpProxy` when one is set, from 6.3.6, as the
+MTA-STS policy fetch does: the proxy is asked for a tunnel to the address the
+name was judged by, so it learns those addresses and, from the TLS handshake
+inside the tunnel, the hosts' names. Before 6.3.6 they went directly whatever
+`HttpProxy` said.
 
 **No AI or machine-learning service** is called by the server. A search of
 `hmailserver/source/Server` for the names of such services and their APIs finds

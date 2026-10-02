@@ -17,7 +17,8 @@
 //     quarantine or reject for all of its mail (pct=100), and the
 //     subdomain policy is not none when the policy is the organization's;
 //   * the location is https, reached only at a public address, within ten
-//     seconds and 32 KB, with no redirect followed;
+//     seconds and 32 KB, with no redirect followed - through HttpProxy when
+//     one is set (HttpsClient::RequestPublicThroughProxy);
 //   * what comes back is SVG Tiny Portable/Secure: an svg root declaring
 //     baseProfile="tiny-ps", a title, and nothing that runs or reaches out -
 //     no script, no foreignObject, no image, no link, no animation, no event

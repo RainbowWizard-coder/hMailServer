@@ -23,6 +23,9 @@ namespace HM
       // (ForEachLinkHost). False when there is none.
       bool ExtractUrls(std::shared_ptr<MessageData> pMessageData, std::vector<String> &vecUrls);
 
+      // No limit on the text read (FindLinkHosts, ForEachLinkHost).
+      static constexpr size_t WholeText = static_cast<size_t>(-1);
+
       // The host each link in a message goes to, handed to visit in the order
       // the links come - the text part read as text, then the HTML part as
       // HTML (FindLinkHosts) - until visit returns false: a name as the link
@@ -30,8 +33,10 @@ namespace HM
       // document's type and fonts name (w3.org, fonts.googleapis.com and the
       // like) are left out. Every link, however many: the URL entries of the
       // sender lists read them all (SenderListCache::ReadUrlLinks), where the
-      // SURBL test stops at 16 names (ExtractUrls).
-      static void ForEachLinkHost(std::shared_ptr<MessageData> pMessageData, const std::function<bool(const String &host)> &visit);
+      // SURBL test stops at 16 names (ExtractUrls). maxCharacters, when
+      // given, is how much of each of the two parts is read (FindLinkHosts).
+      static void ForEachLinkHost(std::shared_ptr<MessageData> pMessageData, const std::function<bool(const String &host)> &visit,
+                                  size_t maxCharacters = WholeText);
 
       bool Run(std::shared_ptr<SURBLServer> pSURBLServer, std::vector<String> &vecUrls);
 
@@ -72,7 +77,24 @@ namespace HM
       // a tag is read again as the URL parser reads it, its tabs and line
       // breaks deleted, and the hosts only that reading finds are handed over
       // too.
-      static void FindLinkHosts(const String &text, bool html, const std::function<bool(const String &host)> &visit);
+      //
+      // maxCharacters: a text longer than this is read only as far as its
+      // first part (FirstPartForLinks), and a link whose reading runs on to
+      // the end of that part is not handed over, since what follows the cut
+      // could make its host another; a link that ends before it is read as
+      // in the whole text. So the time is that of reading maxCharacters,
+      // whatever the text's length, and no host is handed over that the
+      // whole text would not hand over.
+      static void FindLinkHosts(const String &text, bool html, const std::function<bool(const String &host)> &visit,
+                                size_t maxCharacters = WholeText);
+
+      // The part of a text longer than maxCharacters that FindLinkHosts reads:
+      // its first maxCharacters characters, less - in an HTML part - a
+      // character reference the cut would split, an '&' that nothing but the
+      // characters a reference is written in ('#', letters and digits)
+      // follows to the cut, and what follows it. The whole text when it is not
+      // longer.
+      static String FirstPartForLinks(const String &text, bool html, size_t maxCharacters);
 
       // What the lists are asked about for one host FindLinkHosts handed over:
       // an IPv4 address reversed; a name, its registrable domain by the whole

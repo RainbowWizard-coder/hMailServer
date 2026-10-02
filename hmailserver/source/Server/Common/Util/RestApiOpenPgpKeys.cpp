@@ -36,8 +36,9 @@
 // correspondent's key: a browser cannot make a cross-origin request to somebody
 // else's domain and read the answer, so this server makes it - Web Key
 // Directory first, keyserver after it and only if an administrator turned that
-// on - through HttpsClient::RequestPublic, which refuses an address inside this
-// network. Nothing is stored by the lookup: it answers the key and the page
+// on - the directory through HttpsClient::RequestPublicThroughProxy, which
+// refuses an address inside this network and goes through HttpProxy when one
+// is set. Nothing is stored by the lookup: it answers the key and the page
 // decides whether to keep it, because a key nobody looked at is not a key
 // anybody trusts.
 //

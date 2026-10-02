@@ -72,10 +72,11 @@
 //   HttpsClient::RequestNotLinkLocal for a route the server's administrator
 //   made - this server's own network is allowed, as an outbound webhook's is,
 //   but never a link-local or cloud metadata address - and
-//   HttpsClient::RequestPublic for one any other credential made, an API key
-//   among them: such a route reaches public addresses only, so a key cannot
-//   point this server at the inside of its own network. Neither follows a
-//   redirect. Plain http only to this machine, as everywhere else.
+//   HttpsClient::RequestPublicThroughProxy for one any other credential made,
+//   an API key among them: such a route reaches public addresses only, so a
+//   key cannot point this server at the inside of its own network, and goes
+//   through HttpProxy when one is set. Neither follows a redirect. Plain http
+//   only to this machine, as everywhere else.
 
 #pragma once
 

@@ -20,7 +20,7 @@ For the logo, `GET /api/v1/me/brand-logo?domain=` answers the SVG itself only wh
 
 1. `default._bimi.<domain>` - or, when the domain has none, the same name at its organizational domain - is a `v=BIMI1` record with an `l=` location. An empty `l=` means the domain declines to show a logo.
 2. The domain's DMARC policy, found the way the DMARC check finds it, is `quarantine` or `reject` with `pct=100`. When the policy is the organizational domain's, its `sp=` must not be `none`. A domain at `p=none` gets no logo, even for mail that passed.
-3. The location is `https`, reached only at a public address, within ten seconds and 32 KB, with no redirect followed.
+3. The location is `https`, reached only at a public address, within ten seconds and 32 KB, with no redirect followed. With `HttpProxy` set it is fetched through the proxy, which is asked for a tunnel to the address the location's name was judged by, not to the name; until 6.3.6 the logo was fetched directly whatever `HttpProxy` said, so a server that reaches the web only through its proxy showed none.
 4. The file is SVG Tiny Portable/Secure: an `svg` root with `baseProfile="tiny-ps"`, no `x` or `y` on it, a `title`, and none of script, `foreignObject`, `image`, links, animation, `style` elements, event attributes, entities, `data:` or external references.
 
 Every answer, found or refused, is kept a day per domain. A newsletter that sends a hundred messages causes one lookup a day.

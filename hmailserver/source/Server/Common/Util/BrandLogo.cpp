@@ -442,7 +442,10 @@ namespace HM
             String error;
             std::vector<AnsiString> headers;
             headers.push_back("Accept: image/svg+xml");
-            const bool ok = HttpsClient::RequestPublic("GET", location, headers, "", "", response, error, 10, MaximumLogoBytes);
+            // Public addresses only, and through HttpProxy when one is set
+            // (RequestPublicThroughProxy): until 6.3.6 a server that reaches
+            // the web only through its proxy could fetch no logo.
+            const bool ok = HttpsClient::RequestPublicThroughProxy("GET", location, headers, "", "", response, error, 10, MaximumLogoBytes);
             if (!ok || response.status_code != 200)
             {
                answer.outcome = FetchFailed;

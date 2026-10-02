@@ -213,10 +213,11 @@ namespace HM
       //
       // publicOnly is the difference between the two legs, and it is the whole
       // of the difference. A Web Key Directory host comes from an address a
-      // person typed, so it goes through RequestPublic, which resolves the name
-      // and refuses every address inside this network before a connection is
-      // made: otherwise anyone with a mailbox here could aim this server at
-      // whatever only this server can reach. The keyserver is a URL an
+      // person typed, so it goes through FetchFromDirectory, which resolves the
+      // name and refuses every address inside this network before a connection
+      // is made, and asks HttpProxy, when one is set, for a tunnel to an
+      // address that passed: otherwise anyone with a mailbox here could aim
+      // this server at whatever only this server can reach. The keyserver is a URL an
       // ADMINISTRATOR set in hm_settings, so it goes through Request, which
       // verifies https against the machine's roots and accepts plain http only
       // to a loopback address - which is what lets a keyserver on this machine,
@@ -226,14 +227,14 @@ namespace HM
       // REST worker three times longer than the listener gives a request.
       bool Fetch(const AnsiString &url, bool publicOnly, int timeout, AnsiString &body, int &status, String &error)
       {
+         const size_t cap = (size_t) Configuration::Instance()->GetOpenPGPKeyMaximumBytes() + 4096;
+         if (publicOnly)
+            return OpenPgpRing::FetchFromDirectory(url, timeout, cap, body, status, error);
+
          HttpsClient::Response response;
          std::vector<AnsiString> headers;
          headers.push_back("Accept: application/octet-stream, application/pgp-keys, */*");
-         const size_t cap = (size_t) Configuration::Instance()->GetOpenPGPKeyMaximumBytes() + 4096;
-         const bool answered = publicOnly
-            ? HttpsClient::RequestPublic("GET", url, headers, "", "", response, error, timeout, cap)
-            : HttpsClient::Request("GET", url, headers, "", "", response, error, timeout, cap);
-         if (!answered)
+         if (!HttpsClient::Request("GET", url, headers, "", "", response, error, timeout, cap))
          {
             status = 0;
             return false;
@@ -243,6 +244,23 @@ namespace HM
          body = response.body;
          return response.status_code == 200;
       }
+   }
+
+   bool
+   OpenPgpRing::FetchFromDirectory(const AnsiString &url, int timeout, size_t maxBytes, AnsiString &body, int &status, String &error)
+   {
+      HttpsClient::Response response;
+      std::vector<AnsiString> headers;
+      headers.push_back("Accept: application/octet-stream, application/pgp-keys, */*");
+      if (!HttpsClient::RequestPublicThroughProxy("GET", url, headers, "", "", response, error, timeout, maxBytes))
+      {
+         status = 0;
+         return false;
+      }
+
+      status = response.status_code;
+      body = response.body;
+      return response.status_code == 200;
    }
 
    bool
