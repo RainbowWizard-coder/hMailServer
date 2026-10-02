@@ -301,10 +301,20 @@ A reverse proxy that sends the listener its own upstream address as the `Host`
 (`127.0.0.1:8045`, nginx's default and Apache's without `ProxyPreserveHost`)
 passes as it is. One that forwards the browser's `Host` - Caddy, Traefik, IIS with
 `preserveHostHeader`, nginx with `proxy_set_header Host $host` - passes when that
-name is the server's host name or the host of one of those addresses; when it is
-neither, set the one that says where the webmail is reached from outside to its
-address (`https://webmail.example.com`), or `passkey_allowed_origins` to its
-origin. The first refusal in any ten minutes is named in the application log.
+name is the server's host name or the host of one of those addresses. When it is
+neither, **set the public base URL first**: `confidential_base_url`, the address
+the server writes its links to the webmail with
+([AccountRecovery.md](AccountRecovery.md)), to the address the proxy answers at
+(`https://webmail.example.com`) - or that origin into `passkey_allowed_origins` -
+before the proxy is put in front of the loopback listener, and before upgrading
+a server that sits behind such a proxy to 6.3.6. Until it is set, every request
+through the proxy, the sign-in page's among them, is answered 421 (`the request's
+Host is not one this server answers to`). It is a setting of the database: set it
+on the Control Deck's Settings page, opened on the server itself at
+`http://127.0.0.1:<port>`, whose `Host` always passes; with the Control Panel's
+*Base address for the link in a message that expires*; or with
+`PUT /api/v1/settings` or `hmctl settings set`. The first refusal in any ten
+minutes is named in the application log.
 A listener with its own certificate is not checked: the certificate is what
 stops a page under another name, which the browser refuses for not being the
 certificate's.

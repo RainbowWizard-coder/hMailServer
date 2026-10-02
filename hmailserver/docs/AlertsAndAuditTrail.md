@@ -32,19 +32,20 @@ logon-failure list cleared - which change no audited row and no setting, and so
 are recorded where they are made; and a mailbox renamed or moved to another
 domain, which is the opposite shape - so many rows, and so plainly one act, that
 recording each would bury it. And, from 6.3.6, one kind of read: somebody's mail
-read through an administrator's REST route (*Mail read through an
-administrator's route*, below). One row per change, in `hm_audit`:
+read through an administrator's REST route, or opened over IMAP by the IMAP
+master user - and a change made to it through those routes (*Mail read through
+an administrator's route*, below). One row per change, in `hm_audit`:
 
 | Column | What it holds |
 |---|---|
 | `audittime` | When, in seconds since the epoch, UTC. |
-| `auditactor` | Who. `Administrator` over COM; `administrator` or `key:<id>` over REST — the same identity string the REST log line uses. An account signed in with its own password — a domain administrator, a help desk, an auditor — is its address over COM and `account:<address>` over REST and the Deck. |
+| `auditactor` | Who. `Administrator` over COM; `administrator` or `key:<id>` over REST — the same identity string the REST log line uses. An account signed in with its own password — a domain administrator, a help desk, an auditor — is its address over COM and `account:<address>` over REST and the Deck, and over IMAP for a mailbox the IMAP master user opened. |
 | `auditactortype` | `administrator`, `account` or `apikey`. Read from the role the credential holds, never from `AdminLevel` alone: `administrator` is the administrator password and an account whose role is `serveradmin` or `domainadmin`; every other account is `account`, one holding a narrower role such as `helpdesk` included. See [Roles.md](Roles.md). |
-| `auditinterface` | `COM`, `REST` or `Deck`; `Windows` for the outcome of an administrator's install of an update, which no hMailServer credential made (below). |
+| `auditinterface` | `COM`, `REST` or `Deck`; `IMAP` for a mailbox the IMAP master user opened (*Mail read through an administrator's route*); `Windows` for the outcome of an administrator's install of an update, which no hMailServer credential made (below). |
 | `auditaddress` | Where from. The peer address for REST and the Deck; empty for COM (see below). |
 | `auditobjecttype` | `domain`, `account`, `alias`, `rule`, `setting`, and so on; `logon failures` for the failure list cleared, `spam trap hits` for the record of trap hits cleared; `quarantined message`, `archive` and `archive entry` for a held message read, the archive index searched and one of its entries read. |
 | `auditobjectname` | The name a person would recognise — the domain name, the address, the setting's name. For a role it is the role's name, and for a role assignment the address of the account it is for. For a greylisting white address it is the address as it was typed (`10.78.0.?`), because the column holds the SQL `LIKE` pattern that was made of it (`10.78.0._`) and that is an address no other surface shows; the detail still carries the stored pattern. |
-| `auditaction` | `created`, `updated` or `deleted`; `unlocked` for an account let back in or a mailbox lock cleared; `cleared` for the logon-failure list; `moved` for a mailbox renamed or moved to another domain, and `move failed` for one that failed and could not be put back; `mailbox-read`, `read`, `searched` and `support-session-opened` for somebody's mail read through an administrator's route (see *Mail read through an administrator's route*). |
+| `auditaction` | `created`, `updated` or `deleted`; `unlocked` for an account let back in or a mailbox lock cleared; `cleared` for the logon-failure list; `moved` for a mailbox renamed or moved to another domain, and `move failed` for one that failed and could not be put back; `mailbox-read`, `read`, `searched` and `support-session-opened` for somebody's mail read through an administrator's route, and `mailbox-changed` for a change made to it there (see *Mail read through an administrator's route*). |
 | `auditdetail` | The columns the change carried, or, for a setting, the value it had and the value it was given. When the credential acted under a role, the detail ends with `[role: <name>]` — `[role: helpdesk]`, `[role: serveradmin]` — which is inside the hashed field, so a role edited afterwards breaks the chain like anything else. A row of `hm_roleassignments` is nothing but ids, so a role assignment's detail is written by the code that made the change rather than read from the statement: the role and what it reaches, as they were and as they are - `role: helpdesk -> auditor; domains: the account's own domain -> every domain` - and a role's is its permissions and description, the same way. A row of `hm_spamtraps` is the same shape — a domain id and a local part going in, a row id coming out — so a trap declared or taken back is recorded with the address itself. |
 | `auditprevhash`, `audithash` | The chain. See *Verifying the chain*. |
 
@@ -199,6 +200,21 @@ release delivers mail the server was waiting to judge ([Sandbox.md](Sandbox.md))
 COM's `DeliveryQueue.Remove` of such a message is the same discard, recorded the
 same way, its detail ending `(DeliveryQueue.Remove)`.
 
+Two credential stores are files rather than tables, and a change made to them
+through the server is recorded the same way. An API key created or revoked over
+REST (`POST /api/v1/apikeys`, `DELETE /api/v1/apikeys/{id}`): object type `api
+key`, its id, action `created` with its scope, role, domains, expiry and allowed
+sources in the detail, or `revoked` with its label - never the token. A key the
+Control Panel makes or revokes is not (*What this does not do*). And the
+administrator's second factor enrolled or disabled, over REST
+(`POST` and `DELETE /api/v1/administrator/second-factor`) or over COM
+(`Settings.EnrolAdministratorTOTP` and `DisableAdministratorTOTP`, the Control
+Panel's way): object type `administrator`, named `second factor`, action
+`enrolled` - its detail saying when it replaced one, which COM does and REST
+refuses to - or `disabled`, never the secret or the `otpauth:` URI that carries it. A
+disable that finds nothing enrolled changed nothing and is not recorded. The
+administrator password itself is still not (*What this does not do*).
+
 An administrator's install of an update ([ServiceAccount.md](ServiceAccount.md), "The
 live update") installs files, not rows, and is recorded as events of object type
 `update`, named `hMailServer <version>`: `install requested`, `install started` and
@@ -299,6 +315,7 @@ other REST row is:
 | `GET /api/v1/archive/{id}` | `archive entry`, `archiveid <id>` - the name a hold placed on it is recorded by | `read` | `its index entry read: the copy kept for <mailbox>, from <sender> to <recipients>` |
 | `GET /api/v1/discovery/cases/{id}/searches/{search}` | `discovery search`, the case (`case <id>: <name>`), as the search's own row is named | `read` | `search <id>: what it found read - <n> hit(s), and <n> message(s) it could not search` |
 | `POST /api/v1/accounts/{address}/support-session` | `account`, the address | `support-session-opened` | `a support session opened in the webmail as the account, for at most <n> minute(s)` |
+| IMAP `AUTHENTICATE PLAIN` by the IMAP master user, naming the account as the one to act as | `account`, the address | `mailbox-read` | `its mailbox opened over IMAP by the master user, signed in with the master user's own password` - actor `account:<the master user's address>`, of type `account`, interface `IMAP` |
 
 They are the routes that need `view_mailbox` - the six under the address and the
 backup's listing, and, beside `view_quarantine`, a held message's headers and its
@@ -316,6 +333,19 @@ read nothing and is not recorded. The two reads of mail that were already on the
 trail stay as they were: an eDiscovery export downloaded
 ([Discovery.md](Discovery.md)) and a message an inbound webhook kept
 ([InboundWebhooks.md](InboundWebhooks.md)).
+
+The last row is not a route. The IMAP master user (`ImapMasterUser`, not set by
+default) signs in over IMAP with its own password as another account, and the
+session is that account's mailbox, every message of it readable and changeable,
+so its sign-in is a read of somebody's mail as much as a listing is. It is
+recorded under an actor of IMAP's own, installed in `IMAPCommandAuthenticate.cpp`
+for that one row - `account:` and the master user's address as it is stored,
+as REST names an account, whatever name under an alias of its domain it signed
+in with; over `IMAP`; from the address it came from - by
+`RestApiServer::RecordMailboxOpened`, which goes through
+`RecordMailRead_`. What the session then does is not recorded command by
+command; the sign-in says whose mailbox was opened, by whom and from where. The
+master user signing in as itself is an ordinary sign-in and is not recorded.
 
 **What a row names.** A message and a folder by their ids, a held message by who
 wrote to whom: never a subject, a folder's name or a word of the body. The trail
@@ -347,13 +377,46 @@ is a row again: it records more, never less.
 that is not the account's, a held message that is not there, a zero-access
 mailbox's file - read nothing and is not on the trail.
 
+**Mail changed through an administrator's route.** From 6.3.6 a change made to
+somebody's mailbox through the same routes is on the trail too, with action
+`mailbox-changed`, object type `account` and the address. The rows of
+`hm_messages` are traffic and not an audited table, so the statement chokepoint
+never saw one: until 6.3.6 an administrator could put mail into a mailbox, mark
+it read or deleted, or empty the mailbox, and the trail had nothing to say. The
+answers of the flags and the copy carry the message's sender, size and date as
+well, so they are reads besides.
+
+| Route | Detail |
+|---|---|
+| `POST /api/v1/accounts/{address}/folders/{id}/messages` | `message <id> added to folder <id>` |
+| `PUT /api/v1/accounts/{address}/messages/{id}` | `message <id>: its flags changed - seen set, deleted cleared`, naming the flags the body named, as it set them; `message <id>: its flags set as they already were - seen set` when every flag it named was already as it asked |
+| `POST /api/v1/accounts/{address}/messages/{id}/copy` | `message <id> copied to folder <id> as message <id>` |
+| `DELETE /api/v1/accounts/{address}/messages/{id}` | `message <id> deleted` |
+| `DELETE /api/v1/accounts/{address}/messages` | `every message deleted` |
+
+A change is a row every time it is made. A change of flags is never held back
+by the minute the reads are: the same flags set again after another change took
+them away is a change of its own, and holding it back would leave the trail
+saying the message is as the change before left it - unread, say, when it was
+marked read again. A request that found every flag it named as it asked changed
+nothing, but its answer is the message's row, so it is recorded as a read is:
+once a minute for the same message and the same flags, by the same credential
+from the same address, saying the flags were already so. A message added and a
+copy are new messages, a deleted one cannot be deleted twice, and every message
+deleted is a row every time, as an export is. A copy is recorded once it is in
+the mailbox, even if its row then cannot be read back for the answer. A change
+the server refused - a message or a folder that is not the account's, a mailbox
+under a legal hold emptied, a credential whose authority does not take in the
+account's - changed nothing and is not recorded.
+
 **What is still not recorded.** A read over COM - `Account.Messages`,
 `IMAPFolder.Messages`, a `Message`'s properties, a quarantined message's
 `ReadHeaders` and `ReadPreview` - is not: COM is how the Control Panel and every
-script read mail, and recording it is a decision of its own. Nor is a mailbox
-read over IMAP by the IMAP master user (`ImapMasterUser`, not set by default),
-which carries no actor; nor what a support session does once it is open, each of
-whose requests is a line in the application log; nor an account's reads of its
+script read mail, and recording it is a decision of its own. Nor is a change
+made over COM - `Messages.Add`, `Message.Save`, `Message.Copy`,
+`Messages.DeleteByDBID`, `Account.DeleteMessages` - for the same reason. Nor is
+what a support session does once it is open, each of whose requests is a line
+in the application log; nor an account's reads of its
 own mail through `/api/v1/me`, which are the person's. Nor are the server's
 working lists, which name senders, recipients and subjects but are how the mail
 is run rather than anybody's mailbox: the quarantine's and the review's listings,
@@ -690,10 +753,11 @@ What this does not do
   piece of work on this row.
 * **A COM row records no address**, for the reason given above.
 * **Of reads, the trail records only somebody's mail read through an
-  administrator's REST route** (*Mail read through an administrator's route*,
-  above). A read over COM, over IMAP by the master user, or within a support
-  session once it is open is not recorded, and neither is any read of anything
-  else - a domain's settings, an account's, the logs.
+  administrator's REST route, and a mailbox the IMAP master user opens**
+  (*Mail read through an administrator's route*, above). A read over COM, a
+  command of the master user's session after its sign-in, or a read within a
+  support session once it is open is not recorded, and neither is any read of
+  anything else - a domain's settings, an account's, the logs.
 * **One logical change can be more than one row** where saving an object writes
   its children as separate statements — a rule with its criteria, a distribution
   list with its recipients. Each row says what it was.
@@ -719,10 +783,11 @@ What this does not do
   summary the restore composes as it goes. The check fails if a record call is
   put back into `IniSettingStore::XMLLoad` without that decision, because a call
   there would write rows attributed to nobody.
-* **Creating or revoking a REST API key is not recorded.** The keys are kept in
-  their own store file beside `hMailServer.ini`, not in a table, and neither
-  `POST /api/v1/apikeys` nor `DELETE /api/v1/apikeys/{id}` reaches a recorder.
-  Each is only a line in the application log, which is not chained.
+* **An API key the Control Panel makes or revokes is not recorded.** Its *REST
+  API keys* page writes the key store file itself, on the server's machine, and
+  the server reads the file afresh at its next request with no credential that
+  made the change to name; only a key made or revoked over REST is on the trail
+  (*Where it is written from*).
 * **Releasing or deleting a quarantined message is not recorded.** A release
   re-queues the message and then deletes its row with the same statement a
   deletion uses, so a listed table would record both as the same row naming an
@@ -742,9 +807,10 @@ What this does not do
   The trail is append-only by design; a retention period
   (`audit_retention_days`) is the way those rows age out.
 * **The sections of `hMailServer.ini` that are not settings are not recorded.**
-  Changing the administrator password or its second factor (`[Security]`), a
-  folder in `[Directories]`, or the database connection in `[Database]` writes
-  the file and nothing else. Those sections are
+  Changing the administrator password (`[Security]`), a folder in
+  `[Directories]`, or the database connection in `[Database]` writes the file
+  and nothing else; its second factor, kept in `[Security]` too, is recorded as
+  an event (*Where it is written from*). Those sections are
   how the server is reached before there is a database — the setup wizard writes
   them with none to record into — so recording them needs a decision about that
   case first.

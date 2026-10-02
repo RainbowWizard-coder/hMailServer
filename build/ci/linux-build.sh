@@ -42,6 +42,17 @@
 #                   own package of the server is built with (linux-build-gcc,
 #                   .gitlab/ci/gcc.yml). A GCC build is a check of the source and
 #                   makes no packages: the packages are the clang build's alone.
+#
+# Its exit status: 0 when the server built, every tester program passed and - for
+# clang - the packages were made; 1 when a tester program or the OpenPGP round trip
+# failed (the packaging's outcome is said on the line after); 2 for a setting, a
+# directory, a compiler or a source tarball it cannot use; 3 when CMake's
+# configuration or the build failed; 4 when everything passed
+# but the packaging, so that the job fails and its log ends saying so. 4 is a code
+# of its own so that a reader can tell it from a tester's failure; linux-build
+# takes no allow_failure for it, since a release must never be cut without its
+# packages (build/check-release-chain.py refuses an allowed exit code on a job the
+# release waits for unless the code can never come from a tag's pipeline).
 set -uo pipefail
 
 # The packages record modes the umask chooses. CPack's .deb writer copies the mode
@@ -243,9 +254,12 @@ fi
 # linux-package-rpm) and build the container image from the .deb (linux-image).
 # The version stamps are checked first, as the old workflow's stamps job gated
 # its packaging: a stamp that has drifted makes a good package under a name
-# nothing looks for, so none is made. A packaging failure does NOT fail this job
-# - the suite needs the binary, not the packages - it is reported here, and the
-# jobs that need the packages fail on their absence and point at package.log.
+# nothing looks for, so none is made. The packaging runs after the testers, so
+# by then they have all run; a packaging failure is reported here, and the
+# script then exits 4 (above), its last line saying so - or 1 when a tester
+# failed too; the jobs that need the packages fail on their absence and point
+# at package.log. Until 2 October 2026 it exited 0, and linux-build was
+# green with no packages in it.
 echo ""
 echo "== the packages"
 package() {
@@ -284,6 +298,7 @@ package() {
       --dependencies "$build_dir/native-dependencies.json" --query-dpkg --read-package
   done
 }
+packaging_failed=""
 if [ "$compiler" != clang ]; then
   # The packages a release carries are the clang build's; a GCC build checks the
   # source and makes none, so nothing can mistake one for the other.
@@ -304,6 +319,7 @@ else
   tail -n 30 "$out/package.log"
   rm -rf "$out/packages"
   echo "PACKAGING FAILED (exit $code): no packages; linux-build/package.log has the whole of it."
+  packaging_failed=$code
 fi
 
 rm -rf "$build_dir"
@@ -311,6 +327,14 @@ rm -rf "$build_dir"
 echo ""
 if [ -n "$failed" ]; then
   echo "FAILED:$failed"
+  if [ -n "$packaging_failed" ]; then
+    echo "PACKAGING FAILED (exit $packaging_failed) as well: no packages; linux-build/package.log has the whole of it."
+  fi
   exit 1
+fi
+if [ -n "$packaging_failed" ]; then
+  echo "The server built with $compiler and every tester program passed, but PACKAGING FAILED (exit $packaging_failed):"
+  echo "no packages; linux-build/package.log has the whole of it."
+  exit 4
 fi
 echo "The server built with $compiler, and every tester program passed."

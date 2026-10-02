@@ -1744,10 +1744,16 @@ project's own review.
   case, never by a subject or a folder's name. The same read by the same credential from the same address is one row
   a minute, so that the Deck's *Shared folders* page and a client paging a listing do not bury the trail; another
   message, folder or credential is a row at once, and an export or a support session is a row every time - an export
-  that stopped part of the way too, with how far it got. A read the server refuses is not recorded. A read over COM
-  or over IMAP by the master user is not recorded, nor what a support session does once open, which the application
-  log holds request by request ([AlertsAndAuditTrail.md](hmailserver/docs/AlertsAndAuditTrail.md), "Mail read through an
-  administrator's route").
+  that stopped part of the way too, with how far it got. A read the server refuses is not recorded. A change made to
+  the mailbox through the same routes is a row too, action `mailbox-changed`, every time it is made: a message added,
+  its flags set (by what the request set them to), copied or deleted, by their ids, and every message deleted; only a
+  request that found the flags already as it asked, and so changed nothing, is held to one row a minute. The rows of
+  `hm_messages` are traffic, so nothing recorded those either. And a mailbox the IMAP master user opens - `AUTHENTICATE
+  PLAIN` naming the account, with the master user's own password - is a `mailbox-read` row under the master user,
+  named `account:<its address>` as REST names an account, interface `IMAP`, once a minute for the same master, mailbox
+  and address; the master user signing in as itself is not. A read or a change over COM is not recorded, nor what a
+  support session or the master user's session does once open, which the application log holds request by request
+  ([AlertsAndAuditTrail.md](hmailserver/docs/AlertsAndAuditTrail.md), "Mail read through an administrator's route").
 
 - **`-Insecure` works on Windows PowerShell 5.1, and `hmctl --version` says the release's version.** The
   `HmailServer` module's `-Insecure`, which accepts the self-signed certificate of a server on the loopback, had no
@@ -2982,6 +2988,15 @@ project's own review.
   passed 63 checks, the server under its enforced profile and no AppArmor denial of the snap in the kernel's log.
   The arm64 snap installed, a MySQL database under AppArmor and the store's review have not run. The Snap Store
   waits for the owner's account and the name (Snap.md, "The Snap Store").
+- **`linux-build` fails when its packaging fails.** `build/ci/linux-build.sh` printed `PACKAGING FAILED` and exited 0
+  when the version stamps or CPack refused, so the job was green with no `.deb` or `.rpm` in its artifact and only the
+  jobs that needed them said so. It now runs its tester programs to the end as before and then exits 4, its last line
+  saying the packaging failed (1, with that said as well, when a tester failed too), and the pipeline fails there.
+- **The PowerShell module is held to ASCII.** `build/check-cli-packages.py` fails `checkers` on any byte of
+  `HmailServer.psm1` or `HmailServer.psd1` that is not ASCII, a byte order mark included, naming the line and column:
+  a release signs both with Authenticode, and Windows PowerShell 5.1 reads a script without a byte order mark in the
+  machine's own code page, so a character beyond ASCII would leave the signature valid on one machine and not on
+  another. Both files are ASCII today; `--self-test` breaks each and the rule reports it.
 
 Full notes: [the 6.3.6 release](https://gitlab.com/hmailserver/hmailserver/-/releases/v6.3.6).
 

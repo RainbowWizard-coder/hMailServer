@@ -102,6 +102,12 @@ The module's manifest
 * `PowerShellVersion` 5.1 and `CompatiblePSEditions` `Desktop` and `Core`: Windows
   PowerShell 5.1, and PowerShell 7 on Windows and Linux.
 * `ProjectUri` and `LicenseUri` are this project's; the `GUID` never changes.
+* The manifest and the module are ASCII, with no byte order mark, and the checker
+  fails on any other byte. A release signs both with Authenticode, and Windows
+  PowerShell 5.1 reads a script file without a byte order mark in the machine's
+  own ANSI code page, which is the text the signature is checked over: a character
+  beyond ASCII would read as another on a machine with another code page, and the
+  signature would not match there. An em dash in a comment is enough.
 
 PSScriptAnalyzer runs every default rule over the manifest and the module, with no
 settings file, and finds nothing. Where a rule was answered by the code, the code

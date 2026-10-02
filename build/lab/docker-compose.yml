@@ -11,8 +11,9 @@
 # 600, made once by `lab.sh init`) and HMLAB_HOME, and it knows which profile each
 # service is in.
 #
-# Memory decides the shape. linix has about 11 GB, and the GitLab runner, the Linux
-# bench's PostgreSQL, Forgejo and other agents' containers share it. So only the
+# Memory decides the shape. linix has 32 GB (2 October 2026), and the GitLab
+# runner's jobs - up to three at once, 8 GB each - the Linux bench's PostgreSQL,
+# Forgejo and other agents' containers share it. So only the
 # core runs all the time - Uptime Kuma, about 100 MB - and every other service is in
 # a profile of its own and is started for the run that needs it and stopped after,
 # its volume kept:

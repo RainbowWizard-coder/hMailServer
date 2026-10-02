@@ -20,6 +20,15 @@ recorded server; this checks what they are packaged AS, and fails when:
     * python/pyproject.toml writes a version at all: the package's is derived from
       Version.h when it is built, and a literal would be a second place to stamp;
 
+  the PowerShell module's two files
+    * HmailServer.psm1 or HmailServer.psd1 holds a byte that is not ASCII - a
+      byte order mark among them. A release signs both with Authenticode, and
+      Windows PowerShell 5.1 reads a file that has no byte order mark in the
+      machine's own ANSI code page, which is what the signature is checked over:
+      a character beyond ASCII reads as another character on a machine with
+      another code page, and the module's signature no longer matches there.
+      ASCII reads the same in every code page;
+
   the PowerShell manifest
     * FunctionsToExport is not exactly the functions the module's own
       Export-ModuleMember names, or names one the module does not define, or is a
@@ -306,6 +315,28 @@ def psm1_exports(text):
 
 def psm1_functions(text):
     return set(re.findall(r"^function\s+([A-Za-z][\w-]*)", text, re.MULTILINE | re.IGNORECASE))
+
+
+def check_module_ascii(root):
+    """The module's two files, byte by byte: ASCII, and so read the same in every code page."""
+    problems = []
+    for relative in (PSM1, PSD1):
+        path = os.path.join(root, relative)
+        if not os.path.isfile(path):
+            continue
+        data = read(root, relative, "rb")
+        found = [i for i, byte in enumerate(data) if byte > 0x7F]
+        if not found:
+            continue
+        first = found[0]
+        line = data.count(b"\n", 0, first) + 1
+        column = first - (data.rfind(b"\n", 0, first) + 1) + 1
+        what = "a byte order mark" if data.startswith(b"\xef\xbb\xbf") and first == 0 else "a byte that is not ASCII"
+        problems.append("%s holds %s at line %d, column %d (%d such byte(s) in all): a release signs it, and Windows"
+                        " PowerShell 5.1 reads a file without a byte order mark in the machine's own code page, so"
+                        " its signature would not match on a machine with another; write the character in ASCII"
+                        % (relative, what, line, column, len(found)))
+    return problems
 
 
 def check_manifest(root, version):
@@ -660,6 +691,7 @@ def run(root, dist=None):
         version = read_version(root)
     except (OSError, ValueError) as error:
         return [str(error)]
+    problems += check_module_ascii(root)
     problems += check_manifest(root, version)
     problems += check_python_dir(root)
     problems += check_pyproject(root)
@@ -761,6 +793,12 @@ def self_test():
                "ProjectUri   = 'https://example.com/x'", "ProjectUri")
         broken("an alias exported by the module", PSM1, "Export-ModuleMember -Function @(",
                "Export-ModuleMember -Alias x -Function @(", "exports more than functions")
+        broken("a character beyond ASCII in the module", PSM1, "# https://www.progressiverobot.com\n",
+               "# https://www.progressiverobot.com \u2014 the module\n", "HmailServer.psm1 holds a byte that is not ASCII at line 1")
+        broken("a character beyond ASCII in the manifest", PSD1, "Author               = 'Christopher Holloway",
+               "Author               = 'Chr\u00edstopher Holloway", "HmailServer.psd1 holds a byte that is not ASCII")
+        broken("a byte order mark on the module", PSM1, "# https://www.progressiverobot.com\n",
+               "\ufeff# https://www.progressiverobot.com\n", "HmailServer.psm1 holds a byte order mark at line 1, column 1")
         broken("a version written in pyproject.toml", PYTHON_DIR + "/pyproject.toml", 'dynamic = ["version"]',
                'version = "6.3.5"', "writes version")
         broken("a dependency", PYTHON_DIR + "/pyproject.toml", "dependencies = []", 'dependencies = ["requests"]',

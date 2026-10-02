@@ -3012,7 +3012,7 @@ namespace hMailServer.ControlPanel.Views
          {
             Path = "AutoBanWidenByReverseName",
             Label = L("Widen an auto-ban to the neighbouring addresses whose reverse names share its domain"),
-            Blurb = L("Off by default. Only when the banned address's own reverse name resolves back to it; at most 32 addresses each way; never into another /24, across an address either never-ban list above spares, or across an IP range of yours that covers one address and not the other; never for IPv6. A reverse lookup that is not answered leaves the single address. A hosting net whose customers all carry one reverse domain is widened whole: list it above, or leave this off.")
+            Blurb = L("Off by default. Only when the banned address's own reverse name resolves back to it; at most 32 addresses each way; never into another /24, across an address either never-ban list above spares, or across an IP range of yours that covers one address and not the other; never for IPv6, nor for a private, shared, loopback or link-local address, whose neighbours are your own network's machines. A reverse lookup that is not answered leaves the single address. A hosting net whose customers all carry one reverse domain is widened whole: list it above, or leave this off.")
          });
          Tab(L("Auto-ban")).Cards.Add(widen);
 

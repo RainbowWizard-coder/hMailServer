@@ -49,9 +49,14 @@ Nine rules, in the shape of build/check-authz-choke-point.py:
               too), a held message's headers and text, the archive index
               searched and one of its entries read, an eDiscovery search's
               hits - which writes nothing at all, and for which a support
-              session opened is the row beside it. RecordMailRead_ is called
-              only from the files that answer those routes. Every one of these
-              calls must be there.
+              session opened is the row beside it; and a message of it added,
+              its flags set, copied or deleted, or every one deleted, through
+              those routes, whose rows of hm_messages are traffic and not
+              audited. RecordMailRead_ is called only from the files that
+              answer those routes, and RestApiServer::RecordMailboxOpened, its
+              one way in from outside them, only from IMAP's AUTHENTICATE, for
+              a mailbox the IMAP master user opens. Every one of these calls
+              must be there.
 
   installed   The actor - who is making the change - is installed at one place
               per interface: RestApiServer::ProcessRequest_ for REST and the
@@ -226,6 +231,14 @@ ALLOWED = {
       "Common/Util/RestApiOperator.cpp",            # POST /api/v1/accounts/{address}/export and GET .../export.zip
       "Common/Util/RestApiServer.cpp",              # GET /api/v1/quarantine/{id}/headers and /preview, GET /api/v1/archive and /api/v1/archive/{id}
    },
+   # Somebody's mailbox opened by another account's credential outside the
+   # REST routes, recorded as a read of it: the IMAP master user's sign-in, under
+   # the actor IMAP's AUTHENTICATE installs for that one row, and nothing else.
+   "RecordMailboxOpened(": {
+      "Common/Util/RestApiServer.h",
+      "Common/Util/RestApiAccountResources.cpp",    # the recorder
+      "IMAP/IMAPCommandAuthenticate.cpp",           # AUTHENTICATE PLAIN with an authorization identity: the master user
+   },
    # The words a row is recorded with, in place of the ones read from its
    # statement. Only for a table whose rows are nothing but ids, or whose name
    # column holds an encoding rather than a name, and only from the code that
@@ -390,6 +403,24 @@ REQUIRED = [
    ("Common/Util/RestApiAccountResources.cpp",
     "return recorded(ListFolderMessages(bridge, account, route.folder_id),",
     "a folder's messages listed through GET /api/v1/accounts/{address}/folders/{id}/messages are no longer recorded"),
+   ("Common/Util/RestApiAccountResources.cpp",
+    "return changed(CreateFolderMessage(bridge, account, route.folder_id, requestBody, route.query, change));",
+    "a message put into somebody's mailbox through POST /api/v1/accounts/{address}/folders/{id}/messages is no longer recorded - hm_messages is traffic, not an audited table, so nothing else sees it"),
+   ("Common/Util/RestApiAccountResources.cpp",
+    "return changed(UpdateMessageFlags(bridge, account, route.message_id, requestBody, change));",
+    "a message's flags set through PUT /api/v1/accounts/{address}/messages/{id} are no longer recorded - a message marked read or deleted in somebody's mailbox, whose answer carries its sender, size and date"),
+   ("Common/Util/RestApiAccountResources.cpp",
+    "return changed(DeleteMessage(bridge, account, route.message_id, change));",
+    "a message deleted from somebody's mailbox through DELETE /api/v1/accounts/{address}/messages/{id} is no longer recorded - the mail is gone, and the row would be the one thing left to say so"),
+   ("Common/Util/RestApiAccountResources.cpp",
+    "return changed(CopyMessage(bridge, account, route.message_id, requestBody, change));",
+    "a message copied within somebody's mailbox through POST /api/v1/accounts/{address}/messages/{id}/copy is no longer recorded - whose answer carries its sender, size and date"),
+   ("Common/Util/RestApiAccountResources.cpp",
+    "return changed(DeleteAccountMessages(bridge, account, change));",
+    "every message of somebody's mailbox deleted through DELETE /api/v1/accounts/{address}/messages is no longer recorded - the strongest change there is"),
+   ("IMAP/IMAPCommandAuthenticate.cpp",
+    "RecordMasterUserSession(pConnection->GetRemoteEndpointAddress(), master, pAccount);",
+    "a mailbox opened over IMAP by the IMAP master user is no longer recorded - another account reading somebody's mail with its own password, the read an auditor most needs to find"),
    ("Common/Util/RestApiAccountResources.cpp",
     "return recorded(GetMessage(bridge, account, route.message_id),",
     "a message's header fields read through GET /api/v1/accounts/{address}/messages/{id} are no longer recorded - its subject, its sender and its recipients"),

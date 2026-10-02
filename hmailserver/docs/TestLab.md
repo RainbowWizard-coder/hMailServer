@@ -15,7 +15,8 @@ This page is what the lab is, what it measured and what it found.
 What runs, and what it costs
 ----------------------------
 
-linix has 8 cores and about 11 GB of memory, and the GitLab runner, the Linux bench's
+linix has 16 cores and 32 GB of memory (2 October 2026), and the GitLab runner - up
+to three jobs at once, each held to six CPUs and 8 GB - the Linux bench's
 PostgreSQL, Forgejo and other work share them. So only the core runs all the time;
 everything else is a compose profile, started for the run that needs it and stopped
 after, its data kept in a volume.

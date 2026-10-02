@@ -91,6 +91,12 @@ The headers
 Behind a reverse proxy
 ----------------------
 
+First, the name: since 6.3.6 the plain loopback listener refuses with 421 a
+request whose `Host` it does not expect, so a proxy that forwards the browser's
+`Host` needs that name set as the webmail's public base URL before it is put in
+front ([DevicesAndSessions.md](DevicesAndSessions.md), "Which `Host` the listener
+answers"); one that sends its own upstream address needs nothing.
+
 A proxy that compresses on its own account should either leave
 `Accept-Encoding` alone and pass the server's answer through - the server will
 not encode twice, and a proxy must not either - or strip `Accept-Encoding` from

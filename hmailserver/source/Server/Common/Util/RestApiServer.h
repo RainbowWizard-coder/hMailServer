@@ -156,6 +156,14 @@ namespace HM
       // are this listener's to end.
       static void RevokeSessionsForAccount(__int64 accountId);
 
+      // Somebody's mailbox opened by another account's credential outside these
+      // routes - the IMAP master user signing in as its owner
+      // (IMAPCommandAuthenticate.cpp) - put on the audit trail as a read of it
+      // through an administrator's route is (RecordMailRead_), under the actor
+      // the caller installed: once a minute for the same opener, address and
+      // mailbox. In RestApiAccountResources.cpp.
+      static void RecordMailboxOpened(__int64 accountId, const String &address, const String &detail);
+
       // JsonEscape_ of Utf8_, for the helpers of a route file outside the class.
       static AnsiString JsonEscapeUtf8(const String &value);
 
@@ -2710,7 +2718,9 @@ namespace HM
       // message's header fields and its file, a backup's listing of a
       // mailbox, a mailbox exported, a held message's headers and preview,
       // the archive index searched and one of its entries read, and an
-      // eDiscovery search's hits (RestApiDiscovery.cpp).
+      // eDiscovery search's hits (RestApiDiscovery.cpp); and, with action
+      // mailbox-changed, a message added to the mailbox, its flags set,
+      // copied or deleted, or every message deleted.
       // item names the thing read: the same credential reading it again from
       // the same address within the minute is not recorded again. Empty, every
       // read is.

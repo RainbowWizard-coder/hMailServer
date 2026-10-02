@@ -12,7 +12,9 @@
 #include "../Common/Application/ObjectCache.h"
 #include "../Common/Cache/CacheContainer.h"
 #include "../Common/Util/AccountLogon.h"
+#include "../Common/Util/AuditTrail.h"
 #include "../Common/Util/MailboxKeys.h"
+#include "../Common/Util/RestApiServer.h"
 #include "../Common/Util/SignInStore.h"
 #include "../Common/Util/AccountLockout.h"
 #include "../Common/Util/Crypt.h"
@@ -33,6 +35,41 @@
 
 namespace HM
 {
+   // Another account's mailbox opened by the IMAP master user, with the master
+   // user's own password: on the audit trail as an administrator's read of
+   // somebody's mail is (RestApiServer::RecordMailboxOpened), under the master
+   // user, over IMAP, from the address it came from - the actor installed here,
+   // IMAP's one place, for this one row. Once a minute for the same master,
+   // address and mailbox, so a client's five connections are one row. What the
+   // session then does is not recorded command by command. The master user is
+   // named as REST names an account, account:<its address>, by the address it
+   // is stored under and not the one the client typed: a name under a domain
+   // alias, or in other capitals, is the same master user, and a search of the
+   // trail by its actor finds every row of its.
+   static void RecordMasterUserSession(const IPAddress &peer, const String &master, std::shared_ptr<const Account> mailbox)
+   {
+      std::shared_ptr<const Account> masterAccount = CacheContainer::Instance()->GetAccount(master);
+
+      AuditTrail::Actor opener;
+      opener.present = true;
+      if (masterAccount)
+      {
+         opener.name = _T("account:") + masterAccount->GetAddress();
+      }
+      else
+      {
+         opener.name = _T("account:") + master;
+         opener.name.ToLower();
+      }
+      opener.kind = _T("account");
+      opener.interface_name = _T("IMAP");
+      opener.address = peer.ToString();
+
+      AuditScope scope(opener);
+      RestApiServer::RecordMailboxOpened(mailbox->GetID(), mailbox->GetAddress(),
+         _T("its mailbox opened over IMAP by the master user, signed in with the master user's own password"));
+   }
+
    IMAPResult
    IMAPCommandAUTHENTICATE::ExecuteCommand(std::shared_ptr<IMAPConnection> pConnection, std::shared_ptr<IMAPCommandArgument> pArgument)
    {
@@ -432,6 +469,16 @@ namespace HM
 
       // Load mail boxes
       pConnection->Login(pAccount, viaAppPassword ? SignInStore::CredentialAppPassword : SignInStore::CredentialPassword, appPasswordName);
+
+      // The session is another account's mailbox when the master user named it
+      // as the authorization identity - not when the master user named its own
+      // account, under a domain alias or not.
+      if (authzid.GetLength() > 0)
+      {
+         const String master = ObjectCache::Instance()->GetDomainAliases()->ApplyAliasesOnAddress(authcid);
+         if (pAccount->GetAddress().CompareNoCase(master) != 0)
+            RecordMasterUserSession(pConnection->GetRemoteEndpointAddress(), master, pAccount);
+      }
 
       String sResponse = pArgument->Tag() + " OK LOGIN completed\r\n";
 

@@ -46,6 +46,16 @@ namespace RegressionTests.API
    ///    emptied here, because against the Linux server it cannot be, and because
    ///    the window the server keeps is per account and would otherwise hold a row
    ///    back for a read another test made.
+   ///
+   ///    A change made to somebody's mailbox through the same routes - a message
+   ///    added, its flags set, copied or deleted, every message deleted - is on
+   ///    the trail too since 6.3.6, with action mailbox-changed, and so is a
+   ///    mailbox the IMAP master user opens with its own password. Against a
+   ///    server that recorded neither, the four tests of that fail on the rows
+   ///    they look for. A change of a message's flags is a row every time it
+   ///    is made, and only a request that changed nothing is held to one row a
+   ///    minute; the master user is named by the address it is stored under,
+   ///    whatever name under an alias of its domain it signed in with.
    /// </summary>
    [TestFixture]
    public class RestApiAuditMailboxReads : TestFixtureBase
@@ -464,6 +474,217 @@ namespace RegressionTests.API
             "A read held back for a minute and then never again would let anybody who reads slowly enough read unrecorded: " + Describe(Reads(victim.Address)));
       }
 
+      [Test]
+      [Description("Each change made to another account's mailbox through the administrator's routes - a message added, its flags set, a copy made, a message deleted and every message deleted - is one row, action mailbox-changed, naming the account, the credential, the interface and the address it came from, and what changed by id and never by subject. The rows of hm_messages are traffic, which the statement chokepoint leaves out, so until 6.3.6 none of them was recorded.")]
+      public void EachChangeToAnotherAccountsMailboxIsOnTheTrail()
+      {
+         Account victim = AddAccount("change");
+         long inbox = InboxOf(victim);
+         long first = Added(victim, inbox, "Board minutes");
+         long second = Added(victim, inbox, "Second");
+
+         string mailbox = "/api/v1/accounts/" + victim.Address;
+
+         (int status, string body) flagged = Admin("PUT", mailbox + "/messages/" + first, "{\"seen\":true,\"flagged\":false}");
+         Assert.AreEqual(200, flagged.status, flagged.body);
+
+         (int status, string body) copied = Admin("POST", mailbox + "/messages/" + first + "/copy", "{\"folder_id\":" + inbox + "}");
+         Assert.AreEqual(201, copied.status, copied.body);
+         long copy = MiniJson.Number(MiniJson.Object(copied.body), "id");
+
+         (int status, string body) deleted = Admin("DELETE", mailbox + "/messages/" + second);
+         Assert.AreEqual(200, deleted.status, deleted.body);
+
+         (int status, string body) emptied = Admin("DELETE", mailbox + "/messages");
+         Assert.AreEqual(200, emptied.status, emptied.body);
+
+         List<Dictionary<string, object>> rows = Changes(victim.Address);
+
+         string[] details =
+         {
+            "message " + first + " added to folder " + inbox,
+            "message " + second + " added to folder " + inbox,
+            "message " + first + ": its flags changed - seen set, flagged cleared",
+            "message " + first + " copied to folder " + inbox + " as message " + copy,
+            "message " + second + " deleted",
+            "every message deleted"
+         };
+
+         foreach (string detail in details)
+         {
+            List<Dictionary<string, object>> named = rows.Where(row => Says(row, detail)).ToList();
+            Assert.AreEqual(1, named.Count, "One row for '" + detail + "' among: " + Describe(rows));
+
+            Dictionary<string, object> row = named[0];
+            Assert.AreEqual("account", MiniJson.Text(row, "object_type"));
+            Assert.AreEqual("mailbox-changed", MiniJson.Text(row, "action"));
+            Assert.AreEqual("administrator", MiniJson.Text(row, "actor"));
+            Assert.AreEqual("administrator", MiniJson.Text(row, "actor_type"));
+            Assert.AreEqual("REST", MiniJson.Text(row, "interface"));
+            Assert.AreEqual("127.0.0.1", MiniJson.Text(row, "address"));
+            StringAssert.DoesNotContain("Board", MiniJson.Text(row, "detail"), "A change is named by ids, as a read is.");
+         }
+
+         Assert.AreEqual(details.Length, rows.Count, "Six changes, six rows: " + Describe(rows));
+         Assert.AreEqual(0, Reads(victim.Address).Count, "A change is not a read, and is not recorded as one: " + Describe(Reads(victim.Address)));
+      }
+
+      [Test]
+      [Description("A change of a message's flags is a row every time it is made - the same flags set again after another change took them away among them, so that the trail never says a message is as an earlier change left it; a request that finds every flag it names as it asks changed nothing and is one row a minute, saying so, since its answer is the message's row; every message deleted is a row every time, as an export is; and a change the server refused - a message or a folder that is not the account's, a body it does not take - changed nothing and leaves no row.")]
+      public void EachFlagChangeIsARowARepeatThatChangesNothingOnceAMinuteAndARefusalNone()
+      {
+         Account victim = AddAccount("change-window");
+         Account other = AddAccount("change-other");
+         long inbox = InboxOf(victim);
+         long message = Added(victim, inbox, "Flag me");
+         long othersMessage = Added(other, InboxOf(other), "Not the victim's");
+
+         string mailbox = "/api/v1/accounts/" + victim.Address;
+         string setSeen = "message " + message + ": its flags changed - seen set";
+         string alreadySeen = "message " + message + ": its flags set as they already were - seen set";
+         string clearedSeen = "message " + message + ": its flags changed - seen cleared";
+
+         for (int i = 0; i < 3; i++)
+            Assert.AreEqual(200, Admin("PUT", mailbox + "/messages/" + message, "{\"seen\":true}").status);
+
+         Assert.AreEqual(1, Changes(victim.Address).Count(row => Says(row, setSeen)),
+            "The first request set the flag, and is a row: " + Describe(Changes(victim.Address)));
+         Assert.AreEqual(1, Changes(victim.Address).Count(row => Says(row, alreadySeen)),
+            "The two after it found the flag set and changed nothing: one row inside the minute, which says so: " + Describe(Changes(victim.Address)));
+
+         Assert.AreEqual(200, Admin("PUT", mailbox + "/messages/" + message, "{\"seen\":false}").status);
+         Assert.AreEqual(1, Changes(victim.Address).Count(row => Says(row, clearedSeen)),
+            "Another change to the same message is a row at once: " + Describe(Changes(victim.Address)));
+
+         Assert.AreEqual(200, Admin("PUT", mailbox + "/messages/" + message, "{\"seen\":true}").status);
+         Assert.AreEqual(2, Changes(victim.Address).Count(row => Says(row, setSeen)),
+            "The flag set again after it was cleared is a change of its own and a row at once, inside the minute or not; held back, the trail would say the message was left unread: " + Describe(Changes(victim.Address)));
+         Assert.AreEqual(1, Changes(victim.Address).Count(row => Says(row, alreadySeen)),
+            "A request that changed something is never counted as one that changed nothing: " + Describe(Changes(victim.Address)));
+
+         (int status, string body)[] refused =
+         {
+            Admin("PUT", mailbox + "/messages/999999999", "{\"seen\":true}"),
+            Admin("PUT", mailbox + "/messages/" + othersMessage, "{\"seen\":true}"),
+            Admin("PUT", mailbox + "/messages/" + message, "{\"unknown\":true}"),
+            Admin("DELETE", mailbox + "/messages/" + othersMessage),
+            Admin("POST", mailbox + "/messages/" + message + "/copy", "{\"folder_id\":999999999}"),
+            Admin("POST", mailbox + "/folders/999999999/messages", "Subject: nowhere\r\n\r\nbody\r\n")
+         };
+
+         foreach ((int status, string body) answer in refused)
+            Assert.IsTrue(answer.status == 400 || answer.status == 404, "Refused: " + answer.status + " " + answer.body);
+
+         Assert.AreEqual(5, Changes(victim.Address).Count, "The message added, three flag changes and the one row of the requests that changed nothing, and nothing for the refusals: " + Describe(Changes(victim.Address)));
+         Assert.AreEqual(1, Changes(other.Address).Count, "Only the other account's own message added; a message reached through another account's address is not found, and changes nothing: " + Describe(Changes(other.Address)));
+
+         for (int i = 0; i < 2; i++)
+            Assert.AreEqual(200, Admin("DELETE", mailbox + "/messages").status);
+
+         Assert.AreEqual(2, Changes(victim.Address).Count(row => Says(row, "every message deleted")),
+            "Every message deleted takes whatever the mailbox holds by then, so it is a row every time: " + Describe(Changes(victim.Address)));
+      }
+
+      [Test]
+      [Description("A mailbox the IMAP master user opens - AUTHENTICATE PLAIN with the mailbox as the authorization identity and the master user's own password - is a mailbox-read row naming the mailbox, under the master user, over IMAP, from the address it came from; the same sign-in again inside the minute, as a client opening several connections makes, is the row already written. The master user signing in as itself, and a sign-in refused, are not rows.")]
+      public void AMailboxTheImapMasterUserOpensIsOnTheTrail()
+      {
+         Account master = AddAccount("master");
+         Account victim = AddAccount("opened");
+
+         bool saslFound = _settings.IMAPSASLPlainEnabled;
+         string masterFound = _settings.IMAPMasterUser;
+
+         try
+         {
+            _settings.IMAPSASLPlainEnabled = true;
+            _settings.IMAPMasterUser = master.Address;
+
+            StringAssert.Contains("A01 OK", AuthenticateAs(master.Address, master.Address, UserPassword),
+               "The master user signs in as itself.");
+            Assert.IsFalse(AuthenticateAs(victim.Address, master.Address, "not-the-password").Contains("A01 OK"),
+               "A wrong password opens nothing.");
+
+            Assert.AreEqual(0, Reads(master.Address).Count, "The master user's own mailbox, opened by itself, is an ordinary sign-in: " + Describe(Reads(master.Address)));
+            Assert.AreEqual(0, Reads(victim.Address).Count, "A refused sign-in opened nothing: " + Describe(Reads(victim.Address)));
+
+            for (int i = 0; i < 2; i++)
+            {
+               string result = AuthenticateAs(victim.Address, master.Address, UserPassword);
+               StringAssert.Contains("A01 OK", result, "The master user opens the mailbox: " + result);
+            }
+
+            List<Dictionary<string, object>> rows = Reads(victim.Address);
+            Assert.AreEqual(1, rows.Count, "Two sign-ins inside the minute are one row: " + Describe(rows));
+
+            Dictionary<string, object> row = rows[0];
+            Assert.AreEqual("account", MiniJson.Text(row, "object_type"));
+            Assert.AreEqual("mailbox-read", MiniJson.Text(row, "action"));
+            Assert.AreEqual("account:" + master.Address, MiniJson.Text(row, "actor"), "Who opened it, named as REST names an account.");
+            Assert.AreEqual("account", MiniJson.Text(row, "actor_type"));
+            Assert.AreEqual("IMAP", MiniJson.Text(row, "interface"));
+            Assert.AreEqual("127.0.0.1", MiniJson.Text(row, "address"), "Where from.");
+            Assert.AreEqual("its mailbox opened over IMAP by the master user, signed in with the master user's own password", MiniJson.Text(row, "detail"));
+         }
+         finally
+         {
+            _settings.IMAPMasterUser = masterFound ?? string.Empty;
+            _settings.IMAPSASLPlainEnabled = saslFound;
+         }
+      }
+
+      [Test]
+      [Description("The IMAP master user signing in under a domain alias of its domain is the same master user: the row names it account:<the address it is stored under>, as REST names an account, and not by the name the client typed, so that the trail searched by that actor finds every mailbox it opened. The master user signing in as itself under the alias is no row.")]
+      public void TheMasterUserUnderADomainAliasIsNamedByItsOwnAddress()
+      {
+         Account master = AddAccount("alias-master");
+         Account victim = AddAccount("alias-opened");
+
+         string aliasDomain = "audit-alias-" + TestSetup.UniqueString().Substring(0, 8) + ".test";
+         DomainAlias alias = _domain.DomainAliases.Add();
+         alias.AliasName = aliasDomain;
+         alias.Save();
+
+         string local = master.Address.Substring(0, master.Address.IndexOf('@'));
+         string masterUnderAlias = local + "@" + aliasDomain;
+
+         bool saslFound = _settings.IMAPSASLPlainEnabled;
+         string masterFound = _settings.IMAPMasterUser;
+
+         try
+         {
+            _settings.IMAPSASLPlainEnabled = true;
+            // A bare name is the master user of the authenticating name's own
+            // domain, which is what lets a name under an alias of it be the
+            // master user at all.
+            _settings.IMAPMasterUser = local;
+
+            StringAssert.Contains("A01 OK", AuthenticateAs(master.Address, masterUnderAlias, UserPassword),
+               "The master user signs in as itself under the alias.");
+            Assert.AreEqual(0, Reads(master.Address).Count, "Its own mailbox, opened by itself under the alias, is an ordinary sign-in: " + Describe(Reads(master.Address)));
+
+            string result = AuthenticateAs(victim.Address, masterUnderAlias, UserPassword);
+            StringAssert.Contains("A01 OK", result, "The master user opens the mailbox under the alias: " + result);
+
+            List<Dictionary<string, object>> rows = Reads(victim.Address);
+            Assert.AreEqual(1, rows.Count, Describe(rows));
+            Assert.AreEqual("account:" + master.Address, MiniJson.Text(rows[0], "actor"),
+               "The master user by the address it is stored under, not " + masterUnderAlias);
+            Assert.AreEqual("IMAP", MiniJson.Text(rows[0], "interface"));
+
+            (int status, string body) byActor = Admin("GET", "/api/v1/audit?object_type=account&action=mailbox-read&limit=1000&actor=" + Uri.EscapeDataString("account:" + master.Address));
+            Assert.AreEqual(200, byActor.status, byActor.body);
+            Assert.AreEqual(1, MiniJson.List(MiniJson.Object(byActor.body), "entries").Cast<Dictionary<string, object>>()
+                                  .Count(row => MiniJson.Text(row, "object") == victim.Address),
+               "The trail searched by the master user's own name finds the mailbox it opened under the alias: " + byActor.body);
+         }
+         finally
+         {
+            _settings.IMAPMasterUser = masterFound ?? string.Empty;
+            _settings.IMAPSASLPlainEnabled = saslFound;
+         }
+      }
+
       // ---- helpers -----------------------------------------------------------
 
       // An address of the test's own, which no other test and no earlier run of
@@ -555,6 +776,45 @@ namespace RegressionTests.API
       private static int Count(string address, string detail)
       {
          return Reads(address).Count(row => MiniJson.Text(row, "detail").StartsWith(detail, StringComparison.Ordinal));
+      }
+
+      // The mailbox-changed rows naming the address, newest first.
+      private static List<Dictionary<string, object>> Changes(string address)
+      {
+         (int status, string body) trail = Admin("GET", "/api/v1/audit?object_type=account&action=mailbox-changed&limit=1000");
+         Assert.AreEqual(200, trail.status, trail.body);
+
+         return MiniJson.List(MiniJson.Object(trail.body), "entries")
+            .Cast<Dictionary<string, object>>()
+            .Where(row => MiniJson.Text(row, "object") == address)
+            .ToList();
+      }
+
+      // Whether a row's detail is these words - with the role the credential
+      // acted under after them, or not.
+      private static bool Says(Dictionary<string, object> row, string words)
+      {
+         string detail = MiniJson.Text(row, "detail");
+         return detail == words || detail.StartsWith(words + " [role: ", StringComparison.Ordinal);
+      }
+
+      // IMAP AUTHENTICATE PLAIN with an authorization identity, as the IMAP
+      // master user signs in (IMAP/MasterUserImpersonation.cs), answered with the
+      // tagged reply.
+      private static string AuthenticateAs(string authzid, string authcid, string password)
+      {
+         var socket = new TcpConnection();
+         Assert.IsTrue(socket.Connect(143), "Could not connect to the IMAP server on port 143.");
+         socket.ReadUntil("* OK");
+
+         socket.Send("A01 AUTHENTICATE PLAIN\r\n");
+         string continuation = socket.Receive();
+         StringAssert.StartsWith("+", continuation, "The server did not ask for the SASL response. Got: " + continuation);
+
+         socket.Send(Convert.ToBase64String(Encoding.UTF8.GetBytes(authzid + "\0" + authcid + "\0" + password)) + "\r\n");
+         string result = socket.ReadUntil("A01 ");
+         socket.Disconnect();
+         return result;
       }
 
       private static string Describe(List<Dictionary<string, object>> rows)

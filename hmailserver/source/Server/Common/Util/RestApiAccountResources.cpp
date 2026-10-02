@@ -112,6 +112,16 @@
 // shim reads a folder's messages every tenth of a second while it waits for a
 // delivery (CustomAsserts) - but a different message, a different folder, a
 // different credential or the same one from another address is a row at once.
+// A change made to the mailbox through these routes - a message added, its
+// flags set, copied, deleted, or every message deleted - is on the trail the
+// same way, with action "mailbox-changed": the rows of hm_messages are traffic
+// and not an audited table, so the statement chokepoint never sees one, and
+// mail an administrator put into somebody's mailbox or took out of it is as
+// much the person's business as mail read (the answers of the flags and the
+// copy carry the message's sender, size and date besides). So is a mailbox
+// opened over IMAP by the IMAP master user, which signs in with its own
+// password as the mailbox's owner (RecordMailboxOpened, called from
+// IMAPCommandAuthenticate.cpp under an actor of IMAP's own).
 // docs/AlertsAndAuditTrail.md says what is recorded and what is not.
 
 #include "StdAfx.h"
@@ -185,6 +195,19 @@ namespace
       void (*appendFolderJson)(std::shared_ptr<const Account> account, std::shared_ptr<IMAPFolders> folders,
                                const String &parentPath, const std::map<__int64, int> &designations,
                                const String &delimiter, AnsiString &json, int depth);
+   };
+
+   // What a change to the mailbox did, for its row on the audit trail
+   // (RestApiServer::HandleAccountResources_), filled in by the handler the
+   // moment the change is made - so that a failure after it, a copy whose row
+   // cannot be read back, still leaves the row - and left empty when it is
+   // refused: the words of the row, by id as a read's are, and the item the
+   // once-a-minute window knows the change by - empty for one recorded every
+   // time it is made.
+   struct MailboxChange
+   {
+      String detail;
+      String item;
    };
 
    AnsiString Utf8(const String &value)
@@ -1163,7 +1186,8 @@ namespace
 
    // One message, the request body, into a folder of the account's: what
    // Messages.Add and Message.Save do over COM, and what APPEND does.
-   HttpResponse CreateFolderMessage(const Bridge &bridge, std::shared_ptr<Account> account, __int64 folderId, const AnsiString &requestBody, const AnsiString &query)
+   HttpResponse CreateFolderMessage(const Bridge &bridge, std::shared_ptr<Account> account, __int64 folderId, const AnsiString &requestBody, const AnsiString &query,
+                                    MailboxChange &recordAs)
    {
       std::shared_ptr<IMAPFolder> folder = OwnFolder(account, folderId);
       if (!folder)
@@ -1243,6 +1267,10 @@ namespace
       added.push_back(message->GetID());
       RestApiServer::NotifyFolder(folder, ChangeNotification::NotificationMessageAdded, added);
 
+      // Each message added is a new id, and so a row of its own.
+      recordAs.detail = _T("message ") + StringParser::IntToString(message->GetID()) + _T(" added to folder ") + StringParser::IntToString(folder->GetID());
+      recordAs.item = _T("added ") + StringParser::IntToString(message->GetID());
+
       return bridge.respond(201, RowJson(bridge, message), "");
    }
 
@@ -1303,7 +1331,8 @@ namespace
       return response;
    }
 
-   HttpResponse UpdateMessageFlags(const Bridge &bridge, std::shared_ptr<Account> account, __int64 messageId, const AnsiString &requestBody)
+   HttpResponse UpdateMessageFlags(const Bridge &bridge, std::shared_ptr<Account> account, __int64 messageId, const AnsiString &requestBody,
+                                   MailboxChange &recordAs)
    {
       std::shared_ptr<IMAPFolder> folder;
       std::shared_ptr<Message> row = OwnMessageRow(account, messageId, folder);
@@ -1344,9 +1373,19 @@ namespace
       // The path STORE takes (FolderManager::ChangeMessageFlags): the change
       // is made to the live message and written with the folder's next
       // mod-sequence as one step, so CONDSTORE and QRESYNC clients see it and
-      // a STORE made at the same moment is not undone by it.
+      // a STORE made at the same moment is not undone by it. Whether it
+      // altered a flag is read there too, under the message's lock, from the
+      // flags as they were the moment before (for the audit trail, below).
+      bool altered = false;
       auto change = [&](Message &live)
       {
+         const bool before[5] = { live.GetFlagSeen(), live.GetFlagDeleted(), live.GetFlagFlagged(), live.GetFlagAnswered(), live.GetFlagDraft() };
+         for (int i = 0; i < 5; i++)
+         {
+            if (named[i] && before[i] != values[i])
+               altered = true;
+         }
+
          if (named[0])
             live.SetFlagSeen(values[0]);
          if (named[1])
@@ -1370,13 +1409,40 @@ namespace
       changed.push_back(message->GetID());
       RestApiServer::NotifyFolder(folder, ChangeNotification::NotificationMessageFlagsChanged, changed);
 
+      // The flags the body named, as it set them. A request that altered one
+      // is a row every time: the same flags set again after another change
+      // took them away is a change of its own, and holding it back for the
+      // minute would leave the trail saying the message is as the change
+      // before left it. One that found every flag it named as it asked altered
+      // nothing, but its answer is the row - the sender, the size and the date
+      // - so it is recorded as a read is, once a minute for the same message
+      // and the same flags, and says that nothing changed.
+      String flags;
+      for (int i = 0; i < 5; i++)
+      {
+         if (!named[i])
+            continue;
+         if (!flags.IsEmpty())
+            flags += _T(", ");
+         flags += String(AnsiString(names[i])) + (values[i] ? _T(" set") : _T(" cleared"));
+      }
+      if (altered)
+      {
+         recordAs.detail = _T("message ") + StringParser::IntToString(messageId) + _T(": its flags changed - ") + flags;
+      }
+      else
+      {
+         recordAs.detail = _T("message ") + StringParser::IntToString(messageId) + _T(": its flags set as they already were - ") + flags;
+         recordAs.item = _T("flags unchanged ") + StringParser::IntToString(messageId) + _T(" ") + flags;
+      }
+
       return bridge.respond(200, RowJson(bridge, message), "");
    }
 
    // What EXPUNGE does for one message, and Messages.DeleteByDBID over COM:
    // the row and the file go, the folder's shared collection drops it, and
    // every session is told.
-   HttpResponse DeleteMessage(const Bridge &bridge, std::shared_ptr<Account> account, __int64 messageId)
+   HttpResponse DeleteMessage(const Bridge &bridge, std::shared_ptr<Account> account, __int64 messageId, MailboxChange &recordAs)
    {
       std::shared_ptr<IMAPFolder> folder;
       std::shared_ptr<Message> row = OwnMessageRow(account, messageId, folder);
@@ -1396,10 +1462,14 @@ namespace
 
       RestApiServer::NotifyFolder(folder, ChangeNotification::NotificationMessageDeleted, deleted);
 
+      recordAs.detail = _T("message ") + StringParser::IntToString(messageId) + _T(" deleted");
+      recordAs.item = _T("deleted ") + StringParser::IntToString(messageId);
+
       return bridge.respond(200, "{\"deleted\":true}", "");
    }
 
-   HttpResponse CopyMessage(const Bridge &bridge, std::shared_ptr<Account> account, __int64 messageId, const AnsiString &requestBody)
+   HttpResponse CopyMessage(const Bridge &bridge, std::shared_ptr<Account> account, __int64 messageId, const AnsiString &requestBody,
+                            MailboxChange &recordAs)
    {
       std::shared_ptr<IMAPFolder> folder;
       std::shared_ptr<Message> row = OwnMessageRow(account, messageId, folder);
@@ -1435,6 +1505,12 @@ namespace
       if (!MessageUtilities::CopyToIMAPFolder(row, (int) folderId, copyId))
          return Refusal(bridge, 500, "the message could not be copied; see the error log");
 
+      // Each copy is a new message, and so a row of its own - from here, where
+      // the copy is in the mailbox whether or not its row can be read back.
+      recordAs.detail = _T("message ") + StringParser::IntToString(messageId) + _T(" copied to folder ") + StringParser::IntToString(folderId) +
+                      _T(" as message ") + StringParser::IntToString(copyId);
+      recordAs.item = _T("copied ") + StringParser::IntToString(copyId);
+
       std::shared_ptr<IMAPFolder> copyFolder;
       std::shared_ptr<Message> copy = OwnMessageRow(account, copyId, copyFolder);
       if (!copy)
@@ -1443,7 +1519,7 @@ namespace
       return bridge.respond(201, "{" + RowFields(bridge, copy) + "}", "");
    }
 
-   HttpResponse DeleteAccountMessages(const Bridge &bridge, std::shared_ptr<Account> account)
+   HttpResponse DeleteAccountMessages(const Bridge &bridge, std::shared_ptr<Account> account, MailboxChange &recordAs)
    {
       // Account.DeleteMessages over COM, to the call - which a legal hold
       // refuses, and the caller is told so (docs/Discovery.md).
@@ -1454,6 +1530,10 @@ namespace
          return Refusal(bridge, 500, "the messages could not be deleted; see the error log");
 
       LOG_APPLICATION("REST API: every message of " + account->GetAddress() + " deleted by the administrator.");
+
+      // Every time it is done, as an export is: each takes whatever the mailbox
+      // holds by then.
+      recordAs.detail = _T("every message deleted");
 
       return bridge.respond(200, "{\"deleted\":true}", "");
    }
@@ -1602,16 +1682,16 @@ namespace
       "\"delete\":{\"summary\":\"Revoke a permission (administrator)\",\"description\":\"Through the folder's collection as InterfaceIMAPFolderPermissions.DeleteByDBID goes; a permission of another folder is not found here. Logged with the account's address.\",\"responses\":{\"200\":{\"description\":\"deleted true\"},\"404\":{\"description\":\"No such account, folder or permission\"}}}},"
       "\"/api/v1/accounts/{address}/messages\":{"
       "\"get\":{\"summary\":\"Every message of an account (administrator)\",\"description\":\"What Account.Messages is over COM: every message of the account whatever its folder, in the collection's order, read fresh. total, and messages, each the row as COM's Message reports it: id, uid, folder_id, account_id, size (bytes), state (0 created, 1 delivering, 2 delivered), received, from_address (the envelope sender) and flags - seen, deleted, flagged, answered, draft, recent and keywords. A message flagged deleted and not yet expunged is listed, as it is in the COM collection; the account's own /api/v1/me listing is a reader's view and leaves it out. A key restricted to named domains reaches the accounts of those domains only. The read is on the audit trail, action mailbox-read, under the credential and the address it came from; the same read again within a minute is the same row.\",\"responses\":{\"200\":{\"description\":\"total, messages\"},\"404\":{\"description\":\"No such account\"}}},"
-      "\"delete\":{\"summary\":\"Delete every message of an account (administrator)\",\"description\":\"What Account.DeleteMessages does over COM, to the call - PersistentAccount::DeleteMessages: the account's messages go with the folders the server does not keep, the inbox and the designated folders stay emptied, and the account's caches are dropped. Logged with the account's address.\",\"responses\":{\"200\":{\"description\":\"deleted true\"},\"404\":{\"description\":\"No such account\"}}}},"
+      "\"delete\":{\"summary\":\"Delete every message of an account (administrator)\",\"description\":\"What Account.DeleteMessages does over COM, to the call - PersistentAccount::DeleteMessages: the account's messages go with the folders the server does not keep, the inbox and the designated folders stay emptied, and the account's caches are dropped. Logged with the account's address, and on the audit trail, action mailbox-changed, under the credential and the address it came from, every time it is done.\",\"responses\":{\"200\":{\"description\":\"deleted true\"},\"404\":{\"description\":\"No such account\"}}}},"
       "\"/api/v1/accounts/{address}/folders/{id}/messages\":{"
       "\"get\":{\"summary\":\"A folder's messages, every one of them (administrator)\",\"description\":\"What IMAPFolder.Messages is over COM: the folder's whole collection, the live one every IMAP session shares, in UID order - a message flagged deleted and not yet expunged included. folder_id, total, and messages, each the row as GET /api/v1/accounts/{address}/messages describes it. The folder is one of the account's own. The read is on the audit trail, action mailbox-read, under the credential and the address it came from; the same read again within a minute is the same row.\",\"responses\":{\"200\":{\"description\":\"folder_id, total, messages\"},\"404\":{\"description\":\"No such account, or no folder with that id in its tree\"}}},"
-      "\"post\":{\"summary\":\"Add a message to a folder from its text (administrator)\",\"description\":\"The body is the message, as a .eml file; a bare-LF body is given CRLF. What Messages.Add and Message.Save do over COM, and what APPEND does: the bytes are written where the server keeps a delivered message, the row saved with its UID and the state delivered, and every session on the folder told. flags= in the query names the flags to store it with, comma-separated from seen, flagged, answered, draft and deleted, as APPEND's flag list goes beside the literal; from= the envelope sender the row carries, as Message.FromAddress sets it. Nothing in the text is changed or added.\",\"requestBody\":{\"content\":{\"message/rfc822\":{\"schema\":{\"type\":\"string\"}}}},\"responses\":{\"201\":{\"description\":\"The row, with its id and uid\"},\"400\":{\"description\":\"An empty body, one that does not begin with a header line, or an unknown flag\"},\"404\":{\"description\":\"No such account, or no folder with that id in its tree\"},\"413\":{\"description\":\"Over 16 MB\"}}}},"
+      "\"post\":{\"summary\":\"Add a message to a folder from its text (administrator)\",\"description\":\"The body is the message, as a .eml file; a bare-LF body is given CRLF. What Messages.Add and Message.Save do over COM, and what APPEND does: the bytes are written where the server keeps a delivered message, the row saved with its UID and the state delivered, and every session on the folder told. flags= in the query names the flags to store it with, comma-separated from seen, flagged, answered, draft and deleted, as APPEND's flag list goes beside the literal; from= the envelope sender the row carries, as Message.FromAddress sets it. Nothing in the text is changed or added. On the audit trail, action mailbox-changed, by the new message's id and the folder's.\",\"requestBody\":{\"content\":{\"message/rfc822\":{\"schema\":{\"type\":\"string\"}}}},\"responses\":{\"201\":{\"description\":\"The row, with its id and uid\"},\"400\":{\"description\":\"An empty body, one that does not begin with a header line, or an unknown flag\"},\"404\":{\"description\":\"No such account, or no folder with that id in its tree\"},\"413\":{\"description\":\"Over 16 MB\"}}}},"
       "\"/api/v1/accounts/{address}/messages/{id}\":{"
       "\"get\":{\"summary\":\"One message: its row, its header fields and every header (administrator)\",\"description\":\"The row as the listing shows it, then file - the path on the server's own disk, the COM Filename - and file_exists, then subject, from, to, cc and date decoded from the header block, and headers: every field as written, name and value in order, which is what Message.Headers and Message.HeaderValue answer over COM. The header block is read to 64 KB. A message of another account, or in a folder outside the account's tree, is not found. The read is on the audit trail, action mailbox-read, under the credential and the address it came from; the same read again within a minute is the same row.\",\"responses\":{\"200\":{\"description\":\"The message\"},\"404\":{\"description\":\"No such account or message\"}}},"
-      "\"put\":{\"summary\":\"Change a message's flags (administrator)\",\"description\":\"Body: any of seen, deleted, flagged, answered and draft, true or false; a flag not named keeps its value. Written on the path STORE takes, with the folder's next mod-sequence, and every session told. Answers the row as changed.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"properties\":{\"seen\":{\"type\":\"boolean\"},\"deleted\":{\"type\":\"boolean\"},\"flagged\":{\"type\":\"boolean\"},\"answered\":{\"type\":\"boolean\"},\"draft\":{\"type\":\"boolean\"}}}}}},\"responses\":{\"200\":{\"description\":\"The row\"},\"400\":{\"description\":\"No flag named, an unknown field, or a value that is not true or false\"},\"404\":{\"description\":\"No such account or message\"}}},"
-      "\"delete\":{\"summary\":\"Delete a message (administrator)\",\"description\":\"What Messages.DeleteByDBID does over COM and EXPUNGE does for one message: the row and the file go, through the folder's live collection, and every session is told.\",\"responses\":{\"200\":{\"description\":\"deleted true\"},\"404\":{\"description\":\"No such account or message\"}}}},"
+      "\"put\":{\"summary\":\"Change a message's flags (administrator)\",\"description\":\"Body: any of seen, deleted, flagged, answered and draft, true or false; a flag not named keeps its value. Written on the path STORE takes, with the folder's next mod-sequence, and every session told. Answers the row as changed. On the audit trail, action mailbox-changed, naming the message and the flags the body set: a request that altered a flag is a row every time, and one that found every flag as it asked is a row once a minute for the same message and flags, saying nothing changed.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"properties\":{\"seen\":{\"type\":\"boolean\"},\"deleted\":{\"type\":\"boolean\"},\"flagged\":{\"type\":\"boolean\"},\"answered\":{\"type\":\"boolean\"},\"draft\":{\"type\":\"boolean\"}}}}}},\"responses\":{\"200\":{\"description\":\"The row\"},\"400\":{\"description\":\"No flag named, an unknown field, or a value that is not true or false\"},\"404\":{\"description\":\"No such account or message\"}}},"
+      "\"delete\":{\"summary\":\"Delete a message (administrator)\",\"description\":\"What Messages.DeleteByDBID does over COM and EXPUNGE does for one message: the row and the file go, through the folder's live collection, and every session is told. On the audit trail, action mailbox-changed.\",\"responses\":{\"200\":{\"description\":\"deleted true\"},\"404\":{\"description\":\"No such account or message\"}}}},"
       "\"/api/v1/accounts/{address}/messages/{id}/source\":{\"get\":{\"summary\":\"A message's file (administrator)\",\"description\":\"The bytes as stored, message/rfc822, as a download; up to 16 MB. The read is on the audit trail, action mailbox-read, under the credential and the address it came from; the same read again within a minute is the same row.\",\"responses\":{\"200\":{\"description\":\"The message file\"},\"404\":{\"description\":\"No such account or message, or the file is missing\"},\"413\":{\"description\":\"Over 16 MB\"}}}},"
-      "\"/api/v1/accounts/{address}/messages/{id}/copy\":{\"post\":{\"summary\":\"Copy a message into another folder of the account (administrator)\",\"description\":\"Body: folder_id (required), a folder of this account's own tree. What Message.Copy does over COM, to the call: the file is copied, the row written with the destination folder's next UID, and every session on that folder told. The source is left as it is, flags included. Answers the copy's row as the listing shows it.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"folder_id\"],\"properties\":{\"folder_id\":{\"type\":\"integer\"}}}}}},\"responses\":{\"201\":{\"description\":\"The copy: id, uid, folder_id, account_id, size, state, received, from_address, flags\"},\"400\":{\"description\":\"folder_id missing or not a folder id, an unknown field, or the body is not a JSON object\"},\"404\":{\"description\":\"No such account or message, or folder_id is not a folder of the account\"}}}}";
+      "\"/api/v1/accounts/{address}/messages/{id}/copy\":{\"post\":{\"summary\":\"Copy a message into another folder of the account (administrator)\",\"description\":\"Body: folder_id (required), a folder of this account's own tree. What Message.Copy does over COM, to the call: the file is copied, the row written with the destination folder's next UID, and every session on that folder told. The source is left as it is, flags included. Answers the copy's row as the listing shows it. On the audit trail, action mailbox-changed, naming the message, the folder and the copy.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"folder_id\"],\"properties\":{\"folder_id\":{\"type\":\"integer\"}}}}}},\"responses\":{\"201\":{\"description\":\"The copy: id, uid, folder_id, account_id, size, state, received, from_address, flags\"},\"400\":{\"description\":\"folder_id missing or not a folder id, an unknown field, or the body is not a JSON object\"},\"404\":{\"description\":\"No such account or message, or folder_id is not a folder of the account\"}}}}";
 }
 
 namespace HM
@@ -1889,10 +1969,11 @@ namespace HM
       return AnsiString(AccountResourcesPaths);
    }
 
-   // Somebody's mail, read through an administrator's route: one row on the
-   // audit trail, under the actor ProcessRequest_ installed for the request,
-   // unless the same actor - the same credential, over the same interface,
-   // from the same address - read the same item in the last minute. Nothing
+   // Somebody's mail, read or changed through an administrator's route: one
+   // row on the audit trail, under the actor ProcessRequest_ installed for the
+   // request, unless the same actor - the same credential, over the same
+   // interface, from the same address - did the same to the same item in the
+   // last minute (the action is part of what is remembered). Nothing
    // is remembered while there is no actor or the trail is off: AuditTrail
    // would write no row, and a read remembered then would hold back the row
    // of the next one for a minute after the trail was switched back on.
@@ -1914,6 +1995,19 @@ namespace HM
       }
 
       AuditTrail::Instance()->RecordEvent(objectType, objectName, action, detail);
+   }
+
+   // Somebody's mailbox opened by another account's credential - the IMAP
+   // master user signing in as its owner - recorded as a read through an
+   // administrator's route is, under the actor the caller installed
+   // (IMAPCommandAuthenticate.cpp): once a minute for the same opener, from the
+   // same address, of the same mailbox, so that a mail client opening five
+   // connections at once is one row, and another mailbox is a row at once.
+   void
+   RestApiServer::RecordMailboxOpened(__int64 accountId, const String &address, const String &detail)
+   {
+      RecordMailRead_(_T("account"), address, _T("mailbox-read"), detail,
+                      StringParser::IntToString(accountId) + _T(" opened"));
    }
 
    // The one entry point the dispatcher reaches for this unit's routes: the
@@ -1964,6 +2058,23 @@ namespace HM
          return response;
       };
 
+      // A change to the mailbox - a message added, its flags set, copied or
+      // deleted, every message deleted - is on the trail the same way once it
+      // has been made, with action "mailbox-changed" and the words the handler
+      // filled in the moment it made it, whatever it answered after that. A
+      // refusal changed nothing, left them empty and is not recorded.
+      MailboxChange change;
+      const auto changed = [&account, &change](HttpResponse response) -> HttpResponse
+      {
+         if (!change.detail.IsEmpty())
+         {
+            RecordMailRead_(_T("account"), account->GetAddress(), _T("mailbox-changed"), change.detail,
+                            change.item.IsEmpty() ? String() : StringParser::IntToString(account->GetID()) + _T(" ") + change.item);
+         }
+
+         return response;
+      };
+
       const String folder = StringParser::IntToString(route.folder_id);
       const String message = StringParser::IntToString(route.message_id);
 
@@ -1993,19 +2104,19 @@ namespace HM
       case RouteAccountMessageList:
          return recorded(ListAccountMessages(bridge, account), _T("every message listed"), _T("messages"));
       case RouteAccountMessagesDelete:
-         return DeleteAccountMessages(bridge, account);
+         return changed(DeleteAccountMessages(bridge, account, change));
       case RouteAccountFolderMessageList:
          return recorded(ListFolderMessages(bridge, account, route.folder_id),
                          _T("the messages of folder ") + folder + _T(" listed"), _T("folder ") + folder);
       case RouteAccountFolderMessageCreate:
-         return CreateFolderMessage(bridge, account, route.folder_id, requestBody, route.query);
+         return changed(CreateFolderMessage(bridge, account, route.folder_id, requestBody, route.query, change));
       case RouteAccountMessageGet:
          return recorded(GetMessage(bridge, account, route.message_id),
                          _T("message ") + message + _T(": its header fields read"), _T("message ") + message);
       case RouteAccountMessageFlags:
-         return UpdateMessageFlags(bridge, account, route.message_id, requestBody);
+         return changed(UpdateMessageFlags(bridge, account, route.message_id, requestBody, change));
       case RouteAccountMessageDelete:
-         return DeleteMessage(bridge, account, route.message_id);
+         return changed(DeleteMessage(bridge, account, route.message_id, change));
       case RouteAccountMessageSource:
       {
          // A zero-access mailbox's mail is not the administrator's to read,
@@ -2017,7 +2128,7 @@ namespace HM
                          _T("message ") + message + _T(": its source read"), _T("source ") + message);
       }
       case RouteAccountMessageCopy:
-         return CopyMessage(bridge, account, route.message_id, requestBody);
+         return changed(CopyMessage(bridge, account, route.message_id, requestBody, change));
 
       case RouteAccountDeviceList:
          return ListDevices(bridge, account);

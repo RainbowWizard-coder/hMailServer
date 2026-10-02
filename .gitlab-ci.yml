@@ -1353,7 +1353,7 @@ linux-coverage:
 # it does not let one into a release.
 #
 # In the test stage with needs: [] - beside the builds, not after the checks: linix
-# takes one job at a time, and the Windows gate on bench150 is longer than
+# takes up to three jobs at once, and the Windows gate on bench150 is longer than
 # everything linix runs, these jobs included.
 
 static-analysis:

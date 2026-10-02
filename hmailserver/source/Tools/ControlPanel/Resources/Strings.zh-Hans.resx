@@ -6891,8 +6891,8 @@
   <data name="Off by default. MAIL FROM:&lt;&gt; is no excuse: a delivery report from a server that greets with an address is refused like any other mail from it." xml:space="preserve">
     <value>默认关闭。MAIL FROM:&lt;&gt; 不是豁免理由：来自以地址问候的服务器的投递报告，会像它发来的其他邮件一样被拒绝。</value>
   </data>
-  <data name="Off by default. Only when the banned address's own reverse name resolves back to it; at most 32 addresses each way; never into another /24, across an address either never-ban list above spares, or across an IP range of yours that covers one address and not the other; never for IPv6. A reverse lookup that is not answered leaves the single address. A hosting net whose customers all carry one reverse domain is widened whole: list it above, or leave this off." xml:space="preserve">
-    <value>默认关闭。仅当被封禁地址自身的反向名称能解析回该地址时才进行；每个方向最多 32 个地址；绝不进入另一个 /24，绝不越过上方任一列表豁免的地址，也绝不越过您设置的只覆盖其中一个地址的 IP 范围；绝不用于 IPv6。未得到应答的反向查询会保持单个地址不变。所有客户都使用同一反向域的托管网络会被整体扩展：请将其列入上方，或保持此项关闭。</value>
+  <data name="Off by default. Only when the banned address's own reverse name resolves back to it; at most 32 addresses each way; never into another /24, across an address either never-ban list above spares, or across an IP range of yours that covers one address and not the other; never for IPv6, nor for a private, shared, loopback or link-local address, whose neighbours are your own network's machines. A reverse lookup that is not answered leaves the single address. A hosting net whose customers all carry one reverse domain is widened whole: list it above, or leave this off." xml:space="preserve">
+    <value>默认关闭。仅当被封禁地址自身的反向名称能解析回该地址时才进行；每个方向最多 32 个地址；绝不进入另一个 /24，绝不越过上方任一列表豁免的地址，也绝不越过您设置的只覆盖其中一个地址的 IP 范围；绝不用于 IPv6，也绝不用于私有、共享、环回或链路本地地址（其相邻地址是您自己网络中的机器）。未得到应答的反向查询会保持单个地址不变。所有客户都使用同一反向域的托管网络会被整体扩展：请将其列入上方，或保持此项关闭。</value>
   </data>
   <data name="Off by default. Operators who drop this in a script today can delete the script when this is on." xml:space="preserve">
     <value>默认关闭。目前用脚本拒绝这种邮件的管理员，在开启后可以删除该脚本。</value>

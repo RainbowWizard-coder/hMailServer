@@ -106,9 +106,9 @@ whose artifact holds the arm64 `.deb`), and `release` waits for every job that
 can fail a tag's pipeline - the checks, both suites, the upgrade gates, the
 package jobs, `linux-cross`, `linux-sanitize`, `linux-image`,
 `linux-image-arm64`, `linux-repro`, `windows-dotnet` -
-and `windows-installer` ([The release](#the-release)). linix runs one
-job at a time, so its jobs queue behind each other in the order GitLab hands them
-out; bench150's two jobs take the bench's gate lock in turn
+and `windows-installer` ([The release](#the-release)). linix runs up to
+three jobs at once ([linix](#linix)), and the rest queue behind them in the
+order GitLab hands them out; bench150's two jobs take the bench's gate lock in turn
 ([The .NET job](#the-net-job)).
 
 A test report is published for both suites, under the pipeline's *Tests* tab.
@@ -464,12 +464,23 @@ The runners
 
 ### linix
 
-The Ubuntu 26.04 lab VM at 192.168.11.154: 8 cores, 11 GB of memory, 200 GB of
-disk. GitLab Runner 19.4 runs there as a system service, with the docker
-executor, `concurrent = 1`, and six CPUs and 8 GB of memory for each job. The
-default image is `ubuntu:26.04`, the pull policy is `if-not-present`, and the
-runner is not privileged. It has the tags `linux`, `docker` and `linix`, and it
-is runner 56743206 on GitLab.
+The Ubuntu 26.04 lab VM at 192.168.11.154: 16 cores, 32 GB of memory, 200 GB of
+disk (2 October 2026). GitLab Runner 19.4 runs there as a system service, with
+the docker executor and six CPUs and 8 GB of memory for each job. The default
+image is `ubuntu:26.04`, the pull policy is `if-not-present`, and the runner is
+not privileged. It has the tags `linux`, `docker` and `linix`, and it is runner
+56743206 on GitLab.
+
+**It runs up to three jobs at once.** `/etc/gitlab-runner/config.toml` says
+`concurrent = 3` for the service and `request_concurrency = 3` for this entry:
+one job at a time until 28 September 2026, then two, and three the same night.
+Three jobs of six CPUs each ask for more than the sixteen cores, so jobs side by
+side slow each other down. The jobs that must not run beside their own kind say
+so with a `resource_group` - `linix-suite` for the two whole suites
+(`linux-suite` and `alpine-suite`), `linix-package-build` for the package builds
+(the distribution releases' `.deb` and `.rpm` files, the Alpine package, the
+source packages and the Nix build) - and wait for one another across pipelines;
+the rest take whichever of the three places is free.
 
 What the host needs:
 
@@ -484,17 +495,22 @@ What the host needs:
   `gcr.io/kaniko-project/executor:v1.24.0-debug`. If the runner's `config.toml`
   restricts images (`allowed_images`) or registries, these must be allowed.
 - The runner's local cache, which carries the fuzz corpus from night to night
-  (`cache:` in `linux-fuzz`). The docker executor keeps it in a volume on the
-  host; nothing needs setting up.
+  (`cache:` in `linux-fuzz`). The docker executor keeps it in volumes on the
+  host, one for each of the three places a job can run in, so a night's job
+  starts from the corpus of the place it was given and leaves its corpus there;
+  nothing needs setting up.
 
 Nothing else is installed on the host for CI. The toolchains, the .NET SDK,
 PowerShell, Syft and the database clients are in the image.
 
 The same runner service has a second entry, `linix-systemd`, runner 56932743 on
-GitLab (1 October 2026). It is privileged, has the one tag `linix-systemd`, and,
-like the first, takes protected refs only and no untagged job. Its other settings
-are the first entry's: the docker executor, `ubuntu:26.04`, six CPUs and 8 GB for
-each job, `if-not-present`. The two entries share the service's `concurrent`.
+GitLab (1 October 2026). It is privileged - its jobs' services are not
+(`services_privileged = false`, since 2 October 2026) - has the one tag
+`linix-systemd`, and, like the first, takes protected refs only and no untagged
+job. Its other settings are the first entry's: the docker executor,
+`ubuntu:26.04`, six CPUs and 8 GB for each job, `if-not-present`. It asks for one
+job at a time (no `request_concurrency`), and its jobs count towards the same
+three as the first entry's: the service's `concurrent` is for both.
 `package-systemd-ubuntu26.04` and `package-systemd-fedora44` use it, since podman
 needs privilege to run the container systemd runs in inside the job's. That inner
 container is not privileged, and its image masks `systemd-binfmt`
@@ -934,7 +950,7 @@ not hold it.
   same matrix was left out at the port for the time a second whole build adds to
   linix's queue (about twelve minutes). The Debian and Ubuntu package jobs now
   build with those releases' GCC ([The GCC build](#the-gcc-build)), linix
-  has taken two jobs at once since 28 September 2026, and from 6.3.6
+  has taken three jobs at once since 28 September 2026 ([linix](#linix)), and from 6.3.6
   `linux-build-gcc` builds with the CI image's GCC 15, on `master` and `batch*`
   pipelines only.
 
@@ -1027,10 +1043,15 @@ The packages and the image
 
 `linux-build` makes the `.deb` and the `.rpm` with CPack from the build it has
 just made, after checking the version stamps, and keeps them in its artifact
-(`linux-build/packages/`, with their SHA-256 sums). A packaging failure does
-not fail `linux-build` - the suite needs the binary, not the packages - but the
-package jobs, `linux-image` and `linux-repro` fail on the missing files and point
-at `linux-build/package.log`.
+(`linux-build/packages/`, with their SHA-256 sums). A packaging failure fails
+`linux-build` with exit code 4, its log ending `PACKAGING FAILED`, once its tester
+programs have run (`build/ci/linux-build.sh`; 1 when a tester failed as well);
+until 2 October 2026 the script exited 0 and the job was green with no packages
+in its artifact. The package jobs, `linux-image` and `linux-repro` fail on the
+missing files and point at `linux-build/package.log`. `linux-build` takes no
+`allow_failure` for that code: a pipeline that made no packages fails, and the jobs
+after it do not run (`build/check-release-chain.py` refuses an allowed exit code on a
+job the release waits for unless the code can never come from a tag's pipeline).
 
 `linux-package-deb` installs the `.deb` in a clean Ubuntu 26.04 container with
 `apt`, asserts every file a working installation needs, configures the packaged
@@ -1085,7 +1106,9 @@ the same dictionary, the same reproducers and the same libFuzzer flags, built by
 Windows). It replays every kept input and every committed reproducer first, then
 fuzzes each harness for `HM_FUZZ_MINUTES` (20) with `HM_FUZZ_JOBS` workers (2),
 on the corpus the earlier nights grew, which the runner's cache carries from one
-night to the next. A finding fails the job. The job's artifact is
+night to the next - the cache of the place the job runs in, one of linix's three
+([linix](#linix)), so two nights in different places grow two corpora. A finding
+fails the job. The job's artifact is
 `fuzz-results/` - each harness's log and, on a finding, the input libFuzzer
 wrote - kept whether the job passed or failed, for 30 days, and readable by the
 project's Developers and above only (`access: developer`): the project's jobs are
@@ -1118,9 +1141,10 @@ Then start the first run with the schedule's *Run* button, and check that its
 pipeline holds `linux-fuzz` alone. The schedule runs as the maintainer who owns
 it, who must be allowed to push to `master`, because a scheduled pipeline on a
 protected branch is that user's. *Run pipeline* by hand does not start it: a
-pipeline started that way is not a schedule's. It occupies linix for a little
-over an hour, and a protected ref's pipeline that arrives meanwhile waits for
-it. To start the corpus again from the seeds, clear the runner caches
+pipeline started that way is not a schedule's. It takes one of linix's three
+places for a little over an hour, and a protected ref's pipeline that arrives
+meanwhile runs beside it, on the same cores. To start the corpus again from the
+seeds, clear the runner caches
 (*Pipelines*, *Clear runner caches*).
 
 The schedule was made on 27 September 2026: schedule 4461177, `fuzz`,
@@ -2519,12 +2543,16 @@ measured times after the first pipelines.
 
 The runners' own `maximum_timeout` is four hours. GitLab lets a job's
 `timeout:` exceed the project's default of one hour, but not exceed its
-runner's maximum. linix runs one job at a time, so its jobs add up: about 12
-minutes of build, 2 to 2.5 hours of suite and about 10 minutes of the rest, so
-three hours or a little more, and the security scans add about an hour to
-that ([What they cost](#what-they-cost)). bench150's two jobs add up the same way. So a
-pipeline for a protected ref takes about three hours from start to finish, and
-the Windows gate and the Linux lane decide it between them.
+runner's maximum. linix runs up to three jobs at once ([linix](#linix)), but
+its longest line is one job after another all the same: the suite waits for
+`linux-build`, so about 12 minutes of build and 2 to 2.5 hours of suite, a
+little under three hours, with the package jobs, the image, `linux-repro`, the
+cross build and the security scans ([What they cost](#what-they-cost)) beside
+them and slowing them, since three jobs of six CPUs ask for more than linix's
+sixteen cores. bench150's two jobs add up one after the other, the gate lock
+holding the second. So a pipeline for a protected ref takes about three hours
+from start to finish, and the Windows gate and the Linux lane decide it between
+them.
 
 The update feed
 ---------------
@@ -2636,8 +2664,8 @@ What each job leaves behind
   and the packages (about 23 MB for the two), until the next job's checkout
   cleans it. The artifact expires after three days.
 - **`linux-cross`**, **`linux-sanitize`** and **`linux-fuzz`** build in their
-  containers' `/tmp` too. `linux-fuzz` leaves its grown corpus in the runner's
-  cache volume on linix, on purpose, and `fuzz/bin`, `fuzz/build` and
+  containers' `/tmp` too. `linux-fuzz` leaves its grown corpus in a cache
+  volume of the runner's on linix, on purpose, and `fuzz/bin`, `fuzz/build` and
   `fuzz-results/` in the checkout until the next job cleans it; its artifact
   expires after 30 days. The others' artifacts expire after three and seven
   days.
@@ -3450,11 +3478,13 @@ ever wanted.
 
 ### What they cost
 
-linix takes one job at a time, so the five jobs add their time to linix's share
-of a protected pipeline: 35 to 50 minutes for `static-analysis` (clang-tidy's
-static analyser is most of it) and about ten for the rest. linix's share becomes
-about 2.5 to 4 hours, against the Windows gate's 2.5 to 3 hours on bench150, so
-linix may now be the longer of the two. If it is, the first lever is
+The five jobs add 35 to 50 minutes of work for `static-analysis` (clang-tidy's
+static analyser is most of it) and about ten for the rest to linix's share of a
+protected pipeline. linix runs up to three jobs at once ([linix](#linix)), so they
+run beside the build and the suite rather than after them, but on the same
+sixteen cores: they lengthen the suite rather than queue behind it. linix's
+share may so become the longer of the two lanes, against the Windows gate's 2.5
+to 3 hours on bench150. If it does, the first lever is
 `static-analysis` on `master` and `v*` only. A batch's pipeline
 runs again on `master` when the batch lands, so a new finding is still seen
 there. Making that change is one `rules:` line.

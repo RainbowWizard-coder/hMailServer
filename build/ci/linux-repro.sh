@@ -139,8 +139,9 @@ code=$?
 say "           linux-build.sh exit $code after $(( $(date +%s) - started )) s"
 if [ "$code" -ne 0 ]; then
   # linux-build gates the testers; this job answers whether the output is the same.
-  say "           (a non-zero exit is linux-build's to answer for: its tester programs or the"
-  say "           OpenPGP round trip; the comparison below goes ahead when the files exist)"
+  say "           (a non-zero exit is linux-build's to answer for: its tester programs, the"
+  say "           OpenPGP round trip or, with exit 4, its packaging; the comparison below goes"
+  say "           ahead when the files exist)"
 fi
 rm -rf "$source_b" "$build_b"
 

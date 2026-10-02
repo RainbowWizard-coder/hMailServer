@@ -686,12 +686,15 @@ chain. It records changes, and from 6.3.6 one kind of read: somebody's mail
 read through an administrator's REST route - an account's folders and
 messages, a message's headers or its source, a backup's listing of a mailbox,
 an export, a held message's headers or text, the archive index searched or an
-entry of it read, an eDiscovery search's hits - and a support session opened,
-the same read by the same credential from the same address once a minute
+entry of it read, an eDiscovery search's hits - a support session opened, and a
+mailbox the IMAP master user opens, the same read by the same credential from
+the same address once a minute; and a message added to somebody's mailbox
+through those routes, its flags set, copied or deleted, or every one deleted
 ([AlertsAndAuditTrail.md](AlertsAndAuditTrail.md), *Mail read through an
-administrator's route*). Not recorded: a read over COM or by the IMAP master
-user, creating or revoking an API key, releasing or deleting quarantined mail,
-public folders, the administrator password, and what a restore replaces
+administrator's route*). Not recorded: a read or a change over COM, an API key
+the Control Panel makes or revokes (it writes the key store file itself; over
+REST both are recorded), releasing or deleting quarantined mail, public folders,
+the administrator password, and what a restore replaces
 ([AlertsAndAuditTrail.md](AlertsAndAuditTrail.md), *What this does not do*).
 
 ### Logs
