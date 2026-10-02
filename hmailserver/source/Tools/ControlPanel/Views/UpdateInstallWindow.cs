@@ -86,6 +86,7 @@ namespace hMailServer.ControlPanel.Views
       public bool ClosedForInstaller { get; private set; }
       private bool cancelWanted_;
       private bool backupQuestionAsked_;
+      private bool asking_;
       private string cancelReason_ = "";
       private Dictionary<string, string> status_ = new Dictionary<string, string>();
 
@@ -114,7 +115,7 @@ namespace hMailServer.ControlPanel.Views
          cancelButton_.Click += (s, e) => AskToCancel_();
 
          UseFrame(Title, steps, null, cancelButton_,
-            F("hMailServer {0} replaces {1} on this server. Windows asks for an administrator's permission once; after that everything happens by itself. The server stops accepting mail for a minute or two while it restarts, and if {0} does not start, {1} is put back.", version, running),
+            F("hMailServer {0} replaces {1} on this server. Windows asks for an administrator's permission once; after that everything happens by itself. The server stops accepting mail for a minute or two while it restarts, and if {0} does not start, {1} is put back, unless {0} has already changed the database.", version, running),
             640);
 
          timer_ = new DispatcherTimer(DispatcherPriority.Background) { Interval = TimeSpan.FromMilliseconds(500) };
@@ -188,11 +189,7 @@ namespace hMailServer.ControlPanel.Views
          };
          if (!ShellExecuteEx(ref info) || info.Process == IntPtr.Zero)
          {
-            int error = Marshal.GetLastWin32Error();
-            if (error == ErrorCancelled)
-               Finish_(permission_, L("The Windows prompt was declined, so nothing was installed and nothing on the server was changed."), false);
-            else
-               Finish_(permission_, F("Windows could not start the install: {0}", new Win32Exception(error).Message), false);
+            Finish_(permission_, AdministratorUpdate.ElevationFailedText(Marshal.GetLastWin32Error()), false);
             return;
          }
          stage_ = info.Process;
@@ -207,7 +204,7 @@ namespace hMailServer.ControlPanel.Views
 
       private void Tick_()
       {
-         if (finished_)
+         if (!AdministratorUpdate.InstallMayAdvance(finished_, asking_))
             return;
 
          string text = AdministratorUpdate.ReadShared(Path.Combine(work_, "status.txt"));
@@ -349,7 +346,7 @@ namespace hMailServer.ControlPanel.Views
             {
                backupQuestionAsked_ = true;
                Set_(backup_, StepState.Failed, preparation.BackupFailed);
-               if (MessageBox.Confirm(AdministratorUpdate.BackupFailedQuestion(preparation, version_, running_), Title, L("_Install without a backup"), destructive: true))
+               if (Ask_(() => MessageBox.Confirm(AdministratorUpdate.BackupFailedQuestion(preparation, version_, running_), Title, L("_Install without a backup"), destructive: true)))
                {
                   Prepare_(true);
                   return;
@@ -429,7 +426,7 @@ namespace hMailServer.ControlPanel.Views
          }
          if (begun_)
             return;
-         if (!MessageBox.Confirm(L("Stop the update? Nothing has been installed yet."), Title, L("_Stop the update"), destructive: true))
+         if (!Ask_(() => MessageBox.Confirm(L("Stop the update? Nothing has been installed yet."), Title, L("_Stop the update"), destructive: true)))
             return;
 
          cancelReason_ = "cancelled from the Control Panel"; // no-loc: a log line
@@ -449,6 +446,23 @@ namespace hMailServer.ControlPanel.Views
          // its events. The next tick sets it as soon as it has.
          cancelButton_.IsEnabled = false;
          summary_.Text = L("Stopping…");
+      }
+
+      // A question asked while the timer runs: the message loop of a modal box goes
+      // on dispatching it, and the install went on underneath - on the installer
+      // smoke VM on 2 October 2026 it reached the installer while "Stop the update?"
+      // waited for its answer. Nothing advances until the question is answered.
+      private bool Ask_(Func<bool> question)
+      {
+         asking_ = true;
+         try
+         {
+            return question();
+         }
+         finally
+         {
+            asking_ = false;
+         }
       }
 
       private void OnClosing_(object sender, CancelEventArgs e)
@@ -510,7 +524,6 @@ namespace hMailServer.ControlPanel.Views
       // ---- Win32
 
       private const int SeeMaskNoCloseProcess = 0x40, SeeMaskNoAsync = 0x100, SeeMaskFlagNoUi = 0x400;
-      private const int ErrorCancelled = 1223;
 
       [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
       private struct ShellExecuteInfo

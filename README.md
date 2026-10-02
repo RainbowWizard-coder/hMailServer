@@ -348,7 +348,10 @@ flight finishes and nothing new is accepted only to be cut (`POST
 hands the installer to
 `hMailServer.Updater.exe`, copied out of `Bin` into `Data\Updates` because the
 installer replaces `Bin`. The helper runs the installer silently, waits for the
-service to come back, and if it does not, reinstalls the previous version; either
+service to come back, and if it does not, reinstalls the previous version - unless
+the installer's database step has already changed the database (exit code 11),
+which is reported as `upgraded-incomplete` and not rolled back ([Upgrading.md](hmailserver/docs/Upgrading.md),
+"If the upgrade fails"); either
 way it writes one line the service reports in its log and `Status.UpdateApplyOutcome`
 the next time it starts. A helper that finishes *without* stopping the service -
 an installer that failed while the service stayed up, or one that did nothing - or
@@ -359,9 +362,10 @@ or ten minutes with no stop, and the server leaves the drain itself, records the
 upgrade would otherwise need: it is 32 random bytes in a file only the machine's
 administrators can read, good for one hour and one use, accepted by
 `Application.Authenticate` as `token:<hex>` exactly once. A rollback reinstalls the
-previous binaries; it cannot take the database back, so when the new version had
-already moved the schema and then failed to start, the previous version will
-refuse the newer schema and the outcome says so. Take a backup before an update
+previous binaries and cannot take the database back, so on Windows it is made only
+while the database is as the previous version left it; once the schema has moved,
+nothing is put back and the outcome (`upgraded-incomplete`, HM5481) names the step
+that did not complete and the backup the update took. Take a backup before an update
 that moves the schema; the notes of every release say whether it does.
 
 **Under a service account that is not an administrator** - the virtual account

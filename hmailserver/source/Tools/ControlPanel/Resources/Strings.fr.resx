@@ -4677,8 +4677,8 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="Hands mail clients the right host names, ports and security settings automatically: Thunderbird-style autoconfig and Outlook autodiscover, for every local domain. Point autoconfig.&lt;domain&gt; and autodiscover.&lt;domain&gt; at this server in DNS." xml:space="preserve">
     <value>Donne automatiquement aux clients de messagerie les bons noms d'hôte, ports et réglages de sécurité : autoconfig à la Thunderbird et autodiscover Outlook, pour chaque domaine local. Faites pointer autoconfig.&lt;domain&gt; et autodiscover.&lt;domain&gt; vers ce serveur dans le DNS.</value>
   </data>
-  <data name="Hands the verified installer to the update helper. The service stops and starts; if it does not come back, the previous version is reinstalled. The outcome is reported here when the service is back." xml:space="preserve">
-    <value>Remet l'installateur vérifié à l'assistant de mise à jour. Le service s'arrête et redémarre ; s'il ne revient pas, la version précédente est réinstallée. Le résultat est rapporté ici quand le service est de retour.</value>
+  <data name="Hands the verified installer to the update helper. The service stops and starts; if it does not come back, the previous version is reinstalled, unless the new version has already changed the database. The outcome is reported here when the service is back." xml:space="preserve">
+    <value>Remet l'installateur vérifié à l'assistant de mise à jour. Le service s'arrête et redémarre ; s'il ne revient pas, la version précédente est réinstallée, sauf si la nouvelle version a déjà modifié la base de données. Le résultat est rapporté ici quand le service est de retour.</value>
   </data>
   <data name="Hard" xml:space="preserve">
     <value>Définitif</value>
@@ -5115,13 +5115,13 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="Insert template…" xml:space="preserve">
     <value>Insérer un modèle…</value>
   </data>
-  <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the Status page. A service that does not come back is rolled back to the previous installer." xml:space="preserve">
-    <value>Dans la fenêtre, la tâche planifiée applique un installateur vérifié sans le moindre clic : le service s'arrête, les fichiers et le schéma sont mis à niveau, le service démarre, et le résultat va dans le journal, le journal d'événements Windows et la page État. Un service qui ne revient pas est ramené à l'installateur précédent.</value>
+  <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the Status page. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
+    <value>Dans la fenêtre, la tâche planifiée applique un installateur vérifié sans le moindre clic : le service s'arrête, les fichiers et le schéma sont mis à niveau, le service démarre, et le résultat va dans le journal, le journal d'événements Windows et la page État. Un service qui ne revient pas est ramené à l'installateur précédent, sauf si la nouvelle version a déjà modifié la base de données.</value>
   </data>
-  <data name="Install the update now?&#10;&#10;The verified installer is handed to the update helper: the service stops, the new version is installed, and the service starts again. If it does not come back, the previous version is reinstalled. This Control Panel loses its connection while that happens; reconnect afterwards to see the outcome here." xml:space="preserve">
+  <data name="Install the update now?&#10;&#10;The verified installer is handed to the update helper: the service stops, the new version is installed, and the service starts again. If it does not come back, the previous version is reinstalled, unless the new version has already changed the database. This Control Panel loses its connection while that happens; reconnect afterwards to see the outcome here." xml:space="preserve">
     <value>Installer la mise à jour maintenant ?
 
-L'installateur vérifié est remis à l'assistant de mise à jour : le service s'arrête, la nouvelle version est installée, et le service redémarre. S'il ne revient pas, la version précédente est réinstallée. Ce Control Panel perd sa connexion pendant ce temps ; reconnectez-vous ensuite pour voir le résultat ici.</value>
+L'installateur vérifié est remis à l'assistant de mise à jour : le service s'arrête, la nouvelle version est installée, et le service redémarre. S'il ne revient pas, la version précédente est réinstallée, sauf si la nouvelle version a déjà modifié la base de données. Ce Control Panel perd sa connexion pendant ce temps ; reconnectez-vous ensuite pour voir le résultat ici.</value>
   </data>
   <data name="Install update" xml:space="preserve">
     <value>Installer la mise à jour</value>
@@ -13426,11 +13426,17 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   <data name="hMailServer {0} did not start, so {1} was put back and is running: {2}. The installer's log: {3}" xml:space="preserve">
     <value>hMailServer {0} n'a pas démarré, donc {1} a été remis en place et tourne : {2}. Le journal de l'installateur : {3}</value>
   </data>
+  <data name="hMailServer {0} is installed and its database step changed the database, or may have, but the install did not complete, so {1} was not put back: it may not run on that database. What did not complete: {2}. The installer's log: {3}" xml:space="preserve">
+    <value>hMailServer {0} est installé et son étape de base de données a modifié la base, ou a pu la modifier, mais l'installation ne s'est pas terminée, donc {1} n'a pas été remis en place : il risque de ne pas fonctionner avec cette base. Ce qui ne s'est pas terminé : {2}. Le journal de l'installateur : {3}</value>
+  </data>
   <data name="hMailServer {0} is ready to be put back if needed." xml:space="preserve">
     <value>hMailServer {0} est prêt à être remis en place si nécessaire.</value>
   </data>
-  <data name="hMailServer {0} replaces {1} on this server. Windows asks for an administrator's permission once; after that everything happens by itself. The server stops accepting mail for a minute or two while it restarts, and if {0} does not start, {1} is put back." xml:space="preserve">
-    <value>hMailServer {0} remplace {1} sur ce serveur. Windows demande une fois l'autorisation d'un administrateur ; ensuite, tout se fait tout seul. Le serveur cesse d'accepter du courrier pendant une ou deux minutes, le temps de redémarrer, et si {0} ne démarre pas, {1} est remis en place.</value>
+  <data name="hMailServer {0} replaces {1} on this server. Windows asks for an administrator's permission once; after that everything happens by itself. The server stops accepting mail for a minute or two while it restarts, and if {0} does not start, {1} is put back, unless {0} has already changed the database." xml:space="preserve">
+    <value>hMailServer {0} remplace {1} sur ce serveur. Windows demande une fois l'autorisation d'un administrateur ; ensuite, tout se fait tout seul. Le serveur cesse d'accepter du courrier pendant une ou deux minutes, le temps de redémarrer, et si {0} ne démarre pas, {1} est remis en place, sauf si {0} a déjà modifié la base de données.</value>
+  </data>
+  <data name="hMailServer {0} was not installed: the installer did not pass the check - {1}. Nothing was changed and the server runs as it did. Download it again." xml:space="preserve">
+    <value>hMailServer {0} n'a pas été installé : l'installateur n'a pas réussi la vérification - {1}. Rien n'a été modifié et le serveur tourne comme avant. Téléchargez-le à nouveau.</value>
   </data>
   <data name="hMailServer {0} was not installed: the installer did not pass the check - {1}. Nothing was changed and the server runs as it did. Download it again; if the check fails again, the copy is kept in {2} for inspection." xml:space="preserve">
     <value>hMailServer {0} n'a pas été installé : l'installateur n'a pas réussi la vérification - {1}. Rien n'a été modifié et le serveur tourne comme avant. Téléchargez-le à nouveau ; si la vérification échoue encore, la copie est conservée dans {2} pour examen.</value>

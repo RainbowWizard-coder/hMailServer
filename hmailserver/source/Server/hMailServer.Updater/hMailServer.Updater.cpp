@@ -18,8 +18,16 @@
 //      change it, require its SHA-256 to be the server's, run it silently by the
 //      path Windows resolved that handle to, wait for it, and only then let go;
 //   2. wait for the service to be running again, up to --wait seconds;
-//   3. if it is not, run the rollback image - held and held to its SHA-256 the
-//      same way - and wait again;
+//   3. if it is not, or the installer says a step after its files did not
+//      complete (InstallerStepsIncomplete), run the rollback image - held and
+//      held to its SHA-256 the same way, from before the installer runs, which is
+//      told of a version to put back only when it is held (RollbackHeld) - and
+//      wait again; but never once the
+//      installer's database step has changed the database, or could not show it
+//      left it unchanged (InstallerDatabaseUpgraded, DatabaseStepOf): the earlier
+//      version may not run on that database, and the outcome says so instead
+//      (upgraded-incomplete). A rollback is only made onto the database as the
+//      earlier version left it;
 //   4. write one line to --outcome saying what happened, which the server reads and
 //      reports the next time it starts.
 //
@@ -194,17 +202,56 @@ namespace
       return ServiceState(service) == SERVICE_RUNNING;
    }
 
+   // The installer's exit code when its files are in place but a step after them -
+   // the service account's folders, the administrator password, the database or
+   // the service - did not complete (GetCustomSetupExitCode in
+   // hMailServerInnoExtension.iss; Inno Setup's own codes are 1 to 8). The service
+   // is often running then, since the installer starts it for the database step,
+   // with a server in it that refuses the database: so this is rolled back as a
+   // service that did not come back is. Before 6.3.6 the installer exited 0 there,
+   // and an update whose database upgrade failed was reported as installed. The
+   // installer gives 10 only while the database is as the earlier version left it:
+   // it stops before its database step when a step before it did not complete and
+   // it has been told there is a version to put back (HM_UPDATE_ROLLBACK_VERSION),
+   // and a database step that failed without changing the database's version
+   // leaves it so.
+   const int InstallerStepsIncomplete = 10;
+
+   // The installer's exit code when a step did not complete after its database
+   // step had changed the database, or could not show that it left it unchanged:
+   // the database is the new version's, or part-way there, and the earlier
+   // version may refuse it. Never rolled back - a rollback is only ever made onto
+   // the database as the earlier version left it - and reported as
+   // upgraded-incomplete (GetCustomSetupExitCode in hMailServerInnoExtension.iss).
+   const int InstallerDatabaseUpgraded = 11;
+
+   std::wstring StepsIncompleteReason(const std::wstring &service)
+   {
+      return L"the installer exited with " + std::to_wstring(InstallerStepsIncomplete) +
+             L": a step after its files (the service account's folders, the administrator password, the database or the service) did not complete; the service is " +
+             StateName(ServiceState(service));
+   }
+
    // Runs an installer silently and returns its exit code; -1 when it could not be
    // started, -2 when it ran for longer than an hour.
    int RunInstaller(const std::wstring &installer, const std::wstring &token, const std::wstring &installLog)
    {
+      // The log names the token without writing it, as the administrator's path
+      // does (RunInstallerIn): the line is the command but for that.
       std::wstring command = L"\"" + installer + L"\" /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /CLOSEAPPLICATIONS";
+      std::wstring logged = command;
       if (!token.empty())
+      {
          command += L" /upgradetoken=" + token;
+         logged += L" /upgradetoken=(the token)";
+      }
       if (!installLog.empty())
+      {
          command += L" /LOG=\"" + installLog + L"\"";
+         logged += L" /LOG=\"" + installLog + L"\"";
+      }
 
-      Log(L"Running: " + command);
+      Log(L"Running: " + logged);
 
       std::vector<wchar_t> mutableCommand(command.begin(), command.end());
       mutableCommand.push_back(L'\0');
@@ -357,8 +404,17 @@ namespace
       HeldFile() : handle(INVALID_HANDLE_VALUE) {}
       ~HeldFile()
       {
+         Release();
+      }
+
+      // Lets go of the file before the end of the scope: a file held is held
+      // without FILE_SHARE_DELETE, so that nothing can delete it, this process
+      // included.
+      void Release()
+      {
          if (handle != INVALID_HANDLE_VALUE)
             CloseHandle(handle);
+         handle = INVALID_HANDLE_VALUE;
       }
 
    private:
@@ -613,6 +669,21 @@ namespace
             line = line.substr(23);
          while (!line.empty() && line.front() == L' ')
             line.erase(line.begin());
+         // A message box's text keeps its own breaks inside the line Inno Setup
+         // writes - "(exit code 2).\r\rThe hMailServer service ..." in the smoke
+         // VM's install-6.3.10.log of 2 October 2026, which put two raw carriage
+         // returns into the one-line outcome - so each control character is a
+         // space here, and a run of spaces one.
+         std::wstring flat;
+         for (wchar_t c : line)
+         {
+            const wchar_t put = (c < 0x20 || c == 0x7F) ? L' ' : c;
+            if (!(put == L' ' && !flat.empty() && flat.back() == L' '))
+               flat.push_back(put);
+         }
+         while (!flat.empty() && flat.back() == L' ')
+            flat.pop_back();
+         line = flat;
          if (line.empty())
             continue;
          std::wstring lower = line;
@@ -623,8 +694,29 @@ namespace
             about = line;
             continue;
          }
+         // The files are all in place: an error after this is about a step, not
+         // about the last file copied (on the smoke VM every outcome of a failed
+         // step began "Dest filename: ...\Bin\hMailServer.INI").
+         if (lower.find(L"installation process succeeded.") == 0)
+         {
+            about.clear();
+            continue;
+         }
          if (lower.find(L"error") == std::wstring::npos && lower.find(L"abort") == std::wstring::npos && lower.find(L"failed") == std::wstring::npos &&
-             lower.find(L"cannot") == std::wstring::npos && lower.find(L"in use") == std::wstring::npos && lower.find(L"denied") == std::wstring::npos)
+             lower.find(L"cannot") == std::wstring::npos && lower.find(L"in use") == std::wstring::npos && lower.find(L"denied") == std::wstring::npos &&
+             lower.find(L"could not") == std::wstring::npos && lower.find(L"did not complete") == std::wstring::npos &&
+             lower.find(L"did not start") == std::wstring::npos)
+            continue;
+         // Lines that name an error without being one: Inno Setup's record of the
+         // functions a script imports (WSAGetLastError), and the service account
+         // grant's summary when nothing failed. On the installer smoke VM on 2
+         // October 2026 these filled the outcome of an update whose database
+         // upgrade had failed, and the line saying so was not among them.
+         if (lower.find(L"function and dll name:") == 0 || (lower.find(L"done:") == 0 && lower.find(L" 0 failed") != std::wstring::npos))
+            continue;
+         // Nor Inno Setup's "Runtime error (at 171:732):", which only says where the
+         // script raised the exception whose message follows it.
+         if (lower.find(L"runtime error (at ") == 0)
             continue;
          // The file the first error was about is kept apart, so that it is
          // never one of the lines trimmed below.
@@ -642,6 +734,221 @@ namespace
       if (out.size() > 600)
          out = out.substr(0, 600) + L"...";
       return L"; the installer's log says: " + out;
+   }
+
+   // What the installer's log says of its database step (BeginDatabaseStep,
+   // EndDatabaseStep and SayDatabaseStepStoppedPartWay in
+   // hMailServerInnoExtension.iss, 6.3.6 and later): whether it began on an
+   // existing database, whether it then left the database unchanged, whether it
+   // stopped part-way, and the line that says how the database's version moved.
+   struct DatabaseStep
+   {
+      bool begun = false;
+      bool unchanged = false;
+      bool partWay = false;
+      std::wstring changed;
+
+      // Whether the earlier version may not run on the database the installer left:
+      // its database step began and did not say it left the database unchanged.
+      // An installer before 6.3.6 writes none of this, and nothing is taken to
+      // have changed.
+      bool MayHaveChanged() const { return begun && !unchanged; }
+   };
+
+   DatabaseStep DatabaseStepOf(const std::wstring &path)
+   {
+      DatabaseStep step;
+      HANDLE file = CreateFileW(path.c_str(), GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+      if (file == INVALID_HANDLE_VALUE)
+         return step;
+      LARGE_INTEGER size;
+      size.QuadPart = 0;
+      GetFileSizeEx(file, &size);
+      // The lines come after every file the installer copied, which is most of a
+      // log of a few megabytes; the last 16 MB hold them in any log Inno Setup writes.
+      const LONGLONG most = 16 * 1024 * 1024;
+      if (size.QuadPart > most)
+      {
+         LARGE_INTEGER from;
+         from.QuadPart = size.QuadPart - most;
+         SetFilePointerEx(file, from, nullptr, FILE_BEGIN);
+         size.QuadPart = most;
+      }
+      std::vector<char> bytes((size_t) size.QuadPart);
+      DWORD readCount = 0;
+      if (!bytes.empty())
+         ReadFile(file, bytes.data(), (DWORD) bytes.size(), &readCount, nullptr);
+      CloseHandle(file);
+      bytes.resize(readCount);
+      const std::wstring text = Decoded(bytes);
+      size_t start = 0;
+      while (start < text.size())
+      {
+         size_t end = text.find(L'\n', start);
+         if (end == std::wstring::npos)
+            end = text.size();
+         std::wstring line = text.substr(start, end - start);
+         start = end + 1;
+         while (!line.empty() && (line.back() == L'\r' || line.back() == L' '))
+            line.pop_back();
+         // Only a line of its own in the log, "2026-10-02 12:23:04.328   Database
+         // step ...", as the installer's Log() writes each of these: never a line of
+         // what a program the installer ran said, which a multi-line Log() puts in
+         // the log without the stamp (the grant's report of every folder, the
+         // message box texts) and which could begin with anything.
+         if (!(line.size() > 24 && iswdigit(line[0]) && line[4] == L'-' && line[10] == L' '))
+            continue;
+         line = line.substr(23);
+         while (!line.empty() && line.front() == L' ')
+            line.erase(line.begin());
+         auto starts = [&line](const wchar_t *prefix) { return line.compare(0, wcslen(prefix), prefix) == 0; };
+         // What follows the step's beginning is what counts: a line before it
+         // says nothing of it.
+         if (starts(L"Database step begun:"))
+         {
+            step = DatabaseStep();
+            step.begun = true;
+         }
+         else if (!step.begun)
+            continue;
+         else if (starts(L"Database step left the database unchanged"))
+            step.unchanged = true;
+         else if (starts(L"Database step stopped part-way"))
+            step.partWay = true;
+         else if (starts(L"Database step changed the database") || starts(L"Database step may have changed the database"))
+            step.changed = line.size() > 400 ? line.substr(0, 400) : line;
+      }
+      while (!step.changed.empty() && step.changed.back() == L'.')
+         step.changed.pop_back();
+      return step;
+   }
+
+   // Where the backup the update took before it is, as the service wrote it into
+   // the Updates folder (update-backup-<version>.txt: the backup destination, then
+   // the time the backup finished, written by UpdateInstaller for this install alone
+   // and removed when it took none). Text for the outcome and nothing else: never a
+   // path anything here opens. Empty when there is no such file, or it is not one
+   // line or two of printable text, or it is a link - a reparse point, or a file
+   // with a second name (a hard link): the folder is the service's to write, the
+   // administrator's install reads this elevated, and what it reads goes into an
+   // outcome the service may read, so a hard link there to a file only
+   // administrators may read would hand the service its first lines.
+   std::wstring BackupNote(const std::wstring &updatesFolder, const std::wstring &version)
+   {
+      const std::wstring path = updatesFolder + L"\\update-backup-" + version + L".txt";
+      HANDLE file = CreateFileW(path.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OPEN_REPARSE_POINT, nullptr);
+      if (file == INVALID_HANDLE_VALUE)
+         return std::wstring();
+      FILE_ATTRIBUTE_TAG_INFO tag;
+      memset(&tag, 0, sizeof(tag));
+      FILE_STANDARD_INFO standard;
+      memset(&standard, 0, sizeof(standard));
+      LARGE_INTEGER size;
+      size.QuadPart = 0;
+      std::vector<char> bytes;
+      if (GetFileInformationByHandleEx(file, FileAttributeTagInfo, &tag, sizeof(tag)) && (tag.FileAttributes & (FILE_ATTRIBUTE_REPARSE_POINT | FILE_ATTRIBUTE_DIRECTORY)) == 0 &&
+          GetFileInformationByHandleEx(file, FileStandardInfo, &standard, sizeof(standard)) && standard.NumberOfLinks == 1 &&
+          GetFileSizeEx(file, &size) && size.QuadPart > 0 && size.QuadPart <= 2048)
+      {
+         bytes.resize((size_t) size.QuadPart);
+         DWORD got = 0;
+         if (!ReadFile(file, bytes.data(), (DWORD) bytes.size(), &got, nullptr))
+            got = 0;
+         bytes.resize(got);
+      }
+      CloseHandle(file);
+      std::wstring text = Decoded(bytes);
+      std::vector<std::wstring> lines;
+      size_t begin = 0;
+      while (begin < text.size() && lines.size() < 3)
+      {
+         size_t end = text.find(L'\n', begin);
+         if (end == std::wstring::npos)
+            end = text.size();
+         std::wstring line = text.substr(begin, end - begin);
+         begin = end + 1;
+         while (!line.empty() && (line.back() == L'\r' || line.back() == L' '))
+            line.pop_back();
+         if (!line.empty())
+            lines.push_back(line);
+      }
+      if (lines.empty() || lines.size() > 2)
+         return std::wstring();
+      for (const std::wstring &line : lines)
+      {
+         for (wchar_t c : line)
+         {
+            if (c < 0x20 || c == 0x7F)
+               return std::wstring();
+         }
+      }
+      return lines.size() == 2 ? lines[0] + L" (finished " + lines[1] + L")" : lines[0];
+   }
+
+   // An update whose database step changed the database, or may have, and that then
+   // did not complete - exit code 11, a service that did not stay up after exit
+   // code 0, an installer that never finished: not rolled back, and the outcome says
+   // what did not complete, how the database moved, and what to do - finish the
+   // upgrade, or put the earlier version back with the backup the update took.
+   std::wstring UpgradedIncompleteDetail(int code, int waitSeconds, const std::wstring &service, const DatabaseStep &step, const std::wstring &says,
+                                         const std::wstring &previous, const std::wstring &backup)
+   {
+      std::wstring text = code == 0
+         ? L"the installer succeeded but the service was not running after " + std::to_wstring(waitSeconds) + L" seconds"
+         : code == InstallerDatabaseUpgraded ? L"the installer exited with " + std::to_wstring(InstallerDatabaseUpgraded) + L": a step did not complete after its database step had changed the database"
+         : code == -2 ? std::wstring(L"the installer did not finish within an hour, and its database step had begun")
+         : L"the installer exited with " + std::to_wstring(code) + L" after its database step had begun";
+      text += L"; " + (!step.changed.empty() ? step.changed
+         : step.begun ? std::wstring(L"its log says the database step began, and not that it left the database unchanged")
+         : std::wstring(L"the database step changed the database, or could not show it left it unchanged"));
+      text += L"; " + previous + L" was not put back, since it may not run on that database; the service is " + StateName(ServiceState(service)) + says;
+      const std::wstring where = backup.empty()
+         ? std::wstring(L"the backup taken before the update, if one was taken (UpdateBackupBeforeApply) - the newest HMBackup archive in the backup destination Backup & restore names -")
+         : L"the backup taken before the update, in " + backup + L",";
+      if (step.partWay)
+         text += L"; the database upgrade stopped part-way: once its cause is put right, run DBSetupQuick.exe in the Bin folder to finish it, or restore " + where + L" and reinstall " + previous;
+      else
+         text += L"; put right what did not complete and start the service, or, to go back to " + previous + L", restore " + where + L" and reinstall it";
+      return text;
+   }
+
+   // The rollback image, held and held to its SHA-256 BEFORE the installer runs,
+   // and kept held - so that nothing can change or remove it - until it has run or
+   // is not needed. Only an installer whose rollback is in hand is told of a
+   // version to put back (HM_UPDATE_ROLLBACK_VERSION): told so, a 6.3.6 or later
+   // installer stops before its database step when a step before it did not
+   // complete, which leaves the new version's program on the earlier version's
+   // database, the service not started - a server again only once the rollback
+   // has run. Where the image cannot be held (gone, changed, unreadable), the
+   // installer is told nothing and carries on past such a step as it does when run
+   // by hand; the rollback, if one is needed, then fails as it always did, with why.
+   bool RollbackHeld(const Arguments &arguments, HeldFile &held, std::wstring &why)
+   {
+      if (arguments.rollback.empty())
+         return false;
+      if (Hold(arguments.rollback, arguments.rollback_sha256, held, why))
+      {
+         Log(L"The rollback image is held until it has run or is not needed: " + held.path);
+         return true;
+      }
+      held.Release();
+      Log(L"The rollback image could not be held before the installer runs: " + why +
+          L". The installer is not told of a version to put back, and carries on past a step that does not complete, as it does when run by hand.");
+      return false;
+   }
+
+   // Whether the service is running once the installer has finished. After exit
+   // code 10 or 11 the installer has said what happened, and what is done next -
+   // the rollback on 10, nothing on 11 - does not depend on the service: so its
+   // state now, without the wait for it to come back, which after an installer that
+   // stopped before its database step - one that does not start the service - only
+   // kept the server down for the whole wait before the rollback began (three
+   // minutes on the installer smoke VM on 2 October 2026). Otherwise up to --wait.
+   bool ServiceCameBack(int code, const Arguments &arguments)
+   {
+      if (code == InstallerStepsIncomplete || code == InstallerDatabaseUpgraded)
+         return ServiceState(arguments.service) == SERVICE_RUNNING;
+      return WaitForRunning(arguments.service, arguments.wait_seconds);
    }
 }
 
@@ -665,7 +972,9 @@ namespace
 // held off, and the installer is run - held by the SHA-256 the stage read - with
 // the unattended apply's switches, its temporary files in the administrators'
 // folder and the token in its environment, never on its command line. If the
-// service does not come back, the rollback image is run, held the same way.
+// service does not come back, or the installer says a step after its files did
+// not complete, the rollback image is run, held the same way - unless the
+// installer's database step changed the database, as in the unattended apply.
 // The outcome goes into administrator-only files the service may read; an event
 // in the Application log names the administrator; and the Control Panel is
 // started again, not elevated, as the user of the desktop.
@@ -955,11 +1264,18 @@ namespace
    }
 
    // The environment the installer runs with: this process's, less
-   // HM_ADMIN_PASSWORD and any HM_UPGRADE_TOKEN, with TEMP and TMP in the work
-   // folder - where only administrators can write, so that nothing can plant a
-   // DLL beside the files the installer unpacks - and the token, when there is
-   // one to pass this way.
-   std::vector<wchar_t> InstallerEnvironment(const std::wstring &temp, const std::string &token)
+   // HM_ADMIN_PASSWORD, any HM_UPGRADE_TOKEN and any HM_UPDATE_ROLLBACK_VERSION,
+   // with TEMP and TMP in the work folder - where only administrators can write, so
+   // that nothing can plant a DLL beside the files the installer unpacks - the
+   // token, when there is one to pass this way, and the version this program puts
+   // back if the installer does not complete, when it holds that version's
+   // installer (HM_UPDATE_ROLLBACK_VERSION): a 6.3.6 or later installer then stops
+   // before its database step when a step before it did not complete, so that the
+   // rollback meets the database as that version left it. Never for the rollback
+   // image itself, which has nothing to go back to. Without a temp (the service's
+   // own apply, which runs as LocalSystem with SYSTEM's TEMP) TEMP and TMP are this
+   // process's.
+   std::vector<wchar_t> InstallerEnvironment(const std::wstring &temp, const std::string &token, const std::wstring &rollbackVersion = std::wstring())
    {
       std::vector<wchar_t> block;
       LPWCH current = GetEnvironmentStringsW();
@@ -969,7 +1285,7 @@ namespace
          std::wstring name = line.substr(0, line.find(L'=', 1));
          for (wchar_t &c : name)
             c = (wchar_t) towupper(c);
-         if (name == L"HM_ADMIN_PASSWORD" || name == L"HM_UPGRADE_TOKEN" || name == L"TEMP" || name == L"TMP")
+         if (name == L"HM_ADMIN_PASSWORD" || name == L"HM_UPGRADE_TOKEN" || name == L"HM_UPDATE_ROLLBACK_VERSION" || (!temp.empty() && (name == L"TEMP" || name == L"TMP")))
             continue;
          block.insert(block.end(), line.begin(), line.end());
          block.push_back(L'\0');
@@ -978,10 +1294,15 @@ namespace
          FreeEnvironmentStringsW(current);
 
       std::vector<std::wstring> added;
-      added.push_back(L"TEMP=" + temp);
-      added.push_back(L"TMP=" + temp);
+      if (!temp.empty())
+      {
+         added.push_back(L"TEMP=" + temp);
+         added.push_back(L"TMP=" + temp);
+      }
       if (!token.empty())
          added.push_back(L"HM_UPGRADE_TOKEN=" + std::wstring(token.begin(), token.end()));
+      if (!rollbackVersion.empty())
+         added.push_back(L"HM_UPDATE_ROLLBACK_VERSION=" + rollbackVersion);
       for (const std::wstring &line : added)
       {
          block.insert(block.end(), line.begin(), line.end());
@@ -1154,6 +1475,67 @@ namespace
    // installer smoke VM (Windows Server 2025) on 1 October 2026, with the first
    // sign-in's privacy screen still up, FindWindowSW answered S_FALSE, elevated or
    // not, and no Control Panel came back, while GetShellWindow named Explorer.
+   // The security a process the shell starts itself is given: owned by the shell's
+   // user, with the shell's token's default DACL (that user and SYSTEM in full, the
+   // logon session to read) and the shell's integrity as its mandatory label (no
+   // write or read up). A process this elevated program creates is otherwise given
+   // this program's own - owned by the Administrators, full control to them and
+   // SYSTEM alone, labelled high - whatever its token: on the installer smoke VM on
+   // 2 October 2026 the Control Panel opened again so, though it ran at medium,
+   // could not be ended by the user it ran as from anything unelevated (Access is
+   // denied). Read fills the buffers that attributes points into, so the object
+   // must outlive its use.
+   struct ShellSecurity
+   {
+      std::vector<unsigned char> user, dacl, label, sacl;
+      SECURITY_DESCRIPTOR descriptor;
+      SECURITY_ATTRIBUTES attributes;
+
+      ShellSecurity()
+      {
+         memset(&descriptor, 0, sizeof(descriptor));
+         memset(&attributes, 0, sizeof(attributes));
+      }
+
+      static bool Query(HANDLE token, TOKEN_INFORMATION_CLASS kind, std::vector<unsigned char> &buffer)
+      {
+         DWORD needed = 0;
+         GetTokenInformation(token, kind, nullptr, 0, &needed);
+         if (needed == 0)
+            return false;
+         buffer.assign(needed, 0);
+         return GetTokenInformation(token, kind, buffer.data(), needed, &needed) != FALSE;
+      }
+
+      bool Read(HANDLE shell)
+      {
+         HANDLE token = nullptr;
+         if (!OpenProcessToken(shell, TOKEN_QUERY, &token))
+            return false;
+         const bool ok = Query(token, TokenUser, user) && Query(token, TokenDefaultDacl, dacl) && Query(token, TokenIntegrityLevel, label);
+         CloseHandle(token);
+         if (!ok)
+            return false;
+         PSID owner = ((const TOKEN_USER *) user.data())->User.Sid;
+         PACL defaultDacl = ((const TOKEN_DEFAULT_DACL *) dacl.data())->DefaultDacl;
+         PSID integrity = ((const TOKEN_MANDATORY_LABEL *) label.data())->Label.Sid;
+         if (defaultDacl == nullptr || integrity == nullptr)
+            return false;
+         const DWORD saclSize = (DWORD) (sizeof(ACL) + sizeof(SYSTEM_MANDATORY_LABEL_ACE) - sizeof(DWORD) + GetLengthSid(integrity));
+         sacl.assign(saclSize, 0);
+         PACL labelAcl = (PACL) sacl.data();
+         if (!InitializeAcl(labelAcl, saclSize, ACL_REVISION) ||
+             !AddMandatoryAce(labelAcl, ACL_REVISION, 0, SYSTEM_MANDATORY_LABEL_NO_WRITE_UP | SYSTEM_MANDATORY_LABEL_NO_READ_UP, integrity) ||
+             !InitializeSecurityDescriptor(&descriptor, SECURITY_DESCRIPTOR_REVISION) || !SetSecurityDescriptorOwner(&descriptor, owner, FALSE) ||
+             !SetSecurityDescriptorDacl(&descriptor, TRUE, defaultDacl, FALSE) || !SetSecurityDescriptorSacl(&descriptor, TRUE, labelAcl, FALSE))
+            return false;
+         attributes.nLength = sizeof(attributes);
+         attributes.lpSecurityDescriptor = &descriptor;
+         attributes.bInheritHandle = FALSE;
+         return true;
+      }
+   };
+
    bool RelaunchAsDesktopUser(const std::wstring &program, const std::wstring &arguments, const std::wstring &directory, const std::wstring &readerSid,
                               std::wstring &why)
    {
@@ -1220,9 +1602,25 @@ namespace
       std::wstring command = L"\"" + program + L"\" " + arguments;
       std::vector<wchar_t> line(command.begin(), command.end());
       line.push_back(L'\0');
-      const BOOL started = listed ? CreateProcessW(program.c_str(), line.data(), nullptr, nullptr, FALSE, EXTENDED_STARTUPINFO_PRESENT, nullptr,
-                                                    directory.c_str(), &startup.StartupInfo, &process) : FALSE;
-      const DWORD error = GetLastError();
+      ShellSecurity security;
+      const bool secured = security.Read(shell);
+      if (!secured)
+         Log(L"The shell's own default security could not be read (Windows error " + std::to_wstring(GetLastError()) +
+             L"); the Control Panel is started with this program's, which only an administrator can end it under.");
+      BOOL started = listed ? CreateProcessW(program.c_str(), line.data(), secured ? &security.attributes : nullptr, secured ? &security.attributes : nullptr, FALSE,
+                                              EXTENDED_STARTUPINFO_PRESENT, nullptr, directory.c_str(), &startup.StartupInfo, &process) : FALSE;
+      DWORD error = GetLastError();
+      // The shell's user may not be this program's - an administrator's
+      // credentials typed into the prompt of a standard user's Control Panel - and
+      // then cannot be made the owner (ERROR_INVALID_OWNER): this program's own
+      // security then, as before.
+      if (listed && !started && secured)
+      {
+         Log(L"The Control Panel could not be started with the shell's own security (Windows error " + std::to_wstring(error) + L"); it is started with this program's.");
+         started = CreateProcessW(program.c_str(), line.data(), nullptr, nullptr, FALSE, EXTENDED_STARTUPINFO_PRESENT, nullptr, directory.c_str(),
+                                  &startup.StartupInfo, &process);
+         error = GetLastError();
+      }
       if (initialised)
          DeleteProcThreadAttributeList(attributes);
       CloseHandle(shell);
@@ -1274,12 +1672,17 @@ namespace
       if (!serviceSid.empty())
          serviceReaders.push_back(serviceSid);
 
+      // The rollback image once it is held (4, below), let go of before the outcome
+      // is written, which deletes it after a success.
+      HeldFile rollbackImage;
+
       // The outcome, in the work folder for the Control Panel's user, and in
       // AdminUpdate for the service's next start as well; the mark of the install
       // in progress removed; the event; and the Control Panel back.
       auto finish = [&](const std::wstring &status, const std::wstring &detail, const std::wstring &installLog, const std::wstring &rollbackLog,
                         bool relaunch) -> int
       {
+         rollbackImage.Release();
          std::wstring text = status + L" " + arguments.version + L" " + detail + L"\r\n";
          text += L"id=" + admin.relaunchId + L"\r\n";
          text += L"by=" + by + L"\r\n";
@@ -1303,7 +1706,8 @@ namespace
 
          // As docs/ServiceAccount.md has HM7467: installed, information; cancelled
          // or refused before anything ran, a warning; not installed, rolled back,
-         // or with its rollback failed, an error.
+         // with its rollback failed, or installed with the database upgraded and a
+         // step not complete (upgraded-incomplete), an error.
          const WORD type = status == L"ok" ? EVENTLOG_INFORMATION_TYPE : (status == L"cancelled" || status == L"refused")
             ? EVENTLOG_WARNING_TYPE : EVENTLOG_ERROR_TYPE;
          ReportUpdaterEvent(type, 7467, L"hMailServer: the administrator's install of hMailServer " + arguments.version + L" by " + by + L": " + status + L" - " + detail +
@@ -1410,6 +1814,12 @@ namespace
       const std::wstring temp = admin.work + L"\\tmp";
       CreateDirectoryW(temp.c_str(), nullptr);
       const std::wstring installLog = admin.work + L"\\install-" + arguments.version + L".log";
+
+      // The rollback image, held and held to the digest the stage read before the
+      // installer runs, and kept so until it has run or is not needed (RollbackHeld).
+      std::wstring rollbackWhy;
+      const bool rollbackHeld = RollbackHeld(arguments, rollbackImage, rollbackWhy);
+
       int code = 0;
       {
          HeldFile installer;
@@ -1425,23 +1835,45 @@ namespace
          // test's, since the stage installs only a release newer than 6.3.6 from
          // 6.3.6 on - only from its command line.
          const bool environmentToken = VersionAtLeast(arguments.version, 6, 3, 6);
-         std::vector<wchar_t> environment = InstallerEnvironment(temp, environmentToken ? token : std::string());
+         // The version to put back, for the installer to stop before its database
+         // step on: only with a rollback image held to run, and only to an
+         // installer that reads it (6.3.6 and later, as the token).
+         const std::wstring putBack = environmentToken && rollbackHeld && IsVersionText(arguments.rollback_version) ? arguments.rollback_version : std::wstring();
+         std::vector<wchar_t> environment = InstallerEnvironment(temp, environmentToken ? token : std::string(), putBack);
          Log(L"The installer is the file the stage checked (SHA-256 " + arguments.installer_sha256 + L"), held open until it has finished; the token is passed in its " +
-             (environmentToken ? L"environment." : L"command line (an installer before 6.3.6)."));
+             (environmentToken ? L"environment." : L"command line (an installer before 6.3.6).") +
+             (putBack.empty() ? L"" : L" It is told that hMailServer " + putBack + L" is put back if it does not complete (HM_UPDATE_ROLLBACK_VERSION)."));
+         DeleteFileW(installLog.c_str());
          code = RunInstallerIn(installer.path, environmentToken ? std::string() : token, environment, installLog, admin.work);
          SecureZeroMemory(environment.data(), environment.size() * sizeof(wchar_t));
       }
       SecureZeroMemory(&token[0], token.size());
 
       const std::wstring says = code == 0 ? L"" : InstallerLogSays(installLog);
-      const bool running = WaitForRunning(arguments.service, arguments.wait_seconds);
+      const bool running = ServiceCameBack(code, arguments);
+      const bool incomplete = code == InstallerStepsIncomplete;
       if (code == 0 && running)
       {
          if (workHeld != INVALID_HANDLE_VALUE)
             CloseHandle(workHeld);
          return finish(L"ok", L"the installer succeeded and the service is running", installLog, L"", true);
       }
-      if (running)
+
+      // A database the installer's database step changed, or may have: never
+      // rolled back, since the earlier version may not run on it.
+      const DatabaseStep step = DatabaseStepOf(installLog);
+      if (code == InstallerDatabaseUpgraded || step.MayHaveChanged())
+      {
+         if (workHeld != INVALID_HANDLE_VALUE)
+            CloseHandle(workHeld);
+         Log(L"Not rolled back: the installer's database step changed the database, or could not show it left it unchanged.");
+         return finish(L"upgraded-incomplete",
+                       UpgradedIncompleteDetail(code, arguments.wait_seconds, arguments.service, step, says, L"hMailServer " + admin.from,
+                                                BackupNote(Directory(admin.tokenFile), arguments.version)),
+                       installLog, L"", true);
+      }
+
+      if (running && !incomplete)
       {
          if (workHeld != INVALID_HANDLE_VALUE)
             CloseHandle(workHeld);
@@ -1450,6 +1882,7 @@ namespace
 
       const std::wstring reason = code == 0
          ? L"the installer succeeded but the service was not running after " + std::to_wstring(arguments.wait_seconds) + L" seconds (" + StateName(ServiceState(arguments.service)) + L")"
+         : incomplete ? StepsIncompleteReason(arguments.service) + says
          : L"the installer exited with " + std::to_wstring(code) + L" and the service was not running (" + StateName(ServiceState(arguments.service)) + L")" + says;
 
       if (arguments.rollback.empty())
@@ -1459,8 +1892,8 @@ namespace
          return finish(L"no-rollback", reason + L"; no rollback image was available", installLog, L"", true);
       }
 
-      // 5. The rollback image, held the same way, run without a token as the
-      // unattended apply runs it.
+      // 5. The rollback image, held since before the installer ran, run without a
+      // token as the unattended apply runs it.
       Log(L"Rolling back to hMailServer " + arguments.rollback_version + L": " + reason);
       const std::wstring rollbackLog = admin.work + L"\\rollback-" + arguments.rollback_version + L".log";
       SetPrivilege(SE_DEBUG_NAME, true);
@@ -1468,20 +1901,21 @@ namespace
       SetPrivilege(SE_DEBUG_NAME, false);
       int rollbackCode = 0;
       {
-         HeldFile rollback;
-         std::wstring heldWhy;
-         if (!Hold(arguments.rollback, arguments.rollback_sha256, rollback, heldWhy))
+         if (!rollbackHeld)
          {
             if (workHeld != INVALID_HANDLE_VALUE)
                CloseHandle(workHeld);
-            return finish(L"rollback-failed", reason + L"; the rollback image was not run: " + heldWhy + L"; the service is " + StateName(ServiceState(arguments.service)),
+            return finish(L"rollback-failed", reason + L"; the rollback image was not run: " + rollbackWhy + L"; the service is " + StateName(ServiceState(arguments.service)),
                           installLog, L"", true);
          }
          std::vector<wchar_t> environment = InstallerEnvironment(temp, std::string());
-         rollbackCode = RunInstallerIn(rollback.path, std::string(), environment, rollbackLog, admin.work);
+         rollbackCode = RunInstallerIn(rollbackImage.path, std::string(), environment, rollbackLog, admin.work);
       }
       const std::wstring rollbackSays = rollbackCode == 0 ? L"" : InstallerLogSays(rollbackLog);
-      const bool rolledBack = WaitForRunning(arguments.service, arguments.wait_seconds);
+      // A rollback image whose own steps did not complete has not put the
+      // version back, whatever the service's state.
+      const bool rolledBack = rollbackCode != InstallerStepsIncomplete && rollbackCode != InstallerDatabaseUpgraded &&
+                              WaitForRunning(arguments.service, arguments.wait_seconds);
       if (workHeld != INVALID_HANDLE_VALUE)
          CloseHandle(workHeld);
       if (rolledBack)
@@ -1538,6 +1972,12 @@ int wmain(int argc, wchar_t *argv[])
    else
       Log(L"Installation: " + root + L"; " + std::to_wstring(EndProcessesUnder(root, arguments.service)) + L" program(s) running from it ended before the installer runs.");
 
+   // The rollback image, held and held to the server's digest before the installer
+   // runs, and kept so until it has run or is not needed (RollbackHeld).
+   HeldFile rollbackImage;
+   std::wstring rollbackWhy;
+   const bool rollbackHeld = RollbackHeld(arguments, rollbackImage, rollbackWhy);
+
    // The installer as the server checked it, or nothing: held from here until it
    // has finished, so that what runs is what has the server's digest. The service
    // is still running when this refuses - the installer is what stops it - so
@@ -1551,11 +1991,42 @@ int wmain(int argc, wchar_t *argv[])
          WriteOutcome(arguments.outcome, L"failed " + arguments.version + L" the installer was not run: " + heldWhy);
          return 1;
       }
-      Log(L"The installer is the file the server checked (SHA-256 " + arguments.installer_sha256 + L"), held open until it has finished.");
-      code = RunInstaller(installer.path, arguments.token, installLog);
+      // A 6.3.6 or later installer reads the token from its environment, as the
+      // administrator's install gives it; on its command line it would be in the
+      // installer's own log, which writes the command line it was started with
+      // ("Setup command line: ..."). An older one reads only its command line.
+      //
+      // An earlier installer's log by the same name goes first: what this one's says
+      // of its database step decides whether anything is put back (DatabaseStepOf).
+      DeleteFileW(installLog.c_str());
+      if (VersionAtLeast(arguments.version, 6, 3, 6))
+      {
+         std::string token;
+         for (wchar_t c : arguments.token)
+            token.push_back((char) c);
+         // The version this puts back if the installer does not complete, which
+         // stops the installer before its database step when a step before it
+         // did not complete (InstallerEnvironment): only with the rollback image
+         // held to run.
+         const std::wstring putBack = rollbackHeld && IsVersionText(arguments.rollback_version) ? arguments.rollback_version : std::wstring();
+         std::vector<wchar_t> environment = InstallerEnvironment(std::wstring(), token, putBack);
+         Log(L"The installer is the file the server checked (SHA-256 " + arguments.installer_sha256 + L"), held open until it has finished" +
+             (token.empty() ? L"." : L"; the token is passed in its environment.") +
+             (putBack.empty() ? L"" : L" It is told that hMailServer " + putBack + L" is put back if it does not complete (HM_UPDATE_ROLLBACK_VERSION)."));
+         code = RunInstallerIn(installer.path, std::string(), environment, installLog, Directory(installLog));
+         SecureZeroMemory(environment.data(), environment.size() * sizeof(wchar_t));
+         if (!token.empty())
+            SecureZeroMemory(&token[0], token.size());
+      }
+      else
+      {
+         Log(L"The installer is the file the server checked (SHA-256 " + arguments.installer_sha256 + L"), held open until it has finished; the token is passed on its command line (an installer before 6.3.6).");
+         code = RunInstaller(installer.path, arguments.token, installLog);
+      }
    }
    const std::wstring says = code == 0 ? L"" : InstallerLogSays(installLog);
-   bool running = WaitForRunning(arguments.service, arguments.wait_seconds);
+   bool running = ServiceCameBack(code, arguments);
+   const bool incomplete = code == InstallerStepsIncomplete;
 
    wchar_t codeText[32];
    swprintf_s(codeText, L"%d", code);
@@ -1566,7 +2037,21 @@ int wmain(int argc, wchar_t *argv[])
       return 0;
    }
 
-   if (running)
+   // A database the installer's database step changed, or may have: never rolled
+   // back, since the earlier version may not run on it.
+   const DatabaseStep step = DatabaseStepOf(installLog);
+   if (code == InstallerDatabaseUpgraded || step.MayHaveChanged())
+   {
+      Log(L"Not rolled back: the installer's database step changed the database, or could not show it left it unchanged.");
+      WriteOutcome(arguments.outcome, L"upgraded-incomplete " + arguments.version + L" " +
+         UpgradedIncompleteDetail(code, arguments.wait_seconds, arguments.service, step, says,
+                                  arguments.rollback_version.empty() ? std::wstring(L"the earlier version") : L"hMailServer " + arguments.rollback_version,
+                                  BackupNote(Directory(arguments.outcome), arguments.version)) +
+         L"; see " + installLog);
+      return 1;
+   }
+
+   if (running && !incomplete)
    {
       WriteOutcome(arguments.outcome, L"failed " + arguments.version + L" the installer exited with " + codeText +
          L" but the service is running" + says + L"; see " + installLog);
@@ -1575,6 +2060,7 @@ int wmain(int argc, wchar_t *argv[])
 
    std::wstring reason = code == 0
       ? L"the installer succeeded but the service was not running after " + std::to_wstring(arguments.wait_seconds) + L" seconds (" + StateName(ServiceState(arguments.service)) + L")"
+      : incomplete ? StepsIncompleteReason(arguments.service) + says
       : L"the installer exited with " + std::wstring(codeText) + L" and the service was not running (" + StateName(ServiceState(arguments.service)) + L")" + says;
 
    if (arguments.rollback.empty())
@@ -1587,20 +2073,16 @@ int wmain(int argc, wchar_t *argv[])
    std::wstring rollbackLog = Directory(arguments.outcome) + L"\\rollback-" + arguments.rollback_version + L".log";
    if (!root.empty())
       EndProcessesUnder(root, arguments.service);
-   int rollbackCode = 0;
+   // The rollback image, held since before the installer ran (RollbackHeld).
+   if (!rollbackHeld)
    {
-      HeldFile rollback;
-      std::wstring heldWhy;
-      if (!Hold(arguments.rollback, arguments.rollback_sha256, rollback, heldWhy))
-      {
-         WriteOutcome(arguments.outcome, L"rollback-failed " + arguments.version + L" " + reason + L"; the rollback image was not run: " + heldWhy +
-            L"; the service is " + StateName(ServiceState(arguments.service)) + L"; see " + installLog);
-         return 1;
-      }
-      rollbackCode = RunInstaller(rollback.path, L"", rollbackLog);
+      WriteOutcome(arguments.outcome, L"rollback-failed " + arguments.version + L" " + reason + L"; the rollback image was not run: " + rollbackWhy +
+         L"; the service is " + StateName(ServiceState(arguments.service)) + L"; see " + installLog);
+      return 1;
    }
+   const int rollbackCode = RunInstaller(rollbackImage.path, L"", rollbackLog);
    const std::wstring rollbackSays = rollbackCode == 0 ? L"" : InstallerLogSays(rollbackLog);
-   bool rolledBack = WaitForRunning(arguments.service, arguments.wait_seconds);
+   bool rolledBack = rollbackCode != InstallerStepsIncomplete && rollbackCode != InstallerDatabaseUpgraded && WaitForRunning(arguments.service, arguments.wait_seconds);
 
    wchar_t rollbackText[32];
    swprintf_s(rollbackText, L"%d", rollbackCode);

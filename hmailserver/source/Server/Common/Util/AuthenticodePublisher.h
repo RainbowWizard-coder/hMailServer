@@ -77,6 +77,7 @@ namespace HM
          std::wstring subjectText;               // "CN=..., O=..., ..." as Get-AuthenticodeSignature shows it
          std::vector<std::string> chainSha256;   // the primary signer's chain, leaf first, root last
          std::vector<std::wstring> chainNames;   // the same, each certificate's simple name
+         std::vector<unsigned long> chainErrors; // the same, each element's CERT_TRUST_* error status
          std::vector<std::string> ekus;          // the leaf's enhanced key usages
          bool timestamped;                       // an RFC 3161 counter-signature is present
          unsigned long secondarySignatures;      // signatures beside the primary one
@@ -163,6 +164,15 @@ namespace HM
       // not be made, which refuses too, but says so rather than "revoked");
       // BadDigest, NotSigned, and Untrusted for the rest.
       Outcome OutcomeOfStatus(long status);
+
+      // Whether the chain WinVerifyTrust built says the revocation of each of its
+      // certificates but the root was established: false when one's status is
+      // unknown or came from an offline check. WinVerifyTrust itself answers
+      // ERROR_SUCCESS then, since Windows' own Authenticode policy takes offline
+      // revocation as good (the Software Publishing state's WTPF_OFFLINE_OK
+      // flags, set by default); the stage refuses it instead. Leaf first, root
+      // last, as Signer::chainErrors holds them.
+      bool RevocationEstablished(const std::vector<unsigned long> &chainErrors);
 
       // "Revoked", "could not be checked" and the rest, for the stage's status.
       const wchar_t *OutcomeName(Outcome outcome);

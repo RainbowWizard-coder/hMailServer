@@ -72,7 +72,7 @@
                                 <ui:Button.Icon><ui:SymbolIcon Symbol="DocumentText24" /></ui:Button.Icon>
                             </ui:Button>
                             <ui:Button x:Name="InstallUpdateButton" Content="{loc:L '_Install update'}" Click="InstallUpdate_Click" IsEnabled="False" Margin="0,0,8,4"
-                                       ToolTip="{loc:L 'Hands the verified installer to the update helper. The service stops and starts; if it does not come back, the previous version is reinstalled. The outcome is reported here when the service is back.'}">
+                                       ToolTip="{loc:L 'Hands the verified installer to the update helper. The service stops and starts; if it does not come back, the previous version is reinstalled, unless the new version has already changed the database. The outcome is reported here when the service is back.'}">
                                 <ui:Button.Icon><ui:SymbolIcon Symbol="Server24" /></ui:Button.Icon>
                             </ui:Button>
                         </WrapPanel>

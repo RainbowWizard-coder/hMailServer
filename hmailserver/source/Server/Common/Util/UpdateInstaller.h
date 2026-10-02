@@ -36,9 +36,12 @@ namespace HM
    // systemd-run instead; one under no unit is told to install by hand.
    //
    // A rollback reinstalls the previous binaries; it cannot take the database back.
-   // When the new version had already moved the schema and then failed to start, the
-   // previous version will refuse the newer schema, and the outcome says so: that is
-   // the case for a backup before an update, which BackupBeforeUpdate arranges.
+   // So on Windows it is only ever made onto the database as the previous version
+   // left it: the installer stops before its database step when a step before it
+   // fails and the helper holds a version to put back, and once its database step
+   // has changed the database it ends with 11, on which the helper puts nothing
+   // back and reports upgraded-incomplete, naming the backup the update took - the
+   // case for a backup before an update, which UpdateBackupBeforeApply arranges.
    class UpdateInstaller
    {
    public:
@@ -46,8 +49,12 @@ namespace HM
       // happens after this returns. True when the helper was started. In a snap,
       // a container or a build without the live update (HM_LIVE_UPDATE=0, which
       // compiles none of the steps above), false at once, and error names what
-      // updates this installation.
-      static bool Apply(String &error);
+      // updates this installation. backupFolder is where the backup taken for this
+      // apply went (the update task's UpdateBackupBeforeApply), empty when none was:
+      // on Windows the helper names it in the outcome of an install whose database
+      // step changed the database and that did not complete, which it does not
+      // roll back.
+      static bool Apply(String &error, const String &backupFolder = String());
 
       // At startup: the outcome the helper wrote, if any, into the log and the
       // verdict, then out of the way.

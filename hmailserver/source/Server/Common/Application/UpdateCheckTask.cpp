@@ -262,7 +262,10 @@ namespace HM
 
       LOG_APPLICATION(Formatter::Format(_T("Update: the window ({0}) is open and hMailServer {1} is verified; applying it unattended."), windowText, snapshot.available_version));
       String error;
-      if (!UpdateInstaller::Apply(error))
+      // Where the backup just taken went, which the outcome names if the install
+      // upgrades the database and does not complete (UpdateInstaller::Apply).
+      const String backupFolder = settings->GetUpdateBackupBeforeApply() ? Configuration::Instance()->GetBackupDestination() : String();
+      if (!UpdateInstaller::Apply(error, backupFolder))
          LOG_APPLICATION(Formatter::Format(_T("Update: hMailServer {0} could not be applied unattended: {1}"), snapshot.available_version, error));
    }
 }

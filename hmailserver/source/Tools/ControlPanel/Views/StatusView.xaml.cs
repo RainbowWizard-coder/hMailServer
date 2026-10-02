@@ -161,6 +161,9 @@ namespace hMailServer.ControlPanel.Views
             case AdministratorUpdate.Decision.NotReady:
                MessageBox.Show(L("No verified installer is waiting; check for updates and download it first."), caption, MessageBoxButton.OK, MessageBoxImage.Warning);
                return true;
+            case AdministratorUpdate.Decision.UnderWay:
+               MessageBox.Show(AdministratorUpdate.UnderWayText(), caption, MessageBoxButton.OK, MessageBoxImage.Warning);
+               return true;
             case AdministratorUpdate.Decision.BadVersion:
                MessageBox.Show(F("The release on offer, {0}, is not a version this Control Panel installs.", version), caption, MessageBoxButton.OK, MessageBoxImage.Warning);
                return true;
@@ -280,7 +283,7 @@ namespace hMailServer.ControlPanel.Views
             return;
 
          if (action == "install" && MessageBox.Show(
-                L("Install the update now?\n\nThe verified installer is handed to the update helper: the service stops, the new version is installed, and the service starts again. If it does not come back, the previous version is reinstalled. This Control Panel loses its connection while that happens; reconnect afterwards to see the outcome here.") + "\n\n" +
+                L("Install the update now?\n\nThe verified installer is handed to the update helper: the service stops, the new version is installed, and the service starts again. If it does not come back, the previous version is reinstalled, unless the new version has already changed the database. This Control Panel loses its connection while that happens; reconnect afterwards to see the outcome here.") + "\n\n" +
                 L("This Control Panel closes as soon as the helper has started, so that the installer can replace its files; open it again in a minute to see the outcome."),
                 L("Control Panel"), MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
             return;

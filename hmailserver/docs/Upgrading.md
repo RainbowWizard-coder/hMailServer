@@ -290,12 +290,93 @@ If the upgrade fails
 The installer checks both that the database tool launched *and* its exit code, so a
 failed or cancelled schema upgrade is reported instead of passing silently: on a
 non-zero exit code the installer shows an error dialog naming the exit code and
-telling you to re-run `DBSetupQuick.exe`, and then **fails the install** — it
-raises, so setup ends with a non-zero exit code rather than finishing as though
-nothing had happened (it used to carry on and exit 0, which a scripted deployment
-could not tell from success). If you script installs, treat a non-zero exit code,
-or a `hm_dbversion` that is still on the old value afterwards, as the failure; do
-not treat "the installer finished" as success.
+telling you to re-run `DBSetupQuick.exe`, and then **fails the install**. Setup
+ends with one of two exit codes whenever a step after the files did not complete -
+the service account's folders, the administrator password, the database or the
+service - and which one says whether the database is still the earlier version's:
+
+| Exit code | The database | What it means |
+|---|---|---|
+| **10** | As the earlier version left it | The step's failure changed nothing in the database: a step before the database step, or a database step that failed without moving the database's version. The earlier version can be put back on it. |
+| **11** | Changed by the database step, or not shown unchanged | The database step moved the database's version - all the way, or part-way before it failed - or its version could not be read before the step, or after it on an upgrade whose new version needs a newer schema than the database had, and then a step did not complete. **Do not reinstall the earlier version** without restoring the database first: it may refuse a newer database, and serve no mail. |
+
+The installer tells the two apart by the database's version, `hm_dbversion`, which it
+reads through the hMailServer service - as DBUpdater does, with the service's own
+connection - before the installation (from the running service it replaces) and again
+after the database step. Where it cannot read it after the step - the new version's
+service does not start, or does not answer - a database that was already at the
+version the new build needs (`REQUIRED_DB_VERSION`, which the installer is compiled
+with), or past it, is still known unchanged: nothing in the step moves such a database,
+DBUpdater having no step to run on it and the service's own start none either. So an
+update that changes no schema, and whose new service does not start, ends with 10 and
+is put back. A database step on SQL Server Compact, SQL Server or PostgreSQL that fails
+moves nothing, since DBUpdater runs the whole chain in one transaction there - except a
+chain that crosses 6107 from below on SQL Server Compact, where DBUpdater commits the steps
+before 6107 so that 6107's greylisting keying can run on its own ([Greylisting.md](Greylisting.md#the-triplet-key-281),
+"The triplet key"), so that a failure from 6107 on leaves the database at 6106 and setup ends
+with 11; on MySQL and
+MariaDB each step's DDL commits as it goes, so a chain of steps can stop part-way, and
+so can the service's own start with `[Database] UpgradeOnStart=1`, which takes one step
+at a time. On MySQL and MariaDB the step that failed may also have left part of itself
+behind without moving the version - a column or a table the earlier version does not
+read - which an exit code read from the version cannot see: setup ends with 10, the
+earlier version runs on the database, and the next upgrade's run of that step may stop
+on what it left, as *Repairing a database an earlier build left half done* below
+describes. The installer's log says what it found ("Database step begun", "Database
+step changed the database: it was at version 6105 before the step and is at version
+6106", or "Database step left the database unchanged").
+
+Before 6.3.6 setup ended with 0 there: the step raised an error that Inno Setup logs
+and shows and then carries on past, so a scripted deployment could not tell it from
+success, and neither could the live update's helper, which reported such an update
+installed. If you script installs, treat a non-zero exit code, or a `hm_dbversion`
+that is still on the old value afterwards, as the failure; do not treat "the
+installer finished" as success; and roll back by reinstalling the earlier version on
+10 only.
+
+**The live update and the administrator's one-click install** run the installer
+through `hMailServer.Updater`, and **a rollback is only ever made while the database
+is as the earlier version left it**:
+
+* The Updater tells the installer which version it puts back
+  (`HM_UPDATE_ROLLBACK_VERSION`, beside the token), when it holds that version's
+  installer to run: it opens the rollback image and checks its SHA-256 before the
+  installer runs, and holds it so, unchanged and undeletable, until it has run or is
+  not needed. A rollback image that is gone or changed by then is not run, and the
+  installer is not told of it. A step before the database step that does not complete - the .NET
+  runtime, SQL Server Compact, the service's registration, the grant of its folders,
+  the administrator password - then **stops the installation before its database
+  step**, with the service not started, and setup ends with 10: the Updater puts the
+  earlier version back on the database it left. An installation run by hand, or by an
+  Updater with no version to put back, carries on to the database step as it always
+  did, since the new version is then the only one that can run on what the step
+  leaves.
+* On **10**, or when the service does not come back after 0, the Updater runs the
+  rollback image, as before ([UpdateFeed.md](UpdateFeed.md)). On 10 and 11 it does
+  not first wait for the service to come back, since what it does next does not
+  depend on it: an installation that stopped before its database step does not start
+  the service, and the wait only kept the server down for its length.
+* On **11** it puts nothing back. Nor does it when the installer's log says its
+  database step began and not that it left the database unchanged - a service that
+  stopped again after setup ended with 0, an installer that crashed or ran for more
+  than the Updater's hour. The outcome is **`upgraded-incomplete`**: what did not
+  complete, how the database's version moved, and what to do. Where the failed step
+  came after the database step (the service's start, say), put it right and start
+  the service: the database is the new version's. Where the database upgrade itself
+  stopped part-way, run `DBSetupQuick.exe` from the `Bin` folder to finish it once its
+  cause is put right - DBUpdater resumes from the version the database reports - or,
+  to go back, restore the backup the update took before it (`UpdateBackupBeforeApply`;
+  the outcome names the backup destination and when the backup finished, from
+  `Updates\update-backup-<version>.txt`, which the service writes for the Updater) and
+  reinstall the earlier version, as *Rolling back* below says. The service reports
+  the outcome at its next start as **HM5481** (HM5480 is the update that did not
+  succeed and changed nothing); the Control Panel, after an administrator's install,
+  says it in the administrator's language; `Status.UpdateApplyOutcome` and `apply`
+  in `GET /api/v1/update` carry it as they carry the others.
+
+An Updater from 6.3.5 or earlier knows neither: it rolls back only when the service
+does not come back, and does not tell the installer to stop. So the update *to* 6.3.6
+from those versions is made as before, and these rules hold from the update after it.
 
 If it does fail, the service may be installed but the schema only partly upgraded.
 The server does not paper over that: on startup it compares the database's version
@@ -406,7 +487,9 @@ exit code 3. So:
 
 *(New in 6.2.28: the live update's helper
 passes a single-use `/upgradetoken=<hex>` in place of the password, so an unattended
-update never handles the administrator password at all.)*
+update never handles the administrator password at all. From 6.3.6 it gives a 6.3.6
+or later installer the token in its environment, `HM_UPGRADE_TOKEN`, instead, so that
+it is on no command line and in no log.)*
 
 **The .NET 10 runtime.** From the first release after 6.2.18, the Control Panel and
 the setup tools require the .NET 10 Desktop Runtime, which the installer bundles and

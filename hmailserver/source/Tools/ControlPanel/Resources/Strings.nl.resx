@@ -4677,8 +4677,8 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Hands mail clients the right host names, ports and security settings automatically: Thunderbird-style autoconfig and Outlook autodiscover, for every local domain. Point autoconfig.&lt;domain&gt; and autodiscover.&lt;domain&gt; at this server in DNS." xml:space="preserve">
     <value>Geeft e-mailclients automatisch de juiste hostnamen, poorten en beveiligingsinstellingen: autoconfig in Thunderbird-stijl en autodiscover van Outlook, voor elk lokaal domein. Laat autoconfig.&lt;domain&gt; en autodiscover.&lt;domain&gt; in DNS naar deze server wijzen.</value>
   </data>
-  <data name="Hands the verified installer to the update helper. The service stops and starts; if it does not come back, the previous version is reinstalled. The outcome is reported here when the service is back." xml:space="preserve">
-    <value>Geeft het geverifieerde installatieprogramma door aan de updatehelper. De service stopt en start; komt hij niet terug, dan wordt de vorige versie opnieuw geïnstalleerd. De uitkomst wordt hier gemeld zodra de service weer draait.</value>
+  <data name="Hands the verified installer to the update helper. The service stops and starts; if it does not come back, the previous version is reinstalled, unless the new version has already changed the database. The outcome is reported here when the service is back." xml:space="preserve">
+    <value>Geeft het geverifieerde installatieprogramma door aan de updatehelper. De service stopt en start; komt hij niet terug, dan wordt de vorige versie opnieuw geïnstalleerd, tenzij de nieuwe versie de database al heeft gewijzigd. De uitkomst wordt hier gemeld zodra de service weer draait.</value>
   </data>
   <data name="Hard" xml:space="preserve">
     <value>Hard</value>
@@ -5115,13 +5115,13 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Insert template…" xml:space="preserve">
     <value>Sjabloon invoegen…</value>
   </data>
-  <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the Status page. A service that does not come back is rolled back to the previous installer." xml:space="preserve">
-    <value>Binnen het venster installeert de geplande taak een geverifieerd installatieprogramma zonder een klik: de service stopt, de bestanden en het databaseschema worden bijgewerkt, de service start, en de uitkomst gaat naar het logboek, het Windows-gebeurtenislogboek en de pagina Status. Een service die niet terugkomt, wordt teruggedraaid naar het vorige installatieprogramma.</value>
+  <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the Status page. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
+    <value>Binnen het venster installeert de geplande taak een geverifieerd installatieprogramma zonder een klik: de service stopt, de bestanden en het databaseschema worden bijgewerkt, de service start, en de uitkomst gaat naar het logboek, het Windows-gebeurtenislogboek en de pagina Status. Een service die niet terugkomt, wordt teruggedraaid naar het vorige installatieprogramma, tenzij de nieuwe versie de database al heeft gewijzigd.</value>
   </data>
-  <data name="Install the update now?&#10;&#10;The verified installer is handed to the update helper: the service stops, the new version is installed, and the service starts again. If it does not come back, the previous version is reinstalled. This Control Panel loses its connection while that happens; reconnect afterwards to see the outcome here." xml:space="preserve">
+  <data name="Install the update now?&#10;&#10;The verified installer is handed to the update helper: the service stops, the new version is installed, and the service starts again. If it does not come back, the previous version is reinstalled, unless the new version has already changed the database. This Control Panel loses its connection while that happens; reconnect afterwards to see the outcome here." xml:space="preserve">
     <value>De update nu installeren?
 
-Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de service stopt, de nieuwe versie wordt geïnstalleerd, en de service start weer. Komt hij niet terug, dan wordt de vorige versie opnieuw geïnstalleerd. Dit Control Panel verliest ondertussen zijn verbinding; maak daarna opnieuw verbinding om de uitkomst hier te zien.</value>
+Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de service stopt, de nieuwe versie wordt geïnstalleerd, en de service start weer. Komt hij niet terug, dan wordt de vorige versie opnieuw geïnstalleerd, tenzij de nieuwe versie de database al heeft gewijzigd. Dit Control Panel verliest ondertussen zijn verbinding; maak daarna opnieuw verbinding om de uitkomst hier te zien.</value>
   </data>
   <data name="Install update" xml:space="preserve">
     <value>Update installeren</value>
@@ -13426,11 +13426,17 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="hMailServer {0} did not start, so {1} was put back and is running: {2}. The installer's log: {3}" xml:space="preserve">
     <value>hMailServer {0} is niet gestart, dus {1} is teruggezet en draait: {2}. Het logboek van het installatieprogramma: {3}</value>
   </data>
+  <data name="hMailServer {0} is installed and its database step changed the database, or may have, but the install did not complete, so {1} was not put back: it may not run on that database. What did not complete: {2}. The installer's log: {3}" xml:space="preserve">
+    <value>hMailServer {0} is geïnstalleerd en de databasestap heeft de database gewijzigd, of mogelijk gewijzigd, maar de installatie is niet voltooid, dus {1} is niet teruggezet: het draait mogelijk niet op die database. Wat niet is voltooid: {2}. Het logboek van het installatieprogramma: {3}</value>
+  </data>
   <data name="hMailServer {0} is ready to be put back if needed." xml:space="preserve">
     <value>hMailServer {0} staat klaar om zo nodig terug te zetten.</value>
   </data>
-  <data name="hMailServer {0} replaces {1} on this server. Windows asks for an administrator's permission once; after that everything happens by itself. The server stops accepting mail for a minute or two while it restarts, and if {0} does not start, {1} is put back." xml:space="preserve">
-    <value>hMailServer {0} vervangt {1} op deze server. Windows vraagt één keer om de toestemming van een administrator; daarna gaat alles vanzelf. De server neemt een minuut of twee geen mail aan terwijl hij opnieuw start, en als {0} niet start, wordt {1} teruggezet.</value>
+  <data name="hMailServer {0} replaces {1} on this server. Windows asks for an administrator's permission once; after that everything happens by itself. The server stops accepting mail for a minute or two while it restarts, and if {0} does not start, {1} is put back, unless {0} has already changed the database." xml:space="preserve">
+    <value>hMailServer {0} vervangt {1} op deze server. Windows vraagt één keer om de toestemming van een administrator; daarna gaat alles vanzelf. De server neemt een minuut of twee geen mail aan terwijl hij opnieuw start, en als {0} niet start, wordt {1} teruggezet, tenzij {0} de database al heeft gewijzigd.</value>
+  </data>
+  <data name="hMailServer {0} was not installed: the installer did not pass the check - {1}. Nothing was changed and the server runs as it did. Download it again." xml:space="preserve">
+    <value>hMailServer {0} is niet geïnstalleerd: het installatieprogramma heeft de controle niet doorstaan - {1}. Er is niets gewijzigd en de server draait zoals voorheen. Download het opnieuw.</value>
   </data>
   <data name="hMailServer {0} was not installed: the installer did not pass the check - {1}. Nothing was changed and the server runs as it did. Download it again; if the check fails again, the copy is kept in {2} for inspection." xml:space="preserve">
     <value>hMailServer {0} is niet geïnstalleerd: het installatieprogramma heeft de controle niet doorstaan - {1}. Er is niets gewijzigd en de server draait zoals voorheen. Download het opnieuw; als de controle weer mislukt, blijft de kopie ter inspectie in {2}.</value>

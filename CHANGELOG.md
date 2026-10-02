@@ -1948,6 +1948,89 @@ upgrade, item 29). In every version up to 6.3.5; found by the project's own revi
   `apply` of a document an earlier version exported skip them with a line naming them rather than fail the apply
   ([CommandLine.md](hmailserver/docs/CommandLine.md)). Tested by `trust-anchor-tests`, by `IniSettingsOverCom`,
   `RestApiSettings` and `IniSettingsMirror`, and by `check-cli.py`.
+- **The database upgrade's token is in no log of the live update.** Where the service installs its own updates
+  (LocalSystem), `hMailServer.Updater` has passed the single-use token on the installer's command line since 6.2.28,
+  and so written it into `Updates\apply-<version>.log`, and the installer's own log, `Updates\install-<version>.log`,
+  began with the same command line, as Inno Setup's logs do. A 6.3.6 or later installer is now given the token in
+  its environment (`HM_UPGRADE_TOKEN`), as the administrator's install gives it, and the helper's log names it as
+  `/upgradetoken=(the token)` for an older one. The folder is readable by SYSTEM, the Administrators and the
+  service alone, and the token is spent once the installer's database step has run. Tested by
+  `UpdateApply.AVerifiedInstallerIsHandedToTheHelperWhichRunsItSilently` and
+  `UpdateSchedule.AnUpdateIsAppliedUnattendedInsideTheWindow`.
+- **An update that did not complete is put back only while the database is as the earlier version left it, and the
+  installer's exit code says which.** When a step after the installer's files did not complete - the service
+  account's folders, the administrator password, the database or the service - the Windows installer showed and
+  logged the error and then exited 0, though its own comment and [Upgrading.md](hmailserver/docs/Upgrading.md)
+  said it failed the install; the update helper, finding the service running (the installer starts it for the
+  database step, and the server in it refuses the database), reported the update installed. On the installer smoke
+  VM an update whose database upgrade could not run was reported as "the installer succeeded and the service is
+  running", with no mail served. The installer now exits with **10** while the database is as the earlier version
+  left it, and `hMailServer.Updater` - the live update's and the administrator's one-click install's - runs the
+  rollback image on it as it does when the service does not come back, without first waiting for the service, and
+  does not call a rollback whose own installer exits 10 or 11 a success. Once its database step has changed the
+  database - its version, read through the service as DBUpdater reads it, before the installation and after the
+  step - or cannot show that it left it unchanged, the installer exits with **11**, and the Updater puts nothing
+  back: the earlier version may refuse that database, and a rollback would leave a server that serves no mail. A
+  database already at the version the new build needs is known unchanged even when its version cannot be read after
+  the step, so an update that changes no schema and whose new service does not start is put back. Nor does the
+  Updater roll back where the installer's log - its own stamped lines, after the step began - says its database
+  step began and not that it left the database unchanged, which covers a service that stops after exit code 0 and an
+  installer that never finishes. That outcome is `upgraded-incomplete`: what did not complete, how the database's
+  version moved, and, for a database upgrade that stopped part-way, to finish it with DBSetupQuick or restore the
+  backup the update took (`UpdateBackupBeforeApply`), naming where from a note the service writes, which the
+  elevated Updater reads only as a plain file with one name; the service reports it as `HM5481`, and the
+  Control Panel says it in its 17 languages ("its database step changed the database, or may have"), its sign-in
+  banner cut at the first sentence in Japanese and Chinese too; its four texts that promised the previous version back
+  whenever the new one did not come up now add "unless the new version has already changed the database". Run by the
+  Updater with a version to put back - which
+  it says only when it holds that version's installer, opened and held to its SHA-256 from before the installer runs
+  until it has run - the installer stops before its database step when a step before it - the .NET runtime, SQL
+  Server Compact, the service's registration, the grant of its folders, the administrator password - did not
+  complete, so that the rollback meets the database as the earlier version left it; run by hand, it carries on to the
+  database step as before. The outcome quotes the installer's own message about the step, which the lines it took
+  from the installer's log had left out for two that only name an error (an imported `WSAGetLastError`, a grant with
+  "0 failed") and for "did not start", no longer the last file copied, and no carriage return of a message box's
+  text. Tested by `UpdateApply.AnInstallerWhoseStepsAfterItsFilesDidNotCompleteIsRolledBack`,
+  `AnInstallerThatUpgradedTheDatabaseIsNeverRolledBack`, `AServiceThatDoesNotComeBackOnAnUpgradedDatabaseIsNotRolledBack`
+  and `UpdateHelperDigest.TheRollbackImageIsHeldWhileTheInstallerRuns`, by `AdministratorUpdateTests`, and end to end
+  on the smoke VM with the administrator's one-click install from a 6.3.9 to a 6.3.10 whose database step moves the
+  schema from 6105 to 6106: with the grant of the service's folders made to fail, the install stopped before its
+  database step and 6.3.9 was put back on its 6105 database and served mail, the rollback beginning the second the
+  installer ended (built before this change, the same update upgraded the database, put 6.3.9 back on 6106, whose
+  installer then failed - rollback-failed - and the server answered nothing; and the Updater had waited three
+  minutes before the rollback); with the step's script made to fail after a CREATE TABLE, DBUpdater's transaction
+  took the table back, the installer ended with 10 and 6.3.9 served mail on 6105; with the service's start made to
+  fail after the upgrade, it ended with 11 and nothing was put back, and 6.3.10 served mail on 6106 once its service
+  could start (built before this change, the same update put 6.3.9 back on 6106, its installer failed and 6.3.9
+  refused the database as too new: no mail); and a 6.3.10 that changes no schema, whose service could not start, was
+  put back and 6.3.9 served mail (built before this change: 11, nothing put back, no mail) - the same again as the
+  service's own unattended apply on a server whose service runs as LocalSystem.
+- **The administrator's install refuses an installer whose certificates' revocation could not be checked, as it
+  said it did.** Windows' Authenticode check takes a revocation server that does not answer as good; the
+  elevated stage now reads the revocation status of each certificate in the chain Windows built, the root aside,
+  and refuses where one is unknown or offline, naming the revocation server. A computer that cannot reach that
+  server - a firewall, a proxy, somebody on the network between - so stops the one-click install with nothing
+  changed; the installer can still be run by hand. Tested by `AdminUpdateTester` and on the smoke VM, where the real
+  6.3.5 with outbound HTTP blocked was answered 0 by Windows and refused, and passed with it open and nothing cached.
+- **The install window says what stopped the install once, names no empty folder, and says that nothing was
+  changed when Windows would not start it.** A refusal of the copy (a link or a junction on the way to the
+  installer) said the copy was "kept in  for inspection" where none was kept; the service's refusals because the
+  server was draining read "The update was not installed: The update was not installed: ..."; and where Windows
+  would not start the install as an administrator - a standard user whose requests to elevate are denied by policy -
+  the window gave Windows' sentence alone. Tested by `AdministratorUpdateTests` and on the smoke VM.
+- **The Control Panel that the one-click install opens again belongs to the user it runs as.** It ran with that
+  user's own unelevated token, but its process was owned by the Administrators, so the user could not end it from
+  anything unelevated ("Access is denied"). `hMailServer.Updater` now starts it with the security the desktop's shell
+  gives the programs it starts. Tested on the smoke VM.
+- **The install window waits for the answer to its own question.** While it asked "Stop the update?" - or whether
+  to install without a backup - its timer went on, so the install could reach the installer under the question, or
+  be cancelled under it. Nothing moves on now until the question is answered. Tested by `AdministratorUpdateTests`
+  and on the smoke VM.
+- **Install update clicked while an install is under way says so.** A second administrator's Control Panel - or a
+  second click - while the service prepared, held ready or installed an administrator's install said "No verified
+  installer is waiting; check for updates and download it first." It now says that another administrator's install
+  of an update is under way on this server, as the stage says when it finds one. Tested by `AdministratorUpdateTests`
+  and on the smoke VM.
 - **The backup and event logs are UTF-8 on Linux**, as the other logs are; they were UTF-16LE. A file an earlier
   version wrote is converted when the server first opens it. Windows keeps UTF-16LE.
 - **Fixed: a message whose last bytes the disk refused was kept short, and taken for whole.** A write to a file goes

@@ -87,7 +87,7 @@ namespace HM
          // The helper's last outcome, read at start-up (UpdateInstaller::ReportLastOutcome)
          // and kept until the service stops or the next outcome replaces it: a check
          // does not clear it (until 6.3.6 the start-up check, a second after, did).
-         String apply_status;          // ok, failed, rolled-back, rollback-failed, no-rollback
+         String apply_status;          // ok, failed, rolled-back, rollback-failed, no-rollback, upgraded-incomplete; an administrator's install also cancelled, refused
          String apply_version;         // the version that outcome was about
          String apply_detail;          // what the helper said
          __int64 installing_since_unix; // when the installer was handed over, Unix seconds; 0 unless StateInstalling

@@ -12,6 +12,7 @@
 #include "FileUtilities.h"
 #include "ProtectedFile.h"
 #include "Unicode.h"
+#include "Time.h"
 #include "../Application/Application.h"
 #include "../Application/IniFileSettings.h"
 #include "../Application/ErrorManager.h"
@@ -82,6 +83,29 @@ namespace HM
       // README.md name the ten minutes.
       const int UPDATE_APPLY_DRAIN_MINUTES = 10;
       const int UPDATE_APPLY_WATCH_POLL_SECONDS = 5;
+
+      // update-backup-<version>.txt in the Updates folder: where the backup this
+      // install of version took before it is - the backup destination, then the time
+      // the backup finished - or no file, when it took none. hMailServer.Updater
+      // reads it into the outcome of an install whose database step changed the
+      // database and that did not complete (BackupNote in hMailServer.Updater.cpp),
+      // which says to restore that backup to go back: the earlier version may not run
+      // on the changed database, and is not put back. Text for a person and nothing
+      // else; nothing reads a path from it. Named for the version, as the sweep
+      // keeps a file that names a version in play (UpdateCheckTask). Windows only in
+      // effect: an administrator's install, and the Windows apply, are the callers.
+      void RecordBackupForHelper_(const String &version, const String &folder)
+      {
+         const String directory = UpdateDownloader::UpdatesDirectory();
+         if (directory.IsEmpty() || version.IsEmpty())
+            return;
+         const String path = directory + FileUtilities::PathSeparator + _T("update-backup-") + version + _T(".txt");
+         if (FileUtilities::Exists(path))
+            FileUtilities::DeleteFile(path);
+         if (folder.IsEmpty())
+            return;
+         FileUtilities::WriteToFile(path, Unicode::ToUtf8(folder + _T("\r\n") + Time::GetCurrentDateTime() + _T("\r\n")));
+      }
 #endif
 
       // AwaitOutcomeAtStart: how long past the helper's own wait for the service
@@ -751,9 +775,11 @@ namespace HM
 #endif
 
    bool
-   UpdateInstaller::Apply(String &error)
+   UpdateInstaller::Apply(String &error, const String &backupFolder)
    {
       error.Empty();
+      // Only the Windows helper reads it (RecordBackupForHelper_).
+      (void) backupFolder;
 
       UpdateChecker::Snapshot snapshot = UpdateChecker::Current();
 
@@ -1038,6 +1064,11 @@ namespace HM
          return false;
       }
 
+      // Where the backup taken for this apply is, if one was, for the outcome of an
+      // install that upgrades the database and does not complete; an earlier
+      // apply's note of the same version goes either way.
+      RecordBackupForHelper_(snapshot.available_version, backupFolder);
+
       String command = Quote_(launchPath);
       command += _T(" --installer ") + Quote_(snapshot.installer_path);
       command += _T(" --installer-sha256 ") + String(installerSha256.c_str());
@@ -1300,7 +1331,7 @@ namespace HM
       }
       if (Application::Instance()->IsDraining())
       {
-         error = Formatter::Format(_T("The update was not prepared: the server is draining for maintenance since {0}. Leave the drain, or wait for it to end, and click Install update again."),
+         error = Formatter::Format(_T("The server is draining for maintenance since {0}. Leave the drain, or wait for it to end, and click Install update again."),
             Application::Instance()->GetDrainStatus().since);
          return false;
       }
@@ -1378,6 +1409,9 @@ namespace HM
       // are there, and chose to install.
       document.step = _T("backup");
       const String destination = Configuration::Instance()->GetBackupDestination();
+      // No note of a backup for this install until this one has taken it
+      // (RecordBackupForHelper_).
+      RecordBackupForHelper_(version, String());
       if (skipBackup)
          document.backupSkipped = _T("chosen");
       else if (!IniFileSettings::Instance()->GetUpdateBackupBeforeApply())
@@ -1402,6 +1436,7 @@ namespace HM
             return;
          }
          document.backupTaken = true;
+         RecordBackupForHelper_(version, destination);
       }
       UpdateChecker::RecordPreparation(UpdateChecker::StatePreparing, version, document.Json());
 
@@ -1473,7 +1508,11 @@ namespace HM
       if (!drainRefusal.IsEmpty())
       {
          UpdateApplyToken::Revoke();
-         error = Formatter::Format(_T("The update was not installed: the server is {0}. Leave the drain, or wait for it to end, and click Install update again."), drainRefusal);
+         // The Control Panel puts what this is in front of it ("The update was not
+         // installed: ..."), as it does for every refusal here.
+         error = drainRefusal.CompareNoCase(_T("already draining")) == 0
+            ? String(_T("The server is already draining. Leave the drain, or wait for it to end, and click Install update again."))
+            : Formatter::Format(_T("The server is {0}, so it could not stop taking new connections for the install. Click Install update again when it is running."), drainRefusal);
          return false;
       }
       const String drainSince = Application::Instance()->GetDrainStatus().since;
@@ -1629,7 +1668,7 @@ namespace HM
       outcome.version = second > 0 ? rest.Left(second) : rest;
       outcome.detail = second > 0 ? rest.Mid(second + 1) : String();
 
-      const TCHAR *statuses[] = { _T("ok"), _T("failed"), _T("rolled-back"), _T("rollback-failed"), _T("no-rollback"), _T("cancelled"), _T("refused") };
+      const TCHAR *statuses[] = { _T("ok"), _T("failed"), _T("rolled-back"), _T("rollback-failed"), _T("no-rollback"), _T("upgraded-incomplete"), _T("cancelled"), _T("refused") };
       bool known = false;
       for (const TCHAR *status : statuses)
          known = known || outcome.status == status;
@@ -1736,7 +1775,8 @@ namespace HM
          {
             AuditScope scope(actor);
             const String action = outcome.status == _T("ok") ? String(_T("installed")) : outcome.status == _T("rolled-back") ? String(_T("rolled back"))
-                                : outcome.status == _T("cancelled") ? String(_T("install cancelled")) : String(_T("install failed"));
+                                : outcome.status == _T("cancelled") ? String(_T("install cancelled"))
+                                : outcome.status == _T("upgraded-incomplete") ? String(_T("installed incomplete")) : String(_T("install failed"));
             // An install refused or cancelled before the installer ran has no log.
             AuditTrail::Instance()->RecordEvent(_T("update"), ObjectName_(outcome.version), action,
                Formatter::Format(_T("{0} {1}: {2}; from {3}"), outcome.status, outcome.version, outcome.detail, outcome.from) +
@@ -1750,6 +1790,13 @@ namespace HM
          else if (outcome.status == _T("cancelled"))
          {
             LOG_APPLICATION(Formatter::Format(_T("Update: the administrator's install of hMailServer {0} was cancelled ({1}); nothing was installed."), outcome.version, outcome.detail));
+         }
+         else if (outcome.status == _T("upgraded-incomplete"))
+         {
+            const String message = Formatter::Format(_T("Update to hMailServer {0} did not complete after its database step had changed the database, so the earlier version was not put back ({1}): {2} (installed by an administrator, {3})"),
+               outcome.version, outcome.status, outcome.detail, by);
+            LOG_APPLICATION(message);
+            ErrorManager::Instance()->ReportError(ErrorManager::High, 5481, "UpdateInstaller::ReportAdministratorOutcome_", message);
          }
          else
          {
@@ -1846,6 +1893,19 @@ namespace HM
       {
          message = Formatter::Format(_T("Update applied: hMailServer {0} is installed and this is it running; {1}."), version, detail);
          LOG_APPLICATION(message);
+         return;
+      }
+
+      // An update whose database step changed the database and that then did not
+      // complete is not rolled back - the earlier version may not run on that
+      // database - and has an error of its own, HM5481, for what has to be done
+      // about it is not what HM5480's is (docs/Upgrading.md).
+      if (status == _T("upgraded-incomplete"))
+      {
+         message = Formatter::Format(_T("Update to hMailServer {0} did not complete after its database step had changed the database, so the earlier version was not put back ({1}): {2}"),
+            version, status, detail);
+         LOG_APPLICATION(message);
+         ErrorManager::Instance()->ReportError(ErrorManager::High, 5481, "UpdateInstaller::ReportLastOutcome", message);
          return;
       }
 

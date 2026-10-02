@@ -177,6 +177,7 @@ namespace HM
                   PCCERT_CONTEXT certificate = chain->rgpElement[i]->pCertContext;
                   signer.chainSha256.push_back(Sha256OfCertificate_(certificate));
                   signer.chainNames.push_back(SimpleName_(certificate));
+                  signer.chainErrors.push_back(chain->rgpElement[i]->TrustStatus.dwErrorStatus);
                   if (i == 0)
                      leaf = certificate;
                }
@@ -302,6 +303,21 @@ namespace HM
       Outcome OutcomeOfStatus(long status)
       {
          return OutcomeOfStatusInner_(status);
+      }
+
+      bool RevocationEstablished(const std::vector<unsigned long> &chainErrors)
+      {
+         if (chainErrors.empty())
+            return false;
+         // The root is not checked (WTD_REVOCATION_CHECK_CHAIN_EXCLUDE_ROOT): a
+         // chain of one is its own root, with nothing below it to check.
+         const unsigned long unknown = CERT_TRUST_REVOCATION_STATUS_UNKNOWN | CERT_TRUST_IS_OFFLINE_REVOCATION | CERT_TRUST_IS_REVOKED;
+         for (size_t i = 0; i + 1 < chainErrors.size(); i++)
+         {
+            if ((chainErrors[i] & unknown) != 0)
+               return false;
+         }
+         return true;
       }
 
       std::vector<NameAttribute> ProjectSubject()
@@ -475,6 +491,17 @@ namespace HM
                result.why = L"Windows does not trust its signature (WinVerifyTrust " + Hex_(work->status) + L")";
                break;
             }
+            return false;
+         }
+
+         // Windows' answer above takes a revocation server that could not be
+         // reached as good; the chain it built says whether it was.
+         if (onlineRevocation && !result.signer.chainErrors.empty() && !RevocationEstablished(result.signer.chainErrors))
+         {
+            const std::wstring host = HostOf(result.signer.crlUrl);
+            result.outcome = RevocationOffline;
+            result.why = L"the revocation server " + (host.empty() ? std::wstring(L"its certificate names") : host) +
+                         L" could not be reached, so whether its certificate is revoked could not be checked (its chain's revocation status is unknown)";
             return false;
          }
 

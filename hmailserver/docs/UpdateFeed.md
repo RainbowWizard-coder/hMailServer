@@ -601,7 +601,14 @@ itself, trusting nothing the service said about it:
 The service takes the backup and fetches the rollback image, which the stage
 checks the same way, held to the running version; then it drains, and
 `hMailServer.Updater.exe` runs the installer as the administrator, rolls back if
-the service does not come back, and opens the Control Panel again, signed in, on
+the service does not come back or the installer ends with exit code 10 (a step
+after its files - the database upgrade above all - did not complete, which leaves
+the service running a server that refuses its database), but never once the
+installer's database step has changed the database: exit code 11, or a log that
+says the step began and not that it left the database unchanged, is reported as
+`upgraded-incomplete` and nothing is put back, since the earlier version may refuse
+that database ([Upgrading.md](Upgrading.md), "If the upgrade fails"). It opens the
+Control Panel again, signed in, on
 the outcome. `UpdateState` is 6 while the service prepares and 7 when it is
 ready; `GET /api/v1/update` says `installedBy: administrator` and
 `POST /api/v1/update/install` answers 409, code

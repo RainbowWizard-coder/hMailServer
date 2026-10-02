@@ -33,8 +33,16 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Equal(AdministratorUpdate.Decision.Administrator, AdministratorUpdate.Decide(true, true, 3, "6.3.7"));
          Assert.Equal(AdministratorUpdate.Decision.Remote, AdministratorUpdate.Decide(false, true, 3, "6.3.7"));
          Assert.Equal(AdministratorUpdate.Decision.Remote, AdministratorUpdate.Decide(false, true, 2, "6.3.7"));
-         foreach (int state in new[] { 0, 1, 2, 4, 5, 6, 7 })
+         foreach (int state in new[] { 0, 1, 2, 5 })
             Assert.Equal(AdministratorUpdate.Decision.NotReady, AdministratorUpdate.Decide(true, true, state, "6.3.7"));
+         // An install already under way - prepared, ready or installing - is said as
+         // such, not as nothing to install (a second administrator's click on the smoke
+         // VM on 2 October 2026 was told no verified installer was waiting).
+         foreach (int state in new[] { 4, 6, 7 })
+            Assert.Equal(AdministratorUpdate.Decision.UnderWay, AdministratorUpdate.Decide(true, true, state, "6.3.7"));
+         Assert.Equal(AdministratorUpdate.Decision.Remote, AdministratorUpdate.Decide(false, true, 6, "6.3.7"));
+         Assert.Equal("Install update stopped before anything was changed: another administrator's install of an update is under way on this server.",
+            AdministratorUpdate.UnderWayText());
          Assert.Equal(AdministratorUpdate.Decision.BadVersion, AdministratorUpdate.Decide(true, true, 3, "6.3.7 & calc"));
          Assert.Equal(AdministratorUpdate.Decision.BadVersion, AdministratorUpdate.Decide(true, true, 3, ""));
          Assert.Equal(AdministratorUpdate.Decision.BadVersion, AdministratorUpdate.Decide(true, true, 3, null));
@@ -131,6 +139,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("rolled-back", "hMailServer 6.3.7 did not start, so 6.3.6 was put back and is running: the detail.")]
       [InlineData("no-rollback", "hMailServer 6.3.7 did not start, and there was no earlier installer to put back: the detail.")]
       [InlineData("rollback-failed", "hMailServer 6.3.7 did not start, and putting 6.3.6 back failed too: the detail. Run C:\\hm\\AdminUpdate\\x\\rollback\\hMailServer-6.3.6-x64.exe as an administrator")]
+      [InlineData("upgraded-incomplete", "hMailServer 6.3.7 is installed and its database step changed the database, or may have, but the install did not complete, so 6.3.6 was not put back: it may not run on that database. What did not complete: the detail. The installer's log: C:\\hm\\AdminUpdate\\x\\install-6.3.7.log")]
       [InlineData("cancelled", "The install of hMailServer 6.3.7 was cancelled: the detail")]
       [InlineData("refused", "hMailServer 6.3.7 was not installed: the detail. Nothing was changed.")]
       public void EachOutcomeHasItsSentence(string status, string expected)
@@ -143,9 +152,86 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Equal("0123456789abcdef0123456789abcdef", outcome.Id);
          Assert.Equal("HOST\\admin", outcome.By);
          Assert.Contains(expected, AdministratorUpdate.OutcomeText(outcome));
-         Assert.Equal(status == "ok" ? StatusLevel.Good : status is "rollback-failed" or "no-rollback" ? StatusLevel.Critical : StatusLevel.Warning,
+         Assert.Equal(status == "ok" ? StatusLevel.Good : status is "rollback-failed" or "no-rollback" or "upgraded-incomplete" ? StatusLevel.Critical : StatusLevel.Warning,
             AdministratorUpdate.LevelOf(outcome));
          Assert.StartsWith("hMailServer was updated: ", AdministratorUpdate.SignInBanner(outcome));
+      }
+
+      [Fact]
+      public void AnUpgradedIncompleteInstallIsNotSaidToBePutBack()
+      {
+         // An install whose database step changed the database and that did not
+         // complete is not said to have been put back, and the sign-in banner's
+         // sentence says so whole. The Updater's own words, as it writes them for
+         // exit code 11 (UpgradedIncompleteDetail).
+         AdministratorUpdate.Outcome outcome = AdministratorUpdate.ParseOutcome(
+            "upgraded-incomplete 6.3.7 the installer exited with 11: a step did not complete after its database step had changed the database; Database step changed the database: it was at version 6105 before the step and is at version 6106; hMailServer 6.3.6 was not put back, since it may not run on that database; the service is stopped" + Keys);
+         Assert.NotNull(outcome);
+         string text = AdministratorUpdate.OutcomeText(outcome);
+         Assert.DoesNotContain("was put back and is running", text);
+         Assert.Contains("6.3.6 was not put back", text);
+         Assert.Contains("it was at version 6105 before the step and is at version 6106", text);
+         Assert.Equal(StatusLevel.Critical, AdministratorUpdate.LevelOf(outcome));
+         Assert.Equal("hMailServer was updated: hMailServer 6.3.7 is installed and its database step changed the database, or may have, but the install did not complete, so 6.3.6 was not put back: it may not run on that database. Sign in to see the server.",
+            AdministratorUpdate.SignInBanner(outcome));
+      }
+
+      [Fact]
+      public void FirstSentenceEndsAtTheIdeographicFullStopToo()
+      {
+         Assert.Equal("一つ目。", AdministratorUpdate.FirstSentence("一つ目。二つ目: the detail. 三つ目"));
+         Assert.Equal("First.", AdministratorUpdate.FirstSentence("First. Second。 Third"));
+         Assert.Equal("第一句。", AdministratorUpdate.FirstSentence("第一句。第二句。"));
+         Assert.Equal("No stop", AdministratorUpdate.FirstSentence("No stop"));
+         Assert.Equal("", AdministratorUpdate.FirstSentence(null));
+      }
+
+      [Fact]
+      public void TheUpgradedIncompleteBannerIsItsFirstSentenceInEveryLanguage()
+      {
+         // The sign-in banner is the outcome's first sentence; in Japanese and
+         // Chinese a sentence ends with "。", and the banner ran on into the
+         // Updater's English detail, which has ". " in it, or to the end of the text.
+         // In every catalogue the banner holds neither the detail nor the log.
+         string resources = ResourcesDirectory();
+         if (resources == null)
+            return;
+         AdministratorUpdate.Outcome outcome = AdministratorUpdate.ParseOutcome(
+            "upgraded-incomplete 6.3.7 the installer exited with 11: a step did not complete. The hMailServer service was installed but did not start" + Keys);
+         var problems = new List<string>();
+         foreach (Loc.Language language in Loc.Languages)
+         {
+            if (language.Tag.Length == 0 || language.Tag == "en")
+               continue;
+            Dictionary<string, string> catalogue = ReadResx(Path.Join(resources, "Strings." + language.Tag + ".resx"));
+            Loc.Use((text, culture) => catalogue.TryGetValue(text, out string value) && value.Length > 0 ? value : null, System.Globalization.CultureInfo.GetCultureInfo(language.Tag));
+            string banner = AdministratorUpdate.SignInBanner(outcome);
+            if (banner.Contains("a step did not complete") || banner.Contains("install-6.3.7.log") || !banner.Contains("6.3.6"))
+               problems.Add(language.Tag + ": " + banner);
+         }
+         Loc.Reset();
+         Assert.True(problems.Count == 0, string.Join(Environment.NewLine, problems));
+      }
+
+      private static Dictionary<string, string> ReadResx(string path)
+      {
+         var result = new Dictionary<string, string>(StringComparer.Ordinal);
+         foreach (System.Xml.Linq.XElement data in System.Xml.Linq.XDocument.Load(path).Root.Elements("data"))
+            result[(string)data.Attribute("name")] = data.Element("value")?.Value ?? "";
+         return result;
+      }
+
+      private static string ResourcesDirectory()
+      {
+         string dir = AppContext.BaseDirectory;
+         for (int i = 0; i < 8 && dir != null; i++)
+         {
+            string candidate = Path.Join(dir, "ControlPanel", "Resources");
+            if (File.Exists(Path.Join(candidate, "Strings.resx")))
+               return candidate;
+            dir = Path.GetDirectoryName(dir);
+         }
+         return null;
       }
 
       [Theory]
@@ -218,6 +304,54 @@ namespace hMailServer.ControlPanel.Tests.Services
 
          Assert.Equal("signed (TRUST_E_BAD_DIGEST)", AdministratorUpdate.Clause("signed (TRUST_E_BAD_DIGEST)"));
          Assert.Equal("", AdministratorUpdate.Clause(null));
+      }
+
+      [Fact]
+      public void NothingAdvancesWhileTheWindowAsksAQuestion()
+      {
+         // On the smoke VM on 2 October 2026 the install reached the installer while
+         // "Stop the update?" waited for its answer: the modal box's message loop
+         // ran the window's timer, which set the service's readiness and began.
+         Assert.True(AdministratorUpdate.InstallMayAdvance(false, false));
+         Assert.False(AdministratorUpdate.InstallMayAdvance(false, true));
+         Assert.False(AdministratorUpdate.InstallMayAdvance(true, false));
+         Assert.False(AdministratorUpdate.InstallMayAdvance(true, true));
+      }
+
+      [Fact]
+      public void AnInstallWindowsWouldNotStartSaysNothingWasChanged()
+      {
+         // A standard user whose requests to elevate are denied by policy: Windows'
+         // own sentence ("This program is blocked by group policy..." on an English
+         // Windows), then what it means here, as the smoke VM showed it without on
+         // 1 October 2026.
+         string blocked = AdministratorUpdate.ElevationFailedText(1260);
+         Assert.StartsWith("Windows could not start the install: ", blocked);
+         Assert.EndsWith(". Nothing was changed.", blocked);
+         Assert.DoesNotContain("..", blocked);
+         Assert.Equal("The Windows prompt was declined, so nothing was installed and nothing on the server was changed.", AdministratorUpdate.ElevationFailedText(1223));
+      }
+
+      [Fact]
+      public void ARefusalWithNoCopyKeptNamesNoFolder()
+      {
+         // A copy the stage could not make - Updates a junction to another folder,
+         // as on the smoke VM on 1 October 2026 - leaves no "kept" in status.txt,
+         // and the window said "the copy is kept in  for inspection".
+         var copy = new Dictionary<string, string>
+         {
+            ["state"] = "refused", ["check"] = "copy",
+            ["reason"] = "C:\\hm\\Data\\Updates\\i.exe resolves to C:\\elsewhere\\i.exe, not to C:\\hm\\Data\\Updates\\i.exe: a link or a junction on the way leads elsewhere"
+         };
+         string text = AdministratorUpdate.StageStoppedText(6, copy, "6.3.7");
+         Assert.Contains("a link or a junction on the way leads elsewhere. Nothing was changed and the server runs as it did. Download it again.", text);
+         Assert.EndsWith("Download it again.", text);
+         Assert.DoesNotContain("kept in", text);
+         Assert.DoesNotContain("  ", text);
+
+         // Where there is a copy, its folder is still named.
+         copy["kept"] = "C:\\hm\\AdminUpdate\\x";
+         Assert.Contains("the copy is kept in C:\\hm\\AdminUpdate\\x for inspection.", AdministratorUpdate.StageStoppedText(6, copy, "6.3.7"));
       }
 
       [Fact]

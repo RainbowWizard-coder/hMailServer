@@ -4677,8 +4677,8 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="Hands mail clients the right host names, ports and security settings automatically: Thunderbird-style autoconfig and Outlook autodiscover, for every local domain. Point autoconfig.&lt;domain&gt; and autodiscover.&lt;domain&gt; at this server in DNS." xml:space="preserve">
     <value>Gir e-postklienter riktige vertsnavn, porter og sikkerhetsinnstillinger automatisk: autoconfig i Thunderbird-stil og Outlook-autodiscover, for hvert lokalt domene. Pek autoconfig.&lt;domain&gt; og autodiscover.&lt;domain&gt; på denne serveren i DNS.</value>
   </data>
-  <data name="Hands the verified installer to the update helper. The service stops and starts; if it does not come back, the previous version is reinstalled. The outcome is reported here when the service is back." xml:space="preserve">
-    <value>Overleverer det verifiserte installasjonsprogrammet til oppdateringshjelperen. Tjenesten stopper og starter; hvis den ikke kommer tilbake, installeres den forrige versjonen på nytt. Utfallet rapporteres her når tjenesten er tilbake.</value>
+  <data name="Hands the verified installer to the update helper. The service stops and starts; if it does not come back, the previous version is reinstalled, unless the new version has already changed the database. The outcome is reported here when the service is back." xml:space="preserve">
+    <value>Overleverer det verifiserte installasjonsprogrammet til oppdateringshjelperen. Tjenesten stopper og starter; hvis den ikke kommer tilbake, installeres den forrige versjonen på nytt, med mindre den nye versjonen allerede har endret databasen. Utfallet rapporteres her når tjenesten er tilbake.</value>
   </data>
   <data name="Hard" xml:space="preserve">
     <value>Hard</value>
@@ -5115,13 +5115,13 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="Insert template…" xml:space="preserve">
     <value>Sett inn mal…</value>
   </data>
-  <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the Status page. A service that does not come back is rolled back to the previous installer." xml:space="preserve">
-    <value>Innenfor vinduet installerer den planlagte oppgaven et verifisert installasjonsprogram uten et klikk: tjenesten stoppes, filer og skjema oppgraderes, tjenesten startes, og utfallet går til loggen, Windows-hendelsesloggen og Status-siden. En tjeneste som ikke kommer tilbake, rulles tilbake til det forrige installasjonsprogrammet.</value>
+  <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the Status page. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
+    <value>Innenfor vinduet installerer den planlagte oppgaven et verifisert installasjonsprogram uten et klikk: tjenesten stoppes, filer og skjema oppgraderes, tjenesten startes, og utfallet går til loggen, Windows-hendelsesloggen og Status-siden. En tjeneste som ikke kommer tilbake, rulles tilbake til det forrige installasjonsprogrammet, med mindre den nye versjonen allerede har endret databasen.</value>
   </data>
-  <data name="Install the update now?&#10;&#10;The verified installer is handed to the update helper: the service stops, the new version is installed, and the service starts again. If it does not come back, the previous version is reinstalled. This Control Panel loses its connection while that happens; reconnect afterwards to see the outcome here." xml:space="preserve">
+  <data name="Install the update now?&#10;&#10;The verified installer is handed to the update helper: the service stops, the new version is installed, and the service starts again. If it does not come back, the previous version is reinstalled, unless the new version has already changed the database. This Control Panel loses its connection while that happens; reconnect afterwards to see the outcome here." xml:space="preserve">
     <value>Installere oppdateringen nå?
 
-Det verifiserte installasjonsprogrammet overleveres til oppdateringshjelperen: tjenesten stopper, den nye versjonen installeres, og tjenesten starter igjen. Hvis den ikke kommer tilbake, installeres den forrige versjonen på nytt. Dette Control Panel mister forbindelsen mens det skjer; koble til igjen etterpå for å se utfallet her.</value>
+Det verifiserte installasjonsprogrammet overleveres til oppdateringshjelperen: tjenesten stopper, den nye versjonen installeres, og tjenesten starter igjen. Hvis den ikke kommer tilbake, installeres den forrige versjonen på nytt, med mindre den nye versjonen allerede har endret databasen. Dette Control Panel mister forbindelsen mens det skjer; koble til igjen etterpå for å se utfallet her.</value>
   </data>
   <data name="Install update" xml:space="preserve">
     <value>Installer oppdatering</value>
@@ -13426,11 +13426,17 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   <data name="hMailServer {0} did not start, so {1} was put back and is running: {2}. The installer's log: {3}" xml:space="preserve">
     <value>hMailServer {0} startet ikke, så {1} ble lagt tilbake og kjører: {2}. Installasjonsprogrammets logg: {3}</value>
   </data>
+  <data name="hMailServer {0} is installed and its database step changed the database, or may have, but the install did not complete, so {1} was not put back: it may not run on that database. What did not complete: {2}. The installer's log: {3}" xml:space="preserve">
+    <value>hMailServer {0} er installert, og databasetrinnet endret databasen, eller kan ha gjort det, men installasjonen ble ikke fullført, så {1} ble ikke lagt tilbake: den kjører kanskje ikke på den databasen. Det som ikke ble fullført: {2}. Installasjonsprogrammets logg: {3}</value>
+  </data>
   <data name="hMailServer {0} is ready to be put back if needed." xml:space="preserve">
     <value>hMailServer {0} er klar til å legges tilbake ved behov.</value>
   </data>
-  <data name="hMailServer {0} replaces {1} on this server. Windows asks for an administrator's permission once; after that everything happens by itself. The server stops accepting mail for a minute or two while it restarts, and if {0} does not start, {1} is put back." xml:space="preserve">
-    <value>hMailServer {0} erstatter {1} på denne serveren. Windows ber én gang om en administrators tillatelse; deretter skjer alt av seg selv. Serveren slutter å ta imot e-post i et minutt eller to mens den starter på nytt, og hvis {0} ikke starter, legges {1} tilbake.</value>
+  <data name="hMailServer {0} replaces {1} on this server. Windows asks for an administrator's permission once; after that everything happens by itself. The server stops accepting mail for a minute or two while it restarts, and if {0} does not start, {1} is put back, unless {0} has already changed the database." xml:space="preserve">
+    <value>hMailServer {0} erstatter {1} på denne serveren. Windows ber én gang om en administrators tillatelse; deretter skjer alt av seg selv. Serveren slutter å ta imot e-post i et minutt eller to mens den starter på nytt, og hvis {0} ikke starter, legges {1} tilbake, med mindre {0} allerede har endret databasen.</value>
+  </data>
+  <data name="hMailServer {0} was not installed: the installer did not pass the check - {1}. Nothing was changed and the server runs as it did. Download it again." xml:space="preserve">
+    <value>hMailServer {0} ble ikke installert: installasjonsprogrammet besto ikke kontrollen - {1}. Ingenting ble endret, og serveren kjører som før. Last det ned på nytt.</value>
   </data>
   <data name="hMailServer {0} was not installed: the installer did not pass the check - {1}. Nothing was changed and the server runs as it did. Download it again; if the check fails again, the copy is kept in {2} for inspection." xml:space="preserve">
     <value>hMailServer {0} ble ikke installert: installasjonsprogrammet besto ikke kontrollen - {1}. Ingenting ble endret, og serveren kjører som før. Last det ned på nytt; hvis kontrollen mislykkes igjen, beholdes kopien i {2} for undersøkelse.</value>

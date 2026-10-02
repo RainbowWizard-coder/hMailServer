@@ -206,8 +206,10 @@ live update") installs files, not rows, and is recorded as events of object type
 with the Windows account it runs as in the detail ("from this computer as Windows account
 ...": the service knows that the call came from a program on the server, and whose it
 was, not which program); and, when the service next starts,
-the outcome - `installed`, `rolled back`, `install cancelled` or `install failed` -
-under the Windows account that approved Windows' prompt, which the elevated
+the outcome - `installed`, `rolled back`, `install cancelled`, `install failed`, or
+`installed incomplete` where the installer's database step changed the database and a
+step did not complete, which is not rolled back ([Upgrading.md](Upgrading.md), "If the
+upgrade fails") - under the Windows account that approved Windows' prompt, which the elevated
 `hMailServer.Updater.exe` read from its own token and wrote into a folder only
 administrators can change: actor type `administrator`, interface `Windows`, no
 address, and the status, the detail, the version it replaced and the installer's log

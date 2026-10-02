@@ -1,3 +1,30 @@
+// The database schema version this build needs, REQUIRED_DB_VERSION in the
+// server's Constants.h, read when the installer is compiled - the number the new
+// server and its DBUpdater upgrade a database to, and which
+// build\check-schema-versions.ps1 holds DBUpdater's chain and the scripts to. A
+// database already at it, or past it, is one the database step cannot move:
+// DBUpdater has no step to run on it, and the service's own start with [Database]
+// UpgradeOnStart=1 none either (EndDatabaseStep). The compile stops when it
+// cannot be read. The #sub assigns with #expr: a #define inside it would make a
+// variable of its own, gone when it returns.
+#define HM_CONSTANTS_FILE AddBackslash(SourcePath) + "..\source\Server\Common\Application\Constants.h"
+#define HM_REQUIRED_DB_VERSION ""
+#define HmConstantsHandle 0
+#define HmConstantsLine ""
+#sub HmReadConstantsLine
+  #expr HmConstantsLine = Trim(FileRead(HmConstantsHandle))
+  #if Pos("#define REQUIRED_DB_VERSION ", HmConstantsLine) == 1
+    #expr HM_REQUIRED_DB_VERSION = Trim(Copy(HmConstantsLine, Len("#define REQUIRED_DB_VERSION ") + 1))
+  #endif
+#endsub
+#for {HmConstantsHandle = FileOpen(HM_CONSTANTS_FILE); HmConstantsHandle && !FileEof(HmConstantsHandle); 0} HmReadConstantsLine
+#if HmConstantsHandle
+  #expr FileClose(HmConstantsHandle)
+#endif
+#if HM_REQUIRED_DB_VERSION == "" || Int(HM_REQUIRED_DB_VERSION, 0) < 6000
+  #error REQUIRED_DB_VERSION could not be read from Constants.h
+#endif
+
 [code]
 // GLOBAL
 var
@@ -5,10 +32,11 @@ var
   g_szAdminPassword: String;
   g_szUpgradeToken: String;
   // True when the token came in HM_UPGRADE_TOKEN, which only hMailServer.Updater
-  // sets, and only for an administrator's install from the Control Panel
-  // (docs/ServiceAccount.md, "The live update"): it has ended every Control Panel
-  // running from the installation already, so the check for one by its window
-  // title is not made (InitializeSetup).
+  // sets - for an administrator's install from the Control Panel, and from 6.3.6
+  // for the service's own live update too (docs/ServiceAccount.md, "The live
+  // update"): it has ended every Control Panel running from the installation
+  // already, so the check for one by its window title is not made
+  // (InitializeSetup).
   g_bAdministratorUpdate: Boolean;
   
   g_pageDBType: TWizardPage;
@@ -42,6 +70,42 @@ var
   // so in its own words rather than the database's.
   g_bGrantFailed: Boolean;
   g_bMssqlSentenceAdded: Boolean;
+
+  // Set when a step after the files - the service account's folders, the
+  // administrator password, the database or the service (RunPostInstallTasks) -
+  // did not complete, so that setup ends with exit code 10 - or 11 once the
+  // database has changed - rather than 0 (GetCustomSetupExitCode). The exception
+  // CurStepChanged raises for it is
+  // logged and shown, but Inno Setup carries on past an exception in an event
+  // function and exits 0: on the installer smoke VM on 1 October 2026 an update
+  // whose database upgrade failed (DBSetupQuick exit code 2) ended with 0, and
+  // hMailServer.Updater reported it installed.
+  g_bStepsIncomplete: Boolean;
+
+  // The version hMailServer.Updater puts back when this installation does not
+  // complete: HM_UPDATE_ROLLBACK_VERSION, which the Updater sets - from 6.3.6, for
+  // the service's own live update and for an administrator's install alike - only
+  // when it holds that version's installer, verified, to run (the rollback image),
+  // and which is read only beside the token the Updater gives (g_bAdministratorUpdate).
+  // Empty for an installation somebody runs by hand. While it is set, a step before
+  // the database step that did not complete stops the installation there, before
+  // anything has changed the database (RunPostInstallTasks): the Updater's rollback
+  // is then made onto the database as that version left it, which is the only
+  // database it can run on.
+  g_szRollbackVersion: String;
+
+  // The database's schema version - hm_dbversion, read through the hMailServer
+  // service's own connection (ReadDatabaseVersion) - before this installation, from
+  // the service it replaces, and after the database step; -1 where it could not be
+  // read. g_bDatabaseChanged is set as the database step on an existing database
+  // begins and cleared only when the two are both known and equal, or the version
+  // before is known and one this build does not upgrade (EndDatabaseStep): from then on
+  // the earlier version cannot run on the database, so setup never ends with 10,
+  // on which hMailServer.Updater puts the earlier version back, but with 11
+  // (GetCustomSetupExitCode).
+  g_iDatabaseVersionBefore: Integer;
+  g_iDatabaseVersionAfter: Integer;
+  g_bDatabaseChanged: Boolean;
 
   // The external database a new installation is set up against without DBSetup's
   // wizard (docs/WindowsOnArm.md, "A new installation without a window"): given with
@@ -215,6 +279,27 @@ begin
   begin
     c := Token[i];
     if not (((c >= '0') and (c <= '9')) or ((c >= 'a') and (c <= 'f'))) then
+    begin
+      Result := False;
+      Exit;
+    end;
+  end;
+end;
+
+// A release's version as hMailServer.Updater passes it ("6.3.6", "6.3.7-rc1"): one
+// to 40 letters, digits, dots and hyphens, beginning with a digit.
+function IsReleaseVersionForm(Version: String): Boolean;
+var
+  i: Integer;
+  c: Char;
+begin
+  Result := (Length(Version) > 0) and (Length(Version) <= 40) and (Version[1] >= '0') and (Version[1] <= '9');
+  if not Result then
+    Exit;
+  for i := 1 to Length(Version) do
+  begin
+    c := Version[i];
+    if not (((c >= '0') and (c <= '9')) or ((c >= 'a') and (c <= 'z')) or ((c >= 'A') and (c <= 'Z')) or (c = '.') or (c = '-')) then
     begin
       Result := False;
       Exit;
@@ -730,10 +815,16 @@ end;
 // [Run] entry's install failed, this tries again and says so, which the [Run]
 // entry does not. Making the [Run] entry postinstall instead would turn it into a
 // checkbox on the last page of an interactive install.
-procedure InstallDotNetRuntime();
+//
+// True when the runtime is there at the end. The database step needs it; an
+// installation hMailServer.Updater can put back stops before that step without it
+// (g_szRollbackVersion), and any other carries on to the step, which then fails as
+// it always did.
+function InstallDotNetRuntime(): Boolean;
 	var
 		ResultCode: Integer;
 begin
+	Result := true;
 	if not DotNetDesktopMissing() then
 		Exit;
 
@@ -741,6 +832,7 @@ begin
 	begin
 		SuppressibleMsgBox('The .NET {#DOTNET_MAJOR} Desktop Runtime could not be installed. The database setup tools will not work until it is installed.' + #13#10 +
 		       SysErrorMessage(ResultCode), mbError, MB_OK, IDOK);
+		Result := false;
 		Exit;
 	end;
 
@@ -755,6 +847,7 @@ begin
 		       'The database setup tools will not work until the runtime is installed. ' +
 		       'Install it manually from ' + DOTNET_DOWNLOAD_URL + ' and then run ' +
 		       'DBSetupQuick.exe from the hMailServer Bin folder.', mbError, MB_OK, IDOK);
+		Result := false;
 	end;
 end;
 
@@ -1563,9 +1656,10 @@ begin
 	g_szUpgradeToken := ExpandConstant('{param:upgradetoken|}');
 
 	// From 6.3.6 the token comes in the environment instead, HM_UPGRADE_TOKEN, when
-	// hMailServer.Updater runs this installer for an administrator's install: an
-	// elevated process's environment is not readable by the administrator's own
-	// unelevated programs, and its command line is. Held to the token's form - 64
+	// hMailServer.Updater runs this installer: an elevated process's environment is
+	// not readable by the administrator's own unelevated programs, and its command
+	// line is; and Inno Setup writes the command line into this installer's log.
+	// Held to the token's form - 64
 	// lowercase hexadecimal characters - or ignored, and taken out of this
 	// process's environment as soon as it is read, so that no program this
 	// installer starts inherits it.
@@ -1579,13 +1673,32 @@ begin
 			if IsUpgradeTokenForm(g_szUpgradeToken) then
 			begin
 				g_bAdministratorUpdate := True;
-				Log('The database upgrade''s token was given in HM_UPGRADE_TOKEN: an administrator''s install from the Control Panel.');
+				Log('The database upgrade''s token was given in HM_UPGRADE_TOKEN, by hMailServer.Updater.');
 			end
 			else
 			begin
 				Log('HM_UPGRADE_TOKEN is set but is not a token (64 lowercase hexadecimal characters), so it is ignored.');
 				g_szUpgradeToken := '';
 			end;
+		end;
+	end;
+
+	// The version hMailServer.Updater puts back if this installation does not
+	// complete (g_szRollbackVersion): taken out of the environment at once, as the
+	// token is, and believed only beside the Updater's token.
+	g_iDatabaseVersionBefore := -1;
+	g_iDatabaseVersionAfter := -1;
+	g_bDatabaseChanged := False;
+	g_szRollbackVersion := GetEnv('HM_UPDATE_ROLLBACK_VERSION');
+	SetProcessEnvironmentVariable('HM_UPDATE_ROLLBACK_VERSION', '');
+	if g_szRollbackVersion <> '' then
+	begin
+		if g_bAdministratorUpdate and IsReleaseVersionForm(g_szRollbackVersion) then
+			Log('hMailServer.Updater holds hMailServer ' + g_szRollbackVersion + ' to put back (HM_UPDATE_ROLLBACK_VERSION): a step before the database step that does not complete stops this installation before the database step.')
+		else
+		begin
+			Log('HM_UPDATE_ROLLBACK_VERSION is set, but not beside hMailServer.Updater''s token or not as a version, so it is ignored.');
+			g_szRollbackVersion := '';
 		end;
 	end;
 
@@ -2047,6 +2160,163 @@ begin
    end;
 end;
 
+// The database's schema version, hm_dbversion, as the hMailServer service reads it:
+// COM's Database.CurrentVersion, which needs no sign-in (InterfaceDatabase.cpp) and
+// which DBUpdater reads the same way. It goes through the service's own connection,
+// and so with the service's account and credentials - which on SQL Server with
+// Windows authentication are not this installer's, so a connection of the
+// installer's own could be refused where the service's is not. -1 when it cannot be
+// read: the service cannot be reached, or has no connection to the database. szWhen
+// says when, for the log. Both objects are released before this returns.
+function ReadDatabaseVersion(szWhen: String): Integer;
+var
+   App: Variant;
+   Database: Variant;
+begin
+   Result := -1;
+   try
+      App := CreateOleObject('hMailServer.Application');
+      Database := App.Database;
+      Result := Database.CurrentVersion;
+      if Result > 0 then
+         Log('The database is at version ' + IntToStr(Result) + ' ' + szWhen + ' (Database.CurrentVersion, through the hMailServer service).')
+      else
+      begin
+         Log('The database''s version could not be read ' + szWhen + ': the hMailServer service answered ' + IntToStr(Result) + '.');
+         Result := -1;
+      end;
+   except
+      Result := -1;
+      Log('The database''s version could not be read ' + szWhen + ': ' + GetExceptionMessage);
+   end;
+   Database := Unassigned;
+   App := Unassigned;
+end;
+
+// The version this installation replaces, for its messages.
+function PreviousVersionText(): String;
+begin
+   if g_szRollbackVersion <> '' then
+      Result := 'hMailServer ' + g_szRollbackVersion
+   else
+      Result := 'the earlier version';
+end;
+
+// What is known of the database's version on either side of the database step,
+// as a clause.
+function DatabaseVersionsText(): String;
+begin
+   if (g_iDatabaseVersionBefore > 0) and (g_iDatabaseVersionAfter > 0) then
+      Result := 'it was at version ' + IntToStr(g_iDatabaseVersionBefore) + ' before the step and is at version ' + IntToStr(g_iDatabaseVersionAfter)
+   else if (g_iDatabaseVersionBefore > 0) then
+      Result := 'it was at version ' + IntToStr(g_iDatabaseVersionBefore) + ' before the step, and its version after the step could not be read'
+   else if (g_iDatabaseVersionAfter > 0) then
+      Result := 'its version before the step could not be read, and it is at version ' + IntToStr(g_iDatabaseVersionAfter)
+   else
+      Result := 'its version could not be read before the step or after it';
+end;
+
+// The database step on an existing database begins. From here the database may
+// have changed (g_bDatabaseChanged) until its version afterwards shows otherwise -
+// the service's own start for the step can already move it, with [Database]
+// UpgradeOnStart=1 - and the lines this writes are what hMailServer.Updater reads
+// in this installation's log beside its exit code (DatabaseStepOf in
+// hMailServer.Updater.cpp): an installation that wrote "Database step begun" and
+// not "Database step left the database unchanged" is never rolled back, however it
+// ended - exit code 11, a crash, the Updater's hour running out, or a service that
+// did not stay up after exit code 0.
+procedure BeginDatabaseStep();
+begin
+   g_bDatabaseChanged := true;
+   if g_iDatabaseVersionBefore > 0 then
+      Log('Database step begun: the database was at version ' + IntToStr(g_iDatabaseVersionBefore) + ' before it.')
+   else
+      Log('Database step begun: the database''s version before it could not be read, so nothing after the step can show it unchanged.');
+end;
+
+// The database step has ended, however it ended: the database's version now, and
+// whether it is as it was. A service that is not running is started for the read
+// as the step starts it, with --for-database-upgrade (StartServiceForDatabaseUpgrade),
+// so that a database the step left older than this build is not reported as
+// HM5011 for it.
+//
+// Where the version cannot be read afterwards - this build's service does not
+// start, or its COM server does not answer, which is when the earlier version is
+// needed back most - a database that was already at the version this build needs
+// (HM_REQUIRED_DB_VERSION), or past it, is still known unchanged: nothing in the
+// step moves such a database, so a release that changes no schema is put back as
+// any other failed step is. Otherwise a version that cannot be read leaves the
+// database "may have changed", and nothing is put back.
+procedure EndDatabaseStep();
+begin
+   if (IsServiceRunning('hMailServer') = false) then
+   begin
+      Log('The hMailServer service is not running after the database step; it is started to read the database''s version.');
+      StartServiceForDatabaseUpgrade();
+   end;
+   g_iDatabaseVersionAfter := ReadDatabaseVersion('after the database step');
+   if (g_iDatabaseVersionBefore > 0) and (g_iDatabaseVersionAfter = g_iDatabaseVersionBefore) then
+   begin
+      g_bDatabaseChanged := false;
+      Log('Database step left the database unchanged, at version ' + IntToStr(g_iDatabaseVersionAfter) + '.');
+   end
+   else if (g_iDatabaseVersionBefore >= {#HM_REQUIRED_DB_VERSION}) and (g_iDatabaseVersionAfter <= 0) then
+   begin
+      g_bDatabaseChanged := false;
+      Log('Database step left the database unchanged, at version ' + IntToStr(g_iDatabaseVersionBefore) + ': this build needs version {#HM_REQUIRED_DB_VERSION}, ' +
+          'which the database had reached before the step, and nothing in the step moves a database at or past it, though its version after the step could not be read.');
+   end
+   else if (g_iDatabaseVersionBefore > 0) and (g_iDatabaseVersionAfter > 0) then
+      Log('Database step changed the database: ' + DatabaseVersionsText() + '.')
+   else
+      Log('Database step may have changed the database: ' + DatabaseVersionsText() + '.');
+end;
+
+// A database step that did not complete and that changed the database, or may have:
+// said, so that the log and the message name it, and written for hMailServer.Updater
+// ("Database step stopped part-way"), which then says to restore the backup the
+// update took before it.
+procedure SayDatabaseStepStoppedPartWay();
+var
+   szWhat: String;
+begin
+   if (g_iDatabaseVersionBefore > 0) and (g_iDatabaseVersionAfter > 0) then
+      szWhat := 'The hMailServer database upgrade did not complete, and it had changed the database before it stopped: ' + DatabaseVersionsText() + '.'
+   else
+      szWhat := 'The hMailServer database upgrade did not complete, and this installation cannot show that it left the database unchanged: ' + DatabaseVersionsText() + '.';
+   Log('Database step stopped part-way: ' + DatabaseVersionsText() + '.');
+   SuppressibleMsgBox(szWhat + #13#10#13#10 +
+          PreviousVersionText() + ' is not put back, since it may not run on the database as it is now. Once the cause is put right, run DBSetupQuick.exe from the hMailServer Bin folder to finish the upgrade; ' +
+          'or restore the backup taken before the update and reinstall ' + PreviousVersionText() + '.', mbError, MB_OK, IDOK);
+end;
+
+procedure AppendStep(var szList: String; szStep: String);
+begin
+   if szList <> '' then
+      szList := szList + ', ';
+   szList := szList + szStep;
+end;
+
+// The steps before the database step that did not complete, as a list for a
+// sentence; empty when all did.
+function StepsNotCompleteBeforeDatabase(bRuntimeReady, bDatabaseBackendReady, bServiceRegistered, bPasswordWritten: Boolean): String;
+var
+   szList: String;
+begin
+   szList := '';
+   if not bRuntimeReady then
+      AppendStep(szList, 'the .NET {#DOTNET_MAJOR} Desktop Runtime');
+   if not bDatabaseBackendReady then
+      AppendStep(szList, 'the SQL Server Compact runtime');
+   if not bServiceRegistered then
+      AppendStep(szList, 'the service''s registration');
+   if g_bGrantFailed then
+      AppendStep(szList, 'the grant of the service account''s folders');
+   if not bPasswordWritten then
+      AppendStep(szList, 'the administrator password');
+   Result := szList;
+end;
+
 
 function RunPostInstallTasks() : Boolean;
    var
@@ -2055,12 +2325,19 @@ function RunPostInstallTasks() : Boolean;
       szParameters: AnsiString;
       szCredential: String;
       szDBSetupSaid: String;
+      szNotComplete: String;
+      bRuntimeReady: Boolean;
       bDatabaseBackendReady: Boolean;
       bServiceRegistered: Boolean;
       bPasswordWritten: Boolean;
       bStarted: Boolean;
+      bStopBeforeDatabase: Boolean;
+      bDatabaseStepOnExisting: Boolean;
 begin
    Result := true;
+   bRuntimeReady := true;
+   bStopBeforeDatabase := false;
+   bDatabaseStepOnExisting := false;
 
    // A database given for a new installation, to one that has a database already:
    // an upgrade keeps the database it has, which the setup log says.
@@ -2082,7 +2359,7 @@ begin
          // runtime is in place before they are executed. section_run.iss's [Run]
          // entry has normally installed it already - Inno runs it before
          // ssPostInstall - and this is the second attempt when it did not.
-         InstallDotNetRuntime();
+         bRuntimeReady := InstallDotNetRuntime();
 
          ProgressPage.SetText('Initializing database backend...', '');
          ProgressPage.SetProgress(2,6);
@@ -2113,6 +2390,30 @@ begin
          bPasswordWritten := WriteAdministratorPassword();
          if (bPasswordWritten = false) then
             Result := false;
+
+         // Under hMailServer.Updater with the earlier version to put back
+         // (g_szRollbackVersion), a step above that did not complete stops the
+         // installation here, before the database step, its service not started: the
+         // Updater puts the earlier version back on exit code 10, and the database
+         // is then still as that version left it - the only database it can run on.
+         // Carried on past such a step, the database step could upgrade the database
+         // and the rollback leave the earlier version on a database it refuses: a
+         // server with no mail. An installation run by hand, or with no version to
+         // put back, carries on as it always did: the database step brings the
+         // database to this version, which is then the one that can run on it.
+         bStopBeforeDatabase := false;
+         if (g_szRollbackVersion <> '') and (IsNewDatabase() = false) then
+         begin
+            szNotComplete := StepsNotCompleteBeforeDatabase(bRuntimeReady, bDatabaseBackendReady, bServiceRegistered, bPasswordWritten);
+            if szNotComplete <> '' then
+            begin
+               bStopBeforeDatabase := true;
+               Result := false;
+               Log('The installation stops before the database step, which it does not run: ' + szNotComplete + ' did not complete.');
+               SuppressibleMsgBox('This installation stopped before its database step, which it did not run: ' + szNotComplete + ' did not complete (the message above says why). ' +
+                      'The database is as ' + PreviousVersionText() + ' left it, and hMailServer.Updater puts ' + PreviousVersionText() + ' back.', mbError, MB_OK, IDOK);
+            end;
+         end;
 
          ProgressPage.SetText('Initializing hMailServer database...', '');
          ProgressPage.SetProgress(4,6);
@@ -2156,11 +2457,12 @@ begin
          else if (Length(g_szUpgradeToken) > 0) then
             szCredential := 'token:' + g_szUpgradeToken;
 
-         // Skipped when the built-in database engine could not be installed: the
+         // Skipped when the installation stopped before it (bStopBeforeDatabase), and
+         // when the built-in database engine could not be installed: the
          // tools cannot possibly succeed without it, and a second, vaguer error
          // dialog on top of the specific one from InstallSQLCE only obscures the
          // cause.
-         if (bDatabaseBackendReady = false) then
+         if bStopBeforeDatabase or (bDatabaseBackendReady = false) then
          begin
             Result := false;
          end
@@ -2169,6 +2471,12 @@ begin
          // install (the service would run against a missing or outdated schema).
          else if ((GetCurrentDatabaseType() <> '') or g_bUseInternal) then
          begin
+            // An existing database: from here it may change, until its version
+            // afterwards shows it did not (BeginDatabaseStep, EndDatabaseStep).
+            bDatabaseStepOnExisting := (IsNewDatabase() = false);
+            if bDatabaseStepOnExisting then
+               BeginDatabaseStep();
+
             // An existing database - an upgrade, or a repair over one - meets the
             // new binary here, before DBUpdater has moved it: the service is
             // started with the argument that says so (StartServiceForDatabaseUpgrade).
@@ -2191,15 +2499,25 @@ begin
                end;
             end;
 
+            // The database's version now, whatever the step's result: the step
+            // can fail after it has moved it - a chain of steps on MySQL, whose DDL
+            // commits as it goes, or the service's own start with UpgradeOnStart=1.
+            if bDatabaseStepOnExisting then
+               EndDatabaseStep();
+
             if (bStarted = False) then
             begin
                Result := false;
+               if bDatabaseStepOnExisting and g_bDatabaseChanged then
+                  SayDatabaseStepStoppedPartWay();
             end
             else if (ResultCode <> 0) then
             begin
                SuppressibleMsgBox('The hMailServer database could not be created or upgraded (exit code ' + IntToStr(ResultCode) + ').' #13#13
                       'The hMailServer service may not work until the database has been upgraded. Run DBSetupQuick.exe from the hMailServer Bin folder to retry.', mbError, MB_OK, IDOK);
                Result := false;
+               if bDatabaseStepOnExisting and g_bDatabaseChanged then
+                  SayDatabaseStepStoppedPartWay();
             end
             else
             begin
@@ -2304,7 +2622,13 @@ begin
          // in hMailServer.cpp), so a running service means the process started, not
          // that the schema is usable. The schema is covered by the DBSetupQuick exit
          // code checked above.
-         if (bServiceRegistered = true) then
+         //
+         // Not after the installation stopped before its database step: hMailServer.Updater
+         // puts the earlier version back, and this one would meet a database it may
+         // not run on.
+         if bStopBeforeDatabase then
+            Log('The hMailServer service is not started: the installation stopped before its database step.')
+         else if (bServiceRegistered = true) then
          begin
             if (Exec(ExpandConstant('{sys}\net.exe'), 'START hMailServer', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) = False) then
             begin
@@ -2576,6 +2900,19 @@ begin
 	end
 	else if CurPage = wpReady then
 	begin
+		// The database's version as the server this installation replaces left it,
+		// asked of that server while it still runs (ReadDatabaseVersion): what the
+		// version after the database step is held to (EndDatabaseStep). Only from a
+		// running service - a stopped one is not started for it - and only over an
+		// existing installation's database.
+		if IsComponentSelected('server') and (GetCurrentDatabaseType() <> '') then
+		begin
+			if IsServiceRunning('hMailServer') then
+				g_iDatabaseVersionBefore := ReadDatabaseVersion('before this installation, as the running hMailServer service has it')
+			else
+				Log('The hMailServer service is not running, so the database''s version before this installation is not read.');
+		end;
+
 		// Stop the service before any program file is replaced, and refuse to go
 		// past this page if it will not stop. See StopHMailServerService for why
 		// that has to be a refusal rather than a warning, and for why the wait is
@@ -2631,12 +2968,17 @@ begin
 	  begin
 	    // The result used to be discarded here, so a failed database create or
 	    // upgrade showed a (suppressible) message box and setup still finished
-	    // with exit code 0 - a scripted deployment could not tell. Raising turns
-	    // it into a failed install with a non-zero exit code; the specific
-	    // message has already been shown by RunPostInstallTasks itself.
+	    // with exit code 0 - a scripted deployment could not tell. The exception
+	    // puts the failure in the log and on screen; the exit code, 10 or 11, is
+	    // GetCustomSetupExitCode's, since Inno Setup goes on to exit 0 after an
+	    // exception here. The specific message has already been shown by
+	    // RunPostInstallTasks itself.
 	    if (RunPostInstallTasks() = false) then
 	    begin
-	      if g_bGrantFailed then
+	      g_bStepsIncomplete := true;
+	      if g_bDatabaseChanged then
+	        RaiseException('A post-installation step did not complete after the database step had changed the database, so ' + PreviousVersionText() + ' is not to be put back on it: it may not run on that database. See the message above.')
+	      else if g_bGrantFailed then
 	        RaiseException('The hMailServer service account could not be granted its folders. See the message above; run "hMailServer.exe --confirm /GrantServiceAccess" as an administrator from the hMailServer Bin folder to retry.')
 	      else
 	        RaiseException('A post-installation step did not complete: the administrator password, the service or the database. See the message above; run DBSetupQuick.exe from the hMailServer Bin folder to retry the database.');
@@ -2654,6 +2996,26 @@ begin
 
 	end;
 
+end;
+
+// Setup's exit code when it has run to the end, past Inno Setup's own 1 to 8: 0 when
+// every step completed; when a step after the files did not complete
+// (g_bStepsIncomplete), 10 while the database is as the version this installation
+// replaced left it, and 11 once the database step has changed it, or could not be
+// shown to have left it unchanged (g_bDatabaseChanged). hMailServer.Updater puts the
+// earlier version back on 10 (InstallerStepsIncomplete) and never on 11
+// (InstallerDatabaseUpgraded): the earlier version may not run on the database 11
+// leaves, so a rollback then would leave a server that serves no mail. A scripted
+// installation reads the same: 11 is "do not reinstall the earlier version
+// without restoring the database".
+function GetCustomSetupExitCode(): Integer;
+begin
+	if g_bStepsIncomplete and g_bDatabaseChanged then
+		Result := 11
+	else if g_bStepsIncomplete then
+		Result := 10
+	else
+		Result := 0;
 end;
 
 // The uninstaller's own step before [UninstallRun] and before any file is deleted:

@@ -4677,8 +4677,8 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Hands mail clients the right host names, ports and security settings automatically: Thunderbird-style autoconfig and Outlook autodiscover, for every local domain. Point autoconfig.&lt;domain&gt; and autodiscover.&lt;domain&gt; at this server in DNS." xml:space="preserve">
     <value>Předává poštovním klientům automaticky správné názvy hostitelů, porty a nastavení zabezpečení: autoconfig ve stylu Thunderbirdu a autodiscover pro Outlook, pro každou místní doménu. Nasměrujte autoconfig.&lt;domain&gt; a autodiscover.&lt;domain&gt; v DNS na tento server.</value>
   </data>
-  <data name="Hands the verified installer to the update helper. The service stops and starts; if it does not come back, the previous version is reinstalled. The outcome is reported here when the service is back." xml:space="preserve">
-    <value>Předá ověřený instalátor pomocníkovi aktualizace. Služba se zastaví a spustí; pokud se nevrátí, přeinstaluje se předchozí verze. Výsledek se zde ohlásí, až služba zase poběží.</value>
+  <data name="Hands the verified installer to the update helper. The service stops and starts; if it does not come back, the previous version is reinstalled, unless the new version has already changed the database. The outcome is reported here when the service is back." xml:space="preserve">
+    <value>Předá ověřený instalátor pomocníkovi aktualizace. Služba se zastaví a spustí; pokud se nevrátí, přeinstaluje se předchozí verze, ledaže nová verze už změnila databázi. Výsledek se zde ohlásí, až služba zase poběží.</value>
   </data>
   <data name="Hard" xml:space="preserve">
     <value>Trvalé</value>
@@ -5115,13 +5115,13 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Insert template…" xml:space="preserve">
     <value>Vložit šablonu…</value>
   </data>
-  <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the Status page. A service that does not come back is rolled back to the previous installer." xml:space="preserve">
-    <value>Uvnitř okna naplánovaná úloha bez jediného kliknutí použije ověřený instalační program: služba se zastaví, soubory a schéma se aktualizují, služba se spustí a výsledek jde do logu, do protokolu událostí systému Windows a na stránku Stav. Pokud se služba nevrátí, provede se návrat k předchozímu instalačnímu programu.</value>
+  <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the Status page. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
+    <value>Uvnitř okna naplánovaná úloha bez jediného kliknutí použije ověřený instalační program: služba se zastaví, soubory a schéma se aktualizují, služba se spustí a výsledek jde do logu, do protokolu událostí systému Windows a na stránku Stav. Pokud se služba nevrátí, provede se návrat k předchozímu instalačnímu programu, ledaže nová verze už změnila databázi.</value>
   </data>
-  <data name="Install the update now?&#10;&#10;The verified installer is handed to the update helper: the service stops, the new version is installed, and the service starts again. If it does not come back, the previous version is reinstalled. This Control Panel loses its connection while that happens; reconnect afterwards to see the outcome here." xml:space="preserve">
+  <data name="Install the update now?&#10;&#10;The verified installer is handed to the update helper: the service stops, the new version is installed, and the service starts again. If it does not come back, the previous version is reinstalled, unless the new version has already changed the database. This Control Panel loses its connection while that happens; reconnect afterwards to see the outcome here." xml:space="preserve">
     <value>Nainstalovat aktualizaci teď?
 
-Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví, nainstaluje se nová verze a služba se znovu spustí. Pokud se nevrátí, přeinstaluje se předchozí verze. Tento Control Panel mezitím ztratí spojení; poté se znovu připojte, abyste zde viděli výsledek.</value>
+Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví, nainstaluje se nová verze a služba se znovu spustí. Pokud se nevrátí, přeinstaluje se předchozí verze, ledaže nová verze už změnila databázi. Tento Control Panel mezitím ztratí spojení; poté se znovu připojte, abyste zde viděli výsledek.</value>
   </data>
   <data name="Install update" xml:space="preserve">
     <value>Nainstalovat aktualizaci</value>
@@ -13426,11 +13426,17 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="hMailServer {0} did not start, so {1} was put back and is running: {2}. The installer's log: {3}" xml:space="preserve">
     <value>hMailServer {0} se nespustil, takže byl vrácen {1} a běží: {2}. Protokol instalátoru: {3}</value>
   </data>
+  <data name="hMailServer {0} is installed and its database step changed the database, or may have, but the install did not complete, so {1} was not put back: it may not run on that database. What did not complete: {2}. The installer's log: {3}" xml:space="preserve">
+    <value>hMailServer {0} je nainstalován a jeho databázový krok změnil databázi, nebo ji možná změnil, instalace se však nedokončila, a proto {1} nebyl vrácen: na této databázi nemusí běžet. Co se nedokončilo: {2}. Protokol instalátoru: {3}</value>
+  </data>
   <data name="hMailServer {0} is ready to be put back if needed." xml:space="preserve">
     <value>hMailServer {0} je připraven k vrácení, bude-li potřeba.</value>
   </data>
-  <data name="hMailServer {0} replaces {1} on this server. Windows asks for an administrator's permission once; after that everything happens by itself. The server stops accepting mail for a minute or two while it restarts, and if {0} does not start, {1} is put back." xml:space="preserve">
-    <value>hMailServer {0} na tomto serveru nahrazuje {1}. Windows jednou požádá o povolení správce; potom se vše děje samo. Server přestane na minutu nebo dvě přijímat poštu, zatímco se restartuje, a pokud se {0} nespustí, vrátí se {1}.</value>
+  <data name="hMailServer {0} replaces {1} on this server. Windows asks for an administrator's permission once; after that everything happens by itself. The server stops accepting mail for a minute or two while it restarts, and if {0} does not start, {1} is put back, unless {0} has already changed the database." xml:space="preserve">
+    <value>hMailServer {0} na tomto serveru nahrazuje {1}. Windows jednou požádá o povolení správce; potom se vše děje samo. Server přestane na minutu nebo dvě přijímat poštu, zatímco se restartuje, a pokud se {0} nespustí, vrátí se {1}, ledaže {0} už změnil databázi.</value>
+  </data>
+  <data name="hMailServer {0} was not installed: the installer did not pass the check - {1}. Nothing was changed and the server runs as it did. Download it again." xml:space="preserve">
+    <value>hMailServer {0} nebyl nainstalován: instalátor neprošel kontrolou - {1}. Nic se nezměnilo a server běží jako dřív. Stáhněte ho znovu.</value>
   </data>
   <data name="hMailServer {0} was not installed: the installer did not pass the check - {1}. Nothing was changed and the server runs as it did. Download it again; if the check fails again, the copy is kept in {2} for inspection." xml:space="preserve">
     <value>hMailServer {0} nebyl nainstalován: instalátor neprošel kontrolou - {1}. Nic se nezměnilo a server běží jako dřív. Stáhněte ho znovu; pokud kontrola znovu selže, kopie zůstane k prozkoumání v {2}.</value>

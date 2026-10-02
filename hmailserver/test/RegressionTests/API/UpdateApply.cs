@@ -42,7 +42,7 @@ namespace RegressionTests.API
       private const string AdminPassword = "testar";
       private const string LatestPath = "/repos/hmailserver/hmailserver/releases/latest";
 
-      private static string _quiet, _stopper, _starter, _failing, _loud, _ager, _later, _marker;
+      private static string _quiet, _stopper, _starter, _failing, _loud, _ager, _later, _incomplete, _putback, _upgraded, _upgradedStopper, _marker;
 
       private FakeHttpEndpoint _feed;
       private FakeSigstore _sigstore;
@@ -132,9 +132,12 @@ namespace RegressionTests.API
          string outcome = WaitForOutcome(OutcomePath, 60);
          StringAssert.StartsWith("ok " + Newer + " the installer succeeded and the service is running", outcome);
 
-         // What the installer was run with: silent, no restart, the token, a log.
+         // What the installer was run with: silent, no restart, a log, and the token
+         // in its environment - never on its command line, which Inno Setup writes
+         // into the installer's log.
          string ran = File.ReadAllText(_marker);
-         StringAssert.Contains("quiet /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /CLOSEAPPLICATIONS /upgradetoken=", ran);
+         StringAssert.Contains("quiet /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /CLOSEAPPLICATIONS /LOG=", ran);
+         StringAssert.DoesNotContain("/upgradetoken", ran, "A 6.3.6 or later installer is given the token in its environment.");
          StringAssert.Contains("/LOG=" + Paths.Combine(_updatesDirectory, "install-" + Newer + ".log"), ran);
          StringAssert.DoesNotContain("starter", ran, "The service never stopped, so nothing was rolled back.");
 
@@ -146,8 +149,16 @@ namespace RegressionTests.API
          StringAssert.Contains("Update: the rollback image for hMailServer " + Running + " is " + rollback + ", verified.", LogHandler.ReadCurrentDefaultLog());
 
          // The token the installer was given authenticates the administrator once.
-         string token = Regex.Match(ran, "/upgradetoken=([0-9a-f]{64})").Groups[1].Value;
+         string token = Regex.Match(ran, @"quiet .*\[HM_UPGRADE_TOKEN=([0-9a-f]{64})\]").Groups[1].Value;
          Assert.AreEqual(64, token.Length, "A 32-byte token, hex: " + ran);
+
+         // The helper's log has the installer's command line, says where the token
+         // went, and does not carry it.
+         string applyLog = File.ReadAllText(Paths.Combine(_updatesDirectory, "apply-" + Newer + ".log"));
+         StringAssert.Contains(" /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /CLOSEAPPLICATIONS /LOG=", applyLog);
+         StringAssert.Contains("the token is passed in its environment", applyLog);
+         StringAssert.DoesNotContain(token, applyLog, "The helper's log must not carry the token it passed.");
+
          Assert.IsNotNull(new Application().Authenticate("Administrator", "token:" + token), "The token is the administrator, once.");
          Assert.IsNull(new Application().Authenticate("Administrator", "token:" + token), "And only once.");
          Assert.IsFalse(TokenListed(), "A redeemed token is gone.");
@@ -190,6 +201,7 @@ namespace RegressionTests.API
          StringAssert.Contains("starter /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /CLOSEAPPLICATIONS /LOG=", ran);
          StringAssert.DoesNotContain("starter /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /CLOSEAPPLICATIONS /upgradetoken", ran,
             "The rollback runs without the token: the version it restores already matches the schema.");
+         Assert.IsFalse(Regex.IsMatch(ran, @"starter [^\r\n]*HM_UPGRADE_TOKEN"), "Nor in its environment.");
 
          // The service was restarted behind the harness's back; put the harness back
          // in step with it before anything else goes through COM.
@@ -218,6 +230,105 @@ namespace RegressionTests.API
          _application.Reinitialize();
          WaitUntil(() => File.Exists(OutcomePath + ".reported"), 30, "The outcome was not reported at startup.");
          StringAssert.Contains("Update to hMailServer " + Newer + " did not succeed (failed)", LogHandler.ReadErrorLog());
+         Console.WriteLine("hMailServer error log (expected for this fixture):");
+         Console.WriteLine(LogHandler.ReadErrorLog());
+         LogHandler.ClearErrorLogUntilSettled();
+      }
+
+      [Test]
+      [Description("An installer whose steps after its files did not complete (exit code 10) is rolled back, though the service it left runs")]
+      public void AnInstallerWhoseStepsAfterItsFilesDidNotCompleteIsRolledBack()
+      {
+         // Until 6.3.6 the installer exited 0 when its database upgrade failed, and
+         // the helper, finding the service running, reported the update installed
+         // (the installer smoke VM, 1 October 2026). Exit code 1 with the service
+         // running is still not rolled back (AnInstallerThatFailsWhileTheServiceStaysUpIsNotRolledBack).
+         ServeRelease(_incomplete, _putback);
+         var status = Downloaded();
+         Assert.IsTrue(status.InstallUpdate(), status.UpdateLastError);
+
+         string outcome = WaitForOutcome(OutcomePath, 60);
+         StringAssert.StartsWith("rolled-back " + Newer + " the installer exited with 10: a step after its files", outcome);
+         StringAssert.Contains("hMailServer " + Running + " was reinstalled and the service is running", outcome);
+         // What its log says went wrong, without the lines that only name an error.
+         StringAssert.Contains("The hMailServer database could not be created or upgraded (exit code 2).", outcome);
+         StringAssert.DoesNotContain("WSAGetLastError", outcome);
+         StringAssert.DoesNotContain("0 failed", outcome);
+         string ran = File.ReadAllText(_marker);
+         StringAssert.Contains("incomplete /VERYSILENT", ran);
+         StringAssert.Contains("putback /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /CLOSEAPPLICATIONS /LOG=", ran, "The rollback image did not run.");
+         // The installer is told which version is put back, so that it stops before
+         // its database step when a step before it fails; the rollback image is not.
+         Assert.IsTrue(Regex.IsMatch(ran, @"incomplete [^\r\n]*\[HM_UPDATE_ROLLBACK_VERSION=" + Regex.Escape(Running) + @"\]"),
+            "The installer was not given the version the helper puts back.");
+         Assert.IsFalse(Regex.IsMatch(ran, @"putback [^\r\n]*HM_UPDATE_ROLLBACK_VERSION"), "The rollback image was given a version to put back.");
+
+         _application.Reinitialize();
+         WaitUntil(() => File.Exists(OutcomePath + ".reported"), 30, "The outcome was not reported at startup.");
+         StringAssert.Contains("Update to hMailServer " + Newer + " did not succeed (rolled-back)", LogHandler.ReadErrorLog());
+         Console.WriteLine("hMailServer error log (expected for this fixture):");
+         Console.WriteLine(LogHandler.ReadErrorLog());
+         LogHandler.ClearErrorLogUntilSettled();
+      }
+
+      [Test]
+      [Description("An installer whose database step changed the database and which then did not complete (exit code 11) is not rolled back: the earlier version may not run on that database")]
+      public void AnInstallerThatUpgradedTheDatabaseIsNeverRolledBack()
+      {
+         // Since 36ef1a144 the helper put the earlier version back on exit code 10,
+         // which the installer gave for any step after its files - also after its
+         // database step had moved the schema. The earlier version then met a newer
+         // database, its own installer failed, and the server refused the database:
+         // no mail. The installer now gives 11 once the database has changed, and the
+         // helper puts nothing back on it.
+         ServeRelease(_upgraded, _putback);
+         var status = Downloaded();
+         Assert.IsTrue(status.InstallUpdate(), status.UpdateLastError);
+
+         string outcome = WaitForOutcome(OutcomePath, 60);
+         StringAssert.StartsWith("upgraded-incomplete " + Newer + " the installer exited with 11: a step did not complete after its database step had changed the database", outcome);
+         StringAssert.Contains("Database step changed the database: it was at version 6105 before the step and is at version 6106", outcome);
+         StringAssert.Contains("hMailServer " + Running + " was not put back, since it may not run on that database; the service is running", outcome);
+         StringAssert.Contains("The hMailServer service was installed but did not start.", outcome);
+         // The step that did not complete is named without the last file copied.
+         StringAssert.DoesNotContain("Dest filename", outcome);
+         StringAssert.Contains("restore the backup taken before the update", outcome);
+         StringAssert.DoesNotContain("putback", File.ReadAllText(_marker), "The rollback image ran.");
+
+         _application.Reinitialize();
+         WaitUntil(() => File.Exists(OutcomePath + ".reported"), 30, "The outcome was not reported at startup.");
+         StringAssert.Contains("Update to hMailServer " + Newer + " did not complete after its database step had changed the database, so the earlier version was not put back (upgraded-incomplete)",
+            LogHandler.ReadErrorLog());
+         StringAssert.Contains("Code: HM5481", LogHandler.ReadErrorLog(), "An upgraded database not put back has an error of its own.");
+         StringAssert.DoesNotContain("did not succeed", LogHandler.ReadErrorLog());
+         Console.WriteLine("hMailServer error log (expected for this fixture):");
+         Console.WriteLine(LogHandler.ReadErrorLog());
+         LogHandler.ClearErrorLogUntilSettled();
+      }
+
+      [Test]
+      [Description("An installer that ended with 0 after its database step changed the database, and whose service did not come back, is not rolled back either")]
+      public void AServiceThatDoesNotComeBackOnAnUpgradedDatabaseIsNotRolledBack()
+      {
+         string newer = Newer;
+         string running = Running;
+
+         ServeRelease(_upgradedStopper, _starter);
+         var status = Downloaded();
+         Assert.IsTrue(status.InstallUpdate(), status.UpdateLastError);
+
+         // The installer's log says its database step began and not that it left the
+         // database unchanged: the helper does not run the rollback image, which would
+         // put a version on the database that refuses it.
+         string outcome = WaitForOutcome(OutcomePath, 60);
+         StringAssert.StartsWith("upgraded-incomplete " + newer + " the installer succeeded but the service was not running after 8 seconds", outcome);
+         StringAssert.Contains("hMailServer " + running + " was not put back", outcome);
+         StringAssert.DoesNotContain("starter", File.ReadAllText(_marker), "The rollback image ran.");
+
+         // Bring it back ourselves; its startup reports the outcome.
+         RestartServerAndReacquireCom();
+         WaitUntil(() => File.Exists(OutcomePath + ".reported"), 30, "The outcome was not reported at startup.");
+         StringAssert.Contains("Code: HM5481", LogHandler.ReadErrorLog());
          Console.WriteLine("hMailServer error log (expected for this fixture):");
          Console.WriteLine(LogHandler.ReadErrorLog());
          LogHandler.ClearErrorLogUntilSettled();
@@ -474,7 +585,7 @@ namespace RegressionTests.API
          WaitForOutcome(OutcomePath, 60);
 
          Assert.IsTrue(TokenListed(), "The ager never redeemed the token.");
-         string token = Regex.Match(File.ReadAllText(_marker), "ager .*?/upgradetoken=([0-9a-f]{64})").Groups[1].Value;
+         string token = Regex.Match(File.ReadAllText(_marker), @"ager .*?\[HM_UPGRADE_TOKEN=([0-9a-f]{64})\]").Groups[1].Value;
          Assert.AreEqual(64, token.Length, "The helper handed the installer a 32-byte token.");
 
          Assert.IsNull(new Application().Authenticate("Administrator", "token:" + token), "An hour is the token's life.");
@@ -718,6 +829,31 @@ namespace RegressionTests.API
          // The quiet program built as the release after the newer one: another
          // release's installer, which is never run.
          _later = Compile(directory, "later", "", 0, BumpVersion(newer));
+         // An installer whose files are in place but whose steps after them - the
+         // database upgrade above all - did not complete: exit code 10, the
+         // service left running (hMailServerInnoExtension.iss, GetCustomSetupExitCode).
+         // Its log as the real one wrote it on the smoke VM on 2 October 2026: lines
+         // that name an error without being one, then the database step's failure.
+         _incomplete = Compile(directory, "incomplete",
+            @"foreach (string a in args) if (a.StartsWith(""/LOG="")) File.WriteAllText(a.Substring(5).Trim('""'), ""2026-10-02 09:08:58.001   Function and DLL name: WSAGetLastError@ws2_32.dll\r\n2026-10-02 09:09:10.002   Done: 0 granted, 12 already there, 0 failed, 0 approved, 0 to check.\r\n2026-10-02 09:09:12.003   Defaulting to OK for suppressed message box (OK):\r\n                          The hMailServer database could not be created or upgraded (exit code 2).The hMailServer service may not work until the database has been upgraded.\r\n2026-10-02 09:09:12.004   CurStepChanged raised an exception.\r\n"");", 10, newer);
+         // A rollback image that starts the service only where it is not running,
+         // as the real one leaves it running.
+         _putback = Compile(directory, "putback",
+            "using (var s = new System.ServiceProcess.ServiceController(\"hMailServer\")) { if (s.Status != System.ServiceProcess.ServiceControllerStatus.Running) { s.Start(); s.WaitForStatus(System.ServiceProcess.ServiceControllerStatus.Running, TimeSpan.FromSeconds(90)); } }", 0, running);
+         // An installer whose database step changed the database and whose step
+         // after it - the service's start - did not complete: exit code 11, the
+         // service left running, and a log in the real one's shape, with the lines
+         // the installer writes about its database step (BeginDatabaseStep and
+         // EndDatabaseStep in hMailServerInnoExtension.iss).
+         _upgraded = Compile(directory, "upgraded",
+            @"foreach (string a in args) if (a.StartsWith(""/LOG="")) File.WriteAllText(a.Substring(5).Trim('""'), ""2026-10-02 12:00:00.001   Installation process succeeded.\r\n2026-10-02 12:00:01.002   Database step begun: the database was at version 6105 before it.\r\n2026-10-02 12:00:09.003   Database step changed the database: it was at version 6105 before the step and is at version 6106.\r\n2026-10-02 12:00:12.004   Defaulting to OK for suppressed message box (OK):\r\n                          The hMailServer service was installed but did not start.\r\n2026-10-02 12:00:12.005   CurStepChanged raised an exception.\r\n"");", 11, newer);
+         // An installer that ended with 0 after its database step began and did not
+         // say it left the database unchanged, and whose service does not come back:
+         // the case exit code 11 cannot cover - the service failing after setup has
+         // finished - and that the helper must not roll back either.
+         _upgradedStopper = Compile(directory, "upgradedstopper",
+            @"foreach (string a in args) if (a.StartsWith(""/LOG="")) File.WriteAllText(a.Substring(5).Trim('""'), ""2026-10-02 12:00:01.002   Database step begun: the database was at version 6105 before it.\r\n2026-10-02 12:00:09.003   Database step changed the database: it was at version 6105 before the step and is at version 6106.\r\n""); " +
+            "using (var s = new System.ServiceProcess.ServiceController(\"hMailServer\")) { s.Stop(); s.WaitForStatus(System.ServiceProcess.ServiceControllerStatus.Stopped, TimeSpan.FromSeconds(90)); }", 0, newer);
       }
 
       // A console program that records its name and arguments, does what it is told to
@@ -731,13 +867,20 @@ namespace RegressionTests.API
             "[assembly: System.Reflection.AssemblyFileVersion(\"" + version + ".0\")]\n" +
             "class FakeInstaller\n{\n" +
             "   static int Main(string[] args)\n   {\n" +
-            "      File.AppendAllText(@\"" + _marker + "\", \"" + name + " \" + string.Join(\" \", args) + Environment.NewLine);\n" +
+            // The token the helper gave in the environment, where a 6.3.6 or later
+            // installer takes it, and the version it puts back if the installer does
+            // not complete, recorded after the arguments.
+            "      File.AppendAllText(@\"" + _marker + "\", \"" + name + " \" + string.Join(\" \", args) + " +
+            "(string.IsNullOrEmpty(Environment.GetEnvironmentVariable(\"HM_UPGRADE_TOKEN\")) ? \"\" : \" [HM_UPGRADE_TOKEN=\" + Environment.GetEnvironmentVariable(\"HM_UPGRADE_TOKEN\") + \"]\") + " +
+            "(string.IsNullOrEmpty(Environment.GetEnvironmentVariable(\"HM_UPDATE_ROLLBACK_VERSION\")) ? \"\" : \" [HM_UPDATE_ROLLBACK_VERSION=\" + Environment.GetEnvironmentVariable(\"HM_UPDATE_ROLLBACK_VERSION\") + \"]\") + " +
+            "Environment.NewLine);\n" +
             "      " + action + "\n" +
             "      return " + exitCode + ";\n" +
             "   }\n}\n";
 
          // The name is one of the words CompileFakeInstallers passes - "quiet",
-         // "stopper", "starter", "failing", "loud", "ager", "later" - so what is appended here is a file
+         // "stopper", "starter", "failing", "loud", "ager", "later", "incomplete", "putback",
+         // "upgraded", "upgradedstopper" - so what is appended here is a file
          // name, never a rooted path that would displace the directory.
          string path = Paths.Combine(directory, name + ".exe");
          using (CodeDomProvider provider = CodeDomProvider.CreateProvider("CSharp"))
@@ -1078,6 +1221,10 @@ namespace RegressionTests.API
          string ran = File.ReadAllText(_marker);
          StringAssert.Contains("installer ", ran);
          StringAssert.DoesNotContain("rollback ", ran, "The rollback image ran.");
+         // Checked before the installer runs, too: an installer told of a version to
+         // put back stops before its database step when a step before it fails,
+         // which only a rollback that can run makes good.
+         StringAssert.DoesNotContain("HM_UPDATE_ROLLBACK_VERSION", ran, "The installer was told of a rollback image that cannot be run.");
       }
 
       [Test]
@@ -1086,8 +1233,33 @@ namespace RegressionTests.API
          RunHelper("--installer", _installer, "--installer-sha256", Sha256(_installer),
                    "--rollback", _rollback, "--rollback-sha256", Sha256(_rollback), "--rollback-version", "9.9.8");
 
-         StringAssert.Contains("rollback ", File.ReadAllText(_marker), "The rollback image did not run.");
+         string ran = File.ReadAllText(_marker);
+         StringAssert.Contains("rollback ", ran, "The rollback image did not run.");
          StringAssert.DoesNotContain("the rollback image was not run", Outcome());
+         Assert.IsTrue(Regex.IsMatch(ran, @"installer [^\r\n]* \[HM_UPDATE_ROLLBACK_VERSION=9\.9\.8\]"), "The installer was not told of the version put back.");
+         Assert.IsFalse(Regex.IsMatch(ran, @"rollback [^\r\n]*HM_UPDATE_ROLLBACK_VERSION"), "The rollback image was told of a version to put back.");
+      }
+
+      [Test]
+      public void TheRollbackImageIsHeldWhileTheInstallerRuns()
+      {
+         // From before the installer runs until the rollback image has run: what the
+         // installer is told it can count on is held the way the installer itself is.
+         Process helper = StartHelper("--installer", _installer, "--installer-sha256", Sha256(_installer),
+                                      "--rollback", _rollback, "--rollback-sha256", Sha256(_rollback), "--rollback-version", "9.9.8");
+         try
+         {
+            WaitUntil(() => File.Exists(_marker), 30, "The helper did not run the installer.");
+            Assert.Throws<IOException>(() => File.Move(_rollback, _rollback + ".moved"), "The rollback image could be renamed while the installer ran.");
+            Assert.Throws<IOException>(() => File.AppendAllText(_rollback, "x"), "The rollback image could be changed while the installer ran.");
+         }
+         finally
+         {
+            Assert.IsTrue(helper.WaitForExit(60000), "The helper did not finish.");
+            helper.Dispose();
+         }
+
+         StringAssert.Contains("rollback ", File.ReadAllText(_marker), "The rollback image did not run.");
       }
 
       private string Outcome()
@@ -1137,8 +1309,9 @@ namespace RegressionTests.API
             return FakeSigstore.Hex(sha.ComputeHash(File.ReadAllBytes(path)));
       }
 
-      // A console program that records its name and exits 0 - an installer, as far
-      // as the helper can tell - after doing what action says.
+      // A console program that records its name, its arguments and the version the
+      // helper told it is put back (HM_UPDATE_ROLLBACK_VERSION), and exits 0 - an
+      // installer, as far as the helper can tell - after doing what action says.
       private string Compile(string name, string action)
       {
          string source =
@@ -1146,7 +1319,9 @@ namespace RegressionTests.API
             "using System.IO;\n" +
             "class FakeInstaller\n{\n" +
             "   static int Main(string[] args)\n   {\n" +
-            "      File.AppendAllText(@\"" + _marker + "\", \"" + name + " \" + string.Join(\" \", args) + Environment.NewLine);\n" +
+            "      File.AppendAllText(@\"" + _marker + "\", \"" + name + " \" + string.Join(\" \", args) + " +
+            "(string.IsNullOrEmpty(Environment.GetEnvironmentVariable(\"HM_UPDATE_ROLLBACK_VERSION\")) ? \"\" : \" [HM_UPDATE_ROLLBACK_VERSION=\" + Environment.GetEnvironmentVariable(\"HM_UPDATE_ROLLBACK_VERSION\") + \"]\") + " +
+            "Environment.NewLine);\n" +
             "      " + action + "\n" +
             "      return 0;\n" +
             "   }\n}\n";

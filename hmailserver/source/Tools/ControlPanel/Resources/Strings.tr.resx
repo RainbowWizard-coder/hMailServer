@@ -4677,8 +4677,8 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Hands mail clients the right host names, ports and security settings automatically: Thunderbird-style autoconfig and Outlook autodiscover, for every local domain. Point autoconfig.&lt;domain&gt; and autodiscover.&lt;domain&gt; at this server in DNS." xml:space="preserve">
     <value>Posta istemcilerine doğru ana bilgisayar adlarını, portları ve güvenlik ayarlarını otomatik olarak verir: her yerel etki alanı için Thunderbird tarzı autoconfig ve Outlook autodiscover. DNS'te autoconfig.&lt;domain&gt; ve autodiscover.&lt;domain&gt; adlarını bu sunucuya yöneltin.</value>
   </data>
-  <data name="Hands the verified installer to the update helper. The service stops and starts; if it does not come back, the previous version is reinstalled. The outcome is reported here when the service is back." xml:space="preserve">
-    <value>Doğrulanan yükleyiciyi güncelleştirme yardımcısına verir. Hizmet durur ve başlar; geri gelmezse önceki sürüm yeniden yüklenir. Sonuç, hizmet geri geldiğinde burada bildirilir.</value>
+  <data name="Hands the verified installer to the update helper. The service stops and starts; if it does not come back, the previous version is reinstalled, unless the new version has already changed the database. The outcome is reported here when the service is back." xml:space="preserve">
+    <value>Doğrulanan yükleyiciyi güncelleştirme yardımcısına verir. Hizmet durur ve başlar; geri gelmezse önceki sürüm yeniden yüklenir; yeni sürüm veritabanını zaten değiştirdiyse yüklenmez. Sonuç, hizmet geri geldiğinde burada bildirilir.</value>
   </data>
   <data name="Hard" xml:space="preserve">
     <value>Kalıcı</value>
@@ -5115,13 +5115,13 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Insert template…" xml:space="preserve">
     <value>Şablon ekle…</value>
   </data>
-  <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the Status page. A service that does not come back is rolled back to the previous installer." xml:space="preserve">
-    <value>Pencerenin içinde, zamanlanmış görev doğrulanmış bir kurulum programını tıklamaya gerek kalmadan uygular: hizmet durur, dosyalar ve şema yükseltilir, hizmet başlar ve sonuç günlüğe, Windows olay günlüğüne ve Durum sayfasına gider. Geri gelmeyen bir hizmet, önceki kurulum programına geri alınır.</value>
+  <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the Status page. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
+    <value>Pencerenin içinde, zamanlanmış görev doğrulanmış bir kurulum programını tıklamaya gerek kalmadan uygular: hizmet durur, dosyalar ve şema yükseltilir, hizmet başlar ve sonuç günlüğe, Windows olay günlüğüne ve Durum sayfasına gider. Geri gelmeyen bir hizmet, önceki kurulum programına geri alınır; yeni sürüm veritabanını zaten değiştirdiyse alınmaz.</value>
   </data>
-  <data name="Install the update now?&#10;&#10;The verified installer is handed to the update helper: the service stops, the new version is installed, and the service starts again. If it does not come back, the previous version is reinstalled. This Control Panel loses its connection while that happens; reconnect afterwards to see the outcome here." xml:space="preserve">
+  <data name="Install the update now?&#10;&#10;The verified installer is handed to the update helper: the service stops, the new version is installed, and the service starts again. If it does not come back, the previous version is reinstalled, unless the new version has already changed the database. This Control Panel loses its connection while that happens; reconnect afterwards to see the outcome here." xml:space="preserve">
     <value>Güncelleştirme şimdi yüklensin mi?
 
-Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, yeni sürüm yüklenir ve hizmet yeniden başlar. Geri gelmezse önceki sürüm yeniden yüklenir. Bu Denetim Masası bu sırada bağlantısını kaybeder; sonucu burada görmek için sonrasında yeniden bağlanın.</value>
+Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, yeni sürüm yüklenir ve hizmet yeniden başlar. Geri gelmezse önceki sürüm yeniden yüklenir; yeni sürüm veritabanını zaten değiştirdiyse yüklenmez. Bu Denetim Masası bu sırada bağlantısını kaybeder; sonucu burada görmek için sonrasında yeniden bağlanın.</value>
   </data>
   <data name="Install update" xml:space="preserve">
     <value>Güncelleştirmeyi yükle</value>
@@ -13426,11 +13426,17 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="hMailServer {0} did not start, so {1} was put back and is running: {2}. The installer's log: {3}" xml:space="preserve">
     <value>hMailServer {0} başlamadı; bu nedenle {1} geri kondu ve çalışıyor: {2}. Yükleyicinin günlüğü: {3}</value>
   </data>
+  <data name="hMailServer {0} is installed and its database step changed the database, or may have, but the install did not complete, so {1} was not put back: it may not run on that database. What did not complete: {2}. The installer's log: {3}" xml:space="preserve">
+    <value>hMailServer {0} yüklendi ve veritabanı adımı veritabanını değiştirdi ya da değiştirmiş olabilir, ancak yükleme tamamlanmadı; bu nedenle {1} geri konmadı: bu veritabanıyla çalışmayabilir. Tamamlanmayan: {2}. Yükleyicinin günlüğü: {3}</value>
+  </data>
   <data name="hMailServer {0} is ready to be put back if needed." xml:space="preserve">
     <value>hMailServer {0} gerekirse geri konmaya hazır.</value>
   </data>
-  <data name="hMailServer {0} replaces {1} on this server. Windows asks for an administrator's permission once; after that everything happens by itself. The server stops accepting mail for a minute or two while it restarts, and if {0} does not start, {1} is put back." xml:space="preserve">
-    <value>hMailServer {0}, bu sunucudaki {1} sürümünün yerini alıyor. Windows bir kez yönetici izni ister; ondan sonra her şey kendiliğinden olur. Sunucu yeniden başlarken bir iki dakika posta kabul etmez ve {0} başlamazsa {1} geri konur.</value>
+  <data name="hMailServer {0} replaces {1} on this server. Windows asks for an administrator's permission once; after that everything happens by itself. The server stops accepting mail for a minute or two while it restarts, and if {0} does not start, {1} is put back, unless {0} has already changed the database." xml:space="preserve">
+    <value>hMailServer {0}, bu sunucudaki {1} sürümünün yerini alıyor. Windows bir kez yönetici izni ister; ondan sonra her şey kendiliğinden olur. Sunucu yeniden başlarken bir iki dakika posta kabul etmez ve {0} başlamazsa {1} geri konur; {0} veritabanını zaten değiştirdiyse konmaz.</value>
+  </data>
+  <data name="hMailServer {0} was not installed: the installer did not pass the check - {1}. Nothing was changed and the server runs as it did. Download it again." xml:space="preserve">
+    <value>hMailServer {0} yüklenmedi: yükleyici denetimden geçemedi - {1}. Hiçbir şey değişmedi ve sunucu eskisi gibi çalışıyor. Onu yeniden indirin.</value>
   </data>
   <data name="hMailServer {0} was not installed: the installer did not pass the check - {1}. Nothing was changed and the server runs as it did. Download it again; if the check fails again, the copy is kept in {2} for inspection." xml:space="preserve">
     <value>hMailServer {0} yüklenmedi: yükleyici denetimden geçemedi - {1}. Hiçbir şey değişmedi ve sunucu eskisi gibi çalışıyor. Onu yeniden indirin; denetim yine başarısız olursa kopya incelenmek üzere {2} içinde tutulur.</value>

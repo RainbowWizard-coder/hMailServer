@@ -1724,6 +1724,11 @@ namespace HM
                 "an outcome was not read");
          expect(UpdateInstaller::ParseAdministratorOutcome("rolled-back 6.3.7 x\nid=0123456789abcdef0123456789abcdef\n", outcome) && outcome.status == _T("rolled-back"),
                 "a rolled-back outcome with LF line ends was not read");
+         // An install whose database step changed the database and that did not
+         // complete, which the Updater does not roll back (exit code 11).
+         expect(UpdateInstaller::ParseAdministratorOutcome("upgraded-incomplete 6.3.7 the installer exited with 11: a step did not complete\nid=0123456789abcdef0123456789abcdef\n", outcome) &&
+                outcome.status == _T("upgraded-incomplete") && outcome.detail == _T("the installer exited with 11: a step did not complete"),
+                "an upgraded-incomplete outcome was not read");
          expect(!UpdateInstaller::ParseAdministratorOutcome("installed 6.3.7 x\nid=0123456789abcdef0123456789abcdef\n", outcome), "an unknown status was read");
          expect(!UpdateInstaller::ParseAdministratorOutcome("ok 6.3.7 x\n", outcome), "an outcome with no id was read");
          expect(!UpdateInstaller::ParseAdministratorOutcome("ok 6.3.7 x\nid=0123456789ABCDEF0123456789abcdef\n", outcome), "an outcome with an id in upper case was read");

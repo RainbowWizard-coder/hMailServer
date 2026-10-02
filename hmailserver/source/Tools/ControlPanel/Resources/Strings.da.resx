@@ -4677,8 +4677,8 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="Hands mail clients the right host names, ports and security settings automatically: Thunderbird-style autoconfig and Outlook autodiscover, for every local domain. Point autoconfig.&lt;domain&gt; and autodiscover.&lt;domain&gt; at this server in DNS." xml:space="preserve">
     <value>Giver mailklienter de rigtige værtsnavne, porte og sikkerhedsindstillinger automatisk: autoconfig i Thunderbird-stil og Outlook-autodiscover, for hvert lokalt domæne. Peg autoconfig.&lt;domain&gt; og autodiscover.&lt;domain&gt; på denne server i DNS.</value>
   </data>
-  <data name="Hands the verified installer to the update helper. The service stops and starts; if it does not come back, the previous version is reinstalled. The outcome is reported here when the service is back." xml:space="preserve">
-    <value>Overdrager det verificerede installationsprogram til opdateringshjælperen. Tjenesten stopper og starter; hvis den ikke kommer tilbage, geninstalleres den forrige version. Resultatet rapporteres her, når tjenesten er tilbage.</value>
+  <data name="Hands the verified installer to the update helper. The service stops and starts; if it does not come back, the previous version is reinstalled, unless the new version has already changed the database. The outcome is reported here when the service is back." xml:space="preserve">
+    <value>Overdrager det verificerede installationsprogram til opdateringshjælperen. Tjenesten stopper og starter; hvis den ikke kommer tilbage, geninstalleres den forrige version, medmindre den nye version allerede har ændret databasen. Resultatet rapporteres her, når tjenesten er tilbage.</value>
   </data>
   <data name="Hard" xml:space="preserve">
     <value>Hård</value>
@@ -5115,13 +5115,13 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="Insert template…" xml:space="preserve">
     <value>Indsæt skabelon…</value>
   </data>
-  <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the Status page. A service that does not come back is rolled back to the previous installer." xml:space="preserve">
-    <value>Inden for vinduet installerer den planlagte opgave et verificeret installationsprogram uden et klik: tjenesten stopper, filer og skema opgraderes, tjenesten starter, og udfaldet går til loggen, Windows-hændelsesloggen og statussiden. En tjeneste, der ikke kommer tilbage, rulles tilbage til det forrige installationsprogram.</value>
+  <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the Status page. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
+    <value>Inden for vinduet installerer den planlagte opgave et verificeret installationsprogram uden et klik: tjenesten stopper, filer og skema opgraderes, tjenesten starter, og udfaldet går til loggen, Windows-hændelsesloggen og statussiden. En tjeneste, der ikke kommer tilbage, rulles tilbage til det forrige installationsprogram, medmindre den nye version allerede har ændret databasen.</value>
   </data>
-  <data name="Install the update now?&#10;&#10;The verified installer is handed to the update helper: the service stops, the new version is installed, and the service starts again. If it does not come back, the previous version is reinstalled. This Control Panel loses its connection while that happens; reconnect afterwards to see the outcome here." xml:space="preserve">
+  <data name="Install the update now?&#10;&#10;The verified installer is handed to the update helper: the service stops, the new version is installed, and the service starts again. If it does not come back, the previous version is reinstalled, unless the new version has already changed the database. This Control Panel loses its connection while that happens; reconnect afterwards to see the outcome here." xml:space="preserve">
     <value>Installér opdateringen nu?
 
-Det verificerede installationsprogram overdrages til opdateringshjælperen: tjenesten stopper, den nye version installeres, og tjenesten starter igen. Hvis den ikke kommer tilbage, geninstalleres den forrige version. Dette Control Panel mister sin forbindelse imens; forbind igen bagefter for at se resultatet her.</value>
+Det verificerede installationsprogram overdrages til opdateringshjælperen: tjenesten stopper, den nye version installeres, og tjenesten starter igen. Hvis den ikke kommer tilbage, geninstalleres den forrige version, medmindre den nye version allerede har ændret databasen. Dette Control Panel mister sin forbindelse imens; forbind igen bagefter for at se resultatet her.</value>
   </data>
   <data name="Install update" xml:space="preserve">
     <value>Installér opdatering</value>
@@ -13426,11 +13426,17 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="hMailServer {0} did not start, so {1} was put back and is running: {2}. The installer's log: {3}" xml:space="preserve">
     <value>hMailServer {0} startede ikke, så {1} blev lagt tilbage og kører: {2}. Installationsprogrammets log: {3}</value>
   </data>
+  <data name="hMailServer {0} is installed and its database step changed the database, or may have, but the install did not complete, so {1} was not put back: it may not run on that database. What did not complete: {2}. The installer's log: {3}" xml:space="preserve">
+    <value>hMailServer {0} er installeret, og dens databasetrin ændrede databasen, eller kan have gjort det, men installationen blev ikke fuldført, så {1} blev ikke lagt tilbage: den kan måske ikke køre på den database. Det, der ikke blev fuldført: {2}. Installationsprogrammets log: {3}</value>
+  </data>
   <data name="hMailServer {0} is ready to be put back if needed." xml:space="preserve">
     <value>hMailServer {0} er klar til at blive lagt tilbage om nødvendigt.</value>
   </data>
-  <data name="hMailServer {0} replaces {1} on this server. Windows asks for an administrator's permission once; after that everything happens by itself. The server stops accepting mail for a minute or two while it restarts, and if {0} does not start, {1} is put back." xml:space="preserve">
-    <value>hMailServer {0} erstatter {1} på denne server. Windows beder én gang om en administrators tilladelse; derefter sker alt af sig selv. Serveren holder op med at tage imod post i et minut eller to, mens den genstarter, og hvis {0} ikke starter, lægges {1} tilbage.</value>
+  <data name="hMailServer {0} replaces {1} on this server. Windows asks for an administrator's permission once; after that everything happens by itself. The server stops accepting mail for a minute or two while it restarts, and if {0} does not start, {1} is put back, unless {0} has already changed the database." xml:space="preserve">
+    <value>hMailServer {0} erstatter {1} på denne server. Windows beder én gang om en administrators tilladelse; derefter sker alt af sig selv. Serveren holder op med at tage imod post i et minut eller to, mens den genstarter, og hvis {0} ikke starter, lægges {1} tilbage, medmindre {0} allerede har ændret databasen.</value>
+  </data>
+  <data name="hMailServer {0} was not installed: the installer did not pass the check - {1}. Nothing was changed and the server runs as it did. Download it again." xml:space="preserve">
+    <value>hMailServer {0} blev ikke installeret: installationsprogrammet bestod ikke kontrollen - {1}. Intet blev ændret, og serveren kører som før. Download det igen.</value>
   </data>
   <data name="hMailServer {0} was not installed: the installer did not pass the check - {1}. Nothing was changed and the server runs as it did. Download it again; if the check fails again, the copy is kept in {2} for inspection." xml:space="preserve">
     <value>hMailServer {0} blev ikke installeret: installationsprogrammet bestod ikke kontrollen - {1}. Intet blev ændret, og serveren kører som før. Download det igen; hvis kontrollen mislykkes igen, beholdes kopien i {2} til undersøgelse.</value>

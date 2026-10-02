@@ -167,7 +167,11 @@ namespace RegressionTests.API
          StringAssert.Contains("Update check: hMailServer " + Newer + " is available", log);
          StringAssert.Contains("Update: hMailServer " + Newer + " downloaded to", log);
          StringAssert.Contains("is open and hMailServer " + Newer + " is verified; applying it unattended", log);
-         StringAssert.Contains("quiet /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /CLOSEAPPLICATIONS /upgradetoken=", File.ReadAllText(_marker));
+         // The token in the installer's environment, not on its command line.
+         string ran = File.ReadAllText(_marker);
+         StringAssert.Contains("quiet /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /CLOSEAPPLICATIONS /LOG=", ran);
+         StringAssert.IsMatch(@"\[HM_UPGRADE_TOKEN=[0-9a-f]{64}\]", ran, "The token is given in the installer's environment.");
+         StringAssert.DoesNotContain("/upgradetoken", ran);
          Assert.AreEqual(1, CountRequests("GET " + LatestPath), "The feed was read once by the startup task.");
       }
 
@@ -394,7 +398,9 @@ namespace RegressionTests.API
             "using System;\nusing System.IO;\n" +
             "[assembly: System.Reflection.AssemblyFileVersion(\"" + version + ".0\")]\n" +
             "class FakeInstaller\n{\n   static int Main(string[] args)\n   {\n" +
-            "      File.AppendAllText(@\"" + _marker + "\", \"quiet \" + string.Join(\" \", args) + Environment.NewLine);\n" +
+            "      File.AppendAllText(@\"" + _marker + "\", \"quiet \" + string.Join(\" \", args) + " +
+            "(string.IsNullOrEmpty(Environment.GetEnvironmentVariable(\"HM_UPGRADE_TOKEN\")) ? \"\" : \" [HM_UPGRADE_TOKEN=\" + Environment.GetEnvironmentVariable(\"HM_UPGRADE_TOKEN\") + \"]\") + " +
+            "Environment.NewLine);\n" +
             "      return 0;\n   }\n}\n";
          using (CodeDomProvider provider = CodeDomProvider.CreateProvider("CSharp"))
          {

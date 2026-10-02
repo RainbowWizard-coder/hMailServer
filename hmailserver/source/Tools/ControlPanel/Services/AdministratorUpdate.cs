@@ -66,6 +66,8 @@ namespace hMailServer.ControlPanel.Services
          Remote,
          /// <summary>No verified installer is waiting.</summary>
          NotReady,
+         /// <summary>An install is already under way: being prepared (6), ready (7) or installing (4).</summary>
+         UnderWay,
          /// <summary>The release on offer is not a version this can put on a command line.</summary>
          BadVersion
       }
@@ -84,6 +86,11 @@ namespace hMailServer.ControlPanel.Services
             return Decision.ServiceInstalls;
          if (!isLocal)
             return Decision.Remote;
+         // A second administrator - or a second click - while an install is
+         // prepared, ready or running: not "nothing to install" (the smoke VM, 2
+         // October 2026, said "No verified installer is waiting" then).
+         if (state is 4 or 6 or 7)
+            return Decision.UnderWay;
          if (state != 3)
             return Decision.NotReady;
          if (!IsReleaseVersion(version))
@@ -175,7 +182,7 @@ namespace hMailServer.ControlPanel.Services
 
       private static readonly HashSet<string> Statuses_ = new HashSet<string>(StringComparer.Ordinal)
       {
-         "ok", "failed", "rolled-back", "rollback-failed", "no-rollback", "cancelled", "refused" // no-loc: the Updater's words
+         "ok", "failed", "rolled-back", "rollback-failed", "no-rollback", "upgraded-incomplete", "cancelled", "refused" // no-loc: the Updater's words
       };
 
       /// <summary>outcome.txt read; null when it is not one the Updater writes.</summary>
@@ -218,7 +225,10 @@ namespace hMailServer.ControlPanel.Services
          {
             case "ok": return StatusLevel.Good;
             case "rollback-failed":
-            case "no-rollback": return StatusLevel.Critical;
+            case "no-rollback":
+            // The database was changed and the install did not complete: nothing
+            // was put back, and the service may not be running.
+            case "upgraded-incomplete": return StatusLevel.Critical;
             default: return StatusLevel.Warning;
          }
       }
@@ -242,6 +252,14 @@ namespace hMailServer.ControlPanel.Services
             case "rollback-failed":
                return F("hMailServer {0} did not start, and putting {1} back failed too: {2}. Run {3} as an administrator to reinstall {1}. The logs: {4}", outcome.Version, outcome.From, outcome.Detail,
                   string.IsNullOrEmpty(outcome.RollbackImage) ? "-" : outcome.RollbackImage, log + (string.IsNullOrEmpty(outcome.RollbackLog) ? "" : ", " + outcome.RollbackLog));
+            case "upgraded-incomplete":
+               // The installer's database step changed the database, or could not
+               // show that it left it unchanged (exit code 11, or its log said so), and
+               // a step did not complete: the Updater puts nothing back, since the
+               // earlier version may refuse that database. The detail says which.
+               // The first sentence stands alone, as the sign-in banner shows it.
+               return F("hMailServer {0} is installed and its database step changed the database, or may have, but the install did not complete, so {1} was not put back: it may not run on that database. What did not complete: {2}. The installer's log: {3}",
+                  outcome.Version, outcome.From, outcome.Detail, log);
             case "cancelled":
                return F("The install of hMailServer {0} was cancelled: {1}", outcome.Version, outcome.Detail);
             default:
@@ -253,11 +271,18 @@ namespace hMailServer.ControlPanel.Services
       /// the Control Panel could not sign in again by itself.</summary>
       public static string SignInBanner(Outcome outcome) => F("hMailServer was updated: {0} Sign in to see the server.", FirstSentence(OutcomeText(outcome)));
 
+      /// <summary>The text up to its first full stop: ". ", or the ideographic "。"
+      /// the Japanese and Chinese catalogues end a sentence with - without which the
+      /// banner in those languages ran on to the first ". " in the Updater's English
+      /// detail, or to the end.</summary>
       public static string FirstSentence(string text)
       {
          if (string.IsNullOrEmpty(text))
             return "";
          int end = text.IndexOf(". ", StringComparison.Ordinal);
+         int ideographic = text.IndexOf('。');
+         if (ideographic > 0 && (end < 0 || ideographic < end))
+            return text.Substring(0, ideographic + 1);
          return end > 0 ? text.Substring(0, end + 1) : text;
       }
 
@@ -272,6 +297,11 @@ namespace hMailServer.ControlPanel.Services
             if (Get("revocation") == "offline")
                return F("hMailServer {0} was not installed: the revocation server {1} could not be reached, so whether the installer's certificate is revoked could not be checked. Nothing was changed. Click Install update again when it can be reached, or install hMailServer {0} by hand.",
                   version, string.IsNullOrEmpty(Get("crl-host")) ? L("named in its certificate") : Get("crl-host"));
+            // A copy that could not be made (a link on the way, a file too large)
+            // leaves nothing to inspect, and the stage names no folder for it.
+            if (string.IsNullOrEmpty(Get("kept")))
+               return F("hMailServer {0} was not installed: the installer did not pass the check - {1}. Nothing was changed and the server runs as it did. Download it again.",
+                  version, Clause(Get("reason")));
             return F("hMailServer {0} was not installed: the installer did not pass the check - {1}. Nothing was changed and the server runs as it did. Download it again; if the check fails again, the copy is kept in {2} for inspection.",
                version, Clause(Get("reason")), Get("kept"));
          }
@@ -302,6 +332,35 @@ namespace hMailServer.ControlPanel.Services
       /// in two.
       /// </summary>
       public static string Clause(string reason) => (reason ?? "").TrimEnd().TrimEnd('.').TrimEnd();
+
+      /// <summary>
+      /// Why the install did not start when Windows would not start the elevated
+      /// stage: the prompt declined (ERROR_CANCELLED), or Windows' own reason - for
+      /// a standard user whose requests to elevate are denied by policy, "This
+      /// program is blocked by group policy" (ERROR_ACCESS_DISABLED_BY_POLICY, as
+      /// on the smoke VM on 1 October 2026) - followed by what that means here.
+      /// </summary>
+      public static string ElevationFailedText(int error)
+      {
+         const int cancelled = 1223;
+         if (error == cancelled)
+            return L("The Windows prompt was declined, so nothing was installed and nothing on the server was changed.");
+         return F("Windows could not start the install: {0}", new System.ComponentModel.Win32Exception(error).Message.TrimEnd()) + " " + L("Nothing was changed.");
+      }
+
+      /// <summary>
+      /// Whether the install window's timer may take the install a step further:
+      /// not once it has finished, and not while it asks the administrator a
+      /// question (stop the update? install without a backup?), whose modal message
+      /// loop goes on running the timer - the install would otherwise reach the
+      /// installer, or be cancelled, under the question.
+      /// </summary>
+      public static bool InstallMayAdvance(bool finished, bool askingTheAdministrator) => !finished && !askingTheAdministrator;
+
+      /// <summary>Install update clicked while an install is already under way on the
+      /// server: the stage's own refusal of a second one, said before Windows is asked.</summary>
+      public static string UnderWayText() =>
+         F("Install update stopped before anything was changed: {0}.", L("another administrator's install of an update is under way on this server"));
 
       /// <summary>R-remote: a Control Panel connected to another computer.</summary>
       public static string RemoteText(string host, string account) =>

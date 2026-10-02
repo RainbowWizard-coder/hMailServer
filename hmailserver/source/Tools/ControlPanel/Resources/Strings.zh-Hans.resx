@@ -4677,8 +4677,8 @@
   <data name="Hands mail clients the right host names, ports and security settings automatically: Thunderbird-style autoconfig and Outlook autodiscover, for every local domain. Point autoconfig.&lt;domain&gt; and autodiscover.&lt;domain&gt; at this server in DNS." xml:space="preserve">
     <value>自动向邮件客户端提供正确的主机名、端口和安全设置：Thunderbird 风格的 autoconfig 和 Outlook autodiscover，适用于每个本地域。请在 DNS 中把 autoconfig.&lt;domain&gt; 和 autodiscover.&lt;domain&gt; 指向本服务器。</value>
   </data>
-  <data name="Hands the verified installer to the update helper. The service stops and starts; if it does not come back, the previous version is reinstalled. The outcome is reported here when the service is back." xml:space="preserve">
-    <value>把已验证的安装程序交给更新助手。服务会停止并重新启动；如果它没有恢复，则重新安装先前的版本。服务恢复后会在此处报告结果。</value>
+  <data name="Hands the verified installer to the update helper. The service stops and starts; if it does not come back, the previous version is reinstalled, unless the new version has already changed the database. The outcome is reported here when the service is back." xml:space="preserve">
+    <value>把已验证的安装程序交给更新助手。服务会停止并重新启动；如果它没有恢复，则重新安装先前的版本（除非新版本已更改了数据库）。服务恢复后会在此处报告结果。</value>
   </data>
   <data name="Hard" xml:space="preserve">
     <value>硬退信</value>
@@ -5115,13 +5115,13 @@
   <data name="Insert template…" xml:space="preserve">
     <value>插入模板…</value>
   </data>
-  <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the Status page. A service that does not come back is rolled back to the previous installer." xml:space="preserve">
-    <value>在该窗口内，计划任务无需点击即可安装经过验证的安装程序：服务停止，文件和数据库架构升级，服务启动，结果写入日志、Windows 事件日志和“状态”页。未能恢复运行的服务会回滚到上一个安装程序。</value>
+  <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the Status page. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
+    <value>在该窗口内，计划任务无需点击即可安装经过验证的安装程序：服务停止，文件和数据库架构升级，服务启动，结果写入日志、Windows 事件日志和“状态”页。未能恢复运行的服务会回滚到上一个安装程序（除非新版本已更改了数据库）。</value>
   </data>
-  <data name="Install the update now?&#10;&#10;The verified installer is handed to the update helper: the service stops, the new version is installed, and the service starts again. If it does not come back, the previous version is reinstalled. This Control Panel loses its connection while that happens; reconnect afterwards to see the outcome here." xml:space="preserve">
+  <data name="Install the update now?&#10;&#10;The verified installer is handed to the update helper: the service stops, the new version is installed, and the service starts again. If it does not come back, the previous version is reinstalled, unless the new version has already changed the database. This Control Panel loses its connection while that happens; reconnect afterwards to see the outcome here." xml:space="preserve">
     <value>是否立即安装更新？
 
-已验证的安装程序将交给更新助手：服务停止，安装新版本，然后服务重新启动。如果它没有恢复，则重新安装先前的版本。在此期间，此控制面板会失去连接；之后请重新连接，以便在此处查看结果。</value>
+已验证的安装程序将交给更新助手：服务停止，安装新版本，然后服务重新启动。如果它没有恢复，则重新安装先前的版本（除非新版本已更改了数据库）。在此期间，此控制面板会失去连接；之后请重新连接，以便在此处查看结果。</value>
   </data>
   <data name="Install update" xml:space="preserve">
     <value>安装更新</value>
@@ -13426,11 +13426,17 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="hMailServer {0} did not start, so {1} was put back and is running: {2}. The installer's log: {3}" xml:space="preserve">
     <value>hMailServer {0} 未能启动，因此已恢复 {1} 并正在运行：{2}。安装程序日志：{3}</value>
   </data>
+  <data name="hMailServer {0} is installed and its database step changed the database, or may have, but the install did not complete, so {1} was not put back: it may not run on that database. What did not complete: {2}. The installer's log: {3}" xml:space="preserve">
+    <value>hMailServer {0} 已安装，其数据库步骤已更改数据库（或可能已更改），但安装未完成，因此未恢复 {1}：它可能无法在该数据库上运行。未完成的内容：{2}。安装程序日志：{3}</value>
+  </data>
   <data name="hMailServer {0} is ready to be put back if needed." xml:space="preserve">
     <value>hMailServer {0} 已就绪，需要时可恢复。</value>
   </data>
-  <data name="hMailServer {0} replaces {1} on this server. Windows asks for an administrator's permission once; after that everything happens by itself. The server stops accepting mail for a minute or two while it restarts, and if {0} does not start, {1} is put back." xml:space="preserve">
-    <value>hMailServer {0} 将替换此服务器上的 {1}。Windows 只会请求一次管理员许可；之后一切都会自动完成。服务器重新启动期间会有一两分钟不接收邮件；如果 {0} 无法启动，将恢复 {1}。</value>
+  <data name="hMailServer {0} replaces {1} on this server. Windows asks for an administrator's permission once; after that everything happens by itself. The server stops accepting mail for a minute or two while it restarts, and if {0} does not start, {1} is put back, unless {0} has already changed the database." xml:space="preserve">
+    <value>hMailServer {0} 将替换此服务器上的 {1}。Windows 只会请求一次管理员许可；之后一切都会自动完成。服务器重新启动期间会有一两分钟不接收邮件；如果 {0} 无法启动，将恢复 {1}（除非 {0} 已更改了数据库）。</value>
+  </data>
+  <data name="hMailServer {0} was not installed: the installer did not pass the check - {1}. Nothing was changed and the server runs as it did. Download it again." xml:space="preserve">
+    <value>hMailServer {0} 未安装：安装程序未通过检查 - {1}。没有任何更改，服务器照常运行。请重新下载。</value>
   </data>
   <data name="hMailServer {0} was not installed: the installer did not pass the check - {1}. Nothing was changed and the server runs as it did. Download it again; if the check fails again, the copy is kept in {2} for inspection." xml:space="preserve">
     <value>hMailServer {0} 未安装：安装程序未通过检查 - {1}。没有任何更改，服务器照常运行。请重新下载；如果检查再次失败，副本会保留在 {2} 中以供检查。</value>

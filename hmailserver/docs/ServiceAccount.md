@@ -343,7 +343,25 @@ nothing it can write decides what the administrator's side runs.
      compared whole: one with a NUL in it is refused, never read up to the NUL;
    - **revocation**, online, of the whole chain, within 30 seconds: a certificate
      that is revoked is refused, and so is one whose revocation could not be
-     checked - said as the revocation server not being reachable, never as revoked;
+     checked - said as the revocation server not being reachable, never as revoked.
+     Windows' own answer is not enough for that: its Authenticode policy takes a
+     revocation server that does not answer as good, so the stage reads the
+     revocation status of each certificate in the chain Windows built, the root
+     aside, and refuses where one is unknown or was checked offline (on the
+     installer smoke VM before 6.3.6 was released, a revocation server held
+     unanswered let an installer through as "revocation checked online"; with
+     its outbound HTTP blocked, Windows answered 0 for the real 6.3.5 while each
+     certificate of its chain below the root said its revocation was unknown and
+     checked offline, and with HTTP open and nothing cached the same check
+     fetched Microsoft's lists and passed). The chain read is the signer's; the
+     timestamp's own chain is left to Windows' answer. So whoever can keep this
+     computer from the revocation server - `www.microsoft.com`, where Microsoft
+     publishes the lists for the project's certificates - can stop the one-click
+     install: a firewall that lets out only the download, a proxy the check
+     cannot pass, or somebody on the network between. That is a denial, refused
+     before anything is changed, never an install of anything else; the
+     installer can still be run by hand, where Windows' own check, which takes
+     an unreachable revocation server as good, is what applies;
    - the **version** in its version resource is the release offered, the
      **architecture** in its description (`hMailServer Setup (x64)` or `(ARM64)`)
      is this installation's, and the release is **newer** than the running
@@ -379,7 +397,10 @@ nothing it can write decides what the administrator's side runs.
    running from the installation, runs the held installer silently - the token in
    its environment, not on its command line - with its temporary files in the work
    folder, waits for the service to come back, runs the held rollback image if it
-   does not, and asks Windows to hold off a sign-out or a shutdown while it works
+   does not, or if the installer ends with 10, but never once the installer's
+   database step has changed the database (exit code 11, `upgraded-incomplete`;
+   [Upgrading.md](Upgrading.md), "If the upgrade fails"), and asks Windows to hold
+   off a sign-out or a shutdown while it works
    (the reason shows on the sign-out screen). It writes the
    outcome into the work folder, which only administrators can write, puts an
    entry in the Application log (HM7466 when it starts, HM7467 with the outcome),
@@ -414,8 +435,13 @@ upgrade fail, and the Updater put the previous version back - a denial, not a
 compromise. The Updater reads the file only if it is no link, sits where it is
 expected and holds exactly 64 lowercase hexadecimal characters, and gives it to a
 6.3.6 or later installer in its environment (`HM_UPGRADE_TOKEN`), so that it never
-appears on a command line; the installer reads it and removes it from its own
-environment at once.
+appears on a command line - nor in the installer's log, which Inno Setup begins with
+the command line it was started with; the installer reads it and removes it from its
+own environment at once. The live update of a service running as LocalSystem gives it
+the same way from 6.3.6; up to 6.3.5 it was on the installer's command line, and so
+in `Updates\install-<version>.log` - a single-use token, spent once the installer's
+database step had run, in a folder only SYSTEM, the Administrators and the service
+can read.
 
 ### Why this and not a scheduled task
 
@@ -510,14 +536,16 @@ deleting the `ServiceAccessPaths` key the approvals, if you want them gone.
 | HM7464 | Medium | `/Register` was given an account it does not set - one with a password - and registered nothing |
 | HM7465 | Medium | An administrator's install did not stop the service within 10 minutes of its start: the drain is left, the token revoked, and the server accepts mail again. The Updater's log in `AdminUpdate` says how far it got |
 | HM7466 | Information, in the Windows Application log | An administrator's install has started: who, which version over which, and the work folder. Written by `hMailServer.Updater.exe`, with the administrator's account as the entry's user |
-| HM7467 | Information, a warning or an error, in the Windows Application log | An administrator's install ended: installed, cancelled or refused (a warning), or not installed, rolled back or with its rollback failed (an error), with the reason |
+| HM7467 | Information, a warning or an error, in the Windows Application log | An administrator's install ended: installed, cancelled or refused (a warning), or not installed, rolled back, with its rollback failed, or installed with its database upgraded and a step not complete - `upgraded-incomplete`, not rolled back - (an error), with the reason |
 | HM7468 | Medium | The service's preparation of an administrator's install failed: the step (the check of its download, the backup, the rollback image) and the reason |
 | HM7469 | Medium, once per process | The outcome of the last administrator's install could not be read, or an install that began more than an hour ago wrote none - the Windows session it ran in may have been signed out |
 
 None of HM7460 to HM7464 fires on a server as it is shipped: the firewall half of the
 auto-ban and the unattended update window are both off until they are switched on.
 HM7465 to HM7469 come only from an administrator's install. An administrator's install
-that did not succeed is also reported as HM5480, as the unattended apply's is.
+that did not succeed is also reported as HM5480, as the unattended apply's is - and one
+whose database step changed the database before a step did not complete, which nothing
+puts back, as HM5481 ([Upgrading.md](Upgrading.md), "If the upgrade fails").
 
 ## Tests
 
@@ -560,8 +588,10 @@ that did not succeed is also reported as HM5480, as the unattended apply's is.
   cut short or grown, the .NET runtime's installer (another publisher, trusted
   by Windows) and a catalogue-signed system file refused, the site-signer path
   held to the installed signer's name and root (the same name through another
-  root refused), a name with a NUL in it refused, and a revocation check with no
-  time to run refused as not reachable; and the lowered child's token read back -
+  root refused), a name with a NUL in it refused, a revocation check with no
+  time to run refused as not reachable, and a chain whose revocation status is
+  unknown or offline below its root refused while one with only its root
+  unchecked passes; and the lowered child's token read back -
   the Administrators and every group UAC filters deny-only, no privilege but
   change-notify, low integrity - its job's limit, its timeout and its output cap. `AdminUpdateStageTester`
   holds the stage's request to its child (a round trip, and every malformed

@@ -895,6 +895,22 @@ namespace HM
               OutcomeOfStatus((long) CERT_E_UNTRUSTEDROOT) == Untrusted && OutcomeOfStatus((long) CERT_E_EXPIRED) == Untrusted,
               L"a WinVerifyTrust answer is misread");
 
+      // And what the chain it built says: revocation established where no
+      // certificate but the root says its status is unknown or offline - the
+      // answer WinVerifyTrust itself takes as good (on the installer smoke VM on
+      // 1 October 2026 a revocation server that never answered, and the
+      // installer accepted with "revocation checked online").
+      {
+         const unsigned long offline = CERT_TRUST_REVOCATION_STATUS_UNKNOWN | CERT_TRUST_IS_OFFLINE_REVOCATION;
+         Expect_(RevocationEstablished({ 0, 0, 0, 0 }) && RevocationEstablished({ 0, offline }) && RevocationEstablished({ 0 }) &&
+                 RevocationEstablished({ CERT_TRUST_IS_NOT_TIME_VALID, 0 }),
+                 L"a chain whose revocation was established, or whose root alone was not checked, was not taken as established");
+         Expect_(!RevocationEstablished({ offline, 0 }) && !RevocationEstablished({ 0, CERT_TRUST_REVOCATION_STATUS_UNKNOWN, 0, 0 }) &&
+                 !RevocationEstablished({ CERT_TRUST_IS_OFFLINE_REVOCATION, 0 }) && !RevocationEstablished({ CERT_TRUST_IS_REVOKED, 0 }) &&
+                 !RevocationEstablished({}),
+                 L"a chain with a certificate whose revocation is unknown, offline or revoked was taken as established");
+      }
+
       Expect_(HostOf(L"http://www.microsoft.com/pkiops/crl/x.crl") == L"www.microsoft.com" && HostOf(L"https://h:8080/x") == L"h" && HostOf(L"") == L"",
               L"the host of a CRL URL is misread");
    }

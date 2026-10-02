@@ -52,7 +52,8 @@
 //   3. THE UPDATER, hMailServer.Updater.exe --mode administrator, from the work
 //      folder: it waits for the Control Panel to close with the exit code that
 //      means go, runs the installer it holds by its SHA-256, runs the rollback
-//      image if the service does not come back, writes the outcome into
+//      image if the service does not come back or the installer says a step
+//      after its files did not complete, writes the outcome into
 //      administrator-only files, and starts the Control Panel again, unelevated,
 //      as the user who clicked.
 //
