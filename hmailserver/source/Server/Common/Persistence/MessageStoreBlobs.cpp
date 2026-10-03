@@ -60,8 +60,24 @@ namespace HM
    String
    MessageStoreBlobs::PathOf(const AnsiString &sha256)
    {
-      const String hex = sha256;
-      return FileUtilities::Combine(FileUtilities::Combine(Root(), hex.Mid(0, 2)), hex);
+      // A blob's name is its SHA-256 in 64 hex digits, and nothing else: the
+      // names come from hm_storeblobs too, which the service's account may
+      // write, and a "sha256" of "..\..\x" would otherwise send a recount's
+      // removal - run as an administrator on Windows - out of the data
+      // directory. Anything else names one file in Blobs that no blob is ever
+      // written to.
+      bool hex = sha256.size() == 64;
+      for (size_t i = 0; i < sha256.size() && hex; i++)
+      {
+         const char c = sha256.c_str()[i];
+         hex = (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
+      }
+
+      if (!hex)
+         return FileUtilities::Combine(Root(), _T("not-a-blob"));
+
+      const String name = sha256;
+      return FileUtilities::Combine(FileUtilities::Combine(Root(), name.Mid(0, 2)), name);
    }
 
    bool

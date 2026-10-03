@@ -81,6 +81,13 @@ namespace HM
       bool RegisterService(const String &ServiceName, const String &ServiceCaption);
       bool UnregisterService(const String &ServiceName);
 
+      // What RegisterService reported, each sentence on a line of its own:
+      // why it failed, and what it could not do that did not stop it (the
+      // SID type). hMailServer.exe /Register writes these on its own output,
+      // since an administrator's verb writes nothing to the error log
+      // (hMailServer.cpp, ForbidServiceFolderWrites).
+      const String &GetReported() const { return reported_; }
+
       // False, with a sentence in error, when the dependency could not be set -
       // which is always the case for a service that is not LocalSystem asking to
       // change its own configuration: that right is deliberately not granted to
@@ -113,8 +120,12 @@ namespace HM
 
       bool ReconfigureService_(SC_HANDLE hSCMManager, const String &ServiceName);
 
+      // An error ErrorManager is given, kept for GetReported as well.
+      void Report_(int errorId, const String &source, const String &sentence);
+
       AccountChoice account_choice_;
       String account_name_;
+      String reported_;
    };
 }
 

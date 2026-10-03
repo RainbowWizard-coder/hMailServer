@@ -147,6 +147,25 @@ installation:
   `/unattended` without elevation refuses, before it changes anything, with exit
   code 2.
 
+**A new installation whose administrator cannot open the database** - SQL Server
+with Windows authentication, where the database step made the database as
+LocalSystem, a SQL Server administrator, and the person running Setup is none -
+has its database, and `--apply-new-install-defaults` (exit 2) and
+`--create-stored-secrets-key` (exit 1), run as that person, could not open it. Until
+6.3.6 neither was ever applied: the recovery the message gives - the statements run
+by a SQL Server administrator, then Setup again - runs as an upgrade. Now Setup,
+and DBSetup finishing an installation, start the service with the argument that has
+it apply them itself: `sc start hMailServer --apply-new-install-defaults`. The
+service opens its database, applies a new installation's defaults with the verb's
+own rules - the database's `NewInstallDefaultsPending` mark required, the shape of a
+new database, the mark cleared once decided - and, for the new installation it
+found and applied them to, makes the stored-secrets key when it runs as LocalSystem, which may write `hMailServer.INI` (the virtual account may
+not, and says so, HM7498), before its listeners start. What it could not do is in the
+error log (HM7498, HM7510, HM7511), each step in the application log when that is
+on, and the Control Deck's setup checklist shows the outcome. An administrator can start it so at any time after; the mark is
+acted on whatever its age, since the argument is the request. The profile chosen is
+not applied this way: the Control Deck's checklist offers it.
+
 Setup clears the mark before its own database step, so that the DBSetup it runs
 leaves those steps to it, and writes it again only if that step does not complete
 either; the uninstaller removes it. An update hMailServer.Updater runs - the live
@@ -264,8 +283,20 @@ Exit codes: 0 every grant made and everything the configuration names reached, o
 confirmed; 1 a grant or an approval failed; 2 not in an installation's `Bin`
 folder; 3 not run as an administrator; 4 folders not approved or key files
 outside, not confirmed; 5 the configuration names a folder that is never granted;
-6 the administrator answered No, and nothing was changed. The installer and the
-Control Panel move the service only on 0.
+6 the administrator answered No, and nothing was changed; 7 the grants were made,
+but this account could not read the database, so the certificate and key files and
+the backup and PST import folders it names are not known, and nobody confirmed. The
+installer and the Control Panel move the service only on 0.
+
+**A database it cannot read.** On SQL Server with Windows authentication, where
+LocalSystem is a SQL Server administrator and the person running the grant is not,
+the grant cannot read what the database names. It says so on a `NOT READ` line and
+ends in 7 - until 6.3.6 it said so in a note and ended in 0, and the service was
+moved without anybody knowing whether a key file it reads lay outside its folders.
+With `--confirm` the question names the database it could not read, and Yes is a
+0. A silent installation's move then waits, as for a folder nobody approved; an
+upgrade of a service already moved goes on, since nothing is moved. A database not
+set up yet names nothing, and is no 7.
 
 ## Its login on SQL Server: `hMailServer.exe --grant-database-login`
 
@@ -365,6 +396,81 @@ service LocalSystem back. Asking whether the file is writable by administrators
 alone would answer for one of the two places the value comes from, so the value is
 not read at all. The Control Panel no longer edits them; its *Setup checklist* page
 asks for a stored password to be deleted.
+
+## What an administrator's command writes
+
+`hMailServer.exe` is the service, and also the commands an administrator runs:
+Setup, DBSetup and the Control Panel run `/Register`, `/RegisterTypeLib`,
+`/Unregister`, `/GrantServiceAccess`, `--grant-database-login`,
+`--apply-new-install-defaults`, `--apply-profile`, `--create-stored-secrets-key`,
+`--set-admin-password` and the live update's two elevated, and an administrator
+runs the rest - `--upgrade-database`, the stored-secrets commands, the store and
+object-store commands, `--apply-environment`, `--check-database` - from an
+elevated prompt. Each reads `[Database]` or `[Security]` from `hMailServer.INI`, or
+changes the service, so each runs with the administrator's rights; and the folders
+the service is granted Modify on - `Logs`, `Data`, `Temp`, `Database` - are folders
+a program running as `NT SERVICE\hMailServer` can put a junction or a mount point
+in. A file an administrator's process wrote there by its path could be written
+wherever that leads.
+
+So, since 6.3.6:
+
+* **No log, no event, no crash record.** Every command line but `RunAsService`,
+  `/Debug` and `/Test` forbids the logger's writes as the first thing it does
+  (`ForbidServiceFolderWrites` in `hMailServer.cpp`, `Logger::
+  ForbidWritesForThisProcess`): no line reaches the error log or any other log, the
+  Application log, the `OnError` event script or the SQL log device; and it arms no
+  crash oracle, whose record and dump go to the log folder. What each command did,
+  and why it failed, is on its own standard output and standard error, where it
+  already said it; Setup, DBSetup and the Control Panel keep that in their logs.
+  `/Register` says there why a registration failed. Until 6.3.6 only the live
+  update's verbs, the grant and `--grant-database-login` did this; the others wrote
+  their errors to the error log, and every one armed the crash oracle.
+* **No junction followed where Windows can refuse it.** On Windows 11 22H2 and
+  Windows Server 2025 and later the same commands follow no junction that a user
+  who is not an administrator made (`ProcessRedirectionTrustPolicy`); an older
+  Windows refuses the request, and the next two rules hold there alone.
+* **The new installation's certificate is made through held folders.**
+  `--apply-new-install-defaults` writes the self-signed certificate and its private
+  key into the data folder's `Certificates` folder. It holds every folder of that
+  path open from the drive's root down - none of them a junction, a symbolic link
+  or a mount point, none renamed or removed while held - makes `Certificates` and
+  each file relative to the folder above, never through a link of its name, and
+  checks each file it made to be in that folder before writing a byte to it. The
+  key's permissions - SYSTEM, the Administrators, the account running it and Read
+  for the service's account - are given when it is made, not set by its path later.
+* **A store command that changes the data folder, or copies it, finds no link in
+  it first.** `--compress-store` (and `--decompress`), `--encrypt-store`,
+  `--decrypt-store`, `--recount-store`, `--copy-store-from-object-storage` and
+  `--copy-store-to-object-storage` reach each message by its path. Before anything
+  is read or changed the data folder is held from its drive's root down and every
+  folder and file in it listed once; a junction, a mount point or a symbolic link
+  anywhere in it stops the command, exit 1, naming it - nothing in the data folder
+  is ever one. A file that is only tiered or deduplicated is not a link. A copy to
+  the object store that removes nothing is held to it too: it reads with an
+  administrator's rights and hands what it read to a store the service's account
+  reads. `--measure-store` only reads, and says what it read to the administrator
+  alone.
+* **A store command reaches no file outside the data folder.** The names it
+  rewrites, removes and copies over are the database's - each message's file name,
+  each deleted item's, each held part's - and, on an object store, its keys: both
+  are the service's to write. A row whose file is outside the data folder - a full
+  path elsewhere, or a part that is `..` - stops every store command, naming the
+  message, before it reads or changes a file; a key whose name would lead out of it
+  is not listed; and a held part's name is its SHA-256 in hex or names no file.
+
+What is left: a program that still runs as the service's account after the service
+has stopped could make a link while a long store command runs, after the folder was
+listed; on Windows 11 22H2, Windows Server 2025 and later the command does not follow
+it. The SQL Server Compact database file in `Database` is opened by its path by the
+commands that open the database; that engine opens only a file that is a database,
+and creates none.
+
+`build/check-elevated-verbs.py` holds the commands to these rules and lists them:
+it refuses a command line added to the three that may log, a dispatch before the
+decision, the crash oracle armed for any other, the certificate written by its path,
+and a store command dispatched without the check. `--self-test` breaks each rule in
+a copy and proves the check reports it.
 
 ## What LocalSystem could do and the virtual account cannot
 

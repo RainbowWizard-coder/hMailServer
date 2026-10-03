@@ -68,8 +68,10 @@ namespace RegressionTests.Sieve
    ///       never signed in and came back each time it was cut off. Now connections
    ///       are served side by side, an address has one turn before signing in, a
    ///       connection that ran out of time before signing in counts as a failed
-   ///       logon, a signed-in session ends after ten lines that did nothing or two
-   ///       minutes of waiting in all, and an account has four sessions at most.
+   ///       logon - but not one from this computer's loopback address, a webmail
+   ///       beside the server (6.3.6's last re-check) - a signed-in session ends
+   ///       after ten lines that did nothing or two minutes of waiting in all, and
+   ///       an account has four sessions at most.
    /// </summary>
    [TestFixture]
    public class ManageSieveSecurity : TestFixtureBase
@@ -117,13 +119,13 @@ namespace RegressionTests.Sieve
       /// and the range would go on blocking SMTP, POP3 and IMAP for whatever fixture
       /// ran next. StopListener restores the previous value.
       /// </summary>
-      private void StartListener()
+      private void StartListener(string bindAddress = "127.0.0.1")
       {
          _autoBanWasEnabled = _settings.AutoBanOnLogonFailure;
          _settings.AutoBanOnLogonFailure = false;
          _settings.ClearLogonFailureList();
 
-         WriteSetting("ManageSieveServerBindAddress", "127.0.0.1");
+         WriteSetting("ManageSieveServerBindAddress", bindAddress);
          WriteSetting("ManageSieveServerPort", ManageSievePort.ToString());
 
          // Reinitialize so IniFileSettings re-reads the port and the listener starts.
@@ -154,7 +156,12 @@ namespace RegressionTests.Sieve
 
          // From localAddress, a loopback address other than 127.0.0.1, when given:
          // a client at another address.
-         public Session(string localAddress)
+         public Session(string localAddress) : this(localAddress, "127.0.0.1")
+         {
+         }
+
+         // To the listener at serverAddress, from localAddress when it is given.
+         public Session(string localAddress, string serverAddress)
          {
             _client = localAddress == null ? new TcpClient() : new TcpClient(new IPEndPoint(System.Net.IPAddress.Parse(localAddress), 0));
 
@@ -163,7 +170,7 @@ namespace RegressionTests.Sieve
             {
                try
                {
-                  _client.Connect("127.0.0.1", ManageSievePort);
+                  _client.Connect(serverAddress, ManageSievePort);
                   last = null;
                   break;
                }
@@ -738,11 +745,62 @@ namespace RegressionTests.Sieve
          }
       }
 
+      // An IPv4 address of this machine that is not a loopback address, or null:
+      // what a connection from another computer looks like to the listener, as
+      // near as one machine can make it.
+      private static string ThisMachinesOtherAddress()
+      {
+         foreach (System.Net.NetworkInformation.NetworkInterface adapter in System.Net.NetworkInformation.NetworkInterface.GetAllNetworkInterfaces())
+         {
+            if (adapter.OperationalStatus != System.Net.NetworkInformation.OperationalStatus.Up ||
+                adapter.NetworkInterfaceType == System.Net.NetworkInformation.NetworkInterfaceType.Loopback)
+               continue;
+
+            foreach (System.Net.NetworkInformation.UnicastIPAddressInformation unicast in adapter.GetIPProperties().UnicastAddresses)
+            {
+               System.Net.IPAddress address = unicast.Address;
+               if (address.AddressFamily != AddressFamily.InterNetwork || System.Net.IPAddress.IsLoopback(address))
+                  continue;
+               byte[] bytes = address.GetAddressBytes();
+               if (bytes[0] == 169 && bytes[1] == 254)
+                  continue;
+               return address.ToString();
+            }
+         }
+
+         return null;
+      }
+
+      // One connection from localAddress to the listener at serverAddress that
+      // sends nothing and is cut off at its line's deadline; then whether the next
+      // connection from the same address is greeted.
+      private bool NextIsGreetedAfterASilentConnection(string localAddress, string serverAddress)
+      {
+         using (var silent = new Session(localAddress, serverAddress))
+         {
+            silent.ReadResponse(); // greeting
+
+            // Nothing sent: cut off when the line's deadline passes.
+            Assert.AreEqual(string.Empty, silent.ReadUntilClosed((LineSeconds + 15) * 1000).Trim(),
+               "The silent connection was answered, or still open after " + (LineSeconds + 15) + " s.");
+         }
+
+         using (var next = new Session(localAddress, serverAddress))
+         {
+            string received = next.ReadUntilClosed(5000);
+            return received.Contains("IMPLEMENTATION");
+         }
+      }
+
       [Test]
-      [Description("A connection that runs out of time before signing in counts as a failed logon from its address, so that a client coming back to hold the service is auto-banned as a guesser is. With one failure the threshold, the next connection from the address is dropped before the greeting.")]
+      [Description("A connection that runs out of time before signing in counts as a failed logon from its address, so that a client coming back to hold the service is auto-banned as a guesser is. With one failure the threshold, the next connection from the address is dropped before the greeting. From an address of this machine that is not a loopback one, the nearest one machine has to another computer.")]
       public void AConnectionThatRunsOutOfTimeBeforeSigningInCountsTowardsTheAutoBan()
       {
-         StartListener();
+         string address = ThisMachinesOtherAddress();
+         if (address == null)
+            Assert.Ignore("This machine has no IPv4 address but a loopback one to connect from.");
+
+         StartListener(address);
 
          // StartListener turns the auto-ban off for the fixture; on for this test, at
          // one failure.
@@ -753,21 +811,34 @@ namespace RegressionTests.Sieve
 
          try
          {
-            using (var silent = new Session())
-            {
-               silent.ReadResponse(); // greeting
+            Assert.IsFalse(NextIsGreetedAfterASilentConnection(address, address),
+               "The address " + address + " of a connection that ran out of time before signing in was not banned: the next one was greeted.");
+         }
+         finally
+         {
+            _settings.AutoBanOnLogonFailure = false;
+            _settings.MaxInvalidLogonAttempts = attemptsBefore;
+            _settings.ClearLogonFailureList();
+            DeleteAutoBanRanges();
+            StopListener();
+         }
+      }
 
-               // Nothing sent: cut off when the line's deadline passes.
-               Assert.AreEqual(string.Empty, silent.ReadUntilClosed((LineSeconds + 15) * 1000).Trim(),
-                  "The silent connection was answered, or still open after " + (LineSeconds + 15) + " s.");
-            }
+      [Test]
+      [Description("A connection from this computer's loopback address - a webmail beside the server - that runs out of time before signing in is not counted towards the auto-ban, as SMTP's ban for AUTH on a delivery port spares the loopback: with one failure the threshold, the next connection from 127.0.0.1 is still greeted. Until 6.3.6's last re-check one such timeout banned it.")]
+      public void AConnectionFromThisComputerThatRunsOutOfTimeIsNotCountedTowardsTheAutoBan()
+      {
+         StartListener();
 
-            using (var next = new Session())
-            {
-               string received = next.ReadUntilClosed(5000);
-               Assert.AreEqual(string.Empty, received,
-                  "The address of a connection that ran out of time before signing in was not banned: the next one was greeted. Received: " + received);
-            }
+         int attemptsBefore = _settings.MaxInvalidLogonAttempts;
+         _settings.ClearLogonFailureList();
+         _settings.AutoBanOnLogonFailure = true;
+         _settings.MaxInvalidLogonAttempts = 1;
+
+         try
+         {
+            Assert.IsTrue(NextIsGreetedAfterASilentConnection(null, "127.0.0.1"),
+               "127.0.0.1 was banned after one connection from it ran out of time before signing in: a webmail on this computer would be banned for everyone it serves.");
          }
          finally
          {

@@ -43,9 +43,10 @@ namespace HM
          // accurate to the second, and a flood makes a thousand of these inside
          // one, so this is what "the oldest" means when the table is full.
          unsigned __int64 order = 0;
-         // Whom the challenge counts against when its table makes room: where
-         // a sign-in challenge was asked for (SignInBudget::PendingSource), the
-         // credential that asked for a registration's (the caller's identity);
+         // Whom the challenge counts against when its table makes room: the
+         // credential that asked for the registration (the caller's identity,
+         // OfferRegistration's holder) - the only table left, since a sign-in
+         // challenge travels sealed in the browser and is held nowhere here -
          // and its group for the rule's tie-break (SignInBudget::SourceGroup).
          std::string source;
          std::string group;

@@ -36,6 +36,11 @@ namespace HM
 
       bool IsAny() const;
 
+      // 127.0.0.0/8 and ::1, and an IPv4 loopback address in its IPv6-mapped
+      // form, which a dual-stack listener may hand over as ::ffff:127.0.0.1: a
+      // connection from this computer itself.
+      bool IsLoopback() const;
+
       enum Type
       {
          Unknown = 0,

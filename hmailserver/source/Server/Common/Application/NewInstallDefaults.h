@@ -139,6 +139,27 @@ namespace HM
       /// </summary>
       static int RunCommand(bool ifMarked, const String &markerFile);
 
+      /// <summary>
+      /// The same decision and the same changes inside the Windows service, at a
+      /// start the service controller was asked for with the argument
+      /// --apply-new-install-defaults (sc start hMailServer
+      /// --apply-new-install-defaults; ServiceMain in hMailServer.cpp), with the
+      /// database the start has just opened, before the listeners are started.
+      /// For the installation whose administrator cannot open the database - SQL
+      /// Server with Windows authentication, where LocalSystem is a SQL Server
+      /// administrator and the person running Setup is not - so that the verb
+      /// above, run as that person, ends in 2: the service, which can, applies
+      /// them, and Setup and DBSetup start it so when the verb could not. Like a
+      /// run by hand, a mark of any age is acted on - the argument is an
+      /// administrator's or the installer's request - and everything else is the
+      /// verb's: the mark required, the shape of a new database, the mark cleared
+      /// once decided. Each sentence goes to the application log, and a change
+      /// that could not be written is an error (HM7511) as the verb's is. The
+      /// return is the verb's exit code; 0 and 1 may have changed the server,
+      /// which the caller then reinitialises.
+      /// </summary>
+      static int ApplyAtServiceStart();
+
    private:
 
       static void Print_(bool error, const String &line);

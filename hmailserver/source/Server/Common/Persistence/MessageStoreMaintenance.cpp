@@ -52,6 +52,22 @@ namespace HM
 {
    namespace
    {
+      // Whether this process has more rights than the service whose database it
+      // reads: on Windows a command an administrator runs, whose logger's writes
+      // are forbidden (hMailServer.cpp, ForbidServiceFolderWrites); on Linux one
+      // run as root. Only there is a file name the database gives held to the data
+      // directory (MessageStoreMaintenance::IsInDataDirectory): the service itself
+      // reads the full path an old row may hold, with its own rights, as it always
+      // has, and a recount it makes after a restore counts that file too.
+      bool HoldsNamesToTheDataDirectory()
+      {
+#ifdef HM_PLATFORM_POSIX
+         return ::geteuid() == 0;
+#else
+         return Logger::WritesForbidden();
+#endif
+      }
+
       // How long a measurement for GET /api/v1/store is kept.
       const __int64 TotalsSeconds = 15 * 60;
 
@@ -754,6 +770,62 @@ namespace HM
    }
 
    bool
+   MessageStoreMaintenance::IsInDataDirectory(const String &path)
+   {
+      String data = IniFileSettings::Instance()->GetDataDirectory();
+      while (data.GetLength() > 1 && (data.Right(1) == _T("\\") || data.Right(1) == _T("/")))
+         data = data.Left(data.GetLength() - 1);
+
+      if (data.IsEmpty() || path.GetLength() <= data.GetLength() + 1)
+         return false;
+
+#ifdef HM_PLATFORM_POSIX
+      if (path.Left(data.GetLength()) != data)
+         return false;
+#else
+      if (path.Left(data.GetLength()).CompareNoCase(data) != 0)
+         return false;
+#endif
+
+      const int separator = (int) path[data.GetLength()];
+      if (separator != '\\' && separator != '/')
+         return false;
+
+      // Each part below the directory, between separators.
+      const String below = path.Mid(data.GetLength() + 1);
+      String part;
+      for (int i = 0; i <= below.GetLength(); i++)
+      {
+         const int c = i < below.GetLength() ? (int) below[i] : '/';
+         if (c != '\\' && c != '/')
+         {
+            part += below.Mid(i, 1);
+            continue;
+         }
+
+         if (part == _T(".."))
+            return false;
+
+#ifndef HM_PLATFORM_POSIX
+         // Windows takes the dots and spaces off the end of a part: "... " is
+         // "..", and a colon names a stream or a drive.
+         if (part.Find(_T(":")) >= 0)
+            return false;
+
+         bool dotsAndSpaces = !part.IsEmpty();
+         for (int j = 0; j < part.GetLength() && dotsAndSpaces; j++)
+            dotsAndSpaces = part[j] == '.' || part[j] == ' ';
+         if (dotsAndSpaces)
+            return false;
+#endif
+
+         part.Empty();
+      }
+
+      return true;
+   }
+
+   bool
    MessageStoreMaintenance::ListStoredFiles(const String &accountAddress, const String &domainName, std::vector<StoredFile> &files, String &problem)
    {
       files.clear();
@@ -813,6 +885,8 @@ namespace HM
          return false;
       }
 
+      const bool confined = HoldsNamesToTheDataDirectory();
+
       while (!recordset->IsEOF())
       {
          const String partial = recordset->GetStringValue("messagefilename");
@@ -831,6 +905,19 @@ namespace HM
             file.zero_access = recordset->GetLongValue("accountzeroaccess") == 1;
             file.account_id = recordset->GetInt64Value("messageaccountid");
             file.path = PersistentMessage::GetFileName(file.account, message);
+
+            // The file name is the row's, which the service's account may write: one
+            // that leads out of the data directory - a full path, or a part that is
+            // ".." - is never read, rewritten, removed or created by a walk that runs
+            // with more rights than the service (IsInDataDirectory).
+            if (confined && !IsInDataDirectory(file.path))
+            {
+               files.clear();
+               problem = Formatter::Format(_T("message {0} names the file {1}, which is not in the data directory; a walk changes nothing outside it. Move the file into the data directory and correct the row, or delete the message"),
+                  file.message_id, file.path);
+               return false;
+            }
+
             files.push_back(file);
          }
 
@@ -897,6 +984,7 @@ namespace HM
       }
 
       const String root = FileUtilities::Combine(IniFileSettings::Instance()->GetDataDirectory(), _T("Recoverable"));
+      const bool confined = HoldsNamesToTheDataDirectory();
 
       while (!recordset->IsEOF())
       {
@@ -909,6 +997,15 @@ namespace HM
             file.zero_access = recordset->GetLongValue("accountzeroaccess") == 1;
             file.account_id = recordset->GetInt64Value("rcaccountid");
             file.path = FileUtilities::Combine(root, relative);
+
+            // As ListStoredFiles: the row's name, never one out of the data
+            // directory.
+            if (confined && !IsInDataDirectory(file.path))
+            {
+               files.clear();
+               problem = Formatter::Format(_T("a deleted message kept for recovery names the file {0}, which is not in the data directory; a walk changes nothing outside it"), file.path);
+               return false;
+            }
 
             // Asked of the store: a kept copy an object store holds has no file
             // (docs/ObjectStorage.md). One the store could not be asked about

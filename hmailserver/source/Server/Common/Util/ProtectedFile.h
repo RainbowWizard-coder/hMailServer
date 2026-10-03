@@ -90,4 +90,61 @@ namespace HM
       // False when the file cannot be examined.
       static bool ModifiedAt(const String &path, __int64 &seconds);
    };
+
+#ifndef HM_PLATFORM_POSIX
+   // A folder an administrator's process writes into although an account with
+   // fewer rights may write there too: the data folder, which NT SERVICE\
+   // hMailServer has Modify on, written by hMailServer.exe
+   // --apply-new-install-defaults when it makes a new installation's
+   // certificate (docs/ServiceAccount.md, "What an administrator's command
+   // writes"). Such an account can make a junction or a mount point of a folder
+   // it may write, and a file the administrator's process then made through it
+   // by its path would be made wherever that leads.
+   //
+   // So nothing here goes by the path after the volume's root. Each folder of
+   // the path is opened relative to the one above it (NtCreateFile with a root
+   // handle), never through a link - a folder that is a junction, a symbolic
+   // link or a mount point is refused - and held, sharing reading and writing
+   // but not deleting, so it cannot be renamed or removed while it is held. The
+   // last one is made when missing and asked, in the same way. A file is made
+   // or removed by its name relative to the last folder's handle, never through
+   // a link of that name, and a file made is checked by its handle to be where
+   // it was meant to be before a byte is written to it. Windows only: on Linux
+   // the verbs that write in the data folder run as the service's own user.
+   class HeldFolder
+   {
+   public:
+      HeldFolder();
+      ~HeldFolder();
+
+      // path: a full path on a drive (C:\...) or a share (\\server\share\...).
+      // False, with a sentence in error, when a folder of it is a link, could
+      // not be opened, or - the last, with createLast - could not be made.
+      bool Hold(const String &path, bool createLast, String &error);
+
+      // A new file name in the held folder with data in it, any file of that
+      // name removed first (a link of that name is removed, never followed).
+      // secret: a protected DACL - SYSTEM, the Administrators, the account this
+      // process runs as and, when readerAccount names one, Read for that
+      // account; otherwise the file inherits the folder's permissions. False,
+      // with a sentence, when it could not be written so; nothing is then left
+      // of it.
+      bool WriteNewFile(const String &name, const AnsiString &data, bool secret, const String &readerAccount, String &error);
+
+      // The file name in the held folder removed, relative to its handle; a link
+      // of that name is removed itself. True when it is gone or was not there.
+      bool RemoveFile(const String &name);
+
+      String Path() const { return path_; }
+
+      void Release();
+
+   private:
+      HeldFolder(const HeldFolder &);
+      HeldFolder &operator=(const HeldFolder &);
+
+      std::vector<void *> handles_;
+      String path_;
+   };
+#endif
 }

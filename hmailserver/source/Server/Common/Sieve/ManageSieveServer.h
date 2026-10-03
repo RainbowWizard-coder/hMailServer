@@ -90,7 +90,9 @@ namespace HM
    //   - A connection that runs out of time before signing in - a line, the TLS
    //     handshake or the PreAuthenticationSeconds of the whole - counts as a
    //     failed logon from its address, so the auto-ban sees a client that comes
-   //     back to hold the service and bans it as it bans a guesser.
+   //     back to hold the service and bans it as it bans a guesser. Not from
+   //     this computer's loopback address (IPAddress::IsLoopback), a webmail
+   //     beside the server, as SMTP's ban for AUTH on a delivery port spares it.
    //   - Signed in, a session ends after MaxKeepAliveLines lines in a row that do
    //     nothing (NOOP, CAPABILITY, an empty or unknown command, a STARTTLS or
    //     AUTHENTICATE it refuses), or once it has waited SignedInIdleSeconds in

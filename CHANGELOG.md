@@ -563,17 +563,40 @@ sections of one message add up to more than sixteen times the message is answere
 were read and held before any was sent. A `$` written into an element with anything else - `1:$` - is answered
 `BAD`, as no set. Found by the project's own review.
 
-`hMailServer.exe /GrantServiceAccess` writes nothing to the error log or the Application log, as the live update's
-elevated verbs do not. It runs elevated - by the installer before the database step of every upgrade of a service
-that runs as `NT SERVICE\hMailServer`, by the Control Panel's button and by DBSetup - and the log folder is the
-service's to write, so a line the database layer wrote there for it could go wherever a link the service had planted
-led. Everything the grant says, the database it could not read included, is on its own output as before. It also no
-longer leaves a Critical HM5028, "Check your database settings in hMailServer.ini", in the Application log when the
+No command of `hMailServer.exe` that an administrator runs writes in a folder the service can write any more. Since
+6.3.4 a new Windows installation runs the service as `NT SERVICE\hMailServer`, which has Modify on the program
+folder's `Logs`, `Data`, `Temp` and `Database` folders, and the commands Setup, DBSetup and the Control Panel run
+elevated - `/GrantServiceAccess`, `/Register` (on a registration that fails), `--apply-new-install-defaults`,
+`--apply-profile` and `--create-stored-secrets-key` - and those an administrator runs from an elevated prompt -
+`--upgrade-database`, the stored-secrets and store commands and the rest - wrote their errors to the error log in
+`Logs`, and armed the crash oracle, whose record and dump go there too. `--apply-new-install-defaults` wrote the
+self-signed certificate and its private key, and set the key's permissions, in `Data\Certificates` by path, and the
+store commands that rewrite, remove or add messages (`--compress-store`, `--decompress`, `--encrypt-store`,
+`--decrypt-store`, `--recount-store`) and the copies to and from an object store worked by path in `Data`, a copy
+to the store handing what it read to a store the service's account reads. A program running as the service's
+account - one that had already taken it over, through some other flaw - could put a junction or a mount point where
+such a write was going and have an administrator's process create, overwrite, delete or change the permissions of
+a file it chose, or read one, and so act with the administrator's rights. In 6.3.6
+every command line but the service's own (`RunAsService`) and the two a developer runs (`/Debug`, `/Test`) writes
+nothing to the error log, the Application log or an event script, has no crash oracle, and, where Windows has it
+(Windows 11 22H2, Windows Server 2025), follows no junction a user who is not an administrator made; each command
+says what it did and why it failed on its own output, which Setup, DBSetup and the Control Panel keep in their logs.
+The certificate and its key are made below the `Certificates` folder held open from the drive's root down - no folder
+of it a link - and each file is checked to be in it before a byte is written; and a store command that changes the
+data folder, and every copy to or from an object store, first finds no junction, mount point or symbolic link in it,
+and stops, naming them, if there is one.
+The store commands also reached each file by the name the database gives it, which the service's account may write:
+a message row naming a file outside the data folder - a full path, or a part that is `..` - had an administrator's
+`--compress-store` or `--encrypt-store` rewrite that file, or `--copy-store-from-object-storage` create it, and a held
+part's name in `hm_storeblobs` could send a recount's removal anywhere. Now such a row stops every store command,
+naming the message, before it reads or changes a file; an object store's key whose name would lead out of the
+folder is not listed; and a held part's name is its SHA-256 in hex or names no file.
+`build/check-elevated-verbs.py` holds all of it. The commands were affected in 6.3.4 and 6.3.5; it needs a program
+already running as the service's account and an administrator who then runs one of them. `/GrantServiceAccess` also
+no longer leaves a Critical HM5028, "Check your database settings in hMailServer.ini", in the Application log when the
 administrator running it cannot open a SQL Server database reached with Windows authentication: the installer smoke
-VM showed one on every such move on 3 October 2026. `/Register`, on a registration that fails, and
-`--apply-new-install-defaults`, `--create-stored-secrets-key` and `--apply-profile`, which the installer runs on a new
-installation before the service has any right to that folder, still write there. Found by the review of the
-installer's fixes.
+VM showed one on every such move on 3 October 2026. Found by the review of the installer's fixes and the sweep after
+it. [ServiceAccount.md](hmailserver/docs/ServiceAccount.md), "What an administrator's command writes".
 
 ### What changes on upgrade without a switch
 
@@ -1121,7 +1144,10 @@ installer's fixes.
     connection served at a time, its others wait their turn - four at most, a fifth refused with `BYE (TRYLATER)` -
     and a connection that runs out of time before signing in (a line, the TLS handshake or the 60 seconds before
     `AUTHENTICATE`) counts as a failed logon from its address for the auto-ban, which with the shipped
-    `MaxInvalidLogonAttempts` of 3 bans an address after three. A signed-in session ends with `BYE` after ten lines in
+    `MaxInvalidLogonAttempts` of 3 bans an address after three - but not from this computer's loopback address
+    (`127.0.0.0/8`, `::1`), a webmail beside the server, which three such timeouts would otherwise have banned from
+    SMTP, IMAP and POP3 for everyone it serves; SMTP's ban for `AUTH` on a delivery port spares the loopback the same
+    way, a wrong password from it still counts, and `AutoBanNeverBan` still spares any other address. A signed-in session ends with `BYE` after ten lines in
     a row that do nothing (`NOOP`, `CAPABILITY`, an empty or unknown command) or once it has waited two minutes in all
     for its commands, and an account has at most four sessions at once, a fifth sign-in answered `NO (TRYLATER)`.
     `UNAUTHENTICATE` takes the address's one turn back, and is answered `NO (TRYLATER)`, the session still signed in,
@@ -1205,6 +1231,32 @@ installer's fixes.
     servers; now the Windows resolver too reports it invalid (HM4401) and asks the system's servers. Measured on
     2 October 2026 against Windows 11's `WSAStringToAddressW` and glibc 2.43's `inet_pton`
     ([SmtpPolicy.md](hmailserver/docs/SmtpPolicy.md)).
+42. **`hMailServer.exe`'s commands write nothing to the error log, and say it all on their own output.** Every
+    command line but `RunAsService`, `/Debug` and `/Test` - `/Register`, `/Unregister`, `/RegisterTypeLib`,
+    `--upgrade-database`, `--apply-new-install-defaults`, `--apply-profile`, the stored-secrets, store and object-store
+    commands and the rest - leaves the error log, the Application log and the `OnError` event script alone and arms no
+    crash oracle (Security, above); what it did and why it failed is on its standard output and standard error, where
+    each already said it - `--upgrade-database` now into output its caller redirected, where a console the caller had
+    took its lines. `/Register` now says why a registration failed there, where it said nothing and wrote the
+    error log; Setup writes what `/Register`, `--apply-new-install-defaults`, `--apply-profile` and
+    `--create-stored-secrets-key` say into its own log and its messages, which no longer send anybody to the error log
+    for them. A script that read the error log after one of these commands reads its output instead:
+    `--forget-sealed-secrets`' `HM7497` and a command's `HM7496` are said on its standard error, as a Linux command run
+    as root says them. A store command that rewrites, removes or adds files in the data folder, and every copy to or
+    from an object store, stops, exit 1, before it reads or changes anything when a junction, a mount point or a
+    symbolic link is anywhere in that folder, and names them; nothing in it is ever one. A store
+    command on Windows, or run as root on Linux, also stops, before it reads or changes a file, when a message row
+    names a file outside the data folder - a full path elsewhere, which an old row may hold, or a part that is `..` -
+    and names the message: move the file into the data folder and correct the row, or delete the message.
+43. **`/GrantServiceAccess` that cannot read the database ends in 7.** It names the certificate and key files, the
+    backup folder and the PST import folder from the database, to say which the service would not reach once moved;
+    when the account running it could not open the database - SQL Server with Windows authentication, where LocalSystem
+    is a SQL Server administrator and that person is not - it said so in a note and ended in 0, and the installer,
+    DBSetup and the Control Panel moved the service without knowing. It now says `NOT READ` and ends in **7** unless an
+    administrator confirmed: with `--confirm`, as Setup in a window, DBSetup's wizard and the Control Panel run it, the
+    question it asks names the database it could not read, and Yes moves the service as before. A silent move then
+    waits, as it does for a folder nobody approved, and Setup says what to run; an upgrade of a service already moved
+    goes on. A database not set up yet names nothing, and is no 7.
 
 ### Downloads and the release
 
@@ -2230,6 +2282,23 @@ installer's fixes.
   database the settings file names is held to its version through the step whatever the mark says, so that a step that
   changed it ends in 11, not 10. [ServiceAccount.md](hmailserver/docs/ServiceAccount.md), "A new installation whose
   database step did not complete"; DBSetup's `NewInstallationTests` hold the steps and their order.
+
+- **A new installation whose administrator cannot open the database gets its secure defaults and its stored-secrets
+  key all the same.** On SQL Server with Windows authentication, where LocalSystem is a SQL Server administrator and
+  the person running Setup is not, `--apply-new-install-defaults` ended in 2 and `--create-stored-secrets-key` in 1,
+  both run as that person, and the recovery the message gives - the statements run by a SQL Server administrator, then
+  Setup again - ran as an upgrade and applied neither: the server had no certificate, no STARTTLS and no key (the
+  installer smoke VM, 3 October 2026). The service, which can open its database, now applies them itself at a start
+  asked for with the argument `--apply-new-install-defaults` - `sc start hMailServer --apply-new-install-defaults` -
+  before its listeners start, with the verb's own rules (the database's mark required, the shape of a new database,
+  the mark cleared once decided), and for that new installation makes the key when it runs as LocalSystem, which may write `hMailServer.ini`;
+  each step a line in the application log when that is on, and what it could not do an error (HM7498 for the key,
+  HM7510 and HM7511 for the defaults), with the setup checklist showing the outcome. Setup and DBSetup start the
+  service so whenever either verb could not open the database. And Setup's message after `--create-stored-secrets-key`
+  no longer says it made a key that the command only found already held - Setup run again to finish an installation
+  whose key an earlier run made - and DBSetup's says the same. [ServiceAccount.md](hmailserver/docs/ServiceAccount.md),
+  "A new installation whose administrator cannot open the database"; DBSetup's `NewInstallationTests` and
+  `InstallerPackaging` hold it.
 
 - **The installer's last error after a new installation's external database names what retries it.** It said to
   run `DBSetupQuick.exe` to retry the database, the line after it said `DBSetup.exe`, and followed after a wrong SQL

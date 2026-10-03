@@ -88,6 +88,13 @@ var
   // attached one with /createdatabase=0, and not the wizard, whose choice is not
   // known here: a database no login of the virtual account can have reached yet.
   g_bDatabaseCreatedHere: Boolean;
+  // Set when --apply-new-install-defaults or --create-stored-secrets-key, run as
+  // the administrator running setup, could not open the database - SQL Server
+  // with Windows authentication, where LocalSystem is a SQL Server administrator
+  // and that person is not: the service is then started with the argument that
+  // has it apply them itself ("sc start hMailServer --apply-new-install-defaults",
+  // FinishNewInstallationAtStart in hMailServer.cpp).
+  g_bFinishNewInstallationAtStart: Boolean;
 
   // Set when the database step was DBSetup's - a new installation's external
   // database - so that the last message names what retries it: this setup again,
@@ -1193,6 +1200,39 @@ begin
              'hMailServer is installed with the settings this version ships with. Apply the profile from the Control Deck''s checklist or the Control Panel''s Setting profiles page, which show what it would change first.', mbInformation, MB_OK, IDOK);
 end;
 
+// Runs hMailServer.exe with szArguments, what it says on its standard output and
+// standard error going into a file in {tmp}, and from there into the setup log
+// line for line and into szSaid. An administrator's verb writes nothing to the
+// error log or the Application log - the log folder is the service's to write
+// (hMailServer.cpp, ForbidServiceFolderWrites) - so what it did, and why it
+// failed, is said there and nowhere else. False when it could not be run;
+// ResultCode is its exit code otherwise.
+function RunServerVerbReported(szArguments: String; var ResultCode: Integer; var szSaid: String): Boolean;
+var
+   szReport: String;
+   szText: AnsiString;
+begin
+   szSaid := '';
+   szReport := ExpandConstant('{tmp}\server-verb-output.txt');
+   DeleteFile(szReport);
+   Result := Exec(ExpandConstant('{cmd}'), '/s /c ""' + ExpandConstant('{app}\Bin\hMailServer.exe') + '" ' + szArguments + ' > "' + szReport + '" 2>&1"',
+                  '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+   if not Result then
+   begin
+      Log('hMailServer.exe ' + szArguments + ' could not be run: ' + SysErrorMessage(ResultCode));
+      Exit;
+   end;
+
+   if LoadStringFromFile(szReport, szText) then
+      szSaid := Trim(String(szText));
+   DeleteFile(szReport);
+
+   if szSaid <> '' then
+      Log('hMailServer.exe ' + szArguments + ' returned ' + IntToStr(ResultCode) + ':' + #13#10 + szSaid)
+   else
+      Log('hMailServer.exe ' + szArguments + ' returned ' + IntToStr(ResultCode) + ' and said nothing.');
+end;
+
 // Runs the verb for the profile chosen, after the database step - DBSetupQuick for
 // the built-in database, DBSetup for an external one - and before the installation
 // starts the service. The database tools reach the server over COM, which starts
@@ -1206,6 +1246,7 @@ procedure ApplyChosenProfile();
 var
    szProfile: String;
    szWhy: String;
+   szSaid: String;
    ResultCode: Integer;
 begin
    szProfile := GetChosenProfile();
@@ -1224,7 +1265,7 @@ begin
       end;
    end;
 
-   if (Exec(ExpandConstant('{app}\Bin\hMailServer.exe'), '--apply-profile ' + szProfile + ' --once --if-new --confirm', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) = False) then
+   if (RunServerVerbReported('--apply-profile ' + szProfile + ' --once --if-new --confirm', ResultCode, szSaid) = False) then
    begin
       SayProfileNotApplied(szProfile, 'hMailServer.exe did not start. ' + SysErrorMessage(ResultCode));
       Exit;
@@ -1238,7 +1279,7 @@ begin
       4: szWhy := 'the hMailServer service was running again when the profile was to be applied (exit code 4).';
       5: szWhy := 'the database already holds ten accounts or more, so it is in service, and a profile is applied to it only after its diff has been seen (exit code 5).';
    else
-      szWhy := 'hMailServer.exe --apply-profile returned ' + IntToStr(ResultCode) + ', and the error log says why.';
+      szWhy := 'hMailServer.exe --apply-profile returned ' + IntToStr(ResultCode) + '. It said: ' + szSaid;
    end;
    SayProfileNotApplied(szProfile, szWhy);
 end;
@@ -1257,6 +1298,7 @@ end;
 procedure CreateStoredSecretsKey();
 var
    ResultCode: Integer;
+   szSaid: String;
 begin
    if (IsComponentSelected('server') = false) or (IsNewDatabase() = false) then
       Exit;
@@ -1277,17 +1319,40 @@ begin
       end;
    end;
 
-   if (Exec(ExpandConstant('{app}\Bin\hMailServer.exe'), '--create-stored-secrets-key', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) = False) then
+   if (RunServerVerbReported('--create-stored-secrets-key', ResultCode, szSaid) = False) then
    begin
       SuppressibleMsgBox('The stored-secrets key was not made: hMailServer.exe did not start. ' + SysErrorMessage(ResultCode) + #13#10#13#10 +
              'hMailServer is installed, and stores each account''s second factor and the secret settings as written until a key is made. From an elevated prompt in the hMailServer Bin folder: hMailServer.exe --create-stored-secrets-key, then hMailServer.exe --export-stored-secrets-key FILE.', mbInformation, MB_OK, IDOK);
       Exit;
    end;
 
+   // The account running setup could not open the database, which the service
+   // can: the service makes the key at the start this installation makes
+   // (g_bFinishNewInstallationAtStart).
+   if (ResultCode <> 0) and (Pos('The database could not be opened', szSaid) > 0) then
+   begin
+      g_bFinishNewInstallationAtStart := true;
+      SuppressibleMsgBox('The stored-secrets key could not be made by the account running setup, which cannot open the database:' + #13#10#13#10 + szSaid + #13#10#13#10 +
+             'The hMailServer service, which can, makes it at the start this setup makes ("sc start hMailServer --apply-new-install-defaults"), when it runs as LocalSystem; the Control Deck''s setup checklist shows whether it holds one, and the service reports HM7498 if it could not make it. ' +
+             'Then export it from an elevated prompt in the hMailServer Bin folder: hMailServer.exe --export-stored-secrets-key FILE.', mbInformation, MB_OK, IDOK);
+      Exit;
+   end;
+
    if (ResultCode <> 0) then
    begin
-      SuppressibleMsgBox('The stored-secrets key was not made (hMailServer.exe --create-stored-secrets-key returned ' + IntToStr(ResultCode) + '). The database may already record the key of another server that shares it.' + #13#10#13#10 +
-             'hMailServer is installed. Run the verb again from an elevated prompt in the hMailServer Bin folder to read why; where another server holds the database''s key, import it here with hMailServer.exe --import-stored-secrets-key FILE.', mbInformation, MB_OK, IDOK);
+      SuppressibleMsgBox('The stored-secrets key was not made (hMailServer.exe --create-stored-secrets-key returned ' + IntToStr(ResultCode) + '). It said:' + #13#10#13#10 + szSaid + #13#10#13#10 +
+             'hMailServer is installed. Where another server holds the database''s key, import it here with hMailServer.exe --import-stored-secrets-key FILE, from an elevated prompt in the hMailServer Bin folder.', mbInformation, MB_OK, IDOK);
+      Exit;
+   end;
+
+   // Found, not made: a key this server already held, the database's - setup run
+   // again to finish an installation whose key an earlier run made. Until 6.3.6
+   // this said it had made one.
+   if (Pos('already holds the stored-secrets key', szSaid) > 0) then
+   begin
+      SuppressibleMsgBox('hMailServer already holds this installation''s stored-secrets key, made earlier, which the database records; no key was made now.' + #13#10#13#10 +
+             'If it has not been exported yet, export it and keep the file with your database backups, stored apart from them. From an elevated prompt in the hMailServer Bin folder:' + #13#10#13#10 +
+             'hMailServer.exe --export-stored-secrets-key FILE', mbInformation, MB_OK, IDOK);
       Exit;
    end;
 
@@ -1341,6 +1406,7 @@ end;
 procedure ApplyNewInstallDefaults(bBuiltIn: Boolean);
 var
    ResultCode: Integer;
+   szSaid: String;
 begin
    if (IsComponentSelected('server') = false) or (IsNewDatabase() = false) then
       Exit;
@@ -1356,14 +1422,11 @@ begin
       end;
    end;
 
-   if (Exec(ExpandConstant('{app}\Bin\hMailServer.exe'), '--apply-new-install-defaults', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) = False) then
+   if (RunServerVerbReported('--apply-new-install-defaults', ResultCode, szSaid) = False) then
    begin
-      Log('hMailServer.exe --apply-new-install-defaults did not start: ' + SysErrorMessage(ResultCode));
       SayNewInstallDefaultsNotApplied('hMailServer.exe did not start. ' + SysErrorMessage(ResultCode), true);
       Exit;
    end;
-
-   Log('hMailServer.exe --apply-new-install-defaults exited ' + IntToStr(ResultCode) + '.');
 
    case ResultCode of
       0: Exit;
@@ -1372,10 +1435,19 @@ begin
             if bBuiltIn then
                SayNewInstallDefaultsNotApplied('the built-in database DBSetupQuick has just created was not recognised as a new one (exit code 5), which should not happen; its listeners were left as the create step made them.', false);
          end;
-      2: SayNewInstallDefaultsNotApplied('hMailServer.exe did not find the database, could not open it, or could not read it well enough to tell whether it is new (exit code 2).', true);
+      2:
+         begin
+            // The database could not be opened by the account running setup - on
+            // SQL Server with Windows authentication, one that is no SQL Server
+            // administrator - or not read well enough to judge: the mark is kept,
+            // and the service, which opens it, applies them at the start this
+            // setup makes (g_bFinishNewInstallationAtStart).
+            g_bFinishNewInstallationAtStart := true;
+            Log('The secure defaults are left to the service''s start: sc start hMailServer --apply-new-install-defaults.');
+         end;
       4: SayNewInstallDefaultsNotApplied('the hMailServer service was running again when the defaults were to be applied (exit code 4).', true);
    else
-      SayNewInstallDefaultsNotApplied('hMailServer.exe --apply-new-install-defaults returned ' + IntToStr(ResultCode) + '. The error log says what was and was not changed: where it says nothing was changed (the certificate could not be made, written or recorded), the database keeps its mark, and running it again from the Bin folder with the service stopped still applies them.', false);
+      SayNewInstallDefaultsNotApplied('hMailServer.exe --apply-new-install-defaults returned ' + IntToStr(ResultCode) + '. It said what was and was not changed:' + #13#10#13#10 + szSaid + #13#10#13#10 + 'Where it says nothing was changed (the certificate could not be made, written or recorded), the database keeps its mark, and running it again from the Bin folder with the service stopped still applies them.', false);
    end;
 end;
 
@@ -2110,6 +2182,7 @@ function RegisterHMailServerService(szAccountChoice: String) : Boolean;
 	var
 		ResultCode: Integer;
 		szParameters: String;
+		szSaid: String;
 begin
 	Result := true;
 
@@ -2124,7 +2197,7 @@ begin
 	// ChangeServiceConfig fails, and ignoring it meant an installation with no
 	// service at all still ended on "Completed" - the following "net START
 	// hMailServer" failed too, and its result was ignored as well.
-	if (Exec(ExpandConstant('{app}\Bin\hMailServer.exe'), szParameters, '',  SW_HIDE, ewWaitUntilTerminated, ResultCode) = False) then
+	if (RunServerVerbReported(szParameters, ResultCode, szSaid) = False) then
 	begin
 		SuppressibleMsgBox('The hMailServer service could not be created.' + #13#10 + SysErrorMessage(ResultCode), mbError, MB_OK, IDOK);
 		Result := false;
@@ -2134,7 +2207,8 @@ begin
 	if (ResultCode <> 0) then
 	begin
 		SuppressibleMsgBox('The hMailServer service could not be created (hMailServer.exe /Register returned ' + IntToStr(ResultCode) + ').' + #13#10#13#10 +
-		       'Check the hMailServer error log, then run "hMailServer.exe --service-account ' + szAccountChoice + ' /Register" as an administrator from the ' +
+		       szSaid + #13#10#13#10 +
+		       'Run "hMailServer.exe --service-account ' + szAccountChoice + ' /Register" as an administrator from the ' +
 		       'hMailServer Bin folder to retry.', mbError, MB_OK, IDOK);
 		Result := false;
 		Exit;
@@ -2170,6 +2244,35 @@ begin
 		Log('sc.exe start returned ' + IntToStr(ResultCode) + '; the database step starts the hMailServer service itself, and an old database is reported as HM5011.')
 	else
 		Log('Started the hMailServer service for the database upgrade (--for-database-upgrade).');
+end;
+
+// Starts the hMailServer service with the argument that has it finish a new
+// installation the account running setup could not (g_bFinishNewInstallationAtStart):
+// "sc start hMailServer --apply-new-install-defaults" - the secure defaults applied
+// and the stored-secrets key made by the service, which opens the database, before
+// its listeners start (FinishNewInstallationAtStart in hMailServer.cpp). sc.exe
+// returns once the start is asked for, so the service is waited for, as net start
+// waits. False when sc.exe could not be run or the start was refused.
+function StartServiceToFinishNewInstallation(var ResultCode: Integer): Boolean;
+var
+   I: Integer;
+begin
+   Result := Exec(ExpandConstant('{sys}\sc.exe'), 'start hMailServer --apply-new-install-defaults', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+   if not Result then
+      Exit;
+   if ResultCode <> 0 then
+   begin
+      Log('sc.exe start hMailServer --apply-new-install-defaults returned ' + IntToStr(ResultCode) + '.');
+      Result := false;
+      Exit;
+   end;
+   Log('Started the hMailServer service to apply a new installation''s defaults and make its stored-secrets key (--apply-new-install-defaults); the service reports what it could not do (HM7498, HM7510, HM7511), and its application log, when that is on, each step.');
+   for I := 1 to 60 do
+   begin
+      if IsServiceRunning('hMailServer') then
+         Exit;
+      Sleep(1000);
+   end;
 end;
 
 // Runs hMailServer.exe /GrantServiceAccess (Common/Util/ServiceAccount.h), which
@@ -2220,6 +2323,7 @@ begin
 		4: Result := 'the configuration names folders no administrator has approved for the service, or key and certificate files outside the folders it is granted, and a silent installation does not approve them';
 		5: Result := 'the configuration names a folder that is never granted to the service - one in the program folder beside its own Data, Logs, Temp and Database folders, or in Windows, Program Files or a user profile - so the configuration has to change first';
 		6: Result := 'you answered No';
+		7: Result := 'the account running setup could not read the database, so the certificate and key files and the backup folder it names are not known, and a silent installation does not move the service without them - run "hMailServer.exe --confirm /GrantServiceAccess" and answer Yes, then "hMailServer.exe --service-account virtual /Register", or move it from the Control Panel, which asks';
 	else
 		Result := 'it returned ' + IntToStr(ResultCode);
 	end;
@@ -2244,7 +2348,9 @@ begin
 		Exit;
 	end;
 
-	if (ResultCode = 0) or (ResultCode = 4) then
+	// 7: the database could not be read by this account; the service already
+	// runs as it, and nothing is moved here.
+	if (ResultCode = 0) or (ResultCode = 4) or (ResultCode = 7) then
 		Exit;
 
 	SuppressibleMsgBox('The hMailServer service account was not granted all of its folders: ' + GrantOutcomeSentence(ResultCode) + '.' + #13#10#13#10 +
@@ -2352,7 +2458,7 @@ begin
 	SuppressibleMsgBox('The hMailServer service was not moved to NT SERVICE\hMailServer, and runs as LocalSystem. The database is SQL Server with Windows authentication, ' +
 	       'and that account could not be given what it needs to open it - a login, a user in the database and db_owner - so moved, the service would not open its database and would serve no mail.' + #13#10#13#10 +
 	       szSaid + #13#10#13#10 +
-	       'Once a SQL Server administrator has run those statements, move the service from the Control Panel (Windows service account), or run this setup again with the move chosen (/serviceaccount=virtual for a silent one).', mbError, MB_OK, IDOK);
+	       'Once a SQL Server administrator has run those statements, move the service from the Control Panel (Windows service account), or run this setup again with the move chosen - attended, since this account cannot read the database and only an administrator''s Yes moves it then. The service applies the secure defaults and makes the stored-secrets key itself at the start this setup makes.', mbError, MB_OK, IDOK);
 end;
 
 // The move to NT SERVICE\hMailServer, after the database step
@@ -3146,7 +3252,12 @@ begin
             Log('The hMailServer service is not started: the installation stopped before its database step.')
          else if (bServiceRegistered = true) then
          begin
-            if (Exec(ExpandConstant('{sys}\net.exe'), 'START hMailServer', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) = False) then
+            if g_bFinishNewInstallationAtStart then
+               bStarted := StartServiceToFinishNewInstallation(ResultCode)
+            else
+               bStarted := Exec(ExpandConstant('{sys}\net.exe'), 'START hMailServer', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+
+            if (bStarted = False) then
             begin
                SuppressibleMsgBox('The hMailServer service could not be started.' + #13#10 + SysErrorMessage(ResultCode), mbError, MB_OK, IDOK);
                Result := false;

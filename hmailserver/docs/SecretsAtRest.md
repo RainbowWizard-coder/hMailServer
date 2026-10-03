@@ -260,7 +260,9 @@ elsewhere, this installation's record would stop that one sealing anything. A ve
 seals in its own process - `--set-setting`, `--apply-environment`, `--apply-profile` -
 checks its key against the record the first time it seals; where it is not the database's,
 or the database cannot be read, the verb stores the value as written, which every node
-reads, and says so once (`HM7496`); a start of the service seals it where the key is right.
+reads, and says so once (`HM7496`) - on its standard error when it runs on Windows, or as root
+on Linux, since neither writes the logs ([ServiceAccount.md](ServiceAccount.md), "What an
+administrator's command writes") - and a start of the service seals it where the key is right.
 
 ### Keep a copy
 
@@ -365,8 +367,10 @@ without an id; where this node's own key line does not open - its key file missi
 wrong mode, or a line copied from another machine - since it may be the very key named; and
 where this node holds the key named, since nothing sealed under a key that is held is lost. It
 refuses while the service runs (exit 4; on Linux by the lock the running server holds). It
-prints one line for every item and writes them all into the error log (`HM7497`). Every value
-it clears is gone.
+prints one line for every item, and all of them again in one entry (`HM7497`): on its standard
+error on Windows and as root on Linux, where a command an administrator runs writes nothing to
+the logs, and into the error log when the service's own user runs it on Linux. Every value it
+clears is gone.
 
 An account's second factor
 --------------------------
@@ -419,9 +423,9 @@ cannot drift apart. `IniSettingStore::IsProtectedName`.
 which since schema 6042 is the server's copy of the row ([SettingsApply.md](SettingsApply.md))
 - hold the same envelope. Everything that reads a `[Settings]` value reads it opened: the
 settings loader, COM's `GetIniSetting`, `GET /api/v1/settings/ini/{name}`, the pending list,
-and whatever reads the file's copy with no database open - the bootstrap, a server whose
-table cannot be read, and `hMailServer.exe /Register`, which loads the settings for where its
-error log is (`IniFileSettings::ResolveString_`). `/Register` no longer reads
+and whatever reads the file's copy with no database open - the bootstrap and a server whose
+table cannot be read (`IniFileSettings::ResolveString_`). `hMailServer.exe /Register` loads no
+settings since 6.3.6, when it stopped writing the error log, and reads no
 `ServiceAccountPassword`: it takes the service's account from its command line alone
 ([ServiceAccount.md](ServiceAccount.md#register-takes-the-account-from-its-command-line)). A save of the value already stored keeps
 its envelope, so a settings page that writes every field it shows does not rewrite every
@@ -510,8 +514,9 @@ Errors
 | `HM7493` | An account's second factor sealed under a key this node does not hold (once a process) |
 | `HM7494` | The administrator password could not be written: its hash could not be made, or a re-hash could not be written to the file (once a process) |
 | `HM7495` | At a start: the database records a key or holds sealed values and this node has no key, or its key line does not open here, or its key is not the database's, or the database holds values sealed under a key that is not the database's. Said at each start until it is mended |
-| `HM7496` | A process that did not run a start - a verb - sealed nothing, because its key is not the database's or the database's record could not be read; what it saved is stored as written (once a process; on Linux, run as root, on standard error) |
-| `HM7497` | `--forget-sealed-secrets KEYID` cleared what was sealed under that lost key: every item, in one entry (on Linux, run as root, on standard error) |
+| `HM7496` | A process that did not run a start - a verb - sealed nothing, because its key is not the database's or the database's record could not be read; what it saved is stored as written (once a process; on standard error from a command on Windows, and on Linux run as root) |
+| `HM7498` | A start asked for with `sc start hMailServer --apply-new-install-defaults`, to finish a new installation whose administrator could not open the database, could not make the stored-secrets key: the reason - the service runs as an account that may not write `hMailServer.INI`, or the database records another key - and what makes it ([ServiceAccount.md](ServiceAccount.md), "A new installation whose administrator cannot open the database") |
+| `HM7497` | `--forget-sealed-secrets KEYID` cleared what was sealed under that lost key: every item, in one entry (on standard error from the command on Windows, and on Linux run as root) |
 | `HM6412` | On Linux, the stored-secret key file is missing when a secret is opened: now once a process, at Medium, rather than at every read at High |
 
 None of them is said on a server as it is installed, nor on one upgraded without a key: that

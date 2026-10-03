@@ -1341,9 +1341,15 @@ namespace HM
 
       // The box --confirm asks in, on the desktop of this elevated process.
       // True for Yes.
-      bool AskToProceed_(const Plan_ &plan)
+      bool AskToProceed_(const Plan_ &plan, const String &databaseUnread)
       {
          String text = _T("hMailServer.exe /GrantServiceAccess is about to grant NT SERVICE\\hMailServer, the service's own account, its folders.\r\n");
+
+         if (!databaseUnread.IsEmpty())
+         {
+            text += Formatter::Format(_T("\r\nThe database could not be read by this account ({0}), so the certificate and key files, the backup folder and the PST import folder it names are not known here: one outside the folders granted would not be reached by the service once it runs as NT SERVICE\\hMailServer. A new installation's database names none. Yes grants the folders as they are.\r\n"),
+               databaseUnread);
+         }
 
          if (!plan.notApproved.empty())
          {
@@ -1708,10 +1714,27 @@ namespace HM
          named.push_back({ ini->GetDatabaseDirectory(), _T("the database folder ([Directories] DatabaseFolder)"), true, false });
       named.push_back({ ini->GetEventDirectory(), _T("the event folder ([Directories] EventFolder)"), false, false });
 
+      // A database this account cannot read - SQL Server with Windows
+      // authentication, where the person running this is no SQL Server
+      // administrator and LocalSystem is - leaves unknown what it names. Until
+      // 6.3.6 that was a note, and the grant still ended in 0, so the installer,
+      // DBSetup and the Control Panel moved the service without knowing whether a
+      // key file it reads lies outside what it is granted. Now it is said as
+      // NOT READ and ends in 7, unless an administrator confirmed (--confirm, the
+      // question below); the grants themselves are made either way, from trusted
+      // places alone.
       String databaseWhy;
       std::vector<String> notes;
-      if (!ReadConfiguredPaths_(named, databaseWhy))
+      if (ReadConfiguredPaths_(named, databaseWhy))
+         databaseWhy.Empty();
+      else if (!ini->GetDatabaseSettingsExists())
+      {
+         // No database yet names nothing, as before.
          notes.push_back(Formatter::Format(_T("The backup folder and the certificate and key files are named in the database, and {0}, so none of them is known here; run this again once the database is set up."), databaseWhy));
+         databaseWhy.Empty();
+      }
+      else if (databaseWhy.IsEmpty())
+         databaseWhy = _T("no reason was given");
 
       // Each spelled as Windows resolves it - full, long - before it is compared:
       // C:\PROGRA~1\hMailServer\Data is the program's own data folder, and an
@@ -1761,10 +1784,10 @@ namespace HM
       // 4. Asked, when asked to ask: once, for everything the configuration
       //    names that the grants would not reach.
       bool confirmed = false;
-      const bool unresolved = !plan.notApproved.empty() || !plan.outside.empty() || !plan.refused.empty();
+      const bool unresolved = !plan.notApproved.empty() || !plan.outside.empty() || !plan.refused.empty() || !databaseWhy.IsEmpty();
       if (options.confirm && !options.reportOnly && unresolved)
       {
-         if (!AskToProceed_(plan))
+         if (!AskToProceed_(plan, databaseWhy))
          {
             SayWhatIsNotGranted_(plan);
             SayLine_(false, _T("The administrator answered No. Nothing was changed."));
@@ -2022,6 +2045,13 @@ namespace HM
 
       SayWhatIsNotGranted_(plan);
 
+      if (!databaseWhy.IsEmpty())
+      {
+         SayLine_(!confirmed, Formatter::Format(_T("  NOT READ        the database: {0}. The certificate and key files, the backup folder and the PST import folder it names are not known to this account, so whether the service reaches them is not known either."), databaseWhy));
+         if (!confirmed)
+            SayLine_(true, _T("  Run this as an account that can open the database, or with --confirm and answer Yes, before the service is moved to NT SERVICE\\hMailServer (exit 7)."));
+      }
+
       for (const String &note : notes)
          SayLine_(false, note);
 
@@ -2033,6 +2063,8 @@ namespace HM
          return 5;
       if (!confirmed && (!plan.notApproved.empty() || !plan.outside.empty()))
          return 4;
+      if (!confirmed && !databaseWhy.IsEmpty())
+         return 7;
       return 0;
    }
 

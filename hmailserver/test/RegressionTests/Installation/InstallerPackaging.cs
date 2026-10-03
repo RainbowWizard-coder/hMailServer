@@ -445,6 +445,85 @@ namespace RegressionTests.Installation
       }
 
       [Test]
+      [Description("hMailServer.exe's verbs that Setup runs elevated write nothing to the error log (hMailServer.cpp, ForbidServiceFolderWrites), so Setup takes what they say from their own output into its log and its messages: --apply-new-install-defaults, --apply-profile, --create-stored-secrets-key and /Register all run through RunServerVerbReported, and no message sends anybody to the error log for what one of them did.")]
+      public void WhatSetupsServerVerbsSayGoesIntoItsLogNotTheErrorLog()
+      {
+         string extension = ReadInstallerScript("hMailServerInnoExtension.iss");
+         string code = Regex.Replace(extension, @"//[^\n]*", "");
+
+         string runner = CodeBody(code, "RunServerVerbReported");
+         StringAssert.Contains("2>&1", runner, "RunServerVerbReported does not take the verb's standard error.");
+         StringAssert.Contains("Log(", runner, "RunServerVerbReported does not put what the verb said into the setup log.");
+
+         foreach (string verb in new[] { "--apply-new-install-defaults", "--apply-profile ", "--create-stored-secrets-key" })
+         {
+            ClassicAssert.IsFalse(Regex.IsMatch(code, @"Exec\(ExpandConstant\('\{app\}\\Bin\\hMailServer\.exe'\),\s*'" + Regex.Escape(verb)),
+               verb + " is run without its output: what it says goes nowhere, since it writes nothing to the error log.");
+            ClassicAssert.IsTrue(Regex.IsMatch(code, @"RunServerVerbReported\('" + Regex.Escape(verb)),
+               verb + " is not run through RunServerVerbReported.");
+         }
+         StringAssert.Contains("RunServerVerbReported(szParameters", CodeBody(code, "RegisterHMailServerService"),
+            "/Register is run without its output.");
+
+         foreach (string name in new[] { "ApplyChosenProfile", "ApplyNewInstallDefaults", "CreateStoredSecretsKey", "RegisterHMailServerService" })
+            ClassicAssert.IsFalse(Regex.IsMatch(CodeBody(code, name), @"error log", RegexOptions.IgnoreCase),
+               name + " sends the administrator to the error log, where the verb no longer writes.");
+
+         // And the server holds the other half: every command line but the service's
+         // and the two developer modes forbids its writes.
+         string server = ReadRepositoryFile(@"hmailserver\source\Server\hMailServer\hMailServer.cpp");
+         ClassicAssert.IsTrue(Regex.IsMatch(server, @"if \(!IsServerCommandLine\(\)\)\s*ForbidServiceFolderWrites\(\);"),
+            "hMailServer.exe no longer forbids an administrator's verb its writes in the service's folders.");
+      }
+
+      [Test]
+      [Description("When the administrator running Setup cannot open the database - SQL Server with Windows authentication, LocalSystem a SQL Server administrator and that person not - the secure defaults and the stored-secrets key are applied by the service at the start Setup makes (sc start hMailServer --apply-new-install-defaults), which the server reads in ServiceMain; and a key Setup's verb found already held is not said to have been made.")]
+      public void ANewInstallationItsAdministratorCannotOpenIsFinishedByTheServicesStart()
+      {
+         string extension = ReadInstallerScript("hMailServerInnoExtension.iss");
+         string code = Regex.Replace(extension, @"//[^\n]*", "");
+         string server = ReadRepositoryFile(@"hmailserver\source\Server\hMailServer\hMailServer.cpp");
+
+         // The defaults' exit 2 and the key's could-not-open both leave it to the start.
+         string defaults = CodeBody(code, "ApplyNewInstallDefaults");
+         ClassicAssert.IsTrue(Regex.IsMatch(defaults, @"2:\s*begin\s*g_bFinishNewInstallationAtStart\s*:=\s*true", RegexOptions.Singleline),
+            "ApplyNewInstallDefaults does not leave the defaults to the service's start when the verb could not open the database (exit 2).");
+         string key = CodeBody(code, "CreateStoredSecretsKey");
+         const string notOpened = "The database could not be opened";
+         StringAssert.Contains("Pos('" + notOpened + "', szSaid)", key, "CreateStoredSecretsKey does not tell a database it could not open from any other refusal.");
+         StringAssert.Contains("\"" + notOpened, server, "hMailServer.exe --create-stored-secrets-key no longer says \"" + notOpened + "\", which Setup looks for.");
+
+         // A key found is said as found.
+         const string found = "already holds the stored-secrets key";
+         StringAssert.Contains("Pos('" + found + "', szSaid)", key, "CreateStoredSecretsKey says it made a key the verb only found.");
+         StringAssert.Contains(found, server, "hMailServer.exe --create-stored-secrets-key no longer says \"" + found + "\", which Setup looks for.");
+
+         // The start that finishes it, and the server's half.
+         string tasks = CodeBody(code, "RunPostInstallTasks");
+         ClassicAssert.IsTrue(Regex.IsMatch(tasks, @"if\s+g_bFinishNewInstallationAtStart\s+then\s+bStarted\s*:=\s*StartServiceToFinishNewInstallation\(", RegexOptions.IgnoreCase),
+            "RunPostInstallTasks does not start the service to finish the installation when the verbs could not.");
+         StringAssert.Contains("'start hMailServer --apply-new-install-defaults'", CodeBody(code, "StartServiceToFinishNewInstallation"));
+         StringAssert.Contains("argument.CompareNoCase(_T(\"--apply-new-install-defaults\")) == 0", server, "ServiceMain does not read --apply-new-install-defaults.");
+         ClassicAssert.IsTrue(Regex.IsMatch(server, @"if \(finish && FinishNewInstallationAtStart\(\)\)"), "InitializeApplication does not finish a new installation it was started to.");
+      }
+
+      [Test]
+      [Description("/GrantServiceAccess that cannot read the database - so does not know the certificate and key files it names - ends in 7 unless an administrator confirmed, and the installer moves the service only on 0; a service already moved is not held to it at an upgrade.")]
+      public void AGrantThatCouldNotReadTheDatabaseDoesNotMoveTheServiceSilently()
+      {
+         string account = ReadRepositoryFile(@"hmailserver\source\Server\Common\Util\ServiceAccount.cpp");
+         ClassicAssert.IsTrue(Regex.IsMatch(account, @"if \(!confirmed && !databaseWhy\.IsEmpty\(\)\)\s*return 7;"),
+            "/GrantServiceAccess ends in 0 when it could not read the database, and the move goes on without knowing what it names.");
+
+         string extension = ReadInstallerScript("hMailServerInnoExtension.iss");
+         string code = Regex.Replace(extension, @"//[^\n]*", "");
+         StringAssert.Contains("7: Result :=", CodeBody(code, "GrantOutcomeSentence"), "The installer does not say what the grant's 7 means.");
+         StringAssert.Contains("(ResultCode = 7)", CodeBody(code, "GrantServiceAccess"), "A service already moved fails its upgrade when the account running setup cannot read the database.");
+         ClassicAssert.IsTrue(Regex.IsMatch(CodeBody(code, "MoveServiceToVirtualAccount"), @"else if \(ResultCode <> 0\) then"),
+            "The move no longer waits for a clean grant.");
+      }
+
+      [Test]
       [Description("The uninstaller stops the service before deleting it, and tolerates files an old installation never had.")]
       public void TestUninstallStepsAreOrderedAndOptional()
       {

@@ -1823,7 +1823,20 @@ namespace HM
                   String(client_address.ToString()).c_str());
                LOG_DEBUG(message);
 
-               if (!authenticated)
+               if (!authenticated && client_address.IsLoopback())
+               {
+                  // This computer itself - a webmail beside the server, which reaches
+                  // ManageSieve on 127.0.0.1 for every user it serves - is not counted,
+                  // as SMTP's ban for AUTH on a delivery port spares it: a timeout is
+                  // no guess at a password, and three of them would otherwise ban the
+                  // webmail's address from SMTP, IMAP and POP3 for everyone behind it.
+                  // Until 6.3.6's last re-check it was counted. A wrong password from
+                  // it is still counted, as on every listener, and AutoBanNeverBan is
+                  // still the way to spare any other address.
+                  LOG_DEBUG(_T("ManageSieveServer: ") + String(client_address.ToString()) +
+                     _T(" is this computer's loopback address; a connection from it that did not sign in in time is not counted towards the auto-ban."));
+               }
+               else if (!authenticated)
                {
                   // A client that held its turn without signing in: counted as a failed
                   // logon from its address, so that one that comes back each time it is

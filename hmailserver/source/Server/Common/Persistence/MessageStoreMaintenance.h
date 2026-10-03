@@ -89,10 +89,25 @@ namespace HM
          __int64 account_id;    // 0 for a public folder
       };
 
+      // Whether path names a file inside the data directory, read as it is
+      // spelled: the directory, a separator, and below it no part that is "..",
+      // and on Windows none that is only dots and spaces, which Windows reads
+      // as "." or "..", or that holds a colon. The names the walks below change
+      // come from the database and, on an object store, from its keys - both of
+      // which the service's own account may write - and the walks run as an
+      // administrator on Windows: a name that leads out of the data directory,
+      // a full path an old row may hold included, is never one of theirs.
+      static bool IsInDataDirectory(const String &path);
+
       // Every stored file, one account's, or one domain's accounts' - the
       // account and the domain found as the server finds them at a sign-in,
       // without regard to case on every database. False when the database
-      // cannot be read or the account or domain is not there.
+      // cannot be read or the account or domain is not there, and - in a process
+      // with more rights than the service: a command an administrator runs on
+      // Windows, one run as root on Linux - when a row names a file outside the
+      // data directory (IsInDataDirectory), which problem names: nothing is
+      // listed then, so nothing is changed. The service reads such a row's file
+      // with its own rights, as it always has.
       static bool ListStoredFiles(const String &accountAddress, const String &domainName, std::vector<StoredFile> &files, String &problem);
 
       // The files the recover-deleted store keeps, which reference blobs too.
@@ -105,7 +120,8 @@ namespace HM
       // encryption walks: a mailbox encrypted at rest has its deleted items
       // encrypted and decrypted with its mail (docs/EncryptionAtRest.md). A
       // copy the store confirms is gone is left out; one it could not be asked
-      // about is listed, for its caller to meet by name.
+      // about is listed, for its caller to meet by name. A row that names a
+      // file outside the data directory fails it where it fails ListStoredFiles.
       static bool ListKeptFilesOf(const String &accountAddress, const String &domainName, std::vector<StoredFile> &files, String &problem);
 
       // Every blob's count set from the stored files and the kept copies. exact

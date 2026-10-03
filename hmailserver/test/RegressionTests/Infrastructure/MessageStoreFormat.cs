@@ -596,6 +596,42 @@ namespace RegressionTests.Infrastructure
          StringAssert.Contains(attachment, FetchLiteral(walkedAddress, "INBOX", 1, "BODY.PEEK[]"), "The server does not read the store the walk left.");
       }
 
+      [Test]
+      [Description("A message whose row names a file outside the data directory - a full path elsewhere, which the service's own account can write into the database - stops a store walk before it reads or changes a file, naming the message: the walks run as an administrator on Windows, and the names they rewrite, remove and copy over are the rows'. --measure-store, which runs beside the service, shows it; every walk lists its files the same way (MessageStoreMaintenance::ListStoredFiles). Negative control: the same message under its own name is measured.")]
+      public void AWalkTouchesNoFileARowNamesOutsideTheDataDirectory()
+      {
+         Account account = AddAccount("outside");
+         SmtpClientSimulator.StaticSendRaw("sender@example.test", account.Address, Message(account.Address, "Outside", TextBody("outsideword", 50), null));
+         ImapClientSimulator.AssertMessageCount(account.Address, Password, "INBOX", 1);
+
+         hMailServer.Message message = Inbox(account).Messages[0];
+         string ownName = Path.GetFileName(message.Filename);
+         long messageId = message.ID;
+
+         ServerExecutable();
+
+         Verb measured = RunVerb("--measure-store --account " + account.Address);
+         ClassicAssert.AreEqual(0, measured.ExitCode, measured.Output);
+
+         string outside = Path.Combine(Path.GetTempPath(), "hm-outside-" + Guid.NewGuid().ToString("N") + ".eml");
+         File.Copy(message.Filename, outside);
+         try
+         {
+            _application.Database.ExecuteSQL("update hm_messages set messagefilename = '" + outside.Replace("'", "''") + "' where messageid = " + messageId);
+
+            Verb refused = RunVerb("--measure-store --account " + account.Address);
+            ClassicAssert.AreNotEqual(0, refused.ExitCode, refused.Output);
+            StringAssert.Contains("message " + messageId + " names the file " + outside, refused.Output);
+            StringAssert.Contains("not in the data directory", refused.Output);
+            StringAssert.DoesNotContain("Measured", refused.Output, "The walk went on past a row that names a file outside the data directory.");
+         }
+         finally
+         {
+            _application.Database.ExecuteSQL("update hm_messages set messagefilename = '" + ownName.Replace("'", "''") + "' where messageid = " + messageId);
+            File.Delete(outside);
+         }
+      }
+
       // ---- damage --------------------------------------------------------------------
 
       [Test]

@@ -678,7 +678,7 @@ namespace RegressionTests.Security
       }
 
       [Test]
-      [Description("--forget-sealed-secrets KEYID, with the service stopped, clears what was sealed under the lost key it names - a second factor and a [Settings] secret - and nothing else: the account enrols again, the setting reads as not set, a second factor sealed under the server's own key still verifies, and the database's record, which names that key, is kept. Every item is printed and logged as HM7497. Refused while the service runs (exit 4), without a key id (exit 2), and for the key this server holds (exit 1).")]
+      [Description("--forget-sealed-secrets KEYID, with the service stopped, clears what was sealed under the lost key it names - a second factor and a [Settings] secret - and nothing else: the account enrols again, the setting reads as not set, a second factor sealed under the server's own key still verifies, and the database's record, which names that key, is kept. Every item is printed, and said again in one HM7497 entry - on the verb's standard error on Windows, where an administrator's command writes no log, and in the error log on Linux. Refused while the service runs (exit 4), without a key id (exit 2), and for the key this server holds (exit 1).")]
       public void ForgettingSealedSecretsClearsOnlyWhatNoKeyHereOpens()
       {
          RequireProtectedStore();
@@ -717,6 +717,12 @@ namespace RegressionTests.Security
          IniFileSetting.Write(Name, "sar-forget-placeholder");
          ClassicAssert.IsTrue(TryExecute("update hm_inisettings set inisettingvalue = '" + lostEnvelope + "', inisettingfilevalue = '" + lostEnvelope + "' where inisettingname = '" + Name + "'"));
 
+         // HM7497, the one entry naming every item, from the verb's own process: on
+         // Windows on its standard error, since an administrator's command writes
+         // nothing to the logs (hMailServer.cpp, ForbidServiceFolderWrites); on Linux,
+         // run as the service's user, in the error log.
+         string forgotOutput = null;
+
          try
          {
             ServerExecutable();
@@ -739,13 +745,23 @@ namespace RegressionTests.Security
                StringAssert.Contains("[Settings] " + Name + ": emptied", forgot.Output);
                StringAssert.DoesNotContain(keptAddress, forgot.Output, "A second factor the server's own key opens was touched.");
                StringAssert.DoesNotContain("record of the stored-secrets key", forgot.Output, "The database's record of the key this node holds was touched.");
+               forgotOutput = forgot.Output;
             }
             finally
             {
                RestartServerAndReacquireCom();
             }
 
-            CustomAsserts.AssertReportedError("7497", lostAddress, Name);
+            if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+            {
+               string entry = forgotOutput.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                  .FirstOrDefault(line => line.StartsWith("HM7497: ", StringComparison.Ordinal));
+               ClassicAssert.IsNotNull(entry, "--forget-sealed-secrets said no HM7497 on its output: " + forgotOutput);
+               StringAssert.Contains(lostAddress, entry);
+               StringAssert.Contains(Name, entry);
+            }
+            else
+               CustomAsserts.AssertReportedError("7497", lostAddress, Name);
 
             ClassicAssert.AreEqual(string.Empty, StoredTotp(lostId), "The lost second factor is cleared.");
             ClassicAssert.IsFalse(_application.Domains.get_ItemByName(domainName).Accounts.get_ItemByAddress(lostAddress).TOTPEnabled,

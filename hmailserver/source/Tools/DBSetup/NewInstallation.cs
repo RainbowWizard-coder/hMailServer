@@ -121,6 +121,15 @@ namespace DBSetup
       bool StartService(out string why);
 
       /// <summary>
+      /// Started with the argument --apply-new-install-defaults ("sc start hMailServer
+      /// --apply-new-install-defaults"), and running: the service, which opens the
+      /// database, applies a new installation's defaults and makes its stored-secrets
+      /// key itself before its listeners start (FinishNewInstallationAtStart in
+      /// hMailServer.cpp). False, with why, when it is not running.
+      /// </summary>
+      bool StartServiceFinishingNewInstallation(out string why);
+
+      /// <summary>
       /// The database's version through the running service and the version this build
       /// needs; false, with why, when the service did not answer them.
       /// </summary>
@@ -198,12 +207,23 @@ namespace DBSetup
 
          // The secure defaults: only a database DBSetup created carries the mark they
          // require, so 5 is the answer for one it attached, which keeps what it has.
+         // A verb that could not open the database - SQL Server with Windows
+         // authentication, where LocalSystem is a SQL Server administrator and the
+         // person running DBSetup is not - leaves the defaults and the key to the
+         // service, which can: it is started with the argument that has it apply
+         // them (finishAtStart).
+         bool finishAtStart = false;
          int code = host.RunServer(new[] { "--apply-new-install-defaults" }, out string said);
          Relay(say, said);
          if (code == 0)
             say("The secure defaults of a new installation are applied: a self-signed certificate, STARTTLS on ports 25, 587, 110 and 143, and passwords from other computers only over TLS.");
          else if (code == 5)
             say("The secure defaults were not applied: the database was not created by this setup, and keeps what it has.");
+         else if (code == 2)
+         {
+            finishAtStart = true;
+            say("The secure defaults could not be applied by this account, which could not open or read the database; the service applies them itself when it is started below (sc start hMailServer --apply-new-install-defaults); the Control Deck's setup checklist shows the outcome, and the service reports what it could not do (HM7510, HM7511).");
+         }
          else
             problem("The secure defaults were not applied (hMailServer.exe --apply-new-install-defaults returned " + code + "). The Control Deck's checklist says what is left; or run that command again from an elevated prompt in the Bin folder with the service stopped.");
 
@@ -219,7 +239,14 @@ namespace DBSetup
 
          code = host.RunServer(new[] { "--create-stored-secrets-key" }, out said);
          Relay(say, said);
-         if (code == 0)
+         if (code != 0 && Trimmed(said).Contains("The database could not be opened", StringComparison.Ordinal))
+         {
+            finishAtStart = true;
+            say("The stored-secrets key could not be made by this account, which cannot open the database; the service makes it when it is started below, if it runs as LocalSystem - the Control Deck's setup checklist shows whether it holds one, and the service reports HM7498 if it could not make it. Then export it: hMailServer.exe --export-stored-secrets-key FILE, from an elevated prompt in the Bin folder.");
+         }
+         else if (code == 0 && Trimmed(said).Contains("already holds the stored-secrets key", StringComparison.Ordinal))
+            say("This server already holds the database's stored-secrets key, made earlier; no key was made now. If it has not been exported yet: hMailServer.exe --export-stored-secrets-key FILE, from an elevated prompt in the Bin folder.");
+         else if (code == 0)
             say("Export the stored-secrets key now and keep the file with the database backups, stored apart from them: hMailServer.exe --export-stored-secrets-key FILE, from an elevated prompt in the Bin folder.");
          else
             problem("The stored-secrets key was not made (hMailServer.exe --create-stored-secrets-key returned " + code + "): run it again from an elevated prompt in the Bin folder to read why.");
@@ -228,7 +255,8 @@ namespace DBSetup
          if (pending.MovesToVirtualAccount)
             moved = MoveToVirtualAccount(host, attended, created, say, problem);
 
-         if (!host.StartService(out why))
+         bool started = finishAtStart ? host.StartServiceFinishingNewInstallation(out why) : host.StartService(out why);
+         if (!started)
          {
             problem("The hMailServer service did not start (" + why + "). The hMailServer error log and the Windows Application log say why.");
             if (moved)
@@ -430,6 +458,16 @@ namespace DBSetup
 
       public bool StartService(out string why)
       {
+         return Start_(null, out why);
+      }
+
+      public bool StartServiceFinishingNewInstallation(out string why)
+      {
+         return Start_(new[] { "--apply-new-install-defaults" }, out why);
+      }
+
+      private bool Start_(string[] arguments, out string why)
+      {
          why = null;
          try
          {
@@ -438,7 +476,12 @@ namespace DBSetup
                if (service.Status != ServiceControllerStatus.Running)
                {
                   if (service.Status != ServiceControllerStatus.StartPending)
-                     service.Start();
+                  {
+                     if (arguments != null)
+                        service.Start(arguments);
+                     else
+                        service.Start();
+                  }
                   service.WaitForStatus(ServiceControllerStatus.Running, StartBudget);
                }
                return true;

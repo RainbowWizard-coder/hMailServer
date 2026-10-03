@@ -30,7 +30,7 @@ namespace DBSetup.Tests
          {
             string call = string.Join(" ", arguments);
             Calls.Add(call);
-            said = "said by " + call;
+            said = Said.TryGetValue(call, out string text) ? text : "said by " + call;
             return Answers.TryGetValue(call, out int code) ? code : 0;
          }
 
@@ -47,6 +47,15 @@ namespace DBSetup.Tests
             why = Starts ? null : "it would not start";
             return Starts;
          }
+
+         public bool StartServiceFinishingNewInstallation(out string why)
+         {
+            Calls.Add("start --apply-new-install-defaults");
+            why = Starts ? null : "it would not start";
+            return Starts;
+         }
+
+         public readonly Dictionary<string, string> Said = new Dictionary<string, string>();
 
          public bool ReadVersions(out int current, out int required, out string why)
          {
@@ -126,6 +135,55 @@ namespace DBSetup.Tests
 
          Assert.True(Finish(machine, "localsystem", null, false, said, warned, out _));
          Assert.Equal(new[] { "stop", "--apply-new-install-defaults", "--create-stored-secrets-key", "start" }, machine.Calls);
+      }
+
+      [Fact]
+      public void AnAdministratorWhoCannotOpenTheDatabaseLeavesTheDefaultsAndTheKeyToTheServicesStart()
+      {
+         // SQL Server with Windows authentication, LocalSystem a SQL Server
+         // administrator and the person running DBSetup not: both verbs fail to open
+         // the database, and the service is started with the argument that has it
+         // apply them. Until 6.3.6 it was started as any start, and neither was ever
+         // applied.
+         var machine = new Machine();
+         machine.Answers["--apply-new-install-defaults"] = 2;
+         machine.Answers["--create-stored-secrets-key"] = 1;
+         machine.Said["--create-stored-secrets-key"] = "The database could not be opened: Login failed for user 'HOST\\admin'. Nothing was changed.";
+         var said = new List<string>();
+         var warned = new List<string>();
+
+         Assert.True(Finish(machine, "localsystem", null, false, said, warned, out _));
+         Assert.Equal(new[] { "stop", "--apply-new-install-defaults", "--create-stored-secrets-key", "start --apply-new-install-defaults" }, machine.Calls);
+         Assert.Empty(warned);
+      }
+
+      [Fact]
+      public void AKeyRefusedForAnotherReasonIsAProblemAndTheStartIsAnyStart()
+      {
+         // Negative control: a key refused because the database records another
+         // server's is said as a problem, and the service is started as any start.
+         var machine = new Machine();
+         machine.Answers["--create-stored-secrets-key"] = 1;
+         machine.Said["--create-stored-secrets-key"] = "No stored-secrets key was made: the database records the key 0123456789abcdef. Nothing was changed.";
+         var said = new List<string>();
+         var warned = new List<string>();
+
+         Finish(machine, "localsystem", null, false, said, warned, out _);
+         Assert.Equal(new[] { "stop", "--apply-new-install-defaults", "--create-stored-secrets-key", "start" }, machine.Calls);
+         Assert.Contains(warned, line => line.Contains("--create-stored-secrets-key returned 1"));
+      }
+
+      [Fact]
+      public void AKeyFoundIsNotSaidToBeMade()
+      {
+         var machine = new Machine();
+         machine.Said["--create-stored-secrets-key"] = "This server already holds the stored-secrets key 0123456789abcdef, which is the database's. Nothing was changed.";
+         var said = new List<string>();
+         var warned = new List<string>();
+
+         Assert.True(Finish(machine, "localsystem", null, false, said, warned, out _));
+         Assert.Contains(said, line => line.Contains("already holds the database's stored-secrets key"));
+         Assert.DoesNotContain(said, line => line.StartsWith("Export the stored-secrets key now", StringComparison.Ordinal));
       }
 
       [Fact]

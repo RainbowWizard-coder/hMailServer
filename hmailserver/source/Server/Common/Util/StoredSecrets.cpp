@@ -504,13 +504,29 @@ namespace HM
 
       // An error-log entry from a verb as well as from the service. Run as root - the
       // packaged Linux verbs - it goes to standard error instead: a log file root
-      // made would be one the service could not append to afterwards.
+      // made would be one the service could not append to afterwards. On Windows a
+      // verb an administrator runs writes nothing to the logs at all - the log
+      // folder is the service's to write (Logger::ForbidWritesForThisProcess,
+      // hMailServer.cpp's ForbidServiceFolderWrites) - so it goes to standard error
+      // there too, where the verb's other lines go; until this was so, an
+      // administrator's --forget-sealed-secrets and --apply-environment said HM7497
+      // and HM7496 nowhere at all on Windows.
       void ReportFromAnyProcess_(ErrorManager::eSeverity severity, int code, const String &source, const String &message)
       {
 #ifdef HM_PLATFORM_POSIX
          if (::geteuid() == 0)
          {
             std::fprintf(stderr, "HM%d: %s\n", code, AnsiString(message).c_str());
+            return;
+         }
+#else
+         if (Logger::WritesForbidden())
+         {
+            const AnsiString line = Formatter::Format(_T("HM{0}: {1}\r\n"), code, message);
+            HANDLE error = GetStdHandle(STD_ERROR_HANDLE);
+            DWORD written = 0;
+            if (error != nullptr && error != INVALID_HANDLE_VALUE)
+               WriteFile(error, line.c_str(), (DWORD) line.GetLength(), &written, nullptr);
             return;
          }
 #endif
@@ -1465,7 +1481,8 @@ namespace HM
          DeleteSettingRow_(ExportRowName());
 
       // Logged where the errors that led here were: the error log, whatever the
-      // application log is set to, since a verb's process has no logger configured.
+      // application log is set to, since a verb's process has no logger configured
+      // - or standard error, where a verb writes no log (ReportFromAnyProcess_).
       // Every item, in one entry. An administrator asked for it, and it is the
       // record that the values are gone.
       if (!forgotten.empty())

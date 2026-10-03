@@ -528,7 +528,19 @@ namespace HM
          return 0;
    }
 
-   bool 
+   bool
+   IPAddress::IsLoopback() const
+   {
+      if (address_.is_loopback())
+         return true;
+
+      if (address_.is_v6() && address_.to_v6().is_v4_mapped())
+         return boost::asio::ip::make_address_v4(boost::asio::ip::v4_mapped, address_.to_v6()).is_loopback();
+
+      return false;
+   }
+
+   bool
    IPAddress::IsAny() const
    {
       if (address_.is_v4())

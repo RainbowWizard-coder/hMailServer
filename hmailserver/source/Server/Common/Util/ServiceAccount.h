@@ -169,7 +169,11 @@ namespace HM
       //      --report-only);
       //   5  the configuration names a folder that is never granted - the
       //      service would not reach it - so the configuration needs changing;
-      //   6  the administrator answered No; nothing was changed.
+      //   6  the administrator answered No; nothing was changed;
+      //   7  the grants were made, but the database could not be read by this
+      //      account, so what it names - certificate and key files, the backup
+      //      and PST import folders - is not known, and nobody confirmed
+      //      (--confirm) a move without knowing it. Until 6.3.6 this was 0.
       // The installer and the Control Panel move the service only on 0.
       static int RunGrantCommand(const GrantOptions &options);
 

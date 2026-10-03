@@ -1460,8 +1460,16 @@ namespace HM
 
             for (size_t i = 0; i < objects.size(); i++)
             {
-               if (known.insert(objects[i].key).second)
-                  names.push_back(NameOf(objects[i].key));
+               // A key is the store's, which the service's account may write: one
+               // whose name would lead out of the data directory - a part that is
+               // ".." - names no file of this server's, and is never listed as one
+               // (MessageStoreMaintenance::IsInDataDirectory).
+               if (!known.insert(objects[i].key).second)
+                  continue;
+
+               const String name = NameOf(objects[i].key);
+               if (MessageStoreMaintenance::IsInDataDirectory(name))
+                  names.push_back(name);
             }
 
             return true;

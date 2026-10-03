@@ -89,6 +89,11 @@ namespace HM
       const int ErrorCertificateNotMade = 7510;
       const int ErrorNotAppliedInFull = 7511;
 
+      // Set while the service applies the defaults at a start asked for with
+      // --apply-new-install-defaults (ApplyAtServiceStart): a service has no
+      // standard output, so every line Print_ says goes into the application log.
+      bool say_in_application_log = false;
+
       // How long the certificate runs, in days: see the top of this file.
       const int CertificateValidityDays = 825;
 
@@ -326,8 +331,9 @@ namespace HM
       // entry covers, and when there is no service or it cannot be asked.
       //
       // Why it is asked at all: the key is written by this process, which the
-      // installer runs as the administrator who installs, and ProtectedFile names
-      // SYSTEM, the Administrators group and this process's own account. A service
+      // installer runs as the administrator who installs, and its DACL names
+      // SYSTEM, the Administrators group and this process's own account - and
+      // this account, given Read when the file is made (HeldFolder). A service
       // that logs on as any other account - a virtual account (NT SERVICE\...), or
       // the account ServiceAccountName names - could not read the key, and every
       // listener given the certificate would fail to start.
@@ -374,72 +380,6 @@ namespace HM
          return account;
       }
 
-      // Adds read access for that account to the key file's protected ACL, beside
-      // the entries ProtectedFile gave it. False, with a sentence, when the account
-      // cannot be resolved or the ACL not written - a key the service cannot read
-      // is worse than none, so the caller then removes it.
-      bool GrantKeyToServiceAccount(const String &path, const String &account, String &problem)
-      {
-         const std::wstring accountName(account.c_str());
-         DWORD sidSize = 0;
-         DWORD domainSize = 0;
-         SID_NAME_USE use = SidTypeUnknown;
-         LookupAccountNameW(nullptr, accountName.c_str(), nullptr, &sidSize, nullptr, &domainSize, &use);
-         if (sidSize == 0)
-         {
-            problem = Formatter::Format("The service's account {0} could not be found (error {1}).", account, (int) GetLastError());
-            return false;
-         }
-
-         std::vector<BYTE> sid(sidSize);
-         std::vector<wchar_t> domain(domainSize > 0 ? domainSize : 1);
-         if (!LookupAccountNameW(nullptr, accountName.c_str(), &sid[0], &sidSize, &domain[0], &domainSize, &use))
-         {
-            problem = Formatter::Format("The service's account {0} could not be resolved (error {1}).", account, (int) GetLastError());
-            return false;
-         }
-
-         std::vector<wchar_t> objectName(path.c_str(), path.c_str() + path.GetLength());
-         objectName.push_back(L'\0');
-
-         PACL current = nullptr;
-         PSECURITY_DESCRIPTOR descriptor = nullptr;
-         DWORD result = GetNamedSecurityInfoW(&objectName[0], SE_FILE_OBJECT, DACL_SECURITY_INFORMATION,
-                                              nullptr, nullptr, &current, nullptr, &descriptor);
-         if (result != ERROR_SUCCESS)
-         {
-            problem = Formatter::Format("The permissions of {0} could not be read (error {1}).", path, (int) result);
-            return false;
-         }
-
-         EXPLICIT_ACCESSW grant;
-         memset(&grant, 0, sizeof(grant));
-         grant.grfAccessPermissions = GENERIC_READ;
-         grant.grfAccessMode = GRANT_ACCESS;
-         grant.grfInheritance = NO_INHERITANCE;
-         grant.Trustee.TrusteeForm = TRUSTEE_IS_SID;
-         grant.Trustee.TrusteeType = TRUSTEE_IS_UNKNOWN;
-         grant.Trustee.ptstrName = (LPWSTR) &sid[0];
-
-         PACL updated = nullptr;
-         result = SetEntriesInAclW(1, &grant, current, &updated);
-         if (result == ERROR_SUCCESS)
-            result = SetNamedSecurityInfoW(&objectName[0], SE_FILE_OBJECT,
-                                           DACL_SECURITY_INFORMATION | PROTECTED_DACL_SECURITY_INFORMATION,
-                                           nullptr, nullptr, updated, nullptr);
-
-         if (updated != nullptr)
-            LocalFree(updated);
-         LocalFree(descriptor);
-
-         if (result != ERROR_SUCCESS)
-         {
-            problem = Formatter::Format("{0} could not be made readable by the service's account {1} (error {2}).", path, account, (int) result);
-            return false;
-         }
-
-         return true;
-      }
 #endif
 
       String JoinPorts(const std::vector<int> &ports)
@@ -553,6 +493,12 @@ namespace HM
    void
    NewInstallDefaults::Print_(bool error, const String &line)
    {
+      if (say_in_application_log)
+      {
+         LOG_APPLICATION(_T("New installation: ") + line);
+         return;
+      }
+
       AnsiString text = NarrowOf(line);
       text += "\n";
 
@@ -879,6 +825,31 @@ namespace HM
       const String certificateFile = FileUtilities::Combine(directory, CertificateFileName);
 
       String problem;
+#ifndef HM_PLATFORM_POSIX
+      // On Windows this runs elevated - the installer's, DBSetup's or an
+      // administrator's - and the data folder is the service's to write (Modify
+      // for NT SERVICE\hMailServer, docs/ServiceAccount.md), so nothing here goes
+      // by the folder's path: it is held from the drive's root down, no folder
+      // of it a junction, a link or a mount point (HeldFolder), and each file is
+      // made below the held Certificates folder and checked to be there before
+      // it is written. Until 6.3.6 the pair was written, and the key's
+      // permissions changed, by path. The key's DACL names, from the start,
+      // SYSTEM, the Administrators, this process's account and - when it is not
+      // LocalSystem and not this process's - the service's own account, which
+      // reads it (ServiceLogOnAccount).
+      HeldFolder held;
+      bool written = held.Hold(directory, true, problem);
+      if (written)
+         written = held.WriteNewFile(KeyFileName, keyPem, true, ServiceLogOnAccount(), problem);
+
+      Utilities::SecureWipe(keyPem);
+
+      if (written && !held.WriteNewFile(CertificateFileName, certificatePem, false, String(), problem))
+      {
+         written = false;
+         held.RemoveFile(KeyFileName);
+      }
+#else
       bool written = FileUtilities::CreateDirectory(directory);
       if (!written)
          problem = Formatter::Format("The directory {0} could not be made.", directory);
@@ -887,27 +858,15 @@ namespace HM
 
       Utilities::SecureWipe(keyPem);
 
-#ifndef HM_PLATFORM_POSIX
-      // The service's own account, when it is not LocalSystem and not this
-      // process's: see ServiceLogOnAccount. On Linux the unit runs this as the
-      // service's user, which ProtectedFile's 0600 already names.
-      if (written)
-      {
-         const String account = ServiceLogOnAccount();
-         if (!account.IsEmpty() && !GrantKeyToServiceAccount(keyFile, account, problem))
-         {
-            written = false;
-            FileUtilities::DeleteFile(keyFile);
-         }
-      }
-#endif
-
+      // On Linux the unit runs this as the service's user, which ProtectedFile's
+      // 0600 already names.
       if (written && !FileUtilities::WriteToFile(certificateFile, certificatePem))
       {
          written = false;
          problem = Formatter::Format("{0} could not be written.", certificateFile);
          FileUtilities::DeleteFile(keyFile);
       }
+#endif
 
       if (!written)
       {
@@ -925,8 +884,13 @@ namespace HM
 
       if (!PersistentSSLCertificate::SaveObject(certificate) || certificate->GetID() <= 0)
       {
+#ifndef HM_PLATFORM_POSIX
+         held.RemoveFile(KeyFileName);
+         held.RemoveFile(CertificateFileName);
+#else
          FileUtilities::DeleteFile(keyFile);
          FileUtilities::DeleteFile(certificateFile);
+#endif
 
          const String sentence = _T("The self-signed certificate was made, but its record could not be written to the database, so it was deleted again. Nothing was changed, and the listeners are as a new database leaves them, without TLS.");
          Print_(true, sentence);
@@ -1164,6 +1128,48 @@ namespace HM
       // it then leaves alone, having said so.
       if (ifMarked && (result == 0 || result == 5))
          FileUtilities::DeleteFile(markerFile);
+
+      return result;
+   }
+
+   int
+   NewInstallDefaults::ApplyAtServiceStart()
+   {
+      // The service's start is an administrator of its own on the audit trail, as
+      // the command line is, under the request that asked for it.
+      AuditTrail::Actor actor;
+      actor.present = true;
+      actor.name = _T("sc start hMailServer --apply-new-install-defaults");
+      actor.kind = _T("system");
+      actor.interface_name = _T("service start");
+      AuditScope scope(actor);
+
+      String why;
+      bool marked = false;
+      bool unknown = false;
+      bool tooOld = false;
+      int result = 0;
+      if (IsNewInstallation_(false, why, marked, unknown, tooOld))
+      {
+         // What Apply_ says, made and not made, into the application log: the
+         // service has no output to say it on.
+         say_in_application_log = true;
+         result = Apply_();
+         say_in_application_log = false;
+      }
+      else if (unknown)
+      {
+         LOG_APPLICATION(Formatter::Format("New installation: whether this is a new installation's database could not be told at this start - {0} - so nothing was changed, and the next start asked to apply its defaults asks again.", why));
+         result = 2;
+      }
+      else
+      {
+         LOG_APPLICATION(Formatter::Format("New installation: this start was asked to apply a new installation's defaults, and this server is not a new installation's - {0} - so its listeners, its IP ranges and its certificates are left as they are.", why));
+         result = 5;
+      }
+
+      if (marked && (result == 0 || result == 5) && !ClearMark_())
+         LOG_APPLICATION(Formatter::Format("New installation: the {0} mark could not be removed from the database; the next run will find the server changed and leave it as it is.", String(PendingRowName)));
 
       return result;
    }

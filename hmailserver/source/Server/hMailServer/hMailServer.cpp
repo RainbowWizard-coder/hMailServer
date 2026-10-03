@@ -17,8 +17,9 @@
 #include "../Common/Util/ServiceAccount.h"
 #include "../Common/Util/Unicode.h"
 #include "../Common/Application/WindowsEventLog.h"
-// For the LoadSettings call in the /Register branch, which the error log and
-// the event source need; the account is never read from the file (below).
+// For the verbs that read hMailServer.ini; /Register reads nothing from it since
+// 6.3.6 - neither the account (below) nor where the error log is, which no verb
+// writes (ForbidServiceFolderWrites).
 #include "../Common/Application/IniFileSettings.h"
 #include "../Common/Application/EnvironmentSettings.h"
 #include "../Common/Application/NewInstallDefaults.h"
@@ -79,6 +80,11 @@ SERVICE_STATUS_HANDLE   ServiceStatusHandle;
 DWORD WINAPI StartServiceInitialization(LPVOID vd);
 
 bool DEBUG_MODE = false;
+
+// The service was started with --apply-new-install-defaults (ServiceMain): this
+// start finishes a new installation its administrator could not
+// (FinishNewInstallationAtStart).
+static bool g_finishNewInstallationAtStart = false;
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -259,6 +265,66 @@ static bool HMailServerServiceIsRunning()
    return running;
 }
 
+// The command lines that run the server itself and write its logs: RunAsService,
+// the service controller's (ServiceManager::RegisterService), and /Debug and
+// /Test, a developer's console server and ClassTester, which run as whoever
+// starts them. The mode is the last token of the trimmed line, as _tWinMain
+// reads it. Every other command line is a verb an administrator, Setup, DBSetup
+// or the Control Panel runs - elevated, since each reads hMailServer.INI's
+// [Database] and [Security] or changes the service, its database or its folders
+// - and writes nothing where the service can write (ForbidServiceFolderWrites).
+// build/check-elevated-verbs.py holds this list to these three.
+static bool IsServerCommandLine()
+{
+   HM::String commandLine = GetCommandLine();
+   commandLine.Trim();
+   std::vector<String> tokens = StringParser::SplitString(commandLine, " ");
+   String last;
+   for (auto token = tokens.rbegin(); token != tokens.rend(); ++token)
+   {
+      if (!token->IsEmpty())
+      {
+         last = *token;
+         break;
+      }
+   }
+
+   return last.CompareNoCase(_T("RunAsService")) == 0 ||
+          last.CompareNoCase(_T("/Debug")) == 0 ||
+          last.CompareNoCase(_T("/Test")) == 0;
+}
+
+// What a verb an administrator runs does before anything else, as the live
+// update's two verbs do (AdminUpdate.h): no log line, no error, no event script
+// and no Application log event from this process, ever (Logger::
+// ForbidWritesForThisProcess) - the log folder is the service's to write,
+// Modify for NT SERVICE\hMailServer, so a line written there by an elevated
+// process could be carried by a link the service made to a file it may not
+// write itself (docs/ServiceAccount.md, "What an administrator's command
+// writes"). Each verb says what it did and why it failed on its own output
+// instead. And, where Windows has it (Windows 11 22H2, Windows Server 2025),
+// the process follows no junction a user who is not an administrator made
+// (ProcessRedirectionTrustPolicy), so that a write the verb means to make in
+// the data folder - the certificate of a new installation, a message rewritten
+// by a store walk - cannot be carried elsewhere either; on an older Windows the
+// verbs that write there check for links themselves. The crash oracle is not
+// installed for these command lines: its record and its dump go to the log
+// folder.
+static void ForbidServiceFolderWrites()
+{
+   HM::Logger::ForbidWritesForThisProcess();
+
+   // PROCESS_MITIGATION_REDIRECTION_TRUST_POLICY, value 16, declared here for
+   // the SDKs that lack it; bit 0 is EnforceRedirectionTrust. An older Windows
+   // refuses the call, which changes nothing.
+   struct RedirectionTrustPolicy
+   {
+      DWORD flags;
+   };
+   RedirectionTrustPolicy policy = { 1 };
+   SetProcessMitigationPolicy((PROCESS_MITIGATION_POLICY) 16, &policy, sizeof(policy));
+}
+
 // The lines of a verb go to the handles the caller gave - a script's or a test's
 // redirected output - or, when there are none, to the console the caller has.
 static void AttachVerbOutput()
@@ -352,9 +418,95 @@ static String CommandLineValueAfter(const String &commandLine, const String &opt
    return commandLine.Mid(position, space - position);
 }
 
+// For the verbs that rewrite, remove or add files in the data folder - the store
+// walks but --measure-store - and every copy to or from an object store, one that
+// only reads included, since it hands what it read to a store the service's
+// account reads: whether a link the service could have made is anywhere in it. The
+// data folder is the service's to write (Modify for NT SERVICE\hMailServer), these
+// verbs run elevated - the walks with the service stopped, a copy without
+// --remove-source beside it - and they reach each message by a
+// path; a junction, a mount point or a symbolic link in that tree would carry an
+// administrator's rewrite or removal to wherever it leads. So the folder is held
+// from its drive's root down, none of it a link (HeldFolder, which held stays
+// for as long as the walk runs, so it cannot be renamed under it), and every
+// folder and file below it is listed once: one that is a junction, a mount point
+// or a symbolic link stops the verb before it changes anything, named. Reparse
+// points that redirect nothing - a deduplicated or tiered file - are not links
+// (IsReparseTagNameSurrogate). Where Windows has it, the process follows no
+// junction a user who is not an administrator made anyway
+// (ForbidServiceFolderWrites); this is the same rule on every Windows.
+// docs/ServiceAccount.md, "What an administrator's command writes".
+static bool DataFolderHoldsNoLink(HM::HeldFolder &held, HM::String &why)
+{
+   HM::IniFileSettings::Instance()->LoadSettings();
+   const HM::String dataFolder = HM::IniFileSettings::Instance()->GetDataDirectory();
+   if (dataFolder.IsEmpty())
+   {
+      why = _T("hMailServer.INI names no data folder.");
+      return false;
+   }
+
+   if (!held.Hold(dataFolder, false, why))
+      return false;
+
+   std::vector<HM::String> pending;
+   pending.push_back(held.Path());
+   std::vector<HM::String> links;
+   while (!pending.empty() && links.size() < 5)
+   {
+      const HM::String folder = pending.back();
+      pending.pop_back();
+
+      WIN32_FIND_DATAW found;
+      const HM::String pattern = folder + _T("\\*");
+      HANDLE search = FindFirstFileExW(pattern.c_str(), FindExInfoBasic, &found, FindExSearchNameMatch, nullptr, FIND_FIRST_EX_LARGE_FETCH);
+      if (search == INVALID_HANDLE_VALUE)
+      {
+         const DWORD error = GetLastError();
+         // Gone since its parent was listed - a copy runs beside the service,
+         // which may remove a folder it emptied - holds no link.
+         if (error == ERROR_FILE_NOT_FOUND || error == ERROR_PATH_NOT_FOUND)
+            continue;
+         why = HM::Formatter::Format(_T("{0} could not be listed (Windows error {1}), so whether it holds a link could not be told."), folder, (int) error);
+         return false;
+      }
+
+      do
+      {
+         const HM::String name = found.cFileName;
+         if (name == _T(".") || name == _T(".."))
+            continue;
+
+         const HM::String path = folder + _T("\\") + name;
+         if ((found.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0 && IsReparseTagNameSurrogate(found.dwReserved0))
+            links.push_back(path);
+         else if ((found.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0)
+            pending.push_back(path);
+      } while (FindNextFileW(search, &found));
+
+      FindClose(search);
+   }
+
+   if (!links.empty())
+   {
+      HM::String named;
+      for (const HM::String &link : links)
+         named += (named.IsEmpty() ? _T("") : _T(", ")) + link;
+      why = HM::Formatter::Format(_T("the data folder holds a junction, a mount point or a symbolic link ({0}), which a rewrite run as an administrator would write through. Find out what made it - the service's account may write there - and remove it; nothing in the data folder is ever a link."), named);
+      return false;
+   }
+
+   return true;
+}
+
 static int UpgradeDatabaseFromCommandLine()
 {
-   if (AttachConsole(ATTACH_PARENT_PROCESS))
+   // The caller's console only when it gave no handles, as AttachVerbOutput: a
+   // script's or the installer's redirected output is where what this says goes,
+   // and since 6.3.6 it is the only place - an administrator's command writes
+   // nothing to the error log (ForbidServiceFolderWrites). Until then a console
+   // the caller had took the lines away from its redirection.
+   if (GetStdHandle(STD_OUTPUT_HANDLE) == NULL && AttachConsole(ATTACH_PARENT_PROCESS))
    {
       FILE *out = nullptr;
       freopen_s(&out, "CONOUT$", "w", stdout);
@@ -775,8 +927,9 @@ static int ImportStoredSecretsKeyFromCommandLine(const HM::String &file)
 // The database's record is removed where it names that key, after which
 // --create-stored-secrets-key makes a new one. Nothing sealed under another key is
 // touched. Refused where this node's own key line does not open, and where this
-// node holds the key named. Each item is printed, and all of them written to the
-// error log (HM7497). Refused while the service runs, as the profile verb is: a
+// node holds the key named. Each item is printed, and all of them said again in
+// one entry, HM7497, on standard error - this process writes no log
+// (ForbidServiceFolderWrites). Refused while the service runs, as the profile verb is: a
 // running server holds the accounts and settings it read, and would write an
 // envelope back. Exit 0 done, 1 refused or failed, 2 no key id, 4 the service is
 // running.
@@ -989,13 +1142,26 @@ extern "C" int WINAPI _tWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstan
    if (HM::AdminUpdate::IsInstallUpdateCommandLine())
       return HM::AdminUpdate::RunInstallUpdateCommand();
 
-   // Arm the crash oracle before anything else runs. Both of its hooks are
-   // process-wide, so installing them here covers every thread the server creates
-   // later, including the ones the service control manager and boost::asio start on
-   // our behalf. It touches nothing but the ini file, so it is safe this early -
-   // and it has to be this early, because a fault during startup is exactly the kind
-   // that otherwise disappears.
-   HM::CrashOracle::Install();
+   // Every other verb an administrator runs - /Register, /Unregister,
+   // /RegisterTypeLib, --apply-new-install-defaults, --apply-profile,
+   // --create-stored-secrets-key, --upgrade-database and the rest below -
+   // writes nothing where the service can, from here on, and has no crash
+   // oracle (ForbidServiceFolderWrites). Until 6.3.6 only the update's two
+   // verbs, the grant and the database login did so; the others wrote their
+   // errors, and a failed /Register its own, to the error log in the log folder,
+   // and every one of them armed the crash oracle there.
+   if (!IsServerCommandLine())
+      ForbidServiceFolderWrites();
+   else
+   {
+      // Arm the crash oracle before anything else runs. Both of its hooks are
+      // process-wide, so installing them here covers every thread the server creates
+      // later, including the ones the service control manager and boost::asio start on
+      // our behalf. It touches nothing but the ini file, so it is safe this early -
+      // and it has to be this early, because a fault during startup is exactly the kind
+      // that otherwise disappears.
+      HM::CrashOracle::Install();
+   }
 
    // Initailize some service variables.
    ServiceStatus.dwServiceType = SERVICE_WIN32; 
@@ -1204,6 +1370,8 @@ extern "C" int WINAPI _tWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstan
    // that nothing on this path can write an event after it and put it back.
    if (sLastParam.CompareNoCase(_T("/Unregister")) == 0)
    {
+      AttachVerbOutput();
+
       // ---  Unregister the hMailServer service.
       HM::ServiceManager hSCM;
       hSCM.UnregisterService("hMailServer");
@@ -1235,18 +1403,11 @@ extern "C" int WINAPI _tWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstan
    bool bRegisterTypelib = bRegisterService || (sLastParam.CompareNoCase(_T("/RegisterTypeLib")) == 0);
    if (bRegisterService)
    {
-      /*
-         The settings are loaded for where the error log is, which a failed
-         registration writes to. They used to be loaded for ServiceAccountName
-         and ServiceAccountPassword, which decided the account; they no longer
-         do (ServiceManager.h says why), and nothing on this path reads them.
-
-         LoadSettings is safe here. It reads hMailServer.ini and nothing else -
-         GetInitializationFile derives the path from the binary's own directory -
-         and Application::InitInstance itself calls it before OpenDatabase, so
-         it does not require a database, a COM session or a started server.
-      */
-      HM::IniFileSettings::Instance()->LoadSettings();
+      // What a failed registration says goes on this verb's own output - the
+      // installer, DBSetup and the Control Panel keep it - and never to the
+      // error log, which this process does not write (ForbidServiceFolderWrites).
+      // Until 6.3.6 the settings were loaded here to find the log folder for it.
+      AttachVerbOutput();
 
       // --- Register the hMailServer service.
       HM::ServiceManager hSCM;
@@ -1275,8 +1436,12 @@ extern "C" int WINAPI _tWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstan
          hSCM.SetAccountChoice(choice, serviceAccountWord);
       }
 
-      if (!hSCM.RegisterService("hMailServer", "hMailServer"))
+      const bool registered = hSCM.RegisterService("hMailServer", "hMailServer");
+      if (!hSCM.GetReported().IsEmpty())
+         WriteVerbError(hSCM.GetReported());
+      if (!registered)
       {
+         WriteVerbError("The hMailServer service was not created or changed.\r\n");
          return -1;
       }
 
@@ -1288,12 +1453,16 @@ extern "C" int WINAPI _tWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstan
 
    if (bRegisterTypelib)
    {
-      if (FAILED(_AtlModule.RegisterAppId()))
+      AttachVerbOutput();
+
+      HRESULT registration = _AtlModule.RegisterAppId();
+      if (SUCCEEDED(registration))
+         registration = _AtlModule.RegisterServer(TRUE);
+      if (FAILED(registration))
       {
-         return -1;
-      }
-      if (FAILED(_AtlModule.RegisterServer(TRUE)))
-      {
+         char said[200];
+         sprintf_s(said, "The COM server and its type library could not be registered (HRESULT 0x%08lX); run this from an elevated prompt.\r\n", (unsigned long) registration);
+         WriteVerbError(said);
          return -1;
       }
 
@@ -1573,7 +1742,19 @@ extern "C" int WINAPI _tWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstan
          iRet = 2;
       }
       else
-         iRet = HM::MessageStoreMaintenance::RunCommand((HM::MessageStoreMaintenance::Verb) storeVerb, storeAccount, storeDomain);
+      {
+         // A walk that writes in the data folder first finds no link in it, and
+         // holds it while it runs (DataFolderHoldsNoLink). Exit 1.
+         HM::HeldFolder heldData;
+         HM::String linkWhy;
+         if (storeVerb != HM::MessageStoreMaintenance::VerbMeasure && !DataFolderHoldsNoLink(heldData, linkWhy))
+         {
+            WriteVerbError(_T("Nothing was changed: ") + linkWhy + _T("\r\n"));
+            iRet = 1;
+         }
+         else
+            iRet = HM::MessageStoreMaintenance::RunCommand((HM::MessageStoreMaintenance::Verb) storeVerb, storeAccount, storeDomain);
+      }
    }
    else if (checkDatabaseVerb)
    {
@@ -1643,7 +1824,23 @@ extern "C" int WINAPI _tWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstan
          iRet = 2;
       }
       else
-         iRet = HM::MessageStoreObjects::RunCopyCommand(copyToObjects, storeAccount, storeDomain, removeSource);
+      {
+         // Every copy first finds no link in the data folder (DataFolderHoldsNoLink).
+         // Exit 1. One into it, or one that removes from it, would write or delete
+         // through a link; and one to the object store alone would read, with an
+         // administrator's rights, whatever a link led to and hand its bytes to a
+         // store the service's account reads - until the re-check of 6.3.6 that
+         // copy was let through as one that only reads.
+         HM::HeldFolder heldData;
+         HM::String linkWhy;
+         if (!DataFolderHoldsNoLink(heldData, linkWhy))
+         {
+            WriteVerbError(_T("Nothing was changed: ") + linkWhy + _T("\r\n"));
+            iRet = 1;
+         }
+         else
+            iRet = HM::MessageStoreObjects::RunCopyCommand(copyToObjects, storeAccount, storeDomain, removeSource);
+      }
    }
    else if (sLastParam.CompareNoCase(_T("RunAsService")) == 0)
    {
@@ -1729,6 +1926,8 @@ ServiceMain(DWORD dwArgc, LPTSTR* lpszArgv)
       String argument = lpszArgv[index];
       if (argument.CompareNoCase(_T("--for-database-upgrade")) == 0)
          HM::Application::Instance()->SetStartedForDatabaseUpgrade();
+      else if (argument.CompareNoCase(_T("--apply-new-install-defaults")) == 0)
+         g_finishNewInstallationAtStart = true;
    }
 
    // Connect to the database and create configuration objects.
@@ -1831,6 +2030,57 @@ ServiceController (DWORD Opcode)
    return; 
 } 
 
+// A start asked for with --apply-new-install-defaults ("sc start hMailServer
+// --apply-new-install-defaults"), with the database open and the listeners not
+// yet started: a new installation's defaults applied by the service
+// (NewInstallDefaults::ApplyAtServiceStart), and its stored-secrets key made
+// (StoredSecrets::CreateKey), as hMailServer.exe --apply-new-install-defaults and
+// --create-stored-secrets-key do them. For the installation whose administrator
+// cannot open its database - SQL Server with Windows authentication, where
+// LocalSystem is a SQL Server administrator and the person running Setup is
+// not - so that both verbs, run as that person, failed: Setup and DBSetup then
+// start the service so, and an administrator can (docs/ServiceAccount.md). The
+// key is written into hMailServer.ini, which a service running as LocalSystem
+// may write and NT SERVICE\hMailServer may not; the line says which. True when
+// the server may have been changed, and the start is then made again
+// (Application::Reinitialize) so that the listeners are built from what it now
+// holds.
+static bool FinishNewInstallationAtStart()
+{
+   const int defaults = HM::NewInstallDefaults::ApplyAtServiceStart();
+
+   // The key only for the new installation this start found and applied the
+   // defaults to (0, or 1 when part of them could not be written): a server in
+   // service started with the argument gets no key that way - an administrator
+   // makes one for it with --create-stored-secrets-key.
+   if (defaults != 0 && defaults != 1)
+   {
+      LOG_APPLICATION(_T("New installation: no stored-secrets key is made at this start, since its database is not a new installation's whose defaults it applied."));
+      return false;
+   }
+
+   HM::AnsiString keyId;
+   bool alreadyHeld = false;
+   HM::String problem;
+   bool keyMade = false;
+   if (HM::StoredSecrets::CreateKey(keyId, alreadyHeld, problem))
+   {
+      keyMade = !alreadyHeld;
+      LOG_APPLICATION(alreadyHeld
+         ? HM::String(_T("New installation: this server already holds the database's stored-secrets key ")) + HM::String(keyId) + _T(", and none was made.")
+         : HM::String(_T("New installation: the service made the stored-secrets key ")) + HM::String(keyId) +
+           _T(", wrote it into hMailServer.ini under this machine's DPAPI and recorded it in the database. Export it now - hMailServer.exe --export-stored-secrets-key FILE, from an elevated prompt - and keep the file with the database backups, stored apart from them."));
+   }
+   else
+   {
+      HM::ErrorManager::Instance()->ReportError(HM::ErrorManager::Medium, 7498, "FinishNewInstallationAtStart",
+         _T("New installation: the stored-secrets key was not made at this start: ") + problem +
+         _T(". hMailServer.exe --create-stored-secrets-key, from an elevated prompt by an account that can open the database, or this start again on LocalSystem, makes it."));
+   }
+
+   return defaults == 0 || defaults == 1 || keyMade;
+}
+
 void InitializeApplication()
 {
    // Initialize the application.
@@ -1843,10 +2093,22 @@ void InitializeApplication()
    String sErrorMessage;
    if (HM::Application::Instance()->InitInstance(sErrorMessage))
    {
-      // We were able to connect to the database server
-      // and the database is of the correct version. So
-      // now we should start the TCP/IP-servers.
-      HM::Application::Instance()->StartServers();
+      // A start asked to finish a new installation (FinishNewInstallationAtStart)
+      // does that first, and starts again, listeners and all, when it changed the
+      // server.
+      const bool finish = g_finishNewInstallationAtStart;
+      g_finishNewInstallationAtStart = false;
+      if (finish && FinishNewInstallationAtStart())
+      {
+         HM::Application::Instance()->Reinitialize();
+      }
+      else
+      {
+         // We were able to connect to the database server
+         // and the database is of the correct version. So
+         // now we should start the TCP/IP-servers.
+         HM::Application::Instance()->StartServers();
+      }
    }
 
    // Now that the configuration has been loaded, the logger has a log mask and this

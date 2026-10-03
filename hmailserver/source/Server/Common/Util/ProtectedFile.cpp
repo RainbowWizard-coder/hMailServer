@@ -25,6 +25,7 @@
 
 #else
 #include <sddl.h>
+#include <winternl.h>
 #include <boost/filesystem.hpp>
 #endif
 
@@ -837,6 +838,337 @@ namespace HM
       return true;
 #endif
    }
+
+#ifndef HM_PLATFORM_POSIX
+   namespace
+   {
+      // NtCreateFile and the conversion of its status, from ntdll by name, so that
+      // nothing has to link ntdll.lib for them.
+      typedef LONG (NTAPI *NtCreateFileFunction_)(PHANDLE, ACCESS_MASK, POBJECT_ATTRIBUTES, PIO_STATUS_BLOCK, PLARGE_INTEGER,
+                                                  ULONG, ULONG, ULONG, ULONG, PVOID, ULONG);
+      typedef ULONG (NTAPI *StatusToErrorFunction_)(LONG);
+
+      const LONG StatusObjectNameNotFound_ = (LONG) 0xC0000034;
+
+      NtCreateFileFunction_ NtCreateFileFunction()
+      {
+         static NtCreateFileFunction_ function = (NtCreateFileFunction_) GetProcAddress(GetModuleHandleW(L"ntdll.dll"), "NtCreateFile");
+         return function;
+      }
+
+      DWORD WindowsErrorOf_(LONG status)
+      {
+         static StatusToErrorFunction_ convert = (StatusToErrorFunction_) GetProcAddress(GetModuleHandleW(L"ntdll.dll"), "RtlNtStatusToDosError");
+         return convert != nullptr ? (DWORD) convert(status) : (DWORD) status;
+      }
+
+      // name - one component, no separator - opened relative to the folder
+      // parent, and never through a link of that name (FILE_OPEN_REPARSE_POINT):
+      // a link is opened itself. The parent is not looked up by its path again,
+      // so nothing done to that path since it was opened changes where this goes.
+      LONG OpenBelow_(HANDLE parent, const String &name, ACCESS_MASK access, ULONG share, ULONG disposition, ULONG options,
+                      PSECURITY_DESCRIPTOR descriptor, HANDLE &opened)
+      {
+         opened = INVALID_HANDLE_VALUE;
+         NtCreateFileFunction_ create = NtCreateFileFunction();
+         if (create == nullptr)
+            return (LONG) 0xC0000002; // STATUS_NOT_IMPLEMENTED
+
+         UNICODE_STRING unicode;
+         unicode.Buffer = const_cast<PWSTR>(name.c_str());
+         unicode.Length = (USHORT) (name.GetLength() * sizeof(wchar_t));
+         unicode.MaximumLength = unicode.Length;
+
+         OBJECT_ATTRIBUTES attributes;
+         InitializeObjectAttributes(&attributes, &unicode, OBJ_CASE_INSENSITIVE, parent, descriptor);
+
+         IO_STATUS_BLOCK status = {};
+         HANDLE handle = nullptr;
+         const LONG result = create(&handle, access | SYNCHRONIZE, &attributes, &status, nullptr, FILE_ATTRIBUTE_NORMAL, share,
+                                    disposition, options | FILE_SYNCHRONOUS_IO_NONALERT | FILE_OPEN_REPARSE_POINT, nullptr, 0);
+         if (result >= 0)
+            opened = handle;
+         return result;
+      }
+
+      // Whether what the handle holds is a reparse point - a junction, a symbolic
+      // link, a mount point or anything else Windows redirects through - or could
+      // not be told.
+      bool IsReparsePoint_(HANDLE handle)
+      {
+         FILE_ATTRIBUTE_TAG_INFO tag;
+         if (!GetFileInformationByHandleEx(handle, FileAttributeTagInfo, &tag, sizeof(tag)))
+            return true;
+         return (tag.FileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0;
+      }
+
+      // The path Windows gives what a handle holds, without \\?\ and in lower
+      // case, to compare where a file is with where it was meant to be.
+      String FinalPath_(HANDLE handle)
+      {
+         std::vector<wchar_t> buffer(4096);
+         const DWORD length = GetFinalPathNameByHandleW(handle, &buffer[0], (DWORD) buffer.size(), FILE_NAME_NORMALIZED | VOLUME_NAME_DOS);
+         if (length == 0 || length >= buffer.size())
+            return String();
+
+         String path(&buffer[0]);
+         if (path.Left(8).CompareNoCase(_T("\\\\?\\UNC\\")) == 0)
+            path = _T("\\\\") + path.Mid(8);
+         else if (path.Left(4) == _T("\\\\?\\"))
+            path = path.Mid(4);
+         path.MakeLower();
+         return path;
+      }
+
+      bool DeleteByHandle_(HANDLE handle)
+      {
+         FILE_DISPOSITION_INFO disposition;
+         disposition.DeleteFile = TRUE;
+         return SetFileInformationByHandle(handle, FileDispositionInfo, &disposition, sizeof(disposition)) != 0;
+      }
+
+      bool IsOneName_(const String &name)
+      {
+         return !name.IsEmpty() && name != _T(".") && name != _T("..") && name.Find(_T('\\')) < 0 && name.Find(_T('/')) < 0 && name.Find(_T(':')) < 0;
+      }
+   }
+
+   HeldFolder::HeldFolder()
+   {
+
+   }
+
+   HeldFolder::~HeldFolder()
+   {
+      Release();
+   }
+
+   void
+   HeldFolder::Release()
+   {
+      for (void *handle : handles_)
+         CloseHandle((HANDLE) handle);
+      handles_.clear();
+      path_.Empty();
+   }
+
+   bool
+   HeldFolder::Hold(const String &requested, bool createLast, String &error)
+   {
+      Release();
+
+      String path = requested;
+      path.Replace(_T("/"), _T("\\"));
+      if (path.Left(8).CompareNoCase(_T("\\\\?\\UNC\\")) == 0)
+         path = _T("\\\\") + path.Mid(8);
+      else if (path.Left(4) == _T("\\\\?\\"))
+         path = path.Mid(4);
+
+      // The volume's root - C:\ or \\server\share\ - is the one name looked up by
+      // its path; every folder below it is opened relative to the one above.
+      String root;
+      String rest;
+      if (path.GetLength() >= 3 && path[1] == ':' && path[2] == '\\')
+      {
+         root = path.Left(3);
+         rest = path.Mid(3);
+      }
+      else if (path.Left(2) == _T("\\\\"))
+      {
+         const int server = path.Find(_T('\\'), 2);
+         const int share = server < 0 ? -1 : path.Find(_T('\\'), server + 1);
+         if (server > 2 && share > server + 1)
+         {
+            root = path.Left(share + 1);
+            rest = path.Mid(share + 1);
+         }
+      }
+
+      if (root.IsEmpty())
+      {
+         error = Formatter::Format(_T("{0} is not a full path on a drive or a share."), requested);
+         return false;
+      }
+
+      std::vector<String> names;
+      for (const String &part : StringParser::SplitString(rest, _T("\\")))
+      {
+         if (part.IsEmpty() || part == _T("."))
+            continue;
+         if (!IsOneName_(part))
+         {
+            error = Formatter::Format(_T("{0} is not a plain path from its root, and nothing is written through it."), requested);
+            return false;
+         }
+         names.push_back(part);
+      }
+
+      HANDLE parent = CreateFileW(root.c_str(), FILE_LIST_DIRECTORY | FILE_READ_ATTRIBUTES | FILE_TRAVERSE,
+                                  FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, nullptr, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, nullptr);
+      if (parent == INVALID_HANDLE_VALUE)
+      {
+         error = Formatter::Format(_T("{0} could not be opened (Windows error {1})."), root, (int) GetLastError());
+         return false;
+      }
+      handles_.push_back(parent);
+
+      String walked = root.Left(root.GetLength() - 1);
+      for (size_t index = 0; index < names.size(); index++)
+      {
+         const String &name = names[index];
+         walked += _T("\\") + name;
+
+         // FILE_LIST_DIRECTORY as well as the attributes: a handle that asks for
+         // attributes alone takes no part in the share-access check, and its
+         // refusal to share deleting would bind nobody (ServiceAccount's PathPin_
+         // says the same).
+         const bool last = index + 1 == names.size();
+         HANDLE folder = INVALID_HANDLE_VALUE;
+         const LONG status = OpenBelow_(parent, name, FILE_LIST_DIRECTORY | FILE_READ_ATTRIBUTES | FILE_TRAVERSE,
+                                        FILE_SHARE_READ | FILE_SHARE_WRITE, last && createLast ? FILE_OPEN_IF : FILE_OPEN,
+                                        FILE_DIRECTORY_FILE, nullptr, folder);
+         if (status < 0)
+         {
+            error = status == StatusObjectNameNotFound_
+               ? Formatter::Format(_T("{0} does not exist."), walked)
+               : Formatter::Format(_T("{0} could not be opened (Windows error {1})."), walked, (int) WindowsErrorOf_(status));
+            Release();
+            return false;
+         }
+         handles_.push_back(folder);
+
+         if (IsReparsePoint_(folder))
+         {
+            error = Formatter::Format(_T("{0} is a junction, a symbolic link or a mount point, and nothing is written through it."), walked);
+            Release();
+            return false;
+         }
+
+         parent = folder;
+      }
+
+      path_ = walked;
+      return true;
+   }
+
+   bool
+   HeldFolder::RemoveFile(const String &name)
+   {
+      if (handles_.empty() || !IsOneName_(name))
+         return false;
+
+      HANDLE file = INVALID_HANDLE_VALUE;
+      const LONG status = OpenBelow_((HANDLE) handles_.back(), name, DELETE | FILE_READ_ATTRIBUTES, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+                                     FILE_OPEN, FILE_NON_DIRECTORY_FILE, nullptr, file);
+      if (status == StatusObjectNameNotFound_)
+         return true;
+      if (status < 0)
+      {
+         SetLastError(WindowsErrorOf_(status));
+         return false;
+      }
+
+      const bool removed = DeleteByHandle_(file);
+      const DWORD removeError = GetLastError();
+      CloseHandle(file);
+      SetLastError(removeError);
+      return removed;
+   }
+
+   bool
+   HeldFolder::WriteNewFile(const String &name, const AnsiString &data, bool secret, const String &readerAccount, String &error)
+   {
+      if (handles_.empty() || !IsOneName_(name))
+      {
+         error = _T("No folder is held to write in.");
+         return false;
+      }
+
+      const String target = path_ + _T("\\") + name;
+
+      // A file written earlier - by this program before, or put there by anyone -
+      // goes first, by its name below the held folder: a file made anew keeps
+      // nothing of it, and a link of that name is removed itself.
+      if (!RemoveFile(name))
+      {
+         error = Formatter::Format(_T("{0} is there and could not be removed (Windows error {1})."), target, (int) GetLastError());
+         return false;
+      }
+
+      PSECURITY_DESCRIPTOR descriptor = nullptr;
+      if (secret)
+      {
+         String sddl = _T("D:P(A;;FA;;;SY)(A;;FA;;;BA)");
+         const String self = CurrentUserSid_();
+         if (!self.IsEmpty() && self != _T("S-1-5-18"))
+            sddl += Formatter::Format(_T("(A;;FA;;;{0})"), self);
+
+         if (!readerAccount.IsEmpty())
+         {
+            DWORD sidSize = 0;
+            DWORD domainSize = 0;
+            SID_NAME_USE use = SidTypeUnknown;
+            LookupAccountNameW(nullptr, readerAccount.c_str(), nullptr, &sidSize, nullptr, &domainSize, &use);
+            std::vector<BYTE> sid(sidSize > 0 ? sidSize : 1);
+            std::vector<wchar_t> domain(domainSize + 1);
+            if (sidSize == 0 || !LookupAccountNameW(nullptr, readerAccount.c_str(), &sid[0], &sidSize, &domain[0], &domainSize, &use))
+            {
+               error = Formatter::Format(_T("The account {0} could not be resolved (Windows error {1}), so {2} was not written for it to read."), readerAccount, (int) GetLastError(), target);
+               return false;
+            }
+            sddl += Formatter::Format(_T("(A;;FR;;;{0})"), SidText_((PSID) &sid[0]));
+         }
+
+         if (!ConvertStringSecurityDescriptorToSecurityDescriptorW(sddl, SDDL_REVISION_1, &descriptor, nullptr))
+         {
+            error = Formatter::Format(_T("The permissions of {0} could not be built (Windows error {1})."), target, (int) GetLastError());
+            return false;
+         }
+      }
+
+      HANDLE file = INVALID_HANDLE_VALUE;
+      const LONG status = OpenBelow_((HANDLE) handles_.back(), name, GENERIC_WRITE | DELETE | FILE_READ_ATTRIBUTES, 0,
+                                     FILE_CREATE, FILE_NON_DIRECTORY_FILE, descriptor, file);
+      if (descriptor != nullptr)
+         LocalFree(descriptor);
+
+      if (status < 0)
+      {
+         error = Formatter::Format(_T("{0} could not be made (Windows error {1})."), target, (int) WindowsErrorOf_(status));
+         return false;
+      }
+
+      // Where the file is, asked of its handle, against where the held folder is,
+      // asked of its own: the same folder, or nothing is written and the file goes
+      // again.
+      const String folder = FinalPath_((HANDLE) handles_.back());
+      const String actual = FinalPath_(file);
+      String expected = name;
+      expected.MakeLower();
+      expected = folder + _T("\\") + expected;
+      if (folder.IsEmpty() || actual.IsEmpty() || expected != actual)
+      {
+         DeleteByHandle_(file);
+         CloseHandle(file);
+         error = Formatter::Format(_T("{0} was made somewhere other than {1} ({2}), so nothing was written to it and it was removed."), name, path_, actual);
+         return false;
+      }
+
+      DWORD written = 0;
+      const bool ok = WriteFile(file, data.c_str(), (DWORD) data.GetLength(), &written, nullptr) != 0 &&
+                      written == (DWORD) data.GetLength() && FlushFileBuffers(file) != 0;
+      if (!ok)
+      {
+         DeleteByHandle_(file);
+         CloseHandle(file);
+         error = Formatter::Format(_T("{0} could not be written."), target);
+         return false;
+      }
+
+      CloseHandle(file);
+      return true;
+   }
+#endif
 
    bool
    ProtectedFile::ModifiedAt(const String &path, __int64 &seconds)

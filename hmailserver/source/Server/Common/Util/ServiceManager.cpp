@@ -32,6 +32,13 @@ namespace HM
 
    }
 
+   void
+   ServiceManager::Report_(int errorId, const String &source, const String &sentence)
+   {
+      reported_ += sentence + _T("\r\n");
+      ErrorManager::Instance()->ReportError(ErrorManager::Medium, errorId, source, sentence);
+   }
+
    bool
    ServiceManager::RegisterService(const String &ServiceName, const String &ServiceCaption)
    //---------------------------------------------------------------------------//
@@ -44,6 +51,9 @@ namespace HM
 
       if (hSCManager == NULL)
       {
+         String sErrorMessage;
+         sErrorMessage.Format(_T("The service control manager could not be opened to create or change the service (%d); run this from an elevated prompt."), (int) GetLastError());
+         Report_(5055, "ServiceManager::RegisterService", sErrorMessage);
          return false;
       }
 
@@ -66,7 +76,7 @@ namespace HM
          String refusal;
          if (!LogonFor(account_choice_, ServiceName, account_name_, logon, refusal))
          {
-            ErrorManager::Instance()->ReportError(ErrorManager::Medium, 7464, "ServiceManager::RegisterService", refusal);
+            Report_(7464, "ServiceManager::RegisterService", refusal);
             CloseServiceHandle(hSCManager);
             return false;
          }
@@ -93,7 +103,7 @@ namespace HM
          {
             String sErrorMessage;
             sErrorMessage.Format(_T("Description: CreateService failed. (%d)"), GetLastError());
-            ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5055, "ServiceManager::RegisterService", sErrorMessage);
+            Report_(5055, "ServiceManager::RegisterService", sErrorMessage);
 
             return false;
          }
@@ -126,7 +136,7 @@ namespace HM
 
       if (sclLock == NULL)
       {
-         ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5056, "ServiceManager::ReconfigureService_", "Failed to obtain lock on service database.");
+         Report_(5056, "ServiceManager::ReconfigureService_", "Failed to obtain lock on service database.");
 
          CloseServiceHandle(hService);
          return false;
@@ -141,7 +151,7 @@ namespace HM
       String refusal;
       if (!LogonFor(account_choice_, ServiceName, account_name_, logon, refusal))
       {
-         ErrorManager::Instance()->ReportError(ErrorManager::Medium, 7464, "ServiceManager::ReconfigureService_", refusal);
+         Report_(7464, "ServiceManager::ReconfigureService_", refusal);
          UnlockServiceDatabase(sclLock);
          CloseServiceHandle(hService);
          return false;
@@ -165,7 +175,7 @@ namespace HM
          String sErrorMessage;
          sErrorMessage.Format(_T("ChangeServiceConfig failed. (%d)"), GetLastError());
 
-         ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5057, "ServiceManager::ReconfigureService_", sErrorMessage);
+         Report_(5057, "ServiceManager::ReconfigureService_", sErrorMessage);
          return false;
       }
 
@@ -275,7 +285,7 @@ namespace HM
       {
          String sErrorMessage;
          sErrorMessage.Format(_T("The service's SID type could not be set to unrestricted (%d), so the grants hMailServer.exe /GrantServiceAccess makes to NT SERVICE\\hMailServer reach the service only while it runs as that virtual account."), (int) GetLastError());
-         ErrorManager::Instance()->ReportError(ErrorManager::Medium, 7462, "ServiceManager::SetUnrestrictedSid_", sErrorMessage);
+         Report_(7462, "ServiceManager::SetUnrestrictedSid_", sErrorMessage);
       }
    }
 

@@ -6654,16 +6654,9 @@ namespace HM
    SMTPConnection::IsLoopbackAddress_(const IPAddress &address)
    {
       // 127.0.0.0/8 and ::1, and an IPv4 loopback address in its IPv6-mapped
-      // form, which a dual-stack listener may hand over as ::ffff:127.0.0.1.
-      const boost::asio::ip::address asioAddress = address.GetAddress();
-
-      if (asioAddress.is_loopback())
-         return true;
-
-      if (asioAddress.is_v6() && asioAddress.to_v6().is_v4_mapped())
-         return boost::asio::ip::make_address_v4(boost::asio::ip::v4_mapped, asioAddress.to_v6()).is_loopback();
-
-      return false;
+      // form, which a dual-stack listener may hand over as ::ffff:127.0.0.1 -
+      // the one rule ManageSieve's timeout before sign-in follows too.
+      return address.IsLoopback();
    }
 
    void 
