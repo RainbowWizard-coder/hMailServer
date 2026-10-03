@@ -450,6 +450,24 @@ namespace HM
    }
 
    const TCHAR *
+   NewInstallDefaults::PairFolderName()
+   {
+      return CertificateFolderName;
+   }
+
+   const TCHAR *
+   NewInstallDefaults::PairKeyFileName()
+   {
+      return KeyFileName;
+   }
+
+   const TCHAR *
+   NewInstallDefaults::PairCertificateFileName()
+   {
+      return CertificateFileName;
+   }
+
+   const TCHAR *
    NewInstallDefaults::PendingName()
    {
       return PendingRowName;

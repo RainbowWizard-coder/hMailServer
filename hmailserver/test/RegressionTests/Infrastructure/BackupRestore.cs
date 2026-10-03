@@ -5,8 +5,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Security.AccessControl;
+using System.Security.Principal;
 using System.Threading;
 using hMailServer;
+using Microsoft.Win32;
 using NUnit.Framework;
 using RegressionTests.Shared;
 
@@ -1181,7 +1184,7 @@ namespace RegressionTests.Infrastructure
             Pop3ClientSimulator.AssertMessageCount("inside@example.test", "test", 2);
 
             string restoreLog = TestSetup.ReadExistingTextFile(_application.Settings.Backup.LogFile);
-            Assert.IsTrue(restoreLog.Contains("Left in place while the data directory"), "The restore does not name what it left in place. Backup log: " + restoreLog);
+            Assert.IsTrue(restoreLog.Contains("Left in place by the restore of the data directory"), "The restore does not name what it left in place. Backup log: " + restoreLog);
             Assert.IsTrue(restoreLog.Contains("Restore completed successfully"), "The restore did not complete. Backup log: " + restoreLog);
          }
          finally
@@ -1239,6 +1242,232 @@ namespace RegressionTests.Infrastructure
             catch (UnauthorizedAccessException)
             {
             }
+         }
+      }
+
+      [Test]
+      [Description("A full restore of domains and messages completes when the data directory holds files the service's account may not delete or write - as a new installation's self-signed key is to NT SERVICE\\hMailServer - and leaves them as they are and says so; it keeps this installation's own self-signed pair when the archive's key is another, and the server's own files at the data directory's root; everything else is the archive's. Up to 6.3.5 it stopped at the first such file (HM5700), failed the copy after 30 s (HM5014), and left the mail in the Temp folder's staging copy and no domain on the server.")]
+      public void AFullRestoreLeavesInPlaceTheFilesTheServiceMayNotChange()
+      {
+         _backupMessages = true;
+
+         string data = _application.Settings.Directories.DataDirectory;
+         string certificates = Paths.Combine(data, "Certificates");
+         string key = Paths.Combine(certificates, "self-signed-key.pem");
+         string certificate = Paths.Combine(certificates, "self-signed-certificate.pem");
+         string keys = Paths.Combine(data, "restore-keeps-" + TestSetup.UniqueString());
+         string imported = Paths.Combine(keys, "imported.key");
+         string same = Paths.Combine(keys, "same.key");
+         string orphan = Paths.Combine(keys, "orphan.key");
+         string note = Paths.Combine(keys, "note.txt");
+         string extra = Paths.Combine(keys, "extra.txt");
+         string rootFile = Paths.Combine(data, "restore-keeps-" + TestSetup.UniqueString() + ".dat");
+         var protectedPaths = new List<string>();
+
+         // The bench's Certificates folder is the NewInstallDefaults fixture's,
+         // which removes it again; build/preflight-tests.ps1 names one left behind.
+         Assert.IsFalse(Directory.Exists(certificates), certificates + " is there already: another fixture left it, and this test would remove it.");
+
+         try
+         {
+            var domain = _application.Domains.get_ItemByName("example.test");
+            var account = SingletonProvider<TestSetup>.Instance.AddAccount(domain, "keeps@example.test", "test");
+            SmtpClientSimulator.StaticSend("sender@example.test", account.Address, "Kept one", "The first message.");
+            SmtpClientSimulator.StaticSend("sender@example.test", account.Address, "Kept two", "The second message.");
+            Pop3ClientSimulator.AssertMessageCount(account.Address, "test", 2);
+
+            Directory.CreateDirectory(certificates);
+            Directory.CreateDirectory(keys);
+            File.WriteAllText(key, "this installation's key, as the archive will hold it");
+            File.WriteAllText(certificate, "this installation's certificate, as the archive will hold it");
+            File.WriteAllText(imported, "an imported key, as the archive will hold it");
+            File.WriteAllText(same, "a key the archive holds byte for byte");
+            File.WriteAllText(note, "a file the archive will hold");
+            File.WriteAllText(rootFile, "a file of the server's own at the data directory's root");
+
+            // What the service's account may do to them: read, and neither delete
+            // nor write; and in their folders, not delete a child. As
+            // --apply-new-install-defaults leaves a new installation's key for NT
+            // SERVICE\hMailServer, here for whatever account the bench's service
+            // runs as.
+            var service = ServiceAccountSids();
+            foreach (string path in new[] { key, imported, same })
+            {
+               ProtectFromTheService(path, service, false);
+               protectedPaths.Add(path);
+            }
+
+            foreach (string folder in new[] { certificates, keys })
+            {
+               ProtectFromTheService(folder, service, true);
+               protectedPaths.Add(folder);
+            }
+
+            Assert.IsTrue(BackupEnvironment(), "The backup did not complete. Backup log: " + TestSetup.ReadExistingTextFile(_application.Settings.Backup.LogFile));
+
+            // After the backup: this installation's pair is not the archive's -
+            // the archive was taken somewhere else - the imported key changed, a
+            // key and a file added that the archive does not hold, a file it holds
+            // changed, and a message delivered that it does not hold.
+            File.WriteAllText(key, "this installation's key, not the archive's");
+            File.WriteAllText(certificate, "this installation's certificate, not the archive's");
+            File.WriteAllText(imported, "an imported key, changed since the backup");
+            File.WriteAllText(note, "a file the archive holds, changed since the backup");
+            File.WriteAllText(extra, "a file the archive does not hold");
+            File.WriteAllText(orphan, "a key the archive does not hold");
+            ProtectFromTheService(orphan, service, false);
+            protectedPaths.Add(orphan);
+            SmtpClientSimulator.StaticSend("sender@example.test", account.Address, "After the backup", "Not in the archive.");
+            Pop3ClientSimulator.AssertMessageCount(account.Address, "test", 3);
+
+            // Status.StartTime, which says the restore is over, has one-second resolution.
+            Thread.Sleep(1100);
+            RestoreEnvironment();
+
+            string log = TestSetup.ReadExistingTextFile(_application.Settings.Backup.LogFile);
+            Assert.IsTrue(log.Contains("Restore completed successfully"), "The restore did not complete. Backup log: " + log);
+
+            Pop3ClientSimulator.AssertMessageCount("keeps@example.test", "test", 2);
+            Domain restored = _application.Domains.get_ItemByName("example.test");
+            var messages = restored.Accounts.get_ItemByAddress("keeps@example.test").IMAPFolders.get_ItemByName("Inbox").Messages;
+            var subjects = new List<string>();
+            for (int i = 0; i < messages.Count; i++)
+               subjects.Add(messages[i].Subject);
+            CollectionAssert.AreEquivalent(new[] { "Kept one", "Kept two" }, subjects, "The restored mailbox is not the archive's.");
+
+            Assert.AreEqual("this installation's key, not the archive's", File.ReadAllText(key), "This installation's own key was replaced.");
+            Assert.AreEqual("this installation's certificate, not the archive's", File.ReadAllText(certificate),
+               "This installation's own certificate was replaced, although its key was kept: the two would not be a pair.");
+            StringAssert.Contains("This installation's own self-signed certificate and key", log, "The backup log does not say the pair was left.");
+
+            Assert.AreEqual("an imported key, changed since the backup", File.ReadAllText(imported), "A file the service may not write was changed.");
+            Assert.AreEqual("a key the archive holds byte for byte", File.ReadAllText(same), "A file the archive holds byte for byte was changed.");
+            Assert.IsTrue(File.Exists(orphan), "A file the service may not delete is gone.");
+            Assert.AreEqual("a file the archive will hold", File.ReadAllText(note), "A file the archive holds was not put back.");
+            Assert.IsFalse(File.Exists(extra), "A file the archive does not hold was kept.");
+            Assert.IsTrue(File.Exists(rootFile), "A file of the server's own at the data directory's root was deleted.");
+            StringAssert.Contains("imported.key", log, "The backup log does not name the file left as it is.");
+            StringAssert.Contains("orphan.key", log, "The backup log does not name the file it could not remove.");
+            foreach (string folder in new[] { certificates, keys, Paths.Combine(data, "example.test") })
+               Assert.IsEmpty(Directory.GetFileSystemEntries(folder, "*hmailserver-previous*", SearchOption.AllDirectories), "Something the restore moved aside was left behind in " + folder + ".");
+
+            CustomAsserts.AssertReportedError("HM5705", "imported.key");
+         }
+         finally
+         {
+            foreach (string path in protectedPaths)
+               GiveBack(path);
+
+            foreach (string folder in new[] { certificates, keys })
+            {
+               try
+               {
+                  if (Directory.Exists(folder))
+                     Directory.Delete(folder, true);
+               }
+               catch (IOException)
+               {
+               }
+               catch (UnauthorizedAccessException)
+               {
+               }
+            }
+
+            if (File.Exists(rootFile))
+               File.Delete(rootFile);
+
+            if (Directory.Exists(_backupDir))
+               Directory.Delete(_backupDir, true);
+         }
+      }
+
+      // The SIDs the bench's service has in its token that a file's permissions can
+      // name: the account it logs on as (HKLM\...\Services\hMailServer ObjectName,
+      // LocalSystem by default on a bench) and its own service SID, NT SERVICE\hMailServer.
+      private static List<SecurityIdentifier> ServiceAccountSids()
+      {
+         var sids = new List<SecurityIdentifier>();
+
+         string account = null;
+         using (var serviceKey = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Services\hMailServer"))
+            account = serviceKey?.GetValue("ObjectName") as string;
+
+         if (string.IsNullOrEmpty(account) || account.Equals("LocalSystem", StringComparison.OrdinalIgnoreCase))
+            sids.Add(new SecurityIdentifier(WellKnownSidType.LocalSystemSid, null));
+         else
+         {
+            if (account.StartsWith(@".\"))
+               account = Environment.MachineName + account.Substring(1);
+            sids.Add((SecurityIdentifier) new NTAccount(account).Translate(typeof(SecurityIdentifier)));
+         }
+
+         try
+         {
+            var serviceSid = (SecurityIdentifier) new NTAccount(@"NT SERVICE\hMailServer").Translate(typeof(SecurityIdentifier));
+            if (!sids.Contains(serviceSid))
+               sids.Add(serviceSid);
+         }
+         catch (IdentityNotMappedException)
+         {
+            // No service of that name registered: the account alone.
+         }
+
+         return sids;
+      }
+
+      // A file the service may read and neither delete nor write, or a folder in
+      // which it may not delete a child: deny entries for its SIDs first, then
+      // full control for SYSTEM, the Administrators and the account this test runs
+      // as, inheriting nothing.
+      private static void ProtectFromTheService(string path, List<SecurityIdentifier> service, bool folder)
+      {
+         var self = WindowsIdentity.GetCurrent().User;
+         var system = new SecurityIdentifier(WellKnownSidType.LocalSystemSid, null);
+         var administrators = new SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid, null);
+
+         if (folder)
+         {
+            var security = new DirectorySecurity();
+            security.SetAccessRuleProtection(true, false);
+            foreach (var sid in service)
+               security.AddAccessRule(new FileSystemAccessRule(sid, FileSystemRights.DeleteSubdirectoriesAndFiles, AccessControlType.Deny));
+            foreach (var sid in new[] { system, administrators, self })
+               security.AddAccessRule(new FileSystemAccessRule(sid, FileSystemRights.FullControl, InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit, PropagationFlags.None, AccessControlType.Allow));
+            Directory.SetAccessControl(path, security);
+         }
+         else
+         {
+            var security = new FileSecurity();
+            security.SetAccessRuleProtection(true, false);
+            foreach (var sid in service)
+               security.AddAccessRule(new FileSystemAccessRule(sid, FileSystemRights.Delete | FileSystemRights.WriteData | FileSystemRights.AppendData, AccessControlType.Deny));
+            foreach (var sid in new[] { system, administrators, self })
+               security.AddAccessRule(new FileSystemAccessRule(sid, FileSystemRights.FullControl, AccessControlType.Allow));
+            File.SetAccessControl(path, security);
+         }
+      }
+
+      // The permissions given back to inheritance, so that the folders can be removed.
+      private static void GiveBack(string path)
+      {
+         try
+         {
+            if (Directory.Exists(path))
+            {
+               var security = new DirectorySecurity();
+               security.SetAccessRuleProtection(false, false);
+               Directory.SetAccessControl(path, security);
+            }
+            else if (File.Exists(path))
+            {
+               var security = new FileSecurity();
+               security.SetAccessRuleProtection(false, false);
+               File.SetAccessControl(path, security);
+            }
+         }
+         catch (Exception giveBack) when (!ExceptionPolicy.IsFatal(giveBack))
+         {
+            Console.WriteLine("The permissions of " + path + " could not be given back: " + giveBack.Message);
          }
       }
 

@@ -93,6 +93,15 @@ namespace HM
       static String CertificateDirectory();
 
       /// <summary>
+      /// The pair's folder under the data directory and its two file names: what a
+      /// restore of the data directory knows as this installation's own pair, and
+      /// leaves as it is when the archive's differs (BackupExecuter).
+      /// </summary>
+      static const TCHAR *PairFolderName();
+      static const TCHAR *PairKeyFileName();
+      static const TCHAR *PairCertificateFileName();
+
+      /// <summary>
       /// The hm_settings row that says this database was made by the create path
       /// and its defaults are still to be decided (settinginteger 1). A record of
       /// this server's history, not a setting: in no create script, no default, left

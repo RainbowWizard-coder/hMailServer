@@ -49,11 +49,15 @@ namespace HM
       // Takes the restorer rather than the Backup and the XML node, because by the
       // time this is called the archive has been validated and the message store is
       // already on local disk - and because the one thing this function has to be
-      // able to say, when the copy into an emptied data directory fails, is "keep
-      // the staged files, they are now the only copy".
-      // archiveFile is the archive being restored: a restore empties the data
-      // directory around it, and around the destination and the temp directory,
-      // wherever they are inside it.
+      // able to say, when a copy that failed could not be undone in full, is "keep
+      // the staged files". The store is copied in first, over what is there; what
+      // the archive does not hold is removed only once the copy is complete; a copy
+      // that fails is undone; and a file of this server's that the service's
+      // account may not replace or remove - this installation's own self-signed
+      // key - is left as it is and said (BackupExecuter.cpp, "HOW A RESTORE
+      // REPLACES THE DATA DIRECTORY"). archiveFile is the archive being restored:
+      // a restore leaves it, the destination and the temp directory where they
+      // are, wherever they are inside the data directory.
       bool RestoreDataDirectory_(BackupRestorer &restorer, const String &archiveFile);
       void ReportRestoreFailure_(const String &message);
       
@@ -76,22 +80,38 @@ namespace HM
       String passphrase_;
    };
 
-   // What the copy of the data directory a backup makes, and the emptying and
-   // the copy a restore makes, leave alone (DataDirectoryExclusions_ and
-   // IsKeptOutOfBackup_ in BackupExecuter.cpp), on a scratch tree of its own
-   // under the system's temp directory: a destination inside the data
+   // What the copy of the data directory a backup makes, and the restore of one
+   // (RestoreStoreInto_), leave alone and do (DataDirectoryExclusions_,
+   // IsKeptOutOfBackup_ and "HOW A RESTORE REPLACES THE DATA DIRECTORY" in
+   // BackupExecuter.cpp), on scratch trees of its own under the system's temp
+   // directory: a destination inside the data
    // directory, written in capitals with forward slashes on Windows and through
    // a symbolic link elsewhere, is left out of the copy with the temp directory
    // and the live update's folder, and one directory whose name begins with the
    // data directory's is not taken for it, and what an encrypted backup
-   // measures first is what the copy then stages; a restore keeps the
-   // destination's archives, the temp directory with the store extracted into
-   // it, the archive being restored three levels down and the live update's
-   // folder, and empties the rest; and the copy of an older archive's store
-   // puts the mail back, the mail it holds in the archive's own folder too, and
-   // not its live update outcome, nor its copies of the destination and the
-   // temp directory. The exclusions are built by the
-   // functions the backup and the restore build theirs with. It runs inside the service
+   // measures first is what the copy then stages; a restore of an older
+   // archive's store keeps the destination's archives, the temp directory with
+   // the store extracted into it, the archive being restored three levels down
+   // and the live update's folder, puts the mail back, the mail it holds in the
+   // archive's own folder too, and not its live update outcome, nor its copies
+   // of the destination and the temp directory; leaves a file here byte for
+   // byte, replaces one that differs, removes what the archive does not hold,
+   // and at the root only the queue's files and what a writer left of one,
+   // never this server's own - the Linux key file of the LINUX1 secrets among
+   // them - nor puts a file of the store's root over one, nor this
+   // installation's own self-signed pair when the archive's key is another,
+   // which it restores when the key is the same or the data directory has none;
+   // a copy that fails at any of five files, outright or leaving part of the
+   // file as a full disk does, leaves the data directory exactly as it was, and
+   // the same restore then completes; a file gone from the store before it
+   // could be copied leaves this server's file of that name in place; and, on
+   // Windows, a
+   // file this process may read and neither delete nor write, in a folder it
+   // may not delete a child of - as the service's account is to a new
+   // installation's key - is left as it is, whether it differs from the
+   // archive's, matches it or is not in it, and everything around it restored.
+   // The exclusions are built by the functions the backup and the restore build
+   // theirs with. It runs inside the service
    // with the other class tests (ClassTester), and on Linux as backup-tests.
    // It needs no database and no setting. It throws std::logic_error naming the
    // first thing that is wrong.

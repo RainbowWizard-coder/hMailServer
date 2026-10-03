@@ -316,7 +316,7 @@ The Linux test found three more, which 6.3.6 changes as well:
   folder wherever they are inside the data directory - recognised by what they
   are, not by how their path is spelt, so `/var/lib/hmailserver2` is not taken
   for `/var/lib/hmailserver` and case and separators on Windows do not matter -
-  and the backup log names each one. A restore empties the data directory around
+  and the backup log names each one. A restore replaces the data directory around
   them and around the archive it is restoring from. See
   [Backup.md](Backup.md), "A destination inside the data directory".
 - **Every backup carried the `Updates` folder**, so the backup taken before an

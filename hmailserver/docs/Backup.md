@@ -100,9 +100,10 @@ A destination inside the data directory
 ---------------------------------------
 
 **Back up messages** copies the data directory into a staging folder and puts the
-copy in the archive, and a restore empties the data directory before it copies
-the archive's store back. From 6.3.6 both leave three directories alone wherever
-they are inside the data directory, at any depth:
+copy in the archive, and a restore copies the archive's store back and removes
+what the archive does not hold (*How a restore replaces the data directory*,
+below). From 6.3.6 both leave three directories alone wherever they are inside
+the data directory, at any depth:
 
 - **the backup destination**, with the archives in it;
 - **the temp directory** (`TempFolder`), where an encrypted backup stages its
@@ -124,10 +125,11 @@ identifiers answers - is not taken for any of them, so a destination on such a
 share inside the data directory fails as it did up to 6.3.5 rather than a
 mailbox being taken for it and left out. The backup
 log names each one a copy left out ("Left out of the copy of the data directory
-...") and each one a restore left in place ("Left in place while the data
-directory ... was emptied for the restore"); a directory on the way down to one
-of them is emptied around it rather than removed. An archive in the data
-directory's own root - a destination that is the data directory itself - is
+...") and each one a restore left in place ("Left in place by the restore of
+the data directory ..."); a directory on the way down to one of them has what
+the archive does not hold removed around it, and is never removed itself. An
+archive in the data directory's own root - a destination that is the data
+directory itself - is
 neither copied into the staging folder nor deleted by a restore. A copy of one
 of them that an earlier run left in the staging folder - the nested folders a
 failed backup of 6.3.5 or earlier left behind - is removed rather than archived,
@@ -159,6 +161,120 @@ and a restore of messages, emptying the data directory, deleted the temp
 directory and with it the store it had extracted there a moment before, then
 failed with the data directory already emptied and the domains already removed -
 the archive itself untouched.
+
+
+How a restore replaces the data directory
+----------------------------------------
+
+A restore with **Restore messages** makes the data directory what the archive's
+message store holds. Since 6.3.6 it does that in three steps, and the first is
+the only one that can fail:
+
+1. **The archive's store is copied in, over what is there.** A file the data
+   directory already holds byte for byte is left as it is. One that differs is
+   renamed beside itself (`<name>.hmailserver-previous-<8 hex>`) and the archive's
+   copied in its place. One that cannot be renamed - the account the service runs
+   as may not delete it - is left as it is and named. **This installation's own
+   self-signed certificate and key** (`Certificates\self-signed-key.pem` and
+   `self-signed-certificate.pem`, which a new installation makes for itself -
+   [SecureDefaults.md](SecureDefaults.md)) are left as they are whenever the
+   archive's key is not this one's, byte for byte: the archive's pair is another
+   installation's, a key and a certificate are kept or replaced together so that
+   the listeners using them still have a pair, and under
+   `NT SERVICE\hMailServer` the key is one the service could not replace
+   anyway. The archive's pair is restored where this
+   installation has none, and its certificate where the key is the same. No file
+   at the root of the archive's store is copied: a backup leaves the root's files
+   out - they are the delivery queue's, which a restore does not put back - so
+   one there is in no archive the server made, and could only take the place of
+   one of the server's own.
+2. **A copy that fails is undone**: what it wrote is removed - with the part of
+   a file a copy stopped by a full disk left - what it renamed is put back, the
+   folders it made are removed. The data directory is then what it was before
+   the restore's copy, and the restore stops with `HM5014`. Until the copy is
+   complete the data directory holds the archive's files beside the ones they
+   replace, so it needs room for both - less the domains' folders, which a
+   restore of domains deletes before the copy - and a disk that fills is a copy
+   that fails, undone. The staged copy in the temp folder is removed with it -
+   the archive holds the messages - unless something could not be put back;
+   then the message names what, and the staged copy is kept, as it always was
+   after a copy that failed.
+3. **Only once the copy is complete** is what the archive does not hold removed:
+   every file below the folders the restore replaces that the archive's store has
+   no file at, and every folder left empty that it has no folder at; then what was
+   renamed in step 1. At the data directory's root only the delivery queue's
+   message files (`*.eml`, and what a writer of the store left of one when it
+   stopped part-way) are removed - never the server's own files there, which
+   no archive carries: on Linux `.hmailserver-secret-key`, the key every `LINUX1:`
+   secret on the machine is sealed under ([SecretsAtRest.md](SecretsAtRest.md)),
+   the container's `.hmailserver-environment`, the sending limits' state. A file
+   that cannot be removed is left and named.
+
+What is left alone is what was left alone before: the folders a backup does not
+carry (*What the archive does not carry*, above), and wherever they are inside the
+data directory the destination, the temp folder, the folder of the archive being
+restored and the store extracted from it.
+
+**What the backup log says.** "The data directory now holds the backup's message
+store: N file(s) copied from it, ..."; a line for files gone from the store
+extracted in the temp folder before they could be copied - something removed
+them meanwhile, an anti-virus scanner most likely; they are not restored, and a
+file of the server's of that name is left in place; a line for this installation's
+own pair when it was kept, with where the archive's is; and "Left as it is in the
+data directory: ..." for each file the restore could not replace or remove, with
+the reason. Those last are also one line in the error log, **HM5705**, which says
+the restore is otherwise complete. To have the archive's copy of such a file,
+stop the service, copy it from the archive as an administrator, and start the
+service.
+
+**Up to 6.3.5 the restore emptied the data directory first**, and two things went
+wrong with that order:
+
+* **On Windows, every full restore with messages failed on an installation made
+  new with 6.3.4 or 6.3.5**, whose service runs as `NT SERVICE\hMailServer` - the
+  account a new installation's service has run as since 6.3.4
+  ([ServiceAccount.md](ServiceAccount.md)) - and which made its own self-signed key.
+  That key, which `--apply-new-install-defaults` writes, gives the service's account
+  Read and nothing more, and its Modify on the data folder does not include deleting a
+  child of a folder. So the emptying stopped at `Data\Certificates` (`HM5700`,
+  "Could not delete the directory ... Access is denied"), the copy then failed on
+  the archive's copy of the same key after 30 s of retries (`HM5014`, "...
+  self-signed-key.pem could not be copied: Access is denied") before it reached
+  the domains, and the restore ended with **no domain on the server and the
+  backup's messages only in `Temp\{GUID}\DataBackup`**. A restore of one mailbox
+  was not affected. A key or certificate file an administrator *moved* into the
+  data folder - a moved file keeps the permissions it had where it was - did the same
+  on any installation whose service's account those permissions did not let delete
+  it.
+* **On Linux, from 6.3.0, every full restore with messages deleted
+  `.hmailserver-secret-key`** with the other files at the data directory's root.
+  Nothing in an archive puts it back, so no value sealed under it that the archive
+  does not carry opened again - the `LINUX1:` lines of `hMailServer.ini`, and from
+  6.3.4 `[Security] StoredSecretsKey` among them, so that from the restore on no
+  account's second factor and no `[Settings]` secret opened (`HM7495` at the
+  reinitialise and at each start).
+
+**If a restore failed that way.** The archive is as it was. Upgrade to 6.3.6 and
+restore again from the same archive: the restore puts back the domains, the
+accounts and the messages, and leaves this installation's key where it is. The
+staged copy the failed restore left in the temp folder (`Temp\{GUID}\DataBackup`,
+named in its `HM5014` line) holds the same messages as the archive; delete it once
+the restore has completed. On 6.3.4 or 6.3.5, without upgrading: give the service
+the rights to remove the key first - Delete, and Write attributes and Write
+extended attributes, which the removal asks for as well (Delete alone still
+fails with `HM5700`) -
+`icacls "<data folder>\Certificates\self-signed-key.pem" /grant "NT SERVICE\hMailServer:(D,WA,WEA)"` -
+and restore again. That restore puts the archive's copy of the key in its place
+with the data folder's permissions, which up to 6.3.5 let every user of the
+computer read it, so once it has completed make the key private again; the
+service keeps Read:
+`icacls "<data folder>\Certificates\self-signed-key.pem" /inheritance:r /grant:r *S-1-5-18:(F) *S-1-5-32-544:(F) "NT SERVICE\hMailServer:(R)"`.
+Upgrading is simpler. On Linux, put the key file back from a copy of the
+data directory if there is one; otherwise import the stored-secrets key from its
+export - remove the `[Security] StoredSecretsKey` line, run
+`sudo hmailserver --import-stored-secrets-key FILE` and restart - or, with no
+export, `--forget-sealed-secrets KEYID` as [SecretsAtRest.md](SecretsAtRest.md)
+says, and enter again the other `LINUX1:` values `hMailServer.ini` held.
 
 
 References: how a scheduled send survives a restore

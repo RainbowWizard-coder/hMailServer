@@ -312,10 +312,13 @@ namespace HM
       MailboxRestoreTester mailboxRestoreTester;
       mailboxRestoreTester.Test();
 
-      // A backup's copy of the data directory and a restore's emptying of it,
-      // on a scratch tree: a destination inside the data directory, however it
-      // is written, the temp directory and the live update's folder are left
-      // out of the one and left in place by the other.
+      // A backup's copy of the data directory and a restore of one, on scratch
+      // trees: a destination inside the data directory, however it is written,
+      // the temp directory and the live update's folder are left out of the one
+      // and left in place by the other; the restore copies first, removes what
+      // the archive does not hold only after, undoes a copy that fails, keeps
+      // this server's own files at the root and this installation's own
+      // self-signed pair, and leaves a file the service may not change.
       OutputDebugString(_T("hMailServer: Testing the backup's exclusions\n"));
       BackupExecuterTester backupExecuterTester;
       backupExecuterTester.Test();

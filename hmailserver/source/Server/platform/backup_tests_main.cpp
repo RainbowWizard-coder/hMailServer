@@ -19,7 +19,12 @@
 // the temp directory and the live update's folder left out of the copy; a
 // restore that keeps the destination's archives, the temp directory and the
 // archive being restored, and does not put an older archive's live update
-// outcome back. No database, no configuration, no network.
+// outcome back; that copies first and removes what the archive does not hold
+// only after, undoes a copy that fails - the part of a file a full disk left
+// too - and keeps this server's own files at the data directory's root - the
+// key file its LINUX1 secrets are sealed under among them, which no file at the
+// store's root is put over - and this installation's own self-signed pair. No
+// database, no configuration, no network.
 //
 // It prints one line either way and exits non-zero on the first failure.
 
@@ -42,6 +47,6 @@ main(int /*argc*/, char * /*argv*/[])
       return 1;
    }
 
-   printf("ok    the backup's exclusions: a destination inside the data directory, the temp directory and the live update's folder left out of the copy and left in place by a restore\n");
+   printf("ok    the backup's exclusions: a destination inside the data directory, the temp directory and the live update's folder left out of the copy and left in place by a restore; a restore that copies first, removes after, undoes a copy that fails, and keeps this server's own files and pair\n");
    return 0;
 }

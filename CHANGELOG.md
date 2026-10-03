@@ -1440,6 +1440,16 @@ project's own review.
     says *Could not read the file* on its live log page and its message-store check, where it found no log folder;
     run it as administrator to see them. An editor that saves `hMailServer.INI` by replacing the file gives it
     `Bin`'s permissions again; run `hMailServer.exe /ProtectFolders` after it.
+46. **A full restore keeps this installation's own self-signed certificate and key, and the server's own files at the
+    data directory's root.** When the archive's `Certificates\self-signed-key.pem` is not this installation's byte for
+    byte - an archive taken on another computer, or before this installation made its pair - the restore leaves this
+    installation's pair as it is and says so in the backup log; up to 6.3.5 a service running as LocalSystem put the
+    archive's pair in its place, and one running as `NT SERVICE\hMailServer` failed the restore. A mail client that
+    had accepted the other server's self-signed certificate asks again, and a TLSA record published for the other
+    key no longer matches; to have the archive's pair instead, stop the service and copy both files from the
+    archive's `Certificates` folder over this installation's. A file in the data folder the service's account may not
+    replace or remove is left as it is and named (`HM5705`), where the restore used to stop. And of the files at the
+    data directory's root a restore removes only the delivery queue's message files, where it removed every one.
 
 ### Downloads and the release
 
@@ -2671,6 +2681,42 @@ project's own review.
   applied, the rollback image, the apply token and the last apply's outcome - was in every archive, 15 MB of the
   first Linux live update's 15.4 MB, and a restored copy of the outcome would have a server report an apply it
   never made. It is left out as the recoverable store is, and a restore leaves this machine's own where it is.
+- **Fixed: a full restore of messages failed on every installation made new with 6.3.4 or 6.3.5, and left the mail
+  in the temp folder alone.** Such an installation's service runs as `NT SERVICE\hMailServer`, and the self-signed key
+  it made for itself gives that account Read and nothing more; the restore emptied the data directory before it
+  copied the archive's store back: it stopped at `Data\Certificates`
+  (`HM5700`), failed the copy 30 s later on the archive's copy of the same key (`HM5014`), and ended with no domain on
+  the server and the backup's messages only in `Temp\{GUID}\DataBackup` - on the smoke VM with the signed 6.3.4 and
+  6.3.5 installers and with 6.3.6 before this change, every time. A key or certificate file an administrator moved
+  into the data folder, which keeps the permissions it had, did the same wherever those permissions did not let the
+  service's account delete it. On Linux, from 6.3.0, the emptying also deleted the data directory's
+  `.hmailserver-secret-key`, which every `LINUX1:` secret is sealed under, and no archive carries it: from 6.3.4
+  `[Security] StoredSecretsKey` then no longer opened, so from the restore on no account's second factor and no
+  `[Settings]` secret did (`HM7495` at each start), and neither did the other `LINUX1:` lines of `hMailServer.ini`.
+  The restore now copies the archive's store in first, over what is there: a file the data directory holds byte for
+  byte is left, one that differs is renamed aside and the archive's put in its place, and one the service's account
+  may not replace is left as it is and named - in the backup log, and once as `HM5705`. This installation's own
+  self-signed certificate and key are left as they are when the archive's key is not the same, and no file at the
+  root of the archive's store, which no archive the server makes holds, is put over the server's own. A copy that
+  fails is undone, the part of a file a full disk left included, so the data directory is what it was. Only then is
+  what the archive does not hold removed, and at the data directory's root only the delivery queue's message files.
+  **If a restore failed this way**, the archive is as it was: upgrade and restore again from it, then delete the
+  staged copy its `HM5014` line names; on Linux import the stored-secrets key from its export
+  ([Backup.md](hmailserver/docs/Backup.md), "How a restore replaces the data directory"). Tested by
+  `BackupExecuterTester` (`backup-tests` on Linux),
+  `BackupRestore.AFullRestoreLeavesInPlaceTheFilesTheServiceMayNotChange`, a restore end to end on Linux - a full
+  disk among them - and on the installer smoke VM.
+- **Fixed: a message deleted while a backup copied the data directory failed the backup.** From 6.2.19 the copy is
+  meant to count a file that a POP3 `DELE` or an IMAP `EXPUNGE` removed between the listing and the copy as gone,
+  and go on. It asked Boost whether the file was still there and took "no error, and not there" for gone, and Boost
+  answers a file that is not there with an error as well: so such a file was retried for 30 s and then failed the
+  backup (`HM5014`, "could not be copied: No such file or directory"), or failed it at once when it went between
+  the listing and the question what it was - and with it the update a backup was taken for
+  (`UpdateBackupBeforeApply`). An encrypted backup's measure of the data directory failed the same way, and a restore
+  whose staged copy lost a file, a scanner taking it from the temp folder, failed instead of going on without it. A
+  file is now gone when the system answers that there is no such file - not when a share or a drive cannot be
+  reached, which Boost answers alike - and is counted and said as it was meant to be. Found by `BackupExecuterTester`,
+  whose case of a file gone from a restore's store failed against the old test.
 - **The live update's trust is read from `hMailServer.ini` alone.** The server read `UpdateSigningIdentity`,
   `UpdateSigningIssuer`, `UpdateSourceRepository`, `UpdateTrustRootsFile` and `UpdateLogPublicKeyFile` from the
   database, where the REST API and the Deck write, and root's `hmailserver --verify-update` on Linux from the file,

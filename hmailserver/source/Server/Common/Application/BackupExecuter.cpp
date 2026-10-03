@@ -35,6 +35,7 @@
 #include "BackupRestorer.h"
 #include "ACLManager.h"
 #include "Reinitializator.h"
+#include "NewInstallDefaults.h"
 
 #include "../SQL/DatabaseUnavailableMarker.h"
 #include "../AntiSpam/DKIM/DkimRotation.h"
@@ -46,12 +47,17 @@
 #include "../../IMAP/IMAPConfiguration.h"
 
 #include <boost/filesystem.hpp>
+#include <boost/filesystem/fstream.hpp>
 
 #include <map>
 #include <set>
 
 #ifdef HM_PLATFORM_POSIX
 #include <sys/stat.h>
+#endif
+#ifndef HM_PLATFORM_POSIX
+#include <sddl.h>
+#include <aclapi.h>
 #endif
 
 #ifdef _DEBUG
@@ -132,6 +138,45 @@ namespace HM
    };
 
    static bool
+   IsGone_(const boost::filesystem::path &path)
+   //---------------------------------------------------------------------------()
+   // DESCRIPTION:
+   // Whether path is positively not there - removed since it was listed - and
+   // not merely out of reach. boost::filesystem::exists(path, error) does not
+   // say that on its own: for a path that is not there it answers false AND sets
+   // error, since Boost's status() reports every errno and every Windows error,
+   // the ones it answers file_not_found for among them. So the test this file
+   // used from 6.2.19 to 6.3.5, "no error and not there", never held: a message
+   // file a POP3 DELE or an IMAP EXPUNGE removed while a backup was copying the
+   // data directory failed the backup - after 30 s of retries, or at once when
+   // it went between the listing and the question what it was (HM5014) -
+   // instead of being counted as gone, and a restore whose staged copy lost a
+   // file failed the same way. Only the answers that mean "no such file" count
+   // here: ENOENT and ENOTDIR on Linux, ERROR_FILE_NOT_FOUND and
+   // ERROR_PATH_NOT_FOUND on Windows. Not a share or a drive that went away,
+   // which Boost answers file_not_found for as well: counted as gone, that would
+   // have a backup leave out everything after it with nothing said but a count.
+   //---------------------------------------------------------------------------()
+   {
+      boost::system::error_code error;
+      const boost::filesystem::file_status status = boost::filesystem::status(path, error);
+      if (status.type() != boost::filesystem::file_not_found)
+         return false;
+
+      if (!error)
+         return true;
+
+      if (error.category() != boost::system::system_category())
+         return false;
+
+#ifdef HM_PLATFORM_POSIX
+      return error.value() == ENOENT || error.value() == ENOTDIR;
+#else
+      return error.value() == ERROR_FILE_NOT_FOUND || error.value() == ERROR_PATH_NOT_FOUND;
+#endif
+   }
+
+   static bool
    CopyOneFile_(const boost::filesystem::path &from, const boost::filesystem::path &to, TreeCopyOutcome &outcome)
    {
       for (;;)
@@ -152,14 +197,10 @@ namespace HM
          // directory was listed is just mail flow, and failing the nightly backup
          // because a user emptied their trash during it would be absurd.
          //
-         // "Positively established as absent", not "could not be found": exists()
-         // reports a failure to look through its error_code, and treating that as
-         // absence would silently leave a message out of the backup - which is the
-         // outcome all of this exists to prevent.
-         boost::system::error_code existsError;
-         bool sourceStillExists = boost::filesystem::exists(from, existsError);
-
-         if (!existsError && !sourceStillExists)
+         // "Positively established as absent", not "could not be found" (IsGone_):
+         // treating a failure to look as absence would silently leave a message
+         // out of the backup - which is the outcome all of this exists to prevent.
+         if (IsGone_(from))
          {
             outcome.vanished++;
             return true;
@@ -356,10 +397,11 @@ namespace HM
    //---------------------------------------------------------------------------()
    // DESCRIPTION:
    // The directories a copy of the data directory leaves out and a restore does
-   // not empty, each with the words the backup log says it in, and every
-   // directory above each of them - which a restore empties around them rather
-   // than removing whole. Directories that are not there are not held: nothing
-   // can be met in a copy that does not exist.
+   // not empty, each with the words the backup log says it in. Directories that
+   // are not there are not held: nothing can be met in a copy that does not
+   // exist. A restore walks the whole data directory and leaves each of them
+   // where it meets it (RemoveWhatTheBackupHasNot_), so the directories on the
+   // way down to one are emptied around it and never removed whole.
    //---------------------------------------------------------------------------()
    {
    public:
@@ -379,26 +421,6 @@ namespace HM
             return;
 
          excluded_[identity] = description + _T(" ") + directory;
-
-         // Every directory above it, from the path with its links resolved: a
-         // destination reached through a link lies under the link's target, not
-         // under the directories the link's own name is in.
-         boost::system::error_code canonicalError;
-         boost::filesystem::path real = boost::filesystem::canonical(path, canonicalError);
-         if (canonicalError)
-            real = boost::filesystem::absolute(path, canonicalError);
-         if (canonicalError)
-            return;
-
-         for (boost::filesystem::path parent = real.parent_path(); !parent.empty(); parent = parent.parent_path())
-         {
-            DirectoryIdentity_ above;
-            if (IdentifyDirectory_(parent, above))
-               above_.insert(above);
-
-            if (parent == parent.root_path())
-               break;
-         }
       }
 
       bool Empty() const
@@ -424,29 +446,9 @@ namespace HM
          return true;
       }
 
-      // Whether directory holds one of them, however deep.
-      bool Holds(const boost::filesystem::path &directory) const
-      {
-         if (above_.empty())
-            return false;
-
-         DirectoryIdentity_ identity;
-         return IdentifyDirectory_(directory, identity) && above_.find(identity) != above_.end();
-      }
-
    private:
 
       std::map<DirectoryIdentity_, String> excluded_;
-      std::set<DirectoryIdentity_> above_;
-   };
-
-   // Which side of a copy DataDirectoryExclusions_ is asked about: the source for
-   // a backup, which copies the data directory, and the target for a restore,
-   // which copies the archive's store into it.
-   enum ExclusionSide_
-   {
-      ExcludeBySource_,
-      ExcludeByTarget_
    };
 
    static void
@@ -509,8 +511,7 @@ namespace HM
 
    static bool
    CopyTree_(const boost::filesystem::path &from, const boost::filesystem::path &to, TreeCopyOutcome &outcome,
-             bool skipKeptOutOfBackup = false, const DataDirectoryExclusions_ *exclusions = nullptr,
-             ExclusionSide_ side = ExcludeBySource_)
+             bool skipKeptOutOfBackup = false, const DataDirectoryExclusions_ *exclusions = nullptr)
    {
       boost::system::error_code createError;
       boost::filesystem::create_directories(to, createError);
@@ -550,10 +551,7 @@ namespace HM
             // has just been deleted - but only "almost", so the entry has to be shown
             // to be gone before it is written off. Skipping a directory we simply
             // could not read would leave a whole account out of the backup.
-            boost::system::error_code existsError;
-            bool stillExists = boost::filesystem::exists(current, existsError);
-
-            if (!existsError && !stillExists)
+            if (IsGone_(current))
             {
                outcome.vanished++;
                continue;
@@ -573,7 +571,7 @@ namespace HM
             // At any depth; see DataDirectoryExclusions_.
             const boost::filesystem::path target = to / current.filename();
             String excludedAs;
-            if (exclusions && exclusions->Contains(side == ExcludeBySource_ ? current : target, excludedAs))
+            if (exclusions && exclusions->Contains(current, excludedAs))
             {
                outcome.excluded.push_back(excludedAs);
 
@@ -585,7 +583,7 @@ namespace HM
                // the exclusions.
                String alsoExcluded;
                boost::system::error_code staleError;
-               if (side == ExcludeBySource_ && boost::filesystem::exists(target, staleError) && !staleError &&
+               if (boost::filesystem::exists(target, staleError) && !staleError &&
                    !exclusions->Contains(target, alsoExcluded))
                {
                   boost::filesystem::remove_all(target, staleError);
@@ -594,7 +592,7 @@ namespace HM
                continue;
             }
 
-            if (!CopyTree_(current, target, outcome, false, exclusions, side))
+            if (!CopyTree_(current, target, outcome, false, exclusions))
                return false;
          }
          else
@@ -618,20 +616,21 @@ namespace HM
 
    static bool
    CopyTreeGuarded_(const String &from, const String &to, TreeCopyOutcome &outcome, bool skipKeptOutOfBackup,
-                    const DataDirectoryExclusions_ *exclusions = nullptr, ExclusionSide_ side = ExcludeBySource_)
+                    const DataDirectoryExclusions_ *exclusions = nullptr)
    //---------------------------------------------------------------------------()
    // DESCRIPTION:
    // CopyTree_ with a backstop. Every operation inside it uses an error_code
    // overload, so nothing should reach here - but the whole point of this code is
    // that an exception escaping a work-queue task terminates the process, and that
    // property must not depend on having enumerated every throwing call correctly.
-   // Both callers copy a data directory, and both leave out what
-   // IsKeptOutOfBackup_ names at its root.
+   // The backup's copy of the data directory, which leaves out what
+   // IsKeptOutOfBackup_ names at its root; a restore's copy is RestoreStoreInto_,
+   // which has a backstop of its own.
    //---------------------------------------------------------------------------()
    {
       try
       {
-         return CopyTree_(boost::filesystem::path(from.c_str()), boost::filesystem::path(to.c_str()), outcome, skipKeptOutOfBackup, exclusions, side);
+         return CopyTree_(boost::filesystem::path(from.c_str()), boost::filesystem::path(to.c_str()), outcome, skipKeptOutOfBackup, exclusions);
       }
       catch (boost::thread_interrupted const &)
       {
@@ -659,15 +658,688 @@ namespace HM
       return Formatter::Format("{0} could not be copied: {1}.", outcome.failed_file, outcome.failure_detail);
    }
 
+   // HOW A RESTORE REPLACES THE DATA DIRECTORY
+   //
+   // Up to 6.3.5 a restore of messages emptied the data directory first - every
+   // directory at its root but the ones IsKeptOutOfBackup_ names, and every file
+   // there - and then copied the archive's store in. Two things went wrong with
+   // that order, and a third with what it deleted.
+   //
+   //  * A file the service may not delete stopped it half-way. The self-signed
+   //    key an installation makes for itself (NewInstallDefaults) is written by
+   //    the administrator's elevated process with permissions of its own: Read,
+   //    and nothing more, for the account the service runs as. From 6.3.4 that
+   //    account is NT SERVICE\hMailServer by default, and its Modify on the data
+   //    folder does not include deleting a child of a folder. So the emptying
+   //    failed on Data\Certificates (HM5700), left the directories after it in
+   //    place, and the copy then failed on the archive's copy of the same key
+   //    (HM5014, after its 30 s of retries) - before it had reached the
+   //    domains, whose directories the restore had deleted with the domains.
+   //    Every full restore of messages on such an installation ended with the
+   //    mail in the Temp folder's staging copy only, and no domain on the
+   //    server. A key or certificate an administrator moved into the data
+   //    folder, which keeps the permissions it had where it was, does the same
+   //    wherever those permissions do not let the service's account delete it.
+   //
+   //  * Between the emptying and the end of the copy, the data directory held
+   //    neither what it had nor what the archive has, and a failure in that
+   //    window - a full disk, a file that would not copy - left it that way.
+   //
+   //  * The emptying deleted every file at the data directory's root, which was
+   //    once only the delivery queue's message files. It is now also this
+   //    server's own state: on Linux the key file every LINUX1 secret on the
+   //    machine is sealed under (DataProtector, .hmailserver-secret-key) -
+   //    from 6.3.4 [Security] StoredSecretsKey among them, so after a restore
+   //    no second factor and no [Settings] secret opened - the container's
+   //    .hmailserver-environment, the sending limits' state and the first
+   //    start's marker. None of it is in an archive, so none of it came back.
+   //
+   // So the restore now copies first and removes after (RestoreStoreInto_), and
+   // undoes what it did when the copy fails:
+   //
+   //  1. The archive's store is copied into the data directory over what is
+   //     there. A file the data directory already holds byte for byte is left
+   //     as it is, whoever owns it. One that differs is moved aside - renamed,
+   //     beside itself - and the archive's copied in its place; one that cannot
+   //     be moved aside, because the account the service runs as may not delete
+   //     it, is left as it is and named, and the restore goes on. This
+   //     installation's own self-signed certificate and key are left as they
+   //     are when the archive's key is not the same, and named: the archive's
+   //     pair is another installation's, and under NT SERVICE\hMailServer its
+   //     key is one the service could not put in the place of this one's
+   //     anyway. No file at the store's root
+   //     is copied: no archive holds one (BackupDataDirectory_ deletes them).
+   //  2. When the copy fails, everything it wrote is removed - the part of a
+   //     file a copy that failed on a full disk left too - and everything it
+   //     moved aside is put back, so the data directory is what it was before
+   //     the restore's copy, and the archive is where it was. Until the copy is
+   //     complete the data directory holds the archive's files beside the ones
+   //     they replace, so a restore needs room for both - less the domains'
+   //     folders, which a restore of domains deletes first - and a disk that
+   //     fills is a copy that fails.
+   //  3. Only once the copy is complete is what the archive does not hold
+   //     removed: every file below the directories the old emptying removed
+   //     that the archive's store has no file at, and the directories left
+   //     empty that it has no directory at, but this installation's own pair.
+   //     At the root, only the delivery queue's message files, and what a
+   //     writer of the store left of one. A file that cannot be removed is left
+   //     and named. Then what was moved aside goes.
+   //
+   // What the old emptying left alone is left alone: the directories
+   // IsKeptOutOfBackup_ names, and wherever they are inside the data directory
+   // the destination, the temp directory, the folder of the archive being
+   // restored and the store extracted from it (DataDirectoryExclusions_).
+
+   // What a restore moved aside, wrote and made, in that order, so that it can be
+   // undone (RollBack) until the copy is complete, and what it moved aside
+   // removed once it is (Commit).
+   class RestoreJournal_
+   {
+   public:
+
+      RestoreJournal_()
+      {
+         String unique = GUIDCreator::GetGUID();
+         unique.Replace(_T("{"), _T(""));
+         unique.Replace(_T("}"), _T(""));
+         suffix_ = _T(".hmailserver-previous-") + unique.Left(8);
+      }
+
+      // Renames target - a file, a directory or a link, as itself - to a name
+      // beside it, so that it is on the same volume whatever links the data
+      // directory has. False, with why, when it could not be: it is then where
+      // it was.
+      bool MoveAside(const boost::filesystem::path &target, String &why)
+      {
+         boost::filesystem::path aside(target);
+         aside += boost::filesystem::path(std::wstring(suffix_.c_str()));
+
+         boost::system::error_code error;
+         boost::filesystem::rename(target, aside, error);
+
+         if (error)
+         {
+            why = error.message().c_str();
+            return false;
+         }
+
+         moved_.push_back(std::make_pair(target, aside));
+         return true;
+      }
+
+      // The last MoveAside undone at once: the file that was to take its place
+      // was gone from the store before it could be copied - something removed it
+      // from the staged copy meanwhile, an anti-virus scanner most likely - so
+      // this server's file is put back, and the removal of what the archive does
+      // not hold leaves it (WasPutBack). False, with why, when it could not be
+      // put back: it is then the only copy of that file, so it stays where it was
+      // moved - Commit never removes it, and RollBack tries again.
+      bool PutBackLast(String &why, String &where)
+      {
+         if (moved_.empty())
+            return true;
+
+         boost::system::error_code error;
+         boost::filesystem::rename(moved_.back().second, moved_.back().first, error);
+         if (error)
+         {
+            why = error.message().c_str();
+            where = String(moved_.back().second.wstring());
+            stranded_.push_back(moved_.back());
+         }
+         else
+            put_back_.insert(Key_(moved_.back().first));
+
+         moved_.pop_back();
+         return !error;
+      }
+
+      bool WasPutBack(const boost::filesystem::path &path) const
+      {
+         return put_back_.find(Key_(path)) != put_back_.end();
+      }
+
+      void Added(const boost::filesystem::path &file)
+      {
+         added_files_.push_back(file);
+      }
+
+      // Whether path is one this journal moved aside, by its name: Commit
+      // removes those, and nothing else is to count them.
+      bool IsAside(const boost::filesystem::path &path) const
+      {
+         const String name(path.filename().wstring());
+         return name.GetLength() > suffix_.GetLength() && name.Right(suffix_.GetLength()) == suffix_;
+      }
+
+      void AddedDirectory(const boost::filesystem::path &directory)
+      {
+         added_directories_.push_back(directory);
+      }
+
+      // Everything undone, last first: the files written removed, what was moved
+      // aside put back, the directories made removed. notPutBack names what could
+      // not be, and is empty when the data directory is as it was.
+      void RollBack(std::vector<String> &notPutBack)
+      {
+         for (auto file = added_files_.rbegin(); file != added_files_.rend(); ++file)
+         {
+            boost::system::error_code error;
+            boost::filesystem::remove(*file, error);
+            if (error)
+               notPutBack.push_back(Formatter::Format("{0}, which the restore wrote, could not be removed: {1}", String((*file).wstring()), String(error.message().c_str())));
+         }
+
+         for (auto moved = moved_.rbegin(); moved != moved_.rend(); ++moved)
+         {
+            boost::system::error_code error;
+            boost::filesystem::rename((*moved).second, (*moved).first, error);
+            if (error)
+               notPutBack.push_back(Formatter::Format("{0} could not be put back from {1}: {2}", String((*moved).first.wstring()), String((*moved).second.wstring()), String(error.message().c_str())));
+         }
+
+         for (const auto &stranded : stranded_)
+         {
+            boost::system::error_code error;
+            boost::filesystem::rename(stranded.second, stranded.first, error);
+            if (error)
+               notPutBack.push_back(Formatter::Format("{0} could not be put back from {1}: {2}", String(stranded.first.wstring()), String(stranded.second.wstring()), String(error.message().c_str())));
+         }
+
+         // A directory the restore made that is not empty now holds something
+         // that is not the restore's - a message delivered meanwhile - and stays.
+         for (auto directory = added_directories_.rbegin(); directory != added_directories_.rend(); ++directory)
+         {
+            boost::system::error_code error;
+            if (boost::filesystem::is_empty(*directory, error) && !error)
+               boost::filesystem::remove(*directory, error);
+         }
+
+         added_files_.clear();
+         moved_.clear();
+         stranded_.clear();
+         added_directories_.clear();
+      }
+
+      // What was moved aside removed, now that what replaced it is complete. left
+      // names what could not be. What PutBackLast could not put back is not
+      // removed: nothing replaced it.
+      void Commit(std::vector<String> &left)
+      {
+         for (const auto &moved : moved_)
+         {
+            boost::system::error_code error;
+            boost::filesystem::remove_all(moved.second, error);
+            if (error)
+               left.push_back(Formatter::Format("{0} (the copy {1} had before the restore) could not be removed: {2}", String(moved.second.wstring()), String(moved.first.wstring()), String(error.message().c_str())));
+         }
+
+         added_files_.clear();
+         moved_.clear();
+         stranded_.clear();
+         added_directories_.clear();
+      }
+
+   private:
+
+      // A path as the data directory's file system compares it: without case
+      // on Windows (SameName_).
+      static String Key_(const boost::filesystem::path &path)
+      {
+         String key(path.wstring());
+#ifndef HM_PLATFORM_POSIX
+         key.ToLower();
+#endif
+         return key;
+      }
+
+      String suffix_;
+      std::set<String> put_back_;
+      std::vector<std::pair<boost::filesystem::path, boost::filesystem::path> > moved_;
+      std::vector<std::pair<boost::filesystem::path, boost::filesystem::path> > stranded_;
+      std::vector<boost::filesystem::path> added_files_;
+      std::vector<boost::filesystem::path> added_directories_;
+   };
+
+   // What a restore of the data directory did, in the words the backup log says
+   // it in.
+   struct RestoreOutcome_
+   {
+      // The copy: what it copied, what vanished from the store meanwhile, where
+      // it failed, and the directories it did not write into (the exclusions).
+      TreeCopyOutcome copy;
+
+      // Files the data directory held already, byte for byte.
+      unsigned int already;
+
+      // Files the archive's copy replaced, the data directory's moved aside.
+      unsigned int replaced;
+
+      // Files the archive does not hold, removed once the copy was complete.
+      unsigned int removed;
+
+      // Files at the store's root, which are put back nowhere (RestoreCopyTree_).
+      unsigned int root_files_left_out;
+
+      // The exclusions the removal left in place.
+      std::vector<String> left_in_place;
+
+      // Files of this server left as they are, each with why: one that differs
+      // from the archive's and could not be moved aside, one the archive does
+      // not hold that could not be removed.
+      std::vector<String> kept;
+
+      // This installation's own self-signed pair, left as it is (the sentence),
+      // or empty.
+      String own_pair;
+
+      // After a failed copy: what could not be put back (empty when the data
+      // directory is as it was).
+      std::vector<String> not_put_back;
+
+      // After a complete one: what was moved aside and could not be removed.
+      std::vector<String> left_aside;
+
+      RestoreOutcome_() :
+         already(0),
+         replaced(0),
+         removed(0),
+         root_files_left_out(0)
+      {
+      }
+   };
+
+   // Whether two paths name one file the way the data directory's file system
+   // compares names: without case on Windows.
    static bool
-   EmptyAround_(const boost::filesystem::path &directory, const DataDirectoryExclusions_ &exclusions, std::vector<String> &kept)
+   SameName_(const boost::filesystem::path &first, const boost::filesystem::path &second)
+   {
+#ifdef HM_PLATFORM_POSIX
+      return first == second;
+#else
+      return String(first.wstring()).CompareNoCase(String(second.wstring())) == 0;
+#endif
+   }
+
+   static bool
+   SameContents_(const boost::filesystem::path &first, const boost::filesystem::path &second)
    //---------------------------------------------------------------------------()
    // DESCRIPTION:
-   // Removes everything in directory - a directory that holds one of the
-   // exclusions, somewhere below it - but the exclusions and the directories on
-   // the way to them, which are emptied around them in turn. A link is removed
-   // as the link it is, never followed: remove_all, which this stands in for,
-   // does not follow one either. Listed first and removed after.
+   // Whether two regular files hold the same bytes. False when either cannot be
+   // read: then the restore treats them as different, which costs at most a copy.
+   //---------------------------------------------------------------------------()
+   {
+      boost::system::error_code error;
+      const boost::uintmax_t size = boost::filesystem::file_size(first, error);
+      if (error)
+         return false;
+
+      const boost::uintmax_t otherSize = boost::filesystem::file_size(second, error);
+      if (error || size != otherSize)
+         return false;
+
+      boost::filesystem::ifstream one(first, std::ios::in | std::ios::binary);
+      boost::filesystem::ifstream other(second, std::ios::in | std::ios::binary);
+      if (!one || !other)
+         return false;
+
+      const size_t chunk = 65536;
+      std::vector<char> oneBuffer(chunk);
+      std::vector<char> otherBuffer(chunk);
+
+      boost::uintmax_t remaining = size;
+      while (remaining > 0)
+      {
+         const std::streamsize wanted = (std::streamsize) (remaining < chunk ? remaining : chunk);
+         one.read(&oneBuffer[0], wanted);
+         other.read(&otherBuffer[0], wanted);
+
+         if (one.gcount() != wanted || other.gcount() != wanted)
+            return false;
+
+         if (memcmp(&oneBuffer[0], &otherBuffer[0], (size_t) wanted) != 0)
+            return false;
+
+         remaining -= (boost::uintmax_t) wanted;
+      }
+
+      return true;
+   }
+
+   // This installation's own self-signed certificate and key, which it made for
+   // itself when it was installed (NewInstallDefaults), and whether a restore
+   // leaves them as they are: when this installation has the key and the
+   // archive's store has not the same key, byte for byte. The two are kept or
+   // replaced together, since a key and a certificate that are not a pair stop
+   // every listener that uses them.
+   struct OwnCertificatePair_
+   {
+      boost::filesystem::path key;
+      boost::filesystem::path certificate;
+      bool keep;
+
+      OwnCertificatePair_() : keep(false) {}
+
+      bool Covers(const boost::filesystem::path &file) const
+      {
+         return keep && (SameName_(file, key) || SameName_(file, certificate));
+      }
+   };
+
+   static OwnCertificatePair_
+   JudgeOwnCertificatePair_(const boost::filesystem::path &store, const boost::filesystem::path &data, String &sentence)
+   {
+      OwnCertificatePair_ pair;
+
+      const boost::filesystem::path folder(NewInstallDefaults::PairFolderName());
+      const boost::filesystem::path keyName(NewInstallDefaults::PairKeyFileName());
+      const boost::filesystem::path certificateName(NewInstallDefaults::PairCertificateFileName());
+
+      pair.key = data / folder / keyName;
+      pair.certificate = data / folder / certificateName;
+
+      boost::system::error_code error;
+      if (!boost::filesystem::is_regular_file(boost::filesystem::symlink_status(pair.key, error)))
+         return pair;
+
+      const boost::filesystem::path archived = store / folder / keyName;
+      const bool archiveHasOne = boost::filesystem::is_regular_file(boost::filesystem::symlink_status(archived, error));
+
+      if (archiveHasOne && SameContents_(archived, pair.key))
+         return pair;
+
+      pair.keep = true;
+      sentence = Formatter::Format("This installation's own self-signed certificate and key, {0} and {1}, which it made for itself when it was installed, are left as they are: {2} The archive's pair, if it is wanted instead, is in the archive under {3}{4}: stop the service, copy both files over these, and start it again.",
+         String(pair.certificate.wstring()), String(pair.key.wstring()),
+         archiveHasOne ? String(_T("the archive holds another installation's pair, whose key is not this one.")) : String(_T("the archive holds no such pair.")),
+         String(folder.wstring()), String(FileUtilities::PathSeparator));
+      return pair;
+   }
+
+   // A fault the tester injects at a known point of the copy, at the file after
+   // restore_fault_after_for_test it has written: the copy fails there; or fails
+   // and leaves the start of that file behind it, as boost::filesystem::copy_file
+   // does on Linux when the disk fills; or the store's copy of that file and of
+   // every one after it is gone before it can be copied, as when a scanner takes
+   // it from the staged copy. NoRestoreFault_, as everywhere but
+   // BackupExecuterTester, is none.
+   enum RestoreFault_
+   {
+      NoRestoreFault_,
+      RestoreCopyFails_,
+      RestoreCopyFailsLeavingPart_,
+      RestoreStoreFileVanishes_
+   };
+
+   static RestoreFault_ restore_fault_for_test = NoRestoreFault_;
+   static unsigned int restore_fault_after_for_test = 0;
+
+   static bool
+   PlaceDirectory_(const boost::filesystem::path &target, RestoreJournal_ &journal, RestoreOutcome_ &outcome)
+   //---------------------------------------------------------------------------()
+   // DESCRIPTION:
+   // target a directory of its own for the restore to copy into: as it is when it
+   // is one; made when nothing is there; and when something else is there - a
+   // file, a link, a junction - that moved aside first, as the old emptying
+   // removed it.
+   //---------------------------------------------------------------------------()
+   {
+      // Boost sets the error_code for a path that is not there too, and answers
+      // file_not_found: only status_error is a failure to look.
+      boost::system::error_code error;
+      const boost::filesystem::file_status status = boost::filesystem::symlink_status(target, error);
+
+      if (status.type() == boost::filesystem::status_error)
+      {
+         outcome.copy.failed_file = String(target.wstring());
+         outcome.copy.failure_detail = error.message().c_str();
+         return false;
+      }
+
+      if (boost::filesystem::is_directory(status))
+         return true;
+
+      if (boost::filesystem::exists(status))
+      {
+         String why;
+         if (!journal.MoveAside(target, why))
+         {
+            outcome.copy.failed_file = String(target.wstring());
+            outcome.copy.failure_detail = _T("it is not a directory, where the archive has one, and it could not be moved aside: ") + why;
+            return false;
+         }
+      }
+
+      error.clear();
+      boost::filesystem::create_directory(target, error);
+      if (error)
+      {
+         outcome.copy.failed_file = String(target.wstring());
+         outcome.copy.failure_detail = error.message().c_str();
+         return false;
+      }
+
+      journal.AddedDirectory(target);
+      return true;
+   }
+
+   static bool
+   RestoreCopyTree_(const boost::filesystem::path &from, const boost::filesystem::path &to, bool atRoot,
+                    const DataDirectoryExclusions_ &exclusions, const OwnCertificatePair_ &ownPair,
+                    RestoreJournal_ &journal, RestoreOutcome_ &outcome)
+   //---------------------------------------------------------------------------()
+   // DESCRIPTION:
+   // Step 1 of RestoreStoreInto_: the store from, or a directory of it, copied
+   // into to over what is there, each step recorded in journal. Leaves out what
+   // the old restore's copy left out - at the root the directories
+   // IsKeptOutOfBackup_ names, and wherever they are the exclusions, by
+   // target - every file at the store's root, and this installation's own pair
+   // when it is kept.
+   // False, with the file and why in outcome.copy, when something the archive
+   // holds could not be put in place.
+   //---------------------------------------------------------------------------()
+   {
+      boost::system::error_code iterateError;
+      boost::filesystem::directory_iterator file(from, iterateError);
+
+      for (; !iterateError && file != boost::filesystem::directory_iterator(); file.increment(iterateError))
+      {
+         const boost::filesystem::path current(file->path());
+         const boost::filesystem::path target = to / current.filename();
+
+         boost::system::error_code statusError;
+         const bool isDirectory = boost::filesystem::is_directory(current, statusError);
+
+         if (statusError)
+         {
+            // As CopyTree_: gone is mail flow, anything else is a failure.
+            if (IsGone_(current))
+            {
+               outcome.copy.vanished++;
+               continue;
+            }
+
+            outcome.copy.failed_file = String(current.wstring());
+            outcome.copy.failure_detail = statusError.message().c_str();
+            return false;
+         }
+
+         if (isDirectory)
+         {
+            if (atRoot && IsKeptOutOfBackup_(current))
+               continue;
+
+            String excludedAs;
+            if (exclusions.Contains(target, excludedAs))
+            {
+               outcome.copy.excluded.push_back(excludedAs);
+               continue;
+            }
+
+            if (!PlaceDirectory_(target, journal, outcome))
+               return false;
+
+            if (!RestoreCopyTree_(current, target, false, exclusions, ownPair, journal, outcome))
+               return false;
+
+            continue;
+         }
+
+         // No file at the store's root is put back. A backup deletes the root's
+         // files from its staged copy before it archives it (BackupDataDirectory_),
+         // and has since before 6.0: they are the delivery queue's, whose rows a
+         // restore does not put back. So none is in an archive this server made,
+         // and one that is - an archive put together by hand - could only land on
+         // one of this server's own files there: an archive, or on Linux the key
+         // file the LINUX1 secrets are sealed under, which is this machine's.
+         if (atRoot)
+         {
+            outcome.root_files_left_out++;
+            continue;
+         }
+
+         if (ownPair.Covers(target))
+            continue;
+
+         // As in PlaceDirectory_: a target that is not there is no failure.
+         boost::system::error_code targetError;
+         const boost::filesystem::file_status targetStatus = boost::filesystem::symlink_status(target, targetError);
+
+         if (targetStatus.type() == boost::filesystem::status_error)
+         {
+            outcome.copy.failed_file = String(target.wstring());
+            outcome.copy.failure_detail = targetError.message().c_str();
+            return false;
+         }
+
+         bool replacing = false;
+
+         if (boost::filesystem::exists(targetStatus))
+         {
+            if (boost::filesystem::is_regular_file(targetStatus) && SameContents_(current, target))
+            {
+               outcome.already++;
+               continue;
+            }
+
+            String why;
+            if (!journal.MoveAside(target, why))
+            {
+               outcome.kept.push_back(Formatter::Format("{0}, which is not the archive's copy and could not be moved aside to make room for it ({1}), is left as it is", String(target.wstring()), why));
+               continue;
+            }
+
+            replacing = true;
+         }
+
+         const unsigned int copiedBefore = outcome.copy.copied;
+         bool copiedOne = false;
+
+         const bool faultHere = restore_fault_for_test != NoRestoreFault_ && outcome.copy.copied >= restore_fault_after_for_test;
+         if (faultHere && restore_fault_for_test == RestoreStoreFileVanishes_)
+         {
+            boost::system::error_code ignored;
+            boost::filesystem::remove(current, ignored);
+         }
+
+         if (faultHere && restore_fault_for_test != RestoreStoreFileVanishes_)
+         {
+            if (restore_fault_for_test == RestoreCopyFailsLeavingPart_)
+            {
+               boost::filesystem::ofstream part(target, std::ios::out | std::ios::binary | std::ios::trunc);
+               part << "the start of a copy the disk had no room for";
+            }
+
+            outcome.copy.failed_file = String(current.wstring());
+            outcome.copy.failure_detail = "the fault BackupExecuterTester injects";
+         }
+         else
+            copiedOne = CopyOneFile_(current, target, outcome.copy);
+
+         if (!copiedOne)
+         {
+            // Whatever the failed copy left at target is the restore's to remove
+            // in the undo: boost::filesystem::copy_file leaves the part it wrote
+            // on Linux when the disk fills, and nothing else can be there - what
+            // was, has been moved aside, and is put back after it.
+            journal.Added(target);
+            return false;
+         }
+
+         if (outcome.copy.copied != copiedBefore)
+         {
+            journal.Added(target);
+            if (replacing)
+               outcome.replaced++;
+         }
+         else if (replacing)
+         {
+            // The store's copy was gone before it could be copied - it vanished
+            // from the staged store - so this server's file is put back.
+            String why;
+            String where;
+            if (!journal.PutBackLast(why, where))
+               outcome.kept.push_back(Formatter::Format("{0}, whose copy in the archive's store was gone before it could be copied, could not be put back from {1}, where it was moved aside to make room for that copy ({2}): it is there, the only copy of it", String(target.wstring()), where, why));
+         }
+      }
+
+      if (iterateError)
+      {
+         outcome.copy.failed_file = String(from.wstring());
+         outcome.copy.failure_detail = iterateError.message().c_str();
+         return false;
+      }
+
+      return true;
+   }
+
+   static bool
+   IsQueueMessageFile_(const boost::filesystem::path &file)
+   //---------------------------------------------------------------------------()
+   // DESCRIPTION:
+   // A delivery queue's message file at the data directory's root, {GUID}.eml,
+   // or what a writer of the message store left of one when it stopped part-way:
+   // the name with one of the marks it stages a file beside its name with, and a
+   // GUID after it ({GUID}.eml.writing-{GUID}, MessageStore.cpp). The old
+   // emptying removed those with every other file at the root.
+   //---------------------------------------------------------------------------()
+   {
+      const String name(file.filename().wstring());
+
+      String extension(file.extension().wstring());
+      if (extension.CompareNoCase(_T(".eml")) == 0)
+         return true;
+
+      static const TCHAR *const marks[] = { _T(".eml.writing-"), _T(".eml.encrypting-"), _T(".eml.plaintext-"), _T(".eml.linking-"), _T(".eml.store-") };
+      String lower(name);
+      lower.ToLower();
+      for (const TCHAR *mark : marks)
+      {
+         if (lower.Find(mark) > 0 && lower.EndsWith(_T("}")))
+            return true;
+      }
+
+      return false;
+   }
+
+   static void
+   RemoveWhatTheBackupHasNot_(const boost::filesystem::path &directory, const boost::filesystem::path &counterpart, bool atRoot,
+                              const DataDirectoryExclusions_ &exclusions, const OwnCertificatePair_ &ownPair,
+                              const DirectoryIdentity_ *archive, const RestoreJournal_ &journal, RestoreOutcome_ &outcome)
+   //---------------------------------------------------------------------------()
+   // DESCRIPTION:
+   // Step 3 of RestoreStoreInto_, once the copy is complete: below directory,
+   // every file the archive's store has no file at (counterpart, the same place
+   // in the store) removed, and every directory left empty that it has no
+   // directory at. The exclusions are left in place, and said; so is this
+   // installation's own pair when it is kept. At the root, the directories
+   // IsKeptOutOfBackup_ names are left, and of the files only the delivery
+   // queue's message files are removed - never the archive being restored, nor
+   // this server's own files there, which no archive carries. What the copy
+   // moved aside is left for journal's Commit. A link is removed as the link it
+   // is and never followed. A file that cannot be removed is left and said.
+   // Listed first and removed after, so that no listing is walked while it
+   // changes.
    //---------------------------------------------------------------------------()
    {
       std::vector<boost::filesystem::path> entries;
@@ -681,162 +1353,174 @@ namespace HM
 
       if (iterateError)
       {
-         ErrorManager::Instance()->ReportError(ErrorManager::High, 5700, "BackupExecuter::EmptyAround_",
-            Formatter::Format("Could not list the directory {0}: {1}.", String(directory.wstring()), String(iterateError.message().c_str())));
-         return false;
+         outcome.kept.push_back(Formatter::Format("{0} could not be listed ({1}), so what is in it that the archive does not hold is left there", String(directory.wstring()), String(iterateError.message().c_str())));
+         return;
       }
 
       for (const boost::filesystem::path &current : entries)
       {
-         String excludedAs;
-         if (exclusions.Contains(current, excludedAs))
-         {
-            kept.push_back(excludedAs);
+         if (journal.IsAside(current))
             continue;
-         }
 
+         // Gone since it was listed is nothing to remove; only status_error is a
+         // failure to look (Boost sets the error_code for a path not there too).
          boost::system::error_code statusError;
-         boost::filesystem::file_status linkStatus = boost::filesystem::symlink_status(current, statusError);
+         const boost::filesystem::file_status status = boost::filesystem::symlink_status(current, statusError);
 
-         if (!statusError && boost::filesystem::is_directory(linkStatus) && exclusions.Holds(current))
+         if (status.type() == boost::filesystem::file_not_found)
+            continue;
+
+         if (status.type() == boost::filesystem::status_error)
          {
-            if (!EmptyAround_(current, exclusions, kept))
-               return false;
+            outcome.kept.push_back(Formatter::Format("{0} could not be examined ({1}), and is left as it is", String(current.wstring()), String(statusError.message().c_str())));
             continue;
          }
 
-         boost::system::error_code removeError;
-         boost::filesystem::remove_all(current, removeError);
-
-         if (removeError)
+         // Only a directory, or a link that may lead to one, can be one of the
+         // exclusions, which are known by what they lead to.
+         if (!boost::filesystem::is_regular_file(status))
          {
-            ErrorManager::Instance()->ReportError(ErrorManager::High, 5700, "BackupExecuter::EmptyAround_",
-               Formatter::Format("Could not delete {0}: {1}.", String(current.wstring()), String(removeError.message().c_str())));
-            return false;
+            String excludedAs;
+            if (exclusions.Contains(current, excludedAs))
+            {
+               outcome.left_in_place.push_back(excludedAs);
+               continue;
+            }
          }
-      }
 
-      return true;
-   }
+         const boost::filesystem::path counterpartHere = counterpart / current.filename();
+         boost::system::error_code counterpartError;
+         const boost::filesystem::file_status counterpartStatus = boost::filesystem::status(counterpartHere, counterpartError);
 
-   static bool
-   DeleteDataDirectoriesForRestore_(const String &dataDirectory, const DataDirectoryExclusions_ &exclusions, std::vector<String> &kept)
-   //---------------------------------------------------------------------------()
-   // DESCRIPTION:
-   // FileUtilities::DeleteDirectoriesInDirectory, less what IsKeptOutOfBackup_
-   // names: every directory at the data directory's root is removed but the
-   // recoverable store, the eDiscovery cases' files, the stores of messages
-   // that expire and of password-protected messages, and the live update's
-   // folder. And less what exclusions holds, wherever it is inside: the backup
-   // destination, the temp directory, the archive being restored and the store
-   // extracted from it are left where they are, and a directory on the way to
-   // one of them is emptied around it rather than removed (EmptyAround_). Until
-   // 6.3.6 a destination inside the data directory went with the rest - every
-   // archive in it - and on a Linux package, whose temp directory is
-   // /var/lib/hmailserver/temp, so did the store the restore had just
-   // extracted and was about to copy back. Listed first and removed after, so
-   // the listing is not walked while it changes.
-   //---------------------------------------------------------------------------()
-   {
-      std::vector<boost::filesystem::path> doomed;
-
-      boost::system::error_code iterateError;
-      for (boost::filesystem::directory_iterator file(boost::filesystem::path(dataDirectory.c_str()), iterateError);
-           !iterateError && file != boost::filesystem::directory_iterator(); ++file)
-      {
-         boost::filesystem::path current(file->path());
-
-         boost::system::error_code statusError;
-         if (boost::filesystem::is_directory(current, statusError) && !statusError && !IsKeptOutOfBackup_(current))
-            doomed.push_back(current);
-      }
-
-      for (const boost::filesystem::path &directory : doomed)
-      {
-         String excludedAs;
-         if (exclusions.Contains(directory, excludedAs))
+         if (boost::filesystem::is_directory(status))
          {
-            kept.push_back(excludedAs);
+            if (atRoot && IsKeptOutOfBackup_(current))
+               continue;
+
+            RemoveWhatTheBackupHasNot_(current, counterpartHere, false, exclusions, ownPair, archive, journal, outcome);
+
+            boost::system::error_code emptyError;
+            if (!boost::filesystem::is_directory(counterpartStatus) && boost::filesystem::is_empty(current, emptyError) && !emptyError)
+            {
+               boost::system::error_code removeError;
+               boost::filesystem::remove(current, removeError);
+            }
+
             continue;
          }
 
-         boost::system::error_code statusError;
-         boost::filesystem::file_status linkStatus = boost::filesystem::symlink_status(directory, statusError);
-
-         if (!statusError && boost::filesystem::is_directory(linkStatus) && exclusions.Holds(directory))
+         if (atRoot)
          {
-            if (!EmptyAround_(directory, exclusions, kept))
-               return false;
-            continue;
+            if (!IsQueueMessageFile_(current) || !boost::filesystem::is_regular_file(status))
+               continue;
+
+            // Never an archive, by its name or as the one being restored,
+            // whatever a queue file is taken to be.
+            DateTime created;
+            if (BackupRetention::ParseArchiveName(String(current.filename().wstring()), created))
+               continue;
+
+            DirectoryIdentity_ identity;
+            if (archive && IdentifyDirectory_(current, identity) && !(identity < *archive) && !(*archive < identity))
+               continue;
          }
-
-         boost::system::error_code removeError;
-         boost::filesystem::remove_all(directory, removeError);
-
-         if (removeError)
-         {
-            ErrorManager::Instance()->ReportError(ErrorManager::High, 5700, "BackupExecuter::DeleteDataDirectoriesForRestore_",
-               Formatter::Format("Could not delete the directory {0}: {1}.", String(directory.wstring()), String(removeError.message().c_str())));
-            return false;
-         }
-      }
-
-      return true;
-   }
-
-   static bool
-   DeleteDataFilesForRestore_(const String &dataDirectory, const String &archiveFile)
-   //---------------------------------------------------------------------------()
-   // DESCRIPTION:
-   // FileUtilities::DeleteFilesInDirectory on the data directory's root - the
-   // queue's message files, which a restore does not carry back - less the
-   // backup archives there: a file named as BackupRetention names one, which is
-   // in the data directory's root only when the destination is the data
-   // directory itself, and the archive being restored, whatever it is called.
-   //---------------------------------------------------------------------------()
-   {
-      DirectoryIdentity_ archiveIdentity;
-      const bool archiveKnown = !archiveFile.IsEmpty() && IdentifyDirectory_(boost::filesystem::path(archiveFile.c_str()), archiveIdentity);
-
-      std::vector<boost::filesystem::path> doomed;
-
-      boost::system::error_code iterateError;
-      for (boost::filesystem::directory_iterator file(boost::filesystem::path(dataDirectory.c_str()), iterateError);
-           !iterateError && file != boost::filesystem::directory_iterator(); file.increment(iterateError))
-      {
-         boost::filesystem::path current(file->path());
-
-         boost::system::error_code statusError;
-         if (boost::filesystem::is_directory(current, statusError))
+         else if (ownPair.Covers(current))
             continue;
 
-         DateTime created;
-         if (BackupRetention::ParseArchiveName(String(current.filename().wstring()), created))
+         // The copy put the archive's file here, or found it here already, or left
+         // this server's in its place and said so. Not at the root, where it puts
+         // no file (RestoreCopyTree_).
+         if (!atRoot && boost::filesystem::exists(counterpartStatus) && !boost::filesystem::is_directory(counterpartStatus))
             continue;
 
-         DirectoryIdentity_ identity;
-         if (archiveKnown && IdentifyDirectory_(current, identity) && !(identity < archiveIdentity) && !(archiveIdentity < identity))
+         // Or put this server's back, the store's copy having gone before it
+         // could be copied (RestoreJournal_::PutBackLast).
+         if (journal.WasPutBack(current))
             continue;
 
-         doomed.push_back(current);
-      }
-
-      bool allDeleted = true;
-
-      for (const boost::filesystem::path &current : doomed)
-      {
          boost::system::error_code removeError;
          boost::filesystem::remove(current, removeError);
 
-         if (removeError && allDeleted)
+         if (removeError)
+            outcome.kept.push_back(Formatter::Format("{0}, which the archive does not hold, could not be removed ({1}), and is left as it is", String(current.wstring()), String(removeError.message().c_str())));
+         else
+            outcome.removed++;
+      }
+   }
+
+   static bool
+   RestoreStoreInto_(const boost::filesystem::path &store, const boost::filesystem::path &data, const String &archiveFile,
+                     const DataDirectoryExclusions_ &forTheEmptying, const DataDirectoryExclusions_ &forTheCopy,
+                     RestoreOutcome_ &outcome)
+   //---------------------------------------------------------------------------()
+   // DESCRIPTION:
+   // The data directory data made what the archive's message store, extracted to
+   // store, holds: see "HOW A RESTORE REPLACES THE DATA DIRECTORY" above. True
+   // when the store is in place - with what was left as it is in outcome.kept
+   // and outcome.own_pair. False when the copy failed, with outcome.copy saying
+   // where, after everything the copy did has been undone; outcome.not_put_back
+   // then names what could not be, and is empty when the data directory is as it
+   // was. The exceptions nothing below should throw are caught here, as
+   // CopyTreeGuarded_ catches them, and undone the same way.
+   //---------------------------------------------------------------------------()
+   {
+      RestoreJournal_ journal;
+      bool copied = false;
+
+      try
+      {
+         const OwnCertificatePair_ ownPair = JudgeOwnCertificatePair_(store, data, outcome.own_pair);
+
+         copied = RestoreCopyTree_(store, data, true, forTheCopy, ownPair, journal, outcome);
+
+         if (copied)
          {
-            allDeleted = false;
-            ErrorManager::Instance()->ReportError(ErrorManager::High, 5700, "BackupExecuter::DeleteDataFilesForRestore_",
-               Formatter::Format("Could not delete the file {0}: {1}.", String(current.wstring()), String(removeError.message().c_str())));
+            DirectoryIdentity_ archiveIdentity;
+            const bool archiveKnown = !archiveFile.IsEmpty() && IdentifyDirectory_(boost::filesystem::path(archiveFile.c_str()), archiveIdentity);
+
+            RemoveWhatTheBackupHasNot_(data, store, true, forTheEmptying, ownPair, archiveKnown ? &archiveIdentity : nullptr, journal, outcome);
          }
       }
+      catch (boost::thread_interrupted const &)
+      {
+         // The service is shutting down: what the copy did is undone first, so
+         // that it stops with the data directory as it was - or, the copy being
+         // complete, what it moved aside goes as it would have.
+         if (!copied)
+            journal.RollBack(outcome.not_put_back);
+         else
+            journal.Commit(outcome.left_aside);
+         throw;
+      }
+      catch (std::exception const &exception)
+      {
+         if (!copied)
+         {
+            outcome.copy.failed_file = String(store.wstring());
+            outcome.copy.failure_detail = exception.what();
+         }
+         else
+            outcome.kept.push_back(Formatter::Format("The removal of what the archive does not hold stopped: {0}", String(exception.what())));
+      }
+      catch (...)
+      {
+         if (!copied)
+         {
+            outcome.copy.failed_file = String(store.wstring());
+            outcome.copy.failure_detail = "an unrecognised error";
+         }
+         else
+            outcome.kept.push_back(_T("The removal of what the archive does not hold stopped: an unrecognised error"));
+      }
 
-      return allDeleted;
+      if (!copied)
+      {
+         journal.RollBack(outcome.not_put_back);
+         return false;
+      }
+
+      journal.Commit(outcome.left_aside);
+      return true;
    }
 
    static bool
@@ -873,6 +1557,20 @@ namespace HM
       {
          boost::filesystem::file_status status = entry->symlink_status(error);
 
+         // A file removed since it was listed is not counted, as the copy does
+         // not copy it (IsGone_); any other failure to look is a failure.
+         if (error && IsGone_(entry->path()))
+         {
+            entry.increment(error);
+            if (error)
+            {
+               failureDetail = Formatter::Format("{0} could not be listed: {1}.", String(root.wstring()), String(error.message().c_str()));
+               return false;
+            }
+
+            continue;
+         }
+
          if (error)
          {
             failureDetail = Formatter::Format("{0} could not be examined: {1}.", String(entry->path().wstring()), String(error.message().c_str()));
@@ -899,19 +1597,22 @@ namespace HM
          {
             unsigned __int64 size = boost::filesystem::file_size(entry->path(), error);
 
-            if (error)
+            if (error && !IsGone_(entry->path()))
             {
                failureDetail = Formatter::Format("{0} could not be measured: {1}.", String(entry->path().wstring()), String(error.message().c_str()));
                return false;
             }
 
-            files++;
-            bytes += size;
-
-            if (names)
+            if (!error)
             {
-               String name(entry->path().filename().wstring());
-               names->insert(name.ToLower());
+               files++;
+               bytes += size;
+
+               if (names)
+               {
+                  String name(entry->path().filename().wstring());
+                  names->insert(name.ToLower());
+               }
             }
          }
 
@@ -2202,70 +2903,114 @@ namespace HM
    BackupExecuter::RestoreDataDirectory_(BackupRestorer &restorer, const String &archiveFile)
    //---------------------------------------------------------------------------()
    // DESCRIPTION:
-   // Replaces the live data directory with the message store the restorer has
-   // already put on local disk.
+   // Makes the live data directory what the message store the restorer has
+   // already put on local disk holds: copied in first, and what the archive does
+   // not hold removed only once the copy is complete; a copy that fails is
+   // undone (RestoreStoreInto_, and "HOW A RESTORE REPLACES THE DATA DIRECTORY").
    //
    // Everything that used to happen here before the deletion - working out where the
    // messages are, extracting them, confirming they exist - has moved into
-   // BackupRestorer::Prepare, which runs before any domain is deleted. What is left
-   // is the part that cannot be made safe by ordering: between the delete and the
-   // end of the copy there is no complete copy of the mail store on this server, only
-   // the one in the staging directory.
+   // BackupRestorer::Prepare, which runs before any domain is deleted.
    //---------------------------------------------------------------------------()
    {
-      String sDirContainingDataFiles = restorer.GetStagedMessageStore();
+      const String sDirContainingDataFiles = restorer.GetStagedMessageStore();
+      const String sDataDirectory = IniFileSettings::Instance()->GetDataDirectory();
 
-      // Delete all directories from the data directory
-      // so that we're sure that we're doing a clean restore
-      String sDataDirectory = IniFileSettings::Instance()->GetDataDirectory();
-
-      // Every directory but the recoverable store, the eDiscovery cases' files,
-      // the stores of messages that expire and password-protected messages,
-      // and the live update's folder, which a backup does not carry and a
-      // restore leaves where they are (IsKeptOutOfBackup_); the copy below
-      // leaves an older backup's copy of them out in the same way. And none of
-      // the directories this restore is working with, where they are inside
-      // the data directory (DataDirectoryExclusions_): the destination, with
-      // its archives; the temp directory, where the store to copy back has
-      // been extracted; the folder of the archive being restored; and that
-      // store (AddRestoreExclusions_).
+      // Not touched: the recoverable store, the eDiscovery cases' files, the
+      // stores of messages that expire and password-protected messages, and the
+      // live update's folder, which a backup does not carry and a restore leaves
+      // where they are (IsKeptOutOfBackup_), an older backup's copy of them
+      // left out of the copy in the same way. Nor the directories this restore
+      // is working with, where they are inside the data directory
+      // (DataDirectoryExclusions_): the destination, with its archives; the temp
+      // directory, where the store to copy back has been extracted; the folder
+      // of the archive being restored; and that store (AddRestoreExclusions_).
       const String destination = Configuration::Instance()->GetBackupDestination();
       const String temporaryDirectory = IniFileSettings::Instance()->GetTempDirectory();
 
       DataDirectoryExclusions_ exclusions;
       AddRestoreExclusions_(exclusions, destination, temporaryDirectory, archiveFile, sDirContainingDataFiles, ForTheEmptying_);
 
-      std::vector<String> kept;
-      DeleteDataFilesForRestore_(sDataDirectory, archiveFile);
-      DeleteDataDirectoriesForRestore_(sDataDirectory, exclusions, kept);
-
-      for (const String &excluded : kept)
-         Logger::Instance()->LogBackup(Formatter::Format("Left in place while the data directory {0} was emptied for the restore: {1}, which is inside it.", sDataDirectory, excluded));
-
-      // Nor into them: an archive 6.3.5 or earlier made can carry a copy of the
-      // destination or the temp directory - the nested tree a copy into itself
-      // left in the staging folder, or the temp directory's scratch - and put
-      // back, it would be written into the destination or the temp directory.
-      // Into the folder of the archive, though, which may be a mailbox's.
+      // Nor written into: an archive 6.3.5 or earlier made can carry a copy of
+      // the destination or the temp directory - the nested tree a copy into
+      // itself left in the staging folder, or the temp directory's scratch -
+      // and put back, it would be written into the destination or the temp
+      // directory. Into the folder of the archive, though, which may be a
+      // mailbox's.
       DataDirectoryExclusions_ copyExclusions;
       AddRestoreExclusions_(copyExclusions, destination, temporaryDirectory, archiveFile, sDirContainingDataFiles, ForTheCopy_);
 
-      TreeCopyOutcome outcome;
-      bool copied = CopyTreeGuarded_(sDirContainingDataFiles, sDataDirectory, outcome, true, &copyExclusions, ExcludeByTarget_);
+      RestoreOutcome_ outcome;
+      const bool restored = RestoreStoreInto_(boost::filesystem::path(sDirContainingDataFiles.c_str()), boost::filesystem::path(sDataDirectory.c_str()),
+                                              archiveFile, exclusions, copyExclusions, outcome);
 
-      if (!copied)
+      if (!restored)
       {
-         // The data directory has already been emptied, so the staged copy is
-         // deliberately kept: it is the only copy of the messages that still exists,
-         // and the administrator is told where it is. Without this the restorer's
-         // destructor would delete it on the way out - which is what the previous
-         // version of this code got right and is the reason RetainStagedFiles exists.
-         restorer.RetainStagedFiles();
+         String message = "Restore failed while copying the backup's messages into " + sDataDirectory + ". " + DescribeCopyFailure_(outcome.copy);
 
-         ReportRestoreFailure_("Restore failed while copying messages into " + sDataDirectory + ". " + DescribeCopyFailure_(outcome) +
-                               " The messages from the backup have been left in " + sDirContainingDataFiles +
-                               " - do not delete that folder until they have been recovered.");
+         if (outcome.not_put_back.empty())
+         {
+            // Nothing on this server is lost by stopping here: the data
+            // directory is as it was before the copy, and the archive holds the
+            // messages, so the staged copy is not kept.
+            message += " What the copy had written has been removed and what it had moved aside put back, so the data directory is as it was before the restore's copy.";
+            message += " The domains on this server were removed before the copy, as every restore of domains removes them; restore again once the cause is put right. The backup's messages are still in the backup " + archiveFile + ".";
+         }
+         else
+         {
+            // The data directory is not what it was, so the staged copy is kept,
+            // as it always was after a copy that failed: without this the
+            // restorer's destructor would delete it on the way out, which is the
+            // reason RetainStagedFiles exists.
+            restorer.RetainStagedFiles();
+
+            message += Formatter::Format(" The copy could not be undone in full ({0} item(s)): ", (unsigned int) outcome.not_put_back.size());
+            message += outcome.not_put_back[0];
+            message += ". The backup log names each.";
+            message += " The domains on this server were removed before the copy; restore again once the cause is put right. The backup's messages are still in the backup " + archiveFile +
+                       " and have been left in " + sDirContainingDataFiles + " - do not delete that folder until they have been recovered.";
+
+            for (const String &line : outcome.not_put_back)
+               Logger::Instance()->LogBackup("Not put back: " + line + ".");
+         }
+
+         ReportRestoreFailure_(message);
          return false;
+      }
+
+      for (const String &excluded : outcome.left_in_place)
+         Logger::Instance()->LogBackup(Formatter::Format("Left in place by the restore of the data directory {0}: {1}, which is inside it.", sDataDirectory, excluded));
+
+      String summary;
+      summary.Format(_T("The data directory now holds the backup's message store: %u file(s) copied from it, %u of them over a different copy here, %u here already byte for byte, and %u the backup does not hold removed."),
+         outcome.copy.copied, outcome.replaced, outcome.already, outcome.removed);
+      Logger::Instance()->LogBackup(summary);
+
+      if (outcome.copy.vanished > 0)
+         Logger::Instance()->LogBackup(Formatter::Format("{0} file(s) of the backup's message store were gone from the copy extracted in the temp directory before they could be copied - something removed them meanwhile, an anti-virus scanner most likely - and are not restored; where this server had a file of that name it is left in place. The archive still holds them.", outcome.copy.vanished));
+
+      if (outcome.root_files_left_out > 0)
+         Logger::Instance()->LogBackup(Formatter::Format("{0} file(s) at the root of the backup's message store were not put back: no archive this server makes holds a file there, and one there could only take the place of one of this server's own.", outcome.root_files_left_out));
+
+      if (!outcome.own_pair.IsEmpty())
+         Logger::Instance()->LogBackup(outcome.own_pair);
+
+      for (const String &kept : outcome.kept)
+         Logger::Instance()->LogBackup("Left as it is in the data directory: " + kept + ".");
+
+      for (const String &left : outcome.left_aside)
+         Logger::Instance()->LogBackup("Not removed after the restore: " + left + ". Delete it by hand.");
+
+      // Said in the error log too, once: the restore is complete, and these
+      // files are this server's and not the archive's. What the account the
+      // service runs as may not change is changed by an administrator. Not
+      // 5702, which SURBL reported until 6.3.6: a number is never given a
+      // second meaning.
+      if (!outcome.kept.empty())
+      {
+         ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5705, "BackupExecuter::RestoreDataDirectory_",
+            Formatter::Format("The restore of the data directory {0} is complete but for {1} file(s) of this server it left as they are: {2}. The backup log names each and why; to have the archive's copy of one instead, stop the service, put it in place as an administrator, and start the service again.",
+               sDataDirectory, (unsigned int) outcome.kept.size(), outcome.kept[0]));
       }
 
       return true;
@@ -2317,6 +3062,120 @@ namespace HM
       {
          return String(path.wstring());
       }
+
+      std::string BackupTreeRead_(const boost::filesystem::path &path)
+      {
+         boost::filesystem::ifstream file(path, std::ios::in | std::ios::binary);
+         if (!file)
+            return std::string("(could not be read)");
+
+         std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+         return content;
+      }
+
+      // Every directory and file below root, by its path relative to root, with
+      // each file's bytes: what a data directory is, to compare before and after.
+      void BackupTreeSnapshot_(const boost::filesystem::path &root, const boost::filesystem::path &directory, std::map<String, std::string> &entries)
+      {
+         boost::system::error_code error;
+         for (boost::filesystem::directory_iterator file(directory, error); !error && file != boost::filesystem::directory_iterator(); file.increment(error))
+         {
+            const boost::filesystem::path current = file->path();
+            const String relative(current.wstring().substr(root.wstring().size()));
+
+            if (boost::filesystem::is_directory(boost::filesystem::symlink_status(current)))
+            {
+               entries[relative + _T("/")] = std::string();
+               BackupTreeSnapshot_(root, current, entries);
+            }
+            else
+               entries[relative] = BackupTreeRead_(current);
+         }
+
+         CheckBackupTree_(!error, _T("the scratch directory ") + String(directory.wstring()) + _T(" could not be listed"));
+      }
+
+      // Whether anything a restore moves aside is still below root.
+      bool BackupTreeHasAside_(const boost::filesystem::path &root)
+      {
+         boost::system::error_code error;
+         for (boost::filesystem::recursive_directory_iterator entry(root, error); !error && entry != boost::filesystem::recursive_directory_iterator(); entry.increment(error))
+         {
+            if (String(entry->path().filename().wstring()).Find(_T(".hmailserver-previous-")) >= 0)
+               return true;
+         }
+
+         return false;
+      }
+
+#ifndef HM_PLATFORM_POSIX
+      // The SID of the account this process runs as, as text.
+      String BackupTreeSelfSid_()
+      {
+         HANDLE token = nullptr;
+         if (!OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &token))
+            return String();
+
+         DWORD needed = 0;
+         GetTokenInformation(token, TokenUser, nullptr, 0, &needed);
+         std::vector<unsigned char> buffer(needed > 0 ? needed : 1);
+
+         String text;
+         if (needed > 0 && GetTokenInformation(token, TokenUser, &buffer[0], needed, &needed))
+         {
+            LPWSTR sid = nullptr;
+            if (ConvertSidToStringSidW(((TOKEN_USER *) &buffer[0])->User.Sid, &sid))
+            {
+               text = sid;
+               LocalFree(sid);
+            }
+         }
+
+         CloseHandle(token);
+         return text;
+      }
+
+      // path given the permissions the SDDL text states, inheriting none.
+      void BackupTreeProtect_(const boost::filesystem::path &path, const String &sddl)
+      {
+         PSECURITY_DESCRIPTOR descriptor = nullptr;
+         CheckBackupTree_(ConvertStringSecurityDescriptorToSecurityDescriptorW(sddl.c_str(), SDDL_REVISION_1, &descriptor, nullptr) != FALSE,
+            _T("the permissions ") + sddl + _T(" could not be built"));
+
+         BOOL present = FALSE;
+         BOOL defaulted = FALSE;
+         PACL dacl = nullptr;
+         GetSecurityDescriptorDacl(descriptor, &present, &dacl, &defaulted);
+
+         std::wstring writable(path.wstring());
+         const DWORD result = SetNamedSecurityInfoW(&writable[0], SE_FILE_OBJECT, DACL_SECURITY_INFORMATION | PROTECTED_DACL_SECURITY_INFORMATION,
+                                                    nullptr, nullptr, dacl, nullptr);
+         LocalFree(descriptor);
+
+         CheckBackupTree_(result == ERROR_SUCCESS, Formatter::Format(_T("the permissions of {0} could not be set (Windows error {1})"), String(path.wstring()), (int) result));
+      }
+
+      // path given back to whoever may remove it: full control for this
+      // process's account, the rest inherited again. Never throws: it runs while
+      // the scratch tree is being cleaned up.
+      void BackupTreeUnprotect_(const boost::filesystem::path &path)
+      {
+         const String sddl = Formatter::Format(_T("D:(A;OICI;FA;;;{0})"), BackupTreeSelfSid_());
+
+         PSECURITY_DESCRIPTOR descriptor = nullptr;
+         if (!ConvertStringSecurityDescriptorToSecurityDescriptorW(sddl.c_str(), SDDL_REVISION_1, &descriptor, nullptr))
+            return;
+
+         BOOL present = FALSE;
+         BOOL defaulted = FALSE;
+         PACL dacl = nullptr;
+         GetSecurityDescriptorDacl(descriptor, &present, &dacl, &defaulted);
+
+         std::wstring writable(path.wstring());
+         SetNamedSecurityInfoW(&writable[0], SE_FILE_OBJECT, DACL_SECURITY_INFORMATION | UNPROTECTED_DACL_SECURITY_INFORMATION, nullptr, nullptr, dacl, nullptr);
+         LocalFree(descriptor);
+      }
+#endif
    }
 
    void
@@ -2430,16 +3289,21 @@ namespace HM
 
       fs::remove_all(staging, error);
 
-      // 2. THE RESTORE'S EMPTYING. The destination with its archive, the temp
-      //    directory where the store was extracted, and the folder of the
-      //    archive being restored, three levels down, stay; the directories on
-      //    the way down to it are emptied around it; the rest goes.
-      //
-      //    The store is extracted into the temp directory inside the data
-      //    directory, as a restore on a Linux package extracts it: an archive
-      //    an older version made, which carried the live update's folder and
-      //    its outcome, the nested tree of a copy into itself, and the temp
-      //    directory of its day.
+      // 2. THE RESTORE (RestoreStoreInto_), of a store extracted into the
+      //    temp directory inside the data directory, as a restore on a Linux
+      //    package extracts it: an archive an older version made, which carried
+      //    the live update's folder and its outcome, the nested tree of a copy
+      //    into itself, the temp directory of its day, mail in the folder the
+      //    archive being restored is in, and another installation's
+      //    self-signed pair. The destination with its archive, the temp
+      //    directory with the store, and the folder of the archive being
+      //    restored, three levels down, are left where they are; the
+      //    directories on the way down to it are emptied around it; the store's
+      //    files are put in place, a file here already byte for byte is left,
+      //    one that differs is replaced; what the store does not hold goes once
+      //    the copy is complete; and at the root only the queue's files go,
+      //    never this server's own - the Linux key file every LINUX1 secret is
+      //    sealed under among them - nor this installation's own pair.
       const fs::path archive = data / "deep" / "nested" / "destination" / "HMBackup 2026-09-28 120000.7z";
       const fs::path older = data / "temp" / "extracted" / "DataBackup";
       MakeBackupTreeFile_(older / "example.test" / "someone" / "AB" / "restored.eml", "restored mail");
@@ -2449,50 +3313,255 @@ namespace HM
       // Mail the archive holds in the directory the archive being restored was
       // put in - a mailbox's folder, as far as the copy can know.
       MakeBackupTreeFile_(older / "deep" / "nested" / "destination" / "beside-the-archive.eml", "mail where the archive is");
+      MakeBackupTreeFile_(older / "Sieve" / "example.test" / "same.sieve", "keep;");
+      MakeBackupTreeFile_(older / "Sieve" / "example.test" / "changed.sieve", "discard;");
+      MakeBackupTreeFile_(older / "Certificates" / "self-signed-key.pem", "another installation's key");
+      MakeBackupTreeFile_(older / "Certificates" / "self-signed-certificate.pem", "another installation's certificate");
+      MakeBackupTreeFile_(older / "example.test" / "Certificates" / "self-signed-key.pem", "a mailbox's folder of that name, not the pair");
+      // Files at the store's root, which no archive this server makes holds: an
+      // archive put together by hand, with another machine's key file in it.
+      MakeBackupTreeFile_(older / ".hmailserver-secret-key", "another machine's key file");
+      MakeBackupTreeFile_(older / "{6C1D0E55-5D3B-4F0E-9A57-2E1F3B7C9D10}.eml", "a queue file of another server");
+
+      MakeBackupTreeFile_(data / "Sieve" / "example.test" / "same.sieve", "keep;");
+      MakeBackupTreeFile_(data / "Sieve" / "example.test" / "changed.sieve", "keep; # this server's, older");
+      MakeBackupTreeFile_(data / "Sieve" / "example.test" / "gone.sieve", "redirect \"x@example.test\";");
+      MakeBackupTreeFile_(data / "Certificates" / "self-signed-key.pem", "this installation's key");
+      MakeBackupTreeFile_(data / "Certificates" / "self-signed-certificate.pem", "this installation's certificate");
+      MakeBackupTreeFile_(data / ".hmailserver-secret-key", "the key file of this machine's LINUX1 secrets");
+      MakeBackupTreeFile_(data / ".hmailserver-environment", "the container's settings");
+      MakeBackupTreeFile_(data / "hmailserver_sendinglimits.dat", "the sending limits' state");
+      // What a writer of the store left of a queued message when it stopped.
+      MakeBackupTreeFile_(data / "{2A4E6C8B-0D1F-4A3B-8C5D-7E9F1A2B3C4D}.eml.writing-{9F8E7D6C-5B4A-4392-8170-6F5E4D3C2B1A}", "half a queued message");
 
       // As RestoreDataDirectory_ builds them.
       DataDirectoryExclusions_ restoreExclusions;
       AddRestoreExclusions_(restoreExclusions, destinationAsWritten, BackupTreeText_(data / "temp"), BackupTreeText_(archive), BackupTreeText_(older),
                             ForTheEmptying_);
-
-      std::vector<String> kept;
-      CheckBackupTree_(DeleteDataFilesForRestore_(BackupTreeText_(data), BackupTreeText_(archive)), _T("the data directory's root files could not be deleted"));
-      CheckBackupTree_(DeleteDataDirectoriesForRestore_(BackupTreeText_(data), restoreExclusions, kept), _T("the data directory could not be emptied"));
-
-      CheckBackupTree_(!BackupTreeHas_(data / "example.test"), _T("the mailbox's domain was not removed"));
-      CheckBackupTree_(BackupTreeHas_(data / "backup" / "HMBackup 2026-09-29 120000.7z"), _T("the destination's archive was deleted"));
-      CheckBackupTree_(BackupTreeHas_(archive), _T("the archive being restored was deleted"));
-      CheckBackupTree_(!BackupTreeHas_(data / "deep" / "other"), _T("a directory beside the way down to the archive's folder was kept"));
-      CheckBackupTree_(BackupTreeHas_(data / "temp" / "scratch.tmp"), _T("the temp directory was emptied"));
-      CheckBackupTree_(BackupTreeHas_(older / "example.test" / "someone" / "AB" / "restored.eml"), _T("the store the restore extracted into the temp directory was deleted before it was copied back"));
-      CheckBackupTree_(BackupTreeHas_(data / "Updates" / "hmailserver_9.9.9_amd64.deb"), _T("the live update's folder was emptied"));
-      CheckBackupTree_(!BackupTreeHas_(data / "queue.eml"), _T("a queue file at the root was kept"));
-      CheckBackupTree_(BackupTreeHas_(data / "HMBackup 2026-09-27 120000.7z"), _T("an archive at the data directory's root was deleted"));
-      CheckBackupTree_(BackupTreeHas_(twin / "example.test" / "twin.eml"), _T("the directory beside the data directory was touched"));
-      CheckBackupTree_(kept.size() == 3,
-         Formatter::Format(_T("{0} directories were left in place, where the destination, the temp directory and the archive's folder are three"), (unsigned int) kept.size()));
-
-      // 3. THE RESTORE'S COPY of that store, from the temp directory inside the
-      //    data directory into it: the mail is put back, the live update's
-      //    folder and its outcome are not, and neither are the older archive's
-      //    copies of the destination and the temp directory. The archive's own
-      //    folder is written into, and what it held when it was backed up is
-      //    put back beside the archive.
       DataDirectoryExclusions_ copyExclusions;
       AddRestoreExclusions_(copyExclusions, destinationAsWritten, BackupTreeText_(data / "temp"), BackupTreeText_(archive), BackupTreeText_(older),
                             ForTheCopy_);
 
-      TreeCopyOutcome restored;
-      CheckBackupTree_(CopyTreeGuarded_(BackupTreeText_(older), BackupTreeText_(data), restored, true, &copyExclusions, ExcludeByTarget_),
-         _T("the restore's copy failed: ") + DescribeCopyFailure_(restored));
+      RestoreOutcome_ restored;
+      CheckBackupTree_(RestoreStoreInto_(older, data, BackupTreeText_(archive), restoreExclusions, copyExclusions, restored),
+         _T("the restore failed: ") + DescribeCopyFailure_(restored.copy));
+
+      CheckBackupTree_(BackupTreeHas_(data / "example.test" / "someone" / "AB" / "restored.eml"), _T("the restored mail is not there"));
+      CheckBackupTree_(!BackupTreeHas_(data / message), _T("a message the archive does not hold was kept"));
+      CheckBackupTree_(BackupTreeHas_(data / "backup" / "HMBackup 2026-09-29 120000.7z"), _T("the destination's archive was deleted"));
+      CheckBackupTree_(BackupTreeHas_(archive), _T("the archive being restored was deleted"));
+      CheckBackupTree_(!BackupTreeHas_(data / "deep" / "other"), _T("a directory beside the way down to the archive's folder was kept"));
       CheckBackupTree_(BackupTreeHas_(archive.parent_path() / "beside-the-archive.eml"),
          _T("what the archive holds in the folder the archive was restored from was not put back"));
-      CheckBackupTree_(BackupTreeHas_(archive), _T("the restore's copy disturbed the archive being restored"));
-      CheckBackupTree_(BackupTreeHas_(data / "example.test" / "someone" / "AB" / "restored.eml"), _T("the restored mail is not there"));
+      CheckBackupTree_(BackupTreeHas_(data / "temp" / "scratch.tmp"), _T("the temp directory was emptied"));
+      CheckBackupTree_(!BackupTreeHas_(data / "temp" / "scratch-of-then.tmp"), _T("an older archive's copy of the temp directory was written into it"));
+      CheckBackupTree_(BackupTreeHas_(older / "example.test" / "someone" / "AB" / "restored.eml"), _T("the restore disturbed the store it copied from"));
+      CheckBackupTree_(BackupTreeHas_(data / "Updates" / "hmailserver_9.9.9_amd64.deb"), _T("the live update's folder was emptied"));
       CheckBackupTree_(!BackupTreeHas_(data / "Updates" / "last-apply.txt"), _T("an older backup's live update outcome was restored"));
       CheckBackupTree_(!BackupTreeHas_(data / "backup" / "DataBackup"), _T("an older archive's copy of the destination was written into the destination"));
-      CheckBackupTree_(!BackupTreeHas_(data / "temp" / "scratch-of-then.tmp"), _T("an older archive's copy of the temp directory was written into it"));
-      CheckBackupTree_(BackupTreeHas_(data / "backup" / "HMBackup 2026-09-29 120000.7z"), _T("the restore's copy disturbed the destination"));
-      CheckBackupTree_(BackupTreeHas_(older / "example.test" / "someone" / "AB" / "restored.eml"), _T("the restore's copy disturbed the store it copied from"));
+      CheckBackupTree_(!BackupTreeHas_(data / "queue.eml"), _T("a queue file at the root was kept"));
+      CheckBackupTree_(BackupTreeHas_(data / "HMBackup 2026-09-27 120000.7z"), _T("an archive at the data directory's root was deleted"));
+      CheckBackupTree_(BackupTreeHas_(data / ".hmailserver-secret-key"), _T("the key file this machine's LINUX1 secrets are sealed under was deleted"));
+      CheckBackupTree_(BackupTreeHas_(data / ".hmailserver-environment") && BackupTreeHas_(data / "hmailserver_sendinglimits.dat"),
+         _T("a file of this server's own at the data directory's root was deleted"));
+      CheckBackupTree_(BackupTreeRead_(data / ".hmailserver-secret-key") == "the key file of this machine's LINUX1 secrets",
+         _T("a file at the store's root was put over this server's own key file"));
+      CheckBackupTree_(!BackupTreeHas_(data / "{6C1D0E55-5D3B-4F0E-9A57-2E1F3B7C9D10}.eml") && restored.root_files_left_out == 2,
+         Formatter::Format(_T("the files at the store's root were put back, or not counted: {0} left out, where there are two"), restored.root_files_left_out));
+      CheckBackupTree_(!BackupTreeHas_(data / "{2A4E6C8B-0D1F-4A3B-8C5D-7E9F1A2B3C4D}.eml.writing-{9F8E7D6C-5B4A-4392-8170-6F5E4D3C2B1A}"),
+         _T("what a writer of the store left of a queued message at the root was kept"));
+      CheckBackupTree_(BackupTreeHas_(twin / "example.test" / "twin.eml"), _T("the directory beside the data directory was touched"));
+      CheckBackupTree_(BackupTreeRead_(data / "Sieve" / "example.test" / "changed.sieve") == "discard;", _T("a file that differs from the archive's was not replaced"));
+      CheckBackupTree_(BackupTreeRead_(data / "Sieve" / "example.test" / "same.sieve") == "keep;", _T("a file the data directory had byte for byte was not left as it was"));
+      CheckBackupTree_(!BackupTreeHas_(data / "Sieve" / "example.test" / "gone.sieve"), _T("a file the archive does not hold was kept"));
+      CheckBackupTree_(BackupTreeRead_(data / "Certificates" / "self-signed-key.pem") == "this installation's key" &&
+                       BackupTreeRead_(data / "Certificates" / "self-signed-certificate.pem") == "this installation's certificate",
+         _T("this installation's own self-signed pair was replaced by another installation's"));
+      CheckBackupTree_(!restored.own_pair.IsEmpty(), _T("the restore did not say it left this installation's own pair"));
+      CheckBackupTree_(BackupTreeHas_(data / "example.test" / "Certificates" / "self-signed-key.pem"), _T("a file named as the pair in another folder was taken for it and not restored"));
+      CheckBackupTree_(restored.already == 1 && restored.replaced == 1,
+         Formatter::Format(_T("{0} file(s) were found here already and {1} replaced, where one is each"), restored.already, restored.replaced));
+      CheckBackupTree_(restored.kept.empty(), _T("the restore left a file it could change: ") + (restored.kept.empty() ? String() : restored.kept[0]));
+      CheckBackupTree_(restored.left_in_place.size() == 3,
+         Formatter::Format(_T("{0} directories were left in place, where the destination, the temp directory and the archive's folder are three"), (unsigned int) restored.left_in_place.size()));
+      CheckBackupTree_(!BackupTreeHasAside_(data), _T("a file the restore moved aside was left behind"));
+
+      // 3. THE PAIR, the other two ways: an archive with this installation's
+      //    key byte for byte restores its certificate over this one's, and a
+      //    data directory without a pair is given the archive's.
+      {
+         const fs::path data3 = scratch / "pair-data";
+         const fs::path store3 = scratch / "pair-store";
+         MakeBackupTreeFile_(data3 / "Certificates" / "self-signed-key.pem", "the same key");
+         MakeBackupTreeFile_(data3 / "Certificates" / "self-signed-certificate.pem", "this certificate");
+         MakeBackupTreeFile_(store3 / "Certificates" / "self-signed-key.pem", "the same key");
+         MakeBackupTreeFile_(store3 / "Certificates" / "self-signed-certificate.pem", "the archive's certificate for the same key");
+
+         DataDirectoryExclusions_ none;
+         RestoreOutcome_ samePair;
+         CheckBackupTree_(RestoreStoreInto_(store3, data3, String(), none, none, samePair), _T("the restore with the same key failed: ") + DescribeCopyFailure_(samePair.copy));
+         CheckBackupTree_(samePair.own_pair.IsEmpty(), _T("the pair was kept although the archive holds the same key"));
+         CheckBackupTree_(BackupTreeRead_(data3 / "Certificates" / "self-signed-certificate.pem") == "the archive's certificate for the same key",
+            _T("the archive's certificate for this installation's own key was not restored"));
+
+         fs::remove_all(data3, error);
+         fs::create_directories(data3, error);
+         RestoreOutcome_ noPair;
+         CheckBackupTree_(RestoreStoreInto_(store3, data3, String(), none, none, noPair), _T("the restore without a pair failed: ") + DescribeCopyFailure_(noPair.copy));
+         CheckBackupTree_(noPair.own_pair.IsEmpty() && BackupTreeRead_(data3 / "Certificates" / "self-signed-key.pem") == "the same key",
+            _T("the archive's pair was not restored where this installation has none"));
+      }
+
+      // 4. A COPY THAT FAILS is undone: whichever files it had written are
+      //    removed, the one it had replaced is put back, the directories it made
+      //    are removed, and nothing is removed that the archive does not hold -
+      //    the data directory is as it was, byte for byte.
+      {
+         const fs::path data4 = scratch / "undo-data";
+         const fs::path store4 = scratch / "undo-store";
+         MakeBackupTreeFile_(data4 / "r" / "a.txt", "this server's a");
+         MakeBackupTreeFile_(data4 / "r" / "kept.txt", "not in the archive, and removed only after a complete copy");
+         MakeBackupTreeFile_(data4 / "{0B0C2E9A-1D6B-4A43-9D55-2B5D41A3F0C1}.eml", "a queued message");
+         MakeBackupTreeFile_(store4 / "r" / "a.txt", "the archive's a");
+         MakeBackupTreeFile_(store4 / "r" / "b.txt", "b");
+         MakeBackupTreeFile_(store4 / "r" / "sub" / "c.txt", "c");
+         MakeBackupTreeFile_(store4 / "n" / "d.txt", "d");
+         MakeBackupTreeFile_(store4 / "n" / "e.txt", "e");
+
+         std::map<String, std::string> before;
+         BackupTreeSnapshot_(data4, data4, before);
+
+         struct FaultInjected
+         {
+            FaultInjected(RestoreFault_ fault, unsigned int after) { restore_fault_for_test = fault; restore_fault_after_for_test = after; }
+            ~FaultInjected() { restore_fault_for_test = NoRestoreFault_; restore_fault_after_for_test = 0; }
+         };
+
+         // At each of the five files, a copy that fails outright and one that
+         // leaves the start of its file behind, as a full disk does on Linux.
+         for (RestoreFault_ mode : { RestoreCopyFails_, RestoreCopyFailsLeavingPart_ })
+         {
+            for (unsigned int after = 0; after <= 4; after++)
+            {
+               RestoreOutcome_ failed;
+               bool result = true;
+               {
+                  FaultInjected fault(mode, after);
+                  DataDirectoryExclusions_ none;
+                  result = RestoreStoreInto_(store4, data4, String(), none, none, failed);
+               }
+
+               const String how = mode == RestoreCopyFailsLeavingPart_ ? String(_T(", leaving part of its file,")) : String();
+               CheckBackupTree_(!result, Formatter::Format(_T("the copy did not fail{0} where the fault was injected, after {1} file(s)"), how, after));
+               CheckBackupTree_(failed.not_put_back.empty(), _T("the failed copy could not be undone: ") + (failed.not_put_back.empty() ? String() : failed.not_put_back[0]));
+
+               std::map<String, std::string> afterwards;
+               BackupTreeSnapshot_(data4, data4, afterwards);
+               CheckBackupTree_(afterwards == before,
+                  Formatter::Format(_T("after a copy that failed{0} after {1} file(s), the data directory is not what it was: {2} entries, where it had {3}"),
+                     how, after, (unsigned int) afterwards.size(), (unsigned int) before.size()));
+            }
+         }
+
+         // And without the fault, the same restore completes.
+         RestoreOutcome_ complete;
+         DataDirectoryExclusions_ none;
+         CheckBackupTree_(RestoreStoreInto_(store4, data4, String(), none, none, complete), _T("the restore failed without a fault: ") + DescribeCopyFailure_(complete.copy));
+         CheckBackupTree_(BackupTreeRead_(data4 / "r" / "a.txt") == "the archive's a" && BackupTreeHas_(data4 / "n" / "e.txt") &&
+                          !BackupTreeHas_(data4 / "r" / "kept.txt") && !BackupTreeHas_(data4 / "{0B0C2E9A-1D6B-4A43-9D55-2B5D41A3F0C1}.eml"),
+            _T("the restore after the failed ones did not make the data directory the archive's store"));
+         CheckBackupTree_(!BackupTreeHasAside_(data4), _T("a file the restore moved aside was left behind"));
+      }
+
+      // 4a. A FILE GONE FROM THE STORE before it could be copied - a scanner
+      //     took it from the staged copy - is not restored, and where this
+      //     server had a file of that name it moved aside, that file is put
+      //     back and left, not removed as one the archive does not hold.
+      {
+         const fs::path data6 = scratch / "vanish-data";
+         const fs::path store6 = scratch / "vanish-store";
+         MakeBackupTreeFile_(data6 / "r" / "a.txt", "this server's a");
+         MakeBackupTreeFile_(store6 / "r" / "a.txt", "the archive's a, taken from the staged copy");
+         MakeBackupTreeFile_(store6 / "r" / "b.txt", "b, taken from the staged copy");
+
+         RestoreOutcome_ vanished;
+         bool result = false;
+         {
+            restore_fault_for_test = RestoreStoreFileVanishes_;
+            restore_fault_after_for_test = 0;
+            DataDirectoryExclusions_ none;
+            result = RestoreStoreInto_(store6, data6, String(), none, none, vanished);
+            restore_fault_for_test = NoRestoreFault_;
+         }
+
+         CheckBackupTree_(result, _T("the restore failed where files were gone from the store: ") + DescribeCopyFailure_(vanished.copy));
+         CheckBackupTree_(BackupTreeRead_(data6 / "r" / "a.txt") == "this server's a",
+            _T("this server's file, whose copy in the store was gone before it could be copied, was not put back and left"));
+         CheckBackupTree_(!BackupTreeHas_(data6 / "r" / "b.txt") && vanished.copy.vanished == 2,
+            Formatter::Format(_T("{0} file(s) were found gone from the store, where two were"), vanished.copy.vanished));
+         CheckBackupTree_(vanished.kept.empty() && !BackupTreeHasAside_(data6), _T("the file put back was said to be left, or something moved aside was left behind"));
+      }
+
+#ifndef HM_PLATFORM_POSIX
+      // 5. WHAT THE SERVICE'S ACCOUNT MAY NOT CHANGE, as a new installation's
+      //    self-signed key is to NT SERVICE\hMailServer (Read only, in a folder
+      //    whose Modify does not include deleting a child): here a file this
+      //    process may read and not delete or write, in a folder in which it may
+      //    not delete a child. One that differs from the archive's, one the
+      //    archive holds byte for byte and one the archive does not hold: all
+      //    three left as they are, the first and the last said, and everything
+      //    else restored. Windows only: on Linux the service owns its data
+      //    directory, and a file in it is the service's to rename or remove.
+      {
+         const fs::path data5 = scratch / "protected-data";
+         const fs::path store5 = scratch / "protected-store";
+         MakeBackupTreeFile_(data5 / "Keys" / "imported.key", "this server's key");
+         MakeBackupTreeFile_(data5 / "Keys" / "same.key", "a key the archive has byte for byte");
+         MakeBackupTreeFile_(data5 / "Keys" / "orphan.key", "a key the archive does not hold");
+         MakeBackupTreeFile_(data5 / "example.test" / "old.eml", "a message the archive does not hold");
+         MakeBackupTreeFile_(store5 / "Keys" / "imported.key", "the archive's key");
+         MakeBackupTreeFile_(store5 / "Keys" / "same.key", "a key the archive has byte for byte");
+         MakeBackupTreeFile_(store5 / "Keys" / "new.pem", "a file the archive adds beside them");
+         MakeBackupTreeFile_(store5 / "example.test" / "new.eml", "the archive's message");
+
+         const std::vector<fs::path> protectedFiles = { data5 / "Keys" / "imported.key", data5 / "Keys" / "same.key", data5 / "Keys" / "orphan.key" };
+
+         // Given back before the scratch tree is removed, however the test ends.
+         struct Unprotect
+         {
+            std::vector<fs::path> paths;
+            ~Unprotect() { for (const fs::path &path : paths) BackupTreeUnprotect_(path); }
+         } unprotect;
+
+         const String self = BackupTreeSelfSid_();
+         CheckBackupTree_(!self.IsEmpty(), _T("this process's account could not be read"));
+
+         unprotect.paths.push_back(data5 / "Keys");
+         BackupTreeProtect_(data5 / "Keys", Formatter::Format(_T("D:P(D;;0x40;;;{0})(A;OICI;FA;;;{0})(A;OICI;FA;;;SY)(A;OICI;FA;;;BA)"), self));
+         for (const fs::path &file : protectedFiles)
+         {
+            unprotect.paths.push_back(file);
+            BackupTreeProtect_(file, Formatter::Format(_T("D:P(D;;0x10006;;;{0})(A;;FA;;;{0})(A;;FA;;;SY)(A;;FA;;;BA)"), self));
+         }
+
+         boost::system::error_code refused;
+         fs::rename(data5 / "Keys" / "orphan.key", data5 / "Keys" / "orphan.key.moved", refused);
+         CheckBackupTree_(refused.value() != 0, _T("the protected file could be moved aside, so this part proves nothing"));
+
+         RestoreOutcome_ protectedOutcome;
+         DataDirectoryExclusions_ none;
+         CheckBackupTree_(RestoreStoreInto_(store5, data5, String(), none, none, protectedOutcome),
+            _T("the restore stopped at a file the service may not change: ") + DescribeCopyFailure_(protectedOutcome.copy));
+         CheckBackupTree_(BackupTreeRead_(data5 / "Keys" / "imported.key") == "this server's key", _T("the file the service may not change was changed"));
+         CheckBackupTree_(BackupTreeHas_(data5 / "Keys" / "orphan.key"), _T("the file the service may not remove is gone"));
+         CheckBackupTree_(BackupTreeRead_(data5 / "Keys" / "new.pem") == "a file the archive adds beside them", _T("the archive's file beside them was not restored"));
+         CheckBackupTree_(BackupTreeHas_(data5 / "example.test" / "new.eml") && !BackupTreeHas_(data5 / "example.test" / "old.eml"),
+            _T("the mail was not restored around the files the service may not change"));
+         CheckBackupTree_(protectedOutcome.kept.size() == 2,
+            Formatter::Format(_T("{0} file(s) were said to be left as they are, where two are: the one that differs and the one the archive does not hold"), (unsigned int) protectedOutcome.kept.size()));
+         CheckBackupTree_(protectedOutcome.already == 1, _T("the file the archive holds byte for byte was not found to be so"));
+         CheckBackupTree_(!BackupTreeHasAside_(data5), _T("a file the restore moved aside was left behind"));
+      }
+#endif
    }
 }
