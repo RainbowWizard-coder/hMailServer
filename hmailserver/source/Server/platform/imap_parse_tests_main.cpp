@@ -1,0 +1,67 @@
+// https://www.progressiverobot.com
+// Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
+// The parsers of an IMAP client's text and the String functions they lean on,
+// as a program of its own for the POSIX build.
+//
+// On Windows the same testers run inside the shipping server: ClassTester::
+// DoTests calls them, and the regression suite reaches it through
+// Utilities.RunTestSuite. That route does not exist here, so the CMake build
+// makes this instead and linux-build.sh runs it with every other *-tests
+// program.
+//
+// What it holds them to: what each made up to 6.3.5 - the code of then is kept
+// in the testers and given the same generated cases, ten times as many here as
+// on Windows - and the time each takes, a pass over what it reads where 6.3.5's
+// time grew with the square of it. String's FindNoCase, ContainsNoCase and
+// ReplaceNoCase, wide and narrow; the items of a FETCH; the base subject SORT
+// and THREAD read; the messages of a message set, each once; and the keywords
+// a STORE keeps. Nothing here touches the network, the configuration or a
+// database.
+//
+// One line a tester, and a non-zero exit on the first failure.
+
+#include <cstdio>
+#include <functional>
+#include <stdexcept>
+
+#include "../Common/Util/Parsing/StringParser.h"
+#include "../IMAP/IMAPFetchParser.h"
+#include "../IMAP/IMAPThread.h"
+#include "../IMAP/IMAPCommandRangeAction.h"
+#include "../IMAP/IMAPStore.h"
+
+namespace
+{
+   bool Run_(const char *what, const std::function<void()> &test)
+   {
+      try
+      {
+         test();
+      }
+      catch (const std::exception &failure)
+      {
+         printf("FAIL  %s: %s\n", what, failure.what());
+         return false;
+      }
+
+      printf("ok    %s\n", what);
+      return true;
+   }
+}
+
+int
+main(int /*argc*/, char * /*argv*/[])
+{
+   const int cases = 200000;
+
+   bool passed =
+      Run_("String's case-ignoring search and replace: as 6.3.5's, in one pass", [cases]() { HM::StringNoCaseTester().Test(cases); }) &&
+      Run_("the items of a FETCH: as 6.3.5's, in one pass", [cases]() { HM::IMAPFetchParserTester().Test(cases); }) &&
+      Run_("the base subject: as 6.3.5's, in one pass", [cases]() { HM::IMAPThreadSubjectTester().Test(cases); }) &&
+      Run_("a message set: 6.3.5's messages, each once, the view's UIDs found by halving; SEARCH and UID sets by halving; \"$\" once", [cases]() { HM::IMAPSequenceSetTester().Test(cases / 4); }) &&
+      Run_("a STORE's keywords: as 6.3.5 kept them, in one pass", [cases]() { HM::IMAPStoreKeywordsTester().Test(cases); });
+
+   return passed ? 0 : 1;
+}

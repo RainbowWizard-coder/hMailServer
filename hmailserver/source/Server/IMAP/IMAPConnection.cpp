@@ -227,7 +227,9 @@ namespace HM
       if (!command_buffer_.IsEmpty())
          bHasLiterals = true;
 
+      const int iBufferedBefore = command_buffer_.GetLength();
       command_buffer_ += Request + "\r\n";
+      ScanCommandBuffer_(iBufferedBefore);
 
       // The literal counter below advances by the length of the line with its
       // terminator already stripped, so a client sending bare CRLF pairs adds
@@ -256,16 +258,25 @@ namespace HM
          return false;
       }
 
-      int iLineEnd = command_buffer_.Find(_T("\r\n"));
-      int iSpace = command_buffer_.Find(_T(" "));
-      String sTag = command_buffer_.Mid(0, iSpace);
-      String sCommand = command_buffer_.Mid(iSpace+1, iLineEnd - (iSpace+1));
+      // The tag and the command, from the first line of what is buffered, are
+      // taken where they are used: when no literal is awaited, and once the
+      // command is whole. They used to be taken for every line, and a line of a
+      // literal - a few bytes, sent by the million into a command whose first
+      // line is a quarter of a megabyte - then cost a search and a copy of that
+      // first line each: a time that grew with the product of the two, before
+      // the client had signed in.
+      String sTag;
+      String sCommand;
+      bool bFirstLineTaken = false;
 
       std::shared_ptr<IMAPClientCommand> pCommand = std::shared_ptr<IMAPClientCommand>(new IMAPClientCommand);
 
       // Check if we should receive any literal data.
       if (literal_data_to_receive_ == 0)
       {
+         TakeFirstLine_(sTag, sCommand);
+         bFirstLineTaken = true;
+
          if (AskForLiteralData_(sCommand))
          {
             // The client is not permitted to send the octets of the literal unless
@@ -303,6 +314,9 @@ namespace HM
             }
          }
       }
+
+      if (!bFirstLineTaken)
+         TakeFirstLine_(sTag, sCommand);
 
       if (bHasLiterals)
       {
@@ -387,8 +401,7 @@ namespace HM
    {
       if (literal_data_to_receive_ > 0)
       {
-         int iCommandStartPos = command_buffer_.Find(_T(" "))+1;
-         if (command_buffer_.FindNoCase(_T("LOGIN")) == iCommandStartPos)
+         if (BufferedCommandIs_(_T("LOGIN")))
          {
             return true;
          }
@@ -413,20 +426,25 @@ namespace HM
       {
          // we're receiving literal data for the login command.
          // check if we've received the passwords yet.
-         int wordsFound = 1;
-         int length = command_buffer_.GetLength();
-         for (int i = 0; i < command_buffer_.GetLength(); i++)
+         //
+         // One more than the spaces and line ends of the buffered command, the
+         // last character not counted, less its "}"s:
+         // 1 words - A01
+         // 2 words - LOGIN
+         // 3 words - test@example.test
+         // 4 words - password.
+         //
+         // Kept as the buffer grows (ScanCommandBuffer_). It used to be counted
+         // over the whole buffer for every line logged, which made a literal of
+         // a great many short lines take a time that grew with the square of
+         // its length.
+         int wordsFound = 1 + command_buffer_word_balance_;
+         const int length = command_buffer_.GetLength();
+         if (length > 0)
          {
-            wchar_t ch = command_buffer_.GetAt(i);
-            if ((ch == ' ' || ch == '\n') && i < length-1)
-               wordsFound++;
-            else if (ch == '}')
+            const wchar_t last = command_buffer_.GetAt(length - 1);
+            if (last == ' ' || last == '\n')
                wordsFound--;
-
-            // 1 words - A01
-            // 2 words - LOGIN
-            // 3 words - test@example.test
-            // 4 words - password.
          }
 
          if (wordsFound >= 3)
@@ -441,10 +459,10 @@ namespace HM
       // send a bearer token, either as an initial response on the AUTHENTICATE
       // line or as the continuation line that follows the server's "+".
       {
-         String pending_command = command_buffer_;
-         pending_command.MakeUpper();
-
-         if (pending_command.Find(_T("AUTHENTICATE")) >= 0)
+         // Whether the buffered command holds "AUTHENTICATE", case ignored,
+         // kept as the buffer grows (ScanCommandBuffer_): this used to copy and
+         // upper-case the whole buffer for every line logged.
+         if (!command_buffer_.IsEmpty() && command_buffer_mentions_authenticate_)
          {
             // Continuation of an exchange in progress: the whole line is the token.
             sLogData = "***";
@@ -495,8 +513,14 @@ namespace HM
       // at once (which IMAPCommandAppend handles for us) but we still want the
       // normal parsing to take place prior to message receiving.
       //
-      int iFullCommandStartPos = command_buffer_.Find(_T(" "))+1;
-      if (command_buffer_.FindNoCase(_T("APPEND")) == iFullCommandStartPos)
+      // Which command is buffered is read from its command word, where it
+      // stands. It used to be FindNoCase over the whole buffer for each of
+      // APPEND, REPLACE and UID REPLACE - a copy of all of it, lowered - and
+      // this is asked each time a literal ends: a command of a million literals
+      // of one byte, which needs no account, held the thread for a time that
+      // grew with the square of its length. Read where it stands, a tag that
+      // happens to contain the word no longer hides the command.
+      if (BufferedCommandIs_(_T("APPEND")))
       {
          // HACK:
          // we are currently parsing an APPEND command. No doubt about it. Try to
@@ -516,8 +540,8 @@ namespace HM
       // connection-level literal machinery must leave it alone here too, or it
       // answers the literal with its own continuation and then waits for
       // message octets as command text: the deadlock that caught this.
-      if (command_buffer_.FindNoCase(_T("REPLACE")) == iFullCommandStartPos ||
-          command_buffer_.FindNoCase(_T("UID REPLACE")) == iFullCommandStartPos)
+      if (BufferedCommandIs_(_T("REPLACE")) ||
+          BufferedCommandIs_(_T("UID REPLACE")))
       {
          return 0;
       }
@@ -1276,6 +1300,94 @@ namespace HM
    IMAPConnection::SetCommandBuffer(const String &sval)
    {
       command_buffer_ = sval;
+      ScanCommandBuffer_(0);
+   }
+
+   void
+   IMAPConnection::ScanCommandBuffer_(int iFrom)
+   //---------------------------------------------------------------------------()
+   // DESCRIPTION:
+   // Takes in what was added to command_buffer_ from iFrom on - from 0, a new
+   // command - into what is known of the buffered command: where its first
+   // space is, the balance of its spaces and line ends against its "}"s, and
+   // whether it holds "AUTHENTICATE". Each character is read once, so a command
+   // of many lines costs what its length costs; these were found by reading the
+   // whole buffer again for every line.
+   //---------------------------------------------------------------------------()
+   {
+      if (iFrom <= 0)
+      {
+         iFrom = 0;
+         command_buffer_first_space_ = -1;
+         command_buffer_word_balance_ = 0;
+         command_buffer_mentions_authenticate_ = false;
+      }
+
+      const int length = command_buffer_.GetLength();
+
+      for (int i = iFrom; i < length; i++)
+      {
+         const wchar_t ch = command_buffer_.GetAt(i);
+
+         if (ch == ' ' || ch == '\n')
+         {
+            command_buffer_word_balance_++;
+
+            if (ch == ' ' && command_buffer_first_space_ < 0)
+               command_buffer_first_space_ = i;
+         }
+         else if (ch == '}')
+            command_buffer_word_balance_--;
+      }
+
+      if (!command_buffer_mentions_authenticate_)
+      {
+         // What was added, with as much before it as an "AUTHENTICATE" begun
+         // there could still need, upper-cased as the whole buffer was.
+         const String sWord = _T("AUTHENTICATE");
+         const int iScanFrom = iFrom > sWord.GetLength() - 1 ? iFrom - (sWord.GetLength() - 1) : 0;
+
+         String sAdded = command_buffer_.Mid(iScanFrom);
+         sAdded.MakeUpper();
+
+         command_buffer_mentions_authenticate_ = sAdded.Find(sWord) >= 0;
+      }
+   }
+
+   bool
+   IMAPConnection::BufferedCommandIs_(const String &sWord) const
+   //---------------------------------------------------------------------------()
+   // DESCRIPTION:
+   // Whether the buffered command's word - what follows the first space, or the
+   // buffer's start when it has none - begins with sWord, case ignored as
+   // FindNoCase ignores it. Compared where it stands.
+   //---------------------------------------------------------------------------()
+   {
+      const int iCommandStart = command_buffer_first_space_ + 1;
+
+      if (command_buffer_.GetLength() - iCommandStart < sWord.GetLength())
+         return false;
+
+      String sThere = command_buffer_.Mid(iCommandStart, sWord.GetLength());
+      sThere.ToLower();
+
+      String sWanted = sWord;
+      sWanted.ToLower();
+
+      return sThere == sWanted;
+   }
+
+   void
+   IMAPConnection::TakeFirstLine_(String &sTag, String &sCommand) const
+   //---------------------------------------------------------------------------()
+   // DESCRIPTION:
+   // The tag and the command of the buffered command's first line.
+   //---------------------------------------------------------------------------()
+   {
+      int iLineEnd = command_buffer_.Find(_T("\r\n"));
+      int iSpace = command_buffer_.Find(_T(" "));
+      sTag = command_buffer_.Mid(0, iSpace);
+      sCommand = command_buffer_.Mid(iSpace+1, iLineEnd - (iSpace+1));
    }
 
    String

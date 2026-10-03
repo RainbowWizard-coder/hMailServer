@@ -124,12 +124,23 @@ namespace HM
 
       std::vector<std::shared_ptr<IMAPSearchCriteria> > &GetSubCriterias() {return sub_criterias_;}
 
-      void SetSequenceSet(std::vector<String> newVal) {sequence_set_ = newVal;}
-      std::vector<String> &GetSequenceSet() {return sequence_set_;}
+      // The elements of the set, held shared: every "$" of one SEARCH holds the
+      // one copy of the saved result (IMAPSearchParser::ParseWord_), where each
+      // used to hold a copy of its own - a hundred thousand "$" in a command
+      // line, a hundred thousand copies of a saved result of thousands.
+      void SetSequenceSet(std::vector<String> newVal) {sequence_set_ = std::make_shared<const std::vector<String> >(std::move(newVal));}
+      void SetSequenceSet(const std::shared_ptr<const std::vector<String> > &shared) {sequence_set_ = shared;}
+      const std::vector<String> &GetSequenceSet() const {return sequence_set_ ? *sequence_set_ : EmptySequenceSet_();}
 
    private:
 
       static bool IsSequenceSet_(const String &item);
+
+      static const std::vector<String> &EmptySequenceSet_()
+      {
+         static const std::vector<String> empty;
+         return empty;
+      }
 
       long uidlower_;
       long uidupper_;
@@ -139,7 +150,7 @@ namespace HM
 
       String header_field_;
       std::vector<std::shared_ptr<IMAPSearchCriteria> > sub_criterias_;
-      std::vector<String> sequence_set_;
+      std::shared_ptr<const std::vector<String> > sequence_set_;
 
       bool is_or_;
    };
@@ -202,6 +213,10 @@ namespace HM
 
       String charset_name_;
       std::vector<__int64> saved_search_result_;
+
+      // The saved result as a set's elements, made for the first "$" of the
+      // command and shared by every one after it.
+      std::shared_ptr<const std::vector<String> > saved_set_;
    };
 
 }

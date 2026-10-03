@@ -66,6 +66,7 @@ namespace HM
 
       void ResetSearchState_();
       bool BoundExceeded_();
+      bool TimeBoundExceeded_();
       IMAPResult AbortSearch_(std::shared_ptr<IMAPConnection> pConnection, int messages_scanned);
 
       std::shared_ptr<MessageData> message_data_;
@@ -107,6 +108,19 @@ namespace HM
 
       // Which ceiling was passed, and by how much, for the application log entry.
       String bound_reason_;
+
+      // Set when a ceiling was passed while one message was being matched, so the
+      // match was given up part way: the search is abandoned, not answered. The
+      // ceilings used to be asked only between messages, and one message met by a
+      // hundred thousand TEXT keys - a client's command line - was read a hundred
+      // thousand times before they were asked again.
+      bool match_interrupted_ = false;
+
+      // The sets of the UID and sequence-set keys, each read once into runs
+      // (IMAPListLookup::ToRuns) for this search, by the set's address: the "$"
+      // keys share one. Each used to be copied and read whole for every message.
+      std::map<const std::vector<String> *, std::vector<std::pair<__int64, __int64> > > uid_runs_;
+      std::map<const std::vector<String> *, std::vector<std::pair<__int64, __int64> > > sequence_runs_;
 
       // The rendered RFC 5256 tree for a THREAD command, built where SORT sorts and
       // consumed where the response is assembled. Cleared by ResetSearchState_,

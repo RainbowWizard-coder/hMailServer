@@ -5,6 +5,11 @@
 #include "stdafx.h"
 #include "IMAPFetchParser.h"
 
+#include <chrono>
+#include <stdexcept>
+#include <string>
+#include <vector>
+
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
 #define new DEBUG_NEW
@@ -51,18 +56,38 @@ namespace HM
    }
 
    void
-   IMAPFetchParser::CleanFetchString_(String &sString)
+   IMAPFetchParser::CleanFetchString_(const String &sString, int &iBegin, int &iEnd)
+   //---------------------------------------------------------------------------
+   // DESCRIPTION:
+   // What is left of the items - sString from iBegin up to iEnd - loses one
+   // space and then one "(" from its front, and one ")" from its end. The two
+   // offsets move; this used to make a new string of what was left each time.
+   //---------------------------------------------------------------------------
    {
-      if (sString.Left(1) == _T(" "))
-         sString = sString.Mid(1);
-      
-      if (sString.Left(1) == _T("("))
-         sString = sString.Mid(1);
+      if (iBegin < iEnd && sString.GetAt(iBegin) == ' ')
+         iBegin++;
 
-      if (sString.Right(1) == _T(")"))
-         sString = sString.Mid(0, sString.GetLength() - 1);
-      
+      if (iBegin < iEnd && sString.GetAt(iBegin) == '(')
+         iBegin++;
 
+      if (iBegin < iEnd && sString.GetAt(iEnd - 1) == ')')
+         iEnd--;
+   }
+
+   namespace
+   {
+      // Where c is first found in sString from iFrom up to iEnd, as an offset
+      // from iFrom - what Find answered on the string that was left - or -1.
+      int FindInRest_(const String &sString, wchar_t c, int iFrom, int iEnd)
+      {
+         for (int i = iFrom; i < iEnd; i++)
+         {
+            if (sString.GetAt(i) == c)
+               return i - iFrom;
+         }
+
+         return -1;
+      }
    }
 
    IMAPResult
@@ -106,21 +131,68 @@ namespace HM
 
       std::vector<String> vecResult;
 
-      CleanFetchString_(sString);
+      // What is left to parse is sString from iBegin up to iEnd. Each item used
+      // to be cut off the front of the rest with Mid, which copied the whole
+      // rest every time, and so did taking a space or a "(" off its front: a
+      // FETCH of a few hundred thousand items - the IMAP command buffer takes
+      // about eleven megabytes - held the thread for a time that grew with the
+      // square of their number (200,000 took two and a half minutes). The
+      // offsets move instead and each item is copied out once. What is found
+      // and what is answered are as they were: the searches look only in what
+      // is left and answer offsets into it, as Find on the cut string did.
+      int iBegin = 0;
+      int iEnd = sString.GetLength();
 
-      while (!sString.IsEmpty())
+      CleanFetchString_(sString, iBegin, iEnd);
+
+      // Where the first space at or after iBegin is (-1: there is none), and
+      // whether that has been looked for. It stays the first space while iBegin
+      // has not passed it - iEnd only ever loses a ")" - so it is looked for
+      // again only then, from iBegin, and never again once there is none. Looked
+      // for from iBegin on every item, an item that ends before the space - "[]"
+      // does, at its "]" - read on to the same far space each time: a list of a
+      // hundred thousand "[]" and then one space took a time that grew with the
+      // square of their number, as the copies did.
+      int iSpaceAt = -1;
+      bool bSpaceLookedFor = false;
+
+      while (iBegin < iEnd)
       {
-         long lFirstLeftBracket = sString.Find(_T("["));
-         long lFirstSpace = sString.Find(_T(" "));
+         if (!bSpaceLookedFor || (iSpaceAt >= 0 && iSpaceAt < iBegin))
+         {
+            const int iFound = FindInRest_(sString, ' ', iBegin, iEnd);
+            iSpaceAt = iFound >= 0 ? iBegin + iFound : -1;
+            bSpaceLookedFor = true;
+         }
+
+         long lFirstSpace = iSpaceAt >= 0 ? iSpaceAt - iBegin : -1;
+
+         // The "[" only ever matters when it comes before the first space (the
+         // test below): with no space, the whole of what is left is one item
+         // whatever brackets it holds, as it was. So it is looked for only up to
+         // the first space, and not at all when there is none. Looked for to the
+         // end every time, a list of a hundred thousand space-separated items
+         // with no "[" among them was scanned to the end once per item: a time
+         // that grew with the square of their number, which is what this parse
+         // was being made not to do.
+         long lFirstLeftBracket = lFirstSpace >= 0
+            ? FindInRest_(sString, '[', iBegin, iBegin + (int) lFirstSpace)
+            : -1;
 
          if (lFirstLeftBracket >= 0 && lFirstLeftBracket < lFirstSpace)
          {
             // Find end bracket.
-            long lFirstRightBracket = sString.Find(_T("]"), lFirstLeftBracket);
+            long lFirstRightBracket = FindInRest_(sString, ']', iBegin + lFirstLeftBracket, iEnd);
+            if (lFirstRightBracket >= 0)
+               lFirstRightBracket += lFirstLeftBracket;
 
             // Check if we got a <> directly after the []
-            if (sString.SafeGetAt(lFirstRightBracket + 1) == '<')
-               lFirstRightBracket = sString.Find(_T(">"), lFirstRightBracket);
+            if (lFirstRightBracket >= 0 && iBegin + lFirstRightBracket + 1 < iEnd &&
+                sString.GetAt(iBegin + lFirstRightBracket + 1) == '<')
+            {
+               long lClosingAngle = FindInRest_(sString, '>', iBegin + lFirstRightBracket, iEnd);
+               lFirstRightBracket = lClosingAngle >= 0 ? lFirstRightBracket + lClosingAngle : -1;
+            }
 
             // THE LOOP HAD NO WAY TO END.
             //
@@ -146,45 +218,44 @@ namespace HM
             // always made progress.
             if (lFirstRightBracket < 0)
             {
-               sString.Empty();
+               iBegin = iEnd;
                break;
             }
 
             // Parse out string between brackets.
             if (lFirstRightBracket == 0)
             {
-               sString = sString.Mid(lFirstRightBracket + 1);
+               iBegin += lFirstRightBracket + 1;
                continue;
             }
 
             // String between brackets.
-            String sResString = sString.Mid(0, lFirstRightBracket+1 );
+            String sResString = sString.Mid(iBegin, lFirstRightBracket + 1);
             vecResult.push_back(sResString);
 
             // Cut away this from the start string.
-            sString = sString.Mid(lFirstRightBracket + 1);
+            iBegin += lFirstRightBracket + 1;
          }
          else if (lFirstSpace >= 0)
          {
             // Copy string from here to end.
-            String sResString = sString.Mid(0, lFirstSpace );
+            String sResString = sString.Mid(iBegin, lFirstSpace);
 
             vecResult.push_back(sResString);
 
-            sString = sString.Mid(lFirstSpace + 1);
-
+            iBegin += lFirstSpace + 1;
          }
          else
          {
-            vecResult.push_back(sString);
-            sString.Empty();
+            vecResult.push_back(sString.Mid(iBegin, iEnd - iBegin));
+            iBegin = iEnd;
          }
-         
 
-         CleanFetchString_(sString);
-
-
+         CleanFetchString_(sString, iBegin, iEnd);
       }
+
+      // All of it taken, as the cut string ended empty.
+      sString.Empty();
 
       return vecResult;
    }
@@ -823,5 +894,191 @@ namespace HM
       
       
    }
-}
+   namespace
+   {
+      // CleanFetchString_ and ParseString_ as they were up to 6.3.5, word for
+      // word but for the names: what the parse by offsets is held to.
+      void OldCleanFetchString_(String &sString)
+      {
+         if (sString.Left(1) == _T(" "))
+            sString = sString.Mid(1);
 
+         if (sString.Left(1) == _T("("))
+            sString = sString.Mid(1);
+
+         if (sString.Right(1) == _T(")"))
+            sString = sString.Mid(0, sString.GetLength() - 1);
+      }
+
+      std::vector<String> OldParseString_(String &sString)
+      {
+         std::vector<String> vecResult;
+
+         OldCleanFetchString_(sString);
+
+         while (!sString.IsEmpty())
+         {
+            long lFirstLeftBracket = sString.Find(_T("["));
+            long lFirstSpace = sString.Find(_T(" "));
+
+            if (lFirstLeftBracket >= 0 && lFirstLeftBracket < lFirstSpace)
+            {
+               long lFirstRightBracket = sString.Find(_T("]"), lFirstLeftBracket);
+
+               if (sString.SafeGetAt(lFirstRightBracket + 1) == '<')
+                  lFirstRightBracket = sString.Find(_T(">"), lFirstRightBracket);
+
+               if (lFirstRightBracket < 0)
+               {
+                  sString.Empty();
+                  break;
+               }
+
+               if (lFirstRightBracket == 0)
+               {
+                  sString = sString.Mid(lFirstRightBracket + 1);
+                  continue;
+               }
+
+               String sResString = sString.Mid(0, lFirstRightBracket+1 );
+               vecResult.push_back(sResString);
+
+               sString = sString.Mid(lFirstRightBracket + 1);
+            }
+            else if (lFirstSpace >= 0)
+            {
+               String sResString = sString.Mid(0, lFirstSpace );
+
+               vecResult.push_back(sResString);
+
+               sString = sString.Mid(lFirstSpace + 1);
+            }
+            else
+            {
+               vecResult.push_back(sString);
+               sString.Empty();
+            }
+
+            OldCleanFetchString_(sString);
+         }
+
+         return vecResult;
+      }
+
+      // xorshift64*: the same cases on every run and every platform.
+      unsigned long long NextRandom_(unsigned long long &state)
+      {
+         state ^= state >> 12;
+         state ^= state << 25;
+         state ^= state >> 27;
+         return state * 2685821657736338717ULL;
+      }
+
+      double MillisecondsSince_(std::chrono::steady_clock::time_point started)
+      {
+         return std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - started).count();
+      }
+   }
+
+   void
+   IMAPFetchParserTester::Test(int cases)
+   {
+      // The time first. A FETCH of 100,000 items took 6.3.5's ParseString_ 31
+      // seconds, and one item of 20,000 "BODY.PEEK[" ParseBODY_ 43; each is a
+      // pass over the command now.
+      {
+         String items = _T("(");
+         for (int i = 0; i < 100000; i++)
+            items += i % 2 == 0 ? _T("FLAGS ") : _T("UID ");
+         items += _T("BODY.PEEK[HEADER])");
+
+         std::chrono::steady_clock::time_point started = std::chrono::steady_clock::now();
+         IMAPFetchParser parser;
+         if (parser.ParseCommand(items).GetResult() != IMAPResult::ResultOK)
+            HM_TEST_FAILED();
+         const double milliseconds = MillisecondsSince_(started);
+
+         if (!parser.GetShowFlags() || !parser.GetShowUID() || parser.GetPartsToLookAt().size() != 1)
+            HM_TEST_FAILED();
+
+         if (milliseconds > 2000)
+            throw std::logic_error("A FETCH of 100,000 items took " + std::to_string((long long) milliseconds) + " ms to parse");
+      }
+
+      {
+         String item;
+         for (int i = 0; i < 20000; i++)
+            item += _T("BODY.PEEK[");
+         for (int i = 0; i < 20000; i++)
+            item += _T("]");
+
+         String command = _T("(");
+         command += item;
+         command += _T(")");
+
+         std::chrono::steady_clock::time_point started = std::chrono::steady_clock::now();
+         IMAPFetchParser parser;
+         if (parser.ParseCommand(command).GetResult() != IMAPResult::ResultOK)
+            HM_TEST_FAILED();
+         const double milliseconds = MillisecondsSince_(started);
+
+         if (parser.GetPartsToLookAt().size() != 1)
+            HM_TEST_FAILED();
+
+         if (milliseconds > 2000)
+            throw std::logic_error("A FETCH item of 20,000 \"BODY.PEEK[\" took " + std::to_string((long long) milliseconds) + " ms to parse");
+      }
+
+      {
+         // 200,000 items that each end at a "]" before the one space there is:
+         // the first space was looked for from each item's start, and read on to
+         // the same far space every time, until it is kept.
+         String command = _T("(");
+         for (int i = 0; i < 200000; i++)
+            command += _T("[]");
+         command += _T(" FLAGS)");
+
+         std::chrono::steady_clock::time_point started = std::chrono::steady_clock::now();
+         IMAPFetchParser parser;
+         if (parser.ParseCommand(command).GetResult() != IMAPResult::ResultOK)
+            HM_TEST_FAILED();
+         const double milliseconds = MillisecondsSince_(started);
+
+         if (!parser.GetShowFlags() || parser.GetPartsToLookAt().size() != 0)
+            HM_TEST_FAILED();
+
+         if (milliseconds > 2000)
+            throw std::logic_error("A FETCH of 200,000 \"[]\" before one space took " + std::to_string((long long) milliseconds) + " ms to parse");
+      }
+
+      // Then what the items are: for generated FETCH item lists, what 6.3.5
+      // made of them, item by item.
+      static const wchar_t *pieces[] =
+      {
+         L"(", L")", L" ", L" ", L"[", L"]", L"<", L">", L".", L"BODY", L"BODY.PEEK", L"BINARY",
+         L"1", L"2.MIME", L"HEADER.FIELDS", L"(From To)", L"<0.10>", L"<5>", L"UID", L"FLAGS",
+         L"x", L"]<", L"> ", L"[]", L"))", L"(("
+      };
+      const int pieceCount = (int) (sizeof(pieces) / sizeof(pieces[0]));
+
+      unsigned long long state = 0x2545F4914F6CDD1DULL;
+
+      for (int number = 0; number < cases; number++)
+      {
+         String input;
+         const int length = (int) (NextRandom_(state) % 16);
+         for (int i = 0; i < length; i++)
+            input += pieces[NextRandom_(state) % pieceCount];
+
+         String before = input;
+         std::vector<String> expected = OldParseString_(before);
+
+         String now = input;
+         IMAPFetchParser parser;
+         std::vector<String> got = parser.ParseString_(now);
+
+         if (got != expected || !now.IsEmpty() || !before.IsEmpty())
+            throw std::logic_error("ParseString_ made other than 6.3.5's items of a FETCH, in case " + std::to_string(number));
+      }
+   }
+}

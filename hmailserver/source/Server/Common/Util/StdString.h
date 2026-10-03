@@ -1656,6 +1656,79 @@ inline void ssupr(CT* pT, size_t nLen, const std::locale& loc=std::locale())
    SS_USE_FACET(loc, std::ctype<CT>).toupper(pT, pT+nLen);
 }
 
+// ssfindlwr: where pLow - nLow characters already lowered as sslwr lowers
+// them - is first found in pT at or after nStart, each character of pT lowered
+// by the same facet as it is compared, or npos. An empty pLow is found at
+// nStart. Nothing is copied and the search stops at the first match, so a loop
+// that asks once per occurrence takes one pass over the string between them.
+//
+// A needle longer than SS_FINDLWR_SHORT is looked for by Knuth-Morris-Pratt:
+// each character of pT is read a bounded number of times whatever the two hold.
+// Compared afresh at each position, as a short one is, "aa...ab" over "aa...a"
+// costs the product of the two lengths, and both can be a client's: an IMAP
+// SEARCH TEXT key sent as a literal of a megabyte, over a message of a few,
+// in the client's own mailbox, held its thread for the better part of an hour
+// in one call, where the search's own time limit is not asked. What is found is
+// the same: the first place at or after nStart where every character matches.
+#ifndef SS_FINDLWR_SHORT
+   #define SS_FINDLWR_SHORT 16
+#endif
+template<typename CT>
+inline size_t ssfindlwr(const CT* pT, size_t nLen, const CT* pLow, size_t nLow,
+                        size_t nStart, const std::ctype<CT>& ct)
+{
+   if ( nStart > nLen || nLow > nLen - nStart )
+      return std::basic_string<CT>::npos;
+
+   if ( 0 == nLow )
+      return nStart;
+
+   if ( nLow > SS_FINDLWR_SHORT )
+   {
+      // vBorder[i]: the length of the longest proper prefix of pLow[0..i] that
+      // is also a suffix of it.
+      std::vector<size_t> vBorder(nLow, 0);
+      for ( size_t i = 1, k = 0; i < nLow; i++ )
+      {
+         while ( k > 0 && pLow[i] != pLow[k] )
+            k = vBorder[k - 1];
+         if ( pLow[i] == pLow[k] )
+            k++;
+         vBorder[i] = k;
+      }
+
+      size_t nMatched = 0;
+      for ( size_t nAt = nStart; nAt < nLen; nAt++ )
+      {
+         const CT c = ct.tolower(pT[nAt]);
+         while ( nMatched > 0 && c != pLow[nMatched] )
+            nMatched = vBorder[nMatched - 1];
+         if ( c == pLow[nMatched] )
+            nMatched++;
+         if ( nMatched == nLow )
+            return nAt + 1 - nLow;
+      }
+
+      return std::basic_string<CT>::npos;
+   }
+
+   const size_t nLast = nLen - nLow;
+   for ( size_t nAt = nStart; nAt <= nLast; nAt++ )
+   {
+      if ( ct.tolower(pT[nAt]) != pLow[0] )
+         continue;
+
+      size_t nSame = 1;
+      while ( nSame < nLow && ct.tolower(pT[nAt + nSame]) == pLow[nSame] )
+         nSame++;
+
+      if ( nSame == nLow )
+         return nAt;
+   }
+
+   return std::basic_string<CT>::npos;
+}
+
 // -----------------------------------------------------------------------------
 // vsprintf/vswprintf or _vsnprintf/_vsnwprintf equivalents.  In standard
 // builds we can't use _vsnprintf/_vsnwsprintf because they're MS extensions.
@@ -3179,25 +3252,27 @@ public:
 
    int FindNoCase(PCMYSTR szSub) const
    {
-      MYTYPE sFindIn = this->c_str();
-      MYTYPE sLookFor = szSub;
-
-      sFindIn.ToLower();
-      sLookFor.ToLower();
-
-      MYSIZE nIdx = sFindIn.Find(sLookFor);
-      return static_cast<int>(MYBASE::npos == nIdx ? -1 : nIdx);
+      return FindNoCase(szSub, 0);
    }
 
+   // Where szSub is first found at or after nStart, case ignored as ToLower
+   // ignores it, or -1. szSub is lowered once and each character here as it
+   // is compared (ssfindlwr). This used to copy the whole string and lower
+   // the copy on every call, from its start whatever nStart was, so a loop
+   // that called it once per occurrence - ReplaceNoCase, a parser walking a
+   // client's command - took a time that grew with the square of the
+   // string's length: an IMAP FETCH of 40,000 "BODY.PEEK[" held its thread
+   // for three minutes. The whole string is searched, as Find searches it;
+   // the copy, made through c_str(), ended at the first NUL. A long szSub is
+   // looked for in time that grows with the string's length alone (ssfindlwr).
    int FindNoCase(PCMYSTR szSub, MYSIZE nStart) const
    {
-      MYTYPE sFindIn = this->c_str();
       MYTYPE sLookFor = szSub;
-
-      sFindIn.ToLower();
       sLookFor.ToLower();
 
-      MYSIZE nIdx = sFindIn.Find(sLookFor, nStart);
+      const std::locale loc;
+      MYSIZE nIdx = static_cast<MYSIZE>(ssfindlwr(this->data(), this->size(),
+         sLookFor.data(), sLookFor.size(), nStart, SS_USE_FACET(loc, std::ctype<CT>)));
       return static_cast<int>(MYBASE::npos == nIdx ? -1 : nIdx);
    }
 
@@ -3212,20 +3287,11 @@ public:
          return false;
    }
 
+   // Whether szSub is here, case ignored as FindNoCase ignores it: without a
+   // lowered copy of the whole string, which this made on every call.
    bool ContainsNoCase(PCMYSTR szSub) const
    {
-      MYTYPE sFindIn = this->c_str();
-      MYTYPE sLookFor = szSub;
-
-      // Convert to lower case so that we'll do the search in 
-      // an in-case sensitive manner.
-      sFindIn.ToLower();
-      sLookFor.ToLower();
-
-      if (sFindIn.Find(sLookFor) >= 0)
-         return true;
-      else
-         return false;
+      return FindNoCase(szSub, 0) >= 0;
    }
 
    int FindOneOf(PCMYSTR szCharSet) const
@@ -3467,47 +3533,51 @@ public:
       return nReplaced;
    }
 
+   // Every szOld, case ignored as FindNoCase ignores it, left to right and
+   // none overlapping, becomes szNew, and none is looked for inside a
+   // replacement; the number replaced is answered. szOld is lowered once and
+   // the result written into a new string in one pass, as Replace writes it.
+   // This used to ask FindNoCase for each occurrence in turn, which copied
+   // and lowered the whole string every time, and replace each in place,
+   // which moved the rest of it: a time that grew with the square of their
+   // number. IMAPFetchParser makes "BODY.PEEK[" "BODY[" with it in a
+   // client's FETCH, where 40,000 of them held the thread for three minutes.
+   // The whole string is searched; FindNoCase's copy ended at the first NUL.
    int ReplaceNoCase(PCMYSTR szOld, PCMYSTR szNew)
    {
-      int nReplaced     = 0;
-      MYSIZE nIdx       = 0;
-      MYSIZE nOldLen    = sslen(szOld);
+      MYTYPE sLookFor = szOld;
+      sLookFor.ToLower();
 
-      if ( 0 != nOldLen )
+      const MYSIZE nOldLen = sLookFor.size();
+      if ( 0 == nOldLen )
+         return 0;
+
+      const std::locale loc;
+      const std::ctype<CT>& ct = SS_USE_FACET(loc, std::ctype<CT>);
+
+      MYSIZE nIdx = static_cast<MYSIZE>(ssfindlwr(this->data(), this->size(),
+         sLookFor.data(), nOldLen, 0, ct));
+      if ( MYBASE::npos == nIdx )
+         return 0;
+
+      static const CT ch   = CT(0);
+      const MYTYPE sNew(szNew == 0 ? &ch : szNew);
+
+      int nReplaced = 0;
+      MYTYPE sResult;
+      sResult.reserve(this->size());
+      MYSIZE nFrom = 0;
+      do
       {
-         // If the replacement string is longer than the one it replaces, this
-         // string is going to have to grow in size,  Figure out how much
-         // and grow it all the way now, rather than incrementally
-
-         MYSIZE nNewLen    = sslen(szNew);
-         if ( nNewLen > nOldLen )
-         {
-            size_t nFound        = 0;
-            while ( nIdx < this->length() &&
-               (nIdx=this->FindNoCase(szOld, nIdx)) != MYBASE::npos )
-            {
-               nFound++;
-               nIdx += nOldLen;
-            }
-            this->reserve(this->size() + nFound * (nNewLen - nOldLen));
-         }
-
-
-         static const CT ch   = CT(0);
-         PCMYSTR szRealNew = szNew == 0 ? &ch : szNew;
-         nIdx           = 0;
-
-         while ( nIdx < this->length() && 
-            (nIdx=this->FindNoCase(szOld, nIdx)) != MYBASE::npos )
-         {
-            this->replace(this->begin()+nIdx, this->begin()+nIdx+nOldLen,
-               szRealNew);
-
-            nReplaced++;
-            nIdx += nNewLen;
-         }
-      }
-
+         sResult.append(*this, nFrom, nIdx - nFrom);
+         sResult.append(sNew.data(), sNew.size());
+         nReplaced++;
+         nFrom = nIdx + nOldLen;
+         nIdx = static_cast<MYSIZE>(ssfindlwr(this->data(), this->size(),
+            sLookFor.data(), nOldLen, nFrom, ct));
+      } while ( MYBASE::npos != nIdx );
+      sResult.append(this->data() + nFrom, this->size() - nFrom);
+      this->swap(sResult);
       return nReplaced;
    }
 

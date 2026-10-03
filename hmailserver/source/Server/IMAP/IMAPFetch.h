@@ -111,6 +111,28 @@ namespace HM
 
       std::shared_ptr<IMAPFetchParser> parser_;
 
+      // A HEADER.FIELDS or HEADER.FIELDS.NOT part's list read once for the
+      // command: the names asked for, each once, in the order asked, found by
+      // their key (the bytes of the name as _stricmp folds them, which is how
+      // the header's own lookup compares); and the names left out, by their key
+      // as CompareNoCase folds them. Each message's header is then read once,
+      // field by field. The list - a client's, of any length - used to be
+      // copied and read whole for every message, and the header searched for
+      // each name in it: the product of the list, the header and the set.
+      class HeaderFieldsLookup_
+      {
+      public:
+         std::vector<String> names;
+         std::map<std::string, std::vector<size_t> > by_key;
+         std::set<String> excluded;
+      };
+
+      HeaderFieldsLookup_ &HeaderFieldsLookupFor_(IMAPFetchParser::BodyPart &oPart);
+      static std::string StricmpKey_(const char *name);
+      static String CompareNoCaseKey_(const String &name);
+
+      std::map<const IMAPFetchParser::BodyPart *, HeaderFieldsLookup_> header_fields_lookups_;
+
    };
 
 }

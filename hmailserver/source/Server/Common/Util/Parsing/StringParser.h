@@ -101,4 +101,15 @@ namespace HM
       void Test();
    };
 
+   // String's FindNoCase, ContainsNoCase and ReplaceNoCase (StdString.h) held
+   // to what they answered up to 6.3.5 - the code of then, kept here - over
+   // generated cases, wide and narrow, and to the time they take: one pass,
+   // where 20,000 occurrences took ReplaceNoCase 43 seconds. Run by ClassTester
+   // on Windows and by imap-parse-tests on Linux.
+   class StringNoCaseTester
+   {
+   public:
+      void Test(int cases = 20000);
+   };
+
 }

@@ -75,6 +75,11 @@ namespace HM
 
       std::vector<std::pair<int, IMAPViewEntry> > GetEntriesBySequenceRange(int first, int last) const;
       std::vector<std::pair<int, IMAPViewEntry> > GetEntriesByUIDRange(unsigned int first, unsigned int last) const;
+
+      // The sequence numbers, first to last, of the messages whose UIDs are from
+      // first to last: one run, the view being in UID order. False, and nothing
+      // set to use, when there are none.
+      bool GetSequenceRangeByUIDRange(unsigned int first, unsigned int last, int &firstSequence, int &lastSequence) const;
       std::vector<std::pair<int, IMAPViewEntry> > GetAllEntries() const;
 
       // Removes the given messages and returns the sequence numbers to report to the

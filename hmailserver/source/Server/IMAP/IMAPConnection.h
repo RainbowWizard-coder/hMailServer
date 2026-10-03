@@ -339,6 +339,12 @@ namespace HM
       void Disconnect_();
       bool IsReceivingLiteralDataForLoginCommand_() const;
 
+      // What is known of the buffered command, kept as command_buffer_ grows:
+      // see ScanCommandBuffer_.
+      void ScanCommandBuffer_(int iFrom);
+      bool BufferedCommandIs_(const String &sWord) const;
+      void TakeFirstLine_(String &sTag, String &sCommand) const;
+
       // Resolves "#Users <delim> owner-address <delim> folder..." into a folder in
       // the owner's tree, or null. Null is returned - indistinguishable from "no
       // such folder" - when the namespace is disabled, the owner does not exist,
@@ -375,6 +381,14 @@ namespace HM
       bool current_folder_read_only_;
 
       String command_buffer_;
+
+      // ScanCommandBuffer_'s: the first space in command_buffer_ (-1: none),
+      // its spaces and line ends less its "}"s, and whether it holds
+      // "AUTHENTICATE" in any case. Meaningful while it is not empty.
+      int command_buffer_first_space_ = -1;
+      int command_buffer_word_balance_ = 0;
+      bool command_buffer_mentions_authenticate_ = false;
+
       bool is_idling_;
 
       bool condstore_enabled_;

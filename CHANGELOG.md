@@ -538,6 +538,31 @@ object keeps the address it had, as the REST API answers one with a 400. On Wind
 release, which reads more texts as no address there (What changes on upgrade, item 41): `192.168.001.001`, which
 Windows read as 192.168.1.1, would otherwise have become 0.0.0.0. Found by the project's own review.
 
+Parsing one IMAP `FETCH` command from a signed-in account could hold an IMAP worker thread - shared with SMTP and
+POP3 - for minutes, and far longer. Reading the sections of a `BODY[]` item ran the server's case-ignoring string
+search and replacement, which copied and lower-cased the whole item once for each occurrence, so the time grew with
+the square of the number of `BODY.PEEK[` in the item; and splitting the item list cut each item off the front of the
+rest by copying the rest every time, so it grew with the square of the number of items. One command line carries
+about a quarter of a megabyte - some twenty thousand `BODY.PEEK[`, or over a hundred thousand items - which is already
+seconds of one thread, and a `FETCH` is not held to one line: the text after each literal on its line joins the
+command, which can so reach the eleven megabytes the command buffer takes, where the time grows by the square (40,000
+occurrences took three minutes, 200,000 items two and a half). A few such commands from a few sessions stopped the
+IMAP, SMTP and POP3 ports answering anybody. This is in every version from 6.0.0 up to 6.3.5. In 6.3.6 the
+case-ignoring search, replace and contains take one pass, in a time that grows with the string's length alone however
+long what is looked for (a `SEARCH TEXT` key sent as a literal of a megabyte, over a message of a few in the client's
+own mailbox, was compared afresh at every position); the `FETCH` item parser walks the command by offsets and finds
+each space once; and the other parsers of a client's text that had the same shape were made to take one pass as well:
+the message set of `FETCH`, `STORE`, `COPY`, `MOVE` and `UID EXPUNGE` and its session's UID lookups, the `THREAD` and
+`SORT` base subject, a `STORE`'s keyword list, the per-line scan of the command buffer that masks a password in the
+log, the sets of `SEARCH`'s `UID` and sequence-set keys and of `UID FETCH`'s `VANISHED`, read once per command rather
+than once per message, and a `HEADER.FIELDS` list, read once per command rather than once per message and name.
+What each produces is as it was. Commands that named something over and over now cost what naming it once costs: `$`
+(the saved search result) in a message set or as a `SEARCH` key stands in once, where each `$` copied the saved
+result; a `SORT` criterion named again is left out, where each made a key for every message; and a `FETCH` whose
+sections of one message add up to more than sixteen times the message is answered `NO [LIMIT]`, where all of them
+were read and held before any was sent. A `$` written into an element with anything else - `1:$` - is answered
+`BAD`, as no set. Found by the project's own review.
+
 ### What changes on upgrade without a switch
 
 1. **COM `Utilities`: the helpers that do work answer a caller that has signed in.** `BlowfishEncrypt`,

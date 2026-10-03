@@ -23,6 +23,8 @@ namespace HM
 
    class IMAPCommandRangeAction : public IMAPCommand
    {
+      friend class IMAPSequenceSetTester;
+
    public:
       IMAPCommandRangeAction();
       virtual ~IMAPCommandRangeAction();
@@ -57,7 +59,8 @@ namespace HM
    private:
 
       // Translates a message set into this session's messages, as (sequence number,
-      // entry) pairs, against the session's own view of the folder.
+      // entry) pairs, against the session's own view of the folder: each message
+      // once, in the order the set first names it.
       std::vector<std::pair<int, IMAPViewEntry> > ResolveTargets_(std::shared_ptr<IMAPFolderView> view, const String &sMailNos);
 
       String JoinUids_(const std::vector<unsigned int> &uids);
@@ -70,4 +73,18 @@ namespace HM
 
    };
 
+
+   // A message set held to the messages 6.3.5 resolved it to, each once - its
+   // code kept here - over generated views and sets, by UID and by sequence
+   // number, the view's UID lookups held to reading every entry, and both to
+   // the time they take: 50,000 UIDs over 50,000 messages, each found by
+   // halving. And IMAPListLookup's: a SEARCH key's set read into runs, held to
+   // IsItemInList; a UID set's ranges merged, held to reading every range; "$"
+   // standing in once, where it stands alone; with their times. Run by
+   // ClassTester on Windows and by imap-parse-tests on Linux.
+   class IMAPSequenceSetTester
+   {
+   public:
+      void Test(int cases = 20000);
+   };
 }

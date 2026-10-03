@@ -322,8 +322,19 @@ namespace HM
       // the response is sent. A part read after an earlier one had gone out as
       // a literal could fail only by leaving the untagged FETCH unfinished in
       // front of the tagged NO.
-      std::vector<IMAPFetchParser::BodyPart> vecPartsToPeekAt = parser_->GetPartsToLookAt();
+      std::vector<IMAPFetchParser::BodyPart> &vecPartsToPeekAt = parser_->GetPartsToLookAt();
       std::vector<std::shared_ptr<ByteBuffer> > partBuffers;
+
+      // What the parts read so far hold, against a ceiling of sixteen times the
+      // message - or the largest part read, should the size on record be short -
+      // and a megabyte. Each part is at most about the message, so no FETCH a
+      // client means comes near it; but the parts are all read before any is
+      // sent, and a FETCH naming the whole message twenty-five thousand times -
+      // "BODY.PEEK[]<0> BODY.PEEK[]<1> ...", a command line's worth - held
+      // twenty-five thousand copies of it in memory at once: a quarter of a
+      // terabyte for a message of ten megabytes, in the client's own mailbox.
+      size_t largestPart = (size_t) (pMessage->GetSize() > 0 ? pMessage->GetSize() : 0);
+      size_t partBytes = 0;
 
       for (IMAPFetchParser::BodyPart &oPart : vecPartsToPeekAt)
       {
@@ -357,6 +368,19 @@ namespace HM
          // Asked after each read: a later door clears the mark.
          if (MessageStore::Unavailable())
             return IMAPResult(IMAPResult::ResultNo, "[UNAVAILABLE] The message store cannot be reached just now. Try again in a moment.");
+
+         if (pBuffer)
+         {
+            partBytes += pBuffer->GetSize();
+
+            if (pBuffer->GetSize() > largestPart)
+               largestPart = pBuffer->GetSize();
+         }
+
+         // Nothing of this message has been sent, so the command ends here with
+         // nothing of it half written.
+         if (partBytes > largestPart * (size_t) 16 + (size_t) 1024 * 1024)
+            return IMAPResult(IMAPResult::ResultNo, "[LIMIT] The sections asked for hold many times the message. Ask for fewer.");
 
          partBuffers.push_back(pBuffer);
       }
@@ -636,7 +660,82 @@ namespace HM
    }
 
 
-   std::shared_ptr<ByteBuffer> 
+   std::string
+   IMAPFetch::StricmpKey_(const char *name)
+   //---------------------------------------------------------------------------()
+   // DESCRIPTION:
+   // The bytes of name, each as _stricmp folds it before comparing - tolower in
+   // the current locale - up to its end: two names _stricmp finds the same have
+   // the same key, and two it does not, not.
+   //---------------------------------------------------------------------------()
+   {
+      std::string key;
+
+      if (name)
+      {
+         for (const char *at = name; *at; at++)
+            key += (char) ::tolower((unsigned char) *at);
+      }
+
+      return key;
+   }
+
+   String
+   IMAPFetch::CompareNoCaseKey_(const String &name)
+   //---------------------------------------------------------------------------()
+   // DESCRIPTION:
+   // name as CompareNoCase (ssicmp) folds it before comparing - each character
+   // lowered in the classic locale - up to its first NUL, where it stops.
+   //---------------------------------------------------------------------------()
+   {
+      const std::ctype<wchar_t> &ct = std::use_facet<std::ctype<wchar_t> >(std::locale::classic());
+
+      String key;
+      for (int i = 0; i < name.GetLength() && name.GetAt(i) != 0; i++)
+         key += (wchar_t) ct.tolower(name.GetAt(i));
+
+      return key;
+   }
+
+   IMAPFetch::HeaderFieldsLookup_ &
+   IMAPFetch::HeaderFieldsLookupFor_(IMAPFetchParser::BodyPart &oPart)
+   //---------------------------------------------------------------------------()
+   // DESCRIPTION:
+   // oPart's HEADER.FIELDS and HEADER.FIELDS.NOT lists, prepared for every
+   // message of the command at its first (HeaderFieldsLookup_). oPart is the
+   // parser's own, which lives as long as the command.
+   //---------------------------------------------------------------------------()
+   {
+      auto existing = header_fields_lookups_.find(&oPart);
+      if (existing != header_fields_lookups_.end())
+         return (*existing).second;
+
+      HeaderFieldsLookup_ &lookup = header_fields_lookups_[&oPart];
+
+      // Each name once - the first spelling of those MakeUpper makes the same -
+      // in the order asked, keyed as the header's lookup compares the name
+      // GetRawFieldValue narrows it to.
+      std::set<String> included;
+      for (const String &name : oPart.GetHeaderFields())
+      {
+         String upper = name;
+         upper.MakeUpper();
+
+         if (!included.insert(upper).second)
+            continue;
+
+         const AnsiString narrow = name;
+         lookup.by_key[StricmpKey_(narrow.c_str())].push_back(lookup.names.size());
+         lookup.names.push_back(name);
+      }
+
+      for (const String &name : oPart.GetHeaderFieldsNOT())
+         lookup.excluded.insert(CompareNoCaseKey_(name));
+
+      return lookup;
+   }
+
+   std::shared_ptr<ByteBuffer>
    IMAPFetch::GetByteBufferByBodyPart_(const String &messageFileName, std::shared_ptr<MimeBody> pBodyPart, IMAPFetchParser::BodyPart &oPart)
    //---------------------------------------------------------------------------()
    // DESCRIPTION:
@@ -908,39 +1007,43 @@ namespace HM
       }
       else if (oPart.GetShowBodyHeaderFields())
       {
-         std::set<String> included_fields;
-         std::vector<String> vecHeaderFields = oPart.GetHeaderFields();
-         auto iterHeader = vecHeaderFields.begin();
+         // Each name asked for, once, with the value of the first field of the
+         // header that _stricmp finds the same as it - what GetRawFieldValue
+         // answers - in the order asked. The header is read once, field by field,
+         // against the names prepared for the command (HeaderFieldsLookupFor_).
+         const HeaderFieldsLookup_ &lookup = HeaderFieldsLookupFor_(oPart);
+
+         std::map<size_t, const char *> firstValues;
+         for (MimeField &field : pBodyPart->Fields())
+         {
+            auto named = lookup.by_key.find(StricmpKey_(field.GetName()));
+            if (named == lookup.by_key.end())
+               continue;
+
+            for (size_t index : (*named).second)
+               firstValues.insert(std::make_pair(index, field.GetValue()));
+         }
+
          String sResponse;
          String sFields;
 
-         while (iterHeader != vecHeaderFields.end())
+         for (const std::pair<const size_t, const char *> &found : firstValues)
          {
-            String sHeaderField = (*iterHeader);
+            const String &sHeaderField = lookup.names[found.first];
 
-            String header_field_uppercase = sHeaderField; 
-            header_field_uppercase.MakeUpper();
+            String sValue;
 
-            if (included_fields.find(header_field_uppercase) == included_fields.end())
+            sValue = found.second;
+
+            if (sValue.GetLength() > 0)
             {
-               String sValue;
+               if (!sFields.IsEmpty())
+                  sFields += " ";
 
-               sValue = pBodyPart->GetRawFieldValue(sHeaderField);
+               sFields += sHeaderField;
 
-               if (sValue.GetLength() > 0)
-               {
-                  if (!sFields.IsEmpty())
-                     sFields += " ";
-
-                  sFields += sHeaderField;
-
-                  sResponse += sHeaderField + ": " + sValue + "\r\n";
-               }
-
-               included_fields.insert(header_field_uppercase);
+               sResponse += sHeaderField + ": " + sValue + "\r\n";
             }
-
-            iterHeader++;
          }
 
          sResponse += "\r\n";
@@ -952,7 +1055,9 @@ namespace HM
       }
       else if (oPart.GetShowBodyHeaderFieldsNOT())
       {
-         std::vector<String> vecHeaderFieldsNOT = oPart.GetHeaderFieldsNOT();
+         // The names left out, prepared for the command: each field of the header
+         // is looked up once, where it was compared with every name of the list.
+         const HeaderFieldsLookup_ &lookup = HeaderFieldsLookupFor_(oPart);
 
          String sResponse;
 
@@ -967,18 +1072,9 @@ namespace HM
 
             String sHeaderName = oField.GetName();
 
-            // Should we send this header?
-            auto iterExclude = vecHeaderFieldsNOT.begin();
-            bool bSendThisHeader = true;
-            while (iterExclude != vecHeaderFieldsNOT.end())
-            {
-               if ((*iterExclude).CompareNoCase(sHeaderName) == 0)
-               {
-                  bSendThisHeader = false;
-                  break;
-               }
-               iterExclude++;
-            }
+            // Should we send this header? Not if CompareNoCase finds it the same
+            // as a name left out: the same as its key being among theirs.
+            bool bSendThisHeader = lookup.excluded.find(CompareNoCaseKey_(sHeaderName)) == lookup.excluded.end();
 
             // Check whether we should include this header.
             if (bSendThisHeader)
@@ -1654,10 +1750,10 @@ namespace HM
          return true;
 
       // Check if we only got one part.
-      std::vector<IMAPFetchParser::BodyPart> vecPartsToLookAt = parser_->GetPartsToLookAt();
+      std::vector<IMAPFetchParser::BodyPart> &vecPartsToLookAt = parser_->GetPartsToLookAt();
       if (vecPartsToLookAt.size() == 1)
       {
-         IMAPFetchParser::BodyPart oBodyPart = vecPartsToLookAt[0];
+         IMAPFetchParser::BodyPart &oBodyPart = vecPartsToLookAt[0];
 
          if (!oBodyPart.GetName().IsEmpty())
          {

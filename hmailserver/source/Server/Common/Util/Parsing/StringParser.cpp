@@ -12,6 +12,12 @@
 #include "../Unicode.h"
 #include <boost/lexical_cast.hpp>
 
+#include <algorithm>
+#include <chrono>
+#include <locale>
+#include <stdexcept>
+#include <string>
+
 // NormalizeString (NFKC) for SASLprep lives in Normaliz.lib.
 #pragma comment(lib, "Normaliz.lib")
 
@@ -1423,5 +1429,416 @@ namespace HM
  
    
 
+
+   namespace
+   {
+      // FindNoCase, ContainsNoCase and ReplaceNoCase as StdString.h had them up
+      // to 6.3.5, word for word but for the names: what the ones that take one
+      // pass are held to.
+      template<typename T>
+      int OldFindNoCase_(const T &in, typename T::const_pointer szSub)
+      {
+         T sFindIn = in.c_str();
+         T sLookFor = szSub;
+
+         sFindIn.ToLower();
+         sLookFor.ToLower();
+
+         typename T::size_type nIdx = sFindIn.Find(sLookFor);
+         return static_cast<int>(T::npos == nIdx ? -1 : nIdx);
+      }
+
+      template<typename T>
+      int OldFindNoCase_(const T &in, typename T::const_pointer szSub, typename T::size_type nStart)
+      {
+         T sFindIn = in.c_str();
+         T sLookFor = szSub;
+
+         sFindIn.ToLower();
+         sLookFor.ToLower();
+
+         typename T::size_type nIdx = sFindIn.Find(sLookFor, nStart);
+         return static_cast<int>(T::npos == nIdx ? -1 : nIdx);
+      }
+
+      template<typename T>
+      bool OldContainsNoCase_(const T &in, typename T::const_pointer szSub)
+      {
+         T sFindIn = in.c_str();
+         T sLookFor = szSub;
+
+         sFindIn.ToLower();
+         sLookFor.ToLower();
+
+         if (sFindIn.Find(sLookFor) >= 0)
+            return true;
+         else
+            return false;
+      }
+
+      template<typename T>
+      int OldReplaceNoCase_(T &s, typename T::const_pointer szOld, typename T::const_pointer szNew)
+      {
+         typedef typename T::size_type MYSIZE;
+         typedef typename T::value_type CT;
+
+         int nReplaced     = 0;
+         MYSIZE nIdx       = 0;
+         MYSIZE nOldLen    = sslen(szOld);
+
+         if ( 0 != nOldLen )
+         {
+            MYSIZE nNewLen    = sslen(szNew);
+            if ( nNewLen > nOldLen )
+            {
+               size_t nFound        = 0;
+               while ( nIdx < s.length() &&
+                  (nIdx=OldFindNoCase_(s, szOld, nIdx)) != T::npos )
+               {
+                  nFound++;
+                  nIdx += nOldLen;
+               }
+               s.reserve(s.size() + nFound * (nNewLen - nOldLen));
+            }
+
+            static const CT ch   = CT(0);
+            typename T::const_pointer szRealNew = szNew == 0 ? &ch : szNew;
+            nIdx           = 0;
+
+            while ( nIdx < s.length() &&
+               (nIdx=OldFindNoCase_(s, szOld, nIdx)) != T::npos )
+            {
+               s.replace(s.begin()+nIdx, s.begin()+nIdx+nOldLen,
+                  szRealNew);
+
+               nReplaced++;
+               nIdx += nNewLen;
+            }
+         }
+
+         return nReplaced;
+      }
+
+      // xorshift64*: the same cases on every run and every platform.
+      class TestRandom_
+      {
+      public:
+         explicit TestRandom_(unsigned long long seed) : state_(seed) {}
+
+         unsigned long long Next()
+         {
+            state_ ^= state_ >> 12;
+            state_ ^= state_ << 25;
+            state_ ^= state_ >> 27;
+            return state_ * 2685821657736338717ULL;
+         }
+
+         int Below(int bound) { return (int) (Next() % (unsigned long long) bound); }
+
+      private:
+         unsigned long long state_;
+      };
+
+      // A character for a case: mostly from a few that differ only in case,
+      // ASCII and not - A and a, the Kelvin sign and k, the dotted and dotless
+      // I and i, the three sigmas, the sharp s - the separators the IMAP
+      // parsers look for, and now and then any character but NUL.
+      wchar_t WideCharacter_(TestRandom_ &random)
+      {
+         static const wchar_t some[] =
+         {
+            'a', 'A', 'b', 'B', 'k', 'K', 'i', 'I', '.', '[', ' ',
+            0x00C4, 0x00E4, 0x0130, 0x0131, 0x03A3, 0x03C3, 0x03C2, 0x212A, 0x00DF, 0x1E9E
+         };
+
+         if (random.Below(8) != 0)
+            return some[random.Below((int) (sizeof(some) / sizeof(some[0])))];
+
+         // Any character of the Basic Multilingual Plane but NUL and the
+         // surrogates, or beyond it where wchar_t holds it.
+         for (;;)
+         {
+            const unsigned long long limit = sizeof(wchar_t) > 2 ? 0x110000ULL : 0x10000ULL;
+            const unsigned long long code = 1 + random.Next() % (limit - 1);
+
+            if (code >= 0xD800 && code <= 0xDFFF)
+               continue;
+
+            return (wchar_t) code;
+         }
+      }
+
+      char NarrowCharacter_(TestRandom_ &random)
+      {
+         static const char some[] = { 'a', 'A', 'b', 'B', 'k', 'K', '.', '[', ' ' };
+
+         if (random.Below(8) != 0)
+            return some[random.Below((int) sizeof(some))];
+
+         return (char) (1 + random.Below(255));
+      }
+
+      template<typename T>
+      typename T::value_type Character_(TestRandom_ &random);
+
+      template<>
+      wchar_t Character_<String>(TestRandom_ &random) { return WideCharacter_(random); }
+
+      template<>
+      char Character_<AnsiString>(TestRandom_ &random) { return NarrowCharacter_(random); }
+
+      template<typename T>
+      T RandomText_(TestRandom_ &random, int maximumLength)
+      {
+         T text;
+         const int length = random.Below(maximumLength + 1);
+         for (int i = 0; i < length; i++)
+            text += Character_<T>(random);
+         return text;
+      }
+
+      // What to look for: often a piece of the text with the case of some of
+      // its characters changed, so that it is found; otherwise anything.
+      template<typename T>
+      T RandomNeedle_(TestRandom_ &random, const T &text)
+      {
+         if (text.empty() || random.Below(3) == 0)
+            return RandomText_<T>(random, 4);
+
+         const int start = random.Below((int) text.size());
+         const int length = 1 + random.Below((int) std::min<size_t>(4, text.size() - start));
+         T needle = text.Mid(start, length);
+
+         const std::locale loc;
+         const std::ctype<typename T::value_type> &ct = std::use_facet<std::ctype<typename T::value_type> >(loc);
+         for (int i = 0; i < needle.GetLength(); i++)
+         {
+            switch (random.Below(3))
+            {
+            case 0: needle.SetAt(i, ct.toupper(needle.GetAt(i))); break;
+            case 1: needle.SetAt(i, ct.tolower(needle.GetAt(i))); break;
+            default: break;
+            }
+         }
+
+         return needle;
+      }
+
+      template<typename T>
+      void CompareWithOld_(int cases, unsigned long long seed, const char *kind)
+      {
+         TestRandom_ random(seed);
+
+         for (int number = 0; number < cases; number++)
+         {
+            const T text = RandomText_<T>(random, 24);
+            const T needle = RandomNeedle_<T>(random, text);
+            const typename T::size_type start = (typename T::size_type) random.Below((int) text.size() + 3);
+
+            bool same = text.FindNoCase(needle.c_str()) == OldFindNoCase_(text, needle.c_str()) &&
+                        text.FindNoCase(needle.c_str(), start) == OldFindNoCase_(text, needle.c_str(), start) &&
+                        text.ContainsNoCase(needle.c_str()) == OldContainsNoCase_(text, needle.c_str());
+
+            // The replacement: absent, empty, shorter, longer, or holding what it
+            // replaces, which must not be looked for again.
+            T replacement;
+            const bool absent = random.Below(10) == 0;
+            switch (random.Below(4))
+            {
+            case 0: replacement = RandomText_<T>(random, 6); break;
+            case 1: replacement = needle + RandomText_<T>(random, 2); break;
+            case 2: replacement = RandomText_<T>(random, 2) + needle; break;
+            default: break;
+            }
+
+            T replaced = text;
+            T replacedBefore = text;
+            const int count = replaced.ReplaceNoCase(needle.c_str(), absent ? nullptr : replacement.c_str());
+            const int countBefore = OldReplaceNoCase_(replacedBefore, needle.c_str(), absent ? nullptr : replacement.c_str());
+
+            same = same && count == countBefore && replaced == replacedBefore;
+
+            if (!same)
+            {
+               throw std::logic_error(std::string("String's case-ignoring search or replace of ") + kind +
+                  " made other than 6.3.5's in case " + std::to_string(number));
+            }
+         }
+      }
+
+      // A string of length up to maximumLength over "aAbB" and now and then a
+      // character of Character_.
+      template<typename T>
+      T FewLetterText_(TestRandom_ &random, int minimumLength, int maximumLength)
+      {
+         static const char letters[] = { 'a', 'A', 'b', 'B' };
+
+         T text;
+         const int length = minimumLength + random.Below(maximumLength - minimumLength + 1);
+         for (int i = 0; i < length; i++)
+         {
+            if (random.Below(40) == 0)
+               text += Character_<T>(random);
+            else
+               text += (typename T::value_type) letters[random.Below(4)];
+         }
+         return text;
+      }
+
+      template<typename T>
+      void CompareLongWithOld_(int cases, unsigned long long seed, const char *kind)
+      {
+         TestRandom_ random(seed);
+
+         for (int number = 0; number < cases; number++)
+         {
+            const T text = FewLetterText_<T>(random, 0, 160);
+
+            // Longer than SS_FINDLWR_SHORT: a piece of the text, its case changed
+            // here and there, or letters of its own; now and then one shorter.
+            T needle;
+            const int shape = random.Below(8);
+            if (shape == 0)
+               needle = FewLetterText_<T>(random, 1, SS_FINDLWR_SHORT);
+            else if (shape < 4 || (int) text.size() <= SS_FINDLWR_SHORT)
+               needle = FewLetterText_<T>(random, SS_FINDLWR_SHORT + 1, SS_FINDLWR_SHORT + 24);
+            else
+            {
+               const int length = SS_FINDLWR_SHORT + 1 + random.Below((int) text.size() - SS_FINDLWR_SHORT);
+               const int start = random.Below((int) text.size() - length + 1);
+               needle = text.Mid(start, length);
+
+               const std::locale loc;
+               const std::ctype<typename T::value_type> &ct = std::use_facet<std::ctype<typename T::value_type> >(loc);
+               for (int i = 0; i < needle.GetLength(); i++)
+               {
+                  if (random.Below(2) == 0)
+                     needle.SetAt(i, random.Below(2) == 0 ? ct.toupper(needle.GetAt(i)) : ct.tolower(needle.GetAt(i)));
+               }
+            }
+
+            const typename T::size_type start = (typename T::size_type) random.Below((int) text.size() + 3);
+
+            bool same = text.FindNoCase(needle.c_str()) == OldFindNoCase_(text, needle.c_str()) &&
+                        text.FindNoCase(needle.c_str(), start) == OldFindNoCase_(text, needle.c_str(), start) &&
+                        text.ContainsNoCase(needle.c_str()) == OldContainsNoCase_(text, needle.c_str());
+
+            const T replacement = FewLetterText_<T>(random, 0, 3);
+            T replaced = text;
+            T replacedBefore = text;
+            const int count = replaced.ReplaceNoCase(needle.c_str(), replacement.c_str());
+            const int countBefore = OldReplaceNoCase_(replacedBefore, needle.c_str(), replacement.c_str());
+
+            same = same && count == countBefore && replaced == replacedBefore;
+
+            if (!same)
+            {
+               throw std::logic_error(std::string("String's case-ignoring search or replace of a long needle in ") + kind +
+                  " made other than 6.3.5's in case " + std::to_string(number));
+            }
+         }
+      }
+
+      double MillisecondsSince_(std::chrono::steady_clock::time_point started)
+      {
+         return std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - started).count();
+      }
+   }
+
+   void
+   StringNoCaseTester::Test(int cases)
+   {
+      // The time first. 20,000 occurrences took 6.3.5's ReplaceNoCase 43 seconds,
+      // as IMAPFetchParser met them in a FETCH; one pass takes milliseconds.
+      String peeks;
+      for (int i = 0; i < 20000; i++)
+         peeks += _T("BODY.PEEK[");
+
+      std::chrono::steady_clock::time_point started = std::chrono::steady_clock::now();
+      const int replaced = peeks.ReplaceNoCase(_T("BODY.PEEK["), _T("BODY["));
+      const double replaceMilliseconds = MillisecondsSince_(started);
+
+      if (replaced != 20000 || peeks.GetLength() != 20000 * 5)
+         HM_TEST_FAILED();
+
+      if (replaceMilliseconds > 2000)
+         throw std::logic_error("ReplaceNoCase of 20,000 occurrences took " + std::to_string((long long) replaceMilliseconds) + " ms");
+
+      // FindNoCase asked once per occurrence, as a parser walking a command asks.
+      started = std::chrono::steady_clock::now();
+      int found = 0;
+      for (int at = peeks.FindNoCase(_T("body[")); at >= 0; at = peeks.FindNoCase(_T("body["), (size_t) at + 1))
+         found++;
+      const double findMilliseconds = MillisecondsSince_(started);
+
+      if (found != 20000)
+         HM_TEST_FAILED();
+
+      if (findMilliseconds > 2000)
+         throw std::logic_error("FindNoCase over 20,000 occurrences took " + std::to_string((long long) findMilliseconds) + " ms");
+
+      // Then fixed cases: what FindNoCase, ContainsNoCase and ReplaceNoCase
+      // answer, as they answered it before.
+      String text = _T("Hello BODY.PEEK[1] body.peek[2] Body.Peek[]");
+      if (text.FindNoCase(_T("body.peek[")) != 6) HM_TEST_FAILED();
+      if (text.FindNoCase(_T("BODY.PEEK["), 7) != 19) HM_TEST_FAILED();
+      if (text.FindNoCase(_T("BODY.PEEK["), 34) != -1) HM_TEST_FAILED();
+      if (text.FindNoCase(_T(""), 5) != 5) HM_TEST_FAILED();
+      if (text.FindNoCase(_T(""), (size_t) text.GetLength() + 1) != -1) HM_TEST_FAILED();
+      if (text.FindNoCase(_T("x"), 1000) != -1) HM_TEST_FAILED();
+      if (!text.ContainsNoCase(_T("hello body")) || text.ContainsNoCase(_T("hello  body"))) HM_TEST_FAILED();
+      if (text.ReplaceNoCase(_T("BODY.PEEK["), _T("BODY[")) != 3) HM_TEST_FAILED();
+      if (text != _T("Hello BODY[1] BODY[2] BODY[]")) HM_TEST_FAILED();
+      if (text.ReplaceNoCase(_T(""), _T("x")) != 0 || text != _T("Hello BODY[1] BODY[2] BODY[]")) HM_TEST_FAILED();
+      text = _T("aAaAa");
+      if (text.ReplaceNoCase(_T("AA"), _T("aaa")) != 2 || text != _T("aaaaaaa")) HM_TEST_FAILED();
+      text = _T("xYzXyZ");
+      if (text.ReplaceNoCase(_T("xyz"), nullptr) != 2 || !text.IsEmpty()) HM_TEST_FAILED();
+
+      // A NUL inside the string no longer ends the search: the copy FindNoCase
+      // made, through c_str(), ended there, so nothing after one was found or
+      // replaced. Find and Replace look at the whole string, and so do these.
+      String withNul = _T("ab");
+      withNul += (wchar_t) 0;
+      withNul += _T("AB");
+      if (withNul.FindNoCase(_T("ab"), 1) != 3) HM_TEST_FAILED();
+      if (withNul.ReplaceNoCase(_T("AB"), _T("c")) != 2 || withNul.GetLength() != 3 || withNul.GetAt(2) != 'c') HM_TEST_FAILED();
+
+      // A needle longer than SS_FINDLWR_SHORT, over a string made to hold its
+      // beginning everywhere: "AA...Ab" in "aa...aB". Compared afresh at each
+      // position that costs the product of the two lengths - 20,000 by a million
+      // here, which took 6.3.5's FindNoCase, and the first form of the one-pass
+      // search, the better part of a minute - and a client can send both, a
+      // SEARCH TEXT literal against a message of its own.
+      {
+         String haystack((size_t) 1000000, (wchar_t) 'a');
+         haystack += _T("B");
+         String needle((size_t) 20000, (wchar_t) 'A');
+         needle += _T("b");
+
+         started = std::chrono::steady_clock::now();
+         const int at = haystack.FindNoCase(needle.c_str());
+         const bool contains = haystack.ContainsNoCase(needle.c_str());
+         String missing = needle + _T("x");
+         const bool containsMissing = haystack.ContainsNoCase(missing.c_str());
+         const double longMilliseconds = MillisecondsSince_(started);
+
+         if (at != 1000000 - 20000 || !contains || containsMissing)
+            HM_TEST_FAILED();
+
+         if (longMilliseconds > 2000)
+            throw std::logic_error("FindNoCase of a needle of 20,001 over a million took " + std::to_string((long long) longMilliseconds) + " ms");
+      }
+
+      // Then every generated case, wide and narrow, against 6.3.5's code.
+      CompareWithOld_<String>(cases, 0x9E3779B97F4A7C15ULL, "String");
+      CompareWithOld_<AnsiString>(cases / 2 + 1, 0xD1B54A32D192ED03ULL, "AnsiString");
+
+      // And long needles - past SS_FINDLWR_SHORT, where the search changes how it
+      // goes - over strings of a few letters, so that partial matches overlap and
+      // back off as often as they can.
+      CompareLongWithOld_<String>(cases / 4 + 1, 0x8CB92BA72F3D8DD7ULL, "String");
+      CompareLongWithOld_<AnsiString>(cases / 8 + 1, 0x52DCE729DA3ED6B3ULL, "AnsiString");
+   }
 
 }

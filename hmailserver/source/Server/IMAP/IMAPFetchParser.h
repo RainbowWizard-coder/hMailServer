@@ -8,6 +8,8 @@ namespace HM
 {
    class IMAPFetchParser  
    {
+      friend class IMAPFetchParserTester;
+
    public:
       
       IMAPFetchParser();
@@ -165,14 +167,17 @@ namespace HM
 
       bool GetSetSeenFlag() { return set_seen_; }
 
-      std::vector<BodyPart> GetPartsToLookAt() { return parts_to_look_at_; }
+      // The parts, not a copy of them: IMAPFetch asks for every message of the
+      // set, and a copy of a FETCH's parts - their HEADER.FIELDS lists, a client's
+      // text - for each message cost the product of the two.
+      std::vector<BodyPart> &GetPartsToLookAt() { return parts_to_look_at_; }
       
    private:
 
       ePartType GetPartType_(const String &sPart);
       bool IsPartSpecifier_(const String &sString);
       
-      void CleanFetchString_(String &sString);
+      void CleanFetchString_(const String &sString, int &iBegin, int &iEnd);
       std::vector<String> ParseString_(String &sString);
       IMAPResult ValidateSyntax_(const String &sString);
       
@@ -201,6 +206,17 @@ namespace HM
       bool set_seen_;
       
       std::vector<BodyPart> parts_to_look_at_;
+   };
+
+   // ParseString_ held to the items 6.3.5's made of generated FETCH item
+   // lists - its code kept here - and ParseCommand to the time it takes: one
+   // pass over the command, where 100,000 items took 31 seconds and an item of
+   // 20,000 "BODY.PEEK[" 43. Run by ClassTester on Windows and by
+   // imap-parse-tests on Linux.
+   class IMAPFetchParserTester
+   {
+   public:
+      void Test(int cases = 20000);
    };
 
 }

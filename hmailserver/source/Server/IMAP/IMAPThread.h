@@ -50,6 +50,9 @@ namespace HM
       // groups by it. Not upper-cased.
       static String GetBaseSubject(const String &subject);
 
+      // The same, and whether a layer peeled off was a reply's or a forward's.
+      static String GetBaseSubject(const String &subject, bool &isReplyOrForward);
+
       // Builds the response body - the "(2)(3 6 (4 23)(44 7 96))" part, with its
       // leading space, or an empty string when nothing matched.
       //
@@ -68,5 +71,15 @@ namespace HM
                         bool useUid, Algorithm algorithm,
                         const std::function<bool()> &abortRequested,
                         String &responseBody);
+   };
+
+   // The base subject (RFC 5256 section 2.1) held to what 6.3.5 made of
+   // generated subjects - its code kept here - and to the time it takes: one
+   // pass, where every "Re:", "(fwd)", blob and "[fwd:" peeled off copied what
+   // was left. Run by ClassTester on Windows and by imap-parse-tests on Linux.
+   class IMAPThreadSubjectTester
+   {
+   public:
+      void Test(int cases = 20000);
    };
 }

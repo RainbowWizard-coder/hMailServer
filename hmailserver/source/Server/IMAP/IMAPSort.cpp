@@ -139,7 +139,26 @@ namespace HM
       // A-Z and nothing else (AsciiCaseMap_), which is the i;ascii-casemap
       // collation RFC 5256 prescribes whatever the charset.
 
-      std::vector<std::pair<bool,String> > vecSortTypes = pParser->GetSortTypes();
+      // A criterion for a key named before - REVERSE or not, in any case, or
+      // one this server does not know after another it does not know - is left
+      // out: wherever it would be asked, the first has already found the two
+      // messages equal on that key, so it can only find them equal again, and
+      // the order is the same without it. Each used to be kept, a key made of it
+      // for every message and compared at every step of the sort: "SORT (SIZE
+      // SIZE SIZE ...)" or "(X1 X2 X3 ...)", a hundred thousand of them in one
+      // command line, made a hundred thousand keys per message of the mailbox -
+      // gigabytes for a few thousand - and the time ceiling is asked only before
+      // a header is read, which neither needs.
+      std::vector<std::pair<bool,String> > vecSortTypes;
+      {
+         std::set<SortField> named;
+
+         for (const std::pair<bool, String> &sortType : pParser->GetSortTypes())
+         {
+            if (named.insert(GetSortField_(sortType.second)).second)
+               vecSortTypes.push_back(sortType);
+         }
+      }
 
       // The command layer refuses an empty list; this stays because the cost of
       // being certain is one comparison.

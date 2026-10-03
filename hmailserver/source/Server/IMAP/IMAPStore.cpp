@@ -18,6 +18,11 @@
 #include "../Common/Tracking/ChangeNotification.h"
 #include "../Common/Tracking/NotificationServer.h"
 
+#include <chrono>
+#include <stdexcept>
+#include <string>
+#include <vector>
+
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
 #define new DEBUG_NEW
@@ -70,59 +75,28 @@ namespace HM
          return IMAPResult();
       }
 
-      bool bSilent = false;
-
-      String sCommand = pArgument->Command();
-      if (sCommand.FindNoCase(_T("FLAGS.SILENT")) >= 0)
-         bSilent = true;
-      else
-         bSilent = false;
-
-      // Read flags from command.
-      bool bSeen = (sCommand.FindNoCase(_T("\\Seen")) >= 0);
-      bool bDeleted = (sCommand.FindNoCase(_T("\\Deleted")) >= 0);
-      bool bDraft = (sCommand.FindNoCase(_T("\\Draft")) >= 0);
-      bool bAnswered = (sCommand.FindNoCase(_T("\\Answered")) >= 0);
-      bool bFlagged = (sCommand.FindNoCase(_T("\\Flagged")) >= 0);
-
-      // The keywords: every atom of the flag list that is not a system flag.
-      // The list is what follows FLAGS or FLAGS.SILENT, in parentheses or
-      // not; an atom that is not a keyword is a syntax error.
-      std::vector<String> keywordsGiven;
+      // The flags and keywords are read from the command once, for the first
+      // message that reaches here, and kept for the rest: the command is the
+      // same for each. They were read for every message - seven searches of the
+      // whole command, its keyword list split and checked - so a STORE of a
+      // long keyword list over a large range took a time that grew with the
+      // product of the two.
+      if (!flags_parsed_)
       {
-         int at = sCommand.FindNoCase(_T("FLAGS"));
-         if (at >= 0)
-         {
-            String rest = sCommand.Mid(at + 5);
-            if (rest.FindNoCase(_T(".SILENT")) == 0)
-               rest = rest.Mid(7);
-            rest.TrimLeft();
-            rest.TrimRight();
-            // RFC 3501: the flag list is one parenthesised list, or bare atoms.
-            // A parenthesis anywhere else - "(Not(Valid))" - is a syntax error,
-            // not two keywords; it used to be read as exactly that.
-            if (!rest.IsEmpty() && rest[0] == '(')
-            {
-               if (rest[rest.GetLength() - 1] != ')')
-                  return IMAPResult(IMAPResult::ResultBad, "Unbalanced flag list");
-               rest = rest.Mid(1, rest.GetLength() - 2);
-            }
-            if (rest.Find(_T("(")) >= 0 || rest.Find(_T(")")) >= 0)
-               return IMAPResult(IMAPResult::ResultBad, "Invalid keyword: a flag is an atom");
-            std::vector<String> atoms = StringParser::SplitString(rest, " ");
-            for (size_t i = 0; i < atoms.size(); i++)
-            {
-               String atom = atoms[i];
-               atom.TrimLeft();
-               atom.TrimRight();
-               if (atom.IsEmpty() || atom[0] == '\\')
-                  continue;
-               if (!SieveParser::IsValidFlagName(atom))
-                  return IMAPResult(IMAPResult::ResultBad, String("Invalid keyword: ") + atom);
-               keywordsGiven.push_back(atom);
-            }
-         }
+         flags_result_ = ParseFlags_(pArgument->Command());
+         flags_parsed_ = true;
       }
+
+      if (flags_result_.GetResult() != IMAPResult::ResultOK)
+         return flags_result_;
+
+      const bool bSilent = silent_;
+      const bool bSeen = seen_;
+      const bool bDeleted = deleted_;
+      const bool bDraft = draft_;
+      const bool bAnswered = answered_;
+      const bool bFlagged = flagged_;
+      const std::vector<String> &keywordsGiven = keywords_given_;
 
       // Keywords are "the other flags" of RFC 4314.
       if (!keywordsGiven.empty() && !pConnection->CheckPermission(pConnection->GetCurrentFolder(), ACLPermission::PermissionWriteOthers))
@@ -155,9 +129,9 @@ namespace HM
       // again with the database row - so two STOREs on one message from two
       // sessions at once could each write back what it had read, and one of
       // the two changes was lost, in memory and in the database.
-      const bool removing = sCommand.FindNoCase(_T("-FLAGS")) >= 0;
-      const bool adding = !removing && sCommand.FindNoCase(_T("+FLAGS")) >= 0;
-      const bool replacing = !removing && !adding && sCommand.FindNoCase(_T("FLAGS")) >= 0;
+      const bool removing = removing_;
+      const bool adding = adding_;
+      const bool replacing = replacing_;
       const bool replaceKeywords = replacing && pConnection->CheckPermission(pConnection->GetCurrentFolder(), ACLPermission::PermissionWriteOthers);
 
       bool changedSince = false;
@@ -365,6 +339,70 @@ namespace HM
       return sRet;
    }
 
+   IMAPResult
+   IMAPStore::ParseFlags_(const String &sCommand)
+   //---------------------------------------------------------------------------
+   // DESCRIPTION:
+   // Reads what the command stores - the system flags, the keywords and whether
+   // they are removed, added or replace those there - into the members, once
+   // for the command. An error is answered for each message as it was.
+   //---------------------------------------------------------------------------
+   {
+      silent_ = sCommand.FindNoCase(_T("FLAGS.SILENT")) >= 0;
+
+      // Read flags from command.
+      seen_ = (sCommand.FindNoCase(_T("\\Seen")) >= 0);
+      deleted_ = (sCommand.FindNoCase(_T("\\Deleted")) >= 0);
+      draft_ = (sCommand.FindNoCase(_T("\\Draft")) >= 0);
+      answered_ = (sCommand.FindNoCase(_T("\\Answered")) >= 0);
+      flagged_ = (sCommand.FindNoCase(_T("\\Flagged")) >= 0);
+
+      // The keywords: every atom of the flag list that is not a system flag.
+      // The list is what follows FLAGS or FLAGS.SILENT, in parentheses or
+      // not; an atom that is not a keyword is a syntax error.
+      keywords_given_.clear();
+      {
+         int at = sCommand.FindNoCase(_T("FLAGS"));
+         if (at >= 0)
+         {
+            String rest = sCommand.Mid(at + 5);
+            if (rest.FindNoCase(_T(".SILENT")) == 0)
+               rest = rest.Mid(7);
+            rest.TrimLeft();
+            rest.TrimRight();
+            // RFC 3501: the flag list is one parenthesised list, or bare atoms.
+            // A parenthesis anywhere else - "(Not(Valid))" - is a syntax error,
+            // not two keywords; it used to be read as exactly that.
+            if (!rest.IsEmpty() && rest[0] == '(')
+            {
+               if (rest[rest.GetLength() - 1] != ')')
+                  return IMAPResult(IMAPResult::ResultBad, "Unbalanced flag list");
+               rest = rest.Mid(1, rest.GetLength() - 2);
+            }
+            if (rest.Find(_T("(")) >= 0 || rest.Find(_T(")")) >= 0)
+               return IMAPResult(IMAPResult::ResultBad, "Invalid keyword: a flag is an atom");
+            std::vector<String> atoms = StringParser::SplitString(rest, " ");
+            for (size_t i = 0; i < atoms.size(); i++)
+            {
+               String atom = atoms[i];
+               atom.TrimLeft();
+               atom.TrimRight();
+               if (atom.IsEmpty() || atom[0] == '\\')
+                  continue;
+               if (!SieveParser::IsValidFlagName(atom))
+                  return IMAPResult(IMAPResult::ResultBad, String("Invalid keyword: ") + atom);
+               keywords_given_.push_back(atom);
+            }
+         }
+      }
+
+      removing_ = sCommand.FindNoCase(_T("-FLAGS")) >= 0;
+      adding_ = !removing_ && sCommand.FindNoCase(_T("+FLAGS")) >= 0;
+      replacing_ = !removing_ && !adding_ && sCommand.FindNoCase(_T("FLAGS")) >= 0;
+
+      return IMAPResult();
+   }
+
    void
    IMAPStore::ParseModifier_(const String &sCommand)
    {
@@ -401,4 +439,92 @@ namespace HM
    }
       
 
+   namespace
+   {
+      // Message::JoinKeywords_ as 6.3.5 had it, word for word but for the name
+      // and KeywordsMaximumLength's value: what the one that compares with the
+      // keywords it kept is held to.
+      String OldJoinKeywords_(const std::vector<String> &keywords)
+      {
+         String joined;
+         for (size_t i = 0; i < keywords.size(); i++)
+         {
+            if (keywords[i].IsEmpty())
+               continue;
+            bool seen = false;
+            for (size_t j = 0; j < i && !seen; j++)
+               seen = keywords[j].CompareNoCase(keywords[i]) == 0;
+            if (seen)
+               continue;
+            String next = joined.IsEmpty() ? keywords[i] : joined + _T(" ") + keywords[i];
+            if (next.GetLength() > 500)
+               break;
+            joined = next;
+         }
+         return joined;
+      }
+
+      // xorshift64*: the same cases on every run and every platform.
+      unsigned long long NextKeywordRandom_(unsigned long long &state)
+      {
+         state ^= state >> 12;
+         state ^= state << 25;
+         state ^= state >> 27;
+         return state * 2685821657736338717ULL;
+      }
+   }
+
+   void
+   IMAPStoreKeywordsTester::Test(int cases)
+   {
+      // The time first: 30,000 keywords and then 30,000 of another, which a
+      // STORE's flag list can be. 6.3.5 compared each with every one before it.
+      {
+         std::vector<String> keywords;
+         for (int i = 0; i < 30000; i++)
+            keywords.push_back(_T("first"));
+         for (int i = 0; i < 30000; i++)
+            keywords.push_back(_T("Second"));
+
+         Message message(false);
+
+         std::chrono::steady_clock::time_point started = std::chrono::steady_clock::now();
+         message.SetKeywordList(keywords);
+         const double milliseconds = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - started).count();
+
+         if (milliseconds > 2000)
+            throw std::logic_error("60,000 repeated keywords took " + std::to_string((long long) milliseconds) + " ms to store");
+
+         if (message.GetKeywords() != _T("first Second"))
+            HM_TEST_FAILED();
+      }
+
+      // Then generated keyword lists: what 6.3.5 kept of them.
+      String longOne;
+      for (int i = 0; i < 120; i++)
+         longOne += _T("k");
+
+      const String pieces[] =
+      {
+         _T("a"), _T("A"), _T("b"), _T("B"), _T("flag"), _T("FLAG"), _T("Flag"), _T("x"), _T(""), longOne,
+         _T("$Forwarded"), _T("$forwarded")
+      };
+      const int pieceCount = (int) (sizeof(pieces) / sizeof(pieces[0]));
+
+      unsigned long long state = 0x3C6EF372FE94F82BULL;
+
+      for (int number = 0; number < cases; number++)
+      {
+         std::vector<String> keywords;
+         const int count = (int) (NextKeywordRandom_(state) % 31);
+         for (int i = 0; i < count; i++)
+            keywords.push_back(pieces[NextKeywordRandom_(state) % pieceCount]);
+
+         Message message(false);
+         message.SetKeywordList(keywords);
+
+         if (message.GetKeywords() != OldJoinKeywords_(keywords))
+            throw std::logic_error("The keywords kept were other than 6.3.5's in case " + std::to_string(number));
+      }
+   }
 }

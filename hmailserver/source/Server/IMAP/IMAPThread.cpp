@@ -13,6 +13,11 @@
 #include "../Common/Persistence/MessageStore.h"
 #include "../Common/Util/Time.h"
 
+#include <chrono>
+#include <locale>
+#include <stdexcept>
+#include <string>
+
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
 #define new DEBUG_NEW
@@ -199,61 +204,87 @@ namespace HM
          return c == ' ' || c == '\t';
       }
 
-      // Matches "[...]" *WSP at position, answering the position after it, or -1.
+      // Whether the text of value from position on begins with word, case
+      // ignored as CompareNoCase ignores it, no further than end.
+      bool
+      BeginsWithNoCase_(const String &value, int position, int end, const wchar_t *word)
+      {
+         const std::ctype<wchar_t> &ct = std::use_facet<std::ctype<wchar_t> >(std::locale::classic());
+
+         for (int i = 0; word[i] != 0; i++)
+         {
+            if (position + i >= end || ct.tolower(value.GetAt(position + i)) != ct.tolower(word[i]))
+               return false;
+         }
+
+         return true;
+      }
+
+      // Matches "[...]" *WSP at position, answering the position after it, or -1;
+      // nothing at or past end is read.
       // A blob holds no bracket of either kind (RFC 5256: subj-blob = "["
       // *BLOBCHAR "]", BLOBCHAR any CHAR but "[" and "]"), so "[fwd: [x] y]" is
       // not one. Taking the first "]" whatever came before it made the step-4
       // strip turn "[fwd: [fwd: re: [fwd: babylon]]]" into "]]", and SORT
       // (SUBJECT) put it after "[xyz]" instead of beside "b" (imaptest's
-      // sort-subject).
+      // sort-subject). The first bracket after the "[" decides: a "]" closes the
+      // blob, a "[" means it is none - which is what looking for the first of
+      // each answered, without reading on to a "]" far beyond a "[" near.
       int
-      MatchSubjBlob_(const String &value, int position)
+      MatchSubjBlob_(const String &value, int position, int end)
       {
-         if (position >= value.GetLength() || value.GetAt(position) != '[')
+         if (position >= end || value.GetAt(position) != '[')
             return -1;
 
-         int close = value.Find(_T("]"), position + 1);
+         int close = -1;
+         for (int i = position + 1; i < end; i++)
+         {
+            const wchar_t c = value.GetAt(i);
+
+            if (c == '[')
+               return -1;
+
+            if (c == ']')
+            {
+               close = i;
+               break;
+            }
+         }
+
          if (close < 0)
             return -1;
 
-         int nested = value.Find(_T("["), position + 1);
-         if (nested >= 0 && nested < close)
-            return -1;
-
          int after = close + 1;
-         while (after < value.GetLength() && IsWsp_(value.GetAt(after)))
+         while (after < end && IsWsp_(value.GetAt(after)))
             after++;
 
          return after;
       }
 
       // Matches ("re" / "fwd" / "fw") *WSP [subj-blob] ":" at position, answering
-      // the position after the colon, or -1.
+      // the position after the colon, or -1; nothing at or past end is read.
       int
-      MatchSubjRefwd_(const String &value, int position)
+      MatchSubjRefwd_(const String &value, int position, int end)
       {
-         String rest = value.Mid(position);
-
          int wordLength = 0;
-         if (rest.Mid(0, 3).CompareNoCase(_T("fwd")) == 0)
+         if (BeginsWithNoCase_(value, position, end, L"fwd"))
             wordLength = 3;
-         else if (rest.Mid(0, 2).CompareNoCase(_T("re")) == 0)
-            wordLength = 2;
-         else if (rest.Mid(0, 2).CompareNoCase(_T("fw")) == 0)
+         else if (BeginsWithNoCase_(value, position, end, L"re") ||
+                  BeginsWithNoCase_(value, position, end, L"fw"))
             wordLength = 2;
          else
             return -1;
 
          int cursor = position + wordLength;
 
-         while (cursor < value.GetLength() && IsWsp_(value.GetAt(cursor)))
+         while (cursor < end && IsWsp_(value.GetAt(cursor)))
             cursor++;
 
-         int afterBlob = MatchSubjBlob_(value, cursor);
+         int afterBlob = MatchSubjBlob_(value, cursor, end);
          if (afterBlob >= 0)
             cursor = afterBlob;
 
-         if (cursor >= value.GetLength() || value.GetAt(cursor) != ':')
+         if (cursor >= end || value.GetAt(cursor) != ':')
             return -1;
 
          return cursor + 1;
@@ -267,6 +298,13 @@ namespace HM
       // Implemented as the RFC's own step machine rather than a regular expression,
       // because the steps interact: "[fwd: Re: [x] hello]" unwraps outside-in, and
       // each unwrap can expose new trailers for step 2 and new leaders for step 3.
+      //
+      // What is left of the subject is value from begin up to end, and a layer
+      // peeled moves one of the two. Each used to make a new string of what was
+      // left, and the step-3 match copied the rest again: a subject of a hundred
+      // thousand "Re: " or "(fwd)" - a sender's, read whenever a client asks to
+      // SORT by subject or to THREAD the folder - took a time that grew with the
+      // square of its length.
       String
       CalculateBaseSubject_(const String &subject, bool &isReplyOrForward)
       {
@@ -298,6 +336,9 @@ namespace HM
             value += c;
          }
 
+         int begin = 0;
+         int end = value.GetLength();
+
          bool outerChanged = true;
 
          while (outerChanged)
@@ -310,21 +351,15 @@ namespace HM
             {
                trailerChanged = false;
 
-               int length = value.GetLength();
-
-               while (length > 0 && IsWsp_(value.GetAt(length - 1)))
-                  length--;
-
-               if (length != value.GetLength())
+               while (end > begin && IsWsp_(value.GetAt(end - 1)))
                {
-                  value = value.Mid(0, length);
+                  end--;
                   trailerChanged = true;
                }
 
-               if (value.GetLength() >= 5 &&
-                   value.Mid(value.GetLength() - 5).CompareNoCase(_T("(fwd)")) == 0)
+               if (end - begin >= 5 && BeginsWithNoCase_(value, end - 5, end, L"(fwd)"))
                {
-                  value = value.Mid(0, value.GetLength() - 5);
+                  end -= 5;
                   isReplyOrForward = true;
                   trailerChanged = true;
                }
@@ -342,13 +377,11 @@ namespace HM
                // white space comes off too. Unwrapping "[fwd: ...]" in step 5
                // leaves some, and with it in front nothing below matched, so the
                // second of two nested wrappers was never unwrapped.
-               int leading = 0;
-               while (leading < value.GetLength() && IsWsp_(value.GetAt(leading)))
-                  leading++;
-
-               if (leading > 0)
+               if (begin < end && IsWsp_(value.GetAt(begin)))
                {
-                  value = value.Mid(leading);
+                  while (begin < end && IsWsp_(value.GetAt(begin)))
+                     begin++;
+
                   leaderChanged = true;
                   continue;
                }
@@ -356,24 +389,24 @@ namespace HM
                // Step 3: *subj-blob subj-refwd ":". The blobs are only consumed if
                // the "re/fwd:" that licenses them actually follows - "[x] hello" is
                // a step-4 blob, not half a leader.
-               int cursor = 0;
+               int cursor = begin;
 
                while (true)
                {
-                  int afterBlob = MatchSubjBlob_(value, cursor);
+                  int afterBlob = MatchSubjBlob_(value, cursor, end);
                   if (afterBlob < 0)
                      break;
                   cursor = afterBlob;
                }
 
-               int afterRefwd = MatchSubjRefwd_(value, cursor);
+               int afterRefwd = MatchSubjRefwd_(value, cursor, end);
 
                if (afterRefwd >= 0)
                {
-                  while (afterRefwd < value.GetLength() && IsWsp_(value.GetAt(afterRefwd)))
+                  while (afterRefwd < end && IsWsp_(value.GetAt(afterRefwd)))
                      afterRefwd++;
 
-                  value = value.Mid(afterRefwd);
+                  begin = afterRefwd;
                   isReplyOrForward = true;
                   leaderChanged = true;
                   continue;
@@ -381,27 +414,35 @@ namespace HM
 
                // Step 4: a bare leading blob comes off only if a subject remains -
                // "[looking for a job]" IS the whole subject for somebody.
-               int afterBare = MatchSubjBlob_(value, 0);
+               //
+               // All of the run of blobs step 3 just read comes off here, one at a
+               // time, while a subject remains after each, as it did a pass of this
+               // loop at a time: with one taken off, step 3 read the rest of the
+               // same run, met the same text after it, and failed the same way, so
+               // only reading the run again, once per blob, is saved.
+               int afterBare = MatchSubjBlob_(value, begin, end);
 
-               if (afterBare >= 0 && afterBare < value.GetLength())
+               while (afterBare >= 0 && afterBare < end)
                {
-                  value = value.Mid(afterBare);
-                  leaderChanged = true;
+                  begin = afterBare;
+                  afterBare = MatchSubjBlob_(value, begin, end);
                }
             }
 
             // Step 5: the "[fwd: ...]" wrapper, outside-in. Unwrapping exposes a
             // fresh subject, so the whole machine runs again.
-            if (value.GetLength() >= 6 &&
-                value.Mid(0, 5).CompareNoCase(_T("[fwd:")) == 0 &&
-                value.GetAt(value.GetLength() - 1) == ']')
+            if (end - begin >= 6 &&
+                BeginsWithNoCase_(value, begin, end, L"[fwd:") &&
+                value.GetAt(end - 1) == ']')
             {
-               value = value.Mid(5, value.GetLength() - 6);
+               begin += 5;
+               end -= 1;
                isReplyOrForward = true;
                outerChanged = true;
             }
          }
 
+         value = value.Mid(begin, end - begin);
          value.Trim();
 
          return value;
@@ -599,6 +640,12 @@ namespace HM
    IMAPThread::GetBaseSubject(const String &subject)
    {
       bool isReplyOrForward = false;
+      return CalculateBaseSubject_(subject, isReplyOrForward);
+   }
+
+   String
+   IMAPThread::GetBaseSubject(const String &subject, bool &isReplyOrForward)
+   {
       return CalculateBaseSubject_(subject, isReplyOrForward);
    }
 
@@ -978,5 +1025,266 @@ namespace HM
       }
 
       return true;
+   }
+   namespace
+   {
+      // The base subject as 6.3.5 calculated it, word for word but for the
+      // names and the comments: what the one by offsets is held to.
+      int
+      OldMatchSubjBlob_(const String &value, int position)
+      {
+         if (position >= value.GetLength() || value.GetAt(position) != '[')
+            return -1;
+
+         int close = value.Find(_T("]"), position + 1);
+         if (close < 0)
+            return -1;
+
+         int nested = value.Find(_T("["), position + 1);
+         if (nested >= 0 && nested < close)
+            return -1;
+
+         int after = close + 1;
+         while (after < value.GetLength() && IsWsp_(value.GetAt(after)))
+            after++;
+
+         return after;
+      }
+
+      int
+      OldMatchSubjRefwd_(const String &value, int position)
+      {
+         String rest = value.Mid(position);
+
+         int wordLength = 0;
+         if (rest.Mid(0, 3).CompareNoCase(_T("fwd")) == 0)
+            wordLength = 3;
+         else if (rest.Mid(0, 2).CompareNoCase(_T("re")) == 0 ||
+                  rest.Mid(0, 2).CompareNoCase(_T("fw")) == 0)
+            wordLength = 2;
+         else
+            return -1;
+
+         int cursor = position + wordLength;
+
+         while (cursor < value.GetLength() && IsWsp_(value.GetAt(cursor)))
+            cursor++;
+
+         int afterBlob = OldMatchSubjBlob_(value, cursor);
+         if (afterBlob >= 0)
+            cursor = afterBlob;
+
+         if (cursor >= value.GetLength() || value.GetAt(cursor) != ':')
+            return -1;
+
+         return cursor + 1;
+      }
+
+      String
+      OldCalculateBaseSubject_(const String &subject, bool &isReplyOrForward)
+      {
+         isReplyOrForward = false;
+
+         String value;
+         bool lastWasSpace = false;
+
+         for (int i = 0; i < subject.GetLength(); i++)
+         {
+            wchar_t c = subject.GetAt(i);
+
+            if (c == '\t' || c == '\r' || c == '\n')
+               c = ' ';
+
+            if (c == ' ')
+            {
+               if (lastWasSpace)
+                  continue;
+               lastWasSpace = true;
+            }
+            else
+            {
+               lastWasSpace = false;
+            }
+
+            value += c;
+         }
+
+         bool outerChanged = true;
+
+         while (outerChanged)
+         {
+            outerChanged = false;
+
+            bool trailerChanged = true;
+            while (trailerChanged)
+            {
+               trailerChanged = false;
+
+               int length = value.GetLength();
+
+               while (length > 0 && IsWsp_(value.GetAt(length - 1)))
+                  length--;
+
+               if (length != value.GetLength())
+               {
+                  value = value.Mid(0, length);
+                  trailerChanged = true;
+               }
+
+               if (value.GetLength() >= 5 &&
+                   value.Mid(value.GetLength() - 5).CompareNoCase(_T("(fwd)")) == 0)
+               {
+                  value = value.Mid(0, value.GetLength() - 5);
+                  isReplyOrForward = true;
+                  trailerChanged = true;
+               }
+            }
+
+            bool leaderChanged = true;
+            while (leaderChanged)
+            {
+               leaderChanged = false;
+
+               int leading = 0;
+               while (leading < value.GetLength() && IsWsp_(value.GetAt(leading)))
+                  leading++;
+
+               if (leading > 0)
+               {
+                  value = value.Mid(leading);
+                  leaderChanged = true;
+                  continue;
+               }
+
+               int cursor = 0;
+
+               while (true)
+               {
+                  int afterBlob = OldMatchSubjBlob_(value, cursor);
+                  if (afterBlob < 0)
+                     break;
+                  cursor = afterBlob;
+               }
+
+               int afterRefwd = OldMatchSubjRefwd_(value, cursor);
+
+               if (afterRefwd >= 0)
+               {
+                  while (afterRefwd < value.GetLength() && IsWsp_(value.GetAt(afterRefwd)))
+                     afterRefwd++;
+
+                  value = value.Mid(afterRefwd);
+                  isReplyOrForward = true;
+                  leaderChanged = true;
+                  continue;
+               }
+
+               int afterBare = OldMatchSubjBlob_(value, 0);
+
+               if (afterBare >= 0 && afterBare < value.GetLength())
+               {
+                  value = value.Mid(afterBare);
+                  leaderChanged = true;
+               }
+            }
+
+            if (value.GetLength() >= 6 &&
+                value.Mid(0, 5).CompareNoCase(_T("[fwd:")) == 0 &&
+                value.GetAt(value.GetLength() - 1) == ']')
+            {
+               value = value.Mid(5, value.GetLength() - 6);
+               isReplyOrForward = true;
+               outerChanged = true;
+            }
+         }
+
+         value.Trim();
+
+         return value;
+      }
+
+      // xorshift64*: the same cases on every run and every platform.
+      unsigned long long NextSubjectRandom_(unsigned long long &state)
+      {
+         state ^= state >> 12;
+         state ^= state << 25;
+         state ^= state >> 27;
+         return state * 2685821657736338717ULL;
+      }
+   }
+
+   void
+   IMAPThreadSubjectTester::Test(int cases)
+   {
+      // The time first: subjects of a hundred thousand layers. 6.3.5 copied
+      // what was left of the subject for every layer it peeled.
+      struct Timed
+      {
+         const char *what;
+         const wchar_t *repeated;
+         int count;
+         const wchar_t *after;
+         const wchar_t *closing;
+         const wchar_t *expected;
+      };
+
+      static const Timed timed[] =
+      {
+         { "100,000 \"Re: \"", L"Re: ", 100000, L"hello", L"", L"hello" },
+         { "100,000 \"(fwd)\"", L"(fwd)", 100000, L"", L"", L"" },
+         { "100,000 \"[list] \"", L"[list] ", 100000, L"hello", L"", L"hello" },
+         { "20,000 \"[fwd: \"", L"[fwd: ", 20000, L"hello", L"]", L"hello" },
+      };
+
+      for (const Timed &one : timed)
+      {
+         String subject;
+         for (int i = 0; i < one.count; i++)
+            subject += one.repeated;
+         subject += one.after;
+         for (int i = 0; i < one.count && one.closing[0] != 0; i++)
+            subject += one.closing;
+
+         std::chrono::steady_clock::time_point started = std::chrono::steady_clock::now();
+         bool isReplyOrForward = false;
+         String base = IMAPThread::GetBaseSubject(subject, isReplyOrForward);
+         const double milliseconds = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - started).count();
+
+         if (base != one.expected)
+            HM_TEST_FAILED();
+
+         if (milliseconds > 2000)
+         {
+            throw std::logic_error(std::string("The base subject of ") + one.what + " took " + std::to_string((long long) milliseconds) + " ms");
+         }
+      }
+
+      // Then generated subjects: the base subject 6.3.5 made, and whether it
+      // was a reply's or a forward's.
+      static const wchar_t *pieces[] =
+      {
+         L"Re", L"re", L"RE", L"Fwd", L"FWD", L"fw", L"Fw", L":", L" ", L"\t", L"[", L"]",
+         L"(fwd)", L"(FwD)", L"[fwd:", L"[FWD:", L"x", L"y", L"list", L"\r\n", L"(", L")", L"  "
+      };
+      const int pieceCount = (int) (sizeof(pieces) / sizeof(pieces[0]));
+
+      unsigned long long state = 0x6A09E667F3BCC909ULL;
+
+      for (int number = 0; number < cases; number++)
+      {
+         String subject;
+         const int length = (int) (NextSubjectRandom_(state) % 20);
+         for (int i = 0; i < length; i++)
+            subject += pieces[NextSubjectRandom_(state) % pieceCount];
+
+         bool wasReplyOrForward = false;
+         String expected = OldCalculateBaseSubject_(subject, wasReplyOrForward);
+
+         bool isReplyOrForward = false;
+         String got = IMAPThread::GetBaseSubject(subject, isReplyOrForward);
+
+         if (got != expected || isReplyOrForward != wasReplyOrForward)
+            throw std::logic_error("The base subject was other than 6.3.5's in case " + std::to_string(number));
+      }
    }
 }

@@ -419,19 +419,25 @@ namespace HM
       // no message matches, so the search returns nothing rather than everything.
       if (sCurCommand == _T("$"))
       {
-         std::vector<String> savedSet;
-
-         for (__int64 savedUid : saved_search_result_)
+         // Made once for the command and shared by every "$" in it.
+         if (!saved_set_)
          {
-            String uidText;
-            uidText.Format(_T("%I64d"), savedUid);
-            savedSet.push_back(uidText);
+            std::vector<String> savedSet;
+
+            for (__int64 savedUid : saved_search_result_)
+            {
+               String uidText;
+               uidText.Format(_T("%I64d"), savedUid);
+               savedSet.push_back(uidText);
+            }
+
+            if (savedSet.empty())
+               savedSet.push_back(_T("0"));
+
+            saved_set_ = std::make_shared<const std::vector<String> >(std::move(savedSet));
          }
 
-         if (savedSet.empty())
-            savedSet.push_back(_T("0"));
-
-         pNewCriteria->SetSequenceSet(savedSet);
+         pNewCriteria->SetSequenceSet(saved_set_);
          pNewCriteria->SetType(IMAPSearchCriteria::CTUID);
 
          return IMAPResult();

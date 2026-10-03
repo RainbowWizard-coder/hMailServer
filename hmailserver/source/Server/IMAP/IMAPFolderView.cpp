@@ -6,6 +6,8 @@
 
 #include "IMAPFolderView.h"
 
+#include <algorithm>
+
 #include "../Common/BO/Message.h"
 #include "../Common/BO/Messages.h"
 
@@ -107,25 +109,63 @@ namespace HM
       return true;
    }
 
+   namespace
+   {
+      // entries_ is ordered by UID ascending and holds each UID once: a message
+      // goes in at the end only with a UID above every one before it
+      // (AppendNewMessages), Initialize starts it again empty, and
+      // RemoveMessages keeps the order of what remains. So the messages of a
+      // range of UIDs are one run of it, found by halving. They were found by
+      // reading the whole view, for each UID and each range of a client's set:
+      // "UID FETCH 1,2,3,..." of a few hundred thousand UIDs over a large
+      // mailbox took a time that grew with the product of the two.
+      bool UidBelow_(const IMAPViewEntry &entry, unsigned int uid)
+      {
+         return entry.uid < uid;
+      }
+
+      bool UidAbove_(unsigned int uid, const IMAPViewEntry &entry)
+      {
+         return uid < entry.uid;
+      }
+   }
+
    bool
    IMAPFolderView::GetEntryByUID(unsigned int uid, int &sequence, IMAPViewEntry &entry) const
    {
       boost::lock_guard<boost::recursive_mutex> guard(mutex_);
 
-      for (size_t i = 0; i < entries_.size(); i++)
+      auto iter = std::lower_bound(entries_.begin(), entries_.end(), uid, UidBelow_);
+
+      if (iter == entries_.end() || (*iter).uid != uid)
       {
-         if (entries_[i].uid != uid)
-            continue;
-
-         sequence = (int) i + 1;
-         entry = entries_[i];
-
-         return true;
+         sequence = 0;
+         return false;
       }
 
-      sequence = 0;
+      sequence = (int) (iter - entries_.begin()) + 1;
+      entry = *iter;
+      return true;
+   }
 
-      return false;
+   bool
+   IMAPFolderView::GetSequenceRangeByUIDRange(unsigned int first, unsigned int last, int &firstSequence, int &lastSequence) const
+   {
+      boost::lock_guard<boost::recursive_mutex> guard(mutex_);
+
+      auto begin = std::lower_bound(entries_.begin(), entries_.end(), first, UidBelow_);
+      auto end = std::upper_bound(entries_.begin(), entries_.end(), last, UidAbove_);
+
+      if (begin >= end)
+      {
+         firstSequence = 0;
+         lastSequence = -1;
+         return false;
+      }
+
+      firstSequence = (int) (begin - entries_.begin()) + 1;
+      lastSequence = (int) (end - entries_.begin());
+      return true;
    }
 
    bool
@@ -172,15 +212,14 @@ namespace HM
 
       std::vector<std::pair<int, IMAPViewEntry> > result;
 
-      for (size_t i = 0; i < entries_.size(); i++)
-      {
-         unsigned int uid = entries_[i].uid;
+      int firstSequence = 0;
+      int lastSequence = -1;
 
-         if (uid < first || uid > last)
-            continue;
+      if (!GetSequenceRangeByUIDRange(first, last, firstSequence, lastSequence))
+         return result;
 
-         result.push_back(std::make_pair((int) i + 1, entries_[i]));
-      }
+      for (int sequence = firstSequence; sequence <= lastSequence; sequence++)
+         result.push_back(std::make_pair(sequence, entries_[sequence - 1]));
 
       return result;
    }

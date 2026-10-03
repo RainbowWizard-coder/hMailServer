@@ -184,6 +184,8 @@
     <Compile Include="..\RegressionTests\IMAP\ConcurrentConnections.cs" Link="IMAP\ConcurrentConnections.cs" />
     <Compile Include="..\RegressionTests\IMAP\Examine.cs" Link="IMAP\Examine.cs" />
     <Compile Include="..\RegressionTests\IMAP\Fetch.cs" Link="IMAP\Fetch.cs" />
+    <Compile Include="..\RegressionTests\IMAP\ClientTextCost.cs" Link="IMAP\ClientTextCost.cs" />
+    <Compile Include="..\RegressionTests\IMAP\FetchParsingTime.cs" Link="IMAP\FetchParsingTime.cs" />
     <Compile Include="..\RegressionTests\IMAP\Folders.cs" Link="IMAP\Folders.cs" />
     <Compile Include="..\RegressionTests\IMAP\FullTextSearch.cs" Link="IMAP\FullTextSearch.cs" />
     <Compile Include="..\RegressionTests\IMAP\HierarchyDelimiter.cs" Link="IMAP\HierarchyDelimiter.cs" />

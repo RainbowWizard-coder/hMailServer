@@ -519,7 +519,14 @@ namespace HM
 
             const String fileName = PersistentMessage::GetFileName(pConnection->GetAccountOwningCurrentFolder(), pMessage);
 
-            if (DoesMessageMatch_(pConnection, pParser->GetCriteria(), fileName, pMessage, index))
+            const bool matches = DoesMessageMatch_(pConnection, pParser->GetCriteria(), fileName, pMessage, index);
+
+            // A ceiling passed part way through this message: what was answered
+            // for it is not an answer.
+            if (match_interrupted_)
+               return AbortSearch_(pConnection, index);
+
+            if (matches)
             {
                // Yup we got a match.
                vecMatchingMessages.push_back(make_pair(index, pMessage));
@@ -729,6 +736,16 @@ namespace HM
       bool bMessageIsMatchingCriteria = true;
       while (iterCriteria != vecCriterias.end())
       {
+         // The time ceiling, before each key and not only before each message: a
+         // command line holds a hundred thousand keys, and a TEXT or BODY key
+         // reads the whole message. Passed, the match is given up, and the
+         // search with it (match_interrupted_).
+         if (match_interrupted_ || TimeBoundExceeded_())
+         {
+            match_interrupted_ = true;
+            return false;
+         }
+
          bMessageIsMatchingCriteria = true;
 
          std::shared_ptr<IMAPSearchCriteria> pCriteria = (*iterCriteria);
@@ -1126,6 +1143,11 @@ namespace HM
       highest_modseq_ = 0;
       max_uid_ = 0;
       message_count_ = 0;
+
+      // This search's own: "*" in the sets is read against this search's mailbox.
+      match_interrupted_ = false;
+      uid_runs_.clear();
+      sequence_runs_.clear();
    }
 
    bool
@@ -1148,6 +1170,19 @@ namespace HM
          return true;
       }
 
+      return TimeBoundExceeded_();
+   }
+
+   bool
+   IMAPCommandSEARCH::TimeBoundExceeded_()
+   //---------------------------------------------------------------------------()
+   // DESCRIPTION:
+   // True once this search has run for longer than IMAPSearchTimeout: the half of
+   // BoundExceeded_ that DoesMessageMatch_ asks before each key. The bytes half
+   // stays between messages, where a message whose reading passed it has been paid
+   // for and is answered.
+   //---------------------------------------------------------------------------()
+   {
       if (search_timeout_seconds_ > 0)
       {
          const unsigned __int64 elapsed = GetTickCount64() - search_start_tick_;
@@ -1567,9 +1602,13 @@ namespace HM
    bool
    IMAPCommandSEARCH::MatchesUIDCriteria_(std::shared_ptr<Message> pMessage, std::shared_ptr<IMAPSearchCriteria> pCriteria)
    {
-      std::vector<String> split = pCriteria->GetSequenceSet();
+      const std::vector<String> &split = pCriteria->GetSequenceSet();
 
-      bool found = IMAPListLookup::IsItemInList(split, (__int64) pMessage->GetUID(), max_uid_);
+      auto runs = uid_runs_.find(&split);
+      if (runs == uid_runs_.end())
+         runs = uid_runs_.insert(std::make_pair(&split, IMAPListLookup::ToRuns(split, max_uid_))).first;
+
+      bool found = IMAPListLookup::IsItemInRuns((*runs).second, (__int64) pMessage->GetUID());
 
       if (pCriteria->GetPositive())
          return found;
@@ -1580,9 +1619,13 @@ namespace HM
    bool
    IMAPCommandSEARCH::MatchesSequenceSetCriteria_(std::shared_ptr<Message> pMessage, std::shared_ptr<IMAPSearchCriteria> pCriteria, int index)
    {
-      std::vector<String> split = pCriteria->GetSequenceSet();
+      const std::vector<String> &split = pCriteria->GetSequenceSet();
 
-      bool found = IMAPListLookup::IsItemInList(split, (__int64) index, (__int64) message_count_);
+      auto runs = sequence_runs_.find(&split);
+      if (runs == sequence_runs_.end())
+         runs = sequence_runs_.insert(std::make_pair(&split, IMAPListLookup::ToRuns(split, (__int64) message_count_))).first;
+
+      bool found = IMAPListLookup::IsItemInRuns((*runs).second, (__int64) index);
 
       if (pCriteria->GetPositive())
          return found;

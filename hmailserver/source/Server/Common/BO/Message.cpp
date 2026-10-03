@@ -110,20 +110,29 @@ namespace HM
    String
    Message::JoinKeywords_(const std::vector<String> &keywords)
    {
+      // A keyword the same as one before it, case ignored, is left out. It is
+      // compared with those kept, which the length limit holds to a few
+      // hundred: every keyword before it is one of them or the same as one, the
+      // empty ones aside. It was compared with every keyword before it, kept or
+      // not, so a STORE of a few hundred thousand repeated keywords - a client's
+      // command - took a time that grew with the square of their number, for
+      // each message it named.
       String joined;
+      std::vector<String> kept;
       for (size_t i = 0; i < keywords.size(); i++)
       {
          if (keywords[i].IsEmpty())
             continue;
          bool seen = false;
-         for (size_t j = 0; j < i && !seen; j++)
-            seen = keywords[j].CompareNoCase(keywords[i]) == 0;
+         for (size_t j = 0; j < kept.size() && !seen; j++)
+            seen = kept[j].CompareNoCase(keywords[i]) == 0;
          if (seen)
             continue;
          String next = joined.IsEmpty() ? keywords[i] : joined + _T(" ") + keywords[i];
          if (next.GetLength() > KeywordsMaximumLength)
             break;
          joined = next;
+         kept.push_back(keywords[i]);
       }
       return joined;
    }

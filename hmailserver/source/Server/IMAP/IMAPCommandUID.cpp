@@ -17,6 +17,7 @@
 #include "IMAPFolderView.h"
 #include "IMAPNotificationClient.h"
 #include "IMAPCommandSearch.h"
+#include "IMAPListLookup.h"
 
 #include "MessagesContainer.h"
 
@@ -286,7 +287,15 @@ namespace HM
                tokens.push_back(s);
             }
             String sSubstitution = tokens.empty() ? String(_T("0")) : StringParser::JoinVector(tokens, _T(","));
-            sUidSet.Replace(_T("$"), sSubstitution.c_str());
+
+            // Once, where "$" stands alone, as for the other commands of a set
+            // (IMAPListLookup::ExpandSavedResult): it was replaced as text, once
+            // per "$" of the command line.
+            String sExpanded;
+            if (!IMAPListLookup::ExpandSavedResult(sUidSet, sSubstitution, sExpanded))
+               return IMAPResult(IMAPResult::ResultBad, "Invalid message set: \"$\" stands alone for the saved result.");
+
+            sUidSet = sExpanded;
          }
 
          if (sUidSet.IsEmpty() || !StringParser::ValidateString(sUidSet, "01234567890,.:*"))
@@ -300,22 +309,17 @@ namespace HM
          view->AppendNewMessages(messages);
 
          // "*" is the largest UID this session knows about - see IMAPCommandRangeAction.
-         std::vector<std::pair<unsigned int, unsigned int>> ranges = ParseUidSet_(sUidSet, view->GetHighestUID());
+         // Sorted and merged, each message's UID found by halving: every range was
+         // read for every message, a set of a hundred thousand ranges over a
+         // mailbox of thousands.
+         const IMAPListLookup::UidRanges ranges = IMAPListLookup::MergeUidRanges(ParseUidSet_(sUidSet, view->GetHighestUID()));
 
          std::set<__int64> candidate_ids;
 
          for (const std::pair<int, IMAPViewEntry> &entry : view->GetAllEntries())
          {
-            unsigned int uid = entry.second.uid;
-
-            for (const std::pair<unsigned int, unsigned int> &range : ranges)
-            {
-               if (uid >= range.first && uid <= range.second)
-               {
-                  candidate_ids.insert(entry.second.message_id);
-                  break;
-               }
-            }
+            if (IMAPListLookup::IsInUidRanges(ranges, entry.second.uid))
+               candidate_ids.insert(entry.second.message_id);
          }
 
          std::map<__int64, std::shared_ptr<Message> > candidates = messages->GetCopyByIds(candidate_ids);
@@ -440,17 +444,15 @@ namespace HM
             {
                std::vector<__int64> expunged = PersistentIMAPFolder::GetExpungedUIDsSince(pCurFolder->GetID(), fetchVanishedSince);
 
+               // The ranges sorted and merged, each UID found by halving, where
+               // every range was read for every expunged UID.
+               const IMAPListLookup::UidRanges merged = IMAPListLookup::MergeUidRanges(vanishedRanges);
+
                std::vector<__int64> reported;
                for (__int64 uid : expunged)
                {
-                  for (const std::pair<unsigned int, unsigned int> &range : vanishedRanges)
-                  {
-                     if ((unsigned int) uid >= range.first && (unsigned int) uid <= range.second)
-                     {
-                        reported.push_back(uid);
-                        break;
-                     }
-                  }
+                  if (IMAPListLookup::IsInUidRanges(merged, (unsigned int) uid))
+                     reported.push_back(uid);
                }
 
                sVanishedSet = IMAPConnection::CompactUidSet(reported);

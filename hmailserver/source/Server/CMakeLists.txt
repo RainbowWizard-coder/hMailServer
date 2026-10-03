@@ -997,6 +997,21 @@ add_executable(profiles-tests ${SERVER_DIR}/platform/profiles_tests_main.cpp)
 target_link_libraries(profiles-tests PRIVATE hmailserver_core)
 set_target_properties(profiles-tests PROPERTIES OUTPUT_NAME profiles-tests)
 
+# ---------------------------------------------------------------- the IMAP parsers' time
+#
+# StringNoCaseTester (Common/Util/Parsing/StringParser.h), IMAPFetchParserTester,
+# IMAPThreadSubjectTester, IMAPSequenceSetTester and IMAPStoreKeywordsTester (IMAP/)
+# as a program of their own, for the reason spf-tests is one: on Windows they run
+# inside the server through ClassTester, which nothing reaches here. What String's
+# case-ignoring search and replace, the items of a FETCH, the base subject, a
+# message set and a STORE's keywords make, held to what 6.3.5's code - kept in the
+# testers - made of the same generated cases, and the time each takes held to a
+# pass over what it reads. No network, configuration or database. Not installed;
+# a bench tool.
+add_executable(imap-parse-tests ${SERVER_DIR}/platform/imap_parse_tests_main.cpp)
+target_link_libraries(imap-parse-tests PRIVATE hmailserver_core)
+set_target_properties(imap-parse-tests PROPERTIES OUTPUT_NAME imap-parse-tests)
+
 include(GNUInstallDirs)
 install(TARGETS hmailserver RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 install(DIRECTORY ${SERVER_DIR}/../DBScripts/

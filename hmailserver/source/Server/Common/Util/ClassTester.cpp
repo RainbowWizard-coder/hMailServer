@@ -96,6 +96,10 @@
 #include "Utilities.h"
 #include "Parsing/AddresslistParser.h"
 #include "../../IMAP/IMAPSimpleCommandParser.h"
+#include "../../IMAP/IMAPFetchParser.h"
+#include "../../IMAP/IMAPThread.h"
+#include "../../IMAP/IMAPCommandRangeAction.h"
+#include "../../IMAP/IMAPStore.h"
 #include "LegacyBlowfish.h"
 #ifndef HM_PLATFORM_POSIX
 #include "AdminUpdate.h"
@@ -2393,6 +2397,23 @@ namespace HM
       IMAPSimpleCommandParserTester *pTest = new IMAPSimpleCommandParserTester();
       pTest->Test();
       delete pTest;
+
+      // What the parsers of a client's text make, held to what they made up to
+      // 6.3.5 over generated cases, and the time they take held to one pass:
+      // String's case-ignoring search and replace, the items of a FETCH, the
+      // base subject SORT and THREAD read, a message set, a STORE's keywords.
+      // imap-parse-tests runs the same on Linux.
+      OutputDebugString(_T("hMailServer: Testing the IMAP parsers' time\n"));
+      StringNoCaseTester stringNoCaseTester;
+      stringNoCaseTester.Test();
+      IMAPFetchParserTester imapFetchParserTester;
+      imapFetchParserTester.Test();
+      IMAPThreadSubjectTester imapThreadSubjectTester;
+      imapThreadSubjectTester.Test();
+      IMAPSequenceSetTester imapSequenceSetTester;
+      imapSequenceSetTester.Test();
+      IMAPStoreKeywordsTester imapStoreKeywordsTester;
+      imapStoreKeywordsTester.Test();
 
       // A message's keywords, changed and read by several threads at once. A
       // message in an IMAP folder is one object every session on the mailbox
