@@ -411,5 +411,86 @@ namespace RegressionTests.Infrastructure.Persistence
          range.UpperIP = "0.0.0.1";
          range.Save();
       }
+
+      // Texts that are no address to the server on any platform since 6.3.6: the
+      // older IPv4 forms Windows' own parser read until then (192.168.001.001 as
+      // 192.168.1.1, 192.168.1 as 192.168.0.1, 10.1, hexadecimal, one number), an
+      // address with a port or in brackets, and what was never an address.
+      private static readonly string[] NotAddresses =
+      {
+         "192.168.001.001", "192.168.1", "10.1", "0x7f.0.0.1", "3232235777", "192.0.2.7:25", "[::1]", "[2001:db8::1]:25",
+         "", "not-an-address"
+      };
+
+      [Test]
+      [Description("An IP range's bound that is no address is refused over COM, with the reason, and the range keeps the address it had. Until 6.3.6 LowerIP and UpperIP ignored the parse and stored 0.0.0.0: a range whose lower bound was typed 192.168.001.001 - which Windows read as 192.168.1.1 until the server read an address the same way on every platform - began at 0.0.0.0, with whatever it allows.")]
+      public void AnIPRangeBoundThatIsNoAddressIsRefusedNotStoredAsZero()
+      {
+         var app = SingletonProvider<TestSetup>.Instance.GetApp();
+         var range = app.Settings.SecurityRanges.Add();
+         range.Name = "Bound refusal";
+         range.LowerIP = "192.0.2.10";
+         range.UpperIP = "192.0.2.20";
+
+         foreach (string text in NotAddresses)
+         {
+            var lower = Assert.Throws<COMException>(() => range.LowerIP = text, "LowerIP took '" + text + "'.");
+            StringAssert.Contains("LowerIP is not an IP address", lower.Message);
+            var upper = Assert.Throws<COMException>(() => range.UpperIP = text, "UpperIP took '" + text + "'.");
+            StringAssert.Contains("UpperIP is not an IP address", upper.Message);
+
+            ClassicAssert.AreEqual("192.0.2.10", range.LowerIP, "LowerIP changed when '" + text + "' was refused.");
+            ClassicAssert.AreEqual("192.0.2.20", range.UpperIP, "UpperIP changed when '" + text + "' was refused.");
+         }
+
+         // And an address in either family is still taken.
+         range.LowerIP = "2001:db8::1";
+         range.UpperIP = "2001:db8::ff";
+         ClassicAssert.AreEqual("2001:db8::1", range.LowerIP);
+         ClassicAssert.AreEqual("2001:db8::ff", range.UpperIP);
+      }
+
+      [Test]
+      [Description("An incoming relay's bound that is no address is refused over COM, and the relay keeps the address it had - never 0.0.0.0, which until 6.3.6 made it a relay for every address below its upper bound.")]
+      public void AnIncomingRelayBoundThatIsNoAddressIsRefusedNotStoredAsZero()
+      {
+         var app = SingletonProvider<TestSetup>.Instance.GetApp();
+         var relay = app.Settings.IncomingRelays.Add();
+         relay.Name = "Bound refusal";
+         relay.LowerIP = "192.0.2.10";
+         relay.UpperIP = "192.0.2.20";
+
+         foreach (string text in NotAddresses)
+         {
+            var lower = Assert.Throws<COMException>(() => relay.LowerIP = text, "LowerIP took '" + text + "'.");
+            StringAssert.Contains("LowerIP is not an IP address", lower.Message);
+            var upper = Assert.Throws<COMException>(() => relay.UpperIP = text, "UpperIP took '" + text + "'.");
+            StringAssert.Contains("UpperIP is not an IP address", upper.Message);
+
+            ClassicAssert.AreEqual("192.0.2.10", relay.LowerIP, "LowerIP changed when '" + text + "' was refused.");
+            ClassicAssert.AreEqual("192.0.2.20", relay.UpperIP, "UpperIP changed when '" + text + "' was refused.");
+         }
+      }
+
+      [Test]
+      [Description("A white-list entry's bound that is no address is refused over COM, and the entry keeps the address it had - never 0.0.0.0, which until 6.3.6 white-listed every address below the upper bound.")]
+      public void AWhiteListBoundThatIsNoAddressIsRefusedNotStoredAsZero()
+      {
+         var app = SingletonProvider<TestSetup>.Instance.GetApp();
+         var entry = app.Settings.AntiSpam.WhiteListAddresses.Add();
+         entry.LowerIPAddress = "192.0.2.10";
+         entry.UpperIPAddress = "192.0.2.20";
+
+         foreach (string text in NotAddresses)
+         {
+            var lower = Assert.Throws<COMException>(() => entry.LowerIPAddress = text, "LowerIPAddress took '" + text + "'.");
+            StringAssert.Contains("LowerIPAddress is not an IP address", lower.Message);
+            var upper = Assert.Throws<COMException>(() => entry.UpperIPAddress = text, "UpperIPAddress took '" + text + "'.");
+            StringAssert.Contains("UpperIPAddress is not an IP address", upper.Message);
+
+            ClassicAssert.AreEqual("192.0.2.10", entry.LowerIPAddress, "LowerIPAddress changed when '" + text + "' was refused.");
+            ClassicAssert.AreEqual("192.0.2.20", entry.UpperIPAddress, "UpperIPAddress changed when '" + text + "' was refused.");
+         }
+      }
    }
 }

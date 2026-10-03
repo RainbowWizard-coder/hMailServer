@@ -86,6 +86,9 @@
          with it because ApiKeyStore locates the store file through it. -->
     <Compile Include="..\ControlPanel\Services\ApiKeyStore.cs" />
     <Compile Include="..\ControlPanel\Services\IniFeatureStore.cs" />
+    <!-- An address read as the server reads one (IPAddress::Parse), which the
+         source restriction's addresses are checked with. -->
+    <Compile Include="..\ControlPanel\Services\ServerAddressText.cs" />
     <!-- The words for when a saved setting reaches the running server, which
          IniFeatureStore's pending list is read through (docs/SettingsApply.md). -->
     <Compile Include="..\ControlPanel\Services\SettingApplies.cs" />

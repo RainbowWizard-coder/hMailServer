@@ -478,11 +478,8 @@ namespace HM
    RecipientCallout::Verdict
    RecipientCallout::Probe_(const String &host, int port, const String &address, int timeoutSeconds, String &reason)
    {
-      boost::system::error_code parseError;
-      boost::asio::ip::address remoteAddress =
-         boost::asio::ip::make_address(std::string(AnsiString(host).c_str()), parseError);
-
-      if (parseError)
+      boost::asio::ip::address remoteAddress;
+      if (!IPAddress::Parse(AnsiString(host), remoteAddress))
       {
          reason = _T("the address of the verification server could not be used");
          return CalloutUnknown;

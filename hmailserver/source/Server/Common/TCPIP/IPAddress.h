@@ -59,6 +59,15 @@ namespace HM
 
       static bool IsValid(const AnsiString &address);
 
+      // The address a text is, read the same way on every platform: four decimal
+      // parts for IPv4, RFC 4291's text for IPv6 with a zone after a '%' if it
+      // has one, and nothing around either - no brackets, no port, none of the
+      // older IPv4 forms. Boost's make_address reads text with the platform's
+      // own parser, which on Windows reads all of those as well (IPAddress.cpp
+      // says which), so an address in text is read with this and never with
+      // make_address (build/check-address-parsing.py holds the tree to that).
+      static bool Parse(const AnsiString &text, boost::asio::ip::address &address);
+
    private:
 
       void SetIPV4Address_(__int64 address1);

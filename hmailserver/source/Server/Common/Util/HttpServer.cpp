@@ -1172,10 +1172,10 @@ namespace HM
       // loopback is what it always meant here.
       AnsiString narrowBindAddress = bind_address == _T("localhost") ? AnsiString("127.0.0.1") : AnsiString(bind_address);
 
-      boost::system::error_code error;
-      boost::asio::ip::address address = boost::asio::ip::make_address(narrowBindAddress.c_str(), error);
-
-      if (error)
+      // Read as IPAddress reads an address on every platform, so that a bind
+      // address Linux refuses is refused on Windows too (127.1, 0x7f.1).
+      boost::asio::ip::address address;
+      if (!IPAddress::Parse(narrowBindAddress, address))
       {
          LOG_APPLICATION(String(name_) + ": Invalid bind address: " + bind_address);
          return false;
@@ -1184,6 +1184,7 @@ namespace HM
       std::shared_ptr<Listener> listener(new Listener(io_, port, tls));
       boost::asio::ip::tcp::endpoint endpoint(address, static_cast<unsigned short>(port));
 
+      boost::system::error_code error;
       listener->acceptor.open(endpoint.protocol(), error);
       if (error)
       {

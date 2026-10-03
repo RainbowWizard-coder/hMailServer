@@ -128,7 +128,17 @@ namespace HM
 
       if (value.Find(_T("*")) >= 0)
       {
-         refusal = _T("pattern has no * wildcard: write .example.net for example.net and every name beneath it");
+         // The refusal says how to write what was meant: *.example.org is
+         // .example.org. Only a pattern this check would take is echoed - one star,
+         // as the first label, before a name that is no public suffix - so nothing
+         // of the text goes back unvalidated; any other star is answered with the
+         // example.
+         String meant = _T(".example.net");
+         String unused;
+         if (value.StartsWith(_T("*.")) && value.Find(_T("*"), 1) < 0 && ValidatePattern(value.Mid(1), unused))
+            meant = value.Mid(1);
+
+         refusal = String(_T("pattern has no * wildcard: write ")) + meant + _T(" for ") + meant.Mid(1) + _T(" and every name beneath it");
          return false;
       }
 

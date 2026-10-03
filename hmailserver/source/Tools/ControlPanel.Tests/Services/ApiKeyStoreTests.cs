@@ -305,6 +305,30 @@ namespace hMailServer.ControlPanel.Tests.Services
       /// so a range whose ends are different families is refused - again leaving a
       /// key usable from nowhere.
       /// </summary>
+      /// <summary>
+      /// An address in a form System.Net.IPAddress.TryParse reads and the server
+      /// does not - an older IPv4 form, octal by a leading zero, brackets, a port -
+      /// in any of the three forms. The server refuses each since 6.3.6, on Windows
+      /// as on Linux, and a key restricted so would be refused from every address.
+      /// </summary>
+      [Theory]
+      [InlineData("10.1")]
+      [InlineData("010.0.0.5")]
+      [InlineData("192.168.001.001")]
+      [InlineData("0x0a.0.0.5")]
+      [InlineData("167772165")]
+      [InlineData("10.0.0.5:443")]
+      [InlineData("[::1]")]
+      [InlineData("10.1/8")]
+      [InlineData("010.0.0.0/8")]
+      [InlineData("[2001:db8::]/32")]
+      [InlineData("10.0.0.1-10.0.0.099")]
+      [InlineData("10.1-10.0.0.99")]
+      public void LooksLikeSourceRestriction_RefusesAnAddressTheServerDoesNotRead(string value)
+      {
+         Assert.False(ApiKeyStore.LooksLikeSourceRestriction(value));
+      }
+
       [Fact]
       public void LooksLikeSourceRestriction_RefusesAMixedFamilyRange()
       {

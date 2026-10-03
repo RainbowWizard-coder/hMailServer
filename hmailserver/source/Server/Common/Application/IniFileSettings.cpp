@@ -2810,8 +2810,13 @@ namespace HM
          // Ten thousand reads at least, and on until the writer has published a
          // thousand blocks under them, so the reads cannot all fall between two
          // publishes. Bounded, so a writer that stalls fails the test rather than
-         // hanging the suite.
-         while ((reads < 10000 || publishes.load() < 1000) && GetTickCount64() - started < 60000)
+         // hanging the suite - at five minutes, not one: each publish reads
+         // hMailServer.ini once for each of some 240 keys, and on bench150 on 2
+         // October 2026, beside the builds of the laptop it runs on, the thousand
+         // took 44 seconds in one run and more than 60 in two others (915 and 813
+         // publishes), which failed the internal suite with nothing wrong. A stall
+         // is still a failure, and a block read torn is one at any speed.
+         while ((reads < 10000 || publishes.load() < 1000) && GetTickCount64() - started < 300000)
          {
             const String value = ini->GetTlsRptOrganizationName();
 
@@ -2831,7 +2836,7 @@ namespace HM
          stop = true;
          writer.join();
 
-         // Timed, in the application log, because the budget above is a minute and
+         // Timed, in the application log, because the budget above is five minutes and
          // every publish rebuilds the whole block - reading hMailServer.ini once for
          // each key the overlay does not hold - so a slow or scanned disk is where it
          // would run out first.
@@ -2845,7 +2850,7 @@ namespace HM
             FailSettingsTest_(Formatter::Format(_T("{0} of {1} reads under {2} publishes were neither value - for example '{3}'."), torn, reads, publishes.load(), example));
 
          if (reads < 10000 || publishes.load() < 1000)
-            FailSettingsTest_(Formatter::Format(_T("The load did not run its course in a minute: {0} reads, {1} publishes."), reads, publishes.load()));
+            FailSettingsTest_(Formatter::Format(_T("The load did not run its course in five minutes: {0} reads, {1} publishes."), reads, publishes.load()));
 
          if (sawFirst == 0 || sawSecond == 0)
             FailSettingsTest_(Formatter::Format(_T("The reads saw only one of the two values ({0} and {1}), so they never ran across a swap."), sawFirst, sawSecond));

@@ -819,7 +819,7 @@ namespace HM
       // what keeps the webmail's round trip true.
       {
          const String canonical =
-            _T("<p><b>Ada Lovelace</b> é here</p>")
+            _T("<p><b>Ada Lovelace</b> \u00E9 here</p>")
             _T("<img src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==\" alt=\"\">");
          ExpectSanitizes(canonical, canonical);
       }
@@ -834,12 +834,18 @@ namespace HM
       // ampersand. Each comes back from a second pass as it went in. (A value
       // with no '<' at all is returned as it is - no tag can come of it - so
       // these carry one.)
+      //
+      // Every character beyond ASCII in these literals is written as an escape.
+      // The file has no byte-order mark and the Windows build does not pass
+      // /utf-8, so MSVC reads raw UTF-8 bytes in the ANSI code page: a raw
+      // copyright sign was two characters there, and the expected text was
+      // wrong on Windows alone.
       ExpectSanitizes(_T("<b>&copy; 2026 Example Ltd</b>"), _T("<b>&copy; 2026 Example Ltd</b>"));
       ExpectSanitizes(_T("<p>Fran&ccedil;ois &mdash; Paris</p>"), _T("<p>Fran&ccedil;ois &mdash; Paris</p>"));
-      ExpectSanitizes(_T("<b>&#169; &#xA9; &#XA9;</b>"), _T("<b>© © ©</b>"));
+      ExpectSanitizes(_T("<b>&#169; &#xA9; &#XA9;</b>"), _T("<b>\u00A9 \u00A9 \u00A9</b>"));
       ExpectSanitizes(_T("<b>&#60;script&#62;</b>"), _T("<b>&lt;script&gt;</b>"));
       ExpectSanitizes(_T("<b>&LT;b&GT; &QUOT;</b>"), _T("<b>&lt;b&gt; &quot;</b>"));
-      ExpectSanitizes(_T("<b>&#0; &#xD800; &#x110000;</b>"), _T("<b>� � �</b>"));
+      ExpectSanitizes(_T("<b>&#0; &#xD800; &#x110000;</b>"), _T("<b>\uFFFD \uFFFD \uFFFD</b>"));
       ExpectSanitizes(_T("<b>a&b &unknown &#x; &;</b>"), _T("<b>a&amp;b &amp;unknown &amp;#x; &amp;;</b>"));
       ExpectSanitizes(_T("<b>&amp;copy;</b>"), _T("<b>&amp;copy;</b>"));
       ExpectSanitizes(_T("<img src=\"data:image/png;base64,iVBO\" alt=\"&copy; Ada &amp; Co\">"),

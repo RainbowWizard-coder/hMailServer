@@ -11,7 +11,8 @@
 // and the answers the lists publish as errors. And the session names that are not
 // names of GitLab issue 51 - a HELO name or a sender's domain that is an address,
 // one label or a public suffix by the same list - with the carve-outs of the
-// refusal made with them (FqdnCheckTester).
+// refusal made with them (FqdnCheckTester), and before it what an address is,
+// which that refusal asks first (IPAddressTester).
 //
 // On Windows PublicSuffixListTester, SURBLTester and FqdnCheckTester run inside
 // the service with the other class tests: ClassTester::DoTests calls them and the
@@ -29,6 +30,7 @@
 #include "../Common/AntiSpam/DMARC/PublicSuffixList.h"
 #include "../Common/AntiSpam/SURBL.h"
 #include "../Common/AntiSpam/FqdnCheck.h"
+#include "../Common/TCPIP/IPAddress.h"
 
 int
 main(int /*argc*/, char * /*argv*/[])
@@ -58,6 +60,21 @@ main(int /*argc*/, char * /*argv*/[])
    }
 
    printf("ok    the SURBL test's links: the host after the userinfo, ports, IPv6 and the IPv4 addresses it carries, percent-encoding as UTF-8, the code points UTS 46 ignores, the forms of an address, links with no scheme, HTML's references and quotes, the names asked about, the lists' error codes, and the sender lists' URL entries read the same way and matched against every link\n");
+
+   // What is an address, which the refusal below asks first: the same answer
+   // here as on Windows, where IPAddressTester runs in ClassTester.
+   try
+   {
+      HM::IPAddressTester tester;
+      tester.Test();
+   }
+   catch (const std::exception &failure)
+   {
+      printf("FAIL  what is an address: %s\n", failure.what());
+      return 1;
+   }
+
+   printf("ok    what is an address: four decimal parts, RFC 4291's IPv6 with a zone, and none of the older IPv4 forms, brackets or ports Windows' own parser reads\n");
 
    try
    {

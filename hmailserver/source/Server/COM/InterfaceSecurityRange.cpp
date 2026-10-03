@@ -102,7 +102,12 @@ STDMETHODIMP InterfaceSecurityRange::put_LowerIP(BSTR newVal)
       if (!object_)
          return GetAccessDenied();
 
-      object_->SetLowerIPString(newVal);
+      // Refused, and the range left as it was: until 6.3.6 the answer was ignored
+      // and a text that is no address was stored as 0.0.0.0, the start of the
+      // address space, for a range that may allow relaying or skip
+      // authentication. The REST API answers such a bound with a 400.
+      if (!object_->SetLowerIPString(newVal))
+         return COMError::GenerateError("LowerIP is not an IP address: write an IPv4 address of four decimal parts such as 192.168.1.1, or an IPv6 address such as 2001:db8::1. The range keeps the address it had.");
    
       return S_OK;
    }
@@ -136,7 +141,8 @@ STDMETHODIMP InterfaceSecurityRange::put_UpperIP(BSTR newVal)
       if (!object_)
          return GetAccessDenied();
 
-      object_->SetUpperIPString(newVal);
+      if (!object_->SetUpperIPString(newVal))
+         return COMError::GenerateError("UpperIP is not an IP address: write an IPv4 address of four decimal parts such as 192.168.1.1, or an IPv6 address such as 2001:db8::1. The range keeps the address it had.");
    
       return S_OK;
    }

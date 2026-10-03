@@ -264,9 +264,8 @@ namespace HM
       if (address.size() > 2 && address.front() == '[' && address.back() == ']')
          address = address.substr(1, address.size() - 2);
 
-      boost::system::error_code notAddress;
-      boost::asio::ip::make_address(address, notAddress);
-      if (notAddress)
+      boost::asio::ip::address parsed;
+      if (!IPAddress::Parse(AnsiString(address.c_str()), parsed))
          return ::X509_check_host(certificate, host.c_str(), (size_t) host.GetLength(), 0, nullptr) == 1;
 
       if (::X509_check_ip_asc(certificate, address.c_str(), 0) == 1)

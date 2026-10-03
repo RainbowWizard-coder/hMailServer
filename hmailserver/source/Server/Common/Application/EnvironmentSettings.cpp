@@ -806,11 +806,10 @@ namespace HM
       {
          // localhost is the one name HttpServer::Listen takes, as 127.0.0.1.
          const AnsiString text = Utf8(trimmed);
-         boost::system::error_code error;
-         if (text != "localhost")
-            (void) boost::asio::ip::make_address(text.c_str(), error);
+         boost::asio::ip::address address;
+         const bool readable = text == "localhost" || IPAddress::Parse(text, address);
 
-         if (text.IsEmpty() || error)
+         if (text.IsEmpty() || !readable)
             return _T("RestApiBindAddress is the address the REST listener binds: an IP address such as 127.0.0.1, ::1 or 0.0.0.0, or localhost. The value given is not one, and the listener would not start.");
       }
 

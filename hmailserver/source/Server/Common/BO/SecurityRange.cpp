@@ -34,10 +34,21 @@ namespace HM
       return lower_ip_.ToString();
    }
 
+   // A text that is no address leaves the bound as it was and says so. TryParse
+   // itself leaves 0.0.0.0 (or ::) behind when it refuses, and the COM setters,
+   // which ignored the answer until 6.3.6, stored that: a lower bound typed as
+   // 192.168.001.001 - which Windows' own parser read as 192.168.1.1 until 6.3.6
+   // read an address the same way on every platform - made the range start at
+   // 0.0.0.0, with whatever it allows.
    bool
    SecurityRange::SetLowerIPString(const String & sValue)
    {
-      return lower_ip_.TryParse(sValue);
+      IPAddress parsed;
+      if (!parsed.TryParse(sValue))
+         return false;
+
+      lower_ip_ = parsed;
+      return true;
    }
 
    String 
@@ -50,7 +61,12 @@ namespace HM
    bool
    SecurityRange::SetUpperIPString(const String & sValue)
    {
-      return upper_ip_.TryParse(sValue);
+      IPAddress parsed;
+      if (!parsed.TryParse(sValue))
+         return false;
+
+      upper_ip_ = parsed;
+      return true;
    }
 
 

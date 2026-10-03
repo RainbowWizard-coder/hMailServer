@@ -406,6 +406,7 @@ Run each as `python build/<name>.py` (`python3` on Linux).
 | Checker | What it holds | Modes |
 |---|---|---|
 | `check-account-stores.py` | Every per-account table is in the backup, or says why not | |
+| `check-address-parsing.py` | An IP address in text is read by `IPAddress::Parse` alone, never by Boost's `make_address`, whose Windows parser reads forms Linux does not (`192.0.2`, `0x7f.1`, `010.0.0.1`, a port, brackets), nor by `inet_addr` or `inet_aton`, which read the older forms on every platform | `--self-test` |
 | `check-audit-choke-point.py` | Every administrative change reaches the audit trail, and no write route skips it | |
 | `check-authz-choke-point.py` | Every folder-access decision goes through `ACLManager` | `--self-test` |
 | `check-catalogues.py` | Control Panel translations keep the server's literal words, the page names and the numbers | |
@@ -440,6 +441,7 @@ Run each as `python build/<name>.py` (`python3` on Linux).
 | `check-sbom-inputs.py` | Every input the build pins - in `third-party-binaries.json`, `native-dependencies.ps1`, `get-installer-binaries.ps1` and `get-dotnet-runtime.ps1`, and every library `CMakeLists.txt` finds - is in the SBOM's component list, at its pinned version and with its pinned hash | `--self-test`; `--sbom FILE` (repeatable) holds a finished SPDX or CycloneDX document to it. Runs `native-dependencies.ps1` when `pwsh` or `powershell` is present, and reads its tables when neither is |
 | `check-setting-levels.py` | A setting with domain or account levels is read only through `EffectiveSetting`, and its marks agree with `build/settings-levels.txt` | Proves its own negative controls on every run |
 | `check-settings-rows.py` | Every database setting gets a row on a database made before it | |
+| `check-source-literals.py` | A literal in the server's C++ holds the same characters on Windows as on Linux: no character beyond ASCII written raw in a literal of a file without a UTF-8 byte-order mark (MSVC reads one in the ANSI code page), nor in a narrow literal of a file with one | `--self-test` |
 | `check-sql-parameters.py` | Each placeholder use has its own parameter, added in order | |
 | `check-sql-separators.py` | Every MySQL statement ends with a blank line | **Rewrites** with `--fix` |
 | `check-test-settings-writes.py` | Tests change `[Settings]` through the store, never by editing the file | |
@@ -485,7 +487,7 @@ something which already exists.
 | You changed | Run at least |
 |---|---|
 | Anything | `add-license-headers.py --check`, `check-project-items.py` |
-| C++ in the server | The server build (`/WX`); `check-collection-iteration.py`, `check-audit-choke-point.py`, `check-role-choke-point.py`, `check-authz-choke-point.py`, `check-com-dispids.py`, `check-com-error-info.py`, `check-idl-case.py`, `check-password-choice-sites.py`, `check-setting-levels.py` where they apply; the Linux build or census if the file is in the Linux core |
+| C++ in the server | The server build (`/WX`); `check-collection-iteration.py`, `check-audit-choke-point.py`, `check-role-choke-point.py`, `check-authz-choke-point.py`, `check-com-dispids.py`, `check-com-error-info.py`, `check-idl-case.py`, `check-password-choice-sites.py`, `check-setting-levels.py`, `check-address-parsing.py`, `check-source-literals.py` where they apply; the Linux build or census if the file is in the Linux core |
 | SQL or the schema | `check-schema-versions.ps1`, `check-db-scripts.ps1`, `check-mysql-charset.py`, `check-sql-separators.py`, `check-sql-parameters.py`, `check-upgrade-inserts.py`, `check-settings-rows.py`, `check-account-stores.py`, `generate-settings-defaults.py --check` |
 | A REST route | `check-role-choke-point.py`, `check-openapi-blocks.py`, `check-audit-choke-point.py`, `check-deck-parity.py`, `check-cli.py` if a client verb changed |
 | The Control Panel | Its build and tests, `check-mnemonics.py`, `check-localisation.py`, `check-catalogues.py`, `check-ini-coverage.py`, `check-db-settings-coverage.py`, `check-help-map.py`, `generate-settings-index.ps1`, `dotnet format` |

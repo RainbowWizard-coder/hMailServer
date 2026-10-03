@@ -151,6 +151,11 @@ namespace HM
       // case, because RemoveExpiredRecords reconciles once a minute regardless.
       static void SynchroniseLater_(const String &why);
 
+      // IsNeverBanned's answer, under the never-ban list's lock; rejected is
+      // given the entries a new value of the setting dropped, which IsNeverBanned
+      // reports after the lock is let go.
+      static bool IsNeverBanned_(const IPAddress &address, String &rejected);
+
       struct Ban
       {
          // The Windows rule's address: the banned address, or for a ban

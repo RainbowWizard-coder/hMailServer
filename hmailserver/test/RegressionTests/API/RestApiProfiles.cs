@@ -653,12 +653,21 @@ namespace RegressionTests.API
       }
 
       [Test]
-      [Description("An event script run on the reverting thread by the revert's own write - a way back that writes the scripting switch on, which runs the script's top level - that asks for a profile verb over COM is refused at once with the reason, and the revert finishes. No shipped profile sets the switch, so the way back is written here; an error reported during a write, which fires OnError on the same thread, is the other way such a script runs. Negative control: up to 6.3.5 the verb locked the profiles' mutex a second time on the thread holding it, which MSVC answers by throwing resource_deadlock_would_occur, so the script was told only that an unknown error occurred.")]
+      [Description("An event script run on the reverting thread by the revert's own write - a way back that writes the scripting switch on, which runs the script's top level - that asks for a profile verb over COM is refused at once with the reason, and the revert finishes. No shipped profile sets the switch, so the way back is written here; an error reported during a write, which fires OnError on the same thread, is the other way such a script runs. The script writes what it was told to a file of its own: the switch's load runs the top level with none of an event's objects, EventLog among them. Negative control: up to 6.3.5 the verb locked the profiles' mutex a second time on the thread holding it, which MSVC answers by throwing resource_deadlock_would_occur, so the script was told only that an unknown error occurred.")]
       public void AnEventScriptRunByARevertCannotReenterTheProfiles()
       {
          var scripting = _settings.Scripting;
          string originalLanguage = scripting.Language;
          bool originalEnabled = scripting.Enabled;
+
+         // Beside the server's own logs, which the service writes and this suite
+         // reads: the load that runs the script has no EventLog to write to. Until
+         // 6.3.6 the script wrote there, every write failed under On Error Resume
+         // Next, and this test failed on Windows whatever the verb answered.
+         string outcomeFile = Path.Combine(Path.GetDirectoryName(LogHandler.GetEventLogFileName()), "profiles-reentry-outcome.txt");
+         if (File.Exists(outcomeFile))
+            File.Delete(outcomeFile);
+
          putBack_.Add(() =>
          {
             var putBack = _settings.Scripting;
@@ -667,25 +676,33 @@ namespace RegressionTests.API
             putBack.Enabled = originalEnabled;
             putBack.Language = originalLanguage;
             putBack.Reload();
+            if (File.Exists(outcomeFile))
+               File.Delete(outcomeFile);
          });
 
          // Read with scripting off, and not run: nothing runs it until the revert
-         // switches scripting on, on the thread that holds the profiles' lock.
+         // switches scripting on, on the thread that holds the profiles' lock. The
+         // load runs the top level once to compile it and once for each handler it
+         // looks for, and each run adds a line.
          scripting.Enabled = false;
          scripting.Language = "VBScript";
-         LogHandler.DeleteEventLog();
          // settings-store-exempt: this is the event script file, not hMailServer.ini.
          File.WriteAllText(scripting.CurrentScriptFile,
             "On Error Resume Next\r\n" +
+            "Set fso = CreateObject(\"Scripting.FileSystemObject\")\r\n" +
+            "Set outcome = fso.OpenTextFile(\"" + outcomeFile.Replace("\"", "\"\"") + "\", 8, True)\r\n" +
             "Set reentry = CreateObject(\"hMailServer.Application\")\r\n" +
             "Call reentry.Authenticate(\"Administrator\", \"" + AdminPassword + "\")\r\n" +
+            "If Err.Number <> 0 Then outcome.WriteLine(\"reentry-setup: \" & Err.Description)\r\n" +
+            "Err.Clear\r\n" +
             "Call reentry.Settings.DiscardProfileSnapshot()\r\n" +
             "If Err.Number = 0 Then\r\n" +
-            "   EventLog.Write(\"reentry: taken\")\r\n" +
+            "   outcome.WriteLine(\"reentry: taken\")\r\n" +
             "Else\r\n" +
-            "   EventLog.Write(\"reentry: \" & Err.Description)\r\n" +
+            "   outcome.WriteLine(\"reentry: \" & Err.Description)\r\n" +
             "End If\r\n" +
-            "Err.Clear\r\n");
+            "Err.Clear\r\n" +
+            "outcome.Close\r\n");
          scripting.Reload();
 
          // The way back a profile that switched scripting off would have left - no
@@ -703,19 +720,17 @@ namespace RegressionTests.API
          ClassicAssert.IsTrue(_settings.Scripting.Enabled, "The revert did not switch scripting back on: " + reverted);
          ClassicAssert.IsFalse(SnapshotHeld(), "The revert did not clear the way back: " + reverted);
 
-         string eventLog = "";
-         for (int attempt = 0; attempt < 50 && !eventLog.Contains("reentry: "); attempt++)
-         {
-            string file = LogHandler.GetEventLogFileName();
-            if (File.Exists(file))
-               eventLog = File.ReadAllText(file);
-            if (!eventLog.Contains("reentry: "))
-               Thread.Sleep(100);
-         }
+         // The runs were made inside the revert, which has returned.
+         ClassicAssert.IsTrue(File.Exists(outcomeFile), "The script's top level did not run, or could not write " + outcomeFile + ".");
+         string[] outcome = File.ReadAllLines(outcomeFile).Where(line => line.Length > 0).ToArray();
+         string told = string.Join(" | ", outcome);
 
-         StringAssert.Contains("reentry: A profile could not be discarded: this thread is applying or reverting one", eventLog,
-            "The script's call on the reverting thread was not refused as re-entered.");
-         StringAssert.DoesNotContain("reentry: taken", eventLog);
+         ClassicAssert.IsNotEmpty(outcome, "The script's top level wrote nothing.");
+         foreach (string line in outcome)
+         {
+            StringAssert.StartsWith("reentry: A profile could not be discarded: this thread is applying or reverting one", line,
+               "A run of the script on the reverting thread was not refused as re-entered (" + outcome.Length + " run(s)): " + told);
+         }
       }
 
       [Test]

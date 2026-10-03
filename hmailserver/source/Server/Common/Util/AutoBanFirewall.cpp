@@ -148,6 +148,18 @@ namespace HM
       bool g_neverBanParsed = false;
       std::vector<std::pair<boost::asio::ip::address, int>> g_neverBanBlocks;
 
+      // The never-ban list's own lock, never g_mutex. A reconciliation holds
+      // g_mutex while it runs AutoBanCommand or the packaged hook, which may take
+      // up to ExternalProcessTimeout (300 seconds as shipped) for each run, and
+      // IsNeverBanned is asked on the protocol threads - by a spam trap's RCPT TO,
+      // a failed logon, a null sender's second recipient and AUTH on a delivery
+      // port - and for every address a widening walks. Under g_mutex each of them
+      // waited for whatever hook was running: a trap's refusal was answered only
+      // when the hook had finished, which is the difference in time from an
+      // unknown address's that SynchroniseLater_ exists to prevent, and a hook
+      // that hangs held every logon failure of the server for its timeout.
+      std::mutex g_neverBanMutex;
+
       const wchar_t *RangeNamePrefix = L"Auto-ban: ";
       const wchar_t *RuleNamePrefix = L"hMailServer auto-ban ";
 
@@ -216,9 +228,11 @@ namespace HM
             prefix = atoi(bits.c_str());
          }
 
-         boost::system::error_code ec;
-         address = boost::asio::ip::make_address(text, ec);
-         if (ec)
+         // Read as IPAddress reads an address, the same on every platform: with
+         // Boost's make_address, Windows read 192.168.1/24 as 192.168.0.1/24 and
+         // 010.0.0.0/8 as 8.0.0.0/8 - another block than the one written, and
+         // protected without a word - where Linux refused both and said so.
+         if (!IPAddress::Parse(AnsiString(text.c_str()), address))
             return false;
 
          int widest = address.is_v4() ? 32 : 128;
@@ -241,16 +255,17 @@ namespace HM
 
       // An address as a hook is told it, or empty for a line that is not one:
       // a ledger line goes into a command line, so it is read back to the
-      // character as an address and nothing else.
+      // character as an address and nothing else - and read as IPAddress reads
+      // one, the same on every platform, not by Windows' own parser through
+      // Boost's make_address.
       String CanonicalAddress(const String &text)
       {
          AnsiString narrow;
          if (!Unicode::ToUtf8Exact(text, narrow))
             return String();
 
-         boost::system::error_code ec;
-         boost::asio::ip::address address = boost::asio::ip::make_address(std::string(narrow.c_str()), ec);
-         if (ec)
+         boost::asio::ip::address address;
+         if (!IPAddress::Parse(narrow, address))
             return String();
 
          return String(address.to_string().c_str());
@@ -345,7 +360,28 @@ namespace HM
    bool
    AutoBanFirewall::IsNeverBanned(const IPAddress &address)
    {
-      std::lock_guard<std::mutex> guard(g_mutex);
+      // The entries a new value of the setting dropped, reported once the lock is
+      // let go: ReportError runs the OnError event script on this thread, and an
+      // administrator's handler - a pager called over HTTP, say - would otherwise
+      // hold every ban decision of the server while it ran, which is what this
+      // lock of its own is for.
+      String rejected;
+      const bool neverBanned = IsNeverBanned_(address, rejected);
+
+      if (!rejected.IsEmpty())
+      {
+         ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6524, "AutoBanFirewall::IsNeverBanned",
+            "AutoBanNeverBan contains entries that are not an address or a CIDR block and were ignored: " + rejected +
+            ". Addresses in those entries are NOT protected from auto-ban.");
+      }
+
+      return neverBanned;
+   }
+
+   bool
+   AutoBanFirewall::IsNeverBanned_(const IPAddress &address, String &rejected)
+   {
+      std::lock_guard<std::mutex> guard(g_neverBanMutex);
 
       String source = IniFileSettings::Instance()->GetAutoBanNeverBan();
       if (!g_neverBanParsed || source != g_neverBanSource)
@@ -372,7 +408,10 @@ namespace HM
          if (!current.empty())
             entries.push_back(current);
 
-         String rejected;
+         // A list that cannot be read is worse than no list, because the
+         // administrator believes their address is protected. Reported once per
+         // value of the setting, naming every entry that was dropped - by
+         // IsNeverBanned, after this lock is let go.
          for (const std::string &entry : entries)
          {
             std::string text = Trim(entry);
@@ -389,16 +428,6 @@ namespace HM
                   rejected += _T(", ");
                rejected += String(text.c_str());
             }
-         }
-
-         // A list that cannot be read is worse than no list, because the
-         // administrator believes their address is protected. Reported once per
-         // value of the setting, naming every entry that was dropped.
-         if (!rejected.IsEmpty())
-         {
-            ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6524, "AutoBanFirewall::IsNeverBanned",
-               "AutoBanNeverBan contains entries that are not an address or a CIDR block and were ignored: " + rejected +
-               ". Addresses in those entries are NOT protected from auto-ban.");
          }
       }
 

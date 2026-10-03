@@ -253,6 +253,9 @@ namespace HM
 
       SOCKADDR_IN addr;
       addr.sin_family = AF_INET;
+      // address-parsing-exempt: 127.1 is this machine on both platforms by inet_addr.
+      // gethostbyname, which reads anything else, reads the older decimal forms in
+      // glibc and none on Windows (WSAHOST_NOT_FOUND, measured 3 October 2026).
       addr.sin_addr.s_addr = inet_addr(hostname.c_str());
 
       struct hostent *host;
@@ -278,6 +281,7 @@ namespace HM
       SOCKADDR_IN addr;
       addr.sin_family = AF_INET;
       CT2A hostname(sHostname);
+      // address-parsing-exempt: as in the POSIX arm above.
       addr.sin_addr.s_addr = inet_addr(hostname);
 
       struct hostent *host;
@@ -542,7 +546,13 @@ namespace HM
       if (utilities.IsValidIPAddress("127.0.0.A"))
          HM_TEST_FAILED();
 
-      if (!utilities.IsValidIPAddress("127.0.0"))
+      // Three parts are not an address on any platform. This said they were: it
+      // held Windows' WSAStringToAddress, which reads 127.0.0 as 127.0.0.0, to its
+      // answer, which inet_pton on Linux never gave (IPAddressTester has the rest).
+      if (utilities.IsValidIPAddress("127.0.0"))
+         HM_TEST_FAILED();
+
+      if (!utilities.IsValidIPAddress("127.0.0.1"))
          HM_TEST_FAILED();
 
       if (Configuration::Instance()->IsIPv6Available())

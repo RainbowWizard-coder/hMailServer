@@ -84,7 +84,10 @@ STDMETHODIMP InterfaceIncomingRelay::put_LowerIP(BSTR newVal)
       if (!object_)
          return GetAccessDenied();
 
-      Writable_()->SetLowerIPString(newVal);
+      // Refused, and the relay left as it was, as InterfaceSecurityRange does:
+      // never 0.0.0.0 in place of a text that is no address.
+      if (!Writable_()->SetLowerIPString(newVal))
+         return COMError::GenerateError("LowerIP is not an IP address: write an IPv4 address of four decimal parts such as 192.168.1.1, or an IPv6 address such as 2001:db8::1. The relay keeps the address it had.");
    
       return S_OK;
    }
@@ -118,7 +121,8 @@ STDMETHODIMP InterfaceIncomingRelay::put_UpperIP(BSTR newVal)
       if (!object_)
          return GetAccessDenied();
 
-      Writable_()->SetUpperIPString(newVal);
+      if (!Writable_()->SetUpperIPString(newVal))
+         return COMError::GenerateError("UpperIP is not an IP address: write an IPv4 address of four decimal parts such as 192.168.1.1, or an IPv6 address such as 2001:db8::1. The relay keeps the address it had.");
    
       return S_OK;
    }

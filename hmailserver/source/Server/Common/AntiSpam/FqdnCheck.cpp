@@ -292,6 +292,29 @@ namespace HM
       ExpectVerdict(_T("192.0.2.300"), FqdnCheck::VerdictNumericTopLabel);
       ExpectVerdict(_T("mail.example.123"), FqdnCheck::VerdictNumericTopLabel);
 
+      // The older forms of an IPv4 address, which inet_aton and Windows' own
+      // WSAStringToAddress read and inet_pton does not - fewer than four parts,
+      // one 32-bit number, hexadecimal, octal by a leading zero - are no address
+      // here, on either platform, and each is judged as the name it then is: an
+      // all-digit top label or a single label. Before 6.3.6 Windows answered "an
+      // IP address" for every one of them and Linux what is below, so one HELO
+      // had two verdicts (and 192.0.2 above failed this tester on Windows alone).
+      ExpectVerdict(_T("192.0"), FqdnCheck::VerdictNumericTopLabel);
+      ExpectVerdict(_T("127.1"), FqdnCheck::VerdictNumericTopLabel);
+      ExpectVerdict(_T("0x7f.1"), FqdnCheck::VerdictNumericTopLabel);
+      ExpectVerdict(_T("0x7f.0.0.1"), FqdnCheck::VerdictNumericTopLabel);
+      ExpectVerdict(_T("0300.0250.0.1"), FqdnCheck::VerdictNumericTopLabel);
+      ExpectVerdict(_T("192.168.001.001"), FqdnCheck::VerdictNumericTopLabel);
+      ExpectVerdict(_T("010.0.0.1"), FqdnCheck::VerdictNumericTopLabel);
+      ExpectVerdict(_T("3232235777"), FqdnCheck::VerdictSingleLabel);
+      ExpectVerdict(_T("4294967295"), FqdnCheck::VerdictSingleLabel);
+      ExpectVerdict(_T("0xc0000207"), FqdnCheck::VerdictSingleLabel);
+
+      // And an address with a port after it, which WSAStringToAddress also reads
+      // as the address: a colon is in no host's name.
+      ExpectVerdict(_T("192.0.2.7:25"), FqdnCheck::VerdictNotAHostName);
+      ExpectVerdict(_T("[192.0.2.7]:25"), FqdnCheck::VerdictAddressLiteral);
+
       // The sender's domain is what follows its last @.
       if (FqdnCheck::SenderDomain(_T("user@[192.0.2.7]")) != _T("[192.0.2.7]") ||
           FqdnCheck::SenderDomain(_T("\"a@b\"@example.com")) != _T("example.com") ||

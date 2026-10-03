@@ -55,15 +55,28 @@ namespace HM
       return true;
    }
 
+   // As SecurityRange's: a text that is no address leaves the bound as it was,
+   // never 0.0.0.0, which is where TryParse leaves an address it refuses - and a
+   // lower bound of 0.0.0.0 white-lists every address below the upper one.
    bool
    WhiteListAddress::SetLowerIPAddress(const String &iIPAddress)
    {
-      return white_lower_ipaddress_.TryParse(iIPAddress);
+      IPAddress parsed;
+      if (!parsed.TryParse(iIPAddress))
+         return false;
+
+      white_lower_ipaddress_ = parsed;
+      return true;
    }
 
    bool
    WhiteListAddress::SetUpperIPAddress(const String &iIPAddress)
    {
-      return white_upper_ipaddress_.TryParse(iIPAddress);
+      IPAddress parsed;
+      if (!parsed.TryParse(iIPAddress))
+         return false;
+
+      white_upper_ipaddress_ = parsed;
+      return true;
    }
 }

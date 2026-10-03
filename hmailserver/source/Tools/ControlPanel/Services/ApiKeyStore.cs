@@ -533,6 +533,9 @@ namespace hMailServer.ControlPanel.Services
       /// Whether a source restriction is one of the three forms the server parses.
       /// Shape only - the server does the authoritative parse - but enough to stop
       /// a typo becoming a key that is refused every request with no explanation.
+      /// Each address is read as the server reads one (ServerAddressText), not as
+      /// System.Net.IPAddress.TryParse does: that also takes 10.1, 010.0.0.1 and
+      /// [::1]:443, which the server refuses on Windows as on Linux since 6.3.6.
       /// </summary>
       public static bool LooksLikeSourceRestriction(string value)
       {
@@ -545,7 +548,7 @@ namespace hMailServer.ControlPanel.Services
          {
             string prefix = text.Substring(slash + 1);
 
-            if (!System.Net.IPAddress.TryParse(text.Substring(0, slash), out System.Net.IPAddress network))
+            if (!ServerAddressText.TryParse(text.Substring(0, slash), out System.Net.IPAddress network))
                return false;
 
             if (prefix.Length == 0 || prefix.Length > 3 || !int.TryParse(prefix, out int bits) || bits < 0)
@@ -567,8 +570,8 @@ namespace hMailServer.ControlPanel.Services
          int dash = text.IndexOf('-');
          if (dash > 0)
          {
-            if (!System.Net.IPAddress.TryParse(text.Substring(0, dash).Trim(), out System.Net.IPAddress lower) ||
-                !System.Net.IPAddress.TryParse(text.Substring(dash + 1).Trim(), out System.Net.IPAddress upper))
+            if (!ServerAddressText.TryParse(text.Substring(0, dash).Trim(), out System.Net.IPAddress lower) ||
+                !ServerAddressText.TryParse(text.Substring(dash + 1).Trim(), out System.Net.IPAddress upper))
             {
                return false;
             }
@@ -580,7 +583,7 @@ namespace hMailServer.ControlPanel.Services
             return lower.AddressFamily == upper.AddressFamily;
          }
 
-         return System.Net.IPAddress.TryParse(text, out _);
+         return ServerAddressText.IsAddress(text);
       }
 
       private static bool IsLowerHex(string value, int expectedLength)

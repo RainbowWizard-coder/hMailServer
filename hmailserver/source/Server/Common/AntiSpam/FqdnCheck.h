@@ -15,7 +15,10 @@
 //   - it is not empty, and not the root "." alone;
 //   - it is not an address: nothing in brackets ([192.0.2.7], [IPv6:2001:db8::7]
 //     and whatever else a client puts in them), and no IPv4 or IPv6 address
-//     written without them;
+//     written without them. An IPv4 address is four decimal parts (192.0.2.7),
+//     as IPAddress reads one on every platform; the older forms Windows' own
+//     parser also reads - 192.0.2, 3232235777, 0x7f.1, 0300.0250.0.1 - are not
+//     addresses, and are judged by the rules below as the names they then are;
 //   - every label holds something, and only letters, digits, hyphens and
 //     underscores, or characters beyond ASCII (an internationalised name under
 //     SMTPUTF8). A space, a colon, an @ or a bracket is in no host's name, and a

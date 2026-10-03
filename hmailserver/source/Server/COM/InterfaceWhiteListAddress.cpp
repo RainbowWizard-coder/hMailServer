@@ -78,7 +78,11 @@ STDMETHODIMP InterfaceWhiteListAddress::put_LowerIPAddress(BSTR newVal)
       if (!object_)
          return GetAccessDenied();
 
-      object_->SetLowerIPAddress(newVal);
+      // Refused, and the entry left as it was, as InterfaceSecurityRange does:
+      // never 0.0.0.0 in place of a text that is no address, which as a lower
+      // bound white-lists every address below the upper one.
+      if (!object_->SetLowerIPAddress(newVal))
+         return COMError::GenerateError("LowerIPAddress is not an IP address: write an IPv4 address of four decimal parts such as 192.168.1.1, or an IPv6 address such as 2001:db8::1. The entry keeps the address it had.");
       return S_OK;
    }
    catch (...)
@@ -110,7 +114,8 @@ STDMETHODIMP InterfaceWhiteListAddress::put_UpperIPAddress(BSTR newVal)
       if (!object_)
          return GetAccessDenied();
 
-      object_->SetUpperIPAddress(newVal);
+      if (!object_->SetUpperIPAddress(newVal))
+         return COMError::GenerateError("UpperIPAddress is not an IP address: write an IPv4 address of four decimal parts such as 192.168.1.1, or an IPv6 address such as 2001:db8::1. The entry keeps the address it had.");
       return S_OK;
    }
    catch (...)

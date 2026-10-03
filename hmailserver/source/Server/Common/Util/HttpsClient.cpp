@@ -186,10 +186,13 @@ namespace HM
       std::vector<boost::asio::ip::tcp::endpoint> ResolveWithin_(const std::string &host, const std::string &port,
                                                                  const Clock::time_point &deadline)
       {
-         boost::system::error_code notLiteral;
-         const boost::asio::ip::address literal = boost::asio::ip::make_address(host, notLiteral);
+         // An address as IPAddress reads one, the same on every platform. A host
+         // written in an older form (0x7f.1) is a name here, and goes to the
+         // resolver, whose answer every caller judges as the address it is.
+         boost::asio::ip::address literal;
+         const bool isLiteral = IPAddress::Parse(AnsiString(host.c_str()), literal);
          unsigned short portNumber = 0;
-         if (!notLiteral && PortNumber_(port, portNumber))
+         if (isLiteral && PortNumber_(port, portNumber))
             return std::vector<boost::asio::ip::tcp::endpoint>(1, boost::asio::ip::tcp::endpoint(literal, portNumber));
 
          struct Lookup
@@ -746,9 +749,8 @@ namespace HM
       // server name is sent (RFC 6066 section 3: never an address).
       bool IsAddressLiteral_(const AnsiString &host)
       {
-         boost::system::error_code notAddress;
-         boost::asio::ip::make_address(std::string(host.c_str()), notAddress);
-         return !notAddress;
+         boost::asio::ip::address address;
+         return IPAddress::Parse(host, address);
       }
 
       // The verification RequestTrusting asks for when it is given a CA file: the
@@ -776,9 +778,8 @@ namespace HM
             if (certificate == nullptr)
                return false;
 
-            boost::system::error_code notAddress;
-            const boost::asio::ip::address literal = boost::asio::ip::make_address(std::string(host_.c_str()), notAddress);
-            const bool isAddress = !notAddress && (literal.is_v4() || literal.is_v6());
+            boost::asio::ip::address literal;
+            const bool isAddress = IPAddress::Parse(host_, literal) && (literal.is_v4() || literal.is_v6());
             const bool matches = isAddress
                ? ::X509_check_ip_asc(certificate, host_.c_str(), 0) == 1
                : ::X509_check_host(certificate, host_.c_str(), (size_t) host_.GetLength(), 0, nullptr) == 1;
@@ -879,9 +880,10 @@ namespace HM
       // document, the introspection verdict and the update feed alike; that name is
       // whatever its owner's DNS says it is. 127.0.0.0/8, ::1, and 127/8 carried in
       // an IPv4-mapped IPv6 address.
-      boost::system::error_code ec;
-      const boost::asio::ip::address address = boost::asio::ip::make_address(std::string(h.c_str()), ec);
-      if (ec)
+      // Read as IPAddress reads it on every platform: 127.1, which Windows' own
+      // parser reads as 127.0.0.1, is no address here, and so no loopback.
+      boost::asio::ip::address address;
+      if (!IPAddress::Parse(h, address))
          return false;
 
       if (address.is_v6() && address.to_v6().is_v4_mapped())
@@ -1010,9 +1012,8 @@ namespace HM
    bool
    HttpsClient::AddressIsPublic(const AnsiString &address)
    {
-      boost::system::error_code ec;
-      const boost::asio::ip::address parsed = boost::asio::ip::make_address(std::string(address.c_str()), ec);
-      if (ec)
+      boost::asio::ip::address parsed;
+      if (!IPAddress::Parse(address, parsed))
          return false;
 
       return IsPublicAddress(parsed);

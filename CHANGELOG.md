@@ -529,6 +529,15 @@ from 6.2.22, up to 6.3.5. In 6.3.6 the server's string replacement, which these 
 a result of another length in one pass, and its removal of a character takes one pass too; what they make is as it
 was. Found by the project's own review.
 
+An IP range's, an incoming relay's or a white-list entry's address set over COM - the Control Panel's IP ranges,
+incoming relays and white list pages, or a script - that the server could not read as an address was stored as
+0.0.0.0 without a word, in every version up to 6.3.5: a range whose lower address was mistyped began at 0.0.0.0,
+with whatever it allows - relaying, delivery without authentication, no spam tests - and a relay or a white-list
+entry so written covered every address below its upper one. 6.3.6 refuses such an address with the reason, and the
+object keeps the address it had, as the REST API answers one with a 400. On Windows it matters more in this
+release, which reads more texts as no address there (What changes on upgrade, item 41): `192.168.001.001`, which
+Windows read as 192.168.1.1, would otherwise have become 0.0.0.0. Found by the project's own review.
+
 ### What changes on upgrade without a switch
 
 1. **COM `Utilities`: the helpers that do work answer a caller that has signed in.** `BlowfishEncrypt`,
@@ -1131,6 +1140,34 @@ was. Found by the project's own review.
     it took a failed read for no bans at all, told every hook to un-ban every address and removed every Windows rule,
     until a later pass put them back. A command of your own is still best made to let a block lapse after the
     `<minutes>` it is handed ([AutoBan.md](hmailserver/docs/AutoBan.md), Below the server across a stop and a start).
+
+41. **An IP address in text is read the same way on Windows as on Linux.** Wherever the server reads an address from
+    text - an IP range's bounds, an incoming relay, a listener's address, the bind address of the REST and
+    web-services listeners and of the SNMP agent, `AutoBanNeverBan`, XCLIENT's `ADDR` and the PROXY protocol's
+    addresses, a route's, a callout's or a URL's host, and COM's `Utilities.IsValidIPAddress` - an IPv4 address is
+    four decimal parts and an IPv6 address is written as RFC 4291 writes one, with a zone after a `%` if it has one,
+    and nothing else. On Windows these were read by the system's own parser, which also takes the forms inet_aton has
+    taken since 4.2BSD and more: `192.168.1` as 192.168.0.1, `3232235777` as 192.168.1.1, `0x7f.1` as 127.0.0.1, a
+    part with a leading zero as octal (`010.0.0.1` as 8.0.0.1, `192.168.001.010` as 192.168.1.8), an address with a
+    port after it (`192.0.2.7:25`) and an IPv6 address in brackets; Linux took none of them. Such a value is now
+    refused where it is entered, on Windows as on Linux: by the REST API; by COM, whose IP range, incoming relay and
+    white-list addresses stored 0.0.0.0 for a text they could not read until 6.3.6 (Security, above); and so by the
+    Control Panel's pages that write through COM, and by its API keys page for a source restriction, which it checked
+    with .NET's reader, as liberal as Windows' own. An `AutoBanNeverBan` entry written that way is reported (HM6524)
+    as an entry that protects nothing, where on Windows `192.168.1/24` used to protect 192.168.0.0/24 without a word.
+    Ranges, relays, white-list entries and listeners already saved are stored as numbers and are not affected. A value
+    kept as text is read the new way from the first start of 6.3.6: besides `AutoBanNeverBan`, an API key's source
+    restriction so written is one the server cannot read, so the key is refused from every address; a REST,
+    web-services or SNMP bind address so written leaves that listener stopped, which the application log says (the
+    SNMP agent's, the ERROR log: HM7420); and a route's, the relayer's or an external account's host so written is no
+    longer taken for an address. The refusal of HELO and sender names that are not names (GitLab issue 51) judged
+    `192.0.2` "an IP address" on Windows and "numeric where its top-level domain should be" on Linux; both now give
+    the second, and refuse it as before. `DNSServer` is read the same way by every lookup: the Windows resolver read
+    it with `inet_addr`, which takes the older forms on every platform, while the DNSSEC resolver and the TLS policy's
+    lookups read it with `inet_pton`, so `DNSServer=8.8.8` sent the one to 8.8.0.8 and the other to the system's
+    servers; now the Windows resolver too reports it invalid (HM4401) and asks the system's servers. Measured on
+    2 October 2026 against Windows 11's `WSAStringToAddressW` and glibc 2.43's `inet_pton`
+    ([SmtpPolicy.md](hmailserver/docs/SmtpPolicy.md)).
 
 ### Downloads and the release
 
@@ -2000,6 +2037,12 @@ was. Found by the project's own review.
   `hmctl --version` said `hmctl 1.0`, and its requests `hmctl/1.0`, whatever the release; it says the server's
   version now, stamped with the release (RELEASE.md, step 7), and `build/check-cli-packages.py` fails `checkers` while
   `hmctl`'s `VERSION` is not `Version.h`'s, with a `--self-test` case the check as it was passed.
+- **Fixed: the Control Panel's API keys page took a source restriction the server cannot read.** It checked each
+  address with .NET's `IPAddress.TryParse`, which reads `10.1`, `010.0.0.1` (octal, as 8.0.0.1) and `[::1]` as
+  addresses; the server does not, on Windows or Linux, since 6.3.6 (What changes on upgrade, item 41), and refuses a
+  key whose restriction it cannot read from every address. The page reads an address as the server does now
+  (`Services/ServerAddressText.cs`, the server's `IPAddress::Parse` line for line) and refuses such a restriction
+  with the sentence it gives any other.
 
 ### Operations
 
@@ -2630,6 +2673,17 @@ was. Found by the project's own review.
   someone else when its owner is renamed. The release chain's own checks of a release's files, provenance and images
   (`release-files.py`, `release-chain.py`, `registry-mirror.py`, `container-image-deb.sh`) hold both paths to the id
   likewise ([UpdateFeed.md](hmailserver/docs/UpdateFeed.md), "What a server built after 6.3.3 checks").
+- **Fixed: a hook that hung held up every ban decision while it ran.** `AutoBanNeverBan` - which a spam trap's `RCPT
+  TO`, a failed logon, a null sender's second recipient and AUTH on a delivery port all ask before they ban, and a
+  widening asks of every neighbour - was read under the lock a reconciliation holds while it runs `AutoBanCommand` or
+  the packaged hook, up to `ExternalProcessTimeout` (300 seconds as shipped) a run. So while a hook hung, a spam
+  trap's refusal was answered only when the hook had been stopped - a difference in time from an unknown address's,
+  which the trap's ban is placed off the session's thread to prevent - and every failed logon of the server waited as
+  long. It is read under a lock of its own. On bench150 a trap addressed while a hook hung for another ban was refused
+  after 7.7 seconds before, and at once after ([AutoBan.md](hmailserver/docs/AutoBan.md), "When"). And the report of
+  an entry of a new `AutoBanNeverBan` value that is no address (HM6524), which runs the event script's `OnError` on
+  the thread that read the value, is made once that lock is let go: under it, a slow handler held up every ban
+  decision of the server as a hung hook did.
 
 ### Build and tests
 
@@ -3342,6 +3396,45 @@ was. Found by the project's own review.
   a release signs both with Authenticode, and Windows PowerShell 5.1 reads a script without a byte order mark in the
   machine's own code page, so a character beyond ASCII would leave the signature valid on one machine and not on
   another. Both files are ASCII today; `--self-test` breaks each and the rule reports it.
+- **The internal suite runs to its end on Windows again.** `ClassTester`, which the Windows gate runs whole
+  (`MainOperations.TestInternals`), stopped at its 18th part of 130 on Windows from the fold of the FQDN refusal on:
+  `FqdnCheckTester` expected `192.0.2` to be judged as Linux judges it, and Windows' parser read it as an address
+  (What changes on upgrade, item 41). Past that it stopped again at `SignatureHtmlSanitizerTester`, whose expected
+  text held raw UTF-8 copyright signs in a file with no byte-order mark, which MSVC reads in the ANSI code page: two
+  characters each on Windows, one on Linux. The expected text is written with escapes now, and so are the three narrow
+  literals of `CharsetTester`, which a code page other than 1252 would have changed; no other literal of the server's
+  C++ was written so. On bench150, under a copy of `ClassTester` that runs every part whatever the one before it did,
+  127 of 130 parts passed at batch42's d4410eae4 and all 130 with these fixes; the third failure, `AdminUpdateTester`,
+  was the bench's own, which had not been given the release installers it checks (`build/fetch-installer-fixtures.ps1`
+  has been run there). Two checkers keep it so, each with a self-test and each failing on the tree as it was:
+  `build/check-address-parsing.py` (an address in text is read by `IPAddress::Parse`, never by Boost's `make_address`)
+  and `build/check-source-literals.py` (no character beyond ASCII written raw in a literal that MSVC would read
+  otherwise). `IPAddressTester` holds both platforms to one answer for every form - each older IPv4 form, brackets,
+  ports, zones, a NUL inside the text - and runs in `public-suffix-tests` on Linux too.
+- **`Security/AutoBanWidenCom` passes on Windows.** `AHookThatHangsCostsOneTimeoutNotOnePerAddress` failed on bench150
+  at every run: its first half took back, with its ban, the spam trap and the IP range the fixture's set-up had made,
+  so its second half's trap hit was refused as an unknown user and never banned, and there was no ban to widen. Each
+  half now takes back only its own ban. The fixture's new `AHookThatHangsHoldsUpNoBanDecision` holds the fix under
+  Operations: against the server without it, it fails at 7.7 seconds.
+- **The whole Windows gate ran on bench150, and each of its failures is answered.** On this branch's 57a86f59f, before
+  it took in batch42's later folds, it ran 4,018 tests: 3,939 passed, 75 were skipped as on every bench run, and 4
+  failed, `TestInternals` and `AutoBanWidenCom` among those that passed. Two were `RestApiHelp`'s, whose
+  `HelpPagesData.cpp` had not been made again from the changed AutoBan.md and SmtpPolicy.md, which the release does.
+  `AutoBanNeverBanNamesCom` expected the refusal of `*.nbn-com.test` to name `.nbn-com.test`, and every star was
+  answered with the one example `.example.net`: the refusal now names the pattern that was meant when the check would
+  take it, and the example otherwise. `RestApiProfiles.AnEventScriptRunByARevertCannotReenterTheProfiles` failed
+  whatever the server answered: its script reported through `EventLog`, which the load that runs a script's top
+  level when scripting is switched on does not give it, so every write failed under `On Error Resume Next`; the
+  script writes to a file of its own now, and its sixteen runs on the reverting thread are each refused with the
+  sentence (with the refusal taken out, each was told "An error occurred processing the request."). After the
+  merge, `build/check-address-parsing.py` found three readings of an address with Boost's `make_address` in
+  `SignInBudget.cpp`, folded since, and they read as `IPAddress::Parse` does (What changes on upgrade, item 41); the
+  fold of b42-secfix-net2 has since taken out the one that read `X-Forwarded-For`, and the two left still do.
+  And `IniFileSettingsTester`'s swap under load, which runs on Windows alone, has five minutes rather than one for
+  its thousand publishes: beside the laptop's builds bench150 made 915 and 813 of them in the minute in two runs and
+  1,001 in 44 seconds in a third. On batch42 merged with this branch, the copy of `ClassTester` that runs every part
+  passed all 133 parts, and `TestInternals`, the 16 fixtures these changes touch (119 tests; one skipped where the
+  bench has no `python.exe`) and each change's negative control did what they should.
 
 - **The Linux jobs can name their image by digest, and the snap's credential stops short of `stable`.** Two
   hardening steps from the project's second review of this release, neither a flaw any outsider could reach. Since
@@ -3361,6 +3454,36 @@ was. Found by the project's own review.
   ([Snap.md](hmailserver/docs/Snap.md), The Snap Store): `snap-upload` asks it what it may do (`snapcraft whoami`)
   and refuses, uploading nothing, one that could release to `stable` or of which it is told nothing, and refuses a
   release list of its own that names `stable`, so that `stable` stays a person's step with their own login.
+- **The re-check of reading an address the same way on both platforms.** `IPAddress::Parse`, taken out of
+  IPAddress.cpp by its own text, read 6,000,000 generated texts as Boost's `make_address_v4` and `make_address_v6`
+  read them on Linux before it (glibc 2.43's `inet_pton` and Boost's zone rule), under AddressSanitizer and
+  UndefinedBehaviorSanitizer: 490,972 taken, no address read otherwise, and 45,505 differences in the zone alone, each
+  Parse's own rule for a zone - stricter than Boost's (an empty zone, a space in one, a number past 32 bits), or a
+  name looked up where Boost looked one up for a link-local address only; with leading zeros let through, 489 of
+  300,000 differed. The re-check found four things the change had left, each fixed with a test that fails without it:
+  COM's address setters for IP ranges, incoming relays and the white list, which stored 0.0.0.0 for a text they could
+  not read (Security); `DNSServer`, which the Windows resolver read with `inet_addr` (What changes on upgrade,
+  item 41) - `build/check-address-parsing.py` now refuses `inet_addr` and `inet_aton` too, with
+  `Utilities::IsLocalHost` marked as the one call that keeps it; the Control Panel's API keys page (Administration);
+  and the report of a never-ban entry that is no address, made under the never-ban list's lock (Operations). On
+  bench150, with the builder's server files laid over this branch, the five new tests of `Persistence.Limitations`,
+  `CustomDnsServer` and `AutoBanWidenCom` failed and their fixtures' 29 others passed (34 tests); on batch42 0840ce7e3
+  merged with this branch, 24 fixtures - `TestInternals`, the whole internal suite, among them - ran 238 tests: 237
+  passed and one was skipped where the bench has no `python.exe`. `ControlPanel.Tests` passed 1,260 of 1,260; with the
+  API keys page's check as it was, ten of its twelve new cases failed. The Linux build of 41f563b3f, this branch
+  before it took in 0840ce7e3, made the .deb and the .rpm with their licences checked, and its 33 tester programs
+  passed, `public-suffix-tests`' "what is an address" among them. Merged with batch42 0689fab9c,
+  `build/check-address-parsing.py` found the reading of `AutoBanCommand`'s ledger that b42-sweep4 brought
+  (`CanonicalAddress`, through Boost's `make_address`); it is `IPAddress::Parse` now, and a ledger line is still taken
+  only when the address read from it writes back as the line itself. On that tree, on bench150, the seven auto-ban
+  fixtures, `MainOperations` (`TestInternals` in 123 seconds), `Persistence.Limitations`, `CustomDnsServer`,
+  `WhiteListing` and `RestApiProfiles` ran 113 tests: 109 passed, and four were skipped - three `AutoBanHookRetry`
+  cases that are the Linux suite's, and the one where the bench has no `python.exe`. Merged with batch42 76b58148e
+  as well, the same fixtures ran 114 tests (`AutoBanNeverBanNames` has one more): 110 passed and the same four were
+  skipped, `TestInternals` in 127 seconds. On that tree the Windows build had no warning; the Linux build made the
+  .deb and the .rpm with their licences checked and its 33 tester programs passed; the Linux suite's auto-ban
+  fixtures passed 38 of 38 (37 of 37 at 0689fab9c); `ControlPanel.Tests` passed 1,260 of 1,260; and every check the
+  checkers job runs passed but `generate-help-pages.py --check`, whose `HelpPagesData.cpp` the release makes again.
 
 Full notes: [the 6.3.6 release](https://gitlab.com/hmailserver/hmailserver/-/releases/v6.3.6).
 

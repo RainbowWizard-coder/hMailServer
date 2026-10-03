@@ -356,6 +356,17 @@ each up to 65 reverse lookups made one after another; at most 64 addresses wait,
 each once, and past that a ban stays a single address. Turning the switch off
 stops a walk that has not yet written anything.
 
+Nor does a ban decision wait for what is below the server. `AutoBanNeverBan`,
+which every writer of a ban asks first and the walk asks of every neighbour, is
+read under a lock of its own, not the one a reconciliation holds while it runs
+`AutoBanCommand` or the packaged hook. Until 6.3.6 it was that lock, so a hook
+that hung until `ExternalProcessTimeout` (300 seconds as shipped) held up, for
+as long as it ran, a spam trap's `RCPT TO` reply - timed apart from an unknown
+address's after all - every failed logon's count, and each step of a walk. Nor
+does the report of an entry that is no address (HM6524) hold that lock: it runs
+the event script's `OnError` on the thread that read the new value, and is made
+once the lock is let go, so a slow handler holds up nothing but that thread.
+
 A ban that stays a single address says why, in the application log too:
 
 ```
@@ -386,7 +397,9 @@ the holder of a reverse zone chooses its bytes.
 regression fixture `Security/AutoBanWiden` (REST and SMTP, both suites) holds
 the behaviour over the suite's own DNS zone, each case beside the one that must
 come out the other way, and `Security/AutoBanWidenCom` (COM, Windows) the COM
-property, the Windows rule for a run and a hook told each address.
+property, the Windows rule for a run, a hook told each address, a hook that hangs
+costing one timeout a run, and a trap's refusal waiting neither for it nor for a
+slow `OnError` handler.
 
 ## Below the server across a stop and a start (6.3.6)
 

@@ -128,9 +128,12 @@ namespace HM
                             source.compare(source.size() - suffix.size(), suffix.size(), suffix) == 0;
       const std::string text = prefix64 ? source.substr(0, source.size() - suffix.size()) : source;
 
-      boost::system::error_code error;
-      const boost::asio::ip::address address = boost::asio::ip::make_address(text, error);
-      if (error)
+      // Read as IPAddress reads an address, the same on every platform. Boost's
+      // make_address, used here before, handed the text to Windows' own parser,
+      // which also took 192.0.2 as 192.0.0.2 and 010.0.0.1 as 8.0.0.1: another
+      // group on Windows than on Linux.
+      boost::asio::ip::address address;
+      if (!IPAddress::Parse(AnsiString(text.data(), text.size()), address))
          return source;
 
       if (address.is_v4())
@@ -168,7 +171,11 @@ namespace HM
 
       IPAddress Peer(const char *text)
       {
-         return IPAddress(boost::asio::ip::make_address(text));
+         boost::asio::ip::address address;
+         if (!IPAddress::Parse(text, address))
+            throw std::logic_error(std::string("SignInBudgetTester: the test's peer ") + text + " is no address.");
+
+         return IPAddress(address);
       }
 
       struct Pending
@@ -340,6 +347,8 @@ namespace HM
              SignInBudget::SourceGroup("192.0.2.200") == SignInBudget::SourceGroup("192.0.2.10") &&
              SignInBudget::SourceGroup("192.0.3.10") != SignInBudget::SourceGroup("192.0.2.10"),
              "SignInBudgetTester: an IPv4 source's group is its /24.");
+      Expect(SignInBudget::SourceGroup("192.0.2") == "192.0.2" && SignInBudget::SourceGroup("010.0.0.1") == "010.0.0.1",
+             "SignInBudgetTester: an older form of an address was grouped as the address it would have been read as.");
       Expect(SignInBudget::SourceGroup("").empty() && SignInBudget::SourceGroup("::1") == "::1" &&
              SignInBudget::SourceGroup("127.0.0.1") == "127.0.0.1" && SignInBudget::SourceGroup("not an address") == "not an address",
              "SignInBudgetTester: no source, the loopback and anything else are their own group.");

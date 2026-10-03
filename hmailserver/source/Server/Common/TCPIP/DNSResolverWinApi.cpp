@@ -4,6 +4,7 @@
 
 #include "stdafx.h"
 #include "DNSResolverWinApi.h"
+#include "IPAddress.h"
 
 #ifdef HM_PLATFORM_POSIX
 // The resolver that answers here. Its validating path already carries the wire
@@ -349,9 +350,14 @@ namespace HM
       sCustomDNS = IniFileSettings::Instance()->GetDNSServer().Trim();
       if (!sCustomDNS.IsEmpty())
       {
-         // Custom DNSServer IPv4 address
-         unsigned long customServerAddress = inet_addr(sCustomDNS.c_str()); //Custom DNS server IP address
-         if (customServerAddress == INADDR_NONE) {
+         // The custom DNSServer, an IPv4 address read as IPAddress reads one on
+         // every platform - as the DNSSEC resolver and the TLS policy's lookups read
+         // the same setting (inet_pton), and Linux all of them. inet_addr, here
+         // until 6.3.6, also read the older forms: 8.8.8 as 8.8.0.8 and 010.0.0.1
+         // as 8.0.0.1, so for such a value this server's lookups went to one
+         // server and its DNSSEC lookups to the system's.
+         boost::asio::ip::address customServer;
+         if (!IPAddress::Parse(sCustomDNS, customServer) || !customServer.is_v4()) {
 
             String sMessage;
             sMessage.Format(_T("Invalid DNSServer IP address. DNSServer IP: %hs."), sCustomDNS.c_str());
@@ -365,7 +371,10 @@ namespace HM
             memset(&serverAddress, 0, sizeof serverAddress);
 
             serverAddress.sin_family = AF_INET;
-            serverAddress.sin_addr.s_addr = customServerAddress;
+
+            // to_bytes is in network order, which is sin_addr's.
+            const boost::asio::ip::address_v4::bytes_type customServerBytes = customServer.to_v4().to_bytes();
+            memcpy(&serverAddress.sin_addr, customServerBytes.data(), customServerBytes.size());
 
             // The port is deliberately left at zero, and this comment exists because
             // setting it to 53 - which looks obviously right - breaks every lookup.

@@ -29,10 +29,17 @@ namespace HM
       return lower_ip_.ToString();
    }
 
+   // As SecurityRange's: a text that is no address leaves the bound as it was,
+   // never 0.0.0.0, which is where TryParse leaves an address it refuses.
    bool
    IncomingRelay::SetLowerIPString(const String & sValue)
    {
-      return lower_ip_.TryParse(sValue);
+      IPAddress parsed;
+      if (!parsed.TryParse(sValue))
+         return false;
+
+      lower_ip_ = parsed;
+      return true;
    }
 
    String 
@@ -45,7 +52,12 @@ namespace HM
    bool
    IncomingRelay::SetUpperIPString(const String & sValue)
    {
-      return upper_ip_.TryParse(sValue);
+      IPAddress parsed;
+      if (!parsed.TryParse(sValue))
+         return false;
+
+      upper_ip_ = parsed;
+      return true;
    }
 
    bool

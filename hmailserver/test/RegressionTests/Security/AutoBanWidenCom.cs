@@ -7,6 +7,7 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 using NUnit.Framework;
 using NUnit.Framework.Legacy;
 using RegressionTests.Infrastructure;
@@ -21,7 +22,8 @@ namespace RegressionTests.Security
    ///    told "ban" and "unban" for each address of the run, one at a time, as it
    ///    always was, and a hook that runs past ExternalProcessTimeout not run again
    ///    in the same reconciliation, so that a run costs one timeout, not one per
-   ///    address. The behaviour of the walk itself is held over REST and SMTP by
+   ///    address - and holding up no ban decision while it runs. The behaviour of
+   ///    the walk itself is held over REST and SMTP by
    ///    AutoBanWiden, which both suites run; this is what only Windows has, so it is
    ///    not linked into the Linux suite.
    ///
@@ -245,6 +247,136 @@ namespace RegressionTests.Security
          return told;
       }
 
+      [Test]
+      [Description("A hook that hangs holds up no ban decision: a spam trap addressed while AutoBanCommand still runs for another ban is refused as soon as an unknown address is, and banned, not answered when the hook has been stopped. Every ban writer asks AutoBanNeverBan first, and that was read under the lock a reconciliation holds while it runs the hook.")]
+      public void AHookThatHangsHoldsUpNoBanDecision()
+      {
+         // Long enough that a refusal which waited for the hook cannot be mistaken
+         // for one that did not.
+         const int timeoutSeconds = 8;
+
+         string folder = Path.Combine(Path.GetTempPath(), "hmailserver-autoban-hang-decision-test");
+         Directory.CreateDirectory(folder);
+         string script = Path.Combine(folder, "hook.cmd");
+         string log = Path.Combine(folder, "hook.log");
+         File.Delete(log);
+         File.WriteAllText(script, "@echo %* >> \"" + log + "\"\r\n:spin\r\n@goto spin\r\n");
+
+         try
+         {
+            IniFileSetting.Write("ExternalProcessTimeout", timeoutSeconds.ToString());
+            IniFileSetting.Write("AutoBanCommand", "cmd.exe /c \"" + script + "\"");
+
+            // The first ban's reconciliation runs the hook, which writes its
+            // arguments and hangs, holding the reconciliation's lock until the
+            // server stops it.
+            TrapHitFrom("198.18.68.20");
+            string told = WaitForFileContaining(log, "ban 198.18.68.20 ", TimeSpan.FromSeconds(20));
+            StringAssert.Contains("ban 198.18.68.20 ", told, "The hook was not run for the first ban. Hook log: " + told);
+
+            // While it hangs: another address addresses the trap.
+            TimeSpan refusal = TrapHitFrom("198.18.69.20");
+
+            ClassicAssert.Less(refusal.TotalSeconds, 3.0,
+               "The spam trap's RCPT TO was answered after " + refusal.TotalSeconds.ToString("0.0") +
+               " seconds, while a hook that hangs ran for another ban: the refusal waited for the hook.");
+            ClassicAssert.IsNotNull(WaitForRun("198.18.69.20", "198.18.69.20", TimeSpan.FromSeconds(10)),
+               "The second address was not banned.");
+         }
+         finally
+         {
+            // The command first, so that taking the bans back does not run it; the
+            // reconciliation still running the hook is waited for by the delete.
+            IniFileSetting.Delete("AutoBanCommand");
+            IniFileSetting.Delete("ExternalProcessTimeout");
+            TakeBackBans();
+            LogHandler.ClearErrorLogUntilSettled();
+            try
+            {
+               Directory.Delete(folder, true);
+            }
+            catch (IOException)
+            {
+               // The service may still hold the log for a moment; it is temp space.
+            }
+         }
+      }
+
+      [Test]
+      [Description("An OnError handler that is slow to return holds up no ban decision. A new AutoBanNeverBan value with an entry that is no address is reported (HM6524) by the ban decision that reads it first, and the report runs the event script's OnError on that thread: it is made once the never-ban list's lock is let go, so a spam trap addressed from another session while the handler runs is refused at once. Until 6.3.6 it was made under the lock, and every ban decision of the server - each trap hit and failed logon - waited for the administrator's handler.")]
+      public void AnOnErrorHandlerThatIsSlowHoldsUpNoBanDecision()
+      {
+         // Long enough that a refusal which waited for the handler cannot be
+         // mistaken for one that did not.
+         const int handlerSeconds = 8;
+
+         var scripting = _settings.Scripting;
+         string originalLanguage = scripting.Language;
+         bool originalEnabled = scripting.Enabled;
+         string scriptFile = scripting.CurrentScriptFile;
+         string originalScript = File.Exists(scriptFile) ? File.ReadAllText(scriptFile) : null;
+
+         try
+         {
+            // A handler that spins for handlerSeconds on HM6524 alone. Timer is the
+            // seconds since midnight; a run across midnight ends at it.
+            // settings-store-exempt: this is the event script file, not hMailServer.ini.
+            File.WriteAllText(scriptFile,
+               "Sub OnError(iSeverity, iCode, sSource, sDescription)\r\n" +
+               "   If iCode = 6524 Then\r\n" +
+               "      started = Timer\r\n" +
+               "      Do While Timer >= started And Timer - started < " + handlerSeconds + "\r\n" +
+               "      Loop\r\n" +
+               "   End If\r\n" +
+               "End Sub\r\n");
+            scripting.Language = "VBScript";
+            scripting.Enabled = true;
+            scripting.Reload();
+
+            // A new value, which the next ban decision reads, and reports for the
+            // entry that is no address.
+            IniFileSetting.Write("AutoBanNeverBan", "203.0.113.0/24 not-an-address");
+
+            // The first trap hit reads it and runs the handler on its own session's
+            // thread, which is under way once HM6524 is in the log: the line is
+            // written before the event is fired.
+            Task<TimeSpan> first = Task.Run(() => TrapHitFrom("198.18.70.20"));
+            ClassicAssert.IsTrue(WaitForErrorLogContaining("HM6524", TimeSpan.FromSeconds(20)),
+               "The new AutoBanNeverBan value's entry that is no address was not reported. Error log: " + SafeErrorLog());
+
+            // While the handler runs: another address addresses the trap.
+            TimeSpan refusal = TrapHitFrom("198.18.71.20");
+
+            ClassicAssert.IsTrue(first.Wait(TimeSpan.FromSeconds(60)), "The first trap hit did not finish.");
+
+            // The handler did hold its own session, or this test would prove nothing.
+            ClassicAssert.GreaterOrEqual(first.Result.TotalSeconds, handlerSeconds - 1.5,
+               "The first trap hit was refused after " + first.Result.TotalSeconds.ToString("0.0") +
+               " seconds: the OnError handler did not run on its thread for " + handlerSeconds + " seconds.");
+
+            ClassicAssert.Less(refusal.TotalSeconds, 3.0,
+               "The spam trap's RCPT TO was answered after " + refusal.TotalSeconds.ToString("0.0") +
+               " seconds, while an OnError handler ran for another session's report: the ban decision waited for it.");
+            ClassicAssert.IsNotNull(WaitForRun("198.18.71.20", "198.18.71.20", TimeSpan.FromSeconds(10)),
+               "The second address was not banned.");
+         }
+         finally
+         {
+            IniFileSetting.Delete("AutoBanNeverBan");
+
+            var putBack = _settings.Scripting;
+            putBack.Enabled = originalEnabled;
+            putBack.Language = originalLanguage;
+            // settings-store-exempt: the event script file again, put back.
+            if (originalScript != null)
+               File.WriteAllText(scriptFile, originalScript);
+            putBack.Reload();
+
+            TakeBackBans();
+            LogHandler.ClearErrorLogUntilSettled();
+         }
+      }
+
       // ------------------------------------------------------------------- helpers
 
       /// <summary>
@@ -288,11 +420,15 @@ namespace RegressionTests.Security
          }
          finally
          {
-            // The command first, so that taking the ban back does not run it.
+            // The command first, so that taking the ban back does not run it. Only
+            // the ban: the trap and the fixture's IP range are the test's, made by
+            // SetUp, and a test that calls this twice needs them for its second
+            // call. Taking them back here left the second trap hit an unknown
+            // user - refused, never banned - and so never widened.
             IniFileSetting.Delete("AutoBanCommand");
             if (timeoutSeconds > 0)
                IniFileSetting.Delete("ExternalProcessTimeout");
-            TakeBackOurs();
+            TakeBackBans();
             LogHandler.DeleteErrorLog();
             try
             {
@@ -327,8 +463,13 @@ namespace RegressionTests.Security
          return octets[2] + "." + octets[1] + "." + octets[0] + ".in-addr.arpa";
       }
 
-      private void TrapHitFrom(string address)
+      /// <summary>
+      ///    A session from address, moved there by XCLIENT, that addresses the trap;
+      ///    how long its RCPT TO took to be refused.
+      /// </summary>
+      private TimeSpan TrapHitFrom(string address)
       {
+         TimeSpan refusal;
          using (var socket = new TcpConnection())
          {
             ClassicAssert.IsTrue(socket.Connect(25), "Could not connect to SMTP.");
@@ -346,11 +487,16 @@ namespace RegressionTests.Security
             socket.Send("MAIL FROM:<harvester@widen-com-spammer.example>\r\n");
             socket.ReadUntil("250");
 
-            socket.Send("RCPT TO:<" + TrapLocalPart + "@" + _domain.Name + ">\r\n");
+            string rcpt = "RCPT TO:<" + TrapLocalPart + "@" + _domain.Name + ">\r\n";
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+            socket.Send(rcpt);
             StringAssert.StartsWith("550", socket.ReadUntil("\r\n"), "The trap was not refused.");
+            refusal = watch.Elapsed;
 
             socket.Send("QUIT\r\n");
          }
+
+         return refusal;
       }
 
       /// <summary>The auto-ban range that reads lower..upper, polled until the deadline; null if none does.</summary>
@@ -379,18 +525,32 @@ namespace RegressionTests.Security
       /// <summary>The fixture's range, its bans on 198.18.0.0/15, its trap and the record of its hits.</summary>
       private void TakeBackOurs()
       {
+         TakeBack(true);
+      }
+
+      /// <summary>The fixture's bans on 198.18.0.0/15 alone: what SetUp arranged stays.</summary>
+      private void TakeBackBans()
+      {
+         TakeBack(false);
+      }
+
+      private void TakeBack(bool arrangementToo)
+      {
          _settings.SecurityRanges.Refresh();
 
          for (int i = _settings.SecurityRanges.Count - 1; i >= 0; i--)
          {
             hMailServer.SecurityRange range = _settings.SecurityRanges[i];
-            bool ours = range.Name == RangeName ||
+            bool ours = (arrangementToo && range.Name == RangeName) ||
                         (range.Name.StartsWith("Auto-ban: ", StringComparison.Ordinal) &&
                          (range.LowerIP.StartsWith("198.18.", StringComparison.Ordinal) || range.LowerIP.StartsWith("198.19.", StringComparison.Ordinal)));
 
             if (ours)
                range.Delete();
          }
+
+         if (!arrangementToo)
+            return;
 
          try
          {
@@ -400,6 +560,23 @@ namespace RegressionTests.Security
          catch (COMException)
          {
             // Not declared: nothing to take back.
+         }
+      }
+
+      /// <summary>Whether the ERROR log holds text before the deadline.</summary>
+      private static bool WaitForErrorLogContaining(string text, TimeSpan deadline)
+      {
+         DateTime until = DateTime.UtcNow + deadline;
+
+         while (true)
+         {
+            if (File.Exists(LogHandler.GetErrorLogFileName()) && LogHandler.ReadErrorLog().Contains(text))
+               return true;
+
+            if (DateTime.UtcNow > until)
+               return false;
+
+            Thread.Sleep(100);
          }
       }
 

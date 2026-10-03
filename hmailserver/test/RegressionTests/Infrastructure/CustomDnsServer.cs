@@ -142,6 +142,49 @@ namespace RegressionTests.Infrastructure
       }
 
       /// <summary>
+      ///    A DNSServer written in an older form of an IPv4 address is no address, on
+      ///    Windows as on Linux and as the DNSSEC resolver and the TLS policy's lookups
+      ///    have always read it: reported as invalid (HM4401), and the lookup goes to
+      ///    the system's servers. Until 6.3.6 the Windows resolver read the setting
+      ///    with inet_addr, which took 127.1 as 127.0.0.1 - the suite's own zone here -
+      ///    while the server's other readers of the same setting went elsewhere.
+      /// </summary>
+      [Test]
+      [Description("DNSServer=127.1 is no address to the Windows resolver, as to the DNSSEC resolver and on Linux: HM4401 says so, where inet_addr read it as 127.0.0.1 until 6.3.6")]
+      public void ADnsServerInAnOlderFormIsNoAddress()
+      {
+         SetIniSetting("DNSServer", "127.1");
+         SetIniSetting("DNSQueryTimeout", "2");
+
+         try
+         {
+            RestartServerAndReacquireCom();
+
+            try
+            {
+               string ignored = _application.Utilities.ResolveMXRecords("example.test");
+            }
+            catch (System.Runtime.InteropServices.COMException)
+            {
+               // Whether the system's servers answer is beside the point: where the
+               // lookup went is.
+            }
+
+            string errors = File.Exists(LogHandler.GetErrorLogFileName()) ? LogHandler.ReadErrorLog() : "";
+            StringAssert.Contains("Invalid DNSServer IP address. DNSServer IP: 127.1.", errors,
+               "The resolver took DNSServer=127.1 as an address; the DNSSEC resolver, the TLS policy and Linux " +
+               "read it as none. Error log:\r\n" + errors);
+         }
+         finally
+         {
+            SetIniSetting("DNSServer", SuiteDns.Resolver);
+            SetIniSetting("DNSQueryTimeout", null);
+            RestartServerAndReacquireCom();
+            LogHandler.ClearErrorLogUntilSettled();
+         }
+      }
+
+      /// <summary>
       ///    A DNS server whose UDP path emits structurally broken responses - RDLENGTH
       ///    overrunning the packet - must not end the lookup: the resolver retries the
       ///    query over TCP, where the same server answers correctly.

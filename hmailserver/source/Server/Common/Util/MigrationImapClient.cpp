@@ -102,9 +102,8 @@ namespace HM
 
          std::vector<boost::asio::ip::tcp::endpoint> endpoints;
 
-         boost::system::error_code notLiteral;
-         const boost::asio::ip::address literal = boost::asio::ip::make_address(std::string(host.c_str()), notLiteral);
-         if (!notLiteral)
+         boost::asio::ip::address literal;
+         if (IPAddress::Parse(host, literal))
          {
             endpoints.push_back(boost::asio::ip::tcp::endpoint(literal, (unsigned short) port));
          }
@@ -160,9 +159,8 @@ namespace HM
 
          // The server's name, when it has one: RFC 6066 has no place for an
          // address in server_name.
-         boost::system::error_code notLiteral;
-         boost::asio::ip::make_address(std::string(host.c_str()), notLiteral);
-         if (notLiteral && !SSL_set_tlsext_host_name(stream_->native_handle(), host.c_str()))
+         boost::asio::ip::address literal;
+         if (!IPAddress::Parse(host, literal) && !SSL_set_tlsext_host_name(stream_->native_handle(), host.c_str()))
          {
             error = _T("The TLS server name could not be set.");
             return false;

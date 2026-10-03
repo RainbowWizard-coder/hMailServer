@@ -125,7 +125,11 @@ quarantine review groups by. With one trailing root dot taken off
 - it is not empty, and not the root `.` alone;
 - it is not an address - nothing in brackets (`[192.0.2.7]`,
   `[IPv6:2001:db8::7]`, or whatever else a client brackets), and no IPv4 or
-  IPv6 address without them;
+  IPv6 address without them. An IPv4 address is four decimal parts
+  (`192.0.2.7`), on Windows and Linux alike; the older forms Windows' own
+  parser also reads - `192.0.2`, `3232235777`, `0x7f.1`, `0300.0250.0.1` -
+  are not addresses, and fall to the rules below as names: an all-digit last
+  label, or a single label;
 - every label holds something, and holds only letters, digits, hyphens and
   underscores, or characters beyond ASCII (an internationalised name). A space
   or an `@` is in no host's name, so `HELO mail.example.com extra` is not one;

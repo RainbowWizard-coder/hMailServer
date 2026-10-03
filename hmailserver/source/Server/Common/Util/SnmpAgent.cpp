@@ -837,7 +837,10 @@ namespace HM
       }
       else
       {
-         const boost::asio::ip::address address = boost::asio::ip::make_address(bind, error);
+         // Read as IPAddress reads an address on every platform.
+         boost::asio::ip::address address;
+         if (!IPAddress::Parse(AnsiString(bind.c_str()), address))
+            error = boost::asio::error::invalid_argument;
 
          if (!error)
          {

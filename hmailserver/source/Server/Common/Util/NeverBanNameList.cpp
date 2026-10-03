@@ -1969,6 +1969,23 @@ namespace HM
       Expect(NeverBanName::ValidatePattern(_T("example.co.uk"), refusal), "A registrable domain under co.uk was refused - the negative control of the suffix rule.");
       Expect(!NeverBanName::ValidatePattern(_T("*.example.net"), refusal), "A star wildcard was accepted.");
       Expect(refusal.Find(_T(".example.net")) >= 0, "The star's refusal does not say how to write the wildcard.");
+
+      // The refusal names the pattern that was meant, not the example alone - and
+      // only one this check takes: a star anywhere else, or before a public
+      // suffix, gets the example. (Before 6.3.6 every star got the example, which
+      // AutoBanNeverBanNamesCom's *.nbn-com.test found on Windows.)
+      Expect(!NeverBanName::ValidatePattern(_T(" *.Mail.Example.ORG. "), refusal) &&
+             refusal.Find(_T("write .mail.example.org for mail.example.org ")) >= 0,
+             "The star's refusal does not name the pattern that was meant.");
+      Expect(!NeverBanName::ValidatePattern(_T("*.com"), refusal) && refusal.Find(_T(".com")) < 0 &&
+             refusal.Find(_T(".example.net")) >= 0,
+             "The star's refusal offered a public suffix as the pattern to write.");
+      Expect(!NeverBanName::ValidatePattern(_T("*.*.example.org"), refusal) && refusal.Find(_T("example.org")) < 0,
+             "The refusal of two stars offered a pattern with a star in it.");
+      Expect(!NeverBanName::ValidatePattern(_T("mail.*.example.org"), refusal) && refusal.Find(_T("example.org")) < 0,
+             "The refusal of a star inside the name offered a pattern.");
+      Expect(!NeverBanName::ValidatePattern(_T("*.mail example.org"), refusal) && refusal.Find(_T("mail example")) < 0,
+             "The star's refusal echoed a pattern that is no name.");
       Expect(!NeverBanName::ValidatePattern(_T("192.0.2.1"), refusal), "An IPv4 address was accepted as a name.");
       Expect(!NeverBanName::ValidatePattern(_T("2001:db8::1"), refusal), "An IPv6 address was accepted as a name.");
       Expect(!NeverBanName::ValidatePattern(_T("[192.0.2.1]"), refusal), "An address literal was accepted.");
