@@ -130,8 +130,11 @@ namespace
    // says so. Fedora's, EL's and openSUSE's glibc keep all but UTF-7, CP1252,
    // ISO-8859-1 and -15 and Unicode's in a package glibc only recommends, so a
    // minimal installation or a container image of them has none of the rest;
-   // the .rpm and the RPM spec require it, and an AppImage, which runs on the
-   // host's glibc, cannot. Asked at --check-config and at every start.
+   // the RPM spec requires it, the .rpm requires it where dnf is installed on
+   // Fedora or EL and elsewhere only recommends it, so that the live update's
+   // rpm -Uvh, or a dnf without repositories, is not refused (CMakeLists.txt),
+   // and an AppImage, which runs on the host's glibc, cannot.
+   // Asked at --check-config and at every start.
    std::vector<std::string> CharacterSetsWithoutConverter()
    {
       std::set<std::string> names;
@@ -164,8 +167,8 @@ namespace
          list += (list.empty() ? "" : ", ") + name;
       return std::to_string(missing.size()) + " character set(s) do not convert here - " + list +
          ": text in them is neither read nor written, because this machine's C library has no converter for them. "
-         "On Fedora and EL the converters are the package glibc-gconv-extra, on openSUSE glibc-gconv-modules-extra, "
-         "which the .rpm requires: install it, and start the server again.";
+         "On Fedora and EL the converters are the package glibc-gconv-extra, on openSUSE glibc-gconv-modules-extra: "
+         "install it, and start the server again.";
    }
 
    void PrintUsage(const char *program)

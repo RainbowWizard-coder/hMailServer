@@ -12,9 +12,14 @@
 #
 #   hmailserver --version answers, from the installed binary;
 #   glibc's character-set converters came with it, which the package requires
-#   and the image lacks: the server finds every one it names (--check-config),
-#   BIG5 and ISO-2022-JP text converts - and with the converters taken away
-#   again, neither does, which is the check seeing what it checks;
+#   where dnf is installed on Fedora or EL and recommends everywhere, and the
+#   image lacks: the server finds every one it names (--check-config), BIG5 and
+#   ISO-2022-JP text converts - and with the converters taken away again,
+#   neither does, which is the check seeing what it checks;
+#   the live update's own install, without them: on openSUSE rpm -Uvh installs
+#   the package, and so does dnf where it has been installed beside zypper; on
+#   Fedora and EL rpm -Uvh refuses it, and dnf, which the live update installs
+#   with there, brings them;
 #   every file a working installation needs is where the package put it;
 #   the licences are there as the tree has them - the AGPL-3.0 text, QuickJS's
 #   and /usr/share/licenses/hmailserver/copyright - installed under the image's
@@ -37,7 +42,9 @@ arch="${2:-}"
 packages="${HM_OUT_ROOT:-packages-rpm}/$target-$arch"
 
 # converters: the package of glibc's character-set converters beyond its base
-# package's, which the .rpm requires (CMakeLists.txt, CPACK_RPM_PACKAGE_REQUIRES).
+# package's, which the .rpm requires where dnf is installed on Fedora or EL and
+# recommends everywhere (CMakeLists.txt, CPACK_RPM_PACKAGE_REQUIRES and
+# _RECOMMENDS).
 case "$target" in
   fedora44|fedora43|el10|el9) family=dnf; converters=glibc-gconv-extra ;;
   leap16|tumbleweed) family=zypper; converters=glibc-gconv-modules-extra ;;
@@ -98,11 +105,15 @@ retry_fetch() {
   return 1
 }
 # zypper refreshes its repositories by itself before it installs, and trusts
-# only the keys the image already holds: nothing is auto-imported.
+# only the keys the image already holds: nothing is auto-imported. dnf without
+# weak dependencies: the converters are required on Fedora and EL. zypper with
+# them, as a system installs (solver.onlyRequires off, its default; the images set
+# it on): on openSUSE the converters are a recommendation, rpm -Uvh being the live
+# update's install there.
 install_rpm() {
   case "$family" in
     dnf) retry_fetch "$2" dnf -y -q --setopt=install_weak_deps=False install "./$1" ;;
-    zypper) retry_fetch "$2" zypper -n install --no-recommends --allow-unsigned-rpm "./$1" ;;
+    zypper) retry_fetch "$2" zypper -n install --recommends --allow-unsigned-rpm "./$1" ;;
   esac
 }
 
@@ -140,12 +151,16 @@ check_charsets() {
 set -e
 started=$(date +%s)
 echo ""
-echo "== the character-set converters: required, and not in this image"
+echo "== the character-set converters: required where dnf is on Fedora or EL, recommended, and not in this image"
 # The rich dependency each distribution meets with its own package
 # (CMakeLists.txt); grep reads the whole list (see below, at rpm -qc).
-rpm -qp --requires "$rpm_file" | grep -xF "(glibc-gconv-extra($isa) or glibc-gconv-modules-extra($isa))" > /dev/null \
-  || { echo "FAILED: $(basename "$rpm_file") does not require glibc's converters, glibc-gconv-extra($isa) or glibc-gconv-modules-extra($isa)"; exit 1; }
-echo "$(basename "$rpm_file") requires glibc-gconv-extra($isa) or glibc-gconv-modules-extra($isa)"
+either="(glibc-gconv-extra($isa) or glibc-gconv-modules-extra($isa))"
+condition="(dnf and system-release)"
+rpm -qp --requires "$rpm_file" | grep -xF "($either if $condition)" > /dev/null \
+  || { echo "FAILED: $(basename "$rpm_file") does not require glibc's converters where dnf is on Fedora or EL, ($either if $condition)"; exit 1; }
+rpm -qp --recommends "$rpm_file" | grep -xF "$either" > /dev/null \
+  || { echo "FAILED: $(basename "$rpm_file") does not recommend glibc's converters, $either"; exit 1; }
+echo "$(basename "$rpm_file") requires $either if $condition, and recommends it"
 if rpm -q "$converters" > /dev/null 2>&1; then
   echo "($converters is in the image already, so the install below cannot show it comes with the package)"
 else
@@ -177,6 +192,51 @@ rpm -e --nodeps "$converters" > /tmp/remove-converters.log 2>&1 \
   || { cat /tmp/remove-converters.log; echo "FAILED: rpm -e --nodeps $converters"; exit 1; }
 echo "without $converters:"
 check_charsets absent
+
+echo ""
+echo "== the live update's install, without the converters"
+# The live update's helper (hmailserver-update, 6.3.5's as this release's)
+# installs an .rpm with dnf install -y where there is a dnf command, and with
+# rpm -Uvh where there is not, which resolves nothing and refuses a package whose
+# requirements are not met. With the converters required on every distribution,
+# 6.3.5's helper refused the update to 6.3.6 on every openSUSE server without
+# them; the requirement holds only where dnf is installed on Fedora or EL.
+rpm -e hmailserver > /tmp/remove.log 2>&1 || { cat /tmp/remove.log; echo "FAILED: rpm -e before rpm -Uvh"; exit 1; }
+if rpm -Uvh "$rpm_file" > /tmp/uvh.log 2>&1; then uvh=installed; else uvh=refused; fi
+case "$family:$uvh" in
+  zypper:installed)
+    echo "rpm -Uvh installed it without $converters, as the live update does here"
+    check_charsets absent
+    # openSUSE packages dnf too, and where it has been installed beside zypper the
+    # live update installs with it - a dnf with no repositories here, which
+    # refused the package while the requirement held wherever dnf was (on Leap
+    # 16.0 and Tumbleweed, 3 October 2026). The helper's own command.
+    rpm -e hmailserver > /tmp/remove.log 2>&1 || { cat /tmp/remove.log; echo "FAILED: rpm -e before dnf"; exit 1; }
+    retry_fetch /tmp/install-dnf.log zypper -n install --no-recommends dnf \
+      || { cat /tmp/install-dnf.log; echo "FAILED: zypper could not install dnf"; exit 1; }
+    if ! dnf install -y "./$rpm_file" > /tmp/dnf-install.log 2>&1; then
+      cat /tmp/dnf-install.log
+      echo "FAILED: dnf, installed beside zypper, refused $(basename "$rpm_file"), so the live update could not install it here"
+      exit 1
+    fi
+    echo "and dnf install -y, with $(rpm -q --whatprovides dnf) installed beside zypper, installed it too"
+    rpm -q --whatprovides "$converters($isa)" > /dev/null 2>&1 || check_charsets absent ;;
+  dnf:refused)
+    grep -q 'is needed by' /tmp/uvh.log || { cat /tmp/uvh.log; echo "FAILED: rpm -Uvh refused it for a reason that is not a dependency"; exit 1; }
+    echo "rpm -Uvh refused it without $converters, which it requires here: $(grep -m 1 'is needed by' /tmp/uvh.log | sed 's/^[[:space:]]*//')"
+    install_rpm "$rpm_file" /tmp/install-again.log \
+      || { cat /tmp/install-again.log; echo "FAILED: $family could not install $(basename "$rpm_file") again"; exit 1; }
+    rpm -q --whatprovides "$converters($isa)" > /dev/null \
+      || { echo "FAILED: $family installed the package again without $converters($isa)"; exit 1; }
+    echo "and $family installs it with them, as the live update does here" ;;
+  zypper:refused)
+    cat /tmp/uvh.log
+    echo "FAILED: rpm -Uvh refused $(basename "$rpm_file") without $converters, so the live update could not install it here"
+    exit 1 ;;
+  *)
+    echo "FAILED: rpm -Uvh installed $(basename "$rpm_file") without $converters on $NAME, where it requires them"
+    exit 1 ;;
+esac
 
 echo ""
 echo "== every file a working installation needs"
@@ -229,6 +289,7 @@ generic=$(ls "$packages"/generic/hmailserver-*."$arch".rpm 2> /dev/null | head -
 if [ -n "$generic" ]; then
   echo ""
   echo "== and the generic copy, $(basename "$generic")"
+  rpm -e --nodeps "$converters" > /dev/null 2>&1 || true
   install_rpm "$generic" /tmp/install-generic.log \
     || { cat /tmp/install-generic.log; echo "FAILED: the generic copy did not install"; exit 1; }
   release=$(rpm -q --qf '%{RELEASE}' hmailserver)

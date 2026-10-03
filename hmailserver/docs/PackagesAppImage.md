@@ -151,7 +151,7 @@ only recommends: a host without it, as every container image of those
 releases is, has UTF-8, US-ASCII, UTF-7, ISO-8859-1, ISO-8859-15 and
 Windows-1252, and the server reads and writes no text in BIG5, ISO-2022-JP or
 the other Windows and ISO-8859 code pages (PackagesRpm.md, "The character
-sets"). The `.rpm` requires that package; an AppImage cannot require anything,
+sets"). The `.rpm` asks for that package; an AppImage cannot ask for anything,
 so there install it by hand:
 
     sudo dnf install glibc-gconv-extra                 # Fedora, RHEL

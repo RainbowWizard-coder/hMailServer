@@ -388,10 +388,13 @@ server administrator's alone, and mail a signed-in account queues claims to be f
 An IMAP session that has turned compression on (`COMPRESS=DEFLATE`, RFC 4978) no longer has the server inflate
 whatever one read of its compressed input expands to. Every version from 6.2.28, the release that brought the
 extension, inflated all of it at once, and from 6.3.4 kept what did not fit the receive buffer and took each command
-line off the front of all of it, at a cost in proportion to everything still waiting: a signed-in mailbox user could
-hold tens of megabytes of memory per session and keep one of the TCP/IP worker threads busy for hours. The server now
-inflates no more than twice its receive buffer ahead of the commands it has read, keeps the rest compressed until
-those are taken, and takes each line at a cost of its own length. Found by the project's own review.
+line off the front of it, copying the rest - and the full receive buffer - for every command. One read is at most 512
+compressed octets (Boost.Asio's read into the emptied buffer the connection used), so what waited was at most about
+half a megabyte, about what 6.3.6 itself lets wait, and the copying cost a few microseconds a command: at deflate's
+highest ratio, 0.18 s for the 66,000 eight-octet commands of one read, beside what serving them costs (measured on
+linix, 3 October 2026). The server now inflates no more than twice its receive buffer ahead of the commands it has
+read, keeps the rest compressed until those are taken, and takes each line at a cost of its own length. Found by the
+project's own review.
 
 Outbound DANE (RFC 7672) used TLSA records of usage DANE-EE (3) alone. A recipient's MX host whose DNSSEC-validated
 records were all of another kind - DANE-TA (2), the usual record for a certificate from an authority, or records this
@@ -1494,24 +1497,39 @@ was. Found by the project's own review.
 - **The `.deb` and the `.rpm` require `ca-certificates`**, which every HTTPS request the server makes needs, the
   update check's among them; in the first Linux live update PostgreSQL had pulled it in. So do the source packages
   and the Arch package.
-- **The `.rpm` and the RPM spec require glibc's character-set converters**, `glibc-gconv-extra` on Fedora and EL and
-  `glibc-gconv-modules-extra` on openSUSE. glibc only recommends them, so every container image of those
-  distributions, and any installation made without recommended packages, goes without, and there, with every `.rpm`
-  up to 6.3.5, the server read and wrote no text in a character set but Unicode's, US-ASCII, UTF-7, ISO-8859-1,
+- **The `.rpm` asks for glibc's character-set converters, and the RPM spec requires them**, `glibc-gconv-extra` on
+  Fedora and EL and `glibc-gconv-modules-extra` on openSUSE. glibc only recommends them, so every container image of
+  those distributions, and any installation made without recommended packages, goes without, and there, with every
+  `.rpm` up to 6.3.5, the server read and wrote no text in a character set but Unicode's, US-ASCII, UTF-7, ISO-8859-1,
   ISO-8859-15 and Windows-1252: a header or a body in BIG5, ISO-2022-JP, Windows-1251 or ISO-8859-2 came out empty,
   and a PST's text in code page 932, 936, 949 or KOI8 was imported as its ASCII, each byte outside ASCII a replacement
   character, and an RTF body's read as Windows-1252 (the pinned Fedora 44, UBI 9 and 10, Leap 16.0 and Tumbleweed
   images, 1 October 2026). Every `.rpm` the project makes, the generic ones and each release's own, now requires
+  `((glibc-gconv-extra(<arch>) or glibc-gconv-modules-extra(<arch>)) if (dnf and system-release))` and recommends
   `(glibc-gconv-extra(<arch>) or glibc-gconv-modules-extra(<arch>))`, which each distribution meets with its own
   package, built for the server's architecture: an i686 build of it beside an x86-64 glibc would meet the bare name
-  and convert nothing. The spec requires its distribution's one by name. Where the live update installs an `.rpm` with
-  `rpm -Uvh` - on openSUSE, which has no `dnf` - nothing is installed beside it, so a server there without the
-  converters fails its update to 6.3.6, and stays as it was, until `zypper install glibc-gconv-modules-extra` has run;
-  `dnf` installs them with the package. `rpm-install-test.sh` holds each package to the requirement and, in its
-  release's clean image, which lacks the converters, requires that the installed server finds every character set it
-  names and that BIG5 and ISO-2022-JP text converts, then takes the converters away again and requires that neither
-  holds; the RPM source packages' build reads the requirement and their install test requires the first through
-  `server-starts`, and `linux-package-rpm` reads the requirement in the generic x86-64 `.rpm`. An AppImage runs on its
+  and convert nothing. Required where `dnf` is installed on Fedora or EL, whose release package provides
+  `system-release` - there `dnf` installs them with the package, the live update's `dnf install` included; only
+  recommended elsewhere, because on openSUSE the live update installs with `rpm -Uvh`, which installs nothing beside
+  the package and refuses one whose requirements are not met, or, where `dnf` has been installed beside zypper, with
+  that `dnf`, which has no repositories there. With the requirement everywhere, 6.3.5's helper refused the update to
+  6.3.6 on every openSUSE server without the converters, and the server stayed on 6.3.5; now it is updated, zypper
+  installs the recommendation unless `solver.onlyRequires` is on, and the server names what it cannot convert at its
+  start. A recommendation alone would not do on Fedora and EL: `dnf` does not install one that glibc's own
+  recommendation of the same package already left out (`exclude_from_weak_autodetect`). So on Fedora and EL `dnf`
+  needs a repository that has them: a server without them whose `dnf` has none enabled, an unregistered RHEL say, has
+  the update refused, and stays on 6.3.5, until `glibc-gconv-extra` is installed. Measured on Fedora 44 and 43,
+  UBI 9 and 10 and their minimal images, Leap 16.0 and Tumbleweed, with and without `dnf` beside zypper, on 2 and
+  3 October 2026 ([PackagesRpm.md](hmailserver/docs/PackagesRpm.md), "The character sets"). The spec, whose packages
+  have no live update, requires its distribution's one by name. `rpm-install-test.sh` holds each package to the
+  requirement and the recommendation and, in its release's clean image, which lacks the converters, requires that the
+  installed server finds every character set it names and that BIG5 and ISO-2022-JP text converts, then takes the
+  converters away again and requires that neither holds, and that the live update's install goes through without
+  them on openSUSE - `rpm -Uvh`, and `dnf install -y` with `dnf` installed beside zypper - and that `rpm -Uvh` is
+  refused for them on Fedora and EL; `rpm-build.sh` writes the recommendation into the spec where a
+  release's CPack leaves it out, as it does the suggestions; the RPM source packages' build reads the requirement and
+  their install test requires the first through `server-starts`, and `linux-package-rpm` reads the requirement and the
+  recommendation in the generic x86-64 `.rpm`. An AppImage runs on its
   host's glibc and cannot require a package: on Fedora, EL or openSUSE that package is installed by hand
   ([PackagesAppImage.md](hmailserver/docs/PackagesAppImage.md)), and the server says when it is missing (Operations,
   below).
@@ -3268,6 +3286,17 @@ was. Found by the project's own review.
   records under opportunistic and required STARTTLS. `DnssecRootKeysUnverifiable` (Windows) anchors a root whose
   keys come back unsigned: an unsigned MX answer is then indeterminate, not insecure and not bogus, and the
   application log says why.
+- **End-to-end regression fixtures for the DANE-TA and SURBL fixes.** `DaneTaDnssecRequiresTls` sends to a recipient
+  whose MX RRset and TLSA RRset are DNSSEC-validated from the suite's own root, under a top-level name of its own, the
+  TLSA records DANE-TA (`2 1 1`) only, and the host offering no STARTTLS: the message is deferred naming the records and
+  the session is a TLS-RPT failure, not delivered in the clear (it runs on the Linux suite too). `AntiSpam.Basics`'s two
+  SURBL fixtures put sixteen links to innocent domains before a listed one - in a multipart message's text part, and as
+  hidden links in its HTML part - and require the listed link to be asked about and the message tagged, which the
+  pre-6.3.6 sixteen-name, text-first budget did not do. IMAP COMPRESS's own bound is held by `DeflateStreamsTester`
+  (above), a unit test with a negative control, and by no end-to-end fixture, since none can tell 6.3.5 from 6.3.6:
+  6.3.5 read at most 512 compressed octets at a time, so its backlog never passed about half a megabyte, and its
+  copying, a few microseconds a command, is below what serving a command costs - a flood of 200,037 commands took 209 s
+  on 6.3.5's code and 271 s on 6.3.6's in the Linux suite.
 - **The snap: `hmailserver`, strictly confined, on core24, for amd64 and arm64**
   ([Snap.md](hmailserver/docs/Snap.md)). `snap/snapcraft.yaml` makes it from the release's own Ubuntu 24.04
   `.deb`, unchanged, with libpq, libldap, the MariaDB client and 7-Zip from Ubuntu 24.04's archive. The service

@@ -90,7 +90,12 @@ Requires:       ca-certificates
 # minimal installation goes without, and the server then reads and writes no
 # text in those character sets (hmailserver --check-config names them). The
 # architecture's own build, which %%{_isa} names: an i686 one beside an x86-64
-# glibc would satisfy the bare name and convert nothing for this server.
+# glibc would satisfy the bare name and convert nothing for this server. A
+# requirement on every distribution here, where CPack's .rpm requires them only
+# where dnf is installed on Fedora or EL and recommends them elsewhere
+# (CMakeLists.txt): that one is the live update's, which installs it with rpm -Uvh
+# where there is no dnf, and a package built from this spec has no live update
+# (HM_LIVE_UPDATE OFF below) and comes and goes through dnf or zypper.
 %if 0%{?suse_version}
 Requires:       glibc-gconv-modules-extra%{?_isa}
 %else

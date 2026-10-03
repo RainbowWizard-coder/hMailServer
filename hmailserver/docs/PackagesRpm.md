@@ -325,9 +325,10 @@ The update checker (`UpdateChecker.cpp`, `PlatformInstallerName_`) and
 `.rpm` looks for the generic name of its architecture, so a server installed
 from, say, `hmailserver-<v>-1.el9.x86_64.rpm` is offered `linux-build`'s
 Ubuntu-built package on update. `hmailserver-update` installs an `.rpm` with
-`dnf install` where there is dnf, and `rpm -Uvh` otherwise (openSUSE has no
-dnf), and both check `Requires`: where the offered package's `Requires` do not
-resolve, the update is refused and the installed server stays as it was.
+`dnf install` where there is a `dnf` command, and `rpm -Uvh` otherwise
+(openSUSE has none, unless one has been installed beside zypper), and both
+check `Requires`: where the offered package's `Requires` do not resolve, the
+update is refused and the installed server stays as it was.
 Choosing a package by distribution is not done; the row *Per-distribution
 `.deb` and `.rpm` packages* of [Roadmap3.md](../../Roadmap3.md) carries it.
 
@@ -351,12 +352,16 @@ From 6.3.6 the package requires `ca-certificates` beside the automatic
 `Requires`: every HTTPS request the server makes, the update check among them,
 is checked against the distribution's bundle of certificate authorities
 ([PackagesDeb.md](PackagesDeb.md), "Why each release has its own package").
-It requires glibc's character-set converters too ([The character
-sets](#the-character-sets)), which an
-openSUSE server updated by `rpm -Uvh` must have before the update: rpm
-installs nothing beside the package, so without them the update to 6.3.6
-fails and the server stays as it was until `zypper install
-glibc-gconv-modules-extra` has run. `dnf` installs them with the package. And
+It asks for glibc's character-set converters too ([The character
+sets](#the-character-sets)): it requires them where dnf is installed on Fedora
+or EL, where dnf installs them with the package, and only recommends them
+elsewhere. On openSUSE the update is `rpm -Uvh`, which installs nothing beside
+the package and refuses one whose requirements are not met - or openSUSE's own
+dnf, where one has been installed, which has no repositories to find them in -
+so a plain requirement would keep every openSUSE server without the converters
+on 6.3.5: its helper's update to 6.3.6 is refused (measured, below). As it is,
+the server is updated, and names what it cannot convert and the package that
+has it at every start. And
 its `%changelog` is one entry of its own, dated by `SOURCE_DATE_EPOCH` so that
 two builds of one commit make the same header: for a released version, the
 version, its date and its page from its heading in `CHANGELOG.md`; for a build
@@ -384,17 +389,50 @@ a header or a body in them came out empty.
 
 From 6.3.6 every `.rpm` here and `linux-build`'s require
 
+    ((glibc-gconv-extra(x86-64) or glibc-gconv-modules-extra(x86-64)) if (dnf and system-release))
+
+and recommend
+
     (glibc-gconv-extra(x86-64) or glibc-gconv-modules-extra(x86-64))
 
-(`aarch-64` for AArch64), from `CPACK_RPM_PACKAGE_REQUIRES` in
-`CMakeLists.txt`. One rich dependency, which each distribution meets with its
-own package: the generic `.rpm` is installed on all of them and offered to
-all of them by the live update. rpm takes it from 4.13, and adds
+(`aarch-64` for AArch64), from `CPACK_RPM_PACKAGE_REQUIRES` and
+`CPACK_RPM_PACKAGE_RECOMMENDS` in `CMakeLists.txt`. One rich dependency, which
+each distribution meets with its own package: the generic `.rpm` is installed
+on all of them and offered to all of them by the live update. Required where
+dnf can install them, and only recommended elsewhere, because of how each is
+installed. The live update installs an `.rpm` with `dnf install` where there
+is a `dnf` command and with `rpm -Uvh` where there is not - openSUSE, and a
+UBI minimal image, which has microdnf - and `rpm -Uvh` refuses a package whose
+requirements are not met: a plain requirement had 6.3.5's helper refuse the
+update to 6.3.6 on every openSUSE server without the converters. A plain
+recommendation does not do for Fedora and EL instead: glibc recommends the
+same package, and dnf does not install a recommendation that an installed
+package's recommendation already left out (`exclude_from_weak_autodetect`, on
+by default), so `dnf install` of the package never brought them where they
+were missing. The condition is dnf and `system-release`, which the release
+package of Fedora and of every EL provides (`fedora-release`,
+`redhat-release`, `almalinux-release` and the rest) and openSUSE's does not:
+there dnf installs them with the package as a requirement, and `rpm -Uvh`
+refuses the package as before, where the live update does not use it. dnf
+then needs a repository that has them: a Fedora or EL server without them
+whose dnf has no repository enabled - an unregistered RHEL, say - has the
+update refused, and stays as it was, until `glibc-gconv-extra` is installed
+(measured in Fedora 44 and UBI 10 with their repositories taken away, 3
+October 2026), the same refusal openSUSE's dnf made below.
+Everywhere else the requirement is void: on openSUSE `rpm -Uvh` installs the
+package, and zypper installs the recommendation unless `solver.onlyRequires`
+is on (it is off by default, and on in the container images). `if dnf` alone
+was not enough: openSUSE packages dnf (Leap 16.0's dnf 4.23, Tumbleweed's
+dnf5), and where it has been installed beside zypper the live update installs
+with it - and that dnf, as openSUSE installs it, has no repositories, so it
+refused the package for the converters it could not find, as it refused the
+plain requirement. rpm takes rich dependencies from 4.13, and adds
 `rpmlib(RichDependencies)`; UBI 9's 4.16 is the oldest here. It names the
 architecture's own build (`%{_isa}`), since on x86-64 the i686 build of the
-package would meet the bare name and convert nothing for this server. The
-RPM spec requires its distribution's package by name, the same way
-([SourcePackages.md](SourcePackages.md)).
+package would meet the bare name and convert nothing for this server. The RPM
+spec requires its distribution's package by name, the same way, and on every
+distribution ([SourcePackages.md](SourcePackages.md)): its packages have no
+live update, and dnf or zypper installs them.
 
 The server says what it cannot convert: `hmailserver --check-config` ends
 with `Character sets:`, which says every one converts or names those that do
@@ -402,7 +440,27 @@ not and the package that has them, and a start with any missing writes the
 same to standard error and the application log. The install test reads that
 line ([The install test](#the-install-test)).
 
-What ran, on linix on 1 October 2026, in the pinned images:
+What ran, on linix on 2 and 3 October 2026, for the condition:
+
+- **A miniature of the package** at version 1 with 6.3.5's lines
+  (`ca-certificates` alone) and at version 2 with this requirement and the
+  recommendation, made with Fedora 44's rpmbuild; version 1 installed without
+  the converters, then updated to 2 as `hmailserver-update` does it (`dnf
+  install -y` where there is a `dnf` command, `rpm -Uvh` otherwise). The update
+  went through in all eleven: Fedora 44 and 43, UBI 10 and 9 (dnf bringing
+  `glibc-gconv-extra`), UBI 10 and 9 minimal (microdnf, so `rpm -Uvh`, without
+  them), Leap 16.0 and Tumbleweed (`rpm -Uvh`, without them), Leap 16.0 and
+  Tumbleweed with dnf installed beside zypper (`dnf install -y`, without
+  them), and Fedora 44 with zypper installed beside dnf (dnf bringing them).
+  With `if dnf` alone, both openSUSE images with dnf refused the update ("none
+  of the providers can be installed"); with the plain requirement of 1 October
+  every image but those with dnf on Fedora and EL refused it.
+- **The release's own `.rpm`**, `linux-build`'s, through `rpm-install-test.sh`
+  in the pinned `fedora:44`, `ubi10/ubi`, `leap:16.0` and `tumbleweed` images
+  (The install test, step 3).
+
+And on 1 October 2026, in the pinned images, with the requirement then
+unconditional:
 
 - **A miniature of the package** - CPack with these two `Requires` lines, and
   with `ca-certificates` alone, built by each release's own CMake and rpmbuild
@@ -648,15 +706,24 @@ package's architecture:
    five runs above, the RHEL 10, Leap 16.0 and Tumbleweed containers showed the
    service account running it.)
 3. The character sets ([The character sets](#the-character-sets)). Before the
-   install the package must require the converters and the image must lack
-   them, or the test says it cannot show they came with the package; after
-   it, `glibc-gconv-extra` or `glibc-gconv-modules-extra` of the package's
-   architecture is installed, `hmailserver --check-config` says every
-   character set the server converts text in converts, and a BIG5 and an
-   ISO-2022-JP-2 sample convert to their UTF-8 through the C library's iconv.
-   Then the converters are taken away with `rpm -e --nodeps`, and the server
-   must name BIG5 and ISO-2022-JP-2 among those it cannot convert, and
-   neither sample may convert: the check seeing what it checks.
+   install the package must require the converters where dnf is on Fedora or
+   EL and recommend them, and the image must lack them, or the test says it
+   cannot show they came with the package. dnf installs it without weak
+   dependencies, zypper with them, as a system does (the images set
+   `solver.onlyRequires`). After it, `glibc-gconv-extra` or
+   `glibc-gconv-modules-extra` of the package's architecture is installed,
+   `hmailserver --check-config` says every character set the server converts
+   text in converts, and a BIG5 and an ISO-2022-JP-2 sample convert to their
+   UTF-8 through the C library's iconv. Then the converters are taken away
+   with `rpm -e --nodeps`, and the server must name BIG5 and ISO-2022-JP-2
+   among those it cannot convert, and neither sample may convert: the check
+   seeing what it checks. Then the live update's own install, without them:
+   the package removed and installed again with `rpm -Uvh` must be installed
+   on openSUSE, where the live update installs that way, the server naming
+   what it cannot convert, and then, with dnf installed beside zypper, by `dnf
+   install -y`, which the live update uses wherever there is a `dnf` command;
+   and must be refused for the converters on Fedora and EL, where dnf then
+   installs it with them.
 4. Every file an installation needs is present: the binary, `hmctl`, the data
    files, the database scripts, the Control Deck (checked byte for byte against
    the repository's), the three systemd units, the update helper, the auto-ban

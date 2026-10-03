@@ -325,7 +325,7 @@ find_package(Iconv REQUIRED)
 # (platform/packaging/alpine/APKBUILD). musl's has no ISO-2022-JP-2 either, and
 # writes no BIG5. A glibc has UTF-7 and US-ASCII everywhere; Fedora's, EL's and
 # openSUSE's keep BIG5, ISO-2022-JP and most code pages in a package of their own,
-# which the .rpm requires (CPACK_RPM_PACKAGE_REQUIRES below). That is a question
+# which the .rpm asks for (CPACK_RPM_PACKAGE_REQUIRES below). That is a question
 # for the machine the server runs on, not the one that built it, so it is not
 # asked here: hmailserver --check-config and every start say what the iconv the
 # server runs with cannot convert (platform/main.cpp).
@@ -1218,24 +1218,53 @@ set(CPACK_RPM_PACKAGE_SUGGESTS "p7zip python3")
 # nothing where it is already installed. dpkg-shlibdeps' libraries follow it on
 # the Depends line, and rpm's automatic requirements beside it.
 #
-# And the .rpm requires glibc's character-set converters. Debian's and Ubuntu's
+# And the .rpm asks for glibc's character-set converters. Debian's and Ubuntu's
 # libc6 carries every one; Fedora's and EL's glibc keeps all but a few in
 # glibc-gconv-extra, and openSUSE's in glibc-gconv-modules-extra, which glibc only
 # recommends, so that a minimal installation and every container image of those
 # distributions goes without: there the base package has UTF-7, CP1252, ISO-8859-1
 # and -15 and Unicode's, and the server converted no text in BIG5, ISO-2022-JP,
 # the other Windows and ISO-8859 code pages, or the PST import's KOI8 and CP932,
-# 936 and 949 (Fedora 44, UBI 9 and 10, Leap 16.0 and Tumbleweed, 1 October 2026). One
-# dependency that each of them meets with its own package, for every .rpm: the
-# generic one is installed on all of them, and the live update offers it to a
-# server installed from any of them (docs/PackagesRpm.md). A rich dependency, which
-# rpm takes from 4.13 and every release built for has (4.16 and later), and the
-# architecture's own build of the package, as %{_isa} names it: the i686 build
-# of the converters, beside an x86-64 glibc, would satisfy the bare name and
-# convert nothing for this server.
+# 936 and 949 (Fedora 44, UBI 9 and 10, Leap 16.0 and Tumbleweed, 1 October 2026).
+# One rich dependency that each of them meets with its own package, for every
+# .rpm: the generic one is installed on all of them, and the live update offers it
+# to a server installed from any of them (docs/PackagesRpm.md).
+#
+# Required where dnf can install them, and only recommended elsewhere. The live
+# update installs an .rpm with dnf where there is a dnf command and with rpm -Uvh
+# where there is not (hmailserver-update, install_package); rpm -Uvh resolves
+# nothing and refuses a package whose requirements are not met already, and dnf
+# refuses one whose requirements its repositories cannot meet. A plain requirement
+# left every openSUSE server without the converters - each minimal and container
+# one - on 6.3.5, its update to 6.3.6 refused by 6.3.5's helper. A plain
+# recommendation does not serve Fedora and EL instead: glibc recommends the same
+# package, and dnf does not install a recommendation that an installed package's
+# recommendation already left out (exclude_from_weak_autodetect, on by default), so
+# a dnf install never brought them. Both measured with a package of these lines in
+# Fedora 44, UBI 9 and 10, Leap 16.0 and Tumbleweed on 2 October 2026. So the
+# requirement holds "if (dnf and system-release)": where dnf is installed on
+# Fedora or EL, whose release package (fedora-release, redhat-release,
+# almalinux-release and the rest) provides system-release, dnf installs the
+# converters with the package, as it did, and rpm -Uvh refuses it there as before,
+# where the live update does not use it. Everywhere else it is void: on openSUSE,
+# which provides no system-release, rpm -Uvh installs the package, and the
+# recommendation is what zypper installs (with solver.onlyRequires off, a system's
+# default; container images set it on). "if dnf" alone was not enough: openSUSE
+# packages dnf (Leap 16.0's dnf 4.23, Tumbleweed's dnf5), and where it has been
+# installed beside zypper the live update installs with it - and that dnf has no
+# repositories, so it refused the package for converters it could not find, as it
+# refused the plain requirement (3 October 2026). A UBI minimal image, with
+# microdnf and no dnf, has the requirement void and is updated with rpm -Uvh. Where
+# they are missing the server names them and the package at every start and at
+# --check-config (platform/main.cpp). rpm takes rich dependencies from 4.13, and
+# every release built for has 4.16 or later. The architecture's own build of the
+# package, as %{_isa} names it: the i686 build of the converters, beside an x86-64
+# glibc, would satisfy the bare name and convert nothing for this server. The RPM
+# spec, whose packages have no live update, requires its distribution's package.
 set(CPACK_DEBIAN_PACKAGE_DEPENDS "ca-certificates")
-set(CPACK_RPM_PACKAGE_REQUIRES
-   "ca-certificates, (glibc-gconv-extra(${HM_RPM_ISA}) or glibc-gconv-modules-extra(${HM_RPM_ISA}))")
+set(HM_RPM_CONVERTERS "(glibc-gconv-extra(${HM_RPM_ISA}) or glibc-gconv-modules-extra(${HM_RPM_ISA}))")
+set(CPACK_RPM_PACKAGE_REQUIRES "ca-certificates, (${HM_RPM_CONVERTERS} if (dnf and system-release))")
+set(CPACK_RPM_PACKAGE_RECOMMENDS "${HM_RPM_CONVERTERS}")
 # An upgrade must not overwrite the configuration. CPack's DEB generator writes no
 # conffiles list of its own, so one is generated here and handed to dpkg with the
 # maintainer scripts; the RPM equivalent is the %config(noreplace) list below.

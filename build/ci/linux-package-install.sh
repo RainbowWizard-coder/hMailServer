@@ -104,11 +104,15 @@ if [ "$kind" = rpm ]; then
   echo "== $(basename "$rpm")"
   rpm -qip "$rpm"
   # The one dependency every RPM distribution meets with its own package
-  # (CMakeLists.txt): this .rpm is the one the live update offers each of them.
-  # Read, not resolved: --nodeps below leaves it out, and rpm-install-test.sh
-  # installs the per-distribution packages with it.
-  echo "== it requires glibc's character-set converters"
-  rpm -qp --requires "$rpm" | grep -xF '(glibc-gconv-extra(x86-64) or glibc-gconv-modules-extra(x86-64))'
+  # (CMakeLists.txt): this .rpm is the one the live update offers each of them,
+  # which installs it with dnf where there is a dnf command and with rpm -Uvh where
+  # there is not - so required where dnf is installed on Fedora or EL, and
+  # recommended. Read, not resolved: --nodeps below leaves it out, and
+  # rpm-install-test.sh installs the per-distribution packages with it, and with
+  # rpm -Uvh and openSUSE's dnf without it.
+  echo "== it requires glibc's character-set converters where dnf is on Fedora or EL, and recommends them"
+  rpm -qp --requires "$rpm" | grep -xF '((glibc-gconv-extra(x86-64) or glibc-gconv-modules-extra(x86-64)) if (dnf and system-release))'
+  rpm -qp --recommends "$rpm" | grep -xF '(glibc-gconv-extra(x86-64) or glibc-gconv-modules-extra(x86-64))'
   echo "== install (--nodeps: built on Ubuntu, so its requires name Ubuntu sonames)"
   rpm -Uvh --nodeps "$rpm"
   echo "== every file a working installation needs"

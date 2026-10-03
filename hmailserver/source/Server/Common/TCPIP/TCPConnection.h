@@ -399,12 +399,13 @@ namespace HM
       // than receive_buffer_'s ceiling; the tail waits here, and a read takes it
       // before the socket is read again. Taken from the front by an offset rather
       // than erased: until 6.3.6 each command line erased its few octets from the
-      // front of the whole backlog, a copy of tens of megabytes per command, and
-      // the backlog was all one read inflated to. It is now refilled only when it
-      // has been taken whole, and with no more than InflatedBacklogFactor times
-      // receive_buffer_'s ceiling; the compressed octets that would inflate past
-      // that wait in compressed_buffer_, and zlib's own leftovers are marked by
-      // inflate_more_pending_.
+      // front of the whole backlog, a copy of everything one read inflated to -
+      // at most about half a megabyte, since a read into the emptied
+      // compressed_buffer_ takes at most 512 octets. It is now refilled only
+      // when it has been taken whole, and with no more than
+      // InflatedBacklogFactor times receive_buffer_'s ceiling; the compressed
+      // octets that would inflate past that wait in compressed_buffer_, and
+      // zlib's own leftovers are marked by inflate_more_pending_.
       std::string inflated_pending_;
       size_t inflated_offset_ = 0;
       bool inflate_more_pending_ = false;

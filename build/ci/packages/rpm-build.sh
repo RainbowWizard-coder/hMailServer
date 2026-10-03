@@ -547,39 +547,55 @@ if [ ! -f "$build_dir/$name" ]; then
   echo "PACKAGING FAILED: CPack made no $name (the name docs/PackagesRpm.md promises)."
   exit 4
 fi
-# The Suggests CMakeLists.txt sets (7-Zip for the backup, python3 for hmctl).
-# CPack leaves the tag out when its own test decides the rpmbuild cannot take it,
-# and the CMake 3.31 of UBI 9, UBI 10 and Leap 16.0 decided so on 26 September
-# 2026 ("SUGGESTS not supported in provided rpmbuild"), although their rpm, 4.16
-# to 4.20, takes the tag; Fedora 43's CMake 3.31 with rpm 6, Fedora 44's CMake
-# 4.3 and Tumbleweed's CMake 4.4 kept it. Where CPack left it out, the tag goes
-# into the spec's preamble as a second line of CPACK_RPM_SPEC_MORE_DEFINE, and
-# CPack makes the package again from the same build; it is checked below either
-# way. The line is given to cpack itself (its -D overrides CPackConfig.cmake),
-# with a real newline: CMake 3.31's CPackRPM writes the value into the spec as
-# it is, so a CMake list's ";" became "Unknown tag: ;Suggests" on UBI 9, and a
-# newline does not go through CMake's cache.
+# The weak dependencies CMakeLists.txt sets: Suggests (7-Zip for the backup,
+# python3 for hmctl) and Recommends (glibc's character-set converters, which the
+# package requires only on Fedora and EL). CPack leaves every weak tag out when
+# its own test decides the rpmbuild cannot take them, and the CMake 3.31 of UBI 9,
+# UBI 10 and Leap 16.0 decided so on 26 September 2026 ("SUGGESTS not supported
+# in provided rpmbuild"), although their rpm, 4.16 to 4.20, takes them; Fedora
+# 43's CMake 3.31 with rpm 6, Fedora 44's CMake 4.3 and Tumbleweed's CMake 4.4
+# kept them. Where CPack left one out, the tag goes into the spec's preamble as a
+# further line of CPACK_RPM_SPEC_MORE_DEFINE, and CPack makes the package again
+# from the same build; both are checked below either way. The lines are given to
+# cpack itself (its -D overrides CPackConfig.cmake), with real newlines: CMake
+# 3.31's CPackRPM writes the value into the spec as it is, so a CMake list's ";"
+# became "Unknown tag: ;Suggests" on UBI 9, and a newline does not go through
+# CMake's cache.
 suggests=$(sed -n 's/^set(CPACK_RPM_PACKAGE_SUGGESTS "\(.*\)")$/\1/p' "$build_dir/CPackConfig.cmake" | head -n 1)
 [ -n "$suggests" ] || { echo "PACKAGING FAILED: CPackConfig.cmake sets no CPACK_RPM_PACKAGE_SUGGESTS to check the package against"; exit 4; }
+recommends=$(sed -n 's/^set(CPACK_RPM_PACKAGE_RECOMMENDS "\(.*\)")$/\1/p' "$build_dir/CPackConfig.cmake" | head -n 1)
+[ -n "$recommends" ] || { echo "PACKAGING FAILED: CPackConfig.cmake sets no CPACK_RPM_PACKAGE_RECOMMENDS to check the package against"; exit 4; }
 # What every later cpack of this build is given (the generic copy below too).
 cpack_args=()
+preamble=""
 if [ -z "$(rpm -qp --suggests "$build_dir/$name")" ]; then
   echo "CPack left out Suggests: $suggests - written into the spec's preamble instead"
-  cpack_args=(-D "CPACK_RPM_SPEC_MORE_DEFINE=$more_define"$'\n'"Suggests: $suggests")
+  preamble+=$'\n'"Suggests: $suggests"
+fi
+if [ -z "$(rpm -qp --recommends "$build_dir/$name")" ]; then
+  echo "CPack left out Recommends: $recommends - written into the spec's preamble instead"
+  preamble+=$'\n'"Recommends: $recommends"
+fi
+if [ -n "$preamble" ]; then
+  cpack_args=(-D "CPACK_RPM_SPEC_MORE_DEFINE=$more_define$preamble")
   rm -f "$build_dir/$name"
   make_package "${cpack_args[@]}" \
-    || { tail -n 40 "$out/package.log"; echo "PACKAGING FAILED: the package with Suggests"; exit 4; }
+    || { tail -n 40 "$out/package.log"; echo "PACKAGING FAILED: the package with its weak dependencies"; exit 4; }
 fi
-# One name per line: the list is split at its spaces on purpose.
+# One name per line: the list is split at its spaces on purpose. Recommends is one
+# rich dependency, compared whole.
 # shellcheck disable=SC2086
 wanted_suggests=$(printf '%s\n' $suggests | sort | tr '\n' ' ')
-check_suggests() {
+check_weak_dependencies() {
   local got
   got=$(rpm -qp --suggests "$1" | sort | tr '\n' ' ')
   [ "$got" = "$wanted_suggests" ] \
     || { echo "PACKAGING FAILED: $(basename "$1") suggests '$got', and CMakeLists.txt '$wanted_suggests'"; exit 4; }
+  got=$(rpm -qp --recommends "$1")
+  [ "$got" = "$recommends" ] \
+    || { echo "PACKAGING FAILED: $(basename "$1") recommends '$got', and CMakeLists.txt '$recommends'"; exit 4; }
 }
-check_suggests "$build_dir/$name"
+check_weak_dependencies "$build_dir/$name"
 # And the licences it goes out under, the tree's, each marked %license: the AGPL-3.0
 # text, QuickJS's and /usr/share/licenses/hmailserver/copyright.
 bash build/ci/packages/check-licenses.sh "$build_dir/$name" \
@@ -593,6 +609,8 @@ rpm -qp --queryformat '%{NAME} %{VERSION}-%{RELEASE} %{ARCH}\n' "$out/$name"
   rpm -qp --qf '[%{REQUIRENAME} %{REQUIREFLAGS:deptype}\n]' "$out/$name" | grep -i post || true
   echo "# Suggests"
   rpm -qp --suggests "$out/$name"
+  echo "# Recommends"
+  rpm -qp --recommends "$out/$name"
 } > "$out/requires.txt"
 grep -vE '^(#|rpmlib\()' "$out/requires.txt" | sed 's/^/  /'
 # The binary's architecture and hardening, read from the package itself.
@@ -629,7 +647,7 @@ if [ "$target" = fedora44 ] && [ "$arch" = aarch64 ]; then
   { cmake -DCPACK_RPM_PACKAGE_RELEASE=1 "$build_dir" >> "$out/package.log" 2>&1 && make_package "${cpack_args[@]}"; } \
     || { tail -n 20 "$out/package.log"; echo "PACKAGING FAILED: the generic-name copy"; exit 4; }
   [ -f "$build_dir/$generic" ] || { echo "PACKAGING FAILED: CPack made no $generic"; exit 4; }
-  check_suggests "$build_dir/$generic"
+  check_weak_dependencies "$build_dir/$generic"
   bash build/ci/packages/check-licenses.sh "$build_dir/$generic" \
     || { echo "PACKAGING FAILED: the generic copy's licence files (above)"; exit 4; }
   mkdir -p "$out/generic"

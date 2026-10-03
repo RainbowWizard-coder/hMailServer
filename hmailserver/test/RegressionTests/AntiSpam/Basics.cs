@@ -692,6 +692,93 @@ namespace RegressionTests.AntiSpam
          surblServer.Save();
       }
 
+      [Test]
+      public void SurblAsksAboutAListedLinkBehindSixteenLinksInTheTextPart()
+      {
+         // Links put before a listed one kept it from every URI list. Until 6.3.6
+         // the SURBL test read the text part's links and then the HTML part's, in
+         // the order they came, and stopped at the sixteenth name: a
+         // multipart/alternative message whose text part - which an HTML mail
+         // program does not show - links to sixteen innocent domains had its
+         // HTML part, and the one listed link in it, never read. Now every link of
+         // both parts is read and the HTML part's domains are asked about first,
+         // 48 names at most (SURBL::ChooseNamesToAsk), so the listed link is asked
+         // about and the message tagged.
+         var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "surbl-pad-text@example.test", "test");
+         var surblServer = ArmSurbl_("");
+
+         LogHandler.DeleteCurrentDefaultLog();
+
+         var plain = new StringBuilder("The offers of the week:\r\n");
+         for (var i = 1; i <= 16; i++)
+            plain.Append("http://pad").Append(i.ToString("D2")).Append(".example/offer").Append(i).Append("\r\n");
+
+         SmtpClientSimulator.StaticSendRaw(account.Address, account.Address,
+            MultipartAlternativeMessage_(account.Address, "SURBL-Pad-Text", plain.ToString(),
+               "<html><body><p>Our offer: <a href=\"http://surbl-org-permanent-test-point.com/\">click here</a></p></body></html>"));
+
+         var text = Pop3ClientSimulator.AssertGetFirstMessageText(account.Address, "test");
+         Assert.IsTrue(text.Contains("X-hMailServer-Spam"),
+            "The listed link in the HTML part was kept from the list by sixteen links in the text part.");
+         Assert.IsTrue(LogHandler.DefaultLogContains("SURBL: Lookup: surbl-org-permanent-test-point.com.multi.surbl.org"),
+            "The listed host was never asked about.");
+
+         surblServer.Active = false;
+         surblServer.Save();
+      }
+
+      [Test]
+      public void SurblAsksAboutAListedLinkBehindSixteenHiddenLinksInTheHtmlPart()
+      {
+         // The same in one HTML part: sixteen links nobody sees (display:none) to
+         // innocent domains, then the listed one. Until 6.3.6 the sixteen took the
+         // whole budget in the order of the document and the listed link was
+         // never asked about; now the seventeen domains are within the 48 names
+         // asked, and the message is tagged.
+         var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "surbl-pad-html@example.test", "test");
+         var surblServer = ArmSurbl_("");
+
+         LogHandler.DeleteCurrentDefaultLog();
+
+         var html = new StringBuilder();
+         for (var i = 1; i <= 16; i++)
+            html.Append("<a href=\"http://pad").Append(i.ToString("D2")).Append(".example/\" style=\"display:none\">x</a>");
+         html.Append("<p>Our offer: <a href=\"http://surbl-org-permanent-test-point.com/\">click here</a></p>");
+
+         SmtpClientSimulator.StaticSendRaw(account.Address, account.Address,
+            HtmlMessage_(account.Address, "SURBL-Pad-Html", html.ToString()));
+
+         var text = Pop3ClientSimulator.AssertGetFirstMessageText(account.Address, "test");
+         Assert.IsTrue(text.Contains("X-hMailServer-Spam"),
+            "The listed link was kept from the list by sixteen hidden links before it in the HTML part.");
+         Assert.IsTrue(LogHandler.DefaultLogContains("SURBL: Lookup: surbl-org-permanent-test-point.com.multi.surbl.org"),
+            "The listed host was never asked about.");
+
+         surblServer.Active = false;
+         surblServer.Save();
+      }
+
+      // A multipart/alternative message with a text/plain and a text/html part.
+      private static string MultipartAlternativeMessage_(string address, string subject, string plain, string html)
+      {
+         const string boundary = "surbl-boundary-8f2c";
+         return "From: " + address + "\r\n" +
+                "To: " + address + "\r\n" +
+                "Subject: " + subject + "\r\n" +
+                "MIME-Version: 1.0\r\n" +
+                "Content-Type: multipart/alternative; boundary=\"" + boundary + "\"\r\n" +
+                "\r\n" +
+                "--" + boundary + "\r\n" +
+                "Content-Type: text/plain; charset=us-ascii\r\n" +
+                "\r\n" +
+                plain + "\r\n" +
+                "--" + boundary + "\r\n" +
+                "Content-Type: text/html; charset=us-ascii\r\n" +
+                "\r\n" +
+                html + "\r\n" +
+                "--" + boundary + "--\r\n";
+      }
+
       // An HTML message of one part, whose body is the given HTML.
       private static string HtmlMessage_(string address, string subject, string html)
       {

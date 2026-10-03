@@ -801,6 +801,7 @@
     <Compile Include="SMTP\TlsRptReporting.cs" />
     <Compile Include="SMTP\DaneRequiredTlsDeferral.cs" />
     <Compile Include="SMTP\DaneIndeterminateLookups.cs" />
+    <Compile Include="SMTP\DaneTaDnssecRequiresTls.cs" />
     <Compile Include="AntiSpam\DmarcRptReporting.cs" />
     <Compile Include="AntiSpam\DmarcRpt2Schema.cs" />
     <Compile Include="AntiSpam\DmarcTreeWalkResolution.cs" />
