@@ -417,8 +417,11 @@ pushes nothing; `container-image-amd64` and `container-image-arm64` build nothin
 another: the project's first path, `registry.gitlab.com/progressiverobot/hmailserver`,
 is another project's since the move.
 `container-image-sbom` and `container-image-start` run in linix's CI image of the
-tag's commit (`hmailserver-ci/linux:<release>-<hash>`), which is built there and
-never pulled: keep that tag on linix until the release's image jobs have run.
+tag's commit, `.linix`'s: built there and, once it is in the project's registry,
+named by digest (`registry.gitlab.com/hmailserver/hmailserver/ci-linux:<release>-<hash>@sha256:<digest>`;
+by its tag on linix, `hmailserver-ci/linux:<release>-<hash>`, until then): keep that
+image on linix, or in the registry, until the release's image jobs have run
+([ContinuousIntegration.md](ContinuousIntegration.md), The image).
 `container-image-deb` is not allowed to fail, because GitLab starts a job whose
 need was allowed to fail after that need has failed: the image would be built after
 a refusal, or after a bundle that did not verify. So until someone starts it, the

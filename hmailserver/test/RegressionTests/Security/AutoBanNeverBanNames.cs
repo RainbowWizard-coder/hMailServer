@@ -337,6 +337,42 @@ namespace RegressionTests.Security
       }
 
       [Test]
+      [Description("The check of an address that is not public is the administrator password's: an API key gets 403 for a private, loopback, documentation or unique-local address and checks a public one; the administrator password checks them all.")]
+      public void AnAddressThatIsNotPublicIsCheckedByTheAdministratorPasswordAlone()
+      {
+         (int status, string body) key = Http("POST", "/api/v1/apikeys", "{\"label\":\"regression - never-ban check, public\",\"scope\":\"full\"}");
+         ClassicAssert.AreEqual(201, key.status, key.body);
+         string token = "Bearer " + System.Text.RegularExpressions.Regex.Match(key.body, "\"key\":\"([^\"]+)\"").Groups[1].Value;
+         string id = System.Text.RegularExpressions.Regex.Match(key.body, "\"id\":\"?([^\",}]+)").Groups[1].Value;
+
+         try
+         {
+            foreach (string inside in new[] { "10.0.0.1", "192.168.1.20", "127.0.0.1", Net + "84", "fd00::25", "::1" })
+            {
+               (int status, string body) refused = RestRequest.Send("127.0.0.1", RestPort, "POST", "/api/v1/never-ban-names/check", token, "{\"address\":\"" + inside + "\"}");
+               ClassicAssert.AreEqual(403, refused.status, inside + ": " + refused.body);
+               StringAssert.Contains("administrator password", refused.body, inside);
+               StringAssert.DoesNotContain("reverse_names", refused.body, inside);
+            }
+
+            (int status, string body) notAnAddress = RestRequest.Send("127.0.0.1", RestPort, "POST", "/api/v1/never-ban-names/check", token, "{\"address\":\"not an address\"}");
+            ClassicAssert.AreEqual(400, notAnAddress.status, notAnAddress.body);
+
+            (int status, string body) outside = RestRequest.Send("127.0.0.1", RestPort, "POST", "/api/v1/never-ban-names/check", token, "{\"address\":\"1.1.1.1\"}");
+            ClassicAssert.AreEqual(200, outside.status, "A key checks a public address as before: " + outside.body);
+            StringAssert.Contains("\"reverse_names\"", outside.body);
+
+            foreach (string inside in new[] { "10.0.0.1", "127.0.0.1", Net + "84", "::1" })
+               ClassicAssert.AreEqual(200, Http("POST", "/api/v1/never-ban-names/check", "{\"address\":\"" + inside + "\"}").status,
+                  "The administrator password checks " + inside + " as before.");
+         }
+         finally
+         {
+            Http("DELETE", "/api/v1/apikeys/" + id);
+         }
+      }
+
+      [Test]
       [Description("The OpenAPI document the Deck builds its forms from carries the three paths.")]
       public void TheOpenApiDocumentCarriesTheRoutes()
       {

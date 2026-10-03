@@ -3142,7 +3142,7 @@ namespace HM
          case RouteNeverBanNameUpdate:
          case RouteNeverBanNameDelete:
          case RouteNeverBanNameCheck:
-            return HandleNeverBanNames_(route.kind, route.record_id, GetRequestBody_(request));
+            return HandleNeverBanNames_(route.kind, route.record_id, GetRequestBody_(request), caller.result == AuthenticatedAsAdministrator);
          case RouteGroupList:
          case RouteGroupCreate:
          case RouteGroupGet:
@@ -3511,11 +3511,11 @@ namespace HM
          case RouteFetchAccountList:
             return HandleListFetchAccounts_(String(route.identifier));
          case RouteFetchAccountCreate:
-            return HandleCreateFetchAccount_(String(route.identifier), GetRequestBody_(request), HoldsServerAuthority_(caller));
+            return HandleCreateFetchAccount_(String(route.identifier), GetRequestBody_(request), HoldsServerAuthority_(caller), false, caller.via_session);
          case RouteFetchAccountGet:
             return HandleGetFetchAccount_(String(route.identifier), route.record_id);
          case RouteFetchAccountUpdate:
-            return HandleUpdateFetchAccount_(String(route.identifier), route.record_id, GetRequestBody_(request), HoldsServerAuthority_(caller));
+            return HandleUpdateFetchAccount_(String(route.identifier), route.record_id, GetRequestBody_(request), HoldsServerAuthority_(caller), false, caller.via_session);
          case RouteFetchAccountDelete:
             return HandleDeleteFetchAccount_(String(route.identifier), route.record_id);
          case RouteFetchAccountDownload:

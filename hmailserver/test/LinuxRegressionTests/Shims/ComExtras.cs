@@ -325,6 +325,11 @@ namespace hMailServer
             "\"enabled\":" + (Enabled ? "true" : "false"),
             "\"minutes_between_fetch\":" + MinutesBetweenFetch,
             "\"days_to_keep_messages\":" + DaysToKeepMessages,
+            // What -1 means here: COM's, the server's since 6.3.6. Said, because
+            // while a second factor stands this layer writes with the
+            // administrator's session, and the server refuses a negative value from
+            // a session without it (a page loaded before 6.3.6 meant the opposite).
+            "\"days_to_keep_meaning\":6106",
             "\"connection_security\":" + ServerApi.Quote(WordOf(ConnectionSecurity)),
             "\"process_mime_recipients\":" + (ProcessMIMERecipients ? "true" : "false"),
             "\"process_mime_date\":" + (ProcessMIMEDate ? "true" : "false"),

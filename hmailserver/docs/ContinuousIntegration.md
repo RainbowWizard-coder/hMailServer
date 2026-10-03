@@ -485,8 +485,11 @@ the rest take whichever of the three places is free.
 What the host needs:
 
 - Docker (29.1 today) and the runner.
-- The job image, `hmailserver-ci/linux:<tag>`, built on the host (see
-  [The image](#the-image)).
+- The job image, built on the host: found there by its tag,
+  `hmailserver-ci/linux:<tag>`, or, once pushed from there to the project's
+  registry as `registry.gitlab.com/hmailserver/hmailserver/ci-linux:<tag>`, pulled
+  by its digest (see [The image](#the-image)). If `config.toml` restricts images,
+  that name must be allowed.
 - `postgres:18` at the digest the CI file names. It is pulled on first use, and
   it is on the host already.
 - The other images the ported jobs name, each by digest, each pulled on first
@@ -679,39 +682,88 @@ Every package is Ubuntu's own. Nothing in the image, and nothing any job
 fetches, comes from GitHub; [Where the tools come from](#where-the-tools-come-from)
 lists every tool of every job.
 
-The image is built **on linix and never pushed anywhere**. Jobs find it in the
-host's image store under its tag, and the `if-not-present` pull policy means
-they never try to pull it.
+The image is built **on linix**, by hand. `.gitlab-ci.yml` names it in one of
+two ways, and `build/check-ci-image.py` accepts either, never both at once:
 
-The tag is made from the Dockerfile: `hmailserver-ci/linux:26.04-<hash>`, where
-`<hash>` is the first twelve hex digits of the Dockerfile's SHA-256 with its
-line endings made LF. `build/check-ci-image.py`, one of the checkers, fails
-until the CI file names the tag of the Dockerfile as it is. So an edit to the
-Dockerfile goes like this:
+- **By digest, from the project's registry.** `build/ci/build-linux-image.sh
+  --push` pushes it as `registry.gitlab.com/hmailserver/hmailserver/ci-linux:26.04-<hash>`
+  and prints that name with the digest of its manifest,
+  `ci-linux:26.04-<hash>@sha256:<digest>`, which `.linix` then names, with the
+  `if-not-present` pull policy: the first job on linix pulls it, and Docker takes
+  an image named so only as the registry holds that digest. `.linix`'s
+  `before_script` is then `python3 build/check-ci-image.py --job`, and so is
+  that of `container-image-sbom` and `container-image-start`, which take
+  `.linix`'s image without extending `.linix` and so would not have its
+  `before_script`; `container-image-start-arm64`, which extends
+  `container-image-start` with a `before_script` of its own, begins that with
+  `.linix`'s. That step stops every job in the image before it builds anything -
+  the release's x86-64 `.deb` and `.rpm`, made in `linux-build`, made again in
+  `linux-repro` and checked in `release-verify`, and the container image's
+  SBOMs, among them - unless the image it was started in (`CI_JOB_IMAGE`) is
+  named so, with the tag of the commit's own Dockerfile.
+- **By its tag on linix**, `hmailserver-ci/linux:26.04-<hash>`, found in linix's
+  own image store and never pulled: the only form until the second security
+  review of 6.3.6 (SUP2-1), and the one `.gitlab-ci.yml` keeps until the owner
+  has pushed the image. A tag is only a name. Anything that drives linix's Docker
+  can give it other bytes, and every later job, a release's among them, runs in
+  them.
 
-1. Edit `build/ci/linux.Dockerfile`, and put the new tag that the checker
-   prints into `.gitlab-ci.yml`, in the same commit.
-2. Before the first pipeline for that commit reaches linix, build the image on
-   linix from a checkout of the commit, as a member of the `docker` group:
+What the digest holds against is a name given to other bytes - `docker tag`, or
+an image built or loaded under the same name. It is no proof against root on
+linix rewriting Docker's store underneath it, or the runner: a job on the
+privileged `linix-systemd` entry (above) is root there in effect and could change
+an image's files in place, which no check made inside a job can see. That reach is
+the maintainers' already, since only they start a protected pipeline, and it is
+why that entry's tag is kept from merge requests and forks.
 
-       bash build/ci/build-linux-image.sh
+The tag is made from the Dockerfile: `26.04-<hash>`, where `<hash>` is the first
+twelve hex digits of the Dockerfile's SHA-256 with its line endings made LF.
+`build/check-ci-image.py`, one of the checkers, fails until the CI files -
+`.gitlab-ci.yml` and every file under `.gitlab/ci/` - name the image with the
+tag of the Dockerfile as it is, and fails for a registry name without a whole
+`sha256` digest, or with two digests, or for both kinds of name at once. Once the
+image is named by digest it also fails while `.linix`'s `before_script` is not
+the `--job` step, or while a job runs in the image without starting with it: one
+that takes `.linix`'s image (`image: !reference [.linix, image]`) without its
+`before_script` (`!reference [.linix, before_script]`), or one that extends
+`.linix` or such a job with a `before_script` of its own that leaves the step
+out - and while a job that extends `.linix` names an image of its own and keeps
+the step, which would refuse it. So an edit to the Dockerfile goes like this:
 
-   The script prints the tag it built. It removes no older tag, because a
-   pipeline for an older commit still asks for its own tag. It lists them
+1. Edit `build/ci/linux.Dockerfile`.
+2. On linix, from a checkout of the commit, as a member of the `docker` group and
+   signed in to the registry (`docker login registry.gitlab.com` with a token of
+   yours that may write the project's registry, `write_registry`; `docker logout
+   registry.gitlab.com` after), build and push the image:
+
+       bash build/ci/build-linux-image.sh --push
+
+   The script prints the line to write - `name:
+   registry.gitlab.com/hmailserver/hmailserver/ci-linux:26.04-<hash>@sha256:<digest>`
+   - and the checker holds the commit to it. It removes no older tag, because a
+   pipeline for an older commit still asks for its own image. It lists them
    instead, and `docker image rm <tag>` removes one that is no longer wanted.
-3. If the image was not built, the Linux jobs fail at their first step, naming
-   the image they could not find. That is by design. The alternative is a job
-   that runs on an image made from an older Dockerfile and says nothing.
+   (Without `--push` it builds `hmailserver-ci/linux:<tag>` alone, the earlier
+   form.)
+3. Put that line into `.gitlab-ci.yml`, in the same commit as the Dockerfile.
+4. If the image was not built, or not pushed, the Linux jobs fail at their first
+   step, naming the image they could not find or pull. That is by design. The alternative is a job
+   that runs on an image made from an older Dockerfile, or on other bytes under
+   the right tag, and says nothing.
 
 **Why the image is built by hand and not by a job.** A job that builds an image
 needs the host's Docker socket mounted into the runner's containers. That would
 give every job on linix root on linix: every job for a protected ref, and every
 job any future change to the rules lets through. The integrator decides on
-socket access. Until that decision is taken, the image is built by hand, and
-the tag rule above makes sure no job runs on an image the Dockerfile no longer
-describes. (`linux-image` builds the product's image without a socket, with
-kaniko, but kaniko writes a tarball or pushes to a registry: it cannot put an
-image into linix's own image store, which is where the jobs look for theirs.)
+socket access, and the image is built by hand. The second runner entry,
+`linix-systemd` (above), is privileged, so a job that takes its tag is root on
+linix in effect and can reach linix's image store: since it was added, the tag
+rule alone no longer makes sure that no job runs on an image the Dockerfile does
+not describe - a tag pins a name, not content - and the digest above holds the
+jobs to the image the registry has, within the limit just said. (`linux-image`
+builds the product's image without a socket, with kaniko,
+but kaniko writes a tarball or pushes to a registry: it cannot put an image
+into linix's own image store.)
 
 The GCC build
 -------------

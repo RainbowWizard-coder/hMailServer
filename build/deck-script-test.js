@@ -718,9 +718,18 @@ function fetchRecord(id, name) {
       connection_security: 'none', mime_recipient_headers: '', enabled: true, process_mime_recipients: false, process_mime_date: false,
       use_antispam: true, use_antivirus: true, enable_route_recipients: false, mirror_folders: false, locked: false, next_download_time: '' };
 }
+// A negative days_to_keep_messages with no days_to_keep_meaning beside it, from a
+// page (a browser session): what a page loaded before 6.3.6 sends, and what the
+// server answers 409 (RestApiFetchAccounts.cpp, FromStalePage).
+function staleKeep(wanted) {
+   return typeof wanted.days_to_keep_messages === 'number' && wanted.days_to_keep_messages < 0 &&
+      (wanted.days_to_keep_meaning === undefined || wanted.days_to_keep_meaning === null);
+}
+const STALE_KEEP = { error: 'This page was loaded before the server was upgraded, and may mean the opposite by what it sent: since 6.3.6, -1 deletes each message on the other server once it has been collected, and 0 leaves every message there. Nothing was saved. Reload the page, check the choice and save again.', reason: 'page_out_of_date' };
 // ApplyBody's checks, the first problem being the answer.
 function fetchProblem(parsed, creating) {
-   for (const key of Object.keys(parsed)) { if (!(key in FETCH_PROPS)) { return 'unknown field: ' + key; } }
+   for (const key of Object.keys(parsed)) { if (!(key in FETCH_PROPS) && key !== 'days_to_keep_meaning') { return 'unknown field: ' + key; } }
+   if ('days_to_keep_meaning' in parsed && parsed.days_to_keep_meaning !== 6106) { return 'days_to_keep_meaning is 6106, the meaning days_to_keep_messages has had since 6.3.6: 0 leaves every message on the other server, -1 deletes each one there once it has been collected, N deletes it N days after'; }
    const range = (key, low, high) => (key in parsed && (typeof parsed[key] !== 'number' || parsed[key] < low || parsed[key] > high)) ? key + ' must be a whole number between ' + low + ' and ' + high : null;
    const problem = range('port', 1, 65535) || range('minutes_between_fetch', 1, 100000) || range('days_to_keep_messages', -1, 100000);
    if (problem) { return problem; }
@@ -2731,9 +2740,11 @@ function answer(method, path, headers, raw) {
       if (parts.length === 6) {
          if (method === 'GET') { return json(200, list); }
          if (method === 'POST') {
+            if (staleKeep(parsed)) { return json(409, STALE_KEEP); }
             const problem = fetchProblem(parsed, true);
             if (problem) { return json(400, { error: problem }); }
             const item = Object.assign(fetchRecord(nextId++, ''), parsed);
+            delete item.days_to_keep_meaning;
             if ('password' in parsed) { secrets.fetch_password = parsed.password; delete item.password; }
             list.push(item);
             return json(201, item);
@@ -2749,9 +2760,11 @@ function answer(method, path, headers, raw) {
       }
       if (parts.length === 7 && method === 'GET') { return json(200, list[at]); }
       if (parts.length === 7 && method === 'PUT') {
+         if (staleKeep(parsed)) { return json(409, STALE_KEEP); }
          const problem = fetchProblem(parsed, false);
          if (problem) { return json(400, { error: problem }); }
          Object.assign(list[at], parsed);
+         delete list[at].days_to_keep_meaning;
          if ('password' in parsed) { secrets.fetch_password = parsed.password; delete list[at].password; }
          return json(200, list[at]);
       }
@@ -5931,7 +5944,8 @@ async function main() {
    await flush();
    posted = lastBody(before, 'POST', fetchList);
    check('saving a new one posts the form under the account, numbers as numbers and the password as typed', !!posted && posted.name === 'ISP mailbox' && posted.server_address === 'mail.isp.example' && posted.port === 110 &&
-      posted.minutes_between_fetch === 30 && posted.days_to_keep_messages === 0 && posted.password === 'isp-secret' && posted.connection_security === 'starttls_required' && posted.server_type === 'pop3' && posted.enabled === true,
+      posted.minutes_between_fetch === 30 && posted.days_to_keep_messages === 0 && posted.password === 'isp-secret' && posted.connection_security === 'starttls_required' && posted.server_type === 'pop3' && posted.enabled === true &&
+      posted.days_to_keep_meaning === 6106,
       JSON.stringify(posted));
    check('and the re-read list has it, for the same account', called(before, 'GET', fetchList).length === 1 && rows().length === 2 && rows()[1].textContent.indexOf('ISP mailbox') >= 0 &&
       rows()[1].textContent.indexOf('mail.isp.example:110') >= 0 && toastText() === 'External account saved', toastText());
@@ -5968,8 +5982,8 @@ async function main() {
    click(act('fetchsave'));
    await flush();
    put = lastBody(before, 'PUT', fetchList + '/7');
-   check('-1 is saved as -1 and the list says the mail is deleted after the download', !!put && put.days_to_keep_messages === -1 &&
-      rows()[0].textContent.indexOf('delete after the download') >= 0, rows()[0].textContent);
+   check('-1 is saved as -1, said to mean what 6.3.6 means by it, and the list says the mail is deleted after the download', !!put && put.days_to_keep_messages === -1 && put.days_to_keep_meaning === 6106 &&
+      rows()[0].textContent.indexOf('delete after the download') >= 0, JSON.stringify(put) + ' ' + (rows()[0] ? rows()[0].textContent : 'no list: ' + document.getElementById('err_fetchedit').textContent));
    click(act('fetchedit', { id: 7 }));
    await flush();
    setValue('fetch_days_to_keep_messages', '7');

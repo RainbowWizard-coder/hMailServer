@@ -2604,9 +2604,12 @@ namespace HM
       // is then marked reader-made (FetchAccount::GetReaderCreated) when it is
       // made or moved to another server or port, and the port of one made or
       // moved is 110, 995, 143 or 993 unless ReaderFetchPrivateHosts is on.
-      HttpResponse HandleCreateFetchAccount_(const String &address, const AnsiString &requestBody, bool serverAdministrator, bool byReader = false);
+      // fromPage: the credential was a browser session, which a page from
+      // before 6.3.6 may still hold; a negative days_to_keep_messages without
+      // days_to_keep_meaning is then refused with 409 (RestApiFetchAccounts.cpp).
+      HttpResponse HandleCreateFetchAccount_(const String &address, const AnsiString &requestBody, bool serverAdministrator, bool byReader = false, bool fromPage = false);
       HttpResponse HandleGetFetchAccount_(const String &address, __int64 fetchAccountId);
-      HttpResponse HandleUpdateFetchAccount_(const String &address, __int64 fetchAccountId, const AnsiString &requestBody, bool serverAdministrator, bool byReader = false);
+      HttpResponse HandleUpdateFetchAccount_(const String &address, __int64 fetchAccountId, const AnsiString &requestBody, bool serverAdministrator, bool byReader = false, bool fromPage = false);
       HttpResponse HandleDeleteFetchAccount_(const String &address, __int64 fetchAccountId);
       HttpResponse HandleDownloadFetchAccount_(const String &address, __int64 fetchAccountId);
       static AnsiString OpenApiFetchAccountsPaths_();
@@ -2691,7 +2694,9 @@ namespace HM
 
       // The never-ban list by reverse name as a resource
       // (RestApiNeverBanNames.cpp): one entry point for its five routes.
-      HttpResponse HandleNeverBanNames_(RouteKind kind, __int64 id, const AnsiString &requestBody);
+      // administrator: the caller is the administrator password, which alone
+      // checks an address that is not public (RestApiNeverBanNames.cpp).
+      HttpResponse HandleNeverBanNames_(RouteKind kind, __int64 id, const AnsiString &requestBody, bool administrator);
       static AnsiString OpenApiNeverBanNamePaths_();
       // Whether the quarantine digest reaches the signed-in account, read and
       // written by its owner (RestApiSenderLists.cpp).

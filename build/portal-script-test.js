@@ -1319,6 +1319,14 @@ function answerPasskeys(method, path, body) {
    if (method === 'DELETE') { passkeys.splice(at, 1); return json(200, { deleted: true }); }
    return json(404, { error: 'not found' });
 }
+// A negative days_to_keep_messages with no days_to_keep_meaning beside it, from a
+// page (a browser session): what a page loaded before 6.3.6 sends, and what the
+// server answers 409 (RestApiFetchAccounts.cpp, FromStalePage).
+function staleKeep(wanted) {
+   return typeof wanted.days_to_keep_messages === 'number' && wanted.days_to_keep_messages < 0 &&
+      (wanted.days_to_keep_meaning === undefined || wanted.days_to_keep_meaning === null);
+}
+const STALE_KEEP = { error: 'This page was loaded before the server was upgraded, and may mean the opposite by what it sent: since 6.3.6, -1 deletes each message on the other server once it has been collected, and 0 leaves every message there. Nothing was saved. Reload the page, check the choice and save again.', reason: 'page_out_of_date' };
 let importOffer = { google: true, microsoft: false };
 function answerFetchAccounts(method, path, body) {
    if (!path.startsWith('/api/v1/me/fetch-accounts')) { return null; }
@@ -1326,12 +1334,15 @@ function answerFetchAccounts(method, path, body) {
    if (path === '/api/v1/me/fetch-accounts/import' && method === 'GET') { return json(200, importOffer); }
    if (path === '/api/v1/me/fetch-accounts/import' && method === 'POST') {
       const wanted = JSON.parse(body || '{}');
+      if (staleKeep(wanted)) { return json(409, STALE_KEEP); }
       if (!importOffer[wanted.provider]) { return json(403, { error: 'signing in with that provider is not set up on this server' }); }
       return json(200, { url: 'https://accounts.google.example/auth?state=abc&code_challenge=xyz' });
    }
    if (path === '/api/v1/me/fetch-accounts' && method === 'GET') { return json(200, fetchAccountsState.slice()); }
    if (path === '/api/v1/me/fetch-accounts' && method === 'POST') {
       const wanted = JSON.parse(body || '{}');
+      if (staleKeep(wanted)) { return json(409, STALE_KEEP); }
+      delete wanted.days_to_keep_meaning;
       const made = Object.assign({ id: 80 + fetchAccountsState.length, enabled: true, locked: false, next_download_time: '2026-09-17 13:30:00',
          use_antispam: true, use_antivirus: true, process_mime_recipients: false, enable_route_recipients: false, mime_recipient_headers: '' }, wanted);
       delete made.password;
@@ -1343,7 +1354,14 @@ function answerFetchAccounts(method, path, body) {
    const at = fetchAccountsState.findIndex((f) => f.id === Number(m[1]));
    if (at < 0) { return json(404, { error: 'fetch account not found' }); }
    if (m[2] && method === 'POST') { return json(202, { queued: true }); }
-   if (method === 'PUT') { const wanted = JSON.parse(body || '{}'); delete wanted.password; Object.assign(fetchAccountsState[at], wanted); return json(200, fetchAccountsState[at]); }
+   if (method === 'PUT') {
+      const wanted = JSON.parse(body || '{}');
+      if (staleKeep(wanted)) { return json(409, STALE_KEEP); }
+      delete wanted.password;
+      delete wanted.days_to_keep_meaning;
+      Object.assign(fetchAccountsState[at], wanted);
+      return json(200, fetchAccountsState[at]);
+   }
    if (method === 'DELETE') { fetchAccountsState.splice(at, 1); return json(200, { deleted: true }); }
    return json(404, { error: 'not found' });
 }
@@ -5025,6 +5043,8 @@ async function main() {
          !!added && added.server_address === 'imap.gmail.com' && added.port === 993 && added.server_type === 'imap' && added.connection_security === 'tls' &&
          added.username === 'me@gmail.example' && added.password === 'app-password' && added.days_to_keep_messages === 0 && added.mirror_folders === true &&
          added.minutes_between_fetch === 30, JSON.stringify(added));
+      check('and says what it means by it: days_to_keep_meaning 6106, without which the server refuses a negative value from a page',
+         !!added && added.days_to_keep_meaning === 6106, JSON.stringify(added));
       check('and the page lists it and clears the password', fetchRows().length === 4 && document.getElementById('fetch-password').value === '');
 
       buttonIn(rowNamed('Week provider'), 'Edit').dispatchEvent(makeEvent('click'));
@@ -5036,7 +5056,7 @@ async function main() {
       document.getElementById('fetch-form').dispatchEvent(makeEvent('submit'));
       await flush();
       const week = bodyOf(beforeWeek, 'PUT', '/api/v1/me/fetch-accounts/73');
-      check('and saving it keeps the 7 days', !!week && week.days_to_keep_messages === 7, JSON.stringify(week));
+      check('and saving it keeps the 7 days', !!week && week.days_to_keep_messages === 7 && week.days_to_keep_meaning === 6106, JSON.stringify(week));
       check('the 7-day choice goes when the form is cleared', document.getElementById('fetch-keep').value === '0' &&
          keepChoices('fetch-keep').length === 3, keepChoices('fetch-keep').join(' | '));
 
@@ -5065,6 +5085,9 @@ async function main() {
       const saved = bodyOf(beforeSave, 'PUT', '/api/v1/me/fetch-accounts/71');
       check('saving it changes it where it is, and a password left blank is not sent, so the one saved stays',
          !!saved && saved.port === 110 && !('password' in saved) && !called(beforeSave, 'POST', '/api/v1/me/fetch-accounts'), JSON.stringify(saved));
+      check('and an account saved at -1, Delete it there, says what -1 means, so the server takes it from a page',
+         !!saved && saved.days_to_keep_messages === -1 && saved.days_to_keep_meaning === 6106 &&
+         document.getElementById('fetch-status').textContent === words('Saved.'), JSON.stringify(saved) + ' ' + document.getElementById('fetch-status').textContent);
 
       confirmAnswer = true;
       const beforeRemove = requests.length;
@@ -5137,7 +5160,7 @@ async function main() {
       await flush();
       const start = bodyOf(beforeStart, 'POST', '/api/v1/me/fetch-accounts/import');
       check('Sign in to Gmail starts the sign-in with the reader\'s choices - the mail left there, 0 - and goes to the provider',
-         !!start && start.provider === 'google' && start.mirror_folders === true && start.days_to_keep_messages === 0 &&
+         !!start && start.provider === 'google' && start.mirror_folders === true && start.days_to_keep_messages === 0 && start.days_to_keep_meaning === 6106 &&
          navigatedTo[navigatedTo.length - 1] === 'https://accounts.google.example/auth?state=abc&code_challenge=xyz', JSON.stringify(start) + ' ' + navigatedTo.join(' '));
 
       location.hash = '#/settings';

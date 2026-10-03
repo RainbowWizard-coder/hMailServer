@@ -184,7 +184,7 @@ could not be lifted (delete its `Auto-ban:` range on the IP ranges page).
 |---|---|
 | Control Panel | *Settings > Auto-ban*, the card *Never auto-ban by reverse name*: the rows, *Add name...*, *Remove name*, and *Check an address...*, which says what the list would decide about an address and, when no row covers its reverse name, whether a row covering it would work |
 | Control Deck | *Lists*, the table *Never-ban list by reverse name*, with an address check under it |
-| REST | `GET`/`POST /api/v1/never-ban-names`, `PUT`/`DELETE /api/v1/never-ban-names/{id}`, `POST /api/v1/never-ban-names/check` with `{"address": "..."}`. Server-wide: refused for a credential confined to named domains; the writes and the check (which sends DNS queries) are refused for read-only keys |
+| REST | `GET`/`POST /api/v1/never-ban-names`, `PUT`/`DELETE /api/v1/never-ban-names/{id}`, `POST /api/v1/never-ban-names/check` with `{"address": "..."}`. Server-wide: refused for a credential confined to named domains; the writes and the check (which sends DNS queries) are refused for read-only keys; the check of an address that is not public - private, loopback, link-local, carrier NAT, reserved or documentation - is the administrator password's alone, 403 for an API key or an account holding a role, since its reverse names are this server's view of its own network ([Roles.md](Roles.md), What manage_settings reaches) |
 | COM | `Settings.AutoBanNeverBanNames` (the rows as JSON), `AddAutoBanNeverBanName(Pattern, Note)`, `RemoveAutoBanNeverBanName(ID)`, `CheckAutoBanNeverBanName(Address)` |
 | Schema | 6108, `hm_neverbannames` (`nbnid`, `nbnpattern` unique, `nbnnote`, `nbncreated`) |
 

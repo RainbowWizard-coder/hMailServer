@@ -431,6 +431,17 @@ administrator's API keys, passkey and single sign-on are not touched by it
 ([DevicesAndSessions.md](hmailserver/docs/DevicesAndSessions.md), The administrator password's delay). Found by the
 project's own review.
 
+A webmail or Control Deck page loaded before the upgrade to 6.3.6, and still open after it, could have mail deleted
+on the other server that its reader had asked to leave there: the restart ends the page's session and it signs in
+again in place, with its old script, and 6.3.5's webmail sends -1 for *Leave the mail there* and its Deck's hint says
+-1 keeps every message, where 6.3.6 reads -1 as delete each message there once it has been collected, for IMAP as for
+POP3 (What changes on upgrade, item 21). The 6.3.6 webmail and Deck now say what they mean by the number
+(`days_to_keep_meaning`, 6106), and a negative `days_to_keep_messages` from a browser session without it is refused
+with 409 and nothing saved - on `/api/v1/me/fetch-accounts`, its import's start and the administrator's
+`/api/v1/accounts/{address}/fetch-accounts` - so such a page says to reload. An API key, a password and COM, which send
+the documented meaning, are not asked for it. Found by the project's second review of this release; no released
+version reads -1 as 6.3.6 does.
+
 ### What changes on upgrade without a switch
 
 1. **COM `Utilities`: the helpers that do work answer a caller that has signed in.** `BlowfishEncrypt`,
@@ -754,7 +765,10 @@ project's own review.
     it until you set it to -1. **A program or script that writes the value** - over COM, the REST API or the Deck -
     now has -1 delete and 0 keep for an IMAP account too; one written to the IMAP fetcher's earlier meaning is to be
     changed before it next writes it. A webmail or Deck page loaded before the upgrade says the earlier meaning until
-    it is reloaded, and the webmail's sends -1 for *Leave the mail there*. The Control Panel (*Days to keep on server
+    it is reloaded, and the webmail's sends -1 for *Leave the mail there*: a change such a page sends with a negative
+    number is refused with 409, *reload the page*, and nothing is saved, since the 6.3.6 pages say what they mean by
+    the number (`days_to_keep_meaning`) and a browser session that does not is taken to be one of them; an API key, a
+    password and COM are not asked. The Control Panel (*Days to keep on server
     (0 = never delete, -1 = delete after download)*), the Deck, the webmail, the COM help text and the REST API's
     description now all say the same thing; the webmail shows an account's number of days that its list does not offer
     as that number, where it showed and saved back 30; and an account the webmail imports with a sign-in leaves the
@@ -1420,7 +1434,11 @@ project's own review.
   else is skipped, and the list is empty by default. COM (`Settings.AutoBanNeverBanNames`, `AddAutoBanNeverBanName`,
   `RemoveAutoBanNeverBanName`, `CheckAutoBanNeverBanName`), REST (`/api/v1/never-ban-names` and
   `/api/v1/never-ban-names/check`), the Control Panel's Auto-ban page with a check of what the list would decide about
-  an address, and the Deck's Lists view; [AutoBan.md](hmailserver/docs/AutoBan.md).
+  an address, and the Deck's Lists view; [AutoBan.md](hmailserver/docs/AutoBan.md). The REST check of an address
+  that is not public - private, loopback, link-local, carrier NAT, reserved or documentation - is the administrator
+  password's alone, since its reverse names are the server's own view of its network: an API key and an account
+  holding a role get 403 for one and check a public address, as the breach check's endpoint test reaches one
+  ([Roles.md](hmailserver/docs/Roles.md), What manage_settings reaches; the project's second review of this release).
 - **Port 25 takes no password: an SMTP listener's AUTH is On, Off or Honeypot** (GitLab work item #54; schema 6108,
   `hm_tcpipports.portsmtpauth`). Port 25 is where other servers deliver mail, and up to 6.3.5 every SMTP listener
   offered `AUTH` there after `EHLO` and checked the password - a spray target on the port every scanner reaches. Each
@@ -3051,6 +3069,25 @@ project's own review.
   a release signs both with Authenticode, and Windows PowerShell 5.1 reads a script without a byte order mark in the
   machine's own code page, so a character beyond ASCII would leave the signature valid on one machine and not on
   another. Both files are ASCII today; `--self-test` breaks each and the rule reports it.
+
+- **The Linux jobs can name their image by digest, and the snap's credential stops short of `stable`.** Two
+  hardening steps from the project's second review of this release, neither a flaw any outsider could reach. Since
+  the privileged `linix-systemd` runner entry, a job of a protected pipeline can be root on linix, and so give the
+  CI image's tag other bytes, in which the release's x86-64 `.deb` and `.rpm` would then be built, reproduced and
+  verified. `build/ci/build-linux-image.sh --push` now pushes the image to the project's container registry
+  (`registry.gitlab.com/hmailserver/hmailserver/ci-linux`) and prints its name with its manifest's digest;
+  `build/check-ci-image.py` holds such a name, in `.gitlab-ci.yml` and the files it includes, to the Dockerfile's tag
+  and a whole `sha256` digest, refuses both kinds of name at once, holds every job that runs in the image to start
+  with its `--job` step once the image is named so, and with `--job` stops a job whose image (`CI_JOB_IMAGE`) is not
+  named by digest - Docker takes an image named so only as the registry holds that digest, so a tag given to other
+  bytes on linix is not run; root on linix rewriting Docker's store underneath is beyond any such check.
+  `.gitlab-ci.yml` takes the name, and `.linix` and the three container-image jobs that borrow its image the `--job`
+  step, once the owner has pushed the image
+  ([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md), The image). And the Snap Store
+  credential is made with `snapcraft export-login --channels=edge,candidate` and an expiry
+  ([Snap.md](hmailserver/docs/Snap.md), The Snap Store): `snap-upload` asks it what it may do (`snapcraft whoami`)
+  and refuses, uploading nothing, one that could release to `stable` or of which it is told nothing, and refuses a
+  release list of its own that names `stable`, so that `stable` stays a person's step with their own login.
 
 Full notes: [the 6.3.6 release](https://gitlab.com/hmailserver/hmailserver/-/releases/v6.3.6).
 

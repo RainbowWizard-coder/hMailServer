@@ -8,7 +8,22 @@
 # member of the docker group, from any checkout of the commit whose Dockerfile is
 # wanted:
 #
-#   bash build/ci/build-linux-image.sh
+#   bash build/ci/build-linux-image.sh            builds hmailserver-ci/linux:<tag>
+#   bash build/ci/build-linux-image.sh --push     builds it, pushes it to the project's
+#                                                 container registry and prints the
+#                                                 line .gitlab-ci.yml names it by
+#
+# --push puts the image at registry.gitlab.com/hmailserver/hmailserver/ci-linux:<tag>
+# and prints that name with the digest the registry gave its manifest, the form
+# build/check-ci-image.py holds .gitlab-ci.yml to once the image is there: Docker takes
+# an image named by digest only as the registry holds that digest, so a tag given to
+# other bytes on linix - by any job that drives its Docker, as the privileged
+# linix-systemd entry's can - is not run in its place, and the release's packages are
+# not built in it (docs/ContinuousIntegration.md, "The image"; the second security
+# review of 6.3.6, SUP2-1). It needs a docker login to registry.gitlab.com with a
+# token that may write the project's registry (write_registry) - a person's, given
+# for the push and logged out after it; this script never asks for one and never
+# prints one.
 #
 # The tag is hmailserver-ci/linux:<ubuntu release>-<first twelve hex digits of the
 # SHA-256 of the Dockerfile with its line endings made LF>, the rule
@@ -26,6 +41,14 @@
 # batch branch carries a new Dockerfile) still asks for it. It lists them, with
 # the command that removes one.
 set -euo pipefail
+
+push=0
+case "${1:-}" in
+  --push) push=1 ;;
+  "") ;;
+  *) echo "usage: bash build/ci/build-linux-image.sh [--push]" >&2; exit 2 ;;
+esac
+registry="registry.gitlab.com/hmailserver/hmailserver/ci-linux"
 
 here="$(cd "$(dirname "$0")" && pwd)"
 dockerfile="$here/linux.Dockerfile"
@@ -48,6 +71,28 @@ docker build --file "$dockerfile" --tag "$tag" \
 echo ""
 echo "== built $tag"
 docker image inspect "$tag" --format '   id {{.Id}}   {{.Size}} bytes'
+
+if [ "$push" = 1 ]; then
+  remote="$registry:${release}-${digest}"
+  echo ""
+  echo "== pushing $remote"
+  docker tag "$tag" "$remote"
+  docker push "$remote"
+  # The digest the registry gave the manifest just pushed, as the local store
+  # recorded it for that name.
+  pinned=$(docker image inspect "$remote" --format '{{range .RepoDigests}}{{println .}}{{end}}' \
+             | grep -F "$registry@sha256:" | head -n 1 | sed 's/^.*@//' || true)
+  if ! printf '%s' "$pinned" | grep -Eq '^sha256:[0-9a-f]{64}$'; then
+    echo "The registry gave $remote no digest docker recorded; nothing to write." >&2
+    exit 3
+  fi
+  echo ""
+  echo "== pushed $remote@$pinned"
+  echo "In .gitlab-ci.yml, .linix's image (build/check-ci-image.py holds it to this):"
+  echo ""
+  echo "    name: $remote@$pinned"
+  echo ""
+fi
 
 others=$(docker image ls --format '{{.Repository}}:{{.Tag}}' 'hmailserver-ci/linux' | grep -vxF "$tag" || true)
 if [ -n "$others" ]; then

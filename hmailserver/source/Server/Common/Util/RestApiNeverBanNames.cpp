@@ -19,8 +19,10 @@
 #include "StdAfx.h"
 #include "RestApiServer.h"
 #include "JsonDocument.h"
+#include "HttpsClient.h"
 #include "NeverBanNameList.h"
 #include "Unicode.h"
+#include "../TCPIP/IPAddress.h"
 #include "../Util/Time.h"
 #include "../BO/NeverBanName.h"
 #include "../BO/NeverBanNames.h"
@@ -263,7 +265,7 @@ namespace
       return bridge.respond(200, "{\"deleted\":true}", "");
    }
 
-   HttpResponse Check(const Bridge &bridge, const AnsiString &requestBody)
+   HttpResponse Check(const Bridge &bridge, const AnsiString &requestBody, bool administrator)
    {
       JsonValue body;
       if (!ParseObjectBody(requestBody, body))
@@ -281,6 +283,24 @@ namespace
       if (!body.Get("address"))
          return Refusal(bridge, 400, "address is required");
 
+      // An address that is not public - private, loopback, link-local, carrier
+      // NAT, documentation - is checked for the administrator password alone.
+      // Its reverse names, and whether they resolve back, are this server's
+      // view of its own network, which split-horizon DNS answers with the names
+      // of the hosts inside it; an API key and an account holding a role check a
+      // public address, as the breach check's endpoint test reaches one (Roles.md,
+      // What manage_settings reaches). Until the second security review of 6.3.6
+      // they checked any address. Text that is not an address is left to the
+      // check's own refusal below.
+      if (!administrator)
+      {
+         String text = address;
+         text.Trim();
+         IPAddress parsed;
+         if (!text.IsEmpty() && parsed.TryParse(AnsiString(text), false) && !HttpsClient::AddressIsPublic(AnsiString(text)))
+            return Refusal(bridge, 403, "an address that is not public - on this server's own network, loopback, link-local or reserved - is checked with the administrator password alone; an API key and an account holding a role check a public address");
+      }
+
       AnsiString document;
       String refusal;
       if (!NeverBanNameList::Check(address, document, refusal))
@@ -297,7 +317,7 @@ namespace
       "\"put\":{\"summary\":\"Change a never-ban list entry\",\"description\":\"Body: any subset of the fields POST takes; a field left out keeps its value. Nothing changes when the body is refused. Server-wide; refused for domain-restricted and read-only keys.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"properties\":{\"pattern\":{\"type\":\"string\"},\"note\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"The entry as saved\"},\"400\":{\"description\":\"A field refused (error names it); nothing changed\"},\"404\":{\"description\":\"Unknown id\"}}},"
       "\"delete\":{\"summary\":\"Remove a never-ban list entry\",\"description\":\"The pattern spares nobody from the next ban on.\",\"responses\":{\"200\":{\"description\":\"Deleted\"},\"404\":{\"description\":\"Unknown id\"}}}},"
       "\"/api/v1/never-ban-names/check\":{"
-      "\"post\":{\"summary\":\"What the never-ban list would decide about an address\",\"description\":\"Body: address (required; IPv4 or IPv6). The server looks up the address's reverse names now and answers {address, reverse_names: [{name, usable, pattern, resolves_back}], answered, spared, name, pattern, reason}: usable is false for an address written as a name or a public suffix, pattern is the row covering the name or null, and resolves_back says whether the name's forward lookup gives the address (null when it was not asked or not answered) - asked whether or not a row covers the name, so that it shows whether a row WOULD work. Nothing is kept and nothing is banned or lifted. Sends DNS queries, so it is refused for read-only keys. Server-wide; refused for domain-restricted keys.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"address\"],\"properties\":{\"address\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"The verdict and every reverse name\"},\"400\":{\"description\":\"address missing or not an address, or an unknown field\"}}}}";
+      "\"post\":{\"summary\":\"What the never-ban list would decide about an address\",\"description\":\"Body: address (required; IPv4 or IPv6). The server looks up the address's reverse names now and answers {address, reverse_names: [{name, usable, pattern, resolves_back}], answered, spared, name, pattern, reason}: usable is false for an address written as a name or a public suffix, pattern is the row covering the name or null, and resolves_back says whether the name's forward lookup gives the address (null when it was not asked or not answered) - asked whether or not a row covers the name, so that it shows whether a row WOULD work. Nothing is kept and nothing is banned or lifted. Sends DNS queries, so it is refused for read-only keys. An address that is not public - private, loopback, link-local, carrier NAT, reserved or documentation - is checked for the administrator password alone, since its reverse names are the server's view of its own network: an API key and an account holding a role get 403 for one (since 6.3.6; before, they checked any address). Server-wide; refused for domain-restricted keys.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"address\"],\"properties\":{\"address\":{\"type\":\"string\"}}}}}},\"responses\":{\"200\":{\"description\":\"The verdict and every reverse name\"},\"400\":{\"description\":\"address missing or not an address, or an unknown field\"},\"403\":{\"description\":\"An address that is not public, asked by anybody but the administrator password\"}}}}";
 }
 
 namespace HM
@@ -309,7 +329,7 @@ namespace HM
    }
 
    HttpResponse
-   RestApiServer::HandleNeverBanNames_(RouteKind kind, __int64 id, const AnsiString &requestBody)
+   RestApiServer::HandleNeverBanNames_(RouteKind kind, __int64 id, const AnsiString &requestBody, bool administrator)
    {
       Bridge bridge = { &RestApiServer::JsonEscape_, &RestApiServer::BuildResponse_ };
 
@@ -324,7 +344,7 @@ namespace HM
       case RouteNeverBanNameDelete:
          return Delete(bridge, id);
       case RouteNeverBanNameCheck:
-         return Check(bridge, requestBody);
+         return Check(bridge, requestBody, administrator);
       default:
          break;
       }

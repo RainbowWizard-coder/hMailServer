@@ -11703,6 +11703,12 @@
   // the list does not offer - by an administrator - is shown as that number, in
   // the words of the 30-day choice, and saved as it is, rather than shown and
   // saved as 30; a choice made for an earlier account is taken away again.
+  // Said beside every days_to_keep_messages this page sends: the meaning above,
+  // the one the server has had since schema 6106. A page loaded before 6.3.6
+  // sent -1 for "Leave the mail there"; the server refuses a negative value from
+  // a browser session without this beside it, so that such a page, still open
+  // after the upgrade, cannot have the mail deleted (RestApiFetchAccounts.cpp).
+  var FETCH_KEEP_MEANING = 6106;
   var fetchKeepChoice = function (days) {
     var select = el('fetch-keep');
     Array.prototype.slice.call(select.children).forEach(function (option) {
@@ -11880,7 +11886,7 @@
     try { history.replaceState(null, '', '#/accounts'); } catch (e) { /* the message is shown; the address stays */ }
   };
   var startImport = function (provider) {
-    var body = { provider: provider, mirror_folders: !!el('import-mirror').checked, days_to_keep_messages: el('import-keep').value === '-1' ? -1 : 0 };
+    var body = { provider: provider, mirror_folders: !!el('import-mirror').checked, days_to_keep_messages: el('import-keep').value === '-1' ? -1 : 0, days_to_keep_meaning: FETCH_KEEP_MEANING };
     el('import-google').disabled = true;
     el('import-microsoft').disabled = true;
     call('POST', '/api/v1/me/fetch-accounts/import', body).then(function (result) {
@@ -11964,6 +11970,7 @@
       connection_security: el('fetch-security').value,
       username: el('fetch-user').value.trim(),
       days_to_keep_messages: el('fetch-keep').value === '' ? 0 : Number(el('fetch-keep').value),
+      days_to_keep_meaning: FETCH_KEEP_MEANING,
       minutes_between_fetch: Number(el('fetch-every').value) || 30,
       mirror_folders: el('fetch-type').value === 'imap' && el('fetch-mirror').checked
     };

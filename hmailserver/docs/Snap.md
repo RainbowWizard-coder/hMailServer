@@ -361,18 +361,37 @@ has done this, once:
 
        docker run --rm -it -v "$PWD:/w" -w /w ubuntu:24.04 bash -c \
          'bash build/ci/snap-tools.sh > /dev/null && snapcraft export-login --snaps=hmailserver \
-            --acls package_access,package_push,package_update,package_release -'
+            --channels=edge,candidate \
+            --acls package_access,package_push,package_update,package_release \
+            --expires YYYY-MM-DD -'
 
    from a checkout of the repository. It asks for the Ubuntu One e-mail address,
    password and second factor, and prints the credentials. In GitLab, Settings, CI/CD,
    Variables: add `SNAPCRAFT_STORE_CREDENTIALS` with that text, protected, masked and
-   hidden, for the environment `snap-store`. The credentials expire (`--expires`
-   chooses when); once they have, `snap-upload` fails with the store's refusal, and the
-   same command makes new ones.
+   hidden, for the environment `snap-store`. Write a date at most a year away for
+   `YYYY-MM-DD`: the credentials expire then, and once they have, `snap-upload`
+   fails with the store's refusal, and the same command makes new ones.
+
+   **`--channels=edge,candidate` is what keeps `stable` a person's step.** A
+   credential without it may release any revision to any channel, `stable` among them,
+   and every device following `stable` takes that revision at its next refresh; the CI
+   variable can be read by any job of a protected pipeline that declares the
+   `snap-store` environment, since GitLab Free has no protected environments. So
+   `snap-upload` asks the credential what it may do (`snapcraft whoami`) before it
+   uploads anything, and refuses one with no channel restriction, one whose channels
+   name `stable`, and one of which `whoami` says nothing; and its own release list may
+   not name `stable` either. The first `snap-upload` after making it is its trial: the
+   store's channel caveat is what holds it, and if the store refuses the release to
+   `edge` or `candidate`, make it again with `--channels=latest/edge,latest/candidate`,
+   the track written out. `package_update` (the
+   store listing) is in the list because the store's own recipe for CI has it; leave
+   it out if an upload works without it. (Since the second security review of 6.3.6;
+   until then this step made a credential for every channel.)
 
 After that, for each release: on `master`'s pipeline for the release's commit, play
 `deb-ubuntu24.04-amd64` and `deb-ubuntu24.04-arm64` (the snap builds follow them),
 then `snap-upload`. Install the candidate on a machine of your own (`sudo snap install
-hmailserver --candidate`), and when it is right, promote each architecture's revision:
+hmailserver --candidate`), and when it is right, promote each architecture's revision
+with your own login, never the CI credential, which cannot: `snapcraft login`, then
 `snapcraft release hmailserver <revision> stable`, with the revisions `snap-upload`
-printed.
+printed, and `snapcraft logout`.

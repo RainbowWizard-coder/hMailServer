@@ -6837,6 +6837,12 @@ function fetchKeepWords(days){
   if(n===0)return t("keep on the server");
   return tf("keep {0} days",String(n));
 }
+/* Said beside every days_to_keep_messages this page sends: the one meaning
+   above, the server's since schema 6106. A Deck loaded before 6.3.6 told the
+   administrator that -1 keeps every message; the server refuses a negative value
+   from a browser session without this beside it, so that such a page, still open
+   after the upgrade, cannot have the mail deleted (RestApiFetchAccounts.cpp). */
+const FETCH_KEEP_MEANING=6106;
 function fetchProps(){
   const props=properties("/api/v1/accounts/{address}/fetch-accounts","post"), out={};
   Object.keys(props).forEach(k=>{out[k]=Object.assign({},props[k]);if(!out[k].description&&FETCH_HINTS[k])out[k].description=FETCH_HINTS[k];});
@@ -6909,6 +6915,7 @@ async function saveFetch(){
   setErr("err_fetchedit","");
   let body;
   try{body=readForm("fetch",fetchProps(),{});}catch(e){setErr("err_fetchedit",e.message);return;}
+  body.days_to_keep_meaning=FETCH_KEEP_MEANING;
   const address=encodeURIComponent(cache.fetch.address);
   try{
     if(editing.id)await api("/api/v1/accounts/"+address+"/fetch-accounts/"+editing.id,{method:"PUT",body:JSON.stringify(body)});

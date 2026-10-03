@@ -217,8 +217,64 @@ namespace HM
          "name", "server_address", "port", "server_type", "username", "password", "enabled",
          "minutes_between_fetch", "days_to_keep_messages", "connection_security",
          "process_mime_recipients", "process_mime_date", "use_antispam", "use_antivirus",
-         "enable_route_recipients", "mime_recipient_headers", "mirror_folders", "mirror_skip"
+         "enable_route_recipients", "mime_recipient_headers", "mirror_folders", "mirror_skip",
+         "days_to_keep_meaning"
       };
+
+      // What days_to_keep_messages means, said by the page that sends it: 6106,
+      // the schema step since which -1 deletes each message on the other server
+      // once it has been collected and 0 leaves every message there, for POP3
+      // and IMAP alike (FetchAccount.h). Until 6.3.6 the webmail's "Leave the
+      // mail there" sent -1, and the Deck's hint said -1 keeps every message. A
+      // page loaded before the upgrade goes on running after it - the restart
+      // ends its session, and it signs in again in place, with no reload - so
+      // the 6.3.6 webmail and Deck send this beside the value, and a negative
+      // value from a browser session that does not is refused (FromStalePage),
+      // so that a stale page cannot ask for the opposite of what its reader
+      // chose. Found by the second security review of 6.3.6 (WEB636B-1).
+      const char *const KeepMeaningKey = "days_to_keep_meaning";
+      const long KeepMeaning = 6106;
+
+      // A days_to_keep_meaning that is not 6106: the sentence in error.
+      bool KeepMeaningRefused(const JsonValue &body, AnsiString &error)
+      {
+         const JsonValue *member = body.Get(KeepMeaningKey);
+         if (!member || member->IsNull())
+            return false;
+
+         if (!member->IsNumber() || member->AsNumber() != (double) KeepMeaning)
+         {
+            error = "days_to_keep_meaning is 6106, the meaning days_to_keep_messages has had since 6.3.6: 0 leaves every message on the other server, -1 deletes each one there once it has been collected, N deletes it N days after";
+            return true;
+         }
+         return false;
+      }
+
+      // A negative days_to_keep_messages from a browser session with no
+      // days_to_keep_meaning beside it: a page from before 6.3.6, whose reader
+      // may have chosen to leave the mail there. An API key and a password
+      // (Basic, as hmctl, the PowerShell module and scripts send it) are not
+      // pages this server served and kept running across its upgrade: what they
+      // send is what their author wrote to the documented meaning, as COM's is,
+      // and they are not asked for the field. A session is made only by a
+      // sign-in at one of this server's pages - the webmail, the Deck, the
+      // portal - and only a page loaded before the upgrade, which cannot know
+      // the field, leaves it out.
+      bool FromStalePage(const JsonValue &body, bool fromPage)
+      {
+         if (!fromPage)
+            return false;
+
+         const JsonValue *days = body.Get("days_to_keep_messages");
+         if (!days || !days->IsNumber() || days->AsNumber() >= 0)
+            return false;
+
+         const JsonValue *meaning = body.Get(KeepMeaningKey);
+         return !meaning || meaning->IsNull();
+      }
+
+      const char *const StalePageRefusal =
+         "{\"error\":\"This page was loaded before the server was upgraded, and may mean the opposite by what it sent: since 6.3.6, -1 deletes each message on the other server once it has been collected, and 0 leaves every message there. Nothing was saved. Reload the page, check the choice and save again.\",\"reason\":\"page_out_of_date\"}";
 
       bool ReadString(const JsonValue &object, const char *key, String &out, bool &given, AnsiString &error)
       {
@@ -318,7 +374,8 @@ namespace HM
 
          if (!ReadInteger(body, "port", 1, 65535, port, error) ||
              !ReadInteger(body, "minutes_between_fetch", 1, 100000, minutes, error) ||
-             !ReadInteger(body, "days_to_keep_messages", -1, 100000, days, error))
+             !ReadInteger(body, "days_to_keep_messages", -1, 100000, days, error) ||
+             KeepMeaningRefused(body, error))
             return false;
 
          bool enabled = fetchAccount->GetActive();
@@ -473,10 +530,10 @@ namespace HM
       static const char *paths =
          ",\"/api/v1/accounts/{address}/fetch-accounts\":{"
          "\"get\":{\"summary\":\"The account's external (fetch) accounts\",\"description\":\"The remote POP3 or IMAP mailboxes the server collects into this account - Account.FetchAccounts over COM. Each entry: id, name, server_address, port, server_type (pop3 or imap), username, enabled, minutes_between_fetch, days_to_keep_messages, connection_security, process_mime_recipients, process_mime_date, use_antispam, use_antivirus, enable_route_recipients, mime_recipient_headers, mirror_folders, locked (a collection is running now), reader_created (a reader made it in the webmail, or moved it to another server or port there: the server connects it only to public addresses unless reader_fetch_accounts_private_addresses is on, and never gives it this server's own OAuth2 token), server_token_withheld (true for one a reader made or moved, and for one whose server, port or username somebody without the server's authority named - a key restricted to named domains, a domain administrator over COM, a reader who changed only the username: the fetchers never give it this server's own OAuth2 token, even for a host added to FetchOAuth2Hosts afterwards; false for a server administrator's) and next_download_time. The remote password is never emitted. A key restricted to named domains reaches the accounts of those domains only.\",\"responses\":{\"200\":{\"description\":\"Array of fetch accounts\"},\"404\":{\"description\":\"No such account\"}}},"
-         "\"post\":{\"summary\":\"Create an external (fetch) account\",\"description\":\"Body: name, server_address and port (required); server_type (pop3, the default, or imap), username, password (write-only), enabled (default true), minutes_between_fetch (default 30), days_to_keep_messages (default 0: every message stays on the remote server; -1 deletes each message there once it has been collected; N deletes it N days after it was collected - one meaning for POP3 and IMAP, whose remote INBOX is collected once by UID), connection_security (none, starttls_optional, starttls_required, tls; default none), process_mime_recipients, process_mime_date, use_antispam, use_antivirus, enable_route_recipients, mime_recipient_headers, mirror_folders. What InterfaceFetchAccounts.Add and Save do; the first collection is scheduled at once. Everything is checked before anything is saved: an unknown field, a value of the wrong type or a value out of range is a 400 naming it, and so is a username or password with a CR or LF, since both are sent in command lines. A fetch account for a host on FetchOAuth2Hosts logs in with this server's own OAuth2 token as whatever username it names, so only a credential with the server's authority adds or changes one; a key restricted to named domains gets 403, and one it adds, or whose server, port or username it changes, is marked server_token_withheld.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"name\",\"server_address\",\"port\"],\"properties\":{\"name\":{\"type\":\"string\"},\"server_address\":{\"type\":\"string\"},\"port\":{\"type\":\"integer\"},\"server_type\":{\"type\":\"string\",\"enum\":[\"pop3\",\"imap\"]},\"username\":{\"type\":\"string\"},\"password\":{\"type\":\"string\",\"writeOnly\":true},\"enabled\":{\"type\":\"boolean\"},\"minutes_between_fetch\":{\"type\":\"integer\"},\"days_to_keep_messages\":{\"type\":\"integer\"},\"connection_security\":{\"type\":\"string\",\"enum\":[\"none\",\"starttls_optional\",\"starttls_required\",\"tls\"]},\"process_mime_recipients\":{\"type\":\"boolean\"},\"process_mime_date\":{\"type\":\"boolean\"},\"use_antispam\":{\"type\":\"boolean\"},\"use_antivirus\":{\"type\":\"boolean\"},\"enable_route_recipients\":{\"type\":\"boolean\"},\"mime_recipient_headers\":{\"type\":\"string\"},\"mirror_folders\":{\"type\":\"boolean\"}}}}}},\"responses\":{\"201\":{\"description\":\"Created: the fetch account as the listing shows it, with its id\"},\"400\":{\"description\":\"A required field missing, an unknown field, or a value refused (error names it)\"},\"404\":{\"description\":\"No such account\"}}}},"
+         "\"post\":{\"summary\":\"Create an external (fetch) account\",\"description\":\"Body: name, server_address and port (required); server_type (pop3, the default, or imap), username, password (write-only), enabled (default true), minutes_between_fetch (default 30), days_to_keep_messages (default 0: every message stays on the remote server; -1 deletes each message there once it has been collected; N deletes it N days after it was collected - one meaning for POP3 and IMAP, whose remote INBOX is collected once by UID), days_to_keep_meaning (6106, the meaning days_to_keep_messages is sent in; optional from an API key or a password, and required beside a negative days_to_keep_messages from a browser session, which is otherwise refused with 409: a webmail or Deck page loaded before 6.3.6 meant the opposite by -1), connection_security (none, starttls_optional, starttls_required, tls; default none), process_mime_recipients, process_mime_date, use_antispam, use_antivirus, enable_route_recipients, mime_recipient_headers, mirror_folders. What InterfaceFetchAccounts.Add and Save do; the first collection is scheduled at once. Everything is checked before anything is saved: an unknown field, a value of the wrong type or a value out of range is a 400 naming it, and so is a username or password with a CR or LF, since both are sent in command lines. A fetch account for a host on FetchOAuth2Hosts logs in with this server's own OAuth2 token as whatever username it names, so only a credential with the server's authority adds or changes one; a key restricted to named domains gets 403, and one it adds, or whose server, port or username it changes, is marked server_token_withheld.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"required\":[\"name\",\"server_address\",\"port\"],\"properties\":{\"name\":{\"type\":\"string\"},\"server_address\":{\"type\":\"string\"},\"port\":{\"type\":\"integer\"},\"server_type\":{\"type\":\"string\",\"enum\":[\"pop3\",\"imap\"]},\"username\":{\"type\":\"string\"},\"password\":{\"type\":\"string\",\"writeOnly\":true},\"enabled\":{\"type\":\"boolean\"},\"minutes_between_fetch\":{\"type\":\"integer\"},\"days_to_keep_messages\":{\"type\":\"integer\"},\"connection_security\":{\"type\":\"string\",\"enum\":[\"none\",\"starttls_optional\",\"starttls_required\",\"tls\"]},\"process_mime_recipients\":{\"type\":\"boolean\"},\"process_mime_date\":{\"type\":\"boolean\"},\"use_antispam\":{\"type\":\"boolean\"},\"use_antivirus\":{\"type\":\"boolean\"},\"enable_route_recipients\":{\"type\":\"boolean\"},\"mime_recipient_headers\":{\"type\":\"string\"},\"mirror_folders\":{\"type\":\"boolean\"}}}}}},\"responses\":{\"201\":{\"description\":\"Created: the fetch account as the listing shows it, with its id\"},\"400\":{\"description\":\"A required field missing, an unknown field, or a value refused (error names it)\"},\"409\":{\"description\":\"A browser session sent a negative days_to_keep_messages without days_to_keep_meaning: a page loaded before 6.3.6, which may mean the opposite by it. Nothing was saved; the page is to be reloaded\"},\"404\":{\"description\":\"No such account\"}}}},"
          "\"/api/v1/accounts/{address}/fetch-accounts/{id}\":{"
          "\"get\":{\"summary\":\"One external (fetch) account\",\"description\":\"As the listing shows it. A fetch account that belongs to another account is not found here.\",\"responses\":{\"200\":{\"description\":\"The fetch account\"},\"404\":{\"description\":\"No such account, or no fetch account with that id in it\"}}},"
-         "\"put\":{\"summary\":\"Change an external (fetch) account\",\"description\":\"Body: any subset of the fields POST takes; a field left out keeps its value, and a password left out is kept. The same checks as POST, and nothing changes when one fails. What the setters and Save do over COM.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\"}}}},\"responses\":{\"200\":{\"description\":\"The fetch account as saved\"},\"400\":{\"description\":\"A field refused; nothing changed\"},\"404\":{\"description\":\"No such account, or no fetch account with that id in it\"}}},"
+         "\"put\":{\"summary\":\"Change an external (fetch) account\",\"description\":\"Body: any subset of the fields POST takes; a field left out keeps its value, and a password left out is kept. The same checks as POST, and nothing changes when one fails. What the setters and Save do over COM.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\"}}}},\"responses\":{\"200\":{\"description\":\"The fetch account as saved\"},\"400\":{\"description\":\"A field refused; nothing changed\"},\"409\":{\"description\":\"A browser session sent a negative days_to_keep_messages without days_to_keep_meaning: a page loaded before 6.3.6, which may mean the opposite by it. Nothing was saved; the page is to be reloaded\"},\"404\":{\"description\":\"No such account, or no fetch account with that id in it\"}}},"
          "\"delete\":{\"summary\":\"Delete an external (fetch) account\",\"description\":\"Through the account's collection as InterfaceFetchAccount.Delete goes: the row and the UIDs it remembered go together. Mail already collected stays.\",\"responses\":{\"200\":{\"description\":\"Deleted\"},\"404\":{\"description\":\"No such account, or no fetch account with that id in it\"}}}},"
          "\"/api/v1/accounts/{address}/fetch-accounts/{id}/download\":{\"post\":{\"summary\":\"Collect from the remote mailbox now\",\"description\":\"What DownloadNow does over COM: the next collection is set to now and the fetcher woken. Answers before the collection runs, because it runs on the fetcher's thread: watch locked in GET until it is false again.\",\"responses\":{\"202\":{\"description\":\"Queued\"},\"404\":{\"description\":\"No such account, or no fetch account with that id in it\"},\"503\":{\"description\":\"The external fetcher is not running\"}}}}";
 
@@ -540,7 +597,7 @@ namespace HM
    }
 
    HttpResponse
-   RestApiServer::HandleCreateFetchAccount_(const String &address, const AnsiString &requestBody, bool serverAdministrator, bool byReader)
+   RestApiServer::HandleCreateFetchAccount_(const String &address, const AnsiString &requestBody, bool serverAdministrator, bool byReader, bool fromPage)
    {
       Quote quote = [](const String &value) { return JsonEscape_(Utf8_(value)); };
 
@@ -551,6 +608,9 @@ namespace HM
       JsonValue body;
       if (!ParseBody(requestBody, body))
          return BuildResponse_(400, "{\"error\":\"the body must be a JSON object\"}");
+
+      if (FromStalePage(body, fromPage))
+         return BuildResponse_(409, StalePageRefusal);
 
       // As InterfaceFetchAccounts::Add makes one: the constructor's defaults,
       // owned by this account.
@@ -608,7 +668,7 @@ namespace HM
    }
 
    HttpResponse
-   RestApiServer::HandleUpdateFetchAccount_(const String &address, __int64 fetchAccountId, const AnsiString &requestBody, bool serverAdministrator, bool byReader)
+   RestApiServer::HandleUpdateFetchAccount_(const String &address, __int64 fetchAccountId, const AnsiString &requestBody, bool serverAdministrator, bool byReader, bool fromPage)
    {
       Quote quote = [](const String &value) { return JsonEscape_(Utf8_(value)); };
 
@@ -619,6 +679,9 @@ namespace HM
       JsonValue body;
       if (!ParseBody(requestBody, body))
          return BuildResponse_(400, "{\"error\":\"the body must be a JSON object\"}");
+
+      if (FromStalePage(body, fromPage))
+         return BuildResponse_(409, StalePageRefusal);
 
       FetchAccounts fetchAccounts(account->GetID());
       fetchAccounts.Refresh();
@@ -737,7 +800,8 @@ namespace HM
       const char *const ReaderKeys[] =
       {
          "name", "server_address", "port", "server_type", "username", "password", "enabled",
-         "minutes_between_fetch", "days_to_keep_messages", "connection_security", "mirror_folders", "mirror_skip"
+         "minutes_between_fetch", "days_to_keep_messages", "connection_security", "mirror_folders", "mirror_skip",
+         "days_to_keep_meaning"
       };
 
       // What an account signed in with a provider keeps: its grant is for that
@@ -835,10 +899,10 @@ namespace HM
       static const char *paths =
          ",\"/api/v1/me/fetch-accounts\":{"
          "\"get\":{\"summary\":\"The signed-in account's other accounts\",\"description\":\"The remote POP3 or IMAP mailboxes collected into this account, whoever added them - each as GET /api/v1/accounts/{address}/fetch-accounts shows it, the password never. 403 when ReaderFetchAccountsMax is 0.\",\"responses\":{\"200\":{\"description\":\"Array of fetch accounts\"},\"403\":{\"description\":\"Not offered on this server\"}}},"
-         "\"post\":{\"summary\":\"Add another account to collect from\",\"description\":\"Body: name, server_address and port (required); server_type (pop3 or imap), username, password (write-only), enabled, minutes_between_fetch (at least 15, default 30), days_to_keep_messages (0, the default, leaves every message on the remote; -1 deletes each one there once it has been collected; N deletes it N days after), connection_security (none, starttls_optional, starttls_required, tls) and mirror_folders (IMAP: bring the remote folders over as folders here). Any other field is refused: the spam and virus filters are on and the recipients are not re-read from the message, whatever is sent. The host has to resolve to public addresses only unless reader_fetch_accounts_private_addresses is on - checked when it is saved, and again each time the server collects, when it connects only to the public addresses the name resolves to then - and the port is 110, 995, 143 or 993 unless that setting is on; an account has at most reader_fetch_accounts_max. The account is marked reader_created, and so is one a reader later moves to another server or port. A host on FetchOAuth2Hosts is refused: a fetch account for it logs in with this server's own OAuth2 token, which only a server administrator gives out. The first collection is scheduled at once. A mutating route: a browser session carries X-Requested-With.\",\"responses\":{\"201\":{\"description\":\"The fetch account\"},\"400\":{\"description\":\"A field refused (error names it), a host that is not public, a port other than 110, 995, 143 and 993, or an interval under 15 minutes\"},\"403\":{\"description\":\"Not offered on this server, the account has as many as it may, or a host on FetchOAuth2Hosts\"}}}},"
+         "\"post\":{\"summary\":\"Add another account to collect from\",\"description\":\"Body: name, server_address and port (required); server_type (pop3 or imap), username, password (write-only), enabled, minutes_between_fetch (at least 15, default 30), days_to_keep_messages (0, the default, leaves every message on the remote; -1 deletes each one there once it has been collected; N deletes it N days after), days_to_keep_meaning (6106, the meaning days_to_keep_messages is sent in, which the webmail sends: a negative days_to_keep_messages without it from a browser session is refused with 409, since the webmail loaded before 6.3.6 sent -1 for Leave the mail there), connection_security (none, starttls_optional, starttls_required, tls) and mirror_folders (IMAP: bring the remote folders over as folders here). Any other field is refused: the spam and virus filters are on and the recipients are not re-read from the message, whatever is sent. The host has to resolve to public addresses only unless reader_fetch_accounts_private_addresses is on - checked when it is saved, and again each time the server collects, when it connects only to the public addresses the name resolves to then - and the port is 110, 995, 143 or 993 unless that setting is on; an account has at most reader_fetch_accounts_max. The account is marked reader_created, and so is one a reader later moves to another server or port. A host on FetchOAuth2Hosts is refused: a fetch account for it logs in with this server's own OAuth2 token, which only a server administrator gives out. The first collection is scheduled at once. A mutating route: a browser session carries X-Requested-With.\",\"responses\":{\"201\":{\"description\":\"The fetch account\"},\"400\":{\"description\":\"A field refused (error names it), a host that is not public, a port other than 110, 995, 143 and 993, or an interval under 15 minutes\"},\"409\":{\"description\":\"A browser session sent a negative days_to_keep_messages without days_to_keep_meaning: a page loaded before 6.3.6, which may mean the opposite by it. Nothing was saved; the page is to be reloaded\"},\"403\":{\"description\":\"Not offered on this server, the account has as many as it may, or a host on FetchOAuth2Hosts\"}}}},"
          "\"/api/v1/me/fetch-accounts/{id}\":{"
          "\"get\":{\"summary\":\"One of the signed-in account's other accounts\",\"responses\":{\"200\":{\"description\":\"The fetch account\"},\"404\":{\"description\":\"Not one of this account's\"}}},"
-         "\"put\":{\"summary\":\"Change one of the signed-in account's other accounts\",\"description\":\"Any subset of the fields POST takes, with the same refusals; a password left out is kept.\",\"responses\":{\"200\":{\"description\":\"The fetch account as saved\"},\"400\":{\"description\":\"A field refused; nothing changed\"},\"404\":{\"description\":\"Not one of this account's\"}}},"
+         "\"put\":{\"summary\":\"Change one of the signed-in account's other accounts\",\"description\":\"Any subset of the fields POST takes, with the same refusals; a password left out is kept.\",\"responses\":{\"200\":{\"description\":\"The fetch account as saved\"},\"400\":{\"description\":\"A field refused; nothing changed\"},\"409\":{\"description\":\"A browser session sent a negative days_to_keep_messages without days_to_keep_meaning: a page loaded before 6.3.6, which may mean the opposite by it. Nothing was saved; the page is to be reloaded\"},\"404\":{\"description\":\"Not one of this account's\"}}},"
          "\"delete\":{\"summary\":\"Stop collecting from one of the signed-in account's other accounts\",\"description\":\"The fetch account and the UIDs it remembered go; mail already collected stays.\",\"responses\":{\"200\":{\"description\":\"Deleted\"},\"404\":{\"description\":\"Not one of this account's\"}}}},"
          "\"/api/v1/me/fetch-accounts/{id}/download\":{\"post\":{\"summary\":\"Collect from one of the signed-in account's other accounts now\",\"description\":\"The next collection is set to now; watch locked in GET until it is false.\",\"responses\":{\"202\":{\"description\":\"Queued\"},\"404\":{\"description\":\"Not one of this account's\"}}}}";
       return AnsiString(paths);
@@ -879,6 +943,15 @@ namespace HM
       case RouteMeFetchAccountUpdate:
       {
          const bool creating = kind == RouteMeFetchAccountCreate;
+
+         // A page from before 6.3.6 asking for what its reader may have meant
+         // the other way round (FromStalePage): refused before anything else is
+         // read, so that nothing is saved and the page says to reload.
+         {
+            JsonValue sent;
+            if (ParseBody(requestBody, sent) && FromStalePage(sent, caller.via_session))
+               return BuildResponse_(409, StalePageRefusal);
+         }
          if (creating)
          {
             FetchAccounts existing(account->GetID());
@@ -930,7 +1003,7 @@ namespace HM
       static const char *paths =
          ",\"/api/v1/me/fetch-accounts/import\":{"
          "\"get\":{\"summary\":\"The providers the signed-in account can import from with a sign-in\",\"description\":\"{\\\"google\\\":bool,\\\"microsoft\\\":bool}: true where an administrator has registered this server with the provider (ImportOAuth*ClientId, the secret Google requires, both endpoints) and set ImportOAuthRedirectBaseUrl. 403 when ReaderFetchAccountsMax is 0.\",\"responses\":{\"200\":{\"description\":\"The providers\"},\"403\":{\"description\":\"Not offered on this server\"}}},"
-         "\"post\":{\"summary\":\"Start signing in to Gmail or Outlook.com to import from it\",\"description\":\"Body: provider (google or microsoft), mirror_folders (default true: bring the folders over, the reader choosing which once the other server has listed them) and days_to_keep_messages (0, the default, leaves the mail there; -1 deletes each message there once it has been collected). Answers the provider's authorize address as url, for the page to send the browser to, and sets the hmimport cookie (HttpOnly, SameSite=Lax, ten minutes) the callback needs. The authorization code flow with PKCE (S256); the provider sends the browser back to <ImportOAuthRedirectBaseUrl>/portal/oauth/callback, which exchanges the code, reads the address from the id_token and makes an IMAP fetch account that logs in with XOAUTH2 - or, when the reader already has one for that provider and address, gives it the new grant. Then to /portal#/accounts?imported=<id>, or ?import_error=<sentence>.\",\"responses\":{\"200\":{\"description\":\"url\"},\"400\":{\"description\":\"No such provider, or a field refused\"},\"403\":{\"description\":\"Not offered, not set up for that provider, or the account has as many other accounts as it may\"}}}}";
+         "\"post\":{\"summary\":\"Start signing in to Gmail or Outlook.com to import from it\",\"description\":\"Body: provider (google or microsoft), mirror_folders (default true: bring the folders over, the reader choosing which once the other server has listed them), days_to_keep_messages (0, the default, leaves the mail there; -1 deletes each message there once it has been collected) and days_to_keep_meaning (6106, as the fetch accounts take it: a negative days_to_keep_messages without it from a browser session is refused with 409, since the webmail loaded before 6.3.6 sent -1 for Leave the mail there). Answers the provider's authorize address as url, for the page to send the browser to, and sets the hmimport cookie (HttpOnly, SameSite=Lax, ten minutes) the callback needs. The authorization code flow with PKCE (S256); the provider sends the browser back to <ImportOAuthRedirectBaseUrl>/portal/oauth/callback, which exchanges the code, reads the address from the id_token and makes an IMAP fetch account that logs in with XOAUTH2 - or, when the reader already has one for that provider and address, gives it the new grant. Then to /portal#/accounts?imported=<id>, or ?import_error=<sentence>.\",\"responses\":{\"200\":{\"description\":\"url\"},\"400\":{\"description\":\"No such provider, or a field refused\"},\"409\":{\"description\":\"A browser session sent a negative days_to_keep_messages without days_to_keep_meaning: a page loaded before 6.3.6, which may mean the opposite by it. Nothing was started; the page is to be reloaded\"},\"403\":{\"description\":\"Not offered, not set up for that provider, or the account has as many other accounts as it may\"}}}}";
       return AnsiString(paths);
    }
 
@@ -962,7 +1035,8 @@ namespace HM
 
       for (const std::pair<std::string, JsonValue> &member : body.Members())
       {
-         if (member.first != "provider" && member.first != "mirror_folders" && member.first != "days_to_keep_messages")
+         if (member.first != "provider" && member.first != "mirror_folders" && member.first != "days_to_keep_messages" &&
+             member.first != KeepMeaningKey)
             return BuildResponse_(400, "{\"error\":\"not a field an import takes: " + JsonEscape_(AnsiString(member.first.substr(0, 48).c_str())) + "\"}");
       }
 
@@ -974,8 +1048,14 @@ namespace HM
       // 0 leaves the mail on the other server (FetchAccount.h).
       long days = 0;
       AnsiString error;
-      if (!ReadBool(body, "mirror_folders", mirror, error) || !ReadInteger(body, "days_to_keep_messages", -1, 100000, days, error))
+      if (!ReadBool(body, "mirror_folders", mirror, error) || !ReadInteger(body, "days_to_keep_messages", -1, 100000, days, error) ||
+          KeepMeaningRefused(body, error))
          return BuildResponse_(400, "{\"error\":\"" + JsonEscape_(error) + "\"}");
+
+      // The account the callback makes keeps this value; a page from before
+      // 6.3.6 sent -1 for "Leave the mail there" (FromStalePage).
+      if (FromStalePage(body, caller.via_session))
+         return BuildResponse_(409, StalePageRefusal);
 
       if (!ReaderOAuth::Configured(*provider))
          return BuildResponse_(403, AnsiString("{\"error\":\"signing in with ") + provider->label + " is not set up on this server\"}");

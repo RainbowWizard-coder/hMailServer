@@ -227,15 +227,31 @@ the settings themselves away from it:
   most networks is more than the holder reaches.
 * **Commands.** The external virus scanner's command line (`custom_scanner_executable`,
   `clamwin_executable`) is a setting, and the server runs it as its service account.
-* **Not the `[Settings]` section, not the key store.** `AutoBanCommand` and the other
-  keys of the `[Settings]` section, and the API keys, stay the administrator
-  password's alone - written, put back from the audit trail, or listed (above).
+* **Some `[Settings]` keys, by what they are for - not the section by name, not the key
+  store.** A holder of `manage_settings` writes the `[Settings]` keys behind a few typed
+  settings: `tarpit_count` and `tarpit_delay` (`SmtpTarpitCount`,
+  `SmtpTarpitDelaySeconds`), `rewrite_envelope_from_when_forwarding`
+  (`RewriteEnvelopeFromWhenForwarding`) and `user_interface_language` (`UseLanguage`);
+  the webmail's branding and its file-link policy (`WebmailBrandName`,
+  `WebmailBrandLogo`, `WebmailAnnouncement` and the `WebmailLink*` keys, the server's
+  and each domain's - a confined holder its own domains' alone); and a settings profile's
+  `[Settings]` entries when it applies or reverts one
+  (`POST /api/v1/settings/profiles/{name}/apply` and `/revert`; a full-scope key too),
+  with the profile's own values or the ones the server had before it
+  ([Profiles.md](Profiles.md)). Each is that key, with that row's check or the
+  profile's values; none names a key of its own choosing. What stays the administrator
+  password's alone is the section by name: listing it, writing or removing any key of
+  it through `/api/v1/settings/ini` - `AutoBanCommand`, the command the auto-ban runs,
+  among them - and putting a `[Settings]` key back from the audit trail; and the API
+  keys (above). Until 6.3.6's second security review this paragraph said the whole
+  section was the administrator password's, which the rows and the profiles above had
+  never kept to.
 
-What is held to less than the administrator is the one **reading** of the network that
-needed no setting changed and reached API keys as well: the breach check's endpoint
-test (`POST /api/v1/settings/breach-check/test`) takes any URL in its body and reports
-at once whether something answered, its status, how many entries came back and how
-long it took. (The coarser readings that come with the reach itself stay with it: an
+Two **readings** of the network that need no setting changed and reach API keys as
+well are held to less than the administrator. The first is the breach check's
+endpoint test (`POST /api/v1/settings/breach-check/test`), which takes any URL in its
+body and reports at once whether something answered, its status, how many entries
+came back and how long it took. (The coarser readings that come with the reach itself stay with it: an
 alert rule's webhook says whether its endpoint answered 2xx in the events' delivery
 state, and a webhook subscription's test, run and last error say whether its endpoint
 answered, refused or timed out - for an account whose role holds `manage_settings`
@@ -248,6 +264,23 @@ reason for one on the server's own network; 6.3.4 and 6.3.5 tested any address f
 any of them. The administrator password tests a mirror on the server's own network as
 before. An inbound webhook route made by any credential but the administrator is held
 to public addresses in the same way ([InboundWebhooks.md](InboundWebhooks.md)).
+
+The second is the never-ban list's check (`POST /api/v1/never-ban-names/check`), which
+takes any address and reports the reverse names the server's own resolver gives for it
+and whether each resolves back - for an address inside the network, the names
+split-horizon DNS keeps for the hosts there. Asked by any credential but the
+administrator password, since 6.3.6's second security review it answers 403 for an
+address that is not public - private, loopback, link-local, carrier NAT, reserved or
+documentation - and checks a public one as before; until then it checked any address
+for any of them ([AutoBan.md](AutoBan.md)).
+
+Not every reading is held so. The server's diagnostics (`POST /api/v1/diagnostics/run`,
+`manage_server`, a full-scope key too) connect, when no relayer is set, to port 25 of
+the host named as `test_domain` - any name or address, one on the server's own network
+among them - and say which addresses the name resolved to and whether each took the
+connection. That is one port, and
+the reach the holder has anyway: a holder of `manage_settings` or `manage_server` is to
+be somebody you would give the administrator password (above).
 
 ### The message trace
 

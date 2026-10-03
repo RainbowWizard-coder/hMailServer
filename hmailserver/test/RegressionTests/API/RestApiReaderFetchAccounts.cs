@@ -638,6 +638,129 @@ namespace RegressionTests.API
          }
       }
 
+      /// <summary>
+      ///    The second security review of 6.3.6 (WEB636B-1): a webmail or Control Deck
+      ///    page loaded before the upgrade goes on running after it - the restart
+      ///    ends its session and it signs in again in place - and it sends -1 for what
+      ///    its reader meant as "Leave the mail there" (the webmail) or "keep every
+      ///    message" (the Deck's hint), which 6.3.6 reads as delete each message on the
+      ///    other server once it is collected. The 6.3.6 pages say days_to_keep_meaning
+      ///    6106 beside the value; a negative value from a browser session without it
+      ///    is refused with 409, on the reader's routes, the import's start and the
+      ///    administrator's routes, and nothing is saved. A password and an API key,
+      ///    which send the documented meaning, are not asked for it. Against
+      ///    8f2dec98b every 409 below was a 201 or a 200 that stored -1.
+      /// </summary>
+      [Test]
+      [Description("A negative days_to_keep_messages from a browser session without days_to_keep_meaning - a page loaded before 6.3.6 - is refused with 409 and stores nothing; with it, -1 is stored, and a password's or an API key's -1 is stored without it.")]
+      public void APageLoadedBeforeTheUpgradeCannotHaveTheMailDeleted()
+      {
+         Assert.AreEqual(200, Admin("PUT", "/api/v1/settings", "{\"reader_fetch_accounts_private_addresses\":true,\"reader_fetch_accounts_max\":10}").status);
+         Account reader = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "reader-stale@" + _domain.Name, ReaderPassword);
+         string me = Basic(reader.Address, ReaderPassword);
+         string page = SessionHeaders(me);
+
+         int port = TestSetup.GetNextFreePort();
+         string stale = "{\"name\":\"From a stale page\",\"server_address\":\"localhost\",\"port\":" + port +
+                        ",\"server_type\":\"imap\",\"username\":\"old\",\"password\":\"old-password\",\"connection_security\":\"none\",\"days_to_keep_messages\":-1,\"enabled\":false}";
+         string marked = stale.Substring(0, stale.Length - 1) + ",\"days_to_keep_meaning\":6106}";
+
+         // The reader's page.
+         (int status, string body) refused = FromPage("POST", "/api/v1/me/fetch-accounts", page, stale);
+         Assert.AreEqual(409, refused.status, refused.body);
+         StringAssert.Contains("page_out_of_date", refused.body);
+         StringAssert.Contains("Reload the page", refused.body);
+         Assert.AreEqual(0, reader.FetchAccounts.Count, "A refused page's account was saved.");
+
+         (int status, string body) made = FromPage("POST", "/api/v1/me/fetch-accounts", page, marked);
+         Assert.AreEqual(201, made.status, made.body);
+         StringAssert.Contains("\"days_to_keep_messages\":-1", made.body);
+         string id = NumberAfter(made.body, "\"id\":");
+         Assert.AreEqual(1, reader.FetchAccounts.Count);
+
+         Assert.AreEqual(200, FromPage("PUT", "/api/v1/me/fetch-accounts/" + id, page, "{\"days_to_keep_messages\":0}").status,
+            "Leaving the mail there needs no meaning said: no page meant 0 as delete everything.");
+         (int status, string body) staleChange = FromPage("PUT", "/api/v1/me/fetch-accounts/" + id, page, "{\"days_to_keep_messages\":-1}");
+         Assert.AreEqual(409, staleChange.status, staleChange.body);
+         StringAssert.Contains("\"days_to_keep_messages\":0", Send("GET", "/api/v1/me/fetch-accounts/" + id, me, null).body, "A refused change was saved.");
+         Assert.AreEqual(200, FromPage("PUT", "/api/v1/me/fetch-accounts/" + id, page, "{\"days_to_keep_messages\":-1,\"days_to_keep_meaning\":6106}").status);
+         StringAssert.Contains("\"days_to_keep_messages\":-1", Send("GET", "/api/v1/me/fetch-accounts/" + id, me, null).body);
+         Assert.AreEqual(200, FromPage("PUT", "/api/v1/me/fetch-accounts/" + id, page, "{\"enabled\":false}").status,
+            "A change that names no number of days is not asked what it means.");
+
+         (int status, string body) wrongMeaning = FromPage("PUT", "/api/v1/me/fetch-accounts/" + id, page, "{\"days_to_keep_messages\":-1,\"days_to_keep_meaning\":6105}");
+         Assert.AreEqual(400, wrongMeaning.status, wrongMeaning.body);
+         StringAssert.Contains("days_to_keep_meaning", wrongMeaning.body);
+
+         // The import's start: the account its callback makes keeps the value. The
+         // provider is not set up here, so a start that passes is refused after.
+         (int status, string body) staleImport = FromPage("POST", "/api/v1/me/fetch-accounts/import", page, "{\"provider\":\"google\",\"days_to_keep_messages\":-1}");
+         Assert.AreEqual(409, staleImport.status, staleImport.body);
+         StringAssert.Contains("page_out_of_date", staleImport.body);
+         Assert.AreEqual(403, FromPage("POST", "/api/v1/me/fetch-accounts/import", page, "{\"provider\":\"google\",\"days_to_keep_messages\":-1,\"days_to_keep_meaning\":6106}").status,
+            "With the meaning said, the start goes on to the provider's own check.");
+         Assert.AreEqual(403, Send("POST", "/api/v1/me/fetch-accounts/import", me, "{\"provider\":\"google\",\"days_to_keep_messages\":-1}").status,
+            "A password's start is not asked what it means.");
+
+         // The reader's password, as a script or a program sends it: the documented meaning.
+         (int status, string body) byPassword = Send("POST", "/api/v1/me/fetch-accounts", me, stale.Replace("From a stale page", "By password"));
+         Assert.AreEqual(201, byPassword.status, byPassword.body);
+         StringAssert.Contains("\"days_to_keep_messages\":-1", byPassword.body);
+
+         // The administrator's routes: the Deck's session, the password and a key.
+         string deck = SessionHeaders(Basic("Administrator", AdminPassword));
+         string adminRoute = "/api/v1/accounts/" + reader.Address + "/fetch-accounts";
+         int before = reader.FetchAccounts.Count;
+         (int status, string body) staleDeck = FromPage("POST", adminRoute, deck, stale.Replace("From a stale page", "Deck"));
+         Assert.AreEqual(409, staleDeck.status, staleDeck.body);
+         Assert.AreEqual(before, reader.FetchAccounts.Count, "A refused Deck's account was saved.");
+         (int status, string body) deckMade = FromPage("POST", adminRoute, deck, marked.Replace("From a stale page", "Deck"));
+         Assert.AreEqual(201, deckMade.status, deckMade.body);
+         string deckId = NumberAfter(deckMade.body, "\"id\":");
+         Assert.AreEqual(409, FromPage("PUT", adminRoute + "/" + deckId, deck, "{\"days_to_keep_messages\":-1}").status);
+         Assert.AreEqual(200, FromPage("PUT", adminRoute + "/" + deckId, deck, "{\"days_to_keep_messages\":3}").status);
+         StringAssert.Contains("\"days_to_keep_messages\":3", Admin("GET", adminRoute + "/" + deckId, null).body, "A refused change was saved.");
+
+         (int status, string body) byAdministrator = Admin("POST", adminRoute, stale.Replace("From a stale page", "Administrator password"));
+         Assert.AreEqual(201, byAdministrator.status, byAdministrator.body);
+         StringAssert.Contains("\"days_to_keep_messages\":-1", byAdministrator.body);
+
+         string keyId = null;
+         try
+         {
+            (int keyStatus, string keyBody) = Admin("POST", "/api/v1/apikeys", "{\"label\":\"fetch keep meaning - full\",\"scope\":\"full\"}");
+            Assert.AreEqual(201, keyStatus, keyBody);
+            keyId = System.Text.RegularExpressions.Regex.Match(keyBody, "\"id\":\"([^\"]*)\"").Groups[1].Value;
+            string key = "Bearer " + System.Text.RegularExpressions.Regex.Match(keyBody, "\"key\":\"([^\"]*)\"").Groups[1].Value;
+            (int status, string body) byKey = Send("POST", adminRoute, key, stale.Replace("From a stale page", "API key"));
+            Assert.AreEqual(201, byKey.status, byKey.body);
+            StringAssert.Contains("\"days_to_keep_messages\":-1", byKey.body);
+            string keysId = NumberAfter(byKey.body, "\"id\":");
+            Assert.AreEqual(200, Send("PUT", adminRoute + "/" + keysId, key, "{\"days_to_keep_messages\":-1}").status, "A key's change is not asked what it means.");
+         }
+         finally
+         {
+            if (keyId != null)
+               Admin("DELETE", "/api/v1/apikeys/" + keyId, null);
+         }
+      }
+
+      // A browser session started with the credential, as the webmail and the Deck
+      // start one: the cookie, and the header every change on a session carries.
+      private static string SessionHeaders(string authorization)
+      {
+         (int status, string headers, string body) started = RestRequest.Exchange("127.0.0.1", RestPort, "POST", "/api/v1/session", authorization, null, null);
+         Assert.AreEqual(201, started.status, started.body);
+         var cookie = System.Text.RegularExpressions.Regex.Match(started.headers, "hmailsession=([^;\r\n]+)");
+         Assert.IsTrue(cookie.Success, started.headers);
+         return "Cookie: hmailsession=" + cookie.Groups[1].Value + "\r\nX-Requested-With: hMailServer";
+      }
+
+      private static (int status, string body) FromPage(string method, string path, string sessionHeaders, string requestBody)
+      {
+         return RestRequest.Send("127.0.0.1", RestPort, method, path, null, requestBody, sessionHeaders);
+      }
+
       private static void WaitUntilUnlocked(string authorization, string id)
       {
          DateTime deadline = DateTime.UtcNow.AddSeconds(30);

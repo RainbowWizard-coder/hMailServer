@@ -102,8 +102,13 @@ loads):
 
 Each job has a GitLab environment of its own (`container-registries`, `aur`,
 `launchpad`, `copr`, `obs`, `chocolatey`, `snap-store`), so each credential can be
-scoped to the one job that uses it (Settings, CI/CD, Variables: "Environments"), and
-a resource group, so two presses never publish at once.
+scoped to its environment (Settings, CI/CD, Variables: "Environments"), and a resource
+group, so two presses never publish at once. On GitLab Free there are no protected
+environments: the scope keeps a credential from the jobs that declare another
+environment or none, but any job of a protected pipeline may declare `snap-store` or
+`aur` and be given it. What a credential may do is therefore limited where the
+service lets it be - the Snap Store's to `edge` and `candidate` (below) - and the
+protected refs it reaches are the maintainers' alone (ContinuousIntegration.md).
 
 The channels
 ------------
@@ -351,12 +356,16 @@ environment itself.
 
 - **The owner, once.** An Ubuntu One account with two-factor authentication; the name
   `hmailserver` registered (`snapcraft register hmailserver`, with the comment the
-  maintainers drafted); and, in a terminal on Linux with snapd (snapcraft is itself a
-  snap), `snapcraft export-login --snaps=hmailserver --acls
-  package_access,package_push,package_update,package_release -`, whose output is
-  `SNAPCRAFT_STORE_CREDENTIALS`. The credentials carry an expiry date (`snapcraft
-  export-login --expires` sets it); once past it the job fails with the store's
-  refusal, and the same command makes new ones.
+  maintainers drafted); and, in a terminal on Linux (snapcraft as `build/ci/snap-tools.sh`
+  installs it, [Snap.md](Snap.md), The Snap Store), `snapcraft export-login
+  --snaps=hmailserver --channels=edge,candidate --acls
+  package_access,package_push,package_update,package_release --expires YYYY-MM-DD -`,
+  whose output is `SNAPCRAFT_STORE_CREDENTIALS`. `--channels=edge,candidate` holds the
+  credential below `stable`, which stays a person's step with their own login;
+  `snap-upload` asks the credential what it may do (`snapcraft whoami`) and refuses
+  one that could release to `stable`, or of which it is told nothing, before it
+  uploads anything. The credentials carry the expiry date `--expires` gives; once past
+  it the job fails with the store's refusal, and the same command makes new ones.
 
 What the owner and the maintainers set
 --------------------------------------
