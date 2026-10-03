@@ -1954,14 +1954,20 @@ namespace HM
    String
    IniFileSettings::ReadDataDirectory()
    {
+      return ReadDirectory(_T("DataFolder"));
+   }
+
+   String
+   IniFileSettings::ReadDirectory(const String &key)
+   {
       // ProgramFolder as LoadSettings reads it into app_directory_, ending with
-      // this platform's separator, then DataFolder resolved against it. Both are
+      // this platform's separator, then the key resolved against it. Both are
       // [Directories] keys, which are read from the file and nowhere else.
       String program = ReadIniSettingString_("Directories", "ProgramFolder", "");
       if (program.Right(1) != FileUtilities::PathSeparator)
          program += FileUtilities::PathSeparator;
 
-      return ResolveDataDirectory_(program, ReadIniSettingString_("Directories", "DataFolder", ""));
+      return ResolveDataDirectory_(program, ReadIniSettingString_("Directories", key, ""));
    }
 
    bool

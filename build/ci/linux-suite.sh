@@ -19,11 +19,23 @@
 # skips); what fails the job is a failed test, a run of no tests, or a server that
 # did not start.
 #
-# Where things are. The tree is inside the checkout (HM_TREE, .hmtest-tree) and not
-# in /tmp, because GitLab runs after_script in a fresh container from the same
-# image with only the checkout carried over: the logs of a run that timed out or
-# was cancelled are still there to collect. collect removes the tree; the results
-# stay in linux-suite/ for the artifacts until the next job's checkout cleans them.
+# Where things are. The server's tree (HM_TREE) is root's alone, as a server run as
+# root has it: the suite runs it as root, and a command a fixture runs beside it as
+# root (hmailserver --apply-environment, Security/AutoBanHookRetry) runs on as root
+# only where no account but root could have put a symbolic link where it goes - its
+# data, log, temporary, event and database folders, everything under them and the
+# ways to them root's alone (platform/root_command.h) - and is refused, exit 2,
+# anywhere else. So the tree is inside the checkout (.hmtest-tree) when the way to
+# the checkout is root's alone, and not in /tmp, because GitLab runs after_script in
+# a fresh container from the same image with only the checkout carried over: the
+# logs of a run that timed out or was cancelled are still there to collect. A
+# checkout another account owns (docker run -v of a user's clone) or every account
+# may write (GitLab's docker executor checks out under umask 0000) is no such way,
+# and the tree is then /var/lib/hmtest-tree, in the job's own container, whose logs
+# the script copies into the results as it ends, however it ends short of being
+# killed. The tree is made under umask 0022 either way. collect removes the tree; the
+# results stay in linux-suite/ for the artifacts until the next job's checkout
+# cleans them.
 #
 # How it differs from the VM's bench.sh, and why:
 #   * the database is the job's postgres service (HM_PG_HOST, "postgres"), created
@@ -44,7 +56,34 @@
 # tarball.
 set -uo pipefail
 
-T="${HM_TREE:-$PWD/.hmtest-tree}"
+# Whether the way to a folder is root's alone: every folder on it, from / down to
+# the folder itself, belongs to root, and no other account may write it - no write
+# for others, and for its group only when that is root's group. The server's own
+# check (RootCommand::Decide) is the judge; this only chooses where the tree goes.
+way_is_roots() {
+  local physical folder="" part owner group mode
+  local -a parts
+  physical=$(cd "$1" 2> /dev/null && pwd -P) || return 1
+  IFS=/ read -ra parts <<< "$physical"
+  for part in "${parts[@]}"; do
+    folder="${folder%/}/$part"
+    read -r owner group mode <<< "$(stat -c '%u %g %a' "$folder" 2> /dev/null)"
+    [ "$owner" = 0 ] || return 1
+    if (( 8#$mode & 8#002 )); then return 1; fi
+    if (( 8#$mode & 8#020 )) && [ "$group" != 0 ]; then return 1; fi
+  done
+  return 0
+}
+
+tree_elsewhere=""
+if [ -n "${HM_TREE:-}" ]; then
+  T="$HM_TREE"
+elif way_is_roots "$PWD"; then
+  T="$PWD/.hmtest-tree"
+else
+  T="/var/lib/hmtest-tree"
+  tree_elsewhere="the way to the checkout, $PWD, is not root's alone"
+fi
 OUT="${HM_RESULTS_DIR:-$PWD/linux-suite}"
 BINARY="${HM_SERVER_BINARY:-$PWD/linux-build/hmailserver}"
 if [ -n "${HM_SOURCE_TARBALL:-}" ]; then
@@ -88,6 +127,22 @@ stop_server() {
   fi
 }
 
+# The server's output, configuration and error logs into the results, and every
+# log, compressed, when the run did not pass ($1 "success" when it did).
+save_logs() {
+  mkdir -p "$OUT"
+  [ -d "$T" ] || return 0
+  [ -f "$T/stdout.log" ] && cp "$T/stdout.log" "$OUT/server-stdout.log"
+  [ -f "$T/program/hMailServer.ini" ] && cp "$T/program/hMailServer.ini" "$OUT/hMailServer.ini"
+  if [ -d "$T/Logs" ]; then
+    find "$T/Logs" -maxdepth 1 -type f -name 'ERROR_*' -exec cp {} "$OUT/" \;
+    if [ "$1" != "success" ]; then
+      tar -C "$T" -czf "$OUT/server-logs.tar.gz" Logs && echo "the server's logs: linux-suite/server-logs.tar.gz"
+    fi
+  fi
+  return 0
+}
+
 collect() {
   mkdir -p "$OUT"
   stop_server
@@ -95,17 +150,11 @@ collect() {
     python3 build/ci/trx-to-junit.py "$OUT/linux-suite.trx" "$OUT/junit.xml" || true
   fi
   if [ -d "$T" ]; then
-    [ -f "$T/stdout.log" ] && cp "$T/stdout.log" "$OUT/server-stdout.log"
-    [ -f "$T/program/hMailServer.ini" ] && cp "$T/program/hMailServer.ini" "$OUT/hMailServer.ini"
-    if [ -d "$T/Logs" ]; then
-      # The error logs always; every log, compressed, when the job did not pass.
-      find "$T/Logs" -maxdepth 1 -type f -name 'ERROR_*' -exec cp {} "$OUT/" \;
-      if [ "${CI_JOB_STATUS:-failed}" != "success" ]; then
-        tar -C "$T" -czf "$OUT/server-logs.tar.gz" Logs && echo "the server's logs: linux-suite/server-logs.tar.gz"
-      fi
-    fi
+    save_logs "${CI_JOB_STATUS:-failed}"
     rm -rf "$T"
     echo "the test tree is removed"
+  elif [ -n "$tree_elsewhere" ]; then
+    echo "the test tree, $T, was not in the checkout ($tree_elsewhere): what the run kept of it is what it copied into the results as it ended"
   fi
   ls -la "$OUT" 2> /dev/null || true
 }
@@ -144,6 +193,19 @@ if [ -n "${HM_LINUX_SUITE_FILTER:-}" ] && [ "$HM_LINUX_SUITE_FILTER" != "all" ];
     exit 2
   fi
   filter=(--filter "$HM_LINUX_SUITE_FILTER")
+fi
+
+# The tree, and everything the server makes in it, root's alone (above), whatever
+# umask the job runs under.
+umask 0022
+if [ -n "$tree_elsewhere" ]; then
+  echo "$tree_elsewhere, so the server's tree is $T"
+  # after_script's container will not have the tree: its logs go into the results
+  # as the run ends - on any exit, and on the signals a stopped job is sent.
+  trap 'code=$?; trap - EXIT; stop_server; save_logs "$([ "$code" -eq 0 ] && echo success)"; exit "$code"' EXIT
+  trap 'exit 129' HUP
+  trap 'exit 130' INT
+  trap 'exit 143' TERM
 fi
 
 rm -rf "$T" "$OUT"

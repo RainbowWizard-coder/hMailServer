@@ -607,7 +607,12 @@ would then read, rewrite or remove whatever the link led to, as root. The store 
 with its groups - before they open anything when run as root, so each reaches only what the service reaches through any
 link and leaves no file the service cannot open; a data directory whose way is not root's and its owner's alone - a
 folder above it, or above where a link on the way points, that another account or group may write - is refused, exit
-2, since a link put there could choose which owner, and so which account, that is; and every other command line run
+2, since a link put there could choose which owner, and so which account, that is; over a data directory root owns - a
+service run as root - they run on as root only where that directory and everything under it, the log, temporary, event
+and database folders and everything under them, the configuration that names them, and the ways to them are root's
+alone, no link in them another account's and no default access control list giving another account a write, and make
+what they make with every other account's write taken away whatever the umask, and are refused, naming the folder,
+file or link, otherwise; and every other command line run
 as root writes nothing to the log directory (its report goes to standard error instead), as the Windows commands do.
 `--create-database` makes its `.new-installation` marker without following a link of that name.
 `build/check-elevated-verbs.py` holds all of it. The Windows commands were affected in 6.3.4 and 6.3.5, and the Linux
@@ -1374,9 +1379,17 @@ project's own review.
     runs as the service's account first: these work in the data and log folders, which that account (the unit's `User=`)
     owns and can plant a symbolic link in, so `sudo hmailserver --compress-store` becomes that account - the data
     directory's owner, with its groups - before opening anything, follows a planted link as that account and not as root,
-    and leaves behind no file the service cannot open; over a data directory that cannot be examined or belongs to root,
-    or whose way is not root's and its owner's alone (a folder above it that another account or group may write), it
-    refuses (exit 2), naming why. Every other Linux command line run as root (`--set-setting`, the stored-secrets verbs,
+    and leaves behind no file the service cannot open; over a data directory that cannot be examined, or whose way is
+    not root's and its owner's alone (a folder above it that another account or group may write), it refuses (exit 2),
+    naming why. Over a data directory that belongs to root - a service run as root, as a source build or a container
+    without `User=` has it - it runs on as root, and says so, where the data directory and every folder under it, the
+    log, temporary, event and database folders and every folder under them, every folder a link in them leads to, the
+    configuration that names them and the ways to all of them are root's alone (each folder and the configuration
+    root's and written by no other account, no folder's default access control list giving another account a write,
+    each link root's), and then makes what it makes with at least every other account's write taken away by its
+    umask; otherwise it refuses (exit 2), naming the first folder, file or link another account owns or may write - a
+    log directory below Ubuntu's `/var/log`, which the `syslog` group may write, among them. Every other Linux
+    command line run as root (`--set-setting`, the stored-secrets verbs,
     `--create-database`, `--upgrade-database` and the rest) writes nothing to the log directory - what it did is on its own
     output and a report goes to standard error - as the Windows commands do; and `--create-database` makes its
     `.new-installation` marker without following a link of that name.

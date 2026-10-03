@@ -662,6 +662,13 @@ namespace HM
       // before every start of the Linux unit).
       String ReadDataDirectory();
 
+      // Any [Directories] folder key - LogFolder, TempFolder, EventFolder,
+      // DatabaseFolder - resolved and read as ReadDataDirectory reads DataFolder:
+      // from the file alone, nothing loaded, built or published. Empty when the
+      // key is not set. For the Linux host's check of the folders a command run
+      // as root uses, made before anything is opened (platform/root_command.h).
+      String ReadDirectory(const String &key);
+
       String GetTempDirectory() const { return Guarded_(temp_directory_); }
       String GetEventDirectory() const { return Guarded_(event_directory_); }
       String GetDBScriptDirectory() const { return Guarded_(dbscript_directory_); }

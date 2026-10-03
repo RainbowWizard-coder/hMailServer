@@ -38,6 +38,7 @@
 #include <map>
 #include <string>
 #include <set>
+#include <system_error>
 #include <vector>
 #include <cerrno>
 #include <fcntl.h>
@@ -78,6 +79,7 @@
 #include "../Common/Util/Unicode.h"
 #include "../Common/Pst/PstReaderChild.h"
 #include "../Common/Pst/PstCodePages.h"
+#include "root_command.h"
 
 namespace
 {
@@ -1160,188 +1162,73 @@ namespace
       return true;
    }
 
-   // Whether the way to path is root's or owner's alone: every folder whose names
-   // decide where it leads - each folder above it, and above where any symbolic
-   // link on the way points - belongs to root or to owner, and nobody else may
-   // change its names (no write for others; for its group only when that is
-   // root's group, or owner's own group on owner's folder). Then the data
-   // directory's owner is the account an administrator gave the data directory
-   // to, and not one that another account, able to put a link of its own on the
-   // way, chose. why: the folder that is not, or what could not be told.
-   bool WayIsRootsOr(const std::string &path, uid_t owner, gid_t ownerGroup, std::string &why)
-   {
-      std::string full = path;
-      if (full.empty() || full[0] != '/')
-      {
-         std::vector<char> here(4096);
-         if (::getcwd(here.data(), here.size()) == nullptr)
-         {
-            why = "the folder it is relative to could not be told";
-            return false;
-         }
-         full = std::string(here.data()) + "/" + full;
-      }
-
-      // The names still to walk, the next one last; the folders walked so far.
-      std::vector<std::string> pending;
-      std::vector<std::string> walked;
-      const auto add = [&pending](const std::string &more)
-      {
-         std::vector<std::string> names;
-         size_t at = 0;
-         while (at <= more.size())
-         {
-            const size_t next = more.find('/', at);
-            const size_t end = next == std::string::npos ? more.size() : next;
-            if (end > at)
-               names.push_back(more.substr(at, end - at));
-            at = end + 1;
-         }
-         pending.insert(pending.end(), names.rbegin(), names.rend());
-      };
-      add(full);
-
-      int links = 0;
-      while (!pending.empty())
-      {
-         const std::string name = pending.back();
-         pending.pop_back();
-         if (name == ".")
-            continue;
-         if (name == "..")
-         {
-            if (!walked.empty())
-               walked.pop_back();
-            continue;
-         }
-
-         std::string folder;
-         for (const std::string &part : walked)
-            folder += "/" + part;
-         if (folder.empty())
-            folder = "/";
-
-         struct stat held;
-         if (::lstat(folder.c_str(), &held) != 0 || !S_ISDIR(held.st_mode))
-         {
-            why = folder + " could not be examined";
-            return false;
-         }
-
-         const bool ownersOwn = held.st_uid == owner && held.st_gid == ownerGroup;
-         if ((held.st_uid != 0 && held.st_uid != owner) || (held.st_mode & S_IWOTH) != 0 ||
-             ((held.st_mode & S_IWGRP) != 0 && held.st_gid != 0 && !ownersOwn))
-         {
-            why = folder + " may be changed by an account other than root and the data directory's owner";
-            return false;
-         }
-
-         const std::string next = (folder == "/" ? std::string() : folder) + "/" + name;
-         struct stat named;
-         if (::lstat(next.c_str(), &named) != 0)
-         {
-            why = next + " could not be examined";
-            return false;
-         }
-
-         if (!S_ISLNK(named.st_mode))
-         {
-            walked.push_back(name);
-            continue;
-         }
-
-         if (++links > 40)
-         {
-            why = next + " leads through more than forty symbolic links";
-            return false;
-         }
-
-         std::vector<char> target(4096);
-         const ssize_t length = ::readlink(next.c_str(), target.data(), target.size() - 1);
-         if (length <= 0 || (size_t) length >= target.size() - 1)
-         {
-            why = next + " is a symbolic link that could not be read";
-            return false;
-         }
-
-         const std::string to(target.data(), (size_t) length);
-         if (to[0] == '/')
-            walked.clear();
-         add(to);
-      }
-
-      return true;
-   }
-
    // A verb that works in the folders the service's account writes - the store
    // walks, the copies to and from an object store, the sample domain, the
    // profiles and the environment's settings - run as root (sudo hmailserver
-   // --compress-store ...) runs as that account instead, from before it opens
-   // anything: the data directory, the log directory and the database are that
-   // account's, which can put a symbolic link anywhere in them, and root going
-   // by a path there would read, write or remove wherever the link leads, as
-   // root. As that account the verb reaches only what the service reaches
-   // already, and leaves no file behind that the service cannot open. The
-   // account is the data directory's owner - the service's account, as the
-   // package makes /var/lib/hmailserver for the unit's User=, and the account
-   // PrepareServiceKeyFile makes the key file for - with that account's groups;
-   // only DataFolder is read to find it (ReadDataDirectory), so that nothing
-   // reaches the log directory first. Refused, exit 2, when the data directory
-   // cannot be examined or belongs to root, which tells no account, or when the
-   // way to it is not root's and its owner's alone (WayIsRootsOr). Until 6.3.6
-   // these ran as root. docs/ServiceAccount.md, "On Linux, a command run as root".
+   // --compress-store ...) never follows a symbolic link an account other than
+   // root could have put where it goes. Root going by a path follows every link
+   // on it, so it reads, writes or removes wherever a link leads, as root; the
+   // decision is RootCommand::Decide's (platform/root_command.h), made before
+   // anything is opened, from the [Directories] keys alone (ReadDirectory), so
+   // that nothing reaches the log directory first:
+   //
+   //   * a data directory another account owns - the service's, as the package
+   //     makes /var/lib/hmailserver for the unit's User=, and the account
+   //     PrepareServiceKeyFile makes the key file for - whose way is root's and
+   //     that account's alone: the verb runs as that account, with its groups,
+   //     and reaches only what the service reaches already, leaving no file
+   //     behind that the service cannot open;
+   //   * a data directory root owns - a service run as root - that is root's
+   //     alone with everything under it, as are the way to it, the log,
+   //     temporary, event and database folders and the configuration that
+   //     names them (--config's, or the one found): the verb crosses no
+   //     boundary and runs on as root, says so, and makes what it makes for
+   //     root alone, whatever the umask (KeepWhatItMakesRoots);
+   //   * anything else, or a data directory that cannot be examined: refused,
+   //     exit 2, naming the first folder or link that fails.
+   //
+   // Until 6.3.6 these ran as root. docs/ServiceAccount.md, "On Linux, a command
+   // run as root".
    int RunAsServiceAccount(const char *verb)
    {
       if (::geteuid() != 0)
          return 0;
 
-      const HM::AnsiString dataDirectory(HM::IniFileSettings::Instance()->ReadDataDirectory());
-      struct stat directory;
-      if (dataDirectory.IsEmpty() || ::stat(dataDirectory.c_str(), &directory) != 0 || !S_ISDIR(directory.st_mode))
+      HM::IniFileSettings *const ini = HM::IniFileSettings::Instance();
+      const std::string dataDirectory(HM::AnsiString(ini->ReadDataDirectory()).c_str());
+      const std::vector<HM::RootCommand::Folder> others = {
+         { HM::AnsiString(ini->ReadDirectory(_T("LogFolder"))).c_str(), "the log directory ([Directories] LogFolder)" },
+         { HM::AnsiString(ini->ReadDirectory(_T("TempFolder"))).c_str(), "the temporary folder ([Directories] TempFolder)" },
+         { HM::AnsiString(ini->ReadDirectory(_T("EventFolder"))).c_str(), "the event folder ([Directories] EventFolder)" },
+         { HM::AnsiString(ini->ReadDirectory(_T("DatabaseFolder"))).c_str(), "the database folder ([Directories] DatabaseFolder)" } };
+
+      const std::string configuration(HM::AnsiString(HM::IniFileSettings::GetInitializationFile()).c_str());
+
+      const HM::RootCommand::Decision decision = HM::RootCommand::Decide(verb, dataDirectory, others, configuration);
+      if (decision.outcome == HM::RootCommand::Refused)
       {
-         std::fprintf(stderr, "%s run as root runs as the account the service runs as, the owner of the data directory, and the data directory %s could not be examined. Run it as that account (sudo -u hmailserver hmailserver ...). Nothing was changed.\n",
-            verb, dataDirectory.c_str());
+         (void) std::fprintf(stderr, "%s\n", decision.message.c_str());
          return 2;
       }
 
-      if (directory.st_uid == 0)
+      if (decision.outcome == HM::RootCommand::AsRoot)
       {
-         std::fprintf(stderr, "%s run as root runs as the account the service runs as, the owner of the data directory, and %s belongs to root, which tells no account. Give the data directory to the service's account (the package makes it hmailserver's), or run it as that account. Nothing was changed.\n",
-            verb, dataDirectory.c_str());
-         return 2;
+         HM::RootCommand::KeepWhatItMakesRoots();
+         (void) std::fprintf(stderr, "%s\n", decision.message.c_str());
+         return 0;
       }
 
-      const uid_t uid = directory.st_uid;
-      gid_t gid = directory.st_gid;
-      std::string name;
-
-      std::vector<char> buffer(16384);
-      struct passwd entry;
-      struct passwd *found = nullptr;
-      if (::getpwuid_r(uid, &entry, buffer.data(), buffer.size(), &found) == 0 && found != nullptr)
-      {
-         name = found->pw_name;
-         gid = found->pw_gid;
-      }
-
-      // The owner tells the account only when nobody else could have chosen
-      // which folder the configured path leads to: a folder above it that
-      // another account may change could hold a link of that account's to a
-      // folder some third account owns, which root would then become.
-      std::string unsafe;
-      if (!WayIsRootsOr(std::string(dataDirectory.c_str()), uid, gid, unsafe))
-      {
-         std::fprintf(stderr, "%s run as root runs as the account the service runs as, the owner of the data directory %s, and the way to it is not root's and that owner's alone: %s, so the owner does not tell the account. Give the folders above the data directory to root, or run it as the service's account (sudo -u hmailserver hmailserver ...). Nothing was changed.\n",
-            verb, dataDirectory.c_str(), unsafe.c_str());
-         return 2;
-      }
+      const uid_t uid = decision.uid;
+      const gid_t gid = decision.gid;
+      const std::string &name = decision.name;
 
       // The groups first, then the group, then the user: once the user is
       // changed nothing else may be.
       const bool grouped = name.empty() ? ::setgroups(1, &gid) == 0 : ::initgroups(name.c_str(), gid) == 0;
       if (!grouped || ::setgid(gid) != 0 || ::setuid(uid) != 0)
       {
-         std::fprintf(stderr, "%s run as root could not become the data directory's owner, uid %u: %s. Nothing was changed.\n", verb, (unsigned int) uid, std::strerror(errno));
+         const int failure = errno;
+         std::fprintf(stderr, "%s run as root could not become the data directory's owner, uid %u: %s. Nothing was changed.\n", verb, (unsigned int) uid, std::generic_category().message(failure).c_str());
          return 2;
       }
 

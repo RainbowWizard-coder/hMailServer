@@ -498,7 +498,9 @@ target_link_libraries(hmailserver_core PRIVATE quickjs)
 # The executable a package installs and systemd starts. platform/main.cpp is the
 # whole of it: the Windows service host is 500 lines of COM registration and SCM
 # callbacks, none of which has a meaning here.
-add_executable(hmailserver ${SERVER_DIR}/platform/main.cpp)
+# platform/root_command.cpp beside it: how a command run as root runs, its own
+# unit so that root-command-tests, below, holds it without a server.
+add_executable(hmailserver ${SERVER_DIR}/platform/main.cpp ${SERVER_DIR}/platform/root_command.cpp)
 target_link_libraries(hmailserver PRIVATE hmailserver_core)
 set_target_properties(hmailserver PROPERTIES OUTPUT_NAME hmailserver)
 
@@ -1026,6 +1028,16 @@ set_target_properties(report-parser-tests PROPERTIES OUTPUT_NAME report-parser-t
 add_executable(input-cost-tests ${SERVER_DIR}/platform/input_cost_tests_main.cpp)
 target_link_libraries(input-cost-tests PRIVATE hmailserver_core)
 set_target_properties(input-cost-tests PROPERTIES OUTPUT_NAME input-cost-tests)
+
+# How a command that works in the service's folders runs when root runs it
+# (platform/root_command.h): as the data directory's owner, on as root over a
+# tree that is root's alone, or refused. root_command_tests_main.cpp says what
+# it lays out; most of it needs root, to give folders and links to another
+# account, and is said to be skipped without it - linux-build runs it as root in
+# its container. Not installed; a bench tool.
+add_executable(root-command-tests ${SERVER_DIR}/platform/root_command_tests_main.cpp ${SERVER_DIR}/platform/root_command.cpp)
+target_link_libraries(root-command-tests PRIVATE hmailserver_core)
+set_target_properties(root-command-tests PROPERTIES OUTPUT_NAME root-command-tests)
 
 include(GNUInstallDirs)
 install(TARGETS hmailserver RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})

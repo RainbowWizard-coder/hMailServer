@@ -569,14 +569,53 @@ and so can put a symbolic link anywhere in them. Since the re-check of 6.3.6:
   owner, with that account's groups - before it opens anything, says so on standard
   error, and so reaches only what the service reaches, through any link, and leaves
   no file behind that the service cannot open. A data directory that cannot be
-  examined, or that belongs to root, tells no account: the command then refuses,
-  exit 2. So does one whose way is not root's and its owner's alone - a folder above
+  examined refuses, exit 2. So does one whose way is not root's and its owner's alone - a folder above
   it, or above where a symbolic link on the way points, that belongs to another
   account or that another account or group may write - since an account able to put
   a link there could choose which folder, and so which owner, the path leads to; the
   refusal names the folder. The package's `/var/lib/hmailserver` is below folders
   only root writes. Until then they ran as root, held only to name no file outside the data
   directory, and followed a symbolic link the service's account put in it.
+* **Over a data directory that belongs to root, they run as root where nothing but
+  root could have put a link.** A service run as root - a source build or a
+  container without `User=`, or the Linux regression suite - has a data directory
+  of root's, and a command run as root there crosses no boundary, provided no other
+  account could have put a symbolic link where it goes. So it runs on as root, and
+  says so on standard error ("Run as root: ... runs as root, the data directory ...
+  and everything under it being root's alone ..."), when every one of these is
+  root's alone: the data directory, every folder under it, and every folder a
+  symbolic link under it leads to; the log, temporary, event and database folders
+  (`[Directories]` `LogFolder`, `TempFolder`, `EventFolder`, `DatabaseFolder`, each
+  that is set - every command opens the database through the server's start,
+  which can write into any of them, and the store commands take their lock in the
+  log directory), and everything under each; the way to each, as above with
+  root for the owner; and the configuration that names them all - `--config`'s
+  file, or the one found - and the way to it, since the command reads it again
+  as it starts and writes its settings back to it, and an account that could
+  change it could point the folders at a tree of root's of its choosing. Root's
+  alone means each folder (and the configuration) belongs to root and no other
+  account may write it: no write for others, and for its group only when that is
+  root's group and no access control list stands behind the group's bits; no
+  folder carries a default access control list that gives another account - or,
+  on a set-group-ID folder, a group other than root's - a write to what is made
+  in it; and each symbolic link belongs to root and leads where the way is root's
+  alone. The folders are walked with `lstat`, following only links that pass; a
+  file is not judged, since in such a folder no other account can put one there
+  or replace one with a link. A folder that is not there yet is judged by the
+  folder that would hold it. What the command then makes is root's alone too: it
+  runs with at least every other account's write taken away by its umask (022),
+  whatever umask it was started under. Anything else - a folder of another
+  account's in the store, one a group other than root's or every account may
+  write, a link another account owns, a log directory of the service's account's
+  beside a data directory of root's, a configuration another account owns or may
+  write, a log directory below Ubuntu's `/var/log`, which the `syslog` group may
+  write - refuses, exit 2, naming the first folder, file or link that fails and
+  what to do: give it to root and take the other accounts' write from it (`chown
+  root:root`, `chmod go-w`, `setfacl -bk`), name folders that are root's alone in
+  the configuration, or give the data directory to the service's account, as the
+  package does, so that the command runs as that account. Until the re-check of
+  6.3.6 a data directory of root's refused every one of these commands, which
+  stopped administrators of such a service and kept nobody out.
 * **Every other command line run as root writes nothing in the log directory.**
   `--set-setting`, the stored-secrets commands, `--create-database`,
   `--upgrade-database`, `--set-admin-password`, `--check-database`,

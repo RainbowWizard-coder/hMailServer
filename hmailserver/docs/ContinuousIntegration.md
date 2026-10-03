@@ -2736,12 +2736,21 @@ What each job leaves behind
   it compares. Its artifact, `linux-repro/` (the report, the second build's
   logs, and its binary and packages only when they differ from
   `linux-build`'s), is kept 30 days.
-- **`linux-suite`** lays its tree out inside the checkout (`.hmtest-tree`),
-  because `after_script` may run in a new container from the same image, which
-  sees only the checkout. `after_script` copies the server's error logs (and every log,
+- **`linux-suite`** lays its tree out inside the checkout (`.hmtest-tree`)
+  when the way to the checkout is root's alone, because `after_script` may run in
+  a new container from the same image, which sees only the checkout.
+  `after_script` copies the server's error logs (and every log,
   compressed, when the job did not pass) into `linux-suite/` and removes the
   tree. It does so for a cancelled job too, and for one that ran out of time
-  (`RUNNER_SCRIPT_TIMEOUT`). The runner removes the PostgreSQL service
+  (`RUNNER_SCRIPT_TIMEOUT`). The tree is root's alone, made under umask 0022, as
+  a server run as root has it: a command a fixture runs beside the server as root
+  runs on as root only over folders no other account could have put a link in
+  ([ServiceAccount.md](ServiceAccount.md), "On Linux, a command run as root"). A
+  checkout another account owns or every account may write - the docker
+  executor checks out under umask 0000 - is no such way, and the tree is then
+  `/var/lib/hmtest-tree` in the job's container: the script copies the same logs
+  into `linux-suite/` as it ends, on any exit and on SIGTERM, SIGINT or SIGHUP,
+  and a job killed outright keeps none of them. The runner removes the PostgreSQL service
   container when the job ends; `docker volume prune` on linix clears any
   anonymous data volume it leaves. `linux-suite/` stays until the next job's checkout cleans it. The
   artifact expires after seven days.
