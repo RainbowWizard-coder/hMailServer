@@ -433,44 +433,130 @@ So, since 6.3.6:
 * **The new installation's certificate is made through held folders.**
   `--apply-new-install-defaults` writes the self-signed certificate and its private
   key into the data folder's `Certificates` folder. It holds every folder of that
-  path open from the drive's root down - none of them a junction, a symbolic link
-  or a mount point, none renamed or removed while held - makes `Certificates` and
-  each file relative to the folder above, never through a link of its name, and
-  checks each file it made to be in that folder before writing a byte to it. The
-  key's permissions - SYSTEM, the Administrators, the account running it and Read
-  for the service's account - are given when it is made, not set by its path later.
-* **A store command that changes the data folder, or copies it, finds no link in
-  it first.** `--compress-store` (and `--decompress`), `--encrypt-store`,
-  `--decrypt-store`, `--recount-store`, `--copy-store-from-object-storage` and
+  path open from the drive's root down - none renamed or removed while held, and
+  none a link but one the administrators alone control (below) - makes
+  `Certificates` and each file relative to the folder above, never through a link
+  of its name, and checks each file it made to be in that folder before writing a
+  byte to it. The key's permissions - SYSTEM, the Administrators, the account
+  running it and Read for the service's account - are given when it is made, not
+  set by its path later.
+* **A store command finds no link in the data folder that somebody else controls.**
+  `--compress-store` (and `--decompress`), `--encrypt-store`, `--decrypt-store`,
+  `--recount-store`, `--measure-store`, `--copy-store-from-object-storage` and
   `--copy-store-to-object-storage` reach each message by its path. Before anything
   is read or changed the data folder is held from its drive's root down and every
   folder and file in it listed once; a junction, a mount point or a symbolic link
-  anywhere in it stops the command, exit 1, naming it - nothing in the data folder
-  is ever one. A file that is only tiered or deduplicated is not a link. A copy to
-  the object store that removes nothing is held to it too: it reads with an
-  administrator's rights and hands what it read to a store the service's account
-  reads. `--measure-store` only reads, and says what it read to the administrator
-  alone.
+  on the way to it or in it that the administrators do not alone control stops the
+  command, exit 1, naming it and why. A file that is only tiered or deduplicated is
+  not a link. A copy to the object store that removes nothing is held to it too: it
+  reads with an administrator's rights and hands what it read to a store the
+  service's account reads. So is `--measure-store` since the re-check of 6.3.6,
+  although it changes nothing and says what it read to the administrator alone: it
+  reads every file with an administrator's rights, and one rule for every store
+  command leaves no exception to reason about.
+* **A link the administrators alone control is gone through.** Keeping the data on
+  another drive through a junction or a volume mount point an administrator made -
+  `Data` itself, a folder above it, or a domain's folder in it - is an ordinary
+  layout. Such a link is gone through when it is owned by `BUILTIN\Administrators`,
+  `SYSTEM` or `TrustedInstaller` - an account without an administrator's rights
+  cannot make one so owned - nobody else may change it (write its data or
+  attributes, which is how a link is pointed elsewhere, add to it, delete it, or
+  change its permissions or owner), and no entry in the permissions of the folder it
+  is in lets anybody else remove it from there or change that folder's permissions
+  or owner
+  (`OnlyAdministratorsControl`, `ProtectedFile.h`). Where it leads is then held in
+  the same way from that volume's own root and checked to be the folder the link
+  opened, so a link somebody else made further along is refused there. A link to a
+  file is never gone through. What a refusal says names who may change the link,
+  or who owns it. A link made in the data folder inherits the write rights setup
+  grants the service's account there, and one made in a folder at a drive's root
+  inherits them for `Users` or `Authenticated Users`, the service's account among
+  them: either way the service could turn it elsewhere, and it is refused until it
+  is given permissions only the administrators may change. An elevated prompt on
+  Windows Server makes a link owned by `BUILTIN\Administrators` already; where the
+  owner is the administrator's own account instead (a Windows client without UAC's
+  split token, for one), give it to the Administrators too. For the link (and, for
+  a mount point, the folder it is mounted on) - `/L` acts on a symbolic link itself
+  rather than where it leads:
+  `icacls <link> /setowner *S-1-5-32-544 /L` and
+  `icacls <link> /inheritance:r /grant:r *S-1-5-32-544:(F) *S-1-5-18:(F) *S-1-5-32-545:(RX) /L`
+  - or make it below a folder only they may write, such as the program folder. The
+  service still reaches the mail through it: what is below the link is reached with
+  the permissions of the folder it leads to; only the link itself, which the service
+  then may not remove or change, is held to the link's.
+  A folder no administrator may list - `System Volume Information`, when the data
+  folder is a drive's root - is left unlisted when the administrators alone control
+  it in the same way: nobody else can have put anything in it. Until the re-check of
+  6.3.6 every link and every such folder stopped the command.
 * **A store command reaches no file outside the data folder.** The names it
   rewrites, removes and copies over are the database's - each message's file name,
   each deleted item's, each held part's - and, on an object store, its keys: both
   are the service's to write. A row whose file is outside the data folder - a full
   path elsewhere, or a part that is `..` - stops every store command, naming the
   message, before it reads or changes a file; a key whose name would lead out of it
-  is not listed; and a held part's name is its SHA-256 in hex or names no file.
+  is not listed; and a held part's name is its SHA-256 in hex or names no file. A
+  full path below the folder a junction or mount point of the data folder leads to
+  - written when the data was there by that name - is in it. A full path elsewhere
+  is usually one a server before 5.4 wrote: put `DataFolder` back to the folder it
+  names, run the Data Directory Synchronizer there (`Addons\DataDirectorySynchronizer`;
+  the diagnostic *Test message file locations* says whether any are left), which
+  turns each into a name below the data folder, and move the data as
+  [RelocatingAnInstallation.md](RelocatingAnInstallation.md) says; or delete the
+  message.
 
 What is left: a program that still runs as the service's account after the service
 has stopped could make a link while a long store command runs, after the folder was
-listed; on Windows 11 22H2, Windows Server 2025 and later the command does not follow
-it. The SQL Server Compact database file in `Database` is opened by its path by the
+listed - or, owning a folder in the data folder, as it owns those it made, give
+itself the right to remove an administrator's link from it and put one of its own
+there; on Windows 11 22H2, Windows Server 2025 and later the command does not follow
+it, and the next command's listing refuses it everywhere. An account holding the right to restore files (`SeRestorePrivilege`, Backup
+Operators) can give a file any owner; the service's account holds none, and one
+configured to would be an administrator in all but name. The SQL Server Compact database file in `Database` is opened by its path by the
 commands that open the database; that engine opens only a file that is a database,
 and creates none.
 
 `build/check-elevated-verbs.py` holds the commands to these rules and lists them:
 it refuses a command line added to the three that may log, a dispatch before the
 decision, the crash oracle armed for any other, the certificate written by its path,
-and a store command dispatched without the check. `--self-test` breaks each rule in
-a copy and proves the check reports it.
+and a store command - `--measure-store` included - or a copy dispatched without the
+check or behind a condition. `--self-test` breaks each rule in a copy and proves the
+check reports it.
+
+### On Linux, a command run as root
+
+The package runs the service as `hmailserver` (the unit's `User=`), which owns the
+data directory `/var/lib/hmailserver` and the log directory `/var/log/hmailserver`
+and so can put a symbolic link anywhere in them. Since the re-check of 6.3.6:
+
+* **The commands that work in those folders run as the service's account.** The
+  store commands (`--measure-store`, `--compress-store` and `--decompress`,
+  `--recount-store`, `--encrypt-store`, `--decrypt-store`), the copies to and from an
+  object store, `--sample-domain`, `--apply-profile`, `--revert-profile` and
+  `--apply-environment` are run as that account, as their help says. Run as root
+  (`sudo hmailserver --compress-store`), each now becomes it - the data directory's
+  owner, with that account's groups - before it opens anything, says so on standard
+  error, and so reaches only what the service reaches, through any link, and leaves
+  no file behind that the service cannot open. A data directory that cannot be
+  examined, or that belongs to root, tells no account: the command then refuses,
+  exit 2. So does one whose way is not root's and its owner's alone - a folder above
+  it, or above where a symbolic link on the way points, that belongs to another
+  account or that another account or group may write - since an account able to put
+  a link there could choose which folder, and so which owner, the path leads to; the
+  refusal names the folder. The package's `/var/lib/hmailserver` is below folders
+  only root writes. Until then they ran as root, held only to name no file outside the data
+  directory, and followed a symbolic link the service's account put in it.
+* **Every other command line run as root writes nothing in the log directory.**
+  `--set-setting`, the stored-secrets commands, `--create-database`,
+  `--upgrade-database`, `--set-admin-password`, `--check-database`,
+  `--verify-update` and the rest need root for the configuration or say only what
+  they read; each says what it did on its own output, and what would have gone to
+  the error log goes to standard error. The server itself, and a command run as the
+  service's account, log as before.
+* **`--create-database` makes `.new-installation` new.** Anything at that name in
+  the data directory is removed first - a symbolic link itself, not what it names -
+  and the file is then created exclusively, never through a link
+  (`WriteNewFileNoFollow`); the stored-secrets key file was made so already
+  (`DataProtector::CreateKeyFileFor`).
 
 ## What LocalSystem could do and the virtual account cannot
 

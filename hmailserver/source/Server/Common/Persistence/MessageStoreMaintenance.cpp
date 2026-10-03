@@ -769,60 +769,128 @@ namespace HM
       }
    }
 
+   namespace
+   {
+      bool IsBelow_(const String &path, String data);
+
+#ifndef HM_PLATFORM_POSIX
+      // The data directory where it really is - through a junction or a mount
+      // point an administrator made to keep it on another drive, which
+      // hMailServer.exe's commands go through only when the administrators alone
+      // control it (DataFolderHoldsNoLink) - as Windows names it, or empty when
+      // that is where the configuration says. Asked once.
+      String FinalDataDirectory_()
+      {
+         static bool asked = false;
+         static String final_path;
+         if (asked)
+            return final_path;
+         asked = true;
+
+         const String data = IniFileSettings::Instance()->GetDataDirectory();
+         HANDLE folder = CreateFileW(data.c_str(), FILE_READ_ATTRIBUTES, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, nullptr, OPEN_EXISTING,
+                                     FILE_FLAG_BACKUP_SEMANTICS, nullptr);
+         if (folder == INVALID_HANDLE_VALUE)
+            return final_path;
+
+         std::vector<wchar_t> buffer(4096);
+         const DWORD length = GetFinalPathNameByHandleW(folder, &buffer[0], (DWORD) buffer.size(), FILE_NAME_NORMALIZED | VOLUME_NAME_DOS);
+         CloseHandle(folder);
+         if (length == 0 || length >= buffer.size())
+            return final_path;
+
+         String found(&buffer[0]);
+         if (found.Left(8).CompareNoCase(_T("\\\\?\\UNC\\")) == 0)
+            found = _T("\\\\") + found.Mid(8);
+         else if (found.Left(4) == _T("\\\\?\\"))
+            found = found.Mid(4);
+
+         String configured = data;
+         while (configured.GetLength() > 3 && (configured.Right(1) == _T("\\") || configured.Right(1) == _T("/")))
+            configured = configured.Left(configured.GetLength() - 1);
+         if (found.CompareNoCase(configured) != 0)
+            final_path = found;
+         return final_path;
+      }
+#endif
+   }
+
    bool
    MessageStoreMaintenance::IsInDataDirectory(const String &path)
    {
-      String data = IniFileSettings::Instance()->GetDataDirectory();
-      while (data.GetLength() > 1 && (data.Right(1) == _T("\\") || data.Right(1) == _T("/")))
-         data = data.Left(data.GetLength() - 1);
-
-      if (data.IsEmpty() || path.GetLength() <= data.GetLength() + 1)
-         return false;
-
-#ifdef HM_PLATFORM_POSIX
-      if (path.Left(data.GetLength()) != data)
-         return false;
-#else
-      if (path.Left(data.GetLength()).CompareNoCase(data) != 0)
-         return false;
-#endif
-
-      const int separator = (int) path[data.GetLength()];
-      if (separator != '\\' && separator != '/')
-         return false;
-
-      // Each part below the directory, between separators.
-      const String below = path.Mid(data.GetLength() + 1);
-      String part;
-      for (int i = 0; i <= below.GetLength(); i++)
-      {
-         const int c = i < below.GetLength() ? (int) below[i] : '/';
-         if (c != '\\' && c != '/')
-         {
-            part += below.Mid(i, 1);
-            continue;
-         }
-
-         if (part == _T(".."))
-            return false;
+      if (IsBelow_(path, IniFileSettings::Instance()->GetDataDirectory()))
+         return true;
 
 #ifndef HM_PLATFORM_POSIX
-         // Windows takes the dots and spaces off the end of a part: "... " is
-         // "..", and a colon names a stream or a drive.
-         if (part.Find(_T(":")) >= 0)
+      // A row an older server wrote with the full path it had then, which named
+      // the data directory where it really is - E:\Mail\... - before the
+      // configuration named it through an administrator's junction: the same
+      // files.
+      const String final_path = FinalDataDirectory_();
+      if (!final_path.IsEmpty() && IsBelow_(path, final_path))
+         return true;
+#endif
+
+      return false;
+   }
+
+   namespace
+   {
+      // Whether path is below data: data, a separator, and no part below it that
+      // leads out (MessageStoreMaintenance::IsInDataDirectory).
+      bool IsBelow_(const String &path, String data)
+      {
+         while (data.GetLength() > 1 && (data.Right(1) == _T("\\") || data.Right(1) == _T("/")))
+            data = data.Left(data.GetLength() - 1);
+
+         if (data.IsEmpty() || path.GetLength() <= data.GetLength() + 1)
             return false;
 
-         bool dotsAndSpaces = !part.IsEmpty();
-         for (int j = 0; j < part.GetLength() && dotsAndSpaces; j++)
-            dotsAndSpaces = part[j] == '.' || part[j] == ' ';
-         if (dotsAndSpaces)
+#ifdef HM_PLATFORM_POSIX
+         if (path.Left(data.GetLength()) != data)
+            return false;
+#else
+         if (path.Left(data.GetLength()).CompareNoCase(data) != 0)
             return false;
 #endif
 
-         part.Empty();
-      }
+         const int separator = (int) path[data.GetLength()];
+         if (separator != '\\' && separator != '/')
+            return false;
 
-      return true;
+         // Each part below the directory, between separators.
+         const String below = path.Mid(data.GetLength() + 1);
+         String part;
+         for (int i = 0; i <= below.GetLength(); i++)
+         {
+            const int c = i < below.GetLength() ? (int) below[i] : '/';
+            if (c != '\\' && c != '/')
+            {
+               part += below.Mid(i, 1);
+               continue;
+            }
+
+            if (part == _T(".."))
+               return false;
+
+#ifndef HM_PLATFORM_POSIX
+            // Windows takes the dots and spaces off the end of a part: "... " is
+            // "..", and a colon names a stream or a drive.
+            if (part.Find(_T(":")) >= 0)
+               return false;
+
+            bool dotsAndSpaces = !part.IsEmpty();
+            for (int j = 0; j < part.GetLength() && dotsAndSpaces; j++)
+               dotsAndSpaces = part[j] == '.' || part[j] == ' ';
+            if (dotsAndSpaces)
+               return false;
+#endif
+
+            part.Empty();
+         }
+
+         return true;
+      }
    }
 
    bool
@@ -913,8 +981,12 @@ namespace HM
             if (confined && !IsInDataDirectory(file.path))
             {
                files.clear();
-               problem = Formatter::Format(_T("message {0} names the file {1}, which is not in the data directory; a walk changes nothing outside it. Move the file into the data directory and correct the row, or delete the message"),
-                  file.message_id, file.path);
+               // A full path a server before 5.4 wrote, naming where the data
+               // directory was then, is the usual one: the Data Directory
+               // Synchronizer turns each into a name below the data directory.
+               problem = Formatter::Format(_T("message {0} names the file {1}, which is not in the data directory {2}; a walk run with more rights than the service changes nothing outside it, since the service's account may write that name. ")
+                  _T("If it is a full path an older server wrote (5.3 and before stored them), put DataFolder back to the folder it names, run the Data Directory Synchronizer (Addons\\DataDirectorySynchronizer, or the diagnostic Test message file locations to find them) there, which turns each full path into a name below the data directory, and then move the data as RelocatingAnInstallation.md says; otherwise delete the message"),
+                  file.message_id, file.path, IniFileSettings::Instance()->GetDataDirectory());
                return false;
             }
 

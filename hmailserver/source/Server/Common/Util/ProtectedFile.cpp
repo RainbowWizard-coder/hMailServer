@@ -891,6 +891,34 @@ namespace HM
          return result;
       }
 
+      // A folder name - one component - opened relative to the folder parent and
+      // THROUGH it, a link of that name followed: only for a link
+      // OnlyAdministratorsControl has found the administrators' alone, and only
+      // to be held on from where it leads (HeldFolder::HoldThrough_).
+      LONG OpenThrough_(HANDLE parent, const String &name, ACCESS_MASK access, ULONG share, HANDLE &opened)
+      {
+         opened = INVALID_HANDLE_VALUE;
+         NtCreateFileFunction_ create = NtCreateFileFunction();
+         if (create == nullptr)
+            return (LONG) 0xC0000002; // STATUS_NOT_IMPLEMENTED
+
+         UNICODE_STRING unicode;
+         unicode.Buffer = const_cast<PWSTR>(name.c_str());
+         unicode.Length = (USHORT) (name.GetLength() * sizeof(wchar_t));
+         unicode.MaximumLength = unicode.Length;
+
+         OBJECT_ATTRIBUTES attributes;
+         InitializeObjectAttributes(&attributes, &unicode, OBJ_CASE_INSENSITIVE, parent, nullptr);
+
+         IO_STATUS_BLOCK status = {};
+         HANDLE handle = nullptr;
+         const LONG result = create(&handle, access | SYNCHRONIZE, &attributes, &status, nullptr, FILE_ATTRIBUTE_NORMAL, share,
+                                    FILE_OPEN, FILE_DIRECTORY_FILE | FILE_SYNCHRONOUS_IO_NONALERT, nullptr, 0);
+         if (result >= 0)
+            opened = handle;
+         return result;
+      }
+
       // Whether what the handle holds is a reparse point - a junction, a symbolic
       // link, a mount point or anything else Windows redirects through - or could
       // not be told.
@@ -931,9 +959,168 @@ namespace HM
       {
          return !name.IsEmpty() && name != _T(".") && name != _T("..") && name.Find(_T('\\')) < 0 && name.Find(_T('/')) < 0 && name.Find(_T(':')) < 0;
       }
+
+      // The path Windows gives what a handle holds, by its volume's name -
+      // \\?\Volume{...}\Data - which no mount point or drive letter stands in,
+      // or empty when it cannot be had.
+      String VolumePath_(HANDLE handle)
+      {
+         std::vector<wchar_t> buffer(4096);
+         const DWORD length = GetFinalPathNameByHandleW(handle, &buffer[0], (DWORD) buffer.size(), FILE_NAME_NORMALIZED | VOLUME_NAME_GUID);
+         if (length == 0 || length >= buffer.size())
+            return String();
+         return String(&buffer[0]);
+      }
+
+      // Whether two handles hold the same file or folder: the volume and the
+      // file's id on it.
+      bool SameObject_(HANDLE first, HANDLE second)
+      {
+         FILE_ID_INFO one;
+         FILE_ID_INFO two;
+         if (!GetFileInformationByHandleEx(first, FileIdInfo, &one, sizeof(one)) ||
+             !GetFileInformationByHandleEx(second, FileIdInfo, &two, sizeof(two)))
+            return false;
+         return one.VolumeSerialNumber == two.VolumeSerialNumber && memcmp(&one.FileId, &two.FileId, sizeof(one.FileId)) == 0;
+      }
+
+      // The administrators of the machine: BUILTIN\Administrators, SYSTEM and
+      // TrustedInstaller (NT SERVICE\TrustedInstaller, whose SID Windows derives
+      // from the name as it derives every service's).
+      bool AdministratorSid_(PSID sid)
+      {
+         static const String trustedInstaller = _T("S-1-5-80-956008885-3418522649-1831038044-1853292631-2271478464");
+         return sid != nullptr && IsValidSid(sid) &&
+            (IsWellKnownSid(sid, WinBuiltinAdministratorsSid) || IsWellKnownSid(sid, WinLocalSystemSid) || SidText_(sid).CompareNoCase(trustedInstaller) == 0);
+      }
+
+      // Who but the administrators the access list of what handle holds lets do
+      // any of rights to it, by name, or empty when nobody; whether its owner is
+      // one of them is said in why. The entries that apply to it alone count -
+      // one inherit-only is for what is made in it later - with their generic
+      // rights mapped as the file system maps them; OWNER RIGHTS counts as its
+      // owner. False, with why, when it cannot be read.
+      bool OthersMay_(HANDLE handle, ACCESS_MASK rights, bool ownerToo, String &others, String &why)
+      {
+         others.Empty();
+
+         // READ_CONTROL on the same file or folder, opened again by the handle
+         // and never through it.
+         HANDLE readable = INVALID_HANDLE_VALUE;
+         const LONG status = OpenBelow_(handle, String(), READ_CONTROL | FILE_READ_ATTRIBUTES, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+                                        FILE_OPEN, 0, nullptr, readable);
+         if (status < 0)
+         {
+            why = Formatter::Format(_T("its permissions could not be read (Windows error {0})"), (int) WindowsErrorOf_(status));
+            return false;
+         }
+
+         PSID owner = nullptr;
+         PACL dacl = nullptr;
+         PSECURITY_DESCRIPTOR descriptor = nullptr;
+         const DWORD result = GetSecurityInfo(readable, SE_FILE_OBJECT, OWNER_SECURITY_INFORMATION | DACL_SECURITY_INFORMATION,
+                                              &owner, nullptr, &dacl, nullptr, &descriptor);
+         CloseHandle(readable);
+         if (result != ERROR_SUCCESS)
+         {
+            why = Formatter::Format(_T("its permissions could not be read (Windows error {0})"), (int) result);
+            return false;
+         }
+
+         bool ok = true;
+         const bool ownerTrusted = AdministratorSid_(owner);
+         if (ownerToo && !ownerTrusted)
+         {
+            why = Formatter::Format(_T("it is owned by {0}"), SidName_(owner));
+            ok = false;
+         }
+         else if (dacl == nullptr)
+         {
+            others = _T("everyone (it has no access list at all)");
+         }
+         else
+         {
+            GENERIC_MAPPING mapping = { FILE_GENERIC_READ, FILE_GENERIC_WRITE, FILE_GENERIC_EXECUTE, FILE_ALL_ACCESS };
+            for (DWORD i = 0; i < dacl->AceCount; i++)
+            {
+               void *ace = nullptr;
+               if (!GetAce(dacl, i, &ace) || ace == nullptr)
+               {
+                  others = _T("an account in an entry that could not be read");
+                  break;
+               }
+
+               const ACE_HEADER *header = (const ACE_HEADER *) ace;
+               if ((header->AceFlags & INHERIT_ONLY_ACE) != 0)
+                  continue;
+
+               if (header->AceType == ACCESS_ALLOWED_ACE_TYPE)
+               {
+                  const ACCESS_ALLOWED_ACE *allowed = (const ACCESS_ALLOWED_ACE *) ace;
+                  PSID sid = (PSID) &allowed->SidStart;
+                  DWORD mask = allowed->Mask;
+                  MapGenericMask(&mask, &mapping);
+
+                  SID_IDENTIFIER_AUTHORITY creatorAuthority = SECURITY_CREATOR_SID_AUTHORITY;
+                  const bool ownerRights = IsValidSid(sid) && memcmp(GetSidIdentifierAuthority(sid), &creatorAuthority, sizeof(creatorAuthority)) == 0 &&
+                                           *GetSidSubAuthorityCount(sid) == 1 && *GetSidSubAuthority(sid, 0) == SECURITY_CREATOR_OWNER_RIGHTS_RID;
+                  if ((mask & rights) != 0 && !AdministratorSid_(sid) && !(ownerRights && ownerTrusted))
+                  {
+                     others = SidName_(sid);
+                     break;
+                  }
+               }
+               else if (header->AceType == ACCESS_ALLOWED_COMPOUND_ACE_TYPE || header->AceType == ACCESS_ALLOWED_OBJECT_ACE_TYPE ||
+                        header->AceType == ACCESS_ALLOWED_CALLBACK_ACE_TYPE || header->AceType == ACCESS_ALLOWED_CALLBACK_OBJECT_ACE_TYPE)
+               {
+                  // Grants of a shape a file system does not use: not read, so
+                  // not trusted either.
+                  others = _T("an account in an entry of a form the server does not read");
+                  break;
+               }
+            }
+         }
+
+         LocalFree(descriptor);
+         return ok;
+      }
    }
 
-   HeldFolder::HeldFolder()
+   bool
+   OnlyAdministratorsControl(void *object, void *parent, String &why)
+   {
+      // On it: every right that changes it, what it points to or who may - its
+      // data and attributes are how a link is turned elsewhere - or adds to it.
+      // On its folder: removing it, or taking that folder's permissions; adding
+      // a name beside it changes nothing it leads to.
+      const ACCESS_MASK onIt = FILE_WRITE_DATA | FILE_APPEND_DATA | FILE_WRITE_EA | FILE_WRITE_ATTRIBUTES | FILE_DELETE_CHILD | DELETE | WRITE_DAC | WRITE_OWNER;
+      const ACCESS_MASK onItsFolder = FILE_DELETE_CHILD | WRITE_DAC | WRITE_OWNER;
+
+      String others;
+      if (!OthersMay_((HANDLE) object, onIt, true, others, why))
+         return false;
+      if (!others.IsEmpty())
+      {
+         why = Formatter::Format(_T("{0} may change it"), others);
+         return false;
+      }
+
+      if (!OthersMay_((HANDLE) parent, onItsFolder, false, others, why))
+      {
+         why = _T("the permissions of the folder it is in could not be read: ") + why;
+         return false;
+      }
+      if (!others.IsEmpty())
+      {
+         why = Formatter::Format(_T("{0} may remove it from the folder it is in"), others);
+         return false;
+      }
+
+      return true;
+   }
+
+   HeldFolder::HeldFolder() :
+      last_(nullptr)
    {
 
    }
@@ -949,6 +1136,7 @@ namespace HM
       for (void *handle : handles_)
          CloseHandle((HANDLE) handle);
       handles_.clear();
+      last_ = nullptr;
       path_.Empty();
    }
 
@@ -957,18 +1145,110 @@ namespace HM
    {
       Release();
 
+      void *last = nullptr;
+      if (!HoldChain_(requested, createLast, 0, last, error))
+      {
+         Release();
+         return false;
+      }
+
+      last_ = last;
+      return true;
+   }
+
+   bool
+   HeldFolder::HoldAlso(void *opened, String &error)
+   {
+      if (last_ == nullptr)
+      {
+         error = _T("No folder is held.");
+         return false;
+      }
+
+      // The handle is the caller's: a copy of it is what this holds.
+      HANDLE copy = nullptr;
+      if (!DuplicateHandle(GetCurrentProcess(), (HANDLE) opened, GetCurrentProcess(), &copy, 0, FALSE, DUPLICATE_SAME_ACCESS))
+      {
+         error = Formatter::Format(_T("A folder could not be held (Windows error {0})."), (int) GetLastError());
+         return false;
+      }
+      handles_.push_back(copy);
+
+      void *ignored = nullptr;
+      return HoldThrough_(copy, FinalPath_(copy), 0, ignored, error);
+   }
+
+   // through: a folder opened through a link the administrators alone control,
+   // already in handles_. Where it is, by its volume's name, held from that
+   // volume's root as Hold holds a path; the folder so reached must be the one
+   // through holds. last: that folder's handle.
+   bool
+   HeldFolder::HoldThrough_(void *through, const String &walked, int depth, void *&last, String &error)
+   {
+      // A link to a link to a link: eight is more than any layout needs, and a
+      // chain that loops ends here.
+      if (depth >= 8)
+      {
+         error = Formatter::Format(_T("{0} leads through more than eight links, and nothing is written through it."), walked);
+         return false;
+      }
+
+      const String target = VolumePath_((HANDLE) through);
+      if (target.IsEmpty())
+      {
+         error = Formatter::Format(_T("Where {0} leads could not be told (Windows error {1}), and nothing is written through it."), walked, (int) GetLastError());
+         return false;
+      }
+
+      String why;
+      void *reached = nullptr;
+      if (!HoldChain_(target, false, depth + 1, reached, why))
+      {
+         error = Formatter::Format(_T("{0} leads to {1}, where: {2}"), walked, FinalPath_((HANDLE) through), why);
+         return false;
+      }
+
+      if (!SameObject_((HANDLE) reached, (HANDLE) through))
+      {
+         error = Formatter::Format(_T("{0} led to another folder while it was being held, and nothing is written through it."), walked);
+         return false;
+      }
+
+      last = reached;
+      return true;
+   }
+
+   bool
+   HeldFolder::HoldChain_(const String &requested, bool createLast, int depth, void *&last, String &error)
+   {
       String path = requested;
       path.Replace(_T("/"), _T("\\"));
-      if (path.Left(8).CompareNoCase(_T("\\\\?\\UNC\\")) == 0)
-         path = _T("\\\\") + path.Mid(8);
-      else if (path.Left(4) == _T("\\\\?\\"))
-         path = path.Mid(4);
 
-      // The volume's root - C:\ or \\server\share\ - is the one name looked up by
-      // its path; every folder below it is opened relative to the one above.
+      // A drive's root as the configuration may spell it, C: for C:\.
+      if (path.GetLength() == 2 && path[1] == ':')
+         path += _T("\\");
+
+      // The volume's root - C:\, \\server\share\ or \\?\Volume{...}\ - is the one
+      // name looked up by its path; every folder below it is opened relative to
+      // the one above.
       String root;
       String rest;
-      if (path.GetLength() >= 3 && path[1] == ':' && path[2] == '\\')
+      const bool volume = path.Left(11).CompareNoCase(_T("\\\\?\\Volume{")) == 0;
+      if (!volume && path.Left(8).CompareNoCase(_T("\\\\?\\UNC\\")) == 0)
+         path = _T("\\\\") + path.Mid(8);
+      else if (!volume && path.Left(4) == _T("\\\\?\\"))
+         path = path.Mid(4);
+
+      if (volume)
+      {
+         const int close = path.Find(_T("}\\"));
+         if (close > 11)
+         {
+            root = path.Left(close + 2);
+            rest = path.Mid(close + 2);
+         }
+      }
+      else if (path.GetLength() >= 3 && path[1] == ':' && path[2] == '\\')
       {
          root = path.Left(3);
          rest = path.Mid(3);
@@ -1032,33 +1312,58 @@ namespace HM
             error = status == StatusObjectNameNotFound_
                ? Formatter::Format(_T("{0} does not exist."), walked)
                : Formatter::Format(_T("{0} could not be opened (Windows error {1})."), walked, (int) WindowsErrorOf_(status));
-            Release();
             return false;
          }
          handles_.push_back(folder);
 
          if (IsReparsePoint_(folder))
          {
-            error = Formatter::Format(_T("{0} is a junction, a symbolic link or a mount point, and nothing is written through it."), walked);
-            Release();
-            return false;
+            // Gone through only when the administrators alone control it - a
+            // junction or a mount point an administrator made to keep the data on
+            // another drive - and then held on from where it leads (HoldThrough_).
+            // One the service's account made, or may turn, is refused.
+            String why;
+            if (!OnlyAdministratorsControl(folder, parent, why))
+            {
+               error = Formatter::Format(_T("{0} is a junction, a symbolic link or a mount point, and {1}, so nothing is written through it. Nothing in a folder the service may write is a link but one only the administrators control."), walked, why);
+               return false;
+            }
+
+            HANDLE through = INVALID_HANDLE_VALUE;
+            const LONG followed = OpenThrough_(parent, name, FILE_LIST_DIRECTORY | FILE_READ_ATTRIBUTES | FILE_TRAVERSE,
+                                               FILE_SHARE_READ | FILE_SHARE_WRITE, through);
+            if (followed < 0)
+            {
+               error = Formatter::Format(_T("Where {0} leads could not be opened (Windows error {1})."), walked, (int) WindowsErrorOf_(followed));
+               return false;
+            }
+            handles_.push_back(through);
+
+            void *reached = nullptr;
+            if (!HoldThrough_(through, walked, depth, reached, error))
+               return false;
+
+            parent = (HANDLE) reached;
+            continue;
          }
 
          parent = folder;
       }
 
-      path_ = walked;
+      last = parent;
+      if (depth == 0)
+         path_ = walked;
       return true;
    }
 
    bool
    HeldFolder::RemoveFile(const String &name)
    {
-      if (handles_.empty() || !IsOneName_(name))
+      if (last_ == nullptr || !IsOneName_(name))
          return false;
 
       HANDLE file = INVALID_HANDLE_VALUE;
-      const LONG status = OpenBelow_((HANDLE) handles_.back(), name, DELETE | FILE_READ_ATTRIBUTES, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+      const LONG status = OpenBelow_((HANDLE) last_, name, DELETE | FILE_READ_ATTRIBUTES, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
                                      FILE_OPEN, FILE_NON_DIRECTORY_FILE, nullptr, file);
       if (status == StatusObjectNameNotFound_)
          return true;
@@ -1078,7 +1383,7 @@ namespace HM
    bool
    HeldFolder::WriteNewFile(const String &name, const AnsiString &data, bool secret, const String &readerAccount, String &error)
    {
-      if (handles_.empty() || !IsOneName_(name))
+      if (last_ == nullptr || !IsOneName_(name))
       {
          error = _T("No folder is held to write in.");
          return false;
@@ -1127,7 +1432,7 @@ namespace HM
       }
 
       HANDLE file = INVALID_HANDLE_VALUE;
-      const LONG status = OpenBelow_((HANDLE) handles_.back(), name, GENERIC_WRITE | DELETE | FILE_READ_ATTRIBUTES, 0,
+      const LONG status = OpenBelow_((HANDLE) last_, name, GENERIC_WRITE | DELETE | FILE_READ_ATTRIBUTES, 0,
                                      FILE_CREATE, FILE_NON_DIRECTORY_FILE, descriptor, file);
       if (descriptor != nullptr)
          LocalFree(descriptor);
@@ -1141,7 +1446,7 @@ namespace HM
       // Where the file is, asked of its handle, against where the held folder is,
       // asked of its own: the same folder, or nothing is written and the file goes
       // again.
-      const String folder = FinalPath_((HANDLE) handles_.back());
+      const String folder = FinalPath_((HANDLE) last_);
       const String actual = FinalPath_(file);
       String expected = name;
       expected.MakeLower();

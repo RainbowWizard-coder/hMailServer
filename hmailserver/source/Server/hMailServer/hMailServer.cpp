@@ -427,15 +427,63 @@ static String CommandLineValueAfter(const String &commandLine, const String &opt
 // --remove-source beside it - and they reach each message by a
 // path; a junction, a mount point or a symbolic link in that tree would carry an
 // administrator's rewrite or removal to wherever it leads. So the folder is held
-// from its drive's root down, none of it a link (HeldFolder, which held stays
-// for as long as the walk runs, so it cannot be renamed under it), and every
-// folder and file below it is listed once: one that is a junction, a mount point
-// or a symbolic link stops the verb before it changes anything, named. Reparse
-// points that redirect nothing - a deduplicated or tiered file - are not links
-// (IsReparseTagNameSurrogate). Where Windows has it, the process follows no
-// junction a user who is not an administrator made anyway
-// (ForbidServiceFolderWrites); this is the same rule on every Windows.
-// docs/ServiceAccount.md, "What an administrator's command writes".
+// from its drive's root down (HeldFolder, which held stays for as long as the
+// walk runs, so it cannot be renamed under it), and every folder and file below
+// it is listed once. A junction, a mount point or a symbolic link on the way or
+// in it is gone through only when the administrators alone control it
+// (OnlyAdministratorsControl: owned by Administrators, SYSTEM or
+// TrustedInstaller, and nobody else may change it or remove it from its folder -
+// a link an administrator made to keep the data, or a domain of it, on another
+// drive), and where it leads is held and listed in the same way; any other stops
+// the verb before it changes anything, named, with what makes it so. A folder no
+// administrator may list - System Volume Information, when the data folder is a
+// drive's root - is left unlisted when the administrators alone control it too:
+// nobody else can have put a link in it. Reparse points that redirect nothing - a
+// deduplicated or tiered file - are not links (IsReparseTagNameSurrogate). Where
+// Windows has it, the process follows no junction a user who is not an
+// administrator made anyway (ForbidServiceFolderWrites); this is the same rule on
+// every Windows. docs/ServiceAccount.md, "What an administrator's command writes".
+static HM::String ParentFolderOf(const HM::String &path)
+{
+   const int separator = path.ReverseFind(_T('\\'));
+   if (separator <= 0)
+      return HM::String();
+   // C:\x's folder is C:\, not C:.
+   return separator == 2 && path[1] == ':' ? path.Left(3) : path.Left(separator);
+}
+
+// What is at path - a link or a folder, opened itself and never through it - and
+// the folder it is in, asked OnlyAdministratorsControl.
+static bool AdministratorsAloneControl(const HM::String &path, HM::String &why)
+{
+   const HM::String parentPath = ParentFolderOf(path);
+   // The error of the open that failed, asked at once: the other open sets it too.
+   HANDLE object = CreateFileW(path.c_str(), FILE_READ_ATTRIBUTES, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, nullptr, OPEN_EXISTING,
+                               FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT, nullptr);
+   DWORD failed = object == INVALID_HANDLE_VALUE ? GetLastError() : ERROR_SUCCESS;
+   HANDLE parent = INVALID_HANDLE_VALUE;
+   if (failed == ERROR_SUCCESS)
+   {
+      parent = parentPath.IsEmpty() ? INVALID_HANDLE_VALUE
+         : CreateFileW(parentPath.c_str(), FILE_READ_ATTRIBUTES, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, nullptr, OPEN_EXISTING,
+                       FILE_FLAG_BACKUP_SEMANTICS, nullptr);
+      if (parent == INVALID_HANDLE_VALUE)
+         failed = parentPath.IsEmpty() ? ERROR_PATH_NOT_FOUND : GetLastError();
+   }
+
+   bool alone = false;
+   if (object == INVALID_HANDLE_VALUE || parent == INVALID_HANDLE_VALUE)
+      why = HM::Formatter::Format(_T("its permissions could not be read (Windows error {0})"), (int) failed);
+   else
+      alone = HM::OnlyAdministratorsControl(object, parent, why);
+
+   if (object != INVALID_HANDLE_VALUE)
+      CloseHandle(object);
+   if (parent != INVALID_HANDLE_VALUE)
+      CloseHandle(parent);
+   return alone;
+}
+
 static bool DataFolderHoldsNoLink(HM::HeldFolder &held, HM::String &why)
 {
    HM::IniFileSettings::Instance()->LoadSettings();
@@ -447,10 +495,14 @@ static bool DataFolderHoldsNoLink(HM::HeldFolder &held, HM::String &why)
    }
 
    if (!held.Hold(dataFolder, false, why))
+   {
+      why = _T("the data folder could not be held: ") + why;
       return false;
+   }
 
    std::vector<HM::String> pending;
    pending.push_back(held.Path());
+   std::set<HM::String> followed;
    std::vector<HM::String> links;
    while (!pending.empty() && links.size() < 5)
    {
@@ -467,7 +519,16 @@ static bool DataFolderHoldsNoLink(HM::HeldFolder &held, HM::String &why)
          // which may remove a folder it emptied - holds no link.
          if (error == ERROR_FILE_NOT_FOUND || error == ERROR_PATH_NOT_FOUND)
             continue;
-         why = HM::Formatter::Format(_T("{0} could not be listed (Windows error {1}), so whether it holds a link could not be told."), folder, (int) error);
+
+         // One no administrator may list, that only the administrators may
+         // change - System Volume Information - holds nothing anybody else put
+         // there.
+         HM::String unlisted;
+         if (error == ERROR_ACCESS_DENIED && folder != held.Path() && AdministratorsAloneControl(folder, unlisted))
+            continue;
+
+         why = HM::Formatter::Format(_T("{0} could not be listed (Windows error {1}), so whether it holds a link could not be told{2}."), folder, (int) error,
+            unlisted.IsEmpty() ? HM::String() : HM::String(_T(", and ")) + unlisted);
          return false;
       }
 
@@ -479,7 +540,41 @@ static bool DataFolderHoldsNoLink(HM::HeldFolder &held, HM::String &why)
 
          const HM::String path = folder + _T("\\") + name;
          if ((found.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0 && IsReparseTagNameSurrogate(found.dwReserved0))
-            links.push_back(path);
+         {
+            // A link to a folder that only the administrators control is gone
+            // through, where it leads held as the data folder is and listed in
+            // its turn, once; a link to a file never is.
+            HM::String untrusted;
+            if ((found.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0)
+               untrusted = _T("a link to a file");
+            else if (!AdministratorsAloneControl(path, untrusted))
+               untrusted = untrusted.IsEmpty() ? HM::String(_T("its permissions could not be read")) : untrusted;
+            else
+            {
+               HANDLE through = CreateFileW(path.c_str(), FILE_LIST_DIRECTORY | FILE_READ_ATTRIBUTES | FILE_TRAVERSE, FILE_SHARE_READ | FILE_SHARE_WRITE,
+                                            nullptr, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, nullptr);
+               HM::String heldWhy;
+               if (through == INVALID_HANDLE_VALUE)
+                  untrusted = HM::Formatter::Format(_T("where it leads could not be opened (Windows error {0})"), (int) GetLastError());
+               else if (!held.HoldAlso(through, heldWhy))
+                  untrusted = heldWhy;
+               else
+               {
+                  std::vector<wchar_t> target(4096);
+                  const DWORD length = GetFinalPathNameByHandleW(through, &target[0], (DWORD) target.size(), FILE_NAME_NORMALIZED | VOLUME_NAME_GUID);
+                  HM::String key = length > 0 && length < target.size() ? HM::String(&target[0]) : path;
+                  key.MakeLower();
+                  if (followed.insert(key).second)
+                     pending.push_back(path);
+               }
+
+               if (through != INVALID_HANDLE_VALUE)
+                  CloseHandle(through);
+            }
+
+            if (!untrusted.IsEmpty())
+               links.push_back(path + _T(" (") + untrusted + _T(")"));
+         }
          else if ((found.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0)
             pending.push_back(path);
       } while (FindNextFileW(search, &found));
@@ -492,7 +587,7 @@ static bool DataFolderHoldsNoLink(HM::HeldFolder &held, HM::String &why)
       HM::String named;
       for (const HM::String &link : links)
          named += (named.IsEmpty() ? _T("") : _T(", ")) + link;
-      why = HM::Formatter::Format(_T("the data folder holds a junction, a mount point or a symbolic link ({0}), which a rewrite run as an administrator would write through. Find out what made it - the service's account may write there - and remove it; nothing in the data folder is ever a link."), named);
+      why = HM::Formatter::Format(_T("the data folder holds a junction, a mount point or a symbolic link that the administrators do not alone control: {0}. A rewrite run as an administrator would write through it. Find out what made it - the service's account may write there - and remove it; a link in the data folder is gone through only when it is owned by Administrators, SYSTEM or TrustedInstaller and nobody else may change it or remove it from its folder (docs/ServiceAccount.md)."), named);
       return false;
    }
 
@@ -1743,11 +1838,15 @@ extern "C" int WINAPI _tWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstan
       }
       else
       {
-         // A walk that writes in the data folder first finds no link in it, and
-         // holds it while it runs (DataFolderHoldsNoLink). Exit 1.
+         // Every walk first finds no link in the data folder that the
+         // administrators do not alone control, and holds it while it runs
+         // (DataFolderHoldsNoLink). Exit 1. --measure-store too since 6.3.6: it
+         // changes nothing and says what it read only to whoever runs it, but it
+         // reads every file with an administrator's rights, and one rule for every
+         // walk is one nobody has to reason about again.
          HM::HeldFolder heldData;
          HM::String linkWhy;
-         if (storeVerb != HM::MessageStoreMaintenance::VerbMeasure && !DataFolderHoldsNoLink(heldData, linkWhy))
+         if (!DataFolderHoldsNoLink(heldData, linkWhy))
          {
             WriteVerbError(_T("Nothing was changed: ") + linkWhy + _T("\r\n"));
             iRet = 1;

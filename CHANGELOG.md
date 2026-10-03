@@ -582,17 +582,39 @@ nothing to the error log, the Application log or an event script, has no crash o
 (Windows 11 22H2, Windows Server 2025), follows no junction a user who is not an administrator made; each command
 says what it did and why it failed on its own output, which Setup, DBSetup and the Control Panel keep in their logs.
 The certificate and its key are made below the `Certificates` folder held open from the drive's root down - no folder
-of it a link - and each file is checked to be in it before a byte is written; and a store command that changes the
-data folder, and every copy to or from an object store, first finds no junction, mount point or symbolic link in it,
-and stops, naming them, if there is one.
+of it a link - and each file is checked to be in it before a byte is written; and every store command, `--measure-store`
+included, and every copy to or from an object store, first walks the data folder and stops, naming it, on a junction,
+a mount point or a symbolic link it holds. A link is now gone through only when the administrators alone control it -
+owned by `BUILTIN\Administrators`, `SYSTEM` or `TrustedInstaller`, and changeable or removable by no one else - so that
+a data folder, a folder above it, or a domain's folder kept on another drive through a junction an administrator made
+and gave permissions only the administrators may change is served, while one the service's account could have made
+or could turn elsewhere - a link made in the data folder inherits the service's write rights until it is given others
+(docs/ServiceAccount.md) - is refused with the reason; where it leads is then held from that volume's own root and
+checked. A folder no administrator may list, such as
+`System Volume Information` at a drive's root, is skipped when the administrators alone control it rather than refused.
+`--measure-store`, which only reads and reports to the administrator, is held to the same rule because it reads every
+file with an administrator's rights.
 The store commands also reached each file by the name the database gives it, which the service's account may write:
 a message row naming a file outside the data folder - a full path, or a part that is `..` - had an administrator's
 `--compress-store` or `--encrypt-store` rewrite that file, or `--copy-store-from-object-storage` create it, and a held
 part's name in `hm_storeblobs` could send a recount's removal anywhere. Now such a row stops every store command,
 naming the message, before it reads or changes a file; an object store's key whose name would lead out of the
-folder is not listed; and a held part's name is its SHA-256 in hex or names no file.
-`build/check-elevated-verbs.py` holds all of it. The commands were affected in 6.3.4 and 6.3.5; it needs a program
-already running as the service's account and an administrator who then runs one of them. `/GrantServiceAccess` also
+folder is not listed; and a held part's name is its SHA-256 in hex or names no file. A full path below the folder a
+junction of the data folder leads to is in it; a legacy full path elsewhere is moved with the Data Directory
+Synchronizer, which the message names.
+On Linux the same commands run as root were confined to the data folder by path but followed a symbolic link the
+service's account (the unit's `User=`, which owns the data and log folders) planted in it - `sudo hmailserver --compress-store`
+would then read, rewrite or remove whatever the link led to, as root. The store commands, the object-store copies,
+`--sample-domain`, the profiles and `--apply-environment` now drop to the service account - the data directory's owner,
+with its groups - before they open anything when run as root, so each reaches only what the service reaches through any
+link and leaves no file the service cannot open; a data directory whose way is not root's and its owner's alone - a
+folder above it, or above where a link on the way points, that another account or group may write - is refused, exit
+2, since a link put there could choose which owner, and so which account, that is; and every other command line run as root writes nothing to the log
+directory (its report goes to standard error instead), as the Windows commands do. `--create-database` makes its
+`.new-installation` marker without following a link of that name.
+`build/check-elevated-verbs.py` holds all of it. The Windows commands were affected in 6.3.4 and 6.3.5, and the Linux
+root store commands' symlink following was too; it needs a program already running as the service's account and an
+administrator who then runs one of them. `/GrantServiceAccess` also
 no longer leaves a Critical HM5028, "Check your database settings in hMailServer.ini", in the Application log when the
 administrator running it cannot open a SQL Server database reached with Windows authentication: the installer smoke
 VM showed one on every such move on 3 October 2026. Found by the review of the installer's fixes and the sweep after
@@ -1264,12 +1286,31 @@ adds. Found by the project's own review.
     `--create-stored-secrets-key` say into its own log and its messages, which no longer send anybody to the error log
     for them. A script that read the error log after one of these commands reads its output instead:
     `--forget-sealed-secrets`' `HM7497` and a command's `HM7496` are said on its standard error, as a Linux command run
-    as root says them. A store command that rewrites, removes or adds files in the data folder, and every copy to or
-    from an object store, stops, exit 1, before it reads or changes anything when a junction, a mount point or a
-    symbolic link is anywhere in that folder, and names them; nothing in it is ever one. A store
-    command on Windows, or run as root on Linux, also stops, before it reads or changes a file, when a message row
-    names a file outside the data folder - a full path elsewhere, which an old row may hold, or a part that is `..` -
-    and names the message: move the file into the data folder and correct the row, or delete the message.
+    as root says them. Every store command - `--measure-store` included - and every copy to or from an object store
+    stops, exit 1, before it reads or changes anything when the data folder holds a junction, a mount point or a symbolic
+    link that the administrators do not alone control, and names it. A link owned by `BUILTIN\Administrators`, `SYSTEM`
+    or `TrustedInstaller` that no one else may change or remove - a junction an administrator made to keep the data, or a
+    domain's folder, on another drive - is gone through, and where it leads is held and checked; a folder only the
+    administrators may list, such as `System Volume Information` at a drive's root, is skipped rather than refused. So a
+    data folder below a mount point or a junction an administrator made, or at a drive's root, works once the link is the
+    administrators' alone: a link made in the data folder inherits the service's write rights, and one made at a drive's
+    root those of `Users`, and is refused, naming who may change it, until it is given permissions only the
+    administrators may change (`icacls <link> /inheritance:r /grant:r *S-1-5-32-544:(F) *S-1-5-18:(F) *S-1-5-32-545:(RX) /L`,
+    and `/setowner *S-1-5-32-544 /L` where its owner is an administrator's own account; docs/ServiceAccount.md). A store command on
+    Windows, or run as root on Linux, also stops, before it reads or changes a file, when a message row names a file
+    outside the data folder - a full path elsewhere, which an old row may hold, or a part that is `..` - and names the
+    message: a full path below where a junction of the data folder leads is in it, a legacy full path elsewhere is moved
+    with the Data Directory Synchronizer, otherwise delete the message.
+    On Linux a store command, an object-store copy, `--sample-domain`, a profile or `--apply-environment` run as root now
+    runs as the service's account first: these work in the data and log folders, which that account (the unit's `User=`)
+    owns and can plant a symbolic link in, so `sudo hmailserver --compress-store` becomes that account - the data
+    directory's owner, with its groups - before opening anything, follows a planted link as that account and not as root,
+    and leaves behind no file the service cannot open; over a data directory that cannot be examined or belongs to root,
+    or whose way is not root's and its owner's alone (a folder above it that another account or group may write), it
+    refuses (exit 2), naming why. Every other Linux command line run as root (`--set-setting`, the stored-secrets verbs,
+    `--create-database`, `--upgrade-database` and the rest) writes nothing to the log directory - what it did is on its own
+    output and a report goes to standard error - as the Windows commands do; and `--create-database` makes its
+    `.new-installation` marker without following a link of that name.
 43. **`/GrantServiceAccess` that cannot read the database ends in 7.** It names the certificate and key files, the
     backup folder and the PST import folder from the database, to say which the service would not reach once moved;
     when the account running it could not open the database - SQL Server with Windows authentication, where LocalSystem

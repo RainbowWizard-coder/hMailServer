@@ -103,24 +103,40 @@ namespace HM
    //
    // So nothing here goes by the path after the volume's root. Each folder of
    // the path is opened relative to the one above it (NtCreateFile with a root
-   // handle), never through a link - a folder that is a junction, a symbolic
-   // link or a mount point is refused - and held, sharing reading and writing
-   // but not deleting, so it cannot be renamed or removed while it is held. The
-   // last one is made when missing and asked, in the same way. A file is made
-   // or removed by its name relative to the last folder's handle, never through
-   // a link of that name, and a file made is checked by its handle to be where
-   // it was meant to be before a byte is written to it. Windows only: on Linux
-   // the verbs that write in the data folder run as the service's own user.
+   // handle), never through a link unchecked, and held, sharing reading and
+   // writing but not deleting, so it cannot be renamed or removed while it is
+   // held. A folder that is a junction, a symbolic link or a mount point is
+   // gone through only when the administrators alone control it
+   // (OnlyAdministratorsControl, below) - one an administrator made to keep the
+   // data on another drive - and where it leads is then held in the same way
+   // from that volume's own root and checked to be the folder the link opened,
+   // so a link somebody else made further along the way is refused there; any
+   // other link is refused. The last one is made when missing and asked, in the
+   // same way. A file is made or removed by its name relative to the last
+   // folder's handle, never through a link of that name, and a file made is
+   // checked by its handle to be where it was meant to be before a byte is
+   // written to it. Windows only: on Linux the verbs that write in the data
+   // folder run as the service's own user.
    class HeldFolder
    {
    public:
       HeldFolder();
       ~HeldFolder();
 
-      // path: a full path on a drive (C:\...) or a share (\\server\share\...).
-      // False, with a sentence in error, when a folder of it is a link, could
-      // not be opened, or - the last, with createLast - could not be made.
+      // path: a full path on a drive (C:\...), a share (\\server\share\...) or a
+      // volume (\\?\Volume{...}\...). False, with a sentence in error, when a
+      // folder of it is a link the administrators do not alone control, or leads
+      // through one, could not be opened, or - the last, with createLast - could
+      // not be made.
       bool Hold(const String &path, bool createLast, String &error);
+
+      // A folder opened through a link the administrators alone control, found
+      // below the held folder (a junction an administrator made in the data
+      // folder): what the open handle holds, held as Hold holds a path - from its
+      // volume's root down, by the path Windows gives it - for as long as this
+      // is held, and checked to be that same folder. False, with a sentence in
+      // error, as Hold.
+      bool HoldAlso(void *opened, String &error);
 
       // A new file name in the held folder with data in it, any file of that
       // name removed first (a link of that name is removed, never followed).
@@ -143,8 +159,30 @@ namespace HM
       HeldFolder(const HeldFolder &);
       HeldFolder &operator=(const HeldFolder &);
 
+      bool HoldChain_(const String &requested, bool createLast, int depth, void *&last, String &error);
+      bool HoldThrough_(void *through, const String &walked, int depth, void *&last, String &error);
+
       std::vector<void *> handles_;
+      void *last_;
       String path_;
    };
+
+   // Whether the administrators alone control a junction, a mount point or a
+   // symbolic link - or a folder no administrator may list - so that an
+   // administrator's process may go through it, or leave it unlisted, although
+   // the service's account may write the folder it is in. object: what it is,
+   // opened itself and never through it (FILE_OPEN_REPARSE_POINT); parent: the
+   // folder it is in. True when its owner is BUILTIN\Administrators, SYSTEM or
+   // TrustedInstaller - which no account but one holding an administrator's
+   // rights can make it - nobody else may change it (write its data, attributes
+   // or extended attributes, which is how a link is pointed somewhere else, add
+   // to it, delete it, or change its permissions or its owner), and no entry of
+   // its folder's permissions lets anybody else remove it from there or change
+   // that folder's permissions or owner (the folder's own owner, whose rights to
+   // its permissions no entry grants, is not asked about). Then the service's
+   // account, or anybody else who is not an administrator, can neither have
+   // made it nor turn it elsewhere. False, with a clause in
+   // why, otherwise, or when its permissions cannot be read.
+   bool OnlyAdministratorsControl(void *object, void *parent, String &why);
 #endif
 }

@@ -632,6 +632,63 @@ namespace RegressionTests.Infrastructure
          }
       }
 
+      [Test]
+      [Description("A junction in the data directory that an account other than the administrators may change - the service's own account can make and point one - stops every store walk, exit 1, naming it and why (OnlyAdministratorsControl). The negative control: the same junction given to the administrators alone, in a folder only they may change, is gone through and the walk runs. --measure-store carries the check since the re-check of 6.3.6.")]
+      public void AWalkRefusesALinkOthersControlAndGoesThroughOneOnlyTheAdministratorsControl()
+      {
+         if (TestSetup.ConsoleServer)
+            Assert.Ignore("A console server shares the data directory the walk holds; this fixture plants a junction in it.");
+
+         Account account = AddAccount("viajunction");
+         SmtpClientSimulator.StaticSendRaw("sender@example.test", account.Address, Message(account.Address, "Via", TextBody("viaword", 50), null));
+         ImapClientSimulator.AssertMessageCount(account.Address, Password, "INBOX", 1);
+         ServerExecutable();
+
+         // A folder only the administrators may change, holding the junction, so
+         // that the parent-folder half of the rule does not depend on how the
+         // data directory itself is set up.
+         string nest = Path.Combine(dataDirectory_, "hm-mnt-" + Guid.NewGuid().ToString("N"));
+         string link = Path.Combine(nest, "viajunction");
+         string target = Path.Combine(Path.GetTempPath(), "hm-mnttarget-" + Guid.NewGuid().ToString("N"));
+         Directory.CreateDirectory(nest);
+         Directory.CreateDirectory(target);
+         File.WriteAllText(Path.Combine(target, "a-file.txt"), "a file where the junction leads");
+         RunTool("cmd", "/c mklink /J \"" + link + "\" \"" + target + "\"");
+         putBack_.Add(() => { RunTool("cmd", "/c rmdir \"" + link + "\""); Guarded(() => Directory.Delete(nest, true)); Guarded(() => Directory.Delete(target, true)); });
+
+         try
+         {
+            // The dangerous case: the service's account may change the junction.
+            // S-1-5-32-545 is BUILTIN\Users, which the virtual account is in. /L
+            // sets the entry on the junction itself, not on what it leads to.
+            RunTool("icacls", "\"" + link + "\" /grant *S-1-5-32-545:(M) /L");
+            Verb refused = RunVerb("--measure-store");
+            ClassicAssert.AreEqual(1, refused.ExitCode, refused.Output);
+            StringAssert.Contains("viajunction", refused.Output);
+            StringAssert.Contains("junction, a mount point or a symbolic link", refused.Output);
+            StringAssert.Contains("may change it", refused.Output);
+            StringAssert.DoesNotContain("Measured", refused.Output, "The walk went on past a link the service's account may change.");
+
+            // The legitimate case: the administrators alone control the junction
+            // and the folder it is in. The junction is given to the administrators
+            // as owner and reset to inherit nest's admin-only entries; nest is
+            // given to the administrators alone. A junction an administrator made
+            // to keep a domain's mail on another drive is this shape.
+            RunTool("icacls", "\"" + nest + "\" /inheritance:r /grant:r *S-1-5-32-544:(OI)(CI)(F) *S-1-5-18:(OI)(CI)(F)");
+            RunTool("icacls", "\"" + link + "\" /setowner *S-1-5-32-544 /L");
+            RunTool("icacls", "\"" + link + "\" /reset /L");
+            Verb through = RunVerb("--measure-store");
+            ClassicAssert.AreEqual(0, through.ExitCode, through.Output);
+            StringAssert.DoesNotContain("symbolic link", through.Output, "A junction only the administrators control was refused.");
+            StringAssert.Contains("Measured", through.Output);
+         }
+         finally
+         {
+            // The walk holds the link's target open while it runs; the put-back
+            // removes the junction and both folders.
+         }
+      }
+
       // ---- damage --------------------------------------------------------------------
 
       [Test]
@@ -1818,6 +1875,23 @@ namespace RegressionTests.Infrastructure
             process.WaitForExit();
 
             return new Verb { ExitCode = process.ExitCode, Output = output.Result + error.Result };
+         }
+      }
+
+      /// <summary>A short-lived tool (cmd for mklink/rmdir, icacls) run to completion; its output is returned.</summary>
+      private static string RunTool(string exe, string arguments)
+      {
+         using (Process process = Process.Start(new ProcessStartInfo(exe, arguments)
+         {
+            UseShellExecute = false,
+            CreateNoWindow = true,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+         }))
+         {
+            string output = process.StandardOutput.ReadToEnd() + process.StandardError.ReadToEnd();
+            process.WaitForExit(60000);
+            return output;
          }
       }
 

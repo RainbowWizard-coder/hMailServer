@@ -48,11 +48,13 @@ code to both:
      service may write, write there only through what holds it: on Windows
      NewInstallDefaults::Apply_ makes the certificate and its key through
      HeldFolder (never ProtectedFile::Write, FileUtilities::WriteToFile or
-     FileUtilities::CreateDirectory by path), and the store walks that change
-     the data folder are dispatched only after DataFolderHoldsNoLink, and every
-     object-store copy too - with no condition before the check, since a copy
-     to the store that changes nothing still reads with an administrator's
-     rights and hands what it read to a store the service's account reads.
+     FileUtilities::CreateDirectory by path), and every store walk is
+     dispatched only after DataFolderHoldsNoLink, and every object-store copy
+     too - with no condition before the check: a copy to the store that changes
+     nothing still reads with an administrator's rights and hands what it read
+     to a store the service's account reads, and --measure-store, which only
+     reads, is held to the same rule since 6.3.6 so that no walk is an
+     exception anybody has to reason about.
 
 Run from the repository root: python build/check-elevated-verbs.py
 Pass --self-test to break each rule in a copy and prove the check reports it.
@@ -260,10 +262,13 @@ def check_data_folder_writers(main_text, defaults_text):
             problems.append("hMailServer.cpp: %s is not dispatched" % call)
         elif guard < 0 or at - guard > 400:
             problems.append("hMailServer.cpp: %s is not dispatched right after DataFolderHoldsNoLink" % call)
-        elif call.startswith("HM::MessageStoreObjects"):
+        else:
+            # No condition in front of the check: every walk, --measure-store
+            # included since 6.3.6, and every copy.
             line = main_code[main_code.rfind("\n", 0, guard) + 1:main_code.find("\n", guard)]
             if not re.search(r"if\s*\(\s*!\s*DataFolderHoldsNoLink\(", line):
-                problems.append("hMailServer.cpp: not every object-store copy is dispatched after DataFolderHoldsNoLink: " + line.strip())
+                what = "object-store copy" if call.startswith("HM::MessageStoreObjects") else "store walk"
+                problems.append("hMailServer.cpp: not every %s is dispatched after DataFolderHoldsNoLink: %s" % (what, line.strip()))
     return problems
 
 
@@ -376,21 +381,29 @@ def self_test(texts, main_text, project_text, updater_text):
                "by path")
     else:
         failures.append("Apply_'s key write is not where the mutation looks for it")
-    guard = "if (storeVerb != HM::MessageStoreMaintenance::VerbMeasure && !DataFolderHoldsNoLink(heldData, linkWhy))"
-    if guard in main_text:
+    # The two checks are spelled alike: the walks' comes first in the file, the
+    # copies' second.
+    guard = "if (!DataFolderHoldsNoLink(heldData, linkWhy))"
+    walk_at = main_text.find(guard)
+    copy_at = main_text.find(guard, walk_at + 1) if walk_at >= 0 else -1
+
+    def at(position, replacement):
+        return main_text[:position] + replacement + main_text[position + len(guard):]
+
+    if walk_at >= 0 and copy_at > walk_at:
         expect("a store walk without the link check",
-               run(texts, main_text.replace(guard, "if (false)", 1), project_text, updater_text, defaults_text),
+               run(texts, at(walk_at, "if (false)"), project_text, updater_text, defaults_text),
                "MessageStoreMaintenance::RunCommand")
-    else:
-        failures.append("the store walk's check is not where the mutation looks for it")
-    copy_guard = "if (!DataFolderHoldsNoLink(heldData, linkWhy))"
-    if copy_guard in main_text:
+        expect("--measure-store let past the link check",
+               run(texts, at(walk_at, "if (storeVerb != HM::MessageStoreMaintenance::VerbMeasure && !DataFolderHoldsNoLink(heldData, linkWhy))"),
+                   project_text, updater_text, defaults_text),
+               "not every store walk")
         expect("a copy to the object store let past the link check",
-               run(texts, main_text.replace(copy_guard, "if ((copyFromObjects || removeSource) && !DataFolderHoldsNoLink(heldData, linkWhy))", 1),
+               run(texts, at(copy_at, "if ((copyFromObjects || removeSource) && !DataFolderHoldsNoLink(heldData, linkWhy))"),
                    project_text, updater_text, defaults_text),
                "not every object-store copy")
     else:
-        failures.append("the copies' check is not where the mutation looks for it")
+        failures.append("the walks' and the copies' checks are not where the mutations look for them")
     return failures
 
 
@@ -427,8 +440,8 @@ def main():
           "limit DLL loading first, and the server links with /DEPENDENTLOADFLAG:0xA00")
     print("  OK    every other command line but %s forbids the logger's writes and has no crash oracle: %s"
           % (", ".join(SERVER_COMMAND_LINES), ", ".join(v for v in verbs if v not in SERVER_COMMAND_LINES)))
-    print("  OK    the certificate of a new installation is written through HeldFolder, and the store walks that change "
-          "the data folder and every object-store copy are dispatched after DataFolderHoldsNoLink")
+    print("  OK    the certificate of a new installation is written through HeldFolder, and every store walk, --measure-store "
+          "included, and every object-store copy are dispatched after DataFolderHoldsNoLink")
     return 0
 
 
