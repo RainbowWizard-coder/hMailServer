@@ -350,7 +350,9 @@ GitLab's shared runners. *checkers* (a Python image with git) runs every Python 
 `check-package-manifests.py`, the `--self-test` modes (the release chain's, the release's security gate's, the
 secret scan's and repo-hygiene's among them), `add-license-headers.py --check`, every
 generator's `--check`, `generate-portal-languages.py` and `check-deck-parity.py` held to the files they write
-staying as committed, and `check-linux-version-stamp.sh`, and it reports every failure at the end rather than
+staying as committed, `renumber-upgrade-items.py --check` (the newest *What changes on upgrade* list of
+`CHANGELOG.md` numbered 1 to n and every reference inside its section naming its item), and
+`check-linux-version-stamp.sh`, and it reports every failure at the end rather than
 stopping at the first. *harnesses* (a Node image with Python, OpenSSL and GnuPG) runs `check-deck-script.py`,
 `check-portal-script.py`, `check-portal-smime.js` and `check-portal-openpgp.js`. *editorconfig* runs
 editorconfig-checker. Four more run when their files change: *chart-and-compose* (the Helm chart and the

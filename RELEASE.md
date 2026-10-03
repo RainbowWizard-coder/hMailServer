@@ -476,9 +476,9 @@ that administrators upgrade by hand.
    several steps past the last stable - and it was missing from this step until
    6.2.23.
 
-7. **Version stamp**, sixteen files. The Windows nine: `Version.h` (version,
+7. **Version stamp**, seventeen files. The Windows nine: `Version.h` (version,
    numeric, build), `section_setup_64.iss`, and all seven `.csproj`
-   `<Version>` values. Then seven outside the Windows build:
+   `<Version>` values. Then eight more:
    * `hmailserver/source/Tools/Cli/HmailServer.psd1` - `ModuleVersion`, the
      PowerShell module's version on the PowerShell Gallery. A data file cannot
      read `Version.h`, so it is written; `build/check-cli-packages.py` fails the

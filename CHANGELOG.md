@@ -61,7 +61,11 @@ its tag, in the commit the tag points at: from 6.3.5 the tag's pipeline makes th
 that section as the tag's own tree has it (`build/ci/release-chain.py`, `release-publish`), and refuses a version
 without one, so the section cannot be added afterwards. GitLab CI's `checkers` job runs
 `python build/add-license-headers.py --check` on every push; after editing, run it too and read the rendered page
-for a stray `#` number or `@` name.
+for a stray `#` number or `@` name. A section's *What changes on upgrade* list is numbered and the section's text
+names its items by number, so a fold of two branches that each added items leaves two with one number:
+`python build/renumber-upgrade-items.py` numbers the list 1 to n again and rewrites every reference to an item inside
+the section, saying which of two items of one number it took a reference to and why, or asking (`checkers` runs it
+with `--check`).
 
 ---
 
@@ -74,16 +78,17 @@ for a stray `#` number or `@` name.
 Everything that landed on `master` after the `v6.3.5` tag, from 29 September 2026 ([compare `v6.3.5` with
 `v6.3.6`](https://gitlab.com/hmailserver/hmailserver/-/compare/v6.3.5...v6.3.6)). It is the last release for the
 time being: after it the project makes security releases only, and the 6.3 line receives security fixes until 30
-September 2027 (below). 6.3.6 fixes a security flaw and takes OpenSSL 4.0.3 into the Windows installers (both below),
-fixes what 6.3.5's release and the first live updates from 6.3.4 found, replaces with the project's own code the last
-code in the server whose licence a distribution would have had to settle, and carries every file the release pipeline
-makes, the ARM64 Windows installer among them. The schema moves to **6108** in three steps: 6106, which changes no
-column, gives every external account's *days to keep messages* the one meaning both fetchers now read, keeping each
-account doing what it did or stopping it deleting (What changes on upgrade without a switch, item 21); 6107 finishes
-the greylisting key schema 6072 began (item 22); and 6108 adds the never-ban list by reverse name and, for each SMTP
-listener, what it does with `AUTH`, On for every listener an upgrade finds (item 24). The security notes come first,
-then what changes on upgrade without a switch. The operator documents named below are in
-`hmailserver/docs`, which has nine more of them than it had at 6.3.5.
+September 2027 (below). 6.3.6 fixes the security flaws the project's own reviews of the code found, CVE-2026-103011
+among them, and takes OpenSSL 4.0.3 into the Windows installers (both below), fixes what 6.3.5's release and the first
+live updates from 6.3.4 found, replaces with the project's own code the last code in the server whose licence a
+distribution would have had to settle, and carries every file the release pipeline makes, the ARM64 Windows installer
+among them. The schema moves to **6108** in three steps: 6106, which changes no column, gives every external account's
+*days to keep messages* the one meaning both fetchers now read, keeping each account doing what it did or stopping it
+deleting (What changes on upgrade without a switch, item 22); 6107 finishes the greylisting key schema 6072 began
+(item 23); and 6108 adds the never-ban list by reverse name and, for each SMTP listener, what it does with `AUTH`, On
+for every listener an upgrade finds (item 25). The security notes come first, then what changes on upgrade without a
+switch. The operator documents named below are in `hmailserver/docs`, which has twelve more of them than it had at
+6.3.5.
 
 **Releases pause after this one.** 6.3.6 is the last release for the time being, by the owner's decision of 28
 September 2026, and no feature release follows it until the maintainers say otherwise in [SECURITY.md](SECURITY.md),
@@ -209,7 +214,7 @@ the event stored in the recipient's calendar without the server checking who had
 6.3.6 applies one only when the server verified that it came from the event's organiser, or from the answering
 attendee or a delegate of theirs, and delivers anything else as an ordinary message; an invitation filed from a
 sender it could not verify no longer keeps the organiser's own out of the calendar (What changes on upgrade,
-item 16). A room or a piece of equipment took a DMARC pass for an outside organiser's domain as the organiser's
+item 17). A room or a piece of equipment took a DMARC pass for an outside organiser's domain as the organiser's
 own, whichever sender at that domain had written the message, in 6.3.4 and 6.3.5; 6.3.6 believes that organiser
 only when the message's From is the organiser's address. A room or a piece of equipment also took an invitation
 an application sent through the send API, with a key allowed to send as the organiser's address, as the
@@ -244,19 +249,27 @@ executable-JavaScript media-type aliases a browser also runs; the attachment alr
 
 The REST administration listener's plain loopback port now answers only a request whose `Host` it expects and refuses
 any other with 421 before the request is authenticated, so a web page that points a name of its own at this machine
-can no longer reach the console through a browser on it. It answers `localhost`, an IP address, the server's host
-name and the host of each address configured as the one the webmail is reached at from outside. A reverse proxy that
-forwards the browser's own `Host` needs that name to be one of these: upgrading behind such a proxy, set the
+can no longer reach the console through a browser on it (CVE requested). It answers `localhost`, an IP address, the
+server's host name and the host of each address configured as the one the webmail is reached at from outside. A reverse
+proxy that forwards the browser's own `Host` needs that name to be one of these: upgrading behind such a proxy, set the
 webmail's outside address (for example `confidential_base_url`) or the server's host name to it first
-([DevicesAndSessions.md](hmailserver/docs/DevicesAndSessions.md), Which Host the listener answers). A listener with
-its own certificate is unchanged.
+([DevicesAndSessions.md](hmailserver/docs/DevicesAndSessions.md), Which Host the listener answers). A listener with its
+own certificate is unchanged.
 
 A wrong administrator password over REST now costs a growing delay, capped at ten seconds, before the next one from
-the same address is looked at - on every route that takes it, and from the loopback address too, where the
-brute-force protection of the mail ports does not reach and where every browser behind a reverse proxy on the same
-machine arrives. Earlier versions looked at every guess at once from there. It is a delay, cleared by the right
-password: an address that keeps guessing keeps it waiting while it does, and the administrator's API keys, passkey
-and single sign-on are not touched by it.
+the same source is looked at - on every route that takes it, the password asked again at an administrator passkey's
+registration among them, and from the loopback address too, where the brute-force protection of the mail ports does
+not reach and where every browser behind a reverse proxy on the same machine arrives. Earlier versions looked at
+every guess at once from there. A source is an IPv4 address, `::1`, or any other IPv6 address's `/64`, and an
+address that carries an IPv4 client's own - `::ffff:a.b.c.d`, the NAT64 and SIIT prefix `64:ff9b::/96`, Teredo's
+`2001::/32` - counts as that IPv4 address, since one `/64` of those is every client of the translator; the
+listener's own short refusal after the auto-ban's limit covers the `/64` of an IPv6 address as well, and such an
+address as its IPv4 address, as `::ffff:a.b.c.d` always was (What changes on upgrade, item 35). It is a delay,
+cleared by the right password: a source that keeps guessing keeps it waiting while it does. Behind a reverse proxy
+on the same machine every browser shares one source, so one client's wrong guesses keep the password sign-in waiting
+for everyone while they last; the administrator's API keys, passkey and single sign-on are not touched by it
+([DevicesAndSessions.md](hmailserver/docs/DevicesAndSessions.md), The administrator password's delay). Found by the
+project's own review and its second review of the release (CVE requested).
 
 A response sent to a browser that came over HTTPS now carries `Strict-Transport-Security` for a year, which no earlier
 version sent, so the browser does not go back over plain HTTP where the credentials could be read; it is never sent on
@@ -286,11 +299,16 @@ fixes from there.
 
 The webmail now hands the browser an attachment it decrypted itself, of an S/MIME message (since 6.3.2) or an
 OpenPGP one (since 6.3.4), as a file of no type (`application/octet-stream`) rather than under the type the message
-named, so that the browser only ever saves it; every version from 6.3.2 to 6.3.5 is affected. Such a part that names
-no file is saved as `part` with the extension of the type it declares when that type is on a short list - plain text,
-CSV, a calendar, a contact card, PDF, ZIP, a key, a forwarded message, PNG, JPEG, GIF, WebP, MP3, MP4 and the three
-Office documents - and as `part` alone otherwise; no extension a browser renders as a page or a desktop runs is ever
-given, and the file's type stays `application/octet-stream`.
+named, so that the browser only ever saves it; every version from 6.3.2 to 6.3.5 is affected (CVE requested). Such a
+part that names no file is saved as `part` with the extension of the type it declares when that type is on a short
+list - plain text, CSV, a calendar, a contact card, PDF, ZIP, a key, a forwarded message, PNG, JPEG, GIF, WebP, MP3, MP4
+and the three Office documents - and as `part` alone otherwise; no extension a browser renders as a page or a desktop
+runs is ever given, and the file's type stays `application/octet-stream`.
+
+In the same way, a file the webmail saves for a second account shown beside the first is now always of no type, and
+a photo it shows for that account, or an attachment its offline store answers without a connection, keeps the type
+the server named only when that is an image type the page shows (or, offline, a PDF); 6.3.4 and 6.3.5 used the type
+as it came.
 
 One more hardening change, found by the project's own review: a mailbox key encrypted at rest - an account's or a
 domain's recovery key, opened, made or sealed again - and the keys derived from it are written over when the code
@@ -300,11 +318,6 @@ The lines of a stored-secrets key file that `--import-stored-secrets-key` reads,
 written over the same way, the key's base64 is no longer copied into a string that was freed as it stood, and the line
 being read no longer grows a character at a time into larger buffers, freeing each smaller one - most of the key in
 base64 - as it stood.
-
-In the same way, a file the webmail saves for a second account shown beside the first is now always of no type, and
-a photo it shows for that account, or an attachment its offline store answers without a connection, keeps the type
-the server named only when that is an image type the page shows (or, offline, a PDF); 6.3.4 and 6.3.5 used the type
-as it came.
 
 The Control Deck is held tighter to what the server hands it, found by the project's own review. It draws an
 address - the release page the update feed names, the documentation wiki's, an eDiscovery export's - as a link only
@@ -334,13 +347,14 @@ A read of another account's mail through the REST API by the server's administra
 role holding `view_mailbox`, `view_archive` or `view_discovery`, and a support session opened as an account, are now
 recorded on the audit trail; 6.3.4 and 6.3.5, the versions with the trail, recorded none of them (Administration,
 below).
+
 When the server declines to reach an address that is not public for somebody who named it - a list's one-click
 unsubscribe and a correspondent's key from their domain's Web Key Directory in the webmail, the server of another
 account a reader adds there, the delivery of an inbound webhook route an API key made - the reason it gives now names
 the host as it was given and never the address the server resolved it to, and for another account's server says the
 same whether the name does not resolve or leads inside the network. From 6.3.2 the unsubscribe's answer, and from
 6.3.4 the others, named the private address a host led to. A refusal by `HttpProxy`, which these requests go
-through from 6.3.6 (What changes on upgrade, item 19), is reported to such a person as the setting's, by its status
+through from 6.3.6 (What changes on upgrade, item 20), is reported to such a person as the setting's, by its status
 code alone, and neither by the proxy's address nor in the words of its answer. Found by the project's own review.
 
 Expanding a recurring event now looks each occurrence up among the event's excluded dates (`EXDATE`) by halving a
@@ -348,7 +362,7 @@ sorted list, where it went through every one of them in turn. An event can carry
 dates in the megabyte an invitation may have, and an invitation is filed in the calendar on delivery, so such an
 event cost about a third of a second each time a calendar was read over a span it covers (the webmail, CalDAV, a
 room's booking check) - and, before this release, several seconds of a delivery thread for a cancellation of some
-of its occurrences (What changes on upgrade, item 17), which also asks of the event a few expansions fewer than it
+of its occurrences (What changes on upgrade, item 18), which also asks of the event a few expansions fewer than it
 did. Found by the project's own review.
 
 The Linux live update's apply step, `hmailserver-update`, which runs as root on a request the server's service account
@@ -358,11 +372,11 @@ root run a program of its choosing, on a `.deb` or `.rpm` installation with the 
 packages' default) as on an AppImage. 6.3.6 takes the unit and the image from the helper's own command line alone,
 refuses an AppImage request where that names no image, checks after the stop that the server's unit is down and that
 nothing of the service account still runs, and verifies, runs and installs only copies it has made after the stop,
-which nobody else can read until they have verified (What changes on upgrade, item 23). Windows is not affected. An
+which nobody else can read until they have verified (What changes on upgrade, item 24). Windows is not affected. An
 AppImage run under the path unit keeps the script copied to `/usr/lib/hmailserver/` when its update units were
 installed, which the AppImage's own update does not replace: copy 6.3.6's there and give it `--image`. Until a Linux
 server's helper is 6.3.6's, `systemctl disable --now hmailserver-update.path` turns the apply off, and the check and
-the download go on; install 6.3.6 with the package manager. Found by the project's own review.
+the download go on; install 6.3.6 with the package manager. Found by the project's own review (CVE requested).
 
 The same helper went on writing into the service account's Updates directory by name after it had started the server
 again, in 6.3.4 and 6.3.5: it appended each line of its log to the log's file, gave the log and the outcome to the
@@ -373,7 +387,7 @@ file to the service account or change its mode, or put root's file into a direct
 directory, and makes and opens both files, while the server is confirmed stopped; gives them to the service account
 through the open files before it starts the server; writes them through the open files alone; and renames each into
 place through the open directory, which replaces a symbolic link and never follows it. Windows is not affected. Found
-by the project's own review.
+by the project's own review (CVE requested, with the helper's first flaw above).
 
 Some COM objects that carry no credential were not refused what only a signed-in caller may do. A message, its
 attachments and a fetch account that a program creates for itself carry no credential, and neither do the objects an
@@ -383,7 +397,7 @@ attach a fetch account to any account. This is in every version up to 6.3.5, as 
 the server's own event scripts these are now refused, unless the program's own process holds an `Application` that
 signed in, whose credential they then take; reading or writing a file on the server's disk through a message is the
 server administrator's alone, and mail a signed-in account queues claims to be from only an address it may send as
-(What changes on upgrade, item 25). Found by the project's own review.
+(What changes on upgrade, item 26). Found by the project's own review (CVE requested).
 
 An IMAP session that has turned compression on (`COMPRESS=DEFLATE`, RFC 4978) no longer has the server inflate
 whatever one read of its compressed input expands to. Every version from 6.2.28, the release that brought the
@@ -400,14 +414,13 @@ Outbound DANE (RFC 7672) used TLSA records of usage DANE-EE (3) alone. A recipie
 records were all of another kind - DANE-TA (2), the usual record for a certificate from an authority, or records this
 server cannot use - was delivered to as if it published none: over TLS when it was offered, and in the clear when it
 was not seen. The server now verifies DANE-TA as well as DANE-EE, through OpenSSL's own DANE support, and treats a
-validated set none of whose records it can use as section 2.2 of the RFC asks: TLS is required to that host, without
-authentication, a delivery that cannot have it is deferred, and TLS reports count the host under the policy type
-`tlsa` (What changes on upgrade, item 27). In every version up to 6.3.5; found by the project's own review. As 6.3.6
-was first written, the authentication such a set does not ask for was waived even where this server's own outbound
-security - `SmtpDeliveryConnectionSecurity` at SSL or STARTTLS (required), or a route's, with
-`VerifyRemoteSslCertificate` on - asked for it, so a host publishing only records of a usage SMTP does not use had its
-certificate forgiven where 6.3.5 refused it; the waiver is now for opportunistic STARTTLS alone. Found by the
-project's second review of the release.
+validated set none of whose records it can use as section 2.2 of the RFC asks: TLS is required to that host, a
+delivery that cannot have it is deferred, and TLS reports count the host under the policy type `tlsa`. Such a set asks
+for no authentication, so the host's certificate is not judged for it; it is still verified where something else asks
+for that - an MTA-STS policy in enforce mode, a remote-domain policy or a rule, or this server's own outbound security,
+`SmtpDeliveryConnectionSecurity` at SSL or STARTTLS (required), or a route's, with `VerifyRemoteSslCertificate` on
+(What changes on upgrade, item 28). In every version up to 6.3.5; found by the project's own review and its second
+review of the release (CVE requested).
 
 Outbound DANE did not hold against anybody who could disturb a recipient domain's DNS: on the path between this
 server and its resolver, a resolver that answered falsely, or on the path between the resolver and the domain's own
@@ -419,20 +432,18 @@ used came from the plain, unvalidated MX lookup even when the validated one name
 walks from the root to the name and reads an answer as unsigned only below a delegation a signed zone proves
 unsigned; under a signed zone such a lookup is indeterminate and the host is not used, as RFC 7672 section 2.1.1
 asks, a delivery with no host left is deferred, a validated MX RRset decides which hosts are used, and an empty
-answer counts as no records only with the zone's NSEC or NSEC3 proof of it (What changes on upgrade, item 35). In
-every version up to 6.3.5, and it switched off 6.3.6's DANE-TA and unusable-record changes above as well; found by
-the project's second review of the release.
+answer counts as no records only with the zone's NSEC or NSEC3 proof of it (What changes on upgrade, item 36). In
+every version up to 6.3.5; left so, it would have undone the DANE-TA and unusable-record changes above as well.
+Found by the project's second review of the release (CVE requested).
 
-The ManageSieve service (off by default, and on the loopback when it is turned on) serves one connection at a time,
+The ManageSieve service (off by default, and on the loopback when it is turned on) served one connection at a time,
 and each read on a connection had a limit of its own with nothing bounding a command line, the TLS handshake after
 `STARTTLS` or the time before authentication as a whole, so one client that had not signed in could hold the service
-for as long as it kept its connection going. Every wait now runs to a deadline (What changes on upgrade, item 28).
-Since 6.2.3, the release that brought ManageSieve; found by the project's own review. The deadlines still left the
-service one connection at a time: a signed-in client sending `NOOP` every 29 seconds held it for ever, and a client
-that never signed in held it by coming back each time it was cut off, with five more connections waiting behind it.
-Connections are now served side by side, an address has one served at a time before it signs in, a connection that
+for as long as it kept its connection going, and a signed-in client sending `NOOP` every 29 seconds held it for ever.
+Since 6.2.3, the release that brought ManageSieve. Every wait now runs to a deadline (What changes on upgrade, item
+29); connections are served side by side, an address has one served at a time before it signs in, a connection that
 runs out of time before signing in counts towards the auto-ban, and a signed-in session and an account are bounded
-(What changes on upgrade, item 36). Found by the project's second review of the release.
+(item 37). Found by the project's own review and its second review of the release.
 
 The URI blocklists (SURBL, URIBL, the Spamhaus DBL) were asked about the first 16 names a message's links gave, the
 plain-text part's before the HTML part's, so that links ahead of a listed one could keep it from every list. The
@@ -441,11 +452,9 @@ for a message, up to sixteen lookups at a time within the list's ten seconds, so
 do not make it less likely to be asked about. A message whose links name more than 200 domains is not asked about
 whole, and scores `SurblTooManyDomainsScore` instead, so that hiding a listed link among made-up domains does not
 come free: 5 by default, the stock mark threshold and more than one list's stock score of 3 (What changes on
-upgrade, item 29). A list that lists a host name and not its domain is asked about the host names there is room left
+upgrade, item 30). A list that lists a host name and not its domain is asked about the host names there is room left
 for, two drawn under a domain and in an order the links do not set, so made-up host names can still make a listed
-one less likely to be asked about. In every version up to 6.3.5; found by the project's own review, whose second
-pass also found that a draw of a fixed number of names from all of them, which this release's tree had for a while,
-left the chance of being asked to the sender.
+one less likely to be asked about. In every version up to 6.3.5; found by the project's own review.
 
 The REST listener's tables of sign-in state no longer let one person push other people out of them. A full table
 of browser sessions dropped its least recently used session whoever held it, so any account holder signing in over
@@ -453,42 +462,30 @@ and over with their own password could sign out every webmail tab and every othe
 idle for a minute, from 6.2.28 to 6.3.5, and the administrator's Control Deck with them from 6.3.0. The pending
 halves of a single sign-on and of a passkey sign-in, which anybody may start, were held the same way, so a client
 asking for sign-in starts a few times a second - a hundred a second for passkeys - made every other person's OpenID
-Connect, SAML or passkey sign-in fail when their browser came back, in 6.3.4 and 6.3.5. In 6.3.6 a holder at its cap
-gives up its own oldest entry and a full table the oldest of whoever holds the most, of the largest group among those
-tied (an account's domain, an IPv6 `/48`, an IPv4 `/24`): an account or the administrator holds at most fifty
-sessions, the administrator's are never taken for anybody else's sign-in, and a credential at most fifty pending
-passkey registrations (What changes on upgrade, items 31 and 32). Found by the project's own review. Held to its share
-of a table of 4,096, a source could still not push out another's pending sign-in, but a pool of sources as large as
-the table - rotating proxy services sell tens of thousands of addresses - could, a few hundred starts a second each
-from a `/24` of its own. The pending sign-ins are no longer held on the server at all: the browser carries each one in
-its cookie, sealed with AES-256-GCM under a key of the server process's, and only a finished sign-in is recorded, to
-make it good once (item 32). Found by the project's second review of the release.
+Connect, SAML or passkey sign-in fail when their browser came back, in 6.3.4 and 6.3.5. In 6.3.6 a holder of browser
+sessions at its cap gives up its own oldest and a full table the oldest of whoever holds the most, among holders tied,
+one of the domain holding the most: an account or the administrator holds at most fifty sessions, and the
+administrator's are never taken for anybody else's sign-in (What changes on upgrade, item 32). The pending sign-ins are
+no longer held on the server at all: the browser carries each one in its cookie, sealed with AES-256-GCM under a key
+of the server process's, and only a finished sign-in is recorded, to make it good once, so no number of starts can
+push anybody's out; a passkey registration's challenge, which only a signed-in credential asks for, is held by that
+credential, fifty at most (item 33). Found by the project's own review and its second review of the
+release (CVE requested).
 
 An account holding a role with `manage_settings` could put a key of the `[Settings]` section back to an earlier value
 through the audit trail's put-back, in 6.3.4 and 6.3.5, where that section answers to the administrator password
 alone everywhere else; and the breach check's endpoint test, asked by an API key or such an account, reached
 addresses on the server's own network and reported whether and how fast something answered there, in 6.3.4 and
 6.3.5. Both are now the administrator password's: the put-back refuses such a row to anybody else, and their test
-reaches public addresses only (What changes on upgrade, item 33). `manage_settings` remains the server
+reaches public addresses only (What changes on upgrade, item 34). `manage_settings` remains the server
 administrator's equal - it names the hosts the server connects to and the commands it runs - and is documented so
 ([Roles.md](hmailserver/docs/Roles.md), What manage_settings reaches). Found by the project's own review.
-
-The administrator password's failed-sign-in delay over REST, new in this release, now counts an IPv6 address by its
-`/64`, and holds the password asked again at an administrator passkey's registration too, where it read only the
-`Authorization: Basic` header; the listener's own short refusal after the auto-ban's limit covers the `/64` of an IPv6
-address as well (What changes on upgrade, item 34). An address that carries an IPv4 client's own - the NAT64 and SIIT
-prefix `64:ff9b::/96`, Teredo's `2001::/32` - is counted and refused as that IPv4 address, as `::ffff:a.b.c.d` always
-was, since one `/64` of those is every client of the translator; found by the project's second review. Behind a
-reverse proxy on the same machine every browser shares one source, so one client's wrong guesses keep the password
-sign-in waiting for everyone while they last; the administrator's API keys, passkey and single sign-on are not touched
-by it ([DevicesAndSessions.md](hmailserver/docs/DevicesAndSessions.md), The administrator password's delay). Found by
-the project's own review.
 
 A webmail or Control Deck page loaded before the upgrade to 6.3.6, and still open after it, could have mail deleted
 on the other server that its reader had asked to leave there: the restart ends the page's session and it signs in
 again in place, with its old script, and 6.3.5's webmail sends -1 for *Leave the mail there* and its Deck's hint says
 -1 keeps every message, where 6.3.6 reads -1 as delete each message there once it has been collected, for IMAP as for
-POP3 (What changes on upgrade, item 21). The 6.3.6 webmail and Deck now say what they mean by the number
+POP3 (What changes on upgrade, item 22). The 6.3.6 webmail and Deck now say what they mean by the number
 (`days_to_keep_meaning`, 6106), and a negative `days_to_keep_messages` from a browser session without it is refused
 with 409 and nothing saved - on `/api/v1/me/fetch-accounts`, its import's start and the administrator's
 `/api/v1/accounts/{address}/fetch-accounts` - so such a page says to reload. An API key, a password and COM, which send
@@ -501,9 +498,9 @@ than the message's From address, and beside any different certificate already ke
 Every later message the account encrypted to that address was then encrypted to such a certificate as well, so whoever
 held its key could read it. This is in 6.3.2 to 6.3.5. In 6.3.6 a certificate is kept only when its chain is trusted,
 only under the From address the signature was checked against, and a different one for an address that has one only
-when the reader chooses **Keep this certificate** (What changes on upgrade, item 37). Certificates kept before the
+when the reader chooses **Keep this certificate** (What changes on upgrade, item 38). Certificates kept before the
 upgrade stay where they are: the Security page lists each with its address and fingerprint, and **Remove** takes one
-out ([SmimeAuthority.md](hmailserver/docs/SmimeAuthority.md)). Found by the project's own review.
+out ([SmimeAuthority.md](hmailserver/docs/SmimeAuthority.md)). Found by the project's own review (CVE requested).
 
 The webmail's view of a message's HTML (`GET /api/v1/me/messages/{id}/html`) put the images the message embeds back in
 place with work that grew with the square of the number of references to them, and wrote an image out again for every
@@ -511,12 +508,13 @@ reference while counting it against the inline budget once, so one message could
 workers for minutes and have it build a document of gigabytes; with a few of them the webmail, the Control Deck and
 the REST API stopped answering anybody. This is in 6.3.2 to 6.3.5. In 6.3.6 the route reads the HTML twice, once for
 the images it names and once as it writes them, in a time that grows with the HTML's size alone, and writes 24 MB of
-images at most in all, every reference counted (What changes on upgrade, item 38). Found by the project's own review.
+images at most in all, every reference counted (What changes on upgrade, item 39). Found by the project's own review
+(CVE requested).
 
 The webmail inflated a compressed OpenPGP message in the reader's browser tab with no limit on its size, so a small
 message could take the tab's memory each time it was opened, in 6.3.4 and 6.3.5; the server was not affected. In 6.3.6
 each compressed layer is inflated to 32 MB at most and a message past that is refused with a sentence that says so
-(What changes on upgrade, item 39). Found by the project's own review.
+(What changes on upgrade, item 40). Found by the project's own review.
 
 Where a message has an HTML part and no text part, the server reads its text with the tags dropped and the entities
 decoded: for the snippet the webmail's message list shows, for an IMAP client's `PREVIEW`, and for the page of a
@@ -527,7 +525,7 @@ and held an IMAP thread the same way; with a few of them the webmail, the Contro
 answering anybody. This is in the message list from 6.3.3, the page of a message that expires from 6.3.4 and `PREVIEW`
 from 6.2.22, up to 6.3.5. In 6.3.6 the server's string replacement, which these and the rest of the server use, writes
 a result of another length in one pass, and its removal of a character takes one pass too; what they make is as it
-was. Found by the project's own review.
+was. Found by the project's own review (CVE requested).
 
 An IP range's, an incoming relay's or a white-list entry's address set over COM - the Control Panel's IP ranges,
 incoming relays and white list pages, or a script - that the server could not read as an address was stored as
@@ -535,7 +533,7 @@ incoming relays and white list pages, or a script - that the server could not re
 with whatever it allows - relaying, delivery without authentication, no spam tests - and a relay or a white-list
 entry so written covered every address below its upper one. 6.3.6 refuses such an address with the reason, and the
 object keeps the address it had, as the REST API answers one with a 400. On Windows it matters more in this
-release, which reads more texts as no address there (What changes on upgrade, item 41): `192.168.001.001`, which
+release, which reads more texts as no address there (What changes on upgrade, item 42): `192.168.001.001`, which
 Windows read as 192.168.1.1, would otherwise have become 0.0.0.0. Found by the project's own review.
 
 Parsing one IMAP `FETCH` command from a signed-in account could hold an IMAP worker thread - shared with SMTP and
@@ -561,10 +559,10 @@ What each produces is as it was. Commands that named something over and over now
 result; a `SORT` criterion named again is left out, where each made a key for every message; and a `FETCH` whose
 sections of one message add up to more than sixteen times the message is answered `NO [LIMIT]`, where all of them
 were read and held before any was sent. A `$` written into an element with anything else - `1:$` - is answered
-`BAD`, as no set. Found by the project's own review.
+`BAD`, as no set. Found by the project's own review (CVE requested).
 
-No command of `hMailServer.exe` that an administrator runs writes in a folder the service can write any more. Since
-6.3.4 a new Windows installation runs the service as `NT SERVICE\hMailServer`, which has Modify on the program
+The commands an administrator runs no longer go where the service's account can lead them. Since 6.3.4 a new Windows
+installation runs the service as `NT SERVICE\hMailServer`, which has Modify on the program
 folder's `Logs`, `Data`, `Temp` and `Database` folders, and the commands Setup, DBSetup and the Control Panel run
 elevated - `/GrantServiceAccess`, `/Register` (on a registration that fails), `--apply-new-install-defaults`,
 `--apply-profile` and `--create-stored-secrets-key` - and those an administrator runs from an elevated prompt -
@@ -584,16 +582,15 @@ says what it did and why it failed on its own output, which Setup, DBSetup and t
 The certificate and its key are made below the `Certificates` folder held open from the drive's root down - no folder
 of it a link - and each file is checked to be in it before a byte is written; and every store command, `--measure-store`
 included, and every copy to or from an object store, first walks the data folder and stops, naming it, on a junction,
-a mount point or a symbolic link it holds. A link is now gone through only when the administrators alone control it -
-owned by `BUILTIN\Administrators`, `SYSTEM` or `TrustedInstaller`, and changeable or removable by no one else - so that
-a data folder, a folder above it, or a domain's folder kept on another drive through a junction an administrator made
-and gave permissions only the administrators may change is served, while one the service's account could have made
-or could turn elsewhere - a link made in the data folder inherits the service's write rights until it is given others
-(docs/ServiceAccount.md) - is refused with the reason; where it leads is then held from that volume's own root and
-checked. A folder no administrator may list, such as
-`System Volume Information` at a drive's root, is skipped when the administrators alone control it rather than refused.
-`--measure-store`, which only reads and reports to the administrator, is held to the same rule because it reads every
-file with an administrator's rights.
+a mount point or a symbolic link in it that the administrators do not alone control. A link they alone control - owned
+by `BUILTIN\Administrators`, `SYSTEM` or `TrustedInstaller`, and changeable or removable by no one else - is gone
+through, and where it leads is held from that volume's own root and checked; so a data folder, a folder above it, or a
+domain's folder kept on another drive through a junction an administrator made and gave permissions only the
+administrators may change is served, while one the service's account could have made or could turn elsewhere - a
+link made in the data folder inherits the service's write rights until it is given others (docs/ServiceAccount.md) -
+is refused with the reason. A folder no administrator may list, such as `System Volume Information` at a drive's
+root, is skipped when the administrators alone control it rather than refused. `--measure-store`, which only reads and
+reports to the administrator, is held to the same rule because it reads every file with an administrator's rights.
 The store commands also reached each file by the name the database gives it, which the service's account may write:
 a message row naming a file outside the data folder - a full path, or a part that is `..` - had an administrator's
 `--compress-store` or `--encrypt-store` rewrite that file, or `--copy-store-from-object-storage` create it, and a held
@@ -609,16 +606,16 @@ would then read, rewrite or remove whatever the link led to, as root. The store 
 with its groups - before they open anything when run as root, so each reaches only what the service reaches through any
 link and leaves no file the service cannot open; a data directory whose way is not root's and its owner's alone - a
 folder above it, or above where a link on the way points, that another account or group may write - is refused, exit
-2, since a link put there could choose which owner, and so which account, that is; and every other command line run as root writes nothing to the log
-directory (its report goes to standard error instead), as the Windows commands do. `--create-database` makes its
-`.new-installation` marker without following a link of that name.
+2, since a link put there could choose which owner, and so which account, that is; and every other command line run
+as root writes nothing to the log directory (its report goes to standard error instead), as the Windows commands do.
+`--create-database` makes its `.new-installation` marker without following a link of that name.
 `build/check-elevated-verbs.py` holds all of it. The Windows commands were affected in 6.3.4 and 6.3.5, and the Linux
 root store commands' symlink following was too; it needs a program already running as the service's account and an
-administrator who then runs one of them. `/GrantServiceAccess` also
-no longer leaves a Critical HM5028, "Check your database settings in hMailServer.ini", in the Application log when the
-administrator running it cannot open a SQL Server database reached with Windows authentication: the installer smoke
-VM showed one on every such move on 3 October 2026. Found by the review of the installer's fixes and the sweep after
-it. [ServiceAccount.md](hmailserver/docs/ServiceAccount.md), "What an administrator's command writes".
+administrator who then runs one of them (CVE requested). `/GrantServiceAccess` also no longer leaves a Critical
+HM5028, "Check your database settings in hMailServer.ini", in the Application log when the administrator running it
+cannot open a SQL Server database reached with Windows authentication: the installer smoke VM showed one on every
+such move on 3 October 2026. Found by the review of the installer's fixes and the sweep after it.
+[ServiceAccount.md](hmailserver/docs/ServiceAccount.md), "What an administrator's command writes".
 
 With bounce processing or complaint processing on, or a mailing list the list manager runs (none is by default),
 reading an incoming delivery status notification (RFC 3464) or abuse feedback report (RFC 5965) could hold a delivery
@@ -627,7 +624,7 @@ leave at its front two bytes at a time, copying the rest of the part on each, so
 their number: 400,000 of them took eleven seconds, and the reader's 2 MB cap holds a million. A message shaped like a
 bounce to a local address or to a list's `-bounces` address, or like a feedback report to the complaint mailbox, is
 read this way without anyone opening it. The blank lines are now counted and cut off once. This is in every version
-that reads these reports, 6.3.4 and 6.3.5. What is read is as it was. Found by the project's own review.
+that reads these reports, 6.3.4 and 6.3.5. What is read is as it was. Found by the project's own review (CVE requested).
 
 A header field read as text - the Subject and From of the webmail's message list, the header keys of IMAP `SEARCH`,
 `SORT` and `THREAD`, a rule that tests a header, the spam tag put in front of a Subject, the abuse report reader -
@@ -640,7 +637,7 @@ IMAP, SMTP and POP3 ports, answering anybody. This is in every version from 6.0.
 unfolded in one pass, to the same result. The reading of a message's header from its file had the same shape at a
 larger scale: after each 4,000 bytes it searched all it had read for the header's end, some five seconds for a header
 of 20 MB, the default largest message, at each of the several reads of a message; it now searches only what each read
-adds. Found by the project's own review.
+adds. Found by the project's own review (CVE requested).
 
 A review of the whole server for the same shape - input a remote party controls, read in time quadratic in its size -
 found more of it, all fixed in one pass with the result unchanged, each proven against the previous code over generated
@@ -654,10 +651,10 @@ good. The parameter's start is now taken as the last `;` before its value. In ev
 removal was also quadratic in a Content-Disposition of many `filename*<n>` RFC 2231 continuations, now one pass.
 Decoding a header field holding many RFC 2047 encoded words of an encoding other than base64 or quoted-printable
 searched each to the end of the value, though such a word is copied as text and the search's result is never used
-(a 1.1 MB header took 101 seconds); it is now searched only for a word that is decoded. Deleting a header field by name
-- the spam classification removed on delivery, the list manager stripping a posting's fields, the external-sender and
-impersonation taggers - took the fields one at a time, each a scan of the header and a move of its tail, so a header of
-many fields of one name cost their square (80,000 took 18.6 seconds); they are removed in one pass. All in every
+(a 1.1 MB header took 101 seconds); it is now searched only for a word that is decoded. Deleting a header field by
+name - the spam classification removed on delivery, the list manager stripping a posting's fields, the external-sender
+and impersonation taggers - took the fields one at a time, each a scan of the header and a move of its tail, so a header
+of many fields of one name cost their square (80,000 took 18.6 seconds); they are removed in one pass. All in every
 version from 6.0.0 up to 6.3.5.
 
 Verifying a received message's DKIM or ARC signatures built the canonical header and chose the fields the signature's
@@ -717,8 +714,8 @@ project's own review.
    service - a scheduled VBScript, a PowerShell script, a tool of your own - that calls one of the eight creates
    `hMailServer.Application`, calls `Authenticate` with an account or the administrator, and uses that object's
    `Utilities`: a `Utilities` created on its own has no way to sign in. The Control Panel and the shipped
-   `DecryptBlowfish.vbs` already sign in. The type library changes help text only; no member or dispid is added,
-   removed or moved.
+   `DecryptBlowfish.vbs` already sign in. In `Utilities` the type library changes help text only; no member or
+   dispid of it is added, removed or moved.
 2. **The live update's trust is read from `hMailServer.ini` alone.** `UpdateSigningIdentity`,
    `UpdateSigningIssuer`, `UpdateSourceRepository`, `UpdateTrustRootsFile` and `UpdateLogPublicKeyFile` are read
    from the file's `[Settings]` section on every platform, and never from the database, where 6.3.4 and 6.3.5 kept
@@ -766,9 +763,9 @@ project's own review.
      in the message, not sorted.
    - The sender lists' URL entries are matched against the same host, an address in its own order: an entry for the
      name before an `@` no longer matches, and nor does an address entry written reversed (`1.2.0.192` for a link to
-     `192.0.2.1`). Write such an entry as the address itself. They are matched against every link of a message,
-     where only the first 16 hosts were, so a message with an entry's link after sixteen others is now held or
-     marked as the entry says.
+     `192.0.2.1`). Write such an entry as the address itself. They are matched against every link of a message
+     within the anti-spam size limit (item 21), where only the first 16 hosts were, so a message with an entry's link
+     after sixteen others is now held or marked as the entry says.
 5. **Backups leave out the live update's folder, and a destination inside the data directory works.** A backup no
    longer carries `Updates` - the installer or package waiting to be applied, the rollback image, the apply token
    and the last apply's outcome, most of the size of a backup taken before an apply - and a restore leaves this
@@ -844,8 +841,9 @@ project's own review.
       the server's administrator, and only from this computer. `GET /api/v1/update` adds `installedBy`
       (`service`, `administrator` or `elsewhere`), `installAdvice`, `serviceAccount`, `serverName` and
       `preparation`, and the Deck's Update page shows the sentence where its Install button stood.
-    - The checklist's `update_apply_by_administrator` and `HM7463` end "installed by an administrator with
-      Install update in the Control Panel on this server", where they said an administrator installs them.
+    - The checklist's `update_apply_by_administrator` ends "installed by an administrator with Install update in
+      the Control Panel on this server", and `HM7463` says that an administrator installs it with Install update in
+      the Control Panel on this server, where they said an administrator installs them.
       `HM7465` to `HM7469` are new, and only an administrator's install raises them; its outcome is an
       application-log line, `HM5480` when it did not succeed, and an audit event of object type `update` under
       the Windows account that approved it, interface `Windows`
@@ -882,7 +880,7 @@ project's own review.
       charset, which went out as `application/octet-stream`, goes out as `text/plain`. A contact's photo whose card
       declares a type that is not one of the list's pictures goes out as `application/octet-stream`, and the webmail
       no longer shows a photo in SVG.
-14. **Event scripts on Linux run in QuickJS 2026-06-04**, Fabrice Bellard's release, in place of 2025-04-26. It fixes
+15. **Event scripts on Linux run in QuickJS 2026-06-04**, Fabrice Bellard's release, in place of 2025-04-26. It fixes
     memory-safety flaws in the engine that a script can reach: CVE-2025-62494 (a type confusion when a string is
     added to a value whose conversion changes it, High), CVE-2025-62493 (a BigInt written as a string, Medium) and
     CVE-2025-62492 (`indexOf` and `lastIndexOf` of a typed array with a tiny negative start, Medium). It fixes two
@@ -898,7 +896,7 @@ project's own review.
     and `Error.isError` among them - and runs scripts faster (42% on bench-v8 over the release before it, by its
     author's measure). The objects the server gives a script, the time limit and the memory ceiling are unchanged.
     Windows' VBScript and JScript are not affected.
-15. **Three more web requests go through `HttpProxy`, the MTA-STS policy fetch reaches only public addresses, and on
+16. **Three more web requests go through `HttpProxy`, the MTA-STS policy fetch reaches only public addresses, and on
     Windows the listeners keep their ports to themselves.** The OAuth2 token request (`OutboundOAuth2TokenUrl`), the
     MTA-STS policy fetch and the ACME client now use the server's one HTTPS client (Operations, *on Linux, some of
     the server's network waits had no timeout*), so when `HttpProxy` is set they go through it, as the update check,
@@ -931,7 +929,7 @@ project's own review.
     in one address family (on 0.0.0.0 and again on 127.0.0.1, say), both of which still bind, and the ACME http-01
     responder, which still takes every address of its port that the REST listener or another web server does not
     hold.
-16. **A calendar message delivered by mail changes a stored event only from a sender the server verified.** A
+17. **A calendar message delivered by mail changes a stored event only from a sender the server verified.** A
     `CANCEL` is applied only from the organiser the stored event names, an updated `REQUEST` replaces the stored
     copy only from that organiser, and a `REPLY` sets only the answer of an attendee the event already lists who
     sent it - or whose delegate did, kept as `SENT-BY` in the organiser's copy. A sender at this server's own
@@ -952,7 +950,7 @@ project's own review.
     `From:` that is the organiser's address, and no organiser for a message sent through the send API; its own
     answers are recorded as its submission, so that an organiser's calendar on this server files them
     ([RoomsAndEquipment.md](hmailserver/docs/RoomsAndEquipment.md), "Who is asking").
-17. **A cancellation of occurrences takes those occurrences out of a guest's calendar and leaves the rest of the
+18. **A cancellation of occurrences takes those occurrences out of a guest's calendar and leaves the rest of the
     series.** A `CANCEL` whose every event carries a `RECURRENCE-ID` (RFC 5546 section 3.2.5), from the organiser
     the stored event names, takes those occurrences out of the guest's copy: each one's override is dropped and an
     `EXDATE` written on the series, and from an occurrence named with `RANGE=THISANDFUTURE` on the series ends, its
@@ -964,8 +962,8 @@ project's own review.
     `occurrences: true` - takes out those occurrences alone, where it removed the whole series
     ([Calendar.md](hmailserver/docs/Calendar.md), "Filed on delivery"). A room or a piece of equipment took
     occurrences out of a booking already.
-18. **The answer from an invitation's card replaces a copy of its UID that nobody verified, whatever organiser that
-    copy names.** A copy filed from an invitation whose organiser the server could not verify - marked, item 16 -
+19. **The answer from an invitation's card replaces a copy of its UID that nobody verified, whatever organiser that
+    copy names.** A copy filed from an invitation whose organiser the server could not verify - marked, item 17 -
     that names another organiser than the invitation no longer makes the reader's Accept, Maybe or Decline on the
     invitation's card fail with `422`: the answer replaces it with the invitation's event, marked as the card's
     answers mark what they write. A copy planted under the UID of an invitation before it arrived, naming somebody
@@ -974,16 +972,16 @@ project's own review.
     the owner of the UID; and a copy the server did not mark - the organiser's own, verified, one the reader or a
     phone put in, and every copy filed before 6.3.6 - still refuses an answer that names another organiser
     ([Calendar.md](hmailserver/docs/Calendar.md), "Who may change a stored event").
-19. **Five more web requests go through `HttpProxy`.** A sender's brand logo, a correspondent's OpenPGP key from
+20. **Five more web requests go through `HttpProxy`.** A sender's brand logo, a correspondent's OpenPGP key from
     their domain's Web Key Directory, a Web Push notification, a one-click unsubscribe and the post of an inbound
     webhook route held to public addresses - one that anybody but the server's administrator made - go through
     `HttpProxy` when it is set, where until 6.3.6 they went directly whatever it said, so that a server that
     reaches the web only through its proxy could make none of them. Each is still made only to a public address,
     judged by the addresses its host's name resolves to on this server, and the proxy is asked for a tunnel to one
-    of those addresses and never to the name, as for the MTA-STS policy fetch (item 15): a proxy that allows a
+    of those addresses and never to the name, as for the MTA-STS policy fetch (item 16): a proxy that allows a
     tunnel only to a name refuses it, and the request fails as one with no way out. A route the server's
     administrator made, which may reach this server's own network, still posts directly.
-20. **The sender lists' URL entries read a large message only as far as the anti-spam size limit.** A message
+21. **The sender lists' URL entries read a large message only as far as the anti-spam size limit.** A message
     larger than the limit past which the SURBL test and the other tests after `DATA` do not look at a message
     (`maximum_message_size_kb` of `/api/v1/settings/antispam`, COM `AntiSpam.MaximumMessageSize`, 1024 KB unless
     changed; 0 is the MIME parser's 80 MB) is judged by the links in the first part of its text and of its HTML,
@@ -991,7 +989,7 @@ project's own review.
     delivery thread for a 20 MB message. A block or allow entry for a link after the limit no longer decides such
     a message, and a link the limit cuts through is left out rather than read as the part of its host before the
     cut ([SenderListsAndDigests.md](hmailserver/docs/SenderListsAndDigests.md)).
-21. **An external account's *days to keep messages* means one thing for POP3 and IMAP, and the upgrade starts no
+22. **An external account's *days to keep messages* means one thing for POP3 and IMAP, and the upgrade starts no
     account deleting remote mail it was not deleting.** The setting has always meant, to the POP3 fetcher, the COM API
     and the `OnExternalAccountDownload` event: -1 deletes each message on the remote server as soon as it has been
     collected, 0 leaves every message there, and a number of days N deletes a message N days after it was collected.
@@ -1039,7 +1037,7 @@ project's own review.
     case failing against 6.3.5's fetcher), `FetchAccountTester` (the rule, the 6106 translation and a backup from
     before and after it), `BackupRestore`, the 6106 step's rows on PostgreSQL and MariaDB in
     `build/db-upgrade-gate.sh`, and the webmail's and the Deck's script tests.
-22. **The upgrade to schema 6107 finishes the greylisting key, and a greylisting race is never a pass** (work item
+23. **The upgrade to schema 6107 finishes the greylisting key, and a greylisting race is never a pass** (work item
     [#50](https://gitlab.com/hmailserver/hmailserver/-/work_items/50), the follow-up to GitHub discussion 281). Schema
     6072 left the triplets written before it without a key, to be found by their first 200 characters until they were
     matched once or expired - a second query for every new triplet for as long as one remained. The upgrade now gives
@@ -1056,7 +1054,7 @@ project's own review.
     present the same new triplet at once, the unique key refuses the second insert, which is read back and answered as
     the triplet that is there: deferred and counted while it is pending, let through once it has passed - never let
     through for the refusal ([Greylisting.md](hmailserver/docs/Greylisting.md), "The triplet key").
-23. **The Linux live update's helper takes the unit and the AppImage from its own command line.**
+24. **The Linux live update's helper takes the unit and the AppImage from its own command line.**
     `hmailserver-update` stops `hmailserver.service`, or the unit its `--unit` option names, and refuses a request
     whose `unit=` line names another. It takes an AppImage request only when its `--image` option names the image,
     which is then the program that verifies the new one, and refuses a request whose `image=` line names another
@@ -1073,7 +1071,7 @@ project's own review.
     of its own passes both itself. The update to 6.3.6 is applied by the helper of the version it replaces, and
     6.3.6's own applies the next one
     ([packaging/README.md](hmailserver/source/Server/platform/packaging/README.md), An AppImage).
-24. **Port 25 still takes AUTH, and the setup checklist says so** (GitLab work item #54). The schema step 6107 to
+25. **Port 25 still takes AUTH, and the setup checklist says so** (GitLab work item #54). The schema step 6107 to
     6108 gives every TCP/IP port an SMTP authentication and writes On into every row, so no listener of an upgraded
     server answers `AUTH` differently, and nobody is banned on the morning of the upgrade: clients that still sign in
     on 25 go on doing so. The setup checklist has a thirteenth item, *No password on port 25*
@@ -1085,7 +1083,7 @@ project's own review.
     taken before 6.3.6 restores every port On. The type library adds `TCPIPPort.SMTPAuthentication` (dispid 12). The
     error HM6099, a ban's range that could not be saved, no longer says the address reached the failed-logon limit,
     which a spam trap's or a null sender's ban never did.
-25. **COM: a message or fetch account a program creates itself answers with the credential of an `Application` the
+26. **COM: a message or fetch account a program creates itself answers with the credential of an `Application` the
     program signed in on, and is refused outside an event script when there is none; a signed-in account queues mail
     only as itself.** Most scripts need no change: one that creates `hMailServer.Application`, calls `Authenticate` and
     then makes its message with `CreateObject("hMailServer.Message")` works as before, as long as it keeps the
@@ -1108,7 +1106,7 @@ project's own review.
     caller as it did. The new `Application.CreateMessage()` gives a program a message that carries the credential of
     the `Application` it is called on; a .NET program built against an earlier type library reaches it once rebuilt
     against 6.3.6's, or late-bound ([Roles.md](hmailserver/docs/Roles.md)).
-26. **The packaging Compose file's database is PostgreSQL 18.** `docker-compose.yml` beside the Dockerfile runs
+27. **The packaging Compose file's database is PostgreSQL 18.** `docker-compose.yml` beside the Dockerfile runs
     `postgres:18` with its `hm-db` volume at `/var/lib/postgresql`, where it ran `postgres:16` with the volume at
     `/var/lib/postgresql/data`. PostgreSQL 18 does not open 16's data: a deployment made from an earlier copy of the
     file that takes this one finds `db` stopping at each start with "Error: in 18+, these Docker images are
@@ -1116,14 +1114,14 @@ project's own review.
     started, 16's data unchanged, until the database is moved once - a dump taken on 16 and loaded into 18, four steps with a way
     back ([ContainerImage.md](hmailserver/docs/ContainerImage.md), "PostgreSQL 16 to 18, in the Compose file").
     A deployment that keeps its own copy of the file keeps PostgreSQL 16, on which 6.3.6 runs as before.
-27. **DANE-TA records authenticate a recipient's MX host, and a validated set of none this server can use requires
+28. **DANE-TA records authenticate a recipient's MX host, and a validated set of none this server can use requires
     TLS.** A DNSSEC-validated TLSA record of usage DANE-TA (2) - selector 0 or 1, matching type 0, 1 or 2 - is now
     used, through OpenSSL's own DANE support: the host's certificate must chain to the anchor the record names (which
     the host sends in its chain when the record holds a digest), name the MX host and be in date. A DANE-EE (3) record
     is matched as before, against the certificate's key or the certificate alone. A delivery to a host that publishes
     only DANE-TA records, and whose certificate does not meet them, is now deferred where until 6.3.6 it went ahead as
     if no record were published; and such a host that does not offer `STARTTLS` is deferred, as a host with DANE-EE
-    records now is too (item 30). A validated set none of whose records is usable here - PKIX-TA (0) and PKIX-EE (1),
+    records now is too (item 31). A validated set none of whose records is usable here - PKIX-TA (0) and PKIX-EE (1),
     which SMTP does not use, and records of values or lengths no record has - requires TLS to that host without
     judging its certificate: a host that does not offer `STARTTLS`, or whose handshake fails, is deferred, never
     delivered to in the clear, and TLS reports (RFC 8460) count the host under the policy type `tlsa`. An MTA-STS
@@ -1132,13 +1130,13 @@ project's own review.
     `VerifyRemoteSslCertificate` on: there the certificate of a host with only unusable records must verify, and a
     delivery to one whose certificate does not is deferred. Error 5510 is logged when a connection's records could not
     be given to OpenSSL; that delivery is deferred rather than made without them.
-28. **A ManageSieve connection is held to deadlines.** A command line must arrive whole within 30 seconds of the
+29. **A ManageSieve connection is held to deadlines.** A command line must arrive whole within 30 seconds of the
     server waiting for it, which is also how long a session may sit idle between commands, as before; the TLS
     handshake after `STARTTLS` has 30 seconds; a literal (a script, a SASL response) and the writing of each response
     have 300 seconds; and a connection must complete `AUTHENTICATE` within 60 seconds of being accepted, or of
     `UNAUTHENTICATE`. A connection that runs past one is closed, with a debug log line naming the client. The figures
     are constants, far above what a client needs, and there is no setting for them.
-29. **The URI blocklists are asked about every domain a message links to, and a message that links to too many is
+30. **The URI blocklists are asked about every domain a message links to, and a message that links to too many is
     scored for it.** The SURBL test reads every link of the text part and of the HTML part of a message within the
     anti-spam size limit, takes the hosts of one registrable domain (by the Public Suffix List) as one domain, and asks
     each active list about every registrable domain and address the links name - and, for a host under a shared-hosting
@@ -1157,7 +1155,7 @@ project's own review.
     with many links makes up to 256 DNS queries per active list, where it was 16, at most sixteen of them at once;
     however many messages are tested at once, their URI lists' lookups take at most 64 threads beyond the ones testing
     them.
-30. **A host that the destination's TLSA records or MTA-STS policy require TLS of, and that offers no `STARTTLS`, is
+31. **A host that the destination's TLSA records or MTA-STS policy require TLS of, and that offers no `STARTTLS`, is
     deferred; and TLS reports count a session by what became of its TLS.** Such a host was refused with the permanent
     500 5.7.0 "Server does not support STARTTLS.", and the message bounced at the first attempt; RFC 7672 section 2.2
     and RFC 8461 section 5 ask for the delivery to be retried, as it already was for TLSA records none of which is
@@ -1175,7 +1173,7 @@ project's own review.
     certificate's check failed, and not counted when it ended before TLS was asked for; each is a debug log line. This
     holds for every destination reported to, opportunistic deliveries included, which therefore report the hosts that
     offered no `STARTTLS`.
-31. **An account, or the administrator, holds at most fifty REST browser sessions, and a full table takes from whoever
+32. **An account, or the administrator, holds at most fifty REST browser sessions, and a full table takes from whoever
     holds the most.** A fifty-first sign-in of the same account - webmail tabs, bearer sessions of a second account,
     a script that signs in and never signs out - ends that account's least recently used session, where it used to
     end the least recently used session on the server; a support session counts against the credential that opened
@@ -1184,7 +1182,7 @@ project's own review.
     it was answered 503. The administrator's sessions are held by the administrator's own fifty alone: they do not
     count towards the thousand and nobody else's sign-in takes one
     ([DevicesAndSessions.md](hmailserver/docs/DevicesAndSessions.md), How many sessions, and who makes room).
-32. **A pending single sign-on or passkey sign-in is carried by the browser, sealed, and is good once.** An OpenID
+33. **A pending single sign-on or passkey sign-in is carried by the browser, sealed, and is good once.** An OpenID
     Connect start, a SAML start and a passkey sign-in's challenge leave nothing on the server: the `hmoidc` cookie
     holds the sign-in's state, PKCE verifier, nonce, page and end, `hmsaml` its request's ID, and `hmpasskey` its
     challenge and end, each sealed with AES-256-GCM under a key the server process makes for itself, holds in memory
@@ -1198,7 +1196,7 @@ project's own review.
     ([PasskeysAndSingleSignOn.md](hmailserver/docs/PasskeysAndSingleSignOn.md), What a stranger can make the server
     hold). A passkey registration's challenge counts against the credential that asked for it, fifty a credential,
     where the table of a thousand dropped its oldest.
-33. **A `[Settings]` key's audit row is put back by the administrator password alone, and the breach check's test
+34. **A `[Settings]` key's audit row is put back by the administrator password alone, and the breach check's test
     reaches public addresses only for anybody else.** `POST /api/v1/audit/{id}/revert` answers 403 to an account
     holding a role for a row of a `[Settings]` key, with the sentence `/api/v1/settings/ini` refuses it with; a
     database setting's row is the role's as before. `POST /api/v1/settings/breach-check/test` asked by an API key or
@@ -1206,17 +1204,20 @@ project's own review.
     one is set, and answers `reachable: false` with the reason for one on the server's own network; the
     administrator password, the Control Panel and COM test a mirror there as before
     ([Roles.md](hmailserver/docs/Roles.md), What manage_settings reaches).
-34. **The administrator password's delay counts an IPv6 address by its `/64`, and covers a passkey's registration.**
-    Wrong administrator passwords from any address of one IPv6 `/64` share one growing delay, and the password asked
-    again when the administrator registers a passkey from a session is held to the delay too: a guess inside it is
-    answered 429 with `Retry-After` before it is looked at. When the auto-ban's limit is reached at the REST
+35. **A wrong administrator password over REST costs a growing delay, which an IPv6 `/64` shares and a passkey's
+    registration is held to.** After a wrong administrator password the next from the same source is looked at only
+    once a delay has passed, growing to ten seconds at most and cleared by the right password, on every route that
+    takes the password and from the loopback address too (Security, above); a guess inside it is answered 429 with
+    `Retry-After` before it is looked at. Wrong administrator passwords from any address of one IPv6 `/64` share one
+    delay, and the password asked again when the administrator registers a passkey from a session is held to the
+    delay too. When the auto-ban's limit is reached at the REST
     listener, an IPv6 address's whole `/64` is refused there for the five minutes, and the application log names the
     `/64`; the auto-ban's IP range stays the one address. Everybody on one `/64` - an office network, conference Wi-Fi,
     devices tethered to one phone - therefore shares the delay and the refusal, as everybody behind one IPv4 NAT
     address always has. An address that carries an IPv4 client's own - `::ffff:a.b.c.d`, the NAT64 and SIIT
     well-known prefix `64:ff9b::/96`, and Teredo's `2001::/32` - is counted and refused as that IPv4 address instead
     ([DevicesAndSessions.md](hmailserver/docs/DevicesAndSessions.md), The administrator password's delay).
-35. **DANE: an MX or TLSA lookup that cannot tell defers the delivery, and the validated MX records choose the
+36. **DANE: an MX or TLSA lookup that cannot tell defers the delivery, and the validated MX records choose the
     hosts.** With `DaneEnforcementEnabled` and `DnssecValidationEnabled` on, as they are by default, a recipient
     domain's MX lookup and its hosts' TLSA lookups are made with DNSSEC as before, and an answer without signatures,
     without records, or not at all - no answer, `SERVFAIL`, a reply that does not parse - is read as unsigned only
@@ -1244,7 +1245,7 @@ project's own review.
     whose DNS servers are IPv6 alone had none it could ask, which would have made it such a server too, and on Linux,
     where every DNS lookup of the server goes the same way, had no DNS at all. TXT lookups (SPF, DKIM, DMARC) are read
     as before. `Diagnostics.DnssecChainStatus` answers 3 for an indeterminate MX or TLSA lookup.
-36. **ManageSieve serves its connections side by side, one at a time per address before signing in, and bounds a
+37. **ManageSieve serves its connections side by side, one at a time per address before signing in, and bounds a
     signed-in session.** Up to 16 connections are served at once, and up to 64 wait for a thread; before it has signed
     in an address - an IPv6 one by its `/64`, an IPv4 client of NAT64 or Teredo by its own IPv4 address - has one
     connection served at a time, its others wait their turn - four at most, a fifth refused with `BYE (TRYLATER)` -
@@ -1262,7 +1263,7 @@ project's own review.
     keeps a session open to edit in - which the 30 seconds between commands already cut - signs in again. The figures
     are constants.
 
-37. **The webmail keeps a signer's S/MIME certificate only when its chain is trusted, under the From address, and a
+38. **The webmail keeps a signer's S/MIME certificate only when its chain is trusted, under the From address, and a
     different one for the same address only when asked.** A signed message whose certificate the server does not trust
     no longer leaves the account a certificate to encrypt replies with; the message says it was not kept (unless it is
     one the account holds already, imported on the Security page), and a correspondent whose certificate is
@@ -1274,7 +1275,7 @@ project's own review.
     the upgrade stay; review them on the Security page ([SmimeAuthority.md](hmailserver/docs/SmimeAuthority.md)).
     Tests: the webmail's script test, eight checks that fail against 6.3.5's page; the five new texts are in all 23
     catalogues.
-38. **A message's HTML in the webmail shows its embedded images until 24 MB of them are written.** The route
+39. **A message's HTML in the webmail shows its embedded images until 24 MB of them are written.** The route
     `GET /api/v1/me/messages/{id}/html` writes at most 24 MB of `data:` URLs in all, every reference to an image
     counted, where it wrote one for every reference; a reference past that stays the `cid:` URL it was and shows no
     image. The 64 images, 4 MB each and 12 MB together, are as they were, so a message that showed each of its images
@@ -1282,14 +1283,14 @@ project's own review.
     ampersand or backslash that ends it, where any text that began with `cid:` and a part's Content-ID was replaced,
     the rest of a longer id left behind ([Signatures.md](hmailserver/docs/Signatures.md), In the webmail). Tests:
     `RestApiInlineImageBudget`, both failing against 6.3.5's server.
-39. **The webmail refuses an OpenPGP message that inflates past 32 MB.** Each compressed layer of a message the
+40. **The webmail refuses an OpenPGP message that inflates past 32 MB.** Each compressed layer of a message the
     webmail opens is inflated to 32 MB at most, the size of message the server reads whole; a larger one is refused
     with *the message is larger than 32 MB once decompressed, more than this page opens; open it in a mail program*,
     where the tab inflated it whole ([OpenPGP.md](hmailserver/docs/OpenPGP.md)). The compressed data goes to the
     browser's decompressor 16 KB at a time, since Chromium's inflates all of what it is given before the page reads
     any. Test: `build/check-portal-openpgp.js`, four checks that fail against 6.3.5's module, one of them with a
     decompressor that inflates the way Chromium's does.
-40. **What the auto-ban put below the server is lifted after a stop too.** A ban that ended while the service was
+41. **What the auto-ban put below the server is lifted after a stop too.** A ban that ended while the service was
     stopped, or an `unban` a hook still owed when it stopped, stayed blocked below the server for good with the Linux
     hook's iptables variant or with `AutoBanCommand`: what they had been told lived in the server's memory only. At
     every start and reinitialise, before the first listener opens, the packaged Linux hook is now told `reset` before
@@ -1310,7 +1311,7 @@ project's own review.
     until a later pass put them back. A command of your own is still best made to let a block lapse after the
     `<minutes>` it is handed ([AutoBan.md](hmailserver/docs/AutoBan.md), Below the server across a stop and a start).
 
-41. **An IP address in text is read the same way on Windows as on Linux.** Wherever the server reads an address from
+42. **An IP address in text is read the same way on Windows as on Linux.** Wherever the server reads an address from
     text - an IP range's bounds, an incoming relay, a listener's address, the bind address of the REST and
     web-services listeners and of the SNMP agent, `AutoBanNeverBan`, XCLIENT's `ADDR` and the PROXY protocol's
     addresses, a route's, a callout's or a URL's host, and COM's `Utilities.IsValidIPAddress` - an IPv4 address is
@@ -1337,8 +1338,9 @@ project's own review.
     servers; now the Windows resolver too reports it invalid (HM4401) and asks the system's servers. Measured on
     2 October 2026 against Windows 11's `WSAStringToAddressW` and glibc 2.43's `inet_pton`
     ([SmtpPolicy.md](hmailserver/docs/SmtpPolicy.md)).
-42. **`hMailServer.exe`'s commands write nothing to the error log, and say it all on their own output.** Every
-    command line but `RunAsService`, `/Debug` and `/Test` - `/Register`, `/Unregister`, `/RegisterTypeLib`,
+43. **`hMailServer.exe`'s commands write nothing to the error log and say it all on their own output, and on Linux a
+    store command run as root runs as the service's account.** Every command line but `RunAsService`, `/Debug` and
+    `/Test` - `/Register`, `/Unregister`, `/RegisterTypeLib`,
     `--upgrade-database`, `--apply-new-install-defaults`, `--apply-profile`, the stored-secrets, store and object-store
     commands and the rest - leaves the error log, the Application log and the `OnError` event script alone and arms no
     crash oracle (Security, above); what it did and why it failed is on its standard output and standard error, where
@@ -1373,7 +1375,7 @@ project's own review.
     `--create-database`, `--upgrade-database` and the rest) writes nothing to the log directory - what it did is on its own
     output and a report goes to standard error - as the Windows commands do; and `--create-database` makes its
     `.new-installation` marker without following a link of that name.
-43. **`/GrantServiceAccess` that cannot read the database ends in 7.** It names the certificate and key files, the
+44. **`/GrantServiceAccess` that cannot read the database ends in 7.** It names the certificate and key files, the
     backup folder and the PST import folder from the database, to say which the service would not reach once moved;
     when the account running it could not open the database - SQL Server with Windows authentication, where LocalSystem
     is a SQL Server administrator and that person is not - it said so in a note and ended in 0, and the installer,
@@ -1399,18 +1401,18 @@ project's own review.
   `deb-ubuntu26.04-arm64-sbom` and `rpm-fedora44-aarch64-sbom` jobs make the SBOM from that in the CI image
   (`build/ci/packages/package-sbom.sh`; `build/asset-sbom.py make --dpkg-list` or `--rpm-list`). In a cross
   build the C and C++ libraries are named as the cross toolchain's, and every other library as the target
-  architecture's own `-dev` package, never the build container's. `collect` holds each AArch64 package to the
-  sums its build job wrote, and `release-publish` checks that the feed gives Debian and RPM servers on AArch64
-  their file and bundle, as it does for x86-64. The x86-64 files, their SBOMs and `linux-build`'s two lines of
-  the sums are unchanged; `linux-repro` still compares the x86-64 packages alone, and the AArch64 ones are
-  built once and not compared (ReproducibleBuilds.md). `build/check-release-chain.py` now holds `release` to
-  those six package jobs, none of which may be allowed to fail or wait for a press in a tag's pipeline, and
-  `collect` to where they leave the files; the update feed's `/download/hmailserver_arm64.deb` and
-  `/download/hmailserver.aarch64.rpm` follow the first stable release that carries them, and its
-  `--serve-check` fails a stable release that carries any server's file without its bundle. The generic arm64
-  `.deb` goes to the apt suite `ubuntu26.04`, as the amd64 one does; the generic `.rpm`s still go to no dnf
-  repository, and the pages job no longer calls the aarch64 one built on Ubuntu (ContinuousIntegration.md,
-  "What a release carries"; PackagesDeb.md; PackagesRpm.md).
+  architecture's own `-dev` package, never the build container's. The `release` job's `collect` step
+  (`build/ci/release-chain.py collect`) holds each AArch64 package to the sums its build job wrote, and
+  `release-publish` checks that the feed gives Debian and RPM servers on AArch64 their file and bundle, as it does for
+  x86-64. The x86-64 files, their SBOMs and `linux-build`'s two lines of the sums are unchanged; `linux-repro` still
+  compares the x86-64 packages alone, and the AArch64 ones are built once and not compared (ReproducibleBuilds.md).
+  `build/check-release-chain.py` now holds `release` to those six package jobs, none of which may be allowed to fail or
+  wait for a press in a tag's pipeline, and `collect` to where they leave the files; the update feed's
+  `/download/hmailserver_arm64.deb` and `/download/hmailserver.aarch64.rpm` follow the first stable release that carries
+  them, and its `--serve-check` fails a stable release that carries any server's file without its bundle. The generic
+  arm64 `.deb` goes to the apt suite `ubuntu26.04`, as the amd64 one does; the generic `.rpm`s still go to no dnf
+  repository, and the pages job no longer calls the aarch64 one built on Ubuntu (ContinuousIntegration.md, "What a
+  release carries"; PackagesDeb.md; PackagesRpm.md).
 
 - **The container image is pushed from the release's own pipeline, by hand, and started before it is left there**
   (6.3.6's own pipeline is the first to run these jobs, which no branch's pipeline has). The image jobs are in
@@ -1618,7 +1620,7 @@ project's own review.
   `hmctl` is a package of its own that depends on `python3`, and the server's `--version` and the tester programs run
   in the build, and neither links with LTO. The Debian package has a DEP-5 copyright over every third-party notice; a
   watch file on GitLab's releases API; and an autopkgtest that starts the server against a throwaway PostgreSQL and
-  asks SMTP and IMAP for their greetings. The spec declares `Provides: bundled(quickjs) = 2025.04.26`. New CI jobs
+  asks SMTP and IMAP for their greetings. The spec declares `Provides: bundled(quickjs) = 2026.06.04`. New CI jobs
   (`.gitlab/ci/source-packages.yml`, `batch*` and `master` only) build both for Debian 13, Ubuntu 24.04 and 26.04,
   Fedora 44, EL 10, Leap 16 and Tumbleweed with the network refused, fail on a lintian or rpmlint error, and install
   and start the result in a clean container. On the laptop the spec built on Fedora 44 and EL 10 and each server
@@ -1711,8 +1713,7 @@ project's own review.
   `COleDateTime` in its helpers, compiled into both servers: a file no distribution's archive could take.
   `Common/Util/DateTime.cpp` replaces it, written from the calendar and the OLE Automation date's definition to the
   old class's behaviour. A differential test held the two to the same answers bit for bit (a NaN's sign aside) under
-  MSVC, GCC 15 and clang 21 - every day of the years 0 to 9999, every second of 24 days and some 57 million other
-  operations a run, about 84 million comparisons in all - and, on Linux, ran the server's own MIME, IMAP and
+  MSVC, GCC 15 and clang 21, about 84 million comparisons a run, and, on Linux, ran the server's own MIME, IMAP and
   system-date parsers over both; a second check held the new class to Python's calendar on every day of the years 1
   to 9999 and to the C library's local time in twelve time zones. Nothing an administrator or a client sees changes,
   except that a date made from a NaN (which only a COM client could pass) now reads as no date instead of undefined
@@ -2011,10 +2012,9 @@ project's own review.
   and the text is read once for the message against the entries of every scope, however many recipients have one:
   each link is looked up by the names an entry for it could have, so the reading costs one pass over the text and no
   more for more entries, and it keeps one record for each entry host a link is under, whatever the message holds. A
-  recipient reached after the list was read again from the database has the links read again. There is no cap on
-  the text: a limit on what is read, like the anti-spam size limit that keeps large messages from the SURBL test,
-  would let a message put the blocked link after it
-  ([SenderListsAndDigests.md](hmailserver/docs/SenderListsAndDigests.md)).
+  recipient reached after the list was read again from the database has the links read again. A message larger than
+  the anti-spam size limit is read only as far as that limit into its text and into its HTML, so a link after it is
+  not matched (What changes on upgrade, item 21; [SenderListsAndDigests.md](hmailserver/docs/SenderListsAndDigests.md)).
 - **A link to an address is asked about reversed, and only so.** It was asked about in its own order too, which is
   the address the other way round: a link to `192.0.2.1` was tagged when a list had `1.2.0.192`, and a sender
   list's URL entry for `1.2.0.192` blocked or allowed it.
@@ -2102,7 +2102,10 @@ project's own review.
   Every Copy button now writes the clipboard the same way: a program that reads the clipboard the moment it changes
   (Windows' clipboard history, a remote-desktop client) no longer makes a copy fail after a second's freeze (a chart's
   Copy then showed no confirmation, and the new API key's and app password's Copy an error), and text copied just
-  before the Control Panel is closed still pastes after it has gone.
+  before the Control Panel is closed still pastes after it has gone. Text copied from the help pane - by Ctrl+C, the
+  menu's Copy or a selection dragged out - is plain text, written the same way as every other Copy, where it put RTF
+  and XAML on the clipboard beside the text, in the theme's colours; and its right-click menu is Copy / Select all in
+  the Control Panel's language, where it was the document viewer's, in English (measured in German and Swedish).
 - **Where the keyboard is shows in one violet, in the Control Panel, the Control Deck and the webmail.** A text field
   that has the keyboard - clicked or tabbed into alike - takes a focus colour for its border and a soft glow of it
   outside, the look of Firefox's address bar: in the Control Panel every text box, password box, number box, combo box
@@ -2127,14 +2130,7 @@ project's own review.
   and dark), and `build/check-portal-script.py` refuses a control reset with `all: unset` that is given a width of
   100% without saying `box-sizing: border-box` again. The Deck's sign-in card and the password-protected message's
   page were not affected.
-- **Fixed: two copies of work item 48 that were not yet the Control Panel's own.** Text copied from the help pane
-  put RTF and XAML on the clipboard beside the text, in the theme's colours, and its right-click menu was the
-  document viewer's, in English (measured in German and Swedish); Ctrl+C, the menu's Copy and a selection dragged
-  out now carry plain text, written the same way as every other Copy, and the menu is Copy / Select all in the
-  Control Panel's language. A right-click on a result of the Ctrl+K search, for its Copy, left the keyboard on the
-  result rather than in the search box, so typing reached nothing until the box was clicked again; the search box
-  now keeps the keyboard, and Copy still copies the result that was right-clicked.
-- **Fixed: words of the Control Panel that stayed English, or lost a space, in its sixteen other languages.** The
+- **Fixed: words of the Control Panel that stayed English, or lost a space, in its seventeen other languages.** The
   app password's "Copied.", a list editor's "Deleted.", directory synchronisation's "Applying...", the "in" before
   each page's place in the Ctrl+K search's results, a dashboard chart's time axis ("last 3 minutes") and what its
   legend says of each line to a screen reader and in a tool tip, the LDAP page's "Could not write" and the anti-virus
@@ -2253,7 +2249,7 @@ project's own review.
   `hmctl`'s `VERSION` is not `Version.h`'s, with a `--self-test` case the check as it was passed.
 - **Fixed: the Control Panel's API keys page took a source restriction the server cannot read.** It checked each
   address with .NET's `IPAddress.TryParse`, which reads `10.1`, `010.0.0.1` (octal, as 8.0.0.1) and `[::1]` as
-  addresses; the server does not, on Windows or Linux, since 6.3.6 (What changes on upgrade, item 41), and refuses a
+  addresses; the server does not, on Windows or Linux, since 6.3.6 (What changes on upgrade, item 42), and refuses a
   key whose restriction it cannot read from every address. The page reads an address as the server does now
   (`Services/ServerAddressText.cs`, the server's `IPAddress::Parse` line for line) and refuses such a restriction
   with the sentence it gives any other.
@@ -2278,15 +2274,15 @@ project's own review.
   ManageSieve and metrics listeners set their socket timeouts in the form Windows takes, which Linux refuses, and the
   three HTTPS requests among them read with calls that on Linux wait without a timeout in any case. So on Linux a
   wait on a peer that stopped answering lasted for as long as the connection stayed open. This was so in every
-  release with Linux packages, 6.3.0 to 6.3.5; Windows honoured the timeouts, each of which bounded one read. The
-  three HTTPS requests now go through the server's one HTTPS client, whose deadline bounds each request whole on
-  both platforms - 15 seconds for the MTA-STS policy, 20 for the token, 30 for an ACME request - and the others
-  take their timeouts in the form each platform takes: 5 seconds for the TLSA query, the http-01 responder and the
-  metrics listener, 30 for ManageSieve. What this changes besides is in What changes on upgrade, item 15. A new
-  tester program the Linux build runs, `network-deadline-tests`, holds the token and ACME requests, the TLSA query
-  and the http-01 responder to their deadlines against a peer on 127.0.0.1 that never answers, and the policy fetch
-  to its own through a proxy of its own that never answers, and fails against the code as it was; `HealthProbes`,
-  `ManageSieve` and `OutboundXOAuth2` in the regression suite have a case each.
+  release with Linux packages, 6.3.0 to 6.3.5 (CVE requested); Windows honoured the timeouts, each of which bounded one
+  read. The three HTTPS requests now go through the server's one HTTPS client, whose deadline bounds each request whole
+  on both platforms - 15 seconds for the MTA-STS policy, 20 for the token, 30 for an ACME request - and the others take
+  their timeouts in the form each platform takes: 5 seconds for the TLSA query, the http-01 responder and the metrics
+  listener, 30 for ManageSieve. What this changes besides is in What changes on upgrade, item 16. A new tester program
+  the Linux build runs, `network-deadline-tests`, holds the token and ACME requests, the TLSA query and the http-01
+  responder to their deadlines against a peer on 127.0.0.1 that never answers, and the policy fetch to its own through a
+  proxy of its own that never answers, and fails against the code as it was; `HealthProbes`, `ManageSieve` and
+  `OutboundXOAuth2` in the regression suite have a case each.
 
 - **The ACME client reads a header that comes last.** `AcmeClient` looked a response header up in the block cut
   at the blank line and then wanted a line break after its value, so a `Replay-Nonce` or `Location` that a CA sent
@@ -2312,29 +2308,6 @@ project's own review.
   ContinuousIntegration.md's `cosign verify` example and SECURITY.md's `cosign verify-attestation` example, and
   `renovate.json`, which also said the registry was not switched on - now name the group's address; the Compose file
   and the chart pull from it since the move. Nothing the pipeline does changes.
-
-- **The documents say what the pipelines have run.** `batch41`'s pipelines of 27 September 2026 ran the package jobs
-  for the first time, and [PackagesDeb.md](hmailserver/docs/PackagesDeb.md),
-  [PackagesRpm.md](hmailserver/docs/PackagesRpm.md), [PackagesAppImage.md](hmailserver/docs/PackagesAppImage.md) and
-  [PackagesWindows.md](hmailserver/docs/PackagesWindows.md) now say which, job by job, where they said no job had
-  run: every `.deb` build job passed in pipelines 2886955494 and 2887115157, and every `.rpm` build job in
-  2887115157; no install job had started in any pipeline, no AppImage job had been started, and
-  `windows-packages-x64` built the unsigned x64 installer in 2887115157.
-  [ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md) no longer says no GitLab job has run, says
-  the GitHub workflows stayed unchanged from `faca023d4` until `6593259e0` removed them, and gives the registry's
-  cleanup policy as the API does: it kept two of the five patterns the document listed, and the maintainers added the
-  other three through the API on 28 September 2026, before the policy is ever switched on; it and README.md say that the fuzz schedule and Renovate's schedule and token
-  exist since 27 September. README.md no longer says the project has no ARM machine to build the AArch64 packages on
-  (the pipeline cross-compiles them), `build/ci/release-chain.py` no longer says the pipeline does not build them,
-  and Roadmap2's Windows on ARM row names the CI job it said there was not.
-  [PackageManagers.md](hmailserver/docs/PackageManagers.md) no longer says the GitHub workflow built the manifests
-  for the releases up to 6.3.3 - it arrived after the `v6.3.3` tag, and no release ran it - nor that the AppImage is
-  attached to each release, nor that the Chocolatey identifier `hmailserver` is free: it holds upstream's
-  hMailServer 5.6.8.2574, unlisted, and publishing under it needs the project to become one of its maintainers; its
-  table no longer says the workflow ran on every release, and its walk for the first Chocolatey push says the push
-  waits for that. The documents that sent a reader to `6399e08a5` for the removed GitHub workflows now give
-  `faca023d4`, the same commit as `master`'s history holds it: `6399e08a5` is its copy from before its branch was
-  rebased, which `master`'s history does not hold.
 
 - **`HM_DB_WAIT_SECONDS`** (0 to 999999, default 0): the image's entrypoint waits for the `[Database]` server to
   accept a TCP connection before opening it, and does not start (exit 69) when it has not. The entrypoint reads the
@@ -2564,11 +2537,15 @@ project's own review.
   ended with no outcome written has the drain left at once, HM7151 naming the unit and its exit status. Since
   6.3.4, which brought the drain. `update-feed-tests` holds the reading of systemd's answer to its cases.
 - **Fixed: a COM look-up that found nothing left an object behind.** Asking a COM collection for an index, id or name
-  it does not hold - `Languages.Item`, `Domains.ItemByName`, `Accounts.ItemByAddress` and 62 other look-ups,
-  `IMAPFolders.Add` when the name was taken or the folder could not be saved, and `Application.BackupManager` when no
-  backup manager was available - made the object it would have answered with before looking, and kept it, never
-  released, when the answer was no. Each now looks first. `Recipients.Item` and `DiagnosticResults.Item` also refuse
-  a negative index, which read outside their list.
+  it does not hold - `Languages.Item`, `Domains.ItemByName`, `Accounts.ItemByAddress` and 78 other look-ups, among
+  them `Aliases.ItemByDBID` and `ItemByName`, `DistributionListRecipients.Item` and `ItemByDBID`,
+  `IMAPFolderPermissions.ItemByDBID` and `ItemByName`, `IncomingRelays.Item`, `ItemByDBID` and `ItemByName`,
+  `Messages.Item` and `ItemByDBID`, `RouteAddresses.ItemByDBID`, `Routes.Item`, and `SecurityRanges.Item`,
+  `ItemByDBID` and `ItemByName`; `IMAPFolders.Add` when the name was taken or the folder could not be saved; and
+  `Application.BackupManager` when no backup manager was available - made the object it would have answered with
+  before looking, and kept it, never released, when the answer was no. Each now looks first, and a sweep of every COM
+  method that makes an object, for a return that neither hands it over nor releases it, finds none left.
+  `Recipients.Item` and `DiagnosticResults.Item` also refuse a negative index, which read outside their list.
 - **The legacy Blowfish scheme of stored secrets is the project's own code.** `Common/Util/LegacyBlowfish.cpp`,
   written from Bruce Schneier's published description of the cipher, replaces `BlowFish.cpp`/`.h`/`.h2` (Schneier's
   reference code made a C++ class by Jim Conger, whose files stated no licence, which neither Debian nor Fedora
@@ -2665,7 +2642,8 @@ project's own review.
   version moved, and, for a database upgrade that stopped part-way, to finish it with DBSetupQuick or restore the
   backup the update took (`UpdateBackupBeforeApply`), naming where from a note the service writes, which the
   elevated Updater reads only as a plain file with one name; the service reports it as `HM5481`, and the
-  Control Panel says it in its 17 languages ("its database step changed the database, or may have"), its sign-in
+  Control Panel says it in English and its seventeen other languages ("its database step changed the database, or
+  may have"), its sign-in
   banner cut at the first sentence in Japanese and Chinese too; its four texts that promised the previous version back
   whenever the new one did not come up now add "unless the new version has already changed the database". Run by the
   Updater with a version to put back - which
@@ -2710,11 +2688,11 @@ project's own review.
   A version that cannot be read before the install leaves nothing to hold the database to, and nothing is put back.
   The server's own HM5481 sentence now says the database step changed the database "or may have", on both platforms,
   and `hmailserver-update check` says whether the version can be read. The update to 6.3.6 is made by 6.3.5's helper,
-  so the rule holds from the update after it. Tested by `build/test-hmailserver-update.sh` (eleven cases more: a
-  version the package's schema step moved all the way and part-way, one a new AppImage's start moved, one that did
-  not move, one that cannot be read after the install - short of what the new version needs, and at it - and one that
-  cannot be read before, with and without a rollback image, the backup named and one with a control character left
-  out, a unit user that is no user name; every one fails on the helper before this change, 32 of 276 checks), by
+  so the rule holds from the update after it. Tested by `build/test-hmailserver-update.sh` (new cases: a version the
+  package's schema step moved all the way and part-way, one a new AppImage's start moved, one that did not move, one
+  that cannot be read after the install - short of what the new version needs, and at it - and one that cannot be
+  read before, with and without a rollback image, the backup named and one with a control character left out, a unit
+  user that is no user name; the helper before this change fails 32 of the script's 276 checks), by
   `build/db-upgrade-gate.sh`'s `--schema-version` on PostgreSQL and MySQL before and after the real chain from 6029,
   with no database to reach and with none configured, and end to end on the lab VM, in containers with PostgreSQL 18,
   this tree's `.deb` and a 6.3.7 made of it whose server needs schema 6110: a 6.3.7 whose post-install step moved the
@@ -2747,32 +2725,23 @@ project's own review.
   the transaction its greylisting rewrite would need in Compact's temporary file; the cost is the earlier steps'
   rollback, so a failure from 6107 on leaves 6106, which the installer reads as changed (exit code 11). The method is
   now `SplitsAtLongPrerequisites`, and nothing it does has changed.
-- **The administrator's install refuses an installer whose certificates' revocation could not be checked, as it
-  said it did.** Windows' Authenticode check takes a revocation server that does not answer as good; the
-  elevated stage now reads the revocation status of each certificate in the chain Windows built, the root aside,
-  and refuses where one is unknown or offline, naming the revocation server. A computer that cannot reach that
-  server - a firewall, a proxy, somebody on the network between - so stops the one-click install with nothing
-  changed; the installer can still be run by hand. Tested by `AdminUpdateTester` and on the smoke VM, where the real
-  6.3.5 with outbound HTTP blocked was answered 0 by Windows and refused, and passed with it open and nothing cached.
-- **The install window says what stopped the install once, names no empty folder, and says that nothing was
-  changed when Windows would not start it.** A refusal of the copy (a link or a junction on the way to the
-  installer) said the copy was "kept in  for inspection" where none was kept; the service's refusals because the
-  server was draining read "The update was not installed: The update was not installed: ..."; and where Windows
-  would not start the install as an administrator - a standard user whose requests to elevate are denied by policy -
-  the window gave Windows' sentence alone. Tested by `AdministratorUpdateTests` and on the smoke VM.
-- **The Control Panel that the one-click install opens again belongs to the user it runs as.** It ran with that
-  user's own unelevated token, but its process was owned by the Administrators, so the user could not end it from
-  anything unelevated ("Access is denied"). `hMailServer.Updater` now starts it with the security the desktop's shell
-  gives the programs it starts. Tested on the smoke VM.
-- **The install window waits for the answer to its own question.** While it asked "Stop the update?" - or whether
-  to install without a backup - its timer went on, so the install could reach the installer under the question, or
-  be cancelled under it. Nothing moves on now until the question is answered. Tested by `AdministratorUpdateTests`
-  and on the smoke VM.
-- **Install update clicked while an install is under way says so.** A second administrator's Control Panel - or a
-  second click - while the service prepared, held ready or installed an administrator's install said "No verified
-  installer is waiting; check for updates and download it first." It now says that another administrator's install
-  of an update is under way on this server, as the stage says when it finds one. Tested by `AdministratorUpdateTests`
-  and on the smoke VM.
+- **The one-click install (above): what refuses it, and what its window says.** The elevated stage refuses an
+  installer whose certificates' revocation could not be checked: Windows' Authenticode check takes a revocation server
+  that does not answer as good, so the stage reads the revocation status of each certificate in the chain Windows
+  built, the root aside, and refuses where one is unknown or offline, naming the revocation server. A computer that
+  cannot reach that server - a firewall, a proxy, somebody on the network between - so stops the one-click install
+  with nothing changed; the installer can still be run by hand. The install window says what stopped the install
+  once; says a refused copy (a link or a junction on the way to the installer) was kept for inspection only where it
+  was; and, where Windows would not start the install as an administrator - a standard user whose requests to
+  elevate are denied by policy - says that nothing was changed, beside Windows' own sentence. It waits for the answer
+  to its own question ("Stop the update?", or whether to install without a backup): nothing moves on, towards the
+  installer or a cancel, until the question is answered. *Install update* clicked while the service prepares, holds
+  ready or installs an administrator's install - from a second administrator's Control Panel, or a second click -
+  says that another administrator's install of an update is under way on this server, as the stage says when it
+  finds one. And `hMailServer.Updater` starts the Control Panel it opens again with the security the desktop's shell
+  gives the programs it starts, so that the user it runs as, unelevated, can end it. Tested by `AdminUpdateTester`
+  and `AdministratorUpdateTests`, and on the smoke VM, where the real 6.3.5 with outbound HTTP blocked was answered 0
+  by Windows and refused, and passed with it open and nothing cached.
 - **The backup and event logs are UTF-8 on Linux**, as the other logs are; they were UTF-16LE. A file an earlier
   version wrote is converted when the server first opens it. Windows keeps UTF-16LE.
 - **Fixed: a message whose last bytes the disk refused was kept short, and taken for whole.** A write to a file goes
@@ -2843,13 +2812,6 @@ project's own review.
   passed, and with the server as it was it failed there ([Nix.md](hmailserver/docs/Nix.md), "The auto-ban below
   the server").
 
-- **Fixed: sixteen more COM look-ups that found nothing left an object behind.** This release makes 67 look-ups look
-  before they made the object they answer with; sixteen written as an if and an else were not among them, and still
-  made it first and kept it, never released, when the answer was no: `Aliases.ItemByDBID` and `ItemByName`,
-  `DistributionListRecipients.Item` and `ItemByDBID`, `IMAPFolderPermissions.ItemByDBID` and `ItemByName`,
-  `IncomingRelays.Item`, `ItemByDBID` and `ItemByName`, `Messages.Item` and `ItemByDBID`, `RouteAddresses.ItemByDBID`,
-  `Routes.Item`, and `SecurityRanges.Item`, `ItemByDBID` and `ItemByName`. Each now looks first. A sweep of every COM
-  method that makes an object, for a return that neither hands it over nor releases it, finds none left.
 - **The compromised-account detection and the rooms' booking records say what an unexpected error stopped.** Since
   6.3.4, which brought both, seven catch-alls around a whole pass or operation dropped every unexpected error without
   a word - on Windows, where the server is built with `/EHa`, an access violation among them: the detection's
@@ -2977,20 +2939,115 @@ project's own review.
   icon." lines instead of DBSetup's; it now takes the unstamped lines Inno logged after "DBSetup.exe /unattended
   returned", and fails when there are none. Pass and fail were not affected.
 
-- **The static-analysis findings of the network code, fixed.** Twenty-two findings of the `static-analysis` job are
-  gone from its baseline (`build/ci/static-analysis-baseline.txt`), two of them on GitLab's Security dashboard: the
-  seventeen `dangerousTypeCast` findings on the sockets' timeouts and `SO_REUSEADDR`, which were the two defects under
-  Operations and What changes on upgrade, item 15 - the socket timeouts are now set through `AcceptLoop::SetTimeouts`
-  or in each platform's own form, and `SO_REUSEADDR` through `AcceptLoop::AllowRebindPastTimeWait`, on POSIX only; the
-  two `danglingTemporaryLifetime` findings (High) in `AcmeClient.cpp` and `OutboundOAuth2TokenClient.cpp`, whose code
-  the fixes replaced, though the lifetime they named was sound, since the string class copies; a `cert-err34-c`
-  `atoi` in the ACME client's own status-line parser, which went with it; the empty catch around the start of a
-  connection the REST and web-services listeners have accepted (`HttpServer::Accept_`), which now says in the
-  application log that a connection was dropped, for the first and then once per thousand with the count; and a
-  `bugprone-unused-return-value` in `HTTPClient.cpp`, a plain-HTTP client that nothing in either build called,
-  deleted with the finding. Nothing new is added to the baseline. The new tester program, `network-deadline-tests`,
-  runs in `linux-build` and in the Alpine and Nix package builds, which run every program whose name ends in
-  `-tests`; the source packages' builds, which refuse every socket, leave it out.
+- **The 6.3.6 SAST triage: what the static analysis found is fixed, not dismissed.** The `static-analysis` job's
+  findings were read in seven parts - the network code, the server logic, the core's types, platform layer and dead
+  code, the TLS and error-reporting code, numbers held to their range, a written file's close, and members left
+  unset - and each part's fixes took its lines out of `build/ci/static-analysis-baseline.txt`. Where a part's fixes
+  are described under another heading, the part names them.
+  - **The network code: twenty-two findings** are gone from the baseline, two of them on GitLab's Security
+    dashboard: the seventeen `dangerousTypeCast` findings on the sockets' timeouts and `SO_REUSEADDR`, which were
+    the two defects under Operations and What changes on upgrade, item 16 - the socket timeouts are now set through
+    `AcceptLoop::SetTimeouts` or in each platform's own form, and `SO_REUSEADDR` through
+    `AcceptLoop::AllowRebindPastTimeWait`, on POSIX only; the two `danglingTemporaryLifetime` findings (High) in
+    `AcmeClient.cpp` and `OutboundOAuth2TokenClient.cpp`, whose code the fixes replaced, though the lifetime they
+    named was sound, since the string class copies; a `cert-err34-c` `atoi` in the ACME client's own status-line
+    parser, which went with it; the empty catch around the start of a connection the REST and web-services listeners
+    have accepted (`HttpServer::Accept_`), which now says in the application log that a connection was dropped, for
+    the first and then once per thousand with the count; and a `bugprone-unused-return-value` in `HTTPClient.cpp`, a
+    plain-HTTP client that nothing in either build called, deleted with the finding. Nothing new is added to the
+    baseline. The new tester program, `network-deadline-tests`, runs in `linux-build` and in the Alpine and Nix
+    package builds, which run every program whose name ends in `-tests`; the source packages' builds, which refuse
+    every socket, leave it out.
+  - **The server logic: 30 lines.** Besides the fixes described above (an account's copy, an IP range's priority,
+    the seven catch-alls): a message's copy now copies its base, which holds its id, as an account's does;
+    `ChangeNotification`, `WorkQueueTaskInfo`, the work queue's running and pending tasks, the firewall's ban,
+    `OidcSignIn::Mapping`, the list manager's taken command and the protected messages' lapsed row give every scalar
+    member a first value; `DiagnosticResult`'s empty constructor sets its result to false, which a
+    `hMailServer.DiagnosticResult` made directly over COM had left unset; and a script object is made with its type,
+    which the compiler now requires. None of these was found read unset in the server's own use. The domain-sample
+    prune's `struct tm`, whose fill it did not check, now starts zeroed, so that a day that cannot be converted
+    prunes nothing rather than read what the memory held. `business-object-tests`, a new tester program that
+    `linux-build.sh` and the source packages' builds (`dh_auto_test`, `%check`) run, makes an account's and a
+    message's copies and four of these types over memory filled with a pattern, holds every member to what it
+    should be, and holds the IP range's priority to what the update takes; with the fixes undone, the account's, the
+    four types' and the priority's checks each fail, and the message's fails when a member is dropped from its copy.
+    The 30 lines of the baseline whose findings these fix are gone.
+  - **The core's types, its platform layer and its dead code: 71 findings.** None of it changes what the server
+    does. The constructors of `Singleton<T>` and `BusinessObject<T>` are private and `T` is their friend, so a class
+    that named another type as its `T` - a singleton that would be handed that type's `Instance()` - no longer
+    compiles; `singleton-tests` holds both, and does not compile against the old headers. `TCPConnection`,
+    `IMAPCommand`, `IMacroExpander`, `TCPConnectionFactory`, `NotificationClient` and `IPrerequisite` have virtual
+    destructors: every object of theirs was owned by a `shared_ptr` made from its own class, which destroyed it
+    whole, and one deleted through the base now would be too. `MySQLInterface` and `GssapiAcceptor`, and four
+    classes of the same shape that the analysis did not flag - the database layer's connections and recordsets
+    (`DALConnection`, `DALRecordset`), `ByteBuffer` and `FolderManipulationLock` - release a handle, a buffer or a
+    lock in their destructors, and cannot be copied; nothing copied one. The unused `StringTreeParser` is deleted:
+    nothing included it, its `Parse` never returned a node, and an unmatched quote gave `Mid` a negative length. A
+    redundant test in the MIME parameter parser goes, and so do five C-style casts - two in `Unicode.cpp`, three in
+    the POSIX build's `BSTR` functions (`hm_platform.h`) - and the code compiled from them is the same as before;
+    the `ETRN` reply, whose two `else`s were indented as neither of their `if`s was, and four more places are
+    indented as their braces are; and the `timeval`, `tm` and `timespec` of the POSIX `GetLocalTime`,
+    `GetSystemTime` and `GetTickCount64`, and two more `struct tm` locals whose fill was not checked
+    (`DomainSamples.cpp`, the prune's above, and `ZipWriter.cpp`), start zeroed. 71 findings leave the baseline,
+    and the job, run over the tree, finds none that is new. A sweep of the rest of the tree for the same shape - a
+    class whose destructor frees, closes, ends or gives back what it holds and that could still be copied - found
+    sixteen more, and they cannot be copied now either: the external fetcher's manager, IMAP `APPEND`'s handler, the
+    web services listener, the rooms' drain task, the event-script site, the live update's drain guard and the
+    Updater's shutdown block, the indexer's second look, a test's key-file guard and seven handle, SID and
+    security-descriptor holders of the elevated update stage and the service account's grants; nothing copied one.
+    Twenty-two files that no build compiled are deleted: the eleven `CMakeLists.txt` listed as in no build
+    (`LoggerFile`, `ServerThreads`, `AccountCache`, `OutboundPortConnection`, `Mutex`, `ISMTPCommand` and
+    `SMTPCommandHelp` with their headers, and the empty `Collection.cpp`, `Cache.cpp`,
+    `CacheReaderWithDbFallback.cpp` and `TestConnectionResult.cpp`), `IThread.h` and the DKIM COM class's three
+    files, which no project named; the list goes from `CMakeLists.txt`, `build/linux-tu-census.sh` and
+    `build/check-source-tarball.py`. The Debug build compiles again (`AutoBanFirewall.cpp` used `DEBUG_NEW` without
+    defining it).
+  - **The TLS and error-reporting code: twenty findings.** Beside the two Operations entries above (the TLS options
+    mask; six failures said), the listeners' and the TLS initialiser's seven catches of `boost::system::system_error`
+    take it by reference rather than copy it; `CipherInfo` throws its `std::logic_error` by value where it threw a
+    pointer that no `std::exception` handler would catch and that leaked (no caller reads an empty `CipherInfo`, so
+    it was never thrown); the DNSSEC resolver's socket timeouts and the journal socket's address are passed with C++
+    casts; MailboxKeys' reseal record starts with its account id and flag set; and a device's sign-in count
+    saturates rather than overflows (What changes on upgrade, item 14). Their lines are gone from the baseline.
+  - **Numbers held to their range: ten findings.** The fixes are the filter hook's score and the Sieve quantifier
+    (Anti-spam, above) and the configuration file's owner, the calendar's SEQUENCE and PRIORITY and the iteration
+    count SCRAM and a password logon read (Operations, above); with them, a POP3 `LIST` sizes its buffer in
+    `size_t`, and the POP3 session's destructor calls its own `OnDisconnect` by name, which is the call it made.
+    Their ten lines are gone from the baseline. `ini-file-tests` (`platform/ini_file_tests_main.cpp`) is a tester
+    program `linux-build.sh` runs with the others: a file another user owns keeps its owner, group and mode when root
+    rewrites it; a file read and gone before it is written - the server reads a FIFO whose writer removes it before
+    closing it, so the moment is not left to chance - is made as the writer's own, 0600; one made again by another
+    user in that moment gives the replacement that user's owner and mode; and two thousand rewrites while another
+    user's process removes and remakes the file each leave it root's own, the other user's or absent. The cases that
+    need root say they are skipped without it. `scram-tests` (`platform/scram_tests_main.cpp`) holds the rounds
+    SCRAM asks a client for to a stored hash's count from 1 to 10,000,000 and the unknown account's 210000 past it,
+    as the regression suite's case does on Windows through COM's `Database`, which the Linux suite cannot reach, and
+    a password logon to refusing the same hashes.
+  - **A written file's close: `file-utilities-tests`, and a third mode of `SimulateSpoolWriteFailure`.** The report's
+    `cert-err33-c` at `File.cpp` and the committer's empty catch are fixed, and their lines leave the baseline. The
+    tester program holds `File::Close`, `FileUtilities::WriteToFile`, `TraceHeaderWriter`, the message store's
+    `WriteAtomically` and the spool a received message is written to (`TransparentTransmissionBuffer`, which must
+    count the message as not written, and report it once) to a file that cannot take its last bytes: `/dev/full`, a
+    quota of the program's own (`RLIMIT_FSIZE`) and, where it may mount one, a 64 KB tmpfs filled to its last byte,
+    in a mount namespace of its own; a container that may not mount says the last case did not run.
+    `FileUtilitiesTester`, which the class tests run on Windows, closes a named pipe whose reader has gone, which
+    refuses a write as a full disk does. The regression suite's switch `[Settings] SimulateSpoolWriteFailure=3` lets
+    every write of a received message land and has its close fail, for SMTP, the two fetchers and APPEND, off unless
+    set, like modes 1 and 2.
+  - **Members left unset, dead code and tests already implied: forty-one findings.** None of it changes what the
+    server does. Twenty-seven structures that are filled field by field - the archive index's and the ZIP writer's
+    entries, the SPF macro reader's result, the S/MIME key rows and twenty-three more - and the logger's copies of
+    `LogLevel` and `MaxLogLineLen` and the SMTP session's message start time, which their constructors left unset and
+    which are written before they are read, start at zero, `false`, a null pointer or an enumeration's first value,
+    so a field that a later change forgets to fill holds a known value rather than whatever the memory held; on
+    Linux, the `timespec` that the crash record and an OpenTelemetry span read with an unchecked `clock_gettime`
+    starts zeroed. A MIME body's part iterator starts at the end of its empty part list, where `Clear()` puts it,
+    rather than unset, and `MimeHeader` and `MimeBody` call their own `Clear()` by name in their destructors, the
+    call a destructor makes anyway. Dead code goes: `CachedObject`'s default constructor, which nothing called and
+    which left its id, creation time and size unset; the three `*_MEDIATYPE` macros, which nothing used and the
+    first of which could not have compiled; and two tests already implied where they stand - a public-folder test
+    inside the public-folder branch of IMAP `CREATE`, and `== -2` beside `< 0` in the update verifier's
+    certificate-expiry check. Their 41 lines are gone from the baseline.
 
 - **[Roadmap3.md](Roadmap3.md): the plan for everything the project had on GitHub.** A new file at the
   repository root maps, row by row, what it takes to bring back on GitLab what a user could download, verify and
@@ -3025,21 +3082,6 @@ project's own review.
   journal, no `CAP_SYS_ADMIN` and an unprivileged job container; and an image whose `systemd-binfmt` is not
   masked is told apart from one whose is (`hmailserver/docs/PackagesDeb.md`, "Started under systemd").
 
-- **Ten static-analysis findings of numbers held to their range, fixed; `ini-file-tests` and `scram-tests`.** The
-  fixes are the filter hook's score and the Sieve quantifier (Anti-spam, above) and the configuration file's owner,
-  the calendar's SEQUENCE and PRIORITY and the iteration count SCRAM and a password logon read (Operations, above);
-  with them, a POP3 `LIST` sizes its buffer in `size_t`, and the POP3 session's destructor calls its own
-  `OnDisconnect` by name, which is the call it made. Their ten lines are gone from
-  `build/ci/static-analysis-baseline.txt`. `ini-file-tests`
-  (`platform/ini_file_tests_main.cpp`) is a tester program `linux-build.sh` runs with the others: a file another user
-  owns keeps its owner, group and mode when root rewrites it; a file read and gone before it is written - the server
-  reads a FIFO whose writer removes it before closing it, so the moment is not left to chance - is made as the
-  writer's own, 0600; one made again by another user in that moment gives the replacement that user's owner and mode;
-  and two thousand rewrites while another user's process removes and remakes the file each leave it root's own, the
-  other user's or absent. The cases that need root say they are skipped without it. `scram-tests`
-  (`platform/scram_tests_main.cpp`) holds the rounds SCRAM asks a client for to a stored hash's count from 1 to
-  10,000,000 and the unknown account's 210000 past it, as the regression suite's case does on Windows through COM's
-  `Database`, which the Linux suite cannot reach, and a password logon to refusing the same hashes.
 - **A clock flake in the two-factor tests, not a server fault.** The Windows gate of pipeline 2887524317 failed
   `TwoFactorAuthentication.ACodeComputedElsewhereIsAccepted` with "The previous step must be accepted": the test
   began at 23:37:29.5 UTC, half a second before a thirty-second step ended, computed the previous step's code in
@@ -3162,25 +3204,25 @@ project's own review.
 
 - **The rest of what Renovate proposed, taken where it holds, and `renovate.json` held to what is chosen.**
   Taken: every job image that is not a build target at its tag's digest of 28 September 2026, those of the seven
-  jobs added after Renovate's merge request among them (`postgres:16`, Microsoft's .NET SDK image), and GitLab's
-  Container Scanning analyzer at its tag's digest of 30 September, since GitLab had stopped serving the one pinned;
-  uvicorn 0.54.0 and Playwright 1.63.0, the locked files remade with uv; the sixteen updates of the `packages.config`
-  test projects (Azure.Core 1.63.0, MSAL 4.90.1, OpenTelemetry 1.19.1, the Microsoft.Testing packages 2.4.1, NLog
-  6.2.1 and the rest); NUnit 5.0.0 in RegressionTests, StressTest and LinuxRegressionTests, which nunit3-console
-  3.22.0 and NUnit3TestAdapter 6.3.0 discover and run as they did NUnit 4.6.1; xUnit.net v3 (`xunit.v3.mtp-off`
-  4.0.1) in place of the deprecated `xunit` 2.9.3 in ControlPanel.Tests and ImportTool.Tests; Node.js 24 for the
-  `harnesses` job, whose four harnesses give the same results as on Node.js 22; and QuickJS 2026-06-04
-  (What changes on upgrade, item 14). Left, each for its reason: `global.json`'s SDK floor of 10.0.303, since
-  `rollForward: latestFeature` builds with the newest .NET 10 SDK installed anyway and 10.0.401 would refuse a
-  machine with 10.0.400 and Alpine's `dotnet10-sdk` 10.0.303; every Python version that Semgrep 1.178.0 (the newest
-  release), OpenTelemetry 1.37.0, pydantic 2.13.5 or Playwright holds where it is - click 8.5, jsonschema 4.26, mcp
-  1.30 and 2, OpenTelemetry 1.45, PyJWT 2.15, pydantic-core 2.49, boltons 26, importlib-metadata 9, peewee 4,
-  protobuf 7, wcmatch 11, wrapt 2 and pyee 14 - so PyJWT 2.13.0's advisories stay dismissed in the VEX document;
-  sse-starlette 3.5.0, googleapis-common-protos 1.75.5 and coverlet.collector 10.1.0, younger than the three days a
-  release waits; the lab's MariaDB 11.8, the CI's PostgreSQL 18 and MariaDB 13, the packaging compose file's
-  PostgreSQL 18 and GitLab's Semgrep analyzer 7, each a decision and a run of its own; and the package builds'
-  distribution releases. `renovate.json` now moves a distribution's image and the lab's images by digest only,
-  keeps the CI's databases, the compose file's PostgreSQL and GitLab's analyzers on their major version, no longer
+  jobs added after Renovate's merge request among them (`postgres:16`, since moved to 18, and Microsoft's .NET SDK
+  image), and GitLab's Container Scanning analyzer at its tag's digest of 30 September, since GitLab had stopped
+  serving the one pinned; uvicorn 0.54.0 and Playwright 1.63.0, the locked files remade with uv; the sixteen updates of
+  the `packages.config` test projects (Azure.Core 1.63.0, MSAL 4.90.1, OpenTelemetry 1.19.1, the Microsoft.Testing
+  packages 2.4.1, NLog 6.2.1 and the rest); NUnit 5.0.0 in RegressionTests, StressTest and LinuxRegressionTests, which
+  nunit3-console 3.22.0 and NUnit3TestAdapter 6.3.0 discover and run as they did NUnit 4.6.1; xUnit.net v3
+  (`xunit.v3.mtp-off` 4.0.1) in place of the deprecated `xunit` 2.9.3 in ControlPanel.Tests and ImportTool.Tests;
+  Node.js 24 for the `harnesses` job, whose four harnesses give the same results as on Node.js 22; and QuickJS
+  2026-06-04 (What changes on upgrade, item 15). Left, each for its reason: `global.json`'s SDK floor of 10.0.303, since
+  `rollForward: latestFeature` builds with the newest .NET 10 SDK installed anyway and 10.0.401 would refuse a machine
+  with 10.0.400 and Alpine's `dotnet10-sdk` 10.0.303; every Python version that Semgrep 1.178.0 (the newest release),
+  OpenTelemetry 1.37.0, pydantic 2.13.5 or Playwright holds where it is - click 8.5, jsonschema 4.26, mcp 1.30 and 2,
+  OpenTelemetry 1.45, PyJWT 2.15, pydantic-core 2.49, boltons 26, importlib-metadata 9, peewee 4, protobuf 7, wcmatch
+  11, wrapt 2 and pyee 14 - so PyJWT 2.13.0's advisories stay dismissed in the VEX document; sse-starlette 3.5.0,
+  googleapis-common-protos 1.75.5 and coverlet.collector 10.1.0, younger than the three days a release waits; the lab's
+  MariaDB 11.8, the CI's PostgreSQL 18 and MariaDB 13, the packaging compose file's PostgreSQL 18 and GitLab's Semgrep
+  analyzer 7, each a decision and a run of its own, which took all but the last (below, "The CI's databases"); and the
+  package builds' distribution releases. `renovate.json` now moves a distribution's image and the lab's images by digest
+  only, keeps the CI's databases, the compose file's PostgreSQL and GitLab's analyzers on their major version, no longer
   proposes `global.json`'s SDK, brings an OpenSSL patch release on any day in a merge request of its own, and asks
   Fedora's registry, which lost a lookup on each of three days, one request at a time.
 
@@ -3205,7 +3247,7 @@ project's own review.
   release, a rolling one; its long-term ones are 11.8 and 12.3) instead of `mariadb:11`, which is 11.8 LTS - the version Ubuntu 26.04 ships and the one the lab now
   runs: its MariaDB moves from 11.4 LTS to 11.8 LTS, with `MARIADB_AUTO_UPGRADE` set so that the lab's volume has
   its system tables upgraded at the first start. The Compose file's database moves too (What changes on upgrade,
-  item 26). GitLab's Semgrep analyzer stays on 6: the `semgrep:7` Renovate offers is 7.0.0, released for GitLab
+  item 27). GitLab's Semgrep analyzer stays on 6: the `semgrep:7` Renovate offers is 7.0.0, released for GitLab
   19.0 and withdrawn by GitLab the next day, older inside than 6.26.1 (Semgrep 1.145.0 against 1.174.0), and over
   this tree the two found the same 316 findings. Run on linix in the CI image beside the new servers, 2 October
   2026: the whole Linux suite on PostgreSQL 18.6, 1922 passed, 338 skipped, none failed, of 2260; both upgrade
@@ -3245,7 +3287,8 @@ project's own review.
   it starts stays usable, and the jobs' shells hold none.
 - **The version stamps and the exclusion list reach the source packages.** `build/check-linux-version-stamp.sh` holds
   the Debian changelog's one entry (`<version>+ds-<revision>`) and the spec's `Version:` and one `%changelog` entry
-  to `Version.h`, so stamping a release is now fourteen edits; `build/check-source-tarball.py` holds
+  to `Version.h`, so stamping a release now changes seventeen files, the APKBUILD among them (RELEASE.md, step 7);
+  `build/check-source-tarball.py` holds
   `debian/copyright`'s `Files-Excluded` to the exclusion list plus test data the Debian build does not read, and the
   new build scripts to the list; `build/add-license-headers.py` treats only maintainer-script hooks and `rules` in a
   `debian` or `rpm` directory as scripts, since a changelog or copyright file cannot begin with a comment.
@@ -3272,7 +3315,9 @@ project's own review.
   SSH before it copies anything; the snapshot is left alone, so the next revert brings them back, and a failure to
   stop them is reported and does not stop the run.
 - **Both Windows package jobs count, and the ARM64 one builds.** `windows-packages-x64` and `windows-packages-arm64`
-  may no longer fail without failing the pipeline, and a tag's release waits for both. The ARM64 job's own script ran
+  may no longer fail without failing the pipeline; a tag's release waits for the ARM64 one, and for
+  `windows-installer`, which builds a tag's x64 installer (below, "A tag builds the x64 installer once"). The ARM64
+  job's own script ran
   whole on the Windows runner by hand, as LocalSystem, on 29 September 2026: the ARM64 OpenSSL, Boost and libpq built
   into the runner's cache (17, 2 and under 1 minutes the first time), then the server, the tools and the installer in
   under six minutes, and every native file the installer packs checked to be an ARM64 image, but Microsoft's ARM64EC
@@ -3289,54 +3334,43 @@ project's own review.
   `.deb` on Ubuntu 26.04 installed 6.3.5 unattended, and one from the `.rpm` on Fedora 44 by hand over REST, both
   without a rollback image. [UpdateFeed.md](hmailserver/docs/UpdateFeed.md), PackagesDeb.md, PackagesRpm.md, the
   packaging README and [Roadmap3.md](Roadmap3.md) say so where they said it was untried.
-- **The documents say what this release's pipelines showed.** PackagesDeb.md and PackagesRpm.md said no install job
-  had run in a pipeline; the nineteen first ran, and passed, in `batch41`'s 2887524317 on 28 September 2026, and
-  every build and install job passed again in 6.3.5's tag pipeline and in `batch42`'s 2896082335 and 2897966924,
-  which built 6.3.6 and hold each package to its licence files - each job's times are there now. PackagesAppImage.md
-  said no pipeline had run the AppImage jobs, which first passed in 6.3.5's tag pipeline and, with both sources
-  tarballs, in both of `batch42`'s; SourcePackages.md, that its seven targets were still to run, of which five have
-  passed and openSUSE Leap 16.0 and Tumbleweed have not; ContainerImage.md, that `linux-image-arm64` had not run;
-  ContinuousIntegration.md, that the AArch64 packages' SBOM jobs and the three scans had not; and Nix.md, that the
-  `nix` job had not, which passed in 2896082335, as Alpine.md now says its three jobs did. The three package
-  documents also said linix's qemu-aarch64 registration had not been seen to come back after a reboot; it came back
-  at linix's reboot of 28 September, and the arm64 jobs ran under it. [Roadmap3.md](Roadmap3.md) says the same in
-  fourteen rows - the chart's package, the `.sigstore.json` copies and the provenance among them, all three in
-  2897966924's rehearsal of the release - and two are done: the package install and test jobs pass in a pipeline, and
-  the texts that said what was no longer true now say what the tree and GitLab show. RELEASE.md's security release,
-  step 10, said a server from 6.2.28 to 6.3.3 needs one `UpdateFeedUrl` line; it is upgraded by hand, once, as these
-  notes say.
+- **The documents say what the pipelines have run.** [PackagesDeb.md](hmailserver/docs/PackagesDeb.md),
+  [PackagesRpm.md](hmailserver/docs/PackagesRpm.md), [PackagesAppImage.md](hmailserver/docs/PackagesAppImage.md) and
+  [PackagesWindows.md](hmailserver/docs/PackagesWindows.md) said no package job had run in a pipeline, and now say which
+  have, job by job, PackagesDeb.md and PackagesRpm.md with each job's times. `batch41`'s pipelines of 27 September 2026
+  ran the package jobs for the first time: every `.deb` build job passed in 2886955494 and 2887115157, and every `.rpm`
+  build job in 2887115157, in which `windows-packages-x64` built the unsigned x64 installer. The nineteen install jobs
+  first ran, and passed, in `batch41`'s 2887524317 on 28 September, and every build and install job passed again in
+  6.3.5's tag pipeline and in `batch42`'s 2896082335 and 2897966924, which built 6.3.6 and hold each package to its
+  licence files. The AppImage jobs first passed in 6.3.5's tag pipeline and, with both sources tarballs, in both of
+  `batch42`'s. SourcePackages.md said its seven targets were still to run, of which five have passed and openSUSE Leap
+  16.0 and Tumbleweed have not; ContainerImage.md, that `linux-image-arm64` had not run;
+  [ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md), that no GitLab job had run, and that the
+  AArch64 packages' SBOM jobs and the three scans had not; and Nix.md, that the `nix` job had not, which passed in
+  2896082335, as Alpine.md now says its three jobs did. The three package documents also said linix's qemu-aarch64
+  registration had not been seen to come back after a reboot; it came back at linix's reboot of 28 September, and the
+  arm64 jobs ran under it. [Roadmap3.md](Roadmap3.md) says the same in fourteen rows - the chart's package, the
+  `.sigstore.json` copies and the provenance among them, all three in 2897966924's rehearsal of the release - and two
+  are done: the package install and test jobs pass in a pipeline, and the texts that said what was no longer true now
+  say what the tree and GitLab show. RELEASE.md's security release, step 10, said a server from 6.2.28 to 6.3.3 needs
+  one `UpdateFeedUrl` line; it is upgraded by hand, once, as these notes say. ContinuousIntegration.md also says the
+  GitHub workflows stayed unchanged from `faca023d4` until `6593259e0` removed them, and gives the registry's cleanup
+  policy as the API does: it kept two of the five patterns the document listed, and the maintainers added the other
+  three through the API on 28 September 2026, before the policy is ever switched on; it and README.md say that the fuzz
+  schedule and Renovate's schedule and token exist since 27 September. README.md no longer says the project has no ARM
+  machine to build the AArch64 packages on (the pipeline cross-compiles them), `build/ci/release-chain.py` no longer
+  says the pipeline does not build them, and Roadmap2's Windows on ARM row names the CI job it said there was not.
+  [PackageManagers.md](hmailserver/docs/PackageManagers.md) no longer says the GitHub workflow built the manifests for
+  the releases up to 6.3.3 - it arrived after the `v6.3.3` tag, and no release ran it - nor that the AppImage is
+  attached to each release, nor that the Chocolatey identifier `hmailserver` is free: it holds upstream's hMailServer
+  5.6.8.2574, unlisted, and publishing under it needs the project to become one of its maintainers; its table no longer
+  says the workflow ran on every release, and its walk for the first Chocolatey push says the push waits for that. The
+  documents that sent a reader to `6399e08a5` for the removed GitHub workflows now give `faca023d4`, the same commit as
+  `master`'s history holds it: `6399e08a5` is its copy from before its branch was rebased, which `master`'s history does
+  not hold.
 - **`backup-tests` and `trust-anchor-tests`**, two more tester programs `linux-build.sh` runs, and the source
   packages' builds too (`dh_auto_test` and `%check`, [SourcePackages.md](hmailserver/docs/SourcePackages.md)); both
   run in the class tests on Windows as well.
-- **What the static analysis found in the core's types, its platform layer and its dead code is fixed, not
-  dismissed (the SAST triage of 6.3.6).** None of it changes what the server does. The constructors of
-  `Singleton<T>` and `BusinessObject<T>` are private and `T` is their friend, so a class that named another type as
-  its `T` - a singleton that would be handed that type's `Instance()` - no longer compiles; `singleton-tests` holds
-  both, and does not compile against the old headers. `TCPConnection`, `IMAPCommand`, `IMacroExpander`,
-  `TCPConnectionFactory`, `NotificationClient` and `IPrerequisite` have virtual destructors: every object of theirs
-  was owned by a `shared_ptr` made from its own class, which destroyed it whole, and one deleted through the base now
-  would be too. `MySQLInterface` and `GssapiAcceptor`, and four classes of the same shape that the analysis did not
-  flag - the database layer's connections and recordsets (`DALConnection`, `DALRecordset`), `ByteBuffer` and
-  `FolderManipulationLock` - release a handle, a buffer or a lock in their destructors, and cannot be copied; nothing
-  copied one. The unused `StringTreeParser` is deleted: nothing included it, its `Parse` never returned a node, and
-  an unmatched quote gave `Mid` a negative length. A redundant test in the MIME parameter parser goes, and so do five
-  C-style casts - two in `Unicode.cpp`, three in the POSIX build's `BSTR` functions (`hm_platform.h`) - and the code
-  compiled from them is the same as before; the `ETRN` reply, whose two `else`s were indented as neither of their
-  `if`s was, and four more places are indented as their braces are; and the `timeval`, `tm` and `timespec` of the
-  POSIX `GetLocalTime`, `GetSystemTime` and `GetTickCount64`, and two more `struct tm` locals whose fill was not
-  checked (`DomainSamples.cpp`, `ZipWriter.cpp`), start zeroed. 71 findings leave
-  `build/ci/static-analysis-baseline.txt`, and the job, run over the tree, finds none that is new. A sweep of the rest
-  of the tree for the same shape - a class whose destructor frees, closes, ends or gives back what it holds and that
-  could still be copied - found sixteen more, and they cannot be copied now either: the external fetcher's manager,
-  IMAP `APPEND`'s handler, the web services listener, the rooms' drain task, the event-script site, the live update's
-  drain guard and the Updater's shutdown block, the indexer's second look, a test's key-file guard and seven handle,
-  SID and security-descriptor holders of the elevated update stage and the service account's grants; nothing copied
-  one. Twenty-two files that no build compiled are deleted: the eleven `CMakeLists.txt` listed as in no build
-  (`LoggerFile`, `ServerThreads`, `AccountCache`, `OutboundPortConnection`, `Mutex`, `ISMTPCommand` and
-  `SMTPCommandHelp` with their headers, and the empty `Collection.cpp`, `Cache.cpp`, `CacheReaderWithDbFallback.cpp`
-  and `TestConnectionResult.cpp`), `IThread.h` and the DKIM COM class's three files, which no project named; the
-  list goes from `CMakeLists.txt`, `build/linux-tu-census.sh` and `build/check-source-tarball.py`. The Debug build
-  compiles again (`AutoBanFirewall.cpp` used `DEBUG_NEW` without defining it).
 - **`connection-string-tests`, `language-tests`, `live-log-tests` and `profiles-tests`**, four more, run the same
   ways: the PostgreSQL connection string read back by libpq and the bytes MySQL's values are handed over in, with its
   database's name quoted, COM's languages across a `ProgramFolder` change, the live log switched on and off beside
@@ -3346,18 +3380,6 @@ project's own review.
 - **`DBSetup.Tests`**, run by the `windows-dotnet` job beside the Import Tool's: how `DBSetup /unattended` reads its
   `HM_DB_` variables - the quotes, backslashes and semicolons it takes and passes on as given, and the values
   `hMailServer.ini` or SQL Server's connection string cannot carry, refused before anything is changed.
-
-- **`file-utilities-tests`, and a third mode of `SimulateSpoolWriteFailure`.** The tester program holds
-  `File::Close`, `FileUtilities::WriteToFile`, `TraceHeaderWriter`, the message store's `WriteAtomically` and the
-  spool a received message is written to (`TransparentTransmissionBuffer`, which must count the message as not
-  written, and report it once) to a file that cannot take its last bytes: `/dev/full`, a quota of the program's own
-  (`RLIMIT_FSIZE`) and, where it may mount one, a 64 KB tmpfs filled to its last byte, in a mount namespace of its
-  own; a container that may not mount says the last case did not run. `FileUtilitiesTester`, which the class tests
-  run on Windows, closes a named pipe whose reader has gone, which refuses a write as a full disk does. The
-  regression suite's switch `[Settings] SimulateSpoolWriteFailure=3` lets every write of a received message land and
-  has its close fail, for SMTP, the two fetchers and APPEND, off unless set, like modes 1 and 2. Static analysis: the
-  report's `cert-err33-c` at `File.cpp` and the committer's empty catch are fixed, and their lines leave the
-  baseline.
 
 - **No CI script reads a long or still-running output through `head` or `grep -q` under pipefail.** A reader that
   stops at what it wants closes the pipe, and a command still writing then dies of SIGPIPE, which `set -o pipefail`
@@ -3397,28 +3419,6 @@ project's own review.
   `bench.ps1 -Up` and `-Down` ran under Windows PowerShell 5.1 and PowerShell 7 against a stand-in for the COM
   object, and the pinned Python and Playwright installed as the page says under 5.1. The lab's comparison, imaptest
   and anything on the Windows bench were not run.
-- **Static analysis: the server-logic findings of the 6.3.6 triage.** Besides the fixes above (an account's copy,
-  an IP range's priority, the seven catch-alls): a message's copy now copies its base, which holds its id, as an
-  account's does; `ChangeNotification`, `WorkQueueTaskInfo`, the work queue's running and pending tasks, the
-  firewall's ban, `OidcSignIn::Mapping`, the list manager's taken command and the protected messages' lapsed row give
-  every scalar member a first value; `DiagnosticResult`'s empty constructor sets its result to false, which a
-  `hMailServer.DiagnosticResult` made directly over COM had left unset; and a script object is made with its type,
-  which the compiler now requires. None of these was found read unset in the server's own use. The domain-sample
-  prune's `struct tm`, whose fill it did not check, now starts zeroed, so that a day that cannot be converted prunes
-  nothing rather than read what the memory held. `business-object-tests`, a new tester program that `linux-build.sh`
-  and the source packages' builds (`dh_auto_test`, `%check`) run, makes an account's and a message's copies and
-  four of these types over memory filled with a pattern, holds every member to what it should be, and holds the IP
-  range's priority to what the update takes; with the fixes undone, the account's, the four types' and the
-  priority's checks each fail, and the message's fails when a member is dropped from its copy. The 30 lines of
-  `static-analysis-baseline.txt` whose findings these fix are gone.
-
-- **Twenty static-analysis findings in the TLS and error-reporting code, fixed.** Beside the two Operations entries
-  above (the TLS options mask; six failures said), the listeners' and the TLS initialiser's seven catches of
-  `boost::system::system_error` take it by reference rather than copy it; `CipherInfo` throws its `std::logic_error`
-  by value where it threw a pointer that no `std::exception` handler would catch and that leaked (no caller reads an
-  empty `CipherInfo`, so it was never thrown); the DNSSEC resolver's socket timeouts and the journal socket's address
-  are passed with C++ casts; MailboxKeys' reseal record starts with its account id and flag set; and a device's
-  sign-in count saturates rather than overflows. Their lines are gone from `build/ci/static-analysis-baseline.txt`.
 
 - **ControlPanel.Tests hold Live logs and the Server status page.** Live logs' reading of the server's log and its
   following of the end moved out of the page into `Services/LiveLogTail.cs`, unchanged, so that tests hold them:
@@ -3427,23 +3427,8 @@ project's own review.
   and after, follows, holds and trims the same). The Server status page's captions and values are held to be text
   that can be selected and copied (4 tests). `build/check-localisation.py` has a `--self-test`, which the
   `checkers` job runs: lines and translations made to pass and to fail its rules, among them each shape it missed
-  before 6.3.6. ControlPanel.Tests: 974 tests before, 1,017 after.
+  before 6.3.6.
 
-- **Forty-one static-analysis findings - members left unset, dead code and tests already implied - fixed (the
-  SAST triage of 6.3.6).** None of it changes what the server does. Twenty-seven structures that are filled field
-  by field - the archive index's and the ZIP writer's entries, the SPF macro reader's result, the S/MIME key rows
-  and twenty-three more - and the logger's copies of `LogLevel` and `MaxLogLineLen` and the SMTP session's message
-  start time, which their constructors left unset and which are written before they are read, start at zero,
-  `false`, a null pointer or an enumeration's first value, so a field that a later change forgets to fill holds a
-  known value rather than whatever the memory held; on Linux, the `timespec` that the crash record and an
-  OpenTelemetry span read with an unchecked `clock_gettime` starts zeroed. A MIME body's part iterator starts at the
-  end of its empty part list, where `Clear()` puts it, rather than unset, and `MimeHeader` and `MimeBody` call their
-  own `Clear()` by name in their destructors, the call a destructor makes anyway. Dead code goes: `CachedObject`'s
-  default constructor, which nothing called and which left its id, creation time and size unset; the three
-  `*_MEDIATYPE` macros, which nothing used and the first of which could not have compiled; and two tests already
-  implied where they stand - a public-folder test inside the public-folder branch of IMAP `CREATE`, and `== -2`
-  beside `< 0` in the update verifier's certificate-expiry check. Their 41 lines are gone from
-  `build/ci/static-analysis-baseline.txt`.
 - **`build/check-db-scripts.ps1` refuses a SQL Server upgrade statement marked `[IGNORE-ERRORS]` whose failure ends
   the transaction.** On SQL Server a failed `ALTER TABLE ... DROP CONSTRAINT` or `CREATE INDEX` rolls back the
   walker's transaction - DBUpdater's, which holds the whole upgrade, among them - whatever the marker and
@@ -3489,7 +3474,7 @@ project's own review.
   server, 502 checks - never ran in a pipeline: the `checkers` image has no pwsh, so the run there skipped it.
   `cli-powershell` (`.gitlab/ci/cli-packages.yml`), in the .NET SDK image whose pwsh `psgallery-publish` uses, now runs
   `build/check-cli.py --powershell` after the manifest and analyzer checks, and runs when the checker changes too;
-  `checkers` runs `hmctl`'s half (`--python`, 1,124 checks) by name. Asked for alone, the PowerShell half that cannot
+  `checkers` runs `hmctl`'s half (`--python`) by name. Asked for alone, the PowerShell half that cannot
   run now fails rather than passing as skipped. In the job's image on linix the module's 502 checks passed; a route
   planted wrong in `HmailServer.psm1` failed three of them.
 
@@ -3542,8 +3527,8 @@ project's own review.
   finding in the tree, as one that changes the scan's own file did. `mr-dependency-check` rated an advisory by its
   GitHub label or CVSS 3.x vector alone, so one carrying only a CVSS 4.0 vector held nothing; it now scores CVSS 4.0
   vectors by FIRST's method - the same as Red Hat's `cvss` 3.6 on all 419,904 base vectors with each Exploit
-  Maturity and on 300,000 random ones with environmental metrics - and reads a malformed one, such as `E:AP` or an
-  empty value, as no vector, as it does a malformed 3.x one, where a first cut stopped the check with an error. And
+  Maturity and on random ones with environmental metrics - and reads a malformed one, such as `E:AP` or an
+  empty value, as no vector, as it does a malformed 3.x one. And
   an advisory it could not decide - a version, or a range's bound, that it cannot order as NuGet or PEP 440 does -
   passed; Critical or High, it now holds the merge request as one that may affect the version. Each with
   `--self-test` cases the checks as they were failed.
@@ -3689,7 +3674,7 @@ project's own review.
 - **The internal suite runs to its end on Windows again.** `ClassTester`, which the Windows gate runs whole
   (`MainOperations.TestInternals`), stopped at its 18th part of 130 on Windows from the fold of the FQDN refusal on:
   `FqdnCheckTester` expected `192.0.2` to be judged as Linux judges it, and Windows' parser read it as an address
-  (What changes on upgrade, item 41). Past that it stopped again at `SignatureHtmlSanitizerTester`, whose expected
+  (What changes on upgrade, item 42). Past that it stopped again at `SignatureHtmlSanitizerTester`, whose expected
   text held raw UTF-8 copyright signs in a file with no byte-order mark, which MSVC reads in the ANSI code page: two
   characters each on Windows, one on Linux. The expected text is written with escapes now, and so are the three narrow
   literals of `CharsetTester`, which a code page other than 1252 would have changed; no other literal of the server's
@@ -3717,9 +3702,8 @@ project's own review.
   level when scripting is switched on does not give it, so every write failed under `On Error Resume Next`; the
   script writes to a file of its own now, and its sixteen runs on the reverting thread are each refused with the
   sentence (with the refusal taken out, each was told "An error occurred processing the request."). After the
-  merge, `build/check-address-parsing.py` found three readings of an address with Boost's `make_address` in
-  `SignInBudget.cpp`, folded since, and they read as `IPAddress::Parse` does (What changes on upgrade, item 41); the
-  fold of b42-secfix-net2 has since taken out the one that read `X-Forwarded-For`, and the two left still do.
+  merge, `build/check-address-parsing.py` found `SignInBudget.cpp`, folded since, reading addresses with Boost's
+  `make_address`; its two readings of an address read as `IPAddress::Parse` does (What changes on upgrade, item 42).
   And `IniFileSettingsTester`'s swap under load, which runs on Windows alone, has five minutes rather than one for
   its thousand publishes: beside the laptop's builds bench150 made 915 and 813 of them in the minute in two runs and
   1,001 in 44 seconds in a third. On batch42 merged with this branch, the copy of `ClassTester` that runs every part
@@ -3753,7 +3737,7 @@ project's own review.
   300,000 differed. The re-check found four things the change had left, each fixed with a test that fails without it:
   COM's address setters for IP ranges, incoming relays and the white list, which stored 0.0.0.0 for a text they could
   not read (Security); `DNSServer`, which the Windows resolver read with `inet_addr` (What changes on upgrade,
-  item 41) - `build/check-address-parsing.py` now refuses `inet_addr` and `inet_aton` too, with
+  item 42) - `build/check-address-parsing.py` now refuses `inet_addr` and `inet_aton` too, with
   `Utilities::IsLocalHost` marked as the one call that keeps it; the Control Panel's API keys page (Administration);
   and the report of a never-ban entry that is no address, made under the never-ban list's lock (Operations). On
   bench150, with the builder's server files laid over this branch, the five new tests of `Persistence.Limitations`,

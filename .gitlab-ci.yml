@@ -285,6 +285,12 @@ checkers:
                   roadmap2 role-choke-point sbom-inputs source-literals source-tarball; do
         check python3 "build/check-$name.py" --self-test
       done
+      # The newest "What changes on upgrade" list is numbered 1..n and every reference
+      # inside its section names its item: a fold of two branches that each added items
+      # leaves two with one number (6.3.6's two items 14). The fix is to run the script
+      # without --check and read what it says.
+      check python3 build/renumber-upgrade-items.py --self-test
+      check python3 build/renumber-upgrade-items.py --check
       # Each compiled release file's own SBOM (build/asset-sbom.py), against a tree, a
       # dpkg and an rpm held in memory.
       check python3 build/asset-sbom.py --self-test
