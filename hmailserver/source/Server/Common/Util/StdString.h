@@ -3382,16 +3382,14 @@ public:
       RelBuf(nNewLen);
    }
 
+   // Every ch goes, and what is kept moves once: erasing each in turn,
+   // looked for again from the start, moved the rest of the string every
+   // time, in a time that grew with the square of their number.
    int Remove(CT ch)
    {
-      MYSIZE nIdx    = 0;
-      int nRemoved   = 0;
-      while ( (nIdx=this->find_first_of(ch)) != MYBASE::npos )
-      {
-         this->erase(nIdx, 1);
-         nRemoved++;
-      }
-      return nRemoved;
+      const MYSIZE nBefore = this->size();
+      this->erase(std::remove(this->begin(), this->end(), ch), this->end());
+      return static_cast<int>(nBefore - this->size());
    }
 
    int Replace(CT chOld, CT chNew)
@@ -3410,47 +3408,62 @@ public:
       return nReplaced;
    }
 
+   // Every szOld, left to right and none overlapping, becomes szNew, and
+   // none is looked for inside a replacement; the number replaced is
+   // answered. A replacement of another length writes the result into a new
+   // string in one pass: replacing each in place moved the whole rest of the
+   // string along every time, in a time that grew with the square of their
+   // number, and a sender's text of a great many of them - an HTML part of
+   // entities, a header of folds - held a thread for minutes. One of the
+   // same length is made in place, where nothing after it moves.
    int Replace(PCMYSTR szOld, PCMYSTR szNew)
    {
-      int nReplaced     = 0;
-      MYSIZE nIdx       = 0;
-      MYSIZE nOldLen    = sslen(szOld);
+      const MYSIZE nOldLen = static_cast<MYSIZE>(sslen(szOld));
+      if ( 0 == nOldLen )
+         return 0;
 
-      if ( 0 != nOldLen )
+      static const CT ch   = CT(0);
+      PCMYSTR szRealNew = szNew == 0 ? &ch : szNew;
+      const MYSIZE nNewLen = static_cast<MYSIZE>(sslen(szRealNew));
+
+      MYSIZE nIdx = this->find(szOld, 0, nOldLen);
+      if ( MYBASE::npos == nIdx )
+         return 0;
+
+      int nReplaced = 0;
+      if ( nNewLen == nOldLen )
       {
-         // If the replacement string is longer than the one it replaces, this
-         // string is going to have to grow in size,  Figure out how much
-         // and grow it all the way now, rather than incrementally
-
-         MYSIZE nNewLen    = sslen(szNew);
-         if ( nNewLen > nOldLen )
+         do
          {
-            int nFound        = 0;
-            while ( nIdx < this->length() &&
-               (nIdx=this->find(szOld, nIdx)) != MYBASE::npos )
-            {
-               nFound++;
-               nIdx += nOldLen;
-            }
-            this->reserve(this->size() + nFound * (nNewLen - nOldLen));
-         }
-
-
-         static const CT ch   = CT(0);
-         PCMYSTR szRealNew = szNew == 0 ? &ch : szNew;
-         nIdx           = 0;
-
-         while ( nIdx < this->length() && 
-            (nIdx=this->find(szOld, nIdx)) != MYBASE::npos )
-         {
-            this->replace(this->begin()+nIdx, this->begin()+nIdx+nOldLen,
-               szRealNew);
-
+            this->replace(nIdx, nOldLen, szRealNew, nNewLen);
             nReplaced++;
-            nIdx += nNewLen;
-         }
+            nIdx = this->find(szOld, nIdx + nNewLen, nOldLen);
+         } while ( MYBASE::npos != nIdx );
+         return nReplaced;
       }
 
+      MYSIZE nSize = this->size();
+      if ( nNewLen > nOldLen )
+      {
+         MYSIZE nFound = 0;
+         for ( MYSIZE nAt = nIdx; MYBASE::npos != nAt; nAt = this->find(szOld, nAt + nOldLen, nOldLen) )
+            nFound++;
+         nSize += nFound * (nNewLen - nOldLen);
+      }
+
+      MYTYPE sResult;
+      sResult.reserve(nSize);
+      MYSIZE nFrom = 0;
+      do
+      {
+         sResult.append(*this, nFrom, nIdx - nFrom);
+         sResult.append(szRealNew, nNewLen);
+         nReplaced++;
+         nFrom = nIdx + nOldLen;
+         nIdx = this->find(szOld, nFrom, nOldLen);
+      } while ( MYBASE::npos != nIdx );
+      sResult.append(this->data() + nFrom, this->size() - nFrom);
+      this->swap(sResult);
       return nReplaced;
    }
 

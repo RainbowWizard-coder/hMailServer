@@ -429,6 +429,8 @@ const authorityStatuses = {};
 let smimeOwnRefuse = false;
 // What POST /api/v1/me/smime/chain answers, when a check sets it.
 let smimeChainAnswer = null;
+// The store not answering GET /api/v1/me/smime, as one that cannot be read.
+let smimeStoreDown = false;
 const wrappedUnder = (password) => ({ v: 1, kdf: 'PBKDF2-SHA256', iterations: 600000, salt: 'AAAAAAAAAAAAAAAAAAAAAA==', iv: 'AAAAAAAAAAAAAAAA', data: String(password) });
 const ownKeyOf = (address, password) => ({ id: 1, address, name: 'Key of ' + address, fingerprint: 'f'.repeat(64), certificate: 'MAMCAQE=', chain: [], key: wrappedUnder(password), not_after: 2000000000, created: 1700000000 });
 // One message in the shape the S/MIME reader looks at: the headers say it is
@@ -1737,6 +1739,7 @@ function answer(method, path, body) {
       return { status: 200, body: 'DECK', headers: { 'Content-Type': 'application/pdf' }, base64: 'A'.repeat(11200000) };
    }
    if (path === '/api/v1/me/messages/707' && method === 'GET') { return json(200, withState(JSON.parse(JSON.stringify(BIG_ATTACHMENT)))); }
+   if (path === '/api/v1/me/smime' && method === 'GET' && smimeStoreDown) { return json(503, { error: 'the store cannot be read just now' }); }
    if (path === '/api/v1/me/smime' && method === 'GET') {
       const store = smimeStores[account] || { own: [], recipients: [] };
       const authority = smimeAuthorities[account] || { domain: account.split('@')[1], available: false };
@@ -8117,6 +8120,120 @@ async function main() {
    check('S/MIME authority: a signature the domain\'s own authority certified says so on its badge',
       caBadgeTexts.indexOf(german['Signed by {0}, certified by your organisation'].replace('{0}', 'b@example.net')) >= 0, JSON.stringify(caBadgeTexts));
    smimeChainAnswer = null;
+
+   // A signer's certificate is kept for encrypting replies only when the
+   // server found its chain trusted, only under the From address the
+   // signature was checked against, and a different one for an address that
+   // has one already only with the reader's say. Message 601 is from
+   // b@example.net; this certificate names another address first, as one
+   // made to be kept under somebody else's address would. Each check fails
+   // against 6.3.5's page, which kept every signer's certificate, trusted or
+   // not, under the first address it named.
+   // Fingerprints no certificate in this account's store has: 7, 8 and 9.
+   const plantSigner = (digit) => ({ raw: Uint8Array.from([0x30, 0x03, 0x02, 0x01, 0x0a]), emails: ['victim@example.org', 'b@example.net'], name: 'Planted', notAfter: new Date('2030-01-01T00:00:00Z'), fingerprint: digit.repeat(64) });
+   const plantOpen = async (signer) => {
+      window.hmSmime = Object.assign({}, smimeStub, {
+         fingerprint: async () => signer.fingerprint,
+         readMessage: async () => ({ layers: ['signed'], encrypted: null, content: null, signed: { valid: true, error: '', signer, certificates: [] } })
+      });
+      location.hash = '#/f/1';
+      await flush();
+      location.hash = '#/m/601';
+      await flush();
+      await flush();
+   };
+   const plantPuts = (from) => since(from).filter((r) => r.method === 'PUT' && r.path === '/api/v1/me/smime/recipients').map((r) => JSON.parse(r.body || '{}'));
+   const plantBadges = () => Array.prototype.slice.call(document.getElementById('message-badges').children).map((b) => b.textContent);
+   const plantText = () => document.getElementById('message-smime-text').textContent;
+   const plantStored = (digit) => (smimeStores['third@example.com'].recipients || []).filter((r) => r.fingerprint === digit.repeat(64));
+   // A text this change added is not in 6.3.5's catalogues: said so, rather than thrown over.
+   const plantGerman = (key) => german[key] || ('(no catalogue entry: ' + key + ')');
+   const plantGroups = (fingerprint) => String(fingerprint).toUpperCase().replace(/(.{4})/g, '$1 ').trim();
+
+   smimeChainAnswer = { trusted: false, error: 'self-signed certificate', depth: 0, roots: 0, subject: '/CN=Planted', issuer: '/CN=Planted', not_after: 2000000000, authority: false };
+   const plantBeforeUntrusted = requests.length;
+   await plantOpen(plantSigner('7'));
+   check('S/MIME: a signer\'s certificate whose chain is not trusted is kept for nobody',
+      plantPuts(plantBeforeUntrusted).length === 0 && plantStored('7').length === 0, JSON.stringify(plantPuts(plantBeforeUntrusted)));
+   check('S/MIME: and the reader is told so, under a badge that names the From address the signature was checked against',
+      plantBadges().indexOf(german['Signed by {0} (certificate not trusted: {1})'].replace('{0}', 'b@example.net').replace('{1}', 'self-signed certificate')) >= 0 &&
+         plantText().indexOf(plantGerman('The certificate is not trusted, so it was not kept for encrypting replies.')) >= 0,
+      JSON.stringify(plantBadges()) + ' ' + plantText());
+
+   smimeChainAnswer = { trusted: true, error: '', depth: 2, roots: 1, subject: '/CN=Planted', issuer: '/CN=A Public CA', not_after: 2000000000, authority: false };
+   const plantBeforeTrusted = requests.length;
+   await plantOpen(plantSigner('8'));
+   const plantTrusted = plantPuts(plantBeforeTrusted);
+   check('S/MIME: a trusted signer\'s certificate is kept under the From address it was checked against, not the address it lists first',
+      plantTrusted.length === 1 && plantTrusted[0].address === 'b@example.net' && plantTrusted[0].fingerprint === '8'.repeat(64) &&
+         plantStored('8').length === 1 && plantStored('8')[0].address === 'b@example.net',
+      JSON.stringify(plantTrusted) + ' ' + JSON.stringify(since(plantBeforeTrusted).map((r) => r.method + ' ' + r.path)) + ' ' + plantText());
+   check('S/MIME: and the reader is told whose certificate was kept',
+      plantText().indexOf(german['The certificate of {0} was kept for encrypting replies.'].replace('{0}', 'b@example.net')) >= 0, plantText());
+
+   const plantBeforeChanged = requests.length;
+   await plantOpen(plantSigner('9'));
+   // Looked up in the page's own map, which does not throw: 6.3.5's page has no such button.
+   const plantKeep = document.byId['message-smime-keep'] || null;
+   check('S/MIME: a different trusted certificate for an address that has one is not kept without the reader\'s say',
+      plantPuts(plantBeforeChanged).length === 0 && plantStored('9').length === 0 && !!plantKeep && plantKeep.hidden === false &&
+         plantText().indexOf(plantGerman('This message was signed with a DIFFERENT certificate for {0}, fingerprint {1}. A certificate that changes without being asked about is what a man in the middle needs; check it with its owner before keeping it.')
+            .replace('{0}', 'b@example.net').replace('{1}', plantGroups('9'.repeat(64)))) >= 0,
+      JSON.stringify(plantPuts(plantBeforeChanged)) + ' ' + plantText());
+   if (plantKeep) { plantKeep.dispatchEvent(makeEvent('click')); }
+   await flush();
+   const plantKept = plantPuts(plantBeforeChanged);
+   check('S/MIME: Keep this certificate keeps it under the From address, beside the one kept before',
+      plantKept.length === 1 && plantKept[0].address === 'b@example.net' && plantKept[0].fingerprint === '9'.repeat(64) && !!plantKeep && plantKeep.hidden === true &&
+         plantStored('8').length === 1 && plantStored('9').length === 1,
+      JSON.stringify(plantKept));
+   // A certificate the account holds already - imported on the Security page, a
+   // correspondent's own and not trusted here - is kept, trusted or not, and the
+   // reader is not told it was not. Fails against the first form of the change
+   // above, which said so of every certificate whose chain was not trusted.
+   smimeChainAnswer = { trusted: false, error: 'self-signed certificate', depth: 0, roots: 0, subject: '/CN=Planted', issuer: '/CN=Planted', not_after: 2000000000, authority: false };
+   const plantBeforeHeld = requests.length;
+   await plantOpen(plantSigner('8'));
+   await flush();
+   check('S/MIME: a certificate this account holds already, not trusted, is not said to have gone unkept',
+      plantPuts(plantBeforeHeld).length === 0 && plantStored('8').length === 1 &&
+         plantText().indexOf(plantGerman('The certificate is not trusted, so it was not kept for encrypting replies.')) < 0 &&
+         plantBadges().indexOf(german['Signed by {0} (certificate not trusted: {1})'].replace('{0}', 'b@example.net').replace('{1}', 'self-signed certificate')) >= 0,
+      JSON.stringify(plantPuts(plantBeforeHeld)) + ' ' + JSON.stringify(plantBadges()) + ' ' + plantText());
+   // What the store holds decides between keeping a certificate and asking
+   // first, so a store that did not load keeps nothing: read as empty, it would
+   // have a third certificate for b@example.net kept beside the two it holds
+   // without the reader's say. Signed out and in again with the store's answer
+   // an error, then once more with it whole, as the rest of this session
+   // expects. Fails against the page before the check of the store was added.
+   smimeStoreDown = true;
+   document.getElementById('signout').dispatchEvent(makeEvent('click'));
+   await flush();
+   await signInAs('third@example.com', 'the-current-password');
+   smimeChainAnswer = { trusted: true, error: '', depth: 2, roots: 1, subject: '/CN=Planted', issuer: '/CN=A Public CA', not_after: 2000000000, authority: false };
+   const plantBeforeDown = requests.length;
+   await plantOpen(plantSigner('6'));
+   await flush();
+   const plantKeepDown = document.byId['message-smime-keep'] || null;
+   check('S/MIME: with the certificate store unread, a trusted signer\'s certificate is kept for nobody and offered to nobody',
+      called(plantBeforeDown, 'GET', '/api/v1/me/smime') && called(plantBeforeDown, 'POST', '/api/v1/me/smime/chain') &&
+         plantPuts(plantBeforeDown).length === 0 && plantStored('6').length === 0 && !!plantKeepDown && plantKeepDown.hidden === true,
+      JSON.stringify(since(plantBeforeDown).map((r) => r.method + ' ' + r.path)) + ' ' + plantText());
+   smimeStoreDown = false;
+   smimeChainAnswer = null;
+   document.getElementById('signout').dispatchEvent(makeEvent('click'));
+   await flush();
+   const plantBeforeBack = requests.length;
+   await signInAs('third@example.com', 'the-current-password');
+   check('S/MIME: and signed in again, the store is read whole',
+      called(plantBeforeBack, 'GET', '/api/v1/me/smime') &&
+         document.getElementById('smime-recipient-rows').children.length === smimeStores['third@example.com'].recipients.length && plantStored('8').length === 1 && plantStored('9').length === 1,
+      document.getElementById('smime-recipient-rows').children.length + ' rows of ' + smimeStores['third@example.com'].recipients.length);
+   // The two certificates stay in this account's store, where the page now has
+   // them too; nothing later in this session writes to b@example.net.
+   smimeChainAnswer = null;
+   window.hmSmime = smimeStub;
+   dismissAllToasts();
 
    // A part the page decrypted is saved as a file: its link's blob is of the
    // one type no browser renders, whatever type the sender gave the part, and

@@ -5433,6 +5433,8 @@
     el('compose-smime-note').hidden = true;
     el('message-smime').hidden = true;
     el('message-smime-unlock').hidden = true;
+    el('message-smime-keep').hidden = true;
+    smimeKeepOffer = null;
     el('message-smime-text').textContent = '';
   };
   var smimeAddress = function (text) { var m = String(text || '').match(/<([^>]+)>/); return (m ? m[1] : String(text || '')).trim().toLowerCase(); };
@@ -5720,6 +5722,8 @@
   var smimeInspect = function (m) {
     el('message-smime').hidden = true;
     el('message-smime-unlock').hidden = true;
+    el('message-smime-keep').hidden = true;
+    smimeKeepOffer = null;
     if (!smime()) { return; }
     var type = smimeContentType(m.headers);
     if (type.indexOf('multipart/signed') !== 0 && type.indexOf('application/pkcs7-mime') !== 0 && type.indexOf('application/x-pkcs7-mime') !== 0) { return; }
@@ -5745,19 +5749,62 @@
     });
   };
   var smimeBadge = function (text, cls) { el('message-badges').appendChild(node('span', text, 'badge ' + cls)); };
-  // A verified signer's certificate is kept, so a reply can be encrypted.
-  var smimeRemember = function (signer, who) {
+  // A signer's certificate is kept, so that a reply can be encrypted, only
+  // when the server found its chain trusted, and only under the From address
+  // the signature was checked against - one the certificate names. Never
+  // under another address the certificate lists first: that order is the
+  // signer's to choose, and a certificate kept for somebody else's address
+  // would have every later message to them encrypted to its key as well. An
+  // address that already has a certificate here does not get a second one
+  // without the reader's say: Keep this certificate offers it, with its
+  // fingerprint to check with its owner, as the OpenPGP reader offers a
+  // changed key.
+  var smimeKeepOffer = null;
+  var smimeKeepStore = function (offer) {
+    return call('PUT', '/api/v1/me/smime/recipients', { address: offer.address, name: offer.signer.name, fingerprint: offer.fingerprint, certificate: smime().b64encode(offer.signer.raw), not_after: smimeSeconds(offer.signer.notAfter) });
+  };
+  var smimeSay = function (text) {
+    el('message-smime-text').textContent = (el('message-smime-text').textContent + ' ' + text).trim();
+    el('message-smime').hidden = false;
+  };
+  var smimeHolds = function (fp) { return smimeState.recipients.some(function (r) { return r.fingerprint === fp; }) || smimeState.own.some(function (o) { return o.fingerprint === fp; }); };
+  var smimeRemember = function (m, signer, address) {
     smime().fingerprint(signer).then(function (fp) {
-      if (smimeState.recipients.some(function (r) { return r.fingerprint === fp; }) || smimeState.own.some(function (o) { return o.fingerprint === fp; })) { return; }
-      return call('PUT', '/api/v1/me/smime/recipients', { address: who, name: signer.name, fingerprint: fp, certificate: smime().b64encode(signer.raw), not_after: smimeSeconds(signer.notAfter) }).then(function (result) {
+      if (!current || current.id !== m.id) { return; }
+      // What the store holds decides between keeping it and asking first, so
+      // a store that did not load - its answer an error - keeps nothing: read
+      // as empty, it would have a certificate kept beside a different one held
+      // for the address without the reader's say.
+      if (!smimeState.loaded) { return; }
+      if (smimeHolds(fp)) { return; }
+      var offer = { address: address, fingerprint: fp, signer: signer };
+      var held = smimeState.recipients.concat(smimeState.own).filter(function (r) { return r.address === address; });
+      if (held.length) {
+        smimeKeepOffer = offer;
+        el('message-smime-keep').hidden = false;
+        smimeSay(tf('This message was signed with a DIFFERENT certificate for {0}, fingerprint {1}. A certificate that changes without being asked about is what a man in the middle needs; check it with its owner before keeping it.', address, pgpGroups(fp)));
+        return;
+      }
+      return smimeKeepStore(offer).then(function (result) {
         if (result.status !== 201) { return; }
         smimeCerts[fp] = signer;
-        el('message-smime-text').textContent = (el('message-smime-text').textContent + ' ' + tf('The certificate of {0} was kept for encrypting replies.', who)).trim();
-        el('message-smime').hidden = false;
+        smimeSay(tf('The certificate of {0} was kept for encrypting replies.', address));
         loadSmime();
       });
     }, function () {});
   };
+  el('message-smime-keep').addEventListener('click', function () {
+    if (!smimeKeepOffer) { return; }
+    var offer = smimeKeepOffer;
+    smimeKeepOffer = null;
+    el('message-smime-keep').hidden = true;
+    smimeKeepStore(offer).then(function (result) {
+      var kept = result.status === 200 || result.status === 201;
+      if (kept) { smimeCerts[offer.fingerprint] = offer.signer; }
+      say('mail-status', kept ? tf('The certificate of {0} was kept.', offer.address) : describe(result, t('Could not store the certificate')), kept);
+      return loadSmime();
+    });
+  });
   var smimeShow = function (m, result) {
     var lines = [];
     if (result.encrypted) {
@@ -5767,9 +5814,12 @@
     }
     if (result.signed) {
       var s = result.signed;
-      var who = s.signer ? (s.signer.emails[0] || s.signer.name) : '';
+      // The signer is named by the From address when the certificate names it
+      // anywhere among its addresses, not by whichever address it lists first.
+      var from = smimeAddress(m.from);
+      var who = s.signer ? (s.signer.emails.indexOf(from) >= 0 ? from : (s.signer.emails[0] || s.signer.name)) : '';
       if (!s.valid) { smimeBadge(tf('Signature invalid: {0}', s.error), 'bad'); }
-      else if (s.signer.emails.indexOf(smimeAddress(m.from)) < 0) { smimeBadge(tf('Signed by {0}, not the sender', who), 'warn'); }
+      else if (s.signer.emails.indexOf(from) < 0) { smimeBadge(tf('Signed by {0}, not the sender', who), 'warn'); }
       else {
         var certs = [s.signer].concat(s.certificates.filter(function (c) { return c !== s.signer; })).map(function (c) { return smime().b64encode(c.raw); });
         call('POST', '/api/v1/me/smime/chain', { certificates: certs, purpose: 'sign' }).then(function (verdict) {
@@ -5777,9 +5827,20 @@
           var d = verdict.data || {};
           // The chain ended at the domain's own authority rather than at a
           // root the machine trusts: said, since that is who vouches for it.
-          if (verdict.status === 200 && d.trusted) { smimeBadge(d.authority ? tf('Signed by {0}, certified by your organisation', who) : tf('Signed by {0}', who), 'good'); }
-          else { smimeBadge(tf('Signed by {0} (certificate not trusted: {1})', who, d.error || ('HTTP ' + verdict.status)), 'warn'); }
-          smimeRemember(s.signer, who);
+          if (verdict.status === 200 && d.trusted === true) {
+            smimeBadge(d.authority ? tf('Signed by {0}, certified by your organisation', who) : tf('Signed by {0}', who), 'good');
+            smimeRemember(m, s.signer, from);
+          }
+          else {
+            smimeBadge(tf('Signed by {0} (certificate not trusted: {1})', who, d.error || ('HTTP ' + verdict.status)), 'warn');
+            // Not said of a certificate this account holds already - one
+            // imported on the Security page, or its own - which is kept,
+            // trusted or not.
+            smime().fingerprint(s.signer).then(function (fp) {
+              if (!current || current.id !== m.id || smimeHolds(fp)) { return; }
+              smimeSay(t('The certificate is not trusted, so it was not kept for encrypting replies.'));
+            }, function () {});
+          }
         });
       }
     }

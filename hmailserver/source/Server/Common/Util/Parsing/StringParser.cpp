@@ -1106,6 +1106,28 @@ namespace HM
       sTest = "Test TestA Test Test";
       sTest.ReplaceNoCase(_T("TestA"), _T("TESTB"));
       if (sTest != _T("Test TESTB Test Test")) HM_TEST_FAILED();
+
+      // Replace and Remove make what they made before they took one pass
+      // (StdString.h): left to right, none overlapping, none looked for inside
+      // a replacement, the count answered - shorter, longer or the same length.
+      sTest = _T("a&lt;b&lt;&lt;");
+      if (sTest.Replace(_T("&lt;"), _T("<")) != 3 || sTest != _T("a<b<<")) HM_TEST_FAILED();
+      sTest = _T("aaaaa");
+      if (sTest.Replace(_T("aa"), _T("b")) != 2 || sTest != _T("bba")) HM_TEST_FAILED();
+      sTest = _T("aaa");
+      if (sTest.Replace(_T("aa"), _T("aaa")) != 1 || sTest != _T("aaaa")) HM_TEST_FAILED();
+      sTest = _T("x.y.");
+      if (sTest.Replace(_T("."), _T("..")) != 2 || sTest != _T("x..y..")) HM_TEST_FAILED();
+      sTest = _T("abcabc");
+      if (sTest.Replace(_T("bc"), _T("")) != 2 || sTest != _T("aa")) HM_TEST_FAILED();
+      sTest = _T("abab");
+      if (sTest.Replace(_T("ab"), _T("ba")) != 2 || sTest != _T("baba")) HM_TEST_FAILED();
+      sTest = _T("abc");
+      if (sTest.Replace(_T(""), _T("x")) != 0 || sTest != _T("abc")) HM_TEST_FAILED();
+      if (sTest.Replace(_T("abcd"), _T("x")) != 0 || sTest != _T("abc")) HM_TEST_FAILED();
+      sTest = _T("\"a\"\"b\"");
+      if (sTest.Remove('"') != 4 || sTest != _T("ab")) HM_TEST_FAILED();
+      if (sTest.Remove('"') != 0 || sTest != _T("ab")) HM_TEST_FAILED();
  
       // Check email addresses
 

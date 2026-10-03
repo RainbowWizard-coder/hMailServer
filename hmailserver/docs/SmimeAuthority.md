@@ -302,6 +302,24 @@ valid, revoked or expired): once a colleague's certificate is revoked or
 superseded, the page stops encrypting to it at its next reading of the store,
 and asks the directory again.
 
+A certificate taken from signed mail is kept in that store only when the
+server's chain check (`POST /api/v1/me/smime/chain`) finds it trusted - a root
+this machine trusts, or the domain's own authority - and only under the
+message's From address, which the certificate must name among its addresses:
+never under another address it names first, since the order is the signer's to
+choose. An address that already has a certificate in the store, a different
+one, does not get a second without the reader's say: the message says so with
+the new certificate's fingerprint, to be checked with its owner, and **Keep
+this certificate** keeps it beside the one before. Nothing is kept while the
+page could not read the store, since what the store holds decides between
+keeping a certificate and asking first. A certificate that is not
+trusted is not kept; the reader is told so - unless it is one the store holds
+already, imported on the Security page - and the certificate can be imported
+there by somebody who has checked it. Before 6.3.6 the
+page kept every signer's certificate, trusted or not, under the first address
+it named; the Security page lists each kept certificate with its address and
+fingerprint, and **Remove** takes out one that should not be there.
+
 Trust on the clients
 --------------------
 

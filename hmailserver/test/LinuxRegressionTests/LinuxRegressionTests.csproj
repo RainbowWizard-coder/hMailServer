@@ -134,6 +134,8 @@
     <Compile Include="..\RegressionTests\API\RestApiSessionFollow.cs" Link="API\RestApiSessionFollow.cs" />
     <Compile Include="..\RegressionTests\API\RestApiSecondAccount.cs" Link="API\RestApiSecondAccount.cs" />
     <Compile Include="..\RegressionTests\API\RestApiDevices.cs" Link="API\RestApiDevices.cs" />
+    <Compile Include="..\RegressionTests\API\RestApiInlineImageBudget.cs" Link="API\RestApiInlineImageBudget.cs" />
+    <Compile Include="..\RegressionTests\API\RestApiHtmlOnlyText.cs" Link="API\RestApiHtmlOnlyText.cs" />
     <Compile Include="..\RegressionTests\API\RestApiSignatureImages.cs" Link="API\RestApiSignatureImages.cs" />
     <Compile Include="..\RegressionTests\API\RestApiFetchAccounts.cs" Link="API\RestApiFetchAccounts.cs" />
     <Compile Include="..\RegressionTests\API\ChangedFromStock.cs" Link="API\ChangedFromStock.cs" />

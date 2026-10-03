@@ -484,6 +484,40 @@ with 409 and nothing saved - on `/api/v1/me/fetch-accounts`, its import's start 
 the documented meaning, are not asked for it. Found by the project's second review of this release; no released
 version reads -1 as 6.3.6 does.
 
+The webmail kept the S/MIME certificate of a signed message it opened as a correspondent's certificate, to encrypt
+replies with, whether or not the server found its chain trusted, under the first address the certificate named rather
+than the message's From address, and beside any different certificate already kept for that address without asking.
+Every later message the account encrypted to that address was then encrypted to such a certificate as well, so whoever
+held its key could read it. This is in 6.3.2 to 6.3.5. In 6.3.6 a certificate is kept only when its chain is trusted,
+only under the From address the signature was checked against, and a different one for an address that has one only
+when the reader chooses **Keep this certificate** (What changes on upgrade, item 37). Certificates kept before the
+upgrade stay where they are: the Security page lists each with its address and fingerprint, and **Remove** takes one
+out ([SmimeAuthority.md](hmailserver/docs/SmimeAuthority.md)). Found by the project's own review.
+
+The webmail's view of a message's HTML (`GET /api/v1/me/messages/{id}/html`) put the images the message embeds back in
+place with work that grew with the square of the number of references to them, and wrote an image out again for every
+reference while counting it against the inline budget once, so one message could hold one of the REST listener's four
+workers for minutes and have it build a document of gigabytes; with a few of them the webmail, the Control Deck and
+the REST API stopped answering anybody. This is in 6.3.2 to 6.3.5. In 6.3.6 the route reads the HTML twice, once for
+the images it names and once as it writes them, in a time that grows with the HTML's size alone, and writes 24 MB of
+images at most in all, every reference counted (What changes on upgrade, item 38). Found by the project's own review.
+
+The webmail inflated a compressed OpenPGP message in the reader's browser tab with no limit on its size, so a small
+message could take the tab's memory each time it was opened, in 6.3.4 and 6.3.5; the server was not affected. In 6.3.6
+each compressed layer is inflated to 32 MB at most and a message past that is refused with a sentence that says so
+(What changes on upgrade, item 39). Found by the project's own review.
+
+Where a message has an HTML part and no text part, the server reads its text with the tags dropped and the entities
+decoded: for the snippet the webmail's message list shows, for an IMAP client's `PREVIEW`, and for the page of a
+message that expires. The decoding replaced each entity in place and moved the whole rest of the text along every
+time, so its time grew with the square of their number, and one message of a few megabytes of entities held the REST
+worker that listed the folder for minutes - no click needed, since the list is the first thing the webmail asks for -
+and held an IMAP thread the same way; with a few of them the webmail, the Control Deck and the REST API stopped
+answering anybody. This is in the message list from 6.3.3, the page of a message that expires from 6.3.4 and `PREVIEW`
+from 6.2.22, up to 6.3.5. In 6.3.6 the server's string replacement, which these and the rest of the server use, writes
+a result of another length in one pass, and its removal of a character takes one pass too; what they make is as it
+was. Found by the project's own review.
+
 ### What changes on upgrade without a switch
 
 1. **COM `Utilities`: the helpers that do work answer a caller that has signed in.** `BlowfishEncrypt`,
@@ -1027,6 +1061,34 @@ version reads -1 as 6.3.6 does.
     command with `BYE`, where a client that kept sending commands held it until that client stopped. A client that
     keeps a session open to edit in - which the 30 seconds between commands already cut - signs in again. The figures
     are constants.
+
+37. **The webmail keeps a signer's S/MIME certificate only when its chain is trusted, under the From address, and a
+    different one for the same address only when asked.** A signed message whose certificate the server does not trust
+    no longer leaves the account a certificate to encrypt replies with; the message says it was not kept (unless it is
+    one the account holds already, imported on the Security page), and a correspondent whose certificate is
+    self-signed or from an authority this machine does not trust is imported on the Security page once it has been
+    checked with them. A trusted certificate is kept under the message's From address, which it must name, where it
+    was kept under the first address it listed. A different certificate for an address that has one is offered behind
+    **Keep this certificate** with its fingerprint, where it was kept beside the old one at once: a correspondent's
+    renewed certificate takes that one click on the first signed message after the renewal. Certificates kept before
+    the upgrade stay; review them on the Security page ([SmimeAuthority.md](hmailserver/docs/SmimeAuthority.md)).
+    Tests: the webmail's script test, eight checks that fail against 6.3.5's page; the five new texts are in all 23
+    catalogues.
+38. **A message's HTML in the webmail shows its embedded images until 24 MB of them are written.** The route
+    `GET /api/v1/me/messages/{id}/html` writes at most 24 MB of `data:` URLs in all, every reference to an image
+    counted, where it wrote one for every reference; a reference past that stays the `cid:` URL it was and shows no
+    image. The 64 images, 4 MB each and 12 MB together, are as they were, so a message that showed each of its images
+    once still shows them all. A `cid:` URL is matched whole, up to the quote, space, bracket, angle bracket,
+    ampersand or backslash that ends it, where any text that began with `cid:` and a part's Content-ID was replaced,
+    the rest of a longer id left behind ([Signatures.md](hmailserver/docs/Signatures.md), In the webmail). Tests:
+    `RestApiInlineImageBudget`, both failing against 6.3.5's server.
+39. **The webmail refuses an OpenPGP message that inflates past 32 MB.** Each compressed layer of a message the
+    webmail opens is inflated to 32 MB at most, the size of message the server reads whole; a larger one is refused
+    with *the message is larger than 32 MB once decompressed, more than this page opens; open it in a mail program*,
+    where the tab inflated it whole ([OpenPGP.md](hmailserver/docs/OpenPGP.md)). The compressed data goes to the
+    browser's decompressor 16 KB at a time, since Chromium's inflates all of what it is given before the page reads
+    any. Test: `build/check-portal-openpgp.js`, four checks that fail against 6.3.5's module, one of them with a
+    decompressor that inflates the way Chromium's does.
 
 ### Downloads and the release
 

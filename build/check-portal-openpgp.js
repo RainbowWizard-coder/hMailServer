@@ -177,6 +177,95 @@ function gpgStatus(home, args, input, passphrase) {
   const altered = await pgp.decryptBytes(cut, [aliceSecret]).then(function () { return ''; }, function (e) { return e.message; });
   check(altered.indexOf('altered') > 0 || altered.indexOf('did not open') > 0, 'a message changed after it was encrypted is refused: ' + altered);
 
+  console.log('== compressed messages past what the page inflates');
+  // A compressed packet is inflated to 32 MB at most in the reader's tab, each
+  // of the up to four layers the page unwraps, and a message past that is
+  // refused in so many words: a few kilobytes of deflate can stand for
+  // gigabytes. The decrypting path and this one share the inflating, so a
+  // message with no encryption layer is enough to hold it to that. Each
+  // refusal fails against 6.3.5's module, which inflated whatever it was given.
+  const zlib = require('zlib');
+  const packet = function (tag, body) {
+    const head = Buffer.from([0xc0 | tag, 0xff, 0, 0, 0, 0]);
+    head.writeUInt32BE(body.length, 2);
+    return Buffer.concat([head, body]);
+  };
+  const literalOf = function (size) { return packet(11, Buffer.concat([Buffer.from([0x62, 0, 0, 0, 0, 0]), Buffer.alloc(size, 0x41)])); };
+  const zlibOf = function (inner) { return packet(8, Buffer.concat([Buffer.from([2]), zlib.deflateSync(inner)])); };
+  const zipOf = function (inner) { return packet(8, Buffer.concat([Buffer.from([1]), zlib.deflateRawSync(inner)])); };
+  const opened = function (bytes) { return pgp.decryptBytes(new Uint8Array(bytes), []).then(function (r) { return { size: r.data.length }; }, function (e) { return { error: e.message }; }); };
+  const MB = 1024 * 1024;
+  const small = await opened(zlibOf(literalOf(MB)));
+  check(small.size === MB, 'a ZLIB message of 1 MB inflated opens: ' + (small.error || small.size + ' bytes'));
+  const zlibBomb = zlibOf(literalOf(33 * MB));
+  const overZlib = await opened(zlibBomb);
+  check(overZlib.error !== undefined && overZlib.error.indexOf('larger than 32 MB once decompressed') >= 0,
+    'a ZLIB message of ' + zlibBomb.length + ' bytes that inflates past 32 MB is refused: ' + (overZlib.error || overZlib.size + ' bytes inflated'));
+  const overZip = await opened(zipOf(literalOf(40 * MB)));
+  check(overZip.error !== undefined && overZip.error.indexOf('larger than 32 MB once decompressed') >= 0,
+    'and so is a ZIP one: ' + (overZip.error || overZip.size + ' bytes inflated'));
+  const nested = zlibOf(zlibOf(zlibOf(literalOf(33 * MB))));
+  const overNested = await opened(nested);
+  check(overNested.error !== undefined && overNested.error.indexOf('larger than 32 MB once decompressed') >= 0,
+    'and one of ' + nested.length + ' bytes in three layers, each small until the last: ' + (overNested.error || overNested.size + ' bytes inflated'));
+
+  // Node's DecompressionStream inflates as the output is read; Chromium's
+  // inflates the whole of a chunk it is given before any of it is read, so
+  // a ceiling counted while reading holds the tab only when the input goes in
+  // a little at a time. A stand-in that inflates the way Chromium does - all
+  // of each chunk at once, in 16 KB pieces - counts what it made: the page
+  // has to stop it near the ceiling, not at the bomb's full size. Fails
+  // against the module that gave the decompressor the whole input as one
+  // chunk (200 MB made before the ceiling was counted) and against 6.3.5's.
+  const nodeDecompression = globalThis.DecompressionStream;
+  let madeByStandIn = 0;
+  class InflateAllAtOnce {
+    constructor(format) {
+      const inflate = format === 'deflate-raw' ? zlib.inflateRawSync : zlib.inflateSync;
+      const seen = [];
+      let sent = 0;
+      const pass = new TransformStream({
+        transform: function (chunk, controller) {
+          seen.push(Buffer.from(chunk.buffer, chunk.byteOffset, chunk.byteLength));
+          const out = inflate(Buffer.concat(seen), { finishFlush: zlib.constants.Z_SYNC_FLUSH });
+          for (let at = sent; at < out.length; at += 16384) {
+            const piece = out.subarray(at, Math.min(out.length, at + 16384));
+            madeByStandIn += piece.length;
+            controller.enqueue(new Uint8Array(piece));
+          }
+          sent = out.length;
+        },
+        flush: function () { inflate(Buffer.concat(seen)); }
+      });
+      this.readable = pass.readable;
+      this.writable = pass.writable;
+    }
+  }
+  // A compressed packet whose deflate data stops short: the packet is whole,
+  // its contents are not.
+  const literalOfNoise = function (size) { return packet(11, Buffer.concat([Buffer.from([0x62, 0, 0, 0, 0, 0]), require('crypto').randomBytes(size)])); };
+  const zlibCut = function (inner, cut) { const d = zlib.deflateSync(inner); return packet(8, Buffer.concat([Buffer.from([2]), d.subarray(0, d.length - cut)])); };
+  const withinSeconds = function (promise, seconds) {
+    return Promise.race([promise, new Promise(function (resolve) { setTimeout(function () { resolve({ error: 'no answer in ' + seconds + ' s' }); }, seconds * 1000); })]);
+  };
+  globalThis.DecompressionStream = InflateAllAtOnce;
+  try {
+    const bigBomb = zlibOf(literalOf(200 * MB));
+    const overAllAtOnce = await withinSeconds(opened(bigBomb), 60);
+    check(overAllAtOnce.error !== undefined && overAllAtOnce.error.indexOf('larger than 32 MB once decompressed') >= 0 && madeByStandIn < 50 * MB,
+      'a ZLIB message of ' + bigBomb.length + ' bytes that inflates to 200 MB, inflated the way Chromium does, is refused with ' +
+        (madeByStandIn / MB).toFixed(1) + ' MB inflated: ' + (overAllAtOnce.error || overAllAtOnce.size + ' bytes'));
+    madeByStandIn = 0;
+    const smallAllAtOnce = await withinSeconds(opened(zlibOf(literalOf(3 * MB))), 60);
+    check(smallAllAtOnce.size === 3 * MB, 'and one of 3 MB inflated that way opens whole: ' + (smallAllAtOnce.error || smallAllAtOnce.size + ' bytes'));
+    const cutShort = await withinSeconds(opened(zlibCut(literalOfNoise(64 * 1024), 600)), 60);
+    check(cutShort.error !== undefined && cutShort.error.indexOf('no answer') < 0, 'and one whose compressed data stops short is refused, not waited on: ' + JSON.stringify(cutShort));
+  } finally {
+    globalThis.DecompressionStream = nodeDecompression;
+  }
+  const cutShortNode = await withinSeconds(opened(zlibCut(literalOfNoise(64 * 1024), 600)), 60);
+  check(cutShortNode.error !== undefined && cutShortNode.error.indexOf('no answer') < 0, 'and with Node\'s own decompressor too (whose error carries no message): ' + JSON.stringify(cutShortNode));
+
   console.log('== PGP/MIME GnuPG made');
   const signedMessage = await pgp.readMessage(read('pgpmime-signed.eml'), [alice]);
   check(signedMessage.layers.join(',') === 'signed', 'the multipart/signed message is seen as signed');

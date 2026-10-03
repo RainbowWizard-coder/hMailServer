@@ -1782,17 +1782,58 @@
     return { format: format, filename: name, when: when, bytes: body.subarray(2 + nameLength + 4) };
   }
 
+  // The most a compressed packet is inflated to in the reader's tab: 32 MB,
+  // the size of message the server itself reads whole (MaxMessageParseBytes
+  // in RestApiServer.cpp). A few kilobytes of deflate can stand for
+  // gigabytes, and up to four layers are unwrapped, each held to this; a
+  // message past it is refused in so many words rather than inflated until
+  // the tab runs out of memory.
+  const INFLATED_MOST = 32 * 1024 * 1024;
+
+  // How much of the compressed input goes to the decompressor at a time.
+  // Chromium's DecompressionStream inflates the whole of a chunk it is given
+  // before the page reads any of the output - backpressure or not - so the
+  // ceiling above holds the tab only if the input arrives in pieces: deflate
+  // expands at most about 1,032 times, so 16 KB is some 16.5 MB of output at
+  // most, and the next piece goes in only once that output has been read and
+  // counted.
+  const INFLATE_SLICE = 16 * 1024;
+
   async function inflate_(bytes, raw) {
     if (typeof DecompressionStream === 'undefined') { throw new Error('this browser cannot decompress; the message is compressed'); }
-    const source = new ReadableStream({ start: function (controller) { controller.enqueue(bytes); controller.close(); } });
-    const stream = source.pipeThrough(new DecompressionStream(raw ? 'deflate-raw' : 'deflate'));
-    const reader = stream.getReader();
+    const stream = new DecompressionStream(raw ? 'deflate-raw' : 'deflate');
+    const writer = stream.writable.getWriter();
+    const reader = stream.readable.getReader();
     const chunks = [];
-    for (;;) {
-      const step = await reader.read();
-      if (step.done) { break; }
-      chunks.push(step.value);
+    let total = 0;
+    let tooLarge = false;
+    const reading = (async function () {
+      for (;;) {
+        const step = await reader.read();
+        if (step.done) { return; }
+        total += step.value.length;
+        if (total > INFLATED_MOST) {
+          tooLarge = true;
+          try { await reader.cancel(); } catch (e) { /* the stream is dropped either way */ }
+          return;
+        }
+        chunks.push(step.value);
+      }
+    })();
+    // Handled here and awaited below: a decompression error rejects it
+    // while a write is still being waited on.
+    reading.catch(function () {});
+    try {
+      for (let at = 0; at < bytes.length && !tooLarge; at += INFLATE_SLICE) {
+        await writer.write(bytes.subarray(at, Math.min(bytes.length, at + INFLATE_SLICE)));
+      }
+      if (!tooLarge) { await writer.close(); }
+    } catch (e) {
+      // A cancelled read or a decompression error errors the writing side
+      // too; the reading side says which.
     }
+    await reading;
+    if (tooLarge) { throw new Error('the message is larger than 32 MB once decompressed, more than this page opens; open it in a mail program'); }
     return concat(chunks);
   }
 

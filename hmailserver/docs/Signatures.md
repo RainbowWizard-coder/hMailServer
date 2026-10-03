@@ -140,10 +140,14 @@ In the webmail
 The Sent copy and a draft show their images: the message page asks for the HTML
 through `GET /api/v1/me/messages/{id}/html`, which puts each `cid:` image back in
 place as a `data:` URL for its frame — up to 64 images, 4 MB each and 12 MB
-together — and the image is listed under the message as an attachment marked
-*in the message*. The page frames the HTML only of a message of up to 1 MB (a
-larger one is shown as its text, as it always was), so it is the count of 64, the
-same count the move keeps to, that could bind there, and it does not.
+together, and 24 MB of `data:` URLs written in all however often the HTML names
+an image, a reference past that left as the `cid:` URL it was, which shows no
+image — and the image is listed under the message as an attachment marked
+*in the message*. The route reads the HTML once to learn what it names and once
+more as it writes it, so its time grows with the size of the HTML alone, however
+many times an image is named. The page frames the HTML only of a message of up
+to 1 MB (a larger one is shown as its text, as it always was), so it is the count
+of 64, the same count the move keeps to, that could bind there, and it does not.
 
 A draft opened again in the compose form comes back as its text, as it always
 has. The images this webmail made parts of its HTML — those whose Content-ID is

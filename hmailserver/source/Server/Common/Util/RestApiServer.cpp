@@ -14929,6 +14929,94 @@ namespace HM
          return value;
       }
 
+      // Whether a character ends a cid: URL (RFC 2392) in an HTML part: a
+      // quote or a space ends an attribute's value, a bracket a CSS url(), an
+      // angle bracket, an ampersand or a backslash the markup around it.
+      bool EndsCidUrl(char c)
+      {
+         switch (c)
+         {
+         case '"': case '\'': case '`': case ' ': case '\t': case '\r': case '\n': case '\f':
+         case '(': case ')': case '<': case '>': case '&': case '\\':
+            return true;
+         default:
+            return false;
+         }
+      }
+
+      // Each cid: URL of the HTML, in order, as the offset of its "cid:" and
+      // the offset just past it. One pass over the HTML, however many URLs it
+      // holds: every character is looked at once.
+      template <typename Visit>
+      void ForEachCidUrl(const std::string &html, Visit visit)
+      {
+         size_t at = 0;
+         while ((at = html.find("cid:", at)) != std::string::npos)
+         {
+            size_t end = at + 4;
+            while (end < html.size() && !EndsCidUrl(html[end]))
+               end++;
+            visit(at, end);
+            at = end;
+         }
+      }
+
+      // Of the content ids given, those a cid: URL in the HTML names.
+      std::set<std::string> CidUrlsNamed(const std::string &html, const std::set<std::string> &ids)
+      {
+         std::set<std::string> named;
+         size_t longest = 0;
+         for (const std::string &id : ids)
+            longest = std::max(longest, id.size());
+         if (longest == 0)
+            return named;
+         ForEachCidUrl(html, [&](size_t at, size_t end)
+         {
+            const size_t length = end - at - 4;
+            if (length == 0 || length > longest)
+               return;
+            std::string id = html.substr(at + 4, length);
+            if (ids.count(id) > 0)
+               named.insert(id);
+         });
+         return named;
+      }
+
+      // The HTML with each cid: URL that names a part in urls written as that
+      // part's data: URL, in one pass. The data: URLs written come to `most`
+      // bytes at most in all, every reference counted - a part named a
+      // thousand times is written a thousand times - and a reference past
+      // that stays the cid: URL it was, which the frame shows as no image.
+      std::string InlineCidUrls(const std::string &html, const std::map<std::string, AnsiString> &urls, size_t most)
+      {
+         size_t longest = 0;
+         for (const auto &url : urls)
+            longest = std::max(longest, url.first.size());
+         std::string out;
+         out.reserve(html.size());
+         size_t written = 0;
+         size_t copied = 0;
+         ForEachCidUrl(html, [&](size_t at, size_t end)
+         {
+            out.append(html, copied, at - copied);
+            copied = end;
+            const size_t length = end - at - 4;
+            if (length > 0 && length <= longest)
+            {
+               auto found = urls.find(html.substr(at + 4, length));
+               if (found != urls.end() && found->second.size() <= most - written)
+               {
+                  out.append(found->second);
+                  written += found->second.size();
+                  return;
+               }
+            }
+            out.append(html, at, end - at);
+         });
+         out.append(html.data() + copied, html.size() - copied);
+         return out;
+      }
+
       // How many messages one listing returns at most: the newest, and the
       // caller pages further back with before_uid.
       const int MaxMessagesPerPage = 200;
@@ -18018,9 +18106,17 @@ namespace HM
       // cid: references, resolved to the parts they name - image types only,
       // 4 MB each, 12 MB together, and as many parts as the send path moves
       // out of the HTML (InlineImageParts::MostImages), so a Sent copy or a
-      // draft shows every image it was written with.
+      // draft shows every image it was written with. The HTML is read once
+      // for the parts it names and once more as it is written with their
+      // data: URLs, however many references it holds, and the data: URLs
+      // written come to InlineWritten at most, every reference counted: the
+      // 12 MB of images once each, with room for an image named again. A
+      // sender who names one image a million times has it shown as often as
+      // that allows, rather than a worker spending minutes on a document of
+      // gigabytes (docs/Signatures.md, In the webmail).
       const __int64 InlineEach = 4 * 1024 * 1024;
       const __int64 InlineTogether = 12 * 1024 * 1024;
+      const size_t InlineWritten = static_cast<size_t>(24) * 1024 * 1024;
       const int InlineMost = InlineImageParts::MostImages;
       std::shared_ptr<Attachments> attachments = messageData.GetAttachments();
       std::list<std::shared_ptr<MimeBody>> parts;
@@ -18028,11 +18124,13 @@ namespace HM
       if (mimeMessage)
          mimeMessage->GetAttachmentList(mimeMessage, parts);
       std::vector<std::shared_ptr<MimeBody>> partList(parts.begin(), parts.end());
-      __int64 budget = InlineTogether;
-      int inlined = 0;
       if (attachments)
       {
-         for (size_t i = 0; i < attachments->GetCount() && i < partList.size() && inlined < InlineMost; i++)
+         // The image parts, with the Content-ID and the type of each.
+         struct ImagePart { size_t index; std::string contentId; AnsiString type; };
+         std::vector<ImagePart> images;
+         std::set<std::string> ids;
+         for (size_t i = 0; i < attachments->GetCount() && i < partList.size(); i++)
          {
             std::shared_ptr<Attachment> attachment = attachments->GetItem((unsigned int) i);
             if (!attachment)
@@ -18041,16 +18139,29 @@ namespace HM
             AnsiString type = MediaType(attachment->GetContentType());
             if (contentId.IsEmpty() || type.Find("image/") != 0)
                continue;
-            if (html.Find("cid:" + contentId) < 0)
+            images.push_back(ImagePart{ i, contentId, type });
+            ids.insert(contentId);
+         }
+
+         const std::set<std::string> named = CidUrlsNamed(html, ids);
+         std::map<std::string, AnsiString> dataUrls;
+         __int64 budget = InlineTogether;
+         int inlined = 0;
+         for (size_t k = 0; k < images.size() && inlined < InlineMost; k++)
+         {
+            const ImagePart &image = images[k];
+            if (named.count(image.contentId) == 0 || dataUrls.count(image.contentId) > 0)
                continue;
+            std::shared_ptr<Attachment> attachment = attachments->GetItem((unsigned int) image.index);
             AnsiString bytes;
-            if (!attachment->GetContent(bytes) || bytes.GetLength() > InlineEach || bytes.GetLength() > budget)
+            if (!attachment || !attachment->GetContent(bytes) || bytes.GetLength() > InlineEach || bytes.GetLength() > budget)
                continue;
             budget -= bytes.GetLength();
             inlined++;
-            AnsiString dataUrl = "data:" + type + ";base64," + Base64::Encode(bytes.c_str(), bytes.GetLength());
-            html.Replace("cid:" + contentId, dataUrl);
+            dataUrls[image.contentId] = "data:" + image.type + ";base64," + Base64::Encode(bytes.c_str(), bytes.GetLength());
          }
+         if (!dataUrls.empty())
+            html = InlineCidUrls(html, dataUrls, InlineWritten);
       }
 
       bool remote = QueryParameter_(query, "remote") == "1";
@@ -20602,7 +20713,7 @@ namespace HM
          "\"/api/v1/me/messages\":{\"post\":{\"x-body\":\"text and, when given, html (the message goes as multipart/alternative); attachments; from (one of the identities); receipt; in_reply_to, references, answered_id; expires_in and passcode for a message that expires; or mime - the MIME entity the page built (a signed or an encrypted message: its Content-Type headers, a blank line, its body, 7-bit), sent under this server's headers in place of text, html and attachments.\",\"summary\":\"Send a message as the signed-in account\",\"description\":\"The domain of the address the message is sent from adds its signature and its disclaimer, by the rules SMTP submission applies; the account's own signature is not added, because it is the caller's to write into the text, as the webmail does. Body: to, cc, bcc (address lists, comma or semicolon separated, display names allowed), subject, text, and from - one of the account's identities (GET /api/v1/me/identities: its own address, an alias of it, or an address whose owner granted it the post right), as address or Name <address>; optionally in_reply_to and references (written as the headers of those names, so the recipient's client threads the reply) and answered_id (the id of the message this answers, which gets \\\\Answered). Every address is put through the checks RCPT TO makes for an authenticated sender, and a refused one is named in error. The message is queued through the same delivery pipeline as SMTP submission, and a copy marked read is kept in the folder designated \\\\Sent when the account has one and its quota allows. attachments is an array of {name, type, data} with data as base64 - at most 20, twelve megabytes together; this route and the drafts route take a request of up to sixteen megabytes. An image html holds as a data: URL - PNG, JPEG, GIF or WebP, the whole value of a src attribute - is sent as an inline part beside the HTML in a multipart/related part, and the HTML names it with a cid: URL, since Gmail and Outlook do not display a data: image; the copy in Sent is the same message, and GET /api/v1/me/messages/{id}/html puts the image back in place for the page. expires_in (seconds from now, 1 to 7776000) makes a message that expires, Gmail's confidential mode: the message is kept on this server under the data directory and each recipient is sent a short notice with a link to /confidential/{token} under confidential_base_url, where they read it after proving they are a recipient; passcode (4 to 64 characters) adds a word the sender gives them another way. The copy in Sent is the full message; the answer adds confidential_id and expires; GET /api/v1/me/confidential lists them and POST .../{id}/revoke withdraws one. Refused with 403 and code confidential_unavailable when no base URL is set, and with 400 beside mime; an expires_in that is not a whole number of seconds (negative, a fraction, a string, true, null) is refused with 400 rather than read as no expiry, and so is passcode without expires_in. The kept copy counts against the mailbox's quota with everything else the account keeps (413, code quota_exceeded), and an account has at most 1000 outstanding (400, code confidential_ceiling).\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"properties\":{\"to\":{\"type\":\"string\"},\"cc\":{\"type\":\"string\"},\"bcc\":{\"type\":\"string\"},\"subject\":{\"type\":\"string\"},\"text\":{\"type\":\"string\"}}}}}},\"responses\":{\"201\":{\"description\":\"queued, recipients, sent_id (0 when no copy was kept), and for a message that expires confidential_id and expires\"},\"400\":{\"description\":\"No recipient, or an address refused (named in error). A recipient on the sending domain's suppression list also answers code recipient_suppressed, address, and source - bounce or report for an address that bounced, manual for one an administrator listed.\"},\"403\":{\"description\":\"Refused by a rule of the server's or of a domain's with a reject action, as the SMTP session would refuse it at DATA: error is the rule's text (or a sentence naming the rule) and code is policy_rejected; nothing is queued or kept. Also a message that expires where no base URL is set (code confidential_unavailable).\"},\"413\":{\"description\":\"Larger than the server allows\"}}}},"
          "\"/api/v1/me/messages/{id}\":{\"get\":{\"summary\":\"One message, read\",\"description\":\"The listing's fields plus folder_id, to, cc, text, html and attachments (index, name, size, content_type, content_id). content_type is the media type the part declares, lower-cased and without its parameters, and is the empty string when the part declares none; content_id is the part's Content-ID with the angle brackets stripped - the form a cid: URL in html uses - and is the empty string when the part carries none. An inline image is an attachment here like any other part, so a page renders one by matching a cid: URL in html against content_id and pointing at the attachment route. A message over one megabyte is described with truncated true and no body. Another account's message, or one in a folder the ACL keeps from this account, is 404.\",\"responses\":{\"200\":{\"description\":\"The message\"},\"404\":{\"description\":\"Not this account's message\"}}},\"delete\":{\"summary\":\"Delete one message\",\"description\":\"Moved to the folder designated \\\\Trash when the account has one and the message is not in it already; expunged instead when the account has no Trash folder, when the message is already in it, or when the caller adds ?permanent=1. The rights EXPUNGE asks for.\",\"responses\":{\"200\":{\"description\":\"deleted true, or deleted false with moved_to and the new id\"},\"403\":{\"description\":\"The folder does not allow it\"},\"404\":{\"description\":\"Not this account's message\"}}}},"
          "\"/api/v1/me/messages/{id}/flags\":{\"put\":{\"summary\":\"Change one message's flags\",\"description\":\"Body: any of seen, flagged, answered, draft, deleted as booleans; only the flags named change. The rights STORE asks for - seen, deleted and the rest are three permissions. Every IMAP session on the folder is told.\",\"requestBody\":{\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"properties\":{\"seen\":{\"type\":\"boolean\"},\"flagged\":{\"type\":\"boolean\"},\"answered\":{\"type\":\"boolean\"},\"draft\":{\"type\":\"boolean\"},\"deleted\":{\"type\":\"boolean\"}}}}}},\"responses\":{\"200\":{\"description\":\"id, folder_id, flags\"},\"400\":{\"description\":\"No flag named\"},\"403\":{\"description\":\"The folder does not allow it\"},\"404\":{\"description\":\"Not this account's message\"}}}},"
-         "\"/api/v1/me/messages/{id}/html\":{\"get\":{\"summary\":\"The message's HTML part as a document for a frame\",\"description\":\"text/html under a policy of its own: nothing runs, no form is submitted, no address is rewritten, and remote images and styles are blocked unless ?remote=1 is given - which the page does when the reader allowed this message or this sender. Images the message embeds (cid:) are inlined as data: URLs under the inline budget. The message JSON's html_remote says whether the part names anything remote at all. 404 when the message has no HTML part.\",\"responses\":{\"200\":{\"description\":\"The document\"},\"404\":{\"description\":\"No such message, or no HTML part\"}}}},"
+         "\"/api/v1/me/messages/{id}/html\":{\"get\":{\"summary\":\"The message's HTML part as a document for a frame\",\"description\":\"text/html under a policy of its own: nothing runs, no form is submitted, no address is rewritten, and remote images and styles are blocked unless ?remote=1 is given - which the page does when the reader allowed this message or this sender. Images the message embeds (cid:) are inlined as data: URLs under the inline budget: 64 images, 4 MB each and 12 MB together, and 24 MB of data: URLs written in all however often an image is named, a reference past that left as it was. The message JSON's html_remote says whether the part names anything remote at all. 404 when the message has no HTML part.\",\"responses\":{\"200\":{\"description\":\"The document\"},\"404\":{\"description\":\"No such message, or no HTML part\"}}}},"
          "\"/api/v1/me/files\":{\"get\":{\"summary\":\"The signed-in account's files sent as links\",\"description\":\"policy (link_above_kb: the size above which the webmail sends a file as a link; days: how long a link lives by default; max_days; max_mb: the most one file may be; quota_mb: the most the account may keep), used_bytes, count, and files - each with id, token, name, type, size, stored, complete, created and expires (Unix seconds), expired, downloads, protected, link (/files/{token}).\",\"responses\":{\"200\":{\"description\":\"policy, used_bytes, count, files\"}}},\"post\":{\"summary\":\"Record a file to be sent as a link\",\"description\":\"The record keeps the type its link is served under, as GET /files/{token} says. Body: name, type, size (bytes), and days (0 to max_days; the domain's default when absent; 0 makes a link that is dead at once) and password when wanted. The bytes follow with PUT .../{id}/content. At most 200 files an account; a file at most max_mb; the account's files together at most quota_mb.\",\"responses\":{\"201\":{\"description\":\"The record, as the list shows it\"},\"400\":{\"description\":\"A value refused\"},\"413\":{\"description\":\"Too large for the domain's policy, or the account's allowance is used up\"}}}},"
          "\"/api/v1/me/files/{id}\":{\"put\":{\"summary\":\"Re-time or protect a file\",\"description\":\"Body: days (from now; 0 ends the link) and/or password (a string; empty removes it).\",\"responses\":{\"200\":{\"description\":\"The record\"},\"404\":{\"description\":\"Not this account's file\"}}},\"delete\":{\"summary\":\"Remove a file and its link\",\"responses\":{\"200\":{\"description\":\"Removed\"},\"404\":{\"description\":\"Not this account's file\"}}}},"
          "\"/api/v1/me/files/{id}/content\":{\"put\":{\"summary\":\"Append a chunk of the file's bytes\",\"description\":\"The body is the chunk, raw (up to the large request cap); offset= is where it starts and must be what the record has stored so far, so a chunk lost is sent again and a chunk sent twice is refused (409, with stored). The record is complete when the declared size is reached.\",\"responses\":{\"200\":{\"description\":\"id, stored, size, complete, link\"},\"409\":{\"description\":\"The offset is not where the file has got to, or the file is complete\"},\"413\":{\"description\":\"More than the size that was declared\"}}}},"
