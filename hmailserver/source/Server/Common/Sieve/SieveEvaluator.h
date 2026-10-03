@@ -198,6 +198,14 @@ namespace HM
       // missing script.
       void SetIncludeFetch(std::function<String(const String &, bool)> callback);
 
+      // :matches as a script's tests take it (WildcardMatchWithCaptures_), for
+      // InputCostTester to hold to what the earlier matcher made.
+      static bool MatchesWithCaptures(const String &pattern, const String &value,
+                                      bool caseSensitive, std::vector<String> &captures)
+      {
+         return WildcardMatchWithCaptures_(pattern, value, caseSensitive, captures);
+      }
+
    private:
       // Where the values a test compares against come from.
       enum class ValueSource { Header, Address, Envelope, Flags, Body, Environment };

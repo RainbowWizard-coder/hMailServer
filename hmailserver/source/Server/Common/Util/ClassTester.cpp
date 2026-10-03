@@ -68,6 +68,7 @@
 #include "../../SMTP/TlsPolicy.h"
 #include "SnmpTester.h"
 #include "XmlTreeTester.h"
+#include "InputCostTester.h"
 #include "InlineScriptHash.h"
 #include "SignatureHtmlSanitizer.h"
 #include "../AntiVirus/CustomVirusScanner.h"
@@ -341,6 +342,15 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing XmlTree\n"));
       XmlTreeTester xmlTreeTester;
       xmlTreeTester.Test();
+
+      // The quadratic-time sweep of 6.3.6: encoded words, header fields deleted
+      // by name and by position, the DKIM and ARC canonicalisations' choice of
+      // fields, Sieve's :matches, SPF's cut of a long name, MIME parameters
+      // removed, LIST's lines and JSON members - each as 6.3.5 made them, and
+      // in one pass over what was its worst.
+      OutputDebugString(_T("hMailServer: Testing InputCost\n"));
+      InputCostTester inputCostTester;
+      inputCostTester.Test();
 
       // The name the SURBL lookups ask about and the MX-record test falls back
       // to, cut from a host by the compiled-in Public Suffix List: wildcard and

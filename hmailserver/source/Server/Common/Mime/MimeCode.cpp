@@ -658,13 +658,24 @@ namespace HM
                nCoding = tolower(pszHeaderEnd[1]);
                pszHeaderEnd += 3;
 
-               int iDataLength = (int) (pbEnd - pszHeaderEnd);
+               // The tailer is looked for only for a word that is decoded. A word
+               // of any other encoding is copied as text below, which finds its
+               // own end - the next "=?" - and never read what this search found;
+               // but the search ran all the same, to the next "?=" or to the end of
+               // the value, from every such word. A value of many of them and no
+               // "?=" - "=?a?x? " over and over - was read to its end once per
+               // word: 160,000 of them (1.1 MB) took 101 s in the POSIX build.
+               if (nCoding == 'b' || nCoding == 'q')
+               {
+                  int iDataLength = (int) (pbEnd - pszHeaderEnd);
 
-               pszCodeEnd = StringParser::Search(pszHeaderEnd, iDataLength, "?=");  // look for the tailer
-               if (!pszCodeEnd || pszCodeEnd >= pbEnd)
-                  pszCodeEnd = pbEnd;
-               nCodeLen = (int)(pszCodeEnd - pszHeaderEnd);
-               pszCodeEnd += 2;
+                  pszCodeEnd = StringParser::Search(pszHeaderEnd, iDataLength, "?=");  // look for the tailer
+                  if (!pszCodeEnd || pszCodeEnd >= pbEnd)
+                     pszCodeEnd = pbEnd;
+                  nCodeLen = (int)(pszCodeEnd - pszHeaderEnd);
+                  pszCodeEnd += 2;
+               }
+
                if (charset_.empty())
                {
                   charset_.assign(pbData+2, pszHeaderEnd-pbData-5);

@@ -1252,22 +1252,32 @@ namespace HM
                o.yearly = true;
             }
 
-            for (size_t p = 0; p < child.properties.size(); p++)
+            // The first 500 values that read as dates. Read a value at a time
+            // and no further than the 500th, not the whole list split first:
+            // ParseTime builds the zone afresh for every value it places.
+            for (size_t p = 0; p < child.properties.size() && o.rdates.size() < 500; p++)
             {
                const ICalProperty &property = child.properties[p];
                if (property.name != "RDATE")
                   continue;
-               std::vector<AnsiString> values = SplitOn(property.value, ',');
-               for (size_t v = 0; v < values.size() && o.rdates.size() < 500; v++)
+               const AnsiString &list = property.value;
+               int position = 0;
+               while (o.rdates.size() < 500)
                {
+                  const int comma = list.Find(",", static_cast<size_t>(position));
+                  const AnsiString value = comma >= 0 ? list.Mid(position, comma - position) : list.Mid(position);
                   bool rDate, rUtc;
                   int ry, rm, rd, rh, rmi, rs;
-                  if (!ParseDateFields(values[v], rDate, rUtc, ry, rm, rd, rh, rmi, rs))
-                     continue;
-                  __int64 local = SecondsOf(ry, rm, rd, rh, rmi, rs);
-                  if (rUtc)
-                     local += o.offsetFrom;
-                  o.rdates.push_back(local);
+                  if (ParseDateFields(value, rDate, rUtc, ry, rm, rd, rh, rmi, rs))
+                  {
+                     __int64 local = SecondsOf(ry, rm, rd, rh, rmi, rs);
+                     if (rUtc)
+                        local += o.offsetFrom;
+                     o.rdates.push_back(local);
+                  }
+                  if (comma < 0)
+                     break;
+                  position = comma + 1;
                }
             }
 
@@ -1300,7 +1310,13 @@ namespace HM
          {
             std::map<AnsiString, Zone>::iterator found = zones_.find(tzid);
             if (found != zones_.end())
-               return found->second.valid ? &found->second : nullptr;
+            {
+               if (found->second.valid)
+                  return &found->second;
+               // The reason it could not be placed the first time, again.
+               problem = problems_[tzid];
+               return nullptr;
+            }
 
             Zone &zone = zones_[tzid];
             if (calendar_)
@@ -1313,6 +1329,7 @@ namespace HM
                      if (!ZoneFromComponent(child, zone, problem))
                      {
                         zone.valid = false;
+                        problems_[tzid] = problem;
                         return nullptr;
                      }
                      return &zone;
@@ -1325,12 +1342,14 @@ namespace HM
 
             problem = "the time zone " + tzid + " is neither in the object as a VTIMEZONE nor one this server knows";
             zone.valid = false;
+            problems_[tzid] = problem;
             return nullptr;
          }
 
       private:
          const ICalComponent *calendar_;
          std::map<AnsiString, Zone> zones_;
+         std::map<AnsiString, AnsiString> problems_;
       };
 
       // A DATE or DATE-TIME property to an ICalTime through the cache.
@@ -2551,6 +2570,34 @@ namespace HM
    {
       ZoneCache zones(calendar);
       return ResolveTime(property, property.value, zones, time, problem);
+   }
+
+   struct ICalTimeReader::Zones
+   {
+      explicit Zones(const ICalComponent *calendar) : cache(calendar) { }
+      ZoneCache cache;
+   };
+
+   ICalTimeReader::ICalTimeReader(const ICalComponent *calendar) :
+      zones_(new Zones(calendar))
+   {
+   }
+
+   ICalTimeReader::~ICalTimeReader()
+   {
+      delete zones_;
+   }
+
+   bool
+   ICalTimeReader::Read(const ICalProperty &property, ICalTime &time, AnsiString &problem)
+   {
+      return ResolveTime(property, property.value, zones_->cache, time, problem);
+   }
+
+   bool
+   ICalTimeReader::Read(const ICalProperty &property, const AnsiString &value, ICalTime &time, AnsiString &problem)
+   {
+      return ResolveTime(property, value, zones_->cache, time, problem);
    }
 
    bool

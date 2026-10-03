@@ -1131,9 +1131,13 @@ namespace HM
          if (mime->FieldExists(field) && AnsiString(field).CompareNoCase("Return-Path") != 0)
             altered = true;
 
-         // Every occurrence, and never more tries than there were fields.
-         for (int guard = 0; guard < 64 && mime->FieldExists(field); guard++)
-            mime->DeleteField(AnsiString(field));
+         // Every occurrence, in one pass. Taken one at a time - each looked for
+         // from the top and erased from the middle - it was held to 64 tries
+         // so that many of them could not cost their square, and a posting
+         // that brought a 65th kept it: the member's copy then carried the
+         // poster's List-Unsubscribe or List-Post beside the list's own, under
+         // the list's signature.
+         mime->DeleteFields(field);
       }
 
       // The subject prefix, once: a reply's subject already carries it, and
@@ -1188,8 +1192,8 @@ namespace HM
       // which still verifies and still aligns with the author's From.
       if (altered || CarriesSignatureOf(header, StringParser::ExtractDomain(listAddress)))
       {
-         for (int guard = 0; guard < 64 && mime->FieldExists("DKIM-Signature"); guard++)
-            mime->DeleteField(AnsiString("DKIM-Signature"));
+         // Every one, in one pass (not 64 at most, as above).
+         mime->DeleteFields("DKIM-Signature");
       }
 
       // The list's copy, written once beside the posting and read by every

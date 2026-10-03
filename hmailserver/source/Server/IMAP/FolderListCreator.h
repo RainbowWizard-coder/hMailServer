@@ -4,6 +4,10 @@
 
 #pragma once
 
+#include <string>
+#include <unordered_set>
+#include <vector>
+
 namespace HM
 {
    class IMAPFolders;
@@ -46,6 +50,14 @@ namespace HM
       // prefix root, the same way "#Public" is; the namespace root above them
       // has no folder tree of its own, hence this helper. LIST output only.
       static String CreateNamespaceRootLine(const String &sRootPath, const String &sWildcard);
+
+      // The lines of a listing (CRLF between them) not yet in seen, in their
+      // order, each once, added to seen; empty lines are left out. LIST's guard
+      // against naming a mailbox twice when several patterns match it. It kept
+      // the lines it had seen in a list it searched from the top for every
+      // line, so a listing of N mailboxes cost N squared comparisons: 40,000
+      // folders took 1.4 s a command in the POSIX build. Kept in a hash set.
+      static void TakeNewLines(const String &listing, std::unordered_set<std::wstring> &seen, std::vector<String> &fresh);
 
       // The most a LIST, LSUB or LIST-EXTENDED command is matched with: each
       // pattern, its reference in front, at most MaxPatternLength characters,

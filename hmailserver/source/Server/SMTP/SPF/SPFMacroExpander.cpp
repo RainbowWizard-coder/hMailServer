@@ -309,15 +309,25 @@ namespace HM
 
          // Section 7.1: a name too long to be asked about loses whole labels
          // from the left until it fits.
-         while (result.GetLength() > 253)
+         //
+         // Where it starts is found first and the name cut there once. Cutting a
+         // label at a time copied the rest each time, so an expansion of N labels
+         // cost N copies of itself: the record is the sender's own and each macro
+         // in it expands to as much as 254 characters of the envelope, so a term
+         // of 2,000 %{s} took 4.9 s in the POSIX build at every check.
+         int start = 0;
+         while (result.GetLength() - start > 253)
          {
-            int dot = result.Find('.');
+            int dot = result.Find('.', static_cast<size_t>(start));
 
             if (dot < 0)
                break;
 
-            result = result.Mid(dot + 1);
+            start = dot + 1;
          }
+
+         if (start > 0)
+            result = result.Mid(start);
       }
 
       expanded = result;

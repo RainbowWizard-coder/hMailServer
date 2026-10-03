@@ -239,6 +239,13 @@ namespace HM
       void DeleteField(MimeField *pField);
       void DeleteField(const AnsiString &fieldName);
 
+      // Every field of this name, in one pass; the number deleted.
+      size_t DeleteFields(const char *pszFieldName);
+
+      // The fields at these positions (ascending, each once), in one pass, the
+      // others kept in their order.
+      static void RemoveFieldsAt(std::vector<MimeField> &fields, const std::vector<size_t> &ascending);
+
    public:
       // overrides
       virtual void Clear();

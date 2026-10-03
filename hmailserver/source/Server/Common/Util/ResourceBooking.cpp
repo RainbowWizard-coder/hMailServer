@@ -400,33 +400,74 @@ namespace HM
          return Imip::SequenceOf(component);
       }
 
-      // The instant a component's RECURRENCE-ID names, read in its calendar.
-      bool RecurrenceIdOf(const ICalComponent &component, const ICalComponent &calendar, __int64 &instant)
+      // The instant a component's RECURRENCE-ID names, read in its calendar's
+      // zones (times: a reader over the calendar, one for all the components a
+      // loop asks about - each zone built once, not once a component).
+      bool RecurrenceIdOf(const ICalComponent &component, ICalTimeReader &times, __int64 &instant)
       {
          const ICalProperty *recurrenceId = component.Property("RECURRENCE-ID");
          if (!recurrenceId)
             return false;
          ICalTime time;
          AnsiString ignored;
-         if (!ICalendar::ParseTime(*recurrenceId, &calendar, time, ignored))
+         if (!times.Read(*recurrenceId, time, ignored))
             return false;
          instant = time.instant;
          return true;
       }
 
+      bool RecurrenceIdOf(const ICalComponent &component, const ICalComponent &calendar, __int64 &instant)
+      {
+         ICalTimeReader times(&calendar);
+         return RecurrenceIdOf(component, times, instant);
+      }
+
+      // Every override of these occurrences taken out of the calendar, the
+      // other components kept in their order, in one pass: each decided
+      // first - its RECURRENCE-ID read in the calendar's zones, which no
+      // override is - then the rest moved up once. Taken one occurrence at a
+      // time and erased one at a time from the middle, a CANCEL naming many
+      // occurrences of a calendar of many overrides read every override's
+      // RECURRENCE-ID, its zone built afresh, once per occurrence named.
+      void RemoveOverrides(ICalComponent &calendar, const std::set<__int64> &recurrenceIds)
+      {
+         if (recurrenceIds.empty())
+            return;
+
+         std::vector<bool> doomed(calendar.children.size(), false);
+         bool any = false;
+         {
+            ICalTimeReader times(&calendar);
+            for (size_t i = 0; i < calendar.children.size(); i++)
+            {
+               __int64 instant = 0;
+               if (IsEventLike(calendar.children[i]) && RecurrenceIdOf(calendar.children[i], times, instant) && recurrenceIds.count(instant) > 0)
+               {
+                  doomed[i] = true;
+                  any = true;
+               }
+            }
+         }
+
+         if (!any)
+            return;
+
+         size_t write = 0;
+         for (size_t i = 0; i < calendar.children.size(); i++)
+         {
+            if (doomed[i])
+               continue;
+            if (write != i)
+               calendar.children[write] = std::move(calendar.children[i]);
+            write++;
+         }
+         calendar.children.erase(calendar.children.begin() + write, calendar.children.end());
+      }
+
       // Every override of the occurrence taken out of the calendar.
       void RemoveOverrides(ICalComponent &calendar, __int64 recurrenceId)
       {
-         for (size_t i = 0; i < calendar.children.size();)
-         {
-            __int64 instant = 0;
-            if (IsEventLike(calendar.children[i]) && RecurrenceIdOf(calendar.children[i], calendar, instant) && instant == recurrenceId)
-            {
-               calendar.children.erase(calendar.children.begin() + i);
-               continue;
-            }
-            i++;
-         }
+         RemoveOverrides(calendar, std::set<__int64>{ recurrenceId });
       }
 
       // The source's time zones the target does not carry yet, carried across,
@@ -1654,10 +1695,11 @@ namespace HM
                bool older = occurrence && held.found && HasMaster(held.tree) && held.sequence > SequenceOf(*occurrence);
                if (occurrence && held.found && !older)
                {
+                  ICalTimeReader heldTimes(&held.tree);
                   for (size_t i = 0; i < held.tree.children.size() && !older; i++)
                   {
                      __int64 instant = 0;
-                     if (IsEventLike(held.tree.children[i]) && RecurrenceIdOf(held.tree.children[i], held.tree, instant) && instant == recurrenceId)
+                     if (IsEventLike(held.tree.children[i]) && RecurrenceIdOf(held.tree.children[i], heldTimes, instant) && instant == recurrenceId)
                         older = SequenceOf(held.tree.children[i]) > SequenceOf(*occurrence);
                   }
                }
@@ -1984,8 +2026,30 @@ namespace HM
          const bool hasMaster = heldMaster != nullptr;
          const bool recurring = heldMaster && (heldMaster->Property("RRULE") || heldMaster->Property("RDATE"));
 
+         // Each held override's RECURRENCE-ID read once, in the calendar's
+         // zones, and for each occurrence the SEQUENCE of its overrides in
+         // their order, as the highest so far: they were read again, each zone
+         // built afresh, for every occurrence the CANCEL names - many
+         // occurrences of a calendar of many overrides, a square and worse.
+         std::vector<std::pair<bool, __int64> > heldRecurrenceIds(tree.children.size(), std::make_pair(false, (__int64) 0));
+         std::map<__int64, std::vector<int> > heldSequencesSoFar;
+         {
+            ICalTimeReader heldTimes(&tree);
+            for (size_t h = 0; h < tree.children.size(); h++)
+            {
+               __int64 instant = 0;
+               if (!IsEventLike(tree.children[h]) || !RecurrenceIdOf(tree.children[h], heldTimes, instant))
+                  continue;
+               heldRecurrenceIds[h] = std::make_pair(true, instant);
+               const int heldSequence = SequenceOf(tree.children[h]);
+               std::vector<int> &soFar = heldSequencesSoFar[instant];
+               soFar.push_back(soFar.empty() ? heldSequence : std::max(soFar.back(), heldSequence));
+            }
+         }
+
+         ICalTimeReader cancelTimes(&cancel.tree);
          std::vector<ICalProperty> occurrences;
-         std::vector<__int64> namedInstants;   // every occurrence the CANCEL names, placed
+         std::set<__int64> namedInstants;      // every occurrence the CANCEL names, placed
          bool namesWhole = false;
          bool namedNewer = false;              // one it names is held above it and above its series
          for (size_t i = 0; i < cancel.tree.children.size(); i++)
@@ -2001,9 +2065,9 @@ namespace HM
             }
 
             __int64 named = 0;
-            const bool placed = RecurrenceIdOf(component, cancel.tree, named);
+            const bool placed = RecurrenceIdOf(component, cancelTimes, named);
             if (placed)
-               namedInstants.push_back(named);
+               namedInstants.insert(named);
 
             // Without a series, an occurrence the calendar holds at a higher
             // SEQUENCE than this CANCEL names is newer, and stands. For a
@@ -2012,17 +2076,23 @@ namespace HM
             // CANCEL at 5 naming the occurrence at 0 still cancels it.
             if (!hasMaster)
             {
+               // The first override of it held, in the calendar's order, above
+               // this CANCEL's version of it is newer; and when that one is
+               // held above the CANCEL's series too, the whole CANCEL is older.
+               // That first one is where the highest SEQUENCE so far first
+               // passes this CANCEL's, and its SEQUENCE is that highest.
                bool newer = false;
                if (placed)
                {
-                  for (size_t h = 0; h < tree.children.size() && !newer; h++)
+                  std::map<__int64, std::vector<int> >::const_iterator heldAt = heldSequencesSoFar.find(named);
+                  if (heldAt != heldSequencesSoFar.end())
                   {
-                     __int64 instant = 0;
-                     if (IsEventLike(tree.children[h]) && RecurrenceIdOf(tree.children[h], tree, instant) && instant == named)
+                     const int sequence = SequenceOf(component);
+                     std::vector<int>::const_iterator first = std::upper_bound(heldAt->second.begin(), heldAt->second.end(), sequence);
+                     if (first != heldAt->second.end())
                      {
-                        const int heldSequence = SequenceOf(tree.children[h]);
-                        newer = heldSequence > SequenceOf(component);
-                        if (heldSequence > std::max(SequenceOf(component), static_cast<int>(cancel.sequence)))
+                        newer = true;
+                        if (*first > std::max(sequence, static_cast<int>(cancel.sequence)))
                            namedNewer = true;
                      }
                   }
@@ -2047,13 +2117,7 @@ namespace HM
                const ICalComponent &kept = tree.children[h];
                if (!IsEventLike(kept))
                   continue;
-               __int64 instant = 0;
-               bool isNamed = false;
-               if (RecurrenceIdOf(kept, tree, instant))
-               {
-                  for (size_t n = 0; n < namedInstants.size() && !isNamed; n++)
-                     isNamed = namedInstants[n] == instant;
-               }
+               const bool isNamed = heldRecurrenceIds[h].first && namedInstants.count(heldRecurrenceIds[h].second) > 0;
                if (!isNamed && SequenceOf(kept) > highest)
                   highest = SequenceOf(kept);
             }
@@ -2099,21 +2163,28 @@ namespace HM
          }
          else
          {
+            // The overrides of every occurrence named go in one pass, then a
+            // series gets an EXDATE for each, in the CANCEL's order. Neither
+            // depends on the other: no override is the series, and an EXDATE
+            // changes no override's RECURRENCE-ID.
+            std::set<__int64> cancelledInstants;
+            std::vector<size_t> placedOccurrences;
             for (size_t o = 0; o < occurrences.size(); o++)
             {
                ICalTime cancelled;
                AnsiString ignored;
-               if (!ICalendar::ParseTime(occurrences[o], &cancel.tree, cancelled, ignored))
+               if (!cancelTimes.Read(occurrences[o], cancelled, ignored))
                   continue;
+               cancelledInstants.insert(cancelled.instant);
+               placedOccurrences.push_back(o);
+            }
 
-               RemoveOverrides(tree, cancelled.instant);
+            RemoveOverrides(tree, cancelledInstants);
 
-               // A series gets the EXDATE; the master may have moved in the
-               // vector, so it is found again.
-               ICalComponent *master = MutableMasterOf(tree);
-               if (!master)
-                  continue;
-
+            ICalComponent *master = MutableMasterOf(tree);
+            for (size_t placed = 0; master && placed < placedOccurrences.size(); placed++)
+            {
+               const size_t o = placedOccurrences[placed];
                ICalProperty exdate = occurrences[o];
                exdate.name = "EXDATE";
                for (size_t p = 0; p < exdate.parameters.size();)

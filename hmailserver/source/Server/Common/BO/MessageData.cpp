@@ -210,13 +210,8 @@ namespace HM
    void 
    MessageData::DeleteField(const AnsiString &headerName)
    {
-      MimeField *pField = mime_mail_->GetField(headerName);
-      
-      while (pField)
-      {
-         mime_mail_->DeleteField(pField);
-         pField = mime_mail_->GetField(headerName);
-      }
+      // All of them in one pass (MimeHeader::DeleteFields says why not one by one).
+      mime_mail_->DeleteFields(headerName);
    }
 
    String

@@ -973,6 +973,7 @@ EXIT 0
     <ClCompile Include="..\Common\Util\Utilities.cpp" />
     <ClCompile Include="..\Common\Util\XmlTree.cpp" />
     <ClCompile Include="..\Common\Util\XmlTreeTester.cpp" />
+    <ClCompile Include="..\Common\Util\InputCostTester.cpp" />
     <ClCompile Include="..\COM\COMAuthentication.cpp" />
     <ClCompile Include="..\COM\COMError.cpp" />
     <ClCompile Include="..\COM\InterfaceAccount.cpp" />
@@ -1908,6 +1909,7 @@ EXIT 0
     <ClInclude Include="..\Common\Util\VariantDateTime.h" />
     <ClInclude Include="..\Common\Util\XmlTree.h" />
     <ClInclude Include="..\Common\Util\XmlTreeTester.h" />
+    <ClInclude Include="..\Common\Util\InputCostTester.h" />
     <ClInclude Include="..\COM\COMAuthentication.h" />
     <ClInclude Include="..\COM\COMAuthenticator.h" />
     <ClInclude Include="..\Com\COMCollection.h" />

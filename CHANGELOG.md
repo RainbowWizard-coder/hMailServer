@@ -642,6 +642,68 @@ larger scale: after each 4,000 bytes it searched all it had read for the header'
 of 20 MB, the default largest message, at each of the several reads of a message; it now searches only what each read
 adds. Found by the project's own review.
 
+A review of the whole server for the same shape - input a remote party controls, read in time quadratic in its size -
+found more of it, all fixed in one pass with the result unchanged, each proven against the previous code over generated
+input and held to a single pass's time (`InputCostTester`, the Windows `ClassTester` and the Linux `input-cost-tests`).
+Removing a MIME header parameter whose value is empty and directly followed by a `;` - a Content-Disposition such as
+`filename=a.bat; filename=;` - **did not terminate at all**: it found the `;` after the empty value as the parameter's
+own start, removed nothing and found the same parameter again, holding a worker thread at full load until the service
+was restarted. It is reached when the attachment blocker renames a blocked attachment (not on by default) or a filename
+is set over the REST API, from one received message; ten such messages could hold all ten default delivery threads for
+good. The parameter's start is now taken as the last `;` before its value. In every version from 6.0.0. The same
+removal was also quadratic in a Content-Disposition of many `filename*<n>` RFC 2231 continuations, now one pass.
+Decoding a header field holding many RFC 2047 encoded words of an encoding other than base64 or quoted-printable
+searched each to the end of the value, though such a word is copied as text and the search's result is never used
+(a 1.1 MB header took 101 seconds); it is now searched only for a word that is decoded. Deleting a header field by name
+- the spam classification removed on delivery, the list manager stripping a posting's fields, the external-sender and
+impersonation taggers - took the fields one at a time, each a scan of the header and a move of its tail, so a header of
+many fields of one name cost their square (80,000 took 18.6 seconds); they are removed in one pass. All in every
+version from 6.0.0 up to 6.3.5.
+
+Verifying a received message's DKIM or ARC signatures built the canonical header and chose the fields the signature's
+`h=` names in time growing with the square of the message's header: the "simple" canonicalisation put each continuation
+line of a folded field in front of the ones already gathered, and both canonicalisations searched the gathered fields
+from the bottom for each `h=` name. A message whose header holds very many fields, or a field folded over very many
+lines, with a signature the sender signs for a domain they own so it reaches verification, held a worker thread for
+tens of seconds, and up to ten signatures are verified per message by each of the DKIM and DMARC tests, on the threads
+that serve delivery and SMTP. Each field is now built once and each `h=` name found in an index by name; what is hashed
+is unchanged byte for byte. In every version from 6.0.0 up to 6.3.5. Expanding an SPF mechanism's domain-spec cut a name
+too long to look up (RFC 7208 7.1) one label at a time, copying the rest each time, so a record the sender publishes
+with a macro that expands to a very long name made the SPF check take several seconds (a domain-spec of 2,000 `%{s}`
+took 4.9 seconds); the cut is now made once. In 6.3.4 and 6.3.5, where that SPF implementation arrived. Three more of
+the shape are fixed that need the attacker's own account or script rather than a stranger's message, so they are a
+smaller matter: a Sieve `:matches` test backtracked over every length of every `*` (`*a*a*a*b` over 800 characters took
+44 seconds) and `deleteheader` erased its chosen fields one at a time, both over a sender's header but driven by the
+account holder's own filter script (since 6.2.24); an IMAP `LIST` de-duplicated its result lines by searching a list
+for each (40,000 folders took 1.4 seconds a command), over the signed-in account's own folders (since 6.2.0); and the
+REST API's JSON reader kept the first of each member name by searching the members already kept (64,000 took 2.4
+seconds), mostly on authenticated routes (since 6.2.28). The Sieve match is now linear in the value times the pattern,
+and the others keep a hash set. The calendar's handling of an organiser's `CANCEL` of a series from an occurrence on
+took the stored event's `RDATE` values, rule parts, overrides and the server's own marks out one at a time, each a copy
+or a move of the rest; a stranger's invitation is filed on delivery, so its `RDATE` can be as long as the 1 MB a message
+is read for a calendar within allows, some 60,000 dates, in time growing with the square of their number (200,000 dates,
+more than that limit allows, took 21.6 seconds). Each is now one pass. The `RDATE`, rule-part, override and mark loops
+of the calendar are batch42's own and were never released; the `METHOD` and attendee `SENT-BY` loops beside them are in
+6.3.4 and 6.3.5. All found by the project's own review.
+
+The same review, checked again, found the rest of that shape. A date of a calendar object in a time zone the object
+carries was placed by looking for the zone among the object's components and building it from its observances - and an
+observance's own `RDATE` list was read to its end though only 500 of its values are kept - once for every date placed:
+once for each `RDATE` value and each override's `RECURRENCE-ID` an organiser's `CANCEL` reads, and once for each
+occurrence it names. Under the 1 MB limit, 20,000 dates and 1,500 overrides in a zone of 25,000 transitions took 20
+seconds, and a `CANCEL` of 1,990 occurrences of a series in a zone of 60,000 transitions 4.2 seconds. Each zone is now
+built once for all the dates of one reading (`ICalTimeReader`) and its `RDATE` list read no further than the 500 values
+kept; what each date is placed at is unchanged, and the same two readings take 0.1 seconds. Those `CANCEL` paths are
+batch42's own and were never released. A room's or equipment's booking, in 6.3.4 and 6.3.5, took a `CANCEL` of many
+occurrences one occurrence at a time, reading the `RECURRENCE-ID` of every override the booking holds, its zone built
+afresh, for each occurrence, and again for each to compare their `SEQUENCE`s; each override is now read once, with its
+zone built once, and the overrides named removed in one pass, with the same result - the booking's own organiser's
+`CANCEL`, so a lesser matter. The list manager removed a posting's own `List-*`, `Precedence`,
+`X-hMailServer-List-Member`, `Return-Path` and `DKIM-Signature` fields one at a time and stopped after 64 of a name, so
+that many could not cost their square: a posting that brought a 65th kept it in every member's copy, beside the list's
+own field and under the list's signature (6.3.4 and 6.3.5). Every one is now removed, in one pass. Found by the
+project's own review.
+
 ### What changes on upgrade without a switch
 
 1. **COM `Utilities`: the helpers that do work answer a caller that has signed in.** `BlowfishEncrypt`,

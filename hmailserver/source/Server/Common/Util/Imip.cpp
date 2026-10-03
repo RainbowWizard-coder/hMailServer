@@ -350,16 +350,19 @@ namespace HM
    {
       ICalComponent copy = calendar;
       bool set = false;
+      if (method.IsEmpty())
+      {
+         // In one pass, rather than one at a time from the middle.
+         copy.properties.erase(std::remove_if(copy.properties.begin(), copy.properties.end(), [](const ICalProperty &property)
+            {
+               return property.name == "METHOD";
+            }), copy.properties.end());
+      }
+
       for (size_t i = 0; i < copy.properties.size(); i++)
       {
          if (copy.properties[i].name == "METHOD")
          {
-            if (method.IsEmpty())
-            {
-               copy.properties.erase(copy.properties.begin() + i);
-               i--;
-               continue;
-            }
             copy.properties[i].value = method;
             set = true;
          }
@@ -400,23 +403,26 @@ namespace HM
                continue;
             found = true;
             bool had = false;
-            for (size_t p = 0; p < property.parameters.size();)
+            std::vector<std::pair<AnsiString, AnsiString>> &parameters = property.parameters;
+            size_t write = 0;
+            for (size_t p = 0; p < parameters.size(); p++)
             {
-               if (property.parameters[p].first == "PARTSTAT")
+               if (parameters[p].first == "PARTSTAT")
                {
-                  property.parameters[p].second = partstat;
+                  parameters[p].second = partstat;
                   had = true;
                }
-               else if (property.parameters[p].first == "RSVP")
-                  property.parameters[p].second = "FALSE";
-               else if (property.parameters[p].first == "SENT-BY")
-               {
-                  // Whoever answered last is who answered.
-                  property.parameters.erase(property.parameters.begin() + p);
-                  continue;
-               }
-               p++;
+               else if (parameters[p].first == "RSVP")
+                  parameters[p].second = "FALSE";
+               else if (parameters[p].first == "SENT-BY")
+                  continue;   // whoever answered last is who answered
+
+               // The others kept in their order, in one pass.
+               if (write != p)
+                  parameters[write] = std::move(parameters[p]);
+               write++;
             }
+            parameters.erase(parameters.begin() + write, parameters.end());
             if (!had)
                property.parameters.push_back(std::make_pair(AnsiString("PARTSTAT"), partstat));
             if (!sentBy.IsEmpty())
@@ -722,6 +728,7 @@ namespace HM
       std::vector<NamedOccurrence> NamedOccurrences(const ICalComponent &cancel)
       {
          std::vector<NamedOccurrence> named;
+         ICalTimeReader times(&cancel);   // each zone built once, not once an event
          for (size_t i = 0; i < cancel.children.size(); i++)
          {
             const ICalComponent &component = cancel.children[i];
@@ -732,7 +739,7 @@ namespace HM
                continue;
             ICalTime time;
             AnsiString ignored;
-            if (!ICalendar::ParseTime(*recurrenceId, &cancel, time, ignored))
+            if (!times.Read(*recurrenceId, time, ignored))
                continue;
             AnsiString range = Trimmed(recurrenceId->Parameter("RANGE"));
             range.ToUpper();
@@ -745,15 +752,16 @@ namespace HM
       }
 
       // The instant a stored component's RECURRENCE-ID names, read in the
-      // stored object's zones.
-      bool RecurrenceIdOf(const ICalComponent &component, const ICalComponent &tree, __int64 &instant)
+      // stored object's zones (times: a reader over the stored object, one for
+      // all the components a loop asks about).
+      bool RecurrenceIdOf(const ICalComponent &component, ICalTimeReader &times, __int64 &instant)
       {
          const ICalProperty *recurrenceId = component.Property("RECURRENCE-ID");
          if (!recurrenceId)
             return false;
          ICalTime time;
          AnsiString ignored;
-         if (!ICalendar::ParseTime(*recurrenceId, &tree, time, ignored))
+         if (!times.Read(*recurrenceId, time, ignored))
             return false;
          instant = time.instant;
          return true;
@@ -978,10 +986,9 @@ namespace HM
       }
 
       // The occurrence at instant left out of the series: an EXDATE in the
-      // form of the master's DTSTART.
-      void AddExdate(ICalComponent &master, const ICalComponent &tree, __int64 instant)
+      // form of the master's DTSTART (form: StartFormOf the master).
+      void AddExdate(ICalComponent &master, StartForm form, __int64 instant)
       {
-         const StartForm form = StartFormOf(master, tree);
          ICalProperty exdate;
          exdate.name = "EXDATE";
          if (form == StartForm::Day)
@@ -990,62 +997,108 @@ namespace HM
          master.properties.push_back(exdate);
       }
 
+      void AddExdate(ICalComponent &master, const ICalComponent &tree, __int64 instant)
+      {
+         AddExdate(master, StartFormOf(master, tree), instant);
+      }
+
       // Every override whose RECURRENCE-ID a test takes, dropped.
       void DropOverrides(ICalComponent &tree, const std::function<bool(__int64 instant)> &drop)
       {
-         for (size_t i = 0; i < tree.children.size();)
+         // Decided for each first, then the others kept in their order in one
+         // pass: erasing each from the middle moved every component after it,
+         // a square in a stored event of many overrides, which a stranger's
+         // invitation may be. What an override's RECURRENCE-ID reads as does
+         // not depend on the other overrides, only on the time zones.
+         std::vector<bool> dropped(tree.children.size(), false);
+         bool any = false;
+         ICalTimeReader times(&tree);
+         for (size_t i = 0; i < tree.children.size(); i++)
          {
             __int64 instant = 0;
-            if (IsEventLike(tree.children[i]) && RecurrenceIdOf(tree.children[i], tree, instant) && drop(instant))
+            if (IsEventLike(tree.children[i]) && RecurrenceIdOf(tree.children[i], times, instant) && drop(instant))
             {
-               tree.children.erase(tree.children.begin() + i);
-               continue;
+               dropped[i] = true;
+               any = true;
             }
-            i++;
          }
+
+         if (!any)
+            return;
+
+         size_t write = 0;
+         for (size_t i = 0; i < tree.children.size(); i++)
+         {
+            if (dropped[i])
+               continue;
+            if (write != i)
+               tree.children[write] = std::move(tree.children[i]);
+            write++;
+         }
+         tree.children.erase(tree.children.begin() + write, tree.children.end());
       }
 
       // The RDATE values of the master at from or after it, dropped, and an
       // RDATE left with none dropped with them. A PERIOD is placed by its
       // start; a value that cannot be placed is kept.
+      //
+      // Each value is read where it stands and the property's other parts
+      // copied once: the list used to be cut a value at a time off its front,
+      // and the whole property - its list with it - copied for every value, so
+      // an RDATE of N values cost N copies of itself, and an RDATE emptied was
+      // erased from the middle of the properties. The stored event can be a
+      // stranger's invitation (a new one is filed from anybody), its list as
+      // long as a message holds. The values' time zone is built once for them
+      // all (ICalTimeReader), not once a value.
       void DropRdatesFrom(ICalComponent &master, const ICalComponent &tree, __int64 from)
       {
-         for (size_t p = 0; p < master.properties.size();)
+         std::vector<ICalProperty> &properties = master.properties;
+         ICalTimeReader times(&tree);
+
+         size_t write = 0;
+         for (size_t p = 0; p < properties.size(); p++)
          {
-            ICalProperty &property = master.properties[p];
-            if (property.name != "RDATE")
+            ICalProperty &property = properties[p];
+            if (property.name == "RDATE")
             {
-               p++;
-               continue;
+               AnsiString all;
+               all.swap(property.value);
+
+               const ICalProperty one = property;   // its name and parameters; each value is read in place of its own
+
+               AnsiString kept;
+               int position = 0;
+               while (true)
+               {
+                  const int comma = all.Find(",", static_cast<size_t>(position));
+                  const AnsiString value = comma >= 0 ? all.Mid(position, comma - position) : all.Mid(position);
+                  const int slash = value.Find("/");
+                  ICalTime time;
+                  AnsiString ignored;
+                  const bool placed = times.Read(one, Trimmed(slash > 0 ? value.Mid(0, slash) : value), time, ignored);
+                  if (!placed || time.instant < from)
+                  {
+                     if (!kept.IsEmpty())
+                        kept += ",";
+                     kept += value;
+                  }
+                  if (comma < 0)
+                     break;
+                  position = comma + 1;
+               }
+
+               if (kept.IsEmpty())
+                  continue;   // the RDATE goes
+
+               property.value = kept;
             }
 
-            AnsiString kept;
-            AnsiString rest = property.value;
-            while (true)
-            {
-               const int comma = rest.Find(",");
-               const AnsiString value = comma >= 0 ? rest.Mid(0, comma) : rest;
-               const int slash = value.Find("/");
-               ICalProperty one = property;
-               one.value = Trimmed(slash > 0 ? value.Mid(0, slash) : value);
-               ICalTime time;
-               AnsiString ignored;
-               const bool placed = ICalendar::ParseTime(one, &tree, time, ignored);
-               if (!placed || time.instant < from)
-                  kept += (kept.IsEmpty() ? "" : ",") + value;
-               if (comma < 0)
-                  break;
-               rest = rest.Mid(comma + 1);
-            }
-
-            if (kept.IsEmpty())
-            {
-               master.properties.erase(master.properties.begin() + p);
-               continue;
-            }
-            property.value = kept;
-            p++;
+            if (write != p)
+               properties[write] = std::move(properties[p]);
+            write++;
          }
+
+         properties.erase(properties.begin() + write, properties.end());
       }
 
       // The master's RRULE ended before from: UNTIL the moment before it, in
@@ -1070,34 +1123,39 @@ namespace HM
          ICalComponent ruleOnly = SeriesOnly(tree);
          if (ICalComponent *ruleMaster = MutableSeriesMasterOf(ruleOnly))
          {
-            for (size_t p = 0; p < ruleMaster->properties.size();)
-            {
-               const AnsiString &name = ruleMaster->properties[p].name;
-               if (name == "RDATE" || name == "EXDATE")
-                  ruleMaster->properties.erase(ruleMaster->properties.begin() + p);
-               else
-                  p++;
-            }
+            // In one pass: erased one by one from the middle, a stranger's
+            // event of many RDATE or EXDATE lines cost their square.
+            std::vector<ICalProperty> &properties = ruleMaster->properties;
+            properties.erase(std::remove_if(properties.begin(), properties.end(), [](const ICalProperty &property)
+               {
+                  return property.name == "RDATE" || property.name == "EXDATE";
+               }), properties.end());
          }
          if (!SeriesMakesFrom(ruleOnly, from))
             return;
 
+         // Each part read where it stands, not cut off the front of the rest.
          AnsiString rule;
-         AnsiString rest = rrule->value;
+         const AnsiString all = rrule->value;
+         int position = 0;
          while (true)
          {
-            const int semicolon = rest.Find(";");
-            const AnsiString part = Trimmed(semicolon >= 0 ? rest.Mid(0, semicolon) : rest);
+            const int semicolon = all.Find(";", static_cast<size_t>(position));
+            const AnsiString part = Trimmed(semicolon >= 0 ? all.Mid(position, semicolon - position) : all.Mid(position));
             AnsiString key = part;
             const int equals = key.Find("=");
             if (equals >= 0)
                key = key.Mid(0, equals);
             key.ToUpper();
             if (!part.IsEmpty() && key != "COUNT" && key != "UNTIL")
-               rule += (rule.IsEmpty() ? "" : ";") + part;
+            {
+               if (!rule.IsEmpty())
+                  rule += ";";
+               rule += part;
+            }
             if (semicolon < 0)
                break;
-            rest = rest.Mid(semicolon + 1);
+            position = semicolon + 1;
          }
          rule += ";UNTIL=" + TimeText(from - 1, StartFormOf(master, tree));
          rrule->value = rule;
@@ -1116,10 +1174,11 @@ namespace HM
          bool otherHeld = false;
 
          // The overrides.
+         ICalTimeReader overrideTimes(&tree);
          for (size_t i = 0; i < tree.children.size(); i++)
          {
             __int64 instant = 0;
-            if (!IsEventLike(tree.children[i]) || !RecurrenceIdOf(tree.children[i], tree, instant))
+            if (!IsEventLike(tree.children[i]) || !RecurrenceIdOf(tree.children[i], overrideTimes, instant))
                continue;
             if (Covers(named, instant))
                namedHeld = true;
@@ -1395,13 +1454,11 @@ namespace HM
             ICalComponent &component = tree.children[c];
             if (component.name != "VEVENT" && component.name != "VTODO")
                continue;
-            for (size_t i = 0; i < component.properties.size();)
-            {
-               if (component.properties[i].name == UnverifiedMark)
-                  component.properties.erase(component.properties.begin() + i);
-               else
-                  i++;
-            }
+            // In one pass, the others kept in their order.
+            component.properties.erase(std::remove_if(component.properties.begin(), component.properties.end(), [](const ICalProperty &property)
+               {
+                  return property.name == UnverifiedMark;
+               }), component.properties.end());
          }
          if (!marked)
             return;
@@ -1875,11 +1932,14 @@ namespace HM
       {
          // One EXDATE for each occurrence named alone that the series makes -
          // as Held found them in the copy as it was - before any named with
-         // every one after it (those go below).
+         // every one after it (those go below). The form of the DTSTART read
+         // once: an EXDATE does not change it, and read for each it placed the
+         // DTSTART again, its zone built afresh, once per occurrence named.
+         const StartForm form = StartFormOf(*master, stored);
          for (const __int64 instant : made)
          {
             if (instant < from)
-               AddExdate(*master, stored, instant);
+               AddExdate(*master, form, instant);
          }
 
          if (from != ICalendar::Forever)
@@ -2123,14 +2183,13 @@ namespace HM
       }
 
       ICalComponent tree = useInvitation ? invitation.tree : storedTree;
-      // The stored copy is a plain object: the METHOD is the mail's.
-      for (size_t i = 0; i < tree.properties.size();)
-      {
-         if (tree.properties[i].name == "METHOD")
-            tree.properties.erase(tree.properties.begin() + i);
-         else
-            i++;
-      }
+      // The stored copy is a plain object: the METHOD is the mail's. In one
+      // pass: one at a time from the middle, an invitation of many METHOD
+      // lines - a stranger's, filed on delivery - cost their square.
+      tree.properties.erase(std::remove_if(tree.properties.begin(), tree.properties.end(), [](const ICalProperty &property)
+         {
+            return property.name == "METHOD";
+         }), tree.properties.end());
       // The server's mark is the server's: what the invitation carried of it
       // goes, and it is set when nobody verified the organiser of what is
       // written. The stored copy, kept, keeps the mark it had.

@@ -180,4 +180,33 @@ namespace HM
       // table has it. A VALARM's own time-range is not evaluated.
       static bool OverlapsTimeRange(const ICalComponent &calendar, __int64 rangeStart, __int64 rangeEnd);
    };
+
+   // ICalendar::ParseTime for many values of one object: each time zone the
+   // object names is looked for among its components and built from its
+   // observances once, not once a value. ParseTime does both for every call,
+   // which over a list of values, or over the overrides of an object, read the
+   // object's components and its VTIMEZONE again for each: a square in what a
+   // stranger's invitation may hold. The object's VTIMEZONE components must
+   // not change while the reader is used; what it reads is what ParseTime
+   // reads.
+   class ICalTimeReader
+   {
+   public:
+      explicit ICalTimeReader(const ICalComponent *calendar);
+      ~ICalTimeReader();
+
+      // As ICalendar::ParseTime(property, calendar, ...).
+      bool Read(const ICalProperty &property, ICalTime &time, AnsiString &problem);
+
+      // The same with value read in place of the property's own value (one
+      // of the values of a list), the property's parameters as they are.
+      bool Read(const ICalProperty &property, const AnsiString &value, ICalTime &time, AnsiString &problem);
+
+   private:
+      ICalTimeReader(const ICalTimeReader &) = delete;
+      ICalTimeReader &operator=(const ICalTimeReader &) = delete;
+
+      struct Zones;
+      Zones *zones_;
+   };
 }

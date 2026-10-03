@@ -35,6 +35,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "Mime.h"
 #include <stdlib.h>
 #include <time.h>
+#include <algorithm>
 #include <atomic>
 #include <chrono>
 #include <functional>
@@ -317,30 +318,268 @@ namespace HM
 
    // Remove all parameters whose base name matches pszAttr, including RFC 2231
    // continuation parameters (filename*0, filename*1, ...) and encoded variants (filename*).
+   //
+   // What it removes is what it always removed: FindParameter's first match, from
+   // the last ';' at or before the match's value to the value's end, and again
+   // from the start, until FindParameter finds none or no ';' stands before the
+   // match. Done that way it cost a search from the start and a move of the rest
+   // per parameter removed, so a Content-Disposition of N filename*<n>
+   // continuations cost N squared - 40,000 of them took 78 ms, and a message's
+   // header holds thirty times as many - when the attachment blocker renames a
+   // blocked file (VirusScanner) or a script sets Attachment.Filename.
+   //
+   // Now it is one walk. The value as it stands after each removal is what
+   // remains of the original before the removal's start and the original after
+   // its end - the kept text and the unread text - so nothing is moved. A search
+   // from the start would pass FindParameter's steps up to the last one that
+   // began before the removal's start exactly as before, since the steps before
+   // it read only text before it; the walk resumes there.
    void MimeField::RemoveParameter(const char* pszAttr)
    {
-      bool encodedParameter;
-      int nPos, nSize;
+      if (pszAttr == NULL)
+         return;
+
+      const string original = value_;
+      string kept;            // the value as it stands is kept + original[unread..]
+      size_t unread = 0;
+
+      const auto at = [&](size_t i) -> unsigned char
+      {
+         if (i < kept.size())
+            return (unsigned char) kept[i];
+
+         const size_t j = unread + (i - kept.size());
+         return j < original.size() ? (unsigned char) original[j] : 0;
+      };
+
+      // strchr from i: the first ch before the first NUL, or npos.
+      const auto find = [&](size_t i, unsigned char ch) -> size_t
+      {
+         for (;; i++)
+         {
+            const unsigned char c = at(i);
+            if (c == ch)
+               return i;
+            if (c == 0)
+               return string::npos;
+         }
+      };
+
+      const size_t nAttrSize = ::strlen(pszAttr);
+
+      // FindParameter's scans: the first place at or after i that each stops at.
+      const auto skipSpaceOrSemicolon = [&](size_t i) -> size_t
+      {
+         while (CMimeChar::IsSpace(at(i)) || at(i) == ';')
+            i++;
+         return i;
+      };
+      const auto skipBlank = [&](size_t i) -> size_t
+      {
+         while (at(i) == ' ' || at(i) == '\t')
+            i++;
+         return i;
+      };
+      const auto findEquals = [&](size_t i) -> size_t { return find(i, '='); };
+      const auto findQuote = [&](size_t i) -> size_t { return find(i, '"'); };
+      const auto toSemicolon = [&](size_t i) -> size_t
+      {
+         while (at(i) != 0 && at(i) != ';')
+            i++;
+         return i;
+      };
+
+      // One step of FindParameter's walk: where it began and where each of its
+      // scans stopped (npos: found nothing; a scan not made is marked so).
+      struct Step
+      {
+         size_t start;
+         size_t name;
+         size_t equals;
+         size_t value;
+         bool quoteScanned;
+         size_t quote;
+         bool semicolonScanned;
+         size_t semicolon;
+      };
+
+      // The steps of the walk taken so far.
+      std::vector<Step> steps;
+
+      // Where a scan from `from` stops in the text as it stands, given where
+      // the same scan from the same place stopped before the removal that
+      // began at cut (known): there, when that was before the cut, since
+      // nothing before the cut changed; otherwise where it stops going on from
+      // the cut, since nothing from `from` up to the cut stopped it. A scan from
+      // the cut or after it, or with nothing known, is made afresh. Without
+      // this a step made again after a removal read again everything it had
+      // read before the cut - a long name, a long run of ';' - once per
+      // parameter removed, a square of its own.
+      const auto rescan = [](size_t from, bool known, size_t stopped, size_t cut, const std::function<size_t(size_t)> &scan) -> size_t
+      {
+         if (known && from < cut)
+            return stopped < cut ? stopped : scan(cut);
+         return scan(from);
+      };
+
+      // FindParameter's walk from the step beginning at from. When old is not
+      // null, that step is made again after the removal that began at cut, and
+      // old is what it found the time before: positions before the cut are the
+      // same text, and only what lies from the cut on is read.
+      const auto findFrom = [&](size_t from, const Step *old, size_t cut, size_t &nPos, size_t &nSize) -> bool
+      {
+         size_t p = from;
+         for (;;)
+         {
+            const bool known = old != nullptr;
+
+            Step step;
+            step.start = p;
+            step.quoteScanned = false;
+            step.quote = string::npos;
+            step.semicolonScanned = false;
+            step.semicolon = string::npos;
+
+            step.name = rescan(p, known, known ? old->name : 0, cut, skipSpaceOrSemicolon);
+
+            const size_t name = step.name;
+            step.equals = rescan(name, known, known ? old->equals : 0, cut, findEquals);
+            if (step.equals == string::npos)
+               return false;
+
+            step.value = rescan(step.equals + 1, known, known ? old->value : 0, cut, skipBlank);
+            p = step.value;
+
+            const size_t actualNameSize = p - name - 1;
+
+            if (at(p) == 0)
+               return false;
+
+            size_t end = string::npos;
+            if (at(p) == '"')
+            {
+               step.quoteScanned = true;
+               step.quote = rescan(p + 1, known && old->quoteScanned, known ? old->quote : 0, cut, findQuote);
+               if (step.quote != string::npos)
+                  end = step.quote + 1;
+            }
+
+            if (end == string::npos)
+            {
+               step.semicolonScanned = true;
+               step.semicolon = rescan(p, known && old->semicolonScanned, known ? old->semicolon : 0, cut, toSemicolon);
+               end = step.semicolon;
+            }
+
+            steps.push_back(step);
+            old = nullptr;   // only the first step is made again
+
+            bool same = true;
+            for (size_t k = 0; k < nAttrSize; k++)
+            {
+               if (::tolower((unsigned char) pszAttr[k]) != ::tolower(at(name + k)))
+               {
+                  same = false;
+                  break;
+               }
+            }
+
+            const unsigned char afterName = at(name + actualNameSize);
+            if (same && (CMimeChar::IsSpace(afterName) || afterName == '='))
+            {
+               nPos = p;
+               nSize = end - p;
+               return true;
+            }
+
+            p = end;
+         }
+      };
+
       bool changed = false;
 
-      while (FindParameter(pszAttr, nPos, nSize, encodedParameter))
+      size_t from = find(0, ';');
+      size_t nPos = 0;
+      size_t nSize = 0;
+      Step resumed = Step();
+      const Step *old = nullptr;
+      size_t cut = 0;
+
+      while (from != string::npos && findFrom(from, old, cut, nPos, nSize))
       {
-         // nPos points to the value start (right after '=').
-         // Walk backwards to find the ';' that begins this parameter segment.
-         // rfind is safe here: any ';' inside a preceding quoted value is at a position
-         // less than that value's opening '"', which is itself less than nPos.
-         string::size_type segStart = value_.rfind(';', nPos);
+         // The last ';' before the value: the start of what goes. 6.3.5 looked
+         // for it from the value's own first character on, which for an empty
+         // value followed by the next parameter's ';' - "filename=;" - is that
+         // ';': it then removed nothing and found the same parameter again, for
+         // ever, holding the thread at full load. The attachment blocker renames
+         // a blocked file this way, so one received message with
+         // "filename=a.bat; filename=;" took a delivery thread for good. Looked
+         // for before the value it is the ';' that begins the parameter, and
+         // where the value does not begin with ';' it is the same one as before.
+         size_t segStart = nPos - 1;
+         for (;;)
+         {
+            if (at(segStart) == ';')
+               break;
+            if (segStart == 0)
+            {
+               segStart = string::npos;
+               break;
+            }
+            segStart--;
+         }
+
          if (segStart == string::npos)
             break;
 
-         size_t segEnd = nPos + nSize;
+         const size_t segEnd = nPos + nSize;
 
-         value_.erase(segStart, segEnd - segStart);
+         // Remove [segStart, segEnd) from kept + original[unread..].
+         const size_t keptSize = kept.size();
+         if (segEnd <= keptSize)
+            kept.erase(segStart, segEnd - segStart);
+         else if (segStart < keptSize)
+         {
+            unread += segEnd - keptSize;
+            kept.resize(segStart);
+         }
+         else
+         {
+            kept.append(original, unread, segStart - keptSize);
+            unread += segEnd - keptSize;
+         }
+
          changed = true;
+
+         // Resume at the last step that began before the removal. What it found
+         // the time before stands for what it read before the removal's start;
+         // the steps before it read nothing from there on (a quoted value's
+         // closing '"' looked for to the end and not found is not found after a
+         // removal either), so what they found stands too.
+         while (!steps.empty() && steps.back().start >= segStart)
+            steps.pop_back();
+
+         cut = segStart;
+         if (steps.empty())
+         {
+            from = find(segStart, ';');   // the first ';' is the walk's start
+            old = nullptr;
+         }
+         else
+         {
+            resumed = steps.back();
+            steps.pop_back();
+            from = resumed.start;
+            old = &resumed;
+         }
       }
 
       if (changed)
+      {
+         value_ = kept;
+         value_.append(original, std::min(unread, original.size()), string::npos);
          modified_ = true;
+      }
    }
 
    // The length this field will occupy once stored: "name: value\r\n".
@@ -939,6 +1178,58 @@ namespace HM
       MimeField *field = GetField(fieldName);
       if (field)
          DeleteField(field);
+   }
+
+   // Every field of the name, in one pass, the others kept in their order. The
+   // name is matched as GetField matches it. MessageData::DeleteField used to take
+   // them one at a time - GetField from the top, then DeleteField(MimeField*)
+   // looking for it again and erasing it, which moves every field after it - so
+   // a header of many fields of one name cost their square: a sender's message
+   // of 80,000 Return-Path or X-hMailServer-Spam fields (about 1 MB) took 18.6 s
+   // in the POSIX build to clean. Returns how many went.
+   size_t
+      MimeHeader::DeleteFields(const char *pszFieldName)
+   {
+      const auto doomed = [pszFieldName](const MimeField &field)
+      {
+         return ::_stricmp(field.GetName(), pszFieldName) == 0;
+      };
+
+      const auto firstDoomed = std::find_if(fields_.begin(), fields_.end(), doomed);
+      if (firstDoomed == fields_.end())
+         return 0;
+
+      const auto kept = std::remove_if(firstDoomed, fields_.end(), doomed);
+      const size_t removed = static_cast<size_t>(fields_.end() - kept);
+      fields_.erase(kept, fields_.end());
+
+      headers_modified_ = true;
+      return removed;
+   }
+
+   void
+      MimeHeader::RemoveFieldsAt(std::vector<MimeField> &fields, const std::vector<size_t> &ascending)
+   {
+      if (ascending.empty())
+         return;
+
+      size_t write = ascending[0];
+      size_t next = 0;
+      for (size_t read = ascending[0]; read < fields.size(); read++)
+      {
+         if (next < ascending.size() && ascending[next] == read)
+         {
+            next++;
+            continue;
+         }
+
+         if (write != read)
+            fields[write] = std::move(fields[read]);
+         write++;
+      }
+
+      if (write < fields.size())
+         fields.erase(fields.begin() + write, fields.end());
    }
 
    void

@@ -1871,10 +1871,26 @@ namespace HM
    SieveEvaluator::WildcardMatchWithCaptures_(const String &pattern, const String &value,
                                               bool caseSensitive, std::vector<String> &captures)
    {
-      // Greedy descent with backtracking, recording the span each * and ? consumed.
-      // Small and iterative-recursive: patterns come from scripts, and the
-      // backtracking is linear in practice because '*' segments are anchored by the
-      // literal text between them.
+      // RFC 5228 2.7.1's wildcards, recording the span each * and ? consumed for
+      // RFC 5229's match variables, each * taking as much as it can with the
+      // pattern still matching after it ("leftmost-longest", RFC 5229 3.1).
+      //
+      // This was a backtracking descent that tried every length for every *,
+      // longest first, and every length again for each * after it: time that grew
+      // with the value's length raised to the number of * in the pattern. The
+      // value is a sender's - a Subject, an address, a header of any length - so
+      // an ordinary rule such as :matches "*free*money*" over a subject of "free"
+      // many times took 1.3 s for 64 KB and four times as long for each doubling,
+      // and "*a*a*a*b" over 800 characters 44 s, on the delivery thread.
+      //
+      // The pattern is a run of pieces with a * between each two; a piece is
+      // literal characters and ?. With the first piece held to the start of the
+      // value and the last to its end, the * before each piece takes most when
+      // that piece stands as far right as it can with every piece after it
+      // standing too - so each piece's place is found once, from the last to the
+      // second, each the rightmost place it matches that ends before where the
+      // next one stands. Those are the places the descent arrived at. The time is
+      // the value's length times the pattern's.
       String p = pattern;
       String v = value;
 
@@ -1884,69 +1900,119 @@ namespace HM
          v.ToLower();
       }
 
-      struct Frame
+      enum TokenKind { LiteralToken, OneToken, AnyToken };
+      struct Token
       {
-         int patternIndex;
-         int valueIndex;
-         size_t capturesSize;
+         TokenKind kind;
+         wchar_t character;
       };
 
-      std::vector<std::pair<int, int>> spans; // wildcard position in pattern -> [start,end) in value
-
-      std::function<bool(int, int)> matchFrom = [&](int pi, int vi) -> bool
+      std::vector<Token> tokens;
+      for (int pi = 0; pi < p.GetLength(); )
       {
-         while (pi < p.GetLength())
+         const wchar_t pc = p[pi];
+
+         if (pc == L'\\' && pi + 1 < p.GetLength())
          {
-            wchar_t pc = p[pi];
-
-            if (pc == L'\\' && pi + 1 < p.GetLength())
-            {
-               // RFC 5228 2.7.1: a backslash makes the next character literal.
-               if (vi >= v.GetLength() || v[vi] != p[pi + 1])
-                  return false;
-               pi += 2;
-               vi += 1;
-               continue;
-            }
-
-            if (pc == L'?')
-            {
-               if (vi >= v.GetLength())
-                  return false;
-               spans.push_back(std::make_pair(vi, vi + 1));
-               if (matchFrom(pi + 1, vi + 1))
-                  return true;
-               spans.pop_back();
-               return false;
-            }
-
-            if (pc == L'*')
-            {
-               // Try the longest tail first: RFC 5229 3.1 wants the match variables
-               // from the greedy ("leftmost-longest") interpretation.
-               for (int take = v.GetLength() - vi; take >= 0; take--)
-               {
-                  spans.push_back(std::make_pair(vi, vi + take));
-                  if (matchFrom(pi + 1, vi + take))
-                     return true;
-                  spans.pop_back();
-               }
-               return false;
-            }
-
-            if (vi >= v.GetLength() || v[vi] != pc)
-               return false;
-
-            pi++;
-            vi++;
+            // A backslash makes the next character literal.
+            tokens.push_back(Token{ LiteralToken, p[pi + 1] });
+            pi += 2;
+            continue;
          }
 
-         return vi == v.GetLength();
+         if (pc == L'?')
+            tokens.push_back(Token{ OneToken, 0 });
+         else if (pc == L'*')
+            tokens.push_back(Token{ AnyToken, 0 });
+         else
+            tokens.push_back(Token{ LiteralToken, pc });
+
+         pi++;
+      }
+
+      // The pieces, as [first, last) ranges of tokens: one more than there are *.
+      std::vector<std::pair<size_t, size_t>> pieces;
+      {
+         size_t from = 0;
+         for (size_t t = 0; t < tokens.size(); t++)
+         {
+            if (tokens[t].kind == AnyToken)
+            {
+               pieces.push_back(std::make_pair(from, t));
+               from = t + 1;
+            }
+         }
+         pieces.push_back(std::make_pair(from, tokens.size()));
+      }
+
+      const int valueLength = v.GetLength();
+
+      const auto pieceLength = [&](size_t piece) -> int
+      {
+         return (int) (pieces[piece].second - pieces[piece].first);
       };
 
-      spans.clear();
-      if (!matchFrom(0, 0))
-         return false;
+      const auto pieceMatchesAt = [&](size_t piece, int at) -> bool
+      {
+         if (at < 0 || at + pieceLength(piece) > valueLength)
+            return false;
+
+         for (size_t t = pieces[piece].first; t < pieces[piece].second; t++)
+         {
+            const int position = at + (int) (t - pieces[piece].first);
+            if (tokens[t].kind == LiteralToken && v[position] != tokens[t].character)
+               return false;
+         }
+         return true;
+      };
+
+      const size_t lastPiece = pieces.size() - 1;
+      std::vector<int> placed(pieces.size(), 0);
+
+      if (lastPiece == 0)
+      {
+         // No *: the pattern is the whole value.
+         if (pieceLength(0) != valueLength || !pieceMatchesAt(0, 0))
+            return false;
+      }
+      else
+      {
+         if (!pieceMatchesAt(0, 0))
+            return false;
+
+         placed[lastPiece] = valueLength - pieceLength(lastPiece);
+         if (placed[lastPiece] < pieceLength(0) || !pieceMatchesAt(lastPiece, placed[lastPiece]))
+            return false;
+
+         for (size_t piece = lastPiece - 1; piece >= 1; piece--)
+         {
+            int at = placed[piece + 1] - pieceLength(piece);
+            while (at >= pieceLength(0) && !pieceMatchesAt(piece, at))
+               at--;
+
+            if (at < pieceLength(0))
+               return false;
+
+            placed[piece] = at;
+         }
+      }
+
+      // What each wildcard consumed, in the pattern's order.
+      std::vector<std::pair<int, int>> spans;
+      for (size_t piece = 0; piece < pieces.size(); piece++)
+      {
+         if (piece > 0)
+            spans.push_back(std::make_pair(placed[piece - 1] + pieceLength(piece - 1), placed[piece]));
+
+         for (size_t t = pieces[piece].first; t < pieces[piece].second; t++)
+         {
+            if (tokens[t].kind == OneToken)
+            {
+               const int position = placed[piece] + (int) (t - pieces[piece].first);
+               spans.push_back(std::make_pair(position, position + 1));
+            }
+         }
+      }
 
       // Captures come from the ORIGINAL (unfolded) value, so a script that files
       // into "${1}" sees the text as it arrived, not lowercased.

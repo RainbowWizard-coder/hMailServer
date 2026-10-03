@@ -88,6 +88,19 @@ namespace HM
       return sLine + _T("\r\n");
    }
 
+   void
+   FolderListCreator::TakeNewLines(const String &listing, std::unordered_set<std::wstring> &seen, std::vector<String> &fresh)
+   {
+      for (const String &line : StringParser::SplitString(listing, _T("\r\n")))
+      {
+         if (line.IsEmpty())
+            continue;
+
+         if (seen.insert(line).second)
+            fresh.push_back(line);
+      }
+   }
+
    String
    FolderListCreator::Create_(__int64 iAccountID, std::shared_ptr<IMAPFolders> pStartFolders, const String &sWildcard, const String &sPrefix, ListRequest_ &request, bool *pAnyFolderVisible)
    {

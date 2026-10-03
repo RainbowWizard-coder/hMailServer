@@ -1018,6 +1018,15 @@ add_executable(report-parser-tests ${SERVER_DIR}/platform/report_parser_tests_ma
 target_link_libraries(report-parser-tests PRIVATE hmailserver_core)
 set_target_properties(report-parser-tests PROPERTIES OUTPUT_NAME report-parser-tests)
 
+# The quadratic-time sweep of 6.3.6 (Common/Util/InputCostTester.h), as
+# ClassTester runs it on Windows: input_cost_tests_main.cpp says what. Nine
+# readers of what a remote party sends, each held to what 6.3.5's code - kept
+# in the tester - made of the same generated cases and to a single pass's
+# time over the input that was that code's worst. Not installed; a bench tool.
+add_executable(input-cost-tests ${SERVER_DIR}/platform/input_cost_tests_main.cpp)
+target_link_libraries(input-cost-tests PRIVATE hmailserver_core)
+set_target_properties(input-cost-tests PROPERTIES OUTPUT_NAME input-cost-tests)
+
 include(GNUInstallDirs)
 install(TARGETS hmailserver RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 install(DIRECTORY ${SERVER_DIR}/../DBScripts/

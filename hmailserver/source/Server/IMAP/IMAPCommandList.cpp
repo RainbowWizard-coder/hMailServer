@@ -19,6 +19,7 @@
 #include "IMAPFolderContainer.h"
 
 #include <algorithm>
+#include <unordered_set>
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -222,7 +223,7 @@ namespace HM
 
       String sOtherUsersName = ACLManager::GetOtherUsersFolderName();
 
-      std::vector<String> seenLines;
+      std::unordered_set<std::wstring> seenLines;
       String sResult;
       bool bAllPatternsEmpty = true;
 
@@ -311,14 +312,10 @@ namespace HM
             sPatternResult += FolderListCreator::CreateNamespaceRootLine(sOtherUsersName, folderSpecifier);
 
          // De-duplicate lines so a mailbox matching multiple patterns is listed once.
-         std::vector<String> lines = StringParser::SplitString(sPatternResult, "\r\n");
+         std::vector<String> lines;
+         FolderListCreator::TakeNewLines(sPatternResult, seenLines, lines);
          for (const String &sLine : lines)
          {
-            if (sLine.IsEmpty())
-               continue;
-            if (std::find(seenLines.begin(), seenLines.end(), sLine) != seenLines.end())
-               continue;
-            seenLines.push_back(sLine);
             sResult += sLine + "\r\n";
 
             // RFC 5819: the STATUS response follows the LIST line it belongs to.
