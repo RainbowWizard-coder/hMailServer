@@ -348,3 +348,93 @@ regression fixture `Security/AutoBanWiden` (REST and SMTP, both suites) holds
 the behaviour over the suite's own DNS zone, each case beside the one that must
 come out the other way, and `Security/AutoBanWidenCom` (COM, Windows) the COM
 property, the Windows rule for a run and a hook told each address.
+
+## Below the server across a stop and a start (6.3.6)
+
+What is below the server - a Windows Defender Firewall rule, an entry in the
+packaged Linux hook's nftables set or iptables chain, whatever `AutoBanCommand`
+did - outlives the service. A ban that ends while the service is stopped, an
+`unban` still owed when it stopped (a hook that ran past
+`ExternalProcessTimeout`), a switch turned off while it was stopped: each would
+leave an address blocked below the server with nothing left to lift it. Until
+6.3.6 that was so for the iptables variant of the hook and for `AutoBanCommand`,
+whose account of what they had been told lived in the server's memory only.
+
+At every start - and every reinitialise, which is a start in the same process,
+and the COM API's `Start` after a `Stop` - `AutoBanFirewall::SynchroniseAtStart`
+learns what the firewall holds and then announces the bans in force again, all
+before the first listener opens:
+
+| Below the server | At a start | When the switch goes off (at the next reconciliation, the expiry pass's within a couple of minutes at the latest) |
+|---|---|---|
+| Windows Defender Firewall (`AutoBanFirewall=1`) | The rules of the group `hMailServer auto-ban` are enumerated; every one with no ban behind it is removed, every ban without one gets one | Every rule of the group is removed |
+| The packaged Linux hook (`AutoBanFirewall=1`) | Told `reset`, which removes its nftables table or its iptables chains, and then `ban` for every ban in force. Wherever it is installed, **whether `AutoBanFirewall` is on or off**: with the switch off and no capability to change the firewall, `reset` finds nothing and says nothing. A `reset` that fails is said once (HM6523) and asked again a minute later, then at doubling waits up to an hour; `autoban-hook reset` run as root does the same by hand | Told `reset` |
+| `AutoBanCommand` | Told `unban` for every address its ledger says it was told `ban` for and that is not banned now, then `ban` for every ban in force | Its addresses are named (below) |
+
+**A command run beside the server leaves it alone.** The commands that start the
+server short of its listeners - `--sample-domain`, `--apply-environment` (which
+the container runs at every start), `--apply-profile` and the rest - do none of
+this, and from 6.3.6 tell the firewall nothing at their start: run beside a
+running server, a `reset` would lift every ban below it until each was told
+again - and, if the command stopped in between, for the rest of each ban or until
+that server's next start, since the running server believes the hook still holds
+them and never tells them again. Until 6.3.6 they told every ban in force again.
+
+**`AutoBanCommand`'s ledger.** Its contract is `ban` and `unban` and has no
+`reset`, so the server keeps the account itself: `autoban-command.ledger` in the
+temp folder (`[Directories] TempFolder`) - every address the command was told
+`ban` for and has not since run `unban` for, an `unban` owed after a timeout
+included - written whenever that changes. It names the command by the SHA-256
+of its command line, never its text, since a command line can carry a
+credential. Delete it, and a start knows nothing of what the command was told
+before, as before 6.3.6.
+
+**A command replaced or cleared is never run again.** A command taken out of the
+configuration may have been taken out because it misbehaves. When
+`AutoBanCommand` is changed or cleared while the service runs, or the ledger at a
+start was written for another command, the addresses that command was told to
+ban and not to un-ban are named in the error log (HM6523, up to twenty, and how
+many more), for the administrator to lift where that command put them; the new
+command is told every ban in force.
+
+**A command's own bans should still expire.** It is handed the ban's `<minutes>`:
+a block that lifts itself after them is never left behind, whatever happens to
+the server, the ledger or the machine. The packaged hook's nftables set does
+exactly that.
+
+**Uninstalling.** The Windows uninstaller's `hMailServer.exe /Unregister` removes
+every rule of the group, which Windows would otherwise keep across restarts and
+which would then block their addresses on those ports for good, whatever
+listens on them next. An iptables entry goes at the next reboot, an nftables one
+when its timeout runs out.
+
+**iptables waits for its lock.** The hook's `iptables` and `ip6tables` calls wait
+for the xtables lock (`-w`) rather than failing at once while fail2ban, a
+firewall manager or another run of the hook holds it: a failed `unban` there is
+a block that never lifts. A wait longer than `ExternalProcessTimeout` is stopped,
+and the `unban` asked for again.
+
+**The reset and the gap.** Between the packaged hook's `reset` and the `ban` that
+follows it for each ban in force, those addresses are not blocked below the
+server. At a start no listener of the server is open yet, so none of them can
+reach one. A `reset` that failed at the start and is asked again later runs with
+the listeners open, and for that moment the server refuses those addresses
+itself, when they connect, as it refuses every banned address.
+
+**A pass that cannot read the IP ranges changes nothing.** The ranges are what a
+reconciliation makes the firewall match, and a read of them that failed was taken,
+until 6.3.6, for no bans at all: every hook was told `unban` for every address and
+every Windows rule removed, until a later pass put them back. Such a pass now
+leaves everything below the server as it is - and at a start leaves the reset and
+the ledger to the next pass, at the latest the expiry pass a minute later.
+
+Held by `Security/AutoBanHookRetry` (both suites): the ledger kept and emptied
+(an owed `unban` kept in it), an address it names that is not banned un-banned at
+a start and a ban in force announced again, another command's ledger named and
+not run, a command replaced at run time naming its addresses while the new one is
+told every ban, a pass whose read of the ranges failed telling the command
+nothing (Linux, and Windows on a database other than SQL Server Compact), and -
+on Linux, with a stand-in for the packaged hook - `reset`
+at a start before the bans, when the switch goes off, and at a start with it
+off, and `--apply-environment` run beside the running server telling neither
+hook anything.

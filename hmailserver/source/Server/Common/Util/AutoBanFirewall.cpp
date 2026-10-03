@@ -12,9 +12,12 @@
 #include "../Threading/Task.h"
 #include "../Threading/WorkQueue.h"
 
+#include "FileUtilities.h"
 #include "ProcessLauncher.h"
 #include "ServiceAccount.h"
+#include "Unicode.h"
 #include "VariantDateTime.h"
+#include "Hashing/HashCreator.h"
 #include "Parsing/StringParser.h"
 #include "../Application/IniFileSettings.h"
 #include "../Application/Configuration.h"
@@ -29,6 +32,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <map>
 #include <mutex>
 #include <set>
 #include <string>
@@ -46,6 +50,32 @@
 
 namespace HM
 {
+   // What one hook holds, as far as this process knows.
+   struct AutoBanFirewall::HookState
+   {
+      // The addresses it has been told "ban" for and not since "unban". At a
+      // start (SynchroniseAtStart) this is forgotten, as a new process has it:
+      // every active ban is announced again, and the hook is required to be
+      // idempotent; the packaged one is. What it held before the start is
+      // learned otherwise - the packaged hook is reset, and AutoBanCommand's
+      // account is read back from its ledger (below).
+      std::set<String> hooked;
+
+      // Un-bans owed: addresses whose un-ban it was not run for to an answer -
+      // skipped in a pass in which it had already run past the external process
+      // timeout, or stopped for it itself. Each stays in hooked, so a later pass
+      // asks again, until it has been run for it. The packaged hook's nftables
+      // set lets a ban expire below the server on its own; with iptables, or a
+      // command of the administrator's, nothing else ever lifts it. A pass whose
+      // un-bans run past the timeout puts the next retry of what is owed further
+      // off - the next pass, then a minute, doubling to an hour - so that a hook
+      // which hangs for good costs one timeout an hour under the lock every ban
+      // takes, not one a minute.
+      std::set<String> owed;
+      std::chrono::steady_clock::time_point retryAt;
+      int retrySeconds = 0;
+   };
+
    namespace
    {
       // One reconciliation at a time. A ban is created on a protocol thread, the
@@ -60,30 +90,56 @@ namespace HM
       std::set<String> g_windowsRules;
       bool g_windowsRulesKnown = false;
       bool g_windowsUnavailableReported = false;
-      // That the service's account may not write firewall rules, said once.
+      // That the service's account may not write firewall rules, said once; and
+      // that rules a run as LocalSystem left are there, which it cannot remove,
+      // said once too, though every start enumerates them again.
       bool g_windowsAccountReported = false;
+      bool g_windowsLeftoversReported = false;
 
-      // Hooks: the addresses each command has been told "ban" for. Empty at
-      // start-up on purpose - the process cannot know what a hook did before it
-      // started, so every active ban is announced again and the hook is required
-      // to be idempotent; the packaged one is.
-      std::set<String> g_hooked;
+      // Hooks - the packaged one and AutoBanCommand - each by its command line,
+      // with its own account of what it has been told (HookState, above), so
+      // that a hook switched on, off or replaced while the service runs starts
+      // from, or leaves behind, its own account and not the other's.
+      std::map<String, AutoBanFirewall::HookState> g_hooks;
       bool g_hookFailureReported = false;
-
-      // Un-bans owed: addresses whose un-ban a command was not run for to an
-      // answer - skipped in a pass in which it had already run past the
-      // external process timeout, or stopped for it itself. Each stays in
-      // g_hooked, so a later pass asks again, until every command has been run
-      // for it. The packaged hook's nftables set lets a ban expire below the
-      // server on its own; with iptables, or a command of the administrator's,
-      // nothing else ever lifts it. A pass whose un-bans run past the timeout
-      // puts the next retry of what is owed further off - the next pass, then a
-      // minute, doubling to an hour - so that a hook which hangs for good costs
-      // one timeout an hour under the lock every ban takes, not one a minute.
-      std::set<String> g_unbanOwed;
-      std::chrono::steady_clock::time_point g_unbanRetryAt;
-      int g_unbanRetrySeconds = 0;
       const int UnbanRetryLongestSeconds = 3600;
+
+      // Set by SynchroniseAtStart, taken by the reconciliation that follows: the
+      // pass that learns what the hooks held before this start.
+      bool g_startPending = false;
+
+#ifdef HM_PLATFORM_POSIX
+      // The packaged hook's "reset" - which removes everything it made, its
+      // nftables table or its iptables chains - is owed at a start, before the
+      // active bans are announced to it again, so that a ban that ended while
+      // the service was stopped, or an un-ban still owed when it stopped, is not
+      // left in the firewall for good (the iptables variant has no timeout);
+      // and when AutoBanFirewall is switched off, so that nothing it made
+      // outlives the switch. Run whether the setting is on or off, wherever the
+      // hook is installed - as Windows removes its rules when the setting went
+      // off while the service was stopped. A reset that fails is asked again a
+      // minute later, then at doubling waits up to an hour.
+      bool g_resetOwed = false;
+      std::chrono::steady_clock::time_point g_resetRetryAt;
+      int g_resetRetrySeconds = 0;
+      bool g_resetFailureReported = false;
+#endif
+
+      // AutoBanCommand's ledger: what it was told "ban" for and not since
+      // "unban", kept in a file in the temp folder (LedgerPath) so that a start
+      // can tell it "unban" for every address it was left holding - a ban that
+      // ended while the service was stopped, an un-ban still owed when it
+      // stopped. Its contract has no "reset" for this, and the packaged hook's
+      // reset is no help to a command of the administrator's. The command is
+      // recorded by its SHA-256, not its text, since a command line can carry a
+      // credential; a ledger written for another command is reported, never
+      // run. Read at a start (g_ledgerKnown), written when the account changes.
+      bool g_ledgerKnown = false;
+      String g_ledgerCommand;
+      std::set<String> g_ledgerWritten;
+      bool g_ledgerFailureReported = false;
+
+      const char *LedgerHeader = "hMailServer auto-ban command ledger 1";
 
       // The never-ban list, parsed from the setting's text and re-parsed only when
       // that text changes, so a list of a few hundred blocks costs nothing per
@@ -169,6 +225,71 @@ namespace HM
          if (prefix < 0)
             prefix = widest;
          return prefix <= widest;
+      }
+
+      String LedgerPath()
+      {
+         return FileUtilities::Combine(IniFileSettings::Instance()->GetTempDirectory(), _T("autoban-command.ledger"));
+      }
+
+      // What a ledger records a command by: its SHA-256, in hex.
+      String CommandDigest(const String &command)
+      {
+         HashCreator hasher(HashCreator::SHA256);
+         return String(hasher.GenerateHashNoSalt(Unicode::ToUtf8(command), HashCreator::hex));
+      }
+
+      // An address as a hook is told it, or empty for a line that is not one:
+      // a ledger line goes into a command line, so it is read back to the
+      // character as an address and nothing else.
+      String CanonicalAddress(const String &text)
+      {
+         AnsiString narrow;
+         if (!Unicode::ToUtf8Exact(text, narrow))
+            return String();
+
+         boost::system::error_code ec;
+         boost::asio::ip::address address = boost::asio::ip::make_address(std::string(narrow.c_str()), ec);
+         if (ec)
+            return String();
+
+         return String(address.to_string().c_str());
+      }
+
+      // Up to twenty addresses, for a sentence, and how many more there were.
+      String SomeAddresses(const std::set<String> &addresses)
+      {
+         String text;
+         int written = 0;
+         for (const String &address : addresses)
+         {
+            if (written == 20)
+            {
+               text += _T(" and ") + StringParser::IntToString((int) addresses.size() - written) + _T(" more");
+               break;
+            }
+            if (written > 0)
+               text += _T(", ");
+            text += address;
+            written++;
+         }
+         return text;
+      }
+
+      // A command the administrator replaced or cleared, or the one an earlier
+      // run's ledger names, which is not the one configured, was left holding
+      // these addresses. It is not run again - a command taken out of the
+      // configuration may have been taken out because it misbehaves - so what
+      // it blocked is named, for the administrator to lift where it put them.
+      void ReportLeftBehind(const std::set<String> &addresses, const String &which)
+      {
+         if (addresses.empty())
+            return;
+
+         ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6523, "AutoBanFirewall::Synchronise",
+            which + _T(" was due to ban ") + StringParser::IntToString((int) addresses.size()) +
+            _T(" address(es) - told to, or passed over after it failed or ran past the external process timeout - and was not told to un-ban them: ") + SomeAddresses(addresses) +
+            _T(". This server does not run a command it is no longer configured with, so whatever that command blocked of these stays blocked until it is lifted where the command put it."));
       }
    }
 
@@ -293,13 +414,18 @@ namespace HM
       return false;
    }
 
-   std::vector<AutoBanFirewall::Ban>
-   AutoBanFirewall::ActiveBans_()
+   bool
+   AutoBanFirewall::ActiveBans_(std::vector<Ban> &bans)
    {
-      std::vector<Ban> bans;
+      bans.clear();
 
+      // A read that failed leaves the collection empty, and until 6.3.6 that was
+      // taken for no bans at all: every hook was told "unban" for every address,
+      // every Windows rule was removed, and a minute later all of it was put back
+      // - a database that faltered once lifted every ban below the server.
       std::shared_ptr<SecurityRanges> ranges = std::shared_ptr<SecurityRanges>(new SecurityRanges());
-      ranges->Refresh();
+      if (!ranges->Refresh())
+         return false;
 
       DateTime now = DateTime::GetCurrentTime();
 
@@ -330,7 +456,7 @@ namespace HM
          bans.push_back(ban);
       }
 
-      return bans;
+      return true;
    }
 
    void
@@ -473,6 +599,33 @@ namespace HM
    }
 
    void
+   AutoBanFirewall::SynchroniseAtStart()
+   {
+      {
+         std::lock_guard<std::mutex> guard(g_mutex);
+
+         // What this process knew of the firewall is forgotten, as a new process
+         // has it - a reinitialise is a start too, and a restore of a backup
+         // brings other ranges with it - and learned again by the pass below:
+         // Windows' rules by enumerating them, the packaged hook by its reset,
+         // AutoBanCommand by its ledger.
+         g_startPending = true;
+         g_hooks.clear();
+         g_ledgerKnown = false;
+#ifndef HM_PLATFORM_POSIX
+         g_windowsRules.clear();
+         g_windowsRulesKnown = false;
+#else
+         g_resetOwed = true;
+         g_resetRetrySeconds = 0;
+         g_resetRetryAt = std::chrono::steady_clock::time_point();
+#endif
+      }
+
+      Synchronise(_T("start-up"));
+   }
+
+   void
    AutoBanFirewall::Synchronise(const String &why)
    {
       std::lock_guard<std::mutex> guard(g_mutex);
@@ -481,7 +634,31 @@ namespace HM
       bool firewall = ini->GetAutoBanFirewallEnabled();
       String command = ini->GetAutoBanCommand();
 
-      std::vector<Ban> bans = ActiveBans_();
+      // The bans first. When they cannot be read nothing below the server is
+      // changed - no rule removed, no hook reset or told "unban" - and a start's
+      // work is left to the next pass, at the latest the expiry pass a minute on.
+      std::vector<Ban> bans;
+      if (!ActiveBans_(bans))
+      {
+         LOG_DEBUG(_T("AutoBanFirewall::Synchronise - ") + why + _T(": the IP ranges could not be read; nothing below the server is changed in this pass."));
+         return;
+      }
+
+      const bool starting = g_startPending;
+      g_startPending = false;
+
+#ifdef HM_PLATFORM_POSIX
+      // After the bans are read and before they are announced: the hook holds
+      // nothing after it (ResetPackagedHook_ forgets its account), so every ban
+      // in force is told to it again below. At a start no listener of this
+      // process is open yet (Application::StartServers), so no address the reset
+      // lifts can reach one before it is told again; a reset that failed then and
+      // is asked again by a later pass runs with the listeners open, and for that
+      // moment the server refuses those addresses itself, at accept. A command
+      // that starts the server short of its listeners never gets here at its
+      // start, so it never resets what a server running beside it keeps.
+      ResetPackagedHook_(firewall);
+#endif
 
       // One Windows Defender Firewall rule per ban, named for its address or, for
       // a widened ban, for its run ("lower-upper").
@@ -506,20 +683,71 @@ namespace HM
       if (firewall)
          commands.push_back(String(PackagedHook()));
 #endif
-      ReconcileHooks_(commands, bans, ports);
+      ReconcileHooks_(commands, command, bans, ports, starting);
    }
 
+#ifdef HM_PLATFORM_POSIX
    void
-   AutoBanFirewall::ReconcileHooks_(const std::vector<String> &commands, const std::vector<Ban> &bans, const String &ports)
+   AutoBanFirewall::ResetPackagedHook_(bool configured)
    {
-      if (commands.empty())
+      const String hook(PackagedHook());
+
+      // Switched off since the last pass: what it made goes with the switch.
+      if (!configured && g_hooks.find(hook) != g_hooks.end())
       {
-         g_hooked.clear();
-         g_unbanOwed.clear();
-         g_unbanRetrySeconds = 0;
+         g_hooks.erase(hook);
+         g_resetOwed = true;
+         g_resetRetrySeconds = 0;
+         g_resetRetryAt = std::chrono::steady_clock::time_point();
+      }
+
+      if (!g_resetOwed)
+         return;
+
+      // Off, and not installed: nothing of it can be in the firewall, and a stock
+      // build run from its tree has no hook to ask.
+      if (!configured && !FileUtilities::Exists(hook))
+      {
+         g_resetOwed = false;
          return;
       }
 
+      const std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
+      if (now < g_resetRetryAt)
+         return;
+
+      String failure;
+      bool timedOut = false;
+      if (RunHook_(hook, _T("reset"), String(), 0, String(), failure, timedOut))
+      {
+         g_resetOwed = false;
+         g_resetRetrySeconds = 0;
+
+         // It holds nothing now: every ban in force is told to it again, below.
+         g_hooks.erase(hook);
+         LOG_DEBUG(_T("AutoBanFirewall - the packaged hook was reset: what it blocked before is gone, and every ban in force is told to it again."));
+         return;
+      }
+
+      g_resetRetrySeconds = g_resetRetrySeconds == 0 ? 60 : std::min(g_resetRetrySeconds * 2, UnbanRetryLongestSeconds);
+      g_resetRetryAt = now + std::chrono::seconds(g_resetRetrySeconds);
+
+      if (!g_resetFailureReported)
+      {
+         g_resetFailureReported = true;
+         ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6523, "AutoBanFirewall::Synchronise",
+            "The auto-ban hook could not be run to reset what it blocked before: " + failure +
+            ". An address whose ban ended while the service was stopped, or while AutoBanFirewall was off, may stay blocked below the server until it can; it is asked again in " +
+            StringParser::IntToString(g_resetRetrySeconds / 60) + " minute(s), and `" + hook + " reset` run as root does the same. Reported once; later failures are in the debug log.");
+      }
+      else
+         LOG_DEBUG(_T("AutoBanFirewall - the packaged hook's reset failed: ") + failure);
+   }
+#endif
+
+   void
+   AutoBanFirewall::ReconcileHooks_(const std::vector<String> &commands, const String &customCommand, const std::vector<Ban> &bans, const String &ports, bool starting)
+   {
       // A hook is told one address at a time, as it always was - a widened ban is
       // each address of its run - so that a program written for "ban <address>"
       // is never handed a range it cannot read.
@@ -527,29 +755,57 @@ namespace HM
       for (const Ban &ban : bans)
          desired.insert(ban.members.begin(), ban.members.end());
 
+      // A command this process told about bans that is no longer configured:
+      // AutoBanCommand replaced or cleared. (The packaged hook switched off was
+      // reset, and forgotten, before the bans were read.)
+      for (std::map<String, HookState>::iterator hook = g_hooks.begin(); hook != g_hooks.end();)
+      {
+         if (std::find(commands.begin(), commands.end(), hook->first) != commands.end())
+         {
+            ++hook;
+            continue;
+         }
+
+         ReportLeftBehind(hook->second.hooked, _T("AutoBanCommand, since replaced or cleared,"));
+         hook = g_hooks.erase(hook);
+      }
+
+      // A start: what AutoBanCommand was told and not taken back, before it.
+      if (starting)
+         LoadLedger_(customCommand, desired);
+
+      for (const String &command : commands)
+         ReconcileHook_(command, g_hooks[command], bans, desired, ports);
+
+      SaveLedger_(customCommand);
+   }
+
+   void
+   AutoBanFirewall::ReconcileHook_(const String &command, HookState &hook, const std::vector<Ban> &bans, const std::set<String> &desired, const String &ports)
+   {
       // A command that ran past the external process timeout once in this pass
       // is not run again in it. A widened ban is up to 65 addresses told one at
       // a time, under the lock every ban's announcement takes, and a hook that
       // hangs would otherwise hold it for 65 timeouts rather than one. A ban it
       // was not run for is treated as a failure of it: not asked again, as a
       // failed run never was. An un-ban it was not run for is owed, and asked
-      // for again by a later pass (g_unbanOwed above): skipped here, it would
-      // otherwise stay blocked below the server for good.
-      std::set<String> hung;
+      // for again by a later pass (HookState::owed above): skipped here, it
+      // would otherwise stay blocked below the server for good.
+      bool hung = false;
       int skipped = 0;
 
       // A ban made again since its un-ban was owed is one the hook is right to
       // hold: nothing is owed for it any more.
-      for (std::set<String>::iterator owed = g_unbanOwed.begin(); owed != g_unbanOwed.end();)
+      for (std::set<String>::iterator owed = hook.owed.begin(); owed != hook.owed.end();)
       {
          if (desired.find(*owed) != desired.end())
-            owed = g_unbanOwed.erase(owed);
+            owed = hook.owed.erase(owed);
          else
             ++owed;
       }
 
       const std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
-      const bool retryOwed = now >= g_unbanRetryAt;
+      const bool retryOwed = now >= hook.retryAt;
       bool unbanTimedOut = false;
       int deferred = 0;
 
@@ -557,7 +813,7 @@ namespace HM
       // before a new one starts, and a hook that is failing altogether should
       // not be asked to add before it has been asked to remove.
       std::vector<String> gone;
-      for (const String &address : g_hooked)
+      for (const String &address : hook.hooked)
       {
          if (desired.find(address) == desired.end())
             gone.push_back(address);
@@ -567,29 +823,31 @@ namespace HM
       {
          // Owed from an earlier pass, and the wait after a hook that ran past
          // the timeout is not over: left for a later pass.
-         if (!retryOwed && g_unbanOwed.find(address) != g_unbanOwed.end())
+         if (!retryOwed && hook.owed.find(address) != hook.owed.end())
          {
             deferred++;
             continue;
          }
 
+         // Not run for it, or stopped for the timeout: the un-ban is owed, the
+         // address stays, and a later pass asks again (the hook is idempotent).
+         // A run that answered with an exit code has said it could not; it is
+         // reported, and not asked every minute for the same answer.
          bool owed = false;
-         for (const String &command : commands)
+         if (hung)
          {
-            if (hung.find(command) != hung.end())
-            {
-               skipped++;
-               owed = true;
-               continue;
-            }
-
+            skipped++;
+            owed = true;
+         }
+         else
+         {
             String failure;
             bool timedOut = false;
             if (!RunHook_(command, _T("unban"), address, 0, ports, failure, timedOut))
             {
                if (timedOut)
                {
-                  hung.insert(command);
+                  hung = true;
                   unbanTimedOut = true;
                   owed = true;
                }
@@ -605,34 +863,29 @@ namespace HM
             }
          }
 
-         // A command that was not run for it, or was stopped for the timeout,
-         // owes the un-ban: the address stays, and a later pass asks every
-         // command again (each is idempotent). One that ran and answered with an
-         // exit code has said it could not; it is reported, and not asked every
-         // minute for the same answer.
          if (owed)
          {
-            g_unbanOwed.insert(address);
+            hook.owed.insert(address);
             continue;
          }
 
-         g_unbanOwed.erase(address);
-         g_hooked.erase(address);
+         hook.owed.erase(address);
+         hook.hooked.erase(address);
       }
 
       if (unbanTimedOut)
       {
-         g_unbanRetryAt = now + std::chrono::seconds(g_unbanRetrySeconds);
-         g_unbanRetrySeconds = g_unbanRetrySeconds == 0 ? 60 : std::min(g_unbanRetrySeconds * 2, UnbanRetryLongestSeconds);
+         hook.retryAt = now + std::chrono::seconds(hook.retrySeconds);
+         hook.retrySeconds = hook.retrySeconds == 0 ? 60 : std::min(hook.retrySeconds * 2, UnbanRetryLongestSeconds);
       }
-      else if (g_unbanOwed.empty())
+      else if (hook.owed.empty())
       {
-         g_unbanRetrySeconds = 0;
+         hook.retrySeconds = 0;
       }
 
-      if (!g_unbanOwed.empty())
+      if (!hook.owed.empty())
       {
-         LOG_DEBUG(_T("AutoBanFirewall - ") + StringParser::IntToString((int) g_unbanOwed.size()) +
+         LOG_DEBUG(_T("AutoBanFirewall - ") + StringParser::IntToString((int) hook.owed.size()) +
                    _T(" un-ban(s) owed to the hook, asked for again by a later pass") +
                    (deferred > 0 ? _T(" (") + StringParser::IntToString(deferred) + _T(" waiting after a timeout)") : String(_T(""))) + _T("."));
       }
@@ -641,23 +894,21 @@ namespace HM
       {
          for (const String &member : ban.members)
          {
-            if (g_hooked.find(member) != g_hooked.end())
+            if (hook.hooked.find(member) != hook.hooked.end())
                continue;
 
-            for (const String &command : commands)
+            if (hung)
             {
-               if (hung.find(command) != hung.end())
-               {
-                  skipped++;
-                  continue;
-               }
-
+               skipped++;
+            }
+            else
+            {
                String failure;
                bool timedOut = false;
                if (!RunHook_(command, _T("ban"), member, ban.minutesLeft, ports, failure, timedOut))
                {
                   if (timedOut)
-                     hung.insert(command);
+                     hung = true;
 
                   if (!g_hookFailureReported)
                   {
@@ -670,7 +921,7 @@ namespace HM
                      LOG_DEBUG(_T("AutoBanFirewall - ban hook failed for ") + member + _T(": ") + failure);
                }
             }
-            g_hooked.insert(member);
+            hook.hooked.insert(member);
          }
       }
 
@@ -681,12 +932,142 @@ namespace HM
       }
    }
 
+   void
+   AutoBanFirewall::LoadLedger_(const String &customCommand, const std::set<String> &desired)
+   {
+      g_ledgerKnown = true;
+      g_ledgerCommand.clear();
+      g_ledgerWritten.clear();
+
+      const String path = LedgerPath();
+      if (!FileUtilities::Exists(path))
+         return;
+
+      String text = FileUtilities::ReadCompleteTextFile(path);
+      text.Replace(_T("\r"), _T(""));
+      std::vector<String> lines = StringParser::SplitString(text, _T("\n"));
+
+      // A file that is not a ledger of this shape is not one to act on, and is
+      // written over by the next account (or removed with no command).
+      if (lines.size() < 2 || lines[0] != String(LedgerHeader) || !lines[1].StartsWith(_T("command ")))
+      {
+         LOG_DEBUG(_T("AutoBanFirewall - ") + path + _T(" is not an auto-ban command ledger; it is not acted on."));
+         g_ledgerCommand = _T("?");
+         return;
+      }
+
+      g_ledgerCommand = lines[1].Mid(8);
+      int unreadable = 0;
+      for (size_t i = 2; i < lines.size(); i++)
+      {
+         if (lines[i].IsEmpty())
+            continue;
+
+         const String address = CanonicalAddress(lines[i]);
+         if (address.IsEmpty() || address != lines[i])
+         {
+            unreadable++;
+            continue;
+         }
+         g_ledgerWritten.insert(address);
+      }
+
+      if (unreadable > 0)
+         LOG_DEBUG(_T("AutoBanFirewall - ") + StringParser::IntToString(unreadable) + _T(" line(s) of ") + path + _T(" are not an address and are passed over."));
+
+      if (g_ledgerWritten.empty())
+         return;
+
+      if (!customCommand.IsEmpty() && g_ledgerCommand == CommandDigest(customCommand))
+      {
+         // Its own: an address it holds that is not banned now is told "unban"
+         // by the pass that follows. One that is still banned is announced again
+         // with every other, as at every start.
+         HookState &hook = g_hooks[customCommand];
+         int stale = 0;
+         for (const String &address : g_ledgerWritten)
+         {
+            if (desired.find(address) == desired.end())
+            {
+               hook.hooked.insert(address);
+               stale++;
+            }
+         }
+
+         if (stale > 0)
+            LOG_APPLICATION(_T("Auto-ban: AutoBanCommand was left holding ") + StringParser::IntToString(stale) +
+                            _T(" address(es) whose ban ended while the service was stopped, or whose un-ban was still owed when it stopped; it is told to un-ban them now."));
+         return;
+      }
+
+      ReportLeftBehind(g_ledgerWritten, _T("The AutoBanCommand of an earlier run, which is not the one configured now,"));
+   }
+
+   void
+   AutoBanFirewall::SaveLedger_(const String &customCommand)
+   {
+      // Not read since the start: nothing is known of what the file holds, and
+      // it is not written over.
+      if (!g_ledgerKnown)
+         return;
+
+      const String path = LedgerPath();
+
+      if (customCommand.IsEmpty())
+      {
+         if (g_ledgerCommand.IsEmpty() && g_ledgerWritten.empty())
+            return;
+
+         // Its addresses were named as it went (ReportLeftBehind). A file that
+         // cannot be removed is said so by DeleteFile, and not asked again: the
+         // next start reads it and names them once more.
+         if (FileUtilities::Exists(path))
+            FileUtilities::DeleteFile(path);
+         g_ledgerCommand.clear();
+         g_ledgerWritten.clear();
+         return;
+      }
+
+      const String digest = CommandDigest(customCommand);
+      const std::set<String> &hooked = g_hooks[customCommand].hooked;
+      if (digest == g_ledgerCommand && hooked == g_ledgerWritten)
+         return;
+
+      AnsiString content = LedgerHeader;
+      content += "\n";
+      content += "command ";
+      content += Unicode::ToUtf8(digest);
+      content += "\n";
+      for (const String &address : hooked)
+      {
+         content += Unicode::ToUtf8(address);
+         content += "\n";
+      }
+
+      if (FileUtilities::WriteToFileAtomically(path, content))
+      {
+         g_ledgerCommand = digest;
+         g_ledgerWritten = hooked;
+         return;
+      }
+
+      if (!g_ledgerFailureReported)
+      {
+         g_ledgerFailureReported = true;
+         ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6523, "AutoBanFirewall::Synchronise",
+            "What AutoBanCommand has been told to ban could not be written to " + path +
+            ". The command is told everything as before while the service runs, but an un-ban owed when the service stops, or a ban that ends while it is stopped, is not asked of it after the next start. Reported once.");
+      }
+   }
+
    bool
    AutoBanFirewall::RunHook_(const String &command, const String &verb, const String &address, int minutes, const String &ports, String &failure, bool &timedOut)
    {
       timedOut = false;
 
-      String commandLine = command + _T(" ") + verb + _T(" ") + address;
+      String commandLine = command + _T(" ") + verb;
+      if (!address.IsEmpty())
+         commandLine += _T(" ") + address;
       if (verb == _T("ban"))
          commandLine += _T(" ") + StringParser::IntToString(minutes) + _T(" ") + (ports.IsEmpty() ? String(_T("-")) : ports);
 
@@ -885,8 +1266,9 @@ namespace HM
             if (OpenRules(readRules, readError) && EnumerateOurRules(readRules, g_windowsRules, readError))
             {
                g_windowsRulesKnown = true;
-               if (!g_windowsRules.empty())
+               if (!g_windowsRules.empty() && !g_windowsLeftoversReported)
                {
+                  g_windowsLeftoversReported = true;
                   ErrorManager::Instance()->ReportError(ErrorManager::High, 7461, "AutoBanFirewall::Synchronise",
                      "Windows Defender Firewall holds " + StringParser::IntToString((int) g_windowsRules.size()) +
                      " auto-ban rule(s) of this server's, left by a run as LocalSystem, and this service runs as " + ServiceAccount::ProcessAccountName() +
@@ -981,6 +1363,34 @@ namespace HM
                "The auto-ban for " + address + " is in force in the server but " + error + " The address is refused by the server itself and is NOT blocked in the firewall.");
          }
       }
+   }
+
+   int
+   AutoBanFirewall::RemoveAllWindowsRules(String &error)
+   {
+      std::lock_guard<std::mutex> guard(g_mutex);
+
+      ComScope com;
+
+      CComPtr<INetFwRules> rules;
+      std::set<String> addresses;
+      if (!OpenRules(rules, error) || !EnumerateOurRules(rules, addresses, error))
+         return -1;
+
+      int left = 0;
+      for (const String &address : addresses)
+      {
+         String removeError;
+         if (RemoveRule(rules, address, removeError))
+            g_windowsRules.erase(address);
+         else
+         {
+            left++;
+            error = removeError;
+         }
+      }
+
+      return left == 0 ? (int) addresses.size() : -1;
    }
 
 #endif

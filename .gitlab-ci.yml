@@ -947,6 +947,8 @@ update-helper:
         - build/test-hmailserver-update.sh
         - hmailserver/source/Server/platform/packaging/docker/docker-entrypoint.sh
         - build/test-docker-entrypoint.sh
+        - hmailserver/source/Server/platform/packaging/autoban-hook
+        - build/test-autoban-hook.sh
         - .gitlab-ci.yml
   before_script:
     - apt-get update -qq
@@ -955,6 +957,7 @@ update-helper:
     - ls -l /bin/sh
     - bash build/test-hmailserver-update.sh
     - bash build/test-docker-entrypoint.sh
+    - bash build/test-autoban-hook.sh
     # The only thing systemd-analyze objects to in a checkout is the two executables
     # the package would have installed; they are tolerated by name and nothing else is.
     # GitLab's hosted runners check out with umask 0000, so every file is world-writable,

@@ -1481,12 +1481,14 @@ namespace
    // them up on its next pass, which is within the minute; a stopped one delivers
    // them when it starts. That is said below rather than left to be discovered.
    //
-   // InitInstance is the whole of start-up short of the listeners, so it also
-   // runs AutoBanFirewall::Synchronise. That does nothing at all unless
-   // AutoBanFirewallEnabled is on, which it is not on a stock server; where it IS
-   // on, this re-synchronises the firewall as a start would. It is idempotent -
-   // the rules it writes are the rules it would have written anyway - but a
-   // command that says "sample domain" and touches nft is worth writing down.
+   // InitInstance is the whole of start-up short of the listeners, and since
+   // 6.3.6 that no longer includes the auto-ban's start-up reconciliation
+   // (AutoBanFirewall::SynchroniseAtStart), which StartServers runs: it resets
+   // the packaged hook before it tells every ban in force again, and run from
+   // here, beside a running server, it would lift every ban below that server
+   // for the moment between - or, had this command stopped there, for the rest
+   // of each ban, since that server believes the hook still holds them.
+   // What is below the server is the running server's, or the next start's.
    int SampleDomainCommand(const std::string &verb)
    {
       const bool creating = verb == "create";

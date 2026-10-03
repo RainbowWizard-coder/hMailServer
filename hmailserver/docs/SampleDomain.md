@@ -181,11 +181,13 @@ or an `example.test` this did not make - all of them answers rather than
 failures), 1 when the server could not do it. `hmctl sample-domain` answers the
 same three, so a script can read one number whichever of the two it drives.
 
-`--sample-domain` starts the server short of its listeners, which also
-re-synchronises the auto-ban firewall integration where that is switched on
-(`AutoBanFirewallEnabled`; it is off on a stock server). The synchronisation is
-idempotent - it writes the rules a start would have written - but a command about
-a sample domain touching `nft` is worth knowing about.
+`--sample-domain` starts the server short of its listeners, and since 6.3.6 it
+leaves the auto-ban's firewall integration alone: what is below the server -
+Windows Defender Firewall rules, the packaged Linux hook's nftables set or
+iptables chain, whatever `AutoBanCommand` did - is the running server's to keep,
+or the next start's ([AutoBan.md](AutoBan.md), Below the server across a stop and
+a start). Until 6.3.6 it told every ban in force to the firewall again as a start
+did.
 
 What it does not do
 -------------------

@@ -94,6 +94,35 @@ namespace HM
       // reason is for the log.
       static void Synchronise(const String &why);
 
+      // The same, at a start (Application::StartServers, before its first
+      // listener: the service's start, a reinitialise, the COM API's Start - and
+      // never a command that starts the server short of its listeners, which
+      // may run beside a running server and would take apart what that server
+      // keeps below it): what the firewall holds of an earlier run is learned before
+      // the active bans are announced, so that a ban that ended while the
+      // service was stopped, or an un-ban still owed when it stopped, is lifted
+      // and not left below the server for good. Windows: the rules of the
+      // group are enumerated again, and every one with no ban behind it is
+      // removed. Linux: the packaged hook is told "reset", which removes
+      // everything it made, whether AutoBanFirewall is on or off, wherever it
+      // is installed. AutoBanCommand, whose contract has no reset: told
+      // "unban" for every address its ledger (a file in the temp folder) says
+      // it was told "ban" for and that is not banned now.
+      static void SynchroniseAtStart();
+
+      // What one hook holds, as far as this process knows; defined in the .cpp.
+      struct HookState;
+
+#ifndef HM_PLATFORM_POSIX
+      // Every rule of the group removed from Windows Defender Firewall, for
+      // hMailServer.exe /Unregister - what the uninstaller runs - since a rule
+      // is kept across restarts of Windows and nothing would remove it once the
+      // server is gone: it would block its address on those ports for good,
+      // whatever listens on them next. How many were removed, or -1 with the
+      // error when the firewall could not be read or a rule not removed.
+      static int RemoveAllWindowsRules(String &error);
+#endif
+
       // True if AutoBanNeverBan lists the address, alone or inside a block.
       static bool IsNeverBanned(const IPAddress &address);
 
@@ -133,9 +162,22 @@ namespace HM
          int minutesLeft = 0;
       };
 
-      static std::vector<Ban> ActiveBans_();
+      // The auto-bans in force, or false when the IP ranges could not be read -
+      // which is not "none": a pass that took it for none would lift every ban
+      // below the server, and at a start tell AutoBanCommand to un-ban all its
+      // ledger holds.
+      static bool ActiveBans_(std::vector<Ban> &bans);
       static void ReconcileWindowsRules_(bool enabled, const std::set<String> &desired, const String &ports);
-      static void ReconcileHooks_(const std::vector<String> &commands, const std::vector<Ban> &bans, const String &ports);
+      // Every configured hook (commands: AutoBanCommand, the packaged hook) made
+      // to match the bans; customCommand is AutoBanCommand, or empty, whose
+      // ledger is read when starting and written when its account changed.
+      static void ReconcileHooks_(const std::vector<String> &commands, const String &customCommand, const std::vector<Ban> &bans, const String &ports, bool starting);
+      static void ReconcileHook_(const String &command, HookState &state, const std::vector<Ban> &bans, const std::set<String> &desired, const String &ports);
+      // The packaged hook's reset, when one is owed: at a start, and when
+      // AutoBanFirewall goes off (configured says whether it is on).
+      static void ResetPackagedHook_(bool configured);
+      static void LoadLedger_(const String &customCommand, const std::set<String> &desired);
+      static void SaveLedger_(const String &customCommand);
       // timedOut says the program was stopped for running past the external
       // process timeout, rather than failing in any other way.
       static bool RunHook_(const String &command, const String &verb, const String &address, int minutes, const String &ports, String &failure, bool &timedOut);

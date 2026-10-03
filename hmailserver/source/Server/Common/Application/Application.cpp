@@ -284,10 +284,18 @@ namespace HM
       // are read - the connections were made before they were (docs/DatabaseTls.md).
       DatabaseTls::AnnounceConnection();
 
-      // The firewall is made to match the auto-ban ranges before a listener is
-      // open: a rule for a ban that expired while the service was down is removed
-      // here, and one for a ban still in force is put back if it is missing.
-      AutoBanFirewall::Synchronise(_T("start-up"));
+      // The firewall is not made to match the auto-ban ranges here: StartServers
+      // does that, before its first listener. Every command that starts the
+      // server short of its listeners runs this function - --sample-domain,
+      // --apply-environment (which the container runs at every start),
+      // --apply-profile and the rest - often beside a running server, and the
+      // start's reconciliation resets the packaged hook and tells AutoBanCommand
+      // "unban" from its ledger (AutoBanFirewall::SynchroniseAtStart). Run from
+      // such a command it would lift every ban below the running server until it
+      // had told them all again - and, if it stopped in between, for the rest of
+      // each of those bans or until that server's next start, since the running
+      // server goes on believing the hook holds them and never tells them again.
+      // Until 6.3.6 a pass ran here that only told every ban in force again.
 
       // The accounts the compromised-account detection locked before this
       // start are held again before a listener is open: the lock is a row in
@@ -679,6 +687,17 @@ namespace HM
       }
 
       ServerStatus::Instance()->SetState(ServerStatus::StateStarting);
+
+      // The firewall is made to match the auto-ban ranges before a listener is
+      // open: a rule for a ban that expired while the service was down is removed
+      // here, and one for a ban still in force is put back if it is missing. What
+      // the hooks hold of an earlier run is learned first - the packaged hook is
+      // reset, AutoBanCommand is told "unban" from its ledger - since nothing in
+      // this process remembers it (AutoBanFirewall::SynchroniseAtStart). Here and
+      // not in InitInstance, so that only a process about to listen does it - the
+      // service's start, a reinitialise, the COM API's Start - and never a command
+      // run beside a running server, whose firewall that server keeps.
+      AutoBanFirewall::SynchroniseAtStart();
 
       SpamProtection::Instance()->Load();
 

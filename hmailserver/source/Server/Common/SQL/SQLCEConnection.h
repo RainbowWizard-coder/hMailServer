@@ -61,11 +61,40 @@ namespace HM
 
    private:
 
+      friend class SQLCEConnectionTester;
+
       bool GetRequiresUpgrade_(const String &sConnectionString);
       String GetConnectionString_(const String &sDatabase, const String &sPassword) const;
       String GetDatabaseFileName_(const String &sShortName) const;
 
-      virtual bool UpgradeDatabase_();
+      // A 3.5 database file upgraded to 4.0 in place, as Connect asks when the
+      // provider says it needs to be: the engine writes the upgraded copy beside
+      // it, the copy is proven, and only then is the 3.5 file moved aside - to
+      // .backup_v52, or the first .backup_v52.<n> that holds nothing - and the
+      // copy put in its place. Any failure leaves the live file where it was
+      // (or, if the copy could not take its place, puts it back), says so in
+      // the error log (HM5122 to HM5125) and answers false, and the service
+      // does not start on it; the next start tries again. Until 6.3.6 the
+      // engine's own answer was not read, so a 3.5 file the engine could not
+      // upgrade was moved aside all the same and the server was left without
+      // its database. error is the sentence reported, which the start's own
+      // failure (HM4354) carries as well.
+      virtual bool UpgradeDatabase_(String &error);
+
+      // The whole of that, without the error log: what went wrong is the error,
+      // and backupFile where the 3.5 file went. The tester's way in.
+      static bool UpgradeDatabaseFile_(const String &liveFile, const String &upgradedFile, const String &password,
+                                       String &backupFile, String &error, int &errorCode);
+
+      // The upgraded copy's two proofs: the engine reads every page of it
+      // (Verify), and the provider the server opens it with opens it with the
+      // password.
+      static bool ProveDatabaseFile_(const String &file, const String &password, String &error);
+
+      // The upgraded copy in the live file's place, once it is proven; the 3.5
+      // file moved aside first, and put back if the copy cannot take its place.
+      static bool InstallUpgradedCopy_(const String &liveFile, const String &upgradedFile, const String &password,
+                                       String &backupFile, String &error, int &errorCode);
 
       DALConnection::ExecutionResult GetErrorType_(int iErrorCode);
 
@@ -80,12 +109,19 @@ namespace HM
    // MakeConnectionString held to ADO's own reading of what it writes: a file
    // path with a semicolon, an equals sign, a quote or spaces in it, and
    // passwords of every quoting, each read back by ADO as given, and nothing
-   // else moved. Needs SQL Server Compact 4.0's provider registered, which a
-   // server that runs on it has; ClassTester runs it.
+   // else moved. And the 3.5-to-4.0 upgrade held to leaving the live file in
+   // place whenever the engine cannot upgrade it - a damaged file, a 4.0 file,
+   // a file another process holds - and to putting a proven copy in its place
+   // only once the 3.5 file is safely aside. Needs SQL Server Compact 4.0's
+   // provider and engine registered, which a server that runs on it has;
+   // ClassTester runs it.
    class SQLCEConnectionTester
    {
    public:
       void Test();
+
+   private:
+      void TestUpgrade_();
    };
 }
 

@@ -40,6 +40,7 @@
 #include "../Common/Util/FileUtilities.h"
 #include "../Common/Pst/PstReaderChild.h"
 #include "../Common/Util/AdminUpdate.h"
+#include "../Common/Util/AutoBanFirewall.h"
 
 #include <algorithm>
 #include <cstdio>
@@ -1209,6 +1210,15 @@ extern "C" int WINAPI _tWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstan
 
       _AtlModule.UnregisterServer(TRUE);
       _AtlModule.UnregisterAppId();
+
+      // The auto-ban's Windows Defender Firewall rules (AutoBanFirewall=1), which
+      // Windows keeps across restarts: with the server gone nothing would ever
+      // remove them, and each would block its address on these ports for good,
+      // whatever listens on them next. The uninstaller runs this elevated; a
+      // rule it cannot remove is said on standard error, the only place left.
+      HM::String firewallError;
+      if (HM::AutoBanFirewall::RemoveAllWindowsRules(firewallError) < 0)
+         fwprintf(stderr, L"hMailServer: the auto-ban's firewall rules (group \"%s\") could not all be removed: %s\n", HM::AutoBanFirewall::RuleGroup(), firewallError.c_str());
 
       HM::WindowsEventLog::UnregisterSource();
 

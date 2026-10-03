@@ -12,8 +12,14 @@
 #include "ADOConnection.h"
 #include "../Util/Time.h"
 #include "../Util/Unicode.h"
+#include "../Util/GUIDCreator.h"
 
+#include <fstream>
+#include <functional>
+#include <iterator>
 #include <stdexcept>
+#include <string>
+#include <boost/filesystem.hpp>
 // The SQL Server Compact SDK headers, which ship with the Windows redistributable
 // and exist nowhere else. Guarded for the same reason the body below is; see the
 // note above the namespace.
@@ -205,8 +211,18 @@ namespace HM
       */
       if (GetRequiresUpgrade_(sConnectionString))
       {
-         if (!UpgradeDatabase_())
+         String upgradeError;
+         if (!UpgradeDatabase_(upgradeError))
+         {
+            // Said here as well as in the error log, because this is the sentence
+            // the start's own failure (HM4354) carries: it was empty. The upgrade's
+            // own, word for word, since only it says where the file is: left as it
+            // was on every path but one, where the upgraded copy could not take its
+            // place and the 3.5 file could not be put back, and the sentence names
+            // both files.
+            sErrorMessage = upgradeError;
             return FatalError;
+         }
       }
 
       DALConnection::ConnectionResult result = DALConnection::FatalError;
@@ -254,44 +270,289 @@ namespace HM
 
    }
 
-   bool 
-   SQLCEConnection::UpgradeDatabase_()
+   namespace
    {
-      ISSCEEngine *pISSCEEngine = NULL;
-      HRESULT hr = CoCreateInstance(CLSID_Engine, NULL, CLSCTX_INPROC_SERVER, IID_ISSCEEngine, (void**)&pISSCEEngine);
-      if (FAILED(hr))
+      String DescribeHresult(HRESULT hr)
       {
-         ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5122, "SQLCEConnection::UpgradeDatabase_()", "Failed to create instance of SQL CE Engine.");
+         String text;
+         text.Format(_T("0x%08X"), (unsigned int) hr);
+         return text;
+      }
+
+      // What the engine recorded about its last call, as "native error:
+      // description" phrases, or nothing when it kept no record. The engine's
+      // HRESULT alone is E_FAIL for a damaged file, a file in use and a file
+      // already at 4.0 alike.
+      String DescribeEngineErrors(ISSCEEngine *engine)
+      {
+         String result;
+
+         ISSCEErrors *errors = nullptr;
+         if (FAILED(engine->get_ErrorRecords(&errors)) || errors == nullptr)
+            return result;
+
+         long count = 0;
+         if (SUCCEEDED(errors->get_Count(&count)))
+         {
+            for (long i = 0; i < count && i < 4; i++)
+            {
+               VARIANT index;
+               VariantInit(&index);
+               index.vt = VT_I4;
+               index.lVal = i;
+
+               ISSCEError *error = nullptr;
+               if (FAILED(errors->get_Item(index, &error)) || error == nullptr)
+                  continue;
+
+               long native = 0;
+               error->get_NativeError(&native);
+
+               BSTR description = nullptr;
+               error->get_Description(&description);
+
+               String phrase;
+               phrase.Format(_T("%ld: %s"), native, description != nullptr ? (const wchar_t *) description : L"");
+               if (!result.IsEmpty())
+                  result += _T("; ");
+               result += phrase;
+
+               if (description != nullptr)
+                  SysFreeString(description);
+               error->Release();
+            }
+         }
+
+         errors->Release();
+         return result;
+      }
+
+      // A file removed, saying why not rather than reporting it: the upgrade
+      // reports once, with the whole story (FileUtilities::DeleteFile reports
+      // on its own, and the tester's cases must leave the error log alone).
+      bool RemoveFile(const String &file, String &error)
+      {
+         for (int attempt = 1; ; attempt++)
+         {
+            boost::system::error_code code;
+            boost::filesystem::remove(boost::filesystem::path(std::wstring(file)), code);
+            if (!code)
+               return true;
+
+            if (attempt == 5)
+            {
+               error = String(_T("it could not be removed (")) + String(code.message().c_str()) + _T(")");
+               return false;
+            }
+
+            // A scanner or a backup holding it a moment.
+            Sleep(250);
+         }
+      }
+
+      // A file renamed, as FileUtilities::Move does it, without its report.
+      bool RenameFile(const String &from, const String &to, String &error)
+      {
+         for (int attempt = 1; ; attempt++)
+         {
+            boost::system::error_code code;
+            boost::filesystem::rename(boost::filesystem::path(std::wstring(from)), boost::filesystem::path(std::wstring(to)), code);
+            if (!code)
+               return true;
+
+            if (attempt == 5)
+            {
+               error = String(_T("it could not be renamed (")) + String(code.message().c_str()) + _T(")");
+               return false;
+            }
+
+            Sleep(250);
+         }
+      }
+   }
+
+   bool
+   SQLCEConnection::UpgradeDatabase_(String &error)
+   {
+      const String name = database_settings_->GetDatabaseName();
+      const String liveFile = GetDatabaseFileName_(name);
+      const String upgradedFile = GetDatabaseFileName_(name + "_upgraded");
+
+      String backupFile;
+      int errorCode = 0;
+      if (!UpgradeDatabaseFile_(liveFile, upgradedFile, database_settings_->GetPassword(), backupFile, error, errorCode))
+      {
+         ErrorManager::Instance()->ReportError(ErrorManager::Critical, errorCode, "SQLCEConnection::UpgradeDatabase_()", error);
          return false;
       }
 
-      String sOldConnectionString = GetConnectionString_(database_settings_->GetDatabaseName(), database_settings_->GetPassword());
-      String sNewConnectionString = GetConnectionString_(database_settings_->GetDatabaseName() + "_upgraded", database_settings_->GetPassword());
+      LOG_APPLICATION(_T("SQL Server Compact: the database file ") + liveFile + _T(" was upgraded from 3.5 to 4.0. The 3.5 file is kept as ") + backupFile + _T("."));
+      return true;
+   }
 
-      HRESULT result = pISSCEEngine->UpgradeDatabase(sOldConnectionString.AllocSysString(), sNewConnectionString.AllocSysString());
-      if (FAILED(hr))
+   bool
+   SQLCEConnection::UpgradeDatabaseFile_(const String &liveFile, const String &upgradedFile, const String &password,
+                                         String &backupFile, String &error, int &errorCode)
+   {
+      // A copy an earlier attempt left behind - a start that stopped half way.
+      // The live file is the 3.5 one (Connect would not be here otherwise), so
+      // the copy is nothing to keep, and the engine refuses to write over it:
+      // left, it would fail every upgrade from now on.
+      String removeError;
+      if (FileUtilities::Exists(upgradedFile) && !RemoveFile(upgradedFile, removeError))
       {
-         String sErrorMessage;
-         sErrorMessage.Format(_T("Failed to upgrade SQL CE database. HRESULT: %d"), hr);
-         ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5123, "SQLCEConnection::UpgradeDatabase_()", sErrorMessage);       
-
+         errorCode = 5123;
+         error = _T("The database file ") + liveFile + _T(" is a SQL Server Compact 3.5 database, and the upgraded copy an earlier attempt left, ") + upgradedFile +
+            _T(", stands where the upgrade writes its copy: ") + removeError + _T(". The database file is left as it was. Remove that copy and start the service again.");
          return false;
       }
 
-      pISSCEEngine->Release();
-      
-      String sCurrentDatabaseFile = GetDatabaseFileName_(database_settings_->GetDatabaseName());
-      String sUpgradedDatabaseFile = GetDatabaseFileName_(database_settings_->GetDatabaseName() + "_upgraded");
-
-      if (!FileUtilities::Move(sCurrentDatabaseFile, sCurrentDatabaseFile + ".backup_v52"))
+      ISSCEEngine *engine = NULL;
+      HRESULT hr = CoCreateInstance(CLSID_Engine, NULL, CLSCTX_INPROC_SERVER, IID_ISSCEEngine, (void**)&engine);
+      if (FAILED(hr) || engine == NULL)
       {
-         ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5124, "SQLCEConnection::UpgradeDatabase_()", "Moving of current database file to backup location failed.");       
+         errorCode = 5122;
+         error = _T("The database file ") + liveFile + _T(" is a SQL Server Compact 3.5 database, and SQL Server Compact 4.0's engine, which upgrades it, could not be created (") +
+            DescribeHresult(hr) + _T("). The database file is left as it was. Is SQL Server Compact 4.0 installed for this platform?");
          return false;
       }
 
-      if (!FileUtilities::Move(sUpgradedDatabaseFile, sCurrentDatabaseFile))
+      HRESULT result = engine->UpgradeDatabase(_bstr_t(MakeConnectionString(liveFile, password).c_str()), _bstr_t(MakeConnectionString(upgradedFile, password).c_str()));
+      const String engineSaid = FAILED(result) ? DescribeEngineErrors(engine) : String();
+      engine->Release();
+
+      // The engine's own answer. Until 6.3.6 this read the HRESULT of creating
+      // the engine instead, which had succeeded, so a failed upgrade went on to
+      // move the live file aside and put nothing in its place.
+      if (FAILED(result))
       {
-         ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5125, "SQLCEConnection::UpgradeDatabase_()", "Moving of upgraded database file to current database file failed.");       
+         // Whatever the engine wrote of a copy is not a database to keep.
+         String ignored;
+         if (FileUtilities::Exists(upgradedFile))
+            RemoveFile(upgradedFile, ignored);
+
+         errorCode = 5123;
+         error = _T("SQL Server Compact could not upgrade the database file ") + liveFile + _T(" from 3.5 to 4.0 (") + DescribeHresult(result) +
+            (engineSaid.IsEmpty() ? String() : _T("; the engine said ") + engineSaid) +
+            _T("). The database file is left as it was and nothing was moved; the service does not start on it, and tries the upgrade again at its next start. ")
+            _T("A file another program holds open is upgraded once that program lets it go; a damaged one needs SQL Server Compact 3.5's repair, on a copy, first.");
+         return false;
+      }
+
+      if (!InstallUpgradedCopy_(liveFile, upgradedFile, password, backupFile, error, errorCode))
+         return false;
+
+      return true;
+   }
+
+   bool
+   SQLCEConnection::ProveDatabaseFile_(const String &file, const String &password, String &error)
+   {
+      const String connectionString = MakeConnectionString(file, password);
+
+      ISSCEEngine *engine = NULL;
+      HRESULT hr = CoCreateInstance(CLSID_Engine, NULL, CLSCTX_INPROC_SERVER, IID_ISSCEEngine, (void**)&engine);
+      if (FAILED(hr) || engine == NULL)
+      {
+         error = _T("SQL Server Compact 4.0's engine could not be created to check it (") + DescribeHresult(hr) + _T(")");
+         return false;
+      }
+
+      // Every page read and its checksum compared.
+      HRESULT verified = engine->Verify(_bstr_t(connectionString.c_str()));
+      const String engineSaid = FAILED(verified) ? DescribeEngineErrors(engine) : String();
+      engine->Release();
+
+      if (FAILED(verified))
+      {
+         error = _T("the engine's check of every page failed (") + DescribeHresult(verified) +
+            (engineSaid.IsEmpty() ? String() : _T("; the engine said ") + engineSaid) + _T(")");
+         return false;
+      }
+
+      // And opened by the provider, as Connect is about to open it.
+      _ConnectionPtr connection;
+      if (FAILED(connection.CreateInstance(__uuidof(Connection))))
+      {
+         error = _T("no ADO connection could be made to open it");
+         return false;
+      }
+
+      try
+      {
+         connection->Open(_bstr_t(connectionString.c_str()), _bstr_t(), _bstr_t(), adConnectUnspecified);
+         connection->Close();
+      }
+      catch (_com_error &err)
+      {
+         error = _T("the provider could not open it: ") + DescribeComError(err);
+         return false;
+      }
+
+      return true;
+   }
+
+   bool
+   SQLCEConnection::InstallUpgradedCopy_(const String &liveFile, const String &upgradedFile, const String &password,
+                                         String &backupFile, String &error, int &errorCode)
+   {
+      errorCode = 5124;
+
+      String why;
+      String ignored;
+
+      if (!ProveDatabaseFile_(upgradedFile, password, why))
+      {
+         RemoveFile(upgradedFile, ignored);
+         error = _T("SQL Server Compact upgraded the database file ") + liveFile + _T(" from 3.5 to 4.0, but the upgraded copy is not sound: ") + why +
+            _T(". The copy is removed, and the database file is left as it was; the service does not start on it, and tries the upgrade again at its next start.");
+         return false;
+      }
+
+      // Where the 3.5 file goes: .backup_v52, as it always was, or - when an
+      // earlier upgrade's backup is already there - the first .backup_v52.<n>
+      // that holds nothing, so that no earlier backup is written over.
+      backupFile = liveFile + _T(".backup_v52");
+      for (int n = 2; FileUtilities::Exists(backupFile); n++)
+      {
+         if (n > 99)
+         {
+            RemoveFile(upgradedFile, ignored);
+            error = _T("The database file ") + liveFile + _T(" was upgraded from 3.5 to 4.0, but there is no free name for its backup: ") + liveFile +
+               _T(".backup_v52 to .backup_v52.99 all exist. The upgraded copy is removed and the database file is left as it was. Move the old backups away and start the service again.");
+            return false;
+         }
+         backupFile = liveFile + _T(".backup_v52.") + StringParser::IntToString(n);
+      }
+
+      // The 3.5 file aside first: a rename fails without touching it.
+      if (!RenameFile(liveFile, backupFile, why))
+      {
+         RemoveFile(upgradedFile, ignored);
+         error = _T("The database file ") + liveFile + _T(" was upgraded from 3.5 to 4.0, but the 3.5 file could not be moved aside to ") + backupFile + _T(": ") + why +
+            _T(". The upgraded copy is removed and the database file is left as it was; the service tries the upgrade again at its next start.");
+         return false;
+      }
+
+      // Then the proven copy into its place - or, if it cannot go there, the
+      // 3.5 file back where it was.
+      if (!RenameFile(upgradedFile, liveFile, why))
+      {
+         errorCode = 5125;
+
+         String back;
+         if (RenameFile(backupFile, liveFile, back))
+         {
+            RemoveFile(upgradedFile, ignored);
+            error = _T("The database file ") + liveFile + _T(" was upgraded from 3.5 to 4.0, but the upgraded copy could not take its place: ") + why +
+               _T(". The 3.5 file is back where it was; the service tries the upgrade again at its next start.");
+         }
+         else
+         {
+            error = _T("The database file ") + liveFile + _T(" was upgraded from 3.5 to 4.0, but the upgraded copy could not take its place (") + why +
+               _T("), and the 3.5 file could not be put back (") + back + _T("). The 3.5 file is ") + backupFile + _T(" and the upgraded, checked copy is ") + upgradedFile +
+               _T(": rename the copy to ") + liveFile + _T(" and start the service again.");
+         }
          return false;
       }
 
@@ -958,6 +1219,234 @@ namespace HM
       CheckCe(SQLCEConnection::MakeConnectionString(_T("C:\\Data\\hMailServer.sdf"), _T("0a1b2c3d4e5f")) ==
          _T("Provider=Microsoft.SQLSERVER.CE.OLEDB.4.0;Data Source=\"C:\\Data\\hMailServer.sdf\";SSCE:Database Password=\"0a1b2c3d4e5f\";SSCE:Max Database Size=4000;SSCE:Flush Interval=10;"),
          _T("the ordinary string is ") + SQLCEConnection::MakeConnectionString(_T("C:\\Data\\hMailServer.sdf"), _T("0a1b2c3d4e5f")));
+
+      TestUpgrade_();
+   }
+
+   namespace
+   {
+      std::string ReadBytes(const String &file)
+      {
+         std::ifstream stream(file.c_str(), std::ios::binary);
+         return std::string((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
+      }
+
+      void WriteBytes(const String &file, const std::string &bytes)
+      {
+         std::ofstream stream(file.c_str(), std::ios::binary | std::ios::trunc);
+         stream.write(bytes.data(), (std::streamsize) bytes.size());
+         CheckCe(stream.good(), _T("the fixture could not write ") + file);
+      }
+
+      // A statement run against a SQL Server Compact file through ADO, or the
+      // provider's sentence when it could not be.
+      bool ExecuteOn(const String &file, const String &password, const String &sql, String &error)
+      {
+         _ConnectionPtr connection;
+         if (FAILED(connection.CreateInstance(__uuidof(Connection))))
+         {
+            error = _T("no ADO connection could be made");
+            return false;
+         }
+
+         try
+         {
+            connection->Open(_bstr_t(SQLCEConnection::MakeConnectionString(file, password).c_str()), _bstr_t(), _bstr_t(), adConnectUnspecified);
+            _RecordsetPtr result = connection->Execute(_bstr_t(sql.c_str()), NULL, adCmdText);
+            if (result != nullptr && result->State == adStateOpen)
+               result->Close();
+            connection->Close();
+         }
+         catch (_com_error &err)
+         {
+            error = DescribeComError(err);
+            return false;
+         }
+
+         return true;
+      }
+
+      // The fixture's directory, gone however the test ends.
+      struct ScratchDirectory
+      {
+         String path;
+         ScratchDirectory() :
+            path(IniFileSettings::Instance()->GetTempDirectory() + FileUtilities::PathSeparator + _T("SQLCEUpgradeTest-") + GUIDCreator::GetGUID())
+         {
+            boost::system::error_code code;
+            boost::filesystem::create_directories(boost::filesystem::path(std::wstring(path)), code);
+            CheckCe(!code, _T("the fixture could not make ") + path);
+         }
+         ~ScratchDirectory()
+         {
+            boost::system::error_code code;
+            boost::filesystem::remove_all(boost::filesystem::path(std::wstring(path)), code);
+         }
+         String File(const String &name) const { return path + FileUtilities::PathSeparator + name; }
+      };
+   }
+
+   void
+   SQLCEConnectionTester::TestUpgrade_()
+   {
+      // What every case below must leave when it fails: the live file where it
+      // was and as it was, no backup of it, and no upgraded copy - the server is
+      // to come back to exactly this at its next start. Each case runs whatever
+      // the one before it found, and every case that failed is named.
+      const String password = _T("0a1b2c3d4e5f");
+      const std::string damaged = std::string("This is a damaged SQL Server Compact database: none of it is a page the engine can read.\r\n") + std::string(8192, 'x');
+
+      ScratchDirectory scratch;
+
+      String failures;
+      auto runCase = [&failures](const wchar_t *name, const std::function<void()> &body)
+      {
+         try
+         {
+            body();
+         }
+         catch (const std::logic_error &failure)
+         {
+            failures += String(_T("\r\n  ")) + name + _T(": ") + String(failure.what());
+         }
+      };
+
+      auto checkUntouched = [&](const String &what, const String &live, const std::string &before, const String &backup, const String &upgraded)
+      {
+         CheckCe(FileUtilities::Exists(live), what + _T(": the live database file is gone - moved aside with nothing put in its place"));
+         CheckCe(ReadBytes(live) == before, what + _T(": the live database file was changed"));
+         CheckCe(!FileUtilities::Exists(backup), what + _T(": the live file was moved aside to ") + backup + _T(" although nothing could replace it"));
+         CheckCe(!FileUtilities::Exists(upgraded), what + _T(": an upgraded copy was left at ") + upgraded);
+      };
+
+      // 1. A damaged file: the engine cannot upgrade it. Until 6.3.6 the engine's
+      //    answer was not read and the file was moved to .backup_v52 regardless.
+      runCase(L"a damaged file", [&]()
+      {
+         const String live = scratch.File(_T("damaged.sdf"));
+         const String upgraded = scratch.File(_T("damaged_upgraded.sdf"));
+         WriteBytes(live, damaged);
+
+         String backup, error;
+         int code = 0;
+         const bool upgradedIt = SQLCEConnection::UpgradeDatabaseFile_(live, upgraded, password, backup, error, code);
+         checkUntouched(_T("a damaged file"), live, damaged, live + _T(".backup_v52"), upgraded);
+         CheckCe(!upgradedIt, _T("a damaged database file was reported upgraded"));
+         CheckCe(code == 5123, _T("a damaged database file's failed upgrade is not HM5123: ") + error);
+         CheckCe(error.Find(live) >= 0 && error.Find(_T("left as it was")) >= 0, _T("the error does not name the file and say it is left as it was: ") + error);
+      });
+
+      // 2. A database already at 4.0, which the engine refuses to upgrade: the
+      //    file the server would have opened is still there and still opens.
+      runCase(L"a 4.0 file", [&]()
+      {
+         String createError;
+         CheckCe(SQLCEConnection::CreateDatabase(scratch.path, _T("current"), password, createError), _T("the fixture could not make a 4.0 database: ") + createError);
+         const String live = scratch.File(_T("current.sdf"));
+         const String upgraded = scratch.File(_T("current_upgraded.sdf"));
+         const std::string before = ReadBytes(live);
+
+         String backup, error;
+         int code = 0;
+         const bool upgradedIt = SQLCEConnection::UpgradeDatabaseFile_(live, upgraded, password, backup, error, code);
+         checkUntouched(_T("a 4.0 file"), live, before, live + _T(".backup_v52"), upgraded);
+         CheckCe(!upgradedIt, _T("a 4.0 database was upgraded to 4.0"));
+
+         String proof;
+         CheckCe(SQLCEConnection::ProveDatabaseFile_(live, password, proof), _T("the 4.0 database no longer opens after a refused upgrade: ") + proof);
+      });
+
+      // 3. A file another process holds without sharing - a backup program, a
+      //    scanner: the engine cannot read it, and nothing is moved.
+      runCase(L"a held file", [&]()
+      {
+         const String live = scratch.File(_T("held.sdf"));
+         const String upgraded = scratch.File(_T("held_upgraded.sdf"));
+         WriteBytes(live, damaged);
+
+         HANDLE held = CreateFileW(live.c_str(), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+         CheckCe(held != INVALID_HANDLE_VALUE, _T("the fixture could not hold ") + live);
+
+         String backup, error;
+         int code = 0;
+         const bool upgradedIt = SQLCEConnection::UpgradeDatabaseFile_(live, upgraded, password, backup, error, code);
+         CloseHandle(held);
+
+         checkUntouched(_T("a held file"), live, damaged, live + _T(".backup_v52"), upgraded);
+         CheckCe(!upgradedIt, _T("a file another process held was reported upgraded"));
+      });
+
+      // 4. A copy an earlier attempt left where the engine writes its own. Until
+      //    6.3.6 the engine's refusal to write over it was not read either, and
+      //    the leftover was moved into the live file's place - another database
+      //    altogether.
+      runCase(L"a leftover copy", [&]()
+      {
+         String createError;
+         CheckCe(SQLCEConnection::CreateDatabase(scratch.path, _T("leftover_upgraded"), password, createError), _T("the fixture could not make the leftover copy: ") + createError);
+         const String live = scratch.File(_T("leftover.sdf"));
+         const String upgraded = scratch.File(_T("leftover_upgraded.sdf"));
+         WriteBytes(live, damaged);
+
+         String backup, error;
+         int code = 0;
+         const bool upgradedIt = SQLCEConnection::UpgradeDatabaseFile_(live, upgraded, password, backup, error, code);
+         checkUntouched(_T("a damaged file with a leftover copy"), live, damaged, live + _T(".backup_v52"), upgraded);
+         CheckCe(!upgradedIt, _T("a damaged file with a leftover copy beside it was reported upgraded"));
+      });
+
+      // 5. The steps after the engine, which no 3.5 database is at hand to reach
+      //    through it: a sound 4.0 copy takes the place of the file it upgraded,
+      //    which is kept as .backup_v52; and again, with that backup there, the
+      //    next is kept as .backup_v52.2 and the first is left alone.
+      runCase(L"a sound copy, twice", [&]()
+      {
+         String createError;
+         CheckCe(SQLCEConnection::CreateDatabase(scratch.path, _T("installed_upgraded"), password, createError), _T("the fixture could not make the upgraded copy: ") + createError);
+         const String live = scratch.File(_T("installed.sdf"));
+         const String upgraded = scratch.File(_T("installed_upgraded.sdf"));
+         // Told apart by a table of its own, not by its bytes: the proof opens
+         // the copy, and SQL Server Compact writes to a file it opens.
+         CheckCe(ExecuteOn(upgraded, password, _T("create table hm_upgrade_marker (id int)"), createError), _T("the fixture could not mark the upgraded copy: ") + createError);
+         WriteBytes(live, damaged);
+
+         String backup, error;
+         int code = 0;
+         CheckCe(SQLCEConnection::InstallUpgradedCopy_(live, upgraded, password, backup, error, code), _T("a sound upgraded copy was not put in place: ") + error);
+         CheckCe(backup == live + _T(".backup_v52"), _T("the 3.5 file was kept as ") + backup);
+         CheckCe(ReadBytes(backup) == damaged, _T("the backup is not the file that was upgraded"));
+         String marker;
+         CheckCe(ExecuteOn(live, password, _T("select count(*) from hm_upgrade_marker"), marker), _T("the live file is not the upgraded copy: ") + marker);
+         CheckCe(!FileUtilities::Exists(upgraded), _T("the upgraded copy is still beside the live file"));
+
+         CheckCe(SQLCEConnection::CreateDatabase(scratch.path, _T("installed_upgraded"), password, createError), _T("the fixture could not make the second copy: ") + createError);
+         WriteBytes(live, std::string("the second 3.5 file"));
+         String second;
+         CheckCe(SQLCEConnection::InstallUpgradedCopy_(live, upgraded, password, second, error, code), _T("a second upgraded copy was not put in place: ") + error);
+         CheckCe(ReadBytes(live + _T(".backup_v52")) == damaged, _T("the earlier backup was written over"));
+         CheckCe(second == live + _T(".backup_v52.2"), _T("with .backup_v52 taken, the 3.5 file was kept as ") + second);
+         CheckCe(ReadBytes(second) == "the second 3.5 file", _T("the second backup is not the second file"));
+      });
+
+      // 6. A copy that is not sound is never put in place.
+      runCase(L"an unsound copy", [&]()
+      {
+         const String live = scratch.File(_T("unsound.sdf"));
+         const String upgraded = scratch.File(_T("unsound_upgraded.sdf"));
+         const std::string before("the 3.5 file whose upgraded copy is not sound");
+         WriteBytes(live, before);
+         WriteBytes(upgraded, damaged);
+
+         String backup, error;
+         int code = 0;
+         const bool installed = SQLCEConnection::InstallUpgradedCopy_(live, upgraded, password, backup, error, code);
+         checkUntouched(_T("an unsound copy"), live, before, live + _T(".backup_v52"), upgraded);
+         CheckCe(!installed, _T("an unsound upgraded copy was put in place"));
+         CheckCe(code == 5124, _T("an unsound copy's refusal is not HM5124: ") + error);
+      });
+
+      if (!failures.IsEmpty())
+         throw std::logic_error(std::string("SQLCEConnectionTester, the 3.5-to-4.0 upgrade:") + Unicode::ToUtf8(failures).c_str());
    }
 }
 

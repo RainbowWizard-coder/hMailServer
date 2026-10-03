@@ -1089,6 +1089,26 @@ was. Found by the project's own review.
     browser's decompressor 16 KB at a time, since Chromium's inflates all of what it is given before the page reads
     any. Test: `build/check-portal-openpgp.js`, four checks that fail against 6.3.5's module, one of them with a
     decompressor that inflates the way Chromium's does.
+40. **What the auto-ban put below the server is lifted after a stop too.** A ban that ended while the service was
+    stopped, or an `unban` a hook still owed when it stopped, stayed blocked below the server for good with the Linux
+    hook's iptables variant or with `AutoBanCommand`: what they had been told lived in the server's memory only. At
+    every start and reinitialise, before the first listener opens, the packaged Linux hook is now told `reset` before
+    every ban in force is told to it again - wherever it is installed, whether `AutoBanFirewall` is on or off (with the
+    switch off and no `CAP_NET_ADMIN` it finds nothing) - and again when `AutoBanFirewall` is switched off.
+    `AutoBanCommand`'s account is kept in `autoban-command.ledger` in the temp folder, under the SHA-256 of the command
+    line and never its text, and at a start the command is told `unban` for each address it was left holding that is not
+    banned now; the ledger begins at the first start of 6.3.6, so what 6.3.5 left a command holding is not in it, while
+    the packaged hook's `reset` takes away whatever it held. A command that starts the server short of its listeners -
+    `--sample-domain`, `--apply-environment`, `--apply-profile` and the rest - does none of this, and no longer tells
+    the firewall every ban in force again at its start either: run beside a running server, a `reset` would lift every
+    ban below that server. A command replaced or cleared, while the service runs or while it was stopped, is never run
+    again: the addresses it was told to ban and not to un-ban are named in the error log (`HM6523`), and the new command
+    is told every ban in force, where it was told none of them. The hook's `iptables` calls wait for the xtables lock
+    instead of failing while fail2ban holds it, and Windows' uninstaller removes the `hMailServer auto-ban` rules, which
+    Windows keeps across restarts. A reconciliation that cannot read the IP ranges now changes nothing below the server:
+    it took a failed read for no bans at all, told every hook to un-ban every address and removed every Windows rule,
+    until a later pass put them back. A command of your own is still best made to let a block lapse after the
+    `<minutes>` it is handed ([AutoBan.md](hmailserver/docs/AutoBan.md), Below the server across a stop and a start).
 
 ### Downloads and the release
 
@@ -2544,6 +2564,19 @@ was. Found by the project's own review.
   password bare: a data folder with a semicolon in its name ended the path there, and every start failed with
   "Multiple-step OLE DB operation generated errors". Both are quoted as ADO reads them back now. `connection-string-tests`
   and the class tests hold both to that.
+- **Fixed: a SQL Server Compact 3.5 database the engine could not upgrade was moved aside all the same.** When a server
+  upgraded from hMailServer 5 found its `.sdf` at version 3.5, it asked SQL Server Compact 4.0's engine to upgrade it
+  and read the HRESULT of creating the engine instead of the engine's answer: a file the engine could not upgrade - a
+  damaged one, say - was moved to `.backup_v52` with nothing put in its place, and the service could not find its
+  database at the next start; where a stopped attempt had left its copy in the way, that copy was put in the live file's
+  place; and a second upgrade wrote over the first one's backup. The upgraded copy is now made beside the file, removed
+  first when an earlier attempt left one, and checked - the engine reads every page and the provider opens it - before
+  the 3.5 file is moved aside, to `.backup_v52` or the first `.backup_v52.<n>` free; a copy that cannot take its place
+  puts the 3.5 file back. Any failure says why in the error log (`HM5122` to `HM5125`, with what the engine recorded)
+  and in the start's own `HM4354`, which carried no message; every one but one leaves the live file as it was, for the
+  next start to try again, and that one, a copy that cannot take its place when the 3.5 file cannot be put back either,
+  names both files and the rename that finishes the upgrade. The class tests hold it with a damaged file, a 4.0 file, a
+  file held open by another process, a leftover copy, an unsound copy and a backup name already taken.
 - **The live update requires the project's id at the path the project began at too.** A certificate for
   `https://gitlab.com/Progressiverobot/hmailserver`, where 6.3.5 was signed, is now refused without the project's id,
   86730559, as one for the group's path always was, and no setting takes one without it: servers 6.3.4 and 6.3.5
