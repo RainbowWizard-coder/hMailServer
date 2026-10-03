@@ -1626,6 +1626,10 @@ namespace HM
             return "";
          }
 
+         // Where the blank line could begin that this read completes: in what it
+         // added, or up to three characters before, across the boundary.
+         const int iSearchFrom = std::max(0, sHeaderData.GetLength() - 3);
+
          if (nbytes)
          {
             sHeaderData += AnsiString((char*)buf, nbytes);
@@ -1648,8 +1652,12 @@ namespace HM
             }
          }
 
-         // Check if we have read the entire header.
-         iHeaderEnd = sHeaderData.Find(_T("\r\n\r\n"));
+         // Check if we have read the entire header. Only from where the last
+         // search stopped: searched from the start after every read of 4,000
+         // bytes, a header of many megabytes - which a sender may write up to
+         // the size limit - took a time that grew with its square, some five
+         // seconds for each of the several reads of a message of 20 MB.
+         iHeaderEnd = sHeaderData.Find(_T("\r\n\r\n"), iSearchFrom);
 
          if (iHeaderEnd >= 0)
             bMoreData = FALSE;

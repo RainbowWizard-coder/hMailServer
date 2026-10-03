@@ -295,13 +295,16 @@ namespace HM
       void SetCharset(const char* pszCharset) { charset_ = pszCharset; }
       const char* GetCharset() const { return charset_.c_str(); }
 
+      // Every CRLF of a decoded value, with the white space after it, made one
+      // space. Public and static for MimeTester, which holds it to 6.3.5's answers.
+      static void UnfoldField(string& strField);
+
    protected:
       string charset_;
 
       virtual bool IsFoldingChar(char ch) const { return false; }
       virtual int GetDelimeter() const { return 0; }
       int FindSymbol(const char* pszData, size_t nSize, int& nDelimeter, int& nNonAscChars) const;
-      void UnfoldField(string& strField) const;
       int SelectEncoding(size_t nLength, int nNonAsciiChars) const
       {
          // Widen before multiplying: the int product overflowed for very long

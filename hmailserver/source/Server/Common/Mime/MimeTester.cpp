@@ -6,11 +6,15 @@
 #include "MimeTester.h"
 #include "Mime.h"
 #include "MimeCode.h"
+#include "MimeChar.h"
 #include "../BO/Message.h"
 #include "../BO/MessageData.h"
 #include "../Persistence/PersistentMessage.h"
 
+#include <chrono>
 #include <set>
+#include <stdexcept>
+#include <string>
 #include <thread>
 
 #ifdef _DEBUG
@@ -708,6 +712,106 @@ namespace HM
          header.Load(headers, strlen(headers));
          return header.GetFieldCount() == 0;
       }
+
+      // FieldCodeBase::UnfoldField as 6.3.5 had it, kept to hold today's to the
+      // same answers: the CRLFs from the last to the first, each found from the end
+      // and cut out where it stood.
+      void UnfoldFieldAsOf635_(string &strField)
+      {
+         for (;;)
+         {
+            string::size_type pos = strField.rfind("\r\n");
+            if (pos == string::npos)
+               break;
+
+            strField.erase(pos, 2);
+
+            int nSpaces = 0;
+            while (CMimeChar::IsSpace((unsigned char) strField[pos + nSpaces]))
+               nSpaces++;
+            strField.replace(pos, nSpaces, " ");
+         }
+      }
+
+      string UnfoldedNow_(const string &value)
+      {
+         string unfolded = value;
+         FieldCodeBase::UnfoldField(unfolded);
+         return unfolded;
+      }
+
+      class UnfoldRandom_
+      {
+      public:
+         explicit UnfoldRandom_(unsigned long long seed) : state_(seed) {}
+
+         int Below(int bound)
+         {
+            state_ ^= state_ >> 12;
+            state_ ^= state_ << 25;
+            state_ ^= state_ >> 27;
+            return (int) ((state_ * 2685821657736338717ULL) % (unsigned long long) bound);
+         }
+
+      private:
+         unsigned long long state_;
+      };
+   }
+
+   void
+   MimeTester::TestFieldUnfolding()
+   {
+      // What a CRLF and the white space around it become.
+      if (UnfoldedNow_("a\r\n b") != "a b" ||
+          UnfoldedNow_("a \r\n\tb") != "a  b" ||
+          UnfoldedNow_("a\r\n\r\n b") != "a b" ||
+          UnfoldedNow_("a\r\nb") != "a b" ||
+          UnfoldedNow_("\r\n") != " " ||
+          UnfoldedNow_("a\r\r\nb") != "a\r b" ||
+          UnfoldedNow_("a\rb\nc") != "a\rb\nc" ||
+          UnfoldedNow_(string("a\r\n\0b", 5)) != string("a \0b", 4) ||
+          UnfoldedNow_("") != "")
+         throw std::logic_error("A header field value was unfolded other than as a CRLF and the white space after it make one space.");
+
+      // Generated values of the characters that matter - CR, LF, the other white
+      // space, NUL, a byte past ASCII - against 6.3.5's code.
+      static const char characters[] = { '\r', '\n', ' ', '\t', '\v', '\f', '\0', 'a', 'b', (char) 0xC3 };
+      UnfoldRandom_ random(0x2545F4914F6CDD1DULL);
+      for (int number = 0; number < 100000; number++)
+      {
+         string value;
+         const int length = random.Below(25);
+         for (int i = 0; i < length; i++)
+            value += characters[random.Below((int) sizeof(characters))];
+
+         string before = value;
+         UnfoldFieldAsOf635_(before);
+
+         if (UnfoldedNow_(value) != before)
+            throw std::logic_error("A header field value was unfolded other than 6.3.5 unfolded it in case " + std::to_string(number));
+      }
+
+      // A value of 400,000 folds (1.6 MB), as an encoded word can decode to: one pass
+      // over it, a few milliseconds. 6.3.5's took 31 s over it in the POSIX build.
+      string folded = "a";
+      folded.reserve(1600001);
+      for (int i = 0; i < 400000; i++)
+         folded += "\r\n a";
+
+      const std::chrono::steady_clock::time_point started = std::chrono::steady_clock::now();
+      const string unfolded = UnfoldedNow_(folded);
+      const double milliseconds = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - started).count();
+
+      string expected = "a";
+      expected.reserve(800001);
+      for (int i = 0; i < 400000; i++)
+         expected += " a";
+
+      if (unfolded != expected)
+         throw std::logic_error("A header field value of 400,000 folds was not unfolded to its words.");
+
+      if (milliseconds > 2000)
+         throw std::logic_error("A header field value of 400,000 folds took " + std::to_string((long long) milliseconds) + " ms to unfold");
    }
 
    MimeTester::MimeTester(void)
@@ -834,5 +938,6 @@ namespace HM
       if (!TestUnterminatedTextWithoutFieldNameIsNoField())
          HM_TEST_FAILED();
 
+      TestFieldUnfolding();
    }
 }

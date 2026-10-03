@@ -13,7 +13,9 @@
 #include "../Common/Util/MessageOrigin.h"
 #include "../Common/Util/Unicode.h"
 
+#include <chrono>
 #include <stdexcept>
+#include <string>
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -118,6 +120,16 @@ namespace HM
       // Anything longer is not a Message-ID a real MTA produces, and the key is a
       // hash of it anyway.
       return trimmed.Left(998);
+   }
+
+   int
+   DeliveryReportParser::LeadingBlankLines(const AnsiString &text)
+   {
+      int at = 0;
+      while (at + 1 < text.GetLength() && text.GetAt(at) == '\r' && text.GetAt(at + 1) == '\n')
+         at += 2;
+
+      return at;
    }
 
    void
@@ -364,9 +376,12 @@ namespace HM
                continue;
 
             // A headers part may begin with the blank line that ended its own
-            // MIME header, depending on how the sender folded it.
-            while (content.GetLength() >= 2 && content.Left(2) == "\r\n")
-               content = content.Mid(2);
+            // MIME header, depending on how the sender folded it. The blank lines
+            // are counted and cut off once: cut a pair at a time, each cut copied
+            // the rest of the part, and a part of the size cap that is all blank
+            // lines - a sender's to choose - took a time that grew with the
+            // square of their number.
+            content = content.Mid(LeadingBlankLines(content));
 
             AnsiString messageId = MessageOrigin::FirstFieldValue(content, "Message-ID");
             if (!messageId.IsEmpty())
@@ -493,6 +508,35 @@ namespace HM
       Expect(report.recipients[0].diagnostic_type == _T("smtp"), "The Diagnostic-Code's type was not kept.");
       Expect(report.original_message_id == _T("original.1@sender.example.test"), "The original Message-ID was not read from text/rfc822-headers.");
       Expect(report.reporting_mta == _T("mx.remote.test"), "Reporting-MTA was not read.");
+
+      // The same report with its headers part begun by 400,000 blank lines, inside
+      // the size cap: read in one pass. They were cut off a pair at a time, each
+      // cut copying the rest of the part.
+      Expect(P::LeadingBlankLines("") == 0 && P::LeadingBlankLines("\r") == 0 && P::LeadingBlankLines("\r\n\r") == 2 &&
+             P::LeadingBlankLines("\r\n\r\nX") == 4 && P::LeadingBlankLines("\n\r\n") == 0,
+             "The leading blank lines were not counted as whole CRLF pairs.");
+      {
+         const AnsiString marker = "Content-Type: text/rfc822-headers\r\n\r\n";
+         const int at = postfix.Find(marker.c_str());
+         Expect(at > 0, "The Postfix report lost its headers part.");
+
+         AnsiString padded = postfix.Mid(0, at + marker.GetLength());
+         padded.reserve(postfix.GetLength() + 800000);
+         for (int i = 0; i < 400000; i++)
+            padded += "\r\n";
+         padded += postfix.Mid(at + marker.GetLength());
+
+         const std::chrono::steady_clock::time_point started = std::chrono::steady_clock::now();
+         DeliveryReport paddedReport;
+         const bool parsed = P::Parse(padded, paddedReport);
+         const double milliseconds = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - started).count();
+
+         Expect(parsed && paddedReport.original_message_id == _T("original.1@sender.example.test"),
+            "The original Message-ID was not read after 400,000 blank lines.");
+
+         if (milliseconds > 2000)
+            throw std::logic_error("A report whose headers part begins with 400,000 blank lines took " + std::to_string((long long) milliseconds) + " ms to read");
+      }
 
       // Exchange Online: message/rfc822, two recipients, one of them delayed.
       AnsiString exchange = Crlf(

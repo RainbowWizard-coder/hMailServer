@@ -8,6 +8,7 @@
 #include "DeliveryReportParser.h"
 
 #include "../Common/Mime/Mime.h"
+#include "../Common/Mime/MimeCode.h"
 #include "../Common/Util/ByteBuffer.h"
 #include "../Common/Util/File.h"
 #include "../Common/Util/FileUtilities.h"
@@ -15,7 +16,9 @@
 #include "../Common/Util/Time.h"
 #include "../Common/Util/Unicode.h"
 
+#include <chrono>
 #include <stdexcept>
+#include <string>
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -337,9 +340,11 @@ namespace HM
                continue;
 
             // A headers part may begin with the blank line that ended its own MIME
-            // header, depending on how the sender folded it.
-            while (content.GetLength() >= 2 && content.Left(2) == "\r\n")
-               content = content.Mid(2);
+            // header, depending on how the sender folded it. Counted and cut off
+            // once, as DeliveryReportParser does: a pair at a time, each cut copied
+            // the rest of the part, a time that grew with the square of their
+            // number.
+            content = content.Mid(DeliveryReportParser::LeadingBlankLines(content));
 
             originalHeaders = content;
             haveOriginal = true;
@@ -504,6 +509,32 @@ namespace HM
       Expect(parsed.original_to == _T("reader@provider.test"), "The original To was not read.");
       Expect(parsed.original_subject == _T("Earn money"), "The original Subject was not read, or a body line was taken for it.");
 
+      // The same report with the message complained about begun by 400,000 blank
+      // lines, inside the size cap: read in one pass. They were cut off a pair at
+      // a time, each cut copying the rest of the part.
+      {
+         const AnsiString marker = "Content-Type: message/rfc822\r\n\r\n";
+         const int at = report.Find(marker.c_str());
+         Expect(at > 0, "The feedback report lost its original message.");
+
+         AnsiString padded = report.Mid(0, at + marker.GetLength());
+         padded.reserve(report.GetLength() + 800000);
+         for (int i = 0; i < 400000; i++)
+            padded += "\r\n";
+         padded += report.Mid(at + marker.GetLength());
+
+         const std::chrono::steady_clock::time_point started = std::chrono::steady_clock::now();
+         FeedbackReport paddedReport;
+         const bool read = P::Parse(padded, paddedReport);
+         const double milliseconds = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - started).count();
+
+         Expect(read && paddedReport.original_message_id == _T("abc.123@mail.example.com") && paddedReport.original_subject == _T("Earn money"),
+            "The original message was not read after 400,000 blank lines.");
+
+         if (milliseconds > 2000)
+            throw std::logic_error("A feedback report whose original message begins with 400,000 blank lines took " + std::to_string((long long) milliseconds) + " ms to read");
+      }
+
       // ------------------------------------------------- An encoded subject
       // The mail most likely to draw a complaint is a newsletter, and a newsletter
       // in any language but English carries an RFC 2047 encoded word for a Subject.
@@ -530,6 +561,50 @@ namespace HM
              "A report whose wrapped subject is an encoded word was not read.");
       Expect(encoded.original_subject == _T("Gr\u00fc\u00dfe aus Berlin"),
              "An RFC 2047 encoded subject was stored as its encoded word rather than as its words.");
+
+      // An encoded subject of 300,000 lines, inside the size cap: read in one pass.
+      // An encoded word may decode to as many CRLFs as its sender likes - here a
+      // base64 word of 1.6 MB decodes to 1.2 MB of "\r\n a" - and the field decoder
+      // made each a space by finding it from the end of the value and moving
+      // everything after it (FieldCodeBase::UnfoldField), a time that grew with
+      // the square of their number. The decoder unfolds only with the MIME setting
+      // the server starts with, which report-parser-tests sets too; without it this
+      // would prove nothing.
+      Expect(MimeEnvironment::AutoFolding(), "The MIME decoder does not unfold here, as the server has it do.");
+      {
+         AnsiString folded = Crlf(
+            "Content-Type: multipart/report; report-type=feedback-report; boundary=\"b\"\n"
+            "\n"
+            "--b\n"
+            "Content-Type: message/feedback-report\n"
+            "\n"
+            "Feedback-Type: abuse\n"
+            "\n"
+            "--b\n"
+            "Content-Type: message/rfc822\n"
+            "\n"
+            "From: <sender@example.com>\n"
+            "Subject: =?utf-8?B?");
+         folded.reserve(folded.GetLength() + 1600100);
+         for (int i = 0; i < 100000; i++)
+            folded += "DQogYQ0KIGENCiBh"; // "\r\n a\r\n a\r\n a"
+         folded += Crlf("?=\n\nBody.\n\n--b--\n");
+
+         const std::chrono::steady_clock::time_point started = std::chrono::steady_clock::now();
+         FeedbackReport foldedReport;
+         const bool read = P::Parse(folded, foldedReport);
+         const double milliseconds = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - started).count();
+
+         String words;
+         for (int i = 0; i < 128; i++)
+            words += (i == 0) ? _T("a") : _T(" a");
+
+         Expect(read && foldedReport.original_subject == words,
+            "An encoded subject of 300,000 lines was not read as its words.");
+
+         if (milliseconds > 2000)
+            throw std::logic_error("A feedback report whose original subject decodes to 300,000 lines took " + std::to_string((long long) milliseconds) + " ms to read");
+      }
 
       // ------------------------------------------------- What is not a report
       FeedbackReport refused;

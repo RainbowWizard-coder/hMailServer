@@ -1012,6 +1012,12 @@ add_executable(imap-parse-tests ${SERVER_DIR}/platform/imap_parse_tests_main.cpp
 target_link_libraries(imap-parse-tests PRIVATE hmailserver_core)
 set_target_properties(imap-parse-tests PROPERTIES OUTPUT_NAME imap-parse-tests)
 
+# The readers of delivery status notifications and abuse feedback reports, as
+# ClassTester runs them on Windows: report_parser_tests_main.cpp says what.
+add_executable(report-parser-tests ${SERVER_DIR}/platform/report_parser_tests_main.cpp)
+target_link_libraries(report-parser-tests PRIVATE hmailserver_core)
+set_target_properties(report-parser-tests PROPERTIES OUTPUT_NAME report-parser-tests)
+
 include(GNUInstallDirs)
 install(TARGETS hmailserver RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 install(DIRECTORY ${SERVER_DIR}/../DBScripts/

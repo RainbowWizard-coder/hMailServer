@@ -598,6 +598,28 @@ administrator running it cannot open a SQL Server database reached with Windows 
 VM showed one on every such move on 3 October 2026. Found by the review of the installer's fixes and the sweep after
 it. [ServiceAccount.md](hmailserver/docs/ServiceAccount.md), "What an administrator's command writes".
 
+With bounce processing or complaint processing on, or a mailing list the list manager runs (none is by default),
+reading an incoming delivery status notification (RFC 3464) or abuse feedback report (RFC 5965) could hold a delivery
+thread for a minute and more. The reader of the returned message's headers part dropped the blank lines some senders
+leave at its front two bytes at a time, copying the rest of the part on each, so the time grew with the square of
+their number: 400,000 of them took eleven seconds, and the reader's 2 MB cap holds a million. A message shaped like a
+bounce to a local address or to a list's `-bounces` address, or like a feedback report to the complaint mailbox, is
+read this way without anyone opening it. The blank lines are now counted and cut off once. This is in every version
+that reads these reports, 6.3.4 and 6.3.5. What is read is as it was. Found by the project's own review.
+
+A header field read as text - the Subject and From of the webmail's message list, the header keys of IMAP `SEARCH`,
+`SORT` and `THREAD`, a rule that tests a header, the spam tag put in front of a Subject, the abuse report reader -
+was unfolded by finding each line break from the end of the value and moving everything after it, so the time grew
+with the square of the number of line breaks, which are the sender's: an RFC 2047 encoded word may decode to as many
+as it likes. A value of 1.6 MB of short lines took half a minute, each time it was read, and the default largest
+message holds over ten times as many, so a stranger's message held the REST worker that listed its folder, or the IMAP
+thread that searched, sorted or threaded it, for minutes and more, and a few such messages stopped the webmail, or the
+IMAP, SMTP and POP3 ports, answering anybody. This is in every version from 6.0.0 up to 6.3.5. In 6.3.6 the value is
+unfolded in one pass, to the same result. The reading of a message's header from its file had the same shape at a
+larger scale: after each 4,000 bytes it searched all it had read for the header's end, some five seconds for a header
+of 20 MB, the default largest message, at each of the several reads of a message; it now searches only what each read
+adds. Found by the project's own review.
+
 ### What changes on upgrade without a switch
 
 1. **COM `Utilities`: the helpers that do work answer a caller that has signed in.** `BlowfishEncrypt`,

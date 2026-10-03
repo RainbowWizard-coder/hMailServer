@@ -69,6 +69,11 @@ namespace HM
       typedef std::vector<std::pair<String, String> > FieldGroup;
       static void ReadFieldGroups(const AnsiString &text, std::vector<FieldGroup> &groups);
 
+      // How many characters of CRLF pairs text begins with: what a headers part
+      // of a report loses from its front before its fields are read. This one
+      // and FeedbackReportParser's.
+      static int LeadingBlankLines(const AnsiString &text);
+
    private:
       static bool ReadRecipientGroup_(const FieldGroup &group, DeliveryReportRecipient &recipient);
       static String FieldValue_(const FieldGroup &group, const wchar_t *name, bool &present);

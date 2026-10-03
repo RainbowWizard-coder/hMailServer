@@ -1000,21 +1000,46 @@ namespace HM
       output.append(field);
    }
 
-   void FieldCodeBase::UnfoldField(string& strField) const
+   // Every CRLF in a decoded field value, with the white space after it, becomes
+   // one space; the white space before it stays. Written into a new string in one
+   // pass. This used to take the CRLFs from the last to the first, finding each
+   // with rfind from the end of the string and cutting it out with erase, so each
+   // looked through and moved the whole of what came after it: a time that grew
+   // with the square of their number. The CRLFs here are the sender's - an
+   // encoded word may decode to as many as it likes, and a field read without
+   // unfolding keeps its folds - and every reader of a header as text comes
+   // through here: the webmail's message list, IMAP SEARCH, SORT and THREAD,
+   // rules, the abuse report reader. 400,000 line breaks (1.6 MB) took half a
+   // minute in the POSIX build, and the default largest message holds over ten
+   // times as many. What this makes is what that made: the white space after a
+   // CRLF ran on through any CRLF after it, which had become a space by then.
+   void FieldCodeBase::UnfoldField(string& strField)
    {
-      for (;;)
+      string::size_type pos = strField.find("\r\n");
+      if (pos == string::npos)
+         return;
+
+      const string::size_type size = strField.size();
+
+      string unfolded;
+      unfolded.reserve(size);
+
+      string::size_type from = 0;
+      while (pos != string::npos)
       {
-         string::size_type pos = strField.rfind("\r\n");
-         if (pos == string::npos)
-            break;
+         unfolded.append(strField, from, pos - from);
+         unfolded += ' ';
 
-         strField.erase(pos, 2);
+         // The CRLF itself is white space to CMimeChar, as are a CR or LF alone.
+         from = pos;
+         while (from < size && CMimeChar::IsSpace((unsigned char) strField[from]))
+            from++;
 
-         int nSpaces = 0;
-         while (CMimeChar::IsSpace((unsigned char)strField[pos+nSpaces]))
-            nSpaces++;
-         strField.replace(pos, nSpaces, " ");
+         pos = strField.find("\r\n", from);
       }
+
+      unfolded.append(strField.data() + from, size - from);
+      strField.swap(unfolded);
    }
 
    int FieldCodeBase::FindSymbol(const char* pszData, size_t nSize, int& nDelimeter, int& nNonAscChars) const

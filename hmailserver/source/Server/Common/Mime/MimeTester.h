@@ -13,5 +13,10 @@ namespace HM
       ~MimeTester(void);
 
       void Test();
+
+      // How a decoded header field value is unfolded: as 6.3.5 did, over generated
+      // values, and in one pass. Test runs it; so does report-parser-tests on POSIX,
+      // where nothing runs Test. Throws std::logic_error on a failure.
+      static void TestFieldUnfolding();
    };
 }
