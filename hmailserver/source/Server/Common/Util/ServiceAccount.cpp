@@ -22,6 +22,7 @@
 #include <aclapi.h>
 #include <sddl.h>
 #include <shlobj.h>
+#include <winioctl.h>
 #include <knownfolders.h>
 #include <openssl/evp.h>
 
@@ -465,21 +466,40 @@ namespace HM
          ~SidRelease_() { if (sid) LocalFree(sid); }
       };
 
+      struct Guarded_;
+      bool RefusedLocation_(const String &path, const Guarded_ &guarded, String &why);
+
       // Holds every folder from the drive's root down to a path open, without
       // sharing delete, so that none of them can be renamed, deleted or swapped
-      // for a junction while a grant is written through the path - and refuses
-      // a path that runs through a junction, a symbolic link or a mount point
-      // already, or is not on a fixed local drive. Released when it goes.
+      // for a link while a grant is written through the path, and refuses a path
+      // that is not on a fixed local drive. It holds the path as the store
+      // commands hold the data folder (HeldFolder, ProtectedFile.h): each folder
+      // opened relative to the one above it, never through a link unchecked. A
+      // junction, a mount point or a symbolic link on the way is gone through
+      // only when the administrators alone control it (OnlyAdministratorsControl)
+      // - one an administrator made to keep the data, the logs or a folder of
+      // the program on another drive - and where it leads is then held in the
+      // same way from that volume's root, must be on a fixed local drive and,
+      // when guarded is given, must be a folder a grant may reach
+      // (RefusedLocation_): nothing but an administrator can have chosen it, and
+      // it is held to the same refusals as a folder named directly. Any other
+      // link is refused, naming who may change it or who owns it. Until 6.3.6
+      // every link on the way was refused, and so was the grant of an
+      // installation whose data folder an administrator had moved to another
+      // drive behind a junction - which failed its upgrade. Released when it
+      // goes.
       class PathPin_
       {
       public:
          PathPin_() : missing_(false) {}
          ~PathPin_() { Release(); }
 
-         bool Pin(const String &path, String &why)
+         bool Pin(const String &path, String &why, const Guarded_ *guarded = nullptr)
          {
             Release();
             missing_ = false;
+            through_.Empty();
+            throughByVolume_.Empty();
 
             if (!IsDrivePath_(path))
             {
@@ -495,51 +515,49 @@ namespace HM
                return false;
             }
 
-            String walked = root.Left(2);
-            String rest = target.Mid(3);
-            while (!rest.IsEmpty())
+            String error;
+            if (!held_.Hold(target, false, error))
             {
-               const int separator = rest.Find(_T('\\'));
-               const String part = separator < 0 ? rest : rest.Left(separator);
-               rest = separator < 0 ? String() : rest.Mid(separator + 1);
-               if (part.IsEmpty())
-                  continue;
+               missing_ = held_.Missing();
+               why = error;
+               // The sentences HeldFolder ends with a full stop; the grant's
+               // lines add their own.
+               while (why.Right(1) == _T("."))
+                  why = why.Left(why.GetLength() - 1);
+               Release();
+               return false;
+            }
 
-               walked += _T("\\") + part;
+            if (held_.WentThroughLink())
+            {
+               const String reached = held_.Reached();
+               const String byVolume = held_.ReachedByVolume();
+               const int close = byVolume.Find(_T("}\\"));
+               const String volume = byVolume.Left(11).CompareNoCase(_T("\\\\?\\Volume{")) == 0 && close > 11 ? byVolume.Left(close + 2) : String();
+               const String named = reached.IsEmpty() ? byVolume : reached;
 
-               // FILE_LIST_DIRECTORY as well as the attributes: a handle that asks
-               // for attributes alone takes no part in Windows' share-access check,
-               // so its refusal to share delete binds nobody, and the folder could
-               // be removed or renamed from under it (the internal suite's
-               // ServiceAccount test found exactly that on the batch36 bench).
-               HANDLE handle = CreateFileW(walked.c_str(), FILE_READ_ATTRIBUTES | FILE_LIST_DIRECTORY, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING,
-                  FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT, nullptr);
-               if (handle == INVALID_HANDLE_VALUE)
+               if (volume.IsEmpty() || GetDriveTypeW(volume.c_str()) != DRIVE_FIXED)
                {
-                  const int error = (int) GetLastError();
-                  missing_ = error == ERROR_FILE_NOT_FOUND || error == ERROR_PATH_NOT_FOUND;
-                  why = missing_
-                     ? Formatter::Format(_T("{0} does not exist"), walked)
-                     : Formatter::Format(_T("{0} could not be held while it is granted (Windows error {1}); run this again"), walked, error);
-                  Release();
-                  return false;
-               }
-               handles_.push_back(handle);
-
-               BY_HANDLE_FILE_INFORMATION information;
-               if (!GetFileInformationByHandle(handle, &information))
-               {
-                  why = Formatter::Format(_T("{0} could not be examined (Windows error {1})"), walked, (int) GetLastError());
+                  why = Formatter::Format(_T("{0} leads through a link to {1}, which is not on a fixed local drive, and only those are granted"), target, named);
                   Release();
                   return false;
                }
 
-               if ((information.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0)
+               // A folder of a volume no drive letter names - one mounted on a
+               // folder alone - is none of the guarded folders, which are all
+               // named from a drive letter.
+               String refusal;
+               if (guarded != nullptr && !reached.IsEmpty() && RefusedLocation_(reached, *guarded, refusal))
                {
-                  why = Formatter::Format(_T("{0} is a junction, a symbolic link or a mount point, and a grant through it would reach wherever it points"), walked);
+                  why = Formatter::Format(_T("{0} leads through a link to {1}, which is never granted: {2}"), target, reached, refusal);
                   Release();
                   return false;
                }
+
+               // Without a trailing separator: where a mount point leads is a
+               // volume's root, which Windows names with one (C:\...\Logs\).
+               through_ = Normalised_(named);
+               throughByVolume_ = byVolume;
             }
 
             return true;
@@ -548,27 +566,40 @@ namespace HM
          // After a failed Pin: whether it failed because the path is not there.
          bool Missing() const { return missing_; }
 
+         // After a Pin: where the path leads when it goes through a link the
+         // administrators alone control, as Windows names it with a drive letter
+         // where it can; empty when it goes through none.
+         String Through() const { return through_; }
+
+         // The path to write a grant through: the one asked for, or - through a
+         // link - the folder it leads to, by its volume's name. A permission
+         // written by a path is handed down from the folder that path names
+         // above it, and the folder above the link is not the one above where it
+         // leads; by its volume's name the path has no link in it at all.
+         String GrantPath(const String &asked) const { return throughByVolume_.IsEmpty() ? Normalised_(asked) : throughByVolume_; }
+
          void Release()
          {
-            for (HANDLE handle : handles_)
-               CloseHandle(handle);
-            handles_.clear();
+            held_.Release();
          }
 
       private:
          PathPin_(const PathPin_ &);
          PathPin_ &operator=(const PathPin_ &);
 
-         std::vector<HANDLE> handles_;
+         HeldFolder held_;
          bool missing_;
+         String through_;
+         String throughByVolume_;
       };
 
       // Grants sid the rights on one file, through a handle opened without
       // following links, with every folder above it held (PathPin_), and only
       // when it is a file with one name: a hard link elsewhere would carry the
       // grant to wherever else the file is. The protection of its permissions
-      // stays what it was.
-      ServiceAccount::GrantResult GrantFile_(const String &file, const String &sidText, DWORD rights, String &detail)
+      // stays what it was. guarded: what a link on the way may not lead to
+      // (PathPin_).
+      ServiceAccount::GrantResult GrantFile_(const String &file, const String &sidText, DWORD rights, String &detail, const Guarded_ *guarded = nullptr)
       {
          detail.Empty();
 
@@ -582,7 +613,7 @@ namespace HM
 
          PathPin_ pin;
          const String folder = FolderOf_(Normalised_(file));
-         if (folder.IsEmpty() || !pin.Pin(folder, detail))
+         if (folder.IsEmpty() || !pin.Pin(folder, detail, guarded))
          {
             if (folder.IsEmpty())
                detail = _T("it is not in a folder");
@@ -1248,11 +1279,13 @@ namespace HM
          return why.IsEmpty();
       }
 
-      // The immediate subfolders of a folder, reparse points left out: a
-      // junction is somebody else's folder, reached through this one.
-      std::vector<String> Subfolders_(const String &directory)
+      // The immediate subfolders of a folder, each with whether it is a junction,
+      // a mount point or a symbolic link to a folder: somebody else's folder,
+      // reached through this one, gone through only when the administrators
+      // alone control it (PathPin_).
+      std::vector<std::pair<String, bool> > Subfolders_(const String &directory)
       {
-         std::vector<String> found;
+         std::vector<std::pair<String, bool> > found;
          WIN32_FIND_DATAW data;
          HANDLE search = FindFirstFileExW(FileUtilities::Combine(directory, _T("*")).c_str(), FindExInfoBasic, &data, FindExSearchLimitToDirectories, nullptr, 0);
          if (search == INVALID_HANDLE_VALUE)
@@ -1261,11 +1294,11 @@ namespace HM
          do
          {
             const std::wstring name = data.cFileName;
-            if ((data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0 || (data.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0)
+            if ((data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0)
                continue;
             if (name == L"." || name == L"..")
                continue;
-            found.push_back(FileUtilities::Combine(directory, String(name.c_str())));
+            found.push_back(std::make_pair(FileUtilities::Combine(directory, String(name.c_str())), (data.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0));
          } while (FindNextFileW(search, &data));
 
          FindClose(search);
@@ -1663,7 +1696,7 @@ namespace HM
          const String path = Resolved_(requested);
          String why;
          PathPin_ check;
-         if (RefusedLocation_(path, guarded, why) || !check.Pin(path, why))
+         if (RefusedLocation_(path, guarded, why) || !check.Pin(path, why, &guarded))
          {
             failed++;
             SayLine_(true, Formatter::Format(_T("  REFUSED         {0} - not approved: {1}"), path, why));
@@ -1768,7 +1801,7 @@ namespace HM
       {
          String why;
          PathPin_ check;
-         if (check.Pin(Resolved_(folder.path), why))
+         if (check.Pin(Resolved_(folder.path), why, &guarded))
          {
             offered.push_back(folder);
             continue;
@@ -1864,7 +1897,7 @@ namespace HM
 
          PathPin_ pin;
          String detail;
-         if (!pin.Pin(target, detail))
+         if (!pin.Pin(target, detail, &guarded))
          {
             if (pin.Missing())
             {
@@ -1875,8 +1908,10 @@ namespace HM
             return;
          }
 
-         const GrantResult result = Grant(target, sid, rights, below, detail);
+         const GrantResult result = Grant(pin.GrantPath(target), sid, rights, below, detail);
          sayResult(result, rights, target, what, below, detail);
+         if (result != GrantFailed && !pin.Through().IsEmpty())
+            SayLine_(false, Formatter::Format(_T("                  through a link only the administrators may change, to {0}."), pin.Through()));
       };
 
       for (const Wanted_ &grant : folders)
@@ -1890,7 +1925,7 @@ namespace HM
                continue;
             }
             String detail;
-            const GrantResult result = GrantFile_(grant.path, sid, grant.rights == RightsModify ? RightsModify : RightsRead, detail);
+            const GrantResult result = GrantFile_(grant.path, sid, grant.rights == RightsModify ? RightsModify : RightsRead, detail, &guarded);
             sayResult(result, grant.rights, Normalised_(grant.path), grant.what, false, detail);
             continue;
          }
@@ -1913,15 +1948,33 @@ namespace HM
       // service reads the two files there it needs - the last install's outcome
       // and the mark of one in progress - through entries the Updater writes on
       // each file.
-      for (const String &subfolder : Subfolders_(program))
+      //
+      // A link among them - Events kept on another drive behind a junction - is
+      // gone through when the administrators alone control it, as everywhere
+      // here; any other is said and left, as every link here was until 6.3.6.
+      for (const auto &entry : Subfolders_(program))
       {
+         const String &subfolder = entry.first;
          bool writable = false;
          for (const wchar_t *name : WritableDefaults_)
             writable = writable || SamePath_(subfolder, FileUtilities::Combine(program, String(name)));
          if (SamePath_(subfolder, FileUtilities::Combine(program, String(_T("AdminUpdate")))))
             continue;
-         if (!writable)
-            grantFolder(subfolder, RightsReadExecute, true, _T("in the program folder"));
+         if (writable)
+            continue;
+
+         if (entry.second)
+         {
+            PathPin_ check;
+            String why;
+            if (!check.Pin(subfolder, why, &guarded))
+            {
+               notes.push_back(Formatter::Format(_T("{0} in the program folder is not granted Read: {1}."), subfolder, why));
+               continue;
+            }
+         }
+
+         grantFolder(subfolder, RightsReadExecute, true, _T("in the program folder"));
       }
 
       // The files written with permissions of their own (ProtectedFile): the
@@ -1942,7 +1995,7 @@ namespace HM
 
          PathPin_ pin;
          String why;
-         if (!pin.Pin(Normalised_(folder), why))
+         if (!pin.Pin(Normalised_(folder), why, &guarded))
          {
             failed++;
             SayLine_(true, Formatter::Format(_T("  FAILED          Modify  {0} - the files with protected permissions in it: {1}"), folder, why));
@@ -1952,7 +2005,7 @@ namespace HM
          for (const String &file : FilesIn_(Normalised_(folder)))
          {
             String detail;
-            const GrantResult result = GrantFile_(file, sid, RightsModify, detail);
+            const GrantResult result = GrantFile_(file, sid, RightsModify, detail, &guarded);
             if (result == GrantMade)
             {
                made++;
@@ -1976,7 +2029,7 @@ namespace HM
             continue;
 
          String detail;
-         const GrantResult result = GrantFile_(file.path, sid, RightsRead, detail);
+         const GrantResult result = GrantFile_(file.path, sid, RightsRead, detail, &guarded);
          if (result == GrantMade)
          {
             made++;
@@ -2014,7 +2067,7 @@ namespace HM
          if (FileUtilities::Exists(keyStore))
          {
             String detail;
-            const GrantResult result = GrantFile_(keyStore, sid, RightsModify, detail);
+            const GrantResult result = GrantFile_(keyStore, sid, RightsModify, detail, &guarded);
             sayResult(result, RightsModify, Normalised_(keyStore), keyStoreMade ? String(_T("the REST API's key store, made empty for it")) : String(_T("the REST API's key store, which the service writes")), false, detail);
          }
       }
@@ -2407,6 +2460,218 @@ namespace HM
          return ReadPermissions_(path, permissions, error) && IsProtected_(permissions);
       }
 
+      // A junction (a mount-point reparse point) at link, leading to target, as
+      // mklink /J makes one. No privilege is needed to make one.
+      bool MakeJunction_(const String &link, const String &target)
+      {
+         if (!CreateDirectoryW(link.c_str(), nullptr))
+            return false;
+         HANDLE handle = CreateFileW(link.c_str(), GENERIC_WRITE, 0, nullptr, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT, nullptr);
+         if (handle == INVALID_HANDLE_VALUE)
+         {
+            RemoveDirectoryW(link.c_str());
+            return false;
+         }
+
+         const std::wstring substitute = L"\\??\\" + std::wstring(target.c_str());
+         const std::wstring print(target.c_str());
+         const size_t pathBytes = (substitute.size() + 1 + print.size() + 1) * sizeof(wchar_t);
+         std::vector<unsigned char> buffer(8 + 8 + pathBytes);
+         unsigned char *data = buffer.data();
+         *(DWORD *) (data + 0) = IO_REPARSE_TAG_MOUNT_POINT;
+         *(WORD *) (data + 4) = (WORD) (8 + pathBytes);
+         *(WORD *) (data + 6) = 0;
+         *(WORD *) (data + 8) = 0;
+         *(WORD *) (data + 10) = (WORD) (substitute.size() * sizeof(wchar_t));
+         *(WORD *) (data + 12) = (WORD) ((substitute.size() + 1) * sizeof(wchar_t));
+         *(WORD *) (data + 14) = (WORD) (print.size() * sizeof(wchar_t));
+         memcpy(data + 16, substitute.c_str(), (substitute.size() + 1) * sizeof(wchar_t));
+         memcpy(data + 16 + (substitute.size() + 1) * sizeof(wchar_t), print.c_str(), (print.size() + 1) * sizeof(wchar_t));
+
+         DWORD returned = 0;
+         const BOOL made = DeviceIoControl(handle, FSCTL_SET_REPARSE_POINT, data, (DWORD) buffer.size(), nullptr, 0, &returned, nullptr);
+         CloseHandle(handle);
+         if (!made)
+            RemoveDirectoryW(link.c_str());
+         return made != FALSE;
+      }
+
+      // The owner and a protected DACL, from SDDL, set on what is at path itself -
+      // a link, not where it leads - as icacls /setowner and /inheritance:r with
+      // /L set them. False when this process may not: giving an object the
+      // Administrators as its owner takes an administrator.
+      bool SetOwnSecurity_(const String &path, const wchar_t *sddl)
+      {
+         PSECURITY_DESCRIPTOR descriptor = nullptr;
+         if (!ConvertStringSecurityDescriptorToSecurityDescriptorW(sddl, SDDL_REVISION_1, &descriptor, nullptr))
+            return false;
+
+         BOOL present = FALSE, defaulted = FALSE;
+         PACL dacl = nullptr;
+         PSID owner = nullptr;
+         GetSecurityDescriptorDacl(descriptor, &present, &dacl, &defaulted);
+         GetSecurityDescriptorOwner(descriptor, &owner, &defaulted);
+
+         HANDLE handle = CreateFileW(path.c_str(), READ_CONTROL | WRITE_DAC | WRITE_OWNER, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, nullptr,
+                                     OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT, nullptr);
+         bool set = false;
+         if (handle != INVALID_HANDLE_VALUE)
+         {
+            set = SetSecurityInfo(handle, SE_FILE_OBJECT, OWNER_SECURITY_INFORMATION | DACL_SECURITY_INFORMATION | PROTECTED_DACL_SECURITY_INFORMATION,
+                                  owner, nullptr, dacl, nullptr) == ERROR_SUCCESS;
+            CloseHandle(handle);
+         }
+
+         LocalFree(descriptor);
+         return set;
+      }
+
+      // A path through a junction the administrators alone control is gone
+      // through, to where it leads, and held there; one the service's account
+      // could change is refused, naming that account - where the
+      // administrators' junction leads to it, too; one to a folder a grant may
+      // never reach is refused for that; and a grant through one is written on
+      // the folder it leads to, which keeps what it inherits from its own
+      // folder. Made in a folder of the tester's own whose permissions only the
+      // administrators may change. Skipped only where this process is no
+      // administrator, and so may not give a junction the Administrators as
+      // owner: in an administrator's process a failure to is the test's.
+      void TestLinks_(const String &directory, const String &sid)
+      {
+         const String home = FileUtilities::Combine(directory, _T("links"));
+         const String target = FileUtilities::Combine(directory, _T("linked"));
+         const String adminLink = FileUtilities::Combine(home, _T("administrators"));
+         const String serviceLink = FileUtilities::Combine(home, _T("service"));
+         const String chainedLink = FileUtilities::Combine(home, _T("chained"));
+         if (!FileUtilities::CreateDirectory(home) || !FileUtilities::CreateDirectory(target) || !FileUtilities::CreateDirectory(FileUtilities::Combine(target, _T("inside"))))
+            FailGrant_(_T("The tester's folders for links could not be made."));
+
+         const wchar_t *const administratorsAlone = L"O:BAD:P(A;;FA;;;BA)(A;;FA;;;SY)(A;;0x1200a9;;;BU)";
+         if (!SetOwnSecurity_(home, administratorsAlone))
+         {
+            if (ServiceAccount::ProcessIsAdministrator())
+               FailGrant_(Formatter::Format(_T("An administrator's process could not give the tester's folder for links to the administrators alone (Windows error {0})."), (int) GetLastError()));
+            return;
+         }
+
+         const bool madeAdmin = MakeJunction_(adminLink, Resolved_(target));
+         const bool madeService = MakeJunction_(serviceLink, Resolved_(target));
+         // The administrators' junction to the service's: as though the folder
+         // an administrator's link leads to had been swapped for a junction by
+         // the service's account.
+         const bool madeChained = MakeJunction_(chainedLink, Resolved_(serviceLink));
+         try
+         {
+            if (!madeAdmin || !madeService || !madeChained)
+               FailGrant_(_T("The tester's junctions could not be made."));
+
+            if (!SetOwnSecurity_(adminLink, administratorsAlone) || !SetOwnSecurity_(chainedLink, administratorsAlone))
+               FailGrant_(_T("The administrators could not be given the tester's junction alone."));
+            const String serviceMay = String(L"O:BAD:P(A;;FA;;;BA)(A;;FA;;;SY)(A;;0x1301bf;;;") + sid + _T(")");
+            if (!SetOwnSecurity_(serviceLink, serviceMay.c_str()))
+               FailGrant_(_T("The tester's second junction could not be given its permissions."));
+
+            {
+               PathPin_ pin;
+               String why;
+               if (!pin.Pin(FileUtilities::Combine(adminLink, _T("inside")), why))
+                  FailGrant_(_T("A path through a junction only the administrators control was not held: ") + why);
+               if (!SamePath_(pin.Through(), FileUtilities::Combine(Resolved_(target), _T("inside"))))
+                  FailGrant_(_T("A path through a junction was not found to lead where the junction points: ") + pin.Through());
+               if (pin.GrantPath(adminLink).Left(11).CompareNoCase(_T("\\\\?\\Volume{")) != 0)
+                  FailGrant_(_T("A grant through a junction is not written by the path of where it leads: ") + pin.GrantPath(adminLink));
+               if (RemoveDirectoryW(FileUtilities::Combine(target, _T("inside")).c_str()))
+                  FailGrant_(_T("The folder a junction leads to could be removed while it was held."));
+               if (RemoveDirectoryW(adminLink.c_str()))
+                  FailGrant_(_T("A junction a path is held through could be removed while it was held."));
+            }
+
+            {
+               PathPin_ pin;
+               String why;
+               if (pin.Pin(FileUtilities::Combine(serviceLink, _T("inside")), why) || pin.Missing())
+                  FailGrant_(_T("A path through a junction the service's account may change was held."));
+               if (why.Find(sid) < 0)
+                  FailGrant_(_T("The refusal of a junction the service's account may change does not name that account: ") + why);
+            }
+
+            {
+               // Where it leads is held to the refusals a folder named directly is.
+               Guarded_ guarded;
+               guarded.nowhereNear.push_back(Resolved_(target));
+               PathPin_ pin;
+               String why;
+               if (pin.Pin(adminLink, why, &guarded) || why.Find(_T("never granted")) < 0)
+                  FailGrant_(_T("A junction leading to a folder no grant may reach was gone through: ") + why);
+            }
+
+            {
+               PathPin_ pin;
+               String why;
+               if (pin.Pin(FileUtilities::Combine(adminLink, _T("missing")), why) || !pin.Missing())
+                  FailGrant_(_T("A path that is not there beyond a junction was not found missing."));
+            }
+
+            {
+               // A junction only the administrators control, leading to one the
+               // service's account may change: an open through the first follows
+               // the second unasked, and where the two end - the tester's folder,
+               // which a grant may reach - says nothing of it. Refused, naming that
+               // account. Until 6.3.6's re-check it was held, and a grant written
+               // wherever the service's account had pointed its junction.
+               PathPin_ pin;
+               String why;
+               if (pin.Pin(FileUtilities::Combine(chainedLink, _T("inside")), why) || pin.Missing())
+                  FailGrant_(_T("A path through the administrators' junction to a junction the service's account may change was held, to ") + pin.Through());
+               if (why.Find(sid) < 0)
+                  FailGrant_(_T("The refusal of a junction the service's account may change, reached through the administrators', does not name that account: ") + why);
+            }
+
+            {
+               // A grant through the administrators' junction: made on the folder
+               // it leads to, by its volume's name, and handed down; what that
+               // folder inherits from its own folder - the service's entry the
+               // tester's directory hands down - kept, which a grant written by the
+               // junction's path would have taken from the junction's folder
+               // instead, where there is nothing to inherit; and the junction
+               // itself still the administrators' alone.
+               const String through = ServiceAccount::ServiceSid(_T("hMailServerGrantThroughLink"));
+               PathPin_ pin;
+               String why;
+               String detail;
+               if (!pin.Pin(adminLink, why))
+                  FailGrant_(_T("The administrators' junction was not held for a grant: ") + why);
+               if (ServiceAccount::Grant(pin.GrantPath(adminLink), through, ServiceAccount::RightsModify, true, detail) != ServiceAccount::GrantMade)
+                  FailGrant_(_T("A grant through the administrators' junction was not made: ") + detail);
+               pin.Release();
+
+               std::vector<std::pair<DWORD, BYTE>> own = OwnEntries_(target, through);
+               if (own.size() != 1 || own[0].first != ServiceAccount::RightsModify ||
+                   (own[0].second & (OBJECT_INHERIT_ACE | CONTAINER_INHERIT_ACE)) != (OBJECT_INHERIT_ACE | CONTAINER_INHERIT_ACE))
+                  FailGrant_(Formatter::Format(_T("The folder a junction leads to has {0} explicit entries for the account granted through it, not one Modify handed down."), (int) own.size()));
+               if (!ServiceAccount::HasGrant(FileUtilities::Combine(target, _T("inside")), through, ServiceAccount::RightsModify, true, detail))
+                  FailGrant_(_T("A grant through a junction was not handed down to the folder in the one it leads to."));
+               if (!ServiceAccount::HasGrant(target, sid, ServiceAccount::RightsModify, true, detail))
+                  FailGrant_(_T("A grant through a junction took away what the folder it leads to inherits from its own folder."));
+
+               PathPin_ again;
+               if (!again.Pin(adminLink, why))
+                  FailGrant_(_T("After a grant through it the junction is no longer the administrators' alone: ") + why);
+            }
+         }
+         catch (...)
+         {
+            RemoveDirectoryW(chainedLink.c_str());
+            RemoveDirectoryW(adminLink.c_str());
+            RemoveDirectoryW(serviceLink.c_str());
+            throw;
+         }
+
+         RemoveDirectoryW(chainedLink.c_str());
+         RemoveDirectoryW(adminLink.c_str());
+         RemoveDirectoryW(serviceLink.c_str());
+      }
+
       // Which folders a grant may reach, on a machine made up for the purpose:
       // no folder here needs to exist.
       void TestLocations_()
@@ -2719,6 +2984,10 @@ namespace HM
             pin.Release();
             RemoveDirectoryW(through.c_str());
          }
+
+         // A junction the administrators alone control is gone through, and one
+         // the service's account could change is refused (TestLinks_).
+         TestLinks_(directory, sid);
 
          // The pin holds a plain path, and a held folder cannot be removed.
          {

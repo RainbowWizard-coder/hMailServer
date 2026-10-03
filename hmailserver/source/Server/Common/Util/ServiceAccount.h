@@ -37,7 +37,10 @@
 //     is or holds the program folder, is in it but outside those four, is or
 //     is in or holds the Windows folder, a Program Files folder or the user
 //     profiles, is or holds ProgramData, is a drive's root, is not on a fixed
-//     local drive, or is or runs through a junction or link;
+//     local drive, or is or runs through a junction or link that the
+//     administrators do not alone control (OnlyAdministratorsControl,
+//     ProtectedFile.h) - one they alone control is gone through, as the store
+//     commands go through it, and where it leads is held to every refusal here;
 //   - a certificate or key file is given Read, on the file alone, only when it
 //     lies in one of those folders; one elsewhere is listed, and the move to
 //     the virtual account is not made silently while there is one;
@@ -212,7 +215,9 @@ namespace HM
    // made again (nothing changes), inherited by a file already in it, the
    // administrator's own entry kept, a file with protected permissions granted
    // without losing its protection, a hard-linked file and a path through a
-   // link refused; which folders a grant may reach, a malicious
+   // link the service's account could change refused, one through a junction
+   // the administrators alone control held to where it leads; which folders a
+   // grant may reach, a malicious
    // [Directories] value among them; and the logon /Register passes for each
    // --service-account. See the definition.
    class ServiceAccountTester

@@ -26,6 +26,7 @@
 #else
 #include <sddl.h>
 #include <winternl.h>
+#include <winioctl.h>
 #include <boost/filesystem.hpp>
 #endif
 
@@ -849,6 +850,7 @@ namespace HM
       typedef ULONG (NTAPI *StatusToErrorFunction_)(LONG);
 
       const LONG StatusObjectNameNotFound_ = (LONG) 0xC0000034;
+      const LONG StatusObjectPathNotFound_ = (LONG) 0xC000003A;
 
       NtCreateFileFunction_ NtCreateFileFunction()
       {
@@ -970,6 +972,127 @@ namespace HM
          if (length == 0 || length >= buffer.size())
             return String();
          return String(&buffer[0]);
+      }
+
+      // SYMLINK_FLAG_RELATIVE (ntifs.h): a symbolic link's path is relative to
+      // the folder the link is in.
+      const ULONG SymlinkFlagRelative_ = 1;
+
+      // Where a link says it leads - the path a junction, a mount point or a
+      // symbolic link holds (FSCTL_GET_REPARSE_POINT) - as a full path HoldChain_
+      // walks: C:\..., \\?\Volume{...}\... or \\server\share\..., a relative
+      // symbolic link's taken from the folder the link is in. Not the folder an
+      // open through the link ends at: that open follows every link after this
+      // one too, the one where it leads included, and each of those has to be
+      // asked about in its turn. link: the link itself, opened without following
+      // it. walked: how it is named in a sentence.
+      bool LinkTarget_(HANDLE link, const String &walked, String &target, String &error)
+      {
+         target.Empty();
+
+         std::vector<BYTE> buffer(MAXIMUM_REPARSE_DATA_BUFFER_SIZE);
+         DWORD returned = 0;
+         if (!DeviceIoControl(link, FSCTL_GET_REPARSE_POINT, nullptr, 0, buffer.data(), (DWORD) buffer.size(), &returned, nullptr) || returned < 8)
+         {
+            error = Formatter::Format(_T("Where {0} leads could not be read (Windows error {1}), and nothing is written through it."), walked, (int) GetLastError());
+            return false;
+         }
+
+         // REPARSE_DATA_BUFFER (ntifs.h): the tag, two lengths, then for a mount
+         // point four offsets and lengths and the paths at 16, for a symbolic
+         // link the same four, its flags, and the paths at 20.
+         const ULONG tag = *(const ULONG *) buffer.data();
+         DWORD pathsAt = 0;
+         bool relative = false;
+         if (tag == IO_REPARSE_TAG_MOUNT_POINT)
+            pathsAt = 16;
+         else if (tag == IO_REPARSE_TAG_SYMLINK)
+         {
+            pathsAt = 20;
+            relative = returned >= 20 && (*(const ULONG *) (buffer.data() + 16) & SymlinkFlagRelative_) != 0;
+         }
+         else
+         {
+            String kind;
+            kind.Format(_T("0x%08X"), (unsigned int) tag);
+            error = Formatter::Format(_T("{0} is a reparse point of a kind ({1}) that is neither a junction, a mount point nor a symbolic link, and nothing is written through it."), walked, kind);
+            return false;
+         }
+
+         const DWORD offset = *(const USHORT *) (buffer.data() + 8);
+         const DWORD length = *(const USHORT *) (buffer.data() + 10);
+         if (returned < pathsAt || length == 0 || length % sizeof(wchar_t) != 0 || offset % sizeof(wchar_t) != 0 || offset + length > returned - pathsAt)
+         {
+            error = Formatter::Format(_T("Where {0} leads could not be read (its reparse data is not whole), and nothing is written through it."), walked);
+            return false;
+         }
+         const std::wstring held((const wchar_t *) (buffer.data() + pathsAt + offset), length / sizeof(wchar_t));
+         const String substitute(held.c_str());
+
+         if (!relative)
+         {
+            // \??\C:\..., \??\Volume{...}\... (a mount point) or \??\UNC\server\share\...
+            String rest = substitute.Left(4) == _T("\\??\\") ? substitute.Mid(4) : String();
+            if (rest.Left(4).CompareNoCase(_T("UNC\\")) == 0)
+               target = _T("\\\\") + rest.Mid(4);
+            else if (rest.Left(7).CompareNoCase(_T("Volume{")) == 0)
+               target = _T("\\\\?\\") + rest;
+            else if (rest.GetLength() >= 2 && rest[1] == ':' && ((rest[0] >= 'A' && rest[0] <= 'Z') || (rest[0] >= 'a' && rest[0] <= 'z')) &&
+                     (rest.GetLength() == 2 || rest[2] == '\\'))
+               target = rest.GetLength() == 2 ? rest + _T("\\") : rest;
+
+            if (target.IsEmpty())
+            {
+               error = Formatter::Format(_T("{0} leads to {1}, which is not a path on a drive, a volume or a share, and nothing is written through it."), walked, substitute);
+               return false;
+            }
+            return true;
+         }
+
+         // Relative: from the folder the link is in, by that folder's volume's
+         // name; one starting with a separator from that volume's root.
+         const String self = VolumePath_(link);
+         const int close = self.Find(_T("}\\"));
+         if (self.Left(11).CompareNoCase(_T("\\\\?\\Volume{")) != 0 || close < 11)
+         {
+            error = Formatter::Format(_T("Where the folder {0} is in could not be told (Windows error {1}), and nothing is written through it."), walked, (int) GetLastError());
+            return false;
+         }
+         const String root = self.Left(close + 2);
+
+         std::vector<String> parts;
+         if (substitute.Left(1) != _T("\\"))
+         {
+            for (const String &part : StringParser::SplitString(self.Mid(close + 2), _T("\\")))
+            {
+               if (!part.IsEmpty())
+                  parts.push_back(part);
+            }
+            if (!parts.empty())
+               parts.pop_back();
+         }
+
+         for (const String &part : StringParser::SplitString(substitute, _T("\\")))
+         {
+            if (part.IsEmpty() || part == _T("."))
+               continue;
+            if (part == _T(".."))
+            {
+               if (parts.empty())
+               {
+                  error = Formatter::Format(_T("{0} leads to {1}, above the root of its volume, and nothing is written through it."), walked, substitute);
+                  return false;
+               }
+               parts.pop_back();
+               continue;
+            }
+            parts.push_back(part);
+         }
+
+         target = root;
+         for (size_t index = 0; index < parts.size(); index++)
+            target += (index == 0 ? String() : String(_T("\\"))) + parts[index];
+         return true;
       }
 
       // Whether two handles hold the same file or folder: the volume and the
@@ -1120,7 +1243,9 @@ namespace HM
    }
 
    HeldFolder::HeldFolder() :
-      last_(nullptr)
+      last_(nullptr),
+      missing_(false),
+      through_link_(false)
    {
 
    }
@@ -1144,6 +1269,8 @@ namespace HM
    HeldFolder::Hold(const String &requested, bool createLast, String &error)
    {
       Release();
+      missing_ = false;
+      through_link_ = false;
 
       void *last = nullptr;
       if (!HoldChain_(requested, createLast, 0, last, error))
@@ -1157,7 +1284,7 @@ namespace HM
    }
 
    bool
-   HeldFolder::HoldAlso(void *opened, String &error)
+   HeldFolder::HoldAlso(const String &link, void *opened, String &error)
    {
       if (last_ == nullptr)
       {
@@ -1174,16 +1301,70 @@ namespace HM
       }
       handles_.push_back(copy);
 
+      // The link itself, opened in its folder without following it and held -
+      // so that it cannot be removed or renamed - and asked again, by these
+      // handles, whether the administrators alone control it: what it says it
+      // leads to is then what an administrator made it say.
+      const int separator = link.ReverseFind(_T('\\'));
+      const String name = separator < 0 ? String() : link.Mid(separator + 1);
+      const String folderPath = separator == 2 && link[1] == ':' ? link.Left(3) : (separator < 0 ? String() : link.Left(separator));
+      if (!IsOneName_(name) || folderPath.IsEmpty())
+      {
+         error = Formatter::Format(_T("{0} is not a full path, and nothing is written through it."), link);
+         return false;
+      }
+
+      HANDLE folder = CreateFileW(folderPath.c_str(), FILE_LIST_DIRECTORY | FILE_READ_ATTRIBUTES | FILE_TRAVERSE, FILE_SHARE_READ | FILE_SHARE_WRITE,
+                                  nullptr, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, nullptr);
+      if (folder == INVALID_HANDLE_VALUE)
+      {
+         error = Formatter::Format(_T("{0} could not be opened (Windows error {1})."), folderPath, (int) GetLastError());
+         return false;
+      }
+      handles_.push_back(folder);
+
+      HANDLE itself = INVALID_HANDLE_VALUE;
+      const LONG status = OpenBelow_(folder, name, FILE_LIST_DIRECTORY | FILE_READ_ATTRIBUTES | FILE_TRAVERSE, FILE_SHARE_READ | FILE_SHARE_WRITE,
+                                     FILE_OPEN, FILE_DIRECTORY_FILE, nullptr, itself);
+      if (status < 0)
+      {
+         error = Formatter::Format(_T("{0} could not be opened (Windows error {1})."), link, (int) WindowsErrorOf_(status));
+         return false;
+      }
+      handles_.push_back(itself);
+
+      String why;
+      if (!IsReparsePoint_(itself))
+      {
+         error = Formatter::Format(_T("{0} is no longer a link, and nothing is written through it."), link);
+         return false;
+      }
+      if (!OnlyAdministratorsControl(itself, folder, why))
+      {
+         error = Formatter::Format(_T("{0} is a junction, a symbolic link or a mount point, and {1}, so nothing is written through it."), link, why);
+         return false;
+      }
+
+      String leadsTo;
+      if (!LinkTarget_(itself, link, leadsTo, error))
+         return false;
+
       void *ignored = nullptr;
-      return HoldThrough_(copy, FinalPath_(copy), 0, ignored, error);
+      return HoldThrough_(copy, leadsTo, link, 0, ignored, error);
    }
 
    // through: a folder opened through a link the administrators alone control,
-   // already in handles_. Where it is, by its volume's name, held from that
-   // volume's root as Hold holds a path; the folder so reached must be the one
-   // through holds. last: that folder's handle.
+   // already in handles_; leadsTo: where that link says it leads (LinkTarget_).
+   // That path held from its volume's root as Hold holds a path - every link
+   // on it, the one it ends at included, asked about in its turn - and the
+   // folder so reached must be the one through holds. Until 6.3.6's re-check
+   // the folder through holds was walked by its own path instead, which an
+   // open through one link reaches by following every link after it unasked:
+   // a junction the service's account had made where the administrators' link
+   // leads would have carried a grant or a rewrite to wherever it pointed.
+   // last: that folder's handle.
    bool
-   HeldFolder::HoldThrough_(void *through, const String &walked, int depth, void *&last, String &error)
+   HeldFolder::HoldThrough_(void *through, const String &leadsTo, const String &walked, int depth, void *&last, String &error)
    {
       // A link to a link to a link: eight is more than any layout needs, and a
       // chain that loops ends here.
@@ -1193,18 +1374,22 @@ namespace HM
          return false;
       }
 
-      const String target = VolumePath_((HANDLE) through);
-      if (target.IsEmpty())
+      // A folder Windows names by no volume of this computer - one on a share,
+      // or a device - is not gone through, as before; the sentence says where
+      // the link leads, which until 6.3.6's re-check it did not.
+      const String volume = VolumePath_((HANDLE) through);
+      const int volumeError = (int) GetLastError();
+      if (volume.IsEmpty())
       {
-         error = Formatter::Format(_T("Where {0} leads could not be told (Windows error {1}), and nothing is written through it."), walked, (int) GetLastError());
+         error = Formatter::Format(_T("{0} leads to {1}, which Windows names by no volume of this computer (Windows error {2}) - a share or a device - and nothing is written through it."), walked, leadsTo, volumeError);
          return false;
       }
 
       String why;
       void *reached = nullptr;
-      if (!HoldChain_(target, false, depth + 1, reached, why))
+      if (!HoldChain_(leadsTo, false, depth + 1, reached, why))
       {
-         error = Formatter::Format(_T("{0} leads to {1}, where: {2}"), walked, FinalPath_((HANDLE) through), why);
+         error = Formatter::Format(_T("{0} leads to {1}, where: {2}"), walked, leadsTo, why);
          return false;
       }
 
@@ -1312,12 +1497,18 @@ namespace HM
             error = status == StatusObjectNameNotFound_
                ? Formatter::Format(_T("{0} does not exist."), walked)
                : Formatter::Format(_T("{0} could not be opened (Windows error {1})."), walked, (int) WindowsErrorOf_(status));
+            // Missing() is about the path asked for; a folder missing where a link
+            // leads is a link that leads nowhere.
+            if (depth == 0 && (status == StatusObjectNameNotFound_ || status == StatusObjectPathNotFound_))
+               missing_ = true;
             return false;
          }
          handles_.push_back(folder);
 
          if (IsReparsePoint_(folder))
          {
+            through_link_ = true;
+
             // Gone through only when the administrators alone control it - a
             // junction or a mount point an administrator made to keep the data on
             // another drive - and then held on from where it leads (HoldThrough_).
@@ -1328,6 +1519,12 @@ namespace HM
                error = Formatter::Format(_T("{0} is a junction, a symbolic link or a mount point, and {1}, so nothing is written through it. Nothing in a folder the service may write is a link but one only the administrators control."), walked, why);
                return false;
             }
+
+            // Where it says it leads, read from the link, which is held and which
+            // only the administrators may turn: what HoldThrough_ walks.
+            String leadsTo;
+            if (!LinkTarget_(folder, walked, leadsTo, error))
+               return false;
 
             HANDLE through = INVALID_HANDLE_VALUE;
             const LONG followed = OpenThrough_(parent, name, FILE_LIST_DIRECTORY | FILE_READ_ATTRIBUTES | FILE_TRAVERSE,
@@ -1340,7 +1537,7 @@ namespace HM
             handles_.push_back(through);
 
             void *reached = nullptr;
-            if (!HoldThrough_(through, walked, depth, reached, error))
+            if (!HoldThrough_(through, leadsTo, walked, depth, reached, error))
                return false;
 
             parent = (HANDLE) reached;
@@ -1354,6 +1551,33 @@ namespace HM
       if (depth == 0)
          path_ = walked;
       return true;
+   }
+
+   String
+   HeldFolder::Reached() const
+   {
+      if (last_ == nullptr)
+         return String();
+
+      std::vector<wchar_t> buffer(4096);
+      const DWORD length = GetFinalPathNameByHandleW((HANDLE) last_, &buffer[0], (DWORD) buffer.size(), FILE_NAME_NORMALIZED | VOLUME_NAME_DOS);
+      if (length == 0 || length >= buffer.size())
+         return String();
+
+      String path(&buffer[0]);
+      if (path.Left(8).CompareNoCase(_T("\\\\?\\UNC\\")) == 0)
+         path = _T("\\\\") + path.Mid(8);
+      else if (path.Left(4) == _T("\\\\?\\"))
+         path = path.Mid(4);
+      return path;
+   }
+
+   String
+   HeldFolder::ReachedByVolume() const
+   {
+      if (last_ == nullptr)
+         return String();
+      return VolumePath_((HANDLE) last_);
    }
 
    bool

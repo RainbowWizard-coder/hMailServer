@@ -70,9 +70,20 @@ namespace RegressionTests.API
       private string Deputy { get { return "deputy@" + _domain.Name; } }
       private string Colleague { get { return "colleague@" + _domain.Name; } }
 
+      private bool _originalAuthPlain;
+
       [SetUp]
       public void StartListeners()
       {
+         // The organisers sign in with AUTH PLAIN (SmtpRaw), which the server offers
+         // only with AllowSMTPAuthPlain on - off in the shipped configuration. Turned
+         // on here and put back in TearDown: until 6.3.6 this fixture relied on
+         // Security.PasswordMasking having turned it on earlier in the same run, and
+         // on a bench that had not run that first 18 of its 24 tests failed with "504
+         // Authentication mechanism not supported".
+         _originalAuthPlain = _settings.AllowSMTPAuthPlain;
+         _settings.AllowSMTPAuthPlain = true;
+
          Account room = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, Room, Password);
          room.PersonFirstName = "Board";
          room.PersonLastName = "Room";
@@ -110,6 +121,7 @@ namespace RegressionTests.API
          IniFileSetting.Write("WebServicesHttpPort", "0");
          RestListener.Stop();
          _application.Reinitialize();
+         _settings.AllowSMTPAuthPlain = _originalAuthPlain;
       }
 
       [Test]

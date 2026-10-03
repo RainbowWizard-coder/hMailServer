@@ -556,7 +556,7 @@ static bool DataFolderHoldsNoLink(HM::HeldFolder &held, HM::String &why)
                HM::String heldWhy;
                if (through == INVALID_HANDLE_VALUE)
                   untrusted = HM::Formatter::Format(_T("where it leads could not be opened (Windows error {0})"), (int) GetLastError());
-               else if (!held.HoldAlso(through, heldWhy))
+               else if (!held.HoldAlso(path, through, heldWhy))
                   untrusted = heldWhy;
                else
                {

@@ -68,11 +68,22 @@ namespace RegressionTests.AntiSpam
       private int blockDaysBefore_;
       private int retentionDaysBefore_;
       private bool teachBefore_;
+      private bool authPlainBefore_;
 
       [SetUp]
       public void DeclareATrap()
       {
          _settings.SetAdministratorPassword(AdminPassword);
+
+         // AnAuthenticatedSessionIsNotBanned (RcptReply with a user) signs in with
+         // AUTH PLAIN, which the server offers only with AllowSMTPAuthPlain on - off
+         // in the shipped configuration. Turned on here and put back in TearDown:
+         // until 6.3.6 this fixture relied on Security.PasswordMasking having turned
+         // it on earlier, and where it was off that test waited more than twenty
+         // minutes for the server to drop the idle connection, then failed
+         // (API/RoomsAndEquipment.cs had the same gap).
+         authPlainBefore_ = _settings.AllowSMTPAuthPlain;
+         _settings.AllowSMTPAuthPlain = true;
 
          dynamic settings = _settings;
          banMinutesBefore_ = (int) settings.SpamTrapBanMinutes;
@@ -110,6 +121,7 @@ namespace RegressionTests.AntiSpam
          settings.SpamTrapBlockDays = blockDaysBefore_;
          settings.SpamTrapHitRetentionDays = retentionDaysBefore_;
          settings.SpamTrapTeachSpamAssassin = teachBefore_;
+         _settings.AllowSMTPAuthPlain = authPlainBefore_;
       }
 
       // ------------------------------------------------------------------ the refusal

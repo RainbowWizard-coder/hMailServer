@@ -50,9 +50,20 @@ namespace RegressionTests.Security
       // as a using (which cannot span the loop that keeps them open).
       private readonly List<TcpConnection> _parked = new List<TcpConnection>();
 
+      private bool authPlainBefore_;
+
       [SetUp]
       public new void SetUp()
       {
+         // An SMTP session here (a refused one and an authenticated one) signs in
+         // with AUTH PLAIN, which the server offers only with AllowSMTPAuthPlain on -
+         // off in the shipped configuration. Turned on here and put back in TearDown:
+         // until 6.3.6 this fixture relied on Security.PasswordMasking having turned
+         // it on earlier, and failed on a bench where it was off
+         // (API/RoomsAndEquipment.cs had the same gap).
+         authPlainBefore_ = _settings.AllowSMTPAuthPlain;
+         _settings.AllowSMTPAuthPlain = true;
+
          _account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "tarpit@example.test", Password);
 
          // Auto-ban would turn the fourth failure into a disconnect and a banned
@@ -67,6 +78,8 @@ namespace RegressionTests.Security
          foreach (var connection in _parked)
             connection.Dispose();
          _parked.Clear();
+
+         _settings.AllowSMTPAuthPlain = authPlainBefore_;
 
          _settings.AntiSpam.TarpitCount = 0;
          _settings.AntiSpam.TarpitDelay = 0;

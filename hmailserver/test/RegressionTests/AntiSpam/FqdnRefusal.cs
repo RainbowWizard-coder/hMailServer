@@ -47,6 +47,7 @@ namespace RegressionTests.AntiSpam
 
       private bool refuseHeloBefore_;
       private bool refuseSenderBefore_;
+      private bool authPlainBefore_;
 
       [SetUp]
       public new void SetUp()
@@ -55,6 +56,15 @@ namespace RegressionTests.AntiSpam
 
          refuseHeloBefore_ = (bool) antiSpam.RefuseHeloNotFqdn;
          refuseSenderBefore_ = (bool) antiSpam.RefuseMailFromDomainNotFqdn;
+
+         // AnAuthenticatedSessionIsNeverJudged signs in with AUTH PLAIN, which the
+         // server offers only with AllowSMTPAuthPlain on - off in the shipped
+         // configuration. Turned on here and put back in TearDown: until 6.3.6 this
+         // fixture relied on Security.PasswordMasking having turned it on earlier,
+         // and failed on a bench where it was off (API/RoomsAndEquipment.cs had the
+         // same gap).
+         authPlainBefore_ = _settings.AllowSMTPAuthPlain;
+         _settings.AllowSMTPAuthPlain = true;
       }
 
       [TearDown]
@@ -64,6 +74,7 @@ namespace RegressionTests.AntiSpam
 
          antiSpam.RefuseHeloNotFqdn = refuseHeloBefore_;
          antiSpam.RefuseMailFromDomainNotFqdn = refuseSenderBefore_;
+         _settings.AllowSMTPAuthPlain = authPlainBefore_;
       }
 
       [Test]

@@ -108,15 +108,16 @@ namespace HM
    // held. A folder that is a junction, a symbolic link or a mount point is
    // gone through only when the administrators alone control it
    // (OnlyAdministratorsControl, below) - one an administrator made to keep the
-   // data on another drive - and where it leads is then held in the same way
-   // from that volume's own root and checked to be the folder the link opened,
-   // so a link somebody else made further along the way is refused there; any
-   // other link is refused. The last one is made when missing and asked, in the
-   // same way. A file is made or removed by its name relative to the last
-   // folder's handle, never through a link of that name, and a file made is
-   // checked by its handle to be where it was meant to be before a byte is
-   // written to it. Windows only: on Linux the verbs that write in the data
-   // folder run as the service's own user.
+   // data on another drive - and where it says it leads (the path the link
+   // holds, read from it) is then held in the same way from that volume's own
+   // root and checked to be the folder the link opened, so a link somebody
+   // else made further along the way - the folder the link leads to itself
+   // included - is refused there; any other link is refused. The last one is
+   // made when missing and asked, in the same way. A file is made or removed
+   // by its name relative to the last folder's handle, never through a link
+   // of that name, and a file made is checked by its handle to be where it was
+   // meant to be before a byte is written to it. Windows only: on Linux the
+   // verbs that write in the data folder run as the service's own user.
    class HeldFolder
    {
    public:
@@ -132,11 +133,13 @@ namespace HM
 
       // A folder opened through a link the administrators alone control, found
       // below the held folder (a junction an administrator made in the data
-      // folder): what the open handle holds, held as Hold holds a path - from its
-      // volume's root down, by the path Windows gives it - for as long as this
-      // is held, and checked to be that same folder. False, with a sentence in
-      // error, as Hold.
-      bool HoldAlso(void *opened, String &error);
+      // folder): link, the link's full path, opened again in its folder without
+      // following it, held, and asked again whether the administrators alone
+      // control it; where it says it leads held as Hold holds a path - from its
+      // volume's root down, every link on the way asked about - for as long as
+      // this is held, and checked to be the folder the open handle holds. False,
+      // with a sentence in error, as Hold.
+      bool HoldAlso(const String &link, void *opened, String &error);
 
       // A new file name in the held folder with data in it, any file of that
       // name removed first (a link of that name is removed, never followed).
@@ -153,6 +156,20 @@ namespace HM
 
       String Path() const { return path_; }
 
+      // After a Hold that failed: whether it failed because a folder of the path
+      // as it was asked for - not one a link leads to - is not there.
+      bool Missing() const { return missing_; }
+
+      // After a Hold that succeeded: whether the path goes through a link the
+      // administrators alone control, and where the held folder then is - by
+      // the path Windows gives it, with its drive letter (or the folder a volume
+      // without one is mounted on), in its own case, empty when Windows gives it
+      // none; and by its volume's name, \\?\Volume{...}\..., which no link and no
+      // mount point stands in.
+      bool WentThroughLink() const { return through_link_; }
+      String Reached() const;
+      String ReachedByVolume() const;
+
       void Release();
 
    private:
@@ -160,11 +177,13 @@ namespace HM
       HeldFolder &operator=(const HeldFolder &);
 
       bool HoldChain_(const String &requested, bool createLast, int depth, void *&last, String &error);
-      bool HoldThrough_(void *through, const String &walked, int depth, void *&last, String &error);
+      bool HoldThrough_(void *through, const String &leadsTo, const String &walked, int depth, void *&last, String &error);
 
       std::vector<void *> handles_;
       void *last_;
       String path_;
+      bool missing_;
+      bool through_link_;
    };
 
    // Whether the administrators alone control a junction, a mount point or a

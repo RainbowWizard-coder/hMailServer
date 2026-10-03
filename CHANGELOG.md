@@ -584,7 +584,8 @@ of it a link - and each file is checked to be in it before a byte is written; an
 included, and every copy to or from an object store, first walks the data folder and stops, naming it, on a junction,
 a mount point or a symbolic link in it that the administrators do not alone control. A link they alone control - owned
 by `BUILTIN\Administrators`, `SYSTEM` or `TrustedInstaller`, and changeable or removable by no one else - is gone
-through, and where it leads is held from that volume's own root and checked; so a data folder, a folder above it, or a
+through, and the path it holds is held from that volume's own root, every link on it - the folder it leads to
+itself included - asked about in its turn, and checked to be where the link led; so a data folder, a folder above it, or a
 domain's folder kept on another drive through a junction an administrator made and gave permissions only the
 administrators may change is served, while one the service's account could have made or could turn elsewhere - a
 link made in the data folder inherits the service's write rights until it is given others (docs/ServiceAccount.md) -
@@ -1354,7 +1355,8 @@ project's own review.
     stops, exit 1, before it reads or changes anything when the data folder holds a junction, a mount point or a symbolic
     link that the administrators do not alone control, and names it. A link owned by `BUILTIN\Administrators`, `SYSTEM`
     or `TrustedInstaller` that no one else may change or remove - a junction an administrator made to keep the data, or a
-    domain's folder, on another drive - is gone through, and where it leads is held and checked; a folder only the
+    domain's folder, on another drive - is gone through, and the path it holds is held, every link on it asked about,
+    and checked; a folder only the
     administrators may list, such as `System Volume Information` at a drive's root, is skipped rather than refused. So a
     data folder below a mount point or a junction an administrator made, or at a drive's root, works once the link is the
     administrators' alone: a link made in the data folder inherits the service's write rights, and one made at a drive's
@@ -2256,6 +2258,23 @@ project's own review.
 
 ### Operations
 
+- **Fixed: upgrading a server whose data folder is a junction to another drive no longer fails granting the service
+  account.** This affects an installation of 6.3.5 (or a 6.3.4 one already moved to `NT SERVICE\hMailServer`) whose
+  `Data`, `Logs` or `Database` folder, or a folder above them, an administrator had moved to another folder or drive
+  behind a junction or a volume mount point - an ordinary layout. Setup runs `hMailServer.exe /GrantServiceAccess`
+  again on every upgrade of such a service, and the grant refused any junction, symbolic link or mount point on the
+  path it granted on (exit 1), so Setup failed the upgrade. The grant now goes through a link in the path when the
+  administrators alone control it - owned by `BUILTIN\Administrators`, `SYSTEM` or `TrustedInstaller`, and nobody else
+  may change it or remove it from the folder it is in - as the store commands have gone through such a link since
+  6.3.6 (`OnlyAdministratorsControl`, [ServiceAccount.md](hmailserver/docs/ServiceAccount.md), "Never granted"):
+  the path the link holds is held from that volume's root - every link on it asked about in its turn, so a junction
+  the service's account put where an administrator's link leads is refused, naming that account - must be on a fixed
+  local drive, and is held to the same refusals as a folder named directly, and the grant is written on the folder
+  the link leads to by its volume's name, so that what it inherits is its own folder's.
+  Any other link is still refused, the message now naming who may change it or who owns it. `icacls <link>
+  /setowner *S-1-5-32-544 /L` and `icacls <link> /inheritance:r /grant:r *S-1-5-32-544:(F) *S-1-5-18:(F)
+  *S-1-5-32-545:(RX) /L` give a link to the administrators alone.
+
 - **Fixed: on MySQL and MariaDB an insert refused as a duplicate could be read as one that wrote a row.** A caller
   that ignores a duplicate - two nodes recording one complaint report or DMARC or TLS report, a greylisting triplet
   written by two connections at once - tells a written row from a refused one by the id it is handed back. After a
@@ -2933,6 +2952,16 @@ project's own review.
   decision of the server as a hung hook did.
 
 ### Build and tests
+
+- **The tests that sign in over SMTP with `AUTH PLAIN` turn it on themselves.** `API/RoomsAndEquipment.cs` signs its
+  organisers in over SMTP with `AUTH PLAIN`, which the server offers only with `AllowSMTPAuthPlain` on - off in the
+  shipped configuration - and relied on `Security.PasswordMasking` having turned it on earlier in the same run: on a
+  bench that had not run that fixture first, 18 of its 24 tests failed with "504 Authentication mechanism not
+  supported". `AntiSpam/FqdnRefusal.cs`, `AntiSpam/SpamTraps.cs`, `API/RestApiCalendar.cs`,
+  `API/RestApiCalendarSharing.cs` and `Security/Tarpits.cs` had the same gap: with the switch off, 13 of their 62
+  tests failed, two of them timing out on a 235 that never came - one only after more than twenty minutes, when the
+  server dropped the idle connection. Each fixture now turns it on in its own `SetUp` and puts back what it found in
+  `TearDown`, as `IMAP/MasterUserImpersonation.cs` does with `IMAPSASLPlainEnabled`.
 
 - **The installer smoke test's line for DBSetup quotes DBSetup.** `installer-smoke.ps1`'s evidence for a
   `--database` run took every line of Inno's log that began "Creating the", and printed Inno's seven "Creating the

@@ -250,10 +250,37 @@ the service may then write in it.
   profiles folder or `ProgramData\Microsoft` (every user's Start menu and startup
   folder);
 * is or holds `ProgramData` (a folder of its own in it may be approved);
-* is, or runs through, a junction, a symbolic link or a mount point.
+* is, or runs through, a junction, a symbolic link or a mount point that the
+  administrators do not alone control - one the service's account, or anybody
+  else who is not an administrator, made or could turn elsewhere. The refusal
+  names who may change the link, or who owns it.
 
 Every path is resolved first - `..` taken out, short names made long - so none of
 these can be named another way.
+
+**A link the administrators alone control is gone through**, by the rule the store
+commands follow ("What an administrator's command writes", below): keeping `Data`,
+`Logs`, a folder above them or a folder of the program such as `Events` on another
+drive behind a junction or a volume mount point an administrator made is an
+ordinary layout. Such a link - owned by `BUILTIN\Administrators`, `SYSTEM` or
+`TrustedInstaller`, which nobody else may change or remove from the folder it is
+in (`OnlyAdministratorsControl`) - is followed, and the path it holds is held from
+that volume's root in the same way - every link on it, the folder it ends at
+included, asked about in its turn, so a junction the service's account put where
+an administrator's link leads is refused - must be on a fixed local drive, and is
+held to the refusals above as though it had been named itself: a junction from
+`Data` to a drive's root, the Windows folder or `Bin` is refused there. A volume
+mounted at `Data` or `Logs` with no drive letter of its own is gone through, its
+root granted; one that also has a drive letter is that drive's root, and refused
+as one - take the letter away (`mountvol <letter>: /D`), or make the link a
+junction to a folder on that drive instead. The grant is written on the folder the
+link leads to, by its volume's name (`\\?\Volume{...}\`), so that what it inherits
+is that folder's own parent's, not the link's; the line says where the link leads.
+A link to a share is refused as not on a fixed local drive, the line naming the
+share it leads to. Until 6.3.6 every link on the way was refused, and the upgrade
+of an installation whose data folder an administrator had moved behind a junction
+failed its grant. The icacls that gives a link to the administrators alone is
+under "What an administrator's command writes".
 
 **How a grant is written.** One allow entry for the service's SID is added and
 nothing is removed - no other entry is changed, an administrator's deny entry for
@@ -261,9 +288,11 @@ the service included; an explicit deny outranks any allow, so the line says the
 grant FAILED and names it, and an inherited deny is named as the entry the new
 one now comes before. While a folder is granted, it and every folder above it are
 held open without sharing delete, so none of them can be renamed, removed or
-swapped for a link while the permission is written through the path. A file is
-granted through a handle opened without following links, and only when it has
-one name - a hard link elsewhere would carry the grant to wherever else it is. A
+swapped for a link while the permission is written through the path - a link the
+administrators alone control included, and every folder from the root of the
+volume it leads to down. A file is granted through a handle opened without
+following links, and only when it has one name - a hard link elsewhere would
+carry the grant to wherever else it is. A
 second run finds the entries there and changes nothing: each line says
 `granted`, `already there` or `FAILED` with the reason, and the last line counts
 them. Windows hands a folder's entry down to everything below it as part of the
@@ -464,11 +493,14 @@ So, since 6.3.6:
   change its permissions or owner), and no entry in the permissions of the folder it
   is in lets anybody else remove it from there or change that folder's permissions
   or owner
-  (`OnlyAdministratorsControl`, `ProtectedFile.h`). Where it leads is then held in
-  the same way from that volume's own root and checked to be the folder the link
-  opened, so a link somebody else made further along is refused there. A link to a
-  file is never gone through. What a refusal says names who may change the link,
-  or who owns it. A link made in the data folder inherits the write rights setup
+  (`OnlyAdministratorsControl`, `ProtectedFile.h`). The path it holds - where it
+  says it leads, read from the link - is then held in the same way from that
+  volume's own root and checked to be the folder the link opened, so a link
+  somebody else made further along is refused there, the folder the link leads to
+  itself included: until 6.3.6's re-check the folder an open through the link
+  ended at was walked instead, and that open follows a second link unasked. A
+  link to a file is never gone through. What a refusal says names who may change
+  the link, or who owns it. A link made in the data folder inherits the write rights setup
   grants the service's account there, and one made in a folder at a drive's root
   inherits them for `Users` or `Authenticated Users`, the service's account among
   them: either way the service could turn it elsewhere, and it is refused until it
@@ -881,8 +913,16 @@ puts back, as HM5481 ([Upgrading.md](Upgrading.md), "If the upgrade fails").
   it leaves, handed down to a file that was there before and one made after, an
   administrator's own entry kept; a file with protected permissions granted
   without losing its protection or its other entries; a hard-linked file refused;
-  a path through a symbolic link refused where one can be made; and a held folder
-  that cannot be removed.
+  a path through a symbolic link refused where one can be made; a path through a
+  junction only the administrators control held to where it leads, the junction
+  and that folder not removable while held and the grant's path the volume's
+  name of it, one the service's account may change refused naming that account,
+  also where the administrators' junction leads to it, one leading to a folder no
+  grant may reach refused, a folder missing beyond one found missing, and a grant
+  through one made on the folder it leads to, handed down, that folder keeping
+  what it inherits from its own folder and the junction still the
+  administrators' alone (skipped only where the tester is no administrator); and
+  a held folder that cannot be removed.
 * `Installation/InstallerPackaging.cs`: the page's three forms and its defaults,
   `/serviceaccount=`, the word `/Register` is given and that `hMailServer.exe`
   knows it, that nothing reads `ServiceAccountName` any more, the registration
