@@ -761,6 +761,18 @@ namespace hMailServer.ControlPanel.Views
             };
          }
 
+         // hMailServer.INI is the administrators' alone from 6.3.6: without it the
+         // log folder would read as not configured.
+         string denied = store.ReadDenied();
+         if (denied != null)
+         {
+            return new ConsistencyResult
+            {
+               Level = Severity.Neutral,
+               Message = F("Could not read the file: {0}", denied)
+            };
+         }
+
          bool enabled = store.ReadBool("MessageStoreConsistencyCheck", false);
          string logFolder = store.GetLogFolder();
 

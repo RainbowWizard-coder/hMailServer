@@ -180,6 +180,47 @@ namespace HM
       // The installer and the Control Panel move the service only on 0.
       static int RunGrantCommand(const GrantOptions &options);
 
+      // Makes what is at path private to the machine's administrators, SYSTEM
+      // and the service: its permissions no longer inherited, so that nothing
+      // the folder above hands down reaches it - the Read Program Files hands
+      // BUILTIN\Users, the rights a folder at a drive's root hands every user;
+      // every deny entry and every entry of its own kept, an inherited one as one
+      // of its own when it is the service's SID's; SYSTEM and the Administrators
+      // given full control, on a directory handed down to everything below; and,
+      // with serviceReads, Read for sid when nothing gives it that. Every other
+      // inherited allow entry is dropped, and its account named in dropped.
+      // GrantAlreadyThere, and nothing written, when the permissions inherit
+      // nothing already (and sid may read, with serviceReads); GrantFailed with
+      // detail when they could not be read or written. Takes the path as given:
+      // RunProtectCommand decides which paths, and holds them while it does.
+      static GrantResult Protect(const String &path, const String &sid, bool directory, bool serviceReads, String &detail, std::vector<String> &dropped);
+
+      // What /ProtectFolders is asked to do, from its command line.
+      struct ProtectOptions
+      {
+         // --report-only: say what would be made private, and change nothing.
+         bool reportOnly;
+
+         ProtectOptions() : reportOnly(false) {}
+      };
+
+      // hMailServer.exe /ProtectFolders, run elevated by the installer at every
+      // installation and upgrade of the server, whatever account the service runs
+      // as, and by hand. A default installation's Data, Logs, Temp, Database and
+      // Events folders and Bin\hMailServer.INI inherited Read for BUILTIN\Users
+      // from Program Files, so every user of the computer could read the mail,
+      // the logs, the built-in database and the database's password; this makes
+      // each Protect()ed - the program folder's own, found from where this binary
+      // is, a junction or mount point among them gone through only when the
+      // administrators alone control it, as the grant goes through one. What the
+      // configuration names elsewhere, and a key file in the data folder with
+      // permissions of its own, is CHECKed for a broad group's Read and never
+      // changed. One line each - made private, already private, FAILED or CHECK.
+      // Exit codes: 0 every one made private or already so (CHECK lines are
+      // said, and do not change it); 1 one could not be; 2 this binary is not in
+      // the Bin folder of an installation; 3 not run as an administrator.
+      static int RunProtectCommand(const ProtectOptions &options);
+
       // hMailServer.exe --grant-database-login: what the service's own identity,
       // NT SERVICE\hMailServer, needs to open its database when that is SQL Server
       // reached with Windows authentication on this computer - a login FROM
@@ -218,8 +259,9 @@ namespace HM
    // link the service's account could change refused, one through a junction
    // the administrators alone control held to where it leads; which folders a
    // grant may reach, a malicious
-   // [Directories] value among them; and the logon /Register passes for each
-   // --service-account. See the definition.
+   // [Directories] value among them; the logon /Register passes for each
+   // --service-account; and what /ProtectFolders makes of a folder and a file
+   // that inherit BUILTIN\Users' Read (TestProtect_). See the definition.
    class ServiceAccountTester
    {
    public:

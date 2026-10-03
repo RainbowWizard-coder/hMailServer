@@ -623,6 +623,25 @@ cannot open a SQL Server database reached with Windows authentication: the insta
 such move on 3 October 2026. Found by the review of the installer's fixes and the sweep after it.
 [ServiceAccount.md](hmailserver/docs/ServiceAccount.md), "What an administrator's command writes".
 
+Every user of a Windows computer that runs hMailServer could read its mail. The installer makes the `Data`, `Logs`,
+`Temp`, `Database` and `Events` folders in the program folder, `C:\Program Files\hMailServer` by default, and left
+them and `Bin\hMailServer.INI` with the permissions Program Files hands down, which give `BUILTIN\Users` Read. Any
+account that can sign in to the computer - a Remote Desktop server's users, a shared machine's, a service running as
+an ordinary account - could read every message; the logs, with their addresses, subjects and SMTP, IMAP and POP3
+conversations; the built-in database, with the accounts' password hashes and the stored secrets' sealed values,
+whenever the service that keeps its file open is stopped; a key file an administrator put in `Data\Certificates`; the
+event scripts; and `hMailServer.INI`, with the database's password - sealed with the machine's DPAPI key, which any
+account on the machine may use to unseal it - and the administrator password's hash and second factor. A data folder
+an administrator moved under a folder at a drive's root, behind a junction, took that folder's permissions instead
+once anything rewrote its own: on Windows Server, Users' Read and the right to make files and folders in it; on a
+Windows client, Authenticated Users' Modify. Every release of this project, 6.0.0 to 6.3.5, installs so, as the
+original hMailServer's installer did. 6.3.6's installer makes the six private to SYSTEM, the Administrators and the
+service at every installation and upgrade, whatever account the service runs as (What changes on upgrade, item 45).
+On Linux the AppImage made its folders under the user's umask, 0755 under the usual 022, in a home other users may
+enter on many distributions; it now makes them 0700. The packages' folders were 0750 and their configuration 0640
+already. Found by the project's own review (CVE requested). [ServiceAccount.md](hmailserver/docs/ServiceAccount.md),
+"What the other users of the computer may read".
+
 With bounce processing or complaint processing on, or a mailing list the list manager runs (none is by default),
 reading an incoming delivery status notification (RFC 3464) or abuse feedback report (RFC 5965) could hold a delivery
 thread for a minute and more. The reader of the returned message's headers part dropped the blank lines some senders
@@ -1402,6 +1421,25 @@ project's own review.
     question it asks names the database it could not read, and Yes moves the service as before. A silent move then
     waits, as it does for a folder nobody approved, and Setup says what to run; an upgrade of a service already moved
     goes on. A database not set up yet names nothing, and is no 7.
+45. **The data, log, temp, database and event folders and `hMailServer.INI` are the administrators' and the service's
+    alone.** Setup runs `hMailServer.exe /ProtectFolders` at every installation and upgrade of the server, before the
+    database step and whatever account the service runs as: the program folder's own `Data`, `Logs`, `Temp`, `Database`
+    and `Events` and `Bin\hMailServer.INI` stop inheriting what the folder above them hands down - `BUILTIN\Users`' Read,
+    `ALL APPLICATION PACKAGES`, `CREATOR OWNER`, and on a data folder moved behind an administrator's junction the drive
+    root's entries - and keep SYSTEM and the Administrators, with full control, the service's grant, every deny entry
+    and every entry of their own; the service is given Read on `hMailServer.INI`. On a large message store the first
+    run takes minutes, while Windows hands the change down; after that it finds them private and changes nothing. A
+    folder the configuration names outside the program folder, a folder approved for the service, the backup and PST
+    import folders, and a key file in `Data\Certificates`, `Data\DKIM` or `Data\ACME` with permissions of its own, are
+    checked and not changed: a `CHECK` line in the setup log names who may read each and the `icacls` that closes it. A
+    run that does not end in 0 does not fail the installation; setup says so. What an administrator who relied on the
+    old permissions does: an account that is not an administrator - a script, a backup program or a monitoring agent
+    that read the logs or the message store, or an administrator's own program not run as administrator - is given an
+    entry of its own (`icacls "<folder>" /grant "<account>:(OI)(CI)RX"`), which later runs keep; Explorer's *Continue*
+    on such a folder adds the administrator's own account the same way. The Control Panel not run as administrator
+    says *Could not read the file* on its live log page and its message-store check, where it found no log folder;
+    run it as administrator to see them. An editor that saves `hMailServer.INI` by replacing the file gives it
+    `Bin`'s permissions again; run `hMailServer.exe /ProtectFolders` after it.
 
 ### Downloads and the release
 

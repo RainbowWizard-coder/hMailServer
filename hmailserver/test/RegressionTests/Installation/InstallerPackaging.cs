@@ -824,6 +824,59 @@ namespace RegressionTests.Installation
       }
 
       [Test]
+      [Description("Every installation and upgrade of the server makes the program's Data, Logs, Temp, Database and Events folders and hMailServer.INI private to SYSTEM, the Administrators and the service - hMailServer.exe /ProtectFolders, whatever account the service runs as, before the database step. Until 6.3.6 they inherited BUILTIN\\Users' Read from Program Files, and every user of the computer could read the mail, the logs, the built-in database and the database's password (the installer smoke VM, 3 October 2026).")]
+      public void TheProgramsSecretsAreMadePrivateAtEveryInstallation()
+      {
+         string extension = ReadInstallerScript("hMailServerInnoExtension.iss");
+         string tasks = CodeBody(extension, "RunPostInstallTasks");
+
+         int registered = tasks.IndexOf("RegisterHMailServerService(FirstRegistrationChoice(", StringComparison.Ordinal);
+         int protect = tasks.IndexOf("ProtectFolders();", StringComparison.Ordinal);
+         int granted = tasks.IndexOf("GrantServiceAccess()", StringComparison.Ordinal);
+         int database = tasks.IndexOf("DBSetupQuick.exe", StringComparison.Ordinal);
+         Assert.GreaterOrEqual(protect, 0, "RunPostInstallTasks does not make the program's folders and hMailServer.INI private.");
+         Assert.Less(registered, protect, "The folders are made private before the service is registered, which a failed registration then skips nothing of - keep the order the steps are said in.");
+         Assert.Less(protect, granted, "The folders are made private after the grant, so a grant that fails the installation leaves them readable by every user.");
+         Assert.Less(protect, database, "The folders are made private after the database step, which makes the built-in database and starts the service that writes the logs.");
+
+         // Whatever account the service runs as: no condition stands between the
+         // statement before it and the call - a LocalSystem service's folders were
+         // as readable as the virtual account's.
+         int statementBefore = tasks.LastIndexOf(";", protect - 1, StringComparison.Ordinal);
+         string between = Regex.Replace(tasks.Substring(statementBefore + 1, protect - statementBefore - 1), @"//[^\n]*", "");
+         Assert.IsFalse(Regex.IsMatch(between, @"\b(if|then|else|ServiceNeedsGrants|MoveServiceAfterDatabase)\b", RegexOptions.IgnoreCase),
+            "/ProtectFolders runs only under a condition; it is to run at every installation and upgrade of the server.");
+
+         string run = CodeBody(extension, "ProtectFolders");
+         StringAssert.Contains("/ProtectFolders", run);
+         Assert.IsFalse(Regex.IsMatch(run, @"(?<!Suppressible)MsgBox\("),
+            "ProtectFolders uses a message box that /SUPPRESSMSGBOXES does not suppress, which a silent installation waits on for ever.");
+         StringAssert.Contains("Log('hMailServer.exe /ProtectFolders returned", run, "What /ProtectFolders said does not go into the setup log.");
+
+         string server = ReadRepositoryFile(@"hmailserver\source\Server\hMailServer\hMailServer.cpp");
+         StringAssert.Contains("_T(\"/ProtectFolders\")", server, "hMailServer.exe does not know /ProtectFolders, which the installer runs.");
+
+         // The verb runs elevated and writes nothing where the service can (R3);
+         // it takes its folders from where the program is, never from
+         // hMailServer.INI, holds each from the drive's root while it changes it,
+         // and gives the service Read on hMailServer.INI, which it reads under
+         // every account.
+         string account = ReadRepositoryFile(@"hmailserver\source\Server\Common\Util\ServiceAccount.cpp");
+         Match verb = Regex.Match(account, @"ServiceAccount::RunProtectCommand\([^)]*\)\s*\{(.*?)\n   \}", RegexOptions.Singleline);
+         Assert.IsTrue(verb.Success, "ServiceAccount::RunProtectCommand is not there.");
+         string body = verb.Groups[1].Value;
+         Assert.IsTrue(Regex.IsMatch(body, @"^(?:\s*//[^\n]*\n)*\s*Logger::ForbidWritesForThisProcess\(\);"),
+            "RunProtectCommand does not forbid the log writes of its elevated process first.");
+         StringAssert.Contains("ProgramFolderOfThisBinary_(program, executable)", body, "/ProtectFolders does not find the program folder from where it is.");
+         foreach (string folder in new[] { "_T(\"Data\")", "_T(\"Logs\")", "_T(\"Temp\")", "_T(\"Database\")", "_T(\"Events\")", "_T(\"hMailServer.INI\")" })
+            StringAssert.Contains(folder, body, "/ProtectFolders does not make " + folder + " private.");
+         StringAssert.Contains("pin.Pin(target, detail, &guarded)", body, "/ProtectFolders does not hold a folder from the drive's root, through a link only the administrators control, while it changes it.");
+         StringAssert.Contains("ProtectFile_(target, sid, secret.serviceReads", body, "hMailServer.INI is not made private through a handle opened without following links.");
+         Assert.IsTrue(Regex.IsMatch(body, @"_T\(""hMailServer\.INI""\)\),[^\n]*,\s*false,\s*true\s*\}\);"),
+            "hMailServer.INI is made private without the service's Read, and a service moved off LocalSystem could not read its configuration.");
+      }
+
+      [Test]
       [Description("Before the move to the virtual account the installer gives NT SERVICE\\hMailServer its login on SQL Server with Windows authentication (hMailServer.exe --grant-database-login), and a service it moved is held to opening its database and moved back to LocalSystem when it does not, failing the installation in words of its own. Until 6.3.6 a new installation on SQL Server with Windows authentication ended with exit 0 on a server that could not open its database (the installer smoke VM, 2 October 2026).")]
       public void TheMovedServiceIsGivenItsSqlServerLoginAndHeldToOpeningItsDatabase()
       {

@@ -1372,6 +1372,402 @@ namespace HM
          return String();
       }
 
+      // The groups that hold ordinary accounts, or programs in an app container,
+      // as SIDs: what the program's folders of mail, logs, keys and scripts, and
+      // hMailServer.INI, are closed to (RunProtectCommand), and what its CHECK
+      // lines name. A domain's Domain Users group (S-1-5-21-...-513) is one of
+      // them too (IsBroad_).
+      const wchar_t *const BroadSids_[] = {
+         L"S-1-1-0",       // Everyone
+         L"S-1-2-0",       // LOCAL
+         L"S-1-2-1",       // CONSOLE LOGON
+         L"S-1-5-2",       // NETWORK
+         L"S-1-5-3",       // BATCH
+         L"S-1-5-4",       // INTERACTIVE
+         L"S-1-5-6",       // SERVICE
+         L"S-1-5-7",       // ANONYMOUS LOGON
+         L"S-1-5-11",      // Authenticated Users
+         L"S-1-5-13",      // TERMINAL SERVER USER
+         L"S-1-5-14",      // REMOTE INTERACTIVE LOGON
+         L"S-1-5-32-545",  // Users
+         L"S-1-5-32-546",  // Guests
+         L"S-1-5-32-547",  // Power Users
+         L"S-1-5-32-555",  // Remote Desktop Users
+         L"S-1-15-2-1",    // ALL APPLICATION PACKAGES
+         L"S-1-15-2-2",    // ALL RESTRICTED APPLICATION PACKAGES
+      };
+
+      bool IsBroad_(const String &sidText)
+      {
+         for (const wchar_t *broad : BroadSids_)
+         {
+            if (sidText.CompareNoCase(broad) == 0)
+               return true;
+         }
+         return sidText.Left(9).CompareNoCase(_T("S-1-5-21-")) == 0 && sidText.Right(4) == _T("-513");
+      }
+
+      // An account as Windows names it - BUILTIN\Users, APPLICATION PACKAGE
+      // AUTHORITY\ALL APPLICATION PACKAGES - or its SID when it has no name.
+      String AccountName_(PSID sid)
+      {
+         wchar_t name[256];
+         wchar_t domain[256];
+         DWORD nameLength = 256;
+         DWORD domainLength = 256;
+         SID_NAME_USE use;
+         if (!LookupAccountSidW(nullptr, sid, name, &nameLength, domain, &domainLength, &use))
+            return SidText_(sid);
+         return domain[0] != 0 ? String(domain) + _T("\\") + String(name) : String(name);
+      }
+
+      // The broad groups (IsBroad_) an allow entry that applies to what is at path
+      // lets read it - list a folder, read a file - each as its name and its SID.
+      // Empty when none may, or when the permissions cannot be read.
+      std::vector<std::pair<String, String> > ReadableByBroad_(const String &path)
+      {
+         std::vector<std::pair<String, String> > who;
+         Permissions_ permissions;
+         String error;
+         if (!ReadPermissions_(path, permissions, error))
+            return who;
+         if (permissions.dacl == nullptr)
+         {
+            who.push_back(std::make_pair(String(_T("Everyone (it has no permissions list at all)")), String(_T("S-1-1-0"))));
+            return who;
+         }
+
+         ACL_SIZE_INFORMATION size;
+         if (!GetAclInformation(permissions.dacl, &size, sizeof(size), AclSizeInformation))
+            return who;
+
+         for (DWORD index = 0; index < size.AceCount; index++)
+         {
+            LPVOID entry = nullptr;
+            if (!GetAce(permissions.dacl, index, &entry) || entry == nullptr)
+               continue;
+
+            const ACE_HEADER *header = (const ACE_HEADER *) entry;
+            if (header->AceType != ACCESS_ALLOWED_ACE_TYPE || (header->AceFlags & INHERIT_ONLY_ACE) != 0)
+               continue;
+
+            const ACCESS_ALLOWED_ACE *allow = (const ACCESS_ALLOWED_ACE *) entry;
+            if ((FileRights_(allow->Mask) & FILE_READ_DATA) == 0)
+               continue;
+
+            const String sidText = SidText_((PSID) &allow->SidStart);
+            if (!IsBroad_(sidText))
+               continue;
+
+            bool listed = false;
+            for (const auto &already : who)
+               listed = listed || already.second.CompareNoCase(sidText) == 0;
+            if (!listed)
+               who.push_back(std::make_pair(AccountName_((PSID) &allow->SidStart), sidText));
+         }
+
+         return who;
+      }
+
+      // The names alone, "A, B and C".
+      String NamesOf_(const std::vector<std::pair<String, String> > &who)
+      {
+         String names;
+         for (size_t index = 0; index < who.size(); index++)
+         {
+            if (index > 0)
+               names += index + 1 == who.size() ? _T(" and ") : _T(", ");
+            names += who[index].first;
+         }
+         return names;
+      }
+
+      bool IsDenyEntry_(BYTE type)
+      {
+         return type == ACCESS_DENIED_ACE_TYPE || type == ACCESS_DENIED_OBJECT_ACE_TYPE ||
+            type == ACCESS_DENIED_CALLBACK_ACE_TYPE || type == ACCESS_DENIED_CALLBACK_OBJECT_ACE_TYPE;
+      }
+
+      // Whether permissions are already what PrivateAcl_ makes: inherited from
+      // nothing - so nothing a folder above hands down reaches it - and, with
+      // serviceReads, letting the service's SID read.
+      bool AlreadyPrivate_(const Permissions_ &permissions, PSID service, bool serviceReads)
+      {
+         if (!IsProtected_(permissions))
+            return false;
+         if (!serviceReads)
+            return true;
+         bool explicitDeny = false;
+         bool inheritedDeny = false;
+         return Covers_(permissions.dacl, service, ServiceAccount::RightsRead, false, explicitDeny, inheritedDeny);
+      }
+
+      // The permissions a folder or a file of the server's secrets is given: no
+      // longer inherited, so that what the folder above hands down - Users' Read
+      // from Program Files, the right to make files and folders that a folder at
+      // a drive's root hands every user on Windows Server, Authenticated Users'
+      // Modify on a Windows client - stops here. Of what it had:
+      //   - every deny entry is kept, an inherited one as an entry of its own -
+      //     a deny only ever takes away;
+      //   - every explicit entry is kept: an administrator's own, and what
+      //     /GrantServiceAccess gave the service's SID;
+      //   - an inherited allow entry for the service's SID is kept as an entry of
+      //     its own - the Read on hMailServer.INI that Bin's grant hands down;
+      //   - SYSTEM and the Administrators get full control, handed down to
+      //     everything below, in place of what they inherited;
+      //   - every other inherited allow entry is dropped, and named in dropped -
+      //     BUILTIN\Users, ALL APPLICATION PACKAGES, CREATOR OWNER and the rest;
+      //   - with serviceReads, the service's SID gets Read when nothing above
+      //     gives it that: hMailServer.INI, which the service reads under every
+      //     account and writes under none but LocalSystem.
+      // Deny entries first, as Windows' canonical order has them. nullptr, with
+      // detail, when it cannot be built.
+      PACL PrivateAcl_(PACL existing, PSID service, bool directory, bool serviceReads, std::vector<BYTE> &buffer, std::vector<String> &dropped, String &detail)
+      {
+         BYTE systemBuffer[SECURITY_MAX_SID_SIZE];
+         BYTE administratorsBuffer[SECURITY_MAX_SID_SIZE];
+         DWORD systemSize = sizeof(systemBuffer);
+         DWORD administratorsSize = sizeof(administratorsBuffer);
+         PSID system = (PSID) systemBuffer;
+         PSID administrators = (PSID) administratorsBuffer;
+         if (!CreateWellKnownSid(WinLocalSystemSid, nullptr, system, &systemSize) ||
+             !CreateWellKnownSid(WinBuiltinAdministratorsSid, nullptr, administrators, &administratorsSize))
+         {
+            detail = Formatter::Format(_T("the SIDs of SYSTEM and the Administrators could not be made (Windows error {0})"), (int) GetLastError());
+            return nullptr;
+         }
+
+         ACL_SIZE_INFORMATION size;
+         memset(&size, 0, sizeof(size));
+         size.AclBytesInUse = sizeof(ACL);
+         DWORD revision = ACL_REVISION;
+         if (existing != nullptr)
+         {
+            if (!GetAclInformation(existing, &size, sizeof(size), AclSizeInformation))
+            {
+               detail = Formatter::Format(_T("its permissions could not be read (Windows error {0})"), (int) GetLastError());
+               return nullptr;
+            }
+            if (existing->AclRevision == ACL_REVISION_DS)
+               revision = ACL_REVISION_DS;
+         }
+
+         const DWORD extra = 3 * (DWORD) (sizeof(ACCESS_ALLOWED_ACE) + SECURITY_MAX_SID_SIZE);
+         const DWORD aclSize = (size.AclBytesInUse + extra + sizeof(DWORD) - 1) & ~((DWORD) sizeof(DWORD) - 1);
+         buffer.assign(aclSize, 0);
+         PACL acl = (PACL) buffer.data();
+         if (!InitializeAcl(acl, aclSize, revision))
+         {
+            detail = Formatter::Format(_T("the new permissions could not be built (Windows error {0})"), (int) GetLastError());
+            return nullptr;
+         }
+
+         // An entry copied as one of the folder's own: the same entry with its
+         // inherited mark taken off.
+         auto copyOwn = [&](const ACE_HEADER *header) -> bool
+         {
+            std::vector<BYTE> copy((const BYTE *) header, (const BYTE *) header + header->AceSize);
+            ((ACE_HEADER *) copy.data())->AceFlags &= (BYTE) ~INHERITED_ACE;
+            if (AddAce(acl, revision, MAXDWORD, copy.data(), header->AceSize))
+               return true;
+            detail = Formatter::Format(_T("an existing entry could not be copied (Windows error {0})"), (int) GetLastError());
+            return false;
+         };
+
+         const BYTE handDown = directory ? (BYTE) (OBJECT_INHERIT_ACE | CONTAINER_INHERIT_ACE) : (BYTE) 0;
+         for (int pass = 0; pass < 3; pass++)
+         {
+            // Pass 0 the deny entries, pass 1 the explicit allow entries, pass 2
+            // SYSTEM's and the Administrators' full control and the inherited
+            // entries for the service's SID.
+            if (pass == 2)
+            {
+               // Not again where an entry of the object's own already gives it - a
+               // file made private before, whose service Read an administrator
+               // took away, is given that back and nothing twice.
+               for (PSID full : { system, administrators })
+               {
+                  bool explicitDeny = false;
+                  bool inheritedDeny = false;
+                  if (Covers_(acl, full, FILE_ALL_ACCESS, directory, explicitDeny, inheritedDeny))
+                     continue;
+                  if (!AddAccessAllowedAceEx(acl, revision, handDown, FILE_ALL_ACCESS, full))
+                  {
+                     detail = Formatter::Format(_T("SYSTEM's and the Administrators' entries could not be added (Windows error {0})"), (int) GetLastError());
+                     return nullptr;
+                  }
+               }
+            }
+
+            for (DWORD index = 0; existing != nullptr && index < size.AceCount; index++)
+            {
+               LPVOID entry = nullptr;
+               if (!GetAce(existing, index, &entry) || entry == nullptr)
+               {
+                  detail = Formatter::Format(_T("entry {0} of its permissions could not be read"), (int) index);
+                  return nullptr;
+               }
+
+               const ACE_HEADER *header = (const ACE_HEADER *) entry;
+               const bool inherited = (header->AceFlags & INHERITED_ACE) != 0;
+               const bool deny = IsDenyEntry_(header->AceType);
+
+               if (pass == 0)
+               {
+                  if (deny && !copyOwn(header))
+                     return nullptr;
+                  continue;
+               }
+               if (deny)
+                  continue;
+
+               if (pass == 1)
+               {
+                  if (!inherited && !copyOwn(header))
+                     return nullptr;
+                  continue;
+               }
+
+               if (!inherited)
+                  continue;
+
+               if (header->AceType != ACCESS_ALLOWED_ACE_TYPE)
+               {
+                  const String kind = _T("an inherited entry of another kind");
+                  if (std::find(dropped.begin(), dropped.end(), kind) == dropped.end())
+                     dropped.push_back(kind);
+                  continue;
+               }
+
+               const PSID who = (PSID) &((const ACCESS_ALLOWED_ACE *) entry)->SidStart;
+               if (EqualSid(who, service))
+               {
+                  if (!copyOwn(header))
+                     return nullptr;
+               }
+               else if (!EqualSid(who, system) && !EqualSid(who, administrators))
+               {
+                  const String name = AccountName_(who);
+                  if (std::find(dropped.begin(), dropped.end(), name) == dropped.end())
+                     dropped.push_back(name);
+               }
+            }
+         }
+
+         bool explicitDeny = false;
+         bool inheritedDeny = false;
+         if (serviceReads && !Covers_(acl, service, ServiceAccount::RightsRead, false, explicitDeny, inheritedDeny) && !explicitDeny)
+         {
+            if (!AddAccessAllowedAceEx(acl, revision, handDown, ServiceAccount::RightsRead, service))
+            {
+               detail = Formatter::Format(_T("the service's Read could not be added (Windows error {0})"), (int) GetLastError());
+               return nullptr;
+            }
+         }
+
+         return acl;
+      }
+
+      // The names dropped, "A, B and C".
+      String DroppedNames_(const std::vector<String> &dropped)
+      {
+         String names;
+         for (size_t index = 0; index < dropped.size(); index++)
+         {
+            if (index > 0)
+               names += index + 1 == dropped.size() ? _T(" and ") : _T(", ");
+            names += dropped[index];
+         }
+         return names;
+      }
+
+      // A file of secrets made private (PrivateAcl_) through a handle opened
+      // without following links, with every folder above it held (PathPin_), and
+      // only when it is a file with one name: a hard link elsewhere would carry
+      // the permissions to wherever else the file is. GrantAlreadyThere, and
+      // nothing written, when its permissions are private already.
+      ServiceAccount::GrantResult ProtectFile_(const String &file, const String &sidText, bool serviceReads, String &detail, std::vector<String> &dropped, const Guarded_ *guarded)
+      {
+         detail.Empty();
+         dropped.clear();
+
+         PSID sid = nullptr;
+         if (!ConvertStringSidToSidW(sidText.c_str(), &sid))
+         {
+            detail = Formatter::Format(_T("{0} is not a SID"), sidText);
+            return ServiceAccount::GrantFailed;
+         }
+         SidRelease_ releaseSid(sid);
+
+         PathPin_ pin;
+         const String folder = FolderOf_(Normalised_(file));
+         if (folder.IsEmpty() || !pin.Pin(folder, detail, guarded))
+         {
+            if (folder.IsEmpty())
+               detail = _T("it is not in a folder");
+            return ServiceAccount::GrantFailed;
+         }
+
+         HANDLE handle = CreateFileW(Normalised_(file).c_str(), READ_CONTROL | WRITE_DAC | FILE_READ_ATTRIBUTES,
+            FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, nullptr, OPEN_EXISTING, FILE_FLAG_OPEN_REPARSE_POINT, nullptr);
+         if (handle == INVALID_HANDLE_VALUE)
+         {
+            detail = Formatter::Format(_T("it could not be opened (Windows error {0})"), (int) GetLastError());
+            return ServiceAccount::GrantFailed;
+         }
+
+         struct HandleRelease_
+         {
+            explicit HandleRelease_(HANDLE held) : handle(held) {}
+            // Releases what it holds when it goes: a copy would release it twice.
+            HandleRelease_(const HandleRelease_ &) = delete;
+            HandleRelease_ &operator=(const HandleRelease_ &) = delete;
+
+            HANDLE handle;
+            ~HandleRelease_() { CloseHandle(handle); }
+         } releaseHandle(handle);
+
+         BY_HANDLE_FILE_INFORMATION information;
+         if (!GetFileInformationByHandle(handle, &information))
+         {
+            detail = Formatter::Format(_T("it could not be examined (Windows error {0})"), (int) GetLastError());
+            return ServiceAccount::GrantFailed;
+         }
+         if ((information.dwFileAttributes & (FILE_ATTRIBUTE_DIRECTORY | FILE_ATTRIBUTE_REPARSE_POINT)) != 0)
+         {
+            detail = _T("it is a folder, a junction or a link, not a file");
+            return ServiceAccount::GrantFailed;
+         }
+         if (information.nNumberOfLinks != 1)
+         {
+            detail = Formatter::Format(_T("it has {0} names on the disk (hard links), and permissions set on it would reach it under every one of them; it was left as it is"), (int) information.nNumberOfLinks);
+            return ServiceAccount::GrantFailed;
+         }
+
+         Permissions_ permissions;
+         const DWORD read = GetSecurityInfo(handle, SE_FILE_OBJECT, DACL_SECURITY_INFORMATION, nullptr, nullptr, &permissions.dacl, nullptr, &permissions.descriptor);
+         if (read != ERROR_SUCCESS)
+         {
+            detail = Formatter::Format(_T("its permissions could not be read (Windows error {0})"), (int) read);
+            return ServiceAccount::GrantFailed;
+         }
+         if (AlreadyPrivate_(permissions, sid, serviceReads))
+            return ServiceAccount::GrantAlreadyThere;
+
+         std::vector<BYTE> buffer;
+         PACL acl = PrivateAcl_(permissions.dacl, sid, false, serviceReads, buffer, dropped, detail);
+         if (acl == nullptr)
+            return ServiceAccount::GrantFailed;
+
+         const DWORD written = SetSecurityInfo(handle, SE_FILE_OBJECT, DACL_SECURITY_INFORMATION | PROTECTED_DACL_SECURITY_INFORMATION, nullptr, nullptr, acl, nullptr);
+         if (written != ERROR_SUCCESS)
+         {
+            detail = Formatter::Format(_T("its permissions could not be written (Windows error {0})"), (int) written);
+            return ServiceAccount::GrantFailed;
+         }
+         return ServiceAccount::GrantMade;
+      }
+
       // The box --confirm asks in, on the desktop of this elevated process.
       // True for Yes.
       bool AskToProceed_(const Plan_ &plan, const String &databaseUnread)
@@ -2121,6 +2517,292 @@ namespace HM
       return 0;
    }
 
+   // ---- the program's secrets, private to the administrators and the service
+
+   ServiceAccount::GrantResult
+   ServiceAccount::Protect(const String &path, const String &sid, bool directory, bool serviceReads, String &detail, std::vector<String> &dropped)
+   {
+      detail.Empty();
+      dropped.clear();
+
+      PSID binary = nullptr;
+      if (!ConvertStringSidToSidW(sid.c_str(), &binary))
+      {
+         detail = Formatter::Format(_T("{0} is not a SID"), sid);
+         return GrantFailed;
+      }
+      SidRelease_ release(binary);
+
+      Permissions_ permissions;
+      if (!ReadPermissions_(path, permissions, detail))
+         return GrantFailed;
+      if (AlreadyPrivate_(permissions, binary, serviceReads))
+         return GrantAlreadyThere;
+
+      std::vector<BYTE> buffer;
+      PACL acl = PrivateAcl_(permissions.dacl, binary, directory, serviceReads, buffer, dropped, detail);
+      if (acl == nullptr)
+         return GrantFailed;
+
+      // Windows hands the new entries down to everything below a folder as part
+      // of this call, and takes away what the folder handed down before - on a
+      // large message store, minutes the first time, and nothing after that,
+      // since a second run finds the permissions private already. A file or a
+      // folder below with permissions of its own (ProtectedFile) is left as it is.
+      std::wstring writable(path.c_str());
+      const DWORD result = SetNamedSecurityInfoW(&writable[0], SE_FILE_OBJECT, DACL_SECURITY_INFORMATION | PROTECTED_DACL_SECURITY_INFORMATION, nullptr, nullptr, acl, nullptr);
+      if (result != ERROR_SUCCESS)
+      {
+         detail = Formatter::Format(_T("its permissions could not be written (Windows error {0})"), (int) result);
+         return GrantFailed;
+      }
+      return GrantMade;
+   }
+
+   int
+   ServiceAccount::RunProtectCommand(const ProtectOptions &options)
+   {
+      // Elevated, as the grant is, and for the same reason it writes nothing
+      // where the service can write: the log folder is the service's, and a
+      // line written there by an administrator's process could go wherever a
+      // link the service planted leads (R3).
+      Logger::ForbidWritesForThisProcess();
+
+      if (!ProcessIsAdministrator())
+      {
+         SayLine_(true, _T("hMailServer.exe /ProtectFolders changes the permissions of the program's data, log, temp, database and event folders and of hMailServer.INI, which takes an administrator: run it from an elevated Command Prompt. Nothing was changed."));
+         return 3;
+      }
+
+      String program;
+      String executable;
+      if (!ProgramFolderOfThisBinary_(program, executable))
+      {
+         SayLine_(true, Formatter::Format(_T("{0} is not in the Bin folder of an installation, and the folders this protects are found from there, never from hMailServer.INI. Nothing was changed."), executable));
+         return 2;
+      }
+
+      const String sid = ServiceSid(_T("hMailServer"));
+      if (sid.IsEmpty())
+      {
+         SayLine_(true, _T("The service's SID could not be worked out. Nothing was changed."));
+         return 1;
+      }
+
+      if (options.reportOnly)
+         SayLine_(false, _T("A report only: nothing below is changed."));
+      SayLine_(false, Formatter::Format(_T("The program folder is {0}, where this program is."), program));
+      SayLine_(false, _T("Each of these is made private: SYSTEM and the Administrators have full control, NT SERVICE\\hMailServer what /GrantServiceAccess gives it, and Read on hMailServer.INI; every deny entry and every entry of its own is kept; and nothing the folder above hands down reaches it - the Read that Program Files hands BUILTIN\\Users above all, which let every user of this computer read the mail."));
+
+      IniFileSettings *ini = IniFileSettings::Instance();
+      ini->LoadSettings();
+      const Guarded_ guarded = MachineGuarded_(program);
+
+      int made = 0;
+      int there = 0;
+      int failed = 0;
+      int checks = 0;
+      std::vector<String> notes;
+
+      // From trusted places alone: the program folder this binary is in, as the
+      // grant takes its folders. A folder hMailServer.INI or the database names
+      // elsewhere is only checked, below - it may be shared on purpose, and the
+      // configuration is not where an elevated program takes a path to change.
+      struct Secret_
+      {
+         String path;
+         String what;
+         bool directory;
+         bool serviceReads;
+      };
+      const String bin = FileUtilities::Combine(program, _T("Bin"));
+      std::vector<Secret_> secrets;
+      secrets.push_back({ FileUtilities::Combine(program, _T("Data")), _T("the message store, and the keys, certificates and update files in it"), true, false });
+      secrets.push_back({ FileUtilities::Combine(program, _T("Logs")), _T("the logs - addresses, subjects, whole SMTP, IMAP and POP3 conversations - and the crash dumps"), true, false });
+      secrets.push_back({ FileUtilities::Combine(program, _T("Temp")), _T("the messages being received and scanned"), true, false });
+      secrets.push_back({ FileUtilities::Combine(program, _T("Database")), _T("the built-in database: the accounts, their password hashes, the stored secrets"), true, false });
+      secrets.push_back({ FileUtilities::Combine(program, _T("Events")), _T("the event scripts, which may hold passwords"), true, false });
+      secrets.push_back({ FileUtilities::Combine(bin, _T("hMailServer.INI")), _T("the database's password, the administrator password's hash and its second factor"), false, true });
+
+      // What a folder or file below may still let a broad group read, by an
+      // entry of its own: said, never changed.
+      auto checkKept = [&](const String &shown, const String &readPath)
+      {
+         const std::vector<std::pair<String, String> > who = ReadableByBroad_(readPath);
+         if (who.empty())
+            return;
+         String sids;
+         for (const auto &entry : who)
+            sids += _T(" *") + entry.second;
+         checks++;
+         SayLine_(true, Formatter::Format(_T("  CHECK           {0} - {1} may still read it, by an entry of its own on it, which an administrator gave and which is kept. If they should not: icacls \"{0}\" /remove:g{2}"),
+            shown, NamesOf_(who), sids));
+      };
+
+      for (const Secret_ &secret : secrets)
+      {
+         const String target = Normalised_(secret.path);
+         if (GetFileAttributesW(target.c_str()) == INVALID_FILE_ATTRIBUTES)
+         {
+            notes.push_back(Formatter::Format(_T("{0} does not exist, so it is not protected ({1})."), target, secret.what));
+            continue;
+         }
+
+         if (options.reportOnly)
+         {
+            const std::vector<std::pair<String, String> > who = ReadableByBroad_(target);
+            SayLine_(false, Formatter::Format(_T("  would protect   {0} - {1}{2}"), target, secret.what,
+               who.empty() ? String() : Formatter::Format(_T("; {0} may read it now"), NamesOf_(who))));
+            continue;
+         }
+
+         String detail;
+         std::vector<String> dropped;
+         String through;
+         String readPath = target;
+         GrantResult result = GrantFailed;
+         if (secret.directory)
+         {
+            PathPin_ pin;
+            if (!pin.Pin(target, detail, &guarded))
+            {
+               if (pin.Missing())
+               {
+                  notes.push_back(Formatter::Format(_T("{0} does not exist, so it is not protected ({1})."), target, secret.what));
+                  continue;
+               }
+            }
+            else
+            {
+               readPath = pin.GrantPath(target);
+               result = Protect(readPath, sid, true, secret.serviceReads, detail, dropped);
+               through = pin.Through();
+            }
+         }
+         else
+            result = ProtectFile_(target, sid, secret.serviceReads, detail, dropped, &guarded);
+
+         if (result == GrantMade)
+         {
+            made++;
+            SayLine_(false, Formatter::Format(_T("  made private    {0} - {1}"), target, secret.what));
+            if (!dropped.empty())
+               SayLine_(false, Formatter::Format(_T("                  no longer handed down to it: {0}."), DroppedNames_(dropped)));
+         }
+         else if (result == GrantAlreadyThere)
+         {
+            there++;
+            SayLine_(false, Formatter::Format(_T("  already private {0} - {1}"), target, secret.what));
+         }
+         else
+         {
+            failed++;
+            SayLine_(true, Formatter::Format(_T("  FAILED          {0} - {1}: {2}"), target, secret.what, detail));
+            continue;
+         }
+
+         if (!through.IsEmpty())
+            SayLine_(false, Formatter::Format(_T("                  through a link only the administrators may change, to {0}."), through));
+
+         checkKept(target, readPath);
+      }
+
+      // Each file or folder checked below once, by its full path.
+      std::vector<String> checked;
+
+      // Key and certificate files in the data folder with permissions of their
+      // own that a broad group may read - one moved in from elsewhere keeps the
+      // permissions it had there, and the data folder's no longer reach it.
+      // Said, with the icacls that gives it the folder's.
+      if (!options.reportOnly)
+      {
+         const String data = FileUtilities::Combine(program, _T("Data"));
+         std::vector<std::pair<String, int> > folders;
+         folders.push_back(std::make_pair(FileUtilities::Combine(data, _T("Certificates")), 0));
+         folders.push_back(std::make_pair(FileUtilities::Combine(data, _T("DKIM")), 0));
+         folders.push_back(std::make_pair(FileUtilities::Combine(data, _T("ACME")), 0));
+         for (size_t index = 0; index < folders.size(); index++)
+         {
+            const String folder = folders[index].first;
+            for (const String &file : FilesIn_(folder))
+            {
+               checked.push_back(Resolved_(file));
+               const std::vector<std::pair<String, String> > who = ReadableByBroad_(file);
+               if (who.empty())
+                  continue;
+               checks++;
+               SayLine_(true, Formatter::Format(_T("  CHECK           {0} - a key or certificate file {1} may read: its permissions are its own, as a file moved here from elsewhere keeps them. icacls \"{0}\" /reset gives it the data folder's."),
+                  file, NamesOf_(who)));
+            }
+            if (folders[index].second < 2)
+            {
+               for (const auto &below : Subfolders_(folder))
+               {
+                  if (!below.second)
+                     folders.push_back(std::make_pair(below.first, folders[index].second + 1));
+               }
+            }
+         }
+      }
+
+      // What the configuration names outside the program's own folders - a data,
+      // log or temp folder moved there in hMailServer.INI, a folder an
+      // administrator approved, the backup, archive and PST import folders, the
+      // key files - checked for a broad group's Read, and said, never changed.
+      std::vector<Named_> named;
+      named.push_back({ ini->GetDataDirectory(), _T("the data folder ([Directories] DataFolder)"), true, false });
+      named.push_back({ ini->GetLogDirectory(), _T("the log folder ([Directories] LogFolder)"), true, false });
+      named.push_back({ ini->GetTempDirectory(), _T("the temp folder ([Directories] TempFolder)"), true, false });
+      named.push_back({ ini->GetDatabaseDirectory(), _T("the database folder ([Directories] DatabaseFolder)"), true, false });
+      named.push_back({ ini->GetEventDirectory(), _T("the event folder ([Directories] EventFolder)"), false, false });
+      std::vector<std::pair<String, DWORD> > approved;
+      String listWhy;
+      if (ReadApproved_(approved, listWhy))
+      {
+         for (const auto &entry : approved)
+            named.push_back({ entry.first, _T("approved for the service by an administrator"), true, false });
+      }
+      String databaseWhy;
+      if (ini->GetDatabaseSettingsExists() && !ReadConfiguredPaths_(named, databaseWhy))
+         notes.push_back(Formatter::Format(_T("The database could not be read ({0}), so the backup, archive and PST import folders and the key files it names were not checked."), databaseWhy.IsEmpty() ? String(_T("no reason was given")) : databaseWhy));
+
+      for (const Named_ &item : named)
+      {
+         String path = item.path;
+         path.Trim();
+         if (path.IsEmpty() || !IsDrivePath_(path))
+            continue;
+         path = Resolved_(path);
+         if (GetFileAttributesW(path.c_str()) == INVALID_FILE_ATTRIBUTES)
+            continue;
+
+         bool covered = false;
+         for (const Secret_ &secret : secrets)
+            covered = covered || (secret.directory && IsUnder_(path, secret.path) && !item.isFile);
+         for (const String &already : checked)
+            covered = covered || SamePath_(already, path);
+         if (covered)
+            continue;
+         checked.push_back(path);
+
+         const std::vector<std::pair<String, String> > who = ReadableByBroad_(path);
+         if (who.empty())
+            continue;
+         String sids;
+         for (const auto &entry : who)
+            sids += _T(" *") + entry.second;
+         checks++;
+         SayLine_(true, Formatter::Format(_T("  CHECK           {0} - {1}: {2} may read it. It is outside the program's own folders, so it is not changed here. If they should not: icacls \"{0}\" /inheritance:d, then icacls \"{0}\" /remove:g{3}"),
+            path, item.what, NamesOf_(who), sids));
+      }
+
+      for (const String &note : notes)
+         SayLine_(false, note);
+
+      SayLine_(failed > 0, Formatter::Format(_T("Done: {0} made private, {1} already private, {2} failed, {3} to check."), made, there, failed, checks));
+      return failed > 0 ? 1 : 0;
+   }
+
    // ---- the service's own login on SQL Server -------------------------------
 
    namespace
@@ -2835,6 +3517,163 @@ namespace HM
                FailGrant_(Formatter::Format(_T("--service-account \"{0}\" is taken, and only a managed service account's name may be."), String(name)));
          }
       }
+
+      // A DACL from SDDL written on path, as icacls would - protected when the
+      // SDDL says D:P. The owner of a folder it made may: no privilege is needed.
+      bool SetDacl_(const String &path, const String &sddl)
+      {
+         PSECURITY_DESCRIPTOR descriptor = nullptr;
+         if (!ConvertStringSecurityDescriptorToSecurityDescriptorW(sddl.c_str(), SDDL_REVISION_1, &descriptor, nullptr))
+            return false;
+         BOOL present = FALSE;
+         BOOL defaulted = FALSE;
+         PACL dacl = nullptr;
+         GetSecurityDescriptorDacl(descriptor, &present, &dacl, &defaulted);
+         SECURITY_DESCRIPTOR_CONTROL control = 0;
+         DWORD revision = 0;
+         GetSecurityDescriptorControl(descriptor, &control, &revision);
+         const SECURITY_INFORMATION which = DACL_SECURITY_INFORMATION |
+            ((control & SE_DACL_PROTECTED) != 0 ? PROTECTED_DACL_SECURITY_INFORMATION : UNPROTECTED_DACL_SECURITY_INFORMATION);
+         std::wstring writable(path.c_str());
+         const bool set = SetNamedSecurityInfoW(&writable[0], SE_FILE_OBJECT, which, nullptr, nullptr, dacl, nullptr) == ERROR_SUCCESS;
+         LocalFree(descriptor);
+         return set;
+      }
+
+      // Whether path's DACL begins with an explicit deny entry for sid, as a
+      // canonical list has its denies first, and holds no inherited entry.
+      bool DeniesFirst_(const String &path, const String &sid)
+      {
+         Permissions_ permissions;
+         String error;
+         if (!ReadPermissions_(path, permissions, error) || permissions.dacl == nullptr)
+            return false;
+         LPVOID entry = nullptr;
+         if (!GetAce(permissions.dacl, 0, &entry) || entry == nullptr)
+            return false;
+         const ACE_HEADER *header = (const ACE_HEADER *) entry;
+         if (header->AceType != ACCESS_DENIED_ACE_TYPE || (header->AceFlags & INHERITED_ACE) != 0)
+            return false;
+         return SidText_((PSID) &((const ACCESS_DENIED_ACE *) entry)->SidStart).CompareNoCase(sid) == 0;
+      }
+
+      // What /ProtectFolders does to a folder and a file of secrets, on folders
+      // of the tester's own that hand down what Program Files hands a default
+      // installation's - BUILTIN\Users' Read - beside a deny entry and Read for
+      // the service's SID (Bin's grant): Users no longer reach the folder, a file
+      // already in it or one made after; the deny, an administrator's own entry
+      // and the service's grant stay; SYSTEM and the Administrators have full
+      // control handed down; the file keeps the service's Read as one of its
+      // own, and one that had none is given it; a second run changes nothing;
+      // and a file with two names is refused.
+      void TestProtect_(const String &directory, const String &sid, const String &other)
+      {
+         // What is made private is SYSTEM's and the Administrators': a tester that
+         // is neither could not write in the folder after, nor read it back.
+         // Skipped there alone, as TestLinks_ is; the bench's service is LocalSystem.
+         if (!ServiceAccount::ProcessIsAdministrator())
+            return;
+
+         const String backupOperators = _T("S-1-5-32-551");
+         const String users = _T("S-1-5-32-545");
+         const String outer = FileUtilities::Combine(directory, _T("protect"));
+         const String bare = FileUtilities::Combine(directory, _T("protect-bare"));
+         if (!FileUtilities::CreateDirectory(outer) || !FileUtilities::CreateDirectory(bare))
+            FailGrant_(_T("The tester's folders for /ProtectFolders could not be made."));
+
+         // As Program Files hands it down, with a deny entry for another SID and
+         // Read for the service's (Bin's grant).
+         const String handed = Formatter::Format(_T("D:P(D;OICI;FA;;;{0})(A;OICI;0x1200a9;;;BU)(A;OICI;FA;;;SY)(A;OICI;FA;;;BA)(A;OICI;0x1200a9;;;{1})"), other, sid);
+         if (!SetDacl_(outer, handed) || !SetDacl_(bare, _T("D:P(A;OICI;0x1200a9;;;BU)(A;OICI;FA;;;SY)(A;OICI;FA;;;BA)")))
+            FailGrant_(_T("The tester's folders could not be given the permissions Program Files hands down."));
+
+         const String secret = FileUtilities::Combine(outer, _T("Data"));
+         const String message = FileUtilities::Combine(secret, _T("message.eml"));
+         const String ini = FileUtilities::Combine(outer, _T("hMailServer.INI"));
+         const String bareIni = FileUtilities::Combine(bare, _T("hMailServer.INI"));
+         if (!FileUtilities::CreateDirectory(secret) || !FileUtilities::WriteToFile(message, AnsiString("Subject: secret")) ||
+             !FileUtilities::WriteToFile(ini, AnsiString("[Database]")) || !FileUtilities::WriteToFile(bareIni, AnsiString("[Database]")))
+            FailGrant_(_T("The tester's folder and files for /ProtectFolders could not be made."));
+
+         String detail;
+         if (ServiceAccount::Grant(secret, backupOperators, ServiceAccount::RightsReadExecute, true, detail) != ServiceAccount::GrantMade ||
+             ServiceAccount::Grant(secret, sid, ServiceAccount::RightsModify, true, detail) != ServiceAccount::GrantMade)
+            FailGrant_(_T("The administrator's entry and the service's grant could not be made on the tester's folder: ") + detail);
+
+         // Not vacuous: Users may read all three before.
+         if (ReadableByBroad_(secret).empty() || ReadableByBroad_(message).empty() || ReadableByBroad_(ini).empty())
+            FailGrant_(_T("The tester's folder and files do not let BUILTIN\\Users read them before /ProtectFolders, so nothing below would prove anything."));
+
+         std::vector<String> dropped;
+         if (ServiceAccount::Protect(secret, sid, true, false, detail, dropped) != ServiceAccount::GrantMade)
+            FailGrant_(_T("The folder was not made private: ") + detail);
+         if (!ProtectedPath_(secret))
+            FailGrant_(_T("The folder made private still inherits from the folder above it."));
+         if (dropped.empty() || DroppedNames_(dropped).Find(_T("Users")) < 0)
+            FailGrant_(_T("Making the folder private does not name BUILTIN\\Users among the entries no longer handed down: ") + DroppedNames_(dropped));
+         if (!ReadableByBroad_(secret).empty() || !ReadableByBroad_(message).empty())
+            FailGrant_(_T("BUILTIN\\Users may still read the folder made private, or the message already in it: ") + NamesOf_(ReadableByBroad_(message)));
+         const String after = FileUtilities::Combine(secret, _T("after.eml"));
+         if (!FileUtilities::WriteToFile(after, AnsiString("Subject: after")) || !ReadableByBroad_(after).empty())
+            FailGrant_(_T("A message made in the folder after it was made private may be read by BUILTIN\\Users."));
+         if (!DeniesFirst_(secret, other))
+            FailGrant_(_T("The inherited deny entry was not kept as the folder's own, first in its list."));
+         if (OwnEntries_(secret, backupOperators).size() != 1)
+            FailGrant_(_T("The administrator's own entry on the folder did not survive /ProtectFolders."));
+         if (!ServiceAccount::HasGrant(secret, sid, ServiceAccount::RightsModify, true, detail) ||
+             !ServiceAccount::HasGrant(message, sid, ServiceAccount::RightsModify, false, detail))
+            FailGrant_(_T("The service's grant on the folder, or what the message inherits of it, did not survive /ProtectFolders."));
+         for (const wchar_t *full : { L"S-1-5-18", L"S-1-5-32-544" })
+         {
+            if (!ServiceAccount::HasGrant(secret, String(full), FILE_ALL_ACCESS, true, detail) || !ServiceAccount::HasGrant(message, String(full), FILE_ALL_ACCESS, false, detail))
+               FailGrant_(Formatter::Format(_T("{0} does not have full control of the folder made private and of what is in it."), String(full)));
+         }
+         if (ServiceAccount::Protect(secret, sid, true, false, detail, dropped) != ServiceAccount::GrantAlreadyThere)
+            FailGrant_(_T("A second /ProtectFolders on the same folder did not find it private already."));
+
+         // hMailServer.INI: Users dropped, the service's Read - inherited from
+         // Bin's grant - kept as the file's own, and given where nothing gave it.
+         if (ProtectFile_(ini, sid, true, detail, dropped, nullptr) != ServiceAccount::GrantMade)
+            FailGrant_(_T("hMailServer.INI was not made private: ") + detail);
+         if (!ProtectedPath_(ini) || !ReadableByBroad_(ini).empty())
+            FailGrant_(_T("BUILTIN\\Users may still read the hMailServer.INI made private."));
+         if (!ServiceAccount::HasGrant(ini, sid, ServiceAccount::RightsRead, false, detail))
+            FailGrant_(_T("The service may no longer read the hMailServer.INI made private."));
+         if (ProtectFile_(ini, sid, true, detail, dropped, nullptr) != ServiceAccount::GrantAlreadyThere)
+            FailGrant_(_T("A second /ProtectFolders on hMailServer.INI did not find it private already."));
+
+         // A file made private whose service Read an administrator took away is
+         // given it back, and SYSTEM's and the Administrators' entries are not
+         // written twice.
+         if (!SetDacl_(ini, _T("D:P(A;;FA;;;SY)(A;;FA;;;BA)")) || ServiceAccount::HasGrant(ini, sid, ServiceAccount::RightsRead, false, detail))
+            FailGrant_(_T("The tester could not take the service's Read off its hMailServer.INI."));
+         if (ProtectFile_(ini, sid, true, detail, dropped, nullptr) != ServiceAccount::GrantMade || !ServiceAccount::HasGrant(ini, sid, ServiceAccount::RightsRead, false, detail))
+            FailGrant_(_T("A private hMailServer.INI without the service's Read was not given it back."));
+         if (OwnEntries_(ini, _T("S-1-5-18")).size() != 1 || OwnEntries_(ini, _T("S-1-5-32-544")).size() != 1)
+            FailGrant_(Formatter::Format(_T("hMailServer.INI made private again has {0} entries for SYSTEM and {1} for the Administrators; one each was expected."),
+               (int) OwnEntries_(ini, _T("S-1-5-18")).size(), (int) OwnEntries_(ini, _T("S-1-5-32-544")).size()));
+         if (ProtectFile_(bareIni, sid, true, detail, dropped, nullptr) != ServiceAccount::GrantMade ||
+             !ServiceAccount::HasGrant(bareIni, sid, ServiceAccount::RightsRead, false, detail) || !ReadableByBroad_(bareIni).empty())
+            FailGrant_(_T("An hMailServer.INI the service could not read before was not given its Read when made private."));
+
+         // A file with a second name is refused, and keeps what it had.
+         const String linked = FileUtilities::Combine(outer, _T("linked.ini"));
+         const String second = FileUtilities::Combine(outer, _T("second.ini"));
+         if (FileUtilities::WriteToFile(linked, AnsiString("[Database]")) && CreateHardLinkW(second.c_str(), linked.c_str(), nullptr))
+         {
+            if (ProtectFile_(second, sid, true, detail, dropped, nullptr) != ServiceAccount::GrantFailed || detail.IsEmpty())
+               FailGrant_(_T("A file with two names was made private through one of them."));
+            if (ProtectedPath_(linked) || ReadableByBroad_(linked).empty())
+               FailGrant_(_T("The refused file with two names had its permissions changed all the same."));
+         }
+
+         // What Users is not: the folder's own Read for Users, which an
+         // administrator gave, is kept - and reported (ReadableByBroad_).
+         if (ServiceAccount::Grant(secret, users, ServiceAccount::RightsReadExecute, true, detail) != ServiceAccount::GrantMade || ReadableByBroad_(secret).empty())
+            FailGrant_(_T("An entry of its own for BUILTIN\\Users, given after /ProtectFolders, is not seen as letting Users read the folder."));
+         if (ServiceAccount::Protect(secret, sid, true, false, detail, dropped) != ServiceAccount::GrantAlreadyThere || ReadableByBroad_(secret).empty())
+            FailGrant_(_T("/ProtectFolders took away an entry of the folder's own that an administrator gave."));
+      }
    }
 
    void
@@ -2988,6 +3827,10 @@ namespace HM
          // A junction the administrators alone control is gone through, and one
          // the service's account could change is refused (TestLinks_).
          TestLinks_(directory, sid);
+
+         // What /ProtectFolders makes of a folder and a file of secrets that
+         // inherit BUILTIN\Users' Read (TestProtect_).
+         TestProtect_(directory, sid, other);
 
          // The pin holds a plain path, and a held folder cannot be removed.
          {

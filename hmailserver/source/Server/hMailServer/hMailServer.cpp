@@ -1678,6 +1678,31 @@ extern "C" int WINAPI _tWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstan
       else
          iRet = HM::ServiceAccount::RunGrantCommand(grantOptions);
    }
+   else if (sLastParam.CompareNoCase(_T("/ProtectFolders")) == 0)
+   {
+      // The program folder's own Data, Logs, Temp, Database and Events folders
+      // and hMailServer.INI made private to SYSTEM, the Administrators and the
+      // service, whatever account it runs as: until 6.3.6 they inherited
+      // BUILTIN\Users' Read from Program Files, and every user of the computer
+      // could read the mail, the logs and the database's password (Common/Util/
+      // ServiceAccount.h, docs/ServiceAccount.md). Run elevated by the installer
+      // at every installation and upgrade; beside a running service as well as a
+      // stopped one. The exit codes are ServiceAccount::RunProtectCommand's.
+      AttachVerbOutput();
+
+      HM::ServiceAccount::ProtectOptions protectOptions;
+      int count = 0;
+      LPWSTR *arguments = CommandLineToArgvW(GetCommandLineW(), &count);
+      for (int index = 1; arguments != nullptr && index < count; index++)
+      {
+         if (HM::String(arguments[index]).CompareNoCase(_T("--report-only")) == 0)
+            protectOptions.reportOnly = true;
+      }
+      if (arguments != nullptr)
+         LocalFree(arguments);
+
+      iRet = HM::ServiceAccount::RunProtectCommand(protectOptions);
+   }
    else if (sLastParam.CompareNoCase(_T("--grant-database-login")) == 0)
    {
       // What NT SERVICE\hMailServer needs to open its database when that is SQL

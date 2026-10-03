@@ -14,7 +14,8 @@ Linux packages of this same server already run as a user of their own
 What this page covers: what the installer asks and does, what the account is
 granted and by what, why nothing the service can write decides that, what the
 service may no longer write - `hMailServer.INI` - and what became of each thing
-that wrote it, the table of everything LocalSystem could do that the virtual
+that wrote it, what the other users of the computer may read of its folders
+(`/ProtectFolders`), the table of everything LocalSystem could do that the virtual
 account cannot, the live update's answer, where the Control Panel, the Control
 Deck and the checklist say which account the service runs as, and how to go back.
 
@@ -327,6 +328,110 @@ With `--confirm` the question names the database it could not read, and Yes is a
 upgrade of a service already moved goes on, since nothing is moved. A database not
 set up yet names nothing, and is no 7.
 
+## What the other users of the computer may read: `hMailServer.exe /ProtectFolders`
+
+Until 6.3.6 the program folder's own `Data`, `Logs`, `Temp`, `Database` and `Events`
+folders, and `Bin\hMailServer.INI`, took their permissions from the folder they are
+in. Under `C:\Program Files` that gives `BUILTIN\Users` - every account that can sign
+in to the computer: a Remote Desktop server's users, a shared machine's, a service
+running as an ordinary account - Read on all of them, and `ALL APPLICATION PACKAGES`
+the same. Any of them could read every message; the logs, with their addresses,
+subjects and whole SMTP, IMAP and POP3 conversations; the built-in database, with the
+accounts' password hashes and the stored secrets' sealed values, whenever the service
+that keeps its file open is stopped; a key file an administrator copied into
+`Data\Certificates`; the event scripts; and `hMailServer.INI` - the database's
+password, sealed with the machine's DPAPI key, which any account on the machine may
+use to unseal it (`PasswordEncryption=6`), the administrator password's hash and its
+second factor. The grant (above) adds the service's entries and removes nobody's. A
+data folder moved under a folder at a drive's root took that folder's permissions
+instead once anything rewrote its own - on Windows Server, Users' Read and the right
+to make files and folders in it; on a Windows client, Authenticated Users' Modify.
+On the installer smoke VM on 3 October 2026 a user in the `Users` group alone, signed
+in interactively, listed the five folders of a 6.3.5 installation and read two
+messages, a log naming seven addresses, the event script, an imported key file and
+`hMailServer.INI`, and unsealed the database's password from it.
+
+Since 6.3.6 the installer runs `hMailServer.exe /ProtectFolders`, elevated, at every
+installation and upgrade of the server - whatever account the service runs as, before
+the database step - and an administrator may run it from an elevated prompt in the
+`Bin` folder at any time. Each of the six is made private:
+
+| What | Who reaches it afterwards |
+|---|---|
+| `Data`, `Logs`, `Temp`, `Database`, and everything in them | SYSTEM and the Administrators, full control; `NT SERVICE\hMailServer` Modify, the grant's, when the service runs as anything but LocalSystem |
+| `Events`, and everything in it | SYSTEM and the Administrators; the service Read, the grant's |
+| `Bin\hMailServer.INI` | SYSTEM and the Administrators; `NT SERVICE\hMailServer` Read, under every account - the service reads its configuration whatever it runs as, and writes it under none but LocalSystem |
+
+**How.** The permissions stop inheriting - a protected DACL - so that nothing the
+folder above hands down reaches it. Every deny entry is kept, an inherited one as the
+folder's own; every entry of the folder's own is kept, an administrator's and the
+grant's; SYSTEM's and the Administrators' inherited entries become full control,
+handed down; an inherited entry for the service's SID - the Read on `hMailServer.INI`
+that `Bin`'s grant hands down - is kept as the file's own; and every other inherited
+allow entry is dropped and named on the line: `BUILTIN\Users`, `ALL APPLICATION
+PACKAGES`, `ALL RESTRICTED APPLICATION PACKAGES`, `CREATOR OWNER`, and on a moved data
+folder `Authenticated Users`. Windows hands the new permissions down to everything in
+the folder as part of the change, which on a large message store takes minutes the
+first time; a second run finds them `already private` and changes nothing. A file or
+folder below with permissions of its own - the DKIM keys and the update token
+(`ProtectedFile`), the self-signed certificate's key - keeps them.
+
+**Where it acts, and where it only says.** The six are found from where the program
+is, as the grant's folders are, never from `hMailServer.INI` or the database; a
+junction or a mount point among them is gone through only when the administrators
+alone control it, and held from that volume's root while it is changed, as the grant
+goes through one - so a data folder an administrator moved to `C:\MailStore\Data`
+behind such a junction is made private there. Anything else is checked and said,
+never changed: a folder elsewhere may be shared on purpose, and an elevated program
+takes no path to change from the configuration.
+
+* A folder `hMailServer.INI` names outside the program folder (`[Directories]`), a
+  folder approved for the service, the backup, archive and PST import folders, and
+  the key and certificate files the database names: a `CHECK` line when Users,
+  Authenticated Users, Everyone, INTERACTIVE or another group of ordinary accounts may
+  read it, with the two `icacls` that close it.
+* A key or certificate file in `Data\Certificates`, `Data\DKIM` or `Data\ACME` with
+  permissions of its own that such a group may read - a file *moved* there keeps the
+  permissions it had where it was: a `CHECK` line, and `icacls "<file>" /reset`, which
+  gives it the data folder's.
+* An entry of one of the six's own that lets such a group read it, which only an
+  administrator can have given: kept, and a `CHECK` line with the `icacls /remove:g`
+  that takes it away.
+
+`Bin\hMailServerApiKeys.ini` is left as it is, readable as the rest of `Bin` is: it
+holds each REST API key's label and the SHA-256 of its 32 random bytes, which tells
+nobody the key, and the Control Panel lists the keys from it.
+
+Exit codes: 0 each made private or private already (`CHECK` lines do not change it); 1
+one could not be, and its line says why - a link somebody else controls, permissions
+that could not be written; 2 not in an installation's `Bin` folder; 3 not run as an
+administrator. `--report-only` says what it would make private and who may read each
+now, and changes nothing; it comes before the verb, as the mode of the other commands
+does: `hMailServer.exe --report-only /ProtectFolders` (after the verb it is not read, and
+nothing is changed or reported). A run that does not end in 0 does not fail the installation:
+setup says so, with the command to run again, and what could not be changed is as it
+was.
+
+**What an administrator notices.** An account that is not an administrator - and an
+administrator's own programs not run as administrator - can no longer open these
+folders or `hMailServer.INI`:
+
+* Explorer asks *You don't currently have permission to access this folder*, and
+  *Continue* adds an entry for the administrator's own account to the folder, which
+  later runs keep. Open the logs with an editor run as administrator instead, to
+  leave the folder as it is.
+* The Control Panel not run as administrator - on a Windows client, where an
+  administrator's programs run unelevated - says *Could not read the file* on its live
+  log page and its message-store check, where it would have said there was no log
+  folder; what it does over COM is as before. On Windows Server the built-in
+  Administrator account runs it elevated already.
+* A script, a backup program or a monitoring agent that read the logs or the message
+  store as an ordinary account needs an entry of its own -
+  `icacls "<folder>" /grant "<account>:(OI)(CI)RX"` - which the next run keeps.
+* An editor that saves `hMailServer.INI` by writing a new file and renaming it over the
+  old one gives it `Bin`'s permissions again: run `hMailServer.exe /ProtectFolders`
+  after, or the next upgrade does.
+
 ## Its login on SQL Server: `hMailServer.exe --grant-database-login`
 
 On SQL Server reached with Windows authentication - `[Database] Type=MSSQL` and no
@@ -430,7 +535,7 @@ asks for a stored password to be deleted.
 
 `hMailServer.exe` is the service, and also the commands an administrator runs:
 Setup, DBSetup and the Control Panel run `/Register`, `/RegisterTypeLib`,
-`/Unregister`, `/GrantServiceAccess`, `--grant-database-login`,
+`/Unregister`, `/GrantServiceAccess`, `/ProtectFolders`, `--grant-database-login`,
 `--apply-new-install-defaults`, `--apply-profile`, `--create-stored-secrets-key`,
 `--set-admin-password` and the live update's two elevated, and an administrator
 runs the rest - `--upgrade-database`, the stored-secrets commands, the store and
@@ -960,14 +1065,26 @@ puts back, as HM5481 ([Upgrading.md](Upgrading.md), "If the upgrade fails").
   grant may reach refused, a folder missing beyond one found missing, and a grant
   through one made on the folder it leads to, handed down, that folder keeping
   what it inherits from its own folder and the junction still the
-  administrators' alone (skipped only where the tester is no administrator); and
-  a held folder that cannot be removed.
+  administrators' alone (skipped only where the tester is no administrator); a
+  held folder that cannot be removed; and `/ProtectFolders` (`TestProtect_`) on
+  folders of its own that hand down what Program Files hands down - BUILTIN\Users'
+  Read - beside a deny entry and Read for the service's SID: Users no longer reach
+  the folder, a file already in it or one made after; the deny kept as the
+  folder's own and first; an administrator's entry and the service's grant kept;
+  SYSTEM and the Administrators given full control handed down; a file keeping the
+  service's Read as its own, or given it where it had none; a second run changing
+  nothing; a file with two names refused; and an entry of the folder's own for
+  Users, given after, kept and still seen.
 * `Installation/InstallerPackaging.cs`: the page's three forms and its defaults,
   `/serviceaccount=`, the word `/Register` is given and that `hMailServer.exe`
   knows it, that nothing reads `ServiceAccountName` any more, the registration
   before the database step and the move after it, the move only on a grant that
   ended in 0, `--confirm` in an attended installation, and a failed grant's own
-  message.
+  message; and `/ProtectFolders` run at every installation and upgrade, under no
+  condition, after the registration and before the grant and the database step,
+  its output in the setup log and its message suppressible, the verb taking the
+  program folder's own six from where it is, holding each from the drive's root,
+  and giving the service Read on `hMailServer.INI`.
 * `API/RestApiSetupChecklist.cs`: the tenth item, judged from the server's own
   token and, beside a running service, checked against the account `sc.exe qc`
   reports.

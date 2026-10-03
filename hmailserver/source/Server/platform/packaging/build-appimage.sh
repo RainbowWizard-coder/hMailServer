@@ -388,11 +388,24 @@ APPDIR="$(dirname "$(readlink -f "$0")")"
 HMAILSERVER_HOME="${HMAILSERVER_HOME:-${XDG_DATA_HOME:-$HOME/.local/share}/hmailserver}"
 CONFIG="${HMAILSERVER_HOME}/hMailServer.ini"
 
+# The mail, the logs that name who wrote to whom, the database and the event
+# scripts are the invoking user's alone: every folder made here, and every file
+# the server makes in them, is made under umask 077. They used to take the user's
+# umask - 0755 under the usual 022 - and a home directory other users may enter
+# (0755, as many distributions still make one) let them read every message.
+# The five folders are restated 0700 on every run, as the configuration is 0600
+# below, so that a tree an earlier AppImage made is closed too.
+umask 077
 mkdir -p "${HMAILSERVER_HOME}/data" \
          "${HMAILSERVER_HOME}/logs" \
          "${HMAILSERVER_HOME}/temp" \
          "${HMAILSERVER_HOME}/events" \
          "${HMAILSERVER_HOME}/database"
+chmod 0700 "${HMAILSERVER_HOME}/data" \
+           "${HMAILSERVER_HOME}/logs" \
+           "${HMAILSERVER_HOME}/temp" \
+           "${HMAILSERVER_HOME}/events" \
+           "${HMAILSERVER_HOME}/database"
 
 if [ ! -f "${CONFIG}" ]; then
    # The packaged default with its six [Directories] values repointed under the

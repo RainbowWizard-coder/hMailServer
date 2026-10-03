@@ -154,6 +154,16 @@ bash build/ci/packages/check-licenses.sh --installed deb || fail "the installed 
 step "what postinst did with no systemd running"
 getent passwd hmailserver || fail "postinst made no hmailserver user"
 stat -c "%a %U:%G %n" /etc/hmailserver/hMailServer.ini /var/lib/hmailserver /var/log/hmailserver
+# The mail, the logs and the configuration - the database password and the
+# administrator password's hash - are the service's and root's alone, as the .rpm's
+# test holds its own to: nobody else may read any of them.
+[ "$(stat -c '%a %U:%G' /etc/hmailserver)" = "750 root:hmailserver" ] || fail "/etc/hmailserver is $(stat -c '%a %U:%G' /etc/hmailserver), not 750 root:hmailserver"
+[ "$(stat -c '%a %U:%G' /etc/hmailserver/hMailServer.ini)" = "640 root:hmailserver" ] || fail "the configuration is $(stat -c '%a %U:%G' /etc/hmailserver/hMailServer.ini), not 640 root:hmailserver"
+for d in /var/lib/hmailserver /var/log/hmailserver; do
+  [ "$(stat -c '%a %U:%G' "$d")" = "750 hmailserver:hmailserver" ] || fail "$d is $(stat -c '%a %U:%G' "$d"), not 750 hmailserver:hmailserver"
+done
+# And as packed, before postinst: never readable by others.
+[ "$(dpkg-deb -c "$deb" | awk '$NF == "./etc/hmailserver/hMailServer.ini" { print $1 }')" = "-rw-r-----" ] || fail "the .deb packs hMailServer.ini readable by others: $(dpkg-deb -c "$deb" | grep hMailServer.ini)"
 if command -v deb-systemd-helper > /dev/null 2>&1; then
   for unit in hmailserver.service hmailserver-update.path; do
     [ -L "/etc/systemd/system/multi-user.target.wants/$unit" ] || fail "postinst did not enable $unit"

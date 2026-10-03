@@ -503,6 +503,35 @@ namespace hMailServer.ControlPanel.Services
          ProfileApi.WriteString(section, key, value, IniPath);
       }
 
+      /// <summary>
+      /// Why hMailServer.INI is here and cannot be read, or null when it can be (or
+      /// is not here at all). From 6.3.6 the installer gives the file - and the
+      /// log, data, temp, database and event folders - to SYSTEM, the
+      /// Administrators and the service alone (hMailServer.exe /ProtectFolders), so
+      /// a Control Panel the administrator did not run as administrator cannot
+      /// read it: every value read from it would then be the default, and a page
+      /// built on one - the log folder above all - would say the wrong thing. The
+      /// pages that read it say this instead.
+      /// </summary>
+      public string ReadDenied()
+      {
+         if (!IsAvailable)
+            return null;
+         try
+         {
+            using var stream = new FileStream(IniPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+            return null;
+         }
+         catch (UnauthorizedAccessException denied)
+         {
+            return denied.Message;
+         }
+         catch (Exception other) when (!ExceptionPolicy.IsFatal(other))
+         {
+            return null;
+         }
+      }
+
       /// <summary>Reads the configured log folder from the [Directories] section.</summary>
       public string GetLogFolder()
       {

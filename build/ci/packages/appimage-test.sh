@@ -113,10 +113,19 @@ grep -q "^ProgramFolder=$work/appimage_extracted_" "$home/hMailServer.ini" \
   || { echo "ProgramFolder does not point into the running image:"; grep '^ProgramFolder=' "$home/hMailServer.ini"; exit 1; }
 for d in data logs temp events database; do
   [ -d "$home/$d" ] || { echo "AppRun did not make $home/$d."; exit 1; }
+  # The mail, the logs, the database and the event scripts are the user's alone:
+  # until 6.3.6 they took the umask, 0755 under the usual 022.
+  [ "$(stat -c %a "$home/$d")" = "700" ] || { echo "$home/$d is $(stat -c %a "$home/$d"), not 0700: other users may read it."; exit 1; }
+done
+# A tree an earlier AppImage made with the umask is closed at the next run.
+chmod 0755 "$home/data" "$home/logs"
+TMPDIR="$work" HMAILSERVER_HOME="$home" APPIMAGE_EXTRACT_AND_RUN=1 "$image" --version > /dev/null
+for d in data logs; do
+  [ "$(stat -c %a "$home/$d")" = "700" ] || { echo "$home/$d an earlier run left 0755 is still $(stat -c %a "$home/$d") after another run."; exit 1; }
 done
 TMPDIR="$work" HMAILSERVER_HOME="$home" "$image" --appimage-extract-and-run --help > "$work/help.txt"
 grep -q -- "--check-config" "$work/help.txt" || { cat "$work/help.txt"; echo "--help did not list --check-config."; exit 1; }
-echo "--version and --help answer; AppRun made the per-user tree and a 0600 configuration"
+echo "--version and --help answer; AppRun made the per-user tree 0700 and a 0600 configuration"
 # The copy is removed once the server has exited.
 tries=0
 while ls -d "$work"/appimage_extracted_* > /dev/null 2>&1 && [ "$tries" -lt 50 ]; do sleep 0.1; tries=$((tries + 1)); done

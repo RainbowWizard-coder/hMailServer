@@ -37,9 +37,12 @@ namespace HM
    // as a domain for as long as its record is published. A default Windows
    // installation puts the data directory under Program Files, where BUILTIN\Users
    // can read, so a file that merely inherits the directory's permissions hands
-   // the secret to every local user. Moved here out of UpdateApplyToken on
-   // 15 September 2026, when DKIM key rotation became the second writer, and
-   // unchanged in what it does.
+   // the secret to every local user. Since 6.3.6 the installer makes the program's
+   // own data folder private (hMailServer.exe /ProtectFolders, ServiceAccount.h),
+   // and the rule stands all the same: a data folder an administrator named
+   // elsewhere, or a file moved in, may still let others read. Moved here out
+   // of UpdateApplyToken on 15 September 2026, when DKIM key rotation became the
+   // second writer, and unchanged in what it does.
    class ProtectedFile
    {
    public:

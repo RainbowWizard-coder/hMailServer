@@ -2313,6 +2313,42 @@ begin
 		Log('hMailServer.exe ' + szSwitches + '/GrantServiceAccess returned ' + IntToStr(ResultCode) + ' and wrote nothing to ' + szReport + '.');
 end;
 
+// Runs hMailServer.exe /ProtectFolders (Common/Util/ServiceAccount.h) at every
+// installation and upgrade of the server, whatever account the service runs as:
+// the program folder's own Data, Logs, Temp, Database and Events folders and
+// Bin\hMailServer.INI made private to SYSTEM, the Administrators and the service.
+// Until 6.3.6 they inherited Read for BUILTIN\Users from Program Files, so every
+// user of the computer could read the mail, the logs, the built-in database and
+// the database's password. Run before the database step, so that the database it
+// makes and the logs the service starts are made inside folders already private.
+// What the verb said goes into the setup log, line for line. One that could not
+// make each of them private says so, and the installation goes on: what it could
+// not change is as it was, and the server runs as it did.
+procedure ProtectFolders();
+	var
+		ResultCode: Integer;
+		szReport: String;
+		szSaid: AnsiString;
+begin
+	szReport := ExpandConstant('{tmp}\protect-folders.txt');
+	DeleteFile(szReport);
+
+	if (Exec(ExpandConstant('{cmd}'), '/s /c ""' + ExpandConstant('{app}\Bin\hMailServer.exe') + '" /ProtectFolders > "' + szReport + '" 2>&1"',
+	         '', SW_HIDE, ewWaitUntilTerminated, ResultCode) = False) then
+	begin
+		Log('hMailServer.exe /ProtectFolders could not be run: ' + SysErrorMessage(ResultCode));
+		ResultCode := -1;
+	end
+	else if LoadStringFromFile(szReport, szSaid) then
+		Log('hMailServer.exe /ProtectFolders returned ' + IntToStr(ResultCode) + ':' + #13#10 + String(szSaid))
+	else
+		Log('hMailServer.exe /ProtectFolders returned ' + IntToStr(ResultCode) + ' and wrote nothing to ' + szReport + '.');
+
+	if (ResultCode <> 0) then
+		SuppressibleMsgBox('The data, log, temp, database and event folders of hMailServer and hMailServer.INI could not all be made private to the administrators and the service: hMailServer.exe /ProtectFolders returned ' + IntToStr(ResultCode) + ', and the setup log says why. ' +
+		       'What it could not change is as it was, readable by every user of this computer. Run "hMailServer.exe /ProtectFolders" as an administrator from the hMailServer Bin folder to see what it says and to retry.', mbError, MB_OK, IDOK);
+end;
+
 // Why a grant run did not end in 0, in a sentence for a message box.
 function GrantOutcomeSentence(ResultCode: Integer): String;
 begin
@@ -2936,6 +2972,13 @@ begin
          // service to be moved to the virtual account is LocalSystem's until the
          // database is made or upgraded, and moved after it.
          bServiceRegistered := RegisterHMailServerService(FirstRegistrationChoice(GetServiceAccountChoice()));
+
+         // The program's folders of mail, logs, keys and scripts, and
+         // hMailServer.INI, private to the administrators and the service - at
+         // every installation and upgrade, whatever account the service runs as,
+         // and before the database step makes or opens anything in them.
+         ProgressPage.SetText('Making the program''s data, log and database folders private...', 'On a large message store the first time takes a few minutes.');
+         ProtectFolders();
 
          // Before anything starts the service - the database step below does, over
          // COM - a service that already runs as something other than LocalSystem

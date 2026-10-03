@@ -78,6 +78,18 @@ namespace hMailServer.ControlPanel.Views
       public void OnEnter()
       {
          var store = new IniFeatureStore();
+
+         // hMailServer.INI and the log folder are the administrators' alone from
+         // 6.3.6 (hMailServer.exe /ProtectFolders): a Control Panel not run as
+         // administrator says it could not read them, not that there is no log
+         // folder on this machine.
+         string denied = store.ReadDenied();
+         if (denied != null)
+         {
+            Header.Subtitle = F("Could not read the file: {0}", denied);
+            return;
+         }
+
          string folder = store.GetLogFolder();
 
          if (folder == null || !Directory.Exists(folder))
@@ -86,9 +98,18 @@ namespace hMailServer.ControlPanel.Views
             return;
          }
 
-         var newest = new DirectoryInfo(folder).GetFiles("hmailserver_*.log")
-            .OrderByDescending(f => f.LastWriteTimeUtc)
-            .FirstOrDefault();
+         FileInfo newest;
+         try
+         {
+            newest = new DirectoryInfo(folder).GetFiles("hmailserver_*.log")
+               .OrderByDescending(f => f.LastWriteTimeUtc)
+               .FirstOrDefault();
+         }
+         catch (UnauthorizedAccessException readDenied)
+         {
+            Header.Subtitle = F("Could not read the file: {0}", readDenied.Message);
+            return;
+         }
 
          if (newest == null)
          {
@@ -143,6 +164,13 @@ namespace hMailServer.ControlPanel.Views
          catch (IOException)
          {
             // File momentarily locked; retry next tick.
+         }
+         catch (UnauthorizedAccessException readDenied)
+         {
+            // The log folder made the administrators' alone while it was streamed
+            // (hMailServer.exe /ProtectFolders): said once, not retried.
+            timer_.Stop();
+            Header.Subtitle = F("Could not read the file: {0}", readDenied.Message);
          }
       }
 

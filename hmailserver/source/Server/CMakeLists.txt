@@ -1121,8 +1121,14 @@ endif()
 # gives a relative "etc", so the indirection puts the configuration at
 # /usr/etc/hmailserver - which the package then installs, the server never reads,
 # and rpm rejects when its %config list names the real path.
+# 0640 in the package itself, as the maintainer scripts leave it (root:hmailserver,
+# once the group exists): the file is where the database password and the
+# administrator password's hash are written, and between the unpacking and the
+# script that chgrps it, nobody but root has any business reading it. It used to be
+# packed 0644 and narrowed only by the script.
 install(FILES ${SERVER_DIR}/platform/packaging/hMailServer.ini
-   DESTINATION /etc/hmailserver)
+   DESTINATION /etc/hmailserver
+   PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ)
 install(FILES ${SERVER_DIR}/platform/packaging/hmailserver.logrotate
    RENAME hmailserver
    DESTINATION /etc/logrotate.d)
