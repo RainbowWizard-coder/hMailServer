@@ -405,7 +405,9 @@ Either can move the database before the new version's server fails to come back.
 version with `hmailserver --schema-version` (which prints `required <n>`, the version
 that program needs, and then `database <n>`, the database's `hm_dbversion`; exit 0, or
 1 when the database's cannot be read, or 2 with no `[Database]`), run as the user the
-unit runs the server as, before it installs and again when the new version is not back.
+unit runs the server as and in the unit's own sandbox, which systemd sets up for it as
+for the server (where systemd will not, the version is not read), before it installs and
+again when the new version is not back.
 It reinstalls the earlier version only while that version is what it was before - or,
 where it cannot be read afterwards, was already at or past what the new version needs,
 which nothing in the install moves. Otherwise it puts nothing back, with a rollback

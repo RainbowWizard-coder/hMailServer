@@ -21,8 +21,9 @@
 # namespace; installs the package with apt or dnf, which resolve its dependencies
 # from the distribution's archive; configures it as packaging/README.md says;
 # starts the unit; asks SMTP, POP3, IMAP and the REST API whether they answer;
-# reloads, stops and starts it again; removes the package with the server running;
-# and removes the container and its image.
+# runs `hmailserver-update check`, whose schema probe systemd runs in the unit's own
+# sandbox; reloads, stops and starts it again; removes the package with the server
+# running; and removes the container and its image.
 #
 # The inner container is NOT privileged. It is given CAP_SYS_ADMIN, which systemd
 # needs to build the unit's mount namespace; without it Ubuntu 26.04's systemd 259
@@ -516,6 +517,25 @@ echo "GET / is the Control Deck"
 code=$(curl -s -o /dev/null -w '%{http_code}' -u "Administrator:not-the-password" "http://127.0.0.1:$REST_PORT/api/v1/status")
 [ "$code" = 401 ] || fail "a wrong administrator password was answered $code, not 401"
 echo "a wrong password is refused with 401"
+
+step "the live update's check: the database's schema version, asked in the unit's sandbox"
+# What a rollback of the live update rests on is the database's schema version,
+# which hmailserver-update reads with the server's own binary as the service
+# user; with systemd as PID 1 it has systemd run that as a transient service in
+# hmailserver.service's own sandbox, each property as systemctl show reports it
+# for the unit, and reads nothing where systemd will not. `check` asks exactly as
+# an apply does, so this is where it shows that systemd takes every one of those
+# properties and runs the probe under them, with nothing of the sandbox left out.
+probe_since=$(in_ctr date '+%Y-%m-%d %H:%M:%S')
+in_ctr /usr/lib/hmailserver/hmailserver-update check > "$out/update-check.txt" 2>&1
+check_status=$?
+cat "$out/update-check.txt"
+grep -q "^database:    at schema version [0-9]* (this server needs [0-9]*), asked as hmailserver, in hmailserver.service's sandbox" "$out/update-check.txt" \
+  || fail "hmailserver-update check did not read the database's schema version in hmailserver.service's sandbox"
+[ "$check_status" = 0 ] || fail "hmailserver-update check found something missing (exit $check_status)"
+skipped=$(in_ctr journalctl --no-pager -o cat --since "$probe_since" | grep -E 'run-[^ ]*\.service: .*(ignoring|is configured, but)')
+[ -z "$skipped" ] || fail "systemd left part of the sandbox out of the schema probe: $skipped"
+echo "the probe ran as hmailserver in the unit's sandbox, every part of it set up"
 
 # ------------------------------------------------------------ reload, stop, start
 step "systemctl reload: the server reinitialises in the same process"

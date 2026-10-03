@@ -48,14 +48,28 @@
 # read before or after, one that did not move and one at what the new version
 # needs that cannot be read after, with and without a rollback image, for a
 # .deb and an AppImage, and the backup the server names in the outcome of the
-# update not put back.
+# update not put back. And what the server can do once it runs again, while
+# root still has the log and the outcome to write and rename: a symlink put at
+# the log's file, at the names the log and the outcome are to take (to a
+# directory), at the outcome's own file, and in place of the Updates directory
+# itself, each followed by nothing - what it leads to the same afterwards in
+# content, mode and owner. And the schema probe in hmailserver.service's own
+# sandbox where systemd runs the machine (a fake systemd-run): the unit's
+# properties passed and nothing else, an AppImage's two variables, a probe
+# systemd does not start never run outside it, no systemd-run never run at all,
+# and `check` from a terminal, and an apply without systemd, never lending the
+# probe that terminal.
 #
 # What it cannot prove, and says so: that a real dpkg -i under a real unit puts
 # the new binary in place - that needs root and a signed package, and is the
-# packaging README's "what was run for real" paragraph. One case, a process of
-# the Updates directory's owner still running after the stop, needs root to run
-# a process as another user; as anyone else it says it is skipped (the
-# update-helper job runs as root).
+# packaging README's "what was run for real" paragraph; and that a real systemd
+# takes the unit's properties as systemctl show reports them and runs the probe
+# under them, which build/ci/package-systemd-test.sh shows with systemd as
+# PID 1. One case, a process of the Updates directory's owner still running
+# after the stop, needs root to run a process as another user; as anyone else
+# it says it is skipped (the update-helper job runs as root), and the cases
+# after the restart run their hooks as the test's own user instead of uid
+# 65534, which shows what is written and moved but not whose it becomes.
 #
 # USAGE
 #   build/test-hmailserver-update.sh [--repo-root DIR] [--keep]
@@ -77,7 +91,7 @@ while [ "$#" -gt 0 ]; do
          ;;
       --keep) KEEP=1; shift ;;
       -h|--help)
-         sed -n '5,50p' "${BASH_SOURCE[0]}"
+         sed -n '5,77p' "${BASH_SOURCE[0]}"
          exit 0
          ;;
       *)
@@ -121,7 +135,7 @@ mkdir -p "${FAKE_BIN}" "${REAL_BIN}"
 # these and the fakes - and nothing else, which is how "apt-get is absent" is
 # arranged for the dpkg case. Those that are shell builtins in dash are listed
 # too, for a sh that has them as programs.
-for tool in sh cat head tail sort sed tr cut env timeout realpath stat date sleep mktemp mkdir cp chown chmod ln mv rm dirname basename grep id printf echo test; do
+for tool in sh cat head tail sort sed tr cut env timeout setsid setpriv realpath stat date sleep mktemp mkdir cp chown chmod ln mv rm ls dirname basename grep id printf echo test; do
    path="$(command -v "${tool}" 2>/dev/null || true)"
    case "${path}" in
       /*) ln -sf "${path}" "${REAL_BIN}/${tool}" ;;
@@ -149,6 +163,20 @@ case "$1" in
       fi
       ;;
    start)
+      # What the service user does once it runs again, at the first start -
+      # after root took the Updates directory, the log and the outcome while
+      # the unit was stopped, and before it has written the outcome or renamed
+      # either into place: $FAKE_DIR/on-start, run once, as the uid in
+      # $FAKE_DIR/on-start-as when there is one (a root run's service user).
+      if [ -f "$FAKE_DIR/on-start" ]; then
+         if [ -f "$FAKE_DIR/on-start-as" ]; then
+            as="$(cat "$FAKE_DIR/on-start-as")"
+            setpriv --reuid="$as" --regid="$as" --clear-groups sh "$FAKE_DIR/on-start"
+         else
+            sh "$FAKE_DIR/on-start"
+         fi
+         rm -f "$FAKE_DIR/on-start"
+      fi
       # One line of the plan per start: active or failed; active when the
       # plan is exhausted.
       plan=""
@@ -167,12 +195,15 @@ case "$1" in
       ;;
    show)
       # The unit's User= and Environment=, as the case sets them; empty
-      # otherwise, which is root and nothing.
+      # otherwise, which is root and nothing. And its sandbox, asked for as
+      # Name=value lines: $FAKE_DIR/unit-sandbox, whole - with lines that were
+      # not asked for, which the helper must leave out.
       case "$*" in
          *ActiveState*) cat "$FAKE_DIR/state" 2>/dev/null || echo inactive ;;
          *NRestarts*) echo 0 ;;
          *"-p User "*) cat "$FAKE_DIR/unit-user" 2>/dev/null || echo "" ;;
          *"-p Environment "*) cat "$FAKE_DIR/unit-environment" 2>/dev/null || echo "" ;;
+         *"-p NoNewPrivileges "*) cat "$FAKE_DIR/unit-sandbox" 2>/dev/null || true ;;
          *) echo "" ;;
       esac
       ;;
@@ -312,6 +343,9 @@ if [ "$1" = "--schema-version" ]; then
       exit 2
    fi
    env | grep -E '^(HMAILSERVER_HOME|XDG_DATA_HOME|EVIL)=' >> "$FAKE_DIR/schema-env"
+   # Whether it has a controlling terminal it could reach: one it shares with
+   # an administrator's root shell, under `check`.
+   if (: < /dev/tty) 2>/dev/null; then echo tty; else echo none; fi >> "$FAKE_DIR/probe-tty"
    if [ -f "$FAKE_DIR/required" ]; then echo "required $(cat "$FAKE_DIR/required")"; else echo "required 6108"; fi
    if [ -f "$FAKE_DIR/db-unreadable" ]; then
       echo "Could not connect to the database: (fake) connection refused" >&2
@@ -348,6 +382,32 @@ shift 3
 exec "$@"
 FAKE
 
+# systemd-run OPTIONS -- COMMAND: recorded, and its arguments one per line in
+# $FAKE_DIR/systemd-run-argv, a line "==" after each call; COMMAND then run as
+# whoever runs the test, with what --setenv gives it, in a session of its own
+# as systemd would start it - or, with $FAKE_DIR/systemd-run-refuses, not
+# started at all, as systemd refuses a transient unit it cannot set up.
+cat > "${FAKE_BIN}/systemd-run" <<'FAKE'
+#!/bin/sh
+echo "systemd-run $*" >> "$FAKE_DIR/calls"
+{ for argument in "$@"; do printf '%s\n' "$argument"; done; echo "=="; } >> "$FAKE_DIR/systemd-run-argv"
+if [ -f "$FAKE_DIR/systemd-run-refuses" ]; then
+   echo "Failed to start transient service unit: (fake) Unit has a bad setting." >&2
+   exit 1
+fi
+set_env=""
+while [ $# -gt 0 ] && [ "$1" != "--" ]; do
+   case "$1" in
+      --setenv=*) set_env="$set_env ${1#--setenv=}" ;;
+   esac
+   shift
+done
+[ $# -gt 0 ] || { echo "the fake systemd-run takes OPTIONS -- COMMAND only" >&2; exit 2; }
+shift
+# shellcheck disable=SC2086
+exec env $set_env setsid -w "$@"
+FAKE
+
 chmod +x "${FAKE_BIN}"/*
 
 # ---------------------------------------------------------------- one case
@@ -381,7 +441,18 @@ setup()
    REQUEST="${dir}/apply-request"
    OUTCOME="${UPDATES}/last-apply.txt"
    LOG="${UPDATES}/apply-9.9.9.log"
+   # systemd does not run the machine, whatever runs the test, unless the case
+   # says it does (systemd_here).
+   SYSTEMD_HERE="${dir}/no-systemd"
    echo "== ${CASE}"
+}
+
+# What the helper takes for systemd running the machine: a directory where it
+# looks for /run/systemd/system.
+systemd_here()
+{
+   SYSTEMD_HERE="${WORK}/${CASE}/systemd"
+   mkdir -p "${SYSTEMD_HERE}"
 }
 
 # The default request: a .deb with a rollback. Callers append or override
@@ -419,9 +490,60 @@ run_helper()
    mkdir -p "${PRIVATE_TMP}"
    OUT="$(env -i PATH="${path}" FAKE_DIR="${FAKE_DIR}" TMPDIR="${PRIVATE_TMP}" \
       HMAILSERVER_UPDATE_SETTLE_SECONDS=1 HMAILSERVER_UPDATE_POLL_SECONDS=1 HMAILSERVER_UPDATE_PAUSE_SECONDS=0 \
-      HMAILSERVER_UPDATE_PROGRAM="${FAKE_BIN}/hmailserver" \
+      HMAILSERVER_UPDATE_PROGRAM="${FAKE_BIN}/hmailserver" HMAILSERVER_UPDATE_SYSTEMD_DIR="${SYSTEMD_HERE}" \
       sh "${HELPER}" apply --request "${REQUEST}" --updates-dir "${UPDATES}" "${@:2}" 2>&1)"
    RC=$?
+}
+
+# The same on a terminal of its own, as from an administrator's shell: script(1)
+# gives the command a pseudo-terminal as its controlling terminal. $1 is
+# "apply" or "check"; the rest is for the helper. Answers false, with RC 125,
+# where there is no script.
+run_helper_on_a_terminal()
+{
+   local verb=$1 wrapper="${WORK}/${CASE}/on-a-terminal.sh"
+   shift
+   command -v script >/dev/null 2>&1 || { RC=125; return 1; }
+   mkdir -p "${PRIVATE_TMP}"
+   {
+      printf 'exec env -i'
+      printf " '%s'" "PATH=${FAKE_BIN}:${REAL_BIN}" "FAKE_DIR=${FAKE_DIR}" "TMPDIR=${PRIVATE_TMP}" \
+         HMAILSERVER_UPDATE_SETTLE_SECONDS=1 HMAILSERVER_UPDATE_POLL_SECONDS=1 HMAILSERVER_UPDATE_PAUSE_SECONDS=0 \
+         "HMAILSERVER_UPDATE_PROGRAM=${FAKE_BIN}/hmailserver" "HMAILSERVER_UPDATE_SYSTEMD_DIR=${SYSTEMD_HERE}" \
+         sh "${HELPER}" "${verb}"
+      [ "${verb}" != apply ] || printf " '%s'" --request "${REQUEST}" --updates-dir "${UPDATES}"
+      [ "$#" = 0 ] || printf " '%s'" "$@"
+      printf '\n'
+   } > "${wrapper}"
+   OUT="$(SHELL=/bin/sh script -qec "sh '${wrapper}'" /dev/null < /dev/null 2>&1)"
+   RC=$?
+   return 0
+}
+
+# A file's or a directory's state as a person with the machine would see it:
+# what is in it, its mode, its owner.
+state_of()
+{
+   if [ -d "$1" ] && [ ! -L "$1" ]; then
+      printf '%s|%s' "$(ls -A "$1" | tr '\n' ' ')" "$(stat -c '%a %u:%g' "$1")"
+   else
+      printf '%s|%s' "$(cat "$1" 2>/dev/null)" "$(stat -c '%a %u:%g' "$1" 2>/dev/null)"
+   fi
+}
+
+# The service user, for a case whose hook acts as the service user does: as
+# root, the case's files are given to uid 65534, which then owns the Updates
+# directory and the one above it as the service user does, and the hook runs as
+# 65534 (on-start-as); as anyone else, the test's own user owns all of it and
+# the hook runs as that user. What a case plants its links to - the victims -
+# is made afterwards, and stays whoever runs the test's.
+as_the_service_user()
+{
+   if [ "$(id -u)" = 0 ] && command -v setpriv >/dev/null 2>&1; then
+      chmod 0711 "${WORK}"
+      chown -R 65534:65534 "${WORK}/${CASE}"
+      echo 65534 > "${FAKE_DIR}/on-start-as"
+   fi
 }
 
 # A string as an extended regular expression that matches it alone.
@@ -1455,6 +1577,279 @@ expect_outcome_contains "finished with ${IMAGE} --upgrade-database"
 grep -q "NEW IMAGE" "${IMAGE}" && pass || fail "the earlier image was put back onto the database the new one had moved"
 [ "$(sort -u "${FAKE_DIR}/schema-env" 2>/dev/null | tr '\n' ' ')" = "HMAILSERVER_HOME=/srv/hm XDG_DATA_HOME=/srv/xdg " ] && pass || fail "the version was not read with the unit's HMAILSERVER_HOME and XDG_DATA_HOME alone: $(sort -u "${FAKE_DIR}/schema-env" 2>/dev/null | tr '\n' ' ')"
 expect_no_image_copies_left
+
+# ---------------------------------------------------------------- after the restart
+#
+# The stop is confirmed, and the Updates directory is quiet - until the unit is
+# started again. From then the server runs as the directory's owner while root
+# still has lines to log, the outcome to write and both to rename into place;
+# before 6.3.6's review, root did all of that by name, appending to the log,
+# chown-ing and chmod-ing it and the outcome without -h, and renaming onto
+# names the server could have made links to directories. Here the fake
+# systemctl's start runs a hook as the service user (as root, uid 65534, which
+# owns the case's directories; as anyone else, the test's user) that plants
+# links where root still has to write, and what the links lead to - a file or a
+# directory that is not the service user's - must be the same afterwards, in
+# what is in it, its mode and its owner.
+
+# The log's file, under the random name it has until the end, made a symlink
+# to somebody else's file.
+setup log-swapped-after-start
+write_request
+as_the_service_user
+victim="${WORK}/${CASE}/victim"
+printf 'untouched\n' > "${victim}"
+chmod 0600 "${victim}"
+before="$(state_of "${victim}")"
+cat > "${FAKE_DIR}/on-start" <<EOF
+for f in "${UPDATES}"/apply.??????; do
+   [ -e "\$f" ] || continue
+   rm -f "\$f" && ln -s "${victim}" "\$f" && echo "\${f##*/}" >> "${FAKE_DIR}/hook-did"
+done
+EOF
+run_helper
+expect_rc 0
+expect_outcome_starts "ok 9.9.9 the package was installed and the service is running"
+[ -s "${FAKE_DIR}/hook-did" ] && pass || fail "the hook found no log file to swap at the start"
+after="$(state_of "${victim}")"
+[ "${after}" = "${before}" ] && pass || fail "the symlink planted at the log's name was followed: '${before}' became '${after}'"
+
+# The names the log and the outcome are to take, made symlinks to directories
+# that are somebody else's: a rename onto such a name must replace the link,
+# not move root's file into the directory.
+setup names-linked-to-directories-after-start
+write_request
+as_the_service_user
+victim_a="${WORK}/${CASE}/victim-a"
+victim_b="${WORK}/${CASE}/victim-b"
+mkdir -p "${victim_a}" "${victim_b}"
+chmod 0700 "${victim_a}" "${victim_b}"
+before_a="$(state_of "${victim_a}")"
+before_b="$(state_of "${victim_b}")"
+cat > "${FAKE_DIR}/on-start" <<EOF
+ln -s "${victim_a}" "${OUTCOME}" && echo outcome >> "${FAKE_DIR}/hook-did"
+ln -s "${victim_b}" "${LOG}" && echo log >> "${FAKE_DIR}/hook-did"
+EOF
+run_helper
+expect_rc 0
+[ "$(wc -l < "${FAKE_DIR}/hook-did" 2>/dev/null)" = 2 ] && pass || fail "the hook did not plant both links at the start"
+after_a="$(state_of "${victim_a}")"
+after_b="$(state_of "${victim_b}")"
+[ "${after_a}" = "${before_a}" ] && pass || fail "the outcome was moved into the directory a link at its name led to: '${before_a}' became '${after_a}'"
+[ "${after_b}" = "${before_b}" ] && pass || fail "the log was moved into the directory a link at its name led to: '${before_b}' became '${after_b}'"
+[ -f "${OUTCOME}" ] && [ ! -L "${OUTCOME}" ] && pass || fail "the outcome did not take its name in place of the link"
+expect_outcome_starts "ok 9.9.9"
+[ -f "${LOG}" ] && [ ! -L "${LOG}" ] && grep -q "outcome: ok" "${LOG}" && pass || fail "the log did not take its name in place of the link"
+
+# The Updates directory itself renamed, and a symlink to somebody else's
+# directory put where it was: what root still writes goes into the directory it
+# took while the unit was stopped, wherever that now is, and nowhere else.
+setup directory-swapped-after-start
+write_request
+as_the_service_user
+victim="${WORK}/${CASE}/victim-dir"
+mkdir -p "${victim}"
+chmod 0700 "${victim}"
+before="$(state_of "${victim}")"
+cat > "${FAKE_DIR}/on-start" <<EOF
+mv "${UPDATES}" "${UPDATES}.moved" && ln -s "${victim}" "${UPDATES}" && echo moved >> "${FAKE_DIR}/hook-did"
+EOF
+run_helper
+expect_rc 0
+[ -s "${FAKE_DIR}/hook-did" ] && pass || fail "the hook did not move the Updates directory at the start"
+after="$(state_of "${victim}")"
+[ "${after}" = "${before}" ] && pass || fail "root wrote into the directory a link at the Updates directory's name led to: '${before}' became '${after}'"
+case "$(head -n 1 "${UPDATES}.moved/last-apply.txt" 2>/dev/null)" in
+   "ok 9.9.9 "*) pass ;;
+   *) fail "the outcome is not in the Updates directory the helper took: '$(head -n 1 "${UPDATES}.moved/last-apply.txt" 2>/dev/null)'" ;;
+esac
+grep -q "outcome: ok" "${UPDATES}.moved/apply-9.9.9.log" 2>/dev/null && pass || fail "the log is not in the Updates directory the helper took"
+
+# The outcome's own file, made while the unit was stopped and so there at the
+# restart under its random name, made a symlink to somebody else's file: the
+# line is written through the descriptor, never through the link. (The helper
+# before 6.3.6's review made this file only once the wait was over, so the
+# hook finds none to swap there: its exposure was a race between mktemp and
+# the write, which no hook can hit every time. This case holds the new
+# design to what it opened up.)
+setup outcome-file-swapped-after-start
+write_request
+as_the_service_user
+victim="${WORK}/${CASE}/victim"
+printf 'untouched\n' > "${victim}"
+chmod 0600 "${victim}"
+before="$(state_of "${victim}")"
+cat > "${FAKE_DIR}/on-start" <<EOF
+for f in "${UPDATES}"/last-apply.??????; do
+   [ -e "\$f" ] || continue
+   rm -f "\$f" && ln -s "${victim}" "\$f" && echo "\${f##*/}" >> "${FAKE_DIR}/hook-did"
+done
+EOF
+run_helper
+expect_rc 0
+after="$(state_of "${victim}")"
+[ "${after}" = "${before}" ] && pass || fail "the symlink planted at the outcome's file was followed: '${before}' became '${after}'"
+
+# ---------------------------------------------------------------- the probe's sandbox
+#
+# `hmailserver --schema-version` is the server's binary, run as the service
+# user, and the server is held in hmailserver.service's sandbox. Where systemd
+# runs the machine the helper has systemd run the probe in the same sandbox -
+# a transient service with the unit's user and the unit's own sandboxing
+# properties, read from systemd - and never runs it outside one; where it does
+# not, the probe runs through runuser, off any terminal. Before 6.3.6's review
+# it always ran through runuser, outside the sandbox, and from `check` on the
+# administrator's terminal.
+
+# The unit's sandbox as `systemctl show` reports it, with two lines the helper
+# did not ask for and must not pass on, and one empty value.
+unit_sandbox()
+{
+   cat > "${FAKE_DIR}/unit-sandbox" <<'EOF'
+Group=hmailserver
+SupplementaryGroups=
+WorkingDirectory=/var/lib/hmailserver
+UMask=0027
+NoNewPrivileges=yes
+CapabilityBoundingSet=cap_net_bind_service
+AmbientCapabilities=cap_net_bind_service
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/var/lib/hmailserver /var/log/hmailserver
+PrivateTmp=yes
+RestrictAddressFamilies=AF_INET AF_INET6 AF_NETLINK AF_UNIX
+SystemCallArchitectures=x86-64
+SystemCallFilter=_llseek accept access
+SystemCallErrorNumber=EPERM
+ExecStart={ path=/usr/bin/hmailserver ; argv[]=/usr/bin/hmailserver --foreground }
+EOF
+}
+
+# The arguments of the first systemd-run call, one per line.
+first_systemd_run()
+{
+   sed -n '1,/^==$/p' "${FAKE_DIR}/systemd-run-argv" 2>/dev/null | sed '$d'
+}
+
+# An argument of the first systemd-run call, by its whole line.
+expect_sandbox_argument()
+{
+   first_systemd_run | grep -qxF -- "$1" && pass || fail "systemd-run was not given '$1'; it was given: $(first_systemd_run | tr '\n' ' ')"
+}
+
+expect_no_sandbox_argument()
+{
+   first_systemd_run | grep -qF -- "$1" && fail "systemd-run was given '$1'" || pass
+}
+
+setup schema-read-in-the-units-sandbox
+write_request
+systemd_here
+unit_sandbox
+printf 'hmailserver\n' > "${FAKE_DIR}/unit-user"
+printf '6105' > "${FAKE_DIR}/db-version"
+printf '6105' > "${FAKE_DIR}/required"
+printf '6108' > "${FAKE_DIR}/install-required"
+printf '6108' > "${FAKE_DIR}/install-moves-db-to"
+printf 'failed\nactive\n' > "${FAKE_DIR}/start-plan"
+run_helper
+expect_rc 1
+expect_outcome_starts "upgraded-incomplete 9.9.9 the package was installed but the service was not back after 2 seconds (failed); the database was at schema version 6105 before the install and is at 6108 now; hMailServer 9.9.8 was not put back"
+[ "$(calls | grep -c '^systemd-run ')" = 2 ] && pass || fail "the database's version was not asked through systemd-run before the install and after it: $(calls | grep -E 'systemd-run|runuser' | tr '\n' ';')"
+expect_no_call "runuser"
+[ "$(calls | grep -c '^hmailserver --schema-version')" = 2 ] && pass || fail "the probe did not run twice"
+for argument in --quiet --wait --pipe --collect --uid=hmailserver RuntimeMaxSec=60 Group=hmailserver WorkingDirectory=/var/lib/hmailserver \
+   UMask=0027 NoNewPrivileges=yes CapabilityBoundingSet=cap_net_bind_service ProtectSystem=strict ProtectHome=yes \
+   "ReadWritePaths=/var/lib/hmailserver /var/log/hmailserver" PrivateTmp=yes "RestrictAddressFamilies=AF_INET AF_INET6 AF_NETLINK AF_UNIX" \
+   SystemCallArchitectures=x86-64 "SystemCallFilter=_llseek accept access" SystemCallErrorNumber=EPERM \
+   "${FAKE_BIN}/hmailserver" --schema-version; do
+   expect_sandbox_argument "${argument}"
+done
+expect_no_sandbox_argument "AmbientCapabilities"
+expect_no_sandbox_argument "ExecStart"
+expect_no_sandbox_argument "SupplementaryGroups"
+grep -q "the database is at schema version 6105 before the install (asked as hmailserver, in hmailserver.service's sandbox)" "${LOG}" && pass || fail "the log does not say the version was asked in the unit's sandbox"
+[ "$(sort -u "${FAKE_DIR}/probe-tty" 2>/dev/null)" = none ] && pass || fail "the probe had a terminal: $(sort -u "${FAKE_DIR}/probe-tty" 2>/dev/null)"
+
+# An AppImage's: the unit's HMAILSERVER_HOME and XDG_DATA_HOME given to the
+# transient service, and nothing else of the unit's environment.
+setup appimage-schema-read-in-the-units-sandbox
+image_setup
+systemd_here
+unit_sandbox
+new_image 9.9.9 "${UPDATES}/hMailServer-9.9.9-x86_64.AppImage"
+appimage_request hMailServer-9.9.9-x86_64.AppImage 9.9.9 "${IMAGE}"
+printf 'HMAILSERVER_HOME=/srv/hm "XDG_DATA_HOME=/srv/a b" EVIL=/x XDG_DATA_HOME=/srv/xdg\n' > "${FAKE_DIR}/unit-environment"
+run_helper "" --image "${IMAGE}"
+expect_rc 0
+expect_outcome_starts "ok 9.9.9"
+expect_sandbox_argument "--setenv=HMAILSERVER_HOME=/srv/hm"
+expect_sandbox_argument "--setenv=XDG_DATA_HOME=/srv/xdg"
+expect_no_sandbox_argument "EVIL"
+expect_no_sandbox_argument "--uid="
+expect_sandbox_argument "${IMAGE}"
+[ "$(sort -u "${FAKE_DIR}/schema-env" 2>/dev/null | tr '\n' ' ')" = "HMAILSERVER_HOME=/srv/hm XDG_DATA_HOME=/srv/xdg " ] && pass || fail "the version was not read with the unit's HMAILSERVER_HOME and XDG_DATA_HOME alone: $(sort -u "${FAKE_DIR}/schema-env" 2>/dev/null | tr '\n' ' ')"
+
+# systemd does not start the probe in the sandbox: the version is not read,
+# and the probe is not run outside it - and with nothing to show the database
+# unchanged, nothing is put back.
+setup schema-read-sandbox-not-started
+write_request
+systemd_here
+unit_sandbox
+printf 'hmailserver\n' > "${FAKE_DIR}/unit-user"
+: > "${FAKE_DIR}/systemd-run-refuses"
+printf 'failed\nactive\n' > "${FAKE_DIR}/start-plan"
+run_helper
+expect_rc 1
+expect_outcome_starts "upgraded-incomplete 9.9.9 the package was installed but the service was not back after 2 seconds (failed); the database's schema version could not be read before the install (systemd-run did not start ${FAKE_BIN}/hmailserver --schema-version in hmailserver.service's sandbox (exit 1: Failed to start transient service unit: (fake) Unit has a bad setting.), and it is not run outside it), so nothing shows that the install left it unchanged; hMailServer 9.9.8 was not put back"
+expect_no_call "runuser"
+expect_no_call "hmailserver --schema-version"
+[ "$(calls | grep -c '^apt-get')" = 1 ] && pass || fail "the earlier version was put back with nothing to show the database unchanged"
+
+# And a machine systemd runs with no systemd-run on it.
+setup schema-read-without-systemd-run
+write_request
+systemd_here
+printf 'hmailserver\n' > "${FAKE_DIR}/unit-user"
+printf 'failed\nactive\n' > "${FAKE_DIR}/start-plan"
+run_helper systemd-run
+expect_rc 1
+expect_outcome_contains "the database's schema version could not be read before the install (systemd runs this machine and there is no systemd-run to ask ${FAKE_BIN}/hmailserver --schema-version in hmailserver.service's sandbox, and it is not asked outside it)"
+expect_no_call "runuser"
+expect_no_call "hmailserver --schema-version"
+
+# `check`, from an administrator's terminal: the probe is handed to systemd
+# (here the fake, which starts it in a session of its own as systemd does), and
+# never run on that terminal.
+setup check-asks-in-the-units-sandbox
+systemd_here
+unit_sandbox
+printf 'hmailserver\n' > "${FAKE_DIR}/unit-user"
+if run_helper_on_a_terminal check; then
+   expect_output "database:    at schema version 6108 (this server needs 6108), asked as hmailserver, in hmailserver.service's sandbox"
+   expect_call "systemd-run"
+   expect_no_call "runuser"
+   [ "$(sort -u "${FAKE_DIR}/probe-tty" 2>/dev/null)" = none ] && pass || fail "the probe run by check had the terminal: $(sort -u "${FAKE_DIR}/probe-tty" 2>/dev/null)"
+else
+   echo "   skipped: there is no script(1) to give it a terminal"
+fi
+
+# Without systemd, on a terminal: runuser in a session of its own, which has
+# no controlling terminal, so the probe cannot reach the one the helper was
+# started from.
+setup probe-off-the-terminal-without-systemd
+write_request
+printf 'hmailserver\n' > "${FAKE_DIR}/unit-user"
+if run_helper_on_a_terminal apply; then
+   expect_rc 0
+   expect_outcome_starts "ok 9.9.9"
+   [ "$(calls | grep -c '^runuser -u hmailserver')" = 1 ] && pass || fail "the probe was not run through runuser: $(calls | grep -E 'runuser|systemd-run' | tr '\n' ';')"
+   [ "$(sort -u "${FAKE_DIR}/probe-tty" 2>/dev/null)" = none ] && pass || fail "the probe had the terminal the helper was started from: $(sort -u "${FAKE_DIR}/probe-tty" 2>/dev/null)"
+   grep -q "asked as hmailserver, without hmailserver.service's sandbox: systemd does not run this machine" "${LOG}" && pass || fail "the log does not say the probe ran without the unit's sandbox"
+else
+   echo "   skipped: there is no script(1) to give it a terminal"
+fi
 
 # ---------------------------------------------------------------- the verdict
 

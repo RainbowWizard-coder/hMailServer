@@ -37,10 +37,18 @@
 #      inactive (or failed), and no process may run as the owner of the Updates
 #      directory or of any directory above it, other than root and this
 #      program's own user. If either is not so, the unit is started again and
-#      nothing is read, installed or written. From here on the directory is
-#      quiet, and every file root makes in it is made under a name nobody
-#      could have planted - mktemp, O_EXCL - and renamed into place, which
-#      replaces a symlink and never follows one;
+#      nothing is read, installed or written. The directory is quiet from here
+#      until the unit is started again, and no longer than that: the server
+#      then runs again as the directory's owner, who may rename, remove or
+#      replace any name in it or above it. So while it is quiet, root opens
+#      the directory itself and makes and opens the two files it writes there,
+#      the log and the outcome - under names nobody could have planted
+#      (mktemp, O_EXCL), owned and moded for the server through their
+#      descriptors - and from then on writes them through those descriptors
+#      alone, and renames each into place at the end through the directory's
+#      own descriptor (mv -T), which replaces a symlink and never follows one.
+#      Whatever the restarted server does to the names costs it only its own
+#      log or outcome;
 #   4. copies the package and the rollback image, each with its bundle, into a
 #      directory of its own that only root can enter (mktemp -d) - each looked
 #      at again first, now that nobody can change it, and copied only if it is
@@ -61,7 +69,9 @@
 #      must be exactly that installed version. A taken-over service cannot
 #      have root put a signed but superseded release back;
 #   5. reads the database's schema version (`hmailserver --schema-version`, as
-#      the unit's user), installs the package (apt-get or dpkg, dnf or rpm) or
+#      the unit's user and in the unit's own sandbox, which systemd sets up for
+#      it as it does for the server), installs the package (apt-get or dpkg,
+#      dnf or rpm) or
 #      swaps the AppImage file under the unit, starts the unit, and waits for it
 #      to stay up and, where the metrics listener is on, for /readyz to answer;
 #   6. if it does not come back, reads the database's version again, with the
@@ -146,11 +156,14 @@ PATH_UNIT=hmailserver-update.path
 # exist for build/test-hmailserver-update.sh, which cannot wait ten seconds per
 # case; under the path unit and under systemd-run the environment is systemd's,
 # and nothing sets them. HMAILSERVER_UPDATE_PROGRAM is the same test's way of
-# standing a fake in for /usr/bin/hmailserver.
+# standing a fake in for /usr/bin/hmailserver, and HMAILSERVER_UPDATE_SYSTEMD_DIR
+# its way of saying whether systemd runs the machine - the directory systemd
+# makes when it is PID 1 (sd_booted), which the test cannot make or remove.
 SETTLE_SECONDS=${HMAILSERVER_UPDATE_SETTLE_SECONDS:-10}
 POLL_SECONDS=${HMAILSERVER_UPDATE_POLL_SECONDS:-2}
 PAUSE_SECONDS=${HMAILSERVER_UPDATE_PAUSE_SECONDS:-3}
 PROGRAM=${HMAILSERVER_UPDATE_PROGRAM:-$PROGRAM}
+SYSTEMD_DIR=${HMAILSERVER_UPDATE_SYSTEMD_DIR:-/run/systemd/system}
 
 REQUEST=""
 UPDATES_DIR=""
@@ -171,37 +184,113 @@ PRIVATE_DIR=""
 now() { date '+%Y-%m-%d %H:%M:%S'; }
 
 LOG_FILE=""
+
+# Root's hold on the Updates directory and on the two files it writes there -
+# the log and the outcome - taken by open_files once the stop is confirmed:
+# the directory on descriptor 5, the log on 3 and the outcome on 4.
+#
+# Why descriptors. The directory belongs to the service user, and in the
+# packages so does the one above it, the DataFolder. While the unit is
+# confirmed stopped nothing of theirs runs and every name there is what it
+# seems; from start_unit on the server runs again as their owner and may
+# rename, remove or replace any of those names - make the log's name a symlink
+# to a file of somebody else's, the outcome's a symlink to a directory, or the
+# Updates directory's own name a symlink to another - while root still has the
+# log to write, the outcome to write and both to rename into place. A write, a chown or a chmod by name would then
+# reach whatever the name had become, and a rename onto a name that leads to a
+# directory would move root's file into that directory. So every name root
+# uses there is looked up while the unit is stopped, and nothing after the
+# start goes by name:
+#
+# - the log and the outcome are made under random names (mktemp, O_EXCL,
+#   which nothing planted satisfies) and opened at once; their lines are
+#   written through the descriptors, which go on reaching the files root made
+#   whatever becomes of the names;
+# - their owner and mode - the directory's owner and 0640, so that the server
+#   can read them and remove them - are set through the descriptors too
+#   (/proc/self/fd/N names the open file itself), before the unit is started;
+# - each is renamed into place at the end with both names looked up from the
+#   directory's descriptor (/proc/self/fd/5/<name>, which is the directory
+#   root opened however its path has changed since) and mv -T, so that a
+#   symlink at the destination is replaced, never followed or entered.
+#
+# What the restarted server can do to these names costs it its own log or
+# outcome and nothing of anybody else's. The three descriptors are closed for
+# what run() starts - the package manager and the scripts it runs, systemctl -
+# and for the schema probe (read_schema), so that none of them, and no server
+# a stand-in systemctl starts, is handed one.
+UPDATES_FD=/proc/self/fd/5
 LOG_TMP=""
+LOG_OPEN=0
+OUTCOME_TMP=""
+OUTCOME_OPEN=0
 
 # To standard output always - under the path unit that is the journal,
-# journalctl -u hmailserver-update - and to the log file once open_log has made
-# one. That happens after the unit is stopped and not before: until then a
-# process running as the service user could put a symlink where root is about
-# to write, and root would append to whatever it pointed at. After the stop
-# there is no such process, and the file written is one this program made
-# under a name nobody could have planted; it takes the requested name, by
-# rename, when this program is done.
+# journalctl -u hmailserver-update - and to the log file once open_files has
+# made and opened one, through its descriptor.
 say()
 {
    # Its own variable name: shell variables are global, and a caller that has a
    # $line of its own would find it replaced by this one.
    said="$(now)  $*"
    printf '%s\n' "$said"
-   if [ -n "$LOG_TMP" ]; then
-      printf '%s\n' "$said" >> "$LOG_TMP" 2>/dev/null || true
+   if [ "$LOG_OPEN" = 1 ]; then
+      printf '%s\n' "$said" >&3 2>/dev/null || true
    fi
 }
 
-open_log()
+# Called once, as soon as the stop is confirmed (above). When the directory
+# cannot be held - no /proc, say - nothing is written into it at all, and the
+# journal has everything, the outcome included.
+open_files()
 {
-   [ -n "$LOG_FILE" ] || return 0
    [ "$DRY_RUN" = 1 ] && return 0
-   LOG_TMP="$(mktemp "$UPDATES_DIR/apply.XXXXXX" 2>/dev/null)" || { LOG_TMP=""; say "no log file could be made in $UPDATES_DIR; the journal has everything"; return 0; }
+   # `command`, so that a redirection that fails is a status here rather than
+   # the end of the shell, as it is for a special built-in.
+   if ! { command exec 5< "$UPDATES_DIR"; } 2>/dev/null || [ ! -d "$UPDATES_FD/" ]; then
+      say "$UPDATES_DIR could not be held open by descriptor (is /proc mounted?), so nothing is written into it; the journal has everything, the outcome included"
+      return 0
+   fi
+   if [ -n "$LOG_FILE" ]; then
+      if LOG_TMP="$(mktemp "$UPDATES_FD/apply.XXXXXX" 2>/dev/null)" && { command exec 3>> "$LOG_TMP"; } 2>/dev/null; then
+         LOG_OPEN=1
+         hand_over 3
+      else
+         [ -z "$LOG_TMP" ] || rm -f -- "$LOG_TMP"
+         LOG_TMP=""
+         say "no log file could be made in $UPDATES_DIR; the journal has everything"
+      fi
+   fi
+   if OUTCOME_TMP="$(mktemp "$UPDATES_FD/last-apply.XXXXXX" 2>/dev/null)" && { command exec 4> "$OUTCOME_TMP"; } 2>/dev/null; then
+      OUTCOME_OPEN=1
+      hand_over 4
+   else
+      [ -z "$OUTCOME_TMP" ] || rm -f -- "$OUTCOME_TMP"
+      OUTCOME_TMP=""
+      say "no file could be made in $UPDATES_DIR for the outcome; the journal will have it"
+   fi
 }
 
-# Whatever way this program ends: the log takes its name, and root's copies go.
+# Owned like the Updates directory and 0640, through the descriptor: chown and
+# chmod follow /proc/self/fd/N to the open file, which is the file root made.
+hand_over()
+{
+   chown --reference="$UPDATES_FD" -- "/proc/self/fd/$1" 2>/dev/null || true
+   chmod 0640 -- "/proc/self/fd/$1" 2>/dev/null || true
+}
+
+# A name the request asked for, in the directory root holds: the request's
+# path checked (check_output_file) to be directly inside it, by its last part.
+held_name()
+{
+   printf '%s/%s' "$UPDATES_FD" "$(basename -- "$1")"
+}
+
+# Whatever way this program ends: an outcome file never written goes, the log
+# takes its name, and root's copies go.
 on_exit()
 {
+   drop_outcome
    finish_log
    if [ -n "$PRIVATE_DIR" ]; then
       rm -rf -- "$PRIVATE_DIR"
@@ -209,16 +298,24 @@ on_exit()
    fi
 }
 
-# The log takes the name the request asked for. mv renames: a symlink at that
-# name is replaced, not followed. Owned like the Updates directory, so that the
-# server can read it and remove it.
+# The log takes the name the request asked for, by a rename in the directory
+# root holds (see above): a symlink at that name is replaced, never followed.
 finish_log()
 {
-   [ -n "$LOG_TMP" ] || return 0
-   chown --reference="$UPDATES_DIR" -- "$LOG_TMP" 2>/dev/null || true
-   chmod 0640 -- "$LOG_TMP" 2>/dev/null || true
-   mv -f -- "$LOG_TMP" "$LOG_FILE" 2>/dev/null || true
+   [ "$LOG_OPEN" = 1 ] || return 0
+   LOG_OPEN=0
+   exec 3>&-
+   mv -f -T -- "$LOG_TMP" "$(held_name "$LOG_FILE")" 2>/dev/null || rm -f -- "$LOG_TMP"
    LOG_TMP=""
+}
+
+drop_outcome()
+{
+   [ "$OUTCOME_OPEN" = 1 ] || return 0
+   OUTCOME_OPEN=0
+   exec 4>&-
+   rm -f -- "$OUTCOME_TMP"
+   OUTCOME_TMP=""
 }
 
 die()
@@ -635,7 +732,9 @@ open_copy()
 # ------------------------------------------------------------------ doing
 
 # Every command that changes the machine goes through here, which is what
-# --dry-run switches off.
+# --dry-run switches off. Without root's descriptors on the Updates directory
+# and its two files (open_files): the package's scripts run programs as the
+# service user, and a server started outside systemd would keep them.
 run()
 {
    if [ "$DRY_RUN" = 1 ]; then
@@ -643,7 +742,7 @@ run()
       return 0
    fi
    say "running: $*"
-   "$@"
+   "$@" 3>&- 4>&- 5<&-
 }
 
 stop_unit()
@@ -898,14 +997,16 @@ restore_image()
    mv -f -- "$IMAGE.previous" "$IMAGE"
 }
 
-# One line: "<status> <version> <detail>", written whole to a file this program
-# makes under a name nobody could have planted (mktemp: a random name, opened
-# O_EXCL, so no symlink waiting under a guessable name is ever followed) and
-# renamed into place - which replaces whatever is at the outcome path, symlink
-# included, without following it. Owned by whoever owns the Updates directory
-# so that the server can move it aside once it has reported it. A newline
-# inside the detail would make a second line the server never reads, so there
-# is none. Only called after the unit is stopped, never on a refusal.
+# One line: "<status> <version> <detail>", written whole, through its
+# descriptor, to the file open_files made for it while the unit was stopped
+# (mktemp: a random name, opened O_EXCL, so nothing planted is ever opened),
+# already owned by whoever owns the Updates directory so that the server can
+# move it aside once it has reported it; then renamed into place in the
+# directory root holds, which replaces whatever is at the outcome's name,
+# symlink included, without following it or entering it (see open_files: the
+# server is running again by now, as the directory's owner). A newline inside
+# the detail would make a second line the server never reads, so there is
+# none. Called once, and only after the stop is confirmed, never on a refusal.
 write_outcome()
 {
    status=$1
@@ -917,11 +1018,26 @@ write_outcome()
       return 0
    fi
    [ -n "$OUTCOME" ] || return 0
-   tmp="$(mktemp "$UPDATES_DIR/last-apply.XXXXXX" 2>/dev/null)" || { say "no file could be made in $UPDATES_DIR for the outcome"; return 1; }
-   printf '%s\n' "$line" > "$tmp" || { say "the outcome could not be written to $tmp"; rm -f -- "$tmp"; return 1; }
-   chown --reference="$UPDATES_DIR" -- "$tmp" 2>/dev/null || true
-   chmod 0640 -- "$tmp" 2>/dev/null || true
-   mv -f -- "$tmp" "$OUTCOME"
+   if [ "$OUTCOME_OPEN" != 1 ]; then
+      say "there is no file in $UPDATES_DIR for the outcome, so it is in this journal alone"
+      return 1
+   fi
+   OUTCOME_OPEN=0
+   if ! printf '%s\n' "$line" >&4; then
+      exec 4>&-
+      say "the outcome could not be written into $UPDATES_DIR, so it is in this journal alone"
+      rm -f -- "$OUTCOME_TMP"
+      OUTCOME_TMP=""
+      return 1
+   fi
+   exec 4>&-
+   if ! mv -f -T -- "$OUTCOME_TMP" "$(held_name "$OUTCOME")"; then
+      say "the outcome could not be renamed to $OUTCOME, so it is in this journal alone"
+      rm -f -- "$OUTCOME_TMP"
+      OUTCOME_TMP=""
+      return 1
+   fi
+   OUTCOME_TMP=""
 }
 
 # ------------------------------------------------------------------ the database
@@ -959,17 +1075,51 @@ installed_program()
 # Within a minute: a database that does not answer is a version that cannot be
 # read. Sets SCHEMA_REQUIRED and SCHEMA_DATABASE to the numbers said, each empty
 # when none was, and SCHEMA_WHY to why the database's was not read, and answers
-# false then. Its variables have names of their own: shell variables are global,
-# and apply's $code is the install step's.
+# false then; and SCHEMA_HOW to how the program was run, for the log. Its
+# variables have names of their own: shell variables are global, and apply's
+# $code is the install step's.
+#
+# Where it runs. This is the server's binary, run as the service user - while
+# the unit is stopped, before the install and after a new version that did not
+# come back, and from `check` in an administrator's root shell - and the
+# server it reads for is held in hmailserver.service's sandbox. So where
+# systemd runs the machine, the probe is held in the same one: a transient
+# service that systemd starts with the unit's user and group and with each of
+# the properties SCHEMA_SANDBOX names, as systemd reports them for the unit,
+# drop-ins included (read_schema_sandboxed) - the same view of the file system,
+# no new privileges, the same capability bounding set and system call filter.
+# Started by systemd rather than by this program, it has no controlling
+# terminal either, so a `check` from a root shell does not lend it that shell's.
+# If systemd does not start it so, the version is not read: it is never run
+# outside the sandbox where systemd could have held it in one, and SCHEMA_WHY
+# says what systemd-run said - which the rollback takes, as it takes any
+# version it cannot read, as nothing to show the database unchanged.
+#
+# Where systemd does not run the machine there is no unit for an apply to stop
+# and start, and the server runs in no sandbox either; only a stand-in
+# systemctl, as in build/test-hmailserver-update.sh, gets an apply this far.
+# Then the probe runs as the unit's User= through runuser, in a session of its
+# own with no controlling terminal (setsid), with standard input from
+# /dev/null, within the minute - and without the file system view,
+# NoNewPrivileges, capability bounding set and system call filter that only
+# systemd applies: with what the service user could do anyway, and no more.
 SCHEMA_REQUIRED=""
 SCHEMA_DATABASE=""
 SCHEMA_WHY=""
+SCHEMA_HOW=""
+
+# The properties of hmailserver.service that make its sandbox, and the user's
+# groups and working directory. AmbientCapabilities is left out: the probe
+# binds nothing. A property this systemd does not know is not reported, and so
+# not passed.
+SCHEMA_SANDBOX="Group SupplementaryGroups WorkingDirectory UMask NoNewPrivileges CapabilityBoundingSet RestrictSUIDSGID ProtectSystem ProtectHome ReadWritePaths ReadOnlyPaths InaccessiblePaths PrivateTmp PrivateDevices PrivateNetwork PrivateUsers PrivateIPC ProtectKernelTunables ProtectKernelModules ProtectKernelLogs ProtectControlGroups ProtectClock ProtectHostname ProtectProc ProcSubset RestrictNamespaces RestrictRealtime LockPersonality MemoryDenyWriteExecute RestrictAddressFamilies SystemCallArchitectures SystemCallFilter SystemCallErrorNumber"
 
 read_schema()
 {
    SCHEMA_REQUIRED=""
    SCHEMA_DATABASE=""
    SCHEMA_WHY=""
+   SCHEMA_HOW=""
    schema_program=$1
    schema_user="$(systemctl show -p User --value "$UNIT" 2>/dev/null)" || schema_user=""
    case "$schema_user" in
@@ -994,23 +1144,37 @@ read_schema()
       done
       set +f
    fi
-   schema_bound=""
-   if command -v timeout >/dev/null 2>&1; then
-      schema_bound="timeout 60"
-   fi
-   if [ -n "$schema_user" ]; then
-      if ! command -v runuser >/dev/null 2>&1; then
-         SCHEMA_WHY="there is no runuser to ask $schema_program as $schema_user, the user $UNIT runs the server as"
+   if [ -d "$SYSTEMD_DIR" ]; then
+      if ! command -v systemd-run >/dev/null 2>&1; then
+         SCHEMA_WHY="systemd runs this machine and there is no systemd-run to ask $schema_program --schema-version in $UNIT's sandbox, and it is not asked outside it"
          return 1
       fi
-      # Words on purpose: the bound and the variables, each checked above.
-      # shellcheck disable=SC2086
-      schema_answer="$($schema_bound runuser -u "$schema_user" -- env $schema_environment "$schema_program" --schema-version 2>&1 </dev/null)"
-      schema_code=$?
+      read_schema_sandboxed || return 1
    else
-      # shellcheck disable=SC2086
-      schema_answer="$($schema_bound env $schema_environment "$schema_program" --schema-version 2>&1 </dev/null)"
-      schema_code=$?
+      schema_bound=""
+      if command -v timeout >/dev/null 2>&1; then
+         schema_bound="timeout 60"
+      fi
+      schema_detach=""
+      if command -v setsid >/dev/null 2>&1; then
+         schema_detach="setsid -w"
+      fi
+      if [ -n "$schema_user" ]; then
+         if ! command -v runuser >/dev/null 2>&1; then
+            SCHEMA_WHY="there is no runuser to ask $schema_program as $schema_user, the user $UNIT runs the server as"
+            return 1
+         fi
+         # Words on purpose: the bound, the detach and the variables, each
+         # checked above.
+         # shellcheck disable=SC2086
+         schema_answer="$($schema_bound $schema_detach runuser -u "$schema_user" -- env $schema_environment "$schema_program" --schema-version 2>&1 </dev/null 3>&- 4>&- 5<&-)"
+         schema_code=$?
+      else
+         # shellcheck disable=SC2086
+         schema_answer="$($schema_bound $schema_detach env $schema_environment "$schema_program" --schema-version 2>&1 </dev/null 3>&- 4>&- 5<&-)"
+         schema_code=$?
+      fi
+      SCHEMA_HOW="as ${schema_user:-root}, without $UNIT's sandbox: systemd does not run this machine"
    fi
    SCHEMA_REQUIRED="$(printf '%s\n' "$schema_answer" | sed -n 's/^required \([0-9]\{1,9\}\)$/\1/p' | head -n 1)"
    if [ "$schema_code" = 0 ]; then
@@ -1019,11 +1183,75 @@ read_schema()
    if [ -z "$SCHEMA_DATABASE" ]; then
       # What else it said - why, in the program's words and the database
       # server's - on one line with no control character, for the outcome.
-      schema_rest="$(printf '%s\n' "$schema_answer" | sed -e '/^required [0-9]*$/d' -e '/^database [0-9]*$/d' | tr '\n\r\t' '   ' | tr -d '[:cntrl:]' | cut -c 1-300 | sed 's/ *$//')"
+      schema_rest="$(one_line "$(printf '%s\n' "$schema_answer" | sed -e '/^required [0-9]*$/d' -e '/^database [0-9]*$/d')")"
       SCHEMA_WHY="$schema_program --schema-version exited with $schema_code${schema_rest:+: $schema_rest}"
       return 1
    fi
    return 0
+}
+
+# Text another program wrote, for the outcome: one line, no control character,
+# at most 300 characters.
+one_line()
+{
+   printf '%s\n' "$1" | tr '\n\r\t' '   ' | tr -d '[:cntrl:]' | cut -c 1-300 | sed 's/ *$//'
+}
+
+# The probe as a transient service of systemd's, in hmailserver.service's
+# sandbox (read_schema, above). The unit's properties come from systemctl show,
+# whose values are what a unit file or systemd-run -p takes; RuntimeMaxSec ends
+# it, and anything it started, after the minute. It writes "probe started"
+# inside the sandbox before the program runs, which is how a probe that ran,
+# whatever it then said, is told from one systemd did not start; what came
+# before that line, if anything did, is systemd-run's and not the probe's.
+# Sets schema_answer and schema_code as the caller's other branch does.
+read_schema_sandboxed()
+{
+   set --
+   for schema_property in $SCHEMA_SANDBOX; do
+      set -- "$@" -p "$schema_property"
+   done
+   schema_shown="$(systemctl show "$@" "$UNIT" 2>/dev/null)" || schema_shown=""
+   set -- --quiet --wait --pipe --collect --no-ask-password \
+      "--description=hmailserver-update: the database's schema version, in $UNIT's sandbox" \
+      -p RuntimeMaxSec=60
+   [ -z "$schema_user" ] || set -- "$@" "--uid=$schema_user"
+   schema_ifs=$IFS
+   IFS='
+'
+   set -f
+   for schema_line in $schema_shown; do
+      schema_name=${schema_line%%=*}
+      schema_value=${schema_line#*=}
+      [ "$schema_name" != "$schema_line" ] && [ -n "$schema_value" ] || continue
+      case " $SCHEMA_SANDBOX " in
+         *" $schema_name "*) set -- "$@" -p "$schema_name=$schema_value" ;;
+      esac
+   done
+   IFS=$schema_ifs
+   for schema_word in $schema_environment; do
+      set -- "$@" "--setenv=$schema_word"
+   done
+   set +f
+   # The marker is said by the shell systemd starts, which then becomes the
+   # program.
+   # shellcheck disable=SC2016
+   set -- "$@" -- /bin/sh -c 'echo "probe started"; exec "$@"' sh "$schema_program" --schema-version
+   schema_bound=""
+   if command -v timeout >/dev/null 2>&1; then
+      schema_bound="timeout 90"
+   fi
+   # shellcheck disable=SC2086
+   schema_answer="$($schema_bound systemd-run "$@" 2>&1 </dev/null 3>&- 4>&- 5<&-)"
+   schema_code=$?
+   if printf '%s\n' "$schema_answer" | grep -qx 'probe started'; then
+      schema_answer="$(printf '%s\n' "$schema_answer" | sed -n '/^probe started$/,$p' | sed '1d')"
+      SCHEMA_HOW="as ${schema_user:-root}, in $UNIT's sandbox"
+      return 0
+   fi
+   schema_said="$(one_line "$schema_answer")"
+   SCHEMA_WHY="systemd-run did not start $schema_program --schema-version in $UNIT's sandbox (exit $schema_code${schema_said:+: $schema_said}), and it is not run outside it"
+   return 1
 }
 
 # Before the install, with the earlier version's own program.
@@ -1038,7 +1266,7 @@ read_database_before()
    fi
    if read_schema "$(installed_program)"; then
       DB_BEFORE=$SCHEMA_DATABASE
-      say "the database is at schema version $DB_BEFORE before the install."
+      say "the database is at schema version $DB_BEFORE before the install (asked $SCHEMA_HOW)."
    else
       DB_BEFORE_WHY=$SCHEMA_WHY
       say "the database's schema version could not be read before the install ($SCHEMA_WHY): if the new version does not come back, nothing can show the database unchanged, and the earlier version is not put back."
@@ -1150,9 +1378,10 @@ apply()
       start_unit
       return 1
    fi
-   # Nothing runs as the service user now; the Updates directory may be
-   # written, and the log starts.
-   open_log
+   # Nothing runs as the service user now, and nothing will until the unit is
+   # started again: the directory, the log and the outcome are taken now,
+   # while every name is what it seems (open_files), and the log starts.
+   open_files
    say "$UNIT is stopped."
 
    if ! take_copies; then
@@ -1312,7 +1541,7 @@ check()
       echo "config:      $CONFIG is not readable (run this as root); the Updates directory comes from its DataFolder"
       problems=$((problems + 1))
    fi
-   if command -v systemctl >/dev/null 2>&1 && [ -d /run/systemd/system ]; then
+   if command -v systemctl >/dev/null 2>&1 && [ -d "$SYSTEMD_DIR" ]; then
       state="$(systemctl is-active "$PATH_UNIT" 2>/dev/null || true)"
       if [ "$state" = active ]; then
          echo "trigger:     $PATH_UNIT is active; a request in /run/hmailserver/apply-request starts hmailserver-update.service"
@@ -1326,10 +1555,11 @@ check()
          echo "runtime dir: $UNIT_DEFAULT has no RuntimeDirectory=hmailserver; a server started under an older unit cannot write the request until it is restarted under this one"
          problems=$((problems + 1))
       fi
-      # What a rollback rests on, read as an apply reads it (read_schema).
+      # What a rollback rests on, read as an apply reads it (read_schema): in
+      # the unit's sandbox, started by systemd and so not on this terminal.
       if [ -x "$PROGRAM" ]; then
          if read_schema "$PROGRAM"; then
-            echo "database:    at schema version $SCHEMA_DATABASE (this server needs ${SCHEMA_REQUIRED:-what it did not say}); an update that does not come back is put back only while it stays there"
+            echo "database:    at schema version $SCHEMA_DATABASE (this server needs ${SCHEMA_REQUIRED:-what it did not say}), asked $SCHEMA_HOW; an update that does not come back is put back only while it stays there"
          else
             echo "database:    its schema version could not be read ($SCHEMA_WHY), so an update that does not come back would not be put back"
             problems=$((problems + 1))

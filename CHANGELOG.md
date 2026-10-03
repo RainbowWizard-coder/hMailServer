@@ -363,6 +363,18 @@ AppImage run under the path unit keeps the script copied to `/usr/lib/hmailserve
 installed, which the AppImage's own update does not replace: copy 6.3.6's there and give it `--image`. Until a Linux
 server's helper is 6.3.6's, `systemctl disable --now hmailserver-update.path` turns the apply off, and the check and
 the download go on; install 6.3.6 with the package manager. Found by the project's own review.
+
+The same helper went on writing into the service account's Updates directory by name after it had started the server
+again, in 6.3.4 and 6.3.5: it appended each line of its log to the log's file, gave the log and the outcome to the
+service account with `chown` and `chmod`, which follow a symbolic link, and renamed both onto names through which a
+symbolic link to a directory would have led them into that directory. A service account that had been taken over,
+and was running again by then, could therefore have root append the log's lines to a file of its choosing, give that
+file to the service account or change its mode, or put root's file into a directory of its choosing. 6.3.6 opens the
+directory, and makes and opens both files, while the server is confirmed stopped; gives them to the service account
+through the open files before it starts the server; writes them through the open files alone; and renames each into
+place through the open directory, which replaces a symbolic link and never follows it. Windows is not affected. Found
+by the project's own review.
+
 Some COM objects that carry no credential were not refused what only a signed-in caller may do. A message, its
 attachments and a fetch account that a program creates for itself carry no credential, and neither do the objects an
 `Application` handed out once a later `Authenticate` on it fails. With an administrator password set, a local Windows
@@ -2155,7 +2167,9 @@ version reads -1 as 6.3.6 does.
   reads the database's version before it installs and again when the new version is not back, with the new
   **`hmailserver --schema-version`** (`required <n>`, the version the program needs, said before it reads anything,
   then `database <n>`, its `hm_dbversion`; exit 1 when that cannot be read, 2 with no `[Database]`), run as the
-  unit's `User=` - for an AppImage with the unit's `HMAILSERVER_HOME` and `XDG_DATA_HOME` - and puts the earlier
+  unit's `User=` - for an AppImage with the unit's `HMAILSERVER_HOME` and `XDG_DATA_HOME` - and in the unit's own
+  sandbox: systemd runs it as a transient service with the unit's sandboxing properties, as `systemctl show` reports
+  them, and where systemd will not, the version is not read, never asked outside the sandbox. It puts the earlier
   version back only while it is unchanged, or, where it cannot be read afterwards, was already at or past what the new
   version needs. Otherwise nothing is put back, with a rollback image or without one, and the outcome is
   `upgraded-incomplete` (HM5481): how the database moved, or that it may have, and what to do - start the service once

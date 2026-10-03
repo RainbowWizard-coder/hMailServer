@@ -364,8 +364,8 @@ administrators can read, good for one hour and one use, accepted by
 `Application.Authenticate` as `token:<hex>` exactly once. A rollback reinstalls the
 previous binaries and cannot take the database back, so it is made only while the
 database is as the previous version left it - on Windows read by the installer, on
-Linux by `hmailserver-update` with `hmailserver --schema-version` before and after
-the install; once the schema has moved, or nothing can show it has not, nothing is
+Linux by `hmailserver-update` with `hmailserver --schema-version`, run in the unit's
+own sandbox, before and after the install; once the schema has moved, or nothing can show it has not, nothing is
 put back and the outcome (`upgraded-incomplete`, HM5481) names what did not complete
 and the backup the update took. Take a backup before an update
 that moves the schema; the notes of every release say whether it does.

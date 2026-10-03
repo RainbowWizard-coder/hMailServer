@@ -570,6 +570,13 @@ branch's pipeline and on master, never on a `v*` tag: they are checks, like
    the certificate. That step must have exited 0 and removed `.new-installation`.
    The REST API answers `GET /api/v1/status` with the administrator's password,
    refuses a wrong one with 401, and serves the Control Deck at `GET /`.
+   `hmailserver-update check` must then read the database's schema version - what
+   the live update's rollback rests on - "asked as hmailserver, in
+   hmailserver.service's sandbox": the helper has systemd run the server's
+   `--schema-version` as a transient service with the unit's own sandboxing
+   properties, as `systemctl show` reports them, and reads nothing where systemd
+   will not start it so. It must find nothing missing, and the journal must not
+   hold a line in which systemd says it is ignoring part of that sandbox.
 6. `systemctl reload` must reinitialise the server in the same process. The
    server answers the unit's SIGHUP by stopping its servers and starting them
    again, so the socket listening on 25 must be a new one within a minute, and

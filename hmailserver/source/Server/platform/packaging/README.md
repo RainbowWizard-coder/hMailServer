@@ -580,14 +580,24 @@ stops). So the apply is a request, and the request is taken by root.
    the unit again and reads, installs and writes nothing, and the journal names
    the process. That counts a process of a container whose user has the same
    number as the service user's, which the kernel does not tell apart: a host
-   where one runs applies the update by hand. From here no process
-   runs as the service user - the unit's control group is emptied, and the
-   service user has no session, no cron and no way out of it - which is why the
-   Updates directory is only written from here on. What root writes there is
-   made under a random name (`mktemp`, so nothing anyone planted under a
-   guessable name is opened) and renamed into place, which replaces a symlink
-   at the destination and never follows one; the log file and the outcome file
-   are both written that way.
+   where one runs applies the update by hand. From here until the unit is
+   started again no process runs as the service user - the unit's control
+   group is emptied, and the service user has no session, no cron and no way
+   out of it - and no longer: once the unit is started again (step 6) the
+   server runs as the owner of the Updates directory and of the DataFolder
+   above it, and may rename, remove or replace any name there while root still
+   has its log and its outcome to write. So it is in this quiet that root takes
+   everything it will write there: it opens the Updates directory itself, and
+   makes the log file and the outcome file under random names (`mktemp`, so
+   nothing anyone planted is opened), opens them, and gives them to the service
+   user, mode 0640, through those open files. From then on it writes them
+   through the open files alone, never by name, and at the end renames each
+   into place with both names looked up from the open directory
+   (`/proc/self/fd/<n>/<name>`) and `mv -T`: a symlink put at a name is
+   replaced and never followed, one to a directory is not entered, and a
+   symlink put where the Updates directory was leads nowhere. What the
+   restarted server does to those names costs it its own log or outcome and
+   nothing of anybody else's.
 4. It looks at the package and the rollback image again, now that nothing of
    the service user's runs, and copies them, with their bundles, only if each
    is still a plain file inside the Updates directory - into a directory it
@@ -633,9 +643,22 @@ stops). So the apply is a request, and the request is taken by root.
    no token is needed, which is why none is issued here. Before it installs,
    it reads the database's schema version with the installed program's
    `--schema-version` (`required <n>`, then `database <n>`), run as the
-   unit's `User=` with `runuser` - as root where the unit names none, and for
-   an AppImage with the unit's `HMAILSERVER_HOME` and `XDG_DATA_HOME` - within
-   a minute.
+   unit's `User=` - as root where the unit names none, and for an AppImage
+   with the unit's `HMAILSERVER_HOME` and `XDG_DATA_HOME` - within a minute,
+   and in the unit's own sandbox: `systemd-run --wait --pipe` starts it as a
+   transient service with the unit's user and group and the unit's sandboxing
+   properties as `systemctl show` reports them, drop-ins included -
+   `ProtectSystem`, `ProtectHome`, `ReadWritePaths`, `PrivateTmp`,
+   `PrivateDevices`, `NoNewPrivileges`, the capability bounding set, the
+   system call filter and the rest, without the ambient capability - so that
+   the server's binary, run as the service user, has no more than the server
+   has, and, started by systemd, no terminal. Where systemd will not start it
+   so, the version is not read, and it is never run outside the sandbox (the
+   rollback then has nothing to hold the database to, and puts nothing back:
+   step 7). Without systemd as PID 1 there is no unit to stop, and only a
+   stand-in `systemctl` gets this far: there it runs through `runuser`, in a
+   session of its own (`setsid`) with no terminal, and without the sandbox only
+   systemd applies.
 6. It starts the unit and waits up to `wait` seconds for it to be `active`,
    unrestarted, for ten seconds in a row - a unit under `Restart=on-failure`
    that keeps dying reads active a moment at a time - and for `/readyz` to
@@ -659,7 +682,8 @@ stops). So the apply is a request, and the request is taken by root.
    `upgraded-incomplete` (the database moved, or may have, and nothing was
    put back: the server reports it as HM5481, naming the backup the update
    took when the request's `backup=` says where), the version,
-   the detail - owned by the service user, and exits. The server's update task
+   the detail - through the outcome file it opened in step 3, renames it into
+   place, and exits. The server's update task
    reads the file at its next run (within fifteen minutes of the start), logs
    it, records it for `GET /api/v1/update` and the Deck's *The last install*,
    and moves it aside as `.reported`. `journalctl -u hmailserver-update` has
@@ -747,6 +771,22 @@ that cannot be read before, with and without a rollback image, the backup the
 request names in the outcome and one with a control character left out, and a
 unit `User=` that is no user name: fifty-nine cases and 276 checks, of which
 the helper before that change fails 32, in every one of the eleven new cases.
+Later on 2 October 2026 it holds what the server can do once it runs again
+(step 3), with a hook of the fake `systemctl`'s start that acts as the
+service user - as uid 65534, which then owns the case's directories, when the
+test runs as root: a symlink put at the log's file, at the names the log and
+the outcome are to take (to directories), at the outcome's own file and in
+place of the Updates directory, each followed by nothing, what it leads to the
+same afterwards in content, mode and owner; and the schema probe in the unit's
+sandbox (step 5), with a fake `systemd-run` among the fakes: the unit's
+properties passed and nothing else, an AppImage's two variables, a probe
+systemd does not start, and no `systemd-run`, each never run outside it, and
+`check` from a terminal and an apply without systemd never lending the probe
+that terminal (under `script`). Sixty-nine cases and 351 checks as root (342
+as another user, with the case that needs root skipped), of which the helper
+before that change fails 48, in nine of the ten new cases; the tenth, the
+outcome's own file swapped, holds the new arrangement to what it opened up:
+that helper made the file only after the wait, where no hook can reach it.
 It runs in GitLab CI's
 `update-helper` job on every change to these files, beside
 `systemd-analyze verify` of the three units; the `.deb` and `.rpm` file
@@ -797,6 +837,28 @@ install --allow-downgrades` with the rollback image (dpkg: "downgrading
 hmailserver (V+1) to (V)"), started the unit, and - PostgreSQL having been
 started again meanwhile - wrote `rolled-back <V+1> ...; hMailServer <V> was
 reinstalled and the service is running`, with the server on V and ready.
+
+*The writes after the restart, and the probe's sandbox, under systemd.* On 2
+October 2026, on linix, in an Ubuntu 26.04 container running systemd 259 as PID
+1 - not privileged: `CAP_SYS_ADMIN` for the units' mount namespaces, `/proc/sys`
+and `/sys` read-only, `systemd-binfmt` masked, the host's 32 binfmt_misc
+handlers counted before and after - with this tree's `.deb` and a local
+PostgreSQL: `hmailserver-update check` said the database was "at schema version
+6108 ..., asked as hmailserver, in hmailserver.service's sandbox", with no part
+of the sandbox ignored; and an update to a V+1 made of the same package, the
+request written by `hmailserver` and taken by the path unit (the Sigstore check
+alone stood in, through a drop-in), with a drop-in `ExecStartPre` of
+`hmailserver.service` that at the helper's start of the unit did, as
+`hmailserver` and inside the unit's sandbox, what a taken-over service could do
+then - the log's file swapped for a symlink to a root-only file, the names the
+outcome and the log were to take made symlinks to root-only directories. The
+helper read the schema version in the unit's sandbox, wrote `ok <V+1> ...`, and
+the root-only file and directories were as before in content, mode and owner.
+The helper before this change, the same way, appended its line to the root-only
+file and gave it to `hmailserver` at 0640, and moved its outcome and its log into
+the two directories. The same, without systemd and with a stand-in `systemctl`
+(the update, the update with those links, and a rollback onto an unchanged
+database), holds as well; there the probe runs through `runuser` and says so.
 
 What that leaves unproven: the rollback against a *release-signed* package
 (the last release made by hand carries no bundle, so the first update that can
