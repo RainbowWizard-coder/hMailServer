@@ -3862,3 +3862,56 @@ exceptions:
     reviewed-by: Progressiverobot
     reviewed: 2026-10-02
     expires: 2027-10-01
+
+  # Read on 3 October 2026 (6.3.6, the scans before the tag): the six High findings of
+  # GitLab's semgrep analyzer, run on linix as the semgrep-sast job runs it, over batch42 at
+  # 6feb74de7 with the branch b42-sa folded in, that no entry above accepted - the copies
+  # of a name server's socket address in the lookup b42-secfix-net2 rewrote (the entry
+  # above for its Windows arm, c142b80374951114ccf0, names a line that is no longer there).
+  # Each was read against the code by an AI agent under the owner's delegation, not line by
+  # line by the owner, so reviewed-by names the owner, who delegated the reading; none is a
+  # defect, and each reason names what holds.
+
+  # hmailserver/source/Server/Common/TCPIP/DnssecResolver.cpp
+  - scan: semgrep-sast
+    finding: 740e23ec9d63205eaf5e
+    what: 'memcpy of getaddrinfo''s address into a NameServer in NameServerFromText'
+    reason: 'Copies ai_addrlen octets from ai_addr into server.address, a sockaddr_storage, only when ai_addr is not null, the family is AF_INET or AF_INET6 and ai_addrlen is at most sizeof(server.address). getaddrinfo is numeric only (AI_NUMERICHOST), over a text of at most 63 characters, and its list is freed after.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-10-03
+    expires: 2027-10-02
+  - scan: semgrep-sast
+    finding: 39e2a6a49e45f5c46189
+    what: 'memcpy of the IPv4 address out of an IPv4-mapped IPv6 name server address in UnmapIPv4'
+    reason: 'Copies 4 octets into v4.sin_addr, an in_addr of 4 octets, from the last 4 of the 16 octets of the sockaddr_in6''s sin6_addr (IPv6Octets): the family was checked to be AF_INET6, and the first 12 octets compared with the ::ffff: prefix, before.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-10-03
+    expires: 2027-10-02
+  - scan: semgrep-sast
+    finding: afde3f37dfd47923c99d
+    what: 'memcpy of a sockaddr_in into a NameServer in UnmapIPv4'
+    reason: 'Copies sizeof(v4), a local sockaddr_in, into server.address, a sockaddr_storage, which is as large as any socket address; the NameServer was reset to a zeroed one first, and the length it is given is the same sizeof.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-10-03
+    expires: 2027-10-02
+  - scan: semgrep-sast
+    finding: 94bbf419712c50b54a4b
+    what: 'memcpy of the configured DNSServer''s sockaddr_in into a NameServer in GetDnsServers'
+    reason: 'Copies sizeof(address), a local sockaddr_in that inet_pton filled from the DNSServer setting, into server.address, a sockaddr_storage; only when inet_pton took the text as an IPv4 address.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-10-03
+    expires: 2027-10-02
+  - scan: semgrep-sast
+    finding: c4f583bb0bc2a6619a73
+    what: 'memcpy of an adapter''s IPv4 DNS server address from GetAdaptersAddresses into a NameServer (Windows)'
+    reason: 'Copies sizeof(sockaddr_in) from the adapter''s lpSockaddr into server.address, a sockaddr_storage, only when lpSockaddr is not null, iSockaddrLength is positive, at most sizeof(sockaddr_storage) and at least sizeof(sockaddr_in), and the family is AF_INET; the buffer is GetAdaptersAddresses'' own, read after it returned NO_ERROR.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-10-03
+    expires: 2027-10-02
+  - scan: semgrep-sast
+    finding: 8d900a55275d502e28e7
+    what: 'memcpy of an adapter''s IPv6 DNS server address from GetAdaptersAddresses into a NameServer (Windows)'
+    reason: 'Copies sizeof(sockaddr_in6) from the adapter''s lpSockaddr into server.address, a sockaddr_storage, only when lpSockaddr is not null, iSockaddrLength is positive, at most sizeof(sockaddr_storage) and at least sizeof(sockaddr_in6), and the family is AF_INET6; the buffer is GetAdaptersAddresses'' own, read after it returned NO_ERROR.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-10-03
+    expires: 2027-10-02

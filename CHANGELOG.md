@@ -3228,6 +3228,22 @@ was. Found by the project's own review.
   in characters, copies bounded by their arrays, string literals, the system's environment block, and two programs
   started by full path with arguments that cannot be split - none is a defect, and each is accepted in
   `.gitlab/security-exceptions.yml` with its reason, for a year.
+- **The three source scans pass over the tree of the tag.** `static-analysis`, `semgrep` and GitLab's `semgrep-sast`
+  were run as their jobs run, in their own images, over `batch42` with its last fold, and what each found new since
+  was read. Fixed: the Windows update helper's installer-log reader compares a line's beginning without `wcslen`
+  (flawfinder's High `strlen` rule; the same answer in all 2,112 cases tried); `build/ci/snap-install-test.sh`,
+  which Semgrep had not read at all because of a `case` written on one line, is read whole again; and the semgrep
+  job takes a rules pack that semgrep.dev serves as JSON as well as YAML - it served `p/javascript` as JSON three
+  times running on 3 October 2026, which failed the job before it scanned anything - and refuses a pack with no
+  rule, which it took before. Not defects, each with its reason: two `cert-err33-c` findings in `--schema-version`'s
+  output (a diagnostic to stderr and a flush of stdout) and eighteen of Semgrep's unquoted-expansion findings on the
+  auto-ban hook's iptables calls, which now wait for the xtables lock, and in its test - a fixed word or a split made
+  on purpose - in the baselines; eight more in `hmailserver-update`'s schema reads and in `snap-install-test.sh`,
+  words split on purpose and an IFS set to a newline and put back, marked where they are; and six High
+  `semgrep-sast` findings, the copies of a name server's socket address in the rewritten DNSSEC lookup, each held
+  to its destination's size and family, accepted in `.gitlab/security-exceptions.yml` for a year. The baselines'
+  lines for findings fixed in 6.3.6 or moved past recognition are gone. Over the result: 888 static-analysis
+  findings and 125 Semgrep findings, none new, and no `semgrep-sast` finding that holds the release.
 - **Two more tester programs: `deflate-tests` and `dane-tests`.** `DeflateStreamsTester` holds IMAP compression's
   inflation to the limit the connection asks for - a round trip, a stream of command lines hundreds of times its
   compressed size inflated in pieces no larger than the limit and put back whole, what zlib still holds once the input

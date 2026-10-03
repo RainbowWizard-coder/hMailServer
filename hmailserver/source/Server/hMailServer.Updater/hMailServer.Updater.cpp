@@ -801,7 +801,8 @@ namespace
          line = line.substr(23);
          while (!line.empty() && line.front() == L' ')
             line.erase(line.begin());
-         auto starts = [&line](const wchar_t *prefix) { return line.compare(0, wcslen(prefix), prefix) == 0; };
+         // The prefix as a std::wstring, its length its own: no wcslen over a pointer.
+         auto starts = [&line](const std::wstring &prefix) { return line.compare(0, prefix.size(), prefix) == 0; };
          // What follows the step's beginning is what counts: a line before it
          // says nothing of it.
          if (starts(L"Database step begun:"))

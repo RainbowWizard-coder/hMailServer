@@ -92,17 +92,34 @@ for pack in $packs; do
   # Python's urllib rather than curl, which the image does not have. Its failure is
   # taken after || on this line, not by an if around it: Semgrep's bash parser cannot
   # read an if whose condition holds a here-document, and read none of this script.
-  python3 - "https://semgrep.dev/c/$pack" "$work/rules/$name.yml" <<'EOF' || { echo "could not fetch $pack from semgrep.dev"; exit 2; }
-import sys, time, urllib.request
-url, target = sys.argv[1], sys.argv[2]
+  #
+  # The registry answers with the pack as YAML, "rules:" and a list, and at times with
+  # the same pack as JSON, {"rules": [...]}: p/javascript three times running on 3
+  # October 2026, a minute after and before YAML. JSON is YAML, and Semgrep reads the
+  # one under .yml as it reads the other (measured: the four packs written as JSON gave
+  # the same findings over the same files), so either is taken - anything else is not.
+  python3 - "https://semgrep.dev/c/$pack" "$work/rules/$name.yml" "$pack" <<'EOF' || { echo "could not fetch $pack from semgrep.dev"; exit 2; }
+import json, sys, time, urllib.request
+url, target, pack = sys.argv[1], sys.argv[2], sys.argv[3]
 for attempt in range(3):
     try:
         request = urllib.request.Request(url, headers={"User-Agent": "hmailserver-semgrep-job"})
         with urllib.request.urlopen(request, timeout=120) as response:
             body = response.read()
-        if not body.startswith(b"rules:"):
-            raise ValueError("not a rules file: %r" % body[:80])
+        if body.startswith(b"rules:"):
+            count, form = body.count(b"\n- id:"), "YAML"
+        else:
+            try:
+                rules = json.loads(body)["rules"]
+            except (ValueError, TypeError, KeyError):
+                rules = None
+            if not isinstance(rules, list) or not all(isinstance(r, dict) and "id" in r for r in rules):
+                raise ValueError("not a rules file: %r" % body[:80])
+            count, form = len(rules), "JSON"
+        if count == 0:
+            raise ValueError("a rules file with no rule: %r" % body[:80])
         open(target, "wb").write(body)
+        print("%s: %d rules (%s)" % (pack, count, form))
         sys.exit(0)
     except Exception as e:
         print("%s: %s" % (url, e))
@@ -110,7 +127,6 @@ for attempt in range(3):
 sys.exit(1)
 EOF
   cp "$work/rules/$name.yml" "$out/rules/"
-  echo "$pack: $(grep -c '^- id:' "$work/rules/$name.yml") rules"
 done
 ( cd "$out/rules" && sha256sum ./*.yml ) | tee "$out/rules.sha256"
 

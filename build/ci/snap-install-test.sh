@@ -106,12 +106,17 @@ if [ -n "$remote" ]; then
    # argument goes to the machine's shell quoted, so that it arrives as it was, and
    # runs from /, as a container's commands do: root in a snap has no
    # CAP_DAC_READ_SEARCH, so a working directory such as a home of mode 0750 would
-   # have AppArmor deny each of the snap's commands a look at it.
+   # have AppArmor deny each of the snap's commands a look at it. (Semgrep's
+   # unquoted-expansion rule, silenced below, says the same as SC2086; the split is
+   # the one --remote asks for, and $remote is the operator's own command line.)
    # shellcheck disable=SC2086
+   # nosemgrep
    in_box() { $remote "env -C / $(printf '%q ' "$@")" < /dev/null; }
    # shellcheck disable=SC2086
+   # nosemgrep
    in_box_i() { $remote "env -C / $(printf '%q ' "$@")"; }
    # shellcheck disable=SC2086
+   # nosemgrep
    box_sh() { $remote "env -C / bash -c $(printf '%q' "$1")" < /dev/null; }
 else
    in_box() { docker exec "$NAME" "$@"; }
@@ -229,7 +234,9 @@ docker run -d --name "$NAME" --privileged --cgroupns=private \
 state=""
 for _ in $(seq 1 90); do
    state="$(in_box systemctl is-system-running 2>/dev/null)"
-   case "$state" in running|degraded) break ;; esac
+   case "$state" in
+      running|degraded) break ;;
+   esac
    sleep 1
 done
 case "$state" in
@@ -292,7 +299,9 @@ said=""
 stopped=0
 for _ in $(seq 1 120); do
    said="$(in_box journalctl -u snap.hmailserver.daemon.service --no-pager -o cat --since "@$mark" 2>/dev/null)"
-   case "$said" in *"no database is configured"*) break ;; esac
+   case "$said" in
+      *"no database is configured"*) break ;;
+   esac
    if [ "$(in_box systemctl is-active snap.hmailserver.daemon.service)" != active ]; then
       stopped=$((stopped + 1))
       [ "$stopped" -lt 5 ] || break
@@ -319,7 +328,9 @@ if in_box test -f "$ini"; then
    said=""
    for _ in $(seq 1 60); do
       said="$(in_box journalctl -u snap.hmailserver.daemon.service --no-pager -o cat --since "@$mark" 2>/dev/null)"
-      case "$said" in *"Main process exited"*|*"no database is configured"*) break ;; esac
+      case "$said" in
+         *"Main process exited"*|*"no database is configured"*) break ;;
+      esac
       sleep 1
    done
    in_box snap stop hmailserver.daemon > /dev/null 2>&1
@@ -427,20 +438,32 @@ PY
 }
 for port in 25 587; do
    answer="$(ask "$port" "EHLO snap-test.example" "QUIT")"
-   case "$answer" in 220*) pass "SMTP $port: $(printf '%s' "$answer" | head -n 1)" ;; *) fail "SMTP $port answered '$answer'" ;; esac
+   case "$answer" in
+      220*) pass "SMTP $port: $(printf '%s' "$answer" | head -n 1)" ;;
+      *) fail "SMTP $port answered '$answer'" ;;
+   esac
    printf '%s\n' "$answer" | grep -q '^250[ -]STARTTLS' && pass "SMTP $port offers STARTTLS (a new installation's defaults)" || fail "SMTP $port offers no STARTTLS"
 done
 answer="$(ask 110 "QUIT")"
-case "$answer" in +OK*) pass "POP3 110: $(printf '%s' "$answer" | head -n 1)" ;; *) fail "POP3 110 answered '$answer'" ;; esac
+case "$answer" in
+   +OK*) pass "POP3 110: $(printf '%s' "$answer" | head -n 1)" ;;
+   *) fail "POP3 110 answered '$answer'" ;;
+esac
 answer="$(ask 143 "a1 CAPABILITY")"
-case "$answer" in "* OK"*) pass "IMAP 143: $(printf '%s' "$answer" | head -n 1)" ;; *) fail "IMAP 143 answered '$answer'" ;; esac
+case "$answer" in
+   "* OK"*) pass "IMAP 143: $(printf '%s' "$answer" | head -n 1)" ;;
+   *) fail "IMAP 143 answered '$answer'" ;;
+esac
 printf '%s\n' "$answer" | grep -q 'STARTTLS' && pass "IMAP 143 offers STARTTLS" || fail "IMAP 143 offers no STARTTLS"
 in_box test -e /var/snap/hmailserver/common/data/.new-installation && fail "the new-installation marker is still there" || pass "the first start applied the new installation's defaults and removed the marker"
 
 # --- the running server -------------------------------------------------------------
 pid="$(in_box systemctl show -p MainPID --value snap.hmailserver.daemon.service)"
 exe="$(in_box readlink "/proc/$pid/exe" 2>/dev/null)"
-case "$exe" in /snap/hmailserver/x*/usr/bin/hmailserver) pass "the service's main process is the snap's server ($exe)" ;; *) fail "the service's main process is '$exe'" ;; esac
+case "$exe" in
+   /snap/hmailserver/x*/usr/bin/hmailserver) pass "the service's main process is the snap's server ($exe)" ;;
+   *) fail "the service's main process is '$exe'" ;;
+esac
 status="$(in_box cat "/proc/$pid/status" 2>/dev/null)"
 field() { printf '%s\n' "$status" | awk -v k="$1:" '$1 == k { print $2; exit }'; }
 uid="$(in_box id -u snap_daemon)"
@@ -493,7 +516,10 @@ in_box snap restart hmailserver.daemon >> "$log" 2>&1 || fail "snap restart fail
 sleep 2
 wait_ports && pass "after snap restart it listens again" || fail "after snap restart it does not listen"
 answer="$(ask 25 "QUIT")"
-case "$answer" in 220*) pass "SMTP 25 after the restart: 220" ;; *) fail "SMTP 25 after the restart answered '$answer'" ;; esac
+case "$answer" in
+   220*) pass "SMTP 25 after the restart: 220" ;;
+   *) fail "SMTP 25 after the restart answered '$answer'" ;;
+esac
 errors="$(box_sh "grep -h -i -E 'permission denied|operation not permitted|EACCES|EPERM' /var/snap/hmailserver/common/log/*.log 2>/dev/null | head -n 5")"
 [ -z "$errors" ] && pass "the server's logs name no denied access" || fail "the server's logs name a denied access: $errors"
 in_box journalctl -u snap.hmailserver.daemon.service --no-pager -o cat > "$out/daemon.journal" 2>&1

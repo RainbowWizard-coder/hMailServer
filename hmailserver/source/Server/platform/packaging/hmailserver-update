@@ -1165,12 +1165,18 @@ read_schema()
             return 1
          fi
          # Words on purpose: the bound, the detach and the variables, each
-         # checked above.
+         # checked above - the bound is "timeout 60" or nothing, the detach
+         # "setsid -w" or nothing, and each variable a NAME=/path made only of
+         # the characters the case above lets through, none of them a space or a
+         # pattern character. (Semgrep's unquoted-expansion rule, silenced here
+         # and below, says the same as SC2086.)
          # shellcheck disable=SC2086
+         # nosemgrep
          schema_answer="$($schema_bound $schema_detach runuser -u "$schema_user" -- env $schema_environment "$schema_program" --schema-version 2>&1 </dev/null 3>&- 4>&- 5<&-)"
          schema_code=$?
       else
          # shellcheck disable=SC2086
+         # nosemgrep
          schema_answer="$($schema_bound $schema_detach env $schema_environment "$schema_program" --schema-version 2>&1 </dev/null 3>&- 4>&- 5<&-)"
          schema_code=$?
       fi
@@ -1217,6 +1223,11 @@ read_schema_sandboxed()
       -p RuntimeMaxSec=60
    [ -z "$schema_user" ] || set -- "$@" "--uid=$schema_user"
    schema_ifs=$IFS
+   # The lines systemctl show wrote, split by an unquoted expansion with IFS a
+   # newline and pathname expansion off, and IFS put back after, as the request
+   # is read above. (Semgrep's ifs-tampering rule, silenced here and at the
+   # restore, asks for an IFS local to the read, which sh does not have.)
+   # nosemgrep
    IFS='
 '
    set -f
@@ -1228,6 +1239,7 @@ read_schema_sandboxed()
          *" $schema_name "*) set -- "$@" -p "$schema_name=$schema_value" ;;
       esac
    done
+   # nosemgrep
    IFS=$schema_ifs
    for schema_word in $schema_environment; do
       set -- "$@" "--setenv=$schema_word"
@@ -1241,7 +1253,10 @@ read_schema_sandboxed()
    if command -v timeout >/dev/null 2>&1; then
       schema_bound="timeout 90"
    fi
+   # The bound is "timeout 90" or nothing, split into its words on purpose.
+   # (Semgrep's unquoted-expansion rule, silenced here, says the same as SC2086.)
    # shellcheck disable=SC2086
+   # nosemgrep
    schema_answer="$($schema_bound systemd-run "$@" 2>&1 </dev/null 3>&- 4>&- 5<&-)"
    schema_code=$?
    if printf '%s\n' "$schema_answer" | grep -qx 'probe started'; then
