@@ -721,7 +721,17 @@ STDMETHODIMP InterfaceDatabase::SetDefaultDatabase(eDBtype ServerType, BSTR Serv
       ini_file_settings_->SetDatabaseServer(sServerName);
       ini_file_settings_->SetDatabaseName(sDatabaseName);
       ini_file_settings_->SetIsInternalDatabase(ServerType == hDBTypeMSSQLCE);
-      
+
+      // The database named exists already, and may be older than this build:
+      // DBSetup restarts the server on it next (Reinitialize), reads its version,
+      // and upgrades an older one with DBUpdater - the way an installer's
+      // /createdatabase=0 finishes. That restart's refusal of an older database is
+      // then expected, as at the installer's start for an upgrade, and is not
+      // reported as HM5011 (Application::SetStartedForDatabaseUpgrade); it is
+      // still what Reinitialize answers, and DBSetup's wizard shows it. Once: any
+      // later start or reinitialise reports it.
+      HM::Application::Instance()->SetStartedForDatabaseUpgrade();
+
       return S_OK;   
    }
    catch (...)

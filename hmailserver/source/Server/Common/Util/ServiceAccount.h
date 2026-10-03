@@ -172,6 +172,34 @@ namespace HM
       //   6  the administrator answered No; nothing was changed.
       // The installer and the Control Panel move the service only on 0.
       static int RunGrantCommand(const GrantOptions &options);
+
+      // hMailServer.exe --grant-database-login: what the service's own identity,
+      // NT SERVICE\hMailServer, needs to open its database when that is SQL Server
+      // reached with Windows authentication on this computer - a login FROM
+      // WINDOWS, a user for it in the database hMailServer.INI names, and that
+      // user in db_owner - made over a connection of this process's own, as the
+      // account that runs it (docs/ServiceAccount.md, "SQL Server with Windows
+      // authentication"). The installer runs it, elevated, before it moves the
+      // service to the virtual account, so that the moved service opens the
+      // database the database step made as LocalSystem; DBSetup runs it when it
+      // finishes a new installation; an administrator runs it by hand. What is
+      // there already is left as it is, and nothing is taken away; nothing is
+      // made in a database with DDL triggers of its own, which would run with
+      // the rights of the account that runs this. A SQL Server
+      // on another computer is left alone: there the virtual account signs in as
+      // this computer's own account, as LocalSystem does. One line per step, and
+      // for a step it could not take, the statements a SQL Server administrator
+      // runs instead. Exit codes:
+      //   0  the service's identity can open the database - its login, its user
+      //      and db_owner, made now or there already - or needs nothing here:
+      //      the database is not SQL Server reached with Windows authentication,
+      //      or that SQL Server runs on another computer (the lines say which), so
+      //      that "--grant-database-login && ... /Register" moves only a service
+      //      that will open its database;
+      //   1  one of them could not be made;
+      //   2  hMailServer.INI names no database, or the database could not be
+      //      opened as this account.
+      static int RunDatabaseLoginCommand();
 #endif
    };
 

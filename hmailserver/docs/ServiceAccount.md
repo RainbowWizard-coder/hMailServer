@@ -52,7 +52,7 @@ component is installed. It says which case applies:
 
 | The machine | The page offers | The default |
 |---|---|---|
-| No hMailServer service yet - a new installation | `NT SERVICE\hMailServer`, or LocalSystem as earlier versions ran it | `NT SERVICE\hMailServer` |
+| No hMailServer service yet - a new installation; or the LocalSystem service a new installation left when its database step did not complete (below) | `NT SERVICE\hMailServer`, or LocalSystem as earlier versions ran it | `NT SERVICE\hMailServer` |
 | A service running as LocalSystem - an upgrade | keep LocalSystem, or move it to `NT SERVICE\hMailServer` | keep LocalSystem |
 | A service running as any other account - an upgrade | keep that account, or move it back to LocalSystem | keep the account |
 
@@ -61,7 +61,7 @@ installation takes the same choice as `/serviceaccount=virtual`,
 `/serviceaccount=localsystem` or `/serviceaccount=keep`; without it, a new
 installation gets the virtual account and an upgrade keeps what it has. When the
 database is SQL Server reached with Windows authentication, the move page says
-that the moved service needs a login there first.
+that the moved service needs a login there, which setup gives it first (step 4).
 
 The order is the point:
 
@@ -76,7 +76,17 @@ The order is the point:
    into `hMailServer.INI` through the service, over COM, and sets the service's
    dependency on a local database server; LocalSystem may do both, and the
    virtual account may do neither.
-4. For a move, the service is stopped and `hMailServer.exe /GrantServiceAccess`
+4. For a move, when the database is SQL Server reached with Windows
+   authentication, `hMailServer.exe --grant-database-login` gives
+   `NT SERVICE\hMailServer` a login there, a user in the hMailServer database and
+   `db_owner` (below) - as the administrator running setup, on a connection of its
+   own, while the service is still LocalSystem's. The database step made or opened
+   the database as LocalSystem; the moved service signs in as the virtual account,
+   and without these it cannot open the database. When they cannot be given on a
+   database this installation set up, the service is not moved: it stays on
+   LocalSystem, working, the message gives the statements a SQL Server
+   administrator runs, and setup ends with **10** (Upgrading.md, "If the upgrade
+   fails"). Then the service is stopped and `hMailServer.exe /GrantServiceAccess`
    runs - with `--confirm` in an attended installation. By now the database names
    every certificate and key file, so the grant can say which are outside the
    folders it grants. Only when it ends in 0 is the service registered as
@@ -84,11 +94,69 @@ The order is the point:
    installation, a folder that can never be granted, No to the question, a grant
    that failed - leaves the service on LocalSystem, working, and says why; the
    installation still succeeds. A database step that failed leaves it on
-   LocalSystem as well, where DBSetup can be run again.
-5. The service is started.
+   LocalSystem as well, and a new installation's leaves the mark that lets it be
+   finished later (below).
+5. The service is started. A service this installation has just moved is then held
+   to opening its database as `NT SERVICE\hMailServer` - the database's version is
+   read through it, as the installer reads it for an upgrade - since a service
+   reports itself running before it has opened anything. One that did not start,
+   or did not open its database, is moved back to LocalSystem and started again,
+   and setup says why and ends with 10 (11 when its database step changed the
+   database): until 6.3.6 such a server, which listened on no port, ended setup
+   with 0.
 
 A grant that fails at step 2 fails the installation - that service may not start
 - and says so in its own words, not the database's.
+
+**A new installation whose database step did not complete** - DBSetup refused a
+setting, the database server refused the sign-in, the wizard was closed - has its
+files, a service registered as LocalSystem for the database step, and no database;
+none of what follows that step has happened: the secure defaults
+([SecureDefaults.md](SecureDefaults.md)), the profile, the stored-secrets key
+([SecretsAtRest.md](SecretsAtRest.md)) and the move. Setup ends with 10 and leaves
+a mark, `NewInstallationPending` (the account chosen, `virtual` or `localsystem`)
+and `NewInstallationProfile` (the profile, if one was) under
+`HKEY_LOCAL_MACHINE\SOFTWARE\hMailServer` in the 32-bit view, writable by
+administrators only. Either way the message offers then finishes it as a new
+installation:
+
+* **Run setup again**, with the setting corrected. It finds the mark - or the
+  LocalSystem service beside a `hMailServer.INI` that names no database, which an
+  earlier version's setup leaves - and sets it up as a new installation's: the
+  pages offer, and a silent installation defaults to, the account and the profile
+  the mark holds (`NT SERVICE\hMailServer` without one), `/serviceaccount=` and
+  `/profile=` choosing otherwise, and the steps after the database run as for any
+  new installation. A
+  LocalSystem service whose `hMailServer.INI` names a database, or whose file is
+  not found, is an upgrade's, and keeps LocalSystem unless the move is chosen.
+  On the built-in database the same holds: setup run again finishes the
+  installation, where `DBSetupQuick.exe` would set the database up and nothing
+  after it, so the message after a new installation's failed step names setup.
+* **Run `DBSetup.exe` as an administrator** from the `Bin` folder - its wizard, or
+  `/unattended` with the settings in its environment
+  ([WindowsOnArm.md](WindowsOnArm.md)). With the mark there, once the database is
+  set up it runs the installer's steps itself, in the installer's order, with
+  hMailServer.exe's verbs: the service stopped, `--apply-new-install-defaults`,
+  the profile (`--apply-profile NAME --once --if-new --confirm`),
+  `--create-stored-secrets-key`, and for the virtual account
+  `--grant-database-login`, the grant and `--service-account virtual /Register`;
+  then the service started and, when moved, held to opening its database, moved
+  back to LocalSystem when it does not. Each step is said as it goes, and the mark
+  is removed - kept only when the service would not stop, so that none of them
+  ran. The wizard asks Windows for elevation itself when the mark is there;
+  `/unattended` without elevation refuses, before it changes anything, with exit
+  code 2.
+
+Setup clears the mark before its own database step, so that the DBSetup it runs
+leaves those steps to it, and writes it again only if that step does not complete
+either; the uninstaller removes it. An update hMailServer.Updater runs - the live
+update, or *Install update* in the Control Panel - leaves the mark alone and
+upgrades the installation as it is: unattended, it keeps the account and changes
+nothing a new installation would, and its database step is held to the version
+before it, as any upgrade's is. Until 6.3.6 setup run again kept the service on
+LocalSystem, and DBSetup set the database up and nothing else - no self-signed
+certificate (the database kept its `NewInstallDefaultsPending` mark), no
+stored-secrets key, LocalSystem (the installer smoke VM, 2 October 2026).
 
 Every registration of an account other than LocalSystem also sets the service's
 SID type to *unrestricted*, so that the service's token carries
@@ -199,6 +267,58 @@ outside, not confirmed; 5 the configuration names a folder that is never granted
 6 the administrator answered No, and nothing was changed. The installer and the
 Control Panel move the service only on 0.
 
+## Its login on SQL Server: `hMailServer.exe --grant-database-login`
+
+On SQL Server reached with Windows authentication - `[Database] Type=MSSQL` and no
+`Username` - the server signs in as the account the service runs as. LocalSystem
+is `NT AUTHORITY\SYSTEM` to a SQL Server on the same machine; the virtual account
+is `NT SERVICE\hMailServer`, which has no login there until one is made, and no
+user in the hMailServer database, which can only be made once the database
+exists. The verb makes what is missing of the three, on a connection of its own,
+as the account that runs it:
+
+```
+IF NOT EXISTS (SELECT 1 FROM sys.server_principals WHERE name = N'NT SERVICE\hMailServer') CREATE LOGIN [NT SERVICE\hMailServer] FROM WINDOWS;
+USE [hMailServer];
+IF NOT EXISTS (SELECT 1 FROM sys.database_principals WHERE name = N'NT SERVICE\hMailServer') CREATE USER [NT SERVICE\hMailServer] FOR LOGIN [NT SERVICE\hMailServer];
+ALTER ROLE db_owner ADD MEMBER [NT SERVICE\hMailServer];
+```
+
+(`hMailServer` being the database `[Database] Database` names.) It looks first and
+leaves what is there - a login, a user under another name for the same login, or
+the login as the database's owner - and takes nothing away. Each step is one line:
+`made`, or `there already`. It makes no user and changes no role in a database
+that has DDL triggers of its own (`sys.triggers`, enabled, on the database): such
+a trigger runs with the rights on SQL Server of whoever's statement fires it, so
+anybody who was ever `db_owner` there - an earlier server's login, another
+program's - could have left one to run as the administrator, server-wide. The
+verb then says so, and a SQL Server administrator reads the triggers before
+running the statements. Run it from an elevated prompt in the `Bin` folder as
+an account that may make logins on that SQL Server (`securityadmin` or `sysadmin`)
+and that can open the database; an administrator who is a SQL Server administrator
+through the `Administrators` group is one only when elevated. The installer runs it
+as the administrator running setup, before it moves the service (above), and so
+does DBSetup when it finishes a new installation. When it cannot do a step, it says
+which and why, and prints the statements above for a SQL Server administrator to
+run, with the `sqlcmd` line that runs them. It says everything on its own output
+and writes nothing to the error log or the Application log: a connection the
+account running it cannot make would otherwise be reported there as the server's
+own failure to reach its database (HM5028), and the log folder is the service's.
+
+A SQL Server on **another computer** is left alone: there the virtual account signs
+in as this computer's own account, `DOMAIN\COMPUTER$`, as LocalSystem does, so the
+login that worked keeps working, and a login named `NT SERVICE\hMailServer` could
+not even be made there. The verb compares SQL Server's `MachineName` and
+`ComputerNamePhysicalNetBIOS` with this computer's name, and says which it found.
+
+Exit codes: 0 the service's account can open the database - its login, user and
+`db_owner` made now or there already - or needs nothing here, which the lines say
+(not SQL Server with Windows authentication, or SQL Server on another computer); 1
+one of them could not be made; 2 `hMailServer.INI` names no database, or the
+database could not be opened as the account that ran it. Run before
+`--service-account virtual /Register` with `&&`, it moves only a service that will
+open its database.
+
 ## `hMailServer.INI` is read-only to the service
 
 The file keeps four kinds of thing, and under `NT SERVICE\hMailServer` the service
@@ -264,7 +384,7 @@ and what changed:
 | The auto-ban's Windows Defender Firewall rules (`AutoBanFirewall`) | Written | Refused | Writing a firewall rule takes an administrator and there is no narrower right to grant. Said once in the error log (HM7460) and in the checklist; banned addresses are still refused by the server. `AutoBanCommand` still runs - as the service account, so a command that asks a router or a cloud firewall works and one that runs `netsh` locally does not. Rules a LocalSystem run left behind cannot be removed by the new account, and are named once (HM7461) with the PowerShell that removes them |
 | A port | Any | Any | Windows lets any account bind any port, and the firewall's rule is per program: nothing to grant |
 | The secret store | Machine-scope DPAPI | The same | Any account on the machine can decrypt it - which is why shared hosting stays declined |
-| SQL Server with integrated authentication, on the same machine | The login `NT AUTHORITY\SYSTEM` | The login `NT SERVICE\hMailServer` | Create it: `CREATE LOGIN [NT SERVICE\hMailServer] FROM WINDOWS`, then a user for it in the hMailServer database with `db_owner` - before the move, which the installer's page says |
+| SQL Server with integrated authentication, on the same machine | The login `NT AUTHORITY\SYSTEM` | The login `NT SERVICE\hMailServer` | `hMailServer.exe --grant-database-login` (above) makes it, a user for it in the hMailServer database and `db_owner` - which the installer runs before the move, as the administrator running setup; where that account may not, the service stays on LocalSystem and setup gives the statements for a SQL Server administrator |
 | SQL Server with integrated authentication, on another machine | The computer account, `DOMAIN\COMPUTER$` | The computer account, as before | A virtual account is the computer account on the network, so the login that worked keeps working. For an identity of the server's own rather than the whole computer's, run the service as a group managed service account (`--service-account DOMAIN\hmail$ /Register`) and give that a login |
 | MySQL, MariaDB, PostgreSQL | A user and password | The same | Nothing changes |
 | A backup written to a network share | The computer account | The computer account | Grant `DOMAIN\COMPUTER$` on the share and its folder, as for LocalSystem |
@@ -507,12 +627,16 @@ installer again and choose it, use the Control Panel's button, or from an elevat
 Command Prompt in the `Bin` folder
 
 ```
+hMailServer.exe --grant-database-login
 hMailServer.exe --confirm /GrantServiceAccess
 hMailServer.exe --service-account virtual /Register
 net stop hMailServer && net start hMailServer
 ```
 
-running the second line only when the first ended in 0. To go back to LocalSystem:
+running each line only when the one before it ended in 0. The first matters only
+for SQL Server with Windows authentication, and says "Nothing to do" otherwise;
+the Control Panel's button does not run it, so on such a database run it, or the
+statements it gives, before the button. To go back to LocalSystem:
 run the installer again and choose *Move it back to LocalSystem*
 (`/serviceaccount=localsystem` silently), use the Control Panel's button, or
 

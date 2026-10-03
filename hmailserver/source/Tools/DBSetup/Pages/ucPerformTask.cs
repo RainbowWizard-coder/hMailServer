@@ -93,6 +93,23 @@ namespace DBSetup.Pages
             AddToLog("Restarting server...");
             Globals.GetApp().Reinitialize();
             AddToLog("Server restarted.");
+
+            // A new installation the installer did not finish: the steps after
+            // the database, as the installer runs them (NewInstallation). The
+            // wizard runs elevated whenever the mark is there (Program.Main).
+            PendingNewInstallation pending = PendingNewInstallation.Read();
+            if (pending != null)
+            {
+               AddToLog("");
+               NewInstallation.Finish(new MachineHost(), pending, true, _state["CreateNew"] == "Yes", AddToLog, AddToLog, out bool ran);
+               if (ran)
+               {
+                  string kept = PendingNewInstallation.Clear();
+                  if (kept != null)
+                     AddToLog("The mark of the unfinished installation could not be removed (" + kept + "): delete the value " + PendingNewInstallation.AccountValue + " under HKEY_LOCAL_MACHINE\\" + PendingNewInstallation.KeyPath + " in the 32-bit view (WOW6432Node) by hand.");
+               }
+            }
+
             AddToLog("");
             AddToLog("Task completed.");
 

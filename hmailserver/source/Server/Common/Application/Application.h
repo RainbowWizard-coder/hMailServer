@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <atomic>
 #include <functional>
 
 #include "../Util/Event.h"
@@ -77,13 +78,17 @@ namespace HM
       // refused rather than made.
       bool IsInitialized() const { return initialized_; }
 
-      // The start the installer makes for the database step of an upgrade
-      // (ServiceMain, --for-database-upgrade): the database is expected to be
-      // older than this build, because DBUpdater is about to move it through
-      // this process. The next InitInstance spends it, whatever it finds, and
-      // when its OnDatabaseConnected finds the database older it refuses the
-      // start as before without reporting HM5011. Once, so a reinitialise or
-      // any later start reports the refusal again.
+      // The next InitInstance expects a database older than this build, because
+      // DBUpdater is about to move it through this process: the start the
+      // installer makes for the database step of an upgrade (ServiceMain,
+      // --for-database-upgrade), and the restart that follows COM's
+      // SetDefaultDatabase, which names a database that exists and may be older
+      // - DBSetup, and its /unattended mode, then upgrade it with DBUpdater. That
+      // InitInstance spends it, whatever it finds, and when its
+      // OnDatabaseConnected finds the database older it refuses the start as
+      // before without reporting HM5011. Once, so a later reinitialise or start
+      // reports the refusal again. A database newer than this build is reported
+      // whatever this says.
       void SetStartedForDatabaseUpgrade() { started_for_database_upgrade_ = true; }
 
       bool StartServers();
@@ -224,10 +229,12 @@ namespace HM
       String last_connect_error_message_;
       bool initialized_;
 
-      // SetStartedForDatabaseUpgrade. Set before the first InitInstance, on the
-      // thread that makes it, and spent by that InitInstance whether or not it
-      // reaches the database; no other thread reaches it before then.
-      bool started_for_database_upgrade_ = false;
+      // SetStartedForDatabaseUpgrade. Set before the InitInstance that spends it,
+      // whether or not that one reaches the database: by ServiceMain, on the
+      // thread that makes the first, or by SetDefaultDatabase on the thread that
+      // serves that COM call, before the Reinitialize DBSetup asks for next, which
+      // another thread may serve - so it is atomic.
+      std::atomic<bool> started_for_database_upgrade_{false};
 
       std::shared_ptr<DatabaseConnectionManager> db_manager_;
 

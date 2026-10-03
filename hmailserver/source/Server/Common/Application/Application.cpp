@@ -169,11 +169,11 @@ namespace HM
    {
       initialized_ = false;
 
-      // The installer's start for the database step of an upgrade is this start
-      // only (SetStartedForDatabaseUpgrade): spent here, whether or not the
-      // database is reached, so that no later one inherits it.
-      const bool databaseUpgradeExpected = started_for_database_upgrade_;
-      started_for_database_upgrade_ = false;
+      // The installer's start for the database step of an upgrade, or the
+      // restart after SetDefaultDatabase, is this start only
+      // (SetStartedForDatabaseUpgrade): spent here, whether or not the database
+      // is reached, so that no later one inherits it.
+      const bool databaseUpgradeExpected = started_for_database_upgrade_.exchange(false);
 
       VirusScanner::ResetCounter();
 
@@ -454,10 +454,16 @@ namespace HM
          // expects. It is not reported, and not logged either - the log mask is
          // not loaded until Configuration::Load, which a refused start never
          // reaches - so the record of this start is the installer's log, which
-         // says it made it. A start made any other way - the service controller
-         // at boot, net start, services.msc, a COM activation - still reports
-         // it, and so does a database newer than the binary, which no upgrade
-         // puts right.
+         // says it made it. So is the restart DBSetup asks for after COM's
+         // SetDefaultDatabase has named a database that exists, which DBSetup
+         // reads the versions of next and upgrades with DBUpdater when it is
+         // older: until 6.3.6 that restart wrote this refusal as a Critical
+         // HM5011 to the error log and the Application event log on every new
+         // installation given /createdatabase=0 and an older database, which then
+         // succeeded (the installer smoke VM, 2 October 2026). A start made any
+         // other way - the service controller at boot, net start, services.msc,
+         // a COM activation - still reports it, and so does a database newer than
+         // the binary, which no upgrade puts right.
          if (databaseUpgradeExpected && iDBVersion < Configuration::Instance()->GetRequiredDBVersion())
             return false;
 

@@ -563,6 +563,18 @@ sections of one message add up to more than sixteen times the message is answere
 were read and held before any was sent. A `$` written into an element with anything else - `1:$` - is answered
 `BAD`, as no set. Found by the project's own review.
 
+`hMailServer.exe /GrantServiceAccess` writes nothing to the error log or the Application log, as the live update's
+elevated verbs do not. It runs elevated - by the installer before the database step of every upgrade of a service
+that runs as `NT SERVICE\hMailServer`, by the Control Panel's button and by DBSetup - and the log folder is the
+service's to write, so a line the database layer wrote there for it could go wherever a link the service had planted
+led. Everything the grant says, the database it could not read included, is on its own output as before. It also no
+longer leaves a Critical HM5028, "Check your database settings in hMailServer.ini", in the Application log when the
+administrator running it cannot open a SQL Server database reached with Windows authentication: the installer smoke
+VM showed one on every such move on 3 October 2026. `/Register`, on a registration that fails, and
+`--apply-new-install-defaults`, `--create-stored-secrets-key` and `--apply-profile`, which the installer runs on a new
+installation before the service has any right to that folder, still write there. Found by the review of the
+installer's fixes.
+
 ### What changes on upgrade without a switch
 
 1. **COM `Utilities`: the helpers that do work answer a caller that has signed in.** `BlowfishEncrypt`,
@@ -2182,6 +2194,60 @@ were read and held before any was sent. A `$` written into an element with anyth
   by the maintainers' decision of 28 September 2026, which WindowsOnArm.md records with its reasons. The installer
   smoke test checks the path with `-DatabaseSettings` (`installer-smoke-run.sh --database`).
 
+- **A new installation on SQL Server with Windows authentication serves mail as `NT SERVICE\hMailServer`, or says what
+  to run.** The database step creates the database as LocalSystem, and the service is then moved to the virtual
+  account, which had no login on SQL Server and no user in the new database: on the installer smoke VM on 2 October
+  2026, with SQL Server 2025 Express, the server could not open its database (HM5028, HM4354), listened on no port,
+  and Setup exited 0 without a word. Before the move the installer now runs `hMailServer.exe --grant-database-login`,
+  a new verb that, as the administrator running Setup, gives `NT SERVICE\hMailServer` a login, a user in the database
+  and `db_owner` on a SQL Server on this computer, leaves whatever is there, and leaves alone a SQL Server on another
+  computer, where the virtual account is this computer's account as LocalSystem is. It makes no user and changes no
+  role in a database with DDL triggers of its own, which would run with the administrator's rights on SQL Server,
+  server-wide, whoever left them there. Where it cannot, on a database Setup has just created, the service is not
+  moved: it stays on LocalSystem and serves mail, the message gives the four statements a SQL Server administrator
+  runs and the `sqlcmd` line that runs them, and Setup exits **10**. Every service Setup moves is then held to opening
+  its database as the virtual account - its version read through it - and one that does not start or does not open it
+  is moved back to LocalSystem and started again, with the same message and exit 10 (11 once the database step changed
+  the database). DBSetup, finishing an installation (below), does the same.
+  [ServiceAccount.md](hmailserver/docs/ServiceAccount.md), "Its login on SQL Server", and
+  [WindowsOnArm.md](hmailserver/docs/WindowsOnArm.md), "SQL Server with Windows authentication".
+
+- **A new installation whose database step did not complete is finished as a new one, by Setup run again or by
+  DBSetup.** The message after a refused or failed database step offers both, and until 6.3.6 neither ended where a
+  new installation does (the installer smoke VM, 2 October 2026): Setup run again kept the LocalSystem service it had
+  registered for the step, and `DBSetup.exe` set the database up and nothing else - no self-signed certificate (the
+  database kept its `NewInstallDefaultsPending` mark), no stored-secrets key, LocalSystem. Setup now leaves a mark,
+  `NewInstallationPending` (the account chosen) and `NewInstallationProfile` under
+  `HKEY_LOCAL_MACHINE\SOFTWARE\hMailServer`, and takes a LocalSystem service beside a settings file that names no
+  database - or the mark - for a new installation's: run again, it offers and by default gives
+  `NT SERVICE\hMailServer`, and the secure defaults, the profile and the stored-secrets key follow the database as for
+  any new installation. `DBSetup.exe`, its wizard or `/unattended`, run as an administrator with the mark there, runs
+  those steps itself after the database, in the installer's order and with its verbs, the move and its check included;
+  the wizard asks Windows for elevation, `/unattended` without it refuses before changing anything (exit 2), and a
+  step it could not finish is exit 4. Setup run again takes the account and the profile the mark holds as its
+  defaults, as DBSetup does. Setup clears the mark before its own database step and the uninstaller removes it; an
+  update `hMailServer.Updater` runs leaves it alone and upgrades the installation as it is, keeping its account, and a
+  database the settings file names is held to its version through the step whatever the mark says, so that a step that
+  changed it ends in 11, not 10. [ServiceAccount.md](hmailserver/docs/ServiceAccount.md), "A new installation whose
+  database step did not complete"; DBSetup's `NewInstallationTests` hold the steps and their order.
+
+- **The installer's last error after a new installation's external database names what retries it.** It said to
+  run `DBSetupQuick.exe` to retry the database, the line after it said `DBSetup.exe`, and followed after a wrong SQL
+  Server password `DBSetupQuick.exe` exited 1 with "CoCreateInstance failed. Result: -2147221164", since an
+  external-database installation has no SQL Server Compact. It now names Setup run again or `DBSetup.exe` as an
+  administrator, either of which finishes the installation. After a new installation's built-in database step the
+  messages name Setup run again too, which finishes it, where `DBSetupQuick.exe` sets the database up and nothing
+  after it; `DBSetupQuick.exe` stays the advice for an upgrade. The .NET runtime's failure, which said "then run
+  DBSetupQuick.exe" on either branch, now says to run Setup again.
+
+- **An older database named with `/createdatabase=0` is no longer reported as "too old" while it is upgraded.**
+  DBSetup names it (COM `Database.SetDefaultDatabase`), restarts the server on it and upgrades it with DBUpdater;
+  the restart's refusal of the older schema was a Critical HM5011 in the error log and the Application log on every
+  such installation that then succeeded (6105 to 6108 on the installer smoke VM, 2 October 2026). `SetDefaultDatabase`
+  now marks that restart as one that expects an older database, as the installer's start for an upgrade is marked
+  (`--for-database-upgrade`): the refusal stands, and is what DBSetup and its wizard read and show, and is not
+  reported; any later start or reinitialise reports it, and so does a database newer than the build.
+
 - **Scripting off runs no script engine.** With scripting off the server no longer compiles the event script and runs
   it once per handler at every start, reinitialise and reload; switching scripting on - by COM, REST or an
   environment - loads it, compiled and searched, before the switch takes effect, and reports then a script that does
@@ -2711,6 +2777,11 @@ were read and held before any was sent. A `$` written into an element with anyth
   decision of the server as a hung hook did.
 
 ### Build and tests
+
+- **The installer smoke test's line for DBSetup quotes DBSetup.** `installer-smoke.ps1`'s evidence for a
+  `--database` run took every line of Inno's log that began "Creating the", and printed Inno's seven "Creating the
+  icon." lines instead of DBSetup's; it now takes the unstamped lines Inno logged after "DBSetup.exe /unattended
+  returned", and fails when there are none. Pass and fail were not affected.
 
 - **The static-analysis findings of the network code, fixed.** Twenty-two findings of the `static-analysis` job are
   gone from its baseline (`build/ci/static-analysis-baseline.txt`), two of them on GitLab's Security dashboard: the

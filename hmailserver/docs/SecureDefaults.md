@@ -167,6 +167,12 @@ saying for an exit 1 that where the error log says nothing was changed, a second
 run still applies them. A
 database COM created but could not mark is **HM7512** in the error log, which is
 then the reason for the exit 5 that follows. The installation succeeds either way.
+When the database step of a new installation did not complete, none of this has
+run: setup run again, or `DBSetup.exe` run as an administrator, sets the database
+up and then runs the verb the same way, with the service stopped
+([ServiceAccount.md](ServiceAccount.md), "A new installation whose database step
+did not complete"); until 6.3.6 DBSetup did not, and the database kept its mark
+with no certificate made.
 
 **The Linux packages** (`.deb`, `.rpm`). The packages do not create a database:
 the administrator names one in `[Database]` and runs

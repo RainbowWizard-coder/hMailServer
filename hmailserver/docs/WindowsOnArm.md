@@ -175,16 +175,26 @@ What happens, in order:
    build requires, or with a failure.
 4. As for any new installation: the secure defaults (only on a database DBSetup
    created, [SecureDefaults.md](SecureDefaults.md)), the profile, the
-   stored-secrets key, the move to `NT SERVICE\hMailServer`, and the service's
-   start.
+   stored-secrets key, the move to `NT SERVICE\hMailServer` - on SQL Server with
+   Windows authentication after that account's login (below) - and the service's
+   start, held to its opening the database when it was moved.
 
 DBSetup's lines go into the setup log (`/LOG=`). When it fails, its words are
 the message, which `/SUPPRESSMSGBOXES` answers, and Setup exits with a non-zero
-code. DBSetup's own exit codes are 0 (set up, at the build's schema), 1 (the
+code (10). DBSetup's own exit codes are 0 (set up, at the build's schema), 1 (the
 step failed: the database server's answer is in the message), 2 (a setting was
-refused, and nothing was changed) and 3 (the administrator password was
-refused). An upgrade keeps the database it has: a database given to it is
-written to the setup log and ignored.
+refused, and nothing was changed), 3 (the administrator password was refused)
+and 4 (run by hand to finish a new installation, below: the database is set up,
+and a step after it did not complete, which its lines say). An upgrade keeps the
+database it has: a database given to it is written to the setup log and ignored.
+
+A new installation whose database step does not complete has nothing that comes
+after that step either - the secure defaults, the profile, the stored-secrets key,
+the move - and Setup leaves the mark that lets it be finished
+([ServiceAccount.md](ServiceAccount.md), "A new installation whose database step
+did not complete"): correct the setting and **run Setup again**, which sets the
+installation up as a new one, or **run `DBSetup.exe /unattended` by hand** (below),
+which after the database runs the steps Setup would have.
 
 **The password.** The installer never reads the database password. DBSetup
 reads it from `HM_DB_PASSWORD` or from the file, and hands it to the server,
@@ -223,15 +233,35 @@ single quote or a semicolon, which no connection string ADO reads can carry.
 service while it is still `LocalSystem`, so SQL Server sees this machine's
 account (`DOMAIN\MACHINE$`, or `NT AUTHORITY\SYSTEM` on the same machine), which
 must be allowed to create the database. A new installation then moves the
-service to `NT SERVICE\hMailServer`, which needs a login and a user in that
-database of its own ([ServiceAccount.md](ServiceAccount.md)). Make them first,
-or install with `/serviceaccount=localsystem`.
+service to `NT SERVICE\hMailServer`, which on a SQL Server on the same machine
+needs a login, a user in that database and `db_owner` of its own. Setup gives it
+them before the move - `hMailServer.exe --grant-database-login`, as the
+administrator running Setup, which therefore has to be a SQL Server administrator
+there (the one who installed SQL Server Express usually is) and able to open the
+database ([ServiceAccount.md](ServiceAccount.md), "Its login on SQL Server").
+Where it cannot, on a database Setup has just created, the service stays on
+LocalSystem and serves mail, the message gives the statements a SQL Server
+administrator runs, and Setup exits with 10; once they have run, move the service
+from the Control Panel, or run Setup again with `/serviceaccount=virtual`. On a
+database that existed (`/createdatabase=0`) the move is made, and the service is
+held to opening the database: one that does not is moved back to LocalSystem,
+with the same message and exit code. Until 6.3.6 Setup moved the service without
+the login, left a server that opened no database and listened on no port, and
+exited with 0. To keep the service on LocalSystem from the start, install with
+`/serviceaccount=localsystem`. A SQL Server on another machine needs nothing:
+there the virtual account is this machine's account, as LocalSystem is.
 
 **By hand.** `DBSetup.exe /unattended`, from an elevated prompt in the `Bin`
 folder with the variables set, does the same without the installer. It is a
 Windows program with no console of its own, so its lines are seen with
 `cmd /c "DBSetup.exe /unattended > dbsetup.txt 2>&1"`. Without `/unattended`,
-DBSetup is the wizard, whatever the environment holds.
+DBSetup is the wizard, whatever the environment holds. After a new installation
+whose database step did not complete, either of them then finishes it as Setup
+would have - the secure defaults, the profile chosen, the stored-secrets key, and
+the service's account with its login on SQL Server - each step said as it goes;
+for that it has to run elevated: `/unattended` without elevation refuses with exit
+code 2 before it changes anything, and the wizard asks Windows for elevation
+itself.
 
 Building it
 -----------

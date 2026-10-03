@@ -214,7 +214,10 @@ made by an elevated step only:
 
 * **the Windows installer, on a new installation**, after the database step has created the
   database and before it starts the service (`hMailServer.exe --create-stored-secrets-key`),
-  and it then says to export the key;
+  and it then says to export the key - and, when that database step did not complete,
+  setup run again or `DBSetup.exe` run as an administrator, either of which finishes the
+  new installation the same way ([ServiceAccount.md](ServiceAccount.md), "A new
+  installation whose database step did not complete");
 * **`hMailServer.exe --create-stored-secrets-key`** from an elevated prompt, or **`sudo
   hmailserver --create-stored-secrets-key`** on Linux - how an installation upgraded from
   before 25 September 2026 turns sealing on, and how the packaged Linux server gets its key;

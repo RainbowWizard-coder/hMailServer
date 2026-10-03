@@ -308,17 +308,24 @@ namespace DBSetup
    /// is the result. The installer runs it for a database given with /dbtype or
    /// HM_DB_TYPE (hMailServerInnoExtension.iss), which is how a new installation of
    /// the ARM64 build, which has no built-in database, finishes without a window.
+   /// Run by an administrator after the installer's database step did not complete,
+   /// it then finishes the new installation as the installer would have
+   /// (NewInstallation), and needs an elevated prompt for that, which it says before
+   /// it changes anything.
    /// </summary>
    internal static class UnattendedSetup
    {
       public const string Switch = "/unattended";
 
       // The installer reads these (hMailServerInnoExtension.iss). 1 and 3 mean what
-      // they mean for the wizard; 2 is new.
+      // they mean for the wizard; 2 is new. 4 is never the installer's to read: it
+      // clears the mark of an unfinished new installation before it runs this, and
+      // only with that mark are there steps after the database to finish.
       public const int ExitSuccess = 0;
       public const int ExitFailed = 1;
       public const int ExitSettingsInvalid = 2;
       public const int ExitAuthenticationFailed = 3;
+      public const int ExitNotFinished = 4;
 
       public static bool IsRequested()
       {
@@ -349,6 +356,13 @@ namespace DBSetup
 
          if (settings.Service != null && !ServiceExists(settings.Service))
             return Fail(error, ExitSettingsInvalid, UnattendedSettings.ServiceVariable + " names " + settings.Service + ", and no service of that name is installed on this machine. Nothing was changed.");
+
+         // A new installation the installer did not finish: the steps after the
+         // database are this run's, and they take an elevated administrator - said
+         // now, before anything is changed, rather than after the database is set up.
+         PendingNewInstallation pending = PendingNewInstallation.Read();
+         if (pending != null && !NewInstallation.IsElevated())
+            return Fail(error, ExitSettingsInvalid, NewInstallation.NotElevated + " Nothing was changed.");
 
          output.WriteLine(settings.Describe());
 
@@ -414,7 +428,18 @@ namespace DBSetup
             restartProblem = ex.Message;
          }
 
-         return Verify(application, settings, restartProblem, given, output, error);
+         int verified = Verify(application, settings, restartProblem, given, output, error);
+         if (verified != ExitSuccess || pending == null)
+            return verified;
+
+         bool finished = NewInstallation.Finish(new MachineHost(), pending, false, settings.Create, output.WriteLine, line => error.WriteLine("DBSetup /unattended: " + line), out bool ran);
+         if (ran)
+         {
+            string kept = PendingNewInstallation.Clear();
+            if (kept != null)
+               error.WriteLine("DBSetup /unattended: the mark of the unfinished installation could not be removed (" + kept + "): delete the value " + PendingNewInstallation.AccountValue + " under HKEY_LOCAL_MACHINE\\" + PendingNewInstallation.KeyPath + " in the 32-bit view (WOW6432Node) by hand.");
+         }
+         return finished ? ExitSuccess : ExitNotFinished;
       }
 
       private static int Verify(hMailServer.Application application, UnattendedSettings settings, string restartProblem, string credential, TextWriter output, TextWriter error)

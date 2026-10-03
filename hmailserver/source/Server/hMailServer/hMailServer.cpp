@@ -1414,6 +1414,19 @@ extern "C" int WINAPI _tWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstan
       else
          iRet = HM::ServiceAccount::RunGrantCommand(grantOptions);
    }
+   else if (sLastParam.CompareNoCase(_T("--grant-database-login")) == 0)
+   {
+      // What NT SERVICE\hMailServer needs to open its database when that is SQL
+      // Server reached with Windows authentication on this computer - a login, a
+      // user in the database and db_owner - made over this process's own
+      // connection, as the account that runs it (ServiceAccount::
+      // RunDatabaseLoginCommand). Run elevated by the installer before it moves
+      // the service to the virtual account, and by DBSetup when it finishes a new
+      // installation. Beside a running service as well as a stopped one: it
+      // changes SQL Server's principals, and nothing the service holds.
+      AttachVerbOutput();
+      iRet = HM::ServiceAccount::RunDatabaseLoginCommand();
+   }
    else if (sLastParam.CompareNoCase(_T("/SetAdministratorPassword")) == 0)
    {
       // See SetAdministratorPasswordFromInput.

@@ -105,7 +105,13 @@ virtual account `NT SERVICE\hMailServer`. The page offers the way each side, and
 A move is made after the database is upgraded, and only once the service's folders
 are granted cleanly: an attended installation asks about any folder or key file
 the configuration names outside the program folder, a silent one leaves the
-service on LocalSystem when there is one. Under the virtual account the live
+service on LocalSystem when there is one. On SQL Server with Windows
+authentication the installer first gives `NT SERVICE\hMailServer` a login there, a
+user in the database and `db_owner`, as the administrator running it
+(`hMailServer.exe --grant-database-login`); and a service it has moved is held to
+opening its database as that account, and moved back to LocalSystem, with the
+statements a SQL Server administrator runs and exit code 10 or 11, when it does
+not. Under the virtual account the live
 update is checked, downloaded and verified, and an administrator installs it with
 *Install update* in the Control Panel on the server, which asks Windows once and
 checks the installer itself, since the service cannot run an installer - from
@@ -298,10 +304,16 @@ If the upgrade fails
 The installer checks both that the database tool launched *and* its exit code, so a
 failed or cancelled schema upgrade is reported instead of passing silently: on a
 non-zero exit code the installer shows an error dialog naming the exit code and
-telling you to re-run `DBSetupQuick.exe`, and then **fails the install**. Setup
-ends with one of two exit codes whenever a step after the files did not complete -
-the service account's folders, the administrator password, the database or the
-service - and which one says whether the database is still the earlier version's:
+telling you what to run again - `DBSetupQuick.exe`, for an upgrade; for a new
+installation, the setup itself again, or for its external database, which DBSetup
+sets up, `DBSetup.exe` as an administrator, either of which finishes the
+installation as a new one ([ServiceAccount.md](ServiceAccount.md), "A new
+installation whose database step did not complete") - and then **fails the
+install**. Setup ends with one of two exit codes whenever a step after the files
+did not complete - the service account's folders, the administrator password, the
+database, the service, or the move to `NT SERVICE\hMailServer` when that account
+cannot open the database (the service then runs as LocalSystem, and serves mail)
+- and which one says whether the database is still the earlier version's:
 
 | Exit code | The database | What it means |
 |---|---|---|

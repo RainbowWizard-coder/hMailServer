@@ -2219,7 +2219,16 @@ if ($State.Installed -and ($null -ne $State.Database)) {
          $line = Select-String -LiteralPath $installLog -Pattern 'DBSetup\.exe /unattended returned (-?\d+)' | Select-Object -Last 1
          if ($null -eq $line) { throw "Inno's log has no 'DBSetup.exe /unattended returned': the installer did not take the database given" }
          if ($line.Matches[0].Groups[1].Value -ne '0') { throw "it returned $($line.Matches[0].Groups[1].Value)" }
-         $said = @(Select-String -LiteralPath $installLog -Pattern '^(\S+ \S+\s+)?(Creating the|Using the existing|The database is)' | ForEach-Object { ($_.Line -replace '^\S+ \S+\s+', '').Trim() })
+         # DBSetup's own lines: the unstamped ones the installer logged after that line,
+         # up to Inno's next stamped one. A search of the whole log for "Creating the"
+         # found Inno's "Creating the icon." instead (the pretag smoke run of 2 October
+         # 2026).
+         $lines = @(Get-Content -LiteralPath $installLog)
+         $said = @()
+         for ($index = $line.LineNumber; $index -lt $lines.Count -and $lines[$index] -notmatch '^\d{4}-\d{2}-\d{2} \d'; $index++) {
+            if ($lines[$index].Trim()) { $said += $lines[$index].Trim() }
+         }
+         if ($said.Count -eq 0) { throw "Inno's log has no line of DBSetup's after 'DBSetup.exe /unattended returned 0'" }
          "returned 0: $($said -join ' ')"
       })
 }

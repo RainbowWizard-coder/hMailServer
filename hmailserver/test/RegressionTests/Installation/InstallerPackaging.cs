@@ -603,9 +603,16 @@ namespace RegressionTests.Installation
          string extension = ReadInstallerScript("hMailServerInnoExtension.iss");
 
          string choice = CodeBody(extension, "GetServiceAccountChoice");
-         Assert.IsTrue(Regex.IsMatch(choice, @"if\s+IsNewService\(\)\s+then\s+Result\s*:=\s*'virtual'\s+else\s+Result\s*:=\s*'keep'", RegexOptions.IgnoreCase),
+         Assert.IsTrue(Regex.IsMatch(choice, @"if\s+IsNewService\(\)\s+then\s+Result\s*:=\s*PendingAccountDefault\(\)\s+else\s+Result\s*:=\s*'keep'", RegexOptions.IgnoreCase),
             "GetServiceAccountChoice does not default a new installation to the virtual account and an upgrade to the account the service has. " +
             "An upgrade that moved an existing service would change what it can reach without anybody choosing it.");
+         // A new installation's default is the virtual account, unless an unfinished
+         // one this finishes chose LocalSystem (its mark, PendingNewInstallation).
+         string pendingDefault = CodeBody(extension, "PendingAccountDefault");
+         Assert.IsTrue(Regex.IsMatch(pendingDefault, @"else\s+Result\s*:=\s*'virtual'"),
+            "A new installation's default account is not the virtual account.");
+         Assert.IsTrue(Regex.IsMatch(pendingDefault, @"if\s+PendingNewInstallation\(\)\s+and"),
+            "A new installation with no mark of an unfinished one could default to LocalSystem.");
          StringAssert.Contains("{param:serviceaccount|}", choice,
             "A silent installation has no page, so /serviceaccount= is its only way to choose.");
          foreach (string word in new[] { "'virtual'", "'localsystem'", "'keep'" })
@@ -738,6 +745,154 @@ namespace RegressionTests.Installation
       }
 
       [Test]
+      [Description("Before the move to the virtual account the installer gives NT SERVICE\\hMailServer its login on SQL Server with Windows authentication (hMailServer.exe --grant-database-login), and a service it moved is held to opening its database and moved back to LocalSystem when it does not, failing the installation in words of its own. Until 6.3.6 a new installation on SQL Server with Windows authentication ended with exit 0 on a server that could not open its database (the installer smoke VM, 2 October 2026).")]
+      public void TheMovedServiceIsGivenItsSqlServerLoginAndHeldToOpeningItsDatabase()
+      {
+         string extension = ReadInstallerScript("hMailServerInnoExtension.iss");
+
+         string move = CodeBody(extension, "MoveServiceToVirtualAccount");
+         int login = move.IndexOf("GrantServiceDatabaseLogin()", StringComparison.Ordinal);
+         int stop = move.IndexOf("StopServiceForMove()", StringComparison.Ordinal);
+         int register = move.IndexOf("RegisterHMailServerService('virtual')", StringComparison.Ordinal);
+         Assert.GreaterOrEqual(login, 0, "The move no longer gives the virtual account its login on SQL Server first.");
+         Assert.Less(login, stop, "The login on SQL Server is given after the service is stopped for the move.");
+         Assert.Less(login, register, "The service is registered as the virtual account before its login on SQL Server is given.");
+
+         string grant = CodeBody(extension, "GrantServiceDatabaseLogin");
+         StringAssert.Contains("DatabaseIsMssqlIntegrated()", grant, "The login step is not tied to SQL Server with Windows authentication.");
+         StringAssert.Contains("RunDatabaseLoginVerb(", grant);
+         StringAssert.Contains("g_bDatabaseLoginFailed := true", grant, "A login that could not be given does not fail the installation.");
+         StringAssert.Contains("--grant-database-login", CodeBody(extension, "RunDatabaseLoginVerb"));
+
+         string tasks = CodeBody(extension, "RunPostInstallTasks");
+         Assert.IsTrue(Regex.IsMatch(tasks, @"bMoved\s*:=\s*MoveServiceToVirtualAccount\(\)"),
+            "RunPostInstallTasks no longer knows whether it moved the service, so it cannot hold the moved service to opening its database.");
+         int started = tasks.IndexOf("'START hMailServer'", StringComparison.Ordinal);
+         int check = tasks.IndexOf("CheckServiceAfterMove()", StringComparison.Ordinal);
+         Assert.Greater(check, started, "The moved service is not checked after its start, which is when it first opens the database as the virtual account.");
+
+         string after = CodeBody(extension, "CheckServiceAfterMove");
+         StringAssert.Contains("ReadDatabaseVersion(", after, "The moved service's start is taken for its opening the database.");
+         StringAssert.Contains("RegisterHMailServerService('localsystem')", after, "A moved service that does not open its database is not moved back.");
+         StringAssert.Contains("g_bDatabaseLoginFailed := true", after, "A moved service that does not open its database does not fail the installation.");
+         Assert.IsFalse(Regex.IsMatch(after, @"(?<!Suppressible)MsgBox\("), "CheckServiceAfterMove uses a message box /SUPPRESSMSGBOXES does not suppress.");
+
+         StringAssert.Contains("g_bDatabaseLoginFailed", CodeBody(extension, "CurStepChanged"),
+            "A login that could not be given ends the installation with another step's message.");
+
+         string server = ReadRepositoryFile(@"hmailserver\source\Server\hMailServer\hMailServer.cpp");
+         StringAssert.Contains("_T(\"--grant-database-login\")", server, "hMailServer.exe does not know --grant-database-login, which the installer runs.");
+
+         // The verb and the grant run elevated, and write nothing where the service
+         // can (R3); the verb makes no user and changes no role in a database with DDL
+         // triggers of its own, which would run with the administrator's rights.
+         string account = ReadRepositoryFile(@"hmailserver\source\Server\Common\Util\ServiceAccount.cpp");
+         foreach (string verb in new[] { "RunDatabaseLoginCommand", "RunGrantCommand" })
+         {
+            Match body = Regex.Match(account, @"ServiceAccount::" + verb + @"\([^)]*\)\s*\{(?:\s*//[^\n]*\n)*\s*Logger::ForbidWritesForThisProcess\(\);");
+            Assert.IsTrue(body.Success, verb + " does not forbid the log writes of its elevated process first, so the database layer can write the error log and the Application log as an administrator.");
+         }
+         Match loginVerb = Regex.Match(account, @"ServiceAccount::RunDatabaseLoginCommand\(\)(.*?)\n   \}", RegexOptions.Singleline);
+         Assert.IsTrue(loginVerb.Success);
+         int triggers = loginVerb.Groups[1].Value.IndexOf("sys.triggers where parent_class = 0", StringComparison.Ordinal);
+         int createUser = loginVerb.Groups[1].Value.IndexOf("create user {0} for login {0}", StringComparison.Ordinal);
+         Assert.GreaterOrEqual(triggers, 0, "--grant-database-login does not look for the database's own DDL triggers before it changes a user or a role there.");
+         Assert.Less(triggers, createUser, "--grant-database-login looks for the database's DDL triggers after it has made the user.");
+         Assert.AreEqual(2, Regex.Matches(loginVerb.Groups[1].Value, @"else\s+if\s+\(!noChange\.IsEmpty\(\)\)").Count,
+            "--grant-database-login makes the user or changes db_owner in a database with DDL triggers of its own.");
+      }
+
+      [Test]
+      [Description("A new installation whose database step did not complete is finished as a new one: setup run again takes a LocalSystem service with no database, or the mark the installer leaves, for a new installation's, and DBSetup reads the same mark; and the last error after DBSetup's step names setup and DBSetup, never DBSetupQuick, which has nothing to retry there. Until 6.3.6 setup run again kept LocalSystem, and DBSetup set the database up and nothing else (the installer smoke VM, 2 October 2026).")]
+      public void AnUnfinishedNewInstallationIsFinishedAsANewOne()
+      {
+         string extension = ReadInstallerScript("hMailServerInnoExtension.iss");
+
+         string newService = CodeBody(extension, "IsNewService");
+         StringAssert.Contains("PendingNewInstallation()", newService, "Setup run again does not take the mark for a new installation's service.");
+         StringAssert.Contains("NoDatabaseConfiguredBefore()", newService, "Setup run again does not take a LocalSystem service with no database for a new installation's.");
+         // The earlier installation's folder, read before {app} is known: a 64-bit
+         // installation's uninstall entry is in the 64-bit view, and a look in the
+         // 32-bit view alone found no settings file on any of them, so that every
+         // LocalSystem service upgraded was taken for an unfinished new installation's
+         // and moved to the virtual account (the smoke VM, 3 October 2026).
+         string folder = CodeBody(extension, "PreviousInstallationFolder");
+         StringAssert.Contains(@"'SOFTWARE\hMailServer', 'InstallLocation'", folder, "The earlier installation's folder is not read from the InstallLocation every installation writes.");
+         StringAssert.Contains("HKLM64", folder, "The earlier installation's folder is not looked for in the 64-bit view, where a 64-bit installation's uninstall entry is.");
+         string noDatabase = CodeBody(extension, "NoDatabaseConfiguredBefore");
+         StringAssert.Contains("PreviousInstallationFolder()", noDatabase);
+         Assert.IsTrue(Regex.IsMatch(noDatabase, @"Result\s*:=\s*\(szFile\s*<>\s*''\)\s*and"),
+            "An earlier installation whose settings file is not found is taken for one with no database, which moves a LocalSystem service it cannot read to the virtual account.");
+         StringAssert.Contains("PendingNewInstallation()", CodeBody(extension, "IsNewDatabase"),
+            "A database DBSetup set up for an unfinished new installation is not taken for a new installation's.");
+
+         string steps = CodeBody(extension, "CurStepChanged");
+         Assert.IsTrue(Regex.IsMatch(steps, @"IsNewService\(\)"), "Whether the service is a new installation's is not read at ssInstall, before the database step names a database.");
+         Assert.IsTrue(Regex.IsMatch(steps, @"RecordPendingNewInstallation\(\s*GetServiceAccountChoice\(\)\s*,\s*GetChosenProfile\(\)\s*\)"),
+            "A new installation whose database step did not complete leaves no mark.");
+         Match afterDBSetup = Regex.Match(steps, @"else\s+if\s+g_bDatabaseStepByDBSetup\s+then\s+RaiseException\('([^']*)'\)");
+         Assert.IsTrue(afterDBSetup.Success, "The last error after DBSetup's database step is not one of its own.");
+         StringAssert.DoesNotContain("DBSetupQuick", afterDBSetup.Groups[1].Value,
+            "The last error after DBSetup's step sends people to DBSetupQuick, which has nothing to retry on an external database and does not start without SQL Server Compact.");
+         Match newBuiltIn = Regex.Match(steps, @"else\s+if\s+IsNewDatabase\(\)\s+and\s+\(g_bNewInstallationFinished\s*=\s*false\)\s+then\s+RaiseException\('([^']*)'\)");
+         Assert.IsTrue(newBuiltIn.Success, "The last error after a new installation's built-in database step has no words of its own.");
+         StringAssert.DoesNotContain("DBSetupQuick", newBuiltIn.Groups[1].Value,
+            "The last error after a new installation's built-in database step sends people to DBSetupQuick, which sets the database up and nothing after it.");
+         string advice = CodeBody(extension, "QuickStepRetryAdvice");
+         StringAssert.Contains("IsNewDatabase()", advice, "DBSetupQuick's retry advice is the same for a new installation as for an upgrade.");
+         Assert.AreEqual(3, Regex.Matches(CodeBody(extension, "RunPostInstallTasks"), @"QuickStepRetryAdvice\(\)").Count,
+            "A message after DBSetupQuick's step does not take its retry advice from QuickStepRetryAdvice.");
+
+         string tasks = CodeBody(extension, "RunPostInstallTasks");
+         int cleared = tasks.IndexOf("ClearPendingNewInstallation()", StringComparison.Ordinal);
+         Assert.GreaterOrEqual(cleared, 0, "The mark is not cleared before the installation's own database step.");
+         Assert.Less(cleared, tasks.IndexOf("DBSetupQuick.exe", StringComparison.Ordinal),
+            "The mark is cleared after the database step, so the DBSetup the installer runs would finish the installation a second time.");
+         StringAssert.Contains("ClearPendingNewInstallation()", CodeBody(extension, "CurUninstallStepChanged"), "The uninstaller leaves the mark.");
+
+         string names = CodeBody(extension, "PendingNewInstallation");
+         string dbsetup = ReadRepositoryFile(@"hmailserver\source\Tools\DBSetup\NewInstallation.cs");
+         foreach (string value in new[] { "NewInstallationPending", "NewInstallationProfile" })
+         {
+            StringAssert.Contains("'" + value + "'", extension, "The installer does not write " + value + ".");
+            StringAssert.Contains("\"" + value + "\"", dbsetup, "DBSetup does not read " + value + ", which the installer writes.");
+         }
+         StringAssert.Contains("HKLM32", names, "The installer's mark is not in the 32-bit view, which DBSetup reads.");
+         StringAssert.Contains("RegistryView.Registry32", dbsetup, "DBSetup does not read the mark in the 32-bit view the installer writes.");
+      }
+
+      [Test]
+      [Description("The mark of an unfinished new installation is not taken by an update hMailServer.Updater runs, which upgrades a server in service as it is; and a database the settings file names before the step is held to its version as an upgrade's is, whatever the mark says, so that a step which changed it ends in 11 and is not put back. Found by the refuter of the 6.3.6 installer fixes (3 October 2026): with the mark, an unattended update would have moved the service by default and ended in 10 after changing the database. Setup run again takes the account and the profile the mark holds as its defaults, as DBSetup does.")]
+      public void TheUpdaterLeavesAnUnfinishedInstallationsMarkAndItsDatabaseStepIsAnUpgrades()
+      {
+         string extension = ReadInstallerScript("hMailServerInnoExtension.iss");
+
+         string pending = CodeBody(extension, "PendingNewInstallation");
+         Assert.IsTrue(Regex.IsMatch(pending, @"if\s+g_bPendingBefore\s+and\s+\(g_szUpgradeToken\s*<>\s*''\)\s+then\s+begin\s+g_bPendingBefore\s*:=\s*false"),
+            "An update hMailServer.Updater runs takes the mark of an unfinished new installation, and with it the account move, the new installation's defaults and a database step that is not held to its version.");
+         Assert.IsTrue(Regex.IsMatch(pending, @"g_szPendingAccount\s*:="), "The mark's account is not read.");
+         Assert.IsTrue(Regex.IsMatch(pending, @"PENDING_PROFILE_VALUE"), "The mark's profile is not read.");
+
+         string tasks = CodeBody(extension, "RunPostInstallTasks");
+         Assert.IsTrue(Regex.IsMatch(tasks, @"bDatabaseStepOnExisting\s*:=\s*\(GetCurrentDatabaseType\(\)\s*<>\s*''\)"),
+            "Whether the database step meets an existing database is not what the settings file names: a database set up for an unfinished new installation is not held to its version, and a step that changed it ends in 10.");
+         StringAssert.DoesNotContain("bDatabaseStepOnExisting := (IsNewDatabase() = false)", tasks);
+         Assert.IsTrue(Regex.IsMatch(tasks, @"if\s+bDatabaseStepOnExisting\s+and\s+\(bServiceRegistered\s*=\s*true\)\s+then\s+StartServiceForDatabaseUpgrade\(\)"),
+            "An existing database is not met by the start for a database upgrade, so an older one is reported as HM5011.");
+
+         string profile = CodeBody(extension, "GetChosenProfile");
+         Assert.IsTrue(Regex.IsMatch(profile, @"if\s+\(szProfile\s*=\s*''\)\s+and\s+PendingNewInstallation\(\)\s+then\s+szProfile\s*:=\s*g_szPendingProfile"),
+            "A silent setup run again does not take the profile the unfinished installation chose, which DBSetup, finishing it instead, applies.");
+
+         string pages = CodeBody(extension, "CreateWizardPages");
+         Assert.IsTrue(Regex.IsMatch(pages, @"if\s+IsNewService\(\)\s+and\s+\(PendingAccountDefault\(\)\s*=\s*'localsystem'\)\s+then\s+g_pageServiceAccount\.SelectedValueIndex\s*:=\s*1"),
+            "The page does not offer again the LocalSystem an unfinished installation chose.");
+         string choice = CodeBody(extension, "GetServiceAccountChoice");
+         Assert.IsTrue(Regex.IsMatch(choice, @"if\s+\(g_pageServiceAccount\.SelectedValueIndex\s*=\s*1\)\s+then\s+Result\s*:=\s*'localsystem'\s+else\s+Result\s*:=\s*'virtual'"),
+            "A new installation's page answer is not the choice whatever it preselected.");
+      }
+
+      [Test]
       [Description("The service stop the installer performs before replacing files is bounded, and a failure to stop blocks the install.")]
       public void TestServiceStopIsBoundedAndBlocking()
       {
@@ -864,8 +1019,10 @@ namespace RegressionTests.Installation
          // The two halves are separate files and either one alone leaves the hang in
          // place, so both are asserted here rather than in two fixtures that could
          // pass independently while the product still waits forever.
+         // UpgradeDatabase takes the report file's path since 6.3.6 (report:PATH), so
+         // its parameters are matched as whatever they are.
          string quick = File.ReadAllText(Paths.Combine(SourceRoot, @"Tools\DBSetupQuick\Program.cs"));
-         Match upgrade = Regex.Match(quick, @"private static int UpgradeDatabase\(\)(.*?)\n      \}",
+         Match upgrade = Regex.Match(quick, @"private static int UpgradeDatabase\([^)]*\)(.*?)\n      \}",
                                      RegexOptions.Singleline);
 
          Assert.IsTrue(upgrade.Success, "Could not find UpgradeDatabase in DBSetupQuick.");

@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows.Forms;
 using hMailServer.Shared;
 
@@ -16,6 +17,9 @@ namespace DBSetup
       private const int ExitSuccess = 0;
       private const int ExitSetupIncomplete = 1;
       private const int ExitAuthenticationCancelled = 3;
+
+      // Windows' answer when the elevation prompt is cancelled.
+      private const int ErrorCancelled = 1223;
 
       /// <summary>
       /// The main entry point for the application.
@@ -36,6 +40,13 @@ namespace DBSetup
          if (UnattendedSetup.IsRequested())
             return UnattendedSetup.Run(Console.Out, Console.Error);
 
+         // A new installation the installer did not finish: the wizard finishes it
+         // once the database is set up (ucPerformTask, NewInstallation), which takes
+         // an elevated administrator, so it is started again with Windows' prompt -
+         // from the Start menu's shortcut it is not elevated.
+         if (PendingNewInstallation.Read() != null && !NewInstallation.IsElevated())
+            return RunElevated();
+
          hMailServer.Application application = new hMailServer.Application();
          if (!Authenticator.AuthenticateUser(application))
             return ExitAuthenticationCancelled;
@@ -47,6 +58,47 @@ namespace DBSetup
 
          // Closing the wizard before it finished leaves the database unconfigured.
          return main.SetupCompleted ? ExitSuccess : ExitSetupIncomplete;
+      }
+
+      // This program again, elevated, with the arguments it was given, and its exit
+      // code; the sentence and ExitSetupIncomplete when the prompt was cancelled.
+      private static int RunElevated()
+      {
+         var arguments = new System.Text.StringBuilder();
+         foreach (string argument in Environment.GetCommandLineArgs().Skip(1))
+         {
+            if (arguments.Length > 0)
+               arguments.Append(' ');
+            arguments.Append('"').Append(argument.Replace("\"", "\\\"")).Append('"');
+         }
+
+         try
+         {
+            var start = new System.Diagnostics.ProcessStartInfo
+            {
+               FileName = Environment.ProcessPath,
+               Arguments = arguments.ToString(),
+               UseShellExecute = true,
+               Verb = "runas"
+            };
+            using (var process = System.Diagnostics.Process.Start(start))
+            {
+               if (process == null)
+                  return ExitSetupIncomplete;
+               process.WaitForExit();
+               return process.ExitCode;
+            }
+         }
+         catch (System.ComponentModel.Win32Exception cancelled) when (cancelled.NativeErrorCode == ErrorCancelled)
+         {
+            MessageBox.Show(NewInstallation.NotElevated, "hMailServer Database Setup", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return ExitSetupIncomplete;
+         }
+         catch (Exception other) when (!ExceptionPolicy.IsFatal(other))
+         {
+            MessageBox.Show(NewInstallation.NotElevated + "\r\n\r\n" + other.Message, "hMailServer Database Setup", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return ExitSetupIncomplete;
+         }
       }
    }
 }

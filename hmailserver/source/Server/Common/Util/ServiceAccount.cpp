@@ -33,6 +33,7 @@
 #include "Unicode.h"
 #include "UpdateDownloader.h"
 #include "../Application/IniFileSettings.h"
+#include "../Application/Logger.h"
 #include "../AntiSpam/DKIM/DkimRotation.h"
 #include "../Persistence/SchemaUpgrader.h"
 #include "../SQL/DALConnection.h"
@@ -1569,6 +1570,21 @@ namespace HM
    int
    ServiceAccount::RunGrantCommand(const GrantOptions &options)
    {
+      // Everything the grant says is on its own handles, which the installer, the
+      // Control Panel and DBSetup read, and it says there when the database could
+      // not be read (ReadConfiguredPaths_). Nothing goes to the error log or the
+      // Application log. The process runs elevated, and the log folder is the
+      // service's to write - Modify for NT SERVICE\hMailServer, which this verb
+      // grants - so a line written there could go wherever a link the service
+      // planted leads (R3, as for the live update's verbs). And the database layer
+      // reports a connection this account cannot make - on SQL Server with Windows
+      // authentication, an administrator with no user in the database - as the
+      // server's own Critical HM5028, "Check your database settings in
+      // hMailServer.INI", which it is not: until 6.3.6 every move of such an
+      // installation to the virtual account wrote one to the Application log (the
+      // installer smoke VM, 3 October 2026).
+      Logger::ForbidWritesForThisProcess();
+
       if (!ProcessIsAdministrator())
       {
          SayLine_(true, _T("hMailServer.exe /GrantServiceAccess changes the permissions of the program and data folders, which takes an administrator: run it from an elevated Command Prompt. Nothing was changed."));
@@ -2018,6 +2034,295 @@ namespace HM
       if (!confirmed && (!plan.notApproved.empty() || !plan.outside.empty()))
          return 4;
       return 0;
+   }
+
+   // ---- the service's own login on SQL Server -------------------------------
+
+   namespace
+   {
+      // The service's identity as SQL Server names a Windows login made for it.
+      const TCHAR *ServiceLoginName_()
+      {
+         return _T("NT SERVICE\\hMailServer");
+      }
+
+      // name as a bracketed T-SQL identifier, every ] in it doubled.
+      String Bracketed_(const String &name)
+      {
+         String quoted = name;
+         quoted.Replace(_T("]"), _T("]]"));
+         return _T("[") + quoted + _T("]");
+      }
+
+      // text as a T-SQL Unicode literal, every ' in it doubled.
+      String UnicodeLiteral_(const String &text)
+      {
+         String quoted = text;
+         quoted.Replace(_T("'"), _T("''"));
+         return _T("N'") + quoted + _T("'");
+      }
+
+      // What TryExecute and TryOpen say about a statement SQL Server refused ends
+      // with the provider's own description, after the statement and the source;
+      // that last line is what is worth repeating.
+      String DescriptionOf_(const String &message)
+      {
+         String text = message;
+         text.Trim();
+         const int lastBreak = text.ReverseFind(_T('\n'));
+         if (lastBreak >= 0)
+            text = text.Mid(lastBreak + 1);
+         text.Trim();
+         return text.IsEmpty() ? String(_T("no reason given")) : text;
+      }
+
+      // The statements a SQL Server administrator runs to do what the verb could
+      // not: each one can be run again, and leaves what is there.
+      std::vector<String> DatabaseLoginStatements_(const String &database)
+      {
+         const String login = Bracketed_(ServiceLoginName_());
+         const String literal = UnicodeLiteral_(ServiceLoginName_());
+
+         std::vector<String> statements;
+         statements.push_back(Formatter::Format(_T("IF NOT EXISTS (SELECT 1 FROM sys.server_principals WHERE name = {0}) CREATE LOGIN {1} FROM WINDOWS;"), literal, login));
+         statements.push_back(Formatter::Format(_T("USE {0};"), Bracketed_(database)));
+         statements.push_back(Formatter::Format(_T("IF NOT EXISTS (SELECT 1 FROM sys.database_principals WHERE name = {0}) CREATE USER {1} FOR LOGIN {1};"), literal, login));
+         statements.push_back(Formatter::Format(_T("ALTER ROLE db_owner ADD MEMBER {0};"), login));
+         return statements;
+      }
+
+      void SayDatabaseLoginStatements_(const String &server, const String &database)
+      {
+         SayLine_(true, Formatter::Format(_T("A SQL Server administrator gives it them on {0} with these statements, and the service is then moved to NT SERVICE\\hMailServer, or started again if it runs as that account:"), server));
+
+         String oneLine;
+         for (const String &statement : DatabaseLoginStatements_(database))
+         {
+            SayLine_(true, _T("  ") + statement);
+            if (!oneLine.IsEmpty())
+               oneLine += _T(" ");
+            oneLine += statement;
+         }
+
+         SayLine_(true, Formatter::Format(_T("For example, from a Command Prompt running as that administrator: sqlcmd -S \"{0}\" -E -Q \"{1}\""), server, oneLine));
+      }
+
+      // The first column of the first row a query answers, as text; false, with
+      // why, when it could not be read.
+      bool ReadText_(std::shared_ptr<DALConnection> connection, const String &query, String &value, String &why)
+      {
+         value.Empty();
+         std::shared_ptr<DALRecordset> rows = connection->CreateRecordset();
+         if (!rows)
+         {
+            why = _T("no recordset could be made");
+            return false;
+         }
+
+         String error;
+         if (rows->TryOpen(connection, SQLCommand(query), error) != DALConnection::DALSuccess)
+         {
+            why = DescriptionOf_(error);
+            return false;
+         }
+
+         if (!rows->IsEOF())
+            value = rows->GetStringValue("value");
+         return true;
+      }
+
+      // The name of the user that maps the service's login in the database the
+      // connection is in - the one named after it, or any other with its SID, dbo
+      // included when the login owns the database. Empty when there is none.
+      bool ReadServiceUser_(std::shared_ptr<DALConnection> connection, String &user, String &why)
+      {
+         const String literal = UnicodeLiteral_(ServiceLoginName_());
+         return ReadText_(connection, Formatter::Format(_T("select top 1 name as value from sys.database_principals where name = {0} or sid = suser_sid({0}) order by case when name = {0} then 0 else 1 end"), literal), user, why);
+      }
+
+      bool ReadIsOwner_(std::shared_ptr<DALConnection> connection, const String &user, bool &member, String &why)
+      {
+         String count;
+         if (!ReadText_(connection, Formatter::Format(_T("select convert(nvarchar(12), count(*)) as value from sys.database_role_members m join sys.database_principals r on r.principal_id = m.role_principal_id join sys.database_principals u on u.principal_id = m.member_principal_id where r.name = N'db_owner' and u.name = {0}"), UnicodeLiteral_(user)), count, why))
+            return false;
+         member = !count.IsEmpty() && count != _T("0");
+         return true;
+      }
+
+      String ComputerName_(COMPUTER_NAME_FORMAT format)
+      {
+         wchar_t buffer[MAX_COMPUTERNAME_LENGTH + 64] = {};
+         DWORD size = MAX_COMPUTERNAME_LENGTH + 63;
+         if (!GetComputerNameExW(format, buffer, &size))
+            return String();
+         return String(buffer);
+      }
+   }
+
+   int
+   ServiceAccount::RunDatabaseLoginCommand()
+   {
+      // Everything this says is on its own handles, which the installer reads into
+      // its log. Nothing goes to the error log or the Application log: a connection
+      // the account running it cannot make is reported there by the database layer
+      // as the server's own failure to reach its database (HM5028, "Check your
+      // database settings in hMailServer.ini"), which it is not; and the log folder
+      // is the service's to write, which an elevated process does not write into.
+      Logger::ForbidWritesForThisProcess();
+
+      IniFileSettings *ini = IniFileSettings::Instance();
+      ini->LoadSettings();
+
+      if (!ini->GetDatabaseSettingsExists())
+      {
+         SayLine_(true, _T("hMailServer.INI names no database, so there is no database to give the service's account a login on. Nothing was changed."));
+         return 2;
+      }
+
+      const String server = ini->GetDatabaseServer();
+      const String database = ini->GetDatabaseName();
+
+      if (ini->GetDatabaseType() != DatabaseSettings::TypeMSSQLServer)
+      {
+         SayLine_(false, _T("The database is not on SQL Server: hMailServer signs in to it with the user and password in hMailServer.INI, whatever account the service runs as. Nothing to do."));
+         return 0;
+      }
+
+      if (!ini->GetUsername().IsEmpty())
+      {
+         SayLine_(false, Formatter::Format(_T("hMailServer signs in to SQL Server {0} as {1}, with a password, whatever account the service runs as. Nothing to do."), server, ini->GetUsername()));
+         return 0;
+      }
+
+      const String self = ProcessAccountName();
+      const String elevated = ProcessIsAdministrator() ? String() : String(_T(" This was not run from an elevated prompt: an administrator's Windows account that is a SQL Server administrator through the Administrators group is one only when elevated."));
+
+      std::shared_ptr<DALConnection> connection = DALConnectionFactory::CreateConnection(SchemaUpgrader::SettingsFromIni());
+      String error;
+      if (!connection || connection->Connect(error) != DALConnection::Connected)
+      {
+         SayLine_(true, Formatter::Format(_T("The database {0} on SQL Server {1} could not be opened as {2}: {3}{4}"), database, server, self, DescriptionOf_(error), elevated));
+         SayLine_(true, _T("So NT SERVICE\\hMailServer, which the service runs as once it is moved, was given nothing there."));
+         SayDatabaseLoginStatements_(server, database);
+         return 2;
+      }
+
+      // Where SQL Server runs. The service's virtual account is NT SERVICE\hMailServer
+      // only to a SQL Server on this computer; to one on another it is this
+      // computer's own account, DOMAIN\COMPUTER$, as LocalSystem is, and a login of
+      // that name could not even be made there.
+      String machine;
+      String physical;
+      String why;
+      ReadText_(connection, _T("select convert(nvarchar(128), serverproperty('MachineName')) as value"), machine, why);
+      ReadText_(connection, _T("select convert(nvarchar(128), serverproperty('ComputerNamePhysicalNetBIOS')) as value"), physical, why);
+
+      const String here = ComputerName_(ComputerNameNetBIOS);
+      const String herePhysical = ComputerName_(ComputerNamePhysicalNetBIOS);
+      auto isHere = [&here, &herePhysical](const String &name)
+      {
+         return !name.IsEmpty() && (name.CompareNoCase(here) == 0 || name.CompareNoCase(herePhysical) == 0);
+      };
+
+      if ((!machine.IsEmpty() || !physical.IsEmpty()) && !isHere(machine) && !isHere(physical))
+      {
+         connection->Disconnect();
+         SayLine_(false, Formatter::Format(_T("SQL Server {0} runs on {1}, not on this computer ({2}): there NT SERVICE\\hMailServer signs in as this computer's own account, as LocalSystem does, and needs no login of its own. Nothing to do."),
+            server, machine.IsEmpty() ? physical : machine, here));
+         return 0;
+      }
+
+      SayLine_(false, Formatter::Format(_T("SQL Server {0}, on this computer, as {1}; the database {2}:"), server, self, database));
+
+      std::vector<String> refusals;
+
+      // The login. Looked for twice, because a SQL Server login that is not a
+      // server administrator sees only some of the others in sys.server_principals.
+      String login;
+      if (!ReadText_(connection, Formatter::Format(_T("select case when suser_id({0}) is not null or exists (select 1 from sys.server_principals where name = {0}) then N'1' else N'0' end as value"), UnicodeLiteral_(ServiceLoginName_())), login, why))
+         refusals.push_back(Formatter::Format(_T("whether the login {0} exists could not be read: {1}"), ServiceLoginName_(), why));
+
+      if (login == _T("1"))
+         SayLine_(false, Formatter::Format(_T("  the login {0} is there already"), ServiceLoginName_()));
+      else if (login == _T("0"))
+      {
+         if (connection->TryExecute(SQLCommand(Formatter::Format(_T("create login {0} from windows"), Bracketed_(ServiceLoginName_()))), error) == DALConnection::DALSuccess)
+            SayLine_(false, Formatter::Format(_T("  made the login {0} (FROM WINDOWS)"), ServiceLoginName_()));
+         else
+            refusals.push_back(Formatter::Format(_T("the login {0} could not be made: {1}"), ServiceLoginName_(), DescriptionOf_(error)));
+      }
+
+      // A trigger the database has of its own on its DDL (sys.triggers, parent
+      // class 0) runs as the account whose statement fires it, with that account's
+      // rights on SQL Server: a CREATE USER or an ALTER ROLE made here, as an
+      // administrator who is often sysadmin, would run whatever anybody who was
+      // db_owner of this database - an earlier server's login, another program's -
+      // put in one, server-wide. So with one there, nothing is changed in the
+      // database, and a SQL Server administrator, who reads them, runs the
+      // statements. Disabled ones do not fire.
+      String noChange;
+      String triggers;
+      if (!ReadText_(connection, _T("select convert(nvarchar(12), count(*)) as value from sys.triggers where parent_class = 0 and is_disabled = 0"), triggers, why))
+         noChange = Formatter::Format(_T("whether {0} has DDL triggers of its own could not be read ({1}), and one would run with this account's rights on SQL Server"), database, why);
+      else if (!triggers.IsEmpty() && triggers != _T("0"))
+         noChange = Formatter::Format(_T("{0} has DDL triggers of its own ({1}, in sys.triggers), which would run with this account's rights on SQL Server; read them before the statements below are run"), database, triggers);
+
+      // Its user in the database, and that user in db_owner. A login that owns the
+      // database is its dbo already.
+      String user;
+      if (!ReadServiceUser_(connection, user, why))
+         refusals.push_back(Formatter::Format(_T("whether the database {0} has a user for {1} could not be read: {2}"), database, ServiceLoginName_(), why));
+      else if (!user.IsEmpty())
+         SayLine_(false, Formatter::Format(_T("  the user {0} is there already"), user));
+      else if (!noChange.IsEmpty())
+         refusals.push_back(Formatter::Format(_T("the user {0} was not made in {1}: {2}"), ServiceLoginName_(), database, noChange));
+      else if (connection->TryExecute(SQLCommand(Formatter::Format(_T("create user {0} for login {0}"), Bracketed_(ServiceLoginName_()))), error) == DALConnection::DALSuccess)
+      {
+         SayLine_(false, Formatter::Format(_T("  made the user {0} in {1}"), ServiceLoginName_(), database));
+         ReadServiceUser_(connection, user, why);
+      }
+      else
+         refusals.push_back(Formatter::Format(_T("the user {0} could not be made in {1}: {2}"), ServiceLoginName_(), database, DescriptionOf_(error)));
+
+      bool owner = false;
+      if (!user.IsEmpty())
+      {
+         if (user.CompareNoCase(_T("dbo")) == 0)
+         {
+            owner = true;
+            SayLine_(false, Formatter::Format(_T("  {0} owns {1}"), ServiceLoginName_(), database));
+         }
+         else if (!ReadIsOwner_(connection, user, owner, why))
+            refusals.push_back(Formatter::Format(_T("whether {0} is in db_owner could not be read: {1}"), user, why));
+         else if (owner)
+            SayLine_(false, Formatter::Format(_T("  {0} is in db_owner already"), user));
+         else if (!noChange.IsEmpty())
+            refusals.push_back(Formatter::Format(_T("{0} was not added to db_owner: {1}"), user, noChange));
+         else if (connection->TryExecute(SQLCommand(Formatter::Format(_T("alter role db_owner add member {0}"), Bracketed_(user))), error) == DALConnection::DALSuccess)
+         {
+            ReadIsOwner_(connection, user, owner, why);
+            if (owner)
+               SayLine_(false, Formatter::Format(_T("  added {0} to db_owner"), user));
+            else
+               refusals.push_back(Formatter::Format(_T("{0} was added to db_owner, and is not in it"), user));
+         }
+         else
+            refusals.push_back(Formatter::Format(_T("{0} could not be added to db_owner: {1}"), user, DescriptionOf_(error)));
+      }
+
+      connection->Disconnect();
+
+      if (refusals.empty() && !user.IsEmpty() && owner)
+      {
+         SayLine_(false, Formatter::Format(_T("NT SERVICE\\hMailServer can open {0}: the service opens its database as that account once it runs as it."), database));
+         return 0;
+      }
+
+      for (const String &refusal : refusals)
+         SayLine_(true, _T("  ") + refusal + _T("."));
+      SayLine_(true, Formatter::Format(_T("NT SERVICE\\hMailServer cannot open {0} on SQL Server {1} yet, and {2} could not give it what it needs.{3}"), database, server, self, elevated));
+      SayDatabaseLoginStatements_(server, database);
+      return 1;
    }
 
    // ---- the tester --------------------------------------------------------

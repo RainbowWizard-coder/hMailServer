@@ -63,6 +63,8 @@ var
   g_pageServiceAccount: TInputOptionWizardPage;
   g_szServiceAccountBefore: String;
   g_bServiceAccountKnown: Boolean;
+  g_bNewService: Boolean;
+  g_bNewServiceKnown: Boolean;
 
   // Set when the service account could not be granted its folders on an
   // installation whose service already runs as something other than
@@ -70,6 +72,42 @@ var
   // so in its own words rather than the database's.
   g_bGrantFailed: Boolean;
   g_bMssqlSentenceAdded: Boolean;
+
+  // Set when the move to NT SERVICE\hMailServer was not made, or was taken back,
+  // because that account cannot open the database: SQL Server reached with
+  // Windows authentication on which it could not be given a login, a user and
+  // db_owner (GrantServiceDatabaseLogin), or a moved service that did not open
+  // its database (CheckServiceAfterMove). The service runs as LocalSystem, and
+  // the installation fails in words of its own rather than ending with 0 on a
+  // server that cannot serve mail.
+  g_bDatabaseLoginFailed: Boolean;
+  // What hMailServer.exe --grant-database-login said when it could not give the
+  // account its login, for the message of a move taken back.
+  g_szDatabaseLoginSaid: String;
+  // Set when this installation's DBSetup /unattended created the database - not
+  // attached one with /createdatabase=0, and not the wizard, whose choice is not
+  // known here: a database no login of the virtual account can have reached yet.
+  g_bDatabaseCreatedHere: Boolean;
+
+  // Set when the database step was DBSetup's - a new installation's external
+  // database - so that the last message names what retries it: this setup again,
+  // or DBSetup. DBSetupQuick has nothing to retry there, and on an
+  // installation without SQL Server Compact it cannot even start.
+  g_bDatabaseStepByDBSetup: Boolean;
+
+  // A new installation that an earlier run of this setup left unfinished
+  // (PendingNewInstallation): its database step did not complete, so neither did
+  // the steps after it - the secure defaults, the profile, the stored-secrets key
+  // and the move to NT SERVICE\hMailServer. Read once, before this installation
+  // clears it; g_bNewInstallationFinished is set once this one has run them.
+  g_bPendingKnown: Boolean;
+  g_bPendingBefore: Boolean;
+  g_szPendingAccount: String;
+  g_szPendingProfile: String;
+  g_bNewInstallationFinished: Boolean;
+
+  // Why the last ReadDatabaseVersion could not read the database's version.
+  g_szLastDatabaseReadError: String;
 
   // Set when a step after the files - the service account's folders, the
   // administrator password, the database or the service (RunPostInstallTasks) -
@@ -846,14 +884,111 @@ begin
 		SuppressibleMsgBox('The .NET {#DOTNET_MAJOR} Desktop Runtime installation failed with exit code ' + IntToStr(ResultCode) + '.' + #13#10 +
 		       'The database setup tools will not work until the runtime is installed. ' +
 		       'Install it manually from ' + DOTNET_DOWNLOAD_URL + ' and then run ' +
-		       'DBSetupQuick.exe from the hMailServer Bin folder.', mbError, MB_OK, IDOK);
+		       'this setup again.', mbError, MB_OK, IDOK);
 		Result := false;
 	end;
 end;
 
+// The mark a new installation leaves when its database step does not complete, so
+// that what follows that step is still done when the database is set up later:
+// HKEY_LOCAL_MACHINE\SOFTWARE\hMailServer (the 32-bit view, beside InstallLocation),
+// NewInstallationPending holding the account the service was to run as - virtual or
+// localsystem - and NewInstallationProfile the profile chosen, if any. Running this
+// setup again finishes such an installation as a new one (IsNewService,
+// IsNewDatabase), and so does DBSetup.exe, run by an administrator, which reads
+// the mark (DBSetup's NewInstallation.cs) and runs the steps the installer runs
+// after a database step: the secure defaults, the profile, the stored-secrets key,
+// NT SERVICE\hMailServer's login on SQL Server with Windows authentication, and the
+// move to that account. The installer clears the mark before its own database step,
+// so that the DBSetup it runs leaves those steps to it, and writes it again only if
+// that step does not complete; the uninstaller removes it (CurUninstallStepChanged).
+// Until 6.3.6 such an installation, set up again either way, kept LocalSystem, and
+// one DBSetup set up had no self-signed certificate and no stored-secrets key (the
+// installer smoke VM, 2 October 2026).
+const
+   PENDING_KEY = 'SOFTWARE\hMailServer';
+   PENDING_ACCOUNT_VALUE = 'NewInstallationPending';
+   PENDING_PROFILE_VALUE = 'NewInstallationProfile';
+
+// Whether an earlier run of this setup left the mark: read once, before this
+// installation clears it, with the account and the profile it holds
+// (g_szPendingAccount, g_szPendingProfile), which this installation takes for
+// its own unless /serviceaccount=, /profile= or the pages choose otherwise.
+//
+// Not for an update hMailServer.Updater runs (g_szUpgradeToken: the live update,
+// or Install update in the Control Panel): that is an unattended upgrade of a
+// server in service, which its database step can only reach by running, and which
+// the Updater puts back on exit code 10 and leaves on 11. Taken for a new
+// installation's, it would be moved to NT SERVICE\hMailServer by default, given a
+// new installation's defaults, and its database step would not be held to the
+// version before it (BeginDatabaseStep), so that a step which changed the
+// database could end in 10 and be put back. The mark is left for an administrator
+// running this setup, or DBSetup, to finish.
+function PendingNewInstallation(): Boolean;
+var
+   szAccount: String;
+   szProfile: String;
+begin
+   if not g_bPendingKnown then
+   begin
+      g_bPendingBefore := RegQueryStringValue(HKLM32, PENDING_KEY, PENDING_ACCOUNT_VALUE, szAccount) and (Trim(szAccount) <> '');
+      g_bPendingKnown := true;
+      if g_bPendingBefore and (g_szUpgradeToken <> '') then
+      begin
+         g_bPendingBefore := false;
+         Log('An earlier run of setup left a new installation unfinished (' + PENDING_ACCOUNT_VALUE + ' = ' + szAccount + '). This is an update run by hMailServer.Updater, which upgrades the installation as it is and leaves the mark for an administrator: this setup run by hand, or DBSetup.exe, finishes it.');
+      end
+      else if g_bPendingBefore then
+      begin
+         g_szPendingAccount := Lowercase(Trim(szAccount));
+         if RegQueryStringValue(HKLM32, PENDING_KEY, PENDING_PROFILE_VALUE, szProfile) then
+            g_szPendingProfile := Lowercase(Trim(szProfile));
+         Log('An earlier run of this setup left a new installation unfinished (' + PENDING_ACCOUNT_VALUE + ' = ' + szAccount + '): its database step did not complete. This installation finishes it as a new one.');
+      end;
+   end;
+   Result := g_bPendingBefore;
+end;
+
+// The account an unfinished new installation chose (PendingNewInstallation), as
+// the default for this one, which finishes it: LocalSystem when that one was to
+// stay on it - localsystem, or keep, which on a service registered for the
+// database step is LocalSystem - and otherwise the virtual account, as for any
+// new installation. DBSetup.exe, finishing it instead, moves the service only
+// for virtual (NewInstallation.cs), so either way it ends on the same account.
+function PendingAccountDefault(): String;
+begin
+   if PendingNewInstallation() and ((g_szPendingAccount = 'localsystem') or (g_szPendingAccount = 'keep')) then
+      Result := 'localsystem'
+   else
+      Result := 'virtual';
+end;
+
+procedure ClearPendingNewInstallation();
+begin
+   RegDeleteValue(HKLM32, PENDING_KEY, PENDING_ACCOUNT_VALUE);
+   RegDeleteValue(HKLM32, PENDING_KEY, PENDING_PROFILE_VALUE);
+end;
+
+procedure RecordPendingNewInstallation(szAccount: String; szProfile: String);
+begin
+   if RegWriteStringValue(HKLM32, PENDING_KEY, PENDING_ACCOUNT_VALUE, szAccount) then
+   begin
+      if szProfile <> '' then
+         RegWriteStringValue(HKLM32, PENDING_KEY, PENDING_PROFILE_VALUE, szProfile)
+      else
+         RegDeleteValue(HKLM32, PENDING_KEY, PENDING_PROFILE_VALUE);
+      Log('The new installation is not finished: ' + PENDING_ACCOUNT_VALUE + ' = ' + szAccount + ' is left for this setup run again, or DBSetup.exe run by an administrator, to finish it.');
+   end
+   else
+      Log('The mark of an unfinished new installation could not be written; this setup run again still finishes it as a new one while hMailServer.INI names no database.');
+end;
+
 // Whether this installation makes a new database: asked once, of the settings file
 // as it was before the installation touched it - an upgrade has a database type
-// there, a new installation has none. A profile is offered to a new server only:
+// there, a new installation has none - and of the mark an unfinished new
+// installation leaves (PendingNewInstallation): a database DBSetup set up after an
+// earlier run of this setup failed its database step belongs to a new installation
+// still, which this one finishes. A profile is offered to a new server only:
 // applied to a server already in service, it could close a listener or turn a
 // filter off that somebody depends on, and the Control Deck and the Control Panel
 // show that server the diff first.
@@ -861,7 +996,7 @@ function IsNewDatabase(): Boolean;
 begin
    if not g_bNewDatabaseKnown then
    begin
-      g_bNewDatabase := (GetCurrentDatabaseType() = '');
+      g_bNewDatabase := (GetCurrentDatabaseType() = '') or PendingNewInstallation();
       g_bNewDatabaseKnown := true;
    end;
    Result := g_bNewDatabase;
@@ -1023,7 +1158,11 @@ begin
 
    if WizardSilent() then
    begin
+      // /profile=, or else the profile an unfinished new installation chose,
+      // which this one finishes (PendingNewInstallation).
       szProfile := Lowercase(Trim(ExpandConstant('{param:profile|}')));
+      if (szProfile = '') and PendingNewInstallation() then
+         szProfile := g_szPendingProfile;
       if (szProfile = 'office') or (szProfile = 'gateway') or (szProfile = 'relay') or (szProfile = 'sender') or (szProfile = 'none') then
          Result := szProfile;
       Exit;
@@ -1257,30 +1396,97 @@ begin
    Result := g_szServiceAccountBefore;
 end;
 
-// Whether this installation creates the service rather than finding one.
-function IsNewService(): Boolean;
-begin
-   Result := (GetServiceAccountBefore() = '');
-end;
-
 function IsLocalSystemAccount(Account: String): Boolean;
 begin
    Result := (CompareText(Account, 'LocalSystem') = 0) or (CompareText(Account, '.\LocalSystem') = 0) or
              (CompareText(Account, 'NT AUTHORITY\SYSTEM') = 0);
 end;
 
+// The folder of the installation found before this one, read without {app}, which
+// is not known yet when the wizard's pages are made: the InstallLocation every
+// installation writes under HKEY_LOCAL_MACHINE\SOFTWARE\hMailServer in the 32-bit
+// view (section_registry.iss), else the uninstall entry's - in the 64-bit view,
+// where a 64-bit installation's entry is, or the 32-bit view of an x86 one. ''
+// when there is none.
+function PreviousInstallationFolder(): String;
+var
+   szFolder: String;
+begin
+   Result := '';
+   if RegQueryStringValue(HKLM32, 'SOFTWARE\hMailServer', 'InstallLocation', szFolder) and (Trim(szFolder) <> '') then
+      Result := Trim(szFolder)
+   else if IsWin64 and RegQueryStringValue(HKLM64, 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\hMailServer_is1', 'InstallLocation', szFolder) and (Trim(szFolder) <> '') then
+      Result := Trim(szFolder)
+   else if RegQueryStringValue(HKLM32, 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\hMailServer_is1', 'InstallLocation', szFolder) and (Trim(szFolder) <> '') then
+      Result := Trim(szFolder);
+end;
+
+// Whether the installation found before this one has a settings file, and it names
+// no database: the file in that installation's folder (PreviousInstallationFolder),
+// or, for a very old installation, the one in the Windows folder. False when no
+// settings file is found: an installation whose file cannot be read is not taken
+// for a new one whose database step did not complete, which would move its
+// LocalSystem service to the virtual account by default. Inno Setup writes a 64-bit
+// installation's uninstall entry in the 64-bit view, so a look in the 32-bit view
+// alone finds no folder there, and took every LocalSystem service upgraded for such
+// a one (the installer smoke VM, 3 October 2026, before this was committed).
+function NoDatabaseConfiguredBefore(): Boolean;
+var
+   szFolder: String;
+   szFile: String;
+begin
+   szFile := '';
+   szFolder := PreviousInstallationFolder();
+   if (szFolder <> '') and FileExists(AddBackslash(szFolder) + 'Bin\hMailServer.ini') then
+      szFile := AddBackslash(szFolder) + 'Bin\hMailServer.ini'
+   else if FileExists(ExpandConstant('{win}\hMailServer.ini')) then
+      szFile := ExpandConstant('{win}\hMailServer.ini');
+
+   Result := (szFile <> '') and (Trim(GetIniString('Database', 'Type', '', szFile)) = '');
+   if szFile = '' then
+      Log('No settings file of an earlier installation was found (its folder: "' + szFolder + '").')
+   else if Result then
+      Log('The earlier installation''s settings file, ' + szFile + ', names no database.');
+end;
+
+// Whether this installation sets the service up as a new one: there is no
+// service yet, or the one there is was left by a new installation whose database
+// step did not complete - the mark it leaves (PendingNewInstallation), or, from a
+// setup that left none, a service registered as LocalSystem, which is how a new
+// installation registers it for its database step whatever account it chose,
+// beside a settings file that names no database. Such a service runs as
+// LocalSystem because the step failed, not because anybody kept it so, and it is
+// offered, and given by default, the account a new installation gets:
+// /serviceaccount= and the page choose, as for any new installation.
+//
+// Asked once, as the account before is, before the database step writes
+// [Database] into the settings file.
+function IsNewService(): Boolean;
+begin
+   if not g_bNewServiceKnown then
+   begin
+      g_bNewService := (GetServiceAccountBefore() = '') or PendingNewInstallation() or
+                       (IsLocalSystemAccount(GetServiceAccountBefore()) and NoDatabaseConfiguredBefore());
+      g_bNewServiceKnown := true;
+      if g_bNewService and (GetServiceAccountBefore() <> '') then
+         Log('The hMailServer service there runs as ' + GetServiceAccountBefore() + ', which a new installation whose database step did not complete leaves: it is set up as a new installation''s.');
+   end;
+   Result := g_bNewService;
+end;
+
 // The account chosen for the service: virtual (NT SERVICE\hMailServer),
 // localsystem or keep. On the page, or with /serviceaccount= for a silent
 // installation, which is itself the choice; otherwise what the page offers first:
-// the virtual account for a new installation, the account the service has for an
-// upgrade. Anything else given with /serviceaccount= is ignored, and said in the
-// setup log.
+// the virtual account for a new installation - or the account an unfinished one
+// chose, which this one finishes (PendingAccountDefault) - the account the
+// service has for an upgrade. Anything else given with /serviceaccount= is
+// ignored, and said in the setup log.
 function GetServiceAccountChoice(): String;
 var
    szChoice: String;
 begin
    if IsNewService() then
-      Result := 'virtual'
+      Result := PendingAccountDefault()
    else
       Result := 'keep';
 
@@ -1296,11 +1502,18 @@ begin
    if WizardSilent() or (g_pageServiceAccount = nil) then
       Exit;
 
-   if (g_pageServiceAccount.SelectedValueIndex = 1) then
+   // A new installation's page offers the virtual account first, whatever it
+   // preselects (CreateWizardPages): its answer is the choice either way.
+   if IsNewService() then
    begin
-      if IsNewService() then
+      if (g_pageServiceAccount.SelectedValueIndex = 1) then
          Result := 'localsystem'
-      else if IsLocalSystemAccount(GetServiceAccountBefore()) then
+      else
+         Result := 'virtual';
+   end
+   else if (g_pageServiceAccount.SelectedValueIndex = 1) then
+   begin
+      if IsLocalSystemAccount(GetServiceAccountBefore()) then
          Result := 'virtual'
       else
          Result := 'localsystem';
@@ -1350,20 +1563,31 @@ begin
       Result := Choice;
 end;
 
-// The sentence the move page adds when the database is SQL Server reached with
-// Windows authentication: the moved service signs in to it as
-// NT SERVICE\hMailServer, which has no login there until one is made.
-function MssqlIntegratedSentence(): String;
+// Whether hMailServer.INI names SQL Server reached with Windows authentication -
+// no user name - on which the service signs in as the account it runs as.
+function DatabaseIsMssqlIntegrated(): Boolean;
 var
    szIniFile: String;
 begin
-   Result := '';
+   Result := false;
    szIniFile := GetInifile();
    if szIniFile = '' then
       Exit;
-   if (CompareText(GetIniString('Database', 'Type', '', szIniFile), 'MSSQL') = 0) and
-      (Trim(GetIniString('Database', 'Username', '', szIniFile)) = '') then
-      Result := ' The database is SQL Server with Windows authentication: before moving, give the account a login there - CREATE LOGIN [NT SERVICE\hMailServer] FROM WINDOWS, and a user in the hMailServer database - or the service cannot open it.';
+   Result := (CompareText(GetIniString('Database', 'Type', '', szIniFile), 'MSSQL') = 0) and
+             (Trim(GetIniString('Database', 'Username', '', szIniFile)) = '');
+end;
+
+// The sentence the move page adds when the database is SQL Server reached with
+// Windows authentication: the moved service signs in to it as
+// NT SERVICE\hMailServer, which has no login there until one is made - which setup
+// makes before the move, as the administrator running it, where that account may
+// (GrantServiceDatabaseLogin).
+function MssqlIntegratedSentence(): String;
+begin
+   Result := '';
+   if DatabaseIsMssqlIntegrated() then
+      Result := ' The database is SQL Server with Windows authentication: before the move, setup gives NT SERVICE\hMailServer a login there, a user in the hMailServer database and db_owner, as your account. ' +
+                'If your account may not, the service stays on LocalSystem, and setup says what a SQL Server administrator runs.';
 end;
 
 function ShouldSkipPage(PageID: Integer): Boolean;
@@ -1549,6 +1773,15 @@ begin
    g_pageProfile.Add('An outbound relay - closes IMAP and POP3, suppresses addresses that bounce, and keeps three months of delivery trace');
    g_pageProfile.Add('A high-volume sender - the relay, with more deliveries at once, per-destination ceilings and the feedback loops read; closes IMAP and POP3');
    g_pageProfile.SelectedValueIndex := 0;
+   // The profile an unfinished new installation chose, which this one finishes
+   // (PendingNewInstallation): offered again as the answer it gave.
+   if PendingNewInstallation() then
+   begin
+      if g_szPendingProfile = 'office' then g_pageProfile.SelectedValueIndex := 1
+      else if g_szPendingProfile = 'gateway' then g_pageProfile.SelectedValueIndex := 2
+      else if g_szPendingProfile = 'relay' then g_pageProfile.SelectedValueIndex := 3
+      else if g_szPendingProfile = 'sender' then g_pageProfile.SelectedValueIndex := 4;
+   end;
 
    // The account the service runs as (docs/ServiceAccount.md). The page says which
    // applies - the virtual account for a new installation, the service's own account
@@ -1583,6 +1816,10 @@ begin
       g_pageServiceAccount.Add('Move it back to LocalSystem');
    end;
    g_pageServiceAccount.SelectedValueIndex := 0;
+   // An unfinished new installation that chose LocalSystem: offered again as it
+   // chose (PendingAccountDefault).
+   if IsNewService() and (PendingAccountDefault() = 'localsystem') then
+      g_pageServiceAccount.SelectedValueIndex := 1;
 
 end;
 
@@ -2033,17 +2270,111 @@ begin
 	Result := StopHMailServerAndWaitForExit(90000);
 end;
 
+// hMailServer.exe --grant-database-login (ServiceAccount::RunDatabaseLoginCommand),
+// run as this installer - the administrator who runs it, elevated - over a
+// connection of its own: what NT SERVICE\hMailServer needs to open a SQL Server
+// database reached with Windows authentication on this computer, a login, a user
+// in the database and db_owner. Run through cmd.exe to capture its lines, as
+// /GrantServiceAccess is; they go into the setup log, and back in szSaid for a
+// message - what it made, or what it could not and the statements a SQL Server
+// administrator runs instead. False when it could not be run; ResultCode is its
+// exit code otherwise: 0 the account can open the database, or needs nothing (not
+// SQL Server with Windows authentication, or a SQL Server on another computer,
+// where the virtual account is this computer's account, as LocalSystem is), 1
+// and 2 it cannot.
+function RunDatabaseLoginVerb(var ResultCode: Integer; var szSaid: String): Boolean;
+var
+	szReport: String;
+	szLines: AnsiString;
+begin
+	szSaid := '';
+	szReport := ExpandConstant('{tmp}\grant-database-login.txt');
+	DeleteFile(szReport);
+
+	Result := Exec(ExpandConstant('{cmd}'), '/s /c ""' + ExpandConstant('{app}\Bin\hMailServer.exe') + '" --grant-database-login > "' + szReport + '" 2>&1"',
+	               '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+	if not Result then
+	begin
+		szSaid := 'hMailServer.exe --grant-database-login could not be run: ' + SysErrorMessage(ResultCode);
+		Log(szSaid);
+		Exit;
+	end;
+
+	if LoadStringFromFile(szReport, szLines) then
+		szSaid := Trim(String(szLines));
+	Log('hMailServer.exe --grant-database-login returned ' + IntToStr(ResultCode) + ':' + #13#10 + szSaid);
+end;
+
+// Before the move to NT SERVICE\hMailServer: when the database is SQL Server
+// reached with Windows authentication, that account is given what it needs to
+// open it (RunDatabaseLoginVerb) - by the account that runs this setup, while the
+// service is still LocalSystem's, and before the service is registered as the
+// virtual account. The database step made the database, or opened it, as
+// LocalSystem, and the moved service signs in as NT SERVICE\hMailServer: until
+// 6.3.6 setup moved it without a login there, the service could not open its
+// database (HM5028, HM4354), nothing listened, and setup ended with 0 (the
+// installer smoke VM, 2 October 2026). True when the move may go ahead: the
+// account can open the database, or needs nothing - or the verb could not give it
+// what it needs, and the database is one whose login and user a SQL Server
+// administrator may have made already: attached, chosen in DBSetup's wizard, or
+// there before this installation (the statements this says, run after an earlier
+// installation could not). The move is then made, and held to the service's
+// opening its database (CheckServiceAfterMove), which takes it back to LocalSystem
+// when it does not. False, said with what the verb said - the statements a SQL
+// Server administrator runs among it - when it could not on a database this
+// installation's DBSetup has just created (g_bDatabaseCreatedHere), which no login
+// of that account can have reached yet: the service then stays on LocalSystem,
+// working, without a start that could only fail, and the installation fails
+// (g_bDatabaseLoginFailed) rather than end with 0 on a server it knows will not
+// open its database.
+function GrantServiceDatabaseLogin(): Boolean;
+var
+	ResultCode: Integer;
+	szSaid: String;
+begin
+	Result := true;
+	g_szDatabaseLoginSaid := '';
+	if (DatabaseIsMssqlIntegrated() = false) then
+		Exit;
+
+	if RunDatabaseLoginVerb(ResultCode, szSaid) and (ResultCode = 0) then
+		Exit;
+
+	g_szDatabaseLoginSaid := szSaid;
+	if (g_bDatabaseCreatedHere = false) then
+	begin
+		Log('NT SERVICE\hMailServer could not be given its login on SQL Server by this account, and the database was not created by this installation, so a SQL Server administrator may have given it one: the move is made, and held to the service''s opening its database.');
+		Exit;
+	end;
+
+	Result := false;
+	g_bDatabaseLoginFailed := true;
+	SuppressibleMsgBox('The hMailServer service was not moved to NT SERVICE\hMailServer, and runs as LocalSystem. The database is SQL Server with Windows authentication, ' +
+	       'and that account could not be given what it needs to open it - a login, a user in the database and db_owner - so moved, the service would not open its database and would serve no mail.' + #13#10#13#10 +
+	       szSaid + #13#10#13#10 +
+	       'Once a SQL Server administrator has run those statements, move the service from the Control Panel (Windows service account), or run this setup again with the move chosen (/serviceaccount=virtual for a silent one).', mbError, MB_OK, IDOK);
+end;
+
 // The move to NT SERVICE\hMailServer, after the database step
-// (MoveServiceAfterDatabase): the service stopped, its folders granted - with
-// the question the verb asks when the configuration names anything outside them
-// - and only then registered as the virtual account. Anything short of a clean
-// grant leaves the service on LocalSystem, working, and says why; the
-// installation still succeeds.
-procedure MoveServiceToVirtualAccount();
+// (MoveServiceAfterDatabase): that account's login on SQL Server with Windows
+// authentication (GrantServiceDatabaseLogin), the service stopped, its folders
+// granted - with the question the verb asks when the configuration names anything
+// outside them - and only then registered as the virtual account. A grant short
+// of a clean one leaves the service on LocalSystem, working, and says why; the
+// installation still succeeds. A login on SQL Server that could not be given
+// leaves it there too, and fails the installation (g_bDatabaseLoginFailed). True
+// when the service was moved, which CheckServiceAfterMove then holds to its
+// opening its database.
+function MoveServiceToVirtualAccount(): Boolean;
 	var
 		ResultCode: Integer;
 		szWhy: String;
 begin
+	Result := false;
+
+	if (GrantServiceDatabaseLogin() = false) then
+		Exit;
+
 	if (StopServiceForMove() = false) then
 	begin
 		SuppressibleMsgBox('The hMailServer service was not moved to NT SERVICE\hMailServer: it did not stop within 90 seconds, and it is moved only while stopped. It runs as LocalSystem, as before.' + #13#10#13#10 +
@@ -2073,6 +2404,7 @@ begin
 	end;
 
 	Log('The hMailServer service now runs as NT SERVICE\hMailServer.');
+	Result := true;
 end;
 
 
@@ -2174,6 +2506,7 @@ var
    Database: Variant;
 begin
    Result := -1;
+   g_szLastDatabaseReadError := '';
    try
       App := CreateOleObject('hMailServer.Application');
       Database := App.Database;
@@ -2182,12 +2515,14 @@ begin
          Log('The database is at version ' + IntToStr(Result) + ' ' + szWhen + ' (Database.CurrentVersion, through the hMailServer service).')
       else
       begin
-         Log('The database''s version could not be read ' + szWhen + ': the hMailServer service answered ' + IntToStr(Result) + '.');
+         g_szLastDatabaseReadError := 'the hMailServer service answered ' + IntToStr(Result);
+         Log('The database''s version could not be read ' + szWhen + ': ' + g_szLastDatabaseReadError + '.');
          Result := -1;
       end;
    except
       Result := -1;
-      Log('The database''s version could not be read ' + szWhen + ': ' + GetExceptionMessage);
+      g_szLastDatabaseReadError := Trim(GetExceptionMessage);
+      Log('The database''s version could not be read ' + szWhen + ': ' + g_szLastDatabaseReadError);
    end;
    Database := Unassigned;
    App := Unassigned;
@@ -2360,6 +2695,78 @@ begin
    Result := szList;
 end;
 
+// After the start of a service this installation moved to NT SERVICE\hMailServer:
+// whether it opened its database as that account - its version, read through the
+// service (ReadDatabaseVersion), is the one this build needs. The database step ran
+// as LocalSystem; the moved service is the first thing to open the database as the
+// virtual account, and a service reports itself running before it has opened
+// anything, so a running service proves nothing. One that did not start, or did
+// not open its database - a SQL Server login that GrantServiceDatabaseLogin could
+// not see was missing, say - is stopped, registered as LocalSystem again, as it was
+// for the database step, and started, and the installation fails in words of its
+// own (g_bDatabaseLoginFailed): until 6.3.6 it ended with 0 on a server that served
+// no mail. True when the moved service runs on its database.
+function CheckServiceAfterMove(): Boolean;
+var
+   ResultCode: Integer;
+   iVersion: Integer;
+   szWhat: String;
+   szNow: String;
+begin
+   Result := true;
+   if IsServiceRunning('hMailServer') then
+   begin
+      iVersion := ReadDatabaseVersion('after the move, through the service running as NT SERVICE\hMailServer');
+      if iVersion = {#HM_REQUIRED_DB_VERSION} then
+         Exit;
+      if iVersion > 0 then
+         szWhat := 'it opened its database at version ' + IntToStr(iVersion) + ', where this build needs {#HM_REQUIRED_DB_VERSION}'
+      else
+         szWhat := 'it started, and did not open its database (' + g_szLastDatabaseReadError + ')';
+   end
+   else
+      szWhat := 'it did not start';
+
+   Result := false;
+   g_bDatabaseLoginFailed := true;
+   Log('The hMailServer service, moved to NT SERVICE\hMailServer: ' + szWhat + '. It is moved back to LocalSystem.');
+
+   if StopHMailServerAndWaitForExit(90000) and RegisterHMailServerService('localsystem') then
+   begin
+      if (Exec(ExpandConstant('{sys}\net.exe'), 'START hMailServer', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) = true) and IsServiceRunning('hMailServer') then
+         szNow := 'It was moved back to LocalSystem, where it runs.'
+      else
+         szNow := 'It was moved back to LocalSystem, and did not start there either: the hMailServer error log says why.';
+   end
+   else
+      szNow := 'It could not be moved back to LocalSystem: run "hMailServer.exe --service-account localsystem /Register" from an elevated prompt in the hMailServer Bin folder, then start the service.';
+   Log(szNow);
+
+   // What --grant-database-login said before the move, when it could not give the
+   // account its login: the statements a SQL Server administrator runs.
+   if g_szDatabaseLoginSaid <> '' then
+      szNow := szNow + #13#10#13#10 + g_szDatabaseLoginSaid;
+
+   SuppressibleMsgBox('The hMailServer service was moved to NT SERVICE\hMailServer, and as that account ' + szWhat + '. ' + szNow + #13#10#13#10 +
+          'The hMailServer error log and the Windows Application log say why. Where the database is SQL Server with Windows authentication, "hMailServer.exe --grant-database-login", ' +
+          'run from an elevated prompt in the hMailServer Bin folder by a SQL Server administrator, gives NT SERVICE\hMailServer its login and user there, or says what to run. ' +
+          'Then move the service from the Control Panel (Windows service account), or run this setup again with the move chosen (/serviceaccount=virtual for a silent one).', mbError, MB_OK, IDOK);
+end;
+
+// What retries a database step DBSetupQuick did not complete. On an upgrade,
+// DBSetupQuick.exe: nothing after that step is a new installation's. On a new
+// installation, this setup again, which finishes it (PendingNewInstallation): the
+// secure defaults, the profile, the stored-secrets key and the service's account
+// all come after that step, and DBSetupQuick.exe sets the database up and nothing
+// after it.
+function QuickStepRetryAdvice(): String;
+begin
+   if IsNewDatabase() then
+      Result := 'Run this setup again, which finishes this new installation as it would have: the secure defaults, the stored-secrets key and the service''s account.'
+   else
+      Result := 'Run DBSetupQuick.exe from the hMailServer Bin folder to retry.';
+end;
+
 
 function RunPostInstallTasks() : Boolean;
    var
@@ -2378,15 +2785,20 @@ function RunPostInstallTasks() : Boolean;
       bStarted: Boolean;
       bStopBeforeDatabase: Boolean;
       bDatabaseStepOnExisting: Boolean;
+      bMoved: Boolean;
+      szCreate: String;
 begin
    Result := true;
    bRuntimeReady := true;
    bStopBeforeDatabase := false;
    bDatabaseStepOnExisting := false;
+   bMoved := false;
 
    // A database given for a new installation, to one that has a database already:
-   // an upgrade keeps the database it has, which the setup log says.
-   if g_bDatabaseGiven and (IsNewDatabase() = false) then
+   // an upgrade keeps the database it has, which the setup log says - and so does
+   // a new installation an earlier run left unfinished, once DBSetup has set its
+   // database up.
+   if g_bDatabaseGiven and (GetCurrentDatabaseType() <> '') then
       Log('A ' + g_szDatabaseType + ' database was given with ' + g_szDatabaseFrom + '; this installation has a database already (' + GetCurrentDatabaseType() + '), and keeps it.');
 
    // Created outside the try so that the finally below cannot call Hide() on a nil
@@ -2460,6 +2872,14 @@ begin
             end;
          end;
 
+         // The mark an earlier run left on a new installation it did not finish is
+         // this installation's to finish now (PendingNewInstallation): cleared
+         // before the database step, so that the DBSetup it runs leaves the steps
+         // after it to this installation, and written again only if this one does
+         // not complete that step either (CurStepChanged).
+         if PendingNewInstallation() then
+            ClearPendingNewInstallation();
+
          ProgressPage.SetText('Initializing hMailServer database...', '');
          ProgressPage.SetProgress(4,6);
 
@@ -2518,7 +2938,12 @@ begin
          begin
             // An existing database: from here it may change, until its version
             // afterwards shows it did not (BeginDatabaseStep, EndDatabaseStep).
-            bDatabaseStepOnExisting := (IsNewDatabase() = false);
+            // Existing is what the settings file names before the step, not
+            // IsNewDatabase: an unfinished new installation's database that DBSetup
+            // or DBSetupQuick has set up since is finished as a new one's
+            // (PendingNewInstallation), and is still a database this step can
+            // change - exit code 11, not 10, when it did.
+            bDatabaseStepOnExisting := (GetCurrentDatabaseType() <> '');
             if bDatabaseStepOnExisting then
                BeginDatabaseStep();
 
@@ -2526,7 +2951,7 @@ begin
             // new binary here, before DBUpdater has moved it: the service is
             // started with the argument that says so (StartServiceForDatabaseUpgrade).
             // A new installation has no database for the service to find yet.
-            if (IsNewDatabase() = false) and (bServiceRegistered = true) then
+            if bDatabaseStepOnExisting and (bServiceRegistered = true) then
                StartServiceForDatabaseUpgrade();
 
             ResultCode := 0;
@@ -2540,7 +2965,7 @@ begin
             szQuickReport := ExpandConstant('{tmp}\dbsetupquick-report.txt');
             DeleteFile(szQuickReport);
             if not SetProcessEnvironmentVariable('HM_ADMIN_PASSWORD', szCredential) then
-               SuppressibleMsgBox('The hMailServer database step could not be started: the administrator password could not be handed to DBSetupQuick.exe. Run DBSetupQuick.exe from the hMailServer Bin folder to retry.', mbError, MB_OK, IDOK)
+               SuppressibleMsgBox('The hMailServer database step could not be started: the administrator password could not be handed to DBSetupQuick.exe. ' + QuickStepRetryAdvice(), mbError, MB_OK, IDOK)
             else
             begin
                try
@@ -2572,7 +2997,7 @@ begin
             begin
                SuppressibleMsgBox('The hMailServer database step could not run: DBSetupQuick.exe could not reach the hMailServer service (exit code 4), so neither it nor DBUpdater changed the database.' + #13#10#13#10 +
                       szQuickSaid + #13#10#13#10 +
-                      'Check that the hMailServer service starts - the Windows Application log and the hMailServer error log say why it does not - and run DBSetupQuick.exe from the hMailServer Bin folder to retry.', mbError, MB_OK, IDOK);
+                      'Check that the hMailServer service starts - the Windows Application log and the hMailServer error log say why it does not. ' + QuickStepRetryAdvice(), mbError, MB_OK, IDOK);
                Result := false;
                if bDatabaseStepOnExisting and g_bDatabaseChanged then
                   SayDatabaseStepStoppedPartWay();
@@ -2582,7 +3007,7 @@ begin
                if szQuickSaid <> '' then
                   szQuickSaid := #13#13 + szQuickSaid;
                SuppressibleMsgBox('The hMailServer database could not be created or upgraded (exit code ' + IntToStr(ResultCode) + ').' + szQuickSaid + #13#13
-                      'The hMailServer service may not work until the database has been upgraded. Run DBSetupQuick.exe from the hMailServer Bin folder to retry.', mbError, MB_OK, IDOK);
+                      'The hMailServer service may not work until the database has been created or upgraded. ' + QuickStepRetryAdvice(), mbError, MB_OK, IDOK);
                Result := false;
                if bDatabaseStepOnExisting and g_bDatabaseChanged then
                   SayDatabaseStepStoppedPartWay();
@@ -2594,11 +3019,15 @@ begin
                // installation the stored-secrets key, before the service is started below.
                if IsNewDatabase() then
                   ProgressPage.SetText('Securing the new installation...', '');
-               ApplyNewInstallDefaults(g_bUseInternal);
+               // The built-in database DBSetupQuick has just made, as opposed to
+               // an external one DBSetup set up after an earlier run of this setup
+               // did not finish (PendingNewInstallation), which this step found.
+               ApplyNewInstallDefaults(GetCurrentDatabaseType() = 'mssqlce');
                ProgressPage.SetText('Applying the server profile...', '');
                ApplyChosenProfile();
                ProgressPage.SetText('Making the stored-secrets key...', '');
                CreateStoredSecretsKey();
+               g_bNewInstallationFinished := true;
             end;
          end
          else
@@ -2609,11 +3038,20 @@ begin
             ResultCode := 0;
             bStarted := false;
             szDBSetupSaid := '';
+            g_bDatabaseStepByDBSetup := true;
             if g_bDatabaseGiven then
             begin
+               // Whether it creates the database, as DBSetup reads the setting:
+               // /createdatabase=, or HM_CREATE_DATABASE, 1 unless 0, no or false.
+               szCreate := DatabaseSwitch('createdatabase');
+               if szCreate = '' then
+                  szCreate := Trim(GetEnv('HM_CREATE_DATABASE'));
+               szCreate := Lowercase(szCreate);
+
                // The database given with /dbtype or HM_DB_TYPE, set up with no
                // window (RunUnattendedDBSetup), silent installation or not.
                bStarted := RunUnattendedDBSetup(szCredential, ResultCode, szDBSetupSaid);
+               g_bDatabaseCreatedHere := bStarted and (ResultCode = 0) and (szCreate <> '0') and (szCreate <> 'no') and (szCreate <> 'false');
                if (bStarted = False) then
                   SuppressibleMsgBox('The hMailServer database setup could not be started. ' + szDBSetupSaid + #13#10#13#10 +
                          'Run DBSetup.exe from the hMailServer Bin folder to set the database up.', mbError, MB_OK, IDOK);
@@ -2640,13 +3078,16 @@ begin
                // DBSetup's own lines say which setting it refused, or what the
                // database server answered; they hold no password.
                SuppressibleMsgBox('The hMailServer database was not set up (DBSetup.exe /unattended, exit code ' + IntToStr(ResultCode) + '):' + #13#10#13#10 + szDBSetupSaid + #13#10#13#10 +
-                      'The hMailServer service may not work until the database has been set up. Correct the database settings (docs/WindowsOnArm.md) and run DBSetup.exe from the hMailServer Bin folder, or run this setup again.', mbError, MB_OK, IDOK);
+                      'The hMailServer service may not work until the database has been set up. Correct the database settings (docs/WindowsOnArm.md) and run this setup again; ' +
+                      'or run DBSetup.exe as an administrator from the hMailServer Bin folder - /unattended with the settings in its environment, or its wizard. ' +
+                      'Either finishes this new installation as this setup would have: the secure defaults, the stored-secrets key and the service''s account.', mbError, MB_OK, IDOK);
                Result := false;
             end
             else if (ResultCode <> 0) then
             begin
                SuppressibleMsgBox('The hMailServer database setup did not complete (exit code ' + IntToStr(ResultCode) + ').' #13#13
-                      'The hMailServer service may not work until the database has been set up. Run DBSetup.exe from the hMailServer Bin folder to retry.', mbError, MB_OK, IDOK);
+                      'The hMailServer service may not work until the database has been set up. Run this setup again, or DBSetup.exe as an administrator from the hMailServer Bin folder: ' +
+                      'either finishes this new installation as this setup would have - the secure defaults, the stored-secrets key and the service''s account.', mbError, MB_OK, IDOK);
                Result := false;
             end
             else
@@ -2665,16 +3106,23 @@ begin
                ApplyChosenProfile();
                ProgressPage.SetText('Making the stored-secrets key...', '');
                CreateStoredSecretsKey();
+               g_bNewInstallationFinished := true;
             end;
          end;
 
          // The move to the virtual account, once the database is there.
          // Not after a database step that failed: the service stays LocalSystem's,
-         // where DBSetup can be run again, and is moved from the Control Panel.
+         // where DBSetup can be run again - which, on a new installation, finishes
+         // it, the move included (PendingNewInstallation) - and is moved from the
+         // Control Panel. A service that could not be given its login on SQL
+         // Server with Windows authentication is not moved, and fails the
+         // installation (GrantServiceDatabaseLogin).
          if bServiceRegistered and Result and MoveServiceAfterDatabase(GetServiceAccountChoice()) then
          begin
             ProgressPage.SetText('Moving the service to NT SERVICE\hMailServer...', 'Granting its folders; on a large message store this takes a few minutes.');
-            MoveServiceToVirtualAccount();
+            bMoved := MoveServiceToVirtualAccount();
+            if g_bDatabaseLoginFailed then
+               Result := false;
          end;
 
          ProgressPage.SetText('Starting the hMailServer service...', '');
@@ -2702,6 +3150,13 @@ begin
             begin
                SuppressibleMsgBox('The hMailServer service could not be started.' + #13#10 + SysErrorMessage(ResultCode), mbError, MB_OK, IDOK);
                Result := false;
+            end
+            // A service this installation moved is held to opening its database as
+            // the virtual account, and moved back to LocalSystem when it does not.
+            else if bMoved then
+            begin
+               if (CheckServiceAfterMove() = false) then
+                  Result := false;
             end
             else if (IsServiceRunning('hMailServer') = false) then
             begin
@@ -3013,12 +3468,16 @@ begin
 	if CurStep = ssInstall then
 	begin
 	   // Whether the database is new, asked of the settings file before the
-	   // installation writes one (IsNewDatabase).
+	   // installation writes one, and of the mark an unfinished new installation
+	   // leaves, before this one clears it (IsNewDatabase, PendingNewInstallation).
 	   IsNewDatabase();
 
 	   // And the account the service ran as, before this installation registers
-	   // it again (GetServiceAccountBefore).
+	   // it again (GetServiceAccountBefore), and whether that makes this a new
+	   // installation's service, before the database step names a database in
+	   // the settings file (IsNewService).
 	   GetServiceAccountBefore();
+	   IsNewService();
 
 	   // Move hMailServer.ini before files are copied
 	   MoveIni();
@@ -3041,13 +3500,32 @@ begin
 	    // GetCustomSetupExitCode's, since Inno Setup goes on to exit 0 after an
 	    // exception here. The specific message has already been shown by
 	    // RunPostInstallTasks itself.
+	    // A new installation whose database step did not complete leaves the mark
+	    // that lets this setup run again, or DBSetup, finish it as a new one
+	    // (PendingNewInstallation): the secure defaults, the profile, the
+	    // stored-secrets key and the move to NT SERVICE\hMailServer all come after
+	    // that step.
 	    if (RunPostInstallTasks() = false) then
 	    begin
 	      g_bStepsIncomplete := true;
+	      if IsNewDatabase() and (g_bNewInstallationFinished = false) then
+	        RecordPendingNewInstallation(GetServiceAccountChoice(), GetChosenProfile());
 	      if g_bDatabaseChanged then
 	        RaiseException('A post-installation step did not complete after the database step had changed the database, so ' + PreviousVersionText() + ' is not to be put back on it: it may not run on that database. See the message above.')
 	      else if g_bGrantFailed then
 	        RaiseException('The hMailServer service account could not be granted its folders. See the message above; run "hMailServer.exe --confirm /GrantServiceAccess" as an administrator from the hMailServer Bin folder to retry.')
+	      else if g_bDatabaseLoginFailed then
+	        RaiseException('The hMailServer service runs as LocalSystem, not NT SERVICE\hMailServer: that account cannot open the database. See the message above; once a SQL Server administrator has run what it says, move the service from the Control Panel, or run this setup again with the move chosen.')
+	      // A new installation's external database, which DBSetup sets up:
+	      // DBSetupQuick has nothing to retry there, and without SQL Server Compact,
+	      // which such an installation does not install, it does not even start.
+	      else if g_bDatabaseStepByDBSetup then
+	        RaiseException('A post-installation step did not complete: the administrator password, the service or the database. See the message above; run this setup again, or DBSetup.exe as an administrator from the hMailServer Bin folder, to set the database up and finish the installation.')
+	      // A new installation on the built-in database whose steps after the
+	      // database did not run: this setup again finishes it, where DBSetupQuick
+	      // would set the database up and nothing after it (QuickStepRetryAdvice).
+	      else if IsNewDatabase() and (g_bNewInstallationFinished = false) then
+	        RaiseException('A post-installation step did not complete: the administrator password, the service or the database. See the message above; run this setup again, which finishes the new installation.')
 	      else
 	        RaiseException('A post-installation step did not complete: the administrator password, the service or the database. See the message above; run DBSetupQuick.exe from the hMailServer Bin folder to retry the database.');
 	    end;
@@ -3105,6 +3583,11 @@ var
 begin
    if CurUninstallStep = usUninstall then
    begin
+      // The mark of a new installation an earlier run left unfinished
+      // (PendingNewInstallation): nothing is left to finish once the program is
+      // gone, and a later installation must not take its account for its own.
+      ClearPendingNewInstallation();
+
       budgetMs := GetServiceStopBudgetMs();
 
       if (StopHMailServerAndWaitForExit(budgetMs) = false) then
