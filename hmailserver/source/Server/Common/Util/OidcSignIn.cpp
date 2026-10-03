@@ -9,7 +9,7 @@
 #include "JwksKeySet.h"
 #include "OAuth2TokenValidator.h"
 #include "ReaderOAuth.h"
-#include "SignInBudget.h"
+#include "SignInState.h"
 #include "Unicode.h"
 #include "WebAuthn.h"
 #include "Crypt.h"
@@ -45,16 +45,6 @@ namespace HM
    {
       const time_t PendingSeconds = 10 * 60;
 
-      // The pending sign-ins, under SignInBudget's rule: a source holds at most
-      // MostPendingPerSource of them and gives up its own oldest past that, and
-      // a full table gives up the oldest of the source that holds the most. Until
-      // 6.3.6 the table was two hundred and simply dropped its oldest, so a
-      // stranger asking for starts a few times a second pushed every other
-      // person's sign-in out before their browser came back from the identity
-      // provider. An entry is some three hundred bytes; the table about one MB.
-      const size_t MostPending = 4096;
-      const size_t MostPendingPerSource = 256;
-
       // The tickets a verified sign-in leaves for its browser (MintTicket): made
       // only after the identity provider vouched for somebody, redeemed within
       // seconds, and dropped oldest first as they always were.
@@ -72,23 +62,52 @@ namespace HM
          time_t fetched = 0;
       };
 
+      // A sign-in started here, as the hmoidc cookie carries it, sealed
+      // (SignInState.h): nothing of it is held on the server until it finishes.
+      // Until 6.3.6 a table here held each one, which a stranger could fill.
       struct Pending
       {
+         AnsiString state;
          bool deck = false;
          AnsiString verifier;
-         AnsiString cookie;
          AnsiString nonce;
-         time_t created = 0;
-         // Which one this was, counted under the lock: created is accurate to
-         // the second and a flood makes hundreds inside one, so this is what
-         // "the oldest" means when a full table has to make room.
-         unsigned __int64 order = 0;
-         // Where the start came from (SignInBudget::PendingSource), which is
-         // whom the entry counts against when the table makes room, and its
-         // group (SignInBudget::SourceGroup) for the rule's tie-break.
-         std::string source;
-         std::string group;
+         time_t expires = 0;
       };
+
+      // The cookie's plain text: a version line and one line a field, none of
+      // which can hold a line break (the three random values are base64url).
+      std::string WritePending(const Pending &entry)
+      {
+         return "oidc1\n" + std::string(entry.state.c_str()) + "\n" + (entry.deck ? "1" : "0") + "\n" +
+                std::string(entry.verifier.c_str()) + "\n" + std::string(entry.nonce.c_str()) + "\n" +
+                std::to_string((long long) entry.expires);
+      }
+
+      bool ReadPending(const std::string &plain, Pending &entry)
+      {
+         std::vector<std::string> fields;
+         size_t start = 0;
+         for (;;)
+         {
+            const size_t end = plain.find('\n', start);
+            fields.push_back(plain.substr(start, end == std::string::npos ? std::string::npos : end - start));
+            if (end == std::string::npos)
+               break;
+            start = end + 1;
+         }
+
+         if (fields.size() != 6 || fields[0] != "oidc1" || (fields[2] != "0" && fields[2] != "1") ||
+             fields[1].empty() || fields[3].empty() || fields[4].empty() || fields[5].empty() ||
+             fields[5].find_first_not_of("0123456789") != std::string::npos || fields[5].size() > 18)
+            return false;
+
+         entry.state = AnsiString(fields[1].c_str());
+         entry.deck = fields[2] == "1";
+         entry.verifier = AnsiString(fields[3].c_str());
+         entry.nonce = AnsiString(fields[4].c_str());
+         entry.expires = (time_t) std::stoll(fields[5]);
+         return true;
+      }
 
       struct Ticket
       {
@@ -100,7 +119,6 @@ namespace HM
 
       boost::mutex stateLock;
       Discovery discovery;
-      std::map<AnsiString, Pending> pending;
       std::map<AnsiString, Ticket> tickets;
       unsigned __int64 nextOrder = 1;
 
@@ -166,14 +184,6 @@ namespace HM
 
       void PruneLocked(time_t now)
       {
-         for (auto it = pending.begin(); it != pending.end();)
-         {
-            if (now - it->second.created > PendingSeconds)
-               it = pending.erase(it);
-            else
-               ++it;
-         }
-
          for (auto it = tickets.begin(); it != tickets.end();)
          {
             if (now - it->second.created > OidcSignIn::TicketSeconds)
@@ -197,26 +207,6 @@ namespace HM
             }
             table.erase(oldest);
          }
-      }
-
-      // Room for one more pending sign-in from source. /portal/oidc/start carries
-      // no credential - the person has not signed in anywhere yet - so a table
-      // that refused when it filled would let a stranger switch single sign-on
-      // off for everybody, and one that dropped its oldest entry whoever held it
-      // let them do the same by asking a few times a second (SignInBudget.h): a
-      // source gives up its own oldest, and a full table the oldest of the source
-      // holding the most - of the largest group among those tied, so that one
-      // /48's thousands of /64s spend their own. A start with no source of its
-      // own (a loopback request naming no forwarded address) has no cap of its
-      // own.
-      void MakeRoomForPendingLocked(const std::string &source)
-      {
-         SignInBudget::MakeRoom(pending, source,
-            source.empty() ? 0 : MostPendingPerSource, MostPending,
-            [](const std::pair<const AnsiString, Pending> &entry) -> const std::string & { return entry.second.source; },
-            [](const std::pair<const AnsiString, Pending> &entry) -> const std::string & { return entry.second.group; },
-            [](const std::pair<const AnsiString, Pending> &entry) { return entry.second.order; },
-            [](const std::pair<const AnsiString, Pending> &) { return false; });
       }
 
       // The issuer's own description of itself. Cached for an hour: it names
@@ -497,7 +487,7 @@ namespace HM
    }
 
    bool
-   OidcSignIn::Begin(bool deck, const std::string &source, AnsiString &url, AnsiString &cookie, AnsiString &problem)
+   OidcSignIn::Begin(bool deck, AnsiString &url, AnsiString &cookie, AnsiString &problem)
    {
       if (!Configured())
       {
@@ -510,24 +500,21 @@ namespace HM
          return false;
 
       Pending entry;
-      AnsiString state;
-      if (!RandomText(state) || !RandomText(entry.verifier) || !RandomText(entry.cookie) || !RandomText(entry.nonce))
+      if (!RandomText(entry.state) || !RandomText(entry.verifier) || !RandomText(entry.nonce))
       {
          problem = "the random generator failed";
          return false;
       }
 
       entry.deck = deck;
-      entry.created = time(nullptr);
-      entry.source = source;
-      entry.group = SignInBudget::SourceGroup(source);
+      entry.expires = time(nullptr) + PendingSeconds;
 
+      // The browser carries it, sealed; nothing is kept here (SignInState.h).
+      cookie = SignInState::Seal(SignInState::Oidc, WritePending(entry));
+      if (cookie.IsEmpty())
       {
-         boost::lock_guard<boost::mutex> guard(stateLock);
-         entry.order = nextOrder++;
-         PruneLocked(entry.created);
-         MakeRoomForPendingLocked(source);
-         pending[state] = entry;
+         problem = "the sign-in could not be sealed";
+         return false;
       }
 
       AnsiString scopes = Setting(PROPERTY_OIDC_SCOPES);
@@ -539,11 +526,10 @@ namespace HM
             "&client_id=" + HttpsClient::FormEncode(Setting(PROPERTY_OIDC_CLIENT_ID)) +
             "&redirect_uri=" + HttpsClient::FormEncode(RedirectUri()) +
             "&scope=" + HttpsClient::FormEncode(scopes) +
-            "&state=" + state +
+            "&state=" + entry.state +
             "&nonce=" + entry.nonce +
             "&code_challenge=" + ReaderOAuth::Challenge(entry.verifier) +
             "&code_challenge_method=S256";
-      cookie = entry.cookie;
       return true;
    }
 
@@ -551,30 +537,37 @@ namespace HM
    OidcSignIn::Complete(const AnsiString &state, const AnsiString &cookie, const AnsiString &code,
                         Result &result, AnsiString &problem)
    {
+      result = Result();
+
+      // The sign-in as the browser carries it. A cookie that does not open is
+      // one this server did not seal - or sealed before its listener last
+      // stopped - and a state that is not the cookie's is another sign-in's:
+      // a link sent to this browser from somebody else's start.
       Pending entry;
+      std::string plain;
+      if (!SignInState::Open(SignInState::Oidc, cookie, plain) || !ReadPending(plain, entry))
       {
-         boost::lock_guard<boost::mutex> guard(stateLock);
-         auto it = pending.find(state);
-         if (it == pending.end())
-         {
-            problem = "this sign-in was not started here, or it was finished already";
-            return false;
-         }
-         entry = it->second;
-         pending.erase(it);
+         problem = cookie.IsEmpty() ? "this sign-in was started in another browser; start it again from the sign-in page"
+                                    : "this sign-in was not started here, or it was finished already";
+         return false;
       }
 
-      result = Result();
+      if (!SameText(entry.state, state))
+      {
+         problem = "this sign-in was started in another browser; start it again from the sign-in page";
+         return false;
+      }
+
       result.deck = entry.deck;
 
-      if (time(nullptr) - entry.created > PendingSeconds)
+      if (time(nullptr) > entry.expires)
       {
          problem = "the sign-in took longer than ten minutes; start it again";
          return false;
       }
-      if (!SameText(entry.cookie, cookie))
+      if (SignInState::IsSpent(SignInState::Oidc, std::string(entry.state.c_str())))
       {
-         problem = "this sign-in was started in another browser; start it again from the sign-in page";
+         problem = "this sign-in was not started here, or it was finished already";
          return false;
       }
       if (code.IsEmpty())
@@ -635,6 +628,16 @@ namespace HM
       JsonValue claims;
       if (!VerifyIdToken(idToken, provider, clientId, entry.nonce, claims, problem))
          return false;
+
+      // The identity provider vouched for this sign-in: it is spent, here and
+      // for as long as its cookie could be shown again. The only way into the
+      // spent set is an answer the identity provider signed, so a stranger
+      // cannot fill it.
+      if (!SignInState::Spend(SignInState::Oidc, std::string(entry.state.c_str()), entry.expires + 60))
+      {
+         problem = "this sign-in was not started here, or it was finished already";
+         return false;
+      }
 
       // An email claim the issuer has not verified is a string somebody typed
       // at the provider. Treating it as an identity is how one person signs in
@@ -851,7 +854,6 @@ namespace HM
    {
       boost::lock_guard<boost::mutex> guard(stateLock);
       discovery = Discovery();
-      pending.clear();
       tickets.clear();
       SigningKeys().Clear();
    }

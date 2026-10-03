@@ -141,7 +141,7 @@ namespace HM
          "\"post\":{\"summary\":\"Register the credential the browser just made\",\"description\":\"Body: name (what the device is called), password (the owner's own password, as making an app password asks for it; the one-time code goes in X-hMailServer-OTP where a second factor is enrolled) and credential, the PublicKeyCredential the browser answered with, its binary fields base64url: {id, response:{clientDataJSON, attestationObject, transports:[..]}}. The client data's type, challenge and origin are checked, the attestation object is CBOR-decoded for its authenticator data, the relying party hash and the user-present and user-verified flags are checked, and the COSE public key is stored - ES256 or RS256 and nothing else. The attestation STATEMENT is not verified and this server holds no metadata to verify it against: see docs/PasskeysAndSingleSignOn.md.\",\"responses\":{\"201\":{\"description\":\"The passkey\"},\"400\":{\"description\":\"The credential did not answer the challenge this server issued\"},\"403\":{\"description\":\"The password was wrong, or the request came in on an app password\"},\"409\":{\"description\":\"The administrator's second factor is enrolled but its secret cannot be opened on this machine\"}}}},"
          "\"/api/v1/passkeys/options\":{\"post\":{\"summary\":\"What the browser needs to make a passkey\",\"description\":\"PublicKeyCredentialCreationOptions as navigator.credentials.create takes them, the binary fields base64url: challenge, rp, user, pubKeyCredParams (ES256 and RS256), timeout, attestation 'none', authenticatorSelection (residentKey preferred, userVerification required - the registration refuses a credential the authenticator did not verify the person for, and so does every assertion afterwards) and excludeCredentials, which is this owner's credentials so the same authenticator is not enrolled twice. The challenge is kept against this session for five minutes and is spent by the POST that follows.\",\"responses\":{\"200\":{\"description\":\"The options\"},\"403\":{\"description\":\"Passkeys are off on this server\"}}}},"
          "\"/api/v1/passkeys/{id}\":{\"delete\":{\"summary\":\"Remove one of the signed-in credential's passkeys\",\"description\":\"The device is not told; it keeps a private key this server no longer knows. Refused on a request authenticated with an app password. Answered while PasskeysEnabled is off as well, because taking a way in away must not depend on the feature being switched on.\",\"responses\":{\"200\":{\"description\":\"Removed\"},\"404\":{\"description\":\"Not one of yours\"}}}},"
-         "\"/api/v1/passkeys/challenge\":{\"post\":{\"summary\":\"The challenge a passkey sign-in answers\",\"description\":\"No credential: there is no session yet. {challenge, rp_id, timeout} and a Set-Cookie (hmpasskey, HttpOnly, five minutes) the sign-in must carry back, which is what binds the challenge to this browser. allowCredentials is deliberately empty, so a discoverable credential can name its own account. The challenge is spent by the first POST /api/v1/session that answers it, so an assertion cannot be replayed. Challenges are kept per source - the address, an IPv6 one by its /64, and behind a proxy on this machine the last address of X-Forwarded-For - at most 256 a source in a table of 4,096: a source past its share gives up its own oldest, and a full table the oldest of the source holding the most.\",\"responses\":{\"200\":{\"description\":\"The challenge\"},\"403\":{\"description\":\"Passkeys are off on this server\"}}}},"
+         "\"/api/v1/passkeys/challenge\":{\"post\":{\"summary\":\"The challenge a passkey sign-in answers\",\"description\":\"No credential: there is no session yet. {challenge, rp_id, timeout} and a Set-Cookie (hmpasskey, HttpOnly, five minutes) the sign-in must carry back, which is what binds the challenge to this browser. allowCredentials is deliberately empty, so a discoverable credential can name its own account. The cookie holds the challenge and its end, sealed (AES-256-GCM, a key of the server process's): nothing is kept on the server, so no number of challenges asked for can push anybody's out. The challenge is spent by the first POST /api/v1/session whose assertion over it verifies, so an assertion cannot be replayed.\",\"responses\":{\"200\":{\"description\":\"The challenge\"},\"403\":{\"description\":\"Passkeys are off on this server\"}}}},"
          "\"/api/v1/signin-methods\":{\"get\":{\"summary\":\"What the sign-in pages may offer\",\"description\":\"No credential. {passkeys, oidc, oidc_label, saml, saml_label}: whether a passkey button, a 'Sign in with ...' button for the OpenID Connect issuer and one for the SAML identity provider should be drawn, the issuer's host for the second, and for the third the words saml_button_label gives it (Sign in with SAML by default). A page that asks this learns nothing a stranger could not learn by pressing the buttons.\",\"responses\":{\"200\":{\"description\":\"The methods\"}}}}";
       return AnsiString(paths);
    }
@@ -508,7 +508,7 @@ namespace HM
          return BuildResponse_(400, "{\"error\":\"" + JsonEscape_(missingOrigins) + "\"}");
 
       AnsiString nonce, challenge;
-      if (!PasskeyStore::OfferSignIn(SignInBudget::PendingSource(request, peer_address), nonce, challenge))
+      if (!PasskeyStore::OfferSignIn(nonce, challenge))
          return BuildResponse_(503, "{\"error\":\"no challenge could be made; try again\"}");
 
       // Path=/api/v1 so the sign-in carries it and nothing else does;
@@ -555,7 +555,8 @@ namespace HM
           !Binary(response, "signature", signature))
          return false;
 
-      // The challenge this browser was given, spent now whatever follows.
+      // The challenge this browser was given, sealed in its cookie; spent below,
+      // once an assertion over it has verified.
       AnsiString nonce;
       std::vector<AnsiString> cookies = StringParser::SplitString(GetHeader_(request, "cookie"), ";");
       for (AnsiString part : cookies)
@@ -651,6 +652,17 @@ namespace HM
          LOG_APPLICATION("REST API: a passkey sign-in from " + String(peer_address.ToString()) +
             " reported a signature counter that had not moved on; it is refused as a possible clone of the credential.");
          RegisterAuthenticationFailure_(peer_address);
+         return false;
+      }
+
+      // The assertion verified: its challenge is spent, once. Only a verified
+      // assertion spends one, so a stranger cannot fill the spent set; and a
+      // second assertion over the same challenge - a replay, or the same one
+      // posted twice at once - is refused here.
+      if (!PasskeyStore::SpendSignIn(challenge))
+      {
+         LOG_APPLICATION("REST API: a passkey sign-in from " + String(peer_address.ToString()) +
+            " answered a challenge that had been answered already.");
          return false;
       }
 

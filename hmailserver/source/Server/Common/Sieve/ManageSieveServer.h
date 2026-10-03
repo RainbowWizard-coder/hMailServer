@@ -7,9 +7,16 @@
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
+#include <deque>
+#include <exception>
+#include <map>
 #include <mutex>
+#include <set>
 #include <thread>
 #include <string>
+#include <vector>
+
+#include "../TCPIP/IPAddress.h"
 
 namespace HM
 {
@@ -65,6 +72,30 @@ namespace HM
    // IsConnectionAllowed_. Without it the auto-ban written on repeated logon
    // failures would never be enforced, and the per-connection attempt cap could be
    // sidestepped simply by reconnecting.
+   //
+   // ONE PARTY CANNOT HOLD THE SERVICE (since 6.3.6's re-check). Until then one
+   // thread served one connection at a time, with a backlog of five, so whoever
+   // kept a connection going held the whole service: a signed-in client sending
+   // NOOP every 29 seconds for ever, or a client that never signed in and came
+   // back the moment each connection was cut, with five more waiting behind it.
+   // Now one thread accepts (Run_) and MaxSessions threads serve (Serve_):
+   //
+   //   - Before it has signed in, an address has at most one connection being
+   //     served; its others wait their turn in its own line, MaxWaitingPerAddress
+   //     long, and a connection past that, or past MaxWaiting in all, is refused
+   //     with BYE (TRYLATER). So connections from one address take one thread.
+   //     The address is read as SignInBudget::GuessSource reads it: an IPv6 one
+   //     by its /64, which one machine can fill with as many addresses as it
+   //     likes, and an IPv4 client of NAT64 or Teredo by its own IPv4 address.
+   //   - A connection that runs out of time before signing in - a line, the TLS
+   //     handshake or the PreAuthenticationSeconds of the whole - counts as a
+   //     failed logon from its address, so the auto-ban sees a client that comes
+   //     back to hold the service and bans it as it bans a guesser.
+   //   - Signed in, a session ends after MaxKeepAliveLines lines in a row that do
+   //     nothing (NOOP, CAPABILITY, an empty or unknown command, a STARTTLS or
+   //     AUTHENTICATE it refuses), or once it has waited SignedInIdleSeconds in
+   //     all for its commands; and an account has at most MaxSessionsPerAccount
+   //     sessions at once.
    class ManageSieveServer
    {
    public:
@@ -78,19 +109,19 @@ namespace HM
       // LeaveDrain), because this listener is not one of IOService's acceptors
       // and would otherwise keep accepting through it. StopAccepting closes the
       // listening socket - a connection attempted from then on is refused at
-      // the socket - and parks the worker once the session it may be serving
-      // has ended; StartAccepting opens the socket again on the same address
-      // and port and wakes the worker. The worker itself is never stopped or
-      // joined by either, so a session in flight finishes at its own pace.
+      // the socket - and parks the accepting thread; StartAccepting opens the
+      // socket again on the same address and port and wakes it. The serving
+      // threads are never stopped or joined by either, so the sessions in flight,
+      // and the connections accepted before the door closed, finish at their own
+      // pace.
       // StartAccepting is false when the port could not be bound again, which
       // the caller reports; the listener then stays closed.
       bool StopAccepting();
       bool StartAccepting();
       bool IsAccepting() const { return accepting_; }
 
-      // Sessions being served right now: 0 or 1, since the worker serves one
-      // connection at a time. Counted into a drain's wait with the mailbox
-      // protocols' sessions.
+      // Connections being served right now, and those accepted and waiting for a
+      // thread. Counted into a drain's wait with the mailbox protocols' sessions.
       int GetNumberOfSessions() const { return sessions_; }
 
       // The address and port Start was given, for a report that names them.
@@ -117,13 +148,29 @@ namespace HM
       //
       // This is not the same protection as MaxAuthenticationFailures, which only
       // counts commands that actually carried a credential - CAPABILITY, NOOP and
-      // AUTHENTICATE naming an unknown mechanism were all unlimited. That matters
-      // more on this listener than on the mailbox protocols because Run_ serves
-      // connections one at a time on a single worker thread, so an unauthenticated
-      // client looping NOOP does not merely waste its own connection: it holds the
-      // whole ManageSieve service. Set far above any real client, which needs at
-      // most CAPABILITY, STARTTLS, CAPABILITY and AUTHENTICATE.
+      // AUTHENTICATE naming an unknown mechanism were all unlimited, and a client
+      // looping NOOP held a thread for as long as it liked (until 6.3.6 the only
+      // thread). Set far above any real client, which needs at most CAPABILITY,
+      // STARTTLS, CAPABILITY and AUTHENTICATE.
       enum { MaxPreAuthenticationCommands = 25 };
+
+      // How many connections are served at once, how many accepted ones may wait
+      // for a thread, and how many of those one address may have waiting (the
+      // class comment). Constants: the service is one administrator's tool for
+      // a mailbox's filters, and no operator has a reason to choose between them.
+      enum { MaxSessions = 16 };
+      enum { MaxWaiting = 64 };
+      enum { MaxWaitingPerAddress = 4 };
+
+      // A signed-in session ends after this many lines in a row that change
+      // nothing - NOOP, CAPABILITY, an empty or unknown command, a STARTTLS or
+      // AUTHENTICATE it refuses - or once it has waited this long in all for its
+      // command lines; an account holds at most this many sessions at once. Each
+      // wait is still LineSeconds at most. Until 6.3.6's re-check a signed-in
+      // session had no bound at all.
+      enum { MaxKeepAliveLines = 10 };
+      enum { SignedInIdleSeconds = 120 };
+      enum { MaxSessionsPerAccount = 4 };
 
       // The clock every read, write and handshake on a connection is held to.
       // Run_ serves one connection at a time, so a client that kept a read going
@@ -188,7 +235,8 @@ namespace HM
             step_deadline(std::chrono::steady_clock::time_point::max()),
             session_deadline(std::chrono::steady_clock::time_point::max()),
             out_of_time(false),
-            write_failed(false)
+            write_failed(false),
+            holds_address_turn(false)
          {
          }
 
@@ -221,10 +269,72 @@ namespace HM
          // ends the session at the next read.
          bool out_of_time;
          bool write_failed;
+
+         // The peer's address as the waiting lines key it, whether this connection
+         // holds its address's one turn to be served before signing in, and the
+         // account it is signed in as (empty when it is not), whose session count
+         // it holds.
+         std::string address_key;
+         bool holds_address_turn;
+         String account;
       };
 
+      // An accepted connection that waits for a thread.
+      struct Waiting
+      {
+         SOCKET socket = INVALID_SOCKET;
+         IPAddress address;
+         std::string address_key;
+         bool require_tls_for_auth = false;
+         std::chrono::steady_clock::time_point accepted_at;
+      };
+
+      // The accepting thread: accepts, applies the security ranges and puts the
+      // connection in line (Admit_), or refuses it.
       void Run_();
+
+      // The text of an exception that escaped, or nothing when copying it throws
+      // as well - the exception in hand may be the bad_alloc that says allocation
+      // is failing.
+      static AnsiString WhatOf_(const std::exception &error);
+
+      // Reports an exception that escaped while accepting or serving a connection
+      // (what_happened; standard when it was a std::exception, with its text),
+      // fenced off: the report runs the operator's scripts (ScriptServer::FireEvent),
+      // and what escapes them must not reach the top of a thread, which would be
+      // std::terminate() on the whole server.
+      static void ReportEscaped_(const String &what_happened, bool standard, const AnsiString &text);
+
+      // A serving thread: takes the first waiting connection whose address has no
+      // connection being served before signing in, and serves it.
+      void Serve_();
+      void ServeOne_(Waiting &waiting);
       void HandleClient_(Connection &connection, const IPAddress &client_address, bool require_tls_for_auth);
+
+      // In line, or refused with BYE (TRYLATER) and closed. True when in line.
+      bool Admit_(SOCKET socket, const IPAddress &address, bool require_tls_for_auth);
+
+      // Closes the waiting connections that have waited PreAuthenticationSeconds.
+      // With queue_mutex_ held.
+      void DropExpiredLocked_(std::chrono::steady_clock::time_point now);
+
+      // Signed in as account: the address's turn goes to its next connection, and
+      // the account's sessions are counted. False, with nothing changed, when the
+      // account has MaxSessionsPerAccount already.
+      bool ClaimAccountSession_(Connection &connection, const String &account);
+
+      // UNAUTHENTICATE, and the end of a session: what the connection holds is let
+      // go.
+      void ReleaseAccountSession_(Connection &connection);
+      void ReleaseAddressTurn_(Connection &connection);
+
+      // UNAUTHENTICATE: the connection is about to be one that has not signed in
+      // again, so it takes its address's one turn back. False, with nothing
+      // changed, while another connection from the address holds it - the session
+      // then stays signed in (NO (TRYLATER)). Without it a client with one
+      // password could sign in on connection after connection and UNAUTHENTICATE
+      // each, and hold every serving thread from one address before signing in.
+      bool ReclaimAddressTurn_(Connection &connection);
 
       // Releases the TLS session, if any, and closes the socket. Called from the
       // accept loop rather than from HandleClient_, so that the exception barrier
@@ -302,7 +412,8 @@ namespace HM
 
       SOCKET listen_socket_;
       std::thread worker_;
-      bool running_;
+      std::vector<std::thread> servers_;
+      std::atomic<bool> running_;
 
       // One application-log line per service start for the configuration that locks
       // everybody out: a range that requires TLS for authentication reaching a
@@ -315,9 +426,8 @@ namespace HM
       // PerformBasicSetup fail for every regression fixture that follows - which
       // includes the fixture that provokes this exact state on purpose.
       //
-      // Only ever touched from the single worker thread (Run_ -> HandleClient_), so
-      // it needs no synchronisation.
-      bool warned_tls_required_without_certificate_;
+      // Set by whichever serving thread meets the combination first.
+      std::atomic<bool> warned_tls_required_without_certificate_;
 
       // Held as a Boost.Asio context only because that is what
       // SslContextInitializer configures; the SSL_CTX inside it is what this
@@ -343,5 +453,26 @@ namespace HM
       std::atomic<int> sessions_;
       std::mutex accept_mutex_;
       std::condition_variable accept_changed_;
+
+      // The waiting connections in the order they came, how many each address has
+      // waiting, the addresses with a connection being served that has not signed
+      // in, and the signed-in sessions of each account. All under queue_mutex_;
+      // queue_changed_ wakes the serving threads.
+      std::mutex queue_mutex_;
+      std::condition_variable queue_changed_;
+      std::deque<Waiting> waiting_;
+      std::map<std::string, int> waiting_by_address_;
+      std::set<std::string> served_before_sign_in_;
+      std::map<String, int> sessions_by_account_;
+
+      // Held while a command reads or writes an account's scripts
+      // (SieveStorage), never while a session waits for its client. Until
+      // 6.3.6's re-check one thread served one session at a time, which kept
+      // them apart; now sessions are served side by side, an account may have
+      // MaxSessionsPerAccount, and SieveStorage writes a file in place (two
+      // PUTSCRIPTs of one script at once could leave it a mix of both) and
+      // checks before it acts (a DELETESCRIPT beside a SETACTIVE of the same
+      // script could delete the active one).
+      std::mutex storage_mutex_;
    };
 }

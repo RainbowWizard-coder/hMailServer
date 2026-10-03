@@ -22,16 +22,59 @@ namespace HM
 {
    namespace
    {
-      // An address as a holder: an IPv4 address carried in IPv6 as the IPv4, the
-      // IPv6 loopback as it is, any other IPv6 address as its /64.
+      // The IPv4 address an IPv6 address carries for a client on the IPv4 side of
+      // a translator or a tunnel, for which the /64 is no host's own: v4-mapped
+      // (::ffff:a.b.c.d), the NAT64 and SIIT well-known prefix 64:ff9b::/96 (RFC
+      // 6052 section 2.1), where one /64 is every IPv4 client of the translator,
+      // and Teredo's 2001::/32 (RFC 4380 section 4), where it is every client of
+      // one Teredo server and the client's own address is the last 32 bits,
+      // inverted. No setting names another translation prefix.
+      bool EmbeddedIPv4(const boost::asio::ip::address_v6 &v6, boost::asio::ip::address_v4 &embedded)
+      {
+         if (v6.is_v4_mapped())
+         {
+            embedded = boost::asio::ip::make_address_v4(boost::asio::ip::v4_mapped, v6);
+            return true;
+         }
+
+         const boost::asio::ip::address_v6::bytes_type bytes = v6.to_bytes();
+         boost::asio::ip::address_v4::bytes_type v4 = {};
+
+         const bool wellKnownPrefix = bytes[0] == 0x00 && bytes[1] == 0x64 && bytes[2] == 0xff && bytes[3] == 0x9b &&
+                                      bytes[4] == 0 && bytes[5] == 0 && bytes[6] == 0 && bytes[7] == 0 &&
+                                      bytes[8] == 0 && bytes[9] == 0 && bytes[10] == 0 && bytes[11] == 0;
+         if (wellKnownPrefix)
+         {
+            for (size_t i = 0; i < 4; i++)
+               v4[i] = bytes[12 + i];
+            embedded = boost::asio::ip::address_v4(v4);
+            return true;
+         }
+
+         const bool teredo = bytes[0] == 0x20 && bytes[1] == 0x01 && bytes[2] == 0x00 && bytes[3] == 0x00;
+         if (teredo)
+         {
+            for (size_t i = 0; i < 4; i++)
+               v4[i] = static_cast<unsigned char>(~bytes[12 + i]);
+            embedded = boost::asio::ip::address_v4(v4);
+            return true;
+         }
+
+         return false;
+      }
+
+      // An address as a holder: an IPv4 address carried in IPv6 as the IPv4 (see
+      // EmbeddedIPv4 for which), the IPv6 loopback as it is, any other IPv6
+      // address as its /64.
       std::string Holder(const boost::asio::ip::address &address)
       {
          if (address.is_v4())
             return address.to_v4().to_string();
 
          const boost::asio::ip::address_v6 v6 = address.to_v6();
-         if (v6.is_v4_mapped())
-            return boost::asio::ip::make_address_v4(boost::asio::ip::v4_mapped, v6).to_string();
+         boost::asio::ip::address_v4 embedded;
+         if (EmbeddedIPv4(v6, embedded))
+            return embedded.to_string();
 
          if (v6.is_loopback())
             return v6.to_string();
@@ -42,32 +85,6 @@ namespace HM
 
          return boost::asio::ip::address_v6(bytes).to_string() + "/64";
       }
-
-      std::string Trimmed(const std::string &text)
-      {
-         const size_t first = text.find_first_not_of(" \t");
-         if (first == std::string::npos)
-            return "";
-         const size_t last = text.find_last_not_of(" \t");
-         return text.substr(first, last - first + 1);
-      }
-   }
-
-   bool
-   SignInBudget::IsLoopback(const IPAddress &peer)
-   {
-      if (peer.IsAny())
-         return false;
-
-      const boost::asio::ip::address address = peer.GetAddress();
-      if (address.is_v4())
-         return address.to_v4().is_loopback();
-
-      const boost::asio::ip::address_v6 v6 = address.to_v6();
-      if (v6.is_v4_mapped())
-         return boost::asio::ip::make_address_v4(boost::asio::ip::v4_mapped, v6).is_loopback();
-
-      return v6.is_loopback();
    }
 
    std::string
@@ -79,70 +96,28 @@ namespace HM
       return Holder(peer.GetAddress());
    }
 
-   std::string
-   SignInBudget::LastForwardedAddress(const AnsiString &request)
+   void
+   SignInBudget::RefusalKey(const IPAddress &peer, unsigned __int64 &high, unsigned __int64 &low)
    {
-      // The head alone, as RestApiServer::GetHeader_ reads it: a line in the body
-      // is whatever the sender wrote and was never a header.
-      const std::string text(request.c_str(), (size_t) request.GetLength());
-      const size_t headEnd = text.find("\r\n\r\n");
-      const std::string head = headEnd == std::string::npos ? text : text.substr(0, headEnd + 2);
+      high = peer.GetAddress1();
+      low = peer.GetAddress2();
 
-      std::string lower = head;
-      for (size_t i = 0; i < lower.size(); i++)
+      if (peer.GetType() != IPAddress::IPV6)
+         return;
+
+      boost::asio::ip::address_v4 embedded;
+      if (EmbeddedIPv4(peer.GetAddress().to_v6(), embedded))
       {
-         if (lower[i] >= 'A' && lower[i] <= 'Z')
-            lower[i] = (char) (lower[i] - 'A' + 'a');
+         // As ::ffff:a.b.c.d is held: its halves.
+         high = 0;
+         low = 0x0000FFFF00000000ULL | static_cast<unsigned __int64>(embedded.to_uint());
+         return;
       }
 
-      // The LAST line of that name: a proxy that adds its own line rather than
-      // extending the one the client sent (HAProxy's option forwardfor does)
-      // writes it after the client's.
-      const std::string needle = "\r\nx-forwarded-for:";
-      const size_t found = lower.rfind(needle);
-      if (found == std::string::npos)
-         return "";
-
-      const size_t valueStart = found + needle.size();
-      const size_t lineEnd = head.find("\r\n", valueStart);
-      const std::string value = head.substr(valueStart, lineEnd == std::string::npos ? std::string::npos : lineEnd - valueStart);
-
-      // Its last element: the address the nearest proxy wrote.
-      const size_t comma = value.rfind(',');
-      std::string element = Trimmed(comma == std::string::npos ? value : value.substr(comma + 1));
-
-      if (!element.empty() && element[0] == '[')
-      {
-         // [2001:db8::1] or [2001:db8::1]:443.
-         const size_t close = element.find(']');
-         if (close == std::string::npos)
-            return "";
-         element = element.substr(1, close - 1);
-      }
-      else if (element.find(':') != std::string::npos && element.find(':') == element.rfind(':'))
-      {
-         // 192.0.2.7:51234 - one colon is an IPv4 address and a port, never IPv6.
-         element = element.substr(0, element.find(':'));
-      }
-
-      if (element.empty() || element.size() > 64)
-         return "";
-
-      boost::system::error_code error;
-      const boost::asio::ip::address address = boost::asio::ip::make_address(element, error);
-      if (error)
-         return "";
-
-      // An address on this machine, or none, says nothing about the browser: a
-      // second proxy on this host writes its own 127.0.0.1 here for every one of
-      // them. No source of its own, as no address at all.
-      const IPAddress forwarded(address);
-      if (IsLoopback(forwarded) || address.is_unspecified() ||
-          (address.is_v6() && address.to_v6().is_v4_mapped() &&
-           boost::asio::ip::make_address_v4(boost::asio::ip::v4_mapped, address.to_v6()).is_unspecified()))
-         return "";
-
-      return Holder(address);
+      // The other addresses whose high half is zero (::1, the other special
+      // forms) are held whole; any other IPv6 address by its /64.
+      if (high != 0)
+         low = 0;
    }
 
    std::string
@@ -179,15 +154,6 @@ namespace HM
       return boost::asio::ip::address_v6(bytes).to_string() + "/48";
    }
 
-   std::string
-   SignInBudget::PendingSource(const AnsiString &request, const IPAddress &peer)
-   {
-      if (IsLoopback(peer))
-         return LastForwardedAddress(request);
-
-      return GuessSource(peer);
-   }
-
    // ------------------------------------------------------------------------
    // The tests.
    // ------------------------------------------------------------------------
@@ -203,12 +169,6 @@ namespace HM
       IPAddress Peer(const char *text)
       {
          return IPAddress(boost::asio::ip::make_address(text));
-      }
-
-      AnsiString Head(const std::string &headerLines)
-      {
-         const std::string request = "GET /portal/oidc/start HTTP/1.1\r\nHost: mail.example.test\r\n" + headerLines + "\r\n";
-         return AnsiString(request.c_str());
       }
 
       struct Pending
@@ -228,8 +188,9 @@ namespace HM
 
       const size_t NoTableLimit = std::numeric_limits<size_t>::max();
 
-      // Adds one entry of holder to a map table under the rule, as OidcSignIn,
-      // SamlSignIn and PasskeyStore do: the group is the source's.
+      // Adds one entry of holder to a map table under the rule, as PasskeyStore's
+      // registrations do (and the pending sign-ins did, until 6.3.6's second
+      // review sealed them into the browser): the group is the source's.
       void Add(std::map<std::string, Pending> &table, unsigned __int64 &order, const std::string &key,
                const std::string &holder, size_t perHolder, size_t most)
       {
@@ -330,51 +291,45 @@ namespace HM
       Expect(SignInBudget::GuessSource(Peer("::1")) == "::1" && SignInBudget::GuessSource(Peer("127.0.0.1")) == "127.0.0.1",
              "SignInBudgetTester: the loopback addresses are their own sources.");
 
-      Expect(SignInBudget::IsLoopback(Peer("127.0.0.1")) && SignInBudget::IsLoopback(Peer("127.0.0.2")) &&
-             SignInBudget::IsLoopback(Peer("::1")) && SignInBudget::IsLoopback(Peer("::ffff:127.0.0.1")),
-             "SignInBudgetTester: 127.0.0.0/8, ::1 and a mapped 127.x are this machine.");
-      Expect(!SignInBudget::IsLoopback(Peer("192.0.2.1")) && !SignInBudget::IsLoopback(Peer("2001:db8::1")) &&
-             !SignInBudget::IsLoopback(IPAddress()),
-             "SignInBudgetTester: another address, and no address at all, is not.");
+      // An address a translator or a tunnel gives an IPv4 client is that client:
+      // one /64 of them is every client of the translator. Until 6.3.6's re-check
+      // they were each the /64, so one client's failures were all of theirs.
+      Expect(SignInBudget::GuessSource(Peer("64:ff9b::192.0.2.33")) == "192.0.2.33" &&
+             SignInBudget::GuessSource(Peer("64:ff9b::c000:221")) == "192.0.2.33",
+             "SignInBudgetTester: an address under the NAT64 well-known prefix is the IPv4 address it carries.");
+      Expect(SignInBudget::GuessSource(Peer("64:ff9b::192.0.2.33")) != SignInBudget::GuessSource(Peer("64:ff9b::192.0.2.34")),
+             "SignInBudgetTester: two IPv4 clients of one NAT64 translator are two sources.");
+      Expect(SignInBudget::GuessSource(Peer("2001:0:4136:e378:8000:63bf:3fff:fdd2")) == "192.0.2.45",
+             "SignInBudgetTester: a Teredo address is the client's own IPv4 address, the last 32 bits inverted (RFC 4380 section 4).");
+      Expect(SignInBudget::GuessSource(Peer("64:ff9b:0:0:1::5")) == "64:ff9b::/64" &&
+             SignInBudget::GuessSource(Peer("2001:db8::1")) == "2001:db8::/64",
+             "SignInBudgetTester: an address beside the well-known prefix, and one of the documentation /32, are their /64s.");
+      Expect(SignInBudget::SourceGroup(SignInBudget::GuessSource(Peer("64:ff9b::192.0.2.33"))) == "192.0.2.0/24",
+             "SignInBudgetTester: a NAT64 client's group is its IPv4 /24.");
 
-      // A pending sign-in's source: the header is believed from this machine only,
-      // and only its last address.
-      Expect(SignInBudget::PendingSource(Head("X-Forwarded-For: 198.51.100.4\r\n"), Peer("192.0.2.10")) == "192.0.2.10",
-             "SignInBudgetTester: X-Forwarded-For from a peer that is not on this machine is not believed.");
-      Expect(SignInBudget::PendingSource(Head("X-Forwarded-For: 198.51.100.1, 203.0.113.5\r\n"), Peer("127.0.0.1")) == "203.0.113.5",
-             "SignInBudgetTester: behind a proxy on this machine the source is the address the proxy wrote, the last.");
-      Expect(SignInBudget::PendingSource(Head("x-forwarded-for: 203.0.113.5\r\nX-Forwarded-For: 198.51.100.9\r\n"), Peer("::1")) == "198.51.100.9",
-             "SignInBudgetTester: of two lines, the last line's.");
-      Expect(SignInBudget::PendingSource(Head("X-Forwarded-For: 2001:db8:9:9::42\r\n"), Peer("127.0.0.1")) == "2001:db8:9:9::/64",
-             "SignInBudgetTester: a forwarded IPv6 address is its /64.");
-      Expect(SignInBudget::PendingSource(Head("X-Forwarded-For: [2001:db8:9:9::42]:443\r\n"), Peer("127.0.0.1")) == "2001:db8:9:9::/64",
-             "SignInBudgetTester: a bracketed IPv6 address with a port is read.");
-      Expect(SignInBudget::PendingSource(Head("X-Forwarded-For: 203.0.113.5:51234\r\n"), Peer("127.0.0.1")) == "203.0.113.5",
-             "SignInBudgetTester: an IPv4 address with a port is read.");
-      Expect(SignInBudget::PendingSource(Head(""), Peer("127.0.0.1")).empty(),
-             "SignInBudgetTester: a loopback request with no forwarded address has no source of its own.");
-      Expect(SignInBudget::PendingSource(Head("X-Forwarded-For: 203.0.113.5, unknown\r\n"), Peer("127.0.0.1")).empty() &&
-             SignInBudget::PendingSource(Head("X-Forwarded-For: _hidden\r\n"), Peer("127.0.0.1")).empty() &&
-             SignInBudget::PendingSource(Head("X-Forwarded-For: 203.0.113.5.example\r\n"), Peer("127.0.0.1")).empty(),
-             "SignInBudgetTester: a last element that is not an address is no source, never the element before it.");
+      // The halves the REST listener's refused set holds an address by.
+      {
+         unsigned __int64 high = 1;
+         unsigned __int64 low = 1;
+         SignInBudget::RefusalKey(Peer("2001:db8:1:2::5"), high, low);
+         Expect(high == 0x20010db800010002ULL && low == 0, "SignInBudgetTester: an IPv6 address is refused by its /64.");
 
-      // A forwarded address on this machine, or none, is every browser behind a
-      // second proxy on this host: no source of its own, not one capped source
-      // that one asker could fill for all of them.
-      Expect(SignInBudget::PendingSource(Head("X-Forwarded-For: 203.0.113.5, 127.0.0.1\r\n"), Peer("127.0.0.1")).empty() &&
-             SignInBudget::PendingSource(Head("X-Forwarded-For: 127.0.0.2\r\n"), Peer("127.0.0.1")).empty() &&
-             SignInBudget::PendingSource(Head("X-Forwarded-For: ::1\r\n"), Peer("::1")).empty() &&
-             SignInBudget::PendingSource(Head("X-Forwarded-For: [::1]:8080\r\n"), Peer("127.0.0.1")).empty() &&
-             SignInBudget::PendingSource(Head("X-Forwarded-For: ::ffff:127.0.0.1\r\n"), Peer("127.0.0.1")).empty() &&
-             SignInBudget::PendingSource(Head("X-Forwarded-For: 0.0.0.0\r\n"), Peer("127.0.0.1")).empty() &&
-             SignInBudget::PendingSource(Head("X-Forwarded-For: ::\r\n"), Peer("127.0.0.1")).empty() &&
-             SignInBudget::PendingSource(Head("X-Forwarded-For: ::ffff:0.0.0.0\r\n"), Peer("127.0.0.1")).empty(),
-             "SignInBudgetTester: a forwarded loopback or unspecified address is no source of its own.");
+         unsigned __int64 mappedHigh = 1;
+         unsigned __int64 mappedLow = 1;
+         SignInBudget::RefusalKey(Peer("::ffff:192.0.2.33"), mappedHigh, mappedLow);
+         SignInBudget::RefusalKey(Peer("64:ff9b::192.0.2.33"), high, low);
+         Expect(mappedHigh == 0 && mappedLow == 0x0000FFFFC0000221ULL && high == mappedHigh && low == mappedLow,
+                "SignInBudgetTester: a NAT64 client is refused as its IPv4 address carried in IPv6 is, and alone.");
 
-      // A header in the body is not a header.
-      const AnsiString bodyOnly = Head("Content-Length: 30\r\n") + AnsiString("\r\nX-Forwarded-For: 203.0.113.77");
-      Expect(SignInBudget::PendingSource(bodyOnly, Peer("127.0.0.1")).empty(),
-             "SignInBudgetTester: an X-Forwarded-For line in the body is not read.");
+         SignInBudget::RefusalKey(Peer("2001:0:4136:e378:8000:63bf:3fff:fdd2"), high, low);
+         Expect(high == 0 && low == 0x0000FFFFC000022DULL, "SignInBudgetTester: a Teredo client is refused as its own IPv4 address.");
+
+         SignInBudget::RefusalKey(Peer("::1"), high, low);
+         Expect(high == 0 && low == 1, "SignInBudgetTester: ::1 is refused whole.");
+
+         SignInBudget::RefusalKey(Peer("192.0.2.33"), high, low);
+         Expect(high == 0xC0000221ULL && low == 0, "SignInBudgetTester: an IPv4 address is refused as itself.");
+      }
 
       // The groups: an IPv6 source's /48, an IPv4 source's /24, anything else itself.
       Expect(SignInBudget::SourceGroup("2001:db8:1:2::/64") == "2001:db8:1::/48" &&

@@ -339,8 +339,8 @@ namespace RegressionTests.API
       }
 
       [Test]
-      [Description("Sign-in starts asked for over and over spend the asker's own pending sign-ins and nobody else's: a person's sign-in, started before three hundred starts from one other source, three hundred from as many sources and three hundred from this machine naming nobody, still finishes when the browser comes back; the one source's own oldest start is what went. The source behind a proxy on this machine is the address the proxy wrote last in X-Forwarded-For. Until 6.3.6 the table held two hundred and dropped its oldest whoever held it, so the person's sign-in was refused as one never started here.")]
-      public void StartsAskedForOverAndOverLeaveAnotherSourcesSignIn()
+      [Description("Sign-in starts asked for in their thousands, each from a /24 of its own as a rotating proxy pool gives them, push nobody's sign-in out: a person's, started first, and the first of the flood both finish when their browsers come back. Nothing of a start is kept on the server - the hmoidc cookie carries it, sealed, and shows none of what it holds - so there is no table to fill. Until 6.3.6 a table of two hundred dropped its oldest whoever held it; as 6.3.6 was first written a table of 4,096 held each source to its share, which 4,200 sources from as many /24s still beat, and the person's sign-in was refused as one never started here.")]
+      public void StartsFromThousandsOfSourcesPushNobodysSignInOut()
       {
          Account account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "sso-flood@" + _domain.Name, "Sso-Passw0rd!");
 
@@ -350,22 +350,15 @@ namespace RegressionTests.API
             Publish(issuer, rsa);
             Configure();
 
-            // The person, behind the proxy: the client wrote its own entry first,
-            // the proxy appended the address it saw.
-            Started person = Start(false, "X-Forwarded-For: 203.0.113.9, 198.51.100.4");
+            // The person, behind a proxy on this machine.
+            Started person = Start(false, "X-Forwarded-For: 198.51.100.4");
+            StringAssert.DoesNotContain(person.state, person.cookie, "The cookie shows the sign-in's state.");
+            StringAssert.DoesNotContain(person.nonce, person.cookie, "The cookie shows the sign-in's nonce.");
 
-            // One source over and over; it is past its own share by the end.
-            Started firstOfFlood = Start(false, "X-Forwarded-For: 203.0.113.9");
-            for (int i = 0; i < 300; i++)
-               Start(false, "X-Forwarded-For: 203.0.113.9");
-
-            // Many sources, one start each - a /64 apiece.
-            for (int i = 0; i < 300; i++)
-               Start(false, "X-Forwarded-For: 2001:db8:" + (i + 1).ToString("x") + "::7");
-
-            // And this machine, naming nobody.
-            for (int i = 0; i < 300; i++)
-               Start(false);
+            // Then a pool of sources, a /24 apiece, as many as a table could hold and more.
+            Started firstOfFlood = Start(false, "X-Forwarded-For: 10.0.0.1");
+            for (int i = 1; i < 4200; i++)
+               Start(false, "X-Forwarded-For: 10." + (i / 256) + "." + (i % 256) + ".1");
 
             Token(issuer, rsa, Issuer, ClientId, person.nonce, account.Address, true, 600);
             Ticket ticket = Complete(person, "/portal");
@@ -373,8 +366,7 @@ namespace RegressionTests.API
                "Cookie: " + ticket.cookie).status, "The person's sign-in finished, whatever else was asked for meanwhile.");
 
             Token(issuer, rsa, Issuer, ClientId, firstOfFlood.nonce, account.Address, true, 600);
-            StringAssert.Contains("sso_error", Callback(firstOfFlood).location,
-               "The source that asked over and over gave up its own oldest start.");
+            StringAssert.Contains("sso=", Callback(firstOfFlood).location, "The first start of the flood still finishes: none was pushed out.");
          }
       }
 

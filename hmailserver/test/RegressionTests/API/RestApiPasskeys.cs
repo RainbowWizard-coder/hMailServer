@@ -388,8 +388,8 @@ namespace RegressionTests.API
       }
 
       [Test]
-      [Description("Sign-in challenges asked for over and over spend the asker's own and nobody else's: a person's challenge, asked for before eleven hundred from one other source and eleven hundred from as many sources, still signs them in with their passkey. The source behind a proxy on this machine is the address the proxy wrote last in X-Forwarded-For. Until 6.3.6 the table held a thousand and dropped its oldest whoever held it.")]
-      public void ChallengesAskedForOverAndOverLeaveAnotherSourcesChallenge()
+      [Description("Sign-in challenges asked for in their thousands, each from a /24 of its own as a rotating proxy pool gives them, push nobody's out: a person's challenge, asked for first, still signs them in with their passkey. Nothing of a challenge is kept on the server - the hmpasskey cookie carries it, sealed - so there is no table to fill. Until 6.3.6 a table of a thousand dropped its oldest whoever held it; as 6.3.6 was first written a table of 4,096 held each source to its share, which 4,200 sources from as many /24s still beat.")]
+      public void ChallengesFromThousandsOfSourcesPushNobodysOut()
       {
          Account account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "passkey-flood@" + _domain.Name, Password);
          string me = Basic(account.Address, Password);
@@ -399,60 +399,14 @@ namespace RegressionTests.API
             Register(authenticator, me, "Phone", Password);
 
             (string challenge, string cookie) person = Challenge("X-Forwarded-For: 198.51.100.4");
+            StringAssert.DoesNotContain(person.challenge, person.cookie, "The cookie shows the challenge it holds.");
 
-            for (int i = 0; i < 1100; i++)
-               Challenge("X-Forwarded-For: 203.0.113.9");
-
-            for (int i = 0; i < 1100; i++)
-               Challenge("X-Forwarded-For: 2001:db8:" + (i + 1).ToString("x") + "::7");
+            for (int i = 0; i < 4200; i++)
+               Challenge("X-Forwarded-For: 10." + (i / 256) + "." + (i % 256) + ".1");
 
             (int status, string body, string headers) session = SendRaw("POST", "/api/v1/session", null,
                authenticator.Assertion(person.challenge, Origin, Host, 0), "Cookie: " + person.cookie);
             Assert.AreEqual(201, session.status, "The person's challenge still answers after the flood: " + session.body);
-         }
-      }
-
-      [Test]
-      [Description("Challenges asked for from thousands of /64s of one /48 - one each, more than the table of 4,096 holds - spend that /48's own and not a person's from elsewhere, though every source holds one and the person's is the oldest. As the rule was first written in 6.3.6 the oldest of the sources tied went, which a tunnel broker's free /48 aimed at everybody; until 6.3.6 the table held a thousand and dropped its oldest.")]
-      public void ChallengesFromThousandsOfOneSitesAddressesLeaveAnotherSourcesChallenge()
-      {
-         Account account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "passkey-site@" + _domain.Name, Password);
-         string me = Basic(account.Address, Password);
-
-         using (var authenticator = new SoftwareAuthenticator())
-         {
-            Register(authenticator, me, "Phone", Password);
-
-            (string challenge, string cookie) person = Challenge("X-Forwarded-For: 198.51.100.4");
-
-            for (int i = 0; i < 4300; i++)
-               Challenge("X-Forwarded-For: 2001:db8:1:" + (i + 1).ToString("x") + "::7");
-
-            (int status, string body, string headers) session = SendRaw("POST", "/api/v1/session", null,
-               authenticator.Assertion(person.challenge, Origin, Host, 0), "Cookie: " + person.cookie);
-            Assert.AreEqual(201, session.status, "The person's challenge still answers after one /48's flood: " + session.body);
-         }
-      }
-
-      [Test]
-      [Description("Behind a second proxy on this machine every browser's X-Forwarded-For ends in 127.0.0.1: that is no source of its own, so eleven hundred challenges asked for through it are held by the table of 4,096 alone and a person's, asked for first through the same proxy, still answers. As the rule was first written in 6.3.6 the browsers behind such a chain were one source capped at 256, so 256 requests pushed every one of them out; until 6.3.6 the table held a thousand.")]
-      public void ChallengesBehindASecondProxyOnThisMachineAreNoCappedSource()
-      {
-         Account account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "passkey-chain@" + _domain.Name, Password);
-         string me = Basic(account.Address, Password);
-
-         using (var authenticator = new SoftwareAuthenticator())
-         {
-            Register(authenticator, me, "Phone", Password);
-
-            (string challenge, string cookie) person = Challenge("X-Forwarded-For: 198.51.100.4, 127.0.0.1");
-
-            for (int i = 0; i < 1100; i++)
-               Challenge("X-Forwarded-For: 127.0.0.1");
-
-            (int status, string body, string headers) session = SendRaw("POST", "/api/v1/session", null,
-               authenticator.Assertion(person.challenge, Origin, Host, 0), "Cookie: " + person.cookie);
-            Assert.AreEqual(201, session.status, "The person's challenge still answers behind the chain: " + session.body);
          }
       }
 

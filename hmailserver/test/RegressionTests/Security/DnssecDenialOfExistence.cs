@@ -66,7 +66,12 @@ namespace RegressionTests.Security
       [OneTimeTearDown]
       public void BackToTheRealRoot()
       {
-         ServerIniFile.SetSetting("DnssecTrustAnchors", null);
+         // The suite's own zone and anchor, not none: the rest of the run validates
+         // against SuiteDns.Root (SuiteDns.cs), and this fixture's root key and the
+         // DS of "test" it signed, left in the zone, would leave every unsigned MX
+         // and TLSA answer after it indeterminate.
+         SuiteDns.Reset();
+         ServerIniFile.SetSetting("DnssecTrustAnchors", SuiteDns.TrustAnchor);
          RestartServerAndReacquireCom();
          _root.Dispose();
          _tld.Dispose();

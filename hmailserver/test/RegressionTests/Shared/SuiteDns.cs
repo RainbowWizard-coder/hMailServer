@@ -35,6 +35,16 @@ namespace RegressionTests
    ///    A test that must point the server at some OTHER resolver restores
    ///    <see cref="Resolver"/> afterwards, not null: null would put the rest of the
    ///    run back on the system resolver, silently.
+   ///
+   ///    The zone has a DNSSEC root of its own (<see cref="Root"/>), whose key is the
+   ///    server's DnssecTrustAnchors for the run (<see cref="TrustAnchor"/>), and it
+   ///    proves every top-level name an unsigned delegation unless a fixture
+   ///    publishes a DS for it (FakeDnsServer.RootSigner). Since 6.3.6 the validating
+   ///    resolver takes an MX or TLSA answer without signatures for unsigned only
+   ///    when the name is proven to be (RFC 7672 section 2.1.1), and without a root
+   ///    that validates, every MX delivery of the run would be deferred as
+   ///    indeterminate. A fixture that points the trust anchors elsewhere puts
+   ///    <see cref="TrustAnchor"/> back, not null, for the same reason.
    /// </summary>
    [SetUpFixture]
    public class SuiteDns
@@ -50,9 +60,19 @@ namespace RegressionTests
 
       public static FakeDnsServer Zone { get; private set; }
 
+      /// <summary>The run's DNSSEC root: its key signs the root's DNSKEY and its proofs.</summary>
+      public static DnssecZone Root { get; private set; }
+
+      /// <summary>What DnssecTrustAnchors says for the whole run: <see cref="Root"/>'s key.</summary>
+      public static string TrustAnchor
+      {
+         get { return Root.TrustAnchor; }
+      }
+
       [OneTimeSetUp]
       public void PointTheWholeSuiteAtOneLocalZone()
       {
+         Root = new DnssecZone("");
          Zone = Seed_(new FakeDnsServer());
 
          if (TestSetup.ConsoleServer)
@@ -69,6 +89,11 @@ namespace RegressionTests
                "A console server must be started with DNSServer=" + Resolver + " already stored " +
                "(Settings.SetIniSetting - a value edited into hMailServer.ini loses to a stored one): " +
                "the suite cannot restart it into its zone.");
+
+            // The trust anchor is read where it is used, so it is stored now; the
+            // key is the run's own, and no launcher could have stored it before.
+            SingletonProvider<TestSetup>.Instance.Authenticate();
+            ServerIniFile.SetSetting("DnssecTrustAnchors", TrustAnchor);
             return;
          }
 
@@ -80,6 +105,7 @@ namespace RegressionTests
          SingletonProvider<TestSetup>.Instance.Authenticate();
 
          ServerIniFile.SetSetting("DNSServer", Resolver);
+         ServerIniFile.SetSetting("DnssecTrustAnchors", TrustAnchor);
 
          // The setting is read once, at process start.
          SingletonProvider<TestSetup>.Instance.RestartServiceAndReacquire();
@@ -91,9 +117,14 @@ namespace RegressionTests
          if (TestSetup.ConsoleServer)
          {
             // The launcher that stored the resolver removes it again once the
-            // console server has been ended; the zone just goes.
+            // console server has been ended; the zone just goes, and the run's
+            // trust anchor with it.
+            SingletonProvider<TestSetup>.Instance.Authenticate();
+            ServerIniFile.SetSetting("DnssecTrustAnchors", null);
             Zone.Dispose();
             Zone = null;
+            Root.Dispose();
+            Root = null;
             return;
          }
 
@@ -108,10 +139,13 @@ namespace RegressionTests
             SingletonProvider<TestSetup>.Instance.Authenticate();
 
             ServerIniFile.SetSetting("DNSServer", null);
+            ServerIniFile.SetSetting("DnssecTrustAnchors", null);
             SingletonProvider<TestSetup>.Instance.RestartServiceAndReacquire();
          }
 
          Zone = null;
+         Root.Dispose();
+         Root = null;
       }
 
       /// <summary>
@@ -146,6 +180,7 @@ namespace RegressionTests
 
       private static FakeDnsServer Seed_(FakeDnsServer zone)
       {
+         zone.RootSigner = Root;
          return zone
             .WithA(SurblTestPoint, "127.0.0.2")
             .WithA("localhost", "127.0.0.1");

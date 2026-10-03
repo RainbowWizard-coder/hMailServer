@@ -149,21 +149,27 @@ namespace HM
       static bool TakeRegistration(const AnsiString &sessionKey, AnsiString &challenge);
 
       // The sign-in challenge. There is no session yet, so the browser carries
-      // a nonce in a cookie and the challenge is held against it. source is
-      // where the request came from (SignInBudget::PendingSource): whom the
-      // challenge counts against when the table makes room.
-      static bool OfferSignIn(const std::string &source, AnsiString &nonce, AnsiString &challenge);
+      // it in a cookie: nonce is the challenge and when it ends, sealed
+      // (SignInState.h), and nothing is held here - no number of challenges
+      // asked for, from wherever, can push anybody's out. TakeSignIn answers
+      // the challenge a nonce holds while it is in time and not spent;
+      // SpendSignIn spends it, once, when an assertion over it has verified -
+      // true the first time, false after.
+      static bool OfferSignIn(AnsiString &nonce, AnsiString &challenge);
       static bool TakeSignIn(const AnsiString &nonce, AnsiString &challenge);
+      static bool SpendSignIn(const AnsiString &challenge);
 
       // Forgets every challenge. For Reinitialize and the tests.
       static void Clear();
    };
 
-   // The challenge tables' own behaviour, which has nothing to do with the
-   // database: a challenge is spent once, and a flooded table evicts rather than
-   // refuses - the flooding source's own challenges, not anybody else's
-   // (SignInBudget.h). The second is the property a stranger would otherwise be
-   // able to turn into a switch, so it is proved on every debug start.
+   // The challenges' own behaviour, which has nothing to do with the database: a
+   // sign-in challenge is answered by its own sealed nonce and spent once, and
+   // any number asked for leaves a person's answerable; a flooded registration
+   // table evicts rather than refuses - the flooding credential's own
+   // challenges, not anybody else's (SignInBudget.h). The flood is the property
+   // a stranger would otherwise be able to turn into a switch, so it is proved
+   // on every debug start.
    class PasskeyStoreTester
    {
    public:

@@ -140,6 +140,10 @@ namespace HM
                     static_cast<int>(TlsPolicy::MxDnssecStatus::Bogus),
                  "No DnssecResolver::ChainStatus value may cast onto MxDnssecStatus::Bogus: a "
                  "caller that skips EvaluateMxDnssecStatus and casts must still fail open.");
+   // ChainStatus::Indeterminate is left out of the guard above on purpose: it
+   // does land on MxDnssecStatus::Bogus, which is what EvaluateMxDnssecStatus
+   // makes of it too - the lookup could not tell, and the host is not used
+   // (RFC 7672 section 2.1.1).
 
    TlsPolicy::StsPolicy
    TlsPolicy::GetStsPolicy(const String &domain)
@@ -469,37 +473,40 @@ namespace HM
       switch (mx_chain_status)
       {
       case DnssecResolver::ChainStatus::Bogus:
-         // The only status this function returns that can hold up mail.
-         // Note what cannot reach it: DnssecResolver reports a transport
-         // failure, a timeout, an unsigned delegation, an absent RRset and an
-         // unsupported DS digest as Insecure, not Bogus, so a resolver
-         // problem or a plain non-DNSSEC destination never gets here.
+         // The chain over the MX RRset failed validation. An unsigned
+         // delegation proven above the name is Insecure, not this or the next,
+         // so a plain non-DNSSEC destination never gets here.
+      case DnssecResolver::ChainStatus::Indeterminate:
+         // The validated lookup did not complete - no answer, SERVFAIL, a
+         // reply that would not parse - or the domain's zone is signed and its
+         // answer came without its signatures or without a proof of absence.
+         // Whether DANE applies cannot be told, and RFC 7672 section 2.1.1 has
+         // the host treated as unreachable. Until 6.3.6 this was Insecure:
+         // whoever could drop or forge one DNS answer had the destination's
+         // DANE switched off.
          return MxDnssecStatus::Bogus;
 
       case DnssecResolver::ChainStatus::Insecure:
-         // No usable DNSSEC chain over the MX RRset. This is the ordinary
-         // state of most destinations and must remain an ordinary delivery.
+         // The MX RRset is proven to be below an unsigned delegation. This is
+         // the ordinary state of most destinations and must remain an ordinary
+         // delivery.
          return MxDnssecStatus::Insecure;
 
       case DnssecResolver::ChainStatus::Secure:
          if (MxRrsetContainsHost_(host_name, validated_mx_hosts))
             return MxDnssecStatus::Secure;
 
-         // The MX RRset validated, but the host we are about to contact is
-         // not one of the names it published, so this host name did not come
-         // from an authenticated source after all and its TLSA records mean
-         // nothing (RFC 7672 section 2.2). Treat the destination as non-DANE
-         // rather than refusing it: the mismatch can also arise from the
-         // implicit-MX (A record) fallback or a CNAME-followed lookup, and
-         // turning a resolver quirk into a stuck queue would be worse than
-         // delivering with opportunistic TLS as we did before.
-         //
-         // LOG_DEBUG, not LOG_APPLICATION: implicit MX is an ordinary,
-         // healthy configuration, so on a default install this would
-         // otherwise write a line per delivery attempt about a condition
-         // nobody needs to act on.
-         LOG_DEBUG("DANE: MX host " + host_name + " is not named by the DNSSEC-validated MX RRset of the recipient domain. Treating the destination as non-DANE (RFC 7672 section 2.2).");
-         return MxDnssecStatus::Insecure;
+         // The MX RRset validated, and the host about to be contacted is not
+         // one of the names it published: the name came from the plain lookup,
+         // which nothing validated, and a forged answer there is how mail to a
+         // signed domain is steered to somebody else's host. RFC 7672 section
+         // 2.2.1 has the client use the validated RRset's hosts, so this one is
+         // not used, and with none left the delivery is deferred. The implicit
+         // MX of a domain without an MX RRset is in the validated set
+         // (DnssecResolver::QueryMx), so the A-record fallback is not refused.
+         // Until 6.3.6 such a host was delivered to as a non-DANE destination.
+         LOG_DEBUG("DANE: MX host " + host_name + " is not named by the DNSSEC-validated MX RRset of the recipient domain. Not using this host (RFC 7672 section 2.2.1).");
+         return MxDnssecStatus::Bogus;
       }
 
       // Not reachable through the enumerators above, but a ChainStatus that
@@ -618,6 +625,15 @@ namespace HM
             status = TlsaLookupStatus::Bogus;
             return std::vector<TlsaRecord>();
 
+         case DnssecResolver::ChainStatus::Indeterminate:
+            // RFC 7672 section 2.1.1: a TLSA lookup that failed - no answer,
+            // SERVFAIL, a malformed reply - or that came from a signed zone
+            // without its signatures or its proof of absence leaves the host
+            // unreachable. Until 6.3.6 it was NoRecords, and the host was
+            // delivered to as if it published none.
+            status = TlsaLookupStatus::Indeterminate;
+            return std::vector<TlsaRecord>();
+
          case DnssecResolver::ChainStatus::Insecure:
          default:
             status = TlsaLookupStatus::NoRecords;
@@ -653,6 +669,18 @@ namespace HM
       }
 
       return reason;
+   }
+
+   bool
+   TlsPolicy::WaivesCertificateCheck(bool daneUnusable, bool stsEnforced, bool policyRequiresTls, bool ruleRequiresTls,
+                                     ConnectionSecurity connectionSecurity)
+   {
+      if (!daneUnusable || stsEnforced || policyRequiresTls || ruleRequiresTls)
+         return false;
+
+      // The administrator's own connection security (a route's, for a routed
+      // delivery) asks for TLS: its certificate check stays.
+      return connectionSecurity == CSNone || connectionSecurity == CSSTARTTLSOptional;
    }
 
    TlsPolicy::TlsaLookupStatus
@@ -1490,5 +1518,70 @@ namespace HM
          ExpectDane_(TlsPolicy::PublishedTlsDeferral(host, domain, false, false, false).IsEmpty(),
             "a host the destination published nothing for was given a deferral of its own");
       }
+
+      // The validated MX lookup, host by host (RFC 7672 sections 2.1.1, 2.2 and
+      // 2.2.1). Until 6.3.6 an indeterminate lookup and a host the validated
+      // RRset does not name were both Insecure: delivered to as if the domain
+      // published no DANE, whoever had put the host in the plain answer.
+      {
+         std::vector<String> published;
+         published.push_back(_T("mx.dane.test"));
+         published.push_back(_T("MX2.dane.test."));
+
+         ExpectDane_(TlsPolicy::EvaluateMxDnssecStatus(_T("mx.dane.test"), DnssecResolver::ChainStatus::Secure, published) == TlsPolicy::MxDnssecStatus::Secure,
+            "a host the validated MX RRset names was not Secure");
+         ExpectDane_(TlsPolicy::EvaluateMxDnssecStatus(_T("mx2.DANE.test"), DnssecResolver::ChainStatus::Secure, published) == TlsPolicy::MxDnssecStatus::Secure,
+            "a host the validated MX RRset names, in other letters' case and without the final dot, was not Secure");
+         ExpectDane_(TlsPolicy::EvaluateMxDnssecStatus(_T("forged.example"), DnssecResolver::ChainStatus::Secure, published) == TlsPolicy::MxDnssecStatus::Bogus,
+            "a host the validated MX RRset does not name was not refused");
+         ExpectDane_(TlsPolicy::EvaluateMxDnssecStatus(_T("mx.dane.test"), DnssecResolver::ChainStatus::Secure, std::vector<String>()) == TlsPolicy::MxDnssecStatus::Bogus,
+            "a host was used for a domain the validated answer proved does not exist");
+         ExpectDane_(TlsPolicy::EvaluateMxDnssecStatus(_T("mx.dane.test"), DnssecResolver::ChainStatus::Indeterminate, published) == TlsPolicy::MxDnssecStatus::Bogus,
+            "a host was used after an indeterminate MX lookup");
+         ExpectDane_(TlsPolicy::EvaluateMxDnssecStatus(_T("mx.dane.test"), DnssecResolver::ChainStatus::Bogus, published) == TlsPolicy::MxDnssecStatus::Bogus,
+            "a host of an MX RRset that failed validation was not refused");
+         ExpectDane_(TlsPolicy::EvaluateMxDnssecStatus(_T("mx.dane.test"), DnssecResolver::ChainStatus::Insecure, published) == TlsPolicy::MxDnssecStatus::Insecure,
+            "a host of a domain proven unsigned was not an ordinary delivery");
+      }
+
+      // Whether TLS that a validated RRset of no usable record requires waives the
+      // certificate check, against what else requires TLS. Until the fix the
+      // server's own SSL and STARTTLS (required) were waived as well, where the
+      // administrator had asked for the certificate to be checked.
+      {
+         struct WaiverCase
+         {
+            bool unusable;
+            bool sts;
+            bool policy;
+            bool rule;
+            ConnectionSecurity security;
+            bool waived;
+            const char *why;
+         };
+
+         const WaiverCase cases[] =
+         {
+            { true, false, false, false, CSNone, true, "unusable records and no connection security of the server's own" },
+            { true, false, false, false, CSSTARTTLSOptional, true, "unusable records and opportunistic STARTTLS" },
+            { true, false, false, false, CSSTARTTLSRequired, false, "unusable records and the server's STARTTLS (required)" },
+            { true, false, false, false, CSSSL, false, "unusable records and the server's SSL" },
+            { true, true, false, false, CSSTARTTLSOptional, false, "unusable records under an MTA-STS policy in enforce mode" },
+            { true, false, true, false, CSSTARTTLSOptional, false, "unusable records under a remote domain policy that requires TLS" },
+            { true, false, false, true, CSSTARTTLSOptional, false, "unusable records under a rule that requires TLS" },
+            { false, false, false, false, CSSTARTTLSOptional, false, "no unusable records" },
+         };
+
+         for (const WaiverCase &test : cases)
+            ExpectDane_(TlsPolicy::WaivesCertificateCheck(test.unusable, test.sts, test.policy, test.rule, test.security) == test.waived,
+               std::string(test.why) + (test.waived ? ": the certificate check was not waived" : ": the certificate check was waived"));
+      }
+
+      // And which name servers the validating resolver behind all of the above
+      // asks: an IPv6 server when the system lists no IPv4 one, which until
+      // 6.3.6's re-check none was - and every lookup on such a host reached no
+      // server, which since 6.3.6 holds the mail up.
+      DnssecResolverTester resolverTester;
+      resolverTester.Test();
    }
 }

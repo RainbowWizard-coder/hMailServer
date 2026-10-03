@@ -93,6 +93,7 @@
 #include "OidcSignIn.h"
 #include "SamlSignIn.h"
 #include "SignInBudget.h"
+#include "SignInState.h"
 #include "DirectoryStore.h"
 #include "CompromiseDetector.h"
 #include "ConfidentialMessages.h"
@@ -352,7 +353,9 @@ namespace HM
       // flood cannot tie the workers up. Keyed per credential and per source, so
       // an attacker at another source only delays itself; the source of an IPv6
       // peer is its /64 (SignInBudget::GuessSource), since 6.3.6, because one
-      // host is given a /64 and can guess from a fresh address of it each time.
+      // host is given a /64 and can guess from a fresh address of it each time;
+      // that of an IPv4 client behind a NAT64 or SIIT translator or Teredo is
+      // its own IPv4 address.
       // X-Forwarded-For is never believed here: any process on this machine can
       // write one, and a throttle it could rotate away is no throttle.
       struct SessionFailure
@@ -582,10 +585,12 @@ namespace HM
       //    AutoBanMinutes=0 ("disconnect, but do not block") is honoured as a
       //    brief refusal rather than ignored, which is what stops the flood of
       //    logon-failure rows that setting would otherwise still pay for.
-      //  - An IPv6 address is refused with its /64 (RefusedLowHalf), since
-      //    6.3.6: the host that earned the refusal holds the rest of it. The
-      //    auto-ban's own range, which every protocol shares and the firewall
-      //    mirrors, stays the one address.
+      //  - An IPv6 address is refused with its /64 (RefusedHalves), since
+      //    6.3.6: the host that earned the refusal holds the rest of it. An
+      //    IPv4 client behind a NAT64 or SIIT translator or Teredo is refused
+      //    as its own IPv4 address, not as the translator's /64. The auto-ban's
+      //    own range, which every protocol shares and the firewall mirrors,
+      //    stays the one address.
       //
       // Nothing here fires on the shipped default configuration: the listener
       // does not run unless RestApiPort is set, and an address only enters the
@@ -816,18 +821,16 @@ namespace HM
          return entry.family == family && entry.address_high == high && entry.address_low == low;
       }
 
-      // The low half the refused set holds an address by. An IPv6 address is
-      // held by its /64 - the low half is not kept - since 6.3.6, because one
-      // host is given a /64 and could otherwise come back from the next address
-      // of it the moment one was refused. The addresses whose high half is zero
-      // (::1, an IPv4 address carried in IPv6, the other special forms) are
-      // held whole, as an IPv4 address is.
-      unsigned __int64 RefusedLowHalf(const IPAddress &peer_address)
+      // The halves the refused set holds an address by (SignInBudget::RefusalKey).
+      // An IPv6 address is held by its /64 since 6.3.6, because one host is given
+      // a /64 and could otherwise come back from the next address of it the moment
+      // one was refused. An IPv4 address carried in IPv6 - v4-mapped, NAT64's and
+      // SIIT's 64:ff9b::/96, Teredo - is held by that IPv4 address, as one /64 of
+      // those is every client of the translator. The other addresses whose high
+      // half is zero (::1, the special forms) are held whole, as an IPv4 address is.
+      void RefusedHalves(const IPAddress &peer_address, unsigned __int64 &high, unsigned __int64 &low)
       {
-         const unsigned __int64 low = peer_address.GetAddress2();
-         if (peer_address.GetType() != IPAddress::IPV6 || peer_address.GetAddress1() == 0)
-            return low;
-         return 0;
+         SignInBudget::RefusalKey(peer_address, high, low);
       }
 
       AnsiString BytesToLowerHex(const unsigned char *data, int length)
@@ -1471,6 +1474,7 @@ namespace HM
       PasskeyStore::Clear();
       OidcSignIn::Clear();
       SamlSignIn::Clear();
+      SignInState::Clear(); // the key the three seal their pending sign-ins with
 
       // Deliberately no SSL_CTX_free: the boost context owns the SSL_CTX and frees it
       // in its own destructor. Released after the server has stopped, so no session
@@ -2221,8 +2225,9 @@ namespace HM
          return false;
 
       const int family = static_cast<int>(peer_address.GetType());
-      const unsigned __int64 high = peer_address.GetAddress1();
-      const unsigned __int64 low = RefusedLowHalf(peer_address);
+      unsigned __int64 high = 0;
+      unsigned __int64 low = 0;
+      RefusedHalves(peer_address, high, low);
       const ULONGLONG now = GetTickCount64();
 
       std::lock_guard<std::mutex> guard(refused_addresses_mutex);
@@ -2258,8 +2263,9 @@ namespace HM
          return;
 
       const int family = static_cast<int>(peer_address.GetType());
-      const unsigned __int64 high = peer_address.GetAddress1();
-      const unsigned __int64 low = RefusedLowHalf(peer_address);
+      unsigned __int64 high = 0;
+      unsigned __int64 low = 0;
+      RefusedHalves(peer_address, high, low);
       const ULONGLONG now = GetTickCount64();
       const ULONGLONG expiresAt = now + RefusedAddressMilliseconds;
 

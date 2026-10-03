@@ -30,12 +30,15 @@
 //
 // TWO BINDINGS, SERVER-SIDE AND IN THE BROWSER
 //
-// Every AuthnRequest's ID is kept here, with the RelayState sent beside it and
-// a cookie value, for ten minutes and one use. A Response is taken at the ACS
-// only when its InResponseTo is one of those IDs, not yet used, and it comes
-// back with the same RelayState - so an answer the identity provider sent
-// unasked (IdP-initiated sign-in) is refused, and so is one replayed, and one
-// meant for another sign-in.
+// Every AuthnRequest's ID says, under a tag of this process's (SignInState.h),
+// which page it is for and when it ends, ten minutes on, and the RelayState sent
+// beside it is the same ID; nothing of a start is kept here, so no number of
+// starts can push anybody's out (until 6.3.6 a table held them, and could). A
+// Response is taken at the ACS only when its InResponseTo is such an ID, in time
+// and not yet answered - the ID is spent once a Response to it has verified -
+// and it comes back with the same RelayState: so an answer the identity
+// provider sent unasked (IdP-initiated sign-in) is refused, and so is one
+// replayed, and one meant for another sign-in.
 //
 // That alone does not close login forgery: somebody who starts a sign-in
 // themselves, and keeps the Response their identity provider sends back, can
@@ -44,7 +47,8 @@
 // finish the sign-in. It keeps what it verified under a one-use token for two
 // minutes and sends the browser (303) to /portal/saml/finish, on this server,
 // and the finish completes the sign-in only when the browser carries the
-// hmsaml cookie the start gave it for that very request. The cookie is
+// hmsaml cookie the start gave it for that very request - the request's ID,
+// sealed (SignInState::Seal). The cookie is
 // SameSite=Lax: it does not ride the identity provider's cross-site POST,
 // which is why it is not asked for there, and it does ride the top-level GET
 // the ACS sends the browser on to, which is a navigation to this server. A
@@ -124,9 +128,8 @@ namespace HM
 
       // Starts a sign-in: url is the identity provider's sign-in URL with the
       // AuthnRequest and the RelayState in its query, and cookie the value the
-      // browser must carry back to the finish. deck and source as
-      // OidcSignIn::Begin.
-      static bool Begin(bool deck, const std::string &source, AnsiString &url, AnsiString &cookie, AnsiString &problem);
+      // browser must carry back to the finish. deck as OidcSignIn::Begin.
+      static bool Begin(bool deck, AnsiString &url, AnsiString &cookie, AnsiString &problem);
 
       // The ACS: the SAMLResponse and RelayState form fields as the browser
       // posted them, verified. On success what was verified is kept under

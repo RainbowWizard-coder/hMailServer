@@ -11,7 +11,7 @@ things write one:
 
 | Writer | When | Setting |
 |---|---|---|
-| A run of failed logons | `MaxInvalidLogonAttempts` failures from one address within `MaxInvalidLogonAttemptsWithin` minutes, on any protocol that authenticates | `AutoBanOnLogonFailure`, `AutoBanMinutes` |
+| A run of failed logons | `MaxInvalidLogonAttempts` failures from one address within `MaxInvalidLogonAttemptsWithin` minutes, on any protocol that authenticates. On ManageSieve a connection that runs out of time before it signs in counts as one too (since 6.3.6's second review): a client that comes back each time it is cut off, to hold the service, is banned as a guesser is | `AutoBanOnLogonFailure`, `AutoBanMinutes` |
 | A spam trap | An address of a hosted domain that was never real is addressed ([SpamTraps.md](SpamTraps.md)) | `SpamTrapBanMinutes` |
 | A null sender with several recipients | `MAIL FROM:<>` names a second recipient ([SmtpPolicy.md](SmtpPolicy.md)) | `BanMultiRcptNullSender`, `BanMultiRcptNullSenderHours` |
 | AUTH on a delivery port | `AUTH` reaches an SMTP listener whose SMTP authentication is Off or Honeypot - port 25 on a new installation - where no password is ever evaluated ([SmtpAuthOnDeliveryPorts.md](SmtpAuthOnDeliveryPorts.md)); one range per address while it lasts, named `Auto-ban: AUTH on a delivery port <address>`, and never for this computer's loopback address | The listener's SMTP authentication, `AutoBanMinutes` |

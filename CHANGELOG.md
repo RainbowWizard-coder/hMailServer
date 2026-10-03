@@ -399,13 +399,37 @@ server cannot use - was delivered to as if it published none: over TLS when it w
 was not seen. The server now verifies DANE-TA as well as DANE-EE, through OpenSSL's own DANE support, and treats a
 validated set none of whose records it can use as section 2.2 of the RFC asks: TLS is required to that host, without
 authentication, a delivery that cannot have it is deferred, and TLS reports count the host under the policy type
-`tlsa` (What changes on upgrade, item 27). In every version up to 6.3.5; found by the project's own review.
+`tlsa` (What changes on upgrade, item 27). In every version up to 6.3.5; found by the project's own review. As 6.3.6
+was first written, the authentication such a set does not ask for was waived even where this server's own outbound
+security - `SmtpDeliveryConnectionSecurity` at SSL or STARTTLS (required), or a route's, with
+`VerifyRemoteSslCertificate` on - asked for it, so a host publishing only records of a usage SMTP does not use had its
+certificate forgiven where 6.3.5 refused it; the waiver is now for opportunistic STARTTLS alone. Found by the
+project's second review of the release.
+
+Outbound DANE did not hold against anybody who could disturb a recipient domain's DNS: on the path between this
+server and its resolver, a resolver that answered falsely, or on the path between the resolver and the domain's own
+servers. A lookup of the MX or TLSA records that did not complete - no answer, `SERVFAIL`, a reply that would not
+parse - and an answer from a signed zone that came without its signatures, or with no records and no proof that none
+exist, were all read as "not signed", and the destination was delivered to as one that publishes no DANE: over TLS
+with any certificate when it was offered, and in the clear when the offer was taken away. And the hosts a delivery
+used came from the plain, unvalidated MX lookup even when the validated one named others. The validating resolver now
+walks from the root to the name and reads an answer as unsigned only below a delegation a signed zone proves
+unsigned; under a signed zone such a lookup is indeterminate and the host is not used, as RFC 7672 section 2.1.1
+asks, a delivery with no host left is deferred, a validated MX RRset decides which hosts are used, and an empty
+answer counts as no records only with the zone's NSEC or NSEC3 proof of it (What changes on upgrade, item 35). In
+every version up to 6.3.5, and it switched off 6.3.6's DANE-TA and unusable-record changes above as well; found by
+the project's second review of the release.
 
 The ManageSieve service (off by default, and on the loopback when it is turned on) serves one connection at a time,
 and each read on a connection had a limit of its own with nothing bounding a command line, the TLS handshake after
 `STARTTLS` or the time before authentication as a whole, so one client that had not signed in could hold the service
 for as long as it kept its connection going. Every wait now runs to a deadline (What changes on upgrade, item 28).
-Since 6.2.3, the release that brought ManageSieve; found by the project's own review.
+Since 6.2.3, the release that brought ManageSieve; found by the project's own review. The deadlines still left the
+service one connection at a time: a signed-in client sending `NOOP` every 29 seconds held it for ever, and a client
+that never signed in held it by coming back each time it was cut off, with five more connections waiting behind it.
+Connections are now served side by side, an address has one served at a time before it signs in, a connection that
+runs out of time before signing in counts towards the auto-ban, and a signed-in session and an account are bounded
+(What changes on upgrade, item 36). Found by the project's second review of the release.
 
 The URI blocklists (SURBL, URIBL, the Spamhaus DBL) were asked about the first 16 names a message's links gave, the
 plain-text part's before the HTML part's, so that links ahead of a listed one could keep it from every list. The SURBL
@@ -421,9 +445,13 @@ asking for sign-in starts a few times a second - a hundred a second for passkeys
 Connect, SAML or passkey sign-in fail when their browser came back, in 6.3.4 and 6.3.5. In 6.3.6 a holder at its cap
 gives up its own oldest entry and a full table the oldest of whoever holds the most, of the largest group among those
 tied (an account's domain, an IPv6 `/48`, an IPv4 `/24`): an account or the administrator holds at most fifty
-sessions, the administrator's are never taken for anybody else's sign-in, a source holds at most 256 pending sign-ins
-of a table of 4,096, and a credential at most fifty pending passkey registrations (What changes on upgrade, items 31
-and 32). Found by the project's own review.
+sessions, the administrator's are never taken for anybody else's sign-in, and a credential at most fifty pending
+passkey registrations (What changes on upgrade, items 31 and 32). Found by the project's own review. Held to its share
+of a table of 4,096, a source could still not push out another's pending sign-in, but a pool of sources as large as
+the table - rotating proxy services sell tens of thousands of addresses - could, a few hundred starts a second each
+from a `/24` of its own. The pending sign-ins are no longer held on the server at all: the browser carries each one in
+its cookie, sealed with AES-256-GCM under a key of the server process's, and only a finished sign-in is recorded, to
+make it good once (item 32). Found by the project's second review of the release.
 
 An account holding a role with `manage_settings` could put a key of the `[Settings]` section back to an earlier value
 through the audit trail's put-back, in 6.3.4 and 6.3.5, where that section answers to the administrator password
@@ -437,11 +465,13 @@ administrator's equal - it names the hosts the server connects to and the comman
 The administrator password's failed-sign-in delay over REST, new in this release, now counts an IPv6 address by its
 `/64`, and holds the password asked again at an administrator passkey's registration too, where it read only the
 `Authorization: Basic` header; the listener's own short refusal after the auto-ban's limit covers the `/64` of an IPv6
-address as well (What changes on upgrade, item 34). Behind a reverse proxy on the same machine every browser shares
-one source, so one client's wrong guesses keep the password sign-in waiting for everyone while they last; the
-administrator's API keys, passkey and single sign-on are not touched by it
-([DevicesAndSessions.md](hmailserver/docs/DevicesAndSessions.md), The administrator password's delay). Found by the
-project's own review.
+address as well (What changes on upgrade, item 34). An address that carries an IPv4 client's own - the NAT64 and SIIT
+prefix `64:ff9b::/96`, Teredo's `2001::/32` - is counted and refused as that IPv4 address, as `::ffff:a.b.c.d` always
+was, since one `/64` of those is every client of the translator; found by the project's second review. Behind a
+reverse proxy on the same machine every browser shares one source, so one client's wrong guesses keep the password
+sign-in waiting for everyone while they last; the administrator's API keys, passkey and single sign-on are not touched
+by it ([DevicesAndSessions.md](hmailserver/docs/DevicesAndSessions.md), The administrator password's delay). Found by
+the project's own review.
 
 A webmail or Control Deck page loaded before the upgrade to 6.3.6, and still open after it, could have mail deleted
 on the other server that its reader had asked to leave there: the restart ends the page's session and it signs in
@@ -878,8 +908,10 @@ version reads -1 as 6.3.6 does.
     judging its certificate: a host that does not offer `STARTTLS`, or whose handshake fails, is deferred, never
     delivered to in the clear, and TLS reports (RFC 8460) count the host under the policy type `tlsa`. An MTA-STS
     policy in enforce mode, a remote-domain policy or a rule that asks for a certificate that verifies still has it
-    verified. Error 5510 is logged when a connection's records could not be given to OpenSSL; that delivery is
-    deferred rather than made without them.
+    verified, and so does this server's own outbound security, or a route's, at SSL or STARTTLS (required) with
+    `VerifyRemoteSslCertificate` on: there the certificate of a host with only unusable records must verify, and a
+    delivery to one whose certificate does not is deferred. Error 5510 is logged when a connection's records could not
+    be given to OpenSSL; that delivery is deferred rather than made without them.
 28. **A ManageSieve connection is held to deadlines.** A command line must arrive whole within 30 seconds of the
     server waiting for it, which is also how long a session may sit idle between commands, as before; the TLS
     handshake after `STARTTLS` has 30 seconds; a literal (a script, a SASL response) and the writing of each response
@@ -921,19 +953,20 @@ version reads -1 as 6.3.6 does.
     it was answered 503. The administrator's sessions are held by the administrator's own fifty alone: they do not
     count towards the thousand and nobody else's sign-in takes one
     ([DevicesAndSessions.md](hmailserver/docs/DevicesAndSessions.md), How many sessions, and who makes room).
-32. **A pending single sign-on or passkey sign-in counts against where it came from; a proxy on the same machine
-    should send `X-Forwarded-For`.** The tables of OpenID Connect and SAML starts and of passkey sign-in challenges
-    hold 4,096 each (200, 200 and 1,000 before), a source at most 256, and make room out of the source holding the
-    most - among sources tied, out of the largest `/48` or `/24`. The source of a request from this machine is the
-    last address of its last `X-Forwarded-For` line, which the proxy writes; a reverse proxy in front of the loopback
-    listener that does not send one, or a second proxy on this machine whose own `127.0.0.1` is that last address,
-    leaves every browser behind it one source with no cap of its own, held by the table's size as before - set
-    `proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;` in nginx, or the proxy's equivalent, and behind a
-    load balancer or a CDN have the proxy take the client's address from it (nginx's `set_real_ip_from`), or every
-    browser that came through it is one source of 256
+32. **A pending single sign-on or passkey sign-in is carried by the browser, sealed, and is good once.** An OpenID
+    Connect start, a SAML start and a passkey sign-in's challenge leave nothing on the server: the `hmoidc` cookie
+    holds the sign-in's state, PKCE verifier, nonce, page and end, `hmsaml` its request's ID, and `hmpasskey` its
+    challenge and end, each sealed with AES-256-GCM under a key the server process makes for itself, holds in memory
+    and makes again whenever the REST listener stops; a SAML request's ID, which comes back through the identity
+    provider, carries its page and its end under a tag of that key, and the RelayState is the same ID. Where 6.3.5
+    held tables of 200, 200 and 1,000 that dropped their oldest whoever held them, no number of starts asked for can
+    now push anybody's sign-in out. A sign-in is spent once it finishes - the issuer's `id_token`, a signed SAML
+    Response or a passkey's assertion verified - and a second answer to it is refused. A sign-in started before the
+    listener stopped is not finished after it ("this sign-in was not started here"), as before; two servers behind
+    one name each seal with their own key, as each held its own table. `X-Forwarded-For` is not read for any of this
     ([PasskeysAndSingleSignOn.md](hmailserver/docs/PasskeysAndSingleSignOn.md), What a stranger can make the server
-    hold). The header is believed for this and for nothing else. A passkey registration's challenge counts against
-    the credential that asked for it, fifty a credential, where the table of a thousand dropped its oldest.
+    hold). A passkey registration's challenge counts against the credential that asked for it, fifty a credential,
+    where the table of a thousand dropped its oldest.
 33. **A `[Settings]` key's audit row is put back by the administrator password alone, and the breach check's test
     reaches public addresses only for anybody else.** `POST /api/v1/audit/{id}/revert` answers 403 to an account
     holding a role for a row of a `[Settings]` key, with the sentence `/api/v1/settings/ini` refuses it with; a
@@ -947,8 +980,53 @@ version reads -1 as 6.3.6 does.
     again when the administrator registers a passkey from a session is held to the delay too: a guess inside it is
     answered 429 with `Retry-After` before it is looked at. When the auto-ban's limit is reached at the REST
     listener, an IPv6 address's whole `/64` is refused there for the five minutes, and the application log names the
-    `/64`; the auto-ban's IP range stays the one address
+    `/64`; the auto-ban's IP range stays the one address. Everybody on one `/64` - an office network, conference Wi-Fi,
+    devices tethered to one phone - therefore shares the delay and the refusal, as everybody behind one IPv4 NAT
+    address always has. An address that carries an IPv4 client's own - `::ffff:a.b.c.d`, the NAT64 and SIIT
+    well-known prefix `64:ff9b::/96`, and Teredo's `2001::/32` - is counted and refused as that IPv4 address instead
     ([DevicesAndSessions.md](hmailserver/docs/DevicesAndSessions.md), The administrator password's delay).
+35. **DANE: an MX or TLSA lookup that cannot tell defers the delivery, and the validated MX records choose the
+    hosts.** With `DaneEnforcementEnabled` and `DnssecValidationEnabled` on, as they are by default, a recipient
+    domain's MX lookup and its hosts' TLSA lookups are made with DNSSEC as before, and an answer without signatures,
+    without records, or not at all - no answer, `SERVFAIL`, a reply that does not parse - is read as unsigned only
+    when the resolver can prove the name lies below an unsigned delegation, which it now asks for: one more DS query
+    per unsigned domain, remembered for five minutes, which a validating or forwarding resolver answers. Under a
+    signed zone, or when nothing can be proven, the lookup is indeterminate (RFC 7672 section 2.1.1): an indeterminate
+    MX lookup leaves every host of the domain unused, an indeterminate TLSA lookup that host, and a delivery with no
+    host left is deferred with `4.7.0` and a reason naming the lookup - "could not be completed, ... The message has
+    NOT been sent" - where until 6.3.6 it went ahead as to a domain without DANE. An empty TLSA or MX answer from a
+    signed zone counts as no records only with its NSEC or NSEC3 proof (NODATA, or NXDOMAIN with the wildcard's; an
+    NSEC3 Opt-Out span reads as unsigned, as RFC 5155 asks). A validated MX RRset decides the hosts: a host the plain
+    lookup found and the validated records do not name is not used, and the domain's own name is the host of a signed
+    domain proven to have no MX records. A zone whose validated DS records name only algorithms or digests the
+    resolver does not verify is unsigned (RFC 4035 section 5.2), where it was bogus and its mail held. A domain under
+    a top-level name the root proves it does not have (`company.local`) is outside the signed tree and unsigned too; a
+    private name under a signed public domain, answered by an internal DNS server, is indeterminate - deliver to it
+    through a route. **A server whose resolver cannot answer DNSSEC queries** - one that strips signatures, or a
+    firewall that drops DNS answers longer than 512 octets - now defers its mail to every domain it cannot prove
+    unsigned, which is most of them, and says so in each deferral, and in the application log once in ten minutes
+    with the cause ("DNSSEC: the root zone's keys did not validate", or could not be fetched): make the resolver
+    answer them (any current public or ISP resolver does), or set `DaneEnforcementEnabled` to 0, which leaves DANE
+    off. The validating resolver asks the server in `DNSServer`, or else the system's first two IPv4 DNS servers, as
+    it always has, and when the system lists no IPv4 DNS server, its first two IPv6 ones (passing over the site-local
+    `fec0:0:0:ffff::1` to `::3` Windows lists for an adapter given none), which until 6.3.6 it never asked: a system
+    whose DNS servers are IPv6 alone had none it could ask, which would have made it such a server too, and on Linux,
+    where every DNS lookup of the server goes the same way, had no DNS at all. TXT lookups (SPF, DKIM, DMARC) are read
+    as before. `Diagnostics.DnssecChainStatus` answers 3 for an indeterminate MX or TLSA lookup.
+36. **ManageSieve serves its connections side by side, one at a time per address before signing in, and bounds a
+    signed-in session.** Up to 16 connections are served at once, and up to 64 wait for a thread; before it has signed
+    in an address - an IPv6 one by its `/64`, an IPv4 client of NAT64 or Teredo by its own IPv4 address - has one
+    connection served at a time, its others wait their turn - four at most, a fifth refused with `BYE (TRYLATER)` -
+    and a connection that runs out of time before signing in (a line, the TLS handshake or the 60 seconds before
+    `AUTHENTICATE`) counts as a failed logon from its address for the auto-ban, which with the shipped
+    `MaxInvalidLogonAttempts` of 3 bans an address after three. A signed-in session ends with `BYE` after ten lines in
+    a row that do nothing (`NOOP`, `CAPABILITY`, an empty or unknown command) or once it has waited two minutes in all
+    for its commands, and an account has at most four sessions at once, a fifth sign-in answered `NO (TRYLATER)`.
+    `UNAUTHENTICATE` takes the address's one turn back, and is answered `NO (TRYLATER)`, the session still signed in,
+    while another connection from the address is signing in. A reinitialise or a stop ends each session at its next
+    command with `BYE`, where a client that kept sending commands held it until that client stopped. A client that
+    keeps a session open to edit in - which the 30 seconds between commands already cut - signs in again. The figures
+    are constants.
 
 ### Downloads and the release
 
@@ -3038,6 +3116,21 @@ version reads -1 as 6.3.6 does.
   and refusing another anchor, a missing one, another name and an expired certificate, DANE-EE authenticating its key
   alone. Both run in ClassTester and, on Linux, in `linux-build` and in the Debian and RPM source packages' own
   builds; `SURBLTester` (in `public-suffix-tests`) gains the choice of names the URI blocklists are asked about.
+  `DaneTester` also holds what a validated MX lookup leaves of each host and whose TLS waives the certificate check,
+  and runs `DnssecResolverTester`, which name servers the validating resolver asks of the ones a system lists (an
+  IPv6 server when there is no IPv4 one); and `sign-in-budget-tests` runs `SignInStateTester` beside the budget's
+  rule: the sealed state of a pending sign-in, its refusals and its one use.
+- **The regression suite's DNS zone has a DNSSEC root of its own.** `SuiteDns` signs a root for the run, points
+  `DnssecTrustAnchors` at it, and its `FakeDnsServer` answers the root's key and proves every top-level name an
+  unsigned delegation unless a fixture publishes a DS for it (`FakeDnsServer.RootSigner`), so that the MX and TLSA
+  lookups of every delivery in the suite are proven unsigned as most of the internet's are. `DaneIndeterminateLookups`
+  delivers to signed zones whose TLSA lookup answers `SERVFAIL`, nothing and no proof, or records without their
+  signatures, and whose MX records come without theirs - each deferred, nothing sent - beside its controls: a zone
+  proving no TLSA records by NSEC and by NSEC3, a domain under an unsigned top-level name, a domain under a top-level
+  name the root does not have, a zone signed only with an algorithm the resolver does not follow, and unusable
+  records under opportunistic and required STARTTLS. `DnssecRootKeysUnverifiable` (Windows) anchors a root whose
+  keys come back unsigned: an unsigned MX answer is then indeterminate, not insecure and not bogus, and the
+  application log says why.
 - **The snap: `hmailserver`, strictly confined, on core24, for amd64 and arm64**
   ([Snap.md](hmailserver/docs/Snap.md)). `snap/snapcraft.yaml` makes it from the release's own Ubuntu 24.04
   `.deb`, unchanged, with libpq, libldap, the MariaDB client and 7-Zip from Ubuntu 24.04's archive. The service

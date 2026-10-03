@@ -39,6 +39,12 @@ namespace RegressionTests
    ///    to it from this process, before it points the server there. The fixtures
    ///    do not know which was chosen; <see cref="Resolver"/> says.
    ///
+   ///    The zone has a DNSSEC root of its own (<see cref="Root"/>) whose key is the
+   ///    server's DnssecTrustAnchors for the run, written through the same route, as
+   ///    the Windows suite's is: the validating resolver reads an unsigned MX or TLSA
+   ///    answer as unsigned only with a proof that the name is (6.3.6), which the
+   ///    zone gives for every top-level name (FakeDnsServer.RootSigner).
+   ///
    ///    The zone can only be served to a server on this machine, from a process
    ///    allowed to bind port 53 (the CI job lowers ip_unprivileged_port_start for
    ///    the purpose; a root shell needs nothing). When either is not so, or the
@@ -64,6 +70,16 @@ namespace RegressionTests
       public const string SurblTestPoint = "surbl-org-permanent-test-point.com.multi.surbl.org";
 
       private const string IniRoute = "/api/v1/settings/ini/DNSServer";
+      private const string AnchorRoute = "/api/v1/settings/ini/DnssecTrustAnchors";
+
+      /// <summary>The run's DNSSEC root: its key signs the root's DNSKEY and its proofs.</summary>
+      public static DnssecZone Root { get; } = new DnssecZone("");
+
+      /// <summary>What DnssecTrustAnchors says for the whole run: <see cref="Root"/>'s key.</summary>
+      public static string TrustAnchor
+      {
+         get { return Root.TrustAnchor; }
+      }
 
       // In the order they are tried. See the class comment for the two benches
       // the second one is for.
@@ -155,6 +171,7 @@ namespace RegressionTests
          }
 
          ServerApi.Put(IniRoute, "{\"value\":" + ServerApi.Quote(Resolver) + "}").Expect(200, "PUT " + IniRoute);
+         ServerApi.Put(AnchorRoute, "{\"value\":" + ServerApi.Quote(TrustAnchor) + "}").Expect(200, "PUT " + AnchorRoute);
          RegressionTests.SSL.SslSetup.Reinitialize();
          notServed_ = null;
       }
@@ -170,6 +187,7 @@ namespace RegressionTests
          using (zone_)
          {
             ServerApi.Delete(IniRoute).Expect(200, "DELETE " + IniRoute);
+            ServerApi.Delete(AnchorRoute).Expect(200, "DELETE " + AnchorRoute);
             RegressionTests.SSL.SslSetup.Reinitialize();
          }
 
@@ -215,6 +233,7 @@ namespace RegressionTests
 
       private static FakeDnsServer Seed_(FakeDnsServer zone)
       {
+         zone.RootSigner = Root;
          return zone
             .WithA(SurblTestPoint, "127.0.0.2")
             .WithA("localhost", "127.0.0.1");

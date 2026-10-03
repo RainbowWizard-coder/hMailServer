@@ -229,9 +229,11 @@ idle for a minute - the webmail tabs in the background, and from 6.3.0 the
 administrator's Control Deck on any page but the dashboard - and an administrator
 opening a support session on a full table was answered 503. Both are gone: a
 support session makes room by the same rule, counted against the credential that
-opened it. The same rule holds the pending single sign-on and passkey sign-ins
-([PasskeysAndSingleSignOn.md](PasskeysAndSingleSignOn.md), What a stranger can
-make the server hold); the code is `Common/Util/SignInBudget.h`, proved by
+opened it. The same rule holds a passkey registration's challenge, counted against
+the credential that asked; the pending single sign-on and passkey sign-ins are not
+held in a table at all since 6.3.6's second review - the browser carries each one
+sealed ([PasskeysAndSingleSignOn.md](PasskeysAndSingleSignOn.md), What a stranger
+can make the server hold). The code is `Common/Util/SignInBudget.h`, proved by
 `SignInBudgetTester` (ClassTester on Windows, `sign-in-budget-tests` on Linux) and
 by `SignInsFillingTheTableSignNobodyElseOut` in
 `RegressionTests/API/RestApiDevices.cs`.
@@ -249,7 +251,28 @@ counted by its `/64`, since 6.3.6, because one host is given a `/64` and could
 otherwise guess from a fresh address of it every time. When the auto-ban refuses
 an address at this listener after repeated failures, an IPv6 one is refused with
 its `/64` for those five minutes too; the auto-ban's own IP range, which every
-protocol shares and the firewall mirrors, stays the one address. The auto-ban
+protocol shares and the firewall mirrors, stays the one address.
+
+**Everybody on one `/64` shares the delay and the refusal.** A `/64` is one
+host's allocation on most networks, which is why it is counted as one - but on an
+office or campus network, conference Wi-Fi, or the devices tethered to one phone,
+it is many people's. There, one person's wrong administrator passwords hold the
+password sign-in for everyone on the `/64` while the delay lasts, and once the
+auto-ban's limit is reached at this listener (`MaxInvalidLogonAttempts`, three by
+default) every address of the `/64` is refused from the REST listener - the
+webmail and the Deck included - for five minutes. It is the same trade an IPv4
+network behind one NAT address has always made, where the auto-ban covers every
+protocol for an hour. The addresses that carry an IPv4 client's own address are
+counted by that IPv4 address instead, since one `/64` of them is every client of a
+translator: `::ffff:a.b.c.d`, the NAT64 and SIIT well-known prefix `64:ff9b::/96`
+(an IPv6-only server reached by IPv4 clients through such a translator would
+otherwise see every one of them in one `/64`), and Teredo's `2001::/32`, whose
+client address is the last 32 bits inverted. No setting names another
+translation prefix; a network-specific NAT64 prefix is counted by its `/64` like
+any other address. A site whose users share a `/64` reaches the listener better
+through its own reverse proxy - though there every browser is `127.0.0.1`, as
+below - or with the administrator's API keys, passkey or single sign-on, which the
+delay does not touch. The auto-ban
 still counts failures per address, as it does on every protocol, so a guesser who
 takes a fresh address of its `/64` for each guess never reaches its limit: what
 holds such a guesser is this delay - one guess in ten seconds for the whole

@@ -71,7 +71,8 @@ namespace RegressionTests.Shared
       // Names whose every query is answered SERVFAIL: a resolver that could not
       // answer, which is what an SPF temperror is made of. Distinct from NXDOMAIN
       // (the name is not there) and NODATA (the name is there and holds nothing of
-      // the type): both of those are answers, and this is the absence of one.
+      // the type): both of those are answers, and this is the absence of one. A
+      // "type/name" entry fails that type's queries alone.
       private readonly HashSet<string> serverFailing_ =
          new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
@@ -116,6 +117,24 @@ namespace RegressionTests.Shared
 
       /// <summary>The loopback address the zone answers on, port 53.</summary>
       public IPAddress Address { get; }
+
+      /// <summary>
+      ///    The root of the suite's chain of trust, whose key is the server's
+      ///    DnssecTrustAnchors for the run (SuiteDns). With one set, a query for the
+      ///    root's DNSKEY that the zone holds no record for is answered with this key,
+      ///    signed by itself; and a DS query for a top-level name (one label) that
+      ///    the zone holds neither a DS nor a denial for is answered NODATA with an
+      ///    NSEC at the name that lists NS and not DS, signed by the root - the proof
+      ///    a signed root gives of an unsigned delegation. So every name the suite
+      ///    uses is provably unsigned, as most of the internet's are, unless a
+      ///    fixture publishes a DS for its top-level name: the validating resolver
+      ///    reads an unsigned answer as unsigned only with that proof (RFC 7672
+      ///    section 2.1.1), and before the suite had a root of its own every MX and
+      ///    TLSA lookup of the run would have been indeterminate. Records a fixture
+      ///    publishes for these names win, as everywhere else in the zone. Kept by
+      ///    <see cref="Reset" />.
+      /// </summary>
+      public DnssecZone RootSigner { get; set; }
 
       public FakeDnsServer() : this(IPAddress.Loopback)
       {
@@ -210,6 +229,19 @@ namespace RegressionTests.Shared
       {
          lock (answers_)
             serverFailing_.Add(name.TrimEnd('.').ToLowerInvariant());
+
+         return this;
+      }
+
+      /// <summary>
+      ///    Makes the queries of one type for a name answer SERVFAIL, and the name's
+      ///    other types answer as they otherwise would: a resolver that failed on
+      ///    that one lookup.
+      /// </summary>
+      public FakeDnsServer WithServFail(string name, int type)
+      {
+         lock (answers_)
+            serverFailing_.Add(Key_(type, name));
 
          return this;
       }
@@ -443,7 +475,9 @@ namespace RegressionTests.Shared
 
       private static void WriteName_(List<byte> m, string name)
       {
-         foreach (string label in name.Split('.'))
+         // No empty label: the root ("") is the terminating zero alone, as an NSEC
+         // at the root's apex names it.
+         foreach (string label in name.Split(new[] { '.' }, StringSplitOptions.RemoveEmptyEntries))
          {
             m.Add((byte) label.Length);
             foreach (char c in label)
@@ -607,7 +641,29 @@ namespace RegressionTests.Shared
             denials_.TryGetValue(Key_(type, name), out List<RawRecord> foundDenial);
             denial = !dnssec || foundDenial == null ? new List<RawRecord>() : new List<RawRecord>(foundDenial);
             nonExistent = nonExistent_.Contains(name.TrimEnd('.').ToLowerInvariant());
-            serverFailing = serverFailing_.Contains(name.TrimEnd('.').ToLowerInvariant());
+            serverFailing = serverFailing_.Contains(name.TrimEnd('.').ToLowerInvariant()) || serverFailing_.Contains(Key_(type, name));
+
+            // The suite's root (RootSigner): its key, and its proof that a top-level
+            // name is an unsigned delegation, where the zone holds nothing of its own.
+            DnssecZone root = RootSigner;
+            if (root != null && cnameTarget == null && values.Count == 0)
+            {
+               string bare = name.TrimEnd('.');
+
+               if (type == DnsWire.TypeDnskey && bare.Length == 0 && rawAnswers.Count == 0)
+               {
+                  rawAnswers.Add(new RawRecord { Owner = "", Type = DnsWire.TypeDnskey, Rdata = root.DnskeyRdata });
+                  if (dnssec && signatures.Count == 0)
+                     signatures.Add(new RawRecord { Owner = "", Type = DnsWire.TypeRrsig, Rdata = root.Sign("", DnsWire.TypeDnskey, 60, new[] { root.DnskeyRdata }) });
+               }
+               else if (type == DnsWire.TypeDs && bare.Length > 0 && bare.IndexOf('.') < 0 && rawAnswers.Count == 0 &&
+                        !denials_.ContainsKey(Key_(type, name)) && dnssec && !nonExistent && !serverFailing)
+               {
+                  byte[] nsec = DnsWire.Nsec(bare + "0", new[] { DnsWire.TypeNs, DnsWire.TypeRrsig, DnsWire.TypeNsec });
+                  denial.Add(new RawRecord { Owner = bare.ToLowerInvariant(), Type = DnsWire.TypeNsec, Rdata = nsec });
+                  denial.Add(new RawRecord { Owner = bare.ToLowerInvariant(), Type = DnsWire.TypeRrsig, Rdata = root.Sign(bare, DnsWire.TypeNsec, 60, new[] { nsec }) });
+               }
+            }
          }
 
          if (cnameTarget != null || values.Count > 0 || rawAnswers.Count > 0)

@@ -58,6 +58,7 @@
 #include "WebAuthn.h"
 #include "PasskeyStore.h"
 #include "SignInBudget.h"
+#include "SignInState.h"
 #include "MaskedAddresses.h"
 #include "ListManager.h"
 #include "ListArchive.h"
@@ -640,17 +641,24 @@ namespace HM
       WebAuthnTester webAuthnTester;
       webAuthnTester.Test();
 
-      // And the challenge tables a passkey sign-in stands on: spent once, and
-      // a full one evicts its oldest rather than refusing the next person.
+      // And the challenges a passkey stands on: a sign-in's spent once and
+      // never held here, and a full registration table evicts its oldest rather
+      // than refusing the next person.
       OutputDebugString(_T("hMailServer: Testing PasskeyStore\n"));
       PasskeyStoreTester passkeyStoreTester;
       passkeyStoreTester.Test();
 
       // Who may push whom out of a full table of sign-in state: the browser
-      // sessions, and the pending single sign-on and passkey sign-ins.
+      // sessions and the passkey registrations.
       OutputDebugString(_T("hMailServer: Testing SignInBudget\n"));
       SignInBudgetTester signInBudgetTester;
       signInBudgetTester.Test();
+
+      // The pending single sign-on and passkey sign-ins, sealed into the
+      // browser rather than held in a table here.
+      OutputDebugString(_T("hMailServer: Testing SignInState\n"));
+      SignInStateTester signInStateTester;
+      signInStateTester.Test();
 
       // Masked addresses: the local part a label gives.
       OutputDebugString(_T("hMailServer: Testing MaskedAddresses\n"));

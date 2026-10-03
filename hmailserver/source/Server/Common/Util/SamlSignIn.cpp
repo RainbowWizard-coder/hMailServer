@@ -6,7 +6,7 @@
 #include "SamlSignIn.h"
 #include "GatewayEncryption.h"
 #include "HttpsClient.h"
-#include "SignInBudget.h"
+#include "SignInState.h"
 #include "Unicode.h"
 #include "WebAuthn.h"
 #include "XmlDocument.h"
@@ -60,12 +60,6 @@ namespace HM
       // The error this unit reports (7320-7329 are SAML's).
       const int ErrorCertificateUnreadable = 7320;
 
-      // The pending sign-ins, under SignInBudget's rule, as OidcSignIn's: a
-      // source holds at most MostPendingPerSource and gives up its own oldest
-      // past that, and a full table gives up the oldest of the source holding
-      // the most. Until 6.3.6 two hundred, the oldest dropped whoever held it.
-      const size_t MostPending = 4096;
-      const size_t MostPendingPerSource = 256;
       // The sign-ins the ACS verified, waiting for their browsers: made only
       // after a signed answer, dropped oldest first as they always were.
       const size_t MostFinished = 200;
@@ -74,29 +68,13 @@ namespace HM
       const int MinimumEcBits = 256;
       const int MostCertificates = 2;
 
-      struct Pending
-      {
-         bool deck = false;
-         std::string relay;
-         // What the browser that started it carries in hmsaml, which the
-         // finish asks for.
-         std::string cookie;
-         time_t created = 0;
-         // Counted under the lock: created is accurate to the second, and a
-         // flood makes hundreds inside one, so this is what "the oldest" means.
-         unsigned __int64 order = 0;
-         // Where the start came from (SignInBudget::PendingSource): whom the
-         // entry counts against when the table makes room; and its group
-         // (SignInBudget::SourceGroup) for the rule's tie-break.
-         std::string source;
-         std::string group;
-      };
-
-      // A sign-in the ACS verified, waiting for its browser at the finish.
+      // A sign-in the ACS verified, waiting for its browser at the finish: the
+      // ID of the request it answered, which the hmsaml cookie of the browser
+      // that started it holds, sealed.
       struct Finished
       {
          OidcSignIn::Result result;
-         std::string cookie;
+         std::string request_id;
          time_t created = 0;
          unsigned __int64 order = 0;
       };
@@ -108,7 +86,6 @@ namespace HM
       };
 
       boost::mutex stateLock;
-      std::map<std::string, Pending> pending;
       std::map<std::string, Finished> finished;
       std::map<std::string, Seen> seen;
       unsigned __int64 nextOrder = 1;
@@ -376,14 +353,6 @@ namespace HM
 
       void PruneLocked(time_t now)
       {
-         for (auto it = pending.begin(); it != pending.end();)
-         {
-            if (now - it->second.created > SamlSignIn::PendingSeconds)
-               it = pending.erase(it);
-            else
-               ++it;
-         }
-
          for (auto it = finished.begin(); it != finished.end();)
          {
             if (now - it->second.created > SamlSignIn::FinishSeconds)
@@ -427,21 +396,58 @@ namespace HM
          }
       }
 
-      // Room for one more pending sign-in from source. /portal/saml/start carries
-      // no credential, so a table that refused when it filled would let a
-      // stranger switch SAML sign-in off for everybody, and one that dropped its
-      // oldest entry whoever held it let them do the same by asking a few times a
-      // second (SignInBudget.h): a source gives up its own oldest, and a full
-      // table the oldest of the source holding the most - of the largest group
-      // among those tied.
-      void MakeRoomForPendingLocked(const std::string &source)
+      // A request this server issued, as its ID says (SignInState.h): nothing of
+      // it is held here, because /portal/saml/start answers anybody and a table
+      // of starts is one a stranger can fill - until 6.3.6 one was, and a few
+      // thousand addresses pushed every person's sign-in out of it. The ID is
+      //
+      //    _<32 hex digits, random>.<w|d>.<when it ends, seconds since the epoch>.<tag>
+      //
+      // an xs:ID (a letter or an underscore first, then letters, digits, '.',
+      // '-' and '_'), and the tag is this process's over everything before it,
+      // so the identity provider echoes back, in a Response it signs, a request
+      // the ACS can tell is this server's own, for which page and until when.
+      // The RelayState sent beside it is the ID too: under the 80 bytes the
+      // bindings allow, and a Response that comes back with another sign-in's
+      // RelayState is still refused.
+      struct IssuedRequest
       {
-         SignInBudget::MakeRoom(pending, source,
-            source.empty() ? 0 : MostPendingPerSource, MostPending,
-            [](const std::pair<const std::string, Pending> &entry) -> const std::string & { return entry.second.source; },
-            [](const std::pair<const std::string, Pending> &entry) -> const std::string & { return entry.second.group; },
-            [](const std::pair<const std::string, Pending> &entry) { return entry.second.order; },
-            [](const std::pair<const std::string, Pending> &) { return false; });
+         bool deck = false;
+         time_t expires = 0;
+      };
+
+      std::string RequestId(const std::string &random, bool deck, time_t expires)
+      {
+         const std::string body = "_" + random + "." + (deck ? "d" : "w") + "." + std::to_string((long long) expires);
+         return body + "." + Text(SignInState::Tag(SignInState::SamlRequest, body));
+      }
+
+      bool ReadRequestId(const std::string &id, IssuedRequest &issued)
+      {
+         if (id.size() > 120)
+            return false;
+
+         const size_t lastDot = id.rfind('.');
+         if (lastDot == std::string::npos || lastDot == 0)
+            return false;
+
+         const std::string body = id.substr(0, lastDot);
+         if (!SignInState::Verify(SignInState::SamlRequest, body, AnsiString(id.substr(lastDot + 1).c_str())))
+            return false;
+
+         // Tagged, so written here: _<hex>.<w|d>.<digits>.
+         const size_t first = body.find('.');
+         const size_t second = first == std::string::npos ? std::string::npos : body.find('.', first + 1);
+         if (second == std::string::npos || second != first + 2)
+            return false;
+
+         const std::string expires = body.substr(second + 1);
+         if (expires.empty() || expires.size() > 18 || expires.find_first_not_of("0123456789") != std::string::npos)
+            return false;
+
+         issued.deck = body[first + 1] == 'd';
+         issued.expires = (time_t) std::stoll(expires);
+         return true;
       }
 
       bool SamlAutoProvision()
@@ -621,7 +627,7 @@ namespace HM
    }
 
    bool
-   SamlSignIn::Begin(bool deck, const std::string &source, AnsiString &url, AnsiString &cookie, AnsiString &problem)
+   SamlSignIn::Begin(bool deck, AnsiString &url, AnsiString &cookie, AnsiString &problem)
    {
       if (!Configured())
       {
@@ -629,18 +635,25 @@ namespace HM
          return false;
       }
 
-      unsigned char idBytes[20];
-      unsigned char relayBytes[24];
-      std::string browser;
-      if (RAND_bytes(idBytes, sizeof(idBytes)) != 1 || RAND_bytes(relayBytes, sizeof(relayBytes)) != 1 || !RandomText(browser))
+      unsigned char idBytes[16];
+      if (RAND_bytes(idBytes, sizeof(idBytes)) != 1)
       {
          problem = "the random generator failed";
          return false;
       }
 
-      // An xs:ID begins with a letter or an underscore, never a digit.
-      const std::string id = "_" + Hex(idBytes, sizeof(idBytes), false, nullptr);
-      const std::string relay = Text(WebAuthn::Base64Url(relayBytes, sizeof(relayBytes)));
+      // An xs:ID begins with a letter or an underscore, never a digit; this one
+      // says, under a tag, which page the sign-in is for and when it ends
+      // (RequestId). The RelayState is the same ID, and the browser's hmsaml
+      // cookie holds it sealed for the finish. Nothing is kept here.
+      const std::string id = RequestId(Hex(idBytes, sizeof(idBytes), false, nullptr), deck, time(nullptr) + PendingSeconds);
+      const std::string relay = id;
+      const AnsiString browser = SignInState::Seal(SignInState::SamlCookie, id);
+      if (browser.IsEmpty() || id.size() > 80)
+      {
+         problem = "the sign-in could not be sealed";
+         return false;
+      }
 
       // The URL goes into a Location header as it is, so a control character
       // in it - a line break above all - is refused rather than sent.
@@ -671,27 +684,11 @@ namespace HM
          return false;
       }
 
-      Pending entry;
-      entry.deck = deck;
-      entry.relay = relay;
-      entry.cookie = browser;
-      entry.created = time(nullptr);
-      entry.source = source;
-      entry.group = SignInBudget::SourceGroup(source);
-
-      {
-         boost::lock_guard<boost::mutex> guard(stateLock);
-         entry.order = nextOrder++;
-         PruneLocked(entry.created);
-         MakeRoomForPendingLocked(source);
-         pending[id] = entry;
-      }
-
       const AnsiString encoded = AnsiString(XmlSignature::Base64Encode(deflated).c_str());
       url = AnsiString(ssoUrl.c_str()) + (ssoUrl.find('?') != std::string::npos ? "&" : "?") +
             "SAMLRequest=" + HttpsClient::FormEncode(encoded) +
             "&RelayState=" + HttpsClient::FormEncode(AnsiString(relay.c_str()));
-      cookie = AnsiString(browser.c_str());
+      cookie = browser;
       return true;
    }
 
@@ -728,10 +725,11 @@ namespace HM
          return false;
       }
 
-      // The browser binding: the cookie the start gave for this very request.
-      // A Response somebody forwarded to another browser ends here, whatever
-      // the ACS made of it.
-      if (!SameText(entry.cookie, Text(cookie)))
+      // The browser binding: the cookie the start gave for this very request,
+      // which holds its ID sealed. A Response somebody forwarded to another
+      // browser ends here, whatever the ACS made of it.
+      std::string cookieRequest;
+      if (!SignInState::Open(SignInState::SamlCookie, cookie, cookieRequest) || !SameText(entry.request_id, cookieRequest))
       {
          problem = "this sign-in was started in another browser; start it again from the sign-in page";
          return false;
@@ -760,15 +758,9 @@ namespace HM
       // Which page the answer goes back to, whenever the RelayState names a
       // sign-in started here - decided by the sign-in, never by the answer.
       {
-         boost::lock_guard<boost::mutex> guard(stateLock);
-         for (const auto &entry : pending)
-         {
-            if (SameText(entry.second.relay, relay))
-            {
-               result.deck = entry.second.deck;
-               break;
-            }
-         }
+         IssuedRequest named;
+         if (ReadRequestId(relay, named))
+            result.deck = named.deck;
       }
 
       if (!Configured())
@@ -964,23 +956,11 @@ namespace HM
          return false;
       }
 
-      // The request it answers: one this server issued, not answered before,
-      // coming back with the RelayState it went out with. Spent here, whatever
-      // follows.
-      Pending entry;
-      bool found = false;
-      {
-         boost::lock_guard<boost::mutex> guard(stateLock);
-         auto it = pending.find(inResponseTo);
-         if (it != pending.end())
-         {
-            entry = it->second;
-            pending.erase(it);
-            found = true;
-         }
-      }
-
-      if (!found)
+      // The request it answers: one this server issued (its ID's tag), not
+      // answered before (the spent set, which only a verified answer below adds
+      // to), coming back with the RelayState it went out with - the same ID.
+      IssuedRequest entry;
+      if (!ReadRequestId(inResponseTo, entry) || SignInState::IsSpent(SignInState::SamlRequest, inResponseTo))
       {
          problem = "this answer is to a sign-in that was not started here, or that was finished already";
          return false;
@@ -989,7 +969,7 @@ namespace HM
       // The page is decided by the server: until the RelayState has matched,
       // it is the one the posted RelayState's own sign-in named (above), and a
       // Response naming another sign-in in its InResponseTo does not choose it.
-      if (!SameText(entry.relay, relay))
+      if (!SameText(inResponseTo, relay))
       {
          problem = "the answer came back with the RelayState of another sign-in";
          return false;
@@ -997,7 +977,7 @@ namespace HM
 
       result.deck = entry.deck;
 
-      if (now - entry.created > PendingSeconds)
+      if (now > entry.expires)
       {
          problem = "the sign-in took longer than ten minutes; start it again";
          return false;
@@ -1167,6 +1147,15 @@ namespace HM
          seen[usedId] = record;
       }
 
+      // And the request is answered: spent, until its ID could no longer be
+      // shown anyway. Only a Response that got this far - signed by the
+      // identity provider - adds to the spent set.
+      if (!SignInState::Spend(SignInState::SamlRequest, inResponseTo, entry.expires + ClockSkewSeconds))
+      {
+         problem = "this answer is to a sign-in that was not started here, or that was finished already";
+         return false;
+      }
+
       // ---- who it is
       std::string address;
       const XmlNode *nameId = subject->ChildElement(AssertionNamespace, "NameID");
@@ -1242,7 +1231,7 @@ namespace HM
       Finished waiting;
       waiting.result.deck = entry.deck;
       waiting.result.address = FromUtf8(address);
-      waiting.cookie = entry.cookie;
+      waiting.request_id = inResponseTo;
       waiting.created = time(nullptr);
 
       {
@@ -1428,7 +1417,6 @@ namespace HM
    SamlSignIn::Clear()
    {
       boost::lock_guard<boost::mutex> guard(stateLock);
-      pending.clear();
       finished.clear();
       seen.clear();
    }

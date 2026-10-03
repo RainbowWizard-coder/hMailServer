@@ -12,9 +12,10 @@
 //
 // It needs no database, no configuration, no file and no network: the rule is
 // asked of tables built in memory, and the sources of addresses written out.
-// PasskeyStoreTester's challenge tables are in memory too and run here as well,
-// since 6.3.6's re-check put the registrations under the rule beside the
-// sign-ins.
+// PasskeyStoreTester's challenges are in memory too and run here as well, since
+// 6.3.6's re-check put the registrations under the rule; and SignInStateTester,
+// the sealed state the sign-ins that begin with no credential are carried in
+// since its second review.
 //
 // It prints one line and exits non-zero on the first failure.
 
@@ -23,6 +24,7 @@
 
 #include "../Common/Util/PasskeyStore.h"
 #include "../Common/Util/SignInBudget.h"
+#include "../Common/Util/SignInState.h"
 
 int
 main(int /*argc*/, char * /*argv*/[])
@@ -34,6 +36,9 @@ main(int /*argc*/, char * /*argv*/[])
 
       HM::PasskeyStoreTester passkeys;
       passkeys.Test();
+
+      HM::SignInStateTester state;
+      state.Test();
    }
    catch (const std::exception &failure)
    {
@@ -41,6 +46,6 @@ main(int /*argc*/, char * /*argv*/[])
       return 1;
    }
 
-   printf("ok    the sign-in tables' room: a holder at its cap gives up its own oldest, a full table the oldest of the holder with the most, of the largest group among holders tied, and never an administrator's session; floods from one source, from many and from one /48 leave another's pending sign-in, passkey registration and session; sources by address, an IPv6 address by its /64, X-Forwarded-For believed from this machine only, only its last address, and never one on this machine\n");
+   printf("ok    the sign-in tables' room: a holder at its cap gives up its own oldest, a full table the oldest of the holder with the most, of the largest group among holders tied, and never an administrator's session; floods from one source, from many and from one /48 leave another's passkey registration and session; sources by address, an IPv6 address by its /64, a NAT64 or Teredo client by its IPv4 address; a pending sign-in sealed, opened only as its own kind under this process's key, and spent once\n");
    return 0;
 }

@@ -446,6 +446,7 @@
     <Compile Include="Shared\GeoIpFixture.cs" />
     <Compile Include="Shared\DnssecSigner.cs" />
     <Compile Include="Security\DnssecDenialOfExistence.cs" />
+    <Compile Include="Security\DnssecRootKeysUnverifiable.cs" />
     <Compile Include="Security\AcmeRenewalTiming.cs" />
     <Compile Include="IMAP\Compress.cs" />
     <Compile Include="Shared\SuiteDns.cs" />
@@ -796,6 +797,7 @@
     <Compile Include="SMTP\TlsRptInertReporting.cs" />
     <Compile Include="SMTP\TlsRptReporting.cs" />
     <Compile Include="SMTP\DaneRequiredTlsDeferral.cs" />
+    <Compile Include="SMTP\DaneIndeterminateLookups.cs" />
     <Compile Include="AntiSpam\DmarcRptReporting.cs" />
     <Compile Include="AntiSpam\DmarcRpt2Schema.cs" />
     <Compile Include="AntiSpam\DmarcTreeWalkResolution.cs" />

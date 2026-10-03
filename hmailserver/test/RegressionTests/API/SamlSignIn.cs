@@ -635,14 +635,16 @@ namespace RegressionTests.API
       }
 
       [Test]
-      [Description("The tables: an assertion's ID taken once - the same assertion in a Response to a second, fresh " +
-                   "sign-in is refused by the replay cache - beside its negative control, the first; and the table of " +
-                   "sign-ins waiting for their Response makes room out of the asker's own: one source that asks three " +
-                   "hundred times gives up its own oldest while its newest still works, and a person's sign-in from " +
-                   "another source, started before them and before three hundred more from as many sources, still " +
-                   "finishes. The source behind a proxy on this machine is the address the proxy wrote last in " +
-                   "X-Forwarded-For. Until 6.3.6 the table held two hundred and dropped its oldest whoever held it.")]
-      public void ReplayAndTheTables()
+      [Description("Replay, and starts in their thousands: an assertion's ID taken once - the same assertion in a " +
+                   "Response to a second, fresh sign-in is refused by the replay cache - beside its negative control, " +
+                   "the first; a request answered once, a second signed Response to it refused; a request ID this " +
+                   "server's tag does not vouch for refused. And nothing of a start is kept on the server - the " +
+                   "request's ID carries, under a tag, its page and its end, and the hmsaml cookie holds it sealed - so " +
+                   "starts asked for in their thousands, each from a /24 of its own as a rotating proxy pool gives " +
+                   "them, push nobody's out: a person's, started first, and the first and last of the flood all finish. " +
+                   "Until 6.3.6 a table of two hundred dropped its oldest whoever held it; as 6.3.6 was first written a " +
+                   "table of 4,096 held each source to its share, which 4,200 sources from as many /24s still beat.")]
+      public void ReplayAndStartsFromThousandsOfSources()
       {
          Account account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "saml-tables@" + _domain.Name, "Saml-Passw0rd!");
          Configure();
@@ -654,22 +656,39 @@ namespace RegressionTests.API
          Refused("an assertion already used, in a Response to another sign-in",
             s => SignedResponse(new Spec(s, account.Address) { assertionId = assertionId }), "used to sign in already");
 
-         // A person behind the proxy, then one source asking over and over, then
-         // many sources once each.
-         Started person = Start(false, "X-Forwarded-For: 203.0.113.9, 198.51.100.4");
-         Started oldest = Start(false, "X-Forwarded-For: 203.0.113.9");
-         Started newest = oldest;
-         for (int i = 0; i < 300; i++)
-            newest = Start(false, "X-Forwarded-For: 203.0.113.9");
-         for (int i = 0; i < 300; i++)
-            Start(false, "X-Forwarded-For: 2001:db8:" + (i + 1).ToString("x") + "::7");
+         // A second Response, signed and with an assertion of its own, to a request
+         // answered already.
+         (int status, string location) again = Acs(SignedResponse(new Spec(first, account.Address)), first.relay);
+         StringAssert.StartsWith("/portal#sso_error=", again.location, "A second Response to an answered request was taken.");
+         StringAssert.Contains("finished already", Why(again.location));
 
-         (int status, string location) evicted = Acs(SignedResponse(new Spec(oldest, account.Address)), oldest.relay);
-         StringAssert.StartsWith("/portal#sso_error=", evicted.location, "The source that asked over and over kept its oldest sign-in.");
-         StringAssert.Contains("not started here", Why(evicted.location));
-         Assert.IsNotEmpty(SignIn(newest, SignedResponse(new Spec(newest, account.Address))), "The newest sign-in did not work.");
+         // A request ID shaped as this server's, with another tag.
+         {
+            Started forged = Start(false);
+            string tampered = forged.id.Substring(0, forged.id.LastIndexOf('.') + 1) + "AAAAAAAAAAAAAAAAAAAAAA";
+            (int status, string location) refused = Acs(SignedResponse(new Spec(forged, account.Address)
+            {
+               inResponseTo = tampered, confirmationInResponseTo = tampered
+            }), tampered);
+            StringAssert.StartsWith("/portal#sso_error=", refused.location, "A request ID with a tag this server did not make was taken.");
+            StringAssert.Contains("not started here", Why(refused.location));
+         }
+
+         // The person, then a pool of sources a /24 apiece, as many as a table could
+         // hold and more.
+         Started person = Start(false, "X-Forwarded-For: 198.51.100.4");
+         StringAssert.DoesNotContain(person.id, person.cookie, "The cookie shows the request it holds.");
+         Started firstOfFlood = Start(false, "X-Forwarded-For: 10.0.0.1");
+         Started lastOfFlood = firstOfFlood;
+         for (int i = 1; i < 4200; i++)
+            lastOfFlood = Start(false, "X-Forwarded-For: 10." + (i / 256) + "." + (i % 256) + ".1");
+
          Assert.IsNotEmpty(SignIn(person, SignedResponse(new Spec(person, account.Address))),
-            "The person's sign-in from another source did not survive the others' starts.");
+            "The person's sign-in did not survive the others' starts.");
+         Assert.IsNotEmpty(SignIn(firstOfFlood, SignedResponse(new Spec(firstOfFlood, account.Address))),
+            "The first start of the flood did not finish: one was pushed out.");
+         Assert.IsNotEmpty(SignIn(lastOfFlood, SignedResponse(new Spec(lastOfFlood, account.Address))),
+            "The last start of the flood did not finish.");
       }
 
       // ------------------------------------------------------------------ the settings and the metadata

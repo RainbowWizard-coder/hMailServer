@@ -4,11 +4,17 @@
 
 // Validating DNSSEC stub resolver. See DnssecResolver.h.
 //
-// Failure policy (chosen for safe mail flow):
-//   - Transport failures (no resolver reachable, SERVFAIL) degrade to
-//     Insecure: DANE is simply not applied, mail still flows.
+// Failure policy:
 //   - Received data that fails cryptographic validation is Bogus: the
 //     host is not used (RFC 7672 section 2.1.3).
+//   - A lookup that does not complete (no resolver reachable, a timeout,
+//     SERVFAIL, a reply that does not parse) is Indeterminate inside the
+//     chain, and so is a zone whose keys could not be fetched. For TLSA and
+//     MX it stays Indeterminate unless the name is proven to sit below an
+//     unsigned delegation, and the host is not used (RFC 7672 section
+//     2.1.1); for TXT it reads as Insecure, and the caller falls back to the
+//     system resolver as it always has. Until 6.3.6 every one of these read
+//     as Insecure, so dropping a packet switched DANE off.
 
 #include "StdAfx.h"
 
@@ -44,7 +50,14 @@
 #include <openssl/sha.h>
 
 #include <algorithm>
+#include <atomic>
+#include <cstddef>
 #include <ctime>
+#include <map>
+#include <set>
+#include <stdexcept>
+#include <string>
+#include <utility>
 
 #ifdef _MSC_VER
 #pragma comment(lib, "iphlpapi.lib")
@@ -72,15 +85,31 @@ namespace HM
       const unsigned short DnsTypeNsec = 47;
       const unsigned short DnsTypeNsec3 = 50;
 
+      const unsigned short DnsTypeDname = 39;
+
       const DWORD DnsTimeoutMilliseconds = 5000;
       const int MaxChainDepth = 16;
       const int MaxCnameHops = 3;
+
+      // The most labels the walk from the root asks a DS for (FindEnclosingZone).
+      // A TLSA name is the host's labels and two more; a name past this is
+      // answered Indeterminate rather than costing a query per label.
+      const size_t MaxWalkLabels = 32;
+
+      // How long the walk remembers what a label is: a proven unsigned
+      // delegation or a name that is no zone cut, as long as an Insecure zone
+      // is remembered; a signed cut as long as its keys.
+      const int CutCacheSeconds = 300;
+      const int SignedCutCacheSeconds = 3600;
 
       enum class InternalStatus
       {
          Secure,
          Insecure,
-         Bogus
+         Bogus,
+         // A lookup on the way did not complete, or a zone's keys could not be
+         // fetched: whether the data should have been signed cannot be told.
+         Indeterminate
       };
 
       struct ParsedRr
@@ -133,6 +162,24 @@ namespace HM
 
       boost::recursive_mutex zone_cache_mutex;
       std::map<AnsiString, ZoneEntry> zone_cache;
+
+      // What the walk from the root found a label to be (FindEnclosingZone).
+      enum class CutKind
+      {
+         Signed,     // a zone cut with a DS, whose keys validated
+         Unsigned,   // a delegation the zone above proves has no DS, or an
+                     // NSEC3 Opt-Out span that may hold one
+         NotACut     // a name inside the zone above, or not there at all
+      };
+
+      struct CutEntry
+      {
+         CutKind kind = CutKind::NotACut;
+         time_t expires = 0;
+      };
+
+      boost::recursive_mutex cut_cache_mutex;
+      std::map<AnsiString, CutEntry> cut_cache;
 
       // ----------------------------------------------------------------
       // Small helpers
@@ -459,8 +506,164 @@ namespace HM
       // Transport
       // ----------------------------------------------------------------
 
-      bool GetDnsServers(std::vector<sockaddr_in> &servers)
+      // A name server this resolver asks: an address of either family, port 53.
+      struct NameServer
       {
+         sockaddr_storage address = {};
+         int length = 0;
+      };
+
+      // text - an IPv4 or IPv6 address, an IPv6 one with its %zone - as a name
+      // server on port 53; false for anything that is not an address. Numeric
+      // only (AI_NUMERICHOST): nothing is looked up.
+      bool NameServerFromText(const std::string &text, NameServer &server)
+      {
+         if (text.empty() || text.size() > 63)
+            return false;
+
+         addrinfo hints = {};
+         hints.ai_family = AF_UNSPEC;
+         hints.ai_socktype = SOCK_DGRAM;
+         hints.ai_flags = AI_NUMERICHOST;
+
+         addrinfo *found = nullptr;
+         if (getaddrinfo(text.c_str(), "53", &hints, &found) != 0 || found == nullptr)
+            return false;
+
+         bool usable = false;
+         if ((found->ai_family == AF_INET || found->ai_family == AF_INET6) &&
+             found->ai_addr != nullptr && found->ai_addrlen <= sizeof(server.address))
+         {
+            server = NameServer();
+            memcpy(&server.address, found->ai_addr, found->ai_addrlen);
+            server.length = static_cast<int>(found->ai_addrlen);
+            usable = true;
+         }
+
+         freeaddrinfo(found);
+         return usable;
+      }
+
+      // The 16 octets of an IPv6 name server's address.
+      const unsigned char *IPv6Octets(const NameServer &server)
+      {
+         return reinterpret_cast<const unsigned char *>(&reinterpret_cast<const sockaddr_in6 *>(&server.address)->sin6_addr);
+      }
+
+      // An IPv4 address written as IPv6 (::ffff:a.b.c.d) as the IPv4 address it
+      // is: an IPv6 socket reaches one only where IPV6_V6ONLY is off, which on
+      // Windows it is not.
+      void UnmapIPv4(NameServer &server)
+      {
+         if (server.address.ss_family != AF_INET6)
+            return;
+
+         static const unsigned char mapped[12] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xff, 0xff };
+         const unsigned char *octets = IPv6Octets(server);
+         if (memcmp(octets, mapped, sizeof(mapped)) != 0)
+            return;
+
+         sockaddr_in v4 = {};
+         v4.sin_family = AF_INET;
+         v4.sin_port = reinterpret_cast<const sockaddr_in6 *>(&server.address)->sin6_port;
+         memcpy(&v4.sin_addr, octets + 12, 4);
+
+         server = NameServer();
+         memcpy(&server.address, &v4, sizeof(v4));
+         server.length = static_cast<int>(sizeof(v4));
+      }
+
+      // The site-local addresses (fec0::/10, deprecated by RFC 3879) that Windows
+      // lists as the DNS servers of an adapter given no IPv6 one -
+      // fec0:0:0:ffff::1, ::2 and ::3 - and that nothing answers on.
+      bool IsSiteLocal(const NameServer &server)
+      {
+         if (server.address.ss_family != AF_INET6)
+            return false;
+
+         const unsigned char *octets = IPv6Octets(server);
+         return octets[0] == 0xfe && (octets[1] & 0xc0) == 0xc0;
+      }
+
+      // The servers to ask, from the ones the system lists, in its order: its
+      // first two IPv4 servers, as this resolver has always asked; and only when
+      // it lists none, its first two IPv6 servers. Until 6.3.6 an IPv6 server was
+      // never asked. That cost the Windows service nothing while a lookup that
+      // reached no server read as unsigned, and since 6.3.6 such a lookup is
+      // indeterminate and holds the mail up - on a host whose DNS servers are
+      // IPv6 alone, every message; and on Linux, where the plain lookups go
+      // through this transport too (QueryRecords), such a host had no DNS at
+      // all. A host that lists an IPv4 server asks what it asked before.
+      std::vector<NameServer> ChooseNameServers(const std::vector<NameServer> &listed)
+      {
+         std::vector<NameServer> chosen;
+         const int families[] = { AF_INET, AF_INET6 };
+
+         for (int family : families)
+         {
+            for (NameServer server : listed)
+            {
+               UnmapIPv4(server);
+               if (server.address.ss_family != family || IsSiteLocal(server))
+                  continue;
+
+               chosen.push_back(server);
+               if (chosen.size() >= 2)
+                  return chosen;
+            }
+
+            if (!chosen.empty())
+               return chosen;
+         }
+
+         return chosen;
+      }
+
+      // The name servers /etc/resolv.conf lists, in its order. "nameserver" has
+      // to be the whole keyword rather than the start of a longer one, so what
+      // follows it must be white space, and the address ends at white space or
+      // at a comment. A line that does not name an address is passed over.
+      std::vector<NameServer> ReadResolvConf(const std::string &text)
+      {
+         std::vector<NameServer> listed;
+
+         size_t lineStart = 0;
+         while (lineStart < text.size())
+         {
+            size_t lineEnd = text.find('\n', lineStart);
+            if (lineEnd == std::string::npos)
+               lineEnd = text.size();
+
+            const std::string line = text.substr(lineStart, lineEnd - lineStart);
+            lineStart = lineEnd + 1;
+
+            size_t cursor = line.find_first_not_of(" \t");
+            if (cursor == std::string::npos || line.compare(cursor, 10, "nameserver") != 0)
+               continue;
+
+            cursor += 10;
+            if (cursor >= line.size() || (line[cursor] != ' ' && line[cursor] != '\t'))
+               continue;
+
+            cursor = line.find_first_not_of(" \t", cursor);
+            if (cursor == std::string::npos)
+               continue;
+
+            const size_t addressEnd = line.find_first_of(" \t\r#;", cursor);
+            NameServer server;
+            if (NameServerFromText(line.substr(cursor, addressEnd == std::string::npos ? std::string::npos : addressEnd - cursor), server))
+               listed.push_back(server);
+         }
+
+         return listed;
+      }
+
+      bool GetDnsServers(std::vector<NameServer> &servers)
+      {
+         servers.clear();
+
+         // DNSServer names an IPv4 address, as the system resolver's side reads
+         // it too (DNSResolverWinApi).
          String configuredServer = IniFileSettings::Instance()->GetDNSServer();
          if (!configuredServer.IsEmpty())
          {
@@ -472,10 +675,15 @@ namespace HM
 
             if (inet_pton(AF_INET, narrow.c_str(), &address.sin_addr) == 1)
             {
-               servers.push_back(address);
+               NameServer server;
+               memcpy(&server.address, &address, sizeof(address));
+               server.length = static_cast<int>(sizeof(address));
+               servers.push_back(server);
                return true;
             }
          }
+
+         std::vector<NameServer> listed;
 
 #ifdef _MSC_VER
          ULONG bufferSize = 16 * 1024;
@@ -483,12 +691,14 @@ namespace HM
 
          ULONG flags = GAA_FLAG_SKIP_ANYCAST | GAA_FLAG_SKIP_MULTICAST | GAA_FLAG_SKIP_FRIENDLY_NAME | GAA_FLAG_SKIP_UNICAST;
 
-         ULONG queryResult = GetAdaptersAddresses(AF_INET, flags, nullptr, reinterpret_cast<IP_ADAPTER_ADDRESSES*>(buffer.data()), &bufferSize);
+         // Both families: an adapter's list holds its IPv4 and its IPv6 servers,
+         // and ChooseNameServers takes the IPv4 ones first.
+         ULONG queryResult = GetAdaptersAddresses(AF_UNSPEC, flags, nullptr, reinterpret_cast<IP_ADAPTER_ADDRESSES*>(buffer.data()), &bufferSize);
 
          if (queryResult == ERROR_BUFFER_OVERFLOW)
          {
             buffer.resize(bufferSize);
-            queryResult = GetAdaptersAddresses(AF_INET, flags, nullptr, reinterpret_cast<IP_ADAPTER_ADDRESSES*>(buffer.data()), &bufferSize);
+            queryResult = GetAdaptersAddresses(AF_UNSPEC, flags, nullptr, reinterpret_cast<IP_ADAPTER_ADDRESSES*>(buffer.data()), &bufferSize);
          }
 
          if (queryResult != NO_ERROR)
@@ -505,86 +715,63 @@ namespace HM
                  dns != nullptr;
                  dns = dns->Next)
             {
-               if (dns->Address.lpSockaddr == nullptr || dns->Address.lpSockaddr->sa_family != AF_INET)
+               const sockaddr *address = dns->Address.lpSockaddr;
+               if (address == nullptr || dns->Address.iSockaddrLength <= 0 ||
+                   static_cast<size_t>(dns->Address.iSockaddrLength) > sizeof(sockaddr_storage))
                   continue;
 
-               sockaddr_in address = {};
-               memcpy(&address, dns->Address.lpSockaddr, sizeof(sockaddr_in));
-               address.sin_port = htons(53);
+               NameServer server;
+               if (address->sa_family == AF_INET && static_cast<size_t>(dns->Address.iSockaddrLength) >= sizeof(sockaddr_in))
+               {
+                  memcpy(&server.address, address, sizeof(sockaddr_in));
+                  reinterpret_cast<sockaddr_in *>(&server.address)->sin_port = htons(53);
+                  server.length = static_cast<int>(sizeof(sockaddr_in));
+               }
+               else if (address->sa_family == AF_INET6 && static_cast<size_t>(dns->Address.iSockaddrLength) >= sizeof(sockaddr_in6))
+               {
+                  memcpy(&server.address, address, sizeof(sockaddr_in6));
+                  reinterpret_cast<sockaddr_in6 *>(&server.address)->sin6_port = htons(53);
+                  server.length = static_cast<int>(sizeof(sockaddr_in6));
+               }
+               else
+               {
+                  continue;
+               }
 
-               servers.push_back(address);
-
-               if (servers.size() >= 2)
-                  return true;
+               listed.push_back(server);
             }
          }
 #else
          // /etc/resolv.conf is where a POSIX system records the nameservers it
-         // uses, so reading it is the counterpart of GetAdaptersAddresses above and
-         // answers with the same thing: the first two IPv4 servers, on port 53, in
-         // the order the file lists them. Leaving it unwritten would have been
-         // worse than it looks - every DNSSEC query would have failed for want of
-         // a server, and a validator that never runs is indistinguishable from one
-         // that always passes.
+         // uses, so reading it is the counterpart of GetAdaptersAddresses above.
+         // Leaving it unwritten would have been worse than it looks - every
+         // DNSSEC query would have failed for want of a server, and a validator
+         // that never runs is indistinguishable from one that always passes.
          FILE *resolv_conf = ::fopen("/etc/resolv.conf", "r");
 
          if (resolv_conf != nullptr)
          {
-            char line[512];
+            std::string text;
+            char chunk[4096];
 
-            while (::fgets(line, sizeof(line), resolv_conf) != nullptr)
+            // A resolv.conf is a few hundred octets; past 64 KB the rest is not
+            // read. A short read is the end of the file, or an error: either way
+            // the stream is not read again.
+            for (;;)
             {
-               const char *cursor = line;
+               const size_t read = ::fread(chunk, 1, sizeof(chunk), resolv_conf);
+               text.append(chunk, read);
 
-               while (*cursor == ' ' || *cursor == '\t')
-                  cursor++;
-
-               // "nameserver" has to be the whole keyword rather than the start of
-               // a longer one, so what follows it must be white space.
-               if (::strncmp(cursor, "nameserver", 10) != 0)
-                  continue;
-
-               cursor += 10;
-
-               if (*cursor != ' ' && *cursor != '\t')
-                  continue;
-
-               while (*cursor == ' ' || *cursor == '\t')
-                  cursor++;
-
-               char address_text[64];
-               size_t length = 0;
-
-               while (length + 1 < sizeof(address_text) &&
-                      *cursor != '\0' && *cursor != ' ' && *cursor != '\t' &&
-                      *cursor != '\r' && *cursor != '\n' && *cursor != '#' && *cursor != ';')
-               {
-                  address_text[length] = *cursor;
-                  length++;
-                  cursor++;
-               }
-
-               address_text[length] = '\0';
-
-               sockaddr_in address = {};
-               address.sin_family = AF_INET;
-               address.sin_port = htons(53);
-
-               // An IPv6 nameserver is passed over here, exactly as the Windows
-               // branch passes over a server whose family is not AF_INET.
-               if (inet_pton(AF_INET, address_text, &address.sin_addr) != 1)
-                  continue;
-
-               servers.push_back(address);
-
-               if (servers.size() >= 2)
+               if (read < sizeof(chunk) || text.size() >= 65536)
                   break;
             }
 
             ::fclose(resolv_conf);
+            listed = ReadResolvConf(text);
          }
 #endif
 
+         servers = ChooseNameServers(listed);
          return !servers.empty();
       }
 
@@ -647,12 +834,29 @@ namespace HM
          setsockopt(querySocket, SOL_SOCKET, SO_SNDTIMEO, reinterpret_cast<const char *>(&timeout), sizeof(timeout));
       }
 
-      bool RunUdpQuery(const sockaddr_in &server, const std::vector<unsigned char> &query,
+      // Whether a reply came from the server it was sent to.
+      bool FromServer(const sockaddr_storage &from, const NameServer &server)
+      {
+         if (from.ss_family != server.address.ss_family)
+            return false;
+
+         if (from.ss_family == AF_INET)
+            return reinterpret_cast<const sockaddr_in *>(&from)->sin_addr.s_addr ==
+                   reinterpret_cast<const sockaddr_in *>(&server.address)->sin_addr.s_addr;
+
+         if (from.ss_family == AF_INET6)
+            return memcmp(&reinterpret_cast<const sockaddr_in6 *>(&from)->sin6_addr,
+                          &reinterpret_cast<const sockaddr_in6 *>(&server.address)->sin6_addr, 16) == 0;
+
+         return false;
+      }
+
+      bool RunUdpQuery(const NameServer &server, const std::vector<unsigned char> &query,
                        std::vector<unsigned char> &response, bool &truncated)
       {
          truncated = false;
 
-         SOCKET udpSocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+         SOCKET udpSocket = socket(server.address.ss_family, SOCK_DGRAM, IPPROTO_UDP);
          if (udpSocket == INVALID_SOCKET)
             return false;
 
@@ -661,11 +865,11 @@ namespace HM
          bool succeeded = false;
 
          if (sendto(udpSocket, reinterpret_cast<const char*>(query.data()), static_cast<int>(query.size()), 0,
-                    reinterpret_cast<const sockaddr*>(&server), sizeof(server)) == static_cast<int>(query.size()))
+                    reinterpret_cast<const sockaddr*>(&server.address), server.length) == static_cast<int>(query.size()))
          {
             unsigned char receiveBuffer[2048];
 
-            sockaddr_in fromAddress = {};
+            sockaddr_storage fromAddress = {};
             // recvfrom's last argument is an int* on Winsock and a socklen_t* on
             // POSIX, and they are not the same type even where they are the same
             // width, so the variable is declared as whatever the platform's
@@ -683,7 +887,7 @@ namespace HM
             if (bytesReceived >= 12 &&
                 receiveBuffer[0] == query[0] &&
                 receiveBuffer[1] == query[1] &&
-                fromAddress.sin_addr.s_addr == server.sin_addr.s_addr)
+                FromServer(fromAddress, server))
             {
                truncated = (receiveBuffer[2] & 0x02) != 0;
                response.assign(receiveBuffer, receiveBuffer + bytesReceived);
@@ -695,10 +899,10 @@ namespace HM
          return succeeded;
       }
 
-      bool RunTcpQuery(const sockaddr_in &server, const std::vector<unsigned char> &query,
+      bool RunTcpQuery(const NameServer &server, const std::vector<unsigned char> &query,
                        std::vector<unsigned char> &response)
       {
-         SOCKET tcpSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+         SOCKET tcpSocket = socket(server.address.ss_family, SOCK_STREAM, IPPROTO_TCP);
          if (tcpSocket == INVALID_SOCKET)
             return false;
 
@@ -706,7 +910,7 @@ namespace HM
 
          bool succeeded = false;
 
-         if (connect(tcpSocket, reinterpret_cast<const sockaddr*>(&server), sizeof(server)) == 0)
+         if (connect(tcpSocket, reinterpret_cast<const sockaddr*>(&server.address), server.length) == 0)
          {
             std::vector<unsigned char> framed;
             framed.reserve(query.size() + 2);
@@ -763,11 +967,11 @@ namespace HM
          if (!BuildQuery(name, queryType, query, transactionId))
             return false;
 
-         std::vector<sockaddr_in> servers;
+         std::vector<NameServer> servers;
          if (!GetDnsServers(servers))
             return false;
 
-         for (const sockaddr_in &server : servers)
+         for (const NameServer &server : servers)
          {
             std::vector<unsigned char> packet;
             bool truncated = false;
@@ -1317,7 +1521,8 @@ namespace HM
          UnsignedDelegation,  // a verified record: the name is a delegation without a DS
          NotADelegation,      // a verified record: the name exists but is not a zone cut
          Nonexistent,         // a verified record: the name does not exist
-         Invalid              // records were there, but none verified or none applied
+         Invalid,             // records were there, but none verified or none applied
+         Indeterminate        // none verified, and a signer's keys could not be fetched
       };
 
       // What one verified NSEC or NSEC3 record says about a DS RRset at the name.
@@ -1387,10 +1592,13 @@ namespace HM
             return TypeBitmapHas(rdata, bitmapStart, DnsTypeNs) ? DsDenial::UnsignedDelegation : DsDenial::NotADelegation;
          }
 
+         // Covering: strictly between the owner's hash and the next one, the last
+         // record's span wrapping round past the end to the first. Until 6.3.6 the
+         // part of that span before the first hash was not read as covered.
          bool ownerBefore = ownerLabel.Compare(hashed) < 0;
          bool hashBeforeNext = hashed.Compare(nextLabel) < 0;
          bool wraps = nextLabel.Compare(ownerLabel) <= 0;
-         if (!(ownerBefore && (hashBeforeNext || wraps)))
+         if (!(wraps ? (ownerBefore || hashBeforeNext) : (ownerBefore && hashBeforeNext)))
             return DsDenial::Invalid;
 
          // Covered. With Opt-Out the span may hold unsigned delegations, and this is
@@ -1401,9 +1609,11 @@ namespace HM
       InternalStatus ValidateZoneKeys(const AnsiString &zone, int depth, std::vector<std::vector<unsigned char>> &keys);
 
       // The authority section's NSEC and NSEC3 records, each verified against its
-      // signer's keys - the signer has to be a proper ancestor of the name - and
-      // read for what they say about a DS RRset at the name.
-      DsDenial EvaluateDsDenial(const AnsiString &name, const DnsResponse &response, int depth)
+      // signer's keys - the signer has to be a proper ancestor of the name, and
+      // required_signer when one is given - and read for what they say about a DS
+      // RRset at the name.
+      DsDenial EvaluateDsDenial(const AnsiString &name, const DnsResponse &response, int depth,
+                                const AnsiString *required_signer = nullptr)
       {
          std::vector<ParsedRr> proofs;
          std::vector<RrsigInfo> signatures;
@@ -1426,6 +1636,8 @@ namespace HM
          if (proofs.empty())
             return DsDenial::NoProof;
 
+         bool sawIndeterminateSigner = false;
+
          for (const ParsedRr &proof : proofs)
          {
             // The RRset the record belongs to - every record of its type under its
@@ -1444,6 +1656,8 @@ namespace HM
                   continue;
                if (sig.signer == name || !IsSubdomainOrEqual(name, sig.signer) || !IsSubdomainOrEqual(proof.owner, sig.signer))
                   continue;
+               if (required_signer != nullptr && sig.signer != *required_signer)
+                  continue;
 
                std::vector<std::vector<unsigned char>> keys;
                InternalStatus signerStatus = ValidateZoneKeys(sig.signer, depth + 1, keys);
@@ -1453,6 +1667,8 @@ namespace HM
                   // as far as this resolver is concerned.
                   return DsDenial::UnsignedDelegation;
                }
+               if (signerStatus == InternalStatus::Indeterminate)
+                  sawIndeterminateSigner = true;
                if (signerStatus != InternalStatus::Secure)
                   continue;
 
@@ -1474,7 +1690,7 @@ namespace HM
             if (reading != DsDenial::Invalid)
                return reading;
          }
-         return DsDenial::Invalid;
+         return sawIndeterminateSigner ? DsDenial::Indeterminate : DsDenial::Invalid;
       }
 
       // "No DS" with a proof: Insecure. "No DS" without one: what the parent is
@@ -1495,6 +1711,8 @@ namespace HM
          case DsDenial::Invalid:
             LOG_DEBUG("DNSSEC: " + String(zone) + " has no DS and the denial that came with the answer does not verify or does not apply; treating the delegation as bogus.");
             return InternalStatus::Bogus;
+         case DsDenial::Indeterminate:
+            return InternalStatus::Indeterminate;
          case DsDenial::NoProof:
             break;
          }
@@ -1517,7 +1735,7 @@ namespace HM
 
             DnsResponse dsResponse;
             if (!RunQuery(ancestor, DnsTypeDs, dsResponse))
-               return InternalStatus::Insecure; // transport failure - degrade, as everywhere
+               return InternalStatus::Indeterminate; // until 6.3.6 Insecure, and a dropped packet a downgrade
 
             bool hasDs = false;
             for (const ParsedRr &record : dsResponse.answers)
@@ -1550,6 +1768,8 @@ namespace HM
             case DsDenial::Invalid:
                LOG_DEBUG("DNSSEC: " + String(ancestor) + ", above " + String(zone) + ", has no DS and a denial that does not verify; treating the delegation as bogus.");
                return InternalStatus::Bogus;
+            case DsDenial::Indeterminate:
+               return InternalStatus::Indeterminate;
             default:
                break; // not a delegation, or nothing said: further up
             }
@@ -1558,14 +1778,26 @@ namespace HM
          return InternalStatus::Bogus;
       }
 
+      // The DNSKEY algorithms VerifySignature knows and the DS digests
+      // DnskeyMatchesDs computes.
+      bool IsSupportedDs(const DsInfo &ds)
+      {
+         const bool algorithm = ds.algorithm == 8 || ds.algorithm == 10 || ds.algorithm == 13 ||
+                                ds.algorithm == 14 || ds.algorithm == 15;
+         const bool digest = ds.digest_type == 2 || ds.digest_type == 4;
+         return algorithm && digest;
+      }
+
       // Fetches and validates the DS RRset for a zone (served by the
       // parent). Secure fills dsRecords; Insecure means an unsigned
-      // delegation was found.
+      // delegation was found, or a validated DS RRset none of whose records
+      // this resolver can follow (RFC 4035 section 5.2) - until 6.3.6 such a
+      // zone was Bogus, and its mail held up.
       InternalStatus FetchDsRecords(const AnsiString &zone, int depth, std::vector<DsInfo> &dsRecords)
       {
          DnsResponse response;
          if (!RunQuery(zone, DnsTypeDs, response))
-            return InternalStatus::Insecure; // transport failure - degrade
+            return InternalStatus::Indeterminate; // until 6.3.6 Insecure, and a dropped packet a downgrade
 
          std::vector<ParsedRr> dsRrset;
          std::vector<RrsigInfo> signatures;
@@ -1591,6 +1823,7 @@ namespace HM
             return ProveNoDs(zone, response, depth);
 
          bool sawInsecureParent = false;
+         bool sawIndeterminateParent = false;
 
          for (const RrsigInfo &sig : signatures)
          {
@@ -1605,6 +1838,12 @@ namespace HM
             if (parentStatus == InternalStatus::Insecure)
             {
                sawInsecureParent = true;
+               continue;
+            }
+
+            if (parentStatus == InternalStatus::Indeterminate)
+            {
+               sawIndeterminateParent = true;
                continue;
             }
 
@@ -1635,12 +1874,25 @@ namespace HM
                      dsRecords.push_back(info);
                   }
 
-                  return dsRecords.empty() ? InternalStatus::Insecure : InternalStatus::Secure;
+                  if (dsRecords.empty())
+                     return InternalStatus::Insecure;
+
+                  if (std::none_of(dsRecords.begin(), dsRecords.end(), IsSupportedDs))
+                  {
+                     LOG_DEBUG("DNSSEC: the validated DS RRset of " + String(zone) + " names no algorithm and digest this resolver supports; treating the zone as unsigned (RFC 4035 section 5.2).");
+                     dsRecords.clear();
+                     return InternalStatus::Insecure;
+                  }
+
+                  return InternalStatus::Secure;
                }
             }
          }
 
-         return sawInsecureParent ? InternalStatus::Insecure : InternalStatus::Bogus;
+         if (sawInsecureParent)
+            return InternalStatus::Insecure;
+
+         return sawIndeterminateParent ? InternalStatus::Indeterminate : InternalStatus::Bogus;
       }
 
       // Returns the validated DNSKEY RRset of a zone, walking up to the
@@ -1777,18 +2029,24 @@ namespace HM
                   result = InternalStatus::Bogus;
                }
             }
-            else if (result != InternalStatus::Insecure)
+            else
             {
-               result = InternalStatus::Insecure; // transport failure - degrade
+               // The keys could not be fetched. Until 6.3.6 this was Insecure,
+               // and a dropped DNSKEY answer took the zone out of DNSSEC.
+               result = InternalStatus::Indeterminate;
             }
          }
 
-         // Cache the outcome.
+         // Cache the outcome. A lookup that did not complete is held briefly,
+         // so that one validation does not wait on the same dead server twice
+         // and the next attempt asks again.
          int cacheSeconds = 60;
          if (result == InternalStatus::Secure)
             cacheSeconds = 3600;
          else if (result == InternalStatus::Insecure)
             cacheSeconds = 300;
+         else if (result == InternalStatus::Indeterminate)
+            cacheSeconds = 30;
 
          {
             boost::lock_guard<boost::recursive_mutex> guard(zone_cache_mutex);
@@ -1808,14 +2066,25 @@ namespace HM
          return result;
       }
 
+      // What the signatures over an answer RRset say.
+      enum class RrsetVerdict
+      {
+         Secure,          // a signature verified under a validated key
+         Bogus,           // signatures applied, and none verified
+         Unsigned,        // no signature applies to it
+         InsecureZone,    // a signature names a zone proven unsigned
+         Indeterminate    // a signature names a zone whose keys could not be fetched
+      };
+
       // Validates an answer RRset against its RRSIGs.
-      InternalStatus ValidateRrset(const DnsResponse &response, const std::vector<ParsedRr> &rrset,
-                                   const std::vector<RrsigInfo> &signatures)
+      RrsetVerdict ValidateRrset(const DnsResponse &response, const std::vector<ParsedRr> &rrset,
+                                 const std::vector<RrsigInfo> &signatures)
       {
          if (rrset.empty())
-            return InternalStatus::Insecure;
+            return RrsetVerdict::Unsigned;
 
          bool sawInsecureZone = false;
+         bool sawIndeterminateZone = false;
          bool sawApplicableSignature = false;
 
          for (const RrsigInfo &sig : signatures)
@@ -1837,6 +2106,12 @@ namespace HM
                continue;
             }
 
+            if (zoneStatus == InternalStatus::Indeterminate)
+            {
+               sawIndeterminateZone = true;
+               continue;
+            }
+
             if (zoneStatus == InternalStatus::Bogus)
                continue;
 
@@ -1849,37 +2124,860 @@ namespace HM
                   continue;
 
                if (VerifyRrsigOverSet(response, rrset, sig, keyRdata))
-                  return InternalStatus::Secure;
+                  return RrsetVerdict::Secure;
             }
          }
 
-         if (!sawApplicableSignature || sawInsecureZone)
-            return InternalStatus::Insecure;
+         if (!sawApplicableSignature)
+            return RrsetVerdict::Unsigned;
 
-         return InternalStatus::Bogus;
+         if (sawInsecureZone)
+            return RrsetVerdict::InsecureZone;
+
+         return sawIndeterminateZone ? RrsetVerdict::Indeterminate : RrsetVerdict::Bogus;
+      }
+
+      // ----------------------------------------------------------------
+      // Names, label by label
+      // ----------------------------------------------------------------
+
+      // The labels of a dotted name, leftmost first. The root has none.
+      std::vector<AnsiString> LabelsOf(const AnsiString &name)
+      {
+         std::vector<AnsiString> labels;
+         if (name.IsEmpty())
+            return labels;
+
+         for (const AnsiString &label : StringParser::SplitString(name, "."))
+            if (!label.IsEmpty())
+               labels.push_back(label);
+
+         return labels;
+      }
+
+      // The name made of labels[first] and every label right of it.
+      AnsiString NameFromLabel(const std::vector<AnsiString> &labels, size_t first)
+      {
+         AnsiString name;
+         for (size_t i = first; i < labels.size(); i++)
+         {
+            if (!name.IsEmpty())
+               name += ".";
+            name += labels[i];
+         }
+         return name;
+      }
+
+      // The longest name both are under, "" when only the root.
+      AnsiString CommonAncestor(const AnsiString &left, const AnsiString &right)
+      {
+         const std::vector<AnsiString> leftLabels = LabelsOf(left);
+         const std::vector<AnsiString> rightLabels = LabelsOf(right);
+
+         size_t shared = 0;
+         while (shared < leftLabels.size() && shared < rightLabels.size() &&
+                leftLabels[leftLabels.size() - 1 - shared] == rightLabels[rightLabels.size() - 1 - shared])
+            shared++;
+
+         return NameFromLabel(leftLabels, leftLabels.size() - shared);
+      }
+
+      AnsiString WildcardAt(const AnsiString &name)
+      {
+         return name.IsEmpty() ? AnsiString("*") : AnsiString("*.") + name;
+      }
+
+      // ----------------------------------------------------------------
+      // A signed zone's proof that an answer is empty (RFC 4035 sections
+      // 3.1.3 and 5.4, RFC 5155 sections 7.2 and 8, RFC 6840 section 4.1)
+      // ----------------------------------------------------------------
+
+      enum class Absence
+      {
+         NoData,     // the name exists and holds nothing of the type
+         NoName,     // the name does not exist, nor a wildcard that would answer for it
+         OptOut,     // an NSEC3 Opt-Out span covers the name, which may then sit below
+                     // an unsigned delegation (RFC 5155 section 9.2), or the zone's NSEC3
+                     // iterations are past what a resolver computes (RFC 9276): insecure
+         Unproven
+      };
+
+      // One verified NSEC: its owner, the next name, and its type bitmap.
+      struct NsecProof
+      {
+         AnsiString owner;
+         AnsiString next;
+         std::vector<unsigned char> rdata;
+         size_t bitmap = 0;
+      };
+
+      // One verified NSEC3: its hash parameters, its owner's hash and the next
+      // one (base32hex, uppercase, which sorts as the octets do), and its type
+      // bitmap.
+      struct Nsec3Proof
+      {
+         unsigned char algorithm = 0;
+         unsigned char flags = 0;
+         unsigned short iterations = 0;
+         std::vector<unsigned char> salt;
+         AnsiString owner_hash;
+         AnsiString next_hash;
+         std::vector<unsigned char> rdata;
+         size_t bitmap = 0;
+      };
+
+      bool ReadNsecProof(const DnsResponse &response, const ParsedRr &record, NsecProof &proof)
+      {
+         size_t offset = record.rdata_offset;
+         if (!ReadName(response.packet, offset, proof.next))
+            return false;
+
+         if (offset < record.rdata_offset || offset - record.rdata_offset > record.rdata.size())
+            return false;
+
+         proof.owner = record.owner;
+         proof.rdata = record.rdata;
+         proof.bitmap = offset - record.rdata_offset;
+         return true;
+      }
+
+      bool ReadNsec3Proof(const ParsedRr &record, const AnsiString &zone, Nsec3Proof &proof)
+      {
+         const std::vector<unsigned char> &rdata = record.rdata;
+         if (rdata.size() < 6)
+            return false;
+
+         proof.algorithm = rdata[0];
+         proof.flags = rdata[1];
+         proof.iterations = static_cast<unsigned short>((static_cast<unsigned short>(rdata[2]) << 8) | rdata[3]);
+
+         // RFC 5155 section 8.2: a record with a flag other than Opt-Out is ignored.
+         if ((proof.flags & 0xFE) != 0)
+            return false;
+
+         const size_t saltLength = rdata[4];
+         if (rdata.size() < 5 + saltLength + 1)
+            return false;
+         proof.salt.assign(rdata.begin() + 5, rdata.begin() + 5 + static_cast<std::ptrdiff_t>(saltLength));
+
+         const size_t hashLengthOffset = 5 + saltLength;
+         const size_t hashLength = rdata[hashLengthOffset];
+         if (hashLength == 0 || rdata.size() < hashLengthOffset + 1 + hashLength)
+            return false;
+
+         const std::vector<unsigned char> nextHash(rdata.begin() + static_cast<std::ptrdiff_t>(hashLengthOffset + 1),
+                                                   rdata.begin() + static_cast<std::ptrdiff_t>(hashLengthOffset + 1 + hashLength));
+         proof.next_hash = Base32Hex(nextHash);
+         proof.bitmap = hashLengthOffset + 1 + hashLength;
+         proof.rdata = rdata;
+
+         // RFC 5155 section 8.2 too: the owner is the hash, one label, directly
+         // below the zone that signed it.
+         const int dot = record.owner.Find('.');
+         if (zone.IsEmpty())
+         {
+            if (dot >= 0 || record.owner.IsEmpty())
+               return false;
+            proof.owner_hash = record.owner;
+         }
+         else
+         {
+            if (dot <= 0 || record.owner.Mid(dot + 1) != zone)
+               return false;
+            proof.owner_hash = record.owner.Left(dot);
+         }
+
+         proof.owner_hash.MakeUpper();
+         return true;
+      }
+
+      // The NSEC and NSEC3 records of a negative answer's authority section
+      // that zone signed, each RRset with a signature by one of zone's
+      // validated keys that counts every label of its owner (no denial is
+      // synthesised from a wildcard). A record another zone signed proves
+      // nothing about a name in this one; the walk has already placed the name
+      // below any delegation (RFC 6840 section 4.1).
+      void CollectProofs(const DnsResponse &response, const AnsiString &zone,
+                         std::vector<NsecProof> &nsecs, std::vector<Nsec3Proof> &nsec3s)
+      {
+         std::vector<ParsedRr> records;
+         std::vector<RrsigInfo> signatures;
+
+         for (const ParsedRr &record : response.authority)
+         {
+            if ((record.type == DnsTypeNsec || record.type == DnsTypeNsec3) && IsSubdomainOrEqual(record.owner, zone))
+            {
+               records.push_back(record);
+            }
+            else if (record.type == DnsTypeRrsig)
+            {
+               RrsigInfo info;
+               if (ParseRrsig(response, record, info) && info.signer == zone &&
+                   (info.type_covered == DnsTypeNsec || info.type_covered == DnsTypeNsec3))
+               {
+                  signatures.push_back(info);
+               }
+            }
+         }
+
+         if (records.empty() || signatures.empty())
+            return;
+
+         std::vector<std::vector<unsigned char>> keys;
+         if (ValidateZoneKeys(zone, 1, keys) != InternalStatus::Secure)
+            return;
+
+         std::set<std::pair<AnsiString, unsigned short>> done;
+
+         for (const ParsedRr &record : records)
+         {
+            if (!done.insert(std::make_pair(record.owner, record.type)).second)
+               continue;
+
+            std::vector<ParsedRr> rrset;
+            for (const ParsedRr &other : records)
+               if (other.owner == record.owner && other.type == record.type)
+                  rrset.push_back(other);
+
+            bool verified = false;
+            for (const RrsigInfo &sig : signatures)
+            {
+               if (verified)
+                  break;
+
+               if (sig.type_covered != record.type || static_cast<int>(sig.labels) != CountLabels(record.owner))
+                  continue;
+
+               for (const std::vector<unsigned char> &key : keys)
+               {
+                  if (key.size() < 5 || key[3] != sig.algorithm || ComputeKeyTag(key) != sig.key_tag)
+                     continue;
+
+                  if (VerifyRrsigOverSet(response, rrset, sig, key))
+                  {
+                     verified = true;
+                     break;
+                  }
+               }
+            }
+
+            if (!verified)
+               continue;
+
+            for (const ParsedRr &member : rrset)
+            {
+               if (member.type == DnsTypeNsec)
+               {
+                  NsecProof proof;
+                  if (ReadNsecProof(response, member, proof))
+                     nsecs.push_back(proof);
+               }
+               else
+               {
+                  Nsec3Proof proof;
+                  if (ReadNsec3Proof(member, zone, proof))
+                     nsec3s.push_back(proof);
+               }
+            }
+         }
+      }
+
+      bool InBitmap(const std::vector<unsigned char> &rdata, size_t bitmap, unsigned short type)
+      {
+         return TypeBitmapHas(rdata, bitmap, type);
+      }
+
+      // The parent side of a delegation: NS without SOA.
+      bool IsDelegationPoint(const std::vector<unsigned char> &rdata, size_t bitmap)
+      {
+         return InBitmap(rdata, bitmap, DnsTypeNs) && !InBitmap(rdata, bitmap, DnsTypeSoa);
+      }
+
+      // Says the name holds nothing of type, and is no alias.
+      bool BitmapLacks(const std::vector<unsigned char> &rdata, size_t bitmap, unsigned short type)
+      {
+         return !InBitmap(rdata, bitmap, type) && !InBitmap(rdata, bitmap, DnsTypeCname);
+      }
+
+      // An NSEC covers a name between its owner and the next name - past the
+      // owner, for the last record, whose next name is the apex.
+      bool NsecCovers(const NsecProof &proof, const AnsiString &name)
+      {
+         if (CompareCanonicalNames(proof.owner, name) >= 0)
+            return false;
+
+         return CompareCanonicalNames(name, proof.next) < 0 || CompareCanonicalNames(proof.next, proof.owner) <= 0;
+      }
+
+      // RFC 6840 section 4.1: an NSEC at a delegation point is the parent
+      // side's, and one at a DNAME redirects what lies below it; neither speaks
+      // for a name below its owner.
+      bool SpeaksFor(const NsecProof &proof, const AnsiString &name)
+      {
+         if (proof.owner == name || !IsSubdomainOrEqual(name, proof.owner))
+            return true;
+
+         return !IsDelegationPoint(proof.rdata, proof.bitmap) && !InBitmap(proof.rdata, proof.bitmap, DnsTypeDname);
+      }
+
+      // The closest encloser an NSEC covering name shows: the deeper of the
+      // names name shares with its owner and with its next name.
+      AnsiString NsecClosestEncloser(const NsecProof &cover, const AnsiString &name)
+      {
+         const AnsiString byOwner = CommonAncestor(name, cover.owner);
+         const AnsiString byNext = CommonAncestor(name, cover.next);
+         return CountLabels(byNext) > CountLabels(byOwner) ? byNext : byOwner;
+      }
+
+      Absence NsecNameError(const std::vector<NsecProof> &nsecs, const AnsiString &name)
+      {
+         for (const NsecProof &cover : nsecs)
+         {
+            if (!NsecCovers(cover, name) || !SpeaksFor(cover, name))
+               continue;
+
+            const AnsiString closest = NsecClosestEncloser(cover, name);
+            if (closest == name)
+               continue; // names below it exist, so it does too
+
+            // No wildcard at the closest encloser to answer for the name.
+            const AnsiString wildcard = WildcardAt(closest);
+            for (const NsecProof &other : nsecs)
+            {
+               if (NsecCovers(other, wildcard) && SpeaksFor(other, wildcard))
+                  return Absence::NoName;
+            }
+         }
+
+         return Absence::Unproven;
+      }
+
+      Absence NsecNoData(const std::vector<NsecProof> &nsecs, const AnsiString &name, unsigned short type)
+      {
+         // The record at the name, which does not list the type. The parent side
+         // of a delegation speaks for DS alone.
+         for (const NsecProof &proof : nsecs)
+         {
+            if (proof.owner != name)
+               continue;
+            if (IsDelegationPoint(proof.rdata, proof.bitmap) && type != DnsTypeDs)
+               continue;
+            if (BitmapLacks(proof.rdata, proof.bitmap, type))
+               return Absence::NoData;
+         }
+
+         // An empty non-terminal: no record at the name, and one covering it
+         // whose next name is below it.
+         for (const NsecProof &cover : nsecs)
+         {
+            if (NsecCovers(cover, name) && SpeaksFor(cover, name) &&
+                cover.next != name && IsSubdomainOrEqual(cover.next, name))
+               return Absence::NoData;
+         }
+
+         // A wildcard that answers for the name and holds nothing of the type
+         // (RFC 4035 section 3.1.3.4).
+         for (const NsecProof &cover : nsecs)
+         {
+            if (!NsecCovers(cover, name) || !SpeaksFor(cover, name))
+               continue;
+
+            const AnsiString closest = NsecClosestEncloser(cover, name);
+            if (closest == name)
+               continue;
+
+            const AnsiString wildcard = WildcardAt(closest);
+            for (const NsecProof &star : nsecs)
+            {
+               if (star.owner == wildcard && BitmapLacks(star.rdata, star.bitmap, type))
+                  return Absence::NoData;
+            }
+         }
+
+         return Absence::Unproven;
+      }
+
+      // H(name) under one record's parameters, in base32hex: computed once per
+      // name and parameters, since a response may carry many records with the
+      // same ones.
+      class Nsec3Hasher
+      {
+      public:
+         bool Hash(const Nsec3Proof &proof, const AnsiString &name, AnsiString &hashed)
+         {
+            std::string key;
+            key += static_cast<char>(proof.algorithm);
+            key += static_cast<char>(proof.iterations >> 8);
+            key += static_cast<char>(proof.iterations & 0xFF);
+            key.append(proof.salt.begin(), proof.salt.end());
+            key += '\0';
+            key += name.c_str();
+
+            auto known = hashes_.find(key);
+            if (known == hashes_.end())
+            {
+               std::vector<unsigned char> digest;
+               AnsiString result;
+               if (ComputeNsec3Hash(name, proof.algorithm, proof.iterations, proof.salt, digest))
+                  result = Base32Hex(digest);
+               known = hashes_.insert(std::make_pair(key, result)).first;
+            }
+
+            hashed = known->second;
+            return !hashed.IsEmpty();
+         }
+
+      private:
+         std::map<std::string, AnsiString> hashes_;
+      };
+
+      // An NSEC3 covers a hash strictly between its owner's and the next one,
+      // the span of the last record wrapping round past the end to the first.
+      bool Nsec3Covers(const Nsec3Proof &proof, const AnsiString &hashed)
+      {
+         const bool afterOwner = proof.owner_hash.Compare(hashed) < 0;
+         const bool beforeNext = hashed.Compare(proof.next_hash) < 0;
+         if (proof.next_hash.Compare(proof.owner_hash) <= 0)
+            return afterOwner || beforeNext;
+         return afterOwner && beforeNext;
+      }
+
+      bool Nsec3MatchFor(const std::vector<Nsec3Proof> &nsec3s, Nsec3Hasher &hasher, const AnsiString &name, const Nsec3Proof *&match)
+      {
+         for (const Nsec3Proof &proof : nsec3s)
+         {
+            AnsiString hashed;
+            if (hasher.Hash(proof, name, hashed) && proof.owner_hash == hashed)
+            {
+               match = &proof;
+               return true;
+            }
+         }
+         return false;
+      }
+
+      bool Nsec3CoverFor(const std::vector<Nsec3Proof> &nsec3s, Nsec3Hasher &hasher, const AnsiString &name, const Nsec3Proof *&cover)
+      {
+         for (const Nsec3Proof &proof : nsec3s)
+         {
+            AnsiString hashed;
+            if (hasher.Hash(proof, name, hashed) && Nsec3Covers(proof, hashed))
+            {
+               cover = &proof;
+               return true;
+            }
+         }
+         return false;
+      }
+
+      // RFC 5155 section 8.3: the closest encloser of name - the longest of its
+      // ancestors, up to the zone's apex, with a matching record that is neither
+      // a delegation's parent side nor a DNAME - and the next closer name (the
+      // closest encloser's child on the way to name) covered by a record, whose
+      // Opt-Out flag is reported.
+      bool Nsec3ClosestEncloser(const std::vector<Nsec3Proof> &nsec3s, Nsec3Hasher &hasher, const AnsiString &name,
+                                const AnsiString &zone, AnsiString &closest, bool &optOut)
+      {
+         const std::vector<AnsiString> labels = LabelsOf(name);
+         const size_t zoneLabels = static_cast<size_t>(CountLabels(zone));
+
+         for (size_t first = 1; first < labels.size() + 1 && labels.size() - first + 1 > zoneLabels; first++)
+         {
+            const AnsiString ancestor = NameFromLabel(labels, first);
+
+            const Nsec3Proof *match = nullptr;
+            if (!Nsec3MatchFor(nsec3s, hasher, ancestor, match))
+               continue;
+
+            if (IsDelegationPoint(match->rdata, match->bitmap) || InBitmap(match->rdata, match->bitmap, DnsTypeDname))
+               return false;
+
+            const Nsec3Proof *cover = nullptr;
+            if (!Nsec3CoverFor(nsec3s, hasher, NameFromLabel(labels, first - 1), cover))
+               return false;
+
+            closest = ancestor;
+            optOut = (cover->flags & 0x01) != 0;
+            return true;
+         }
+
+         return false;
+      }
+
+      Absence Nsec3NameError(const std::vector<Nsec3Proof> &nsec3s, const AnsiString &name, const AnsiString &zone, bool excessive)
+      {
+         Nsec3Hasher hasher;
+
+         // A record matching the name says it exists.
+         const Nsec3Proof *match = nullptr;
+         if (Nsec3MatchFor(nsec3s, hasher, name, match))
+            return Absence::Unproven;
+
+         AnsiString closest;
+         bool optOut = false;
+         if (!Nsec3ClosestEncloser(nsec3s, hasher, name, zone, closest, optOut))
+            return excessive ? Absence::OptOut : Absence::Unproven;
+
+         if (optOut)
+            return Absence::OptOut;
+
+         // No wildcard at the closest encloser to answer for the name.
+         const Nsec3Proof *cover = nullptr;
+         if (Nsec3CoverFor(nsec3s, hasher, WildcardAt(closest), cover))
+            return Absence::NoName;
+
+         return excessive ? Absence::OptOut : Absence::Unproven;
+      }
+
+      Absence Nsec3NoData(const std::vector<Nsec3Proof> &nsec3s, const AnsiString &name, unsigned short type,
+                          const AnsiString &zone, bool excessive)
+      {
+         Nsec3Hasher hasher;
+
+         // The record at the name - an empty non-terminal has one too - which
+         // does not list the type (RFC 5155 section 8.5). The parent side of a
+         // delegation speaks for DS alone.
+         const Nsec3Proof *match = nullptr;
+         if (Nsec3MatchFor(nsec3s, hasher, name, match))
+         {
+            if (IsDelegationPoint(match->rdata, match->bitmap) && type != DnsTypeDs)
+               return Absence::Unproven;
+
+            return BitmapLacks(match->rdata, match->bitmap, type) ? Absence::NoData : Absence::Unproven;
+         }
+
+         // A wildcard that answers for the name and holds nothing of the type
+         // (RFC 5155 section 8.7).
+         AnsiString closest;
+         bool optOut = false;
+         if (Nsec3ClosestEncloser(nsec3s, hasher, name, zone, closest, optOut))
+         {
+            const Nsec3Proof *star = nullptr;
+            if (Nsec3MatchFor(nsec3s, hasher, WildcardAt(closest), star) && BitmapLacks(star->rdata, star->bitmap, type))
+               return Absence::NoData;
+         }
+
+         return excessive ? Absence::OptOut : Absence::Unproven;
+      }
+
+      // Whether an empty answer for name, of type, under the signed zone zone,
+      // came with zone's proof of what it says: NXDOMAIN that the name and its
+      // wildcard are not there, NOERROR that the name holds no record of the
+      // type. Without one, the answer is somebody's word.
+      Absence VerifyAbsence(const AnsiString &name, unsigned short type, const DnsResponse &response, const AnsiString &zone)
+      {
+         std::vector<NsecProof> nsecs;
+         std::vector<Nsec3Proof> nsec3s;
+         CollectProofs(response, zone, nsecs, nsec3s);
+
+         // RFC 9276: past the iterations this resolver computes (ComputeNsec3Hash),
+         // a zone's NSEC3 records are read as insecure, as other validators read them.
+         const bool excessive = std::any_of(nsec3s.begin(), nsec3s.end(),
+            [](const Nsec3Proof &proof) { return proof.algorithm == 1 && proof.iterations > 150; });
+
+         if (response.rcode == 3)
+         {
+            if (NsecNameError(nsecs, name) == Absence::NoName)
+               return Absence::NoName;
+
+            return Nsec3NameError(nsec3s, name, zone, excessive);
+         }
+
+         if (NsecNoData(nsecs, name, type) == Absence::NoData)
+            return Absence::NoData;
+
+         return Nsec3NoData(nsec3s, name, type, zone, excessive);
+      }
+
+      // Whether response holds zone's proof that name is not there at all, nor a
+      // wildcard that would answer for it, whatever its RCODE says (an RCODE is
+      // not signed).
+      bool ProvenNoName(const AnsiString &name, const DnsResponse &response, const AnsiString &zone)
+      {
+         std::vector<NsecProof> nsecs;
+         std::vector<Nsec3Proof> nsec3s;
+         CollectProofs(response, zone, nsecs, nsec3s);
+
+         return NsecNameError(nsecs, name) == Absence::NoName ||
+                Nsec3NameError(nsec3s, name, zone, false) == Absence::NoName;
+      }
+
+      // ----------------------------------------------------------------
+      // Where a name is (RFC 7672 section 2.1.1, RFC 4035 section 5)
+      //
+      // An answer to a TLSA or MX lookup that carries no signature, that
+      // carries no records and no proof of their absence, or that never came,
+      // is read as unsigned only when the name is: below a delegation that the
+      // signed zone above it proves unsigned. The walk asks each label's DS
+      // from the root down, as a validator finds a name's closest enclosing
+      // zone, and stops at the first unsigned cut. A signed zone that does not
+      // show what is below it - no proof, a proof signed by somebody else, a
+      // lookup that does not complete - leaves the answer Indeterminate.
+      // ----------------------------------------------------------------
+
+      bool CachedCut(const AnsiString &name, CutKind &kind)
+      {
+         boost::lock_guard<boost::recursive_mutex> guard(cut_cache_mutex);
+
+         auto cached = cut_cache.find(name);
+         if (cached == cut_cache.end() || cached->second.expires <= time(nullptr))
+            return false;
+
+         kind = cached->second.kind;
+         return true;
+      }
+
+      void RememberCut(const AnsiString &name, CutKind kind)
+      {
+         boost::lock_guard<boost::recursive_mutex> guard(cut_cache_mutex);
+
+         // Kept bounded, as the zone cache is.
+         if (cut_cache.size() >= 512)
+            cut_cache.clear();
+
+         CutEntry entry;
+         entry.kind = kind;
+         entry.expires = time(nullptr) + (kind == CutKind::Signed ? SignedCutCacheSeconds : CutCacheSeconds);
+         cut_cache[name] = entry;
+      }
+
+      // What candidate is, asked of the signed zone above it (zone). A DS RRset
+      // makes it a signed cut, which ValidateZoneKeys then proves or finds bogus.
+      // Without one, only a denial signed by zone itself says what it is - an
+      // unsigned delegation, or no zone cut at all - and an alias signed by zone
+      // is no cut (a CNAME has no NS beside it). Anything else is Indeterminate:
+      // zone is signed and did not show what lies below it. Remembered only
+      // when proven.
+      InternalStatus ClassifyCut(const AnsiString &candidate, const AnsiString &zone, CutKind &kind)
+      {
+         if (CachedCut(candidate, kind))
+            return InternalStatus::Secure;
+
+         DnsResponse response;
+         if (!RunQuery(candidate, DnsTypeDs, response))
+         {
+            LOG_DEBUG("DNSSEC: The DS lookup for " + String(candidate) + " did not complete; whether the name is signed cannot be told.");
+            return InternalStatus::Indeterminate;
+         }
+
+         bool hasDs = false;
+         std::vector<ParsedRr> aliases;
+         std::vector<RrsigInfo> aliasSignatures;
+
+         for (const ParsedRr &record : response.answers)
+         {
+            if (record.owner != candidate)
+               continue;
+
+            if (record.type == DnsTypeDs)
+            {
+               hasDs = true;
+            }
+            else if (record.type == DnsTypeCname)
+            {
+               aliases.push_back(record);
+            }
+            else if (record.type == DnsTypeRrsig)
+            {
+               RrsigInfo info;
+               if (ParseRrsig(response, record, info) && info.type_covered == DnsTypeCname && info.signer == zone)
+                  aliasSignatures.push_back(info);
+            }
+         }
+
+         if (hasDs)
+         {
+            kind = CutKind::Signed;
+            return InternalStatus::Secure;
+         }
+
+         if (!aliases.empty())
+         {
+            const RrsetVerdict verdict = ValidateRrset(response, aliases, aliasSignatures);
+            if (verdict == RrsetVerdict::Secure)
+            {
+               kind = CutKind::NotACut;
+               RememberCut(candidate, kind);
+               return InternalStatus::Secure;
+            }
+
+            return verdict == RrsetVerdict::Bogus ? InternalStatus::Bogus : InternalStatus::Indeterminate;
+         }
+
+         switch (EvaluateDsDenial(candidate, response, 1, &zone))
+         {
+         case DsDenial::UnsignedDelegation:
+            kind = CutKind::Unsigned;
+            RememberCut(candidate, kind);
+            return InternalStatus::Secure;
+         case DsDenial::Nonexistent:
+            // A top-level name the signed root proves is not there - the name and,
+            // with it, any wildcard that could answer for it (ProvenNoName) - is
+            // outside the public tree: no chain of trust reaches anything under it,
+            // which is what a private name (company.local) is, and it is read as
+            // unsigned, as a validator's own local zones are. The proof is the
+            // root's, so nobody can make a name of the public tree look like one.
+            // Below the root a name proven not there is no cut, and the walk goes on.
+            if (zone.IsEmpty() && ProvenNoName(candidate, response, zone))
+            {
+               LOG_DEBUG("DNSSEC: the root proves " + String(candidate) + " is not a top-level name; a name under it is outside the signed tree.");
+               kind = CutKind::Unsigned;
+               RememberCut(candidate, kind);
+               return InternalStatus::Secure;
+            }
+            kind = CutKind::NotACut;
+            RememberCut(candidate, kind);
+            return InternalStatus::Secure;
+         case DsDenial::NotADelegation:
+            kind = CutKind::NotACut;
+            RememberCut(candidate, kind);
+            return InternalStatus::Secure;
+         case DsDenial::NoProof:
+         case DsDenial::Invalid:
+         case DsDenial::Indeterminate:
+            break;
+         }
+
+         LOG_DEBUG("DNSSEC: " + String(zone.IsEmpty() ? AnsiString(".") : zone) + " is signed and did not prove what " + String(candidate) + " is; whether the name is signed cannot be told.");
+         return InternalStatus::Indeterminate;
+      }
+
+      // When the application log last said that the root's keys could not be had
+      // (RootUnverifiable); 0 before it ever has.
+      std::atomic<time_t> root_unverifiable_said_at(0);
+
+      // Says, at most once in ten minutes, that the root's keys could not be
+      // validated - which, since 6.3.6, holds up the mail to every domain that is
+      // not signed, so the application log names the cause and what to do rather
+      // than leaving the administrator a deferral per message to read.
+      void RootUnverifiable(InternalStatus root)
+      {
+         const time_t now = time(nullptr);
+         time_t said = root_unverifiable_said_at.load();
+         if (said != 0 && now - said < 600)
+            return;
+         if (!root_unverifiable_said_at.compare_exchange_strong(said, now))
+            return;
+
+         const AnsiString why = root == InternalStatus::Indeterminate
+            ? AnsiString("could not be fetched: no DNS server it asks answered the query for them")
+            : AnsiString("did not validate against the trust anchors (DnssecTrustAnchors, or the built-in IANA root anchors): they came without a signature, or with none that verifies");
+
+         LOG_APPLICATION("DNSSEC: the root zone's keys " + String(why) + ". Until they validate, no answer can be proven unsigned, so every MX or TLSA lookup that comes back without signatures is indeterminate and its delivery is deferred (RFC 7672 section 2.1.1). The DNS servers this server asks (DNSServer, or else the system's first two IPv4 DNS servers, or its first two IPv6 ones when it lists no IPv4 server) must answer DNSSEC queries - the DO bit, with the signatures - over UDP and TCP; DaneEnforcementEnabled=0 delivers without DANE instead.");
+      }
+
+      // Where name is: Secure, with zone the closest enclosing zone the chain
+      // of trust reaches; Insecure when an unsigned delegation is proven above
+      // it, or an Opt-Out span leaves one possible (RFC 5155 section 9.2), or a
+      // zone above it names only algorithms this resolver does not follow
+      // (RFC 4035 section 5.2); Bogus when the chain fails; Indeterminate when
+      // a lookup on the way did not complete or a signed zone did not prove
+      // what lies below it - and when the root's own keys could not be had.
+      InternalStatus FindEnclosingZone(const AnsiString &name, AnsiString &zone)
+      {
+         zone = "";
+
+         // The root's keys, validated against the trust anchors, are where every
+         // proof starts. Without them nothing below can be told, and the fault is
+         // this server's or its resolver's - signatures stripped on the way, no
+         // answer, anchors out of date - not the name's: Indeterminate, never
+         // Insecure, which would be the downgrade, and never Bogus, which would
+         // report every recipient domain to TLS reporting as failing DNSSEC.
+         std::vector<std::vector<unsigned char>> keys;
+         const InternalStatus root = ValidateZoneKeys("", 1, keys);
+         if (root != InternalStatus::Secure)
+         {
+            RootUnverifiable(root);
+            return InternalStatus::Indeterminate;
+         }
+
+         const std::vector<AnsiString> labels = LabelsOf(name);
+         if (labels.size() > MaxWalkLabels)
+            return InternalStatus::Indeterminate;
+
+         for (size_t first = labels.size(); first-- > 0;)
+         {
+            const AnsiString candidate = NameFromLabel(labels, first);
+
+            CutKind kind = CutKind::NotACut;
+            const InternalStatus classified = ClassifyCut(candidate, zone, kind);
+            if (classified != InternalStatus::Secure)
+               return classified;
+
+            if (kind == CutKind::Unsigned)
+               return InternalStatus::Insecure;
+
+            if (kind == CutKind::Signed)
+            {
+               const InternalStatus cut = ValidateZoneKeys(candidate, 1, keys);
+               if (cut != InternalStatus::Secure)
+                  return cut;
+
+               zone = candidate;
+               RememberCut(candidate, CutKind::Signed);
+            }
+         }
+
+         return InternalStatus::Secure;
+      }
+
+      // The verdict on name when its answer cannot speak for itself - it did
+      // not come, or came without the signatures it needs: Insecure when the
+      // name is proven below an unsigned delegation, Bogus when the chain to it
+      // fails, and Indeterminate otherwise (RFC 7672 section 2.1.1).
+      DnssecResolver::ChainStatus WhereUnproven(const AnsiString &name, const AnsiString &what)
+      {
+         AnsiString zone;
+         switch (FindEnclosingZone(name, zone))
+         {
+         case InternalStatus::Insecure:
+            return DnssecResolver::ChainStatus::Insecure;
+         case InternalStatus::Bogus:
+            return DnssecResolver::ChainStatus::Bogus;
+         case InternalStatus::Secure:
+            LOG_DEBUG("DNSSEC: " + String(name) + " is in the signed zone " + String(zone.IsEmpty() ? AnsiString(".") : zone) +
+                      ", and its answer " + String(what) + ". Treating the lookup as indeterminate (RFC 7672 section 2.1.1).");
+            return DnssecResolver::ChainStatus::Indeterminate;
+         case InternalStatus::Indeterminate:
+            break;
+         }
+
+         LOG_DEBUG("DNSSEC: The answer for " + String(name) + " " + String(what) + ", and whether the name is in a signed zone could not be told. Treating the lookup as indeterminate (RFC 7672 section 2.1.1).");
+         return DnssecResolver::ChainStatus::Indeterminate;
       }
    }
 
    DnssecResolver::ChainStatus
    DnssecResolver::QueryValidatedRrset_(const AnsiString &query_name, unsigned short query_type,
-                                        std::vector<std::vector<unsigned char>> &rdatas)
+                                        std::vector<std::vector<unsigned char>> &rdatas,
+                                        bool strict, AnsiString &final_name, bool &nonexistent)
    {
       rdatas.clear();
+      nonexistent = false;
 
       AnsiString queryName = query_name;
       queryName.MakeLower();
+      final_name = queryName;
 
       // The final answer can only be Secure if every CNAME link in the
-      // chain was validated as well (RFC 4035 section 5).
+      // chain was validated as well (RFC 4035 section 5). Once a link is
+      // proven insecure, so is everything after it, and nothing after it is
+      // asked to prove more.
       bool aliasChainSecure = true;
 
       for (int hop = 0; hop <= MaxCnameHops; hop++)
       {
+         final_name = queryName;
+
          DnsResponse response;
          if (!RunQuery(queryName, query_type, response))
          {
             LOG_DEBUG("DNSSEC: Lookup for " + String(queryName) + " failed at the transport level.");
-            return ChainStatus::Insecure;
+
+            if (!strict || !aliasChainSecure)
+               return ChainStatus::Insecure;
+
+            return WhereUnproven(queryName, "did not come (no server answered, SERVFAIL or a reply that does not parse)");
          }
 
          std::vector<ParsedRr> typedRrset;
@@ -1909,43 +3007,102 @@ namespace HM
 
          if (!typedRrset.empty())
          {
-            InternalStatus status = ValidateRrset(response, typedRrset, signatures);
+            const RrsetVerdict verdict = ValidateRrset(response, typedRrset, signatures);
 
-            if (status == InternalStatus::Bogus)
+            if (verdict == RrsetVerdict::Bogus)
                return ChainStatus::Bogus;
 
-            for (const ParsedRr &record : typedRrset)
-               rdatas.push_back(record.rdata);
+            ChainStatus status = ChainStatus::Insecure;
 
-            return (status == InternalStatus::Secure && aliasChainSecure)
-               ? ChainStatus::Secure : ChainStatus::Insecure;
+            if (verdict == RrsetVerdict::Secure)
+            {
+               status = aliasChainSecure ? ChainStatus::Secure : ChainStatus::Insecure;
+            }
+            else if (verdict != RrsetVerdict::InsecureZone && strict && aliasChainSecure)
+            {
+               // No signature applies, or the signer's keys could not be had: the
+               // records are not taken as unsigned unless the name is.
+               status = verdict == RrsetVerdict::Indeterminate ? ChainStatus::Indeterminate :
+                  WhereUnproven(queryName, "came without its signatures");
+            }
+
+            if (status == ChainStatus::Secure || status == ChainStatus::Insecure)
+            {
+               for (const ParsedRr &record : typedRrset)
+                  rdatas.push_back(record.rdata);
+            }
+
+            return status;
          }
 
          if (!cnameRrset.empty())
          {
             // Follow the alias, but only across validated links.
-            InternalStatus status = ValidateRrset(response, cnameRrset, signatures);
+            const RrsetVerdict verdict = ValidateRrset(response, cnameRrset, signatures);
 
-            if (status == InternalStatus::Bogus)
+            if (verdict == RrsetVerdict::Bogus)
                return ChainStatus::Bogus;
 
-            if (status == InternalStatus::Insecure)
+            if (verdict != RrsetVerdict::Secure)
+            {
+               if (verdict != RrsetVerdict::InsecureZone && strict && aliasChainSecure)
+               {
+                  const ChainStatus where = verdict == RrsetVerdict::Indeterminate ? ChainStatus::Indeterminate :
+                     WhereUnproven(queryName, "is an alias that came without its signatures");
+                  if (where != ChainStatus::Insecure)
+                     return where;
+               }
+
                aliasChainSecure = false;
+            }
 
             AnsiString target;
             size_t offset = cnameRrset[0].rdata_offset;
             if (!ReadName(response.packet, offset, target) || target.IsEmpty())
-               return ChainStatus::Insecure;
+               return strict && aliasChainSecure ? ChainStatus::Indeterminate : ChainStatus::Insecure;
 
             queryName = target;
             continue;
          }
 
-         // NOERROR/NXDOMAIN without records: nothing published.
-         return ChainStatus::Insecure;
+         // NOERROR or NXDOMAIN without records.
+         if (!strict || !aliasChainSecure)
+            return ChainStatus::Insecure;
+
+         AnsiString zone;
+         switch (FindEnclosingZone(queryName, zone))
+         {
+         case InternalStatus::Insecure:
+            return ChainStatus::Insecure;
+         case InternalStatus::Bogus:
+            return ChainStatus::Bogus;
+         case InternalStatus::Indeterminate:
+            LOG_DEBUG("DNSSEC: The answer for " + String(queryName) + " holds no records, and whether the name is in a signed zone could not be told. Treating the lookup as indeterminate (RFC 7672 section 2.1.1).");
+            return ChainStatus::Indeterminate;
+         case InternalStatus::Secure:
+            break;
+         }
+
+         switch (VerifyAbsence(queryName, query_type, response, zone))
+         {
+         case Absence::NoData:
+            return ChainStatus::Secure;
+         case Absence::NoName:
+            nonexistent = true;
+            return ChainStatus::Secure;
+         case Absence::OptOut:
+            return ChainStatus::Insecure;
+         case Absence::Unproven:
+            break;
+         }
+
+         LOG_DEBUG("DNSSEC: The answer for " + String(queryName) + " holds no records, and the signed zone " + String(zone.IsEmpty() ? AnsiString(".") : zone) +
+                   " gave no proof that none exist. Treating the lookup as indeterminate (RFC 7672 section 2.1.1).");
+         return ChainStatus::Indeterminate;
       }
 
-      return ChainStatus::Insecure; // too many CNAME hops
+      // Too many CNAME hops.
+      return strict && aliasChainSecure ? ChainStatus::Indeterminate : ChainStatus::Insecure;
    }
 
    bool
@@ -2113,15 +3270,21 @@ namespace HM
       queryName.Format("_%d._tcp.%hs", port, narrowHost.c_str());
 
       std::vector<std::vector<unsigned char>> rdatas;
-      ChainStatus status = QueryValidatedRrset_(queryName, DnsTypeTlsa, rdatas);
+      AnsiString finalName;
+      bool nonexistent = false;
+      ChainStatus status = QueryValidatedRrset_(queryName, DnsTypeTlsa, rdatas, true, finalName, nonexistent);
 
       if (status != ChainStatus::Secure)
       {
          if (status == ChainStatus::Insecure && !rdatas.empty())
-            LOG_DEBUG("DNSSEC: TLSA records for " + String(queryName) + " are not covered by a validated chain (unsigned zone or non-DNSSEC resolver). Proceeding without DANE.");
+            LOG_DEBUG("DNSSEC: TLSA records for " + String(queryName) + " are under a delegation proven unsigned. Proceeding without DANE.");
 
          return status;
       }
+
+      // The signed zone proved there is none.
+      if (rdatas.empty())
+         return ChainStatus::Secure;
 
       for (const std::vector<unsigned char> &rdata : rdatas)
       {
@@ -2161,10 +3324,25 @@ namespace HM
       queryName.MakeLower();
 
       std::vector<std::vector<unsigned char>> rdatas;
-      ChainStatus status = QueryValidatedRrset_(queryName, DnsTypeMx, rdatas);
+      AnsiString finalName;
+      bool nonexistent = false;
+      ChainStatus status = QueryValidatedRrset_(queryName, DnsTypeMx, rdatas, true, finalName, nonexistent);
 
       if (status != ChainStatus::Secure)
          return status;
+
+      if (rdatas.empty())
+      {
+         // The signed zone proved there is no MX RRset. The name is then its own
+         // mail host, the implicit MX of RFC 5321 section 5.1 - the one host
+         // DNSResolver::GetEmailServers may name, after the same CNAMEs - and with
+         // a proof that the name does not exist there is no host at all. Until
+         // 6.3.6 both were Insecure, and a forged plain answer chose the host.
+         if (!nonexistent)
+            exchanges.push_back(finalName);
+
+         return ChainStatus::Secure;
+      }
 
       for (const std::vector<unsigned char> &rdata : rdatas)
       {
@@ -2229,7 +3407,9 @@ namespace HM
       queryName.MakeLower();
 
       std::vector<std::vector<unsigned char>> rdatas;
-      ChainStatus status = QueryValidatedRrset_(queryName, DnsTypeTxt, rdatas);
+      AnsiString finalName;
+      bool nonexistent = false;
+      ChainStatus status = QueryValidatedRrset_(queryName, DnsTypeTxt, rdatas, false, finalName, nonexistent);
 
       if (status == ChainStatus::Bogus)
          return status;
@@ -2257,6 +3437,80 @@ namespace HM
       }
 
       return status;
+   }
+
+   void
+   DnssecResolverTester::Test()
+   {
+      auto expect = [](bool condition, const char *what)
+      {
+         if (!condition)
+            throw std::logic_error(std::string("DnssecResolverTester: ") + what);
+      };
+
+      // A chosen server as text, "address port", the port in host order.
+      auto text = [](const NameServer &server) -> std::string
+      {
+         char address[INET6_ADDRSTRLEN] = {};
+         unsigned short port = 0;
+         if (server.address.ss_family == AF_INET)
+         {
+            const sockaddr_in *v4 = reinterpret_cast<const sockaddr_in *>(&server.address);
+            if (inet_ntop(AF_INET, &v4->sin_addr, address, sizeof(address)) == nullptr)
+               return "?";
+            port = ntohs(v4->sin_port);
+         }
+         else if (server.address.ss_family == AF_INET6)
+         {
+            const sockaddr_in6 *v6 = reinterpret_cast<const sockaddr_in6 *>(&server.address);
+            if (inet_ntop(AF_INET6, &v6->sin6_addr, address, sizeof(address)) == nullptr)
+               return "?";
+            port = ntohs(v6->sin6_port);
+         }
+         else
+         {
+            return "?";
+         }
+
+         return std::string(address) + " " + std::to_string(port);
+      };
+
+      auto chosen = [&text](const std::string &resolvConf) -> std::string
+      {
+         std::string joined;
+         for (const NameServer &server : ChooseNameServers(ReadResolvConf(resolvConf)))
+         {
+            if (!joined.empty())
+               joined += ", ";
+            joined += text(server);
+         }
+         return joined;
+      };
+
+      expect(chosen("nameserver 192.0.2.1\nnameserver 192.0.2.2\nnameserver 192.0.2.3\n") == "192.0.2.1 53, 192.0.2.2 53",
+             "of three IPv4 servers, the first two are asked, on port 53.");
+
+      // The case 6.3.6's re-check found: a host whose DNS servers are IPv6 alone.
+      // Until it their servers were passed over, and the lookups reached none.
+      expect(chosen("# written by the network\nsearch example.test\nnameserver 2001:db8::53\nnameserver 2001:db8::54 # second\n") ==
+             "2001:db8::53 53, 2001:db8::54 53",
+             "a system that lists IPv6 servers alone has them asked.");
+
+      expect(chosen("nameserver 2001:db8::53\r\nnameserver 192.0.2.1\r\n") == "192.0.2.1 53",
+             "a system that lists an IPv4 server has it asked, and not its IPv6 servers, as before.");
+
+      expect(chosen("nameserver fec0:0:0:ffff::1\nnameserver fec0:0:0:ffff::2\nnameserver fec0:0:0:ffff::3\n").empty(),
+             "the site-local servers Windows lists for an adapter given no IPv6 DNS server are not asked.");
+      expect(chosen("nameserver fec0:0:0:ffff::1\nnameserver 2001:db8::53\n") == "2001:db8::53 53",
+             "past the site-local servers, the next IPv6 server is asked.");
+
+      expect(chosen("nameserver ::ffff:192.0.2.7\n") == "192.0.2.7 53",
+             "an IPv4 address written as IPv6 is asked as the IPv4 address it is.");
+
+      expect(chosen("nameservers 192.0.2.9\n  nameserver\t192.0.2.8;comment\nnameserver mail.example.test\nnameserver\n") == "192.0.2.8 53",
+             "only a whole nameserver keyword with an address counts, and the address ends at a comment.");
+
+      expect(chosen("").empty() && chosen("options edns0\n").empty(), "a file that names no server names none.");
    }
 
 }

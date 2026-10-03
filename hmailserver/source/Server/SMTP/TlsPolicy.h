@@ -9,11 +9,17 @@
 // DANE lookups are DNSSEC-validated in-process (see DnssecResolver):
 // the chain of trust is verified from the TLSA RRset up to the IANA
 // root trust anchors. Validation results follow RFC 7672:
-//   secure   -> TLSA records are enforced; a secure RRset none of whose
-//               records is usable still requires TLS, unauthenticated
-//               (section 2.2)
-//   insecure -> treated as if no TLSA records exist
-//   bogus    -> the MX host must not be used
+//   secure        -> TLSA records are enforced; a secure RRset none of whose
+//                    records is usable still requires TLS, unauthenticated
+//                    (section 2.2); a signed zone's proof of none is no records
+//   insecure      -> treated as if no TLSA records exist: the name is proven
+//                    to sit below an unsigned delegation
+//   bogus         -> the MX host must not be used
+//   indeterminate -> the lookup did not complete, or came without the
+//                    signatures or the proof its signed zone owes: the MX host
+//                    must not be used either (section 2.1.1). Until 6.3.6 this
+//                    was insecure, and DANE could be switched off for a
+//                    destination by anybody who could disturb its DNS.
 //
 // RFC 7672 section 2.2 requires more than a validated TLSA RRset: the
 // MX RRset that produced the host name must be DNSSEC-validated too.
@@ -25,11 +31,16 @@
 // also checks that the host about to be contacted is one of the names
 // the validated MX RRset actually published.
 //
-// This is a mail server, so the section 2.2 check is built to fail
-// open. Exactly one MxDnssecStatus value can stop a delivery (Bogus),
-// it is the value furthest from zero, and every other value - including
-// anything a caller produces by accident - lands on the ordinary
-// delivery path. See the invariant on MxDnssecStatus below.
+// Exactly one MxDnssecStatus value can stop a delivery (Bogus), it is the
+// value furthest from zero, and every other value - including anything a
+// caller produces by accident - lands on the ordinary delivery path. See
+// the invariant on MxDnssecStatus below. Since 6.3.6 Bogus is reached from
+// three results of the validated MX lookup, not one: an RRset that failed
+// validation, a lookup that was indeterminate (section 2.1.1), and a secure
+// RRset that does not name the host about to be contacted (section 2.2.1 -
+// the host came from the plain, unvalidated lookup). Until then the last two
+// were Insecure, and a destination's DANE was switched off by a dropped or a
+// forged DNS answer.
 //
 // PLUMBED 13 August 2026. DnssecResolver::QueryMx supplies the validated
 // MX RRset, ExternalDelivery looks it up once per recipient domain and
@@ -43,7 +54,7 @@
 // rdata is what was signed (RFC 4034 section 6.2) - but where a resolver
 // does hand back compressed rdata, the effect is a name this code will
 // not parse, hence no validated MX host, hence Insecure, hence delivery
-// exactly as it was before. It cannot fail closed.
+// exactly as it was before.
 //
 // Setting DnssecValidationEnabled=0 reverts to opportunistic
 // (unvalidated) TLSA usage.
@@ -52,6 +63,7 @@
 
 #include "../Common/TCPIP/DaneVerifier.h"
 #include "../Common/TCPIP/DnssecResolver.h"
+#include "../Common/TCPIP/SocketConstants.h"
 
 namespace HM
 {
@@ -90,7 +102,10 @@ namespace HM
          Unusable,         // a DNSSEC-validated RRset of records none of
                            // which this server can use (RFC 7672 section
                            // 2.2): TLS is required, authentication is not
-         Bogus             // DNSSEC validation failed - do not use host
+         Bogus,            // DNSSEC validation failed - do not use host
+         Indeterminate     // the lookup did not complete, or came without
+                           // the signatures or the proof its signed zone
+                           // owes - do not use host (RFC 7672 section 2.1.1)
       };
 
       // The DNSSEC status of the MX RRset that named the host now being
@@ -104,11 +119,12 @@ namespace HM
       // off-by-one lands on it. TlsPolicy.cpp static_asserts this.
       //
       // The numbering deliberately does NOT line up with
-      // DnssecResolver::ChainStatus (Secure=0, Insecure=1, Bogus=2), so a
-      // caller that takes the shortcut of static_cast-ing a ChainStatus
-      // into this type cannot produce Bogus: 0 becomes Unknown, 1 becomes
-      // Insecure, 2 becomes Secure. All three are fail-open.
-      // EvaluateMxDnssecStatus is the only sanctioned conversion.
+      // DnssecResolver::ChainStatus (Secure=0, Insecure=1, Bogus=2,
+      // Indeterminate=3), so a caller that takes the shortcut of
+      // static_cast-ing a ChainStatus into this type cannot produce Bogus
+      // from a validation that failed: 0 becomes Unknown, 1 becomes Insecure,
+      // 2 becomes Secure. Indeterminate becomes Bogus, which is what it means
+      // here as well. EvaluateMxDnssecStatus is the only sanctioned conversion.
       enum class MxDnssecStatus
       {
          Unknown = 0,   // the caller did not determine the MX status, so the
@@ -124,12 +140,14 @@ namespace HM
                         // deferral and never a bounce.
          Secure = 2,    // the MX RRset was DNSSEC-validated and named this host,
                         // so DANE genuinely applies to it
-         Bogus = 3      // DNSSEC is published for the MX RRset and failed to
-                        // validate: the host names are not trustworthy. Handled
-                        // like a bogus TLSA lookup - the host is not used, which
-                        // defers the delivery if no host remains. The only
-                        // value here that can hold up mail, and reachable only
-                        // when a caller passes it explicitly.
+         Bogus = 3      // the host must not be used: DNSSEC is published for
+                        // the MX RRset and failed to validate, or the lookup was
+                        // indeterminate (RFC 7672 section 2.1.1), or the RRset
+                        // validated and does not name this host (section
+                        // 2.2.1). Handled like a bogus TLSA lookup - the host is
+                        // not used, which defers the delivery if no host
+                        // remains. The only value here that can hold up mail,
+                        // and reachable only when a caller passes it explicitly.
       };
 
       // Derives the value above for one candidate MX host from the result of
@@ -137,7 +155,10 @@ namespace HM
       // validated_mx_hosts are the host names that lookup returned, and are
       // only consulted when mx_chain_status is Secure: a validated MX RRset
       // makes this particular host DANE-capable only if the RRset is where
-      // the host name came from.
+      // the host name came from, and a host it does not name is not used
+      // (Bogus) - mail goes to the hosts the domain signed for, or waits. An
+      // Indeterminate lookup is Bogus too. A function of its arguments
+      // (DaneTester).
       static MxDnssecStatus EvaluateMxDnssecStatus(const String &host_name,
                                                    DnssecResolver::ChainStatus mx_chain_status,
                                                    const std::vector<String> &validated_mx_hosts);
@@ -177,6 +198,18 @@ namespace HM
       // other two were bounced at once by the permanent 5.7.0 of a missing
       // STARTTLS. A function of its arguments (DaneTester).
       static String PublishedTlsDeferral(const String &host, const String &recipientDomain, bool daneRecords, bool daneUnusable, bool stsEnforced);
+
+      // Whether a connection whose TLS a validated TLSA RRset of no usable
+      // record requires (daneUnusable; RFC 7672 section 2.2 asks for TLS and
+      // not for authentication) has its certificate check waived, as
+      // opportunistic STARTTLS's is. Never when anything else requires TLS: an
+      // MTA-STS policy in enforce mode, a remote domain policy, a rule - or
+      // this server's own connection security, the administrator's or a
+      // route's, at SSL or STARTTLS (required), where VerifyRemoteSslCertificate
+      // decides as it always has. 6.3.6 before its release waived it there
+      // too. A function of its arguments (DaneTester).
+      static bool WaivesCertificateCheck(bool daneUnusable, bool stsEnforced, bool policyRequiresTls, bool ruleRequiresTls,
+                                         ConnectionSecurity connectionSecurity);
 
       // The two network steps of the lookups above, each bounded by its deadline:
       // the policy fetch (https://host + path, 15 seconds for all of it, the body
@@ -225,6 +258,10 @@ namespace HM
    // for another name or out of date; DANE-EE (3 1 1) authenticating a
    // self-signed certificate for another name, and refusing another key. Until
    // 6.3.6 only DANE-EE was used, and an RRset without it was taken for none.
+   // And what the validated MX lookup makes of each host (EvaluateMxDnssecStatus:
+   // a host the secure RRset does not name, and any host after an indeterminate
+   // lookup, is not used), and whose TLS waives the certificate check
+   // (WaivesCertificateCheck: never the server's own SSL or STARTTLS (required)).
    // No database, configuration, file or network. Runs inside the service with
    // the other class tests (ClassTester) and on Linux as dane-tests. Throws
    // std::logic_error naming the first thing that is wrong.

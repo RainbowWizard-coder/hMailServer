@@ -4,24 +4,25 @@
 
 // Who may push whom out of a full table of sign-in state.
 //
-// Five tables hold what a sign-in leaves in memory: the browser sessions of the
+// Two tables hold what a sign-in leaves in memory: the browser sessions of the
 // REST listener (RestApiServer.cpp), each standing for an account, the
-// administrator or a support session; the pending halves of the sign-ins that
-// begin with no credential at all - an OpenID Connect start (OidcSignIn), a SAML
-// start (SamlSignIn) and a passkey sign-in's challenge (PasskeyStore); and a
-// passkey registration's challenge, held by the credential that asked. Each
-// is bounded, so each has to make room when it is full, and until 6.3.6 each made
-// room by dropping its oldest entry, whoever it belonged to. A mailbox user who
-// signed in over and over with their own password pushed every other session out
-// of the table, the administrator's Control Deck included; a stranger asking for
-// sign-in starts a few times a second pushed out everybody else's pending sign-in
-// before their browser came back from the identity provider, which switched
-// single sign-on and passkeys off for as long as they kept asking.
+// administrator or a support session; and a passkey registration's challenge,
+// held by the credential that asked (PasskeyStore). Each is bounded, so each has
+// to make room when it is full, and until 6.3.6 each made room by dropping its
+// oldest entry, whoever it belonged to: a mailbox user who signed in over and
+// over with their own password pushed every other session out of the table, the
+// administrator's Control Deck included.
 //
-// THE RULE, the same for all five. Every entry has a HOLDER - the principal a
-// session stands for, the source a pending sign-in came from, the credential a
-// registration is for - and room is made for one more entry of a holder as
-// follows:
+// The pending halves of the sign-ins that begin with no credential at all - an
+// OpenID Connect start, a SAML start, a passkey sign-in's challenge - were three
+// more such tables, which a stranger asking for starts filled; 6.3.6 first held
+// each source to its share of them under this rule, which a pool of addresses as
+// large as a table still beat, and since its second review they are not held
+// here at all: the browser carries each one sealed (SignInState.h).
+//
+// THE RULE, the same for both. Every entry has a HOLDER - the principal a
+// session stands for, the credential a registration is for - and room is made
+// for one more entry of a holder as follows:
 //
 //   1. A holder at its own cap gives up its own oldest entry. The cap is what
 //      keeps one principal or one source from taking a table over.
@@ -45,40 +46,23 @@
 //      administrator's session out, however many accounts they hold.
 //
 // "Oldest" is the table's own: the least recently used for a session, the first
-// made for a pending sign-in. A table whose erase leaves its other entries where
-// they are (the std::maps of the pending sign-ins) is made room in by MakeRoom,
-// which weighs a full table once for a batch; the sessions, a vector, by Victim
-// one entry at a time.
+// made for a registration's challenge. A table whose erase leaves its other
+// entries where they are (the std::map of the registrations) is made room in by
+// MakeRoom, which weighs a full table once for a batch; the sessions, a vector,
+// by Victim one entry at a time.
 //
-// THE SOURCE of a pending sign-in (PendingSource) is the peer address, an IPv6 one
-// reduced to its /64 - one host's allocation, which a single machine can fill with
-// as many addresses as it likes - and an IPv4 address carried in IPv6 read as the
-// IPv4. A peer on this machine (127.0.0.0/8, ::1) is what every browser is behind
-// a reverse proxy on the same host, and the plain-HTTP listener can only be bound
-// there, so for such a peer the source is the last address of the last
-// X-Forwarded-For line: the one the proxy itself wrote, whatever a client put
-// before it. A loopback request with no readable forwarded address has the source
-// "" - one holder with no cap of its own, held by rule 2 and the table's size,
-// which is what a proxy that does not say whom it forwards for leaves to go on.
-// So does a forwarded address on this machine, or the unspecified address: a
-// second proxy on this host in front of the first writes its own 127.0.0.1 there
-// for every browser, and one source with a cap of 256 for all of them would be
-// a switch for anybody who asks 256 times.
-// The header is believed for this and for nothing else: not for the
-// administrator password's throttle (GuessSource), not for the auto-ban, not for
-// anything that grants. A client of a proxy that passes its own header through
-// untouched can name a fresh source for each request, and is then held by the
-// table's size alone, as every client was before 6.3.6, with a table twenty times
-// the size - or name another person's address, and spend that source's 256 as
-// 6.3.5 let anybody spend the whole table. The proxy is the administrator's to
-// set (docs/PasskeysAndSingleSignOn.md).
-//
-// GuessSource is the same reduction without the header, for the administrator
-// password's failed-sign-in throttle: a guesser rotating through the addresses of
-// one /64 shares one delay.
+// GuessSource is the source a guess of the administrator password is counted
+// against, for its failed-sign-in throttle: the peer address, an IPv6 one reduced
+// to its /64 - one host's allocation, which a single machine can fill with as many
+// addresses as it likes, so that a guesser rotating through them shares one delay -
+// and an IPv4 address carried in IPv6 read as the IPv4: v4-mapped, NAT64's and
+// SIIT's 64:ff9b::/96 (one /64 of which is every IPv4 client of the translator)
+// and a Teredo client's own address. No header is believed for it. RefusalKey is
+// the same reading for the REST listener's refused set.
 //
 // SignInBudgetTester holds the rule and the sources; ClassTester runs it on
-// Windows and sign-in-budget-tests on Linux, beside PasskeyStoreTester.
+// Windows and sign-in-budget-tests on Linux, beside PasskeyStoreTester and
+// SignInStateTester.
 #pragma once
 
 #include <algorithm>
@@ -97,23 +81,18 @@ namespace HM
    {
    public:
 
-      // The holder of a pending sign-in begun by request (its head is read, its
-      // body never) from peer. See above.
-      static std::string PendingSource(const AnsiString &request, const IPAddress &peer);
-
       // The source a guess of the administrator password is counted against: the
       // peer, an IPv6 address reduced to "<prefix>::/64", an IPv4 address carried
-      // in IPv6 read as the IPv4, the loopback addresses as they are. No header.
+      // in IPv6 read as the IPv4 - v4-mapped, under the NAT64 and SIIT well-known
+      // prefix 64:ff9b::/96, a Teredo client's own - the loopback addresses as they
+      // are. No header.
       static std::string GuessSource(const IPAddress &peer);
 
-      // The address the last element of the last X-Forwarded-For line names, in
-      // the form GuessSource gives; "" when the head has no such line or its last
-      // element is not an address (a name, "unknown", an obfuscated identifier).
-      // A bracketed IPv6 address and an IPv4 address with a port are read.
-      static std::string LastForwardedAddress(const AnsiString &request);
-
-      // Whether the peer is on this machine.
-      static bool IsLoopback(const IPAddress &peer);
+      // The halves the REST listener's refused set holds peer by
+      // (RestApiServer::RefuseAddress_): an IPv6 address by its /64 (the low half
+      // 0), an IPv4 address carried in IPv6 as GuessSource reads it, in the form
+      // ::ffff:a.b.c.d has, and the other addresses whole.
+      static void RefusalKey(const IPAddress &peer, unsigned __int64 &high, unsigned __int64 &low);
 
       // The group of a source, for rule 3: an IPv6 "<prefix>::/64" source's /48
       // ("<prefix>::/48"), an IPv4 source's /24 ("a.b.c.0/24"); the source itself

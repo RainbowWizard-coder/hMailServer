@@ -295,6 +295,7 @@
     <Compile Include="..\RegressionTests\SMTP\StartTlsAlreadyActive.cs" Link="SMTP\StartTlsAlreadyActive.cs" />
     <Compile Include="..\RegressionTests\SMTP\TlsRptInertReporting.cs" Link="SMTP\TlsRptInertReporting.cs" />
     <Compile Include="..\RegressionTests\SMTP\DaneRequiredTlsDeferral.cs" Link="SMTP\DaneRequiredTlsDeferral.cs" />
+    <Compile Include="..\RegressionTests\SMTP\DaneIndeterminateLookups.cs" Link="SMTP\DaneIndeterminateLookups.cs" />
     <Compile Include="..\RegressionTests\SMTP\XOriginalRcptHeaderTests.cs" Link="SMTP\XOriginalRcptHeaderTests.cs" />
     <Compile Include="..\RegressionTests\SSL\CertificateTypes.cs" Link="SSL\CertificateTypes.cs" />
     <Compile Include="..\RegressionTests\SSL\ListenerTlsConfiguration.cs" Link="SSL\ListenerTlsConfiguration.cs" />

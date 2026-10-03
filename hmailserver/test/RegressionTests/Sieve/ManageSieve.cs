@@ -432,9 +432,10 @@ namespace RegressionTests.Sieve
       }
 
       /// <summary>
-      ///    The listener serves one session at a time, so a client that connects and
-      ///    then says nothing must be let go after the thirty-second socket timeout for
-      ///    the next client to be greeted at all. Until 6.3.6 that timeout was set in
+      ///    Before signing in, the connections of one address are served one at a time
+      ///    (one thread served every connection one at a time until 6.3.6's re-check),
+      ///    so a client that connects and then says nothing must be let go after the
+      ///    thirty-second socket timeout for the next client from it to be greeted at all. Until 6.3.6 that timeout was set in
       ///    the Windows form, which Linux refuses, so on Linux the idle client held the
       ///    listener for as long as it stayed connected and nobody else could manage a
       ///    script: against that code this test fails on Linux, at the read timeout

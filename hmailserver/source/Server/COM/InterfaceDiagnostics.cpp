@@ -211,9 +211,10 @@ STDMETHODIMP InterfaceDiagnostics::DnssecChainStatus(BSTR sName, BSTR sType, lon
 
       switch (status)
       {
-      case HM::DnssecResolver::ChainStatus::Secure:   *pVal = 0; break;
-      case HM::DnssecResolver::ChainStatus::Insecure: *pVal = 1; break;
-      default:                                    *pVal = 2; break;
+      case HM::DnssecResolver::ChainStatus::Secure:        *pVal = 0; break;
+      case HM::DnssecResolver::ChainStatus::Insecure:      *pVal = 1; break;
+      case HM::DnssecResolver::ChainStatus::Indeterminate: *pVal = 3; break;
+      default:                                             *pVal = 2; break;
       }
 
       return S_OK;

@@ -248,15 +248,12 @@ out of the password, the app passwords, IMAP, POP3 and SMTP by the detection.
 The passkey it enrolled is refused with them.
 
 The challenge a sign-in answers is handed out to anybody, because a person
-signing in with a passkey has no credential to present yet. The table holding
-those challenges **makes room** when it is full rather than refusing the newest,
-and single sign-on's table of unfinished sign-ins does the same: a table that
-refused would be a switch a stranger could throw with a few hundred requests,
-turning both buttons off for everybody for the next few minutes. The room comes
-out of the entries of whoever asked most, never out of another person's while
-one source asks (What a stranger can make the server hold, below); until 6.3.6
-the oldest entry went, whoever's it was, which was the same switch at a hundred
-requests a second.
+signing in with a passkey has no credential to present yet. So it is **not held
+here**: the browser carries it in its `hmpasskey` cookie, sealed, and single
+sign-on's unfinished sign-ins travel the same way - no table, so nothing a
+stranger asks for can push anybody's out (What a stranger can make the server
+hold, below). Until 6.3.6 a table dropped its oldest entry whoever's it was, which
+a hundred requests a second turned into a switch for both buttons.
 
 Single sign-on (OpenID Connect)
 -------------------------------
@@ -499,14 +496,15 @@ and sends the browser there. The request is **not signed**: this server holds no
 SAML signing key, and the metadata says so (`AuthnRequestsSigned="false"`, no
 key descriptor).
 
-**Two bindings: the request, at the ACS, and the browser, a step later.** Every
-request's ID is kept here with the RelayState that went out beside it and the
-value of the cookie the start set, for ten minutes and one use, in a table
-that makes room rather than refusing the newest, out of the entries of the
-source that asked most (the same rule, for the same reason, as OpenID Connect's;
-What a stranger can make the server hold, below). A Response is taken only
-when its `InResponseTo` is one of those IDs, not yet answered, and it comes back
-with the same RelayState.
+**Two bindings: the request, at the ACS, and the browser, a step later.** Nothing
+of a start is kept here (What a stranger can make the server hold, below). The
+request's ID says itself which page the sign-in is for and that it ends ten minutes
+on, under a tag of the server process's - `_<32 hex digits>.<w or d>.<end>.<tag>`,
+an `xs:ID` - and the RelayState that goes out beside it is the same ID, within the
+80 bytes the bindings allow. A Response is taken only when its `InResponseTo` is
+such an ID, in time and not yet answered, and it comes back with the same
+RelayState; an ID is spent once a Response to it has verified, so a second
+Response to it is refused.
 
 The cookie, `hmsaml`, is `HttpOnly`, `SameSite=Lax`, `Path=/portal/saml` and ten
 minutes long, and `Secure` when the request came over TLS, or through a proxy
@@ -529,9 +527,9 @@ few kilobytes; the fixture signs one of about 170 KB on the wire, which only the
 route's own ceiling lets through and which signs in, and posts 300 KB and 1.1 MB,
 which are refused.
 
-Then the Response is verified (below). What was verified - the address and
-which page the sign-in was for - is kept under a one-use token of 32 random
-bytes, for two minutes, and the ACS sends the browser (303, since it came with a
+Then the Response is verified (below). What was verified - the address, which
+page the sign-in was for and the request it answered - is kept under a one-use
+token of 32 random bytes, for two minutes, and the ACS sends the browser (303, since it came with a
 POST) to `/portal/saml/finish?token=`. The finish spends the token whatever
 happens next, and goes on only when the browser carries the `hmsaml` cookie the
 start gave for that very request (compared in constant time); it clears the
@@ -738,65 +736,56 @@ What a stranger can make the server hold
 
 A passkey sign-in's challenge (`POST /api/v1/passkeys/challenge`), and the start
 of an OpenID Connect or SAML sign-in (`/portal/oidc/start`, `/portal/saml/start`),
-are handed to anybody - nobody has signed in yet, which is the point - and each
-leaves something in the server's memory until the browser comes back: the
-challenge, or the verifier, nonce and cookie the callback checks. Each table holds
-at most **4,096** of them, for five or ten minutes, and makes room under one rule
-(the one the browser sessions follow, [DevicesAndSessions.md](DevicesAndSessions.md),
-How many sessions, and who makes room):
+are handed to anybody - nobody has signed in yet, which is the point. **None of
+them is held on the server.** What the sign-in needs when the browser comes back
+travels with the browser, in a cookie, sealed with AES-256-GCM under a key of the
+server process's (`Common/Util/SignInState.h`):
 
-1. a *source* already holding **256** gives up its own oldest;
-2. a full table gives up the oldest of the source holding the most - the one
-   asking, when it is among them;
-3. among sources tied for the most, one of the largest *group* gives up its
-   oldest: an IPv6 source's `/48`, an IPv4 source's `/24`.
+| Cookie | What it holds, sealed | Where it is asked for |
+|---|---|---|
+| `hmoidc` | the state, the PKCE verifier, the nonce, which page, when it ends (ten minutes) | the callback |
+| `hmsaml` | the request's ID | the finish |
+| `hmpasskey` | the challenge, when it ends (five minutes) | `POST /api/v1/session` |
 
-So a client that asks over and over spends its own entries and nobody else's. A
-person's sign-in is the one taken only when the table is full of single entries
-from as many sources and the person's group is as large as any other's - four
-thousand sources from four thousand different `/48`s or `/24`s, asking inside the
-minute the person spends at the identity provider. A `/48`, which a tunnel broker
-hands anybody for nothing, holds 65,536 `/64`s; its thousands of single-entry
-sources are one group, and give up their own. A full table is weighed once for a
-batch of a sixty-fourth of its size rather than once per request, so that keeping
-it full does not make each request cost the server the weighing. Until 6.3.6 the
-tables held two hundred (OpenID Connect, SAML) and a thousand (passkeys) and
-dropped the oldest whoever held it, so a stranger asking a few times a second -
-a hundred a second for passkeys - made every other person's sign-in fail when
-their browser came back ("this sign-in was not started here"), for as long as
-they kept asking.
+The browser cannot read or change what it carries: a cookie that does not open, or
+that opens to another sign-in than the one the identity provider's answer names,
+is refused. A SAML request's ID reaches the ACS through the identity provider
+rather than in the cookie (a `SameSite=Lax` cookie does not ride the provider's
+cross-site POST), so it carries its own tag instead, as above.
 
-The **source** is the address the request came from, an IPv6 address counted by
-its `/64`. Behind a reverse proxy on this machine every browser arrives from
-`127.0.0.1`, so for a request from this machine the source is the **last address
-of the last `X-Forwarded-For` line** - the one the proxy itself wrote, whatever
-the client put before it - which nginx (`proxy_set_header X-Forwarded-For
-$proxy_add_x_forwarded_for;` or `$remote_addr`), Apache's `mod_proxy`, Caddy,
-Traefik, HAProxy's `option forwardfor` and IIS's ARR all write. **Set it in the
-proxy.** A request from this machine that names no such address - or names one
-on this machine, as a second proxy on this host in front of the first writes its
-own `127.0.0.1` for every browser - counts against one shared source with no cap
-of its own, held by the table's size alone, as every request was before 6.3.6.
-What the proxy nearest this server writes is what counts: behind a load balancer
-or a CDN in front of it, that is the balancer's or the CDN's address for every
-browser that came through it, one source of 256, unless the proxy is told to take
-the client's address from the hop before it (nginx's `real_ip_header` and
-`set_real_ip_from`, Apache's `mod_remoteip`). A proxy on another machine, in
-front of the listener's TLS port, is not believed at all: its own address is the
-source of everybody behind it. And a proxy that passes on a client's own
-`X-Forwarded-For` without adding the address it saw - nginx with no
-`proxy_set_header` for it does - lets the client name a source of its choosing:
-a fresh one for each request, which leaves the table's size, or another
-person's address, whose 256 it then spends as 6.3.5 let anybody spend the whole
-table. The header is believed for this budget and for nothing else - not for the
-administrator password's delay, the auto-ban or any decision about who somebody
-is. The code is `Common/Util/SignInBudget.h`.
+So no number of starts or challenges asked for - from one address, from a
+thousand, from a rotating proxy pool's tens of thousands - pushes anybody's sign-in
+out: there is no table to fill. Until 6.3.6 the tables held two hundred (OpenID
+Connect, SAML) and a thousand (passkeys) and dropped the oldest whoever held it, so
+a stranger asking a few times a second - a hundred a second for passkeys - made
+every other person's sign-in fail when their browser came back ("this sign-in was
+not started here"), for as long as they kept asking; as 6.3.6 was first written
+each source was held to its own share of a table of 4,096, which a pool of
+addresses as large as the table still beat.
+
+**What is kept: that a sign-in finished.** Each finished sign-in is spent - its
+OpenID Connect state once the issuer's `id_token` has verified, its SAML request
+once a signed Response to it has, its passkey challenge once an assertion over it
+has - and remembered until it would have expired, so that it is good once. Only a
+finished sign-in adds to that set, which a stranger cannot do without signing in;
+it is bounded all the same, at 16,384 of each kind.
+
+**The key** is 32 random bytes made when the server first needs it, and made again
+whenever the REST listener stops (a reinitialise, a stop), held in memory and
+written nowhere - the lifetime the tables had: a sign-in in flight across a restart
+never survived it, and does not now ("this sign-in was not started here; start
+it again"). A key kept longer would let a state sealed before the restart, whose
+spent record went with it, be used a second time. Two servers behind one name each
+seal with their own, as each had its own table: the browser has to come back to
+the one it started at. `X-Forwarded-For` is not read for any of this, so a reverse
+proxy needs no setting for it.
 
 The registration challenge, which needs a session, is held against the session
 that asked and counts against the credential that asked: fifty a credential, in a
-table of a thousand, under the same rule - so that an account asking from session
-after session, or from address after address, spends its own registrations and
-not another person's.
+table of a thousand, under the rule the browser sessions follow
+([DevicesAndSessions.md](DevicesAndSessions.md), How many sessions, and who makes
+room) - so that an account asking from session after session, or from address
+after address, spends its own registrations and not another person's.
 
 Where it lives
 --------------
@@ -805,6 +794,7 @@ Where it lives
 |---|---|
 | The CBOR, COSE and signature reader | `Common/Util/WebAuthn.{h,cpp}`, with `WebAuthnTester` running fixed vectors on every debug start |
 | The credentials and the challenges | `Common/Util/PasskeyStore.{h,cpp}`, table `hm_passkeys` (schema 6077) |
+| The sealed state of the sign-ins in flight | `Common/Util/SignInState.{h,cpp}`, with `SignInStateTester` (ClassTester on Windows, `sign-in-budget-tests` on Linux) |
 | The REST routes | `Common/Util/RestApiPasskeys.cpp` |
 | The OIDC flow | `Common/Util/OidcSignIn.{h,cpp}` and `Common/Util/RestApiOidcSignIn.cpp`; `OidcSignIn::MapAddress` is the mapping both kinds of single sign-on share |
 | The XML reader and the canonicaliser | `Common/Util/XmlDocument.{h,cpp}`, with `XmlCanonicalizationTester` holding them to the W3C's examples |

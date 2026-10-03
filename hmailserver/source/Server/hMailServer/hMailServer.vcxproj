@@ -840,6 +840,7 @@ EXIT 0
     <ClCompile Include="..\Common\Util\WebAuthn.cpp" />
     <ClCompile Include="..\Common\Util\PasskeyStore.cpp" />
     <ClCompile Include="..\Common\Util\SignInBudget.cpp" />
+    <ClCompile Include="..\Common\Util\SignInState.cpp" />
     <ClCompile Include="..\Common\Util\RestApiPasskeys.cpp" />
     <ClCompile Include="..\Common\Util\OidcSignIn.cpp" />
     <ClCompile Include="..\Common\Util\RestApiOidcSignIn.cpp" />
@@ -1807,6 +1808,7 @@ EXIT 0
     <ClInclude Include="..\Common\Util\WebAuthn.h" />
     <ClInclude Include="..\Common\Util\PasskeyStore.h" />
     <ClInclude Include="..\Common\Util\SignInBudget.h" />
+    <ClInclude Include="..\Common\Util\SignInState.h" />
     <ClInclude Include="..\Common\Util\OidcSignIn.h" />
     <ClInclude Include="..\Common\Util\SamlSignIn.h" />
     <ClInclude Include="..\Common\Util\XmlDocument.h" />

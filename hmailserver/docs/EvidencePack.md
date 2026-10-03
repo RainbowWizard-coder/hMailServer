@@ -542,7 +542,7 @@ S/MIME and OpenPGP run in the browser on the Web Crypto API.
 | Key exchange groups (`TlsKeyExchangeGroups`) | `X25519MLKEM768:SecP256r1MLKEM768:X25519:secp384r1:secp256r1`: hybrid post-quantum first, inbound and outbound | `IniSettingsBaseline.h` |
 | Session tickets | On (`TlsSessionTicketsEnabled` = 1); key rotation off (`TlsTicketKeyRotationSeconds` = 0) | `IniSettingsBaseline.h` |
 | Outbound certificate verification | On (`VerifyRemoteSslCertificate` = 1): forgiven on opportunistic STARTTLS, binding under MTA-STS enforce, DANE or a policy that requires it | `TCPConnection::AsyncHandshake`, `CertificateVerifier.cpp` |
-| DNSSEC and DANE | Validation on; DANE enforced where a TLSA record validates | `IniSettingsBaseline.h` |
+| DNSSEC and DANE | Validation on; DANE enforced where a TLSA record validates. An MX or TLSA lookup that does not complete, or that a signed zone answers without its signatures or its proof of absence, leaves the host unused and defers the delivery (RFC 7672 section 2.1.1); a name counts as unsigned only below a delegation proven unsigned | `IniSettingsBaseline.h`, `DnssecResolver.cpp` |
 | Client certificates | SASL EXTERNAL on a port that asks for one (off on every port) | [README.md](../../README.md) |
 
 ### Message signing

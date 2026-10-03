@@ -18,6 +18,7 @@
 #include "../Persistence/PersistentSecurityRange.h"
 #include "../Util/PasswordValidator.h"
 #include "../Util/AccountLogon.h"
+#include "../Util/SignInBudget.h"
 #include "../Util/SignInStore.h"
 #include "../Util/ServerStatus.h"
 #include "../Util/Parsing/StringParser.h"
@@ -442,7 +443,7 @@ namespace HM
       AcceptLoop::ClaimPortExclusively(listen_socket_);
 
       if (bind(listen_socket_, reinterpret_cast<const sockaddr*>(&address), sizeof(address)) == SOCKET_ERROR ||
-          listen(listen_socket_, 5) == SOCKET_ERROR)
+          listen(listen_socket_, MaxWaiting) == SOCKET_ERROR)
       {
          String message;
          message.Format(_T("ManageSieveServer: Failed to bind to %s:%d."), bind_address_.c_str(), port_);
@@ -465,12 +466,11 @@ namespace HM
       if (!accepting_.exchange(false))
          return true;
 
-      // The listening socket is interrupted here and released by the worker
-      // when it parks (Run_), which is after the session it may be serving has
-      // ended: on Windows Interrupt closes it outright, and on POSIX it shuts
-      // it down, which stops the port answering and makes the worker's accept
-      // return, and the close follows on the worker so that no thread closes
-      // a descriptor another is blocked in.
+      // The listening socket is interrupted here and released by the accepting
+      // thread when it parks (Run_): on Windows Interrupt closes it outright, and
+      // on POSIX it shuts it down, which stops the port answering and makes the
+      // thread's accept return, and the close follows on that thread so that no
+      // thread closes a descriptor another is blocked in.
       std::lock_guard<std::mutex> lock(accept_mutex_);
       AcceptLoop::Interrupt(listen_socket_);
       return true;
@@ -488,9 +488,9 @@ namespace HM
          if (accepting_)
             return true;
 
-         // The worker releases the interrupted socket when it parks; if it has
-         // not parked yet (a session was still being served), release it here
-         // and give it the new one under the lock.
+         // The accepting thread releases the interrupted socket when it parks; if
+         // it has not parked yet, release it here and give it the new one under
+         // the lock.
          AcceptLoop::Release(listen_socket_);
 
          if (!OpenListenSocket_())
@@ -530,6 +530,9 @@ namespace HM
       running_ = true;
       worker_ = std::thread(&ManageSieveServer::Run_, this);
 
+      for (int i = 0; i < MaxSessions; i++)
+         servers_.push_back(std::thread(&ManageSieveServer::Serve_, this));
+
       String message;
       message.Format(_T("ManageSieveServer: Listening on %s:%d (%s)."), bind_address.c_str(), port,
          tlsAvailable ? _T("STARTTLS offered") : _T("plain text only, no TLS certificate available"));
@@ -559,6 +562,33 @@ namespace HM
 
       if (worker_.joinable())
          worker_.join();
+
+      // The serving threads end when they are next idle: a session in progress
+      // ends at its next line (HandleClient_), each wait for one no longer than
+      // IdleSeconds.
+      {
+         std::lock_guard<std::mutex> lock(queue_mutex_);
+         queue_changed_.notify_all();
+      }
+
+      for (std::thread &server : servers_)
+      {
+         if (server.joinable())
+            server.join();
+      }
+      servers_.clear();
+
+      // What was accepted and never served is closed unanswered.
+      {
+         std::lock_guard<std::mutex> lock(queue_mutex_);
+         for (Waiting &waiting : waiting_)
+            closesocket(waiting.socket);
+         waiting_.clear();
+         waiting_by_address_.clear();
+         served_before_sign_in_.clear();
+         sessions_by_account_.clear();
+         sessions_ = 0;
+      }
 
       AcceptLoop::Release(listen_socket_);
 
@@ -707,7 +737,7 @@ namespace HM
       for (;;)
       {
          // Parked while a drain has the door closed: the interrupted socket is
-         // released here, by the thread that was blocked in it, and the worker
+         // released here, by the thread that was blocked in it, and the thread
          // waits for StartAccepting to open a new one or for Stop. The socket
          // is read under the lock each time round, because a drain replaces it.
          SOCKET listenSocket = INVALID_SOCKET;
@@ -752,56 +782,33 @@ namespace HM
             continue;
          }
 
-         // Counted from here to the close below, which is what a drain waits on.
-         struct SessionCount
-         {
-            explicit SessionCount(std::atomic<int> &count) : count_(count) { count_++; }
-            ~SessionCount() { count_--; }
-            std::atomic<int> &count_;
-         } counted(sessions_);
-
-         Connection connection(clientSocket);
-
-         // This function is the top of a std::thread. There is nothing above it to
-         // catch anything, so an exception that escaped here would be
-         // std::terminate() - the entire mail server, SMTP and IMAP and POP3
-         // included, killed because someone uploaded a Sieve script. Everything the
-         // handler touches is fenced off behind this barrier: the security-range
-         // lookup and the logon, which are database reads; the script storage, which
-         // is file I/O; the syntax checker; and all the string building. The socket
-         // is deliberately closed out here rather than inside the handler, so the
-         // barrier firing cannot leak a handle or an SSL object either.
-         //
-         // The catch blocks below only record what happened; they do not report it.
-         // Reporting has to wait until after the connection is closed and has to be
-         // fenced off in a barrier of its own, because ErrorManager::ReportError
-         // reaches ScriptServer::FireEvent and so runs operator-supplied
-         // VBScript/JScript. An exception out of that script would otherwise escape
-         // this function - the std::terminate() this barrier exists to prevent - and
-         // would skip the close below, leaking a socket per failed connection.
+         // The security ranges, as the shared listener applies them, and then a
+         // place in line - this thread serves nobody, so no connection holds it.
+         // An exception here is contained as everywhere on these threads, and the
+         // socket closed.
          bool exceptionEscaped = false;
          bool exceptionWasStandard = false;
          AnsiString exceptionText;
+         bool admitted = false;
 
          try
          {
             IPAddress clientIPAddress = GetClientAddress_((sockaddr*) &clientAddress);
 
-            // Carried out of the range lookup below rather than read again inside the
-            // session: one database read decides both whether this peer may connect
-            // and whether it may hand over a password in clear text.
+            // One database read decides both whether this peer may connect and
+            // whether it may hand over a password in clear text.
             bool requireTlsForAuth = false;
 
             if (IsConnectionAllowed_(clientIPAddress, requireTlsForAuth))
             {
-               HandleClient_(connection, clientIPAddress, requireTlsForAuth);
+               admitted = Admit_(clientSocket, clientIPAddress, requireTlsForAuth);
+               clientSocket = INVALID_SOCKET; // Admit_ has it now, in line or closed
             }
             else
             {
-               // Drop the connection before the greeting is sent and before a single
-               // command is read, the way the Boost.Asio listener does for the other
-               // protocols. Nothing is written back: a blocked client learns no more
-               // than that the port stopped answering.
+               // Dropped before the greeting, the way the Boost.Asio listener does for
+               // the other protocols. Nothing is written back: a blocked client
+               // learns no more than that the port stopped answering.
                String message;
                message.Format(_T("ManageSieveServer: Connection from %s was not accepted. Blocked by IP range."),
                   String(clientIPAddress.ToString()).c_str());
@@ -812,52 +819,325 @@ namespace HM
          {
             exceptionEscaped = true;
             exceptionWasStandard = true;
-
-            // Copying the text allocates, and the exception in hand may well be the
-            // bad_alloc that says allocation is failing. A throw here would escape
-            // the catch block itself, so it gets its own fence; the message is then
-            // simply omitted.
-            try
-            {
-               exceptionText = error.what();
-            }
-            catch (...)
-            {
-            }
+            exceptionText = WhatOf_(error);
          }
          catch (...)
          {
             exceptionEscaped = true;
          }
 
-         CloseConnection_(connection);
+         if (clientSocket != INVALID_SOCKET)
+            closesocket(clientSocket);
+
+         if (admitted)
+            queue_changed_.notify_one();
+
+         if (exceptionEscaped)
+            ReportEscaped_(_T("accepting a ManageSieve connection. The connection was closed"), exceptionWasStandard, exceptionText);
+      }
+   }
+
+   bool
+   ManageSieveServer::Admit_(SOCKET socket, const IPAddress &address, bool require_tls_for_auth)
+   {
+      // The party, as the class comment reads it: an IPv6 address by its /64.
+      const std::string key = SignInBudget::GuessSource(address);
+      const std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
+
+      {
+         std::lock_guard<std::mutex> lock(queue_mutex_);
+         DropExpiredLocked_(now);
+
+         auto waitingHere = waiting_by_address_.find(key);
+         const int alreadyWaiting = waitingHere == waiting_by_address_.end() ? 0 : waitingHere->second;
+
+         if (waiting_.size() < static_cast<size_t>(MaxWaiting) && alreadyWaiting < MaxWaitingPerAddress)
+         {
+            Waiting waiting;
+            waiting.socket = socket;
+            waiting.address = address;
+            waiting.address_key = key;
+            waiting.require_tls_for_auth = require_tls_for_auth;
+            waiting.accepted_at = now;
+            waiting_.push_back(waiting);
+            waiting_by_address_[key] = alreadyWaiting + 1;
+            sessions_++;
+            return true;
+         }
+      }
+
+      // Refused, with the response RFC 5804 has for "not now" (section 1.3). The
+      // socket is blocking still, and a line this short fits the new connection's
+      // send buffer whole.
+      const AnsiString refusal = "BYE (TRYLATER) \"Too many connections are waiting. Try again later.\"\r\n";
+      send(socket, refusal.c_str(), refusal.GetLength(), 0);
+      closesocket(socket);
+
+      String message;
+      message.Format(_T("ManageSieveServer: Connection from %s was refused: too many connections are waiting, from that address or in all."),
+         String(address.ToString()).c_str());
+      LOG_DEBUG(message);
+      return false;
+   }
+
+   void
+   ManageSieveServer::DropExpiredLocked_(std::chrono::steady_clock::time_point now)
+   {
+      for (auto it = waiting_.begin(); it != waiting_.end();)
+      {
+         if (now - it->accepted_at < std::chrono::seconds(PreAuthenticationSeconds))
+         {
+            ++it;
+            continue;
+         }
+
+         // Waited as long as a connection may take to sign in: closed unanswered.
+         closesocket(it->socket);
+         auto count = waiting_by_address_.find(it->address_key);
+         if (count != waiting_by_address_.end() && --count->second <= 0)
+            waiting_by_address_.erase(count);
+         sessions_--;
+         it = waiting_.erase(it);
+      }
+   }
+
+   void
+   ManageSieveServer::Serve_()
+   {
+      for (;;)
+      {
+         // This is the top of a thread too, and what ServeOne_ does not fence -
+         // taking the next connection off the line - allocates, so it is fenced
+         // here: an exception out of it would be std::terminate() on the whole
+         // server. The next connection is copied, and its address's turn taken,
+         // before it leaves the line, so that a throw leaves the line as it was;
+         // once it has left, ServeOne_ closes it and lets the turn go whatever
+         // happens, and nothing after it here throws.
+         bool exceptionEscaped = false;
+         bool exceptionWasStandard = false;
+         AnsiString exceptionText;
+
+         try
+         {
+            Waiting next;
+            {
+               std::unique_lock<std::mutex> lock(queue_mutex_);
+               for (;;)
+               {
+                  if (!running_)
+                     return;
+
+                  DropExpiredLocked_(std::chrono::steady_clock::now());
+
+                  // The first in line whose address has no connection being served
+                  // before it has signed in: one address, one turn at a time.
+                  auto it = waiting_.begin();
+                  while (it != waiting_.end() && served_before_sign_in_.count(it->address_key) > 0)
+                     ++it;
+
+                  if (it != waiting_.end())
+                  {
+                     next = *it;
+                     served_before_sign_in_.insert(next.address_key);
+                     waiting_.erase(it);
+                     auto count = waiting_by_address_.find(next.address_key);
+                     if (count != waiting_by_address_.end() && --count->second <= 0)
+                        waiting_by_address_.erase(count);
+                     break;
+                  }
+
+                  // Woken by a new connection, a turn let go or Stop; and once a
+                  // second regardless, so that what waits too long is closed.
+                  queue_changed_.wait_for(lock, std::chrono::seconds(1));
+               }
+            }
+
+            ServeOne_(next);
+
+            sessions_--;
+            queue_changed_.notify_all();
+         }
+         catch (const std::exception &error)
+         {
+            exceptionEscaped = true;
+            exceptionWasStandard = true;
+            exceptionText = WhatOf_(error);
+         }
+         catch (...)
+         {
+            exceptionEscaped = true;
+         }
 
          if (exceptionEscaped)
          {
-            try
-            {
-               if (exceptionWasStandard)
-               {
-                  String description = _T("An exception escaped while serving a ManageSieve connection. The connection was abandoned; the listener is still running.");
+            ReportEscaped_(_T("taking a ManageSieve connection off the line"), exceptionWasStandard, exceptionText);
 
-                  if (!exceptionText.IsEmpty())
-                     description = Formatter::Format(_T("{0}, Message: {1}"), description, exceptionText);
-
-                  ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5830, "ManageSieveServer::Run_", description);
-               }
-               else
-               {
-                  ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5830, "ManageSieveServer::Run_",
-                     "A non-standard exception escaped while serving a ManageSieve connection. The connection was abandoned; the listener is still running.");
-               }
-            }
-            catch (...)
-            {
-               // Nothing left to do: reporting is what failed, and the alternative
-               // to swallowing this is std::terminate() on the mail server.
-            }
+            // Whatever failed is likely to fail again at once; not in a tight loop.
+            std::this_thread::sleep_for(std::chrono::seconds(1));
          }
       }
+   }
+
+   void
+   ManageSieveServer::ServeOne_(Waiting &waiting)
+   {
+      // Nothing before the barrier below allocates - the key is swapped in, not
+      // copied - so nothing can throw before it: the socket is closed and the
+      // address's turn let go below whatever happens.
+      Connection connection(waiting.socket);
+      connection.address_key.swap(waiting.address_key);
+      connection.holds_address_turn = true;
+
+      // This function runs at the top of a std::thread. There is nothing above it
+      // to catch anything, so an exception that escaped here would be
+      // std::terminate() - the entire mail server, SMTP and IMAP and POP3
+      // included, killed because someone uploaded a Sieve script. Everything the
+      // handler touches is fenced off behind this barrier: the logon, which is
+      // database reads; the script storage, which is file I/O; the syntax
+      // checker; and all the string building. The socket is deliberately closed
+      // out here rather than inside the handler, so the barrier firing cannot leak
+      // a handle or an SSL object either.
+      //
+      // The catch blocks below only record what happened; they do not report it.
+      // Reporting has to wait until after the connection is closed and has to be
+      // fenced off in a barrier of its own, because ErrorManager::ReportError
+      // reaches ScriptServer::FireEvent and so runs operator-supplied
+      // VBScript/JScript. An exception out of that script would otherwise escape
+      // this function - the std::terminate() this barrier exists to prevent - and
+      // would skip the close below, leaking a socket per failed connection.
+      bool exceptionEscaped = false;
+      bool exceptionWasStandard = false;
+      AnsiString exceptionText;
+
+      try
+      {
+         HandleClient_(connection, waiting.address, waiting.require_tls_for_auth);
+      }
+      catch (const std::exception &error)
+      {
+         exceptionEscaped = true;
+         exceptionWasStandard = true;
+
+         // Copying the text allocates, and the exception in hand may well be the
+         // bad_alloc that says allocation is failing: WhatOf_ fences the copy
+         // off, and the message is then simply omitted.
+         exceptionText = WhatOf_(error);
+      }
+      catch (...)
+      {
+         exceptionEscaped = true;
+      }
+
+      CloseConnection_(connection);
+      ReleaseAccountSession_(connection);
+      ReleaseAddressTurn_(connection);
+
+      if (exceptionEscaped)
+         ReportEscaped_(_T("serving a ManageSieve connection. The connection was abandoned"), exceptionWasStandard, exceptionText);
+   }
+
+   AnsiString
+   ManageSieveServer::WhatOf_(const std::exception &error)
+   {
+      try
+      {
+         return error.what();
+      }
+      catch (...)
+      {
+         return AnsiString();
+      }
+   }
+
+   void
+   ManageSieveServer::ReportEscaped_(const String &what_happened, bool standard, const AnsiString &text)
+   {
+      try
+      {
+         String description = standard ? _T("An exception escaped while ") : _T("A non-standard exception escaped while ");
+         description += what_happened;
+         description += _T("; the listener is still running.");
+
+         if (!text.IsEmpty())
+            description = Formatter::Format(_T("{0}, Message: {1}"), description, text);
+
+         ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5830, "ManageSieveServer::Run_", description);
+      }
+      catch (...)
+      {
+         // Nothing left to do: reporting is what failed, and the alternative
+         // to swallowing this is std::terminate() on the mail server.
+      }
+   }
+
+   bool
+   ManageSieveServer::ClaimAccountSession_(Connection &connection, const String &account)
+   {
+      String key = account;
+      key.ToLower();
+
+      {
+         std::lock_guard<std::mutex> lock(queue_mutex_);
+
+         auto count = sessions_by_account_.find(key);
+         if (count != sessions_by_account_.end() && count->second >= MaxSessionsPerAccount)
+            return false;
+
+         sessions_by_account_[key]++;
+         connection.account = key;
+
+         if (connection.holds_address_turn)
+         {
+            served_before_sign_in_.erase(connection.address_key);
+            connection.holds_address_turn = false;
+         }
+      }
+
+      // The address's next connection may be served now.
+      queue_changed_.notify_all();
+      return true;
+   }
+
+   void
+   ManageSieveServer::ReleaseAccountSession_(Connection &connection)
+   {
+      if (connection.account.IsEmpty())
+         return;
+
+      std::lock_guard<std::mutex> lock(queue_mutex_);
+      auto count = sessions_by_account_.find(connection.account);
+      if (count != sessions_by_account_.end() && --count->second <= 0)
+         sessions_by_account_.erase(count);
+      connection.account = _T("");
+   }
+
+   void
+   ManageSieveServer::ReleaseAddressTurn_(Connection &connection)
+   {
+      if (!connection.holds_address_turn)
+         return;
+
+      {
+         std::lock_guard<std::mutex> lock(queue_mutex_);
+         served_before_sign_in_.erase(connection.address_key);
+         connection.holds_address_turn = false;
+      }
+
+      queue_changed_.notify_all();
+   }
+
+   bool
+   ManageSieveServer::ReclaimAddressTurn_(Connection &connection)
+   {
+      if (connection.holds_address_turn)
+         return true;
+
+      std::lock_guard<std::mutex> lock(queue_mutex_);
+      if (!served_before_sign_in_.insert(connection.address_key).second)
+         return false;
+
+      connection.holds_address_turn = true;
+      return true;
    }
 
    void
@@ -1448,6 +1728,14 @@ namespace HM
          return AuthenticationFailed;
       }
 
+      // An account holds at most MaxSessionsPerAccount sessions at once. A
+      // refusal here is not a failed logon: the password was right.
+      if (!ClaimAccountSession_(connection, account->GetAddress()))
+      {
+         Send_(connection, "NO (TRYLATER) \"This account has as many ManageSieve sessions open as it may. Try again when one has ended.\"\r\n");
+         return AuthenticationFailed;
+      }
+
       account_address = account->GetAddress();
       authentication_failures = 0;
 
@@ -1487,15 +1775,13 @@ namespace HM
       // to offer a SASL mechanism at all from this.
       connection.require_tls_for_auth = require_tls_for_auth;
 
-      if (require_tls_for_auth && !tls_context_ && !warned_tls_required_without_certificate_)
+      if (require_tls_for_auth && !tls_context_ && !warned_tls_required_without_certificate_.exchange(true))
       {
          // The one combination in which no client from this range can ever log on:
          // policy demands TLS and there is no certificate to offer STARTTLS with. That
          // is the correct, fail-closed outcome - it must not fall back to cleartext -
          // but it is invisible from the client's side, so say it once, plainly, where
          // an operator will find it.
-         warned_tls_required_without_certificate_ = true;
-
          LOG_APPLICATION("ManageSieveServer: The IP range matching this client requires TLS for authentication, but no TLS certificate is available to this listener, so STARTTLS cannot be offered and no client from that range can authenticate. Configure a certificate on an IMAP, POP3 or SMTP port, or clear 'Require SSL/TLS for authentication' on the range.");
       }
 
@@ -1504,13 +1790,30 @@ namespace HM
       int authentication_failures = 0;
       int pre_authentication_commands = 0;
 
+      // Signed in: lines in a row that changed nothing, and the time spent waiting
+      // for command lines in all (MaxKeepAliveLines, SignedInIdleSeconds).
+      int keepAliveLines = 0;
+      std::chrono::steady_clock::duration signedInIdle = std::chrono::steady_clock::duration::zero();
+
       // Greeting: advertise capabilities then an OK.
       SendCapabilities_(connection);
       Send_(connection, "OK \"hMailServer ManageSieve ready.\"\r\n");
 
       for (;;)
       {
+         // Stop - a reinitialise, the service stopping - ends a session at its next
+         // line rather than when its client ends it: Stop joins the serving threads,
+         // and a client that kept sending commands held it, and every protocol's
+         // restart behind it, for as long as it went on. Each wait for a line is
+         // IdleSeconds at most, so a session ends within that of a stop.
+         if (!running_)
+         {
+            Send_(connection, "BYE \"The server is stopping.\"\r\n");
+            break;
+         }
+
          String line;
+         const std::chrono::steady_clock::time_point waitedFrom = std::chrono::steady_clock::now();
          if (!ReadLine_(connection, line))
          {
             if (connection.out_of_time)
@@ -1519,9 +1822,31 @@ namespace HM
                message.Format(_T("ManageSieveServer: The connection from %s took longer than it is allowed to and was closed."),
                   String(client_address.ToString()).c_str());
                LOG_DEBUG(message);
+
+               if (!authenticated)
+               {
+                  // A client that held its turn without signing in: counted as a failed
+                  // logon from its address, so that one that comes back each time it is
+                  // cut off is banned as a guesser is. Not towards any account's
+                  // lockout - no name was offered. Until 6.3.6's re-check a reconnect
+                  // loop of these held the service for as long as it ran.
+                  bool disconnect = false;
+                  AccountLogon accountLogon;
+                  accountLogon.RegisterFailedLogin(client_address, _T("(ManageSieve: did not sign in in time)"), disconnect, false);
+               }
             }
 
             break;
+         }
+
+         if (authenticated)
+         {
+            signedInIdle += std::chrono::steady_clock::now() - waitedFrom;
+            if (signedInIdle > std::chrono::seconds(SignedInIdleSeconds))
+            {
+               Send_(connection, "BYE \"Disconnected for inactivity.\"\r\n");
+               break;
+            }
          }
 
          // Counted before the line is parsed, so that empty lines - which take the
@@ -1537,12 +1862,34 @@ namespace HM
 
          int pos = 0;
          String command;
-         if (!ParseToken(line, pos, command))
+         const bool parsed = ParseToken(line, pos, command);
+         command.ToUpper();
+
+         // A line that does nothing for a signed-in session - NOOP, CAPABILITY, an
+         // empty or unknown command, and STARTTLS or AUTHENTICATE, which it refuses -
+         // keeps it going and nothing else, MaxKeepAliveLines times in a row. Only
+         // the commands on the scripts, UNAUTHENTICATE and LOGOUT are work.
+         const bool keepAlive = !parsed ||
+            !(command == _T("LOGOUT") || command == _T("UNAUTHENTICATE") || command == _T("LISTSCRIPTS") ||
+              command == _T("GETSCRIPT") || command == _T("PUTSCRIPT") || command == _T("CHECKSCRIPT") ||
+              command == _T("SETACTIVE") || command == _T("DELETESCRIPT") || command == _T("RENAMESCRIPT") ||
+              command == _T("HAVESPACE"));
+
+         if (authenticated)
+         {
+            keepAliveLines = keepAlive ? keepAliveLines + 1 : 0;
+            if (keepAliveLines > MaxKeepAliveLines)
+            {
+               Send_(connection, "BYE \"Disconnected for inactivity.\"\r\n");
+               break;
+            }
+         }
+
+         if (!parsed)
          {
             Send_(connection, "NO \"Empty command.\"\r\n");
             continue;
          }
-         command.ToUpper();
 
          if (command == _T("LOGOUT"))
          {
@@ -1671,8 +2018,24 @@ namespace HM
             // manage several accounts' scripts over one session. The failure
             // counter deliberately carries over: this command must not be a way to
             // reset the auto-ban bookkeeping mid-connection.
+            //
+            // Not signed in again, the connection takes its address's one turn
+            // back, as a new connection from it would wait for: while another
+            // connection from the address is signing in, the session stays signed
+            // in and is told to try later. Otherwise one password would let one
+            // address hold every serving thread before signing in, a connection
+            // at a time, each signed in and UNAUTHENTICATEd.
+            if (!ReclaimAddressTurn_(connection))
+            {
+               Send_(connection, "NO (TRYLATER) \"Another connection from this address is signing in. Try again when it has.\"\r\n");
+               continue;
+            }
+
             authenticated = false;
             accountAddress = _T("");
+            ReleaseAccountSession_(connection);
+            keepAliveLines = 0;
+            signedInIdle = std::chrono::steady_clock::duration::zero();
 
             // Unauthenticated again, and as much time to sign in as a new
             // connection has.
@@ -1682,10 +2045,19 @@ namespace HM
             continue;
          }
 
+         // The commands on the scripts below read and write the account's files
+         // under storage_mutex_, and send their answers after: sessions are
+         // served side by side, an account may have four, and SieveStorage
+         // writes a file in place and checks before it acts.
          if (command == _T("LISTSCRIPTS"))
          {
-            std::vector<String> names = SieveStorage::ListScriptNames(accountAddress);
-            String activeName = SieveStorage::GetActiveScriptName(accountAddress);
+            std::vector<String> names;
+            String activeName;
+            {
+               std::lock_guard<std::mutex> storage(storage_mutex_);
+               names = SieveStorage::ListScriptNames(accountAddress);
+               activeName = SieveStorage::GetActiveScriptName(accountAddress);
+            }
 
             for (const String &name : names)
             {
@@ -1750,7 +2122,13 @@ namespace HM
                continue;
             }
 
-            if (SieveStorage::PutScript(accountAddress, name, content))
+            bool stored = false;
+            {
+               std::lock_guard<std::mutex> storage(storage_mutex_);
+               stored = SieveStorage::PutScript(accountAddress, name, content);
+            }
+
+            if (stored)
                Send_(connection, "OK\r\n");
             else
                Send_(connection, "NO \"Could not store the script.\"\r\n");
@@ -1760,13 +2138,21 @@ namespace HM
          if (command == _T("GETSCRIPT"))
          {
             String name;
-            if (!ParseToken(line, pos, name) || !SieveStorage::ScriptExists(accountAddress, name))
+            bool found = false;
+            AnsiString content;
+            if (ParseToken(line, pos, name))
+            {
+               std::lock_guard<std::mutex> storage(storage_mutex_);
+               found = SieveStorage::ScriptExists(accountAddress, name);
+               if (found)
+                  content = SieveStorage::GetScript(accountAddress, name);
+            }
+
+            if (!found)
             {
                Send_(connection, "NO (NONEXISTENT) \"There is no script by that name.\"\r\n");
                continue;
             }
-
-            AnsiString content = SieveStorage::GetScript(accountAddress, name);
 
             AnsiString response;
             response.Format("{%d}\r\n", content.GetLength());
@@ -1781,34 +2167,44 @@ namespace HM
             String name;
             ParseToken(line, pos, name);
 
-            if (name.IsEmpty())
+            bool exists = true;
             {
-               SieveStorage::SetActiveScriptName(accountAddress, _T(""));
+               std::lock_guard<std::mutex> storage(storage_mutex_);
+               if (name.IsEmpty())
+               {
+                  SieveStorage::SetActiveScriptName(accountAddress, _T(""));
+               }
+               else
+               {
+                  exists = SieveStorage::ScriptExists(accountAddress, name);
+                  if (exists)
+                     SieveStorage::SetActiveScriptName(accountAddress, name);
+               }
+            }
+
+            if (exists)
                Send_(connection, "OK\r\n");
-               continue;
-            }
-
-            if (!SieveStorage::ScriptExists(accountAddress, name))
-            {
+            else
                Send_(connection, "NO (NONEXISTENT) \"There is no script by that name.\"\r\n");
-               continue;
-            }
-
-            SieveStorage::SetActiveScriptName(accountAddress, name);
-            Send_(connection, "OK\r\n");
             continue;
          }
 
          if (command == _T("DELETESCRIPT"))
          {
             String name;
-            if (!ParseToken(line, pos, name) || !SieveStorage::ScriptExists(accountAddress, name))
+            bool exists = false;
+            bool deleted = false;
+            if (ParseToken(line, pos, name))
             {
-               Send_(connection, "NO (NONEXISTENT) \"There is no script by that name.\"\r\n");
-               continue;
+               std::lock_guard<std::mutex> storage(storage_mutex_);
+               exists = SieveStorage::ScriptExists(accountAddress, name);
+               if (exists)
+                  deleted = SieveStorage::DeleteScript(accountAddress, name);
             }
 
-            if (SieveStorage::DeleteScript(accountAddress, name))
+            if (!exists)
+               Send_(connection, "NO (NONEXISTENT) \"There is no script by that name.\"\r\n");
+            else if (deleted)
                Send_(connection, "OK\r\n");
             else
                Send_(connection, "NO (ACTIVE) \"The active script cannot be deleted.\"\r\n");
@@ -1818,29 +2214,26 @@ namespace HM
          if (command == _T("RENAMESCRIPT"))
          {
             String oldName;
-            if (!ParseToken(line, pos, oldName) || !SieveStorage::ScriptExists(accountAddress, oldName))
-            {
-               Send_(connection, "NO (NONEXISTENT) \"There is no script by that name.\"\r\n");
-               continue;
-            }
-
             String newName;
-            if (!ParseToken(line, pos, newName) || !SieveStorage::IsValidScriptName(newName))
+            const bool oldParsed = ParseToken(line, pos, oldName);
+            const bool newParsed = oldParsed && ParseToken(line, pos, newName);
+
+            AnsiString answer;
             {
-               Send_(connection, "NO \"Invalid script name.\"\r\n");
-               continue;
+               std::lock_guard<std::mutex> storage(storage_mutex_);
+               if (!oldParsed || !SieveStorage::ScriptExists(accountAddress, oldName))
+                  answer = "NO (NONEXISTENT) \"There is no script by that name.\"\r\n";
+               else if (!newParsed || !SieveStorage::IsValidScriptName(newName))
+                  answer = "NO \"Invalid script name.\"\r\n";
+               else if (SieveStorage::ScriptExists(accountAddress, newName))
+                  answer = "NO (ALREADYEXISTS) \"A script by that name already exists.\"\r\n";
+               else if (SieveStorage::RenameScript(accountAddress, oldName, newName))
+                  answer = "OK\r\n";
+               else
+                  answer = "NO \"The script could not be renamed.\"\r\n";
             }
 
-            if (SieveStorage::ScriptExists(accountAddress, newName))
-            {
-               Send_(connection, "NO (ALREADYEXISTS) \"A script by that name already exists.\"\r\n");
-               continue;
-            }
-
-            if (SieveStorage::RenameScript(accountAddress, oldName, newName))
-               Send_(connection, "OK\r\n");
-            else
-               Send_(connection, "NO \"The script could not be renamed.\"\r\n");
+            Send_(connection, answer);
             continue;
          }
 

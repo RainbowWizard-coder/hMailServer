@@ -33,7 +33,7 @@ main()
       return 1;
    }
 
-   printf("ok    DANE: which TLSA records are usable, a validated RRset of none requiring TLS without authentication, DANE-TA authenticating a chain that carries its anchor and refusing another anchor, a missing one, another name and an expired certificate, DANE-EE authenticating its key alone (%s)\n",
+   printf("ok    DANE: which TLSA records are usable, a validated RRset of none requiring TLS without authentication, DANE-TA authenticating a chain that carries its anchor and refusing another anchor, a missing one, another name and an expired certificate, DANE-EE authenticating its key alone, the hosts a validated MX lookup leaves usable, and whose TLS waives the certificate check (%s)\n",
       OpenSSL_version(OPENSSL_VERSION));
    return 0;
 }

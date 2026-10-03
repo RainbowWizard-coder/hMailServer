@@ -806,14 +806,18 @@ namespace HM
       // when the attacker chose the host - a forged MX answer points at a name whose
       // own TLSA record then validates perfectly, and DANE reports success.
       //
-      // Looked up once per domain rather than per host, and only when DANE is on.
-      // Every outcome except Bogus leaves delivery exactly as it was: an unsigned
-      // domain - which is most of them - is Insecure, and Insecure means "deliver
-      // without DANE", which is what happened before this existed.
+      // Looked up once per domain rather than per host, and only when DANE is on
+      // with DNSSEC validation (without it the legacy mode takes TLSA records as
+      // published, and nothing here is consulted). An unsigned domain - which is
+      // most of them - is Insecure once the resolver has proven the delegation
+      // unsigned, and Insecure means "deliver without DANE". Bogus, Indeterminate
+      // (RFC 7672 section 2.1.1: the lookup did not complete, or a signed zone's
+      // answer came without its signatures or its proof) and a host the Secure
+      // RRset does not name (section 2.2.1) each leave the host unused below.
       DnssecResolver::ChainStatus mxChainStatus = DnssecResolver::ChainStatus::Insecure;
       std::vector<String> validatedMxHosts;
 
-      if (daneEnabled)
+      if (daneEnabled && IniFileSettings::Instance()->GetDnssecValidationEnabled())
       {
          std::vector<AnsiString> exchanges;
          DnssecResolver dnssecResolver;
@@ -860,6 +864,7 @@ namespace HM
       // not say which rule refused is a refusal an administrator cannot act on.
       String skippedReason = _T("the DANE TLSA records of all MX hosts failed DNSSEC validation");
       String skippedDescription = _T("Delivery blocked: the DANE TLSA records of all MX hosts failed DNSSEC validation.");
+      const String messageIdText = StringParser::IntToString(original_message_->GetID());
 
       for (unsigned int i = 0; i < mail_servers.size(); i++)
       {
@@ -908,10 +913,35 @@ namespace HM
 
             if (mxStatus == TlsPolicy::MxDnssecStatus::Bogus)
             {
-               // A forged or broken chain over the MX RRset itself. The host name is
-               // not trustworthy, so neither is anything published under it.
-               LOG_APPLICATION("SMTPDeliverer - Message " + StringParser::IntToString(original_message_->GetID()) + ": the MX RRset for " + recipientDomain + " failed DNSSEC validation. Skipping " + hostAndIp.GetHostName() + " (RFC 7672 section 2.2).");
-               TlsRptStore::Instance()->RecordFailure(recipientDomain, "tlsa", "mx rrset dnssec validation", "dnssec-invalid", hostAndIp.GetHostName());
+               if (mxChainStatus == DnssecResolver::ChainStatus::Indeterminate)
+               {
+                  // RFC 7672 section 2.1.1: the validated MX lookup did not
+                  // complete, or the domain's signed zone answered without its
+                  // signatures or its proof. Not reported to TLS reporting: the
+                  // domain may not be signed at all, which is what could not be told.
+                  LOG_APPLICATION("SMTPDeliverer - Message " + messageIdText + ": the DNSSEC lookup of the MX RRset for " + recipientDomain + " could not be completed, or came without the signatures or the proof its zone owes. Skipping " + hostAndIp.GetHostName() + " (RFC 7672 section 2.1.1).");
+                  skippedReason = _T("the DNSSEC lookup of the MX records of ") + recipientDomain + _T(" could not be completed, so whether DANE applies could not be told");
+                  skippedDescription = _T("Delivery deferred: the DNSSEC lookup of the MX records of ") + recipientDomain +
+                     _T(" could not be completed, or came without the signatures or the proof its zone publishes, so whether the domain requires DANE (RFC 7672) could not be told. The message has NOT been sent; it will be retried.");
+               }
+               else if (mxChainStatus == DnssecResolver::ChainStatus::Secure)
+               {
+                  // The host came from the plain, unvalidated lookup, and the
+                  // validated RRset does not name it (RFC 7672 section 2.2.1).
+                  LOG_APPLICATION("SMTPDeliverer - Message " + messageIdText + ": " + hostAndIp.GetHostName() + " is not named by the DNSSEC-validated MX RRset of " + recipientDomain + ". Skipping this host (RFC 7672 section 2.2.1).");
+                  skippedReason = _T("no mail host found for ") + recipientDomain + _T(" is one its DNSSEC-validated MX records name");
+                  skippedDescription = _T("Delivery deferred: none of the mail hosts found for ") + recipientDomain +
+                     _T(" is one its DNSSEC-validated MX records name. The message has NOT been sent; it will be retried.");
+               }
+               else
+               {
+                  // A forged or broken chain over the MX RRset itself. The host name is
+                  // not trustworthy, so neither is anything published under it.
+                  LOG_APPLICATION("SMTPDeliverer - Message " + messageIdText + ": the MX RRset for " + recipientDomain + " failed DNSSEC validation. Skipping " + hostAndIp.GetHostName() + " (RFC 7672 section 2.2).");
+                  TlsRptStore::Instance()->RecordFailure(recipientDomain, "tlsa", "mx rrset dnssec validation", "dnssec-invalid", hostAndIp.GetHostName());
+                  skippedReason = _T("the MX records of ") + recipientDomain + _T(" failed DNSSEC validation");
+                  skippedDescription = _T("Delivery blocked: the MX records of ") + recipientDomain + _T(" failed DNSSEC validation.");
+               }
                continue;
             }
 
@@ -922,8 +952,23 @@ namespace HM
             {
                // RFC 7672 section 2.1.3: a bogus DNSSEC chain means the
                // host must not be used for delivery.
-               LOG_APPLICATION("SMTPDeliverer - Message " + StringParser::IntToString(original_message_->GetID()) + ": TLSA records for " + hostAndIp.GetHostName() + " failed DNSSEC validation. Skipping this host (RFC 7672).");
+               LOG_APPLICATION("SMTPDeliverer - Message " + messageIdText + ": TLSA records for " + hostAndIp.GetHostName() + " failed DNSSEC validation. Skipping this host (RFC 7672).");
                TlsRptStore::Instance()->RecordFailure(recipientDomain, "tlsa", "dane-ee tlsa records present", "dnssec-invalid", hostAndIp.GetHostName());
+               skippedReason = _T("the DANE TLSA records of all MX hosts failed DNSSEC validation");
+               skippedDescription = _T("Delivery blocked: the DANE TLSA records of all MX hosts failed DNSSEC validation.");
+               continue;
+            }
+
+            if (tlsaStatus == TlsPolicy::TlsaLookupStatus::Indeterminate)
+            {
+               // RFC 7672 section 2.1.1: the host's TLSA lookup failed, or its
+               // signed zone answered without the signatures or the proof it owes.
+               // Until 6.3.6 the host was delivered to as if it published none.
+               LOG_APPLICATION("SMTPDeliverer - Message " + messageIdText + ": the DNSSEC lookup of the TLSA records of " + hostAndIp.GetHostName() + " could not be completed, or came without the signatures or the proof its zone owes. Skipping this host (RFC 7672 section 2.1.1).");
+               TlsRptStore::Instance()->RecordFailure(recipientDomain, "tlsa", "tlsa records could not be looked up", "dnssec-invalid", hostAndIp.GetHostName());
+               skippedReason = _T("the DNSSEC lookup of the TLSA records of the mail hosts of ") + recipientDomain + _T(" could not be completed");
+               skippedDescription = _T("Delivery deferred: the DNSSEC lookup of the TLSA records of the mail hosts of ") + recipientDomain +
+                  _T(" could not be completed, or came without the signatures or the proof their zone publishes, so whether they require DANE (RFC 7672) could not be told. The message has NOT been sent; it will be retried.");
                continue;
             }
 
@@ -1010,8 +1055,11 @@ namespace HM
          // The certificate is forgiven as on opportunistic STARTTLS when the
          // unusable TLSA records are all that require TLS: they ask for TLS and
          // not for authentication. Anything else that requires TLS keeps the
-         // verification it has always had.
-         serverInfo->SetAcceptUnauthenticatedTls(daneTlsRequired && !stsEnforced && policyTls < RemoteTlsEncrypted && !_globalRuleResult.GetRequireTls());
+         // verification it has always had - this server's own connection
+         // security at SSL or STARTTLS (required) included, which 6.3.6 before
+         // its release did not ask (TlsPolicy::WaivesCertificateCheck).
+         serverInfo->SetAcceptUnauthenticatedTls(TlsPolicy::WaivesCertificateCheck(daneTlsRequired, stsEnforced,
+            policyTls >= RemoteTlsEncrypted, _globalRuleResult.GetRequireTls(), serverInfo->GetConnectionSecurity()));
 
          // The sentence a deferral carries when the encryption could not be had:
          // a remote domain policy's, a rule's, or - what the destination

@@ -5,6 +5,7 @@
 #include "StdAfx.h"
 #include "PasskeyStore.h"
 #include "SignInBudget.h"
+#include "SignInState.h"
 #include "WebAuthn.h"
 #include "Unicode.h"
 #include "../Application/Application.h"
@@ -52,7 +53,6 @@ namespace HM
 
       boost::mutex challengeLock;
       std::map<AnsiString, PendingChallenge> registrations;
-      std::map<AnsiString, PendingChallenge> signIns;
       unsigned __int64 nextOrder = 1;
 
       // A thousand registrations is far past any real load and is what stops a
@@ -67,14 +67,12 @@ namespace HM
       const size_t MostPending = 1000;
       const size_t MostRegistrationsPerHolder = 50;
 
-      // The sign-in challenges, which anybody may ask for, under SignInBudget's
-      // rule: a source holds at most MostSignInsPerSource and gives up its own
-      // oldest past that, and a full table gives up the oldest of the source
-      // holding the most. Until 6.3.6 a thousand, the oldest dropped whoever
-      // held it, which a hundred requests a second turned into nobody signing
-      // in with a passkey at all.
-      const size_t MostSignIns = 4096;
-      const size_t MostSignInsPerSource = 256;
+      // The sign-in challenges, which anybody may ask for, are not held here at
+      // all: the browser carries each one sealed (SignInState.h), so there is no
+      // table to fill. Until 6.3.6 a thousand were held, the oldest dropped
+      // whoever held it, which a hundred requests a second turned into nobody
+      // signing in with a passkey at all; and 6.3.6 first held each source to
+      // its own share of 4,096, which a few thousand addresses still beat.
 
       void PruneLocked(std::map<AnsiString, PendingChallenge> &pending, time_t now)
       {
@@ -528,17 +526,51 @@ namespace HM
    }
 
    bool
-   PasskeyStore::OfferSignIn(const std::string &source, AnsiString &nonce, AnsiString &challenge)
+   PasskeyStore::OfferSignIn(AnsiString &nonce, AnsiString &challenge)
    {
-      if (!RandomText(nonce, 32))
+      nonce.clear();
+      if (!RandomText(challenge, 32))
          return false;
-      return Offer(signIns, nonce, challenge, source, MostSignInsPerSource, MostSignIns);
+
+      // The challenge and when it ends, sealed: what the hmpasskey cookie
+      // carries in place of a key into a table here.
+      const time_t expires = time(nullptr) + ChallengeSeconds;
+      nonce = SignInState::Seal(SignInState::Passkey,
+         "pk1\n" + std::string(challenge.c_str()) + "\n" + std::to_string((long long) expires));
+      return !nonce.IsEmpty();
    }
 
    bool
    PasskeyStore::TakeSignIn(const AnsiString &nonce, AnsiString &challenge)
    {
-      return Take(signIns, nonce, challenge);
+      challenge.clear();
+
+      std::string plain;
+      if (!SignInState::Open(SignInState::Passkey, nonce, plain))
+         return false;
+
+      // pk1, the challenge, when it ends: one line each.
+      const size_t first = plain.find('\n');
+      const size_t second = first == std::string::npos ? std::string::npos : plain.find('\n', first + 1);
+      if (second == std::string::npos || plain.compare(0, first, "pk1") != 0)
+         return false;
+
+      const std::string issued = plain.substr(first + 1, second - first - 1);
+      const std::string expires = plain.substr(second + 1);
+      if (issued.empty() || expires.empty() || expires.size() > 18 || expires.find_first_not_of("0123456789") != std::string::npos)
+         return false;
+
+      if ((time_t) std::stoll(expires) < time(nullptr) || SignInState::IsSpent(SignInState::Passkey, issued))
+         return false;
+
+      challenge = AnsiString(issued.c_str());
+      return true;
+   }
+
+   bool
+   PasskeyStore::SpendSignIn(const AnsiString &challenge)
+   {
+      return SignInState::Spend(SignInState::Passkey, std::string(challenge.c_str()), time(nullptr) + ChallengeSeconds + 60);
    }
 
    void
@@ -546,7 +578,6 @@ namespace HM
    {
       boost::lock_guard<boost::mutex> guard(challengeLock);
       registrations.clear();
-      signIns.clear();
    }
 
    // ------------------------------------------------------------------------
@@ -563,44 +594,52 @@ namespace HM
       };
 
       PasskeyStore::Clear();
+      SignInState::Clear();
 
-      // A challenge is answerable once, by the nonce it was handed out with.
+      // A challenge is answered by the nonce it was handed out with, sealed, and
+      // spent by the sign-in it signs in.
       AnsiString nonce, challenge, taken;
-      expect(PasskeyStore::OfferSignIn("198.51.100.4", nonce, challenge) && !nonce.IsEmpty() && !challenge.IsEmpty(),
+      expect(PasskeyStore::OfferSignIn(nonce, challenge) && !nonce.IsEmpty() && !challenge.IsEmpty(),
              "PasskeyStoreTester: a sign-in challenge is handed out with its nonce.");
+      expect(nonce.Find(challenge) < 0, "PasskeyStoreTester: the nonce does not show its challenge.");
       expect(!PasskeyStore::TakeSignIn("not the nonce", taken),
              "PasskeyStoreTester: another nonce does not answer it.");
       expect(PasskeyStore::TakeSignIn(nonce, taken) && taken == challenge,
              "PasskeyStoreTester: its own nonce does.");
-      expect(!PasskeyStore::TakeSignIn(nonce, taken),
-             "PasskeyStoreTester: and it is spent, so an assertion cannot be replayed.");
+      expect(PasskeyStore::SpendSignIn(challenge), "PasskeyStoreTester: the sign-in spends it.");
+      expect(!PasskeyStore::TakeSignIn(nonce, taken) && !PasskeyStore::SpendSignIn(challenge),
+             "PasskeyStoreTester: and spent it answers nothing, so an assertion cannot be replayed.");
 
-      // A table a stranger floods still hands out challenges, and the flood
-      // spends the stranger's own: a person's challenge, asked for before five
-      // thousand from another source, still answers. Until 6.3.6 the table
-      // dropped its oldest whoever held it, and the person's went.
+      // Nothing a stranger asks for is held, so nothing of theirs can push a
+      // person's out: a person's challenge, asked for before ten thousand more,
+      // still answers, and so does the first of the ten thousand. Until 6.3.6 a
+      // table dropped its oldest whoever held it, and the person's went; as
+      // 6.3.6 was first written, a table held each source to its share, which
+      // as many sources as the table held still beat.
       AnsiString personNonce, personChallenge;
-      expect(PasskeyStore::OfferSignIn("198.51.100.4", personNonce, personChallenge), "PasskeyStoreTester: a person asks first.");
+      expect(PasskeyStore::OfferSignIn(personNonce, personChallenge), "PasskeyStoreTester: a person asks first.");
 
       AnsiString firstNonce, firstChallenge;
-      expect(PasskeyStore::OfferSignIn("203.0.113.9", firstNonce, firstChallenge), "PasskeyStoreTester: the first of many.");
+      expect(PasskeyStore::OfferSignIn(firstNonce, firstChallenge), "PasskeyStoreTester: the first of many.");
 
-      for (int i = 0; i < 5000; i++)
+      for (int i = 0; i < 10000; i++)
       {
          AnsiString floodNonce, floodChallenge;
-         expect(PasskeyStore::OfferSignIn("203.0.113.9", floodNonce, floodChallenge),
-                "PasskeyStoreTester: a flooded table still hands out a challenge.");
+         expect(PasskeyStore::OfferSignIn(floodNonce, floodChallenge),
+                "PasskeyStoreTester: a challenge is handed out however many came before.");
       }
 
-      AnsiString afterFlood, afterFloodChallenge, redeemed;
-      expect(PasskeyStore::OfferSignIn("203.0.113.9", afterFlood, afterFloodChallenge),
-             "PasskeyStoreTester: and one more after the flood.");
-      expect(PasskeyStore::TakeSignIn(afterFlood, redeemed) && redeemed == afterFloodChallenge,
-             "PasskeyStoreTester: which is the one that answers - the newest is kept.");
-      expect(!PasskeyStore::TakeSignIn(firstNonce, redeemed),
-             "PasskeyStoreTester: the flood's oldest is what went, the attacker's own slot.");
+      AnsiString redeemed;
+      expect(PasskeyStore::TakeSignIn(firstNonce, redeemed) && redeemed == firstChallenge,
+             "PasskeyStoreTester: the first of the many still answers.");
       expect(PasskeyStore::TakeSignIn(personNonce, redeemed) && redeemed == personChallenge,
-             "PasskeyStoreTester: and the person's challenge, from another source, still answers.");
+             "PasskeyStoreTester: and so does the person's.");
+
+      // A Clear (the listener's stop) makes every challenge handed out before it
+      // unanswerable.
+      SignInState::Clear();
+      expect(!PasskeyStore::TakeSignIn(personNonce, redeemed),
+             "PasskeyStoreTester: a challenge from before the listener stopped answers nothing after.");
 
       // The registration table is the same table with a different key, and the
       // key there is the session rather than a cookie nonce.
