@@ -470,6 +470,9 @@ Vil du lagre dette svake passordet likevel?</value>
   <data name="451 4.3.1 replies" xml:space="preserve">
     <value>451 4.3.1-svar</value>
   </data>
+  <data name="5 by default, the stock mark threshold, so such a message is marked as spam unless the thresholds have been raised. A newsletter of a hundred links names far fewer domains than that; lower it if mail you want names more." xml:space="preserve">
+    <value>5 som standard, den medfølgende merketerskelen, så en slik melding merkes som spam med mindre tersklene er hevet. Et nyhetsbrev med hundre lenker nevner langt færre domener; senk den hvis e-post du vil ha, nevner flere.</value>
+  </data>
   <data name="5 by default." xml:space="preserve">
     <value>5 som standard.</value>
   </data>
@@ -6030,6 +6033,9 @@ Ingenting som allerede er der, fjernes.</value>
   <data name="Messages still waiting to be delivered, why each is waiting, and when it will be retried." xml:space="preserve">
     <value>Meldinger som fortsatt venter på levering, hvorfor hver venter, og når den prøves på nytt.</value>
   </data>
+  <data name="Messages that link to more domains than the URI blocklists ask about" xml:space="preserve">
+    <value>Meldinger som lenker til flere domener enn URI-blokkeringslistene spørres om</value>
+  </data>
   <data name="Messages the server finished processing, per minute, sampled every 2 seconds." xml:space="preserve">
     <value>Meldinger serveren ble ferdig med å behandle, per minutt, målt hvert 2. sekund.</value>
   </data>
@@ -9110,6 +9116,9 @@ Fortsette?</value>
   <data name="Score at which suspicious counts as malicious (0-100)" xml:space="preserve">
     <value>Poengsum der mistenkelig regnes som skadelig (0-100)</value>
   </data>
+  <data name="Score of a message whose links name more than 200 domains (0 = none)" xml:space="preserve">
+    <value>Poengsum for en melding med lenker som nevner mer enn 200 domener (0 = ingen)</value>
+  </data>
   <data name="Score that counts as a takeover (1 to 6)" xml:space="preserve">
     <value>Poengsum som regnes som overtakelse (1 til 6)</value>
   </data>
@@ -10495,6 +10504,9 @@ Neste melding til adressen blir sendt, og den kommer først på listen igjen ett
   </data>
   <data name="The TCP/IP port list could not be read - {0}" xml:space="preserve">
     <value>TCP/IP-portlisten kunne ikke leses - {0}</value>
+  </data>
+  <data name="The URI blocklists on the SURBL servers page are asked about every registrable domain and address a message links to, up to 200 for each message. A message whose links name more is not asked about whole: it scores the number below instead, once, however many lists are active, so that hiding a listed link among made-up domains does not come free. Nothing is scored while no URI blocklist is active." xml:space="preserve">
+    <value>URI-blokkeringslistene på siden SURBL-servere spørres om hvert registrerbare domene og hver adresse en melding lenker til, opptil 200 for hver melding. En melding med lenker som nevner flere, spørres det ikke om i sin helhet: den får i stedet poengsummen nedenfor, én gang, uansett hvor mange lister som er aktive, slik at det ikke er gratis å gjemme en listet lenke blant oppdiktede domener. Ingenting gis poeng mens ingen URI-blokkeringsliste er aktiv.</value>
   </data>
   <data name="The Windows prompt was declined, so nothing was installed and nothing on the server was changed." xml:space="preserve">
     <value>Windows-spørsmålet ble avslått, så ingenting ble installert, og ingenting ble endret på serveren.</value>

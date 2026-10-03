@@ -299,6 +299,7 @@ SpamTrapTeachSpamAssassin server
 SPFTempErrorDefer server
 SslCipherList server
 SslVersions server
+SurblTooManyDomainsScore server
 SyslogEnabled server
 SyslogFacility server
 SyslogHost server

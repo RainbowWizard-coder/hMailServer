@@ -44,6 +44,7 @@
 #include "../Util/OtelMetricsExporter.h"
 #include "../Util/OtelLogExporter.h"
 #include "../Util/SyslogSink.h"
+#include "../Util/NeverBanNameList.h"
 #include "../Mime/MimeCode.h"
 
 #include "Property.h"
@@ -644,6 +645,13 @@ namespace HM
       WorkQueueManager::Instance()->CreateWorkQueue(Configuration::Instance()->GetAsynchronousThreads(),
                                                     name_lookup_queue_);
 
+      // The never-ban list's verifications, on threads of their own: a ban of a
+      // listed provider is not to wait behind the sessions' reverse lookups,
+      // which an outsider whose reverse zone does not answer can keep backed up
+      // (NeverBanNameList.h). Not monitored for stalls: a verification waits on
+      // DNS for up to its deadline by design.
+      WorkQueueManager::Instance()->CreateWorkQueue(NeverBanNameList::VerifyThreads, NeverBanNameList::QueueName());
+
       // Both of these run tasks that are expected to finish, so "every thread busy
       // for longer than the threshold" means something is wedged and is worth an
       // error. The maintenance, main server and IOCP queues are deliberately not
@@ -673,6 +681,8 @@ namespace HM
       WorkQueueManager::Instance()->RemoveQueue(asynchronous_tasks_queue_);
 
       WorkQueueManager::Instance()->RemoveQueue(name_lookup_queue_);
+
+      WorkQueueManager::Instance()->RemoveQueue(NeverBanNameList::QueueName());
    }
 
    bool

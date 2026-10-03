@@ -432,9 +432,17 @@ runs out of time before signing in counts towards the auto-ban, and a signed-in 
 (What changes on upgrade, item 36). Found by the project's second review of the release.
 
 The URI blocklists (SURBL, URIBL, the Spamhaus DBL) were asked about the first 16 names a message's links gave, the
-plain-text part's before the HTML part's, so that links ahead of a listed one could keep it from every list. The SURBL
-test now reads every link of both parts and chooses what to ask by a rule a message cannot steer (What changes on
-upgrade, item 29). In every version up to 6.3.5; found by the project's own review.
+plain-text part's before the HTML part's, so that links ahead of a listed one could keep it from every list. The
+SURBL test now reads every link of both parts and asks each list about every registrable domain they name, up to 200
+for a message, up to sixteen lookups at a time within the list's ten seconds, so that links beside a listed domain
+do not make it less likely to be asked about. A message whose links name more than 200 domains is not asked about
+whole, and scores `SurblTooManyDomainsScore` instead, so that hiding a listed link among made-up domains does not
+come free: 5 by default, the stock mark threshold and more than one list's stock score of 3 (What changes on
+upgrade, item 29). A list that lists a host name and not its domain is asked about the host names there is room left
+for, two drawn under a domain and in an order the links do not set, so made-up host names can still make a listed
+one less likely to be asked about. In every version up to 6.3.5; found by the project's own review, whose second
+pass also found that a draw of a fixed number of names from all of them, which this release's tree had for a while,
+left the chance of being asked to the sender.
 
 The REST listener's tables of sign-in state no longer let one person push other people out of them. A full table
 of browser sessions dropped its least recently used session whoever held it, so any account holder signing in over
@@ -952,14 +960,25 @@ was. Found by the project's own review.
     have 300 seconds; and a connection must complete `AUTHENTICATE` within 60 seconds of being accepted, or of
     `UNAUTHENTICATE`. A connection that runs past one is closed, with a debug log line naming the client. The figures
     are constants, far above what a client needs, and there is no setting for them.
-29. **The URI blocklists are asked about more of a message's links, chosen by a rule the message cannot steer.** The
-    SURBL test reads every link of the text part and of the HTML part of a message within the anti-spam size limit,
-    takes the hosts of one registrable domain (by the Public Suffix List) as one domain - its own names, then at most
-    two host names under it - and asks about the domains the HTML part links to before those only the text part names,
-    every domain's first name before any domain's second. Up to 48 names are asked of each list for a message, where
-    it was 16, and each list still stops after 10 seconds; when a part's domains do not all fit, they are taken in a
-    random order rather than in the order of the links, and when a domain has more than two host names linked, the
-    two asked about are drawn at random too. A message with many links makes up to 48 DNS queries per active list.
+29. **The URI blocklists are asked about every domain a message links to, and a message that links to too many is
+    scored for it.** The SURBL test reads every link of the text part and of the HTML part of a message within the
+    anti-spam size limit, takes the hosts of one registrable domain (by the Public Suffix List) as one domain, and asks
+    each active list about every registrable domain and address the links name - and, for a host under a shared-hosting
+    suffix of the list's private section, the domain registered under its ICANN section, `github.io` for
+    `tenant.github.io` - up to 200 for a message, the HTML part's before those only the text part names; then up to two
+    host names under each domain, drawn at random when a domain has more, until 256 names in all, the domains taken in
+    a random order when their host names do not all fit. Each list is asked up to sixteen names at a time, where it was
+    one - on the thread testing the message and on up to fifteen of 64 threads the whole server has for the URI
+    lists, which the messages being tested at once take in turn - and still stops beginning lookups after 10 seconds. A
+    message whose links name more than 200 domains has 200 of them asked about - the HTML part's first, drawn at random
+    from the part that does not fit - and scores the new setting `SurblTooManyDomainsScore` once, however many lists
+    are active: 5 by default, the stock mark threshold, so such a message is marked as spam at the stock thresholds; 0
+    scores nothing, and nothing is scored while no URI list is active. It is on the Control Panel's Anti-spam page
+    (General), in `PUT /api/v1/settings/antispam` as `surbl_too_many_domains_score`, in the Deck, and over COM as
+    `AntiSpam.SurblTooManyDomainsScore`; a database gets its row at the first start, with no schema step. A message
+    with many links makes up to 256 DNS queries per active list, where it was 16, at most sixteen of them at once;
+    however many messages are tested at once, their URI lists' lookups take at most 64 threads beyond the ones testing
+    them.
 30. **A host that the destination's TLSA records or MTA-STS policy require TLS of, and that offers no `STARTTLS`, is
     deferred; and TLS reports count a session by what became of its TLS.** Such a host was refused with the permanent
     500 5.7.0 "Server does not support STARTTLS.", and the message bounced at the first attempt; RFC 7672 section 2.2
@@ -1597,9 +1616,16 @@ was. Found by the project's own review.
   logons, a spam trap, a multi-recipient null sender) - no IP range, no firewall rule, no ban line for fail2ban - when
   one of its reverse names is covered and resolves back to the address (A or AAAA): forward-confirmed, because anybody
   who holds an address can write its reverse name. Nothing is looked up on a session's thread: the SMTP session's own
-  reverse lookup feeds the list, and a ban placed before the answer is in is written, resolved on the name lookup
-  queue and lifted if the address is spared, before the log line, the alert count or the firewall is told. The failed
-  logons counted before that answer - over IMAP, POP3, ManageSieve or REST, which look nothing up until the logon
+  reverse lookup feeds the list, and a ban placed before the answer is in is written, resolved on a queue of its own
+  with every lookup given up after five seconds, and lifted if the address is spared, before the log line, the alert
+  count or the firewall is told; until then every firewall reconciliation leaves its range out. The waiting bans are
+  taken by network in turn, an IPv4 `/24` or an IPv6 `/48`, so that bans earned from addresses whose reverse lookups
+  hang delay a listed provider's by one lookup for each such network. A waiting ban is announced unverified after
+  four attempts that were not answered, a minute apart, or ten minutes in all - a minute it waits without a turn
+  counting as an attempt - and is forgotten unannounced when its range goes first. At most 16 of one network wait, a
+  seventeenth being announced at once, and at most 1,024 in all: a new ban past that takes the place of the oldest
+  waiting ban of the network with the most, which is announced unverified. The failed logons counted before that
+  answer - over IMAP, POP3, ManageSieve or REST, which look nothing up until the logon
   that bans - still write their `logon failure` lines, which the packaged fail2ban jail counts on its own: with
   `MaxInvalidLogonAttempts` at five or more, the jail's `maxretry`, fail2ban can ban a listed provider below the
   server. Nothing

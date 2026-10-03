@@ -205,6 +205,11 @@ public:
    STDMETHOD(get_RefuseMailFromDomainNotFqdn)(/*[out, retval]*/ VARIANT_BOOL *pVal);
    STDMETHOD(put_RefuseMailFromDomainNotFqdn)(/*[in]*/ VARIANT_BOOL newVal);
 
+   // The score of a message whose links name more domains than the URI
+   // blocklists are asked about (SURBL::MaxDomainsAsked).
+   STDMETHOD(get_SurblTooManyDomainsScore)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(put_SurblTooManyDomainsScore)(/*[in]*/ long newVal);
+
 private:
 
    HM::Configuration* config_;

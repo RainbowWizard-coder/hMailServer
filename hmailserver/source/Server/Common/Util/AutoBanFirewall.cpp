@@ -447,6 +447,14 @@ namespace HM
          if (!AutoBanWidener::MirrorShape(range->GetLowerIP(), range->GetUpperIP(), ban.address, ban.members))
             continue;
 
+         // A ban that waits for the never-ban list's answer is the server's
+         // alone until the answer is in: mirrored now, a listed provider whose
+         // lookup a busy queue holds up would reach the firewall and the hook
+         // anyway, which is what the wait is for (NeverBanNameList::IsPending).
+         // A widened ban is one already announced.
+         if (ban.members.size() == 1 && NeverBanNameList::IsPending(range->GetLowerIP()))
+            continue;
+
          DateTimeSpan left = range->GetExpiresTime() - now;
          double seconds = left.GetNumberOfSeconds();
          if (seconds <= 0)
@@ -466,9 +474,10 @@ namespace HM
 
       // Everything a ban does below its range, run now - or, while the never-ban
       // list by reverse name has rows and nothing is known yet about this
-      // address, once its reverse name has been looked up on the name lookup
-      // queue, and not at all if that spares it (NeverBanNameList::VerifyBan).
-      // An empty list runs it here, exactly as before.
+      // address, once its reverse name has been looked up on the never-ban
+      // verification queue, and not at all if that spares it or its range goes
+      // first (NeverBanNameList::VerifyBan). An empty list runs it here,
+      // exactly as before.
       NeverBanNameList::VerifyBan(address, [address, text, minutes, username, failures]()
       {
          // The one line fail2ban and a person reading the log are both after: what

@@ -470,6 +470,9 @@
   <data name="451 4.3.1 replies" xml:space="preserve">
     <value>відповіді 451 4.3.1</value>
   </data>
+  <data name="5 by default, the stock mark threshold, so such a message is marked as spam unless the thresholds have been raised. A newsletter of a hundred links names far fewer domains than that; lower it if mail you want names more." xml:space="preserve">
+    <value>За замовчуванням 5 — штатний поріг позначення, тож таке повідомлення позначається як спам, якщо пороги не підвищено. Розсилка зі ста посиланнями називає значно менше доменів; зменште значення, якщо потрібна вам пошта називає більше.</value>
+  </data>
   <data name="5 by default." xml:space="preserve">
     <value>Типово 5.</value>
   </data>
@@ -6030,6 +6033,9 @@
   <data name="Messages still waiting to be delivered, why each is waiting, and when it will be retried." xml:space="preserve">
     <value>Повідомлення, які ще чекають на доставку, чому кожне з них чекає й коли буде повторна спроба.</value>
   </data>
+  <data name="Messages that link to more domains than the URI blocklists ask about" xml:space="preserve">
+    <value>Повідомлення з посиланнями на більше доменів, ніж запитується у списків блокування URI</value>
+  </data>
   <data name="Messages the server finished processing, per minute, sampled every 2 seconds." xml:space="preserve">
     <value>Повідомлення, обробку яких сервер завершив, за хвилину, вибірка кожні 2 секунди.</value>
   </data>
@@ -9110,6 +9116,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Score at which suspicious counts as malicious (0-100)" xml:space="preserve">
     <value>Оцінка, починаючи з якої підозріле вважається шкідливим (0-100)</value>
   </data>
+  <data name="Score of a message whose links name more than 200 domains (0 = none)" xml:space="preserve">
+    <value>Оцінка повідомлення, посилання якого називають понад 200 доменів (0 — немає)</value>
+  </data>
   <data name="Score that counts as a takeover (1 to 6)" xml:space="preserve">
     <value>Оцінка, що вважається захопленням (від 1 до 6)</value>
   </data>
@@ -10495,6 +10504,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="The TCP/IP port list could not be read - {0}" xml:space="preserve">
     <value>Не вдалося прочитати список портів TCP/IP - {0}</value>
+  </data>
+  <data name="The URI blocklists on the SURBL servers page are asked about every registrable domain and address a message links to, up to 200 for each message. A message whose links name more is not asked about whole: it scores the number below instead, once, however many lists are active, so that hiding a listed link among made-up domains does not come free. Nothing is scored while no URI blocklist is active." xml:space="preserve">
+    <value>Списки блокування URI зі сторінки «Сервери SURBL» запитуються про кожен реєстровний домен і кожну адресу, на які посилається повідомлення, — до 200 на повідомлення. Повідомлення, посилання якого називають більше, не перевіряється повністю: натомість воно отримує оцінку нижче, один раз, хоч би скільки списків було активно, щоб сховати посилання зі списку серед вигаданих доменів не минало даром. Поки жоден список блокування URI не активний, нічого не нараховується.</value>
   </data>
   <data name="The Windows prompt was declined, so nothing was installed and nothing on the server was changed." xml:space="preserve">
     <value>Запит Windows відхилено, тож нічого не встановлено і на сервері нічого не змінилося.</value>

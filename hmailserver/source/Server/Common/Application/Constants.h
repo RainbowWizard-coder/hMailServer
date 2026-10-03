@@ -561,6 +561,11 @@
 #define PROPERTY_REFUSE_HELO_NOT_FQDN           _T("RefuseHeloNotFqdn")
 #define PROPERTY_REFUSE_MAIL_FROM_DOMAIN_NOT_FQDN _T("RefuseMailFromDomainNotFqdn")
 
+// The score of a message whose links name more domains than the URI lists are
+// asked about (AntiSpam/SURBL.h, MaxDomainsAsked). In hm_settings with its row
+// created by EnsureSettingDefaults_ at 5: no schema step.
+#define PROPERTY_SURBL_TOO_MANY_DOMAINS_SCORE   _T("SurblTooManyDomainsScore")
+
 // Bounces read, and a suppression list (SMTP/BounceTracker.h). In hm_settings, by
 // the rule of 15 September 2026, with rows created at start by EnsureLong when a
 // database has none. Every default is the server as it was: processing off, so

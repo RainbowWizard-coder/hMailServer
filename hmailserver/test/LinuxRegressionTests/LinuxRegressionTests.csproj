@@ -160,6 +160,7 @@
     <Compile Include="..\RegressionTests\AntiSpam\SpfEvaluation.cs" Link="AntiSpam\SpfEvaluation.cs" />
     <Compile Include="..\RegressionTests\AntiSpam\SmtpPolicy.cs" Link="AntiSpam\SmtpPolicy.cs" />
     <Compile Include="..\RegressionTests\AntiSpam\FqdnRefusal.cs" Link="AntiSpam\FqdnRefusal.cs" />
+    <Compile Include="..\RegressionTests\AntiSpam\SurblEveryDomain.cs" Link="AntiSpam\SurblEveryDomain.cs" />
     <Compile Include="..\RegressionTests\AntiSpam\SpamAssassinLearning.cs" Link="AntiSpam\SpamAssassinLearning.cs" />
     <Compile Include="..\RegressionTests\AntiSpam\SpamAssassinUserHeader.cs" Link="AntiSpam\SpamAssassinUserHeader.cs" />
     <Compile Include="..\RegressionTests\Domains\DomainDeleteCascade.cs" Link="Domains\DomainDeleteCascade.cs" />

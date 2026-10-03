@@ -470,6 +470,9 @@
   <data name="451 4.3.1 replies" xml:space="preserve">
     <value>Respuestas 451 4.3.1</value>
   </data>
+  <data name="5 by default, the stock mark threshold, so such a message is marked as spam unless the thresholds have been raised. A newsletter of a hundred links names far fewer domains than that; lower it if mail you want names more." xml:space="preserve">
+    <value>5 de forma predeterminada, el umbral de marcado de serie, así que ese mensaje se marca como spam salvo que se hayan subido los umbrales. Un boletín de cien enlaces nombra muchos menos dominios; bájela si el correo que quiere recibir nombra más.</value>
+  </data>
   <data name="5 by default." xml:space="preserve">
     <value>5 por defecto.</value>
   </data>
@@ -6030,6 +6033,9 @@ No se elimina nada de lo que ya está.</value>
   <data name="Messages still waiting to be delivered, why each is waiting, and when it will be retried." xml:space="preserve">
     <value>Mensajes que siguen esperando a ser entregados, por qué espera cada uno y cuándo se reintentará.</value>
   </data>
+  <data name="Messages that link to more domains than the URI blocklists ask about" xml:space="preserve">
+    <value>Mensajes que enlazan a más dominios de los que se consultan a las listas de bloqueo de URI</value>
+  </data>
   <data name="Messages the server finished processing, per minute, sampled every 2 seconds." xml:space="preserve">
     <value>Mensajes que el servidor terminó de procesar, por minuto, muestreados cada 2 segundos.</value>
   </data>
@@ -9110,6 +9116,9 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="Score at which suspicious counts as malicious (0-100)" xml:space="preserve">
     <value>Puntuación a partir de la cual sospechoso cuenta como malicioso (0-100)</value>
   </data>
+  <data name="Score of a message whose links name more than 200 domains (0 = none)" xml:space="preserve">
+    <value>Puntuación de un mensaje cuyos enlaces nombran más de 200 dominios (0 = ninguna)</value>
+  </data>
   <data name="Score that counts as a takeover (1 to 6)" xml:space="preserve">
     <value>Puntuación que cuenta como toma de control (1 a 6)</value>
   </data>
@@ -10495,6 +10504,9 @@ El próximo mensaje a esa dirección se enviará, y solo volverá a la lista tra
   </data>
   <data name="The TCP/IP port list could not be read - {0}" xml:space="preserve">
     <value>No se pudo leer la lista de puertos TCP/IP - {0}</value>
+  </data>
+  <data name="The URI blocklists on the SURBL servers page are asked about every registrable domain and address a message links to, up to 200 for each message. A message whose links name more is not asked about whole: it scores the number below instead, once, however many lists are active, so that hiding a listed link among made-up domains does not come free. Nothing is scored while no URI blocklist is active." xml:space="preserve">
+    <value>A las listas de bloqueo de URI de la página Servidores SURBL se les consulta por cada dominio registrable y cada dirección a los que enlaza un mensaje, hasta 200 por mensaje. Un mensaje cuyos enlaces nombran más no se consulta entero: recibe en su lugar la puntuación de abajo, una vez, sean cuantas sean las listas activas, de modo que esconder un enlace listado entre dominios inventados no le salga gratis al remitente. No se puntúa nada mientras no haya ninguna lista de bloqueo de URI activa.</value>
   </data>
   <data name="The Windows prompt was declined, so nothing was installed and nothing on the server was changed." xml:space="preserve">
     <value>Se rechazó el aviso de Windows, así que no se instaló nada ni se cambió nada en el servidor.</value>

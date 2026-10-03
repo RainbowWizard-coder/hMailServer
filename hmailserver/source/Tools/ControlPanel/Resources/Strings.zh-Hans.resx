@@ -470,6 +470,9 @@
   <data name="451 4.3.1 replies" xml:space="preserve">
     <value>451 4.3.1 应答</value>
   </data>
+  <data name="5 by default, the stock mark threshold, so such a message is marked as spam unless the thresholds have been raised. A newsletter of a hundred links names far fewer domains than that; lower it if mail you want names more." xml:space="preserve">
+    <value>默认为 5，即出厂的标记阈值，因此除非已提高阈值，这样的邮件会被标记为垃圾邮件。含一百个链接的新闻简报所含域名要少得多；如果您需要的邮件含有更多域名，请降低此值。</value>
+  </data>
   <data name="5 by default." xml:space="preserve">
     <value>默认 5。</value>
   </data>
@@ -6030,6 +6033,9 @@
   <data name="Messages still waiting to be delivered, why each is waiting, and when it will be retried." xml:space="preserve">
     <value>仍在等待投递的邮件、每一封等待的原因，以及重试时间。</value>
   </data>
+  <data name="Messages that link to more domains than the URI blocklists ask about" xml:space="preserve">
+    <value>链接的域名多于 URI 阻止列表所查询数量的邮件</value>
+  </data>
   <data name="Messages the server finished processing, per minute, sampled every 2 seconds." xml:space="preserve">
     <value>服务器每分钟处理完成的邮件数，每 2 秒采样一次。</value>
   </data>
@@ -9110,6 +9116,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Score at which suspicious counts as malicious (0-100)" xml:space="preserve">
     <value>可疑视为恶意的分数（0-100）</value>
   </data>
+  <data name="Score of a message whose links name more than 200 domains (0 = none)" xml:space="preserve">
+    <value>链接含有超过 200 个域名的邮件的分数 (0 = 无)</value>
+  </data>
   <data name="Score that counts as a takeover (1 to 6)" xml:space="preserve">
     <value>视为被盗用的分数（1 到 6）</value>
   </data>
@@ -10495,6 +10504,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="The TCP/IP port list could not be read - {0}" xml:space="preserve">
     <value>无法读取 TCP/IP 端口列表 - {0}</value>
+  </data>
+  <data name="The URI blocklists on the SURBL servers page are asked about every registrable domain and address a message links to, up to 200 for each message. A message whose links name more is not asked about whole: it scores the number below instead, once, however many lists are active, so that hiding a listed link among made-up domains does not come free. Nothing is scored while no URI blocklist is active." xml:space="preserve">
+    <value>SURBL 服务器页面上的 URI 阻止列表会被查询邮件链接到的每个可注册域名和地址，每封邮件最多 200 个。链接所含域名多于此数的邮件不会被完整查询：它改为获得下面的分数，只计一次，无论有多少个列表处于活动状态，这样把已列入列表的链接藏在虚构域名之中就不再是没有代价的。没有任何 URI 阻止列表处于活动状态时，不计任何分数。</value>
   </data>
   <data name="The Windows prompt was declined, so nothing was installed and nothing on the server was changed." xml:space="preserve">
     <value>Windows 提示被拒绝，因此没有安装任何内容，服务器上也没有任何更改。</value>

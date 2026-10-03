@@ -121,13 +121,18 @@ address's.
    banned.
 3. **Nothing known yet** - IMAP, POP3, ManageSieve, the REST API, or an SMTP
    session whose lookup had not finished: the ban is written as it always was,
-   and the address is resolved on the name lookup queue. **Nothing below the
-   range happens until the answer is in**: the `Auto-ban: <address> is banned
-   for ...` line the packaged fail2ban filter matches, the alert count and the
-   firewall reconciliation all wait for it. A spared address then has its range
+   and the address is resolved on a queue of its own, the never-ban
+   verification queue. **Nothing below the range happens until the answer is
+   in**: the `Auto-ban: <address> is banned for ...` line the packaged fail2ban
+   filter matches, the alert count and the firewall reconciliation all wait for
+   it. The address *waits* from before its range is written, and every
+   reconciliation in the meantime - another ban's, an administrator's delete,
+   the once-a-minute expiry pass - leaves its range out of the firewall rule,
+   `AutoBanCommand` and the packaged hook. A spared address then has its range
    deleted and none of the three happens; any other address is announced as
-   before. A listed provider is refused by the server itself for as long as two
-   lookups take, and its ban never reaches the firewall or fail2ban. **The
+   before. A listed provider is refused by the server itself for as long as its
+   lookups take, and its ban reaches neither the firewall nor fail2ban, unless
+   its answer is not in by the time the bounds below give it. **The
    failed logons counted before then do**: nothing is looked up for a failed
    logon until the one that bans, so each of them - the one that bans included -
    writes its `Auto-ban: logon failure <n> of <m> from <address>` line as it
@@ -140,15 +145,45 @@ address's.
 
 A verdict that spares is kept an hour, one that does not ten minutes, and every
 verdict is forgotten the moment a row is added, changed or removed: a row
-removed because it was a mistake spares nobody from the next ban on. A lookup
-that was not answered decides nothing and is kept for nobody; the ban it could
-not verify is announced, and asked about again by the once-a-minute expiry pass,
-three times, which lifts it if the answer then spares it. At most sixteen
-verifications are in flight at once, so that a flood of bans cannot starve the
-sessions' own lookups; past that, a ban is announced at once and left to those
-retries. The rows are re-read when they change here and every five minutes in
-any case, so that a row another node added to a shared database is in force
-there too.
+removed because it was a mistake spares nobody from the next ban on. The rows
+are re-read when they change here and every five minutes in any case, so that a
+row another node added to a shared database is in force there too.
+
+#### While the answer is not in
+
+The verifications run on four threads of their own, so the sessions' own
+reverse lookups - which an outsider whose reverse zone does not answer can keep
+backed up - never hold one up, and **each lookup is given up after five
+seconds** whatever `DNSQueryTimeout` says. A lookup given up is not waited for
+again; at most 32 such lookups may still be running in the resolver, and past
+that a lookup is not begun and counts as not answered.
+
+A ban **waits for its turn rather than being announced**. The waiting bans are
+taken by network in turn - an IPv4 `/24`, an IPv6 `/48` - so that one network's
+bans, however many, delay another network's by one lookup each: an outsider who
+earns ban after ban from addresses whose reverse lookups hang cannot push a
+listed provider's ban to the back. At most 16 bans of one network wait at once,
+and a seventeenth of that network is announced at once. At most 1,024 wait in
+all: a new ban past that gives up - announces unverified - the oldest waiting ban
+of the network with the most bans that no thread is asking about at that
+moment, so that the bans of one network cannot keep another's out.
+
+| What happens to a waiting ban | When |
+|---|---|
+| Lifted, never announced | Its answer spares it |
+| Announced | Its answer does not spare it |
+| Asked again a minute later | Its lookups were not answered |
+| Announced unverified | Four attempts were not answered, or it waited ten minutes in all. A minute a ban waits past its time without a turn - every thread busy - counts as an attempt |
+| Forgotten, never announced | Its range has gone - expired, or deleted on the IP ranges page - before the answer was in |
+
+So under a sustained flood of bans from addresses whose reverse zones do not
+answer, a listed provider's ban is refused by the server and **held back from
+the firewall and fail2ban** until it is verified; only a flood from more
+networks than the threads can work through in four minutes - some two hundred
+networks, each with a reverse zone that never answers - delays its turn past
+its attempts, and then it is announced as it would be without the list. A
+waiting ban is held in memory: a service restart forgets it, and the start-up
+reconciliation mirrors its range as any other.
 
 ### What it writes in the log
 
@@ -202,7 +237,11 @@ check.
 `AccountLogon::RegisterFailedLogin`, `SpamTrapMonitor::OnHit`,
 `SMTPConnection`'s null-sender ban and its `RefuseAuthOnDeliveryPort_`, the deferred
 announcement in `AutoBanFirewall::Banned` and its three siblings, the session's names in
-`SMTPConnection::PrefetchPtrRecord_`, and the retries in
+`SMTPConnection::PrefetchPtrRecord_`, the waiting bans in
+`NeverBanWaitingBans` (`NeverBanNameList.cpp`), the hold before the range is
+written in `AccountLogon::CreateIPRange`, the reconciliation's leaving them out
+in `AutoBanFirewall::ActiveBans_`, the queue in
+`Application::CreateSessionWorkQueues_`, and the minute's sweep in
 `RemoveExpiredRecords`. The regression fixtures `Security/AutoBanNeverBanNames`
 (REST and SMTP, both suites) and `Security/AutoBanNeverBanNamesCom` (COM,
 Windows) hold the behaviour, each case beside the one that must come out the

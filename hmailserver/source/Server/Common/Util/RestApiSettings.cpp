@@ -1803,6 +1803,11 @@ namespace
       { "refuse_mail_from_domain_not_fqdn", KindBoolean, ReadWrite, EffectNow, nullptr,
         "Whether a session whose envelope sender's domain is not a fully qualified domain name is refused at MAIL FROM with 550 5.7.1: user@192.0.2.7, user@[192.0.2.7], an IPv6 literal, a single label, a public suffix. MAIL FROM:<> has no domain and is not judged by this. Off by default; the same sessions as refuse_helo_not_fqdn, and independent of it.",
         ROW_FLAG(AntiSpam().GetRefuseMailFromDomainNotFqdn()), ROW_SET(AntiSpam().SetRefuseMailFromDomainNotFqdn(v.flag)), ROW_NO_CHECK },
+      // The URI blocklists ask about every domain a message links to, up to
+      // SURBL::MaxDomainsAsked; a message that names more scores this instead.
+      { "surbl_too_many_domains_score", KindInteger, ReadWrite, EffectNow, nullptr,
+        "The score of a message whose links name more domains than the URI blocklists are asked about: every registrable domain and address a message links to is asked about each active list, up to 200, and a message that names more scores this once, however many lists there are, so that hiding a listed link among made-up domains does not come free. 5 by default, the stock mark threshold and more than one list's stock score of 3; 0 scores nothing. Applies only while a URI blocklist is active.",
+        ROW_NUMBER(AntiSpam().GetSurblTooManyDomainsScore()), ROW_SET(AntiSpam().SetSurblTooManyDomainsScore((int) v.number)), ROW_NO_CHECK },
       { "dkim_verification_enabled", KindBoolean, ReadWrite, EffectNow, nullptr,
         "Whether DKIM signatures are verified.",
         ROW_FLAG(AntiSpam().GetDKIMVerificationEnabled()), ROW_SET(AntiSpam().SetDKIMVerificationEnabled(v.flag)), ROW_NO_CHECK },

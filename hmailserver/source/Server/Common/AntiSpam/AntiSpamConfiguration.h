@@ -127,6 +127,12 @@ namespace HM
       bool GetRefuseMailFromDomainNotFqdn();
       void SetRefuseMailFromDomainNotFqdn(bool newVal);
 
+      // The score of a message whose links name more domains than the URI lists
+      // are asked about (SURBL::MaxDomainsAsked), once per message while a URI
+      // list is active; 5 by default, and 0 scores nothing.
+      int GetSurblTooManyDomainsScore();
+      void SetSurblTooManyDomainsScore(int newVal);
+
 
       int GetSpamMarkThreshold();
       void SetSpamMarkThreshold(int bNewVal);

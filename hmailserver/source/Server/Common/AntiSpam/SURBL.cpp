@@ -16,12 +16,16 @@
 #include "SenderPattern.h"
 #include <boost/regex.hpp>
 #include <algorithm>
+#include <atomic>
 #include <chrono>
+#include <condition_variable>
 #include <map>
+#include <mutex>
 #include <random>
 #include <set>
 #include <stdexcept>
 #include <string>
+#include <thread>
 #include <type_traits>
 
 #ifdef _DEBUG
@@ -1678,13 +1682,15 @@ namespace HM
    namespace
    {
       // One registrable domain a message links to, and what it is asked about
-      // as: its own names (NamesToAsk's, less a host's own) and then host
-      // names under it, MaxHostNamesPerDomain of them at most - drawn from
-      // hosts, every host name under it the message links to, when there are
-      // more than that.
+      // as: its own names (NamesToAsk's, less a host's own: the domain, and
+      // under a suffix of the list's private section the ICANN section's
+      // domain too), own of them, and then host names under it,
+      // MaxHostNamesPerDomain of them at most - drawn from hosts, every host
+      // name under it the message links to, when there are more than that.
       struct LinkedDomain_
       {
          std::vector<String> names;
+         size_t own = 0;
          std::vector<String> hosts;
          std::set<String> hosts_seen;
       };
@@ -1709,8 +1715,9 @@ namespace HM
       }
    }
 
-   std::vector<String>
-   SURBL::ChooseNamesToAsk(const std::vector<String> &html_hosts, const std::vector<String> &text_hosts, size_t max_names, unsigned int seed)
+   SURBL::Choice
+   SURBL::ChooseNamesToAsk(const std::vector<String> &html_hosts, const std::vector<String> &text_hosts, size_t max_domains,
+                           size_t max_names, unsigned int seed)
    {
       // The domains linked, each once, in the order first linked: the HTML
       // part's, then those only the text part links to.
@@ -1751,6 +1758,8 @@ namespace HM
                   if (name != host || name == key)
                      AddName_(added, name);
                }
+
+               added.own = added.names.size();
 
                found = where.find(key);
             }
@@ -1798,35 +1807,111 @@ namespace HM
          }
       }
 
-      std::vector<String> chosen;
+      // The domains, each counted once however many hosts of the message name
+      // it: duckdns.org is one domain for every tenant of it the message links
+      // to.
+      std::set<String> ownNames[2];
+      for (int tier = 0; tier < 2; tier++)
+      {
+         for (const LinkedDomain_ &domain : tiers[tier])
+            ownNames[tier].insert(domain.names.begin(), domain.names.begin() + static_cast<std::ptrdiff_t>(domain.own));
+      }
+
+      std::set<String> everyOwnName = ownNames[0];
+      everyOwnName.insert(ownNames[1].begin(), ownNames[1].end());
+
+      Choice choice;
+      choice.domains = everyOwnName.size();
+
+      std::vector<String> &chosen = choice.names;
       std::set<String> asked;
 
+      const size_t domainBudget = std::min(max_domains, max_names);
+
+      // Every domain's own names, the HTML part's first. Not all of them can be
+      // asked about when there are more than the budget: they are then taken
+      // in an order the message does not choose, so that links put before
+      // another cannot keep it from being asked - and the message is not asked
+      // about whole, which the score for it says.
+      for (int tier = 0; tier < 2 && choice.domains_asked < domainBudget; tier++)
+      {
+         std::vector<LinkedDomain_> &domains = tiers[tier];
+
+         size_t fresh = 0;
+         for (const String &name : ownNames[tier])
+         {
+            if (asked.find(name) == asked.end())
+               fresh++;
+         }
+
+         if (choice.domains_asked + fresh > domainBudget)
+            Shuffle_(domains, seed + static_cast<unsigned int>(tier));
+
+         // Each domain's first own name, then each one's second: as many
+         // domains as the budget allows are asked about before an ICANN
+         // section's domain is.
+         for (size_t round = 0; choice.domains_asked < domainBudget; round++)
+         {
+            bool more = false;
+            for (const LinkedDomain_ &domain : domains)
+            {
+               if (round >= domain.own)
+                  continue;
+
+               more = true;
+               const String &name = domain.names[round];
+               if (asked.insert(name).second)
+               {
+                  chosen.push_back(name);
+                  choice.domains_asked++;
+                  if (choice.domains_asked >= domainBudget)
+                     break;
+               }
+            }
+
+            if (!more)
+               break;
+         }
+      }
+
+      // Then the host names under them, every domain's first before any
+      // domain's second, as far as the names budget goes. A host name is asked
+      // about beside its domain, never instead of it, so it does not count
+      // towards the domains.
       for (int tier = 0; tier < 2 && chosen.size() < max_names; tier++)
       {
          std::vector<LinkedDomain_> &domains = tiers[tier];
 
-         size_t names = 0;
+         // Not all of them fit: the domains are taken in an order the message
+         // does not choose, as their own names are above. In the order linked,
+         // a message whose domains all fit - and so scores nothing - put a
+         // host name of its own under each of the first hundred and more, and
+         // a listed host name linked after them was never asked about, by any
+         // list that lists the host and not its domain.
+         size_t hostNames = 0;
          for (const LinkedDomain_ &domain : domains)
-            names += domain.names.size();
+         {
+            for (size_t at = domain.own; at < domain.names.size(); at++)
+            {
+               if (asked.find(domain.names[at]) == asked.end())
+                  hostNames++;
+            }
+         }
 
-         // Not all of them can be asked about: they are taken in an order the
-         // message does not choose, so that links put before another cannot
-         // keep it from being asked.
-         if (chosen.size() + names > max_names)
-            Shuffle_(domains, seed + static_cast<unsigned int>(tier));
+         if (chosen.size() + hostNames > max_names)
+            Shuffle_(domains, seed + 2 + static_cast<unsigned int>(tier));
 
-         // Each domain's first name, then each one's second, and so on: as many
-         // domains as the budget allows are asked about before any twice.
          for (size_t round = 0; chosen.size() < max_names; round++)
          {
             bool more = false;
             for (const LinkedDomain_ &domain : domains)
             {
-               if (round >= domain.names.size())
+               const size_t at = domain.own + round;
+               if (at >= domain.names.size())
                   continue;
 
                more = true;
-               const String &name = domain.names[round];
+               const String &name = domain.names[at];
                if (asked.insert(name).second)
                {
                   chosen.push_back(name);
@@ -1840,11 +1925,11 @@ namespace HM
          }
       }
 
-      return chosen;
+      return choice;
    }
 
    void
-   SURBL::Collect_(std::shared_ptr<MessageData> pMessageData, std::vector<String> &out)
+   SURBL::Collect_(std::shared_ptr<MessageData> pMessageData, Choice &out)
    {
       // Every link of both parts, each host once: the HTML part's first, then
       // the text part's. Until 6.3.6 the reading stopped at the sixteenth name,
@@ -1877,12 +1962,18 @@ namespace HM
       const unsigned int seed = std::random_device()() ^
          static_cast<unsigned int>(std::chrono::steady_clock::now().time_since_epoch().count());
 
-      out = ChooseNamesToAsk(htmlHosts, textHosts, MaxNamesAsked, seed);
+      out = ChooseNamesToAsk(htmlHosts, textHosts, MaxDomainsAsked, MaxNamesAsked, seed);
 
       // The cast names FormatArgument's unsigned __int64 constructor (ExtractUrls
       // says why).
       LOG_DEBUG(Formatter::Format(_T("SURBL: {0} host(s) linked from the HTML part and {1} more from the text part; {2} name(s) to ask about."),
-         (unsigned __int64) htmlHosts.size(), (unsigned __int64) textHosts.size(), (unsigned __int64) out.size()));
+         (unsigned __int64) htmlHosts.size(), (unsigned __int64) textHosts.size(), (unsigned __int64) out.names.size()));
+
+      if (!out.EveryDomainAsked())
+      {
+         LOG_DEBUG(Formatter::Format(_T("SURBL: The links name {0} domain(s); {1} of them are asked about, and the message scores SurblTooManyDomainsScore for the rest."),
+            (unsigned __int64) out.domains, (unsigned __int64) out.domains_asked));
+      }
 
       // Each name with the link host that gave it, as 6.3.5 logged them: "asked
       // about as" when the name is not a host linked itself. Worked out only
@@ -1910,7 +2001,7 @@ namespace HM
          mapHosts(htmlHosts, true);
          mapHosts(textHosts, true);
 
-         for (const String &name : out)
+         for (const String &name : out.names)
          {
             std::map<String, String>::const_iterator found = origin.find(name);
             if (found == origin.end() || found->second == name)
@@ -1926,13 +2017,13 @@ namespace HM
    }
 
    bool
-   SURBL::ExtractUrls(std::shared_ptr<MessageData> pMessageData, std::vector<String> &vecUrls)
+   SURBL::ExtractUrls(std::shared_ptr<MessageData> pMessageData, Choice &choice)
    {
       LOG_DEBUG("SURBL: Execute");
 
-      Collect_(pMessageData, vecUrls);
+      Collect_(pMessageData, choice);
 
-      if (vecUrls.empty())
+      if (choice.names.empty())
       {
          LOG_DEBUG("SURBL: No domain addresses found.");
          return false;
@@ -1942,55 +2033,363 @@ namespace HM
       // one a size_t binds to exactly on Windows. On a 64-bit POSIX build size_t is
       // unsigned long, which matches none of the constructors exactly and is no
       // closer to one than to the others. The cast is an identity on Windows.
-      String logMessage = Formatter::Format("SURBL: {0} unique domain addresses found.", (unsigned __int64) vecUrls.size());
+      String logMessage = Formatter::Format("SURBL: {0} unique domain addresses found.", (unsigned __int64) choice.names.size());
       LOG_DEBUG(logMessage);
 
       return true;
    }
 
-   bool
-   SURBL::Run(std::shared_ptr<SURBLServer> pSURBLServer, std::vector<String> &vecUrls)
+   // SURBL.h says what the pool is for and how it shares itself out.
+   struct SURBLLookupPool::State
    {
-      boost::chrono::system_clock::time_point start_time = boost::chrono::system_clock::now();
-
-      // 127.0.0.1 is SURBL's and URIBL's answer to a query they block, and a
-      // list that blocks this server answers it to every name. It does not end
-      // the list for the message, as a refusal does: Hostkarma answers it to a
-      // name on its whitelist, and a link to one would then switch the list off
-      // for every link after it. The operator is told when every name the list
-      // answered for a message was answered so.
-      int lookupsAnswered = 0;
-      int lookupsBlocked = 0;
-      auto reportIfEveryLookupWasBlocked = [&]()
+      // One RunAlongside: the step its threads run, how many of the pool's
+      // threads are inside it now and may be at most, and whether it has
+      // answered false - then no thread of the pool takes it up again.
+      struct Job
       {
-         if (lookupsBlocked == 0 || lookupsBlocked != lookupsAnswered)
-            return;
-
-         AntiSpamDiagnostics::ReportCheckIncomplete(AntiSpamDiagnostics::CheckSurbl,
-            Formatter::Format("SURBL: {0} answered 127.0.0.1 to every name of a message it was asked about ({1}). SURBL and URIBL answer that to a query they block: if the list is one of them, it cannot be checked while it blocks this server's queries, and messages are accepted without its verdict.",
-               pSURBLServer->GetDNSHost(), lookupsBlocked));
+         const std::function<bool()> *step = nullptr;
+         size_t helpers = 0;
+         size_t most = 0;
+         bool done = false;
       };
 
-      int processedAddresses = 0;
-      for (auto sURL : vecUrls)
+      State(size_t threadsAtMost, size_t helpersAtMost, int idleMilliseconds) :
+         threads(threadsAtMost),
+         helpersPerRun(helpersAtMost),
+         idle(idleMilliseconds)
       {
-         boost::chrono::duration<double> elapsed_seconds = boost::chrono::system_clock::now() - start_time;
+      }
 
-         if (elapsed_seconds.count() > 10)
+      const size_t threads;
+      const size_t helpersPerRun;
+      const std::chrono::milliseconds idle;
+
+      std::mutex lock;
+
+      // A job came, or the pool is ending: a thread waiting for work looks.
+      std::condition_variable work;
+
+      // A thread left a job, or ended: RunAlongside and the destructor look.
+      std::condition_variable left;
+
+      std::vector<Job *> jobs;
+
+      // Where a thread free for work looks first: after the job one was given
+      // last, so that each job in turn has the next thread free.
+      size_t next = 0;
+
+      size_t running = 0;
+      size_t idleNow = 0;
+      size_t started = 0;
+      size_t mostRunning = 0;
+      bool ending = false;
+
+      // With lock held: the job a thread free for work makes a lookup for -
+      // the first from next on with lookups left and room for another
+      // thread - and next moved past it when take is set; null when there is
+      // none.
+      Job *Find(bool take)
+      {
+         const size_t count = jobs.size();
+         for (size_t i = 0; i < count; i++)
          {
-            LOG_DEBUG("SURBL: Aborting. Too long time elapsed.");
-            reportIfEveryLookupWasBlocked();
-            return true;
+            const size_t at = (next + i) % count;
+            Job *job = jobs[at];
+            if (!job->done && job->helpers < job->most)
+            {
+               if (take)
+                  next = at + 1;
+               return job;
+            }
          }
 
-         if (processedAddresses >= static_cast<int>(MaxNamesAsked))
+         return nullptr;
+      }
+
+      // A thread of the pool: one lookup for one job at a time, each job in
+      // turn, until it has had nothing to do for idle or the pool ends.
+      static void Help(const std::shared_ptr<State> &shared)
+      {
+         State &s = *shared;
+         std::unique_lock<std::mutex> guard(s.lock);
+
+         for (;;)
          {
-            LOG_DEBUG("SURBL: Aborting. Too many urls.");
-            reportIfEveryLookupWasBlocked();
-            return true;
+            Job *job = s.Find(true);
+            if (!job)
+            {
+               if (s.ending)
+                  break;
+
+               s.idleNow++;
+               const bool woken = s.work.wait_for(guard, s.idle, [&s]() { return s.ending || s.Find(false) != nullptr; });
+               s.idleNow--;
+
+               if (!woken)
+                  break;
+
+               continue;
+            }
+
+            job->helpers++;
+            guard.unlock();
+
+            bool more = false;
+            try
+            {
+               more = (*job->step)();
+            }
+            catch (...)
+            {
+               more = false;
+            }
+
+            guard.lock();
+            if (!more)
+               job->done = true;
+            job->helpers--;
+            s.left.notify_all();
+         }
+      }
+
+      // A thread of the pool, from its start to its end, which is counted
+      // however Help left.
+      static void RunThread(const std::shared_ptr<State> &shared)
+      {
+         // The top of a thread: nothing may leave it. Help catches what a
+         // lookup throws; what is left is the pool's own lock failing.
+         try
+         {
+            Help(shared);
+         }
+         catch (...)
+         {
+            LOG_DEBUG(_T("SURBL: a thread of the URI lists' lookup pool ended in an error."));
          }
 
-         String sHostToLookup = sURL + "." + pSURBLServer->GetDNSHost();
+         try
+         {
+            std::lock_guard<std::mutex> guard(shared->lock);
+            shared->running--;
+            shared->left.notify_all();
+         }
+         catch (...)
+         {
+            LOG_DEBUG(_T("SURBL: a thread of the URI lists' lookup pool could not count its end."));
+         }
+      }
+   };
+
+   SURBLLookupPool::SURBLLookupPool(size_t threads, size_t helpersPerRun, int idleMilliseconds) :
+      state_(std::make_shared<State>(threads, helpersPerRun, idleMilliseconds))
+   {
+   }
+
+   SURBLLookupPool::~SURBLLookupPool()
+   {
+      std::unique_lock<std::mutex> guard(state_->lock);
+      state_->ending = true;
+      state_->work.notify_all();
+
+      State &s = *state_;
+      s.left.wait(guard, [&s]() { return s.running == 0; });
+   }
+
+   SURBLLookupPool &
+   SURBLLookupPool::Server()
+   {
+      // Never destroyed: a thread of it may still be waiting for work when
+      // the process ends, and must not find its pool gone.
+      static SURBLLookupPool *pool = new SURBLLookupPool(SURBL::PoolThreads, SURBL::LookupsAtOnce - 1, 60 * 1000);
+      return *pool;
+   }
+
+   SURBLLookupPool::Counts
+   SURBLLookupPool::GetCounts() const
+   {
+      std::lock_guard<std::mutex> guard(state_->lock);
+
+      Counts counts;
+      counts.started = state_->started;
+      counts.running = state_->running;
+      counts.most_running = state_->mostRunning;
+      return counts;
+   }
+
+   void
+   SURBLLookupPool::RunAlongside(const std::function<bool()> &step, size_t helpers)
+   {
+      State &s = *state_;
+
+      State::Job job;
+      job.step = &step;
+      job.most = std::min(helpers, s.helpersPerRun);
+
+      // Leaves the pool with the job: no thread takes it up again, and the
+      // ones inside it are waited for, since it is this frame's.
+      struct Leave
+      {
+         State &s;
+         State::Job &job;
+
+         ~Leave()
+         {
+            std::unique_lock<std::mutex> guard(s.lock);
+            job.done = true;
+
+            const std::vector<State::Job *>::iterator it = std::find(s.jobs.begin(), s.jobs.end(), &job);
+            if (it != s.jobs.end())
+            {
+               const size_t at = static_cast<size_t>(it - s.jobs.begin());
+               s.jobs.erase(it);
+               if (at < s.next)
+                  s.next--;
+            }
+
+            State::Job &mine = job;
+            s.left.wait(guard, [&mine]() { return mine.helpers == 0; });
+         }
+      };
+
+      const Leave leave{s, job};
+      size_t start = 0;
+
+      if (job.most > 0)
+      {
+         std::lock_guard<std::mutex> guard(s.lock);
+         s.jobs.push_back(&job);
+
+         // Threads for it: those waiting for work first, then new ones while
+         // the pool has room.
+         const size_t wanted = job.most > s.idleNow ? job.most - s.idleNow : 0;
+         start = std::min(wanted, s.threads > s.running ? s.threads - s.running : 0);
+         s.running += start;
+         s.started += start;
+         s.mostRunning = std::max(s.mostRunning, s.running);
+         s.work.notify_all();
+      }
+
+      for (size_t i = 0; i < start; i++)
+      {
+         try
+         {
+            std::shared_ptr<State> shared = state_;
+            std::thread([shared]() { State::RunThread(shared); }).detach();
+         }
+         catch (...)
+         {
+            // No more threads to be had - the system's refusal or no memory
+            // for one: the ones there are, and this one, make the lookups.
+            std::lock_guard<std::mutex> guard(s.lock);
+            s.running -= start - i;
+            s.started -= start - i;
+            s.left.notify_all();
+            break;
+         }
+      }
+
+      // This thread makes lookups too, whatever the pool's threads are doing.
+      while (step())
+      {
+      }
+   }
+
+   bool
+   SURBL::Run(std::shared_ptr<SURBLServer> pSURBLServer, const std::vector<String> &vecUrls)
+   {
+      return Run(pSURBLServer, vecUrls, [](const String &name, std::vector<String> &answers) -> bool
+      {
+         DNSResolver resolver;
+         return resolver.GetIpAddresses(name, answers, false);
+      });
+   }
+
+   bool
+   SURBL::Run(std::shared_ptr<SURBLServer> pSURBLServer, const std::vector<String> &vecUrls, const Lookup &lookup)
+   {
+      return Run(pSURBLServer, vecUrls, lookup, SURBLLookupPool::Server());
+   }
+
+   bool
+   SURBL::Run(std::shared_ptr<SURBLServer> pSURBLServer, const std::vector<String> &vecUrls, const Lookup &lookup,
+              SURBLLookupPool &pool)
+   {
+      const std::chrono::steady_clock::time_point start_time = std::chrono::steady_clock::now();
+      const std::chrono::seconds deadline(10);
+
+      // What an answer means is the server's to say, as it is for a DNSBL.
+      // With an expected result set - the DNSBL syntax, 127.0.1.0-255 or
+      // 127.0.0.2*, ranges and wildcards joined by | - only an answer it names
+      // is a listing. With none set, any answer is.
+      //
+      // Except the codes the lists publish as errors, which are never a
+      // listing, whatever the expected result (ClassifyAnswer). Until 12
+      // September 2026 any answer at all was a listing, and Spamhaus's
+      // refusals tagged every message with a link on a server that resolves
+      // through 8.8.8.8 (discussion #167); until 6.3.6 the expected result
+      // could still take them, and the DBL's 127.0.1.255, which it answers to
+      // every address, tagged every message with a link to an address on a
+      // server that asks the DBL with no expected result or with 127.0.1.*.
+      const std::set<String> expected = BLCheck::ExpandAddresses(pSURBLServer->GetExpectedResult());
+      const String zone = pSURBLServer->GetDNSHost();
+
+      // What the lookups found, shared by the threads that make them. The
+      // first that ends the list for the message - a listing, a refusal, a
+      // lookup that failed, the deadline - stops any more being begun.
+      struct Progress
+      {
+         std::mutex lock;
+         size_t next = 0;
+         bool stop = false;
+         bool listed = false;
+         bool timedOut = false;
+
+         // A lookup that ended in an exception - set without the lock, from
+         // the handler: no more are begun, and the list is told it was not
+         // asked about whole, as for a lookup that failed.
+         std::atomic<bool> broke{false};
+
+         String failedName;
+         String refusedName;
+         String refusedAnswer;
+         String refusedMeaning;
+
+         // 127.0.0.1 is SURBL's and URIBL's answer to a query they block, and a
+         // list that blocks this server answers it to every name. It does not
+         // end the list for the message, as a refusal does: Hostkarma answers it
+         // to a name on its whitelist, and a link to one would then switch the
+         // list off for every link after it. The operator is told when every
+         // name the list answered for a message was answered so.
+         int answered = 0;
+         int blocked = 0;
+      };
+
+      Progress progress;
+
+      // One lookup, by whichever thread runs it: false when there was none
+      // left to make - every name taken, or the list ended for the message.
+      auto lookUpOne = [&]() -> bool
+      {
+         size_t index = 0;
+
+         {
+            std::lock_guard<std::mutex> guard(progress.lock);
+
+            if (progress.stop || progress.broke.load() || progress.next >= vecUrls.size())
+               return false;
+
+            if (std::chrono::steady_clock::now() - start_time > deadline)
+            {
+               progress.stop = true;
+               progress.timedOut = true;
+               return false;
+            }
+
+            index = progress.next++;
+         }
+
+         const String &sURL = vecUrls[index];
+         String sHostToLookup = sURL + "." + zone;
 
          // A name DNS cannot carry is not asked about. The resolver would
          // refuse it, and a lookup that fails abandons the list for the
@@ -2003,49 +2402,41 @@ namespace HM
          if (lookupLength > maxNameLength)
          {
             LOG_DEBUG(Formatter::Format(_T("SURBL: Not asked: {0} is longer than DNS carries."), sHostToLookup));
-            processedAddresses++;
-            continue;
+            return true;
          }
 
          LOG_DEBUG(Formatter::Format(_T("SURBL: Lookup: {0}"), sHostToLookup));
 
          std::vector<String> saFoundNames;
-         DNSResolver resolver;
-         if (!resolver.GetIpAddresses(sHostToLookup, saFoundNames, false))
+         bool resolved = false;
+
+         try
          {
-            LOG_DEBUG("SURBL: DNS query failed.");
-
-            // Abandoning the whole list on the first failed lookup means the URLs
-            // after it are never checked either, and the message is reported as
-            // clean. That is the safe direction to fail, but it was completely
-            // silent, so a resolver that had stopped answering presented as a
-            // SURBL that never matches anything.
-            AntiSpamDiagnostics::ReportCheckIncomplete(AntiSpamDiagnostics::CheckSurbl,
-               Formatter::Format("SURBL: The lookup of {0} did not complete. URI blacklists cannot be checked while that continues, and affected messages are accepted without a SURBL verdict.", sHostToLookup));
-
-            return true;
+            resolved = lookup(sHostToLookup, saFoundNames);
+         }
+         catch (...)
+         {
+            resolved = false;
          }
 
-         // What an answer means is the server's to say, as it is for a DNSBL.
-         // With an expected result set - the DNSBL syntax, 127.0.1.0-255 or
-         // 127.0.0.2*, ranges and wildcards joined by | - only an answer it names
-         // is a listing. With none set, any answer is.
-         //
-         // Except the codes the lists publish as errors, which are never a
-         // listing, whatever the expected result (ClassifyAnswer). Until 12
-         // September 2026 any answer at all was a listing, and Spamhaus's
-         // refusals tagged every message with a link on a server that resolves
-         // through 8.8.8.8 (discussion #167); until 6.3.6 the expected result
-         // could still take them, and the DBL's 127.0.1.255, which it answers to
-         // every address, tagged every message with a link to an address on a
-         // server that asks the DBL with no expected result or with 127.0.1.*.
+         if (!resolved)
+         {
+            LOG_DEBUG(Formatter::Format(_T("SURBL: DNS query failed: {0}"), sHostToLookup));
+
+            std::lock_guard<std::mutex> guard(progress.lock);
+            if (progress.failedName.IsEmpty())
+               progress.failedName = sHostToLookup;
+            progress.stop = true;
+            return false;
+         }
+
          bool listed = false;
          bool blocked = false;
          String errorAnswer;
          String errorMeaning;
          String refusedAnswer;
          String refusedMeaning;
-         const std::set<String> expected = BLCheck::ExpandAddresses(pSURBLServer->GetExpectedResult());
+
          for (const String &found : saFoundNames)
          {
             String meaning;
@@ -2090,9 +2481,12 @@ namespace HM
             LOG_DEBUG(Formatter::Format(_T("SURBL: {0} is {1}: an error, not a listing, whatever the expected result."), errorAnswer, errorMeaning));
          }
 
+         std::lock_guard<std::mutex> guard(progress.lock);
+
          if (listed)
          {
-            LOG_DEBUG("SURBL: Match found");
+            progress.listed = true;
+            progress.stop = true;
             return false;
          }
 
@@ -2102,21 +2496,99 @@ namespace HM
          // failed: its silence would look like clean mail.
          if (!refusedAnswer.IsEmpty())
          {
-            AntiSpamDiagnostics::ReportCheckIncomplete(AntiSpamDiagnostics::CheckSurbl,
-               Formatter::Format("SURBL: {0} refused the query for {1}: it answered {2}, {3}. The list cannot be checked while it refuses this server's queries, and messages are accepted without its verdict.",
-                  pSURBLServer->GetDNSHost(), sURL, refusedAnswer, refusedMeaning));
+            if (progress.refusedName.IsEmpty())
+            {
+               progress.refusedName = sURL;
+               progress.refusedAnswer = refusedAnswer;
+               progress.refusedMeaning = refusedMeaning;
+            }
 
-            return true;
+            progress.stop = true;
+            return false;
          }
 
-         lookupsAnswered++;
+         progress.answered++;
          if (blocked)
-            lookupsBlocked++;
+            progress.blocked++;
 
-         processedAddresses++;
+         return true;
+      };
+
+      // Nothing may leave a lookup: an exception - out of memory - ends the
+      // list for the message, which is told it was not asked about whole.
+      const std::function<bool()> step = [&lookUpOne, &progress]() -> bool
+      {
+         try
+         {
+            return lookUpOne();
+         }
+         catch (...)
+         {
+            progress.broke = true;
+            return false;
+         }
+      };
+
+      // The calling thread makes lookups itself, and up to LookupsAtOnce - 1
+      // threads of the pool make them beside it, in turn with the other
+      // messages being tested; every one of them is out of the lookups before
+      // the answer is read. A lookup begun is bounded by the resolver's own
+      // timeout. In the 6.3.6 tree before its release the threads were this
+      // message's own, started here: fifteen more for each message being
+      // tested at once, with no bound for the server.
+      const size_t helpers = vecUrls.size() > 1 ? std::min(LookupsAtOnce, vecUrls.size()) - 1 : 0;
+      pool.RunAlongside(step, helpers);
+
+      if (progress.listed)
+      {
+         LOG_DEBUG("SURBL: Match found");
+         return false;
       }
 
-      reportIfEveryLookupWasBlocked();
+      if (!progress.refusedName.IsEmpty())
+      {
+         AntiSpamDiagnostics::ReportCheckIncomplete(AntiSpamDiagnostics::CheckSurbl,
+            Formatter::Format("SURBL: {0} refused the query for {1}: it answered {2}, {3}. The list cannot be checked while it refuses this server's queries, and messages are accepted without its verdict.",
+               zone, progress.refusedName, progress.refusedAnswer, progress.refusedMeaning));
+
+         return true;
+      }
+
+      if (!progress.failedName.IsEmpty())
+      {
+         // Abandoning the whole list on the first failed lookup means the URLs
+         // after it are never checked either, and the message is reported as
+         // clean. That is the safe direction to fail, but it was completely
+         // silent, so a resolver that had stopped answering presented as a
+         // SURBL that never matches anything.
+         AntiSpamDiagnostics::ReportCheckIncomplete(AntiSpamDiagnostics::CheckSurbl,
+            Formatter::Format("SURBL: The lookup of {0} did not complete. URI blacklists cannot be checked while that continues, and affected messages are accepted without a SURBL verdict.", progress.failedName));
+
+         return true;
+      }
+
+      if (progress.broke.load())
+      {
+         // An exception from a lookup - out of memory, most likely: the list
+         // was not asked about every name, which is told as a failed lookup
+         // is, and the message goes on without its verdict.
+         AntiSpamDiagnostics::ReportCheckIncomplete(AntiSpamDiagnostics::CheckSurbl,
+            Formatter::Format("SURBL: A lookup in {0} ended in an error. The list was not asked about every name of the message, which is accepted without its verdict.", zone));
+
+         return true;
+      }
+
+      if (progress.timedOut)
+      {
+         LOG_DEBUG("SURBL: Aborting. Too long time elapsed.");
+      }
+
+      if (progress.blocked > 0 && progress.blocked == progress.answered)
+      {
+         AntiSpamDiagnostics::ReportCheckIncomplete(AntiSpamDiagnostics::CheckSurbl,
+            Formatter::Format("SURBL: {0} answered 127.0.0.1 to every name of a message it was asked about ({1}). SURBL and URIBL answer that to a query they block: if the list is one of them, it cannot be checked while it blocks this server's queries, and messages are accepted without its verdict.",
+               zone, progress.blocked));
+      }
 
       LOG_DEBUG("SURBL: Match not found");
       return true;
@@ -2809,64 +3281,204 @@ namespace HM
       // The names the URI lists are asked about (ChooseNamesToAsk). Until
       // 6.3.6 the first 16 names in the order of the links, the text part's
       // first: 16 harmless links in a text part an HTML mail program never
-      // shows kept the HTML part's listed link from every list.
+      // shows kept the HTML part's listed link from every list. In the 6.3.6
+      // tree before its release, 48 drawn from all of them: N made-up domains
+      // left a listed one asked about in 48 of N+1 messages. Every domain now,
+      // up to MaxDomainsAsked, and a message with more is told so (the score
+      // SpamTestSURBL gives it).
       {
-         std::vector<String> padding;
-         for (int i = 1; i <= 16; i++)
-            padding.push_back(_T("pad") + StringParser::IntToString(i) + _T(".example"));
+         auto numbered = [](const wchar_t *prefix, int count)
+         {
+            std::vector<String> names;
+            for (int i = 1; i <= count; i++)
+               names.push_back(String(prefix) + StringParser::IntToString(i) + _T(".example"));
+            return names;
+         };
+
+         auto has = [](const std::vector<String> &names, const wchar_t *name)
+         {
+            return std::find(names.begin(), names.end(), String(name)) != names.end();
+         };
+
+         std::vector<String> padding = numbered(L"pad", 16);
 
          // The HTML part's link is asked about first, whatever the text part holds.
          std::vector<String> html(1, String(_T("listed.example")));
-         std::vector<String> chosen = SURBL::ChooseNamesToAsk(html, padding, SURBL::MaxNamesAsked, 1);
-         if (chosen.size() != 17 || chosen[0] != _T("listed.example"))
+         SURBL::Choice choice = SURBL::ChooseNamesToAsk(html, padding, SURBL::MaxDomainsAsked, SURBL::MaxNamesAsked, 1);
+         if (choice.names.size() != 17 || choice.names[0] != _T("listed.example") || !choice.EveryDomainAsked())
             Fail_("a link of the HTML part is asked about before the text part's", _T("16 text links, then one HTML link"),
-               Joined_(chosen), _T("listed.example first, 17 names"));
+               Joined_(choice.names), _T("listed.example first, 17 names, every domain"));
 
          // 16 links before it in one part: it is asked about too.
          std::vector<String> text = padding;
          text.push_back(_T("listed.example"));
-         chosen = SURBL::ChooseNamesToAsk(std::vector<String>(), text, SURBL::MaxNamesAsked, 1);
-         if (std::find(chosen.begin(), chosen.end(), String(_T("listed.example"))) == chosen.end())
-            Fail_("a link after 16 others is asked about", _T("16 links, then the listed one"), Joined_(chosen), _T("listed.example among them"));
+         choice = SURBL::ChooseNamesToAsk(std::vector<String>(), text, SURBL::MaxDomainsAsked, SURBL::MaxNamesAsked, 1);
+         if (!has(choice.names, L"listed.example"))
+            Fail_("a link after 16 others is asked about", _T("16 links, then the listed one"), Joined_(choice.names), _T("listed.example among them"));
 
-         // More than the budget in the text part: the HTML part's one link
-         // comes first, and the budget is kept.
-         std::vector<String> many;
-         for (int i = 1; i <= 100; i++)
-            many.push_back(_T("many") + StringParser::IntToString(i) + _T(".example"));
-         chosen = SURBL::ChooseNamesToAsk(html, many, SURBL::MaxNamesAsked, 7);
-         if (chosen.size() != SURBL::MaxNamesAsked || chosen[0] != _T("listed.example"))
-            Fail_("more links than the budget: the HTML part's first, the budget kept", _T("100 text links, one HTML link"),
-               Joined_(chosen).Left(80), _T("listed.example first, 48 names"));
+         // A hundred links in the text part and one in the HTML part: all 101
+         // are asked about, the HTML part's first. In batch42 48 were.
+         std::vector<String> many = numbered(L"many", 100);
+         choice = SURBL::ChooseNamesToAsk(html, many, SURBL::MaxDomainsAsked, SURBL::MaxNamesAsked, 7);
+         if (choice.names.size() != 101 || choice.names[0] != _T("listed.example") || choice.domains != 101 || !choice.EveryDomainAsked())
+            Fail_("a hundred links in the text part are all asked about, after the HTML part's", _T("100 text links, one HTML link"),
+               StringParser::IntToString(static_cast<int>(choice.names.size())) + _T(" names: ") + Joined_(choice.names).Left(80),
+               _T("listed.example first, 101 names, every domain"));
 
-         // More than the budget in one part, the listed link last: the names
-         // are not the first 48 in the order of the links, but a draw the
-         // message cannot steer - the listed link is in some of 64 draws, and
-         // in no more than chance puts it (48 of 101 in each).
-         std::vector<String> crowded = many;
+         // ANTISPAM-1: 100 made-up domains in the HTML part and then the listed
+         // one. The listed one is asked about whatever the seed - before 6.3.6
+         // was released, in about 48 of 101 draws - and the choice says every
+         // domain was.
+         std::vector<String> crowded = numbered(L"pad", 100);
          crowded.push_back(_T("listed.example"));
-         int drawn = 0;
          for (unsigned int seed = 1; seed <= 64; seed++)
          {
-            chosen = SURBL::ChooseNamesToAsk(crowded, std::vector<String>(), SURBL::MaxNamesAsked, seed);
-            if (chosen.size() != SURBL::MaxNamesAsked)
-               Fail_("a crowded part keeps the budget", _T("101 HTML links"), StringParser::IntToString(static_cast<int>(chosen.size())), _T("48"));
-            if (std::find(chosen.begin(), chosen.end(), String(_T("listed.example"))) != chosen.end())
-               drawn++;
+            choice = SURBL::ChooseNamesToAsk(crowded, std::vector<String>(), SURBL::MaxDomainsAsked, SURBL::MaxNamesAsked, seed);
+            if (!has(choice.names, L"listed.example") || choice.names.size() != 101 || choice.domains != 101 || !choice.EveryDomainAsked())
+               Fail_("a listed link after a hundred made-up domains is asked about, whatever the seed",
+                  _T("100 HTML links, then the listed one, seed ") + StringParser::IntToString(static_cast<int>(seed)),
+                  StringParser::IntToString(static_cast<int>(choice.names.size())) + _T(" names") +
+                     (has(choice.names, L"listed.example") ? String(_T(", listed.example among them")) : String(_T(", listed.example not among them"))),
+                  _T("101 names, listed.example among them, every domain"));
          }
-         if (drawn < 10 || drawn > 54)
-            Fail_("the names of a crowded part are drawn, not taken in order", _T("100 links, then the listed one, 64 seeds"),
-               StringParser::IntToString(drawn) + _T(" draws with it"), _T("about half"));
+
+         // MaxDomainsAsked domains are all asked; one more and the choice says
+         // the message was not asked about whole. The draw is the seed's, and
+         // never more than the budget.
+         std::vector<String> full = numbered(L"full", static_cast<int>(SURBL::MaxDomainsAsked));
+         choice = SURBL::ChooseNamesToAsk(full, std::vector<String>(), SURBL::MaxDomainsAsked, SURBL::MaxNamesAsked, 3);
+         if (choice.names.size() != SURBL::MaxDomainsAsked || !choice.EveryDomainAsked())
+            Fail_("as many domains as the budget are all asked about", _T("200 HTML links"),
+               StringParser::IntToString(static_cast<int>(choice.names.size())) + (choice.EveryDomainAsked() ? _T(", every domain") : _T(", not every domain")),
+               _T("200, every domain"));
+
+         std::vector<String> over = full;
+         over.push_back(_T("listed.example"));
+         std::set<String> leftOut;
+         for (unsigned int seed = 1; seed <= 64; seed++)
+         {
+            choice = SURBL::ChooseNamesToAsk(over, std::vector<String>(), SURBL::MaxDomainsAsked, SURBL::MaxNamesAsked, seed);
+            if (choice.names.size() != SURBL::MaxDomainsAsked || choice.domains != SURBL::MaxDomainsAsked + 1 ||
+                choice.domains_asked != SURBL::MaxDomainsAsked || choice.EveryDomainAsked())
+               Fail_("one domain more than the budget: the budget asked, and the message not asked about whole", _T("201 HTML links"),
+                  StringParser::IntToString(static_cast<int>(choice.names.size())) + _T(" names of ") +
+                     StringParser::IntToString(static_cast<int>(choice.domains)) + _T(" domains"),
+                  _T("200 names of 201 domains, not every domain"));
+            for (const String &name : over)
+            {
+               if (!has(choice.names, name.c_str()))
+                  leftOut.insert(name);
+            }
+         }
+         // Taken in order, the last would be the one left out every time.
+         if (leftOut.size() < 2)
+            Fail_("the domains of a message over the budget are drawn, not taken in order", _T("200 links, then the listed one, 64 seeds"),
+               StringParser::IntToString(static_cast<int>(leftOut.size())) + _T(" different domains left out"), _T("many"));
+
+         // Over the budget in the HTML part, a domain only the text part names
+         // is not asked about - and the message is not asked about whole, which
+         // is what scores it. Within the budget it is asked about.
+         std::vector<String> textOnly(1, String(_T("listed.example")));
+         choice = SURBL::ChooseNamesToAsk(numbered(L"html", static_cast<int>(SURBL::MaxDomainsAsked) - 1), textOnly,
+            SURBL::MaxDomainsAsked, SURBL::MaxNamesAsked, 5);
+         if (!has(choice.names, L"listed.example") || !choice.EveryDomainAsked())
+            Fail_("a domain only the text part names is asked about while the budget lasts", _T("199 HTML links, one text link"),
+               Joined_(choice.names).Right(60), _T("listed.example among them, every domain"));
+         choice = SURBL::ChooseNamesToAsk(full, textOnly, SURBL::MaxDomainsAsked, SURBL::MaxNamesAsked, 5);
+         if (has(choice.names, L"listed.example") || choice.EveryDomainAsked())
+            Fail_("past the budget the text part's domain is left, and the message is not asked about whole", _T("200 HTML links, one text link"),
+               has(choice.names, L"listed.example") ? String(_T("listed.example asked")) : String(_T("not every domain: wrong")), _T("not asked, not every domain"));
+
+         // A domain is one domain however many hosts of a shared-hosting suffix
+         // name it: duckdns.org, the ICANN section's domain of every tenant, is
+         // asked about once and counted once; and it is a domain of its own,
+         // asked about before any host name, however many others the message
+         // gives.
+         std::vector<String> tenants;
+         for (int i = 1; i <= 150; i++)
+         {
+            tenants.push_back(_T("h.pad") + StringParser::IntToString(i) + _T(".example"));
+            tenants.push_back(_T("t") + StringParser::IntToString(i) + _T(".duckdns.org"));
+         }
+         choice = SURBL::ChooseNamesToAsk(tenants, std::vector<String>(), SURBL::MaxDomainsAsked, SURBL::MaxNamesAsked, 9);
+         // 150 pad domains, 150 tenants and duckdns.org: 301 domains, over the
+         // budget, so duckdns.org is drawn like any other ...
+         if (choice.domains != 301 || choice.EveryDomainAsked() || choice.names.size() > SURBL::MaxNamesAsked)
+            Fail_("the ICANN section's domain counts once", _T("150 hosts under made-up domains, 150 tenants of duckdns.org"),
+               StringParser::IntToString(static_cast<int>(choice.domains)) + _T(" domains"), _T("301 domains, not every one"));
+         // ... and within it, it is always asked, before any host name.
+         std::vector<String> fewTenants;
+         for (int i = 1; i <= 60; i++)
+         {
+            fewTenants.push_back(_T("h.pad") + StringParser::IntToString(i) + _T(".example"));
+            fewTenants.push_back(_T("t") + StringParser::IntToString(i) + _T(".duckdns.org"));
+         }
+         for (unsigned int seed = 1; seed <= 16; seed++)
+         {
+            choice = SURBL::ChooseNamesToAsk(fewTenants, std::vector<String>(), SURBL::MaxDomainsAsked, SURBL::MaxNamesAsked, seed);
+            const std::vector<String>::const_iterator icann = std::find(choice.names.begin(), choice.names.end(), String(_T("duckdns.org")));
+            const std::vector<String>::const_iterator host = std::find(choice.names.begin(), choice.names.end(), String(_T("h.pad1.example")));
+            if (choice.domains != 121 || !choice.EveryDomainAsked() || icann == choice.names.end() || host == choice.names.end() || icann > host)
+               Fail_("the ICANN section's domain is asked about before any host name", _T("60 hosts under made-up domains, 60 tenants of duckdns.org"),
+                  StringParser::IntToString(static_cast<int>(choice.domains)) + _T(" domains, ") + Joined_(choice.names).Left(80),
+                  _T("121 domains, every one; duckdns.org before h.pad1.example"));
+         }
+
+         // The names a message makes the lists ask about are held to
+         // MaxNamesAsked whatever it holds: 199 domains with two hosts each
+         // are 199 domains asked and 57 host names.
+         std::vector<String> hosted;
+         for (int i = 1; i <= 199; i++)
+         {
+            hosted.push_back(_T("a.d") + StringParser::IntToString(i) + _T(".example"));
+            hosted.push_back(_T("b.d") + StringParser::IntToString(i) + _T(".example"));
+         }
+         choice = SURBL::ChooseNamesToAsk(hosted, std::vector<String>(), SURBL::MaxDomainsAsked, SURBL::MaxNamesAsked, 2);
+         if (choice.names.size() != SURBL::MaxNamesAsked || choice.domains != 199 || !choice.EveryDomainAsked() ||
+             choice.names[198].Find(_T("d")) != 0)
+            Fail_("the names asked are held to the ceiling, the domains first", _T("199 domains with two hosts each"),
+               StringParser::IntToString(static_cast<int>(choice.names.size())) + _T(" names, ") + choice.names[198],
+               _T("256 names, the 199 domains first"));
+
+         // The host names of a message whose domains all fit, when they do not
+         // all fit themselves, are drawn too, not taken in the order linked:
+         // 128 made-up domains, each linked by a host name, before a listed
+         // host name under a domain of its own. Every domain is asked about,
+         // so the message scores nothing; taken in order, the 127 places left
+         // went to the first 127 made-up host names, and the listed one was
+         // never asked about, by any list that lists a host and not its domain.
+         std::vector<String> hostPadding;
+         for (int i = 1; i <= 128; i++)
+            hostPadding.push_back(_T("h.hp") + StringParser::IntToString(i) + _T(".example"));
+         hostPadding.push_back(_T("bad.listed.example"));
+         int listedHostAsked = 0;
+         for (unsigned int seed = 1; seed <= 64; seed++)
+         {
+            choice = SURBL::ChooseNamesToAsk(hostPadding, std::vector<String>(), SURBL::MaxDomainsAsked, SURBL::MaxNamesAsked, seed);
+            if (choice.names.size() != SURBL::MaxNamesAsked || choice.domains != 129 || !choice.EveryDomainAsked() ||
+                !has(choice.names, L"listed.example"))
+               Fail_("a message whose domains fit and whose host names do not: every domain, then host names to the ceiling",
+                  _T("128 made-up domains with a host name each, then bad.listed.example, seed ") + StringParser::IntToString(static_cast<int>(seed)),
+                  StringParser::IntToString(static_cast<int>(choice.names.size())) + _T(" names of ") +
+                     StringParser::IntToString(static_cast<int>(choice.domains)) + _T(" domains"),
+                  _T("256 names of 129 domains, every domain, listed.example among them"));
+            if (has(choice.names, L"bad.listed.example"))
+               listedHostAsked++;
+         }
+         if (listedHostAsked < 32)
+            Fail_("the host names of a message whose domains fit are drawn when they do not all fit, not taken in the order linked",
+               _T("128 made-up domains with a host name each, then bad.listed.example, 64 seeds"),
+               StringParser::IntToString(listedHostAsked) + _T(" draws asked about bad.listed.example"), _T("nearly all of them"));
 
          // One registrable domain is one domain: its own name, then two of its
          // hosts, however many it has; a domain both parts link to, once.
          std::vector<String> twoHosts;
          twoHosts.push_back(_T("h1.shop.example"));
          twoHosts.push_back(_T("h2.shop.example"));
-         chosen = SURBL::ChooseNamesToAsk(twoHosts, std::vector<String>(1, String(_T("shop.example"))), SURBL::MaxNamesAsked, 1);
-         if (Joined_(chosen) != _T("shop.example|h1.shop.example|h2.shop.example"))
+         choice = SURBL::ChooseNamesToAsk(twoHosts, std::vector<String>(1, String(_T("shop.example"))), SURBL::MaxDomainsAsked, SURBL::MaxNamesAsked, 1);
+         if (Joined_(choice.names) != _T("shop.example|h1.shop.example|h2.shop.example") || choice.domains != 1)
             Fail_("one domain's hosts are one domain", _T("h1 and h2.shop.example, and shop.example in the text part"),
-               Joined_(chosen), _T("shop.example|h1.shop.example|h2.shop.example"));
+               Joined_(choice.names), _T("shop.example|h1.shop.example|h2.shop.example"));
 
          // More hosts under one domain than are asked about: two of them, drawn,
          // not the first two linked - two made-up hosts linked first kept a
@@ -2877,7 +3489,8 @@ namespace HM
          int lastDrawn = 0;
          for (unsigned int seed = 1; seed <= 64; seed++)
          {
-            chosen = SURBL::ChooseNamesToAsk(hosts, std::vector<String>(1, String(_T("shop.example"))), SURBL::MaxNamesAsked, seed);
+            choice = SURBL::ChooseNamesToAsk(hosts, std::vector<String>(1, String(_T("shop.example"))), SURBL::MaxDomainsAsked, SURBL::MaxNamesAsked, seed);
+            const std::vector<String> &chosen = choice.names;
             if (chosen.size() != 3 || chosen[0] != _T("shop.example") || chosen[1] == chosen[2] ||
                 std::find(hosts.begin(), hosts.end(), chosen[1]) == hosts.end() || std::find(hosts.begin(), hosts.end(), chosen[2]) == hosts.end())
                Fail_("one domain's hosts are one domain, and two of them are asked about", _T("h1..h10.shop.example, and shop.example in the text part"),
@@ -2893,15 +3506,323 @@ namespace HM
          std::vector<String> two;
          two.push_back(_T("www2.first.example"));
          two.push_back(_T("second.example"));
-         chosen = SURBL::ChooseNamesToAsk(two, std::vector<String>(), SURBL::MaxNamesAsked, 1);
-         if (Joined_(chosen) != _T("first.example|second.example|www2.first.example"))
+         choice = SURBL::ChooseNamesToAsk(two, std::vector<String>(), SURBL::MaxDomainsAsked, SURBL::MaxNamesAsked, 1);
+         if (Joined_(choice.names) != _T("first.example|second.example|www2.first.example"))
             Fail_("each domain's own name before any host name", _T("www2.first.example, second.example"),
-               Joined_(chosen), _T("first.example|second.example|www2.first.example"));
+               Joined_(choice.names), _T("first.example|second.example|www2.first.example"));
 
          // An address is asked about reversed, as itself a domain.
-         chosen = SURBL::ChooseNamesToAsk(std::vector<String>(1, String(_T("192.0.2.7"))), std::vector<String>(), SURBL::MaxNamesAsked, 1);
-         if (Joined_(chosen) != _T("7.2.0.192"))
-            Fail_("an address is asked about reversed", _T("192.0.2.7"), Joined_(chosen), _T("7.2.0.192"));
+         choice = SURBL::ChooseNamesToAsk(std::vector<String>(1, String(_T("192.0.2.7"))), std::vector<String>(), SURBL::MaxDomainsAsked, SURBL::MaxNamesAsked, 1);
+         if (Joined_(choice.names) != _T("7.2.0.192") || choice.domains != 1)
+            Fail_("an address is asked about reversed", _T("192.0.2.7"), Joined_(choice.names), _T("7.2.0.192"));
+      }
+
+      // One list asked about every name of a message, LookupsAtOnce at a time
+      // (Run): a stand-in for the resolver counts the lookups and how many are
+      // in flight together. Until 6.3.6 one at a time, and 48 at most.
+      {
+         std::shared_ptr<SURBLServer> list(new SURBLServer);
+         list->SetDNSHost(_T("uri.list.test"));
+         list->SetIsActive(true);
+
+         std::vector<String> names;
+         for (int i = 1; i <= static_cast<int>(SURBL::MaxNamesAsked); i++)
+            names.push_back(_T("n") + StringParser::IntToString(i) + _T(".example"));
+
+         std::mutex lock;
+         std::set<String> asked;
+         int inFlight = 0;
+         int mostInFlight = 0;
+         String listedName;
+
+         SURBL::Lookup lookup = [&](const String &name, std::vector<String> &answers) -> bool
+         {
+            {
+               std::lock_guard<std::mutex> guard(lock);
+               asked.insert(name);
+               inFlight++;
+               mostInFlight = std::max(mostInFlight, inFlight);
+            }
+
+            std::this_thread::sleep_for(std::chrono::milliseconds(5));
+
+            std::lock_guard<std::mutex> guard(lock);
+            inFlight--;
+            if (!listedName.IsEmpty() && name == listedName + _T(".uri.list.test"))
+               answers.push_back(_T("127.0.0.2"));
+            return true;
+         };
+
+         SURBL surbl;
+         const bool clean = surbl.Run(list, names, lookup);
+         if (!clean || asked.size() != SURBL::MaxNamesAsked)
+            Fail_("every name is asked about the list", _T("256 names, none listed"),
+               StringParser::IntToString(static_cast<int>(asked.size())) + (clean ? _T(" asked, clean") : _T(" asked, listed")), _T("256 asked, clean"));
+         if (mostInFlight < 2 || mostInFlight > static_cast<int>(SURBL::LookupsAtOnce))
+            Fail_("the lookups of one list are made several at a time, and no more than LookupsAtOnce", _T("256 names"),
+               StringParser::IntToString(mostInFlight) + _T(" in flight at most"), _T("2 to 16"));
+
+         // The last name listed: found, whatever is asked before it.
+         asked.clear();
+         mostInFlight = 0;
+         listedName = names.back();
+         if (surbl.Run(list, names, lookup))
+            Fail_("a listing among the last names is found", _T("256 names, the last one listed"),
+               _T("clean"), _T("listed"));
+
+         // A lookup that is not answered, or that throws, ends the list for
+         // the message, as one lookup at a time did: no more are begun, the
+         // message goes on without the list's verdict (fail-open, and told),
+         // and the listing among the last names is not reached. The lookups
+         // in flight beside it finish; far fewer than all are asked.
+         for (int throws = 0; throws < 2; throws++)
+         {
+            asked.clear();
+            const String broken = names[2] + _T(".uri.list.test");
+            SURBL::Lookup failing = [&](const String &name, std::vector<String> &answers) -> bool
+            {
+               if (name == broken)
+               {
+                  if (throws == 1)
+                     throw std::runtime_error("a lookup that throws");
+                  return false;
+               }
+
+               return lookup(name, answers);
+            };
+
+            const bool clean = surbl.Run(list, names, failing);
+            if (!clean || asked.size() >= SURBL::MaxNamesAsked / 2)
+               Fail_(throws == 1 ? "a lookup that throws ends the list for the message" : "a lookup that fails ends the list for the message",
+                  _T("256 names, the third not answered, the last one listed"),
+                  StringParser::IntToString(static_cast<int>(asked.size())) + (clean ? _T(" asked, clean") : _T(" asked, listed")),
+                  _T("fewer than 128 asked, clean"));
+         }
+      }
+
+      // A flood: many messages tested at once, each with many names, share
+      // one pool (SURBLLookupPool). Its threads stay within its size whatever
+      // the number of messages, each message makes its lookups beside them,
+      // no more than LookupsAtOnce at once, and every name of every message is
+      // asked about - none is starved into its ten seconds. In the 6.3.6 tree
+      // before its release each message started fifteen threads of its own:
+      // here 12 messages, 180 threads, where the pool allows 4 and the 12
+      // testing.
+      {
+         std::shared_ptr<SURBLServer> list(new SURBLServer);
+         list->SetDNSHost(_T("uri.list.test"));
+         list->SetIsActive(true);
+
+         const size_t poolThreads = 4;
+         const int messages = 12;
+         const int namesEach = 128;
+         SURBLLookupPool pool(poolThreads, SURBL::LookupsAtOnce - 1, 30 * 1000);
+
+         std::mutex lock;
+         std::set<std::thread::id> lookupThreads;
+         std::vector<int> asked(messages, 0);
+         std::vector<int> inFlight(messages, 0);
+         std::vector<int> mostInFlight(messages, 0);
+         std::vector<int> clean(messages, -1);
+         int allInFlight = 0;
+         int mostInFlightAll = 0;
+
+         std::vector<std::thread> testing;
+         for (int m = 0; m < messages; m++)
+         {
+            testing.push_back(std::thread([&, m]()
+            {
+               std::vector<String> names;
+               for (int i = 1; i <= namesEach; i++)
+                  names.push_back(_T("m") + StringParser::IntToString(m) + _T("n") + StringParser::IntToString(i) + _T(".example"));
+
+               SURBL::Lookup lookup = [&, m](const String &, std::vector<String> &) -> bool
+               {
+                  {
+                     std::lock_guard<std::mutex> guard(lock);
+                     lookupThreads.insert(std::this_thread::get_id());
+                     asked[m]++;
+                     inFlight[m]++;
+                     mostInFlight[m] = std::max(mostInFlight[m], inFlight[m]);
+                     allInFlight++;
+                     mostInFlightAll = std::max(mostInFlightAll, allInFlight);
+                  }
+
+                  std::this_thread::sleep_for(std::chrono::milliseconds(2));
+
+                  std::lock_guard<std::mutex> guard(lock);
+                  inFlight[m]--;
+                  allInFlight--;
+                  return true;
+               };
+
+               SURBL surbl;
+               const bool result = surbl.Run(list, names, lookup, pool);
+
+               std::lock_guard<std::mutex> guard(lock);
+               clean[m] = result ? 1 : 0;
+            }));
+         }
+
+         for (std::thread &thread : testing)
+            thread.join();
+
+         const SURBLLookupPool::Counts counts = pool.GetCounts();
+         const String flood = _T("12 messages of 128 names at once, a pool of 4");
+
+         for (int m = 0; m < messages; m++)
+         {
+            if (asked[m] != namesEach || clean[m] != 1)
+               Fail_("every name of every message in a flood is asked about", flood,
+                  _T("message ") + StringParser::IntToString(m) + _T(": ") + StringParser::IntToString(asked[m]) + _T(" asked"),
+                  _T("128 asked, clean"));
+
+            if (mostInFlight[m] > static_cast<int>(SURBL::LookupsAtOnce))
+               Fail_("no message in a flood makes more than LookupsAtOnce lookups at once", flood,
+                  StringParser::IntToString(mostInFlight[m]) + _T(" at once"), _T("16 at most"));
+         }
+
+         if (counts.most_running > poolThreads || lookupThreads.size() > static_cast<size_t>(messages) + poolThreads ||
+             mostInFlightAll > messages + static_cast<int>(poolThreads))
+            Fail_("the threads that make a flood's lookups are the messages' own and the pool's, held to its size", flood,
+               StringParser::IntToString(static_cast<int>(lookupThreads.size())) + _T(" threads made lookups, ") +
+                  StringParser::IntToString(static_cast<int>(counts.most_running)) + _T(" of the pool at once, ") +
+                  StringParser::IntToString(mostInFlightAll) + _T(" lookups at once"),
+               _T("16 threads, 4 of the pool, 16 lookups at most"));
+
+         if (lookupThreads.size() <= static_cast<size_t>(messages))
+            Fail_("the pool's threads make lookups beside the messages' own", flood,
+               StringParser::IntToString(static_cast<int>(lookupThreads.size())) + _T(" threads made lookups"), _T("more than 12"));
+      }
+
+      // A message that came first with many names does not keep the pool: a
+      // thread of it makes one lookup and turns to the next message in turn,
+      // so a message tested after it has its share of the pool at once, not
+      // once the first is done. Here the first has all eight of a pool's
+      // threads; the second, while the first still has names not yet asked
+      // about - more than fifty of its 256 - has at least three lookups at
+      // once, its own and the pool's. Taken first come, first served, the
+      // pool's threads stayed with the first until its last name was taken,
+      // and the second had its own thread alone until then.
+      {
+         std::shared_ptr<SURBLServer> list(new SURBLServer);
+         list->SetDNSHost(_T("uri.list.test"));
+         list->SetIsActive(true);
+
+         SURBLLookupPool pool(8, SURBL::LookupsAtOnce - 1, 30 * 1000);
+
+         std::vector<String> firstNames;
+         std::vector<String> secondNames;
+         for (int i = 1; i <= 256; i++)
+            firstNames.push_back(_T("first") + StringParser::IntToString(i) + _T(".example"));
+         for (int i = 1; i <= 32; i++)
+            secondNames.push_back(_T("second") + StringParser::IntToString(i) + _T(".example"));
+
+         std::mutex lock;
+         std::condition_variable changed;
+         bool firstDone = false;
+         int firstInFlight = 0;
+         int firstMost = 0;
+         int firstBegun = 0;
+         int secondInFlight = 0;
+         int secondMostWhileFirst = 0;
+
+         SURBL::Lookup firstLookup = [&](const String &, std::vector<String> &) -> bool
+         {
+            {
+               std::lock_guard<std::mutex> guard(lock);
+               firstInFlight++;
+               firstBegun++;
+               firstMost = std::max(firstMost, firstInFlight);
+               changed.notify_all();
+            }
+
+            std::this_thread::sleep_for(std::chrono::milliseconds(20));
+
+            std::lock_guard<std::mutex> guard(lock);
+            firstInFlight--;
+            return true;
+         };
+
+         SURBL::Lookup secondLookup = [&](const String &, std::vector<String> &) -> bool
+         {
+            {
+               std::lock_guard<std::mutex> guard(lock);
+               secondInFlight++;
+               if (firstBegun < 200)
+                  secondMostWhileFirst = std::max(secondMostWhileFirst, secondInFlight);
+            }
+
+            std::this_thread::sleep_for(std::chrono::milliseconds(20));
+
+            std::lock_guard<std::mutex> guard(lock);
+            secondInFlight--;
+            return true;
+         };
+
+         bool firstClean = false;
+         std::thread first([&]()
+         {
+            SURBL surbl;
+            const bool result = surbl.Run(list, firstNames, firstLookup, pool);
+
+            std::lock_guard<std::mutex> guard(lock);
+            firstClean = result;
+            firstDone = true;
+         });
+
+         bool hadPool = false;
+         {
+            std::unique_lock<std::mutex> guard(lock);
+            hadPool = changed.wait_for(guard, std::chrono::seconds(10), [&]() { return firstMost >= 9 || firstDone; });
+         }
+
+         SURBL surbl;
+         const bool secondClean = surbl.Run(list, secondNames, secondLookup, pool);
+         first.join();
+
+         if (!hadPool || firstMost != 9 || !firstClean || !secondClean)
+            Fail_("a message tested alone has the pool's threads beside its own", _T("256 names, a pool of 8"),
+               StringParser::IntToString(firstMost) + _T(" lookups at once"), _T("9"));
+
+         if (secondMostWhileFirst < 3)
+            Fail_("a message tested after one that has the whole pool has its share of it at once", _T("256 names, then 32, a pool of 8"),
+               StringParser::IntToString(secondMostWhileFirst) + _T(" lookups at once while the first had names left"), _T("3 or more"));
+      }
+
+      // A pool with no thread to give - none can be had - leaves the message's
+      // own thread to ask about every name, one at a time.
+      {
+         std::shared_ptr<SURBLServer> list(new SURBLServer);
+         list->SetDNSHost(_T("uri.list.test"));
+         list->SetIsActive(true);
+
+         SURBLLookupPool pool(0, SURBL::LookupsAtOnce - 1, 1000);
+
+         std::vector<String> names;
+         for (int i = 1; i <= 40; i++)
+            names.push_back(_T("alone") + StringParser::IntToString(i) + _T(".example"));
+
+         std::mutex lock;
+         int asked = 0;
+         int inFlight = 0;
+         int mostInFlight = 0;
+         SURBL::Lookup lookup = [&](const String &, std::vector<String> &) -> bool
+         {
+            std::lock_guard<std::mutex> guard(lock);
+            asked++;
+            inFlight++;
+            mostInFlight = std::max(mostInFlight, inFlight);
+            inFlight--;
+            return true;
+         };
+
+         SURBL surbl;
+         const bool clean = surbl.Run(list, names, lookup, pool);
+         if (!clean || asked != 40 || mostInFlight != 1 || pool.GetCounts().started != 0)
+            Fail_("a message whose pool has no thread to give asks about every name on its own thread", _T("40 names, a pool of none"),
+               StringParser::IntToString(asked) + _T(" asked, ") + StringParser::IntToString(mostInFlight) + _T(" at once"),
+               _T("40 asked, 1 at once, clean"));
       }
    }
 }

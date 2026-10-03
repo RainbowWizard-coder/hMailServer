@@ -2006,6 +2006,42 @@ STDMETHODIMP InterfaceAntiSpam::put_RefuseMailFromDomainNotFqdn(VARIANT_BOOL new
    }
 }
 
+STDMETHODIMP InterfaceAntiSpam::get_SurblTooManyDomainsScore(long *pVal)
+{
+   try
+   {
+      if (!config_)
+         return GetAccessDenied();
+
+      *pVal = config_->GetAntiSpamConfiguration().GetSurblTooManyDomainsScore();
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAntiSpam::put_SurblTooManyDomainsScore(long newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return GetAccessDenied();
+
+      config_->GetAntiSpamConfiguration().SetSurblTooManyDomainsScore(newVal);
+
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
 STDMETHODIMP InterfaceAntiSpam::get_DomainPolicyList(BSTR *pVal)
 {
    try

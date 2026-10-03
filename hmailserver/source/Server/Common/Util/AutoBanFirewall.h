@@ -49,7 +49,9 @@ namespace HM
    // siblings do below the range - the log line, the alert count and the
    // reconciliation - waits for the address's reverse name to be looked up off
    // the protocol thread, and does not happen at all for an address it spares,
-   // whose range is deleted instead.
+   // whose range is deleted instead; and a reconciliation run meanwhile, by
+   // another ban or the expiry pass, leaves the waiting address's range out
+   // (NeverBanNameList::IsPending).
    //
    // A ban AutoBanWidener has widened to its reverse-name neighbours (GitLab work
    // item #55; AutoBanWidenByReverseName, off by default) is one range of IPv4

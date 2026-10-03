@@ -100,6 +100,7 @@ namespace hMailServer.ControlPanel.Services
          new SettingEntry("Refuse with 550 after this many retries before the window opens (0 never refuses)", "AntiSpam.GreyListingAbuseThreshold", "antispam"),
          new SettingEntry("Scan a message with a single recipient as that recipient", "SpamAssassinUserFromRecipient", "antispam"),
          new SettingEntry("Score applied when the engine says \"reject\"", "FilterHookRejectScore", "antispam"),
+         new SettingEntry("Score of a message whose links name more than 200 domains (0 = none)", "AntiSpam.SurblTooManyDomainsScore", "antispam"),
          new SettingEntry("Score when not merging", "AntiSpam.SpamAssassinScore", "antispam"),
          new SettingEntry("Spam delete threshold (score)", "AntiSpam.SpamDeleteThreshold", "antispam"),
          new SettingEntry("Spam mark threshold (score)", "AntiSpam.SpamMarkThreshold", "antispam"),

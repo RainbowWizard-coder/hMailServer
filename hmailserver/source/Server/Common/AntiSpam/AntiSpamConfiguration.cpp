@@ -575,6 +575,18 @@ namespace HM
       GetSettings_()->SetBool(PROPERTY_REFUSE_MAIL_FROM_DOMAIN_NOT_FQDN, newVal);
    }
 
+   int
+   AntiSpamConfiguration::GetSurblTooManyDomainsScore()
+   {
+      return GetSettings_()->GetLong(PROPERTY_SURBL_TOO_MANY_DOMAINS_SCORE);
+   }
+
+   void
+   AntiSpamConfiguration::SetSurblTooManyDomainsScore(int newVal)
+   {
+      GetSettings_()->SetLong(PROPERTY_SURBL_TOO_MANY_DOMAINS_SCORE, newVal);
+   }
+
    void
    AntiSpamConfiguration::SetSpamAssassinEnabled(bool newVal)
    {

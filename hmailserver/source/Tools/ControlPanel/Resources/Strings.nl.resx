@@ -470,6 +470,9 @@ Dit zwakke wachtwoord toch opslaan?</value>
   <data name="451 4.3.1 replies" xml:space="preserve">
     <value>451 4.3.1-antwoorden</value>
   </data>
+  <data name="5 by default, the stock mark threshold, so such a message is marked as spam unless the thresholds have been raised. A newsletter of a hundred links names far fewer domains than that; lower it if mail you want names more." xml:space="preserve">
+    <value>Standaard 5, de meegeleverde markeringsdrempel, zodat zo'n bericht als spam wordt gemarkeerd tenzij de drempels zijn verhoogd. Een nieuwsbrief met honderd links noemt veel minder domeinen; verlaag de waarde als gewenste mail er meer noemt.</value>
+  </data>
   <data name="5 by default." xml:space="preserve">
     <value>Standaard 5.</value>
   </data>
@@ -6030,6 +6033,9 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="Messages still waiting to be delivered, why each is waiting, and when it will be retried." xml:space="preserve">
     <value>Berichten die nog op bezorging wachten, waarom elk wacht, en wanneer het opnieuw wordt geprobeerd.</value>
   </data>
+  <data name="Messages that link to more domains than the URI blocklists ask about" xml:space="preserve">
+    <value>Berichten die naar meer domeinen linken dan de URI-blokkeerlijsten worden gevraagd</value>
+  </data>
   <data name="Messages the server finished processing, per minute, sampled every 2 seconds." xml:space="preserve">
     <value>Berichten die de server klaar heeft verwerkt, per minuut, elke 2 seconden bemonsterd.</value>
   </data>
@@ -9110,6 +9116,9 @@ Doorgaan?</value>
   <data name="Score at which suspicious counts as malicious (0-100)" xml:space="preserve">
     <value>Score vanaf welke verdacht als kwaadaardig telt (0-100)</value>
   </data>
+  <data name="Score of a message whose links name more than 200 domains (0 = none)" xml:space="preserve">
+    <value>Score van een bericht waarvan de links meer dan 200 domeinen noemen (0 = geen)</value>
+  </data>
   <data name="Score that counts as a takeover (1 to 6)" xml:space="preserve">
     <value>Score die als overname telt (1 tot 6)</value>
   </data>
@@ -10495,6 +10504,9 @@ Het volgende bericht aan dit adres wordt verzonden, en het komt pas weer op de l
   </data>
   <data name="The TCP/IP port list could not be read - {0}" xml:space="preserve">
     <value>De lijst met TCP/IP-poorten kon niet worden gelezen - {0}</value>
+  </data>
+  <data name="The URI blocklists on the SURBL servers page are asked about every registrable domain and address a message links to, up to 200 for each message. A message whose links name more is not asked about whole: it scores the number below instead, once, however many lists are active, so that hiding a listed link among made-up domains does not come free. Nothing is scored while no URI blocklist is active." xml:space="preserve">
+    <value>De URI-blokkeerlijsten op de pagina SURBL-servers worden gevraagd naar elk registreerbaar domein en elk adres waar een bericht naar linkt, tot 200 per bericht. Een bericht waarvan de links er meer noemen, wordt niet in zijn geheel gevraagd: het krijgt in plaats daarvan de score hieronder, één keer, ongeacht hoeveel lijsten actief zijn, zodat het verbergen van een vermelde link tussen verzonnen domeinen niet gratis is. Er wordt niets gescoord zolang geen URI-blokkeerlijst actief is.</value>
   </data>
   <data name="The Windows prompt was declined, so nothing was installed and nothing on the server was changed." xml:space="preserve">
     <value>De Windows-prompt is geweigerd, dus er is niets geïnstalleerd en op de server niets gewijzigd.</value>

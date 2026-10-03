@@ -11,6 +11,7 @@ using System.Text;
 using System.Threading;
 using NUnit.Framework;
 using NUnit.Framework.Legacy;
+using RegressionTests.Infrastructure;
 using RegressionTests.Shared;
 
 namespace RegressionTests.Security
@@ -31,7 +32,12 @@ namespace RegressionTests.Security
    ///      * the ban itself, through two of its three writers - a spam trap hit and
    ///        a run of failed logons: a listed provider is left with no auto-ban
    ///        range, an unlisted one and one whose reverse name is forged are banned,
-   ///        and a row removed spares nobody from the next hit on.
+   ///        and a row removed spares nobody from the next hit on;
+   ///      * a listed provider's ban whose reverse lookup does not answer: the
+   ///        hook (AutoBanCommand, a script of the test's) and the line fail2ban
+   ///        matches wait, a reconciliation another ban starts leaves it out, and
+   ///        it is lifted unannounced once the lookup answers - beside an unlisted
+   ///        address announced and mirrored at once.
    ///
    ///    The suite reaches the server from 127.0.0.1, which must never be banned
    ///    here, and whose reverse name the resolver may answer itself. So every
@@ -369,6 +375,150 @@ namespace RegressionTests.Security
          finally
          {
             Http("DELETE", "/api/v1/apikeys/" + id);
+         }
+      }
+
+      [Test]
+      [Description("While a listed provider's reverse lookup does not answer, its ban is the server's alone: the hook is not told, no line for fail2ban is written, and a reconciliation another ban starts leaves it out; once the lookup answers, the ban is lifted without ever having been announced. The unlisted address beside it is announced and mirrored at once.")]
+      public void ABanWaitingForItsReverseLookupIsNotAnnouncedAndIsLiftedWhenItVerifies()
+      {
+         // Before 6.3.6 was released the verification shared the name lookup
+         // queue with every session's reverse lookup and announced a ban it
+         // could not verify, and every reconciliation mirrored the waiting
+         // range: a reverse zone that does not answer took a listed provider's
+         // ban below the server.
+         string folder = Path.Combine(Path.GetTempPath(), "hmailserver-never-ban-hook");
+         Directory.CreateDirectory(folder);
+         string hookLog = Path.Combine(folder, "hook.log");
+         File.Delete(hookLog);
+
+         string command;
+         if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+         {
+            string script = Path.Combine(folder, "hook.cmd");
+            File.WriteAllText(script, "@echo %* >> \"" + hookLog + "\"\r\n@exit /b 0\r\n");
+            command = "cmd.exe /c \"" + script + "\"";
+         }
+         else
+         {
+            string script = Path.Combine(folder, "hook.sh");
+            File.WriteAllText(script, "#!/bin/sh\necho \"$*\" >> '" + hookLog + "'\nexit 0\n");
+            command = "/bin/sh " + script;
+         }
+
+         string provider = Net + "87";
+         string unlisted = Net + "88";
+         string providerReverse = "87.100.51.198.in-addr.arpa";
+
+         try
+         {
+            IniFileSetting.Write("AutoBanCommand", command);
+            LogHandler.DeleteCurrentDefaultLog();
+
+            // Longer than the wait below can last, so that the provider's ban is
+            // lifted and not simply run out. TearDown puts the setting back.
+            PutSettings("{\"spam_trap_ban_minutes\":30}");
+
+            Add("." + Provider);
+            DeclareTrap();
+            Reverse(87, "mx87." + Provider, provider);
+            Reverse(88, "mx88.unlisted-isp.test", unlisted);
+
+            // The provider's reverse zone stops answering: its lookups wait for
+            // the resolver's timeout.
+            SuiteDns.Zone.WithSilence(providerReverse);
+
+            TrapHitFrom(provider);
+            ClassicAssert.AreEqual(1, AutoBans(provider).Count, "The provider's trap hit wrote no ban, so the rest of this test means nothing.");
+
+            // An unlisted address banned beside it: announced, and its
+            // reconciliation runs the hook - which must not be told about the
+            // provider, whose answer is not in.
+            TrapHitFrom(unlisted);
+            string told = WaitForHook(hookLog, l => HookLines(l, "ban", unlisted) > 0, TimeSpan.FromSeconds(30));
+            ClassicAssert.Greater(HookLines(told, "ban", unlisted), 0, "The unlisted address's ban did not reach the hook. Hook log: " + told);
+            ClassicAssert.AreEqual(0, HookLines(told, "ban", provider),
+               "A listed provider's ban was handed to the hook while its reverse lookup had not answered. Hook log: " + told);
+            ClassicAssert.IsFalse(LogHandler.DefaultLogContains("Auto-ban: " + provider + " is banned for"),
+               "A listed provider's ban was announced in the line fail2ban matches while its reverse lookup had not answered.");
+            ClassicAssert.AreEqual(1, AutoBans(provider).Count, "The provider's ban did not stand at the server while it waited.");
+
+            // The zone answers again: the next minute's pass asks once more,
+            // the name resolves back, and the ban is lifted - never announced.
+            // The retry is due a minute after the lookup was given up, and the
+            // expiry pass that takes it up runs once a minute at best: measured
+            // on Linux, three minutes after the ban. Five minutes are allowed.
+            SuiteDns.Zone.WithoutSilence(providerReverse);
+
+            ClassicAssert.IsTrue(NoBanWithin(provider, TimeSpan.FromSeconds(300)),
+               "The listed provider's ban was not lifted once its reverse lookup answered.");
+
+            string after = File.Exists(hookLog) ? File.ReadAllText(hookLog) : "";
+            ClassicAssert.AreEqual(0, HookLines(after, "ban", provider), "The listed provider's ban reached the hook after all. Hook log: " + after);
+            ClassicAssert.IsFalse(LogHandler.DefaultLogContains("Auto-ban: " + provider + " is banned for"),
+               "The listed provider's ban was announced in the line fail2ban matches after all.");
+            ClassicAssert.IsTrue(LogHandler.DefaultLogContains("Auto-ban: " + provider + " was not banned"),
+               "The lift of the listed provider's ban was not logged.");
+         }
+         finally
+         {
+            // The bans first, while the command is still the hook: it is told
+            // to un-ban what it was told to ban. Cleared while it still held
+            // the unlisted address, the command would leave that address to
+            // the administrator, which a server that keeps the command's
+            // ledger names in its error log (HM6523) - a line the next test
+            // would fail on.
+            TakeBackOurs();
+            WaitForHook(hookLog, l => HookLines(l, "unban", unlisted) > 0 || HookLines(l, "ban", unlisted) == 0, TimeSpan.FromSeconds(30));
+
+            IniFileSetting.Delete("AutoBanCommand");
+            SuiteDns.Zone.WithoutSilence(providerReverse);
+
+            try
+            {
+               Directory.Delete(folder, true);
+            }
+            catch (IOException)
+            {
+               // The service may still hold the log for a moment; it is temp space.
+            }
+            catch (UnauthorizedAccessException)
+            {
+               // Likewise.
+            }
+         }
+      }
+
+      /// <summary>How many lines of the hook's log are the verb for the address: "ban 198.51.100.87 ..." and not "unban ...".</summary>
+      private static int HookLines(string log, string verb, string address)
+      {
+         return log.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                   .Count(line => line.Trim().StartsWith(verb + " " + address + " ", StringComparison.Ordinal) ||
+                                  line.Trim() == verb + " " + address);
+      }
+
+      /// <summary>The hook's log once it satisfies the condition, or as it is at the deadline.</summary>
+      private static string WaitForHook(string hookLog, Func<string, bool> condition, TimeSpan deadline)
+      {
+         DateTime until = DateTime.UtcNow + deadline;
+
+         while (true)
+         {
+            string text = "";
+
+            try
+            {
+               text = File.Exists(hookLog) ? File.ReadAllText(hookLog) : "";
+            }
+            catch (IOException)
+            {
+               // The hook is writing it; read it again in a moment.
+            }
+
+            if (condition(text) || DateTime.UtcNow > until)
+               return text;
+
+            Thread.Sleep(250);
          }
       }
 

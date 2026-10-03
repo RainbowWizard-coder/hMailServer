@@ -470,6 +470,9 @@ Bu zayıf parola yine de kaydedilsin mi?</value>
   <data name="451 4.3.1 replies" xml:space="preserve">
     <value>451 4.3.1 yanıtları</value>
   </data>
+  <data name="5 by default, the stock mark threshold, so such a message is marked as spam unless the thresholds have been raised. A newsletter of a hundred links names far fewer domains than that; lower it if mail you want names more." xml:space="preserve">
+    <value>Varsayılan 5, kutudan çıktığı haliyle işaretleme eşiğidir; eşikler yükseltilmedikçe böyle bir ileti spam olarak işaretlenir. Yüz bağlantılı bir bülten çok daha az etki alanı adlandırır; istediğiniz posta daha fazlasını adlandırıyorsa değeri düşürün.</value>
+  </data>
   <data name="5 by default." xml:space="preserve">
     <value>Varsayılan 5.</value>
   </data>
@@ -6030,6 +6033,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="Messages still waiting to be delivered, why each is waiting, and when it will be retried." xml:space="preserve">
     <value>Hâlâ teslim edilmeyi bekleyen iletiler, her birinin neden beklediği ve ne zaman yeniden deneneceği.</value>
   </data>
+  <data name="Messages that link to more domains than the URI blocklists ask about" xml:space="preserve">
+    <value>URI engelleme listelerine sorulandan daha fazla etki alanına bağlantı veren iletiler</value>
+  </data>
   <data name="Messages the server finished processing, per minute, sampled every 2 seconds." xml:space="preserve">
     <value>Sunucunun işlemeyi bitirdiği iletiler, dakika başına, her 2 saniyede bir örneklenir.</value>
   </data>
@@ -9110,6 +9116,9 @@ Devam edilsin mi?</value>
   <data name="Score at which suspicious counts as malicious (0-100)" xml:space="preserve">
     <value>Şüphelinin kötü amaçlı sayıldığı puan (0-100)</value>
   </data>
+  <data name="Score of a message whose links name more than 200 domains (0 = none)" xml:space="preserve">
+    <value>Bağlantıları 200'den fazla etki alanını adlandıran bir iletinin puanı (0 = yok)</value>
+  </data>
   <data name="Score that counts as a takeover (1 to 6)" xml:space="preserve">
     <value>Ele geçirme sayılan puan (1 ile 6 arası)</value>
   </data>
@@ -10495,6 +10504,9 @@ Bu adrese giden bir sonraki ileti gönderilir; adres ancak eşik değerin gerekt
   </data>
   <data name="The TCP/IP port list could not be read - {0}" xml:space="preserve">
     <value>TCP/IP port listesi okunamadı - {0}</value>
+  </data>
+  <data name="The URI blocklists on the SURBL servers page are asked about every registrable domain and address a message links to, up to 200 for each message. A message whose links name more is not asked about whole: it scores the number below instead, once, however many lists are active, so that hiding a listed link among made-up domains does not come free. Nothing is scored while no URI blocklist is active." xml:space="preserve">
+    <value>SURBL sunucuları sayfasındaki URI engelleme listelerine, bir iletinin bağlantı verdiği her kaydedilebilir etki alanı ve adres sorulur; ileti başına en çok 200. Bağlantıları daha fazlasını adlandıran bir ileti bütünüyle sorulmaz: bunun yerine, kaç liste etkin olursa olsun, aşağıdaki puanı bir kez alır; böylece listelenmiş bir bağlantıyı uydurma etki alanları arasına gizlemek bedelsiz olmaz. Hiçbir URI engelleme listesi etkin değilken puan verilmez.</value>
   </data>
   <data name="The Windows prompt was declined, so nothing was installed and nothing on the server was changed." xml:space="preserve">
     <value>Windows istemi reddedildi; bu nedenle hiçbir şey yüklenmedi ve sunucuda hiçbir şey değişmedi.</value>

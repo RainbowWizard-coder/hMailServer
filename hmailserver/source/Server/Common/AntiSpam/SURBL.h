@@ -5,11 +5,13 @@
 #pragma once
 
 #include <functional>
+#include <memory>
 
 namespace HM
 {
    class MessageData;
    class SURBLServer;
+   class SURBLLookupPool;
 
    class SURBL
    {
@@ -17,35 +19,100 @@ namespace HM
       SURBL(void);
       ~SURBL(void);
 
+      // What the URI lists are asked about for one message (ChooseNamesToAsk):
+      // the names, in the order they are asked; how many domains the message's
+      // links name - each registrable domain, by the whole Public Suffix List
+      // and by its ICANN section, and each address, once - and how many of
+      // those are among the names. A message whose domains are not all asked
+      // about scores SurblTooManyDomainsScore (SpamTestSURBL).
+      struct Choice
+      {
+         std::vector<String> names;
+         size_t domains = 0;
+         size_t domains_asked = 0;
+
+         bool EveryDomainAsked() const { return domains_asked >= domains; }
+      };
+
       // The names the URI lists are asked about for the links in a message:
       // every link of the text part (read as text) and of the HTML part (read
       // as HTML), and of the names NamesToAsk gives for their hosts the ones
-      // ChooseNamesToAsk chooses, MaxNamesAsked at most. False when there is
-      // none.
-      bool ExtractUrls(std::shared_ptr<MessageData> pMessageData, std::vector<String> &vecUrls);
+      // ChooseNamesToAsk chooses. False when there is none.
+      bool ExtractUrls(std::shared_ptr<MessageData> pMessageData, Choice &choice);
 
-      // The most names one list is asked about for one message - each list
-      // also stops after ten seconds - and the most host names of one
-      // registrable domain among them, beside the domain's own names.
-      static constexpr size_t MaxNamesAsked = 48;
+      // The most domains one list is asked about for one message, the most
+      // names in all - those domains, then host names under them - and the
+      // most host names of one registrable domain among them. Every domain a
+      // message links to is asked about, up to MaxDomainsAsked, so that other
+      // links, up to that many, do not dilute the chance that a listed one is
+      // asked about. Until 6.3.6 the first 16 names were asked, and in the 6.3.6
+      // tree before its release 48 drawn from all of them: the order was not
+      // the sender's to choose, but the chance was - a listed link beside N
+      // made-up domains was asked about in 48 of N+1 messages. A message with
+      // more domains than MaxDomainsAsked is not asked about whole and scores
+      // SurblTooManyDomainsScore instead, so that the padding does not come
+      // free. That holds for a listed domain. A list that lists a host name and
+      // not its domain is asked about the host names left room for - two drawn
+      // under a domain, to MaxNamesAsked in all, in an order the message does
+      // not choose - and made-up host names still make a listed one less likely
+      // to be asked about, with no score for it.
+      //
+      // MaxNamesAsked is the hard ceiling that keeps one message from becoming
+      // a DNS amplifier: a message of the stock anti-spam size limit, 1,024 KB,
+      // can link to some 30,000 made-up domains, and each would be a query to
+      // each active list, through this server's resolver, against the list's
+      // own limit on queries from one server. 256 queries to a list for one
+      // message is five times what 48 was and stays far below that, while 200
+      // registrable domains is more than a newsletter of a hundred links names:
+      // legitimate mail is asked about whole, and the score falls on padding.
+      static constexpr size_t MaxDomainsAsked = 200;
+      static constexpr size_t MaxNamesAsked = 256;
       static constexpr size_t MaxHostNamesPerDomain = 2;
+
+      // How many of one list's lookups for one message are in flight at once
+      // (Run), at most. 256 names one after another would not fit the ten
+      // seconds each list has; sixteen at a time asks them in sixteen rounds
+      // of one lookup's time, and holds at most sixteen of the resolver's
+      // queries per list. The thread testing the message makes one of them;
+      // the rest are made on threads of SURBLLookupPool::Server(), which every
+      // message being tested at once shares, PoolThreads of them in all.
+      static constexpr size_t LookupsAtOnce = 16;
+
+      // The threads of SURBLLookupPool::Server(): the most that help the URI
+      // lists' lookups along for the whole server, however many messages are
+      // being tested at once. Each message tested makes its own lookups one at
+      // a time whatever the pool is doing, and takes up to LookupsAtOnce - 1
+      // of these in turn with the other messages: at the stock 15 TCP/IP
+      // threads, fifteen messages at once each ask about five names at a time,
+      // 256 names in some fifty lookups' time, which fits the ten seconds
+      // while a lookup takes under a fifth of a second; four at once ask
+      // sixteen each. In the 6.3.6 tree before its release every message
+      // started LookupsAtOnce - 1 threads of its own, so the threads and the
+      // resolver's queries grew with the messages being tested at once -
+      // fifteen for each - and a server with many TCP/IP threads under a flood
+      // of messages that link to many domains could start thousands.
+      static constexpr size_t PoolThreads = 64;
 
       // Which of the names a message's links give the lists are asked about, in
       // the order they are asked: html_hosts are the hosts the HTML part links
       // to and text_hosts the text part's, each in the order linked. The links
       // are taken by registrable domain, each domain once, and a domain the
       // HTML part links to - what an HTML mail program shows - before one only
-      // the text part does. Within that, every domain's own name is asked
-      // before any domain's second name, and so on, up to max_names. When a
-      // part's domains do not all fit, they are taken in an order shuffled by
-      // seed, and when a domain has more host names than MaxHostNamesPerDomain
-      // the ones asked about are drawn by seed too - never in the order the
-      // message gives: until 6.3.6 the first 16
-      // names in the order of the links were asked, so a message that put 16
-      // harmless links first - in a text part an HTML mail program never shows
-      // - kept its listed one from every list.
-      static std::vector<String> ChooseNamesToAsk(const std::vector<String> &html_hosts, const std::vector<String> &text_hosts,
-                                                  size_t max_names, unsigned int seed);
+      // the text part does. Every domain's own names - its registrable domain,
+      // and under a suffix of the list's private section the ICANN section's
+      // too - are asked before any host name under one, up to max_domains
+      // distinct own names; the host names follow, every domain's first before
+      // any domain's second, up to max_names in all. When a part's domains, or
+      // their host names, do not all fit, the domains are taken in an order
+      // shuffled by seed, and when a domain has more host names than
+      // MaxHostNamesPerDomain the ones asked about are drawn by seed too -
+      // never in the order the message gives:
+      // until 6.3.6 the first 16 names in the order of the links were asked,
+      // so a message that put 16 harmless links first - in a text part an HTML
+      // mail program never shows - kept its listed one from every list. The
+      // choice says how many domains there were and how many are asked.
+      static Choice ChooseNamesToAsk(const std::vector<String> &html_hosts, const std::vector<String> &text_hosts,
+                                     size_t max_domains, size_t max_names, unsigned int seed);
 
       // No limit on the text read (FindLinkHosts, ForEachLinkHost).
       static constexpr size_t WholeText = static_cast<size_t>(-1);
@@ -63,7 +130,24 @@ namespace HM
       static void ForEachLinkHost(std::shared_ptr<MessageData> pMessageData, const std::function<bool(const String &host)> &visit,
                                   size_t maxCharacters = WholeText);
 
-      bool Run(std::shared_ptr<SURBLServer> pSURBLServer, std::vector<String> &vecUrls);
+      // Asks one list about the names, up to LookupsAtOnce at a time - the
+      // calling thread and threads of SURBLLookupPool::Server() - and answers
+      // false when the list lists one of them. No lookup is begun after ten
+      // seconds, or once the list has listed a name, refused a query or failed
+      // to answer one; those already begun are waited for, and a listing among
+      // them counts.
+      bool Run(std::shared_ptr<SURBLServer> pSURBLServer, const std::vector<String> &vecUrls);
+
+      // Run with the lookup of its own: lookup(name, answers) is the A lookup
+      // of name, false when it was not answered. What Run asks the resolver is
+      // asked of it, from up to LookupsAtOnce threads at once - the calling
+      // thread and threads of pool (the server's, when none is given). For the
+      // class test, which counts the lookups, how many are in flight together
+      // and on which threads.
+      typedef std::function<bool(const String &name, std::vector<String> &answers)> Lookup;
+      bool Run(std::shared_ptr<SURBLServer> pSURBLServer, const std::vector<String> &vecUrls, const Lookup &lookup);
+      bool Run(std::shared_ptr<SURBLServer> pSURBLServer, const std::vector<String> &vecUrls, const Lookup &lookup,
+               SURBLLookupPool &pool);
 
       // The host each link in text goes to, handed to visit in the order the
       // links come, until visit returns false. A link is an http or https
@@ -170,7 +254,67 @@ namespace HM
 
    private:
 
-      void Collect_(std::shared_ptr<MessageData> pMessageData, std::vector<String> &out);
+      void Collect_(std::shared_ptr<MessageData> pMessageData, Choice &out);
+   };
+
+   // The threads that help the URI lists' lookups along (SURBL::Run). The
+   // server has one pool, Server(), which every message being tested at once
+   // shares, so that a flood of messages that link to many domains costs a
+   // bounded number of threads and of the resolver's queries - the pool's
+   // threads on top of those testing the messages - and is shared fairly
+   // among the messages, so that none waits for another's lookups to be done
+   // while its list's ten seconds run out, after which the list goes unasked
+   // for it and it is accepted without the list's verdict:
+   //   - the thread testing a message makes its lookups itself, whatever the
+   //     pool is doing, so every message goes on one lookup at a time at
+   //     least;
+   //   - a thread of the pool makes one lookup for a message and then turns to
+   //     the next message in turn, so that the messages being tested share
+   //     the pool, and one that came first with many names does not keep it
+   //     until it is done;
+   //   - no message has more than helpersPerRun of its threads at once, so
+   //     that none takes the whole pool.
+   // Threads are started as messages need them, up to the pool's size, and a
+   // thread with nothing to do for idleMilliseconds ends.
+   class SURBLLookupPool
+   {
+   public:
+      SURBLLookupPool(size_t threads, size_t helpersPerRun, int idleMilliseconds);
+
+      // Asks the pool's threads to end and waits until they have: nothing may
+      // be running alongside then. The server's pool is never destroyed.
+      ~SURBLLookupPool();
+
+      SURBLLookupPool(const SURBLLookupPool &) = delete;
+      SURBLLookupPool &operator=(const SURBLLookupPool &) = delete;
+
+      // The server's: SURBL::PoolThreads threads, LookupsAtOnce - 1 for one
+      // message at most, a minute's idleness.
+      static SURBLLookupPool &Server();
+
+      // step run on the calling thread until it answers false, and meanwhile
+      // on up to helpers of the pool's threads (helpersPerRun at most), in
+      // turn with what else runs alongside. step makes one lookup, answers
+      // false when there was none left to make, and never throws. Returns once
+      // it has answered false here and none of the pool's threads is inside
+      // it.
+      void RunAlongside(const std::function<bool()> &step, size_t helpers);
+
+      // For the class test: threads ever started, threads now, and the most at
+      // once.
+      struct Counts
+      {
+         size_t started = 0;
+         size_t running = 0;
+         size_t most_running = 0;
+      };
+
+      Counts GetCounts() const;
+
+      struct State;
+
+   private:
+      std::shared_ptr<State> state_;
    };
 
    // SURBL's reading of links held to what a browser does with them: the
@@ -178,7 +322,13 @@ namespace HM
    // as UTF-8 and the code points UTS 46 ignores, the IPv4 forms, backslashes,
    // links with no scheme, quoted-printable soft line breaks, HTML character
    // references and quotes, and punctuation after a link; the names asked
-   // about for each host, the ICANN section's domain among them; the lists'
+   // about for each host, the ICANN section's domain among them; which of a
+   // message's names are asked - every domain up to MaxDomainsAsked, whatever
+   // else the message links to, and a message with more told apart - and that
+   // Run asks a list about all of them several at a time, through a stand-in
+   // for the resolver, and stops at a lookup that fails or throws; that many
+   // messages tested at once share a pool's threads, held to its size, each
+   // message in turn and none with more than its share; the lists'
    // error codes; and the sender lists' URL entries, whose host is read the
    // same way (HostOfAuthority) and which are matched against every link of a
    // message (SenderPattern::UrlEntryHostsCovering). It runs inside the

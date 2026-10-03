@@ -1950,6 +1950,12 @@ namespace hMailServer
          set { SettingsApi.Put(SettingsApi.AntiSpam, "refuse_mail_from_domain_not_fqdn", value); }
       }
 
+      public int SurblTooManyDomainsScore
+      {
+         get { return SettingsApi.GetInt(SettingsApi.AntiSpam, "surbl_too_many_domains_score"); }
+         set { SettingsApi.Put(SettingsApi.AntiSpam, "surbl_too_many_domains_score", value); }
+      }
+
       private const string DomainPolicyPath = "/api/v1/domain-policy-list";
 
       /// <summary>The list as COM's AntiSpam.DomainPolicyList gives it: a document with items.</summary>

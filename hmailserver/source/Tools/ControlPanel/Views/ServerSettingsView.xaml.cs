@@ -2242,6 +2242,21 @@ namespace hMailServer.ControlPanel.Views
          general.Settings.Add(new ComText { Path = "AntiSpam.MaximumMessageSize", Label = L("Max message size to spam-scan (KB, 0 = unlimited)"), Numeric = true });
          Tab(L("General")).Cards.Add(general);
 
+         // A score, beside the thresholds it is weighed against: the URI
+         // blocklists ask about every domain a message links to, up to 200, and
+         // a message that names more is scored for it rather than asked about
+         // in part - padding is how a listed link was hidden among others.
+         var linkDomains = Card(L("Messages that link to more domains than the URI blocklists ask about"),
+            L("The URI blocklists on the SURBL servers page are asked about every registrable domain and address a message links to, up to 200 for each message. A message whose links name more is not asked about whole: it scores the number below instead, once, however many lists are active, so that hiding a listed link among made-up domains does not come free. Nothing is scored while no URI blocklist is active."));
+         linkDomains.Settings.Add(new ComText
+         {
+            Path = "AntiSpam.SurblTooManyDomainsScore",
+            Label = L("Score of a message whose links name more than 200 domains (0 = none)"),
+            Numeric = true,
+            Blurb = L("5 by default, the stock mark threshold, so such a message is marked as spam unless the thresholds have been raised. A newsletter of a hundred links names far fewer domains than that; lower it if mail you want names more.")
+         });
+         Tab(L("General")).Cards.Add(linkDomains);
+
          // Not a score: this one costs the sender time rather than points, which is
          // why it is a card of its own rather than a row in the thresholds.
          var tarpit = Card(L("Recipient tarpit"),

@@ -519,6 +519,14 @@ namespace HM
       pSecurityRange->SetExpires(true);
       pSecurityRange->SetExpiresTime(dt);
 
+      // While the never-ban list by reverse name has rows and nothing is known
+      // about the address, it waits for the list's answer from before its range
+      // exists: a reconciliation that read the range between the save and the
+      // caller's announcement would otherwise mirror it below the server
+      // (NeverBanNameList::Hold). Every caller announces through
+      // AutoBanFirewall, whose VerifyBan takes the hold over.
+      NeverBanNameList::Hold(ipaddress);
+
       // Auto-ban is a security control, and this is the line that applies it. Its
       // result was discarded, so a failure here meant the range was never created,
       // the address was never blocked, and nothing anywhere said so - the control
@@ -527,6 +535,8 @@ namespace HM
       // administrator, so it is reported.
       if (!PersistentSecurityRange::SaveObject(pSecurityRange))
       {
+         NeverBanNameList::Release(ipaddress);
+
          ErrorManager::Instance()->ReportError(ErrorManager::High, 6099, "AccountLogon::CreateIPRange",
             "The auto-ban IP range '" + pSecurityRange->GetName() + "' could not be saved, so the address has NOT been blocked although it earned the ban the name gives.");
          return false;

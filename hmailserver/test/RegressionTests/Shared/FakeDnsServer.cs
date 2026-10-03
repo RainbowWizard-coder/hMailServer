@@ -76,6 +76,14 @@ namespace RegressionTests.Shared
       private readonly HashSet<string> serverFailing_ =
          new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
+      // Names whose every query is recorded and then not answered at all: the
+      // resolver waits until its own timeout, as it does for a reverse zone
+      // delegated to a name server that never answers. The one way to make a
+      // lookup HANG rather than fail, which is what the never-ban list's
+      // verification deadline is about.
+      private readonly HashSet<string> silent_ =
+         new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
       // Records given in wire form, which is how DNSSEC's own types arrive: DNSKEY, DS,
       // TLSA and the TXT or MX records of a signed zone. Keyed like the text answers by
       // the type and name a query asks for; a record's owner may differ from that name
@@ -247,6 +255,30 @@ namespace RegressionTests.Shared
       }
 
       /// <summary>
+      ///    Makes every query for name go unanswered: it is recorded in
+      ///    <see cref="Queries"/> and dropped, over UDP and TCP alike, so that the
+      ///    resolver waits for its timeout. Undone by <see cref="WithoutSilence"/>
+      ///    and by <see cref="Reset"/>; while it lasts it wins over every answer
+      ///    added for the name.
+      /// </summary>
+      public FakeDnsServer WithSilence(string name)
+      {
+         lock (answers_)
+            silent_.Add(name.TrimEnd('.').ToLowerInvariant());
+
+         return this;
+      }
+
+      /// <summary>The name answers again, as whatever was added for it says.</summary>
+      public FakeDnsServer WithoutSilence(string name)
+      {
+         lock (answers_)
+            silent_.Remove(name.TrimEnd('.').ToLowerInvariant());
+
+         return this;
+      }
+
+      /// <summary>
       ///    Makes name an alias of target. A query for name answers the CNAME and then
       ///    the target's records of the asked-for type, under the target's name.
       /// </summary>
@@ -287,6 +319,7 @@ namespace RegressionTests.Shared
             answers_.Clear();
             nonExistent_.Clear();
             serverFailing_.Clear();
+            silent_.Clear();
             cnames_.Clear();
             raw_.Clear();
             rrsigs_.Clear();
@@ -619,6 +652,12 @@ namespace RegressionTests.Shared
 
          lock (queries_)
             queries_.Add(Key_(type, name));
+
+         lock (answers_)
+         {
+            if (silent_.Contains(name))
+               return null;
+         }
 
          string cnameTarget;
          List<string> values;

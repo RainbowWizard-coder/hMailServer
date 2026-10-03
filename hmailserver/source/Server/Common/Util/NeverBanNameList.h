@@ -10,6 +10,7 @@
 namespace HM
 {
    class IPAddress;
+   class NeverBanWaitingBans;
 
    // The never-ban list by reverse name (GitLab work item #56): a provider whose
    // outbound hosts share a reverse name and whose addresses move, named once
@@ -54,18 +55,48 @@ namespace HM
    //     SMTPConnection's null-sender ban);
    //   - where nothing is known yet - IMAP, POP3, the REST API, ManageSieve, or
    //     a session whose lookup had not finished - the ban is written as it
-   //     always was and VerifyBan resolves it on the name lookup queue. The ban
-   //     is not announced until then: the log line fail2ban matches, the alert
-   //     count and the firewall wait for the answer. A spared address has its
-   //     range deleted and none of the three happens; any other is announced.
-   //     So a listed provider is refused by the server itself for as long as
-   //     two lookups take, and never reaches the firewall or fail2ban.
+   //     always was, and VerifyBan resolves it on the never-ban verification
+   //     queue, a queue of its own. The ban is not announced until then: the
+   //     log line fail2ban matches, the alert count and the firewall wait for
+   //     the answer, and the address is PENDING from before its range is
+   //     written (Hold) until the answer is in, so that no reconciliation -
+   //     another ban's, the expiry pass's - mirrors its range below the server
+   //     meanwhile (AutoBanFirewall::ActiveBans_ asks IsPending). A spared
+   //     address has its range deleted and none of the three happens; any
+   //     other is announced. So a listed provider is refused by the server
+   //     itself for as long as the lookups take, and reaches neither the
+   //     firewall nor fail2ban - unless its answer is not in by the time the
+   //     bounds below give it, when it is announced unverified.
+   //
+   // WHY A QUEUE OF ITS OWN, AND WHY A BAN WAITS RATHER THAN BEING ANNOUNCED.
+   // Before 6.3.6 was released the verifications shared the name lookup queue
+   // with every SMTP session's reverse lookup, and past sixteen in flight a ban
+   // was announced at once: an outsider whose reverse zone does not answer
+   // kept that queue backed up and earned sixteen bans of their own, and the
+   // next ban of a listed provider reached the firewall and fail2ban
+   // unverified - and the expiry pass mirrored a pending range in any case.
+   // Now
+   //
+   //   - the verifications run on VerifyThreads threads of their own, and each
+   //     lookup is given up after LookupDeadlineSeconds whatever the resolver's
+   //     own timeout, so the sessions' lookups cannot hold one up;
+   //   - a ban waits for its turn rather than being announced: the waiting
+   //     bans are taken by network in turn - an IPv4 /24, an IPv6 /48 - so that
+   //     one network's bans, however many, delay another's by one lookup each;
+   //     MaxPendingPerNetwork of one network wait at once and MaxPending in
+   //     all; a ban past its network's is announced at once, and one past
+   //     MaxPending gives up the oldest waiting ban of the network with the
+   //     most that no thread is asking about, so that the bans of one network
+   //     cannot keep another's out;
+   //   - a ban whose lookups were not answered is asked about again a minute
+   //     later, and a minute a ban waits past its time without a turn counts as
+   //     an attempt, so that after MaxAttempts, or HoldSeconds in any case, it
+   //     is announced unverified; and a waiting ban whose range has gone -
+   //     expired, or deleted by an administrator - is forgotten, not announced.
    //
    // A verdict is kept an hour when it spares, ten minutes when it does not, and
    // is forgotten the moment a row is added, changed or removed. A lookup that
-   // was not answered decides nothing and is kept for nobody: a ban it could
-   // not verify is announced, and asked about again once a minute, three times,
-   // by the expiry pass, which lifts it if the answer then spares it.
+   // was not answered decides nothing and is kept for nobody.
    //
    // An empty list - the default - costs one flag test and changes nothing: a
    // stock server bans exactly as it did.
@@ -140,23 +171,55 @@ namespace HM
       // address the list does not cover.
       static bool IsSpared(const IPAddress &address, Verdict &verdict);
 
+      // A ban is about to be written for the address (AccountLogon's
+      // CreateIPRange, before the range is saved): while the list has rows and
+      // nothing is known about the address, it is pending from now, so that a
+      // reconciliation that reads the range before VerifyBan has run does not
+      // mirror it. Release takes it back when the range could not be saved.
+      // Neither looks anything up.
+      static void Hold(const IPAddress &address);
+      static void Release(const IPAddress &address);
+
       // A ban has just been written for the address. With an empty list, or a
       // verdict already known not to spare it, announce runs here and now. Else
-      // the address is resolved on the name lookup queue, and then either the
-      // range is deleted (spared) or announce runs there (not spared). announce
-      // is the log line, the alert count and the firewall - everything a ban
-      // does below the range. It always runs exactly once unless the address
-      // is spared.
+      // the address stays pending and is resolved on the verification queue,
+      // and then either the range is deleted (spared) or announce runs there
+      // (not spared, not answered MaxAttempts times, or HoldSeconds gone).
+      // announce is the log line, the alert count and the firewall - everything
+      // a ban does below the range. It runs at most once, and never for an
+      // address that is spared or whose range has gone before an answer.
       static void VerifyBan(const IPAddress &address, const std::function<void()> &announce);
+
+      // Whether the address's ban waits for the list's answer: the firewall
+      // reconciliation leaves its single-address range out until it is in.
+      static bool IsPending(const IPAddress &address);
 
       // The SMTP session's reverse lookup of the address, on the worker that
       // made it. answered is false when the lookup failed. Forward-confirms a
       // name the list covers, on this thread, and keeps the verdict.
       static void Learn(const IPAddress &address, const std::vector<String> &reverseNames, bool answered);
 
-      // Once a minute, from the expiry pass: asks again about the bans whose
-      // lookups were not answered.
+      // Once a minute, from the expiry pass: forgets the waiting bans whose
+      // ranges have gone, counts a minute a ban waited past its time as an
+      // attempt, announces the bans out of attempts or time, and sets the
+      // verification queue to work on the bans whose lookups were not answered
+      // a minute ago.
       static void RetryUnverified();
+
+      // The bounds of the waiting bans and their lookups (the class comment
+      // says why each is there).
+      static constexpr int VerifyThreads = 4;
+      static constexpr int LookupDeadlineSeconds = 5;
+      static constexpr int MaxAbandonedLookups = 32;
+      static constexpr int RetrySeconds = 60;
+      static constexpr int MaxAttempts = 4;
+      static constexpr int HoldSeconds = 600;
+      static constexpr size_t MaxPending = 1024;
+      static constexpr size_t MaxPendingPerNetwork = 16;
+
+      // The name of the verification queue, which the application makes with
+      // VerifyThreads threads beside the session queues (Application.cpp).
+      static const wchar_t *QueueName();
 
       // ---- diagnosis ---------------------------------------------------------
 
@@ -216,15 +279,21 @@ namespace HM
       static void Forget_();
       static size_t KnownCount_();
 
-      static Verdict Resolve_(const IPAddress &address);
       static bool Lift_(const IPAddress &address, const Verdict &verdict);
-      static void Unverified_(const IPAddress &address, int attempts);
       static String Key_(const IPAddress &address);
       static bool RealForwardLookup_(const String &name, bool ipv6, std::vector<String> &addresses);
 
-      friend class NeverBanVerifyTask;
-      friend class NeverBanRetryTask;
-      friend class NeverBanLiftTask;
+      // The address's reverse names looked up and evaluated, every lookup held
+      // to LookupDeadlineSeconds, for the waiting bans (NeverBanWaitingBans, in
+      // NeverBanNameList.cpp, which holds them, takes them by network in turn
+      // and decides them).
+      static Verdict ResolveWithinDeadline_(const IPAddress &address);
+
+      // The network a waiting ban is taken in turn with: an IPv4 address's
+      // /24, an IPv6 address's /48.
+      static String Network_(const IPAddress &address);
+
+      friend class NeverBanWaitingBans;
    };
 
    // NeverBanNameList and NeverBanName held to what the request asks of them,
@@ -233,9 +302,19 @@ namespace HM
    // refused), the reverse names that may be matched, the forward confirmation
    // (the same address, another address, IPv6, a mapped IPv4 address, a lookup
    // that failed), several reverse names, the most specific pattern, and the
-   // verdict cache's keeping and forgetting. Each assertion has its negative
-   // control beside it. Runs in ClassTester on Windows and as never-ban-tests
-   // on Linux. Throws std::logic_error naming the first thing that is wrong.
+   // verdict cache's keeping and forgetting; and the waiting bans, with a
+   // stand-in resolver that hangs until the test lets it answer: a pending ban
+   // is not announced and is left out of the firewall's bans, is lifted when it
+   // verifies and announced when it does not, takes its turn by network while
+   // another network's bans crowd the queue, is announced after its attempts
+   // or its time, is forgotten when its range goes - and not when it was
+   // written while the ranges were being read - a full set gives up another
+   // network's ban rather than announcing a new one at once, a worker its
+   // queue asks to stop takes no more bans, and a lookup that hangs is given
+   // up at its deadline, or sooner when its worker is asked to stop. Each
+   // assertion has its negative control beside it. Runs in ClassTester on
+   // Windows and as never-ban-tests on Linux. Throws std::logic_error naming
+   // the first thing that is wrong.
    class NeverBanNameListTester
    {
    public:

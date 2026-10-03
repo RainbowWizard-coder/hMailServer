@@ -8,7 +8,6 @@
 
 #include "NeverBanNameList.h"
 
-#include "../Application/Application.h"
 #include "../BO/NeverBanName.h"
 #include "../BO/NeverBanNames.h"
 #include "../BO/SecurityRange.h"
@@ -20,15 +19,23 @@
 #include "../TCPIP/IPAddress.h"
 #include "../Threading/Task.h"
 #include "../Threading/WorkQueue.h"
+#include "../Threading/WorkQueueManager.h"
 #include "Parsing/StringParser.h"
 #include "Time.h"
 #include "Unicode.h"
 
 #include <atomic>
+#include <chrono>
+#include <condition_variable>
 #include <ctime>
 #include <map>
 #include <mutex>
+#include <set>
 #include <stdexcept>
+#include <string>
+#include <thread>
+
+#include <boost/thread/thread.hpp>
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -86,32 +93,101 @@ namespace HM
       // only asked again.
       const size_t MaxKept = 4096;
 
-      // ---- the bans waiting for an answer
+      // ---- the lookups of the waiting bans
       //
-      // A ban whose reverse lookup was not answered is announced as any ban is
-      // and asked about again by the expiry pass, once a minute, at most three
-      // times: a resolver that was down for a minute must not leave a listed
-      // provider banned for the whole ban.
-      std::mutex unverified_mutex;
+      // Each is made on a thread of its own and waited for until its deadline
+      // (WithinDeadline below), whatever the resolver's own timeout - the
+      // DNSQueryTimeout setting, which may be 0, no bound at all. A lookup
+      // given up keeps its thread until the resolver gives up; this many such
+      // threads at most, and past them a lookup is not begun and counts as not
+      // answered, so that a resolver that never answers costs threads that are
+      // counted.
+      std::atomic<int> abandoned_lookups(0);
 
-      struct Unverified
+      // lookup made on a thread of its own and waited for until milliseconds
+      // have passed: what it found, and whether it was answered; false at the
+      // deadline, the thread left to finish on its own and counted in
+      // abandoned until it does. lookup is copied to that thread, with
+      // whatever it captured: nothing of this frame's. A thread of a work
+      // queue that is asked to stop - the service stopping - stops waiting
+      // within a tenth of a second, as at the deadline: the wait is in slices,
+      // and a std::condition_variable is not a point boost's interruption
+      // reaches.
+      bool WithinDeadline(const std::function<bool(std::vector<String> &found)> &lookup, std::vector<String> &found, int milliseconds,
+                          std::atomic<int> &abandoned = abandoned_lookups)
       {
-         int attempts = 0;
-         time_t due = 0;
-      };
+         struct Shared
+         {
+            std::mutex lock;
+            std::condition_variable finished;
+            bool done = false;
+            bool abandoned = false;
+            bool answered = false;
+            std::vector<String> values;
+         };
 
-      std::map<String, Unverified> unverified;
+         if (abandoned.load() >= NeverBanNameList::MaxAbandonedLookups)
+            return false;
 
-      const int MaxAttempts = 3;
-      const size_t MaxUnverified = 256;
+         std::shared_ptr<Shared> shared = std::make_shared<Shared>();
+         std::atomic<int> *counter = &abandoned;
 
-      // The name lookup queue is shared with every SMTP session's own reverse
-      // lookup, which degrades to "Unknown" in the Received header when the
-      // queue is saturated. A flood of bans must not do that to it: past this
-      // many verifications in flight, a ban is announced at once and left to
-      // the expiry pass's retries.
-      std::atomic<int> in_flight(0);
-      const int MaxInFlight = 16;
+         try
+         {
+            std::thread([shared, lookup, counter]()
+            {
+               // The top of a thread: nothing may leave it.
+               std::vector<String> values;
+               bool answered = false;
+
+               try
+               {
+                  answered = lookup(values);
+               }
+               catch (...)
+               {
+                  answered = false;
+               }
+
+               std::lock_guard<std::mutex> guard(shared->lock);
+               shared->answered = answered;
+               shared->values.swap(values);
+               shared->done = true;
+
+               if (shared->abandoned)
+                  (*counter)--;
+
+               shared->finished.notify_all();
+            }).detach();
+         }
+         catch (...)
+         {
+            // No thread to be had: not begun, and not answered.
+            return false;
+         }
+
+         const std::chrono::steady_clock::time_point until =
+            std::chrono::steady_clock::now() + std::chrono::milliseconds(milliseconds);
+         const std::chrono::milliseconds slice(100);
+
+         std::unique_lock<std::mutex> guard(shared->lock);
+         while (!shared->done)
+         {
+            const std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
+            if (now >= until || boost::this_thread::interruption_requested())
+            {
+               shared->abandoned = true;
+               (*counter)++;
+               return false;
+            }
+
+            const std::chrono::steady_clock::duration left = until - now;
+            shared->finished.wait_for(guard, left < slice ? left : std::chrono::steady_clock::duration(slice));
+         }
+
+         found = shared->values;
+         return shared->answered;
+      }
 
       const wchar_t *RangeNamePrefix = L"Auto-ban: ";
 
@@ -205,161 +281,814 @@ namespace HM
       }
    }
 
-   // A ban written while nothing was known about its address: resolved here, on
-   // the name lookup queue, and then lifted or announced.
-   //
-   // Made only after in_flight has been raised for it, and gives that back when
-   // it is destroyed rather than when it has run: a task the queue drops unrun -
-   // the servers stopped with it still waiting, or a queue that refused it - is
-   // destroyed all the same, so that the count of verifications in flight never
-   // keeps one that will not finish, and sixteen such never leave every later
-   // ban announced unverified.
-   class NeverBanVerifyTask : public Task
+   // Work handed to the verification queue: a waiting ban's thread (Drain_),
+   // or the lift of a ban known to be spared. The queue's threads are boost's:
+   // a stop interrupts them, and Drain_ and WithinDeadline see it.
+   class NeverBanTask : public Task
    {
    public:
-      NeverBanVerifyTask(const IPAddress &address, const std::function<void()> &announce) :
+      explicit NeverBanTask(const std::function<void()> &work) :
          Task("NeverBanNameList::VerifyBan"),
-         address_(address),
-         announce_(announce)
+         work_(work)
       {
-      }
-
-      virtual ~NeverBanVerifyTask()
-      {
-         in_flight--;
       }
 
       virtual void DoWork()
       {
-         bool announced = false;
-
          try
          {
-            const unsigned started = NeverBanNameList::Generation_();
-            const NeverBanNameList::Verdict verdict = NeverBanNameList::Resolve_(address_);
-
-            NeverBanNameList::Keep_(address_, verdict, started);
-
-            // A verdict reached under rows that changed while it was looked up is
-            // not acted on: the ban stands, and is announced, as it would have
-            // been with no list.
-            if (verdict.spared && started == NeverBanNameList::Generation_())
-            {
-               NeverBanNameList::Lift_(address_, verdict);
-            }
-            else
-            {
-               announced = true;
-               announce_();
-
-               if (!verdict.definitive)
-                  NeverBanNameList::Unverified_(address_, 0);
-            }
+            work_();
+         }
+         catch (const boost::thread_interrupted &)
+         {
+            // The queue is stopping. Passed on, as WorkQueue asks: swallowed,
+            // the request to stop would be spent and the worker would not know
+            // it had been asked.
+            throw;
          }
          catch (...)
          {
-            // The ban is in the table whatever happened here; what must not be
-            // lost is the rest of it.
-            if (!announced)
-               announce_();
+            // What the work was for waits as it was; the expiry pass takes it
+            // up again.
+            LOG_DEBUG(_T("NeverBanNameList - a verification ended in an error; what it was for waits for the next pass."));
          }
       }
 
    private:
-      IPAddress address_;
-      std::function<void()> announce_;
+      std::function<void()> work_;
    };
 
-   // A ban written for an address already known to be spared - a writer raced
-   // the session's own lookup - taken back off the writer's thread: the lift
-   // reads every range and tells the firewall, which a spam trap's RCPT TO must
-   // not wait for.
-   class NeverBanLiftTask : public Task
+   // The bans waiting for the list's answer (NeverBanNameList.h says why they
+   // wait, and how they are taken). One for the service, Global(); the tester
+   // makes its own, with stand-ins for the world around it.
+   //
+   // Lock order: lock_ is never held while the rows, the verdicts, the ranges
+   // or an announcement are reached - each of those is called with it released
+   // - and AutoBanFirewall's reconciliation, which holds its own lock, takes
+   // lock_ (IsPending) and nothing after it.
+   class NeverBanWaitingBans
    {
    public:
-      NeverBanLiftTask(const IPAddress &address, const NeverBanNameList::Verdict &verdict) :
-         Task("NeverBanNameList::Lift"),
-         address_(address),
-         verdict_(verdict)
+      struct Surroundings
+      {
+         // The list's rows: false when it has none.
+         std::function<bool(std::vector<String> &patterns)> rows;
+
+         // A verdict already known about the address; never looks anything up.
+         std::function<bool(const IPAddress &address, NeverBanNameList::Verdict &verdict)> known;
+
+         // The address resolved, each lookup held to its deadline; the verdict
+         // kept when the rows are still those it began under; and those rows.
+         std::function<NeverBanNameList::Verdict(const IPAddress &address)> resolve;
+         std::function<void(const IPAddress &address, const NeverBanNameList::Verdict &verdict, unsigned started)> keep;
+         std::function<unsigned()> generation;
+
+         // The ranges written for a spared address deleted: true when one was.
+         std::function<bool(const IPAddress &address, const NeverBanNameList::Verdict &verdict)> lift;
+
+         // The addresses, canonical, that have a single-address auto-ban range
+         // in force: false when the ranges could not be read.
+         std::function<bool(std::set<String> &addresses)> live;
+
+         // work handed to a thread of the verification queue: false when
+         // there is none to hand it to.
+         std::function<bool(const std::function<void()> &work)> post;
+
+         std::function<time_t()> now;
+      };
+
+      explicit NeverBanWaitingBans(const Surroundings &surroundings) :
+         s_(surroundings)
       {
       }
 
-      virtual void DoWork()
+      static NeverBanWaitingBans &Global()
       {
-         try
+         static NeverBanWaitingBans bans(Real_());
+         return bans;
+      }
+
+      void Hold(const IPAddress &address)
+      {
+         std::vector<String> patterns;
+         if (!s_.rows(patterns))
+            return;
+
+         NeverBanNameList::Verdict known;
+         if (s_.known(address, known) && !known.spared)
+            return;
+
+         std::function<void()> evicted;
+
          {
-            NeverBanNameList::Lift_(address_, verdict_);
+            std::lock_guard<std::mutex> guard(lock_);
+            Admit_(NeverBanNameList::Key_(address), address, evicted);
          }
-         catch (...)
+
+         Run_(evicted);
+      }
+
+      void Release(const IPAddress &address)
+      {
+         std::lock_guard<std::mutex> guard(lock_);
+
+         // Only a hold no ban has followed: one VerifyBan has filled is decided
+         // by its answer.
+         auto it = waiting_.find(NeverBanNameList::Key_(address));
+         if (it != waiting_.end() && !it->second.announce && !it->second.taken)
+            waiting_.erase(it);
+      }
+
+      void VerifyBan(const IPAddress &address, const std::function<void()> &announce)
+      {
+         const String key = NeverBanNameList::Key_(address);
+
+         std::vector<String> patterns;
+         NeverBanNameList::Verdict known;
+         const bool rows = s_.rows(patterns);
+         const bool isKnown = rows && s_.known(address, known);
+
+         if (!rows || (isKnown && !known.spared))
          {
-            // The range stays, and expires on its own; the address is not
-            // announced, so nothing below the server was told about it.
-            LOG_DEBUG(_T("NeverBanNameList - the ban of ") + CanonicalText(address_) + _T(" could not be lifted; it expires on its own."));
-         }
-      }
+            // Announced now: no list, or an answer already in that does not
+            // spare it - and with it any earlier ban of the address still
+            // waiting, which the same answer decides.
+            std::function<void()> earlier;
 
-   private:
-      IPAddress address_;
-      NeverBanNameList::Verdict verdict_;
-   };
-
-   // A ban announced while its address's reverse lookup was not answered, asked
-   // about again by the expiry pass. Gives its place in in_flight back when it is
-   // destroyed, run or not, as NeverBanVerifyTask does.
-   class NeverBanRetryTask : public Task
-   {
-   public:
-      NeverBanRetryTask(const IPAddress &address, int attempts) :
-         Task("NeverBanNameList::RetryUnverified"),
-         address_(address),
-         attempts_(attempts)
-      {
-      }
-
-      virtual ~NeverBanRetryTask()
-      {
-         in_flight--;
-      }
-
-      virtual void DoWork()
-      {
-         try
-         {
-            const unsigned started = NeverBanNameList::Generation_();
-            const NeverBanNameList::Verdict verdict = NeverBanNameList::Resolve_(address_);
-
-            if (!verdict.definitive)
             {
-               if (attempts_ + 1 < MaxAttempts)
+               std::lock_guard<std::mutex> guard(lock_);
+               auto it = waiting_.find(key);
+               if (it != waiting_.end() && !it->second.taken)
                {
-                  NeverBanNameList::Unverified_(address_, attempts_ + 1);
+                  earlier.swap(it->second.announce);
+                  waiting_.erase(it);
+               }
+            }
+
+            Run_(earlier);
+            Run_(announce);
+            return;
+         }
+
+         std::function<void()> evicted;
+         bool admitted = false;
+
+         {
+            std::lock_guard<std::mutex> guard(lock_);
+
+            admitted = Admit_(key, address, evicted);
+            if (admitted)
+            {
+               Waiting &waiting = waiting_[key];
+               if (waiting.announce)
+               {
+                  // A second ban of an address still waiting: both lines, when
+                  // the answer does not spare it.
+                  const std::function<void()> first = waiting.announce;
+                  const std::function<void()> second = announce;
+                  waiting.announce = [first, second]() { first(); second(); };
                }
                else
                {
-                  LOG_DEBUG(_T("NeverBanNameList - the reverse lookup of ") + CanonicalText(address_) +
-                            _T(" was not answered after ") + StringParser::IntToString(MaxAttempts + 1) +
-                            _T(" attempts; its ban stands."));
+                  waiting.announce = announce;
+                  waiting.due = s_.now();
                }
-            }
-            else
-            {
-               NeverBanNameList::Keep_(address_, verdict, started);
 
-               if (verdict.spared && started == NeverBanNameList::Generation_())
-                  NeverBanNameList::Lift_(address_, verdict);
+               // After the range was saved, which every writer does before it
+               // calls this: a sweep that began reading the ranges before now
+               // may not have seen it (Sweep).
+               waiting.filled = next_fill_++;
             }
+         }
+
+         Run_(evicted);
+
+         if (!admitted)
+         {
+            if (isKnown && known.spared)
+            {
+               // Never announced. Lifted off this thread when there is a
+               // thread to lift it on, which a spam trap's RCPT TO must not
+               // wait for; here when there is none.
+               Surroundings &s = s_;
+               bool posted = false;
+               try
+               {
+                  posted = s_.post([&s, address, known]() { s.lift(address, known); });
+               }
+               catch (...)
+               {
+                  posted = false;
+               }
+
+               if (!posted)
+                  s_.lift(address, known);
+
+               return;
+            }
+
+            LOG_DEBUG(_T("NeverBanNameList - too many bans wait for the never-ban list's answer; the ban of ") +
+                      CanonicalText(address) + _T(" is announced at once."));
+            Run_(announce);
+            return;
+         }
+
+         Work_();
+      }
+
+      bool IsPending(const IPAddress &address)
+      {
+         std::lock_guard<std::mutex> guard(lock_);
+         return waiting_.find(NeverBanNameList::Key_(address)) != waiting_.end();
+      }
+
+      // Once a minute (NeverBanNameList::RetryUnverified).
+      void Sweep()
+      {
+         // The bans filled before the ranges are read: only their ranges are
+         // sure to be in what is read. A ban written while they are read may be
+         // missing from it, and is not taken for one whose range has gone.
+         unsigned long long readFrom = 0;
+
+         {
+            std::lock_guard<std::mutex> guard(lock_);
+            if (waiting_.empty())
+               return;
+
+            readFrom = next_fill_;
+         }
+
+         std::set<String> live;
+         bool read = false;
+         try
+         {
+            read = s_.live(live);
          }
          catch (...)
          {
-            // The ban was announced when it was placed and stands until it expires.
-            LOG_DEBUG(_T("NeverBanNameList - the ban of ") + CanonicalText(address_) + _T(" could not be asked about again; it stands."));
+            read = false;
          }
+
+         std::vector<std::function<void()> > due;
+
+         {
+            std::lock_guard<std::mutex> guard(lock_);
+            const time_t now = s_.now();
+
+            for (auto it = waiting_.begin(); it != waiting_.end();)
+            {
+               Waiting &waiting = it->second;
+
+               if (waiting.taken)
+               {
+                  ++it;
+                  continue;
+               }
+
+               // Held, and the ban never followed: the writer stopped between
+               // the two.
+               if (!waiting.announce)
+               {
+                  if (now - waiting.held >= NeverBanNameList::RetrySeconds)
+                     it = waiting_.erase(it);
+                  else
+                     ++it;
+                  continue;
+               }
+
+               // Its range has gone - expired, or deleted by an administrator:
+               // there is nothing left to verify, or to announce.
+               if (read && waiting.filled < readFrom && live.find(it->first) == live.end())
+               {
+                  LOG_DEBUG(_T("NeverBanNameList - the ban of ") + it->first + _T(" ended before the never-ban list's answer was in; it is not announced."));
+                  it = waiting_.erase(it);
+                  continue;
+               }
+
+               // A minute past its time without a turn is an attempt, so that a
+               // queue kept busy cannot keep a ban waiting for longer than its
+               // attempts allow.
+               if (now - waiting.due >= NeverBanNameList::RetrySeconds)
+               {
+                  waiting.attempts++;
+                  waiting.due = now;
+               }
+
+               if (waiting.attempts >= NeverBanNameList::MaxAttempts || now >= waiting.deadline)
+               {
+                  if (!waiting.spared)
+                  {
+                     LOG_DEBUG(_T("NeverBanNameList - the never-ban list could not answer for ") + it->first + _T(" in ") +
+                               StringParser::IntToString(waiting.attempts) + _T(" attempt(s); its ban is announced."));
+                     due.push_back(waiting.announce);
+                  }
+
+                  it = waiting_.erase(it);
+                  continue;
+               }
+
+               ++it;
+            }
+         }
+
+         for (const std::function<void()> &announce : due)
+            Run_(announce);
+
+         Work_();
+      }
+
+      size_t Count()
+      {
+         std::lock_guard<std::mutex> guard(lock_);
+         return waiting_.size();
+      }
+
+      int Working()
+      {
+         std::lock_guard<std::mutex> guard(lock_);
+         return working_;
       }
 
    private:
-      IPAddress address_;
-      int attempts_;
+
+      struct Waiting
+      {
+         // Empty while only held (Hold): VerifyBan fills it.
+         std::function<void()> announce;
+         IPAddress address;
+         String network;
+         time_t held = 0;
+         time_t due = 0;
+         time_t deadline = 0;
+         int attempts = 0;
+         unsigned long long order = 0;
+
+         // When VerifyBan last filled it (next_fill_), which is after its range
+         // was saved: Sweep judges a range gone only for a ban filled before it
+         // read the ranges.
+         unsigned long long filled = 0;
+
+         // A thread is asking about it now.
+         bool taken = false;
+
+         // Its answer spared it, and its range is being, or could not be,
+         // deleted: never announced.
+         bool spared = false;
+      };
+
+      // A thread of the verification queue, counted from the moment it is
+      // asked for: given back by Drain_ when it finds nothing more to take, or
+      // here when the queue destroys the work unrun.
+      struct Slot
+      {
+         explicit Slot(NeverBanWaitingBans &owner) : owner_(owner) { }
+
+         ~Slot()
+         {
+            if (!released.load())
+               owner_.GiveBack_();
+         }
+
+         std::atomic<bool> released{false};
+
+      private:
+         NeverBanWaitingBans &owner_;
+      };
+
+      static Surroundings Real_();
+
+      // With lock_ held. Whether the address waits: it already does, or there
+      // is room for it among its network's MaxPendingPerNetwork and the
+      // MaxPending in all - the last made, when the set is full, by giving up
+      // the oldest ban that can be given up of the network that has the most
+      // of those, whose announcement is handed back in evicted. One that a
+      // thread is asking about, that is only held or that is spared cannot:
+      // were the network with the most waiting chosen whatever they were, a
+      // set full of networks of one ban each, the first ones taken, would
+      // announce the next ban at once.
+      bool Admit_(const String &key, const IPAddress &address, std::function<void()> &evicted)
+      {
+         if (waiting_.find(key) != waiting_.end())
+            return true;
+
+         const String network = NeverBanNameList::Network_(address);
+
+         std::map<String, size_t> perNetwork;
+         std::map<String, std::pair<size_t, std::map<String, Waiting>::iterator> > evictable;
+         for (auto it = waiting_.begin(); it != waiting_.end(); ++it)
+         {
+            const Waiting &waiting = it->second;
+            perNetwork[waiting.network]++;
+
+            if (waiting.taken || !waiting.announce || waiting.spared)
+               continue;
+
+            auto found = evictable.find(waiting.network);
+            if (found == evictable.end())
+               evictable[waiting.network] = std::make_pair(static_cast<size_t>(1), it);
+            else
+            {
+               found->second.first++;
+               if (waiting.order < found->second.second->second.order)
+                  found->second.second = it;
+            }
+         }
+
+         if (perNetwork[network] >= NeverBanNameList::MaxPendingPerNetwork)
+            return false;
+
+         if (waiting_.size() >= NeverBanNameList::MaxPending)
+         {
+            auto oldest = waiting_.end();
+            size_t most = 0;
+            for (const auto &entry : evictable)
+            {
+               if (entry.second.first > most)
+               {
+                  most = entry.second.first;
+                  oldest = entry.second.second;
+               }
+            }
+
+            if (oldest == waiting_.end())
+               return false;
+
+            evicted.swap(oldest->second.announce);
+            waiting_.erase(oldest);
+         }
+
+         const time_t now = s_.now();
+
+         Waiting waiting;
+         waiting.address = address;
+         waiting.network = network;
+         waiting.held = now;
+         waiting.due = now;
+         waiting.deadline = now + NeverBanNameList::HoldSeconds;
+         waiting.order = next_order_++;
+
+         waiting_[key] = waiting;
+         return true;
+      }
+
+      // Threads set to work, one for each ban that is due, VerifyThreads at
+      // most.
+      void Work_()
+      {
+         int start = 0;
+
+         {
+            std::lock_guard<std::mutex> guard(lock_);
+            const time_t now = s_.now();
+
+            int due = 0;
+            for (const auto &entry : waiting_)
+            {
+               if (!entry.second.taken && entry.second.announce && entry.second.due <= now)
+                  due++;
+            }
+
+            start = std::min(due, NeverBanNameList::VerifyThreads - working_);
+            if (start <= 0)
+               return;
+
+            working_ += start;
+         }
+
+         for (int i = 0; i < start; i++)
+         {
+            std::shared_ptr<Slot> slot(new Slot(*this));
+            NeverBanWaitingBans *self = this;
+            bool posted = false;
+
+            try
+            {
+               posted = s_.post([self, slot]()
+               {
+                  self->Drain_();
+                  slot->released.store(true);
+               });
+            }
+            catch (...)
+            {
+               posted = false;
+            }
+
+            if (!posted)
+            {
+               slot->released.store(true);
+               GiveBack_();
+            }
+         }
+      }
+
+      void GiveBack_()
+      {
+         std::lock_guard<std::mutex> guard(lock_);
+         working_--;
+      }
+
+      // One thread: the bans it can take, one after another, until there is
+      // none due; then its place is given back with the lock held, so that a
+      // ban added after it looked finds a thread to ask for. A thread its
+      // queue asks to stop - the service stopping - takes no more: the bans
+      // still waiting stay as they are, and the queue's stop is not held up by
+      // a lookup each.
+      void Drain_()
+      {
+         for (;;)
+         {
+            if (boost::this_thread::interruption_requested())
+            {
+               GiveBack_();
+               return;
+            }
+
+            String key;
+            IPAddress address;
+            if (!TakeNext_(key, address))
+               return;
+
+            try
+            {
+               const unsigned started = s_.generation();
+
+               NeverBanNameList::Verdict verdict;
+               if (!s_.known(address, verdict))
+               {
+                  verdict = s_.resolve(address);
+
+                  // A lookup the queue's stop cut short - WithinDeadline gives
+                  // up within a slice of the request - is not one the DNS left
+                  // unanswered: the ban waits as it was, no attempt spent, and
+                  // the thread's place is given back as at the top of the loop.
+                  // Counted, a ban at its last attempt or past its time was
+                  // announced unverified - the line fail2ban matches, the
+                  // firewall - as the service stopped.
+                  if (!verdict.definitive && boost::this_thread::interruption_requested())
+                  {
+                     {
+                        std::lock_guard<std::mutex> guard(lock_);
+                        auto it = waiting_.find(key);
+                        if (it != waiting_.end())
+                           it->second.taken = false;
+                     }
+
+                     GiveBack_();
+                     return;
+                  }
+
+                  s_.keep(address, verdict, started);
+               }
+
+               Decide_(key, address, verdict, started);
+            }
+            catch (const boost::thread_interrupted &)
+            {
+               // The queue is stopping, inside a lookup or the database: the
+               // ban waits as it was, no attempt spent, and the stop goes on
+               // (the Slot gives the thread's place back).
+               std::lock_guard<std::mutex> guard(lock_);
+               auto it = waiting_.find(key);
+               if (it != waiting_.end())
+                  it->second.taken = false;
+               throw;
+            }
+            catch (...)
+            {
+               // Not decided: it waits a minute, an attempt spent.
+               std::lock_guard<std::mutex> guard(lock_);
+               auto it = waiting_.find(key);
+               if (it != waiting_.end())
+               {
+                  it->second.taken = false;
+                  it->second.attempts++;
+                  it->second.due = s_.now() + NeverBanNameList::RetrySeconds;
+               }
+            }
+         }
+      }
+
+      // The ban due that waited longest in the network after the one taken
+      // last: each network in turn, so that one network's bans, however many,
+      // delay another network's by one lookup each.
+      bool TakeNext_(String &key, IPAddress &address)
+      {
+         std::lock_guard<std::mutex> guard(lock_);
+         const time_t now = s_.now();
+
+         std::map<String, std::map<String, Waiting>::iterator> oldest;
+         for (auto it = waiting_.begin(); it != waiting_.end(); ++it)
+         {
+            const Waiting &waiting = it->second;
+            if (waiting.taken || !waiting.announce || waiting.due > now)
+               continue;
+
+            auto found = oldest.find(waiting.network);
+            if (found == oldest.end() || waiting.order < found->second->second.order)
+               oldest[waiting.network] = it;
+         }
+
+         if (oldest.empty())
+         {
+            working_--;
+            return false;
+         }
+
+         auto pick = oldest.upper_bound(last_network_);
+         if (pick == oldest.end())
+            pick = oldest.begin();
+
+         last_network_ = pick->first;
+         pick->second->second.taken = true;
+         key = pick->second->first;
+         address = pick->second->second.address;
+         return true;
+      }
+
+      void Decide_(const String &key, const IPAddress &address, const NeverBanNameList::Verdict &verdict, unsigned started)
+      {
+         std::function<void()> announce;
+         bool lift = false;
+
+         {
+            std::lock_guard<std::mutex> guard(lock_);
+
+            auto it = waiting_.find(key);
+            if (it == waiting_.end())
+               return;
+
+            Waiting &waiting = it->second;
+            const bool current = started == s_.generation();
+
+            if (verdict.spared && current)
+            {
+               // Kept, and left taken, while its range is deleted: the
+               // reconciliation must not mirror it in between.
+               lift = true;
+               waiting.spared = true;
+            }
+            else if (verdict.definitive && current)
+            {
+               announce.swap(waiting.announce);
+               waiting_.erase(it);
+            }
+            else
+            {
+               // Not answered, or answered under rows that have changed since:
+               // asked again - at once for new rows, a minute later for a
+               // lookup that was not answered - until its attempts are spent.
+               waiting.taken = false;
+               waiting.attempts++;
+
+               const time_t now = s_.now();
+               if (waiting.attempts >= NeverBanNameList::MaxAttempts || now >= waiting.deadline)
+               {
+                  LOG_DEBUG(_T("NeverBanNameList - the reverse lookup of ") + key + _T(" was not answered in ") +
+                            StringParser::IntToString(waiting.attempts) + _T(" attempt(s); its ban is announced."));
+                  announce.swap(waiting.announce);
+                  waiting_.erase(it);
+               }
+               else
+               {
+                  waiting.due = current ? now + NeverBanNameList::RetrySeconds : now;
+               }
+            }
+         }
+
+         if (lift)
+         {
+            bool lifted = false;
+            try
+            {
+               lifted = s_.lift(address, verdict);
+            }
+            catch (const boost::thread_interrupted &)
+            {
+               // The queue is stopping: still spared and never announced, and
+               // lifted by the next start's worker.
+               std::lock_guard<std::mutex> guard(lock_);
+               auto it = waiting_.find(key);
+               if (it != waiting_.end())
+                  it->second.taken = false;
+               throw;
+            }
+            catch (...)
+            {
+               lifted = false;
+            }
+
+            std::lock_guard<std::mutex> guard(lock_);
+            auto it = waiting_.find(key);
+            if (it == waiting_.end())
+               return;
+
+            if (lifted)
+            {
+               waiting_.erase(it);
+               return;
+            }
+
+            // Nothing deleted: the range could not be, which Lift_ has
+            // reported (HM7641), or it was gone already, which the expiry pass
+            // finds. Asked again in a minute, never announced; given up after
+            // its attempts or its time.
+            it->second.taken = false;
+            it->second.attempts++;
+            it->second.due = s_.now() + NeverBanNameList::RetrySeconds;
+            if (it->second.attempts >= NeverBanNameList::MaxAttempts || s_.now() >= it->second.deadline)
+               waiting_.erase(it);
+            return;
+         }
+
+         Run_(announce);
+      }
+
+      static void Run_(const std::function<void()> &announce)
+      {
+         if (!announce)
+            return;
+
+         try
+         {
+            announce();
+         }
+         catch (const boost::thread_interrupted &)
+         {
+            // A worker of a queue that is stopping: passed on, as DoWork does.
+            throw;
+         }
+         catch (...)
+         {
+            // The ban is in the table whatever happened in its announcement,
+            // and the next reconciliation mirrors it.
+            LOG_DEBUG(_T("NeverBanNameList - announcing a ban ended in an error; the ban stands at the server."));
+         }
+      }
+
+      Surroundings s_;
+      std::mutex lock_;
+      std::map<String, Waiting> waiting_;
+      String last_network_;
+      int working_ = 0;
+      unsigned long long next_order_ = 0;
+      unsigned long long next_fill_ = 1;
    };
+
+   NeverBanWaitingBans::Surroundings
+   NeverBanWaitingBans::Real_()
+   {
+      Surroundings real;
+
+      real.rows = [](std::vector<String> &patterns) { return NeverBanNameList::EnsureRows_(patterns); };
+      real.known = [](const IPAddress &address, NeverBanNameList::Verdict &verdict) { return NeverBanNameList::Known_(address, verdict, false); };
+      real.resolve = [](const IPAddress &address) { return NeverBanNameList::ResolveWithinDeadline_(address); };
+      real.keep = [](const IPAddress &address, const NeverBanNameList::Verdict &verdict, unsigned started) { NeverBanNameList::Keep_(address, verdict, started); };
+      real.generation = []() { return NeverBanNameList::Generation_(); };
+      real.lift = [](const IPAddress &address, const NeverBanNameList::Verdict &verdict) { return NeverBanNameList::Lift_(address, verdict); };
+
+      real.live = [](std::set<String> &addresses) -> bool
+      {
+         SecurityRanges ranges;
+         if (!ranges.Refresh())
+            return false;
+
+         const DateTime now = DateTime::GetCurrentTime();
+
+         for (std::shared_ptr<SecurityRange> range : ranges.GetSnapshot())
+         {
+            // What an auto-ban writes, as Lift_ reads it: a single address,
+            // expiring, under the name prefix AutoBanFirewall mirrors - and
+            // not expired yet.
+            if (!range || !range->GetExpires() || !range->GetName().StartsWith(RangeNamePrefix))
+               continue;
+
+            if (Canonical(range->GetLowerIP()) != Canonical(range->GetUpperIP()))
+               continue;
+
+            if (!(now < range->GetExpiresTime()))
+               continue;
+
+            addresses.insert(CanonicalText(range->GetLowerIP()));
+         }
+
+         return true;
+      };
+
+      real.post = [](const std::function<void()> &work) -> bool
+      {
+         std::shared_ptr<WorkQueue> queue = WorkQueueManager::Instance()->GetQueue(NeverBanNameList::QueueName());
+         if (!queue)
+            return false;
+
+         queue->AddTask(std::shared_ptr<Task>(new NeverBanTask(work)));
+         return true;
+      };
+
+      real.now = []() { return time(nullptr); };
+
+      return real;
+   }
 
    // ---- the rows -------------------------------------------------------------
 
@@ -646,46 +1375,33 @@ namespace HM
    }
 
    void
+   NeverBanNameList::Hold(const IPAddress &address)
+   {
+      NeverBanWaitingBans::Global().Hold(address);
+   }
+
+   void
+   NeverBanNameList::Release(const IPAddress &address)
+   {
+      NeverBanWaitingBans::Global().Release(address);
+   }
+
+   void
    NeverBanNameList::VerifyBan(const IPAddress &address, const std::function<void()> &announce)
    {
-      std::vector<String> patterns;
-      if (!EnsureRows_(patterns))
-      {
-         announce();
-         return;
-      }
+      NeverBanWaitingBans::Global().VerifyBan(address, announce);
+   }
 
-      std::shared_ptr<WorkQueue> queue = Application::Instance()->GetNameLookupWorkQueue();
+   bool
+   NeverBanNameList::IsPending(const IPAddress &address)
+   {
+      return NeverBanWaitingBans::Global().IsPending(address);
+   }
 
-      Verdict known;
-      if (Known_(address, known, false))
-      {
-         // A ban written although the address is known to be spared: the
-         // session's own lookup finished between the writer's IsSpared and the
-         // write. Taken back, and never announced - off this thread when there
-         // is a queue to take it.
-         if (known.spared)
-         {
-            if (queue)
-               queue->AddTask(std::shared_ptr<Task>(new NeverBanLiftTask(address, known)));
-            else
-               Lift_(address, known);
-            return;
-         }
-
-         announce();
-         return;
-      }
-
-      if (!queue || in_flight.load() >= MaxInFlight)
-      {
-         announce();
-         Unverified_(address, 0);
-         return;
-      }
-
-      in_flight++;
-      queue->AddTask(std::shared_ptr<Task>(new NeverBanVerifyTask(address, announce)), WorkQueue::TaskMayBlock);
+   const wchar_t *
+   NeverBanNameList::QueueName()
+   {
+      return L"Never-ban verification queue";
    }
 
    void
@@ -712,70 +1428,65 @@ namespace HM
    }
 
    void
-   NeverBanNameList::Unverified_(const IPAddress &address, int attempts)
-   {
-      std::lock_guard<std::mutex> guard(unverified_mutex);
-
-      if (unverified.size() >= MaxUnverified && unverified.find(Key_(address)) == unverified.end())
-      {
-         LOG_DEBUG(_T("NeverBanNameList - too many bans are waiting for a reverse lookup; the ban of ") + CanonicalText(address) +
-                   _T(" stands without being asked about again."));
-         return;
-      }
-
-      Unverified entry;
-      entry.attempts = attempts;
-      entry.due = time(nullptr) + 60;
-
-      unverified[Key_(address)] = entry;
-   }
-
-   void
    NeverBanNameList::RetryUnverified()
    {
-      std::vector<std::pair<String, int> > due;
+      NeverBanWaitingBans::Global().Sweep();
+   }
 
+   String
+   NeverBanNameList::Network_(const IPAddress &address)
+   {
+      const boost::asio::ip::address value = Canonical(address);
+
+      AnsiString network;
+      if (value.is_v4())
       {
-         std::lock_guard<std::mutex> guard(unverified_mutex);
-
-         if (unverified.empty())
-            return;
-
-         const time_t now = time(nullptr);
-
-         for (auto it = unverified.begin(); it != unverified.end();)
-         {
-            if (it->second.due <= now)
-            {
-               due.push_back(std::make_pair(it->first, it->second.attempts));
-               it = unverified.erase(it);
-            }
-            else
-               ++it;
-         }
+         const boost::asio::ip::address_v4::bytes_type bytes = value.to_v4().to_bytes();
+         network.Format("%u.%u.%u.0/24", (unsigned) bytes[0], (unsigned) bytes[1], (unsigned) bytes[2]);
+      }
+      else
+      {
+         const boost::asio::ip::address_v6::bytes_type bytes = value.to_v6().to_bytes();
+         network.Format("%x:%x:%x::/48", (unsigned) ((bytes[0] << 8) | bytes[1]), (unsigned) ((bytes[2] << 8) | bytes[3]),
+                        (unsigned) ((bytes[4] << 8) | bytes[5]));
       }
 
-      if (due.empty())
-         return;
+      return String(network);
+   }
 
-      std::shared_ptr<WorkQueue> queue = Application::Instance()->GetNameLookupWorkQueue();
-
-      for (const std::pair<String, int> &entry : due)
+   NeverBanNameList::Verdict
+   NeverBanNameList::ResolveWithinDeadline_(const IPAddress &address)
+   {
+      std::vector<String> patterns;
+      if (!EnsureRows_(patterns))
       {
-         IPAddress address;
-         if (!address.TryParse(AnsiString(entry.first), false))
-            continue;
-
-         if (!queue || in_flight.load() >= MaxInFlight)
-         {
-            // Not an attempt: put back for the next minute as it was.
-            Unverified_(address, entry.second);
-            continue;
-         }
-
-         in_flight++;
-         queue->AddTask(std::shared_ptr<Task>(new NeverBanRetryTask(address, entry.second)), WorkQueue::TaskMayBlock);
+         Verdict empty;
+         empty.definitive = true;
+         empty.reason = _T("the never-ban list is empty");
+         return empty;
       }
+
+      const int milliseconds = LookupDeadlineSeconds * 1000;
+
+      // Each lookup on a thread of its own, held to the deadline whatever the
+      // resolver does; what the lookups capture is copied there.
+      const String text = CanonicalText(address);
+      std::vector<String> names;
+      const bool answered = WithinDeadline([text](std::vector<String> &found) -> bool
+      {
+         DNSResolver resolver;
+         return resolver.GetPTRRecords(text, found);
+      }, names, milliseconds);
+
+      ForwardLookup forward = [milliseconds](const String &name, bool ipv6, std::vector<String> &addresses) -> bool
+      {
+         return WithinDeadline([name, ipv6](std::vector<String> &found) -> bool
+         {
+            return RealForwardLookup_(name, ipv6, found);
+         }, addresses, milliseconds);
+      };
+
+      return Evaluate(address, names, answered, patterns, forward);
    }
 
    bool
@@ -796,25 +1507,6 @@ namespace HM
          addresses.push_back(String(value));
 
       return true;
-   }
-
-   NeverBanNameList::Verdict
-   NeverBanNameList::Resolve_(const IPAddress &address)
-   {
-      std::vector<String> patterns;
-      if (!EnsureRows_(patterns))
-      {
-         Verdict empty;
-         empty.definitive = true;
-         empty.reason = _T("the never-ban list is empty");
-         return empty;
-      }
-
-      std::vector<String> names;
-      DNSResolver resolver;
-      const bool answered = resolver.GetPTRRecords(CanonicalText(address), names);
-
-      return Evaluate(address, names, answered, patterns, &NeverBanNameList::RealForwardLookup_);
    }
 
    bool
@@ -1464,28 +2156,797 @@ namespace HM
 
       NeverBanNameList::Forget_();
 
-      // ---- a verification or a retry the queue drops unrun gives its place among
-      // those in flight back, as VerifyBan and RetryUnverified raise it before
-      // they hand one over; one that kept it would, sixteen times over, leave
-      // every later ban announced unverified. Nothing is announced for it.
+      // ---- the bans waiting for the list's answer (NeverBanWaitingBans), with a
+      // stand-in for the world around them: a resolver that hangs for an
+      // address until the test lets it answer, the ranges in force, a lift that
+      // records what it deleted, a clock the test moves, and threads of the
+      // test's own in place of the verification queue's. Before 6.3.6 was
+      // released a ban was announced at once past sixteen verifications in
+      // flight, and the expiry pass mirrored a pending range in any case: an
+      // outsider who kept the name lookup queue backed up had a listed
+      // provider's ban reach the firewall and fail2ban unverified.
       {
-         const int before = in_flight.load();
-         bool announced = false;
-
-         in_flight++;
+         struct Bench
          {
-            std::shared_ptr<Task> dropped(new NeverBanVerifyTask(Address("192.0.2.210"), [&announced]() { announced = true; }));
-            Expect(in_flight.load() == before + 1, "A verification waiting in the queue was not counted in flight - the negative control.");
-         }
-         Expect(in_flight.load() == before, "A verification the queue dropped unrun kept its place among those in flight.");
-         Expect(!announced, "A verification the queue dropped unrun announced its ban.");
+            std::mutex lock;
+            std::condition_variable changed;
+            bool rows = true;
+            std::map<String, NeverBanNameList::Verdict> answers;
+            std::set<String> hanging;
+            std::set<String> resolving;
+            std::map<String, int> resolved;
+            std::set<String> live;
+            std::vector<String> lifted;
+            std::map<String, int> announced;
+            time_t clock = 1000000;
+            std::vector<std::thread> threads;
 
-         in_flight++;
+            // Work held back rather than given a thread, while holdPosts is
+            // set: the test runs it on a thread of its choosing.
+            bool holdPosts = false;
+            std::vector<std::function<void()> > heldPosts;
+
+            // Run once, after the ranges are read and before the sweep acts
+            // on what it read.
+            std::function<void()> duringLive;
+
+            // Addresses whose next lookup is interrupted, as a stopping
+            // queue's worker is inside one.
+            std::set<String> interrupting;
+         };
+
+         Bench bench;
+
+         NeverBanWaitingBans::Surroundings surroundings;
+
+         surroundings.rows = [&bench](std::vector<String> &patterns) -> bool
          {
-            std::shared_ptr<Task> dropped(new NeverBanRetryTask(Address("192.0.2.211"), 0));
-            Expect(in_flight.load() == before + 1, "A retry waiting in the queue was not counted in flight - the negative control.");
+            std::lock_guard<std::mutex> guard(bench.lock);
+            patterns.clear();
+            if (bench.rows)
+               patterns.push_back(_T(".example.net"));
+            return !patterns.empty();
+         };
+
+         surroundings.known = [](const IPAddress &, NeverBanNameList::Verdict &) { return false; };
+
+         surroundings.resolve = [&bench](const IPAddress &address) -> NeverBanNameList::Verdict
+         {
+            const String key = CanonicalText(address);
+
+            std::unique_lock<std::mutex> guard(bench.lock);
+            if (bench.interrupting.erase(key) > 0)
+               throw boost::thread_interrupted();
+
+            bench.resolving.insert(key);
+            bench.resolved[key]++;
+            bench.changed.notify_all();
+
+            // A lookup that hangs until the test lets it go - or two minutes,
+            // so that a bench that fails cannot leave a thread behind for good.
+            bench.changed.wait_for(guard, std::chrono::seconds(120), [&bench, &key]() { return bench.hanging.find(key) == bench.hanging.end(); });
+
+            bench.resolving.erase(key);
+            bench.changed.notify_all();
+
+            auto it = bench.answers.find(key);
+            if (it != bench.answers.end())
+               return it->second;
+
+            NeverBanNameList::Verdict unanswered;
+            unanswered.reason = _T("its reverse lookup was not answered");
+            return unanswered;
+         };
+
+         surroundings.keep = [](const IPAddress &, const NeverBanNameList::Verdict &, unsigned) { };
+         surroundings.generation = []() { return 0u; };
+
+         surroundings.lift = [&bench](const IPAddress &address, const NeverBanNameList::Verdict &) -> bool
+         {
+            std::lock_guard<std::mutex> guard(bench.lock);
+            const String key = CanonicalText(address);
+            bench.lifted.push_back(key);
+            bench.live.erase(key);
+            return true;
+         };
+
+         surroundings.live = [&bench](std::set<String> &addresses) -> bool
+         {
+            std::function<void()> during;
+
+            {
+               std::lock_guard<std::mutex> guard(bench.lock);
+               addresses = bench.live;
+               during.swap(bench.duringLive);
+            }
+
+            if (during)
+               during();
+
+            return true;
+         };
+
+         surroundings.post = [&bench](const std::function<void()> &work) -> bool
+         {
+            std::lock_guard<std::mutex> guard(bench.lock);
+            if (bench.holdPosts)
+               bench.heldPosts.push_back(work);
+            else
+               bench.threads.push_back(std::thread(work));
+            return true;
+         };
+
+         surroundings.now = [&bench]() -> time_t
+         {
+            std::lock_guard<std::mutex> guard(bench.lock);
+            return bench.clock;
+         };
+
+         NeverBanWaitingBans bans(surroundings);
+
+         // Never called with bench.lock held, and never holding it while bans is
+         // asked: the waiting bans take their lock and then the bench's.
+         auto eventually = [](const std::function<bool()> &condition) -> bool
+         {
+            for (int i = 0; i < 6000; i++)
+            {
+               if (condition())
+                  return true;
+               std::this_thread::sleep_for(std::chrono::milliseconds(5));
+            }
+            return false;
+         };
+
+         auto read = [&bench](const std::function<bool()> &question) -> bool
+         {
+            std::lock_guard<std::mutex> guard(bench.lock);
+            return question();
+         };
+
+         auto announcer = [&bench](const String &key) -> std::function<void()>
+         {
+            return [&bench, key]()
+            {
+               std::lock_guard<std::mutex> guard(bench.lock);
+               bench.announced[key]++;
+            };
+         };
+
+         auto ban = [&bench](const IPAddress &address, bool hangs, int verdict)
+         {
+            // verdict: 0 not answered, 1 spared, 2 not spared.
+            std::lock_guard<std::mutex> guard(bench.lock);
+            const String key = CanonicalText(address);
+            bench.live.insert(key);
+            if (hangs)
+               bench.hanging.insert(key);
+
+            if (verdict != 0)
+            {
+               NeverBanNameList::Verdict answer;
+               answer.definitive = true;
+               answer.spared = verdict == 1;
+               answer.reason = verdict == 1 ? _T("spared") : _T("not covered");
+               bench.answers[key] = answer;
+            }
+         };
+
+         auto letGo = [&bench](const String &key)
+         {
+            std::lock_guard<std::mutex> guard(bench.lock);
+            bench.hanging.erase(key);
+            bench.changed.notify_all();
+         };
+
+         auto announcedCount = [&bench](const String &key) -> int
+         {
+            std::lock_guard<std::mutex> guard(bench.lock);
+            auto it = bench.announced.find(key);
+            return it == bench.announced.end() ? 0 : it->second;
+         };
+
+         auto wasLifted = [&bench](const String &key) -> bool
+         {
+            std::lock_guard<std::mutex> guard(bench.lock);
+            return std::find(bench.lifted.begin(), bench.lifted.end(), key) != bench.lifted.end();
+         };
+
+         auto resolving = [&bench](const String &key) -> bool
+         {
+            std::lock_guard<std::mutex> guard(bench.lock);
+            return bench.resolving.find(key) != bench.resolving.end();
+         };
+
+         auto resolvedTimes = [&bench](const String &key) -> int
+         {
+            std::lock_guard<std::mutex> guard(bench.lock);
+            auto it = bench.resolved.find(key);
+            return it == bench.resolved.end() ? 0 : it->second;
+         };
+
+         auto advance = [&bench](int seconds)
+         {
+            std::lock_guard<std::mutex> guard(bench.lock);
+            bench.clock += seconds;
+         };
+
+         std::string failure;
+
+         try
+         {
+            // A ban about to be written is pending before its range exists,
+            // and a hold the write did not follow is let go.
+            const IPAddress provider = Address("192.0.2.80");
+            const String providerKey = CanonicalText(provider);
+            ban(provider, true, 1);
+
+            Expect(!bans.IsPending(provider), "An address was pending before anything was held for it - the negative control.");
+            bans.Hold(provider);
+            Expect(bans.IsPending(provider), "A ban about to be written was not pending before its range was written.");
+            bans.Release(provider);
+            Expect(!bans.IsPending(provider), "A hold whose range could not be written stayed pending.");
+
+            // A listed provider's ban while its lookup hangs: pending - so the
+            // firewall's reconciliation leaves its range out - and not
+            // announced; lifted, never announced, when the answer spares it.
+            bans.Hold(provider);
+            bans.VerifyBan(provider, announcer(providerKey));
+            Expect(eventually([&]() { return resolving(providerKey); }), "The provider's lookup was never begun.");
+            std::this_thread::sleep_for(std::chrono::milliseconds(50));
+            Expect(bans.IsPending(provider), "A ban whose answer is not in was not pending: the reconciliation would mirror its range.");
+            Expect(announcedCount(providerKey) == 0, "A ban whose answer is not in was announced to the firewall and fail2ban.");
+
+            letGo(providerKey);
+            Expect(eventually([&]() { return !bans.IsPending(provider); }), "A ban whose answer came in stayed pending.");
+            Expect(wasLifted(providerKey), "A listed provider whose reverse name verified was not lifted.");
+            Expect(announcedCount(providerKey) == 0, "A listed provider whose reverse name verified was announced.");
+
+            // The negative control: an answer that does not spare announces the
+            // ban, once, and lifts nothing.
+            const IPAddress other = Address("192.0.2.81");
+            const String otherKey = CanonicalText(other);
+            ban(other, false, 2);
+            bans.Hold(other);
+            bans.VerifyBan(other, announcer(otherKey));
+            Expect(eventually([&]() { return announcedCount(otherKey) == 1 && !bans.IsPending(other); }), "A ban the list does not spare was not announced.");
+            Expect(!wasLifted(otherKey), "A ban the list does not spare was lifted.");
+
+            // An empty list announces at once, and nothing waits.
+            {
+               std::lock_guard<std::mutex> guard(bench.lock);
+               bench.rows = false;
+            }
+            const IPAddress unlisted = Address("192.0.2.84");
+            const String unlistedKey = CanonicalText(unlisted);
+            ban(unlisted, true, 0);
+            bans.Hold(unlisted);
+            Expect(!bans.IsPending(unlisted), "With no rows a ban was held.");
+            bans.VerifyBan(unlisted, announcer(unlistedKey));
+            Expect(announcedCount(unlistedKey) == 1 && !bans.IsPending(unlisted) && resolvedTimes(unlistedKey) == 0,
+                   "With no rows a ban was not announced at once, or was looked up.");
+            letGo(unlistedKey);
+            {
+               std::lock_guard<std::mutex> guard(bench.lock);
+               bench.rows = true;
+            }
+
+            // A lookup that is not answered: asked again a minute later, and
+            // the ban announced after MaxAttempts - pending, and not announced,
+            // until then.
+            const IPAddress mute = Address("192.0.2.82");
+            const String muteKey = CanonicalText(mute);
+            ban(mute, false, 0);
+            bans.VerifyBan(mute, announcer(muteKey));
+            for (int attempt = 1; attempt < NeverBanNameList::MaxAttempts; attempt++)
+            {
+               Expect(eventually([&]() { return resolvedTimes(muteKey) == attempt && bans.Working() == 0; }), "An unanswered ban was not asked about again.");
+               Expect(bans.IsPending(mute) && announcedCount(muteKey) == 0, "An unanswered ban was announced before its attempts were spent.");
+               advance(NeverBanNameList::RetrySeconds);
+               bans.Sweep();
+            }
+            Expect(eventually([&]() { return announcedCount(muteKey) == 1 && !bans.IsPending(mute); }),
+                   "A ban whose lookups were not answered MaxAttempts times was not announced.");
+            Expect(resolvedTimes(muteKey) == NeverBanNameList::MaxAttempts, "An unanswered ban was asked about more or fewer times than MaxAttempts.");
+
+            // A waiting ban whose range has gone - expired, or deleted - is
+            // forgotten and not announced; while its range is in force, it
+            // waits.
+            const IPAddress gone = Address("192.0.2.83");
+            const String goneKey = CanonicalText(gone);
+            ban(gone, false, 0);
+            bans.VerifyBan(gone, announcer(goneKey));
+            Expect(eventually([&]() { return resolvedTimes(goneKey) == 1 && bans.Working() == 0; }), "The lookup of a ban was never made.");
+            bans.Sweep();
+            Expect(bans.IsPending(gone), "A waiting ban whose range is in force was forgotten - the negative control.");
+            {
+               std::lock_guard<std::mutex> guard(bench.lock);
+               bench.live.erase(goneKey);
+            }
+            bans.Sweep();
+            Expect(!bans.IsPending(gone) && announcedCount(goneKey) == 0, "A waiting ban whose range had gone was announced, or kept.");
+
+            // A worker its queue asks to stop - the service stopping - takes no
+            // more bans once the one it asks about is answered: that one is
+            // decided by its answer, which here does not spare it, and the next
+            // stays waiting for a worker of the next start, unasked and
+            // unannounced. A worker not asked to stop takes it (the negative
+            // control). The answer is one the DNS gave: a lookup the stop cuts
+            // short is the case below.
+            {
+               const IPAddress first = Address("192.0.2.86");
+               const String firstKey = CanonicalText(first);
+               const IPAddress second = Address("192.0.2.87");
+               const String secondKey = CanonicalText(second);
+
+               {
+                  std::lock_guard<std::mutex> guard(bench.lock);
+                  bench.holdPosts = true;
+               }
+
+               ban(first, true, 2);
+               ban(second, false, 2);
+               bans.VerifyBan(first, announcer(firstKey));
+               bans.VerifyBan(second, announcer(secondKey));
+
+               std::vector<std::function<void()> > held;
+               {
+                  std::lock_guard<std::mutex> guard(bench.lock);
+                  bench.holdPosts = false;
+                  held.swap(bench.heldPosts);
+               }
+               Expect(!held.empty(), "No worker was asked for two waiting bans.");
+
+               boost::thread stopping(held.front());
+               bool tookFirst = false;
+               bool ended = false;
+
+               try
+               {
+                  tookFirst = eventually([&]() { return resolving(firstKey); });
+                  stopping.interrupt();
+                  letGo(firstKey);
+                  ended = stopping.timed_join(boost::posix_time::seconds(30));
+               }
+               catch (...)
+               {
+                  ended = false;
+               }
+
+               if (!ended)
+               {
+                  // Never left running on the bench: let every lookup go and
+                  // wait for it, whatever it took.
+                  {
+                     std::lock_guard<std::mutex> guard(bench.lock);
+                     bench.hanging.clear();
+                     bench.changed.notify_all();
+                  }
+                  stopping.join();
+               }
+
+               Expect(tookFirst, "The stopping worker never took the first ban.");
+               Expect(ended, "The stopping worker did not end once its lookup was answered.");
+               Expect(resolvedTimes(secondKey) == 0 && bans.IsPending(second) && announcedCount(secondKey) == 0,
+                      "A worker its queue asked to stop took another ban.");
+               Expect(announcedCount(firstKey) == 1 && !bans.IsPending(first),
+                      "The ban whose answer came in as its worker was asked to stop was not decided by that answer.");
+
+               {
+                  std::lock_guard<std::mutex> guard(bench.lock);
+                  for (size_t i = 1; i < held.size(); i++)
+                     bench.threads.push_back(std::thread(held[i]));
+               }
+               Expect(eventually([&]() { return announcedCount(secondKey) == 1 && !bans.IsPending(second) && bans.Working() == 0; }),
+                      "A worker not asked to stop did not take the waiting ban - the negative control.");
+               Expect(announcedCount(firstKey) == 1, "The ban its stopping worker decided was announced again.");
+            }
+
+            // A lookup its worker's stop cuts short - the real lookup gives up
+            // within a slice of the request, as a stand-in that hangs until it
+            // is let go after the interrupt does here - is not an attempt: a ban
+            // at its last attempt stays waiting, unannounced, rather than being
+            // announced unverified as the service stops. The same ban asked
+            // again by a worker not asked to stop, and not answered, is
+            // announced (the negative control).
+            {
+               const IPAddress last = Address("192.0.2.89");
+               const String lastKey = CanonicalText(last);
+
+               ban(last, false, 0);
+               bans.VerifyBan(last, announcer(lastKey));
+               for (int attempt = 1; attempt < NeverBanNameList::MaxAttempts; attempt++)
+               {
+                  Expect(eventually([&]() { return resolvedTimes(lastKey) == attempt && bans.Working() == 0; }), "An unanswered ban was not asked about again.");
+                  Expect(bans.IsPending(last) && announcedCount(lastKey) == 0, "An unanswered ban was announced before its attempts were spent.");
+
+                  advance(NeverBanNameList::RetrySeconds);
+                  if (attempt == NeverBanNameList::MaxAttempts - 1)
+                  {
+                     // Its last attempt, on a worker of the test's own.
+                     std::lock_guard<std::mutex> guard(bench.lock);
+                     bench.holdPosts = true;
+                     bench.hanging.insert(lastKey);
+                  }
+                  bans.Sweep();
+               }
+
+               std::vector<std::function<void()> > held;
+               {
+                  std::lock_guard<std::mutex> guard(bench.lock);
+                  bench.holdPosts = false;
+                  held.swap(bench.heldPosts);
+               }
+               Expect(held.size() == 1, "A ban at its last attempt did not ask for one worker.");
+
+               boost::thread stopping(held.front());
+               bool asked = false;
+               bool ended = false;
+
+               try
+               {
+                  asked = eventually([&]() { return resolving(lastKey); });
+                  stopping.interrupt();
+                  letGo(lastKey);
+                  ended = stopping.timed_join(boost::posix_time::seconds(30));
+               }
+               catch (...)
+               {
+                  ended = false;
+               }
+
+               if (!ended)
+               {
+                  {
+                     std::lock_guard<std::mutex> guard(bench.lock);
+                     bench.hanging.clear();
+                     bench.changed.notify_all();
+                  }
+                  stopping.join();
+               }
+
+               held.clear();
+
+               Expect(asked && ended, "The stopping worker did not ask about the ban at its last attempt, or did not end.");
+               Expect(bans.IsPending(last) && announcedCount(lastKey) == 0 && bans.Working() == 0,
+                      "A lookup its worker's stop cut short was counted as an attempt, and the ban at its last attempt announced unverified as the queue stopped.");
+
+               bans.Sweep();
+               Expect(eventually([&]() { return announcedCount(lastKey) == 1 && !bans.IsPending(last) && bans.Working() == 0; }),
+                      "A ban at its last attempt, asked again by a worker not asked to stop and not answered, was not announced - the negative control.");
+               Expect(resolvedTimes(lastKey) == NeverBanNameList::MaxAttempts + 1,
+                      "The ban at its last attempt was not asked about once more after the stop.");
+            }
+
+            // A worker interrupted inside a lookup or the database - its queue
+            // stopping - passes the interruption on, as WorkQueue asks of a
+            // task, and leaves the ban waiting as it was, no attempt spent:
+            // swallowed, the request to stop would be spent, and the worker
+            // would go on taking bans. The next worker takes it at once.
+            {
+               const IPAddress stopped = Address("192.0.2.88");
+               const String stoppedKey = CanonicalText(stopped);
+
+               {
+                  std::lock_guard<std::mutex> guard(bench.lock);
+                  bench.holdPosts = true;
+                  bench.interrupting.insert(stoppedKey);
+               }
+
+               ban(stopped, false, 2);
+               bans.VerifyBan(stopped, announcer(stoppedKey));
+
+               std::vector<std::function<void()> > held;
+               {
+                  std::lock_guard<std::mutex> guard(bench.lock);
+                  bench.holdPosts = false;
+                  held.swap(bench.heldPosts);
+               }
+               Expect(held.size() == 1, "One waiting ban did not ask for one worker.");
+
+               bool passedOn = false;
+               try
+               {
+                  held.front()();
+               }
+               catch (const boost::thread_interrupted &)
+               {
+                  passedOn = true;
+               }
+
+               // The work given up, as a stopping queue gives it up: its place
+               // is given back.
+               held.clear();
+
+               Expect(passedOn, "A worker interrupted inside a lookup swallowed the interruption.");
+               Expect(bans.IsPending(stopped) && announcedCount(stoppedKey) == 0 && bans.Working() == 0,
+                      "A ban whose worker was interrupted was not left waiting, or its worker's place was not given back.");
+
+               bans.Sweep();
+               Expect(eventually([&]() { return announcedCount(stoppedKey) == 1 && !bans.IsPending(stopped) && bans.Working() == 0; }),
+                      "A ban whose worker was interrupted was not taken again at once by the next worker - the negative control.");
+
+               // The task the queue runs passes the interruption on, and keeps
+               // anything else in.
+               bool taskPassedOn = false;
+               try
+               {
+                  NeverBanTask task([]() { throw boost::thread_interrupted(); });
+                  task.DoWork();
+               }
+               catch (const boost::thread_interrupted &)
+               {
+                  taskPassedOn = true;
+               }
+               Expect(taskPassedOn, "The verification queue's task swallowed an interruption.");
+
+               bool contained = true;
+               try
+               {
+                  NeverBanTask task([]() { throw std::runtime_error("a failure that is not a stop"); });
+                  task.DoWork();
+               }
+               catch (...)
+               {
+                  contained = false;
+               }
+               Expect(contained, "The verification queue's task let a failure out - the negative control.");
+            }
+
+            // The crowd: three networks of an outsider, sixteen bans each,
+            // whose lookups all hang. Their own seventeenth is announced at
+            // once - the cap per network - and a listed provider's ban that
+            // comes after them waits, unannounced, and is taken within one
+            // lookup of each network, not after all of theirs.
+            const char *nets[] = { "198.51.100.", "203.0.113.", "198.18.0." };
+            std::vector<String> crowd;
+            for (const char *net : nets)
+            {
+               for (int i = 1; i <= static_cast<int>(NeverBanNameList::MaxPendingPerNetwork); i++)
+               {
+                  const IPAddress address = Address((std::string(net) + std::to_string(i)).c_str());
+                  const String key = CanonicalText(address);
+                  ban(address, true, 0);
+                  crowd.push_back(key);
+                  bans.VerifyBan(address, announcer(key));
+               }
+            }
+
+            Expect(eventually([&]() { return read([&]() { return bench.resolving.size() == static_cast<size_t>(NeverBanNameList::VerifyThreads); }); }),
+                   "The verification threads were not all at work on the crowd.");
+            Expect(bans.Count() == 3 * NeverBanNameList::MaxPendingPerNetwork, "The crowd's bans did not all wait.");
+
+            const IPAddress seventeenth = Address("198.51.100.17");
+            const String seventeenthKey = CanonicalText(seventeenth);
+            ban(seventeenth, true, 0);
+            bans.VerifyBan(seventeenth, announcer(seventeenthKey));
+            Expect(announcedCount(seventeenthKey) == 1 && !bans.IsPending(seventeenth),
+                   "A network's ban past MaxPendingPerNetwork waiting was not announced at once - the negative control of the cap.");
+
+            const IPAddress listed = Address("192.0.2.90");
+            const String listedKey = CanonicalText(listed);
+            ban(listed, true, 1);
+            bans.Hold(listed);
+            bans.VerifyBan(listed, announcer(listedKey));
+            Expect(bans.IsPending(listed) && announcedCount(listedKey) == 0,
+                   "A listed provider's ban was announced while the crowd held every verification thread.");
+
+            int letGoCount = 0;
+            while (!resolving(listedKey) && letGoCount < 60)
+            {
+               String busy;
+               {
+                  std::lock_guard<std::mutex> guard(bench.lock);
+                  for (const String &key : bench.resolving)
+                  {
+                     if (key != listedKey)
+                     {
+                        busy = key;
+                        break;
+                     }
+                  }
+               }
+
+               Expect(!busy.IsEmpty(), "No verification thread was at work while bans waited.");
+               letGo(busy);
+               letGoCount++;
+
+               Expect(eventually([&]() { return !resolving(busy) && (resolving(listedKey) || read([&]() { return bench.resolving.size() == static_cast<size_t>(NeverBanNameList::VerifyThreads); })); }),
+                      "A thread freed by the crowd took nothing more.");
+            }
+
+            Expect(resolving(listedKey), "The listed provider's ban never had its turn.");
+            Expect(letGoCount <= 4, "The listed provider's ban waited behind more than one lookup of each network.");
+
+            letGo(listedKey);
+            Expect(eventually([&]() { return !bans.IsPending(listed); }), "The listed provider's ban stayed pending after its answer.");
+            Expect(wasLifted(listedKey) && announcedCount(listedKey) == 0, "The listed provider's ban was announced, or not lifted, after its turn in the crowd.");
+
+            // A ban that never has its turn - every thread busy - counts a minute
+            // past its time as an attempt, and is announced after MaxAttempts of
+            // them; still waiting after one fewer.
+            const IPAddress starved = Address("192.0.2.91");
+            const String starvedKey = CanonicalText(starved);
+            ban(starved, false, 0);
+            bans.VerifyBan(starved, announcer(starvedKey));
+            for (int minute = 1; minute < NeverBanNameList::MaxAttempts; minute++)
+            {
+               advance(NeverBanNameList::RetrySeconds);
+               bans.Sweep();
+            }
+            Expect(bans.IsPending(starved) && announcedCount(starvedKey) == 0 && resolvedTimes(starvedKey) == 0,
+                   "A ban kept from its turn was announced, or looked up, before its attempts were spent - the negative control.");
+            advance(NeverBanNameList::RetrySeconds);
+            bans.Sweep();
+            Expect(announcedCount(starvedKey) == 1 && !bans.IsPending(starved),
+                   "A ban kept from its turn for MaxAttempts minutes was not announced.");
+
+            // A ban written while the minute's sweep reads the ranges - held,
+            // its range saved and its ban filled after the read began - is not
+            // taken for one whose range has gone: the read may simply have
+            // missed it. The next sweep reads it and keeps it, and forgets it
+            // once its range has really gone (the negative control).
+            const IPAddress late = Address("192.0.2.92");
+            const String lateKey = CanonicalText(late);
+            {
+               std::lock_guard<std::mutex> guard(bench.lock);
+               bench.duringLive = [&bans, &ban, &announcer, late, lateKey]()
+               {
+                  bans.Hold(late);
+                  ban(late, true, 0);
+                  bans.VerifyBan(late, announcer(lateKey));
+               };
+            }
+            bans.Sweep();
+            Expect(bans.IsPending(late) && announcedCount(lateKey) == 0,
+                   "A ban written while the sweep read the ranges was forgotten as if its range had gone.");
+            bans.Sweep();
+            Expect(bans.IsPending(late), "A waiting ban whose range the sweep read was forgotten.");
+            {
+               std::lock_guard<std::mutex> guard(bench.lock);
+               bench.live.erase(lateKey);
+            }
+            bans.Sweep();
+            Expect(!bans.IsPending(late) && announcedCount(lateKey) == 0,
+                   "A waiting ban whose range had gone by the sweep after it was written was kept, or announced - the negative control.");
+
+            // A full set whose network with the most waiting has nothing that
+            // can be given up - its bans are the ones the threads ask about -
+            // gives up another network's oldest for a new ban, and does not
+            // announce the new one at once: the crowd's last bans hold every
+            // thread, and a thousand networks of one ban each fill the rest.
+            std::vector<String> filler;
+            for (int i = 0; bans.Count() < NeverBanNameList::MaxPending; i++)
+            {
+               const std::string text = "10." + std::to_string(i / 256) + "." + std::to_string(i % 256) + ".1";
+               const IPAddress address = Address(text.c_str());
+               const String key = CanonicalText(address);
+               ban(address, true, 0);
+               filler.push_back(key);
+               bans.VerifyBan(address, announcer(key));
+               Expect(announcedCount(key) == 0, "A ban was announced at once while the set had room.");
+            }
+            Expect(bans.Working() == NeverBanNameList::VerifyThreads, "The crowd's last bans did not hold every thread.");
+
+            const IPAddress crowded = Address("192.0.2.93");
+            const String crowdedKey = CanonicalText(crowded);
+            ban(crowded, true, 1);
+            bans.Hold(crowded);
+            bans.VerifyBan(crowded, announcer(crowdedKey));
+            int givenUp = 0;
+            for (const String &key : filler)
+               givenUp += announcedCount(key);
+            Expect(bans.IsPending(crowded) && announcedCount(crowdedKey) == 0,
+                   "A ban was announced at once because the network with the most waiting had none to give up.");
+            Expect(givenUp == 1 && bans.Count() == NeverBanNameList::MaxPending,
+                   "A full set did not give up exactly one waiting ban for the new one.");
+
+            // A lookup that hangs is given up at its deadline, counted while its
+            // thread runs on, and uncounted when it ends; one that answers in
+            // time is taken. Counted in a counter of the test's own - static,
+            // since a thread given up outlives this frame - so that the
+            // service's own verifications, when the class tests run inside it,
+            // cannot move the count under the test.
+            static std::atomic<int> testAbandoned(0);
+            const int abandonedBefore = testAbandoned.load();
+            std::vector<String> found;
+            const std::chrono::steady_clock::time_point began = std::chrono::steady_clock::now();
+            const bool lateAnswered = WithinDeadline([](std::vector<String> &out) -> bool
+            {
+               std::this_thread::sleep_for(std::chrono::milliseconds(1500));
+               out.push_back(_T("late.example.net"));
+               return true;
+            }, found, 100, testAbandoned);
+            const long long tookMs = (long long) std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - began).count();
+            Expect(!lateAnswered && found.empty() && tookMs < 1000, "A lookup that hangs was waited for past its deadline.");
+            Expect(testAbandoned.load() == abandonedBefore + 1, "A lookup given up was not counted.");
+
+            const bool inTime = WithinDeadline([](std::vector<String> &out) -> bool
+            {
+               out.push_back(_T("mail5.outbound.example.net"));
+               return true;
+            }, found, 2000, testAbandoned);
+            Expect(inTime && found.size() == 1, "A lookup that answered in time was not taken - the negative control.");
+            Expect(eventually([&]() { return testAbandoned.load() == abandonedBefore; }), "A lookup given up stayed counted after its thread ended.");
+
+            // A worker of a queue that is stopping - a boost thread, interrupted
+            // - stops waiting for a lookup within a slice, long before the
+            // deadline, and counts it given up; a worker not interrupted waits
+            // for the answer (the negative control).
+            {
+               std::atomic<bool> answered(true);
+               std::atomic<long long> waitedMs(0);
+               boost::thread worker([&answered, &waitedMs]()
+               {
+                  std::vector<String> out;
+                  const std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
+                  answered = WithinDeadline([](std::vector<String> &values) -> bool
+                  {
+                     std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+                     values.push_back(_T("late.example.net"));
+                     return true;
+                  }, out, 10000, testAbandoned);
+                  waitedMs = (long long) std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start).count();
+               });
+
+               std::this_thread::sleep_for(std::chrono::milliseconds(150));
+               worker.interrupt();
+               worker.join();
+               Expect(!answered.load() && waitedMs.load() < 1000, "A worker asked to stop went on waiting for its lookup.");
+
+               boost::thread patient([&answered]()
+               {
+                  std::vector<String> out;
+                  answered = WithinDeadline([](std::vector<String> &values) -> bool
+                  {
+                     std::this_thread::sleep_for(std::chrono::milliseconds(300));
+                     values.push_back(_T("mail5.outbound.example.net"));
+                     return true;
+                  }, out, 10000, testAbandoned);
+               });
+               patient.join();
+               Expect(answered.load(), "A worker not asked to stop did not wait for its lookup - the negative control.");
+               Expect(eventually([&]() { return testAbandoned.load() == abandonedBefore; }), "A lookup given up at a stop stayed counted after its thread ended.");
+            }
          }
-         Expect(in_flight.load() == before, "A retry the queue dropped unrun kept its place among those in flight.");
+         catch (const std::logic_error &wrong)
+         {
+            failure = wrong.what();
+         }
+         catch (...)
+         {
+            failure = "NeverBanNameListTester: the waiting bans' bench threw something other than a test failure.";
+         }
+
+         // Every thread let go and every ban out of time, whatever happened
+         // above, and the threads waited for: nothing of the bench outlives it.
+         {
+            std::lock_guard<std::mutex> guard(bench.lock);
+            bench.hanging.clear();
+            bench.clock += static_cast<time_t>(2) * NeverBanNameList::HoldSeconds;
+            bench.changed.notify_all();
+         }
+
+         for (int round = 0; round < 50; round++)
+         {
+            bans.Sweep();
+
+            std::vector<std::thread> threads;
+            {
+               std::lock_guard<std::mutex> guard(bench.lock);
+               threads.swap(bench.threads);
+            }
+
+            if (threads.empty() && bans.Count() == 0)
+               break;
+
+            for (std::thread &thread : threads)
+               thread.join();
+         }
+
+         if (!failure.empty())
+            throw std::logic_error(failure);
+
+         Expect(bans.Count() == 0 && bans.Working() == 0, "Bans or threads were left after every ban ran out of time.");
       }
    }
 }

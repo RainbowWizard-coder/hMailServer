@@ -76,10 +76,13 @@ namespace HM
       // server once its range has gone.
       AutoBanFirewall::Synchronise(_T("expiry pass"));
 
-      // The bans whose address's reverse lookup was not answered when they were
-      // placed, asked about again, so that a resolver that was down for a minute
-      // does not leave a provider on the never-ban list by reverse name banned
-      // for the whole ban. Nothing while there are none.
+      // The bans that wait for the never-ban list by reverse name: those whose
+      // lookups were not answered asked about again, a minute a ban waited past
+      // its time without a turn counted as an attempt, those out of attempts or
+      // time announced, and those whose range has gone forgotten - so that a
+      // resolver that was down for a minute neither announces a listed provider
+      // nor holds anybody's ban below the server for long. Nothing while there
+      // are none.
       try
       {
          NeverBanNameList::RetryUnverified();

@@ -234,6 +234,17 @@ namespace HM
       // server always has.
       settings.EnsureLong(PROPERTY_REFUSE_HELO_NOT_FQDN, 0);
       settings.EnsureLong(PROPERTY_REFUSE_MAIL_FROM_DOMAIN_NOT_FQDN, 0);
+
+      // A message whose links name more domains than the URI lists are asked
+      // about (AntiSpam/SURBL.h): 5, the stock mark threshold, so that hiding a
+      // listed link among padding marks the message at the stock thresholds
+      // however many lists the server asks - as the hidden listing would have
+      // on two lists at their stock score of 3, and more than it would on one.
+      // Once, not once a list: the padding is one act whatever the lists. A
+      // message that names more than 200 registrable domains is rare in mail
+      // anybody wants; an operator who receives such mail lowers it. Scored
+      // only while a URI list is active.
+      settings.EnsureLong(PROPERTY_SURBL_TOO_MANY_DOMAINS_SCORE, 5);
       // An auto-ban widened to its reverse-name neighbours (Util/AutoBanWidener.h,
       // GitLab work item #55). Off, as the work item asks: every ban a single
       // address, as it always was, until an administrator chooses otherwise.
