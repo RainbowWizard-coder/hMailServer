@@ -656,7 +656,7 @@ searched each to the end of the value, though such a word is copied as text and 
 name - the spam classification removed on delivery, the list manager stripping a posting's fields, the external-sender
 and impersonation taggers - took the fields one at a time, each a scan of the header and a move of its tail, so a header
 of many fields of one name cost their square (80,000 took 18.6 seconds); they are removed in one pass. All in every
-version from 6.0.0 up to 6.3.5.
+version from 6.0.0 up to 6.3.5 (CVE requested).
 
 Verifying a received message's DKIM or ARC signatures built the canonical header and chose the fields the signature's
 `h=` names in time growing with the square of the message's header: the "simple" canonicalisation put each continuation
@@ -665,18 +665,21 @@ from the bottom for each `h=` name. A message whose header holds very many field
 lines, with a signature the sender signs for a domain they own so it reaches verification, held a worker thread for
 tens of seconds, and up to ten signatures are verified per message by each of the DKIM and DMARC tests, on the threads
 that serve delivery and SMTP. Each field is now built once and each `h=` name found in an index by name; what is hashed
-is unchanged byte for byte. In every version from 6.0.0 up to 6.3.5. Expanding an SPF mechanism's domain-spec cut a name
+is unchanged byte for byte. In every version from 6.0.0 up to 6.3.5 (CVE requested). Expanding an SPF mechanism's domain-spec cut a name
 too long to look up (RFC 7208 7.1) one label at a time, copying the rest each time, so a record the sender publishes
 with a macro that expands to a very long name made the SPF check take several seconds (a domain-spec of 2,000 `%{s}`
-took 4.9 seconds); the cut is now made once. In 6.3.4 and 6.3.5, where that SPF implementation arrived. Three more of
-the shape are fixed that need the attacker's own account or script rather than a stranger's message, so they are a
-smaller matter: a Sieve `:matches` test backtracked over every length of every `*` (`*a*a*a*b` over 800 characters took
+took 4.9 seconds); the cut is now made once. In 6.3.4 and 6.3.5, where that SPF implementation arrived (CVE
+requested). The JSON reader kept the first of each member name by searching the members already kept, so an object of
+many members cost their square (64,000 took 2.4 seconds); it reads the REST API's bodies and, where domain reports are
+on, a TLS report (RFC 8460) mailed in by anyone, of up to 16 MB, on the delivery queue, where a 4 MB report took
+about 300 seconds - a few such reports stopped all delivery for over an hour each. It now keeps a hash set. Since
+6.2.28 (CVE requested). Two more of the shape are fixed that need the attacker's own account or script rather than a
+stranger's message: a Sieve `:matches` test backtracked over every length of every `*` (`*a*a*a*b` over 800 characters took
 44 seconds) and `deleteheader` erased its chosen fields one at a time, both over a sender's header but driven by the
-account holder's own filter script (since 6.2.24); an IMAP `LIST` de-duplicated its result lines by searching a list
-for each (40,000 folders took 1.4 seconds a command), over the signed-in account's own folders (since 6.2.0); and the
-REST API's JSON reader kept the first of each member name by searching the members already kept (64,000 took 2.4
-seconds), mostly on authenticated routes (since 6.2.28). The Sieve match is now linear in the value times the pattern,
-and the others keep a hash set. The calendar's handling of an organiser's `CANCEL` of a series from an occurrence on
+account holder's own filter script, on the delivery threads every account shares (since 6.2.24; CVE requested); and
+an IMAP `LIST` de-duplicated its result lines by searching a list
+for each (40,000 folders took 1.4 seconds a command), over the signed-in account's own folders (since 6.2.0). The Sieve match is now linear in the value times the
+pattern, and `LIST` keeps a hash set. The calendar's handling of an organiser's `CANCEL` of a series from an occurrence on
 took the stored event's `RDATE` values, rule parts, overrides and the server's own marks out one at a time, each a copy
 or a move of the rest; a stranger's invitation is filed on delivery, so its `RDATE` can be as long as the 1 MB a message
 is read for a calendar within allows, some 60,000 dates, in time growing with the square of their number (200,000 dates,
