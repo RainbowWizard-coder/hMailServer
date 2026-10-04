@@ -17,12 +17,19 @@
 
      -Iss <script>  follows the script as ISPP would - its #define (strings,
                     GetEnv, ReadIni, SourcePath, +), #ifdef, #ifndef, #if with ==
-                    and !=, #else, #elif, #endif, #include and #error; a #sub's
-                    body passed over, since it runs where a #for or a call names
-                    it; under an #if whose expression it does not evaluate, an
-                    #error, #expr or a line outside [Files] passed over and a
-                    [Files] entry, a section, #define, #undef or #include an
-                    error - and takes
+                    and !=, #else, #elif, #endif, #include and #error. A name an
+                    #expr or a #for assigns is not known after it: a Source:
+                    that uses it is an error, an #if of it undecided. A #sub's
+                    body runs where a #for or a call names it, not where it
+                    stands: there it may hold #if and the rest, #expr, #for,
+                    #pragma and #error, and a line of script (what a call would
+                    emit) or any other directive is an error. Under an #if (or
+                    #ifexist) it does not evaluate, an #error, #expr, #for,
+                    #pragma or a line outside [Files] is passed over, and a
+                    [Files] entry, a section, #define, #undef or #include is an
+                    error; #emit (#=), #insert, #append, #dim, #redim, #file and
+                    a directive it does not know are an error wherever they are
+                    compiled in - and takes
                     every Source: line of every [Files] section that is compiled
                     in, with {#...} expanded, its wildcard and recursesubdirs and
                     Excludes applied, relative to the main script's folder as ISCC
@@ -95,6 +102,14 @@ $ExpectedMachine = @{ 'x64' = 0x8664; 'ARM64' = 0xAA64 }
 
 class IssError : System.Exception {
    IssError([string] $message) : base($message) {}
+}
+
+# What a name holds once an #expr, a #for or a #sub's body may have set it: not
+# known here, so using it stops the reader (or leaves an #if undecided). Where the
+# name was not certainly defined before, whether it is now is not known either.
+class IssUnknown : IssError {
+   [bool] $MaybeUndefined
+   IssUnknown([string] $message, [bool] $maybeUndefined) : base($message) { $this.MaybeUndefined = $maybeUndefined }
 }
 
 # ---------------------------------------------------------------- the PE reader
@@ -379,41 +394,95 @@ function Split-IssEntry([string] $line) {
    return $entry
 }
 
+# The names an ISPP expression assigns to - name = ..., a compound name += ...,
+# name++ or ++name - its string literals left out. More than it assigns at worst
+# (a named argument, a comment), never fewer.
+function Get-IssAssignedNames([string] $text) {
+   $code = [regex]::Replace($text, '"[^"]*"|''[^'']*''', '""')
+   $names = New-Object System.Collections.Generic.List[string]
+   foreach ($m in [regex]::Matches($code, '\b([A-Za-z_]\w*)\s*(?:<<|>>|[-+*/%&|^])?=(?!=)')) { $names.Add($m.Groups[1].Value) }
+   foreach ($m in [regex]::Matches($code, '\b([A-Za-z_]\w*)\s*(?:\+\+|--)|(?:\+\+|--)\s*([A-Za-z_]\w*)')) {
+      $names.Add($(if ($m.Groups[1].Success) { $m.Groups[1].Value } else { $m.Groups[2].Value }))
+   }
+   return , $names
+}
+
+# Each name an #expr, a #for or a #sub's body assigns: its value no longer known.
+function Set-IssUnknown($state, $names, [string] $why) {
+   foreach ($name in $names) {
+      $old = if ($state.Defines.ContainsKey($name)) { $state.Defines[$name] } else { $null }
+      $defined = $state.Defines.ContainsKey($name) -and -not ($old -is [IssUnknown] -and $old.MaybeUndefined)
+      $state.Defines[$name] = [IssUnknown]::new("$why sets $name, which this reader does not follow", -not $defined)
+   }
+}
+
 # Every [Files] entry the script compiles in, in order.
 function Read-IssFiles([string] $file, $state) {
    if (-not (Test-Path -LiteralPath $file)) { throw [IssError]::new("#include `"$file`" does not exist") }
    $stack = New-Object System.Collections.Generic.List[object]
    $number = 0
    $inSub = $false
+   $subLive = $false
+   $subWhere = ''
+   # ISPP's short forms: #= is #emit, #! is #expr, #: is #define.
+   $short = @{ '=' = 'emit'; '!' = 'expr'; ':' = 'define' }
    foreach ($raw in Get-Content -LiteralPath $file) {
       $number++
       $where = "$(Split-Path -Leaf $file):$number"
       $line = $raw.Trim()
+      $isDirective = $line -match '^#\s*(\w+|[=!:])\s*(.*)$'
+      if ($isDirective) {
+         $directive = $Matches[1].ToLowerInvariant()
+         if ($short.ContainsKey($directive)) { $directive = $short[$directive] }
+         $rest = $Matches[2].Trim()
+      }
       # A #sub's body is what a #for or a call of it runs, not what is read where
-      # it stands: passed over up to its #endsub. (hMailServerInnoExtension.iss
-      # reads REQUIRED_DB_VERSION with one, which sets a #define by #expr and
-      # changes no [Files] entry.)
+      # it stands. hMailServerInnoExtension.iss reads REQUIRED_DB_VERSION with one,
+      # whose #expr sets a name and emits nothing. A body may hold what chooses
+      # among its own lines (#if and the rest), an #expr or a #for, whose names it
+      # sets are then not known here, a #pragma and an #error; a line of script -
+      # what a call emits where it is called, as the [Files] entries of ISPP's own
+      # AddFile example - or a #define, #include or #emit stops the reader, which
+      # does not follow where the sub is called. Not compiled in, it is passed over.
       if ($inSub) {
-         if ($line -match '^#\s*endsub\b') { $inSub = $false }
-         continue
+         if ($isDirective -and $directive -eq 'endsub') { $inSub = $false; continue }
+         if (-not $subLive -or $line -eq '' -or $line.StartsWith(';') -or $line.StartsWith('//')) { continue }
+         if ($isDirective -and $directive -in @('if', 'elif', 'else', 'endif', 'ifdef', 'ifndef', 'ifexist', 'ifnexist', 'pragma', 'error')) { continue }
+         if ($isDirective -and ($directive -eq 'expr' -or $directive -eq 'for')) {
+            Set-IssUnknown $state (Get-IssAssignedNames $rest) "${where}: #$directive in the #sub at $subWhere"
+            continue
+         }
+         throw [IssError]::new("${where}: the #sub at $subWhere holds what this reader does not follow where a #for or a call runs it (it reads #if, #expr, #for, #pragma and #error there, and no line of script): $line")
       }
       $active = -not ($stack | Where-Object { -not $_.Active })
       # Under an #if this reader could not evaluate, everything around it compiled
       # in: what lies under it is passed over while it cannot change what this reads
-      # (an #error, an #expr, a line outside [Files]), and stops the reader where it
-      # could (a [Files] entry, a section, a #define, an #undef, an #include).
+      # (an #error, an #expr or a #for, whose names are then not known, a #pragma,
+      # a line outside [Files]), and stops the reader where it could (a [Files]
+      # entry, a section, a #define, an #undef, an #include, an #emit...).
       $undecided = @($stack | Where-Object { $_.Unknown -and $_.Outer })
+      $live = $active -or $undecided.Count -gt 0
       # (No switch statement here: a continue inside one ends the switch, not this loop.)
-      if ($line -match '^#\s*(\w+)\s*(.*)$') {
-         $directive = $Matches[1].ToLowerInvariant()
-         $rest = $Matches[2].Trim()
+      if ($isDirective) {
          if ($directive -eq 'sub') {
             $inSub = $true
-         } elseif (($directive -eq 'ifdef' -or $directive -eq 'ifndef' -or $directive -eq 'if') -and $undecided.Count -gt 0) {
+            $subLive = $live
+            $subWhere = $where
+         } elseif ($directive -eq 'endsub') {
+            throw [IssError]::new("${where}: #endsub without #sub")
+         } elseif ($directive -in @('if', 'ifdef', 'ifndef', 'ifexist', 'ifnexist') -and $undecided.Count -gt 0) {
             $stack.Add([pscustomobject]@{ Active = $false; Taken = $true; Outer = $false; Unknown = $true; Why = '' })
+         } elseif ($directive -eq 'ifexist' -or $directive -eq 'ifnexist') {
+            # Whether a file exists when ISCC runs: not evaluated here.
+            $stack.Add([pscustomobject]@{ Active = $false; Taken = $active; Outer = $active; Unknown = $active; Why = "${where}: #$directive $rest, which this reader does not evaluate" })
          } elseif ($directive -eq 'ifdef' -or $directive -eq 'ifndef') {
-            $v = $active -and ($state.Defines.ContainsKey($rest) -eq ($directive -eq 'ifdef'))
-            $stack.Add([pscustomobject]@{ Active = $v; Taken = $v; Outer = $active; Unknown = $false; Why = '' })
+            $old = if ($state.Defines.ContainsKey($rest)) { $state.Defines[$rest] } else { $null }
+            if ($active -and $old -is [IssUnknown] -and $old.MaybeUndefined) {
+               $stack.Add([pscustomobject]@{ Active = $false; Taken = $true; Outer = $true; Unknown = $true; Why = "${where}: #$directive $rest - $($old.Message)" })
+            } else {
+               $v = $active -and ($state.Defines.ContainsKey($rest) -eq ($directive -eq 'ifdef'))
+               $stack.Add([pscustomobject]@{ Active = $v; Taken = $v; Outer = $active; Unknown = $false; Why = '' })
+            }
          } elseif ($directive -eq 'if') {
             $v = $false
             $unknown = $false
@@ -442,13 +511,22 @@ function Read-IssFiles([string] $file, $state) {
          } elseif ($directive -eq 'endif') {
             if ($stack.Count -eq 0) { throw [IssError]::new("${where}: #endif without #if") }
             $stack.RemoveAt($stack.Count - 1)
+         } elseif (-not $live) {
+            # a directive in a part that is not compiled
+         } elseif ($directive -eq 'expr' -or $directive -eq 'for') {
+            # Evaluated by ISPP, not here: a name either assigns is no longer known.
+            Set-IssUnknown $state (Get-IssAssignedNames $rest) "${where}: #$directive"
+         } elseif ($directive -eq 'pragma') {
+            # A message, a warning or an option: no [Files] entry.
+         } elseif ($directive -notin @('define', 'undef', 'include', 'error')) {
+            # #emit (and #=), #insert, #append, #dim, #redim, #file, a name ISPP has
+            # not: each could write or move a [Files] entry this reader would miss.
+            throw [IssError]::new("${where}: #$directive, which this reader does not follow")
          } elseif ($undecided.Count -gt 0) {
-            if ($directive -eq 'define' -or $directive -eq 'undef' -or $directive -eq 'include') {
+            if ($directive -ne 'error') {
                throw [IssError]::new("${where}: #$directive under an #if this reader does not evaluate - $($undecided[0].Why)")
             }
-            # an #error, #expr, #pragma... under it: ISCC decides, and none changes a [Files] entry
-         } elseif (-not $active) {
-            # a directive in a part that is not compiled
+            # an #error under it: ISCC decides
          } elseif ($directive -eq 'define') {
             if ($rest -notmatch '^(\w+)\s*(?:=\s*)?(.*)$') { throw [IssError]::new("${where}: a #define this reader does not follow: $line") }
             $name = $Matches[1]
@@ -469,12 +547,11 @@ function Read-IssFiles([string] $file, $state) {
          } elseif ($directive -eq 'error') {
             throw [IssError]::new("${where}: #error $rest")
          }
-         # Any other directive (#pragma, #expr, #sub...) changes no [Files] entry here.
          continue
       }
       if ($undecided.Count -gt 0) {
          if ($line -match '^\[(\w+)\]') { throw [IssError]::new("${where}: a section under an #if this reader does not evaluate - $($undecided[0].Why)") }
-         if ($state.Section -eq 'files' -and $line -ne '' -and -not $line.StartsWith(';')) { throw [IssError]::new("${where}: a [Files] entry under an #if this reader does not evaluate - $($undecided[0].Why)") }
+         if ($state.Section -eq 'files' -and $line -ne '' -and -not $line.StartsWith(';') -and -not $line.StartsWith('//')) { throw [IssError]::new("${where}: a [Files] entry under an #if this reader does not evaluate - $($undecided[0].Why)") }
          continue
       }
       if (-not $active) { continue }
@@ -792,6 +869,35 @@ function Invoke-SelfTest {
          try { Read-IssScript (Join-Path $inst 'undecided.iss') | Out-Null } catch [IssError] { $threw = $_.Exception.Message -like '*does not evaluate*' }
          Assert-That $threw "$($case.What) under an #if this reader does not evaluate stops it"
       }
+
+      # What a #sub, an #expr, a #for or an #emit could do to [Files] that this
+      # reader does not follow: each stops it. ISPP's own example of a #sub emits
+      # [Files] entries where a #for calls it.
+      foreach ($case in @(
+            @{ Lines = @('#define FileName "x64\mysql.dll"', '[Files]', '#sub AddFile', '  Source: "{#FileName}"; DestDir: "{app}"', '#endsub', '#for {i = 0; i < 2; i++} AddFile'); Like = '*#sub at*'; What = "a #sub's body that emits a [Files] entry" }
+            @{ Lines = @('#sub Pick', '  #define SSL "elsewhere"', '#endsub'); Like = '*#sub at*'; What = "a #define in a #sub's body" }
+            @{ Lines = @('#define DIR "ARM64"', '#expr DIR = "x64"', '[Files]', 'Source: "{#DIR}\mysql.dll"; DestDir: "{app}"'); Like = '*#expr sets DIR*'; What = 'a Source: of a name an #expr assigned' }
+            @{ Lines = @('#define DIR "ARM64"', '#sub Pick', '  #expr DIR = "x64"', '#endsub', '[Files]', 'Source: "{#DIR}\mysql.dll"; DestDir: "{app}"'); Like = "*#sub at*sets DIR*"; What = "a Source: of a name a #sub's body assigns" }
+            @{ Lines = @('#define N 0', '#for {N = 0; N < 2; N++} Nothing', '[Files]', '#if N == "0"', 'Source: "x64\mysql.dll"; DestDir: "{app}"', '#endif'); Like = '*does not evaluate*'; What = 'a [Files] entry under an #if of a name a #for assigned' }
+            @{ Lines = @('#expr Late = "1"', '#ifdef Late', '[Files]', '#endif'); Like = '*does not evaluate*'; What = 'a section under an #ifdef of a name only an #expr defines' }
+            @{ Lines = @('#if A || B', '#expr DIR = "x64"', '#endif', '[Files]', 'Source: "{#DIR}\mysql.dll"; DestDir: "{app}"'); Like = '*sets DIR*'; What = 'a Source: of a name an #expr under an undecided #if assigned' }
+            @{ Lines = @('[Files]', '#emit ''Source: "x64\mysql.dll"; DestDir: "{app}"'''); Like = '*#emit*'; What = 'an #emit' }
+            @{ Lines = @('[Files]', '#= ''Source: "x64\mysql.dll"; DestDir: "{app}"'''); Like = '*#emit*'; What = 'an #= (#emit)' }
+            @{ Lines = @('[Files]', '#ifexist "x64\mysql.dll"', 'Source: "x64\mysql.dll"; DestDir: "{app}"', '#endif'); Like = '*#ifexist*'; What = 'a [Files] entry under an #ifexist' }
+            @{ Lines = @('#endsub'); Like = '*#endsub without #sub*'; What = 'an #endsub without its #sub' })) {
+         [IO.File]::WriteAllLines((Join-Path $inst 'unfollowed.iss'), $case.Lines)
+         $threw = $false
+         $said = ''
+         try { Read-IssScript (Join-Path $inst 'unfollowed.iss') | Out-Null } catch [IssError] { $said = $_.Exception.Message; $threw = $said -like $case.Like }
+         Assert-That $threw "$($case.What) stops it ($said)"
+      }
+      # And what changes nothing it reads goes on: an #ifexist in a part that is not
+      # compiled keeps its #endif paired, and an #expr of a name no Source: uses.
+      [IO.File]::WriteAllLines((Join-Path $inst 'followed.iss'), @('#ifdef NOPE', '#ifexist "x"', '#endif', '#endif', '#expr Count = 2', '#pragma message "fine"', '[Files]', 'Source: "ARM64\bin\server.exe"; DestDir: "{app}\Bin"'))
+      $read = $null
+      $why = ''
+      try { $read = Read-IssScript (Join-Path $inst 'followed.iss') } catch [IssError] { $why = $_.Exception.Message }
+      Assert-That ($read -and $read.Entries.Count -eq 1) "an #ifexist where nothing is compiled, an #expr and a #pragma leave the [Files] entry after them read ($why)"
    } finally {
       Remove-Item Env:\HM_PE_SELFTEST_LIBS -ErrorAction SilentlyContinue
       Remove-Item -LiteralPath $dir -Recurse -Force -ErrorAction SilentlyContinue

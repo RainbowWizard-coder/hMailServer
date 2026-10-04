@@ -294,6 +294,19 @@ the installer script the way ISCC's preprocessor does:
 
 - it follows `#define` (strings, `GetEnv`, `ReadIni`, `SourcePath`, `+`),
   `#ifdef`/`#ifndef`/`#if`/`#else`/`#elif`/`#endif`, `#include` and `#error`;
+- what it does not evaluate it passes over only where that cannot change a
+  `[Files]` entry, and stops otherwise. A name an `#expr` or a `#for` assigns
+  is not known after it, so a `Source:` that uses it stops the reader. A
+  `#sub`'s body runs where a `#for` or a call names it: there it may hold
+  `#if` and the rest, `#expr`, `#for`, `#pragma` and `#error`, and a line of
+  script (which a call would emit) or a `#define` stops it. Under an `#if` or
+  `#ifexist` it cannot evaluate, an `#error`, `#expr`, `#for`, `#pragma` or a
+  line outside `[Files]` is passed over, and a `[Files]` entry, a section, a
+  `#define`, an `#undef` or an `#include` stops it. `#emit`, `#insert`,
+  `#append`, `#dim`, `#redim` and `#file` stop it wherever they are compiled
+  in. (`hMailServerInnoExtension.iss` reads `REQUIRED_DB_VERSION` from
+  `Constants.h` with a `#sub`, a `#for` and an `#if` of `Int` around an
+  `#error`: all passed over.)
 - it takes every `Source:` of every `[Files]` section that is compiled in, with
   its wildcard, `recursesubdirs` and `Excludes`;
 - it reads the PE header of each file.
