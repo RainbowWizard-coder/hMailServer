@@ -320,7 +320,9 @@ being read no longer grows a character at a time into larger buffers, freeing ea
 base64 - as it stood. And a key put into base64 - the stored-secrets key `--export-stored-secrets-key` writes, an
 account's mailbox key made when its encryption is switched on and held under the machine's own key until its first
 sign-in - no longer leaves the whole of it in base64 in the buffer it was encoded in, freed as it stood, as it did in
-6.3.4 and 6.3.5.
+6.3.4 and 6.3.5. Nor does the stored-secrets key read from its line in `hMailServer.ini`, as the service reads it at
+its start and each key verb when it runs, leave the whole of it in hex in a copy freed as it stood, as it did in 6.3.4
+and 6.3.5.
 
 The Control Deck is held tighter to what the server hands it, found by the project's own review. It draws an
 address - the release page the update feed names, the documentation wiki's, an eDiscovery export's - as a link only

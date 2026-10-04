@@ -135,17 +135,18 @@ namespace HM
          return -1;
       }
 
-      bool BytesOfHex_(const AnsiString &hex, std::string &bytes)
+      // The bytes of the length characters of hex at hex, read where they stand.
+      bool BytesOfHex_(const char *hex, size_t length, std::string &bytes)
       {
          bytes.clear();
-         if (hex.GetLength() % 2 != 0)
+         if (length % 2 != 0)
             return false;
 
-         bytes.reserve((size_t) hex.GetLength() / 2);
-         for (int i = 0; i < hex.GetLength(); i += 2)
+         bytes.reserve(length / 2);
+         for (size_t i = 0; i < length; i += 2)
          {
-            const int high = HexDigitValue_(hex.c_str()[i]);
-            const int low = HexDigitValue_(hex.c_str()[i + 1]);
+            const int high = HexDigitValue_(hex[i]);
+            const int low = HexDigitValue_(hex[i + 1]);
             if (high < 0 || low < 0)
             {
                MailboxCrypto::Forget(bytes);
@@ -278,13 +279,16 @@ namespace HM
                if (opened.GetLength() == label.GetLength() + 2 * MailboxCrypto::KeyBytes &&
                    opened.Left(label.GetLength()) == label)
                {
-                  AnsiString hex = opened.Mid(label.GetLength());
-                  if (BytesOfHex_(hex, key) && key.size() == MailboxCrypto::KeyBytes)
+                  // The hex read where it stands in the line, which is wiped below.
+                  // Until 6.3.6 it was copied out with Mid, whose copy is made from
+                  // a temporary std::string that went back to the heap as it stood:
+                  // the whole key in hex, each time the key was read from its line.
+                  if (BytesOfHex_(opened.c_str() + label.GetLength(), (size_t) (opened.GetLength() - label.GetLength()), key) &&
+                      key.size() == MailboxCrypto::KeyBytes)
                   {
                      state = StoredSecrets::KeyHeld;
                      keyId = KeyIdOf_(key);
                   }
-                  Wipe_(hex);
                }
 
                Wipe_(opened);

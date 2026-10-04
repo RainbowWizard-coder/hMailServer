@@ -32,7 +32,12 @@
 // MailboxCrypto::Base64 is held to the same, encoding a key as ExportText does
 // the stored-secrets key and MailboxKeys::Enable the private key it makes: until
 // 6.3.6 it freed the buffer it encoded into as it stood, the whole key in
-// base64.
+// base64. And so is StoredSecrets reading the key this node holds from its line
+// in the configuration file, for the key in hex, which the line holds, and for
+// its bytes: until 6.3.6 the hex was copied out of the line through a temporary
+// freed as it stood. That check, the last, writes a configuration and the
+// machine store's key file of its own, in a directory of its own under the
+// system's temp directory, and removes them.
 //
 // Every block is handed out zeroed: a block can be memory freed before the
 // watch began - this program's own copies of the key file - and a buffer
@@ -45,16 +50,23 @@
 //
 // One line a check, and a non-zero exit on the first failure.
 
+#include <unistd.h>
+
 #include <algorithm>
 #include <atomic>
 #include <cstddef>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <fstream>
 #include <new>
 #include <stdexcept>
 #include <string>
 
+#include <boost/filesystem.hpp>
+
+#include "../Common/Application/IniFileSettings.h"
+#include "../Common/Util/Crypt.h"
 #include "../Common/Util/MailboxCrypto.h"
 #include "../Common/Util/StoredSecrets.h"
 
@@ -65,7 +77,8 @@ namespace
    const std::size_t BlockHeader = alignof(std::max_align_t) > sizeof(std::size_t) ? alignof(std::max_align_t) : sizeof(std::size_t);
 
    // While watching is set, each block freed is searched for the markers: a
-   // piece of the key's base64 and a piece of its bytes.
+   // piece of the key as text - its base64, or its hex - and a piece of its
+   // bytes.
    std::atomic<bool> g_watching(false);
    const std::string *g_markers[2] = {nullptr, nullptr};
    std::atomic<int> g_freedWithMarker(0);
@@ -82,7 +95,8 @@ namespace
    }
 
    // The markers watched while the call runs, and the count of blocks freed
-   // with one of them in it.
+   // with one of them in it. The first is the key as text: its base64, or
+   // its hex where that is what the code under watch reads.
    template <typename Call>
    int FreedWithMarker(const std::string &base64Piece, const std::string &keyPiece, Call call)
    {
@@ -228,6 +242,89 @@ namespace
       return "";
    }
 
+   // The key this node holds, read from its line in the configuration file -
+   // "HMK1KEY " and the key in hex, under this machine's store, as
+   // --create-stored-secrets-key and --import-stored-secrets-key write it - gives
+   // no buffer that held the hex, or the key's bytes, back to the heap unwritten.
+   // Until 6.3.6 the hex was copied out of the opened line with Mid, which makes
+   // its copy from a temporary that was freed as it stood: the whole key in hex.
+   // The configuration and the machine store's key file are this program's own,
+   // in a directory of its own under the system's temp directory.
+   std::string CheckHeldKeyReadFreesNoKey()
+   {
+      boost::system::error_code error;
+      const boost::filesystem::path scratch = boost::filesystem::temp_directory_path(error) /
+         ("hm-mailbox-crypto-tests-" + std::to_string(static_cast<long long>(::getpid())));
+      if (!error)
+         boost::filesystem::create_directories(scratch, error);
+      if (error)
+         return "no scratch directory could be made under the system's temp directory";
+
+      std::string failed;
+      {
+         const std::string directory = scratch.string();
+         const boost::filesystem::path file = scratch / "hMailServer.ini";
+         {
+            std::ofstream ini(file.string().c_str(), std::ios::out | std::ios::trunc);
+            ini << "[Directories]\n"
+                << "ProgramFolder=" << directory << "\n"
+                << "DataFolder=" << directory << "\n"
+                << "LogFolder=" << directory << "\n"
+                << "TempFolder=" << directory << "\n"
+                << "EventFolder=" << directory << "\n"
+                << "DatabaseFolder=" << directory << "\n";
+            if (!ini)
+               failed = "the configuration file could not be written";
+         }
+
+         std::string key = TestKey();
+         static const char *digits = "0123456789abcdef";
+         std::string hex;
+         for (std::size_t i = 0; i < key.size(); i++)
+         {
+            hex += digits[(static_cast<unsigned char>(key[i]) >> 4) & 0x0F];
+            hex += digits[static_cast<unsigned char>(key[i]) & 0x0F];
+         }
+
+         if (failed.empty())
+         {
+            HM::IniFileSettings::Instance()->SetInitializationFile(HM::String(file.string().c_str()));
+            HM::IniFileSettings::Instance()->LoadSettings();
+
+            // The line as StoredSecrets writes it, through the machine's store,
+            // whose key file is made in the data directory, the scratch one.
+            const HM::String inner = HM::Crypt::Instance()->EnCrypt(HM::String(HM::AnsiString(("HMK1KEY " + hex).c_str())), HM::Crypt::ETDPAPI);
+            HM::String problem;
+            if (inner.IsEmpty())
+               failed = "this machine's store did not protect the key line";
+            else if (!HM::IniFileSettings::Instance()->ReplaceStoredSecretsKeyProtected(HM::String(), _T("LINUX1:") + inner, problem))
+               failed = "the key line could not be written: " + std::string(HM::AnsiString(problem).c_str());
+         }
+
+         if (failed.empty())
+         {
+            // Sixteen characters of the hex, and sixteen of the key's own bytes,
+            // which the hex is read into.
+            const std::string hexPiece = hex.substr(16, 16);
+            const std::string keyPiece = key.substr(8, 16);
+
+            HM::StoredSecrets::KeyState state = HM::StoredSecrets::KeyNone;
+            const int freed = FreedWithMarker(hexPiece, keyPiece, [&]() { state = HM::StoredSecrets::State(); });
+
+            if (state != HM::StoredSecrets::KeyHeld)
+               failed = "the key line written was not read as a key this node holds";
+            else if (freed != 0)
+               failed = std::to_string(freed) + " buffer(s) holding the key in hex or its bytes were freed as they stood";
+         }
+
+         HM::MailboxCrypto::Forget(hex);
+         HM::MailboxCrypto::Forget(key);
+      }
+
+      boost::filesystem::remove_all(scratch, error);
+      return failed;
+   }
+
    // One check, one line; false when it failed.
    bool Run(const char *what, std::string (*check)(), const char *held)
    {
@@ -271,6 +368,9 @@ main(int /*argc*/, char * /*argv*/[])
       return 1;
 
    if (!Run("a stored-secrets key file read", CheckImportTextFreesNoKey, "no buffer that held a piece of the key freed as it stood"))
+      return 1;
+
+   if (!Run("the stored-secrets key read from its line", CheckHeldKeyReadFreesNoKey, "no buffer that held the key in hex or its bytes freed as it stood"))
       return 1;
 
    return 0;
