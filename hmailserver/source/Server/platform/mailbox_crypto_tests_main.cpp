@@ -28,7 +28,11 @@
 // ImportText runs can be searched, as it is given back, for the key's base64.
 // Until 6.3.6 the line being read grew a character at a time and freed the
 // smaller buffers it outgrew as they stood - with the key's line, most of the
-// key in base64.
+// key in base64. Every block is handed out zeroed: a block can be memory freed
+// before ImportText ran - this program's own copies of the key file - and a
+// buffer ImportText reserves and writes only in part, as it does the line it
+// reads, would carry those bytes back to the heap past the part it wrote and
+// wiped. musl's allocator did that on Alpine; glibc's happened not to.
 //
 // One line a check, and a non-zero exit on the first failure.
 
@@ -37,6 +41,7 @@
 #include <cstddef>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <new>
 #include <stdexcept>
 #include <string>
@@ -64,6 +69,9 @@ operator new(std::size_t size)
    if (block == nullptr)
       throw std::bad_alloc();
    *static_cast<std::size_t *>(block) = size;
+   // Zeroed, so that what a freed block is found holding is what was written
+   // into it since, not what the memory held before (above).
+   std::memset(static_cast<char *>(block) + BlockHeader, 0, size);
    return static_cast<char *>(block) + BlockHeader;
 }
 
