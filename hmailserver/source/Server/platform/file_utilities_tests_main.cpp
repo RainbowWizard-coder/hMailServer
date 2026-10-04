@@ -42,7 +42,11 @@
 // FileUtilities::MoveOver, which puts a SpamAssassin result that is on another
 // file system in a message's place - from /dev/shm under the quota, from the
 // temporary directory onto the full tmpfs - where a move between volumes used
-// to be a copy onto the message.
+// to be a copy onto the message. The download needs a loopback socket, which a
+// source package's build does not give: it runs this under
+// build/ci/packages/offline.c, where making any IPv4 socket fails with EACCES.
+// There the download says it did not run, and the rest still does; a socket
+// refused for any other reason fails the case.
 //
 // It prints a line for each and exits non-zero if one failed.
 
@@ -101,6 +105,18 @@ namespace
    {
       if (!condition)
          throw std::logic_error(what);
+   }
+
+   // Whether this process is refused every IPv4 socket, as under offline.c, which
+   // fails socket(2) with EACCES (main asks once, before the cases). Then the
+   // download, which needs a loopback server, is not run.
+   bool SocketsRefused = false;
+
+   // ", a download" where the download runs, nothing where it does not: for the
+   // cases' names, which list what they ran.
+   std::string ADownload()
+   {
+      return SocketsRefused ? std::string() : std::string(", a download");
    }
 
    // Where ErrorManager's reports go while this runs: a log directory of the
@@ -393,12 +409,15 @@ namespace
       Check(!boost::filesystem::exists(list), "Compression::WriteMemberList left a short list behind" + place);
 
       // A download: a 200 read in full, into a file that did not take it in full.
-      const boost::filesystem::path downloaded = directory / "download.bin";
-      int status = 0;
-      String error;
-      Check(!Download(downloaded, status, error), "HttpsClient::Download answered true for a body its file did not take in full" + place);
-      Check(status == 200, "the loopback server's 200 was not read, so the file is not what refused (" + std::to_string(status) + ")" + place);
-      Check(!boost::filesystem::exists(downloaded), "HttpsClient::Download left a short file behind" + place);
+      if (!SocketsRefused)
+      {
+         const boost::filesystem::path downloaded = directory / "download.bin";
+         int status = 0;
+         String error;
+         Check(!Download(downloaded, status, error), "HttpsClient::Download answered true for a body its file did not take in full" + place);
+         Check(status == 200, "the loopback server's 200 was not read, so the file is not what refused (" + std::to_string(status) + ")" + place);
+         Check(!boost::filesystem::exists(downloaded), "HttpsClient::Download left a short file behind" + place);
+      }
 
       // MoveOver from another file system: the move is a copy, and a copy the disk
       // refuses must leave the message as it was and the result where it was.
@@ -560,17 +579,17 @@ namespace
       return status;
    }
 
-   int Run(const char *name, void (*test)())
+   int Run(const std::string &name, void (*test)())
    {
       try
       {
          test();
-         std::printf("ok    %s\n", name);
+         std::printf("ok    %s\n", name.c_str());
          return 0;
       }
       catch (const std::exception &e)
       {
-         std::printf("FAIL  %s: %s\n", name, e.what());
+         std::printf("FAIL  %s: %s\n", name.c_str(), e.what());
          return 1;
       }
    }
@@ -656,13 +675,16 @@ namespace
          Check(ReadAll(list) == MemberListText(), "Compression::WriteMemberList did not write the list whole");
          boost::filesystem::remove(list);
 
-         const boost::filesystem::path downloaded = directory / "download.bin";
-         int status = 0;
-         String error;
-         const bool fetched = Download(downloaded, status, error);
-         Check(fetched && status == 200, "HttpsClient::Download answered false (" + std::string(AnsiString(error).c_str()) + ") where the disk took the body");
-         Check(ReadAll(downloaded) == std::string(Payload().c_str(), PayloadBytes), "HttpsClient::Download did not write the body whole");
-         boost::filesystem::remove(downloaded);
+         if (!SocketsRefused)
+         {
+            const boost::filesystem::path downloaded = directory / "download.bin";
+            int status = 0;
+            String error;
+            const bool fetched = Download(downloaded, status, error);
+            Check(fetched && status == 200, "HttpsClient::Download answered false (" + std::string(AnsiString(error).c_str()) + ") where the disk took the body");
+            Check(ReadAll(downloaded) == std::string(Payload().c_str(), PayloadBytes), "HttpsClient::Download did not write the body whole");
+            boost::filesystem::remove(downloaded);
+         }
 
          const boost::filesystem::path message = directory / "message.eml";
          const boost::filesystem::path result = directory / "result.eml";
@@ -726,11 +748,21 @@ int main()
    }
    HM::IniFileSettings::Instance()->SetInitializationFile(Wide(configuration));
 
+   // The download's loopback server, where this process may make a socket. EACCES
+   // is offline.c's refusal; any other failure is left to the cases, which fail on it.
+   const int probe = socket(AF_INET, SOCK_STREAM, 0);
+   if (probe >= 0)
+      close(probe);
+   else if (errno == EACCES)
+      SocketsRefused = true;
+
    failed += Run("a written file's close: a whole file closes true, and /dev/full's close answers false through File::Close and FileUtilities::WriteToFile", DevFullCase);
    failed += Run("the spool of a received message: a file that takes every byte is written whole, and on /dev/full the message is counted as not written", SpoolCase);
    failed += Run("FileUtilities::CopyOver puts the whole of a file in another's place and leaves nothing beside it", CopyOverCase);
-   failed += Run("a backup restore's member list, a download and MoveOver where the disk takes them: each whole, and MoveOver's result in the message's place with nothing beside it", WritersWithRoomCase);
-   failed += Run("a quota (RLIMIT_FSIZE): File::Close, WriteToFile, TraceHeaderWriter::Write, the message store's WriteAtomically, the spool, CopyOver, a backup restore's member list, a download and MoveOver from another file system refuse a file short of its last bytes, and leave the stored message as it was", QuotaCase);
+   failed += Run("a backup restore's member list" + ADownload() + " and MoveOver where the disk takes them: each whole, and MoveOver's result in the message's place with nothing beside it", WritersWithRoomCase);
+   failed += Run("a quota (RLIMIT_FSIZE): File::Close, WriteToFile, TraceHeaderWriter::Write, the message store's WriteAtomically, the spool, CopyOver, a backup restore's member list" + ADownload() + " and MoveOver from another file system refuse a file short of its last bytes, and leave the stored message as it was", QuotaCase);
+   if (SocketsRefused)
+      std::printf("not run: a download (HttpsClient::Download into a file that takes it whole, under the quota and on the full disk) - this process may make no IPv4 socket (EACCES), as under build/ci/packages/offline.c, and the download's server is a loopback one; every other writer runs without it\n");
 
    // Flushed before the fork, or the child would print the lines above again.
    if (std::fflush(stdout) != 0)
@@ -751,7 +783,7 @@ int main()
    }
    else if (WEXITSTATUS(status) == ChildPassed)
    {
-      std::printf("ok    a full disk (a 64 KB tmpfs filled to its last byte): File::Close, WriteToFile, TraceHeaderWriter::Write, the message store's WriteAtomically, the spool, CopyOver, a backup restore's member list, a download and MoveOver from another file system refuse, and leave the stored message as it was\n");
+      std::printf("ok    a full disk (a 64 KB tmpfs filled to its last byte): File::Close, WriteToFile, TraceHeaderWriter::Write, the message store's WriteAtomically, the spool, CopyOver, a backup restore's member list%s and MoveOver from another file system refuse, and leave the stored message as it was\n", ADownload().c_str());
    }
    else
    {

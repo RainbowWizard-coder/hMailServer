@@ -209,8 +209,9 @@ install -d -m 0750 %{buildroot}%{_localstatedir}/log/hmailserver
 # schema 6107 gives every row, the auto-ban's never-ban list by reverse name
 # and the run a widened ban covers, the limit on what IMAP compression
 # inflates, and DANE's records held to in-memory TLS handshakes - the list
-# debian/rules runs. No socket, none of the system's configuration, no database,
-# no root; seconds.
+# debian/rules runs. No socket (file-utilities-tests' download, from a loopback
+# server of its own, says it did not run with every socket refused), none of the
+# system's configuration, no database, no root; seconds.
 cd %{hm_builddir}
 echo "== hmailserver --version"
 ./hmailserver --version

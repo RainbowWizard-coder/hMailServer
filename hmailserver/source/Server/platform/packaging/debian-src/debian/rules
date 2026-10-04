@@ -64,8 +64,10 @@ override_dh_auto_configure:
 # by reverse name and the run a widened ban covers (resolver stand-ins), the
 # limit on what IMAP compression inflates, and DANE's records held to TLS
 # handshakes made in memory against the distribution's own OpenSSL.
-# None opens a socket, reads the system's configuration, needs a database or
-# needs root, so they run here, with the network refused, in seconds.
+# None needs a socket, reads the system's configuration, needs a database or
+# needs root, so they run here, with the network refused, in seconds:
+# file-utilities-tests' download, whose server is a loopback one of its own,
+# says it did not run where every socket is refused.
 TESTERS := spf-tests script-binding-tests snmp-tests object-store-signature-tests singleton-tests legacy-blowfish-tests xml-tree-tests datetime-tests public-suffix-tests backup-tests trust-anchor-tests business-object-tests tls-options-tests update-feed-tests imip-tests file-utilities-tests media-type-tests scram-tests ini-file-tests connection-string-tests language-tests live-log-tests profiles-tests inline-script-hash-tests signature-html-sanitizer-tests mailbox-crypto-tests greylist-keys-tests never-ban-tests autoban-widen-tests deflate-tests dane-tests sign-in-budget-tests
 
 override_dh_auto_test:
