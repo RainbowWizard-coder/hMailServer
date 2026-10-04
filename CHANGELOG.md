@@ -2530,6 +2530,14 @@ project's own review.
   under ThreadSanitizer), and `[Database] UpgradeOnStart` reads as off until the file is first read. Several values read
   one after another are still not read as one set, and a setting changed during a reinitialise, after the new
   settings were read, is stored but not in force until the next reinitialise or start.
+- **Fixed: an error reported where the settings held no scripting switch exhausted the reporting thread's stack.**
+  Every error reported asks whether the event script is on, to fire `OnError`. Where the settings store held no
+  `UseScriptServer` - a database without that row, say - reading it reported the setting missing (HM5015), and that
+  report asked the same question again, without end, until the stack ran out and took the service with it, at the
+  first error reported. In every version. A report made while the switch is being read is now logged and fires no
+  event, and the read answers the default, off. Found by `network-deadline-tests` on Debian 12 and Ubuntu 24.04,
+  whose OpenSSL 3.0 makes the first TLS context report the key-exchange groups it lacks (HM5720); the program now
+  reports an error with no switch in its settings before anything else, on every build.
 - **Fixed: a list or a manager COM handed out before a reinitialise was not the server's after it.** Each reinitialise
   made new lists - the incoming relays, routes and remote domain policies, the public folders and groups, the server
   messages, blocked attachments and SSL certificates, the DNS blacklists and SURBL servers - so a COM object for one

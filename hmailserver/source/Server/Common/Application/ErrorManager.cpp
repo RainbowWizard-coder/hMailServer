@@ -36,6 +36,10 @@ namespace HM
 
    namespace
    {
+      // Set while this thread reads, for a report, whether the OnError event is on
+      // (ReportError_).
+      thread_local bool reading_script_switch_ = false;
+
       // Sets the flag for the duration of the OnError dispatch and clears it however
       // the dispatch ends. An early return or an escaping exception must not leave
       // the flag set: this thread would then never fire OnError again, and the
@@ -366,12 +370,26 @@ namespace HM
       // creation, we don't have any PropertySet in the cache but we should still
       // be able to report errors. During server start up, we have a property set (?)
       // but it's not initialized. So we need to be a bit careful here.
-      if (!(Configuration::Instance() &&
-            Configuration::Instance()->GetPropertySet() &&
-            Configuration::Instance()->GetUseScriptServer()))
-      {
+      //
+      // A setting the property set does not hold is itself reported (HM5015,
+      // PropertySet::GetProperty_), and that report comes back here and reads the
+      // same missing setting: until 6.3.6 it did so without end, and the thread's
+      // stack ran out on the first error reported where UseScriptServer had no row.
+      // The report made while this thread reads the switch is logged above and
+      // fires no event; the read then answers the default, off.
+      if (reading_script_switch_)
          return;
+
+      bool fire_event = false;
+      {
+         OnErrorDispatchGuard reading_guard(reading_script_switch_);
+         fire_event = Configuration::Instance() &&
+                      Configuration::Instance()->GetPropertySet() &&
+                      Configuration::Instance()->GetUseScriptServer();
       }
+
+      if (!fire_event)
+         return;
 
       if (dispatching_on_error_)
       {

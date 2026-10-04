@@ -55,6 +55,12 @@
 // then exits without joining it: a thread that is stuck in a read cannot be
 // joined, which is the defect this program exists to catch.
 //
+// First, an error reported where the settings hold no UseScriptServer, as this
+// program's do not, must come back: until 6.3.6 the report read the switch, the
+// read reported it missing, and that went round until the stack ran out - which
+// this program met on Debian 12 and Ubuntu 24.04, whose OpenSSL 3.0 makes the
+// first TLS context report the key-exchange groups it lacks.
+//
 // It writes a configuration file of its own in a directory of its own under the
 // system's temp directory, which it removes again. No database, no name looked up in
 // DNS (the two numbers above are read by the resolver as written), no connection but
@@ -92,6 +98,7 @@
 
 #include "../Common/Application/Configuration.h"
 #include "../Common/Application/Constants.h"
+#include "../Common/Application/ErrorManager.h"
 #include "../Common/Application/IniFileSettings.h"
 #include "../Common/Application/Property.h"
 #include "../Common/Application/PropertySet.h"
@@ -648,6 +655,16 @@ RunNetworkDeadlineTests()
       boost::filesystem::remove_all(scratch, error);
       return 1;
    }
+
+   // An error reported where the settings hold no UseScriptServer, as this
+   // program's do not: the report reads the switch, the read reports the setting
+   // missing (HM5015), and until 6.3.6 that report read the switch again, without
+   // end, until the thread's stack ran out - here at the first TLS context made
+   // against an OpenSSL older than 3.5, which reports the key-exchange groups it
+   // lacks (HM5720). Coming back from the report is the check.
+   HM::ErrorManager::Instance()->ReportError(HM::ErrorManager::Low, 5015, "network-deadline-tests",
+      "An error reported where the settings hold no UseScriptServer.");
+   printf("ok    an error reported where the settings hold no UseScriptServer: logged, no event fired, and the report came back\n");
 
    std::vector<Case> cases;
 
