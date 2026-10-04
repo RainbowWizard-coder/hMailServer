@@ -2745,9 +2745,9 @@ namespace HM
                std::shared_ptr<ByteBuffer> kept = fetch.GetByteBufferByBodyPart_(_T(""), message, part);
 
                IMAPFetch own;
-               std::shared_ptr<ByteBuffer> alone = own.GetByteBufferByBodyPart_(_T(""), message, part);
+               std::shared_ptr<ByteBuffer> separate = own.GetByteBufferByBodyPart_(_T(""), message, part);
 
-               if (fetch.section_refused_ || !SameBytes_(kept, alone))
+               if (fetch.section_refused_ || !SameBytes_(kept, separate))
                   throw std::logic_error("A section of the bodies kept was other than its own, in case " + std::to_string(number));
 
                sections++;
@@ -2943,7 +2943,7 @@ namespace HM
          std::shared_ptr<MimeBody> many = nested.GetBodyPartByRecursiveIdentifier_(message, deep, true);
          const double milliseconds = HeaderFieldsMillisecondsSince_(started);
 
-         const size_t ceiling = text.size() * 16 + 1024 * 1024;
+         const size_t ceiling = text.size() * 16 + size_t{1024} * 1024;
          if (many || !nested.section_refused_ || nested.section_cost_ > ceiling)
             HM_TEST_FAILED();
 

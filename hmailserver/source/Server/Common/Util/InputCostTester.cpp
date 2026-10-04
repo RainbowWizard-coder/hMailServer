@@ -482,7 +482,7 @@ namespace HM
             else
             {
                char escaped[8];
-               ::snprintf(escaped, sizeof(escaped), "\\x%02x", c);
+               (void) ::snprintf(escaped, sizeof(escaped), "\\x%02x", c);
                out += escaped;
             }
          }
@@ -820,7 +820,8 @@ namespace HM
 
       // One field of 640,000 continuation lines: 6.3.5 put each in front of
       // the ones after it (0.9 s for 160,000, a square).
-      const AnsiString folded = ("X: a\r\n" + Repeat_(" b\r\n", 640000) + "From: f\r\n\r\n").c_str();
+      const std::string foldedText = "X: a\r\n" + Repeat_(" b\r\n", 640000) + "From: f\r\n\r\n";
+      const AnsiString folded = foldedText.c_str();
       Within_("The simple canonicalisation of a field of 640,000 lines", 2000, [&]()
       {
          AnsiString list;
@@ -830,7 +831,8 @@ namespace HM
 
       // h= naming 40,000 fields the header lacks, over 40,000 fields: 17.8 s
       // (simple) and 19.3 s (relaxed) for 6.3.5.
-      const AnsiString wide = (Repeat_("X: a\r\n", 40000) + "From: f\r\n\r\n").c_str();
+      const std::string wideText = Repeat_("X: a\r\n", 40000) + "From: f\r\n\r\n";
+      const AnsiString wide = wideText.c_str();
       std::vector<AnsiString> absent(40000, "nope");
       absent.push_back("from");
       Within_("The simple canonicalisation of 40,000 names over 40,000 fields", 2000, [&]()

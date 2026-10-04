@@ -1228,18 +1228,18 @@ namespace
       if (!grouped || ::setgid(gid) != 0 || ::setuid(uid) != 0)
       {
          const int failure = errno;
-         std::fprintf(stderr, "%s run as root could not become the data directory's owner, uid %u: %s. Nothing was changed.\n", verb, (unsigned int) uid, std::generic_category().message(failure).c_str());
+         (void) std::fprintf(stderr, "%s run as root could not become the data directory's owner, uid %u: %s. Nothing was changed.\n", verb, (unsigned int) uid, std::generic_category().message(failure).c_str());
          return 2;
       }
 
       // Root is not to be had back.
       if (::getuid() != uid || ::geteuid() != uid || ::getgid() != gid || ::getegid() != gid || ::setuid(0) == 0)
       {
-         std::fprintf(stderr, "%s run as root did not leave root's rights behind. Nothing was changed.\n", verb);
+         (void) std::fprintf(stderr, "%s run as root did not leave root's rights behind. Nothing was changed.\n", verb);
          return 2;
       }
 
-      std::fprintf(stderr, "Run as root: %s runs as %s (uid %u), the owner of the data directory %s and the account the service runs as.\n",
+      (void) std::fprintf(stderr, "Run as root: %s runs as %s (uid %u), the owner of the data directory %s and the account the service runs as.\n",
          verb, name.empty() ? "the data directory's owner" : name.c_str(), (unsigned int) uid, dataDirectory.c_str());
       return 0;
    }

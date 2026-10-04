@@ -94,8 +94,8 @@ namespace HM
       // address sits in, not the address.
       bool ParseIPv6_(const char *text, size_t length, unsigned char bytes[16])
       {
-         unsigned char head[16];
-         unsigned char tail[16];
+         unsigned char head[16] = {};
+         unsigned char tail[16] = {};
          size_t headCount = 0;
          size_t tailCount = 0;
          bool compressed = false;

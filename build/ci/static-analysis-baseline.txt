@@ -6,7 +6,7 @@
 # delete the line of a finding that has been fixed. docs/ContinuousIntegration.md,
 # "Security scanning", says when and how to regenerate it.
 #
-# 888 findings, 258 of them with a reason.
+# 887 findings, 258 of them with a reason.
 de067b660072084e4de7	clang-tidy	bugprone-implicit-widening-of-multiplication-result	hmailserver/source/Server/Common/AntiSpam/AntiSpamDiagnostics.h:56	performing an implicit widening conversion to type 'const ULONGLONG' (aka 'const unsigned long') of a multiplication performed in type 'int'
 691624b920e4eb995d68	clang-tidy	cert-err34-c	hmailserver/source/Server/Common/AntiSpam/DKIM/Arc.cpp:279	'atoi' used to convert a string to an integer value, but function will not report conversion errors; consider using 'strtol' instead
 85f8d8f13812b0b7e1aa	clang-tidy	cert-err34-c	hmailserver/source/Server/Common/AntiSpam/DKIM/Arc.cpp:477	'atoi' used to convert a string to an integer value, but function will not report conversion errors; consider using 'strtol' instead
@@ -759,7 +759,6 @@ f7094675a687c089e01e	clang-tidy	bugprone-empty-catch	hmailserver/source/Server/I
 c31ff2716560d31c05e8	clang-tidy	cert-oop54-cpp	hmailserver/source/Server/IMAP/IMAPResult.cpp:37	operator=() does not handle self-assignment properly
 10e30ff941ac49d01b5c	cppcheck	nullPointerRedundantCheck	hmailserver/source/Server/IMAP/IMAPStore.cpp:231	Either the condition 'pFolder' is redundant or there is possible null pointer dereference: pConnection->GetCurrentFolder().	Triaged 26 September 2026: STORE runs with a folder selected, so GetCurrentFolder() is not null there; the later check is defensive.
 de23911c4abab3ef9125	cppcheck	nullPointerRedundantCheck	hmailserver/source/Server/IMAP/IMAPStore.cpp:232	Either the condition 'pFolder' is redundant or there is possible null pointer dereference: pConnection->GetCurrentFolder().	Triaged 26 September 2026: STORE runs with a folder selected, so GetCurrentFolder() is not null there; the later check is defensive.
-bd915d538bcd723837ef	clang-tidy	bugprone-branch-clone	hmailserver/source/Server/IMAP/IMAPThread.cpp:241	repeated branch body in conditional chain
 4048714e72323552c663	clang-tidy	bugprone-branch-clone	hmailserver/source/Server/IMAP/IMAPThread.cpp:880	repeated branch body in conditional chain
 adcd0a1e67a08b532005	clang-tidy	bugprone-implicit-widening-of-multiplication-result	hmailserver/source/Server/IMAP/MessagesContainer.cpp:24	performing an implicit widening conversion to type 'size_t' (aka 'unsigned long') of a multiplication performed in type 'int'
 a166497a3e589db6d745	clang-tidy	bugprone-empty-catch	hmailserver/source/Server/POP3/POP3Connection.cpp:98	empty catch statements hide issues; to handle exceptions appropriately, consider re-throwing, handling, or avoiding catch altogether

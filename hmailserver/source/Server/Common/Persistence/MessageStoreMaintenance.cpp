@@ -854,8 +854,8 @@ namespace HM
             return false;
 #endif
 
-         const int separator = (int) path[data.GetLength()];
-         if (separator != '\\' && separator != '/')
+         const auto separator = path[data.GetLength()];
+         if (separator != _T('\\') && separator != _T('/'))
             return false;
 
          // Each part below the directory, between separators.

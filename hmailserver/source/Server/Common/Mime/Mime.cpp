@@ -433,7 +433,7 @@ namespace HM
          {
             const bool known = old != nullptr;
 
-            Step step;
+            Step step = {};
             step.start = p;
             step.quoteScanned = false;
             step.quote = string::npos;

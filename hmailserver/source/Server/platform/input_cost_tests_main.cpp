@@ -40,7 +40,7 @@ int
 main(int argc, char *argv[])
 {
    // Each line as it is written, so a run cut short still says how far it got.
-   setvbuf(stdout, NULL, _IOLBF, 0);
+   (void) setvbuf(stdout, NULL, _IOLBF, 0);
 
    // What Application::InitInstance sets before the server reads any mail.
    HM::MimeEnvironment::SetAutoFolding(true);
