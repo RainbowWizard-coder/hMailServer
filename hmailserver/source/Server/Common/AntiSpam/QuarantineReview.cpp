@@ -943,9 +943,9 @@ namespace HM
          if (manyText.Find(_T("after")) < 0)
             throw std::logic_error(std::string("QuarantineStore::TextOfHtml did not read the text after 80,000 ") + unit.name + ".");
 
-         if (spent >= 3000)
+         if (spent >= bound)
             throw std::logic_error("QuarantineStore::TextOfHtml took " + std::to_string(spent) + " ms over 80,000 " + unit.name +
-                                   ", and the bound is 3000 ms.");
+                                   ", and the bound is " + std::to_string(bound) + " ms.");
       }
    }
 }

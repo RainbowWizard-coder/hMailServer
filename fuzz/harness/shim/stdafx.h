@@ -156,6 +156,11 @@
 // a fuzz target: nothing here calls StringParserTester.
 #define HM_TEST_FAILED() throw std::logic_error(std::string("a check failed at line ") + std::to_string(__LINE__) + " of " + __FILE__)
 
+// The bound a tester's timing check holds a pass to (StdAfx.h HM_TEST_TIME_BOUND),
+// for the same reason: StringParserTester's checks use it. The bound itself, as
+// the Windows header has it; nothing here runs a tester.
+#define HM_TEST_TIME_BOUND(milliseconds) (milliseconds)
+
 // HM::String / HM::AnsiString and the TCHAR plumbing. Real header, unmodified.
 #include "Util/StdString.h"
 

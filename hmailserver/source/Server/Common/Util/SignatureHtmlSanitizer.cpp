@@ -900,7 +900,8 @@ namespace HM
       // milliseconds; a scan that ran to the end of the signature from every
       // one of them would be minutes, on every sign-in. Five seconds is the
       // bound, far over the one and far under the other on any machine that
-      // builds this.
+      // builds this (HM_TEST_TIME_BOUND: ten times that where the aarch64
+      // package build runs this under qemu-user).
       {
          const ULONGLONG started = GetTickCount64();
 
@@ -922,7 +923,9 @@ namespace HM
          SignatureHtmlSanitizer::Sanitize(String(comments.c_str()));
 
          const ULONGLONG elapsed = GetTickCount64() - started;
-         Expect(elapsed < 5000, "three hostile signatures of 200,000 characters took " + std::to_string(elapsed) + " ms");
+         const ULONGLONG bound = (ULONGLONG) HM_TEST_TIME_BOUND(5000);
+         Expect(elapsed < bound, "three hostile signatures of 200,000 characters took " + std::to_string(elapsed) +
+                " ms, and the bound is " + std::to_string(bound) + " ms");
       }
    }
 }

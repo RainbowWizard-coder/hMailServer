@@ -93,10 +93,12 @@ namespace HM
 // 100. The aarch64 package builds run the testers under qemu-user, several times
 // slower than the machine (build/ci/packages/rpm-build.sh sets 10 there); a
 // quadratic pass the checks are there for still takes many times the bound. 1
-// everywhere else, as on Windows (stdafx.h).
+// everywhere else, as on Windows (stdafx.h). The NOLINT: nothing in the server's
+// sources or its testers sets the environment (no setenv, putenv or unsetenv), so
+// this getenv races no write.
 inline double HmTestTimeFactor()
 {
-   const char *text = std::getenv("HM_TEST_TIME_FACTOR");
+   const char *text = std::getenv("HM_TEST_TIME_FACTOR"); // NOLINT(concurrency-mt-unsafe)
    if (text == nullptr)
       return 1;
    char *end = nullptr;
