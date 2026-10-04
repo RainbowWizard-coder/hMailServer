@@ -2367,7 +2367,7 @@ namespace HM
          }
          const double milliseconds = HeaderFieldsMillisecondsSince_(started);
 
-         if (milliseconds > 2000)
+         if (milliseconds > HM_TEST_TIME_BOUND(2000))
             throw std::logic_error("HEADER.FIELDS of 30,000 names over 1,000 messages took " + std::to_string((long long) milliseconds) + " ms");
       }
 
@@ -2815,7 +2815,7 @@ namespace HM
          }
          const double milliseconds = HeaderFieldsMillisecondsSince_(started);
 
-         if (milliseconds > 2000)
+         if (milliseconds > HM_TEST_TIME_BOUND(2000))
             throw std::logic_error("100,000 MIME sections of parts 9,000 deep in three multiparts took " + std::to_string((long long) milliseconds) + " ms");
       }
 
@@ -2865,7 +2865,7 @@ namespace HM
          }
          const double milliseconds = HeaderFieldsMillisecondsSince_(started);
 
-         if (milliseconds > 2000)
+         if (milliseconds > HM_TEST_TIME_BOUND(2000))
             throw std::logic_error("4,000 sections of a forwarded message of 4 MB took " + std::to_string((long long) milliseconds) + " ms");
       }
 
@@ -2900,7 +2900,7 @@ namespace HM
          }
          const double milliseconds = HeaderFieldsMillisecondsSince_(started);
 
-         if (milliseconds > 2000)
+         if (milliseconds > HM_TEST_TIME_BOUND(2000))
             throw std::logic_error("BINARY of a part of 100,000 header fields 5,000 times took " + std::to_string((long long) milliseconds) + " ms");
       }
 
@@ -2947,7 +2947,7 @@ namespace HM
          if (many || !nested.section_refused_ || nested.section_cost_ > ceiling)
             HM_TEST_FAILED();
 
-         if (milliseconds > 2000)
+         if (milliseconds > HM_TEST_TIME_BOUND(2000))
             throw std::logic_error("A part number through 5,000 encapsulated messages took " + std::to_string((long long) milliseconds) + " ms to refuse");
 
          nested.ForgetMessageSections_();

@@ -77,8 +77,9 @@ namespace HM
          const std::chrono::steady_clock::time_point started = std::chrono::steady_clock::now();
          f();
          const double milliseconds = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - started).count();
-         if (milliseconds > boundMilliseconds)
-            Fail_(std::string(what) + " took " + std::to_string((long long) milliseconds) + " ms, over the " + std::to_string((long long) boundMilliseconds) + " ms a single pass is held to");
+         const double bound = HM_TEST_TIME_BOUND(boundMilliseconds);
+         if (milliseconds > bound)
+            Fail_(std::string(what) + " took " + std::to_string((long long) milliseconds) + " ms, over the " + std::to_string((long long) bound) + " ms a single pass is held to");
       }
 
       std::string Repeat_(const std::string &unit, size_t times)

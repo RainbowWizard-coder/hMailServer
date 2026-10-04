@@ -88,6 +88,26 @@ namespace HM
 // header says why; the definition is the same.
 #define HM_TEST_FAILED() throw std::logic_error(std::string("a check failed at line ") + std::to_string(__LINE__) + " of " + __FILE__)
 
+// The milliseconds a tester's timing check lets one pass take: the bound given,
+// times HM_TEST_TIME_FACTOR where the environment names a whole number from 1 to
+// 100. The aarch64 package builds run the testers under qemu-user, several times
+// slower than the machine (build/ci/packages/rpm-build.sh sets 10 there); a
+// quadratic pass the checks are there for still takes many times the bound. 1
+// everywhere else, as on Windows (stdafx.h).
+inline double HmTestTimeFactor()
+{
+   const char *text = std::getenv("HM_TEST_TIME_FACTOR");
+   if (text == nullptr)
+      return 1;
+   char *end = nullptr;
+   const long factor = std::strtol(text, &end, 10);
+   if (end == text || *end != '\0' || factor < 1 || factor > 100)
+      return 1;
+   return (double) factor;
+}
+
+#define HM_TEST_TIME_BOUND(milliseconds) ((milliseconds) * HmTestTimeFactor())
+
 // The same common headers the Windows precompiled header ends with, in the same
 // order, because every translation unit is written expecting them: String and
 // AnsiString above all, then the singletons, the configuration, the SQL layer

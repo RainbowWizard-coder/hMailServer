@@ -864,9 +864,10 @@ namespace HM
       if (unwrapped.GetLength() != 400000 || unwrapped.Find(_T("amp;")) >= 0)
          throw std::logic_error("ContentPolicy::StripHtml did not unwrap 400,000 &amp; into as many ampersands.");
 
-      if (took >= 3000)
+      const long long bound = (long long) HM_TEST_TIME_BOUND(3000);
+      if (took >= bound)
          throw std::logic_error("ContentPolicy::StripHtml took " + std::to_string(took) +
-                                " ms over 400,000 &amp;, and the bound is 3000 ms.");
+                                " ms over 400,000 &amp;, and the bound is " + std::to_string(bound) + " ms.");
 
       // In order, as before: &amp;lt; is unwrapped twice, to <, and &amp;amp; once more only.
       if (ContentPolicy::StripHtml(_T("a&amp;lt;b &amp;amp; &nbsp;&quot;c&quot;")) != _T("a<b &amp; \"c\""))

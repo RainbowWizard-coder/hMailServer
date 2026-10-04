@@ -531,7 +531,7 @@ namespace HM
          Expect(read && paddedReport.original_message_id == _T("abc.123@mail.example.com") && paddedReport.original_subject == _T("Earn money"),
             "The original message was not read after 400,000 blank lines.");
 
-         if (milliseconds > 2000)
+         if (milliseconds > HM_TEST_TIME_BOUND(2000))
             throw std::logic_error("A feedback report whose original message begins with 400,000 blank lines took " + std::to_string((long long) milliseconds) + " ms to read");
       }
 
@@ -602,7 +602,7 @@ namespace HM
          Expect(read && foldedReport.original_subject == words,
             "An encoded subject of 300,000 lines was not read as its words.");
 
-         if (milliseconds > 2000)
+         if (milliseconds > HM_TEST_TIME_BOUND(2000))
             throw std::logic_error("A feedback report whose original subject decodes to 300,000 lines took " + std::to_string((long long) milliseconds) + " ms to read");
       }
 

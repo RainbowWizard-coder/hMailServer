@@ -1001,7 +1001,7 @@ namespace HM
          if (!parser.GetShowFlags() || !parser.GetShowUID() || parser.GetPartsToLookAt().size() != 1)
             HM_TEST_FAILED();
 
-         if (milliseconds > 2000)
+         if (milliseconds > HM_TEST_TIME_BOUND(2000))
             throw std::logic_error("A FETCH of 100,000 items took " + std::to_string((long long) milliseconds) + " ms to parse");
       }
 
@@ -1025,7 +1025,7 @@ namespace HM
          if (parser.GetPartsToLookAt().size() != 1)
             HM_TEST_FAILED();
 
-         if (milliseconds > 2000)
+         if (milliseconds > HM_TEST_TIME_BOUND(2000))
             throw std::logic_error("A FETCH item of 20,000 \"BODY.PEEK[\" took " + std::to_string((long long) milliseconds) + " ms to parse");
       }
 
@@ -1047,7 +1047,7 @@ namespace HM
          if (!parser.GetShowFlags() || parser.GetPartsToLookAt().size() != 0)
             HM_TEST_FAILED();
 
-         if (milliseconds > 2000)
+         if (milliseconds > HM_TEST_TIME_BOUND(2000))
             throw std::logic_error("A FETCH of 200,000 \"[]\" before one space took " + std::to_string((long long) milliseconds) + " ms to parse");
       }
 

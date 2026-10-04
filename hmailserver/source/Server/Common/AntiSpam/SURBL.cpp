@@ -3084,7 +3084,7 @@ namespace HM
             Fail_("each name in a long user name is handed over once", _T("http://a0.example)@...x.example/"),
                StringParser::IntToString(static_cast<int>(visits)) + _T(" hosts, the last ") + last, _T("200001 hosts, the last a199999.example"));
 
-         if (seconds > 20)
+         if (seconds * 1000 > HM_TEST_TIME_BOUND(20000))
             Fail_("a long user name is read in time proportional to its length", _T("http://a0.example)@...x.example/"),
                StringParser::IntToString(static_cast<int>(seconds)) + _T(" s"), _T("well under 20 s"));
       }

@@ -1253,7 +1253,7 @@ namespace HM
          if (base != one.expected)
             HM_TEST_FAILED();
 
-         if (milliseconds > 2000)
+         if (milliseconds > HM_TEST_TIME_BOUND(2000))
          {
             throw std::logic_error(std::string("The base subject of ") + one.what + " took " + std::to_string((long long) milliseconds) + " ms");
          }

@@ -145,6 +145,11 @@ namespace HM
 // path goes no further.
 #define HM_TEST_FAILED() throw std::logic_error(std::string("a check failed at line ") + std::to_string(__LINE__) + " of " + __FILE__)
 
+// The milliseconds a tester's timing check lets one pass take. On POSIX it can be
+// stretched for an emulated build (portable_stdafx.h, HM_TEST_TIME_FACTOR); the
+// Windows testers run in the service on the machine itself, so it is the bound.
+#define HM_TEST_TIME_BOUND(milliseconds) (milliseconds)
+
 // Start: Common files
    #include "../Common/Util/StdString.h"
 

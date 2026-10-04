@@ -520,9 +520,13 @@ release's own x86_64 container. Three routes were weighed:
    - **The testers run too.** linix's kernel hands aarch64 ELF files to
      qemu-user (binfmt_misc, with the `F` flag, so it works in a container), and
      the build runs `hmailserver --version` and every `*-tests` program with
-     `QEMU_LD_PREFIX` set to the sysroot. Where a runner cannot run aarch64
-     programs, the build job says it did not run them and goes on; the install
-     test then runs the packaged server.
+     `QEMU_LD_PREFIX` set to the sysroot, and with `HM_TEST_TIME_FACTOR=10`:
+     emulated, a program runs several times slower than the machine, and the
+     testers' timing checks, which hold a pass to a bound well under what a
+     quadratic one takes, take ten times the bound (from 6.3.6; el9's
+     `imap-parse-tests` took 2.7 s under qemu for a check of 2 s). Where a runner
+     cannot run aarch64 programs, the build job says it did not run them and goes
+     on; the install test then runs the packaged server.
 2. **The whole build in an aarch64 container under qemu-user.** Every compiler
    process would be emulated, and a C++ build under qemu-user is commonly 5 to
    10 times slower: about 1 to 2 hours per package, for six packages per

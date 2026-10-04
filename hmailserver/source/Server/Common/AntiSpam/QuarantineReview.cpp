@@ -911,9 +911,10 @@ namespace HM
       if (sheetsText.Find(_T("after")) < 0 || sheetsText.Find(_T("style")) >= 0)
          throw std::logic_error("QuarantineStore::TextOfHtml did not skip 80,000 style sheets to the text after them.");
 
-      if (took >= 3000)
+      const long long bound = (long long) HM_TEST_TIME_BOUND(3000);
+      if (took >= bound)
          throw std::logic_error("QuarantineStore::TextOfHtml took " + std::to_string(took) +
-                                " ms over 80,000 style sheets, and the bound is 3000 ms.");
+                                " ms over 80,000 style sheets, and the bound is " + std::to_string(bound) + " ms.");
 
       // The same bound for what the whole names and a head's missing end tag
       // add: 80,000 heads with neither an end nor a body, each followed by a

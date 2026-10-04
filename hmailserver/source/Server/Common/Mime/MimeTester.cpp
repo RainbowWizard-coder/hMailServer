@@ -810,7 +810,7 @@ namespace HM
       if (unfolded != expected)
          throw std::logic_error("A header field value of 400,000 folds was not unfolded to its words.");
 
-      if (milliseconds > 2000)
+      if (milliseconds > HM_TEST_TIME_BOUND(2000))
          throw std::logic_error("A header field value of 400,000 folds took " + std::to_string((long long) milliseconds) + " ms to unfold");
    }
 

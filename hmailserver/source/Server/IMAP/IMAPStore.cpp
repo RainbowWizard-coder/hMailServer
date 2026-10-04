@@ -492,7 +492,7 @@ namespace HM
          message.SetKeywordList(keywords);
          const double milliseconds = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - started).count();
 
-         if (milliseconds > 2000)
+         if (milliseconds > HM_TEST_TIME_BOUND(2000))
             throw std::logic_error("60,000 repeated keywords took " + std::to_string((long long) milliseconds) + " ms to store");
 
          if (message.GetKeywords() != _T("first Second"))

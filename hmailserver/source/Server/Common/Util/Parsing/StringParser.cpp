@@ -1761,7 +1761,7 @@ namespace HM
       if (replaced != 20000 || peeks.GetLength() != 20000 * 5)
          HM_TEST_FAILED();
 
-      if (replaceMilliseconds > 2000)
+      if (replaceMilliseconds > HM_TEST_TIME_BOUND(2000))
          throw std::logic_error("ReplaceNoCase of 20,000 occurrences took " + std::to_string((long long) replaceMilliseconds) + " ms");
 
       // FindNoCase asked once per occurrence, as a parser walking a command asks.
@@ -1774,7 +1774,7 @@ namespace HM
       if (found != 20000)
          HM_TEST_FAILED();
 
-      if (findMilliseconds > 2000)
+      if (findMilliseconds > HM_TEST_TIME_BOUND(2000))
          throw std::logic_error("FindNoCase over 20,000 occurrences took " + std::to_string((long long) findMilliseconds) + " ms");
 
       // Then fixed cases: what FindNoCase, ContainsNoCase and ReplaceNoCase
@@ -1826,7 +1826,7 @@ namespace HM
          if (at != 1000000 - 20000 || !contains || containsMissing)
             HM_TEST_FAILED();
 
-         if (longMilliseconds > 2000)
+         if (longMilliseconds > HM_TEST_TIME_BOUND(2000))
             throw std::logic_error("FindNoCase of a needle of 20,001 over a million took " + std::to_string((long long) longMilliseconds) + " ms");
       }
 

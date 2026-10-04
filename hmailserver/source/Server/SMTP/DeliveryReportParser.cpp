@@ -534,7 +534,7 @@ namespace HM
          Expect(parsed && paddedReport.original_message_id == _T("original.1@sender.example.test"),
             "The original Message-ID was not read after 400,000 blank lines.");
 
-         if (milliseconds > 2000)
+         if (milliseconds > HM_TEST_TIME_BOUND(2000))
             throw std::logic_error("A report whose headers part begins with 400,000 blank lines took " + std::to_string((long long) milliseconds) + " ms to read");
       }
 

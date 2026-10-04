@@ -506,6 +506,12 @@ failed=""
 can_run=yes
 if [ "$arch" = aarch64 ]; then
   export QEMU_LD_PREFIX="$sysroot"
+  # Emulated, every program runs several times slower than the machine: the
+  # testers' timing checks, which hold a pass to a bound well under what a
+  # quadratic one takes, take ten times the bound here (HM_TEST_TIME_BOUND,
+  # platform/portable_stdafx.h). el9's imap-parse-tests parsed a FETCH of
+  # 200,000 "[]" in 2.7 s under qemu on 4 October 2026, against 2 s.
+  export HM_TEST_TIME_FACTOR=10
   "$server" --help > /dev/null 2>&1
   [ $? -ne 126 ] || can_run=""
 fi

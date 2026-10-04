@@ -614,7 +614,7 @@ namespace HM
          std::vector<std::pair<int, IMAPViewEntry> > targets = action.ResolveTargets_(view, set);
          const double milliseconds = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - started).count();
 
-         if (milliseconds > 2000)
+         if (milliseconds > HM_TEST_TIME_BOUND(2000))
             throw std::logic_error("A UID set of 50,000 elements over 50,000 messages took " + std::to_string((long long) milliseconds) + " ms");
 
          if (targets.size() != 50000 || targets[0].first != 1 || targets[49999].second.uid != 100000)
@@ -721,7 +721,7 @@ namespace HM
          if (found != expected)
             HM_TEST_FAILED();
 
-         if (milliseconds > 2000)
+         if (milliseconds > HM_TEST_TIME_BOUND(2000))
             throw std::logic_error("A set of 100,000 elements asked about 50,000 messages took " + std::to_string((long long) milliseconds) + " ms");
       }
 
@@ -842,7 +842,7 @@ namespace HM
             HM_TEST_FAILED();
          const double milliseconds = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - started).count();
 
-         if (milliseconds > 2000)
+         if (milliseconds > HM_TEST_TIME_BOUND(2000))
             throw std::logic_error("A set of 100,000 \"$\" took " + std::to_string((long long) milliseconds) + " ms to expand");
       }
    }
