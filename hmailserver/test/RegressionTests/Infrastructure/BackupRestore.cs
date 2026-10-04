@@ -1309,9 +1309,9 @@ namespace RegressionTests.Infrastructure
             // the archive was taken somewhere else - the imported key changed, a
             // key and a file added that the archive does not hold, a file it holds
             // changed, and a message delivered that it does not hold.
-            File.WriteAllText(key, "this installation's key, not the archive's");
+            WriteAsTheTest(key, "this installation's key, not the archive's", service);
             File.WriteAllText(certificate, "this installation's certificate, not the archive's");
-            File.WriteAllText(imported, "an imported key, changed since the backup");
+            WriteAsTheTest(imported, "an imported key, changed since the backup", service);
             File.WriteAllText(note, "a file the archive holds, changed since the backup");
             File.WriteAllText(extra, "a file the archive does not hold");
             File.WriteAllText(orphan, "a key the archive does not hold");
@@ -1445,6 +1445,17 @@ namespace RegressionTests.Infrastructure
                security.AddAccessRule(new FileSystemAccessRule(sid, FileSystemRights.FullControl, AccessControlType.Allow));
             File.SetAccessControl(path, security);
          }
+      }
+
+      // A file protected from the service, written by this test: its deny entries
+      // lifted for the write and put back after. Where the tests run as the
+      // service's own account - the CI runner and the service both LocalSystem on
+      // the Windows runner - those entries deny this test too.
+      private static void WriteAsTheTest(string path, string text, List<SecurityIdentifier> service)
+      {
+         GiveBack(path);
+         File.WriteAllText(path, text);
+         ProtectFromTheService(path, service, false);
       }
 
       // The permissions given back to inheritance, so that the folders can be removed.
