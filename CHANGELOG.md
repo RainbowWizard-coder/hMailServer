@@ -317,7 +317,10 @@ an allocation, the log), which left such a key in memory freed without being wri
 The lines of a stored-secrets key file that `--import-stored-secrets-key` reads, the key's own line among them, are
 written over the same way, the key's base64 is no longer copied into a string that was freed as it stood, and the line
 being read no longer grows a character at a time into larger buffers, freeing each smaller one - most of the key in
-base64 - as it stood.
+base64 - as it stood. And a key put into base64 - the stored-secrets key `--export-stored-secrets-key` writes, an
+account's mailbox key made when its encryption is switched on and held under the machine's own key until its first
+sign-in - no longer leaves the whole of it in base64 in the buffer it was encoded in, freed as it stood, as it did in
+6.3.4 and 6.3.5.
 
 The Control Deck is held tighter to what the server hands it, found by the project's own review. It draws an
 address - the release page the update feed names, the documentation wiki's, an eDiscovery export's - as a link only

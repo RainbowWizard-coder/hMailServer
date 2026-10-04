@@ -25,14 +25,23 @@
 // And StoredSecrets::ImportText, which reads such a key file, gives no buffer
 // that held a piece of the key back to the heap unwritten: every allocation of
 // this program carries its size in front of it, so that a block freed while
-// ImportText runs can be searched, as it is given back, for the key's base64.
-// Until 6.3.6 the line being read grew a character at a time and freed the
-// smaller buffers it outgrew as they stood - with the key's line, most of the
-// key in base64. Every block is handed out zeroed: a block can be memory freed
-// before ImportText ran - this program's own copies of the key file - and a
-// buffer ImportText reserves and writes only in part, as it does the line it
-// reads, would carry those bytes back to the heap past the part it wrote and
-// wiped. musl's allocator did that on Alpine; glibc's happened not to.
+// ImportText runs can be searched, as it is given back, for the key's base64
+// and for the key's own bytes, which the base64 is decoded into. Until 6.3.6
+// the line being read grew a character at a time and freed the smaller buffers
+// it outgrew as they stood - with the key's line, most of the key in base64.
+// MailboxCrypto::Base64 is held to the same, encoding a key as ExportText does
+// the stored-secrets key and MailboxKeys::Enable the private key it makes: until
+// 6.3.6 it freed the buffer it encoded into as it stood, the whole key in
+// base64.
+//
+// Every block is handed out zeroed: a block can be memory freed before the
+// watch began - this program's own copies of the key file - and a buffer
+// reserved and written only in part, as ImportText does the line it reads,
+// would carry those bytes back to the heap past the part written and wiped.
+// musl's allocator did that on Alpine: the block ImportText reserved for its
+// line had last held this program's key file short of its last line end, a
+// copy outgrown when the line end was appended and freed before ImportText
+// ran. glibc's allocator happened not to.
 //
 // One line a check, and a non-zero exit on the first failure.
 
@@ -55,11 +64,47 @@ namespace
    // new promises, so that what follows it is aligned as malloc's own answer is.
    const std::size_t BlockHeader = alignof(std::max_align_t) > sizeof(std::size_t) ? alignof(std::max_align_t) : sizeof(std::size_t);
 
-   // While watching is set, each block freed is searched for the marker.
+   // While watching is set, each block freed is searched for the markers: a
+   // piece of the key's base64 and a piece of its bytes.
    std::atomic<bool> g_watching(false);
-   const char *g_marker = nullptr;
-   std::size_t g_markerLength = 0;
+   const std::string *g_markers[2] = {nullptr, nullptr};
    std::atomic<int> g_freedWithMarker(0);
+
+   bool HoldsAMarker(const char *begin, std::size_t size)
+   {
+      for (const std::string *marker : g_markers)
+      {
+         if (marker != nullptr && !marker->empty() &&
+             std::search(begin, begin + size, marker->begin(), marker->end()) != begin + size)
+            return true;
+      }
+      return false;
+   }
+
+   // The markers watched while the call runs, and the count of blocks freed
+   // with one of them in it.
+   template <typename Call>
+   int FreedWithMarker(const std::string &base64Piece, const std::string &keyPiece, Call call)
+   {
+      g_markers[0] = &base64Piece;
+      g_markers[1] = &keyPiece;
+      g_freedWithMarker = 0;
+      g_watching = true;
+      call();
+      g_watching = false;
+      g_markers[0] = nullptr;
+      g_markers[1] = nullptr;
+      return g_freedWithMarker.load();
+   }
+
+   // The key the checks below use, its bytes chosen to be found nowhere else.
+   std::string TestKey()
+   {
+      std::string key(HM::MailboxCrypto::KeyBytes, '\0');
+      for (std::size_t i = 0; i < key.size(); i++)
+         key[i] = static_cast<char>(0xA5 ^ (i * 29 + 7));
+      return key;
+   }
 }
 
 void *
@@ -82,11 +127,10 @@ operator delete(void *pointer) noexcept
       return;
 
    char *block = static_cast<char *>(pointer) - BlockHeader;
-   if (g_watching.load() && g_marker != nullptr)
+   if (g_watching.load())
    {
       const std::size_t size = *reinterpret_cast<const std::size_t *>(block);
-      const char *begin = static_cast<const char *>(pointer);
-      if (std::search(begin, begin + size, g_marker, g_marker + g_markerLength) != begin + size)
+      if (HoldsAMarker(static_cast<const char *>(pointer), size))
          g_freedWithMarker++;
    }
    std::free(block);
@@ -116,37 +160,60 @@ void operator delete[](void *pointer, const std::nothrow_t &) noexcept { operato
 
 namespace
 {
+   // MailboxCrypto::Base64 of a key gives no buffer back to the heap holding the
+   // base64 it made: only the string it returns holds it, which the caller
+   // forgets - ExportText the stored-secrets key's, MailboxKeys::Enable the
+   // private key's it makes.
+   std::string CheckBase64FreesNoKey()
+   {
+      std::string key = TestKey();
+      std::string encoded = HM::MailboxCrypto::Base64(key);
+      if (encoded.size() < 40)
+         return "the key's base64 could not be made";
+
+      const std::string base64Piece = encoded.substr(0, 16);
+      const std::string keyPiece = key.substr(8, 16);
+      std::string again;
+      const int freed = FreedWithMarker(base64Piece, keyPiece, [&]() { again = HM::MailboxCrypto::Base64(key); });
+      const bool same = again == encoded;
+      HM::MailboxCrypto::Forget(again);
+      HM::MailboxCrypto::Forget(encoded);
+      HM::MailboxCrypto::Forget(key);
+
+      if (!same)
+         return "the same key encoded twice came out two ways";
+
+      if (freed != 0)
+         return std::to_string(freed) + " buffer(s) holding the key's base64 were freed as they stood";
+
+      return "";
+   }
+
    // A key file as --export-stored-secrets-key writes one, with LF line ends, but
    // with an id line that names another key: ImportText reads every line and
    // decodes the key, and refuses the file at the id check, before it asks for
-   // a database. Nothing it freed on the way may hold the key's base64.
+   // a database. Nothing it freed on the way may hold the key's base64, or the
+   // key's bytes the base64 was decoded into.
    std::string CheckImportTextFreesNoKey()
    {
-      std::string key(HM::MailboxCrypto::KeyBytes, '\0');
-      for (std::size_t i = 0; i < key.size(); i++)
-         key[i] = static_cast<char>(0xA5 ^ (i * 29 + 7));
-
+      const std::string key = TestKey();
       const std::string encoded = HM::MailboxCrypto::Base64(key);
       if (encoded.size() < 40)
          return "the key's base64 could not be made";
 
       // The first sixteen characters of the base64: the first buffer that a line
-      // grown a character at a time outgrows holds them.
-      const std::string marker = encoded.substr(0, 16);
+      // grown a character at a time outgrows holds them. And sixteen of the key's
+      // own bytes: a buffer the base64 was decoded into holds them.
+      const std::string base64Piece = encoded.substr(0, 16);
+      const std::string keyPiece = key.substr(8, 16);
 
       const HM::AnsiString text = HM::AnsiString("hMailServer stored secrets key\nid 0123456789abcdef\nkey ") +
                                   HM::AnsiString(encoded.c_str()) + HM::AnsiString("\n");
       HM::AnsiString keyId;
       HM::String problem;
 
-      g_marker = marker.data();
-      g_markerLength = marker.size();
-      g_freedWithMarker = 0;
-      g_watching = true;
-      const bool imported = HM::StoredSecrets::ImportText(text, keyId, problem);
-      g_watching = false;
-      const int freed = g_freedWithMarker.load();
-      g_marker = nullptr;
+      bool imported = false;
+      const int freed = FreedWithMarker(base64Piece, keyPiece, [&]() { imported = HM::StoredSecrets::ImportText(text, keyId, problem); });
 
       if (imported)
          return "a key file whose id line names another key was imported";
@@ -156,9 +223,32 @@ namespace
          return "the file was refused before its key was read: " + why;
 
       if (freed != 0)
-         return std::to_string(freed) + " buffer(s) holding the key's base64 were freed as they stood";
+         return std::to_string(freed) + " buffer(s) holding the key's base64 or its bytes were freed as they stood";
 
       return "";
+   }
+
+   // One check, one line; false when it failed.
+   bool Run(const char *what, std::string (*check)(), const char *held)
+   {
+      std::string failed;
+      try
+      {
+         failed = check();
+      }
+      catch (const std::exception &failure)
+      {
+         failed = failure.what();
+      }
+
+      if (!failed.empty())
+      {
+         printf("FAIL  %s: %s\n", what, failed.c_str());
+         return false;
+      }
+
+      printf("ok    %s: %s\n", what, held);
+      return true;
    }
 }
 
@@ -177,22 +267,11 @@ main(int /*argc*/, char * /*argv*/[])
 
    printf("ok    mailbox encryption's cryptography: X25519, HKDF, base64, seals, wraps and stages with their refusals, and a key forgotten on every way out of its scope\n");
 
-   std::string failed;
-   try
-   {
-      failed = CheckImportTextFreesNoKey();
-   }
-   catch (const std::exception &failure)
-   {
-      failed = failure.what();
-   }
-
-   if (!failed.empty())
-   {
-      printf("FAIL  a stored-secrets key file read: %s\n", failed.c_str());
+   if (!Run("a key encoded in base64", CheckBase64FreesNoKey, "no buffer that held its base64 freed as it stood"))
       return 1;
-   }
 
-   printf("ok    a stored-secrets key file read: no buffer that held a piece of the key freed as it stood\n");
+   if (!Run("a stored-secrets key file read", CheckImportTextFreesNoKey, "no buffer that held a piece of the key freed as it stood"))
+      return 1;
+
    return 0;
 }

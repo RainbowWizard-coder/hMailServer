@@ -202,12 +202,19 @@ namespace HM
       if (bytes.empty())
          return std::string();
 
+      // The buffer encoded into is written over before it goes back to the heap,
+      // as FromBase64's is: what is encoded here is a key at times - the
+      // stored-secrets key --export-stored-secrets-key writes, the private key
+      // MailboxKeys::Enable makes and holds for the account's first sign-in -
+      // and until 6.3.6 this freed the whole of it in base64 as it stood, under
+      // every caller's Forget of the copy it was handed.
       std::vector<unsigned char> out(4 * ((bytes.size() + 2) / 3) + 1, 0);
       const int written = EVP_EncodeBlock(&out[0], (const unsigned char *) bytes.data(), (int) bytes.size());
-      if (written < 0)
-         return std::string();
-
-      return std::string((const char *) &out[0], (size_t) written);
+      std::string text;
+      if (written > 0)
+         text.assign((const char *) &out[0], (size_t) written);
+      OPENSSL_cleanse(&out[0], out.size());
+      return text;
    }
 
    bool
