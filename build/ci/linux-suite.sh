@@ -67,10 +67,13 @@ way_is_roots() {
   IFS=/ read -ra parts <<< "$physical"
   for part in "${parts[@]}"; do
     folder="${folder%/}/$part"
-    read -r owner group mode <<< "$(stat -c '%u %g %a' "$folder" 2> /dev/null)"
+    # The mode as ls writes it (drwxrwxrwx): the group's write is its sixth
+    # character, others' the ninth. Semgrep's parser reads no (( )) with & in
+    # it, and left the rest of this file unscanned when this was one.
+    read -r owner group mode <<< "$(stat -c '%u %g %A' "$folder" 2> /dev/null)"
     [ "$owner" = 0 ] || return 1
-    if (( 8#$mode & 8#002 )); then return 1; fi
-    if (( 8#$mode & 8#020 )) && [ "$group" != 0 ]; then return 1; fi
+    [ "${mode:8:1}" != w ] || return 1
+    if [ "${mode:5:1}" = w ] && [ "$group" != 0 ]; then return 1; fi
   done
   return 0
 }
