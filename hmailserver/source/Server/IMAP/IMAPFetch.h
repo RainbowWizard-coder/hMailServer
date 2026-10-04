@@ -19,6 +19,9 @@ namespace HM
 
    class IMAPFetch : public IMAPCommandRangeAction
    {
+      friend class IMAPFetchHeaderFieldsTester;
+      friend class IMAPFetchSectionsTester;
+
    public:
       IMAPFetch();
       virtual ~IMAPFetch();
@@ -115,10 +118,11 @@ namespace HM
       // command: the names asked for, each once, in the order asked, found by
       // their key (the bytes of the name as _stricmp folds them, which is how
       // the header's own lookup compares); and the names left out, by their key
-      // as CompareNoCase folds them. Each message's header is then read once,
-      // field by field. The list - a client's, of any length - used to be
-      // copied and read whole for every message, and the header searched for
-      // each name in it: the product of the list, the header and the set.
+      // as CompareNoCase folds them. Each section then reads the message's
+      // header once, field by field. The list - a client's, of any length -
+      // used to be copied and read whole for every message, and the header
+      // searched for each name in it: the product of the list, the header and
+      // the set.
       class HeaderFieldsLookup_
       {
       public:
@@ -133,6 +137,86 @@ namespace HM
 
       std::map<const IMAPFetchParser::BodyPart *, HeaderFieldsLookup_> header_fields_lookups_;
 
+      // A body a section's part number reached, kept for the other sections of
+      // the message: the parts it holds, listed once; the message it
+      // encapsulates, parsed once; and what its header says it is, asked once.
+      // Each section walked the part list from its first part to the one it
+      // named, parsed an encapsulated message afresh on its way through one,
+      // and searched the part's header for its type and encoding: the product
+      // of the sections and the parts, the encapsulated message or the header.
+      // body is held so that its address names no other body while this stands.
+      class NavigatedBody_
+      {
+      public:
+         std::shared_ptr<MimeBody> body;
+
+         bool parts_listed = false;
+         std::vector<std::shared_ptr<MimeBody> > parts;
+
+         bool encapsulated_loaded = false;
+         std::shared_ptr<MimeBody> encapsulated;
+
+         bool kind_known = false;
+         bool encapsulated_message = false;
+         bool multipart = false;
+         const char *transfer_encoding = nullptr;
+      };
+
+      NavigatedBody_ &NavigatedBodyFor_(const std::shared_ptr<MimeBody> &body);
+      const NavigatedBody_ &KindOf_(const std::shared_ptr<MimeBody> &body);
+
+      // The message the bodies are of, held for the same reason, and the bodies.
+      // Let go of at the end of each message's sections (ForgetMessageSections_).
+      std::shared_ptr<MimeBody> navigated_message_;
+      std::map<const MimeBody *, NavigatedBody_> navigated_bodies_;
+
+      // What the latest section cost to make, beyond what it holds: the bytes it
+      // read, looked through or made before its partial range was cut from it -
+      // a message file read whole for its HEADER or TEXT, a header passed field
+      // by field, a part written out, an encapsulated message parsed on the way.
+      // DoAction holds the greater of the two to the ceiling a message's
+      // sections share; a section that would pass it while parsing its way to a
+      // part stops there and says so (section_refused_).
+      size_t section_cost_ = 0;
+      bool section_refused_ = false;
+
+      // The ceiling of the sections of the message DoAction is reading - sixteen
+      // times the larger of the message and its largest section, and a megabyte -
+      // and what its sections have cost so far. Not set outside DoAction.
+      bool ceiling_set_ = false;
+      size_t ceiling_largest_ = 0;
+      size_t ceiling_used_ = 0;
+      String ceiling_file_;
+      bool ceiling_file_sized_ = false;
+
+      bool WithinCeiling_(size_t sectionCost);
+      void ForgetMessageSections_();
+
+   };
+
+   // HEADER.FIELDS and HEADER.FIELDS.NOT sections as the names prepared once per
+   // command answer them, held byte for byte to what 6.3.5's code - kept in the
+   // tester, which looked each name up in the header for every message - made
+   // of the same generated headers and name lists; and one command's sections
+   // over many messages held to the time of a pass over each header's fields.
+   // ClassTester runs it on Windows, imap-parse-tests on Linux.
+   class IMAPFetchHeaderFieldsTester
+   {
+   public:
+      void Test(int cases = 20000);
+   };
+
+   // The body a section's part number names, as the bodies kept for a message's
+   // sections find it, held to what 6.3.5's walk - kept in the tester, the part
+   // list walked from its first part and an encapsulated message parsed afresh
+   // for every section - found over generated messages and part numbers, through
+   // one IMAPFetch as one command's messages are; and many sections over a
+   // message held to the time of reading it once. ClassTester runs it on
+   // Windows, imap-parse-tests on Linux.
+   class IMAPFetchSectionsTester
+   {
+   public:
+      void Test(int cases = 20000);
    };
 
 }

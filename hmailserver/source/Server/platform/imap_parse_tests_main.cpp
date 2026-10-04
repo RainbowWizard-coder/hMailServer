@@ -17,7 +17,10 @@
 // time grew with the square of it. String's FindNoCase, ContainsNoCase and
 // ReplaceNoCase, wide and narrow; the items of a FETCH; the base subject SORT
 // and THREAD read; the messages of a message set, each once; and the keywords
-// a STORE keeps. Nothing here touches the network, the configuration or a
+// a STORE keeps; a FETCH's HEADER.FIELDS sections, each message's header
+// read once against the names asked; and the bodies a FETCH's part numbers
+// name, each part list read and each encapsulated message parsed once for a
+// message's sections. Nothing here touches the network, the configuration or a
 // database.
 //
 // One line a tester, and a non-zero exit on the first failure.
@@ -28,6 +31,7 @@
 
 #include "../Common/Util/Parsing/StringParser.h"
 #include "../IMAP/IMAPFetchParser.h"
+#include "../IMAP/IMAPFetch.h"
 #include "../IMAP/IMAPThread.h"
 #include "../IMAP/IMAPCommandRangeAction.h"
 #include "../IMAP/IMAPStore.h"
@@ -61,7 +65,9 @@ main(int /*argc*/, char * /*argv*/[])
       Run_("the items of a FETCH: as 6.3.5's, in one pass", [cases]() { HM::IMAPFetchParserTester().Test(cases); }) &&
       Run_("the base subject: as 6.3.5's, in one pass", [cases]() { HM::IMAPThreadSubjectTester().Test(cases); }) &&
       Run_("a message set: 6.3.5's messages, each once, the view's UIDs found by halving; SEARCH and UID sets by halving; \"$\" once", [cases]() { HM::IMAPSequenceSetTester().Test(cases / 4); }) &&
-      Run_("a STORE's keywords: as 6.3.5 kept them, in one pass", [cases]() { HM::IMAPStoreKeywordsTester().Test(cases); });
+      Run_("a STORE's keywords: as 6.3.5 kept them, in one pass", [cases]() { HM::IMAPStoreKeywordsTester().Test(cases); }) &&
+      Run_("a FETCH's HEADER.FIELDS sections: as 6.3.5's, each header read once", [cases]() { HM::IMAPFetchHeaderFieldsTester().Test(cases / 4); }) &&
+      Run_("the bodies a FETCH's part numbers name: as 6.3.5's, each part list read and each encapsulated message parsed once a message", [cases]() { HM::IMAPFetchSectionsTester().Test(cases / 20); });
 
    return passed ? 0 : 1;
 }

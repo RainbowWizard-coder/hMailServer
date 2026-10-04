@@ -1002,11 +1002,13 @@ set_target_properties(profiles-tests PROPERTIES OUTPUT_NAME profiles-tests)
 # ---------------------------------------------------------------- the IMAP parsers' time
 #
 # StringNoCaseTester (Common/Util/Parsing/StringParser.h), IMAPFetchParserTester,
-# IMAPThreadSubjectTester, IMAPSequenceSetTester and IMAPStoreKeywordsTester (IMAP/)
-# as a program of their own, for the reason spf-tests is one: on Windows they run
-# inside the server through ClassTester, which nothing reaches here. What String's
+# IMAPThreadSubjectTester, IMAPSequenceSetTester, IMAPStoreKeywordsTester,
+# IMAPFetchHeaderFieldsTester and IMAPFetchSectionsTester (IMAP/) as a program of
+# their own, for the reason spf-tests is one: on Windows they run inside the
+# server through ClassTester, which nothing reaches here. What String's
 # case-ignoring search and replace, the items of a FETCH, the base subject, a
-# message set and a STORE's keywords make, held to what 6.3.5's code - kept in the
+# message set, a STORE's keywords, a FETCH's HEADER.FIELDS sections and the
+# bodies its part numbers name make, held to what 6.3.5's code - kept in the
 # testers - made of the same generated cases, and the time each takes held to a
 # pass over what it reads. No network, configuration or database. Not installed;
 # a bench tool.

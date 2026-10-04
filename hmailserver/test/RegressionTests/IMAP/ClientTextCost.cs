@@ -32,6 +32,13 @@ namespace RegressionTests.IMAP
    ///    - A SEARCH TEXT key sent as a long literal, over a message that holds its
    ///      beginning everywhere: the case-ignoring search compared afresh at each
    ///      position, the product of the two lengths, in one call.
+   ///    - A FETCH section cut to a byte and named over and over - HEADER,
+   ///      HEADER.FIELDS, HEADER.FIELDS.NOT - which read or made its whole
+   ///      source for each, while the ceiling of a message's sections counted
+   ///      the byte it held.
+   ///    - FETCH sections of the parts of a forwarded message, or of a message of
+   ///      thousands of parts, which parsed the forwarded message afresh, or
+   ///      listed the parts from the first, for each.
    ///
    ///    Each bound sits well above what the fixed server takes and well below the
    ///    flawed one; the negative control is the same tests against a server built
@@ -76,28 +83,54 @@ namespace RegressionTests.IMAP
       /// <summary>
       ///    Reads until a whole line starting with the given text has arrived, or
       ///    fails after the timeout.
+      ///
+      ///    Each look reads only what arrived since the one before (and the few
+      ///    characters before it a line start could straddle). It copied and
+      ///    searched all that had arrived at every read: over a response of 199 MB
+      ///    on bench150, the slow Windows runner, 96 reads copied 4.4 billion
+      ///    characters, and the response took 11.3 seconds to read where reading
+      ///    it once took 4.9.
       /// </summary>
       private static string ReadUntilLine(TcpConnection socket, string lineStart, int seconds)
       {
          var received = new StringBuilder();
          var deadline = DateTime.Now.AddSeconds(seconds);
 
+         string marker = "\r\n" + lineStart;
+         int lineAt = -1;          // where the line starts, once found
+         int markerSearched = 0;   // how far the line start has been looked for
+         int endSearched = 0;      // how far the line's end has been looked for
+
          while (DateTime.Now < deadline)
          {
             if (socket.WaitForData(TimeSpan.FromMilliseconds(100)))
                received.Append(socket.Receive());
 
-            string text = received.ToString();
+            if (lineAt < 0 && received.Length >= lineStart.Length &&
+                received.ToString(0, lineStart.Length) == lineStart)
+               lineAt = 0;
 
-            int at = text.StartsWith(lineStart, StringComparison.Ordinal)
-               ? 0
-               : text.IndexOf("\r\n" + lineStart, StringComparison.Ordinal);
+            if (lineAt < 0)
+            {
+               int from = Math.Max(0, markerSearched - (marker.Length - 1));
+               int found = received.ToString(from, received.Length - from).IndexOf(marker, StringComparison.Ordinal);
 
-            if (at > 0)
-               at += 2;
+               if (found >= 0)
+                  lineAt = from + found + 2;
 
-            if (at >= 0 && text.IndexOf("\r\n", at, StringComparison.Ordinal) >= 0)
-               return text;
+               markerSearched = received.Length;
+            }
+
+            if (lineAt >= 0)
+            {
+               int from = Math.Max(lineAt, endSearched - 1);
+
+               if (from < received.Length &&
+                   received.ToString(from, received.Length - from).IndexOf("\r\n", StringComparison.Ordinal) >= 0)
+                  return received.ToString();
+
+               endSearched = received.Length;
+            }
 
             if (!socket.IsConnected)
                break;
@@ -141,13 +174,14 @@ namespace RegressionTests.IMAP
       /// <summary>
       ///    Appends count messages, pipelined with {n+} literals, the i-th with i % 7
       ///    more characters in its body so that their sizes differ, and selects INBOX.
+      ///    Each header holds the given fields before its Subject.
       /// </summary>
-      private static void AppendAndSelect(TcpConnection socket, int count)
+      private static void AppendAndSelect(TcpConnection socket, int count, string fields = "")
       {
          var batch = new StringBuilder();
          for (int i = 1; i <= count; i++)
          {
-            string message = "Subject: message " + i + "\r\n\r\nBody" + new string('x', i % 7) + ".\r\n";
+            string message = fields + "Subject: message " + i + "\r\n\r\nBody" + new string('x', i % 7) + ".\r\n";
             batch.Append("P" + i + " APPEND INBOX {" + message.Length + "+}\r\n" + message + "\r\n");
          }
 
@@ -339,14 +373,28 @@ namespace RegressionTests.IMAP
       }
 
       [Test]
-      [Description("FETCH 1:* of HEADER.FIELDS naming 30,000 fields over 1,000 messages is answered in seconds.")]
+      [Description("FETCH 1:* of HEADER.FIELDS naming 30,000 fields over 50 messages of 10,001 fields each is answered in seconds.")]
       public void HeaderFieldsOfManyNamesOverManyMessagesIsAnsweredInSeconds()
       {
          var socket = LogOn(CreateAccount("headernames@example.test"));
-         AppendAndSelect(socket, 1000);
 
-         // The list was copied, and the header searched for each name in it, for
-         // every message: 30,000 x 1,000.
+         var fields = new StringBuilder();
+         for (int i = 1; i <= 10000; i++)
+            fields.Append("X-F" + i + ": v\r\n");
+         AppendAndSelect(socket, 50, fields.ToString());
+
+         // The list was copied, and the header searched field by field for each
+         // name in it, for every message: 30,000 names x 10,001 fields x 50
+         // messages. The header is read once per message now, each field looked
+         // up among the names.
+         //
+         // The cost is made by the fields rather than by more messages because
+         // the answer grows with the names and the messages whatever the server
+         // does: each message's FETCH line repeats the section asked for, list
+         // and all (RFC 3501's section-spec), so these names over 1,000 messages
+         // of one field were 199 MB to write, log and read - 13 seconds on the
+         // slow Windows runner, where the same FETCH naming one field took two.
+         // This answer is 10 MB.
          var names = new StringBuilder("Subject");
          for (int i = 1; i < 30000; i++)
             names.Append(" n" + i);
@@ -355,9 +403,9 @@ namespace RegressionTests.IMAP
          string response = Timed(socket, "T1 FETCH 1:* (BODY.PEEK[HEADER.FIELDS (" + names + ")])\r\n", out elapsed);
 
          StringAssert.Contains("T1 OK", response, Tail(response));
-         Assert.AreEqual(1000, CountMatches(response, @"^Subject: message \d+\r$"), Tail(response));
+         Assert.AreEqual(50, CountMatches(response, @"^Subject: message \d+\r$"), Tail(response));
          Assert.That(elapsed, Is.LessThan(Bound),
-            "A FETCH of 30,000 header names over 1,000 messages took " + (long) elapsed.TotalMilliseconds + " ms.");
+            "A FETCH of 30,000 header names over 50 messages of 10,001 fields took " + (long) elapsed.TotalMilliseconds + " ms.");
 
          socket.Disconnect();
       }
@@ -381,6 +429,154 @@ namespace RegressionTests.IMAP
          string copies = Command(socket, "A2", "FETCH 1 (" + RepeatJoined("BODY.PEEK[]", " ", 40) + ")", 30);
          StringAssert.Contains("A2 NO [LIMIT]", copies, Tail(copies));
          StringAssert.DoesNotContain("* 1 FETCH", copies, "Nothing of the message is sent before the refusal.");
+
+         socket.Disconnect();
+      }
+
+      /// <summary>
+      ///    Appends one message, whole, and selects INBOX.
+      /// </summary>
+      private static void AppendOneAndSelect(TcpConnection socket, string message)
+      {
+         socket.Send("P1 APPEND INBOX {" + message.Length + "+}\r\n" + message + "\r\n");
+         string appended = ReadUntilLine(socket, "P1 ", 120);
+         StringAssert.Contains("P1 OK", appended, "The APPEND failed: " + Tail(appended));
+
+         string select = Command(socket, "S1", "SELECT INBOX", 30);
+         StringAssert.Contains("S1 OK", select, "The SELECT failed: " + Tail(select));
+      }
+
+      [Test]
+      [Description("BODY.PEEK[HEADER]<0.1> named 10,000 times over a message of 4 MB is refused with LIMIT in seconds.")]
+      public void HeaderOfALargeMessageNamedOverAndOverIsRefusedInSeconds()
+      {
+         var socket = LogOn(CreateAccount("headercopies@example.test"));
+
+         var body = new StringBuilder();
+         for (int i = 0; i < 4000; i++)
+            body.Append(new string('x', 998) + "\r\n");
+         AppendOneAndSelect(socket, "Subject: large\r\n\r\n" + body);
+
+         // What a client asks for.
+         string some = Command(socket, "A1", "FETCH 1 (BODY.PEEK[HEADER] BODY.PEEK[TEXT]<0.100> RFC822.HEADER)", 30);
+         StringAssert.Contains("A1 OK", some, Tail(some));
+         StringAssert.Contains("Subject: large", some, Tail(some));
+
+         // Each section read the message file whole for its one byte: 40 GB,
+         // where what they held, a byte each, never came near the ceiling.
+         TimeSpan elapsed;
+         string response = Timed(socket, "T1 FETCH 1 (" + RepeatJoined("BODY.PEEK[HEADER]<0.1>", " ", 10000) + ")\r\n", out elapsed);
+
+         StringAssert.Contains("T1 NO [LIMIT]", response, Tail(response));
+         StringAssert.DoesNotContain("* 1 FETCH", response, "Nothing of the message is sent before the refusal.");
+         Assert.That(elapsed, Is.LessThan(Bound),
+            "10,000 BODY.PEEK[HEADER]<0.1> over a message of 4 MB took " + (long) elapsed.TotalMilliseconds + " ms.");
+
+         socket.Disconnect();
+      }
+
+      [Test]
+      [Description("HEADER.FIELDS and HEADER.FIELDS.NOT of a field of a megabyte, <0.1>, named 6,000 and 5,000 times, are refused with LIMIT in seconds.")]
+      public void HeaderFieldsOfALargeFieldNamedOverAndOverAreRefusedInSeconds()
+      {
+         var socket = LogOn(CreateAccount("largefield@example.test"));
+
+         AppendOneAndSelect(socket, "Subject: field\r\nX-Big: " + new string('y', 1000000) + "\r\n\r\nBody.\r\n");
+
+         // What a client asks for.
+         string some = Command(socket, "A1", "FETCH 1 (BODY.PEEK[HEADER.FIELDS (Subject X-Big)] BODY.PEEK[HEADER.FIELDS.NOT (X-Big)])", 30);
+         StringAssert.Contains("A1 OK", some, Tail(some));
+         StringAssert.Contains("X-Big: yyyy", some, Tail(some));
+
+         // Each section made the megabyte field's line for its one byte: 6 GB
+         // made, a byte each held; and HEADER.FIELDS.NOT the same.
+         TimeSpan elapsed;
+         string response = Timed(socket, "T1 FETCH 1 (" + RepeatJoined("BODY.PEEK[HEADER.FIELDS (X-Big)]<0.1>", " ", 6000) + ")\r\n", out elapsed);
+
+         StringAssert.Contains("T1 NO [LIMIT]", response, Tail(response));
+         StringAssert.DoesNotContain("* 1 FETCH", response, "Nothing of the message is sent before the refusal.");
+         Assert.That(elapsed, Is.LessThan(Bound),
+            "6,000 HEADER.FIELDS (X-Big)<0.1> over a field of a megabyte took " + (long) elapsed.TotalMilliseconds + " ms.");
+
+         response = Timed(socket, "T1 FETCH 1 (" + RepeatJoined("BODY.PEEK[HEADER.FIELDS.NOT (Subject)]<0.1>", " ", 5000) + ")\r\n", out elapsed);
+
+         StringAssert.Contains("T1 NO [LIMIT]", response, Tail(response));
+         StringAssert.DoesNotContain("* 1 FETCH", response, "Nothing of the message is sent before the refusal.");
+         Assert.That(elapsed, Is.LessThan(Bound),
+            "5,000 HEADER.FIELDS.NOT (Subject)<0.1> over a field of a megabyte took " + (long) elapsed.TotalMilliseconds + " ms.");
+
+         socket.Disconnect();
+      }
+
+      [Test]
+      [Description("The MIME headers of the parts of a forwarded message of 8 MB, 1,500 of them, are answered in seconds.")]
+      public void SectionsOfAForwardedMessageAreAnsweredInSeconds()
+      {
+         var socket = LogOn(CreateAccount("forwarded@example.test"));
+
+         var inner = new StringBuilder("Subject: inner\r\nContent-Type: multipart/mixed; boundary=\"i\"\r\n\r\n");
+         for (int i = 1; i <= 40; i++)
+         {
+            inner.Append("--i\r\nX-N: " + i + "\r\n\r\n");
+            for (int line = 0; line < 200; line++)
+               inner.Append(new string('v', 998) + "\r\n");
+         }
+         inner.Append("--i--\r\n");
+
+         AppendOneAndSelect(socket,
+            "Subject: forwarded\r\nContent-Type: multipart/mixed; boundary=\"o\"\r\n\r\n" +
+            "--o\r\nContent-Type: text/plain\r\n\r\nSee below.\r\n" +
+            "--o\r\nContent-Type: message/rfc822\r\n\r\n" + inner + "\r\n" +
+            "--o--\r\n");
+
+         // Each section parsed the forwarded message afresh on its way to a part
+         // in it: 1,500 parses of 8 MB. It is parsed once for the message's
+         // sections now - and counted to their ceiling once, so these sections,
+         // a client's own, are not refused. (Few sections of a large message:
+         // each section's answer costs the slow Windows runner, with the suite's
+         // debug log, about a millisecond whatever the server reads for it.)
+         var items = new StringBuilder();
+         for (int i = 0; i < 1500; i++)
+            items.Append((i > 0 ? " " : "") + "BODY.PEEK[2." + (1 + i % 40) + ".MIME]");
+
+         TimeSpan elapsed;
+         string response = Timed(socket, "T1 FETCH 1 (" + items + ")\r\n", out elapsed);
+
+         StringAssert.Contains("T1 OK", response, Tail(response));
+         Assert.AreEqual(1500, CountMatches(response, @"^X-N: \d+\r$"), Tail(response));
+         Assert.That(elapsed, Is.LessThan(Bound),
+            "1,500 MIME sections of a forwarded message of 8 MB took " + (long) elapsed.TotalMilliseconds + " ms.");
+
+         socket.Disconnect();
+      }
+
+      [Test]
+      [Description("The MIME header of each part of a message of 2,000 parts, in one FETCH, is answered in seconds.")]
+      public void MimeHeaderOfEveryPartOfAManyPartMessageIsAnsweredInSeconds()
+      {
+         var socket = LogOn(CreateAccount("manyparts@example.test"));
+
+         var message = new StringBuilder("Subject: parts\r\nContent-Type: multipart/mixed; boundary=\"p\"\r\n\r\n");
+         for (int i = 1; i <= 2000; i++)
+            message.Append("--p\r\nX-N: " + i + "\r\n\r\nv\r\n");
+         message.Append("--p--\r\n");
+         AppendOneAndSelect(socket, message.ToString());
+
+         // Each section listed the parts from the first to its own. A client's
+         // own sections, which the ceiling of a message's sections leaves be:
+         // were the list counted to it for each, the square of the parts, four
+         // million, would pass it.
+         var items = new StringBuilder();
+         for (int i = 1; i <= 2000; i++)
+            items.Append((i > 1 ? " " : "") + "BODY.PEEK[" + i + ".MIME]");
+
+         TimeSpan elapsed;
+         string response = Timed(socket, "T1 FETCH 1 (" + items + ")\r\n", out elapsed);
+
+         StringAssert.Contains("T1 OK", response, Tail(response));
+         Assert.AreEqual(2000, CountMatches(response, @"^X-N: \d+\r$"), Tail(response));
+         Assert.That(elapsed, Is.LessThan(Bound),
+            "The MIME header of each of 2,000 parts took " + (long) elapsed.TotalMilliseconds + " ms.");
 
          socket.Disconnect();
       }

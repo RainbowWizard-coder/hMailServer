@@ -553,13 +553,19 @@ each space once; and the other parsers of a client's text that had the same shap
 the message set of `FETCH`, `STORE`, `COPY`, `MOVE` and `UID EXPUNGE` and its session's UID lookups, the `THREAD` and
 `SORT` base subject, a `STORE`'s keyword list, the per-line scan of the command buffer that masks a password in the
 log, the sets of `SEARCH`'s `UID` and sequence-set keys and of `UID FETCH`'s `VANISHED`, read once per command rather
-than once per message, and a `HEADER.FIELDS` list, read once per command rather than once per message and name.
+than once per message, and a `HEADER.FIELDS` list, read once per command rather than once per message and name, each
+section then reading the message's header once, field by field; and a `FETCH`'s part numbers, each part list read and
+each encapsulated message parsed once for all of a message's sections, where each section listed the parts from the
+first to the one it named and parsed a forwarded message afresh on its way to a part in it.
 What each produces is as it was. Commands that named something over and over now cost what naming it once costs: `$`
 (the saved search result) in a message set or as a `SEARCH` key stands in once, where each `$` copied the saved
 result; a `SORT` criterion named again is left out, where each made a key for every message; and a `FETCH` whose
 sections of one message add up to more than sixteen times the message is answered `NO [LIMIT]`, where all of them
-were read and held before any was sent. A `$` written into an element with anything else - `1:$` - is answered
-`BAD`, as no set. Found by the project's own review (CVE requested).
+were read and held before any was sent - each section counted by what it reads or makes, not only by what it keeps:
+`BODY.PEEK[HEADER]<0.1>` read the message whole for its one byte, and `HEADER.FIELDS`, `HEADER.FIELDS.NOT`, `MIME`,
+`TEXT` and a part's content cut short read or made theirs whole, as often as a command named them. A `$` written into
+an element with anything else - `1:$` - is answered `BAD`, as no set. Found by the project's own review (CVE
+requested).
 
 The commands an administrator runs no longer go where the service's account can lead them. Since 6.3.4 a new Windows
 installation runs the service as `NT SERVICE\hMailServer`, which has Modify on the program
