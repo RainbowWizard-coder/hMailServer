@@ -2306,8 +2306,8 @@ namespace HM
          static const wchar_t *names[] =
          {
             L"Subject", L"SUBJECT", L"subject", L"sUbJeCt", L"From", L"FROM", L"To", L"X-A", L"x-a",
-            L"X-B", L"x-b", L"Received", L"N1", L"n1", L"Missing", L"X-é", L"X-É",
-            L"X-€", L"X-?", L"İ", L"Content-Type", L"content-type"
+            L"X-B", L"x-b", L"Received", L"N1", L"n1", L"Missing", L"X-\u00E9", L"X-\u00C9",
+            L"X-\u20AC", L"X-?", L"\u0130", L"Content-Type", L"content-type"
          };
          const int nameCount = (int) (sizeof(names) / sizeof(names[0]));
 
