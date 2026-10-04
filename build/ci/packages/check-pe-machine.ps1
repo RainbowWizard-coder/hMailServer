@@ -17,7 +17,12 @@
 
      -Iss <script>  follows the script as ISPP would - its #define (strings,
                     GetEnv, ReadIni, SourcePath, +), #ifdef, #ifndef, #if with ==
-                    and !=, #else, #elif, #endif, #include and #error - and takes
+                    and !=, #else, #elif, #endif, #include and #error; a #sub's
+                    body passed over, since it runs where a #for or a call names
+                    it; under an #if whose expression it does not evaluate, an
+                    #error, #expr or a line outside [Files] passed over and a
+                    [Files] entry, a section, #define, #undef or #include an
+                    error - and takes
                     every Source: line of every [Files] section that is compiled
                     in, with {#...} expanded, its wildcard and recursesubdirs and
                     Excludes applied, relative to the main script's folder as ISCC
@@ -379,37 +384,69 @@ function Read-IssFiles([string] $file, $state) {
    if (-not (Test-Path -LiteralPath $file)) { throw [IssError]::new("#include `"$file`" does not exist") }
    $stack = New-Object System.Collections.Generic.List[object]
    $number = 0
+   $inSub = $false
    foreach ($raw in Get-Content -LiteralPath $file) {
       $number++
       $where = "$(Split-Path -Leaf $file):$number"
       $line = $raw.Trim()
+      # A #sub's body is what a #for or a call of it runs, not what is read where
+      # it stands: passed over up to its #endsub. (hMailServerInnoExtension.iss
+      # reads REQUIRED_DB_VERSION with one, which sets a #define by #expr and
+      # changes no [Files] entry.)
+      if ($inSub) {
+         if ($line -match '^#\s*endsub\b') { $inSub = $false }
+         continue
+      }
       $active = -not ($stack | Where-Object { -not $_.Active })
+      # Under an #if this reader could not evaluate, everything around it compiled
+      # in: what lies under it is passed over while it cannot change what this reads
+      # (an #error, an #expr, a line outside [Files]), and stops the reader where it
+      # could (a [Files] entry, a section, a #define, an #undef, an #include).
+      $undecided = @($stack | Where-Object { $_.Unknown -and $_.Outer })
       # (No switch statement here: a continue inside one ends the switch, not this loop.)
       if ($line -match '^#\s*(\w+)\s*(.*)$') {
          $directive = $Matches[1].ToLowerInvariant()
          $rest = $Matches[2].Trim()
-         if ($directive -eq 'ifdef' -or $directive -eq 'ifndef') {
+         if ($directive -eq 'sub') {
+            $inSub = $true
+         } elseif (($directive -eq 'ifdef' -or $directive -eq 'ifndef' -or $directive -eq 'if') -and $undecided.Count -gt 0) {
+            $stack.Add([pscustomobject]@{ Active = $false; Taken = $true; Outer = $false; Unknown = $true; Why = '' })
+         } elseif ($directive -eq 'ifdef' -or $directive -eq 'ifndef') {
             $v = $active -and ($state.Defines.ContainsKey($rest) -eq ($directive -eq 'ifdef'))
-            $stack.Add([pscustomobject]@{ Active = $v; Taken = $v; Outer = $active })
+            $stack.Add([pscustomobject]@{ Active = $v; Taken = $v; Outer = $active; Unknown = $false; Why = '' })
          } elseif ($directive -eq 'if') {
             $v = $false
-            if ($active) { try { $v = Test-Truthy (Invoke-IssExpression $rest $state) } catch [IssError] { throw [IssError]::new("${where}: $($_.Exception.Message)") } }
-            $stack.Add([pscustomobject]@{ Active = $v; Taken = $v; Outer = $active })
+            $unknown = $false
+            $why = ''
+            if ($active) { try { $v = Test-Truthy (Invoke-IssExpression $rest $state) } catch [IssError] { $unknown = $true; $why = "${where}: $($_.Exception.Message)" } }
+            $stack.Add([pscustomobject]@{ Active = $v; Taken = ($v -or $unknown); Outer = $active; Unknown = $unknown; Why = $why })
          } elseif ($directive -eq 'elif') {
             if ($stack.Count -eq 0) { throw [IssError]::new("${where}: #elif without #if") }
             $top = $stack[$stack.Count - 1]
-            $v = $false
-            if ($top.Outer -and -not $top.Taken) { $v = Test-Truthy (Invoke-IssExpression $rest $state) }
-            $top.Active = $v
-            if ($v) { $top.Taken = $true }
+            if (-not $top.Unknown) {
+               $v = $false
+               if ($top.Outer -and -not $top.Taken) {
+                  try { $v = Test-Truthy (Invoke-IssExpression $rest $state) }
+                  catch [IssError] { $top.Unknown = $true; $top.Why = "${where}: $($_.Exception.Message)" }
+               }
+               $top.Active = $v
+               if ($v -or $top.Unknown) { $top.Taken = $true }
+            }
          } elseif ($directive -eq 'else') {
             if ($stack.Count -eq 0) { throw [IssError]::new("${where}: #else without #if") }
             $top = $stack[$stack.Count - 1]
-            $top.Active = $top.Outer -and -not $top.Taken
-            $top.Taken = $true
+            if (-not $top.Unknown) {
+               $top.Active = $top.Outer -and -not $top.Taken
+               $top.Taken = $true
+            }
          } elseif ($directive -eq 'endif') {
             if ($stack.Count -eq 0) { throw [IssError]::new("${where}: #endif without #if") }
             $stack.RemoveAt($stack.Count - 1)
+         } elseif ($undecided.Count -gt 0) {
+            if ($directive -eq 'define' -or $directive -eq 'undef' -or $directive -eq 'include') {
+               throw [IssError]::new("${where}: #$directive under an #if this reader does not evaluate - $($undecided[0].Why)")
+            }
+            # an #error, #expr, #pragma... under it: ISCC decides, and none changes a [Files] entry
          } elseif (-not $active) {
             # a directive in a part that is not compiled
          } elseif ($directive -eq 'define') {
@@ -435,6 +472,11 @@ function Read-IssFiles([string] $file, $state) {
          # Any other directive (#pragma, #expr, #sub...) changes no [Files] entry here.
          continue
       }
+      if ($undecided.Count -gt 0) {
+         if ($line -match '^\[(\w+)\]') { throw [IssError]::new("${where}: a section under an #if this reader does not evaluate - $($undecided[0].Why)") }
+         if ($state.Section -eq 'files' -and $line -ne '' -and -not $line.StartsWith(';')) { throw [IssError]::new("${where}: a [Files] entry under an #if this reader does not evaluate - $($undecided[0].Why)") }
+         continue
+      }
       if (-not $active) { continue }
       if ($line -match '^\[(\w+)\]') { $state.Section = $Matches[1].ToLowerInvariant(); continue }
       if ($state.Section -ne 'files' -or $line -eq '' -or $line.StartsWith(';')) { continue }
@@ -448,6 +490,7 @@ function Read-IssFiles([string] $file, $state) {
       })
    }
    if ($stack.Count -ne 0) { throw [IssError]::new("$(Split-Path -Leaf $file): an #if without its #endif") }
+   if ($inSub) { throw [IssError]::new("$(Split-Path -Leaf $file): a #sub without its #endsub") }
 }
 
 function Read-IssScript([string] $iss) {
@@ -702,6 +745,53 @@ function Invoke-SelfTest {
       $threw = $false
       try { Read-IssScript (Join-Path $inst 'open.iss') | Out-Null } catch [IssError] { $threw = $true }
       Assert-That $threw 'an #if without its #endif stops it'
+
+      # hMailServerInnoExtension.iss's reading of REQUIRED_DB_VERSION, in its shape:
+      # a #sub whose body holds an #if this reader does not evaluate, a #for that
+      # runs it, and an #if it does not evaluate around an #error.
+      $versionRead = @(
+         '#define FILE AddBackslash(SourcePath) + "Constants.h"'
+         '#define VERSION ""'
+         '#define Handle 0'
+         '#define Line ""'
+         '#sub ReadLine'
+         '  #expr Line = Trim(FileRead(Handle))'
+         '  #if Pos("#define REQUIRED_DB_VERSION ", Line) == 1'
+         '    #expr VERSION = Trim(Copy(Line, Len("#define REQUIRED_DB_VERSION ") + 1))'
+         '  #endif'
+         '#endsub'
+         '#for {Handle = FileOpen(FILE); Handle && !FileEof(Handle); 0} ReadLine'
+         '#if Handle'
+         '  #expr FileClose(Handle)'
+         '#endif'
+         '#if VERSION == "" || Int(VERSION, 0) < 6000'
+         '  #error REQUIRED_DB_VERSION could not be read'
+         '#else'
+         '  #pragma message "read"'
+         '#endif'
+         '[Files]'
+         'Source: "ARM64\bin\server.exe"; DestDir: "{app}\Bin"'
+      )
+      [IO.File]::WriteAllLines((Join-Path $inst 'version.iss'), $versionRead)
+      $read = $null
+      $why = ''
+      try { $read = Read-IssScript (Join-Path $inst 'version.iss') } catch [IssError] { $why = $_.Exception.Message }
+      Assert-That ($read -and $read.Entries.Count -eq 1) "a #sub's body, and an #error under an #if this reader does not evaluate, are passed over, the [Files] entry after them read ($why)"
+      [IO.File]::WriteAllLines((Join-Path $inst 'subopen.iss'), @('#sub Never', '#if 1', '#endif'))
+      $threw = $false
+      try { Read-IssScript (Join-Path $inst 'subopen.iss') | Out-Null } catch [IssError] { $threw = $_.Exception.Message -like '*#sub without its #endsub*' }
+      Assert-That $threw 'a #sub without its #endsub stops it'
+      foreach ($case in @(
+            @{ Lines = @('[Files]', '#if Int("1", 0) < 2', 'Source: "x64\mysql.dll"; DestDir: "{app}"', '#endif'); What = 'a [Files] entry' }
+            @{ Lines = @('#if Int("1", 0) < 2', '#define SSL "elsewhere"', '#endif'); What = 'a #define' }
+            @{ Lines = @('#if A || B', '#else', '#include "files.iss"', '#endif'); What = 'an #include in its #else' }
+            @{ Lines = @('#if Int("1", 0) < 2', '[Files]', '#endif'); What = 'a section' }
+            @{ Lines = @('#if Int("1", 0) < 2', '#ifdef X', '#define Y "1"', '#endif', '#endif'); What = 'a #define in an #ifdef inside it' })) {
+         [IO.File]::WriteAllLines((Join-Path $inst 'undecided.iss'), $case.Lines)
+         $threw = $false
+         try { Read-IssScript (Join-Path $inst 'undecided.iss') | Out-Null } catch [IssError] { $threw = $_.Exception.Message -like '*does not evaluate*' }
+         Assert-That $threw "$($case.What) under an #if this reader does not evaluate stops it"
+      }
    } finally {
       Remove-Item Env:\HM_PE_SELFTEST_LIBS -ErrorAction SilentlyContinue
       Remove-Item -LiteralPath $dir -Recurse -Force -ErrorAction SilentlyContinue
