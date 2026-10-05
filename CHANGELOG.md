@@ -105,7 +105,8 @@ with `--check`).
   from 6.0.0; the SPF expansion by the DMARC test as well; the Sieve match since 6.2.22; the JSON reader's large
   bodies from 6.3.2; on Linux, the error reports of a command run as root went into the service account's log
   directory from 6.3.0, and in 6.3.0 to 6.3.2 the server's DNS resolver waited without a timeout. It also says that
-  such a command now writes no report at all, where it said the report went to standard error.
+  such a command now writes no report but the stored-secrets code's `HM7496` and `HM7497`, which go to standard
+  error, where it said every report went there.
 
 ---
 
@@ -668,8 +669,8 @@ alone, no link in them another account's and no default access control list givi
 what they make with every other account's write taken away whatever the umask, and are refused, naming the folder,
 file or link, otherwise; and every other command line run
 as root writes nothing to the log directory (it says what it did, and why it failed, on its own output; a report
-that would have gone to the error log is not written, except the stored-secrets commands', which go to standard
-error), as the Windows commands do.
+that would have gone to the error log is not written, but for the stored-secrets code's `HM7496` and `HM7497`,
+which go to standard error), as the Windows commands do.
 `--create-database` makes its `.new-installation` marker without following a link of that name.
 `build/check-elevated-verbs.py` holds all of it. The Windows commands were affected in 6.3.4 and 6.3.5, and so was the
 Linux root store commands' symlink following; and in every release with Linux packages, 6.3.0 to 6.3.5, every command
@@ -1475,9 +1476,9 @@ project's own review.
     log directory below Ubuntu's `/var/log`, which the `syslog` group may write, among them. Every other Linux
     command line run as root (`--set-setting`, the stored-secrets verbs,
     `--create-database`, `--upgrade-database` and the rest) writes nothing to the log directory - what it did and why
-    it failed are on its own output, and a report that would have gone to the error log is not written, except the
-    stored-secrets commands', which go to standard error - as the Windows commands do; and `--create-database` makes its
-    `.new-installation` marker without following a link of that name.
+    it failed are on its own output, and a report that would have gone to the error log is not written, but for the
+    stored-secrets code's `HM7496` and `HM7497`, which go to standard error - as the Windows commands do; and
+    `--create-database` makes its `.new-installation` marker without following a link of that name.
 44. **`/GrantServiceAccess` that cannot read the database ends in 7.** It names the certificate and key files, the
     backup folder and the PST import folder from the database, to say which the service would not reach once moved;
     when the account running it could not open the database - SQL Server with Windows authentication, where LocalSystem

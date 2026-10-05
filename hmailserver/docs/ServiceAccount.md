@@ -726,9 +726,10 @@ and so can put a symbolic link anywhere in them. Since the re-check of 6.3.6:
   `--upgrade-database`, `--set-admin-password`, `--check-database`,
   `--verify-update` and the rest need root for the configuration or say only what
   they read; each says what it did, and why it failed, on its own output. What
-  would have gone to the error log is not written, except the stored-secrets
-  commands' reports, which go to standard error. The server itself, and a command
-  run as the service's account, log as before.
+  would have gone to the error log is not written, but for the stored-secrets
+  code's `HM7496` and `HM7497`, which go to standard error
+  ([SecretsAtRest.md](SecretsAtRest.md)). The server itself, and a command run as
+  the service's account, log as before.
 * **`--create-database` makes `.new-installation` new.** Anything at that name in
   the data directory is removed first - a symbolic link itself, not what it names -
   and the file is then created exclusively, never through a link
