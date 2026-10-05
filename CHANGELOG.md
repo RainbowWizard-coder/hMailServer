@@ -624,7 +624,9 @@ and database folders and everything under them, the configuration that names the
 alone, no link in them another account's and no default access control list giving another account a write, and make
 what they make with every other account's write taken away whatever the umask, and are refused, naming the folder,
 file or link, otherwise; and every other command line run
-as root writes nothing to the log directory (its report goes to standard error instead), as the Windows commands do.
+as root writes nothing to the log directory (it says what it did, and why it failed, on its own output; a report
+that would have gone to the error log is not written, except the stored-secrets commands', which go to standard
+error), as the Windows commands do.
 `--create-database` makes its `.new-installation` marker without following a link of that name.
 `build/check-elevated-verbs.py` holds all of it. The Windows commands were affected in 6.3.4 and 6.3.5, and the Linux
 root store commands' symlink following was too; it needs a program already running as the service's account and an
@@ -1420,8 +1422,9 @@ project's own review.
     umask; otherwise it refuses (exit 2), naming the first folder, file or link another account owns or may write - a
     log directory below Ubuntu's `/var/log`, which the `syslog` group may write, among them. Every other Linux
     command line run as root (`--set-setting`, the stored-secrets verbs,
-    `--create-database`, `--upgrade-database` and the rest) writes nothing to the log directory - what it did is on its own
-    output and a report goes to standard error - as the Windows commands do; and `--create-database` makes its
+    `--create-database`, `--upgrade-database` and the rest) writes nothing to the log directory - what it did and why
+    it failed are on its own output, and a report that would have gone to the error log is not written, except the
+    stored-secrets commands', which go to standard error - as the Windows commands do; and `--create-database` makes its
     `.new-installation` marker without following a link of that name.
 44. **`/GrantServiceAccess` that cannot read the database ends in 7.** It names the certificate and key files, the
     backup folder and the PST import folder from the database, to say which the service would not reach once moved;

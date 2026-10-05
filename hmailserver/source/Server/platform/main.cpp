@@ -2024,9 +2024,10 @@ int main(int argc, char *argv[])
    // account's to write: a line root appended there could be carried by a
    // symbolic link that account made to a file it may not write itself, as the
    // Windows commands' lines could (ForbidServiceFolderWrites there). Each verb
-   // says what it did and why it failed on its own output already, and a
-   // report that would have gone to the error log goes to standard error
-   // instead (ErrorManager::ReportError_).
+   // says what it did and why it failed on its own output already; a report
+   // that would have gone to the error log is not written
+   // (ErrorManager::ReportError_), except the stored-secrets reports, which go
+   // to standard error (StoredSecrets.cpp, ReportFromAnyProcess_).
    const bool commandLine = rootVerb || apply_environment || !apply_profile.empty() || revert_profile || apply_new_install_defaults ||
       new_install_if_marked || store_verb != 0 || copy_to_objects || copy_from_objects || !sample_domain.empty() || check_only;
    if (commandLine && ::geteuid() == 0)
