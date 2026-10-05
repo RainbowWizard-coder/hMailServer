@@ -13,6 +13,10 @@
     <Nullable>disable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <IsPackable>false</IsPackable>
+    <!-- xUnit.net v3: a test project is an executable that runs its own tests. The mtp-off
+         package leaves out the Microsoft Testing Platform, so that dotnet test runs it
+         through VSTest and xunit.runner.visualstudio, as build/ci/windows-dotnet.ps1 asks. -->
+    <OutputType>Exe</OutputType>
     <RootNamespace>DBSetup.Tests</RootNamespace>
   </PropertyGroup>
 
@@ -30,7 +34,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.10.1" />
-    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.v3.mtp-off" Version="4.0.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="4.0.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
