@@ -497,10 +497,9 @@ Special cases
 -------------
 
 **Moving to a different database backend** is not an upgrade and the chain does not
-do it. There is no supported in-place conversion between backends. The route is a new
-installation against the new backend and a migration of accounts and mail — and there
-is no first-class tool for that yet, which is honestly recorded as a gap in
-[Roadmap.md](../../Roadmap.md).
+do it. There is no in-place conversion between backends: the route is a backup, a new
+database on the new backend, and a restore into it, as
+[MigratingDatabaseBackend.md](MigratingDatabaseBackend.md) describes step by step.
 
 **Moving to a new machine**: install the same version on the new machine, restore the
 database and the data directory, and confirm the data-directory path in the settings
