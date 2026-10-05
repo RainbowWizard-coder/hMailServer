@@ -9,7 +9,7 @@ to 6.3.5 link the project's first path, `gitlab.com/Progressiverobot/hmailserver
 This project is a maintained fork of hMailServer 5.7 by Martin Knafve. Its own releases begin at 6.0.0; the
 `hMailServer-5.7.0-bNNNN` tags in the repository are upstream builds, not releases of this project.
 
-**The latest release is 6.3.6, published on 1 October 2026.** Anything that arrived after it is in the tree
+**The latest release is 6.3.6, published on 6 October 2026.** Anything that arrived after it is in the tree
 after 6.3.6 and not yet released. It is listed under [Unreleased](#unreleased---in-the-tree-after-636-not-yet-released)
 and will carry a version number when a release is cut.
 
