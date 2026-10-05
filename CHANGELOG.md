@@ -249,7 +249,7 @@ executable-JavaScript media-type aliases a browser also runs; the attachment alr
 
 The REST administration listener's plain loopback port now answers only a request whose `Host` it expects and refuses
 any other with 421 before the request is authenticated, so a web page that points a name of its own at this machine
-can no longer reach the console through a browser on it (CVE requested). It answers `localhost`, an IP address, the
+can no longer reach the console through a browser on it (CVE-2026-104659). It answers `localhost`, an IP address, the
 server's host name and the host of each address configured as the one the webmail is reached at from outside. A reverse
 proxy that forwards the browser's own `Host` needs that name to be one of these: upgrading behind such a proxy, set the
 webmail's outside address (for example `confidential_base_url`) or the server's host name to it first
@@ -269,7 +269,7 @@ cleared by the right password: a source that keeps guessing keeps it waiting whi
 on the same machine every browser shares one source, so one client's wrong guesses keep the password sign-in waiting
 for everyone while they last; the administrator's API keys, passkey and single sign-on are not touched by it
 ([DevicesAndSessions.md](hmailserver/docs/DevicesAndSessions.md), The administrator password's delay). Found by the
-project's own review and its second review of the release (CVE requested).
+project's own review and its second review of the release (CVE-2026-104659).
 
 A response sent to a browser that came over HTTPS now carries `Strict-Transport-Security` for a year, which no earlier
 version sent, so the browser does not go back over plain HTTP where the credentials could be read; it is never sent on
@@ -299,7 +299,7 @@ fixes from there.
 
 The webmail now hands the browser an attachment it decrypted itself, of an S/MIME message (since 6.3.2) or an
 OpenPGP one (since 6.3.4), as a file of no type (`application/octet-stream`) rather than under the type the message
-named, so that the browser only ever saves it; every version from 6.3.2 to 6.3.5 is affected (CVE requested). Such a
+named, so that the browser only ever saves it; every version from 6.3.2 to 6.3.5 is affected (CVE-2026-103647). Such a
 part that names no file is saved as `part` with the extension of the type it declares when that type is on a short
 list - plain text, CSV, a calendar, a contact card, PDF, ZIP, a key, a forwarded message, PNG, JPEG, GIF, WebP, MP3, MP4
 and the three Office documents - and as `part` alone otherwise; no extension a browser renders as a page or a desktop
@@ -381,7 +381,7 @@ which nobody else can read until they have verified (What changes on upgrade, it
 AppImage run under the path unit keeps the script copied to `/usr/lib/hmailserver/` when its update units were
 installed, which the AppImage's own update does not replace: copy 6.3.6's there and give it `--image`. Until a Linux
 server's helper is 6.3.6's, `systemctl disable --now hmailserver-update.path` turns the apply off, and the check and
-the download go on; install 6.3.6 with the package manager. Found by the project's own review (CVE requested).
+the download go on; install 6.3.6 with the package manager. Found by the project's own review (CVE-2026-104658).
 
 The same helper went on writing into the service account's Updates directory by name after it had started the server
 again, in 6.3.4 and 6.3.5: it appended each line of its log to the log's file, gave the log and the outcome to the
@@ -392,7 +392,7 @@ file to the service account or change its mode, or put root's file into a direct
 directory, and makes and opens both files, while the server is confirmed stopped; gives them to the service account
 through the open files before it starts the server; writes them through the open files alone; and renames each into
 place through the open directory, which replaces a symbolic link and never follows it. Windows is not affected. Found
-by the project's own review (CVE requested, with the helper's first flaw above).
+by the project's own review (CVE-2026-104658, with the helper's first flaw above).
 
 Some COM objects that carry no credential were not refused what only a signed-in caller may do. A message, its
 attachments and a fetch account that a program creates for itself carry no credential, and neither do the objects an
@@ -402,7 +402,7 @@ attach a fetch account to any account. This is in every version up to 6.3.5, as 
 the server's own event scripts these are now refused, unless the program's own process holds an `Application` that
 signed in, whose credential they then take; reading or writing a file on the server's disk through a message is the
 server administrator's alone, and mail a signed-in account queues claims to be from only an address it may send as
-(What changes on upgrade, item 26). Found by the project's own review (CVE requested).
+(What changes on upgrade, item 26). Found by the project's own review (CVE-2026-104660).
 
 An IMAP session that has turned compression on (`COMPRESS=DEFLATE`, RFC 4978) no longer has the server inflate
 whatever one read of its compressed input expands to. Every version from 6.2.28, the release that brought the
@@ -425,7 +425,7 @@ for no authentication, so the host's certificate is not judged for it; it is sti
 for that - an MTA-STS policy in enforce mode, a remote-domain policy or a rule, or this server's own outbound security,
 `SmtpDeliveryConnectionSecurity` at SSL or STARTTLS (required), or a route's, with `VerifyRemoteSslCertificate` on
 (What changes on upgrade, item 28). In every version up to 6.3.5; found by the project's own review and its second
-review of the release (CVE requested).
+review of the release (CVE-2026-104704).
 
 Outbound DANE did not hold against anybody who could disturb a recipient domain's DNS: on the path between this
 server and its resolver, a resolver that answered falsely, or on the path between the resolver and the domain's own
@@ -2371,14 +2371,14 @@ project's own review.
   ManageSieve and metrics listeners set their socket timeouts in the form Windows takes, which Linux refuses, and the
   three HTTPS requests among them read with calls that on Linux wait without a timeout in any case. So on Linux a
   wait on a peer that stopped answering lasted for as long as the connection stayed open. This was so in every
-  release with Linux packages, 6.3.0 to 6.3.5 (CVE requested); Windows honoured the timeouts, each of which bounded one
-  read. The three HTTPS requests now go through the server's one HTTPS client, whose deadline bounds each request whole
-  on both platforms - 15 seconds for the MTA-STS policy, 20 for the token, 30 for an ACME request - and the others take
-  their timeouts in the form each platform takes: 5 seconds for the TLSA query, the http-01 responder and the metrics
-  listener, 30 for ManageSieve. What this changes besides is in What changes on upgrade, item 16. A new tester program
-  the Linux build runs, `network-deadline-tests`, holds the token and ACME requests, the TLSA query and the http-01
-  responder to their deadlines against a peer on 127.0.0.1 that never answers, and the policy fetch to its own through a
-  proxy of its own that never answers, and fails against the code as it was; `HealthProbes`, `ManageSieve` and
+  release with Linux packages, 6.3.0 to 6.3.5 (CVE-2026-103649); Windows honoured the timeouts, each of which bounded
+  one read. The three HTTPS requests now go through the server's one HTTPS client, whose deadline bounds each request
+  whole on both platforms - 15 seconds for the MTA-STS policy, 20 for the token, 30 for an ACME request - and the others
+  take their timeouts in the form each platform takes: 5 seconds for the TLSA query, the http-01 responder and the
+  metrics listener, 30 for ManageSieve. What this changes besides is in What changes on upgrade, item 16. A new tester
+  program the Linux build runs, `network-deadline-tests`, holds the token and ACME requests, the TLSA query and the
+  http-01 responder to their deadlines against a peer on 127.0.0.1 that never answers, and the policy fetch to its own
+  through a proxy of its own that never answers, and fails against the code as it was; `HealthProbes`, `ManageSieve` and
   `OutboundXOAuth2` in the regression suite have a case each.
 
 - **The ACME client reads a header that comes last.** `AcmeClient` looked a response header up in the block cut
