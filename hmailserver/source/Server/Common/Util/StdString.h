@@ -556,12 +556,12 @@
 // at least in the MS implementation) that you never know what's available 
 // -----------------------------------------------------------------------------
 template<class Type>
-inline const Type& SSMIN(const Type& arg1, const Type& arg2)
+inline Type SSMIN(const Type& arg1, const Type& arg2)
 {
    return arg2 < arg1 ? arg2 : arg1;
 }
 template<class Type>
-inline const Type& SSMAX(const Type& arg1, const Type& arg2)
+inline Type SSMAX(const Type& arg1, const Type& arg2)
 {
    return arg2 > arg1 ? arg2 : arg1;
 }
@@ -1330,7 +1330,7 @@ inline void ssasn(std::string& sDst, const std::wstring& sSrc)
 #ifdef SS_MBCS
       sDst.resize(sslen(szCvt));
 #else
-      szCvt;
+      (void) szCvt;
       sDst.resize(sSrc.size());
 #endif
    }
@@ -1360,7 +1360,7 @@ inline void ssasn(std::string& sDst, PCWSTR pW)
       sDst.resize(sslen(szCvt));
 #else
       sDst.resize(nDst);
-      szCvt;
+      (void) szCvt;
 #endif
    }
    else
@@ -1370,7 +1370,7 @@ inline void ssasn(std::string& sDst, PCWSTR pW)
 }
 inline void ssasn(std::string& sDst, const int nNull)
 {
-   UNUSED(nNull);
+   (void) nNull;
    ASSERT(nNull==0);
    sDst.assign("");
 }  
@@ -1447,7 +1447,7 @@ inline void ssasn(std::wstring& sDst, PCSTR pA)
 }
 inline void ssasn(std::wstring& sDst, const int nNull)
 {
-   UNUSED(nNull);
+   (void) nNull;
    ASSERT(nNull==0);
    sDst.assign(L"");
 }
@@ -1480,7 +1480,7 @@ inline void ssadd(std::string& sDst, const std::wstring& sSrc)
       sDst.resize(nDst + sslen(szCvt));
 #else
       sDst.resize(nDst + nAdd);
-      szCvt;
+      (void) szCvt;
 #endif
    }
 }
@@ -1508,7 +1508,7 @@ inline void ssadd(std::string& sDst, PCWSTR pW)
       sDst.resize(nDst + sslen(szCvt));
 #else
       sDst.resize(nDst + nSrc);
-      szCvt;
+      (void) szCvt;
 #endif
    }
 }
@@ -1553,7 +1553,7 @@ inline void ssadd(std::wstring& sDst, const std::string& sSrc)
       sDst.resize(nDst + sslen(szCvt));
 #else
       sDst.resize(nDst + nSrc);
-      szCvt;
+      (void) szCvt;
 #endif
    }
 }
@@ -1573,7 +1573,7 @@ inline void ssadd(std::wstring& sDst, PCSTR pA)
       sDst.resize(nDst + sslen(szCvt));
 #else
       sDst.resize(nDst + nSrc);
-      szCvt;
+      (void) szCvt;
 #endif
    }
 }
@@ -1926,7 +1926,7 @@ inline int sscpycvt(PWSTR pDst, PCSTR pSrc, int nMax)
    // Note -- we assume pDst is big enough to hold pSrc.  If not, we're in
    // big trouble.  No bounds checking.  Caveat emptor.
 
-   const PWSTR szCvt = StdCodeCvt(pDst, nMax, pSrc, nMax);
+   PCWSTR szCvt = StdCodeCvt(pDst, nMax, pSrc, nMax);
    return sslen(szCvt);
 }
 
@@ -2052,7 +2052,7 @@ struct FmtArg
     const ARG& operator()() const { return a_; }
     const ARG& a_;
 private:
-    FmtArg& operator=(const FmtArg&) { return *this; }
+    FmtArg& operator=(const FmtArg&) = delete;
 };
 
 template<typename CT>
@@ -4041,7 +4041,7 @@ struct FmtArg<CStdStringA>
     PCSTR operator()() const { return a_.c_str(); }
     const CStdStringA& a_;
 private:
-    FmtArg<CStdStringA>& operator=(const FmtArg<CStdStringA>&) { return *this; }
+    FmtArg<CStdStringA>& operator=(const FmtArg<CStdStringA>&) = delete;
 };
 template<>
 struct FmtArg<CStdStringW>
@@ -4050,7 +4050,7 @@ struct FmtArg<CStdStringW>
     PCWSTR operator()() const { return a_.c_str(); }
     const CStdStringW& a_;
 private:
-    FmtArg<CStdStringW>& operator=(const FmtArg<CStdStringW>&) { return *this; }
+    FmtArg<CStdStringW>& operator=(const FmtArg<CStdStringW>&) = delete;
 };
 
 template<>
@@ -4060,7 +4060,7 @@ struct FmtArg<std::string>
     PCSTR operator()() const { return a_.c_str(); }
     const std::string& a_;
 private:
-    FmtArg<std::string>& operator=(const FmtArg<std::string>&) { return *this; }
+    FmtArg<std::string>& operator=(const FmtArg<std::string>&) = delete;
 };
 template<>
 struct FmtArg<std::wstring>
@@ -4069,7 +4069,7 @@ struct FmtArg<std::wstring>
     PCWSTR operator()() const { return a_.c_str(); }
     const std::wstring& a_;
 private:
-    FmtArg<std::wstring>& operator=(const FmtArg<std::wstring>&) {return *this;}
+    FmtArg<std::wstring>& operator=(const FmtArg<std::wstring>&) = delete;
 };
 #endif // #ifdef SS_SAFEFORMAT
 

@@ -51,7 +51,8 @@ namespace HM
       public:
          BoundedSmtpProbe(int timeoutSeconds) :
             socket_(io_context_),
-            deadline_(std::chrono::steady_clock::now() + std::chrono::seconds(timeoutSeconds))
+            deadline_(std::chrono::steady_clock::now() + std::chrono::seconds(timeoutSeconds)),
+            chunk_()
          {
          }
 

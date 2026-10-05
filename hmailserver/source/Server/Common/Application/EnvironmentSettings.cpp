@@ -609,6 +609,11 @@ namespace HM
          bytes.append(buffer, read);
          if (bytes.size() > MaximumFileBytes)
             break;
+
+         // A short read is the end of the file or an error (C11 7.21.8.1); ferror()
+         // below says which.
+         if (read < sizeof(buffer))
+            break;
       }
 
       // A read that stopped on an error is a value cut short, and is refused rather

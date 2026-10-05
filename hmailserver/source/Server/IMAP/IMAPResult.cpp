@@ -36,6 +36,9 @@ namespace HM
    IMAPResult& 
    IMAPResult::operator= (const IMAPResult&otherCopy)
    {
+      if (this == &otherCopy)
+         return *this;
+
       result_ = otherCopy.GetResult();
       message_ = otherCopy.GetMessage();
 

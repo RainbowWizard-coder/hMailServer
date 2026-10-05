@@ -262,7 +262,7 @@ namespace HM
       {
          char *text = nullptr;
 
-         if (ldap_get_option(session, LDAP_OPT_DIAGNOSTIC_MESSAGE, &text) != LDAP_OPT_SUCCESS || text == nullptr)
+         if (ldap_get_option(session, LDAP_OPT_DIAGNOSTIC_MESSAGE, static_cast<void *>(&text)) != LDAP_OPT_SUCCESS || text == nullptr)
             return String();
 
          String diagnostic = FromUtf8_(text);

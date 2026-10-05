@@ -376,7 +376,14 @@ namespace
       size_t read = 0;
 
       while ((read = ::fread(block, 1, sizeof(block), handle)) > 0)
+      {
          bytes.append(block, read);
+
+         // A short read is the end of the file or an error (C11 7.21.8.1); ferror()
+         // below says which.
+         if (read < sizeof(block))
+            break;
+      }
 
       const bool failed = ::ferror(handle) != 0;
       ::fclose(handle);
