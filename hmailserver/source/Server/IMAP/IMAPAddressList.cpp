@@ -421,9 +421,7 @@ namespace HM
                inAngle = false;
             else if (inAngle)
                continue;
-            else if (IsSpecialToken_(token, ','))
-               break;
-            else if (IsSpecialToken_(token, ';') && inGroup)
+            else if (IsSpecialToken_(token, ',') || (IsSpecialToken_(token, ';') && inGroup))
                break;
             else if (IsSpecialToken_(token, ':') && !inGroup)
             {

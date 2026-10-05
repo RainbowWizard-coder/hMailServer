@@ -846,9 +846,7 @@ namespace HM
 
       if (file->IsOpen())
       {
-         if (file->GetName() != fileName)
-            file->Close();
-         else if (!fileExists)
+         if (file->GetName() != fileName || !fileExists)
             file->Close();
       }
       

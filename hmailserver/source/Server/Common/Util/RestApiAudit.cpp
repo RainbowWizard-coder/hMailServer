@@ -325,26 +325,40 @@ namespace HM
             // by forgetting it.
             const JsonValue *member = nullptr;
 
-            if ((member = document.Get("enabled")) != nullptr)
+            member = document.Get("enabled");
+            if (member != nullptr)
                rule.enabled = member->AsBool();
-            if ((member = document.Get("digest")) != nullptr)
+
+            member = document.Get("digest");
+            if (member != nullptr)
                rule.digest = member->AsBool();
-            if ((member = document.Get("threshold")) != nullptr)
+
+            member = document.Get("threshold");
+            if (member != nullptr)
                rule.threshold = member->AsInt();
-            if ((member = document.Get("actions")) != nullptr)
+
+            member = document.Get("actions");
+            if (member != nullptr)
                rule.actions = member->AsInt();
-            if ((member = document.Get("cooldown_minutes")) != nullptr)
+
+            member = document.Get("cooldown_minutes");
+            if (member != nullptr)
                rule.cooldown = member->AsInt();
-            if ((member = document.Get("address")) != nullptr && !JsonText(member->AsString(), rule.address))
+
+            member = document.Get("address");
+            if (member != nullptr && !JsonText(member->AsString(), rule.address))
                return BuildResponse_(400, "{\"error\":\"address is not UTF-8\"}");
-            if ((member = document.Get("webhook")) != nullptr && !JsonText(member->AsString(), rule.webhook))
+
+            member = document.Get("webhook");
+            if (member != nullptr && !JsonText(member->AsString(), rule.webhook))
                return BuildResponse_(400, "{\"error\":\"webhook is not UTF-8\"}");
 
             // Write-only, as a secret should be: it can be set, it can be
             // cleared with "", and it is never handed back. The webhook is
             // signed with its UTF-8 (AlertManager::DeliverWebhook_), which is
             // what a receiver holding the same text computes.
-            if ((member = document.Get("webhook_secret")) != nullptr && !JsonText(member->AsString(), rule.secret))
+            member = document.Get("webhook_secret");
+            if (member != nullptr && !JsonText(member->AsString(), rule.secret))
                return BuildResponse_(400, "{\"error\":\"webhook_secret is not UTF-8\"}");
 
             String refusal;

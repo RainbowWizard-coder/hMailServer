@@ -363,9 +363,8 @@ namespace HM
          const boost::uintmax_t size = boost::filesystem::file_size(path.c_str(), sizeError);
          const std::time_t written = boost::filesystem::last_write_time(path.c_str(), timeError);
 
-         if (sizeError || timeError)
-            reload = true;
-         else if ((unsigned __int64) size != file_size_ || (__int64) written != file_written_)
+         if (sizeError || timeError ||
+             (unsigned __int64) size != file_size_ || (__int64) written != file_written_)
             reload = true;
       }
 

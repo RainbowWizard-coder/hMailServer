@@ -49,8 +49,6 @@ namespace HM
       {
       case HM::DatabaseSettings::TypeMSSQLCompactEdition:
       case HM::DatabaseSettings::TypeMSSQLServer:
-         sCommandSeparator = "\n\n";
-         break;
       case HM::DatabaseSettings::TypeMYSQLServer:
          sCommandSeparator = "\n\n";
          break;

@@ -4309,14 +4309,7 @@ namespace HM
          return;
       }
 
-      if (!current_message_)
-      {
-         // User tried to send a mail without specifying a correct mail from or rcpt to.
-         SendResponse_(503, _T("5.5.1"), _T("Must have sender and recipient first."));
-
-         return;
-      }
-      else if ( current_message_->GetRecipients()->GetCount() == 0)
+      if (!current_message_ || current_message_->GetRecipients()->GetCount() == 0)
       {
          // User tried to send a mail without specifying a correct mail from or rcpt to.
          SendResponse_(503, _T("5.5.1"), _T("Must have sender and recipient first."));

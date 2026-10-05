@@ -485,7 +485,8 @@ namespace HM
 
             const JsonValue *member = nullptr;
 
-            if ((member = body.Get("url")) != nullptr)
+            member = body.Get("url");
+            if (member != nullptr)
             {
                if (!member->IsString())
                   return BuildResponse_(400, "{\"error\":\"url is a string\"}");
@@ -497,7 +498,8 @@ namespace HM
             // clearing it: a route with no secret is refused anyway, and a client
             // that sent secret:"" by accident would otherwise break a working
             // endpoint.
-            if ((member = body.Get("secret")) != nullptr && member->IsString())
+            member = body.Get("secret");
+            if (member != nullptr && member->IsString())
             {
                const String given = Utf8ToString(member->AsString());
 
@@ -515,7 +517,8 @@ namespace HM
                 !ReadWord(body, "attachments", AttachmentWords, 3, hook.attachments, error))
                return BuildResponse_(400, "{\"error\":\"" + escape(error) + "\"}");
 
-            if ((member = body.Get("max_size_kb")) != nullptr)
+            member = body.Get("max_size_kb");
+            if (member != nullptr)
             {
                if (!member->IsNumber())
                   return BuildResponse_(400, "{\"error\":\"max_size_kb is a whole number\"}");

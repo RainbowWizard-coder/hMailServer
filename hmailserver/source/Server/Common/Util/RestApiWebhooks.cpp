@@ -311,7 +311,8 @@ namespace HM
 
             const JsonValue *member = nullptr;
 
-            if ((member = body.Get("url")) != nullptr)
+            member = body.Get("url");
+            if (member != nullptr)
             {
                if (!member->IsString())
                   return BuildResponse_(400, "{\"error\":\"url is a string\"}");
@@ -324,7 +325,8 @@ namespace HM
             // clearing it, because a subscription with no secret is refused anyway
             // and a client that sent secret:"" by accident would otherwise break a
             // working endpoint.
-            if ((member = body.Get("secret")) != nullptr && member->IsString())
+            member = body.Get("secret");
+            if (member != nullptr && member->IsString())
             {
                const String given = Utf8ToString(member->AsString());
 
@@ -339,7 +341,8 @@ namespace HM
                 !ReadList(body, "addresses", subscription.addresses, listError))
                return BuildResponse_(400, "{\"error\":\"" + escape(listError) + "\"}");
 
-            if ((member = body.Get("enabled")) != nullptr)
+            member = body.Get("enabled");
+            if (member != nullptr)
             {
                if (!member->IsBool())
                   return BuildResponse_(400, "{\"error\":\"enabled is true or false\"}");
@@ -347,7 +350,8 @@ namespace HM
                subscription.enabled = member->AsBool();
             }
 
-            if ((member = body.Get("include_subject")) != nullptr)
+            member = body.Get("include_subject");
+            if (member != nullptr)
             {
                if (!member->IsBool())
                   return BuildResponse_(400, "{\"error\":\"include_subject is true or false\"}");
@@ -355,7 +359,8 @@ namespace HM
                subscription.include_subject = member->AsBool();
             }
 
-            if ((member = body.Get("max_per_minute")) != nullptr)
+            member = body.Get("max_per_minute");
+            if (member != nullptr)
             {
                if (!member->IsNumber())
                   return BuildResponse_(400, "{\"error\":\"max_per_minute is a whole number\"}");
@@ -481,19 +486,23 @@ namespace HM
             if (!WebhookManager::IsKnownEvent(event.name))
                return BuildResponse_(400, "{\"error\":\"this server raises message.received, message.delivered, message.bounced, message.quarantined and account.locked\"}");
 
-            if ((member = body.Get("domain")) != nullptr && member->IsString())
+            member = body.Get("domain");
+            if (member != nullptr && member->IsString())
                event.domain = Utf8ToString(member->AsString());
 
-            if ((member = body.Get("account")) != nullptr && member->IsString())
+            member = body.Get("account");
+            if (member != nullptr && member->IsString())
             {
                event.account = Utf8ToString(member->AsString());
                event.recipient = event.account;
             }
 
-            if ((member = body.Get("sender")) != nullptr && member->IsString())
+            member = body.Get("sender");
+            if (member != nullptr && member->IsString())
                event.sender = Utf8ToString(member->AsString());
 
-            if ((member = body.Get("subject")) != nullptr && member->IsString())
+            member = body.Get("subject");
+            if (member != nullptr && member->IsString())
                event.subject = Utf8ToString(member->AsString());
 
             event.reason = _T("Raised through POST /api/v1/webhooks/test.");

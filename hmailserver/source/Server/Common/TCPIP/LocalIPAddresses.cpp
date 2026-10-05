@@ -38,12 +38,12 @@ namespace HM
 
       if( gethostname ( name, sizeof(name)) == 0)
       {
-         PHOSTENT hostinfo;
+         PHOSTENT hostinfo = gethostbyname(name);
          // IPv4 entries of four bytes only, which is what each is read as below
          // and all gethostbyname gives on Windows and a current glibc: a glibc
          // before 2.30 with "options inet6" answered sixteen-byte IPv6 entries,
          // whose first four bytes would have been taken for an address.
-         if((hostinfo = gethostbyname(name)) != NULL && hostinfo->h_addrtype == AF_INET &&
+         if(hostinfo != NULL && hostinfo->h_addrtype == AF_INET &&
             hostinfo->h_length == (int) sizeof(struct in_addr))
          {
             int nCount = 0;

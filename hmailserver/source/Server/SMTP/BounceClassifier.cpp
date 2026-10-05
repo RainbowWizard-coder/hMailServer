@@ -302,9 +302,8 @@ namespace HM
       }
 
       wchar_t classDigit = '5';
-      if (replyCode >= 400 && replyCode <= 499)
-         classDigit = '4';
-      else if (replyCode == 0 && !statusCode.IsEmpty() && statusCode.GetAt(0) == '4')
+      if ((replyCode >= 400 && replyCode <= 499) ||
+          (replyCode == 0 && !statusCode.IsEmpty() && statusCode.GetAt(0) == '4'))
          classDigit = '4';
 
       const String remoteCode = ExtractEnhancedCode(reply);
