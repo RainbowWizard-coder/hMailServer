@@ -73,12 +73,13 @@ with `--check`).
 
 ### Operations
 
-- **Fixed: on Linux, a MySQL or PostgreSQL column the server reads as a whole number went through an `int` on its way
-  to the `long` it is kept in.** The two recordsets read such a column with `atoi`, whose `int` is narrower than
-  Linux's 64-bit `long`, so a value beyond 2,147,483,647 would have come back wrong; they now read it with `strtol`,
-  and a decimal column with `strtod`, the conversion `atof` made. A value in an `int`'s range reads as before, and
-  Windows, whose `long` is an `int`'s width, reads every value as before. The REST API's complaints route reads its
-  `account_id` filter with `_atoi64`, as the routes beside it read their ids.
+- **Fixed: on Linux, a MySQL or PostgreSQL column the server reads as a `long` went through an `int` on its way
+  there.** The two recordsets read such a column with `atoi`, whose `int` is narrower than Linux's 64-bit `long`, so a
+  value beyond 2,147,483,647 would have come back wrong; they now read it with `strtol`, and a decimal column with
+  `strtod`, the conversion `atof` made. The 64-bit ids, such as a message's, were and are read with `_atoi64`, and
+  were not affected. A value in an `int`'s range reads as before, and Windows, whose `long` is an `int`'s width, reads
+  every value as before. The REST API's complaints route reads its `account_id` filter with `_atoi64`, as the routes
+  beside it read their ids.
 - **On Linux the update check asks `rpm` whether it installed the server once in each process, through the server's
   own process launcher.** It ran `/usr/bin/rpm -q hmailserver` through `system()` and kept the answer where two
   threads asking at once could both run it; the first caller now runs it, with no shell, and the others take its
@@ -86,21 +87,26 @@ with `--check`).
 
 ### Build and tests
 
-- **The static-analysis job's baseline holds 691 findings, down from 887.** The 187 that the security dashboard's
-  triage of 5 October 2026 marked to harden or fix are changed in the code, and nine more went with the same edits:
+- **The static-analysis job's baseline holds 691 findings, down from 887.** The 191 that the security dashboard's
+  triage of 5 October 2026 marked to harden or fix are changed in the code, and five more went with the same edits:
   the Linux command line's and `openpgp-writer`'s unchecked writes to the terminal discard their results with
   `(void)`, members and locals take their value where they are declared, the REST handlers' assignments leave their
-  `if` conditions, branches with one body are joined, three widening casts widen before the arithmetic, and the six
-  sites cppcheck rated High read as its model follows them. Apart from the two entries under Operations, none of them
-  changes what the server does. `openpgp-writer`, a test tool, now ends with 1, saying why, when its message could not
-  be written to standard output, where it ended with 0.
+  `if` conditions, branches with one body are joined, `StdString.h`'s SSMIN and SSMAX return by value, its no-op
+  statements are cast to `(void)` and FmtArg's assignment is deleted, `IMAPResult`'s assignment checks for
+  self-assignment, the ini file's and the file-backed settings' whole-file read loops stop at the first short read,
+  two static-only classes' private destructors are no longer virtual, the LDAP client's option pointer and the
+  recipient callout's read buffer say in so many words what they hold, the PST reader's child sets its signal mask
+  with `pthread_sigmask`, three widening casts widen before the arithmetic, and six of the seven sites cppcheck rated
+  High read as its model follows them (the seventh, CrashSimulation.cpp's null pointer, is deliberate and stays).
+  Apart from the two entries under Operations, none of them changes what the server does. `openpgp-writer`, a test
+  tool, now ends with 1, saying why, when its message could not be written to standard output, where it ended with 0.
 - **The testers' four timing checks of computation that 6.3.6 left out take `HM_TEST_TIME_BOUND` as well**, ten times
   their margin where the aarch64 RPM builds run them under qemu-user: ImipTester's three fixed margins (a quarter of a
   second, 0.02 s, a quarter of a second) over the expansions they are measured against, and XmlDocument's 3000 ms for
   its worst-case document. The 6.3.6 tag's `rpm-fedora43-aarch64` failed once on the 0.02 s margin (0.1547 s against
   0.1424 s). The checks that race a real sleep or a deadline - NeverBanNameList's two and `network-deadline-tests`' -
   keep their bounds: emulation does not slow a sleep, and ten times theirs would pass a deadline that was not kept.
-- **DBSetup.Tests runs on xUnit.net v3** (`xunit.v3.mtp-off`), as the other two SDK-style test projects have since
+- **DBSetup.Tests runs on xUnit.net v3** (`xunit.v3.mtp-off`), as ControlPanel.Tests and ImportTool.Tests have since
   6.3.6; it is new in 6.3.6 and had kept the deprecated `xunit` 2.9.3.
 
 ### Documentation
@@ -565,17 +571,17 @@ each compressed layer is inflated to 32 MB at most and a message past that is re
 (What changes on upgrade, item 40). Found by the project's own review.
 
 Where a message has an HTML part and no text part, the server reads its text with the tags dropped and the entities
-decoded: for the snippet the webmail's message list shows, for an IMAP client's `PREVIEW`, and for the page of a
-message that expires. The decoding replaced each entity in place and moved the whole rest of the text along every
-time, so its time grew with the square of their number, and one message of a few megabytes of entities held the REST
-worker that listed the folder for minutes - no click needed, since the list is the first thing the webmail asks for -
-and held an IMAP thread the same way; with a few of them the webmail, the Control Deck and the REST API stopped
-answering anybody. This is in the message list from 6.3.3, the page of a message that expires from 6.3.4 and `PREVIEW`
-from 6.2.22, up to 6.3.5. The same replacement was reached by other readers of a stranger's text from 6.0.0: the DMARC
-anti-spam test, on by default, verifies the DKIM signatures of each message an unauthenticated sender delivers to a
-range with spam protection (the shipped Internet range has it), up to the anti-spam scan size (1 MB by default), on the
-task thread that accepts the message, before the server answers it, and the reader of a signature removes the spaces of
-its `h=` and `b=` tags with that replacement, so a signature holding a great many spaces held that thread for seconds to
+decoded: for the snippet the webmail's message list shows, for an IMAP client's `PREVIEW`, and for the page of a message
+that expires. The decoding replaced each entity in place and moved the whole rest of the text along every time, so its
+time grew with the square of their number, and one message of a few megabytes of entities held the REST worker that
+listed the folder for minutes - no click needed, since the list is the first thing the webmail asks for - and held an
+IMAP thread the same way; with a few of them the webmail, the Control Deck and the REST API stopped answering anybody.
+This is in the message list from 6.3.3, the page of a message that expires from 6.3.4 and `PREVIEW` from 6.2.22, up to
+6.3.5. The same replacement was reached by other readers of a stranger's text from 6.0.0: the DMARC anti-spam test, on
+by default, verifies the DKIM signatures of each message an unauthenticated sender delivers from an address in a range
+with spam protection (the shipped Internet range has it), up to the anti-spam scan size (1 MB by default), on the task
+thread that accepts the message, before the server answers it, and the reader of a signature removes the spaces of its
+`h=` and `b=` tags with that replacement, so a signature holding a great many spaces held that thread for seconds to
 tens of seconds with nobody opening anything, and a stream of such messages held every thread the queue gives those
 tasks, so that the server answered no received message while it lasted; and IMAP `FETCH ENVELOPE` and `SORT` by date
 read a message's Date field with it. So in every version from 6.0.0 up to 6.3.5. In 6.3.6 the server's string
@@ -725,13 +731,13 @@ the sender's: an RFC 2047 encoded word may decode to as many as it likes. A valu
 minute, each time it was read, and the default largest message holds over ten times as many, so a stranger's message
 held the REST worker that listed its folder, or the IMAP thread that searched, sorted or threaded it, for minutes and
 more, and a few such messages stopped the webmail, or the IMAP, SMTP and POP3 ports, answering anybody. The DMARC test,
-on by default, reads the From of each message an unauthenticated sender delivers to a range with spam protection, up to
-the anti-spam scan size (1 MB by default), on the task thread that accepts the message, before the server answers it, so
-a sender holds that thread for seconds with each such message and needs nobody to open anything. This is in every
-version from 6.0.0 up to 6.3.5. In 6.3.6 the value is unfolded in one pass, to the same result. The reading of a
-message's header from its file had the same shape at a larger scale: after each 4,000 bytes it searched all it had read
-for the header's end, some five seconds for a header of 20 MB, the default largest message, at each of the several reads
-of a message; it now searches only what each read adds. Found by the project's own review (CVE requested).
+on by default, reads the From of each message an unauthenticated sender delivers from an address in a range with spam
+protection, up to the anti-spam scan size (1 MB by default), on the task thread that accepts the message, before the
+server answers it, so a sender holds that thread for seconds with each such message and needs nobody to open anything.
+This is in every version from 6.0.0 up to 6.3.5. In 6.3.6 the value is unfolded in one pass, to the same result. The
+reading of a message's header from its file had the same shape at a larger scale: after each 4,000 bytes it searched all
+it had read for the header's end, some five seconds for a header of 20 MB, the default largest message, at each of the
+several reads of a message; it now searches only what each read adds. Found by the project's own review (CVE requested).
 
 A review of the whole server for the same shape - input a remote party controls, read in time quadratic in its size -
 found more of it, all fixed in one pass with the result unchanged, each proven against the previous code over generated
