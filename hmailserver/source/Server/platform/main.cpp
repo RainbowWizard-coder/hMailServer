@@ -455,7 +455,7 @@ namespace
 
       if (type == HM::DatabaseSettings::TypeUnknown || name.IsEmpty())
       {
-         std::fprintf(stderr,
+         (void) std::fprintf(stderr,
             "[Database] in %s does not name a Type and a Database. Set Type=PostgreSQL or\n"
             "Type=MySQL, the Server, Port, Username, Password and Database, and try again.\n",
             HM::AnsiString(HM::IniFileSettings::GetInitializationFile()).c_str());
@@ -464,7 +464,7 @@ namespace
 
       if (type == HM::DatabaseSettings::TypeMSSQLServer || type == HM::DatabaseSettings::TypeMSSQLCompactEdition)
       {
-         std::fprintf(stderr,
+         (void) std::fprintf(stderr,
             "[Database] Type is %s, which this build does not have: ADO and SQL Server Compact are\n"
             "Windows. PostgreSQL and MySQL are the backends here.\n", DescribeType(type));
          return false;
@@ -487,7 +487,7 @@ namespace
       if (!connection || connection->Connect(error) != HM::DALConnection::Connected)
       {
          if (!quietly)
-            std::fprintf(stderr, "Could not connect to %s: %s\n", what, HM::AnsiString(error).c_str());
+            (void) std::fprintf(stderr, "Could not connect to %s: %s\n", what, HM::AnsiString(error).c_str());
          return std::shared_ptr<HM::DALConnection>();
       }
       return connection;
@@ -591,7 +591,7 @@ namespace
             const HM::AnsiString databaseName(withDatabase->GetDatabaseName());
             if (existing > REQUIRED_DB_VERSION)
             {
-               std::fprintf(stderr, "Database %s already exists and is an hMailServer database at schema version %d, from a NEWER build than this one, which needs %d. Nothing was changed, and this build will not run against it.\n",
+               (void) std::fprintf(stderr, "Database %s already exists and is an hMailServer database at schema version %d, from a NEWER build than this one, which needs %d. Nothing was changed, and this build will not run against it.\n",
                   databaseName.c_str(), existing, REQUIRED_DB_VERSION);
                return 1;
             }
@@ -619,7 +619,7 @@ namespace
          const HM::String create = HM::SQLStatement::GetCreateDatabase(serverOnly, withDatabase->GetDatabaseName());
          if (!server->Execute(HM::SQLCommand(create), error, 0, 0))
          {
-            std::fprintf(stderr, "CREATE DATABASE failed: %s\n", HM::AnsiString(error).c_str());
+            (void) std::fprintf(stderr, "CREATE DATABASE failed: %s\n", HM::AnsiString(error).c_str());
             return 1;
          }
 
@@ -631,7 +631,7 @@ namespace
       const HM::String script = withDatabase->GetDefaultScript();
       if (!HM::FileUtilities::Exists(script))
       {
-         std::fprintf(stderr, "The create script is not where the configuration says: %s\n"
+         (void) std::fprintf(stderr, "The create script is not where the configuration says: %s\n"
             "ProgramFolder in [Directories] should be the directory that holds DBScripts.\n",
             HM::AnsiString(script).c_str());
          return 1;
@@ -640,7 +640,7 @@ namespace
       HM::SQLScriptRunner runner;
       if (!runner.ExecuteScript(database, script, error))
       {
-         std::fprintf(stderr, "The create script failed: %s\n", HM::AnsiString(error).c_str());
+         (void) std::fprintf(stderr, "The create script failed: %s\n", HM::AnsiString(error).c_str());
          return 1;
       }
 
@@ -659,7 +659,7 @@ namespace
       HM::String markError;
       if (!HM::NewInstallDefaults::MarkCreated(database, markError))
       {
-         std::fprintf(stderr, "The database was not marked as new (%s), so the first start will not secure it; the setup checklist says what to do by hand.\n",
+         (void) std::fprintf(stderr, "The database was not marked as new (%s), so the first start will not secure it; the setup checklist says what to do by hand.\n",
             HM::AnsiString(markError).c_str());
       }
       else
@@ -670,7 +670,7 @@ namespace
          const HM::AnsiString configuration(HM::IniFileSettings::GetInitializationFile());
          const bool unitFinds = PackagedUnitFindsMarker();
          if (!WriteNewFileNoFollow(marker, HM::AnsiString("made by hmailserver --create-database; the unit's first start secures the new database and removes this file (docs/SecureDefaults.md)\n")))
-            std::fprintf(stderr, "%s could not be written, so the first start will not secure the new database; run hmailserver --config %s --apply-new-install-defaults as the user the server runs as, with the server stopped (docs/SecureDefaults.md).\n",
+            (void) std::fprintf(stderr, "%s could not be written, so the first start will not secure the new database; run hmailserver --config %s --apply-new-install-defaults as the user the server runs as, with the server stopped (docs/SecureDefaults.md).\n",
                HM::AnsiString(marker).c_str(), configuration.c_str());
          else if (!unitFinds && OpenRcServiceFindsMarker())
             std::printf("The OpenRC service's next start (rc-service hmailserver start), if it comes within a day of this, secures it: a self-signed certificate, STARTTLS on 25, 587, 110 and 143, and a password refused without TLS from any address but this machine's. A start later than that leaves it for hmailserver --apply-new-install-defaults, run by hand as the user the server runs as with the service stopped (docs/SecureDefaults.md).\n");
@@ -704,7 +704,7 @@ namespace
 
       if (ReadSchemaVersion(database) == 0)
       {
-         std::fprintf(stderr, "The database has no hm_dbversion row, so it is not an hMailServer database or was never created. --create-database makes one.\n");
+         (void) std::fprintf(stderr, "The database has no hm_dbversion row, so it is not an hMailServer database or was never created. --create-database makes one.\n");
          return 1;
       }
 
@@ -721,7 +721,7 @@ namespace
 
       if (!outcome.ok)
       {
-         std::fprintf(stderr, "%s\nStopped at %s. The database is at %d; the steps before that one have been applied, and a second run resumes there.\n",
+         (void) std::fprintf(stderr, "%s\nStopped at %s. The database is at %d; the steps before that one have been applied, and a second run resumes there.\n",
             HM::AnsiString(outcome.error).c_str(), HM::AnsiString(outcome.failed_step).c_str(), outcome.version);
          return 1;
       }
@@ -753,7 +753,7 @@ namespace
    int PrintSchemaVersion()
    {
       std::printf("required %d\n", REQUIRED_DB_VERSION);
-      std::fflush(stdout);
+      (void) std::fflush(stdout);
 
       std::shared_ptr<HM::DatabaseSettings> withDatabase, serverOnly;
       if (!ReadDatabaseSettings(withDatabase, serverOnly))
@@ -767,7 +767,7 @@ namespace
       database->Disconnect();
       if (version <= 0)
       {
-         std::fprintf(stderr, "The database has no hm_dbversion row that could be read, so it is not an hMailServer database or was never created.\n");
+         (void) std::fprintf(stderr, "The database has no hm_dbversion row that could be read, so it is not an hMailServer database or was never created.\n");
          return 1;
       }
 
@@ -794,7 +794,7 @@ namespace
          return true;
 
       const HM::AnsiString sentence(problem);
-      std::fprintf(stderr, "%s Nothing was changed.\n", sentence.c_str());
+      (void) std::fprintf(stderr, "%s Nothing was changed.\n", sentence.c_str());
       return false;
    }
 
@@ -810,7 +810,7 @@ namespace
       if (interactive)
       {
          std::printf("Value for %s: ", shown.c_str());
-         std::fflush(stdout);
+         (void) std::fflush(stdout);
          if (secret && ::tcgetattr(STDIN_FILENO, &original) == 0)
          {
             struct termios quiet = original;
@@ -861,7 +861,7 @@ namespace
       const std::string::size_type equals = assignment.find('=');
       if (assignment.empty() || equals == 0)
       {
-         std::fprintf(stderr, "--set-setting takes NAME=VALUE, or NAME alone with the value on standard input; for example --set-setting RestApiPort=8080.\n");
+         (void) std::fprintf(stderr, "--set-setting takes NAME=VALUE, or NAME alone with the value on standard input; for example --set-setting RestApiPort=8080.\n");
          return 2;
       }
 
@@ -882,7 +882,7 @@ namespace
 
       if (!HM::IniSettingStore::IsStorableName(name))
       {
-         std::fprintf(stderr, "'%s' cannot be a setting name: it is empty, longer than 100 characters, or contains one of = [ ] or a line break.\n",
+         (void) std::fprintf(stderr, "'%s' cannot be a setting name: it is empty, longer than 100 characters, or contains one of = [ ] or a line break.\n",
             HM::AnsiString(name).c_str());
          return 2;
       }
@@ -890,7 +890,7 @@ namespace
       HM::String spelling;
       if (!HM::IniSettingStore::IsSettingTheServerReads(name, spelling))
       {
-         std::fprintf(stderr, "'%s' is not one of the [Settings] keys the server's settings loader reads, so storing it here would change nothing. "
+         (void) std::fprintf(stderr, "'%s' is not one of the [Settings] keys the server's settings loader reads, so storing it here would change nothing. "
             "README.md's Configuration reference and the wiki's Settings Reference describe them. The webmail's branding and file-link "
             "settings, and a setting of your own that an event script reads, are stored over the REST API once the listener is on: "
             "PUT /api/v1/settings/ini/{name} takes any name.\n",
@@ -911,7 +911,7 @@ namespace
       const bool secret = HM::IniSettingStore::IsSecretName(name);
       if (!fromInput && secret && !value.IsEmpty())
       {
-         std::fprintf(stderr, "%s holds a secret, so its value is not taken from the command line, where the shell's history, the process list and sudo's log keep it. Nothing was changed. "
+         (void) std::fprintf(stderr, "%s holds a secret, so its value is not taken from the command line, where the shell's history, the process list and sudo's log keep it. Nothing was changed. "
             "Give the name alone - sudo hmailserver --set-setting %s - and the value on standard input: typed at the prompt, which does not echo it, or piped in as one line. "
             "If the value just given was the real one, treat it as disclosed. %s= with nothing after it clears the setting.\n",
             shown.c_str(), shown.c_str(), shown.c_str());
@@ -932,7 +932,7 @@ namespace
       {
          // The name only. A value given on the command line is not repeated: it
          // may be one nobody wants printed again.
-         std::fprintf(stderr, "%s is not writable by this user, and the server's copy of the setting is written there as well as into the database. "
+         (void) std::fprintf(stderr, "%s is not writable by this user, and the server's copy of the setting is written there as well as into the database. "
             "Run this as root (sudo hmailserver --set-setting %s%s), as --set-admin-password is run: the file keeps its owner and mode.\n",
             iniFile.c_str(), shown.c_str(), fromInput ? "" : "=...");
          return 1;
@@ -949,25 +949,25 @@ namespace
          std::shared_ptr<HM::DALConnection> probe = Connect(withDatabase, "the database");
          if (!probe)
          {
-            std::fprintf(stderr, "Nothing was changed.\n");
+            (void) std::fprintf(stderr, "Nothing was changed.\n");
             return 1;
          }
 
          const int version = ReadSchemaVersion(probe);
          if (version == 0)
          {
-            std::fprintf(stderr, "The database has no hm_dbversion row, so it is not an hMailServer database or was never created. --create-database makes one; nothing was changed.\n");
+            (void) std::fprintf(stderr, "The database has no hm_dbversion row, so it is not an hMailServer database or was never created. --create-database makes one; nothing was changed.\n");
             return 1;
          }
          if (version < REQUIRED_DB_VERSION)
          {
-            std::fprintf(stderr, "The database is at schema version %d and this build needs %d. Run --upgrade-database first; nothing was changed.\n",
+            (void) std::fprintf(stderr, "The database is at schema version %d and this build needs %d. Run --upgrade-database first; nothing was changed.\n",
                version, REQUIRED_DB_VERSION);
             return 1;
          }
          if (version > REQUIRED_DB_VERSION)
          {
-            std::fprintf(stderr, "The database is at schema version %d and this build needs %d: it was created by a NEWER hMailServer, and this build will not write to it. Nothing was changed.\n",
+            (void) std::fprintf(stderr, "The database is at schema version %d and this build needs %d: it was created by a NEWER hMailServer, and this build will not write to it. Nothing was changed.\n",
                version, REQUIRED_DB_VERSION);
             return 1;
          }
@@ -987,7 +987,7 @@ namespace
 
          if (!got || value.IsEmpty())
          {
-            std::fprintf(stderr, "No value was read from standard input, so nothing was changed. An empty value is stored by giving %s= on the command line.\n",
+            (void) std::fprintf(stderr, "No value was read from standard input, so nothing was changed. An empty value is stored by giving %s= on the command line.\n",
                shown.c_str());
             return 2;
          }
@@ -1001,7 +1001,7 @@ namespace
       HM::String error;
       if (!HM::Application::Instance()->OpenDatabase(error))
       {
-         std::fprintf(stderr, "Could not open the database: %s\nNothing was changed.\n", HM::AnsiString(error).c_str());
+         (void) std::fprintf(stderr, "Could not open the database: %s\nNothing was changed.\n", HM::AnsiString(error).c_str());
          return 1;
       }
 
@@ -1051,7 +1051,7 @@ namespace
                   const char *change = previousPepper.IsEmpty() ? "The pepper was empty and is now set"
                                      : value.IsEmpty() ? "The pepper was set and is now cleared"
                                      : "The pepper is now a different value from the one the file held";
-                  std::fprintf(stderr, "Warning: %s. Every Argon2id and scrypt password hash is made under the pepper in force when its password was set, and verifies under no other: once the server runs with this value, an account whose password is one of those hashes will not sign in until its password is set again. "
+                  (void) std::fprintf(stderr, "Warning: %s. Every Argon2id and scrypt password hash is made under the pepper in force when its password was set, and verifies under no other: once the server runs with this value, an account whose password is one of those hashes will not sign in until its password is set again. "
                      "PBKDF2, SHA-256 and MD5 hashes, and the administrator password, do not use the pepper. Keep a copy of the value apart from the backups, which do not carry it.\n",
                      change);
                }
@@ -1100,7 +1100,7 @@ namespace
          }
          else
          {
-            std::fprintf(stderr, "The setting could not be stored: the database could not be written. Nothing has been changed.\n");
+            (void) std::fprintf(stderr, "The setting could not be stored: the database could not be written. Nothing has been changed.\n");
          }
       }
 
@@ -1137,7 +1137,7 @@ namespace
       struct stat directory;
       if (::stat(dataDirectory.c_str(), &directory) != 0 || !S_ISDIR(directory.st_mode))
       {
-         std::fprintf(stderr, "The data directory %s could not be examined, so the stored-secret key file cannot be made for the account the service runs as. Nothing was changed.\n",
+         (void) std::fprintf(stderr, "The data directory %s could not be examined, so the stored-secret key file cannot be made for the account the service runs as. Nothing was changed.\n",
             dataDirectory.c_str());
          return false;
       }
@@ -1146,7 +1146,7 @@ namespace
       // root would be one the service could not read.
       if (directory.st_uid == 0)
       {
-         std::fprintf(stderr, "The data directory %s belongs to root, so the account the service runs as cannot be told from it, and a key file made for root would be one the service could not read. "
+         (void) std::fprintf(stderr, "The data directory %s belongs to root, so the account the service runs as cannot be told from it, and a key file made for root would be one the service could not read. "
             "Give the data directory to that account (the package makes it hmailserver's), then run this again. Nothing was changed.\n",
             dataDirectory.c_str());
          return false;
@@ -1155,7 +1155,7 @@ namespace
       HM::String failure;
       if (!HM::DataProtector::CreateKeyFileFor((unsigned int) directory.st_uid, (unsigned int) directory.st_gid, failure))
       {
-         std::fprintf(stderr, "The stored-secret key file is not ready for the account the service runs as: %s. Nothing was changed.\n", HM::AnsiString(failure).c_str());
+         (void) std::fprintf(stderr, "The stored-secret key file is not ready for the account the service runs as: %s. Nothing was changed.\n", HM::AnsiString(failure).c_str());
          return false;
       }
 
@@ -1274,7 +1274,7 @@ namespace
       const HM::AnsiString iniFile(HM::IniFileSettings::GetInitializationFile());
       if (::access(iniFile.c_str(), W_OK) != 0)
       {
-         std::fprintf(stderr, "%s is not writable by this user, and this verb writes into it. Run it as root (sudo hmailserver %s). Nothing was changed.\n",
+         (void) std::fprintf(stderr, "%s is not writable by this user, and this verb writes into it. Run it as root (sudo hmailserver %s). Nothing was changed.\n",
             iniFile.c_str(), asRoot);
          return false;
       }
@@ -1301,7 +1301,7 @@ namespace
          if (version != REQUIRED_DB_VERSION)
          {
             if (!quietly)
-               std::fprintf(stderr, "The database is at schema version %d and this build needs %d: bring it to this build's schema first (--create-database, --upgrade-database).\n",
+               (void) std::fprintf(stderr, "The database is at schema version %d and this build needs %d: bring it to this build's schema first (--create-database, --upgrade-database).\n",
                   version, REQUIRED_DB_VERSION);
             return false;
          }
@@ -1314,7 +1314,7 @@ namespace
       if (!HM::Application::Instance()->OpenDatabase(error))
       {
          if (!quietly)
-            std::fprintf(stderr, "Could not open the database: %s\n", HM::AnsiString(error).c_str());
+            (void) std::fprintf(stderr, "Could not open the database: %s\n", HM::AnsiString(error).c_str());
          return false;
       }
       return true;
@@ -1336,7 +1336,7 @@ namespace
 
       if (!OpenDatabaseForKeyVerb(true, false))
       {
-         std::fprintf(stderr, "No stored-secrets key was made.\n");
+         (void) std::fprintf(stderr, "No stored-secrets key was made.\n");
          return 1;
       }
 
@@ -1348,7 +1348,7 @@ namespace
 
       if (!made)
       {
-         std::fprintf(stderr, "No stored-secrets key was made: %s. Nothing was changed.\n", HM::AnsiString(problem).c_str());
+         (void) std::fprintf(stderr, "No stored-secrets key was made: %s. Nothing was changed.\n", HM::AnsiString(problem).c_str());
          return 1;
       }
 
@@ -1379,7 +1379,7 @@ namespace
       const HM::String path(file.c_str());
       if (HM::FileUtilities::Exists(path))
       {
-         std::fprintf(stderr, "%s already exists. Name a file that does not, so that nothing is written over. Nothing was changed.\n", file.c_str());
+         (void) std::fprintf(stderr, "%s already exists. Name a file that does not, so that nothing is written over. Nothing was changed.\n", file.c_str());
          return 2;
       }
 
@@ -1392,7 +1392,7 @@ namespace
       {
          if (databaseOpen)
             HM::Application::Instance()->CloseDatabase();
-         std::fprintf(stderr, "%s. Nothing was written.\n", HM::AnsiString(problem).c_str());
+         (void) std::fprintf(stderr, "%s. Nothing was written.\n", HM::AnsiString(problem).c_str());
          return 1;
       }
 
@@ -1406,7 +1406,7 @@ namespace
 
       if (!written)
       {
-         std::fprintf(stderr, "The key could not be written to %s: %s\n", file.c_str(), HM::AnsiString(writeError).c_str());
+         (void) std::fprintf(stderr, "The key could not be written to %s: %s\n", file.c_str(), HM::AnsiString(writeError).c_str());
          return 1;
       }
 
@@ -1416,7 +1416,7 @@ namespace
          keyId.c_str(), file.c_str());
 
       if (!recorded)
-         std::fprintf(stderr, "The export could not be recorded in the database, so the setup checklist still asks for one; export it again, to a new file, once the database can be reached.\n");
+         (void) std::fprintf(stderr, "The export could not be recorded in the database, so the setup checklist still asks for one; export it again, to a new file, once the database can be reached.\n");
 
       return 0;
    }
@@ -1430,7 +1430,7 @@ namespace
       const HM::String path(file.c_str());
       if (!HM::FileUtilities::Exists(path))
       {
-         std::fprintf(stderr, "%s does not exist. Nothing was changed.\n", file.c_str());
+         (void) std::fprintf(stderr, "%s does not exist. Nothing was changed.\n", file.c_str());
          return 2;
       }
 
@@ -1439,7 +1439,7 @@ namespace
 
       if (!OpenDatabaseForKeyVerb(true, false))
       {
-         std::fprintf(stderr, "The key was not imported.\n");
+         (void) std::fprintf(stderr, "The key was not imported.\n");
          return 1;
       }
 
@@ -1452,7 +1452,7 @@ namespace
 
       if (!imported)
       {
-         std::fprintf(stderr, "The key was not imported: %s. Nothing was changed.\n", HM::AnsiString(problem).c_str());
+         (void) std::fprintf(stderr, "The key was not imported: %s. Nothing was changed.\n", HM::AnsiString(problem).c_str());
          return 1;
       }
 
@@ -1478,7 +1478,7 @@ namespace
 
       if (keyId.empty() || keyId.compare(0, 2, "--") == 0)
       {
-         std::fprintf(stderr, "--forget-sealed-secrets needs the lost key's id, the sixteen hex digits HM7495 and the setup checklist name: --forget-sealed-secrets 0123456789abcdef. "
+         (void) std::fprintf(stderr, "--forget-sealed-secrets needs the lost key's id, the sixteen hex digits HM7495 and the setup checklist name: --forget-sealed-secrets 0123456789abcdef. "
             "Import the key from a node that holds it instead, if there is one. Nothing was changed.\n");
          return 2;
       }
@@ -1490,7 +1490,7 @@ namespace
          const int taken = HM::MessageStoreMaintenance::TakeStoreLock(true, lockProblem);
          if (taken != 0)
          {
-            std::fprintf(stderr, taken == 1
+            (void) std::fprintf(stderr, taken == 1
                ? "The hMailServer server is running: %s. Stop it (sudo systemctl stop hmailserver), run this again, then start it. Nothing was changed.\n"
                : "Whether the server is running could not be asked: %s. Stop it and run this again. Nothing was changed.\n",
                HM::AnsiString(lockProblem).c_str());
@@ -1503,7 +1503,7 @@ namespace
 
       if (!OpenDatabaseForKeyVerb(false, false))
       {
-         std::fprintf(stderr, "Nothing was changed.\n");
+         (void) std::fprintf(stderr, "Nothing was changed.\n");
          return 1;
       }
 
@@ -1517,7 +1517,7 @@ namespace
 
       if (!done)
       {
-         std::fprintf(stderr, "%s%s.\n", forgotten.empty() ? "Nothing was cleared: " : "Not everything was cleared: ", HM::AnsiString(problem).c_str());
+         (void) std::fprintf(stderr, "%s%s.\n", forgotten.empty() ? "Nothing was cleared: " : "Not everything was cleared: ", HM::AnsiString(problem).c_str());
          return 1;
       }
 
@@ -1612,14 +1612,14 @@ namespace
       const bool creating = verb == "create";
       if (!creating && verb != "remove")
       {
-         std::fprintf(stderr, "--sample-domain takes create or remove; for example --sample-domain create.\n");
+         (void) std::fprintf(stderr, "--sample-domain takes create or remove; for example --sample-domain create.\n");
          return 2;
       }
 
       HM::String error;
       if (!HM::Application::Instance()->InitInstance(error))
       {
-         std::fprintf(stderr, "hMailServer could not read its configuration and open its database: %s\nNothing was changed.\n",
+         (void) std::fprintf(stderr, "hMailServer could not read its configuration and open its database: %s\nNothing was changed.\n",
             HM::AnsiString(error).c_str());
          return 1;
       }
@@ -1648,7 +1648,7 @@ namespace
       }
       else
       {
-         std::fprintf(stderr, "%s\n", HM::AnsiString(sentence).c_str());
+         (void) std::fprintf(stderr, "%s\n", HM::AnsiString(sentence).c_str());
          result = outcome == HM::SampleDomain::OutcomeRefused ? 2 : 1;
       }
 
@@ -1675,12 +1675,12 @@ namespace
       const HM::String bundlePath = path + _T(".cosign.bundle");
       if (!HM::FileUtilities::Exists(path))
       {
-         std::fprintf(stderr, "%s does not exist.\n", file.c_str());
+         (void) std::fprintf(stderr, "%s does not exist.\n", file.c_str());
          return 2;
       }
       if (!HM::FileUtilities::Exists(bundlePath))
       {
-         std::fprintf(stderr, "%s has no Sigstore bundle beside it (%s.cosign.bundle), so it cannot be verified.\n", file.c_str(), file.c_str());
+         (void) std::fprintf(stderr, "%s has no Sigstore bundle beside it (%s.cosign.bundle), so it cannot be verified.\n", file.c_str(), file.c_str());
          return 1;
       }
 
@@ -1688,14 +1688,14 @@ namespace
       HM::String error;
       if (!HM::SigstoreVerifier::ConfiguredTrust(trust, error))
       {
-         std::fprintf(stderr, "The trust could not be read: %s\n", HM::AnsiString(error).c_str());
+         (void) std::fprintf(stderr, "The trust could not be read: %s\n", HM::AnsiString(error).c_str());
          return 2;
       }
 
       HM::AnsiString bundleJson;
       if (!HM::SigstoreVerifier::ReadBundle(bundlePath, bundleJson))
       {
-         std::fprintf(stderr, "%s.cosign.bundle could not be read.\n", file.c_str());
+         (void) std::fprintf(stderr, "%s.cosign.bundle could not be read.\n", file.c_str());
          return 2;
       }
       HM::SigstoreVerdict verdict;
@@ -1703,7 +1703,7 @@ namespace
       // version to an upgrade of what is installed.
       if (!HM::SigstoreVerifier::VerifyFileForAnyRelease(path, bundleJson, trust, verdict))
       {
-         std::fprintf(stderr, "%s did not verify against its Sigstore bundle: %s\n", file.c_str(), HM::AnsiString(verdict.error).c_str());
+         (void) std::fprintf(stderr, "%s did not verify against its Sigstore bundle: %s\n", file.c_str(), HM::AnsiString(verdict.error).c_str());
          return 1;
       }
 
@@ -1809,7 +1809,7 @@ int main(int argc, char *argv[])
       {
          if (index + 1 >= argc)
          {
-            std::fprintf(stderr, "--apply-profile needs the profile's name: office, gateway, relay or sender, or none to record that no profile is wanted.\n");
+            (void) std::fprintf(stderr, "--apply-profile needs the profile's name: office, gateway, relay or sender, or none to record that no profile is wanted.\n");
             return 2;
          }
          apply_profile = argv[++index];
@@ -1899,7 +1899,7 @@ int main(int argc, char *argv[])
       {
          if (index + 1 >= argc)
          {
-            std::fprintf(stderr, "--account needs the account's address; for example --account alice@example.com.\n");
+            (void) std::fprintf(stderr, "--account needs the account's address; for example --account alice@example.com.\n");
             return 2;
          }
          store_account = argv[++index];
@@ -1909,7 +1909,7 @@ int main(int argc, char *argv[])
       {
          if (index + 1 >= argc)
          {
-            std::fprintf(stderr, "--domain needs the domain's name; for example --domain example.com.\n");
+            (void) std::fprintf(stderr, "--domain needs the domain's name; for example --domain example.com.\n");
             return 2;
          }
          store_domain = argv[++index];
@@ -1919,7 +1919,7 @@ int main(int argc, char *argv[])
       {
          if (index + 1 >= argc)
          {
-            std::fprintf(stderr, "--set-setting needs NAME=VALUE, or NAME with the value on standard input; for example --set-setting RestApiPort=8080.\n");
+            (void) std::fprintf(stderr, "--set-setting needs NAME=VALUE, or NAME with the value on standard input; for example --set-setting RestApiPort=8080.\n");
             return 2;
          }
          set_setting = argv[++index];
@@ -1929,7 +1929,7 @@ int main(int argc, char *argv[])
       {
          if (index + 1 >= argc)
          {
-            std::fprintf(stderr, "--sample-domain needs create or remove; for example --sample-domain create.\n");
+            (void) std::fprintf(stderr, "--sample-domain needs create or remove; for example --sample-domain create.\n");
             return 2;
          }
          sample_domain = argv[++index];
@@ -1939,7 +1939,7 @@ int main(int argc, char *argv[])
       {
          if (index + 1 >= argc)
          {
-            std::fprintf(stderr, "--config needs a file name.\n");
+            (void) std::fprintf(stderr, "--config needs a file name.\n");
             return 2;
          }
          configuration = argv[++index];
@@ -1963,7 +1963,7 @@ int main(int argc, char *argv[])
       {
          if (index + 1 >= argc)
          {
-            std::fprintf(stderr, "%s needs the key file; for example %s /root/hmailserver-stored-secrets.key.\n", argument.c_str(), argument.c_str());
+            (void) std::fprintf(stderr, "%s needs the key file; for example %s /root/hmailserver-stored-secrets.key.\n", argument.c_str(), argument.c_str());
             return 2;
          }
          (argument == "--export-stored-secrets-key" ? export_secrets_key : import_secrets_key) = argv[++index];
@@ -1973,13 +1973,13 @@ int main(int argc, char *argv[])
       {
          if (index + 1 >= argc)
          {
-            std::fprintf(stderr, "--verify-update needs the file to check; its bundle is <file>.cosign.bundle beside it.\n");
+            (void) std::fprintf(stderr, "--verify-update needs the file to check; its bundle is <file>.cosign.bundle beside it.\n");
             return 2;
          }
          verify_update = argv[++index];
          continue;
       }
-      std::fprintf(stderr, "Unknown option: %s\nTry --help.\n", argument.c_str());
+      (void) std::fprintf(stderr, "Unknown option: %s\nTry --help.\n", argument.c_str());
       return 2;
    }
 
@@ -2057,7 +2057,7 @@ int main(int argc, char *argv[])
       if (interactive)
       {
          std::printf("New administrator password: ");
-         std::fflush(stdout);
+         (void) std::fflush(stdout);
          if (::tcgetattr(STDIN_FILENO, &original) == 0)
          {
             struct termios quiet = original;
@@ -2079,7 +2079,7 @@ int main(int argc, char *argv[])
 
       if (password.empty())
       {
-         std::fprintf(stderr, "No password was given; nothing was changed.\n");
+         (void) std::fprintf(stderr, "No password was given; nothing was changed.\n");
          return 2;
       }
 
@@ -2091,7 +2091,7 @@ int main(int argc, char *argv[])
 
       if (!written)
       {
-         std::fprintf(stderr, "The administrator password could not be written to %s; nothing was changed. Run this as an account that may write that file.\n",
+         (void) std::fprintf(stderr, "The administrator password could not be written to %s; nothing was changed. Run this as an account that may write that file.\n",
             HM::AnsiString(HM::IniFileSettings::Instance()->GetInitializationFile()).c_str());
          return 1;
       }
@@ -2167,7 +2167,7 @@ int main(int argc, char *argv[])
    // it starts.
    if (new_install_if_marked && !apply_new_install_defaults)
    {
-      std::fprintf(stderr, "--if-marked goes with --apply-new-install-defaults.\n");
+      (void) std::fprintf(stderr, "--if-marked goes with --apply-new-install-defaults.\n");
       return 2;
    }
 
@@ -2182,13 +2182,13 @@ int main(int argc, char *argv[])
    {
       if (store_decompress && store_verb != HM::MessageStoreMaintenance::VerbCompress)
       {
-         std::fprintf(stderr, "--decompress goes with --compress-store.\n");
+         (void) std::fprintf(stderr, "--decompress goes with --compress-store.\n");
          return 2;
       }
 
       if (!store_account.empty() && !store_domain.empty())
       {
-         std::fprintf(stderr, "--account and --domain each say what the walk covers; give one of them, or neither for the whole store.\n");
+         (void) std::fprintf(stderr, "--account and --domain each say what the walk covers; give one of them, or neither for the whole store.\n");
          return 2;
       }
 
@@ -2204,13 +2204,13 @@ int main(int argc, char *argv[])
    {
       if (copy_to_objects && copy_from_objects)
       {
-         std::fprintf(stderr, "--copy-store-to-object-storage and --copy-store-from-object-storage go opposite ways; give one of them.\n");
+         (void) std::fprintf(stderr, "--copy-store-to-object-storage and --copy-store-from-object-storage go opposite ways; give one of them.\n");
          return 2;
       }
 
       if (!store_account.empty() && !store_domain.empty())
       {
-         std::fprintf(stderr, "--account and --domain each say what the copy covers; give one of them, or neither for the whole store.\n");
+         (void) std::fprintf(stderr, "--account and --domain each say what the copy covers; give one of them, or neither for the whole store.\n");
          return 2;
       }
 
@@ -2272,7 +2272,7 @@ int main(int argc, char *argv[])
       // place a failure can be reported plainly and exited on. It goes to
       // standard error as well as the log because at this point the log
       // directory may be exactly what is wrong.
-      std::fprintf(stderr, "hMailServer could not start: %s\n", HM::AnsiString(error).c_str());
+      (void) std::fprintf(stderr, "hMailServer could not start: %s\n", HM::AnsiString(error).c_str());
       return 1;
    }
 
@@ -2286,7 +2286,7 @@ int main(int argc, char *argv[])
       const int lock = HM::MessageStoreMaintenance::TakeStoreLock(false, lockProblem);
       if (lock == 1)
       {
-         std::fprintf(stderr, "hMailServer could not start: %s. Start it when the walk has finished.\n", HM::AnsiString(lockProblem).c_str());
+         (void) std::fprintf(stderr, "hMailServer could not start: %s. Start it when the walk has finished.\n", HM::AnsiString(lockProblem).c_str());
          HM::Application::Instance()->ExitInstance();
          return 1;
       }
@@ -2297,7 +2297,7 @@ int main(int argc, char *argv[])
 
    if (!HM::Application::Instance()->StartServers())
    {
-      std::fprintf(stderr, "hMailServer started but could not open its listeners; see the error log.\n");
+      (void) std::fprintf(stderr, "hMailServer started but could not open its listeners; see the error log.\n");
       HM::Application::Instance()->ExitInstance();
       return 1;
    }

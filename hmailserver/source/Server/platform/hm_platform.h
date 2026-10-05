@@ -696,7 +696,7 @@ inline errno_t rand_s(unsigned int *value)
    if (!source)
       return EIO;
    const size_t read = ::fread(value, sizeof(unsigned int), 1, source);
-   ::fclose(source);
+   (void) ::fclose(source);
    return read == 1 ? 0 : EIO;
 }
 

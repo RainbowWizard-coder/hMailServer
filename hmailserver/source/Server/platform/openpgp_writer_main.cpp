@@ -55,7 +55,7 @@ main(int argc, char *argv[])
 {
    if (argc < 3)
    {
-      fprintf(stderr, "usage: openpgp-writer <public key> <input> [--mime]\n");
+      (void) fprintf(stderr, "usage: openpgp-writer <public key> <input> [--mime]\n");
       return 2;
    }
 
@@ -65,7 +65,7 @@ main(int argc, char *argv[])
    std::string input;
    if (!ReadWhole(argv[1], keyText) || !ReadWhole(argv[2], input))
    {
-      fprintf(stderr, "openpgp-writer: a file could not be read\n");
+      (void) fprintf(stderr, "openpgp-writer: a file could not be read\n");
       return 1;
    }
 
@@ -76,7 +76,7 @@ main(int argc, char *argv[])
       HM::AnsiString problem;
       if (!HM::OpenPgpKey::Dearmour(HM::AnsiString(keyText), keyBytes, problem))
       {
-         fprintf(stderr, "openpgp-writer: %s\n", problem.c_str());
+         (void) fprintf(stderr, "openpgp-writer: %s\n", problem.c_str());
          return 1;
       }
    }
@@ -86,7 +86,7 @@ main(int argc, char *argv[])
    const HM::OpenPgpWriter::EncryptionKey key = HM::OpenPgpWriter::ChooseEncryptionKey(&keyBytes[0], keyBytes.size(), (long long) time(nullptr));
    if (!key.ok)
    {
-      fprintf(stderr, "openpgp-writer: %s\n", key.error.c_str());
+      (void) fprintf(stderr, "openpgp-writer: %s\n", key.error.c_str());
       return 1;
    }
 
@@ -96,23 +96,31 @@ main(int argc, char *argv[])
       HM::AnsiString sealed;
       if (!HM::OpenPgpWriter::SealMessage(key, HM::AnsiString(input), sealed, error))
       {
-         fprintf(stderr, "openpgp-writer: %s\n", error.c_str());
+         (void) fprintf(stderr, "openpgp-writer: %s\n", error.c_str());
          return 1;
       }
-      fwrite(sealed.c_str(), 1, (size_t) sealed.GetLength(), stdout);
+      if (fwrite(sealed.c_str(), 1, (size_t) sealed.GetLength(), stdout) != (size_t) sealed.GetLength() || fflush(stdout) != 0)
+      {
+         (void) fprintf(stderr, "openpgp-writer: standard output could not be written\n");
+         return 1;
+      }
       return 0;
    }
 
    std::vector<unsigned char> message;
    if (!HM::OpenPgpWriter::Encrypt(key, (const unsigned char *) input.data(), input.size(), message, error))
    {
-      fprintf(stderr, "openpgp-writer: %s\n", error.c_str());
+      (void) fprintf(stderr, "openpgp-writer: %s\n", error.c_str());
       return 1;
    }
 
    const HM::AnsiString armoured = HM::OpenPgpWriter::Armour(message);
-   fwrite(armoured.c_str(), 1, (size_t) armoured.GetLength(), stdout);
-   fprintf(stderr, "openpgp-writer: encrypted %u bytes to %s (%s)\n", (unsigned) input.size(), key.fingerprint.c_str(),
+   if (fwrite(armoured.c_str(), 1, (size_t) armoured.GetLength(), stdout) != (size_t) armoured.GetLength() || fflush(stdout) != 0)
+   {
+      (void) fprintf(stderr, "openpgp-writer: standard output could not be written\n");
+      return 1;
+   }
+   (void) fprintf(stderr, "openpgp-writer: encrypted %u bytes to %s (%s)\n", (unsigned) input.size(), key.fingerprint.c_str(),
            key.algorithm == 18 ? "Curve25519" : "RSA");
    return 0;
 }
