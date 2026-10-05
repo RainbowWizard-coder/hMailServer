@@ -240,8 +240,7 @@ namespace HM
    std::string
    ObjectStoreSignature::AmzDate(time_t when)
    {
-      struct tm parts;
-      memset(&parts, 0, sizeof(parts));
+      struct tm parts = {};
       if (!UtcOf(when, parts))
          return std::string();
 
@@ -254,8 +253,7 @@ namespace HM
    std::string
    ObjectStoreSignature::Rfc1123Date(time_t when)
    {
-      struct tm parts;
-      memset(&parts, 0, sizeof(parts));
+      struct tm parts = {};
       if (!UtcOf(when, parts) || parts.tm_wday < 0 || parts.tm_wday > 6 || parts.tm_mon < 0 || parts.tm_mon > 11)
          return std::string();
 

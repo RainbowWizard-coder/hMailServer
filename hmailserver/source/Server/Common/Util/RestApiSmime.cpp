@@ -627,8 +627,7 @@ namespace HM
          verdict.subject = NameText(leaf, true);
          verdict.issuer = NameText(leaf, false);
          {
-            struct tm expiry;
-            memset(&expiry, 0, sizeof(expiry));
+            struct tm expiry = {};
             if (ASN1_TIME_to_tm(X509_get0_notAfter(leaf), &expiry) == 1)
             {
 #ifdef _WIN32

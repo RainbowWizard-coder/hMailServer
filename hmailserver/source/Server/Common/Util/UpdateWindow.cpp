@@ -62,8 +62,7 @@ namespace HM
       start_minutes_(0),
       end_minutes_(0)
    {
-      for (int i = 0; i < 7; i++)
-         days_[i] = false;
+
    }
 
    bool

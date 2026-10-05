@@ -227,8 +227,7 @@ namespace HM
       if (sscanf_s(value.c_str(), "%d-%d-%d %d:%d:%d", &year, &month, &day, &hour, &minute, &second) < 3)
          return false;
 
-      struct tm parts;
-      memset(&parts, 0, sizeof(parts));
+      struct tm parts = {};
       parts.tm_year = year - 1900;
       parts.tm_mon = month - 1;
       parts.tm_mday = day;

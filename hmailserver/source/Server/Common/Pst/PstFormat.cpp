@@ -72,7 +72,7 @@ namespace HM
 
       struct CrcTable
       {
-         uint32_t entries[256];
+         uint32_t entries[256] = {};
 
          CrcTable()
          {

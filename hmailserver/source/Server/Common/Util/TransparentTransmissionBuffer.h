@@ -173,7 +173,7 @@ namespace HM
       // bare-LF marker as the standard one, which both bypassed the tail-only rule
       // that exists for CVE-2023-51764 and let the bytes behind it be parsed as
       // commands. Initialised to CRLF because a message starts at a line start.
-      char flushed_tail_[2];
+      char flushed_tail_[2] = { '\r', '\n' };
 
       bool ended_on_non_standard_marker_;
 

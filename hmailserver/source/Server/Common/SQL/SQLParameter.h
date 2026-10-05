@@ -35,11 +35,11 @@ namespace HM
       void ResetValues_();
 
       String column_name_;
-      int int_32value_;
-      __int64 int_64value_;
+      int int_32value_ = 0;
+      __int64 int_64value_ = 0;
       String string_value_;
       Type type_;
-      unsigned int unsigned_int_32value_;
+      unsigned int unsigned_int_32value_ = 0;
      
    };
 }

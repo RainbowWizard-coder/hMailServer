@@ -34,9 +34,6 @@ namespace HM
       writes_completed_(0)
    {
       buffer_ = std::shared_ptr<ByteBuffer>(new ByteBuffer);
-
-      flushed_tail_[0] = '\r';
-      flushed_tail_[1] = '\n';
    }
 
    TransparentTransmissionBuffer::~TransparentTransmissionBuffer(void)

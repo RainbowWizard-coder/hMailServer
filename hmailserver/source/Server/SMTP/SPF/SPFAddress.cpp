@@ -242,8 +242,7 @@ namespace HM
    SPFAddress::SPFAddress()
       : family_(Family::None)
    {
-      for (int i = 0; i < 16; i++)
-         bytes_[i] = 0;
+
    }
 
    bool

@@ -313,8 +313,7 @@ namespace HM
    AnsiString
    DkimRotationPlan::SuggestSelector(__int64 now, const std::set<AnsiString> &taken)
    {
-      struct tm parts;
-      memset(&parts, 0, sizeof(parts));
+      struct tm parts = {};
       Utc(now, parts);
 
       AnsiString base;

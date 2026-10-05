@@ -29,16 +29,10 @@ namespace HM
 {
    struct DeflateStreams::State
    {
-      z_stream inflate;
-      z_stream deflate;
-      bool inflate_ready;
-      bool deflate_ready;
-
-      State() : inflate_ready(false), deflate_ready(false)
-      {
-         memset(&inflate, 0, sizeof(inflate));
-         memset(&deflate, 0, sizeof(deflate));
-      }
+      z_stream inflate = {};
+      z_stream deflate = {};
+      bool inflate_ready = false;
+      bool deflate_ready = false;
    };
 
    namespace

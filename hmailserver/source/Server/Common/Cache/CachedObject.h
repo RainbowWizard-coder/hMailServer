@@ -56,7 +56,7 @@ namespace HM
       // oldest ones and make eviction discard the wrong entries. Seconds keep an
       // int monotonic for longer than any machine stays up.
       int creation_time_;
-      size_t estimated_size_;
+      size_t estimated_size_ = 0;
 
       std::shared_ptr<T> object_;
    };

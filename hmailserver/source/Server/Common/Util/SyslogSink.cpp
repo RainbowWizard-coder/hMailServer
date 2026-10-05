@@ -924,8 +924,7 @@ namespace HM
       if (!entry.remote_host.IsEmpty())
          AppendJournalField_(payload, "HMAILSERVER_CLIENT", ToUtf8_(entry.remote_host));
 
-      struct sockaddr_un address;
-      memset(&address, 0, sizeof(address));
+      struct sockaddr_un address = {};
       address.sun_family = AF_UNIX;
       strncpy(address.sun_path, JournalSocketPath, sizeof(address.sun_path) - 1);
 

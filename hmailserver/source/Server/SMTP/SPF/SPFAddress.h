@@ -68,6 +68,6 @@ namespace HM
       Family family_;
 
       // Network order. Four bytes for IPv4, sixteen for IPv6; the rest zero.
-      unsigned char bytes_[16];
+      unsigned char bytes_[16] = {};
    };
 }

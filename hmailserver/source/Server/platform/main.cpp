@@ -109,8 +109,7 @@ namespace
 
    void InstallHandlers()
    {
-      struct sigaction action;
-      std::memset(&action, 0, sizeof(action));
+      struct sigaction action = {};
       action.sa_handler = HandleSignal;
       sigemptyset(&action.sa_mask);
       // No SA_RESTART: a blocking read in a worker should come back with EINTR
@@ -124,8 +123,7 @@ namespace
       // A peer that closes a socket mid-write must not kill the process. The
       // Windows build never sees this because Winsock reports it as an error
       // code; here the default disposition is death.
-      struct sigaction ignore;
-      std::memset(&ignore, 0, sizeof(ignore));
+      struct sigaction ignore = {};
       ignore.sa_handler = SIG_IGN;
       sigaction(SIGPIPE, &ignore, nullptr);
    }

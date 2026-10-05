@@ -263,8 +263,7 @@ namespace HM
       if (alternate.ss_sp != nullptr)
          ::sigaltstack(&alternate, nullptr);
 
-      struct sigaction action;
-      ::memset(&action, 0, sizeof(action));
+      struct sigaction action = {};
       action.sa_sigaction = FaultHandler_;
       ::sigemptyset(&action.sa_mask);
       // SA_SIGINFO for the faulting address; SA_ONSTACK for the alternate stack;

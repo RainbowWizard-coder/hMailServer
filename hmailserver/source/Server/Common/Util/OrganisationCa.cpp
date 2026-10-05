@@ -225,8 +225,7 @@ namespace HM
          if (time == nullptr)
             return 0;
 
-         struct tm parts;
-         memset(&parts, 0, sizeof(parts));
+         struct tm parts = {};
          if (ASN1_TIME_to_tm(time, &parts) != 1)
             return 0;
 

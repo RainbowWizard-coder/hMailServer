@@ -40,7 +40,7 @@ namespace HM
 
    private:
       bool defined_;
-      bool days_[7];          // Sunday first, as SYSTEMTIME counts
+      bool days_[7] = {};     // Sunday first, as SYSTEMTIME counts
       int start_minutes_;     // minutes after midnight
       int end_minutes_;       // exclusive; may be less than start (crosses midnight)
    };

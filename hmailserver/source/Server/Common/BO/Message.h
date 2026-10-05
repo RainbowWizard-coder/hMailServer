@@ -327,7 +327,7 @@ namespace HM
 
    protected:
 
-      int message_size_;
+      int message_size_ = 0;
 
       AnsiString create_time_;
       AnsiString save_date_;
@@ -335,11 +335,11 @@ namespace HM
       AnsiString filename_;
       AnsiString from_address_;
       
-      int message_account_id_;
-      int message_folder_id_;
+      int message_account_id_ = 0;
+      int message_folder_id_ = 0;
 
-      short message_state_;
-      short no_of_retries_;
+      short message_state_ = Created;
+      short no_of_retries_ = 0;
       // Atomic: see GetFlags.
       std::atomic<short> flags_;
 
@@ -350,7 +350,7 @@ namespace HM
       // See GetFlagChangeMutex.
       mutable boost::mutex flag_change_mutex_;
 
-      unsigned int uid_;
+      unsigned int uid_ = 0;
 
       // Atomic because a flag change writes it (PersistentMessage::SaveFlags)
       // while other sessions' FETCHes read it.

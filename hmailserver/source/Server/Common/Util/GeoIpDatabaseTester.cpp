@@ -140,17 +140,8 @@ namespace HM
       // is exactly what the format's three record cases are.
       struct BuildNode
       {
-         BuildNode()
-         {
-            for (int i = 0; i < 2; i++)
-            {
-               child[i] = -1;
-               data[i] = -1;
-            }
-         }
-
-         int child[2];
-         __int64 data[2];
+         int child[2] = { -1, -1 };
+         __int64 data[2] = { -1, -1 };
       };
 
       class MmdbBuilder

@@ -324,8 +324,8 @@ namespace HM
       struct CredentialRate
       {
          AnsiString identity;
-         ULONGLONG window_started_at;
-         int count;
+         ULONGLONG window_started_at = 0;
+         int count = 0;
       };
 
       std::mutex credential_rate_mutex;
@@ -18509,7 +18509,7 @@ namespace HM
       struct Held
       {
          std::shared_ptr<Message> message;
-         size_t folder;
+         size_t folder = 0;
       };
       const size_t LargestCount = 20;
       std::vector<Held> largest;

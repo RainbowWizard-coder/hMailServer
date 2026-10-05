@@ -1201,8 +1201,7 @@ namespace HM
       char descriptorText[] = "3";
       char *arguments[] = { self, verbText, descriptorText, nullptr };
 
-      struct sigaction defaults;
-      std::memset(&defaults, 0, sizeof(defaults));
+      struct sigaction defaults = {};
       defaults.sa_handler = SIG_DFL;
       sigemptyset(&defaults.sa_mask);
       sigset_t noSignals;

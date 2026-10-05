@@ -202,8 +202,7 @@ namespace HM
 
       String UtcText(__int64 seconds)
       {
-         struct tm parts;
-         memset(&parts, 0, sizeof(parts));
+         struct tm parts = {};
 #ifdef HM_PLATFORM_POSIX
          time_t value = (time_t) seconds;
          if (::gmtime_r(&value, &parts) == nullptr)

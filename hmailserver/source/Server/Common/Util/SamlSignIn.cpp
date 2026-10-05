@@ -235,8 +235,7 @@ namespace HM
 
       __int64 EpochOf(const ASN1_TIME *moment)
       {
-         struct tm parts;
-         memset(&parts, 0, sizeof(parts));
+         struct tm parts = {};
          if (moment == nullptr || ASN1_TIME_to_tm(moment, &parts) != 1)
             return 0;
 
