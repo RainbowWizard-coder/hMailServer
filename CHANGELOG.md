@@ -528,9 +528,16 @@ time, so its time grew with the square of their number, and one message of a few
 worker that listed the folder for minutes - no click needed, since the list is the first thing the webmail asks for -
 and held an IMAP thread the same way; with a few of them the webmail, the Control Deck and the REST API stopped
 answering anybody. This is in the message list from 6.3.3, the page of a message that expires from 6.3.4 and `PREVIEW`
-from 6.2.22, up to 6.3.5. In 6.3.6 the server's string replacement, which these and the rest of the server use, writes
-a result of another length in one pass, and its removal of a character takes one pass too; what they make is as it
-was. Found by the project's own review (CVE requested).
+from 6.2.22, up to 6.3.5. The same replacement was reached by other readers of a stranger's text from 6.0.0: the DMARC
+anti-spam test, on by default, verifies the DKIM signatures of each message an unauthenticated sender delivers to a
+range with spam protection (the shipped Internet range has it), up to the anti-spam scan size (1 MB by default), on the
+task thread that accepts the message, before the server answers it, and the reader of a signature removes the spaces of
+its `h=` and `b=` tags with that replacement, so a signature holding a great many spaces held that thread for seconds to
+tens of seconds with nobody opening anything, and a stream of such messages held every thread the queue gives those
+tasks, so that the server answered no received message while it lasted; and IMAP `FETCH ENVELOPE` and `SORT` by date
+read a message's Date field with it. So in every version from 6.0.0 up to 6.3.5. In 6.3.6 the server's string
+replacement, which these and the rest of the server use, writes a result of another length in one pass, and its removal
+of a character takes one pass too; what they make is as it was. Found by the project's own review (CVE requested).
 
 An IP range's, an incoming relay's or a white-list entry's address set over COM - the Control Panel's IP ranges,
 incoming relays and white list pages, or a script - that the server could not read as an address was stored as
@@ -628,12 +635,15 @@ as root writes nothing to the log directory (it says what it did, and why it fai
 that would have gone to the error log is not written, except the stored-secrets commands', which go to standard
 error), as the Windows commands do.
 `--create-database` makes its `.new-installation` marker without following a link of that name.
-`build/check-elevated-verbs.py` holds all of it. The Windows commands were affected in 6.3.4 and 6.3.5, and the Linux
-root store commands' symlink following was too; it needs a program already running as the service's account and an
-administrator who then runs one of them (CVE requested). `/GrantServiceAccess` also no longer leaves a Critical
-HM5028, "Check your database settings in hMailServer.ini", in the Application log when the administrator running it
-cannot open a SQL Server database reached with Windows authentication: the installer smoke VM showed one on every
-such move on 3 October 2026. Found by the review of the installer's fixes and the sweep after it.
+`build/check-elevated-verbs.py` holds all of it. The Windows commands were affected in 6.3.4 and 6.3.5, and so were, on
+Linux, the root store commands' symlink following and the error reports every command run as root -
+`--set-admin-password`, `--set-setting` and the stored-secrets commands, which the packages say to run with `sudo`,
+among them - wrote into the service account's log directory, `/var/log/hmailserver`, opening the day's error log by name
+and so through a link planted there; it needs a program already running as the service's account and an administrator
+who then runs one of them (CVE requested). `/GrantServiceAccess` also no longer leaves a Critical HM5028, "Check your
+database settings in hMailServer.ini", in the Application log when the administrator running it cannot open a SQL Server
+database reached with Windows authentication: the installer smoke VM showed one on every such move on 3 October 2026.
+Found by the review of the installer's fixes and the sweep after it.
 [ServiceAccount.md](hmailserver/docs/ServiceAccount.md), "What an administrator's command writes".
 
 Every user of a Windows computer that runs hMailServer could read its mail. The installer makes the `Data`, `Logs`,
@@ -665,17 +675,20 @@ read this way without anyone opening it. The blank lines are now counted and cut
 that reads these reports, 6.3.4 and 6.3.5. What is read is as it was. Found by the project's own review (CVE requested).
 
 A header field read as text - the Subject and From of the webmail's message list, the header keys of IMAP `SEARCH`,
-`SORT` and `THREAD`, a rule that tests a header, the spam tag put in front of a Subject, the abuse report reader -
-was unfolded by finding each line break from the end of the value and moving everything after it, so the time grew
-with the square of the number of line breaks, which are the sender's: an RFC 2047 encoded word may decode to as many
-as it likes. A value of 1.6 MB of short lines took half a minute, each time it was read, and the default largest
-message holds over ten times as many, so a stranger's message held the REST worker that listed its folder, or the IMAP
-thread that searched, sorted or threaded it, for minutes and more, and a few such messages stopped the webmail, or the
-IMAP, SMTP and POP3 ports, answering anybody. This is in every version from 6.0.0 up to 6.3.5. In 6.3.6 the value is
-unfolded in one pass, to the same result. The reading of a message's header from its file had the same shape at a
-larger scale: after each 4,000 bytes it searched all it had read for the header's end, some five seconds for a header
-of 20 MB, the default largest message, at each of the several reads of a message; it now searches only what each read
-adds. Found by the project's own review (CVE requested).
+`SORT` and `THREAD`, a rule that tests a header, the spam tag put in front of a Subject, the abuse report reader, the
+From the DMARC anti-spam test reads while a message is received - was unfolded by finding each line break from the end
+of the value and moving everything after it, so the time grew with the square of the number of line breaks, which are
+the sender's: an RFC 2047 encoded word may decode to as many as it likes. A value of 1.6 MB of short lines took half a
+minute, each time it was read, and the default largest message holds over ten times as many, so a stranger's message
+held the REST worker that listed its folder, or the IMAP thread that searched, sorted or threaded it, for minutes and
+more, and a few such messages stopped the webmail, or the IMAP, SMTP and POP3 ports, answering anybody. The DMARC test,
+on by default, reads the From of each message an unauthenticated sender delivers to a range with spam protection, up to
+the anti-spam scan size (1 MB by default), on the task thread that accepts the message, before the server answers it, so
+a sender holds that thread for seconds with each such message and needs nobody to open anything. This is in every
+version from 6.0.0 up to 6.3.5. In 6.3.6 the value is unfolded in one pass, to the same result. The reading of a
+message's header from its file had the same shape at a larger scale: after each 4,000 bytes it searched all it had read
+for the header's end, some five seconds for a header of 20 MB, the default largest message, at each of the several reads
+of a message; it now searches only what each read adds. Found by the project's own review (CVE requested).
 
 A review of the whole server for the same shape - input a remote party controls, read in time quadratic in its size -
 found more of it, all fixed in one pass with the result unchanged, each proven against the previous code over generated
@@ -704,16 +717,19 @@ tens of seconds, and up to ten signatures are verified per message by each of th
 that serve delivery and SMTP. Each field is now built once and each `h=` name found in an index by name; what is hashed
 is unchanged byte for byte. In every version from 6.0.0 up to 6.3.5 (CVE requested). Expanding an SPF mechanism's domain-spec cut a name
 too long to look up (RFC 7208 7.1) one label at a time, copying the rest each time, so a record the sender publishes
-with a macro that expands to a very long name made the SPF check take several seconds (a domain-spec of 2,000 `%{s}`
-took 4.9 seconds); the cut is now made once. In 6.3.4 and 6.3.5, where that SPF implementation arrived (CVE
-requested). The JSON reader kept the first of each member name by searching the members already kept, so an object of
-many members cost their square (64,000 took 2.4 seconds); it reads the REST API's bodies and, where domain reports are
-on, a TLS report (RFC 8460) mailed in by anyone, of up to 16 MB, on the delivery queue, where a 4 MB report took
-about 300 seconds - a few such reports stopped all delivery for over an hour each. It now keeps a hash set. Since
-6.2.28 (CVE requested). Two more of the shape are fixed that need the attacker's own account or script rather than a
-stranger's message: a Sieve `:matches` test backtracked over every length of every `*` (`*a*a*a*b` over 800 characters took
-44 seconds) and `deleteheader` erased its chosen fields one at a time, both over a sender's header but driven by the
-account holder's own filter script, on the delivery threads every account shares (since 6.2.24; CVE requested); and
+with a macro that expands to a very long name made the SPF check - the SPF test's, or the DMARC test's, which is on by
+default and evaluates the sender's SPF itself - take several seconds (a domain-spec of 2,000 `%{s}` took 4.9 seconds);
+the cut is now made once. In 6.3.4 and 6.3.5, where that SPF implementation arrived (CVE requested). The JSON reader
+kept the first of each member name by searching the members already kept, so an object of many members cost their square
+(64,000 took 2.4 seconds); it reads the REST API's bodies and, where domain reports are on, a TLS report (RFC 8460)
+mailed in by anyone, of up to 16 MB, on the delivery queue, where a 4 MB report took about 300 seconds - a few such
+reports stopped all delivery for over an hour each. It now keeps a hash set. The reader is in the server from 6.2.28;
+the REST API's largest bodies, the webmail's send and draft of 16 MB, go through it whole from 6.3.2 (in 6.3.0 and 6.3.1
+what reached it was held to 64 KB), and the reports from 6.3.4 (CVE requested). Two more of the shape are fixed that
+need the attacker's own account or script rather than a stranger's message: a Sieve `:matches` test backtracked over
+every length of every `*` (`*a*a*a*b` over 800 characters took 44 seconds) and `deleteheader` erased its chosen fields
+one at a time, both over a sender's header but driven by the account holder's own filter script, on the delivery threads
+every account shares (since 6.2.22; CVE requested); and
 an IMAP `LIST` de-duplicated its result lines by searching a list
 for each (40,000 folders took 1.4 seconds a command), over the signed-in account's own folders (since 6.2.0). The Sieve match is now linear in the value times the
 pattern, and `LIST` keeps a hash set. The calendar's handling of an organiser's `CANCEL` of a series from an occurrence on
@@ -2372,14 +2388,16 @@ project's own review.
   three HTTPS requests among them read with calls that on Linux wait without a timeout in any case. So on Linux a
   wait on a peer that stopped answering lasted for as long as the connection stayed open. This was so in every
   release with Linux packages, 6.3.0 to 6.3.5 (CVE-2026-103649); Windows honoured the timeouts, each of which bounded
-  one read. The three HTTPS requests now go through the server's one HTTPS client, whose deadline bounds each request
-  whole on both platforms - 15 seconds for the MTA-STS policy, 20 for the token, 30 for an ACME request - and the others
-  take their timeouts in the form each platform takes: 5 seconds for the TLSA query, the http-01 responder and the
-  metrics listener, 30 for ManageSieve. What this changes besides is in What changes on upgrade, item 16. A new tester
-  program the Linux build runs, `network-deadline-tests`, holds the token and ACME requests, the TLSA query and the
-  http-01 responder to their deadlines against a peer on 127.0.0.1 that never answers, and the policy fetch to its own
-  through a proxy of its own that never answers, and fails against the code as it was; `HealthProbes`, `ManageSieve` and
-  `OutboundXOAuth2` in the regression suite have a case each.
+  one read. In 6.3.0 to 6.3.2 the server's own DNS resolver, through which the Linux build's lookups go, set its query
+  timeouts in the same form, so a query a name server did not answer held the lookup thread for ever; 6.3.3 corrected
+  that, and its notes did not say so. The three HTTPS requests now go through the server's one HTTPS client, whose
+  deadline bounds each request whole on both platforms - 15 seconds for the MTA-STS policy, 20 for the token, 30 for an
+  ACME request - and the others take their timeouts in the form each platform takes: 5 seconds for the TLSA query, the
+  http-01 responder and the metrics listener, 30 for ManageSieve. What this changes besides is in What changes on
+  upgrade, item 16. A new tester program the Linux build runs, `network-deadline-tests`, holds the token and ACME
+  requests, the TLSA query and the http-01 responder to their deadlines against a peer on 127.0.0.1 that never answers,
+  and the policy fetch to its own through a proxy of its own that never answers, and fails against the code as it was;
+  `HealthProbes`, `ManageSieve` and `OutboundXOAuth2` in the regression suite have a case each.
 
 - **The ACME client reads a header that comes last.** `AcmeClient` looked a response header up in the block cut
   at the blank line and then wanted a line break after its value, so a `Replay-Nonce` or `Location` that a CA sent
