@@ -2946,13 +2946,16 @@ namespace HM
             bool truncated = false;
             AnsiString problem;
             const bool expanded = ICalendar::Expand(daily, first - 86400, first + (named + 1) * 86400, 2000, left, truncated, problem);
+            const double margin = HM_TEST_TIME_BOUND(250) / 1000.0;
             AnsiString took;
             took.Format("%.3f s, where one expansion of the series takes %.4f s", seconds, expansion);
+            AnsiString allowed;
+            allowed.Format("%.2f s", margin);
             AnsiString count;
             count.Format("%d", static_cast<int>(left.size()));
-            if (!applied || !expanded || left.size() != 2 || seconds >= 50 * expansion + 0.25)
+            if (!applied || !expanded || left.size() != 2 || seconds >= 50 * expansion + margin)
                throw std::logic_error(std::string("ImipTester: ApplyToStored: a CANCEL naming 1,500 occurrences of a daily series took ") +
-                                      took.c_str() + " (less than 50 expansions and a quarter of a second expected), or left " + count.c_str() +
+                                      took.c_str() + " (less than 50 expansions and " + allowed.c_str() + " expected), or left " + count.c_str() +
                                       " occurrences of those and the two beside them where 2 were expected.");
          }
 
@@ -3047,12 +3050,16 @@ namespace HM
             });
             const double plainExpansion = bestOfThree(expansionOf(plain, madePlain));
             const double crowdedExpansion = bestOfThree(expansionOf(crowded, madeCrowded));
+            const double expansionMargin = HM_TEST_TIME_BOUND(20) / 1000.0;
             AnsiString costs;
             costs.Format("%.4f s for 10,000 days after 58,000 EXDATEs, %.4f s without them, %.4f s to read the copy", crowdedExpansion, plainExpansion,
                           reading);
-            if (madeCrowded != madePlain || madeCrowded < 9000 || crowdedExpansion >= plainExpansion + 4 * reading + 0.02)
+            AnsiString expansionAllowed;
+            expansionAllowed.Format("%.2f s", expansionMargin);
+            if (madeCrowded != madePlain || madeCrowded < 9000 || crowdedExpansion >= plainExpansion + 4 * reading + expansionMargin)
                throw std::logic_error(std::string("ImipTester: an expansion of a series with 58,000 EXDATEs took ") + costs.c_str() +
-                                      " (less than the series without them, four readings and 0.02 s expected), or did not make the days the series without them makes.");
+                                      " (less than the series without them, four readings and " + expansionAllowed.c_str() +
+                                      " expected), or did not make the days the series without them makes.");
 
             const __int64 picks = 17;
             std::vector<AnsiString> recurrenceIds;
@@ -3076,11 +3083,15 @@ namespace HM
                each = each && ICalendar::Expand(crowded, at - 1, at + aDay + 1, 10, around, truncated, problem) && around.size() == 1 &&
                       around[0].start == at + aDay;
             }
+            const double cancelMargin = HM_TEST_TIME_BOUND(250) / 1000.0;
             AnsiString took;
             took.Format("%.3f s, where %s", seconds, costs.c_str());
-            if (tookOut != ImipOccurrences::Some || !each || seconds >= 25 * crowdedExpansion + 0.25)
+            AnsiString cancelAllowed;
+            cancelAllowed.Format("%.2f s", cancelMargin);
+            if (tookOut != ImipOccurrences::Some || !each || seconds >= 25 * crowdedExpansion + cancelMargin)
                throw std::logic_error(std::string("ImipTester: TakeOutOccurrences: a CANCEL of 17 occurrences of a series with 58,000 EXDATEs took ") +
-                                      took.c_str() + " (less than 25 of those expansions and a quarter of a second expected), or did not take out each of them alone.");
+                                      took.c_str() + " (less than 25 of those expansions and " + cancelAllowed.c_str() +
+                                      " expected), or did not take out each of them alone.");
          }
 
          // A copy that has lost occurrences already - it took earlier CANCELs,

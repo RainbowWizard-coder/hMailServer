@@ -94,6 +94,12 @@ with `--check`).
   sites cppcheck rated High read as its model follows them. Apart from the two entries under Operations, none of them
   changes what the server does. `openpgp-writer`, a test tool, now ends with 1, saying why, when its message could not
   be written to standard output, where it ended with 0.
+- **The testers' four timing checks of computation that 6.3.6 left out take `HM_TEST_TIME_BOUND` as well**, ten times
+  their margin where the aarch64 RPM builds run them under qemu-user: ImipTester's three fixed margins (a quarter of a
+  second, 0.02 s, a quarter of a second) over the expansions they are measured against, and XmlDocument's 3000 ms for
+  its worst-case document. The 6.3.6 tag's `rpm-fedora43-aarch64` failed once on the 0.02 s margin (0.1547 s against
+  0.1424 s). The checks that race a real sleep or a deadline - NeverBanNameList's two and `network-deadline-tests`' -
+  keep their bounds: emulation does not slow a sleep, and ten times theirs would pass a deadline that was not kept.
 - **DBSetup.Tests runs on xUnit.net v3** (`xunit.v3.mtp-off`), as the other two SDK-style test projects have since
   6.3.6; it is new in 6.3.6 and had kept the deprecated `xunit` 2.9.3.
 

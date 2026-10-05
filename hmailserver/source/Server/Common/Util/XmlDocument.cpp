@@ -1731,8 +1731,9 @@ namespace HM
             std::chrono::steady_clock::now() - started).count();
 
          Require(canonical.size() > worst.size(), "The worst-case document's canonical form is not all of it.");
-         Require(took < 3000, "The worst-case document of 256 KB took " + std::to_string(took) +
-                 " ms to read and canonicalise, and the bound is 3000 ms.");
+         const long long bound = (long long) HM_TEST_TIME_BOUND(3000);
+         Require(took < bound, "The worst-case document of 256 KB took " + std::to_string(took) +
+                 " ms to read and canonicalise, and the bound is " + std::to_string(bound) + " ms.");
       }
    }
 }
