@@ -1251,7 +1251,7 @@ namespace HM
          // The service ignores SIGPIPE, and an ignored signal stays ignored
          // across exec: the reader writing to a service that is gone should end.
          ::sigaction(SIGPIPE, &defaults, nullptr);
-         ::sigprocmask(SIG_SETMASK, &noSignals, nullptr);
+         ::pthread_sigmask(SIG_SETMASK, &noSignals, nullptr);
 
          if (::dup2(requests, 0) < 0 || ::dup2(replies, 1) < 0 || ::dup2(silence, 2) < 0 || ::dup2(pst, 3) < 0)
          {

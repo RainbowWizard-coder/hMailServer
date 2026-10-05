@@ -12,6 +12,7 @@
 #include "UpdateWindow.h"
 #include "UpdateInstaller.h"
 #include "ServiceAccount.h"
+#include "ProcessLauncher.h"
 #include <time.h>
 #include "../Application/IniFileSettings.h"
 #include "../Application/Version.h"
@@ -209,15 +210,18 @@ namespace
       // rpm-based one has no /var/lib/dpkg/status.
       if (access("/usr/bin/rpm", X_OK) == 0 && access("/var/lib/dpkg/status", F_OK) != 0)
       {
-         static int rpmOwnsThis = -1;
-         if (rpmOwnsThis < 0)
+         // Once per process, under a static's initialisation: two threads asking
+         // at once (the scheduled check, a status request) run one rpm between
+         // them. No shell: the one binary, by its full path, with one argument,
+         // through the launcher every external program of the server takes.
+         static const bool rpmOwnsThis = []()
          {
-            // The shell would have run a program named by the environment;
-            // this is the one binary, by its full path, with one argument.
-            const int status = system("/usr/bin/rpm -q hmailserver >/dev/null 2>&1");
-            rpmOwnsThis = (status == 0) ? 1 : 0;
-         }
-         if (rpmOwnsThis == 1)
+            ProcessLauncher rpm(_T("/usr/bin/rpm -q hmailserver"), String());
+            rpm.SetStandardOutputFile(_T("/dev/null"));
+            unsigned int exitCode = 0;
+            return rpm.Launch(exitCode) && exitCode == 0;
+         }();
+         if (rpmOwnsThis)
             return InstallRpm;
       }
 
