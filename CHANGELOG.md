@@ -71,6 +71,42 @@ with `--check`).
 
 ## Unreleased - in the tree after 6.3.6, not yet released
 
+### Operations
+
+- **Fixed: on Linux, a MySQL or PostgreSQL column the server reads as a whole number went through an `int` on its way
+  to the `long` it is kept in.** The two recordsets read such a column with `atoi`, whose `int` is narrower than
+  Linux's 64-bit `long`, so a value beyond 2,147,483,647 would have come back wrong; they now read it with `strtol`,
+  and a decimal column with `strtod`, the conversion `atof` made. A value in an `int`'s range reads as before, and
+  Windows, whose `long` is an `int`'s width, reads every value as before. The REST API's complaints route reads its
+  `account_id` filter with `_atoi64`, as the routes beside it read their ids.
+- **On Linux the update check asks `rpm` whether it installed the server once in each process, through the server's
+  own process launcher.** It ran `/usr/bin/rpm -q hmailserver` through `system()` and kept the answer where two
+  threads asking at once could both run it; the first caller now runs it, with no shell, and the others take its
+  answer. `rpm`'s standard error, which the shell line discarded, goes where the server's does.
+
+### Build and tests
+
+- **The static-analysis job's baseline holds 691 findings, down from 887.** The 187 that the security dashboard's
+  triage of 5 October 2026 marked to harden or fix are changed in the code, and nine more went with the same edits:
+  the Linux command line's and `openpgp-writer`'s unchecked writes to the terminal discard their results with
+  `(void)`, members and locals take their value where they are declared, the REST handlers' assignments leave their
+  `if` conditions, branches with one body are joined, three widening casts widen before the arithmetic, and the six
+  sites cppcheck rated High read as its model follows them. Apart from the two entries under Operations, none of them
+  changes what the server does. `openpgp-writer`, a test tool, now ends with 1, saying why, when its message could not
+  be written to standard output, where it ended with 0.
+- **DBSetup.Tests runs on xUnit.net v3** (`xunit.v3.mtp-off`), as the other two SDK-style test projects have since
+  6.3.6; it is new in 6.3.6 and had kept the deprecated `xunit` 2.9.3.
+
+### Documentation
+
+- **The 6.3.6 section names the CVE identifiers GitLab's CNA has assigned since the tag**, six so far, and says what
+  the correction notes posted on the CVE requests on release day establish: the string replacement and the header
+  unfolding were reached in the default configuration by the DMARC test while a message was received, the replacement
+  from 6.0.0; the SPF expansion by the DMARC test as well; the Sieve match since 6.2.22; the JSON reader's large
+  bodies from 6.3.2; on Linux, the error reports of a command run as root went into the service account's log
+  directory from 6.3.0, and in 6.3.0 to 6.3.2 the server's DNS resolver waited without a timeout. It also says that
+  such a command now writes no report at all, where it said the report went to standard error.
+
 ---
 
 ## [6.3.6](https://gitlab.com/hmailserver/hmailserver/-/releases/v6.3.6) - 2026-10-06
