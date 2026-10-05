@@ -354,7 +354,9 @@ container-image-sign:
 # digest: CS_IMAGE comes from container-image's dotenv report, which the template's
 # `dependencies: []` would keep from it, so dependencies names that job.
 container_scanning:
-  image: registry.gitlab.com/security-products/container-scanning:8@sha256:c40ee60b7af8d60f9ae223b5cf9dd068a343a6b4cd245ff244c7d947833e2dbc
+  # By digest, as gitlab-security.yml's analyzers are; re-taken on 5 October 2026,
+  # when the registry no longer served the one of 26 September.
+  image: registry.gitlab.com/security-products/container-scanning:8@sha256:34e43a8964c4b8d8e29105d81b05fbf1d99f3fadbfd14cd9b450adc511506f2d
   stage: release
   needs:
     - job: container-image

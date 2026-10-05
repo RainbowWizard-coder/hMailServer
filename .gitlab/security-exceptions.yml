@@ -3915,3 +3915,83 @@ exceptions:
     reviewed-by: Progressiverobot
     reviewed: 2026-10-03
     expires: 2027-10-02
+
+  # The ten semgrep-sast findings in 6.3.6's new code that the release gate of its first tag
+  # pipeline held (5 October 2026), each read against the code at 94892314a by one reviewer and
+  # an independent skeptic, both finding it safe as the code stands.
+  # hmailserver/source/Server/Common/Util/ServiceAccount.cpp
+  - scan: semgrep-sast
+    finding: 0f3b1f6e0a29a5a82a8c
+    what: 'memcpy of the junction''s substitute name into the mount-point reparse buffer in MakeJunction_, the ServiceAccountTester''s junction helper (test code)'
+    reason: 'Tester code, compiled into hMailServer.exe but run only by ClassTester::DoTests (hMailServer.exe /Test, or Utilities.RunTestSuite, which needs a server administrator): MakeJunction_ and its one caller TestLinks_ are in ServiceAccount.cpp''s anonymous namespace, TestLinks_ is called only from ServiceAccountTester::Test (Windows only), and every link and target it passes is a path it builds under the configured temp folder ([Directories] TempFolder) from a GUID and fixed names. substitute is a std::wstring of S characters (the NT prefix \??\ and the target up to its first NUL), print one of P; buffer, a std::vector<unsigned char>, is 16 + (S + 1 + P + 1) * sizeof(wchar_t) bytes, at least 28. This copy writes (S + 1) * sizeof(wchar_t) bytes from substitute.c_str(), which holds S + 1 wchar_t with its terminator, at offset 16, leaving exactly (P + 1) * sizeof(wchar_t) for the print name. The buffer''s size and this copy''s length are size_t values from the two wstrings themselves, not from the String (both stop at its first NUL) and not from the WORD header fields, which truncate above 65535 but are only written, for Windows, which is given buffer.size(); the sum cannot wrap in the 64-bit builds (x64, ARM64), both wstrings being allocated. Unsafe if the buffer or this length were taken from another string (target.GetLength(), which counts past an embedded NUL) or from the WORD fields, or if buffer became a fixed 16 KiB REPARSE_DATA_BUFFER without a length check.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-10-05
+    expires: 2027-10-04
+  - scan: semgrep-sast
+    finding: bf8183697c7de6fadfaa
+    what: 'memcpy of the junction''s print name after the substitute name in the mount-point reparse buffer in MakeJunction_, the ServiceAccountTester''s junction helper (test code)'
+    reason: 'Tester code, as the substitute name''s copy (0f3b1f6e0a29a5a82a8c) the line before: MakeJunction_ is in ServiceAccount.cpp''s anonymous namespace, called only from TestLinks_ there, which ServiceAccountTester::Test alone calls (ClassTester::DoTests: hMailServer.exe /Test, or a server administrator''s Utilities.RunTestSuite), on paths it builds under the configured temp folder. buffer, a std::vector<unsigned char>, is 16 + (S + 1 + P + 1) * sizeof(wchar_t) bytes for a substitute of S characters and a print name of P. This copy writes (P + 1) * sizeof(wchar_t) bytes from print.c_str(), which holds P + 1 wchar_t with its terminator, at offset 16 + (S + 1) * sizeof(wchar_t), where the substitute''s copy ended, so it ends at buffer.size() exactly and does not overlap it. The offset and length are size_t values from the two wstrings, the same expressions that sized the buffer, and cannot wrap in the 64-bit builds since both wstrings are allocated; the WORD header fields are only written, for Windows, which is given buffer.size(). Unsafe if the offset or length stopped matching the buffer''s size (the copies reordered, the print offset changed alone, a length from target.GetLength() or a WORD field), or if buffer became a fixed array without a length check.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-10-05
+    expires: 2027-10-04
+  # hmailserver/source/Server/Common/TCPIP/DNSResolverWinApi.cpp
+  - scan: semgrep-sast
+    finding: f7d372ecff1b463c7e66
+    what: 'memcpy of the custom DNSServer''s IPv4 octets into a local SOCKADDR_IN''s sin_addr in DNSResolverWinApi::RunQuery_ (Windows)'
+    reason: 'Copies customServerBytes.size() octets, an address_v4::bytes_type (array<unsigned char, 4>, so 4 whatever the setting says), from customServer.to_v4().to_bytes() into serverAddress.sin_addr, the 4-octet IN_ADDR of a local SOCKADDR_IN zeroed just before; only after IPAddress::Parse read the DNSServer setting (the administrator''s) as four decimal parts and is_v4() held, and to_v4() throws rather than give anything else. Unsafe if the source became an address_v6''s 16-octet bytes_type with sin_addr still the destination.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-10-05
+    expires: 2027-10-04
+  # hmailserver/source/Tools/DBSetup/NewInstallation.cs
+  - scan: semgrep-sast
+    finding: def3d14141ed9b6b5821
+    what: 'ProcessStartInfo.FileName of hMailServer.exe in DBSetup''s MachineHost.RunServer, which finishes a new installation setup left unfinished'
+    reason: 'FileName is Path.Join(AppContext.BaseDirectory, "hMailServer.exe"): the constant name in the folder DBSetup''s own assemblies load from, {app}\Bin, where the installer''s server component puts both (section_files_64.iss, section_files_arm64.iss). DBSetup is published framework-dependent, not as a single-file bundle (DBSetup.csproj, build-tools.ps1), so BaseDirectory is not an extraction folder; UseShellExecute is false, so .NET quotes the full path and starts it as written, with no PATH or current-directory search and no shell, and no registry, database, INI, environment or wizard text reaches it. It runs elevated wherever the installer''s unfinished-installation mark is there when DBSetup starts (Program.Main restarts the wizard with runas; /unattended stops before changing anything when it is not elevated); run without elevation it has only its user''s own rights. So it trusts Bin as far as DBSetup already does for its own DLLs. /GrantServiceAccess never lets NT SERVICE\hMailServer make or replace a file in Bin: in the program folder it is given Modify on Data, Logs, Temp and Database (PlanGrants_, RefusedLocation_) and on the one existing file hMailServerApiKeys.ini, the REST API''s key store, and Read elsewhere. Unsafe if the path came from configuration or were a bare name, if DBSetup became a self-extracting bundle, or if non-administrators could write Bin; the installer sets no permissions on the folder chosen, so outside Program Files that is decided by its parent, and there hMailServer.exe, which the service runs, is exposed already.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-10-05
+    expires: 2027-10-04
+  - scan: semgrep-sast
+    finding: 89535995bde76751babd
+    what: 'Process.Start of Bin''s hMailServer.exe with one of the installer''s verbs in MachineHost.RunServer'
+    reason: 'Starts the start info of the entry above, UseShellExecute false, each argument its own ArgumentList element. Every caller passes a constant array: Finish --apply-new-install-defaults, --create-stored-secrets-key and --apply-profile PROFILE --once --if-new --confirm; MoveToVirtualAccount --grant-database-login, [--confirm] /GrantServiceAccess and --service-account virtual /Register; MoveBack --service-account localsystem /Register. PROFILE is pending.Profile, which PendingNewInstallation.FromValues keeps only when, trimmed and lower-cased, it equals ordinally one of the constants office, gateway, relay, sender or none (null otherwise, and the call is skipped), so the string passed is one of those words. None holds white space or a quote, so none is quoted, split or run into another. The HM_DB_ variables, the installer''s switches and the wizard''s fields reach no argument; the child''s output is shown and matched against two fixed sentences, never made an argument. Unsafe if an argument were built from registry, INI, database, environment or wizard text, joined into one Arguments string, or run through a shell.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-10-05
+    expires: 2027-10-04
+  # hmailserver/source/Tools/DBSetup/Program.cs
+  - scan: semgrep-sast
+    finding: d77139d6c856395dcbf7
+    what: 'ProcessStartInfo.FileName of DBSetup''s elevated relaunch of itself in Program.RunElevated'
+    reason: 'FileName is Environment.ProcessPath, which .NET takes from Windows (GetModuleFileName of the process''s own image), not from the command line or the environment: the absolute path the running DBSetup.exe apphost was started from - the copy the elevated installer puts in {app}\Bin (Program Files\hMailServer\Bin by default) when started from the Start menu''s shortcut, or a copy a user started elsewhere, which that user could as well ask runas to elevate directly. An absolute path is not searched for, and ShellExecuteEx starts the .exe with no command interpreter. RunElevated runs only without /unattended, when the 32-bit view of HKLM\SOFTWARE\hMailServer, which only administrators can write, holds the installer''s NewInstallationPending mark (PendingNewInstallation.Read), and when the process is not in the Administrators role (NewInstallation.IsElevated); Verb runas then hands the start to Windows'' elevation, which prompts unless an administrator''s policy elevates without prompting. A null ProcessPath leaves FileName empty, and Process.Start throws InvalidOperationException, caught: the NotElevated sentence with its message, and exit 1. Unsafe if DBSetup ran under another host (dotnet DBSetup.dll, where ProcessPath is dotnet.exe and the forwarded arguments become its own), or from a folder a non-administrator can write - as Bin is when installed outside Program Files at a drive root on a Windows client, which inherits Authenticated Users'' Modify that neither the installer nor /ProtectFolders removes (/GrantServiceAccess says CHECK); there the service''s own executables in the same folder are exposed first, and the relaunch adds nothing.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-10-05
+    expires: 2027-10-04
+  - scan: semgrep-sast
+    finding: 2d826449660ede9adb8e
+    what: 'ProcessStartInfo.Arguments of DBSetup''s elevated relaunch of itself in Program.RunElevated'
+    reason: 'The text is this process''s own arguments (Environment.GetCommandLineArgs, the first skipped), each put in double quotes with an inner quote escaped, handed by ShellExecuteEx to DBSetup.exe itself (the FileName entry above): no command interpreter reads it, so it can only become DBSetup''s own switches. Whoever chose them started this process, which is not in the Administrators role, and can already start DBSetup.exe with Verb runas and any arguments through the same Windows elevation, whose prompt, where policy shows one, lists the child''s command line; and whatever environment Windows gives the elevated child, the variables DBSetup reads (HM_ADMIN_PASSWORD, and HM_DB_* only with /unattended) come from that person or from the elevating account, as with a direct runas. In shipped use there are none: the Start menu shortcut passes none, and the installer runs elevated and clears the mark before its own DBSetup, which therefore never relaunches. The quoting doubles no backslash, so an argument ending in one runs into the next, backslashes before an inner quote are halved, and an argument holding spaces can reach the child as a switch the parent did not see, /unattended among them: a fidelity bug, not a crossing, to be fixed with ArgumentList. Unsafe if FileName named another program or the text came from anywhere but this process''s own command line.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-10-05
+    expires: 2027-10-04
+  - scan: semgrep-sast
+    finding: b0126e428fe2fd5868a5
+    what: 'Process.Start of DBSetup''s elevated relaunch of itself in Program.RunElevated'
+    reason: 'Starts the start info of the two entries above: this process''s own image by its absolute path, its own arguments, UseShellExecute true and Verb runas, so ShellExecuteEx asks Windows to elevate DBSetup.exe and nothing else, with no command interpreter. It is reached only without /unattended, with the installer''s NewInstallationPending mark in HKLM''s 32-bit view, from a process not in the Administrators role; Windows then elevates it as any runas request - a prompt to accept or an administrator''s credentials to give, unless an administrator''s policy elevates without prompting. A cancelled prompt (1223) ends in the NotElevated sentence and exit 1, any other non-fatal exception in that sentence with its message and exit 1, a start that returns no process in exit 1; otherwise the parent waits and returns the child''s exit code. It gives no one more than the runas verb on DBSetup.exe already does; unsafe under the conditions the two entries above name.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-10-05
+    expires: 2027-10-04
+  # hmailserver/source/Server/Common/TCPIP/IPAddress.cpp
+  - scan: semgrep-sast
+    finding: 4155e2c8661275027a83
+    what: 'memcpy of the groups before an IPv6 address''s :: (head) into the 16-byte result in IPAddress.cpp''s ParseIPv6_'
+    reason: 'ParseIPv6_, in IPAddress.cpp''s anonymous namespace, copies headCount bytes from its local 16-byte head into bytes, which its only caller, IPAddress::Parse, passes as the data() of a local 16-byte address_v6::bytes_type. The text may be a remote party''s (an SMTP client''s HELO argument, the address in a Received header, a URL''s host including one a redirect names; XCLIENT ADDR and PROXY v1 from a configured trusted upstream), but it never sets the count: before each write into head or tail the parse is refused if headCount + tailCount + 2 (a hex group, two bytes) or + 4 (the dotted IPv4 tail, of which ParseIPv4_ writes at most 4 bytes) would pass 16, and each write goes through the counter of the array it writes (out and count are chosen together), so headCount + tailCount <= 16 and headCount <= 16. Loosening or removing either check, a ParseIPv4_ writing more than 4 bytes, out and count chosen from different arrays, or head or the destination under 16 bytes (the bytes[16] parameter is only a pointer, so a caller with a shorter buffer would compile) would make it unsafe.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-10-05
+    expires: 2027-10-04
+  # hmailserver/source/Server/Common/TCPIP/IPAddress.cpp
+  - scan: semgrep-sast
+    finding: dbe32fd8fe9201521120
+    what: 'memcpy of the groups after an IPv6 address''s :: (tail) to the end of the 16-byte result in IPAddress.cpp''s ParseIPv6_'
+    reason: 'ParseIPv6_ copies tailCount bytes from its local 16-byte tail to bytes + 16 - tailCount, ending at the last byte of the 16-byte address_v6::bytes_type its only caller, IPAddress::Parse, passes. The checks before each write into head or tail (refused if headCount + tailCount + 2, or + 4 for the dotted IPv4 tail, of which ParseIPv4_ writes at most 4 bytes, would pass 16) keep headCount + tailCount <= 16, so tailCount <= 16 and the start is never below bytes, whatever the text, which may be a remote party''s. tail is written only in a pass that began after a :: was read, so without one tailCount is 0 and nothing is copied; with one the final check refuses headCount + tailCount > 14, so the copy does not overlap the head copy. Loosening or removing those checks, a ParseIPv4_ writing more than 4 bytes, or tail or the destination under 16 bytes (the bytes[16] parameter is only a pointer) would make it unsafe.'
+    reviewed-by: Progressiverobot
+    reviewed: 2026-10-05
+    expires: 2027-10-04

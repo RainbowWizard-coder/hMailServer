@@ -73,7 +73,7 @@ with `--check`).
 
 ---
 
-## [6.3.6](https://gitlab.com/hmailserver/hmailserver/-/releases/v6.3.6) - 2026-10-01
+## [6.3.6](https://gitlab.com/hmailserver/hmailserver/-/releases/v6.3.6) - 2026-10-06
 
 Everything that landed on `master` after the `v6.3.5` tag, from 29 September 2026 ([compare `v6.3.5` with
 `v6.3.6`](https://gitlab.com/hmailserver/hmailserver/-/compare/v6.3.5...v6.3.6)). It is the last release for the

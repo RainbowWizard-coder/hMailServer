@@ -73,8 +73,14 @@
 # The analyzer images are pinned by digest, as the other scans' images in
 # .gitlab-ci.yml are, rather than taken by the moving major tag the templates
 # name: registry.gitlab.com's security-products/semgrep:6 and
-# security-products/secrets:7 as they were on 26 September 2026. Renovate's gitlabci manager reads this file through the include
-# and proposes a new digest; a new major version is a change to the tag here.
+# security-products/secrets:7 as they were on 5 October 2026. GitLab's registry does
+# not keep serving a digest these tags have moved on from: the ones taken on 26
+# September 2026 answered "manifest unknown" on 5 October, and v6.3.6's first tag
+# pipeline could not start semgrep-sast, whose report the release job needs. The new
+# semgrep digest is the same analyzer, 6.26.1 with Semgrep 1.174.0, rebuilt. Renovate's
+# gitlabci manager reads this file through the include and proposes a new digest,
+# which is to be taken before a release tag; a new major version is a change to the
+# tag here.
 # The registry also has a semgrep:7 (7.0.0, 13 May 2026), which Renovate offers as
 # the next major version. It is not one: GitLab released it for GitLab 19.0 and
 # withdrew it the next day (the analyzer's merge requests !723 and !724), has no v7
@@ -99,7 +105,7 @@ include:
 
 semgrep-sast:
   image:
-    name: registry.gitlab.com/security-products/semgrep:6@sha256:84b751f34142359eedc8c1a785f869862c94910109725cb0003cac8a70d14407
+    name: registry.gitlab.com/security-products/semgrep:6@sha256:b98bc4dd3949f8d7e2dbe6d45fbb2b016145245c98f3a5c238666b7f27cb6321
   needs: []
   timeout: 30 minutes
   variables:
@@ -139,7 +145,7 @@ semgrep-sast:
       - gl-sast-report.json
 
 secret_detection:
-  image: registry.gitlab.com/security-products/secrets:7@sha256:77ac5c87f73b709cad2e4bfb2b255caba7e63fb3c832314b3fb88aaa3c129af7
+  image: registry.gitlab.com/security-products/secrets:7@sha256:17b94c35f59ebf58d976ae380580da198b6a0ea07e266307b6bac587bad067a2
   needs: []
   # The whole history took under a minute on linix (2,214 commits, 720 MB of diffs);
   # a shared runner's fetch of it is the rest.
