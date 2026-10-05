@@ -635,16 +635,16 @@ as root writes nothing to the log directory (it says what it did, and why it fai
 that would have gone to the error log is not written, except the stored-secrets commands', which go to standard
 error), as the Windows commands do.
 `--create-database` makes its `.new-installation` marker without following a link of that name.
-`build/check-elevated-verbs.py` holds all of it. The Windows commands were affected in 6.3.4 and 6.3.5, and so were, on
-Linux, the root store commands' symlink following and the error reports every command run as root -
-`--set-admin-password`, `--set-setting` and the stored-secrets commands, which the packages say to run with `sudo`,
-among them - wrote into the service account's log directory, `/var/log/hmailserver`, opening the day's error log by name
-and so through a link planted there; it needs a program already running as the service's account and an administrator
-who then runs one of them (CVE requested). `/GrantServiceAccess` also no longer leaves a Critical HM5028, "Check your
-database settings in hMailServer.ini", in the Application log when the administrator running it cannot open a SQL Server
-database reached with Windows authentication: the installer smoke VM showed one on every such move on 3 October 2026.
-Found by the review of the installer's fixes and the sweep after it.
-[ServiceAccount.md](hmailserver/docs/ServiceAccount.md), "What an administrator's command writes".
+`build/check-elevated-verbs.py` holds all of it. The Windows commands were affected in 6.3.4 and 6.3.5, and so was the
+Linux root store commands' symlink following; and in every release with Linux packages, 6.3.0 to 6.3.5, every command
+run as root - `--set-admin-password`, which the packages have said to run with `sudo` since 6.3.0, and from 6.3.4
+`--set-setting` and the stored-secrets commands among them - wrote its error reports into the service account's log
+directory, `/var/log/hmailserver`, opening the day's error log by name and so through a link planted there; it needs a
+program already running as the service's account and an administrator who then runs one of them (CVE requested).
+`/GrantServiceAccess` also no longer leaves a Critical HM5028, "Check your database settings in hMailServer.ini", in the
+Application log when the administrator running it cannot open a SQL Server database reached with Windows authentication:
+the installer smoke VM showed one on every such move on 3 October 2026. Found by the review of the installer's fixes and
+the sweep after it. [ServiceAccount.md](hmailserver/docs/ServiceAccount.md), "What an administrator's command writes".
 
 Every user of a Windows computer that runs hMailServer could read its mail. The installer makes the `Data`, `Logs`,
 `Temp`, `Database` and `Events` folders in the program folder, `C:\Program Files\hMailServer` by default, and left
