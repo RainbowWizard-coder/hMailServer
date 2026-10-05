@@ -188,7 +188,7 @@ namespace HM
                       EVP_CIPHER_CTX_set_padding(context, 0) == 1 &&
                       EVP_EncryptUpdate(context, &out[0], &written, data, (int) length) == 1 &&
                       EVP_EncryptFinal_ex(context, &out[0] + written, &final) == 1 &&
-                      (size_t) (written + final) == length;
+                      (size_t) written + (size_t) final == length;
 
       EVP_CIPHER_CTX_free(context);
 
@@ -225,7 +225,7 @@ namespace HM
                       EVP_CIPHER_CTX_set_padding(context, 0) == 1 &&
                       EVP_DecryptUpdate(context, &out[0], &written, data, (int) length) == 1 &&
                       EVP_DecryptFinal_ex(context, &out[0] + written, &final) == 1 &&
-                      (size_t) (written + final) == length;
+                      (size_t) written + (size_t) final == length;
 
       EVP_CIPHER_CTX_free(context);
 

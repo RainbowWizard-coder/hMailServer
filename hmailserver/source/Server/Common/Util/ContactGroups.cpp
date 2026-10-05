@@ -178,7 +178,7 @@ namespace HM
             const bool endsAWord = after >= text.GetLength() || !AddressCharacter(text.GetAt(after));
             if (startsAWord && endsAWord)
                return true;
-            at = text.Find(addressLower, static_cast<size_t>(at + 1));
+            at = text.Find(addressLower, static_cast<size_t>(at) + 1);
          }
 
          return false;
