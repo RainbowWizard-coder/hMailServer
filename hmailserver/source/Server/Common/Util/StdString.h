@@ -1272,7 +1272,7 @@ typedef std::wstring::pointer    SW_PTRTYPE;
 
 inline void ssasn(std::string& sDst, const std::string& sSrc)
 {
-   if ( sDst.c_str() != sSrc.c_str() )
+   if ( &sDst != &sSrc )
    {
       sDst.erase();
       sDst.assign(SSREF(sSrc));
@@ -1376,7 +1376,7 @@ inline void ssasn(std::string& sDst, const int nNull)
 }  
 inline void ssasn(std::wstring& sDst, const std::wstring& sSrc)
 {
-   if ( sDst.c_str() != sSrc.c_str() )
+   if ( &sDst != &sSrc )
    {
       sDst.erase();
       sDst.assign(SSREF(sSrc));

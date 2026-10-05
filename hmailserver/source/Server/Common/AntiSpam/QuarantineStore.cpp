@@ -745,7 +745,7 @@ namespace HM
       // conversion to DATE, so the natural expression does not compile.
       std::time_t cutoffTime = std::time(0) - (static_cast<std::time_t>(retentionDays) * 24 * 60 * 60);
 
-      struct tm cutoffTm;
+      struct tm cutoffTm = {};
 
       if (localtime_s(&cutoffTm, &cutoffTime) != 0)
          return 0;

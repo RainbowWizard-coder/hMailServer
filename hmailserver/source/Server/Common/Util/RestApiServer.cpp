@@ -15393,7 +15393,7 @@ namespace HM
             return String();
 
          const std::time_t now = std::time(nullptr);
-         struct tm moment;
+         struct tm moment = {};
          if (localtime_s(&moment, &now) != 0)
             return String();
 

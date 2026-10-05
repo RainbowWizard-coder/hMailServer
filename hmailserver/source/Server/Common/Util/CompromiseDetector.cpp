@@ -1300,7 +1300,7 @@ namespace HM
             String cutoff;
             {
                const time_t cutoffTime = time(nullptr) - 10 * 60;
-               struct tm cutoffTm;
+               struct tm cutoffTm = {};
                char cutoffText[32];
                if (localtime_s(&cutoffTm, &cutoffTime) == 0 && strftime(cutoffText, sizeof(cutoffText), "%Y-%m-%d %H:%M:%S", &cutoffTm) != 0)
                   cutoff = String(cutoffText);

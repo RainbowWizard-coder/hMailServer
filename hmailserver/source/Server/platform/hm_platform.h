@@ -288,7 +288,7 @@ inline BSTR SysAllocStringLen(const wchar_t *text, unsigned int characters)
    if (text)
       ::wmemcpy(characters_out, text, characters);
    characters_out[characters] = L'\0';
-   return characters_out;
+   return reinterpret_cast<BSTR>(block + sizeof(uint32_t));
 }
 
 inline BSTR SysAllocString(const wchar_t *text)
