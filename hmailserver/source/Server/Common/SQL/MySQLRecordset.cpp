@@ -282,7 +282,7 @@ namespace HM
             return 0;   // as in GetStringValue
 
          char *pValue = current_[iColIdx];
-         long lVal = pValue ? atoi(pValue) : 0;
+         long lVal = pValue ? strtol(pValue, nullptr, 10) : 0;
          return lVal;
       }
       catch (...)
@@ -375,7 +375,7 @@ namespace HM
             return 0;   // as in GetStringValue
 
          char *pValue = current_[iColIdx];
-         double dbVal = pValue ? atof(pValue) : 0;
+         double dbVal = pValue ? strtod(pValue, nullptr) : 0;
 
          return dbVal;
       }

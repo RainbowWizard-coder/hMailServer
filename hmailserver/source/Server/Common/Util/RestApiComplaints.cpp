@@ -125,7 +125,7 @@ namespace HM
       Unicode::MultiByteToWide(QueryParameter_(route.query, "search"), search);
 
       const AnsiString accountText = QueryParameter_(route.query, "account_id");
-      const __int64 accountID = accountText.IsEmpty() ? 0 : (__int64) atoi(accountText.c_str());
+      const __int64 accountID = accountText.IsEmpty() ? 0 : _atoi64(accountText.c_str());
 
       const int limit = ParseCount(QueryParameter_(route.query, "limit"), 100, 1, 1000);
       const int offset = ParseCount(QueryParameter_(route.query, "offset"), 0, 0, INT_MAX);
