@@ -214,9 +214,11 @@ the change.
     header.
 - The libraries - Boost, OpenSSL, libpq - are Ubuntu's, under `/usr`, at the
   same path on every machine.
-- The Linux build runs in one image, `hmailserver-ci/linux:<release>-<hash>`,
-  built from `build/ci/linux.Dockerfile`; its tag is the Dockerfile's own hash,
-  and `build/check-ci-image.py` holds `.gitlab-ci.yml` to it.
+- The Linux build runs in one image,
+  `registry.gitlab.com/hmailserver/hmailserver/ci-linux:<release>-<hash>`, built
+  from `build/ci/linux.Dockerfile` and named by the digest of its manifest; its
+  tag is the Dockerfile's own hash, and `build/check-ci-image.py` holds
+  `.gitlab-ci.yml` to it.
 
 ### How it is checked: the linux-repro job
 
@@ -261,14 +263,19 @@ pipeline the first build is always `linux-build`'s: an artifact without the
 binary or the packages fails the job rather than being built again.
 
 The same script runs by hand, in the same image, with no `linux-build/` in the
-checkout: it then makes the first build too. The image is not published; it is
-built from the commit's own Dockerfile with `bash build/ci/build-linux-image.sh`,
-which prints the tag the commit's `.gitlab-ci.yml` names.
+checkout: it then makes the first build too. The image is published, since 6
+October 2026, in the project's container registry, which anyone can pull from:
+the commit's `.gitlab-ci.yml` names it under `.linix` by its tag and the digest
+of its manifest, `registry.gitlab.com/hmailserver/hmailserver/ci-linux:<tag>@sha256:<digest>`.
+`bash build/ci/build-linux-image.sh` builds the same tag from the commit's own
+Dockerfile, as `hmailserver-ci/linux:<tag>`, for a Dockerfile whose image has
+not been pushed yet.
 
 ```
 docker run --rm -v "$PWD":/src -w /src \
   -e CI_COMMIT_TIMESTAMP="$(git log -1 --format=%cI)" \
-  hmailserver-ci/linux:<tag> bash build/ci/linux-repro.sh
+  registry.gitlab.com/hmailserver/hmailserver/ci-linux:<tag>@sha256:<digest> \
+  bash build/ci/linux-repro.sh
 ```
 
 ### What was measured on Linux
@@ -350,12 +357,15 @@ The image is. What is in it is not, entirely: `linux.Dockerfile` starts from
 Ubuntu 26.04 at a pinned digest, but the packages it installs - clang, Boost,
 OpenSSL's headers, CMake - are the Ubuntu archive's on the day the image was
 built. So the CI image named by a commit is reproducible from the Dockerfile
-only as long as the archive has not moved. A compiler or a Boost that moved
-between two image builds changes the binary legitimately. `linux-build.sh`
-prints the compiler and CMake versions it used, `linux-repro`'s report repeats
-them, and `linux-repro` keeps the version of every package in the image
-(`image-packages.txt`) with its report for 30 days, so a release's own pipeline
-says what to match.
+only as long as the archive has not moved. Since 6 October 2026 the image a
+commit names is also kept in the project's registry, under the digest the
+commit's `.gitlab-ci.yml` names it by, so a rebuild of the binary can start from
+the very image the pipeline used rather than from the Dockerfile. A compiler or
+a Boost that moved between two image builds changes the binary legitimately.
+`linux-build.sh` prints the compiler and CMake versions it used, `linux-repro`'s
+report repeats them, and `linux-repro` keeps the version of every package in the
+image (`image-packages.txt`) with its report for 30 days, so a release's own
+pipeline says what to match.
 
 ---
 

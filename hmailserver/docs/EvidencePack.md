@@ -516,7 +516,7 @@ an open Roadmap2 row.
 
 **Continuous integration** is being introduced on GitLab: a `.gitlab-ci.yml`
 that runs the checkers and the page harnesses on every push and merge request,
-and the builds and both regression suites on the project's own two machines
+and the builds and both regression suites on the project's own runners
 for `master`, `batch*` branches and release tags only, described in
 `ContinuousIntegration.md` when it lands (Roadmap2, *Checks on GitLab CI*).
 Until then every check is run by hand, as CONTRIBUTING.md lists them.

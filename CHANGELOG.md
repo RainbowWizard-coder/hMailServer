@@ -127,6 +127,20 @@ with `--check`).
   pins; `build/ci/mirror-tumbleweed.sh` takes a new snapshot when one is wanted, and Renovate leaves the pins alone.
   Both packages build in it (clang 23.1.2, the rest as before), every tester passing - the aarch64 one's under
   qemu-user - and each installs in its architecture's image and answers `--version`.
+- **The Linux jobs run on the CI image as the project's registry holds it, named by the digest of its manifest, and
+  each starts by checking that it was started so.** `.linix` named `hmailserver-ci/linux:26.04-52e9976e73bf`, which
+  each runner with the tag `linix` found in its own image store and never pulled: a tag is only a name, and a job that
+  is root on linix in effect - the privileged `linix-systemd` entry's - could have given it other bytes, which every
+  later job, a release's packages among them, would then have built in (the second security review of 6.3.6,
+  SUP2-1). On 6 October 2026 the image was pushed with `build/ci/build-linux-image.sh --push` to
+  `registry.gitlab.com/hmailserver/hmailserver/ci-linux`, which anyone can pull from, and `.linix` now names it
+  `ci-linux:26.04-52e9976e73bf@sha256:4eead001…`: Docker takes an image named so only as the registry holds that
+  digest, and linix and server2 both pull it from there. `.linix`'s `before_script` is
+  `python3 build/check-ci-image.py --job`, and `container-image-sbom`, `container-image-start` and
+  `container-image-start-arm64`, which take its image without extending it, start with the same step: it stops the
+  job before it builds anything unless the image it was started in is named so, with the tag of the commit's own
+  Dockerfile. The registry's cleanup policy, still switched off, keeps this image's tags and the Tumbleweed mirror's
+  by name since the same day.
 - **DBSetup.Tests runs on xUnit.net v3** (`xunit.v3.mtp-off`), as ControlPanel.Tests and ImportTool.Tests have since
   6.3.6; it is new in 6.3.6 and had kept the deprecated `xunit` 2.9.3.
 

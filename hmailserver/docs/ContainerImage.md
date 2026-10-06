@@ -427,7 +427,7 @@ image, and the first is 6.3.6's, for both platforms:
 
 1. The project is at `gitlab.com/hmailserver/hmailserver`, since 29 September
    2026 (Roadmap3.md, section 8, the move into the group), and the registry's
-   cleanup policy keeps the six documented tag patterns (ContinuousIntegration.md, "What the owner sets on the
+   cleanup policy keeps the eight documented tag patterns (ContinuousIntegration.md, "What the owner sets on the
    registry").
 2. A maintainer adds `HM_PUBLISH_IMAGE` = `1` as a project CI/CD variable
    (Settings, CI/CD, Variables; Protected, since a `v*` tag is a protected ref), or
@@ -444,12 +444,14 @@ pushes nothing; `container-image-amd64` and `container-image-arm64` build nothin
 another: the project's first path, `registry.gitlab.com/progressiverobot/hmailserver`,
 is another project's since the move.
 `container-image-sbom` and `container-image-start` run in the Linux CI image of the
-tag's commit, `.linix`'s: on each runner with the tag `linix` (linix and, since
-5 October 2026, server2) and, once it is in the project's registry, named by digest
-(`registry.gitlab.com/hmailserver/hmailserver/ci-linux:<release>-<hash>@sha256:<digest>`;
-by its tag on those runners, `hmailserver-ci/linux:<release>-<hash>`, until then):
-keep that image on both, or in the registry, until the release's image jobs have run
-([ContinuousIntegration.md](ContinuousIntegration.md), The image).
+tag's commit, `.linix`'s, and start, as every job in it does, with
+`build/check-ci-image.py --job`. Since 6 October 2026 `.linix` names that image in the
+project's registry by digest
+(`registry.gitlab.com/hmailserver/hmailserver/ci-linux:<release>-<hash>@sha256:<digest>`),
+and whichever runner with the tag `linix` takes the job (linix or, since 5 October
+2026, server2) pulls it from there: keep it in the registry until the release's image
+jobs have run ([ContinuousIntegration.md](ContinuousIntegration.md), The image). The
+registry's cleanup policy, were it switched on, would keep its tag by name.
 `container-image-deb` is not allowed to fail, because GitLab starts a job whose
 need was allowed to fail after that need has failed: the image would be built after
 a refusal, or after a bundle that did not verify. So until someone starts it, the

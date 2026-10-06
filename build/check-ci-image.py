@@ -7,11 +7,12 @@
 and, once it is in the project's registry, on that image's bytes and no others.
 
 The Linux jobs of .gitlab-ci.yml (linux-build, linux-suite and every job that
-extends .linix) run on the project's own runner, linix, in an image built there by
-hand from build/ci/linux.Dockerfile (build/ci/build-linux-image.sh). So an edit to
-the Dockerfile changes nothing a job runs on until somebody builds it - and a job
-that went on naming the old tag would pass or fail on the old image and say
-nothing about it.
+extends .linix) run on the project's own runners with the tag linix, linix and
+server2, in an image built on linix by hand from build/ci/linux.Dockerfile
+(build/ci/build-linux-image.sh) and, since 6 October 2026, pushed to the project's
+registry and pulled from there. So an edit to the Dockerfile changes nothing a job
+runs on until somebody builds it - and a job that went on naming the old tag would
+pass or fail on the old image and say nothing about it.
 
 The tag is therefore made from the file: <release>-<hash>, where <release> is the
 Ubuntu release of the FROM line and <hash> the first twelve hex digits of the

@@ -22,8 +22,9 @@
 #                         units, when they change;
 #   package-templates     the winget and Chocolatey templates render, when they change.
 #
-# On the project's own two machines, for a protected ref only - master, a batch*
-# branch, a v* tag - and never for a merge request:
+# On the project's own runners - bench150, and linix or server2, which share the tag
+# linix - for a protected ref only - master, a batch* branch, a v* tag - and never
+# for a merge request:
 #
 #   linux-build   linix: the Linux server with clang, its tester programs, the
 #                 OpenPGP writer against GnuPG, and the .deb and the .rpm
@@ -491,10 +492,11 @@ pages:
           - "**/*[!.]md"
           - "[!.]*/**/*.md"
 
-# The Linux jobs run in an image built ON linix from build/ci/linux.Dockerfile and never
-# pulled: its tag is made from the Dockerfile's own hash, build/check-ci-image.py holds
-# the line below to it, and build/ci/build-linux-image.sh builds it
-# (docs/ContinuousIntegration.md, "The image").
+# The Linux jobs run in an image built ON linix from build/ci/linux.Dockerfile and pushed
+# to the project's registry (build/ci/build-linux-image.sh --push), which each runner with
+# the tag linix pulls by the digest below: its tag is made from the Dockerfile's own hash,
+# build/check-ci-image.py holds the line below to it, and its --job step stops a job
+# started in an image named any other way (docs/ContinuousIntegration.md, "The image").
 .linix:
   extends: .own-runners
   tags: [linix]

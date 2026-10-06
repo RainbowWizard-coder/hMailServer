@@ -500,11 +500,11 @@ the rest take whichever of the three places is free.
 What the host needs:
 
 - Docker (29.1 today) and the runner.
-- The job image, built on the host: found there by its tag,
-  `hmailserver-ci/linux:<tag>`, or, once pushed from there to the project's
-  registry as `registry.gitlab.com/hmailserver/hmailserver/ci-linux:<tag>`, pulled
-  by its digest (see [The image](#the-image)). If `config.toml` restricts images,
-  that name must be allowed.
+- The job image, built on the host and pushed from there to the project's
+  registry as `registry.gitlab.com/hmailserver/hmailserver/ci-linux:<tag>`, which
+  the first job to need it pulls by its digest (see [The image](#the-image)). The
+  project is public, so the pull needs no credential. If `config.toml` restricts
+  images, that name must be allowed.
 - `postgres:18` at the digest the CI file names. It is pulled on first use, and
   it is on the host already.
 - The other images the ported jobs name, each by digest, each pulled on first
@@ -556,16 +556,21 @@ such jobs run at once, three on each. A `resource_group` belongs to GitLab, not
 to a runner, so `linix-suite` and `linix-package-build` still run one job of
 their kind at a time across both machines. `linix-systemd` is an entry of
 linix's alone, so `package-systemd-ubuntu26.04` and `package-systemd-fedora44`
-run only there. server2 needs what linix needs (above): the job image under the
-tag `.linix` names, which it had for 6.3.6's pipeline, the images the ported
-jobs name, and qemu-user's binfmt handler for the arm64 jobs, which they check
-for first (`build/ci/arm64-emulation.sh`). That handler was registered there by
-hand on 5 October 2026, and nothing on the host registers it again - no
-qemu-user package, no `binfmt.d` entry - so after a reboot the arm64 jobs that
-server2 takes refuse until it is registered again. What a job keeps in the
-runner's cache stays on the machine that ran it: a night of `linux-fuzz` or a week of
-`forge-export` that server2 takes finds neither the corpus nor the kept archives
-that linix's cache volumes hold, and leaves its own on server2.
+run only there. server2 needs what linix needs (above): the job image, which it
+pulls from the project's registry by the digest `.linix` names, as linix does,
+the images the ported jobs name, and qemu-user's binfmt handler for the arm64
+jobs, which they check for first (`build/ci/arm64-emulation.sh`). server2 has no
+qemu-user package and no `binfmt.d` entry. The handler was registered there by
+hand on 5 October 2026, and since 6 October 2026 a unit of the host's,
+`hmlab-binfmt.service` (enabled, a oneshot ordered after Docker), registers it
+at every boot: it runs
+`tonistiigi/binfmt@sha256:400a4873b838d1b89194d982c45e5fb3cda4593fbfd7e08a02e76b03b21166f0`
+with `--install arm64`, which registers QEMU 10.2.3's `qemu-aarch64` with the
+flags `POCF`, so the arm64 jobs that server2 takes find it after a reboot as
+linix's do. What a job keeps in the runner's cache stays on the machine that ran
+it: a night of `linux-fuzz` or a week of `forge-export` that server2 takes finds
+neither the corpus nor the kept archives that linix's cache volumes hold, and
+leaves its own on server2.
 
 **What 6.3.6's pipeline showed.** server2 came online while 6.3.6's tag
 pipeline 2914690858 was running, and took 40 of the 106 jobs that ran in it,
@@ -744,39 +749,49 @@ Every package is Ubuntu's own. Nothing in the image, and nothing any job
 fetches, comes from GitHub; [Where the tools come from](#where-the-tools-come-from)
 lists every tool of every job.
 
-The image is built **on linix**, by hand. `.gitlab-ci.yml` names it in one of
-two ways, and `build/check-ci-image.py` accepts either, never both at once:
+The image is built **on linix**, by hand, and pushed from there to the project's
+container registry, `registry.gitlab.com/hmailserver/hmailserver/ci-linux`, which
+anyone can pull from, since the project is public. `.gitlab-ci.yml` could name it
+in one of two ways, and `build/check-ci-image.py` accepts either, never both at
+once; since 6 October 2026 it names it by digest:
 
 - **By digest, from the project's registry.** `build/ci/build-linux-image.sh
-  --push` pushes it as `registry.gitlab.com/hmailserver/hmailserver/ci-linux:26.04-<hash>`
-  and prints that name with the digest of its manifest,
+  --push` pushes it as
+  `registry.gitlab.com/hmailserver/hmailserver/ci-linux:26.04-<hash>` and prints
+  that name with the digest of its manifest,
   `ci-linux:26.04-<hash>@sha256:<digest>`, which `.linix` then names, with the
-  `if-not-present` pull policy: the first job on linix pulls it, and Docker takes
-  an image named so only as the registry holds that digest. `.linix`'s
-  `before_script` is then `python3 build/check-ci-image.py --job`, and so is
-  that of `container-image-sbom` and `container-image-start`, which take
-  `.linix`'s image without extending `.linix` and so would not have its
-  `before_script`; `container-image-start-arm64`, which extends
-  `container-image-start` with a `before_script` of its own, begins that with
-  `.linix`'s. That step stops every job in the image before it builds anything -
-  the release's x86-64 `.deb` and `.rpm`, made in `linux-build`, made again in
-  `linux-repro` and checked in `release-verify`, and the container image's
-  SBOMs, among them - unless the image it was started in (`CI_JOB_IMAGE`) is
-  named so, with the tag of the commit's own Dockerfile.
-- **By its tag on linix**, `hmailserver-ci/linux:26.04-<hash>`, found in linix's
-  own image store and never pulled: the only form until the second security
-  review of 6.3.6 (SUP2-1), and the one `.gitlab-ci.yml` keeps until the owner
-  has pushed the image. A tag is only a name. Anything that drives linix's Docker
-  can give it other bytes, and every later job, a release's among them, runs in
-  them.
+  `if-not-present` pull policy: the first job on each runner with the tag
+  `linix` pulls it, and Docker takes an image named so only as the registry
+  holds that digest. `.linix`'s `before_script` is then `python3
+  build/check-ci-image.py --job`, and so is that of `container-image-sbom` and
+  `container-image-start`, which take `.linix`'s image without extending
+  `.linix` and so would not have its `before_script`;
+  `container-image-start-arm64`, which extends `container-image-start` with a
+  `before_script` of its own, begins that with `.linix`'s. That step stops every
+  job in the image before it builds anything - the release's x86-64 `.deb` and
+  `.rpm`, made in `linux-build`, made again in `linux-repro` and checked in
+  `release-verify`, and the container image's SBOMs, among them - unless the
+  image it was started in (`CI_JOB_IMAGE`) is named so, with the tag of the
+  commit's own Dockerfile. The image was first pushed so on 6 October 2026, at
+  about 03:55 UTC, from linix:
+  `ci-linux:26.04-52e9976e73bf@sha256:4eead00163c2c0b30108de94d861ee0c8b260578adb44d495fa47b535617eae9`,
+  which `.linix` has named since, and both runners with the tag, linix and
+  server2, pull it by that digest.
+- **By its tag on the runner**, `hmailserver-ci/linux:26.04-<hash>`, found in
+  the runner's own image store and never pulled: the only form until the second
+  security review of 6.3.6 (SUP2-1), and the one `.gitlab-ci.yml` kept until the
+  image was pushed on 6 October 2026, each runner with the tag `linix` then
+  holding a copy of its own. A tag is only a name. Anything that drives the
+  runner's Docker can give it other bytes, and every later job, a release's among
+  them, runs in them.
 
 What the digest holds against is a name given to other bytes - `docker tag`, or
 an image built or loaded under the same name. It is no proof against root on
-linix rewriting Docker's store underneath it, or the runner: a job on the
-privileged `linix-systemd` entry (above) is root there in effect and could change
-an image's files in place, which no check made inside a job can see. That reach is
-the maintainers' already, since only they start a protected pipeline, and it is
-why that entry's tag is kept from merge requests and forks.
+linix or server2 rewriting Docker's store underneath it, or the runner: a job on
+linix's privileged `linix-systemd` entry (above) is root on linix in effect and
+could change an image's files in place, which no check made inside a job can
+see. That reach is the maintainers' already, since only they start a protected
+pipeline, and it is why that entry's tag is kept from merge requests and forks.
 
 The tag is made from the Dockerfile: `26.04-<hash>`, where `<hash>` is the first
 twelve hex digits of the Dockerfile's SHA-256 with its line endings made LF.
@@ -794,22 +809,29 @@ the step, which would refuse it. So an edit to the Dockerfile goes like this:
 
 1. Edit `build/ci/linux.Dockerfile`.
 2. On linix, from a checkout of the commit, as a member of the `docker` group and
-   signed in to the registry (`docker login registry.gitlab.com` with a token of
-   yours that may write the project's registry, `write_registry`; `docker logout
-   registry.gitlab.com` after), build and push the image:
+   signed in to the registry in a Docker configuration of the moment
+   (`export DOCKER_CONFIG="$(mktemp -d)"`, then `docker login registry.gitlab.com`
+   with a token of yours that may write the project's registry,
+   `write_registry`), so that the token is not left in linix's own, build and
+   push the image:
 
        bash build/ci/build-linux-image.sh --push
 
-   The script prints the line to write - `name:
-   registry.gitlab.com/hmailserver/hmailserver/ci-linux:26.04-<hash>@sha256:<digest>`
-   - and the checker holds the commit to it. It removes no older tag, because a
+   Then `docker logout registry.gitlab.com` and remove that directory. The 6
+   October 2026 image was pushed so. The script prints the line to write,
+   `name: registry.gitlab.com/hmailserver/hmailserver/ci-linux:26.04-<hash>@sha256:<digest>`,
+   and the checker holds the commit to it. It removes no older tag, because a
    pipeline for an older commit still asks for its own image. It lists them
-   instead, and `docker image rm <tag>` removes one that is no longer wanted.
+   instead, and `docker image rm <tag>` removes one from linix that is no longer
+   wanted; the registry keeps every tag of `ci-linux` too, and its cleanup
+   policy, were it switched on, would keep them by name ([The container
+   image](#the-container-image), "What the owner sets on the registry").
    (Without `--push` it builds `hmailserver-ci/linux:<tag>` alone, the earlier
    form.)
-3. Put that line into `.gitlab-ci.yml`, in the same commit as the Dockerfile.
-4. If the image was not built, or not pushed, the Linux jobs fail at their first
-   step, naming the image they could not find or pull. That is by design. The alternative is a job
+3. Put that line into `.linix` in `.gitlab-ci.yml`, in the same commit as the
+   Dockerfile.
+4. If the image was not pushed, the Linux jobs fail at their first step, naming
+   the image they could not pull. That is by design. The alternative is a job
    that runs on an image made from an older Dockerfile, or on other bytes under
    the right tag, and says nothing.
 
@@ -1080,7 +1102,7 @@ pinned by digest where the CI file names it.
 | `chart-and-compose` | `alpine:3.24` | Helm 3.19 and Docker Compose 5.1, Alpine's community packages |
 | `update-helper` | `ubuntu:26.04` (Docker Hub) | `systemd-analyze`, Ubuntu's `systemd` package; dash is the image's `/bin/sh` |
 | `package-templates`, `roadmap` | `mcr.microsoft.com/dotnet/sdk:10.0` (Microsoft) | `pwsh`, in Microsoft's SDK image; PyYAML and jsonschema, Ubuntu's packages |
-| `linux-build`, `linux-build-gcc`, `linux-suite`, `linux-cross`, `linux-sanitize`, `linux-db-upgrade-*`, `linux-sbom`, `linux-repro`, `linux-fuzz` | `hmailserver-ci/linux` (built on linix) | Ubuntu's packages; the .NET SDK and PowerShell from Microsoft's SDK image; Syft 1.52.0 from `anchore/syft` on Docker Hub ([The image](#the-image)) |
+| `linux-build`, `linux-build-gcc`, `linux-suite`, `linux-cross`, `linux-sanitize`, `linux-db-upgrade-*`, `linux-sbom`, `linux-repro`, `linux-fuzz` | `registry.gitlab.com/hmailserver/hmailserver/ci-linux`, by digest (built on linix) | Ubuntu's packages; the .NET SDK and PowerShell from Microsoft's SDK image; Syft 1.52.0 from `anchore/syft` on Docker Hub ([The image](#the-image)) |
 | `semgrep-sast-gate`, `mr-dependency-check` | `python:3.14-slim-trixie` (Docker Hub) | git from Debian's archive; OSV's export from Google Cloud Storage (`osv-vulnerabilities.storage.googleapis.com`); the checkers are the standard library's Python |
 | `scorecard` | `nixos/nix:2.35.2` (Docker Hub) | OpenSSF Scorecard 5.5.0 and its closure from `cache.nixos.org`, by its Nix store path and pinned NAR hash, each path checked against the signature of the `cache.nixos.org-1` key the image trusts ([OpenSSF Scorecard](#openssf-scorecard)) |
 | `linux-db-upgrade-*` services | `postgres:18`, `mariadb:13` (Docker Hub) | the database servers |
@@ -2073,23 +2095,26 @@ to it.
 project's API answered on 6 October 2026:
 
 1. **The cleanup policy** is switched off. Its tags to keep
-   (`name_regex_keep`) are six patterns: `^v?[0-9]+\.[0-9]+\.[0-9]+.*$`,
+   (`name_regex_keep`) are eight patterns: `^v?[0-9]+\.[0-9]+\.[0-9]+.*$`,
    `^latest$`, `^stable$`, `^[0-9]+\.[0-9]+$` (the `6.3` line),
    `^sha256-[0-9a-f]{64}\.(sig|att|sbom)$` (cosign's signatures and
-   attestations) and `^artifacthub\.io$` (the tag Artifact Hub reads the image
+   attestations), `^artifacthub\.io$` (the tag Artifact Hub reads the image
    repository's metadata from, which `container-image-artifacthub` pushes again
-   with each release), so that, switched on, it never deletes a release's tags,
-   their signatures or that tag; it would remove every other tag older than 90
-   days and beyond the newest ten of its repository, every week. The API gave
-   only the first two on 27 and on 28 September 2026, though this item said all
-   five then documented were set; the maintainers added the other three through
-   the API on 28 September, before the first image, and the sixth on 6 October
-   2026, the day the image's repository was added to Artifact Hub. The policy
-   covers every repository of the project's registry: on 6 October 2026 the
-   image's, `mirror/opensuse-tumbleweed` (the Tumbleweed images the RPM jobs pin
-   by digest) and `ci-linux` (the Linux CI image). No pattern names the tags of
-   the last two, so, switched on, it would keep each only while it is among its
-   repository's newest ten or younger than 90 days.
+   with each release), `^[0-9]{2}\.[0-9]{2}-[0-9a-f]{12}$` (the Linux CI
+   image's tags in `ci-linux`, `<Ubuntu release>-<hash>`, which `.linix` names
+   with the digest) and `^[0-9]{8}-(amd64|arm64)$` (the Tumbleweed mirror's in
+   `mirror/opensuse-tumbleweed`, `<YYYYMMDD>-<arch>`, whose images the RPM jobs
+   pin by digest), so that, switched on, it never deletes a release's tags,
+   their signatures, that tag, or an image a commit's CI files name; it would
+   remove every other tag older than 90 days and beyond the newest ten of its
+   repository, every week. The API gave only the first two on 27 and on 28
+   September 2026, though this item said all five then documented were set; the
+   maintainers added the other three through the API on 28 September, before the
+   first image, the sixth on 6 October 2026, the day the image's repository was
+   added to Artifact Hub, and the last two the same day, for the CI image and the
+   Tumbleweed mirror. The policy covers every repository of the project's
+   registry: on 6 October 2026 the image's, `mirror/opensuse-tumbleweed` and
+   `ci-linux`.
 2. **Protected container tags**: one rule, for
    `^(latest|stable|[0-9]+\.[0-9]+(\.[0-9]+)?)$`, push Maintainer, delete Owner,
    so that nobody but a maintainer can push the release's tags and nobody but
@@ -2382,7 +2407,9 @@ but the Compose file and the chart, by `:latest`, and each release pushes from
 its own pipeline; and `registry.gitlab.com/progressiverobot/hmailserver`, the
 project's path before its move on 29 September 2026, where no image was ever
 pushed), and
-`hmailserver-ci/linux`, which is built on linix and never pushed. The .NET runtime the installer bundles has no pin
+the Linux CI image, `registry.gitlab.com/hmailserver/hmailserver/ci-linux`, which is built on linix from
+`build/ci/linux.Dockerfile` and pushed by hand, under a tag made from the Dockerfile's own hash
+([The image](#the-image)), so that it moves only with the Dockerfile. The .NET runtime the installer bundles has no pin
 yet: `build/get-dotnet-runtime.ps1` takes the newest 10.0 by channel. A placeholder
 rule in `renovate.json` says what to add when the supply-chain row pins it.
 
@@ -3207,7 +3234,7 @@ To triage a new finding:
 To regenerate a baseline, run the job's script by hand on linix with
 `--write-baseline`, from a checkout of the commit:
 
-    docker run --rm -v "$PWD":/src -w /src hmailserver-ci/linux:<tag> bash build/ci/static-analysis.sh --write-baseline
+    docker run --rm -v "$PWD":/src -w /src registry.gitlab.com/hmailserver/hmailserver/ci-linux:<tag>@sha256:<digest> bash build/ci/static-analysis.sh --write-baseline
     docker run --rm -v "$PWD":/src -w /src python:3.14-slim-trixie bash build/ci/semgrep.sh --write-baseline
 
 Or take a job's artifacts, which hold the tools' raw output, and run
@@ -3675,9 +3702,9 @@ What is still done by hand
   `build/ci/installer-smoke-run.sh`. A batch runs it before it lands, and a
   release runs it before it is published (see [The installer smoke
   test](#the-installer-smoke-test)).
-- Building the Linux job image when its Dockerfile changes (see [The
-  image](#the-image)), and creating the fuzz schedule once (see [The fuzz
-  schedule](#the-fuzz-schedule)) and the Scorecard schedule and its token (see
-  [OpenSSF Scorecard](#openssf-scorecard)).
+- Building the Linux job image, and pushing it to the project's registry, when
+  its Dockerfile changes (see [The image](#the-image)), and creating the fuzz
+  schedule once (see [The fuzz schedule](#the-fuzz-schedule)) and the Scorecard
+  schedule and its token (see [OpenSSF Scorecard](#openssf-scorecard)).
 - Bringing a runner back when its machine has been rebuilt (see
   [Re-creating a runner](#re-creating-a-runner)).
