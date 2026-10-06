@@ -70,12 +70,16 @@
    nothing, SYSTEM and the Administrators with full control, BUILTIN\Users with Read &
    execute where every user could read them before the installer ran and no entry
    letting every user read them where none could, the owner SYSTEM, the Administrators
-   or TrustedInstaller, and no group of every user able to change them or a program or
-   library in them; the REST API's key store still the service's to write when the
-   service runs as NT SERVICE\hMailServer; /ProtectFolders' exit 0 in Inno's log; and a
-   second /ProtectFolders, run here, finding all three "already hardened" and ending in
-   0. After an earlier installer the run says, as INFO, which group of every user may
-   change them.
+   or TrustedInstaller; no group of every user able to change the program folder or any
+   folder or file in it - Addons, Events, the data folders and the rest as well as Bin
+   and ControlPanel - and the account that ran the installer with no entry of its own
+   that lets it change, and not the owner of, a folder, program or library there
+   outside the four folders the service writes; the REST API's key store still the
+   service's to write when the service runs as NT SERVICE\hMailServer; /ProtectFolders'
+   exit 0 in Inno's log; and a second /ProtectFolders, run here, finding all three
+   "already hardened" and ending in 0. After an earlier installer the run says, as
+   INFO, which group of every user may change them. Whatever the installer, what icacls
+   shows of everything in the program folder is kept in the logs (icacls-PHASE.txt).
 
    -InstallDirectory DIR installs the first installer into DIR (/DIR=) rather than
    Program Files; an upgrade keeps it. With -WeakParent the folder DIR is made in is
@@ -784,6 +788,9 @@ $BroadGroupSids = @('S-1-1-0', 'S-1-2-0', 'S-1-5-4', 'S-1-5-6', 'S-1-5-11', 'S-1
 $WriteRightsMask = 0x500D0156
 $TrustedOwnerSids = @('S-1-5-18', 'S-1-5-32-544', 'S-1-5-80-956008885-3418522649-1831038044-1853292631-2271478464')
 $ServiceSid = 'S-1-5-80-3504853920-2627644491-1723263464-2546768561-1700046809'
+# The account this script runs as, which runs the installers: an administrator, whose
+# own SID is enabled even in what it runs without elevation.
+$InstallingAccountSid = [System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value
 
 function Test-HasHardenedFolders([string] $Version) {
    $release = Get-ReleaseVersion $Version
@@ -844,14 +851,14 @@ function Get-ProgramFoldersReadable([string] $App) {
 }
 
 # The allow entries of a file or folder that apply to it and give a group of every
-# user a right to change it, as "SID rights".
-function Get-BroadWriters([string] $Path) {
+# user - or, given Sids, one of those - a right to change it, as "SID rights".
+function Get-BroadWriters([string] $Path, [string[]] $Sids = $BroadGroupSids) {
    $acl = Get-Acl -LiteralPath $Path
    $found = @()
    foreach ($rule in $acl.GetAccessRules($true, $true, [System.Security.Principal.SecurityIdentifier])) {
       if ($rule.AccessControlType -ne [System.Security.AccessControl.AccessControlType]::Allow) { continue }
       if (($rule.PropagationFlags -band [System.Security.AccessControl.PropagationFlags]::InheritOnly) -ne 0) { continue }
-      if ($BroadGroupSids -notcontains $rule.IdentityReference.Value) { continue }
+      if ($Sids -notcontains $rule.IdentityReference.Value) { continue }
       if (([long] $rule.FileSystemRights -band $WriteRightsMask) -ne 0) { $found += "$($rule.IdentityReference.Value) $($rule.FileSystemRights)" }
    }
    return $found
@@ -880,6 +887,17 @@ function Test-ProgramFoldersHardened([string] $Phase, [string] $Claimed, [string
       if (-not (Test-Path -LiteralPath $object)) { Write-Info "${Phase}: icacls" "$object is not there"; continue }
       $lines = @(& icacls.exe $object 2>&1 | ForEach-Object { "$_".Trim() } | Where-Object { $_ -and $_ -notmatch '^Successfully processed' })
       Write-Info "${Phase}: icacls (owner $((Get-Acl -LiteralPath $object).Owner))" ($lines -join ' | ')
+   }
+   # And of everything in the program folder, into the logs: a line of icacls' that
+   # goes to its error output is a line of the file, not the end of the run.
+   if (Test-Path -LiteralPath $app) {
+      $dump = Join-Path $LogDirectory "icacls-$Phase.txt"
+      $ErrorActionPreference = 'Continue'
+      $tree = @(& icacls.exe $app /T /C /Q 2>&1 | ForEach-Object { "$_" })
+      $treeExit = $LASTEXITCODE
+      $ErrorActionPreference = 'Stop'
+      Set-Content -LiteralPath $dump -Value $tree -Encoding UTF8
+      Write-Info "${Phase}: icacls of everything in the program folder" "$dump, $($tree.Count) lines, icacls returned $treeExit"
    }
 
    # By its version, or - for a build not yet stamped with one - by what its
@@ -923,21 +941,48 @@ function Test-ProgramFoldersHardened([string] $Phase, [string] $Claimed, [string
          "$($folders -join ', '): $($said -join ', ')"
       })
 
-   [void] (Test-Step "${Phase}: no group of every user may change the program's folders or a program or library in them" {
+   # Every folder and file in the program folder, not Bin and ControlPanel alone: the
+   # programs and libraries in Addons, the scripts an administrator runs from Addons
+   # and the service from Events, and what the data folders hold all inherit from the
+   # program folder or were made private, and none may be every user's to change. And
+   # the account that ran the installer - an administrator, whose own SID, unlike the
+   # Administrators', is enabled in what it runs without elevation - with no entry of
+   # its own that lets it change, and not the owner of, the program folder or a folder,
+   # program or library in it outside the four folders the service writes, where the
+   # installation's self-signed key gives it an entry on purpose. A file the service
+   # removes while the check runs (Temp) is passed over.
+   [void] (Test-Step "${Phase}: no group of every user may change the program folder or a folder or file in it, nor the account that ran the installer a folder, program or library in it" {
+         $installerSid = $InstallingAccountSid
+         $serviceFolders = @('Data', 'Logs', 'Temp', 'Database') | ForEach-Object { (Join-Path $app $_) + '\' }
+         $listed = @()
+         $listing = @()
+         $listed += @(Get-ChildItem -LiteralPath $app -Recurse -Force -ErrorAction SilentlyContinue -ErrorVariable listing)
+         if ($listing.Count -gt 0) { Write-Detail @($listing | ForEach-Object { "$($_.Exception.Message)" }) 10; throw "$($listing.Count) folders could not be listed (above)" }
+         $objects = @(@($folders) + @($listed | ForEach-Object { $_.FullName }) | Sort-Object -Unique)
          $checked = 0
+         $mine = 0
          $writers = @()
-         $objects = @($folders)
-         foreach ($folder in @((Join-Path $app 'Bin'), (Join-Path $app 'ControlPanel'))) {
-            $objects += @(Get-ChildItem -LiteralPath $folder -Recurse -Force -ErrorAction SilentlyContinue |
-               Where-Object { $_.PSIsContainer -or $_.Extension -eq '.exe' -or $_.Extension -eq '.dll' } | ForEach-Object { $_.FullName })
-         }
-         $objects += @(Get-ChildItem -LiteralPath $app -Filter 'unins*.exe' -File | ForEach-Object { $_.FullName })
          foreach ($object in $objects) {
+            $item = Get-Item -LiteralPath $object -Force -ErrorAction SilentlyContinue
+            if ($null -eq $item) { continue }
+            try {
+               foreach ($writer in @(Get-BroadWriters $object)) { $writers += "$object ($writer)" }
+               $outsideService = -not @($serviceFolders | Where-Object { ($object + '\').StartsWith($_, [StringComparison]::OrdinalIgnoreCase) }).Count
+               if ($outsideService -and ($item.PSIsContainer -or $item.Extension -eq '.exe' -or $item.Extension -eq '.dll')) {
+                  foreach ($writer in @(Get-BroadWriters $object @($installerSid))) { $writers += "$object (the account that ran the installer: $writer)" }
+                  $owner = (Get-Acl -LiteralPath $object).GetOwner([System.Security.Principal.SecurityIdentifier]).Value
+                  if ($owner -eq $installerSid) { $writers += "$object (owned by the account that ran the installer, $owner)" }
+                  $mine++
+               }
+            }
+            catch {
+               if (Test-Path -LiteralPath $object) { throw }
+               continue
+            }
             $checked++
-            foreach ($writer in @(Get-BroadWriters $object)) { $writers += "$object ($writer)" }
          }
          if ($writers.Count -gt 0) { Write-Detail $writers 20; throw "$($writers.Count) entries (above)" }
-         "$checked folders, programs and libraries"
+         "$checked folders and files, $mine of them folders, programs and libraries outside $(($serviceFolders | ForEach-Object { Split-Path -Leaf $_.TrimEnd('\') }) -join ', ') also for $installerSid"
       })
 
    # The one file in Bin the service writes, whatever the folder's hardening.
