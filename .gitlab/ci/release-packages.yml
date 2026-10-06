@@ -23,9 +23,9 @@
 #                     gather). release collects them from here, and so does the rehearsal.
 #
 # Why a job of its own: the release job may need fifty jobs at most (GitLab's
-# ci_needs_size_limit, 50 on GitLab.com), and it needs thirty-one already (thirty-three
+# ci_needs_size_limit, 50 on GitLab.com), and it needs thirty-three already (thirty-five
 # with this job and helm-chart-package); these are forty-one more, which would make
-# seventy-two. So this job needs each build with its artifacts and each install
+# seventy-four. So this job needs each build with its artifacts and each install
 # or AppImage test job without, none optionally: it does not run until every one of
 # them has passed, and release, which needs it, does not either. None of them may fail
 # or wait for a press in a v* tag's pipeline (build/check-release-chain.py holds that,

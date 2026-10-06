@@ -171,7 +171,7 @@ a branch's first push and for a tag GitLab counts every file as changed, so they
 all run then.
 
 **A push that changes only documentation starts nothing on the project's
-machines.** Every job on linix and bench150 (`.own-runners`, and `db-matrix`
+machines.** Every job on the project's runners (`.own-runners`, and `db-matrix`
 with it) runs only when the push changes a file that is not a Markdown file at
 the root of the tree (`README.md`, `CHANGELOG.md`, `Roadmap2.md` and the rest)
 or under `.gitlab/` (the issue and merge request templates). Every other
@@ -224,7 +224,7 @@ off and `locked`. GitLab gives them a job only when all three of these hold:
 A merge request from a fork runs in the fork's context, on an unprotected ref,
 with code nobody here has reviewed. The code could build anything, and the
 machines hold things worth protecting: bench150's service runs as LocalSystem,
-linix has the lab network, and server2 is a machine of the owner's. So a fork's
+linix has the lab network, and server2 runs services of the owner's. So a fork's
 merge request gets the shared runners' checks and the sign-off check, and
 nothing else. The protection is
 kept in three places on purpose: the runners, the ref and the rules. Any one of
@@ -239,7 +239,7 @@ Merge request checks
 --------------------
 
 A merge request from a fork, from Renovate or from any branch that is not
-protected never reaches linix or bench150 (above), so what it must pass before
+protected never reaches the project's runners (above), so what it must pass before
 it lands runs on GitLab's shared runners, holds no secret, and says in its own
 log what held it. Beside the checks every pipeline runs, three hold a merge
 request on what it brings (`.gitlab/ci/mr-checks.yml`, and one checker):
@@ -372,7 +372,7 @@ stopping at the first refusal:
    `secret_detection`, and its merge request runs no pipeline, so this is the
    scan that reads a batch before it is on GitLab. `--dry-run` stops here.
 2. It pushes the branch. A `batch*` branch is protected, so its pipeline runs
-   everything, the two machines' gates included.
+   everything, the gates on the project's runners included.
 3. It opens a merge request into `master`, not squashed, with the source branch
    to be deleted, or finds the one already open for the branch: running it again
    resumes. `--no-wait` stops here.
@@ -471,8 +471,9 @@ and merge* back to *Maintainers*.
 The runners
 -----------
 
-Three machines take the project's own jobs: linix and server2, which carry the
-same tags and share the jobs of the tag `linix` between them, and bench150, the
+Three machines take the project's own jobs: linix and server2, whose runners
+carry the same three tags and share the jobs of the tag `linix` between them
+(linix has a second entry of its own, `linix-systemd`), and bench150, the
 Windows bench.
 
 ### linix
@@ -537,11 +538,13 @@ fork's code may take its tag.
 
 ### server2
 
-A machine of the owner's at 10.0.0.19, dedicated to the project since 5 October
-2026: Ubuntu, 32 cores and 182 GB of memory. GitLab Runner runs there with the
-docker executor, 28 CPUs and 40 GB of memory for each job, and up to three jobs
-at once. It is runner 57072507 on GitLab, registered on 5 October 2026 at 18:37
-UTC as linix's first entry is - a project runner, `ref_protected`,
+A machine of the owner's at 10.0.0.19, which has taken the project's jobs since
+5 October 2026 and runs services of the owner's own beside them: Ubuntu 26.04,
+16 cores (32 threads) and 182 GB of memory (6 October 2026). GitLab Runner 19.4
+runs there in a container of its own, with the docker executor, 28 CPUs and
+40 GB of memory for each job, and up to three jobs at once. It is runner
+57072507 on GitLab, registered on 5 October 2026 at 18:37 UTC as linix's first
+entry is - a project runner, `ref_protected`,
 `run_untagged` off, `locked`, a four-hour `maximum_timeout` - and with the same
 tags, `linux`, `docker` and `linix`.
 
@@ -556,8 +559,11 @@ linix's alone, so `package-systemd-ubuntu26.04` and `package-systemd-fedora44`
 run only there. server2 needs what linix needs (above): the job image under the
 tag `.linix` names, which it had for 6.3.6's pipeline, the images the ported
 jobs name, and qemu-user's binfmt handler for the arm64 jobs, which they check
-for first (`build/ci/arm64-emulation.sh`). What a job keeps in the runner's
-cache stays on the machine that ran it: a night of `linux-fuzz` or a week of
+for first (`build/ci/arm64-emulation.sh`). That handler was registered there by
+hand on 5 October 2026, and nothing on the host registers it again - no
+qemu-user package, no `binfmt.d` entry - so after a reboot the arm64 jobs that
+server2 takes refuse until it is registered again. What a job keeps in the
+runner's cache stays on the machine that ran it: a night of `linux-fuzz` or a week of
 `forge-export` that server2 takes finds neither the corpus nor the kept archives
 that linix's cache volumes hold, and leaves its own on server2.
 
@@ -1086,8 +1092,8 @@ pinned by digest where the CI file names it.
 
 ### Nothing from GitHub, in the job
 
-The runners are to enforce the rule as well as follow it: linix's runner
-entries are to map `github.com`, `api.github.com`, `codeload.github.com`,
+The runners are to enforce the rule as well as follow it: the runner entries of
+linix and server2 are to map `github.com`, `api.github.com`, `codeload.github.com`,
 `objects.githubusercontent.com`, `raw.githubusercontent.com` and `ghcr.io` to
 0.0.0.0 in every job's `/etc/hosts` (`extra_hosts`), and bench150's hosts file
 to do the same, so that a tool that quietly reaches for GitHub fails by name.
@@ -1215,7 +1221,8 @@ Windows). It replays every kept input and every committed reproducer first, then
 fuzzes each harness for `HM_FUZZ_MINUTES` (20) with `HM_FUZZ_JOBS` workers (2),
 on the corpus the earlier nights grew, which the runner's cache carries from one
 night to the next - the cache of the place the job runs in, one of linix's three
-([linix](#linix)), so two nights in different places grow two corpora. A finding
+([linix](#linix)) or of server2's ([server2](#server2)), so two nights in
+different places grow two corpora. A finding
 fails the job. The job's artifact is
 `fuzz-results/` - each harness's log and, on a finding, the input libFuzzer
 wrote - kept whether the job passed or failed, for 30 days, and readable by the
@@ -1249,9 +1256,9 @@ Then start the first run with the schedule's *Run* button, and check that its
 pipeline holds `linux-fuzz` alone. The schedule runs as the maintainer who owns
 it, who must be allowed to push to `master`, because a scheduled pipeline on a
 protected branch is that user's. *Run pipeline* by hand does not start it: a
-pipeline started that way is not a schedule's. It takes one of linix's three
-places for a little over an hour, and a protected ref's pipeline that arrives
-meanwhile runs beside it, on the same cores. To start the corpus again from the
+pipeline started that way is not a schedule's. It takes one of the three places
+of linix or of server2 for a little over an hour, and a protected ref's
+pipeline that arrives meanwhile runs beside it, on the same cores. To start the corpus again from the
 seeds, clear the runner caches
 (*Pipelines*, *Clear runner caches*).
 
@@ -2298,9 +2305,11 @@ Not yet shown, because 6.3.5 had no image and no AArch64 package:
   finds it there.
 
 Shown since in `batch42`'s pipelines 2896082335 and 2897966924 (30 September
-2026), though not yet in a release's: that the AArch64 package builds' record of
-what they were built against is what `build/asset-sbom.py` reads - `dpkg-query
--W` in Ubuntu 26.04's container, with the cross toolchain's
+2026), and in a release's since 6.3.6's tag pipeline 2914690858, whose
+`release-verify` held each of the release's 27 SBOMs to the file it describes:
+that the AArch64 package builds' record of what they were built against is what
+`build/asset-sbom.py` reads - `dpkg-query -W` in Ubuntu 26.04's container, with
+the cross toolchain's
 `libc6-dev-arm64-cross` and `libstdc++-15-dev-arm64-cross` beside the `:arm64`
 -dev packages, and `rpm --root` over the aarch64 sysroot dnf installed in Fedora
 44's. In both, `deb-ubuntu26.04-arm64-sbom` and `rpm-fedora44-aarch64-sbom` made
@@ -2448,8 +2457,8 @@ rule in `renovate.json` says what to add when the supply-chain row pins it.
   do not wait.
 - **Few pipelines.** A Renovate branch is rebased only when it conflicts. Its
   merge request runs `checkers` and `harnesses` on the shared runners, like any
-  other. A `renovate/*` branch is not protected, so no job of its reaches linix or
-  bench150.
+  other. A `renovate/*` branch is not protected, so no job of its reaches the
+  project's runners.
 
 ### What a merge request still needs from a person
 
@@ -2742,7 +2751,7 @@ the file, and so is a downstream pipeline on `master`, whose
 `CI_PIPELINE_SOURCE` is `pipeline` - nothing of this project starts one since
 6.3.6, but another project's trigger or the trigger API called with a job token
 would - so each of the others says it is not for one: `.own-runners` (and so
-every job on linix and bench150) and `.not-a-fuzz-pipeline` (and so `checkers`,
+every job on the project's runners) and `.not-a-fuzz-pipeline` (and so `checkers`,
 `harnesses` and `editorconfig`) begin with `- if: $CI_PIPELINE_SOURCE ==
 "schedule" || $CI_PIPELINE_SOURCE == "pipeline"` with `when: never`, and the
 four path-bound checks, `db-matrix`, the release jobs and GitLab's two scanners
@@ -3342,16 +3351,17 @@ or by an alias, a merge key (`<<:`), an `extends` by an alias, an `!reference`
 the files do not resolve, and an include that is not a local file or one of
 GitLab's templates. Tags and `extends` may be block lists. A job is on the
 project's runners when it asks for a tag that is a variable, or for any tag
-they are registered with (`linix`, `linux` and `docker` for linix; `bench150`,
+they are registered with (`linix`, `linux` and `docker` for linix and server2; `bench150`,
 `bench` and `windows` for bench150). `id_tokens`, `secrets` and a credential
 in a template count for every job that extends it or takes a part of it by
 `!reference`. `python3 build/ci/repo-hygiene.py --self-test`, which the
 `checkers` job runs, holds the check to CI files made to pass it and to 23
 made to break it; the check as first rewritten (a4636e983) passed 22 of those
-23, and failed two of the eight that should pass. Both runners are registered
+23, and failed two of the eight that should pass. The runners are registered
 for protected refs only (`access_level` `ref_protected`, read by a maintainer
-with `glab api runners/<id>` on 26 September 2026), so none of that was open
-on this project: the check is the CI files' own guarantee.
+with `glab api runners/<id>`: linix and bench150 on 26 September 2026, and
+those two, `linix-systemd` and server2 on 6 October 2026), so none of that was
+open on this project: the check is the CI files' own guarantee.
 
 Left out of Scorecard's checks, each for a reason:
 
@@ -3521,11 +3531,12 @@ tests; C++14 as the standard its C++ rules report against, which is what MSVC
 compiles the shared sources as; Python 3.14. `sonar.sources` and `sonar.tests`
 take plain paths, no wildcards; the exclusions take patterns. Automatic analysis
 reads the file from the default branch only, and a value in the file replaces
-the same one set in the project's settings. So until 6.3.6 is on `master`, the
-exclusions are set in the project's settings as well (*Administration*,
-*General Settings*, *Analysis Scope*, or `api/settings/set`), with the test
-trees among them, since `sonar.tests` cannot be set there: until the file lands,
-the tests are left out rather than read as tests.
+the same one set in the project's settings. So until 6.3.6 reached `master`,
+the exclusions were to be set in the project's settings as well
+(*Administration*, *General Settings*, *Analysis Scope*, or `api/settings/set`),
+with the test trees among them, since `sonar.tests` cannot be set there: until
+the file landed, the tests were to be left out rather than read as tests. The
+file has been on `master` since, so its values replace any the settings hold.
 
 **What it holds, and what it cannot.** On GitLab's free tier a merge request
 cannot be made to wait for SonarQube Cloud's quality gate (external status

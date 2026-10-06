@@ -165,7 +165,8 @@ The jobs
 --------
 
 All the jobs are in `.gitlab/ci/packages-appimage.yml`, which `.gitlab-ci.yml`
-includes. They all run on linix, the project's own runner, and only for a
+includes. They all run on the project's own Linux runners, the two with the tag
+`linix` (linix and, since 5 October 2026, server2), and only for a
 protected ref. No job uses GitLab's shared runners, so the jobs cost no compute
 minutes.
 

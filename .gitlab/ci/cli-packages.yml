@@ -5,7 +5,7 @@
 # The command-line clients as packages (hmailserver/docs/CommandLinePackages.md):
 # hmctl on PyPI as hmailserver-cli, and the HmailServer PowerShell module on the
 # PowerShell Gallery. Included from .gitlab-ci.yml. On GitLab's shared runners, none on
-# the project's own two machines:
+# the project's own runners:
 #
 #   cli-packages        a merge request's or a branch's pipeline, when the clients or
 #                       their packaging change: build's pinned tools installed with

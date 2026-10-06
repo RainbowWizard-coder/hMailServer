@@ -12,15 +12,19 @@ It is made by `build/ci/source-tarball.sh` from the paths
 `build/check-source-tarball.py`. The `source-tarball` job
 (`.gitlab/ci/source-tarball.yml`) makes it in every pipeline that builds the
 Linux server, on linix, and `linux-build` and `linux-suite` take it from that
-job with `HM_SOURCE_TARBALL`. From 6.3.6 a release is to carry it, with its
+job with `HM_SOURCE_TARBALL`. From 6.3.6 a release carries it, with its
 SBOM, a line in the sums and a Sigstore bundle like every other release file:
 that is the release chain's part (`build/ci/release-chain.py`), which collects
 it from the job.
 
-**Where it stands (28 September 2026):** made and checked on the laptop, and the
-server built from it alone in WSL Ubuntu 26.04 (see [What has run](#what-has-run)).
-It has not run in a GitLab pipeline yet: the first is `batch42`'s, once
-`.gitlab-ci.yml` includes the job and `linux-build` and `linux-suite` need it.
+**Where it stands (6 October 2026):** 6.3.6 carries `hmailserver-6.3.6.tar.gz`
+with its SBOM, its line in the sums and its Sigstore bundle, and in its tag
+pipeline 2914690858 `linux-build` built the server, its testers and both
+packages from it alone (3,605 files) and `linux-suite` tested from it: 2,066
+passed, 343 skipped and none failed of 2,409. It first ran in a GitLab pipeline
+in `batch42`'s. Before that, on 28 September 2026, it was made and checked on
+the laptop, and the server built from it alone in WSL Ubuntu 26.04 (see
+[What has run](#what-has-run)).
 
 What is in it
 -------------

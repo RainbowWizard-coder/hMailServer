@@ -255,7 +255,8 @@ a new snapshot, and the two pins are then changed by hand.
 
 **Serialisation.** The build jobs name `resource_group: linix-package-build`,
 the group the Debian and Ubuntu builds use, so only one package build of the
-two files runs on linix at a time, across pipelines. Each build runs six
+two files runs at a time, across pipelines and across the two runners with the
+tag `linix`, linix and server2. Each build runs six
 compilers at once (`HM_BUILD_JOBS`); linix had 16 cores and 11 GB of memory on
 26 September 2026. On a `v*` tag or a `batch*` branch the twelve RPM builds
 queue behind each other and behind the Debian and Ubuntu ones: at the times
