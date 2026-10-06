@@ -1979,6 +1979,93 @@ namespace RegressionTests.Rules
       }
 
       /// <summary>
+      /// MessageData::GetRuleLoopCount read X-hMailServer-LoopCount with _ttoi, and the
+      /// header comes with the message, from whoever sent it. "-5" passed
+      /// IsGeneratedResponseAllowed's count >= limit, so a forwarding loop between two
+      /// accounts - what RuleLoopLimit exists to bound - went round once more for each
+      /// unit below zero the sender wrote, some two thousand million times for
+      /// "-2147483648"; on Linux, where _ttoi is (int) wcstol, "2147483648" and
+      /// "4294967295" read as INT_MIN and -1 and did the same. What is not a count up to
+      /// the limit now reads as the limit (RuleGuard::ReadLoopCount), and the forward is
+      /// refused as it is at the limit.
+      ///
+      /// Against the unfixed server the observer receives the forward of "-5" (on
+      /// Linux, of "2147483648" first), and of "+1" and the empty value.
+      /// </summary>
+      [Test]
+      [Description("A rule forward refuses a message whose X-hMailServer-LoopCount is not a count, as at the rule loop limit.")]
+      public void WhenTheLoopCountIsNoCountAForwardShouldBeRefused()
+      {
+         _settings.RuleLoopLimit = 5;
+
+         var sender = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "loopread-src@example.test", "test");
+         var forwarder = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "loopread-fwd@example.test", "test");
+         var observer = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "loopread-obs@example.test", "test");
+
+         // The forwarder forwards anything it receives to the observer.
+         var forwardRule = forwarder.Rules.Add();
+         forwardRule.Name = "Loop read forward";
+         forwardRule.Active = true;
+
+         var forwardCriteria = forwardRule.Criterias.Add();
+         forwardCriteria.UsePredefined = true;
+         forwardCriteria.PredefinedField = eRulePredefinedField.eFTMessageSize;
+         forwardCriteria.MatchType = eRuleMatchType.eMTGreaterThan;
+         forwardCriteria.MatchValue = "0";
+         forwardCriteria.Save();
+
+         var forwardAction = forwardRule.Actions.Add();
+         forwardAction.Type = eRuleActionType.eRAForwardEmail;
+         forwardAction.To = observer.Address;
+         forwardAction.Save();
+
+         forwardRule.Save();
+
+         string[] values = { "2147483647", "2147483648", "4294967295", "99999999999", "-5", "-2147483648", "12abc", "+1", "" };
+
+         var delivered = 0;
+         foreach (var value in values)
+         {
+            var message =
+               "From: " + sender.Address + "\r\n" +
+               "To: " + forwarder.Address + "\r\n" +
+               "Subject: Loop count '" + value + "'\r\n" +
+               "X-hMailServer-LoopCount: " + value + "\r\n" +
+               "\r\n" +
+               "Trigger the forward rule.\r\n";
+
+            var smtpClientSimulator = new SmtpClientSimulator();
+            smtpClientSimulator.SendRaw(sender.Address, forwarder.Address, message);
+
+            CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+
+            // The message itself is delivered; it is the forward that must not happen.
+            delivered++;
+            ImapClientSimulator.AssertMessageCount(forwarder.Address, "test", "Inbox", delivered);
+            Assert.AreEqual(0, new Pop3ClientSimulator().GetMessageCount(observer.Address, "test"),
+               "A message carrying X-hMailServer-LoopCount: '" + value + "' was forwarded.");
+         }
+
+         // Each refusal is reported, as at the limit; this reads and clears the log.
+         CustomAsserts.AssertReportedError("Maximum rule loop count reached");
+
+         // The control: a count below the limit is forwarded, carrying + 1.
+         var counted =
+            "From: " + sender.Address + "\r\n" +
+            "To: " + forwarder.Address + "\r\n" +
+            "Subject: A count\r\n" +
+            "X-hMailServer-LoopCount: 1\r\n" +
+            "\r\n" +
+            "Trigger the forward rule.\r\n";
+
+         new SmtpClientSimulator().SendRaw(sender.Address, forwarder.Address, counted);
+         CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+
+         var forwarded = Pop3ClientSimulator.AssertGetFirstMessageText(observer.Address, "test");
+         StringAssert.Contains("X-hMailServer-LoopCount: 2", forwarded, forwarded);
+      }
+
+      /// <summary>
       /// RegularExpression::TestExactMatch swallows a pattern that will not compile and
       /// returns "no match", so a criterion with one unmatched bracket produces a rule
       /// that is Active in the editor, matches nothing ever, and says nothing about it.

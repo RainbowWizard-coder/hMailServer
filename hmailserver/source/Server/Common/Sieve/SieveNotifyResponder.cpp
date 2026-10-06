@@ -17,6 +17,7 @@
 #include "../Util/FileUtilities.h"
 #include "../Util/Time.h"
 #include "../Application/Application.h"
+#include "../../SMTP/SMTPConfiguration.h"
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -40,6 +41,24 @@ namespace HM
       {
          LOG_DEBUG("Sieve notify: no notification was sent, restricted delivery - " + account->GetAddress() +
             " may send to named domains only, and " + decision.to + " is not in one.");
+         return false;
+      }
+
+      int loopLimit = Configuration::Instance()->GetSMTPConfiguration()->GetRuleLoopLimit();
+      if (decision.loopCount >= loopLimit)
+      {
+         // The limit SieveVacationResponder::Respond holds a vacation reply to, and
+         // RuleApplier::IsGeneratedResponseAllowed rule-generated mail. A notification
+         // is generated mail like them, and until 6 October 2026 it alone went out
+         // whatever the count, carrying count + 1: a signed overflow for a sender who
+         // wrote 2147483647, which came out as the most negative int, so that every
+         // forward of the notification had that far to climb to the limit. Past this
+         // check the count is below the limit, and the + 1 below is an int.
+         String message;
+         message.Format(_T("Sieve notify: no notification for %s, the message has already passed through %d ")
+                        _T("generated messages (the rule loop limit)."),
+                        String(account->GetAddress()).c_str(), decision.loopCount);
+         LOG_APPLICATION(message);
          return false;
       }
 
@@ -81,6 +100,7 @@ namespace HM
          else if (decision.importance == 3)
             data.SetFieldValue(_T("Importance"), _T("Low"));
 
+         // Below the limit, held to it above, so + 1 is an int.
          data.SetRuleLoopCount(decision.loopCount + 1);
 
          String body;

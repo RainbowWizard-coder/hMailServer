@@ -30,6 +30,8 @@
 // does, so a criterion that matched before still matches.
 #include <boost/regex.hpp>
 
+#include <limits>
+
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
 #define new DEBUG_NEW
@@ -72,6 +74,15 @@ namespace HM
       // to be expensive, and re-paying its cost is the exact failure this mechanism
       // exists to stop.
       const size_t MaxSuspendedPatterns = 256;
+
+      // The white space a header field's value can carry around an
+      // X-hMailServer-LoopCount: the blanks after the colon, and what is left of a
+      // fold. Anything else beside the digits makes the value no count.
+      bool
+      IsLoopCountSpace(wchar_t character)
+      {
+         return character == L' ' || character == L'\t' || character == L'\r' || character == L'\n';
+      }
 
       // The longest pattern that will appear in a log line. A criterion is at most 255
       // characters (hm_rule_criterias.criteriamatchvalue is nvarchar(255)), so this
@@ -247,6 +258,53 @@ namespace HM
          return;
 
       generated->SetRuleLoopCount(LoopCountForGeneratedMessage(source));
+   }
+
+   int
+   RuleGuard::ReadLoopCount(const String &value, int loopLimit)
+   {
+      // The limit, held to 0 to INT_MAX - 1: a count read here is carried forward as
+      // count + 1, which has to be an int.
+      const int most = (std::numeric_limits<int>::max)();
+      const int ceiling = loopLimit < 0 ? 0 : (loopLimit < most ? loopLimit : most - 1);
+
+      // Through the pointer: CStdStr's own operator[] and std::wstring's are
+      // ambiguous for a size_t.
+      const wchar_t *text = value.c_str();
+      size_t first = 0;
+      size_t last = value.size();
+      while (first < last && IsLoopCountSpace(text[first]))
+         first++;
+      while (last > first && IsLoopCountSpace(text[last - 1]))
+         last--;
+
+      // Nothing at all is no count.
+      if (first == last)
+         return ceiling;
+
+      long long count = 0;
+      for (size_t position = first; position < last; position++)
+      {
+         // ASCII digits only: no sign, and not iswdigit, which takes the digits of
+         // other scripts that this server never writes.
+         const wchar_t character = text[position];
+         if (character < L'0' || character > L'9')
+            return ceiling;
+
+         // Past the ceiling the answer is decided, and the rest of the value is only
+         // read to see that it is digits; count stays at most ten times an int and
+         // nine, which a long long holds.
+         if (count <= ceiling)
+            count = count * 10 + (character - L'0');
+      }
+
+      return count > ceiling ? ceiling : static_cast<int>(count);
+   }
+
+   int
+   RuleGuard::ReadLoopCount(const String &value)
+   {
+      return ReadLoopCount(value, Configuration::Instance()->GetSMTPConfiguration()->GetRuleLoopLimit());
    }
 
    bool
@@ -501,5 +559,154 @@ namespace HM
    RuleGuard::RegexSuspensionSeconds()
    {
       return SuspensionSeconds;
+   }
+
+   namespace
+   {
+      // A value as printable ASCII, for a failure's sentence: every other character
+      // as a backslash, a u and its number, so that a tab, a fold or a digit of
+      // another script is told apart from a blank.
+      std::string
+      LoopCountValueForMessage(const String &value)
+      {
+         std::string out;
+         const wchar_t *text = value.c_str();
+         for (size_t position = 0; position < value.size(); position++)
+         {
+            const unsigned long character = static_cast<unsigned long>(text[position]);
+            if (character >= 0x20 && character < 0x7F)
+            {
+               out += static_cast<char>(character);
+            }
+            else
+            {
+               char escaped[16];
+               snprintf(escaped, sizeof(escaped), "\\u%04lX", character);
+               out += escaped;
+            }
+         }
+
+         return out;
+      }
+   }
+
+   void
+   LoopCountTester::Test()
+   {
+      struct Case
+      {
+         const wchar_t *value;
+         int limit;
+         int expected;
+      };
+
+      const int most = (std::numeric_limits<int>::max)();
+
+      const Case cases[] =
+      {
+         // A count, read as itself, the header's white space around it aside.
+         { L"0", 5, 0 },
+         { L"3", 5, 3 },
+         { L"4", 5, 4 },
+         { L"5", 5, 5 },
+         { L"004", 5, 4 },
+         { L" 3", 5, 3 },
+         { L"3 \t", 5, 3 },
+         { L"\t2\r\n", 5, 2 },
+         { L"999", 1000, 999 },
+         { L"7", most, 7 },
+
+         // Above the limit: the limit. 2147483647 was a signed overflow at count + 1,
+         // and 2147483648 and 4294967295 read as INT_MIN and -1 through Linux's
+         // (int) wcstol.
+         { L"6", 5, 5 },
+         { L"2147483647", 5, 5 },
+         { L"2147483648", 5, 5 },
+         { L"4294967295", 5, 5 },
+         { L"4294967296", 5, 5 },
+         { L"99999999999", 5, 5 },
+         { L"123456789012345678901234567890", 5, 5 },
+
+         // No count: the limit, never 0 and never below 0. -5 passed every
+         // "count >= limit" test.
+         { L"-5", 5, 5 },
+         { L"-0", 5, 5 },
+         { L"-2147483648", 5, 5 },
+         { L"+3", 5, 5 },
+         { L"12abc", 5, 5 },
+         { L"abc", 5, 5 },
+         { L"3 4", 5, 5 },
+         { L"3\r\n 4", 5, 5 },
+         { L"3.0", 5, 5 },
+         { L"0x10", 5, 5 },
+         { L"1e3", 5, 5 },
+         { L"", 5, 5 },
+         { L"   ", 5, 5 },
+         { L"\u0663", 5, 5 },  // ARABIC-INDIC DIGIT THREE
+         { L"\uFF13", 5, 5 },  // FULLWIDTH DIGIT THREE
+         { L"\u00B3", 5, 5 },  // SUPERSCRIPT THREE
+         { L"3\u00A0", 5, 5 }, // a no-break space is not the header's white space
+
+         // A limit of 0 refuses every generated message, and a negative one is held
+         // to 0.
+         { L"0", 0, 0 },
+         { L"3", 0, 0 },
+         { L"-5", 0, 0 },
+         { L"", 0, 0 },
+         { L"3", -1, 0 },
+         { L"x", -1, 0 },
+         { L"3", -2147483647 - 1, 0 },
+
+         // The largest limit is held to 2147483646, so that + 1 is still an int.
+         { L"2147483646", most, most - 1 },
+         { L"2147483647", most, most - 1 },
+         { L"99999999999", most, most - 1 },
+         { L"-5", most, most - 1 },
+         { L"x", most, most - 1 },
+      };
+
+      // Every case judged before the answer, so that a failure names each value read
+      // wrongly and not only the first.
+      std::string wrong;
+      for (const Case &c : cases)
+      {
+         const String value(c.value);
+         const int count = RuleGuard::ReadLoopCount(value, c.limit);
+         if (count != c.expected)
+         {
+            wrong += (wrong.empty() ? "" : "; ") + std::string("\"") + LoopCountValueForMessage(value) + "\" at the limit " +
+               std::to_string(c.limit) + " read as " + std::to_string(count) + ", not " + std::to_string(c.expected);
+         }
+
+         // Whatever the case expects: between 0 and the limit held to 0 to INT_MAX - 1,
+         // so that count + 1 is an int.
+         const int ceiling = c.limit < 0 ? 0 : (c.limit < most ? c.limit : most - 1);
+         if (count < 0 || count > ceiling)
+         {
+            wrong += (wrong.empty() ? "" : "; ") + std::string("\"") + LoopCountValueForMessage(value) + "\" at the limit " +
+               std::to_string(c.limit) + " read as " + std::to_string(count) + ", outside 0 to " + std::to_string(ceiling);
+         }
+      }
+
+      // One character of any of the code points from 1 to 0x2FFF: a count only when it
+      // is an ASCII digit, the limit otherwise - a sweep for a reader that takes some
+      // other script's digit, a sign or a control character as a number.
+      for (unsigned int character = 1; character < 0x3000; character++)
+      {
+         String value;
+         value += static_cast<wchar_t>(character);
+
+         const int count = RuleGuard::ReadLoopCount(value, 5);
+         const bool digit = character >= '0' && character <= '9';
+         const int expected = digit ? ((character - '0') < 5 ? static_cast<int>(character - '0') : 5) : 5;
+         if (count != expected)
+         {
+            wrong += (wrong.empty() ? "" : "; ") + std::string("\"") + LoopCountValueForMessage(value) + "\" at the limit 5 read as " +
+               std::to_string(count) + ", not " + std::to_string(expected);
+         }
+      }
+
+      if (!wrong.empty())
+         throw std::logic_error("X-hMailServer-LoopCount: " + wrong);
    }
 }

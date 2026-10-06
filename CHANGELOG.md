@@ -99,6 +99,24 @@ before. An administrator who cannot upgrade yet runs the three `icacls` lines th
 prompt. Found by the project's own review (work item 78; CVE requested).
 [ServiceAccount.md](hmailserver/docs/ServiceAccount.md), "What the other users of the computer may read".
 
+- **Fixed: any sender could lift the rule loop limit off a message, and a Sieve `notify` did not consult it.** The
+  server counts the generated messages a message has been through - a rule's forward, reply or copy, an account's
+  forward, a Sieve `redirect`, `vacation` or `notify`, a bounce - in its `X-hMailServer-LoopCount` header, and makes
+  no more once the count reaches the rule loop limit (`RuleLoopLimit`, 5 by default): that is what ends a loop between
+  two accounts that forward to each other. Nothing takes the header off mail that arrives from outside, and the server
+  read it with `_ttoi`, so a negative count passed every test against the limit: a sender who wrote `-2147483648` set
+  such a loop going round some two thousand million times, and on Linux, where `_ttoi` keeps the low 32 bits of a
+  64-bit `long`, so did one who wrote `2147483648` or `4294967295` (in every version, and on Linux from 6.3.0). A
+  Sieve `notify` went out whatever the count, carrying it + 1, so a count of `2147483647` made that a signed overflow,
+  undefined behaviour that in practice gave the notification the most negative count there is (from 6.2.22). The
+  header is now read in one place, `RuleGuard::ReadLoopCount`: as a count only when it is digits and nothing else, and
+  never above the limit; anything else - a sign, a letter, an empty value - reads as the limit, so the message is
+  delivered and nothing is generated from it; and a notification is no longer sent once the count has reached the
+  limit, as a vacation reply is not. A message without the header, or with a count below the limit, is treated as
+  before. `LoopCountTester` (`business-object-tests` on Linux) holds the reading to examples, and `Rules.cs`,
+  `Sieve/SieveNotifyDelivery.cs` and `Sieve/SieveVacationDelivery.cs` each send the values through delivery. Found by
+  the project's own review.
+
 ### Downloads and the release
 
 - **The Helm chart's and the container image's repositories are on Artifact Hub, and the tree holds the IDs Artifact

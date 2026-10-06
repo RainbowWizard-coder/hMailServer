@@ -703,6 +703,80 @@ namespace RegressionTests.Sieve
          Assert.IsTrue(ReadReply(friend).Contains("Out of office."));
       }
 
+      /// <summary>
+      ///    The header comes with the message, from whoever sent it, and was read with
+      ///    _wtoi. A count past the limit stopped the reply, and still does; but "-5"
+      ///    passed it, and the reply carried -4, a count below every limit, so the
+      ///    hops after it were bounded by nothing. What is not a count up to the limit
+      ///    now reads as the limit (RuleGuard::ReadLoopCount), which a vacation refuses
+      ///    as it refuses the limit; a count below it is answered as before, carrying
+      ///    + 1.
+      ///
+      ///    A sender of its own for each value: a reply sent for one would open a
+      ///    suppression window that held back the reply to the next, and a fault in
+      ///    the reading of the first would hide one in the reading of the rest.
+      ///
+      ///    Against the unfixed server "-5", "-2147483648", "+1" and the empty value
+      ///    are answered (and on Linux 2147483648 and 4294967295, which (int) wcstol
+      ///    reads as INT_MIN and -1), and the test fails at the first of them.
+      /// </summary>
+      [Test]
+      [Description("An X-hMailServer-LoopCount that is not a count reads as the rule loop limit: no auto-reply.")]
+      public void TestALoopCountThatIsNoCountIsReadAsTheLimit()
+      {
+         _settings.RuleLoopLimit = 5;
+
+         Account away = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "sieve-vac-lcount@example.test", Password);
+
+         SetScriptFromClean(away,
+            "require \"vacation\";\r\n" +
+            "vacation :days 7 \"Out of office.\";");
+
+         string[] values = { "2147483647", "2147483648", "4294967295", "99999999999", "-5", "-2147483648", "12abc", "+1", "" };
+
+         int delivered = 0;
+         for (int i = 0; i < values.Length; i++)
+         {
+            Account friend = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "sieve-vac-lcount" + i + "@example.test", Password);
+
+            string raw =
+               "From: " + friend.Address + "\r\n" +
+               "To: " + away.Address + "\r\n" +
+               "Subject: Loop count '" + values[i] + "'\r\n" +
+               "X-hMailServer-LoopCount: " + values[i] + "\r\n" +
+               "\r\n" +
+               "Body.\r\n";
+
+            SmtpClientSimulator.StaticSendRaw(friend.Address, away.Address, raw);
+            delivered++;
+            AssertDelivered(away, delivered);
+
+            // As AssertNoReply, but naming the value: the queue drained first, so a
+            // reply would be in the mailbox by now.
+            CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+            Assert.AreEqual(0, new Pop3ClientSimulator().GetMessageCount(friend.Address, Password),
+               "A message carrying X-hMailServer-LoopCount: '" + values[i] + "' was answered.");
+         }
+
+         // The control: a count below the limit is answered, and the reply carries + 1.
+         Account counted = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "sieve-vac-lcount-ok@example.test", Password);
+
+         string rawCounted =
+            "From: " + counted.Address + "\r\n" +
+            "To: " + away.Address + "\r\n" +
+            "Subject: A count\r\n" +
+            "X-hMailServer-LoopCount: 1\r\n" +
+            "\r\n" +
+            "Body.\r\n";
+
+         SmtpClientSimulator.StaticSendRaw(counted.Address, away.Address, rawCounted);
+         AssertDelivered(away, delivered + 1);
+
+         string reply = ReadReply(counted);
+         Assert.IsTrue(reply.Contains("Out of office."), reply);
+         StringAssert.Contains("X-hMailServer-LoopCount: 2", reply, "The reply to a message carrying 1 does not carry 2.");
+      }
+
       [Test]
       [Description("Clearing an account's Sieve script also clears its vacation suppression windows.")]
       public void TestClearingTheScriptClearsTheSuppressionWindows()

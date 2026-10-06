@@ -97,6 +97,39 @@ namespace HM
       static void CarryLoopCountForward(std::shared_ptr<MessageData> source,
                                         std::shared_ptr<MessageData> generated);
 
+      // An X-hMailServer-LoopCount value, read as a count the loop guards can trust.
+      // The one reader of the header: MessageData::GetRuleLoopCount (the rules, an
+      // account's forward, a bounce) and SieveEvaluator (a notify, a vacation) both
+      // come here.
+      //
+      // THE DEFECT. Each read it with _ttoi or _wtoi, and nothing takes the header off
+      // mail that arrives from outside, so any sender chose the count. A negative one
+      // passed every "count >= RuleLoopLimit" test, so "-1000000" bought a million
+      // generated hops, and on Linux, where _ttoi is (int) wcstol, so did
+      // "4294967295", read as -1: a forwarding loop between two accounts - what
+      // RuleLoopLimit exists to bound - ran for as long as the sender liked. And a
+      // Sieve notify, which consulted no limit, carried count + 1 whatever the count,
+      // so "2147483647" made that a signed overflow, undefined behaviour that comes
+      // out as the most negative int in practice.
+      //
+      // So a value is a count only when it is ASCII digits and nothing else (white
+      // space around it aside), and never more than the limit. Anything else - a
+      // sign, any other character, nothing at all - reads as the limit, never as 0:
+      // a value this server never writes is not a message that has been through no
+      // generator, and reading it as one would hand its sender the whole budget
+      // again. A number above the limit reads as the limit, which every guard refuses
+      // as it would the number, and which a generator that does not consult the limit
+      // carries forward as limit + 1 rather than as a number the next server's + 1
+      // could overflow. The limit is held to 0 to 2147483646 for the purpose, so that
+      // count + 1 is always an int. A header that is absent is the caller's to read
+      // as 0: that message has been through no generator of ours.
+      //
+      // Pure: no configuration. LoopCountTester holds it to examples.
+      static int ReadLoopCount(const String &value, int loopLimit);
+
+      // The same, against the configured RuleLoopLimit (SMTPConfiguration).
+      static int ReadLoopCount(const String &value);
+
       // A regular-expression criterion, with the two answers it could not previously
       // give.
       //
@@ -202,5 +235,19 @@ namespace HM
       // needs the numbers.
       static unsigned int RegexBudgetMilliseconds();
       static unsigned int RegexSuspensionSeconds();
+   };
+
+   // RuleGuard::ReadLoopCount held to examples: the values a sender could choose
+   // (2147483647, 2147483648, 4294967295, 99999999999, -5, "12abc", nothing, a
+   // sign, a digit of another script) read as the limit, a count read as itself,
+   // and every answer between 0 and the limit with + 1 still an int, at the
+   // limits 0, 5 and 2147483647 and a negative one. No configuration, database or
+   // network. ClassTester runs it on Windows, business-object-tests
+   // (platform/business_object_tests_main.cpp) on Linux. Throws
+   // std::logic_error naming every value read wrongly.
+   class LoopCountTester
+   {
+   public:
+      void Test();
    };
 }

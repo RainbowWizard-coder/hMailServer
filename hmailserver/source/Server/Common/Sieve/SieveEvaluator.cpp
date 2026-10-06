@@ -608,19 +608,12 @@ namespace HM
             : _T("New message: ") + decision.originalSubject;
 
          // The generated-mail loop counter, carried the same way the vacation
-         // decision carries it.
+         // decision carries it, and read by the header's one reader: the message is
+         // a stranger's, and so is the header. SieveNotifyResponder::Send holds the
+         // count to the limit.
          std::vector<String> loopCounts = message.GetHeaderValues(_T("X-hMailServer-LoopCount"));
          if (!loopCounts.empty())
-         {
-#ifdef HM_PLATFORM_POSIX
-            // _ttoi is the TCHAR-generic name for the same function, and this
-            // program is built UNICODE, so on Windows _ttoi IS _wtoi. It is
-            // already in the platform header, so the POSIX side needs nothing new.
-            decision.loopCount = _ttoi(loopCounts[0].c_str());
-#else
-            decision.loopCount = _wtoi(loopCounts[0].c_str());
-#endif
-         }
+            decision.loopCount = RuleGuard::ReadLoopCount(loopCounts[0]);
 
          if (result_)
             result_->notifications.push_back(decision);
@@ -824,16 +817,13 @@ namespace HM
       // vacation reply, a forward, an account rule auto-reply and a bounce from
       // taking turns forever: each generated message increments it, so any cycle
       // that includes at least one of them terminates.
+      //
+      // Read by RuleGuard::ReadLoopCount, never _wtoi: the header comes with the
+      // message, so a sender who wrote "-5" would otherwise pass the limit and one who
+      // wrote "2147483647" overflow the reply's count + 1.
       std::vector<String> loopCounts = message.GetHeaderValues(_T("X-hMailServer-LoopCount"));
       if (!loopCounts.empty())
-      {
-#ifdef HM_PLATFORM_POSIX
-         // See the same call above: _ttoi is _wtoi in a UNICODE build.
-         decision.loopCount = _ttoi(loopCounts[0].c_str());
-#else
-         decision.loopCount = _wtoi(loopCounts[0].c_str());
-#endif
-      }
+         decision.loopCount = RuleGuard::ReadLoopCount(loopCounts[0]);
 
       // No entry is added to actions_ and localDecided_ is left alone: a vacation
       // reply says nothing about whether the message itself is kept.

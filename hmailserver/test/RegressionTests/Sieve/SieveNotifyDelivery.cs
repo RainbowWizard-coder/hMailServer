@@ -115,6 +115,106 @@ namespace RegressionTests.Sieve
          CustomAsserts.AssertFolderMessageCount(watcherInbox, 0);
       }
 
+      private static void SendWithLoopCount(Account recipient, string subject, string loopCount)
+      {
+         string raw =
+            "From: sieve-ntf-sender@example.test\r\n" +
+            "To: " + recipient.Address + "\r\n" +
+            "Subject: " + subject + "\r\n" +
+            "X-hMailServer-LoopCount: " + loopCount + "\r\n" +
+            "\r\n" +
+            "Body.\r\n";
+
+         var smtp = new SmtpClientSimulator();
+         smtp.SendRaw("sieve-ntf-sender@example.test", recipient.Address, raw);
+         CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+      }
+
+      /// <summary>
+      ///    The rule loop limit. A notification is generated mail, as a vacation reply
+      ///    is, and carries the triggering message's X-hMailServer-LoopCount + 1; a
+      ///    message that has already passed through RuleLoopLimit generated messages
+      ///    is in a cycle, and is delivered without one. Until 6 October 2026
+      ///    SieveNotifyResponder sent a notification whatever the count, where
+      ///    SieveVacationResponder stopped at the limit.
+      ///
+      ///    Against the unfixed server the watcher's inbox holds a notification after
+      ///    the first message.
+      /// </summary>
+      [Test]
+      [Description("No notification once a message has been through the configured number of generated hops.")]
+      public void NoNotificationOnceTheRuleLoopLimitIsReached()
+      {
+         // Stated rather than assumed, as Rules.cs does: the shipped default is 5,
+         // and a fixture that ran earlier could have left it anywhere.
+         _settings.RuleLoopLimit = 5;
+
+         Account recipient, watcher;
+         NewPair(out recipient, out watcher);
+
+         IMAPFolder recipientInbox = recipient.IMAPFolders.get_ItemByName("INBOX");
+         IMAPFolder watcherInbox = watcher.IMAPFolders.get_ItemByName("INBOX");
+
+         SendWithLoopCount(recipient, "At the limit", "5");
+         CustomAsserts.AssertFolderMessageCount(recipientInbox, 1);
+         CustomAsserts.AssertFolderMessageCount(watcherInbox, 0);
+
+         // One hop below it is notified about, so the check is on the number and not
+         // on the header being there, and the notification carries the count + 1.
+         SendWithLoopCount(recipient, "Below the limit", "4");
+         CustomAsserts.AssertFolderMessageCount(recipientInbox, 2);
+
+         string notification = Pop3ClientSimulator.AssertGetFirstMessageText(watcher.Address, Password);
+         StringAssert.Contains("X-hMailServer-LoopCount: 5", notification,
+            "The notification does not carry the triggering message's count + 1.");
+      }
+
+      /// <summary>
+      ///    The header comes with the message, from whoever sent it, and was read with
+      ///    _wtoi (_ttoi, which is (int) wcstol, on Linux). "-5" passed the limit, so
+      ///    a forward of the notification was bounded by nothing; 2147483647 made the
+      ///    notification's count + 1 a signed overflow; 99999999999 is 2147483647 to
+      ///    _wtoi; and 2147483648 and 4294967295 are INT_MIN and -1 on Linux. What is
+      ///    not a count up to the limit now reads as the limit
+      ///    (RuleGuard::ReadLoopCount): the message is delivered, and nobody notified.
+      ///
+      ///    Against the unfixed server every one of them is notified about, since the
+      ///    notification consulted no limit, and the test fails at the first.
+      /// </summary>
+      [Test]
+      [Description("An X-hMailServer-LoopCount that is not a count reads as the rule loop limit: no notification.")]
+      public void ALoopCountThatIsNoCountIsReadAsTheLimit()
+      {
+         _settings.RuleLoopLimit = 5;
+
+         Account recipient, watcher;
+         NewPair(out recipient, out watcher);
+
+         IMAPFolder recipientInbox = recipient.IMAPFolders.get_ItemByName("INBOX");
+         IMAPFolder watcherInbox = watcher.IMAPFolders.get_ItemByName("INBOX");
+
+         string[] values = { "2147483647", "2147483648", "4294967295", "99999999999", "-5", "-2147483648", "12abc", "+1", "" };
+
+         int delivered = 0;
+         foreach (string value in values)
+         {
+            SendWithLoopCount(recipient, "Loop count '" + value + "'", value);
+
+            delivered++;
+            CustomAsserts.AssertFolderMessageCount(recipientInbox, delivered);
+            Assert.AreEqual(0, watcherInbox.Messages.Count,
+               "A message carrying X-hMailServer-LoopCount: '" + value + "' was notified about.");
+         }
+
+         // The control: a count below the limit is notified about, carrying + 1.
+         SendWithLoopCount(recipient, "A count", "1");
+         CustomAsserts.AssertFolderMessageCount(recipientInbox, delivered + 1);
+
+         string notification = Pop3ClientSimulator.AssertGetFirstMessageText(watcher.Address, Password);
+         StringAssert.Contains("X-hMailServer-LoopCount: 2", notification,
+            "The notification of a message carrying 1 does not carry 2.");
+      }
+
       [Test]
       [Description("valid_notify_method steers between the supported and unsupported method.")]
       public void ValidNotifyMethodAnswersHonestly()

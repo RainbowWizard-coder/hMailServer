@@ -20,6 +20,7 @@
 #include "../Persistence/MessageStore.h"
 #include "../Persistence/MessageStoreObjects.h"
 #include "../Util/MailboxKeys.h"
+#include "../Rules/RuleGuard.h"
 #include "../../SMTP/RecipientParser.h"
 
 #define XHMAILSERVER_LOOPCOUNT _T("X-hMailServer-LoopCount")
@@ -1236,11 +1237,17 @@ namespace HM
    int
    MessageData::GetRuleLoopCount()
    {
-      String sRulesProcessed = mime_mail_->GetRawFieldValue(XHMAILSERVER_LOOPCOUNT);
-      if (sRulesProcessed.IsEmpty())
+      // Absent, the message has been through no generator of ours. Present, it is
+      // read by RuleGuard::ReadLoopCount, the header's one reader, whatever it holds:
+      // a sender writes it as easily as we do, and _ttoi took "-5" as a count that
+      // passed every limit - and on Linux, where it is (int) wcstol, "4294967295" as
+      // -1. An empty value is no count either, and reads as the limit, where this
+      // read it as 0.
+      const char *value = mime_mail_->GetRawFieldValue(XHMAILSERVER_LOOPCOUNT);
+      if (value == nullptr)
          return 0;
 
-      return _ttoi(sRulesProcessed);
+      return RuleGuard::ReadLoopCount(String(value));
    }
 
    void

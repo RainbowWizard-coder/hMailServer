@@ -10,6 +10,7 @@
 #include "../BO/Message.h"
 #include "../BO/Account.h"
 #include "../BO/FetchAccount.h"
+#include "../Rules/RuleGuard.h"
 #include "../Mime/MimeTester.h"
 #include "../Util/Utilities.h"
 #include "../Util/MessageUtilities.h"
@@ -220,6 +221,14 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing the fetch account's retention\n"));
       FetchAccountTester fetchAccountTester;
       fetchAccountTester.Test();
+
+      // X-hMailServer-LoopCount, which comes with mail from anyone, read as a
+      // count only when it is digits, and never above the limit: before 6 October
+      // 2026 "-5" passed every RuleLoopLimit test and "2147483647" overflowed the
+      // count + 1 a generated message carries (RuleGuard.h, ReadLoopCount).
+      OutputDebugString(_T("hMailServer: Testing the rule loop count's reader\n"));
+      LoopCountTester loopCountTester;
+      loopCountTester.Test();
 
       // Every TLS context's options read back with SSL_CTX_get_options: exactly what
       // SetContextOptions_ asks for, nothing from bit 32 up but certificate compression
