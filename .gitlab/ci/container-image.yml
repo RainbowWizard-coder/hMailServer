@@ -300,6 +300,7 @@ container-image-sbom:
   stage: release
   tags: [linix]
   image: !reference [.linix, image]
+  before_script: !reference [.linix, before_script]
   needs:
     - job: container-image
       artifacts: true
@@ -406,6 +407,7 @@ container-image-start:
   stage: release
   tags: [linix]
   image: !reference [.linix, image]
+  before_script: !reference [.linix, before_script]
   needs:
     - job: container-image
       artifacts: true
@@ -463,6 +465,7 @@ container-image-start-arm64:
   # lost its qemu-aarch64 handler: the job's own container, linix's platform, asks first
   # and says so by name, rather than the test timing out on a service that never came.
   before_script:
+    - !reference [.linix, before_script]
     - sh build/ci/arm64-emulation.sh "container-image-start-arm64, whose service is the linux/arm64 image,"
   services:
     - name: postgres:18@sha256:5a5a84b19854a9ffaa54082c166ff4ec27473a361e496e5ea167f298f2da9722
