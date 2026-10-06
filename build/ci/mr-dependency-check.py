@@ -84,6 +84,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import urllib.parse
 import xml.etree.ElementTree as ET
 import zipfile
 
@@ -588,6 +589,82 @@ def rating(advisory, index):
         if theirs[0] and (best[0] is None or RANK[theirs[0]] > RANK[best[0]]):
             best = (theirs[0], "its alias %s: %s" % (alias, theirs[1]))
     return best
+
+
+# ---------------------------------------------------------------- the VEX document
+#
+# .gitlab/hmailserver.openvex.json, OpenVEX: a statement dismisses an advisory for the
+# products it names when its status is not_affected (or fixed). It is matched here by
+# the advisory's id or one of its aliases AND by the package at its version, by purl:
+# pkg:nuget/<name>@<version> (NuGet's names without case), pkg:pypi/<name>@<version>
+# (PEP 503's names), pkg:generic/<name>@<version> (the native and vendored libraries,
+# by the purl build/native-dependencies.ps1 gives each). A product with no version
+# dismisses nothing: a statement names the version it was read against. The purl's
+# qualifiers and subpath are not compared. build/ci/dependency-scan.py reads the
+# document with these too.
+
+def parse_purl(purl):
+    """(type, name with its namespace, version) of a purl, percent-decoded, the type in
+    lower case; None for what is not one."""
+    m = re.match(r"^pkg:([A-Za-z][A-Za-z0-9.+-]*)/([^@?#]+)(?:@([^?#]*))?(?:\?[^#]*)?(?:#.*)?$", (purl or "").strip())
+    if not m:
+        return None
+    return m.group(1).lower(), urllib.parse.unquote(m.group(2)).strip("/"), urllib.parse.unquote(m.group(3) or "")
+
+
+def vex_statements(text):
+    """[(the advisory's names, [(type, name, version)] of its products and their
+    subcomponents, why)] of every not_affected or fixed statement. ValueError when the
+    text is not an OpenVEX document."""
+    document = json.loads(text.lstrip("﻿"))
+    if not isinstance(document, dict) or not isinstance(document.get("statements"), list):
+        raise ValueError("not an OpenVEX document: no list of statements")
+    found = []
+    for statement in document["statements"]:
+        if not isinstance(statement, dict) or statement.get("status") not in ("not_affected", "fixed"):
+            continue
+        vulnerability = statement.get("vulnerability") or {}
+        if not isinstance(vulnerability, dict):
+            continue
+        names = set(str(n) for n in [vulnerability.get("name")] + list(vulnerability.get("aliases") or []) if n)
+        products = []
+        for product in statement.get("products") or []:
+            entries = [product]
+            if isinstance(product, dict):
+                entries += list(product.get("subcomponents") or [])
+            for entry in entries:
+                ids = [entry] if isinstance(entry, str) else (
+                    [entry.get("@id"), (entry.get("identifiers") or {}).get("purl")] if isinstance(entry, dict) else [])
+                for value in ids:
+                    parsed = parse_purl(value) if isinstance(value, str) else None
+                    if parsed and parsed not in products:
+                        products.append(parsed)
+        why = statement.get("justification") or statement.get("impact_statement") or statement["status"]
+        found.append((names, products, why))
+    return found
+
+
+def vex_dismissal(statements, ids, kind, name, version):
+    """Why the VEX document's statements dismiss the advisory known by ids for the
+    package kind/name (purl type and name) at version, or None when none does."""
+    ecosystem = {"nuget": "NuGet", "pypi": "PyPI"}.get(kind)
+    wanted = set(i for i in ids if i)
+    for names, products, why in statements:
+        if not names & wanted:
+            continue
+        for product_kind, product_name, product_version in products:
+            if product_kind != kind or not product_version:
+                continue
+            if kind == "pypi":
+                same_name = pypi_name(product_name) == pypi_name(name)
+            else:
+                same_name = product_name.lower() == name.lower()
+            if not same_name:
+                continue
+            if product_version == version or (ecosystem and version_key(ecosystem, version) is not None
+                                              and version_key(ecosystem, product_version) == version_key(ecosystem, version)):
+                return why
+    return None
 
 
 # ---------------------------------------------------------------- the advisories

@@ -9,8 +9,8 @@ What replaced GitHub's dependency review (the GitHub workflow dependency-review.
 and Dependabot's alerts. Three scans, one report:
 
   1. The lock files, with Trivy (trivy fs): the twelve NuGet packages.lock.json,
-     the three packages.config, and build/ci/security-requirements.txt, the
-     scanners' own Python packages. Nothing else in the tree is a manifest: the
+     the three packages.config, and build/ci/requirements.txt, the semgrep job's
+     own Python packages. Nothing else in the tree is a manifest: the
      Python tools use the standard library (the three that do not are named by
      repo-hygiene.py), and the Node harnesses install no package.
   2. The CI image, with Trivy (trivy rootfs), from the package database the
@@ -40,8 +40,18 @@ api.osv.dev. (Both databases carry, among their sources, GitHub's advisory
 database; what is avoided is GitHub as a place to download from, not its data.)
 
 A finding that does not affect the project is dismissed in the VEX document,
-.gitlab/hmailserver.openvex.json, as SECURITY.md says: Trivy reads it with --vex
-and the OSV step drops every advisory the document says is not_affected.
+.gitlab/hmailserver.openvex.json, as SECURITY.md says: Trivy reads it with --vex,
+and the OSV step drops an advisory the document says is not_affected (or fixed) when
+the statement names it, by its id or an alias, AND names the library at the version
+scanned among its products, by its purl (pkg:generic/<purl>@<version>, the purl
+build/native-dependencies.ps1 gives the SBOM): a statement read against zlib 1.3.1
+does not dismiss the same advisory for 1.3.2. The document is read, and the products
+matched, by build/ci/mr-dependency-check.py, which the change gate uses too.
+
+An advisory's severity is OSV's record's CVSS v3 vector's, else its database's
+rating, else its CVSS v4.0 vector's, scored by mr-dependency-check.py (one
+implementation of FIRST's v4.0 calculator for both); an OSS-Fuzz crash report (OSV-)
+with none of those is Medium, and the rest Unknown.
 
 Writes to --out (default security/dependency-scan): the tools' raw output, a
 GitLab dependency-scanning report per scanner (gl-dependency-scanning-trivy.json,
@@ -56,13 +66,18 @@ fixed before the next release), 2 when a scan could not run, 0 otherwise.
 Usage, from the root of a checkout, in the aquasec/trivy image with python3:
 
   python3 build/ci/dependency-scan.py [--image-root DIR] [--out DIR] [--skip-trivy] [--skip-osv]
+  python3 build/ci/dependency-scan.py --self-test
 
 --image-root is the directory the ci-image-packages job left (ci-image-packages/
-by default; that scan is skipped, and says so, when it is not there).
+by default; that scan is skipped, and says so, when it is not there). --self-test
+reads no network: the severities, the VEX document's matching and the version
+readers, against records and texts it makes, and the tree's own VEX document and
+pins against each other.
 """
 
 import argparse
 import datetime
+import importlib.util
 import json
 import math
 import os
@@ -98,35 +113,56 @@ BINARIES = "hmailserver/docs/third-party-binaries.json"
 # can be told apart from "no data". oldest_tag is the first version the upstream
 # repository has a tag for, where that is later than versions still in use: OSV
 # matches a version by its tag, and cannot match one the repository never had.
+# purl is the name of its pkg:generic purl, as build/native-dependencies.ps1 gives it
+# to the SBOM and as a statement of the VEX document names it (--self-test holds the
+# two to each other).
 VENDORED = [
-    {"name": "OpenSSL", "file": VCXPROJ, "pattern": r"openssl-(\d+\.\d+\.\d+[a-z]?)",
+    {"name": "OpenSSL", "purl": "openssl", "file": VCXPROJ, "pattern": r"openssl-(\d+\.\d+\.\d+[a-z]?)",
      "repo": "https://github.com/openssl/openssl", "tag": "openssl-{v}", "control": "4.0.0",
      "used": "TLS for every listener and the REST API, DKIM, hashing (Windows build)"},
-    {"name": "Boost", "file": VCXPROJ, "pattern": r"boost_(\d+)_(\d+)_(\d+)",
+    {"name": "Boost", "purl": "boost", "file": VCXPROJ, "pattern": r"boost_(\d+)_(\d+)_(\d+)",
      "repo": "https://github.com/boostorg/boost", "tag": "boost-{v}", "control": "1.90.0",
      "used": "Asio under all socket I/O, threads, filesystem, regex (Windows build)",
      "coverage": "OSV's Boost records are OSS-Fuzz crash reports only; Boost's CVEs are not among them"},
-    {"name": "libpq (PostgreSQL client)", "file": VCXPROJ, "pattern": r"postgresql-(\d+)\.(\d+)",
+    {"name": "libpq (PostgreSQL client)", "purl": "postgresql", "file": VCXPROJ, "pattern": r"postgresql-(\d+)\.(\d+)",
      "repo": "https://github.com/postgres/postgres", "tag": "REL_{v_}", "control": "17.2",
      "used": "the PostgreSQL backend's client library (Windows build)"},
-    {"name": "zlib", "file": "hmailserver/source/Server/zlib/zlib.h", "pattern": r'#define ZLIB_VERSION "([0-9.]+)"',
+    {"name": "zlib", "purl": "zlib", "file": "hmailserver/source/Server/zlib/zlib.h", "pattern": r'#define ZLIB_VERSION "([0-9.]+)"',
      "repo": "https://github.com/madler/zlib", "tag": "v{v}", "control": "1.3",
      "used": "vendored source: IMAP COMPRESS=DEFLATE and the message store's compression (Windows build)"},
-    {"name": "QuickJS", "file": "hmailserver/source/Server/quickjs/VERSION", "pattern": r"^\s*(\d{4}-\d{2}-\d{2})\s*$",
+    {"name": "QuickJS", "purl": "quickjs", "file": "hmailserver/source/Server/quickjs/VERSION", "pattern": r"^\s*(\d{4}-\d{2}-\d{2})\s*$",
      "repo": "https://github.com/bellard/quickjs", "tag": "{v}", "control": "2021-03-27",
      "used": "vendored source: the event scripts' engine on the Linux builds"},
-    {"name": "MariaDB Connector/C", "file": BINARIES, "component": "MariaDB Connector/C",
+    {"name": "MariaDB Connector/C", "purl": "mariadb-connector-c", "file": BINARIES, "component": "MariaDB Connector/C",
      "repo": "https://github.com/mariadb-corporation/mariadb-connector-c", "tag": "v{v}", "control": "3.1.7",
      "used": "libmysql.dll, the MySQL and MariaDB backends' client, shipped by the installer"},
-    {"name": "7-Zip (7za.exe)", "file": BINARIES, "component": "7-Zip standalone console (7za.exe)",
+    {"name": "7-Zip (7za.exe)", "purl": "7-zip", "file": BINARIES, "component": "7-Zip standalone console (7za.exe)",
      "repo": "https://github.com/ip7z/7zip", "tag": "{v}", "control": "24.08", "oldest_tag": "22.01",
      "used": "creates and restores backups (Compression.cpp), shipped by the installer",
      "coverage": "OSV's 7-Zip data is partial: CVE-2023-31102 (a crafted 7z archive and the PPMd decoder) "
                  "is in OSV only with a range it could not resolve to the repository, so no query by version finds it"},
-    {"name": "SQL Server Compact 4.0", "file": BINARIES, "component": "Microsoft SQL Server Compact 4.0 SP1 x64 ENU",
+    {"name": "SQL Server Compact 4.0", "purl": "sql-server-compact", "file": BINARIES,
+     "component": "Microsoft SQL Server Compact 4.0 SP1 x64 ENU",
      "repo": None, "used": "the built-in database, shipped by the installer",
      "coverage": "no open vulnerability database tracks it; Microsoft ended its support in July 2021"},
 ]
+
+
+_mr_check = []
+
+
+def mr_check():
+    """build/ci/mr-dependency-check.py, loaded the first time it is asked for: the CVSS
+    v4.0 score and the reading of the VEX document are its, so that the change gate and
+    this scan rate and dismiss an advisory alike. Not at import, so that it may load this
+    file in turn."""
+    if not _mr_check:
+        spec = importlib.util.spec_from_file_location("mr_dependency_check",
+                                                      os.path.join(ROOT, "build", "ci", "mr-dependency-check.py"))
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        _mr_check.append(module)
+    return _mr_check[0]
 
 
 def now():
@@ -145,22 +181,16 @@ def version_key(v):
 # ---------------------------------------------------------------- the VEX document
 
 def vex_not_affected():
-    """{vulnerability id or alias: (product, justification)} for every not_affected statement."""
-    dismissed = {}
+    """The not_affected and fixed statements of the VEX document, as
+    mr-dependency-check.py's vex_statements reads them: each matched by an advisory's id
+    or alias and by the library's purl at its version (vex_dismissal). A document that
+    cannot be read dismisses nothing, and says so: what it would have dismissed is then
+    counted, which holds a release rather than letting one through."""
     try:
-        doc = json.loads(read(VEX))
-    except (OSError, ValueError):
-        return dismissed
-    for s in doc.get("statements", []):
-        if s.get("status") not in ("not_affected", "fixed"):
-            continue
-        v = s.get("vulnerability", {})
-        names = [v.get("name", "")] + list(v.get("aliases", []))
-        products = [p.get("@id", "") if isinstance(p, dict) else str(p) for p in s.get("products", [])]
-        for n in names:
-            if n:
-                dismissed[n] = (", ".join(products), s.get("justification") or s.get("impact_statement", ""))
-    return dismissed
+        return mr_check().vex_statements(read(VEX))
+    except (OSError, ValueError) as e:
+        print("The VEX document %s cannot be read (%s): it dismisses nothing in this scan." % (VEX.replace(os.sep, "/"), e))
+        return []
 
 
 # ---------------------------------------------------------------- Trivy
@@ -261,17 +291,32 @@ def osv_query(repo, tag):
             return vulns
 
 
-def vendored_version(lib):
+def vendored_versions(lib, text):
+    """Every version of lib that text - the file VENDORED names for it - pins, first one
+    first and each once: the project file names OpenSSL, Boost and libpq once for each
+    platform and configuration, and third-party-binaries.json lists each file of a
+    component. ValueError when the file is third-party-binaries.json and not JSON."""
+    found = []
     if "component" in lib:
-        data = json.loads(read(lib["file"]))
-        for a in data.get("artifacts", []):
-            if a.get("component") == lib["component"]:
-                return str(a.get("version", "")).split()[0], lib["file"]
-        return None, lib["file"]
-    m = re.search(lib["pattern"], read(lib["file"]), re.M)
-    if not m:
-        return None, lib["file"]
-    return ".".join(m.groups()), lib["file"]
+        data = json.loads(text.lstrip("﻿"))
+        values = [str(a.get("version", "")).split()[0] for a in data.get("artifacts", [])
+                  if isinstance(a, dict) and a.get("component") == lib["component"] and str(a.get("version", "")).split()]
+    else:
+        values = [".".join(m.groups()) for m in re.finditer(lib["pattern"], text, re.M)]
+    for value in values:
+        if value not in found:
+            found.append(value)
+    return found
+
+
+def vendored_version(lib):
+    """(the version the release is scanned for, the file it is read from): the first
+    the file pins, or None."""
+    try:
+        versions = vendored_versions(lib, read(lib["file"]))
+    except ValueError:
+        versions = []
+    return (versions[0] if versions else None), lib["file"]
 
 
 def osv_severity(v):
@@ -282,6 +327,13 @@ def osv_severity(v):
     rating = (v.get("database_specific") or {}).get("severity")
     if isinstance(rating, str) and rating.title() in ("Critical", "High", "Medium", "Low"):
         return rating.title()
+    # A record rated by a CVSS v4.0 vector alone, as the CVE records OSV converts from
+    # CVE's own list since 2026 often are (CVE-2026-76844 in zlib's gz_write, 8.3).
+    for s in v.get("severity", []) or []:
+        if s.get("type") == "CVSS_V4" or str(s.get("score", "")).startswith("CVSS:4.0/"):
+            score = mr_check().cvss4_score(str(s.get("score", "")))
+            if score is not None:
+                return mr_check().rating_of_score(score) or "Info"
     if v.get("id", "").startswith("OSV-"):
         return "Medium"  # an OSS-Fuzz crash: memory safety, severity not rated
     return "Unknown"
@@ -312,7 +364,8 @@ def cvss3_rating(vector):
 
 
 def osv_scan(dismissed):
-    """(findings, outcomes): outcomes is [(library, version, file, status, text)]."""
+    """(findings, outcomes): outcomes is [(library, version, file, status, text)].
+    dismissed is vex_not_affected()'s statements."""
     findings, outcomes = [], []
     for lib in VENDORED:
         version, source = vendored_version(lib)
@@ -334,7 +387,8 @@ def osv_scan(dismissed):
         live = []
         for v in vulns:
             aliases = [v.get("id", "")] + list(v.get("aliases", []) or [])
-            hit = next((dismissed[a] for a in aliases if a in dismissed), None)
+            # The statement must name this library at this version, not the advisory alone.
+            hit = mr_check().vex_dismissal(dismissed, aliases, "generic", lib["purl"], version)
             fixed = ""
             for affected in v.get("affected", []) or []:
                 for r in affected.get("ranges", []) or []:
@@ -351,7 +405,7 @@ def osv_scan(dismissed):
             }
             if hit:
                 record["dismissed"] = True
-                record["status"] = "dismissed in the VEX document (%s)" % hit[1]
+                record["status"] = "dismissed in the VEX document (%s)" % hit
             else:
                 live.append(record)
             findings.append(record)
@@ -455,13 +509,122 @@ def describe(f):
                                                  fixed, f["title"][:120], extra)
 
 
+# ---------------------------------------------------------------- the self-test
+
+def self_test():
+    failures = []
+
+    def expect(condition, what):
+        if not condition:
+            failures.append(what)
+
+    # Severity: a CVSS v3 vector first, as before; the database's rating; a CVSS v4.0
+    # vector, scored by mr-dependency-check.py; an OSS-Fuzz crash; nothing.
+    def record(id, vector=None, kind=None, label=None):
+        v = {"id": id}
+        if vector:
+            v["severity"] = [{"type": kind or ("CVSS_V4" if vector.startswith("CVSS:4.0/") else "CVSS_V3"), "score": vector}]
+        if label:
+            v["database_specific"] = {"severity": label}
+        return v
+    gz_write = "CVSS:4.0/AV:N/AC:H/AT:N/PR:N/UI:N/VC:N/VI:H/VA:H/SC:N/SI:N/SA:N"
+    for v, rating, what in (
+            (record("CVE-2026-76844", gz_write), "High", "a record rated by a CVSS v4.0 vector alone (CVE-2026-76844, 8.3)"),
+            (record("CVE-1", "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:H/VA:H/SC:N/SI:N/SA:N"), "Critical", "a v4.0 9.3"),
+            (record("CVE-2", "CVSS:4.0/AV:N/AC:H/AT:P/PR:L/UI:A/VC:L/VI:N/VA:N/SC:N/SI:N/SA:N"), "Low", "a v4.0 2.0"),
+            (record("CVE-3", "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"), "Critical", "a CVSS v3 9.8"),
+            (record("CVE-4", "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N", label="HIGH"), "Medium",
+             "a CVSS v3 vector before the database's rating, as before"),
+            (record("CVE-5", gz_write, label="LOW"), "Low", "the database's rating before a CVSS v4.0 vector"),
+            (record("OSV-2026-1"), "Medium", "an OSS-Fuzz crash with no rating"),
+            (record("OSV-2026-2", gz_write), "High", "an OSS-Fuzz crash with a CVSS v4.0 vector"),
+            (record("CVE-6", "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:H/VA:H/SC:N/SI:N"), "Unknown",
+             "a v4.0 vector without every base metric"),
+            (record("CVE-7"), "Unknown", "a record with no rating at all")):
+        got = osv_severity(v)
+        expect(got == rating, "%s is %s, not %s" % (what, rating, got))
+
+    # The VEX document: an advisory is dismissed for the library at the version a
+    # statement names, by its id or an alias - not for another version or library.
+    document = json.dumps({"@context": "https://openvex.dev/ns/v0.2.0", "statements": [
+        {"vulnerability": {"name": "CVE-2026-0001", "aliases": ["GHSA-aaaa-bbbb-cccc"]},
+         "products": [{"@id": "pkg:generic/zlib@1.3.2", "identifiers": {"purl": "pkg:generic/zlib@1.3.2"}}],
+         "status": "not_affected", "justification": "vulnerable_code_not_present"},
+        {"vulnerability": {"name": "CVE-2026-0002"}, "products": [{"@id": "pkg:generic/zlib"}],
+         "status": "not_affected", "justification": "vulnerable_code_not_present"},
+        {"vulnerability": {"name": "CVE-2026-0003"}, "products": [{"@id": "pkg:generic/boost@1.92.0"}],
+         "status": "affected"}]})
+    statements = mr_check().vex_statements(document)
+    dismissal = mr_check().vex_dismissal
+    expect(dismissal(statements, ["CVE-2026-0001"], "generic", "zlib", "1.3.2") == "vulnerable_code_not_present",
+           "a statement for zlib 1.3.2 dismisses its advisory for zlib 1.3.2")
+    expect(dismissal(statements, ["OSV-X", "GHSA-aaaa-bbbb-cccc"], "generic", "zlib", "1.3.2"),
+           "and by the advisory's alias")
+    expect(dismissal(statements, ["CVE-2026-0001"], "generic", "zlib", "1.3.1") is None,
+           "a statement for zlib 1.3.2 does not dismiss the advisory for zlib 1.3.1")
+    expect(dismissal(statements, ["CVE-2026-0001"], "generic", "boost", "1.3.2") is None,
+           "nor for another library at the same version")
+    expect(dismissal(statements, ["CVE-2026-0002"], "generic", "zlib", "1.3.2") is None,
+           "a product with no version dismisses nothing: a statement names the version it was read against")
+    expect(dismissal(statements, ["CVE-2026-0003"], "generic", "boost", "1.92.0") is None,
+           "a statement that says affected dismisses nothing")
+
+    # The versions as each file pins them.
+    libraries = dict((lib["purl"], lib) for lib in VENDORED)
+    project = ("<I>$(hMailServerLibs)\\boost_1_92_0;$(hMailServerLibs)\\openssl-4.0.3\\out64\\include;"
+               "$(hMailServerLibs)\\postgresql-18.6\\src</I>\n<I>$(hMailServerLibs)\\openssl-4.0.3-arm64\\out64\\include</I>\n"
+               "<L>$(hMailServerLibs)\\openssl-4.0.2-arm64\\out64\\lib</L>\n")
+    expect(vendored_versions(libraries["openssl"], project) == ["4.0.3", "4.0.2"],
+           "every OpenSSL the project file names, first first: %s" % vendored_versions(libraries["openssl"], project))
+    expect(vendored_versions(libraries["boost"], project) == ["1.92.0"], "Boost from boost_1_92_0")
+    expect(vendored_versions(libraries["postgresql"], project) == ["18.6"], "libpq from postgresql-18.6")
+    expect(vendored_versions(libraries["zlib"], '#define ZLIB_VERSION "1.3.2"\n#define ZLIB_VERNUM 0x1320\n') == ["1.3.2"],
+           "zlib from zlib.h")
+    expect(vendored_versions(libraries["quickjs"], "2026-06-04\n") == ["2026-06-04"], "QuickJS from its VERSION")
+    manifest = json.dumps({"artifacts": [{"component": "MariaDB Connector/C", "version": "3.4.9"},
+                                         {"component": "MariaDB Connector/C", "version": "3.4.9"},
+                                         {"component": "7-Zip standalone console (7za.exe)", "version": "26.03"},
+                                         {"component": "MariaDB Connector/C", "version": "3.4.10 (x86)"}]})
+    expect(vendored_versions(libraries["mariadb-connector-c"], manifest) == ["3.4.9", "3.4.10"],
+           "each version of a component's files, once")
+
+    # The tree: every library has its purl, the SBOM's; the version each file pins is
+    # read; and every statement of the VEX document parses and names, among its
+    # generic products, only libraries of this list.
+    sbom = read(os.path.join("build", "native-dependencies.ps1"))
+    sbom_names = set(re.findall(r"'pkg:generic/([a-z0-9.+\-]+)@", sbom))
+    for lib in VENDORED:
+        expect(lib.get("purl") in sbom_names, "%s's purl, pkg:generic/%s, is the one build/native-dependencies.ps1 gives "
+               "the SBOM (%s)" % (lib["name"], lib.get("purl"), ", ".join(sorted(sbom_names))))
+        expect(vendored_version(lib)[0], "the tree's %s pins a version of %s that is read" % (lib["file"], lib["name"]))
+    try:
+        tree = mr_check().vex_statements(read(VEX))
+    except (OSError, ValueError) as e:
+        tree = []
+        failures.append("the tree's VEX document is read: %s" % e)
+    expect(tree, "the tree's VEX document has statements that dismiss")
+    for names, products, _ in tree:
+        for kind, name, version in products:
+            if kind == "generic":
+                expect(name in libraries and version, "the VEX document's statement for %s names %s@%s, which is no "
+                       "library of VENDORED at a version" % (", ".join(sorted(names)), name, version))
+
+    for failure in failures:
+        print("FAILED: " + failure)
+    print("self-test: %d failure(s)" % len(failures))
+    return 1 if failures else 0
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("--out", default=os.path.join("security", "dependency-scan"))
     parser.add_argument("--image-root", default="ci-image-packages")
     parser.add_argument("--skip-trivy", action="store_true", help="the OSV step only (no trivy on PATH)")
     parser.add_argument("--skip-osv", action="store_true")
+    parser.add_argument("--self-test", action="store_true", help="the checks of this script's own reading, offline")
     args = parser.parse_args()
+    if args.self_test:
+        return self_test()
     os.chdir(ROOT)
     out = args.out
     os.makedirs(out, exist_ok=True)

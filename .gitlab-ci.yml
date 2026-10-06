@@ -311,6 +311,8 @@ checkers:
       check python3 build/ci/security-gate.py --self-test
       # The merge request's dependency check, against OSV exports and repositories it makes for itself.
       check python3 build/ci/mr-dependency-check.py --self-test
+      # The dependency scan's severities, VEX matching and version readers, offline, and the tree's VEX document and pins.
+      check python3 build/ci/dependency-scan.py --self-test
       # The Scorecard result's publication on the feed site, against a site it serves on the loopback.
       check python3 build/ci/scorecard-pages.py --self-test
       # The release channels' publishers, against a feed, a release, a registry and their tools in memory.
