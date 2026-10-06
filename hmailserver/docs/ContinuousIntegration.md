@@ -171,17 +171,19 @@ a branch's first push and for a tag GitLab counts every file as changed, so they
 all run then.
 
 **A push that changes only documentation starts nothing on the project's
-machines.** Every job on the project's runners (`.own-runners`, and `db-matrix`
-with it) runs only when the push changes a file that is not a Markdown file at
-the root of the tree (`README.md`, `CHANGELOG.md`, `Roadmap2.md` and the rest)
-or under `.gitlab/` (the issue and merge request templates). Every other
-Markdown file counts as code: `hmailserver/docs/*.md` is compiled into the
-server as its help pages (`HelpPagesData.cpp`) and read by both suites, and the
-READMEs further down are read by tests and packaging. The shared runners' checks
-still run for such a push. GitLab matches `rules:changes` paths with Ruby's
-`File.fnmatch`, which has no "all but", so the rule names what does count:
-`**/*[!d]`, `**/*[!m]d` and `**/*[!.]md` (every file whose name does not end in
-`.md`) and `[!.]*/**/*.md` (a Markdown file below a directory whose name does not
+machines**, but for the security scans of a batch that carries more (below).
+Every job on the project's runners (`.own-runners`, and `db-matrix` with it)
+runs only when the push changes a file that is not a Markdown file at the root
+of the tree (`README.md`, `CHANGELOG.md`, `Roadmap2.md` and the rest) or under
+`.gitlab/` (the issue and merge request templates). Every other Markdown file
+counts as code: `hmailserver/docs/*.md` is compiled into the server as its help
+pages (`HelpPagesData.cpp`) and read by both suites, and the READMEs further
+down are read by tests and packaging. The shared runners' checks still run for
+such a push. GitLab matches `rules:changes` paths with Ruby's `File.fnmatch`,
+which has no "all but", so the rule names what does count: `**/*[!d]`,
+`**/*[!m]d` and `**/*[!.]md` (every file whose name does not end in `.md`, but
+for the files called `d` and `md`, too short for them, which `**/d` and `**/md`
+name) and `[!.]*/**/*.md` (a Markdown file below a directory whose name does not
 begin with a dot). `build/check-release-chain.py` matches every file of the tree
 against them and fails unless exactly the root's and `.gitlab/`'s Markdown files
 are left out. A branch's first push, a tag and a pipeline started by hand count
@@ -438,7 +440,7 @@ keeps GitHub out of the job itself
 
 **What fails them that is not their answer.** An input that cannot be read - the
 base, `master`'s fetch, a lock file, a pin, OSV's export or `api.osv.dev` - is
-exit 2, and the job is tried twice more (`retry: exit_codes`, GitLab 16.10 and
+exit 2, and the job is tried twice more (`retry: exit_codes`, GitLab 17.5 and
 later); so is `apt-get`'s exit 100, when Debian's mirrors cannot be reached for
 git. A hold is exit 1, which is never retried, and nor is a self-test that
 fails. All three jobs are also tried twice more on a failure of GitLab's own,
@@ -504,21 +506,23 @@ Each of those has a case in its self-test that must fail.
 **What they cannot hold.** The checks are against mistakes, not against a
 hostile change. A merge request from a fork runs the CI files of its own branch,
 which can leave a gate out, and GitLab's Free tier cannot make a job required:
-for a batch, `build/land-via-mr.py` checks that each gate ran and passed, and for
-any other merge request the owner, who alone merges, reads every change to the
-CI files before he merges it. The gates leave out what SECURITY.md says no gate
-reads. Semgrep's registry rules, which `semgrep` fetches on a batch, are not
-pinned (below). An exception is keyed to the text of the flagged line, so an
-edit elsewhere in the same function can make an accepted finding exploitable
-without changing its fingerprint; the exception for `ParseIPv6_`'s copies says
-what would. The configuration of the two scans on linix -
-`build/ci/cppcheck-suppressions.txt`, `build/ci/semgrepignore`, the checks
-`build/ci/clang-tidy.yaml` chooses, and the variables and options of
-`static-analysis.sh` and `semgrep.sh`, `HM_TIDY_CHECKS` among them - is not among the files whose change
-makes `semgrep-sast-gate` count the whole tree, and a change to it raises no
-comment count and grows no baseline, so it is read by the owner as a change to
-the CI files is. And a project variable, which only the owner can set, reaches
-every job: one named `SAST_EXCLUDED_PATHS` would replace the job's own list.
+for a batch, `build/land-via-mr.py` checks that each gate ran and passed, and
+for any other merge request the owner, who alone merges, reads every change to
+the CI files before he merges it. The owner can also unprotect `master`, which
+is break-glass ([Landing on master](#landing-on-master)). The gates leave out
+what SECURITY.md says no gate reads. Semgrep's registry rules, which `semgrep`
+fetches on a batch, are not pinned (below). An exception is keyed to the text of
+the flagged line, so an edit elsewhere in the same function can make an accepted
+finding exploitable without changing its fingerprint; the exception for
+`ParseIPv6_`'s copies says what would. The configuration of the two scans on
+linix - `build/ci/cppcheck-suppressions.txt`, `build/ci/semgrepignore`, the
+checks `build/ci/clang-tidy.yaml` chooses, and the variables and options of
+`static-analysis.sh` and `semgrep.sh`, `HM_TIDY_CHECKS` among them - is not
+among the files whose change makes `semgrep-sast-gate` count the whole tree, and
+a change to it raises no comment count and grows no baseline, so it is read by
+the owner as a change to the CI files is. And a project variable, which only the
+owner can set, reaches every job: one named `SAST_EXCLUDED_PATHS` would replace
+the job's own list.
 
 **To be shown on fixture merge requests**, once these checks are on `master`:
 merge requests from unprotected branches cut from `master`, each closed without
@@ -671,17 +675,17 @@ glab api -X POST projects/86730559/protected_branches -f name=master \
 glab api projects/86730559/protected_branches/master
 ```
 
-The last must show `push_access_levels` holding one entry, `access_level` 0
-(*No access*), `merge_access_levels` Maintainers, and `allow_force_push` false.
+The last must show `push_access_levels` holding one entry, `access_level` 0 (*No
+access*), `merge_access_levels` Maintainers, and `allow_force_push` false.
 Nothing then pushes to `master`, the owner included: no hand's `git push`, and
 no job (Renovate pushes `renovate/*` branches and opens merge requests; `pages`
 and `forge-export` push nothing). A fix that cannot wait - an exception before a
 release, a re-pinned analyzer - goes by a merge request from an unprotected
 branch, whose pipeline is the shared runners' checks and the change checks
-(about twenty minutes, estimated), and which the owner merges. Tags are not touched: the
-release tag is still the owner's to push. The owner can still unprotect
-`master`, or set the rule back to *Maintainers*: that is break-glass, and one
-used is said, with its reason, in the next release's notes.
+(about twenty minutes, estimated), and which the owner merges. Tags are not
+touched: the release tag is still the owner's to push. The owner can still
+unprotect `master`, or set the rule back to *Maintainers*: that is break-glass,
+and one used is said, with its reason, in the next release's notes.
 
 **A skipped pipeline does not count.** The project's
 `allow_merge_on_skipped_pipeline` was unset on 6 October 2026, and GitLab

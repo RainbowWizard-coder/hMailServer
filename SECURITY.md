@@ -536,6 +536,14 @@ scanning".
   or by lock and patched by their distributions; the CI image's packages are scanned by *dependency-scan* on a batch
   and before a release, and the release's container image by GitLab's container scanning once it is pushed, which
   holds nothing.
+- **What the gates cannot hold**, said so that it is weighed: a merge request from a fork runs the CI files of its
+  own branch, which can leave a gate out, and GitLab's Free tier cannot make a job required, so
+  `build/land-via-mr.py` checks a batch's gate jobs itself and the owner, who alone merges, reads every change to the
+  CI files; the owner can unprotect `master` (above); Semgrep's registry rules, which *semgrep* fetches, are not
+  pinned; an exception is keyed to the text of its line, so an edit elsewhere in the same function can make an
+  accepted finding exploitable without changing its fingerprint; and a change to the configuration of the two scans
+  on the project's runners, or a project variable, can narrow a scan unseen by any gate
+  ([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md#change-checks), "Change checks").
 
 ### Dependencies (software composition analysis)
 

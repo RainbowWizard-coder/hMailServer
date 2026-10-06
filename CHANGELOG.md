@@ -144,7 +144,9 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   Markdown alone at the root or under a dot-directory - since GitLab calls a pipeline a success with a job a rule left
   out or one that failed while allowed to, and it writes their statuses into the landing record.
   `build/check-release-chain.py` holds all of it, each rule with a case of its self-test that must fail
-  (SECURITY.md, "Every change"; ContinuousIntegration.md, "Change checks").
+  (SECURITY.md, "Every change"; ContinuousIntegration.md, "Change checks"). And `.own-runners`' paths name the
+  files called `d` and `md`, which their patterns left out, so that a change to one runs the project's runners'
+  jobs as a change to any file that is not a document does.
 - **A change cannot silence its own finding.** `semgrep-sast-gate` holds a change that adds an entry to
   `build/ci/static-analysis-baseline.txt` or `build/ci/semgrep-baseline.txt`, or takes a reason from one, and one that
   raises, in any file a scan reads, the count of the inline comments by which Semgrep, clang-tidy or cppcheck passes
