@@ -41,7 +41,7 @@ list of flat entries of "key: value" lines. Anything else is refused with its li
 
 Usage, from the root of the checkout the scans read:
   python3 build/ci/security-gate.py [--artifacts DIR] [--exceptions FILE] [--today YYYY-MM-DD]
-  python3 build/ci/security-gate.py --merge-request BASE [--artifacts DIR] [--exceptions FILE]
+  python3 build/ci/security-gate.py --merge-request BASE|auto [--artifacts DIR] [--exceptions FILE]
   python3 build/ci/security-gate.py --self-test
 --artifacts is the directory holding the scans' artifacts as the jobs write them
 (security/static-analysis/, security/semgrep/, security/dependency-scan/ and
@@ -52,7 +52,10 @@ on, 1 when it may not, 2 on a usage error.
 .gitlab/ci/mr-checks.yml): semgrep-sast's report alone, the exceptions as the commit
 BASE (CI_MERGE_REQUEST_DIFF_BASE_SHA) has them, and the findings in the files the
 merge request changes from BASE (see merge_request_evaluate below). Exits 0 when the
-merge request may land, 1 when it may not, 2 when its inputs cannot be read.
+merge request may land, 1 when it may not, 2 when its inputs cannot be read. BASE
+"auto" is change_base's: CI_MERGE_REQUEST_DIFF_BASE_SHA in a merge request's pipeline,
+and in a batch* branch's pipeline, which GitLab holds the branch's merge request to,
+where HEAD leaves master, fetched by name; a base that cannot be found exits 2.
 """
 
 import argparse
@@ -892,11 +895,136 @@ def self_test():
         expect(verdict("") == 2, "no base cannot be checked, and says so")
     finally:
         shutil.rmtree(work, ignore_errors=True)
+    failures.extend(change_base_failures())
 
     for failure in failures:
         print("FAILED: " + failure)
     print("self-test: %d failure(s)" % len(failures))
     return 1 if failures else 0
+
+
+# ---------------------------------------------------------------- the change's base
+#
+# The commit a change is judged against, for this gate (--merge-request auto) and for
+# build/ci/mr-dependency-check.py (--base auto): the change is what lies between it and
+# HEAD, and the exceptions and the VEX document are read as it has them. In a merge
+# request's pipeline it is GitLab's CI_MERGE_REQUEST_DIFF_BASE_SHA, the target branch
+# where the merge request left it. A maintainer's batch* branch runs no merge request
+# pipeline (the workflow rules of .gitlab-ci.yml): its branch pipeline is the one GitLab
+# holds its merge request to, and there the base is where the branch leaves master -
+# master fetched by name, as release-chain.py's check_tag fetches it, and the merge base
+# of HEAD and it. Anything else cannot be judged, and says so (exit 2, never a pass).
+
+TARGET_BRANCH = "master"
+TARGET_REF = "refs/remotes/origin/" + TARGET_BRANCH
+FULL_SHA = re.compile(r"^[0-9a-f]{40}(?:[0-9a-f]{24})?$")
+
+
+def change_base(root, environ=None, run=None):
+    """(base commit, how it was found, None), or (None, None, the problem)."""
+    environ = os.environ if environ is None else environ
+    run = run or (lambda arguments: _git(root, *arguments))
+
+    def said(answer):
+        return (answer.stderr or answer.stdout or b"").decode("utf-8", "replace").strip()[:300] or "exit %d" % answer.returncode
+
+    given = (environ.get("CI_MERGE_REQUEST_DIFF_BASE_SHA") or "").strip()
+    if given:
+        if not FULL_SHA.match(given):
+            return None, None, "CI_MERGE_REQUEST_DIFF_BASE_SHA is %r, not a commit" % given
+        return given, "the merge request's diff base, CI_MERGE_REQUEST_DIFF_BASE_SHA", None
+    if environ.get("CI_PIPELINE_SOURCE") == "merge_request_event" or environ.get("CI_MERGE_REQUEST_IID"):
+        # A merge request may target another branch than master: its base is GitLab's
+        # to give, never guessed.
+        return None, None, "a merge request's pipeline without CI_MERGE_REQUEST_DIFF_BASE_SHA: its base cannot be told"
+    shallow = run(["rev-parse", "--is-shallow-repository"])
+    if shallow.returncode != 0:
+        return None, None, "this is not a git checkout (git rev-parse: %s)" % said(shallow)
+    if shallow.stdout.decode("utf-8", "replace").strip() == "true":
+        # A shallow boundary can hide where the branch left master.
+        return None, None, "this clone is shallow: the job needs the history (GIT_DEPTH 0) to find where it leaves %s" % TARGET_BRANCH
+    fetched = run(["fetch", "--no-tags", "origin", "+refs/heads/%s:%s" % (TARGET_BRANCH, TARGET_REF)])
+    if fetched.returncode != 0:
+        return None, None, "%s could not be fetched from origin: %s; retry the job" % (TARGET_BRANCH, said(fetched))
+    tip = run(["rev-parse", "--verify", "--quiet", TARGET_REF + "^{commit}"])
+    merged = run(["merge-base", "HEAD", TARGET_REF])
+    base = merged.stdout.decode("utf-8", "replace").strip() if merged.returncode == 0 else ""
+    if not FULL_SHA.match(base):
+        return None, None, "HEAD and %s have no merge base (git merge-base: %s)" % (TARGET_BRANCH, said(merged))
+    at = tip.stdout.decode("utf-8", "replace").strip() if tip.returncode == 0 else "?"
+    return base, "where HEAD leaves %s: git merge-base HEAD %s, with %s fetched now at %s%s" % (
+        TARGET_BRANCH, TARGET_REF, TARGET_BRANCH, at, " (its tip)" if at == base else ""), None
+
+
+def change_base_failures():
+    """The self-test's cases for change_base, against repositories made here: an origin
+    with master, a clone on a branch after it, a shallow clone and a merge request's
+    environment. Offline: origin is a directory."""
+    failures = []
+
+    def expect(condition, what):
+        if not condition:
+            failures.append(what)
+
+    work = tempfile.mkdtemp(prefix="security-gate-base-")
+    quiet_git = ["-c", "core.autocrlf=false", "-c", "user.name=self-test", "-c", "user.email=self-test@example.invalid",
+                 "-c", "commit.gpgsign=false", "-c", "init.defaultBranch=master", "-c", "protocol.file.allow=always"]
+
+    def g(where, *arguments):
+        return subprocess.run(["git", "-C", where] + quiet_git + list(arguments), check=True, capture_output=True,
+                              text=True).stdout.strip()
+
+    def commit(where, name, text):
+        with open(os.path.join(where, name), "w", encoding="utf-8", newline="\n") as f:
+            f.write(text)
+        g(where, "add", "-A")
+        g(where, "commit", "-q", "--no-verify", "-m", name)
+        return g(where, "rev-parse", "HEAD")
+
+    try:
+        origin = os.path.join(work, "origin")
+        os.makedirs(origin)
+        subprocess.run(["git"] + quiet_git + ["init", "-q", origin], check=True, capture_output=True)
+        g(origin, "checkout", "-q", "-b", "master")
+        forked = commit(origin, "a.txt", "one\n")
+        clone = os.path.join(work, "clone")
+        subprocess.run(["git"] + quiet_git + ["clone", "-q", "--no-local", origin, clone], check=True, capture_output=True)
+        g(clone, "checkout", "-q", "-b", "batch99")
+        commit(clone, "b.txt", "the batch's change\n")
+        # master moves on after the branch left it: the base is still where it left.
+        moved = commit(origin, "c.txt", "master's later change\n")
+        environ = {"CI_PIPELINE_SOURCE": "push", "CI_COMMIT_BRANCH": "batch99"}
+        base, how, problem = change_base(clone, environ)
+        expect(problem is None and base == forked, "a batch branch's base is where it leaves master, fetched now: %r %r %r"
+               % (base, how, problem))
+        expect(problem is None and moved in (how or ""), "and the base says which master it read: %r" % how)
+        expect(g(clone, "rev-parse", TARGET_REF) == moved, "master is fetched by name into %s" % TARGET_REF)
+        given = "a" * 40
+        expect(change_base(clone, dict(environ, CI_MERGE_REQUEST_DIFF_BASE_SHA=given))[:1] == (given,),
+               "a merge request's pipeline takes CI_MERGE_REQUEST_DIFF_BASE_SHA")
+        expect(change_base(clone, {"CI_MERGE_REQUEST_DIFF_BASE_SHA": "HEAD~1"})[2] is not None,
+               "a CI_MERGE_REQUEST_DIFF_BASE_SHA that is not a commit is refused")
+        expect(change_base(clone, {"CI_PIPELINE_SOURCE": "merge_request_event"})[2] is not None,
+               "a merge request's pipeline without its diff base is refused, not judged against master")
+        shallow = os.path.join(work, "shallow")
+        subprocess.run(["git"] + quiet_git + ["clone", "-q", "--depth", "1",
+                                              "file:///" + origin.replace(os.sep, "/").lstrip("/"), shallow],
+                       check=True, capture_output=True)
+        expect("shallow" in (change_base(shallow, environ)[2] or ""), "a shallow clone is refused: %r"
+               % (change_base(shallow, environ),))
+        g(clone, "remote", "set-url", "origin", os.path.join(work, "nowhere"))
+        expect("could not be fetched" in (change_base(clone, environ)[2] or ""), "a master that cannot be fetched is refused")
+        orphan = os.path.join(work, "orphan")
+        os.makedirs(orphan)
+        subprocess.run(["git"] + quiet_git + ["init", "-q", orphan], check=True, capture_output=True)
+        commit(orphan, "x.txt", "unrelated\n")
+        g(orphan, "remote", "add", "origin", origin)
+        expect("no merge base" in (change_base(orphan, environ)[2] or ""), "a history unrelated to master is refused")
+    except (OSError, subprocess.CalledProcessError) as e:
+        failures.append("change_base's repositories could not be made: %s %s" % (e, getattr(e, "stderr", "") or ""))
+    finally:
+        shutil.rmtree(work, ignore_errors=True)
+    return failures
 
 
 def merge_request_main(root, artifacts, base, exceptions_text=None, today=None, say=print):
@@ -928,7 +1056,8 @@ def main():
     parser.add_argument("--exceptions", default=None, help="the exceptions file (default: %s)" % EXCEPTIONS)
     parser.add_argument("--today", default=None, help="the date to judge expiry by (YYYY-MM-DD; default: today, UTC)")
     parser.add_argument("--merge-request", metavar="BASE", default=None,
-                        help="a merge request's gate: semgrep-sast alone, the exceptions as BASE has them, the files changed from BASE")
+                        help="a merge request's gate: semgrep-sast alone, the exceptions as BASE has them, the files changed "
+                             "from BASE; 'auto' finds BASE as change_base does")
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
     if args.self_test:
@@ -944,7 +1073,14 @@ def main():
         with open(args.exceptions, encoding="utf-8") as f:
             text = f.read()
     if args.merge_request is not None:
-        return merge_request_main(ROOT, os.path.abspath(args.artifacts or ROOT), args.merge_request, text, today)
+        base = args.merge_request
+        if base == "auto":
+            base, how, problem = change_base(ROOT)
+            if problem:
+                print("CANNOT CHECK: " + problem)
+                return 2
+            print("The base: %s, %s." % (base, how))
+        return merge_request_main(ROOT, os.path.abspath(args.artifacts or ROOT), base, text, today)
     problems = evaluate(ROOT, os.path.abspath(args.artifacts or ROOT), today, text)
     for problem in problems:
         print("HELD: " + problem)
