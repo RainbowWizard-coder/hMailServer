@@ -17,9 +17,11 @@
 #include "../Util/Strings/Formatter.h"
 
 // For LoopCountEditTester, which holds the Sieve validator and the delivery path's
-// header edits to the same answer RuleGuard gives the rules.
+// header edits to the same answer RuleGuard gives the rules, and the header of a
+// notification built from a script's decision to the MIME writer's.
 #include "../Mime/Mime.h"
 #include "../Sieve/SieveScript.h"
+#include "../Sieve/SieveNotifyResponder.h"
 #include "../../SMTP/LocalDelivery.h"
 
 // Common reaching into Server/SMTP for the configured loop limit. Not ideal layering,
@@ -1034,9 +1036,51 @@ namespace HM
          }
       }
 
-      // The writer writes a line break in a value as it stands, which is why a value
-      // is kept to one field: a field built with one reads back as two. The control
-      // for the cases after it, which would pass against a writer that folded.
+      // The writer's own rule (MimeField::AppendAsOneField) is the same rule, on the
+      // coded bytes.
+      {
+         auto narrow = [](const wchar_t *text)
+         {
+            std::string bytes;
+            for (const wchar_t *character = text; *character; character++)
+               bytes.push_back(static_cast<char>(*character));
+            return bytes;
+         };
+
+         const wchar_t *const values[][2] =
+         {
+            { L"0", L"0" },
+            { L"a b", L"a b" },
+            { L"a\r\nX-hMailServer-LoopCount: 0", L"a  X-hMailServer-LoopCount: 0" },
+            { L"a\nX-hMailServer-LoopCount: 0", L"a X-hMailServer-LoopCount: 0" },
+            { L"a\rX-hMailServer-LoopCount: 0", L"a X-hMailServer-LoopCount: 0" },
+            { L"a\n b", L"a  b" },
+            { L"a\r\n b", L"a\r\n b" },
+            { L"a\r\n\tb", L"a\r\n\tb" },
+            { L"a\r\n \r\nX: 0", L"a     X: 0" },
+            { L"a\r\n\r\n b", L"a  \r\n b" },
+            { L"a\r\n ", L"a   " },
+            { L"\r\n", L"  " },
+            { L"\r\n\tc=x;\r\n\tbh=y;\r\n\tb=", L"\r\n\tc=x;\r\n\tbh=y;\r\n\tb=" },
+         };
+
+         for (const auto &value : values)
+         {
+            const std::string given = narrow(value[0]);
+            AnsiString written("[");
+            MimeField::AppendAsOneField(written, given.c_str(), given.size());
+            if (std::string(written.c_str(), written.size()) != "[" + narrow(value[1]))
+               fail("MimeField::AppendAsOneField(\"" + LoopCountValueForMessage(String(value[0])) + "\") wrote \"" +
+                  LoopCountValueForMessage(String(written)) + "\", not \"[" + LoopCountValueForMessage(String(value[1])) + "\"");
+         }
+      }
+
+      // The writer keeps a value to one field itself: a field whose value holds a line
+      // break, put at the top of the header where no check before the writer saw the
+      // value, reads back as one, and the count below it is the one read. As given
+      // (MimeHeader::StoreAsGiven, which COM's Message.Save checks and nothing
+      // writes) it is two fields with the reset count first: the control, which shows
+      // the case is the injection it stands for.
       {
          MimeHeader header;
          LoadHeader(header, EditedMessageHeader);
@@ -1046,9 +1090,111 @@ namespace HM
          injected.SetValue("a\r\nX-hMailServer-LoopCount: 0");
          header.Fields().insert(header.Fields().begin(), injected);
 
+         AnsiString asGiven;
+         header.StoreAsGiven(asGiven);
+         MimeHeader rereadAsGiven;
+         rereadAsGiven.Load(asGiven.c_str(), asGiven.GetLength(), true);
+         const char *firstAsGiven = rereadAsGiven.GetRawFieldValue(String(L"X-hMailServer-LoopCount"));
+         if (firstAsGiven == nullptr || strcmp(firstAsGiven, "0") != 0)
+            fail("the control: a field whose value holds a line break, as given, no longer reads back with a count of 0 first, so the case beside it proves nothing");
+
          std::string first;
-         if (FieldsNamedAfterRewrite(header, "X-hMailServer-LoopCount", first) != 2 || first != "0")
-            fail("the control: a field whose value holds a line break no longer reads back as two fields, so the cases below prove nothing");
+         std::string note;
+         const int counts = FieldsNamedAfterRewrite(header, "X-hMailServer-LoopCount", first);
+         const int notes = FieldsNamedAfterRewrite(header, "X-Note", note);
+         if (counts != 1 || first != "3" || notes != 1 || note != "a  X-hMailServer-LoopCount: 0")
+            fail("a field whose value holds a line break was written as " + std::to_string(counts) + " loop counts, the first \"" +
+               first + "\", and " + std::to_string(notes) + " X-Note, the first \"" + note + "\"");
+      }
+
+      // The header of a generated message, built as its generator builds it - the
+      // values through SetUnicodeFieldValue (MessageData::SetFieldValue, SetSubject,
+      // SetFrom), the count through SetRawFieldValue (MessageData::SetRuleLoopCount) -
+      // holds the generator's Auto-Submitted and count and no other, whatever a value
+      // set before them held. A Sieve notification, from the decision a script's notify
+      // made, as SieveNotifyResponder::Send builds it: a :message or :from with line
+      // breaks in it wrote "Auto-Submitted: no" and a count of 0 above the
+      // notification's own, so that a script notifying its own account was not held by
+      // the auto-submitted rule or the loop limit, and notified about its own
+      // notifications for ever.
+      {
+         const wchar_t *scripts[] =
+         {
+            L"require \"enotify\";\r\nnotify :message \"Note\r\nAuto-Submitted: no\r\nX-hMailServer-LoopCount: 0\" \"mailto:a@example.test\";\r\n",
+            L"require \"enotify\";\r\nnotify :from \"a@example.test\r\nAuto-Submitted: no\r\nX-hMailServer-LoopCount: 0\" \"mailto:a@example.test\";\r\n",
+            L"require \"enotify\";\r\nnotify :message text:\r\nNote\r\nAuto-Submitted: no\r\nX-hMailServer-LoopCount: 0\r\n.\r\n\"mailto:a@example.test\";\r\n",
+         };
+
+         // No count of its own: the evaluator reads one against the configured limit.
+         const String trigger(L"From: sender@example.test\r\nTo: a@example.test\r\nSubject: Trigger\r\n\r\nhello\r\n");
+
+         for (const wchar_t *script : scripts)
+         {
+            const std::string what = "the notification of \"" + LoopCountValueForMessage(String(script)) + "\"";
+
+            SieveEnvelope envelope;
+            SieveResult result;
+            SieveScript::Evaluate(String(script), trigger, envelope, result);
+            if (result.notifications.size() != 1)
+            {
+               fail(what + ": the script decided " + std::to_string(result.notifications.size()) + " notifications, not one");
+               continue;
+            }
+
+            const SieveNotifyDecision &decision = result.notifications[0];
+            if (decision.subject.Find(L"\r\n") < 0 && decision.from.Find(L"\r\n") < 0)
+               fail(what + ": neither the subject nor the sender holds a line break, so the case proves nothing");
+
+            MimeHeader notification;
+            notification.SetUnicodeFieldValue("From", decision.from.IsEmpty() ? String(L"a@example.test") : decision.from, "");
+            notification.SetUnicodeFieldValue("To", decision.to, "");
+            notification.SetUnicodeFieldValue("Subject", decision.subject, "");
+            notification.SetUnicodeFieldValue("Auto-Submitted", String(L"auto-notified"), "");
+            notification.SetRawFieldValue("X-hMailServer-LoopCount", "4", "");
+            notification.SetUnicodeFieldValue("Content-Type", String(L"text/plain; charset=\"utf-8\""), "");
+
+            std::string count;
+            std::string submitted;
+            std::string type;
+            const int counts = FieldsNamedAfterRewrite(notification, "X-hMailServer-LoopCount", count);
+            const int marks = FieldsNamedAfterRewrite(notification, "Auto-Submitted", submitted);
+            const int types = FieldsNamedAfterRewrite(notification, "Content-Type", type);
+            if (counts != 1 || count != "4" || marks != 1 || submitted != "auto-notified" || types != 1)
+            {
+               fail(what + ": " + std::to_string(counts) + " loop counts, the first \"" + count + "\", " + std::to_string(marks) +
+                  " Auto-Submitted, the first \"" + submitted + "\", and " + std::to_string(types) + " Content-Type");
+               continue;
+            }
+
+            // Delivered to the account whose script it is, the notification is
+            // auto-submitted, and not notified about.
+            AnsiString written;
+            notification.Store(written);
+            SieveResult again;
+            SieveScript::Evaluate(String(script), String(written) + String(L"You have new mail.\r\n"), envelope, again);
+            if (!again.notifications.empty())
+               fail(what + ": the script notified about its own notification");
+         }
+      }
+
+      // A copy, as RuleApplier::ApplyAction_Copy builds it: the count raised, then the
+      // rule's name in X-CopyRule - in place, where the message already has one, which
+      // is above its count from the second copy on. A name with a line break in it
+      // wrote a count of 0 above the copy's own at every copy, and an account copying
+      // its own mail made copies without end.
+      {
+         MimeHeader copy;
+         LoadHeader(copy, "X-CopyRule: earlier\r\nFrom: sender@example.test\r\nSubject: Copied\r\nX-hMailServer-LoopCount: 3\r\n\r\n");
+         copy.SetRawFieldValue("X-hMailServer-LoopCount", "4", "");
+         copy.SetUnicodeFieldValue("X-CopyRule", String(L"Copy\r\nX-hMailServer-LoopCount: 0"), "");
+
+         std::string count;
+         std::string name;
+         const int counts = FieldsNamedAfterRewrite(copy, "X-hMailServer-LoopCount", count);
+         const int names = FieldsNamedAfterRewrite(copy, "X-CopyRule", name);
+         if (counts != 1 || count != "4" || names != 1)
+            fail("a copy whose rule's name holds a line break holds " + std::to_string(counts) + " loop counts, the first \"" + count +
+               "\", and " + std::to_string(names) + " X-CopyRule");
       }
 
       // Sieve's addheader: a value with a line break is one field, :last or not, and

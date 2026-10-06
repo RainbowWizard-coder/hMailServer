@@ -113,8 +113,31 @@ namespace HM
 
       void Clear();
       int GetLength() const;
-      void Store(AnsiString &output) const;
+
+      // A field set or changed since it was read is written by name, ": ", its value
+      // through the field coder and CR LF; one read and left alone, as it was read.
+      // The value is kept to one field (AppendAsOneField) unless keepToOneField is
+      // false, which MimeHeader::StoreAsGiven alone asks for.
+      void Store(AnsiString &output, bool keepToOneField = true) const;
       size_t Load(const char* pszData, size_t nDataSize, bool unfold);
+
+      // Appends a field value written as one field: a CR LF followed by a space or a
+      // tab and then by more than white space is a fold and stays, and every other
+      // CR or LF is written as a space - the rule RuleGuard::HeaderValueAsOneField
+      // applies to a rule's and a Sieve script's values before they are coded.
+      //
+      // THE DEFECT. The writer wrote a line break in a value as it stood, so a value
+      // holding a CR LF and "X-hMailServer-LoopCount: 0" wrote a second field under
+      // that name, and what is read first is the count. Every message the server
+      // generates is built from values that are not its own: a Sieve notification's
+      // :message and :from, a vacation reply's :subject or the sender's decoded
+      // subject, a rule's reply subject and sender, a copy rule's name in X-CopyRule,
+      // an account's out-of-office subject, a bounce's decoded subject. Written above
+      // the count the generator set, the reset count was the one read - and with it
+      // an "Auto-Submitted: no" above the generator's own, so that a script notifying
+      // its own account notified about its own notification for ever. Held here, the
+      // one writer of a field set in memory, rather than at each of them.
+      static void AppendAsOneField(AnsiString &output, const char *value, size_t length);
       
       static void UnfoldField(string& strField);
 
@@ -255,6 +278,12 @@ namespace HM
       virtual size_t Load(const char* pszData, size_t nDataSize, bool unfold = true);
 
       AnsiString Store() const;
+
+      // The header as Store writes it, but with each value as it was set rather than
+      // kept to one field (MimeField::AppendAsOneField): for COM's Message.Save,
+      // which refuses a credential's message whose values hold a line break, and says
+      // so, rather than send it with a space in its place. Never written anywhere.
+      void StoreAsGiven(AnsiString &output) const;
 
    protected:
       std::vector<MimeField> fields_;  // list of all header fields

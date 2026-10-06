@@ -15,6 +15,8 @@
 #include "../Common/BO/RemoteDomainPolicies.h"
 #include "../Common/Cache/CacheContainer.h"
 #include "../Common/Mime/Mime.h"
+#include "../Common/Rules/RuleGuard.h"
+#include "../Common/Util/Strings/Formatter.h"
 #include "../Common/Util/Time.h"
 #include "../Common/Util/Parsing/StringParser.h"
 #include "../Common/Persistence/PersistentMessage.h"
@@ -24,6 +26,7 @@
 #include "../Common/SQL/SQLCommand.h"
 #include "../Common/SQL/SQLStatement.h"
 #include "RecipientParser.h"
+#include "SMTPConfiguration.h"
 #include "../Common/BO/MessageRecipients.h"
 
 #ifdef _DEBUG
@@ -106,6 +109,26 @@ namespace HM
          return;
       }
 
+      // The generated-mail loop count the reply carries is the original's + 1, read by
+      // the header's one reader, and there is no reply once it has reached the rule
+      // loop limit - as a Sieve vacation reply and a rule's reply are held. This
+      // called IncreaseRuleLoopCount() on the new message, which has no count to
+      // increase, so every out-of-office reply carried 1, whatever the message it
+      // answered had been through: the count restarted at every reply
+      // (RuleGuard::LoopCountForGeneratedMessage says why a generator must not). Asked
+      // before the once-per-sender slot below is spent, as the gate above is.
+      int originalLoopCount = 0;
+      const char *originalLoopCountValue = header.GetRawFieldValue(String(_T("X-hMailServer-LoopCount")));
+      if (originalLoopCountValue != nullptr)
+         originalLoopCount = RuleGuard::ReadLoopCount(String(originalLoopCountValue));
+
+      if (originalLoopCount >= Configuration::Instance()->GetSMTPConfiguration()->GetRuleLoopLimit())
+      {
+         LOG_APPLICATION(Formatter::Format("No out-of-office message was sent to {0}: the message to {1} has already passed through {2} generated messages (the rule loop limit).",
+            sToAddress, recipientAccount->GetAddress(), originalLoopCount));
+         return;
+      }
+
       if (!CanSendVacationMessage_(recipientAccount, sToAddress, repeatAfterDays))
          return; // We have already notified this user.
 
@@ -161,7 +184,7 @@ namespace HM
       pNewMsgData->SetSubject(sModifiedSubject);
       pNewMsgData->SetBody(sModifiedBody);
      pNewMsgData->SetAutoReplied();
-      pNewMsgData->IncreaseRuleLoopCount();
+      pNewMsgData->SetRuleLoopCount(originalLoopCount + 1);
 
       // Write message data. First write of a message built from nothing - see the
       // equivalent in SMTPDeliverer. No out-of-office reply is better than one queued

@@ -2255,6 +2255,52 @@ namespace RegressionTests.Rules
       }
 
       /// <summary>
+      /// A copy carries its rule's name in X-CopyRule, set where the message already has
+      /// one - above the copy's count from the second copy on, and from the first when
+      /// the sender wrote one at the top - and the MIME writer wrote a line break in a
+      /// value as it stood. A rule named "Copy", a line break and
+      /// "X-hMailServer-LoopCount: 0" wrote the count, reset, above the copy's own at
+      /// every copy, so that an account copying its own mail made copies without end; an
+      /// account may name its own rules over COM. The writer now keeps a value to one
+      /// field (MimeField::AppendAsOneField): the copies count 1 to 5, and the one at 5
+      /// is not copied again.
+      ///
+      /// Against the unfixed server every copy reads a count of 0, and the queue never
+      /// empties.
+      /// </summary>
+      [Test]
+      [Description("A copy rule whose name holds a line break writes no loop count into the copy, and the copies stop at the rule loop limit.")]
+      public void ACopyRuleWhoseNameHoldsALineBreakStopsAtTheLimit()
+      {
+         _settings.RuleLoopLimit = 5;
+
+         var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "loopcopy@example.test", "test");
+         var rule = NewRuleMatchingEverything(account, "Copy\r\nX-hMailServer-LoopCount: 0");
+         var copy = rule.Actions.Add();
+         copy.Type = eRuleActionType.eRACreateCopy;
+         copy.Save();
+         rule.Save();
+
+         var message =
+            "X-CopyRule: written by the sender\r\n" +
+            "From: loopcopy-sender@example.test\r\n" +
+            "To: " + account.Address + "\r\n" +
+            "Subject: Copied\r\n" +
+            "\r\n" +
+            "Body.\r\n";
+
+         new SmtpClientSimulator().SendRaw("loopcopy-sender@example.test", account.Address, message);
+         CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+
+         // The message, and its copies at 1, 2, 3, 4 and 5.
+         ImapClientSimulator.AssertMessageCount(account.Address, "test", "Inbox", 6);
+
+         // The copy at the limit is not copied, which is reported; this reads and clears
+         // the log.
+         CustomAsserts.AssertReportedError("Maximum rule loop count reached");
+      }
+
+      /// <summary>
       /// RegularExpression::TestExactMatch swallows a pattern that will not compile and
       /// returns "no match", so a criterion with one unmatched bracket produces a rule
       /// that is Active in the editor, matches nothing ever, and says nothing about it.

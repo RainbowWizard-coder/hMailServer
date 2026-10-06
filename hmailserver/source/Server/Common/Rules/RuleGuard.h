@@ -80,7 +80,9 @@ namespace HM
       // it right and are the reference: SMTPDeliverer::SubmitErrorLog_ does
       // SetRuleLoopCount(iRuleLoopCount + 1), and SieveVacationResponder does
       // SetRuleLoopCount(decision.loopCount + 1) - the Sieve path had this same defect
-      // and was fixed by carrying the count forward.
+      // and was fixed by carrying the count forward. So did SMTPVacationMessageCreator,
+      // the account's and the domain's out-of-office reply, until 6 October 2026: it
+      // now carries the original's count + 1, and makes no reply at the limit.
       //
       // Why it matters even though Reply also sets Auto-Submitted: the Forward action
       // deliberately does NOT honour Auto-Submitted (see the comment on the
@@ -170,12 +172,15 @@ namespace HM
       // stays, and every other CR or LF becomes a space.
       //
       // THE DEFECT. Neither the rule action nor Sieve's addheader looked at the value,
-      // and the MIME writer writes a line break in it as it stands, so a value of
+      // and the MIME writer wrote a line break in it as it stood, so a value of
       // "a", CR LF, "X-hMailServer-LoopCount: 0" wrote a second field - the loop count,
       // reset, under a name no check had seen. A script's value can be a sender's to
       // choose: "${1}" after body :raw :matches "*" holds the body's lines. RFC 5293 4
       // asks for this: a value that is not "unstructured" is refused or written with
-      // folding white space.
+      // folding white space. The writer now applies the same rule to every field it
+      // writes (MimeField::AppendAsOneField), the values every generated message is
+      // built from among them; this applies it before the value is coded, so that a
+      // line break is not carried into an encoded word either.
       static String HeaderValueAsOneField(const String &value);
 
       // A regular-expression criterion, with the two answers it could not previously
@@ -301,8 +306,11 @@ namespace HM
 
    // The edits that could reset X-hMailServer-LoopCount, held to examples: which
    // names are that header (RuleGuard::IsLoopCountHeader); the names a rule may not
-   // set (WhyHeaderMayNotBeSet); a value kept to one field (HeaderValueAsOneField),
-   // written and read back through the MIME writer and reader; scripts that edit the
+   // set (WhyHeaderMayNotBeSet); a value kept to one field (HeaderValueAsOneField,
+   // and the writer's own MimeField::AppendAsOneField), written and read back through
+   // the MIME writer and reader; the header of a generated message - a notification
+   // whose :message or :from holds a line break, a copy whose rule's name does - with
+   // the generator's Auto-Submitted and count the ones read; scripts that edit the
    // header refused when they are stored, with the reason, and let through when a
    // stored one is run (SieveParser::Purpose) for LocalDelivery::EditSieveHeader to
    // refuse - by name, in any case, as the script's variables made it, and with a line

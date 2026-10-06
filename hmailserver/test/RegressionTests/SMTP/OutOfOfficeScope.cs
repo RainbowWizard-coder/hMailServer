@@ -531,5 +531,55 @@ namespace RegressionTests.SMTP
          new SmtpClientSimulator().Send(sender.Address, closed.Address, "Three", "Body");
          Pop3ClientSimulator.AssertMessageCount(sender.Address, "test", 2);
       }
+
+      private static string WithLoopCount(hMailServer.Account sender, hMailServer.Account recipient, string loopCount)
+      {
+         return
+            "From: " + sender.Address + "\r\n" +
+            "To: " + recipient.Address + "\r\n" +
+            "Subject: Counted\r\n" +
+            "X-hMailServer-LoopCount: " + loopCount + "\r\n" +
+            "\r\n" +
+            "Body.\r\n";
+      }
+
+      /// <summary>
+      ///    The reply carries the message's X-hMailServer-LoopCount + 1, and none is sent
+      ///    once that count has reached the rule loop limit, as a Sieve vacation reply and
+      ///    a rule's reply are held. The reply is a new message, and its count was raised
+      ///    from nothing, so every reply carried 1 whatever the message it answered had
+      ///    been through: the count, which is what ends a loop of generated messages,
+      ///    started again at every out-of-office reply.
+      ///
+      ///    Against the unfixed server the first reply carries 1, and the message at the
+      ///    limit is answered.
+      /// </summary>
+      [Test]
+      [Description("An out-of-office reply carries the message's loop count + 1, and none is sent once the count has reached the rule loop limit.")]
+      public void TheReplyCarriesTheLoopCountOnAndStopsAtTheLimit()
+      {
+         _settings.RuleLoopLimit = 5;
+
+         var below = AddAccount();
+         var atTheLimit = AddAccount();
+         var away = AddAccount();
+         away.VacationMessageIsOn = true;
+         away.VacationSubject = "Away";
+         away.VacationMessage = "I am away.";
+         away.Save();
+
+         var smtp = new SmtpClientSimulator();
+         smtp.SendRaw(below.Address, away.Address, WithLoopCount(below, away, "2"));
+         Pop3ClientSimulator.AssertMessageCount(below.Address, "test", 1);
+
+         var reply = new Pop3ClientSimulator().GetFirstMessageText(below.Address, "test");
+         StringAssert.Contains("X-hMailServer-LoopCount: 3\r\n", reply,
+            "The reply to a message carrying 2 does not carry 3. The reply was:\r\n" + reply);
+
+         smtp.SendRaw(atTheLimit.Address, away.Address, WithLoopCount(atTheLimit, away, "5"));
+         Pop3ClientSimulator.AssertMessageCount(away.Address, "test", 2);
+         CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+         Pop3ClientSimulator.AssertMessageCount(atTheLimit.Address, "test", 0);
+      }
    }
 }

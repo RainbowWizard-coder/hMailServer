@@ -111,10 +111,14 @@ namespace
    // other than the colon, then the colon - or the continuation of the field
    // above it, which starts with a space or a tab and holds more than white
    // space, which some programs take for the empty line; and the one empty
-   // line is the last. COM writes a value as it is given, line breaks and
-   // all: a Subject that holds "\r\nFrom: ..." would add a From field that
-   // the parsed message this checks does not have, and a field named "From "
-   // is written "From :", which RFC 5322's obsolete syntax reads as From.
+   // line is the last. COM took a value as it is given, line breaks and
+   // all, and the writer wrote it so until 6 October 2026: a Subject that
+   // holds "\r\nFrom: ..." added a From field that the parsed message this
+   // checks does not have. The writer now keeps a value to one field, and
+   // this is asked of the header as given (MimeHeader::StoreAsGiven), so that
+   // such a message is still refused rather than sent with a space in the
+   // line break's place; and a field named "From " is written "From :",
+   // which RFC 5322's obsolete syntax reads as From.
    bool WrittenAsOneHeader(const HM::AnsiString &header, HM::String &reason)
    {
       const char *text = header.c_str();
@@ -710,13 +714,16 @@ STDMETHODIMP InterfaceMessage::Save()
          HM::String claimed;
          HM::String reason;
 
-         // The header as Write will write it: MimeHeader::Store, which both of
-         // MimeBody::SaveAllToFile's paths call. With no message to store, none,
-         // which is no header written as one.
+         // The header as Write will write it - MimeHeader::Store, which both of
+         // MimeBody::SaveAllToFile's paths call - but with each value as it was
+         // set (StoreAsGiven): Write keeps a value to one field, writing a line
+         // break that does not fold it as a space, and a value given with one is
+         // refused here, and the program told, rather than sent changed. With no
+         // message to store, none, which is no header written as one.
          HM::AnsiString header;
          const std::shared_ptr<HM::MimeBody> mime = GetMessageData_()->GetMimeMessage();
          if (mime)
-            mime->HM::MimeHeader::Store(header);
+            mime->StoreAsGiven(header);
 
          if (!WrittenAsOneHeader(header, reason))
          {

@@ -2,6 +2,8 @@
 // Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using System;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Threading;
 using NUnit.Framework;
@@ -214,6 +216,76 @@ namespace RegressionTests.Sieve
          string notification = Pop3ClientSimulator.AssertGetFirstMessageText(watcher.Address, Password);
          StringAssert.Contains("X-hMailServer-LoopCount: 2", notification,
             "The notification of a message carrying 1 does not carry 2.");
+      }
+
+      // The lines of a message's header that begin a field of this name, as a mail
+      // client finds them: up to the first empty line.
+      private static List<string> FieldLines(string message, string name)
+      {
+         var lines = new List<string>();
+         foreach (string line in message.Replace("\r\n", "\n").Split('\n'))
+         {
+            if (line.Length == 0)
+               break;
+
+            if (line.StartsWith(name + ":", StringComparison.OrdinalIgnoreCase))
+               lines.Add(line);
+         }
+
+         return lines;
+      }
+
+      /// <summary>
+      ///    A notification's header is the server's. The MIME writer wrote a line
+      ///    break in a value as it stood, so a ':message' holding line breaks wrote
+      ///    "Auto-Submitted: no" and "X-hMailServer-LoopCount: 0" as fields of their
+      ///    own, above the notification's own two, and those are what is read first:
+      ///    a script that notified its own account was then held neither by the rule
+      ///    that a message which is itself auto-submitted is not notified about nor by
+      ///    the rule loop limit, and notified about its own notifications for ever. The
+      ///    writer now keeps a value to one field (MimeField::AppendAsOneField): the
+      ///    one notification carries Auto-Submitted: auto-notified and a count of 1,
+      ///    and is not notified about.
+      ///
+      ///    Against the unfixed server the notification's first Auto-Submitted is
+      ///    "no", and the account's mailbox does not stop filling.
+      /// </summary>
+      [Test]
+      [Description("A notification whose :message holds line breaks writes no field of its own, and a script notifying its own account sends one notification.")]
+      public void ANotificationsMessageWritesNoFieldOfItsOwn()
+      {
+         _settings.RuleLoopLimit = 5;
+
+         int sequence = NextAccountSequence();
+         Account account = SingletonProvider<TestSetup>.Instance.AddAccount(
+            _domain, "sieve-ntf-self-" + sequence + "@example.test", Password);
+
+         SetScript(account,
+            "require \"enotify\";\r\n" +
+            "notify :message \"Note\r\nAuto-Submitted: no\r\nX-hMailServer-LoopCount: 0\" \"mailto:" + account.Address + "\";\r\n");
+
+         SmtpClientSimulator.StaticSend("sieve-ntf-sender@example.test", account.Address, "Trigger", "Body.");
+         CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+
+         IMAPFolder inbox = account.IMAPFolders.get_ItemByName("INBOX");
+         CustomAsserts.AssertFolderMessageCount(inbox, 2);
+
+         // Nothing followed the notification: it was not notified about.
+         CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+         Assert.AreEqual(2, inbox.Messages.Count, "The notification was notified about.");
+
+         // The two in the order they arrive, which is not fixed.
+         string first = Pop3ClientSimulator.AssertGetFirstMessageText(account.Address, Password);
+         string second = Pop3ClientSimulator.AssertGetFirstMessageText(account.Address, Password);
+         string notification = first.Contains("You have new mail.") ? first : second;
+
+         StringAssert.Contains("You have new mail.", notification, "No notification arrived.");
+         CollectionAssert.AreEqual(new[] { "Auto-Submitted: auto-notified" }, FieldLines(notification, "Auto-Submitted"),
+            "The notification's Auto-Submitted is not its own alone. The notification was:\r\n" + notification);
+         CollectionAssert.AreEqual(new[] { "X-hMailServer-LoopCount: 1" }, FieldLines(notification, "X-hMailServer-LoopCount"),
+            "The notification's loop count is not its own alone. The notification was:\r\n" + notification);
+         Assert.AreEqual(1, FieldLines(notification, "Subject").Count,
+            "The notification's subject is not one field. The notification was:\r\n" + notification);
       }
 
       [Test]

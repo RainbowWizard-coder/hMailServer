@@ -599,7 +599,7 @@ namespace HM
    }
 
    // store a field to string buffer
-   void MimeField::Store(AnsiString &output) const
+   void MimeField::Store(AnsiString &output, bool keepToOneField) const
    {
       if (!modified_ && !is_new_ && !raw_line_.empty())
       {
@@ -613,11 +613,62 @@ namespace HM
       FieldCodeBase* pCoder = MimeEnvironment::CreateFieldCoder(GetName());
       pCoder->SetCharset(charset_.c_str());
       pCoder->SetInput(value_.c_str(), (int)value_.size(), true);
-      pCoder->GetOutput(output);
+
+      // hMailServer: coded, then kept to one field. A line break the coder leaves as
+      // it stands - every one in a value of ASCII - wrote a second field (the
+      // declaration says what that let through); the folds the coder makes itself
+      // stay folds.
+      AnsiString coded;
+      pCoder->GetOutput(coded);
       delete pCoder;
+
+      if (keepToOneField)
+         AppendAsOneField(output, coded.c_str(), coded.size());
+      else
+         output.append(coded);
 
       output.append("\r\n");
 
+   }
+
+   void MimeField::AppendAsOneField(AnsiString &output, const char *value, size_t length)
+   {
+      // Most values hold no line break at all, and are appended whole.
+      size_t position = 0;
+      while (position < length && value[position] != '\r' && value[position] != '\n')
+         position++;
+
+      output.append(value, position);
+
+      for (; position < length; position++)
+      {
+         const char character = value[position];
+
+         // A fold: CR LF, the space or tab that makes the next line part of this
+         // field, and more than white space on that line - a line of white space
+         // alone is the end of the header to some readers.
+         if (character == '\r' && position + 1 < length && value[position + 1] == '\n')
+         {
+            size_t next = position + 2;
+            while (next < length && (value[next] == ' ' || value[next] == '\t'))
+               next++;
+
+            if (next > position + 2 && next < length && value[next] != '\r' && value[next] != '\n')
+            {
+               output.append("\r\n");
+               position++;
+               continue;
+            }
+         }
+
+         if (character == '\r' || character == '\n')
+         {
+            output.append(1, ' ');
+            continue;
+         }
+
+         output.append(1, character);
+      }
    }
 
    // load a field from string buffer
@@ -1270,6 +1321,14 @@ namespace HM
          const MimeField& fd = *it;
          fd.Store(output);
       }
+
+      output.append("\r\n");
+   }
+
+   void MimeHeader::StoreAsGiven(AnsiString &output) const
+   {
+      for (const MimeField &field : fields_)
+         field.Store(output, false);
 
       output.append("\r\n");
    }

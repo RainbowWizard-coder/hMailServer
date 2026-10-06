@@ -128,13 +128,26 @@ prompt. Found by the project's own review (work item 78; CVE requested).
     release still runs, without that edit, which the application log names. A *Set header value* action on the header,
     or on a name with a line break, a colon or a character outside ASCII in it, is refused by `RuleAction.Save`,
     `Rule.Save` and the REST API's rule routes, and one stored before is skipped, with a line in the application log.
-    A line break in a value a rule or a script writes is written as a space, unless it folds the line. Event scripts,
-    which are the administrator's own code, are not held to this.
+    Event scripts, which are the administrator's own code, may still set the header.
+  - A line break in a header value is now written as a space unless it folds the line, by the MIME writer itself, so
+    that no value writes a field of its own. That was not the rules' and the scripts' edits alone: every message the
+    server generates is built from values that are not its own, and the field a line break wrote sat above the ones
+    the generator set, so it was what was read. A Sieve `notify` whose `:message` or `:from` held line breaks wrote
+    `Auto-Submitted: no` and a count of 0 above the notification's own (from 6.2.22), so that a script notifying its
+    own account notified about its own notifications for ever; a copy rule's name, which the copy carries in
+    `X-CopyRule`, reset the count at every copy (in every version), so that an account copying its own mail made
+    copies without end; and a rule's reply subject, an out-of-office subject, and the sender's own subject decoded
+    into a vacation reply or a bounce reset it on the message they made. COM's `Message.Save` still refuses a
+    credential's message whose values hold a line break, and says why.
+  - An out-of-office reply, an account's or a domain's, carried a count of 1 whatever the message it answered
+    carried, where every other reply carries that count + 1: it now does too, and none is sent once the count has
+    reached the limit, as a Sieve `vacation` reply is held.
 
-  `LoopCountTester` and `LoopCountEditTester` (`business-object-tests` on Linux) hold the reading and the edits to
-  examples, and `Rules.cs`, `API/RestApiRules.cs`, `Sieve/SieveEditheaderDelivery.cs`, `Sieve/ManageSieve.cs`,
-  `Sieve/SieveNotifyDelivery.cs` and `Sieve/SieveVacationDelivery.cs` send them through storing and delivery, two
-  loops between accounts among them. Found by the project's own review.
+  `LoopCountTester` and `LoopCountEditTester` (`business-object-tests` on Linux) hold the reading, the edits and the
+  writer to examples, and `Rules.cs`, `API/RestApiRules.cs`, `Sieve/SieveEditheaderDelivery.cs`,
+  `Sieve/ManageSieve.cs`, `Sieve/SieveNotifyDelivery.cs`, `Sieve/SieveVacationDelivery.cs` and
+  `SMTP/OutOfOfficeScope.cs` send them through storing and delivery, four loops among them. Found by the project's
+  own review.
 
 ### Downloads and the release
 
