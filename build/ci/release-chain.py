@@ -835,8 +835,10 @@ def image_is_published(env):
     variable HM_PUBLISH_IMAGE, which container-image-deb, linux-image.sh and
     container-image-push.sh read as they run and refuse unless it is 1
     (.gitlab/ci/container-image.yml). release-publish reads it the same way, as it
-    runs; the image jobs follow it in the same pipeline."""
-    return (env.get("HM_PUBLISH_IMAGE") or "").strip() == "1"
+    runs, and as they compare it, "1" and nothing else: a value the scripts refuse,
+    " 1" among them, gives no image row. The image jobs follow it in the same
+    pipeline."""
+    return env.get("HM_PUBLISH_IMAGE") == "1"
 
 
 def download_table(tag, names, digests, arm64_preview=True, image=False, verification=""):
@@ -888,7 +890,10 @@ def download_table(tag, names, digests, arm64_preview=True, image=False, verific
     if image:
         moving = ""
         if re.match(r"\A" + PLAIN_VERSION + r"\Z", version):
-            moving = " `:%s` and `:latest` name it too, until a later release moves them." % version.rsplit(".", 1)[0]
+            # container-image-push.sh moves the two only forward: either stays on an image of a
+            # later version, as both would for a 6.3 release made after a 6.4 one.
+            moving = " `:%s` and `:latest` are moved to it too, unless a later version has either already." % (
+                version.rsplit(".", 1)[0])
         rows.append(("Container image", "`%s:%s`, for linux/amd64 and linux/arm64, pushed by this release's pipeline "
                                         "after the release is published.%s" % (CONTAINER_IMAGE, version, moving)))
     checking = "Each file the release pipeline made is signed with Sigstore, its bundle beside it as `<file>.cosign.bundle`"
@@ -2042,8 +2047,9 @@ def self_test():
            "the ARM64 row links its download path, gives its SHA-256 and says it is a preview: %s" % rows[1])
     expect(("[`hmailserver-linux-6.3.5-SHA256SUMS.txt`](%shmailserver-linux-SHA256SUMS.txt)" % page) in rows[2]
            and "the two AppImages" in rows[2], "the Linux row names the release's sums and the AppImages: %s" % rows[2])
-    expect("`registry.gitlab.com/hmailserver/hmailserver:6.3.5`" in rows[3] and "`:6.3` and `:latest`" in rows[3],
-           "the image row names the version's tag and the two that move: %s" % rows[3])
+    expect("`registry.gitlab.com/hmailserver/hmailserver:6.3.5`" in rows[3]
+           and "`:6.3` and `:latest` are moved to it too, unless a later version has either already." in rows[3],
+           "the image row names the version's tag and the two that move, only forward: %s" % rows[3])
     expect("`hmailserver-6.3.5.intoto.sigstore.json`" in rows[4] and "*Verification*" in rows[4],
            "the checking row names the provenance and the notes' Verification: %s" % rows[4])
     links_of = dict((l["name"], download_url(tag, l["direct_asset_path"])) for l in every_link)
@@ -2081,9 +2087,16 @@ def self_test():
         expect(lead and feed.release_summary(notes_, "fallback") == feed.release_summary("# " + lead, "fallback") != "fallback",
                "the notes begin with the table, and the feed's summary of them is unchanged by it: %r" % feed.release_summary(notes_, "fallback"))
     expect(feed.release_summary(described, "fallback") == "The notes.", "the summary is the section's first paragraph")
-    expect(image_is_published({"HM_PUBLISH_IMAGE": "1"}) and not image_is_published({}) and not image_is_published({"HM_PUBLISH_IMAGE": "0"}),
-           "the image row follows the project's HM_PUBLISH_IMAGE as the job runs")
-    # The preview follows the tagged tree's WindowsOnArm.md, which says it today.
+    expect(image_is_published({"HM_PUBLISH_IMAGE": "1"}) and not image_is_published({}) and not image_is_published({"HM_PUBLISH_IMAGE": "0"})
+           and not image_is_published({"HM_PUBLISH_IMAGE": " 1"}) and not image_is_published({"HM_PUBLISH_IMAGE": "1\n"}),
+           "the image row follows the project's HM_PUBLISH_IMAGE as the job runs, \"1\" and nothing else, as the image jobs read it")
+    with open(os.path.join(ROOT, "build", "ci", "container-image-push.sh"), encoding="utf-8") as f:
+        expect('if [ "${HM_PUBLISH_IMAGE:-}" != 1 ]; then' in f.read(),
+               "container-image-push.sh refuses unless HM_PUBLISH_IMAGE is exactly 1, as image_is_published reads it")
+    # The preview follows the tagged tree's WindowsOnArm.md, which says it today, and
+    # the ARM64 row links that file at the tag, so the tree must have it.
+    expect(os.path.isfile(os.path.join(ROOT, local(WINDOWS_ON_ARM))),
+           "%s is in the tree: the ARM64 row of a release's Download table links it at the tag" % WINDOWS_ON_ARM)
     expect(arm64_is_preview(ROOT), "%s still says %s, so the ARM64 row says it is a preview" % (WINDOWS_ON_ARM, ARM64_PREVIEW))
     docs = tempfile.mkdtemp(prefix="release-notes-")
     try:
