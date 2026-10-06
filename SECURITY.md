@@ -477,11 +477,16 @@ scanning".
 ### Every change
 
 - **The route.** A change reaches `master` only through a merge request, merged by fast-forward, and GitLab merges one
-  only on a pipeline that succeeded (*Pipelines must succeed*, a project setting). For a merge request from a fork,
-  from Renovate or from any branch that is not protected, that is the merge request's own pipeline; for a maintainer's
-  `batch*` branch, whose merge request runs no pipeline of its own, it is the branch's pipeline, which GitLab holds the
-  merge request to. `build/land-via-mr.py`, which lands a batch, refuses a pipeline that was skipped, and one in which
-  a gate below did not succeed itself - left out by a rule, skipped, or failed while allowed to fail
+  only on a pipeline that succeeded (*Pipelines must succeed*, a project setting). For a merge request from Renovate
+  or from any branch of this project that is not a protected `batch*` one, that is the merge request's own pipeline;
+  for a maintainer's `batch*` branch, whose merge request runs no pipeline of its own, it is the branch's pipeline,
+  which GitLab holds the merge request to. A merge request from a fork runs its own pipeline in the fork, with the
+  fork's CI files and on runners the fork's owner chooses, so what that pipeline says is the fork's to report, not a
+  gate: such a change lands through a batch - a maintainer takes its commits into a `batch*` branch, whose pipeline
+  runs here - or on a pipeline a maintainer runs for the merge request in this project, once its CI files have been
+  read. `build/land-via-mr.py`, which lands a batch, refuses a pipeline that was skipped, one another project ran, one
+  in which a gate below did not succeed itself - left out by a rule, skipped, or failed while allowed to fail - and
+  one whose gates did not judge the batch against `master`'s tip, as each says in its log
   ([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md#landing-on-master), "Landing on master"). Two
   project settings, the owner's, take away the ways round it: `master` takes a push from no one (its protection's
   *Allowed to push and merge* is *No one*, *Allowed to merge* is Maintainers, and force push is off), and a skipped
@@ -498,24 +503,41 @@ scanning".
     upstream repository's tag, beside a control version a published advisory is known to affect.
   - *A violation*, which fails the pipeline: an OSV `MAL-` record (the OpenSSF malicious-packages data), rated
     Critical; an advisory of severity Critical or High, with a fixed version or without one, rated by the GitHub
-    advisory database's label, else its CVSS v3 vector, else its CVSS v4.0 vector, else its aliases'; and such an
-    advisory that may affect the version, where the versions cannot be ordered as the ecosystem orders them (or a
-    native version is older than its upstream repository's first tag).
+    advisory database's label, else its CVSS v3 vector, else its CVSS v4.0 vector, else its aliases'; such an
+    advisory that may affect the version, where the versions cannot be ordered as the ecosystem orders them, a native
+    version is older than its upstream repository's first tag, or one older than its control is named in no advisory
+    while the control is (OSV did not match its tag: OpenSSL's 0.9.6 draws none where 4.0.0 draws 43); and a
+    requirements line the change adds that pins no version by `name==version` - a range, a URL or a path, an
+    editable, another index - since pip would install what OSV cannot be asked about.
   - *Not a violation*, and listed in the job's log: an advisory of severity Medium or Low, or with no rating; and
     UNKNOWN, a library for which OSV has no usable data (no repository it knows, as for SQL Server Compact, or nothing
-    for the control version either), which is read by hand against the release's SBOM before a release
-    ([Dependencies](#dependencies-software-composition-analysis), "Before a release").
-  - An input that cannot be read - the base, a lock file, a pin, OSV - never passes: the job exits 2 and is retried.
+    for a control OSV is not known to name, as for libpq and QuickJS), which is read by hand against the release's
+    SBOM before a release ([Dependencies](#dependencies-software-composition-analysis), "Before a release").
+  - An input that cannot be read - the base, a lock file, a pin, OSV, or a control OSV is known to name answering
+    nothing - never passes: the job exits 2 and is retried. A base whose own files are broken holds no change by that
+    alone, or no change could mend it: its lock file that cannot be read names nothing, and its exceptions file that
+    cannot be read accepts nothing.
 - **Weaknesses:** GitLab's *semgrep-sast*, and *semgrep-sast-gate* (`build/ci/security-gate.py --merge-request`), which
   reads its report, in every such pipeline.
   - *What it evaluates:* the C, C++, C#, Python and JavaScript of the tree, with GitLab's Semgrep analyzer and rules,
     less the paths `SAST_EXCLUDED_PATHS` names in `.gitlab/ci/gitlab-security.yml` (the tests, the vendored sources and
-    the three string tables generated from documents).
+    the three string tables generated from documents, each entry held to the root), and less what the analyzer's own
+    ignore template leaves out at any depth: every directory named `build`, `dist`, `vendor` or `node_modules`, and
+    minified scripts. So the build and CI scripts under `build/` - the gate scripts among them - are read by the
+    *semgrep* job alone, in a batch.
   - *A violation:* a finding of severity Critical or High in a file the change touches; and, when the change alters
     the scan's own configuration - edits, removes or moves `.gitlab-ci.yml`, `.gitlab/ci/gitlab-security.yml`,
     `.gitlab/ci/mr-checks.yml`, `.gitlab/sast-ruleset.toml`, `build/ci/security-gate.py` or
-    `build/ci/security-findings.py` - one in any file. A report that is missing, or a scan that did not finish, holds
-    the change as well.
+    `build/ci/security-findings.py` - one in any file. That widens what counts, and cannot see a finding the change
+    keeps out of the report; so a change that **narrows what a scan reads** - a `.semgrepignore` at any depth, an
+    exclusion that reaches a path the base's did not, the analyzer's options or any other `SAST_*`, `SEMGREP_*` or
+    `SECURE_*` variable, GitLab's custom ruleset, or the ignore and suppression lists of the scans on the project's
+    runners (`build/ci/semgrepignore`, `build/ci/cppcheck-suppressions.txt`, `build/ci/clang-tidy.yaml`,
+    `HM_TIDY_CHECKS`) - is a declaration, as an exception is, and lands alone: it is held while it changes anything
+    else a scan reads. A report that is missing, that GitLab's analyzer did not write in this pipeline (its
+    `scan.analyzer.id`, and a start no earlier than the pipeline's creation), or whose scan did not finish, holds the
+    change as well, and so does a tree that commits a scan's report or Semgrep's SARIF: *semgrep-sast* is not
+    `allow_failure`, and removes any such file before its analyzer runs.
   - *In a batch's pipeline*, which the project's own runners serve, two scans more: *static-analysis* (cppcheck, and
     clang-tidy with the Clang static analyser) over the C++ the Linux build compiles, and *semgrep*, Semgrep's open
     rules over the C#, Python, JavaScript and shell. There a violation is any finding that is neither in the scan's
@@ -526,24 +548,43 @@ scanning".
   - *On every change, whatever the scans found:* an entry added to either baseline, a reason taken from one, or an
     inline suppression comment added to a file a scan reads (`nosemgrep`, `NOLINT` with `NOLINTNEXTLINE` and
     `NOLINTBEGIN`, or `cppcheck-suppress` in each form that begins one) is a violation of its own, which
-    *semgrep-sast-gate* holds: it counts each file's comments at the change's base and at its head.
+    *semgrep-sast-gate* holds: it counts each file's comments at the change's base and at its head. So is a source
+    file moved from where *semgrep-sast* reads it to where it does not, or added where only the analyzer's template
+    leaves it unread (a `vendor/` below the root, say) and no exclusion of the project's names the place; and a file
+    the change adds or alters that a rule gave up on - a time limit, memory or stack it ran out of - as Semgrep's SARIF
+    beside the report says, which the analyzer leaves at a warning and calls a success. Where Semgrep's parser
+    stumbled, which it reads on past (87 of the C++ and C# files on 6 October 2026, 18 of them with findings all the
+    same, and three of the Helm chart's templates), the notification is listed, not held.
+  - *When the change alters the gates' own code* (`security-gate.py`, `security-findings.py`,
+    `mr-dependency-check.py`, `dependency-scan.py`, `osv-offline-db.py`), the base's copy of each gate judges it too,
+    over the change's tree, and the change passes only when both copies pass it; and `build/land-via-mr.py` lands such a
+    batch only with a person's word that the change was read whole (`--gates-read`), which the landing record keeps.
 - **What no gate reads.** Stated so that nobody takes it for covered; the owner may widen it. No gate reads
   PowerShell, VBScript, Inno Setup scripts, `.bat` files, SQL, or the Dockerfiles and the other files that describe
-  infrastructure. The Windows-only C++ (the COM API, the service host, the ADO and SQL Server Compact backends), which
-  only an MSVC build compiles, is read by *semgrep-sast*'s pattern rules alone. What a distribution supplies is not
-  evaluated change by change: the build images of the per-distribution `.deb`, `.rpm`, Alpine (APK), Arch, Nix and
-  snap packages, the libraries the AppImages carry, and the container image's base image. Those are pinned by digest
-  or by lock and patched by their distributions; the CI image's packages are scanned by *dependency-scan* on a batch
-  and before a release, and the release's container image by GitLab's container scanning once it is pushed, which
-  holds nothing.
-- **What the gates cannot hold**, said so that it is weighed: a merge request from a fork runs the CI files of its
-  own branch, which can leave a gate out, and GitLab's Free tier cannot make a job required, so
-  `build/land-via-mr.py` checks a batch's gate jobs itself and the owner, who alone merges, reads every change to the
-  CI files; the owner can unprotect `master` (above); Semgrep's registry rules, which *semgrep* fetches, are not
-  pinned; an exception is keyed to the text of its line, so an edit elsewhere in the same function can make an
-  accepted finding exploitable without changing its fingerprint; and a change to the configuration of the two scans
-  on the project's runners, or a project variable, can narrow a scan unseen by any gate
-  ([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md#change-checks), "Change checks").
+  infrastructure. The build and CI scripts under `build/` are read by no gate on a merge request: *semgrep-sast*'s
+  analyzer leaves out every `build/` directory, and only a batch's *semgrep* job reads them. An edit to the vendored
+  zlib or QuickJS sources is read by no gate: *semgrep-sast* leaves their directories out, *static-analysis* reads
+  the server's own C++, and *mr-dependency-check* reads only their version strings, so such an edit is read by a
+  person, as a change to the CI files is. The Windows-only C++ (the COM API, the service host, the ADO and SQL Server
+  Compact backends), which only an MSVC build compiles, is read by *semgrep-sast*'s pattern rules alone. What a
+  distribution supplies is not evaluated change by change: the build images of the per-distribution `.deb`, `.rpm`,
+  Alpine (APK), Arch, Nix and snap packages, the libraries the AppImages carry, and the container image's base image.
+  Those are pinned by digest or by lock and patched by their distributions; the CI image's packages are scanned by
+  *dependency-scan* on a batch and before a release, and the release's container image by GitLab's container scanning
+  once it is pushed, which holds nothing.
+- **What the gates cannot hold**, said so that it is weighed. The gates hold against mistakes, not against a hostile
+  change: a change's own CI files say which jobs run and what they run, and its own copies of the gate scripts run in
+  them. The base's copies judge a change to the scripts too, and a landing asks for a person's word that it was read;
+  but a change that edits the jobs themselves can leave a gate out or run another, and GitLab's Free tier cannot make
+  a job required, so `build/land-via-mr.py` checks a batch's gate jobs and their base itself, and the owner, who alone
+  merges, reads every change to the CI files. The owner can unprotect `master` (above); Semgrep's registry rules,
+  which *semgrep* fetches, are not pinned; *semgrep-sast*'s rules have a time limit for each file, which a slower
+  runner can reach where another did not (a finding then missing from a file the change does not touch passes the
+  change, and holds the release when it is found again); an exception is keyed to the text of its line, so an edit
+  elsewhere in the same function can make an accepted finding exploitable without changing its fingerprint; a change
+  to the scripts of the two scans on the project's runners (`static-analysis.sh`, `semgrep.sh`) can narrow them
+  unseen by any gate; and a project variable, which only the owner can set, reaches every job and stands above a
+  job's own ([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md#change-checks), "Change checks").
 
 ### Dependencies (software composition analysis)
 
@@ -644,10 +685,15 @@ under *Order*, below.
   [GOVERNANCE.md](GOVERNANCE.md), "Review", says. A declaration read with an AI's help under the owner's delegation
   says so, in its entry or in the comment that heads its group.
 - **Order.** A declaration lands first, in a change of its own, and the change that needs it after. The one exception
-  is a change that alters *semgrep-sast*'s configuration (above), which answers for the whole tree: its own copy of the
-  exceptions file may accept a finding in a file it does not touch, never in one it does, so that a change that
+  is a change that re-pins *semgrep-sast*'s analyzer (its image), which answers for the whole tree: its own copy of
+  the exceptions file may accept a finding in a file it does not touch, never in one it does, so that a change that
   re-pins a vanished analyzer while `master` holds findings nobody has accepted need not wait on a change that no
-  scan could judge.
+  scan could judge. Any other change of the scan's configuration answers for the whole tree by the base's
+  declarations alone.
+- **Narrowing a scan is a declaration too.** What a scan leaves out - a `.semgrepignore`, an exclusion, the
+  analyzer's options, a custom ruleset, the source scans' ignore and suppression lists - is said in a change of its
+  own, which touches nothing else a scan reads, and the change after it is judged as it says ([Every
+  change](#every-change)).
 - **Baselines are not declarations.** `build/ci/static-analysis-baseline.txt` and `build/ci/semgrep-baseline.txt` are
   closed lists of the findings that were in the tree before every change was gated: written when the scans began, on
   25 September 2026, and last added to in 6.3.6. A change may delete an entry whose finding is fixed, or end one that
@@ -672,6 +718,9 @@ the release** while:
 - any of the four scans it needs did not finish: *static-analysis*, *semgrep*, *dependency-scan* (which must also
   have scanned the CI image's packages) and GitLab's *semgrep-sast*. Its report is missing, or says its status is
   not success. The pipeline of a tag without one of them is not created at all;
+- a report is not the scan's of this pipeline: the tagged tree carries a scan's report as a tracked file, which
+  would stand in for one the scan did not write, or *semgrep-sast*'s report was not written by GitLab's analyzer, or
+  began before the tag's pipeline was created;
 - *static-analysis* (cppcheck, clang-tidy) or *semgrep* found something that is not in its committed baseline;
 - *semgrep-sast* found something of severity critical or high;
 - *dependency-scan* found a vulnerability of severity critical or high that has a fixed version and that the VEX

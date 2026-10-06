@@ -235,9 +235,16 @@ disclosure window, or a broken build on `master` - with
 `python3 build/land-via-mr.py batchN --land-without-approval "<reason>"`: the
 script refuses the override unless it runs as one of the owner's accounts, and
 records the reason in the landing note and its log; a change landed that way is
-reviewed afterwards, on its merge request. A contributor's merge request is
+reviewed afterwards, on its merge request. A batch that changes the gates' own
+files - the change checks' scripts and jobs, the landing script and
+`build/check-release-chain.py` - lands only with `--gates-read "<reason>"`, the
+word of the person who read that change whole, which the landing note records:
+a change to what judges every change is read by a person, not by the gates it
+changes. A contributor's merge request is
 approved by a maintainer on the contributor's own merge request before its
-commits are put on a batch.
+commits are put on a batch; a fork's pipeline runs in the fork, so its result
+is not the gate, and the batch's pipeline is
+([SECURITY.md](SECURITY.md), "Every change").
 
 On GitHub, until 14 September 2026, a pull request authored by one maintainer,
 or opened by an agent on one maintainer's behalf, was approved by the other

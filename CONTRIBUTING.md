@@ -360,11 +360,15 @@ Compose file), *update-helper* (`build/test-hmailserver-update.sh` and the units
 *package-templates* (`make-package-manifests.ps1 -Check` and `check-package-manifests.py --offline` on
 placeholder values) and *roadmap* (`check-roadmap.ps1`). *sign-off* runs on every merge request and every
 `batch*` branch (see [Sign-off](#sign-off)), and so do the change checks: GitLab's *semgrep-sast*, *semgrep-sast-gate*,
-which holds a change on a Critical or High finding in what it touches, a baseline it grows or a suppression comment it
-adds, and *mr-dependency-check*, which holds one that adds a dependency version or moves a library pin with a Critical
-or High advisory or a malicious package ([SECURITY.md](SECURITY.md), "Every change"; [Change
-checks](hmailserver/docs/ContinuousIntegration.md#change-checks)). A finding that is not fixed passes only through a
-declaration already on `master` that it is not exploitable, landed in a change of its own first. *checkers* runs its
+which holds a change on a Critical or High finding in what it touches, a baseline it grows, a suppression comment it
+adds, a narrowing of what a scan reads that does not land alone, or a source file it puts out of the scan's reach, and
+*mr-dependency-check*, which holds one that adds a dependency version or moves a library pin with a Critical or High
+advisory or a malicious package, or adds a requirement that pins no version ([SECURITY.md](SECURITY.md), "Every
+change"; [Change checks](hmailserver/docs/ContinuousIntegration.md#change-checks)). A finding that is not fixed passes
+only through a declaration already on `master` that it is not exploitable, landed in a change of its own first - save
+in a change that re-pins *semgrep-sast*'s analyzer, which may carry the exceptions for findings in files it does not
+touch, since no change could land first while the analyzer it needs is gone; and a narrowing of what a scan reads is a
+declaration too, landed alone. *checkers* runs its
 self-test and `build/land-via-mr.py`'s, and those of
 `build/generate-update-feed.py`, `build/ci/release-chain.py` and `build/ci/repo-hygiene.py` (Token-Permissions against
 CI files made to break it). Each script is started as `python3 build/...`, `node build/...`, `bash build/...` or
@@ -835,7 +839,11 @@ rewrites. To sign off without remembering the flag, `git config alias.cs "commit
    can approve, but no rule can require an approval, and whether an author may approve their own is a setting of
    the paid tiers; so the landing script below holds the rule, and it never counts an author's approval.
 6. **The gate.** A merge request's own pipeline runs the shared runners' checks only, the change checks among
-   them, which must pass ([The checkers](#the-checkers)). The builds and both suites
+   them, which must pass ([The checkers](#the-checkers)). A merge request from your fork runs that pipeline in your
+   fork, with your fork's CI files and on runners your fork's settings choose, so its result tells you how the change
+   fares and is not the gate: the gate is the pipeline of the `batch*` branch your commits land on, or one a maintainer
+   runs for your merge request in this project after reading its CI files ([SECURITY.md](SECURITY.md), "Every
+   change"). The builds and both suites
    run on the project's machines for a `batch*` branch, which only a Maintainer can push: the maintainer puts
    your commits on one - rebased onto the current `master`, your authorship and your `Signed-off-by` kept, or
    squashed into one commit of yours that keeps them - with other changes ready to land.
@@ -845,7 +853,11 @@ rewrites. To sign off without remembering the flag, `git config alias.cs "commit
    must run: see [Secrets](#secrets)), pushes it, opens the merge request, waits for the branch's pipeline, and
    merges only when it passed, with each of its gate jobs - *semgrep-sast*, *semgrep-sast-gate* and
    *mr-dependency-check*, and *static-analysis* and *semgrep* unless the batch changes only Markdown at the root or
-   under a dot-directory - succeeding itself, and GitLab calls the merge request mergeable. It never squashes. It
+   under a dot-directory - succeeding itself, in a pipeline of this project whose gates each say in their log that
+   they judged the batch against `master`'s tip, and GitLab calls the merge request mergeable. A batch that changes
+   the gates' own files (their scripts, their jobs, the landing script and `build/check-release-chain.py`) lands only
+   with `--gates-read "<who read it, and what>"`, a person's word that the change was read whole, which is recorded
+   (exit 9 without it). It never squashes. It
    records on the merge request, and in `land-via-mr.log` in the git directory, the pipeline and its gate jobs, the
    sign-off and whether somebody other than the author approved the tip it lands (an approval given before a later
    push does not count), and without such an approval it refuses to merge (exit 7). The owner alone may override

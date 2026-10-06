@@ -13,7 +13,7 @@
 # answered "manifest unknown", and semgrep-sast failed with runner_configuration_error),
 # and a blocking gate must not stop because GitLab rebuilt an image.
 #
-#   build/ci/mirror-semgrep.sh <tag> [sha256:<digest>]
+#   bash build/ci/mirror-semgrep.sh <tag> [sha256:<digest>]
 #
 # <tag> is the analyzer's version as GitLab tags it (6.26.1, say); without a digest the
 # one the tag names now is taken. The copy is tagged <tag>-<the digest's first twelve
@@ -36,7 +36,7 @@
 #
 #   export DOCKER_CONFIG="$(mktemp -d)"
 #   docker login registry.gitlab.com        (it asks for the user name and the token)
-#   build/ci/mirror-semgrep.sh 6.26.1 sha256:<digest>
+#   bash build/ci/mirror-semgrep.sh 6.26.1 sha256:<digest>
 #   docker logout registry.gitlab.com
 #   rm -rf "$DOCKER_CONFIG"; unset DOCKER_CONFIG
 #

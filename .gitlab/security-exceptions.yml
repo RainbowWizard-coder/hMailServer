@@ -56,7 +56,7 @@
 # anything else, and build/check-release-chain.py holds the file to it on every
 # pipeline. An entry lands on master before the change that needs it, in a change of
 # its own: every gate reads the copy of the branch the change targets. The one
-# exception is a change that alters semgrep-sast's configuration, which answers for the
+# exception is a change that re-pins semgrep-sast's analyzer, which answers for the
 # whole tree and whose own copy may accept a finding in a file it does not touch. The
 # release job reads master's copy, never the tagged tree's, as it reads master's
 # allow-list: an exception that reaches master after the tag, by a merge request of its

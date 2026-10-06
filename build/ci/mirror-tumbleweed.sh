@@ -8,7 +8,7 @@
 # of .gitlab/ci/packages-rpm.yml. Tumbleweed rolls, and openSUSE's registry drops a
 # snapshot within weeks; the copy keeps the digests the CI is pinned to.
 #
-#   build/ci/mirror-tumbleweed.sh <YYYYMMDD>
+#   bash build/ci/mirror-tumbleweed.sh <YYYYMMDD>
 #
 # Needs docker, and a docker login to registry.gitlab.com made before it runs, by a
 # person whose token may write the project's registry (write_registry). This script
@@ -24,7 +24,7 @@
 #
 #   export DOCKER_CONFIG="$(mktemp -d)"
 #   docker login registry.gitlab.com        (it asks for the user name and the token)
-#   build/ci/mirror-tumbleweed.sh <YYYYMMDD>
+#   bash build/ci/mirror-tumbleweed.sh <YYYYMMDD>
 #   docker logout registry.gitlab.com
 #   rm -rf "$DOCKER_CONFIG"; unset DOCKER_CONFIG
 #

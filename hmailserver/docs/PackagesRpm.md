@@ -233,7 +233,7 @@ from the distribution's own registry. openSUSE's registry drops a Tumbleweed
 snapshot within weeks (the pin of 26 September was gone by 6 October), so its
 two images come from the project's own registry,
 `registry.gitlab.com/hmailserver/hmailserver/mirror/opensuse-tumbleweed`, a
-copy whose digests are openSUSE's own; `build/ci/mirror-tumbleweed.sh` takes
+copy whose digests are openSUSE's own; `bash build/ci/mirror-tumbleweed.sh` takes
 a new snapshot, and the two pins are then changed by hand.
 
 **When the jobs run** (as `.gitlab/ci/packages-deb.yml`'s do):

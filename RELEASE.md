@@ -112,9 +112,10 @@ pipeline passed, the change checks in it (SECURITY.md, "Every change";
    the tag's pipeline (`linux-build`'s artifact is kept three days; retry
    `linux-build` otherwise). GitLab offers the button only when every job of
    `.gitlab-ci.yml` that can fail the pipeline has passed - `static-analysis`
-   and `semgrep` among them, which fail on a finding new to their baselines -
-   and `dependency-scan` and `semgrep-sast` have finished, whatever they
-   found; it does not wait for `ci-image-packages` or `repo-hygiene`, which are
+   and `semgrep` among them, which fail on a finding new to their baselines,
+   and `semgrep-sast`, which passes whatever it found and fails only when its
+   scan does - and `dependency-scan` has finished, whatever it found; it does
+   not wait for `ci-image-packages` or `repo-hygiene`, which are
    `allow_failure`, or for the manual `db-matrix`. Of the package jobs of
    `.gitlab/ci/packages-*.yml` it waits for the two whose generic files the
    release carries - `deb-ubuntu26.04-arm64`, the generic arm64 `.deb`, and

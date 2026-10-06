@@ -74,8 +74,8 @@ same way.
 | `ci-image-packages` | test | linix | the same | Copies the CI image's package database out, for `dependency-scan` |
 | `dependency-scan` | test | linix | the same | Trivy over the lock files and the CI image, OSV over the vendored libraries |
 | `repo-hygiene` | test | linix | a protected ref | The repository checks OpenSSF Scorecard ran, answered from GitLab and the tree |
-| `semgrep-sast` | test | GitLab's shared runners | every change - a merge request, and a protected `batch*` branch - `master`, and a `v*` tag | GitLab's own SAST template: its Semgrep analyzer and rules over the C, C++, C#, Python and JavaScript, with no baseline, in the project's copy of the analyzer's image (`.gitlab/ci/gitlab-security.yml`) |
-| `semgrep-sast-gate` | test | GitLab's shared runners | every change: a merge request, and a protected `batch*` branch | `semgrep-sast`'s report read by the release's rule, for the files the change touches from its base, or every file when it alters the scan: a Critical or High finding that `.gitlab/security-exceptions.yml`, as the base has it, does not accept fails it, and so does a baseline that grows or loses a reason, or a suppression comment added (`build/ci/security-gate.py --merge-request auto`; [Change checks](#change-checks)) |
+| `semgrep-sast` | test | GitLab's shared runners | every change - a merge request, and a protected `batch*` branch - `master`, and a `v*` tag | GitLab's own SAST template: its Semgrep analyzer and rules over the C, C++, C#, Python and JavaScript - less what lies under a `build`, `dist`, `vendor` or `node_modules` directory, which the analyzer's template leaves out, so not the scripts under `build/` - with no baseline, in the project's copy of the analyzer's image; not `allow_failure`, and it keeps Semgrep's SARIF beside its report (`.gitlab/ci/gitlab-security.yml`) |
+| `semgrep-sast-gate` | test | GitLab's shared runners | every change: a merge request, and a protected `batch*` branch | `semgrep-sast`'s report read by the release's rule, for the files the change touches from its base, or every file when it alters the scan: a Critical or High finding that `.gitlab/security-exceptions.yml`, as the base has it, does not accept fails it, and so does a baseline that grows or loses a reason, a suppression comment added, a narrowing of what a scan reads that does not land alone, a source file put out of the scan's reach, a changed file a rule gave up on, and a report that is not this pipeline's or that the tree commits (`build/ci/security-gate.py --merge-request auto`; [Change checks](#change-checks)) |
 | `mr-dependency-check` | check | GitLab's shared runners | every change: a merge request, and a protected `batch*` branch | Every NuGet and PyPI version the change adds, looked up in OSV's own export of its ecosystem's advisories, and every native or vendored library pin it moves, asked of OSV by its upstream tag: a malicious package, or a Critical or High advisory, that neither the base's exceptions nor its VEX document accepts fails it (`build/ci/mr-dependency-check.py --base auto`) |
 | `secret_detection` | test | GitLab's shared runners | `master`, a merge request, and the schedule described `security` | GitLab's own secret-detection template: a key, token or password in the commits the pipeline brings, or in the whole history for the `security` schedule; a finding `.gitleaksignore` does not name fails it (`.gitlab/ci/gitlab-security.yml`) |
 | `windows-installer` | release | bench150 | a `v*` tag, after `windows-gate` | The x64 Windows installer, unsigned, built in the bench's checkout (`build/ci/windows-installer.ps1`; [The release](#the-release)); the ARM64 one is `windows-packages-arm64`'s ([PackagesWindows.md](PackagesWindows.md)) |
@@ -139,7 +139,9 @@ Which pipeline runs what
 | a `batch*` branch | the branch's | all of them but the release jobs, the jobs of a schedule of their own, `pages`, `package-repos` and `secret_detection`, with `installer-smoke` manual; the change checks among them, against `master` ([Change checks](#change-checks)), and the four security scans on linix unless the batch changes documentation alone from `master`: this is the gate a batch passes before it lands, and the pipeline its merge request is held to |
 | any other branch, no open merge request | the branch's | `checkers`, `harnesses`, `editorconfig`, and the four path-bound checks whose files changed |
 | any other branch, with an open merge request | the merge request's | `checkers`, `harnesses`, `editorconfig`, the path-bound checks whose files the merge request changes, the change checks `semgrep-sast`, `semgrep-sast-gate` and `mr-dependency-check`, `secret_detection`, and `sign-off` ([Change checks](#change-checks)) |
-| a merge request from `master` or a `batch*` branch | none; the branch's own pipeline stands for it | as for the branch |
+| a merge request from a protected `batch*` branch of this project | none; the branch's own pipeline stands for it | as for the branch |
+| a merge request from `master`, or from another protected branch here that is not `batch*` | the merge request's, beside the branch's own | as for any other branch's merge request: the branch's pipeline runs no change gate |
+| a merge request from a fork | the merge request's, run in the fork, with the fork's CI files and on runners the fork's owner chooses | as for any other branch's merge request; its result is not the gate: the change lands through a batch, or on a pipeline a maintainer runs for it here ([Change checks](#change-checks)) |
 | a `v*` tag | the tag's | all of them but the jobs of a schedule of their own, `secret_detection`, `sign-off`, `linux-build-gcc`, `semgrep-sast-gate` and `mr-dependency-check` (the commit's `master` pipeline ran `secret_detection`, and its batch `sign-off` and `linux-build-gcc`), with `release`, `release-publish` and `installer-smoke` manual, and `pages` and `package-repos` after `release-publish` ([The release](#the-release)). `semgrep-sast` runs, for the release job to read |
 | any other tag | none | |
 | the schedule described `fuzz`, on `master` | the schedule's | `linux-fuzz` alone ([The fuzz schedule](#the-fuzz-schedule)) |
@@ -249,17 +251,26 @@ Change checks
 
 Every change reaches `master` through a merge request, and GitLab merges one
 only on a pipeline that succeeded (*Pipelines must succeed*). Which pipeline that
-is depends on where the change comes from. A merge request from a fork, from
-Renovate or from any branch that is not protected runs a pipeline of its own,
-which never reaches the project's runners (above): what it must pass runs on
-GitLab's shared runners, holds no secret, and says in its own log what held it.
-A maintainer's `batch*` branch is protected, and its merge request runs no
-pipeline of its own (the `workflow:` rules), so GitLab holds that merge request
-to the branch's pipeline for the same commit. The change checks run in both, on
-the shared runners (`.gitlab/ci/mr-checks.yml`, `.gitlab/ci/gitlab-security.yml`
-and one checker), and they hold the policy of [SECURITY.md](../../SECURITY.md),
-"Vulnerability management policy", "Every change". Beside the checks every
-pipeline runs, three hold a change on what it brings:
+is depends on where the change comes from. A merge request from Renovate or from
+any branch of the project that is not a protected `batch*` one runs a pipeline of
+its own, which never reaches the project's runners (above): what it must pass
+runs on GitLab's shared runners, holds no secret, and says in its own log what
+held it. A maintainer's `batch*` branch is protected, and its merge request runs
+no pipeline of its own (the `workflow:` rules), so GitLab holds that merge
+request to the branch's pipeline for the same commit. A merge request from a
+fork runs a pipeline of its own too - the first workflow rule compares the
+merge request's source project with its own project, not with
+`CI_PROJECT_ID`, which in a fork's pipeline is the fork's, so a fork's protected
+branch is no `batch*` branch here - but that pipeline runs in the fork, with the
+fork's CI files, on runners the fork's owner can choose: what it says is the
+fork's to report. Such a change lands through a batch, whose pipeline runs here,
+or on a pipeline a maintainer runs for the merge request in this project after
+reading its CI files; `build/land-via-mr.py` refuses a pipeline another project
+ran. The change checks run in each, on the shared runners
+(`.gitlab/ci/mr-checks.yml`, `.gitlab/ci/gitlab-security.yml` and one checker),
+and they hold the policy of [SECURITY.md](../../SECURITY.md), "Vulnerability
+management policy", "Every change". Beside the checks every pipeline runs, three
+hold a change on what it brings:
 
 - **Every committed binary is in its manifest.** `build/check-binary-manifest.py`,
   which `checkers` runs as it runs every `build/check-*.py`, reads every file git
@@ -291,21 +302,60 @@ pipeline runs, three hold a change on what it brings:
   analyzer, its pin, its options), `.gitlab/sast-ruleset.toml` (GitLab's custom
   ruleset, of which none is committed), `build/ci/security-gate.py` or
   `build/ci/security-findings.py` - or what reaches it or runs the gate -
-  `.gitlab-ci.yml`, whose variables for every job (`SAST_EXCLUDED_PATHS`, say)
-  reach the analyzer as the security file's own do, and
-  `.gitlab/ci/mr-checks.yml` - every finding in the tree counts. Then a finding
-  in a file the change does not touch may be accepted by the change's own copy
-  of the exceptions file as well as by the base's, and one in a file it touches
-  still by the base's alone: a change that re-pins an analyzer GitLab's
-  registry no longer serves, while `master` holds findings nobody has accepted,
-  can carry their exceptions with it, where no change of their own could land
-  first, since the scan that would judge it is the one gone. A copy of its own
-  that cannot be read accepts nothing. The findings outside the changed files
+  `.gitlab-ci.yml`, whose variables for every job reach the analyzer as the
+  security file's own do, and `.gitlab/ci/mr-checks.yml` - every finding in the
+  tree counts. When the change re-pins the analyzer (`semgrep-sast`'s image), and
+  only then, a finding in a file the change does not touch may be accepted by
+  the change's own copy of the exceptions file as well as by the base's, and one
+  in a file it touches still by the base's alone: a change that re-pins an
+  analyzer GitLab's registry no longer serves, while `master` holds findings
+  nobody has accepted, can carry their exceptions with it, where no change of
+  their own could land first, since the scan that would judge it is the one
+  gone. Any other change of the scan's configuration answers for the whole tree
+  by the base's exceptions alone, and a copy of its own that cannot be read
+  accepts nothing. The findings outside the changed files
   are counted in the log, never described: the log of a change's job is public,
   and those are the tree's unaccepted findings, which the release's gate holds
   and a maintainer reads in the scan's own artifact (until 6.3.6 the first
-  twenty were printed). A missing report, or one whose scan did not finish,
-  holds the change as well.
+  twenty were printed).
+
+  The report must be the one `semgrep-sast` wrote in this pipeline. A report
+  that is missing, or whose scan did not finish, holds the change; so does one
+  whose `scan.analyzer.id` is not `semgrep`, GitLab's analyzer, and one that
+  began more than five minutes before the pipeline was created
+  (`CI_PIPELINE_CREATED_AT`, five minutes for a runner's clock). And a tree that
+  carries `gl-sast-report.json`, `semgrep.sarif` or anything under `security/`
+  as a tracked file holds the change whatever the report says: a committed copy
+  would stand in for one the scan did not write, as a local run of the analyzer
+  followed by `git add -A` would leave one. `semgrep-sast` itself is not
+  `allow_failure`, where GitLab's template makes it so: a scan that fails, or an
+  image that cannot be pulled, fails the pipeline, and `semgrep-sast-gate`, which
+  needs it, does not run on what it did not write. It removes
+  `gl-sast-report.json` and `semgrep.sarif` before `/analyzer run`, and
+  `.gitignore` keeps the scans' outputs out of a `git add`.
+
+  Whole-tree mode widens what counts; it cannot see a finding the change keeps
+  out of the report. So a change that **narrows what a scan reads** is a
+  declaration, as an exception is, and lands alone: it is held while it changes
+  anything else a scan reads - anything but a Markdown document, the CI files,
+  the files that say what the scans read, the baselines, the exceptions file, the
+  VEX document and the three generated documents. A narrowing is a line gained
+  by a `.semgrepignore` at any depth (GitLab's analyzer renames the root's to
+  `.semgrepignore.local` and includes it in its own template; Semgrep reads one in
+  a directory too), by `build/ci/semgrepignore` or by
+  `build/ci/cppcheck-suppressions.txt`; any change of `.gitlab/sast-ruleset.toml`
+  or of `build/ci/clang-tidy.yaml`; an entry of `SAST_EXCLUDED_PATHS` or
+  `SAST_SEMGREP_EXCLUDED_PATHS`, in any CI file, that no entry of the base's
+  covers (`/tests` under `tests` covers nothing new, `src/x` under `src` neither);
+  a value of either that cannot be read on its line; and any change of any other
+  `SAST_*`, `SEMGREP_*` or `SECURE_*` variable, or of `HM_TIDY_CHECKS`, in any CI
+  file. The analyzer passes both lists to Semgrep as `--exclude`, which reads a
+  pattern with no slash as a name at any depth - seen on 6 October 2026 with the
+  analyzer's Semgrep 1.174: `tests` left out `a/tests/t.py`, `/tests` only
+  `tests/t.py` - so each of `semgrep-sast`'s own entries is held to the root, the
+  Debian package's autopkgtests named where they are, and the job sets
+  `SAST_SEMGREP_EXCLUDED_PATHS` to nothing itself, so that no value a CI file
+  gives every job reaches it.
 
   And whatever the scan found, it holds a change that silences a finding without
   a declaration on the base: one that adds an entry to
@@ -313,7 +363,9 @@ pipeline runs, three hold a change on what it brings:
   takes an entry's reason away - a change may delete an entry, or give one its
   reason, and nothing else - and one that raises, in any file a scan reads, the
   count of the comments by which a tool passes over a finding: Semgrep's
-  `nosemgrep` (in any case, and its short form `nosem`), clang-tidy's `NOLINT`
+  `nosemgrep` (in any case, and its short form `nosem`, which Semgrep takes as
+  its marker whatever follows it after a blank, as it does `# nosemaphore`),
+  clang-tidy's `NOLINT`
   in each form that begins a suppression - of its line, of the next line, or of
   a block, not the block's end - and cppcheck's `cppcheck-suppress` with its
   `-begin`, `-file` and `-macro` forms and its bracketed list (not `-end`). This
@@ -321,13 +373,40 @@ pipeline runs, three hold a change on what it brings:
   from it and clang-tidy looks for its directives in a file's text, strings
   included. The comments of each file the change adds or alters are counted at
   the base and at the head, so an edited line keeps the comment it had, and a
-  file git sees renamed keeps the count it had under its old name. The Markdown
+  file git sees renamed keeps the count it had under its old name; a source file
+  is counted whatever bytes it holds, a NUL among them, which the compiler and the
+  scans read past. The Markdown
   files, the two baselines, the exceptions file and the three files generated
   from documents and page text that every scan leaves out (`HelpPagesData.cpp`,
   `PortalPageData.cpp` and `PortalLanguagesData.cpp`) are not counted, since
   their words about the comments silence nothing. A file of the gate's own that
   names the comments spells them in pieces, as `security-gate.py` does, or it
-  would hold the change that edits it.
+  would hold the change that edits it. It holds a source file moved from where
+  `semgrep-sast` reads it to where it does not, and one added or changed where
+  only the analyzer's own template leaves it unread - a `build/`, `dist/`,
+  `vendor/` or `node_modules/` directory below the root, a minified script - which
+  no exclusion of the project's names; `build/` at the root is the one such place
+  said and read elsewhere (by `semgrep`, in a batch). And it holds a source file
+  the change adds or alters that one of Semgrep's rules gave up on - a time limit,
+  or the memory or stack it ran out of - as the notifications of
+  `semgrep.sarif`, which the analyzer writes beside its report and the job keeps,
+  say: the analyzer fails a scan on an error-level notification only, and these
+  are warnings. Where Semgrep's parser stumbled, which it reads on past, the
+  notification is counted in the log and holds nothing: over this batch on 6
+  October 2026, 87 of the C++ and C# files drew one (`_T` strings run together,
+  `WINAPI`, a class declared over two lines), 18 of them with findings all the
+  same, and three of the Helm chart's templates.
+
+  When the change alters the gates' own code - `security-gate.py`,
+  `security-findings.py`, `mr-dependency-check.py`, `dependency-scan.py` or
+  `osv-offline-db.py` - the base's copy of each gate judges it too: the gate
+  makes a worktree of the change's head, puts the base's copies of those five
+  files in it, runs the base's copy with the base it found, and passes the change
+  only when both copies pass it (a hold from either holds it). So an edit of the
+  fingerprints, or a library left out of `dependency-scan`'s list, does not judge
+  the change that makes it. The CI files still say what runs: this stands against
+  a mistake in the code, not against a change that edits the jobs, which a person
+  reads ([Landing on master](#landing-on-master), `--gates-read`).
 
   This is OpenSSF Baseline OSPS-VM-06.02: a change with a weakness above the
   threshold is blocked unless it is declared not exploitable. On 28 September
@@ -373,7 +452,12 @@ pipeline runs, three hold a change on what it brings:
   is not passed over: Critical or High, it holds the change as one that MAY
   affect the version (since 6.3.6; until then it passed). A vulnerability OSV
   carries under several ids (a GHSA and its PYSEC) is said once, by the record
-  that rates it highest. On 28 September 2026 a fixture commit adding `urllib3`
+  that rates it highest. A requirements line the change adds that pins no
+  version by `name==version` - a range, `name @ <url>`, a path, an editable,
+  another index or a page of links, an option of pip's it does not know - holds
+  the change too, since pip would install what OSV cannot be asked about; its
+  hashes, `--require-hashes`, PyPI's own index and a requirements file of a name
+  it reads itself are allowed. On 28 September 2026 a fixture commit adding `urllib3`
   1.26.4 and NuGet's `System.Text.Json` 8.0.0 was held on six High advisories of
   the first and two of the second, one that changed a document passed without
   reading OSV, and one that added `Humanizer.Core` 2.14.1 passed with no advisory.
@@ -389,12 +473,18 @@ pipeline runs, three hold a change on what it brings:
   `dependency-scan` asks, and rated as above, an alias's record fetched when the
   advisory has no rating of its own. A version older than its repository's first
   tag (7-Zip's before 22.01), which OSV cannot match, is held by that tag's
-  Critical and High advisories, as ones that may affect it. A library OSV has no
-  usable data for - no repository it knows (SQL Server Compact), or nothing for
-  the control version either - is listed as UNKNOWN and holds nothing; it is read
-  by hand against the SBOM at release. Its self-test holds a change that sets
-  zlib's version to 1.2.11 on CVE-2022-37434, Critical, as OSV answers for that
-  tag.
+  Critical and High advisories, as ones that may affect it; so is a version older
+  than its control that OSV names no advisory for while it names the control's,
+  by the control's (OpenSSL's 0.9.6 draws none, its 4.0.0 43). A control that
+  OSV is known to name - OpenSSL's, Boost's, zlib's, Connector/C's and 7-Zip's,
+  each of which drew advisories on 6 October 2026 (`control_draws` in
+  `dependency-scan`'s list) - and that draws none is OSV's data not read: exit 2,
+  as `dependency-scan` fails its scan for it. A library OSV has no usable data
+  for - no repository it knows (SQL Server Compact), or nothing for a control OSV
+  is not known to name either (libpq, QuickJS) - is listed as UNKNOWN and holds
+  nothing; it is read by hand against the SBOM at release. Its self-test holds a
+  change that sets zlib's version to 1.2.11 on CVE-2022-37434, Critical, as OSV
+  answers for that tag.
 
   A Critical or High advisory holds the change unless one of two declarations,
   as the base has them, accepts it: an entry of `.gitlab/security-exceptions.yml`
@@ -407,35 +497,56 @@ pipeline runs, three hold a change on what it brings:
   statement for another version, and the change's own copy of either file,
   accept nothing; a base VEX document that cannot be read dismisses nothing, and
   says so. Lock files, pins or advisories it cannot read are never a pass (exit
-  2): the job is retried. OSV's export is fetched only when the change adds a
-  NuGet or PyPI version, and `api.osv.dev` asked only when it moves a native pin.
-  What GitHub's dependency review did until 18 September 2026; OpenSSF Baseline
-  OSPS-VM-05.03.
+  2): the job is retried. A base whose own files are broken holds no change by
+  that alone, or no change could mend them: a base lock file it cannot read
+  names nothing, so every version the head's copy names is looked up, and a base
+  exceptions file it cannot read, or an entry of it reviewed after today, accepts
+  nothing, and is said (the same holds in `semgrep-sast-gate`). OSV's export is
+  fetched only when the change adds a NuGet or PyPI version, and `api.osv.dev`
+  asked only when it moves a native pin. What GitHub's dependency review did
+  until 18 September 2026; OpenSSF Baseline OSPS-VM-05.03.
 
 **The base.** Both gates take it from `change_base()` in
-`build/ci/security-gate.py` ("auto"). In a merge request's pipeline it is
+`build/ci/security-gate.py` ("auto"). In a merge request's pipeline
+(`CI_PIPELINE_SOURCE` `merge_request_event`) it is
 `CI_MERGE_REQUEST_DIFF_BASE_SHA`, the commit of the target branch the merge
-request's diff starts from; a merge request's pipeline without it exits 2, since
-a merge request may target another branch than `master`, and its base is
-GitLab's to give. In a `batch*` branch's pipeline it refuses a shallow clone,
-fetches `master` by name (`git fetch --no-tags origin
+request's diff starts from, taken only when it is an ancestor of `HEAD` and of
+the target branch fetched by name, so that a base off the target branch - a
+commit of the change's own, say - is refused (exit 2); a merge request's
+pipeline without it exits 2, since a merge request may target another branch
+than `master`, and its base is GitLab's to give. The variable in a pipeline of
+another kind exits 2 too. In a `batch*` branch's pipeline it refuses a shallow
+clone, fetches `master` by name (`git fetch --no-tags origin
 +refs/heads/master:refs/remotes/origin/master`), and takes the merge base of
 `HEAD` and that, which is `master`'s tip whenever the batch is rebased onto it,
 as the landing requires; the log says so: "The base: <commit>, where HEAD leaves
-master ...". The two jobs clone with the history (`GIT_DEPTH 0`), as `sign-off`
-does, and each runs its checker's self-test before the check.
+master ...", and `build/land-via-mr.py` reads that line back from each gate's log
+and refuses a landing whose gates name another. GitLab lets a variable a CI file
+defines stand in for one of its own, these among them: a CI file of the change
+that defines a `CI_*` or `GITLAB_*` variable holds it (exit 1), and
+`build/check-release-chain.py` refuses one in every pipeline (but
+`CI_DEBUG_SERVICES`, which `container-image.yml` sets for a service's log). The
+two jobs clone with the history (`GIT_DEPTH 0`), as `sign-off` does, and each
+runs its checker's self-test before the check.
 
 **When they run.** In a merge request's pipeline, and in a protected `batch*`
 branch's pipeline that is not a schedule's or a downstream one's
 (`.mr-check`'s rules); `semgrep-sast` in exactly those, for `semgrep-sast-gate`
 to read, and for `master` and a protected `v*` tag besides, for the release job.
-Neither gate is `allow_failure`, neither has a `rules:changes` list, and no
-variable turns either off: GitLab's SAST template skips `semgrep-sast` when
-`SAST_DISABLED` is set, and the rules of none of the three read it, since a
-project variable must not take a blocking gate away unseen. `semgrep-sast`
-itself stays `allow_failure`, as its template makes it: a scan that did not
-finish leaves no report, which holds the change in `semgrep-sast-gate`. Each
-keeps GitHub out of the job itself
+The workflow's first rule leaves a merge request without a pipeline of its own
+for exactly the branches the gates run for in a branch's pipeline - protected
+`batch*` branches of this project - and `build/check-release-chain.py` holds the
+two to each other, so that protecting another pattern of branches later opens no
+route without a gate. Neither gate is `allow_failure`, nor is `semgrep-sast`,
+neither has a `rules:changes` list, and no variable turns either off or narrows
+them: GitLab's SAST template skips `semgrep-sast` when `SAST_DISABLED` is set,
+and the rules of none of the three read it, since a project variable must not
+take a blocking gate away unseen; `semgrep-sast` sets
+`SAST_SEMGREP_EXCLUDED_PATHS` to nothing itself; and a change of any other
+variable that narrows it lands alone (above), while
+`build/check-release-chain.py` refuses `SAST_SEMGREP_EXCLUDED_PATHS`,
+`SAST_RULESET_GIT_REFERENCE`, `SAST_EXCLUDED_ANALYZERS` and `HM_TIDY_CHECKS` in
+any CI file but that one value. Each keeps GitHub out of the job itself
 ([Nothing from GitHub, in the job](#nothing-from-github-in-the-job)).
 
 **What fails them that is not their answer.** An input that cannot be read - the
@@ -449,7 +560,13 @@ or the scheduler that failed, a registry or the network that could not be
 reached, a job left pending while runners were free, or one that stopped
 reporting. Not `runner_configuration_error`, which an image the registry no
 longer serves gives, and which no retry mends: that is what the next paragraph
-is for.
+is for. `semgrep-sast`'s rules have a time limit for each file
+(`--timeout=120`), and a slower runner can reach it where another did not: on 6
+October 2026 the analyzer over this batch on server2 found 339 findings where
+`master`'s shared-runner report had 335, the four more Medium ones in
+`Portal.js`, a file the batch does not touch. A file the change touches that a
+rule gave up on holds it (above); one it does not touch can lose a finding that
+way, which then holds the release when a later scan finds it again.
 
 **`semgrep-sast`'s image is the project's own copy.** GitLab's registry does not
 keep serving a digest its tag has moved on from: on 5 October 2026 the digest
@@ -458,12 +575,14 @@ with `runner_configuration_error`. A gate that holds every change cannot stop
 for that, so the job runs
 `registry.gitlab.com/hmailserver/hmailserver/mirror/semgrep:6.26.1-b98bc4dd3949`,
 named by the same digest GitLab's index has, so the bytes
-are GitLab's. `build/ci/mirror-semgrep.sh <version> [sha256:<digest>]` makes the
+are GitLab's. `bash build/ci/mirror-semgrep.sh <version> [sha256:<digest>]` makes the
 copy with skopeo (`copy --all --preserve-digests`: the index, both platforms'
 images and their attestations), reads it back, and prints the line for
 `gitlab-security.yml`. The tag ends in the digest's first twelve hex digits, so a
 later rebuild under the same version is a tag of its own and never moves the one
-a commit names, and the registry's cleanup policy keeps it by name. The analyzer
+a commit names, and the registry's cleanup policy keeps it by name (on 6 October
+2026 the policy is switched off, and removes nothing).
+The analyzer
 is MIT-licensed, GitLab's rules in it too, and the Semgrep it runs LGPL-2.1 with
 public sources; the copy is the image unmodified, for this project's CI (the
 script's header says more). Renovate does not look up the project's own
@@ -475,54 +594,71 @@ whose token may write the project's registry, and hands the file that login
 wrote to skopeo's container, read-only and for the copy's destination alone. It
 refuses a login kept in a credential helper, which the container cannot reach,
 and one that has no entry for the registry. Best in a directory of its own,
-removed after:
+removed after, the script started with `bash`, as every script of the tree is,
+since it is not executable in a checkout:
 
 ```
 export DOCKER_CONFIG="$(mktemp -d)"
 docker login registry.gitlab.com
-build/ci/mirror-semgrep.sh 6.26.1 sha256:<digest>
+bash build/ci/mirror-semgrep.sh 6.26.1 sha256:<digest>
 docker logout registry.gitlab.com
 rm -rf "$DOCKER_CONFIG"; unset DOCKER_CONFIG
 ```
 
-`build/ci/mirror-tumbleweed.sh`, which copies openSUSE Tumbleweed's images for
+`bash build/ci/mirror-tumbleweed.sh`, which copies openSUSE Tumbleweed's images for
 the RPM jobs ([PackagesRpm.md](PackagesRpm.md)), takes the same login in the
 same way.
 
 **What holds the jobs to this.** `build/check-release-chain.py`, which
 `checkers` runs in every pipeline, fails when `semgrep-sast` has no rule for a
 protected `batch*` branch, reads `SAST_DISABLED`, runs any image but the
-project's copy named by its digest, or does not take `.gate-retry`; when either
+project's copy named by its digest, does not take `.gate-retry`, is
+`allow_failure`, does not remove `gl-sast-report.json` and `semgrep.sarif`
+before `/analyzer run` or keep both, has an entry of `SAST_EXCLUDED_PATHS` not
+held to the root, or does not set `SAST_SEMGREP_EXCLUDED_PATHS` to nothing; when
+a CI file sets `SAST_SEMGREP_EXCLUDED_PATHS`, `SAST_RULESET_GIT_REFERENCE`,
+`SAST_EXCLUDED_ANALYZERS` or `HM_TIDY_CHECKS`, or `SAST_EXCLUDED_PATHS` outside
+`gitlab-security.yml`, or defines a `CI_*` or `GITLAB_*` variable; when the tree
+carries a `.semgrepignore`, `.gitlab/sast-ruleset.toml` or a scan's report; when
+the workflow's first rule is not the one for a protected `batch*` branch of this
+project, or names other branches than the gates run for; when either
 gate is missing, lacks the rule for a merge request or for a `batch*` branch,
 has a `when: never`, a `when: manual`, a `changes:` list or `allow_failure`,
 reads `SAST_DISABLED`, does not run its script with `auto`, or is not retried on
 exit 2 and on `.gate-retry`'s reasons; when `semgrep-sast-gate` does not need
 `semgrep-sast`'s artifacts; when one of the four scans on linix does not compare
-a batch with `master`; and when `build/land-via-mr.py` requires a job the CI
-files do not have, or does not require the gates, or its `documents_only`
-disagrees with `.own-runners`' paths ([Landing on master](#landing-on-master)).
-Each of those has a case in its self-test that must fail.
+a batch with `master`; when the release job's `collect` does not refuse a
+committed report or an older one; and when `build/land-via-mr.py` requires a job
+the CI files do not have, or does not require the gates, its `documents_only`
+disagrees with `.own-runners`' paths ([Landing on master](#landing-on-master)),
+its `GATE_FILES` leave out a file of the gates' code or their jobs, or its
+`BASE_GATES` are not the two gates. Each of those has a case in its self-test
+that must fail.
 
 **What they cannot hold.** The checks are against mistakes, not against a
-hostile change. A merge request from a fork runs the CI files of its own branch,
-which can leave a gate out, and GitLab's Free tier cannot make a job required:
-for a batch, `build/land-via-mr.py` checks that each gate ran and passed, and
-for any other merge request the owner, who alone merges, reads every change to
-the CI files before he merges it. The owner can also unprotect `master`, which
+hostile change: a change's own CI files say which jobs run and what they run,
+and its own copies of the gate scripts run in them. A merge request from a fork
+runs in the fork, with its own CI files, which can leave a gate out, on runners
+its owner chooses, and GitLab's Free tier cannot make a job required: a fork's
+change lands through a batch, or on a pipeline run here, and for a batch
+`build/land-via-mr.py` checks that each gate ran in the project's own pipeline,
+passed, and judged the batch against `master`'s tip, and asks for a person's
+word that a change of the gates' own files was read; for any other merge
+request the owner, who alone merges, reads every change to the CI files before
+he merges it. The owner can also unprotect `master`, which
 is break-glass ([Landing on master](#landing-on-master)). The gates leave out
-what SECURITY.md says no gate reads. Semgrep's registry rules, which `semgrep`
+what SECURITY.md says no gate reads - the scripts under `build/`, which
+`semgrep-sast`'s analyzer leaves out, among them. Semgrep's registry rules, which `semgrep`
 fetches on a batch, are not pinned (below). An exception is keyed to the text of
 the flagged line, so an edit elsewhere in the same function can make an accepted
 finding exploitable without changing its fingerprint; the exception for
-`ParseIPv6_`'s copies says what would. The configuration of the two scans on
-linix - `build/ci/cppcheck-suppressions.txt`, `build/ci/semgrepignore`, the
-checks `build/ci/clang-tidy.yaml` chooses, and the variables and options of
-`static-analysis.sh` and `semgrep.sh`, `HM_TIDY_CHECKS` among them - is not
-among the files whose change makes `semgrep-sast-gate` count the whole tree, and
-a change to it raises no comment count and grows no baseline, so it is read by
-the owner as a change to the CI files is. And a project variable, which only the
-owner can set, reaches every job: one named `SAST_EXCLUDED_PATHS` would replace
-the job's own list.
+`ParseIPv6_`'s copies says what would. The scripts of the two scans on linix -
+`static-analysis.sh` and `semgrep.sh`, which choose what they read beside the
+lists above - are not among the files whose change makes `semgrep-sast-gate`
+count the whole tree, and a change to them raises no comment count and grows no
+baseline, so it is read by the owner as a change to the CI files is. And a
+project variable, which only the owner can set, reaches every job and stands
+above a job's own: one named `SAST_EXCLUDED_PATHS` would replace the job's list.
 
 **To be shown on fixture merge requests**, once these checks are on `master`:
 merge requests from unprotected branches cut from `master`, each closed without
@@ -534,8 +670,12 @@ version to 1.2.11 (`mr-dependency-check`, the native path); one adds a High
 `strcpy` to the server's C++ (`semgrep-sast-gate`); one adds an exception
 together with the finding it accepts (`semgrep-sast-gate`, which reads the
 base's file); one adds a line to a baseline, and one a `nosemgrep`
-(`semgrep-sast-gate`); and one edits the `README.md` at the root alone, which
-passes with both gates run. One that adds an unlisted binary fails `checkers`.
+(`semgrep-sast-gate`); one adds a `.semgrepignore` naming a C++ file it changes
+too, and one commits a `gl-sast-report.json` that says the scan found nothing
+(`semgrep-sast-gate`); one adds a requirements line `name @ <url>`
+(`mr-dependency-check`); and one edits the `README.md` at the root alone, which
+passes with both gates run. One that adds an unlisted binary fails `checkers`,
+and so does one that defines `CI_MERGE_REQUEST_DIFF_BASE_SHA` in a CI file.
 
 Landing on master
 -----------------
@@ -564,7 +704,13 @@ in to gitlab.com as a Maintainer. In order, and stopping at the first refusal:
    must run and find nothing: a possible secret, or no scanner to run it,
    refuses (exit 8). A `batch*` branch's pipeline does not run
    `secret_detection`, and its merge request runs no pipeline, so this is the
-   scan that reads a batch before it is on GitLab. `--dry-run` stops here.
+   scan that reads a batch before it is on GitLab. A batch that changes the
+   gates' own files - `GATE_FILES`: the five gate scripts, `mr-checks.yml`,
+   `gitlab-security.yml`, the landing script and `check-release-chain.py` - needs
+   `--gates-read "<who read it, and what>"`, a person's word that the change was
+   read whole: the base's copy of the gate scripts judges such a change too, but
+   only a person reads an edit of the jobs. Without it the script refuses (exit
+   9); with it, the landing record keeps the reason. `--dry-run` stops here.
 2. It pushes the branch. A `batch*` branch is protected, so its pipeline runs
    everything, the gates on the project's runners and the change checks
    included.
@@ -584,7 +730,11 @@ in to gitlab.com as a Maintainer. In order, and stopping at the first refusal:
    the root or under a directory whose name begins with a dot - the changes for
    which `.own-runners` creates no scan. A gate that is not in the pipeline, was
    skipped, or failed, allowed to or not, refuses (exit 5), naming it; the
-   statuses go into the landing record.
+   statuses go into the landing record. The pipeline must be the project's own
+   (its `project_id`), not one a fork ran, and each of `semgrep-sast-gate` and
+   `mr-dependency-check` must say in its log - "The base: <commit>, ..." - that it
+   judged the batch against `master`'s tip, where the batch leaves it: a base a
+   CI file named in GitLab's stead would show there (exit 5).
 5. GitLab must call the merge request mergeable. The project's settings make
    that mean the pipeline passed (*Pipelines must succeed*), every thread is
    resolved (*All threads must be resolved*), it is not a draft, and `master`
@@ -605,7 +755,8 @@ in to gitlab.com as a Maintainer. In order, and stopping at the first refusal:
    name in place of the batch, its authors and its sign-offs - and checks that
    the remote's `master` is now that tip.
 8. It records the landing in a note on the merge request - the tip, the
-   pipeline, its gate jobs, the sign-off, the approvals and who landed it - and
+   pipeline, its gate jobs, the gates' base, whether the gates' own files
+   changed and who read them, the sign-off, the approvals and who landed it - and
    in `land-via-mr.log` in the repository's git directory. It moves the local
    `master` to the tip when no worktree has it checked out, and deletes the
    branch on GitLab and locally where it can, saying when it cannot.
@@ -643,7 +794,10 @@ jobs of step 4 - a pipeline of 115 jobs with the gates on its second page, a
 pipeline with no `static-analysis`, `semgrep-sast-gate` failed while allowed to
 fail, each change gate missing, a scan skipped, a documents-only batch landing
 without the scans, a documents-only batch with no change gate, and Markdown
-under a directory without a dot, which still needs the scans. On GitLab, the
+under a directory without a dot, which still needs the scans; a batch that
+changes a gate script without `--gates-read` and with it, a pipeline another
+project ran, and a gate's log that names another base or none (a line of the
+base's copy of a gate is not its own). On GitLab, the
 four landings above ran the merge request, its head pipeline, the approvals and
 diff-versions endpoints on the Free tier, the merge and the deletion of a
 protected branch. The check of the gate jobs came with the change checks, and
@@ -2001,8 +2155,9 @@ runbook.
 as soon as its own needs have finished, so `release` needs every job of
 `.gitlab-ci.yml` that can fail the tag's pipeline, and waits for the four
 security scans whose reports it reads (`static-analysis`, `semgrep`,
-`dependency-scan` and `semgrep-sast`); the last two are `allow_failure`, and the
-first two fail only on a finding new to their baselines. It reads
+`dependency-scan` and `semgrep-sast`); `dependency-scan` is `allow_failure`,
+`semgrep-sast` fails only when its scan does, and the first two fail only on a
+finding new to their baselines. It reads
 their reports and refuses on what they found
 ([Before a release](#before-a-release-the-scans-hold-it)). Of the package
 jobs of `.gitlab/ci/packages-*.yml`, which a tag's pipeline runs too, it needs
@@ -3185,10 +3340,12 @@ pushes, each platform's by its digest, after the push, in the same way
 ([The container image](#the-container-image)); `CONTAINER_SCANNING_DISABLED=true`
 turns it off.
 
-`semgrep-sast` is `allow_failure`, as its template makes it, and holds nothing
-to a baseline; what holds a change or a release on its findings is the job that
-reads its report after it, `semgrep-sast-gate` for every change and `release`
-for a tag. **`secret_detection` fails on a finding.** The template cannot:
+`semgrep-sast` passes whatever it found, and holds nothing to a baseline; what
+holds a change or a release on its findings is the job that reads its report
+after it, `semgrep-sast-gate` for every change and `release` for a tag. It is
+not `allow_failure`, where its template makes it so (after 6.3.6): a scan that
+fails, or an image that cannot be pulled, fails the pipeline, so that the jobs
+after it read only a report it wrote. **`secret_detection` fails on a finding.** The template cannot:
 its analyzer exits 0 whatever it finds (it did so on linix with thirty
 findings), and the template marks the job `allow_failure: true`, which would
 show a failure as a warning anyway. So the job runs the analyzer, then reads
