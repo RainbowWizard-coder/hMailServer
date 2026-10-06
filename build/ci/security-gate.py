@@ -749,16 +749,19 @@ def change_problems(inputs, say=print):
 
 def merge_request_inputs(root, base):
     """(inputs, None) or (None, the problem): what the change holds from base to HEAD, as
-    the gate reads it: {"changed": the paths it adds or alters, "exceptions": the base's
-    exceptions file (none accepts nothing), "own_exceptions": HEAD's, or None,
-    "baselines": {path: (the base's text, HEAD's), None for no file}, "markers":
+    the gate reads it: {"changed": the paths it adds, alters or removes, "exceptions":
+    the base's exceptions file (none accepts nothing), "own_exceptions": HEAD's, or
+    None, "baselines": {path: (the base's text, HEAD's), None for no file}, "markers":
     marker_counts}."""
     if not re.match(r"^[0-9a-f]{7,64}$", base or ""):
         return None, ("no base commit (%r): run it with the merge request's CI_MERGE_REQUEST_DIFF_BASE_SHA, or 'auto', "
                       "in a clone that has it (GIT_DEPTH 0)" % base)
     if _git(root, "cat-file", "-e", base + "^{commit}").returncode != 0:
         return None, "the base commit %s is not in this clone: the job needs the history (GIT_DEPTH 0)" % base
-    diff = _git(root, "diff", "--name-only", "-z", "--diff-filter=d", base, "HEAD")
+    # Every path the change adds, alters or takes away, a move as the two: a file of
+    # the scan's configuration (SAST_CONFIG) removed or moved alters the scan as much as
+    # one edited, and a path that has gone holds no finding of its own.
+    diff = _git(root, "diff", "--name-only", "-z", "--no-renames", base, "HEAD")
     if diff.returncode != 0:
         return None, "git diff %s HEAD failed: %s" % (base, _said(diff))
     inputs = {"changed": [p.decode("utf-8", "surrogateescape") for p in diff.stdout.split(b"\0") if p], "baselines": {}}
@@ -1454,6 +1457,12 @@ def change_gate_failures():
              "accepted only by this change's own", severity="Critical")
         case("the scan altered, with its own exception lapsed", base, dict(scan, **{EXCEPTIONS: exception(fp, "2026-09-30")}), 1,
              "fingerprint %s" % fp, severity="Critical")
+        # A file of the scan's configuration taken away, or moved, alters the scan as
+        # much as an edit of it does.
+        case("the scan's configuration removed", base, {".gitlab/ci/gitlab-security.yml": None}, 1,
+             "this change alters .gitlab/ci/gitlab-security.yml", severity="Critical")
+        case("the scan's configuration moved", base, {}, 1, "this change alters .gitlab/ci/gitlab-security.yml",
+             renames=((".gitlab/ci/gitlab-security.yml", ".gitlab/ci/moved.yml"),), severity="Critical")
         # One entry that would accept it, and one without its expiry: a file not well
         # formed accepts nothing, the good entry in it included.
         case("the scan altered, with its own exceptions not well formed", base,
