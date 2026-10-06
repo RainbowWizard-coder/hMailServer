@@ -204,10 +204,15 @@ namespace HM
       // deny entry and every entry of its own kept, the grant's Read for sid
       // among them; an inherited entry for sid kept as one of its own while it
       // gives no right to write; SYSTEM and the Administrators given full
-      // control and BUILTIN\Users Read & execute, on a directory handed down to
-      // everything below; and its owner made the Administrators when it is not
-      // SYSTEM, the Administrators or TrustedInstaller, naming the one it had in
-      // formerOwner - an owner may always change the permissions. Every other
+      // control, and BUILTIN\Users Read & execute where Everyone, Authenticated
+      // Users or Users could read it before (none where nobody but those named
+      // could, so that nothing in it becomes every user's to read), on a
+      // directory handed down to everything below; and its owner made the
+      // Administrators when it is not SYSTEM, the Administrators or
+      // TrustedInstaller, naming the one it had in formerOwner - an owner may
+      // always change the permissions - and then the entries of its own that
+      // let anybody else write dropped and named too, since that owner could
+      // have written them. Every other
       // inherited allow entry is dropped, and named in dropped when it gave a
       // right to write (AdminUpdateChecks::WriteRights). GrantAlreadyThere, and
       // nothing written, when the permissions and the owner are that already;
@@ -239,7 +244,8 @@ namespace HM
       // permissions of its own, is CHECKed for a broad group's Read and never
       // changed. Then the program folder itself, Bin and ControlPanel are each
       // Harden()ed - SYSTEM and the Administrators full control, BUILTIN\Users
-      // Read & execute, nothing inherited, the owner the Administrators - so
+      // Read & execute where every user could read it before, nothing
+      // inherited, the owner the Administrators - so
       // that no user of the computer may change a program the service or an
       // administrator runs, as an installation at a drive's root let every
       // user until 6.3.7; the program folder only once none of the five folders

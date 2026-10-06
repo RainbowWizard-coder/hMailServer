@@ -85,7 +85,9 @@ enough for the library. Every release from 6.0.0 to 6.3.6 installs so in such a 
 affected. 6.3.6's `/ProtectFolders` made the data folders private and left these three as they were, and
 `/GrantServiceAccess` only said `CHECK`, and only under the virtual account. `hMailServer.exe /ProtectFolders`, which
 setup runs at every installation and upgrade, now hardens the three: SYSTEM and the Administrators with full control,
-`BUILTIN\Users` with Read & execute, nothing inherited, and the Administrators as the owner of one somebody else owned.
+`BUILTIN\Users` with Read & execute where every user could read them before (none in a folder only the administrators
+may open), nothing inherited, and the Administrators as the owner of one somebody else owned, without the entries of its
+own that let others change it, which that owner could have written.
 It then holds the installation to the rule an administrator's install of an update checks, which such an installation
 now passes, and says what it does not change - an entry of a file's own, a folder above the program folder that others
 may rename - on a `CHECK` line with the `icacls` that removes it. Setup also gives a program folder it makes those

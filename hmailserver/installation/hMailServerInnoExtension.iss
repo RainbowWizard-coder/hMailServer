@@ -281,6 +281,9 @@ const
 	HM_NO_PROPAGATE_INHERIT     = $04;
 	HM_INHERIT_ONLY             = $08;
 	HM_FOLDER_WRITE_RIGHTS      = $500D0156;
+	// Reading a file or listing a folder, or GENERIC_ALL unmapped
+	// (EveryUserMayRead).
+	HM_FOLDER_READ_RIGHTS       = $10000001;
 
   // Every dialog in this script is a SuppressibleMsgBox, and the reason is the
 // 6.2.19 release: the database setup failed on a clean machine, the failure
@@ -525,10 +528,71 @@ begin
       SuppressibleMsgBox(szText, mbInformation, MB_OK, IDOK);
 end;
 
+// Whether Everyone, Authenticated Users or Users may read what is in Folder, by an
+// allow entry that applies to it (BroadGroupSid's first three): what
+// ServiceAccount::Harden asks before it gives BUILTIN\Users Read & execute, so that
+// a folder made in one only the administrators may open does not become every
+// user's to read. True when it has no list at all; false when it cannot be read.
+function EveryUserMayRead(Folder: String): Boolean;
+var
+   szSid: String;
+   szName: String;
+   pDescriptor: cardinal;
+   pDacl: cardinal;
+   pAce: cardinal;
+   pBroad: cardinal;
+   info: ACL_SIZE_INFO;
+   head: ACE_START;
+   index: cardinal;
+   group: Integer;
+begin
+   Result := false;
+   pDescriptor := 0;
+   pDacl := 0;
+   if ReadFolderPermissions(Folder, HM_FILE_OBJECT, HM_DACL_INFORMATION, 0, 0, pDacl, 0, pDescriptor) <> 0 then
+      Exit;
+
+   if pDacl = 0 then
+      Result := true
+   else if ReadAclSize(pDacl, info, 12, HM_ACL_SIZE_INFORMATION) then
+   begin
+      index := 0;
+      while (not Result) and (index < info.AceCount) do
+      begin
+         pAce := 0;
+         if ReadAclEntry(pDacl, index, pAce) and (pAce <> 0) then
+         begin
+            CopyAceStart(head, pAce, 8);
+            if ((head.TypeFlagsSize and $FF) = HM_ACCESS_ALLOWED) and ((((head.TypeFlagsSize shr 8) and $FF) and HM_INHERIT_ONLY) = 0) and
+               ((head.Mask and HM_FOLDER_READ_RIGHTS) <> 0) then
+            begin
+               group := 0;
+               while (not Result) and (group < 3) do
+               begin
+                  szSid := BroadGroupSid(group, szName);
+                  pBroad := 0;
+                  if SidOfText(szSid, pBroad) then
+                  begin
+                     if SidsAreEqual(pAce + 8, pBroad) then
+                        Result := true;
+                     FreeWindowsMemory(pBroad);
+                  end;
+                  group := group + 1;
+               end;
+            end;
+         end;
+         index := index + 1;
+      end;
+   end;
+
+   FreeWindowsMemory(pDescriptor);
+end;
+
 // The program folder of a new installation, given the permissions hMailServer.exe
 // /ProtectFolders gives it (ServiceAccount::Harden) as soon as [Dirs] has made it,
 // before anything is copied into it: SYSTEM and the Administrators full control,
-// BUILTIN\Users Read & execute, handed down, and nothing the folder above hands
+// BUILTIN\Users Read & execute where every user could read the folder as it was made
+// (EveryUserMayRead), handed down, and nothing the folder above hands
 // down - by SID, which no language of Windows changes. A folder made at a drive's
 // root inherits Authenticated Users' Modify on a Windows client and Users' right to
 // make files and folders on Windows Server, so every program copied into it would be
@@ -541,14 +605,24 @@ procedure HardenNewProgramFolder();
 var
    ResultCode: Integer;
    szFolder: String;
+   szUsers: String;
+   szSaid: String;
 begin
    szFolder := RemoveBackslashUnlessRoot(ExpandConstant('{app}'));
    if (not g_bProgramFolderNew) or (Length(szFolder) <= 3) then
       Exit;
 
-   if Exec(ExpandConstant('{sys}\icacls.exe'), '"' + szFolder + '" /inheritance:r /grant:r *S-1-5-18:(OI)(CI)F *S-1-5-32-544:(OI)(CI)F *S-1-5-32-545:(OI)(CI)RX',
+   szUsers := '';
+   szSaid := 'no entry for Users, as no user could read it as it was made';
+   if EveryUserMayRead(szFolder) then
+   begin
+      szUsers := ' *S-1-5-32-545:(OI)(CI)RX';
+      szSaid := 'Users Read & execute';
+   end;
+
+   if Exec(ExpandConstant('{sys}\icacls.exe'), '"' + szFolder + '" /inheritance:r /grant:r *S-1-5-18:(OI)(CI)F *S-1-5-32-544:(OI)(CI)F' + szUsers,
            '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then
-      Log('icacls gave the new program folder ' + szFolder + ' its permissions - SYSTEM and the Administrators full control, Users Read & execute, nothing inherited - before the files, and returned ' + IntToStr(ResultCode) + '.')
+      Log('icacls gave the new program folder ' + szFolder + ' its permissions - SYSTEM and the Administrators full control, ' + szSaid + ', nothing inherited - before the files, and returned ' + IntToStr(ResultCode) + '.')
    else
       Log('icacls could not be run to give the new program folder ' + szFolder + ' its permissions before the files: ' + SysErrorMessage(ResultCode) + '. hMailServer.exe /ProtectFolders gives them after the files.');
 end;

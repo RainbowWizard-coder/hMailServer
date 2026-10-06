@@ -909,7 +909,9 @@ namespace RegressionTests.Installation
          Assert.Greater(rule, hardened, "/ProtectFolders does not hold the hardened installation to the rule of an administrator's install of an update.");
 
          // The shape: a fresh Read & execute for BUILTIN\Users, whatever the folder
-         // above handed it, so that the Control Panel and DBSetup still run for them;
+         // above handed them, where every user could read the folder before
+         // (EveryUserReads_), so that the Control Panel and DBSetup still run for
+         // them and nothing becomes every user's to read that was not;
          // nothing inherited; and the Administrators as the owner of a folder somebody
          // else owns, since an owner may always change the permissions again.
          Match rebuilt = Regex.Match(account, @"PACL RebuiltAcl_\([^)]*\)\s*\{(.*?)\n      \}", RegexOptions.Singleline);

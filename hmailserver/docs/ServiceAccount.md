@@ -425,7 +425,7 @@ Since 6.3.7 `/ProtectFolders` hardens the three, after the six:
 
 | What | Who reaches it afterwards |
 |---|---|
-| The program folder itself - the uninstaller, and what the folders in it inherit (`DBScripts`, `Languages`, `WebAdmin`, `Addons`) | SYSTEM and the Administrators, full control; `BUILTIN\Users` Read & execute; the Administrators its owner |
+| The program folder itself - the uninstaller, and what the folders in it inherit (`DBScripts`, `Languages`, `WebAdmin`, `Addons`) | SYSTEM and the Administrators, full control; `BUILTIN\Users` Read & execute where every user could read it before (Program Files, a drive's root), and no entry where no user could; the Administrators its owner |
 | `Bin`, and everything in it | The same; `NT SERVICE\hMailServer` Read & execute, the grant's, and Modify on `Bin\hMailServerApiKeys.ini` alone, the grant's, an entry of the file's own that stays |
 | `ControlPanel`, and everything in it | The same; `NT SERVICE\hMailServer` Read & execute, the grant's |
 
@@ -433,14 +433,21 @@ Since 6.3.7 `/ProtectFolders` hardens the three, after the six:
 its own is kept - the grant's Read for the service among them; SYSTEM and the
 Administrators get full control and `BUILTIN\Users` Read & execute, each handed down,
 the Users' a fresh entry whatever the folder above handed them, so that the Control
-Panel and `DBSetup` still run for an administrator whose programs run unelevated; and
-every inherited allow entry is dropped, the line naming those that gave a right to
-change it: `Authenticated Users` from a client's drive root, `Users` and `CREATOR
-OWNER` from a Windows Server's, and under Program Files TrustedInstaller and `CREATOR
-OWNER`. A folder somebody other than SYSTEM, the Administrators or TrustedInstaller
-owns (one a user made at a drive's root before the installation, which any user can)
-is given to the Administrators, and the line names the owner it had: an owner may
-change the permissions whatever they say. A file in `Bin` or `ControlPanel` with
+Panel and `DBSetup` still run for an administrator whose programs run unelevated -
+but only where `Everyone`, `Authenticated Users` or `Users` could read the folder
+before, as under Program Files and at a drive's root: in a folder made for the
+purpose that only the administrators may open, the Users get no entry, so that what
+the program folder holds besides the six (a backup, a key file, a data folder of
+another name) does not become every user's to read; and every inherited allow entry
+is dropped, the line naming those that gave a right to change it: `Authenticated
+Users` from a client's drive root, `Users` and `CREATOR OWNER` from a Windows
+Server's, and under Program Files TrustedInstaller and `CREATOR OWNER`. A folder
+somebody other than SYSTEM, the Administrators or TrustedInstaller owns (one a user
+made at a drive's root before the installation, which any user can) is given to the
+Administrators, and the line names the owner it had: an owner may change the
+permissions whatever they say, and so could have written the folder's own entries
+too - those that let anybody but SYSTEM, the Administrators and TrustedInstaller
+change it go with that owner, and are named. A file in `Bin` or `ControlPanel` with
 permissions of its own keeps them. A second run finds the three `already hardened`
 and changes nothing; under Program Files the first run of 6.3.7 makes the three's
 entries their own, and no account can then do anything there it could not before. The
@@ -470,7 +477,8 @@ so, in a box and in the setup log (the log alone for a silent installation, and 
 upgrade, whose folder page is not shown). It never refuses the folder: one made for
 the purpose off a drive's root is an administrator's choice, and the hardening is what
 closes it. A program folder setup makes is given SYSTEM's and the Administrators' full
-control and the Users' Read & execute, inheriting nothing, by `icacls` on the SIDs,
+control and - where every user could read it as it was made - the Users' Read &
+execute, inheriting nothing, by `icacls` on the SIDs,
 before any other folder is made in it or any file copied - so the programs are never
 there, even for the seconds before `/ProtectFolders`, with a weaker list.
 
@@ -483,8 +491,9 @@ icacls "C:\hMailServer\Bin" /inheritance:r /grant:r *S-1-5-18:(OI)(CI)F *S-1-5-3
 icacls "C:\hMailServer\ControlPanel" /inheritance:r /grant:r *S-1-5-18:(OI)(CI)F *S-1-5-32-544:(OI)(CI)F *S-1-5-32-545:(OI)(CI)RX
 ```
 
-The SIDs are SYSTEM, the Administrators and the Users in every language of Windows.
-The first walks the whole program folder, the message store included where 6.3.5 or
+The SIDs are SYSTEM, the Administrators and the Users in every language of Windows;
+where the folder above lets no user read the installation, leave out the Users' grant
+at the end of each line, as `/ProtectFolders` does. The first walks the whole program folder, the message store included where 6.3.5 or
 earlier left `Data` inheriting - minutes there, and `Data` then readable by Users until
 the upgrade's `/ProtectFolders` makes it private. The service's entries on
 `Bin` and `ControlPanel` and on `Bin\hMailServerApiKeys.ini` are their own and stay;
@@ -1171,12 +1180,16 @@ puts back, as HM5481 ([Upgrading.md](Upgrading.md), "If the upgrade fails").
   hardens: in memory (`TestHardenedShape_`, which needs no administrator), the
   permissions built from what a Windows client's drive root, a Windows Server's,
   Program Files, an inherited Modify or Read for the service, a deny entry beside an
-  administrator's entry, and no list at all hand a folder down, each held to the
-  rule of an administrator's install of an update and passing it, nobody but SYSTEM,
-  the Administrators and TrustedInstaller left to write, the dropped entries that
-  gave a right to write named and the Users' Read not, the grant's Read, the deny
-  (first) and the administrator's entry kept, and taken for hardened only when
-  protected and the Administrators' to own; and on the disk (`TestHarden_`), an
+  administrator's entry, no list at all and a folder only the administrators may
+  open hand a folder down, each held to the rule of an administrator's install of an
+  update and passing it, nobody but SYSTEM, the Administrators and TrustedInstaller
+  left to write, the Users' Read & execute given where every user could read before
+  and no entry for them where none could, the dropped entries that gave a right to
+  write named and the Users' Read not, the grant's Read, the deny (first) and the
+  administrator's entry kept, and taken for hardened only when protected and the
+  Administrators' to own; a folder a user made with entries of its own for itself
+  and Everyone keeping them while the Administrators own it and losing them, named,
+  when its owner is not trusted; and on the disk (`TestHarden_`), an
   installation of the tester's own under a folder that hands down what a client's
   drive root does - the program folder with the uninstaller, `Bin` with the server, a
   library, `hMailServer.INI` private and the key store, `ControlPanel` - which
@@ -1185,8 +1198,8 @@ puts back, as HM5481 ([Upgrading.md](Upgrading.md), "If the upgrade fails").
   Users still read and run them, the grant's entries and the key store's Modify kept,
   the rule passing every folder, program and library, a second run changing nothing,
   an entry an administrator gives Users afterwards kept and named by the rule, and a
-  `Bin` a user owns given to the Administrators (where the tester runs as an
-  administrator's own account).
+  `Bin` a user owns given to the Administrators, the Modify that user gave itself
+  taken away (where the tester runs as an administrator's own account).
 * `Installation/InstallerPackaging.cs`: the page's three forms and its defaults,
   `/serviceaccount=`, the word `/Register` is given and that `hMailServer.exe`
   knows it, that nothing reads `ServiceAccountName` any more, the registration
@@ -1198,8 +1211,9 @@ puts back, as HM5481 ([Upgrading.md](Upgrading.md), "If the upgrade fails").
   program folder's own six from where it is, holding each from the drive's root,
   and giving the service Read on `hMailServer.INI`; and the verb hardening the
   program folder, `Bin` and `ControlPanel` after the six, through the pin, the program
-  folder not while one of the six failed, with a fresh Read & execute for Users,
-  nothing inherited and the Administrators as owner, then holding the installation to
+  folder not while one of the six failed, with a fresh Read & execute for Users
+  where every user could read before, nothing inherited and the Administrators as
+  owner, then holding the installation to
   the rule of an administrator's install; setup's message naming them, the program
   folder the first `[Dirs]` makes and given its permissions by SID before anything
   else, and the folder page saying, in a suppressible box and the log, and never
