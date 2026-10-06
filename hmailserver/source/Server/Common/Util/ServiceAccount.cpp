@@ -26,6 +26,7 @@
 #include <knownfolders.h>
 #include <openssl/evp.h>
 
+#include "AdminUpdateChecks.h"
 #include "FileUtilities.h"
 #include "GUIDCreator.h"
 #include "ProtectedFile.h"
@@ -1332,9 +1333,13 @@ namespace HM
       }
 
       // Whether an allow entry that applies to path lets one of sids write it:
-      // add or change files in a folder, or change a file. The name of the first
-      // that may, or empty. What the grant checks the program folder and
-      // hMailServer.INI against, and says - it removes nobody's entry.
+      // add, change or delete files in a folder, change or delete a file, or
+      // change who may (AdminUpdateChecks::WriteRights, the rule an
+      // administrator's install of an update holds the program's folders to).
+      // The name of the first that may, or empty. What the grant checks the
+      // program folder and hMailServer.INI against, and says - it removes
+      // nobody's entry. Until 6.3.7 it did not count deleting what is in a
+      // folder, or changing a file's attributes.
       String WritableBy_(const String &path, const std::vector<String> &sids)
       {
          Permissions_ permissions;
@@ -1346,7 +1351,7 @@ namespace HM
          if (!GetAclInformation(permissions.dacl, &size, sizeof(size), AclSizeInformation))
             return String();
 
-         const DWORD writes = FILE_WRITE_DATA | FILE_APPEND_DATA | WRITE_DAC | WRITE_OWNER | DELETE;
+         const DWORD writes = AdminUpdateChecks::WriteRights;
          for (DWORD index = 0; index < size.AceCount; index++)
          {
             LPVOID entry = nullptr;
@@ -1422,9 +1427,9 @@ namespace HM
       }
 
       // The broad groups (IsBroad_) an allow entry that applies to what is at path
-      // lets read it - list a folder, read a file - each as its name and its SID.
-      // Empty when none may, or when the permissions cannot be read.
-      std::vector<std::pair<String, String> > ReadableByBroad_(const String &path)
+      // gives one of the rights, each as its name and its SID. Empty when none
+      // has one, or when the permissions cannot be read.
+      std::vector<std::pair<String, String> > BroadWithRights_(const String &path, DWORD rights)
       {
          std::vector<std::pair<String, String> > who;
          Permissions_ permissions;
@@ -1452,7 +1457,7 @@ namespace HM
                continue;
 
             const ACCESS_ALLOWED_ACE *allow = (const ACCESS_ALLOWED_ACE *) entry;
-            if ((FileRights_(allow->Mask) & FILE_READ_DATA) == 0)
+            if ((FileRights_(allow->Mask) & rights) == 0)
                continue;
 
             const String sidText = SidText_((PSID) &allow->SidStart);
@@ -1467,6 +1472,20 @@ namespace HM
          }
 
          return who;
+      }
+
+      // The broad groups that may read what is at path - list a folder, read a
+      // file: what the program's secrets are closed to.
+      std::vector<std::pair<String, String> > ReadableByBroad_(const String &path)
+      {
+         return BroadWithRights_(path, FILE_READ_DATA);
+      }
+
+      // The broad groups that may change what is at path: what the program's own
+      // folders are closed to (ServiceAccount::Harden).
+      std::vector<std::pair<String, String> > WritableByBroad_(const String &path)
+      {
+         return BroadWithRights_(path, AdminUpdateChecks::WriteRights);
       }
 
       // The names alone, "A, B and C".
@@ -1490,10 +1509,12 @@ namespace HM
 
       // Whether permissions are already what PrivateAcl_ makes: inherited from
       // nothing - so nothing a folder above hands down reaches it - and, with
-      // serviceReads, letting the service's SID read.
+      // serviceReads, letting the service's SID read. A list that is not there at
+      // all, which is everybody's full control, is not private however it is
+      // marked.
       bool AlreadyPrivate_(const Permissions_ &permissions, PSID service, bool serviceReads)
       {
-         if (!IsProtected_(permissions))
+         if (!IsProtected_(permissions) || permissions.dacl == nullptr)
             return false;
          if (!serviceReads)
             return true;
@@ -1502,38 +1523,62 @@ namespace HM
          return Covers_(permissions.dacl, service, ServiceAccount::RightsRead, false, explicitDeny, inheritedDeny);
       }
 
-      // The permissions a folder or a file of the server's secrets is given: no
-      // longer inherited, so that what the folder above hands down - Users' Read
-      // from Program Files, the right to make files and folders that a folder at
-      // a drive's root hands every user on Windows Server, Authenticated Users'
-      // Modify on a Windows client - stops here. Of what it had:
+      // What a list of permissions is rebuilt for: a folder or a file of the
+      // server's secrets, private to the administrators and the service
+      // (PrivateAcl_), or a folder of its programs, which every user may read
+      // and run and nobody but SYSTEM and the administrators may change
+      // (HardenedAcl_).
+      enum AclShape_
+      {
+         ShapePrivate_,
+         ShapeHardened_
+      };
+
+      // The permissions a folder or a file is rebuilt with: no longer inherited,
+      // so that what the folder above hands down - Users' Read from Program
+      // Files, the right to make files and folders that a folder at a drive's
+      // root hands every user on Windows Server, Authenticated Users' Modify on a
+      // Windows client - stops here. Of what it had:
       //   - every deny entry is kept, an inherited one as an entry of its own -
       //     a deny only ever takes away;
       //   - every explicit entry is kept: an administrator's own, and what
       //     /GrantServiceAccess gave the service's SID;
       //   - an inherited allow entry for the service's SID is kept as an entry of
-      //     its own - the Read on hMailServer.INI that Bin's grant hands down;
+      //     its own - the Read on hMailServer.INI that Bin's grant hands down -
+      //     and, on a program folder (ShapeHardened_), only while it gives no
+      //     right to write (AdminUpdateChecks::WriteRights);
       //   - SYSTEM and the Administrators get full control, handed down to
       //     everything below, in place of what they inherited;
       //   - every other inherited allow entry is dropped, and named in dropped -
       //     BUILTIN\Users, ALL APPLICATION PACKAGES, CREATOR OWNER and the rest;
+      //     on a program folder only one that gave a right to write is named,
+      //     Authenticated Users' Modify from a drive's root above all, since
+      //     what may read and run there is given back by the entry below;
+      //   - on a program folder (ShapeHardened_), BUILTIN\Users gets Read &
+      //     execute, handed down, when nothing of its own gives it that - a fresh
+      //     entry, whatever the folder above handed it, so that the folder ends
+      //     as Program Files leaves one, whoever set up the folder above;
       //   - with serviceReads, the service's SID gets Read when nothing above
       //     gives it that: hMailServer.INI, which the service reads under every
       //     account and writes under none but LocalSystem.
       // Deny entries first, as Windows' canonical order has them. nullptr, with
       // detail, when it cannot be built.
-      PACL PrivateAcl_(PACL existing, PSID service, bool directory, bool serviceReads, std::vector<BYTE> &buffer, std::vector<String> &dropped, String &detail)
+      PACL RebuiltAcl_(PACL existing, PSID service, bool directory, AclShape_ shape, bool serviceReads, std::vector<BYTE> &buffer, std::vector<String> &dropped, String &detail)
       {
          BYTE systemBuffer[SECURITY_MAX_SID_SIZE];
          BYTE administratorsBuffer[SECURITY_MAX_SID_SIZE];
+         BYTE usersBuffer[SECURITY_MAX_SID_SIZE];
          DWORD systemSize = sizeof(systemBuffer);
          DWORD administratorsSize = sizeof(administratorsBuffer);
+         DWORD usersSize = sizeof(usersBuffer);
          PSID system = (PSID) systemBuffer;
          PSID administrators = (PSID) administratorsBuffer;
+         PSID users = (PSID) usersBuffer;
          if (!CreateWellKnownSid(WinLocalSystemSid, nullptr, system, &systemSize) ||
-             !CreateWellKnownSid(WinBuiltinAdministratorsSid, nullptr, administrators, &administratorsSize))
+             !CreateWellKnownSid(WinBuiltinAdministratorsSid, nullptr, administrators, &administratorsSize) ||
+             !CreateWellKnownSid(WinBuiltinUsersSid, nullptr, users, &usersSize))
          {
-            detail = Formatter::Format(_T("the SIDs of SYSTEM and the Administrators could not be made (Windows error {0})"), (int) GetLastError());
+            detail = Formatter::Format(_T("the SIDs of SYSTEM, the Administrators and the Users could not be made (Windows error {0})"), (int) GetLastError());
             return nullptr;
          }
 
@@ -1552,6 +1597,9 @@ namespace HM
                revision = ACL_REVISION_DS;
          }
 
+         // At most three entries added: SYSTEM's and the Administrators', and the
+         // service's Read (ShapePrivate_) or the Users' Read & execute
+         // (ShapeHardened_).
          const DWORD extra = 3 * (DWORD) (sizeof(ACCESS_ALLOWED_ACE) + SECURITY_MAX_SID_SIZE);
          const DWORD aclSize = (size.AclBytesInUse + extra + sizeof(DWORD) - 1) & ~((DWORD) sizeof(DWORD) - 1);
          buffer.assign(aclSize, 0);
@@ -1572,6 +1620,12 @@ namespace HM
                return true;
             detail = Formatter::Format(_T("an existing entry could not be copied (Windows error {0})"), (int) GetLastError());
             return false;
+         };
+
+         auto name = [&](const String &dropping)
+         {
+            if (std::find(dropped.begin(), dropped.end(), dropping) == dropped.end())
+               dropped.push_back(dropping);
          };
 
          const BYTE handDown = directory ? (BYTE) (OBJECT_INHERIT_ACE | CONTAINER_INHERIT_ACE) : (BYTE) 0;
@@ -1633,29 +1687,39 @@ namespace HM
 
                if (header->AceType != ACCESS_ALLOWED_ACE_TYPE)
                {
-                  const String kind = _T("an inherited entry of another kind");
-                  if (std::find(dropped.begin(), dropped.end(), kind) == dropped.end())
-                     dropped.push_back(kind);
+                  name(_T("an inherited entry of another kind"));
                   continue;
                }
 
-               const PSID who = (PSID) &((const ACCESS_ALLOWED_ACE *) entry)->SidStart;
-               if (EqualSid(who, service))
+               const ACCESS_ALLOWED_ACE *allow = (const ACCESS_ALLOWED_ACE *) entry;
+               const PSID who = (PSID) &allow->SidStart;
+               const bool writes = (FileRights_(allow->Mask) & AdminUpdateChecks::WriteRights) != 0;
+               if (EqualSid(who, service) && (shape == ShapePrivate_ || !writes))
                {
                   if (!copyOwn(header))
                      return nullptr;
                }
                else if (!EqualSid(who, system) && !EqualSid(who, administrators))
                {
-                  const String name = AccountName_(who);
-                  if (std::find(dropped.begin(), dropped.end(), name) == dropped.end())
-                     dropped.push_back(name);
+                  if (shape == ShapePrivate_ || writes)
+                     name(AccountName_(who));
                }
             }
          }
 
          bool explicitDeny = false;
          bool inheritedDeny = false;
+         if (shape == ShapeHardened_ && !Covers_(acl, users, ServiceAccount::RightsReadExecute, directory, explicitDeny, inheritedDeny) && !explicitDeny)
+         {
+            if (!AddAccessAllowedAceEx(acl, revision, handDown, ServiceAccount::RightsReadExecute, users))
+            {
+               detail = Formatter::Format(_T("the Users' Read & execute could not be added (Windows error {0})"), (int) GetLastError());
+               return nullptr;
+            }
+         }
+
+         explicitDeny = false;
+         inheritedDeny = false;
          if (serviceReads && !Covers_(acl, service, ServiceAccount::RightsRead, false, explicitDeny, inheritedDeny) && !explicitDeny)
          {
             if (!AddAccessAllowedAceEx(acl, revision, handDown, ServiceAccount::RightsRead, service))
@@ -1666,6 +1730,54 @@ namespace HM
          }
 
          return acl;
+      }
+
+      // The permissions a folder or a file of the server's secrets is given
+      // (RebuiltAcl_, ShapePrivate_).
+      PACL PrivateAcl_(PACL existing, PSID service, bool directory, bool serviceReads, std::vector<BYTE> &buffer, std::vector<String> &dropped, String &detail)
+      {
+         return RebuiltAcl_(existing, service, directory, ShapePrivate_, serviceReads, buffer, dropped, detail);
+      }
+
+      // The permissions a folder of the server's programs is given - the program
+      // folder, Bin, ControlPanel (RebuiltAcl_, ShapeHardened_): SYSTEM and the
+      // Administrators with full control, BUILTIN\Users Read & execute, each
+      // handed down, and nothing the folder above hands down.
+      PACL HardenedAcl_(PACL existing, PSID service, bool directory, std::vector<BYTE> &buffer, std::vector<String> &dropped, String &detail)
+      {
+         return RebuiltAcl_(existing, service, directory, ShapeHardened_, false, buffer, dropped, detail);
+      }
+
+      // Whether a program folder's permissions and owner are already what
+      // ServiceAccount::Harden makes: a list that is there and inherits nothing;
+      // SYSTEM and the Administrators with full control and BUILTIN\Users Read &
+      // execute, on a directory each reaching both the folders and the files
+      // below it - or, for Users, an explicit deny entry an administrator put
+      // there instead; and an owner that is SYSTEM, the Administrators or
+      // TrustedInstaller, since an owner may always change the permissions. An
+      // entry of the folder's own that lets a broad group write is the
+      // administrator's, kept, and said by the CHECK after the hardening.
+      bool AlreadyHardened_(PACL dacl, bool isProtected, PSID owner, bool directory)
+      {
+         if (!isProtected || dacl == nullptr || owner == nullptr || !IsTrustedWriter_(owner))
+            return false;
+
+         const WELL_KNOWN_SID_TYPE kinds[] = { WinLocalSystemSid, WinBuiltinAdministratorsSid, WinBuiltinUsersSid };
+         for (WELL_KNOWN_SID_TYPE kind : kinds)
+         {
+            BYTE sidBuffer[SECURITY_MAX_SID_SIZE];
+            DWORD sidSize = sizeof(sidBuffer);
+            if (!CreateWellKnownSid(kind, nullptr, (PSID) sidBuffer, &sidSize))
+               return false;
+
+            const bool users = kind == WinBuiltinUsersSid;
+            bool explicitDeny = false;
+            bool inheritedDeny = false;
+            const bool covered = Covers_(dacl, (PSID) sidBuffer, users ? ServiceAccount::RightsReadExecute : FILE_ALL_ACCESS, directory, explicitDeny, inheritedDeny);
+            if (!covered && !(users && explicitDeny))
+               return false;
+         }
+         return true;
       }
 
       // The names dropped, "A, B and C".
@@ -2470,7 +2582,10 @@ namespace HM
 
       // What nobody should be able to write, and the service least: the
       // program folder, Bin, and hMailServer.INI. Said, not changed - the grant
-      // removes nobody's entry - with what to run.
+      // removes nobody's entry - with what to run. /ProtectFolders, which setup
+      // runs at every installation and upgrade before this, takes away an entry
+      // any of them inherits (Harden, and hMailServer.INI made private); what
+      // is left to say is an entry of its own, which an administrator gave.
       std::vector<String> broad;
       broad.push_back(sid);
       broad.push_back(_T("S-1-1-0"));
@@ -2488,7 +2603,7 @@ namespace HM
             continue;
 
          checks++;
-         SayLine_(true, Formatter::Format(_T("  CHECK           {0} - {1}: {2} may write it, and the service is {2} or one of them. Take that entry away - icacls \"{0}\" /inheritance:d, then icacls \"{0}\" /remove:g *{2} - or the service can change what runs elevated."),
+         SayLine_(true, Formatter::Format(_T("  CHECK           {0} - {1}: {2} may write it, and the service is {2} or one of them, so it can change what runs elevated. hMailServer.exe /ProtectFolders, run from an elevated prompt in the Bin folder - setup runs it at every installation and upgrade - takes away an entry it inherits; one of its own stays until icacls \"{0}\" /remove:g *{2} takes it away."),
             item.first, item.second, who));
       }
 
@@ -2559,6 +2674,78 @@ namespace HM
       return GrantMade;
    }
 
+   // ---- the program's own folders, the administrators' alone to change
+
+   ServiceAccount::GrantResult
+   ServiceAccount::Harden(const String &path, const String &sid, bool directory, String &detail, std::vector<String> &dropped, String &formerOwner)
+   {
+      detail.Empty();
+      dropped.clear();
+      formerOwner.Empty();
+
+      PSID binary = nullptr;
+      if (!ConvertStringSidToSidW(sid.c_str(), &binary))
+      {
+         detail = Formatter::Format(_T("{0} is not a SID"), sid);
+         return GrantFailed;
+      }
+      SidRelease_ release(binary);
+
+      BYTE administratorsBuffer[SECURITY_MAX_SID_SIZE];
+      DWORD administratorsSize = sizeof(administratorsBuffer);
+      PSID administrators = (PSID) administratorsBuffer;
+      if (!CreateWellKnownSid(WinBuiltinAdministratorsSid, nullptr, administrators, &administratorsSize))
+      {
+         detail = Formatter::Format(_T("the Administrators' SID could not be made (Windows error {0})"), (int) GetLastError());
+         return GrantFailed;
+      }
+
+      // The owner as well as the list: an owner may always read and change the
+      // permissions, whatever they say, so a folder a user made at a drive's root
+      // before an administrator installed into it would stay that user's to open
+      // again.
+      Permissions_ permissions;
+      PSID owner = nullptr;
+      const DWORD read = GetNamedSecurityInfoW(path.c_str(), SE_FILE_OBJECT, OWNER_SECURITY_INFORMATION | DACL_SECURITY_INFORMATION,
+         &owner, nullptr, &permissions.dacl, nullptr, &permissions.descriptor);
+      if (read != ERROR_SUCCESS)
+      {
+         detail = Formatter::Format(_T("its permissions could not be read (Windows error {0})"), (int) read);
+         return GrantFailed;
+      }
+      if (AlreadyHardened_(permissions.dacl, IsProtected_(permissions), owner, directory))
+         return GrantAlreadyThere;
+
+      std::vector<BYTE> buffer;
+      PACL acl = HardenedAcl_(permissions.dacl, binary, directory, buffer, dropped, detail);
+      if (acl == nullptr)
+         return GrantFailed;
+
+      SECURITY_INFORMATION which = DACL_SECURITY_INFORMATION | PROTECTED_DACL_SECURITY_INFORMATION;
+      PSID newOwner = nullptr;
+      if (owner == nullptr || !IsTrustedWriter_(owner))
+      {
+         which |= OWNER_SECURITY_INFORMATION;
+         newOwner = administrators;
+         formerOwner = owner == nullptr ? String(_T("nobody")) : AccountName_(owner);
+      }
+
+      // Windows hands the new entries down to everything below the folder as
+      // part of this call and takes away what the folder handed down before; a
+      // file or folder below with permissions of its own - hMailServer.INI made
+      // private, Data and the rest - is left as it is, and an entry of a file's
+      // own, the service's Modify on the REST API's key store among them, stays.
+      std::wstring writable(path.c_str());
+      const DWORD result = SetNamedSecurityInfoW(&writable[0], SE_FILE_OBJECT, which, newOwner, nullptr, acl, nullptr);
+      if (result != ERROR_SUCCESS)
+      {
+         formerOwner.Empty();
+         detail = Formatter::Format(_T("its permissions could not be written (Windows error {0})"), (int) result);
+         return GrantFailed;
+      }
+      return GrantMade;
+   }
+
    int
    ServiceAccount::RunProtectCommand(const ProtectOptions &options)
    {
@@ -2570,7 +2757,7 @@ namespace HM
 
       if (!ProcessIsAdministrator())
       {
-         SayLine_(true, _T("hMailServer.exe /ProtectFolders changes the permissions of the program's data, log, temp, database and event folders and of hMailServer.INI, which takes an administrator: run it from an elevated Command Prompt. Nothing was changed."));
+         SayLine_(true, _T("hMailServer.exe /ProtectFolders changes the permissions of the program's data, log, temp, database and event folders, of hMailServer.INI, and of the program folder, Bin and ControlPanel, which takes an administrator: run it from an elevated Command Prompt. Nothing was changed."));
          return 3;
       }
 
@@ -2600,9 +2787,16 @@ namespace HM
 
       int made = 0;
       int there = 0;
+      int hardened = 0;
+      int hardenedThere = 0;
       int failed = 0;
       int checks = 0;
       std::vector<String> notes;
+
+      // Set when one of the folders below that are made private is there and
+      // could not be: the program folder's permissions are then not changed
+      // (below), since Windows would hand them down through it.
+      bool secretFolderFailed = false;
 
       // From trusted places alone: the program folder this binary is in, as the
       // grant takes its folders. A folder hMailServer.INI or the database names
@@ -2697,6 +2891,8 @@ namespace HM
          else
          {
             failed++;
+            if (secret.directory)
+               secretFolderFailed = true;
             SayLine_(true, Formatter::Format(_T("  FAILED          {0} - {1}: {2}"), target, secret.what, detail));
             continue;
          }
@@ -2705,6 +2901,152 @@ namespace HM
             SayLine_(false, Formatter::Format(_T("                  through a link only the administrators may change, to {0}."), through));
 
          checkKept(target, readPath);
+      }
+
+      // The program folder, Bin and ControlPanel: hardened (Harden), not made
+      // private - BUILTIN\Users runs the Control Panel and DBSetup from them,
+      // and the service, under any account, its own programs - so that nobody
+      // but SYSTEM and the Administrators may change a program the service runs
+      // or an administrator runs elevated, a library beside it, or the
+      // uninstaller. Under Program Files that is what the folder above hands
+      // down already. At a drive's root it is not: on a Windows client every
+      // folder made there inherits Authenticated Users' Modify, and on Windows
+      // Server Users' right to make files and folders in it, so that any user of
+      // the computer could replace hMailServer.exe, or put a DLL in Bin that
+      // Windows loads into it before its own (the application folder is searched
+      // first), which the service and the administrator's next elevated program
+      // would run. Until 6.3.7 nothing changed that; /GrantServiceAccess said
+      // CHECK, under the virtual account alone.
+      //
+      // After the six, so that the message store is behind Data's own permissions
+      // before the program folder's change is handed down: Windows hands the
+      // program folder's new permissions down to every folder in it that
+      // inherits, and through a Data that could not be made private, to every
+      // message in it. So the program folder is left as it is while a folder of
+      // the six could not be made private; Bin and ControlPanel do not hold the
+      // message store, and are hardened all the same. What is in them with
+      // permissions of its own is not changed, and the check after them says it.
+      struct ProgramFolder_
+      {
+         String path;
+         String what;
+      };
+      std::vector<ProgramFolder_> programFolders;
+      programFolders.push_back({ program, _T("the program folder: the uninstaller, and what the folders in it inherit") });
+      programFolders.push_back({ bin, _T("the server, and the programs and libraries an administrator runs elevated") });
+      programFolders.push_back({ FileUtilities::Combine(program, _T("ControlPanel")), _T("the Control Panel, which an administrator runs elevated") });
+
+      SayLine_(false, _T("Each of these is hardened: SYSTEM and the Administrators have full control and BUILTIN\\Users Read & execute, handed down; every deny entry and every entry of its own is kept, and its owner made the Administrators when it is not SYSTEM, the Administrators or TrustedInstaller; and nothing the folder above hands down reaches it - the Modify that a drive's root hands Authenticated Users on a Windows client above all, which let every user of this computer replace the programs the service and the administrators run."));
+
+      for (const ProgramFolder_ &folder : programFolders)
+      {
+         const String target = Normalised_(folder.path);
+         if (GetFileAttributesW(target.c_str()) == INVALID_FILE_ATTRIBUTES)
+         {
+            notes.push_back(Formatter::Format(_T("{0} does not exist, so it is not hardened ({1})."), target, folder.what));
+            continue;
+         }
+
+         if (options.reportOnly)
+         {
+            const std::vector<std::pair<String, String> > who = WritableByBroad_(target);
+            SayLine_(false, Formatter::Format(_T("  would harden    {0} - {1}{2}"), target, folder.what,
+               who.empty() ? String() : Formatter::Format(_T("; {0} may change it now"), NamesOf_(who))));
+            continue;
+         }
+
+         if (secretFolderFailed && SamePath_(target, program))
+         {
+            failed++;
+            SayLine_(true, Formatter::Format(_T("  FAILED          {0} - {1}: not changed while a folder in it above could not be made private, since Windows would hand its permissions down through that folder and everything in it. Run this again once that folder can be made private."),
+               target, folder.what));
+            continue;
+         }
+
+         String detail;
+         std::vector<String> dropped;
+         String formerOwner;
+         String through;
+         GrantResult result = GrantFailed;
+         PathPin_ pin;
+         if (!pin.Pin(target, detail, &guarded))
+         {
+            if (pin.Missing())
+            {
+               notes.push_back(Formatter::Format(_T("{0} does not exist, so it is not hardened ({1})."), target, folder.what));
+               continue;
+            }
+         }
+         else
+         {
+            result = Harden(pin.GrantPath(target), sid, true, detail, dropped, formerOwner);
+            through = pin.Through();
+         }
+
+         if (result == GrantMade)
+         {
+            hardened++;
+            SayLine_(false, Formatter::Format(_T("  hardened        {0} - {1}"), target, folder.what));
+            if (!dropped.empty())
+               SayLine_(false, Formatter::Format(_T("                  no longer handed down to it, with the right to change it: {0}."), DroppedNames_(dropped)));
+            if (!formerOwner.IsEmpty())
+               SayLine_(false, Formatter::Format(_T("                  its owner was {0}, who could have changed its permissions again; it is now the Administrators."), formerOwner));
+         }
+         else if (result == GrantAlreadyThere)
+         {
+            hardenedThere++;
+            SayLine_(false, Formatter::Format(_T("  already hardened {0} - {1}"), target, folder.what));
+         }
+         else
+         {
+            failed++;
+            SayLine_(true, Formatter::Format(_T("  FAILED          {0} - {1}: {2}"), target, folder.what, detail));
+            continue;
+         }
+
+         if (!through.IsEmpty())
+            SayLine_(false, Formatter::Format(_T("                  through a link only the administrators may change, to {0}."), through));
+      }
+
+      // The rule an administrator's install of an update holds the installation
+      // to before it runs anything from it (AdminUpdateChecks::CheckInstallation):
+      // the folders above the program folder, the program folder, Bin and
+      // ControlPanel with every folder, program and library in them,
+      // hMailServer.INI and AdminUpdate. What the hardening above makes passes
+      // it, so the two agree; what it leaves - an entry of a file's or a
+      // folder's own, which an administrator gave, an owner that is not SYSTEM,
+      // the Administrators or TrustedInstaller, a folder above the program
+      // folder - is said with the command that removes it, as that install
+      // would name it, and never changed here: the first that fails, as the
+      // install stops at it.
+      if (!options.reportOnly)
+      {
+         AdminUpdateChecks::Finding finding;
+         if (!AdminUpdateChecks::CheckInstallation(std::wstring(program.c_str()), std::vector<std::wstring>(), finding))
+         {
+            checks++;
+            const String object = finding.object.c_str();
+            if (!finding.reason.empty())
+            {
+               SayLine_(true, Formatter::Format(_T("  CHECK           {0} - {1}. An administrator's install of an update from the Control Panel refuses to start while it is so."),
+                  object, String(finding.reason.c_str())));
+            }
+            else
+            {
+               String how;
+               if (finding.owner)
+                  how = _T("as its owner, who may change its permissions");
+               else if (finding.inherited && !finding.inheritedFrom.empty())
+                  how = Formatter::Format(_T("by an entry it inherits from {0}"), String(finding.inheritedFrom.c_str()));
+               else if (finding.inherited)
+                  how = _T("by an entry it inherits");
+               else
+                  how = _T("by an entry of its own, which an administrator gave and which is kept");
+               const String who = Formatter::Format(_T("{0} ({1})"), String(finding.principal.c_str()), String(finding.sid.c_str()));
+               SayLine_(true, Formatter::Format(_T("  CHECK           {0} - {1} may {2}, {3}: a program an administrator runs from the installation could be one that account put there, and an administrator's install of an update from the Control Panel refuses to start while it can. Nothing outside the program folder, Bin and ControlPanel's own permissions is changed here. To take it away: {4}"),
+                  object, who, String(finding.right.c_str()), how, String(finding.fix.c_str())));
+            }
+         }
       }
 
       // Each file or folder checked below once, by its full path.
@@ -2799,7 +3141,8 @@ namespace HM
       for (const String &note : notes)
          SayLine_(false, note);
 
-      SayLine_(failed > 0, Formatter::Format(_T("Done: {0} made private, {1} already private, {2} failed, {3} to check."), made, there, failed, checks));
+      SayLine_(failed > 0, Formatter::Format(_T("Done: {0} made private, {1} already private, {2} hardened, {3} already hardened, "), made, there, hardened, hardenedThere) +
+         Formatter::Format(_T("{0} failed, {1} to check."), failed, checks));
       return failed > 0 ? 1 : 0;
    }
 
@@ -3674,6 +4017,403 @@ namespace HM
          if (ServiceAccount::Protect(secret, sid, true, false, detail, dropped) != ServiceAccount::GrantAlreadyThere || ReadableByBroad_(secret).empty())
             FailGrant_(_T("/ProtectFolders took away an entry of the folder's own that an administrator gave."));
       }
+
+      // The allow entries for sid in a list, inherited or not, as mask and flags.
+      std::vector<std::pair<DWORD, BYTE>> AllowsFor_(PACL acl, PSID sid)
+      {
+         std::vector<std::pair<DWORD, BYTE>> entries;
+         ACL_SIZE_INFORMATION size;
+         if (acl == nullptr || !GetAclInformation(acl, &size, sizeof(size), AclSizeInformation))
+            return entries;
+         for (DWORD index = 0; index < size.AceCount; index++)
+         {
+            LPVOID entry = nullptr;
+            if (!GetAce(acl, index, &entry) || entry == nullptr)
+               continue;
+            const ACE_HEADER *header = (const ACE_HEADER *) entry;
+            if (header->AceType != ACCESS_ALLOWED_ACE_TYPE)
+               continue;
+            const ACCESS_ALLOWED_ACE *allow = (const ACCESS_ALLOWED_ACE *) entry;
+            if (EqualSid((PSID) &allow->SidStart, sid))
+               entries.push_back(std::make_pair(allow->Mask, header->AceFlags));
+         }
+         return entries;
+      }
+
+      // The first allow entry in a list - one that applies or one only handed
+      // down - that gives somebody but SYSTEM, the Administrators or
+      // TrustedInstaller a right to write: what a hardened folder, and what is
+      // made in it, may not hold. Empty when there is none.
+      String UntrustedWriter_(PACL acl)
+      {
+         ACL_SIZE_INFORMATION size;
+         if (acl == nullptr)
+            return _T("Everyone (no list at all)");
+         if (!GetAclInformation(acl, &size, sizeof(size), AclSizeInformation))
+            return _T("(the list could not be read)");
+         for (DWORD index = 0; index < size.AceCount; index++)
+         {
+            LPVOID entry = nullptr;
+            if (!GetAce(acl, index, &entry) || entry == nullptr)
+               continue;
+            const ACE_HEADER *header = (const ACE_HEADER *) entry;
+            if (IsDenyEntry_(header->AceType))
+               continue;
+            if (header->AceType != ACCESS_ALLOWED_ACE_TYPE)
+               return _T("(an allow entry of another kind)");
+            const ACCESS_ALLOWED_ACE *allow = (const ACCESS_ALLOWED_ACE *) entry;
+            if ((FileRights_(allow->Mask) & AdminUpdateChecks::WriteRights) != 0 && !IsTrustedWriter_((PSID) &allow->SidStart))
+               return SidText_((PSID) &allow->SidStart);
+         }
+         return String();
+      }
+
+      // What Harden builds for a program folder (HardenedAcl_) from what each
+      // kind of folder above hands one down, held to the rule an administrator's
+      // install of an update holds the program folder, Bin and ControlPanel to
+      // (AdminUpdateChecks::EvaluateDescriptor, PlaceInside), in memory - so
+      // that it runs for a tester that is no administrator too. A folder at a
+      // Windows client's drive root, whose Authenticated Users' Modify fails the
+      // rule before, and Windows Server's, whose Users may make files and
+      // folders in it and CREATOR OWNER have full control of them; a folder in
+      // Program Files, which passes before; one an inherited Modify for the
+      // service reaches, and one its inherited Read does; one with a deny entry
+      // and an administrator's entry of its own; and one with no list at all.
+      // After: each passes the rule, nobody but SYSTEM, the Administrators and
+      // TrustedInstaller may write it or what is made in it, SYSTEM and the
+      // Administrators have full control and Users Read & execute handed down,
+      // the entries that gave a right to write are named and Users' Read is not,
+      // the grant's Read, the deny (first) and the administrator's entry are
+      // kept; and AlreadyHardened_ takes the list for hardened when it is
+      // protected and the Administrators own it, and not when it is not
+      // protected or a user owns it.
+      void TestHardenedShape_(const String &sid, const String &other)
+      {
+         struct Shape_
+         {
+            String what;
+            String sddl;
+            bool passesBefore;
+            String droppedSid;
+            String notDroppedSid;
+            String keptSid;
+         };
+
+         const String trustedInstaller = AdminUpdateChecks::TrustedInstallerSid;
+         std::vector<Shape_> shapes;
+         shapes.push_back({ _T("Bin at a Windows client's drive root, with the grant's Read"),
+            Formatter::Format(_T("D:AI(A;OICI;0x1200a9;;;{0})(A;OICIID;FA;;;BA)(A;OICIID;FA;;;SY)(A;OICIID;0x1200a9;;;BU)(A;OICIID;0x1301bf;;;AU)"), sid),
+            false, _T("S-1-5-11"), _T("S-1-5-32-545"), sid });
+         shapes.push_back({ _T("a folder at a Windows Server's drive root"),
+            _T("D:AI(A;OICIID;FA;;;BA)(A;OICIID;FA;;;SY)(A;OICIID;0x1200a9;;;BU)(A;CIID;0x4;;;BU)(A;CIID;0x2;;;BU)(A;OICIIOID;GA;;;CO)"),
+            false, _T("S-1-3-0"), String(), String() });
+         shapes.push_back({ _T("a folder in Program Files"),
+            Formatter::Format(_T("D:AI(A;ID;FA;;;{0})(A;CIIOID;GA;;;{0})(A;ID;0x1301bf;;;SY)(A;OICIIOID;GA;;;SY)(A;ID;0x1301bf;;;BA)(A;OICIIOID;GA;;;BA)(A;ID;0x1200a9;;;BU)(A;OICIIOID;GXGR;;;BU)(A;OICIIOID;GA;;;CO)(A;ID;0x1200a9;;;AC)(A;OICIIOID;GXGR;;;AC)"), trustedInstaller),
+            true, _T("S-1-3-0"), _T("S-1-5-32-545"), String() });
+         shapes.push_back({ _T("a folder an inherited Modify for the service reaches"),
+            Formatter::Format(_T("D:AI(A;OICIID;0x1301bf;;;{0})(A;OICIID;FA;;;BA)(A;OICIID;FA;;;SY)"), sid),
+            false, sid, String(), String() });
+         shapes.push_back({ _T("a folder the service's inherited Read reaches"),
+            Formatter::Format(_T("D:AI(A;OICIID;0x1200a9;;;{0})(A;OICIID;FA;;;BA)(A;OICIID;FA;;;SY)(A;OICIID;0x1200a9;;;BU)"), sid),
+            true, String(), sid, sid });
+         shapes.push_back({ _T("a folder with a deny entry and an administrator's entry of its own"),
+            Formatter::Format(_T("D:AI(D;OICI;FA;;;{0})(A;OICI;0x1200a9;;;BO)(A;OICIID;FA;;;BA)(A;OICIID;FA;;;SY)(A;OICIID;0x1301bf;;;AU)"), other),
+            false, _T("S-1-5-11"), String(), _T("S-1-5-32-551") });
+         shapes.push_back({ _T("a folder with no list at all"), _T("D:NO_ACCESS_CONTROL"), false, String(), String(), String() });
+
+         PSID service = nullptr;
+         PSID userLike = nullptr;
+         if (!ConvertStringSidToSidW(sid.c_str(), &service) || !ConvertStringSidToSidW(_T("S-1-5-21-1004336348-1177238915-682003330-1001"), &userLike))
+            FailGrant_(_T("The tester's SIDs could not be made."));
+         SidRelease_ releaseService(service);
+         SidRelease_ releaseUser(userLike);
+
+         BYTE administratorsBuffer[SECURITY_MAX_SID_SIZE];
+         BYTE systemBuffer[SECURITY_MAX_SID_SIZE];
+         BYTE usersBuffer[SECURITY_MAX_SID_SIZE];
+         DWORD administratorsSize = sizeof(administratorsBuffer);
+         DWORD systemSize = sizeof(systemBuffer);
+         DWORD usersSize = sizeof(usersBuffer);
+         PSID administrators = (PSID) administratorsBuffer;
+         PSID system = (PSID) systemBuffer;
+         PSID users = (PSID) usersBuffer;
+         if (!CreateWellKnownSid(WinBuiltinAdministratorsSid, nullptr, administrators, &administratorsSize) ||
+             !CreateWellKnownSid(WinLocalSystemSid, nullptr, system, &systemSize) ||
+             !CreateWellKnownSid(WinBuiltinUsersSid, nullptr, users, &usersSize))
+            FailGrant_(_T("The SIDs of SYSTEM, the Administrators and the Users could not be made."));
+
+         for (const Shape_ &shape : shapes)
+         {
+            PSECURITY_DESCRIPTOR before = nullptr;
+            if (!ConvertStringSecurityDescriptorToSecurityDescriptorW((_T("O:BA") + shape.sddl).c_str(), SDDL_REVISION_1, &before, nullptr))
+               FailGrant_(Formatter::Format(_T("The SDDL of {0} does not parse."), shape.what));
+
+            AdminUpdateChecks::Finding finding;
+            const bool passedBefore = AdminUpdateChecks::EvaluateDescriptor(before, AdminUpdateChecks::PlaceInside, finding);
+
+            BOOL present = FALSE;
+            BOOL defaulted = FALSE;
+            PACL dacl = nullptr;
+            GetSecurityDescriptorDacl(before, &present, &dacl, &defaulted);
+
+            std::vector<BYTE> buffer;
+            std::vector<String> dropped;
+            String detail;
+            PACL hardened = HardenedAcl_(present ? dacl : nullptr, service, true, buffer, dropped, detail);
+            const String writerBefore = UntrustedWriter_(present ? dacl : nullptr);
+            LocalFree(before);
+
+            if (!shape.passesBefore && writerBefore.IsEmpty())
+               FailGrant_(Formatter::Format(_T("The case {0} gives nobody a right to write before, so it proves nothing."), shape.what));
+
+            if (passedBefore != shape.passesBefore)
+               FailGrant_(Formatter::Format(_T("{0} {1} the rule of an administrator's install before it is hardened, which the case says it does not."), shape.what,
+                  passedBefore ? String(_T("passes")) : String(_T("fails"))));
+            if (hardened == nullptr)
+               FailGrant_(Formatter::Format(_T("The hardened permissions of {0} could not be built: {1}"), shape.what, detail));
+
+            SECURITY_DESCRIPTOR after;
+            if (!InitializeSecurityDescriptor(&after, SECURITY_DESCRIPTOR_REVISION) || !SetSecurityDescriptorOwner(&after, administrators, FALSE) ||
+                !SetSecurityDescriptorDacl(&after, TRUE, hardened, FALSE) || !SetSecurityDescriptorControl(&after, SE_DACL_PROTECTED, SE_DACL_PROTECTED))
+               FailGrant_(_T("The tester could not make a descriptor of the hardened permissions."));
+
+            if (!AdminUpdateChecks::EvaluateDescriptor(&after, AdminUpdateChecks::PlaceInside, finding))
+               FailGrant_(Formatter::Format(_T("{0}, hardened, fails the rule of an administrator's install: {1} ({2}) may {3}."), shape.what,
+                  String(finding.principal.c_str()), String(finding.sid.c_str()), String(finding.right.c_str())));
+
+            const String writer = UntrustedWriter_(hardened);
+            if (!writer.IsEmpty())
+               FailGrant_(Formatter::Format(_T("{0}, hardened, still lets {1} write it or what is made in it."), shape.what, writer));
+
+            bool explicitDeny = false;
+            bool inheritedDeny = false;
+            if (!Covers_(hardened, system, FILE_ALL_ACCESS, true, explicitDeny, inheritedDeny) || !Covers_(hardened, administrators, FILE_ALL_ACCESS, true, explicitDeny, inheritedDeny))
+               FailGrant_(Formatter::Format(_T("{0}, hardened, does not give SYSTEM and the Administrators full control handed down."), shape.what));
+            if (!Covers_(hardened, users, ServiceAccount::RightsReadExecute, true, explicitDeny, inheritedDeny))
+               FailGrant_(Formatter::Format(_T("{0}, hardened, does not let BUILTIN\\Users read and run what is in it."), shape.what));
+
+            if (!AlreadyHardened_(hardened, true, administrators, true))
+               FailGrant_(Formatter::Format(_T("{0}, hardened, protected and owned by the Administrators, is not taken for hardened."), shape.what));
+            if (AlreadyHardened_(hardened, false, administrators, true))
+               FailGrant_(Formatter::Format(_T("{0}, hardened but still inheriting, is taken for hardened."), shape.what));
+            if (AlreadyHardened_(hardened, true, userLike, true))
+               FailGrant_(Formatter::Format(_T("{0}, hardened but owned by a user, who may change its permissions, is taken for hardened."), shape.what));
+
+            auto namedAmongDropped = [&](const String &sidText) -> bool
+            {
+               PSID binary = nullptr;
+               if (!ConvertStringSidToSidW(sidText.c_str(), &binary))
+                  return false;
+               const String name = AccountName_(binary);
+               LocalFree(binary);
+               return std::find(dropped.begin(), dropped.end(), name) != dropped.end();
+            };
+            if (!shape.droppedSid.IsEmpty() && !namedAmongDropped(shape.droppedSid))
+               FailGrant_(Formatter::Format(_T("Hardening {0} does not name {1} among the entries no longer handed down: {2}"), shape.what, shape.droppedSid, DroppedNames_(dropped)));
+            if (!shape.notDroppedSid.IsEmpty() && namedAmongDropped(shape.notDroppedSid))
+               FailGrant_(Formatter::Format(_T("Hardening {0} names {1} among the entries no longer handed down, which keeps what it may do: {2}"), shape.what, shape.notDroppedSid, DroppedNames_(dropped)));
+
+            if (!shape.keptSid.IsEmpty())
+            {
+               PSID kept = nullptr;
+               if (!ConvertStringSidToSidW(shape.keptSid.c_str(), &kept))
+                  FailGrant_(_T("The tester's SID could not be made."));
+               const std::vector<std::pair<DWORD, BYTE>> entries = AllowsFor_(hardened, kept);
+               LocalFree(kept);
+               if (entries.size() != 1 || entries[0].first != ServiceAccount::RightsReadExecute || (entries[0].second & INHERITED_ACE) != 0 ||
+                   (entries[0].second & (OBJECT_INHERIT_ACE | CONTAINER_INHERIT_ACE)) != (OBJECT_INHERIT_ACE | CONTAINER_INHERIT_ACE))
+                  FailGrant_(Formatter::Format(_T("Hardening {0} did not keep {1}'s Read & execute, handed down, as one entry of its own."), shape.what, shape.keptSid));
+            }
+
+            if (shape.sddl.Find(_T("(D;")) >= 0)
+            {
+               LPVOID entry = nullptr;
+               if (!GetAce(hardened, 0, &entry) || entry == nullptr || ((const ACE_HEADER *) entry)->AceType != ACCESS_DENIED_ACE_TYPE ||
+                   SidText_((PSID) &((const ACCESS_DENIED_ACE *) entry)->SidStart).CompareNoCase(other) != 0)
+                  FailGrant_(Formatter::Format(_T("Hardening {0} did not keep the deny entry first."), shape.what));
+            }
+
+         }
+      }
+
+      // What /ProtectFolders makes of an installation's own folders at a
+      // Windows client's drive root, on folders of the tester's own: the
+      // tester's folder hands down what C:\ does there - Authenticated Users'
+      // Modify to everything made below it - and an installation is made in it,
+      // the program folder with the uninstaller, Bin with the server, a library,
+      // hMailServer.INI and the REST API's key store, and ControlPanel with the
+      // Control Panel, with the grant's entries on them. Before, Authenticated
+      // Users may change each, and the rule of an administrator's install refuses
+      // them. Hardened: nobody but SYSTEM and the Administrators may change the
+      // folders, the files in them or a file made after; Users may still read
+      // and run them; the grant's Read on Bin and ControlPanel and the service's
+      // Modify on the key store, entries of their own, stay; Authenticated Users
+      // is named; the rule passes each, as AdminUpdateChecks::CheckObject holds
+      // {app}, Bin and ControlPanel to it (CheckInstallation, without the folders
+      // above the tester's, which are not the tester's); a second run changes
+      // nothing; an entry an administrator gives Users afterwards is kept,
+      // already hardened, and the rule names it, as the CHECK after the
+      // hardening does; and a folder a user owns is given to the Administrators
+      // where the tester runs as an administrator's own account and so may make
+      // it the owner (under LocalSystem, the bench's service, it may not, and
+      // that case is skipped). Skipped where this process is no administrator,
+      // as TestProtect_ is: SYSTEM's and the Administrators' folders could not
+      // be written, read back or removed by it.
+      void TestHarden_(const String &directory, const String &sid)
+      {
+         if (!ServiceAccount::ProcessIsAdministrator())
+            return;
+
+         const String root = FileUtilities::Combine(directory, _T("harden-root"));
+         if (!FileUtilities::CreateDirectory(root))
+            FailGrant_(_T("The tester's folder for the hardening could not be made."));
+
+         // A Windows client's C:\, as the probe of 6 October 2026 read it.
+         if (!SetDacl_(root, _T("D:P(A;OICI;FA;;;BA)(A;OICI;FA;;;SY)(A;OICI;0x1200a9;;;BU)(A;OICIIO;0x1301bf;;;AU)(A;;0x4;;;AU)")))
+            FailGrant_(_T("The tester's folder could not be given the permissions a Windows client's drive root hands down."));
+
+         const String app = FileUtilities::Combine(root, _T("hMailServer"));
+         const String bin = FileUtilities::Combine(app, _T("Bin"));
+         const String panel = FileUtilities::Combine(app, _T("ControlPanel"));
+         const String uninstaller = FileUtilities::Combine(app, _T("unins000.exe"));
+         const String server = FileUtilities::Combine(bin, _T("hMailServer.exe"));
+         const String library = FileUtilities::Combine(bin, _T("libcrypto-4-x64.dll"));
+         const String ini = FileUtilities::Combine(bin, _T("hMailServer.INI"));
+         const String keys = FileUtilities::Combine(bin, _T("hMailServerApiKeys.ini"));
+         const String controlPanel = FileUtilities::Combine(panel, _T("hMailCP.exe"));
+         if (!FileUtilities::CreateDirectory(app) || !FileUtilities::CreateDirectory(bin) || !FileUtilities::CreateDirectory(panel) ||
+             !FileUtilities::WriteToFile(uninstaller, AnsiString("MZ")) || !FileUtilities::WriteToFile(server, AnsiString("MZ")) ||
+             !FileUtilities::WriteToFile(library, AnsiString("MZ")) || !FileUtilities::WriteToFile(ini, AnsiString("[Database]")) ||
+             !FileUtilities::WriteToFile(keys, AnsiString("")) || !FileUtilities::WriteToFile(controlPanel, AnsiString("MZ")))
+            FailGrant_(_T("The tester's installation could not be made."));
+
+         // The grant's entries, as /GrantServiceAccess leaves them: Read on Bin
+         // and ControlPanel handed down, Modify on the key store alone; and
+         // hMailServer.INI made private first, as /ProtectFolders does.
+         String detail;
+         std::vector<String> dropped;
+         if (ServiceAccount::Grant(bin, sid, ServiceAccount::RightsReadExecute, true, detail) != ServiceAccount::GrantMade ||
+             ServiceAccount::Grant(panel, sid, ServiceAccount::RightsReadExecute, true, detail) != ServiceAccount::GrantMade ||
+             GrantFile_(keys, sid, ServiceAccount::RightsModify, detail) != ServiceAccount::GrantMade ||
+             ProtectFile_(ini, sid, true, detail, dropped, nullptr) != ServiceAccount::GrantMade)
+            FailGrant_(_T("The grant's entries could not be made on the tester's installation: ") + detail);
+
+         const String everyFile[] = { uninstaller, server, library, keys, controlPanel };
+         const String everyFolder[] = { app, bin, panel };
+
+         // Not vacuous: Authenticated Users may change each, and the rule of an
+         // administrator's install refuses them.
+         AdminUpdateChecks::Finding finding;
+         for (const String &path : everyFile)
+         {
+            if (WritableByBroad_(path).empty())
+               FailGrant_(Formatter::Format(_T("{0} does not let Authenticated Users change it before it is hardened, so nothing below would prove anything."), path));
+         }
+         if (AdminUpdateChecks::CheckObject(std::wstring(server.c_str()), AdminUpdateChecks::PlaceInside, std::wstring(app.c_str()), finding) ||
+             _wcsicmp(finding.sid.c_str(), L"S-1-5-11") != 0)
+            FailGrant_(_T("The rule of an administrator's install does not refuse a server Authenticated Users may change."));
+
+         // The program folder, Bin and ControlPanel, as /ProtectFolders hardens them.
+         String formerOwner;
+         for (const String &folder : everyFolder)
+         {
+            if (ServiceAccount::Harden(folder, sid, true, detail, dropped, formerOwner) != ServiceAccount::GrantMade)
+               FailGrant_(Formatter::Format(_T("{0} was not hardened: {1}"), folder, detail));
+            if (!formerOwner.IsEmpty())
+               FailGrant_(Formatter::Format(_T("{0}, made by an administrator's process, was given another owner: it had {1}."), folder, formerOwner));
+            if (!ProtectedPath_(folder))
+               FailGrant_(Formatter::Format(_T("{0}, hardened, still inherits from the folder above it."), folder));
+            PSID authenticatedUsers = nullptr;
+            ConvertStringSidToSidW(_T("S-1-5-11"), &authenticatedUsers);
+            const String name = AccountName_(authenticatedUsers);
+            LocalFree(authenticatedUsers);
+            if (SamePath_(folder, app) && std::find(dropped.begin(), dropped.end(), name) == dropped.end())
+               FailGrant_(_T("Hardening the program folder does not name Authenticated Users among the entries no longer handed down: ") + DroppedNames_(dropped));
+         }
+
+         const String after = FileUtilities::Combine(bin, _T("after.dll"));
+         if (!FileUtilities::WriteToFile(after, AnsiString("MZ")))
+            FailGrant_(_T("A library could not be made in the hardened Bin."));
+
+         std::vector<String> everything(std::begin(everyFile), std::end(everyFile));
+         everything.insert(everything.end(), std::begin(everyFolder), std::end(everyFolder));
+         everything.push_back(after);
+         for (const String &path : everything)
+         {
+            const bool folder = FileUtilities::DirectoryExists(path);
+            if (!WritableByBroad_(path).empty())
+               FailGrant_(Formatter::Format(_T("{0} may still be changed by {1} after the hardening."), path, NamesOf_(WritableByBroad_(path))));
+            if (!ServiceAccount::HasGrant(path, _T("S-1-5-32-545"), ServiceAccount::RightsReadExecute, folder, detail))
+               FailGrant_(Formatter::Format(_T("BUILTIN\\Users may no longer read and run {0} after the hardening."), path));
+            for (const wchar_t *full : { L"S-1-5-18", L"S-1-5-32-544" })
+            {
+               if (!ServiceAccount::HasGrant(path, String(full), FILE_ALL_ACCESS, folder, detail))
+                  FailGrant_(Formatter::Format(_T("{0} does not have full control of {1} after the hardening."), String(full), path));
+            }
+            if (path == keys)
+               continue;
+            // What an administrator's install checks in the program folder, Bin
+            // and ControlPanel: every folder, program and library.
+            if (!AdminUpdateChecks::CheckObject(std::wstring(path.c_str()), AdminUpdateChecks::PlaceInside, std::wstring(app.c_str()), finding))
+               FailGrant_(Formatter::Format(_T("{0}, hardened, fails the rule of an administrator's install: {1} ({2}) may {3}{4}."), path, String(finding.principal.c_str()),
+                  String(finding.sid.c_str()), String(finding.right.c_str()), String(finding.reason.c_str())));
+         }
+
+         // The grant's entries, each the folder's or the file's own, kept.
+         if (OwnEntries_(bin, sid).size() != 1 || OwnEntries_(panel, sid).size() != 1 ||
+             !ServiceAccount::HasGrant(server, sid, ServiceAccount::RightsReadExecute, false, detail))
+            FailGrant_(_T("The grant's Read on Bin and ControlPanel, or what the server inherits of it, did not survive the hardening."));
+         if (!ServiceAccount::HasGrant(keys, sid, ServiceAccount::RightsModify, false, detail) || OwnEntries_(keys, sid).size() != 1)
+            FailGrant_(_T("The service's Modify on the REST API's key store did not survive the hardening of Bin."));
+         if (!ProtectedPath_(ini) || !ReadableByBroad_(ini).empty() || !ServiceAccount::HasGrant(ini, sid, ServiceAccount::RightsRead, false, detail))
+            FailGrant_(_T("hMailServer.INI, private, was changed by the hardening of Bin."));
+         if (!AdminUpdateChecks::CheckObject(std::wstring(ini.c_str()), AdminUpdateChecks::PlaceInside, std::wstring(app.c_str()), finding))
+            FailGrant_(_T("hMailServer.INI, private in a hardened Bin, fails the rule of an administrator's install."));
+
+         // A second run changes nothing.
+         for (const String &folder : everyFolder)
+         {
+            if (ServiceAccount::Harden(folder, sid, true, detail, dropped, formerOwner) != ServiceAccount::GrantAlreadyThere || !formerOwner.IsEmpty())
+               FailGrant_(Formatter::Format(_T("A second hardening of {0} did not find it hardened already."), folder));
+         }
+
+         // An entry an administrator gives Users afterwards is theirs: kept, the
+         // folder still hardened, and the rule names it, as the CHECK after the
+         // hardening does.
+         if (ServiceAccount::Grant(panel, _T("S-1-5-32-545"), ServiceAccount::RightsModify, true, detail) != ServiceAccount::GrantMade)
+            FailGrant_(_T("The tester could not give Users an entry of their own on ControlPanel: ") + detail);
+         if (ServiceAccount::Harden(panel, sid, true, detail, dropped, formerOwner) != ServiceAccount::GrantAlreadyThere || OwnEntries_(panel, _T("S-1-5-32-545")).size() != 2)
+            FailGrant_(_T("Hardening took away an entry of ControlPanel's own that an administrator gave Users, or did not find the folder hardened."));
+         if (AdminUpdateChecks::CheckObject(std::wstring(controlPanel.c_str()), AdminUpdateChecks::PlaceInside, std::wstring(app.c_str()), finding) ||
+             _wcsicmp(finding.sid.c_str(), L"S-1-5-32-545") != 0)
+            FailGrant_(_T("The rule of an administrator's install does not name the Users' Modify an administrator gave ControlPanel."));
+
+         // A folder a user owns - one made at a drive's root before the
+         // installation, by anybody - is given to the Administrators. Only where
+         // this process's own account may be made an owner and is not one the
+         // rule trusts.
+         std::vector<BYTE> userBuffer;
+         PSID user = ProcessUserSid_(userBuffer);
+         if (user != nullptr && !IsTrustedWriter_(user))
+         {
+            std::wstring binPath(bin.c_str());
+            if (SetNamedSecurityInfoW(&binPath[0], SE_FILE_OBJECT, OWNER_SECURITY_INFORMATION, user, nullptr, nullptr, nullptr) != ERROR_SUCCESS)
+               FailGrant_(_T("The tester could not make its own account the owner of Bin."));
+            if (ServiceAccount::Harden(bin, sid, true, detail, dropped, formerOwner) != ServiceAccount::GrantMade || formerOwner.IsEmpty())
+               FailGrant_(_T("Hardening a Bin a user owns did not give it to the Administrators: ") + detail);
+
+            PSECURITY_DESCRIPTOR descriptor = nullptr;
+            PSID owner = nullptr;
+            const bool ownedByAdministrators = GetNamedSecurityInfoW(bin.c_str(), SE_FILE_OBJECT, OWNER_SECURITY_INFORMATION, &owner, nullptr, nullptr, nullptr, &descriptor) == ERROR_SUCCESS &&
+               owner != nullptr && IsWellKnownSid(owner, WinBuiltinAdministratorsSid);
+            if (descriptor != nullptr)
+               LocalFree(descriptor);
+            if (!ownedByAdministrators)
+               FailGrant_(_T("Bin, hardened, is not owned by the Administrators."));
+            if (ServiceAccount::Harden(bin, sid, true, detail, dropped, formerOwner) != ServiceAccount::GrantAlreadyThere)
+               FailGrant_(_T("Bin, given to the Administrators, is not found hardened."));
+         }
+      }
    }
 
    void
@@ -3698,6 +4438,12 @@ namespace HM
 
       TestLocations_();
       TestLogons_();
+
+      // The permissions /ProtectFolders gives the program folder, Bin and
+      // ControlPanel, built from what each kind of folder above hands down and
+      // held to the rule of an administrator's install, in memory
+      // (TestHardenedShape_).
+      TestHardenedShape_(ServiceAccount::ServiceSid(_T("hMailServerGrantTest")), ServiceAccount::ServiceSid(_T("hMailServerNeverGranted")));
 
       // A SID of the tester's own, never a real service's, on a directory of
       // its own under the temp folder: nothing here touches the server's.
@@ -3831,6 +4577,11 @@ namespace HM
          // What /ProtectFolders makes of a folder and a file of secrets that
          // inherit BUILTIN\Users' Read (TestProtect_).
          TestProtect_(directory, sid, other);
+
+         // What /ProtectFolders makes of an installation's program folder, Bin
+         // and ControlPanel that inherit Authenticated Users' Modify from a
+         // Windows client's drive root (TestHarden_).
+         TestHarden_(directory, sid);
 
          // The pin holds a plain path, and a held folder cannot be removed.
          {

@@ -304,6 +304,10 @@ namespace HM
          { L"owner-rights-write-fails", AdminUpdateChecks::PlaceInside, false, L"S-1-3-4", false, false, L"O:BAD:(A;;FA;;;SY)(A;;FA;;;BA)(A;;0x1301bf;;;S-1-3-4)" },
          { L"users-write-inherit-only-passes", AdminUpdateChecks::PlaceInside, true, L"", false, false, L"O:BAD:(A;;FA;;;SY)(A;;FA;;;BA)(A;OICIIO;0x1301bf;;;BU)" },
          { L"adminupdate-as-the-stage-makes-it-passes", AdminUpdateChecks::PlaceInside, true, L"", false, false, L"O:BAD:P(A;OICI;FA;;;SY)(A;OICI;FA;;;BA)(A;;RC;;;AU)" },
+         { L"bin-at-a-client-drive-root-fails", AdminUpdateChecks::PlaceInside, false, L"S-1-5-11", false, true, L"O:BAD:AI(A;OICI;0x1200a9;;;S-1-5-80-3504853920-2627644491-1723263464-2546768561-1700046809)(A;OICIID;FA;;;BA)(A;OICIID;FA;;;SY)(A;OICIID;0x1200a9;;;BU)(A;OICIID;0x1301bf;;;AU)" },
+         { L"bin-at-a-server-drive-root-fails", AdminUpdateChecks::PlaceInside, false, L"S-1-5-32-545", false, true, L"O:BAD:AI(A;OICIID;FA;;;BA)(A;OICIID;FA;;;SY)(A;OICIID;0x1200a9;;;BU)(A;CIID;0x4;;;BU)(A;CIID;0x2;;;BU)(A;OICIIOID;GA;;;CO)" },
+         { L"bin-as-protect-folders-hardens-it-passes", AdminUpdateChecks::PlaceInside, true, L"", false, false, L"O:BAD:P(A;OICI;0x1200a9;;;S-1-5-80-3504853920-2627644491-1723263464-2546768561-1700046809)(A;OICI;FA;;;SY)(A;OICI;FA;;;BA)(A;OICI;0x1200a9;;;BU)" },
+         { L"a-program-in-a-hardened-bin-passes", AdminUpdateChecks::PlaceInside, true, L"", false, false, L"O:BAD:AI(A;ID;0x1200a9;;;S-1-5-80-3504853920-2627644491-1723263464-2546768561-1700046809)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;0x1200a9;;;BU)" },
       };
       // PERMISSION-CASES-END
    }

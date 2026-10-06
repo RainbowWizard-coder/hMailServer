@@ -30,6 +30,9 @@ namespace HM
    {
       const wchar_t *const TrustedInstallerSid = L"S-1-5-80-956008885-3418522649-1831038044-1853292631-2271478464";
 
+      const unsigned long WriteRights = FILE_WRITE_DATA | FILE_APPEND_DATA | FILE_WRITE_EA | FILE_WRITE_ATTRIBUTES | FILE_DELETE_CHILD |
+                                        DELETE | WRITE_DAC | WRITE_OWNER;
+
       namespace
       {
          bool IsLowerHex_(wchar_t c)
@@ -41,11 +44,6 @@ namespace HM
          {
             return c >= L'0' && c <= L'9';
          }
-
-         // The file rights that change what an object holds, what it is called or
-         // who may change it, once the generic rights are mapped.
-         const DWORD WriteRights_ = FILE_WRITE_DATA | FILE_APPEND_DATA | FILE_WRITE_EA | FILE_WRITE_ATTRIBUTES | FILE_DELETE_CHILD |
-                                    DELETE | WRITE_DAC | WRITE_OWNER;
 
          // The rights on a folder above {app} that let the next folder down be
          // replaced: removing a child, renaming this one, or changing who may.
@@ -403,7 +401,7 @@ namespace HM
             return false;
          }
 
-         const DWORD counted = place == PlaceAboveApp ? ReplaceRights_ : WriteRights_;
+         const DWORD counted = place == PlaceAboveApp ? ReplaceRights_ : WriteRights;
          for (const Allow_ &allow : allows)
          {
             const DWORD offending = allow.mask & counted;
@@ -502,7 +500,7 @@ namespace HM
                for (std::wstring folder = Parent_(path); !folder.empty() && folder.size() >= top.size(); folder = Parent_(folder))
                {
                   bool present = false, inherited = false;
-                  if (!EntryFor_(folder, sid, WriteRights_, present, inherited) || !present || !inherited)
+                  if (!EntryFor_(folder, sid, WriteRights, present, inherited) || !present || !inherited)
                      break;
                   target = folder;
                   if (SamePath(folder, top))

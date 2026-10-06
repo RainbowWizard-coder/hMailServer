@@ -64,6 +64,25 @@
      the uninstall of a new installation: Data\Certificates kept with the rest of
                 the data directory.
 
+   And what docs/ServiceAccount.md says hMailServer.exe /ProtectFolders makes of the
+   program's own folders ("What the other users of the computer may read"), after an
+   installer of 6.3.7 or later: the program folder, Bin and ControlPanel inheriting
+   nothing, SYSTEM and the Administrators with full control, BUILTIN\Users with Read &
+   execute, the owner SYSTEM, the Administrators or TrustedInstaller, and no group of
+   every user able to change them or a program or library in them; the REST API's key
+   store still the service's to write when the service runs as NT SERVICE\hMailServer;
+   /ProtectFolders' exit 0 in Inno's log; and a second /ProtectFolders, run here, finding
+   all three "already hardened" and ending in 0. After an earlier installer the run
+   says, as INFO, which group of every user may change them.
+
+   -InstallDirectory DIR installs the first installer into DIR (/DIR=) rather than
+   Program Files; an upgrade keeps it. With -WeakParent the folder DIR is made in is
+   made, when it is not there, and given Authenticated Users' Modify handed down - what
+   the root of a drive hands every folder made in it on a Windows client, which this
+   Windows Server VM's own root does not - so that the run sees an installation in such
+   a folder hardened: a new one by the new installer alone, and one an earlier
+   installer left there by the upgrade. Both are for this throwaway machine only.
+
    A new installation and an upgrade from a release without the defaults are two
    runs, each on the clean machine: the new installer alone, and the previous
    release's installer followed by the new one.
@@ -123,7 +142,9 @@ param(
    [switch] $AllowUnsigned,
    [int] $TimeoutMinutes = 10,
    [string] $DatabaseSettings = '',
-   [switch] $DatabaseInEnvironment
+   [switch] $DatabaseInEnvironment,
+   [string] $InstallDirectory = '',
+   [switch] $WeakParent
 )
 
 $ErrorActionPreference = 'Stop'
@@ -135,6 +156,7 @@ $Installer = [System.IO.Path]::GetFullPath($Installer)
 if ($UpgradeInstaller) { $UpgradeInstaller = [System.IO.Path]::GetFullPath($UpgradeInstaller) }
 $LogDirectory = [System.IO.Path]::GetFullPath($LogDirectory)
 if ($DatabaseSettings) { $DatabaseSettings = [System.IO.Path]::GetFullPath($DatabaseSettings) }
+if ($InstallDirectory) { $InstallDirectory = [System.IO.Path]::GetFullPath($InstallDirectory).TrimEnd('\') }
 
 # -DatabaseSettings: each variable DBSetup /unattended reads, and the installer's
 # switch for it (hMailServerInnoExtension.iss). The password has none.
@@ -203,7 +225,7 @@ $AdminPasswordHardPart = ' q"t \\" e\'
 # Everything the checks learn and later checks need: a hashtable, so that a check's
 # script block can write to it from its own scope.
 $State = @{
-   App = Join-Path $env:ProgramFiles 'hMailServer'
+   App = $(if ($InstallDirectory) { $InstallDirectory } else { Join-Path $env:ProgramFiles 'hMailServer' })
    Installed = $false
    Seeded = $false
    SchemaBefore = 0
@@ -738,6 +760,141 @@ function Test-InstallerFile([string] $Label, [string] $Path) {
          })
    }
    return $claimed
+}
+
+# ------------------------------------------------------------------ the program's own folders
+
+# docs/ServiceAccount.md, "What the other users of the computer may read": from 6.3.7
+# hMailServer.exe /ProtectFolders, which the installer runs at every installation and
+# upgrade, hardens the program folder, Bin and ControlPanel. The groups of every user,
+# as SIDs (ServiceAccount.cpp's BroadSids_ that a folder names in practice), and the
+# rights that change a file or a folder, what it is called or who may change it
+# (AdminUpdateChecks::WriteRights) with GENERIC_ALL and GENERIC_WRITE, which an entry
+# may carry unmapped.
+$HardenedFoldersVersion = [version] '6.3.7'
+$BroadGroupSids = @('S-1-1-0', 'S-1-2-0', 'S-1-5-4', 'S-1-5-6', 'S-1-5-11', 'S-1-5-13', 'S-1-5-14', 'S-1-5-32-545', 'S-1-5-32-546', 'S-1-5-32-547', 'S-1-5-32-555')
+$WriteRightsMask = 0x500D0156
+$TrustedOwnerSids = @('S-1-5-18', 'S-1-5-32-544', 'S-1-5-80-956008885-3418522649-1831038044-1853292631-2271478464')
+$ServiceSid = 'S-1-5-80-3504853920-2627644491-1723263464-2546768561-1700046809'
+
+function Test-HasHardenedFolders([string] $Version) {
+   $release = Get-ReleaseVersion $Version
+   return ($null -ne $release) -and ($release -ge $HardenedFoldersVersion)
+}
+
+# The allow entries of a file or folder that apply to it and give a group of every
+# user a right to change it, as "SID rights".
+function Get-BroadWriters([string] $Path) {
+   $acl = Get-Acl -LiteralPath $Path
+   $found = @()
+   foreach ($rule in $acl.GetAccessRules($true, $true, [System.Security.Principal.SecurityIdentifier])) {
+      if ($rule.AccessControlType -ne [System.Security.AccessControl.AccessControlType]::Allow) { continue }
+      if (($rule.PropagationFlags -band [System.Security.AccessControl.PropagationFlags]::InheritOnly) -ne 0) { continue }
+      if ($BroadGroupSids -notcontains $rule.IdentityReference.Value) { continue }
+      if (([long] $rule.FileSystemRights -band $WriteRightsMask) -ne 0) { $found += "$($rule.IdentityReference.Value) $($rule.FileSystemRights)" }
+   }
+   return $found
+}
+
+# Whether sid has an allow entry on the folder that gives every one of rights and
+# reaches both the folders and the files below it.
+function Test-FolderGrant($Acl, [string] $Sid, [long] $Rights) {
+   foreach ($rule in $Acl.GetAccessRules($true, $true, [System.Security.Principal.SecurityIdentifier])) {
+      if ($rule.AccessControlType -ne [System.Security.AccessControl.AccessControlType]::Allow -or $rule.IdentityReference.Value -ne $Sid) { continue }
+      $both = [System.Security.AccessControl.InheritanceFlags]::ContainerInherit -bor [System.Security.AccessControl.InheritanceFlags]::ObjectInherit
+      if (($rule.InheritanceFlags -band $both) -ne $both) { continue }
+      if (($rule.PropagationFlags -band [System.Security.AccessControl.PropagationFlags]::InheritOnly) -ne 0) { continue }
+      if ((([long] $rule.FileSystemRights) -band $Rights) -eq $Rights) { return $true }
+   }
+   return $false
+}
+
+function Test-ProgramFoldersHardened([string] $Phase, [string] $Claimed, [string] $LogPath) {
+   $app = Get-InstallDirectory
+   $folders = @(@($app, (Join-Path $app 'Bin'), (Join-Path $app 'ControlPanel')) | Where-Object { Test-Path -LiteralPath $_ })
+
+   # By its version, or - for a build not yet stamped with one - by what its
+   # /ProtectFolders said in Inno's log.
+   $hardens = (Test-HasHardenedFolders $Claimed) -or
+              ((Test-Path -LiteralPath $LogPath) -and (Select-String -LiteralPath $LogPath -Pattern 'Each of these is hardened' -Quiet))
+   if (-not $hardens) {
+      $writers = @()
+      foreach ($folder in $folders) { foreach ($writer in @(Get-BroadWriters $folder)) { $writers += "$folder ($writer)" } }
+      Write-Info "${Phase}: the program's own folders" $(if ($writers.Count -gt 0) { "$Claimed does not harden them, and a group of every user may change: $($writers -join '; ')" } else { "$Claimed does not harden them; no group of every user may change them here" })
+      return
+   }
+
+   [void] (Test-Step "${Phase}: the program folder, Bin and ControlPanel are hardened - nothing inherited, SYSTEM and the Administrators full control, Users Read & execute, a trusted owner" {
+         if ($folders.Count -ne 3) { throw "only $($folders -join ', ') are there" }
+         foreach ($folder in $folders) {
+            $acl = Get-Acl -LiteralPath $folder
+            if (-not $acl.AreAccessRulesProtected) { throw "$folder still inherits from the folder above it" }
+            foreach ($full in 'S-1-5-18', 'S-1-5-32-544') {
+               if (-not (Test-FolderGrant $acl $full 0x1F01FF)) { throw "$folder does not give $full full control handed down" }
+            }
+            if (-not (Test-FolderGrant $acl 'S-1-5-32-545' 0x1200A9)) { throw "$folder does not give BUILTIN\Users Read & execute handed down" }
+            $owner = $acl.GetOwner([System.Security.Principal.SecurityIdentifier]).Value
+            if ($TrustedOwnerSids -notcontains $owner) { throw "$folder is owned by $owner" }
+         }
+         "$($folders -join ', ')"
+      })
+
+   [void] (Test-Step "${Phase}: no group of every user may change the program's folders or a program or library in them" {
+         $checked = 0
+         $writers = @()
+         $objects = @($folders)
+         foreach ($folder in @((Join-Path $app 'Bin'), (Join-Path $app 'ControlPanel'))) {
+            $objects += @(Get-ChildItem -LiteralPath $folder -Recurse -Force -ErrorAction SilentlyContinue |
+               Where-Object { $_.PSIsContainer -or $_.Extension -eq '.exe' -or $_.Extension -eq '.dll' } | ForEach-Object { $_.FullName })
+         }
+         $objects += @(Get-ChildItem -LiteralPath $app -Filter 'unins*.exe' -File | ForEach-Object { $_.FullName })
+         foreach ($object in $objects) {
+            $checked++
+            foreach ($writer in @(Get-BroadWriters $object)) { $writers += "$object ($writer)" }
+         }
+         if ($writers.Count -gt 0) { Write-Detail $writers 20; throw "$($writers.Count) entries (above)" }
+         "$checked folders, programs and libraries"
+      })
+
+   # The one file in Bin the service writes, whatever the folder's hardening.
+   $service = Get-HmService
+   if ($null -ne $service -and $service.StartName -eq 'NT SERVICE\hMailServer') {
+      [void] (Test-Step "${Phase}: the REST API's key store is still the service's to write" {
+            $keys = Join-Path $app 'Bin\hMailServerApiKeys.ini'
+            if (-not (Test-Path -LiteralPath $keys)) { throw "$keys is not there" }
+            $acl = Get-Acl -LiteralPath $keys
+            $modify = $false
+            foreach ($rule in $acl.GetAccessRules($true, $true, [System.Security.Principal.SecurityIdentifier])) {
+               if ($rule.AccessControlType -eq [System.Security.AccessControl.AccessControlType]::Allow -and $rule.IdentityReference.Value -eq $ServiceSid -and
+                   (([long] $rule.FileSystemRights) -band 0x1301BF) -eq 0x1301BF) { $modify = $true }
+            }
+            if (-not $modify) { throw 'NT SERVICE\hMailServer may not write it' }
+            'NT SERVICE\hMailServer Modify'
+         })
+   }
+
+   [void] (Test-Step "${Phase}: hMailServer.exe /ProtectFolders returned 0 (Inno's log)" {
+         $line = Select-String -LiteralPath $LogPath -Pattern 'hMailServer\.exe /ProtectFolders returned (-?\d+)' | Select-Object -Last 1
+         if ($null -eq $line) { throw "Inno's log has no 'hMailServer.exe /ProtectFolders returned'" }
+         if ($line.Matches[0].Groups[1].Value -ne '0') { throw "it returned $($line.Matches[0].Groups[1].Value)" }
+         'returned 0'
+      })
+
+   [void] (Test-Step "${Phase}: a second hMailServer.exe /ProtectFolders finds the three hardened already and returns 0" {
+         $said = Join-Path $LogDirectory "protect-folders-$Phase.txt"
+         $saidErrors = Join-Path $LogDirectory "protect-folders-$Phase.errors.txt"
+         $process = Start-Process -FilePath (Join-Path $app 'Bin\hMailServer.exe') -ArgumentList '/ProtectFolders' -RedirectStandardOutput $said -RedirectStandardError $saidErrors -NoNewWindow -PassThru
+         $null = $process.Handle
+         if (-not $process.WaitForExit(600000)) { try { $process.Kill() } catch { }; throw 'it did not finish within ten minutes' }
+         $process.WaitForExit()
+         $lines = @(Get-Content -LiteralPath $said) + @(Get-Content -LiteralPath $saidErrors)
+         $already = @($lines | Where-Object { $_ -match '^\s*already hardened ' }).Count
+         if ($process.ExitCode -ne 0) { Write-Detail $lines 30; throw "exit code $($process.ExitCode)" }
+         if ($already -ne 3) { Write-Detail $lines 30; throw "$already lines say 'already hardened', not 3" }
+         $checks = @($lines | Where-Object { $_ -match '^\s*CHECK ' })
+         if ($checks.Count -gt 0) { Write-Detail $checks 10 }
+         "exit code 0, 3 already hardened, $($checks.Count) CHECK lines"
+      })
 }
 
 # Runs Inno's setup or uninstaller, bounded in time: the 6.2.19 installer once hung for
@@ -2181,6 +2338,24 @@ $clean = Test-Step 'preflight: the machine is clean - no hMailServer service, in
 if (-not $clean) { exit 2 }
 $State.RegistryBaseline = Get-RegistrySnapshot
 
+if ($WeakParent) {
+   $weakened = Test-Step 'preflight: the folder -InstallDirectory is made in hands down Authenticated Users'' Modify, as a Windows client''s drive root does' {
+      if (-not $InstallDirectory) { throw '-WeakParent goes with -InstallDirectory' }
+      $parent = Split-Path -Parent $InstallDirectory
+      if (-not $parent -or $parent.Length -le 3) { throw "-InstallDirectory's folder is a drive's root ($parent), which this run does not change" }
+      New-Item -ItemType Directory -Force -Path $parent | Out-Null
+      $answer = @(& icacls.exe $parent /grant '*S-1-5-11:(OI)(CI)M')
+      if ($LASTEXITCODE -ne 0) { throw "icacls returned ${LASTEXITCODE}: $($answer -join ' ')" }
+      $probe = Join-Path $parent 'smoke-probe'
+      New-Item -ItemType Directory -Force -Path $probe | Out-Null
+      $writers = @(Get-BroadWriters $probe)
+      Remove-Item -LiteralPath $probe -Force
+      if ($writers.Count -eq 0) { throw "a folder made in $parent does not let Authenticated Users change it" }
+      "$parent hands down: $($writers -join ', ')"
+   }
+   if (-not $weakened) { exit 2 }
+}
+
 foreach ($path in @($Installer, $UpgradeInstaller)) {
    if ($path -and -not (Test-Path -LiteralPath $path)) {
       Write-Result 'FAIL' 'the installers are there' "$path is not"
@@ -2212,6 +2387,7 @@ Write-Section "Install $firstVersion"
 $installLog = Join-Path $LogDirectory 'install.log'
 $installed = Test-Step "install: $(Split-Path -Leaf $Installer) ran silently and returned 0" {
    $arguments = @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/TYPE=full', "/LOG=$installLog") + @(Get-DatabaseSwitches)
+   if ($InstallDirectory) { $arguments += "/DIR=$InstallDirectory" }
    Invoke-WithDatabaseVariables { Invoke-SetupWithAdminPassword $Installer $arguments $installLog }
 }
 if (-not $installed) { Write-DatabaseDiagnosis (Get-InstallDirectory) }
@@ -2238,6 +2414,7 @@ if ($State.Installed -and ($null -ne $State.Database)) {
 
 if ($State.Installed) {
    Test-Installed 'install' $firstVersion
+   Test-ProgramFoldersHardened 'install' $firstVersion $installLog
 
    # docs/SecureDefaults.md, "What an installation on a clean machine is to check".
    if ($firstSecures) {
@@ -2285,6 +2462,7 @@ if ($State.Installed) {
       if (-not $upgraded) { Write-DatabaseDiagnosis (Get-InstallDirectory) }
 
       Test-Installed 'upgrade' $secondVersion
+      Test-ProgramFoldersHardened 'upgrade' $secondVersion $upgradeLog
 
       [void] (Test-Step "upgrade: the schema moved to the newer build's" {
             if (-not $State.Seeded) { throw 'the schema before the upgrade was not read' }

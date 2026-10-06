@@ -877,6 +877,81 @@ namespace RegressionTests.Installation
       }
 
       [Test]
+      [Description("Every installation and upgrade of the server hardens the program folder, Bin and ControlPanel - hMailServer.exe /ProtectFolders gives each SYSTEM's and the Administrators' full control and BUILTIN\\Users' Read & execute, inheriting nothing, with the Administrators as owner, after the six are private, and then holds the installation to the rule of an administrator's install of an update - and the installer gives a program folder it makes those permissions before anything is copied into it, and says, without refusing it, when the chosen folder lets every user change what is in it. Until 6.3.7 an installation at a drive's root inherited Authenticated Users' Modify on a Windows client, so every user of the computer could replace the programs in Bin that the service and the administrators run (work item 78).")]
+      public void TheProgramFoldersAreHardenedAtEveryInstallation()
+      {
+         string account = ReadRepositoryFile(@"hmailserver\source\Server\Common\Util\ServiceAccount.cpp");
+         Match verb = Regex.Match(account, @"ServiceAccount::RunProtectCommand\([^)]*\)\s*\{(.*?)\n   \}", RegexOptions.Singleline);
+         Assert.IsTrue(verb.Success, "ServiceAccount::RunProtectCommand is not there.");
+         string body = verb.Groups[1].Value;
+
+         // The three, found from where the program is, each held from the drive's
+         // root while it is hardened.
+         StringAssert.Contains("programFolders.push_back({ program,", body, "/ProtectFolders does not harden the program folder.");
+         StringAssert.Contains("programFolders.push_back({ bin,", body, "/ProtectFolders does not harden Bin.");
+         StringAssert.Contains("programFolders.push_back({ FileUtilities::Combine(program, _T(\"ControlPanel\"))", body, "/ProtectFolders does not harden ControlPanel.");
+         StringAssert.Contains("Harden(pin.GrantPath(target), sid, true,", body,
+            "The program's folders are not hardened through the pin that holds them from the drive's root, through a link only the administrators control.");
+
+         // After the six, whose own permissions keep the program folder's change
+         // from being handed down through the message store - and the program
+         // folder not at all while one of them could not be made private.
+         int secrets = body.IndexOf("for (const Secret_ &secret : secrets)", StringComparison.Ordinal);
+         int hardened = body.IndexOf("for (const ProgramFolder_ &folder : programFolders)", StringComparison.Ordinal);
+         Assert.GreaterOrEqual(secrets, 0, "RunProtectCommand no longer makes the six private in one loop.");
+         Assert.Greater(hardened, secrets, "The program's folders are hardened before the six are made private, so the program folder's change is handed down through the message store.");
+         StringAssert.Contains("secretFolderFailed && SamePath_(target, program)", body,
+            "The program folder is hardened while a folder in it could not be made private.");
+
+         // Then the rule of an administrator's install of an update: what the
+         // hardening makes passes it, and what it leaves is a CHECK.
+         int rule = body.IndexOf("AdminUpdateChecks::CheckInstallation(", StringComparison.Ordinal);
+         Assert.Greater(rule, hardened, "/ProtectFolders does not hold the hardened installation to the rule of an administrator's install of an update.");
+
+         // The shape: a fresh Read & execute for BUILTIN\Users, whatever the folder
+         // above handed it, so that the Control Panel and DBSetup still run for them;
+         // nothing inherited; and the Administrators as the owner of a folder somebody
+         // else owns, since an owner may always change the permissions again.
+         Match rebuilt = Regex.Match(account, @"PACL RebuiltAcl_\([^)]*\)\s*\{(.*?)\n      \}", RegexOptions.Singleline);
+         Assert.IsTrue(rebuilt.Success, "RebuiltAcl_ is not there.");
+         StringAssert.Contains("WinBuiltinUsersSid", rebuilt.Groups[1].Value);
+         StringAssert.Contains("AddAccessAllowedAceEx(acl, revision, handDown, ServiceAccount::RightsReadExecute, users)", rebuilt.Groups[1].Value,
+            "A hardened folder does not give BUILTIN\\Users Read & execute, and the Control Panel and DBSetup would no longer run for them.");
+         Match harden = Regex.Match(account, @"ServiceAccount::Harden\([^)]*\)\s*\{(.*?)\n   \}", RegexOptions.Singleline);
+         Assert.IsTrue(harden.Success, "ServiceAccount::Harden is not there.");
+         foreach (string word in new[] { "HardenedAcl_(", "PROTECTED_DACL_SECURITY_INFORMATION", "OWNER_SECURITY_INFORMATION", "AlreadyHardened_(" })
+            StringAssert.Contains(word, harden.Groups[1].Value, "ServiceAccount::Harden does not use " + word + ".");
+
+         // The installer: its message names what the verb now hardens.
+         string extension = ReadInstallerScript("hMailServerInnoExtension.iss");
+         StringAssert.Contains("the program folder, Bin and ControlPanel", CodeBody(extension, "ProtectFolders"),
+            "The installer's message for a /ProtectFolders that did not end in 0 does not name the program folder, Bin and ControlPanel.");
+
+         // A program folder it makes is given those permissions by SID before
+         // anything else is made in it or copied into it: [Dirs] makes it first.
+         string dirs = ReadInstallerScript("section_dirs.iss");
+         Match first = Regex.Match(dirs, @"^Name:\s*""([^""]+)""[^\r\n]*", RegexOptions.Multiline);
+         Assert.IsTrue(first.Success && first.Groups[1].Value == "{app}" && first.Value.Contains("AfterInstall: HardenNewProgramFolder"),
+            "The first folder [Dirs] makes is not the program folder, given its permissions before anything is made or copied into it.");
+         string newFolder = CodeBody(extension, "HardenNewProgramFolder");
+         foreach (string word in new[] { "g_bProgramFolderNew", "/inheritance:r", "*S-1-5-18:(OI)(CI)F", "*S-1-5-32-544:(OI)(CI)F", "*S-1-5-32-545:(OI)(CI)RX" })
+            StringAssert.Contains(word, newFolder, "HardenNewProgramFolder does not use " + word + ".");
+         Assert.IsTrue(Regex.IsMatch(CodeBody(extension, "CurStepChanged"), @"g_bProgramFolderNew\s*:=\s*not\s+DirExists\(ExpandConstant\('\{app\}'\)\)"),
+            "Whether this installation makes the program folder is not read at ssInstall, before [Dirs] makes it.");
+
+         // The chosen folder is checked and said - in a box that /SUPPRESSMSGBOXES
+         // suppresses, and in the setup log - and never refused.
+         StringAssert.Contains("CheckProgramFolderPermissions(WizardDirValue(), true)", CodeBody(extension, "NextButtonClick"),
+            "The folder page does not say when the chosen folder lets every user change what is in it.");
+         Assert.IsTrue(Regex.IsMatch(extension, @"^procedure\s+CheckProgramFolderPermissions\s*\(", RegexOptions.Multiline),
+            "CheckProgramFolderPermissions is not a procedure: it says, and does not refuse the folder.");
+         string warn = CodeBody(extension, "CheckProgramFolderPermissions");
+         Assert.IsFalse(Regex.IsMatch(warn, @"(?<!Suppressible)MsgBox\("),
+            "CheckProgramFolderPermissions uses a message box that /SUPPRESSMSGBOXES does not suppress, which a silent installation waits on for ever.");
+         StringAssert.Contains("Log('The program folder: '", warn, "What CheckProgramFolderPermissions says does not go into the setup log.");
+      }
+
+      [Test]
       [Description("Before the move to the virtual account the installer gives NT SERVICE\\hMailServer its login on SQL Server with Windows authentication (hMailServer.exe --grant-database-login), and a service it moved is held to opening its database and moved back to LocalSystem when it does not, failing the installation in words of its own. Until 6.3.6 a new installation on SQL Server with Windows authentication ended with exit 0 on a server that could not open its database (the installer smoke VM, 2 October 2026).")]
       public void TheMovedServiceIsGivenItsSqlServerLoginAndHeldToOpeningItsDatabase()
       {

@@ -11,13 +11,13 @@ no account to create - and which reaches only the folders it is granted. The
 Linux packages of this same server already run as a user of their own
 (`hmailserver.service`: `User=hmailserver`); this is the Windows half.
 
-What this page covers: what the installer asks and does, what the account is
-granted and by what, why nothing the service can write decides that, what the
-service may no longer write - `hMailServer.INI` - and what became of each thing
-that wrote it, what the other users of the computer may read of its folders
+What this page covers: what the installer asks and does, what the account is granted
+and by what, why nothing the service can write decides that, what the service may no
+longer write - `hMailServer.INI` - and what became of each thing that wrote it, what
+the other users of the computer may read of its folders, and change of its programs
 (`/ProtectFolders`), the table of everything LocalSystem could do that the virtual
-account cannot, the live update's answer, where the Control Panel, the Control
-Deck and the checklist say which account the service runs as, and how to go back.
+account cannot, the live update's answer, where the Control Panel, the Control Deck
+and the checklist say which account the service runs as, and how to go back.
 
 What it does not cover, because it stays declined: an installation under an
 ordinary account for shared hosting (discussion #267). The secret store is
@@ -302,9 +302,13 @@ after that.
 
 **What it checks, and only says.** When `Everyone`, `Authenticated Users`,
 `Users`, `SERVICE` or the service itself may write the program folder, `Bin` or
-`hMailServer.INI` - an installation outside Program Files can inherit that from a
-drive's root - a `CHECK` line names the entry and the `icacls` that takes it away.
-The grant removes nobody's entry.
+`hMailServer.INI` - add, change or delete what is in it, or change who may - a
+`CHECK` line names the entry. The grant removes nobody's entry. An installation
+outside Program Files could inherit such an entry from a drive's root until 6.3.7;
+`hMailServer.exe /ProtectFolders`, which setup runs at every installation and
+upgrade before the grant, now takes away an entry any of the three inherits (below),
+so what is left for the line to name is an entry of its own, which an administrator
+gave, and the `icacls ... /remove:g` that takes it away.
 
 `--report-only` says all of this - what would be approved and granted, and what
 is not reached - and changes nothing.
@@ -402,12 +406,98 @@ takes no path to change from the configuration.
 holds each REST API key's label and the SHA-256 of its 32 random bytes, which tells
 nobody the key, and the Control Panel lists the keys from it.
 
-Exit codes: 0 each made private or private already (`CHECK` lines do not change it); 1
-one could not be, and its line says why - a link somebody else controls, permissions
-that could not be written; 2 not in an installation's `Bin` folder; 3 not run as an
-administrator. `--report-only` says what it would make private and who may read each
-now, and changes nothing; it comes before the verb, as the mode of the other commands
-does: `hMailServer.exe --report-only /ProtectFolders` (after the verb it is not read, and
+**The program's own folders: what the other users may change.** Until 6.3.7 the
+program folder itself, `Bin` and `ControlPanel` took their permissions from the folder
+they are in, as the six did. Under `C:\Program Files` that is right: SYSTEM, the
+Administrators and TrustedInstaller may change them and every other account may read
+and run them. In a folder at the root of a drive it is not. On a Windows client the
+root hands every folder made below it `Authenticated Users` Modify, so every account
+that can sign in to the computer could replace `hMailServer.exe`, or put a library in
+`Bin` that Windows loads into it before its own (a program's own folder is searched
+first), and the service - LocalSystem by default and after every upgrade that keeps
+it, or `NT SERVICE\hMailServer` - ran it at its next start, as did the next
+administrator to run `DBSetup`, the Control Panel's elevated steps or the uninstaller.
+On Windows Server the root lets `Users` make files and folders in it, which is enough
+for the library. Every release from 6.0.0 to 6.3.6 installed so at a drive's root
+(work item 78); the default folder, Program Files, was never affected.
+
+Since 6.3.7 `/ProtectFolders` hardens the three, after the six:
+
+| What | Who reaches it afterwards |
+|---|---|
+| The program folder itself - the uninstaller, and what the folders in it inherit (`DBScripts`, `Languages`, `WebAdmin`, `Addons`) | SYSTEM and the Administrators, full control; `BUILTIN\Users` Read & execute; the Administrators its owner |
+| `Bin`, and everything in it | The same; `NT SERVICE\hMailServer` Read & execute, the grant's, and Modify on `Bin\hMailServerApiKeys.ini` alone, the grant's, an entry of the file's own that stays |
+| `ControlPanel`, and everything in it | The same; `NT SERVICE\hMailServer` Read & execute, the grant's |
+
+**How.** Each stops inheriting, as the six do; every deny entry and every entry of
+its own is kept - the grant's Read for the service among them; SYSTEM and the
+Administrators get full control and `BUILTIN\Users` Read & execute, each handed down,
+the Users' a fresh entry whatever the folder above handed them, so that the Control
+Panel and `DBSetup` still run for an administrator whose programs run unelevated; and
+every inherited allow entry is dropped, the line naming those that gave a right to
+change it: `Authenticated Users` from a client's drive root, `Users` and `CREATOR
+OWNER` from a Windows Server's, and under Program Files TrustedInstaller and `CREATOR
+OWNER`. A folder somebody other than SYSTEM, the Administrators or TrustedInstaller
+owns (one a user made at a drive's root before the installation, which any user can)
+is given to the Administrators, and the line names the owner it had: an owner may
+change the permissions whatever they say. A file in `Bin` or `ControlPanel` with
+permissions of its own keeps them. A second run finds the three `already hardened`
+and changes nothing; under Program Files the first run of 6.3.7 makes the three's
+entries their own, and no account can then do anything there it could not before. The
+program folder is not changed while one of the five folders in it could not be made
+private, since Windows hands its change down through that folder; `Bin` and
+`ControlPanel` are hardened all the same.
+
+**Then the rule of an administrator's install.** After the three, the installation is
+held to the rule an administrator's install of an update holds it to before it runs
+anything from it ("The live update", below): the folders above the program folder,
+the program folder, `Bin` and `ControlPanel` with every folder, program and library in
+them, `hMailServer.INI` and `AdminUpdate`. What the hardening makes passes it, so a
+drive-root installation that the live update refused before 6.3.7 passes once
+`/ProtectFolders` has run. What it leaves - an entry of a file's or a folder's own that
+an administrator gave, an owner that is not SYSTEM, the Administrators or
+TrustedInstaller, or a folder *above* the program folder that others may delete or
+rename (an installation in `C:\Apps\hMailServer`, where `C:\Apps` inherits
+`Authenticated Users` Modify from the drive's root) - is a `CHECK` line with the
+`icacls` that removes it, the first the rule finds, and is never changed here: a folder
+above the program folder may hold other programs that rely on what it allows.
+
+**Setup.** Before it copies anything, setup reads the permissions of the folder chosen
+on its folder page - or, when that is not there yet, of the nearest folder above it
+that is - and when `Everyone`, `Authenticated Users`, `Users`, `INTERACTIVE` or
+another group of every user may change what an installation there would hold, it says
+so, in a box and in the setup log (the log alone for a silent installation, and for an
+upgrade, whose folder page is not shown). It never refuses the folder: one made for
+the purpose off a drive's root is an administrator's choice, and the hardening is what
+closes it. A program folder setup makes is given SYSTEM's and the Administrators' full
+control and the Users' Read & execute, inheriting nothing, by `icacls` on the SIDs,
+before any other folder is made in it or any file copied - so the programs are never
+there, even for the seconds before `/ProtectFolders`, with a weaker list.
+
+**Before upgrading an installation at a drive's root.** From an elevated Command
+Prompt, with the installation's own folder in place of `C:\hMailServer`:
+
+```
+icacls "C:\hMailServer" /inheritance:r /grant:r *S-1-5-18:(OI)(CI)F *S-1-5-32-544:(OI)(CI)F *S-1-5-32-545:(OI)(CI)RX
+icacls "C:\hMailServer\Bin" /inheritance:r /grant:r *S-1-5-18:(OI)(CI)F *S-1-5-32-544:(OI)(CI)F *S-1-5-32-545:(OI)(CI)RX
+icacls "C:\hMailServer\ControlPanel" /inheritance:r /grant:r *S-1-5-18:(OI)(CI)F *S-1-5-32-544:(OI)(CI)F *S-1-5-32-545:(OI)(CI)RX
+```
+
+The SIDs are SYSTEM, the Administrators and the Users in every language of Windows.
+The first walks the whole program folder, the message store included where 6.3.5 or
+earlier left `Data` inheriting - minutes there, and `Data` then readable by Users until
+the upgrade's `/ProtectFolders` makes it private. The service's entries on
+`Bin` and `ControlPanel` and on `Bin\hMailServerApiKeys.ini` are their own and stay;
+if anybody else may have changed a program in `Bin` already, reinstall rather than
+harden.
+
+Exit codes: 0 each made private or hardened, or so already (`CHECK` lines do not change
+it); 1 one could not be, and its line says why - a link somebody else controls,
+permissions that could not be written; 2 not in an installation's `Bin` folder; 3 not
+run as an administrator. `--report-only` says what it would make private and who may
+read each now, and what it would harden and who may change each now, and changes
+nothing; it comes before the verb, as the mode of the other commands does:
+`hMailServer.exe --report-only /ProtectFolders` (after the verb it is not read, and
 nothing is changed or reported). A run that does not end in 0 does not fail the installation:
 setup says so, with the command to run again, and what could not be changed is as it
 was.
@@ -793,21 +883,22 @@ nothing it can write decides what the administrator's side runs.
    `update_install_by_administrator`). A Control Panel that is not the
    installation's own - a copy run from elsewhere - says to open the installation's.
    If the prompt is declined, nothing has changed anywhere.
-2. **The elevated stage checks the installation.** It finds the installation from
-   the service's registration and `hMailServer.INI`, which only administrators can
-   write, never from what the service says, and checks that nobody but SYSTEM, the
+2. **The elevated stage checks the installation.** It finds the installation from the
+   service's registration and `hMailServer.INI`, which only administrators can write,
+   never from what the service says, and checks that nobody but SYSTEM, the
    Administrators and TrustedInstaller can change what an administrator's process
    will run or read there: the folders above the program folder and the program
    folder itself (deleting in them, deleting them, or changing their permissions or
    owner), and `Bin` and `ControlPanel` with every folder, program and library in
-   them, `hMailServer.INI`, `AdminUpdate` and the trust files `hMailServer.INI`
-   names (any write). Something others can change stops the install before
-   anything has changed, and the Control Panel
-   names the folder, the account, the right and the `icacls` command that removes
-   it: a program run from there as an administrator could be one that account put
-   there. The same rule is checked by the Control Panel before the prompt, from a
-   table of cases both sides are tested against
-   (`build/testdata/install-permissions-cases.json`).
+   them, `hMailServer.INI`, `AdminUpdate` and the trust files `hMailServer.INI` names
+   (any write). Something others can change stops the install before anything has
+   changed, and the Control Panel names the folder, the account, the right and the
+   `icacls` command that removes it: a program run from there as an administrator
+   could be one that account put there. `hMailServer.exe /ProtectFolders` gives the
+   program folder, `Bin` and `ControlPanel` the permissions this passes, and says the
+   rest of what it finds ("The program's own folders", above). The same rule is
+   checked by the Control Panel before the prompt, from a table of cases both sides
+   are tested against (`build/testdata/install-permissions-cases.json`).
 3. **It copies the installer out of the service's reach.** `AdminUpdate\<id>` in the
    program folder - owned by the Administrators, SYSTEM and Administrators alone may
    change it, the administrator who clicked may read it - is made new for each
@@ -1076,7 +1167,26 @@ puts back, as HM5481 ([Upgrading.md](Upgrading.md), "If the upgrade fails").
   SYSTEM and the Administrators given full control handed down; a file keeping the
   service's Read as its own, or given it where it had none; a second run changing
   nothing; a file with two names refused; and an entry of the folder's own for
-  Users, given after, kept and still seen.
+  Users, given after, kept and still seen. And the program's own folders it
+  hardens: in memory (`TestHardenedShape_`, which needs no administrator), the
+  permissions built from what a Windows client's drive root, a Windows Server's,
+  Program Files, an inherited Modify or Read for the service, a deny entry beside an
+  administrator's entry, and no list at all hand a folder down, each held to the
+  rule of an administrator's install of an update and passing it, nobody but SYSTEM,
+  the Administrators and TrustedInstaller left to write, the dropped entries that
+  gave a right to write named and the Users' Read not, the grant's Read, the deny
+  (first) and the administrator's entry kept, and taken for hardened only when
+  protected and the Administrators' to own; and on the disk (`TestHarden_`), an
+  installation of the tester's own under a folder that hands down what a client's
+  drive root does - the program folder with the uninstaller, `Bin` with the server, a
+  library, `hMailServer.INI` private and the key store, `ControlPanel` - which
+  Authenticated Users may change and the rule refuses before, hardened: nobody but
+  SYSTEM and the Administrators may change a folder, a file in it or one made after,
+  Users still read and run them, the grant's entries and the key store's Modify kept,
+  the rule passing every folder, program and library, a second run changing nothing,
+  an entry an administrator gives Users afterwards kept and named by the rule, and a
+  `Bin` a user owns given to the Administrators (where the tester runs as an
+  administrator's own account).
 * `Installation/InstallerPackaging.cs`: the page's three forms and its defaults,
   `/serviceaccount=`, the word `/Register` is given and that `hMailServer.exe`
   knows it, that nothing reads `ServiceAccountName` any more, the registration
@@ -1086,39 +1196,46 @@ puts back, as HM5481 ([Upgrading.md](Upgrading.md), "If the upgrade fails").
   condition, after the registration and before the grant and the database step,
   its output in the setup log and its message suppressible, the verb taking the
   program folder's own six from where it is, holding each from the drive's root,
-  and giving the service Read on `hMailServer.INI`.
+  and giving the service Read on `hMailServer.INI`; and the verb hardening the
+  program folder, `Bin` and `ControlPanel` after the six, through the pin, the program
+  folder not while one of the six failed, with a fresh Read & execute for Users,
+  nothing inherited and the Administrators as owner, then holding the installation to
+  the rule of an administrator's install; setup's message naming them, the program
+  folder the first `[Dirs]` makes and given its permissions by SID before anything
+  else, and the folder page saying, in a suppressible box and the log, and never
+  refusing, when the chosen folder lets every user change what is in it.
 * `API/RestApiSetupChecklist.cs`: the tenth item, judged from the server's own
   token and, beside a running service, checked against the account `sc.exe qc`
   reports.
-* The administrator's install: `AdminUpdateTester` (`Common/Util/AdminUpdateTester.cpp`)
-  holds every check of the elevated stage to its negative - the permission rule
-  against the table of cases the Control Panel's `InstallationPermissionsTests`
-  reads too; the work folder made new and an old one, one with others' rights and
-  a junction refused; the copy through a junction, a link and a stream refused;
-  the architecture marker; the pin alone, a subject with an attribute more or
-  less, another chain, no code-signing use; and the real signed installers of
+* The administrator's install: `AdminUpdateTester`
+  (`Common/Util/AdminUpdateTester.cpp`) holds every check of the elevated stage to
+  its negative - the permission rule against the table of cases the Control Panel's
+  `InstallationPermissionsTests` reads too, `Bin` at a client's and at a Windows
+  Server's drive root refused and `Bin` and a program in it as `/ProtectFolders`
+  hardens them passing among them; the work folder made new and an old one, one with
+  others' rights and a junction refused; the copy through a junction, a link and a
+  stream refused; the architecture marker; the pin alone, a subject with an attribute
+  more or less, another chain, no code-signing use; and the real signed installers of
   6.3.1 to 6.3.5 (fetched onto the bench by `build/fetch-installer-fixtures.ps1`,
   checked by their SHA-256) passing, with 6.3.0 (unsigned), a byte changed, a file
-  cut short or grown, the .NET runtime's installer (another publisher, trusted
-  by Windows) and a catalogue-signed system file refused, the site-signer path
-  held to the installed signer's name and root (the same name through another
-  root refused), a name with a NUL in it refused, a revocation check with no
-  time to run refused as not reachable, and a chain whose revocation status is
-  unknown or offline below its root refused while one with only its root
-  unchecked passes; and the lowered child's token read back -
-  the Administrators and every group UAC filters deny-only, no privilege but
-  change-notify, low integrity - its job's limit, its timeout and its output cap. `AdminUpdateStageTester`
-  holds the stage's request to its child (a round trip, and every malformed
-  frame refused), the child's answers, the Updater's outcome file, and the real
-  6.3.5 bundle verified through the child as the stage runs it. The Control
-  Panel's `AdministratorUpdateTests`, `AfterUpdateHandoffTests` (a handoff
-  without its key, another user's, an old one and a second read refused) and
-  `UpdateStatusTextTests`; `API/UpdateApply.cs`, which on the bench's LocalSystem
+  cut short or grown, the .NET runtime's installer (another publisher, trusted by
+  Windows) and a catalogue-signed system file refused, the site-signer path held to
+  the installed signer's name and root (the same name through another root refused),
+  a name with a NUL in it refused, a revocation check with no time to run refused as
+  not reachable, and a chain whose revocation status is unknown or offline below its
+  root refused while one with only its root unchecked passes; and the lowered child's
+  token read back - the Administrators and every group UAC filters deny-only, no
+  privilege but change-notify, low integrity - its job's limit, its timeout and its
+  output cap. `AdminUpdateStageTester` holds the stage's request to its child (a
+  round trip, and every malformed frame refused), the child's answers, the Updater's
+  outcome file, and the real 6.3.5 bundle verified through the child as the stage
+  runs it. The Control Panel's `AdministratorUpdateTests`, `AfterUpdateHandoffTests`
+  (a handoff without its key, another user's, an old one and a second read refused)
+  and `UpdateStatusTextTests`; `API/UpdateApply.cs`, which on the bench's LocalSystem
   service holds the administrator's path shut, and where the service is another
-  account holds the 409 and the state; and `build/check-elevated-verbs.py`,
-  which fails when a verb that runs elevated reaches the log or the crash
-  handler. The whole install, with Windows' prompt, is run by hand on the
-  installer smoke VM.
+  account holds the 409 and the state; and `build/check-elevated-verbs.py`, which
+  fails when a verb that runs elevated reaches the log or the crash handler. The
+  whole install, with Windows' prompt, is run by hand on the installer smoke VM.
 * The live registration - a new installation under the virtual account, an upgrade
   that keeps LocalSystem, a move each way, the question the grant asks - is
   exercised by hand on a throwaway machine; nothing here registers a service on

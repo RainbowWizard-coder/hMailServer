@@ -164,6 +164,14 @@ var
   // the machine for anything else is (docs/WindowsOnArm.md).
   g_szDatabaseFrom: String;
 
+  // Set at ssInstall when the program folder is not there yet: this installation
+  // makes it, and gives it its permissions before anything is copied into it
+  // (HardenNewProgramFolder, which [Dirs] runs once it has made the folder).
+  g_bProgramFolderNew: Boolean;
+  // The last folder CheckProgramFolderPermissions looked at, so that one choice
+  // is said once.
+  g_szProgramFolderChecked: String;
+
 // The NT-service specific parts of the scrit below is taken
 // from the innosetup extension knowledgebase.
 // Author: Silvio Iaccarino silvio.iaccarino(at)de.adp.com
@@ -197,6 +205,20 @@ type
 		dwServiceFlags				: cardinal;
 	end;
 	HANDLE = cardinal;
+	// What GetAclInformation answers for AclSizeInformation: the number of entries
+	// in a list of permissions, and its bytes in use and free (CheckProgramFolderPermissions).
+	ACL_SIZE_INFO = record
+		AceCount					: cardinal;
+		AclBytesInUse				: cardinal;
+		AclBytesFree				: cardinal;
+	end;
+	// The first eight bytes of an entry in such a list: its type, flags and size in
+	// one cardinal (the type in the low byte, the flags in the next), and an allow
+	// or deny entry's rights. The entry's SID follows them.
+	ACE_START = record
+		TypeFlagsSize				: cardinal;
+		Mask						: cardinal;
+	end;
 	
 const
 	SERVICE_QUERY_CONFIG		= $1;
@@ -241,6 +263,24 @@ const
 	// About 1.1 seconds was measured on 25 September 2026; the bound is for the
 	// process that does not go at all.
 	PROCESS_EXIT_BUDGET_MS      = 30000;
+
+	// For reading a folder's permissions (CheckProgramFolderPermissions), named
+	// apart from the Windows names (SE_FILE_OBJECT, DACL_SECURITY_INFORMATION,
+	// AclSizeInformation, ACCESS_ALLOWED_ACE_TYPE and the flags) for the reason the
+	// two above are. HM_FOLDER_WRITE_RIGHTS is every right that changes what a
+	// folder or a file holds, what it is called or who may change it -
+	// AdminUpdateChecks::WriteRights, the rule an administrator's install of an
+	// update holds the program's folders to - with GENERIC_ALL and GENERIC_WRITE,
+	// which an entry may carry unmapped.
+	HM_FILE_OBJECT              = 1;
+	HM_DACL_INFORMATION         = 4;
+	HM_ACL_SIZE_INFORMATION     = 2;
+	HM_ACCESS_ALLOWED           = 0;
+	HM_OBJECT_INHERIT           = $01;
+	HM_CONTAINER_INHERIT        = $02;
+	HM_NO_PROPAGATE_INHERIT     = $04;
+	HM_INHERIT_ONLY             = $08;
+	HM_FOLDER_WRITE_RIGHTS      = $500D0156;
 
   // Every dialog in this script is a SuppressibleMsgBox, and the reason is the
 // 6.2.19 release: the database setup failed on a clean machine, the failure
@@ -310,6 +350,208 @@ external 'CloseHandle@kernel32.dll stdcall';
 // did in 6.2.19).
 function SetProcessEnvironmentVariable(lpName: String; lpValue: String): Boolean;
 external 'SetEnvironmentVariableW@kernel32.dll stdcall';
+
+// A folder's permissions, read (CheckProgramFolderPermissions): GetNamedSecurityInfoW
+// for its list, GetAclInformation and GetAce to walk it, RtlMoveMemory to copy the
+// start of an entry out, ConvertStringSidToSidW and EqualSid to know the group it
+// names, LocalFree for what Windows allocated. Pointers are cardinals, as HANDLE is:
+// this setup is a 32-bit program. A String reaches a W function as a pointer to its
+// wide characters. Named apart from the API for the reason SetProcessEnvironmentVariable is.
+function ReadFolderPermissions(pObjectName: String; ObjectType: cardinal; SecurityInfo: cardinal; ppsidOwner: cardinal; ppsidGroup: cardinal;
+                               var ppDacl: cardinal; ppSacl: cardinal; var ppSecurityDescriptor: cardinal): cardinal;
+external 'GetNamedSecurityInfoW@advapi32.dll stdcall';
+function ReadAclSize(pAcl: cardinal; var AclInformation: ACL_SIZE_INFO; nAclInformationLength: cardinal; dwAclInformationClass: cardinal): Boolean;
+external 'GetAclInformation@advapi32.dll stdcall';
+function ReadAclEntry(pAcl: cardinal; dwAceIndex: cardinal; var pAce: cardinal): Boolean;
+external 'GetAce@advapi32.dll stdcall';
+procedure CopyAceStart(var Destination: ACE_START; Source: cardinal; Length: cardinal);
+external 'RtlMoveMemory@kernel32.dll stdcall';
+function SidOfText(StringSid: String; var Sid: cardinal): Boolean;
+external 'ConvertStringSidToSidW@advapi32.dll stdcall';
+function SidsAreEqual(Sid1: cardinal; Sid2: cardinal): Boolean;
+external 'EqualSid@advapi32.dll stdcall';
+function FreeWindowsMemory(hMem: cardinal): cardinal;
+external 'LocalFree@kernel32.dll stdcall';
+
+// The groups that hold every user of the computer, as SIDs - Everyone,
+// Authenticated Users, Users and the rest of ServiceAccount.cpp's BroadSids_ that a
+// folder's permissions name in practice - with the name each is given in what
+// setup says. Empty past the last.
+function BroadGroupSid(Index: Integer; var Name: String): String;
+begin
+   Result := '';
+   Name := '';
+   case Index of
+      0: begin Result := 'S-1-1-0'; Name := 'Everyone'; end;
+      1: begin Result := 'S-1-5-11'; Name := 'Authenticated Users'; end;
+      2: begin Result := 'S-1-5-32-545'; Name := 'Users'; end;
+      3: begin Result := 'S-1-5-4'; Name := 'INTERACTIVE'; end;
+      4: begin Result := 'S-1-2-0'; Name := 'LOCAL'; end;
+      5: begin Result := 'S-1-5-32-546'; Name := 'Guests'; end;
+      6: begin Result := 'S-1-5-32-547'; Name := 'Power Users'; end;
+      7: begin Result := 'S-1-5-32-555'; Name := 'Remote Desktop Users'; end;
+      8: begin Result := 'S-1-5-14'; Name := 'REMOTE INTERACTIVE LOGON'; end;
+      9: begin Result := 'S-1-5-13'; Name := 'TERMINAL SERVER USER'; end;
+   end;
+end;
+
+// The name of the broad group (BroadGroupSid) that may change what an installation
+// in Folder would hold, or '' when none may or the permissions cannot be read. Read
+// on Folder itself when it is there - an allow entry that applies to it - and
+// otherwise on the nearest folder above it that is there - an allow entry a folder
+// made in it would inherit: one handed down to folders, or to files and not only
+// to that folder's own. Where is the folder whose permissions were read. What
+// counts is HM_FOLDER_WRITE_RIGHTS. Deny entries are not weighed: they can only
+// take away, and a warning that is not needed costs less than one that is missed.
+function BroadGroupThatMayWrite(Folder: String; var Where: String): String;
+var
+   szPath: String;
+   szParent: String;
+   szSid: String;
+   szName: String;
+   bExists: Boolean;
+   bLooking: Boolean;
+   bApplies: Boolean;
+   pDescriptor: cardinal;
+   pDacl: cardinal;
+   pAce: cardinal;
+   pBroad: cardinal;
+   info: ACL_SIZE_INFO;
+   head: ACE_START;
+   aceType: cardinal;
+   aceFlags: cardinal;
+   index: cardinal;
+   group: Integer;
+begin
+   Result := '';
+   Where := '';
+   szPath := RemoveBackslashUnlessRoot(Folder);
+   bExists := DirExists(szPath);
+   bLooking := true;
+   while bLooking and not DirExists(szPath) do
+   begin
+      szParent := ExtractFileDir(szPath);
+      if (szParent = '') or (CompareText(szParent, szPath) = 0) then
+         bLooking := false
+      else
+         szPath := szParent;
+   end;
+   if not DirExists(szPath) then
+      Exit;
+   Where := szPath;
+
+   pDescriptor := 0;
+   pDacl := 0;
+   if ReadFolderPermissions(szPath, HM_FILE_OBJECT, HM_DACL_INFORMATION, 0, 0, pDacl, 0, pDescriptor) <> 0 then
+      Exit;
+
+   if pDacl = 0 then
+      Result := 'Everyone (the folder has no list of permissions at all)'
+   else if ReadAclSize(pDacl, info, 12, HM_ACL_SIZE_INFORMATION) then
+   begin
+      index := 0;
+      while (Result = '') and (index < info.AceCount) do
+      begin
+         pAce := 0;
+         if ReadAclEntry(pDacl, index, pAce) and (pAce <> 0) then
+         begin
+            CopyAceStart(head, pAce, 8);
+            aceType := head.TypeFlagsSize and $FF;
+            aceFlags := (head.TypeFlagsSize shr 8) and $FF;
+            if bExists then
+               bApplies := (aceFlags and HM_INHERIT_ONLY) = 0
+            else
+               bApplies := ((aceFlags and HM_CONTAINER_INHERIT) <> 0) or
+                           (((aceFlags and HM_OBJECT_INHERIT) <> 0) and ((aceFlags and HM_NO_PROPAGATE_INHERIT) = 0));
+            if (aceType = HM_ACCESS_ALLOWED) and bApplies and ((head.Mask and HM_FOLDER_WRITE_RIGHTS) <> 0) then
+            begin
+               group := 0;
+               szSid := BroadGroupSid(group, szName);
+               while (Result = '') and (szSid <> '') do
+               begin
+                  pBroad := 0;
+                  if SidOfText(szSid, pBroad) then
+                  begin
+                     if SidsAreEqual(pAce + 8, pBroad) then
+                        Result := szName;
+                     FreeWindowsMemory(pBroad);
+                  end;
+                  group := group + 1;
+                  szSid := BroadGroupSid(group, szName);
+               end;
+            end;
+         end;
+         index := index + 1;
+      end;
+   end;
+
+   FreeWindowsMemory(pDescriptor);
+end;
+
+// Says when a group that holds every user of the computer - Authenticated Users,
+// whose Modify the root of a Windows client's drive hands every folder made there,
+// or Users, whom Windows Server's lets make files and folders - may change what an
+// installation in Folder would hold: the programs the service and the administrators
+// run. A warning, never a refusal: setup hardens the program folder, Bin and
+// ControlPanel (HardenNewProgramFolder for a folder it makes, and hMailServer.exe
+// /ProtectFolders after the files, docs/ServiceAccount.md), and a folder made for
+// the purpose off a drive's root is a choice an administrator may make. In a box
+// when Show is set and the installation is attended - the folder page - and in the
+// setup log always; once for a folder.
+procedure CheckProgramFolderPermissions(Folder: String; Show: Boolean);
+var
+   szWho: String;
+   szWhere: String;
+   szText: String;
+begin
+   if CompareText(Folder, g_szProgramFolderChecked) = 0 then
+      Exit;
+   g_szProgramFolderChecked := Folder;
+
+   szWho := BroadGroupThatMayWrite(Folder, szWhere);
+   if szWho = '' then
+      Exit;
+
+   if CompareText(RemoveBackslashUnlessRoot(Folder), szWhere) = 0 then
+      szText := Folder + ' lets ' + szWho + ' change what is in it'
+   else
+      szText := szWhere + ', the folder ' + Folder + ' would be made in, lets ' + szWho + ' change what is in a folder made there';
+   szText := szText + ', so any account of the computer could replace hMailServer''s programs, which the service and the administrators run. ' +
+             'Setup takes that right away from the program folder, Bin and ControlPanel - before it copies anything into a folder it makes, and with ' +
+             'hMailServer.exe /ProtectFolders after the files - but a folder made for programs, such as the default ' + ExpandConstant('{commonpf}') + '\hMailServer, ' +
+             'is the safer place.';
+   Log('The program folder: ' + szText);
+   if Show and not WizardSilent() then
+      SuppressibleMsgBox(szText, mbInformation, MB_OK, IDOK);
+end;
+
+// The program folder of a new installation, given the permissions hMailServer.exe
+// /ProtectFolders gives it (ServiceAccount::Harden) as soon as [Dirs] has made it,
+// before anything is copied into it: SYSTEM and the Administrators full control,
+// BUILTIN\Users Read & execute, handed down, and nothing the folder above hands
+// down - by SID, which no language of Windows changes. A folder made at a drive's
+// root inherits Authenticated Users' Modify on a Windows client and Users' right to
+// make files and folders on Windows Server, so every program copied into it would be
+// one any user could change until /ProtectFolders runs after the files. Only a folder
+// this installation made: one that was there keeps what is in it as it was until
+// /ProtectFolders, which also gives it to the Administrators when a user owns it.
+// When icacls cannot be run, or fails, the setup log says so and /ProtectFolders
+// still hardens the folder after the files.
+procedure HardenNewProgramFolder();
+var
+   ResultCode: Integer;
+   szFolder: String;
+begin
+   szFolder := RemoveBackslashUnlessRoot(ExpandConstant('{app}'));
+   if (not g_bProgramFolderNew) or (Length(szFolder) <= 3) then
+      Exit;
+
+   if Exec(ExpandConstant('{sys}\icacls.exe'), '"' + szFolder + '" /inheritance:r /grant:r *S-1-5-18:(OI)(CI)F *S-1-5-32-544:(OI)(CI)F *S-1-5-32-545:(OI)(CI)RX',
+           '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then
+      Log('icacls gave the new program folder ' + szFolder + ' its permissions - SYSTEM and the Administrators full control, Users Read & execute, nothing inherited - before the files, and returned ' + IntToStr(ResultCode) + '.')
+   else
+      Log('icacls could not be run to give the new program folder ' + szFolder + ' its permissions before the files: ' + SysErrorMessage(ResultCode) + '. hMailServer.exe /ProtectFolders gives them after the files.');
+end;
 
 // UpdateApplyToken's form: 64 lowercase hexadecimal characters.
 function IsUpgradeTokenForm(Token: String): Boolean;
@@ -2316,14 +2558,18 @@ end;
 // Runs hMailServer.exe /ProtectFolders (Common/Util/ServiceAccount.h) at every
 // installation and upgrade of the server, whatever account the service runs as:
 // the program folder's own Data, Logs, Temp, Database and Events folders and
-// Bin\hMailServer.INI made private to SYSTEM, the Administrators and the service.
-// Until 6.3.6 they inherited Read for BUILTIN\Users from Program Files, so every
+// Bin\hMailServer.INI made private to SYSTEM, the Administrators and the service;
+// and the program folder itself, Bin and ControlPanel hardened - SYSTEM and the
+// Administrators the only ones who may change them, BUILTIN\Users Read & execute.
+// Until 6.3.6 the six inherited Read for BUILTIN\Users from Program Files, so every
 // user of the computer could read the mail, the logs, the built-in database and
-// the database's password. Run before the database step, so that the database it
+// the database's password; until 6.3.7 an installation at a drive's root left
+// every user free to replace the programs in Bin, which the service and the
+// administrators run. Run before the database step, so that the database it
 // makes and the logs the service starts are made inside folders already private.
 // What the verb said goes into the setup log, line for line. One that could not
-// make each of them private says so, and the installation goes on: what it could
-// not change is as it was, and the server runs as it did.
+// make each of them private, or harden each, says so, and the installation goes
+// on: what it could not change is as it was, and the server runs as it did.
 procedure ProtectFolders();
 	var
 		ResultCode: Integer;
@@ -2345,8 +2591,8 @@ begin
 		Log('hMailServer.exe /ProtectFolders returned ' + IntToStr(ResultCode) + ' and wrote nothing to ' + szReport + '.');
 
 	if (ResultCode <> 0) then
-		SuppressibleMsgBox('The data, log, temp, database and event folders of hMailServer and hMailServer.INI could not all be made private to the administrators and the service: hMailServer.exe /ProtectFolders returned ' + IntToStr(ResultCode) + ', and the setup log says why. ' +
-		       'What it could not change is as it was, readable by every user of this computer. Run "hMailServer.exe /ProtectFolders" as an administrator from the hMailServer Bin folder to see what it says and to retry.', mbError, MB_OK, IDOK);
+		SuppressibleMsgBox('The data, log, temp, database and event folders of hMailServer and hMailServer.INI could not all be made private to the administrators and the service, or the program folder, Bin and ControlPanel made theirs alone to change: hMailServer.exe /ProtectFolders returned ' + IntToStr(ResultCode) + ', and the setup log says why. ' +
+		       'What it could not change is as it was: readable by every user of this computer, or for a program folder at a drive''s root, changeable by every user. Run "hMailServer.exe /ProtectFolders" as an administrator from the hMailServer Bin folder to see what it says and to retry.', mbError, MB_OK, IDOK);
 end;
 
 // Why a grant run did not end in 0, in a sentence for a message box.
@@ -2977,7 +3223,7 @@ begin
          // hMailServer.INI, private to the administrators and the service - at
          // every installation and upgrade, whatever account the service runs as,
          // and before the database step makes or opens anything in them.
-         ProgressPage.SetText('Making the program''s data, log and database folders private...', 'On a large message store the first time takes a few minutes.');
+         ProgressPage.SetText('Making the program''s data, log and database folders private, and its program folders the administrators'' to change...', 'On a large message store the first time takes a few minutes.');
          ProtectFolders();
 
          // Before anything starts the service - the database step below does, over
@@ -3574,6 +3820,11 @@ begin
 		begin
 			Result := false;
 		end;
+
+		// A folder every user of the computer may change what is in - one at a
+		// drive's root - said, never refused (CheckProgramFolderPermissions).
+		if Result then
+			CheckProgramFolderPermissions(WizardDirValue(), true);
 	end
 	else if CurPage = wpReady then
 	begin
@@ -3621,6 +3872,14 @@ begin
 
 	if CurStep = ssInstall then
 	begin
+	   // Whether this installation makes the program folder, for the permissions
+	   // it gives it before the files (HardenNewProgramFolder); and in the setup
+	   // log, whether every user may change what the folder holds, for an
+	   // installation whose folder page was not shown - a silent one, or an
+	   // upgrade (CheckProgramFolderPermissions).
+	   g_bProgramFolderNew := not DirExists(ExpandConstant('{app}'));
+	   CheckProgramFolderPermissions(ExpandConstant('{app}'), false);
+
 	   // Whether the database is new, asked of the settings file before the
 	   // installation writes one, and of the mark an unfinished new installation
 	   // leaves, before this one clears it (IsNewDatabase, PendingNewInstallation).

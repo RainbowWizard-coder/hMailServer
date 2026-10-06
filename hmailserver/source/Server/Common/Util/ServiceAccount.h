@@ -195,6 +195,28 @@ namespace HM
       // RunProtectCommand decides which paths, and holds them while it does.
       static GrantResult Protect(const String &path, const String &sid, bool directory, bool serviceReads, String &detail, std::vector<String> &dropped);
 
+      // Makes what is at path - one of the program's own folders, which every
+      // user may read and run and nobody but SYSTEM and the administrators may
+      // change - what Program Files leaves one: its permissions no longer
+      // inherited, so that nothing the folder above hands down reaches it - the
+      // Modify a drive's root hands Authenticated Users on a Windows client, the
+      // right to make files and folders it hands Users on Windows Server; every
+      // deny entry and every entry of its own kept, the grant's Read for sid
+      // among them; an inherited entry for sid kept as one of its own while it
+      // gives no right to write; SYSTEM and the Administrators given full
+      // control and BUILTIN\Users Read & execute, on a directory handed down to
+      // everything below; and its owner made the Administrators when it is not
+      // SYSTEM, the Administrators or TrustedInstaller, naming the one it had in
+      // formerOwner - an owner may always change the permissions. Every other
+      // inherited allow entry is dropped, and named in dropped when it gave a
+      // right to write (AdminUpdateChecks::WriteRights). GrantAlreadyThere, and
+      // nothing written, when the permissions and the owner are that already;
+      // GrantFailed with detail when they could not be read or written. A file
+      // or folder below with permissions of its own keeps them. Takes the path
+      // as given: RunProtectCommand decides which paths, and holds them while it
+      // does.
+      static GrantResult Harden(const String &path, const String &sid, bool directory, String &detail, std::vector<String> &dropped, String &formerOwner);
+
       // What /ProtectFolders is asked to do, from its command line.
       struct ProtectOptions
       {
@@ -215,10 +237,22 @@ namespace HM
       // administrators alone control it, as the grant goes through one. What the
       // configuration names elsewhere, and a key file in the data folder with
       // permissions of its own, is CHECKed for a broad group's Read and never
-      // changed. One line each - made private, already private, FAILED or CHECK.
-      // Exit codes: 0 every one made private or already so (CHECK lines are
-      // said, and do not change it); 1 one could not be; 2 this binary is not in
-      // the Bin folder of an installation; 3 not run as an administrator.
+      // changed. Then the program folder itself, Bin and ControlPanel are each
+      // Harden()ed - SYSTEM and the Administrators full control, BUILTIN\Users
+      // Read & execute, nothing inherited, the owner the Administrators - so
+      // that no user of the computer may change a program the service or an
+      // administrator runs, as an installation at a drive's root let every
+      // user until 6.3.7; the program folder only once none of the five folders
+      // above failed, since its change is handed down through them. And the
+      // installation is held to the rule of an administrator's install of an
+      // update (AdminUpdateChecks::CheckInstallation), which what this hardens
+      // passes: what it leaves - an entry of a file's own, a folder above the
+      // program folder - is CHECKed, with the icacls that removes it. One line
+      // each - made private, already private, hardened, already hardened,
+      // FAILED or CHECK. Exit codes: 0 every one made private or hardened, or
+      // already so (CHECK lines are said, and do not change it); 1 one could
+      // not be; 2 this binary is not in the Bin folder of an installation; 3
+      // not run as an administrator.
       static int RunProtectCommand(const ProtectOptions &options);
 
       // hMailServer.exe --grant-database-login: what the service's own identity,
@@ -260,8 +294,13 @@ namespace HM
    // the administrators alone control held to where it leads; which folders a
    // grant may reach, a malicious
    // [Directories] value among them; the logon /Register passes for each
-   // --service-account; and what /ProtectFolders makes of a folder and a file
-   // that inherit BUILTIN\Users' Read (TestProtect_). See the definition.
+   // --service-account; what /ProtectFolders makes of a folder and a file
+   // that inherit BUILTIN\Users' Read (TestProtect_); and the program's own
+   // folders it hardens - the permissions it builds from what a drive's root,
+   // Windows Server's and Program Files hand down, held to the rule of an
+   // administrator's install of an update (TestHardenedShape_), and an
+   // installation's folders on the disk that inherit Authenticated Users'
+   // Modify (TestHarden_). See the definition.
    class ServiceAccountTester
    {
    public:

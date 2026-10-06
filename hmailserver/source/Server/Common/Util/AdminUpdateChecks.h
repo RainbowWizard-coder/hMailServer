@@ -44,6 +44,13 @@ namespace HM
       // TrustedInstaller's service SID, the owner of Windows' own files.
       extern const wchar_t *const TrustedInstallerSid;
 
+      // The file rights that change what an object holds, what it is called or
+      // who may change it, once the generic rights are mapped: what the rule
+      // counts on {app} and below (PlaceInside), and the one definition of a
+      // right to write that hMailServer.exe /GrantServiceAccess and
+      // /ProtectFolders check the program's folders against (ServiceAccount.cpp).
+      extern const unsigned long WriteRights;
+
       // 32 lowercase hexadecimal characters: the work folder's name, which the
       // Control Panel makes and the stage takes from its command line.
       bool IsWorkId(const std::wstring &text);
@@ -129,7 +136,10 @@ namespace HM
       //   - each extra file (the Sigstore trust files hMailServer.INI names), with
       //     the folders on its way as PlaceAboveApp, and refused when it is itself
       //     a link.
-      // app is the folder above Bin, without a trailing separator.
+      // app is the folder above Bin, without a trailing separator. From 6.3.7
+      // hMailServer.exe /ProtectFolders gives {app}, Bin and ControlPanel the
+      // permissions this passes (ServiceAccount::Harden), then holds the
+      // installation to this and says its first finding as CHECK.
       bool CheckInstallation(const std::wstring &app, const std::vector<std::wstring> &extraFiles, Finding &finding);
 
       // The principal's name as Windows gives it, DOMAIN\name; the SID's text when

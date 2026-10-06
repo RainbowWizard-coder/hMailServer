@@ -71,6 +71,30 @@ with `--check`).
 
 ## Unreleased - in the tree after 6.3.6, not yet released
 
+### Security
+
+Every user of a Windows computer on which hMailServer was installed in a folder at the root of a drive could replace
+the programs its service runs. The installer left the program folder, `Bin` and `ControlPanel` with the permissions
+the folder above them hands down. Under `C:\Program Files`, the default, that lets nobody but SYSTEM, the
+Administrators and TrustedInstaller change them; but the root of a drive on a Windows client hands every folder made
+below it `Authenticated Users` Modify, so any account that can sign in to the computer could replace `hMailServer.exe`,
+or put a library in `Bin` that Windows loads into it before its own, and the service - LocalSystem by default and
+after every upgrade that keeps it - ran it at its next start, as did the next administrator to run `DBSetup`, the
+Control Panel's elevated steps or the uninstaller. On Windows Server the root lets `Users` make files in it, which is
+enough for the library. Every release from 6.0.0 to 6.3.6 installs so in such a folder; the default folder was never
+affected. 6.3.6's `/ProtectFolders` made the data folders private and left these three as they were, and
+`/GrantServiceAccess` only said `CHECK`, and only under the virtual account. `hMailServer.exe /ProtectFolders`, which
+setup runs at every installation and upgrade, now hardens the three: SYSTEM and the Administrators with full control,
+`BUILTIN\Users` with Read & execute, nothing inherited, and the Administrators as the owner of one somebody else owned.
+It then holds the installation to the rule an administrator's install of an update checks, which such an installation
+now passes, and says what it does not change - an entry of a file's own, a folder above the program folder that others
+may rename - on a `CHECK` line with the `icacls` that removes it. Setup also gives a program folder it makes those
+permissions before it copies anything into it, and says, without refusing it, when the folder chosen lets every user
+change what is in it. Under Program Files the first run makes the three's entries their own, and nobody may do there
+anything they could not before. An administrator who cannot upgrade yet runs the three `icacls` lines the
+documentation gives from an elevated prompt. Found by the project's own review (work item 78; CVE requested).
+[ServiceAccount.md](hmailserver/docs/ServiceAccount.md), "What the other users of the computer may read".
+
 ### Downloads and the release
 
 - **The Helm chart's and the container image's repositories are on Artifact Hub, and the tree holds the IDs Artifact
