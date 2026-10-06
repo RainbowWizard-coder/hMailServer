@@ -43,8 +43,9 @@
 #                         GitLab's shared runners, in the same regctl image: Artifact
 #                         Hub's metadata for the image's repository
 #                         (packaging/docker/artifacthub-repo.yml) pushed under the tag
-#                         artifacthub.io, once that file holds the repository ID
-#                         Artifact Hub gave; until then nothing. Nothing waits for it,
+#                         artifacthub.io, when that file holds the repository ID
+#                         Artifact Hub gave, as it does since 6 October 2026; for a
+#                         file without one, nothing. Nothing waits for it,
 #                         and in the default branch's pipeline it is there to start by
 #                         hand (build/ci/container-image-artifacthub.sh);
 #   container-image-sbom  linix: each platform's image's software bill of materials -
@@ -259,12 +260,13 @@ container-image:
       dotenv: container-image/image.env
 
 # Artifact Hub's metadata for the image's repository, the tree's
-# packaging/docker/artifacthub-repo.yml, pushed under the tag artifacthub.io once it
-# holds the repository ID Artifact Hub gave (build/ci/container-image-artifacthub.sh;
-# hmailserver/docs/ContainerImage.md, "Artifact Hub"); until then it pushes nothing and
-# passes. In a v* tag's pipeline it follows container-image, and nothing waits for it.
-# In the default branch's, a maintainer starts it by hand once the ID is committed, so
-# that the listing need not wait for the next release; its need of container-image is
+# packaging/docker/artifacthub-repo.yml, pushed under the tag artifacthub.io when it
+# holds the repository ID Artifact Hub gave, as it does since 6 October 2026
+# (build/ci/container-image-artifacthub.sh; hmailserver/docs/ContainerImage.md,
+# "Artifact Hub"); for a file without one it pushes nothing and passes. In a v* tag's
+# pipeline it follows container-image, and nothing waits for it. In the default
+# branch's, a maintainer starts it by hand once the ID is committed, so that the
+# listing need not wait for the next release; its need of container-image is
 # optional for that pipeline, which has none. In the same regctl image as container-image,
 # and for the same reason without .no-github.
 container-image-artifacthub:

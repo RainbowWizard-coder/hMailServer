@@ -71,6 +71,19 @@ with `--check`).
 
 ## Unreleased - in the tree after 6.3.6, not yet released
 
+### Downloads and the release
+
+- **The Helm chart's and the container image's repositories are on Artifact Hub, and the tree holds the IDs Artifact
+  Hub gave them.** On 6 October 2026 the maintainers added both to the organization `hmailserver`: the chart's,
+  `https://updates.progressiverobot.com/helm/`, with the ID `d8768ed9-b894-45c8-ba44-f7516bcf4206`, and the image's,
+  `oci://registry.gitlab.com/hmailserver/hmailserver`, tracking its tags `6.3.6` and `latest`, with the ID
+  `8cd87f71-a93b-4eb0-b3a0-a78ece5b5796`. `build/ci/helm-repo.py`'s `ARTIFACTHUB_REPOSITORY_ID` and
+  `platform/packaging/docker/artifacthub-repo.yml` now carry them, so the next `pages` job writes the chart's into
+  `helm/artifacthub-repo.yml` beside the index, and `container-image-artifacthub` - started by hand in `master`'s
+  pipeline, and by itself in the next `v*` tag's - pushes the image's under the tag `artifacthub.io`: each gives its
+  listing the Verified publisher label, which neither has yet. A new release's version tag is not tracked by itself:
+  a maintainer adds it to the image repository's tags on Artifact Hub, ten at most.
+
 ### Operations
 
 - **Fixed: on Linux, a MySQL or PostgreSQL column the server reads as a `long` went through an `int` on its way

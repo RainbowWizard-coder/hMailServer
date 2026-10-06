@@ -7,11 +7,14 @@
 # "Artifact Hub"). build/ci/container-image-artifacthub.sh pushes this file, as it is,
 # to that repository under the tag artifacthub.io, where Artifact Hub looks for it.
 #
-# repositoryID is the ID Artifact Hub gives the repository when a maintainer adds it
-# to the organization hmailserver (Control Panel, Repositories, Add, kind Container
-# images, URL oci://registry.gitlab.com/hmailserver/hmailserver), and it gives the
-# listing its Verified publisher label. It is written here, on a line of its own,
-# as "repositoryID: <the ID>"; until it is, nothing is pushed. It is not the Helm
-# chart's ID, which is another repository's (ARTIFACTHUB_REPOSITORY_ID in
-# build/ci/helm-repo.py). Nothing but comments, blank lines and that one line may be
+# repositoryID, the last line, is the ID Artifact Hub gave the repository when the
+# maintainers added it to the organization hmailserver on 6 October 2026 (Control
+# Panel, Repositories, Add, kind Container images, name hmailserver-image, URL
+# oci://registry.gitlab.com/hmailserver/hmailserver). Read by Artifact Hub from the
+# tag once container-image-artifacthub has pushed this file, it gives the listing its
+# Verified publisher label. It is not the Helm chart's ID, which is another
+# repository's (ARTIFACTHUB_REPOSITORY_ID in build/ci/helm-repo.py). It stands on a
+# line of its own, as "repositoryID: <the ID>"; without it nothing is pushed. Nothing
+# but comments, blank lines and that one line may be
 # here: the script refuses anything else.
+repositoryID: 8cd87f71-a93b-4eb0-b3a0-a78ece5b5796

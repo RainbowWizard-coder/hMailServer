@@ -84,7 +84,7 @@ What runs where
 | `container-image-deb` | release | GitLab's shared runners | a `v*` tag, started by hand after `release-publish`; refuses unless the project's variable `HM_PUBLISH_IMAGE` is `1` | The release's `.deb` of each architecture, amd64 and arm64, and their SBOMs taken from the published release and verified against their Sigstore bundles (`build/ci/container-image-deb.sh`; [The container image](#the-container-image)) |
 | `container-image-amd64`, `container-image-arm64` | release | linix | a `v*` tag, after `container-image-deb`; refuse unless `HM_PUBLISH_IMAGE` is `1` | Each platform's image built with kaniko from its own architecture's `.deb` - the arm64 one under qemu-user - inspected as `linux-image` inspects its own, and kept for `container-image`, not pushed (`build/ci/linux-image.sh` with `HM_IMAGE_RELEASE=1`) |
 | `container-image` | release | GitLab's shared runners, in regctl's image | a `v*` tag, after both; refuses unless `HM_PUBLISH_IMAGE` is `1` | Both images, each held to what its job checked, joined under one index and pushed to the project's container registry: each image by its digest, the index with the release's tags (`build/ci/container-image-push.sh`) |
-| `container-image-artifacthub` | release | GitLab's shared runners, in regctl's image | a `v*` tag, after `container-image`; the default branch, by hand, allowed to fail; refuses unless `HM_PUBLISH_IMAGE` is `1` | Artifact Hub's metadata for the image's repository, the tree's `platform/packaging/docker/artifacthub-repo.yml`, pushed under the tag `artifacthub.io` and read back, once it holds the repository ID Artifact Hub gave; until then nothing. Nothing waits for it (`build/ci/container-image-artifacthub.sh`; [ContainerImage.md](ContainerImage.md), "Artifact Hub") |
+| `container-image-artifacthub` | release | GitLab's shared runners, in regctl's image | a `v*` tag, after `container-image`; the default branch, by hand, allowed to fail; refuses unless `HM_PUBLISH_IMAGE` is `1` | Artifact Hub's metadata for the image's repository, the tree's `platform/packaging/docker/artifacthub-repo.yml`, pushed under the tag `artifacthub.io` and read back, when it holds the repository ID Artifact Hub gave, as it does since 6 October 2026; for a file without one, nothing. Nothing waits for it (`build/ci/container-image-artifacthub.sh`; [ContainerImage.md](ContainerImage.md), "Artifact Hub") |
 | `container-image-sbom` | release | linix | a `v*` tag, after `container-image` | Each platform's image's SBOM: Syft over it by its digest, with that architecture's `.deb`'s own SBOM added (`build/ci/container-image-sbom.sh`) |
 | `container-image-sign` | release | GitLab's shared runners | a `v*` tag, after `container-image-sbom` | The index and each platform's image signed by digest with Sigstore as this pipeline, each image's SBOM attested to it, and all of it verified (`build/ci/container-image-sign.sh`) |
 | `container_scanning`, `container_scanning_arm64` | release | GitLab's shared runners | a `v*` tag, after `container-image` | GitLab's own Container Scanning template over each platform's pushed image, by its digest; a finding does not fail the pipeline (`.gitlab/ci/container-image.yml`) |
@@ -2027,11 +2027,11 @@ project's API answered on 28 September 2026:
    whoever can write the tag - anybody with the Developer role, or a job of a
    pipeline one of them starts - could put their own address there and claim
    the listing. `container-image-artifacthub.sh` refuses an `owners` key only
-   in the tree's file, not in a push made some other way. Before the image's
-   repository is added to Artifact Hub, the maintainers add a second rule,
-   `^artifacthub\.io$`, push Maintainer, delete Owner. `container-image-artifacthub`
-   runs with the role of whoever started it, or pushed the tag, a maintainer in
-   both of its pipelines.
+   in the tree's file, not in a push made some other way. So a second rule,
+   `^artifacthub\.io$`, push Maintainer, delete Owner, protects it: the API gave
+   it on 6 October 2026, the day the image's repository was added to Artifact
+   Hub. `container-image-artifacthub` runs with the role of whoever started it,
+   or pushed the tag, a maintainer in both of its pipelines.
 3. **The switch, `HM_PUBLISH_IMAGE`, stayed unset until the project had
    moved.** The maintainers decided on 27 September 2026 to move the project
    into the group `hmailserver` before the first image is pushed, so that the
