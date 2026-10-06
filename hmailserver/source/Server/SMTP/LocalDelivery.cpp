@@ -1320,16 +1320,65 @@ namespace HM
          return;
       }
 
+      std::vector<String> refused;
+      const bool edited = EditSieveHeader(mail, edits, refused);
+
+      // Said for each edit not made, and the rest of the script's decisions stand: a
+      // redirect still goes, now counted from the count the message came with.
+      for (const String &refusal : refused)
+      {
+         LOG_APPLICATION(Formatter::Format("SMTPDeliverer - Message {0}: a header edit the Sieve script for {1} asked for was not made: {2}",
+            original_message_->GetID(), account->GetAddress(), refusal));
+      }
+
+      if (!edited)
+         return;
+
+      if (!mail.SaveAllToFile(fileName))
+      {
+         RuleGuard::ReportActionFailed(_T("Sieve editheader"), fileName);
+         return;
+      }
+
+      // The file changed size; the record the caller is about to save must agree
+      // with it, as the trace-header step above this one already does.
+      message->SetSize(MessageStore::FileSize(fileName));
+   }
+
+   bool
+   LocalDelivery::EditSieveHeader(MimeHeader &header, const std::vector<SieveHeaderEdit> &edits,
+                                  std::vector<String> &refused)
+   {
+      bool edited = false;
+
       for (const SieveHeaderEdit &edit : edits)
       {
+         // Asked again here, of the name the script's variables made: the validator
+         // saw "${name}", which is a legal name, and the value it expands to can be
+         // anything - X-hMailServer-LoopCount, Received, or a name with a line break
+         // in it that would write a second field. And a script stored before the loop
+         // count was protected is run with its edit of it let through
+         // (SieveParser::Purpose), to be refused here.
+         const String refusal = SieveParser::WhyFieldMayNotBeEdited(edit.name);
+         if (!refusal.IsEmpty())
+         {
+            refused.push_back(String(edit.isAdd ? _T("addheader") : _T("deleteheader")) + _T(": ") + refusal);
+            continue;
+         }
+
+         edited = true;
+
+         // Printable ASCII, so narrowed exactly.
          AnsiString fieldName = edit.name;
 
          if (edit.isAdd)
          {
             // Encoded the way MimeHeader::SetUnicodeFieldValue encodes, because a
             // value is arbitrary script text; built as a field directly so an
-            // instance is ADDED rather than the first existing one replaced.
-            AnsiString multiByte = Charset::ToMultiByte(edit.value, "utf-8");
+            // instance is ADDED rather than the first existing one replaced. Kept to
+            // one field first: the coder writes a line break as it stands, and a
+            // value is a sender's to choose when it is "${1}" from a body :matches.
+            AnsiString multiByte = Charset::ToMultiByte(RuleGuard::HeaderValueAsOneField(edit.value), "utf-8");
 
             FieldCodeBase *coder = MimeEnvironment::CreateFieldCoder(fieldName.c_str());
             coder->SetInput(multiByte, multiByte.GetLength(), true);
@@ -1345,18 +1394,18 @@ namespace HM
 
             // RFC 5293 4: at the top unless ":last" says the bottom.
             if (edit.addLast)
-               mail.Fields().push_back(field);
+               header.Fields().push_back(field);
             else
-               mail.Fields().insert(mail.Fields().begin(), field);
+               header.Fields().insert(header.Fields().begin(), field);
 
             continue;
          }
 
          // deleteheader: walk this name's instances in order, decide per instance.
          std::vector<size_t> instances;
-         for (size_t i = 0; i < mail.Fields().size(); i++)
+         for (size_t i = 0; i < header.Fields().size(); i++)
          {
-            AnsiString name = mail.Fields()[i].GetName();
+            AnsiString name = header.Fields()[i].GetName();
             if (name.CompareNoCase(fieldName.c_str()) == 0)
                instances.push_back(i);
          }
@@ -1382,7 +1431,7 @@ namespace HM
                // headers scripts actually filter on this equals the decoded text;
                // an RFC 2047-encoded value is compared in its encoded form, which
                // can only make a delete NOT happen - the safe direction.
-               String value = String(mail.Fields()[instance].GetValue());
+               String value = String(header.Fields()[instance].GetValue());
 
                bool matched = false;
                for (const String &pattern : edit.patterns)
@@ -1420,18 +1469,10 @@ namespace HM
          // one at a time, back to front, moved every field after each of them: a
          // sender's header of 80,000 such fields, every other one doomed, took
          // 18.8 s in the POSIX build for one deleteheader.
-         MimeHeader::RemoveFieldsAt(mail.Fields(), doomed);
+         MimeHeader::RemoveFieldsAt(header.Fields(), doomed);
       }
 
-      if (!mail.SaveAllToFile(fileName))
-      {
-         RuleGuard::ReportActionFailed(_T("Sieve editheader"), fileName);
-         return;
-      }
-
-      // The file changed size; the record the caller is about to save must agree
-      // with it, as the trace-header step above this one already does.
-      message->SetSize(MessageStore::FileSize(fileName));
+      return edited;
    }
 
    bool

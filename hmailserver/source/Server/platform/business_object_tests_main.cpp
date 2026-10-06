@@ -38,6 +38,11 @@
 //     Common/Rules/RuleGuard.cpp): MessageData and the Sieve evaluator read it with
 //     _ttoi until 6 October 2026, so "-5" passed every RuleLoopLimit test and
 //     "2147483647" overflowed the count + 1 a generated message carries.
+//   - And no edit resets it (LoopCountEditTester, the same file): a Sieve script's
+//     addheader or deleteheader of it is refused when the script is stored and not
+//     made when a stored one runs, by name in any case and as the script's variables
+//     made it; a rule may not set it; and a line break in a value a rule or a script
+//     writes, which wrote it as a second field, is a fold or a space.
 //
 // No database, configuration or network. It prints a line per check and exits
 // non-zero when one fails.
@@ -319,6 +324,13 @@ namespace
       HM::LoopCountTester tester;
       tester.Test();
    }
+
+   void
+   TestLoopCountEdits()
+   {
+      HM::LoopCountEditTester tester;
+      tester.Test();
+   }
 }
 
 int
@@ -335,6 +347,7 @@ main(int /*argc*/, char * /*argv*/[])
    failed += Run(&TestScriptObject, "a script object is made with its name and type");
    failed += Run(&TestIpRangePriority, "the IP range's priority a create takes: PUT's whole numbers from -2,000,000,000 to 2,000,000,000");
    failed += Run(&TestLoopCount, "a message's X-hMailServer-LoopCount: digits up to the limit, and anything else the limit, never below 0 or past INT_MAX - 1");
+   failed += Run(&TestLoopCountEdits, "no Sieve edit, rule or line break in a header value resets X-hMailServer-LoopCount");
 
    return failed == 0 ? 0 : 1;
 }

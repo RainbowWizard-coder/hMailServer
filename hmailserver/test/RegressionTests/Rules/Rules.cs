@@ -2066,6 +2066,194 @@ namespace RegressionTests.Rules
          StringAssert.Contains("X-hMailServer-LoopCount: 2", forwarded, forwarded);
       }
 
+      private static Rule NewRuleMatchingEverything(Account account, string name)
+      {
+         var rule = account.Rules.Add();
+         rule.Name = name;
+         rule.Active = true;
+
+         var criteria = rule.Criterias.Add();
+         criteria.UsePredefined = true;
+         criteria.PredefinedField = eRulePredefinedField.eFTMessageSize;
+         criteria.MatchType = eRuleMatchType.eMTGreaterThan;
+         criteria.MatchValue = "0";
+         criteria.Save();
+
+         return rule;
+      }
+
+      // The lines of a delivered message's header that begin a field of this name, as
+      // a mail client finds them: up to the first empty line.
+      private static List<string> HeaderFieldLines(string message, string name)
+      {
+         var lines = new List<string>();
+         foreach (var line in message.Replace("\r\n", "\n").Split('\n'))
+         {
+            if (line.Length == 0)
+               break;
+
+            if (line.StartsWith(name + ":", StringComparison.OrdinalIgnoreCase))
+               lines.Add(line);
+         }
+
+         return lines;
+      }
+
+      /// <summary>
+      /// X-hMailServer-LoopCount counts the forwards, redirects and replies a message has
+      /// been through, and a forward reads it when it runs - after the actions before it.
+      /// A Set header value action that set it to 0 ahead of a forward gave every copy
+      /// the whole rule loop limit again, so that one such account and an ordinary
+      /// forwarder looped between local accounts without bound; an account may change its
+      /// own rules over COM. RuleAction.Save now refuses the header in any case, and a
+      /// name that would write a field of another name - one with a line break or a
+      /// colon in it - and says why; so does Rule.Save, which saves the actions as they
+      /// are in memory, for an action changed after its own Save.
+      ///
+      /// Against the unfixed server every Save below succeeds.
+      /// </summary>
+      [Test]
+      [Description("A Set header value action on X-hMailServer-LoopCount, or on a name that is not a header name, is refused when it is saved, and says why.")]
+      public void ARuleActionMayNotSetTheLoopCount()
+      {
+         var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "loopset@example.test", "test");
+         var rule = NewRuleMatchingEverything(account, "Loop count set");
+         rule.Save();
+
+         var refusals = new Dictionary<string, string>
+         {
+            { "X-hMailServer-LoopCount", "a rule may not set it" },
+            { "x-hmailserver-loopcount", "a rule may not set it" },
+            { " X-HMAILSERVER-LOOPCOUNT ", "a rule may not set it" },
+            { "X-Note\r\nX-hMailServer-LoopCount", "is not a header name a rule can set" },
+            { "X-hMailServer-LoopCount:", "is not a header name a rule can set" },
+         };
+
+         foreach (var refusal in refusals)
+         {
+            var action = rule.Actions.Add();
+            action.Type = eRuleActionType.eRASetHeaderValue;
+            action.HeaderName = refusal.Key;
+            action.Value = "0";
+
+            var refused = Assert.Throws<System.Runtime.InteropServices.COMException>(() => action.Save(),
+               "A Set header value action on '" + refusal.Key + "' was saved.");
+            StringAssert.Contains(refusal.Value, refused.Message, refused.Message);
+         }
+
+         Assert.AreEqual(0, rule.Actions.Count, "A refused action is among the rule's actions.");
+
+         // The control: another header is set, and saved.
+         var note = rule.Actions.Add();
+         note.Type = eRuleActionType.eRASetHeaderValue;
+         note.HeaderName = "X-Rule-Note";
+         note.Value = "set";
+         note.Save();
+         rule.Save();
+
+         // Changed after its own Save, the action is saved with the rule, which refuses it.
+         note.HeaderName = "X-hMailServer-LoopCount";
+         var refusedWithTheRule = Assert.Throws<System.Runtime.InteropServices.COMException>(() => rule.Save(),
+            "A rule whose action was changed to set X-hMailServer-LoopCount was saved.");
+         StringAssert.Contains("a rule may not set it", refusedWithTheRule.Message, refusedWithTheRule.Message);
+      }
+
+      /// <summary>
+      /// An action that sets X-hMailServer-LoopCount stored before Save refused it - or
+      /// restored from a backup, or written to the table - is not applied, and the
+      /// application log says so; the forward after it in the same rule still goes,
+      /// counted from the count the message carries. Here two accounts forward to each
+      /// other and the first resets the count before its forward: against the unfixed
+      /// server the message goes round for ever and the queue never empties. With the
+      /// action not applied the count goes 0, 1, 2 and so on, and the second's forward at
+      /// 5 is refused - the first holds the copies at 0, 2 and 4, and the second those at
+      /// 1, 3 and 5.
+      /// </summary>
+      [Test]
+      [Description("A stored Set header value action on X-hMailServer-LoopCount is not applied, and a forwarding loop it was in ends at the rule loop limit.")]
+      public void AStoredActionOnTheLoopCountIsNotApplied()
+      {
+         _settings.RuleLoopLimit = 5;
+
+         var first = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "loopreset-a@example.test", "test");
+         var second = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "loopreset-b@example.test", "test");
+
+         var resetRule = NewRuleMatchingEverything(first, "Reset and forward");
+         var reset = resetRule.Actions.Add();
+         reset.Type = eRuleActionType.eRASetHeaderValue;
+         reset.HeaderName = "X-Loop-Placeholder-Stored";
+         reset.Value = "0";
+         reset.Save();
+         var forwardOn = resetRule.Actions.Add();
+         forwardOn.Type = eRuleActionType.eRAForwardEmail;
+         forwardOn.To = second.Address;
+         forwardOn.Save();
+         resetRule.Save();
+
+         // As an action stored before Save refused the name. The account's rules are
+         // read from the table again at the next delivery, the save having asked for it.
+         _application.Database.ExecuteSQL(
+            "update hm_rule_actions set actionheader = 'X-hMailServer-LoopCount' where actionheader = 'X-Loop-Placeholder-Stored'");
+
+         var backRule = NewRuleMatchingEverything(second, "Forward back");
+         var forwardBack = backRule.Actions.Add();
+         forwardBack.Type = eRuleActionType.eRAForwardEmail;
+         forwardBack.To = first.Address;
+         forwardBack.Save();
+         backRule.Save();
+
+         SmtpClientSimulator.StaticSend("loopreset-sender@example.test", first.Address, "Loop", "Body.");
+         CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+
+         ImapClientSimulator.AssertMessageCount(first.Address, "test", "Inbox", 3);
+         ImapClientSimulator.AssertMessageCount(second.Address, "test", "Inbox", 3);
+
+         Assert.IsTrue(LogHandler.DefaultLogContains("Set header value action of rule"),
+            "The action not applied is not in the application log.");
+         Assert.IsTrue(LogHandler.DefaultLogContains("X-hMailServer-LoopCount counts the forwards"),
+            "The application log does not say why the action was not applied.");
+
+         // The second's forward at the limit is reported; this reads and clears the log.
+         CustomAsserts.AssertReportedError("Maximum rule loop count reached");
+      }
+
+      /// <summary>
+      /// The MIME writer wrote a line break in a value as it stood, so a Set header value
+      /// action whose value held a line break and "X-hMailServer-LoopCount: 0" wrote a
+      /// second field - the count, reset, under a name Save did not see. A line break that
+      /// does not fold the line is now written as a space.
+      ///
+      /// Against the unfixed server the delivered header holds X-hMailServer-LoopCount: 0
+      /// as a field of its own, above the 3 the message came with.
+      /// </summary>
+      [Test]
+      [Description("A Set header value action's value with a line break is written as one field, and writes no loop count.")]
+      public void ASetHeaderValueWithALineBreakIsOneField()
+      {
+         var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "loopvalue@example.test", "test");
+         var rule = NewRuleMatchingEverything(account, "Note with a line break");
+         var note = rule.Actions.Add();
+         note.Type = eRuleActionType.eRASetHeaderValue;
+         note.HeaderName = "X-Rule-Note";
+         note.Value = "a\r\nX-hMailServer-LoopCount: 0";
+         note.Save();
+         rule.Save();
+
+         var message =
+            "From: loopvalue-sender@example.test\r\n" +
+            "To: " + account.Address + "\r\n" +
+            "Subject: A note\r\n" +
+            "X-hMailServer-LoopCount: 3\r\n" +
+            "\r\n" +
+            "Body.\r\n";
+
+         new SmtpClientSimulator().SendRaw("loopvalue-sender@example.test", account.Address, message);
+         var delivered = Pop3ClientSimulator.AssertGetFirstMessageText(account.Address, "test");
+
+         CollectionAssert.AreEqual(new[] { "X-hMailServer-LoopCount: 3" }, HeaderFieldLines(delivered, "X-hMailServer-LoopCount"), delivered);
+         CollectionAssert.AreEqual(new[] { "X-Rule-Note: a  X-hMailServer-LoopCount: 0" }, HeaderFieldLines(delivered, "X-Rule-Note"), delivered);
+      }
+
       /// <summary>
       /// RegularExpression::TestExactMatch swallows a pattern that will not compile and
       /// returns "no match", so a criterion with one unmatched bracket produces a rule

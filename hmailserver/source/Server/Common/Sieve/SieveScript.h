@@ -21,8 +21,11 @@ namespace HM
       SieveScript();
 
       // Parses the script into the AST. Returns true on success; on failure
-      // errorMessage describes the problem (with a line number).
-      bool Parse(const String &script, String &errorMessage);
+      // errorMessage describes the problem (with a line number). purpose is what the
+      // script is parsed for (SieveParser::Purpose): a script being stored or checked
+      // unless it is the delivery path running one already stored.
+      bool Parse(const String &script, String &errorMessage,
+                 SieveParser::Purpose purpose = SieveParser::Purpose::Storing);
 
       const std::vector<std::shared_ptr<SieveCommand>> &GetCommands() const { return commands_; }
 

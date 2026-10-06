@@ -2062,9 +2062,11 @@ namespace HM
          return;
       }
 
+      // A stored script, run: parsed as SieveScript::Evaluate parses the script that
+      // included it (SieveParser::Purpose).
       SieveScript includedScript;
       String errorMessage;
-      if (!includedScript.Parse(scriptText, errorMessage))
+      if (!includedScript.Parse(scriptText, errorMessage, SieveParser::Purpose::Running))
       {
          LOG_APPLICATION(_T("Sieve: the included script \"") + scriptName + _T("\" no longer parses and was skipped: ") + errorMessage);
          return;

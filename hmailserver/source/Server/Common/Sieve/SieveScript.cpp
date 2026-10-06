@@ -23,7 +23,7 @@ namespace HM
    }
 
    bool
-   SieveScript::Parse(const String &script, String &errorMessage)
+   SieveScript::Parse(const String &script, String &errorMessage, SieveParser::Purpose purpose)
    {
       errorMessage = _T("");
       commands_.clear();
@@ -35,6 +35,7 @@ namespace HM
          return false;
 
       SieveParser parser;
+      parser.SetPurpose(purpose);
       if (!parser.Parse(tokens, commands_, errorMessage))
          return false;
 
@@ -78,8 +79,11 @@ namespace HM
    {
       String errorMessage;
 
+      // The delivery path, running a script already stored: one stored before
+      // X-hMailServer-LoopCount was protected still runs, and its edit of that header
+      // is skipped where the edits are made (LocalDelivery::EditSieveHeader).
       SieveScript sieveScript;
-      if (!sieveScript.Parse(script, errorMessage))
+      if (!sieveScript.Parse(script, errorMessage, SieveParser::Purpose::Running))
       {
          // Leave the result at its defaults, which keep the message. A script that no
          // longer parses - because it was hand-edited on disk, or because a later

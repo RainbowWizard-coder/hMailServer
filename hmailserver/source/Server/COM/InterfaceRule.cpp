@@ -7,6 +7,9 @@
 
 #include "../Common/BO/Rule.h"
 #include "../Common/BO/Rules.h"
+#include "../Common/BO/RuleAction.h"
+#include "../Common/BO/RuleActions.h"
+#include "../Common/Rules/RuleGuard.h"
 #include "../Common/Persistence/PersistentRule.h"
 
 #include "InterfaceRuleCriterias.h"
@@ -287,6 +290,19 @@ STDMETHODIMP InterfaceRule::Save()
       if (!authentication_->MayChangeRuleOwnedBy(object_->GetAccountID(), object_->GetDomainID()) ||
           (object_->GetID() > 0 && !authentication_->MayChangeRule(object_->GetID())))
          return COMError::GenerateError(HM::COMAuthentication::NotTakenIn);
+
+      // Saving the rule saves its actions as they are in memory, so an action whose
+      // header was changed after RuleAction.Save is held to the same rule here
+      // (RuleGuard::WhyHeaderMayNotBeSet).
+      for (std::shared_ptr<HM::RuleAction> action : object_->GetActions()->GetSnapshot())
+      {
+         if (action->GetType() != HM::RuleAction::SetHeaderValue)
+            continue;
+
+         const HM::String refusal = HM::RuleGuard::WhyHeaderMayNotBeSet(action->GetHeaderName());
+         if (!refusal.IsEmpty())
+            return COMError::GenerateError(refusal);
+      }
 
       // Set the sort order of the rule.
       if (object_->GetID() == 0 && object_->GetSortOrder() == 0)

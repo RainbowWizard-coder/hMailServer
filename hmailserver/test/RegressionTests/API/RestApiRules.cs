@@ -305,7 +305,7 @@ namespace RegressionTests.API
       }
 
       [Test]
-      [Description("A malformed body, a missing name, an unknown word, an unknown key, a parameter the type does not take, one it needs and lacks, a regex that does not compile and a value over its column are each 400 naming the problem, and none of them creates or changes a rule.")]
+      [Description("A malformed body, a missing name, an unknown word, an unknown key, a parameter the type does not take, one it needs and lacks, a regex that does not compile, a value over its column and a set_header action on X-hMailServer-LoopCount or on a name that is not a header name are each 400 naming the problem, and none of them creates or changes a rule.")]
       public void RefusalsChangeNothing()
       {
          int before = _application.Rules.Count;
@@ -349,6 +349,11 @@ namespace RegressionTests.API
          Refused(RuleBody(RulePrefix + "x", criterion, "{\"type\":\"stop\",\"value\":\"x\"}"), "a stop action has no value");
          Refused(RuleBody(RulePrefix + "x", criterion, "{\"type\":\"forward\",\"to\":\"a@example.test\",\"value\":\"b@example.test\"}"), "to and value disagree");
          Refused(RuleBody(RulePrefix + "x", criterion, "{\"type\":\"set_header\",\"header\":\"" + new string('h', 81) + "\",\"value\":\"v\"}"), "header is longer than 80 characters");
+         // X-hMailServer-LoopCount, in any case, which ends a mail loop, and a name that
+         // would write a field of another name.
+         Refused(RuleBody(RulePrefix + "x", criterion, "{\"type\":\"set_header\",\"header\":\"x-hmailserver-loopcount\",\"value\":\"0\"}"), "a rule may not set it");
+         Refused(RuleBody(RulePrefix + "x", criterion, "{\"type\":\"set_header\",\"header\":\"X-Note\\r\\nX-hMailServer-LoopCount\",\"value\":\"0\"}"), "is not a header name a rule can set");
+         Refused(RuleBody(RulePrefix + "x", criterion, "{\"type\":\"set_header\",\"header\":\"X-Note:\",\"value\":\"0\"}"), "is not a header name a rule can set");
          Refused(RuleBody(RulePrefix + "x", criterion, "{\"type\":\"forward\",\"to\":\"" + new string('t', 256) + "\"}"), "to is longer than 255 characters");
          Refused(RuleBody(RulePrefix + "x", criterion, "\"delete\""), "actions[0]: must be an object");
 

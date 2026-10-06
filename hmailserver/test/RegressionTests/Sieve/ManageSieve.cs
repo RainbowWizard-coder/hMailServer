@@ -432,6 +432,75 @@ namespace RegressionTests.Sieve
       }
 
       /// <summary>
+      ///    X-hMailServer-LoopCount counts the forwards, redirects and replies a
+      ///    message has been through, and the rule loop limit ends a mail loop on it.
+      ///    A script that deleted it, or added a 0 above it, ahead of a redirect gave
+      ///    every redirected copy the whole limit again. PUTSCRIPT and CHECKSCRIPT
+      ///    refuse such a script, the name matched in any case, and the NO names the
+      ///    header and says why; nothing is stored under the name; and a script that
+      ///    edits a header of another name is stored as before.
+      ///
+      ///    Against the unfixed server every PUTSCRIPT below answers OK.
+      /// </summary>
+      [Test]
+      [Description("PUTSCRIPT and CHECKSCRIPT refuse a script that edits X-hMailServer-LoopCount, and say why.")]
+      public void AScriptThatEditsTheLoopCountIsNotStored()
+      {
+         const string address = "managesieve-loop@example.test";
+         const string password = "Sieve-Pass1";
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, address, password);
+
+         WriteSetting("ManageSieveServerBindAddress", "127.0.0.1");
+         WriteSetting("ManageSieveServerPort", ManageSievePort.ToString());
+         _application.Reinitialize();
+
+         try
+         {
+            using (var session = new Session())
+            {
+               StringAssert.Contains("IMPLEMENTATION", session.ReadResponse());
+               StringAssert.StartsWith("OK", session.Authenticate(address, password).TrimStart());
+
+               // Scripts are files, and outlive a run that stopped half-way.
+               session.SendCommand("DELETESCRIPT \"loop\"");
+
+               foreach (string name in new[] { "X-hMailServer-LoopCount", "x-hmailserver-loopcount", "X-HMAILSERVER-LOOPCOUNT" })
+               {
+                  foreach (string script in new[]
+                  {
+                     "require \"editheader\";\r\ndeleteheader \"" + name + "\";\r\n",
+                     "require \"editheader\";\r\naddheader \"" + name + "\" \"0\";\r\n",
+                  })
+                  {
+                     string check = session.SendWithLiteral("CHECKSCRIPT", script);
+                     StringAssert.StartsWith("NO", check.TrimStart(), "CHECKSCRIPT accepted: " + script);
+                     StringAssert.Contains(name, check, check);
+                     StringAssert.Contains("mail loop", check, check);
+
+                     string put = session.SendWithLiteral("PUTSCRIPT \"loop\"", script);
+                     StringAssert.StartsWith("NO", put.TrimStart(), "PUTSCRIPT stored: " + script);
+                     StringAssert.Contains(name, put, put);
+                     StringAssert.Contains("mail loop", put, put);
+                  }
+               }
+
+               StringAssert.DoesNotContain("\"loop\"", session.SendCommand("LISTSCRIPTS"),
+                  "A refused script was stored.");
+
+               // The control: an edit of another header is stored.
+               string control = session.SendWithLiteral("PUTSCRIPT \"loop\"", "require \"editheader\";\r\ndeleteheader \"X-Note\";\r\n");
+               StringAssert.StartsWith("OK", control.TrimStart(), control);
+               session.SendCommand("DELETESCRIPT \"loop\"");
+            }
+         }
+         finally
+         {
+            WriteSetting("ManageSieveServerPort", "0");
+            _application.Reinitialize();
+         }
+      }
+
+      /// <summary>
       ///    Before signing in, the connections of one address are served one at a time
       ///    (one thread served every connection one at a time until 6.3.6's re-check),
       ///    so a client that connects and then says nothing must be let go after the

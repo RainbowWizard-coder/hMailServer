@@ -1108,9 +1108,21 @@ namespace HM
    void 
    RuleApplier::ApplyAction_SetHeader(std::shared_ptr<RuleAction> pAction, std::shared_ptr<const Account> account, std::shared_ptr<MessageData> pMsgData) const
    {
-      // Run a custom function
       String sHeader = pAction->GetHeaderName();
       String sValue = pAction->GetValue();
+
+      // Not X-hMailServer-LoopCount, which the forward or reply after this action
+      // reads - set to 0 it gave every copy the whole rule loop limit again - and not
+      // a name that would write a field of another name. Save refuses both now; this
+      // is for an action stored before it did (RuleGuard::WhyHeaderMayNotBeSet).
+      const String refusal = RuleGuard::WhyHeaderMayNotBeSet(sHeader);
+      if (!refusal.IsEmpty())
+      {
+         std::shared_ptr<Message> message = pMsgData->GetMessage();
+         LOG_APPLICATION(Formatter::Format("RuleApplier: the Set header value action of rule {0} was not applied to message {1}: {2}",
+            pAction->GetRuleID(), message ? message->GetID() : 0, refusal));
+         return;
+      }
 
       MimeHeader mimeHeader;
       AnsiString header = pMsgData->GetHeader();
@@ -1118,6 +1130,10 @@ namespace HM
 
       // Replace macro value
       sValue.Replace(_T("%MACRO_ORIGINAL_HEADER%"), String(mimeHeader.GetRawFieldValue(sHeader)));
+
+      // One field, whatever the value holds: a line break in it wrote a second field,
+      // X-hMailServer-LoopCount among the names it could have.
+      sValue = RuleGuard::HeaderValueAsOneField(sValue);
 
       pMsgData->SetFieldValue(sHeader, sValue);
 

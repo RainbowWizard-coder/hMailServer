@@ -22,6 +22,10 @@
 // same rule PUTSCRIPT applies - a name the store would refuse cannot be included.
 #include "SieveStorage.h"
 
+// For the editheader check on X-hMailServer-LoopCount (RuleGuard::IsLoopCountHeader),
+// the one answer to which names are that header, for the rules and for scripts.
+#include "../Rules/RuleGuard.h"
+
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
 #define new DEBUG_NEW
@@ -189,7 +193,9 @@ namespace HM
          // opposite of the vacation tracker's direction.
          L"duplicate",
          // RFC 5293: addheader / deleteheader. Received and Return-Path are
-         // protected - a script cannot edit the trace of how a message got here.
+         // protected - a script cannot edit the trace of how a message got here -
+         // and so is X-hMailServer-LoopCount, which ends a mail loop
+         // (WhyFieldMayNotBeEdited).
          L"editheader",
          // RFC 5229: set, ${} expansion at evaluation, match variables from
          // :matches, and the string test. Expansion is scoped to scripts that
@@ -223,6 +229,48 @@ namespace HM
       }
 
       return false;
+   }
+
+   String
+   SieveParser::WhyFieldMayNotBeEdited(const String &fieldName)
+   {
+      String reason;
+
+      if (fieldName.IsEmpty())
+      {
+         reason = _T("the field name cannot be empty.");
+         return reason;
+      }
+
+      for (int i = 0; i < fieldName.GetLength(); i++)
+      {
+         wchar_t ch = fieldName[i];
+         if (ch <= L' ' || ch >= 127 || ch == L':')
+         {
+            reason.Format(_T("'%s' is not a legal header field name."), fieldName.c_str());
+            return reason;
+         }
+      }
+
+      // The trace of how the message got here is not a script's to edit (RFC 5293 7).
+      if (fieldName.CompareNoCase(_T("Received")) == 0 || fieldName.CompareNoCase(_T("Return-Path")) == 0)
+      {
+         reason.Format(_T("the %s header records how a message travelled and cannot be edited by a script."), fieldName.c_str());
+         return reason;
+      }
+
+      // Nor is the count of the generated messages it has been through: a script that
+      // deleted it, or added a 0 above it, ahead of a redirect gave the redirected copy
+      // the whole rule loop limit again, so that the account and an ordinary forwarder
+      // looped between them without bound.
+      if (RuleGuard::IsLoopCountHeader(fieldName))
+      {
+         reason.Format(_T("the %s header counts the forwards, redirects and replies a message has been through, ")
+                       _T("which is how this server ends a mail loop, and cannot be edited by a script."), fieldName.c_str());
+         return reason;
+      }
+
+      return reason;
    }
 
    bool
@@ -1461,30 +1509,19 @@ namespace HM
             }
          }
 
-         // The field name must be a legal header name, and the trace of how the
-         // message got here is not a script's to edit (RFC 5293 7).
+         // The field name must be a legal header name, and neither the trace of how
+         // the message got here (RFC 5293 7) nor the loop count is a script's to edit.
+         // A script stored before the loop count was protected may still edit it when
+         // it is run: Purpose's comment says why that is let through here.
          const String &fieldName = set.stringLists[0][0];
 
-         if (fieldName.IsEmpty())
-         {
-            errorMessage.Format(_T("Line %d: the field name cannot be empty."), command->line);
-            return false;
-         }
+         if (purpose_ == Purpose::Running && RuleGuard::IsLoopCountHeader(fieldName))
+            return true;
 
-         for (int i = 0; i < fieldName.GetLength(); i++)
+         String refusal = WhyFieldMayNotBeEdited(fieldName);
+         if (!refusal.IsEmpty())
          {
-            wchar_t ch = fieldName[i];
-            if (ch <= L' ' || ch >= 127 || ch == L':')
-            {
-               errorMessage.Format(_T("Line %d: '%s' is not a legal header field name."), command->line, fieldName.c_str());
-               return false;
-            }
-         }
-
-         if (fieldName.CompareNoCase(_T("Received")) == 0 || fieldName.CompareNoCase(_T("Return-Path")) == 0)
-         {
-            errorMessage.Format(_T("Line %d: the %s header records how a message travelled and cannot be edited by a script."),
-               command->line, fieldName.c_str());
+            errorMessage.Format(_T("Line %d: %s"), command->line, refusal.c_str());
             return false;
          }
 

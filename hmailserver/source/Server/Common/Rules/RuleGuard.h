@@ -131,6 +131,53 @@ namespace HM
       // The same, against the configured RuleLoopLimit (SMTPConfiguration).
       static int ReadLoopCount(const String &value);
 
+      // True for a header field name that is X-hMailServer-LoopCount: ASCII letters in
+      // either case, as the MIME reader matches a name, with the spaces and tabs it
+      // could be written with on either side of it.
+      static bool IsLoopCountHeader(const String &fieldName);
+
+      // Why a rule's "Set header value" action may not write the header it names, or
+      // nothing when it may.
+      //
+      // THE DEFECT. The count a forward, a redirect or a reply reads is the one the
+      // message carries when it runs, after the actions before it. A rule that set
+      // X-hMailServer-LoopCount to 0 ahead of its forward - or a Sieve script that
+      // deleted it ahead of a redirect (SieveParser::WhyFieldMayNotBeEdited) - gave
+      // every copy the whole budget again, so that one such account and an ordinary
+      // forwarder looped between local accounts without bound. Rules are not only the
+      // administrator's: an account may change its own over COM
+      // (COMAuthentication::MayChangeRuleOwnedBy).
+      //
+      // Refused: no name; the loop count header, in any case and with blanks around it;
+      // and a name with anything but printable ASCII, a space and a tab in it, or with
+      // a colon. A line break writes a second field under whatever name follows it, a
+      // NUL ends the name where the MIME writer stops reading, a character outside
+      // ASCII is not written as given - on Windows the narrowing to bytes can stop
+      // part-way through one, and drops what follows it - and a colon makes what comes
+      // before it the name. COM's RuleAction.Save and Rule.Save and the REST API's rule
+      // routes refuse such an action, and RuleApplier::ApplyAction_SetHeader skips one
+      // stored before they did, with a line in the application log.
+      //
+      // Not held: an event script (COM's Message.HeaderValue, the JavaScript binding's
+      // SetHeaderValue) and a rule's "Run function" action, which calls one. Those are
+      // the administrator's own code, which only the administrator installs: holding
+      // them would guard the server against the one person who sets RuleLoopLimit
+      // itself, and would break a handler that sets the count on purpose.
+      static String WhyHeaderMayNotBeSet(const String &fieldName);
+
+      // A header value a rule or a Sieve script writes, kept to one field: a CR LF
+      // followed by a space or a tab and then by more than white space is a fold and
+      // stays, and every other CR or LF becomes a space.
+      //
+      // THE DEFECT. Neither the rule action nor Sieve's addheader looked at the value,
+      // and the MIME writer writes a line break in it as it stands, so a value of
+      // "a", CR LF, "X-hMailServer-LoopCount: 0" wrote a second field - the loop count,
+      // reset, under a name no check had seen. A script's value can be a sender's to
+      // choose: "${1}" after body :raw :matches "*" holds the body's lines. RFC 5293 4
+      // asks for this: a value that is not "unstructured" is refused or written with
+      // folding white space.
+      static String HeaderValueAsOneField(const String &value);
+
       // A regular-expression criterion, with the two answers it could not previously
       // give.
       //
@@ -247,6 +294,23 @@ namespace HM
    // (platform/business_object_tests_main.cpp) on Linux. Throws
    // std::logic_error naming every value read wrongly.
    class LoopCountTester
+   {
+   public:
+      void Test();
+   };
+
+   // The edits that could reset X-hMailServer-LoopCount, held to examples: which
+   // names are that header (RuleGuard::IsLoopCountHeader); the names a rule may not
+   // set (WhyHeaderMayNotBeSet); a value kept to one field (HeaderValueAsOneField),
+   // written and read back through the MIME writer and reader; scripts that edit the
+   // header refused when they are stored, with the reason, and let through when a
+   // stored one is run (SieveParser::Purpose) for LocalDelivery::EditSieveHeader to
+   // refuse - by name, in any case, as the script's variables made it, and with a line
+   // break in the name or the value; and the edits beside it still made. No
+   // configuration, database or network. ClassTester runs it on Windows,
+   // business-object-tests on Linux. Throws std::logic_error naming every case that
+   // went wrong.
+   class LoopCountEditTester
    {
    public:
       void Test();

@@ -99,23 +99,42 @@ before. An administrator who cannot upgrade yet runs the three `icacls` lines th
 prompt. Found by the project's own review (work item 78; CVE requested).
 [ServiceAccount.md](hmailserver/docs/ServiceAccount.md), "What the other users of the computer may read".
 
-- **Fixed: any sender could lift the rule loop limit off a message, and a Sieve `notify` did not consult it.** The
-  server counts the generated messages a message has been through - a rule's forward, reply or copy, an account's
-  forward, a Sieve `redirect`, `vacation` or `notify`, a bounce - in its `X-hMailServer-LoopCount` header, and makes
-  no more once the count reaches the rule loop limit (`RuleLoopLimit`, 5 by default): that is what ends a loop between
-  two accounts that forward to each other. Nothing takes the header off mail that arrives from outside, and the server
-  read it with `_ttoi`, so a negative count passed every test against the limit: a sender who wrote `-2147483648` set
-  such a loop going round some two thousand million times, and on Linux, where `_ttoi` keeps the low 32 bits of a
-  64-bit `long`, so did one who wrote `2147483648`, which read as that same count, while `4294967295` read as -1 (in
-  every version, and on Linux from 6.3.0). A Sieve `notify` went out whatever the count, carrying it + 1, so a count
-  of `2147483647` made that a signed overflow, undefined behaviour that in practice gave the notification the most
-  negative count there is (from 6.2.22). The header is now read in one place, `RuleGuard::ReadLoopCount`: as a count
-  only when it is digits and nothing else, and never above the limit; anything else - a sign, a letter, an empty
-  value - reads as the limit, so the message is delivered and none of the generated messages above is made from it;
-  and a notification is no longer sent once the count has reached the limit, as a vacation reply is not. A message
-  without the header, or with a count below the limit, is treated as before. `LoopCountTester`
-  (`business-object-tests` on Linux) holds the reading to examples, and `Rules.cs`, `Sieve/SieveNotifyDelivery.cs` and
-  `Sieve/SieveVacationDelivery.cs` each send the values through delivery. Found by the project's own review.
+- **Fixed: any sender could lift the rule loop limit off a message, an account's own Sieve script or rule could
+  reset it, and a Sieve `notify` did not consult it.** The server counts the generated messages a message has been
+  through - a rule's forward, reply or copy, an account's forward, a Sieve `redirect`, `vacation` or `notify`, a
+  bounce - in its `X-hMailServer-LoopCount` header, and makes no more once the count reaches the rule loop limit
+  (`RuleLoopLimit`, 5 by default): that is what ends a loop between two accounts that forward to each other.
+  - Nothing takes the header off mail that arrives from outside, and the server read it with `_ttoi`, so a negative
+    count passed every test against the limit: a sender who wrote `-2147483648` set such a loop going round some two
+    thousand million times, and on Linux, where `_ttoi` keeps the low 32 bits of a 64-bit `long`, so did one who
+    wrote `2147483648`, which read as that same count, while `4294967295` read as -1 (in every version, and on Linux
+    from 6.3.0). A Sieve `notify` went out whatever the count, carrying it + 1, so a count of `2147483647` made that
+    a signed overflow, undefined behaviour that in practice gave the notification the most negative count there is
+    (from 6.2.22). The header is now read in one place, `RuleGuard::ReadLoopCount`: as a count only when it is
+    digits and nothing else, and never above the limit; anything else - a sign, a letter, an empty value - reads as
+    the limit, so the message is delivered and none of the generated messages above is made from it; and a
+    notification is no longer sent once the count has reached the limit, as a vacation reply is not. A message
+    without the header, or with a count below the limit, is treated as before.
+  - The count a forward or a redirect reads is the one the message carries when it runs, after the edits before it. An
+    account's Sieve script could `deleteheader` the header, or `addheader` a 0 above it, ahead of a `redirect` (from
+    6.2.22, which brought `editheader`), and a rule's *Set header value* action could set it ahead of a forward (in
+    every version) - an account may change its own rules over COM - so that one such account and an ordinary forwarder
+    looped between local accounts without bound. And a line break in a value either of them wrote went into the
+    message as it stood, writing a second field: the count, reset, under a name nothing had checked - a sender's to
+    write where a script copied a body test's `:matches` capture into a header. A script that edits the header, the
+    name in any case, is now refused when it is stored or checked (ManageSieve `PUTSCRIPT` and `CHECKSCRIPT`, the
+    self-service filter, COM's `CheckSieveSyntax`), as `Received` and `Return-Path` are, with the reason; the edit is
+    not made at delivery either, of the name as the script's variables made it, and a script stored before this
+    release still runs, without that edit, which the application log names. A *Set header value* action on the header,
+    or on a name with a line break, a colon or a character outside ASCII in it, is refused by `RuleAction.Save`,
+    `Rule.Save` and the REST API's rule routes, and one stored before is skipped, with a line in the application log.
+    A line break in a value a rule or a script writes is written as a space, unless it folds the line. Event scripts,
+    which are the administrator's own code, are not held to this.
+
+  `LoopCountTester` and `LoopCountEditTester` (`business-object-tests` on Linux) hold the reading and the edits to
+  examples, and `Rules.cs`, `API/RestApiRules.cs`, `Sieve/SieveEditheaderDelivery.cs`, `Sieve/ManageSieve.cs`,
+  `Sieve/SieveNotifyDelivery.cs` and `Sieve/SieveVacationDelivery.cs` send them through storing and delivery, two
+  loops between accounts among them. Found by the project's own review.
 
 ### Downloads and the release
 

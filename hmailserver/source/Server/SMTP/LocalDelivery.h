@@ -14,6 +14,7 @@ namespace HM
 {
    class Message;
    class MessageRecipient;
+   class MimeHeader;
    class RuleResult;
 
    class LocalDelivery
@@ -49,6 +50,16 @@ namespace HM
       // only that the mailbox cannot take mail now, and nothing of how it is
       // stored or how an administrator mends it. The error log has the whole.
       static String DamagedReportFor(const String &sender);
+
+      // The addheader and deleteheader edits a Sieve script decided (RFC 5293), made
+      // to a message's header in script order: what ApplySieveHeaderEdits_ does to
+      // the stored file, without the file. An edit of a name - as the script's
+      // variables expanded it - that SieveParser::WhyFieldMayNotBeEdited refuses is
+      // not made, and its command and the refusal go into refused; a value added is
+      // kept to one field (RuleGuard::HeaderValueAsOneField). False when every edit
+      // was refused, so that a header nothing was done to is not written back.
+      static bool EditSieveHeader(MimeHeader &header, const std::vector<SieveHeaderEdit> &edits,
+                                  std::vector<String> &refused);
 
    private:
       
@@ -217,9 +228,10 @@ namespace HM
       // recorded size. Runs BEFORE redirects are queued, so a redirected copy
       // carries the edits - RFC 5293 2: an edit affects all subsequent actions.
       // A failed write is reported through RuleGuard::ReportActionFailed, the
-      // same visibility the rules engine's header rewriting gets.
-      static void ApplySieveHeaderEdits_(std::shared_ptr<const Account> account, std::shared_ptr<Message> message,
-                                         const std::vector<SieveHeaderEdit> &edits);
+      // same visibility the rules engine's header rewriting gets, and an edit
+      // EditSieveHeader refuses with a line in the application log.
+      void ApplySieveHeaderEdits_(std::shared_ptr<const Account> account, std::shared_ptr<Message> message,
+                                  const std::vector<SieveHeaderEdit> &edits);
 
       // Exact, case-sensitive membership. The flag names reaching here have already
       // been canonicalised by SieveParser::SplitFlagList, so a case-insensitive test

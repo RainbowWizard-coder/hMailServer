@@ -8,6 +8,7 @@
 #include "../Common/BO/RuleAction.h"
 #include "../Common/BO/RuleActions.h"
 #include "../Common/Persistence/PersistentRuleAction.h"
+#include "../Common/Rules/RuleGuard.h"
 #include "../Common/Util/Encoding/ModifiedUTF7.h"
 
 #include "COMError.h"
@@ -43,6 +44,16 @@ STDMETHODIMP InterfaceRuleAction::Save()
       if (!authentication_->MayChangeRule(object_->GetRuleID()) ||
           (parent_collection_ && !authentication_->MayChangeRule(parent_collection_->GetRuleID())))
          return COMError::GenerateError(HM::COMAuthentication::NotTakenIn);
+
+      // A rule may not set X-hMailServer-LoopCount, which ends a mail loop, nor write
+      // a field under a name that is not one. Refused here with the reason, as the
+      // REST API refuses it; RuleApplier skips such an action stored before.
+      if (object_->GetType() == HM::RuleAction::SetHeaderValue)
+      {
+         const HM::String refusal = HM::RuleGuard::WhyHeaderMayNotBeSet(object_->GetHeaderName());
+         if (!refusal.IsEmpty())
+            return COMError::GenerateError(refusal);
+      }
 
       // Set the sort order of the rule.
       if (object_->GetID() == 0 && object_->GetSortOrder() == 0)

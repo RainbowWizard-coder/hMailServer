@@ -230,6 +230,13 @@ namespace HM
       LoopCountTester loopCountTester;
       loopCountTester.Test();
 
+      // And no edit resets it: a Sieve script's addheader or deleteheader, refused
+      // when stored and skipped when run, a rule that sets it, and a line break in a
+      // value that would write it as a second field (RuleGuard.h, LoopCountEditTester).
+      OutputDebugString(_T("hMailServer: Testing the header edits that could reset the rule loop count\n"));
+      LoopCountEditTester loopCountEditTester;
+      loopCountEditTester.Test();
+
       // Every TLS context's options read back with SSL_CTX_get_options: exactly what
       // SetContextOptions_ asks for, nothing from bit 32 up but certificate compression
       // off, and the mail client's context as this server's settings set it up.
