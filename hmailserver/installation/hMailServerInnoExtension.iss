@@ -286,13 +286,16 @@ const
 	HM_FOLDER_READ_RIGHTS       = $10000001;
 	// For hardening a program folder that was there before a Control Panel
 	// installation (HardenExistingProgramFolders): a folder held open with
-	// FILE_READ_ATTRIBUTES, shared for reading and writing but not for deleting
-	// (FILE_SHARE_READ | FILE_SHARE_WRITE), OPEN_EXISTING, and
+	// FILE_LIST_DIRECTORY | FILE_TRAVERSE | FILE_READ_ATTRIBUTES - a handle that
+	// asks for the attributes alone takes no part in Windows' check of sharing, and
+	// its refusal to share deleting would bind nobody (ProtectedFile.cpp's
+	// HeldFolder holds a folder the same way) - shared for reading and writing but
+	// not for deleting (FILE_SHARE_READ | FILE_SHARE_WRITE), OPEN_EXISTING, and
 	// FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT, so that a link is
 	// opened itself, not followed; FILE_ATTRIBUTE_REPARSE_POINT; the owner alone
 	// (OWNER_SECURITY_INFORMATION); and the owner with a list that inherits nothing
 	// (OWNER_ | DACL_ | PROTECTED_DACL_SECURITY_INFORMATION).
-	HM_READ_ATTRIBUTES          = $80;
+	HM_HOLD_FOLDER_ACCESS       = $A1;
 	HM_SHARE_ALL_BUT_DELETE     = $3;
 	HM_OPEN_EXISTING            = 3;
 	HM_HOLD_FOLDER_FLAGS        = $02200000;
@@ -713,16 +716,17 @@ begin
 end;
 
 // Folder held open for HardenExistingProgramFolders, or -1, with Why, when it
-// cannot be or is a link: opened as itself, not followed, shared for reading and
-// writing but not for deleting - so that nobody can rename it, or put a link in its
-// place, until it is let go - and then its attributes read by its path, which names
-// the folder held.
+// cannot be or is a link: opened as itself, not followed, for listing as well as
+// its attributes, shared for reading and writing but not for deleting - so that
+// nobody can rename it, or put a link in its place, until it is let go: Windows
+// holds a handle that asks for the attributes alone to no sharing at all - and then
+// its attributes read by its path, which names the folder held.
 function HoldProgramFolder(Folder: String; var Why: String): Integer;
 var
    attributes: cardinal;
 begin
    Why := '';
-   Result := HoldFolder(Folder, HM_READ_ATTRIBUTES, HM_SHARE_ALL_BUT_DELETE, 0, HM_OPEN_EXISTING, HM_HOLD_FOLDER_FLAGS, 0);
+   Result := HoldFolder(Folder, HM_HOLD_FOLDER_ACCESS, HM_SHARE_ALL_BUT_DELETE, 0, HM_OPEN_EXISTING, HM_HOLD_FOLDER_FLAGS, 0);
    if Result = -1 then
    begin
       Why := Folder + ' could not be held open (Windows error ' + IntToStr(DLLGetLastError()) + ')';

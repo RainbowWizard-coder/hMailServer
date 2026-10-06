@@ -968,10 +968,19 @@ namespace RegressionTests.Installation
          foreach (string word in new[] { "g_bProgramFolderNew", "IsComponentSelected('server')", "Length(szApp) <= 3", "'Data'", "'Bin\\hMailServer.INI'", "HoldProgramFolder(chain[index], szWhy)", "HardenHeldFolder(szApp)", "'ControlPanel'", "'Bin'", "ReleaseFolder(" })
             StringAssert.Contains(word, existing, "HardenExistingProgramFolders does not use " + word + ".");
          string hold = CodeBody(extension, "HoldProgramFolder");
-         foreach (string word in new[] { "HM_SHARE_ALL_BUT_DELETE", "HM_HOLD_FOLDER_FLAGS", "HM_REPARSE_POINT" })
+         foreach (string word in new[] { "HM_HOLD_FOLDER_ACCESS", "HM_SHARE_ALL_BUT_DELETE", "HM_HOLD_FOLDER_FLAGS", "HM_REPARSE_POINT" })
             StringAssert.Contains(word, hold, "HoldProgramFolder does not use " + word + ".");
          Assert.IsTrue(Regex.IsMatch(extension, @"HM_SHARE_ALL_BUT_DELETE\s*=\s*\$3;") && Regex.IsMatch(extension, @"HM_HOLD_FOLDER_FLAGS\s*=\s*\$02200000;"),
             "A folder is held shared for deleting, or with its link followed, while its permissions change.");
+         // The hold must ask for a right Windows' check of sharing counts - listing or
+         // traversing the folder - as well as its attributes: a handle for
+         // FILE_READ_ATTRIBUTES alone takes no part in that check, so its refusal to
+         // share deleting lets anybody rename the folder, and put a link in its place,
+         // while it is held (6 October 2026, on a scratch folder: renamed with
+         // FILE_READ_ATTRIBUTES alone, refused with FILE_LIST_DIRECTORY |
+         // FILE_TRAVERSE | FILE_READ_ATTRIBUTES).
+         Assert.IsTrue(Regex.IsMatch(extension, @"HM_HOLD_FOLDER_ACCESS\s*=\s*\$A1;"),
+            "A folder is held for its attributes alone, which binds nobody to the sharing it asks for, while its permissions change.");
          string inPlace = CodeBody(extension, "HardenHeldFolder");
          foreach (string word in new[] { "EveryUserMayRead(Folder)", "FolderOwnerIsTrusted(Folder, bKnown)", "/inheritance:r /grant:r *S-1-5-18:(OI)(CI)F *S-1-5-32-544:(OI)(CI)F", "*S-1-5-32-545:(OI)(CI)RX",
                                          "'O:BAD:PAI(A;OICI;FA;;;SY)(A;OICI;FA;;;BA)'", "(A;OICI;0x1200a9;;;BU)", "HM_OWNER_AND_PROTECTED_DACL" })
