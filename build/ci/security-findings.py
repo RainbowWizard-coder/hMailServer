@@ -418,19 +418,25 @@ def fingerprint_all(findings):
             f["fingerprint"] = hashlib.sha256(material.encode("utf-8")).hexdigest()[:20]
 
 
-def read_baseline(path):
-    """{fingerprint: [tool, rule, file:line, message, reason if there is one]}."""
+def parse_baseline(text):
+    """{fingerprint: [tool, rule, file:line, message, reason if there is one]}, from a
+    baseline's text: what the job reads, and what build/ci/security-gate.py compares
+    between a change's base and its head."""
     known = {}
-    if not os.path.exists(path):
-        return known
-    with open(path, encoding="utf-8") as f:
-        for raw in f:
-            line = raw.rstrip("\r\n")
-            if not line or line.startswith("#"):
-                continue
-            fields = line.split("\t")
-            known[fields[0]] = fields[1:]
+    for line in text.replace("\r\n", "\n").replace("\r", "\n").split("\n"):
+        if not line or line.startswith("#"):
+            continue
+        fields = line.split("\t")
+        known[fields[0]] = fields[1:]
     return known
+
+
+def read_baseline(path):
+    """parse_baseline of the file at path; {} when there is none."""
+    if not os.path.exists(path):
+        return {}
+    with open(path, encoding="utf-8") as f:
+        return parse_baseline(f.read())
 
 
 BASELINE_HEADER = [

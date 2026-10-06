@@ -48,14 +48,18 @@ Usage, from the root of the checkout the scans read:
 gl-sast-report.json); the checkout's root by default. Exits 0 when the release may go
 on, 1 when it may not, 2 on a usage error.
 
---merge-request is a merge request's gate instead (the semgrep-sast-gate job,
+--merge-request is a change's gate instead (the semgrep-sast-gate job,
 .gitlab/ci/mr-checks.yml): semgrep-sast's report alone, the exceptions as the commit
-BASE (CI_MERGE_REQUEST_DIFF_BASE_SHA) has them, and the findings in the files the
-merge request changes from BASE (see merge_request_evaluate below). Exits 0 when the
-merge request may land, 1 when it may not, 2 when its inputs cannot be read. BASE
-"auto" is change_base's: CI_MERGE_REQUEST_DIFF_BASE_SHA in a merge request's pipeline,
-and in a batch* branch's pipeline, which GitLab holds the branch's merge request to,
-where HEAD leaves master, fetched by name; a base that cannot be found exits 2.
+BASE has them, and the findings in the files the change touches from BASE - or in
+every file, when it alters the scan's configuration, where its own copy of the
+exceptions may accept a finding in a file it does not touch (merge_request_evaluate
+below); and, whatever the scan found, no entry added to a baseline or reason taken
+from one, and no suppression comment added to a file a scan reads (change_problems).
+--exceptions, with it, stands for the base's file. Exits 0 when the change may land,
+1 when it may not, 2 when its inputs cannot be read. BASE "auto" is change_base's:
+CI_MERGE_REQUEST_DIFF_BASE_SHA in a merge request's pipeline, and in a batch* branch's
+pipeline, which GitLab holds the branch's merge request to, where HEAD leaves master,
+fetched by name; a base that cannot be found exits 2.
 """
 
 import argparse
@@ -316,11 +320,14 @@ def source_scan(root, artifacts, scan, accepted):
     return problems + blocking, taken, total
 
 
-def gitlab_sast_scan(root, artifacts, accepted, scope=None, outside=None):
+def gitlab_sast_scan(root, artifacts, accepted, scope=None, outside=None, own=None, own_taken=None):
     """semgrep-sast, GitLab's report: every Critical or High finding, fingerprinted as
     security-findings.py fingerprints its own (the rule, the file, the line's text).
     scope, a set of paths, holds only the findings in those files (a merge request's
-    changed files); the others are listed in outside, when given, and hold nothing."""
+    changed files); the others are listed in outside, when given, and hold nothing.
+    own, (the changed paths, exceptions), is a change's own copy of the exceptions in
+    force, which accepts a finding only in a file the change does not touch (whole-tree
+    mode, merge_request_evaluate); what it accepts goes to own_taken."""
     relative = GITLAB_SAST_REPORT
     report, error = _read_json(os.path.join(artifacts, relative))
     if error:
@@ -344,6 +351,8 @@ def gitlab_sast_scan(root, artifacts, accepted, scope=None, outside=None):
         found.append(f)
     findings_module.fingerprint_all(found)
     excepted = dict((e["finding"], e) for e in accepted)
+    own_paths, own_entries = own if own is not None else (frozenset(), [])
+    own_excepted = dict((e["finding"], e) for e in own_entries)
     blocking, taken = [], []
     for f in found:
         if f["severity"] not in BLOCKING_SEVERITIES:
@@ -351,8 +360,15 @@ def gitlab_sast_scan(root, artifacts, accepted, scope=None, outside=None):
         if f["fingerprint"] in excepted:
             taken.append((excepted[f["fingerprint"]], f["report"]))
             continue
+        if f["fingerprint"] in own_excepted and f["path"] not in own_paths:
+            if own_taken is not None:
+                own_taken.append((own_excepted[f["fingerprint"]], f["report"]))
+            continue
         described = "semgrep-sast: %s %s at %s:%d [%s] - fingerprint %s" % (
             f["severity"], f["message"][:160], f["path"], f["line"], f["rule"], f["fingerprint"])
+        if f["fingerprint"] in own_excepted:
+            described += (" - accepted only by this change's own %s, which accepts nothing in a file the change touches: "
+                          "the exception lands first, by a change of its own" % EXCEPTIONS)
         if scope is not None and f["path"] not in scope:
             if outside is not None:
                 outside.append(described)
@@ -460,27 +476,37 @@ def evaluate(root, artifacts, today=None, exceptions_text=None, say=print):
     return problems
 
 
-# ---------------------------------------------------------------- a merge request's gate
+# ---------------------------------------------------------------- a change's gate
 #
-# In a merge request's pipeline semgrep-sast is the one scan that runs (the others
-# are on linix, for a protected ref only), and the semgrep-sast-gate job of
-# .gitlab/ci/mr-checks.yml asks this about its report before the merge request can
-# land (OpenSSF Baseline OSPS-VM-06.02: a change with a weakness above the threshold
-# is blocked unless it is declared not exploitable). The same rule as the release's,
-# Critical and High findings that .gitlab/security-exceptions.yml does not accept,
-# with two differences:
+# In every change's pipeline - a merge request's own, or a protected batch* branch's,
+# which GitLab holds that branch's merge request to - semgrep-sast runs, and the
+# semgrep-sast-gate job of .gitlab/ci/mr-checks.yml asks this about its report before
+# the change can land (OpenSSF Baseline OSPS-VM-06.02: a change with a weakness above
+# the threshold is blocked unless it is declared not exploitable). The same rule as the
+# release's, Critical and High findings that .gitlab/security-exceptions.yml does not
+# accept, with two differences:
 #
-#   the exceptions are the merge request's base's, the target branch's copy where the
-#   merge request left it, never the merge request's own: a change cannot accept its
-#   own finding. An exception lands first, by a merge request of its own - which, with
-#   only the exceptions file changed, holds nothing here - and the change after it;
+#   the exceptions are the change's base's, the target branch's copy where the change
+#   left it, never the change's own: a change cannot accept its own finding. An
+#   exception lands first, by a change of its own - which, with only the exceptions
+#   file changed, holds nothing here - and the change after it;
 #
-#   only the findings in the files the merge request changes hold it, so a change is
+#   only the findings in the files the change touches hold it, so a change is
 #   answerable for what it touches, not for a finding already on the target branch in
 #   a file it never opened: that one holds the next release instead, whose gate reads
-#   the whole tree. Unless the merge request changes the scan itself (SAST_CONFIG:
-#   the analyzer, its pin or its options, GitLab's custom ruleset file, or how a
-#   finding is fingerprinted), when every finding in the tree is its business.
+#   the whole tree. Unless the change alters the scan itself (SAST_CONFIG: the
+#   analyzer, its pin or its options, GitLab's custom ruleset file, or how a finding is
+#   fingerprinted), when every finding in the tree is its business. Then a finding in a
+#   file the change does not touch may also be accepted by the change's own copy of
+#   the exceptions file, and one in a file it touches still by the base's alone: a
+#   change that re-pins a vanished analyzer while the target branch holds findings
+#   nobody has accepted can carry their exceptions with it, which no change of its own
+#   could land first, since the scan that would judge that change is the one gone.
+#
+# And whatever the scan found, a change may not take the two ways of silencing a
+# finding without a declaration on the base (change_problems): it may not add an entry
+# to a source scan's baseline or take an entry's reason away, and it may not raise, in
+# any file a scan reads, the count of the comments by which a tool skips a finding.
 
 # A change to one of these can change what the scan finds anywhere in the tree.
 # .gitlab/sast-ruleset.toml is the file GitLab's analyzers read a custom ruleset
@@ -495,10 +521,12 @@ SAST_CONFIG = (".gitlab-ci.yml", ".gitlab/ci/gitlab-security.yml", ".gitlab/ci/m
                "build/ci/security-gate.py", "build/ci/security-findings.py")
 
 
-def merge_request_evaluate(root, artifacts, exceptions_text, changed, today=None, say=print):
-    """The problems that hold a merge request: semgrep-sast's Critical and High findings
-    in the changed files (or anywhere, when the scan's own configuration changed) that
-    exceptions_text does not accept."""
+def merge_request_evaluate(root, artifacts, exceptions_text, changed, today=None, say=print, own_exceptions_text=None):
+    """The problems that hold a change: semgrep-sast's Critical and High findings in the
+    changed files (or anywhere, when the scan's own configuration changed) that
+    exceptions_text, the base's, does not accept. When the scan's configuration changed,
+    own_exceptions_text, the change's own copy, also accepts a finding in a file the
+    change does not touch."""
     today = today or datetime.datetime.now(datetime.timezone.utc).date()
     entries, problems = check_exceptions(exceptions_text)
     if problems:
@@ -506,20 +534,34 @@ def merge_request_evaluate(root, artifacts, exceptions_text, changed, today=None
     in_force, problems = _in_force(entries, today, say)
     whole = sorted(set(changed) & set(SAST_CONFIG))
     scope = None if whole else set(changed)
-    outside = []
-    found, taken, total = gitlab_sast_scan(root, artifacts, in_force.get("semgrep-sast", []), scope, outside)
+    outside, own, own_taken = [], None, []
+    if whole and own_exceptions_text is not None:
+        own_entries, wrong = check_exceptions(own_exceptions_text)
+        if not wrong:
+            # Its lapsed entries are the base's too, or are the change's to drop: said once.
+            own_in_force, wrong = _in_force(own_entries, today, lambda line: None)
+        if wrong:
+            say("this change's own %s cannot be read, so it accepts nothing: %s" % (EXCEPTIONS, "; ".join(wrong)))
+        else:
+            own = (frozenset(changed), own_in_force.get("semgrep-sast", []))
+    found, taken, total = gitlab_sast_scan(root, artifacts, in_force.get("semgrep-sast", []), scope, outside, own, own_taken)
     if whole:
-        say("this merge request changes %s, which can change what the scan finds anywhere: every finding in the tree "
-            "counts" % ", ".join(whole))
+        say("this change alters %s, which can change what the scan finds anywhere: every finding in the tree counts, "
+            "and one in a file it does not touch may be accepted by its own %s as well as by the base's" % (
+                ", ".join(whole), EXCEPTIONS))
     else:
         say("%d file(s) changed; a finding counts in those alone" % len(scope))
     # The findings outside the changed files are counted, never described: a merge
     # request's job log is public, and those are the tree's unaccepted Critical and
     # High findings, which the release's gate holds and a maintainer reads from the
     # scan's own artifact. A finding in a changed file is the change's, and is named.
-    say("semgrep-sast %5d finding(s) in the report; %d accepted by an exception; %d Critical or High outside the "
-        "changed files, not described here (the release's gate holds those); %d holding this merge request" % (
-            total, len(taken), len(outside), len(found)))
+    say("semgrep-sast %5d finding(s) in the report; %d accepted by an exception of the base's; %d by the change's "
+        "own, outside the files it touches; %d Critical or High outside the changed files, not described here (the "
+        "release's gate holds those); %d holding this change" % (
+            total, len(taken), len(own_taken), len(outside), len(found)))
+    for entry, v in own_taken:
+        say("             accepted by the change's own exception until %s (%s): %s - %s, at %s" % (
+            entry["expires"], entry["reviewed-by"], entry["finding"], entry["what"], _place(v)))
     return problems + found
 
 
@@ -527,25 +569,219 @@ def _git(root, *arguments):
     return subprocess.run(["git", "-C", root] + list(arguments), capture_output=True)
 
 
+def _said(answer):
+    return (answer.stderr or answer.stdout or b"").decode("utf-8", "replace").strip()[:300] or "exit %d" % answer.returncode
+
+
+def _text_at(root, commit, path):
+    """(the file's text at commit, or None when the commit has no such file; None) or
+    (None, the problem)."""
+    shown = _git(root, "show", "%s:%s" % (commit, path))
+    if shown.returncode != 0:
+        if _git(root, "cat-file", "-e", "%s:%s" % (commit, path)).returncode != 0:
+            return None, None
+        return None, "git show %s:%s failed: %s" % (commit, path, _said(shown))
+    try:
+        return shown.stdout.decode("utf-8"), None
+    except UnicodeDecodeError as e:
+        return None, "%s at %s is not UTF-8: %s" % (path, commit, e)
+
+
+# ---------------------------------------------------------------- what a change may not add
+#
+# The source scans pass a finding whose fingerprint is in their baselines (BASELINES),
+# and each tool skips a finding where a comment of its own says so. Neither is a
+# declaration that the finding is not exploitable, read from the base: a change that
+# could add either could silence its own finding. So a baseline only shrinks - a change
+# may drop an entry, or give one a reason, and never add a fingerprint or take a reason
+# away - and in every file a scan reads, a change may not raise the count of those
+# comments: Semgrep's (its marker in the long form and the short, in any case, as
+# Semgrep matches it), clang-tidy's (each of its forms that begins a suppression: the
+# line, the next line, a block's beginning - not the block's end) and cppcheck's
+# (its inline suppression, of a line, a block's beginning, a file or a macro).
+# Counting, not reading the lines, lets an edited line keep the marker it had; a file
+# git sees renamed keeps the count it had under its old name. Both declarations stay
+# where they were: VEX and the exceptions file, read from the base.
+#
+# The markers are spelt below in pieces, so that this file - which names them, and
+# whose own count is held like any other's - does not carry them.
+SUPPRESSION_MARKERS = re.compile(
+    r"(?<!\w)(?i:%s)|%s(?!END)|%s(?![A-Za-z0-9_]|-end)" % ("no" + "sem", "NO" + "LINT", "cppcheck-" + "suppress"))
+# Files whose text names the markers as words and that no scan reads as code:
+# documents, the baselines and the exceptions file; and the three files generated from
+# documents and page text that every scan leaves out (SAST_EXCLUDED_PATHS in
+# .gitlab/ci/gitlab-security.yml, and security-findings.py's GENERATED for the source
+# scans: the self-test holds each to both), into which a document's words about the
+# markers are copied. A marker in one of them silences nothing.
+GENERATED_DOCUMENTS = ("hmailserver/source/Server/Common/Util/HelpPagesData.cpp",
+                       "hmailserver/source/Server/Common/Util/PortalLanguagesData.cpp",
+                       "hmailserver/source/Server/Common/Util/PortalPageData.cpp")
+REGULAR_FILE = ("100644", "100755")
+
+
+def markers_counted(path):
+    """Whether a suppression marker in the file at path can silence a scan: anything but
+    a Markdown document, a baseline, the exceptions file or a generated document."""
+    return not (path.endswith(".md") or path in [b.replace(os.sep, "/") for b in BASELINES.values()]
+                or path == EXCEPTIONS or path in GENERATED_DOCUMENTS)
+
+
+def suppression_markers(data):
+    """How many suppression markers the file's bytes hold. A file git would call binary
+    holds none, unless it is UTF-16 text with its byte order mark."""
+    if data[:2] in (b"\xff\xfe", b"\xfe\xff"):
+        text = data.decode("utf-16", "replace")
+    elif b"\0" in data[:8000]:
+        return 0
+    else:
+        text = data.decode("utf-8", "replace")
+    return len(SUPPRESSION_MARKERS.findall(text))
+
+
+def _raw_diff(output):
+    """[(status letter, old mode, new mode, old blob, new blob, old path, new path)] from
+    git diff --raw -z --no-abbrev."""
+    fields, items, i = output.split(b"\0"), [], 0
+    while i < len(fields) and fields[i]:
+        meta = fields[i].decode("ascii", "replace")
+        parts = meta[1:].split(" ")
+        if not meta.startswith(":") or len(parts) != 5 or not parts[4]:
+            raise ValueError("not a line of git diff --raw: %r" % meta[:80])
+        two = parts[4][0] in "RC"
+        if not all(fields[i + 1:i + (3 if two else 2)]) or i + (2 if two else 1) >= len(fields):
+            raise ValueError("git diff --raw ends inside an entry: %r" % meta[:80])
+        old = fields[i + 1].decode("utf-8", "surrogateescape")
+        new = fields[i + 2].decode("utf-8", "surrogateescape") if two else old
+        items.append((parts[4][0], parts[0], parts[1], parts[2], parts[3], old, new))
+        i += 3 if two else 2
+    return items
+
+
+def _blobs(root, names):
+    """({blob: bytes}, None) or (None, the problem): the blobs git cat-file --batch gives."""
+    unique = sorted(set(names))
+    if not unique:
+        return {}, None
+    done = subprocess.run(["git", "-C", root, "cat-file", "--batch"], input=("\n".join(unique) + "\n").encode("ascii"),
+                          capture_output=True)
+    if done.returncode != 0:
+        return None, "git cat-file --batch failed: %s" % _said(done)
+    out, at, blobs = done.stdout, 0, {}
+    try:
+        for name in unique:
+            end = out.index(b"\n", at)
+            header = out[at:end].decode("ascii", "replace").split(" ")
+            if len(header) != 3 or header[0] != name or header[1] != "blob":
+                return None, "git cat-file --batch gave %r for %s" % (" ".join(header)[:120], name)
+            start = end + 1
+            blobs[name] = out[start:start + int(header[2])]
+            at = start + int(header[2]) + 1
+    except ValueError as e:
+        return None, "git cat-file --batch's output cannot be read: %s" % e
+    return blobs, None
+
+
+def marker_counts(root, base):
+    """([(path, count at base, count at HEAD)] for each file the change adds or alters and
+    a scan reads, None) or (None, the problem). A file renamed from one whose markers
+    were not counted starts from none."""
+    raw = _git(root, "diff", "--raw", "-z", "-M", "-l0", "--no-abbrev", "--diff-filter=ACMRT", base, "HEAD")
+    if raw.returncode != 0:
+        return None, "git diff --raw %s HEAD failed: %s" % (base, _said(raw))
+    try:
+        items = _raw_diff(raw.stdout)
+    except ValueError as e:
+        return None, str(e)
+    wanted = []
+    for status, old_mode, new_mode, old_blob, new_blob, old, new in items:
+        if new_mode not in REGULAR_FILE or not markers_counted(new):
+            continue
+        before = old_blob if (status != "A" and old_mode in REGULAR_FILE and markers_counted(old)) else None
+        wanted.append((new, before, new_blob))
+    blobs, problem = _blobs(root, [b for _, before, after in wanted for b in (before, after) if b])
+    if problem:
+        return None, problem
+    return [(path, suppression_markers(blobs[before]) if before else 0, suppression_markers(blobs[after]))
+            for path, before, after in wanted], None
+
+
+def baseline_problems(path, base_text, head_text):
+    """What holds a change in its copy of the baseline at path: an entry the base's does
+    not have, and an entry whose reason the change took away."""
+    base = findings_module.parse_baseline(base_text or "")
+    head = findings_module.parse_baseline(head_text or "")
+
+    def reason(fields):
+        return (fields[4] if len(fields) > 4 else "").strip()
+
+    def named(fingerprint, fields):
+        return "%s (%s)" % (fingerprint, " ".join(fields[:3])[:200])
+
+    problems = []
+    added = [named(fp, fields) for fp, fields in head.items() if fp not in base]
+    if added:
+        problems.append("%s: %d entr%s the base's copy does not have, %s: a baseline only shrinks, and a finding new to "
+                        "it is fixed, or accepted in %s by a change of its own, landed first" % (
+                            path, len(added), "y" if len(added) == 1 else "ies", "; ".join(added), EXCEPTIONS))
+    lost = [named(fp, fields) for fp, fields in head.items() if fp in base and reason(base[fp]) and not reason(fields)]
+    if lost:
+        problems.append("%s: %d entr%s whose reason this change took away, %s: a known finding keeps the reason its "
+                        "triage gave" % (path, len(lost), "y" if len(lost) == 1 else "ies", "; ".join(lost)))
+    return problems
+
+
+def change_problems(inputs, say=print):
+    """What holds a change whatever the scan found: a baseline that grew or lost a
+    reason, and a file a scan reads with more suppression markers than its base."""
+    problems = []
+    for path, (base_text, head_text) in sorted(inputs["baselines"].items()):
+        problems.extend(baseline_problems(path, base_text, head_text))
+        say("%s: %d entr(ies) at the base, %d in this change" % (
+            path, len(findings_module.parse_baseline(base_text or "")), len(findings_module.parse_baseline(head_text or ""))))
+    raised = [(path, before, after) for path, before, after in inputs["markers"] if after > before]
+    for path, before, after in raised:
+        problems.append("%s: %d comment(s) by which a scan skips a finding, %d at the base: a change adds none - a finding "
+                        "is fixed, or accepted in %s by a change of its own, landed first" % (path, after, before, EXCEPTIONS))
+    say("suppression markers: %d file(s) this change adds or alters that a scan reads; %d with more than at the base" % (
+        len(inputs["markers"]), len(raised)))
+    return problems
+
+
 def merge_request_inputs(root, base):
-    """(changed paths, the base's exceptions text, None) or (None, None, the problem): what
-    the merge request changes from base to HEAD, and the exceptions file as base has it."""
+    """(inputs, None) or (None, the problem): what the change holds from base to HEAD, as
+    the gate reads it: {"changed": the paths it adds or alters, "exceptions": the base's
+    exceptions file (none accepts nothing), "own_exceptions": HEAD's, or None,
+    "baselines": {path: (the base's text, HEAD's), None for no file}, "markers":
+    marker_counts}."""
     if not re.match(r"^[0-9a-f]{7,64}$", base or ""):
-        return None, None, ("no base commit (%r): run it with the merge request's CI_MERGE_REQUEST_DIFF_BASE_SHA, "
-                            "in a clone that has it (GIT_DEPTH 0)" % base)
+        return None, ("no base commit (%r): run it with the merge request's CI_MERGE_REQUEST_DIFF_BASE_SHA, or 'auto', "
+                      "in a clone that has it (GIT_DEPTH 0)" % base)
     if _git(root, "cat-file", "-e", base + "^{commit}").returncode != 0:
-        return None, None, "the base commit %s is not in this clone: the job needs the history (GIT_DEPTH 0)" % base
+        return None, "the base commit %s is not in this clone: the job needs the history (GIT_DEPTH 0)" % base
     diff = _git(root, "diff", "--name-only", "-z", "--diff-filter=d", base, "HEAD")
     if diff.returncode != 0:
-        return None, None, "git diff %s HEAD failed: %s" % (base, diff.stderr.decode("utf-8", "replace").strip()[:300])
-    changed = [p.decode("utf-8", "surrogateescape") for p in diff.stdout.split(b"\0") if p]
-    shown = _git(root, "show", "%s:%s" % (base, EXCEPTIONS))
-    if shown.returncode != 0:
-        # A base from before the file existed accepts nothing.
-        if _git(root, "cat-file", "-e", "%s:%s" % (base, EXCEPTIONS)).returncode != 0:
-            return changed, "exceptions: []\n", None
-        return None, None, "git show %s:%s failed: %s" % (base, EXCEPTIONS, shown.stderr.decode("utf-8", "replace").strip()[:300])
-    return changed, shown.stdout.decode("utf-8"), None
+        return None, "git diff %s HEAD failed: %s" % (base, _said(diff))
+    inputs = {"changed": [p.decode("utf-8", "surrogateescape") for p in diff.stdout.split(b"\0") if p], "baselines": {}}
+    for key, commit in (("exceptions", base), ("own_exceptions", "HEAD")):
+        inputs[key], problem = _text_at(root, commit, EXCEPTIONS)
+        if problem:
+            return None, problem
+    # A base from before the file existed accepts nothing.
+    if inputs["exceptions"] is None:
+        inputs["exceptions"] = "exceptions: []\n"
+    for relative in sorted(BASELINES.values()):
+        path = relative.replace(os.sep, "/")
+        texts = []
+        for commit in (base, "HEAD"):
+            text, problem = _text_at(root, commit, path)
+            if problem:
+                return None, problem
+            texts.append(text)
+        inputs["baselines"][path] = tuple(texts)
+    inputs["markers"], problem = marker_counts(root, base)
+    if problem:
+        return None, problem
+    return inputs, None
 
 
 def sample_reports():
@@ -896,6 +1132,7 @@ def self_test():
     finally:
         shutil.rmtree(work, ignore_errors=True)
     failures.extend(change_base_failures())
+    failures.extend(change_gate_failures())
 
     for failure in failures:
         print("FAILED: " + failure)
@@ -1027,26 +1264,242 @@ def change_base_failures():
     return failures
 
 
+def change_gate_failures():
+    """The self-test's cases for what a change may not add (change_problems) and for the
+    change's own exceptions in whole-tree mode (merge_request_evaluate), against a
+    repository made here: offline."""
+    failures = []
+
+    def expect(condition, what):
+        if not condition:
+            failures.append(what)
+
+    # The markers, in pieces, as SUPPRESSION_MARKERS spells them.
+    sem, lint, suppress = "no" + "sem" + "grep", "NO" + "LINT", "cppcheck-" + "suppress"
+    for text, count in (("x = 1  # %s\n" % sem, 1), ("x = 1  # %s: python.rule\n" % sem.upper(), 1),
+                        ("x = 1  # %s\n" % sem[:5], 1), ("// %s\n// %s\n" % (sem, sem), 2),
+                        ("int a; // %s\n" % lint, 1), ("int a; // %s(bugprone-x)\n" % lint, 1),
+                        ("// %sNEXTLINE\n" % lint, 1), ("// %sBEGIN\n// %sEND\n" % (lint, lint), 1),
+                        ("// %s\n" % lint.lower(), 0), ("// %s nullPointer\n" % suppress, 1),
+                        ("// %s-begin nullPointer\n// %s-end\n" % (suppress, suppress), 1),
+                        ("// %s-file nullPointer\n" % suppress, 1), ("// %s[a,b]\n" % suppress, 1),
+                        ("--suppressions-list=build/ci/%sions.txt\n" % suppress, 0),
+                        ("Při pře%s těla\n" % sem[:5], 0)):
+        expect(suppression_markers(text.encode("utf-8")) == count, "%r holds %d suppression marker(s) as the tools read it; "
+               "the count is %d" % (text, count, suppression_markers(text.encode("utf-8"))))
+    expect(suppression_markers(b"\0\1 // " + sem.encode("ascii")) == 0, "a binary file holds no suppression marker")
+    expect(suppression_markers(("// %s\n" % sem).encode("utf-16")) == 1, "a UTF-16 file's markers are counted")
+    for path, counted in (("src/a.cpp", True), ("README.md", False), ("hmailserver/docs/ContinuousIntegration.md", False),
+                          ("build/ci/semgrep-baseline.txt", False), ("build/ci/static-analysis-baseline.txt", False),
+                          (EXCEPTIONS, False), (GENERATED_DOCUMENTS[0], False), ("build/ci/cppcheck-suppressions.txt", True),
+                          ("hmailserver/source/Server/Common/Util/ProfilesData.cpp", True), ("build/ci/security-gate.py", True)):
+        expect(markers_counted(path) == counted, "%s's markers are %scounted" % (path, "" if counted else "not "))
+    for wrong in (b":100644 100644 a b\0x\0", b":100644 100644 a b R100\0old\0"):
+        try:
+            _raw_diff(wrong)
+            failures.append("git diff --raw output that cannot be read is refused: %r" % wrong)
+        except ValueError:
+            pass
+    # A generated document is left out only while every scan leaves it out.
+    for path in GENERATED_DOCUMENTS:
+        expect(findings_module.GENERATED.search(path), "%s is one the source scans leave out (security-findings.py's "
+                                                       "GENERATED)" % path)
+    try:
+        with open(os.path.join(ROOT, ".gitlab", "ci", "gitlab-security.yml"), encoding="utf-8") as f:
+            excluded = re.search(r'^\s*SAST_EXCLUDED_PATHS:\s*"([^"]*)"', f.read(), re.MULTILINE)
+    except OSError:
+        excluded = None
+    excluded = [p.strip() for p in excluded.group(1).split(",")] if excluded else []
+    for path in GENERATED_DOCUMENTS:
+        expect(path in excluded, "%s is in semgrep-sast's SAST_EXCLUDED_PATHS (.gitlab/ci/gitlab-security.yml), or its "
+                                 "markers would count" % path)
+    expect(BASELINES == findings_module.BASELINES, "the baselines this gate holds are the ones the source scans read: %s, %s"
+           % (BASELINES, findings_module.BASELINES))
+
+    today = datetime.date(2026, 10, 1)
+    work = tempfile.mkdtemp(prefix="security-gate-change-")
+    repo, artifacts = os.path.join(work, "repo"), os.path.join(work, "artifacts")
+
+    def g(*arguments):
+        return subprocess.run(["git", "-C", repo] + list(arguments), check=True, capture_output=True,
+                              text=True).stdout.strip()
+
+    def exception(finding, expires="2027-03-01"):
+        return ("exceptions:\n  - scan: semgrep-sast\n    finding: %s\n    what: 'the thing'\n"
+                "    reason: 'Read in the code: the input is a fixed literal, never a peer''s.'\n"
+                "    reviewed-by: Progressiverobot\n    reviewed: 2026-09-26\n    expires: %s\n" % (finding, expires))
+
+    def change(start, files, renames=(), message="a change"):
+        g("reset", "-q", "--hard", start)
+        for old, new in renames:
+            g("mv", old, new)
+        for relative, content in files.items():
+            path = os.path.join(repo, *relative.split("/"))
+            if content is None:
+                os.remove(path)
+                continue
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+            with open(path, "wb") as f:
+                f.write(content if isinstance(content, bytes) else content.encode("utf-8"))
+        g("add", "-A")
+        g("commit", "-q", "--no-verify", "-m", message)
+        return g("rev-parse", "HEAD")
+
+    def verdict(base, severity="Medium"):
+        """(exit, what it said), the report holding one strcpy at src/a.cpp:2 of severity."""
+        if os.path.isdir(artifacts):
+            shutil.rmtree(artifacts)
+        os.makedirs(artifacts)
+        with open(os.path.join(artifacts, GITLAB_SAST_REPORT), "w", encoding="utf-8") as f:
+            json.dump({"version": "15.0.4", "scan": {"status": "success", "type": "sast"},
+                       "vulnerabilities": [{"id": "random", "name": "strcpy", "severity": severity, "description": "strcpy",
+                                            "identifiers": [{"type": "semgrep_id", "name": "c.strcpy", "value": "c.strcpy"}],
+                                            "location": {"file": "src/a.cpp", "start_line": 2}}]}, f)
+        said = []
+        held = findings_module.ROOT
+        findings_module.ROOT = repo
+        findings_module._lines_cache.clear()
+        findings_module._top_level = None
+        try:
+            return merge_request_main(repo, artifacts, base, None, today, say=said.append), "\n".join(said)
+        finally:
+            findings_module.ROOT = held
+            findings_module._lines_cache.clear()
+            findings_module._top_level = None
+
+    def case(what, start, files, expected, needle=None, renames=(), severity="Medium", unsaid=()):
+        change(start, files, renames, what)
+        code, said = verdict(start, severity)
+        if code != expected or (needle and needle not in said) or any(word in said for word in unsaid):
+            failures.append("%s: exit %d, not %d%s%s\n%s" % (
+                what, code, expected, (" saying %r" % needle) if needle else "",
+                (" and never %s" % ", ".join(unsaid)) if unsaid else "", said))
+
+    try:
+        os.makedirs(repo)
+        subprocess.run(["git", "init", "-q", repo], check=True, capture_output=True)
+        for key, value in (("user.name", "self-test"), ("user.email", "self-test@example.invalid"),
+                           ("commit.gpgsign", "false"), ("core.autocrlf", "false")):
+            g("config", key, value)
+        a, b, c = "a" * 20, "b" * 20, "c" * 20
+        baseline = "# the semgrep job's baseline\n%s\tsemgrep\trule.one\tsrc/b.py:2\tm\tthe reason its triage gave\n" \
+                   "%s\tsemgrep\trule.two\tsrc/b.py:3\tm\n" % (a, b)
+        source = "int main() {\n  char b[4]; strcpy(b, argv[1]);\n  return atoi(x);\n}\n"
+        python = "import os\nos.chmod(p, 0o755)  # %s\nprint(1)\n" % sem
+        library = "".join("int f%d(int x) { return x * %d; }\n" % (n, n) for n in range(12)) + "int g(); // %s\n" % lint
+        # The first commit has no parent to reset to: made by hand.
+        for relative, content in {"src/a.cpp": source, "src/b.py": python, "src/c.cpp": library,
+                                  "build/ci/semgrep-baseline.txt": baseline, EXCEPTIONS: "exceptions: []\n",
+                                  ".gitlab/ci/gitlab-security.yml": "semgrep-sast: {}\n",
+                                  "docs/Guide.md": "Markers: %s\n" % sem}.items():
+            path = os.path.join(repo, *relative.split("/"))
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+            with open(path, "w", encoding="utf-8", newline="\n") as f:
+                f.write(content)
+        g("add", "-A")
+        g("commit", "-q", "--no-verify", "-m", "base")
+        base = g("rev-parse", "HEAD")
+        semgrep_baseline = "build/ci/semgrep-baseline.txt"
+        other_baseline = BASELINES["static-analysis"].replace(os.sep, "/")
+
+        expect(verdict(base)[0] == 0, "a change that changes nothing passes: %s" % (verdict(base),))
+        # The baselines only shrink.
+        case("an entry added to a baseline", base, {semgrep_baseline: baseline + "%s\tsemgrep\trule.three\tsrc/b.py:1\tm\n" % c},
+             1, "1 entry the base's copy does not have, %s" % c)
+        case("an entry dropped from a baseline", base, {semgrep_baseline: baseline.replace("%s\t" % b, "# gone ")}, 0)
+        case("a reason taken away", base, {semgrep_baseline: baseline.replace("\tthe reason its triage gave", "")}, 1,
+             "whose reason this change took away, %s" % a)
+        case("a reason left empty", base, {semgrep_baseline: baseline.replace("the reason its triage gave", "  ")}, 1,
+             "whose reason this change took away")
+        case("a reason written again", base, {semgrep_baseline: baseline.replace("its triage gave", "its triage gave, read again")},
+             0)
+        case("a reason given", base, {semgrep_baseline: baseline.replace("rule.two\tsrc/b.py:3\tm", "rule.two\tsrc/b.py:4\tm\tnow read")},
+             0)
+        case("a baseline the base has not", base, {other_baseline: "# new\n%s\tcppcheck\tnullPointer\tsrc/a.cpp:2\tm\n" % c}, 1,
+             "%s: 1 entry the base's copy does not have" % other_baseline)
+        case("a baseline removed", base, {semgrep_baseline: None}, 0)
+        # No suppression marker added.
+        case("a marker added", base, {"src/a.cpp": source.replace("argv[1]);", "argv[1]); // %s" % sem)}, 1,
+             "src/a.cpp: 1 comment(s) by which a scan skips a finding, 0 at the base")
+        case("a clang-tidy marker for the next line added", base, {"src/a.cpp": "// %sNEXTLINE\n" % lint + source}, 1, "src/a.cpp")
+        case("a cppcheck block suppression added", base, {"src/a.cpp": "// %s-begin x\n" % suppress + source}, 1, "src/a.cpp")
+        case("a block's end alone", base, {"src/a.cpp": source + "// %sEND\n" % lint}, 0)
+        case("a marked line edited", base, {"src/b.py": python.replace("0o755", "0o750")}, 0)
+        case("a marker moved within its file", base,
+             {"src/b.py": python.replace("  # %s" % sem, "").replace("print(1)", "print(1)  # %s" % sem)}, 0)
+        case("a new file with a marker", base, {"src/new.js": "eval(x); // %s\n" % sem}, 1, "src/new.js: 1 comment(s)")
+        case("a file renamed with its marker", base, {}, 0, renames=(("src/c.cpp", "src/d.cpp"),))
+        case("a file renamed with a marker more", base, {"src/d.cpp": library + "int h(); // %s\n" % lint}, 1,
+             "src/d.cpp: 2 comment(s) by which a scan skips a finding, 1 at the base", renames=(("src/c.cpp", "src/d.cpp"),))
+        case("a document renamed into code", base, {}, 1, "src/guide.py: 1 comment(s)", renames=(("docs/Guide.md", "src/guide.py"),))
+        case("a document naming the markers", base, {"docs/Guide.md": "Markers: %s, %s, %s\n" % (sem, lint, suppress)}, 0)
+        case("a generated document naming them", base, {GENERATED_DOCUMENTS[0]: '"%s %s"\n' % (sem, lint)}, 0)
+        case("the exceptions file naming them", base, {EXCEPTIONS: "# not a %s\nexceptions: []\n" % sem}, 0)
+        case("a binary file", base, {"src/blob.bin": b"\0\1\2 " + sem.encode("ascii")}, 0)
+        # Whole-tree mode: the change's own exceptions accept outside the files it touches.
+        fp = None
+        code, said = verdict(base, "Critical")
+        found = re.search(r"fingerprint ([0-9a-f]{20})", said)
+        expect(code == 0 and found is None, "a Critical finding in a file the change does not touch is not its: %s" % said)
+        change(base, {".gitlab/ci/gitlab-security.yml": "semgrep-sast: {variables: {}}\n"}, message="the scan altered")
+        code, said = verdict(base, "Critical")
+        found = re.search(r"fingerprint ([0-9a-f]{20})", said)
+        expect(code == 1 and found is not None, "a change that alters the scan answers for every finding: %s" % said)
+        fp = found.group(1) if found else "0" * 20
+        scan = {".gitlab/ci/gitlab-security.yml": "semgrep-sast: {variables: {}}\n"}
+        case("the scan altered, with its own exception for a file it does not touch", base, dict(scan, **{EXCEPTIONS: exception(fp)}),
+             0, "accepted by the change's own exception until 2027-03-01", severity="Critical")
+        case("the scan altered, with its own exception for a file it touches", base,
+             dict(scan, **{EXCEPTIONS: exception(fp), "src/a.cpp": source + "// more\n"}), 1,
+             "accepted only by this change's own", severity="Critical")
+        case("the scan altered, with its own exception lapsed", base, dict(scan, **{EXCEPTIONS: exception(fp, "2026-09-30")}), 1,
+             "fingerprint %s" % fp, severity="Critical")
+        # One entry that would accept it, and one without its expiry: a file not well
+        # formed accepts nothing, the good entry in it included.
+        case("the scan altered, with its own exceptions not well formed", base,
+             dict(scan, **{EXCEPTIONS: exception(fp) + exception("d" * 20).split("\n", 1)[1].replace("    expires: 2027-03-01\n", "")}),
+             1, "this change's own %s cannot be read" % EXCEPTIONS, severity="Critical")
+        case("its own exception without the scan altered, in a file it touches", base,
+             {EXCEPTIONS: exception(fp), "src/a.cpp": source + "// more\n"}, 1, "fingerprint %s" % fp, severity="Critical")
+        # Without the scan altered, a finding outside the changed files is the
+        # release's: counted in the public log, never described, whatever the
+        # change's own copy says of it.
+        case("its own exception without the scan altered, in a file it does not touch", base,
+             {EXCEPTIONS: exception(fp), "src/other.txt": "x\n"}, 0, "1 Critical or High outside the changed files",
+             severity="Critical", unsaid=(fp, "src/a.cpp", "accepted by the change's own"))
+        accepted = change(base, {EXCEPTIONS: exception(fp)}, message="the exception, landed first")
+        case("the scan altered, and the base's exception for a file it touches", accepted,
+             dict(scan, **{"src/a.cpp": source + "// more\n"}), 0, severity="Critical")
+        expect(verdict("0" * 40)[0] == 2, "a base the clone does not have cannot be checked")
+    except (OSError, subprocess.CalledProcessError) as e:
+        failures.append("the change gate's repository could not be made: %s %s" % (e, getattr(e, "stderr", "") or ""))
+    finally:
+        shutil.rmtree(work, ignore_errors=True)
+    return failures
+
+
 def merge_request_main(root, artifacts, base, exceptions_text=None, today=None, say=print):
-    """The merge request's gate, from a checkout of its head: 0 it may land, 1 it may
-    not, 2 its inputs cannot be read."""
-    changed, base_text, problem = merge_request_inputs(root, base)
+    """The change's gate, from a checkout of its head: 0 it may land, 1 it may not, 2 its
+    inputs cannot be read. exceptions_text, when given, stands for the base's file."""
+    inputs, problem = merge_request_inputs(root, base)
     if problem:
         say("CANNOT CHECK: " + problem)
         return 2
-    problems = merge_request_evaluate(root, artifacts, exceptions_text if exceptions_text is not None else base_text,
-                                      changed, today, say)
+    problems = merge_request_evaluate(root, artifacts, exceptions_text if exceptions_text is not None else inputs["exceptions"],
+                                      inputs["changed"], today, say, inputs["own_exceptions"])
+    problems += change_problems(inputs, say)
     for p in problems:
         say("HELD: " + p)
     if problems:
-        say("This merge request waits on the %d line(s) HELD above: a finding of severity Critical or High in what it "
-            "changes is fixed, or accepted in %s by a merge request of its own, landed first, with a reason, a reviewer "
-            "and an expiry; a report that is missing or did not finish is a semgrep-sast job to run again "
-            "(SECURITY.md, 'Before a release'; docs/ContinuousIntegration.md, 'Merge request checks')." % (
+        say("This change waits on the %d line(s) HELD above: a finding of severity Critical or High in what it changes "
+            "is fixed, or accepted in %s by a change of its own, landed first, with the reason it is not exploitable, a "
+            "reviewer and an expiry; a baseline only shrinks, and no change adds a comment by which a scan skips a "
+            "finding; a report that is missing or did not finish is a semgrep-sast job to run again (SECURITY.md, "
+            "'Vulnerability management policy'; docs/ContinuousIntegration.md, 'Merge request checks')." % (
                 len(problems), EXCEPTIONS))
         return 1
-    say("No Critical or High finding of semgrep-sast in what this merge request changes that the base's %s does not "
-        "accept." % EXCEPTIONS)
+    say("No Critical or High finding of semgrep-sast in what this change touches that the base's %s does not accept, "
+        "no baseline grown or a reason taken from it, and no comment added by which a scan skips a finding." % EXCEPTIONS)
     return 0
 
 
@@ -1056,8 +1509,9 @@ def main():
     parser.add_argument("--exceptions", default=None, help="the exceptions file (default: %s)" % EXCEPTIONS)
     parser.add_argument("--today", default=None, help="the date to judge expiry by (YYYY-MM-DD; default: today, UTC)")
     parser.add_argument("--merge-request", metavar="BASE", default=None,
-                        help="a merge request's gate: semgrep-sast alone, the exceptions as BASE has them, the files changed "
-                             "from BASE; 'auto' finds BASE as change_base does")
+                        help="a change's gate: semgrep-sast alone, the exceptions as BASE has them, the files changed from "
+                             "BASE, and no baseline grown or suppression comment added; 'auto' finds BASE as change_base "
+                             "does")
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
     if args.self_test:
