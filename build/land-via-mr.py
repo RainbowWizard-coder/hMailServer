@@ -28,6 +28,15 @@ refusal:
      found: running this again resumes where it stopped.
   4. The pipeline of exactly the branch's tip is waited for. Anything but
      success refuses: failed, canceled, skipped, or blocked on a manual job.
+     Then its jobs are read, every page of them, since GitLab calls a pipeline a
+     success with a job that failed while allowed to fail and with a job a rule
+     never created. The change gates semgrep-sast, semgrep-sast-gate and
+     mr-dependency-check must each have succeeded (GATE_JOBS), and so must the
+     source scans static-analysis and semgrep (SOURCE_SCAN_JOBS) unless every
+     file the batch changes from master is Markdown at the root or under a
+     directory whose name begins with a dot - the changes for which .own-runners
+     creates no scan. A gate that is missing, skipped, or failed refuses (exit
+     5), naming it; the statuses go into the landing record.
   5. GitLab must call the merge request mergeable: the pipeline passed, every
      thread is resolved, it is not a draft, and master has not moved.
   6. Approvals are read. On GitLab's Free tier anyone with the Developer role
@@ -44,11 +53,11 @@ refusal:
      note and the log, and the change is to be reviewed afterwards.
   7. It merges by fast-forward, at exactly the tip it checked (the merge API's
      sha), never squashed, and checks that the remote's master is that tip.
-  8. It records the landing: a note on the merge request (the pipeline, the
-     sign-off, the approvals, who landed it) and a line in land-via-mr.log in the
-     repository's git directory. Then it moves the local master to the tip when no
-     worktree has master checked out, and deletes the branch, remote and local,
-     where it can.
+  8. It records the landing: a note on the merge request (the pipeline, its
+     gate jobs, the sign-off, the approvals, who landed it) and a line in
+     land-via-mr.log in the repository's git directory. Then it moves the local
+     master to the tip when no worktree has master checked out, and deletes the
+     branch, remote and local, where it can.
 
 It needs glab, logged in to gitlab.com as a Maintainer (only Maintainers may
 push a batch* branch or merge into master), and git.
@@ -70,10 +79,10 @@ Usage:
 
 Exit codes: 0 landed (or the dry run or --no-wait passed), 2 usage or a git or
 GitLab error, 3 the branch cannot land by fast-forward, 4 a commit is not signed
-off, 5 the merge request or its pipeline did not pass, 6 GitLab would not merge,
-7 no second person approved and the owner gave no override, or the override
-was refused, 8 the secret scan found a possible secret in the batch's commits or
-could not run.
+off, 5 the merge request, its pipeline or a gate job in it did not pass, 6
+GitLab would not merge, 7 no second person approved and the owner gave no
+override, or the override was refused, 8 the secret scan found a possible
+secret in the batch's commits or could not run.
 """
 
 import argparse
@@ -111,6 +120,17 @@ EMAIL_ACCOUNT = {
 }
 PENDING = {"created", "waiting_for_resource", "preparing", "pending", "running", "scheduled"}
 SETTLING = {"checking", "unchecked", "approvals_syncing", "preparing", "ci_still_running"}
+# The jobs a landing needs to have succeeded, beyond the pipeline as a whole: a pipeline
+# succeeds with a job that failed while it was allowed to fail, and with a job a rule
+# left out of it, and either is a gate that did not hold the batch. The change gates
+# (SECURITY.md, "Vulnerability management policy") always; the two source scans unless
+# every file the batch changes is a document (documents_only). build/check-release-chain.py
+# holds these names to the jobs the CI files define.
+GATE_JOBS = ("semgrep-sast", "semgrep-sast-gate", "mr-dependency-check")
+SOURCE_SCAN_JOBS = ("static-analysis", "semgrep")
+# A pipeline's jobs are read a page at a time; a batch's has more than a hundred.
+JOBS_PER_PAGE = 100
+MOST_JOB_PAGES = 50
 
 
 class Refused(Exception):
@@ -313,6 +333,44 @@ def approvals(api, project, iid):
     return list(current.values()), "the merge request's system notes"
 
 
+def documents_only(paths):
+    """Whether every path is Markdown at the root of the tree or under a directory whose
+    name begins with a dot: the changes for which the not-docs-only list of .own-runners
+    (.gitlab-ci.yml) creates none of the project's own runners' jobs, the two source scans
+    among them. No path at all is not a change of documents."""
+    return bool(paths) and all(p.endswith(".md") and ("/" not in p or p.startswith(".")) for p in paths)
+
+
+def pipeline_jobs(api, project, pipeline_id):
+    """{name: job} for every job of the pipeline, the latest attempt of each name, read a
+    page of JOBS_PER_PAGE at a time until a page is short."""
+    jobs = {}
+    for page in range(1, MOST_JOB_PAGES + 1):
+        listed = api("GET", "projects/%s/pipelines/%s/jobs?per_page=%d&page=%d" % (
+            project, pipeline_id, JOBS_PER_PAGE, page)) or []
+        for job in listed:
+            name = job.get("name") or ""
+            if name not in jobs or (job.get("id") or 0) > (jobs[name].get("id") or 0):
+                jobs[name] = job
+        if len(listed) < JOBS_PER_PAGE:
+            return jobs
+    raise Refused(2, "pipeline #%s has more than %d pages of jobs; its jobs were not all read" % (pipeline_id, MOST_JOB_PAGES))
+
+
+def required_jobs(jobs, changed):
+    """[(name, status, allowed to fail)] for each job the landing needs: GATE_JOBS always,
+    SOURCE_SCAN_JOBS unless the batch changes documents only. A job not in the pipeline
+    has the status "not in the pipeline"."""
+    names = list(GATE_JOBS) + ([] if documents_only(changed) else list(SOURCE_SCAN_JOBS))
+    return [(name, (jobs.get(name) or {}).get("status") or "not in the pipeline", bool((jobs.get(name) or {}).get("allow_failure")))
+            for name in names]
+
+
+def describe_jobs(statuses):
+    return ", ".join("%s %s%s" % (name, status, " while allowed to fail" if allowed and status != "success" else "")
+                     for name, status, allowed in statuses)
+
+
 def land(opts, git, api, out, sleep=time.sleep, clock=time.time, scan=secret_scan):
     say = lambda text="": print(text, file=out)
     sign_off = _load_sign_off()
@@ -394,7 +452,8 @@ def land(opts, git, api, out, sleep=time.sleep, clock=time.time, scan=secret_sca
         description = "\n".join([
             "Landing %s: %d commit(s) on top of %s, opened by `build/land-via-mr.py`." % (branch, len(shas), base[:12]),
             "",
-            "It merges by fast-forward once this branch's pipeline has passed and every thread is resolved. "
+            "It merges by fast-forward once this branch's pipeline has passed, and each gate job in it "
+            "(`%s`), and every thread is resolved. " % "`, `".join(GATE_JOBS + SOURCE_SCAN_JOBS) +
             "Every commit carries its author's `Signed-off-by`. A second person's review is an approval: "
             "read the change, then press Approve, or open a thread for what must change "
             "(GOVERNANCE.md, \"Review\").",
@@ -438,6 +497,24 @@ def land(opts, git, api, out, sleep=time.sleep, clock=time.time, scan=secret_sca
             raise Refused(5, "REFUSED: no answer from the pipeline of %s in %s hour(s); run this again to go on waiting"
                              % (tip[:12], opts.timeout_hours))
         sleep(opts.poll_seconds)
+
+    # ... and the gates in it, each of which must have succeeded itself: GitLab calls a
+    # pipeline a success with a job that failed while allowed to fail, or that a rule
+    # never created (a push of documents alone trims the scans).
+    changed = [p for p in git.run("diff", "--name-only", "--no-renames", "-z", base, tip).split("\0") if p]
+    statuses = required_jobs(pipeline_jobs(api, project, pipeline["id"]), changed)
+    jobs_line = describe_jobs(statuses)
+    if documents_only(changed):
+        jobs_line += " (%s not required: the batch changes Markdown alone, at the root or under a dot-directory)" % (
+            " and ".join(SOURCE_SCAN_JOBS))
+    say("Gate jobs of pipeline #%s: %s" % (pipeline["id"], jobs_line))
+    held = [(name, status, allowed) for name, status, allowed in statuses if status != "success"]
+    if held:
+        raise Refused(5, "REFUSED: pipeline #%s of %s succeeded, but %s did not: %s. A gate that a rule left out of the "
+                         "pipeline, that was skipped, or that failed while allowed to fail has not held the batch; push "
+                         "the tip again so that its pipeline runs them, or find why it did not (docs/ContinuousIntegration.md, "
+                         "\"Landing on master\")." % (pipeline["id"], tip[:12], " and ".join(n for n, _, _ in held),
+                                                      describe_jobs(held)))
 
     # 5. GitLab's own answer.
     settle = clock() + 900
@@ -485,6 +562,7 @@ def land(opts, git, api, out, sleep=time.sleep, clock=time.time, scan=secret_sca
             "- Outcome: %s" % outcome,
             "- Tip: `%s`, %d commit(s) on top of master `%s`" % (tip, len(shas), base[:12]),
             "- Pipeline: %s" % pipeline_line,
+            "- Gate jobs: %s" % jobs_line,
             "- Sign-off: %s" % signoff_line,
             "- Second-person approval (from %s): %s%s" % (
                 source, verdict, "" if second else
@@ -501,8 +579,8 @@ def land(opts, git, api, out, sleep=time.sleep, clock=time.time, scan=secret_sca
             common = git.run("rev-parse", "--git-common-dir").strip()
             common = common if os.path.isabs(common) else os.path.join(git.repo, common)
             with io.open(os.path.join(common, "land-via-mr.log"), "a", encoding="utf-8") as log:
-                log.write("%s\t%s\t!%d\t%s\t%s\tpipeline %s\tsecond-person approval: %s\n" % (
-                    now, branch, iid, tip, outcome, pipeline_line, verdict))
+                log.write("%s\t%s\t!%d\t%s\t%s\tpipeline %s\tgate jobs: %s\tsecond-person approval: %s\n" % (
+                    now, branch, iid, tip, outcome, pipeline_line, jobs_line, verdict))
         except (IOError, OSError, Refused):
             pass
 
@@ -567,14 +645,28 @@ def land(opts, git, api, out, sleep=time.sleep, clock=time.time, scan=secret_sca
 
 # ---------------------------------------------------------------- the self-test
 
+def full_pipeline(**changes):
+    """A batch pipeline's jobs as the jobs API lists them: 110 others first, so that the
+    gates are on the second page, then the gates, each a success unless changes gives it
+    (status, allow_failure), or None to leave it out."""
+    jobs = [{"id": 1000 + n, "name": "job-%d" % n, "status": "success", "allow_failure": False} for n in range(110)]
+    for n, name in enumerate(GATE_JOBS + SOURCE_SCAN_JOBS):
+        if changes.get(name, ("success", False)) is None:
+            continue
+        status, allowed = changes.get(name, ("success", False))
+        jobs.append({"id": 2000 + n, "name": name, "status": status, "allow_failure": allowed})
+    return jobs
+
+
 class FakeGitLab(object):
     """Enough of GitLab's API, in memory, over a bare repository standing for the project."""
 
     def __init__(self, bare, approved_by=None, pipeline_statuses=None, mergeable="mergeable", author="Progressiverobot",
                  approvals_api=True, protected_branch=False, approved_at="2026-09-26T11:00:00.000Z",
-                 version_at="2026-09-26T10:00:00.000Z", versions_api=True, lander="Progressiverobot"):
+                 version_at="2026-09-26T10:00:00.000Z", versions_api=True, lander="Progressiverobot", jobs=None):
         self.bare = bare
         self.lander = lander
+        self.jobs = full_pipeline() if jobs is None else jobs
         self.mrs = {}
         self.notes = []
         self.calls = []
@@ -662,6 +754,10 @@ class FakeGitLab(object):
                     raise ApiError("403 Forbidden")
                 subprocess.run(["git", "--git-dir", self.bare, "update-ref", "-d", "refs/heads/" + name], check=True)
                 return None
+        m = re.match(r"^projects/\d+/pipelines/(\d+)/jobs$", path_only)
+        if m and method == "GET":
+            size, page = int(params.get("per_page", "20")), int(params.get("page", "1"))
+            return [dict(j) for j in self.jobs[(page - 1) * size:page * size]]
         if path_only == "projects/1/pipelines" or re.match(r"^projects/\d+/pipelines$", path_only):
             return []
         if path_only == "user":
@@ -778,6 +874,11 @@ def self_test():
         expect("happy: merged at exactly the tip", [c[2].get("sha") for c in merges], [tip])
         expect("happy: a landing record naming the approver", len(api.notes) == 1 and "yes: @zainulabidin1990" in api.notes[0], True)
         expect("happy: the local log", os.path.exists(os.path.join(work, ".git", "land-via-mr.log")), True)
+        expect("happy: the pipeline's jobs were read to their second page",
+               [c[1].split("?")[1] for c in api.calls if "/pipelines/7/jobs" in c[1]], ["per_page=100&page=1", "per_page=100&page=2"])
+        expect("happy: the landing record gives each gate job's status", len(api.notes) == 1 and (
+            "- Gate jobs: semgrep-sast success, semgrep-sast-gate success, mr-dependency-check success, static-analysis "
+            "success, semgrep success") in api.notes[0], True)
 
         # 2. A commit without its sign-off: nothing leaves the machine.
         bare, work = scenario("unsigned")
@@ -966,6 +1067,71 @@ def self_test():
         expect("dry run: no API call", api.calls, [])
         code, text = attempt(work, api, dry_run=True, scan=lambda repo, base, tip: (1, "scan-secrets: 1 possible secret\n"))
         expect("a dry run scans too", code, 8)
+
+        # 13. A pipeline GitLab calls a success, without a gate that held: a source scan a
+        #     rule trimmed from it, and a change gate that failed while allowed to fail.
+        bare, work = scenario("trimmed")
+        commit(work, "signed")
+        api = FakeGitLab(bare, approved_by=[zain], jobs=full_pipeline(**{"static-analysis": None}))
+        code, text = attempt(work, api)
+        expect("trimmed pipeline: exit", code, 5)
+        expect("trimmed pipeline: no merge call", [c for c in api.calls if c[0] == "PUT"], [])
+        expect("trimmed pipeline: the missing scan is named", "static-analysis not in the pipeline" in text
+               and "but static-analysis did not" in text, True)
+        bare, work = scenario("allowed-to-fail")
+        commit(work, "signed")
+        api = FakeGitLab(bare, approved_by=[zain], jobs=full_pipeline(**{"semgrep-sast-gate": ("failed", True)}))
+        code, text = attempt(work, api)
+        expect("a gate that failed while allowed to fail: exit", code, 5)
+        expect("a gate that failed while allowed to fail: no merge call", [c for c in api.calls if c[0] == "PUT"], [])
+        expect("a gate that failed while allowed to fail: named, and said so",
+               "semgrep-sast-gate failed while allowed to fail" in text, True)
+        for name in GATE_JOBS:
+            bare, work = scenario("missing-" + name)
+            commit(work, "signed")
+            code, text = attempt(work, FakeGitLab(bare, approved_by=[zain], jobs=full_pipeline(**{name: None})))
+            expect("%s missing: exit" % name, code, 5)
+        bare, work = scenario("skipped-scan")
+        commit(work, "signed")
+        code, text = attempt(work, FakeGitLab(bare, approved_by=[zain], jobs=full_pipeline(semgrep=("skipped", False))))
+        expect("a skipped scan: exit", code, 5)
+
+        # 14. A batch of documents alone - Markdown at the root and under a dot-directory -
+        #     needs the change gates and not the scans .own-runners creates none of; one
+        #     anywhere else is not documents alone.
+        def commit_files(work, files, message):
+            for relative, content in files.items():
+                path = os.path.join(work, *relative.split("/"))
+                if not os.path.isdir(os.path.dirname(path)):
+                    os.makedirs(os.path.dirname(path))
+                with io.open(path, "w") as f:
+                    f.write(content)
+                run(work, "add", relative)
+            run(work, "commit", "-q", "-s", "-m", message)
+            return run(work, "rev-parse", "HEAD")
+
+        bare, work = scenario("documents")
+        tip = commit_files(work, {"README.md": "read me\n", ".gitlab/notes.md": "notes\n"}, "documents, signed")
+        api = FakeGitLab(bare, approved_by=[zain], jobs=full_pipeline(**{"static-analysis": None, "semgrep": None}))
+        code, text = attempt(work, api)
+        expect("documents alone: exit", code, 0)
+        expect("documents alone: master is the tip", remote_ref(bare, "refs/heads/master"), tip)
+        expect("documents alone: the record says why the scans were not needed", len(api.notes) == 1
+               and "static-analysis and semgrep not required" in api.notes[0], True)
+        bare, work = scenario("documents-no-gate")
+        commit_files(work, {"README.md": "read me\n"}, "documents, signed")
+        api = FakeGitLab(bare, approved_by=[zain], jobs=full_pipeline(**{"static-analysis": None, "semgrep": None,
+                                                                         "mr-dependency-check": None}))
+        code, text = attempt(work, api)
+        expect("documents alone still need the change gates: exit", code, 5)
+        bare, work = scenario("documents-elsewhere")
+        commit_files(work, {"hmailserver/docs/Notes.md": "notes\n"}, "a document under a directory, signed")
+        api = FakeGitLab(bare, approved_by=[zain], jobs=full_pipeline(**{"static-analysis": None, "semgrep": None}))
+        code, text = attempt(work, api)
+        expect("Markdown under a directory without a dot is not documents alone: exit", code, 5)
+        expect("documents_only reads paths as .own-runners does",
+               [documents_only(p) for p in (["README.md"], [".gitlab/a/b.md"], ["docs/a.md"], ["README.md", "a.txt"],
+                                            ["CHANGELOG"], [])], [True, True, False, False, False, False])
     finally:
         for key, value in env_keep.items():
             if value is None:
