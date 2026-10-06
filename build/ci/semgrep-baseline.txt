@@ -1,10 +1,12 @@
 # The findings of the semgrep job that were already there when this file was written, one per
 # line: fingerprint, tool, rule, file:line (where it was then; the fingerprint does not
 # use the number), message, and - where its triage said - why it is known rather than
-# fixed. The job fails only on a finding whose fingerprint is not here.
-# Written by build/ci/security-findings.py --write-baseline; do not edit by hand, except to
-# delete the line of a finding that has been fixed. docs/ContinuousIntegration.md,
-# "Security scanning", says when and how to regenerate it.
+# fixed. The job fails on a finding whose fingerprint is not here, unless master's
+# .gitlab/security-exceptions.yml accepts it.
+# The list only shrinks: build/ci/security-findings.py --write-baseline keeps the findings
+# still found, drops the ones gone and adds none. By hand, delete the line of a finding
+# that has been fixed, or end a line that has no reason with a tab and the reason its
+# triage gave; nothing else. docs/ContinuousIntegration.md, "Security scanning", says how.
 #
 # 125 findings, 56 of them with a reason.
 1352dbe76834091c4110	semgrep	python.lang.security.use-defused-xml-parse.use-defused-xml-parse	build/check-catalogues.py:94	The native Python `xml` library is vulnerable to XML External Entity (XXE) attacks. These attacks can leak confidential data and "XML bombs" can cause denial of service. Do not use this library to par

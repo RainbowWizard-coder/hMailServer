@@ -1,10 +1,12 @@
 # The findings of the static-analysis job that were already there when this file was written, one per
 # line: fingerprint, tool, rule, file:line (where it was then; the fingerprint does not
 # use the number), message, and - where its triage said - why it is known rather than
-# fixed. The job fails only on a finding whose fingerprint is not here.
-# Written by build/ci/security-findings.py --write-baseline; do not edit by hand, except to
-# delete the line of a finding that has been fixed. docs/ContinuousIntegration.md,
-# "Security scanning", says when and how to regenerate it.
+# fixed. The job fails on a finding whose fingerprint is not here, unless master's
+# .gitlab/security-exceptions.yml accepts it.
+# The list only shrinks: build/ci/security-findings.py --write-baseline keeps the findings
+# still found, drops the ones gone and adds none. By hand, delete the line of a finding
+# that has been fixed, or end a line that has no reason with a tab and the reason its
+# triage gave; nothing else. docs/ContinuousIntegration.md, "Security scanning", says how.
 #
 # 691 findings, 214 of them with a reason.
 de067b660072084e4de7	clang-tidy	bugprone-implicit-widening-of-multiplication-result	hmailserver/source/Server/Common/AntiSpam/AntiSpamDiagnostics.h:56	performing an implicit widening conversion to type 'const ULONGLONG' (aka 'const unsigned long') of a multiplication performed in type 'int'

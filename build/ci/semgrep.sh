@@ -23,7 +23,13 @@
 #               finding can be new because a rule is. The registry's rules are
 #               under the Semgrep Rules License v1.0, which allows this use and
 #               not redistribution, which is why they are fetched and not
-#               committed.
+#               committed;
+#   the exceptions  master's .gitlab/security-exceptions.yml, from GitLab's API for
+#               a file at a ref (the image has no git), with no token: the project
+#               is public. A finding new to the baseline passes only when it accepts
+#               it - master's copy, never the commit's own, so that a change cannot
+#               accept its own finding (SECURITY.md, "Vulnerability management
+#               policy").
 #
 # What it reads (build/ci/semgrepignore says what it leaves out, and why):
 #   *.cs      the Control Panel and the tools, under hmailserver/source/Tools
@@ -41,14 +47,19 @@
 #
 # What it leaves (HM_OUT_DIR, security/semgrep): semgrep.json (Semgrep's own
 # output), rules/ (the packs as fetched) and rules.sha256, gl-sast-semgrep.json (a
-# GitLab SAST report), junit.xml, findings.txt and new-findings.txt. The exit
-# status is build/ci/security-findings.py's against build/ci/semgrep-baseline.txt:
-# 0 nothing new, 1 something new, 2 a scan with holes. --write-baseline rewrites
-# the baseline from this run.
+# GitLab SAST report), junit.xml, findings.txt, new-findings.txt,
+# accepted-findings.txt and master-security-exceptions.yml (the exceptions file the
+# run was judged by). The exit status is build/ci/security-findings.py's against
+# build/ci/semgrep-baseline.txt and master's exceptions: 0 nothing new that they do
+# not accept, 1 something new, 2 a scan with holes or an exceptions file that could
+# not be read. --write-baseline rewrites the baseline from this run: it keeps the
+# findings still found, drops the ones gone, and adds none.
 #
 # The environment it reads:
 #   HM_OUT_DIR       where the results go (security/semgrep)
 #   HM_SEMGREP_JOBS  semgrep's --jobs (4)
+#   HM_EXCEPTIONS_FILE  an exceptions file to judge by INSTEAD of master's, for a run
+#                    by hand; refused in a GitLab job
 set -uo pipefail
 
 out="${HM_OUT_DIR:-security/semgrep}"
@@ -129,6 +140,45 @@ EOF
   cp "$work/rules/$name.yml" "$out/rules/"
 done
 ( cd "$out/rules" && sha256sum ./*.yml ) | tee "$out/rules.sha256"
+
+echo ""
+echo "== master's .gitlab/security-exceptions.yml, from GitLab's API"
+# Before the scan, so that a run which could not be judged stops at once. Python's
+# urllib, as for the rules, and its failure taken after || on this line for the same
+# reason; HM_EXCEPTIONS_FILE, for a run by hand, is read by the same few lines, which
+# refuse it in a GitLab job. A copy that cannot be read is never a pass.
+exceptions="$out/master-security-exceptions.yml"
+api="${CI_API_V4_URL:-https://gitlab.com/api/v4}/projects/${CI_PROJECT_ID:-86730559}/repository/files/.gitlab%2Fsecurity-exceptions.yml/raw?ref=master"
+python3 - "$api" "$exceptions" "${HM_EXCEPTIONS_FILE:-}" "${GITLAB_CI:-}" <<'EOF' || { echo "master's .gitlab/security-exceptions.yml could not be read, and a finding new to the baseline is judged by it"; exit 2; }
+import sys, time, urllib.request
+url, target, by_hand, in_job = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
+if by_hand:
+    if in_job == "true":
+        print("HM_EXCEPTIONS_FILE is for a run by hand; a job judges by master's copy, which it fetches")
+        sys.exit(1)
+    with open(by_hand, "rb") as f:
+        body = f.read()
+    with open(target, "wb") as f:
+        f.write(body)
+    print("%s, as HM_EXCEPTIONS_FILE names it: NOT master's" % by_hand)
+    sys.exit(0)
+for attempt in range(3):
+    try:
+        request = urllib.request.Request(url, headers={"User-Agent": "hmailserver-semgrep-job"})
+        with urllib.request.urlopen(request, timeout=60) as response:
+            body = response.read()
+        lines = body.decode("utf-8").splitlines()
+        if not any(line.startswith("exceptions:") for line in lines):
+            raise ValueError("not an exceptions file: %r" % body[:80])
+        with open(target, "wb") as f:
+            f.write(body)
+        print("%s: %d exception(s)" % (url, sum(1 for line in lines if line.startswith("  - "))))
+        sys.exit(0)
+    except Exception as e:
+        print("%s: %s" % (url, e))
+        time.sleep(5 * (attempt + 1))
+sys.exit(1)
+EOF
 
 echo ""
 echo "== the pages' inline scripts, and the scripts with no extension"
@@ -237,5 +287,5 @@ EOF
 echo ""
 rules_prefix=$(echo "$work/rules" | sed 's|^/||; s|/|.|g').
 python3 build/ci/security-findings.py --job semgrep --semgrep "$out/semgrep.json" \
-  --remap "$out/remap.json" --rule-prefix "$rules_prefix" \
+  --remap "$out/remap.json" --rule-prefix "$rules_prefix" --exceptions "$exceptions" \
   --versions "$out/versions.json" --started "$started" --out "$out" "${write_baseline[@]}"

@@ -18,23 +18,31 @@ which:
     identical lines, the order of those lines;
   * compares the fingerprints with the job's baseline (build/ci/<job>-baseline.txt),
     the findings that were already there when the baseline was written;
+  * with --exceptions, reads master's .gitlab/security-exceptions.yml (the job's
+    script fetches it; never the commit's own copy, so that a change cannot accept
+    its own finding) with build/ci/security-gate.py's own reader, and takes a finding
+    new to the baseline that an exception in force accepts - one naming this job as
+    its scan and the finding's fingerprint, reviewed, and not past its expiry - as
+    accepted rather than new;
   * writes a GitLab SAST report per tool (gl-sast-<tool>.json, schema 15) and one
     of every tool's findings (gl-sast-report.json, the job's report: GitLab takes
     one file per report type, and refused the upload of static-analysis's two on
     the first pipeline, "only one file can be sent as raw"), a JUnit
     report (junit.xml: a test case per tool that fails when anything is new, and a
-    failing test case per new finding), findings.txt (every finding) and
-    new-findings.txt (only those not in the baseline);
-  * exits 1 when there is a new finding, so that a job without allow_failure fails
-    on new findings only; 2 when a tool's output is missing or says it could not
-    analyse the source, which is never a pass.
+    failing test case per new finding), findings.txt (every finding),
+    new-findings.txt (those neither in the baseline nor accepted) and
+    accepted-findings.txt (those not in the baseline that an exception accepts);
+  * exits 1 when there is a new finding no exception accepts, so that a job without
+    allow_failure fails on those only; 2 when a tool's output is missing or says it
+    could not analyse the source, or the exceptions file given cannot be read,
+    which is never a pass.
 
 GitLab's free tier stores the SAST reports and offers them for download, and renders
 the JUnit report in the pipeline's Tests tab; docs/ContinuousIntegration.md says
 what each tier shows.
 
-The baseline is regenerated with --write-baseline, from a job's artifacts (the raw
-outputs are in them) or from a run by hand:
+A baseline only shrinks. It is rewritten with --write-baseline, from a job's
+artifacts (the raw outputs are in them) or from a run by hand:
 
   python3 build/ci/security-findings.py --job static-analysis \\
       --cppcheck security/static-analysis/cppcheck.xml \\
@@ -45,25 +53,40 @@ outputs are in them) or from a run by hand:
       --semgrep security/semgrep/semgrep.json --remap security/semgrep/remap.json \\
       --out security/semgrep --write-baseline
 
-A baseline line ends with why its finding is known rather than fixed, when the
-triage that let it in said so: --reasons names a JSON file of {fingerprint: reason}
-and {"rule:<rule>": reason} for the findings new to the baseline, and a reason
-already in the baseline stays with its finding when the file is written again.
+which keeps every entry this run still finds, at its line now, drops the ones it no
+longer finds, and adds none: a finding new to the baseline is fixed, or accepted in
+master's .gitlab/security-exceptions.yml by a change of its own landed first
+(SECURITY.md, "Vulnerability management policy"), and the rewrite lists each one it
+left out. A baseline line ends with why its finding is known rather than fixed, when
+its triage said so: a reason already in the baseline stays with its finding, and
+--reasons names a JSON file of {fingerprint: reason} and {"rule:<rule>": reason}
+that gives one to a kept entry that has none.
 
 Run it from the root of the checkout the scan read: the flagged lines are read from
 the files, and a finding whose file is not there is fingerprinted without its line.
 A baseline is for findings nobody has fixed yet, not for findings nobody has read:
 docs/ContinuousIntegration.md, "Security scanning", says how one is triaged.
+
+  --exceptions FILE   the exceptions file to judge new findings by (the job scripts
+                      give master's copy, which they fetch before the scan)
+  --today YYYY-MM-DD  the day an exception's expiry is judged by (default: today, UTC)
+  --self-test         the baseline's rewrite and the exceptions, against a tree, a
+                      tool's output and exceptions files it makes for itself; no network
 """
 
 import argparse
 import collections
+import contextlib
 import datetime
 import hashlib
+import importlib.util
+import io
 import json
 import os
 import re
+import shutil
 import sys
+import tempfile
 import uuid
 import xml.etree.ElementTree as ET
 from xml.sax.saxutils import escape, quoteattr
@@ -410,45 +433,114 @@ def read_baseline(path):
     return known
 
 
+BASELINE_HEADER = [
+    "# The findings of the %s job that were already there when this file was written, one per",
+    "# line: fingerprint, tool, rule, file:line (where it was then; the fingerprint does not",
+    "# use the number), message, and - where its triage said - why it is known rather than",
+    "# fixed. The job fails on a finding whose fingerprint is not here, unless master's",
+    "# .gitlab/security-exceptions.yml accepts it.",
+    "# The list only shrinks: build/ci/security-findings.py --write-baseline keeps the findings",
+    "# still found, drops the ones gone and adds none. By hand, delete the line of a finding",
+    "# that has been fixed, or end a line that has no reason with a tab and the reason its",
+    "# triage gave; nothing else. docs/ContinuousIntegration.md, \"Security scanning\", says how.",
+    "#",
+]
+
+
 def write_baseline(path, job, findings, reasons=None):
-    """The baseline, every finding of this run in it. A reason the old file gave a
-    finding stays with it; a finding new to it takes its reason from reasons, by
-    fingerprint, else by "rule:<rule>"."""
+    """The baseline again, as this run finds it, and never longer than it was: every entry
+    of the old file that this run still finds, at its line now, with the reason the old
+    file gave it or, when it gave none, the one reasons gives it (by fingerprint, else by
+    "rule:<rule>"); no entry this run no longer finds; and no finding the old file did not
+    hold. {"kept": the findings kept, "dropped": the old entries left out as [fingerprint,
+    tool, rule, file:line, ...], "left_out": the findings new to the baseline, which it does
+    not take, "reasons_added": how many kept entries took a reason from reasons}."""
     previous = read_baseline(path)
     reasons = reasons or {}
-    body = []
-    with_reason = 0
-    fresh, fresh_without = 0, 0
+    body, kept, left_out = [], [], []
+    with_reason, added = 0, 0
     for f in sorted(findings, key=lambda f: (f["path"], f["line"], f["tool"], f["rule"])):
+        old = previous.get(f["fingerprint"])
+        if old is None:
+            left_out.append(f)
+            continue
         fields = [f["fingerprint"], f["tool"], f["rule"], "%s:%d" % (f["path"], f["line"]),
                   f["message"][:200].rstrip().replace("\t", " ")]
-        old = previous.get(f["fingerprint"])
-        if old is not None:
-            reason = old[4] if len(old) > 4 else ""
-        else:
+        reason = old[4] if len(old) > 4 else ""
+        if not reason.strip():
             reason = reasons.get(f["fingerprint"]) or reasons.get("rule:" + f["rule"]) or ""
-            fresh += 1
-            fresh_without += 0 if reason.strip() else 1
+            added += 1 if reason.strip() else 0
         reason = " ".join(reason.split())
         if reason:
             fields.append(reason)
             with_reason += 1
         body.append("\t".join(fields))
-    lines = [
-        "# The findings of the %s job that were already there when this file was written, one per" % job,
-        "# line: fingerprint, tool, rule, file:line (where it was then; the fingerprint does not",
-        "# use the number), message, and - where its triage said - why it is known rather than",
-        "# fixed. The job fails only on a finding whose fingerprint is not here.",
-        "# Written by build/ci/security-findings.py --write-baseline; do not edit by hand, except to",
-        "# delete the line of a finding that has been fixed. docs/ContinuousIntegration.md,",
-        "# \"Security scanning\", says when and how to regenerate it.",
-        "#",
-        "# %d findings, %d of them with a reason." % (len(findings), with_reason),
+        kept.append(f)
+    found = {f["fingerprint"] for f in findings}
+    dropped = [[fingerprint] + fields for fingerprint, fields in previous.items() if fingerprint not in found]
+    lines = [BASELINE_HEADER[0] % job] + BASELINE_HEADER[1:] + [
+        "# %d findings, %d of them with a reason." % (len(kept), with_reason),
     ] + body
     os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
     with open(path, "w", encoding="utf-8", newline="\n") as out:
         out.write("\n".join(lines) + "\n")
-    return fresh, fresh_without
+    return {"kept": kept, "dropped": dropped, "left_out": left_out, "reasons_added": added}
+
+
+# ---------------------------------------------------------------- the exceptions
+
+# An exception this close to its expiry is named in the job's log, which still passes:
+# once it lapses the finding fails the job again, on every branch.
+EXPIRY_WARNING_DAYS = 30
+
+
+_gate = None
+
+
+def _load_gate():
+    """build/ci/security-gate.py as a module, for its reader of the exceptions file: one
+    reader, so that what the release's gate accepts and what this job accepts cannot
+    differ. It is loaded when an exceptions file is given, not before, because it loads
+    this file in turn."""
+    global _gate
+    if _gate is None:
+        spec = importlib.util.spec_from_file_location(
+            "security_gate", os.path.join(os.path.dirname(os.path.abspath(__file__)), "security-gate.py"))
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        _gate = module
+    return _gate
+
+
+def read_exceptions(path, job, today, say=print):
+    """({fingerprint: exception}, problem): the exceptions in force today that name this job
+    as their scan, read from path with security-gate.py's check_exceptions and _in_force,
+    or ({}, what is wrong) when the file cannot be read or is not well formed - which
+    accepts nothing, and fails the job (exit 2) rather than letting a finding through or
+    holding it for a reason the log does not give."""
+    try:
+        with open(path, encoding="utf-8") as f:
+            text = f.read()
+    except (OSError, UnicodeDecodeError) as e:
+        return {}, "the exceptions file %s cannot be read: %s" % (path, e)
+    gate = _load_gate()
+    entries, problems = gate.check_exceptions(text)
+    if problems:
+        return {}, "the exceptions file %s is not well formed, so nothing in it is accepted: %s" % (
+            path, "; ".join(problems))
+    in_force, problems = gate._in_force(entries, today, say)
+    if problems:
+        return {}, "the exceptions file %s has an entry that cannot be in force, so nothing in it is accepted: %s" % (
+            path, "; ".join(problems))
+    accepted = {}
+    for entry in in_force.get(job, []):
+        accepted[entry["finding"]] = entry
+        # check_exceptions has held the date to YYYY-MM-DD.
+        if (datetime.date.fromisoformat(entry["expires"]) - today).days <= EXPIRY_WARNING_DAYS:
+            say("WARNING: the exception for %s %s (%s) expires on %s; after that its finding fails this job again "
+                "unless it is fixed or the exception is reviewed again." % (job, entry["finding"], entry["what"],
+                                                                           entry["expires"]))
+    return accepted, None
 
 
 # ---------------------------------------------------------------- the reports
@@ -494,14 +586,22 @@ def sast_report(tool, tool_name, tool_version, findings, started, ended, status,
     }
 
 
-def junit(job, per_tool, new, errors):
+def junit(job, per_tool, new, errors, accepted=(), unjudged=None):
+    """unjudged: why the exceptions file could not be read, which fails every tool's
+    first test case, since nothing new could be judged."""
     suites = []
     for tool, findings in per_tool.items():
         tool_new = [f for f in new if f["tool"] == tool]
+        tool_accepted = [f for f in accepted if f["tool"] == tool]
         tool_errors = [f for f in errors if f["tool"] == tool]
         cases = []
-        known = len(findings) - len(tool_new)
-        name = "nothing new beyond the baseline (%d known finding(s))" % known
+        known = len(findings) - len(tool_new) - len(tool_accepted)
+        name = "nothing new beyond the baseline (%d known finding(s), %d accepted by an exception)" % (
+            known, len(tool_accepted))
+        if unjudged:
+            cases.append('<testcase classname=%s name=%s><failure message=%s>%s</failure></testcase>' % (
+                quoteattr(job + "." + tool), quoteattr("the exceptions file was read"),
+                quoteattr("the exceptions file cannot be read"), escape(unjudged)))
         if tool_new:
             body = "\n".join(describe(f) for f in tool_new[:200])
             cases.append('<testcase classname=%s name=%s><failure message=%s>%s</failure></testcase>' % (
@@ -533,7 +633,10 @@ def describe(f):
     return "%s:%d  %s  %s [%s]%s" % (f["path"], f["line"], f["severity"], f["message"][:240], f["rule"], cwe)
 
 
-def main():
+def main(argv=None):
+    argv = sys.argv[1:] if argv is None else argv
+    if argv == ["--self-test"]:
+        return self_test()
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("--job", required=True, choices=sorted(BASELINES))
     parser.add_argument("--cppcheck", help="cppcheck --xml output")
@@ -545,10 +648,23 @@ def main():
     parser.add_argument("--started", help="when the scan started (UTC, YYYY-MM-DDTHH:MM:SS)")
     parser.add_argument("--out", required=True, help="the directory the reports go to")
     parser.add_argument("--baseline", help="the baseline file (default: the job's, under build/ci)")
-    parser.add_argument("--reasons", help="JSON {fingerprint or \"rule:<rule>\": reason}, for --write-baseline")
+    parser.add_argument("--reasons", help="JSON {fingerprint or \"rule:<rule>\": reason}, for --write-baseline: the "
+                                          "reason of a kept entry that has none")
     parser.add_argument("--write-baseline", action="store_true",
-                        help="rewrite the baseline with every finding of this run, then report against it")
-    args = parser.parse_args()
+                        help="rewrite the baseline - the entries this run still finds, none it no longer finds and none "
+                             "new to it - then report against it")
+    parser.add_argument("--exceptions", help="the exceptions file a finding new to the baseline may be accepted by "
+                                             "(the job scripts give master's .gitlab/security-exceptions.yml)")
+    parser.add_argument("--today", help="the day an exception's expiry is judged by (YYYY-MM-DD; default: today, UTC)")
+    args = parser.parse_args(argv)
+
+    today = datetime.datetime.now(datetime.timezone.utc).date()
+    if args.today:
+        try:
+            today = datetime.date.fromisoformat(args.today)
+        except ValueError:
+            print("--today is not a date (YYYY-MM-DD): %s" % args.today)
+            return 2
 
     os.chdir(ROOT)
     started = args.started or now()
@@ -556,6 +672,15 @@ def main():
     if args.versions and os.path.exists(args.versions):
         with open(args.versions, encoding="utf-8") as f:
             versions = json.load(f)
+
+    # Read before the findings, so that a file which cannot be read is said at the top of
+    # the log; the reports are still written, and the job fails at the end (exit 2).
+    accepted_by, unjudged = {}, None
+    if args.exceptions:
+        accepted_by, unjudged = read_exceptions(args.exceptions, args.job, today)
+        if not unjudged:
+            print("Exceptions: %s, read as security-gate.py reads it; %d in force today (%s) for the %s job." % (
+                args.exceptions, len(accepted_by), today.isoformat(), args.job))
 
     inputs = []
     if args.job == "static-analysis":
@@ -588,20 +713,34 @@ def main():
     for e in errors:
         e.setdefault("fingerprint", "")
 
+    order = {s: i for i, s in enumerate(SEVERITY_ORDER)}
+
+    def ranked(findings):
+        return sorted(findings, key=lambda f: (order.get(f["severity"], 9), f["path"], f["line"]))
+
     baseline_path = args.baseline or os.path.join(ROOT, BASELINES[args.job])
     if args.write_baseline:
-        # Then on as usual, against the file just written: the reports are made, and
-        # nothing is new.
+        # Then on as usual, against the file just written: the reports are made, and a
+        # finding it left out is new, or accepted, as it was before the rewrite.
         reasons = {}
         if args.reasons:
             with open(args.reasons, encoding="utf-8") as f:
                 reasons = json.load(f)
-        fresh, fresh_without = write_baseline(baseline_path, args.job, all_findings, reasons)
-        print("Wrote %d finding(s) to %s; %d new to it, %d of those without a reason." % (
-            len(all_findings), os.path.relpath(baseline_path, ROOT), fresh, fresh_without))
+        rewritten = write_baseline(baseline_path, args.job, all_findings, reasons)
+        print("Wrote %d finding(s) to %s, %d of them given their reason by --reasons. Dropped %d no longer found; "
+              "left out %d new to it, which a baseline never takes: each is fixed, or accepted in master's "
+              ".gitlab/security-exceptions.yml by a change of its own landed first." % (
+                  len(rewritten["kept"]), os.path.relpath(baseline_path, ROOT), rewritten["reasons_added"],
+                  len(rewritten["dropped"]), len(rewritten["left_out"])))
+        for entry in rewritten["dropped"]:
+            print("  dropped   %s" % "  ".join(entry[:4]))
+        for f in ranked(rewritten["left_out"]):
+            print("  left out  %s - fingerprint %s" % (describe(f), f["fingerprint"]))
 
     known = read_baseline(baseline_path)
-    new = [f for f in all_findings if f["fingerprint"] not in known]
+    beyond = [f for f in all_findings if f["fingerprint"] not in known]
+    accepted = [f for f in beyond if f["fingerprint"] in accepted_by]
+    new = [f for f in beyond if f["fingerprint"] not in accepted_by]
     gone = len(set(known) - {f["fingerprint"] for f in all_findings})
 
     os.makedirs(args.out, exist_ok=True)
@@ -619,13 +758,15 @@ def main():
     with open(os.path.join(args.out, "gl-sast-report.json"), "w", encoding="utf-8") as f:
         json.dump(report, f, indent=1)
     with open(os.path.join(args.out, "junit.xml"), "w", encoding="utf-8") as f:
-        f.write(junit(args.job, per_tool, new, errors))
-    order = {s: i for i, s in enumerate(SEVERITY_ORDER)}
-    ranked = sorted(all_findings, key=lambda f: (order.get(f["severity"], 9), f["path"], f["line"]))
+        f.write(junit(args.job, per_tool, new, errors, accepted, unjudged))
     with open(os.path.join(args.out, "findings.txt"), "w", encoding="utf-8") as f:
-        f.write("".join(describe(x) + "\n" for x in ranked))
+        f.write("".join(describe(x) + "\n" for x in ranked(all_findings)))
     with open(os.path.join(args.out, "new-findings.txt"), "w", encoding="utf-8") as f:
-        f.write("".join(describe(x) + "\n" for x in sorted(new, key=lambda f: (order.get(f["severity"], 9), f["path"], f["line"]))))
+        f.write("".join("%s - fingerprint %s\n" % (describe(x), x["fingerprint"]) for x in ranked(new)))
+    with open(os.path.join(args.out, "accepted-findings.txt"), "w", encoding="utf-8") as f:
+        f.write("".join("%s - fingerprint %s, accepted until %s (%s): %s\n" % (
+            describe(x), x["fingerprint"], accepted_by[x["fingerprint"]]["expires"],
+            accepted_by[x["fingerprint"]]["reviewed-by"], accepted_by[x["fingerprint"]]["what"]) for x in ranked(accepted)))
 
     print("")
     print("== %s: findings by tool and rule" % args.job)
@@ -643,23 +784,216 @@ def main():
         print("Not counted: %d finding(s) in generated sources, whose generators are the place to fix them (%s)." % (
             sum(GENERATED_SKIPPED.values()), ", ".join("%s %d" % kv for kv in GENERATED_SKIPPED.most_common())))
     print("")
-    print("Baseline %s: %d known; %d new; %d in the baseline no longer found (fixed, or moved"
-          " past recognition - delete their lines, or regenerate)." % (
-              os.path.relpath(baseline_path, ROOT), len(known), len(new), gone))
+    print("Baseline %s: %d known; %d beyond it, %d of those accepted by an exception and %d new; %d in the baseline "
+          "no longer found (fixed, or moved past recognition - delete their lines, or regenerate)." % (
+              os.path.relpath(baseline_path, ROOT), len(known), len(beyond), len(accepted), len(new), gone))
+    if accepted:
+        print("")
+        print("ACCEPTED by an exception in %s (%d) - not in the baseline, and declared not exploitable:" % (
+            args.exceptions, len(accepted)))
+        for f in ranked(accepted)[:100]:
+            entry = accepted_by[f["fingerprint"]]
+            print("  %s - fingerprint %s, accepted until %s (%s): %s" % (
+                describe(f), f["fingerprint"], entry["expires"], entry["reviewed-by"], entry["what"]))
+        if len(accepted) > 100:
+            print("  ... and %d more in accepted-findings.txt" % (len(accepted) - 100))
     if new:
         print("")
-        print("NEW findings (%d):" % len(new))
-        for f in sorted(new, key=lambda f: (order.get(f["severity"], 9), f["path"], f["line"]))[:100]:
-            print("  " + describe(f))
+        print("NEW findings (%d) - each is fixed, or accepted in master's .gitlab/security-exceptions.yml by a change "
+              "of its own landed first (SECURITY.md, \"Vulnerability management policy\"):" % len(new))
+        for f in ranked(new)[:100]:
+            print("  %s - fingerprint %s" % (describe(f), f["fingerprint"]))
         if len(new) > 100:
             print("  ... and %d more in new-findings.txt" % (len(new) - 100))
+    status = 0
     if errors:
         print("")
         print("NOT ANALYSED (%d) - the scan has holes, which no baseline excuses:" % len(errors))
         for e in errors[:60]:
             print("  " + describe(e))
-        return 2
+        status = 2
+    if unjudged:
+        print("")
+        print("NOT JUDGED: %s. Nothing beyond the baseline could be accepted, so the job cannot pass; the file the "
+              "job reads is master's, fetched by the job's script." % unjudged)
+        status = 2
+    if status:
+        return status
     return 1 if new else 0
+
+
+# ---------------------------------------------------------------- the self-test
+
+def self_test():
+    """The rewrite of a baseline and the exceptions, against a tree, Semgrep output and
+    exceptions files made here. No network, and nothing of the checkout is written."""
+    global ROOT, _top_level
+    failures = []
+
+    def expect(condition, what):
+        if not condition:
+            failures.append(what)
+
+    held_root, held_cwd = ROOT, os.getcwd()
+    work = tempfile.mkdtemp(prefix="security-findings-")
+    try:
+        tree = os.path.join(work, "tree")
+        os.makedirs(os.path.join(tree, "src"))
+        with open(os.path.join(tree, "src", "a.py"), "w", encoding="utf-8", newline="\n") as f:
+            f.write("import os\nos.system(command)\neval(text)\nexec(code)\npickle.loads(blob)\nsubprocess.call(argv)\n")
+        ROOT = tree
+        _top_level = None
+        _lines_cache.clear()
+
+        def fingerprint(line):
+            f = finding("semgrep", "rule-%d" % line, "src/a.py", line, 1, "High", "m%d" % line)
+            fingerprint_all([f])
+            return f["fingerprint"]
+
+        known2, known6, new3, new4, gone = fingerprint(2), fingerprint(6), fingerprint(3), fingerprint(4), "f" * 20
+        baseline = os.path.join(work, "baseline.txt")
+        old_reason = "Triaged 1 October 2026: the command is the script's own constant."
+
+        def lay_baseline():
+            with open(baseline, "w", encoding="utf-8", newline="\n") as f:
+                f.write("# a baseline\n#\n# 3 findings, 1 of them with a reason.\n")
+                f.write("\t".join([known2, "semgrep", "rule-2", "src/a.py:9", "m2", old_reason]) + "\n")
+                f.write("\t".join([gone, "semgrep", "rule-5", "src/a.py:5", "m5"]) + "\n")
+                f.write("\t".join([known6, "semgrep", "rule-6", "src/a.py:6", "m6"]) + "\n")
+
+        def exceptions(*entries, **kw):
+            path = os.path.join(work, kw.get("name", "exceptions.yml"))
+            with open(path, "w", encoding="utf-8", newline="\n") as f:
+                f.write("exceptions:\n" + "".join(
+                    "  - scan: %s\n    finding: %s\n    what: 'eval of a fixed string'\n"
+                    "    reason: 'Read in the code: the text is a literal of the script and never comes from a peer.'\n"
+                    "    reviewed-by: Progressiverobot\n    reviewed: %s\n    expires: %s\n" % e for e in entries))
+            return path
+
+        def run(found, *extra, **kw):
+            semgrep_json = os.path.join(work, "semgrep.json")
+            with open(semgrep_json, "w", encoding="utf-8") as f:
+                json.dump({"results": [{"check_id": "rule-%d" % n, "path": "src/a.py", "start": {"line": n, "col": 1},
+                                        "extra": {"severity": "ERROR", "message": "m%d" % n, "metadata": {}}}
+                                       for n in found], "errors": kw.get("holes", [])}, f)
+            out = os.path.join(work, "out")
+            shutil.rmtree(out, ignore_errors=True)
+            said = io.StringIO()
+            with contextlib.redirect_stdout(said):
+                code = main(["--job", "semgrep", "--semgrep", semgrep_json, "--out", out, "--baseline", baseline,
+                             "--today", "2026-10-01"] + list(extra))
+            files = {}
+            for name in ("new-findings.txt", "accepted-findings.txt", "junit.xml"):
+                try:
+                    with open(os.path.join(out, name), encoding="utf-8") as f:
+                        files[name] = f.read()
+                except OSError:
+                    files[name] = None
+            return code, said.getvalue(), files
+
+        in_force = ("semgrep", new3, "2026-09-26", "2027-03-01")
+
+        lay_baseline()
+        code, said, files = run([2, 6])
+        expect(code == 0, "a run whose findings are all in the baseline passes: exit %d\n%s" % (code, said))
+        code, said, files = run([2, 3, 6])
+        expect(code == 1 and new3 in said, "a finding new to the baseline fails the job, and is named by its fingerprint: "
+                                           "exit %d\n%s" % (code, said))
+        code, said, files = run([2, 3, 6], "--exceptions", exceptions(in_force))
+        expect(code == 0, "a new finding an exception in force accepts passes: exit %d\n%s" % (code, said))
+        expect("src/a.py:3" in (files["accepted-findings.txt"] or "") and not files["new-findings.txt"]
+               and "<failure" not in (files["junit.xml"] or "x<failure"),
+               "an accepted finding is listed as accepted, not new, and fails no test case: %s" % files)
+        code, said, files = run([2, 3, 4, 6], "--exceptions", exceptions(in_force))
+        expect(code == 1 and "src/a.py:4" in (files["new-findings.txt"] or "")
+               and "src/a.py:3" not in (files["new-findings.txt"] or ""),
+               "a new finding no exception accepts still fails the job, beside one that is accepted: exit %d\n%s" % (code, said))
+        code, said, files = run([2, 3, 6], "--exceptions", exceptions(("semgrep", new3, "2026-01-05", "2026-09-30")))
+        expect(code == 1 and "expired on 2026-09-30" in said, "an exception past its expiry accepts nothing: exit %d\n%s" % (code, said))
+        code, said, files = run([2, 3, 6], "--exceptions", exceptions(("static-analysis", new3, "2026-09-26", "2027-03-01")))
+        expect(code == 1, "an exception for the other job accepts nothing here: exit %d\n%s" % (code, said))
+        code, said, files = run([2, 3, 6], "--exceptions", exceptions(("semgrep", new3, "2026-09-26", "2026-10-20")))
+        expect(code == 0 and "WARNING: the exception for semgrep %s" % new3 in said,
+               "an exception within %d days of its expiry is named, and still accepts: exit %d\n%s" % (
+                   EXPIRY_WARNING_DAYS, code, said))
+        malformed = os.path.join(work, "malformed.yml")
+        with open(malformed, "w", encoding="utf-8") as f:
+            f.write("foo: bar\n")
+        code, said, files = run([2, 3, 6], "--exceptions", malformed)
+        expect(code == 2 and "not well formed" in said and files["junit.xml"] and "<failure" in files["junit.xml"],
+               "an exceptions file that is not well formed fails the job as unjudged: exit %d\n%s" % (code, said))
+        code, said, files = run([2, 6], "--exceptions", os.path.join(work, "nowhere.yml"))
+        expect(code == 2 and "cannot be read" in said, "an exceptions file that is not there fails the job: exit %d\n%s" % (code, said))
+        code, said, files = run([2, 3, 6], "--exceptions", exceptions(("semgrep", new3, "2026-12-01", "2027-01-01")))
+        expect(code == 2, "an exception said to be reviewed after today makes the file unjudged: exit %d\n%s" % (code, said))
+        code, said, files = run([2, 3, 6], "--exceptions", exceptions(in_force),
+                                holes=[{"code": 3, "level": "warn", "type": "Syntax error", "path": "src/b.py",
+                                        "message": "Syntax error at line src/b.py:1:"}])
+        expect(code == 2, "a hole in the scan fails the job whatever an exception accepts: exit %d\n%s" % (code, said))
+
+        # The rewrite: what is still found stays, at its line now and with its reason; what is
+        # gone goes; nothing new comes in, and each finding left out is named.
+        reasons = os.path.join(work, "reasons.json")
+        with open(reasons, "w", encoding="utf-8") as f:
+            json.dump({known6: "Triaged 6 October 2026: a reason given now.", known2: "not the reason it already has",
+                       new3: "a reason does not bring a finding in"}, f)
+        lay_baseline()
+        code, said, files = run([2, 3, 4, 6], "--write-baseline", "--reasons", reasons, "--exceptions", exceptions(in_force))
+        written = read_baseline(baseline)
+        expect(sorted(written) == sorted([known2, known6]),
+               "the rewrite keeps what is still found, drops what is gone and adds nothing: %s" % sorted(written))
+        expect(written.get(known2, [""] * 5)[4:] == [old_reason], "a reason stays with its finding: %s" % written.get(known2))
+        expect(written.get(known2, [""] * 3)[2] == "src/a.py:2", "a kept entry is written at its line now: %s" % written.get(known2))
+        expect(written.get(known6, [""] * 5)[4:] == ["Triaged 6 October 2026: a reason given now."],
+               "--reasons gives a reason to a kept entry that had none: %s" % written.get(known6))
+        expect(code == 1 and "left out" in said and new3 in said and new4 in said and "dropped" in said and gone in said,
+               "the rewrite names what it dropped and what it left out, and the finding nobody accepted fails the job: "
+               "exit %d\n%s" % (code, said))
+        with open(baseline, encoding="utf-8") as f:
+            text = f.read()
+        expect("# 2 findings, 2 of them with a reason.\n" in text and text.startswith(BASELINE_HEADER[0] % "semgrep"),
+               "the rewritten file says what it holds: %s" % text[:200])
+        lay_baseline()
+        with open(reasons, "w", encoding="utf-8") as f:
+            json.dump({"rule:rule-6": "Triaged 6 October 2026: every rule-6 finding is a constant."}, f)
+        code, said, files = run([2, 6], "--write-baseline", "--reasons", reasons)
+        expect(code == 0 and read_baseline(baseline).get(known6, [""] * 5)[4:] ==
+               ["Triaged 6 October 2026: every rule-6 finding is a constant."],
+               "--reasons gives a reason by rule too: exit %d, %s" % (code, read_baseline(baseline).get(known6)))
+    finally:
+        os.chdir(held_cwd)
+        ROOT = held_root
+        _top_level = None
+        _lines_cache.clear()
+        shutil.rmtree(work, ignore_errors=True)
+
+    # The tree's own baselines: one entry a line, each fingerprint once, and the count
+    # line saying what the file holds.
+    for job, relative_path in sorted(BASELINES.items()):
+        path = os.path.join(ROOT, relative_path)
+        entries, with_reason, seen, said = 0, 0, set(), None
+        with open(path, encoding="utf-8") as f:
+            for number, raw in enumerate(f, 1):
+                line = raw.rstrip("\r\n")
+                count = re.match(r"^# (\d+) findings, (\d+) of them with a reason\.$", line)
+                if count:
+                    said = (int(count.group(1)), int(count.group(2)))
+                if not line or line.startswith("#"):
+                    continue
+                fields = line.split("\t")
+                entries += 1
+                expect(re.match(r"^[0-9a-f]{20}$", fields[0]) and len(fields) in (5, 6) and fields[0] not in seen,
+                       "%s line %d: fingerprint, tool, rule, file:line, message and a reason or none, the fingerprint "
+                       "once: %r" % (relative_path, number, line[:120]))
+                seen.add(fields[0])
+                with_reason += 1 if len(fields) == 6 and fields[5].strip() else 0
+        expect(said == (entries, with_reason), "%s says it holds %s findings and reasons, and holds %d, %d with a reason" % (
+            relative_path, said, entries, with_reason))
+
+    for failure in failures:
+        print("FAILED: " + failure)
+    print("security-findings.py self-test: %d failure(s)" % len(failures))
+    return 1 if failures else 0
 
 
 if __name__ == "__main__":

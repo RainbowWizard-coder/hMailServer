@@ -21,9 +21,15 @@
 # (docs/ContinuousIntegration.md, "Security scanning", says what would).
 #
 # The tools come from Ubuntu's archive, installed into the job's container on the
-# way in: cppcheck, and the clang-tidy of the clang the image already has. The
-# checks are chosen in build/ci/clang-tidy.yaml and, for cppcheck, below; each
-# exclusion there has its reason and its count.
+# way in: cppcheck, the clang-tidy of the clang the image already has, and git,
+# which the image lacks, to read master's exceptions file. The checks are chosen in
+# build/ci/clang-tidy.yaml and, for cppcheck, below; each exclusion there has its
+# reason and its count.
+#
+# A finding new to the baseline passes only when master's
+# .gitlab/security-exceptions.yml accepts it - master's, fetched from the checkout's
+# origin before the scan, never the commit's own copy, so that a change cannot accept
+# its own finding (SECURITY.md, "Vulnerability management policy").
 #
 # What it leaves, for the job's artifacts (HM_OUT_DIR, security/static-analysis):
 #   cppcheck.xml, clang-tidy.txt       the tools' own output, every finding
@@ -32,15 +38,21 @@
 #   gl-sast-cppcheck.json,
 #   gl-sast-clang-tidy.json            the same, one tool's findings each
 #   junit.xml                          a test case per tool and per NEW finding
-#   findings.txt, new-findings.txt     readable lists, most severe first
+#   findings.txt, new-findings.txt,
+#   accepted-findings.txt              readable lists, most severe first: every
+#                                      finding, the NEW ones, and those beyond the
+#                                      baseline that an exception accepts
+#   master-security-exceptions.yml     the exceptions file the run was judged by
 #   versions.json, configure.log
 #
-# The exit status is build/ci/security-findings.py's: 0 when nothing is new beyond
-# build/ci/static-analysis-baseline.txt, 1 when something is, 2 when a tool failed
-# or could not analyse a file. The job is not allow_failure (since 6.3.6): a new
-# finding fails the pipeline and an old one does not.
+# The exit status is build/ci/security-findings.py's: 0 when nothing is beyond
+# build/ci/static-analysis-baseline.txt that master's exceptions do not accept, 1
+# when something is, 2 when a tool failed or could not analyse a file, or master's
+# exceptions file could not be read. The job is not allow_failure (since 6.3.6): a
+# new finding fails the pipeline and an old one does not.
 #
-# To regenerate the baseline (after triage: see the document):
+# To rewrite the baseline (after triage: see the document) - it keeps the findings
+# still found, drops the ones gone, and adds none:
 #   bash build/ci/static-analysis.sh --write-baseline
 # or, from a job's artifacts without running anything again, the command
 # security-findings.py's own help gives.
@@ -51,6 +63,9 @@
 #   HM_ANALYSIS_JOBS  files analysed at once (6: the runner gives a job six CPUs)
 #   HM_TIDY_CHECKS    a clang-tidy check list to run INSTEAD of clang-tidy.yaml's,
 #                     for trying a check by hand; never set in the job
+#   HM_EXCEPTIONS_FILE  an exceptions file to judge by INSTEAD of master's, for a run
+#                     by hand in a checkout whose origin cannot be fetched (a
+#                     worktree mounted into a container); refused in a GitLab job
 set -uo pipefail
 
 out="${HM_OUT_DIR:-security/static-analysis}"
@@ -69,10 +84,10 @@ rm -rf "$out"
 mkdir -p "$out"
 
 echo "== the tools, from Ubuntu's archive"
-if ! command -v cppcheck > /dev/null || ! command -v clang-tidy > /dev/null; then
+if ! command -v cppcheck > /dev/null || ! command -v clang-tidy > /dev/null || ! command -v git > /dev/null; then
   export DEBIAN_FRONTEND=noninteractive
-  if ! { apt-get update -qq && apt-get install -y -qq -o Acquire::Retries=3 --no-install-recommends cppcheck clang-tidy > /dev/null; }; then
-    echo "apt-get could not install cppcheck and clang-tidy"
+  if ! { apt-get update -qq && apt-get install -y -qq -o Acquire::Retries=3 --no-install-recommends cppcheck clang-tidy git > /dev/null; }; then
+    echo "apt-get could not install cppcheck, clang-tidy and git"
     exit 2
   fi
 fi
@@ -87,6 +102,37 @@ if [ "${tidy_version%%.*}" != "${clang_version%%.*}" ]; then
   exit 2
 fi
 printf '{"cppcheck": "%s", "clang-tidy": "%s"}\n' "$cppcheck_version" "$tidy_version" > "$out/versions.json"
+
+echo ""
+echo "== master's .gitlab/security-exceptions.yml"
+# Before the scan, so that a run which could not be judged stops in seconds, not in an
+# hour. From the checkout's origin, as the runner cloned it; at depth 1 when the clone
+# is shallow, as a job's is, and not otherwise, so that a run by hand in a whole clone
+# does not make it shallow. A copy that cannot be read is never a pass.
+exceptions="$out/master-security-exceptions.yml"
+if [ -n "${HM_EXCEPTIONS_FILE:-}" ]; then
+  if [ "${GITLAB_CI:-}" = "true" ]; then
+    echo "HM_EXCEPTIONS_FILE is for a run by hand; a job judges by master's copy, which it fetches"
+    exit 2
+  fi
+  if ! cp "$HM_EXCEPTIONS_FILE" "$exceptions"; then
+    echo "HM_EXCEPTIONS_FILE ($HM_EXCEPTIONS_FILE) cannot be read"
+    exit 2
+  fi
+  echo "$HM_EXCEPTIONS_FILE, as HM_EXCEPTIONS_FILE names it: NOT master's"
+else
+  depth=()
+  if [ "$(git -c safe.directory="$root" rev-parse --is-shallow-repository 2> /dev/null)" = "true" ]; then
+    depth=(--depth=1)
+  fi
+  if ! git -c safe.directory="$root" fetch --quiet --no-tags "${depth[@]}" origin master \
+      || ! git -c safe.directory="$root" show FETCH_HEAD:.gitlab/security-exceptions.yml > "$exceptions"; then
+    echo "master's .gitlab/security-exceptions.yml could not be read from origin, and a finding new to the baseline is judged by it"
+    exit 2
+  fi
+  master_commit=$(git -c safe.directory="$root" rev-parse --short=12 FETCH_HEAD)
+  echo "master at $master_commit"
+fi
 
 echo ""
 echo "== the compile database (configure only, with clang, as linux-build.sh does)"
@@ -220,7 +266,7 @@ fi
 
 echo ""
 python3 build/ci/security-findings.py --job static-analysis \
-  --cppcheck "$out/cppcheck.xml" --clang-tidy "$out/clang-tidy.txt" \
+  --cppcheck "$out/cppcheck.xml" --clang-tidy "$out/clang-tidy.txt" --exceptions "$exceptions" \
   --versions "$out/versions.json" --started "$started" --out "$out" "${write_baseline[@]}"
 code=$?
 rm -rf "$build_dir"
