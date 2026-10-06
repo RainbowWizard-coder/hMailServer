@@ -133,7 +133,7 @@ include:
   - local: .gitlab/ci/cli-packages.yml
   # GitHub's hosts kept out of a job whose image or runner does not keep them out (docs/ContinuousIntegration.md, "Nothing from GitHub, in the job").
   - local: .gitlab/ci/no-github.yml
-  # What a merge request must pass beyond the checks: semgrep-sast's findings in what it changes, and the dependency versions it adds (docs/ContinuousIntegration.md, "Merge request checks").
+  # What every change - a merge request, or a protected batch* branch - must pass beyond the checks: semgrep-sast's findings in what it changes, and the dependency versions it adds or pins (docs/ContinuousIntegration.md, "Merge request checks").
   - local: .gitlab/ci/mr-checks.yml
   # The server and its testers built with GCC too, on master and batch* (docs/ContinuousIntegration.md, "The GCC build").
   - local: .gitlab/ci/gcc.yml
@@ -1371,9 +1371,37 @@ linux-coverage:
 # In the test stage with needs: [] - beside the builds, not after the checks: linix
 # takes up to three jobs at once, and the Windows gate on bench150 is longer than
 # everything linix runs, these jobs included.
+#
+# When they run: .own-runners' refusals, and its paths, but on a protected batch*
+# branch compared with master (compare_to: refs/heads/master) rather than with the
+# push before: GitLab then reads the files changed from where the branch leaves master
+# to its tip (the merge base, Ci::Pipeline#modified_paths_since), so a push of
+# documentation alone on top of code a batch already carries still runs the scans, and
+# judges the whole batch, not its last push; a batch that changes documentation alone
+# from master runs none. compare_to also diffs a branch's first push, a pipeline
+# started by hand or through the API, where rules:changes alone counts every file as
+# changed. master and a v* tag keep .own-runners' own comparison (a tag counts every
+# file). The suites keep their trimming by push.
+.scans-on-the-whole-change:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "pipeline"
+      when: never
+    - if: $CI_PIPELINE_SOURCE != "merge_request_event" && $CI_COMMIT_REF_PROTECTED == "true" && $CI_COMMIT_BRANCH =~ /^batch/
+      changes:
+        paths: *not-docs-only
+        compare_to: refs/heads/master
+    # A batch that changes documentation alone from master: no scan, whatever its last
+    # push compared with the one before.
+    - if: $CI_COMMIT_BRANCH =~ /^batch/
+      when: never
+    - if: $CI_PIPELINE_SOURCE != "merge_request_event" && $CI_COMMIT_REF_PROTECTED == "true"
+      changes:
+        paths: *not-docs-only
 
 static-analysis:
   extends: .linix
+  rules:
+    - !reference [.scans-on-the-whole-change, rules]
   stage: test
   needs: []
   # Two hours: it fails the pipeline now, and runs beside the builds. It took 44
@@ -1396,6 +1424,8 @@ static-analysis:
 
 semgrep:
   extends: .own-runners
+  rules:
+    - !reference [.scans-on-the-whole-change, rules]
   tags: [linix]
   image:
     name: python:3.14-slim-trixie@sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d
@@ -1420,6 +1450,8 @@ semgrep:
 # .NET SDK's deps.json - are copied out of the image as an artifact, 1.4 MB.
 ci-image-packages:
   extends: .linix
+  rules:
+    - !reference [.scans-on-the-whole-change, rules]
   stage: test
   needs: []
   timeout: 10 minutes
@@ -1439,6 +1471,8 @@ ci-image-packages:
 
 dependency-scan:
   extends: .own-runners
+  rules:
+    - !reference [.scans-on-the-whole-change, rules]
   tags: [linix]
   image:
     name: aquasec/trivy:0.74.0@sha256:62b1e65e8869bc4b4c6aa4fa2b21595256c7c2f6018a9d9ad61caf87187c1969

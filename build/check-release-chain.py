@@ -152,6 +152,19 @@ refuses it. This checker holds them to each other. It fails when:
     finding without a reason, a reviewer or an expiry within a year of the review, or
     is not the owner's in .gitlab/CODEOWNERS (nor .gitleaksignore, the secret scan's
     list of what is not a secret).
+  * a change can land past the change gates (.gitlab/ci/mr-checks.yml): semgrep-sast-gate
+    and mr-dependency-check must each run in a merge request's pipeline and in a
+    protected batch* branch's, with no rules:changes list, no when: never, no
+    SAST_DISABLED and no allow_failure, find their base themselves (--merge-request
+    auto, --base auto), and be retried twice on their script's exit 2 and on
+    .gate-retry's reasons; semgrep-sast must run on a protected batch* branch too, read
+    no SAST_DISABLED, take .gate-retry, and run the analyzer as the project's registry
+    holds it (mirror/semgrep:<version>-<the digest's first twelve hex digits>@<digest>);
+    static-analysis, semgrep, ci-image-packages and dependency-scan must compare a
+    protected batch* branch with master (compare_to: refs/heads/master) and run for
+    none that changes documentation alone; and the jobs build/land-via-mr.py requires
+    (REQUIRED_JOBS, once it names them) must be jobs of the CI files, the two gates and
+    semgrep-sast among them.
   * the container image's jobs (.gitlab/ci/container-image.yml) can run for
     anything but a protected v* tag, start before release-publish or without a
     person (container-image-deb, the first, is manual; every other one follows it),
@@ -276,6 +289,7 @@ Usage:
   python build/check-release-chain.py --self-test  each rule broken in a copy, and caught
 """
 
+import ast
 import base64
 import importlib.util
 import io
@@ -338,6 +352,9 @@ FILES = {
     "bundled-sources": os.path.join("build", "ci", "packages", "appimage-bundled-sources.sh"),
     # .no-github, which keeps GitHub out of a job itself.
     "no-github": os.path.join(".gitlab", "ci", "no-github.yml"),
+    # The two change gates, and the landing script that requires them.
+    "mr-checks": os.path.join(".gitlab", "ci", "mr-checks.yml"),
+    "land": os.path.join("build", "land-via-mr.py"),
 }
 
 RELEASE_JOBS = ["windows-installer", "release", "release-authenticode", "release-sbom", "release-sign", "release-verify",
@@ -505,6 +522,36 @@ SCANNED = ["static-analysis", "semgrep", "dependency-scan", "semgrep-sast"]
 BLOCKING_SCANS = ["static-analysis", "semgrep"]
 # The files a change to which is the owner's alone to accept.
 OWNED = ["/.gitlab/security-exceptions.yml", "/.gitleaksignore"]
+# The change gates (.gitlab/ci/mr-checks.yml), which every change passes before it
+# lands (OpenSSF Baseline OSPS-VM-05.03 and 06.02), and the scan whose report the first
+# reads: each in a merge request's pipeline and in a protected batch* branch's, which is
+# the one GitLab holds that branch's merge request to.
+CHANGE_GATES = {"semgrep-sast-gate": "python3 build/ci/security-gate.py --merge-request auto",
+                "mr-dependency-check": "python3 build/ci/mr-dependency-check.py --base auto"}
+GATE_SCAN = "semgrep-sast"
+GATE_RULES = ('- if: $CI_PIPELINE_SOURCE == "merge_request_event"',
+              '- if: $CI_PIPELINE_SOURCE != "schedule" && $CI_PIPELINE_SOURCE != "pipeline" && $CI_COMMIT_BRANCH =~ /^batch/ '
+              '&& $CI_COMMIT_REF_PROTECTED == "true"')
+GATE_SCAN_BATCH_RULE = ('- if: $CI_PIPELINE_SOURCE != "merge_request_event" && $CI_COMMIT_BRANCH =~ /^batch/ && '
+                        '$CI_COMMIT_REF_PROTECTED == "true"')
+# What GitLab may fail a gate's job for that is no answer of its own, retried (.gate-retry
+# in .gitlab/ci/gitlab-security.yml); and the gates' scripts' "could not read", exit 2.
+GATE_RETRY_REASONS = ("runner_system_failure", "runner_external_dependency_failure", "runner_interrupted",
+                      "scheduler_failure", "api_failure", "stuck_pending_with_matching_runners", "no_updates_running")
+# semgrep-sast's analyzer as the project's registry holds it (build/ci/mirror-semgrep.sh):
+# tagged with the analyzer's version and the first twelve hex digits of the digest it is
+# named by.
+MIRRORED_SAST = re.compile(r"^    name: registry\.gitlab\.com/hmailserver/hmailserver/mirror/semgrep:"
+                           r"[0-9]+(?:\.[0-9]+)*-([0-9a-f]{12})@sha256:([0-9a-f]{64})\s*$", re.MULTILINE)
+# The scans on linix that judge a batch as a whole: on a protected batch* branch their
+# rules compare the tree with master, not with the push before.
+WHOLE_CHANGE_SCANS = ["static-analysis", "semgrep", "ci-image-packages", "dependency-scan"]
+BATCH_COMPARE = ('- if: $CI_PIPELINE_SOURCE != "merge_request_event" && $CI_COMMIT_REF_PROTECTED == "true" && '
+                 '$CI_COMMIT_BRANCH =~ /^batch/\n      changes:\n        paths: *%s\n        compare_to: refs/heads/master\n'
+                 '    - if: $CI_COMMIT_BRANCH =~ /^batch/\n      when: never\n' % NOT_DOCS_ONLY)
+# The jobs build/land-via-mr.py requires to have passed before it lands a batch, as it
+# names them (design item 4c): a module-level sequence of job names.
+LANDING_REQUIRED = "REQUIRED_JOBS"
 COSIGN_IMAGE = re.compile(r'^\s*HM_COSIGN_IMAGE:\s*"?(\S+?)"?\s*$', re.MULTILINE)
 PINNED_COSIGN = re.compile(r"^gcr\.io/projectsigstore/cosign:[A-Za-z0-9._\-]+@sha256:[0-9a-f]{64}$")
 PLACEHOLDER_COSIGN = re.compile(r"^gcr\.io/projectsigstore/cosign:[A-Za-z0-9._\-]+@sha256:PIN-THE-DIGEST$")
@@ -2135,6 +2182,122 @@ def check(texts, chain, feed):
         problems.append("secret_detection does not scan the whole history for the schedule described \"security\"")
     if not os.path.isfile(os.path.join(ROOT, ".gitleaksignore")):
         problems.append(".gitleaksignore is missing: the findings read and found not to be secrets would fail secret_detection")
+
+    found, said = change_gate_problems(texts, jobs, security_jobs)
+    problems.extend(found)
+    notes.extend(said)
+    return problems, notes
+
+
+def change_gate_problems(texts, jobs, security_jobs):
+    """(problems, notes): the two change gates run on every change, blocking, with no
+    switch and no trigger list, against a base they find themselves, retried on what is
+    not their answer; semgrep-sast runs where the first needs it, from the project's
+    copy of the analyzer; the scans on linix judge a batch against master; and the jobs
+    build/land-via-mr.py requires are jobs of the CI files."""
+    problems, notes = [], []
+    gates_jobs = blocks(texts["mr-checks"])
+    every = dict(security_jobs, **gates_jobs)
+
+    # semgrep-sast: on a batch* branch too, never switched off, from the mirror, retried.
+    def has_rule(text, rule):
+        return re.search(r"^\s*%s\s*$" % re.escape(rule), text, re.MULTILINE) is not None
+
+    sast = security_jobs.get(GATE_SCAN, "")
+    sast_rules = rules_text(GATE_SCAN, security_jobs)
+    if not has_rule(sast, GATE_SCAN_BATCH_RULE):
+        problems.append("semgrep-sast does not run on a protected batch* branch (%s): semgrep-sast-gate needs its report "
+                        "there, and a needs of a job the pipeline does not have keeps the pipeline from being made"
+                        % GATE_SCAN_BATCH_RULE)
+    if "SAST_DISABLED" in sast_rules:
+        problems.append("semgrep-sast's rules read SAST_DISABLED: a project variable would take a blocking gate's scan away "
+                        "unseen")
+    mirrored = MIRRORED_SAST.search(sast)
+    if not mirrored:
+        problems.append("semgrep-sast does not run GitLab's analyzer as the project's registry holds it "
+                        "(registry.gitlab.com/hmailserver/hmailserver/mirror/semgrep:<version>-<12 hex>@sha256:<digest>, "
+                        "build/ci/mirror-semgrep.sh): GitLab's registry stops serving a digest its tag moves on from, "
+                        "and the gate would stop every change")
+    elif not mirrored.group(2).startswith(mirrored.group(1)):
+        problems.append("semgrep-sast's image tag ends in %s, and it is named by the digest %s...: the copy's tag is the "
+                        "digest's first twelve hex digits (build/ci/mirror-semgrep.sh)" % (mirrored.group(1), mirrored.group(2)[:12]))
+    retry = security_jobs.get(".gate-retry", "")
+    missing = [reason for reason in GATE_RETRY_REASONS if not re.search(r"^      - %s\s*$" % reason, retry, re.MULTILINE)]
+    if not re.search(r"^    max: 2\s*$", retry, re.MULTILINE) or missing:
+        problems.append(".gate-retry (.gitlab/ci/gitlab-security.yml) does not retry twice on %s: a runner's or the "
+                        "registry's failure would fail a blocking gate" % (", ".join(missing) or "max: 2"))
+    if "stuck_or_timeout_failure" in retry:
+        problems.append(".gate-retry names stuck_or_timeout_failure, which GitLab has split, and warns of, since 19.1: name "
+                        "the reasons it was split into")
+    if not re.search(r"^  retry: !reference \[\.gate-retry, retry\]\s*$", sast, re.MULTILINE):
+        problems.append("semgrep-sast does not take .gate-retry's retry")
+
+    # The gates themselves.
+    for name, command in sorted(CHANGE_GATES.items()):
+        if name not in gates_jobs:
+            problems.append(".gitlab/ci/mr-checks.yml has no %s job: a change would land without it" % name)
+            continue
+        text = inherited(name, gates_jobs)
+        rules = rules_text(name, gates_jobs)
+        for rule in GATE_RULES:
+            if not has_rule(rules, rule):
+                problems.append("%s does not run for every change (%s): a merge request's pipeline and a protected "
+                                "batch* branch's both need it" % (name, rule))
+        if re.search(r"^\s*when: never", rules, re.MULTILINE):
+            problems.append("%s's rules leave it out somewhere (when: never): a blocking gate has no exception" % name)
+        if re.search(r"^\s*changes:", rules, re.MULTILINE):
+            problems.append("%s's rules have a changes: list: a kind of file it does not name would pass the gate unread"
+                            % name)
+        if "SAST_DISABLED" in rules:
+            problems.append("%s's rules read SAST_DISABLED: a project variable would take a blocking gate away unseen" % name)
+        if re.search(r"^\s*allow_failure:(?![ \t]*false[ \t]*$)", text, re.MULTILINE):
+            problems.append("%s may fail without failing the pipeline (allow_failure): it is a blocking gate" % name)
+        if re.search(r"^\s*when: manual", text, re.MULTILINE) or re.search(r"^\s*when: manual", rules, re.MULTILINE):
+            problems.append("%s waits for a person (when: manual): a merge request could land past it" % name)
+        if "    - " + command not in text:
+            problems.append("%s does not run %s: its base is change_base's, in a merge request's pipeline and a batch* "
+                            "branch's alike" % (name, command))
+        block = re.search(r"^  retry:\s*\n((?:    .*\n?)+)", text, re.MULTILINE)
+        block = block.group(1) if block else ""
+        if (not re.search(r"^    max: 2\s*$", block, re.MULTILINE)
+                or not re.search(r"^    when: !reference \[\.gate-retry, retry, when\]\s*$", block, re.MULTILINE)
+                or not re.search(r"^    exit_codes:\s*\n(?:      - \d+\s*\n)*      - 2\s*$", block, re.MULTILINE)):
+            problems.append("%s is not retried twice on its script's exit 2 (could not read) and on .gate-retry's reasons: "
+                            "a passing hiccup of OSV, of master's fetch or of a runner would hold a change" % name)
+    if not re.search(r"^    - job: %s\s*\n      artifacts: true\s*$" % GATE_SCAN, gates_jobs.get("semgrep-sast-gate", ""), re.MULTILINE):
+        problems.append("semgrep-sast-gate does not need semgrep-sast with its artifacts: it would read no report")
+
+    # The scans on linix judge a batch as a whole, against master.
+    for name in WHOLE_CHANGE_SCANS:
+        if BATCH_COMPARE not in rules_text(name, jobs):
+            problems.append("%s does not compare a protected batch* branch with master (compare_to: refs/heads/master, then "
+                            "no scan for a batch that changes documentation alone): a push of documentation on top of "
+                            "code would skip it" % name)
+
+    # build/land-via-mr.py's required jobs are jobs of the CI files, the gates among them.
+    required = None
+    try:
+        for node in ast.parse(texts["land"]).body:
+            if isinstance(node, ast.Assign) and any(isinstance(t, ast.Name) and t.id == LANDING_REQUIRED for t in node.targets):
+                value = ast.literal_eval(node.value)
+                required = list(value.keys() if isinstance(value, dict) else value)
+                break
+    except (SyntaxError, ValueError) as error:
+        problems.append("build/land-via-mr.py's %s cannot be read: %s" % (LANDING_REQUIRED, error))
+    if required is None:
+        notes.append("build/land-via-mr.py names no %s yet: the jobs it requires before a landing are not held here"
+                     % LANDING_REQUIRED)
+    else:
+        names = set(jobs) | set(every)
+        for text in texts.get("ci-includes", {}).values():
+            names |= set(blocks(text))
+        unknown = sorted(str(n) for n in required if n not in names)
+        if unknown:
+            problems.append("build/land-via-mr.py requires %s, which no job of the CI files is: a landing would wait for a job "
+                            "no pipeline has, or check a name that never fails" % ", ".join(unknown))
+        absent = [n for n in sorted(CHANGE_GATES) + [GATE_SCAN] if n not in required]
+        if absent:
+            problems.append("build/land-via-mr.py does not require %s before it lands a batch" % ", ".join(absent))
     return problems, notes
 
 
@@ -3064,6 +3227,67 @@ def self_test(chain, feed):
            "no longer asks build/ci/security-gate.py")
     broken("the gate given the tagged tree's exceptions", "chain", 'exceptions_text=exceptions or "exceptions: []\\n", say=say)',
            "say=say)", "does not give the gate master's")
+    # The change gates, on every change: semgrep-sast where its gate needs it, the gates'
+    # rules, retries and bases, the scans on linix against master, and land-via-mr's list.
+    broken("semgrep-sast not run on a batch* branch", "security", "    " + GATE_SCAN_BATCH_RULE + "\n", "",
+           "semgrep-sast does not run on a protected batch* branch")
+    broken("semgrep-sast switched off by SAST_DISABLED again", "security",
+           "  rules:\n    - !reference [.gitlab-security-rules, rules]\n",
+           "  rules:\n    - if: $SAST_DISABLED == 'true' || $SAST_DISABLED == '1'\n      when: never\n"
+           "    - !reference [.gitlab-security-rules, rules]\n", "semgrep-sast's rules read SAST_DISABLED")
+    mirrored = MIRRORED_SAST.search(texts["security"])
+    pinned = mirrored.group(0) if mirrored else "the mirrored semgrep image is not found"
+    broken("semgrep-sast from GitLab's registry again", "security", pinned,
+           "    name: registry.gitlab.com/security-products/semgrep:6@sha256:%s" % (mirrored.group(2) if mirrored else ""),
+           "does not run GitLab's analyzer as the project's registry holds it")
+    broken("the mirror's tag naming another digest", "security", pinned,
+           pinned.replace("-%s@" % (mirrored.group(1) if mirrored else ""), "-000000000000@"), "the copy's tag is the digest's")
+    broken("a gate not retried when a runner fails", "security", "      - runner_system_failure\n", "",
+           ".gate-retry (.gitlab/ci/gitlab-security.yml) does not retry twice on runner_system_failure")
+    broken("a gate retried on the reason GitLab split", "security", "      - no_updates_running\n",
+           "      - stuck_or_timeout_failure\n", "names stuck_or_timeout_failure")
+    broken("semgrep-sast without the gates' retry", "security", "  retry: !reference [.gate-retry, retry]\n", "",
+           "semgrep-sast does not take .gate-retry's retry")
+    broken("the gates behind a list of changes again", "mr-checks", '    - if: $CI_PIPELINE_SOURCE == "merge_request_event"\n',
+           '    - if: $CI_PIPELINE_SOURCE == "merge_request_event"\n      changes:\n        paths:\n'
+           '          - "**/packages*.lock.json"\n', "rules have a changes: list")
+    broken("a gate allowed to fail", "mr-checks", "mr-dependency-check:\n  extends: .mr-check\n",
+           "mr-dependency-check:\n  extends: .mr-check\n  allow_failure: true\n",
+           "mr-dependency-check may fail without failing the pipeline")
+    broken("the gates not on a batch* branch", "mr-checks", "    " + GATE_RULES[1] + "\n", "",
+           "does not run for every change")
+    broken("a merge request's gates narrowed by a variable", "mr-checks", '    - if: $CI_PIPELINE_SOURCE == "merge_request_event"\n',
+           '    - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $HM_GATES == "on"\n', "does not run for every change")
+    broken("the gates switched off by SAST_DISABLED", "mr-checks", '    - if: $CI_PIPELINE_SOURCE == "merge_request_event"\n',
+           "    - if: $SAST_DISABLED == 'true'\n      when: never\n"
+           '    - if: $CI_PIPELINE_SOURCE == "merge_request_event"\n', "semgrep-sast-gate's rules read SAST_DISABLED")
+    broken("the dependency gate given the merge request's base alone", "mr-checks",
+           "    - python3 build/ci/mr-dependency-check.py --base auto\n",
+           '    - python3 build/ci/mr-dependency-check.py --base "$CI_MERGE_REQUEST_DIFF_BASE_SHA"\n',
+           "mr-dependency-check does not run python3 build/ci/mr-dependency-check.py --base auto")
+    broken("the gates not retried on exit 2", "mr-checks", "      - 2\n      - 100\n", "      - 100\n",
+           "is not retried twice on its script's exit 2")
+    broken("the SAST gate without semgrep-sast's report", "mr-checks", "    - job: semgrep-sast\n      artifacts: true\n",
+           "    - job: semgrep-sast\n      artifacts: false\n", "semgrep-sast-gate does not need semgrep-sast with its artifacts")
+    broken("the scans on a batch compared with the push before", "ci", "        compare_to: refs/heads/master\n", "",
+           "dependency-scan does not compare a protected batch* branch with master")
+    broken("a scan back on .own-runners' rules", "ci",
+           "static-analysis:\n  extends: .linix\n  rules:\n    - !reference [.scans-on-the-whole-change, rules]\n",
+           "static-analysis:\n  extends: .linix\n", "static-analysis does not compare a protected batch* branch with master")
+    broken("a docs-only batch that would scan by its last push", "ci",
+           "    - if: $CI_COMMIT_BRANCH =~ /^batch/\n      when: never\n", "",
+           "semgrep does not compare a protected batch* branch with master")
+    every_gate = "('semgrep-sast', 'semgrep-sast-gate', 'mr-dependency-check', 'static-analysis', 'semgrep')"
+    broken("land-via-mr requiring a job no pipeline has", "land", "\nROOT = ",
+           "\n%s = %s\nROOT = " % (LANDING_REQUIRED, every_gate.replace(")", ", 'no-such-job')")),
+           "requires no-such-job, which no job")
+    broken("land-via-mr not requiring the gates", "land", "\nROOT = ",
+           "\n%s = ['semgrep-sast', 'static-analysis']\nROOT = " % LANDING_REQUIRED,
+           "does not require mr-dependency-check, semgrep-sast-gate")
+    copy = dict(texts, land=texts["land"].replace("\nROOT = ", "\n%s = %s\nROOT = " % (LANDING_REQUIRED, every_gate), 1))
+    found, _ = check(copy, chain, feed)
+    if any("land-via-mr" in p for p in found):
+        failures.append("a land-via-mr.py that requires the gates by their names passes: %s" % found)
     # One malformed entry after the entries the file holds, if any: the list from its
     # key to the end of the file is what each case replaces.
     listed = re.search(r"^exceptions:.*", texts["exceptions"], re.MULTILINE | re.DOTALL)

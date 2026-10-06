@@ -12,7 +12,8 @@
 #                     C and C++ of the server as well as the C#, Python and JavaScript
 #                     (GitLab 18.6 and later), where the semgrep job leaves the C++ to
 #                     cppcheck and clang-tidy and uses Semgrep's registry packs; and it
-#                     runs on a merge request, which no job on linix ever does.
+#                     runs on every change - a merge request, which no job on linix
+#                     ever does, and a protected batch* branch.
 #   secret_detection  GitLab's secrets analyzer over the commits a pipeline brings: a
 #                     key, token or password committed by mistake. Nothing on linix
 #                     looks for one.
@@ -37,10 +38,14 @@
 # release job needs semgrep-sast's report and refuses while it has a finding of
 # severity Critical or High that .gitlab/security-exceptions.yml does not accept, or
 # is missing (build/ci/security-gate.py; SECURITY.md, "Before a release"). And it
-# holds a merge request: in a merge request's pipeline the semgrep-sast-gate job
-# (.gitlab/ci/mr-checks.yml) reads the same report by the same rule, for the files the
-# merge request changes and with the exceptions as its base has them, and fails the
-# pipeline, which a merge request needs to land (OpenSSF Baseline OSPS-VM-06.02).
+# holds every change: in a merge request's pipeline, and in a protected batch* branch's
+# pipeline, which is the one GitLab holds that branch's merge request to, the
+# semgrep-sast-gate job (.gitlab/ci/mr-checks.yml) reads the same report by the same
+# rule, for the files the change touches from its base and with the exceptions as the
+# base has them, and fails the pipeline, which a merge request needs to land (OpenSSF
+# Baseline OSPS-VM-06.02). No variable switches semgrep-sast off: GitLab's template
+# skips it when SAST_DISABLED is set, and a project variable must not take a blocking
+# gate away unseen, so its rules here do not read it.
 # secret_detection is not allow_failure: a secret found fails the
 # job and the pipeline. The template's job cannot do that by itself - the analyzer
 # exits 0 whatever it finds, and the template adds allow_failure: true, which would
@@ -50,8 +55,9 @@
 # at the root, which gitleaks reads from the checkout.
 #
 # When they run: in a merge request's pipeline and in a pipeline for the default
-# branch, and semgrep-sast for a protected v* tag too, whose release job reads its
-# report (master is pushed with ci.skip, so master's pipeline may never have scanned
+# branch; semgrep-sast in a protected batch* branch's pipeline too, whose
+# semgrep-sast-gate reads its report, and for a protected v* tag, whose release job
+# reads it (master is pushed with ci.skip, so master's pipeline may never have scanned
 # the tagged commit). Never in the fuzz schedule's, Renovate's or the update feed's
 # pipeline, which each run their one job (.not-a-fuzz-pipeline in .gitlab-ci.yml);
 # secret_detection not for a tag, whose commits the pushes to master and the landing's
@@ -77,10 +83,19 @@
 # not keep serving a digest these tags have moved on from: the ones taken on 26
 # September 2026 answered "manifest unknown" on 5 October, and v6.3.6's first tag
 # pipeline could not start semgrep-sast, whose report the release job needs. The new
-# semgrep digest is the same analyzer, 6.26.1 with Semgrep 1.174.0, rebuilt. Renovate's
-# gitlabci manager reads this file through the include and proposes a new digest,
-# which is to be taken before a release tag; a new major version is a change to the
-# tag here.
+# semgrep digest is the same analyzer, 6.26.1 with Semgrep 1.174.0, rebuilt.
+# semgrep-sast blocks every change through semgrep-sast-gate, so its image is not
+# GitLab's registry's but a copy of that digest in the project's own registry, digest
+# preserved (build/ci/mirror-semgrep.sh, which says why the analyzer's licences allow
+# it): registry.gitlab.com/hmailserver/hmailserver/mirror/semgrep, tagged with the
+# analyzer's version and the digest's first twelve hex digits, named here by the same
+# digest GitLab's own index has, so the bytes are GitLab's. GitLab rebuilding the
+# analyzer no longer stops a gate. Renovate does not look up the project's own
+# registry (renovate.json), so a new semgrep digest is taken by hand: mirror-semgrep.sh
+# with the tag, and the line it prints here, before a release tag. secret_detection
+# stays on GitLab's registry for now, where Renovate's gitlabci manager reads it
+# through the include and proposes its new digests; a new major version of either is a
+# change to the tag here.
 # The registry also has a semgrep:7 (7.0.0, 13 May 2026), which Renovate offers as
 # the next major version. It is not one: GitLab released it for GitLab 19.0 and
 # withdrew it the next day (the analyzer's merge requests !723 and !724), has no v7
@@ -103,11 +118,32 @@ include:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
+# What GitLab may fail a gate's job for that is no answer of the job's own: a runner or
+# the scheduler that failed, a registry or the network that could not be reached, a job
+# left pending while runners were free, or one that stopped reporting. Each is tried
+# twice more. Not runner_configuration_error, which a digest the registry no longer
+# serves gives, and a retry cannot mend. The reasons GitLab 19 split
+# stuck_or_timeout_failure into are named rather than that one, which GitLab.com warns
+# of since 19.1. semgrep-sast-gate and mr-dependency-check (.gitlab/ci/mr-checks.yml)
+# take the same, and their script's exit 2 too.
+.gate-retry:
+  retry:
+    max: 2
+    when:
+      - runner_system_failure
+      - runner_external_dependency_failure
+      - runner_interrupted
+      - scheduler_failure
+      - api_failure
+      - stuck_pending_with_matching_runners
+      - no_updates_running
+
 semgrep-sast:
   image:
-    name: registry.gitlab.com/security-products/semgrep:6@sha256:b98bc4dd3949f8d7e2dbe6d45fbb2b016145245c98f3a5c238666b7f27cb6321
+    name: registry.gitlab.com/hmailserver/hmailserver/mirror/semgrep:6.26.1-b98bc4dd3949@sha256:b98bc4dd3949f8d7e2dbe6d45fbb2b016145245c98f3a5c238666b7f27cb6321
   needs: []
   timeout: 30 minutes
+  retry: !reference [.gate-retry, retry]
   variables:
     # What build/ci/semgrepignore leaves out of the semgrep job: the tests and their
     # fixtures, the vendored third-party sources and the scans' own output. And the
@@ -129,10 +165,12 @@ semgrep-sast:
     # --max-memory, --max-target-bytes and --timeout, and skips any other with a
     # warning.
     SAST_SCANNER_ALLOWED_CLI_OPTS: "--max-target-bytes=0 --timeout=120"
+  # No SAST_DISABLED rule (the header says why).
   rules:
-    - if: $SAST_DISABLED == 'true' || $SAST_DISABLED == '1'
-      when: never
     - !reference [.gitlab-security-rules, rules]
+    # And for a protected batch* branch, whose own pipeline is the one GitLab holds its
+    # merge request to: semgrep-sast-gate reads the report there, against master.
+    - if: $CI_PIPELINE_SOURCE != "merge_request_event" && $CI_COMMIT_BRANCH =~ /^batch/ && $CI_COMMIT_REF_PROTECTED == "true"
     # And for a release tag, whose release job reads the report before anything is
     # signed (build/ci/security-gate.py): master's pipelines are pushed with ci.skip,
     # so no pipeline on master may have scanned the tagged commit.
