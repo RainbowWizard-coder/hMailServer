@@ -1441,9 +1441,12 @@ function Test-NewInstallDefaults([string] $Phase, [string] $InnoLog) {
 
    [void] (Test-Step "${Phase}: Inno's log has the verb's result, --apply-new-install-defaults exited 0" {
          $lines = @(Get-VerbLogLines $InnoLog)
-         $exited = @($lines | Where-Object { $_ -match 'exited (-?\d+)\.$' })
+         # The installer's line: 'returned N:' with what the verb said after it, or
+         # 'returned N and said nothing.' (1408acf3b, 6.3.6); 'exited N.' before it.
+         $exitPattern = '(?:exited (-?\d+)\.|returned (-?\d+)(?::| and said nothing\.))$'
+         $exited = @($lines | Where-Object { $_ -match $exitPattern })
          if ($exited.Count -ne 1) { throw "Inno's log has $($exited.Count) exit lines for it: $($lines -join ' | ')" }
-         if ($exited[0] -notmatch 'exited 0\.$') { throw "Inno's log says: $($exited[0])" }
+         if ($exited[0] -notmatch '(?:exited 0\.|returned 0(?::| and said nothing\.))$') { throw "Inno's log says: $($exited[0])" }
          "'$($exited[0] -replace '^.*(hMailServer\.exe --apply)', '$1')'"
       })
 
