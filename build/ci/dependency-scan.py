@@ -115,7 +115,9 @@ BINARIES = "hmailserver/docs/third-party-binaries.json"
 # matches a version by its tag, and cannot match one the repository never had.
 # purl is the name of its pkg:generic purl, as build/native-dependencies.ps1 gives it
 # to the SBOM and as a statement of the VEX document names it (--self-test holds the
-# two to each other).
+# two to each other). build/ci/mr-dependency-check.py reads this list, vendored_versions
+# and osv_query too: a change that moves one of these versions is asked about the same
+# way before it lands.
 VENDORED = [
     {"name": "OpenSSL", "purl": "openssl", "file": VCXPROJ, "pattern": r"openssl-(\d+\.\d+\.\d+[a-z]?)",
      "repo": "https://github.com/openssl/openssl", "tag": "openssl-{v}", "control": "4.0.0",

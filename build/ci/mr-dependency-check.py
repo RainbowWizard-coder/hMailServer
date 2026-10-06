@@ -3,18 +3,22 @@
 # Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-"""A merge request that adds a dependency version with a known High or Critical advisory is held.
+"""A change that adds a dependency version with a known High or Critical advisory is held.
 
-The mr-dependency-check job of .gitlab/ci/mr-checks.yml runs this in a merge
-request's pipeline, on GitLab's shared runners, with no secret, when the merge
-request changes a dependency lock file. The dependency-scan job (Trivy and OSV,
+The mr-dependency-check job of .gitlab/ci/mr-checks.yml runs this on every change
+before it lands: in a merge request's pipeline, and in a protected batch* branch's
+pipeline, which is the one GitLab holds that branch's merge request to; on GitLab's
+shared runners, with no secret. The dependency-scan job (Trivy and OSV,
 build/ci/dependency-scan.py) reads the whole tree, but on linix, for a protected
-ref only, so it first sees a dependency once it has landed: this is the check
-before that, on what the change adds (Roadmap3, "Dependency check on merge
-requests"). What GitHub's dependency review did until 18 September 2026.
+ref only, and is allow_failure, so that a finding no change brought does not stop
+an unrelated one: this is the check of what the change itself adds (Roadmap3,
+"Dependency check on merge requests"; OpenSSF Baseline OSPS-VM-05.03). What GitHub's
+dependency review did until 18 September 2026.
 
-What it reads, at the merge request's base (CI_MERGE_REQUEST_DIFF_BASE_SHA, the
-target branch where the merge request left it) and at its head, from git:
+The change's base is build/ci/security-gate.py's change_base (--base auto):
+CI_MERGE_REQUEST_DIFF_BASE_SHA, the target branch where the merge request left it,
+in a merge request's pipeline; in a batch* branch's, where HEAD leaves master,
+fetched by name. What it reads, at the base and at the head, from git:
 
   **/packages*.lock.json   NuGet's lock files - the tools', the Control Panel's, the
                            tests' - and the ARM64 ones beside them
@@ -25,12 +29,17 @@ target branch where the merge request left it) and at its head, from git:
   **/*requirements*.txt    the Python tools' pinned packages (name==version), PyPI -
                            every name Renovate's pip_requirements manager updates,
                            build/ci/cli-packages-requirements.txt among them;
+  the native and vendored libraries
+                           every library of build/ci/dependency-scan.py's VENDORED,
+                           at each version its file pins, read as that scan reads
+                           it: OpenSSL, Boost and libpq from hMailServer.vcxproj's
+                           paths, zlib from zlib.h, QuickJS from its VERSION, and
+                           MariaDB Connector/C, 7-Zip and SQL Server Compact from
+                           third-party-binaries.json; and
   **/native-dependencies*.json
                            a native component list (build/native-dependencies.ps1),
-                           if one is committed: its components are C and C++
-                           libraries that no package ecosystem of OSV's names, so an
-                           added one is listed, and left to dependency-scan, which
-                           asks OSV about each by its upstream repository's tag.
+                           if one is committed, whose components are taken as the
+                           library of VENDORED with the same purl name.
 
 A dependency is added when its ecosystem, name and version are at the head and
 nowhere at the base: an upgrade adds its new version, a new lock file adds all of
@@ -56,18 +65,35 @@ list names the added one - is not passed over: rated Critical or High, it holds 
 merge request as one that may affect the version, which a maintainer reads and, if it
 does not, accepts.
 
-A Critical or High advisory against an added version holds the merge request, unless
-.gitlab/security-exceptions.yml as the BASE has it accepts it: an entry of scan
-dependency-scan naming the advisory (or one of its aliases) and the package, read by
-build/ci/security-gate.py's own reader - never the merge request's own copy, so a
-change cannot accept its own advisory. The rest is listed.
+A native or vendored library's version that the head pins and the base does not is
+asked of OSV (api.osv.dev) by its upstream repository's tag, as dependency-scan asks,
+with the library's CONTROL version beside it, and rated as above, an alias's record
+fetched from api.osv.dev when the advisory has no rating of its own. A version older
+than the repository's first tag (7-Zip's 22.01), which OSV cannot match, is held by
+the Critical and High advisories of that first tag, as ones that may affect it. A
+library with no repository OSV knows (SQL Server Compact), or one for which OSV names
+nothing for the control version either, has no usable data: it is listed as UNKNOWN
+and not held, and is read by hand against the SBOM at release (SECURITY.md). So is a
+component of a native list that is no library of VENDORED.
 
-Usage, from the root of a clone of the merge request's head with its history:
-  python3 build/ci/mr-dependency-check.py --base SHA [--osv-dir DIR] [--today YYYY-MM-DD]
+A Critical or High advisory against an added version holds the change, unless one of
+two declarations as the BASE has them accepts it: .gitlab/security-exceptions.yml,
+an entry of scan dependency-scan naming the advisory (or one of its aliases) and the
+package (a native library by its VENDORED name, as dependency-scan reports it), read
+by build/ci/security-gate.py's own reader; or the VEX document,
+.gitlab/hmailserver.openvex.json, a not_affected statement naming the advisory and
+the package at that version by its purl (pkg:nuget/, pkg:pypi/ with PEP 503's names,
+pkg:generic/ for a native library). Never the change's own copies, so a change
+cannot accept its own advisory. The rest is listed.
+
+Usage, from the root of a clone of the change's head with its history:
+  python3 build/ci/mr-dependency-check.py --base SHA|auto [--osv-dir DIR] [--today YYYY-MM-DD]
   python3 build/ci/mr-dependency-check.py --self-test
 --osv-dir reads <ecosystem>.zip from DIR instead of downloading it. Exits 0 when the
-merge request may land, 1 when an added version has an advisory that holds it, 2
-when the lock files or the advisories cannot be read (never a pass).
+change may land, 1 when an added version has an advisory that holds it, 2 when the
+base, the lock files, the pins or the advisories cannot be read (never a pass; the
+job retries it). OSV's export is fetched only when the change adds a NuGet or PyPI
+version, and api.osv.dev asked only when it moves a native library's pin.
 """
 
 import argparse
@@ -84,12 +110,15 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import urllib.error
 import urllib.parse
+import urllib.request
 import xml.etree.ElementTree as ET
 import zipfile
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 EXCEPTIONS = ".gitlab/security-exceptions.yml"
+VEX = ".gitlab/hmailserver.openvex.json"
 BLOCKING = ("Critical", "High")
 
 
@@ -100,9 +129,12 @@ def _load(relative, name):
     return module
 
 
-# The exceptions file's reader, and OSV's export as Renovate's database takes it.
+# The exceptions file's reader and the change's base; OSV's export as Renovate's
+# database takes it; and the native and vendored libraries as dependency-scan reads and
+# asks OSV about them (which loads this file in turn, but only when it is asked to).
 gate = _load("build/ci/security-gate.py", "security_gate")
 osv_offline = _load("build/ci/osv-offline-db.py", "osv_offline_db")
+scan = _load("build/ci/dependency-scan.py", "dependency_scan")
 
 
 # ---------------------------------------------------------------- the lock files
@@ -724,13 +756,182 @@ def by_name(index, ecosystem):
     return names
 
 
+# ---------------------------------------------------------------- the native and vendored libraries
+
+class OsvApi(object):
+    """api.osv.dev, as build/ci/dependency-scan.py asks it: by a repository's tag (GIT),
+    and for one record by its id. An error is raised, never taken for no advisory."""
+
+    def query(self, repo, tag):
+        return scan.osv_query(repo, tag)
+
+    def vuln(self, advisory_id):
+        """The record of one id, or None when OSV has none (404)."""
+        request = urllib.request.Request("%s/vulns/%s" % (scan.OSV_API, urllib.parse.quote(advisory_id, safe="")),
+                                         headers={"User-Agent": "hmailserver-mr-dependency-check"})
+        try:
+            with urllib.request.urlopen(request, timeout=60) as response:
+                return json.load(response)
+        except urllib.error.HTTPError as e:
+            if e.code == 404:
+                return None
+            raise
+
+
+def native_pins(root, ref, at_head):
+    """{library name: [the versions ref pins]} for every library of dependency-scan's
+    VENDORED, read from its file as that scan reads it. At the head a file that is not
+    there, or names no version this can read, is a ValueError: a pin that cannot be read
+    is never a clean one. At the base it pins nothing, so every version at the head is
+    asked about."""
+    pins, texts = {}, {}
+    for lib in scan.VENDORED:
+        path = lib["file"]
+        if path not in texts:
+            shown = git(root, "show", "%s:%s" % (ref, path))
+            if shown.returncode == 0:
+                texts[path] = shown.stdout.decode("utf-8", "replace")
+            elif git(root, "cat-file", "-e", "%s:%s" % (ref, path)).returncode == 0:
+                raise ValueError("git show %s:%s failed: %s" % (ref[:12], path, shown.stderr.decode("utf-8", "replace").strip()[:200]))
+            else:
+                texts[path] = None
+        text = texts[path]
+        if text is None:
+            if at_head:
+                raise ValueError("%s is not in the tree, and %s's version is read from it (build/ci/dependency-scan.py's "
+                                 "VENDORED)" % (path, lib["name"]))
+            pins[lib["name"]] = []
+            continue
+        try:
+            versions = scan.vendored_versions(lib, text)
+        except ValueError as e:
+            if at_head:
+                raise ValueError("%s cannot be read for %s's version: %s" % (path, lib["name"], e))
+            versions = []
+        if at_head and not versions:
+            raise ValueError("%s names no version of %s that build/ci/dependency-scan.py reads (%s)" % (
+                path, lib["name"], lib.get("component") or lib.get("pattern")))
+        pins[lib["name"]] = versions
+    return pins
+
+
+def native_changes(root, base, native_added):
+    """[(library of VENDORED or None, name, version, files)]: each version of a library
+    that HEAD pins and base does not, and each component a committed native list adds,
+    taken as the library of VENDORED whose purl name it has (None when it is none)."""
+    before = native_pins(root, base, False)
+    after = native_pins(root, "HEAD", True)
+    changes, seen = [], set()
+    for lib in scan.VENDORED:
+        for version in after[lib["name"]]:
+            if version not in before[lib["name"]]:
+                changes.append((lib, lib["name"], version, lib["file"]))
+                seen.add((lib["name"], version))
+    by_purl = dict((lib["purl"], lib) for lib in scan.VENDORED)
+    for key, where in native_added:
+        _, name, version = key
+        lib = by_purl.get(name.lower())
+        files = ", ".join(sorted({w[0] for w in where}))
+        if lib is not None and (lib["name"], version) in seen:
+            continue
+        if lib is not None:
+            seen.add((lib["name"], version))
+        changes.append((lib, lib["name"] if lib else where[0][1], version, files))
+    return changes
+
+
+def looked_up_rating(advisory, osv):
+    """(rating, where it came from): its own, or else the highest of its aliases'
+    records as api.osv.dev gives them."""
+    mine = own_rating(advisory)
+    if mine[0]:
+        return mine
+    best = (None, None)
+    for alias in advisory.get("aliases") or []:
+        other = osv.vuln(alias)
+        theirs = own_rating(other) if other else (None, None)
+        if theirs[0] and (best[0] is None or RANK[theirs[0]] > RANK[best[0]]):
+            best = (theirs[0], "its alias %s: %s" % (alias, theirs[1]))
+    return best
+
+
+def evaluate_native(changes, accepted, statements, osv, say, held_versions):
+    """The problems a native or vendored library's changed version holds the change on."""
+    problems = []
+    for lib, name, version, files in changes:
+        what = "%s %s (%s)" % (name, version, files)
+        if lib is None:
+            say("UNKNOWN %s: a native component that is no library of build/ci/dependency-scan.py's VENDORED, so no "
+                "upstream repository is known to ask OSV by; listed, not held" % what)
+            continue
+        if not lib.get("repo"):
+            say("UNKNOWN %s: %s; listed, not held" % (what, lib.get("coverage") or "OSV has no source for it"))
+            continue
+
+        def tag_of(v):
+            return lib["tag"].format(v=v, v_=v.replace(".", "_"))
+        tag, control = tag_of(version), tag_of(lib["control"])
+        found = osv.query(lib["repo"], tag)
+        control_found = osv.query(lib["repo"], control)
+        maybe = []
+        if lib.get("oldest_tag") and scan.version_key(version) < scan.version_key(lib["oldest_tag"]):
+            # OSV matches a version by its tag, and the repository has none this old: what
+            # affects its first tag most probably reaches back to it.
+            maybe = [v for v in osv.query(lib["repo"], tag_of(lib["oldest_tag"]))
+                     if v.get("id") not in {f.get("id") for f in found}]
+            say("        %s is older than %s's first tag, %s, which OSV cannot match: the advisories of %s are taken as "
+                "ones that may affect it (%d)" % (version, lib["repo"], lib["oldest_tag"], lib["oldest_tag"], len(maybe)))
+        if not found and not maybe:
+            if not control_found:
+                say("UNKNOWN %s: OSV names no advisory for %s, but none for the control %s either, which a published "
+                    "advisory affects: OSV has no usable data for this library%s; listed, not held" % (
+                        what, tag, control, (" (%s)" % lib["coverage"]) if lib.get("coverage") else ""))
+            else:
+                say("ok      native %s: no advisory names %s (the control %s draws %d)" % (what, tag, control, len(control_found)))
+            continue
+        sure_ids = {v.get("id") for v in found}
+        for group in alias_groups(found + maybe):
+            uncertain = not any(a.get("id") in sure_ids for a in group)
+            rated = [(looked_up_rating(a, osv), a) for a in group]
+            (level, source), advisory = max(rated, key=lambda r: (RANK.get(r[0][0], 0), r[1]["id"].startswith("CVE-")))
+            ids = sorted({advisory["id"]} | {i for a in group for i in [a["id"]] + list(a.get("aliases") or [])})
+            others = [i for i in ids if i != advisory["id"]]
+            taken = next((accepted[(i, pypi_name(lib["name"]))] for i in ids if (i, pypi_name(lib["name"])) in accepted), None)
+            fixes = sorted({str(ev["fixed"])[:12] for a in advisory.get("affected") or [] for r in a.get("ranges") or []
+                            for ev in r.get("events") or [] if "fixed" in ev})
+            line = "native %s: %s %s (%s)%s%s - %s" % (
+                what, level or "unrated", advisory["id"], ", ".join(others) or "no alias",
+                (" - fix commit %s" % ", ".join(fixes[:4])) if fixes else " - no fix",
+                (" - MAY affect it: OSV cannot match %s, and this advisory affects %s" % (version, lib["oldest_tag"]))
+                if uncertain else "",
+                (advisory.get("summary") or advisory.get("details") or "")[:140].replace("\n", " "))
+            if level in BLOCKING and not taken:
+                why = vex_dismissal(statements, ids, "generic", lib["purl"], version)
+                if why:
+                    say("DISMISSED by the base's VEX document (%s): %s" % (why, line))
+                    continue
+                problems.append(line + " [rated by %s]" % source)
+                held_versions.add(("native", lib["name"], version))
+            elif taken:
+                say("ACCEPTED until %s (%s): %s" % (taken["expires"], taken["reviewed-by"], line))
+            else:
+                say("listed  %s%s" % (line, "" if level else " [no rating in OSV's record or its aliases': not held]"))
+    return problems
+
+
 # ---------------------------------------------------------------- the verdict
 
-def evaluate(added, exceptions_text, today, loader, say=print, held_versions=None):
-    """The problems that hold the merge request, one per vulnerability of an added
-    version; held_versions, when given, collects the versions they hold. loader(ecosystem)
-    gives {id: advisory}."""
+PURL_TYPES = {"NuGet": "nuget", "PyPI": "pypi"}
+
+
+def evaluate(added, exceptions_text, today, loader, say=print, held_versions=None, statements=None, native=None, osv=None):
+    """The problems that hold the change, one per vulnerability of an added version;
+    held_versions, when given, collects the versions they hold. loader(ecosystem) gives
+    {id: advisory}; statements are the base's VEX document's (vex_statements); native
+    is native_changes', asked of osv (OsvApi's query and vuln)."""
     held_versions = set() if held_versions is None else held_versions
+    statements = statements or []
+    native = native or []
     problems = []
     entries, wrong = gate.check_exceptions(exceptions_text)
     if wrong:
@@ -741,18 +942,21 @@ def evaluate(added, exceptions_text, today, loader, say=print, held_versions=Non
     for e in in_force.get("dependency-scan", []):
         accepted[(e["finding"], pypi_name(e["package"]))] = e
 
-    if not added:
-        say("No dependency version is added: nothing to look up.")
+    if not added and not native:
+        say("No dependency version is added, and no native or vendored library's pin moves: nothing to look up.")
         return problems
+    if native:
+        problems.extend(evaluate_native(native, accepted, statements, osv or OsvApi(), say, held_versions))
+    else:
+        say("No native or vendored library's pin moves: api.osv.dev is not asked.")
     loaded, indexes = {}, {}
     for key, where in added:
         ecosystem, name, version = key
         files = ", ".join(sorted({w[0] for w in where}))
         shown = where[0][1]
-        if ecosystem == "native":
-            say("NOT CHECKED HERE  %s %s (%s): a native component; OSV has no package ecosystem for it, and the "
-                "dependency-scan job asks OSV about it by its upstream repository once it lands" % (shown, version, files))
-            continue
+        if ecosystem not in PURL_TYPES:
+            # A native list's component: main_check gives those to native_changes.
+            raise ValueError("%s %s (%s) is of no ecosystem OSV's export has" % (shown, version, files))
         if ecosystem not in loaded:
             loaded[ecosystem] = loader(ecosystem)
             indexes[ecosystem] = by_name(loaded[ecosystem], ecosystem)
@@ -786,6 +990,10 @@ def evaluate(added, exceptions_text, today, loader, say=print, held_versions=Non
                  "version list names it" % (version, ecosystem)) if maybe else "",
                 (advisory.get("summary") or advisory.get("details") or "")[:140].replace("\n", " "))
             if level in BLOCKING and not taken:
+                why = vex_dismissal(statements, ids, PURL_TYPES[ecosystem], shown, version)
+                if why:
+                    say("DISMISSED by the base's VEX document (%s): %s" % (why, line))
+                    continue
                 problems.append(line + " [rated by %s]" % source)
                 held_versions.add(key)
             elif taken:
@@ -810,15 +1018,35 @@ def alias_groups(advisories):
     return [members for _, members in groups]
 
 
-def main_check(root, base, osv_dir=None, today=None, say=print):
+def base_statements(root, base, say):
+    """The base's VEX document's statements. One the base does not have dismisses
+    nothing; one it has that cannot be read dismisses nothing either, and is said: what
+    it would have dismissed then holds the change, never the other way round."""
+    shown = git(root, "show", "%s:%s" % (base, VEX))
+    if shown.returncode != 0:
+        if git(root, "cat-file", "-e", "%s:%s" % (base, VEX)).returncode == 0:
+            raise ValueError("git show %s:%s failed" % (base[:12], VEX))
+        return []
+    try:
+        return vex_statements(shown.stdout.decode("utf-8"))
+    except (ValueError, UnicodeDecodeError) as e:
+        say("The base's %s cannot be read (%s): it dismisses nothing here." % (VEX, e))
+        return []
+
+
+def main_check(root, base, osv_dir=None, today=None, say=print, osv=None):
     if not re.match(r"^[0-9a-f]{7,64}$", base or ""):
-        say("CANNOT CHECK: no base commit (%r): give the merge request's CI_MERGE_REQUEST_DIFF_BASE_SHA" % base)
+        say("CANNOT CHECK: no base commit (%r): give --base auto, or the merge request's CI_MERGE_REQUEST_DIFF_BASE_SHA" % base)
         return 2
     if git(root, "cat-file", "-e", base + "^{commit}").returncode != 0:
         say("CANNOT CHECK: the base commit %s is not in this clone: the job needs the history (GIT_DEPTH 0)" % base)
         return 2
     try:
         added = added_dependencies(root, base)
+        # A committed native component list's entries are native libraries' pins.
+        native = native_changes(root, base, [a for a in added if a[0][0] not in PURL_TYPES])
+        added = [a for a in added if a[0][0] in PURL_TYPES]
+        statements = base_statements(root, base, say)
     except ValueError as e:
         say("CANNOT CHECK: %s" % e)
         return 2
@@ -827,7 +1055,8 @@ def main_check(root, base, osv_dir=None, today=None, say=print):
     today = today or datetime.datetime.now(datetime.timezone.utc).date()
     held_versions = set()
     try:
-        problems = evaluate(added, exceptions_text, today, lambda e: load_ecosystem(e, osv_dir), say, held_versions)
+        problems = evaluate(added, exceptions_text, today, lambda e: load_ecosystem(e, osv_dir), say, held_versions,
+                            statements, native, osv)
     except (OSError, ValueError, zipfile.BadZipFile, http.client.HTTPException) as e:
         say("CANNOT CHECK: OSV's advisories could not be read (%s): no answer is not a clean answer; retry the job" % e)
         return 2
@@ -836,13 +1065,15 @@ def main_check(root, base, osv_dir=None, today=None, say=print):
     if problems:
         advisories = sum(1 for p in problems if " [rated by " in p)
         other = len(problems) - advisories
-        say("This merge request is held: %d added dependency version(s) with %d Critical or High advisory(ies) between "
-            "them%s. Take a version no such advisory affects, or have the advisory accepted for the package in %s by a "
-            "merge request of its own, landed first (SECURITY.md, 'Before a release')." % (
+        say("This change is held: %d added dependency version(s) with %d Critical or High advisory(ies) between "
+            "them%s. Take a version no such advisory affects, or have the advisory declared not exploitable - accepted "
+            "for the package in %s, or not_affected for it at that version in %s - by a merge request of its own, "
+            "landed first (SECURITY.md, 'Vulnerability management policy')." % (
                 len(held_versions), advisories,
-                (", and %d problem(s) with the base's exceptions file" % other) if other else "", EXCEPTIONS))
+                (", and %d problem(s) with the base's exceptions file" % other) if other else "", EXCEPTIONS, VEX))
         return 1
-    say("No added dependency version has a Critical or High advisory that the base's %s does not accept." % EXCEPTIONS)
+    say("No added dependency version has a Critical or High advisory that the base's %s or %s does not accept."
+        % (EXCEPTIONS, VEX))
     return 0
 
 
@@ -1002,15 +1233,82 @@ def self_test():
             return "# pinned\n" + "".join("%s==%s \\\n    --hash=sha256:%s\n" % (n.replace("_", "-"), v, "0" * 64)
                                           for n, v in packages.items())
 
+        # The native and vendored libraries' files, as the tree pins them, by the paths
+        # dependency-scan's VENDORED reads: changed below, one version at a time.
+        libs = dict((lib["purl"], lib) for lib in scan.VENDORED)
+
+        def natives(openssl="4.0.3", openssl_arm64=None, boost="1_92_0", zlib="1.3.2", quickjs="2026-06-04",
+                    mariadb="3.4.9", sevenzip="26.03", sqlce="4.0 SP1 (MSI built 2012-04-06)"):
+            project = ("<I>$(hMailServerLibs)\\boost_%s;$(hMailServerLibs)\\openssl-%s\\out64\\include;"
+                       "$(hMailServerLibs)\\postgresql-18.6\\src\\interfaces\\libpq</I>\n"
+                       "<I>$(hMailServerLibs)\\openssl-%s-arm64\\out64\\include</I>\n" % (boost, openssl, openssl_arm64 or openssl))
+            binaries = json.dumps({"artifacts": [
+                {"component": "MariaDB Connector/C", "version": mariadb, "path": "libmysql.dll"},
+                {"component": "MariaDB Connector/C", "version": mariadb, "path": "plugin/dialog.dll"},
+                {"component": "7-Zip standalone console (7za.exe)", "version": sevenzip},
+                {"component": "Microsoft SQL Server Compact 4.0 SP1 x64 ENU", "version": sqlce}]}, indent=2)
+            return {libs["openssl"]["file"]: project, libs["zlib"]["file"]: '#define ZLIB_VERSION "%s"\n' % zlib,
+                    libs["quickjs"]["file"]: quickjs + "\n", libs["7-zip"]["file"]: binaries}
+
+        def vex(*statements):
+            return json.dumps({"@context": "https://openvex.dev/ns/v0.2.0", "statements": [
+                {"vulnerability": {"name": name, "aliases": list(aliases)}, "products": [{"@id": p} for p in products],
+                 "status": "not_affected", "justification": "vulnerable_code_not_present"}
+                for name, aliases, products in statements]}, indent=2)
+
         empty = "exceptions: []\n"
-        base = commit({"tools/A/packages.lock.json": lock(Foo_Bar="2.0.0"), "build/requirements.txt": requirements(requests="2.0.1"),
-                       EXCEPTIONS: empty}, "base")
+        files = {"tools/A/packages.lock.json": lock(Foo_Bar="2.0.0"), "build/requirements.txt": requirements(requests="2.0.1"),
+                 EXCEPTIONS: empty}
+        files.update(natives())
+        base = commit(files, "base")
+
+        # api.osv.dev, as OsvApi asks it: by a repository's tag, and one record by id.
+        def native_record(id, vector=None, aliases=(), summary=None):
+            record = {"id": id, "aliases": list(aliases), "summary": summary or "%s in a native library" % id,
+                      "affected": [{"ranges": [{"type": "GIT", "repo": "r", "events": [{"introduced": "0"},
+                                                                                        {"fixed": "f" * 40}]}]}]}
+            if vector:
+                record["severity"] = [{"type": "CVSS_V4" if vector.startswith("CVSS:4.0/") else "CVSS_V3", "score": vector}]
+            return record
+
+        critical = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+        local_high = "CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H"
+        medium = "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N"
+
+        def answer(purl, tag, *records):
+            return ((libs[purl]["repo"], tag), list(records))
+        answers = dict([
+            answer("zlib", "v1.2.11", native_record("CVE-2022-37434", critical, summary="inflateGetHeader heap overflow")),
+            answer("zlib", "v1.3", native_record("CVE-2026-27171", medium)),
+            answer("openssl", "openssl-4.0.0", native_record("CVE-2026-1", medium)),
+            answer("boost", "boost-1.93.0", native_record("OSV-2026-9", aliases=["CVE-2026-9999"])),
+            answer("boost", "boost-1.90.0", native_record("OSV-2026-8")),
+            answer("mariadb-connector-c", "v3.4.10", native_record("CVE-2026-4", medium)),
+            answer("mariadb-connector-c", "v3.1.7", native_record("CVE-2020-1", critical)),
+            answer("7-zip", "22.01", native_record("CVE-2023-31102", local_high)),
+            answer("7-zip", "24.08", native_record("CVE-2024-11477", local_high))])
+
+        class FakeOsv(object):
+            def __init__(self, broken=False):
+                self.broken, self.asked = broken, []
+
+            def query(self, repo, tag):
+                self.asked.append((repo, tag))
+                if self.broken:
+                    raise OSError("api.osv.dev cannot be reached")
+                return [dict(r) for r in answers.get((repo, tag), [])]
+
+            def vuln(self, advisory_id):
+                self.asked.append(("vuln", advisory_id))
+                return {"CVE-2026-9999": native_record("CVE-2026-9999", local_high)}.get(advisory_id)
 
         said = []
+        fake = [FakeOsv()]
 
-        def verdict(base_commit, loader_dir=osv_dir):
+        def verdict(base_commit, loader_dir=osv_dir, osv=None):
             del said[:]
-            return main_check(repo, base_commit, loader_dir, datetime.date(2026, 10, 1), say=said.append)
+            fake[0] = osv or FakeOsv()
+            return main_check(repo, base_commit, loader_dir, datetime.date(2026, 10, 1), say=said.append, osv=fake[0])
 
         def reset(to):
             subprocess.run(["git", "-C", repo, "reset", "-q", "--hard", to], check=True, capture_output=True)
@@ -1074,11 +1372,112 @@ def self_test():
         expect(verdict(accepted_base) == 0 and any(s.startswith("ACCEPTED") for s in said),
                "an advisory the base accepts for the package passes: %s" % said)
         reset(base)
-        commit({"tools/A/packages.lock.json": lock(Foo_Bar="1.5.0"),
-                "tools/A/native-dependencies-arm64.json": json.dumps([{"name": "OpenSSL", "version": "4.0.2"}])},
-               "a native list and a downgrade")
-        expect(verdict(base) == 1 and any(s.startswith("NOT CHECKED HERE  OpenSSL 4.0.2") for s in said),
-               "a native component is named as not checked here: %s" % said)
+        commit({"docs/readme.txt": "nothing\n"}, "nothing native moves")
+        expect(verdict(base) == 0 and fake[0].asked == [], "a change that moves no native pin does not ask api.osv.dev: %s"
+               % fake[0].asked)
+
+        # The native and vendored libraries.
+        reset(base)
+        commit(natives(zlib="1.2.11"), "zlib back to 1.2.11")
+        expect(verdict(base) == 1 and any("native zlib 1.2.11" in s and "CVE-2022-37434" in s for s in said
+                                          if s.startswith("HELD")),
+               "a vendored zlib moved to a version with a Critical advisory is held (fixture 3): %s" % said)
+        expect(("https://github.com/madler/zlib", "v1.2.11") in fake[0].asked and ("https://github.com/madler/zlib", "v1.3")
+               in fake[0].asked, "OSV is asked by zlib's tag, and its control beside it: %s" % fake[0].asked)
+        reset(base)
+        commit(natives(zlib="1.2.11"), "zlib back to 1.2.11")
+        commit({VEX: vex(("CVE-2022-37434", (), ["pkg:generic/zlib@1.2.11"]))}, "its own declaration")
+        expect(verdict(base) == 1, "a change whose own VEX document dismisses its advisory is still held: %s" % said)
+        reset(base)
+        declared = commit({VEX: vex(("CVE-2022-37434", (), ["pkg:generic/zlib@1.2.11"]))}, "the declaration, landed first")
+        commit(natives(zlib="1.2.11"), "zlib back to 1.2.11")
+        expect(verdict(declared) == 0 and any(s.startswith("DISMISSED") and "CVE-2022-37434" in s for s in said),
+               "an advisory the base's VEX document says zlib 1.2.11 is not affected by passes: %s" % said)
+        reset(base)
+        other = commit({VEX: vex(("CVE-2022-37434", (), ["pkg:generic/zlib@1.2.12"]))}, "a declaration for another version")
+        commit(natives(zlib="1.2.11"), "zlib back to 1.2.11")
+        expect(verdict(other) == 1, "a VEX statement for zlib 1.2.12 does not dismiss the advisory for 1.2.11: %s" % said)
+        reset(base)
+        zlib_exception = accepting.replace("GHSA-aaaa-aaaa-aaaa", "CVE-2022-37434").replace("package: Foo.Bar", "package: zlib")
+        excepted = commit({EXCEPTIONS: zlib_exception}, "an exception for zlib, landed first")
+        commit(natives(zlib="1.2.11"), "zlib back to 1.2.11")
+        expect(verdict(excepted) == 0 and any(s.startswith("ACCEPTED") and "CVE-2022-37434" in s for s in said),
+               "an advisory the base's exceptions accept for the library by its dependency-scan name passes: %s" % said)
+        reset(base)
+        commit(natives(openssl="4.0.3", openssl_arm64="4.0.4"), "OpenSSL 4.0.4 for ARM64 alone")
+        expect(verdict(base) == 0 and any(s.startswith("ok      native OpenSSL 4.0.4") for s in said),
+               "a version a project file names once among others is asked about, and passes with no advisory: %s" % said)
+        reset(base)
+        commit(natives(quickjs="2026-09-01"), "a QuickJS OSV knows nothing of")
+        expect(verdict(base) == 0 and any(s.startswith("UNKNOWN QuickJS 2026-09-01") for s in said),
+               "a library OSV has no data for, not even for its control, is UNKNOWN: listed, not held: %s" % said)
+        reset(base)
+        commit(natives(sqlce="4.1"), "another SQL Server Compact")
+        expect(verdict(base) == 0 and any(s.startswith("UNKNOWN SQL Server Compact 4.0 4.1") for s in said),
+               "a library with no repository OSV knows is UNKNOWN: listed, not held: %s" % said)
+        reset(base)
+        commit(natives(sevenzip="21.07"), "a 7-Zip older than its repository's first tag")
+        expect(verdict(base) == 1 and any("CVE-2023-31102" in s and "MAY affect" in s for s in said if s.startswith("HELD")),
+               "a version older than the first tag is held by that tag's High advisories, as ones that may affect it: %s"
+               % said)
+        reset(base)
+        commit(natives(boost="1_93_0"), "a Boost whose advisory is rated by its alias")
+        expect(verdict(base) == 1 and any("OSV-2026-9" in s and "its alias CVE-2026-9999" in s for s in said
+                                          if s.startswith("HELD")),
+               "an unrated native advisory takes its alias's rating, read from api.osv.dev: %s" % said)
+        reset(base)
+        commit(natives(mariadb="3.4.10"), "a Connector/C with a Medium advisory")
+        expect(verdict(base) == 0 and any(s.startswith("listed  native MariaDB Connector/C 3.4.10") for s in said),
+               "a Medium native advisory is listed, not held: %s" % said)
+        reset(base)
+        commit(natives(zlib="1.2.11"), "zlib back to 1.2.11")
+        expect(verdict(base, osv=FakeOsv(broken=True)) == 2, "api.osv.dev that cannot be asked is never a pass: %s" % said)
+        reset(base)
+        commit({libs["zlib"]["file"]: None}, "zlib.h gone")
+        expect(verdict(base) == 2, "a pinned library's file that is not there is never a pass: %s" % said)
+        reset(base)
+        commit({libs["zlib"]["file"]: "/* no version */\n"}, "zlib.h without its version")
+        expect(verdict(base) == 2, "a pin that cannot be read is never a pass: %s" % said)
+        reset(base)
+        commit({"tools/A/native-dependencies-arm64.json": json.dumps([{"name": "zlib", "version": "1.2.11"},
+                                                                      {"name": "libfoo", "version": "1.0"}])},
+               "a native component list")
+        expect(verdict(base) == 1 and any("native zlib 1.2.11" in s for s in said if s.startswith("HELD"))
+               and any(s.startswith("UNKNOWN libfoo 1.0") for s in said),
+               "a native list's component is asked about as the library of VENDORED with its purl name, and one that is "
+               "none is listed: %s" % said)
+
+        # The base's VEX document for the package ecosystems: pkg:nuget and pkg:pypi.
+        reset(base)
+        dismissing = commit({VEX: vex(("GHSA-aaaa-aaaa-aaaa", (), ["pkg:nuget/foo.bar@1.5.0"]))}, "a NuGet declaration")
+        commit({"tools/B/packages.lock.json": lock(Foo_Bar="1.5.0")}, "the version it declares")
+        expect(verdict(dismissing) == 0 and any(s.startswith("DISMISSED") for s in said),
+               "an added NuGet version the base's VEX document dismisses by purl passes, the name without case: %s" % said)
+        reset(base)
+        elsewhere = commit({VEX: vex(("GHSA-aaaa-aaaa-aaaa", (), ["pkg:nuget/Foo.Bar@1.4.0"]))}, "a declaration for 1.4.0")
+        commit({"tools/B/packages.lock.json": lock(Foo_Bar="1.5.0")}, "1.5.0")
+        expect(verdict(elsewhere) == 1, "a NuGet declaration for another version dismisses nothing: %s" % said)
+        reset(base)
+        python = commit({VEX: vex(("CVE-2026-0404", ("GHSA-cccc-cccc-cccc",), ["pkg:pypi/Requests@2.0"]))},
+                        "a PyPI declaration by an alias")
+        commit({"build/requirements.txt": requirements(requests="2.0.0")}, "requests 2.0.0")
+        expect(verdict(python) == 0 and any(s.startswith("DISMISSED") for s in said),
+               "a PyPI declaration matches by alias, PEP 503's name and PEP 440's version: %s" % said)
+        reset(base)
+        broken_vex = commit({VEX: "{ not json"}, "a VEX document that cannot be read")
+        commit({"build/requirements.txt": requirements(requests="2.0.0")}, "requests 2.0.0")
+        expect(verdict(broken_vex) == 1 and any("cannot be read" in s for s in said),
+               "a base VEX document that cannot be read dismisses nothing, and says so: %s" % said)
+        statements = vex_statements(json.dumps({"statements": [
+            {"vulnerability": {"name": "CVE-1"}, "status": "not_affected",
+             "products": [{"@id": "pkg:generic/hmailserver@6.3.6", "subcomponents": [{"@id": "pkg:generic/zlib@1.3.2?arch=x64"}]}]},
+            {"vulnerability": {"name": "CVE-2"}, "status": "under_investigation", "products": ["pkg:generic/zlib@1.3.2"]}]}))
+        expect(vex_dismissal(statements, ["CVE-1"], "generic", "zlib", "1.3.2"),
+               "a product's subcomponent is matched, its purl's qualifiers aside")
+        expect(vex_dismissal(statements, ["CVE-2"], "generic", "zlib", "1.3.2") is None, "under_investigation dismisses nothing")
+        expect(parse_purl("pkg:nuget/Foo%2EBar@1.0") == ("nuget", "Foo.Bar", "1.0") and parse_purl("zlib@1.3.2") is None,
+               "a purl is read with its percent-escapes, and what is not one is not")
+
         expect(verdict("") == 2 and verdict("0" * 40) == 2, "a base that is not given, or not in the clone, cannot be checked")
         config = '<?xml version="1.0"?>\n<packages>\n  <package id="Foo.Bar" version="1.9.9" targetFramework="net48" />\n</packages>\n'
         reset(base)
@@ -1092,8 +1491,8 @@ def self_test():
             expect(lock_kind(path) == "pip", "%s is a pinned PyPI requirements file" % path)
         for path in ("build/ci/cli-packages-requirements.in", "docs/requirements-notes.md"):
             expect(lock_kind(path) is None, "%s is not a lock file" % path)
-        # And every lock file of the tree is one this reads, so the job's rules:changes
-        # (.gitlab/ci/mr-checks.yml) and this agree on what a lock file is.
+        # And every lock file of the tree is one this reads: the job runs on every change,
+        # and a lock file this does not know would pass unread.
         listed = git(ROOT, "ls-files", "-z")
         if listed.returncode == 0:
             names = [p.decode("utf-8", "surrogateescape") for p in listed.stdout.split(b"\0") if p]
@@ -1117,7 +1516,8 @@ def self_test():
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    parser.add_argument("--base", help="the merge request's base commit (CI_MERGE_REQUEST_DIFF_BASE_SHA)")
+    parser.add_argument("--base", help="the change's base commit, or 'auto': build/ci/security-gate.py's change_base "
+                                       "(CI_MERGE_REQUEST_DIFF_BASE_SHA, else where HEAD leaves master)")
     parser.add_argument("--osv-dir", help="read <ecosystem>.zip from here instead of OSV's export")
     parser.add_argument("--today", help="the date exceptions are judged by (YYYY-MM-DD; default today, UTC)")
     parser.add_argument("--self-test", action="store_true")
@@ -1130,7 +1530,14 @@ def main():
         if not today:
             print("--today is not a date: %s" % args.today)
             return 2
-    return main_check(ROOT, args.base or "", args.osv_dir, today)
+    base = args.base or ""
+    if base == "auto":
+        base, how, problem = gate.change_base(ROOT)
+        if problem:
+            print("CANNOT CHECK: " + problem)
+            return 2
+        print("The base: %s, %s." % (base, how))
+    return main_check(ROOT, base, args.osv_dir, today)
 
 
 if __name__ == "__main__":
