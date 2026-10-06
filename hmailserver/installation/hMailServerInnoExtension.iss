@@ -284,6 +284,21 @@ const
 	// Reading a file or listing a folder, or GENERIC_ALL unmapped
 	// (EveryUserMayRead).
 	HM_FOLDER_READ_RIGHTS       = $10000001;
+	// For hardening a program folder that was there before a Control Panel
+	// installation (HardenExistingProgramFolders): a folder held open with
+	// FILE_READ_ATTRIBUTES, shared for reading and writing but not for deleting
+	// (FILE_SHARE_READ | FILE_SHARE_WRITE), OPEN_EXISTING, and
+	// FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT, so that a link is
+	// opened itself, not followed; FILE_ATTRIBUTE_REPARSE_POINT; the owner alone
+	// (OWNER_SECURITY_INFORMATION); and the owner with a list that inherits nothing
+	// (OWNER_ | DACL_ | PROTECTED_DACL_SECURITY_INFORMATION).
+	HM_READ_ATTRIBUTES          = $80;
+	HM_SHARE_ALL_BUT_DELETE     = $3;
+	HM_OPEN_EXISTING            = 3;
+	HM_HOLD_FOLDER_FLAGS        = $02200000;
+	HM_REPARSE_POINT            = $400;
+	HM_OWNER_INFORMATION        = 1;
+	HM_OWNER_AND_PROTECTED_DACL = $80000005;
 
   // Every dialog in this script is a SuppressibleMsgBox, and the reason is the
 // 6.2.19 release: the database setup failed on a clean machine, the failure
@@ -375,6 +390,35 @@ function SidsAreEqual(Sid1: cardinal; Sid2: cardinal): Boolean;
 external 'EqualSid@advapi32.dll stdcall';
 function FreeWindowsMemory(hMem: cardinal): cardinal;
 external 'LocalFree@kernel32.dll stdcall';
+
+// A program folder that was there before a Control Panel installation, hardened in
+// place (HardenExistingProgramFolders): CreateFileW to hold each folder from the
+// drive's root down while it is looked at and changed, CloseHandle to let it go -
+// as Integer, so that INVALID_HANDLE_VALUE reads -1 - GetFileAttributesW to know a
+// link, GetNamedSecurityInfoW for the owner, and ConvertStringSecurityDescriptorToSecurityDescriptorW,
+// GetSecurityDescriptorDacl, GetSecurityDescriptorOwner and SetNamedSecurityInfoW
+// to give a folder a user owned a new owner and list. BOOL out parameters are
+// cardinals, which is their width. Named apart from the API for the reason
+// SetProcessEnvironmentVariable is.
+function HoldFolder(lpFileName: String; dwDesiredAccess: cardinal; dwShareMode: cardinal; lpSecurityAttributes: cardinal;
+                    dwCreationDisposition: cardinal; dwFlagsAndAttributes: cardinal; hTemplateFile: cardinal): Integer;
+external 'CreateFileW@kernel32.dll stdcall';
+function ReleaseFolder(hObject: Integer): Boolean;
+external 'CloseHandle@kernel32.dll stdcall';
+function FolderAttributes(lpFileName: String): cardinal;
+external 'GetFileAttributesW@kernel32.dll stdcall';
+function ReadFolderOwner(pObjectName: String; ObjectType: cardinal; SecurityInfo: cardinal; var ppsidOwner: cardinal; ppsidGroup: cardinal;
+                         ppDacl: cardinal; ppSacl: cardinal; var ppSecurityDescriptor: cardinal): cardinal;
+external 'GetNamedSecurityInfoW@advapi32.dll stdcall';
+function SecurityDescriptorOfText(StringSecurityDescriptor: String; StringSDRevision: cardinal; var SecurityDescriptor: cardinal; SecurityDescriptorSize: cardinal): Boolean;
+external 'ConvertStringSecurityDescriptorToSecurityDescriptorW@advapi32.dll stdcall';
+function DaclOfDescriptor(pSecurityDescriptor: cardinal; var lpbDaclPresent: cardinal; var pDacl: cardinal; var lpbDaclDefaulted: cardinal): Boolean;
+external 'GetSecurityDescriptorDacl@advapi32.dll stdcall';
+function OwnerOfDescriptor(pSecurityDescriptor: cardinal; var pOwner: cardinal; var lpbOwnerDefaulted: cardinal): Boolean;
+external 'GetSecurityDescriptorOwner@advapi32.dll stdcall';
+function WriteFolderSecurity(pObjectName: String; ObjectType: cardinal; SecurityInfo: cardinal; psidOwner: cardinal; psidGroup: cardinal;
+                             pDacl: cardinal; pSacl: cardinal): cardinal;
+external 'SetNamedSecurityInfoW@advapi32.dll stdcall';
 
 // The groups that hold every user of the computer, as SIDs - Everyone,
 // Authenticated Users, Users and the rest of ServiceAccount.cpp's BroadSids_ that a
@@ -625,6 +669,260 @@ begin
       Log('icacls gave the new program folder ' + szFolder + ' its permissions - SYSTEM and the Administrators full control, ' + szSaid + ', nothing inherited - before the files, and returned ' + IntToStr(ResultCode) + '.')
    else
       Log('icacls could not be run to give the new program folder ' + szFolder + ' its permissions before the files: ' + SysErrorMessage(ResultCode) + '. hMailServer.exe /ProtectFolders gives them after the files.');
+end;
+
+// Whether the owner of Folder is SYSTEM, the Administrators or TrustedInstaller -
+// ServiceAccount.cpp's IsTrustedWriter_, which ServiceAccount::Harden asks of a
+// program folder: any other owner may change the permissions again, whatever they
+// say. Known is false when the owner cannot be read.
+function FolderOwnerIsTrusted(Folder: String; var Known: Boolean): Boolean;
+var
+   szSid: String;
+   pOwner: cardinal;
+   pDescriptor: cardinal;
+   pTrusted: cardinal;
+   index: Integer;
+begin
+   Result := false;
+   Known := false;
+   pOwner := 0;
+   pDescriptor := 0;
+   if ReadFolderOwner(Folder, HM_FILE_OBJECT, HM_OWNER_INFORMATION, pOwner, 0, 0, 0, pDescriptor) <> 0 then
+      Exit;
+
+   Known := pOwner <> 0;
+   index := 0;
+   while Known and (not Result) and (index < 3) do
+   begin
+      szSid := 'S-1-5-80-956008885-3418522649-1831038044-1853292631-2271478464';
+      if index = 0 then
+         szSid := 'S-1-5-18'
+      else if index = 1 then
+         szSid := 'S-1-5-32-544';
+      pTrusted := 0;
+      if SidOfText(szSid, pTrusted) then
+      begin
+         if SidsAreEqual(pOwner, pTrusted) then
+            Result := true;
+         FreeWindowsMemory(pTrusted);
+      end;
+      index := index + 1;
+   end;
+
+   FreeWindowsMemory(pDescriptor);
+end;
+
+// Folder held open for HardenExistingProgramFolders, or -1, with Why, when it
+// cannot be or is a link: opened as itself, not followed, shared for reading and
+// writing but not for deleting - so that nobody can rename it, or put a link in its
+// place, until it is let go - and then its attributes read by its path, which names
+// the folder held.
+function HoldProgramFolder(Folder: String; var Why: String): Integer;
+var
+   attributes: cardinal;
+begin
+   Why := '';
+   Result := HoldFolder(Folder, HM_READ_ATTRIBUTES, HM_SHARE_ALL_BUT_DELETE, 0, HM_OPEN_EXISTING, HM_HOLD_FOLDER_FLAGS, 0);
+   if Result = -1 then
+   begin
+      Why := Folder + ' could not be held open (Windows error ' + IntToStr(DLLGetLastError()) + ')';
+      Exit;
+   end;
+
+   // INVALID_FILE_ATTRIBUTES has every bit set, the link's among them.
+   attributes := FolderAttributes(Folder);
+   if (attributes and HM_REPARSE_POINT) <> 0 then
+   begin
+      ReleaseFolder(Result);
+      Result := -1;
+      Why := Folder + ' is a link - a junction, a symbolic link or a mount point - or its attributes cannot be read';
+   end;
+end;
+
+// One folder of an installation of the Control Panel, there before it, hardened in
+// place while it is held (HardenExistingProgramFolders), as ServiceAccount::Harden
+// hardens a server's: SYSTEM and the Administrators full control and BUILTIN\Users
+// Read & execute where every user could read it before (EveryUserMayRead), handed
+// down, and nothing inherited. Owned by SYSTEM, the Administrators or
+// TrustedInstaller, it keeps the entries of its own, as Harden keeps them - icacls
+// on the SIDs. Owned by anybody else - a user who made the folder at a drive's root
+// before the installation - it is given the Administrators as owner and a list of
+// those entries alone, as Harden drops the entries of its own that let anybody else
+// change it: that owner could have written them, and could change the permissions
+// again. True when it was hardened.
+function HardenHeldFolder(Folder: String): Boolean;
+var
+   ResultCode: Integer;
+   bKnown: Boolean;
+   szUsers: String;
+   szSaid: String;
+   szDescriptor: String;
+   pDescriptor: cardinal;
+   pDacl: cardinal;
+   pOwner: cardinal;
+   present: cardinal;
+   defaulted: cardinal;
+   written: cardinal;
+begin
+   Result := false;
+   szUsers := '';
+   szDescriptor := 'O:BAD:PAI(A;OICI;FA;;;SY)(A;OICI;FA;;;BA)';
+   szSaid := 'no entry for Users, as no user could read it';
+   if EveryUserMayRead(Folder) then
+   begin
+      szUsers := ' *S-1-5-32-545:(OI)(CI)RX';
+      szDescriptor := szDescriptor + '(A;OICI;0x1200a9;;;BU)';
+      szSaid := 'Users Read & execute';
+   end;
+
+   if FolderOwnerIsTrusted(Folder, bKnown) then
+   begin
+      if Exec(ExpandConstant('{sys}\icacls.exe'), '"' + Folder + '" /inheritance:r /grant:r *S-1-5-18:(OI)(CI)F *S-1-5-32-544:(OI)(CI)F' + szUsers,
+              '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then
+      begin
+         Result := ResultCode = 0;
+         Log('icacls hardened ' + Folder + ' - SYSTEM and the Administrators full control, ' + szSaid + ', nothing inherited, the entries of its own kept - and returned ' + IntToStr(ResultCode) + '.');
+      end
+      else
+         Log('icacls could not be run to harden ' + Folder + ': ' + SysErrorMessage(ResultCode) + '.');
+      Exit;
+   end;
+
+   if not bKnown then
+   begin
+      Log('The owner of ' + Folder + ' could not be read, so its permissions were not changed.');
+      Exit;
+   end;
+
+   pDescriptor := 0;
+   if not SecurityDescriptorOfText(szDescriptor, 1, pDescriptor, 0) then
+   begin
+      Log('The permissions for ' + Folder + ' could not be made (Windows error ' + IntToStr(DLLGetLastError()) + '), so they were not changed.');
+      Exit;
+   end;
+
+   pDacl := 0;
+   pOwner := 0;
+   present := 0;
+   defaulted := 0;
+   if DaclOfDescriptor(pDescriptor, present, pDacl, defaulted) and OwnerOfDescriptor(pDescriptor, pOwner, defaulted) and (pDacl <> 0) and (pOwner <> 0) then
+   begin
+      written := WriteFolderSecurity(Folder, HM_FILE_OBJECT, HM_OWNER_AND_PROTECTED_DACL, pOwner, 0, pDacl, 0);
+      Result := written = 0;
+      if Result then
+         Log(Folder + ' was owned by an account other than SYSTEM, the Administrators or TrustedInstaller, who could have changed what is in it and its permissions again: ' +
+             'it is now the Administrators'', with SYSTEM and the Administrators full control, ' + szSaid + ', nothing inherited, and no entry of its own besides.')
+      else
+         Log('The permissions of ' + Folder + ', owned by an account other than SYSTEM, the Administrators or TrustedInstaller, could not be written (Windows error ' + IntToStr(written) + '), so they are as they were.');
+   end
+   else
+      Log('The permissions made for ' + Folder + ' could not be read back, so they were not changed.');
+
+   FreeWindowsMemory(pDescriptor);
+end;
+
+// The program folder of an installation of the Control Panel without the server
+// (the controlpanel component, with or without admintools) when the folder was there
+// before it: hardened at ssInstall, before the files, as a server installation's is
+// by hMailServer.exe /ProtectFolders after its files, and a folder this installation
+// makes by HardenNewProgramFolder before them. Such an installation has no server,
+// so no /ProtectFolders runs, and a Control Panel installed into a folder an
+// administrator had made at a drive's root kept the Authenticated Users' Modify that
+// folder inherited on hMailCP.exe and the libraries beside it, which the
+// administrators run. The program folder, then ControlPanel and Bin where they are
+// there - each may have permissions of its own that the program folder's do not
+// reach - each by HardenHeldFolder. Left as it is, and said in the setup log:
+//   - a drive's root, as HardenNewProgramFolder leaves one;
+//   - a folder that holds a server installation - Data, or Bin\hMailServer.INI -
+//     which that installation's /ProtectFolders hardens once it has made Data and
+//     the rest private, so that the program folder's change is not handed down
+//     through the message store;
+//   - a folder that is a link - a junction, a symbolic link, a mount point - or is
+//     in one, or that cannot be held: its permissions would be written wherever the
+//     link leads.
+// Every folder from the one below the drive's root down to the one being hardened is
+// held (HoldProgramFolder) from before it is looked at until after it is changed:
+// at a drive's root on a Windows client any user may rename a folder that inherits
+// Authenticated Users' Modify, and put a link in its place.
+procedure HardenExistingProgramFolders();
+var
+   held: array of Integer;
+   chain: array of String;
+   szApp: String;
+   szPath: String;
+   szParent: String;
+   szSub: String;
+   szWhy: String;
+   handle: Integer;
+   count: Integer;
+   index: Integer;
+   bDone: Boolean;
+begin
+   szApp := RemoveBackslashUnlessRoot(ExpandConstant('{app}'));
+   if g_bProgramFolderNew or IsComponentSelected('server') or (Length(szApp) <= 3) or (not DirExists(szApp)) then
+      Exit;
+   if DirExists(AddBackslash(szApp) + 'Data') or FileExists(AddBackslash(szApp) + 'Bin\hMailServer.INI') then
+   begin
+      Log('The program folder ' + szApp + ' holds a server installation, so this installation of the Control Panel alone does not change its permissions: ' +
+          'hMailServer.exe /ProtectFolders, run as an administrator from its Bin folder, hardens it.');
+      Exit;
+   end;
+
+   // The folders from the program folder up to the one below the drive's root.
+   count := 0;
+   szPath := szApp;
+   bDone := false;
+   while not bDone do
+   begin
+      SetArrayLength(chain, count + 1);
+      chain[count] := szPath;
+      count := count + 1;
+      szParent := ExtractFileDir(szPath);
+      bDone := (szParent = '') or (CompareText(szParent, szPath) = 0) or (Length(szParent) <= 3);
+      szPath := szParent;
+   end;
+
+   // Held from the top down, each looked at once it is held.
+   SetArrayLength(held, 0);
+   szWhy := '';
+   index := count - 1;
+   while (szWhy = '') and (index >= 0) do
+   begin
+      handle := HoldProgramFolder(chain[index], szWhy);
+      if handle <> -1 then
+      begin
+         SetArrayLength(held, GetArrayLength(held) + 1);
+         held[GetArrayLength(held) - 1] := handle;
+      end;
+      index := index - 1;
+   end;
+
+   if szWhy <> '' then
+      Log('The program folder ' + szApp + ' was not hardened: ' + szWhy + '. Its permissions are as they were; docs/ServiceAccount.md gives the icacls lines that harden it by hand.')
+   else
+   begin
+      HardenHeldFolder(szApp);
+      for index := 0 to 1 do
+      begin
+         szSub := AddBackslash(szApp) + 'ControlPanel';
+         if index = 1 then
+            szSub := AddBackslash(szApp) + 'Bin';
+         if DirExists(szSub) then
+         begin
+            handle := HoldProgramFolder(szSub, szWhy);
+            if handle = -1 then
+               Log(szSub + ' was not hardened: ' + szWhy + '. Its permissions are as they were.')
+            else
+            begin
+               HardenHeldFolder(szSub);
+               ReleaseFolder(handle);
+            end;
+         end;
+      end;
+   end;
+
+   for index := 0 to GetArrayLength(held) - 1 do
+      ReleaseFolder(held[index]);
 end;
 
 // UpdateApplyToken's form: 64 lowercase hexadecimal characters.
@@ -3953,6 +4251,11 @@ begin
 	   // upgrade (CheckProgramFolderPermissions).
 	   g_bProgramFolderNew := not DirExists(ExpandConstant('{app}'));
 	   CheckProgramFolderPermissions(ExpandConstant('{app}'), false);
+
+	   // An installation of the Control Panel without the server, into a folder
+	   // that was there: hardened now, before the files, since no /ProtectFolders
+	   // follows them (HardenExistingProgramFolders).
+	   HardenExistingProgramFolders();
 
 	   // Whether the database is new, asked of the settings file before the
 	   // installation writes one, and of the mark an unfinished new installation

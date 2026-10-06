@@ -35,6 +35,13 @@
 #   --allow-unsigned    an installer with no signature is a SKIP, not a FAIL
 #   --keep-vm           leave the VM as the run left it, for a look at a failure; the
 #                       next run reverts it anyway
+#   --install-directory DIR
+#                       FIRST installed into DIR on the VM (installer-smoke.ps1
+#                       -InstallDirectory, /DIR=) rather than Program Files; SECOND
+#                       keeps it. Forward slashes travel best: C:/hMailServer
+#   --weak-parent       the folder DIR is made in given Authenticated Users' Modify
+#                       handed down first, as a Windows client's drive root hands it
+#                       (installer-smoke.ps1 -WeakParent); with --install-directory
 #   --database FILE     a new installation of FIRST on an external database, set up
 #                       with no window by DBSetup /unattended: FILE's HM_DB_* lines
 #                       (installer-smoke.ps1 -DatabaseSettings) are copied to the VM,
@@ -74,6 +81,8 @@ keep_vm=0
 database=""
 database_password=""
 database_in_environment=0
+install_directory=""
+weak_parent=0
 
 usage() {
    sed -n '/^#   bash build/,/^# Exit codes/p' "$0" | sed 's/^# \{0,1\}//'
@@ -93,6 +102,8 @@ while [ $# -gt 0 ]; do
       --out) out="$2"; shift 2 ;;
       --allow-unsigned) allow_unsigned=1; shift ;;
       --keep-vm) keep_vm=1; shift ;;
+      --install-directory) install_directory="$2"; shift 2 ;;
+      --weak-parent) weak_parent=1; shift ;;
       -h|--help) usage; exit 0 ;;
       --) shift; break ;;
       -*) echo "unknown option $1" >&2; usage >&2; exit 2 ;;
@@ -136,6 +147,15 @@ if [ "$database_in_environment" = 1 ] && [ -z "$database" ]; then
    echo "--database-in-environment goes with --database" >&2
    exit 2
 fi
+if [ "$weak_parent" = 1 ] && [ -z "$install_directory" ]; then
+   echo "--weak-parent goes with --install-directory" >&2
+   exit 2
+fi
+# The folder travels inside double quotes on the VM's command line: one with a quote
+# in it is refused rather than split.
+case "$install_directory" in
+   *'"'*) echo "--install-directory may not hold a double quote" >&2; exit 2 ;;
+esac
 
 for file in "$first_local" ${second_local:+"$second_local"} "$key_local" ${database_local:+"$database_local"} ${database_password_local:+"$database_password_local"}; do
    if [ ! -f "$file" ]; then
@@ -358,6 +378,8 @@ if [ -n "$second_local" ]; then
 fi
 retry_copy copy_to_vm "$smoke_ps1" C:/smoke/installer-smoke.ps1 || { say "installer-smoke.ps1 could not be copied"; exit 3; }
 [ "$allow_unsigned" = 1 ] && arguments="$arguments -AllowUnsigned"
+[ -n "$install_directory" ] && arguments="$arguments -InstallDirectory \"$install_directory\""
+[ "$weak_parent" = 1 ] && arguments="$arguments -WeakParent"
 # The database settings and the password travel by scp, as files; only their paths
 # on the VM are on the command line.
 if [ -n "$database_local" ]; then

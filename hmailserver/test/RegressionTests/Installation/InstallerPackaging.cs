@@ -951,6 +951,33 @@ namespace RegressionTests.Installation
          Assert.IsFalse(Regex.IsMatch(warn, @"(?<!Suppressible)MsgBox\("),
             "CheckProgramFolderPermissions uses a message box that /SUPPRESSMSGBOXES does not suppress, which a silent installation waits on for ever.");
          StringAssert.Contains("Log('The program folder: '", warn, "What CheckProgramFolderPermissions says does not go into the setup log.");
+
+         // An installation of the Control Panel without the server runs no
+         // /ProtectFolders, so a program folder that was there before it is
+         // hardened by setup itself, at ssInstall, before the files: not a drive's
+         // root, not a folder holding a server installation - whose own
+         // /ProtectFolders makes Data and the rest private first - and not through a
+         // link, every folder down to it held open, not shared for deleting, from
+         // before it is looked at until after it is changed. Owned by SYSTEM, the
+         // Administrators or TrustedInstaller it keeps the entries of its own, as
+         // ServiceAccount::Harden does; owned by anybody else it is given the
+         // Administrators as owner and no entry of its own besides.
+         Assert.IsTrue(Regex.IsMatch(CodeBody(extension, "CurStepChanged"), @"CheckProgramFolderPermissions\(ExpandConstant\('\{app\}'\),\s*false\);\s*(//[^\n]*\n\s*)*HardenExistingProgramFolders\(\);"),
+            "A Control Panel installed into a folder that was there is not hardened at ssInstall, before the files.");
+         string existing = CodeBody(extension, "HardenExistingProgramFolders");
+         foreach (string word in new[] { "g_bProgramFolderNew", "IsComponentSelected('server')", "Length(szApp) <= 3", "'Data'", "'Bin\\hMailServer.INI'", "HoldProgramFolder(chain[index], szWhy)", "HardenHeldFolder(szApp)", "'ControlPanel'", "'Bin'", "ReleaseFolder(" })
+            StringAssert.Contains(word, existing, "HardenExistingProgramFolders does not use " + word + ".");
+         string hold = CodeBody(extension, "HoldProgramFolder");
+         foreach (string word in new[] { "HM_SHARE_ALL_BUT_DELETE", "HM_HOLD_FOLDER_FLAGS", "HM_REPARSE_POINT" })
+            StringAssert.Contains(word, hold, "HoldProgramFolder does not use " + word + ".");
+         Assert.IsTrue(Regex.IsMatch(extension, @"HM_SHARE_ALL_BUT_DELETE\s*=\s*\$3;") && Regex.IsMatch(extension, @"HM_HOLD_FOLDER_FLAGS\s*=\s*\$02200000;"),
+            "A folder is held shared for deleting, or with its link followed, while its permissions change.");
+         string inPlace = CodeBody(extension, "HardenHeldFolder");
+         foreach (string word in new[] { "EveryUserMayRead(Folder)", "FolderOwnerIsTrusted(Folder, bKnown)", "/inheritance:r /grant:r *S-1-5-18:(OI)(CI)F *S-1-5-32-544:(OI)(CI)F", "*S-1-5-32-545:(OI)(CI)RX",
+                                         "'O:BAD:PAI(A;OICI;FA;;;SY)(A;OICI;FA;;;BA)'", "(A;OICI;0x1200a9;;;BU)", "HM_OWNER_AND_PROTECTED_DACL" })
+            StringAssert.Contains(word, inPlace, "HardenHeldFolder does not use " + word + ".");
+         StringAssert.Contains("S-1-5-80-956008885-3418522649-1831038044-1853292631-2271478464", CodeBody(extension, "FolderOwnerIsTrusted"),
+            "FolderOwnerIsTrusted does not take TrustedInstaller for a trusted owner, as ServiceAccount.cpp's IsTrustedWriter_ does.");
       }
 
       [Test]

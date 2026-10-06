@@ -91,10 +91,12 @@ own that let others change it, which that owner could have written.
 It then holds the installation to the rule an administrator's install of an update checks, which such an installation
 now passes, and says what it does not change - an entry of a file's own, a folder above the program folder that others
 may rename - on a `CHECK` line with the `icacls` that removes it. Setup also gives a program folder it makes those
-permissions before it copies anything into it, and says, without refusing it, when the folder chosen lets every user
-change what is in it. Under Program Files the first run makes the three's entries their own, and nobody may do there
-anything they could not before. An administrator who cannot upgrade yet runs the three `icacls` lines the
-documentation gives from an elevated prompt. Found by the project's own review (work item 78; CVE requested).
+permissions before it copies anything into it, hardens in place the folder an installation of the Control Panel alone
+finds there - no `/ProtectFolders` follows one, as it has no server - unless it is a drive's root, holds a server
+installation or is a link, and says, without refusing it, when the folder chosen lets every user change what is in it.
+Under Program Files the first run makes the three's entries their own, and nobody may do there anything they could not
+before. An administrator who cannot upgrade yet runs the three `icacls` lines the documentation gives from an elevated
+prompt. Found by the project's own review (work item 78; CVE requested).
 [ServiceAccount.md](hmailserver/docs/ServiceAccount.md), "What the other users of the computer may read".
 
 ### Downloads and the release

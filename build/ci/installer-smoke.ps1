@@ -68,12 +68,14 @@
    program's own folders ("What the other users of the computer may read"), after an
    installer of 6.3.7 or later: the program folder, Bin and ControlPanel inheriting
    nothing, SYSTEM and the Administrators with full control, BUILTIN\Users with Read &
-   execute, the owner SYSTEM, the Administrators or TrustedInstaller, and no group of
-   every user able to change them or a program or library in them; the REST API's key
-   store still the service's to write when the service runs as NT SERVICE\hMailServer;
-   /ProtectFolders' exit 0 in Inno's log; and a second /ProtectFolders, run here, finding
-   all three "already hardened" and ending in 0. After an earlier installer the run
-   says, as INFO, which group of every user may change them.
+   execute where every user could read them before the installer ran and no entry
+   letting every user read them where none could, the owner SYSTEM, the Administrators
+   or TrustedInstaller, and no group of every user able to change them or a program or
+   library in them; the REST API's key store still the service's to write when the
+   service runs as NT SERVICE\hMailServer; /ProtectFolders' exit 0 in Inno's log; and a
+   second /ProtectFolders, run here, finding all three "already hardened" and ending in
+   0. After an earlier installer the run says, as INFO, which group of every user may
+   change them.
 
    -InstallDirectory DIR installs the first installer into DIR (/DIR=) rather than
    Program Files; an upgrade keeps it. With -WeakParent the folder DIR is made in is
@@ -81,7 +83,10 @@
    the root of a drive hands every folder made in it on a Windows client, which this
    Windows Server VM's own root does not - so that the run sees an installation in such
    a folder hardened: a new one by the new installer alone, and one an earlier
-   installer left there by the upgrade. Both are for this throwaway machine only.
+   installer left there by the upgrade. When that folder is a drive's root
+   (-InstallDirectory C:\hMailServer) it is given the entry a Windows client's root
+   carries, inherit-only, and every folder below it that inherits gets it. Both are for
+   this throwaway machine only, which is reverted after the run.
 
    A new installation and an upgrade from a release without the defaults are two
    runs, each on the clean machine: the new installer alone, and the previous
@@ -245,6 +250,9 @@ $State = @{
    CertificateThumbprint = ''
    CertificateFiles = @()
    ListenersBefore = $null
+   # Whether every user could read the program folder, Bin and ControlPanel just
+   # before the last installer ran (Get-ProgramFoldersReadable), by full path.
+   ProgramFoldersReadable = $null
    # -DatabaseSettings: what the file gives, and the [Database] Type and create script
    # of that database (Read-DatabaseSettings). Empty for the built-in database.
    Database = $null
@@ -782,6 +790,59 @@ function Test-HasHardenedFolders([string] $Version) {
    return ($null -ne $release) -and ($release -ge $HardenedFoldersVersion)
 }
 
+# The groups whose Read on a program folder /ProtectFolders asks for before it gives
+# BUILTIN\Users Read & execute there (ServiceAccount.cpp's EveryUserReads_, the
+# installer's EveryUserMayRead): Everyone, Authenticated Users and Users; and the
+# rights that read - listing a folder (FILE_READ_DATA), or GENERIC_ALL or GENERIC_READ
+# unmapped. 0x90000001 is negative to PowerShell, as GENERIC_READ is in an access
+# rule, so the two meet as one sign-extended long.
+$EveryUserSids = @('S-1-1-0', 'S-1-5-11', 'S-1-5-32-545')
+$ReadRightsMask = 0x90000001
+
+# The allow entries for those groups that let them read a folder, as "SID rights": on
+# a folder that is there, the entries that apply to it; on one that is not, the
+# entries a folder made there would inherit from the nearest folder above it that is
+# there - handed down to folders, and, more than one level down, not only to the
+# first.
+function Get-EveryUserReaders([string] $Path) {
+   $levels = 0
+   $folder = $Path
+   while ($folder -and -not (Test-Path -LiteralPath $folder)) { $folder = Split-Path -Parent $folder; $levels++ }
+   if (-not $folder) { return @() }
+   $found = @()
+   foreach ($rule in (Get-Acl -LiteralPath $folder).GetAccessRules($true, $true, [System.Security.Principal.SecurityIdentifier])) {
+      if ($rule.AccessControlType -ne [System.Security.AccessControl.AccessControlType]::Allow) { continue }
+      if ($EveryUserSids -notcontains $rule.IdentityReference.Value) { continue }
+      if ((([long] $rule.FileSystemRights) -band [long] $ReadRightsMask) -eq 0) { continue }
+      if ($levels -eq 0) {
+         if (($rule.PropagationFlags -band [System.Security.AccessControl.PropagationFlags]::InheritOnly) -ne 0) { continue }
+      }
+      else {
+         if (($rule.InheritanceFlags -band [System.Security.AccessControl.InheritanceFlags]::ContainerInherit) -eq 0) { continue }
+         if ($levels -gt 1 -and ($rule.PropagationFlags -band [System.Security.AccessControl.PropagationFlags]::NoPropagateInherit) -ne 0) { continue }
+      }
+      $found += "$($rule.IdentityReference.Value) $($rule.FileSystemRights)"
+   }
+   return $found
+}
+
+# Whether every user could read each of the program folder, Bin and ControlPanel just
+# before an installer runs, by full path: what /ProtectFolders gives BUILTIN\Users
+# Read & execute on after it, and what it gives no Users entry on. A Bin or
+# ControlPanel that is not there yet is made in a program folder the installer gives
+# Users Read & execute when, and only when, every user could read the program folder
+# (HardenNewProgramFolder), and so goes with it.
+function Get-ProgramFoldersReadable([string] $App) {
+   $readable = @{}
+   $appReadable = (@(Get-EveryUserReaders $App).Count -gt 0)
+   $readable[$App] = $appReadable
+   foreach ($name in 'Bin', 'ControlPanel') {
+      $folder = Join-Path $App $name
+      $readable[$folder] = $(if (Test-Path -LiteralPath $folder) { @(Get-EveryUserReaders $folder).Count -gt 0 } else { $appReadable })
+   }
+   return $readable
+}
+
 # The allow entries of a file or folder that apply to it and give a group of every
 # user a right to change it, as "SID rights".
 function Get-BroadWriters([string] $Path) {
@@ -824,19 +885,34 @@ function Test-ProgramFoldersHardened([string] $Phase, [string] $Claimed, [string
       return
    }
 
-   [void] (Test-Step "${Phase}: the program folder, Bin and ControlPanel are hardened - nothing inherited, SYSTEM and the Administrators full control, Users Read & execute, a trusted owner" {
+   # BUILTIN\Users' Read & execute where every user could read the folder before the
+   # installer ran (Get-ProgramFoldersReadable, read then), and no entry that lets
+   # every user read it where none could: ServiceAccount.cpp's RebuiltAcl_ asks
+   # EveryUserReads_, so that a folder only the administrators could open does not
+   # become every user's to read.
+   [void] (Test-Step "${Phase}: the program folder, Bin and ControlPanel are hardened - nothing inherited, SYSTEM and the Administrators full control, Users Read & execute where every user could read them before, a trusted owner" {
          if ($folders.Count -ne 3) { throw "only $($folders -join ', ') are there" }
+         $said = @()
          foreach ($folder in $folders) {
             $acl = Get-Acl -LiteralPath $folder
             if (-not $acl.AreAccessRulesProtected) { throw "$folder still inherits from the folder above it" }
             foreach ($full in 'S-1-5-18', 'S-1-5-32-544') {
                if (-not (Test-FolderGrant $acl $full 0x1F01FF)) { throw "$folder does not give $full full control handed down" }
             }
-            if (-not (Test-FolderGrant $acl 'S-1-5-32-545' 0x1200A9)) { throw "$folder does not give BUILTIN\Users Read & execute handed down" }
+            if ($null -eq $State.ProgramFoldersReadable -or -not $State.ProgramFoldersReadable.ContainsKey($folder)) { throw "whether every user could read $folder before the installer was not read" }
+            if ($State.ProgramFoldersReadable[$folder]) {
+               if (-not (Test-FolderGrant $acl 'S-1-5-32-545' 0x1200A9)) { throw "$folder does not give BUILTIN\Users Read & execute handed down, though every user could read it before" }
+               $said += "$(Split-Path -Leaf $folder) Users RX"
+            }
+            else {
+               $readers = @(Get-EveryUserReaders $folder)
+               if ($readers.Count -gt 0) { throw "$folder lets every user read it ($($readers -join '; ')), which none could before" }
+               $said += "$(Split-Path -Leaf $folder) no Users entry (none could read it before)"
+            }
             $owner = $acl.GetOwner([System.Security.Principal.SecurityIdentifier]).Value
             if ($TrustedOwnerSids -notcontains $owner) { throw "$folder is owned by $owner" }
          }
-         "$($folders -join ', ')"
+         "$($folders -join ', '): $($said -join ', ')"
       })
 
    [void] (Test-Step "${Phase}: no group of every user may change the program's folders or a program or library in them" {
@@ -2342,9 +2418,15 @@ if ($WeakParent) {
    $weakened = Test-Step 'preflight: the folder -InstallDirectory is made in hands down Authenticated Users'' Modify, as a Windows client''s drive root does' {
       if (-not $InstallDirectory) { throw '-WeakParent goes with -InstallDirectory' }
       $parent = Split-Path -Parent $InstallDirectory
-      if (-not $parent -or $parent.Length -le 3) { throw "-InstallDirectory's folder is a drive's root ($parent), which this run does not change" }
-      New-Item -ItemType Directory -Force -Path $parent | Out-Null
-      $answer = @(& icacls.exe $parent /grant '*S-1-5-11:(OI)(CI)M')
+      if (-not $parent) { throw "-InstallDirectory $InstallDirectory has no folder above it" }
+      # A drive's root is given the entry a Windows client's root has, Authenticated
+      # Users' Modify for what is below it and not for the root itself (inherit
+      # only); any other folder, made when it is not there, Modify on itself too.
+      $grant = '*S-1-5-11:(OI)(CI)M'
+      if ($parent.Length -le 3) { $grant = '*S-1-5-11:(OI)(CI)(IO)M' }
+      else { New-Item -ItemType Directory -Force -Path $parent | Out-Null }
+      Write-Info 'preflight: the folder above -InstallDirectory before -WeakParent' ((@(& icacls.exe $parent) | Where-Object { $_.Trim() -and $_ -notmatch '^Successfully processed' }) -join ' | ')
+      $answer = @(& icacls.exe $parent /grant $grant)
       if ($LASTEXITCODE -ne 0) { throw "icacls returned ${LASTEXITCODE}: $($answer -join ' ')" }
       $probe = Join-Path $parent 'smoke-probe'
       New-Item -ItemType Directory -Force -Path $probe | Out-Null
@@ -2385,6 +2467,8 @@ $secondSecures = [bool] $UpgradeInstaller -and (Test-HasSecureDefaults $secondVe
 # ---- install
 Write-Section "Install $firstVersion"
 $installLog = Join-Path $LogDirectory 'install.log'
+$State.ProgramFoldersReadable = Get-ProgramFoldersReadable $State.App
+Write-Info 'install: every user could read, before the installer' (($State.ProgramFoldersReadable.Keys | Sort-Object | ForEach-Object { "$_ $(if ($State.ProgramFoldersReadable[$_]) { 'yes' } else { 'no' })" }) -join ', ')
 $installed = Test-Step "install: $(Split-Path -Leaf $Installer) ran silently and returned 0" {
    $arguments = @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/TYPE=full', "/LOG=$installLog") + @(Get-DatabaseSwitches)
    if ($InstallDirectory) { $arguments += "/DIR=$InstallDirectory" }
@@ -2456,6 +2540,8 @@ if ($State.Installed) {
 
       Write-Section "Upgrade $firstVersion to $secondVersion"
       $upgradeLog = Join-Path $LogDirectory 'upgrade.log'
+      $State.ProgramFoldersReadable = Get-ProgramFoldersReadable (Get-InstallDirectory)
+      Write-Info 'upgrade: every user could read, before the installer' (($State.ProgramFoldersReadable.Keys | Sort-Object | ForEach-Object { "$_ $(if ($State.ProgramFoldersReadable[$_]) { 'yes' } else { 'no' })" }) -join ', ')
       $upgraded = Test-Step "upgrade: $(Split-Path -Leaf $UpgradeInstaller) ran silently over $firstVersion and returned 0" {
          Invoke-SetupWithAdminPassword $UpgradeInstaller @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', "/LOG=$upgradeLog") $upgradeLog
       }

@@ -482,6 +482,25 @@ execute, inheriting nothing, by `icacls` on the SIDs,
 before any other folder is made in it or any file copied - so the programs are never
 there, even for the seconds before `/ProtectFolders`, with a weaker list.
 
+**The Control Panel alone.** An installation of the Control Panel without the server
+(the remote administration support with it or not) runs no `/ProtectFolders`: it has
+no server. Into a folder setup makes, that changes nothing - the folder is given its
+permissions before the files, as above. Into a folder that was there - one an
+administrator made at a drive's root, or an earlier installation's - setup hardens it
+in place before it copies anything: the program folder, then `ControlPanel` and `Bin`
+where they are there, each as `/ProtectFolders` hardens a server's - SYSTEM and the
+Administrators full control, the Users' Read & execute where every user could read it,
+nothing inherited, the entries of its own kept while SYSTEM, the Administrators or
+TrustedInstaller owns it, and otherwise the Administrators made its owner and no entry
+of its own left. It leaves alone, and says in the setup log, a drive's root; a folder
+that holds a server installation (`Data` or `Bin\hMailServer.INI` there), which that
+installation's own `/ProtectFolders` hardens once its data folders are private; and a
+folder that is a link - a junction, a symbolic link, a mount point - or is in one,
+whose permissions would be written wherever it leads. Every folder from below the
+drive's root down to the one it changes is held open, with nobody else allowed to
+delete or rename it, from before it is looked at until after it is changed, so that no
+user can put a link in its place in between.
+
 **Before upgrading an installation at a drive's root.** From an elevated Command
 Prompt, with the installation's own folder in place of `C:\hMailServer`:
 
