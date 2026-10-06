@@ -890,7 +890,12 @@ same order, newest first:
 - a category says whether it is a release or a pre-release;
 - the summary is the first paragraph of the release's own notes, as plain text,
   cut at 1,000 characters. The note a release re-hosted from GitHub opens with,
-  and any heading, table or code, is skipped.
+  and any heading, table or code, is skipped: the Download table a release's
+  notes begin with (6.3.6's put there by hand, and the release chain's from
+  the release after it; [ContinuousIntegration.md](ContinuousIntegration.md),
+  "The release's notes and the order of its links") among them, so the summary
+  of a release the pipeline made is still the first paragraph of its version's
+  `CHANGELOG.md` section.
 
 The summary comes from the release's notes on GitLab, not from `CHANGELOG.md`,
 for three reasons. The feed is made from the releases alone, whichever commit

@@ -80,8 +80,13 @@ file (build/ci/release-sign.sh), release-verify runs `check-provenance`, and
             the provenance have been held to the files, and every link and the site
             to what GitLab and Pages take - then the GitLab
             release created with one link per file, named after the file, which is
-            what build/generate-update-feed.py and every server require. The notes
-            are the version's section of CHANGELOG.md and the verification the
+            what build/generate-update-feed.py and every server require, the two
+            Windows installers' links made last so that GitLab, which lists links
+            newest first, lists them first (release_links). The notes begin with a
+            Download table made from the release's files - each installer with its
+            download path and SHA-256, the Linux files' sums, the container image
+            when the pipeline pushes it, how to check a download (download_table) -
+            then the version's section of CHANGELOG.md and the verification the
             release-verify job wrote. Last, the feed is rendered from the API as the
             pages job will render it, and the new release must be in it with its
             installer and bundle for Windows servers on x64 and on ARM64, for Debian
@@ -692,8 +697,16 @@ def download_url(tag, path, project_url=None):
 
 
 def release_links(version, names):
+    """One link per file, named after it, in the order GitLab is asked to make them.
+    GitLab lists a release's links newest first, under Assets by their type (the API
+    by descending id), so the Windows installers are made last - the ARM64 one, then
+    the x64 one - and are the first two under Packages: x64, then ARM64. Every other
+    link is made in the order of its name. 6.3.6's links were all made in that order,
+    which put the installers 24th and 25th of its 26 packages; they were made again,
+    last, by hand on 6 October 2026."""
+    last = [name for name in reversed(windows_installers(version)) if name in names]
     links = []
-    for name in sorted(names):
+    for name in sorted(n for n in names if n not in last) + last:
         links.append({"name": name, "url": registry_url(version, name), "link_type": link_type(name),
                       "direct_asset_path": link_path(name, version)})
     return links
@@ -772,6 +785,136 @@ def changelog_section(text, version):
             break
     raise ReleaseError("CHANGELOG.md has no section '## [%s](...)' with anything in it: the release's notes are that "
                        "section (RELEASE.md, the release on GitLab), so write it and tag again" % version)
+
+
+# ---------------------------------------------------------------- the notes
+#
+# A release's notes begin with a table of what to download, made from the release's own
+# files, before the CHANGELOG section's heading. 6.3.6's notes began with that section,
+# some 420,000 characters, and its two installers' links were made before the 22 .deb
+# and .rpm links, so that GitLab, which lists a release's links newest first, put them
+# 24th and 25th of the 26 under Assets > Packages, among 160 links in all: the owner
+# could not find the Windows installer on the release page. The table and the order
+# were given to 6.3.6's release by hand on 6 October 2026, and are the chain's from the
+# release after it. The update feed's Atom summary of a release passes over headings
+# and table rows (build/generate-update-feed.py, release_summary), so the table does
+# not change it; the self-test holds that.
+
+DOWNLOAD_HEADING = "## Download"
+# What build/ci/windows-authenticode.ps1 requires of the certificate it signs with: the
+# subject's CN, which Windows shows as the installers' publisher. The self-test holds the
+# two to each other.
+AUTHENTICODE_PUBLISHER = "Progressive Robot Ltd"
+# hmailserver/docs/WindowsOnArm.md says this, in bold, for as long as no ARM64 build
+# has run on ARM64 hardware (the Roadmap2 row "Windows on ARM" stays in motion until one
+# has): while the tagged tree's copy says it, the ARM64 installer's row calls it a preview.
+WINDOWS_ON_ARM = "hmailserver/docs/WindowsOnArm.md"
+ARM64_PREVIEW = "**This has not been run on ARM64 hardware.**"
+# The container image's one address (build/ci/container-image-push.sh pushes nowhere
+# else, which build/check-release-chain.py holds), and the versions that move its
+# major.minor and latest tags too: container-image-push.sh's $plain, which the self-test
+# holds this to.
+CONTAINER_IMAGE = "registry.gitlab.com/hmailserver/hmailserver"
+PLAIN_VERSION = r"(0|[1-9][0-9]{0,8})\.(0|[1-9][0-9]{0,8})\.(0|[1-9][0-9]{0,8})"
+SHA256_HEX = re.compile(r"\A[0-9a-f]{64}\Z")
+
+
+def arm64_is_preview(root):
+    """Whether the tagged tree's docs/WindowsOnArm.md still calls the ARM64 build a
+    preview, by the sentence ARM64_PREVIEW. A tree without the file is read as saying
+    so: the row then says less than it might, never more."""
+    try:
+        with open(os.path.join(root, local(WINDOWS_ON_ARM)), encoding="utf-8") as f:
+            return ARM64_PREVIEW in f.read()
+    except OSError:
+        return True
+
+
+def image_is_published(env):
+    """Whether this release's pipeline pushes the container image: the project's CI/CD
+    variable HM_PUBLISH_IMAGE, which container-image-deb, linux-image.sh and
+    container-image-push.sh read as they run and refuse unless it is 1
+    (.gitlab/ci/container-image.yml). release-publish reads it the same way, as it
+    runs; the image jobs follow it in the same pipeline."""
+    return (env.get("HM_PUBLISH_IMAGE") or "").strip() == "1"
+
+
+def download_table(tag, names, digests, arm64_preview=True, image=False, verification=""):
+    """The "## Download" table a release's notes begin with, made from its files
+    (names) and the SHA-256 the chain computed of each (digests): the x64 installer,
+    always, and the release is refused without it, as publish refuses it first; the
+    ARM64 installer when the release carries it, called a preview while arm64_preview;
+    each with its release-page download path, /-/releases/<tag>/downloads plus its
+    link's direct_asset_path, and its SHA-256; the Linux files, naming the sums the
+    release carries; the container image when image, the release's pipeline pushing
+    it; and how to check a download. Every line is a heading, a table row or blank,
+    which the update feed's summary passes over."""
+    version = version_of(tag)
+    installers = feed.installer_names(version)
+    x64, arm64 = installers["windows"], installers["windows-arm64"]
+    if x64 not in names:
+        raise ReleaseError("the release carries no %s: its notes begin with the x64 installer, and a release is never "
+                           "published without it" % x64)
+
+    def linked(name, text=None):
+        return "[%s](%s)" % (text or name, download_url(tag, link_path(name, version)))
+
+    def sha256(name):
+        value = digests.get(name) or ""
+        if not SHA256_HEX.match(value):
+            raise ReleaseError("the notes give each installer's SHA-256, and %s has %r" % (name, value))
+        return "SHA-256 `%s`." % value
+
+    def blob(path):
+        return feed.PROJECT_URL + "/-/blob/" + tag + "/" + path
+
+    rows = [("Windows, x64",
+             "%s: the installer, Authenticode-signed by %s. It installs a new server, or upgrades an existing one in "
+             "place: read the notes below and back up the database and the data folder first. %s" % (
+                 linked(x64), AUTHENTICODE_PUBLISHER, sha256(x64)))]
+    if arm64 in names:
+        preview = " A preview: it has not been run on ARM64 hardware." if arm64_preview else ""
+        rows.append(("Windows on ARM64 (preview)" if arm64_preview else "Windows on ARM64",
+                     "%s, signed the same way.%s A new installation is set up against Microsoft SQL Server or "
+                     "PostgreSQL, since SQL Server Compact has no ARM64 build ([WindowsOnArm.md](%s)). %s" % (
+                         linked(arm64), preview, blob(WINDOWS_ON_ARM), sha256(arm64))))
+    if sums_name(version) in names:
+        appimages = len([n for n in names if is_primary(n) and n.endswith(".AppImage")])
+        rows.append(("Linux", "The `.deb` and `.rpm` packages for each distribution%s, under *Assets* below, in "
+                              "*Packages*; %s lists them." % (
+                                  {0: "", 1: " and the AppImage", 2: " and the two AppImages"}.get(
+                                      appimages, " and the %d AppImages" % appimages),
+                                  linked(sums_name(version), "`%s`" % sums_name(version)))))
+    if image:
+        moving = ""
+        if re.match(r"\A" + PLAIN_VERSION + r"\Z", version):
+            moving = " `:%s` and `:latest` name it too, until a later release moves them." % version.rsplit(".", 1)[0]
+        rows.append(("Container image", "`%s:%s`, for linux/amd64 and linux/arm64, pushed by this release's pipeline "
+                                        "after the release is published.%s" % (CONTAINER_IMAGE, version, moving)))
+    checking = "Each file the release pipeline made is signed with Sigstore, its bundle beside it as `<file>.cosign.bundle`"
+    if provenance_name(version) in names:
+        checking += ", and `%s` is the release's SLSA build provenance" % provenance_name(version)
+    if re.search(r"^## Verification\s*$", verification, re.MULTILINE):
+        checking += "; *Verification*, at the end of these notes, gives the identity to check them against"
+    checking += " ([SECURITY.md](%s), \"Verifying a release\")." % blob("SECURITY.md#verifying-a-release")
+    rows.append(("Checking a download", checking))
+
+    lines = [DOWNLOAD_HEADING, "", "| | |", "|---|---|"]
+    for label, text in rows:
+        if "|" in text or "\n" in text or "\r" in text:
+            raise ReleaseError("the Download table's row %s would hold a | or a line break: %r" % (label, text))
+        lines.append("| **%s** | %s |" % (label, text))
+    return "\n".join(lines) + "\n"
+
+
+def release_description(tag, names, digests, notes, verification, root=ROOT, env=None):
+    """A release's notes: the Download table (download_table), then the heading
+    "# hMailServer <version>", the version's section of CHANGELOG.md and the
+    verification release-verify wrote."""
+    version = version_of(tag)
+    table = download_table(tag, names, digests, arm64_preview=arm64_is_preview(root), image=image_is_published(env or {}),
+                           verification=verification)
+    return "%s\n# hMailServer %s\n\n%s\n\n%s\n" % (table, version, notes.strip(), verification.strip())
 
 
 # ---------------------------------------------------------------- collect
@@ -1649,9 +1792,12 @@ def publish(assets, tag, env, api, notes, verification, render_check=True):
         assets, version, signing_identity(dict(env, CI_COMMIT_TAG=tag)), env.get("CI_COMMIT_SHA") or "")
     if unfit:
         raise ReleaseError("; ".join(unfit) + ". Nothing was uploaded")
+    # The SHA-256 of every file, which the notes' Download table gives the installers
+    # and the registry is held to after the upload.
+    digests = dict((name, sha256_of(os.path.join(assets, name))) for name in wanted)
     # What GitLab would refuse of the release is refused here, before any upload: a
     # release whose creation fails after its files are up leaves the tag half-spent.
-    description = "# hMailServer %s\n\n%s\n\n%s\n" % (version, notes.strip(), verification.strip())
+    description = release_description(tag, wanted, digests, notes, verification, ROOT, env)
     unfit = link_problems(release_links(version, wanted), description)
     if unfit:
         raise ReleaseError("; ".join(unfit) + ". Nothing was uploaded")
@@ -1663,7 +1809,6 @@ def publish(assets, tag, env, api, notes, verification, render_check=True):
     if status != 404:
         raise ReleaseError("asking whether %s exists answered HTTP %d: %s" % (tag, status, message_of(body)))
 
-    digests = dict((name, sha256_of(os.path.join(assets, name))) for name in wanted)
     unfit = check_budget(api, tag, version, digests, dict((name, os.path.getsize(os.path.join(assets, name))) for name in wanted),
                          keep=repository_keep(ROOT))
     if unfit:
@@ -1862,6 +2007,103 @@ def self_test():
         failures.append("a version with no section in CHANGELOG.md is refused")
     except ReleaseError:
         pass
+
+    # The order of the links: GitLab lists them newest first, so the Windows installers
+    # are made last, ARM64 then x64, and listed first under Packages, x64 then ARM64.
+    every_link = release_links(version, release_files(version))
+    listed = [l["name"] for l in reversed(every_link) if l["link_type"] == "package"]
+    expect([l["name"] for l in every_link[-2:]] == [names["windows-arm64"], names["windows"]]
+           and listed[:2] == [names["windows"], names["windows-arm64"]] and len(listed) == 26,
+           "the installers' links are made last and listed first of the 26 packages: %s" % listed[:3])
+    rest = [l["name"] for l in every_link[:-2]]
+    expect(rest == sorted(rest) and sorted(l["name"] for l in every_link) == sorted(release_files(version)),
+           "every other link is made in the order of its name, and each file has one")
+    no_arm = [n for n in release_files(version) if not n.startswith(names["windows-arm64"])]
+    expect([l["name"] for l in release_links(version, no_arm)][-1] == names["windows"],
+           "a release without the ARM64 installer makes the x64 installer's link last")
+
+    # The Download table the notes begin with, made from the release's files.
+    files = release_files(version)
+    digests = dict((n, hashlib.sha256(n.encode("utf-8")).hexdigest()) for n in files)
+    verification = "## Verification\n\nSigned by %s%s." % (SIGNER_IDENTITY_PREFIX, tag)
+    table = download_table(tag, files, digests, arm64_preview=True, image=True, verification=verification)
+    rows = [line for line in table.split("\n") if line.startswith("| **")]
+    page = "https://gitlab.com/hmailserver/hmailserver/-/releases/v6.3.5/downloads/"
+    expect(table.startswith(DOWNLOAD_HEADING + "\n\n| | |\n|---|---|\n") and table.endswith("|\n")
+           and [r.split("**")[1] for r in rows] == ["Windows, x64", "Windows on ARM64 (preview)", "Linux", "Container image",
+                                                     "Checking a download"],
+           "the table's rows, x64 first: %s" % [r.split("**")[1] for r in rows])
+    expect(("[hMailServer-6.3.5-x64.exe](%shMailServer-x64.exe)" % page) in rows[0]
+           and "SHA-256 `%s`." % digests[names["windows"]] in rows[0] and "Authenticode-signed by Progressive Robot Ltd" in rows[0],
+           "the x64 row links the release page's download path and gives the SHA-256: %s" % rows[0])
+    expect(("[hMailServer-6.3.5-arm64.exe](%shMailServer-arm64.exe)" % page) in rows[1]
+           and "SHA-256 `%s`." % digests[names["windows-arm64"]] in rows[1] and "A preview: it has not been run on ARM64 hardware." in rows[1]
+           and "/-/blob/v6.3.5/hmailserver/docs/WindowsOnArm.md" in rows[1],
+           "the ARM64 row links its download path, gives its SHA-256 and says it is a preview: %s" % rows[1])
+    expect(("[`hmailserver-linux-6.3.5-SHA256SUMS.txt`](%shmailserver-linux-SHA256SUMS.txt)" % page) in rows[2]
+           and "the two AppImages" in rows[2], "the Linux row names the release's sums and the AppImages: %s" % rows[2])
+    expect("`registry.gitlab.com/hmailserver/hmailserver:6.3.5`" in rows[3] and "`:6.3` and `:latest`" in rows[3],
+           "the image row names the version's tag and the two that move: %s" % rows[3])
+    expect("`hmailserver-6.3.5.intoto.sigstore.json`" in rows[4] and "*Verification*" in rows[4],
+           "the checking row names the provenance and the notes' Verification: %s" % rows[4])
+    links_of = dict((l["name"], download_url(tag, l["direct_asset_path"])) for l in every_link)
+    for name in (names["windows"], names["windows-arm64"], sums_name(version)):
+        expect("](%s)" % links_of[name] in table, "the table links %s where its link serves it, %s" % (name, links_of[name]))
+    no_arm_table = download_table(tag, no_arm, digests, arm64_preview=True, image=True, verification=verification)
+    expect("arm64.exe" not in no_arm_table and "ARM64" not in no_arm_table and no_arm_table.count("| **") == 4,
+           "a release without the ARM64 installer gets no ARM64 row: %s" % no_arm_table)
+    plain = download_table(tag, files, digests, arm64_preview=False, image=False)
+    expect("| **Windows on ARM64** |" in plain and "preview" not in plain.lower() and "Container image" not in plain
+           and "*Verification*" not in plain and "SQL Server Compact has no ARM64 build" in plain,
+           "no preview sentence once WindowsOnArm.md no longer says it, and no image row when the pipeline pushes none: %s" % plain)
+    candidate = download_table("v6.3.5-rc1", release_files("6.3.5-rc1"), dict(
+        (n, "0" * 64) for n in release_files("6.3.5-rc1")), image=True)
+    expect("`registry.gitlab.com/hmailserver/hmailserver:6.3.5-rc1`" in candidate and ":latest" not in candidate,
+           "a pre-release's image row names its own tag and not the two a pre-release never moves")
+    for what, args, needle in (("a release without its x64 installer", ([n for n in files if not n.startswith(names["windows"])], digests),
+                                "carries no %s" % names["windows"]),
+                               ("an installer without its SHA-256", (files, dict(digests, **{names["windows-arm64"]: ""})), "has ''")):
+        try:
+            download_table(tag, *args)
+            failures.append("%s is refused" % what)
+        except ReleaseError as e:
+            expect(needle in str(e), "%s is refused, saying why: %s" % (what, e))
+    # Every line is a heading, a table row or blank, so the feed's summary of the notes
+    # is what it is without the table.
+    described = release_description(tag, files, digests, section, verification, env={"HM_PUBLISH_IMAGE": "1"})
+    bare = "# hMailServer 6.3.5\n\n%s\n\n%s\n" % (section, verification)
+    expect(described == table + "\n" + bare, "the notes are the table, then the heading, the section and the verification")
+    expect(all(line == "" or line.startswith(("#", "|")) for line in table.split("\n")),
+           "the table holds nothing the feed's summary would read as prose")
+    for notes_ in (described, release_description(tag, no_arm, digests, section, verification),
+                   download_table(tag, files, digests) + "\n" + "# hMailServer 6.3.5\n\nA first paragraph.\n"):
+        lead = notes_.partition(DOWNLOAD_HEADING + "\n")[2].partition("\n# ")[2]
+        expect(lead and feed.release_summary(notes_, "fallback") == feed.release_summary("# " + lead, "fallback") != "fallback",
+               "the notes begin with the table, and the feed's summary of them is unchanged by it: %r" % feed.release_summary(notes_, "fallback"))
+    expect(feed.release_summary(described, "fallback") == "The notes.", "the summary is the section's first paragraph")
+    expect(image_is_published({"HM_PUBLISH_IMAGE": "1"}) and not image_is_published({}) and not image_is_published({"HM_PUBLISH_IMAGE": "0"}),
+           "the image row follows the project's HM_PUBLISH_IMAGE as the job runs")
+    # The preview follows the tagged tree's WindowsOnArm.md, which says it today.
+    expect(arm64_is_preview(ROOT), "%s still says %s, so the ARM64 row says it is a preview" % (WINDOWS_ON_ARM, ARM64_PREVIEW))
+    docs = tempfile.mkdtemp(prefix="release-notes-")
+    try:
+        expect(arm64_is_preview(docs), "a tree without %s is read as calling the build a preview" % WINDOWS_ON_ARM)
+        os.makedirs(os.path.dirname(os.path.join(docs, local(WINDOWS_ON_ARM))))
+        with open(os.path.join(docs, local(WINDOWS_ON_ARM)), "w", encoding="utf-8") as f:
+            f.write("Windows on ARM\n==============\n\nIt has run the regression suite on ARM64 hardware.\n")
+        expect(not arm64_is_preview(docs), "a WindowsOnArm.md without the sentence ends the preview")
+    finally:
+        shutil.rmtree(docs, ignore_errors=True)
+    # The publisher and the moving tags, held to the scripts that decide them.
+    with open(os.path.join(ROOT, "build", "ci", "windows-authenticode.ps1"), encoding="utf-8") as f:
+        expect("'CN' = '%s'" % AUTHENTICODE_PUBLISHER in f.read(),
+               "windows-authenticode.ps1 signs as CN=%s, the publisher the notes name" % AUTHENTICODE_PUBLISHER)
+    with open(os.path.join(ROOT, "build", "ci", "container-image-push.sh"), encoding="utf-8") as f:
+        expect("\nplain='%s'\n" % PLAIN_VERSION in f.read(),
+               "container-image-push.sh moves :major.minor and :latest for the versions PLAIN_VERSION matches")
+    with open(os.path.join(ROOT, "SECURITY.md"), encoding="utf-8") as f:
+        expect("\n## Verifying a release\n" in f.read().replace("\r\n", "\n"),
+               "SECURITY.md has the section the table's last row links, #verifying-a-release")
 
     # The allow-list's keys and their fingerprints. KEY_A is the owner's, from
     # .gitlab/allowed_signers, with the fingerprint ssh-keygen -l prints for it.
@@ -2612,6 +2854,24 @@ def self_test():
                                name, aliases[platform], paths[name], paths.get(name + BUNDLE)))
             expect(payload["name"] == "hMailServer 6.3.5" and "The notes." in payload["description"] and SIGNER_IDENTITY_PREFIX in payload["description"],
                    "the notes are the CHANGELOG section and the verification")
+            # The notes begin with the Download table, made from the signed files: each
+            # installer's SHA-256 as publish computed it, no image row (the job's
+            # environment has no HM_PUBLISH_IMAGE), and then the section's heading.
+            published = payload["description"]
+            heading = published.find("\n# hMailServer 6.3.5\n\nThe notes.")
+            expect(published.startswith(DOWNLOAD_HEADING + "\n") and 0 < heading < published.find("## Verification")
+                   and all(line == "" or line.startswith(("#", "|")) for line in published[:heading].split("\n"))
+                   and all("SHA-256 `%s`" % sha256_of(os.path.join(signed, n)) in published[:heading] for n in windows_installers(version))
+                   and "Windows on ARM64 (preview)" in published[:heading] and "Container image" not in published,
+                   "the notes begin with the Download table, each installer's SHA-256 the signed file's: %s" % published[:600])
+            expect(feed.release_summary(published, "fallback") == feed.release_summary(published[heading + 1:], "fallback") == "The notes.",
+                   "the feed's summary of the published notes is the section's first paragraph, as without the table")
+            # And the installers' links are the last made, so listed first.
+            made = [l["name"] for l in links]
+            expect(made[-2:] == [names["windows-arm64"], names["windows"]]
+                   and [l["name"] for l in reversed(api.releases[0]["assets"]["links"]) if l["link_type"] == "package"][:2]
+                   == [names["windows"], names["windows-arm64"]],
+                   "the release is created with the installers' links last, x64 the newest: %s" % made[-3:])
             uploads = [c for c in api.calls if c[0] == "PUT"]
             created = [i for i, c in enumerate(api.calls) if c[0] == "POST"]
             expect(len(uploads) == 160 and created and all(api.calls.index(u) < created[0] for u in uploads),
@@ -2620,6 +2880,8 @@ def self_test():
             tree, latest, warnings = feed.render(*feed.load(api.feed_get))
             expect("releases/tags/v6.3.5" in tree and latest["tag_name"] == "v6.3.5" and not warnings,
                    "the feed publishes the release as the stable one: %s" % warnings)
+            expect(b"<summary>The notes.</summary>" in tree.get(feed.ATOM_PATH, b""),
+                   "the release's Atom entry is summarised by the section's first paragraph, not the Download table")
             if "releases/tags/v6.3.5" in tree:
                 document = json.loads(tree["releases/tags/v6.3.5"].decode("utf-8"))
                 for platform in ("windows-arm64", "deb-arm64", "rpm-aarch64", "appimage-x86_64", "appimage-aarch64"):

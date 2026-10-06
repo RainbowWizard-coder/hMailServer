@@ -453,7 +453,10 @@ def plain_markdown(text):
 def release_summary(description, fallback):
     """The Atom summary of a release: the first paragraph of its notes that is
     prose - not the re-hosting note, a heading, a rule, a table or code - as
-    plain text, cut to SUMMARY_MAX characters; fallback when there is none."""
+    plain text, cut to SUMMARY_MAX characters; fallback when there is none. The
+    Download table build/ci/release-chain.py begins a release's notes with (from
+    the release after 6.3.6, and 6.3.6's by hand) is a heading and a table, so
+    the summary is still the first paragraph of the CHANGELOG section after it."""
     paragraphs = []
     current = []
     fenced = False
@@ -1424,6 +1427,11 @@ def self_test():
     for description, summary in (
             (None, "fallback"), ("", "fallback"), ("# Heading\n\n---\n", "fallback"),
             ("*Re-published on GitLab on 24 September 2026 from the GitHub release.*\n\n# hMailServer 6.3.3\n\nThe lead.\n\nMore.", "The lead."),
+            # The Download table the release chain puts first (build/ci/release-chain.py, download_table).
+            ("## Download\n\n| | |\n|---|---|\n| **Windows, x64** | [hMailServer-6.3.7-x64.exe](https://gitlab.com/hmailserver/"
+             "hmailserver/-/releases/v6.3.7/downloads/hMailServer-x64.exe): the installer. SHA-256 `2f673913`. |\n"
+             "| **Linux** | The `.deb` and `.rpm` packages; `hmailserver-linux-6.3.7-SHA256SUMS.txt` lists them. |\n\n"
+             "# hMailServer 6.3.7\n\nThe lead.\n\nMore.", "The lead."),
             ("Line one\\\nline two, with **bold**, *emphasis*, `a_b*c`, [a link](https://x/y) and ![an image](i.png).",
              "Line one line two, with bold, emphasis, a_b*c, a link and an image."),
             ("```\ncode first\n```\n\n| a | b |\n|---|---|\n\n- item one\n- item two", "item one item two"),

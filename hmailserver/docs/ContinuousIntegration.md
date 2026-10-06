@@ -2263,7 +2263,7 @@ runbook.
 | `release-sbom` | shared runners, in Python's image | Makes each installer's own SBOM, `hMailServer-<version>-x64.exe.cdx.json` and `hMailServer-<version>-arm64.exe.cdx.json`, from the bytes Authenticode signed, with `linux-sbom`'s component list for that processor (both kept by `release` in `release-tools/`), the tools' lock files and that installer's script; refuses an installer Authenticode left unchanged, and a module file that is not collect's bytes with one signature block appended; then writes the statement of the release's SLSA v1 provenance, an in-toto statement naming all sixty-two files by their SHA-256, the commit and the pipeline, for `release-sign` (`build/ci/release-chain.py sbom`, `build/asset-sbom.py`) |
 | `release-sign` | shared runners, in cosign's `gcr.io` image by digest | Requires each installer's SBOM and the provenance's statement to name that signed installer's SHA-256, and the statement each signed module file's, then signs all sixty-two files with Sigstore, checks each bundle's format and log entry and verifies it with cosign, copies each primary file's bundle to `<file>.sigstore.json` byte for byte, attests the statement with `cosign attest-blob` (a Rekor v1 dsse entry), and finds every file in it with `cosign verify-blob-attestation` (`build/ci/release-sign.sh`) |
 | `release-verify` | linix | Checks every file with `hmailserver --verify-update`, built by `linux-build` from the same commit, requires the GitLab identity, refuses a copy with a byte added, holds each compiled file's and the tarball's SBOM to the file (`build/asset-sbom.py verify`), each `.sigstore.json` copy to its bundle and the provenance's statement to the files, the commit and the pipeline (`build/ci/release-chain.py check-provenance`), and writes the notes' verification section (`build/ci/release-verify.sh`) |
-| `release-publish` | shared runners, by hand | Refuses a release that exists already, a compiled file whose SBOM is missing or describes other bytes, a `.sigstore.json` that is not its bundle, a provenance that does not name every file, a link GitLab would refuse, a site Pages or a server would not read whole, and, before it sends anything, a file name the generic package `hmailserver/<version>` holds with other bytes; uploads the 160 files there, except any it holds with the same bytes from a run that stopped part-way, reads them back and holds every record of each name to the SHA-256 that was signed, creates the release (the version's section of `CHANGELOG.md` and the verification) with a link per file named after it, and requires the feed rendered from the API to give Windows servers on x64 and ARM64, Debian and RPM servers on x86-64 and AArch64, and the AppImages their file and bundle (`build/ci/release-chain.py publish`) |
+| `release-publish` | shared runners, by hand | Refuses a release that exists already, a compiled file whose SBOM is missing or describes other bytes, a `.sigstore.json` that is not its bundle, a provenance that does not name every file, a link GitLab would refuse, a site Pages or a server would not read whole, and, before it sends anything, a file name the generic package `hmailserver/<version>` holds with other bytes; uploads the 160 files there, except any it holds with the same bytes from a run that stopped part-way, reads them back and holds every record of each name to the SHA-256 that was signed, creates the release (a Download table made from the release's files, then the version's section of `CHANGELOG.md` and the verification; [The release's notes and the order of its links](#the-release)) with a link per file named after it, the two Windows installers' made last so that GitLab lists them first, and requires the feed rendered from the API to give Windows servers on x64 and ARM64, Debian and RPM servers on x86-64 and AArch64, and the AppImages their file and bundle (`build/ci/release-chain.py publish`) |
 | `pages`, `package-repos` | shared runners, after `release-publish` | The update feed rendered from the releases with the new one in it, the apt and dnf repositories added, and the site deployed, in the tag's own pipeline ([The update feed](#the-update-feed)). Until 6.3.6 a trigger job, `update-feed`, was to start a pipeline on `master` for this; GitLab drops a multi-project trigger into the project that runs it (`invalid_bridge_trigger`), and 6.3.5's was |
 
 **Why two buttons.** Nothing is signed or sent until a maintainer starts
@@ -2444,6 +2444,36 @@ were given `/downloads/<name>`, so GitLab served each at
 hand through the API the same day; `release-chain.py` now refuses such a path
 before anything is uploaded, and `build/check-release-chain.py` holds the paths,
 the pairing and every `permalink/latest` address the tree writes.
+
+**The release's notes and the order of its links.** A release's notes begin with
+a `## Download` table that `release-publish` makes from the release's own files
+(`release-chain.py`'s `download_table`), before the heading
+`# hMailServer <version>`, the version's `CHANGELOG.md` section and the
+verification. Its rows: the x64 installer, always, since a release without it
+is refused before the table is made; the ARM64 installer when the release
+carries it, called a preview while the tagged tree's
+[WindowsOnArm.md](WindowsOnArm.md) says, in bold, "This has not been run on
+ARM64 hardware."; each linked at its release-page address,
+`/-/releases/<tag>/downloads` and its link's path, with the SHA-256 the job
+computed of the signed file; the Linux packages, naming the release's
+`hmailserver-linux-<v>-SHA256SUMS.txt`; the container image, while the project's
+CI/CD variable `HM_PUBLISH_IMAGE` is `1` as the job runs, the switch the image
+jobs after it read; and how to check a download, naming the provenance and the
+notes' *Verification*. Every line of it is a heading, a table row or blank,
+which the update feed's Atom summary passes over
+(`build/generate-update-feed.py`'s `release_summary`), so a release's summary
+is still its section's first paragraph. GitLab lists a release's links newest
+first, under *Assets* by type, so the job makes the two installers' links last,
+ARM64 then x64, and every other link before them in the order of its name: x64
+and ARM64 are the first two of *Packages*. `release-chain.py --self-test` holds
+the table to the files - no ARM64 row without the ARM64 installer, no preview
+sentence once WindowsOnArm.md drops it, no image row while the variable is not
+`1`, each SHA-256 the file's - the summary to the notes without the table, and
+the order of the links. 6.3.6's notes began with its section, about 420,000
+characters, and its links were all made in the order of their names, which put
+the installers 24th and 25th of its 26 packages among 160 links: on
+6 October 2026 the table was put above its notes and the two installers' links
+made again, last, by hand.
 
 **What GitLab and Pages take.** GitLab sets no limit on a release's links, but
 each link's permanent path must be at most 128 characters of letters, digits and

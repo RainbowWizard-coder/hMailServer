@@ -83,7 +83,9 @@ pipeline passed, the change checks in it (SECURITY.md, "Every change";
    the version's section of `CHANGELOG.md`, headed `## [X.Y.Z](...) - <date>`,
    committed before the tag, because `release-publish` makes the release's notes
    from it as the tag's own tree has it and refuses a version without one - a
-   pre-release's too, `## [X.Y.Z-rc1](...)`. The installer is not built by hand
+   pre-release's too, `## [X.Y.Z-rc1](...)`. `release-publish` puts a Download
+   table above the section, made from the release's own files (step 6), so the
+   section need not say where the installers are. The installer is not built by hand
    (step 11): the pipeline builds it, in bench150's checkout, and refuses to if
    that checkout has a change of its own to a tracked file, or a file git does
    not track where a build would take it in (`build/ci/windows-installer.ps1`
@@ -241,7 +243,18 @@ pipeline passed, the change checks in it (SECURITY.md, "Every change";
    the digest that was signed, creates the release with a
    link per file named after it, and checks that the feed the API now gives
    offers the release to Windows servers, to Debian and RPM servers on
-   x86-64 and AArch64, and to the AppImages. `pages` and `package-repos`, which
+   x86-64 and AArch64, and to the AppImages. The release's notes begin with a
+   Download table made from its files: each Windows installer with its download
+   address on the release page and the SHA-256 the job computed of it, the
+   ARM64 one called a preview while `hmailserver/docs/WindowsOnArm.md` says,
+   in bold, "This has not been run on ARM64 hardware."; the Linux sums; the
+   container image, while the project's `HM_PUBLISH_IMAGE` is `1`; and how to
+   check a download. Then come the version's `CHANGELOG.md` section and the
+   verification. The two installers' links are made last, ARM64 then x64,
+   because GitLab lists a release's links newest first, so x64 and ARM64 head
+   *Packages*. 6.3.6's notes began with the section and its installers were
+   listed 24th and 25th of 26: the table and the order were given to its
+   release by hand on 6 October 2026. `pages` and `package-repos`, which
    wait for it, then render the feed with the release in it and deploy the site
    from the same pipeline (6.3.5's `update-feed`, a trigger of a pipeline on
    `master`, was refused by GitLab, and its feed was deployed by a `master`

@@ -111,6 +111,21 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   pipeline, and by itself in the next `v*` tag's - pushes the image's under the tag `artifacthub.io`: each gives its
   listing the Verified publisher label, which neither has yet. A new release's version tag is not tracked by itself:
   a maintainer adds it to the image repository's tags on Artifact Hub, ten at most.
+- **A release's page says first what to download, and lists the Windows installers first.** 6.3.6's notes began with
+  its `CHANGELOG.md` section, some 420,000 characters, and named no download at the top, and its two installers'
+  links, made before the 22 `.deb` and `.rpm` links, were listed 24th and 25th of the 26 under *Assets*, *Packages*,
+  among 160 links: GitLab lists a release's links newest first, and `release-publish` made them all in the order of
+  their names. The owner could not find the Windows installer there. `build/ci/release-chain.py` now begins the notes
+  with a `## Download` table made from the release's own files, above the section's heading: the x64 installer, and
+  the ARM64 one when the release carries it, called a preview while `hmailserver/docs/WindowsOnArm.md` says, in
+  bold, "This has not been run on ARM64 hardware.", each linked at its address on the release page with the SHA-256
+  the job computed of the signed file; the Linux packages, naming the release's sums file; the container image, while
+  the project's `HM_PUBLISH_IMAGE` is `1`; and how to check a download. It makes the two installers' links last, ARM64
+  then x64, so that x64 and ARM64 head *Packages*. Every line of the table is a heading, a table row or blank, which
+  the update feed's Atom summary passes over, so a release's summary is unchanged. The chain's self-test holds the
+  table to the files (no ARM64 row without the ARM64 installer, no preview sentence once WindowsOnArm.md drops it, no
+  image row while the variable is not `1`, each SHA-256 the file's), the summary to the notes without the table, and
+  the order of the links. 6.3.6's release page was given the table and the order by hand on 6 October 2026.
 
 ### Operations
 
