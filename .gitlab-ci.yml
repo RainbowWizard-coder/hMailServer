@@ -133,7 +133,7 @@ include:
   - local: .gitlab/ci/cli-packages.yml
   # GitHub's hosts kept out of a job whose image or runner does not keep them out (docs/ContinuousIntegration.md, "Nothing from GitHub, in the job").
   - local: .gitlab/ci/no-github.yml
-  # What every change - a merge request, or a protected batch* branch - must pass beyond the checks: semgrep-sast's findings in what it changes, and the dependency versions it adds or pins (docs/ContinuousIntegration.md, "Merge request checks").
+  # What every change - a merge request, or a protected batch* branch - must pass beyond the checks: semgrep-sast's findings in what it changes, and the dependency versions it adds or pins (docs/ContinuousIntegration.md, "Change checks").
   - local: .gitlab/ci/mr-checks.yml
   # The server and its testers built with GCC too, on master and batch* (docs/ContinuousIntegration.md, "The GCC build").
   - local: .gitlab/ci/gcc.yml

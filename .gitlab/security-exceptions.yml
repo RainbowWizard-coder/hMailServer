@@ -2,20 +2,36 @@
 # Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
 # SPDX-License-Identifier: AGPL-3.0-or-later
 #
-# The security findings a release may go out with, each read and accepted by a
-# maintainer. build/ci/security-gate.py reads this file in the release job (build/ci/
-# release-chain.py collect) and in the hand runbook, and holds the release on every
-# finding its policy counts that is neither in a scan's baseline nor accepted here:
+# The security findings declared not exploitable, each read and accepted by the owner.
+# Every gate that holds a finding reads this file as the branch a change targets has
+# it, not as the change has it (one case apart, below):
+#
+#   semgrep-sast-gate    every change (build/ci/security-gate.py --merge-request), the
+#                        change's base's copy: a Critical or High semgrep-sast finding;
+#   mr-dependency-check  every change (build/ci/mr-dependency-check.py), the base's
+#                        copy: a Critical or High advisory against a version it adds;
+#   static-analysis,     a batch's, master's and a tag's pipeline
+#   semgrep              (build/ci/security-findings.py --exceptions), master's copy: a
+#                        finding not in build/ci/<job>-baseline.txt;
+#   release              a v* tag (build/ci/release-chain.py collect, then
+#                        build/ci/security-gate.py), master's copy: all four scans, as
+#                        below, and the hand runbook the same.
+#
+# The release holds on every finding its policy counts that is neither in a scan's
+# baseline nor accepted here:
 #
 #   static-analysis, semgrep   a finding not in build/ci/<job>-baseline.txt;
 #   semgrep-sast               a finding of severity Critical or High;
 #   dependency-scan            a Critical or High vulnerability with a fixed version
 #                              that .gitlab/hmailserver.openvex.json does not dismiss.
 #
-# SECURITY.md, "Vulnerability management policy", says why those. A finding that does
-# not affect the project at all belongs in the VEX document (a dependency) or is fixed;
-# this file is for a finding accepted for a time: not exploitable as the code stands,
-# or waiting on an upstream fix, with the reason written down and a date to look again.
+# SECURITY.md, "Vulnerability management policy", says why those, and "Declaring a
+# finding not exploitable" what an entry here means. A dependency that does not affect
+# the project at all belongs in the VEX document; anything else is fixed, or is
+# declared here as not exploitable as the code stands - a false positive is one such
+# case - with the reason written down and a date to look again. A fix that waits
+# upstream is no reason: an exploitable finding is not declared here, it holds, and is
+# fixed or its component replaced under SECURITY.md's thresholds.
 #
 # One entry per finding:
 #
@@ -24,35 +40,57 @@
 #                                      the advisory's id (CVE-..., GHSA-..., OSV-...)
 #     package: zlib                    dependency-scan only: the package the advisory is against
 #     what: 'strcpy in Foo.cpp'        what it is, for the reader of this file
-#     reason: 'why it is accepted: why it is not exploitable here, or what it waits on'
+#     reason: 'why it is not exploitable here: the check, size or bound that holds'
 #     reviewed-by: Progressiverobot    the GitLab username of the maintainer who read it
 #     reviewed: 2026-09-26             the day it was read
-#     expires: 2027-03-26              at most a year later; after it the finding holds the
-#                                      release again until it is read again
+#     expires: 2027-03-26              at most a year later; after it the finding holds
+#                                      changes and releases again until it is read again
+#
+# The reviewer is the owner, who owns this file (.gitlab/CODEOWNERS) and merges every
+# change; an entry read with an AI's help under his delegation says so, in the entry or
+# in the comment that heads its group.
 #
 # The file is a strict subset of YAML, read without a YAML library: comments, the
 # "exceptions:" key, and flat entries of one-line "key: value" pairs, a value quoted
 # with single quotes when it has a colon, a hash or a quote in it. The gate refuses
 # anything else, and build/check-release-chain.py holds the file to it on every
-# pipeline. A change to this file is the owner's to accept (.gitlab/CODEOWNERS). The
+# pipeline. An entry lands on master before the change that needs it, in a change of
+# its own: every gate reads the copy of the branch the change targets. The one
+# exception is a change that alters semgrep-sast's configuration, which answers for the
+# whole tree and whose own copy may accept a finding in a file it does not touch. The
 # release job reads master's copy, never the tagged tree's, as it reads master's
-# allow-list: an exception the owner adds on master after the tag counts when the
-# release job is retried.
+# allow-list: an exception that reaches master after the tag, by a merge request of its
+# own, counts when the release job is retried.
 #
-# The entries below are the 169 findings of GitLab's semgrep analyzer (semgrep-sast),
-# run on linix over master at 40c7d3e0c, that were judged not exploitable. Each was
+# On 6 October 2026 the file held 500 entries: 232 of semgrep-sast, 264 of
+# static-analysis and 4 of semgrep, in seven groups, each headed by a comment that says
+# how it was read. 293 of them expire on 26 and 27 March 2027, the rest from 25
+# September 2027. The groups, in the file's order:
+#
+#   - 169 entries: 167 of the 169 semgrep-sast findings judged not exploitable on 26
+#     September 2026 (below), and two of 28 September 2026 for UpdateChecker.cpp's
+#     getenv, one of static-analysis and one of semgrep-sast;
+#   - 2 semgrep-sast findings in the webmail's Portal.js, read on 27 September 2026;
+#   - 10 semgrep-sast findings in the AppImage runtime, read on 27 September 2026;
+#   - 281 findings of the 6.3.4 release scan - 263 static-analysis, 4 semgrep and 14
+#     semgrep-sast - read on 26 September 2026;
+#   - 22 semgrep-sast findings read on 2 October 2026 and 6 read on 3 October 2026,
+#     each against 6.3.6's code;
+#   - 10 semgrep-sast findings in 6.3.6's new code, read on 5 October 2026.
+#
+# The 169 findings of GitLab's semgrep analyzer (semgrep-sast) that began the first
+# group, run on linix over master at 40c7d3e0c, were judged not exploitable. Each was
 # read on 26 September 2026 by two AI review agents, the second trying to refute the
 # first, under the owner's delegation, and not line by line by the owner, so their
-# reviewed-by names the owner, who delegated the reading, not a reader. Each names
-# the specific reason it is safe: the check, the size or the constant that holds, and
-# the function it is in. The fingerprints are the gate's own, made from that report;
-# batch40 moved some of the flagged lines and changed none of them until sast-fix,
-# folded after, changed six accepted ones: MySQLInterface.cpp's LoadLibrary,
-# Utilities.cpp's two memcpy, the password dialog's help link
-# (formEnterPassword.cs), the Control Panel's elevated command line
-# (FeatureSettingsView.xaml.cs, /d added) and UtilityViews.cs's explorer.exe. Where
-# the analyzer still flags one of those, it has a new fingerprint and holds the
-# release until it is read again.
+# reviewed-by names the owner, who delegated the reading, not a reader. Each names the
+# specific reason it is safe: the check, the size or the constant that holds, and the
+# function it is in. The fingerprints are the gate's own, made from that report; batch40
+# moved some of the flagged lines and changed none of them until sast-fix, folded after,
+# changed six accepted ones: MySQLInterface.cpp's LoadLibrary, Utilities.cpp's two
+# memcpy, the password dialog's help link (formEnterPassword.cs), the Control Panel's
+# elevated command line (FeatureSettingsView.xaml.cs, /d added) and UtilityViews.cs's
+# explorer.exe. Where the analyzer still flags one of those, it has a new fingerprint
+# and holds the release until it is read again.
 #
 # The seven High findings judged real have no entry: each was fixed instead, in the
 # tree 6.3.4 is released from (batch40's fold of the branch sast-fix, 26 September
@@ -1047,6 +1085,9 @@ exceptions:
     expires: 2027-09-25
 
   # hmailserver/source/Server/Common/Util/UpdateChecker.cpp
+  # These two were read on 28 September 2026, when batch42's live update added the getenv
+  # line, by the AI agent that folded it, under the owner's delegation and not line by line
+  # by the owner, so reviewed-by names the owner, who delegated the reading.
   - scan: static-analysis
     finding: c9b871ff80b77887f710
     what: 'getenv(name) in UpdateChecker.cpp EnvironmentValue_ (POSIX only), reading HM_INSTALL_KIND, SNAP, SNAP_INSTANCE_NAME and SNAP_NAME'
@@ -3917,8 +3958,10 @@ exceptions:
     expires: 2027-10-02
 
   # The ten semgrep-sast findings in 6.3.6's new code that the release gate of its first tag
-  # pipeline held (5 October 2026), each read against the code at 94892314a by one reviewer and
-  # an independent skeptic, both finding it safe as the code stands.
+  # pipeline held (5 October 2026), each read against the code at 94892314a by one AI review
+  # agent and an independent AI skeptic, both finding it safe as the code stands, under the
+  # owner's delegation and not line by line by the owner, so reviewed-by names the owner, who
+  # delegated the reading.
   # hmailserver/source/Server/Common/Util/ServiceAccount.cpp
   - scan: semgrep-sast
     finding: 0f3b1f6e0a29a5a82a8c

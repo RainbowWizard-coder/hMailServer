@@ -57,9 +57,10 @@
 # When they run: in a merge request's pipeline and in a pipeline for the default
 # branch; semgrep-sast in a protected batch* branch's pipeline too, whose
 # semgrep-sast-gate reads its report, and for a protected v* tag, whose release job
-# reads it (master is pushed with ci.skip, so master's pipeline may never have scanned
-# the tagged commit). Never in the fuzz schedule's, Renovate's or the update feed's
-# pipeline, which each run their one job (.not-a-fuzz-pipeline in .gitlab-ci.yml);
+# reads it (no pipeline of master's need have scanned the tagged commit: a landing's
+# may be cancelled, and a push made with ci.skip runs none). Never in the fuzz
+# schedule's, Renovate's or the update feed's pipeline, which each run their one job
+# (.not-a-fuzz-pipeline in .gitlab-ci.yml);
 # secret_detection not for a tag, whose commits the pushes to master and the landing's
 # own scan (build/scan-secrets.py) have read.
 # And secret_detection alone in the pipeline of a schedule on master whose description
@@ -69,8 +70,8 @@
 # button, and deactivates it until the next time (docs/ContinuousIntegration.md,
 # "Security scanning"). A schedule and not a variable, because the project refuses pipeline
 # variables and a schedule's; a schedule and not a manual job, because a manual job
-# would sit in every pipeline on master, where pushes land with ci.skip, and would
-# need a pipeline to be started in anyway.
+# would sit in every pipeline on master, and would need a pipeline to be started in
+# anyway.
 #
 # Where they run: GitLab's shared runners, never linix or bench150. Those two are
 # registered with run_untagged off and take only a job tagged for them, and these
@@ -172,8 +173,8 @@ semgrep-sast:
     # merge request to: semgrep-sast-gate reads the report there, against master.
     - if: $CI_PIPELINE_SOURCE != "merge_request_event" && $CI_COMMIT_BRANCH =~ /^batch/ && $CI_COMMIT_REF_PROTECTED == "true"
     # And for a release tag, whose release job reads the report before anything is
-    # signed (build/ci/security-gate.py): master's pipelines are pushed with ci.skip,
-    # so no pipeline on master may have scanned the tagged commit.
+    # signed (build/ci/security-gate.py): no pipeline on master need have scanned the
+    # tagged commit, since a landing's may be cancelled and a push with ci.skip runs none.
     - if: $CI_COMMIT_TAG =~ /^v/ && $CI_COMMIT_REF_PROTECTED == "true"
   # The report as a plain file too: a later job's needs bring a job's artifacts:paths,
   # not its reports, and the release job reads it. Whatever the scan found.

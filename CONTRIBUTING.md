@@ -359,7 +359,13 @@ editorconfig-checker. Four more run when their files change: *chart-and-compose*
 Compose file), *update-helper* (`build/test-hmailserver-update.sh` and the units under `systemd-analyze`),
 *package-templates* (`make-package-manifests.ps1 -Check` and `check-package-manifests.py --offline` on
 placeholder values) and *roadmap* (`check-roadmap.ps1`). *sign-off* runs on every merge request and every
-`batch*` branch (see [Sign-off](#sign-off)); *checkers* runs its self-test and `build/land-via-mr.py`'s, and those of
+`batch*` branch (see [Sign-off](#sign-off)), and so do the change checks: GitLab's *semgrep-sast*, *semgrep-sast-gate*,
+which holds a change on a Critical or High finding in what it touches, a baseline it grows or a suppression comment it
+adds, and *mr-dependency-check*, which holds one that adds a dependency version or moves a library pin with a Critical
+or High advisory or a malicious package ([SECURITY.md](SECURITY.md), "Every change"; [Change
+checks](hmailserver/docs/ContinuousIntegration.md#change-checks)). A finding that is not fixed passes only through a
+declaration already on `master` that it is not exploitable, landed in a change of its own first. *checkers* runs its
+self-test and `build/land-via-mr.py`'s, and those of
 `build/generate-update-feed.py`, `build/ci/release-chain.py` and `build/ci/repo-hygiene.py` (Token-Permissions against
 CI files made to break it). Each script is started as `python3 build/...`, `node build/...`, `bash build/...` or
 `pwsh -File build/...`, never by its shebang, because the tree checks out CRLF.
@@ -372,9 +378,11 @@ AddressSanitizer, once the option exists), *linux-db-upgrade-pgsql* and *-mysql*
 *linux-package-deb* and *-rpm* (the packages installed in clean containers, the `.deb` started and asked for
 the Deck), *linux-image* (the container image built, not pushed), *linux-sbom*, *linux-repro* (the server and
 the packages built a second time from another path and compared byte for byte), and five
-security-scanning jobs, which do not stop a push's pipeline: *static-analysis* (cppcheck and clang-tidy),
-*semgrep*, *dependency-scan* (Trivy and OSV, fed by *ci-image-packages*) and *repo-hygiene*. Three of them,
-with GitLab's *semgrep-sast*, hold a release instead: the release job reads their reports and refuses while a
+security-scanning jobs: *static-analysis* (cppcheck and clang-tidy) and *semgrep*, which fail the pipeline on a
+finding new to their baselines that `master`'s `.gitlab/security-exceptions.yml` does not accept, and
+*dependency-scan* (Trivy and OSV, fed by *ci-image-packages*) and *repo-hygiene*, which do not stop it; on a `batch*`
+branch the scans judge everything the batch changes from `master`, not its last push. Three of them,
+with GitLab's *semgrep-sast*, hold a release as well: the release job reads their reports and refuses while a
 scan did not finish or found something `SECURITY.md`'s policy counts that no baseline and no entry of
 `.gitlab/security-exceptions.yml` accepts ([Before a release](hmailserver/docs/ContinuousIntegration.md#before-a-release-the-scans-hold-it)). On the second Windows bench:
 *windows-gate* (the whole Windows suite, in the bench's own checkout) and *windows-dotnet* (the Control Panel and
@@ -769,8 +777,9 @@ into a commit. Three things stand in the way, as GitLab's push protection is not
   test fixtures. Adding one elsewhere takes `git add -f`, which is the moment to ask whether it should be there.
 * **The pipeline.** The `secret_detection` job fails the pipeline of a merge request, or of a push to `master`, on
   a finding `.gitleaksignore` does not name (not of a push to another branch: open a merge request, or turn the
-  hooks on); and the maintainer's landing scans every commit of a batch before it reaches `master`, which is
-  pushed with `ci.skip` today, so that scan, not the job, is what reads the commits `master` gets.
+  hooks on); and the maintainer's landing scans every commit of a batch before it reaches `master`. A batch's own
+  pipeline does not run the job, and `master`'s runs it only once the batch has landed, so the landing's scan is
+  what reads a batch's commits before `master` gets them.
 
 A finding that is a real secret is revoked where it was issued, and taken out of the commits before they are
 pushed; once pushed, assume it is known ([SECURITY.md](SECURITY.md#secrets-and-credentials)). A finding that is
@@ -788,8 +797,8 @@ project's licence: the [Developer Certificate of Origin](https://developercertif
 must be the commit's author email. There is no CLA, so the sign-off is the record that a contribution may be
 distributed under AGPL-3.0-or-later.
 
-**Sign-off is required of every commit that reaches `master`, the maintainers' own included**, from the first
-batch that lands through `build/land-via-mr.py` (written on 26 September 2026; none has landed yet). Until then
+**Sign-off is required of every commit that reaches `master`, the maintainers' own included**, since the first
+batch that landed through `build/land-via-mr.py`, `batch41`, on 29 September 2026. Before it
 the maintainers' commits were exempt, as they were under the GitHub check (the workflow `dco.yml`, in the git
 history at `v6.3.3`), which is why the commits on `master` before it carry none. A direct push to `master`,
 which Maintainers can make until its push rule becomes *No one*, is checked by nothing
@@ -825,28 +834,31 @@ rewrites. To sign off without remembering the flag, `git config alias.cs "commit
    own included ([GOVERNANCE.md](GOVERNANCE.md), "Review"). On GitLab's Free tier anyone with the Developer role
    can approve, but no rule can require an approval, and whether an author may approve their own is a setting of
    the paid tiers; so the landing script below holds the rule, and it never counts an author's approval.
-6. **The gate.** A merge request's own pipeline runs the shared runners' checks only. The builds and both suites
+6. **The gate.** A merge request's own pipeline runs the shared runners' checks only, the change checks among
+   them, which must pass ([The checkers](#the-checkers)). The builds and both suites
    run on the project's machines for a `batch*` branch, which only a Maintainer can push: the maintainer puts
    your commits on one - rebased onto the current `master`, your authorship and your `Signed-off-by` kept, or
    squashed into one commit of yours that keeps them - with other changes ready to land.
 7. **Landing.** A `batch*` branch lands through a merge request of its own, by fast-forward, so history stays
-   linear: `python3 build/land-via-mr.py batchN` checks that the batch is on top of `master`, adds no merge
-   commit, is signed off throughout and holds no possible secret (`build/scan-secrets.py` over every commit it
-   adds, which must run: see [Secrets](#secrets)), pushes it, opens the merge request, waits for the branch's
-   pipeline,
-   and merges only when it passed and GitLab calls the merge request mergeable. It never squashes. It records on
-   the merge request, and in `land-via-mr.log` in the git directory, the pipeline, the sign-off and whether
-   somebody other than the author approved the tip it lands (an approval given before a later push does not
-   count), and without such an approval it refuses to merge (exit 7). The owner alone may override that for
-   one landing that cannot wait - a security fix inside its disclosure window, a broken `master` - with
+   linear: `python3 build/land-via-mr.py batchN` checks that the batch is on top of `master`, adds no merge commit,
+   is signed off throughout and holds no possible secret (`build/scan-secrets.py` over every commit it adds, which
+   must run: see [Secrets](#secrets)), pushes it, opens the merge request, waits for the branch's pipeline, and
+   merges only when it passed, with each of its gate jobs - *semgrep-sast*, *semgrep-sast-gate* and
+   *mr-dependency-check*, and *static-analysis* and *semgrep* unless the batch changes only Markdown at the root or
+   under a dot-directory - succeeding itself, and GitLab calls the merge request mergeable. It never squashes. It
+   records on the merge request, and in `land-via-mr.log` in the git directory, the pipeline and its gate jobs, the
+   sign-off and whether somebody other than the author approved the tip it lands (an approval given before a later
+   push does not count), and without such an approval it refuses to merge (exit 7). The owner alone may override
+   that for one landing that cannot wait - a security fix inside its disclosure window, a broken `master` - with
    `--land-without-approval "<reason>"`: the script refuses the override unless it runs as one of the owner's
-   accounts, records the reason on the merge request and in its log, and the change is reviewed afterwards. Run
-   with `--dry-run` it checks and changes nothing, with `--no-wait` it stops once the merge request is open, and
-   run again it finds the open merge request and carries on. Your merge request is then merged or closed with a
-   link to the batch's. `master` is protected: only the owner can merge to it, and once the pipeline on
-   `master` is green it is to be closed to direct pushes, so that a merge request is the only way in. (On
-   GitHub, until 14 September 2026, a pull request was merged by rebase once the other maintainer had approved
-   it, as the master ruleset required; from then until 6.3.4 no approval was required.)
+   accounts, records the reason on the merge request and in its log, and the change is reviewed afterwards. Run with
+   `--dry-run` it checks and changes nothing, with `--no-wait` it stops once the merge request is open, and run
+   again it finds the open merge request and carries on. Your merge request is then merged or closed with a link to
+   the batch's. `master` is protected: only the owner can merge to it, and once the batch that brings the change
+   checks has landed through them it takes no direct push ([SECURITY.md](SECURITY.md), "Every change"), so that a
+   merge request is the only way in. (On GitHub, until 14 September 2026, a pull request was merged by rebase once
+   the other maintainer had approved it, as the master ruleset required; from then until 6.3.4 no approval was
+   required.)
 
 If a change spans more than about three rows of ARCHITECTURE.md's *Where to start* table, or touches the schema,
 the COM interface or the release path, open an issue to discuss it before writing it.

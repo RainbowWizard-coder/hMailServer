@@ -128,6 +128,70 @@ prompt. Found by the project's own review (work item 78; CVE requested).
 
 ### Build and tests
 
+- **Every change is checked before it lands, a maintainer's batch as well as a merge request** (OpenSSF Baseline
+  OSPS-VM-05.03 and OSPS-VM-06.02). `semgrep-sast`, `semgrep-sast-gate` and `mr-dependency-check` ran in a merge
+  request's pipeline alone, and a maintainer's `batch*` branch, whose merge request runs no pipeline of its own, landed
+  without them - 6.3.5's and 6.3.6's batches among them. They now run in a protected `batch*` branch's pipeline too, the
+  one GitLab holds its merge request to, judged against where the batch leaves `master` (`change_base()` in
+  `build/ci/security-gate.py`; `--merge-request auto`, `--base auto`): blocking, with no `rules:changes` list, no rule
+  that reads `SAST_DISABLED`, and tried twice more when an input cannot be read (exit 2) or GitLab itself fails.
+  `semgrep-sast` runs GitLab's analyzer from a copy in the project's registry that keeps its digest
+  (`mirror/semgrep`, made by `build/ci/mirror-semgrep.sh`): on 5 October 2026 GitLab's registry stopped serving the
+  digest pinned on 26 September, which would now have stopped every change. On a batch, `static-analysis`, `semgrep`,
+  `ci-image-packages` and `dependency-scan` compare the branch with `master` rather than with the push before, so a
+  push of documentation on top of code still runs them. `build/land-via-mr.py` lands a batch only when each gate in
+  its pipeline succeeded itself - the three change checks always, the two source scans unless the batch changes
+  Markdown alone at the root or under a dot-directory - since GitLab calls a pipeline a success with a job a rule left
+  out or one that failed while allowed to, and it writes their statuses into the landing record.
+  `build/check-release-chain.py` holds all of it, each rule with a case of its self-test that must fail
+  (SECURITY.md, "Every change"; ContinuousIntegration.md, "Change checks").
+- **A change cannot silence its own finding.** `semgrep-sast-gate` holds a change that adds an entry to
+  `build/ci/static-analysis-baseline.txt` or `build/ci/semgrep-baseline.txt`, or takes a reason from one, and one that
+  raises, in any file a scan reads, the count of the inline comments by which Semgrep, clang-tidy or cppcheck passes
+  over a finding; a change may delete an entry, or give one its reason. A change that alters the scan's configuration
+  answers for every finding in the tree, as before, and now so does one that removes or moves one of its files, which
+  the gate read as touching nothing; its own copy of the exceptions file may accept a finding in a file it does not
+  touch, never in one it does, so that re-pinning a vanished analyzer need not wait on an exception no gate could
+  judge.
+- **`static-analysis` and `semgrep` pass a finding that `master`'s exceptions file accepts, and their baselines only
+  shrink.** A finding new to a baseline failed the job unless the baseline took it, which needed no reason, reviewer or
+  expiry and was read from the change itself. Each job now reads `master`'s `.gitlab/security-exceptions.yml` -
+  `static-analysis` with git, which it installs with its tools, `semgrep` from the project's API - through
+  `security-gate.py`'s own reader, passes a new finding that an exception in force accepts, and fails (exit 2) when
+  the file cannot be read; an exception within 30 days of its expiry is named in the log. `--write-baseline` keeps the
+  entries still found, drops those gone and adds none, and `--reasons` gives a reason only to an entry that has none.
+  The artifacts gain `accepted-findings.txt` and `master-security-exceptions.yml`.
+- **The eight High baseline entries that had no reason have one.** Six of Semgrep's parse the project's own
+  catalogues, a nuspec rendered from its template or a TRX the suite wrote, or start node with an argument list;
+  `hmctl`'s unverified TLS context is made only for `--insecure` to a loopback address; and `CrashSimulation.cpp`'s
+  null write is the crash handler's deliberate test, reached only through a setting a server administrator sets. None
+  was fixed: the XML rule accepts only `defusedxml`, which the checkers job does not install, and the crash tests need
+  the fault. 475 of `static-analysis`'s 691 entries and 62 of `semgrep`'s 125 have no reason yet; they are triaged by
+  31 March 2027.
+- **`mr-dependency-check` asks about the native and vendored libraries, and honours the VEX document.** A change that
+  moved the pin of OpenSSL, Boost, libpq, zlib, QuickJS, MariaDB Connector/C, 7-Zip or SQL Server Compact was listed
+  as not checked; each new version is now asked of `api.osv.dev` by its upstream tag, with a control version beside it
+  as `dependency-scan` asks, and held on a Critical or High advisory. One older than its repository's first tag is
+  held by that tag's advisories, and a library OSV has no usable data for is listed as UNKNOWN. A Critical or High
+  advisory now passes when the base's VEX document declares the package at that version not affected, matched by
+  purl, as well as when the base's exceptions accept it. Its self-test holds zlib 1.2.11 on CVE-2022-37434.
+- **`dependency-scan` rates an advisory that carries only a CVSS 4.0 vector, and dismisses one only for the version a
+  VEX statement names.** It read CVSS 3.x vectors and database ratings alone, so CVE-2026-76844, in zlib's
+  `gz_write`, which its CVSS 4.0 vector rates 8.3, High, with a fixed version, counted as Unknown; it is now scored by
+  `mr-dependency-check.py`'s calculator, and would hold the release. The VEX document says zlib 1.3.2 is not affected:
+  `gzwrite.c` is not vendored. A VEX statement dismissed an advisory for any version of the library; it now needs the
+  library at the version scanned among its products, by purl. Its new `--self-test` runs in `checkers`.
+- **`dependency-scan`'s line for the CI image counts the kernel headers apart.** Of the image's 3,608 advisories on 6
+  October 2026, 3,535 were against `linux-libc-dev`, the kernel's user-space headers, which hold no kernel code:
+  Trivy files every advisory against the kernel's source package under it. The CI image's test case now counts those
+  apart from the 73 against the image's other packages, each by severity. Every advisory stays in the reports and
+  `findings.txt`, and a High one against the headers that has a fixed version still holds the release.
+- **`build/ci/mirror-semgrep.sh` and `build/ci/mirror-tumbleweed.sh` handle no token.** `mirror-tumbleweed.sh` read a
+  registry token from its standard input for `skopeo login`, and `repo-hygiene`'s Token-Permissions check failed on it,
+  in `batch43`'s pipeline 2916285454, as a script that reads a token where no job runs it. Both now take a
+  `docker login registry.gitlab.com` made before they run, best in a `DOCKER_CONFIG` of its own, and hand the file it
+  wrote to skopeo, read-only and for the copy's destination alone; they refuse a login kept in a credential helper,
+  which skopeo's container cannot reach. Token-Permissions no longer fails on either.
 - **The static-analysis job's baseline holds 691 findings, down from 887.** The 191 that the security dashboard's
   triage of 5 October 2026 marked to harden or fix are changed in the code, and five more went with the same edits:
   the Linux command line's and `openpgp-writer`'s unchecked writes to the terminal discard their results with
@@ -182,6 +246,15 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   directory from 6.3.0, and in 6.3.0 to 6.3.2 the server's DNS resolver waited without a timeout. It also says that
   such a command now writes no report but the stored-secrets code's `HM7496` and `HM7497`, which go to standard
   error, where it said every report went there.
+- **SECURITY.md's vulnerability management policy says what every change must pass, and what declares a finding not
+  exploitable.** A new first section, "Every change", names the route to `master`, each gate, what it evaluates, what
+  is a violation and what is not, and what no gate reads; "Declaring a finding not exploitable" names the two
+  documents, read from the target branch and never from the change, who reviews an entry, which lands first, and that
+  a fix waiting upstream is no reason, a baseline entry or an inline comment no declaration. ContinuousIntegration.md's
+  "Merge request checks" is "Change checks", with how the base is found, the retries, the analyzer's copy and what the
+  checks cannot hold, and "Landing on master" names the four batches that have landed through it and the two
+  settings the owner makes once this batch has; `.gitlab/security-exceptions.yml`'s header counts its 500 entries by
+  scan and by group, and says how each group was read.
 
 ---
 

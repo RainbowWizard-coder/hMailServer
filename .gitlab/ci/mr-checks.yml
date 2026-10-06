@@ -4,7 +4,7 @@
 
 # The two change gates: what every change must pass before it lands, beyond the checks
 # every pipeline runs. Included from .gitlab-ci.yml (docs/ContinuousIntegration.md,
-# "Merge request checks").
+# "Change checks").
 #
 #   semgrep-sast-gate     GitLab's semgrep-sast (.gitlab/ci/gitlab-security.yml) finds;
 #                         this holds the change on a Critical or High finding in a file

@@ -20,9 +20,12 @@ through a merge request that Zain Ul Abidin approves (the owner, for Zain's
 own) before the owner merges it, by fast-forward, once its pipeline has passed
 and every thread on it is resolved; `build/land-via-mr.py` (written on 26
 September 2026) lands it that way and refuses a merge request without that
-approval (see Review). No batch has landed that way yet: until one has, and the
-owner has taken direct pushes off `master`, he can still push a gated tree to
-`master` directly, as he did before. Security reports go
+approval (see Review). Four batches have landed that way since 29 September
+2026, each on the owner's override of that approval. Until the owner takes
+direct pushes off `master`, which he does once the batch that brings the change
+checks has landed through them ([SECURITY.md](SECURITY.md), "Every change"), he
+can still push a gated tree to `master` directly, as he did with 6.3.6's
+release fixes on 5 October 2026. Security reports go
 by the routes in [SECURITY.md](SECURITY.md). The release chain ran on GitHub
 Actions; its replacement, the release jobs of `.gitlab-ci.yml`, is written and
 has not run yet, so 6.3.4 was built and signed by hand. The installer's fetched
@@ -197,11 +200,12 @@ an author's approval, and counts only one given after the tip it lands reached
 the merge request, whatever those settings say. So the approval is held by
 `build/land-via-mr.py`, and by the owner, the one member who can merge; it is
 recorded on the merge request rather than anywhere private, because that record
-is what shows that a second person has read the change. Today `master` still
-takes a Maintainer's direct push, which is how 6.3.4 and the batch that carries
-it land, gated as before; once the pipeline on `master` is green, `master` is to
-be closed to direct pushes ([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md),
-"Landing on master"), leaving the merge request as the only way in.
+is what shows that a second person has read the change. Until the batch that
+brings the change checks has landed, `master` still takes a Maintainer's direct
+push; then it is closed to direct pushes
+([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md),
+"Landing on master"; [SECURITY.md](SECURITY.md), "Every change"), leaving the
+merge request as the only way in.
 
 How Zain Ul Abidin, a Developer, reviews one of the owner's batches:
 

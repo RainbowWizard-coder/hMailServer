@@ -1504,7 +1504,7 @@ def merge_request_main(root, artifacts, base, exceptions_text=None, today=None, 
             "is fixed, or accepted in %s by a change of its own, landed first, with the reason it is not exploitable, a "
             "reviewer and an expiry; a baseline only shrinks, and no change adds a comment by which a scan skips a "
             "finding; a report that is missing or did not finish is a semgrep-sast job to run again (SECURITY.md, "
-            "'Vulnerability management policy'; docs/ContinuousIntegration.md, 'Merge request checks')." % (
+            "'Vulnerability management policy'; docs/ContinuousIntegration.md, 'Change checks')." % (
                 len(problems), EXCEPTIONS))
         return 1
     say("No Critical or High finding of semgrep-sast in what this change touches that the base's %s does not accept, "

@@ -74,9 +74,10 @@ for one tag at a time ([Authenticode](#on-gitlab-from-635)) holds the
 installer's Authenticode signature alone, which a server checks only where
 `UpdateRequireAuthenticode=1` is set, and never on Linux. `master`'s list is
 itself only as safe as `master`, which Maintainers may push to until its push
-rule becomes *No one*; after that a change to it reaches `master` only through a
-merge request whose pipeline passed (`hmailserver/docs/ContinuousIntegration.md`,
-"Landing on master").
+rule becomes *No one*, once the batch that brings the change checks has landed;
+after that a change to it reaches `master` only through a merge request whose
+pipeline passed, the change checks in it (SECURITY.md, "Every change";
+`hmailserver/docs/ContinuousIntegration.md`, "Landing on master").
 
 1. **Steps 1 to 10 below, as written**, with one change: the release notes are
    the version's section of `CHANGELOG.md`, headed `## [X.Y.Z](...) - <date>`,
@@ -134,10 +135,12 @@ merge request whose pipeline passed (`hmailserver/docs/ContinuousIntegration.md`
    reports first (`build/ci/security-gate.py`) and refuses while one did not
    finish, or found something `SECURITY.md`'s policy counts ("Before a
    release") that no baseline and no entry of `.gitlab/security-exceptions.yml`
-   accepts. Fix the finding, which takes a new tag on the fixed commit, or have
-   the owner accept it in that file on `master`, with a reason and an expiry,
-   and retry `release`: the job reads `master`'s copy of the file, never the
-   tagged tree's. It refuses, naming why, a tag that is lightweight, moved to
+   accepts. Fix the finding, which takes a new tag on the fixed commit, or, when
+   it is not exploitable, have the owner accept it in that file, with the reason,
+   a reviewer and an expiry, by a merge request of its own landed on `master`
+   (SECURITY.md, "Declaring a finding not exploitable"), and retry `release`: the
+   job reads `master`'s copy of the file, never the tagged tree's. It refuses,
+   naming why, a tag that is lightweight, moved to
    another commit since the pipeline started, on a commit `master` does not
    have, or not signed by the one key `master`'s `.gitlab/allowed_signers`
    lists (and every tag while that list holds more than one); a `Version.h` that
@@ -347,7 +350,7 @@ table in SECURITY.md, "What must stay valid for a security release". In
 particular, check four things:
 
 - the findings of `.gitlab/security-exceptions.yml` that expire before the
-  release (298 of them on 26 and 27 March 2027) have been read again, or the
+  release (293 of them on 26 and 27 March 2027) have been read again, or the
   release job refuses;
 - the Artifact Signing identity validation has not lapsed (the Azure portal);
 - bench150, and linix or server2 (the runners with the tag `linix`), are up and

@@ -2157,7 +2157,7 @@ def check(texts, chain, feed):
     sast = blocks(texts["security"]).get("semgrep-sast", "")
     if "- if: " + TAG_ONLY not in sast:
         problems.append("semgrep-sast does not run for a protected v* tag (- if: %s): the release job needs its report, "
-                        "and master, pushed with ci.skip, may never have scanned the tagged commit" % TAG_ONLY)
+                        "and no pipeline of master's need have scanned the tagged commit" % TAG_ONLY)
     kept = re.search(r"^  artifacts:\s*\n((?:    .*\n?)+)", sast, re.MULTILINE)
     kept = kept.group(1) if kept else ""
     if "- gl-sast-report.json" not in kept or "when: always" not in kept:

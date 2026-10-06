@@ -464,41 +464,106 @@ is not an audit report: there is none.
 
 ## Vulnerability management policy
 
-What is checked, on what, and what happens when it finds something. On GitHub these checks were automatic and
-blocking. GitHub has been unavailable since 18 September 2026. Since 25 September 2026 `.gitlab-ci.yml` has
-replacements for the source and dependency scans and for OpenSSF Scorecard, which run on the project's own
-runner for `master`, `batch*` branches and release tags
-([hmailserver/docs/ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md#security-scanning), "Security
-scanning"). They do not stop a push's pipeline yet: until their first findings are triaged, the thresholds below are
-held by hand for a change, and what runs is stated under each heading. **A release is held by them** since 26
-September 2026: the release job reads the reports of four of them and refuses while one did not finish or found
-something the policy counts ([Before a release](#before-a-release)). A finding that is not fixed is suppressed only
-with a written reason.
+What is checked, on what, and what happens when it finds something. A vulnerability meets two evaluations before it
+reaches a user: **every change** is judged on what it adds before it can reach `master` ([Every
+change](#every-change)), and **every release** on its whole tree before anything is signed ([Before a
+release](#before-a-release)). Each passes a finding it counts only when the finding is fixed, or when a declaration
+already on the target branch says why it is not exploitable ([Declaring a finding not
+exploitable](#declaring-a-finding-not-exploitable)). On GitHub, until 18 September 2026, CodeQL, dependency review and
+Dependabot did this work; what replaced each on GitLab, and where every tool comes from, is in
+[hmailserver/docs/ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md#security-scanning), "Security
+scanning".
+
+### Every change
+
+- **The route.** A change reaches `master` only through a merge request, merged by fast-forward, and GitLab merges one
+  only on a pipeline that succeeded (*Pipelines must succeed*, a project setting). For a merge request from a fork,
+  from Renovate or from any branch that is not protected, that is the merge request's own pipeline; for a maintainer's
+  `batch*` branch, whose merge request runs no pipeline of its own, it is the branch's pipeline, which GitLab holds the
+  merge request to. `build/land-via-mr.py`, which lands a batch, refuses a pipeline that was skipped, and one in which
+  a gate below did not succeed itself - left out by a rule, skipped, or failed while allowed to fail
+  ([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md#landing-on-master), "Landing on master"). Two
+  project settings, the owner's, take away the ways round it: `master` takes a push from no one (its protection's
+  *Allowed to push and merge* is *No one*, *Allowed to merge* is Maintainers, and force push is off), and a skipped
+  pipeline does not count as one that succeeded (`allow_merge_on_skipped_pipeline` false, which is how GitLab already
+  treated one here). The owner sets them once the batch that brings these gates has landed through them; until then a
+  Maintainer can still push to `master` directly, which this policy forbids and nothing checks. The owner can always
+  unprotect `master`: that is a break-glass step, and one taken is said, with its reason, in the next release's notes.
+- **Dependencies:** `mr-dependency-check` (`build/ci/mr-dependency-check.py`), in every such pipeline.
+  - *What it evaluates:* each NuGet version the change adds (`packages*.lock.json`, the ARM64 ones among them, and
+    `packages.config`), each PyPI version it adds (`*requirements*.txt`), and each native or vendored library whose
+    pinned version it changes: OpenSSL, Boost and libpq (`hMailServer.vcxproj`), zlib and QuickJS (vendored), and
+    MariaDB Connector/C, 7-Zip and SQL Server Compact (`hmailserver/docs/third-party-binaries.json`). A NuGet or PyPI
+    version is looked up in OSV's own export of its ecosystem's advisories; a native library is asked of OSV by its
+    upstream repository's tag, beside a control version a published advisory is known to affect.
+  - *A violation*, which fails the pipeline: an OSV `MAL-` record (the OpenSSF malicious-packages data), rated
+    Critical; an advisory of severity Critical or High, with a fixed version or without one, rated by the GitHub
+    advisory database's label, else its CVSS v3 vector, else its CVSS v4.0 vector, else its aliases'; and such an
+    advisory that may affect the version, where the versions cannot be ordered as the ecosystem orders them (or a
+    native version is older than its upstream repository's first tag).
+  - *Not a violation*, and listed in the job's log: an advisory of severity Medium or Low, or with no rating; and
+    UNKNOWN, a library for which OSV has no usable data (no repository it knows, as for SQL Server Compact, or nothing
+    for the control version either), which is read by hand against the release's SBOM before a release
+    ([Dependencies](#dependencies-software-composition-analysis), "Before a release").
+  - An input that cannot be read - the base, a lock file, a pin, OSV - never passes: the job exits 2 and is retried.
+- **Weaknesses:** GitLab's *semgrep-sast*, and *semgrep-sast-gate* (`build/ci/security-gate.py --merge-request`), which
+  reads its report, in every such pipeline.
+  - *What it evaluates:* the C, C++, C#, Python and JavaScript of the tree, with GitLab's Semgrep analyzer and rules,
+    less the paths `SAST_EXCLUDED_PATHS` names in `.gitlab/ci/gitlab-security.yml` (the tests, the vendored sources and
+    the three string tables generated from documents).
+  - *A violation:* a finding of severity Critical or High in a file the change touches; and, when the change alters
+    the scan's own configuration - edits, removes or moves `.gitlab-ci.yml`, `.gitlab/ci/gitlab-security.yml`,
+    `.gitlab/ci/mr-checks.yml`, `.gitlab/sast-ruleset.toml`, `build/ci/security-gate.py` or
+    `build/ci/security-findings.py` - one in any file. A report that is missing, or a scan that did not finish, holds
+    the change as well.
+  - *In a batch's pipeline*, which the project's own runners serve, two scans more: *static-analysis* (cppcheck, and
+    clang-tidy with the Clang static analyser) over the C++ the Linux build compiles, and *semgrep*, Semgrep's open
+    rules over the C#, Python, JavaScript and shell. There a violation is any finding that is neither in the scan's
+    committed baseline nor accepted by `master`'s `.gitlab/security-exceptions.yml`. They run unless every file the
+    batch changes from `master` is a Markdown file at the root or under a directory whose name begins with a dot. A
+    merge request from a fork or from an unprotected branch never reaches those runners: its code is read by
+    *semgrep-sast* alone, until a maintainer takes it into a batch, whose pipeline then reads it.
+  - *On every change, whatever the scans found:* an entry added to either baseline, a reason taken from one, or an
+    inline suppression comment added to a file a scan reads (`nosemgrep`, `NOLINT` with `NOLINTNEXTLINE` and
+    `NOLINTBEGIN`, or `cppcheck-suppress` in each form that begins one) is a violation of its own, which
+    *semgrep-sast-gate* holds: it counts each file's comments at the change's base and at its head.
+- **What no gate reads.** Stated so that nobody takes it for covered; the owner may widen it. No gate reads
+  PowerShell, VBScript, Inno Setup scripts, `.bat` files, SQL, or the Dockerfiles and the other files that describe
+  infrastructure. The Windows-only C++ (the COM API, the service host, the ADO and SQL Server Compact backends), which
+  only an MSVC build compiles, is read by *semgrep-sast*'s pattern rules alone. What a distribution supplies is not
+  evaluated change by change: the build images of the per-distribution `.deb`, `.rpm`, Alpine (APK), Arch, Nix and
+  snap packages, the libraries the AppImages carry, and the container image's base image. Those are pinned by digest
+  or by lock and patched by their distributions; the CI image's packages are scanned by *dependency-scan* on a batch
+  and before a release, and the release's container image by GitLab's container scanning once it is pushed, which
+  holds nothing.
 
 ### Dependencies (software composition analysis)
 
-- **What runs now.** The *dependency-scan* job of `.gitlab-ci.yml` runs Trivy over the twelve NuGet lock files,
-  the three `packages.config` files and the scanners' own hashed Python requirements, and over the package
-  database of the image the Linux server is built in, whose OpenSSL, libpq, libldap and Boost the Linux packages
-  are built against. It asks OSV (`api.osv.dev`) about the libraries the Windows server is built with and no
-  manifest names - OpenSSL, Boost, libpq, zlib, QuickJS, MariaDB Connector/C, 7-Zip - at the versions the build
-  uses, and says UNKNOWN, not clean, for a library OSV holds no usable data on (libpq, QuickJS, 7-Zip 19.00 and
-  SQL Server Compact, today). It honours the VEX document below. Renovate (`renovate.json`, the scheduled `renovate` job) is built to open
-  a merge request at once for every OSV advisory against a dependency in use, and a weekly one per ecosystem; it
-  waits for the owner's token and schedule ([hmailserver/docs/ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md),
-  "Dependency updates"). What holds besides: the NuGet lock files are
-  committed and the .NET projects are restored with `--locked-mode`, so a package cannot change under a build
-  without a reviewed commit; the native libraries are pinned by version and by source hash, as above; and every
-  third-party binary is checked against `hmailserver/docs/third-party-binaries.json`.
+- **What runs now.** On every change, *mr-dependency-check*, above ([Every change](#every-change)). Over the whole
+  tree, the *dependency-scan* job of `.gitlab-ci.yml` runs Trivy over the twelve NuGet lock files, the three
+  `packages.config` files and the scanners' own hashed Python requirements, and over the package database of the
+  image the Linux server is built in, whose OpenSSL, libpq, libldap and Boost the Linux packages are built against.
+  It asks OSV (`api.osv.dev`) about the libraries the Windows server is built with and no manifest names - OpenSSL,
+  Boost, libpq, zlib, QuickJS, MariaDB Connector/C, 7-Zip - at the versions the build uses, and says UNKNOWN, not
+  clean, for a library OSV holds no usable data on (libpq, QuickJS, 7-Zip 19.00 and SQL Server Compact, today). It
+  honours the VEX document. It runs on the project's own runners for `master`, a release tag, and a `batch*` branch
+  that changes more than documents from `master`, and is `allow_failure`: a finding in the whole tree that no change
+  brought must not stop an unrelated change, and it holds the release instead ([Before a
+  release](#before-a-release)). Renovate (`renovate.json`, the `renovate` job, daily under its schedule) opens a
+  merge request at once for every OSV advisory against a dependency in use, and a weekly one per ecosystem
+  ([hmailserver/docs/ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md), "Dependency updates").
+  What holds besides: the NuGet lock files are committed and the .NET projects are restored with `--locked-mode`, so
+  a package cannot change under a build without a reviewed commit; the native libraries are pinned by version and by
+  source hash, as above; and every third-party binary is checked against
+  `hmailserver/docs/third-party-binaries.json`.
 - **What ran on GitHub.** GitHub's dependency review (the workflow `dependency-review.yml`, in the git history at
   `v6.3.3`) compared every
   pull request's dependency graph against the GitHub Advisory Database, including its malware advisories, as a
   required check: a change that added a dependency with a known vulnerability of severity high or critical, or a
   package flagged as malicious, could not be merged. Dependabot (`dependabot.yml`, likewise) opened a pull request
   for every advisory touching a dependency in use, and for every new version of a GitHub Action the workflows pin.
-  Neither runs on GitLab. *dependency-scan* stands for the alerts, not for the merge-time gate (it runs for the
-  protected refs, and a merge request from a fork never reaches the runner it needs) nor for the update pull
-  requests.
+  Neither runs on GitLab: *mr-dependency-check* stands for the dependency review, against OSV's data rather than
+  GitHub's service, *dependency-scan* for the alerts, and Renovate for the update pull requests.
 - **Remediation thresholds.** A high or critical advisory in a dependency is fixed, or the dependency replaced,
   **before the next release** and within 14 days of the advisory; moderate within 30 days; low within 90 days or
   with the next dependency refresh. A licence finding (a dependency whose licence is not compatible with
@@ -506,41 +571,89 @@ with a written reason.
 - **Before a release.** A release is not cut while a known advisory of high or critical severity against a
   shipped dependency is open. The release job refuses one that has a fixed version
   ([Before a release](#before-a-release)); one with no fixed version yet is not refused by the job, and is read
-  from the report by hand before the release: the dependency replaced, the advisory dismissed in the VEX document
-  with its reason, or the release waits. The *dependency-scan* report of the release's commit is read first, and every
+  from the report by hand before the release: the dependency replaced, the advisory declared not affecting the
+  project in the VEX document with its justification, or the release waits. The *dependency-scan* report of the
+  release's commit is read first, and every
   component it marks UNKNOWN, with any the SBOM lists and the scan does not, is checked by hand against the
   components the release's SBOM lists (`hmailserver.spdx.json`, `hmailserver.cyclonedx.json`), which are also
   what a reader checks the shipped versions against.
-- **Not affected.** A finding in a component that does not affect this project - the vulnerable code is not
-  reached, the feature is not built, the platform is not one the server runs on - is recorded as a statement in
-  the project's VEX document, [`.gitlab/hmailserver.openvex.json`](.gitlab/hmailserver.openvex.json) (OpenVEX),
-  with the reason, when it is dismissed. An empty statement list means every advisory raised against a component
-  has been fixed rather than dismissed. *dependency-scan* reads the document, so a statement there is what quiets
-  a finding the scan keeps raising.
+- **Not affected.** A finding in a component that does not affect this project is declared so in the VEX document
+  ([Declaring a finding not exploitable](#declaring-a-finding-not-exploitable)).
 
 ### Source code (static analysis)
 
-- **What runs now.** The C++ server is compiled with the toolchain's warnings as errors (`/WX`), the regression
+- **What runs now.** On every change, GitLab's *semgrep-sast*, held by *semgrep-sast-gate* ([Every
+  change](#every-change)). The C++ server is compiled with the toolchain's warnings as errors (`/WX`), the regression
   suite runs the server under its crash oracle before every release, first on a build that keeps every internal
   assertion (RELEASE.md step 8b), and the fuzz harnesses under `fuzz/` run for a set time on the release source
   of every minor release (step 8c). `build\analyze.ps1` runs MSVC's `/analyze` by hand. In `.gitlab-ci.yml`,
   *static-analysis* runs cppcheck and clang-tidy (the Clang static analyser among its checks) over every
   translation unit the Linux build compiles, and *semgrep* runs Semgrep's open rules over the C#, Python,
-  JavaScript and shell sources, the Control Deck's and the webmail's scripts among them. Each holds its findings
-  to a committed baseline (`build/ci/static-analysis-baseline.txt`, `build/ci/semgrep-baseline.txt`), so that it
-  fails on a new finding only, and fails the pipeline then (since 6.3.6; before, both were allow_failure while
-  their baselines were triaged). Neither reads the
+  JavaScript and shell sources, the Control Deck's and the webmail's scripts among them, for `master`, a `batch*`
+  branch and a release tag. Each holds its findings to a committed baseline (`build/ci/static-analysis-baseline.txt`,
+  `build/ci/semgrep-baseline.txt`) and to `master`'s exceptions file, so that it fails on a new finding that no
+  exception accepts, and fails the pipeline then (since 6.3.6; before, both were allow_failure while their baselines
+  were triaged). Neither reads the
   Windows-only sources (the COM API, the service host, the ADO and SQL Server Compact backends), which only an
   MSVC build compiles.
 - **What ran on GitHub.** CodeQL (the workflow `codeql.yml` and its configuration, in the git history at `v6.3.3`) analysed the
   repository on every pull request and every push to `master`, and the `master` ruleset required its results. It
   does not run on GitLab: its command-line tool and its query packs are published only on GitHub.
 - **Remediation thresholds.** An error-level finding, or a security finding of high or critical severity, is
-  fixed before merge. A medium finding is fixed within 30 days; a low or note-level one with the next change to
-  that file, or dismissed with a reason. A release is not cut with an open error-level finding.
-- **Suppressions.** A finding is dismissed only with a reason that says why it is a false positive or not
-  exploitable, recorded beside the finding: in `.gitlab/security-exceptions.yml`, with an expiry, for a finding
-  that would hold a release ([Before a release](#before-a-release)).
+  fixed before merge, or declared not exploitable before the change that needs it. A medium finding is fixed within
+  30 days; a low or note-level one with the next change to that file, or declared not exploitable with its reason. A
+  release is not cut with an open error-level finding.
+- **Suppressions.** There is one way to dismiss a finding, a declaration on the target branch, and baseline entries
+  and inline comments are not it ([Declaring a finding not exploitable](#declaring-a-finding-not-exploitable)).
+
+### Declaring a finding not exploitable
+
+A finding that is not fixed passes a gate only through a declaration that it is not exploitable, and only through one
+that is already on the target branch when the gate reads it: the change's base for the two change gates (where a
+merge request's diff begins, or where a batch leaves `master`), and `master` for the source scans on the project's
+runners and for the release, whose tagged commit is on `master`. A change's own copy of a declaration counts for no
+finding in what the change touches, so no change can declare its own finding; the one case where it counts at all is
+under *Order*, below.
+
+- **Two documents.**
+  - [`.gitlab/hmailserver.openvex.json`](.gitlab/hmailserver.openvex.json), an OpenVEX document, for a dependency: a
+    statement that the project is `not_affected`, with its justification (the vulnerable code is not present, or is
+    not reached, the feature is not built, the platform is not one the server runs on). It dismisses an advisory only
+    where it names it, by its id or an alias, **and** names the component at the version found, by its purl
+    (`pkg:nuget/`, `pkg:pypi/` with PEP 503's names, `pkg:generic/<name>` for a native library): a statement made for
+    zlib 1.3.1 dismisses nothing for 1.3.2.
+  - `.gitlab/security-exceptions.yml`, for a finding of any scan. An entry names the scan (*static-analysis*,
+    *semgrep*, *semgrep-sast* or *dependency-scan*), the finding (the fingerprint the gate prints; for a dependency the
+    advisory's id) and, for a dependency, its package; what it is; the reason it is **not exploitable** as the code
+    stands, a false positive being one such reason; the GitLab user who reviewed it; the day; and an expiry no more
+    than a year (366 days) after that day. After its expiry the finding holds again, a change and a release alike,
+    until it is read again. Its header says how many findings it accepts and how each group of them was read.
+- **Not a reason:** a fix that is waiting upstream. A finding that is exploitable is not declared: it holds, and the
+  remediation thresholds above apply to it - it is fixed, its component replaced, or the release waits. None of the
+  exceptions file's reasons is of that kind (read on 6 October 2026).
+- **Who reviews.** The owner, who owns both files (`.gitlab/CODEOWNERS`) and is the one maintainer who merges: every
+  declaration is his to accept, and its `reviewed-by` names him. Its merge request is approved as
+  [GOVERNANCE.md](GOVERNANCE.md), "Review", says. A declaration read with an AI's help under the owner's delegation
+  says so, in its entry or in the comment that heads its group.
+- **Order.** A declaration lands first, in a change of its own, and the change that needs it after. The one exception
+  is a change that alters *semgrep-sast*'s configuration (above), which answers for the whole tree: its own copy of the
+  exceptions file may accept a finding in a file it does not touch, never in one it does, so that a change that
+  re-pins a vanished analyzer while `master` holds findings nobody has accepted need not wait on a change that no
+  scan could judge.
+- **Baselines are not declarations.** `build/ci/static-analysis-baseline.txt` and `build/ci/semgrep-baseline.txt` are
+  closed lists of the findings that were in the tree before every change was gated: written when the scans began, on
+  25 September 2026, and last added to in 6.3.6. A change may delete an entry whose finding is fixed, or end one that
+  has no reason with its reason; it may never add a fingerprint or take a reason away, which *semgrep-sast-gate* holds
+  on every change, and `build/ci/security-findings.py --write-baseline` keeps the entries still found and adds none.
+  An entry with no reason is an open finding, not a dismissal: each is triaged - fixed, or given the reason it is not
+  exploitable - by **31 March 2027**, and one of severity High before the next release. The eight High entries that
+  had no reason were given theirs on 6 October 2026; then 475 of *static-analysis*'s 691 entries and 62 of
+  *semgrep*'s 125 had none, as each file's header line counts.
+- **Inline suppression comments are not declarations either.** `nosemgrep`, `NOLINT` and its forms, and
+  `cppcheck-suppress` and its forms make a tool pass over a finding where they stand, with no reviewer and no expiry.
+  No change adds one: *semgrep-sast-gate* holds a change that raises their count in any file a scan reads. Those
+  already in the tree (44 in 23 files as the gate counted them on 6 October 2026) are triaged with the baselines, by
+  the same dates.
 
 ### Before a release
 
@@ -557,22 +670,20 @@ the release** while:
   document does not dismiss as not affecting the project (one with no fixed version yet is read by hand:
   [Dependencies](#dependencies-software-composition-analysis), "Before a release");
 
-unless `.gitlab/security-exceptions.yml` accepts that finding - `master`'s copy, which the job reads as it reads
-`master`'s allow-list of tag keys, never the tagged tree's. An entry there names the scan and the finding (the
-fingerprint the gate prints; for a dependency the advisory's id and the package), what it is, why it is accepted -
-not exploitable as the code stands, or waiting on an upstream fix - the GitLab user of the maintainer who read it,
-the day, and an expiry no more than a year later, after which the finding holds the release again. The file is
-the owner's (`.gitlab/CODEOWNERS`), is held to that shape on every pipeline by `build/check-release-chain.py`,
-and at 6.3.4 accepts 455 findings judged not exploitable - 188 of GitLab's *semgrep-sast*, 263 of
-*static-analysis* and 4 of *semgrep* - each read on 26 September 2026 by two AI review agents under the
-owner's delegation, as the file says; for those, the reviewer it names is the owner, who
-delegated the reading. A dependency finding that does not affect the project at all goes in the VEX document
-instead.
+unless `.gitlab/security-exceptions.yml` declares that finding not exploitable ([Declaring a finding not
+exploitable](#declaring-a-finding-not-exploitable)) - `master`'s copy, which the job reads as it reads `master`'s
+allow-list of tag keys, never the tagged tree's, so an exception that reaches `master` after the tag, through a merge
+request of its own, counts when the job is retried. The file is the owner's (`.gitlab/CODEOWNERS`), is held to its
+shape on every pipeline by `build/check-release-chain.py`, and says in its header how many findings it accepts, of
+which scans, and how each group of them was read: the first 455, at 6.3.4, were each read on 26 September 2026 by two
+AI review agents under the owner's delegation, as the file says, and for those the reviewer it names is the owner, who
+delegated the reading. A dependency finding that does not affect the project at all goes in the VEX document instead.
 
-This holds releases, not changes: the scans run after a push, for the protected refs, and a finding a change
-brings stops the next release until it is fixed or accepted. A release made by hand runs the same
-scans on the project's Linux machine against the release's commit and the same gate over their reports before
-anything is published.
+This is the second evaluation, over the whole tree. The first is every change's ([Every change](#every-change)),
+which answers for what a change adds; the release answers for the rest as well: a finding already on `master` in a
+file no change has touched since, an advisory published after the change that brought its dependency, and
+*dependency-scan*'s findings, which hold no change. A release made by hand runs the same scans on the project's Linux
+machine against the release's commit and the same gate over their reports before anything is published.
 
 ### Secrets and credentials
 
