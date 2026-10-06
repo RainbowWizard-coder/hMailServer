@@ -17,7 +17,7 @@ documents - answers 404. **GitLab CI runs the platform-neutral checks** (`.gitla
 every merge request: the Python checkers, the generators' check modes, the Deck's and the webmail's harnesses,
 editorconfig, the packaging and package-manager checks when their files change, and the sign-off of every
 commit a merge request or a `batch*` branch adds. **The builds, both regression suites, the .NET build and tests, the packages, the
-schema-upgrade gate and the rest of what the old GitHub workflows ran happen on the project's own two machines,
+schema-upgrade gate and the rest of what the old GitHub workflows ran happen on the project's own runners,
 for `master`, `batch*` branches and `v*` tags only** - never for a merge request, and never for a fork
 ([hmailserver/docs/ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md)). So for your branch
 they are still run by hand, by you before you open a merge request, and so are two PowerShell checks
@@ -365,7 +365,7 @@ CI files made to break it). Each script is started as `python3 build/...`, `node
 `pwsh -File build/...`, never by its shebang, because the tree checks out CRLF.
 
 **On the project's own runners**, for a push to `master`, to a `batch*` branch or of a `v*` tag, and for
-nothing else. On the Linux lab machine: *linux-build* (the server with clang, its tester programs, the OpenPGP
+nothing else. On the Linux runners, linix and server2, which share the tag `linix`: *linux-build* (the server with clang, its tester programs, the OpenPGP
 writer against GnuPG, and the `.deb` and the `.rpm`), *linux-suite* (the whole Linux suite against it on
 PostgreSQL), *linux-cross* (every core file compiled for AArch64), *linux-sanitize* (`snmp-tests` under
 AddressSanitizer, once the option exists), *linux-db-upgrade-pgsql* and *-mysql* (`build/db-upgrade-gate.sh`),
@@ -380,14 +380,14 @@ scan did not finish or found something `SECURITY.md`'s policy counts that no bas
 *windows-gate* (the whole Windows suite, in the bench's own checkout) and *windows-dotnet* (the Control Panel and
 the tools built with warnings as errors and tested, `generate-settings-index.ps1` held to its file, and
 `dotnet format --verify-no-changes`). The package jobs of `.gitlab/ci/packages-deb.yml`, `-rpm.yml` and
-`-appimage.yml` build, install and test each distribution's package and the AppImages on the Linux lab machine. A `v*` tag's pipeline ends in the release jobs, for 6.3.5 onwards, which the owner starts
+`-appimage.yml` build, install and test each distribution's package and the AppImages on the same Linux runners. A `v*` tag's pipeline ends in the release jobs, for 6.3.5 onwards, which the owner starts
 ([RELEASE.md](RELEASE.md), "The release on GitLab"), and a `batch*` branch's rehearses them and publishes
 nothing (`.gitlab/ci/release-rehearsal.yml`). A pipeline schedule runs *linux-fuzz*, the MIME harnesses under
-libFuzzer, every night. The two machines never take a job for a merge request, above all not one from a fork, nor for a push
+libFuzzer, every night. The project's runners never take a job for a merge request, above all not one from a fork, nor for a push
 that changes nothing but Markdown files at the root or under `.gitlab/`;
 [hmailserver/docs/ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md) says why, what each old
 GitHub workflow became, where every tool comes from, and how the runners, their image and the bench's gate
-lock work. The pipeline of the schedule described `renovate` runs *renovate* on the lab machine and nothing else:
+lock work. The pipeline of the schedule described `renovate` runs *renovate* on a Linux runner and nothing else:
 Renovate opens a merge request a week per ecosystem, and one at once for a dependency with a published advisory,
 from a `renovate/*` branch. Such a merge request is reviewed and landed like yours, after the step its
 description names ([Dependency updates](hmailserver/docs/ContinuousIntegration.md#dependency-updates)).

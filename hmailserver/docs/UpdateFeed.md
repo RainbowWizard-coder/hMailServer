@@ -745,7 +745,7 @@ and `hMailServer-aarch64.AppImage` answer from the first stable release that has
 them, and a server installed from any of them finds its file in the feed by the
 name its update check asks for (`hmailserver_<v>_arm64.deb`,
 `hmailserver-<v>-1.aarch64.rpm`, `hMailServer-<v>-<arch>.AppImage`). The ARM64
-Windows installer's name answers 404 until a release carries it: 6.3.6 is the first,
+Windows installer's name answered 404 until 6.3.6, the first release to carry it,
 as a preview that has never run on ARM64 hardware ([WindowsOnArm.md](WindowsOnArm.md)).
 `--serve-check` fails a stable release that
 carries any server's file without its bundle, unless it is unsigned by design.

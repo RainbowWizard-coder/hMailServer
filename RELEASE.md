@@ -350,7 +350,8 @@ particular, check four things:
   release (298 of them on 26 and 27 March 2027) have been read again, or the
   release job refuses;
 - the Artifact Signing identity validation has not lapsed (the Azure portal);
-- linix and bench150 are up and online on GitLab
+- bench150, and linix or server2 (the runners with the tag `linix`), are up and
+  online on GitLab
   (`hmailserver/docs/ContinuousIntegration.md`, "The runners");
 - the project's path, which the federated credential's subject names:
   `hmailserver/hmailserver` since the move into the group on 29 September

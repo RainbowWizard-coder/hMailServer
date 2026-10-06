@@ -4,10 +4,11 @@ Continuous integration
 GitLab CI starts every pipeline (`.gitlab-ci.yml` at the repository root). The
 cheap checks run on GitLab's shared runners, for every push and every merge
 request. The builds, both regression suites and everything else that needs a
-machine of the project's run on its own two machines, and only for the refs that
-only a maintainer can push. The owner decided this on 25 September 2026, a week
-after GitHub suspended the project's account and its workflows with it. The same
-day, the rest of the old GitHub workflows were ported
+machine of the project's run on its own runners - linix and bench150, and since
+5 October 2026 server2 beside linix ([The runners](#the-runners)) - and only for
+the refs that only a maintainer can push. The owner decided this on 25 September
+2026, a week after GitHub suspended the project's account and its workflows with
+it. The same day, the rest of the old GitHub workflows were ported
 ([From GitHub Actions to GitLab CI](#from-github-actions-to-gitlab-ci)), and a
 nightly fuzz pipeline was added ([The fuzz schedule](#the-fuzz-schedule)).
 
@@ -26,6 +27,12 @@ pipeline's own times are on its jobs' pages.
 
 What runs where
 ---------------
+
+*Runs on* names where GitLab sends a job: GitLab's shared runners, bench150, or
+the tag `linix`, which two runners carry since 5 October 2026, linix and
+server2, so that such a job runs on whichever of the two takes it first
+([The runners](#the-runners)). The other tables on this page name runners the
+same way.
 
 | Job | Stage | Runs on | Runs for | What it does |
 |---|---|---|---|---|
@@ -98,16 +105,17 @@ What runs where
 
 `linux-build`, `windows-gate`, `windows-dotnet`, `linux-cross`, `linux-sanitize`
 and `linux-sbom` start as soon as the pipeline does. They do not wait for the
-checks, because the two machines are otherwise idle and the Windows gate is the
-longest job. `linux-suite`, the two upgrade gates, the two package jobs,
+checks, because the project's machines are otherwise idle and the Windows gate
+is the longest job. `linux-suite`, the two upgrade gates, the two package jobs,
 `linux-image` and `linux-repro` wait for `linux-build`, whose artifact holds the
 binary and the packages (`linux-image-arm64` waits for `deb-ubuntu26.04-arm64`,
 whose artifact holds the arm64 `.deb`), and `release` waits for every job that
 can fail a tag's pipeline - the checks, both suites, the upgrade gates, the
 package jobs, `linux-cross`, `linux-sanitize`, `linux-image`,
 `linux-image-arm64`, `linux-repro`, `windows-dotnet` -
-and `windows-installer` ([The release](#the-release)). linix runs up to
-three jobs at once ([linix](#linix)), and the rest queue behind them in the
+and `windows-installer` ([The release](#the-release)). Each of the two
+runners with the tag `linix` runs up to three jobs at once
+([The runners](#the-runners)), and the rest queue behind them in the
 order GitLab hands them out; bench150's two jobs take the bench's gate lock in turn
 ([The .NET job](#the-net-job)).
 
@@ -202,7 +210,7 @@ skip a `master` pipeline for a commit that has already passed on a batch branch.
 Protected refs, and why a fork never reaches our machines
 ---------------------------------------------------------
 
-Both of the project's runners are registered `ref_protected`, with `run_untagged`
+Each of the project's runners is registered `ref_protected`, with `run_untagged`
 off and `locked`. GitLab gives them a job only when all three of these hold:
 
 1. the pipeline is for a protected ref: `master`, a `batch*` branch or a `v*`
@@ -214,10 +222,11 @@ off and `locked`. GitLab gives them a job only when all three of these hold:
    also holds to a protected ref) and not a scheduled one.
 
 A merge request from a fork runs in the fork's context, on an unprotected ref,
-with code nobody here has reviewed. The code could build anything, and both
+with code nobody here has reviewed. The code could build anything, and the
 machines hold things worth protecting: bench150's service runs as LocalSystem,
-and linix has the lab network. So a fork's merge request gets the shared
-runners' checks and the sign-off check, and nothing else. The protection is
+linix has the lab network, and server2 is a machine of the owner's. So a fork's
+merge request gets the shared runners' checks and the sign-off check, and
+nothing else. The protection is
 kept in three places on purpose: the runners, the ref and the rules. Any one of
 them is enough. Relaxing one of them is not a reason to relax the others.
 
@@ -462,11 +471,16 @@ and merge* back to *Maintainers*.
 The runners
 -----------
 
+Three machines take the project's own jobs: linix and server2, which carry the
+same tags and share the jobs of the tag `linix` between them, and bench150, the
+Windows bench.
+
 ### linix
 
-The Ubuntu 26.04 lab VM at 192.168.11.154: 16 cores, 32 GB of memory, 200 GB of
-disk (2 October 2026). GitLab Runner 19.4 runs there as a system service, with
-the docker executor and six CPUs and 8 GB of memory for each job. The default
+The Ubuntu 26.04 lab VM on the maintainer's laptop, at 192.168.11.154: 16 cores,
+32 GB of memory, 200 GB of disk (2 October 2026). GitLab Runner 19.4 runs there
+as a system service, with the docker executor and six CPUs and 8 GB of memory
+for each job. The default
 image is `ubuntu:26.04`, the pull policy is `if-not-present`, and the runner is
 not privileged. It has the tags `linux`, `docker` and `linix`, and it is runner
 56743206 on GitLab.
@@ -520,6 +534,48 @@ container is not privileged, and its image masks `systemd-binfmt`
 ([PackagesDeb.md](PackagesDeb.md), "Started under systemd", says why). A job on this
 entry is root on linix in effect, so nothing that runs a merge request's or a
 fork's code may take its tag.
+
+### server2
+
+A machine of the owner's at 10.0.0.19, dedicated to the project since 5 October
+2026: Ubuntu, 32 cores and 182 GB of memory. GitLab Runner runs there with the
+docker executor, 28 CPUs and 40 GB of memory for each job, and up to three jobs
+at once. It is runner 57072507 on GitLab, registered on 5 October 2026 at 18:37
+UTC as linix's first entry is - a project runner, `ref_protected`,
+`run_untagged` off, `locked`, a four-hour `maximum_timeout` - and with the same
+tags, `linux`, `docker` and `linix`.
+
+**It shares the tag `linix`.** No job names server2 alone: every job tagged
+`linix` - each job of `.linix` and the others the tables above give to linix -
+goes to whichever of the two runners asks GitLab for it first with a place
+free, so *linix* in those tables names the tag, not the machine, and up to six
+such jobs run at once, three on each. A `resource_group` belongs to GitLab, not
+to a runner, so `linix-suite` and `linix-package-build` still run one job of
+their kind at a time across both machines. `linix-systemd` is an entry of
+linix's alone, so `package-systemd-ubuntu26.04` and `package-systemd-fedora44`
+run only there. server2 needs what linix needs (above): the job image under the
+tag `.linix` names, which it had for 6.3.6's pipeline, the images the ported
+jobs name, and qemu-user's binfmt handler for the arm64 jobs, which they check
+for first (`build/ci/arm64-emulation.sh`). What a job keeps in the runner's
+cache stays on the machine that ran it: a night of `linux-fuzz` or a week of
+`forge-export` that server2 takes finds neither the corpus nor the kept archives
+that linix's cache volumes hold, and leaves its own on server2.
+
+**What 6.3.6's pipeline showed.** server2 came online while 6.3.6's tag
+pipeline 2914690858 was running, and took 40 of the 106 jobs that ran in it,
+linix 38: among them `source-tarball`, `linux-cross`, `linux-sanitize`,
+`static-analysis`, `semgrep`, both AppImages and their tests, package builds and
+install jobs of both architectures, and `container-image-amd64`,
+`container-image-arm64`, `container-image-sbom` and `container-image-start-arm64`
+(linix ran `container-image-start`). Four of its jobs failed there and passed
+when run again, each on linix: `linux-suite` was stopped at its script timeout,
+3 h 50 min, in a suite whose wait for each REST restart `beb9c0587` has since
+shortened (that wait had cost a run on server2 about 1 h 40 min);
+`rpm-fedora43-aarch64` and
+`rpm-leap16-aarch64` failed `imip-tests`' timing check under qemu-user, whose
+margins `c4edb3eaf` has since put under `HM_TEST_TIME_BOUND`; and
+`release-packages` could not resolve `gitlab.com` through the machine's
+resolver to download its needs' artifacts.
 
 ### bench150
 
@@ -1684,17 +1740,20 @@ the two whose generic files the release carries, `deb-ubuntu26.04-arm64` and
 and run each package in an AArch64 container of its distribution under
 qemu-user and so are gates; `release-packages`, which needs every other package
 build and its install job, both AppImages and their test jobs,
-`appimage-runtime-sources`, `appimage-bundled-sources` and the source tarball; and `helm-chart-package`. It brings the artifacts of thirteen jobs: the
-nine whose files it collects (`linux-build`, `linux-sbom`, `windows-installer`,
-the two package builds and their SBOM jobs, `release-packages` and
-`helm-chart-package`) and the four scans. `release-packages` is a job of its own
+`appimage-runtime-sources`, `appimage-bundled-sources` and the source tarball; and `helm-chart-package`. It brings the artifacts of fourteen jobs: the
+ten whose files it collects (`linux-build`, `linux-sbom`, `windows-installer`,
+`windows-packages-arm64`, the two package builds and their SBOM jobs,
+`release-packages` and `helm-chart-package`) and the four scans.
+`release-packages` is a job of its own
 because GitLab.com lets a job need fifty jobs at most (`ci_needs_size_limit`):
-`release` needs thirty-three, and `release-packages` forty-three, forty-one of
-them jobs `release` does not need itself.
+`release` needs thirty-five, and `release-packages` forty-three, forty-one of
+them jobs `release` does not need itself. Of the Windows package jobs it needs
+`windows-packages-arm64`, whose ARM64 installer the release carries from 6.3.6;
+a tag's pipeline has no `windows-packages-x64`.
 It does not wait for `ci-image-packages` and `repo-hygiene`, which are
-`allow_failure`, for the manual `db-matrix` and `installer-smoke`, or for the
-Windows packages, whose installers no release carries: they are not gates of a
-release, and `release` can start while they are still running or after one has
+`allow_failure`, or for the manual `db-matrix` and `installer-smoke`: they are
+not gates of a release, and `release` can start while they are still running
+or after one has
 failed. `build/check-release-chain.py` fails when a job of `.gitlab-ci.yml`
 that can fail is not among its needs, or one that builds, describes, installs
 or tests a file the release carries (through `release-packages` for the
@@ -1935,7 +1994,11 @@ so the first image is 6.3.6's.
 | `container-image-sbom` | linix, in the Linux CI image | For each platform, Syft reads that platform's pushed image from the registry by its digest, with the job's own registry credentials, and `build/asset-sbom.py image` adds what the release's `.deb` SBOM of that architecture names inside the binary and makes the image, by its digest and its platform (`--arch`), the document's subject; it refuses a `.deb` SBOM that does not describe the `.deb`, or that is another architecture's, and an image in which Syft finds no `hmailserver` package of that architecture (`build/ci/container-image-sbom.sh`) |
 | `container-image-sign` | GitLab's shared runners, in cosign's image (`HM_COSIGN_IMAGE`) | Signs the index and each platform's image, each by its own digest, with Sigstore, keylessly, as the same pipeline identity the release's files carry, and verifies each signature with that identity. Every tag names the index, so its one signature covers them; a client that pulls a tag then fetches its platform's image by that image's digest, which carries its own. The signatures are stored beside what they sign in cosign's tag form, `sha256-<digest>.sig`, with Rekor v1 as the log. It then attests each platform's SBOM to that platform's image (`cosign attest --type cyclonedx`, stored as `sha256-<digest>.att`) and verifies each attestation with the same identity (`build/ci/container-image-sign.sh`) |
 | `container_scanning`, `container_scanning_arm64` | GitLab's shared runners | GitLab's Container Scanning template, which the Free tier runs, over each platform's pushed image by its digest, with the analyzer pinned by digest: the first takes `CS_IMAGE`, the linux/amd64 image, from `container-image`'s dotenv report; the second extends it and sets `CS_IMAGE` to the linux/arm64 image in its shell, because a dotenv report's variables take precedence over a job's own. The analyzer reads the image's files and runs nothing, so the platform is no matter to it. Each is `allow_failure`, as the template makes it; its report is the job's artifact, for members with the Developer role or above, because the vulnerability report is GitLab Ultimate |
-| `container-image-start`, `container-image-start-arm64` | linix, in the Linux CI image | Each starts a platform's pushed image as a service beside PostgreSQL, on a network of the job's own, through its entrypoint, and asks it for SMTP on 25 (with STARTTLS) and for the REST API over TLS with the release's version: the first the index by its digest, which the runner resolves to linux/amd64, and the second the linux/arm64 image by its own digest, as a service of the platform linux/arm64 (`services:docker:platform`), which linix runs under qemu-user (`build/ci/container-image-start-test.sh`, which also runs by hand against any image with `--docker`, and `HM_START_PLATFORM` for another platform) |
+| `container-image-start`, `container-image-start-arm64` | linix, in the Linux CI image | Each starts a platform's pushed image as a service beside PostgreSQL, on a network of the job's own, through its entrypoint, and asks it for SMTP on 25 (with STARTTLS) and for the REST API over TLS with the release's version: the first the index by its digest, which the runner resolves to linux/amd64, and the second the linux/arm64 image by its own digest, as a service of the platform linux/arm64 (`services:docker:platform`), which the runner runs under qemu-user (`build/ci/container-image-start-test.sh`, which also runs by hand against any image with `--docker`, and `HM_START_PLATFORM` for another platform) |
+
+In 6.3.6's tag pipeline 2914690858 server2 ran `container-image-amd64`,
+`container-image-arm64`, `container-image-sbom` and `container-image-start-arm64`,
+and linix `container-image-start` ([server2](#server2)).
 
 **Why after `release-publish`.** `:latest` is what the Compose file and the chart
 pull. A release the installer smoke test stopped before `release-publish` must
@@ -2000,22 +2063,26 @@ certificates as ContainerImage.md, "Checking an image", shows, and
 to it.
 
 **What the owner sets on the registry.** Nothing in the pipeline can. As the
-project's API answered on 28 September 2026:
+project's API answered on 6 October 2026:
 
 1. **The cleanup policy** is switched off. Its tags to keep
-   (`name_regex_keep`) are five patterns: `^v?[0-9]+\.[0-9]+\.[0-9]+.*$`,
-   `^latest$`, `^stable$`, `^[0-9]+\.[0-9]+$` (the `6.3` line) and
+   (`name_regex_keep`) are six patterns: `^v?[0-9]+\.[0-9]+\.[0-9]+.*$`,
+   `^latest$`, `^stable$`, `^[0-9]+\.[0-9]+$` (the `6.3` line),
    `^sha256-[0-9a-f]{64}\.(sig|att|sbom)$` (cosign's signatures and
-   attestations), so that, switched on, it never deletes a release's tags or
-   their signatures; it would remove every other tag older than 90 days and
-   beyond the newest ten, every week. Among those is `artifacthub.io`, the tag
-   Artifact Hub reads the image repository's metadata from
-   (`container-image-artifacthub`, which pushes it again with each release): before
-   the policy is switched on, the maintainers add a sixth pattern,
-   `^artifacthub\.io$`. The API gave only the first two on 27
-   and on 28 September 2026, though this item said all five were set; the
-   maintainers added the other three through the API on 28 September, before
-   the first image.
+   attestations) and `^artifacthub\.io$` (the tag Artifact Hub reads the image
+   repository's metadata from, which `container-image-artifacthub` pushes again
+   with each release), so that, switched on, it never deletes a release's tags,
+   their signatures or that tag; it would remove every other tag older than 90
+   days and beyond the newest ten of its repository, every week. The API gave
+   only the first two on 27 and on 28 September 2026, though this item said all
+   five then documented were set; the maintainers added the other three through
+   the API on 28 September, before the first image, and the sixth on 6 October
+   2026, the day the image's repository was added to Artifact Hub. The policy
+   covers every repository of the project's registry: on 6 October 2026 the
+   image's, `mirror/opensuse-tumbleweed` (the Tumbleweed images the RPM jobs pin
+   by digest) and `ci-linux` (the Linux CI image). No pattern names the tags of
+   the last two, so, switched on, it would keep each only while it is among its
+   repository's newest ten or younger than 90 days.
 2. **Protected container tags**: one rule, for
    `^(latest|stable|[0-9]+\.[0-9]+(\.[0-9]+)?)$`, push Maintainer, delete Owner,
    so that nobody but a maintainer can push the release's tags and nobody but
@@ -2076,7 +2143,9 @@ project's API answered on 28 September 2026:
    marked Protected), and start `container-image-deb` in the pipeline of the
    release whose image is to be pushed - one tagged before the variable was set
    included, from 6.3.6 on, since the jobs are in every such `v*` tag's pipeline
-   and read the switch as they run. It is a project
+   and read the switch as they run. They have: the variable is `1`, protected,
+   and 6.3.6's tag pipeline 2914690858 pushed the first image on 6 October 2026.
+   It is a project
    variable because the project refuses variables given to a pipeline or a
    schedule, so nobody turns the jobs on for one run. Nothing committed sets
    it: `build/check-release-chain.py` fails when a CI file does, when a rule

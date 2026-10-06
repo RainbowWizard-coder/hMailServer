@@ -170,7 +170,7 @@ valid](#what-must-stay-valid-for-a-security-release), below), so GitLab would le
 
 Two more things are needed besides:
 
-- the project's two runners, linix and bench150, must be up
+- the project's runners must be up: bench150, and linix or server2, which share the tag `linix`
   ([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md), "The runners");
 - the installer smoke test is run by hand between `release-sign` and `release-publish`.
 
