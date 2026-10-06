@@ -454,10 +454,12 @@ hold a change on what it brings:
   carries under several ids (a GHSA and its PYSEC) is said once, by the record
   that rates it highest. A requirements line the change adds that pins no
   version by `name==version` - a range, `name @ <url>`, a path, an editable,
-  another index or a page of links, an option of pip's it does not know - holds
-  the change too, since pip would install what OSV cannot be asked about; its
-  hashes, `--require-hashes`, PyPI's own index and a requirements file of a name
-  it reads itself are allowed. On 28 September 2026 a fixture commit adding `urllib3`
+  another index or a page of links, an option of pip's it does not know, a
+  `${...}` that pip takes from the environment - holds the change too, since pip
+  would install what OSV cannot be asked about; its hashes, `--require-hashes`,
+  PyPI's own index and a requirements file of the tree, of a name it reads
+  itself, are allowed, and `-r` or `-c` naming one the tree does not hold (a URL,
+  an absolute path, a file outside the checkout) holds the change. On 28 September 2026 a fixture commit adding `urllib3`
   1.26.4 and NuGet's `System.Text.Json` 8.0.0 was held on six High advisories of
   the first and two of the second, one that changed a document passed without
   reading OSV, and one that added `Humanizer.Core` 2.14.1 passed with no advisory.
@@ -538,15 +540,17 @@ for exactly the branches the gates run for in a branch's pipeline - protected
 `batch*` branches of this project - and `build/check-release-chain.py` holds the
 two to each other, so that protecting another pattern of branches later opens no
 route without a gate. Neither gate is `allow_failure`, nor is `semgrep-sast`,
-neither has a `rules:changes` list, and no variable turns either off or narrows
-them: GitLab's SAST template skips `semgrep-sast` when `SAST_DISABLED` is set,
-and the rules of none of the three read it, since a project variable must not
-take a blocking gate away unseen; `semgrep-sast` sets
-`SAST_SEMGREP_EXCLUDED_PATHS` to nothing itself; and a change of any other
-variable that narrows it lands alone (above), while
+neither has a `rules:changes` list, and no variable turns either off: GitLab's
+SAST template skips `semgrep-sast` when `SAST_DISABLED` is set, and the rules of
+none of the three read it, since a project variable must not take a blocking
+gate away unseen. Nor does a variable a CI file sets narrow `semgrep-sast`
+unseen: it sets `SAST_SEMGREP_EXCLUDED_PATHS` to nothing itself, a change of any
+other variable that narrows it lands alone (above), and
 `build/check-release-chain.py` refuses `SAST_SEMGREP_EXCLUDED_PATHS`,
 `SAST_RULESET_GIT_REFERENCE`, `SAST_EXCLUDED_ANALYZERS` and `HM_TIDY_CHECKS` in
-any CI file but that one value. Each keeps GitHub out of the job itself
+any CI file but that one value. A project variable, which only the owner can
+set, stands above a job's own ("What they cannot hold", below). Each keeps
+GitHub out of the job itself
 ([Nothing from GitHub, in the job](#nothing-from-github-in-the-job)).
 
 **What fails them that is not their answer.** An input that cannot be read - the

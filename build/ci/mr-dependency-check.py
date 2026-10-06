@@ -30,8 +30,10 @@ fetched by name. What it reads, at the base and at the head, from git:
                            every name Renovate's pip_requirements manager updates,
                            build/ci/cli-packages-requirements.txt among them; a line
                            the change adds that pins no version so (a range, a URL
-                           or a path, an editable, another index) holds it, since
-                           pip would install what OSV cannot be asked about;
+                           or a path, an editable, another index, a requirements
+                           file the tree does not hold, a ${...} pip expands) holds
+                           it, since pip would install what OSV cannot be asked
+                           about;
   the native and vendored libraries
                            every library of build/ci/dependency-scan.py's VENDORED,
                            at each version its file pins, read as that scan reads
@@ -117,6 +119,7 @@ import io
 import json
 import math
 import os
+import posixpath
 import re
 import shutil
 import subprocess
@@ -173,14 +176,19 @@ def pypi_name(name):
 
 # What a requirements file may say beside its pins, name==version with the pin's hashes:
 # pip's switches that only choose among a pinned version's own files, PyPI's own index,
-# and a requirements or constraints file whose name is one Renovate's pip_requirements
-# manager reads, which is read here on its own too. Any other line - an unpinned or
-# ranged version, a URL or a path for a package, an editable, another index, a page of
-# links - is one pip would install from, and OSV cannot be asked about what it gives.
+# and a requirements or constraints file of the tree whose name is one Renovate's
+# pip_requirements manager reads, which is read here on its own too. Any other line - an
+# unpinned or ranged version, a URL or a path for a package, an editable, another index,
+# a page of links, a requirements file pip would fetch or find outside the tree - is one
+# pip would install from, and OSV cannot be asked about what it gives. A version or a
+# file named through ${...}, which pip takes from the environment, pins nothing either.
 PIP_SWITCHES = re.compile(r"^(?:--require-hashes|--prefer-binary|--no-deps|--(?:only|no)-binary(?:=|\s+)\S+)$")
 PIP_INDEX = re.compile(r"^(?:-i|--index-url)(?:=|\s+)https://pypi\.org/simple/?$")
 PIP_FILE = re.compile(r"^(?:-r|--requirement|-c|--constraint)(?:=|\s+)(\S+)$")
-PIP_PIN = re.compile(r"^([A-Za-z0-9][A-Za-z0-9._-]*)(\[[^\]]*\])?\s*===?\s*([^\s;*]+)\s*(?:;.*)?$")
+# A file -r or -c names that can be the tree's: a relative path, never a URL (or a
+# drive), an absolute path or a home directory, and nothing pip expands.
+PIP_LOCAL_FILE = re.compile(r"^(?![A-Za-z][A-Za-z0-9+.-]*:)(?![/~])[^$]+$")
+PIP_PIN = re.compile(r"^([A-Za-z0-9][A-Za-z0-9._-]*)(\[[^\]]*\])?\s*===?\s*([^\s;*$]+)\s*(?:;.*)?$")
 
 
 def pip_lines(text):
@@ -200,11 +208,13 @@ def pip_lines(text):
     return [line for line in lines if line]
 
 
-def parse_lock(kind, text, odd=None):
+def parse_lock(kind, text, odd=None, included=None):
     """[(ecosystem, name as written, version)] of one lock file. ValueError when it
     cannot be read: a lock file this cannot read is never a clean one. odd, when given,
     collects each line of a requirements file that pins no version by name==version and
-    that no other rule of PIP_SWITCHES, PIP_INDEX and PIP_FILE allows."""
+    that no other rule of PIP_SWITCHES, PIP_INDEX and PIP_FILE allows; included, when
+    given, collects (the file named, the line) for each requirements or constraints file
+    a line names, which the tree must hold (dependencies_at), or the line is odd."""
     found = []
     if kind == "nuget-lock":
         document = json.loads(text.lstrip("\ufeff"))
@@ -225,8 +235,11 @@ def parse_lock(kind, text, odd=None):
         for line in pip_lines(text):
             if line.startswith("-"):
                 listed = PIP_FILE.match(line)
-                if not (PIP_SWITCHES.match(line) or PIP_INDEX.match(line)
-                        or (listed and lock_kind(listed.group(1).replace("\\", "/")) == "pip")):
+                named = listed.group(1).replace("\\", "/") if listed else ""
+                if listed and lock_kind(named) == "pip" and PIP_LOCAL_FILE.match(named):
+                    if included is not None:
+                        included.append((named, line[:200]))
+                elif not (PIP_SWITCHES.match(line) or PIP_INDEX.match(line)):
                     if odd is not None:
                         odd.append(line[:200])
                 continue
@@ -256,29 +269,35 @@ def git(root, *arguments):
 
 def dependencies_at(root, ref, odd=None, unreadable=None):
     """{key: [(file, name, version)]} of every lock file at ref. odd, when given, collects
-    (file, line) for each requirements line that pins no version (parse_lock). A lock
-    file that cannot be read is a ValueError, unless unreadable is given - at the base -
-    when it collects (file, why) and the file is read as naming nothing."""
+    (file, line) for each requirements line that pins no version (parse_lock), and for
+    each that names a requirements or constraints file ref does not hold, relative to the
+    naming file's directory as pip reads it. A lock file that cannot be read is a
+    ValueError, unless unreadable is given - at the base - when it collects (file, why)
+    and the file is read as naming nothing."""
     listed = git(root, "ls-tree", "-r", "-z", "--name-only", ref)
     if listed.returncode != 0:
         raise ValueError("git ls-tree %s failed: %s" % (ref, listed.stderr.decode("utf-8", "replace").strip()[:300]))
+    paths = [raw.decode("utf-8", "surrogateescape") for raw in listed.stdout.split(b"\0") if raw]
+    tree = set(paths)
     found = {}
-    for raw in listed.stdout.split(b"\0"):
-        path = raw.decode("utf-8", "surrogateescape")
-        kind = lock_kind(path) if path else None
+    for path in paths:
+        kind = lock_kind(path)
         if not kind:
             continue
         shown = git(root, "show", "%s:%s" % (ref, path))
         if shown.returncode != 0:
             raise ValueError("git show %s:%s failed" % (ref, path))
-        lines = []
+        lines, included = [], []
         try:
-            entries = parse_lock(kind, shown.stdout.decode("utf-8"), lines)
+            entries = parse_lock(kind, shown.stdout.decode("utf-8"), lines, included)
         except (ValueError, ET.ParseError, UnicodeDecodeError) as e:
             if unreadable is None:
                 raise ValueError("%s at %s cannot be read: %s" % (path, ref[:12], e))
             unreadable.append((path, str(e)[:200]))
             continue
+        # A file it names is read here only when it is one of the tree's.
+        lines.extend(line for named, line in included
+                     if posixpath.normpath(posixpath.join(posixpath.dirname(path), named)) not in tree)
         if odd is not None:
             odd.extend((path, line) for line in lines)
         for ecosystem, name, version in entries:
@@ -1150,9 +1169,10 @@ def main_check(root, base, osv_dir=None, today=None, say=print, osv=None):
     except (OSError, ValueError, zipfile.BadZipFile, http.client.HTTPException) as e:
         say("CANNOT CHECK: OSV's advisories could not be read (%s): no answer is not a clean answer; retry the job" % e)
         return 2
-    unpinned = ["%s: %r pins no version by name==version, or names an index, a link or an option of pip's beside PyPI's "
-                "own: pip would install what OSV cannot be asked about. Pin it by name==version with its hashes, as "
-                "Renovate's pip_requirements manager does" % (path, line) for path, line in odd]
+    unpinned = ["%s: %r pins no version by name==version, or names an index, a link, a requirements file the tree does "
+                "not hold or an option of pip's beside PyPI's own: pip would install what OSV cannot be asked about. Pin "
+                "it by name==version with its hashes, as Renovate's pip_requirements manager does" % (path, line)
+                for path, line in odd]
     problems = unpinned + problems
     for p in problems:
         say("HELD: " + p)
@@ -1554,16 +1574,25 @@ def self_test():
                "a version below a control that draws a Critical advisory, named in none itself, is held by it: %s" % said)
 
         # A requirements line that pins no version by name==version is held, and one the
-        # base already has is not the change's.
+        # base already has is not the change's. A requirements file it names is the tree's
+        # (build/requirements-dev.txt, committed with it), never one pip would fetch or
+        # find elsewhere; and nothing pip takes from the environment pins anything.
         for line, holds in (("requests>=2.0", True), ("requests @ https://example.invalid/requests-2.0.whl --hash=sha256:%s"
                                                        % ("0" * 64), True),
                             ("--extra-index-url https://example.invalid/simple", True), ("-e git+https://x.invalid/r#egg=r", True),
                             ("--index-url https://pypi.org/simple", False), ("-r requirements-dev.txt", False),
+                            ("-r ../build/requirements-dev.txt", False), ("--requirement=requirements-dev.txt", False),
+                            ("-r requirements-missing.txt", True), ("-r ../../requirements-dev.txt", True),
+                            ("-r https://example.invalid/requirements.txt", True),
+                            ("--requirement=http://example.invalid/requirements-dev.txt", True),
+                            ("-r /etc/requirements.txt", True), ("-r C:/requirements.txt", True),
+                            ("-r ${HOME}/requirements.txt", True), ("requests==${REQUESTS_VERSION}", True),
                             ("-r other.in", True), ("--require-hashes", False), ("requests==2.*", True),
                             ("requests==2.0.1 ; python_version >= '3.9' \\\n    --hash=sha256:%s" % ("0" * 64), False),
                             ("requests==2.0.1 --global-option=x", True)):
             reset(base)
-            commit({"build/requirements.txt": requirements(requests="2.0.1") + line + "\n"}, "a requirement line")
+            commit({"build/requirements.txt": requirements(requests="2.0.1") + line + "\n",
+                    "build/requirements-dev.txt": requirements(requests="2.0.1")}, "a requirement line")
             code = verdict(base)
             expect((code == 1) == holds and (any("pins no version" in s for s in said) == holds),
                    "%r %s: exit %d, %s" % (line, "holds the change" if holds else "is read", code, said))

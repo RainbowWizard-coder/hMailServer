@@ -51,12 +51,14 @@
 # itself, and no report but the one the job wrote reaches the gate - it removes any it
 # finds before the analyzer runs, and the gate refuses a report the analyzer did not
 # write, one older than the pipeline, and a tree that commits one. No variable
-# switches semgrep-sast off or narrows it unseen: GitLab's template skips it when
-# SAST_DISABLED is set, and a project variable must not take a blocking gate away
-# unseen, so its rules here do not read it; it sets SAST_SEMGREP_EXCLUDED_PATHS itself;
-# and a change that narrows what it reads (an exclusion, a .semgrepignore, its options,
-# a custom ruleset) lands alone, as a declaration (build/ci/security-gate.py,
-# scope_narrowings).
+# switches semgrep-sast off: GitLab's template skips it when SAST_DISABLED is set, and
+# a project variable must not take a blocking gate away unseen, so its rules here do
+# not read it. Nor does a CI file's variable narrow it unseen: it sets
+# SAST_SEMGREP_EXCLUDED_PATHS itself, and a change that narrows what it reads (an
+# exclusion, its options) lands alone, as a declaration (build/ci/security-gate.py,
+# scope_narrowings); a .semgrepignore and a custom ruleset are refused outright
+# (build/check-release-chain.py). A project variable, which only the owner can set,
+# stands above a job's own (SECURITY.md, "What the gates cannot hold").
 # secret_detection is not allow_failure: a secret found fails the
 # job and the pipeline. The template's job cannot do that by itself - the analyzer
 # exits 0 whatever it finds, and the template adds allow_failure: true, which would

@@ -196,7 +196,8 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   the jobs themselves.
 - **`mr-dependency-check` holds a requirement that pins no version, and does not take OSV's silence for an answer.** A
   requirements line it could not read as `name==version` - a range, `name @ <url>`, another index - was skipped; one a
-  change adds now holds it. A control that OSV is known to name (OpenSSL's, Boost's, zlib's, Connector/C's, 7-Zip's)
+  change adds now holds it, and so does a `-r` or `-c` naming a requirements file the tree does not hold (a URL, an
+  absolute path) and a `${...}` pip takes from the environment. A control that OSV is known to name (OpenSSL's, Boost's, zlib's, Connector/C's, 7-Zip's)
   that draws no advisory is OSV's data not read, exit 2, and `dependency-scan` fails its scan for it; a version older
   than its control that OSV names nothing for, while it names the control's, is held by the control's advisories as
   ones that may affect it (OpenSSL 0.9.6 draws none, 4.0.0 43). A base whose lock file or exceptions file cannot be

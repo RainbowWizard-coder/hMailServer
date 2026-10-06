@@ -508,7 +508,8 @@ scanning".
     version is older than its upstream repository's first tag, or one older than its control is named in no advisory
     while the control is (OSV did not match its tag: OpenSSL's 0.9.6 draws none where 4.0.0 draws 43); and a
     requirements line the change adds that pins no version by `name==version` - a range, a URL or a path, an
-    editable, another index - since pip would install what OSV cannot be asked about.
+    editable, another index, a requirements file the tree does not hold, a `${...}` pip takes from the environment -
+    since pip would install what OSV cannot be asked about.
   - *Not a violation*, and listed in the job's log: an advisory of severity Medium or Low, or with no rating; and
     UNKNOWN, a library for which OSV has no usable data (no repository it knows, as for SQL Server Compact, or nothing
     for a control OSV is not known to name, as for libpq and QuickJS), which is read by hand against the release's
@@ -690,10 +691,11 @@ under *Order*, below.
   re-pins a vanished analyzer while `master` holds findings nobody has accepted need not wait on a change that no
   scan could judge. Any other change of the scan's configuration answers for the whole tree by the base's
   declarations alone.
-- **Narrowing a scan is a declaration too.** What a scan leaves out - a `.semgrepignore`, an exclusion, the
-  analyzer's options, a custom ruleset, the source scans' ignore and suppression lists - is said in a change of its
-  own, which touches nothing else a scan reads, and the change after it is judged as it says ([Every
-  change](#every-change)).
+- **Narrowing a scan is a declaration too.** What a scan leaves out - an exclusion, the analyzer's options, the
+  source scans' ignore and suppression lists - is said in a change of its own, which touches nothing else a scan
+  reads, and the change after it is judged as it says ([Every change](#every-change)). A `.semgrepignore` and
+  GitLab's custom ruleset (`.gitlab/sast-ruleset.toml`) are not said at all: `build/check-release-chain.py` refuses a
+  tree that carries either, so that what *semgrep-sast* leaves out is said in one place, its `SAST_EXCLUDED_PATHS`.
 - **Baselines are not declarations.** `build/ci/static-analysis-baseline.txt` and `build/ci/semgrep-baseline.txt` are
   closed lists of the findings that were in the tree before every change was gated: written when the scans began, on
   25 September 2026, and last added to in 6.3.6. A change may delete an entry whose finding is fixed, or end one that
