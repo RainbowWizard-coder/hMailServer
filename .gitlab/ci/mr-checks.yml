@@ -13,7 +13,13 @@
 #                         the change (build/ci/security-gate.py --merge-request auto;
 #                         OpenSSF Baseline OSPS-VM-06.02). semgrep-sast itself stays
 #                         allow_failure, as GitLab's template makes it: a scan that did
-#                         not finish leaves no report, which holds the change here.
+#                         not finish leaves no report, which holds the change here. A
+#                         change that alters the scan's configuration answers for every
+#                         finding in the tree, and its own copy of the exceptions may
+#                         accept one in a file it does not touch, never in one it does.
+#                         And whatever the scan found, it holds a change that adds an
+#                         entry to a source scan's baseline, takes a reason from one, or
+#                         raises the count of suppression comments in a file a scan reads.
 #   mr-dependency-check   every NuGet and PyPI version the change adds, looked up in
 #                         OSV's own export of its ecosystem's advisories, and every
 #                         native or vendored library version it pins, asked of OSV by
