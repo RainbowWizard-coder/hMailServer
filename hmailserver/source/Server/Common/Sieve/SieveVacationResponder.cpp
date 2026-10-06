@@ -8,6 +8,7 @@
 #include "SieveVacationResponder.h"
 
 #include "SieveVacationTracker.h"
+#include "SieveScript.h"
 
 #include "../BO/Account.h"
 #include "../BO/Alias.h"
@@ -24,6 +25,9 @@
 
 #include "../../SMTP/RecipientParser.h"
 #include "../../SMTP/SMTPConfiguration.h"
+
+#include <stdexcept>
+#include <string>
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -106,10 +110,9 @@ namespace HM
    }
 
    String
-   SieveVacationResponder::ResolveFromAddress_(std::shared_ptr<const Account> account, const String &requested)
+   SieveFromAddress::Choose(const String &accountAddress, const String &requested, Action action,
+                            const std::function<bool(const String &)> &reachesAccount)
    {
-      String accountAddress = account->GetAddress();
-
       if (requested.IsEmpty())
          return accountAddress;
 
@@ -120,31 +123,49 @@ namespace HM
          return accountAddress;
 
       // RFC 5230 4.4 allows an implementation to restrict what ":from" may say, and
-      // this one does: the reply may only claim to come from an address that actually
-      // reaches this account. Without the check a script - which an ordinary user can
-      // upload over ManageSieve - would be a way to send mail that appears to come
-      // from anyone at all, using the server's own reputation to do it. That is a
-      // spoofing primitive, not a convenience.
-      std::shared_ptr<const Account> other = CacheContainer::Instance()->GetAccount(candidate);
-      if (other && other->GetID() == account->GetID())
-         return candidate;
-
-      std::shared_ptr<const Alias> alias = CacheContainer::Instance()->GetAlias(candidate);
-      if (alias && alias->GetIsActive() && alias->GetValue().CompareNoCase(accountAddress) == 0)
+      // this one does: the message may only claim to come from an address that
+      // actually reaches this account. Without the check a script - which an ordinary
+      // user can upload over ManageSieve - would be a way to send mail that appears to
+      // come from anyone at all, using the server's own reputation to do it, and its
+      // DKIM key for a domain it signs for (DKIMSigner signs as the From header's
+      // domain). That is a spoofing primitive, not a convenience, and it is the same
+      // primitive whichever action carries the ":from".
+      if (reachesAccount && reachesAccount(candidate))
          return candidate;
 
       // Logged rather than reported: a user writing a script with somebody else's
       // address in it is a mistake an ordinary installation can make, and the
       // administrator is the one who wants to know about it. An ErrorManager report
       // here would fail every fixture's clean-error-log assertion for a script the
-      // server handled correctly.
+      // server handled correctly. The logger writes a line break in the address as
+      // [nl], so a ":from" holding one stays one line.
+      const bool vacation = action == Action::Vacation;
       String message;
-      message.Format(_T("Sieve vacation: the script for %s asked for ':from \"%s\"', which is not an address that reaches ")
-                     _T("that account. The reply was sent from %s instead."),
-                     accountAddress.c_str(), candidate.c_str(), accountAddress.c_str());
+      message.Format(_T("Sieve %s: the script for %s asked for ':from \"%s\"', which is not an address that reaches ")
+                     _T("that account. The %s was sent from %s instead."),
+                     vacation ? _T("vacation") : _T("notify"), accountAddress.c_str(), candidate.c_str(),
+                     vacation ? _T("reply") : _T("notification"), accountAddress.c_str());
       LOG_APPLICATION(message);
 
       return accountAddress;
+   }
+
+   String
+   SieveFromAddress::Resolve(std::shared_ptr<const Account> account, const String &requested, Action action)
+   {
+      const String accountAddress = account->GetAddress();
+
+      return Choose(accountAddress, requested, action, [&account, &accountAddress](const String &candidate) -> bool
+      {
+         // The account itself, by its address as the cache finds it.
+         std::shared_ptr<const Account> other = CacheContainer::Instance()->GetAccount(candidate);
+         if (other && other->GetID() == account->GetID())
+            return true;
+
+         // An active alias whose value is the account's address.
+         std::shared_ptr<const Alias> alias = CacheContainer::Instance()->GetAlias(candidate);
+         return alias && alias->GetIsActive() && alias->GetValue().CompareNoCase(accountAddress) == 0;
+      });
    }
 
    String
@@ -538,7 +559,7 @@ namespace HM
             return;
          }
 
-         String fromAddress = ResolveFromAddress_(account, decision.from);
+         String fromAddress = SieveFromAddress::Resolve(account, decision.from, SieveFromAddress::Action::Vacation);
 
          if (ComposeAndSubmit_(account, decision, fromAddress))
          {
@@ -557,5 +578,202 @@ namespace HM
          ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5899, "SieveVacationResponder::Respond",
             "An error occurred while sending a Sieve vacation auto-reply. The message being delivered was not affected.");
       }
+   }
+
+   namespace
+   {
+      // A value as printable ASCII, for a failure's sentence: every other character as
+      // a backslash, a u and its number, so that a line break is seen for what it is.
+      std::string
+      FromAddressForMessage(const String &value)
+      {
+         std::string out;
+         const wchar_t *text = value.c_str();
+         for (size_t position = 0; position < value.size(); position++)
+         {
+            const unsigned long character = static_cast<unsigned long>(text[position]);
+            if (character >= 0x20 && character < 0x7F)
+            {
+               out += static_cast<char>(character);
+            }
+            else
+            {
+               char escaped[16];
+               snprintf(escaped, sizeof(escaped), "\\u%04lX", character);
+               out += escaped;
+            }
+         }
+
+         return out;
+      }
+   }
+
+   void
+   SieveFromAddressTester::Test()
+   {
+      std::string wrong;
+      auto fail = [&wrong](const std::string &what)
+      {
+         wrong += (wrong.empty() ? "" : "; ") + what;
+      };
+
+      const String account(L"own@example.test");
+
+      // What the cache answers, as examples: the alias, whose value is the account's
+      // address, reaches the account, and nothing else does. Every question is kept,
+      // so that an answer given without asking is told apart from one asked for.
+      std::vector<String> asked;
+      auto reaches = [&asked](const String &candidate) -> bool
+      {
+         asked.push_back(candidate);
+         return candidate.CompareNoCase(L"alias@example.test") == 0;
+      };
+
+      struct Case
+      {
+         const wchar_t *requested;
+         const wchar_t *expected;
+         bool asks;
+      };
+
+      const Case cases[] =
+      {
+         // No ":from", and the account's own address however it is written.
+         { L"", L"own@example.test", false },
+         { L"own@example.test", L"own@example.test", false },
+         { L"OWN@Example.TEST", L"own@example.test", false },
+         { L"  own@example.test\t", L"own@example.test", false },
+         // The alias, as the script wrote it, blanks aside.
+         { L"alias@example.test", L"alias@example.test", true },
+         { L" Alias@Example.test ", L"Alias@Example.test", true },
+         // Another's address, and the shapes that would carry one.
+         { L"ceo@bank.example", L"own@example.test", true },
+         { L"own@example.test\r\nX-A: Boss <ceo@bank.example>", L"own@example.test", true },
+         { L"alias@example.test\r\nFrom: ceo@bank.example", L"own@example.test", true },
+         { L"Boss <alias@example.test>", L"own@example.test", true },
+         { L"own@example.test.bank.example", L"own@example.test", true },
+         { L"not an address", L"own@example.test", true },
+      };
+
+      const SieveFromAddress::Action actions[] = { SieveFromAddress::Action::Vacation, SieveFromAddress::Action::Notify };
+      for (SieveFromAddress::Action action : actions)
+      {
+         const std::string name = action == SieveFromAddress::Action::Vacation ? "vacation" : "notify";
+         for (const Case &c : cases)
+         {
+            asked.clear();
+            const String chosen = SieveFromAddress::Choose(account, String(c.requested), action, reaches);
+            if (chosen.Compare(c.expected) != 0)
+               fail(name + " :from \"" + FromAddressForMessage(String(c.requested)) + "\" was sent from \"" +
+                  FromAddressForMessage(chosen) + "\", not \"" + FromAddressForMessage(String(c.expected)) + "\"");
+
+            if (asked.empty() == c.asks)
+               fail(name + " :from \"" + FromAddressForMessage(String(c.requested)) + "\" was " +
+                  (c.asks ? "not asked of the cache" : "asked of the cache"));
+         }
+      }
+
+      // With nothing to ask, nothing but the account's own address is used.
+      if (SieveFromAddress::Choose(account, String(L"alias@example.test"), SieveFromAddress::Action::Notify, nullptr).Compare(account) != 0)
+         fail("with no lookup, notify :from \"alias@example.test\" was used");
+
+      // When a script is stored: notify's ":from" is refused where vacation's is - when
+      // it is not an address - and one that is an address is left to delivery.
+      struct ScriptCase
+      {
+         const wchar_t *script;
+         bool refused;
+      };
+
+      const ScriptCase scripts[] =
+      {
+         { L"require \"enotify\";\r\nnotify :from \"own@example.test\" \"mailto:watch@example.test\";\r\n", false },
+         { L"require \"enotify\";\r\nnotify :from \"ceo@bank.example\" \"mailto:watch@example.test\";\r\n", false },
+         { L"require \"enotify\";\r\nnotify \"mailto:watch@example.test\";\r\n", false },
+         { L"require \"enotify\";\r\nnotify :from \"not an address\" \"mailto:watch@example.test\";\r\n", true },
+         { L"require \"enotify\";\r\nnotify :from \"\" \"mailto:watch@example.test\";\r\n", true },
+         { L"require \"enotify\";\r\nnotify :from \"Boss <ceo@bank.example>\" \"mailto:watch@example.test\";\r\n", true },
+         { L"require \"enotify\";\r\nnotify :from \"own@example.test\r\nX-A: Boss <ceo@bank.example>\" \"mailto:watch@example.test\";\r\n", true },
+         { L"require \"enotify\";\r\nnotify :importance \"1\" :from \"not an address\" :message \"hi\" \"mailto:watch@example.test\";\r\n", true },
+         { L"require \"vacation\";\r\nvacation :from \"ceo@bank.example\" \"away\";\r\n", false },
+         { L"require \"vacation\";\r\nvacation :from \"not an address\" \"away\";\r\n", true },
+      };
+
+      for (const ScriptCase &c : scripts)
+      {
+         const String script(c.script);
+         const String error = SieveScript::CheckSyntax(script);
+         if (error.IsEmpty() == c.refused)
+            fail("\"" + FromAddressForMessage(script) + "\" was " +
+               (c.refused ? std::string("accepted") : "refused (" + FromAddressForMessage(error) + ")") + " when stored");
+         else if (c.refused && script.Find(L"notify") >= 0 && error.Find(L"'notify :from'") < 0)
+            fail("the refusal of \"" + FromAddressForMessage(script) + "\" does not name notify's :from: " + FromAddressForMessage(error));
+      }
+
+      // A script stored before notify's ":from" was checked still runs, its filing with
+      // it; the decision records ":from" as the script wrote it, and the notification
+      // goes from the address the rule chooses.
+      {
+         const String stored(L"require [\"enotify\", \"fileinto\"];\r\nfileinto \"Kept\";\r\n"
+                             L"notify :from \"not an address\" \"mailto:watch@example.test\";\r\n");
+         String error;
+         SieveScript storing;
+         if (storing.Parse(stored, error))
+            fail("a script whose notify :from is not an address was accepted when stored");
+
+         SieveScript running;
+         if (!running.Parse(stored, error, SieveParser::Purpose::Running))
+            fail("a stored script whose notify :from is not an address no longer runs: " + FromAddressForMessage(error));
+      }
+
+      struct DeliveryCase
+      {
+         const wchar_t *from;
+         const wchar_t *sender;
+      };
+
+      const DeliveryCase deliveries[] =
+      {
+         { nullptr, L"own@example.test" },
+         { L"alias@example.test", L"alias@example.test" },
+         { L"ceo@bank.example", L"own@example.test" },
+         { L"not an address", L"own@example.test" },
+         { L"own@example.test\r\nX-A: Boss <ceo@bank.example>", L"own@example.test" },
+      };
+
+      const String trigger(L"From: sender@example.test\r\nTo: own@example.test\r\nSubject: Trigger\r\n\r\nhello\r\n");
+
+      for (const DeliveryCase &d : deliveries)
+      {
+         String script(L"require [\"enotify\", \"fileinto\"];\r\nfileinto \"Kept\";\r\nnotify ");
+         if (d.from != nullptr)
+            script += String(L":from \"") + d.from + L"\" ";
+         script += L"\"mailto:watch@example.test\";\r\n";
+
+         const std::string what = "the notification of \"" + FromAddressForMessage(script) + "\"";
+
+         SieveEnvelope envelope;
+         SieveResult result;
+         SieveScript::Evaluate(script, trigger, envelope, result);
+         if (result.fileInto.Compare(L"Kept") != 0)
+            fail(what + ": the script did not file the message, so it did not run");
+
+         if (result.notifications.size() != 1)
+         {
+            fail(what + ": the script decided " + std::to_string(result.notifications.size()) + " notifications, not one");
+            continue;
+         }
+
+         const SieveNotifyDecision &decision = result.notifications[0];
+         if (decision.from.Compare(d.from != nullptr ? d.from : L"") != 0)
+            fail(what + ": the decision's :from is \"" + FromAddressForMessage(decision.from) + "\"");
+
+         const String sender = SieveFromAddress::Choose(account, decision.from, SieveFromAddress::Action::Notify, reaches);
+         if (sender.Compare(d.sender) != 0)
+            fail(what + ": sent from \"" + FromAddressForMessage(sender) + "\", not \"" + FromAddressForMessage(String(d.sender)) + "\"");
+      }
+
+      if (!wrong.empty())
+         throw std::logic_error("Sieve :from: " + wrong);
    }
 }

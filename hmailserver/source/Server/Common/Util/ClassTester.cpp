@@ -11,6 +11,7 @@
 #include "../BO/Account.h"
 #include "../BO/FetchAccount.h"
 #include "../Rules/RuleGuard.h"
+#include "../Sieve/SieveVacationResponder.h"
 #include "../Mime/MimeTester.h"
 #include "../Util/Utilities.h"
 #include "../Util/MessageUtilities.h"
@@ -236,6 +237,14 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing the header edits that could reset the rule loop count\n"));
       LoopCountEditTester loopCountEditTester;
       loopCountEditTester.Test();
+
+      // The address a Sieve vacation reply or notification may say it is from: one
+      // that reaches the account, or else the account's own. Until 6 October 2026 a
+      // notification was sent from whatever its :from said (SieveVacationResponder.h,
+      // SieveFromAddress).
+      OutputDebugString(_T("hMailServer: Testing the Sieve :from rule\n"));
+      SieveFromAddressTester sieveFromAddressTester;
+      sieveFromAddressTester.Test();
 
       // Every TLS context's options read back with SSL_CTX_get_options: exactly what
       // SetContextOptions_ asks for, nothing from bit 32 up but certificate compression

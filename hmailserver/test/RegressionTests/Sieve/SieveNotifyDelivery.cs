@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Threading;
 using NUnit.Framework;
 using NUnit.Framework.Legacy;
@@ -286,6 +287,187 @@ namespace RegressionTests.Sieve
             "The notification's loop count is not its own alone. The notification was:\r\n" + notification);
          Assert.AreEqual(1, FieldLines(notification, "Subject").Count,
             "The notification's subject is not one field. The notification was:\r\n" + notification);
+      }
+
+      // Invoked late-bound, as the SieveScript property is, so that the test does not
+      // depend on the registered type library.
+      private string CheckSyntax(string script)
+      {
+         object utilities = _application.Utilities;
+         return (string) utilities.GetType().InvokeMember(
+            "CheckSieveSyntax", BindingFlags.InvokeMethod, null, utilities, new object[] { script });
+      }
+
+      // A server that checks a script when it is stored - the REST API's filter route,
+      // which is how the Linux suite stores one - refuses a notify :from that is not an
+      // address, so a script stored before that check cannot be made there.
+      private static bool RefusedForTheFrom(Exception refused)
+      {
+         Exception cause = refused is TargetInvocationException && refused.InnerException != null ? refused.InnerException : refused;
+         return cause is COMException && cause.Message.Contains("notify :from");
+      }
+
+      // The application log's line for a :from that was not used, in the parts that hold
+      // no quotation mark, which the log's JSON format would write differently.
+      private static void AssertFromNotUsedIsLogged(Account recipient)
+      {
+         Assert.IsTrue(LogHandler.DefaultLogContains("Sieve notify: the script for " + recipient.Address + " asked for ':from "),
+            "The notify :from that was not used is not in the application log.");
+         Assert.IsTrue(LogHandler.DefaultLogContains("which is not an address that reaches that account. The notification was sent from " +
+               recipient.Address + " instead."),
+            "The application log does not say the notification was sent from the account's own address.");
+      }
+
+      private static string NotifyScript(string from, string watcherAddress)
+      {
+         return
+            "require \"enotify\";\r\n" +
+            "notify :from \"" + from + "\" :message \"Something arrived\" \"mailto:" + watcherAddress + "\";\r\n";
+      }
+
+      /// <summary>
+      ///    A notification's :from is the notification's From when it reaches the
+      ///    account - here an active alias whose value is the account's address - which
+      ///    is the rule a vacation reply's :from is held to
+      ///    (SieveVacationDelivery.TestFromIsHonouredOnlyForTheUsersOwnAddresses). The
+      ///    script is accepted when it is stored.
+      /// </summary>
+      [Test]
+      [Description("A notify :from naming an alias of the account is accepted when stored, and is the notification's From.")]
+      public void ANotifyFromThatReachesTheAccountIsTheSender()
+      {
+         Account recipient, watcher;
+         NewPair(out recipient, out watcher);
+
+         string aliasAddress = "sieve-ntf-alias-" + NextAccountSequence() + "@example.test";
+         SingletonProvider<TestSetup>.Instance.AddAlias(_domain, aliasAddress, recipient.Address);
+
+         string script = NotifyScript(aliasAddress, watcher.Address);
+         Assert.IsEmpty(CheckSyntax(script), "A notify :from naming one of the account's own addresses was refused when stored.");
+         SetScript(recipient, script);
+
+         SmtpClientSimulator.StaticSend("sieve-ntf-sender@example.test", recipient.Address, "Original subject", "Body.");
+         CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+
+         string notification = Pop3ClientSimulator.AssertGetFirstMessageText(watcher.Address, Password);
+         StringAssert.Contains("Something arrived", notification, "No notification arrived.");
+         CollectionAssert.AreEqual(new[] { "From: " + aliasAddress }, FieldLines(notification, "From"),
+            "A notify :from naming an alias of the account is not the notification's From. The notification was:\r\n" + notification);
+      }
+
+      /// <summary>
+      ///    A notify :from that is not an address at all is refused when the script is
+      ///    stored, with a sentence that names it, where a vacation :from is refused: no
+      ///    address, a display name, and an address followed by a line break and a field
+      ///    of its own. An address is accepted, whoever's it is - whether it reaches the
+      ///    account is a question about the account, asked at delivery
+      ///    (AnotherAccountsAddressAsNotifyFromIsNotTheSender).
+      ///
+      ///    Against the unfixed server every notify script below is accepted.
+      /// </summary>
+      [Test]
+      [Description("A notify :from that is not an address is refused when the script is stored, as a vacation :from is.")]
+      public void ANotifyFromThatIsNotAnAddressIsRefusedWhenStored()
+      {
+         const string Watcher = "sieve-ntf-watch@example.test";
+
+         foreach (string from in new[] { "not an address", "", "Boss <ceo@example.test>", "sieve-ntf@example.test\r\nX-A: Boss <ceo@example.test>" })
+         {
+            string error = CheckSyntax(NotifyScript(from, Watcher));
+            StringAssert.Contains("notify :from", error,
+               "A notify :from of '" + from + "' was not refused, or the refusal does not name it, when the script was stored.");
+
+            // The rule notify's follows.
+            Assert.IsNotEmpty(CheckSyntax("require \"vacation\";\r\nvacation :from \"" + from + "\" \"Away.\";\r\n"),
+               "A vacation :from of '" + from + "' was accepted when the script was stored, so the two rules no longer agree.");
+         }
+
+         // The controls: an address is stored, the account's or another's, and so is a
+         // notify without :from.
+         Assert.IsEmpty(CheckSyntax(NotifyScript("sieve-ntf@example.test", Watcher)));
+         Assert.IsEmpty(CheckSyntax(NotifyScript("somebody-else@example.test", Watcher)));
+         Assert.IsEmpty(CheckSyntax("require \"enotify\";\r\nnotify \"mailto:" + Watcher + "\";\r\n"));
+      }
+
+      /// <summary>
+      ///    A notification's :from was its From whatever it said, so any account with a
+      ///    script sent mail through this server as anyone - another account here, or
+      ///    any address anywhere, and DKIM-signed for a domain this server signs for.
+      ///    It is now held to the rule a vacation reply's :from is: another account's
+      ///    address is not one that reaches this account, so the notification comes
+      ///    from the account's own address, and the application log says so.
+      ///
+      ///    Against the unfixed server the notification's From is the other account's.
+      /// </summary>
+      [Test]
+      [Description("A notify :from naming another account is not the notification's From: the account's own address is, and it is logged.")]
+      public void AnotherAccountsAddressAsNotifyFromIsNotTheSender()
+      {
+         Account recipient, watcher;
+         NewPair(out recipient, out watcher);
+
+         Account victim = SingletonProvider<TestSetup>.Instance.AddAccount(
+            _domain, "sieve-ntf-victim-" + NextAccountSequence() + "@example.test", Password);
+
+         SetScript(recipient, NotifyScript(victim.Address, watcher.Address));
+
+         SmtpClientSimulator.StaticSend("sieve-ntf-sender@example.test", recipient.Address, "Original subject", "Body.");
+         CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+
+         string notification = Pop3ClientSimulator.AssertGetFirstMessageText(watcher.Address, Password);
+         StringAssert.Contains("Something arrived", notification, "No notification arrived.");
+         CollectionAssert.AreEqual(new[] { "From: " + recipient.Address }, FieldLines(notification, "From"),
+            "A notify :from naming another account was not replaced by the account's own address. The notification was:\r\n" + notification);
+
+         AssertFromNotUsedIsLogged(recipient);
+      }
+
+      /// <summary>
+      ///    A script stored before notify's :from was checked can hold one that is not
+      ///    an address. It still runs - refused at delivery, it would file nothing and
+      ///    notify nobody - and its notification comes from the account's own address.
+      ///
+      ///    COM's SieveScript property writes the script as it is given, as a script
+      ///    stored before the check was. The REST API's filter route, which is how the
+      ///    Linux suite stores a script, checks it and refuses this one, as
+      ///    ANotifyFromThatIsNotAnAddressIsRefusedWhenStored asserts, so there the case
+      ///    is skipped, with that said.
+      ///
+      ///    Against the unfixed server the notification's From is "not an address".
+      /// </summary>
+      [Test]
+      [Description("A stored script whose notify :from is not an address runs, and its notification is from the account's own address.")]
+      public void AStoredNotifyFromThatIsNotAnAddressIsNotTheSender()
+      {
+         Account recipient, watcher;
+         NewPair(out recipient, out watcher);
+         recipient.IMAPFolders.Add("Kept");
+
+         try
+         {
+            SetScript(recipient,
+               "require [\"enotify\", \"fileinto\"];\r\n" +
+               "fileinto \"Kept\";\r\n" +
+               "notify :from \"not an address\" :message \"Something arrived\" \"mailto:" + watcher.Address + "\";\r\n");
+         }
+         catch (Exception refused) when (RefusedForTheFrom(refused))
+         {
+            Assert.Ignore("This server checks a script when it is stored and refused this one, so no script of the kind " +
+               "this case runs can be stored here: " + refused.GetBaseException().Message);
+         }
+
+         SmtpClientSimulator.StaticSend("sieve-ntf-sender@example.test", recipient.Address, "Original subject", "Body.");
+         CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+
+         IMAPFolder kept = recipient.IMAPFolders.get_ItemByName("Kept");
+         CustomAsserts.AssertFolderMessageCount(kept, 1);
+
+         string notification = Pop3ClientSimulator.AssertGetFirstMessageText(watcher.Address, Password);
+         StringAssert.Contains("Something arrived", notification, "No notification arrived.");
+         CollectionAssert.AreEqual(new[] { "From: " + recipient.Address }, FieldLines(notification, "From"),
+            "A stored notify :from that is not an address was not replaced by the account's own address. The notification was:\r\n" + notification);
+
+         AssertFromNotUsedIsLogged(recipient);
       }
 
       [Test]

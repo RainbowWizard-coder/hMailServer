@@ -46,6 +46,23 @@ quarantine or refuse it when that policy says so. The page reads each address's 
 and says so beside an address whose domain publishes `quarantine` or `reject`; the API
 gives it as `dmarc_policy`. For such an address, send from its own provider.
 
+A Sieve script's `:from`
+------------------------
+
+A Sieve `vacation` reply and a Sieve `notify` notification are sent from the script's
+`:from` only when it is an address that reaches the account: the account's own address,
+in any case, or an active alias whose value is that address. A mailbox granted with the
+post right and an address proved elsewhere are not among them. Any other `:from` is not
+used: the message goes from the account's own address, and the application log names
+the account and what its script asked for. A `:from` that is not an address at all - none,
+a display name, an address followed by a line break - is refused when the script is
+stored or checked (ManageSieve `PUTSCRIPT` and `CHECKSCRIPT`, the self-service filter,
+COM's `CheckSieveSyntax`), with the reason; a script stored before that check came to
+`notify` (6.3.6 and earlier) still runs, and its notifications go from the account's own
+address. Up to 6.3.6 a notification was sent from whatever its `:from` said - another
+account's address, or any address anywhere, signed with this server's DKIM key for a
+domain it signs for.
+
 The routes
 ----------
 

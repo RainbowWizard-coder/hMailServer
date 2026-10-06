@@ -595,6 +595,10 @@ namespace HM
             target = target.Mid(0, query);
 
          decision.to = target;
+
+         // Recorded, not judged, as vacation's is: whether the account may send as
+         // this address is a question about the account, which the evaluator does not
+         // have, and SieveNotifyResponder::Send asks it (SieveFromAddress).
          decision.from = set.fromGiven ? set.fromAddress : String(_T(""));
          decision.importance = set.importanceGiven ? set.importance : 2;
 

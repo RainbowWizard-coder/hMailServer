@@ -150,6 +150,26 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   `SMTP/OutOfOfficeScope.cs` send them through storing and delivery, four loops among them. Found by the project's
   own review.
 
+- **Fixed: a Sieve `notify` was sent from whatever its `:from` said, so that any account with a Sieve script could
+  send mail through this server as any address.** A `vacation` reply's `:from` is used only when it is an address
+  that reaches the account - the account's own, or an active alias whose value is it - and otherwise the reply goes
+  from the account's own address, with a line in the application log. A notification's `:from` was not checked at
+  all (from 6.2.22, which brought `enotify`): a script of three lines sent a notification to any address, on this
+  server or anywhere, from another account's address or anyone else's, and the server signed it with its DKIM key
+  when it hosts the domain of the address it claimed. `notify`'s `:from` is now held to the rule `vacation`'s is, by
+  the one function both use (`SieveFromAddress`), whatever the notification method. One that is not an address at
+  all - none, a display name, an address followed by a line break - is refused when the script is stored or checked
+  (ManageSieve `PUTSCRIPT` and `CHECKSCRIPT`, the self-service filter, COM's `CheckSieveSyntax`), as `vacation`'s is,
+  with the reason; and at delivery one that does not reach the account is replaced by the account's own address,
+  with a line in the application log naming the account and what its script asked for. A script stored before this
+  release whose `notify` has a `:from` that is not an address still runs, and its notifications go from the
+  account's own address.
+
+  `SieveFromAddressTester` (`business-object-tests` on Linux) holds the rule, the check at storing and a stored
+  script's run to examples, and `Sieve/SieveNotifyDelivery.cs` and `Sieve/ManageSieve.cs` send an alias, another
+  account's address and a `:from` that is not an address through storing and delivery. Found by the project's own
+  review.
+
 ### Downloads and the release
 
 - **The Helm chart's and the container image's repositories are on Artifact Hub, and the tree holds the IDs Artifact

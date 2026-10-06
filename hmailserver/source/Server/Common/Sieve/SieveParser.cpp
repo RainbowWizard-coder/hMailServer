@@ -1303,6 +1303,20 @@ namespace HM
             return false;
          }
 
+         // ":from" is held to the rule vacation's is (SieveFromAddress): whether it is
+         // an address at all is checked here, when the script is stored, and whether
+         // it reaches the account at delivery, where the account is known - whatever
+         // the method, since the tag is the command's. A script stored before 6 October
+         // 2026, when notify's ":from" was not checked, still runs (Purpose), and its
+         // notification goes from the account's own address: refused here, the whole
+         // script would stop running, its filing with it.
+         if (set.fromGiven && purpose_ == Purpose::Storing && !StringParser::IsValidEmailAddress(set.fromAddress))
+         {
+            errorMessage.Format(_T("Line %d: 'notify :from' is not a valid email address: '%s'."),
+               command->line, set.fromAddress.c_str());
+            return false;
+         }
+
          if (set.stringLists.size() != 1 || set.stringLists[0].size() != 1)
          {
             errorMessage.Format(_T("Line %d: 'notify' takes one method URI."), command->line);

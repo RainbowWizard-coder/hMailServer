@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <functional>
 #include <vector>
 #include <utility>
 
@@ -70,10 +71,6 @@ namespace HM
       // The window in seconds, from ":seconds" (RFC 6131) or ":days" (RFC 5230).
       static __int64 SuppressionWindowSeconds_(const SieveVacationDecision &decision);
 
-      // ":from" if the address actually reaches the account, the account's own
-      // address otherwise.
-      static String ResolveFromAddress_(std::shared_ptr<const Account> account, const String &requested);
-
       static String BuildSubject_(const SieveVacationDecision &decision);
 
       // Decodes a raw header value that may be RFC 2047 encoded, so that the
@@ -92,5 +89,53 @@ namespace HM
       static bool ComposeAndSubmit_(std::shared_ptr<const Account> account,
                                     const SieveVacationDecision &decision,
                                     const String &fromAddress);
+   };
+
+   // The address a message a Sieve script makes may say it is from, for both actions
+   // that take a ":from": vacation (RFC 5230 4.4) and notify (RFC 5435), whatever the
+   // notification method.
+   //
+   // One rule for both: ":from" is used when it reaches the account - the account's
+   // own address, in any case, or an active alias whose value is that address - and
+   // otherwise the message is sent from the account's own address, with a line in the
+   // application log. Anything else would let an account with a script send mail
+   // through this server as any address at all. Vacation was held to this from the
+   // start; a notification said it was from whatever ":from" said until 6 October 2026.
+   //
+   // What can be checked without the account - that ":from" is an address at all - the
+   // validator checks when a script is stored, for both actions (SieveParser); this is
+   // the half that needs the account, at delivery.
+   class SieveFromAddress
+   {
+   public:
+      enum class Action { Vacation, Notify };
+
+      // ":from" if it reaches the account, the account's own address otherwise.
+      static String Resolve(std::shared_ptr<const Account> account, const String &requested, Action action);
+
+      // The same rule, with the account's address given and "does this other address
+      // reach the account?" asked of reachesAccount rather than of the cache: Resolve
+      // answers it with the account and alias lookups, SieveFromAddressTester with
+      // examples. It is asked only of a ":from", trimmed, that is not the account's own
+      // address. The action names the log line.
+      static String Choose(const String &accountAddress, const String &requested, Action action,
+                           const std::function<bool(const String &)> &reachesAccount);
+   };
+
+   // SieveFromAddress and the validator held to examples, for vacation and notify
+   // alike: no ":from", the account's own address in another case and with blanks
+   // around it, and an alias that reaches the account are used; another account's
+   // address, the account's own followed by a line break and a field, and an address
+   // with a display name are not, and come out as the account's own address. A notify
+   // ":from" that is not an address is refused when the script is stored, as a vacation
+   // ":from" is, a well-formed one is left to delivery, and a script stored before
+   // holding a malformed one still runs, with the account's own address as the
+   // notification's sender. No configuration, database or network. ClassTester runs it
+   // on Windows, business-object-tests on Linux. Throws std::logic_error naming every
+   // case that went wrong.
+   class SieveFromAddressTester
+   {
+   public:
+      void Test();
    };
 }

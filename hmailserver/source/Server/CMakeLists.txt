@@ -895,7 +895,10 @@ set_target_properties(trust-anchor-tests PROPERTIES OUTPUT_NAME trust-anchor-tes
 # something else; a REST create takes an IP range's priority as its update
 # does; and a message's X-hMailServer-LoopCount is read as a count only when it is
 # digits, never above the limit (LoopCountTester, Common/Rules/RuleGuard.h), and no
-# Sieve edit, rule or line break in a header value resets it (LoopCountEditTester).
+# Sieve edit, rule or line break in a header value resets it (LoopCountEditTester);
+# and a Sieve vacation reply or notification is from its :from only when that
+# address reaches the account (SieveFromAddressTester,
+# Common/Sieve/SieveVacationResponder.h).
 # No database, configuration or network. Not installed; a bench tool.
 add_executable(business-object-tests ${SERVER_DIR}/platform/business_object_tests_main.cpp)
 target_link_libraries(business-object-tests PRIVATE hmailserver_core)

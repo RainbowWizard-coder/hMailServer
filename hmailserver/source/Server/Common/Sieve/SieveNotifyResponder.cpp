@@ -5,6 +5,7 @@
 #include "StdAfx.h"
 
 #include "SieveNotifyResponder.h"
+#include "SieveVacationResponder.h"
 #include "../Util/RestrictedDelivery.h"
 
 #include "../BO/Account.h"
@@ -83,7 +84,14 @@ namespace HM
 
          data.GenerateMessageID();
          data.SetSentTime(Time::GetCurrentMimeDate());
-         data.SetFrom(decision.from.IsEmpty() ? String(account->GetAddress()) : decision.from);
+         // :from is held to the rule a vacation reply's is (SieveFromAddress): an
+         // address that reaches this account, or else the account's own address, with
+         // a line in the application log. The tag is the notify command's, not the
+         // method's: a method added beside mailto is to take its sender from here. Until
+         // 6 October 2026 a notification said it was from whatever :from said, so that
+         // any account with a script could send mail through this server as anyone -
+         // and, for a domain this server signs for, with that domain's DKIM signature.
+         data.SetFrom(SieveFromAddress::Resolve(account, decision.from, SieveFromAddress::Action::Notify));
          data.SetTo(decision.to);
          data.SetSubject(decision.subject);
 

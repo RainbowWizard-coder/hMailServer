@@ -34,8 +34,10 @@ namespace HM
    };
 
    // One notification the evaluator decided on: the mailto target, the subject
-   // (":message", or a summary built from the triggering message), the sender to
-   // present, and RFC 5435 3.2's importance level (1 high, 2 normal, 3 low).
+   // (":message", or a summary built from the triggering message), the sender the
+   // script asked for (":from", empty when it gave none; Send presents it only when
+   // it reaches the account, SieveFromAddress), and RFC 5435 3.2's importance level
+   // (1 high, 2 normal, 3 low).
    struct SieveNotifyDecision
    {
       String to;

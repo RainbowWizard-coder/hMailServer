@@ -501,6 +501,67 @@ namespace RegressionTests.Sieve
       }
 
       /// <summary>
+      ///    A notify :from is held to the rule a vacation :from is: one that is not an
+      ///    address is refused by PUTSCRIPT and CHECKSCRIPT, and the NO names it;
+      ///    nothing is stored under the name; and an address is stored, whoever's it is,
+      ///    since whether it reaches the account is asked at delivery
+      ///    (SieveNotifyDelivery.AnotherAccountsAddressAsNotifyFromIsNotTheSender).
+      ///
+      ///    Against the unfixed server every PUTSCRIPT below answers OK.
+      /// </summary>
+      [Test]
+      [Description("PUTSCRIPT and CHECKSCRIPT refuse a notify :from that is not an address, and store one that is.")]
+      public void ANotifyFromThatIsNotAnAddressIsNotStored()
+      {
+         const string address = "managesieve-from@example.test";
+         const string password = "Sieve-Pass1";
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, address, password);
+
+         WriteSetting("ManageSieveServerBindAddress", "127.0.0.1");
+         WriteSetting("ManageSieveServerPort", ManageSievePort.ToString());
+         _application.Reinitialize();
+
+         try
+         {
+            using (var session = new Session())
+            {
+               StringAssert.Contains("IMPLEMENTATION", session.ReadResponse());
+               StringAssert.StartsWith("OK", session.Authenticate(address, password).TrimStart());
+
+               // Scripts are files, and outlive a run that stopped half-way.
+               session.SendCommand("DELETESCRIPT \"from\"");
+
+               foreach (string from in new[] { "not an address", "Boss <ceo@example.test>" })
+               {
+                  string script = "require \"enotify\";\r\nnotify :from \"" + from + "\" \"mailto:" + address + "\";\r\n";
+
+                  string check = session.SendWithLiteral("CHECKSCRIPT", script);
+                  StringAssert.StartsWith("NO", check.TrimStart(), "CHECKSCRIPT accepted: " + script);
+                  StringAssert.Contains("notify :from", check, check);
+
+                  string put = session.SendWithLiteral("PUTSCRIPT \"from\"", script);
+                  StringAssert.StartsWith("NO", put.TrimStart(), "PUTSCRIPT stored: " + script);
+                  StringAssert.Contains("notify :from", put, put);
+               }
+
+               StringAssert.DoesNotContain("\"from\"", session.SendCommand("LISTSCRIPTS"),
+                  "A refused script was stored.");
+
+               // The control: an address is stored, another's included.
+               string control = session.SendWithLiteral("PUTSCRIPT \"from\"",
+                  "require \"enotify\";\r\nnotify :from \"somebody-else@example.test\" \"mailto:" + address + "\";\r\n");
+               StringAssert.StartsWith("OK", control.TrimStart(), control);
+               session.SendCommand("DELETESCRIPT \"from\"");
+            }
+         }
+         finally
+         {
+            WriteSetting("ManageSieveServerPort", "0");
+            _application.Reinitialize();
+         }
+      }
+
+      /// <summary>
       ///    Before signing in, the connections of one address are served one at a time
       ///    (one thread served every connection one at a time until 6.3.6's re-check),
       ///    so a client that connects and then says nothing must be let go after the

@@ -43,6 +43,12 @@
 //     made when a stored one runs, by name in any case and as the script's variables
 //     made it; a rule may not set it; and a line break in a value a rule or a script
 //     writes, which wrote it as a second field, is a fold or a space.
+//   - A Sieve vacation reply or notification says it is from its :from only when
+//     that address reaches the account, and otherwise from the account's own
+//     address (SieveFromAddressTester, Common/Sieve/SieveVacationResponder.cpp):
+//     until 6 October 2026 a notification was sent from whatever :from said. A
+//     notify :from that is not an address is refused when the script is stored, as
+//     vacation's is, and a script stored before still runs.
 //
 // No database, configuration or network. It prints a line per check and exits
 // non-zero when one fails.
@@ -58,6 +64,7 @@
 #include "../Common/BO/Message.h"
 #include "../Common/Diagnostics/DiagnosticResult.h"
 #include "../Common/Rules/RuleGuard.h"
+#include "../Common/Sieve/SieveVacationResponder.h"
 #include "../Common/Tracking/ChangeNotification.h"
 #include "../Common/Threading/WorkQueue.h"
 #include "../Common/Scripting/ScriptObjectContainer.h"
@@ -331,6 +338,13 @@ namespace
       HM::LoopCountEditTester tester;
       tester.Test();
    }
+
+   void
+   TestSieveFromAddress()
+   {
+      HM::SieveFromAddressTester tester;
+      tester.Test();
+   }
 }
 
 int
@@ -348,6 +362,7 @@ main(int /*argc*/, char * /*argv*/[])
    failed += Run(&TestIpRangePriority, "the IP range's priority a create takes: PUT's whole numbers from -2,000,000,000 to 2,000,000,000");
    failed += Run(&TestLoopCount, "a message's X-hMailServer-LoopCount: digits up to the limit, and anything else the limit, never below 0 or past INT_MAX - 1");
    failed += Run(&TestLoopCountEdits, "no Sieve edit, rule or line break in a header value resets X-hMailServer-LoopCount");
+   failed += Run(&TestSieveFromAddress, "a Sieve vacation reply or notification is from its :from only when that reaches the account");
 
    return failed == 0 ? 0 : 1;
 }
