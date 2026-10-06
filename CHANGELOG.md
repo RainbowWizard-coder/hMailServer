@@ -106,6 +106,14 @@ with `--check`).
   its worst-case document. The 6.3.6 tag's `rpm-fedora43-aarch64` failed once on the 0.02 s margin (0.1547 s against
   0.1424 s). The checks that race a real sleep or a deadline - NeverBanNameList's two and `network-deadline-tests`' -
   keep their bounds: emulation does not slow a sleep, and ten times theirs would pass a deadline that was not kept.
+- **The Tumbleweed RPM jobs take their images from the project's own registry.** openSUSE's registry drops a rolling
+  snapshot within weeks: the x86_64 image 6.3.6 was built in (`bc34ab33…`) answered 404 on 6 October 2026, so a
+  pipeline on a runner without it cached could not have started those jobs. The 6 October snapshot's linux/amd64 and
+  linux/arm64 images are copied, digests preserved, to
+  `registry.gitlab.com/hmailserver/hmailserver/mirror/opensuse-tumbleweed`, which `.gitlab/ci/packages-rpm.yml` now
+  pins; `build/ci/mirror-tumbleweed.sh` takes a new snapshot when one is wanted, and Renovate leaves the pins alone.
+  Both packages build in it (clang 23.1.2, the rest as before), every tester passing - the aarch64 one's under
+  qemu-user - and each installs in its architecture's image and answers `--version`.
 - **DBSetup.Tests runs on xUnit.net v3** (`xunit.v3.mtp-off`), as ControlPanel.Tests and ImportTool.Tests have since
   6.3.6; it is new in 6.3.6 and had kept the deprecated `xunit` 2.9.3.
 

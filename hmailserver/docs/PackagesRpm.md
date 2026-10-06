@@ -216,18 +216,25 @@ the one package a release carries.
 | `el10` | `registry.access.redhat.com/ubi10/ubi` (Red Hat's Universal Base Image 10, RHEL 10.2) | dnf 4 | 21.1.8 | 3.31.8 | 4.19.1.1 | 3.5.8 | 16.14 |
 | `el9` | `registry.access.redhat.com/ubi9/ubi` (UBI 9, RHEL 9.8) | dnf 4 | 21.1.8 | 3.31.8 | 4.16.1.3 | 3.5.8 | 13.23 |
 | `leap16` | `registry.opensuse.org/opensuse/leap:16.0` | zypper | 19.1.7 | 3.31.7 | 4.20.1 | 3.5.0 | 18.6 |
-| `tumbleweed` | `registry.opensuse.org/opensuse/tumbleweed` | zypper | 23.1.1 | 4.4.3 | 4.20.1 | 3.5.3 | 18.6 |
+| `tumbleweed` | `registry.opensuse.org/opensuse/tumbleweed`, its 6 October 2026 snapshot mirrored in the project's registry | zypper | 23.1.2 | 4.4.3 | 4.20.1 | 3.5.3 | 18.6 |
 
 The versions are what each release's repositories gave the builds of 26
-September 2026 (the build logs; UBI's also from `dnf repoquery` in the pinned
+September 2026, and for Tumbleweed, a rolling release, those of its 6 October
+2026 snapshot (the build logs; UBI's also from `dnf repoquery` in the pinned
 images).
 
-**Images.** Every image is the distribution's own, from its own registry. Each
-is pinned by the digest of its architecture's own manifest, not by the
-multi-architecture index. The x86_64 and aarch64 images are then two separate
-references in the runner's image store, so `pull_policy: if-not-present` can
-never give an aarch64 job the x86_64 image held under the same name. The CI
-file lists each tag's index digest beside them, as read on 26 September 2026.
+**Images.** Every image is the distribution's own. Each is pinned by the digest
+of its architecture's own manifest, not by the multi-architecture index. The
+x86_64 and aarch64 images are then two separate references in the runner's
+image store, so `pull_policy: if-not-present` can never give an aarch64 job the
+x86_64 image held under the same name. The CI file lists each tag's index
+digest beside them, as read on 26 September 2026. All but Tumbleweed's come
+from the distribution's own registry. openSUSE's registry drops a Tumbleweed
+snapshot within weeks (the pin of 26 September was gone by 6 October), so its
+two images come from the project's own registry,
+`registry.gitlab.com/hmailserver/hmailserver/mirror/opensuse-tumbleweed`, a
+copy whose digests are openSUSE's own; `build/ci/mirror-tumbleweed.sh` takes
+a new snapshot, and the two pins are then changed by hand.
 
 **When the jobs run** (as `.gitlab/ci/packages-deb.yml`'s do):
 

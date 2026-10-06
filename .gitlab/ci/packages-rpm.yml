@@ -71,7 +71,17 @@
 #   ubi10/ubi   index sha256:223f8b83bcaa1159416724627ff2fadbfd2444653756b0c00d9dae1eacccbfbc
 #   ubi9/ubi    index sha256:a4b9ec09b1e790a53ef25b7777c539976abe519248264298e5194dcbceac8c31
 #   leap:16.0   index sha256:5bc9e1242fc2c92dbbcaf4db5e2eadad062c4c0434550c53822201f18799d55a
-#   tumbleweed  index sha256:f1c043e88b3b54cb88ad07a07b462d7635be945add678d732429c67f12754f7e
+#   tumbleweed  index sha256:a605105aa6647af79bf377259aa5c1e7fbe17850bc9b955b8e6950753d2481b8, read on
+#               6 October 2026 and mirrored (below)
+#
+# Tumbleweed is a rolling distribution, and registry.opensuse.org drops a
+# snapshot within weeks: the pin of 26 September (x86_64 bc34ab33...) answered
+# 404 on 6 October 2026, and a pipeline on a runner without it cached could not
+# have started its Tumbleweed jobs. So its two images come from the project's
+# own registry, a copy of openSUSE's made with `skopeo copy --preserve-digests`
+# (build/ci/mirror-tumbleweed.sh), whose digests are openSUSE's own and do not
+# go away. A new snapshot is taken by running that script and changing the two
+# pins below; Renovate does not move them (renovate.json).
 .rpm-image-fedora44-x86_64:
   image:
     name: registry.fedoraproject.org/fedora:44@sha256:7ab582427716ae32b2e4aa593cdef8f5708d8ec3ab8e3488e1b5e2da28dd9283
@@ -124,11 +134,11 @@
       platform: linux/arm64
 .rpm-image-tumbleweed-x86_64:
   image:
-    name: registry.opensuse.org/opensuse/tumbleweed:latest@sha256:bc34ab330bd6bc3161ba8f0c4e7d01811b8c70944f0191d068b7dd25f54f2722
+    name: registry.gitlab.com/hmailserver/hmailserver/mirror/opensuse-tumbleweed:20261006-amd64@sha256:cca499cd74a25e6597d1a73651fac116354843198e83ae7abf9e9481bea097db
     pull_policy: if-not-present
 .rpm-image-tumbleweed-aarch64:
   image:
-    name: registry.opensuse.org/opensuse/tumbleweed:latest@sha256:421d25528f23154024e900af2eb7ec3eba06b21727af8bc36d541f139c0f2ec2
+    name: registry.gitlab.com/hmailserver/hmailserver/mirror/opensuse-tumbleweed:20261006-arm64@sha256:1f990d926eb1e35d5bb69311ca96902e0092b8d7a35914af2b4977d4dd3fb9a9
     pull_policy: if-not-present
     docker:
       platform: linux/arm64

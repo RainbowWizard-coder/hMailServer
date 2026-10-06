@@ -325,7 +325,7 @@
       "enabled": false
     },
     {
-      "description": "Images that are not looked up: the project's own - registry.gitlab.com/hmailserver/hmailserver, which the Compose file and the chart name and each release pushes from its own pipeline (a digest pinned here would be a release older than the file), registry.gitlab.com/progressiverobot/hmailserver, the project's path before its move, where no image is pushed, and ghcr.io/progressiverobot/hmailserver, its name until GitHub suspended the account (GitHub is refused anyway); and the Linux CI image, which is built on linix from build/ci/linux.Dockerfile and never pushed.",
+      "description": "Images that are not looked up: the project's own - registry.gitlab.com/hmailserver/hmailserver, which the Compose file and the chart name and each release pushes from its own pipeline (a digest pinned here would be a release older than the file), registry.gitlab.com/progressiverobot/hmailserver, the project's path before its move, where no image is pushed, and ghcr.io/progressiverobot/hmailserver, its name until GitHub suspended the account (GitHub is refused anyway); the Tumbleweed snapshot mirrored at registry.gitlab.com/hmailserver/hmailserver/mirror/opensuse-tumbleweed, which build/ci/mirror-tumbleweed.sh refreshes by hand because openSUSE's registry drops a rolling snapshot within weeks (packages-rpm.yml says why); and the Linux CI image, which is built on linix from build/ci/linux.Dockerfile and never pushed.",
       "matchDatasources": ["docker"],
       "matchPackageNames": ["registry.gitlab.com/hmailserver/**", "registry.gitlab.com/progressiverobot/**", "ghcr.io/**", "hmailserver-ci/**"],
       "enabled": false
