@@ -17,7 +17,9 @@ and Dependabot's alerts. Three scans, one report:
      ci-image-packages job copies out of it (Ubuntu's dpkg status and the .NET
      SDK's deps.json files). The Linux server is built in that image and links
      its OpenSSL, libpq, libldap and, statically, its Boost, so this is also the
-     Linux packages' native dependencies.
+     Linux packages' native dependencies. Its summary counts the advisories
+     against linux-libc-dev, the kernel's user-space headers, apart from the
+     rest (image_summary): the report keeps every one of them.
   3. The libraries the Windows server is built with, which no manifest names:
      OpenSSL, Boost and libpq at the versions hMailServer.vcxproj's include paths
      carry, zlib and QuickJS from their vendored sources, and MariaDB
@@ -70,9 +72,9 @@ Usage, from the root of a checkout, in the aquasec/trivy image with python3:
 
 --image-root is the directory the ci-image-packages job left (ci-image-packages/
 by default; that scan is skipped, and says so, when it is not there). --self-test
-reads no network: the severities, the VEX document's matching and the version
-readers, against records and texts it makes, and the tree's own VEX document and
-pins against each other.
+reads no network: the severities, the VEX document's matching, the version
+readers and the CI image's summary, against records and texts it makes, and the
+tree's own VEX document and pins against each other.
 """
 
 import argparse
@@ -485,6 +487,44 @@ def blocking(f):
     return not f.get("dismissed") and f["severity"] in ("Critical", "High") and bool(f["fixed"])
 
 
+# Ubuntu's linux-libc-dev is the kernel's user-space API headers (/usr/include/linux,
+# /usr/include/asm-generic and the rest), built from the kernel's source package, and
+# Trivy files every advisory against that source package under it: on 6 October 2026,
+# 3,535 of the CI image's 3,608. The headers hold no kernel code, and the image holds no
+# kernel (its jobs run on their runner's), so the image's summary counts them apart, and
+# the image's other packages - the userland the Linux packages are built against - can
+# be read. They stay in the reports, finding by finding, and a fixable High one among
+# them holds the release like any other: the project's vulnerability report records
+# them, and the maintainers dismissed the 3,535 there as not applicable.
+KERNEL_HEADERS = "linux-libc-dev"
+SEVERITY_ORDER = ("Critical", "High", "Medium", "Low", "Unknown")
+
+
+def severities(findings):
+    """'Critical 1, High 2, ...' for the findings, or 'none'."""
+    counted = {}
+    for f in findings:
+        counted[f["severity"]] = counted.get(f["severity"], 0) + 1
+    order = list(SEVERITY_ORDER) + sorted(k for k in counted if k not in SEVERITY_ORDER)
+    return ", ".join("%s %d" % (k, counted[k]) for k in order if k in counted) or "none"
+
+
+def image_summary(os_found, packages, live, fixable):
+    """The CI image's test case text: its packages, its vulnerabilities by severity, those
+    against KERNEL_HEADERS and those against its other packages apart, and the ones that
+    hold the release, listed."""
+    os_packages = sum(1 for p in packages if p[1] in ("ubuntu", "debian"))
+    headers = [f for f in live if f["package"] == KERNEL_HEADERS]
+    others = [f for f in live if f["package"] != KERNEL_HEADERS]
+    return ("%s %s: %d package(s), %d of them the distribution's; %d vulnerabilit%s (%s), %d of them against %s, the "
+            "kernel's user-space headers, which hold no kernel code (Trivy files the kernel source package's advisories "
+            "under it: %s), and %d against the image's other packages (%s); %d high or critical with a fixed version%s" % (
+                os_found.get("Family", "?"), os_found.get("Name", "?"), len(packages), os_packages,
+                len(live), "y" if len(live) == 1 else "ies", severities(live), len(headers), KERNEL_HEADERS,
+                severities(headers), len(others), severities(others), len(fixable),
+                (":\n" + "\n".join(describe(f) for f in fixable[:80])) if fixable else ""))
+
+
 def junit(targets):
     cases = []
     for classname, name, status, text in targets:
@@ -570,6 +610,34 @@ def self_test():
            "a product with no version dismisses nothing: a statement names the version it was read against")
     expect(dismissal(statements, ["CVE-2026-0003"], "generic", "boost", "1.92.0") is None,
            "a statement that says affected dismisses nothing")
+
+    # The CI image's summary: the advisories against the kernel's user-space headers
+    # counted apart from the other packages', by name and not by a prefix, and every one
+    # still counted in the whole and listed when it holds the release.
+    def image_finding(package, severity, fixed=""):
+        return {"scanner": "trivy", "scan": "CI image", "file": "ci-image:ubuntu", "type": "ubuntu", "package": package,
+                "version": "1", "id": "CVE-2026-1", "severity": severity, "fixed": fixed, "title": "t",
+                "description": "", "url": "", "status": ""}
+    image_packages = [("ci-image:ubuntu", "ubuntu", KERNEL_HEADERS, "7.0.0-34.34"), ("ci-image:ubuntu", "ubuntu", "libc6", "2.43"),
+                      ("ci-image:usr/share/dotnet", "dotnet-core", "System.Text.Json", "10.0.0")]
+    image_live = ([image_finding(KERNEL_HEADERS, "Medium")] * 3 + [image_finding(KERNEL_HEADERS, "High")] +
+                  [image_finding("libc6", "Medium"), image_finding("patch", "Low"),
+                   image_finding(KERNEL_HEADERS + "-arm64-cross", "Low")])
+    summary = image_summary({"Family": "ubuntu", "Name": "26.04"}, image_packages, image_live, [])
+    expect(summary == ("ubuntu 26.04: 3 package(s), 2 of them the distribution's; 7 vulnerabilities (High 1, Medium 4, "
+                       "Low 2), 4 of them against linux-libc-dev, the kernel's user-space headers, which hold no kernel code "
+                       "(Trivy files the kernel source package's advisories under it: High 1, Medium 3), and 3 against the "
+                       "image's other packages (Medium 1, Low 2); 0 high or critical with a fixed version"),
+           "the CI image's summary counts linux-libc-dev's advisories apart, and only that package's: %s" % summary)
+    held = image_finding(KERNEL_HEADERS, "High", "7.0.0-35.35")
+    summary = image_summary({"Family": "ubuntu", "Name": "26.04"}, image_packages, image_live + [held], [held])
+    expect("8 vulnerabilities (High 2, Medium 4, Low 2), 5 of them against linux-libc-dev" in summary
+           and summary.endswith("1 high or critical with a fixed version:\n" + describe(held)),
+           "a fixable High advisory against linux-libc-dev is counted, and listed as one that holds the release: %s" % summary)
+    summary = image_summary({"Family": "ubuntu", "Name": "26.04"}, image_packages, [], [])
+    expect("0 vulnerabilities (none), 0 of them against linux-libc-dev" in summary
+           and "under it: none), and 0 against the image's other packages (none); 0 high" in summary,
+           "an image with no advisory says so in each count: %s" % summary)
 
     # The versions as each file pins them.
     libraries = dict((lib["purl"], lib) for lib in VENDORED)
@@ -700,15 +768,8 @@ def main():
                     os_found = ((json.load(f).get("Metadata") or {}).get("OS") or {})
                 os_packages = sum(1 for p in packages if p[1] in ("ubuntu", "debian"))
                 live = [f for f in found if not f.get("dismissed")]
-                by_severity = {}
-                for f in live:
-                    by_severity[f["severity"]] = by_severity.get(f["severity"], 0) + 1
                 fixable = [f for f in live if blocking(f)]
-                text = "%s %s: %d package(s), %d of them the distribution's; %d vulnerabilit%s (%s); %d high or critical with a fixed version%s" % (
-                    os_found.get("Family", "?"), os_found.get("Name", "?"),
-                    len(packages), os_packages, len(live), "y" if len(live) == 1 else "ies",
-                    ", ".join("%s %d" % (k, by_severity[k]) for k in ("Critical", "High", "Medium", "Low", "Unknown") if k in by_severity),
-                    len(fixable), (":\n" + "\n".join(describe(f) for f in fixable[:80])) if fixable else "")
+                text = image_summary(os_found, packages, live, fixable)
                 if not os_packages or os_found.get("Family") in (None, "", "none"):
                     # Measured: without etc/lsb-release Trivy detects no OS, says
                     # "Unsupported os" in its log, and reports the dpkg packages as
