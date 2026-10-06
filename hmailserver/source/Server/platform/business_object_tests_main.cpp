@@ -48,7 +48,10 @@
 //     address (SieveFromAddressTester, Common/Sieve/SieveVacationResponder.cpp):
 //     until 6 October 2026 a notification was sent from whatever :from said. A
 //     notify :from that is not an address is refused when the script is stored, as
-//     vacation's is, and a script stored before still runs.
+//     vacation's is, and a script stored before still runs. And a redirect says it
+//     is from what the message said: an addheader or deleteheader of From, Sender,
+//     the Resent- pair or DKIM-Signature is refused when stored and not made when a
+//     stored script runs.
 //
 // No database, configuration or network. It prints a line per check and exits
 // non-zero when one fails.
@@ -362,7 +365,7 @@ main(int /*argc*/, char * /*argv*/[])
    failed += Run(&TestIpRangePriority, "the IP range's priority a create takes: PUT's whole numbers from -2,000,000,000 to 2,000,000,000");
    failed += Run(&TestLoopCount, "a message's X-hMailServer-LoopCount: digits up to the limit, and anything else the limit, never below 0 or past INT_MAX - 1");
    failed += Run(&TestLoopCountEdits, "no Sieve edit, rule or line break in a header value resets X-hMailServer-LoopCount");
-   failed += Run(&TestSieveFromAddress, "a Sieve vacation reply or notification is from its :from only when that reaches the account");
+   failed += Run(&TestSieveFromAddress, "a Sieve vacation reply or notification is from its :from only when that reaches the account, and no Sieve edit changes who a message is from");
 
    return failed == 0 ? 0 : 1;
 }

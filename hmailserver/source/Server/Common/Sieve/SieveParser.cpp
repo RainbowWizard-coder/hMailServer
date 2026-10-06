@@ -270,7 +270,50 @@ namespace HM
          return reason;
       }
 
+      // Nor who the message is from, nor the signature it came with. A redirect sends
+      // the edited message on from this server, and DKIMSigner signs a message as the
+      // domain its From names wherever this server signs for that domain
+      // (SignAsAuthorDomain_), unless the message already carries a signature of that
+      // domain. So a script that wrote a From - "ceo@" a domain hosted here - and
+      // redirected the message had it sent as that address and signed with that
+      // domain's key; and one that took away the signature a colleague's message came
+      // with, changed its Subject and redirected it had the server sign the changed
+      // message as the colleague's domain. That is the spoofing a notification's and a
+      // vacation reply's ":from" is held back from (SieveFromAddress). Sender and the
+      // Resent- pair name a sender as From names the author, and COM's Message.Save
+      // holds From and Sender alike to what its credential may send as.
+      if (NamesWhoTheMessageIsFrom(fieldName))
+      {
+         reason.Format(_T("the %s header says who the message is from - a redirect sends the message on from this ")
+                       _T("server in that name - and cannot be edited by a script."), fieldName.c_str());
+         return reason;
+      }
+
+      if (fieldName.CompareNoCase(_T("DKIM-Signature")) == 0)
+      {
+         reason.Format(_T("the %s header is the signature the message came with - without it, this server signs a ")
+                       _T("redirected copy as the domain its From names - and cannot be edited by a script."), fieldName.c_str());
+         return reason;
+      }
+
       return reason;
+   }
+
+   bool
+   SieveParser::NamesWhoTheMessageIsFrom(const String &fieldName)
+   {
+      return fieldName.CompareNoCase(_T("From")) == 0 ||
+             fieldName.CompareNoCase(_T("Sender")) == 0 ||
+             fieldName.CompareNoCase(_T("Resent-From")) == 0 ||
+             fieldName.CompareNoCase(_T("Resent-Sender")) == 0;
+   }
+
+   bool
+   SieveParser::IsRefusedOnlyWhenStored_(const String &fieldName)
+   {
+      return RuleGuard::IsLoopCountHeader(fieldName) ||
+             NamesWhoTheMessageIsFrom(fieldName) ||
+             fieldName.CompareNoCase(_T("DKIM-Signature")) == 0;
    }
 
    bool
@@ -1524,12 +1567,13 @@ namespace HM
          }
 
          // The field name must be a legal header name, and neither the trace of how
-         // the message got here (RFC 5293 7) nor the loop count is a script's to edit.
-         // A script stored before the loop count was protected may still edit it when
-         // it is run: Purpose's comment says why that is let through here.
+         // the message got here (RFC 5293 7), the loop count, who the message is from
+         // nor its DKIM signature is a script's to edit. A script stored before the
+         // last three were protected may still name them when it is run: Purpose's
+         // comment says why that is let through here.
          const String &fieldName = set.stringLists[0][0];
 
-         if (purpose_ == Purpose::Running && RuleGuard::IsLoopCountHeader(fieldName))
+         if (purpose_ == Purpose::Running && IsRefusedOnlyWhenStored_(fieldName))
             return true;
 
          String refusal = WhyFieldMayNotBeEdited(fieldName);

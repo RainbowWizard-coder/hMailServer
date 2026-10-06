@@ -61,7 +61,22 @@ COM's `CheckSieveSyntax`), with the reason; a script stored before that check ca
 `notify` (6.3.6 and earlier) still runs, and its notifications go from the account's own
 address. Up to 6.3.6 a notification was sent from whatever its `:from` said - another
 account's address, or any address anywhere, signed with this server's DKIM key for a
-domain it signs for.
+domain it signs for. The address the server finds for a `:from` must be the one the
+script wrote, letters' case aside: a database whose collation ignores accents, as MySQL's
+does, finds the account for the same address with an accent on one of its letters, and
+that address is not the account's.
+
+The third message a script sends, a `redirect`, says it is from whoever the message it
+redirects was from. `editheader` may not add or delete `From`, `Sender`, `Resent-From`,
+`Resent-Sender` or `DKIM-Signature`, the name in any case: a redirect sends the edited
+message on from this server, and the server signs a message as the domain its `From`
+names wherever it signs for that domain and the message carries no signature of it, so
+an edit of `From`, or of the signature a message came with, would have had the server
+send another's mail in their name and sign it with their domain's key (6.3.6 and earlier,
+from 6.2.22). A script that edits one is refused when it is stored or checked, with the
+reason; at delivery the edit is not made, of the name as the script's variables made it,
+and the application log says so; and a script stored before still runs without it.
+`Reply-To`, which names no sender, may still be edited.
 
 The routes
 ----------

@@ -104,7 +104,10 @@ namespace HM
    //
    // What can be checked without the account - that ":from" is an address at all - the
    // validator checks when a script is stored, for both actions (SieveParser); this is
-   // the half that needs the account, at delivery.
+   // the half that needs the account, at delivery. The third thing a script sends,
+   // a redirect, says it is from what the message it redirects said, since editheader
+   // may not touch From, Sender, the Resent- pair or DKIM-Signature
+   // (SieveParser::WhyFieldMayNotBeEdited).
    class SieveFromAddress
    {
    public:
@@ -113,26 +116,36 @@ namespace HM
       // ":from" if it reaches the account, the account's own address otherwise.
       static String Resolve(std::shared_ptr<const Account> account, const String &requested, Action action);
 
-      // The same rule, with the account's address given and "does this other address
-      // reach the account?" asked of reachesAccount rather than of the cache: Resolve
-      // answers it with the account and alias lookups, SieveFromAddressTester with
-      // examples. It is asked only of a ":from", trimmed, that is not the account's own
-      // address. The action names the log line.
+      // The same rule, with the account's address given and the lookup given as
+      // addressReaching: for a ":from", trimmed, that is not the account's own
+      // address, the address as this server holds it that a lookup of the ":from"
+      // finds reaching the account - the account's own, or the name of an active alias
+      // whose value is the account's - or nothing. Resolve answers it from the cache,
+      // SieveFromAddressTester with examples. The ":from" is used only when what was
+      // found is what was asked, letters' case aside: a database whose collation
+      // ignores accents, as MySQL's utf8mb4_general_ci does, finds the account
+      // own@example.test for the same address with an accent on its o, which is no
+      // address of the account's. The action names the log line.
       static String Choose(const String &accountAddress, const String &requested, Action action,
-                           const std::function<bool(const String &)> &reachesAccount);
+                           const std::function<String(const String &)> &addressReaching);
    };
 
    // SieveFromAddress and the validator held to examples, for vacation and notify
    // alike: no ":from", the account's own address in another case and with blanks
    // around it, and an alias that reaches the account are used; another account's
-   // address, the account's own followed by a line break and a field, and an address
-   // with a display name are not, and come out as the account's own address. A notify
-   // ":from" that is not an address is refused when the script is stored, as a vacation
-   // ":from" is, a well-formed one is left to delivery, and a script stored before
-   // holding a malformed one still runs, with the account's own address as the
-   // notification's sender. No configuration, database or network. ClassTester runs it
-   // on Windows, business-object-tests on Linux. Throws std::logic_error naming every
-   // case that went wrong.
+   // address, the account's own followed by a line break and a field, an address
+   // with a display name, and an address a lookup found by another spelling of it - an
+   // accent a collation ignores, or the part before a NUL - are not, and come out as
+   // the account's own address. A notify ":from" that is not an address is refused
+   // when the script is stored, as a vacation ":from" is, a well-formed one is left to
+   // delivery, and a script stored before holding a malformed one still runs, with the
+   // account's own address as the notification's sender. An addheader or deleteheader
+   // of From, Sender, Resent-From, Resent-Sender or DKIM-Signature, in any case, is
+   // refused when the script is stored; a stored one still runs; and at delivery, the
+   // name as written or as the variables made it, the edit is not made and is said,
+   // and the edit beside it is. No configuration, database or network. ClassTester
+   // runs it on Windows, business-object-tests on Linux. Throws std::logic_error
+   // naming every case that went wrong.
    class SieveFromAddressTester
    {
    public:

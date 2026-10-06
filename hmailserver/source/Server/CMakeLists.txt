@@ -897,8 +897,8 @@ set_target_properties(trust-anchor-tests PROPERTIES OUTPUT_NAME trust-anchor-tes
 # digits, never above the limit (LoopCountTester, Common/Rules/RuleGuard.h), and no
 # Sieve edit, rule or line break in a header value resets it (LoopCountEditTester);
 # and a Sieve vacation reply or notification is from its :from only when that
-# address reaches the account (SieveFromAddressTester,
-# Common/Sieve/SieveVacationResponder.h).
+# address reaches the account, and no Sieve edit changes who a message a redirect
+# sends on is from (SieveFromAddressTester, Common/Sieve/SieveVacationResponder.h).
 # No database, configuration or network. Not installed; a bench tool.
 add_executable(business-object-tests ${SERVER_DIR}/platform/business_object_tests_main.cpp)
 target_link_libraries(business-object-tests PRIVATE hmailserver_core)

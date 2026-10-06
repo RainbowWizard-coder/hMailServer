@@ -23,9 +23,12 @@
 #include "../Util/FileUtilities.h"
 #include "../Util/Time.h"
 
+#include "../../SMTP/LocalDelivery.h"
 #include "../../SMTP/RecipientParser.h"
 #include "../../SMTP/SMTPConfiguration.h"
 
+#include <cctype>
+#include <map>
 #include <stdexcept>
 #include <string>
 
@@ -111,7 +114,7 @@ namespace HM
 
    String
    SieveFromAddress::Choose(const String &accountAddress, const String &requested, Action action,
-                            const std::function<bool(const String &)> &reachesAccount)
+                            const std::function<String(const String &)> &addressReaching)
    {
       if (requested.IsEmpty())
          return accountAddress;
@@ -130,8 +133,19 @@ namespace HM
       // DKIM key for a domain it signs for (DKIMSigner signs as the From header's
       // domain). That is a spoofing primitive, not a convenience, and it is the same
       // primitive whichever action carries the ":from".
-      if (reachesAccount && reachesAccount(candidate))
-         return candidate;
+      //
+      // And the address found must be the one asked for, letters' case aside, not
+      // one the database's collation takes for it: MySQL's utf8mb4_general_ci finds
+      // own@example.test for the same address with an accent on its o, which is
+      // another address, and a stored ":from" may name an accented local part. The
+      // lengths are compared as well because CompareNoCase reads both as C strings,
+      // and a ":from" can hold a NUL, past which it would compare nothing.
+      if (addressReaching)
+      {
+         const String found = addressReaching(candidate);
+         if (!found.IsEmpty() && found.GetLength() == candidate.GetLength() && found.CompareNoCase(candidate) == 0)
+            return candidate;
+      }
 
       // Logged rather than reported: a user writing a script with somebody else's
       // address in it is a mistake an ordinary installation can make, and the
@@ -155,16 +169,19 @@ namespace HM
    {
       const String accountAddress = account->GetAddress();
 
-      return Choose(accountAddress, requested, action, [&account, &accountAddress](const String &candidate) -> bool
+      return Choose(accountAddress, requested, action, [&account, &accountAddress](const String &candidate) -> String
       {
          // The account itself, by its address as the cache finds it.
          std::shared_ptr<const Account> other = CacheContainer::Instance()->GetAccount(candidate);
          if (other && other->GetID() == account->GetID())
-            return true;
+            return other->GetAddress();
 
          // An active alias whose value is the account's address.
          std::shared_ptr<const Alias> alias = CacheContainer::Instance()->GetAlias(candidate);
-         return alias && alias->GetIsActive() && alias->GetValue().CompareNoCase(accountAddress) == 0;
+         if (alias && alias->GetIsActive() && alias->GetValue().CompareNoCase(accountAddress) == 0)
+            return alias->GetName();
+
+         return String();
       });
    }
 
@@ -619,14 +636,23 @@ namespace HM
 
       const String account(L"own@example.test");
 
-      // What the cache answers, as examples: the alias, whose value is the account's
-      // address, reaches the account, and nothing else does. Every question is kept,
-      // so that an answer given without asking is told apart from one asked for.
+      // What the cache answers, as examples, with the address as it is held: the
+      // alias, whose value is the account's address, reaches the account, and so do
+      // the accented shapes a collation that ignores accents finds the alias and the
+      // account by (MySQL's utf8mb4_general_ci). Every question is kept, so that an
+      // answer given without asking is told apart from one asked for.
       std::vector<String> asked;
-      auto reaches = [&asked](const String &candidate) -> bool
+      auto reaches = [&asked](const String &candidate) -> String
       {
          asked.push_back(candidate);
-         return candidate.CompareNoCase(L"alias@example.test") == 0;
+
+         if (candidate.CompareNoCase(L"alias@example.test") == 0 || candidate.CompareNoCase(L"\u00e1lias@example.test") == 0)
+            return String(L"alias@example.test");
+
+         if (candidate.CompareNoCase(L"\u00f6wn@example.test") == 0 || candidate.CompareNoCase(L"own@ex\u00e1mple.test") == 0)
+            return String(L"own@example.test");
+
+         return String();
       };
 
       struct Case
@@ -653,6 +679,13 @@ namespace HM
          { L"Boss <alias@example.test>", L"own@example.test", true },
          { L"own@example.test.bank.example", L"own@example.test", true },
          { L"not an address", L"own@example.test", true },
+         // What the database found, not what was asked: the account and the alias for
+         // an address with an accent on one of its letters, which is neither's - in
+         // the local part, as a stored ":from" may write one, and in the domain, which
+         // is another domain altogether.
+         { L"\u00f6wn@example.test", L"own@example.test", true },
+         { L"own@ex\u00e1mple.test", L"own@example.test", true },
+         { L"\u00e1lias@example.test", L"own@example.test", true },
       };
 
       const SieveFromAddress::Action actions[] = { SieveFromAddress::Action::Vacation, SieveFromAddress::Action::Notify };
@@ -676,6 +709,16 @@ namespace HM
       // With nothing to ask, nothing but the account's own address is used.
       if (SieveFromAddress::Choose(account, String(L"alias@example.test"), SieveFromAddress::Action::Notify, nullptr).Compare(account) != 0)
          fail("with no lookup, notify :from \"alias@example.test\" was used");
+
+      // A ":from" with a NUL in it, which a lookup reading it as a C string - as the
+      // example does, and as CompareNoCase does - finds as the alias before the NUL:
+      // the rest of it is not used, and nor is the alias.
+      {
+         const String withNul(L"alias@example.test\0ceo@bank.example", 35);
+         const String chosen = SieveFromAddress::Choose(account, withNul, SieveFromAddress::Action::Notify, reaches);
+         if (chosen.GetLength() != account.GetLength() || chosen.Compare(account) != 0)
+            fail("notify :from \"" + FromAddressForMessage(withNul) + "\" was sent from \"" + FromAddressForMessage(chosen) + "\"");
+      }
 
       // When a script is stored: notify's ":from" is refused where vacation's is - when
       // it is not an address - and one that is an address is left to delivery.
@@ -771,6 +814,150 @@ namespace HM
          const String sender = SieveFromAddress::Choose(account, decision.from, SieveFromAddress::Action::Notify, reaches);
          if (sender.Compare(d.sender) != 0)
             fail(what + ": sent from \"" + FromAddressForMessage(sender) + "\", not \"" + FromAddressForMessage(String(d.sender)) + "\"");
+      }
+
+      // editheader: a script may not say who a message it redirects is from by
+      // editing the header either, nor take away the signature the message came with.
+      // An edit of From, Sender, Resent-From, Resent-Sender or DKIM-Signature is
+      // refused when the script is stored, the name in any case and as written in the
+      // refusal; a script stored before still runs; and at delivery, where the
+      // script's variables may have made the name, the edit is not made and is said,
+      // and the edit beside it is made.
+      {
+         const wchar_t *protectedFields[] =
+         {
+            L"From", L"from", L"SENDER", L"Resent-From", L"resent-sender", L"DKIM-Signature", L"dkim-SIGNATURE",
+         };
+
+         for (const wchar_t *field : protectedFields)
+         {
+            const String name(field);
+            const String edits[] =
+            {
+               String(L"addheader \"") + name + L"\" \"ceo@bank.example\";",
+               String(L"addheader :last \"") + name + L"\" \"ceo@bank.example\";",
+               String(L"deleteheader \"") + name + L"\";",
+               String(L"deleteheader :contains \"") + name + L"\" \"example\";",
+               String(L"deleteheader :index 1 \"") + name + L"\";",
+            };
+
+            for (const String &edit : edits)
+            {
+               const String script = String(L"require [\"editheader\", \"index\", \"fileinto\"];\r\n") + edit + L"\r\nfileinto \"Kept\";\r\n";
+
+               const String error = SieveScript::CheckSyntax(script);
+               if (error.Find(L"Line 2: the ") != 0 || error.Find(String(L"the ") + name + L" header") < 0 ||
+                   error.Find(L"cannot be edited by a script") < 0)
+                  fail("\"" + FromAddressForMessage(script) + "\" was not refused for editing " + FromAddressForMessage(name) +
+                     " when stored: \"" + FromAddressForMessage(error) + "\"");
+
+               SieveScript running;
+               String runError;
+               if (!running.Parse(script, runError, SieveParser::Purpose::Running))
+                  fail("a stored script \"" + FromAddressForMessage(script) + "\" no longer runs: " + FromAddressForMessage(runError));
+            }
+         }
+
+         // Beside them, fields a script may edit - Reply-To among them, which names no
+         // sender - and names that only begin or end like a protected one.
+         const wchar_t *accepted[] =
+         {
+            L"Reply-To", L"X-From", L"From-Note", L"X-Original-From", L"Resent-To", L"DKIM-Signature-Note", L"X-DKIM-Signature",
+         };
+
+         for (const wchar_t *field : accepted)
+         {
+            const String script = String(L"require \"editheader\";\r\naddheader \"") + field + L"\" \"x@example.test\";\r\n";
+            const String error = SieveScript::CheckSyntax(script);
+            if (!error.IsEmpty())
+               fail("\"" + FromAddressForMessage(script) + "\" was refused: " + FromAddressForMessage(error));
+         }
+
+         // Running lets through only what a script stored before could hold: an edit of
+         // Received was refused from the start, and is refused when run too.
+         SieveScript trace;
+         String traceError;
+         if (trace.Parse(String(L"require \"editheader\";\r\ndeleteheader \"Received\";\r\n"), traceError, SieveParser::Purpose::Running))
+            fail("a stored script that deletes Received ran");
+      }
+
+      // At delivery: the evaluator's edits, the protected names written out and made by
+      // the variables, put to the header as LocalDelivery puts them.
+      {
+         const String trigger(L"From: colleague@example.test\r\nSender: colleague@example.test\r\n"
+                              L"DKIM-Signature: v=1; d=example.test; s=s1; b=abc\r\nTo: own@example.test\r\nSubject: Trigger\r\n\r\nhello\r\n");
+
+         const String scripts[] =
+         {
+            String(L"require [\"editheader\", \"fileinto\"];\r\nfileinto \"Kept\";\r\n"
+                   L"deleteheader \"From\";\r\naddheader \"From\" \"ceo@bank.example\";\r\n"
+                   L"deleteheader \"DKIM-Signature\";\r\naddheader \"Sender\" \"ceo@bank.example\";\r\n"
+                   L"addheader :last \"resent-from\" \"ceo@bank.example\";\r\naddheader \"X-Note\" \"yes\";\r\n"),
+            String(L"require [\"editheader\", \"fileinto\", \"variables\"];\r\nfileinto \"Kept\";\r\n"
+                   L"set \"f\" \"fROM\";\r\nset \"d\" \"Dkim-Signature\";\r\nset \"s\" \"sender\";\r\n"
+                   L"deleteheader \"${f}\";\r\naddheader \"${f}\" \"ceo@bank.example\";\r\n"
+                   L"deleteheader \"${d}\";\r\naddheader \"${s}\" \"ceo@bank.example\";\r\n"
+                   L"addheader :last \"Resent-${f}\" \"ceo@bank.example\";\r\naddheader \"X-Note\" \"yes\";\r\n"),
+         };
+
+         for (const String &script : scripts)
+         {
+            const std::string what = "the edits of \"" + FromAddressForMessage(script) + "\"";
+
+            SieveEnvelope envelope;
+            SieveResult result;
+            SieveScript::Evaluate(script, trigger, envelope, result);
+            if (result.fileInto.Compare(L"Kept") != 0 || result.headerEdits.size() != 6)
+            {
+               fail(what + ": the script did not run to its six edits (" + std::to_string(result.headerEdits.size()) + ")");
+               continue;
+            }
+
+            MimeHeader header;
+            const AnsiString raw = Charset::ToMultiByte(trigger, "utf-8");
+            header.Load(raw.c_str(), raw.GetLength(), true);
+
+            std::vector<String> refused;
+            const bool edited = LocalDelivery::EditSieveHeader(header, result.headerEdits, refused);
+
+            // As the writer writes it, read back as the reader reads it.
+            AnsiString written;
+            header.Store(written);
+            MimeHeader reread;
+            reread.Load(written.c_str(), written.GetLength(), true);
+
+            std::map<std::string, std::vector<std::string>> fields;
+            for (MimeField &field : reread.Fields())
+            {
+               std::string fieldName = field.GetName() ? field.GetName() : "";
+               for (char &c : fieldName)
+                  c = static_cast<char>(tolower(static_cast<unsigned char>(c)));
+               fields[fieldName].push_back(field.GetValue() ? field.GetValue() : "");
+            }
+
+            const std::vector<std::string> from = fields["from"];
+            const std::vector<std::string> sender = fields["sender"];
+            const std::vector<std::string> signature = fields["dkim-signature"];
+
+            if (!edited || fields["x-note"].size() != 1)
+               fail(what + ": the edit beside the refused ones was not made");
+            if (refused.size() != 5)
+               fail(what + ": " + std::to_string(refused.size()) + " edits were refused, not five");
+            if (from.size() != 1 || from[0] != "colleague@example.test")
+               fail(what + ": the header holds " + std::to_string(from.size()) + " From, the first \"" + (from.empty() ? "" : from[0]) + "\"");
+            if (sender.size() != 1 || sender[0] != "colleague@example.test")
+               fail(what + ": the header holds " + std::to_string(sender.size()) + " Sender");
+            if (signature.size() != 1)
+               fail(what + ": the header holds " + std::to_string(signature.size()) + " DKIM-Signature");
+            if (!fields["resent-from"].empty())
+               fail(what + ": the header holds a Resent-From");
+
+            for (const String &refusal : refused)
+            {
+               if (refusal.Find(L"cannot be edited by a script") < 0)
+                  fail(what + ": a refusal does not say why: " + FromAddressForMessage(refusal));
+            }
+         }
       }
 
       if (!wrong.empty())

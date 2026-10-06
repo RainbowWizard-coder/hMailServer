@@ -158,12 +158,16 @@ namespace HM
 
       // What a script is parsed for. One being stored or checked - PUTSCRIPT,
       // CHECKSCRIPT, the self-service filter, COM's CheckSieveSyntax, the evaluation
-      // diagnostics - is refused for every edit WhyFieldMayNotBeEdited refuses. One
-      // already stored and now run at delivery is refused for all of them but an edit
-      // of X-hMailServer-LoopCount, which a script stored before that header was
-      // protected can hold: that is let through for LocalDelivery::EditSieveHeader to
-      // skip, with a line in the application log, so that the rest of the script still
-      // runs rather than none of it.
+      // diagnostics - is refused for every edit WhyFieldMayNotBeEdited refuses, and
+      // for a notify ":from" that is not an address. One already stored and now run
+      // at delivery is not refused for what a script stored before those checks came
+      // in can hold: an edit of X-hMailServer-LoopCount, of a field that names who the
+      // message is from (NamesWhoTheMessageIsFrom) or of DKIM-Signature is let through
+      // for LocalDelivery::EditSieveHeader to skip, and a notify ":from" for
+      // SieveFromAddress to put the account's own address in place of, each with a
+      // line in the application log, so that the rest of the script still runs rather
+      // than none of it. An edit of Received or Return-Path, refused since editheader
+      // came in, is refused at delivery too.
       enum class Purpose { Storing, Running };
 
       void SetPurpose(Purpose purpose) { purpose_ = purpose; }
@@ -175,15 +179,22 @@ namespace HM
       // Why a script may not add or delete a header field of this name, or nothing
       // when it may: no name; a name that is not one (RFC 5322 2.2: printable ASCII
       // without a colon); Received and Return-Path, the trace of how the message
-      // travelled (RFC 5293 7); and X-hMailServer-LoopCount, in any case, which counts
+      // travelled (RFC 5293 7); X-hMailServer-LoopCount, in any case, which counts
       // the generated messages a message has been through and is what ends a mail loop
-      // (RuleGuard::WhyHeaderMayNotBeSet says what editing it let through). The
-      // validator asks it of the name a script writes, and
-      // LocalDelivery::EditSieveHeader asks it again of the name as the script's
-      // variables expanded it: "${name}" is a legal name to the validator, and can be
-      // anything at all once expanded. The sentence carries no line number; the
-      // validator puts one before it.
+      // (RuleGuard::WhyHeaderMayNotBeSet says what editing it let through); the fields
+      // that say who the message is from (NamesWhoTheMessageIsFrom) and DKIM-Signature,
+      // in any case, since a redirect sends the edited message on from this server and
+      // DKIMSigner signs it as the domain its From names (RFC 5293 5 leaves which
+      // fields may be edited to the implementation). The validator asks it of the name
+      // a script writes, and LocalDelivery::EditSieveHeader asks it again of the name
+      // as the script's variables expanded it: "${name}" is a legal name to the
+      // validator, and can be anything at all once expanded. The sentence carries no
+      // line number; the validator puts one before it.
       static String WhyFieldMayNotBeEdited(const String &fieldName);
+
+      // From, Sender, Resent-From and Resent-Sender, in any case: the fields that say
+      // who wrote or sent a message, which no script may edit (WhyFieldMayNotBeEdited).
+      static bool NamesWhoTheMessageIsFrom(const String &fieldName);
 
       // True for the capability names this implementation can honour in a
       // "require". Anything else is refused when the script is uploaded rather
@@ -223,6 +234,11 @@ namespace HM
 
       static bool IsKnownCommand_(const String &name);
       static bool IsKnownTest_(const String &name);
+
+      // The edits WhyFieldMayNotBeEdited refuses that a script stored before they
+      // were refused can hold, and that Purpose::Running so lets through for delivery
+      // to skip: X-hMailServer-LoopCount, NamesWhoTheMessageIsFrom and DKIM-Signature.
+      static bool IsRefusedOnlyWhenStored_(const String &fieldName);
 
       bool CollectRequire_(const std::shared_ptr<SieveCommand> &command, String &errorMessage);
 

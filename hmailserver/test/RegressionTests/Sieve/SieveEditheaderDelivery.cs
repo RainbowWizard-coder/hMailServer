@@ -431,5 +431,203 @@ namespace RegressionTests.Sieve
          // The refused redirect is reported, as at the limit; this reads and clears the log.
          CustomAsserts.AssertReportedError("Maximum loop count reached");
       }
+
+      // The fields that say who a message is from, and the signature it came with.
+      private static readonly string[] SendersFields =
+      {
+         "From", "from", "SENDER", "Resent-From", "resent-sender", "DKIM-Signature", "dkim-signature"
+      };
+
+      // A store refused, through reflection or not, for the reason the check at upload
+      // gives an edit of who a message is from or of its signature, and for no other.
+      private static bool RefusedForWhoItIsFrom(Exception refused)
+      {
+         Exception cause = refused is TargetInvocationException && refused.InnerException != null ? refused.InnerException : refused;
+         return cause is COMException && cause.Message.Contains("cannot be edited by a script") &&
+                (cause.Message.Contains("says who the message is from") || cause.Message.Contains("is the signature the message came with"));
+      }
+
+      /// <summary>
+      ///    A redirect sends the edited message on from this server (RFC 5293 2), and
+      ///    the server DKIM-signs a message as the domain its From names, wherever it
+      ///    signs for that domain and the message carries no signature of it. A script
+      ///    that wrote a From, or took away a DKIM-Signature, had the redirected copy
+      ///    sent in another's name and signed with that name's domain's key. Such a
+      ///    script is refused at upload, the name in any case, and the refusal names
+      ///    the header and says why; Reply-To, which names no sender, and names that
+      ///    only begin or end like a protected one may still be edited.
+      ///
+      ///    Against the unfixed server every script below is accepted.
+      /// </summary>
+      [Test]
+      [Description("A script editing From, Sender, Resent-From, Resent-Sender or DKIM-Signature is refused at upload, and the refusal says why.")]
+      public void WhoAMessageIsFromIsProtected()
+      {
+         foreach (string name in SendersFields)
+         {
+            foreach (string script in new[]
+            {
+               "require \"editheader\";\r\ndeleteheader \"" + name + "\";",
+               "require \"editheader\";\r\naddheader \"" + name + "\" \"sieve-edith-ceo@example.test\";",
+               "require \"editheader\";\r\naddheader :last \"" + name + "\" \"sieve-edith-ceo@example.test\";",
+               "require [\"editheader\", \"index\"];\r\ndeleteheader :index 1 \"" + name + "\";"
+            })
+            {
+               string error = CheckSyntax(script);
+
+               StringAssert.Contains("Line 2:", error,
+                  "A script editing who the message is from was accepted at upload: " + script);
+               StringAssert.Contains("the " + name + " header", error, "The refusal does not name the header: " + error);
+               StringAssert.Contains("cannot be edited by a script", error, "The refusal does not say why: " + error);
+            }
+         }
+
+         // The controls: fields beside them may be edited.
+         foreach (string name in new[] { "Reply-To", "X-From", "X-Original-From", "Resent-To", "X-DKIM-Signature" })
+         {
+            Assert.IsEmpty(CheckSyntax("require \"editheader\";\r\naddheader \"" + name + "\" \"x@example.test\";"),
+               "An edit of " + name + ", which says nothing of who the message is from, was refused.");
+         }
+      }
+
+      /// <summary>
+      ///    A name a script's variables make is a legal name to the check at upload, so
+      ///    the edit is refused again where it is made: the delivered message keeps the
+      ///    From it came with and gains no Sender, the script's other edit is made, and
+      ///    the application log says which edits were not made and why.
+      ///
+      ///    Against the unfixed server the delivered message is from
+      ///    sieve-edith-ceo@example.test.
+      /// </summary>
+      [Test]
+      [Description("An edit of From or Sender named by the script's variables is not made at delivery, and is logged; the script's other edit is made.")]
+      public void AnEditOfWhoTheMessageIsFromIsNotMadeAtDelivery()
+      {
+         Account recipient = NewRecipient();
+         SetScript(recipient,
+            "require [\"editheader\", \"variables\"];\r\n" +
+            "set \"f\" \"fROM\";\r\n" +
+            "set \"s\" \"Sender\";\r\n" +
+            "addheader \"X-Sieve-Ran\" \"yes\";\r\n" +
+            "deleteheader \"${f}\";\r\n" +
+            "addheader \"${f}\" \"sieve-edith-ceo@example.test\";\r\n" +
+            "addheader \"${s}\" \"sieve-edith-ceo@example.test\";\r\n");
+
+         string message = SendAndFetch(recipient, "", "Body text.\r\n");
+
+         StringAssert.Contains("X-Sieve-Ran: yes", message,
+            "The script's other edit was not made, so the script did not run and the case proves nothing.");
+         CollectionAssert.AreEqual(new[] { "From: sieve-edith-sender@example.test" }, FieldLines(message, "From"),
+            "Who the message is from was edited. The message was:\r\n" + message);
+         CollectionAssert.IsEmpty(FieldLines(message, "Sender"),
+            "A Sender was added. The message was:\r\n" + message);
+
+         Assert.IsTrue(LogHandler.DefaultLogContains("a header edit the Sieve script for " + recipient.Address +
+               " asked for was not made: deleteheader: the fROM header says who the message is from"),
+            "The deleteheader that was not made is not in the application log.");
+         Assert.IsTrue(LogHandler.DefaultLogContains("a header edit the Sieve script for " + recipient.Address +
+               " asked for was not made: addheader: the Sender header says who the message is from"),
+            "The addheader that was not made is not in the application log.");
+      }
+
+      /// <summary>
+      ///    A script stored before the check at upload refused these edits still runs,
+      ///    without them, and they are logged. COM's SieveScript property writes the
+      ///    script as it is given, as a script stored before the check was; the REST
+      ///    API's filter route, which is how the Linux suite stores a script, refuses
+      ///    it for the reason WhoAMessageIsFromIsProtected asserts, and there the case
+      ///    is skipped, with that said.
+      ///
+      ///    Against the unfixed server the delivered message is from
+      ///    sieve-edith-ceo@example.test and has no DKIM-Signature.
+      /// </summary>
+      [Test]
+      [Description("A stored script that edits From and deletes DKIM-Signature runs, without those edits, which are logged.")]
+      public void AStoredScriptRunsWithoutItsEditOfWhoTheMessageIsFrom()
+      {
+         Account recipient = NewRecipient();
+
+         try
+         {
+            SetScript(recipient,
+               "require \"editheader\";\r\n" +
+               "addheader \"X-Sieve-Ran\" \"yes\";\r\n" +
+               "deleteheader \"DKIM-Signature\";\r\n" +
+               "deleteheader \"From\";\r\n" +
+               "addheader \"From\" \"sieve-edith-ceo@example.test\";\r\n");
+         }
+         catch (Exception refused) when (RefusedForWhoItIsFrom(refused))
+         {
+            Assert.Ignore("This server checks a script when it is stored and refused this one, so no script of the kind " +
+               "this case runs can be stored here: " + refused.GetBaseException().Message);
+         }
+
+         // A signature of a domain this server does not sign for, which nothing here
+         // verifies: the script's deleteheader is what is asserted on.
+         string message = SendAndFetch(recipient,
+            "DKIM-Signature: v=1; a=rsa-sha256; d=sieve-edith.invalid; s=s1; h=from; bh=AAAA; b=AAAA\r\n", "Body text.\r\n");
+
+         StringAssert.Contains("X-Sieve-Ran: yes", message,
+            "The stored script did not run: its other edit was not made.");
+         CollectionAssert.AreEqual(new[] { "From: sieve-edith-sender@example.test" }, FieldLines(message, "From"),
+            "Who the message is from was edited. The message was:\r\n" + message);
+         Assert.AreEqual(1, FieldLines(message, "DKIM-Signature").Count,
+            "The signature the message came with was deleted. The message was:\r\n" + message);
+
+         Assert.IsTrue(LogHandler.DefaultLogContains("a header edit the Sieve script for " + recipient.Address +
+               " asked for was not made: deleteheader: the DKIM-Signature header is the signature the message came with"),
+            "The deleteheader of DKIM-Signature that was not made is not in the application log.");
+         Assert.IsTrue(LogHandler.DefaultLogContains("a header edit the Sieve script for " + recipient.Address +
+               " asked for was not made: addheader: the From header says who the message is from"),
+            "The addheader of From that was not made is not in the application log.");
+      }
+
+      /// <summary>
+      ///    The redirect itself: an account whose script rewrites From and redirects
+      ///    the message to a second account. The copy the second receives went out
+      ///    from this server with the script's other edit made, and says it is from
+      ///    the original sender, not from the address the script wrote.
+      ///
+      ///    Against the unfixed server the redirected copy is from
+      ///    sieve-edith-ceo@example.test, and a domain this server signs for would have
+      ///    signed it as that.
+      /// </summary>
+      [Test]
+      [Description("A redirected copy is from whoever the message it redirects was from, whatever the script wrote into From.")]
+      public void ARedirectedCopyIsFromTheOriginalSender()
+      {
+         Account first = NewRecipient();
+         Account second = NewRecipient();
+
+         SetScript(first,
+            "require [\"editheader\", \"variables\"];\r\n" +
+            "set \"f\" \"From\";\r\n" +
+            "addheader \"X-Sieve-Ran\" \"yes\";\r\n" +
+            "deleteheader \"${f}\";\r\n" +
+            "addheader \"${f}\" \"sieve-edith-ceo@example.test\";\r\n" +
+            "redirect \"" + second.Address + "\";\r\n");
+
+         string raw =
+            "From: sieve-edith-sender@example.test\r\n" +
+            "To: " + first.Address + "\r\n" +
+            "Subject: Editheader test\r\n" +
+            "\r\n" +
+            "Body text.\r\n";
+
+         var smtp = new SmtpClientSimulator();
+         smtp.SendRaw("sieve-edith-sender@example.test", first.Address, raw);
+         CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+
+         string redirected = Pop3ClientSimulator.AssertGetFirstMessageText(second.Address, Password);
+
+         StringAssert.Contains("X-Sieve-Ran: yes", redirected,
+            "The redirected copy does not carry the script's other edit, so it is not the redirected copy. It was:\r\n" + redirected);
+         CollectionAssert.AreEqual(new[] { "From: sieve-edith-sender@example.test" }, FieldLines(redirected, "From"),
+            "The redirected copy says it is from another address. It was:\r\n" + redirected);
+
+         Assert.IsTrue(LogHandler.DefaultLogContains("a header edit the Sieve script for " + first.Address +
+               " asked for was not made: addheader: the From header says who the message is from"),
+            "The addheader of From that was not made is not in the application log.");
+      }
    }
 }

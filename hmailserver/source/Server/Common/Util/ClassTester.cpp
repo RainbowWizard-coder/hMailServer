@@ -241,7 +241,9 @@ namespace HM
       // The address a Sieve vacation reply or notification may say it is from: one
       // that reaches the account, or else the account's own. Until 6 October 2026 a
       // notification was sent from whatever its :from said (SieveVacationResponder.h,
-      // SieveFromAddress).
+      // SieveFromAddress). And no editheader of From, Sender, the Resent- pair or
+      // DKIM-Signature, which a redirect sent on from this server, signed as the
+      // domain its From named (SieveParser::WhyFieldMayNotBeEdited).
       OutputDebugString(_T("hMailServer: Testing the Sieve :from rule\n"));
       SieveFromAddressTester sieveFromAddressTester;
       sieveFromAddressTester.Test();

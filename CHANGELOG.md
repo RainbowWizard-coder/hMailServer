@@ -163,12 +163,33 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   with the reason; and at delivery one that does not reach the account is replaced by the account's own address,
   with a line in the application log naming the account and what its script asked for. A script stored before this
   release whose `notify` has a `:from` that is not an address still runs, and its notifications go from the
-  account's own address.
+  account's own address. And the address the server finds for a `:from`, a `vacation` reply's too, must now be the
+  one the script wrote, letters' case aside: on MySQL, whose collation ignores accents, a `:from` with an accent on
+  a letter of the account's address or of an alias's was found as that address and used as the script wrote it.
 
   `SieveFromAddressTester` (`business-object-tests` on Linux) holds the rule, the check at storing and a stored
   script's run to examples, and `Sieve/SieveNotifyDelivery.cs` and `Sieve/ManageSieve.cs` send an alias, another
   account's address and a `:from` that is not an address through storing and delivery. Found by the project's own
   review.
+
+- **Fixed: an account's Sieve script could redirect a message as from any address, and have this server sign it
+  with that address's domain's DKIM key.** `editheader` let a script add or delete any field but `Received`,
+  `Return-Path` and the loop count, and a `redirect` sends the message on as the script left it (RFC 5293 2). The
+  server signs a message as the domain its `From` names wherever it signs for that domain and the message carries no
+  signature of it, so a script that wrote a `From` - another account's address, or anyone's at a domain hosted here -
+  had the redirected copy sent from this server in that name and signed as that domain; and one that deleted the
+  `DKIM-Signature` a colleague's message came with, changed its `Subject` and redirected it had the server sign the
+  changed message as the colleague's domain (from 6.2.22, which brought `editheader`). A script may no longer add or
+  delete `From`, `Sender`, `Resent-From`, `Resent-Sender` or `DKIM-Signature`, the name in any case, which RFC 5293 5
+  leaves to the server: one that does is refused when it is stored or checked (ManageSieve `PUTSCRIPT` and
+  `CHECKSCRIPT`, the self-service filter, COM's `CheckSieveSyntax`), as one that edits `Received` is, with the
+  reason; the edit is not made at delivery either, of the name as the script's variables made it, and the
+  application log names it; and a script stored before this release still runs, without that edit. `Reply-To`,
+  which names no sender, and every other field may still be edited.
+
+  `SieveFromAddressTester` holds the refusal, a stored script's run and the edits at delivery to examples, and
+  `Sieve/SieveEditheaderDelivery.cs` sends them through storing, delivery and a redirect between two accounts. Found
+  by the project's own review.
 
 ### Downloads and the release
 
