@@ -137,8 +137,9 @@ prompt. Found by the project's own review (work item 78; CVE requested).
     own account notified about its own notifications for ever; a copy rule's name, which the copy carries in
     `X-CopyRule`, reset the count at every copy (in every version), so that an account copying its own mail made
     copies without end; and a rule's reply subject, an out-of-office subject, and the sender's own subject decoded
-    into a vacation reply or a bounce reset it on the message they made. COM's `Message.Save` still refuses a
-    credential's message whose values hold a line break, and says why.
+    into a vacation reply or a bounce reset it on the message they made. COM's `Message.Save` refuses a credential's
+    message whose values hold a line break that does not fold them, and says why, rather than send it changed (6.3.6
+    sent a line break that began a field of its own as that field, and checked it as it checks the others).
   - An out-of-office reply, an account's or a domain's, carried a count of 1 whatever the message it answered
     carried, where every other reply carries that count + 1: it now does too, and none is sent once the count has
     reached the limit, as a Sieve `vacation` reply is held.

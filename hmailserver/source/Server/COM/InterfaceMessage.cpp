@@ -117,8 +117,12 @@ namespace
    // checks does not have. The writer now keeps a value to one field, and
    // this is asked of the header as given (MimeHeader::StoreAsGiven), so that
    // such a message is still refused rather than sent with a space in the
-   // line break's place; and a field named "From " is written "From :",
-   // which RFC 5322's obsolete syntax reads as From.
+   // line break's place - and Save asks besides that the header as given is
+   // the header written, since a line break followed by a line that is a
+   // field is one header as given and is joined to the value above it when
+   // written (InterfaceMessage::Save says what that let through); and a field
+   // named "From " is written "From :", which RFC 5322's obsolete syntax
+   // reads as From.
    bool WrittenAsOneHeader(const HM::AnsiString &header, HM::String &reason)
    {
       const char *text = header.c_str();
@@ -714,18 +718,38 @@ STDMETHODIMP InterfaceMessage::Save()
          HM::String claimed;
          HM::String reason;
 
-         // The header as Write will write it - MimeHeader::Store, which both of
-         // MimeBody::SaveAllToFile's paths call - but with each value as it was
-         // set (StoreAsGiven): Write keeps a value to one field, writing a line
-         // break that does not fold it as a space, and a value given with one is
-         // refused here, and the program told, rather than sent changed. With no
-         // message to store, none, which is no header written as one.
+         // The header with each value as it was set (StoreAsGiven), and the
+         // header as Write will write it - MimeHeader::Store, which both of
+         // MimeBody::SaveAllToFile's paths call. Write keeps a value to one field,
+         // writing a line break that does not fold it as a space, and a value
+         // given with one is refused here, and the program told, rather than sent
+         // changed. The two must be the same, not only the one as given one
+         // header: a line break followed by a line that is a field of its own is
+         // one header as given, and Write joins that line to the value above it.
+         // A From of "me@ok.example", a line break and "X-A: Boss
+         // <ceo@bank.example>" was checked as me@ok.example and written as one
+         // From, whose first address - to AddresslistParser, which DKIMSigner and
+         // the rest of this server read a From with - is ceo@bank.example: a
+         // credential held to its own addresses wrote another's, and had it
+         // signed as that address's domain where that domain is this server's.
+         // With no message to store, none, which is no header written as one.
          HM::AnsiString header;
+         HM::AnsiString written;
          const std::shared_ptr<HM::MimeBody> mime = GetMessageData_()->GetMimeMessage();
          if (mime)
+         {
             mime->StoreAsGiven(header);
+            mime->HM::MimeHeader::Store(written);
+         }
 
-         if (!WrittenAsOneHeader(header, reason))
+         bool oneHeader = WrittenAsOneHeader(header, reason);
+         if (oneHeader && header != written)
+         {
+            oneHeader = false;
+            reason = "a value in the header holds a line break that does not fold it, which would be written as a space.";
+         }
+
+         if (!oneHeader)
          {
             using namespace HM;
             LOG_APPLICATION("COM: a message was not queued, because its header is not written as one: " + Printable(reason));

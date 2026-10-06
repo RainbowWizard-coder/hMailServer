@@ -381,7 +381,8 @@ namespace RegressionTests.API
 
       [Test]
       [Description("An account's message has a header written as one: a From or a Sender of another address put " +
-                   "into another field's value with a line break, a field named \"From \", a lone line feed and an " +
+                   "into another field's value with a line break, a From whose value a line break and a field follow, " +
+                   "a field named \"From \", a lone line feed and an " +
                    "address in an encoded word of the display name are refused; a display name outside ASCII, " +
                    "quoted or not, and a subject long enough to be folded are sent.")]
       public void AnAccountsMessageHasItsHeaderWrittenAsOne()
@@ -403,6 +404,14 @@ namespace RegressionTests.API
          var spaced = Compose(sender.Address, SenderPassword, sender.Address, sender.Address, recipient.Address, "Spaced");
          spaced.set_HeaderValue("From ", "ceo@elsewhere.test");
          TrySave(problems, spaced, "A field named \"From \", written \"From :\"");
+
+         // One header as given - the From, then a field of its own - but written as
+         // one From, since the writer keeps a value to one field: "header@example.test",
+         // two spaces and "X-Note: CEO <ceo@elsewhere.test>", whose first address is
+         // the CEO's to the parser DKIMSigner reads a From with.
+         TrySave(problems, Compose(sender.Address, SenderPassword, sender.Address,
+               sender.Address + "\r\nX-Note: CEO <ceo@elsewhere.test>", recipient.Address, "Joined"),
+            "A From of its own address, a line break and a field naming another address, which the writer joins to the From");
 
          var lineFeed = Compose(sender.Address, SenderPassword, sender.Address, sender.Address, recipient.Address, "Line feed");
          lineFeed.set_HeaderValue("X-Note", "note\nFrom: ceo@elsewhere.test");
