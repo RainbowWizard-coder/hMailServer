@@ -1990,7 +1990,8 @@ namespace RegressionTests.Rules
       /// refused as it is at the limit.
       ///
       /// Against the unfixed server the observer receives the forward of "-5" (on
-      /// Linux, of "2147483648" first), and of "+1" and the empty value.
+      /// Linux, of "2147483648" before it), and the test fails there; "-2147483648",
+      /// "+1" and the empty value would be forwarded too.
       /// </summary>
       [Test]
       [Description("A rule forward refuses a message whose X-hMailServer-LoopCount is not a count, as at the rule loop limit.")]

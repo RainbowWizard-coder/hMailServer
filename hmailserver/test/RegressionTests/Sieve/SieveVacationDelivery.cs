@@ -707,10 +707,11 @@ namespace RegressionTests.Sieve
       ///    The header comes with the message, from whoever sent it, and was read with
       ///    _wtoi. A count past the limit stopped the reply, and still does; but "-5"
       ///    passed it, and the reply carried -4, a count below every limit, so the
-      ///    hops after it were bounded by nothing. What is not a count up to the limit
-      ///    now reads as the limit (RuleGuard::ReadLoopCount), which a vacation refuses
-      ///    as it refuses the limit; a count below it is answered as before, carrying
-      ///    + 1.
+      ///    hops after it had five more to go than after a count of 0, and those after
+      ///    "-2147483648" some two thousand million more. What is not a count up to
+      ///    the limit now reads as the limit (RuleGuard::ReadLoopCount), which a
+      ///    vacation refuses as it refuses the limit; a count below it is answered as
+      ///    before, carrying + 1.
       ///
       ///    A sender of its own for each value: a reply sent for one would open a
       ///    suppression window that held back the reply to the next, and a fault in

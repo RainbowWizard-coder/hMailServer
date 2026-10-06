@@ -105,12 +105,13 @@ namespace HM
       // THE DEFECT. Each read it with _ttoi or _wtoi, and nothing takes the header off
       // mail that arrives from outside, so any sender chose the count. A negative one
       // passed every "count >= RuleLoopLimit" test, so "-1000000" bought a million
-      // generated hops, and on Linux, where _ttoi is (int) wcstol, so did
-      // "4294967295", read as -1: a forwarding loop between two accounts - what
-      // RuleLoopLimit exists to bound - ran for as long as the sender liked. And a
-      // Sieve notify, which consulted no limit, carried count + 1 whatever the count,
-      // so "2147483647" made that a signed overflow, undefined behaviour that comes
-      // out as the most negative int in practice.
+      // generated hops, and on Linux, where _ttoi is (int) wcstol, "2147483648" read
+      // as INT_MIN and bought as many as "-2147483648" ("4294967295" read as -1): a
+      // forwarding loop between two accounts - what RuleLoopLimit exists to bound -
+      // ran for as long as the sender liked. And a Sieve notify, which consulted no
+      // limit, carried count + 1 whatever the count, so "2147483647" made that a
+      // signed overflow, undefined behaviour that comes out as the most negative int
+      // in practice.
       //
       // So a value is a count only when it is ASCII digits and nothing else (white
       // space around it aside), and never more than the limit. Anything else - a

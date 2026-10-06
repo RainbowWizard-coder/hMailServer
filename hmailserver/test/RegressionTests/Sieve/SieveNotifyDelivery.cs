@@ -171,8 +171,9 @@ namespace RegressionTests.Sieve
 
       /// <summary>
       ///    The header comes with the message, from whoever sent it, and was read with
-      ///    _wtoi (_ttoi, which is (int) wcstol, on Linux). "-5" passed the limit, so
-      ///    a forward of the notification was bounded by nothing; 2147483647 made the
+      ///    _wtoi (_ttoi, which is (int) wcstol, on Linux). "-5" gave the notification
+      ///    -4, so its forwards had five hops more to go than after a count of 0, and
+      ///    "-2147483648" some two thousand million more; 2147483647 made the
       ///    notification's count + 1 a signed overflow; 99999999999 is 2147483647 to
       ///    _wtoi; and 2147483648 and 4294967295 are INT_MIN and -1 on Linux. What is
       ///    not a count up to the limit now reads as the limit

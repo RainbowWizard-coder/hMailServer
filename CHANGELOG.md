@@ -106,16 +106,16 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   two accounts that forward to each other. Nothing takes the header off mail that arrives from outside, and the server
   read it with `_ttoi`, so a negative count passed every test against the limit: a sender who wrote `-2147483648` set
   such a loop going round some two thousand million times, and on Linux, where `_ttoi` keeps the low 32 bits of a
-  64-bit `long`, so did one who wrote `2147483648` or `4294967295` (in every version, and on Linux from 6.3.0). A
-  Sieve `notify` went out whatever the count, carrying it + 1, so a count of `2147483647` made that a signed overflow,
-  undefined behaviour that in practice gave the notification the most negative count there is (from 6.2.22). The
-  header is now read in one place, `RuleGuard::ReadLoopCount`: as a count only when it is digits and nothing else, and
-  never above the limit; anything else - a sign, a letter, an empty value - reads as the limit, so the message is
-  delivered and nothing is generated from it; and a notification is no longer sent once the count has reached the
-  limit, as a vacation reply is not. A message without the header, or with a count below the limit, is treated as
-  before. `LoopCountTester` (`business-object-tests` on Linux) holds the reading to examples, and `Rules.cs`,
-  `Sieve/SieveNotifyDelivery.cs` and `Sieve/SieveVacationDelivery.cs` each send the values through delivery. Found by
-  the project's own review.
+  64-bit `long`, so did one who wrote `2147483648`, which read as that same count, while `4294967295` read as -1 (in
+  every version, and on Linux from 6.3.0). A Sieve `notify` went out whatever the count, carrying it + 1, so a count
+  of `2147483647` made that a signed overflow, undefined behaviour that in practice gave the notification the most
+  negative count there is (from 6.2.22). The header is now read in one place, `RuleGuard::ReadLoopCount`: as a count
+  only when it is digits and nothing else, and never above the limit; anything else - a sign, a letter, an empty
+  value - reads as the limit, so the message is delivered and none of the generated messages above is made from it;
+  and a notification is no longer sent once the count has reached the limit, as a vacation reply is not. A message
+  without the header, or with a count below the limit, is treated as before. `LoopCountTester`
+  (`business-object-tests` on Linux) holds the reading to examples, and `Rules.cs`, `Sieve/SieveNotifyDelivery.cs` and
+  `Sieve/SieveVacationDelivery.cs` each send the values through delivery. Found by the project's own review.
 
 ### Downloads and the release
 
