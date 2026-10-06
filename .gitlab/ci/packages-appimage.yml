@@ -64,8 +64,8 @@
 # release and of its rehearsal (.gitlab/ci/release-rehearsal.yml); on any other
 # protected ref (master) the runtime and compile jobs wait to be started by hand
 # and the rest follow them - the two builds add half an hour to linix's queue. Never
-# for a merge request or an unprotected ref: these run on the project's own runner,
-# which takes protected refs only. A tag's and a batch's jobs, and every job that
+# for a merge request or an unprotected ref: these run on the project's own runners,
+# which take protected refs only. A tag's and a batch's jobs, and every job that
 # follows another, are made by .own-runners' own rules (.gitlab-ci.yml), taken by
 # !reference; the by-hand rule for master comes after a refusal of its own and asks
 # for a protected ref itself, so that build/ci/repo-hygiene.py's Token-Permissions,

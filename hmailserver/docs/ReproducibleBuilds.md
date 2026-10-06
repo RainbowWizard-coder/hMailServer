@@ -357,10 +357,11 @@ The image is. What is in it is not, entirely: `linux.Dockerfile` starts from
 Ubuntu 26.04 at a pinned digest, but the packages it installs - clang, Boost,
 OpenSSL's headers, CMake - are the Ubuntu archive's on the day the image was
 built. So the CI image named by a commit is reproducible from the Dockerfile
-only as long as the archive has not moved. Since 6 October 2026 the image a
-commit names is also kept in the project's registry, under the digest the
-commit's `.gitlab-ci.yml` names it by, so a rebuild of the binary can start from
-the very image the pipeline used rather than from the Dockerfile. A compiler or
+only as long as the archive has not moved. Since 6 October 2026 a commit's
+`.gitlab-ci.yml` names the image by the digest it has in the project's
+registry, which keeps that image as long as a tag of `ci-linux` names it, so a
+rebuild of the binary can start from the very image the pipeline used rather
+than from the Dockerfile. A compiler or
 a Boost that moved between two image builds changes the binary legitimately.
 `linux-build.sh` prints the compiler and CMake versions it used, `linux-repro`'s
 report repeats them, and `linux-repro` keeps the version of every package in the

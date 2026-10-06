@@ -41,7 +41,7 @@
 # When: every v* tag and batch* branch, at once; on any other protected branch
 # (master) by hand - a build is started with its play button, and its install
 # job follows it. Never for a merge request or an unprotected ref: these run on
-# the project's own runner (.own-runners in .gitlab-ci.yml says why), and never
+# the project's own runners (.own-runners in .gitlab-ci.yml says why), and never
 # in a scheduled, fuzz or feed pipeline. A tag's and a batch's builds, and every
 # install job, are made by .own-runners' own rules, taken by !reference, so they
 # refuse what every job on the project's runners refuses and follow any change

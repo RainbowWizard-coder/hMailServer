@@ -132,7 +132,7 @@ include:
 # one: from the generic arm64 .deb deb-ubuntu26.04-arm64 made, which is manual on
 # master - there this job waits until that build has been played and has passed - and
 # at once on a batch* branch. The Dockerfile's RUN runs under qemu-user, through
-# linix's qemu-aarch64 binfmt handler (F flag), in kaniko's own unprivileged
+# the runner host's qemu-aarch64 binfmt handler (F flag), in kaniko's own unprivileged
 # container, and ends with `hmailserver --version`, so the arm64 server has started
 # on its own platform, with the image's libraries, before the image exists. Starting
 # the image itself needs a daemon or a registry, which a branch's pipeline has neither

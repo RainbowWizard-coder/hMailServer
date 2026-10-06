@@ -826,6 +826,10 @@ the step, which would refuse it. So an edit to the Dockerfile goes like this:
    wanted; the registry keeps every tag of `ci-linux` too, and its cleanup
    policy, were it switched on, would keep them by name ([The container
    image](#the-container-image), "What the owner sets on the registry").
+   A Dockerfile that has not changed builds again to the same tag, and
+   `--push` then gives that tag in the registry to the new image: the digest
+   an older commit names is left with no tag, and an image no tag names may
+   be removed by the registry's garbage collection.
    (Without `--push` it builds `hmailserver-ci/linux:<tag>` alone, the earlier
    form.)
 3. Put that line into `.linix` in `.gitlab-ci.yml`, in the same commit as the
@@ -1286,7 +1290,11 @@ seeds, clear the runner caches
 
 The schedule was made on 27 September 2026: schedule 4461177, `fuzz`,
 `10 2 * * *` in UTC, on `master`, active. By 00:40 UTC on 28 September it had
-run no pipeline; its first was due at 02:10 that day.
+run no pipeline; its first was due at 02:10 that day. That first night,
+pipeline 2887914840, held `linux-fuzz` alone and passed. By 5 October 2026 the
+schedule had made eight pipelines, seven passing; the one of 1 October,
+2899484982, failed before the job's script started, when linix could not
+resolve `gitlab.com` to fetch the commit (the project's API, 6 October 2026).
 
 The coverage schedule
 ---------------------
@@ -3413,7 +3421,8 @@ Left out of Scorecard's checks, each for a reason:
 - **Packaging**, **SAST** and **CI-Tests.** They read GitHub's checks API. SAST
   is this section.
 - **Fuzzing.** The harnesses are in `fuzz/`, and the nightly job stopped with
-  the account (Fuzzing.md).
+  the account (Fuzzing.md); on GitLab `linux-fuzz` has run them under its
+  own schedule since 28 September 2026 ([The fuzz schedule](#the-fuzz-schedule)).
 - **License.** `LICENSE` is at the root.
 - **Dependency-Update-Tool.** It could be answered, and it would fail, as the
   table above says.

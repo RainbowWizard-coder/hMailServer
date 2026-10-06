@@ -30,7 +30,7 @@
 hmailserver/source/Server/platform/packaging/** text eol=lf
 build/*.sh text eol=lf
 # The Linux CI jobs' scripts and their image's Dockerfile, which bash and
-# docker build read on the project's own runner (.gitlab-ci.yml).
+# docker build read on the project's own runners (.gitlab-ci.yml).
 build/ci/*.sh text eol=lf
 build/ci/*.Dockerfile text eol=lf
 # The git hooks the repository ships (core.hooksPath build/hooks), which sh runs on

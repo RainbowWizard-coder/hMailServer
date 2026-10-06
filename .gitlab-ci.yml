@@ -460,9 +460,10 @@ pages:
 
 # ---------------------------------------------------------------- the project's own runners
 #
-# linix (tags linux, docker, linix) and bench150 (tags windows, bench, bench150) are
-# project runners registered ref_protected with run_untagged off, and a job reaches
-# one only by its tag. These rules keep every such job out of any pipeline that is not
+# linix and server2 (tags linux, docker, linix), linix's second entry linix-systemd
+# (tag linix-systemd) and bench150 (tags windows, bench, bench150) are project
+# runners registered ref_protected with run_untagged off, and a job reaches one only
+# by its tag. These rules keep every such job out of any pipeline that is not
 # for a protected ref, and out of every merge request pipeline whatever its source.
 # A scheduled pipeline runs the one job its description names (linux-fuzz and renovate
 # here, with rules of their own): it must not start the gates.
