@@ -163,8 +163,10 @@ refuses it. This checker holds them to each other. It fails when:
     static-analysis, semgrep, ci-image-packages and dependency-scan must compare a
     protected batch* branch with master (compare_to: refs/heads/master) and run for
     none that changes documentation alone; and the jobs build/land-via-mr.py requires
-    (REQUIRED_JOBS, once it names them) must be jobs of the CI files, the two gates and
-    semgrep-sast among them.
+    must be jobs of the CI files - the two gates and semgrep-sast always (GATE_JOBS),
+    static-analysis and semgrep (SOURCE_SCAN_JOBS) - and its documents_only, which lets
+    the second two off, must agree with .own-runners' paths: *not-docs-only on every
+    file of the tree.
   * the container image's jobs (.gitlab/ci/container-image.yml) can run for
     anything but a protected v* tag, start before release-publish or without a
     person (container-image-deb, the first, is manual; every other one follows it),
@@ -549,9 +551,18 @@ WHOLE_CHANGE_SCANS = ["static-analysis", "semgrep", "ci-image-packages", "depend
 BATCH_COMPARE = ('- if: $CI_PIPELINE_SOURCE != "merge_request_event" && $CI_COMMIT_REF_PROTECTED == "true" && '
                  '$CI_COMMIT_BRANCH =~ /^batch/\n      changes:\n        paths: *%s\n        compare_to: refs/heads/master\n'
                  '    - if: $CI_COMMIT_BRANCH =~ /^batch/\n      when: never\n' % NOT_DOCS_ONLY)
-# The jobs build/land-via-mr.py requires to have passed before it lands a batch, as it
-# names them (design item 4c): a module-level sequence of job names.
-LANDING_REQUIRED = "REQUIRED_JOBS"
+# The jobs build/land-via-mr.py requires to have succeeded before it lands a batch, as
+# it names them - a module-level literal sequence of job names each - and the jobs each
+# must hold: the change gates and their scan always (GATE_JOBS), and the two blocking
+# scans on linix unless the batch changes documents alone (SOURCE_SCAN_JOBS), which
+# its documents_only tells as .own-runners' paths: *not-docs-only does.
+LANDING_REQUIRED = {"GATE_JOBS": sorted(CHANGE_GATES) + [GATE_SCAN], "SOURCE_SCAN_JOBS": BLOCKING_SCANS}
+LANDING_DOCUMENTS = "documents_only"
+# Paths beside the tree's own on which documents_only and the CI files must agree: a
+# document at the root and under a dot-directory, which start no scan, and one under
+# another directory, code, and a file named like a document's extension alone.
+LANDING_SAMPLE_PATHS = ["README.md", ".gitlab/notes.md", ".github/a/b.md", "docs/a.md", "a.md.txt", "a.txt", "md",
+                        "Makefile", ".gitlab/ci/x.yml", "hmailserver/docs/Notes.md"]
 COSIGN_IMAGE = re.compile(r'^\s*HM_COSIGN_IMAGE:\s*"?(\S+?)"?\s*$', re.MULTILINE)
 PINNED_COSIGN = re.compile(r"^gcr\.io/projectsigstore/cosign:[A-Za-z0-9._\-]+@sha256:[0-9a-f]{64}$")
 PLACEHOLDER_COSIGN = re.compile(r"^gcr\.io/projectsigstore/cosign:[A-Za-z0-9._\-]+@sha256:PIN-THE-DIGEST$")
@@ -2274,31 +2285,75 @@ def change_gate_problems(texts, jobs, security_jobs):
                             "no scan for a batch that changes documentation alone): a push of documentation on top of "
                             "code would skip it" % name)
 
-    # build/land-via-mr.py's required jobs are jobs of the CI files, the gates among them.
-    required = None
+    # build/land-via-mr.py's required jobs are jobs of the CI files, the gates and the
+    # blocking scans among them, and it lets the scans off for the batches the CI files
+    # run none for, and no others.
+    names = set(jobs) | set(every)
+    for text in texts.get("ci-includes", {}).values():
+        names |= set(blocks(text))
     try:
-        for node in ast.parse(texts["land"]).body:
-            if isinstance(node, ast.Assign) and any(isinstance(t, ast.Name) and t.id == LANDING_REQUIRED for t in node.targets):
-                value = ast.literal_eval(node.value)
-                required = list(value.keys() if isinstance(value, dict) else value)
+        tree = ast.parse(texts["land"])
+    except SyntaxError as error:
+        tree = None
+        problems.append("build/land-via-mr.py cannot be read: %s" % error)
+    for constant, needed in sorted(LANDING_REQUIRED.items()):
+        required = None
+        for node in tree.body if tree else []:
+            if isinstance(node, ast.Assign) and any(isinstance(t, ast.Name) and t.id == constant for t in node.targets):
+                try:
+                    value = ast.literal_eval(node.value)
+                    required = [str(n) for n in (value.keys() if isinstance(value, dict) else value)]
+                except (ValueError, TypeError) as error:
+                    problems.append("build/land-via-mr.py's %s is not a literal list of job names: %s" % (constant, error))
+                    required = []
                 break
-    except (SyntaxError, ValueError) as error:
-        problems.append("build/land-via-mr.py's %s cannot be read: %s" % (LANDING_REQUIRED, error))
-    if required is None:
-        notes.append("build/land-via-mr.py names no %s yet: the jobs it requires before a landing are not held here"
-                     % LANDING_REQUIRED)
-    else:
-        names = set(jobs) | set(every)
-        for text in texts.get("ci-includes", {}).values():
-            names |= set(blocks(text))
-        unknown = sorted(str(n) for n in required if n not in names)
+        if required is None:
+            if tree:
+                problems.append("build/land-via-mr.py names no %s: a landing would not check the jobs it holds" % constant)
+            continue
+        unknown = sorted(n for n in required if n not in names)
         if unknown:
-            problems.append("build/land-via-mr.py requires %s, which no job of the CI files is: a landing would wait for a job "
-                            "no pipeline has, or check a name that never fails" % ", ".join(unknown))
-        absent = [n for n in sorted(CHANGE_GATES) + [GATE_SCAN] if n not in required]
+            problems.append("build/land-via-mr.py's %s requires %s, which no job of the CI files is: a landing would wait for a "
+                            "job no pipeline has, or check a name that never fails" % (constant, ", ".join(unknown)))
+        absent = [n for n in needed if n not in required]
         if absent:
-            problems.append("build/land-via-mr.py does not require %s before it lands a batch" % ", ".join(absent))
+            problems.append("build/land-via-mr.py's %s does not require %s before it lands a batch" % (constant, ", ".join(absent)))
+    # Its documents_only, as the module has it, against the paths .own-runners' rules
+    # start no scan for: the tree's files and LANDING_SAMPLE_PATHS.
+    anchor = re.search(r"^        paths: &%s\s*\n((?:          - \"[^\"\n]+\"\s*\n)+)" % NOT_DOCS_ONLY, jobs.get(".own-runners", "") + "\n",
+                       re.MULTILINE)
+    try:
+        compiled = [glob_regex(p) for p in re.findall(r'- "([^"\n]+)"', anchor.group(1))] if anchor else []
+    except ValueError:
+        compiled = []
+    documents_only = getattr(landing_module(), LANDING_DOCUMENTS, None)
+    if not callable(documents_only):
+        problems.append("build/land-via-mr.py has no %s: it would require the scans of a batch the CI files run none for, "
+                        "or let them off for one they run" % LANDING_DOCUMENTS)
+    elif compiled:
+        disagree = []
+        for path in sorted(set(texts["tree"]) | set(LANDING_SAMPLE_PATHS)):
+            said = documents_only([path])
+            scanned = any(c.match(path) for c in compiled)
+            if bool(said) == scanned:
+                disagree.append("%s (%s says %r; the CI files %s it)" % (path, LANDING_DOCUMENTS, said,
+                                                                       "scan" if scanned else "do not scan"))
+        if disagree:
+            problems.append("build/land-via-mr.py's %s and .own-runners' paths: *%s disagree on %d path(s), so a landing "
+                            "would wait for a scan no pipeline ran or let off one that ran: %s" % (
+                                LANDING_DOCUMENTS, NOT_DOCS_ONLY, len(disagree), "; ".join(disagree[:6])))
     return problems, notes
+
+
+_landing = None
+
+
+def landing_module():
+    """build/land-via-mr.py as a module, loaded once: its functions are what a landing runs."""
+    global _landing
+    if _landing is None:
+        _landing = _load(FILES["land"], "land_via_mr")
+    return _landing
 
 
 # The readers of a Fulcio certificate's fields (1.3.6.1.4.1.57264.*), which no other file
@@ -3277,17 +3332,43 @@ def self_test(chain, feed):
     broken("a docs-only batch that would scan by its last push", "ci",
            "    - if: $CI_COMMIT_BRANCH =~ /^batch/\n      when: never\n", "",
            "semgrep does not compare a protected batch* branch with master")
-    every_gate = "('semgrep-sast', 'semgrep-sast-gate', 'mr-dependency-check', 'static-analysis', 'semgrep')"
-    broken("land-via-mr requiring a job no pipeline has", "land", "\nROOT = ",
-           "\n%s = %s\nROOT = " % (LANDING_REQUIRED, every_gate.replace(")", ", 'no-such-job')")),
-           "requires no-such-job, which no job")
-    broken("land-via-mr not requiring the gates", "land", "\nROOT = ",
-           "\n%s = ['semgrep-sast', 'static-analysis']\nROOT = " % LANDING_REQUIRED,
-           "does not require mr-dependency-check, semgrep-sast-gate")
-    copy = dict(texts, land=texts["land"].replace("\nROOT = ", "\n%s = %s\nROOT = " % (LANDING_REQUIRED, every_gate), 1))
-    found, _ = check(copy, chain, feed)
-    if any("land-via-mr" in p for p in found):
-        failures.append("a land-via-mr.py that requires the gates by their names passes: %s" % found)
+    gate_jobs = re.search(r"^GATE_JOBS = .*$", texts["land"], re.MULTILINE)
+    gate_jobs = gate_jobs.group(0) if gate_jobs else "GATE_JOBS not found"
+    scan_jobs = re.search(r"^SOURCE_SCAN_JOBS = .*$", texts["land"], re.MULTILINE)
+    scan_jobs = scan_jobs.group(0) if scan_jobs else "SOURCE_SCAN_JOBS not found"
+    broken("land-via-mr requiring a job no pipeline has", "land", gate_jobs, gate_jobs.replace(")", ', "no-such-job")'),
+           "GATE_JOBS requires no-such-job, which no job")
+    broken("land-via-mr not requiring a change gate", "land", gate_jobs, 'GATE_JOBS = ("semgrep-sast", "semgrep-sast-gate")',
+           "GATE_JOBS does not require mr-dependency-check")
+    broken("land-via-mr not requiring semgrep-sast", "land", gate_jobs,
+           'GATE_JOBS = ("semgrep-sast-gate", "mr-dependency-check")', "GATE_JOBS does not require semgrep-sast")
+    broken("land-via-mr not requiring a blocking scan", "land", scan_jobs, 'SOURCE_SCAN_JOBS = ("static-analysis",)',
+           "SOURCE_SCAN_JOBS does not require semgrep")
+    broken("land-via-mr without its list of scans", "land", scan_jobs, "SCANS = ()", "names no SOURCE_SCAN_JOBS")
+    broken("land-via-mr's gates named by an expression", "land", gate_jobs, "GATE_JOBS = tuple(sorted(OWNER))",
+           "GATE_JOBS is not a literal list of job names")
+    # Its documents_only, as a landing runs it, against the CI files' not-docs-only.
+    landing = landing_module()
+    held = getattr(landing, LANDING_DOCUMENTS, None)
+    for what, stand_in, needle in (
+            ("every Markdown file a document to land-via-mr", lambda paths: all(p.endswith(".md") for p in paths),
+             "(documents_only says True; the CI files scan it)"),
+            ("no batch documents alone to land-via-mr", lambda paths: False,
+             "(documents_only says False; the CI files do not scan it)"),
+            ("a document under any dot-directory code to land-via-mr",
+             lambda paths: all(p.endswith(".md") and ("/" not in p or p.startswith(".gitlab/")) for p in paths),
+             ".github/a/b.md (documents_only says False"),
+            ("land-via-mr without documents_only", None, "has no documents_only")):
+        try:
+            if stand_in is None:
+                delattr(landing, LANDING_DOCUMENTS)
+            else:
+                setattr(landing, LANDING_DOCUMENTS, stand_in)
+            found, _ = check(texts, chain, feed)
+        finally:
+            setattr(landing, LANDING_DOCUMENTS, held)
+        if not any(needle in p for p in found):
+            failures.append("%s is caught: %s" % (what, found))
     # One malformed entry after the entries the file holds, if any: the list from its
     # key to the end of the file is what each case replaces.
     listed = re.search(r"^exceptions:.*", texts["exceptions"], re.MULTILINE | re.DOTALL)

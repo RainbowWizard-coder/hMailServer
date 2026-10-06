@@ -307,9 +307,12 @@ checkers:
       # they make for themselves.
       check python3 build/sign-off.py --self-test
       check python3 build/land-via-mr.py --self-test
-      # The release's security gate, against canned reports and exceptions files.
+      # The release's security gate and the change's, against canned reports, exceptions files and
+      # repositories it makes for itself; and the source scans' findings against their baselines and
+      # an exceptions file, and the rewrite of a baseline that never grows.
       check python3 build/ci/security-gate.py --self-test
-      # The merge request's dependency check, against OSV exports and repositories it makes for itself.
+      check python3 build/ci/security-findings.py --self-test
+      # The change's dependency check, against OSV exports and repositories it makes for itself.
       check python3 build/ci/mr-dependency-check.py --self-test
       # The dependency scan's severities, VEX matching and version readers, offline, and the tree's VEX document and pins.
       check python3 build/ci/dependency-scan.py --self-test
@@ -477,8 +480,10 @@ pages:
 # suites, and the READMEs further down are read by tests and packaging. GitLab matches
 # the paths with Ruby's File.fnmatch (FNM_PATHNAME, FNM_DOTMATCH, FNM_EXTGLOB), which
 # has no "all but": so the first three patterns name every file whose name does not
-# end in ".md", and the fourth every .md below a directory whose name does not begin
-# with a dot. build/check-release-chain.py holds the patterns to that, file by file.
+# end in ".md" but two, "d" and "md", too short for them, which the next two name;
+# and the last every .md below a directory whose name does not begin with a dot.
+# build/check-release-chain.py holds the patterns to that, file by file, and
+# build/land-via-mr.py's documents_only to them.
 # A branch's first push, a tag and a pipeline started by hand count every file as
 # changed, so they run everything.
 .own-runners:
@@ -493,6 +498,8 @@ pages:
           - "**/*[!d]"
           - "**/*[!m]d"
           - "**/*[!.]md"
+          - "**/d"
+          - "**/md"
           - "[!.]*/**/*.md"
 
 # The Linux jobs run in an image built ON linix from build/ci/linux.Dockerfile and pushed
