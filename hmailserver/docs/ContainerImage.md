@@ -218,18 +218,19 @@ holds from that day and which reaches Artifact Hub as each item below says.
   charts, with the URL `https://updates.progressiverobot.com/helm/`, which has
   held the chart since 6.3.6. Its repository ID,
   `d8768ed9-b894-45c8-ba44-f7516bcf4206`, is `ARTIFACTHUB_REPOSITORY_ID` in
-  `build/ci/helm-repo.py`, and the pages job writes it into
-  `helm/artifacthub-repo.yml` beside the index, which gives the listing its
-  Verified publisher label. The first pages job to write it is the default
-  branch's after the ID lands there: the file 6.3.6's pipeline wrote says that
-  no ID is there yet. Once Artifact Hub has indexed the repository, the chart's
-  page is `https://artifacthub.io/packages/helm/hmailserver/hmailserver`. The
-  chart's annotations name its
-  licence (`artifacthub.io/license`), its image (`artifacthub.io/images`, stamped
-  with the release's version, with the image's two platforms, `linux/amd64` and
-  `linux/arm64`, which `helm-chart-package.sh` holds the tree's chart and the
-  package to), its links, and whether it is a pre-release. The
-  Official label is requested through a GitHub issue, and is not.
+  `build/ci/helm-repo.py`, and `package-repos`, which runs that script after the
+  pages job and deploys the site, writes it into `helm/artifacthub-repo.yml`
+  beside the index, which gives the listing its Verified publisher label. The
+  first `package-repos` to write it is the default branch's after the ID lands
+  there: the file 6.3.6's pipeline wrote says that no ID is there yet. Once
+  Artifact Hub has indexed the repository, the chart's page is
+  `https://artifacthub.io/packages/helm/hmailserver/hmailserver`. The chart's
+  annotations name its licence (`artifacthub.io/license`), its image
+  (`artifacthub.io/images`, stamped with the release's version, with the image's
+  two platforms, `linux/amd64` and `linux/arm64`, which `helm-chart-package.sh`
+  holds the tree's chart and the package to), its links, and whether it is a
+  pre-release. The Official label is requested through a GitHub issue, and is
+  not.
 - **The image.** The repository `hmailserver-image`, shown as hMailServer
   container image, of kind Container images, with the address
   `oci://registry.gitlab.com/hmailserver/hmailserver`, lists it from its labels,
@@ -264,8 +265,8 @@ holds from that day and which reaches Artifact Hub as each item below says.
   under that tag is also what Artifact Hub checks an ownership claim of the
   listing against (its `owners`): a second rule protects `^artifacthub\.io$` as
   the release's tags are protected, push Maintainer and delete Owner (the same
-  place), which the project's API gave on 6 October 2026, the day the repository
-  was added. Should somebody else have added the
+  place), which the maintainers added through the project's API on 2 October
+  2026, before the repository was added. Should somebody else have added the
   repository first, the listing is taken back by such a claim, which needs an
   `owners` list naming the claimant in the file; the script refuses that key,
   so allowing it would be a change to the script, reviewed as such.
@@ -608,7 +609,7 @@ scripts, in the jobs' own images, unprivileged, as the jobs run them:
   - 6.3.13-rc1 wrote its own tag only.
 - **Artifact Hub's metadata, against a stand-in.** On 2 October 2026, against the
   same kind of stand-in, `container-image-artifacthub.sh` ran in the job's regctl
-  image as the image's own user. With the tree's file, which holds no ID, it
+  image as the image's own user. With the tree's file, which held no ID then, it
   pushed nothing and passed. With an ID added it pushed `:artifacthub.io` and
   nothing else: an OCI image manifest whose configuration was the empty one of
   Artifact Hub's type and whose one layer was the file, of Artifact Hub's type,
@@ -663,27 +664,24 @@ and a package whose platforms had changed after the tree's were checked.
 
 ## What is not shown yet
 
-- No image has been pushed, signed, scanned or started by the pipeline: the first
-  is the first release whose image jobs run with `HM_PUBLISH_IMAGE` set, 6.3.6. The
-  start test's GitLab half - the runner starting the services on a network of the
-  job's own, the images named by the dotenv report's `HM_IMAGE` and
-  `HM_IMAGE_ARM64`, the arm64 one as a service of the platform linux/arm64, the
-  job's variables reaching the services - is first run there; its checks, and a
-  stand-in for that half, were run by hand, as above.
-- `linux-image-arm64` has run in pipelines, and no other arm64 image job has: in
-  `batch42`'s 2896082335 and 2897966924 (30 September 2026) it built
-  `hmailserver:6.3.6-arm64` under qemu-user from `deb-ubuntu26.04-arm64`'s
-  package, its `RUN` answering `hMailServer 6.3.6 build 45`, and passed its
-  checks, in 122 and 127 s; the image was kept, not pushed.
-- GitLab's registry has not yet taken a Docker manifest list from this project, nor
-  keyless signatures of three digests from one job; both were shown against a
-  stand-in registry, and with a key, as above.
-- No arm64 machine has run the image: only linix's qemu-user.
-- No chart was listed on Artifact Hub when its repository was added to the
-  organization, on 6 October 2026, though the chart 6.3.6 is in the Pages site's
-  repository, whose `index.yaml` lists it; that the pages job's
-  `helm/artifacthub-repo.yml` with the ID gives the listing its Verified publisher
-  label is first seen after the default branch's pages job has written it.
+- The pipeline has made one image, 6.3.6's, in its tag pipeline 2914690858 on 6
+  October 2026, where every image job passed (`container-image-deb` on its second
+  run): both platforms' images built, the arm64 one under qemu-user, pushed under
+  one Docker manifest list, signed, attested, scanned and started, the start
+  test's GitLab half for both platforms among them. Read without credentials that
+  day, the registry's `6.3.6`, `6.3` and `latest` named that list, for linux/amd64
+  and linux/arm64/v8, beside cosign's signatures of it and of both images and the
+  attestations of the two images. What *Done when* asks beyond the pipeline's own
+  checks - an anonymous `docker pull`, `cosign verify` and the attestation read by
+  hand against the published image, and `docker compose up` and `helm install`
+  from it - is not recorded yet (Roadmap3.md, section 1b).
+- No arm64 machine has run the image: only qemu-user on the project's x86-64
+  runners.
+- The chart 6.3.6 is in the Pages site's repository, whose `index.yaml` lists it,
+  and its repository was added to Artifact Hub on 6 October 2026; the listing at
+  the current version, and that the `helm/artifacthub-repo.yml` `package-repos`
+  writes with the ID gives it the Verified publisher label, are first seen after
+  the default branch's `package-repos` has written that file.
 - No metadata has been pushed to GitLab's registry: `container-image-artifacthub`
   ran in 6.3.6's pipeline while the file held no ID, and pushed nothing. It first
   pushes when a maintainer starts it in the default branch's pipeline after the ID

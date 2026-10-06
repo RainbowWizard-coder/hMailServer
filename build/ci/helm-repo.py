@@ -92,12 +92,13 @@ CHART_FILE = re.compile(r"^hmailserver-chart-(?P<version>[0-9]+\.[0-9]+\.[0-9]+(
 SERVER_TAG = re.compile(r"^v[0-9][A-Za-z0-9._-]{0,62}$")
 
 # The ID Artifact Hub gave the repository when the maintainers added it to the
-# organization hmailserver on 6 October 2026 (Control Panel, Repositories, Add, kind
-# Helm charts, name hmailserver, URL REPOSITORY_URL), in its own words "the ID of the
-# Artifact Hub repository where the packages will be published to". The pages job
-# writes it into helm/artifacthub-repo.yml, which gives the listing its Verified
-# publisher label; Roadmap3.md, section 9b, "Artifact Hub: the Helm chart". It is not
-# the container image's ID, which is another repository's
+# organization hmailserver on 6 October 2026, through Artifact Hub's API (kind Helm
+# charts, name hmailserver, URL REPOSITORY_URL), in its own words "the ID of the
+# Artifact Hub repository where the packages will be published to". package-repos,
+# which runs this script after the pages job, writes it into helm/artifacthub-repo.yml,
+# which gives the listing its Verified publisher label; Roadmap3.md, section 9b,
+# "Artifact Hub: the Helm chart". It is not the container image's ID, which is
+# another repository's
 # (hmailserver/source/Server/platform/packaging/docker/artifacthub-repo.yml).
 ARTIFACTHUB_REPOSITORY_ID = "d8768ed9-b894-45c8-ba44-f7516bcf4206"
 UUID = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
@@ -609,7 +610,7 @@ def self_test(example=None, chart_file=None):
         expect(yaml.safe_load(artifacthub_bytes("0b5ebe9c-0e33-4f5b-9a2d-9a0fbc8a1c55"))["repositoryID"] == "0b5ebe9c-0e33-4f5b-9a2d-9a0fbc8a1c55",
                "an ID is written as Artifact Hub reads it")
         expect((yaml.safe_load(artifacthub_bytes(ARTIFACTHUB_REPOSITORY_ID)) or {}).get("repositoryID") == ARTIFACTHUB_REPOSITORY_ID != "",
-               "ARTIFACTHUB_REPOSITORY_ID is the UUID Artifact Hub gave, and the pages job writes it as Artifact Hub reads it")
+               "ARTIFACTHUB_REPOSITORY_ID is the UUID Artifact Hub gave, and package-repos writes it as Artifact Hub reads it")
         refused("an Artifact Hub ID that is not a UUID", "not the UUID", lambda: artifacthub_bytes("not-an-id"))
         # Written again from the cache alone: nothing is fetched.
         def no_network(url):

@@ -2028,9 +2028,10 @@ project's API answered on 28 September 2026:
    pipeline one of them starts - could put their own address there and claim
    the listing. `container-image-artifacthub.sh` refuses an `owners` key only
    in the tree's file, not in a push made some other way. So a second rule,
-   `^artifacthub\.io$`, push Maintainer, delete Owner, protects it: the API gave
-   it on 6 October 2026, the day the image's repository was added to Artifact
-   Hub. `container-image-artifacthub` runs with the role of whoever started it,
+   `^artifacthub\.io$`, push Maintainer, delete Owner, protects it: the
+   maintainers added it through the API on 2 October 2026, before the image's
+   repository was added to Artifact Hub on 6 October, and the API answers with
+   it. `container-image-artifacthub` runs with the role of whoever started it,
    or pushed the tag, a maintainer in both of its pipelines.
 3. **The switch, `HM_PUBLISH_IMAGE`, stayed unset until the project had
    moved.** The maintainers decided on 27 September 2026 to move the project

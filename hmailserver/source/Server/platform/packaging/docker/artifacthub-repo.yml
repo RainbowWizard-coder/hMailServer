@@ -8,8 +8,8 @@
 # to that repository under the tag artifacthub.io, where Artifact Hub looks for it.
 #
 # repositoryID, the last line, is the ID Artifact Hub gave the repository when the
-# maintainers added it to the organization hmailserver on 6 October 2026 (Control
-# Panel, Repositories, Add, kind Container images, name hmailserver-image, URL
+# maintainers added it to the organization hmailserver on 6 October 2026, through
+# Artifact Hub's API (kind Container images, name hmailserver-image, URL
 # oci://registry.gitlab.com/hmailserver/hmailserver). Read by Artifact Hub from the
 # tag once container-image-artifacthub has pushed this file, it gives the listing its
 # Verified publisher label. It is not the Helm chart's ID, which is another
