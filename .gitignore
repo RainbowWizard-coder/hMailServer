@@ -200,3 +200,11 @@ credentials.json
 /parts/
 /stage/
 /prime/
+
+# What the security scans write where they are run (build/ci/static-analysis.sh,
+# semgrep.sh, dependency-scan.py, GitLab's analyzer): never committed, since a committed
+# report would stand in for one a scan did not write (build/ci/security-gate.py refuses
+# a tree that carries one).
+/security/
+/gl-sast-report.json
+/semgrep.sarif

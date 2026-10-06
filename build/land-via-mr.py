@@ -18,8 +18,10 @@ refusal:
      .gitleaksignore, in Docker here or where HM_SECRET_SCAN_SSH points) finds
      nothing and could run. A batch branch's pipeline does not run the
      secret_detection job and its merge request runs none, so this scan is the
-     one that reads a batch before it is on GitLab. Nothing is pushed until all
-     of this holds.
+     one that reads a batch before it is on GitLab. And a batch that changes the
+     gates' own files (GATE_FILES: the gate scripts, their jobs, this script and
+     check-release-chain.py) needs --gates-read REASON, saying a person read that
+     change whole (exit 9 without it). Nothing is pushed until all of this holds.
   2. The branch is pushed. batch* is a protected branch, so its pipeline runs
      the whole gate on the project's own runners (docs/ContinuousIntegration.md);
      a merge request from it runs no pipeline of its own, and the branch's
@@ -36,7 +38,11 @@ refusal:
      file the batch changes from master is Markdown at the root or under a
      directory whose name begins with a dot - the changes for which .own-runners
      creates no scan. A gate that is missing, skipped, or failed refuses (exit
-     5), naming it; the statuses go into the landing record.
+     5), naming it; the statuses go into the landing record. The pipeline must be
+     the project's own (its project_id), not one a fork ran on runners of its
+     owner's choosing; and each gate that finds the change's base itself
+     (BASE_GATES) must say in its log that it judged the batch against master's
+     tip, where the batch leaves it, so that a base a CI file named shows.
   5. GitLab must call the merge request mergeable: the pipeline passed, every
      thread is resolved, it is not a draft, and master has not moved.
   6. Approvals are read. On GitLab's Free tier anyone with the Developer role
@@ -65,7 +71,7 @@ push a batch* branch or merge into master), and git.
 Usage:
   python3 build/land-via-mr.py BRANCH [--remote NAME] [--dry-run] [--no-wait]
                                [--force-push] [--timeout-hours H] [--poll-seconds S]
-                               [--land-without-approval REASON]
+                               [--land-without-approval REASON] [--gates-read REASON]
   python3 build/land-via-mr.py --self-test
 
   --dry-run      the checks of step 1 and what would happen; no push, no API write
@@ -76,13 +82,18 @@ Usage:
                  the owner's override of the approval rule for this one landing
                  (a security fix inside its disclosure window, a broken master):
                  lands without a second person's approval, and records REASON
+  --gates-read REASON
+                 the batch changes the gates' own files (GATE_FILES), and a person
+                 has read that change whole: REASON says who and what, and is
+                 recorded
 
 Exit codes: 0 landed (or the dry run or --no-wait passed), 2 usage or a git or
 GitLab error, 3 the branch cannot land by fast-forward, 4 a commit is not signed
 off, 5 the merge request, its pipeline or a gate job in it did not pass, 6
 GitLab would not merge, 7 no second person approved and the owner gave no
 override, or the override was refused, 8 the secret scan found a possible
-secret in the batch's commits or could not run.
+secret in the batch's commits or could not run, 9 the batch changes the gates' own
+files and --gates-read was not given.
 """
 
 import argparse
@@ -128,6 +139,19 @@ SETTLING = {"checking", "unchecked", "approvals_syncing", "preparing", "ci_still
 # holds these names to the jobs the CI files define.
 GATE_JOBS = ("semgrep-sast", "semgrep-sast-gate", "mr-dependency-check")
 SOURCE_SCAN_JOBS = ("static-analysis", "semgrep")
+# The gates that find the change's base themselves and say it in their log ("The base:
+# <commit>, ..."): a landing holds it to where the batch leaves master, so that a base a
+# CI file named would show.
+BASE_GATES = ("semgrep-sast-gate", "mr-dependency-check")
+BASE_LINE = re.compile(r"The base: ([0-9a-f]{40}(?:[0-9a-f]{24})?), ")
+# The gates' own files: what judges a change, and what holds the jobs to it. A batch that
+# changes one is judged by the base's copy of the gate scripts too (security-gate.py's
+# base_copy_verdict), but only a person reads such a change whole, and --gates-read says
+# that one has; it goes into the landing record. build/check-release-chain.py holds this
+# list to security-gate.py's GATE_CODE.
+GATE_FILES = ("build/ci/security-gate.py", "build/ci/security-findings.py", "build/ci/mr-dependency-check.py",
+              "build/ci/dependency-scan.py", "build/ci/osv-offline-db.py", ".gitlab/ci/mr-checks.yml",
+              ".gitlab/ci/gitlab-security.yml", "build/land-via-mr.py", "build/check-release-chain.py")
 # A pipeline's jobs are read a page at a time; a batch's has more than a hundred.
 JOBS_PER_PAGE = 100
 MOST_JOB_PAGES = 50
@@ -198,6 +222,14 @@ class Glab(object):
         if done.returncode != 0:
             raise ApiError("%s %s: %s %s" % (method, path, done.stderr.decode("utf-8", "replace").strip(), out.strip()[:300]))
         return json.loads(out) if out.strip() else None
+
+    def text(self, path):
+        """What a GET of path answers, as text: a job's log, which is not JSON."""
+        done = subprocess.run(["glab", "api", "--hostname", self.host, "-X", "GET", path], stdout=subprocess.PIPE,
+                              stderr=subprocess.PIPE)
+        if done.returncode != 0:
+            raise ApiError("GET %s: %s" % (path, done.stderr.decode("utf-8", "replace").strip()[:300]))
+        return done.stdout.decode("utf-8", "replace")
 
 
 def q(text):
@@ -366,6 +398,23 @@ def required_jobs(jobs, changed):
             for name in names]
 
 
+def gate_bases(api, project, jobs):
+    """{gate: the base its log says, or None} for each of BASE_GATES, read from the log of
+    its latest attempt. A line the base's copy of a gate printed (said with that prefix,
+    security-gate.py's base_copy_verdict) is not the gate's own."""
+    found = {}
+    for name in BASE_GATES:
+        job = jobs.get(name) or {}
+        said = None
+        if job.get("id"):
+            for line in (api.text("projects/%s/jobs/%s/trace" % (project, job["id"])) or "").splitlines():
+                match = BASE_LINE.search(line)
+                if match and "base's copy:" not in line:
+                    said = match.group(1)
+        found[name] = said
+    return found
+
+
 def describe_jobs(statuses):
     return ", ".join("%s %s%s" % (name, status, " while allowed to fail" if allowed and status != "success" else "")
                      for name, status, allowed in statuses)
@@ -415,6 +464,16 @@ def land(opts, git, api, out, sleep=time.sleep, clock=time.time, scan=secret_sca
         raise Refused(8, "REFUSED: the secret scan of the %d commit(s) %s adds to %s/%s %s, so nothing was pushed. "
                          "A real secret is revoked and taken out of the commits; a fingerprint that is not one goes "
                          "in .gitleaksignore (CONTRIBUTING.md, \"Secrets\")." % (len(shas), branch, remote, TARGET, why))
+    # A batch that changes the gates' own files changes what judges it: a person reads
+    # that change whole, and says so (--gates-read), before anything is pushed.
+    changed = [p for p in git.run("diff", "--name-only", "--no-renames", "-z", base, tip).split("\0") if p]
+    gate_files = [p for p in changed if p in GATE_FILES]
+    gates_read = (getattr(opts, "gates_read", None) or "").strip()
+    if gate_files and not gates_read:
+        raise Refused(9, "REFUSED: %s changes the gates' own files (%s). The base's copy of the gate scripts judges it too, "
+                         "but only a person reads such a change whole: read it, then run this again with --gates-read "
+                         "REASON, which the landing record keeps (SECURITY.md, \"What the gates cannot hold\")"
+                         % (branch, ", ".join(gate_files)))
     authors = sorted(set(tuple(line.split("\x1f", 1)) for line in
                          git.run("log", "--format=%an\x1f%ae", "%s..%s" % (base, tip)).splitlines() if "\x1f" in line))
     say("%s at %s: %d commit(s) on top of %s/%s %s, every one signed off%s, and no possible secret in them." % (
@@ -490,6 +549,12 @@ def land(opts, git, api, out, sleep=time.sleep, clock=time.time, scan=secret_sca
             say("Pipeline %s: %s" % ("#%s %s" % (pipeline["id"], pipeline.get("web_url", "")) if pipeline else "of %s" % tip[:12], status))
             last = status
         if status == "success":
+            # The project's own pipeline: one a fork ran, on runners its owner chose, is
+            # that owner's to report.
+            if str(pipeline.get("project_id", "")) != str(project):
+                raise Refused(5, "REFUSED: pipeline #%s ran in project %s, not this one (%s): a pipeline another project "
+                                 "ran is not the gate (SECURITY.md, 'Every change')" % (
+                                     pipeline["id"], pipeline.get("project_id", "unknown"), project))
             break
         if pipeline and status not in PENDING:
             raise Refused(5, "REFUSED: the pipeline of %s is %s (%s)" % (tip[:12], status, pipeline.get("web_url", "")))
@@ -501,8 +566,8 @@ def land(opts, git, api, out, sleep=time.sleep, clock=time.time, scan=secret_sca
     # ... and the gates in it, each of which must have succeeded itself: GitLab calls a
     # pipeline a success with a job that failed while allowed to fail, or that a rule
     # never created (a push of documents alone trims the scans).
-    changed = [p for p in git.run("diff", "--name-only", "--no-renames", "-z", base, tip).split("\0") if p]
-    statuses = required_jobs(pipeline_jobs(api, project, pipeline["id"]), changed)
+    jobs = pipeline_jobs(api, project, pipeline["id"])
+    statuses = required_jobs(jobs, changed)
     jobs_line = describe_jobs(statuses)
     if documents_only(changed):
         jobs_line += " (%s not required: the batch changes Markdown alone, at the root or under a dot-directory)" % (
@@ -515,6 +580,17 @@ def land(opts, git, api, out, sleep=time.sleep, clock=time.time, scan=secret_sca
                          "the tip again so that its pipeline runs them, or find why it did not (docs/ContinuousIntegration.md, "
                          "\"Landing on master\")." % (pipeline["id"], tip[:12], " and ".join(n for n, _, _ in held),
                                                       describe_jobs(held)))
+    # ... and against the base the batch leaves master at: a gate whose log names another
+    # judged another change than the one that lands (a CI file can stand in for GitLab's
+    # variables).
+    bases = gate_bases(api, project, jobs)
+    astray = ["%s %s" % (name, ("judged it against %s" % said[:12]) if said else "says no base")
+              for name, said in sorted(bases.items()) if said != base]
+    if astray:
+        raise Refused(5, "REFUSED: the gates of pipeline #%s did not judge %s against %s/%s at %s, where it leaves it: %s "
+                         "(docs/ContinuousIntegration.md, \"Landing on master\")" % (
+                             pipeline["id"], branch, remote, TARGET, base[:12], "; ".join(astray)))
+    say("Each of %s judged the batch against %s, where it leaves %s/%s." % (" and ".join(BASE_GATES), base[:12], remote, TARGET))
 
     # 5. GitLab's own answer.
     settle = clock() + 900
@@ -563,6 +639,9 @@ def land(opts, git, api, out, sleep=time.sleep, clock=time.time, scan=secret_sca
             "- Tip: `%s`, %d commit(s) on top of master `%s`" % (tip, len(shas), base[:12]),
             "- Pipeline: %s" % pipeline_line,
             "- Gate jobs: %s" % jobs_line,
+            "- The gates' base: `%s`, where the batch leaves master, as %s said" % (base[:12], " and ".join(BASE_GATES)),
+            "- The gates' own files: %s" % (("changed (%s), read: %s" % (", ".join(gate_files), gates_read))
+                                            if gate_files else "not changed"),
             "- Sign-off: %s" % signoff_line,
             "- Second-person approval (from %s): %s%s" % (
                 source, verdict, "" if second else
@@ -663,8 +742,12 @@ class FakeGitLab(object):
 
     def __init__(self, bare, approved_by=None, pipeline_statuses=None, mergeable="mergeable", author="Progressiverobot",
                  approvals_api=True, protected_branch=False, approved_at="2026-09-26T11:00:00.000Z",
-                 version_at="2026-09-26T10:00:00.000Z", versions_api=True, lander="Progressiverobot", jobs=None):
+                 version_at="2026-09-26T10:00:00.000Z", versions_api=True, lander="Progressiverobot", jobs=None,
+                 pipeline_project=1, gate_base=None):
         self.bare = bare
+        self.pipeline_project = pipeline_project
+        # The base each gate's log says: master's tip when the log is read, unless given.
+        self.gate_base = gate_base
         self.lander = lander
         self.jobs = full_pipeline() if jobs is None else jobs
         self.mrs = {}
@@ -703,7 +786,8 @@ class FakeGitLab(object):
             sha = self._ref("refs/heads/" + mr["source_branch"])
             mr["sha"] = sha
             status = self.statuses.pop(0) if len(self.statuses) > 1 else self.statuses[0]
-            mr["head_pipeline"] = {"id": 7, "sha": sha, "status": status, "web_url": "https://example.invalid/p/7"}
+            mr["head_pipeline"] = {"id": 7, "sha": sha, "status": status, "web_url": "https://example.invalid/p/7",
+                                   "project_id": self.pipeline_project}
             mr["detailed_merge_status"] = self.mergeable
             return mr
         m = re.match(r"^projects/\d+/merge_requests/(\d+)/approvals$", path_only)
@@ -763,6 +847,19 @@ class FakeGitLab(object):
         if path_only == "user":
             return {"username": self.lander}
         raise ApiError("the fake has no %s %s" % (method, path))
+
+    def text(self, path):
+        """A job's log: a gate's says its base, as security-gate.py's auto_base says it, and
+        the base's copy's line, prefixed, names another that is not the gate's own."""
+        self.calls.append(("GET", path, {}))
+        m = re.match(r"^projects/\d+/jobs/(\d+)/trace$", path)
+        if not m:
+            raise ApiError("the fake has no log at %s" % path)
+        said = self.gate_base if self.gate_base is not None else self._ref("refs/heads/master")
+        lines = ["Running with gitlab-runner", "  base's copy: The base: %s, a line of the base's copy." % ("e" * 40)]
+        if said:
+            lines.append("The base: %s, where HEAD leaves master: git merge-base HEAD refs/remotes/origin/master." % said)
+        return "\n".join(lines + ["Job succeeded"]) + "\n"
 
 
 def self_test():
@@ -839,7 +936,7 @@ def self_test():
         def attempt(work, api, **kw):
             opts = argparse.Namespace(branch=kw.get("branch", "batch1"), remote="origin", project="1", dry_run=kw.get("dry_run", False),
                                       no_wait=False, force_push=False, timeout_hours=1, poll_seconds=0,
-                                      land_without_approval=kw.get("override"))
+                                      land_without_approval=kw.get("override"), gates_read=kw.get("gates_read"))
             # The branch is left checked out in no worktree, as a batch is folded in its own.
             run(work, "checkout", "-q", "--detach")
             sink = io.StringIO()
@@ -1132,6 +1229,51 @@ def self_test():
         expect("documents_only reads paths as .own-runners does",
                [documents_only(p) for p in (["README.md"], [".gitlab/a/b.md"], ["docs/a.md"], ["README.md", "a.txt"],
                                             ["CHANGELOG"], [])], [True, True, False, False, False, False])
+
+        # 15. A batch that changes the gates' own files needs a person's word that the
+        #     change was read; nothing is pushed without it, and it is recorded.
+        bare, work = scenario("gate-files")
+        tip = commit_files(work, {"build/ci/security-gate.py": "print('a gate')\n"}, "a gate changed, signed")
+        api = FakeGitLab(bare, approved_by=[zain])
+        code, text = attempt(work, api)
+        expect("the gates' files changed, unread: exit", code, 9)
+        expect("the gates' files changed, unread: nothing pushed", remote_ref(bare, "refs/heads/batch1"), None)
+        expect("the gates' files changed, unread: the file is named", "build/ci/security-gate.py" in text, True)
+        code, text = attempt(work, api, gates_read="read whole by the owner, 6 October 2026")
+        expect("the gates' files changed, read: exit", code, 0)
+        expect("the gates' files changed, read: master is the tip", remote_ref(bare, "refs/heads/master"), tip)
+        expect("the gates' files changed, read: recorded", len(api.notes) == 1 and
+               "changed (build/ci/security-gate.py), read: read whole by the owner" in api.notes[0], True)
+
+        # 16. A pipeline another project ran - a fork's, on runners its owner chose - is
+        #     not the gate.
+        bare, work = scenario("fork-pipeline")
+        commit(work, "signed")
+        api = FakeGitLab(bare, approved_by=[zain], pipeline_project=999)
+        code, text = attempt(work, api)
+        expect("a pipeline another project ran: exit", code, 5)
+        expect("a pipeline another project ran: said so", "ran in project 999" in text, True)
+        expect("a pipeline another project ran: no merge call", [c for c in api.calls if c[0] == "PUT"], [])
+
+        # 17. Each gate that finds its base must have judged the batch against where it
+        #     leaves master: a log that names another base, or none (the base's copy's
+        #     line is not the gate's own), refuses.
+        for what, said, needle in (("another base", "f" * 40, "judged it against ffffffffffff"),
+                                   ("no base", "", "says no base")):
+            bare, work = scenario("gate-base-" + what.replace(" ", "-"))
+            commit(work, "signed")
+            api = FakeGitLab(bare, approved_by=[zain], gate_base=said)
+            code, text = attempt(work, api)
+            expect("a gate's log with %s: exit" % what, code, 5)
+            expect("a gate's log with %s: said so" % what, needle in text, True)
+            expect("a gate's log with %s: no merge call" % what, [c for c in api.calls if c[0] == "PUT"], [])
+        bare, work = scenario("gate-base")
+        commit(work, "signed")
+        api = FakeGitLab(bare, approved_by=[zain])
+        code, text = attempt(work, api)
+        expect("the gates' logs name master's tip: exit", code, 0)
+        expect("the gates' logs were read, the latest attempt of each",
+               sorted(c[1] for c in api.calls if c[1].endswith("/trace")), ["projects/1/jobs/2001/trace", "projects/1/jobs/2002/trace"])
     finally:
         for key, value in env_keep.items():
             if value is None:
@@ -1159,6 +1301,9 @@ def main(argv):
     parser.add_argument("--poll-seconds", type=int, default=60)
     parser.add_argument("--land-without-approval", metavar="REASON",
                         help="the owner's override of the approval rule for this one landing; REASON is recorded")
+    parser.add_argument("--gates-read", metavar="REASON",
+                        help="the batch changes the gates' own files, and a person has read that change whole; REASON is "
+                             "recorded")
     opts = parser.parse_args(argv)
     repo = subprocess.run(["git", "rev-parse", "--show-toplevel"], stdout=subprocess.PIPE).stdout.decode().strip() or os.getcwd()
     try:

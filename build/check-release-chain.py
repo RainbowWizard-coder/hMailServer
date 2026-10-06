@@ -145,7 +145,9 @@ refuses it. This checker holds them to each other. It fails when:
     static-analysis, semgrep, dependency-scan and GitLab's semgrep-sast, not
     optionally, with their artifacts - the scans build/ci/security-gate.py reads -
     semgrep-sast must run for a protected v* tag and keep gl-sast-report.json as a
-    file whatever it found, and collect must ask the gate before it copies anything;
+    file whatever it found, and collect must ask the gate before it copies anything,
+    refusing a tagged tree that commits a scan's report and a semgrep-sast report
+    older than the tag's pipeline;
     or static-analysis or semgrep, which fail on a finding new to their baselines,
     is allow_failure, so that a new finding would pass a branch's pipeline unseen;
     or .gitlab/security-exceptions.yml is not a file the gate reads, or accepts a
@@ -159,7 +161,17 @@ refuses it. This checker holds them to each other. It fails when:
     auto, --base auto), and be retried twice on their script's exit 2 and on
     .gate-retry's reasons; semgrep-sast must run on a protected batch* branch too, read
     no SAST_DISABLED, take .gate-retry, and run the analyzer as the project's registry
-    holds it (mirror/semgrep:<version>-<the digest's first twelve hex digits>@<digest>);
+    holds it (mirror/semgrep:<version>-<the digest's first twelve hex digits>@<digest>),
+    not allow_failure, removing gl-sast-report.json and semgrep.sarif before the
+    analyzer runs and keeping both, every entry of its SAST_EXCLUDED_PATHS held to the
+    root, and SAST_SEMGREP_EXCLUDED_PATHS set to nothing in its own job; no CI file may
+    set SAST_SEMGREP_EXCLUDED_PATHS, SAST_RULESET_GIT_REFERENCE,
+    SAST_EXCLUDED_ANALYZERS or HM_TIDY_CHECKS, or SAST_EXCLUDED_PATHS but semgrep-sast's
+    own, or define a variable GitLab gives (CI_*, GITLAB_*, but CI_DEBUG_SERVICES); the
+    tree may carry no .semgrepignore, no .gitlab/sast-ruleset.toml and no scan's
+    report; .gitlab-ci.yml's first workflow rule must leave a merge request without a
+    pipeline of its own only when it comes from a protected batch* branch of this
+    project, the branches the gates run for in a branch's pipeline;
     static-analysis, semgrep, ci-image-packages and dependency-scan must compare a
     protected batch* branch with master (compare_to: refs/heads/master) and run for
     none that changes documentation alone; and the jobs build/land-via-mr.py requires
@@ -536,6 +548,26 @@ GATE_RULES = ('- if: $CI_PIPELINE_SOURCE == "merge_request_event"',
               '&& $CI_COMMIT_REF_PROTECTED == "true"')
 GATE_SCAN_BATCH_RULE = ('- if: $CI_PIPELINE_SOURCE != "merge_request_event" && $CI_COMMIT_BRANCH =~ /^batch/ && '
                         '$CI_COMMIT_REF_PROTECTED == "true"')
+# The first rule of .gitlab-ci.yml's workflow: a merge request from a protected batch*
+# branch of this project runs no pipeline beside the branch's, which runs the gates;
+# every other merge request, a fork's from a branch protected there among them, runs its
+# own. The branches it names are held to the ones the gates' rules run for.
+WORKFLOW_BATCH_RULE = ('- if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_SOURCE_PROJECT_ID == '
+                       '$CI_MERGE_REQUEST_PROJECT_ID && $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME =~ /^batch/ && '
+                       '$CI_MERGE_REQUEST_SOURCE_BRANCH_PROTECTED == "true"\n      when: never')
+# semgrep-sast writes its own report: what a checkout leaves of one goes first, and
+# Semgrep's SARIF, which says what the scan gave up on, is kept beside it.
+SAST_SCRIPT = "  script:\n    - rm -f gl-sast-report.json semgrep.sarif\n    - /analyzer run\n"
+# The variables by which a CI file would narrow semgrep-sast unseen, which none may
+# define but semgrep-sast's own job, SAST_SEMGREP_EXCLUDED_PATHS to nothing: a second
+# list of exclusions the analyzer passes to Semgrep, a ruleset from another repository,
+# the analyzers left out, and clang-tidy's checks for static-analysis.
+SAST_NARROWING_VARIABLES = ("SAST_SEMGREP_EXCLUDED_PATHS", "SAST_RULESET_GIT_REFERENCE", "SAST_EXCLUDED_ANALYZERS",
+                            "HM_TIDY_CHECKS")
+# What the tree may not carry: a .semgrepignore (GitLab's analyzer includes the root's,
+# Semgrep reads one in a directory), GitLab's custom ruleset, and a scan's report.
+NOT_IN_THE_TREE = re.compile(r"(?:^|/)\.semgrepignore[^/]*$|^\.gitlab/sast-ruleset\.toml$|^gl-sast-report\.json$|"
+                             r"^semgrep\.sarif$|^security/")
 # What GitLab may fail a gate's job for that is no answer of its own, retried (.gate-retry
 # in .gitlab/ci/gitlab-security.yml); and the gates' scripts' "could not read", exit 2.
 GATE_RETRY_REASONS = ("runner_system_failure", "runner_external_dependency_failure", "runner_interrupted",
@@ -2172,6 +2204,11 @@ def check(texts, chain, feed):
     if asked < 0 or copied < asked or collect_text.find("    if problems:\n        return problems", asked) < 0:
         problems.append("build/ci/release-chain.py's collect no longer asks build/ci/security-gate.py before it copies the "
                         "release's files, or goes on past what the gate says")
+    if "problems.extend(security_gate.committed_reports(root, run))" not in collect_text or \
+            "not_before=security_gate.pipeline_created(env)" not in collect_text:
+        problems.append("build/ci/release-chain.py's collect does not refuse a tagged tree that commits a scan's report, or "
+                        "a semgrep-sast report older than the tag's pipeline: either would stand in for a report the scan "
+                        "did not write")
     entries, wrong = chain.security_gate.check_exceptions(texts["exceptions"])
     problems.extend(wrong)
     owners = dict((line.split()[0], line.split()[1:]) for line in texts["codeowners"].split("\n")
@@ -2194,21 +2231,100 @@ def check(texts, chain, feed):
     if not os.path.isfile(os.path.join(ROOT, ".gitleaksignore")):
         problems.append(".gitleaksignore is missing: the findings read and found not to be secrets would fail secret_detection")
 
-    found, said = change_gate_problems(texts, jobs, security_jobs)
+    found, said = change_gate_problems(texts, jobs, security_jobs, chain.security_gate)
     problems.extend(found)
     notes.extend(said)
     return problems, notes
 
 
-def change_gate_problems(texts, jobs, security_jobs):
+def sast_scope_problems(texts, security_jobs, gates_jobs, security_gate):
+    """What would let semgrep-sast's report be another's, or its scope narrow unseen:
+    semgrep-sast allow_failure, not removing what a checkout leaves of its outputs, not
+    keeping Semgrep's SARIF, an exclusion not held to the root, a narrowing variable a
+    CI file defines, a CI file that defines a variable GitLab gives, a file of the tree
+    that narrows the scan or stands in for its report, and a workflow whose first rule
+    names other branches than the gates run for."""
+    problems = []
+    sast = security_jobs.get(GATE_SCAN, "")
+    if not re.search(r"^  allow_failure: false\s*$", sast, re.MULTILINE):
+        problems.append("semgrep-sast does not say allow_failure: false: GitLab's template makes it true, and a scan that "
+                        "failed would let a report the job did not write reach semgrep-sast-gate")
+    if SAST_SCRIPT not in sast + "\n":
+        problems.append("semgrep-sast does not remove gl-sast-report.json and semgrep.sarif before /analyzer run "
+                        "(%r): a copy the checkout carries would be kept as the scan's" % SAST_SCRIPT)
+    kept = re.search(r"^  artifacts:\s*\n((?:    .*\n?)+)", sast, re.MULTILINE)
+    if not kept or not re.search(r"^      - semgrep\.sarif\s*$", kept.group(1), re.MULTILINE):
+        problems.append("semgrep-sast does not keep semgrep.sarif (artifacts: paths): semgrep-sast-gate reads from it "
+                        "which files the scan gave up on")
+    if security_gate is None:
+        return problems
+    # Every CI file, each of FILES as texts holds it (so that the self-test's breakings
+    # are read), the other included files as the tree has them.
+    every_ci = dict(texts.get("ci-includes", {}))
+    for key, relative in FILES.items():
+        if relative.replace(os.sep, "/") in every_ci and key in texts:
+            every_ci[relative.replace(os.sep, "/")] = texts[key]
+    every_ci[".gitlab-ci.yml"] = texts["ci"]
+    security_file = FILES["security"].replace(os.sep, "/")
+    entries, readable = security_gate.exclusions(security_gate.scope_variables({security_file: texts["security"]}))
+    loose = [e for e in entries if not security_gate._pattern_parts(e)[0]]
+    if not readable or not entries or loose:
+        problems.append("semgrep-sast's SAST_EXCLUDED_PATHS has %s: an entry with no slash leaves out a directory of that "
+                        "name at any depth (Semgrep's --exclude and GitLab's filter alike), so begin each with a slash or "
+                        "name its path" % (", ".join(repr(e) for e in loose) if loose else "no entry this can read"))
+    for path, text in sorted(every_ci.items()):
+        defined = security_gate.scope_variables({path: text})
+        for name in SAST_NARROWING_VARIABLES:
+            values = defined.get(name, [])
+            if not values:
+                continue
+            if path == security_file and name == "SAST_SEMGREP_EXCLUDED_PATHS" and values == [""]:
+                continue
+            problems.append("%s defines %s (%s): it would narrow what semgrep-sast or static-analysis reads unseen; only "
+                            "semgrep-sast's job sets SAST_SEMGREP_EXCLUDED_PATHS, to nothing" % (
+                                path, name, ", ".join(repr(v) for v in values)))
+        if path != security_file and defined.get("SAST_EXCLUDED_PATHS"):
+            problems.append("%s defines SAST_EXCLUDED_PATHS: semgrep-sast's own job says what it leaves out, in %s alone"
+                            % (path, security_file))
+    if not any(v == [""] for p, t in every_ci.items() if p == security_file
+               for v in [security_gate.scope_variables({p: t}).get("SAST_SEMGREP_EXCLUDED_PATHS")]):
+        problems.append("semgrep-sast does not set SAST_SEMGREP_EXCLUDED_PATHS to nothing itself (SAST_SEMGREP_EXCLUDED_PATHS: "
+                        "\"\"): a value a CI file gives every job would reach the analyzer as Semgrep's --exclude")
+    for path, name in security_gate.ci_variable_definitions(every_ci):
+        problems.append("%s defines %s, a variable GitLab gives a pipeline: a CI file's definition stands in for GitLab's, "
+                        "and the gates read these to tell which pipeline this is and what a change's base is" % (path, name))
+    carried = [f for f in texts.get("tree", []) if NOT_IN_THE_TREE.search(f)]
+    if carried:
+        problems.append("the tree carries %s: a .semgrepignore or GitLab's custom ruleset narrows semgrep-sast, and a "
+                        "committed report stands in for one a scan did not write" % ", ".join(carried[:5]))
+    workflow = blocks(texts["ci"]).get("workflow", "")
+    first = re.search(r"^  rules:[ \t]*\n    (- if: .*\n      when: never)", workflow + "\n", re.MULTILINE)
+    if not first or first.group(1) != WORKFLOW_BATCH_RULE:
+        problems.append(".gitlab-ci.yml's first workflow rule is not %r: a merge request from a fork's protected branch, "
+                        "or from a protected branch here that runs no gate, would run no pipeline of its own"
+                        % WORKFLOW_BATCH_RULE)
+    workflow_branches = re.findall(r"CI_MERGE_REQUEST_SOURCE_BRANCH_NAME =~ (/[^/\n]+/)", first.group(1) if first else "")
+    gate_branches = set(re.findall(r"CI_COMMIT_BRANCH =~ (/[^/\n]+/)", "\n".join(
+        rules_text(name, gates_jobs) for name in CHANGE_GATES) + "\n" + rules_text(GATE_SCAN, security_jobs)))
+    if len(workflow_branches) != 1 or gate_branches != set(workflow_branches):
+        problems.append("the branches whose merge requests run no pipeline of their own (%s) are not the ones the gates run "
+                        "for in a branch's pipeline (%s): a merge request from one of the others would land with no gate"
+                        % (", ".join(workflow_branches) or "none named", ", ".join(sorted(gate_branches)) or "none"))
+    return problems
+
+
+def change_gate_problems(texts, jobs, security_jobs, security_gate=None):
     """(problems, notes): the two change gates run on every change, blocking, with no
     switch and no trigger list, against a base they find themselves, retried on what is
     not their answer; semgrep-sast runs where the first needs it, from the project's
-    copy of the analyzer; the scans on linix judge a batch against master; and the jobs
-    build/land-via-mr.py requires are jobs of the CI files."""
+    copy of the analyzer, blocking, with its report its own and nothing narrowing it
+    unseen; no CI file defines a variable GitLab gives; the workflow's first rule names
+    the branches the gates run for; the scans on linix judge a batch against master;
+    and the jobs build/land-via-mr.py requires are jobs of the CI files."""
     problems, notes = [], []
     gates_jobs = blocks(texts["mr-checks"])
     every = dict(security_jobs, **gates_jobs)
+    problems.extend(sast_scope_problems(texts, security_jobs, gates_jobs, security_gate))
 
     # semgrep-sast: on a batch* branch too, never switched off, from the mirror, retried.
     def has_rule(text, rule):
@@ -2318,6 +2434,19 @@ def change_gate_problems(texts, jobs, security_jobs):
         absent = [n for n in needed if n not in required]
         if absent:
             problems.append("build/land-via-mr.py's %s does not require %s before it lands a batch" % (constant, ", ".join(absent)))
+    # Its GATE_FILES, which a batch changes only with --gates-read, name the gates' code
+    # (security-gate.py's GATE_CODE, which the base's copy runs) and their jobs; and its
+    # BASE_GATES, whose logs it reads for the base, are the change gates.
+    landing = landing_module()
+    gate_files = set(getattr(landing, "GATE_FILES", None) or ())
+    needed = set(getattr(security_gate, "GATE_CODE", ())) | {FILES["mr-checks"].replace(os.sep, "/"),
+                                                             FILES["security"].replace(os.sep, "/")}
+    if needed - gate_files:
+        problems.append("build/land-via-mr.py's GATE_FILES leave out %s: a batch could change what judges it with no "
+                        "person's word that the change was read" % ", ".join(sorted(needed - gate_files)))
+    if sorted(getattr(landing, "BASE_GATES", None) or ()) != sorted(CHANGE_GATES):
+        problems.append("build/land-via-mr.py's BASE_GATES are not the change gates (%s): a landing would not read each "
+                        "one's base from its log" % ", ".join(sorted(CHANGE_GATES)))
     # Its documents_only, as the module has it, against the paths .own-runners' rules
     # start no scan for: the tree's files and LANDING_SAMPLE_PATHS.
     anchor = re.search(r"^        paths: &%s\s*\n((?:          - \"[^\"\n]+\"\s*\n)+)" % NOT_DOCS_ONLY, jobs.get(".own-runners", "") + "\n",
@@ -2962,7 +3091,8 @@ def self_test(chain, feed):
            "prints a sanitizer's SUMMARY whole")
     broken("fuzz findings claimed by another job", "ci", "    paths:\n      - security/repo-hygiene/", "    paths:\n      - fuzz-results/\n      - security/repo-hygiene/",
            "repo-hygiene claims fuzz-results/")
-    broken("a secret found as a warning", "security", "  allow_failure: false\n", "", "secret_detection does not say allow_failure: false")
+    broken("a secret found as a warning", "security", "  allow_failure: false\n  rules:\n    - if: $SECRET_DETECTION_DISABLED",
+           "  rules:\n    - if: $SECRET_DETECTION_DISABLED", "secret_detection does not say allow_failure: false")
     broken("the analyzer's exit taken as the verdict", "security", "      if grep -Eq '\"vulnerabilities\" *: *\\[ *\\]' \"$report\"; then", "      if true; then",
            "secret_detection does not read its report")
     broken("the verifier trusting another file", "verifier", '//.gitlab-ci.yml@refs/tags/v"', '//.gitlab/ci.yml@refs/tags/v"', "GITLAB_IDENTITY_PREFIX")
@@ -3273,15 +3403,49 @@ def self_test(chain, feed):
     broken("a release that needs a scan optionally", "ci", "    - job: static-analysis\n      artifacts: true\n",
            "    - job: static-analysis\n      artifacts: true\n      optional: true\n", "release needs static-analysis optionally")
     broken("GitLab's SAST not run for a release tag", "security",
-           '    - if: $CI_COMMIT_TAG =~ /^v/ && $CI_COMMIT_REF_PROTECTED == "true"\n  # The report as a plain file',
-           "  # The report as a plain file", "semgrep-sast does not run for a protected v* tag")
+           '    - if: $CI_COMMIT_TAG =~ /^v/ && $CI_COMMIT_REF_PROTECTED == "true"\n  # The analyzer writes its report',
+           "  # The analyzer writes its report", "semgrep-sast does not run for a protected v* tag")
     broken("GitLab's SAST report kept as a report only", "security", "    paths:\n      - gl-sast-report.json\n", "",
            "semgrep-sast does not keep gl-sast-report.json")
     broken("collect not asking the gate", "chain",
-           '    problems.extend(security_gate.evaluate(root, root, exceptions_text=exceptions or "exceptions: []\\n", say=say))\n', "",
+           '        problems.extend(security_gate.evaluate(root, root, exceptions_text=exceptions or "exceptions: []\\n", say=say,\n'
+           '                                               not_before=security_gate.pipeline_created(env)))\n', "",
            "no longer asks build/ci/security-gate.py")
-    broken("the gate given the tagged tree's exceptions", "chain", 'exceptions_text=exceptions or "exceptions: []\\n", say=say)',
-           "say=say)", "does not give the gate master's")
+    broken("the gate given the tagged tree's exceptions", "chain", 'exceptions_text=exceptions or "exceptions: []\\n", say=say,',
+           "say=say,", "does not give the gate master's")
+    broken("collect taking a committed report", "chain", "        problems.extend(security_gate.committed_reports(root, run))\n",
+           "", "does not refuse a tagged tree that commits a scan's report")
+    broken("collect taking an older report", "chain", ",\n                                               not_before=security_gate.pipeline_created(env)",
+           "", "does not refuse a tagged tree that commits a scan's report")
+    # semgrep-sast's report is its own, and nothing narrows it unseen.
+    broken("semgrep-sast allowed to fail again", "security", "  allow_failure: false\n  variables:\n",
+           "  allow_failure: true\n  variables:\n", "semgrep-sast does not say allow_failure: false")
+    broken("semgrep-sast keeping a report the checkout carries", "security", "    - rm -f gl-sast-report.json semgrep.sarif\n", "",
+           "semgrep-sast does not remove gl-sast-report.json and semgrep.sarif")
+    broken("semgrep-sast not keeping its SARIF", "security", "      - semgrep.sarif\n", "", "does not keep semgrep.sarif")
+    broken("an exclusion at any depth", "security", '"/spec, ', '"spec, ', "an entry with no slash leaves out")
+    broken("semgrep-sast's second list of exclusions left to the CI files", "security", '    SAST_SEMGREP_EXCLUDED_PATHS: ""\n', "",
+           "does not set SAST_SEMGREP_EXCLUDED_PATHS to nothing itself")
+    for name in SAST_NARROWING_VARIABLES:
+        broken("%s set for every job" % name, "ci", '  PYTHONUTF8: "1"\n', '  PYTHONUTF8: "1"\n  %s: "x"\n' % name,
+               ".gitlab-ci.yml defines %s" % name)
+    broken("another list of what semgrep-sast leaves out", "ci", '  PYTHONUTF8: "1"\n',
+           '  PYTHONUTF8: "1"\n  SAST_EXCLUDED_PATHS: "hmailserver"\n', ".gitlab-ci.yml defines SAST_EXCLUDED_PATHS")
+    for name in ("CI_MERGE_REQUEST_DIFF_BASE_SHA", "CI_PIPELINE_SOURCE", "GITLAB_FEATURES"):
+        broken("a CI file that defines %s" % name, "ci", '  PYTHONUTF8: "1"\n', '  PYTHONUTF8: "1"\n  %s: "x"\n' % name,
+               ".gitlab-ci.yml defines %s, a variable GitLab gives" % name)
+    for planted in (".semgrepignore", "hmailserver/source/.semgrepignore", ".semgrepignore.local", ".gitlab/sast-ruleset.toml",
+                    "gl-sast-report.json", "semgrep.sarif", "security/semgrep/gl-sast-semgrep.json"):
+        found, _ = check(dict(texts, tree=list(texts["tree"]) + [planted]), chain, feed)
+        if not any("the tree carries %s" % planted in p for p in found):
+            failures.append("a tree that carries %s is caught: %s" % (planted, found))
+    workflow_rule = WORKFLOW_BATCH_RULE.split("\n")[0]
+    broken("a fork's protected branch running no merge request pipeline", "ci", workflow_rule,
+           workflow_rule.replace("$CI_MERGE_REQUEST_PROJECT_ID", "$CI_PROJECT_ID"), "first workflow rule is not")
+    broken("every protected branch's merge request running none", "ci", workflow_rule,
+           workflow_rule.replace(" && $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME =~ /^batch/", ""), "first workflow rule is not")
+    broken("the gates run for more branches than the workflow names", "mr-checks", GATE_RULES[1],
+           GATE_RULES[1].replace("/^batch/", "/^(batch|release)/"), "are not the ones the gates run for")
     # The change gates, on every change: semgrep-sast where its gate needs it, the gates'
     # rules, retries and bases, the scans on linix against master, and land-via-mr's list.
     broken("semgrep-sast not run on a batch* branch", "security", "    " + GATE_SCAN_BATCH_RULE + "\n", "",
@@ -3347,6 +3511,17 @@ def self_test(chain, feed):
     broken("land-via-mr without its list of scans", "land", scan_jobs, "SCANS = ()", "names no SOURCE_SCAN_JOBS")
     broken("land-via-mr's gates named by an expression", "land", gate_jobs, "GATE_JOBS = tuple(sorted(OWNER))",
            "GATE_JOBS is not a literal list of job names")
+    landing = landing_module()
+    for constant, stand_in, needle in (("GATE_FILES", ("build/land-via-mr.py",), "GATE_FILES leave out"),
+                                       ("BASE_GATES", ("semgrep-sast-gate",), "BASE_GATES are not the change gates")):
+        held = getattr(landing, constant)
+        try:
+            setattr(landing, constant, stand_in)
+            found, _ = check(texts, chain, feed)
+        finally:
+            setattr(landing, constant, held)
+        if not any(needle in p for p in found):
+            failures.append("land-via-mr's %s as %r is caught: %s" % (constant, stand_in, found))
     # Its documents_only, as a landing runs it, against the CI files' not-docs-only.
     landing = landing_module()
     held = getattr(landing, LANDING_DOCUMENTS, None)

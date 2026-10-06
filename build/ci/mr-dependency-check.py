@@ -28,7 +28,10 @@ fetched by name. What it reads, at the base and at the head, from git:
   **/packages.config       the older .NET projects' NuGet packages;
   **/*requirements*.txt    the Python tools' pinned packages (name==version), PyPI -
                            every name Renovate's pip_requirements manager updates,
-                           build/ci/cli-packages-requirements.txt among them;
+                           build/ci/cli-packages-requirements.txt among them; a line
+                           the change adds that pins no version so (a range, a URL
+                           or a path, an editable, another index) holds it, since
+                           pip would install what OSV cannot be asked about;
   the native and vendored libraries
                            every library of build/ci/dependency-scan.py's VENDORED,
                            at each version its file pins, read as that scan reads
@@ -70,11 +73,15 @@ asked of OSV (api.osv.dev) by its upstream repository's tag, as dependency-scan 
 with the library's CONTROL version beside it, and rated as above, an alias's record
 fetched from api.osv.dev when the advisory has no rating of its own. A version older
 than the repository's first tag (7-Zip's 22.01), which OSV cannot match, is held by
-the Critical and High advisories of that first tag, as ones that may affect it. A
-library with no repository OSV knows (SQL Server Compact), or one for which OSV names
-nothing for the control version either, has no usable data: it is listed as UNKNOWN
-and not held, and is read by hand against the SBOM at release (SECURITY.md). So is a
-component of a native list that is no library of VENDORED.
+the Critical and High advisories of that first tag, as ones that may affect it; and a
+version older than its control that OSV names nothing for, while it names advisories
+for the control (OpenSSL's 0.9.6 draws none where 4.0.0 draws 43), by the control's. A
+control VENDORED marks as one OSV is known to name (control_draws) that draws nothing
+is OSV's data not read: exit 2. A library with no repository OSV knows (SQL Server
+Compact), or one whose control OSV is not known to name and names nothing for either,
+has no usable data: it is listed as UNKNOWN and not held, and is read by hand against
+the SBOM at release (SECURITY.md). So is a component of a native list that is no
+library of VENDORED.
 
 A Critical or High advisory against an added version holds the change, unless one of
 two declarations as the BASE has them accepts it: .gitlab/security-exceptions.yml,
@@ -84,7 +91,12 @@ by build/ci/security-gate.py's own reader; or the VEX document,
 .gitlab/hmailserver.openvex.json, a not_affected statement naming the advisory and
 the package at that version by its purl (pkg:nuget/, pkg:pypi/ with PEP 503's names,
 pkg:generic/ for a native library). Never the change's own copies, so a change
-cannot accept its own advisory. The rest is listed.
+cannot accept its own advisory. The rest is listed. A base whose own files are broken
+holds no change by that alone, or no change could mend it: its exceptions file that
+cannot be read, and an entry of it reviewed after today, accept nothing, and a lock
+file of its that cannot be read names nothing, so that every version the head's copy
+names is looked up. When the change alters the gates' code, the base's copy of this
+script judges it too (build/ci/security-gate.py, base_copy_verdict).
 
 Usage, from the root of a clone of the change's head with its history:
   python3 build/ci/mr-dependency-check.py --base SHA|auto [--osv-dir DIR] [--today YYYY-MM-DD]
@@ -159,9 +171,40 @@ def pypi_name(name):
     return re.sub(r"[-_.]+", "-", name).lower()
 
 
-def parse_lock(kind, text):
+# What a requirements file may say beside its pins, name==version with the pin's hashes:
+# pip's switches that only choose among a pinned version's own files, PyPI's own index,
+# and a requirements or constraints file whose name is one Renovate's pip_requirements
+# manager reads, which is read here on its own too. Any other line - an unpinned or
+# ranged version, a URL or a path for a package, an editable, another index, a page of
+# links - is one pip would install from, and OSV cannot be asked about what it gives.
+PIP_SWITCHES = re.compile(r"^(?:--require-hashes|--prefer-binary|--no-deps|--(?:only|no)-binary(?:=|\s+)\S+)$")
+PIP_INDEX = re.compile(r"^(?:-i|--index-url)(?:=|\s+)https://pypi\.org/simple/?$")
+PIP_FILE = re.compile(r"^(?:-r|--requirement|-c|--constraint)(?:=|\s+)(\S+)$")
+PIP_PIN = re.compile(r"^([A-Za-z0-9][A-Za-z0-9._-]*)(\[[^\]]*\])?\s*===?\s*([^\s;*]+)\s*(?:;.*)?$")
+
+
+def pip_lines(text):
+    """The logical lines of a requirements file, as pip reads them: a line that ends in a
+    backslash goes on with the next, and a # at a line's start or after a blank begins a
+    comment."""
+    lines, held = [], ""
+    for raw in text.lstrip("﻿").replace("\r\n", "\n").split("\n"):
+        raw = re.sub(r"(^|\s)#.*$", "", raw).rstrip()
+        if raw.endswith("\\"):
+            held += raw[:-1] + " "
+            continue
+        lines.append((held + raw).strip())
+        held = ""
+    if held.strip():
+        lines.append(held.strip())
+    return [line for line in lines if line]
+
+
+def parse_lock(kind, text, odd=None):
     """[(ecosystem, name as written, version)] of one lock file. ValueError when it
-    cannot be read: a lock file this cannot read is never a clean one."""
+    cannot be read: a lock file this cannot read is never a clean one. odd, when given,
+    collects each line of a requirements file that pins no version by name==version and
+    that no other rule of PIP_SWITCHES, PIP_INDEX and PIP_FILE allows."""
     found = []
     if kind == "nuget-lock":
         document = json.loads(text.lstrip("\ufeff"))
@@ -179,14 +222,22 @@ def parse_lock(kind, text):
                 raise ValueError("a <package> without id or version")
             found.append(("NuGet", package.get("id"), package.get("version")))
     elif kind == "pip":
-        for line in text.splitlines():
-            line = line.split("#", 1)[0].strip()
-            # Options (-r, --hash=..., --index-url) name no package of their own.
-            if not line or line.startswith("-"):
+        for line in pip_lines(text):
+            if line.startswith("-"):
+                listed = PIP_FILE.match(line)
+                if not (PIP_SWITCHES.match(line) or PIP_INDEX.match(line)
+                        or (listed and lock_kind(listed.group(1).replace("\\", "/")) == "pip")):
+                    if odd is not None:
+                        odd.append(line[:200])
                 continue
-            match = re.match(r"^([A-Za-z0-9][A-Za-z0-9._-]*)(\[[^\]]*\])?\s*===?\s*([^\s;\\]+)", line)
+            # A pin's hashes follow it; any other option on its line is pip's to act on.
+            words = line.split()
+            rest = " ".join(w for w in words if not w.startswith("--hash="))
+            match = PIP_PIN.match(rest) if not re.search(r"\s-", " " + rest) else None
             if match:
                 found.append(("PyPI", match.group(1), match.group(3)))
+            elif odd is not None:
+                odd.append(line[:200])
     elif kind == "native":
         document = json.loads(text.lstrip("\ufeff"))
         for component in document if isinstance(document, list) else []:
@@ -203,8 +254,11 @@ def git(root, *arguments):
     return subprocess.run(["git", "-C", root] + list(arguments), capture_output=True)
 
 
-def dependencies_at(root, ref):
-    """{key: [(file, name, version)]} of every lock file at ref."""
+def dependencies_at(root, ref, odd=None, unreadable=None):
+    """{key: [(file, name, version)]} of every lock file at ref. odd, when given, collects
+    (file, line) for each requirements line that pins no version (parse_lock). A lock
+    file that cannot be read is a ValueError, unless unreadable is given - at the base -
+    when it collects (file, why) and the file is read as naming nothing."""
     listed = git(root, "ls-tree", "-r", "-z", "--name-only", ref)
     if listed.returncode != 0:
         raise ValueError("git ls-tree %s failed: %s" % (ref, listed.stderr.decode("utf-8", "replace").strip()[:300]))
@@ -217,19 +271,35 @@ def dependencies_at(root, ref):
         shown = git(root, "show", "%s:%s" % (ref, path))
         if shown.returncode != 0:
             raise ValueError("git show %s:%s failed" % (ref, path))
+        lines = []
         try:
-            entries = parse_lock(kind, shown.stdout.decode("utf-8"))
+            entries = parse_lock(kind, shown.stdout.decode("utf-8"), lines)
         except (ValueError, ET.ParseError, UnicodeDecodeError) as e:
-            raise ValueError("%s at %s cannot be read: %s" % (path, ref[:12], e))
+            if unreadable is None:
+                raise ValueError("%s at %s cannot be read: %s" % (path, ref[:12], e))
+            unreadable.append((path, str(e)[:200]))
+            continue
+        if odd is not None:
+            odd.extend((path, line) for line in lines)
         for ecosystem, name, version in entries:
             found.setdefault(key_of(ecosystem, name, version), []).append((path, name, version))
     return found
 
 
-def added_dependencies(root, base):
-    """[(key, [(file, name, version)])] at HEAD and not at base."""
-    before = dependencies_at(root, base)
-    after = dependencies_at(root, "HEAD")
+def added_dependencies(root, base, odd_added=None, say=print):
+    """[(key, [(file, name, version)])] at HEAD and not at base. odd_added, when given,
+    collects (file, line) for each requirements line that pins no version and that the
+    base does not have. A lock file the base has that cannot be read names nothing there,
+    and is said: every version the head's names is then added, and no broken base holds
+    every change, the one that mends it among them."""
+    base_odd, head_odd, unreadable = [], [], []
+    before = dependencies_at(root, base, base_odd, unreadable)
+    after = dependencies_at(root, "HEAD", head_odd)
+    for path, why in unreadable:
+        say("The base's %s cannot be read (%s): it names nothing there, so every version this change's copy names is "
+            "looked up." % (path, why))
+    if odd_added is not None:
+        odd_added.extend(sorted(set(head_odd) - set(base_odd)))
     return sorted((key, where) for key, where in after.items() if key not in before)
 
 
@@ -873,14 +943,28 @@ def evaluate_native(changes, accepted, statements, osv, say, held_versions):
         tag, control = tag_of(version), tag_of(lib["control"])
         found = osv.query(lib["repo"], tag)
         control_found = osv.query(lib["repo"], control)
-        maybe = []
+        if lib.get("control_draws") and not control_found:
+            # The control is one OSV is known to name: its silence is OSV's data not read,
+            # never an answer.
+            raise ValueError("api.osv.dev names no advisory for %s's control %s, which it is known to name (dependency-scan's "
+                             "VENDORED): its answer for %s cannot be taken" % (lib["name"], control, tag))
+        maybe, below = [], None
         if lib.get("oldest_tag") and scan.version_key(version) < scan.version_key(lib["oldest_tag"]):
             # OSV matches a version by its tag, and the repository has none this old: what
             # affects its first tag most probably reaches back to it.
+            below = lib["oldest_tag"]
             maybe = [v for v in osv.query(lib["repo"], tag_of(lib["oldest_tag"]))
                      if v.get("id") not in {f.get("id") for f in found}]
             say("        %s is older than %s's first tag, %s, which OSV cannot match: the advisories of %s are taken as "
                 "ones that may affect it (%d)" % (version, lib["repo"], lib["oldest_tag"], lib["oldest_tag"], len(maybe)))
+        elif not found and control_found and scan.version_key(version) < scan.version_key(lib["control"]):
+            # Older than the control, which OSV names advisories for, and named in none
+            # itself: OSV did not match the tag (OpenSSL's 0.9.6 draws none where 4.0.0
+            # draws 43), and what affects the control most probably reaches back to it.
+            below = lib["control"]
+            maybe = list(control_found)
+            say("        %s is older than the control %s, and OSV names no advisory for it where it names %d for the "
+                "control: the control's are taken as ones that may affect it" % (version, lib["control"], len(maybe)))
         if not found and not maybe:
             if not control_found:
                 say("UNKNOWN %s: OSV names no advisory for %s, but none for the control %s either, which a published "
@@ -902,7 +986,7 @@ def evaluate_native(changes, accepted, statements, osv, say, held_versions):
             line = "native %s: %s %s (%s)%s%s - %s" % (
                 what, level or "unrated", advisory["id"], ", ".join(others) or "no alias",
                 (" - fix commit %s" % ", ".join(fixes[:4])) if fixes else " - no fix",
-                (" - MAY affect it: OSV cannot match %s, and this advisory affects %s" % (version, lib["oldest_tag"]))
+                (" - MAY affect it: OSV cannot match %s, and this advisory affects %s" % (version, below))
                 if uncertain else "",
                 (advisory.get("summary") or advisory.get("details") or "")[:140].replace("\n", " "))
             if level in BLOCKING and not taken:
@@ -933,11 +1017,16 @@ def evaluate(added, exceptions_text, today, loader, say=print, held_versions=Non
     statements = statements or []
     native = native or []
     problems = []
+    # A base's exceptions file that cannot be read, or an entry of it reviewed after
+    # today, accepts nothing, and is said, not held: held, it would hold every change,
+    # the one that mends it among them.
     entries, wrong = gate.check_exceptions(exceptions_text)
     if wrong:
-        return ["the base's %s cannot be read, so nothing is accepted: %s" % (EXCEPTIONS, w) for w in wrong]
+        say("The base's %s cannot be read, so it accepts nothing here: %s" % (EXCEPTIONS, "; ".join(wrong)))
+        entries = []
     in_force, wrong = gate._in_force(entries, today, say)
-    problems.extend(wrong)
+    for line in wrong:
+        say("Accepts nothing here: %s" % line)
     accepted = {}
     for e in in_force.get("dependency-scan", []):
         accepted[(e["finding"], pypi_name(e["package"]))] = e
@@ -1041,8 +1130,9 @@ def main_check(root, base, osv_dir=None, today=None, say=print, osv=None):
     if git(root, "cat-file", "-e", base + "^{commit}").returncode != 0:
         say("CANNOT CHECK: the base commit %s is not in this clone: the job needs the history (GIT_DEPTH 0)" % base)
         return 2
+    odd = []
     try:
-        added = added_dependencies(root, base)
+        added = added_dependencies(root, base, odd, say)
         # A committed native component list's entries are native libraries' pins.
         native = native_changes(root, base, [a for a in added if a[0][0] not in PURL_TYPES])
         added = [a for a in added if a[0][0] in PURL_TYPES]
@@ -1060,17 +1150,20 @@ def main_check(root, base, osv_dir=None, today=None, say=print, osv=None):
     except (OSError, ValueError, zipfile.BadZipFile, http.client.HTTPException) as e:
         say("CANNOT CHECK: OSV's advisories could not be read (%s): no answer is not a clean answer; retry the job" % e)
         return 2
+    unpinned = ["%s: %r pins no version by name==version, or names an index, a link or an option of pip's beside PyPI's "
+                "own: pip would install what OSV cannot be asked about. Pin it by name==version with its hashes, as "
+                "Renovate's pip_requirements manager does" % (path, line) for path, line in odd]
+    problems = unpinned + problems
     for p in problems:
         say("HELD: " + p)
     if problems:
         advisories = sum(1 for p in problems if " [rated by " in p)
-        other = len(problems) - advisories
         say("This change is held: %d added dependency version(s) with %d Critical or High advisory(ies) between "
             "them%s. Take a version no such advisory affects, or have the advisory declared not exploitable - accepted "
             "for the package in %s, or not_affected for it at that version in %s - by a merge request of its own, "
             "landed first (SECURITY.md, 'Vulnerability management policy')." % (
                 len(held_versions), advisories,
-                (", and %d problem(s) with the base's exceptions file" % other) if other else "", EXCEPTIONS, VEX))
+                (", and %d requirement line(s) that pin no version" % len(unpinned)) if unpinned else "", EXCEPTIONS, VEX))
         return 1
     say("No added dependency version has a Critical or High advisory that the base's %s or %s does not accept."
         % (EXCEPTIONS, VEX))
@@ -1446,6 +1539,59 @@ def self_test():
                and any(s.startswith("UNKNOWN libfoo 1.0") for s in said),
                "a native list's component is asked about as the library of VENDORED with its purl name, and one that is "
                "none is listed: %s" % said)
+        # A control OSV is known to name that draws nothing is OSV's data not read; a
+        # version older than a control that draws advisories, named in none itself, is
+        # one OSV did not match, held by the control's.
+        reset(base)
+        commit(natives(zlib="1.3.1"), "zlib 1.3.1, OSV's control answering nothing")
+        silent = FakeOsv()
+        silent.query = lambda repo, tag: [] if tag == "v1.3" else FakeOsv.query(silent, repo, tag)
+        expect(verdict(base, osv=silent) == 2 and any("known to name" in s for s in said),
+               "a control OSV is known to name that draws nothing is never a pass: %s" % said)
+        reset(base)
+        commit(natives(mariadb="3.0.0"), "a Connector/C older than its control, which OSV names nothing for")
+        expect(verdict(base) == 1 and any("CVE-2020-1" in s and "MAY affect" in s for s in said if s.startswith("HELD")),
+               "a version below a control that draws a Critical advisory, named in none itself, is held by it: %s" % said)
+
+        # A requirements line that pins no version by name==version is held, and one the
+        # base already has is not the change's.
+        for line, holds in (("requests>=2.0", True), ("requests @ https://example.invalid/requests-2.0.whl --hash=sha256:%s"
+                                                       % ("0" * 64), True),
+                            ("--extra-index-url https://example.invalid/simple", True), ("-e git+https://x.invalid/r#egg=r", True),
+                            ("--index-url https://pypi.org/simple", False), ("-r requirements-dev.txt", False),
+                            ("-r other.in", True), ("--require-hashes", False), ("requests==2.*", True),
+                            ("requests==2.0.1 ; python_version >= '3.9' \\\n    --hash=sha256:%s" % ("0" * 64), False),
+                            ("requests==2.0.1 --global-option=x", True)):
+            reset(base)
+            commit({"build/requirements.txt": requirements(requests="2.0.1") + line + "\n"}, "a requirement line")
+            code = verdict(base)
+            expect((code == 1) == holds and (any("pins no version" in s for s in said) == holds),
+                   "%r %s: exit %d, %s" % (line, "holds the change" if holds else "is read", code, said))
+        reset(base)
+        loose = commit({"build/requirements.txt": requirements(requests="2.0.1") + "requests>=2.0\n"}, "a loose line, landed")
+        commit({"docs/readme.txt": "nothing\n"}, "a change after it")
+        expect(verdict(loose) == 0, "a requirements line the base already has does not hold a change: %s" % said)
+
+        # A broken base mends: its unreadable lock file reads as none, and its exceptions
+        # file that cannot be read accepts nothing; neither holds the change by itself.
+        reset(base)
+        broken_lock = commit({"tools/A/packages.lock.json": "{ broken"}, "a base whose lock file cannot be read")
+        commit({"tools/A/packages.lock.json": lock(Foo_Bar="2.0.0")}, "the lock file mended")
+        expect(verdict(broken_lock) == 0 and any("cannot be read" in s and "names nothing there" in s for s in said),
+               "a base lock file that cannot be read names nothing, and the change that mends it passes: %s" % said)
+        reset(base)
+        broken_exceptions = commit({EXCEPTIONS: "exceptions:\n  - scan: dependency-scan\n"}, "a base exceptions file broken")
+        commit({EXCEPTIONS: empty}, "the exceptions file mended")
+        expect(verdict(broken_exceptions) == 0 and any("cannot be read, so it accepts nothing" in s for s in said),
+               "a base exceptions file that cannot be read accepts nothing, and holds no change by itself: %s" % said)
+        commit({"tools/B/packages.lock.json": lock(Foo_Bar="1.5.0")}, "and an advisory with it")
+        expect(verdict(broken_exceptions) == 1, "what that file would have accepted holds: %s" % said)
+        reset(base)
+        future = accepting.replace("reviewed: 2026-09-28", "reviewed: 2026-12-01").replace("expires: 2027-03-28", "expires: 2027-06-01")
+        early = commit({EXCEPTIONS: future}, "an exception reviewed after today")
+        commit({"docs/readme.txt": "nothing\n"}, "a change after it")
+        expect(verdict(early) == 0 and any("after today" in s for s in said),
+               "an entry of the base's reviewed after today accepts nothing and holds no change by itself: %s" % said)
 
         # The base's VEX document for the package ecosystems: pkg:nuget and pkg:pypi.
         reset(base)
@@ -1532,12 +1678,18 @@ def main():
             return 2
     base = args.base or ""
     if base == "auto":
-        base, how, problem = gate.change_base(ROOT)
-        if problem:
-            print("CANNOT CHECK: " + problem)
-            return 2
-        print("The base: %s, %s." % (base, how))
-    return main_check(ROOT, base, args.osv_dir, today)
+        base, code = gate.auto_base(ROOT)
+        if code:
+            return code
+    own = main_check(ROOT, base, args.osv_dir, today)
+    if not re.match(r"^[0-9a-f]{7,64}$", base):
+        return own
+    # A change to the gates' code is judged by the base's copy too (security-gate.py,
+    # base_copy_verdict): one that leaves a library out of dependency-scan's list cannot
+    # pass the version it moves by that.
+    arguments = ["--base", base] + (["--osv-dir", os.path.abspath(args.osv_dir)] if args.osv_dir else []) + \
+        (["--today", args.today] if args.today else [])
+    return gate.combined(own, gate.base_copy_verdict(ROOT, base, "build/ci/mr-dependency-check.py", arguments))
 
 
 if __name__ == "__main__":

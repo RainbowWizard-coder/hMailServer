@@ -112,7 +112,14 @@ BINARIES = "hmailserver/docs/third-party-binaries.json"
 # The libraries no manifest names. For each: where its version is read, how OSV
 # names it (the upstream repository and the tag of a version), and a CONTROL
 # version that a recent advisory in OSV is known to name, so that "no advisory"
-# can be told apart from "no data". oldest_tag is the first version the upstream
+# can be told apart from "no data". control_draws says that OSV did name advisories for
+# the control when it was chosen (api.osv.dev on 6 October 2026: OpenSSL 4.0.0 43,
+# Boost 1.90.0 2, zlib 1.3 4, MariaDB Connector/C 3.1.7 1, 7-Zip 24.08 2; libpq 17.2
+# and QuickJS 2021-03-27 none): for those, a control that draws none is OSV's data not
+# read, which fails the scan, never a clean answer. A version older than its control
+# that OSV names nothing for, while it names advisories for the control, is one OSV did
+# not match (OpenSSL 0.9.6 draws none), and the control's advisories are listed as ones
+# that may affect it. oldest_tag is the first version the upstream
 # repository has a tag for, where that is later than versions still in use: OSV
 # matches a version by its tag, and cannot match one the repository never had.
 # purl is the name of its pkg:generic purl, as build/native-dependencies.ps1 gives it
@@ -122,26 +129,26 @@ BINARIES = "hmailserver/docs/third-party-binaries.json"
 # way before it lands.
 VENDORED = [
     {"name": "OpenSSL", "purl": "openssl", "file": VCXPROJ, "pattern": r"openssl-(\d+\.\d+\.\d+[a-z]?)",
-     "repo": "https://github.com/openssl/openssl", "tag": "openssl-{v}", "control": "4.0.0",
+     "repo": "https://github.com/openssl/openssl", "tag": "openssl-{v}", "control": "4.0.0", "control_draws": True,
      "used": "TLS for every listener and the REST API, DKIM, hashing (Windows build)"},
     {"name": "Boost", "purl": "boost", "file": VCXPROJ, "pattern": r"boost_(\d+)_(\d+)_(\d+)",
-     "repo": "https://github.com/boostorg/boost", "tag": "boost-{v}", "control": "1.90.0",
+     "repo": "https://github.com/boostorg/boost", "tag": "boost-{v}", "control": "1.90.0", "control_draws": True,
      "used": "Asio under all socket I/O, threads, filesystem, regex (Windows build)",
      "coverage": "OSV's Boost records are OSS-Fuzz crash reports only; Boost's CVEs are not among them"},
     {"name": "libpq (PostgreSQL client)", "purl": "postgresql", "file": VCXPROJ, "pattern": r"postgresql-(\d+)\.(\d+)",
      "repo": "https://github.com/postgres/postgres", "tag": "REL_{v_}", "control": "17.2",
      "used": "the PostgreSQL backend's client library (Windows build)"},
     {"name": "zlib", "purl": "zlib", "file": "hmailserver/source/Server/zlib/zlib.h", "pattern": r'#define ZLIB_VERSION "([0-9.]+)"',
-     "repo": "https://github.com/madler/zlib", "tag": "v{v}", "control": "1.3",
+     "repo": "https://github.com/madler/zlib", "tag": "v{v}", "control": "1.3", "control_draws": True,
      "used": "vendored source: IMAP COMPRESS=DEFLATE and the message store's compression (Windows build)"},
     {"name": "QuickJS", "purl": "quickjs", "file": "hmailserver/source/Server/quickjs/VERSION", "pattern": r"^\s*(\d{4}-\d{2}-\d{2})\s*$",
      "repo": "https://github.com/bellard/quickjs", "tag": "{v}", "control": "2021-03-27",
      "used": "vendored source: the event scripts' engine on the Linux builds"},
     {"name": "MariaDB Connector/C", "purl": "mariadb-connector-c", "file": BINARIES, "component": "MariaDB Connector/C",
-     "repo": "https://github.com/mariadb-corporation/mariadb-connector-c", "tag": "v{v}", "control": "3.1.7",
+     "repo": "https://github.com/mariadb-corporation/mariadb-connector-c", "tag": "v{v}", "control": "3.1.7", "control_draws": True,
      "used": "libmysql.dll, the MySQL and MariaDB backends' client, shipped by the installer"},
     {"name": "7-Zip (7za.exe)", "purl": "7-zip", "file": BINARIES, "component": "7-Zip standalone console (7za.exe)",
-     "repo": "https://github.com/ip7z/7zip", "tag": "{v}", "control": "24.08", "oldest_tag": "22.01",
+     "repo": "https://github.com/ip7z/7zip", "tag": "{v}", "control": "24.08", "control_draws": True, "oldest_tag": "22.01",
      "used": "creates and restores backups (Compression.cpp), shipped by the installer",
      "coverage": "OSV's 7-Zip data is partial: CVE-2023-31102 (a crafted 7z archive and the PPMd decoder) "
                  "is in OSV only with a range it could not resolve to the repository, so no query by version finds it"},
@@ -387,7 +394,13 @@ def osv_scan(dismissed):
         except (urllib.error.URLError, OSError, ValueError) as e:
             outcomes.append((lib["name"], version, source, "FAIL", "OSV could not be asked: %s" % e))
             continue
+        if lib.get("control_draws") and not control_vulns:
+            outcomes.append((lib["name"], version, source, "FAIL",
+                             "OSV could not be read for %s: it names no advisory for the control %s, which it is known to "
+                             "name, so its answer for %s cannot be taken" % (lib["name"], control, tag)))
+            continue
         older = lib.get("oldest_tag") and version_key(version) < version_key(lib["oldest_tag"])
+        below_control = not vulns and control_vulns and version_key(version) < version_key(lib["control"])
         live = []
         for v in vulns:
             aliases = [v.get("id", "")] + list(v.get("aliases", []) or [])
@@ -429,6 +442,14 @@ def osv_scan(dismissed):
                              "%s is older than the upstream repository's first tag (%s), so OSV cannot match it; "
                              "the advisories OSV has for %s, which probably reach back to it: %s%s" % (
                                  version, lib["oldest_tag"], lib["oldest_tag"], ", ".join(maybe) or "none",
+                                 ("; " + lib["coverage"]) if lib.get("coverage") else "")))
+        elif below_control:
+            # Older than the control, named in no advisory where the control is: OSV did
+            # not match its tag, and what affects the control probably reaches back.
+            outcomes.append((lib["name"], version, source, "UNKNOWN",
+                             "OSV names no advisory for %s, but %d for the control %s, which is newer: OSV did not match "
+                             "the older tag, and the control's advisories probably affect it too: %s%s" % (
+                                 tag, len(control_vulns), control, ", ".join(sorted({v.get("id") for v in control_vulns})),
                                  ("; " + lib["coverage"]) if lib.get("coverage") else "")))
         elif not control_vulns:
             outcomes.append((lib["name"], version, source, "UNKNOWN",
@@ -657,6 +678,39 @@ def self_test():
                                          {"component": "MariaDB Connector/C", "version": "3.4.10 (x86)"}]})
     expect(vendored_versions(libraries["mariadb-connector-c"], manifest) == ["3.4.9", "3.4.10"],
            "each version of a component's files, once")
+
+    # What OSV answers for a library: a control OSV is known to name that draws nothing
+    # is its data not read, which fails the scan; and a version older than a control that
+    # draws advisories, named in none itself, is one OSV did not match.
+    module = globals()
+    held = (module["osv_query"], module["vendored_version"], list(VENDORED))
+    try:
+        answers = {}
+        zlib = dict(libraries["zlib"])
+        module["osv_query"] = lambda repo, tag: [dict(a) for a in answers.get((repo, tag), [])]
+        VENDORED[:] = [zlib]
+        module["vendored_version"] = lambda lib: ("1.2.0", "zlib.h")
+        _, outcomes = osv_scan([])
+        expect(len(outcomes) == 1 and outcomes[0][3] == "FAIL" and "could not" in outcomes[0][4],
+               "a control OSV is known to name that draws no advisory fails the scan: %s" % outcomes)
+        answers[(zlib["repo"], "v1.3")] = [{"id": "CVE-2026-27171"}]
+        _, outcomes = osv_scan([])
+        expect(len(outcomes) == 1 and outcomes[0][3] == "UNKNOWN" and "CVE-2026-27171" in outcomes[0][4],
+               "a version below the control that OSV names nothing for, where it names the control's, is UNKNOWN with "
+               "the control's advisories: %s" % outcomes)
+        module["vendored_version"] = lambda lib: ("1.3.2", "zlib.h")
+        _, outcomes = osv_scan([])
+        expect(len(outcomes) == 1 and outcomes[0][3] == "PASS", "a version after the control that OSV names nothing for "
+               "passes, the control drawing its advisories: %s" % outcomes)
+        quickjs = dict(libraries["quickjs"])
+        VENDORED[:] = [quickjs]
+        module["vendored_version"] = lambda lib: ("2026-06-04", "VERSION")
+        _, outcomes = osv_scan([])
+        expect(len(outcomes) == 1 and outcomes[0][3] == "UNKNOWN", "a control OSV is not known to name, drawing nothing, "
+               "leaves the library UNKNOWN: %s" % outcomes)
+    finally:
+        module["osv_query"], module["vendored_version"] = held[0], held[1]
+        VENDORED[:] = held[2]
 
     # The tree: every library has its purl, the SBOM's; the version each file pins is
     # read; and every statement of the VEX document parses and names, among its

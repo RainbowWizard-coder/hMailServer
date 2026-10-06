@@ -13,7 +13,10 @@
 #                     (GitLab 18.6 and later), where the semgrep job leaves the C++ to
 #                     cppcheck and clang-tidy and uses Semgrep's registry packs; and it
 #                     runs on every change - a merge request, which no job on linix
-#                     ever does, and a protected batch* branch.
+#                     ever does, and a protected batch* branch. Not what lies under a
+#                     directory named build, dist, vendor or node_modules, at any
+#                     depth, which the analyzer's own ignore template leaves out: the
+#                     scripts under build/ are read by the semgrep job alone, on a batch.
 #   secret_detection  GitLab's secrets analyzer over the commits a pipeline brings: a
 #                     key, token or password committed by mistake. Nothing on linix
 #                     looks for one.
@@ -33,8 +36,8 @@
 # On the Free tier each job leaves its report as an artifact that project members
 # with the Developer role or above can download (artifacts:access in the templates);
 # the merge request widget, the pipeline's Security tab and the vulnerability report
-# are GitLab Ultimate. semgrep-sast is allow_failure, as the template makes it: a
-# finding does not fail the job. It holds a release instead: for a v* tag the
+# are GitLab Ultimate. A finding does not fail semgrep-sast: the analyzer writes it to
+# the report and succeeds. It holds a release instead: for a v* tag the
 # release job needs semgrep-sast's report and refuses while it has a finding of
 # severity Critical or High that .gitlab/security-exceptions.yml does not accept, or
 # is missing (build/ci/security-gate.py; SECURITY.md, "Before a release"). And it
@@ -43,9 +46,17 @@
 # semgrep-sast-gate job (.gitlab/ci/mr-checks.yml) reads the same report by the same
 # rule, for the files the change touches from its base and with the exceptions as the
 # base has them, and fails the pipeline, which a merge request needs to land (OpenSSF
-# Baseline OSPS-VM-06.02). No variable switches semgrep-sast off: GitLab's template
-# skips it when SAST_DISABLED is set, and a project variable must not take a blocking
-# gate away unseen, so its rules here do not read it.
+# Baseline OSPS-VM-06.02). semgrep-sast is not allow_failure, where the template makes
+# it so: a scan that fails, or an image that cannot be pulled, fails the pipeline
+# itself, and no report but the one the job wrote reaches the gate - it removes any it
+# finds before the analyzer runs, and the gate refuses a report the analyzer did not
+# write, one older than the pipeline, and a tree that commits one. No variable
+# switches semgrep-sast off or narrows it unseen: GitLab's template skips it when
+# SAST_DISABLED is set, and a project variable must not take a blocking gate away
+# unseen, so its rules here do not read it; it sets SAST_SEMGREP_EXCLUDED_PATHS itself;
+# and a change that narrows what it reads (an exclusion, a .semgrepignore, its options,
+# a custom ruleset) lands alone, as a declaration (build/ci/security-gate.py,
+# scope_narrowings).
 # secret_detection is not allow_failure: a secret found fails the
 # job and the pipeline. The template's job cannot do that by itself - the analyzer
 # exits 0 whatever it finds, and the template adds allow_failure: true, which would
@@ -145,14 +156,27 @@ semgrep-sast:
   needs: []
   timeout: 30 minutes
   retry: !reference [.gate-retry, retry]
+  # Not allow_failure, as the template makes it: a scan that fails, or an image that
+  # cannot be pulled, fails the pipeline, and semgrep-sast-gate, which needs it, does not
+  # run on a report the job did not write.
+  allow_failure: false
   variables:
     # What build/ci/semgrepignore leaves out of the semgrep job: the tests and their
     # fixtures, the vendored third-party sources and the scans' own output. And the
     # three tables of string literals the generators write for the binary (build/
     # generate-portal-page.py, generate-help-pages.py and generate-portal-languages.py),
     # which hold no code: the webmail's scripts they carry are read as files of their
-    # own, and the rest is Markdown and translations.
-    SAST_EXCLUDED_PATHS: "spec, test, tests, tmp, hmailserver/test, hmailserver/source/Tools/ControlPanel.Tests, hmailserver/source/Tools/ImportTool.Tests, hmailserver/source/Tools/DBSetup.Tests, build/deck-script-test.js, build/portal-script-test.js, libraries, hmailserver/source/Server/quickjs, hmailserver/source/Server/zlib, security, hmailserver/source/Server/Common/Util/PortalPageData.cpp, hmailserver/source/Server/Common/Util/HelpPagesData.cpp, hmailserver/source/Server/Common/Util/PortalLanguagesData.cpp"
+    # own, and the rest is Markdown and translations. Each entry is held to the root - a
+    # leading slash, or one before its last character - since one with no slash leaves
+    # out a directory of that name at any depth, in Semgrep's --exclude and in GitLab's
+    # filter of the report alike: "tests" would leave out a/b/tests/c.cpp. The Debian
+    # package's autopkgtests are named where they are. GitLab's analyzer leaves out
+    # build/, dist/, vendor/ and node_modules/ at any depth besides, by its own template
+    # (SECURITY.md, "What no gate reads").
+    SAST_EXCLUDED_PATHS: "/spec, /test, /tests, /tmp, hmailserver/test, hmailserver/source/Tools/ControlPanel.Tests, hmailserver/source/Tools/ImportTool.Tests, hmailserver/source/Tools/DBSetup.Tests, hmailserver/source/Server/platform/packaging/debian-src/debian/tests, build/deck-script-test.js, build/portal-script-test.js, /libraries, hmailserver/source/Server/quickjs, hmailserver/source/Server/zlib, /security, hmailserver/source/Server/Common/Util/PortalPageData.cpp, hmailserver/source/Server/Common/Util/HelpPagesData.cpp, hmailserver/source/Server/Common/Util/PortalLanguagesData.cpp"
+    # The analyzer passes this list to Semgrep as --exclude too; set here, so that no CI
+    # file's value for every job reaches the scan.
+    SAST_SEMGREP_EXCLUDED_PATHS: ""
     # No file too large to read, and two minutes for a rule on a file. Semgrep leaves
     # out every file over 1,000,000 bytes, saying so only as a count in its log, and
     # the checkout's CRLF puts the REST server's RestApiServer.cpp over it (1,009,471
@@ -176,12 +200,22 @@ semgrep-sast:
     # signed (build/ci/security-gate.py): no pipeline on master need have scanned the
     # tagged commit, since a landing's may be cancelled and a push with ci.skip runs none.
     - if: $CI_COMMIT_TAG =~ /^v/ && $CI_COMMIT_REF_PROTECTED == "true"
+  # The analyzer writes its report and Semgrep's SARIF into the checkout; neither may come
+  # from a commit (the gate refuses one that carries them, build/ci/security-gate.py),
+  # and any left there goes before the analyzer runs, so that what the job keeps is what
+  # it wrote.
+  script:
+    - rm -f gl-sast-report.json semgrep.sarif
+    - /analyzer run
   # The report as a plain file too: a later job's needs bring a job's artifacts:paths,
-  # not its reports, and the release job reads it. Whatever the scan found.
+  # not its reports, and the release job reads it. Whatever the scan found. And Semgrep's
+  # SARIF, whose notifications say which files a rule gave up on, which
+  # semgrep-sast-gate reads.
   artifacts:
     when: always
     paths:
       - gl-sast-report.json
+      - semgrep.sarif
 
 secret_detection:
   image: registry.gitlab.com/security-products/secrets:7@sha256:17b94c35f59ebf58d976ae380580da198b6a0ea07e266307b6bac587bad067a2

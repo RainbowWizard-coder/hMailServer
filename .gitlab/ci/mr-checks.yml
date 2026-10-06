@@ -11,15 +11,19 @@
 #                         it changes that .gitlab/security-exceptions.yml, as the
 #                         change's base has it, does not accept - the release's rule, on
 #                         the change (build/ci/security-gate.py --merge-request auto;
-#                         OpenSSF Baseline OSPS-VM-06.02). semgrep-sast itself stays
-#                         allow_failure, as GitLab's template makes it: a scan that did
-#                         not finish leaves no report, which holds the change here. A
-#                         change that alters the scan's configuration answers for every
-#                         finding in the tree, and its own copy of the exceptions may
+#                         OpenSSF Baseline OSPS-VM-06.02). semgrep-sast is not
+#                         allow_failure: a scan that fails fails the pipeline, and this
+#                         reads only the report its analyzer wrote in this pipeline,
+#                         never one a commit carries. A change that alters the scan's
+#                         configuration answers for every finding in the tree, and when
+#                         it re-pins the analyzer its own copy of the exceptions may
 #                         accept one in a file it does not touch, never in one it does.
 #                         And whatever the scan found, it holds a change that adds an
-#                         entry to a source scan's baseline, takes a reason from one, or
-#                         raises the count of suppression comments in a file a scan reads.
+#                         entry to a source scan's baseline, takes a reason from one,
+#                         raises the count of suppression comments in a file a scan
+#                         reads, narrows what a scan reads without landing alone, moves
+#                         a source file out of the scan's reach, or changes a file the
+#                         scan gave up on (semgrep-sast's semgrep.sarif).
 #   mr-dependency-check   every NuGet and PyPI version the change adds, looked up in
 #                         OSV's own export of its ecosystem's advisories, and every
 #                         native or vendored library version it pins, asked of OSV by
@@ -35,22 +39,30 @@
 # list at its SHA-256 (Roadmap3, "Every committed binary checked in CI").
 #
 # When they run: on every change, in the pipeline GitLab holds its merge request to.
-# That is a merge request's own pipeline - from a fork, from Renovate or from any
-# unprotected branch of the project - or, for a maintainer's protected batch* branch,
-# whose merge request runs no pipeline of its own (the workflow rules of
+# That is a merge request's own pipeline - from Renovate, from any unprotected branch of
+# the project, or from a fork, whose pipeline runs in the fork, on runners its owner
+# chooses, so that a fork's merge request lands through a batch or on a pipeline run in
+# this project (SECURITY.md, "Every change") - or, for a maintainer's protected batch*
+# branch, whose merge request runs no pipeline of its own (the workflow rules of
 # .gitlab-ci.yml), the branch's pipeline: not a schedule's and not a downstream one's,
 # which run their one job. Neither is allow_failure, and neither has a rules:changes
 # list: mr-dependency-check reads every change and returns at once when it adds no
 # version and moves no pin, so no kind of file can slip past a list of triggers.
 # No variable switches either off: GitLab's template skips semgrep-sast when
-# SAST_DISABLED is set, and the rules of none of the three read it.
+# SAST_DISABLED is set, and the rules of none of the three read it; semgrep-sast sets
+# SAST_SEMGREP_EXCLUDED_PATHS itself, and build/check-release-chain.py refuses a CI file
+# that sets another variable that narrows it.
 #
 # The base: build/ci/security-gate.py's change_base, which both take as "auto". In a
 # merge request's pipeline it is CI_MERGE_REQUEST_DIFF_BASE_SHA, the target branch
-# where the merge request left it; in a batch* branch's pipeline, master fetched by
-# name (git fetch --no-tags origin +refs/heads/master:refs/remotes/origin/master) and
-# git merge-base HEAD with it. The exceptions file and the VEX document are read as
-# that base has them, never as the change does, so no change accepts its own finding.
+# where the merge request left it, taken only when it is an ancestor of HEAD and of the
+# target branch fetched by name; in a batch* branch's pipeline, master fetched by name
+# (git fetch --no-tags origin +refs/heads/master:refs/remotes/origin/master) and git
+# merge-base HEAD with it. A CI file of the change that defines a CI_* or GITLAB_*
+# variable holds it, since GitLab lets such a definition stand in for its own. The
+# exceptions file and the VEX document are read as that base has them, never as the
+# change does, so no change accepts its own finding. When the change alters the gates'
+# own code, the base's copy of each script judges it too.
 #
 # What happens when an input cannot be read: each script exits 2 - the base not found,
 # master not fetched, OSV's export or api.osv.dev not answering, a lock file or a pin

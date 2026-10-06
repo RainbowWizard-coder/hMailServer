@@ -1047,7 +1047,12 @@ def collect(root, tag, out, env, run=subprocess.run, api=None, rehearse=False):
         exceptions, missing = master_exceptions(root, run)
         if missing:
             problems.append(missing)
-        problems.extend(security_gate.evaluate(root, root, exceptions_text=exceptions or "exceptions: []\n", say=say))
+        # The reports are read from the checkout's root, where the jobs' artifacts land: a
+        # tagged tree that commits one would stand in for a report its scan did not write,
+        # and a semgrep-sast report older than this pipeline is not this pipeline's.
+        problems.extend(security_gate.committed_reports(root, run))
+        problems.extend(security_gate.evaluate(root, root, exceptions_text=exceptions or "exceptions: []\n", say=say,
+                                               not_before=security_gate.pipeline_created(env)))
 
     places = sources(version, rehearsal)
     job_sums = package_job_sums(version, rehearsal)
@@ -2277,6 +2282,18 @@ def self_test():
                 run=fake_git(master_exceptions="exceptions:\n  - scan: semgrep\n"))
         refused("master without an exceptions file", "master's .gitlab/security-exceptions.yml could not be read",
                 run=fake_git(master_exceptions=None))
+
+        # A tagged tree that commits a scan's report, which would stand in for one the scan
+        # did not write; and a semgrep-sast report begun before the tag's pipeline.
+        def committing(arguments, **kwargs):
+            if "ls-files" in arguments:
+                return Done(0, security_gate.GITLAB_SAST_REPORT + "\0")
+            return signed_tag(arguments, **kwargs)
+        refused("a tagged tree that commits gl-sast-report.json", "the tree carries what a scan writes", run=committing)
+        problems = collect(root, tag, os.path.join(work, "old-report"), dict(env, CI_PIPELINE_CREATED_AT="2026-10-07T00:00:00Z"),
+                           run=signed_tag, api=FakeGitLab())
+        expect(any("before this pipeline was created" in p for p in problems),
+               "a semgrep-sast report begun before the tag's pipeline was created holds the release: %s" % problems)
         # A finding that holds the release, accepted by the tagged tree's own copy and not
         # by master's: master's is the one read.
         advisory = json.loads(samples[security_gate.DEPENDENCY_REPORTS[0]])
