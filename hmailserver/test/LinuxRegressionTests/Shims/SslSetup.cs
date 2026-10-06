@@ -147,12 +147,37 @@ namespace RegressionTests.SSL
       /// </summary>
       public static void Reinitialize()
       {
+         // A witness to the restart, taken before it is asked for: an
+         // administrator session. The restart ends every session, so from then
+         // on the session's cookie is answered 401 however late it is next
+         // presented. Watching for the server to be down could not be that sure:
+         // it is down for a fraction of a second, and ServerApi's own request
+         // budget can hold a request back for up to ten seconds. A look held
+         // back across the restart saw "running" on both sides of it, and the
+         // loop below then watched a running server until its fifteen seconds
+         // were out - about one restart in five on a fast runner, which added
+         // an hour and forty minutes to a run of this suite.
+         var witness = ServerApi.StartAdministratorSession();
+
          ServerApi.Post("/api/v1/server/reinitialize", "{}").Expect(202, "POST /api/v1/server/reinitialize");
+
+         // While a second factor stands, the witness is the session this layer
+         // already signs in with: the POST just went on it, so it was live
+         // before the restart. Without a witness at all - a server that would
+         // not start a session - this falls back to watching for the dip alone,
+         // as it did before there was one, and a dip it misses costs the
+         // fifteen seconds below and nothing worse.
+         if (witness == null)
+            witness = ServerApi.AdministratorSessionInUse;
 
          // The restart is asked for and answered before it happens, so the first
          // thing to watch for is the server leaving the running state: either the
          // REST listener stops answering, or GET /api/v1/status reports a state
-         // other than running (3). Polled tightly, because on an idle server the
+         // other than running (3), or it refuses the witness with 401. With a
+         // witness every 50 ms is enough, because the 401 lasts; and only those
+         // three answers count, because the witness's other refusals - a 429
+         // from the server's own count among them - say nothing about a restart.
+         // Without one it is polled tightly, because on an idle server the
          // whole restart can take less than a quarter of a second and a slower poll
          // sees nothing but "running" on both sides of it - which is why this used
          // to fail with "the restart did not happen".
@@ -161,17 +186,31 @@ namespace RegressionTests.SSL
 
          while (!wentDown && DateTime.UtcNow < settled)
          {
-            var probe = ServerApi.TryGet("/api/v1/status");
-            wentDown = probe == null || probe.Status != 200 ||
-                       (probe.Json.HasValue && ServerApi.LongOf(probe.Json.Value, "state", 3) != 3);
+            if (witness != null)
+            {
+               var probe = ServerApi.TryGetWithSession(witness, "/api/v1/status");
+               wentDown = probe == null || probe.Status == 401 ||
+                          (probe.Status == 200 && probe.Json.HasValue && ServerApi.LongOf(probe.Json.Value, "state", 3) != 3);
 
-            if (!wentDown)
-               System.Threading.Thread.Sleep(10);
+               if (!wentDown)
+                  System.Threading.Thread.Sleep(50);
+            }
+            else
+            {
+               var probe = ServerApi.TryGet("/api/v1/status");
+               wentDown = probe == null || probe.Status != 200 ||
+                          (probe.Json.HasValue && ServerApi.LongOf(probe.Json.Value, "state", 3) != 3);
+
+               if (!wentDown)
+                  System.Threading.Thread.Sleep(10);
+            }
          }
 
-         // Whether or not the dip was seen, the server has to be answering and
+         // Whether or not the restart was seen, the server has to be answering and
          // running before the caller connects to a listener. A restart too quick to
-         // observe is not a failure; a server that never comes back is.
+         // observe is not a failure; a server that never comes back is. Nor is a
+         // witness that was not refused within the fifteen seconds: whether the
+         // server is there is the wait below's to judge.
          var deadline = DateTime.UtcNow.AddSeconds(90);
 
          while (DateTime.UtcNow < deadline)

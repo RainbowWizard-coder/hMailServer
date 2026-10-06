@@ -141,18 +141,36 @@ namespace RegressionTests.Shared
          if (_administratorSession != null)
             return _administratorSession;
 
+         string refusal;
+         _administratorSession = PostSession(OneTimeCodes.Fresh(secret), out refusal);
+         if (_administratorSession == null)
+            throw new InvalidOperationException("The administrator's session could not be started with a one-time code: " + refusal);
+
+         return _administratorSession;
+      }
+
+      // POST /api/v1/session with the administrator password, as the Control
+      // Deck's sign-in sends it - the password once, with X-Requested-With - and
+      // with the one-time code when one is given. The hmailsession cookie out of
+      // a 201, or null and what the server answered instead; a server that does
+      // not answer at all throws, as Client.Send does.
+      private static string PostSession(string code, out string refusal)
+      {
          using (var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/session"))
          {
             request.Headers.TryAddWithoutValidation("Authorization", AdminAuthorization);
             request.Headers.TryAddWithoutValidation("X-Requested-With", "hMailServer");
-            request.Headers.TryAddWithoutValidation("X-hMailServer-OTP", OneTimeCodes.Fresh(secret));
+            if (code != null)
+               request.Headers.TryAddWithoutValidation("X-hMailServer-OTP", code);
 
             using (var response = Client.Send(request, HttpCompletionOption.ResponseContentRead))
             {
                var body = response.Content == null ? string.Empty : response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
                if ((int) response.StatusCode != 201)
-                  throw new InvalidOperationException("The administrator's session could not be started with a one-time code: " +
-                     (int) response.StatusCode + " " + body);
+               {
+                  refusal = (int) response.StatusCode + " " + body;
+                  return null;
+               }
 
                IEnumerable<string> cookies;
                if (response.Headers.TryGetValues("Set-Cookie", out cookies))
@@ -164,12 +182,13 @@ namespace RegressionTests.Shared
                         continue;
 
                      int end = cookie.IndexOf(';');
-                     _administratorSession = end < 0 ? cookie : cookie.Substring(0, end);
-                     return _administratorSession;
+                     refusal = null;
+                     return end < 0 ? cookie : cookie.Substring(0, end);
                   }
                }
 
-               throw new InvalidOperationException("POST /api/v1/session answered 201 without an hmailsession cookie: " + body);
+               refusal = "POST /api/v1/session answered 201 without an hmailsession cookie: " + body;
+               return null;
             }
          }
       }
@@ -203,6 +222,73 @@ namespace RegressionTests.Shared
          try
          {
             return Send(HttpMethod.Get, path, null, AdminAuthorization);
+         }
+         catch (InvalidOperationException)
+         {
+            return null;
+         }
+      }
+
+      // ---- A witness to a restart ----
+      //
+      // RestApiServer::Stop ends every browser session (ClearBrowserSessions_),
+      // so a session started before a restart is answered 401 once the restart
+      // has happened, and goes on being answered 401 however late it is next
+      // presented. A look at the server's state has no such memory: the server
+      // is down for a fraction of a second, and a request the budget below
+      // holds back for longer than that sees it running on both sides.
+      // SslSetup.Reinitialize watches a restart through these.
+
+      /// <summary>
+      ///    An administrator session of the caller's own, started with the
+      ///    password: the hmailsession cookie, or null when the server would not
+      ///    start one (a server older than the route) or did not answer. Null
+      ///    without asking while a second factor stands: the password alone is
+      ///    refused then, and the session this layer already signs in with,
+      ///    AdministratorSessionInUse, serves instead.
+      /// </summary>
+      public static string StartAdministratorSession()
+      {
+         if (_administratorSecret != null)
+            return null;
+
+         WaitForBudget(AdminAuthorization);
+
+         try
+         {
+            string refusal;
+            return PostSession(null, out refusal);
+         }
+         catch (HttpRequestException)
+         {
+            return null;
+         }
+      }
+
+      /// <summary>
+      ///    The session this layer's own administrator requests go on while a
+      ///    second factor stands, as the last of them left it; null while they go
+      ///    on the password.
+      /// </summary>
+      public static string AdministratorSessionInUse
+      {
+         get { return _administratorSecret != null ? _administratorSession : null; }
+      }
+
+      /// <summary>
+      ///    A GET with the session's cookie and no password, answered as the server
+      ///    answered it. A 401 is returned rather than followed by a new session,
+      ///    as this layer's own requests are, because the end of the session is
+      ///    what the caller is asking about. Null when the server does not answer
+      ///    at all. Counted in the administrator's budget: the server counts an
+      ///    administrator session's requests with the password's, under the one
+      ///    name.
+      /// </summary>
+      public static ApiAnswer TryGetWithSession(string session, string path)
+      {
+         try
+         {
+            return Send(HttpMethod.Get, path, null, AdminAuthorization, session);
          }
          catch (InvalidOperationException)
          {
@@ -260,16 +346,17 @@ namespace RegressionTests.Shared
          }
       }
 
-      private static ApiAnswer Send(HttpMethod method, string path, string json, string authorization)
+      private static ApiAnswer Send(HttpMethod method, string path, string json, string authorization, string givenSession = null)
       {
          for (var attempt = 1; ; attempt++)
          {
             WaitForBudget(authorization);
 
             // The administrator's session, while a factor this layer enrolled
-            // stands (AdministratorFactorEnrolled above), in place of the password.
-            string secret = authorization == AdminAuthorization ? _administratorSecret : null;
-            string session = secret != null ? AdministratorSession(secret) : null;
+            // stands (AdministratorFactorEnrolled above), in place of the password;
+            // or the session the caller gave (TryGetWithSession), as it is.
+            string secret = givenSession == null && authorization == AdminAuthorization ? _administratorSecret : null;
+            string session = givenSession ?? (secret != null ? AdministratorSession(secret) : null);
 
             using (var request = new HttpRequestMessage(method, path))
             {
@@ -311,8 +398,9 @@ namespace RegressionTests.Shared
 
                      // The session is gone - the server restarted, or it idled
                      // out - and the factor still stands: start another with the
-                     // next code and send the request again, once.
-                     if ((int) response.StatusCode == 401 && session != null && attempt == 1)
+                     // next code and send the request again, once. Not when the
+                     // caller gave the session: its end is the answer it wants.
+                     if ((int) response.StatusCode == 401 && secret != null && attempt == 1)
                      {
                         _administratorSession = null;
                         continue;
