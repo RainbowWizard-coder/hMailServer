@@ -874,6 +874,14 @@ function Test-ProgramFoldersHardened([string] $Phase, [string] $Claimed, [string
    $app = Get-InstallDirectory
    $folders = @(@($app, (Join-Path $app 'Bin'), (Join-Path $app 'ControlPanel')) | Where-Object { Test-Path -LiteralPath $_ })
 
+   # For the record, whatever the installer: the owner and what icacls shows of the
+   # program folder, Bin, hMailServer.exe, ControlPanel and the REST API's key store.
+   foreach ($object in @($app, (Join-Path $app 'Bin'), (Join-Path $app 'Bin\hMailServer.exe'), (Join-Path $app 'ControlPanel'), (Join-Path $app 'Bin\hMailServerApiKeys.ini'))) {
+      if (-not (Test-Path -LiteralPath $object)) { Write-Info "${Phase}: icacls" "$object is not there"; continue }
+      $lines = @(& icacls.exe $object 2>&1 | ForEach-Object { "$_".Trim() } | Where-Object { $_ -and $_ -notmatch '^Successfully processed' })
+      Write-Info "${Phase}: icacls (owner $((Get-Acl -LiteralPath $object).Owner))" ($lines -join ' | ')
+   }
+
    # By its version, or - for a build not yet stamped with one - by what its
    # /ProtectFolders said in Inno's log.
    $hardens = (Test-HasHardenedFolders $Claimed) -or
