@@ -75,13 +75,13 @@ namespace HM
          {
          }
 
-         // The messages of the search, in the order it examines them.
-         void SetWalk(const std::vector<__int64> &messageIds)
+         // The messages of the search, in the order it examines them. Where
+         // each one is in that order is worked out on the first question, so
+         // that a search without a BODY or TEXT key pays nothing for it.
+         void SetWalk(std::vector<__int64> &&messageIds)
          {
-            walk_ = messageIds;
+            walk_ = std::move(messageIds);
             positions_.clear();
-            for (size_t i = 0; i < walk_.size(); i++)
-               positions_[walk_[i]] = i;
          }
 
          // True only when the index proves the message cannot contain the
@@ -101,17 +101,24 @@ namespace HM
             if (!enabled_)
                return false;
 
-            const __int64 messageID = message->GetID();
-
-            const std::unordered_map<__int64, size_t>::const_iterator position = positions_.find(messageID);
-            if (position == positions_.end())
-               return false;
-
             TextEntry &entry = EntryFor_(searchText);
 
             // No usable needle (all runs too short, or non-ASCII): the index
             // cannot answer for this text, so every message is scanned.
             if (entry.needles.empty())
+               return false;
+
+            const __int64 messageID = message->GetID();
+
+            if (positions_.empty() && !walk_.empty())
+            {
+               positions_.reserve(walk_.size());
+               for (size_t i = 0; i < walk_.size(); i++)
+                  positions_[walk_[i]] = i;
+            }
+
+            const std::unordered_map<__int64, size_t>::const_iterator position = positions_.find(messageID);
+            if (position == positions_.end())
                return false;
 
             // The window this message is in, asked about once. A window the
@@ -263,9 +270,9 @@ namespace HM
          }
 
          // The messages the search examines, in its order (SearchIndexFilter).
-         void SetWalk(const std::vector<__int64> &messageIds)
+         void SetWalk(std::vector<__int64> &&messageIds)
          {
-            filter_.SetWalk(messageIds);
+            filter_.SetWalk(std::move(messageIds));
          }
 
       private:
@@ -458,7 +465,7 @@ namespace HM
 
       // The order the index is asked in, a window at a time as the search
       // reaches it.
-      searchIndexFilterScope.SetWalk(walk);
+      searchIndexFilterScope.SetWalk(std::move(walk));
 
       std::map<__int64, std::shared_ptr<Message> > messagesById = pCurFolder->GetMessages()->GetCopyByIds(entry_ids);
 
