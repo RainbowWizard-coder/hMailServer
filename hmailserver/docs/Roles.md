@@ -186,11 +186,14 @@ it does not take in, such as the server administrator's mailbox or an administra
 another domain. For them a `From` or `Sender` field written more than once, or naming
 anything but one mailbox written as one - a list, an address in a comment or in the
 display name, as written or once its encoded words are decoded - is refused, since
-another program could read another address in it. So is a header not written as one: COM
-writes a value as it is given, and a line break in one - a `Subject` that holds a line
-`From: ...` - would add a field this never read, so for them every field stands on a
-line of its own under a name of printable ASCII, with no NUL, lone carriage return or
-line feed, or line of white space alone in a value. COM holds an account to this
+another program could read another address in it. So is a header not written as one: for
+them every field stands on a line of its own under a name of printable ASCII, with no
+NUL, lone carriage return or line feed, or line of white space alone in a value, and the
+header as the program gave it is the header written. The writer keeps a value to one
+field, writing a line break that does not fold it - a space or a tab and more after it -
+as spaces, so that a `Subject` that holds a line `From: ...` adds no field; for them a
+value that holds one is refused rather than sent changed, and the `From` and `Sender`
+read are the ones written. COM holds an account to this
 whatever `SmtpAuthenticatedSenderCheck` says, as the webmail does: COM writes the
 envelope and the fields apart, so it is the fields that the recipient reads that matter,
 and before 6.3.6 no mail queued over COM carried an account's credential (a message a

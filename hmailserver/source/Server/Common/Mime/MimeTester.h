@@ -18,5 +18,12 @@ namespace HM
       // values, and in one pass. Test runs it; so does report-parser-tests on POSIX,
       // where nothing runs Test. Throws std::logic_error on a failure.
       static void TestFieldUnfolding();
+
+      // How the field coder folds a value it writes: with no line of white space
+      // alone, and so that a value set as COM sets it is checked by Message.Save as
+      // it is written. Needs MimeEnvironment::AutoFolding, which the server sets.
+      // Test runs it; so does report-parser-tests on POSIX. Throws std::logic_error
+      // on a failure.
+      static void TestFieldFolding();
    };
 }

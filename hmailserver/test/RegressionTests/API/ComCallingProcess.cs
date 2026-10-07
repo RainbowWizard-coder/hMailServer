@@ -384,7 +384,8 @@ namespace RegressionTests.API
                    "into another field's value with a line break, a From whose value a line break and a field follow, " +
                    "a field named \"From \", a lone line feed and an " +
                    "address in an encoded word of the display name are refused; a display name outside ASCII, " +
-                   "quoted or not, and a subject long enough to be folded are sent.")]
+                   "quoted or not, a subject long enough to be folded, and one that ends in a space where the " +
+                   "writer folds are sent.")]
       public void AnAccountsMessageHasItsHeaderWrittenAsOne()
       {
          RequireAnAdministratorPassword();
@@ -433,9 +434,16 @@ namespace RegressionTests.API
             recipient.Address, "Quoted").Save();
          Compose(sender.Address, SenderPassword, sender.Address, sender.Address, recipient.Address, longSubject).Save();
 
-         var subjects = SubjectsAfterAControl(recipient, "test", 4);
+         // 78 characters and a space: the writer folded before the space, which left a
+         // line of nothing but white space, and Save refused it as a line break the
+         // program never gave.
+         Compose(sender.Address, SenderPassword, sender.Address, sender.Address, recipient.Address,
+            "Trailing" + new string('a', 70) + " ").Save();
+
+         var subjects = SubjectsAfterAControl(recipient, "test", 5);
          CollectionAssert.IsSubsetOf(new[] { "Outside ASCII", "Quoted", "Control" }, subjects);
          ClassicAssert.AreEqual(1, subjects.Count(subject => subject.StartsWith("Long ")), string.Join(" | ", subjects));
+         ClassicAssert.AreEqual(1, subjects.Count(subject => subject.StartsWith("Trailing")), string.Join(" | ", subjects));
       }
 
       [Test]

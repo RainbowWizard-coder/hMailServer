@@ -13,9 +13,9 @@
 // program. Each reads real reports and malformed ones, and a report whose
 // headers part begins with a great many blank lines within the time a pass
 // over it takes. With them, how the MIME decoder they read a header field
-// through unfolds its value - as 6.3.5 did, and in one pass - which on Windows
-// MimeTester holds it to. Nothing here touches the network, the configuration
-// or a database.
+// through unfolds its value - as 6.3.5 did, and in one pass - and how the
+// field coder folds one it writes, which on Windows MimeTester holds them to.
+// Nothing here touches the network, the configuration or a database.
 //
 // One line a tester, and a non-zero exit on the first failure.
 
@@ -57,6 +57,7 @@ main(int /*argc*/, char * /*argv*/[])
 
    bool passed =
       Run_("header field values: unfolded as 6.3.5 did, and in one pass", []() { HM::MimeTester::TestFieldUnfolding(); }) &&
+      Run_("header field values: folded with no line of white space alone", []() { HM::MimeTester::TestFieldFolding(); }) &&
       Run_("delivery status notifications: read, and in one pass", []() { HM::DeliveryReportParserTester().Test(); }) &&
       Run_("abuse feedback reports: read, and in one pass", []() { HM::FeedbackReportParserTester().Test(); });
 

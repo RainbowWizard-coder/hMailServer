@@ -139,16 +139,19 @@ prompt. Found by the project's own review (work item 78; CVE requested).
     copies without end; and a rule's reply subject, an out-of-office subject, and the sender's own subject decoded
     into a vacation reply or a bounce reset it on the message they made. COM's `Message.Save` refuses a credential's
     message whose values hold a line break that does not fold them, and says why, rather than send it changed (6.3.6
-    sent a line break that began a field of its own as that field, and checked it as it checks the others).
+    sent a line break that began a field of its own as that field, and checked it as it checks the others). Nor does
+    the writer fold a value before white space that ends it, which left a line of nothing but white space - the end
+    of the header to some programs - and which `Message.Save` refused, from 6.3.6, as a line break the program never
+    gave: a subject of 78 letters and a space.
   - An out-of-office reply, an account's or a domain's, carried a count of 1 whatever the message it answered
     carried, where every other reply carries that count + 1: it now does too, and none is sent once the count has
     reached the limit, as a Sieve `vacation` reply is held.
 
   `LoopCountTester` and `LoopCountEditTester` (`business-object-tests` on Linux) hold the reading, the edits and the
-  writer to examples, and `Rules.cs`, `API/RestApiRules.cs`, `Sieve/SieveEditheaderDelivery.cs`,
-  `Sieve/ManageSieve.cs`, `Sieve/SieveNotifyDelivery.cs`, `Sieve/SieveVacationDelivery.cs` and
-  `SMTP/OutOfOfficeScope.cs` send them through storing and delivery, four loops among them. Found by the project's
-  own review.
+  writer to examples, `MimeTester` (`report-parser-tests` on Linux) the writer's folds, and `Rules.cs`,
+  `API/RestApiRules.cs`, `API/ComCallingProcess.cs`, `Sieve/SieveEditheaderDelivery.cs`, `Sieve/ManageSieve.cs`,
+  `Sieve/SieveNotifyDelivery.cs`, `Sieve/SieveVacationDelivery.cs` and `SMTP/OutOfOfficeScope.cs` send them through
+  storing and delivery, four loops among them. Found by the project's own review.
 
 - **Fixed: a Sieve `notify` was sent from whatever its `:from` said, so that any account with a Sieve script could
   send mail through this server as any address.** A `vacation` reply's `:from` is used only when it is an address

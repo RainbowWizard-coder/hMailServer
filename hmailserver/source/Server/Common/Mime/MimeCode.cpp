@@ -900,6 +900,9 @@ namespace HM
       
       AnsiString strUnit;
 
+      // Where this inserted a fold's CRLF, first to last.
+      std::vector<size_t> folds;
+
       // divide the field into syntactic units to encode
       for (;;)
       {
@@ -955,6 +958,7 @@ namespace HM
 
                   int charsSinceSpace = (int) output.size() - lastSpacePos;
                   output.Insert(lastSpacePos, "\r\n");
+                  folds.push_back((size_t) lastSpacePos);
                   
                   lastSpacePos = -1;
                   nLineLen = charsSinceSpace + 1;
@@ -992,6 +996,28 @@ namespace HM
             }
          }
          */
+      }
+
+      // hMailServer: a fold made before white space that runs to the end of the value,
+      // or to a line break the value holds, left a line of nothing but white space - a
+      // Subject of 76 letters and a space was "Subject: aaa...\r\n \r\n" - which some
+      // programs take for the empty line that ends the header, and which COM's
+      // Message.Save refused as a line break the program never gave
+      // (InterfaceMessage.cpp, WrittenAsOneHeader). Such a fold is taken out again, and
+      // the white space stays on the line before. From the last to the first, so that
+      // a line that only a later fold's removal leaves white space alone is seen too.
+      for (size_t i = folds.size(); i > 0; i--)
+      {
+         const size_t fold = folds[i - 1];
+         const char *text = output.c_str();
+         const size_t length = output.size();
+
+         size_t next = fold + 2;
+         while (next < length && (text[next] == ' ' || text[next] == '\t'))
+            next++;
+
+         if (next == length || text[next] == '\r' || text[next] == '\n')
+            output.erase(fold, 2);
       }
    }
 

@@ -756,6 +756,37 @@ namespace HM
       private:
          unsigned long long state_;
       };
+
+      // Whether a CRLF in text is followed by a line of nothing but spaces and tabs,
+      // which some programs take for the empty line that ends the header.
+      bool HoldsLineOfWhiteSpace_(const string &text)
+      {
+         for (string::size_type at = text.find("\r\n"); at != string::npos; at = text.find("\r\n", at + 2))
+         {
+            string::size_type next = at + 2;
+            while (next < text.size() && (text[next] == ' ' || text[next] == '\t'))
+               next++;
+
+            if (next > at + 2 && (next == text.size() || text[next] == '\r' || text[next] == '\n'))
+               return true;
+         }
+
+         return false;
+      }
+
+      string WithoutCrLf_(const string &text)
+      {
+         string kept;
+         for (string::size_type i = 0; i < text.size(); i++)
+         {
+            if (text[i] == '\r' && i + 1 < text.size() && text[i + 1] == '\n')
+               i++;
+            else
+               kept += text[i];
+         }
+
+         return kept;
+      }
    }
 
    void
@@ -812,6 +843,82 @@ namespace HM
 
       if (milliseconds > HM_TEST_TIME_BOUND(2000))
          throw std::logic_error("A header field value of 400,000 folds took " + std::to_string((long long) milliseconds) + " ms to unfold");
+   }
+
+   void
+   MimeTester::TestFieldFolding()
+   {
+      if (!MimeEnvironment::AutoFolding())
+         throw std::logic_error("The field coder was tested with folding off, which the server never has.");
+
+      // Values the coder folds, set as COM's Subject and every generated value are set
+      // (MimeHeader::SetUnicodeFieldValue), and coded again when written. A fold made
+      // before white space that ran to the end of the value, or to a line break the
+      // value holds, left a line of nothing but white space - 76 letters and a space
+      // were "aaa...\r\n " - which COM's Message.Save refused as a line break the
+      // program never gave, and which the writer wrote as spaces.
+      string words;
+      for (int i = 0; i < 76; i++)
+         words += (i % 7 == 6) ? ' ' : 'a';
+
+      string sentence = "Long";
+      for (int i = 0; i < 12; i++)
+         sentence += " greetings from the office";
+
+      const string letters(76, 'a');
+      const string values[] =
+      {
+         letters + " ",
+         letters + " \t  ",
+         letters + string(40, 'b') + " ",
+         words + " ",
+         "a" + string(200, ' ') + "b",
+         letters + " \r\n folded by the program",
+         sentence,
+         sentence + " ",
+      };
+
+      for (const string &value : values)
+      {
+         FieldCodeBase *coder = MimeEnvironment::CreateFieldCoder("Subject");
+         coder->SetCharset("utf-8");
+         coder->SetInput(value.c_str(), (int) value.size(), true);
+         AnsiString coded;
+         coder->GetOutput(coded);
+         delete coder;
+
+         const string codedText(coded.c_str(), coded.size());
+         if (HoldsLineOfWhiteSpace_(codedText))
+            throw std::logic_error("The field coder left a line of white space alone in \"" + codedText + "\".");
+
+         if (WithoutCrLf_(codedText) != WithoutCrLf_(value))
+            throw std::logic_error("The field coder made \"" + codedText + "\" of \"" + value + "\", which is more than folds.");
+
+         MimeHeader header;
+         header.SetUnicodeFieldValue("Subject", String(AnsiString(value.c_str(), value.size())), "");
+
+         AnsiString given;
+         AnsiString written;
+         header.StoreAsGiven(given);
+         header.Store(written);
+
+         if (given != written)
+            throw std::logic_error("A Subject of \"" + value + "\", as given, is not the Subject written, so COM's Message.Save refuses it.");
+
+         if (HoldsLineOfWhiteSpace_(string(written.c_str(), written.size())))
+            throw std::logic_error("A Subject of \"" + value + "\" was written with a line of white space alone.");
+      }
+
+      // The coder still folds: the sentence's 300 characters are on lines of their own.
+      FieldCodeBase *coder = MimeEnvironment::CreateFieldCoder("Subject");
+      coder->SetCharset("utf-8");
+      coder->SetInput(sentence.c_str(), (int) sentence.size(), true);
+      AnsiString coded;
+      coder->GetOutput(coded);
+      delete coder;
+
+      if (string(coded.c_str(), coded.size()).find("\r\n ") == string::npos)
+         throw std::logic_error("The field coder no longer folds a long value.");
    }
 
    MimeTester::MimeTester(void)
@@ -939,5 +1046,6 @@ namespace HM
          HM_TEST_FAILED();
 
       TestFieldUnfolding();
+      TestFieldFolding();
    }
 }
