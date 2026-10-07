@@ -62,7 +62,9 @@
 # variable holds it, since GitLab lets such a definition stand in for its own. The
 # exceptions file and the VEX document are read as that base has them, never as the
 # change does, so no change accepts its own finding. When the change alters the gates'
-# own code, the base's copy of each script judges it too.
+# own code, the base's copy of each script judges it too: whether it runs is read from
+# the code that runs against the base's, never from a variable, and each script says in
+# its log how the copy ended, which build/land-via-mr.py requires of such a batch.
 #
 # What happens when an input cannot be read: each script exits 2 - the base not found,
 # master not fetched, OSV's export or api.osv.dev not answering, a lock file or a pin

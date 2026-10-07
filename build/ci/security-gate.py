@@ -60,10 +60,12 @@ touch (merge_request_evaluate below); and, whatever the scan found, no entry add
 a baseline or reason taken from one, no suppression comment added to a file a scan
 reads, no narrowing of what a scan reads but one that lands alone, no source file put
 out of the scan's reach, and no changed file the scan gave up on (change_problems,
-sarif_holes). The report must be the analyzer's, begun after the pipeline was created
-(CI_PIPELINE_CREATED_AT), and no commit may carry a scan's report (committed_reports).
-When the change alters the gates' own code, the base's copy judges it too
-(base_copy_verdict). --exceptions, with it, stands for the base's file. Exits 0 when
+sarif_holes; a SARIF this cannot read as SARIF_READ_FOR's analyzer writes it is an
+input that cannot be read). The report must be the analyzer's, begun after the
+pipeline was created (CI_PIPELINE_CREATED_AT), and no commit may carry a scan's report
+(committed_reports). When the code that runs is not the base's gates' code, the base's
+copy judges the change too, whatever any variable says (base_copy_verdict).
+--exceptions, with it, stands for the base's file. Exits 0 when
 the change may land, 1 when it may not, 2 when its inputs cannot be read. BASE "auto"
 is change_base's: CI_MERGE_REQUEST_DIFF_BASE_SHA in a merge request's pipeline, when
 it is an ancestor of HEAD and of the target branch, and in a batch* branch's pipeline,
@@ -599,28 +601,31 @@ def evaluate(root, artifacts, today=None, exceptions_text=None, say=print, not_b
 #
 #   a change that narrows what a scan reads (scope_narrowings: a .semgrepignore,
 #   GitLab's custom ruleset, an exclusion that reaches a path the base's did not, the
-#   analyzer's options, or the ignore and suppression lists of the scans on linix) is a
-#   declaration, as an exception is: it lands alone, by a change that touches nothing
-#   else a scan reads, and the change after it is judged as it says.
+#   analyzer's options, the ignore and suppression lists of the scans on linix - a line
+#   gained, or a "!" line lost or put before what it takes back - clang-tidy's checks, or
+#   the lines of static-analysis.sh and semgrep.sh that choose what their tools read and
+#   report) is a declaration, as an exception is: it lands alone, by a change that
+#   touches nothing else a scan reads, and the change after it is judged as it says.
 #
 # And whatever the scan found, a change may not take the ways of silencing a finding
 # without a declaration on the base (change_problems): it may not add an entry to a
 # source scan's baseline or take an entry's reason away, raise, in any file a scan
 # reads, the count of the comments by which a tool skips a finding, move a source file
-# out of semgrep-sast's reach or add one where GitLab's analyzer reads nothing and no
+# out of semgrep-sast's reach - git's move, or a file deleted and one of its name added
+# where the scan reads nothing - or add one where GitLab's analyzer reads nothing and no
 # exclusion of the project's says so (reach_problems), or change a file the scan read
 # only in part (sarif_holes).
 
-# A change to one of these can change what the scan finds anywhere in the tree.
-# .gitlab/sast-ruleset.toml is the file GitLab's analyzers read a custom ruleset
-# from (rules disabled, overridden or added): none is committed, and the one that
-# is added changes the scan as much as an edit of its job does.
 # The files whose change can change what semgrep-sast finds anywhere, or what this gate
-# makes of it: a merge request that changes one answers for every finding in the tree.
+# makes of it: a change that alters one answers for every finding in the tree.
 # .gitlab-ci.yml among them, since a variable it sets for every job (SAST_EXCLUDED_PATHS,
 # SAST_EXCLUDED_ANALYZERS, SAST_RULESET_GIT_REFERENCE...) reaches the scan as
 # gitlab-security.yml's own do; and mr-checks.yml, which runs this gate.
-SAST_CONFIG = (".gitlab-ci.yml", ".gitlab/ci/gitlab-security.yml", ".gitlab/ci/mr-checks.yml", ".gitlab/sast-ruleset.toml",
+#
+# .gitlab/sast-ruleset.toml is the file GitLab's analyzers read a custom ruleset from
+# (rules disabled, overridden or added): none is committed, and the one that is added
+# changes the scan as much as an edit of its job does.
+SAST_CONFIG =(".gitlab-ci.yml", ".gitlab/ci/gitlab-security.yml", ".gitlab/ci/mr-checks.yml", ".gitlab/sast-ruleset.toml",
                "build/ci/security-gate.py", "build/ci/security-findings.py")
 SAST_JOB_FILE = ".gitlab/ci/gitlab-security.yml"
 
@@ -631,6 +636,23 @@ CI_FILE = re.compile(r"^\.gitlab-ci\.yml$|^\.gitlab/.+\.ya?ml$")
 # .semgrepignore.local and includes it, and Semgrep reads one in a directory too), and
 # the two scans on linix's: build/ci/semgrepignore and cppcheck's suppressions list.
 SCOPE_LISTS = re.compile(r"(?:^|/)\.semgrepignore[^/]*$|^build/ci/semgrepignore$|^build/ci/cppcheck-suppressions\.txt$")
+# The ones in .gitignore's syntax, Semgrep's, where a line that begins with "!" takes
+# back what a line before it left out: a "!" line lost, or put before the line whose
+# path it takes back, narrows the scan as a line gained does. cppcheck's list has none.
+IGNORE_SYNTAX = re.compile(r"(?:^|/)\.semgrepignore[^/]*$|^build/ci/semgrepignore$")
+# The scripts of the two scans on linix, whose own lines choose what cppcheck,
+# clang-tidy and Semgrep read and report: the files given them, the options that leave
+# a file, a check or a finding out, the rule packs. Those lines stand between a line
+# SCAN_SCOPE_MARK begins and one it ends, and a change of one of them, gained or lost or
+# moved - an option taken away can narrow as well as one added (--include, --enable) - is
+# a narrowing; and so is one of the tools' options (SCAN_OPTION) a change puts outside
+# them, or marks that do not pair (scan_scope).
+SCAN_SCRIPTS = ("build/ci/static-analysis.sh", "build/ci/semgrep.sh")
+SCAN_SCOPE_MARK = re.compile(r"^[ \t]*# scan-scope (begin|end)\b")
+SCAN_OPTION = re.compile(r"(?<![\w-])(?:-i|--suppress|--suppressions-list|--inline-suppr|--enable|--disable|--file-filter|"
+                         r"--project|--library|--checks|--config-file|--config|--header-filter|--exclude-header-filter|"
+                         r"--line-filter|--include|--exclude|--exclude-rule|--severity|--baseline-commit|--max-target-bytes|"
+                         r"--timeout|--timeout-threshold|--oss-only|--pro)(?=[=\s\"']|$)")
 # And the files any change to which can narrow one: GitLab's custom ruleset, which
 # disables or overrides rules, and the checks clang-tidy runs (static-analysis.sh gives
 # it this file with --config-file, so no .clang-tidy of the tree is read).
@@ -667,6 +689,26 @@ SAST_SOURCE = re.compile(r"\.(?:c|cc|cpp|cxx|h|hh|hpp|hxx|inl|ipp|cs|py|pyw|js|j
 SARIF_GAVE_UP = ("Timeout", "Out of memory", "Stack overflow", "Fixpoint timeout", "Timeout during interfile analysis",
                  "OOM during interfile analysis")
 SARIF_PARSE = ("Syntax error", "Lexical error", "Other syntax error", "AST builder error", "PartialParsing")
+# Both lists, and the file a notification names in its text, are Semgrep's wording,
+# which a new analyzer can change: a notification of a kind in neither, or of a kind
+# that gave up on a file whose text names no file, cannot be read (exit 2), never
+# passed over. The wording was read from analyzer 6.26.1 (Semgrep 1.174.0) on 6 and 7
+# October 2026, a rule's timeout over a file made to take long and the parser's
+# notifications over batch44's tree, and SARIF_FIXTURE is what it wrote, word for word:
+# the self-test reads it, and fails while semgrep-sast's job pins another analyzer than
+# SARIF_READ_FOR, until the wording is read again (build/ci/mirror-semgrep.sh's header).
+SARIF_READ_FOR = "6.26.1"
+SARIF_FIXTURE = (
+    {"descriptor": {"id": "Timeout"}, "level": "warning",
+     "message": {"text": "Timeout when running tmp.slow-pattern on src/deep/big.py:\n "}},
+    {"descriptor": {"id": "Syntax error"}, "level": "warning",
+     "message": {"text": "Syntax error at line hmailserver/source/Server/COM/COMAuthentication.cpp:130:\n `WINAPI` was "
+                         "unexpected"}},
+    {"descriptor": {"id": "Other syntax error"}, "level": "warning",
+     "message": {"text": "Other syntax error at line hmailserver/source/Server/Common/Util/RestApiSettings.cpp:1:\n "
+                         "Failure: ii_of_name: IdDeref"}})
+# What a notification's text names as a file: a path with an extension, standing alone.
+SARIF_PATH = re.compile(r"(?<![\w./-])[\w.+-]+(?:/[\w.+-]+)*\.[A-Za-z0-9]+(?=[:\s'\"]|$)")
 
 
 def _uncommented(text):
@@ -803,19 +845,155 @@ def lines_gained(base_text, head_text):
     return sorted(line for line, count in head.items() if count > base.get(line, 0))
 
 
+def _list_lines(text):
+    """The lines of a list, in order, stripped, neither blank nor a comment."""
+    return [line.strip() for line in (text or "").replace("\r\n", "\n").split("\n")
+            if line.strip() and not line.strip().startswith("#")]
+
+
+def list_narrowings(path, base_text, head_text):
+    """[what] for each way the change makes the list at path (SCOPE_LISTS) leave out more:
+    a line it gains; and in .gitignore's syntax (IGNORE_SYNTAX), a "!" line it loses or
+    the lines it keeps put in another order, which decides what a "!" line takes back. A
+    "!" line gained only takes back more, and a line lost only leaves out less; a list
+    taken away leaves out nothing (semgrep.sh refuses to run without its own)."""
+    if head_text is None:
+        return []
+    negating = IGNORE_SYNTAX.search(path)
+    gained = [line for line in lines_gained(base_text, head_text) if not (negating and line.startswith("!"))]
+    found = []
+    if gained:
+        found.append("%s gains %d line(s) of what a scan leaves out (%s)" % (
+            path, len(gained), "; ".join(g[:80] for g in gained[:3])))
+    if not negating:
+        return found
+    lost = [line for line in lines_gained(head_text, base_text) if line.startswith("!")]
+    if lost:
+        found.append("%s loses %d line(s) that take back what a line before them left out (%s)" % (
+            path, len(lost), "; ".join(g[:80] for g in lost[:3])))
+    before, after = _list_lines(base_text), _list_lines(head_text)
+    if any(line.startswith("!") for line in before + after):
+        # The lines the head keeps of the base's, in the head's order, must come in the
+        # base's order: one that does not has moved past a line it was before.
+        left = {}
+        for line in before:
+            left[line] = left.get(line, 0) + 1
+        kept = []
+        for line in after:
+            if left.get(line, 0) > 0:
+                kept.append(line)
+                left[line] -= 1
+        at = 0
+        for line in kept:
+            while at < len(before) and before[at] != line:
+                at += 1
+            if at == len(before):
+                found.append("%s puts its lines in another order, and in .gitignore's syntax a \"!\" line takes back "
+                             "only what a line before it left out (%s)" % (path, line[:80]))
+                break
+            at += 1
+    return found
+
+
+def scan_scope(text):
+    """(the lines between the marks of SCAN_SCOPE_MARK, the lines outside them that carry
+    one of the tools' options (SCAN_OPTION), how many marked parts there are, None) - each
+    line stripped, neither blank nor a comment - or (the same, the problem) when the marks
+    do not pair."""
+    inside, outside, parts, problem, within = [], [], 0, None, False
+    for number, line in enumerate((text or "").replace("\r\n", "\n").split("\n"), 1):
+        mark = SCAN_SCOPE_MARK.match(line)
+        if mark:
+            if (mark.group(1) == "begin") == within:
+                problem = problem or "line %d: a mark that %s" % (number, "begins inside another part" if within
+                                                                   else "ends no part")
+            within = mark.group(1) == "begin"
+            parts += mark.group(1) == "begin"
+            continue
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#"):
+            continue
+        if within:
+            inside.append(stripped)
+        elif SCAN_OPTION.search(stripped):
+            outside.append(stripped)
+    if within:
+        problem = problem or "the last part has no end"
+    return inside, outside, parts, problem
+
+
+def _outside_scope(text):
+    """The lines of a scan script outside its marked parts, stripped, neither blank nor a
+    comment."""
+    lines, within = [], False
+    for line in (text or "").replace("\r\n", "\n").split("\n"):
+        mark = SCAN_SCOPE_MARK.match(line)
+        if mark:
+            within = mark.group(1) == "begin"
+            continue
+        if not within and line.strip() and not line.strip().startswith("#"):
+            lines.append(line.strip())
+    return lines
+
+
+def script_narrowings(path, base_text, head_text):
+    """[what] for each way the change to a scan script (SCAN_SCRIPTS) changes what its
+    tools read and report: marks that do not pair, or none where the base had some; a
+    line of the marked parts gained, lost or moved; and one of the tools' options outside
+    them that the base did not have there. Where the base has no marks (before they were
+    made), a marked line the base's script does not hold anywhere. A script taken away
+    leaves its job failing, not narrowed."""
+    if head_text is None:
+        return []
+    inside, stray, parts, problem = scan_scope(head_text)
+    base_inside, base_stray, base_parts, _ = scan_scope(base_text)
+    found = []
+    if problem:
+        found.append("%s's marks of what its tools read (# scan-scope begin, # scan-scope end) do not pair: %s" % (
+            path, problem))
+    if not parts and base_parts:
+        found.append("%s no longer marks the lines that choose what its tools read and report" % path)
+    if base_parts:
+        if inside != base_inside:
+            gained, lost = lines_gained("\n".join(base_inside), "\n".join(inside)), \
+                lines_gained("\n".join(inside), "\n".join(base_inside))
+            found.append("%s changes the lines that choose what its tools read and report (%s)" % (
+                path, "; ".join(["gains %r" % g[:80] for g in gained[:2]] + ["loses %r" % g[:80] for g in lost[:2]])
+                or "the same lines in another order"))
+        base_outside = base_stray
+    else:
+        gained = lines_gained(base_text, "\n".join(inside))
+        if gained:
+            found.append("%s marks lines that choose what its tools read and report which its base does not have "
+                         "(%s)" % (path, "; ".join(repr(g[:80]) for g in gained[:3])))
+        base_outside = [line for line in _list_lines(base_text) if SCAN_OPTION.search(line)]
+    put = lines_gained("\n".join(base_outside), "\n".join(stray))
+    if put:
+        found.append("%s gives its tools an option outside the lines marked as choosing what they read (%s)" % (
+            path, "; ".join(repr(g[:80]) for g in put[:3])))
+    return found
+
+
+def scope_only(path, base_text, head_text):
+    """Whether the change to the scan script at path is to its marked lines alone: the
+    narrowing's own file, then, not a file it changes besides."""
+    return path in SCAN_SCRIPTS and head_text is not None and base_text is not None and \
+        scan_scope(base_text)[2] > 0 and _outside_scope(base_text) == _outside_scope(head_text)
+
+
 def scope_narrowings(inputs):
-    """[what] for each way the change narrows what a scan reads: a line gained by a list
-    of what a scan leaves out (SCOPE_LISTS), any change of a file of SCOPE_FILES, an
-    exclusion entry of the analyzer's that no entry of the base's already covers, a
-    value of the two lists this cannot read, and any other change of a variable of
-    SCOPE_VARIABLE."""
+    """[what] for each way the change narrows what a scan reads: a list of what a scan
+    leaves out (SCOPE_LISTS) that leaves out more (list_narrowings), any change of a file
+    of SCOPE_FILES, a change of the lines of a scan script that choose what its tools
+    read (script_narrowings), an exclusion entry of the analyzer's that no entry of the
+    base's already covers, a value of the two lists this cannot read, and any other
+    change of a variable of SCOPE_VARIABLE."""
     narrowed = []
     for path, (base_text, head_text) in sorted(inputs["scope_files"].items()):
         if SCOPE_LISTS.search(path):
-            gained = lines_gained(base_text, head_text)
-            if gained:
-                narrowed.append("%s gains %d line(s) of what a scan leaves out (%s)" % (
-                    path, len(gained), "; ".join(g[:80] for g in gained[:3])))
+            narrowed.extend(list_narrowings(path, base_text, head_text))
+        elif path in SCAN_SCRIPTS:
+            narrowed.extend(script_narrowings(path, base_text, head_text))
         elif base_text != head_text and head_text is not None:
             narrowed.append("%s %s" % (path, "is added" if base_text is None else "is changed"))
     base_variables, head_variables = inputs["variables"]
@@ -847,24 +1025,42 @@ def read_by_a_scan(path):
                 or path == ".gitlab/hmailserver.openvex.json" or path in GENERATED_DOCUMENTS)
 
 
-def reach_problems(moves, base_entries, head_entries):
+def _name(path):
+    return path.rsplit("/", 1)[-1].lower()
+
+
+def reach_problems(moves, base_entries, head_entries, removed=()):
     """What holds a change that puts a source file where semgrep-sast does not read it:
-    moved from a path it reads to one it does not, or added (or changed) where only the
-    analyzer's own template leaves it out - a build/, dist/, vendor/ or node_modules/
-    directory below the root, or a minified script - which no exclusion of the
-    project's names. moves is [(status, old path, new path)]."""
+    moved from a path it reads to one it does not; added there while the change deletes
+    a source file of the same name from where the scan reads it, a move git did not pair
+    because the file was rewritten as well (removed: the paths the change deletes, its
+    moves apart); or added (or changed) where only the analyzer's own template leaves it
+    out - a build/, dist/, vendor/ or node_modules/ directory below the root, or a
+    minified script - which no exclusion of the project's names. moves is [(status, old
+    path, new path)]."""
     problems = []
+    gone = {}
+    for old in removed:
+        if SAST_SOURCE.search(old) and unread_reason(old, base_entries) is None:
+            gone.setdefault(_name(old), []).append(old)
     for status, old, new in moves:
         if not SAST_SOURCE.search(new):
             continue
         reason = unread_reason(new, head_entries)
         if reason is None:
             continue
+        where = "the exclusion" if reason[0] == "listed" else "GitLab's analyzer's own template, pattern"
         if status == "R" and unread_reason(old, base_entries) is None:
             problems.append("%s: moved from %s, which semgrep-sast reads, to where it reads nothing (%s %r): a source "
                             "file stays where the scan reads it, or its place is declared unread by a change of its own "
-                            "(SAST_EXCLUDED_PATHS)" % (new, old, "the exclusion" if reason[0] == "listed" else
-                                                       "GitLab's analyzer's own template, pattern", reason[1]))
+                            "(SAST_EXCLUDED_PATHS)" % (new, old, where, reason[1]))
+        elif status == "A" and gone.get(_name(new)):
+            problems.append("%s: added where semgrep-sast reads nothing (%s %r) while this change deletes %s, of the same "
+                            "name, from where it reads: a source file moved and rewritten, which git does not pair as a "
+                            "move, is put out of the scan's reach as one moved whole is. Keep it where the scan reads it; "
+                            "or, if it is not the deleted file, land the deletion and the new file apart, or name it apart; "
+                            "or declare its place unread by a change of its own (SAST_EXCLUDED_PATHS)" % (
+                                new, where, reason[1], ", ".join(gone[_name(new)][:3])))
         elif reason[0] == "template" and not new.startswith(DECLARED_UNREAD):
             problems.append("%s: GitLab's analyzer reads nothing there (its template leaves out %r at any depth), and no "
                             "exclusion of the project's names the place: put the file where the scan reads it, or declare "
@@ -872,28 +1068,59 @@ def reach_problems(moves, base_entries, head_entries):
     return problems
 
 
+def _sarif_note_files(note, text):
+    """What a SARIF notification names as files: its locations' URIs, if it has any, and
+    the paths its text names with an extension a scan reads (or a directory in them)."""
+    named = []
+    for location in (note.get("locations") or []) if isinstance(note.get("locations"), list) else []:
+        uri = (((location or {}).get("physicalLocation") or {}).get("artifactLocation") or {}).get("uri") \
+            if isinstance(location, dict) else None
+        if isinstance(uri, str) and uri:
+            named.append(uri)
+    named.extend(p for p in SARIF_PATH.findall(text) if "/" in p or SAST_SOURCE.search(p))
+    return named
+
+
 def sarif_holes(artifacts, paths):
-    """(held, stumbled, None) from semgrep-sast's semgrep.sarif: held says, for each file
-    of paths, a notification that a rule gave up on it (SARIF_GAVE_UP), and stumbled
-    counts those whose parse stumbled (SARIF_PARSE); or (None, None, the problem) when
-    there is no SARIF to read. GitLab's analyzer fails the scan on an error-level
-    notification only, and these are warnings: a report that says success can have left
-    a changed file unread by some of its rules."""
+    """(held, stumbled, None, None) from semgrep-sast's semgrep.sarif: held says, for each
+    file of paths, a notification that a rule gave up on it (SARIF_GAVE_UP), and
+    stumbled counts those whose parse stumbled (SARIF_PARSE); or (None, None, the
+    problem, None) when there is no SARIF to read; or (None, None, None, why) when the
+    SARIF says what this cannot read - no run with its invocations, a notification of a
+    kind in neither list, or one that gave up on a file and names none: Semgrep's
+    wording changed (SARIF_READ_FOR), and what it gave up on cannot be told until it is
+    read again. GitLab's analyzer fails the scan on an error-level notification only,
+    and these are warnings: a report that says success can have left a changed file
+    unread by some of its rules."""
     sarif, error = _read_json(os.path.join(artifacts, SEMGREP_SARIF))
     if error:
         return None, None, ("semgrep-sast: %s - the job keeps the SARIF GitLab's analyzer writes beside its report "
-                            "(.gitlab/ci/gitlab-security.yml), and without it what the scan gave up on cannot be told" % error)
+                            "(.gitlab/ci/gitlab-security.yml), and without it what the scan gave up on cannot be told"
+                            % error), None
     wanted = sorted(set(paths), key=len, reverse=True)
-    held, stumbled = [], set()
+    held, stumbled, invocations = [], set(), 0
+    reread = ("Semgrep's notifications were read as analyzer %s writes them (security-gate.py, SARIF_READ_FOR): read the "
+              "new analyzer's (build/ci/mirror-semgrep.sh's header) and say in SARIF_GAVE_UP or SARIF_PARSE what this one "
+              "means" % SARIF_READ_FOR)
     for run in (sarif.get("runs") or []) if isinstance(sarif, dict) else []:
         for invocation in (run.get("invocations") or []) if isinstance(run, dict) else []:
+            invocations += 1
             for note in (invocation.get("toolExecutionNotifications") or []) if isinstance(invocation, dict) else []:
-                kind = ((note.get("descriptor") or {}).get("id") or "") if isinstance(note, dict) else ""
-                text = ((note.get("message") or {}).get("text") or "") if isinstance(note, dict) else ""
+                if not isinstance(note, dict):
+                    return None, None, None, "semgrep.sarif holds a notification that is not an object: %r" % (note,)
+                kind = (note.get("descriptor") or {}).get("id") if isinstance(note.get("descriptor"), dict) else None
+                text = (note.get("message") or {}).get("text") if isinstance(note.get("message"), dict) else None
+                kind, text = kind if isinstance(kind, str) else "", text if isinstance(text, str) else ""
                 if kind not in SARIF_GAVE_UP and kind not in SARIF_PARSE:
-                    continue
+                    return None, None, None, "semgrep.sarif holds a notification of a kind this does not know (%r, %s: " \
+                        "%s): %s" % (kind, note.get("level"), text.split("\n")[0][:200], reread)
+                files = _sarif_note_files(note, text)
+                if kind in SARIF_GAVE_UP and not files:
+                    return None, None, None, "semgrep.sarif says a rule gave up (%s) and names no file this can find in " \
+                        "%r: %s" % (kind, text.split("\n")[0][:200], reread)
+                named = "\n".join([text] + files)
                 for path in wanted:
-                    if re.search(r"(?<![\w./-])%s(?=[:\s'\"]|$)" % re.escape(path), text):
+                    if re.search(r"(?<![\w./-])%s(?=[:\s'\"]|$)" % re.escape(path), named):
                         if kind in SARIF_GAVE_UP:
                             held.append("%s: semgrep-sast gave up on it, so its findings may be missing from the report "
                                         "(%s: %s); run semgrep-sast again, and if it gives up again, make the file one "
@@ -901,7 +1128,10 @@ def sarif_holes(artifacts, paths):
                         else:
                             stumbled.add(path)
                         break
-    return held, sorted(stumbled), None
+    if not invocations:
+        return None, None, None, "semgrep.sarif has no run with its invocations, where Semgrep says what it gave up on: " + \
+            reread
+    return held, sorted(stumbled), None, None
 
 
 def analyzer_image(text):
@@ -1181,6 +1411,7 @@ def change_problems(inputs, say=print):
     # A narrowing of what a scan reads is a declaration: it lands alone.
     narrowed = scope_narrowings(inputs)
     besides = [p for p in inputs["changed"] if read_by_a_scan(p)]
+    besides = [p for p in besides if not scope_only(p, *inputs["scope_files"].get(p, (None, None)))]
     for line in narrowed:
         say("narrows what a scan reads: %s" % line)
     if narrowed and besides:
@@ -1194,7 +1425,7 @@ def change_problems(inputs, say=print):
         say("what the scans read: nothing narrowed")
     base_entries, _ = exclusions(inputs["variables"][0])
     head_entries, _ = exclusions(inputs["variables"][1])
-    problems.extend(reach_problems(inputs["moves"], base_entries, head_entries))
+    problems.extend(reach_problems(inputs["moves"], base_entries, head_entries, inputs.get("removed", ())))
     return problems
 
 
@@ -1204,9 +1435,10 @@ def merge_request_inputs(root, base):
     the base's exceptions file (none accepts nothing), "own_exceptions": HEAD's, or
     None, "baselines": {path: (the base's text, HEAD's), None for no file}, "markers":
     marker_counts, "scope_files": {path: (the base's text, HEAD's)} of the files of
-    SCOPE_LISTS and SCOPE_FILES it changes, "variables": (the base's scope_variables,
-    HEAD's), "moves": [(status, old path, new path)] of the regular files it adds,
-    alters or moves, "analyzer": (semgrep-sast's image at the base, at HEAD)}."""
+    SCOPE_LISTS, SCOPE_FILES and SCAN_SCRIPTS it changes, "variables": (the base's
+    scope_variables, HEAD's), "moves": [(status, old path, new path)] of the regular files
+    it adds, alters or moves, "removed": the paths it deletes, its moves apart, as git
+    pairs them, "analyzer": (semgrep-sast's image at the base, at HEAD)}."""
     if not re.match(r"^[0-9a-f]{7,64}$", base or ""):
         return None, ("no base commit (%r): run it with the merge request's CI_MERGE_REQUEST_DIFF_BASE_SHA, or 'auto', "
                       "in a clone that has it (GIT_DEPTH 0)" % base)
@@ -1242,9 +1474,13 @@ def merge_request_inputs(root, base):
     if problem:
         return None, problem
     inputs["moves"] = [(status, old, new) for status, old_mode, new_mode, _, _, old, new in items if new_mode in REGULAR_FILE]
+    removed = _git(root, "diff", "--name-only", "-z", "-M", "-l0", "--diff-filter=D", base, "HEAD")
+    if removed.returncode != 0:
+        return None, "git diff --diff-filter=D %s HEAD failed: %s" % (base, _said(removed))
+    inputs["removed"] = [p.decode("utf-8", "surrogateescape") for p in removed.stdout.split(b"\0") if p]
     inputs["scope_files"] = {}
     for path in inputs["changed"]:
-        if SCOPE_LISTS.search(path) or SCOPE_FILES.search(path):
+        if SCOPE_LISTS.search(path) or SCOPE_FILES.search(path) or path in SCAN_SCRIPTS:
             texts = []
             for commit in (base, "HEAD"):
                 text, problem = _text_at(root, commit, path)
@@ -1799,30 +2035,74 @@ def auto_base(root, say=print, environ=None):
 # change passes only when both copies pass it (combined). The change's CI files still
 # say what runs: this is against an edit of the code that the change's own gate would
 # not see, not against a change that edits the jobs themselves, which SECURITY.md says.
+#
+# Whether the base's copy runs is read from the code that runs, never from a variable:
+# the checkout's files of GATE_CODE against the base's (running_gate_code). The base's
+# copy runs in a worktree whose GATE_CODE is the base's, where none differs, and so runs
+# no copy of its own; and nothing a CI file or a project variable sets can stop it. Each
+# gate says "The base's copy of <script> exited <code>." in its log, which
+# build/land-via-mr.py requires of a batch that changes GATE_CODE.
 
 GATE_CODE = ("build/ci/security-gate.py", "build/ci/security-findings.py", "build/ci/mr-dependency-check.py",
              "build/ci/dependency-scan.py", "build/ci/osv-offline-db.py")
-BASE_COPY = "HM_GATE_BASE_COPY"
+# Where base_copy_verdict makes the base's copy's worktree: <temp>/gate-base-copy-*/tree.
+BASE_COPY_DIR = "gate-base-copy-"
+
+
+def in_base_copy(root):
+    """Whether root is a worktree base_copy_verdict made for a base's copy. Not what
+    decides whether a copy runs - a checkout put at such a path decides nothing - but a
+    bound: a base's copy that still finds the gates' code not the base's stops there,
+    unable to check, and never runs a copy of its own."""
+    here = os.path.abspath(root)
+    return os.path.basename(here) == "tree" and os.path.basename(os.path.dirname(here)).startswith(BASE_COPY_DIR)
+
+
+def running_gate_code(root, base):
+    """([the files of GATE_CODE whose copy in the checkout at root - the code that runs -
+    is not the base's], None), or (None, the problem). A file one has and the other lacks
+    differs; line endings do not."""
+    differ = []
+    for path in GATE_CODE:
+        at_base = None
+        if _git(root, "cat-file", "-e", "%s:%s" % (base, path)).returncode == 0:
+            shown = _git(root, "show", "%s:%s" % (base, path))
+            if shown.returncode != 0:
+                return None, "git show %s:%s failed: %s" % (base, path, _said(shown))
+            at_base = shown.stdout.replace(b"\r\n", b"\n")
+        try:
+            with open(os.path.join(root, *path.split("/")), "rb") as f:
+                here = f.read().replace(b"\r\n", b"\n")
+        except FileNotFoundError:
+            here = None
+        except OSError as e:
+            return None, "%s cannot be read: %s" % (path, e)
+        if here != at_base:
+            differ.append(path)
+    return differ, None
 
 
 def base_copy_verdict(root, base, entry, arguments, say=print, environ=None):
-    """None when the change leaves GATE_CODE as the base has it, when the base has no
-    copy of entry, or when this runs as a base's copy already (HM_GATE_BASE_COPY); else
-    the exit code of the base's copy of entry, run with arguments from a worktree of
-    HEAD in which each file of GATE_CODE is the base's (one the base lacks is taken away)."""
+    """None when the checkout's GATE_CODE is the base's (running_gate_code) - a change
+    that leaves it alone, or the base's own copy running - or when the base has no copy
+    of entry; else the exit code of the base's copy of entry, run with arguments from a
+    worktree of HEAD in which each file of GATE_CODE is the base's (one the base lacks
+    is taken away). No variable stops it: environ is the environment it runs in."""
     environ = os.environ if environ is None else environ
-    if environ.get(BASE_COPY):
+    differ, problem = running_gate_code(root, base)
+    if problem:
+        say("CANNOT CHECK: the gates' code against the base's: %s" % problem)
+        return 2
+    if not differ:
         return None
-    differs = _git(root, "diff", "--quiet", base, "HEAD", "--", *GATE_CODE)
-    if differs.returncode == 0:
-        return None
-    if differs.returncode != 1:
-        say("CANNOT CHECK: git diff %s HEAD of the gates' code failed: %s" % (base, _said(differs)))
+    if in_base_copy(root):
+        say("CANNOT CHECK: this runs as the base's copy, in the worktree made for it, and finds the gates' code not the "
+            "base's (%s): it runs no copy of its own" % ", ".join(differ))
         return 2
     if _git(root, "cat-file", "-e", "%s:%s" % (base, entry)).returncode != 0:
         say("The base has no %s: the change's copy alone judges it." % entry)
         return None
-    work = tempfile.mkdtemp(prefix="gate-base-copy-")
+    work = tempfile.mkdtemp(prefix=BASE_COPY_DIR)
     tree = os.path.join(work, "tree")
     try:
         added = _git(root, "worktree", "add", "--detach", "--quiet", tree, "HEAD")
@@ -1831,16 +2111,20 @@ def base_copy_verdict(root, base, entry, arguments, say=print, environ=None):
             return 2
         for path in GATE_CODE:
             target = os.path.join(tree, *path.split("/"))
-            shown = _git(root, "show", "%s:%s" % (base, path))
-            if shown.returncode == 0:
+            if _git(root, "cat-file", "-e", "%s:%s" % (base, path)).returncode == 0:
+                shown = _git(root, "show", "%s:%s" % (base, path))
+                if shown.returncode != 0:
+                    say("CANNOT CHECK: git show %s:%s failed: %s" % (base, path, _said(shown)))
+                    return 2
+                os.makedirs(os.path.dirname(target), exist_ok=True)
                 with open(target, "wb") as f:
                     f.write(shown.stdout)
             elif os.path.exists(target):
                 os.remove(target)
         say("This change alters the gates' code (%s): the base's copy of %s judges it too, over its head." % (
-            ", ".join(p for p in GATE_CODE if _git(root, "diff", "--quiet", base, "HEAD", "--", p).returncode == 1), entry))
+            ", ".join(differ), entry))
         done = subprocess.run([sys.executable, os.path.join(tree, *entry.split("/"))] + list(arguments), cwd=tree,
-                              env=dict(environ, **{BASE_COPY: "1"}), stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                              env=dict(environ), stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         for line in done.stdout.decode("utf-8", "replace").splitlines():
             say("  base's copy: " + line)
         say("The base's copy of %s exited %d." % (entry, done.returncode))
@@ -1980,11 +2264,65 @@ def change_base_failures():
         code = base_copy_verdict(copies, gate_base, "build/ci/security-gate.py", ["--x"], said.append, {})
         expect(code == 1 and any("copy base ['--x'] True" in s for s in said),
                "a change to the gates' code is judged by the base's copy too, over HEAD's tree: %r %s" % (code, said))
-        expect(base_copy_verdict(copies, gate_base, "build/ci/security-gate.py", [], said.append, {BASE_COPY: "1"}) is None,
-               "a base's copy runs no copy of its own")
+        expect(any(s == "The base's copy of build/ci/security-gate.py exited 1." for s in said),
+               "the gate says how the base's copy ended, as build/land-via-mr.py reads it: %s" % said)
+        # No variable stops it, the one that once did among them: whether it runs is read
+        # from the code that runs.
+        said = []
+        code = base_copy_verdict(copies, gate_base, "build/ci/security-gate.py", [], said.append,
+                                 {"HM_GATE_BASE_COPY": "1", "HM_GATE_BASE_COPY_SKIP": "true"})
+        expect(code == 1, "a variable does not stop the base's copy: %r %s" % (code, said))
+        # The base's copy itself, in its worktree, runs over files of GATE_CODE that are
+        # the base's: none differs, so it runs no copy of its own - whatever their line
+        # endings.
+        gate_path = os.path.join(copies, "build", "ci", "security-gate.py")
+        for ending in ("\n", "\r\n"):
+            with open(gate_path, "wb") as f:
+                f.write((stub % ("base", 1)).replace("\n", ending).encode("utf-8"))
+            expect(base_copy_verdict(copies, gate_base, "build/ci/security-gate.py", [], said.append, {}) is None,
+                   "a checkout whose gates' code is the base's (%r endings), as the base's copy's is, runs no copy of "
+                   "its own" % ending)
+        g(copies, "checkout", "--", "build/ci/security-gate.py")
+        expect(running_gate_code(copies, gate_base) == (["build/ci/security-gate.py"], None),
+               "the gates' code that runs is told from the base's: %r" % (running_gate_code(copies, gate_base),))
+        # A worktree made for a base's copy that still finds the gates' code not the
+        # base's stops there, unable to check, and runs no copy of its own.
+        bounded = os.path.join(work, BASE_COPY_DIR + "bound", "tree")
+        g(copies, "worktree", "add", "--detach", "--quiet", bounded, "HEAD")
+        said = []
+        code = base_copy_verdict(bounded, gate_base, "build/ci/security-gate.py", [], said.append, {})
+        expect(code == 2 and any("runs as the base's copy" in s for s in said),
+               "a base's copy's worktree whose gates' code is not the base's runs no copy: %r %s" % (code, said))
+        g(copies, "worktree", "remove", "--force", bounded)
         expect(len(g(copies, "worktree", "list").splitlines()) == 1, "the base's copy's worktree is taken away after it")
         expect(base_copy_verdict(copies, gate_base, "build/ci/mr-dependency-check.py", [], said.append, {}) is None,
                "a gate the base has no copy of is judged by the change's alone")
+        # And end to end: a base whose gate asks this module's base_copy_verdict, in the
+        # worktree it is run in, whether to run a copy of its own - which ends there.
+        nested = ("import importlib.util, os, sys\n"
+                  "spec = importlib.util.spec_from_file_location('gate_under_test', %r)\n"
+                  "gate = importlib.util.module_from_spec(spec)\n"
+                  "spec.loader.exec_module(gate)\n"
+                  "root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))\n"
+                  "print('nested copy', gate.base_copy_verdict(root, sys.argv[1], 'build/ci/security-gate.py', [sys.argv[1]], "
+                  "lambda line: None))\n" % os.path.abspath(__file__))
+        nested_base = commit(copies, "build/ci/security-gate.py", nested)
+        commit(copies, "build/ci/security-gate.py", stub % ("head", 0))
+        said = []
+        code = base_copy_verdict(copies, nested_base, "build/ci/security-gate.py", [nested_base], said.append,
+                                 dict(os.environ))
+        expect(code == 0 and any("nested copy None" in s for s in said),
+               "the base's copy, run in its worktree, runs none of its own: %r %s" % (code, said))
+        expect(len(g(copies, "worktree", "list").splitlines()) == 1, "and every worktree is taken away after it")
+        # A base whose blob has CRLF endings is the same code as its LF checkout.
+        crlf_base = commit(copies, "build/ci/security-gate.py", (stub % ("base", 1)).replace("\n", "\r\n"))
+        commit(copies, "build/ci/security-gate.py", stub % ("head", 0))
+        with open(gate_path, "wb") as f:
+            f.write((stub % ("base", 1)).encode("utf-8"))
+        expect(running_gate_code(copies, crlf_base) == ([], None),
+               "a base's blob with CRLF endings is the code a checkout with LF holds: %r"
+               % (running_gate_code(copies, crlf_base),))
+        g(copies, "checkout", "--", "build/ci/security-gate.py")
         for own_code, copy_code, verdict in ((0, None, 0), (0, 0, 0), (0, 1, 1), (1, 0, 1), (0, 2, 2), (2, 1, 1), (2, 0, 2)):
             expect(combined(own_code, copy_code) == verdict, "the change's copy %s and the base's %s give %s" % (
                 own_code, copy_code, verdict))
@@ -2088,6 +2426,124 @@ def change_gate_failures():
                          ("  script: 'echo SAST_X: y'\n", {}), ("  - SAST_X: y\n", {"SAST_X": ["y"]})):
         expect(scope_variables({"a.yml": text}) == wanted, "%r defines %s: %s" % (text, wanted, scope_variables({"a.yml": text})))
 
+    # A list in .gitignore's syntax leaves out more when it gains a line, loses a "!"
+    # line, or puts its lines in another order while it has one; a "!" line gained, or a
+    # line lost, leaves out less. cppcheck's list has no "!" lines.
+    ignore = "hmailserver/test/\n!hmailserver/test/keep.py\nlibraries/\n"
+    for path, head, narrows in (
+            ("build/ci/semgrepignore", ignore.replace("!hmailserver/test/keep.py\n", ""), "loses 1 line(s)"),
+            ("build/ci/semgrepignore", ignore + "!libraries/kept.py\n", None),
+            ("build/ci/semgrepignore", ignore.replace("libraries/\n", ""), None),
+            ("build/ci/semgrepignore", "!hmailserver/test/keep.py\nhmailserver/test/\nlibraries/\n", "another order"),
+            ("build/ci/semgrepignore", "# a comment moved\n" + ignore, None),
+            ("build/ci/semgrepignore", ignore + "src/\n", "gains 1 line(s)"),
+            ("build/ci/semgrepignore", ignore.replace("!hmailserver/test/keep.py", "\\!hmailserver/test/keep.py"),
+             "gains 1 line(s)"),
+            ("build/ci/semgrepignore", None, None),
+            ("src/.semgrepignore", ignore + "!b.py\n", None),
+            ("src/.semgrepignore", "!b.py\n", "loses 1 line(s)"),
+            ("build/ci/cppcheck-suppressions.txt", "!x\n", "gains 1 line(s)")):
+        found = list_narrowings(path, ignore, head)
+        expect(any(narrows in f for f in found) if narrows else found == [],
+               "%s as %r from %r narrows %s: %s" % (path, head, ignore, narrows or "nothing", found))
+    # The scan scripts: the lines between the marks, and the tools' options outside them.
+    marked = ("#!/bin/bash\necho start\n# scan-scope begin: what Semgrep reads\nsemgrep scan --config r \\\n"
+              "  --include '*.py' --include '*.cs' \\\n  .\n# scan-scope end\necho done\n")
+    inside, stray, parts, problem = scan_scope(marked)
+    expect(parts == 1 and problem is None and stray == [] and inside == [
+        "semgrep scan --config r \\", "--include '*.py' --include '*.cs' \\", "."],
+           "scan_scope reads the marked lines: %r" % ((inside, stray, parts, problem),))
+    for what, head, narrows in (
+            ("an option added between the marks", marked.replace("'*.cs'", "'*.cs' --exclude src"), "changes the lines"),
+            ("an include taken away", marked.replace(" --include '*.cs'", ""), "loses \"--include"),
+            ("the marked lines in another order", marked.replace("  .\n", "").replace("semgrep scan", "  .\nsemgrep scan"),
+             "another order"),
+            ("an option put outside the marks", marked.replace("echo done\n", "semgrep scan --exclude src .\necho done\n"),
+             "an option outside the lines marked"),
+            ("a line without an option outside the marks", marked.replace("echo done", "echo finished"), None),
+            ("a comment between the marks", marked.replace("  .\n", "  # the tree\n  .\n"), None),
+            ("the marks taken away", marked.replace("# scan-scope begin: what Semgrep reads\n", "").replace(
+                "# scan-scope end\n", ""), "no longer marks"),
+            ("a mark that does not pair", marked.replace("# scan-scope end\n", ""), "the last part has no end"),
+            ("an end with no part", marked.replace("echo done\n", "echo done\n# scan-scope end\n"), "ends no part"),
+            ("a part begun inside another", marked.replace("  .\n", "# scan-scope begin: again\n  .\n"),
+             "begins inside another part"),
+            ("the script taken away", None, None)):
+        found = script_narrowings("build/ci/semgrep.sh", marked, head)
+        expect(any(narrows in f for f in found) if narrows else found == [],
+               "%s narrows %s: %s" % (what, narrows or "nothing", found))
+    unmarked = marked.replace("# scan-scope begin: what Semgrep reads\n", "").replace("# scan-scope end\n", "")
+    expect(script_narrowings("build/ci/semgrep.sh", unmarked, marked) == [],
+           "marks made around the lines the base has narrow nothing: %s" % script_narrowings("build/ci/semgrep.sh", unmarked,
+                                                                                              marked))
+    expect(any("which its base does not have" in f for f in script_narrowings(
+        "build/ci/semgrep.sh", unmarked, marked.replace("'*.cs'", "'*.cs' --exclude src"))),
+           "marks made around a line the base does not have narrow")
+    expect(scope_only("build/ci/semgrep.sh", marked, marked.replace("'*.cs'", "'*.cs' --exclude src")) and
+           not scope_only("build/ci/semgrep.sh", marked, marked.replace("echo done", "echo finished")) and
+           not scope_only("build/ci/semgrep.sh", unmarked, marked),
+           "a scan script changed between its marks alone is the narrowing's own file, not one changed besides")
+    # The tree's scan scripts mark what their tools read, with no option outside it, and
+    # static-analysis.sh takes no check list from a job's variables.
+    for path, tool in (("build/ci/static-analysis.sh", "cppcheck --project="), ("build/ci/static-analysis.sh", "clang-tidy -p"),
+                       ("build/ci/static-analysis.sh", "--config-file=build/ci/clang-tidy.yaml"),
+                       ("build/ci/semgrep.sh", "\"$semgrep\" scan"), ("build/ci/semgrep.sh", "packs=")):
+        try:
+            with open(os.path.join(ROOT, *path.split("/")), encoding="utf-8") as f:
+                script = f.read()
+        except OSError as e:
+            script = ""
+            failures.append("%s cannot be read: %s" % (path, e))
+        inside, stray, parts, problem = scan_scope(script)
+        expect(parts and problem is None and not stray, "%s marks what its tools read, with no option outside the marks: "
+                                                        "%r" % (path, (parts, problem, stray)))
+        expect(any(tool in line for line in inside), "%s runs %s between its marks" % (path, tool))
+        if path.endswith("static-analysis.sh"):
+            expect(re.search(r'if \[ -n "\$\{HM_TIDY_CHECKS:-\}" \] && \[ "\$\{GITLAB_CI:-\}" = "true" \]; then\n.*\n\s*exit 2',
+                             script), "static-analysis.sh refuses HM_TIDY_CHECKS in a GitLab job")
+        else:
+            expect('if [ ! -f build/ci/semgrepignore ]; then' in script, "semgrep.sh refuses to run without its ignore list")
+
+    # Semgrep's notifications, word for word as SARIF_READ_FOR's analyzer wrote them: a
+    # rule's timeout holds the file it names, a parse that stumbled is counted; a kind in
+    # neither list, a timeout naming no file, or no run at all cannot be read.
+    sarif_dir = tempfile.mkdtemp(prefix="security-gate-sarif-")
+    try:
+        def holes(notes, paths, runs=True):
+            with open(os.path.join(sarif_dir, SEMGREP_SARIF), "w", encoding="utf-8") as f:
+                json.dump({"version": "2.1.0", "runs": [{"tool": {"driver": {"name": "Semgrep OSS", "semanticVersion": "1.174.0"}},
+                                                         "invocations": [{"executionSuccessful": True,
+                                                                          "toolExecutionNotifications": list(notes)}],
+                                                         "results": []}] if runs else []}, f)
+            return sarif_holes(sarif_dir, paths)
+
+        fixture = holes(SARIF_FIXTURE, ["src/deep/big.py", "src/small.py", "hmailserver/source/Server/COM/COMAuthentication.cpp",
+                                        "hmailserver/source/Server/Common/Util/RestApiSettings.cpp"])
+        expect(fixture[2:] == (None, None) and len(fixture[0]) == 1 and fixture[0][0].startswith("src/deep/big.py: ")
+               and fixture[1] == ["hmailserver/source/Server/COM/COMAuthentication.cpp",
+                                  "hmailserver/source/Server/Common/Util/RestApiSettings.cpp"],
+               "the analyzer's own notifications are read: a timeout held, two stumbles counted: %r" % (fixture,))
+        expect(holes(SARIF_FIXTURE, ["src/small.py"])[:2] == ([], []), "a file no notification names is not held")
+        renamed = [dict(SARIF_FIXTURE[0], descriptor={"id": "Rule timeout"})]
+        expect("of a kind this does not know ('Rule timeout'" in (holes(renamed, ["src/deep/big.py"])[3] or ""),
+               "a notification of a kind in neither list cannot be read: %r" % (holes(renamed, ["src/deep/big.py"]),))
+        unnamed = [dict(SARIF_FIXTURE[0], message={"text": "Timeout when running tmp.slow-pattern:\n "})]
+        expect("names no file" in (holes(unnamed, ["src/deep/big.py"])[3] or ""),
+               "a timeout whose text names no file cannot be read: %r" % (holes(unnamed, []),))
+        located = [dict(unnamed[0], locations=[{"physicalLocation": {"artifactLocation": {"uri": "src/deep/big.py"}}}])]
+        expect(len(holes(located, ["src/deep/big.py"])[0] or []) == 1,
+               "a timeout that names its file by its location is held: %r" % (holes(located, ["src/deep/big.py"]),))
+        expect("no run with its invocations" in (holes([], [], runs=False)[3] or ""), "a SARIF with no run cannot be read")
+        expect(holes([], ["src/a.cpp"]) == ([], [], None, None), "a SARIF with no notification holds nothing")
+    finally:
+        shutil.rmtree(sarif_dir, ignore_errors=True)
+    # The wording is the pinned analyzer's: a re-pin reads it again (mirror-semgrep.sh).
+    pinned = re.search(r"/mirror/semgrep:([0-9][0-9.]*)-[0-9a-f]{12}@", analyzer_image(security_text) or "")
+    expect(pinned and pinned.group(1) == SARIF_READ_FOR,
+           "semgrep-sast pins analyzer %s, and sarif_holes read Semgrep's notifications as %s writes them: read the new "
+           "one's (build/ci/mirror-semgrep.sh's header), then set SARIF_READ_FOR and SARIF_FIXTURE"
+           % (pinned.group(1) if pinned else "(none found)", SARIF_READ_FOR))
+
     today = datetime.date(2026, 10, 1)
     work = tempfile.mkdtemp(prefix="security-gate-change-")
     repo, artifacts = os.path.join(work, "repo"), os.path.join(work, "artifacts")
@@ -2132,8 +2588,9 @@ def change_gate_failures():
                                             "location": {"file": "src/a.cpp", "start_line": 2}}]}, f)
         if sarif:
             with open(os.path.join(artifacts, SEMGREP_SARIF), "w", encoding="utf-8") as f:
-                json.dump({"version": "2.1.0", "runs": [{"results": [], "invocations": [{"toolExecutionNotifications": [
-                    {"descriptor": {"id": kind}, "level": "warning", "message": {"text": text}} for kind, text in notes]}]}]}, f)
+                json.dump(sarif if isinstance(sarif, dict) else {"version": "2.1.0", "runs": [{"results": [], "invocations": [
+                    {"toolExecutionNotifications": [{"descriptor": {"id": kind}, "level": "warning", "message": {"text": text}}
+                                                    for kind, text in notes]}]}]}, f)
         said = []
         held = findings_module.ROOT
         findings_module.ROOT = repo
@@ -2176,6 +2633,7 @@ def change_gate_failures():
                                   "build/ci/semgrep-baseline.txt": baseline, EXCEPTIONS: "exceptions: []\n",
                                   SAST_JOB_FILE: security(), ".gitlab-ci.yml": "stages: [test]\n",
                                   "build/ci/cppcheck-suppressions.txt": "missingInclude\n",
+                                  "build/ci/semgrepignore": ignore, "build/ci/semgrep.sh": marked,
                                   "docs/Guide.md": "Markers: %s\n" % sem}.items():
             path = os.path.join(repo, *relative.split("/"))
             os.makedirs(os.path.dirname(path), exist_ok=True)
@@ -2260,6 +2718,36 @@ def change_gate_failures():
              "cppcheck-suppressions.txt gains 1 line(s)")
         case("a cppcheck suppression taken away", base, dict(edit, **{"build/ci/cppcheck-suppressions.txt": "# none\n"}), 0,
              "nothing narrowed")
+        # Semgrep's ignore list on linix: a "!" line lost, or put before what it takes
+        # back, narrows; one gained, or a line lost, does not.
+        semgrepignore = "build/ci/semgrepignore"
+        case("a line that takes back what the ignore list left out, lost", base,
+             dict(edit, **{semgrepignore: ignore.replace("!hmailserver/test/keep.py\n", "")}), 1, "loses 1 line(s) that take back")
+        case("that line lost alone", base, {semgrepignore: ignore.replace("!hmailserver/test/keep.py\n", "")}, 0,
+             "the narrowing lands alone")
+        case("that line put before what it takes back", base,
+             dict(edit, **{semgrepignore: "!hmailserver/test/keep.py\nhmailserver/test/\nlibraries/\n"}), 1, "another order")
+        case("a line that takes back more, gained", base, dict(edit, **{semgrepignore: ignore + "!libraries/kept.py\n"}), 0,
+             "nothing narrowed")
+        # The lines of semgrep.sh that choose what Semgrep reads: a change of them, or an
+        # option put outside them, narrows; it lands alone, semgrep.sh being its own file.
+        script = "build/ci/semgrep.sh"
+        excluding = marked.replace("'*.cs'", "'*.cs' --exclude src")
+        case("an exclusion between semgrep.sh's marks, with a source change", base, dict(edit, **{script: excluding}), 1,
+             "changes the lines that choose what its tools read")
+        case("an exclusion between semgrep.sh's marks, alone", base, {script: excluding}, 0, "the narrowing lands alone")
+        case("an exclusion between semgrep.sh's marks and a line outside them", base,
+             {script: excluding.replace("echo done", "echo finished")}, 1, "changes 1 file(s) a scan reads besides")
+        case("an exclusion outside semgrep.sh's marks", base,
+             dict(edit, **{script: marked.replace("echo done\n", "semgrep scan --exclude src .\necho done\n")}), 1,
+             "gives its tools an option outside")
+        case("a line of semgrep.sh outside its marks, with a source change", base,
+             dict(edit, **{script: marked.replace("echo done", "echo finished")}), 0, "nothing narrowed")
+        before_marks = change(base, {script: unmarked}, message="semgrep.sh before its marks")
+        case("semgrep.sh's marks made around the lines it had, with a source change", before_marks,
+             dict(edit, **{script: marked}), 0, "nothing narrowed")
+        case("semgrep.sh's marks made around a line it did not have", before_marks, dict(edit, **{script: excluding}), 1,
+             "which its base does not have")
         # ... nor a source file put out of semgrep-sast's reach.
         case("a source file moved into a directory the scan leaves out", base, {}, 1,
              "src/test/b.py: moved from src/b.py, which semgrep-sast reads", renames=(("src/b.py", "src/test/b.py"),))
@@ -2268,6 +2756,16 @@ def change_gate_failures():
         case("a minified script added", base, {"src/app.min.js": "eval(x)\n"}, 1, "src/app.min.js: GitLab's analyzer")
         case("a script added under build/", base, {"build/x.py": "print(1)\n"}, 0)
         case("a test added where the tests are left out", base, {"src/test/t.py": "print(1)\n"}, 0)
+        # A source file deleted while one of its name is added where the scan reads
+        # nothing, rewritten past what git pairs as a move, is moved all the same; one of
+        # another name is a test like any other.
+        rewritten = "".join("def case_%d():\n    return %d\n" % (n, n) for n in range(8))
+        case("a source file moved and rewritten into a directory the scan leaves out", base,
+             {"src/b.py": None, "src/test/b.py": rewritten}, 1, "while this change deletes src/b.py, of the same name")
+        case("a source file deleted, and a test of another name added", base,
+             {"src/b.py": None, "src/test/t_b.py": rewritten}, 0)
+        case("a source file deleted, and one of its name added where the scan reads", base,
+             {"src/b.py": None, "src/lib/b.py": rewritten}, 0)
         # Where an exclusion of the project's, landed first, names the place, the file
         # there is declared unread.
         declared = change(base, {SAST_JOB_FILE: security(excluded="tests, src/test, src/vendor")}, message="declared")
@@ -2280,6 +2778,21 @@ def change_gate_failures():
         case("a file the scan gave up on that the change does not touch", base, {"src/b.py": python + "print(2)\n"}, 0,
              notes=[("Timeout", "Timeout when running c.strcpy on src/a.cpp:\n ")])
         case("no SARIF beside the report", base, {"src/b.py": python + "print(2)\n"}, 1, "semgrep.sarif", sarif=False)
+        # A SARIF in words this does not know cannot be read: never a pass.
+        case("a notification of a kind this does not know", base, {"src/b.py": python + "print(2)\n"}, 2,
+             "of a kind this does not know ('Rule timeout'",
+             notes=[("Rule timeout", "Rule timeout when running c.strcpy on src/a.cpp:\n ")])
+        case("a timeout that names no file", base, {"src/b.py": python + "print(2)\n"}, 2, "names no file",
+             notes=[("Timeout", "Timeout when running c.strcpy\n ")])
+        case("a SARIF with no run", base, {"src/b.py": python + "print(2)\n"}, 2, "no run with its invocations",
+             sarif={"version": "2.1.0", "runs": []})
+        case("a notification this does not know, and a marker added", base,
+             {"src/a.cpp": source.replace("argv[1]);", "argv[1]); // %s" % sem)}, 1, "CANNOT CHECK: semgrep.sarif holds",
+             notes=[("Rule timeout", "Rule timeout when running c.strcpy on src/a.cpp:\n ")])
+        case("the analyzer's own wording", base, {"src/a.cpp": source + "// more\n"}, 1,
+             "src/a.cpp: semgrep-sast gave up on it",
+             notes=[(SARIF_FIXTURE[0]["descriptor"]["id"], SARIF_FIXTURE[0]["message"]["text"].replace("src/deep/big.py",
+                                                                                                       "src/a.cpp"))])
         # ... nor a report that is not this pipeline's, or one the change commits.
         case("a report another tool wrote", base, {"docs/Guide.md": "x\n"}, 1, "not written by GitLab's Semgrep analyzer",
              analyzer="semgrep-local")
@@ -2358,16 +2871,21 @@ def merge_request_main(root, artifacts, base, exceptions_text=None, today=None, 
     # What the scan gave up on, in the files it reads that the change adds or alters.
     head_entries, _ = exclusions(inputs["variables"][1])
     read = [new for _, _, new in inputs["moves"] if SAST_SOURCE.search(new) and unread_reason(new, head_entries) is None]
-    held, stumbled, problem = sarif_holes(artifacts, read)
+    held, stumbled, problem, unreadable = sarif_holes(artifacts, read)
     if problem:
         problems.append(problem)
-    else:
+    elif not unreadable:
         problems.extend(held)
         say("semgrep-sast's notifications: %d of the %d source file(s) this change adds or alters that it reads were given "
             "up on; the parser stumbled in %d, which it reads on past (listed, not held)%s" % (
                 len(held), len(read), len(stumbled), (": " + ", ".join(stumbled[:8])) if stumbled else ""))
     for p in problems:
         say("HELD: " + p)
+    if unreadable:
+        # Never a pass: what the scan gave up on cannot be told.
+        say("CANNOT CHECK: " + unreadable)
+        if not problems:
+            return 2
     if problems:
         say("This change waits on the %d line(s) HELD above: a finding of severity Critical or High in what it changes "
             "is fixed, or accepted in %s by a change of its own, landed first, with the reason it is not exploitable, a "

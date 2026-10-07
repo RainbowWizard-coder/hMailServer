@@ -62,10 +62,17 @@
 #   HM_BUILD_DIR      where CMake configures (/tmp/hm-analysis), outside the checkout
 #   HM_ANALYSIS_JOBS  files analysed at once (6: the runner gives a job six CPUs)
 #   HM_TIDY_CHECKS    a clang-tidy check list to run INSTEAD of clang-tidy.yaml's,
-#                     for trying a check by hand; never set in the job
+#                     for trying a check by hand; refused in a GitLab job, so that no
+#                     CI file or project variable chooses fewer checks for the job
 #   HM_EXCEPTIONS_FILE  an exceptions file to judge by INSTEAD of master's, for a run
 #                     by hand in a checkout whose origin cannot be fetched (a
 #                     worktree mounted into a container); refused in a GitLab job
+#
+# The lines between "# scan-scope begin" and "# scan-scope end" below choose what
+# cppcheck and clang-tidy read and report: the files given them, their options, the
+# checks. build/ci/security-gate.py holds a change of one of them, or one of their
+# options put outside them, as a narrowing of the scan, which lands alone
+# (SECURITY.md, "Narrowing a scan is a declaration too").
 set -uo pipefail
 
 out="${HM_OUT_DIR:-security/static-analysis}"
@@ -76,6 +83,10 @@ write_baseline=()
 
 if [ ! -f hmailserver/source/Server/CMakeLists.txt ]; then
   echo "Run this from the root of a checkout (no hmailserver/source/Server/CMakeLists.txt here)."
+  exit 2
+fi
+if [ -n "${HM_TIDY_CHECKS:-}" ] && [ "${GITLAB_CI:-}" = "true" ]; then
+  echo "HM_TIDY_CHECKS is for a run by hand; a job runs build/ci/clang-tidy.yaml's checks"
   exit 2
 fi
 root="$PWD"
@@ -136,6 +147,7 @@ fi
 
 echo ""
 echo "== the compile database (configure only, with clang, as linux-build.sh does)"
+# scan-scope begin: the files cppcheck and clang-tidy are given
 rm -rf "$build_dir"
 if ! CC=clang CXX=clang++ cmake -S hmailserver/source/Server -B "$build_dir" -G Ninja \
       -DCMAKE_BUILD_TYPE=Release -DCMAKE_EXPORT_COMPILE_COMMANDS=ON > "$out/configure.log" 2>&1; then
@@ -157,6 +169,7 @@ if [ "$count" -lt 100 ]; then
   echo "Only $count files to analyse: the compile database is not the server's."
   exit 2
 fi
+# scan-scope end
 
 echo ""
 echo "== cppcheck"
@@ -181,6 +194,7 @@ echo "== cppcheck"
 # took _T for an unknown function, and two literals joined, _T("a") _T("b"), as an
 # unknown macro, and gave up on the file (update_feed_tests_main.cpp, 2 October
 # 2026), which fails the job.
+# scan-scope begin: what cppcheck reads and reports
 ossl=/usr/include/openssl/opensslv.h
 ossl_part() { sed -n "s/^# *define OPENSSL_VERSION_$1 *\([0-9][0-9]*\).*/\1/p" "$ossl" | head -n 1; }
 ossl_major=$(ossl_part MAJOR); ossl_minor=$(ossl_part MINOR); ossl_patch=$(ossl_part PATCH)
@@ -200,6 +214,7 @@ cppcheck --project="$database" \
   -DOPENSSL_VERSION_TEXT="\"OpenSSL $ossl_major.$ossl_minor.$ossl_patch\"" \
   --platform=unix64 --library=posix --library=gnu --library=boost --library=openssl --library=zlib \
   -j "$jobs" --xml --output-file="$out/cppcheck.xml" > "$out/cppcheck.log" 2>&1
+# scan-scope end
 code=$?
 echo "cppcheck exit $code after $SECONDS s"
 if [ "$code" -ne 0 ] || [ ! -s "$out/cppcheck.xml" ]; then
@@ -213,6 +228,7 @@ echo ""
 echo "== clang-tidy ($jobs at a time)"
 SECONDS=0
 mkdir -p "$build_dir/tidy"
+# scan-scope begin: the checks clang-tidy runs, and the files it reads
 if [ -n "${HM_TIDY_CHECKS:-}" ]; then
   config=(--checks="$HM_TIDY_CHECKS" --header-filter='.*/hmailserver/source/Server/.*' --exclude-header-filter='.*/quickjs/.*')
   echo "HM_TIDY_CHECKS=$HM_TIDY_CHECKS - NOT the job's check set"
@@ -232,6 +248,7 @@ tidy_one() {
 }
 export -f tidy_one
 xargs -a "$out/files.txt" -P "$jobs" -I{} bash -c 'tidy_one "$@"' _ {} "${config[@]}"
+# scan-scope end
 # clang-tidy's own answer is 0, or 1 for an error it reports. Above 1 is how it
 # ended, not what it found: 134 an abort, 137 a kill (the OOM killer's), 139 a
 # segmentation fault. Such a file leaves no finding and no error in the report, so

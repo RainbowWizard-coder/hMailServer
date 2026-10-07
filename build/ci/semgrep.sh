@@ -60,16 +60,31 @@
 #   HM_SEMGREP_JOBS  semgrep's --jobs (4)
 #   HM_EXCEPTIONS_FILE  an exceptions file to judge by INSTEAD of master's, for a run
 #                    by hand; refused in a GitLab job
+#
+# The lines between "# scan-scope begin" and "# scan-scope end" below choose what
+# Semgrep reads and reports: the rule packs, the files with no extension and the
+# pages' scripts it is given, its ignore list and its options. build/ci/security-gate.py
+# holds a change of one of them, or one of Semgrep's options put outside them, as a
+# narrowing of the scan, which lands alone (SECURITY.md, "Narrowing a scan is a
+# declaration too").
 set -uo pipefail
 
 out="${HM_OUT_DIR:-security/semgrep}"
 jobs="${HM_SEMGREP_JOBS:-4}"
 write_baseline=()
 [ "${1:-}" = "--write-baseline" ] && write_baseline=(--write-baseline)
+# scan-scope begin: the rule packs
 packs="p/csharp p/python p/javascript r/bash"
+# scan-scope end
 
 if [ ! -f build/ci/requirements.txt ]; then
   echo "Run this from the root of a checkout (no build/ci/requirements.txt here)."
+  exit 2
+fi
+# Without its list, Semgrep's own default would leave out build/ and every test/
+# directory unsaid.
+if [ ! -f build/ci/semgrepignore ]; then
+  echo "build/ci/semgrepignore is missing: Semgrep's own default list would leave out build/ and every test/ directory"
   exit 2
 fi
 started=$(date -u +%Y-%m-%dT%H:%M:%S)
@@ -190,6 +205,7 @@ echo "== the pages' inline scripts, and the scripts with no extension"
 # with one, and each page's inline script is taken out: everything outside a
 # <script> element becomes an empty line, so that a finding's line number in the
 # copy is its line number in the page. remap.json takes each copy back to its file.
+# scan-scope begin: the scripts with no extension, and the pages' scripts
 mkdir -p "$work/pages"
 python3 - "$work/pages" "$out/remap.json" <<'EOF'
 import json, os, re, sys
@@ -244,6 +260,7 @@ for page in pages:
 with open(remap_path, "w") as f:
     json.dump(remap, f, indent=1)
 EOF
+# scan-scope end
 
 echo ""
 echo "== the scan"
@@ -255,6 +272,7 @@ fi
 # applies a default that leaves out build/ and every test/ directory - which would
 # skip the checkers and the CI scripts without a word. So the project's list is put
 # there for the run, and taken away again.
+# scan-scope begin: Semgrep's ignore list and its options
 cp build/ci/semgrepignore .semgrepignore
 created_ignore=yes
 # --metrics off: nothing about the scan is sent to Semgrep. --timeout 300: the
@@ -269,6 +287,7 @@ created_ignore=yes
   --timeout 300 --timeout-threshold 0 --max-target-bytes 5000000 --jobs "$jobs" \
   --json --output "$out/semgrep.json" \
   . "$work/pages" > "$out/semgrep.log" 2>&1
+# scan-scope end
 code=$?
 tail -n 12 "$out/semgrep.log"
 # Semgrep exits 0, or 1 when it found something; anything else is a failed scan.

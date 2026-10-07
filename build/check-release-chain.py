@@ -589,6 +589,9 @@ BATCH_COMPARE = ('- if: $CI_PIPELINE_SOURCE != "merge_request_event" && $CI_COMM
 # scans on linix unless the batch changes documents alone (SOURCE_SCAN_JOBS), which
 # its documents_only tells as .own-runners' paths: *not-docs-only does.
 LANDING_REQUIRED = {"GATE_JOBS": sorted(CHANGE_GATES) + [GATE_SCAN], "SOURCE_SCAN_JOBS": BLOCKING_SCANS}
+# The scripts build/land-via-mr.py runs before it pushes a batch - the sign-off check and
+# the secret scan - which its GATE_FILES must name with the CI files the gates run in.
+LANDING_RUNS = ("build/sign-off.py", "build/scan-secrets.py")
 LANDING_DOCUMENTS = "documents_only"
 # Paths beside the tree's own on which documents_only and the CI files must agree: a
 # document at the root and under a dot-directory, which start no scan, and one under
@@ -2435,18 +2438,30 @@ def change_gate_problems(texts, jobs, security_jobs, security_gate=None):
         if absent:
             problems.append("build/land-via-mr.py's %s does not require %s before it lands a batch" % (constant, ", ".join(absent)))
     # Its GATE_FILES, which a batch changes only with --gates-read, name the gates' code
-    # (security-gate.py's GATE_CODE, which the base's copy runs) and their jobs; and its
-    # BASE_GATES, whose logs it reads for the base, are the change gates.
+    # (security-gate.py's GATE_CODE, which the base's copy runs), .gitlab-ci.yml (its
+    # workflow, defaults and includes), every CI file the gate jobs are in or reach with
+    # extends or !reference (gate_job_files), and the scripts the landing runs; its
+    # GATE_CODE is security-gate.py's; its BASE_GATES, whose logs it reads for the base,
+    # are the change gates; and its BASE_COPY_SCRIPTS, whose base's copy each gate's log
+    # must say passed a batch that changes GATE_CODE, name each gate's own script.
     landing = landing_module()
     gate_files = set(getattr(landing, "GATE_FILES", None) or ())
-    needed = set(getattr(security_gate, "GATE_CODE", ())) | {FILES["mr-checks"].replace(os.sep, "/"),
-                                                             FILES["security"].replace(os.sep, "/")}
+    needed = set(getattr(security_gate, "GATE_CODE", ())) | {".gitlab-ci.yml"} | gate_job_files(texts) | set(LANDING_RUNS)
     if needed - gate_files:
-        problems.append("build/land-via-mr.py's GATE_FILES leave out %s: a batch could change what judges it with no "
-                        "person's word that the change was read" % ", ".join(sorted(needed - gate_files)))
+        problems.append("build/land-via-mr.py's GATE_FILES leave out %s: a batch could change what judges it, or whether "
+                        "and how its jobs run, with no person's word that the change was read"
+                        % ", ".join(sorted(needed - gate_files)))
+    if security_gate is not None and sorted(getattr(landing, "GATE_CODE", None) or ()) != sorted(security_gate.GATE_CODE):
+        problems.append("build/land-via-mr.py's GATE_CODE is not security-gate.py's (%s): a landing would not ask the gates' "
+                        "logs for the base's copy when the batch changes the code it runs" % ", ".join(security_gate.GATE_CODE))
     if sorted(getattr(landing, "BASE_GATES", None) or ()) != sorted(CHANGE_GATES):
         problems.append("build/land-via-mr.py's BASE_GATES are not the change gates (%s): a landing would not read each "
                         "one's base from its log" % ", ".join(sorted(CHANGE_GATES)))
+    scripts = dict((name, command.split()[1]) for name, command in CHANGE_GATES.items())
+    if dict(getattr(landing, "BASE_COPY_SCRIPTS", None) or {}) != scripts:
+        problems.append("build/land-via-mr.py's BASE_COPY_SCRIPTS are not the change gates and the scripts their jobs run "
+                        "(%s): a landing would not read from each gate's log that the base's copy of its script passed a "
+                        "batch that changes the gates' code" % ", ".join("%s %s" % kv for kv in sorted(scripts.items())))
     # Its documents_only, as the module has it, against the paths .own-runners' rules
     # start no scan for: the tree's files and LANDING_SAMPLE_PATHS.
     anchor = re.search(r"^        paths: &%s\s*\n((?:          - \"[^\"\n]+\"\s*\n)+)" % NOT_DOCS_ONLY, jobs.get(".own-runners", "") + "\n",
@@ -2472,6 +2487,36 @@ def change_gate_problems(texts, jobs, security_jobs, security_gate=None):
                             "would wait for a scan no pipeline ran or let off one that ran: %s" % (
                                 LANDING_DOCUMENTS, NOT_DOCS_ONLY, len(disagree), "; ".join(disagree[:6])))
     return problems, notes
+
+
+def gate_job_files(texts):
+    """The CI files that say whether and how the gate jobs run (CHANGE_GATES and
+    GATE_SCAN): the ones they are defined in, and the ones every template they extend or
+    take a part from with !reference is defined in, at any remove - each CI file as texts
+    holds it, so that the self-test's breakings are read."""
+    every_ci = dict(texts.get("ci-includes", {}))
+    for key, relative in FILES.items():
+        if relative.replace(os.sep, "/") in every_ci and key in texts:
+            every_ci[relative.replace(os.sep, "/")] = texts[key]
+    every_ci[".gitlab-ci.yml"] = texts["ci"]
+    where = {}
+    for path in sorted(every_ci):
+        for name, body in blocks(every_ci[path] or "").items():
+            where.setdefault(name, (path, body))
+    found, seen, pending = set(), set(), sorted(CHANGE_GATES) + [GATE_SCAN]
+    while pending:
+        name = pending.pop()
+        if name in seen or name not in where:
+            continue
+        seen.add(name)
+        path, body = where[name]
+        found.add(path)
+        pending.extend(re.findall(r"!reference \[\s*([^,\]\s]+)", body))
+        extends = re.search(r"^  extends:[ \t]*(\S[^\n]*)?\n?((?:    - \S+[ \t]*\n?)*)", body, re.MULTILINE)
+        if extends:
+            pending.extend(re.findall(r"[^\s,\[\]'\"]+", extends.group(1) or ""))
+            pending.extend(re.findall(r"^    - (\S+)", extends.group(2) or "", re.MULTILINE))
+    return found
 
 
 _landing = None
@@ -3512,8 +3557,19 @@ def self_test(chain, feed):
     broken("land-via-mr's gates named by an expression", "land", gate_jobs, "GATE_JOBS = tuple(sorted(OWNER))",
            "GATE_JOBS is not a literal list of job names")
     landing = landing_module()
-    for constant, stand_in, needle in (("GATE_FILES", ("build/land-via-mr.py",), "GATE_FILES leave out"),
-                                       ("BASE_GATES", ("semgrep-sast-gate",), "BASE_GATES are not the change gates")):
+    files_held = tuple(landing.GATE_FILES)
+    for constant, stand_in, needle in (
+            ("GATE_FILES", ("build/land-via-mr.py",), "GATE_FILES leave out"),
+            ("GATE_FILES", tuple(f for f in files_held if f != ".gitlab-ci.yml"), "GATE_FILES leave out .gitlab-ci.yml"),
+            ("GATE_FILES", tuple(f for f in files_held if f != ".gitlab/ci/no-github.yml"),
+             "GATE_FILES leave out .gitlab/ci/no-github.yml"),
+            ("GATE_FILES", tuple(f for f in files_held if f != "build/scan-secrets.py"),
+             "GATE_FILES leave out build/scan-secrets.py"),
+            ("GATE_CODE", tuple(landing.GATE_CODE)[:-1], "GATE_CODE is not security-gate.py's"),
+            ("BASE_GATES", ("semgrep-sast-gate",), "BASE_GATES are not the change gates"),
+            ("BASE_COPY_SCRIPTS", {"semgrep-sast-gate": "build/ci/security-findings.py",
+                                   "mr-dependency-check": "build/ci/mr-dependency-check.py"}, "BASE_COPY_SCRIPTS are not"),
+            ("BASE_COPY_SCRIPTS", {"semgrep-sast-gate": "build/ci/security-gate.py"}, "BASE_COPY_SCRIPTS are not")):
         held = getattr(landing, constant)
         try:
             setattr(landing, constant, stand_in)
@@ -3522,6 +3578,23 @@ def self_test(chain, feed):
             setattr(landing, constant, held)
         if not any(needle in p for p in found):
             failures.append("land-via-mr's %s as %r is caught: %s" % (constant, stand_in, found))
+    # The files a gate job reaches with extends or !reference are the gates' own: one
+    # that takes a template from another CI file brings that file in.
+    expect_files = {".gitlab/ci/mr-checks.yml", ".gitlab/ci/gitlab-security.yml", ".gitlab/ci/no-github.yml"}
+    if not expect_files <= gate_job_files(texts):
+        failures.append("the gate jobs' files are found from their extends and !reference: %s" % sorted(gate_job_files(texts)))
+    elsewhere = sorted((path, name) for path, text in texts["ci-includes"].items() if path not in expect_files
+                       for name in blocks(text) if name.startswith("."))
+    if elsewhere:
+        path, template = elsewhere[0]
+        broken("a gate job taking a template from another CI file", "mr-checks", "semgrep-sast-gate:\n  extends: .mr-check\n",
+               "semgrep-sast-gate:\n  extends: [.mr-check, %s]\n" % template, "GATE_FILES leave out %s" % path)
+        broken("a gate job taking a part of another CI file's template", "mr-checks",
+               "    - !reference [.no-github, before_script]\n",
+               "    - !reference [.no-github, before_script]\n    - !reference [%s, script]\n" % template,
+               "GATE_FILES leave out %s" % path)
+    else:
+        failures.append("no CI file of the tree has a template of its own to break the gate jobs' files with")
     # Its documents_only, as a landing runs it, against the CI files' not-docs-only.
     landing = landing_module()
     held = getattr(landing, LANDING_DOCUMENTS, None)

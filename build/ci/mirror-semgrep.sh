@@ -42,6 +42,19 @@
 #
 # Run by a maintainer, by hand, on Linux; nothing in CI pushes it.
 #
+# A new analyzer is a new Semgrep, and semgrep-sast-gate reads Semgrep's own words: the
+# kinds of notification in semgrep.sarif and the file each names (security-gate.py's
+# sarif_holes, SARIF_GAVE_UP, SARIF_PARSE). Before the pin in gitlab-security.yml moves,
+# read them again from the new image: run its semgrep with --timeout 1 and --sarif over
+# a file made to take a rule past it (a Python function of some thousands of
+# assignments and a taint rule from + to os.system, as on 7 October 2026), and over a
+# C++ file its parser stumbles in (WINAPI); compare each toolExecutionNotifications
+# entry's descriptor id and message text with SARIF_FIXTURE; put any new kind in its
+# list; and set SARIF_READ_FOR to the new version. Until SARIF_READ_FOR is the pinned
+# version, security-gate.py's self-test fails, and the checkers job with it; and a
+# notification of a kind the gate does not know makes semgrep-sast-gate exit 2, never
+# pass (docs/ContinuousIntegration.md, "Re-pinning semgrep-sast's analyzer").
+#
 # What is copied, and that it may be: the analyzer (gitlab-org/security-products/
 # analyzers/semgrep) is MIT-licensed by GitLab Inc.; GitLab's rules in it (sast-rules)
 # are MIT Expat; Semgrep Community Edition, which it runs, is LGPL-2.1, whose sources
