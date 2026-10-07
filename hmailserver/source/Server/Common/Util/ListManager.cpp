@@ -1202,6 +1202,13 @@ namespace HM
       // nor as the list's own domain when that is the From's organisation - the
       // organisation of any address in any of its From fields, as they are written.
       const bool fromOutside = message->GetFromOutside();
+
+      // And the SPF result this server reached when the posting arrived, which the
+      // ARC set sealed over each copy attests (Message::GetReceivedSpfResult): a copy
+      // is made from nothing but the posting's file, and without it the seal said
+      // spf=none for every posting, a passing one among them.
+      const String receivedSpfResult = message->GetReceivedSpfResult();
+
       std::vector<String> fromValues;
       fromValues.push_back(data->GetFrom());
       for (MimeField &field : mime->Fields())
@@ -1291,7 +1298,7 @@ namespace HM
 
          EnsureToken(row);
 
-         if (QueueCopy(list, address, row->GetToken(), copyFile, false, fromOutside, signAsListDomain))
+         if (QueueCopy(list, address, row->GetToken(), copyFile, false, fromOutside, signAsListDomain, receivedSpfResult))
             each++;
          else
             failed++;
@@ -1325,7 +1332,7 @@ namespace HM
             if (IsListOwnAddress(member, listAddress))
                continue;
 
-            if (QueueCopy(list, member, QueryMemberToken(secret, member), copyFile, true, fromOutside, signAsListDomain))
+            if (QueueCopy(list, member, QueryMemberToken(secret, member), copyFile, true, fromOutside, signAsListDomain, receivedSpfResult))
                each++;
             else
                failed++;
@@ -1503,11 +1510,12 @@ namespace HM
 
    bool
    ListManager::QueueCopy(std::shared_ptr<const DistributionList> list, const String &member, const String &token, const String &contentFile, bool queryMember,
-                          bool fromOutside, bool signAsListDomain)
+                          bool fromOutside, bool signAsListDomain, const String &receivedSpfResult)
    {
       std::shared_ptr<Message> copy(new Message());
       copy->SetState(Message::Delivering);
       copy->SetFromOutside(fromOutside);
+      copy->SetReceivedSpfResult(receivedSpfResult);
 
       const String copyName = MessageStore::WorkingFile(copy);
       const String directory = FileUtilities::GetFilePath(copyName);
