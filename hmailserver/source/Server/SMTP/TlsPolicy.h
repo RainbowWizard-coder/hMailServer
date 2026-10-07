@@ -174,8 +174,12 @@ namespace HM
       // The default is both the permissive value and the zero value of the
       // enum, so forgetting the argument, zero-initializing it or casting
       // the wrong enum into it all give the same fail-open result.
+      // failure_reason, when given, is set to the validating resolver's words
+      // for a Bogus or Indeterminate TLSA lookup (DnssecResolver::
+      // GetFailureReason), and emptied otherwise.
       static std::vector<TlsaRecord> GetTlsaRecords(const String &host_name, int port, TlsaLookupStatus &status,
-                                                    MxDnssecStatus mx_status = MxDnssecStatus::Unknown);
+                                                    MxDnssecStatus mx_status = MxDnssecStatus::Unknown,
+                                                    String *failure_reason = nullptr);
 
       // What a DNSSEC-validated (secure) TLSA RRset means for the connection
       // (RFC 7672 section 2.2), with usable set to the records in it this

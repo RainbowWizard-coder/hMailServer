@@ -817,11 +817,22 @@ namespace HM
       DnssecResolver::ChainStatus mxChainStatus = DnssecResolver::ChainStatus::Insecure;
       std::vector<String> validatedMxHosts;
 
+      // The resolver's own words for a Bogus or Indeterminate verdict - which
+      // RRset, which key tag, which check (DnssecResolver::GetFailureReason) - in
+      // brackets after the application log line that reports it, so that the
+      // line says why and not only that.
+      String mxFailureReason;
+      auto because = [](const String &reason) -> String
+      {
+         return reason.IsEmpty() ? String() : String(_T(" (")) + reason + _T(")");
+      };
+
       if (daneEnabled && IniFileSettings::Instance()->GetDnssecValidationEnabled())
       {
          std::vector<AnsiString> exchanges;
          DnssecResolver dnssecResolver;
          mxChainStatus = dnssecResolver.QueryMx(recipientDomain, exchanges);
+         mxFailureReason = dnssecResolver.GetFailureReason();
 
          for (const AnsiString &exchange : exchanges)
             validatedMxHosts.push_back(String(exchange));
@@ -919,7 +930,7 @@ namespace HM
                   // complete, or the domain's signed zone answered without its
                   // signatures or its proof. Not reported to TLS reporting: the
                   // domain may not be signed at all, which is what could not be told.
-                  LOG_APPLICATION("SMTPDeliverer - Message " + messageIdText + ": the DNSSEC lookup of the MX RRset for " + recipientDomain + " could not be completed, or came without the signatures or the proof its zone owes. Skipping " + hostAndIp.GetHostName() + " (RFC 7672 section 2.1.1).");
+                  LOG_APPLICATION("SMTPDeliverer - Message " + messageIdText + ": the DNSSEC lookup of the MX RRset for " + recipientDomain + " could not be completed, or came without the signatures or the proof its zone owes" + because(mxFailureReason) + ". Skipping " + hostAndIp.GetHostName() + " (RFC 7672 section 2.1.1).");
                   skippedReason = _T("the DNSSEC lookup of the MX records of ") + recipientDomain + _T(" could not be completed, so whether DANE applies could not be told");
                   skippedDescription = _T("Delivery deferred: the DNSSEC lookup of the MX records of ") + recipientDomain +
                      _T(" could not be completed, or came without the signatures or the proof its zone publishes, so whether the domain requires DANE (RFC 7672) could not be told. The message has NOT been sent; it will be retried.");
@@ -937,7 +948,7 @@ namespace HM
                {
                   // A forged or broken chain over the MX RRset itself. The host name is
                   // not trustworthy, so neither is anything published under it.
-                  LOG_APPLICATION("SMTPDeliverer - Message " + messageIdText + ": the MX RRset for " + recipientDomain + " failed DNSSEC validation. Skipping " + hostAndIp.GetHostName() + " (RFC 7672 section 2.2).");
+                  LOG_APPLICATION("SMTPDeliverer - Message " + messageIdText + ": the MX RRset for " + recipientDomain + " failed DNSSEC validation" + because(mxFailureReason) + ". Skipping " + hostAndIp.GetHostName() + " (RFC 7672 section 2.2).");
                   TlsRptStore::Instance()->RecordFailure(recipientDomain, "tlsa", "mx rrset dnssec validation", "dnssec-invalid", hostAndIp.GetHostName());
                   skippedReason = _T("the MX records of ") + recipientDomain + _T(" failed DNSSEC validation");
                   skippedDescription = _T("Delivery blocked: the MX records of ") + recipientDomain + _T(" failed DNSSEC validation.");
@@ -946,13 +957,14 @@ namespace HM
             }
 
             TlsPolicy::TlsaLookupStatus tlsaStatus = TlsPolicy::TlsaLookupStatus::NoRecords;
-            daneRecords = TlsPolicy::GetTlsaRecords(hostAndIp.GetHostName(), serverInfo->GetPort(), tlsaStatus, mxStatus);
+            String tlsaFailureReason;
+            daneRecords = TlsPolicy::GetTlsaRecords(hostAndIp.GetHostName(), serverInfo->GetPort(), tlsaStatus, mxStatus, &tlsaFailureReason);
 
             if (tlsaStatus == TlsPolicy::TlsaLookupStatus::Bogus)
             {
                // RFC 7672 section 2.1.3: a bogus DNSSEC chain means the
                // host must not be used for delivery.
-               LOG_APPLICATION("SMTPDeliverer - Message " + messageIdText + ": TLSA records for " + hostAndIp.GetHostName() + " failed DNSSEC validation. Skipping this host (RFC 7672).");
+               LOG_APPLICATION("SMTPDeliverer - Message " + messageIdText + ": TLSA records for " + hostAndIp.GetHostName() + " failed DNSSEC validation" + because(tlsaFailureReason) + ". Skipping this host (RFC 7672).");
                TlsRptStore::Instance()->RecordFailure(recipientDomain, "tlsa", "dane-ee tlsa records present", "dnssec-invalid", hostAndIp.GetHostName());
                skippedReason = _T("the DANE TLSA records of all MX hosts failed DNSSEC validation");
                skippedDescription = _T("Delivery blocked: the DANE TLSA records of all MX hosts failed DNSSEC validation.");
@@ -964,7 +976,7 @@ namespace HM
                // RFC 7672 section 2.1.1: the host's TLSA lookup failed, or its
                // signed zone answered without the signatures or the proof it owes.
                // Until 6.3.6 the host was delivered to as if it published none.
-               LOG_APPLICATION("SMTPDeliverer - Message " + messageIdText + ": the DNSSEC lookup of the TLSA records of " + hostAndIp.GetHostName() + " could not be completed, or came without the signatures or the proof its zone owes. Skipping this host (RFC 7672 section 2.1.1).");
+               LOG_APPLICATION("SMTPDeliverer - Message " + messageIdText + ": the DNSSEC lookup of the TLSA records of " + hostAndIp.GetHostName() + " could not be completed, or came without the signatures or the proof its zone owes" + because(tlsaFailureReason) + ". Skipping this host (RFC 7672 section 2.1.1).");
                TlsRptStore::Instance()->RecordFailure(recipientDomain, "tlsa", "tlsa records could not be looked up", "dnssec-invalid", hostAndIp.GetHostName());
                skippedReason = _T("the DNSSEC lookup of the TLSA records of the mail hosts of ") + recipientDomain + _T(" could not be completed");
                skippedDescription = _T("Delivery deferred: the DNSSEC lookup of the TLSA records of the mail hosts of ") + recipientDomain +

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Text;
 using System.Text.RegularExpressions;
 using hMailServer;
 using NUnit.Framework;
@@ -33,6 +34,9 @@ namespace RegressionTests.SMTP
    ///    this server does not use requires TLS without authentication - but not when
    ///    this server's own outbound security is STARTTLS (required) with the
    ///    certificate checked, where until the fix the certificate was forgiven.
+   ///    A signed MX record arrives with its exchange compressed against the
+   ///    question, as every public resolver sends it (FakeDnsServer); until work
+   ///    item 80 that made the MX RRset bogus, and each delivery here was deferred.
    ///    <para />
    ///    The chain is the suite's (SuiteDns.Root, the server's trust anchor for the
    ///    run), a top-level name of the fixture's own signed beneath it, and one child
@@ -119,6 +123,21 @@ namespace RegressionTests.SMTP
       public void ATlsaLookupProvenEmptyByAnNsecIsDelivered()
       {
          using (DnssecZone child = Child("nodata"))
+         {
+            string name = TlsaName(child);
+            byte[] nsec = DnsWire.Nsec("zz." + name, new[] { DnsWire.TypeRrsig, DnsWire.TypeNsec });
+            SuiteDns.Zone.WithDenial(name, DnsWire.TypeTlsa, name, DnsWire.TypeNsec, nsec)
+                         .WithDenial(name, DnsWire.TypeTlsa, name, DnsWire.TypeRrsig, child.Sign(name, DnsWire.TypeNsec, Ttl, new[] { nsec }));
+
+            AssertDelivered(child.Name);
+         }
+      }
+
+      [Test]
+      [Description("Work item 80: a signed domain whose MX record arrives as every public resolver sends it - the exchange compressed against the question (FakeDnsServer does that for every MX record) and here spelled in mixed case besides, signed in lowercase - is delivered to, its host proven to have no TLSA records. Until the fix the RRSIG was checked over the octets as they arrived, the MX RRset was bogus, and the delivery was deferred with no host tried.")]
+      public void AnMxRecordCompressedAndInMixedCaseIsDelivered()
+      {
+         using (DnssecZone child = Child("compressed", exchangeAsSpelled: "MaIl"))
          {
             string name = TlsaName(child);
             byte[] nsec = DnsWire.Nsec("zz." + name, new[] { DnsWire.TypeRrsig, DnsWire.TypeNsec });
@@ -297,8 +316,11 @@ namespace RegressionTests.SMTP
       ///    address, and the zone's answers to the DS queries the resolver's walk from
       ///    the root asks on the way to the host's TLSA name - that mail.&lt;zone&gt;,
       ///    _tcp.mail.&lt;zone&gt; and _25._tcp.mail.&lt;zone&gt; are no zone cuts.
+      ///    exchangeAsSpelled, when given, is the exchange's first label as the zone
+      ///    serves it - "MaIl" - while the RRSIG signs it in lowercase, as RFC 4034
+      ///    section 6.2 has a signer do.
       /// </summary>
-      private DnssecZone Child(string label, bool signMx = true)
+      private DnssecZone Child(string label, bool signMx = true, string exchangeAsSpelled = null)
       {
          var child = new DnssecZone(label + "." + _tldName);
          FakeDnsServer zone = SuiteDns.Zone;
@@ -308,7 +330,14 @@ namespace RegressionTests.SMTP
          PublishKeys(child);
 
          byte[] mx = DnsWire.Mx(10, MailHost(child));
-         zone.WithRaw(child.Name, DnsWire.TypeMx, mx);
+         byte[] served = mx;
+         if (exchangeAsSpelled != null)
+         {
+            byte[] first = Encoding.ASCII.GetBytes(exchangeAsSpelled);
+            served = new byte[] { 0, 10, (byte) first.Length }.Concat(first).Concat(DnsWire.Name(child.Name)).ToArray();
+         }
+
+         zone.WithRaw(child.Name, DnsWire.TypeMx, served);
          if (signMx)
             zone.WithRrsig(child.Name, DnsWire.TypeMx, child.Sign(child.Name, DnsWire.TypeMx, Ttl, new[] { mx }));
          zone.WithA(MailHost(child), "127.0.0.1");

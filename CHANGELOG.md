@@ -127,6 +127,38 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   image row while the variable is not `1`, each SHA-256 the file's), the summary to the notes without the table, and
   the order of the links. 6.3.6's release page was given the table and the order by hand on 6 October 2026.
 
+### Delivery and SMTP
+
+- **Fixed: with DANE enforcement on, mail to a DNSSEC-signed domain whose MX answer arrived with its exchange
+  compressed - which is how every resolver measured sends it - was deferred, "the MX RRset for <domain> failed
+  DNSSEC validation" and "No host was attempted", and TLS reporting recorded `dnssec-invalid`** (reported in work
+  item 80, for live.com, on 6.3.4 and 6.3.6 under Windows Server 2022). A validating resolver checks an RRSIG over
+  the records in the canonical form of RFC 4034 section 6.2, every name in them written out in full and in
+  lowercase, and this one wrote out a CNAME's target alone: an MX record's exchange was checked as it arrived -
+  live.com's `live-com.olc.protection.outlook.com` as four labels and a pointer to the "com" of the question - so
+  the signature never matched. The chain itself validated throughout: the keys, the DS records, ECDSA P-256 and
+  RSA/SHA-256 signatures alike. On 7 October 2026 live.com, outlook.com, cloudflare.com, ietf.org, isc.org,
+  mailbox.org, posteo.de, debian.org, freebsd.org, gmx.de, web.de, tutanota.de, protonmail.com and nlnetlabs.nl
+  were bogus before the fix and secure after it, through the system's resolvers on Windows and on Linux, and
+  Cloudflare's, Google's and Quad9's resolvers send those exchanges compressed alike; a signed domain whose one
+  exchange shares no label with it, such as sidn.nl, was secure before as well, and an unsigned one, such as
+  hotmail.com, was never affected. The defect is as old as the validated MX lookup, 6.2.19, and
+  `DaneEnforcementEnabled` has been on by default throughout. The names in a signed RRset's records - an MX record's
+  exchange, a CNAME's target, and those of the other types RFC 4034 section 6.2 lists - are now written out and
+  lowercased before its signature is checked, and the exchanges a validated MX lookup hands DANE are those names.
+  Until the update, `DaneEnforcementEnabled=0` delivers to such a domain without DANE; MTA-STS, where the domain
+  publishes a policy in enforce mode, still requires a verified TLS connection.
+- **A DNSSEC validation that fails says where and why.** The debug log has a line for each bogus or indeterminate
+  MX, TLSA or TXT lookup naming the RRset, the signing zone, the key tag and the check that failed: a signature that
+  does not match the records, that has expired or is not yet valid (with this server's clock beside it), or that
+  names a key the zone does not publish; a zone's DNSKEY records that match none of its DS records (with the DS
+  records' key tags); a DS or DNSKEY RRset, or an answer, that came without its RRSIG records - the DNS server did
+  not return what the DO bit asked for, or something on the way removed it; a missing proof of absence; or a lookup
+  that did not complete. A zone whose keys do not validate is said once each time the verdict is reached, which the
+  resolver then keeps for a minute (30 seconds for a lookup that did not complete). The application log lines that
+  report a skipped host - "the MX RRset for ... failed DNSSEC validation", the TLSA one and the two indeterminate
+  ones - end with the same reason in brackets ([DiagnosingStalledMail.md](hmailserver/docs/DiagnosingStalledMail.md)).
+
 ### Operations
 
 - **Fixed: on Linux, a MySQL or PostgreSQL column the server reads as a `long` went through an `int` on its way
@@ -281,6 +313,18 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   `docker login registry.gitlab.com` made before they run, best in a `DOCKER_CONFIG` of its own, and hand the file it
   wrote to skopeo, read-only and for the copy's destination alone; they refuse a login kept in a credential helper,
   which skopeo's container cannot reach. Token-Permissions no longer fails on either.
+- **The DNSSEC validator is tested against answers captured from the public DNS** (work item 80).
+  `DnssecResolverTester`, which the service's class tests run on Windows and `dane-tests` on Linux, now runs the
+  resolver on its own thread against replies captured on 7 October 2026 (`DnssecCapturedAnswers.h`), with its clock
+  at their capture and the built-in root anchors: live.com's and cloudflare.com's MX RRsets validate from the root's
+  keys down, debian.org's under both its RSA/SHA-256 and ECDSA P-256 signatures, and the same answers expired,
+  altered and stripped of their signatures fail with the reason the log gives - nothing is sent, and the tester's
+  answers reach no other thread and no cache. It also holds the canonical form itself: an exchange compressed and in
+  mixed case is written out and lowercased, and a pointer that does not point backwards or a name that runs past its
+  RDATA is refused. The suite's DNS server now sends an MX record's exchange compressed against the question, as
+  resolvers do, so every signed delivery in `SMTP/DaneIndeterminateLookups` goes through it, with a test of an
+  exchange in mixed case besides; `Security/DnssecCompressedMx` (Windows) holds the verdicts and the debug log's
+  reason.
 - **The static-analysis job's baseline holds 691 findings, down from 887.** The 191 that the security dashboard's
   triage of 5 October 2026 marked to harden or fix are changed in the code, and five more went with the same edits:
   the Linux command line's and `openpgp-writer`'s unchecked writes to the terminal discard their results with

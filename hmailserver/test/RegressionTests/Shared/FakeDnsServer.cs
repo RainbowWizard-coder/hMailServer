@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -781,7 +782,81 @@ namespace RegressionTests.Shared
          // sorts before the one asked about.
          bool sameAsQuery = string.Equals(record.Owner, queryName.TrimEnd('.'), StringComparison.OrdinalIgnoreCase);
          WriteAnswerHeader_(m, record.Type, sameAsQuery ? null : record.Owner);
-         WriteRdata_(m, record.Rdata);
+         WriteRdata_(m, record.Type == TypeMx ? CompressExchange_(m, record.Rdata) : record.Rdata);
+      }
+
+      /// <summary>
+      ///    An MX record's RDATA as a resolver sends it: the exchange compressed
+      ///    against the question wherever its last labels are the question's last
+      ///    labels - "10 mail.example.test" for example.test as "10 mail" and a
+      ///    pointer to the question's name, and live.com's
+      ///    live-com.olc.protection.outlook.com as four labels and a pointer to its
+      ///    "com". RFC 1035 section 4.1.4 allows it for MX, and Cloudflare's, Google's
+      ///    and Quad9's resolvers all do it (work item 80, 7 October 2026). The
+      ///    validating resolver has to write the name out again before it checks the
+      ///    RRSIG, which signs it uncompressed and in lowercase (RFC 4034 section
+      ///    6.2); until the fix it did not, and every signed MX RRset sent this way
+      ///    was bogus - which a zone that only ever sent the exchange spelled out
+      ///    could not show. The labels before the pointer keep the case they were
+      ///    given in. The question is at offset 12 of every answer this server writes.
+      /// </summary>
+      private static byte[] CompressExchange_(List<byte> packet, byte[] rdata)
+      {
+         if (rdata.Length < 3)
+            return rdata;
+
+         var exchange = new List<byte[]>();
+         int offset = 2;
+         while (offset < rdata.Length && rdata[offset] != 0)
+         {
+            int length = rdata[offset];
+            if ((length & 0xC0) != 0 || offset + 1 + length > rdata.Length)
+               return rdata;
+            exchange.Add(rdata.Skip(offset + 1).Take(length).ToArray());
+            offset += 1 + length;
+         }
+
+         if (exchange.Count == 0 || offset != rdata.Length - 1)
+            return rdata;
+
+         // The question's labels and where each starts.
+         var question = new List<byte[]>();
+         var starts = new List<int>();
+         int position = 12;
+         while (position < packet.Count && packet[position] != 0)
+         {
+            int length = packet[position];
+            starts.Add(position);
+            question.Add(packet.Skip(position + 1).Take(length).ToArray());
+            position += 1 + length;
+         }
+
+         // The longest run of the question's last labels that the exchange ends with.
+         for (int first = 0; first < question.Count; first++)
+         {
+            int shared = question.Count - first;
+            if (shared > exchange.Count)
+               continue;
+
+            bool same = true;
+            for (int i = 0; i < shared && same; i++)
+               same = Encoding.ASCII.GetString(question[first + i])
+                         .Equals(Encoding.ASCII.GetString(exchange[exchange.Count - shared + i]), StringComparison.OrdinalIgnoreCase);
+            if (!same)
+               continue;
+
+            var compressed = new List<byte> { rdata[0], rdata[1] };
+            for (int i = 0; i < exchange.Count - shared; i++)
+            {
+               compressed.Add((byte) exchange[i].Length);
+               compressed.AddRange(exchange[i]);
+            }
+            compressed.Add((byte) (0xC0 | (starts[first] >> 8)));
+            compressed.Add((byte) (starts[first] & 0xFF));
+            return compressed.ToArray();
+         }
+
+         return rdata;
       }
 
       /// <summary>RFC 3225: the DO bit lives in the flags of the OPT record in the query's ADDITIONAL section.</summary>

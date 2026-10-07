@@ -176,6 +176,50 @@ Delivery runs on a separate, smaller pool. The usual causes:
   *Held for a sandbox*, where it can be delivered without the verdict or
   discarded. The application log says when it was submitted and what the sandbox
   answered. See [Sandbox.md](Sandbox.md).
+* **A deferral that names DNSSEC, with no host attempted.** With
+  `DaneEnforcementEnabled` and `DnssecValidationEnabled` on (both are by
+  default), the server validates the recipient domain's MX RRset, and each
+  host's TLSA records, before it connects. A host whose lookup is bogus, or
+  indeterminate - it did not complete, or a signed zone answered without its
+  signatures or its proof of absence - is skipped (RFC 7672), and with every
+  host skipped the delivery is deferred: `Delivery to example.com deferred: ...
+  No host was attempted.` The application log line before it names the lookup,
+  and since the release after 6.3.6 ends with the resolver's reason in brackets:
+
+  ```
+  SMTPDeliverer - Message 123: the MX RRset for example.com failed DNSSEC
+  validation (the MX RRset of example.com does not validate: the RRSIG by
+  example.com with key tag 44331 (algorithm 13) expired at 2026-10-08 04:18:05
+  UTC, and this server's clock says 2026-10-09 09:12:40 UTC). Skipping
+  mx.example.com (RFC 7672 section 2.2).
+  ```
+
+  The debug log has the same reason for every bogus or indeterminate MX, TLSA or
+  TXT lookup - `DNSSEC: the MX lookup for example.com is bogus: ...` - and a line
+  for a zone whose keys do not validate, `DNSSEC: the keys of example.com are
+  bogus: ...`. What the reasons mean:
+  * *does not match the records as received* - the signature is over other
+    records than the ones that came. Either something on the way changed them
+    or the zone is broken; ask a validating resolver (`delv`, or `dig +dnssec`
+    against 1.1.1.1 and look for the `ad` flag) or DNSViz. **Until the release
+    after 6.3.6 this was also what every signed domain whose MX answer came
+    with its exchange compressed got - nearly every signed domain - through no
+    fault of its own (work item 80).** On 6.2.19 to 6.3.6, a signed recipient
+    domain whose mail is deferred this way while a validating resolver says it
+    validates is that defect; `DaneEnforcementEnabled=0` delivers without DANE
+    until the server is updated.
+  * *expired at ... / is not valid until ..., and this server's clock says ...*
+    - check the clock first; if it is right, the zone's signatures have lapsed.
+  * *names no key ... publishes* or *no DNSKEY of ... matches its DS records* -
+    a key rollover gone wrong in the recipient's zone, or at its parent.
+  * *came without its signatures* or *came without an RRSIG: the DNS server did
+    not return the DNSSEC records asked for* - the resolver this server asks
+    (`DNSServer`, or the system's) strips DNSSEC records or does not support
+    them. Point `DNSServer` at one that does; a validating resolver's verdict is
+    not trusted here, its signatures are needed (the server asks with the DO and
+    CD bits).
+  * *did not complete* - no server answered, it answered SERVFAIL, or the reply
+    did not parse: the message is retried, as for any temporary failure.
 * **The database.** Check for errors mentioning the connection pool.
 
 Check the delivery queue in the Control Panel, and the SMTP log for the
@@ -249,5 +293,9 @@ and its own ten-second escalation); `WorkQueue::ExecuteTask` and
 `DatabaseUnavailableMarker::Scope` blocks (`451 4.3.2` rather than `550`);
 `DNSResolverWinApi::Query` (the `DNSServer` regression and the cache bypass);
 `SPFDnsResolver` and `DNSResolver::GetRecordsOfType` (SPF reaching the configured
-resolver at all); and `Logger`'s `ERROR_hmailserver_%s.log`. If you change one of
+resolver at all); and `Logger`'s `ERROR_hmailserver_%s.log`. The DNSSEC deferral
+lines were checked on 7 October 2026 against `ExternalDelivery::DeliverToSingleDomain_`
+(the application log lines and their bracketed reason) and `DnssecResolver.cpp`
+(`QueryValidatedRrset_`, `ValidateRrset`, `ValidateZoneKeys`, `FetchDsRecords`,
+`WhereUnproven` and `DescribeCheck`, which word every reason). If you change one of
 those, this page is the second place to look.

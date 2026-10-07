@@ -1664,6 +1664,7 @@ EXIT 0
     <ClInclude Include="..\Common\Sql\SQLStatement.h" />
     <ClInclude Include="..\Common\TCPIP\CertificateVerifier.h" />
     <ClInclude Include="..\Common\TCPIP\DaneVerifier.h" />
+    <ClInclude Include="..\Common\TCPIP\DnssecCapturedAnswers.h" />
     <ClInclude Include="..\Common\TCPIP\DnssecResolver.h" />
     <ClInclude Include="..\Common\TCPIP\CipherInfo.h" />
     <ClInclude Include="..\Common\TCPIP\DNSRecord.h" />

@@ -89,6 +89,16 @@ namespace HM
       // only a Bogus result withholds the data.
       ChainStatus QueryTxt(const String &name, std::vector<AnsiString> &texts);
 
+      // Why the last QueryTlsa, QueryMx or QueryTxt of this object was Bogus or
+      // Indeterminate: the stage and the check that failed - which RRset, which
+      // key tag, and whether a signature did not match, had expired or was not
+      // yet valid, named no key the zone publishes, or came without the RRSIG
+      // records the DNS server was asked for, or a DNSKEY matched no DS record.
+      // Empty after any other result. The debug log has the same words when the
+      // verdict is reached; the application log line a deferral is reported
+      // with carries them too (ExternalDelivery).
+      String GetFailureReason() const;
+
       // A PLAIN, NON-VALIDATING LOOKUP, for the platform that has no Windows DNS
       // client.
       //
@@ -120,22 +130,40 @@ namespace HM
       // final_name is the name the answer was for, after the CNAMEs followed;
       // nonexistent is true for a Secure empty answer whose proof is that the
       // name does not exist rather than that it holds no record of the type.
+      // rdatas are in the canonical form of RFC 4034 section 6.2: the names in
+      // them - an MX record's exchange - written out without compression and in
+      // lowercase. Sets failure_reason_.
       ChainStatus QueryValidatedRrset_(const AnsiString &query_name, unsigned short query_type,
                                        std::vector<std::vector<unsigned char>> &rdatas,
                                        bool strict, AnsiString &final_name, bool &nonexistent);
+
+      AnsiString failure_reason_;
    };
 
    // Which name servers the validating resolver asks, from the ones the system
    // lists (a resolv.conf's nameserver lines, as the POSIX build reads them): the
    // first two IPv4 servers, as always, and only when there is none the first
    // two IPv6 servers, the site-local ones Windows lists for an adapter given no
-   // IPv6 server passed over. No network, configuration or file. DaneTester runs
-   // it, inside the service on Windows (ClassTester) and as dane-tests on Linux.
-   // Throws std::logic_error naming the first thing that is wrong.
+   // IPv6 server passed over. The canonical form of RDATA a signature is
+   // checked over (RFC 4034 section 6.2): an MX record's exchange written out
+   // in full and in lowercase, whatever compression it arrived with. And the
+   // validator against answers captured from the public DNS
+   // (DnssecCapturedAnswers.h) on its own thread, with its clock at their
+   // capture: the MX RRsets of live.com and cloudflare.com Secure from the
+   // root's keys down, which until work item 80 were Bogus, debian.org's under
+   // both its signatures, and the same answers expired, tampered with and
+   // stripped of their signatures failing with the reason said. No network,
+   // configuration or file. DaneTester runs it, inside the service on Windows
+   // (ClassTester) and as dane-tests on Linux. Throws std::logic_error naming
+   // the first thing that is wrong.
    class DnssecResolverTester
    {
    public:
       void Test();
+
+   private:
+      void TestCanonicalForm_();
+      void TestCapturedAnswers_();
    };
 
 }

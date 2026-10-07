@@ -538,8 +538,12 @@ namespace HM
    }
 
    std::vector<TlsaRecord>
-   TlsPolicy::GetTlsaRecords(const String &host_name, int port, TlsaLookupStatus &status, MxDnssecStatus mx_status)
+   TlsPolicy::GetTlsaRecords(const String &host_name, int port, TlsaLookupStatus &status, MxDnssecStatus mx_status,
+                             String *failure_reason)
    {
+      if (failure_reason != nullptr)
+         failure_reason->Empty();
+
       // Normalize before anything looks at the value, so that only a
       // deliberately supplied Bogus can reach the branch that refuses a host.
       mx_status = NormalizeMxDnssecStatus(mx_status);
@@ -598,6 +602,9 @@ namespace HM
 
          std::vector<TlsaRecord> rawRecords;
          DnssecResolver::ChainStatus chainStatus = resolver.QueryTlsa(host_name, port, rawRecords);
+
+         if (failure_reason != nullptr)
+            *failure_reason = resolver.GetFailureReason();
 
          switch (chainStatus)
          {

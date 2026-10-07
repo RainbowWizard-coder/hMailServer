@@ -19,6 +19,7 @@
 #include "StdAfx.h"
 
 #include "DnssecResolver.h"
+#include "DnssecCapturedAnswers.h"
 
 // <ws2tcpip.h> is Winsock's TCP/IP header. Everything this file takes from it -
 // the address structures and the address-conversion calls - comes from
@@ -158,6 +159,10 @@ namespace HM
          InternalStatus status = InternalStatus::Bogus;
          std::vector<std::vector<unsigned char>> dnskey_rdatas;
          time_t expires = 0;
+         // Why the keys did not validate, for a status other than Secure: the
+         // words a later failure under this zone is reported in while the entry
+         // is remembered.
+         AnsiString reason;
       };
 
       boost::recursive_mutex zone_cache_mutex;
@@ -180,6 +185,39 @@ namespace HM
 
       boost::recursive_mutex cut_cache_mutex;
       std::map<AnsiString, CutEntry> cut_cache;
+
+      // ----------------------------------------------------------------
+      // The tester's stand-ins (DnssecResolverTester)
+      //
+      // Answers captured from the public DNS, keyed by the name and type a
+      // query asks, and a clock fixed at the moment they were captured. While
+      // one is set on a thread, that thread's queries are answered from it and
+      // nothing is sent; its signatures are judged by that clock; the root's
+      // keys are checked against the built-in IANA anchors whatever
+      // DnssecTrustAnchors says; and its validations neither read nor fill the
+      // zone and cut caches. In the service the tester runs beside real
+      // deliveries, under the regression suite's own trust anchor and with
+      // the suite's keys for the root in the cache, and every other thread
+      // sees nothing of it.
+      // ----------------------------------------------------------------
+
+      struct TestEnvironment
+      {
+         std::map<std::pair<AnsiString, unsigned short>, std::vector<unsigned char>> answers;
+         unsigned long now = 0;
+      };
+
+      thread_local const TestEnvironment *test_environment = nullptr;
+
+      // Seconds since 1970, as signatures are judged: the tester's moment
+      // while one is set on this thread, the system clock otherwise.
+      unsigned long ValidationNow()
+      {
+         if (test_environment != nullptr)
+            return test_environment->now;
+
+         return static_cast<unsigned long>(time(nullptr) & 0xFFFFFFFF);
+      }
 
       // ----------------------------------------------------------------
       // Small helpers
@@ -250,18 +288,75 @@ namespace HM
          return name.Mid(name.GetLength() - suffix.GetLength()) == suffix;
       }
 
-      // RFC 1982 serial-number time comparison.
+      // RFC 1982 serial-number time comparison: a signature's inception still to
+      // come, and its expiration passed.
+      bool SignatureNotYetValid(unsigned long inception)
+      {
+         return static_cast<long>(ValidationNow() - inception) < 0;
+      }
+
+      bool SignatureExpired(unsigned long expiration)
+      {
+         return static_cast<long>(expiration - ValidationNow()) < 0;
+      }
+
       bool SignatureTimeValid(unsigned long inception, unsigned long expiration)
       {
-         unsigned long now = static_cast<unsigned long>(time(nullptr) & 0xFFFFFFFF);
+         return !SignatureNotYetValid(inception) && !SignatureExpired(expiration);
+      }
 
-         if (static_cast<long>(now - inception) < 0)
-            return false;
+      // ----------------------------------------------------------------
+      // The words a failure is logged in
+      // ----------------------------------------------------------------
 
-         if (static_cast<long>(expiration - now) < 0)
-            return false;
+      AnsiString Number(unsigned long value)
+      {
+         return AnsiString(std::to_string(value).c_str());
+      }
 
-         return true;
+      // A signature time (seconds since 1970) as "2026-10-08 18:04:45 UTC".
+      AnsiString DescribeTime(unsigned long seconds)
+      {
+         const time_t value = static_cast<time_t>(seconds);
+         struct tm parts = {};
+#ifdef _MSC_VER
+         if (gmtime_s(&parts, &value) != 0)
+            return Number(seconds);
+#else
+         if (gmtime_r(&value, &parts) == nullptr)
+            return Number(seconds);
+#endif
+         char text[32] = {};
+         if (strftime(text, sizeof(text), "%Y-%m-%d %H:%M:%S UTC", &parts) == 0)
+            return Number(seconds);
+
+         return AnsiString(text);
+      }
+
+      AnsiString ZoneText(const AnsiString &zone)
+      {
+         return zone.IsEmpty() ? AnsiString("the root") : zone;
+      }
+
+      AnsiString NameText(const AnsiString &name)
+      {
+         return name.IsEmpty() ? AnsiString(".") : name;
+      }
+
+      AnsiString TypeText(unsigned short type)
+      {
+         switch (type)
+         {
+         case 5: return "CNAME";
+         case 15: return "MX";
+         case 16: return "TXT";
+         case 43: return "DS";
+         case 47: return "NSEC";
+         case 48: return "DNSKEY";
+         case 50: return "NSEC3";
+         case 52: return "TLSA";
+         default: return AnsiString("TYPE") + Number(type);
+         }
       }
 
       bool HexToBytes(const AnsiString &hex, std::vector<unsigned char> &out)
@@ -485,20 +580,159 @@ namespace HM
          return true;
       }
 
-      bool GetCanonicalRdata(const DnsResponse &response, const ParsedRr &record, std::vector<unsigned char> &out)
+      // Appends the name at offset in packet to out in canonical form (RFC 4034
+      // section 6.2): its labels written out wherever a pointer led, and the
+      // letters A to Z in them made lowercase - octet for octet, nothing else
+      // touched, so that a label holding a dot or any other octet stays the
+      // label it was. offset is advanced past the name as it sits in its own
+      // place, as ReadName advances it, and pointers must point backwards, as
+      // there.
+      bool AppendCanonicalName(const std::vector<unsigned char> &packet, size_t &offset, std::vector<unsigned char> &out)
       {
-         if (record.type == DnsTypeCname)
+         size_t position = offset;
+         bool jumped = false;
+         size_t written = 0;
+         int safety = 0;
+
+         for (;;)
          {
-            AnsiString target;
-            size_t offset = record.rdata_offset;
-            if (!ReadName(response.packet, offset, target))
+            if (++safety > 128 || position >= packet.size())
                return false;
 
-            out.clear();
-            return AppendName(out, target);
+            const unsigned char length = packet[position];
+
+            if ((length & 0xC0) == 0xC0)
+            {
+               if (position + 1 >= packet.size())
+                  return false;
+
+               const size_t target = (static_cast<size_t>(length & 0x3F) << 8) | packet[position + 1];
+
+               if (!jumped)
+                  offset = position + 2;
+
+               if (target >= position)
+                  return false;
+
+               position = target;
+               jumped = true;
+               continue;
+            }
+
+            // The other label types (RFC 6891 section 5) are not names this
+            // resolver reads, and a label past the end is no label.
+            if ((length & 0xC0) != 0 || position + 1 + length > packet.size())
+               return false;
+
+            // RFC 1035 section 2.3.4: 255 octets at most, the root label counted.
+            written += 1 + static_cast<size_t>(length);
+            if (written > 255)
+               return false;
+
+            out.push_back(length);
+
+            if (length == 0)
+            {
+               if (!jumped)
+                  offset = position + 1;
+               return true;
+            }
+
+            for (size_t i = 0; i < length; i++)
+            {
+               unsigned char c = packet[position + 1 + i];
+               if (c >= 'A' && c <= 'Z')
+                  c = static_cast<unsigned char>(c - 'A' + 'a');
+               out.push_back(c);
+            }
+
+            position += 1 + static_cast<size_t>(length);
+         }
+      }
+
+      // The RDATA of a record in the canonical form of RFC 4034 section 6.2,
+      // which is what an RRSIG signs: every domain name in it written out in
+      // full, with no compression pointer, and in lowercase.
+      //
+      // RFC 1035 section 4.1.4 lets a server compress the names in the RDATA of
+      // the types it defined - NS, CNAME, SOA, PTR, MX and the rest - and RFC
+      // 3597 section 4 keeps that for them. Every resolver measured does it for
+      // MX: live.com's exchange, live-com.olc.protection.outlook.com, arrives as
+      // its first four labels and a pointer to the "com" of the question, and
+      // cloudflare.com's later exchanges as a label or two and a pointer into
+      // the first one's RDATA. Until work item 80 only a CNAME's target was
+      // written out here, so the RRSIG over a compressed MX RRset was checked
+      // against octets nobody signed, and every signed domain whose MX answer
+      // came compressed - nearly every one - was Bogus: with DANE enforcement
+      // on, its mail was deferred and no host was tried.
+      //
+      // The types section 6.2 lists are the ones RFC 6840 section 5.1 leaves
+      // there: NSEC is not among them (its next name is never compressed, and
+      // not lowercased), nor are the types with no name in their RDATA - A,
+      // TXT, DS, DNSKEY, NSEC3, TLSA - whose RDATA is taken as received. NAPTR,
+      // whose name follows three character-strings, is never validated here.
+      bool GetCanonicalRdata(const DnsResponse &response, const ParsedRr &record, std::vector<unsigned char> &out)
+      {
+         // The octets ahead of the first name, copied as they are; the names,
+         // one after another; and whatever follows them, copied as it is.
+         size_t before = 0;
+         int names = 0;
+
+         switch (record.type)
+         {
+         case 2:  // NS
+         case 3:  // MD
+         case 4:  // MF
+         case 5:  // CNAME
+         case 7:  // MB
+         case 8:  // MG
+         case 9:  // MR
+         case 12: // PTR
+         case 39: // DNAME
+            names = 1;
+            break;
+         case 6:  // SOA: two names, then five 32-bit numbers
+         case 14: // MINFO
+         case 17: // RP
+            names = 2;
+            break;
+         case 15: // MX: a 16-bit preference, then the exchange
+         case 18: // AFSDB
+         case 21: // RT
+         case 36: // KX
+            before = 2;
+            names = 1;
+            break;
+         case 26: // PX: a preference, then two names
+            before = 2;
+            names = 2;
+            break;
+         case 33: // SRV: priority, weight and port, then the target
+            before = 6;
+            names = 1;
+            break;
+         default:
+            out = record.rdata;
+            return true;
          }
 
-         out = record.rdata;
+         const size_t end = record.rdata_offset + record.rdata.size();
+         if (record.rdata.size() < before || end > response.packet.size())
+            return false;
+
+         out.assign(record.rdata.begin(), record.rdata.begin() + static_cast<std::ptrdiff_t>(before));
+
+         size_t offset = record.rdata_offset + before;
+         for (int i = 0; i < names; i++)
+         {
+            // A name starts inside the RDATA and ends there; a pointer in it may
+            // lead anywhere earlier in the packet.
+            if (offset >= end || !AppendCanonicalName(response.packet, offset, out) || offset > end)
+               return false;
+         }
+
+         out.insert(out.end(), response.packet.begin() + static_cast<std::ptrdiff_t>(offset),
+                    response.packet.begin() + static_cast<std::ptrdiff_t>(end));
          return true;
       }
 
@@ -961,6 +1195,22 @@ namespace HM
       // any transport-level failure.
       bool RunQuery(const AnsiString &name, unsigned short queryType, DnsResponse &out)
       {
+         if (test_environment != nullptr)
+         {
+            // The tester's captured answers: one the tester has not got is a
+            // lookup that did not complete, as no answer from a server is.
+            auto captured = test_environment->answers.find(std::make_pair(name, queryType));
+            if (captured == test_environment->answers.end())
+               return false;
+
+            DnsResponse response;
+            if (!ParseResponse(captured->second, response) || (response.rcode != 0 && response.rcode != 3))
+               return false;
+
+            out = response;
+            return true;
+         }
+
          std::vector<unsigned char> query;
          unsigned char transactionId[2];
 
@@ -1224,21 +1474,35 @@ namespace HM
          return verified;
       }
 
-      // Verifies one RRSIG over an RRset (RFC 4034 section 3.1.8.1).
-      bool VerifyRrsigOverSet(const DnsResponse &response, const std::vector<ParsedRr> &rrset,
-                              const RrsigInfo &sig, const std::vector<unsigned char> &dnskeyRdata)
+      // What checking one RRSIG over an RRset with one key found.
+      enum class SignatureCheck
+      {
+         Verified,
+         NotYetValid,     // its inception is still to come by this server's clock
+         Expired,         // its expiration has passed by this server's clock
+         TooManyLabels,   // it counts more labels than the RRset's owner has
+         Unreadable,      // a record of the RRset, or the key, could not be read
+         Mismatch         // the signature does not match the RRset in canonical form under that key
+      };
+
+      // Checks one RRSIG over an RRset (RFC 4034 section 3.1.8.1) with one key.
+      SignatureCheck CheckRrsigOverSet(const DnsResponse &response, const std::vector<ParsedRr> &rrset,
+                                       const RrsigInfo &sig, const std::vector<unsigned char> &dnskeyRdata)
       {
          if (rrset.empty() || dnskeyRdata.size() < 5)
-            return false;
+            return SignatureCheck::Unreadable;
 
-         if (!SignatureTimeValid(sig.inception, sig.expiration))
-            return false;
+         if (SignatureNotYetValid(sig.inception))
+            return SignatureCheck::NotYetValid;
+
+         if (SignatureExpired(sig.expiration))
+            return SignatureCheck::Expired;
 
          const AnsiString &owner = rrset[0].owner;
          int ownerLabels = CountLabels(owner);
 
          if (sig.labels > ownerLabels)
-            return false;
+            return SignatureCheck::TooManyLabels;
 
          AnsiString canonicalOwner = owner;
          if (sig.labels < ownerLabels)
@@ -1261,24 +1525,28 @@ namespace HM
          Push16(signedData, sig.key_tag);
 
          if (!AppendName(signedData, sig.signer))
-            return false;
+            return SignatureCheck::Unreadable;
 
          std::vector<std::vector<unsigned char>> canonicalRdatas;
          for (const ParsedRr &record : rrset)
          {
             std::vector<unsigned char> rdata;
             if (!GetCanonicalRdata(response, record, rdata))
-               return false;
+               return SignatureCheck::Unreadable;
 
             canonicalRdatas.push_back(rdata);
          }
 
+         // RFC 4034 section 6.3: in canonical order, and a record that is there
+         // twice once the names in it are written out and lowercased counted
+         // once, as the signer counted it.
          std::sort(canonicalRdatas.begin(), canonicalRdatas.end());
+         canonicalRdatas.erase(std::unique(canonicalRdatas.begin(), canonicalRdatas.end()), canonicalRdatas.end());
 
          for (const std::vector<unsigned char> &rdata : canonicalRdatas)
          {
             if (!AppendName(signedData, canonicalOwner))
-               return false;
+               return SignatureCheck::Unreadable;
 
             Push16(signedData, rrset[0].type);
             Push16(signedData, rrset[0].rr_class);
@@ -1288,7 +1556,44 @@ namespace HM
          }
 
          return VerifySignature(sig.algorithm, dnskeyRdata.data() + 4, dnskeyRdata.size() - 4,
-                                signedData, sig.signature);
+                                signedData, sig.signature) ? SignatureCheck::Verified : SignatureCheck::Mismatch;
+      }
+
+      bool VerifyRrsigOverSet(const DnsResponse &response, const std::vector<ParsedRr> &rrset,
+                              const RrsigInfo &sig, const std::vector<unsigned char> &dnskeyRdata)
+      {
+         return CheckRrsigOverSet(response, rrset, sig, dnskeyRdata) == SignatureCheck::Verified;
+      }
+
+      // "the RRSIG by live.com with key tag 44331 (algorithm 13)"
+      AnsiString DescribeSignature(const RrsigInfo &sig)
+      {
+         return AnsiString("the RRSIG by ") + ZoneText(sig.signer) + " with key tag " + Number(sig.key_tag) +
+                " (algorithm " + Number(sig.algorithm) + ")";
+      }
+
+      // What a failed check found, to follow DescribeSignature.
+      AnsiString DescribeCheck(SignatureCheck check, const RrsigInfo &sig)
+      {
+         switch (check)
+         {
+         case SignatureCheck::Verified:
+            return "verifies";
+         case SignatureCheck::NotYetValid:
+            return AnsiString("is not valid until ") + DescribeTime(sig.inception) + ", and this server's clock says " +
+                   DescribeTime(ValidationNow());
+         case SignatureCheck::Expired:
+            return AnsiString("expired at ") + DescribeTime(sig.expiration) + ", and this server's clock says " +
+                   DescribeTime(ValidationNow());
+         case SignatureCheck::TooManyLabels:
+            return AnsiString("counts ") + Number(sig.labels) + " labels, more than the name it covers has";
+         case SignatureCheck::Unreadable:
+            return "covers a record, or names a key, that could not be read";
+         case SignatureCheck::Mismatch:
+            return "does not match the records as received, in canonical form (RFC 4034 section 6.2)";
+         }
+
+         return "failed";
       }
 
       bool DnskeyMatchesDs(const AnsiString &zone, const std::vector<unsigned char> &dnskeyRdata, const DsInfo &ds)
@@ -1335,7 +1640,9 @@ namespace HM
 
          // Optional override / extension from hMailServer.ini, format:
          // DnssecTrustAnchors=20326 8 2 E06D...;38696 8 2 683D...
-         AnsiString configured = IniFileSettings::Instance()->GetDnssecTrustAnchors();
+         // Not for the tester's thread, whose captured answers are the real
+         // root's (TestEnvironment).
+         AnsiString configured = test_environment != nullptr ? AnsiString() : AnsiString(IniFileSettings::Instance()->GetDnssecTrustAnchors());
          if (!configured.IsEmpty())
          {
             std::vector<AnsiString> entries = StringParser::SplitString(configured, ";");
@@ -1397,7 +1704,10 @@ namespace HM
       // Chain validation
       // ----------------------------------------------------------------
 
-      InternalStatus ValidateZoneKeys(const AnsiString &zone, int depth, std::vector<std::vector<unsigned char>> &keys);
+      // why, when given, is set to why the keys did not validate (a status
+      // other than Secure), in the words the debug log has for it.
+      InternalStatus ValidateZoneKeys(const AnsiString &zone, int depth, std::vector<std::vector<unsigned char>> &keys,
+                                      AnsiString *why = nullptr);
 
       // ----------------------------------------------------------------
       // Denial of existence (RFC 4035 section 5.2, RFC 5155 section 8)
@@ -1606,8 +1916,6 @@ namespace HM
          return (flags & 0x01) != 0 ? DsDenial::UnsignedDelegation : DsDenial::Nonexistent;
       }
 
-      InternalStatus ValidateZoneKeys(const AnsiString &zone, int depth, std::vector<std::vector<unsigned char>> &keys);
-
       // The authority section's NSEC and NSEC3 records, each verified against its
       // signer's keys - the signer has to be a proper ancestor of the name, and
       // required_signer when one is given - and read for what they say about a DS
@@ -1793,11 +2101,15 @@ namespace HM
       // delegation was found, or a validated DS RRset none of whose records
       // this resolver can follow (RFC 4035 section 5.2) - until 6.3.6 such a
       // zone was Bogus, and its mail held up.
-      InternalStatus FetchDsRecords(const AnsiString &zone, int depth, std::vector<DsInfo> &dsRecords)
+      // why is set as ValidateZoneKeys sets it.
+      InternalStatus FetchDsRecords(const AnsiString &zone, int depth, std::vector<DsInfo> &dsRecords, AnsiString &why)
       {
          DnsResponse response;
          if (!RunQuery(zone, DnsTypeDs, response))
+         {
+            why = AnsiString("the DS lookup for ") + zone + " did not complete: no DNS server answered, or it answered SERVFAIL or a reply that does not parse";
             return InternalStatus::Indeterminate; // until 6.3.6 Insecure, and a dropped packet a downgrade
+         }
 
          std::vector<ParsedRr> dsRrset;
          std::vector<RrsigInfo> signatures;
@@ -1820,20 +2132,37 @@ namespace HM
          }
 
          if (dsRrset.empty())
-            return ProveNoDs(zone, response, depth);
+         {
+            const InternalStatus proven = ProveNoDs(zone, response, depth);
+            if (proven == InternalStatus::Bogus)
+               why = ZoneText(zone) + " has no DS record, and no NSEC or NSEC3 record that verifies proves that none exists";
+            else if (proven == InternalStatus::Indeterminate)
+               why = AnsiString("whether ") + ZoneText(zone) + " is a signed delegation could not be told: a lookup on the way did not complete";
+            return proven;
+         }
 
          bool sawInsecureParent = false;
          bool sawIndeterminateParent = false;
+
+         // Why each signature failed, in order, for the reason a Bogus result is given.
+         std::vector<AnsiString> failures;
+
+         if (signatures.empty())
+            failures.push_back(AnsiString("the DS RRset of ") + zone + " came without an RRSIG: the DNS server did not return the DNSSEC records asked for (the DO bit), or something on the way removed them");
 
          for (const RrsigInfo &sig : signatures)
          {
             // The DS RRset is signed by the parent zone, which must be a
             // proper ancestor of the child zone.
             if (sig.signer == zone || !IsSubdomainOrEqual(zone, sig.signer))
+            {
+               failures.push_back(DescribeSignature(sig) + " over the DS RRset of " + zone + " is not by a zone above it");
                continue;
+            }
 
             std::vector<std::vector<unsigned char>> parentKeys;
-            InternalStatus parentStatus = ValidateZoneKeys(sig.signer, depth + 1, parentKeys);
+            AnsiString parentWhy;
+            InternalStatus parentStatus = ValidateZoneKeys(sig.signer, depth + 1, parentKeys, &parentWhy);
 
             if (parentStatus == InternalStatus::Insecure)
             {
@@ -1844,11 +2173,17 @@ namespace HM
             if (parentStatus == InternalStatus::Indeterminate)
             {
                sawIndeterminateParent = true;
+               failures.push_back(parentWhy);
                continue;
             }
 
             if (parentStatus == InternalStatus::Bogus)
+            {
+               failures.push_back(parentWhy);
                continue;
+            }
+
+            bool keyFound = false;
 
             for (const std::vector<unsigned char> &keyRdata : parentKeys)
             {
@@ -1858,50 +2193,69 @@ namespace HM
                if (keyRdata[3] != sig.algorithm || ComputeKeyTag(keyRdata) != sig.key_tag)
                   continue;
 
-               if (VerifyRrsigOverSet(response, dsRrset, sig, keyRdata))
+               keyFound = true;
+               const SignatureCheck check = CheckRrsigOverSet(response, dsRrset, sig, keyRdata);
+               if (check != SignatureCheck::Verified)
                {
-                  for (const ParsedRr &record : dsRrset)
-                  {
-                     if (record.rdata.size() < 5)
-                        continue;
-
-                     DsInfo info;
-                     info.key_tag = (static_cast<unsigned short>(record.rdata[0]) << 8) | record.rdata[1];
-                     info.algorithm = record.rdata[2];
-                     info.digest_type = record.rdata[3];
-                     info.digest.assign(record.rdata.begin() + 4, record.rdata.end());
-
-                     dsRecords.push_back(info);
-                  }
-
-                  if (dsRecords.empty())
-                     return InternalStatus::Insecure;
-
-                  if (std::none_of(dsRecords.begin(), dsRecords.end(), IsSupportedDs))
-                  {
-                     LOG_DEBUG("DNSSEC: the validated DS RRset of " + String(zone) + " names no algorithm and digest this resolver supports; treating the zone as unsigned (RFC 4035 section 5.2).");
-                     dsRecords.clear();
-                     return InternalStatus::Insecure;
-                  }
-
-                  return InternalStatus::Secure;
+                  failures.push_back(DescribeSignature(sig) + " over the DS RRset of " + zone + " " + DescribeCheck(check, sig));
+                  continue;
                }
+
+               for (const ParsedRr &record : dsRrset)
+               {
+                  if (record.rdata.size() < 5)
+                     continue;
+
+                  DsInfo info;
+                  info.key_tag = (static_cast<unsigned short>(record.rdata[0]) << 8) | record.rdata[1];
+                  info.algorithm = record.rdata[2];
+                  info.digest_type = record.rdata[3];
+                  info.digest.assign(record.rdata.begin() + 4, record.rdata.end());
+
+                  dsRecords.push_back(info);
+               }
+
+               if (dsRecords.empty())
+                  return InternalStatus::Insecure;
+
+               if (std::none_of(dsRecords.begin(), dsRecords.end(), IsSupportedDs))
+               {
+                  LOG_DEBUG("DNSSEC: the validated DS RRset of " + String(zone) + " names no algorithm and digest this resolver supports; treating the zone as unsigned (RFC 4035 section 5.2).");
+                  dsRecords.clear();
+                  return InternalStatus::Insecure;
+               }
+
+               return InternalStatus::Secure;
             }
+
+            if (!keyFound)
+               failures.push_back(DescribeSignature(sig) + " over the DS RRset of " + zone + " names no key " + ZoneText(sig.signer) + " publishes");
          }
 
          if (sawInsecureParent)
             return InternalStatus::Insecure;
+
+         why = AnsiString("the DS RRset of ") + zone + (sawIndeterminateParent ? " could not be validated" : " did not validate");
+         for (size_t i = 0; i < failures.size(); i++)
+            why += (i == 0 ? AnsiString(": ") : AnsiString("; ")) + failures[i];
 
          return sawIndeterminateParent ? InternalStatus::Indeterminate : InternalStatus::Bogus;
       }
 
       // Returns the validated DNSKEY RRset of a zone, walking up to the
       // root trust anchors.
-      InternalStatus ValidateZoneKeys(const AnsiString &zone, int depth, std::vector<std::vector<unsigned char>> &keys)
+      InternalStatus ValidateZoneKeys(const AnsiString &zone, int depth, std::vector<std::vector<unsigned char>> &keys,
+                                      AnsiString *why)
       {
          if (depth > MaxChainDepth)
+         {
+            if (why != nullptr)
+               *why = AnsiString("the chain of trust to ") + ZoneText(zone) + " is longer than this resolver follows";
             return InternalStatus::Bogus;
+         }
 
+         // Not on the tester's thread (TestEnvironment).
+         if (test_environment == nullptr)
          {
             boost::lock_guard<boost::recursive_mutex> guard(zone_cache_mutex);
 
@@ -1909,11 +2263,14 @@ namespace HM
             if (cached != zone_cache.end() && cached->second.expires > time(nullptr))
             {
                keys = cached->second.dnskey_rdatas;
+               if (why != nullptr)
+                  *why = cached->second.reason;
                return cached->second.status;
             }
          }
 
          InternalStatus result = InternalStatus::Bogus;
+         AnsiString reason;
          keys.clear();
 
          // Establish the trust anchors for this zone: the root uses the
@@ -1926,7 +2283,7 @@ namespace HM
          }
          else
          {
-            InternalStatus dsStatus = FetchDsRecords(zone, depth, anchors);
+            InternalStatus dsStatus = FetchDsRecords(zone, depth, anchors, reason);
             if (dsStatus != InternalStatus::Secure)
                result = dsStatus;
          }
@@ -1963,6 +2320,11 @@ namespace HM
                // DNSKEY RRset; that proves the whole RRset.
                bool trusted = false;
 
+               // What the search found when it found nothing: whether any key
+               // matched an anchor, and why each signature by one did not verify.
+               bool anchorMatched = false;
+               std::vector<AnsiString> failures;
+
                for (const DsInfo &anchor : anchors)
                {
                   if (trusted)
@@ -1992,17 +2354,58 @@ namespace HM
                      if (!DnskeyMatchesDs(zone, rdata, anchor))
                         continue;
 
+                     anchorMatched = true;
+                     bool signedByIt = false;
+
                      for (const RrsigInfo &sig : signatures)
                      {
                         if (sig.key_tag != anchor.key_tag || sig.algorithm != anchor.algorithm)
                            continue;
 
-                        if (VerifyRrsigOverSet(response, dnskeyRrset, sig, rdata))
+                        signedByIt = true;
+                        const SignatureCheck check = CheckRrsigOverSet(response, dnskeyRrset, sig, rdata);
+                        if (check == SignatureCheck::Verified)
                         {
                            trusted = true;
                            break;
                         }
+
+                        failures.push_back(DescribeSignature(sig) + " over the DNSKEY RRset of " + ZoneText(zone) + " " + DescribeCheck(check, sig));
                      }
+
+                     if (!signedByIt)
+                        failures.push_back(AnsiString("no RRSIG over the DNSKEY RRset of ") + ZoneText(zone) + " is by key tag " + Number(anchor.key_tag) +
+                                           ", the key its " + (zone.IsEmpty() ? "trust anchor" : "DS record") + " names");
+                  }
+               }
+
+               if (!trusted && result != InternalStatus::Insecure)
+               {
+                  if (dnskeyRrset.empty())
+                  {
+                     reason = AnsiString("the DNSKEY answer for ") + ZoneText(zone) + " holds no DNSKEY records";
+                  }
+                  else if (signatures.empty())
+                  {
+                     reason = AnsiString("the DNSKEY RRset of ") + ZoneText(zone) + " came without an RRSIG by the zone: the DNS server did not return the DNSSEC records asked for (the DO bit), or something on the way removed them";
+                  }
+                  else if (!anchorMatched)
+                  {
+                     // A DS mismatch: none of the zone's keys is the one its parent
+                     // (or, for the root, the trust anchors) vouches for.
+                     reason = AnsiString("no DNSKEY of ") + ZoneText(zone) + " matches " + (zone.IsEmpty() ? "the trust anchors" : "its DS records");
+                     for (size_t i = 0; i < anchors.size(); i++)
+                     {
+                        reason += (i == 0 ? AnsiString(" (") : AnsiString(", ")) + "key tag " + Number(anchors[i].key_tag) +
+                                  " algorithm " + Number(anchors[i].algorithm) + " digest type " + Number(anchors[i].digest_type);
+                     }
+                     reason += anchors.empty() ? "" : ")";
+                  }
+                  else
+                  {
+                     reason = AnsiString("the DNSKEY RRset of ") + ZoneText(zone) + " did not validate";
+                     for (size_t i = 0; i < failures.size(); i++)
+                        reason += (i == 0 ? AnsiString(": ") : AnsiString("; ")) + failures[i];
                   }
                }
 
@@ -2023,6 +2426,8 @@ namespace HM
                   }
 
                   result = keys.empty() ? InternalStatus::Bogus : InternalStatus::Secure;
+                  if (keys.empty())
+                     reason = AnsiString("the DNSKEY RRset of ") + ZoneText(zone) + " holds no zone key";
                }
                else if (result != InternalStatus::Insecure)
                {
@@ -2034,8 +2439,24 @@ namespace HM
                // The keys could not be fetched. Until 6.3.6 this was Insecure,
                // and a dropped DNSKEY answer took the zone out of DNSSEC.
                result = InternalStatus::Indeterminate;
+               reason = AnsiString("the DNSKEY lookup for ") + ZoneText(zone) + " did not complete: no DNS server answered, or it answered SERVFAIL or a reply that does not parse";
             }
          }
+
+         // Said once each time the verdict is reached, which the cache below
+         // keeps to once a minute or less for each zone.
+         if (result == InternalStatus::Bogus || result == InternalStatus::Indeterminate)
+         {
+            LOG_DEBUG("DNSSEC: the keys of " + String(ZoneText(zone)) + (result == InternalStatus::Bogus ? String(" are bogus: ") : String(" could not be validated: ")) +
+                      String(reason) + ".");
+         }
+
+         if (why != nullptr)
+            *why = reason;
+
+         // The tester's verdicts are its own (TestEnvironment).
+         if (test_environment != nullptr)
+            return result;
 
          // Cache the outcome. A lookup that did not complete is held briefly,
          // so that one validation does not wait on the same dead server twice
@@ -2055,6 +2476,7 @@ namespace HM
             entry.status = result;
             entry.dnskey_rdatas = keys;
             entry.expires = time(nullptr) + cacheSeconds;
+            entry.reason = reason;
 
             zone_cache[zone] = entry;
 
@@ -2076,9 +2498,11 @@ namespace HM
          Indeterminate    // a signature names a zone whose keys could not be fetched
       };
 
-      // Validates an answer RRset against its RRSIGs.
+      // Validates an answer RRset against its RRSIGs. why, when given, is set
+      // to what each applicable signature failed on, for a verdict of Bogus or
+      // Indeterminate, and to the want of one for Unsigned.
       RrsetVerdict ValidateRrset(const DnsResponse &response, const std::vector<ParsedRr> &rrset,
-                                 const std::vector<RrsigInfo> &signatures)
+                                 const std::vector<RrsigInfo> &signatures, AnsiString *why = nullptr)
       {
          if (rrset.empty())
             return RrsetVerdict::Unsigned;
@@ -2086,6 +2510,7 @@ namespace HM
          bool sawInsecureZone = false;
          bool sawIndeterminateZone = false;
          bool sawApplicableSignature = false;
+         std::vector<AnsiString> failures;
 
          for (const RrsigInfo &sig : signatures)
          {
@@ -2098,7 +2523,8 @@ namespace HM
             sawApplicableSignature = true;
 
             std::vector<std::vector<unsigned char>> zoneKeys;
-            InternalStatus zoneStatus = ValidateZoneKeys(sig.signer, 0, zoneKeys);
+            AnsiString zoneWhy;
+            InternalStatus zoneStatus = ValidateZoneKeys(sig.signer, 0, zoneKeys, &zoneWhy);
 
             if (zoneStatus == InternalStatus::Insecure)
             {
@@ -2109,11 +2535,17 @@ namespace HM
             if (zoneStatus == InternalStatus::Indeterminate)
             {
                sawIndeterminateZone = true;
+               failures.push_back(zoneWhy);
                continue;
             }
 
             if (zoneStatus == InternalStatus::Bogus)
+            {
+               failures.push_back(zoneWhy);
                continue;
+            }
+
+            bool keyFound = false;
 
             for (const std::vector<unsigned char> &keyRdata : zoneKeys)
             {
@@ -2123,8 +2555,29 @@ namespace HM
                if (keyRdata[3] != sig.algorithm || ComputeKeyTag(keyRdata) != sig.key_tag)
                   continue;
 
-               if (VerifyRrsigOverSet(response, rrset, sig, keyRdata))
+               keyFound = true;
+               const SignatureCheck check = CheckRrsigOverSet(response, rrset, sig, keyRdata);
+               if (check == SignatureCheck::Verified)
                   return RrsetVerdict::Secure;
+
+               failures.push_back(DescribeSignature(sig) + " " + DescribeCheck(check, sig));
+            }
+
+            if (!keyFound)
+               failures.push_back(DescribeSignature(sig) + " names no key " + ZoneText(sig.signer) + " publishes (no DNSKEY with that key tag and algorithm)");
+         }
+
+         if (why != nullptr)
+         {
+            if (!sawApplicableSignature)
+            {
+               *why = "no RRSIG covers it";
+            }
+            else
+            {
+               why->Empty();
+               for (size_t i = 0; i < failures.size(); i++)
+                  *why += (i == 0 ? AnsiString() : AnsiString("; ")) + failures[i];
             }
          }
 
@@ -2717,6 +3170,10 @@ namespace HM
 
       bool CachedCut(const AnsiString &name, CutKind &kind)
       {
+         // Not on the tester's thread (TestEnvironment).
+         if (test_environment != nullptr)
+            return false;
+
          boost::lock_guard<boost::recursive_mutex> guard(cut_cache_mutex);
 
          auto cached = cut_cache.find(name);
@@ -2729,6 +3186,9 @@ namespace HM
 
       void RememberCut(const AnsiString &name, CutKind kind)
       {
+         if (test_environment != nullptr)
+            return;
+
          boost::lock_guard<boost::recursive_mutex> guard(cut_cache_mutex);
 
          // Kept bounded, as the zone cache is.
@@ -2852,6 +3312,10 @@ namespace HM
       // than leaving the administrator a deferral per message to read.
       void RootUnverifiable(InternalStatus root)
       {
+         // The tester's answers are not this server's DNS (TestEnvironment).
+         if (test_environment != nullptr)
+            return;
+
          const time_t now = time(nullptr);
          time_t said = root_unverifiable_said_at.load();
          if (said != 0 && now - said < 600)
@@ -2873,7 +3337,7 @@ namespace HM
       // (RFC 4035 section 5.2); Bogus when the chain fails; Indeterminate when
       // a lookup on the way did not complete or a signed zone did not prove
       // what lies below it - and when the root's own keys could not be had.
-      InternalStatus FindEnclosingZone(const AnsiString &name, AnsiString &zone)
+      InternalStatus FindEnclosingZone(const AnsiString &name, AnsiString &zone, AnsiString *why = nullptr)
       {
          zone = "";
 
@@ -2884,16 +3348,23 @@ namespace HM
          // Insecure, which would be the downgrade, and never Bogus, which would
          // report every recipient domain to TLS reporting as failing DNSSEC.
          std::vector<std::vector<unsigned char>> keys;
-         const InternalStatus root = ValidateZoneKeys("", 1, keys);
+         AnsiString keysWhy;
+         const InternalStatus root = ValidateZoneKeys("", 1, keys, &keysWhy);
          if (root != InternalStatus::Secure)
          {
             RootUnverifiable(root);
+            if (why != nullptr)
+               *why = keysWhy;
             return InternalStatus::Indeterminate;
          }
 
          const std::vector<AnsiString> labels = LabelsOf(name);
          if (labels.size() > MaxWalkLabels)
+         {
+            if (why != nullptr)
+               *why = AnsiString("the name has more than ") + Number(static_cast<unsigned long>(MaxWalkLabels)) + " labels";
             return InternalStatus::Indeterminate;
+         }
 
          for (size_t first = labels.size(); first-- > 0;)
          {
@@ -2902,16 +3373,28 @@ namespace HM
             CutKind kind = CutKind::NotACut;
             const InternalStatus classified = ClassifyCut(candidate, zone, kind);
             if (classified != InternalStatus::Secure)
+            {
+               if (why != nullptr)
+               {
+                  *why = classified == InternalStatus::Bogus
+                     ? AnsiString("the alias at ") + candidate + " does not validate"
+                     : AnsiString("the DS lookup for ") + candidate + " did not complete, or " + ZoneText(zone) + ", which is signed, did not prove what " + candidate + " is";
+               }
                return classified;
+            }
 
             if (kind == CutKind::Unsigned)
                return InternalStatus::Insecure;
 
             if (kind == CutKind::Signed)
             {
-               const InternalStatus cut = ValidateZoneKeys(candidate, 1, keys);
+               const InternalStatus cut = ValidateZoneKeys(candidate, 1, keys, &keysWhy);
                if (cut != InternalStatus::Secure)
+               {
+                  if (why != nullptr)
+                     *why = keysWhy;
                   return cut;
+               }
 
                zone = candidate;
                RememberCut(candidate, CutKind::Signed);
@@ -2924,25 +3407,29 @@ namespace HM
       // The verdict on name when its answer cannot speak for itself - it did
       // not come, or came without the signatures it needs: Insecure when the
       // name is proven below an unsigned delegation, Bogus when the chain to it
-      // fails, and Indeterminate otherwise (RFC 7672 section 2.1.1).
-      DnssecResolver::ChainStatus WhereUnproven(const AnsiString &name, const AnsiString &what)
+      // fails, and Indeterminate otherwise (RFC 7672 section 2.1.1). reason is
+      // set to why, for a verdict other than Insecure, and the caller logs it
+      // (QueryValidatedRrset_).
+      DnssecResolver::ChainStatus WhereUnproven(const AnsiString &name, const AnsiString &what, AnsiString &reason)
       {
          AnsiString zone;
-         switch (FindEnclosingZone(name, zone))
+         AnsiString why;
+         switch (FindEnclosingZone(name, zone, &why))
          {
          case InternalStatus::Insecure:
             return DnssecResolver::ChainStatus::Insecure;
          case InternalStatus::Bogus:
+            reason = AnsiString("the answer for ") + name + " " + what + "; and the chain of trust above the name is bogus: " + why;
             return DnssecResolver::ChainStatus::Bogus;
          case InternalStatus::Secure:
-            LOG_DEBUG("DNSSEC: " + String(name) + " is in the signed zone " + String(zone.IsEmpty() ? AnsiString(".") : zone) +
-                      ", and its answer " + String(what) + ". Treating the lookup as indeterminate (RFC 7672 section 2.1.1).");
+            reason = name + " is in the signed zone " + NameText(zone) + ", and its answer " + what +
+                     " (RFC 7672 section 2.1.1)";
             return DnssecResolver::ChainStatus::Indeterminate;
          case InternalStatus::Indeterminate:
             break;
          }
 
-         LOG_DEBUG("DNSSEC: The answer for " + String(name) + " " + String(what) + ", and whether the name is in a signed zone could not be told. Treating the lookup as indeterminate (RFC 7672 section 2.1.1).");
+         reason = AnsiString("the answer for ") + name + " " + what + "; and whether the name is in a signed zone could not be told: " + why;
          return DnssecResolver::ChainStatus::Indeterminate;
       }
    }
@@ -2954,10 +3441,26 @@ namespace HM
    {
       rdatas.clear();
       nonexistent = false;
+      failure_reason_.Empty();
 
       AnsiString queryName = query_name;
       queryName.MakeLower();
       final_name = queryName;
+
+      // A verdict of Bogus or Indeterminate, with why: kept for
+      // GetFailureReason and said once in the debug log, the stage and the
+      // check that failed in it - which RRset, which key, which signature.
+      const AnsiString lookup = AnsiString("the ") + TypeText(query_type) + " lookup for " + NameText(queryName);
+      auto failed = [&](ChainStatus status, const AnsiString &reason) -> ChainStatus
+      {
+         if (status != ChainStatus::Bogus && status != ChainStatus::Indeterminate)
+            return status;
+
+         failure_reason_ = reason;
+         LOG_DEBUG("DNSSEC: " + String(lookup) + (status == ChainStatus::Bogus ? String(" is bogus: ") : String(" is indeterminate: ")) +
+                   String(reason) + ".");
+         return status;
+      };
 
       // The final answer can only be Secure if every CNAME link in the
       // chain was validated as well (RFC 4035 section 5). Once a link is
@@ -2977,7 +3480,9 @@ namespace HM
             if (!strict || !aliasChainSecure)
                return ChainStatus::Insecure;
 
-            return WhereUnproven(queryName, "did not come (no server answered, SERVFAIL or a reply that does not parse)");
+            AnsiString reason;
+            const ChainStatus where = WhereUnproven(queryName, "did not come: no DNS server answered, or it answered SERVFAIL or a reply that does not parse", reason);
+            return failed(where, reason);
          }
 
          std::vector<ParsedRr> typedRrset;
@@ -3005,14 +3510,22 @@ namespace HM
             }
          }
 
+         // Said of an RRset that came without the signatures its zone publishes:
+         // the DNS server did not return what the DO bit asked for, or something
+         // on the way took it out.
+         const AnsiString unsignedAnswer = "came without its signatures: the DNS server did not return the RRSIG records asked for (the DO bit), or something on the way removed them";
+
          if (!typedRrset.empty())
          {
-            const RrsetVerdict verdict = ValidateRrset(response, typedRrset, signatures);
+            AnsiString why;
+            const RrsetVerdict verdict = ValidateRrset(response, typedRrset, signatures, &why);
+            const AnsiString rrsetText = AnsiString("the ") + TypeText(query_type) + " RRset of " + NameText(queryName);
 
             if (verdict == RrsetVerdict::Bogus)
-               return ChainStatus::Bogus;
+               return failed(ChainStatus::Bogus, rrsetText + " does not validate: " + why);
 
             ChainStatus status = ChainStatus::Insecure;
+            AnsiString reason;
 
             if (verdict == RrsetVerdict::Secure)
             {
@@ -3022,35 +3535,55 @@ namespace HM
             {
                // No signature applies, or the signer's keys could not be had: the
                // records are not taken as unsigned unless the name is.
-               status = verdict == RrsetVerdict::Indeterminate ? ChainStatus::Indeterminate :
-                  WhereUnproven(queryName, "came without its signatures");
+               if (verdict == RrsetVerdict::Indeterminate)
+               {
+                  status = ChainStatus::Indeterminate;
+                  reason = rrsetText + " could not be validated: " + why;
+               }
+               else
+               {
+                  status = WhereUnproven(queryName, unsignedAnswer, reason);
+               }
             }
 
+            // The RDATA in canonical form (GetCanonicalRdata): a name in it -
+            // an MX record's exchange - written out in full and in lowercase,
+            // whatever compression the answer arrived with.
             if (status == ChainStatus::Secure || status == ChainStatus::Insecure)
             {
                for (const ParsedRr &record : typedRrset)
-                  rdatas.push_back(record.rdata);
+               {
+                  std::vector<unsigned char> rdata;
+                  if (GetCanonicalRdata(response, record, rdata))
+                     rdatas.push_back(rdata);
+               }
             }
 
-            return status;
+            return failed(status, reason);
          }
 
          if (!cnameRrset.empty())
          {
             // Follow the alias, but only across validated links.
-            const RrsetVerdict verdict = ValidateRrset(response, cnameRrset, signatures);
+            AnsiString why;
+            const RrsetVerdict verdict = ValidateRrset(response, cnameRrset, signatures, &why);
 
             if (verdict == RrsetVerdict::Bogus)
-               return ChainStatus::Bogus;
+               return failed(ChainStatus::Bogus, AnsiString("the CNAME RRset of ") + queryName + " does not validate: " + why);
 
             if (verdict != RrsetVerdict::Secure)
             {
                if (verdict != RrsetVerdict::InsecureZone && strict && aliasChainSecure)
                {
-                  const ChainStatus where = verdict == RrsetVerdict::Indeterminate ? ChainStatus::Indeterminate :
-                     WhereUnproven(queryName, "is an alias that came without its signatures");
+                  AnsiString reason;
+                  ChainStatus where = ChainStatus::Indeterminate;
+                  if (verdict == RrsetVerdict::Indeterminate)
+                     reason = AnsiString("the CNAME RRset of ") + queryName + " could not be validated: " + why;
+                  else
+                     where = WhereUnproven(queryName, AnsiString("is an alias that ") + unsignedAnswer, reason);
+
                   if (where != ChainStatus::Insecure)
-                     return where;
+                     return failed(where, reason);
                }
 
                aliasChainSecure = false;
@@ -3059,7 +3592,11 @@ namespace HM
             AnsiString target;
             size_t offset = cnameRrset[0].rdata_offset;
             if (!ReadName(response.packet, offset, target) || target.IsEmpty())
-               return strict && aliasChainSecure ? ChainStatus::Indeterminate : ChainStatus::Insecure;
+            {
+               if (strict && aliasChainSecure)
+                  return failed(ChainStatus::Indeterminate, AnsiString("the CNAME record of ") + queryName + " could not be read");
+               return ChainStatus::Insecure;
+            }
 
             queryName = target;
             continue;
@@ -3070,15 +3607,16 @@ namespace HM
             return ChainStatus::Insecure;
 
          AnsiString zone;
-         switch (FindEnclosingZone(queryName, zone))
+         AnsiString why;
+         switch (FindEnclosingZone(queryName, zone, &why))
          {
          case InternalStatus::Insecure:
             return ChainStatus::Insecure;
          case InternalStatus::Bogus:
-            return ChainStatus::Bogus;
+            return failed(ChainStatus::Bogus, AnsiString("the answer for ") + queryName + " holds no records, and the chain of trust above the name is bogus: " + why);
          case InternalStatus::Indeterminate:
-            LOG_DEBUG("DNSSEC: The answer for " + String(queryName) + " holds no records, and whether the name is in a signed zone could not be told. Treating the lookup as indeterminate (RFC 7672 section 2.1.1).");
-            return ChainStatus::Indeterminate;
+            return failed(ChainStatus::Indeterminate, AnsiString("the answer for ") + queryName +
+                          " holds no records, and whether the name is in a signed zone could not be told: " + why);
          case InternalStatus::Secure:
             break;
          }
@@ -3096,13 +3634,21 @@ namespace HM
             break;
          }
 
-         LOG_DEBUG("DNSSEC: The answer for " + String(queryName) + " holds no records, and the signed zone " + String(zone.IsEmpty() ? AnsiString(".") : zone) +
-                   " gave no proof that none exist. Treating the lookup as indeterminate (RFC 7672 section 2.1.1).");
-         return ChainStatus::Indeterminate;
+         return failed(ChainStatus::Indeterminate, AnsiString("the answer for ") + queryName + " holds no records, and the signed zone " + NameText(zone) +
+                       " gave no NSEC or NSEC3 proof, signed by it, that none exist: the DNS server did not return it, or something on the way removed it");
       }
 
       // Too many CNAME hops.
-      return strict && aliasChainSecure ? ChainStatus::Indeterminate : ChainStatus::Insecure;
+      if (strict && aliasChainSecure)
+         return failed(ChainStatus::Indeterminate, AnsiString("the aliases from ") + query_name + " run past " + Number(MaxCnameHops) + " CNAME records");
+
+      return ChainStatus::Insecure;
+   }
+
+   String
+   DnssecResolver::GetFailureReason() const
+   {
+      return String(failure_reason_);
    }
 
    bool
@@ -3347,11 +3893,14 @@ namespace HM
       for (const std::vector<unsigned char> &rdata : rdatas)
       {
          // 2 bytes of preference, then the exchange as an uncompressed wire-format
-         // name. Uncompressed is not an assumption: the RRset validated, and it
-         // could only validate if the signer's canonical form - which forbids
-         // compression - is what arrived. A pointer here would therefore mean the
-         // rdata is not what was signed, so it is refused rather than followed
-         // into a buffer this function does not have.
+         // name: QueryValidatedRrset_ hands over the RDATA in canonical form, the
+         // exchange written out and lowercased whatever compression the answer
+         // came with (GetCanonicalRdata) - the form the signature was checked
+         // over. Until work item 80 it handed over the RDATA as received, and
+         // the RRSIG was checked over that too, so a compressed exchange - the
+         // way nearly every resolver sends one - made the RRset Bogus. A pointer
+         // here could only be a fault, so it is still refused rather than
+         // followed into a packet this function does not have.
          if (rdata.size() < 3)
             continue;
 
@@ -3511,6 +4060,256 @@ namespace HM
              "only a whole nameserver keyword with an address counts, and the address ends at a comment.");
 
       expect(chosen("").empty() && chosen("options edns0\n").empty(), "a file that names no server names none.");
+
+      TestCanonicalForm_();
+      TestCapturedAnswers_();
+   }
+
+   void
+   DnssecResolverTester::TestCanonicalForm_()
+   {
+      auto expect = [](bool condition, const char *what)
+      {
+         if (!condition)
+            throw std::logic_error(std::string("DnssecResolverTester: ") + what);
+      };
+
+      // An answer for "Example.TEST" MX, by hand: the question at offset 12, and
+      // one MX record whose owner points to it and whose RDATA is the given
+      // octets, its RDLENGTH as given (the RDATA's own length by default).
+      auto answer = [](const std::vector<unsigned char> &rdata, int rdlength = -1) -> std::vector<unsigned char>
+      {
+         std::vector<unsigned char> packet = { 0x12, 0x34, 0x81, 0x80, 0, 1, 0, 1, 0, 0, 0, 0 };
+         const unsigned char question[] = { 7, 'E', 'x', 'a', 'm', 'p', 'l', 'e', 4, 'T', 'E', 'S', 'T', 0, 0, 15, 0, 1 };
+         packet.insert(packet.end(), question, question + sizeof(question));
+         const unsigned char header[] = { 0xC0, 0x0C, 0, 15, 0, 1, 0, 0, 0x0E, 0x10 };
+         packet.insert(packet.end(), header, header + sizeof(header));
+         const size_t length = rdlength < 0 ? rdata.size() : static_cast<size_t>(rdlength);
+         Push16(packet, static_cast<unsigned short>(length));
+         packet.insert(packet.end(), rdata.begin(), rdata.end());
+         return packet;
+      };
+
+      auto canonical = [](const std::vector<unsigned char> &packet, std::vector<unsigned char> &out) -> bool
+      {
+         DnsResponse response;
+         if (!ParseResponse(packet, response) || response.answers.size() != 1)
+            return false;
+         return GetCanonicalRdata(response, response.answers[0], out);
+      };
+
+      // "10 MaIl" and a pointer to the question's name, as a server compresses
+      // an exchange under the domain it serves.
+      const std::vector<unsigned char> compressed = { 0, 10, 4, 'M', 'a', 'I', 'l', 0xC0, 0x0C };
+      const std::vector<unsigned char> expanded = { 0, 10, 4, 'm', 'a', 'i', 'l', 7, 'e', 'x', 'a', 'm', 'p', 'l', 'e', 4, 't', 'e', 's', 't', 0 };
+
+      std::vector<unsigned char> out;
+      expect(canonical(answer(compressed), out) && out == expanded,
+             "an MX record's exchange, compressed against the question and in mixed case, is written out in full and in lowercase (RFC 4034 section 6.2), as its RRSIG signs it.");
+
+      expect(canonical(answer(expanded), out) && out == expanded,
+             "an exchange already in canonical form is taken as it is.");
+
+      // The pointer in the RDATA aimed at itself, and then at the RDATA's own
+      // start: neither points backwards to a name before it.
+      std::vector<unsigned char> selfPointing = compressed;
+      std::vector<unsigned char> probe = answer(compressed);
+      const size_t rdataStart = probe.size() - compressed.size();
+      selfPointing[7] = static_cast<unsigned char>(0xC0 | ((rdataStart + 7) >> 8));
+      selfPointing[8] = static_cast<unsigned char>((rdataStart + 7) & 0xFF);
+      expect(!canonical(answer(selfPointing), out), "a pointer in the RDATA that does not point backwards is refused.");
+
+      // The name runs past the RDATA: its RDLENGTH ends inside the first label,
+      // and the octets after it are still in the packet.
+      DnsResponse parsed;
+      expect(ParseResponse(answer(expanded, 6), parsed) && parsed.answers.size() == 1 && parsed.answers[0].rdata.size() == 6,
+             "an answer whose RDLENGTH ends inside the exchange parses.");
+      expect(!GetCanonicalRdata(parsed, parsed.answers[0], out), "an exchange that runs past the end of its RDATA is refused.");
+
+      // A type with no name in its RDATA is taken as received, pointer-like
+      // octets and all.
+      ParsedRr txt;
+      txt.type = DnsTypeTxt;
+      txt.rdata = { 3, 'A', 0xC0, 0x0C };
+      DnsResponse none;
+      expect(GetCanonicalRdata(none, txt, out) && out == txt.rdata, "the RDATA of a type that holds no name is taken as received.");
+   }
+
+   void
+   DnssecResolverTester::TestCapturedAnswers_()
+   {
+      auto expect = [](bool condition, const std::string &what)
+      {
+         if (!condition)
+            throw std::logic_error(std::string("DnssecResolverTester: ") + what);
+      };
+
+      auto bytes = [](const char *hex) -> std::vector<unsigned char>
+      {
+         std::vector<unsigned char> out;
+         HexToBytes(AnsiString(hex), out);
+         return out;
+      };
+
+      // Installs a TestEnvironment on this thread for as long as it lives.
+      struct Installed
+      {
+         explicit Installed(const TestEnvironment &environment) { test_environment = &environment; }
+         ~Installed() { test_environment = nullptr; }
+      };
+
+      TestEnvironment captured;
+      captured.now = DnssecCapturedAnswers::CapturedAt;
+      captured.answers[std::make_pair(AnsiString(""), DnsTypeDnskey)] = bytes(DnssecCapturedAnswers::RootDnskey);
+      captured.answers[std::make_pair(AnsiString("com"), DnsTypeDs)] = bytes(DnssecCapturedAnswers::ComDs);
+      captured.answers[std::make_pair(AnsiString("com"), DnsTypeDnskey)] = bytes(DnssecCapturedAnswers::ComDnskey);
+      captured.answers[std::make_pair(AnsiString("live.com"), DnsTypeDs)] = bytes(DnssecCapturedAnswers::LiveComDs);
+      captured.answers[std::make_pair(AnsiString("live.com"), DnsTypeDnskey)] = bytes(DnssecCapturedAnswers::LiveComDnskey);
+      captured.answers[std::make_pair(AnsiString("live.com"), DnsTypeMx)] = bytes(DnssecCapturedAnswers::LiveComMx);
+      captured.answers[std::make_pair(AnsiString("cloudflare.com"), DnsTypeDs)] = bytes(DnssecCapturedAnswers::CloudflareComDs);
+      captured.answers[std::make_pair(AnsiString("cloudflare.com"), DnsTypeDnskey)] = bytes(DnssecCapturedAnswers::CloudflareComDnskey);
+      captured.answers[std::make_pair(AnsiString("cloudflare.com"), DnsTypeMx)] = bytes(DnssecCapturedAnswers::CloudflareComMx);
+
+      // Work item 80: live.com's MX RRset, its exchange compressed against the
+      // question, validated from the root's keys down. Until the fix it was Bogus,
+      // and with DANE enforcement on no host of live.com was tried.
+      {
+         Installed installed(captured);
+         DnssecResolver resolver;
+         std::vector<AnsiString> exchanges;
+         const DnssecResolver::ChainStatus status = resolver.QueryMx(String(_T("live.com")), exchanges);
+         expect(status == DnssecResolver::ChainStatus::Secure,
+                "live.com's MX RRset as the public DNS answers it - its exchange compressed against the question - validates from the root's keys down (work item 80): " +
+                std::string(AnsiString(resolver.GetFailureReason()).c_str()));
+         expect(exchanges.size() == 1 && exchanges[0] == "live-com.olc.protection.outlook.com",
+                "live.com's one exchange is live-com.olc.protection.outlook.com, written out in full.");
+      }
+
+      // cloudflare.com: three exchanges point into the first one's RDATA.
+      {
+         Installed installed(captured);
+         DnssecResolver resolver;
+         std::vector<AnsiString> exchanges;
+         const DnssecResolver::ChainStatus status = resolver.QueryMx(String(_T("cloudflare.com")), exchanges);
+         expect(status == DnssecResolver::ChainStatus::Secure,
+                "cloudflare.com's MX RRset, three of its exchanges compressed into the first one's RDATA, validates: " +
+                std::string(AnsiString(resolver.GetFailureReason()).c_str()));
+
+         std::set<AnsiString> names(exchanges.begin(), exchanges.end());
+         expect(exchanges.size() == 4 &&
+                names.count("mxa.global.inbound.cf-emailsecurity.net") == 1 && names.count("mxb.global.inbound.cf-emailsecurity.net") == 1 &&
+                names.count("mxa-canary.global.inbound.cf-emailsecurity.net") == 1 && names.count("mxb-canary.global.inbound.cf-emailsecurity.net") == 1,
+                "cloudflare.com's four exchanges are written out in full.");
+      }
+
+      // debian.org: its exchanges compressed against the question, under an
+      // RSA/SHA-256 signature and an ECDSA P-256 one, each checked with the key
+      // it names from the zone's own DNSKEY answer.
+      {
+         Installed installed(captured);
+
+         DnsResponse mx;
+         DnsResponse dnskey;
+         expect(ParseResponse(bytes(DnssecCapturedAnswers::DebianOrgMx), mx) && ParseResponse(bytes(DnssecCapturedAnswers::DebianOrgDnskey), dnskey),
+                "the captured debian.org answers parse.");
+
+         std::vector<ParsedRr> rrset;
+         std::vector<RrsigInfo> signatures;
+         for (const ParsedRr &record : mx.answers)
+         {
+            RrsigInfo info;
+            if (record.type == DnsTypeMx)
+               rrset.push_back(record);
+            else if (record.type == DnsTypeRrsig && ParseRrsig(mx, record, info) && info.type_covered == DnsTypeMx)
+               signatures.push_back(info);
+         }
+
+         std::set<int> verifiedAlgorithms;
+         for (const RrsigInfo &sig : signatures)
+         {
+            for (const ParsedRr &key : dnskey.answers)
+            {
+               if (key.type != DnsTypeDnskey || key.rdata.size() < 5 || key.rdata[3] != sig.algorithm || ComputeKeyTag(key.rdata) != sig.key_tag)
+                  continue;
+
+               if (CheckRrsigOverSet(mx, rrset, sig, key.rdata) == SignatureCheck::Verified)
+                  verifiedAlgorithms.insert(sig.algorithm);
+            }
+         }
+
+         expect(rrset.size() == 3 && verifiedAlgorithms.count(8) == 1 && verifiedAlgorithms.count(13) == 1,
+                "debian.org's compressed MX RRset verifies under its RSA/SHA-256 signature and its ECDSA P-256 one.");
+      }
+
+      // The controls: what still fails, and says why.
+      DnsResponse liveMx;
+      expect(ParseResponse(captured.answers[std::make_pair(AnsiString("live.com"), DnsTypeMx)], liveMx) &&
+             liveMx.answers.size() >= 2 && liveMx.answers[0].type == DnsTypeMx,
+             "the captured live.com MX answer holds its MX record first.");
+
+      RrsigInfo liveSig;
+      for (const ParsedRr &record : liveMx.answers)
+      {
+         if (record.type == DnsTypeRrsig)
+            ParseRrsig(liveMx, record, liveSig);
+      }
+
+      // The same answers a second after the MX RRSIG expired.
+      {
+         TestEnvironment later = captured;
+         later.now = liveSig.expiration + 1;
+         Installed installed(later);
+
+         DnssecResolver resolver;
+         std::vector<AnsiString> exchanges;
+         const DnssecResolver::ChainStatus status = resolver.QueryMx(String(_T("live.com")), exchanges);
+         const AnsiString why = resolver.GetFailureReason();
+         expect(status == DnssecResolver::ChainStatus::Bogus && exchanges.empty() &&
+                why.Find("key tag 44331") >= 0 && why.Find("expired at") >= 0,
+                "an MX RRSIG past its expiration is Bogus, and the reason names the key tag and the expiry: " + std::string(why.c_str()));
+      }
+
+      // One letter of the exchange changed on the way: "olc" became "plc".
+      {
+         TestEnvironment tampered = captured;
+         std::vector<unsigned char> &packet = tampered.answers[std::make_pair(AnsiString("live.com"), DnsTypeMx)];
+         const unsigned char olc[] = { 3, 'o', 'l', 'c' };
+         auto found = std::search(packet.begin(), packet.end(), olc, olc + sizeof(olc));
+         expect(found != packet.end(), "the captured live.com MX answer spells olc.");
+         *(found + 1) = 'p';
+         Installed installed(tampered);
+
+         DnssecResolver resolver;
+         std::vector<AnsiString> exchanges;
+         const DnssecResolver::ChainStatus status = resolver.QueryMx(String(_T("live.com")), exchanges);
+         const AnsiString why = resolver.GetFailureReason();
+         expect(status == DnssecResolver::ChainStatus::Bogus && exchanges.empty() &&
+                why.Find("MX RRset of live.com") >= 0 && why.Find("does not match") >= 0,
+                "an exchange changed on the way is Bogus, and the reason says the signature does not match: " + std::string(why.c_str()));
+      }
+
+      // The MX record without its RRSIG, as a resolver that does not return
+      // DNSSEC data answers: live.com is in a signed zone, so Indeterminate.
+      {
+         TestEnvironment stripped = captured;
+         const ParsedRr &first = liveMx.answers[0];
+         std::vector<unsigned char> packet(liveMx.packet.begin(), liveMx.packet.begin() + static_cast<std::ptrdiff_t>(first.rdata_offset + first.rdata.size()));
+         packet[6] = 0; packet[7] = 1;    // ANCOUNT 1
+         packet[8] = 0; packet[9] = 0;    // NSCOUNT 0
+         packet[10] = 0; packet[11] = 0;  // ARCOUNT 0
+         stripped.answers[std::make_pair(AnsiString("live.com"), DnsTypeMx)] = packet;
+         Installed installed(stripped);
+
+         DnssecResolver resolver;
+         std::vector<AnsiString> exchanges;
+         const DnssecResolver::ChainStatus status = resolver.QueryMx(String(_T("live.com")), exchanges);
+         const AnsiString why = resolver.GetFailureReason();
+         expect(status == DnssecResolver::ChainStatus::Indeterminate && exchanges.empty() &&
+                why.Find("signed zone live.com") >= 0 && why.Find("came without its signatures") >= 0,
+                "an MX answer without its RRSIG from a signed zone is Indeterminate, and the reason says the DNS server did not return the signatures: " + std::string(why.c_str()));
+      }
+
+      expect(test_environment == nullptr, "the tester's answers are taken off its thread when it is done.");
    }
 
 }
