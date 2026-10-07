@@ -151,7 +151,10 @@ prompt. Found by the project's own review (work item 78; CVE requested).
     gave: a subject of 78 letters and a space.
   - An out-of-office reply, an account's or a domain's, carried a count of 1 whatever the message it answered
     carried, where every other reply carries that count + 1: it now does too, and none is sent once the count has
-    reached the limit, as a Sieve `vacation` reply is held.
+    reached the limit, as a Sieve `vacation` reply is held. So a `RuleLoopLimit` of 0, which already stopped every
+    forward, redirect, rule reply and copy and every Sieve `vacation` reply, now stops out-of-office replies too: a
+    server set to 0 to make no generated mail sends none, where until now it still answered every message to an
+    account that was out of the office. The setting's description in the REST API says what 0 does.
 
   `LoopCountTester` and `LoopCountEditTester` (`business-object-tests` on Linux) hold the reading, the edits and the
   writer to examples, `MimeTester` (`report-parser-tests` on Linux) the writer's folds, and `Rules.cs`,

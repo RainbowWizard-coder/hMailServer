@@ -793,7 +793,7 @@ namespace
         "How many invalid commands are tolerated before the disconnect.",
         ROW_NUMBER(Config()->GetMaximumIncorrectCommands()), ROW_SET(Config()->SetMaximumIncorrectCommands((int) v.number)), ROW_NO_CHECK },
       { "rule_loop_limit", KindInteger, ReadWrite, EffectNow, nullptr,
-        "How many times rules may re-deliver one message before the loop is stopped.",
+        "How many generated messages one message may pass through - a rule's forward, copy, reply or notice, an account's forward, an out-of-office reply, a Sieve redirect, vacation reply or notification - counted in its X-hMailServer-LoopCount header, before no more are made from it; this is what ends a mail loop. 0 makes none of them: nothing is forwarded, redirected, copied by a rule or answered automatically, out-of-office replies included.",
         ROW_NUMBER(Smtp()->GetRuleLoopLimit()), ROW_SET(Smtp()->SetRuleLoopLimit((int) v.number)), ROW_NO_CHECK },
 
       // IMAP.

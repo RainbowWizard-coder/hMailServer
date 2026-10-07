@@ -721,7 +721,8 @@ STDMETHODIMP InterfaceMessage::Save()
          // The header with each value as it was set (StoreAsGiven), and the
          // header as Write will write it - MimeHeader::Store, which both of
          // MimeBody::SaveAllToFile's paths call. Write keeps a value to one field,
-         // writing a line break that does not fold it as a space, and a value
+         // writing each CR and each LF of a line break that does not fold it as a
+         // space - a CR LF as two - and a value
          // given with one is refused here, and the program told, rather than sent
          // changed. The two must be the same, not only the one as given one
          // header: a line break followed by a line that is a field of its own is
@@ -746,7 +747,7 @@ STDMETHODIMP InterfaceMessage::Save()
          if (oneHeader && header != written)
          {
             oneHeader = false;
-            reason = "a value in the header holds a line break that does not fold it, which would be written as a space.";
+            reason = "a value in the header holds a line break that does not fold it, whose CR and LF would each be written as a space.";
          }
 
          if (!oneHeader)
