@@ -340,10 +340,51 @@ namespace HM
 
    bool
    PersistentMessageIndex::DeleteOrphanedItems()
+   //---------------------------------------------------------------------------()
+   // DESCRIPTION:
+   // A thousand message ids at a time, from the lowest the terms name upwards,
+   // each slice its own statement and a short pause between two. It was one
+   // statement over the whole table, which on SQL Server Compact with the terms
+   // of a hundred thousand messages (14 million rows) took 178 seconds - at
+   // every service start, before the first message was indexed - holding the
+   // database's one connection: on server1 the scheduled tasks that started
+   // with the service waited 60 seconds for it and failed (HM5180, then HM6613
+   // and HM6624). A slice is about a second there. The gaps between the ids
+   // the terms name are stepped over, not walked.
+   //---------------------------------------------------------------------------()
    {
-      SQLCommand command("delete from hm_messageindexterms where not exists (select messageid from hm_messages where messageid = mitmessageid)");
+      const __int64 sliceIds = 1000;
 
-      return Application::Instance()->GetDBManager()->Execute(command);
+      __int64 from = 0;
+      for (;;)
+      {
+         SQLCommand lowest("select min(mitmessageid) as low from hm_messageindexterms where mitmessageid >= @FROM");
+         lowest.AddParameter("@FROM", from);
+
+         std::shared_ptr<DALRecordset> pRS = Application::Instance()->GetDBManager()->OpenRecordset(lowest);
+         if (!pRS)
+            return false;
+
+         if (pRS->IsEOF() || pRS->GetIsNull("low"))
+            return true;
+
+         const __int64 low = pRS->GetInt64Value("low");
+         pRS.reset();
+
+         SQLCommand command("delete from hm_messageindexterms where mitmessageid >= @LOW and mitmessageid < @HIGH "
+                            "and not exists (select messageid from hm_messages where messageid = mitmessageid)");
+         command.AddParameter("@LOW", low);
+         command.AddParameter("@HIGH", low + sliceIds);
+
+         if (!Application::Instance()->GetDBManager()->Execute(command))
+            return false;
+
+         from = low + sliceIds;
+
+         // Housekeeping, so the rest of the server goes first; also where a
+         // service stop ends the sweep.
+         boost::this_thread::sleep_for(boost::chrono::milliseconds(50));
+      }
    }
 
    void

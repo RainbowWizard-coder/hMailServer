@@ -119,7 +119,9 @@ namespace HM
       // Terms whose message no longer exists. Mirrors
       // PersistentMessageMetaData::DeleteOrphanedItems; staleness here is a
       // space problem and never a correctness one, because the searcher only
-      // sees messages that are still in the folder being searched.
+      // sees messages that are still in the folder being searched. A
+      // thousand message ids a statement, with a pause between two, so that
+      // the sweep never holds the database for long (the .cpp says why).
       static bool DeleteOrphanedItems();
 
       // Everything, terms and cursor. The backfill then starts over.

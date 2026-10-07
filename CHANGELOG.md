@@ -539,6 +539,14 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   own process launcher.** It ran `/usr/bin/rpm -q hmailserver` through `system()` and kept the answer where two
   threads asking at once could both run it; the first caller now runs it, with no shell, and the others take its
   answer. `rpm`'s standard error, which the shell line discarded, goes where the server's does.
+- **Fixed: with the full-text index on, every start of the service held SQL Server Compact's one connection for
+  minutes.** Before it indexed anything, the indexer removed the index rows of messages that no longer exist in one
+  statement over the whole table, and again on the full-index cadence; on SQL Server Compact holding the 14 million
+  rows of Performance.md's 100,000 messages that statement took 178 seconds, and on server1 the scheduled tasks that
+  start with the service waited 60 seconds for the connection and failed (`HM5180`, then `HM6613` and `HM6624`), after
+  the restart with the index on in both measuring runs of 7 October 2026. It now removes them a thousand message ids a
+  statement, stepping over the ids the index names none of, with a pause of 50 ms between two: some 150 seconds in all
+  there, no statement over 1.6 seconds.
 
 ### Build and tests
 
