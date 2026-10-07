@@ -106,6 +106,7 @@ namespace HM
       // The words of a stored copy's name between the GUID and its end
       // (QuarantineStore::StoredMarks).
       const wchar_t *const SpfNameMark = L"spf-";
+      const wchar_t *const RelayNameMark = L"relay-";
 
       bool EndsWithNoCase(const String &text, const wchar_t *end)
       {
@@ -142,6 +143,14 @@ namespace HM
       const String spf = Message::SpfResultKeyword(marks.spf_result);
       if (!spf.IsEmpty())
          name += String(_T(".")) + SpfNameMark + spf;
+
+      // A hosted domain's id, digits alone.
+      if (marks.relaying_domain_id > 0 && marks.relaying_domain_id <= INT_MAX)
+      {
+         String relay;
+         relay.Format(_T(".%s%I64d"), RelayNameMark, marks.relaying_domain_id);
+         name += relay;
+      }
 
       return name + (marks.from_outside ? OutsideNameEnd : InsideNameEnd);
    }
@@ -183,6 +192,16 @@ namespace HM
 
          if (StartsWithNoCase(word, SpfNameMark))
             marks.spf_result = Message::SpfResultKeyword(word.Mid(static_cast<int>(wcslen(SpfNameMark))));
+         else if (StartsWithNoCase(word, RelayNameMark))
+         {
+            const String digits = word.Mid(static_cast<int>(wcslen(RelayNameMark)));
+            bool allDigits = digits.GetLength() <= 10;
+            for (int c = 0; allDigits && c < digits.GetLength(); c++)
+               allDigits = digits[c] >= L'0' && digits[c] <= L'9';
+
+            const __int64 id = allDigits ? _wtoi64(digits.c_str()) : 0;
+            marks.relaying_domain_id = id > 0 && id <= INT_MAX ? id : 0;
+         }
       }
 
       return marks;
@@ -367,10 +386,11 @@ namespace HM
    QuarantineStore::ApplyStoredMarks_(const QuarantinedMessage &quarantined, Message &message)
    {
       // What the name kept beside the origin, which nothing in the message can change.
-      // A copy held before the name kept it has none: no SPF result, as it was
-      // released before.
+      // A copy held before the name kept it has none: no SPF result and no domain
+      // recorded to seal it, as it was released before.
       const StoredMarks marks = MarksOfStoredName(quarantined.file_name);
       message.SetReceivedSpfResult(marks.spf_result);
+      message.SetRelayingDomainID(marks.relaying_domain_id);
    }
 
    bool
@@ -389,11 +409,12 @@ namespace HM
 
          // The name of the copy says where the message came from, for its release to
          // read back (StoredName): whether it is mail this server would not sign as
-         // the domain its From names, and the SPF result the ARC set over a copy of it
-         // relayed on attests.
+         // the domain its From names, the SPF result the ARC set over a copy of it
+         // relayed on attests, and the hosted domain that seals that set.
          StoredMarks marks;
          marks.from_outside = !DKIMSigner::SignsAsAuthorDomain(*message);
          marks.spf_result = message->GetReceivedSpfResult();
+         marks.relaying_domain_id = DKIMSigner::RelayingDomainID(message, false);
          String relativePath = BuildRelativePath_(marks);
          String targetFile = FileUtilities::Combine(GetQuarantineDirectory(), relativePath);
 

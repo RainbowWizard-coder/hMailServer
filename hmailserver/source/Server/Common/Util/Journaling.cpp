@@ -564,6 +564,10 @@ namespace HM
       // server's own, from the domain's postmaster.
       journal->SetFromOutside(rule->GetMode() == JournalRule::ModeCopy && fromOutside);
 
+      // The rule's domain sends it on, and seals the ARC set over a copy it does not
+      // sign (Message::GetRelayingDomainID).
+      journal->SetRelayingDomainID(domain->GetID());
+
       const String fileName = MessageStore::WorkingFile(journal);
 
       File target;

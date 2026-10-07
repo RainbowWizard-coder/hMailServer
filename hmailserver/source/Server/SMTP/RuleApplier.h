@@ -104,6 +104,13 @@ namespace HM
       // than empty - and the caller writes one line per rule saying so.
       bool MessageMatchesCriteria_(std::shared_ptr<RuleCriteria> pCriteria, std::shared_ptr<MessageData> pMsgData, bool &sealedBodyDeclined) const;
       
+      // Records on a forward's or a copy's message the hosted domain that sends it on
+      // (Message::GetRelayingDomainID), whose key seals the ARC set over it: the
+      // account's, for an account's rule (PersistentMessage::CopyToQueue records it);
+      // the domain's, for a domain's; and for a server rule, the domain the message was
+      // received for or whose account submitted it (DKIMSigner::RelayingDomainID).
+      void RecordRelayingDomain_(std::shared_ptr<const Account> account, std::shared_ptr<Message> copy, std::shared_ptr<Message> source) const;
+
       // Actions
       void ApplyAction_Forward(std::shared_ptr<RuleAction> pAction, std::shared_ptr<const Account> account, std::shared_ptr<MessageData> pMsgData) const;
       void ApplyAction_Copy(std::shared_ptr<Rule> rule, std::shared_ptr<const Account> account, std::shared_ptr<MessageData> pMsgData) const;
@@ -137,6 +144,9 @@ namespace HM
    private:
 
       __int64 rule_account_id_;
+
+      // The domain whose rules these are, or 0 for an account's or the server's.
+      __int64 rule_domain_id_;
 
       // See SetRecipientScope; 0 when the rules act on the whole message.
       __int64 recipient_scope_domain_;

@@ -128,7 +128,9 @@ alias or a distribution list expanding to an address outside, the mirror copy, a
 list's copy, a journal rule's copy delivered as it was accepted, or the encrypted copy
 for a partner domain. A forward leaves with the
 signature the message came with, untouched, and - with `ArcSealingEnabled` on - with an ARC set the relaying
-domain seals over the authentication results this server saw when it arrived. A managed list
+domain seals over the authentication results this server saw when it arrived. The relaying domain is the one
+the server records where it makes the copy - the forwarding account's, the rule's, the alias's or the list's,
+the journal rule's - and never one a header names; a message for which none is recorded goes unsealed. A managed list
 that took a posting from outside with an address of the list's own organisation anywhere in
 its `From` fields does not sign its copies as the list's domain either
 ([MailingLists.md](MailingLists.md)): that signature would be one DMARC aligns with the

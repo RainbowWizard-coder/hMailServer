@@ -39,7 +39,8 @@ namespace HM
       // the server saw it, beside the submitter. The marks of the server's own record
       // come first, each a word of its own - "outside" for Message::GetFromOutside, and
       // "spf=" and the keyword for Message::GetReceivedSpfResult, written only when it
-      // is one word of at most 16 characters - then the domains the inbound checks
+      // is one word of at most 16 characters, and "relay=" and a domain's id for
+      // Message::GetRelayingDomainID, written only when there is one - then the domains the inbound checks
       // vouched for (Message::GetAuthDomains, a "dmarc=" word or nothing), commas
       // between. Never longer than the column's 255
       // characters: when all of it would not fit, the marks are kept and the domains

@@ -316,6 +316,20 @@ namespace HM
       // results, in lower case, blanks round it aside, or nothing at all.
       static String SpfResultKeyword(const String &result);
 
+      // The domain hosted here on whose behalf this server sends the message on, as
+      // the server recorded it where it made the message: the domain of the account
+      // whose forward, rule, Sieve redirect or mirror copy it is, of the domain whose
+      // rule or journal made it, or of the managed list whose copy it is; or 0. The
+      // domain that seals the ARC set over a message relayed on
+      // (DKIMSigner::RelayingDomainID), so that the seal is never of a domain a header
+      // named - an X-Original-Rcpt-To, which a sender, a Sieve addheader or a rule can
+      // write. Carried by every copy as GetFromOutside is, until the copy records a
+      // forwarder of its own, and kept on a queue row (PersistentMessage::OriginColumn)
+      // and in a quarantined copy's name (QuarantineStore::StoredName). A hosted
+      // domain's id fits an int, as the account and folder ids beside it do.
+      __int64 GetRelayingDomainID() const { return relaying_domain_id_; }
+      void SetRelayingDomainID(__int64 domainId) { relaying_domain_id_ = domainId > 0 && domainId <= INT_MAX ? (int) domainId : 0; }
+
       bool GetBinaryMime() const { return (GetFlags() & FlagBinaryMime) != 0; }
       void SetBinaryMime(bool bNewVal)
       {
@@ -410,6 +424,10 @@ namespace HM
       // than the keyword as a String, since every Message an IMAP folder's cached
       // listing holds carries it: a String here made each of them 32 bytes larger.
       unsigned char received_spf_result_ = 0;
+
+      // See GetRelayingDomainID. An int, in the padding after the two bytes above,
+      // so that no Message is larger for it.
+      int relaying_domain_id_ = 0;
 
    private:
 

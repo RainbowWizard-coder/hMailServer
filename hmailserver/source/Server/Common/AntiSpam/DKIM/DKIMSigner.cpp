@@ -37,48 +37,6 @@
 
 namespace HM
 {
-   namespace
-   {
-      // Appends a domain to the candidate list, lower-cased and without
-      // duplicates. The order of the list is the order in which candidates are
-      // tried, so it must be preserved.
-      void AddCandidateDomain(std::vector<AnsiString> &candidates, const AnsiString &domainName)
-      {
-         if (domainName.IsEmpty())
-            return;
-
-         AnsiString candidate = domainName;
-         candidate.MakeLower();
-
-         for (const AnsiString &existing : candidates)
-         {
-            if (existing == candidate)
-               return;
-         }
-
-         candidates.push_back(candidate);
-      }
-
-      // Appends the domain of an address. If the address is at a domain alias,
-      // the domain the alias points at is appended as well - that is the domain
-      // which actually owns the key.
-      void AddCandidateAddress(std::vector<AnsiString> &candidates, const String &address)
-      {
-         if (address.IsEmpty())
-            return;
-
-         AnsiString domainName = StringParser::ExtractDomain(address);
-         AddCandidateDomain(candidates, domainName);
-
-         std::shared_ptr<DomainAliases> domainAliases = ObjectCache::Instance()->GetDomainAliases();
-         if (domainAliases)
-         {
-            AnsiString aliasedDomainName = StringParser::ExtractDomain(domainAliases->ApplyAliasesOnAddress(address));
-            AddCandidateDomain(candidates, aliasedDomainName);
-         }
-      }
-   }
-
    DKIMSigner::DKIMSigner()
    {
 
@@ -124,9 +82,9 @@ namespace HM
             return;
          }
 
-         if (!ResolveArcSealingIdentity_(message, mimeHeader, sealingDomain, sealingSelector, sealingPrivateKeyFile))
+         if (!ResolveArcSealingIdentity_(message, sealingDomain, sealingSelector, sealingPrivateKeyFile))
          {
-            LOG_DEBUG("ARC: No local domain with a usable DKIM key handles this relayed message. Not sealing.");
+            LOG_DEBUG("ARC: No domain hosted here is recorded as relaying this message, or the one recorded has no usable DKIM key. Not sealing.");
             return;
          }
 
@@ -384,63 +342,86 @@ namespace HM
 
    bool
    DKIMSigner::ResolveArcSealingIdentity_(std::shared_ptr<Message> message,
-                                          MimeHeader &mimeHeader,
                                           AnsiString &sealingDomain,
                                           AnsiString &sealingSelector,
                                           String &sealingPrivateKeyFile)
    {
       // An explicit ArcSealingDomain setting, if one is ever added to
-      // IniFileSettings, belongs at the top of this list: an administrator who
-      // names a sealing domain means that domain and nothing else. Until then
-      // the sealing identity is derived from the message, which for every relay
-      // shape hMailServer supports names the local domain doing the relaying.
-      std::vector<AnsiString> candidates;
+      // IniFileSettings, belongs at the top of this: an administrator who names a
+      // sealing domain means that domain and nothing else. Until then the sealing
+      // domain is the one the server recorded as sending the message on, and no
+      // other: when it recorded none, the message goes unsealed.
+      const __int64 relayingDomainId = RelayingDomainID(message, false);
+      if (relayingDomainId <= 0)
+         return false;
 
-      // 1) The envelope sender. When a forward rewrites MAIL FROM - SRS, or
-      //    RewriteEnvelopeFromWhenForwarding - this is the forwarding domain.
-      //    It is also the submitting domain for an authenticated local user who
-      //    sends with somebody else's address in From:.
-      AddCandidateAddress(candidates, message->GetFromAddress());
+      std::shared_ptr<const Domain> relayingDomain = CacheContainer::Instance()->GetDomain(relayingDomainId);
+      if (!relayingDomain)
+         return false;
 
-      // 2) The address each recipient was originally addressed as. An alias or a
-      //    distribution list at a local domain rewrites the recipient address to
-      //    the external member, but the original address still names the local
-      //    domain that is relaying the message.
+      return GetHostedDomainIdentity_(AnsiString(relayingDomain->GetName()), sealingDomain, sealingSelector, sealingPrivateKeyFile);
+   }
+
+   __int64
+   DKIMSigner::RelayingDomainID(std::shared_ptr<Message> message, bool anyRecipient)
+   {
+      if (!message)
+         return 0;
+
+      // 1) What the server recorded where it made the message: the account's or the
+      //    domain's forward, rule, Sieve redirect, list or journal copy.
+      if (message->GetRelayingDomainID() > 0)
+         return message->GetRelayingDomainID();
+
+      // 2) The account that signed in and submitted it (schema 6101), whose own
+      //    message this is.
+      if (message->GetSubmitterAccountID() > 0)
+      {
+         std::shared_ptr<const Account> submitter = CacheContainer::Instance()->GetAccount(message->GetSubmitterAccountID());
+         if (submitter && submitter->GetDomainID() > 0)
+            return submitter->GetDomainID();
+      }
+
+      // 3) The hosted address a recipient was accepted at: an alias or a distribution
+      //    list of a domain hosted here, which this server expanded to an address
+      //    outside, at RCPT or as it delivers. Recorded on the recipient by the server,
+      //    and of a domain that accepted the message, whatever the sender wrote. Of a
+      //    recipient that leaves this server only, unless anyRecipient - a server rule's
+      //    copy names the domain the message was received for.
       std::shared_ptr<MessageRecipients> recipients = message->GetRecipients();
-      if (recipients)
+      if (!recipients)
+         return 0;
+
+      std::shared_ptr<DomainAliases> domainAliases;
+
+      // owned by this call: the recipients of the message being signed, held by its delivery
+      for (std::shared_ptr<MessageRecipient> recipient : recipients->GetVector())
       {
-         // owned by this call: the recipients of the message being signed, held by its delivery
-         for (std::shared_ptr<MessageRecipient> recipient : recipients->GetVector())
-         {
-            if (recipient)
-               AddCandidateAddress(candidates, recipient->GetOriginalAddress());
-         }
+         if (!recipient || (!anyRecipient && recipient->GetLocalAccountID() != 0))
+            continue;
+
+         // The mirror's copy holds the original's addresses, comma-separated, as one.
+         String address = recipient->GetOriginalAddress();
+         if (address.IsEmpty() && anyRecipient)
+            address = recipient->GetAddress();
+         const int comma = address.Find(_T(","));
+         if (comma >= 0)
+            address = address.Left(comma);
+         address.Trim();
+         if (address.IsEmpty())
+            continue;
+
+         if (!domainAliases)
+            domainAliases = ObjectCache::Instance()->GetDomainAliases();
+         if (domainAliases)
+            address = domainAliases->ApplyAliasesOnAddress(address);
+
+         std::shared_ptr<const Domain> domain = CacheContainer::Instance()->GetDomain(StringParser::ExtractDomain(address));
+         if (domain)
+            return domain->GetID();
       }
 
-      // 3) X-Original-Rcpt-To, written at reception when AddXOriginalRcptToHeader
-      //    is enabled. On the queued copy of an account-level forward this is the
-      //    only remaining reference to the local mailbox that forwarded, since
-      //    the copy carries the external forward target as its recipient.
-      MimeField *originalRecipientField = mimeHeader.GetField("X-Original-Rcpt-To");
-      if (originalRecipientField)
-      {
-         AddresslistParser parser;
-         auto addresses = parser.ParseList(String(originalRecipientField->GetValue()));
-
-         for (std::shared_ptr<Address> address : addresses)
-         {
-            if (address)
-               AddCandidateAddress(candidates, address->sMailboxName + "@" + address->sDomainName);
-         }
-      }
-
-      for (const AnsiString &candidate : candidates)
-      {
-         if (GetHostedDomainIdentity_(candidate, sealingDomain, sealingSelector, sealingPrivateKeyFile))
-            return true;
-      }
-
-      return false;
+      return 0;
    }
 
    bool
@@ -522,6 +503,99 @@ namespace HM
          PersistentMessage::ReadOriginColumn(PersistentMessage::OriginColumn(*both), submittedRead);
          if (DKIMSigner::SignsAsAuthorDomain(submittedRead))
             fail("a signed-in submission whose From the account may not send as, read back from its queue row, is signed as its From's domain");
+      }
+
+      // The hosted domain that sends a message on, which seals the ARC set over it: as
+      // the server recorded it, carried by every copy and kept on the queue row and in
+      // a quarantined copy's name - never read from anything a sender wrote.
+      {
+         std::shared_ptr<Message> forwarded(new Message(false));
+         forwarded->SetState(Message::Delivering);
+         forwarded->SetFromOutside(true);
+         forwarded->SetRelayingDomainID(12);
+
+         if (DKIMSigner::RelayingDomainID(forwarded, false) != 12 || DKIMSigner::RelayingDomainID(forwarded, true) != 12)
+            fail("the domain recorded as relaying a message is not the one that seals it");
+
+         std::shared_ptr<Message> copied = PersistentMessage::CreateCopy_(forwarded, 0);
+         if (!copied || copied->GetRelayingDomainID() != 12)
+            fail("a copy of a message lost the domain recorded as relaying it");
+         if (Message(*forwarded).GetRelayingDomainID() != 12)
+            fail("the copy constructor's copy of a message lost the domain recorded as relaying it");
+
+         std::shared_ptr<Message> none(new Message(false));
+         if (DKIMSigner::RelayingDomainID(none, false) != 0)
+            fail("a message with no relaying domain, submitter or recipient has one");
+
+         struct RelayCase
+         {
+            bool outside;
+            const wchar_t *spf;
+            __int64 relay;
+            const wchar_t *domains;
+            const wchar_t *column;
+         };
+
+         const RelayCase relayCases[] =
+         {
+            { false, L"", 12, L"", L"relay=12" },
+            { true, L"pass", 12, L"dmarc=example.net", L"outside,spf=pass,relay=12,dmarc=example.net" },
+            { true, L"", 2147483647, L"", L"outside,relay=2147483647" },
+            { false, L"", 0, L"dmarc=example.net", L"dmarc=example.net" },
+         };
+
+         for (const RelayCase &c : relayCases)
+         {
+            Message written(false);
+            written.SetFromOutside(c.outside);
+            written.SetReceivedSpfResult(String(c.spf));
+            written.SetRelayingDomainID(c.relay);
+            written.SetAuthDomains(String(c.domains));
+
+            const String column = PersistentMessage::OriginColumn(written);
+            if (column.Compare(c.column) != 0)
+               fail("the column of a message relayed for domain " + std::to_string(c.relay) + " is \"" + std::string(Unicode::ToUtf8(column).c_str()) + "\"");
+
+            Message read(false);
+            PersistentMessage::ReadOriginColumn(column, read);
+            if (read.GetRelayingDomainID() != c.relay || read.GetFromOutside() != c.outside || read.GetAuthDomains().Compare(c.domains) != 0)
+               fail("the column \"" + std::string(Unicode::ToUtf8(column).c_str()) + "\" read back as something else");
+         }
+
+         // A mark that holds no domain's id reads as none, and ends nothing.
+         const wchar_t *notIds[] = { L"relay=abc,dmarc=example.net", L"relay=-3,dmarc=example.net", L"relay=99999999999,dmarc=example.net", L"relay=0,dmarc=example.net" };
+         for (const wchar_t *value : notIds)
+         {
+            Message read(false);
+            PersistentMessage::ReadOriginColumn(String(value), read);
+            if (read.GetRelayingDomainID() != 0 || read.GetAuthDomains().Compare(_T("dmarc=example.net")) != 0)
+               fail("the column \"" + std::string(Unicode::ToUtf8(String(value)).c_str()) + "\" read as a relaying domain");
+         }
+
+         // The quarantined copy's name keeps it, beside the rest.
+         QuarantineStore::StoredMarks marks;
+         marks.from_outside = true;
+         marks.spf_result = _T("softfail");
+         marks.relaying_domain_id = 12;
+         const String name = QuarantineStore::StoredName(_T("{0F8E4C2A-6B1D-4E5F-9A3C-7D2B8E1F4A6C}"), marks);
+         const QuarantineStore::StoredMarks read = QuarantineStore::MarksOfStoredName(_T("2026-10-07\\") + name);
+         if (name.Compare(_T("{0F8E4C2A-6B1D-4E5F-9A3C-7D2B8E1F4A6C}.spf-softfail.relay-12.outside.eml")) != 0 ||
+             !read.known || !read.from_outside || read.spf_result.Compare(_T("softfail")) != 0 || read.relaying_domain_id != 12)
+            fail("the quarantined copy's name \"" + std::string(Unicode::ToUtf8(name).c_str()) + "\" did not keep the relaying domain");
+
+         const wchar_t *badNames[] =
+         {
+            L"{0F8E4C2A-6B1D-4E5F-9A3C-7D2B8E1F4A6C}.relay-x1.outside.eml",
+            L"{0F8E4C2A-6B1D-4E5F-9A3C-7D2B8E1F4A6C}.relay-99999999999.outside.eml",
+            L"{0F8E4C2A-6B1D-4E5F-9A3C-7D2B8E1F4A6C}.relay-.outside.eml",
+            L"{0F8E4C2A-6B1D-4E5F-9A3C-7D2B8E1F4A6C}.outside.eml",
+         };
+         for (const wchar_t *badName : badNames)
+         {
+            const QuarantineStore::StoredMarks bad = QuarantineStore::MarksOfStoredName(String(badName));
+            if (bad.relaying_domain_id != 0 || !bad.known || !bad.from_outside)
+               fail("the quarantined copy's name \"" + std::string(Unicode::ToUtf8(String(badName)).c_str()) + "\" read as a relaying domain");
+         }
       }
 
       // The address the signer signs a message as: the From's first address, or the

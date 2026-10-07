@@ -30,6 +30,7 @@
 #include "../Common/Util/RegularExpression.h"
 #include "../Common/Rules/RuleGuard.h"
 #include "../Common/Util/SealedMessage.h"
+#include "../Common/AntiSpam/DKIM/DKIMSigner.h"
 
 #include "../Common/Persistence/PersistentMessage.h"
 #include "../Common/Persistence/MessageStore.h"
@@ -89,6 +90,7 @@ namespace HM
 
    RuleApplier::RuleApplier(void) :
       rule_account_id_(0),
+      rule_domain_id_(0),
       recipient_scope_domain_(0)
    {
    }
@@ -131,6 +133,7 @@ namespace HM
 
 
       rule_account_id_ = pRules->GetAccountID();
+      rule_domain_id_ = pRules->GetDomainID();
 
       for (std::shared_ptr<Rule> pRule : rules)
       {
@@ -888,7 +891,31 @@ namespace HM
       return false;
    }
 
-   void 
+   void
+   RuleApplier::RecordRelayingDomain_(std::shared_ptr<const Account> account, std::shared_ptr<Message> copy, std::shared_ptr<Message> source) const
+   {
+      // An account's rule: CopyToQueue recorded the account's domain.
+      if (account)
+         return;
+
+      if (rule_account_id_ > 0)
+      {
+         std::shared_ptr<const Account> ruleAccount = CacheContainer::Instance()->GetAccount(rule_account_id_);
+         if (ruleAccount)
+            copy->SetRelayingDomainID(ruleAccount->GetDomainID());
+         return;
+      }
+
+      // A domain's rule sends the copy on for that domain; a server rule for the
+      // domain the message was received for, or whose account submitted it. Never a
+      // domain a header names (Message::GetRelayingDomainID).
+      if (rule_domain_id_ > 0)
+         copy->SetRelayingDomainID(rule_domain_id_);
+      else
+         copy->SetRelayingDomainID(DKIMSigner::RelayingDomainID(source, true));
+   }
+
+   void
    RuleApplier::ApplyAction_Forward(std::shared_ptr<RuleAction> pAction, std::shared_ptr<const Account> account, std::shared_ptr<MessageData> pMsgData) const
    {
       // false = check only loop counter not AutoSubmitted header because forward
@@ -937,6 +964,8 @@ namespace HM
 
       if (!pMsg)
          return;
+
+      RecordRelayingDomain_(account, pMsg, pMsgData->GetMessage());
 
       pMsg->SetState(Message::Delivering);
 
@@ -998,9 +1027,11 @@ namespace HM
       }
 
       std::shared_ptr<Message> pMsg = PersistentMessage::CopyToQueue(account, pMsgData->GetMessage());
-      
+
       if (!pMsg)
          return;
+
+      RecordRelayingDomain_(account, pMsg, pMsgData->GetMessage());
 
       // We've created a copy of the message, but we need to copy the recipients as well.
       // The recipients are either the full list of SMTP envelope recipients, or, if it's

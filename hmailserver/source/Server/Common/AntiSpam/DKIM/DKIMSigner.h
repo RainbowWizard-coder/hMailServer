@@ -74,6 +74,26 @@ namespace HM
       // signed with that other domain's key, which DMARC then passed.
       static bool SubmitterMaySignAs(const String &accountAddress, const String &authorAddress, String &reason);
 
+      // The id of the domain hosted here that sends the message on, whose key seals
+      // the ARC set over it when this server does not sign it as its author's domain
+      // (Sign), or 0: what the server recorded where it made the message
+      // (Message::GetRelayingDomainID - an account's or a domain's forward, rule,
+      // Sieve redirect, list or journal copy); else the domain of the account that
+      // signed in and submitted it (Message::GetSubmitterAccountID); else the hosted
+      // domain a recipient that leaves this server - every recipient, with
+      // anyRecipient - was accepted at (MessageRecipient::GetOriginalAddress: an alias
+      // or a distribution list expanded to an address outside). Each is the server's
+      // own record.
+      //
+      // THE DEFECT. The sealing domain was the first hosted domain with a key among
+      // the envelope sender, the recipients' original addresses and the
+      // X-Original-Rcpt-To field - which a sender writes when AddXOriginalRcptTo is
+      // off, and a Sieve addheader or a rule's Set header value can write above this
+      // server's own: so whoever wrote it chose which hosted domain's key sealed the
+      // forward, and an outside sender's envelope domain could be a hosted one. The
+      // seal's results stayed this server's, but its signer did not.
+      static __int64 RelayingDomainID(std::shared_ptr<Message> message, bool anyRecipient);
+
    private:
 
       // DKIM-signs the message as the author domain. Returns true if a
@@ -90,11 +110,11 @@ namespace HM
       // the only case where an ARC set is of any use to anyone.
       static bool IsRelayedOnward_(std::shared_ptr<Message> message);
 
-      // Works out which local domain should seal a message we are relaying on
-      // somebody else's behalf. Returns false when no local domain with a
-      // usable DKIM key can be determined.
+      // The identity that seals a message we relay on somebody else's behalf: the
+      // relaying domain's (RelayingDomainID). False when none is recorded, or the one
+      // recorded has no usable DKIM key: the message then goes unsealed, and no other
+      // domain is tried.
       static bool ResolveArcSealingIdentity_(std::shared_ptr<Message> message,
-                                             MimeHeader &mimeHeader,
                                              AnsiString &sealingDomain,
                                              AnsiString &sealingSelector,
                                              String &sealingPrivateKeyFile);

@@ -1517,6 +1517,10 @@ namespace HM
       copy->SetFromOutside(fromOutside);
       copy->SetReceivedSpfResult(receivedSpfResult);
 
+      // The list's domain sends every copy on, a digest among them, and seals the ARC
+      // set over one it does not sign (Message::GetRelayingDomainID).
+      copy->SetRelayingDomainID(list->GetDomainID());
+
       const String copyName = MessageStore::WorkingFile(copy);
       const String directory = FileUtilities::GetFilePath(copyName);
       if (!FileUtilities::Exists(directory))

@@ -572,6 +572,13 @@ namespace HM
       std::shared_ptr<Message> newMessage = CreateCopy_(sourceMessage, 0);
       newMessage->SetState(Message::Delivering);
 
+      // The account's forward, its rule's forward or copy, its Sieve redirect: sent on
+      // for that account, so its domain seals the ARC set over the copy
+      // (Message::GetRelayingDomainID). Without an account - the mirror, a server's or
+      // a domain's rule - the copy keeps the source's, and the caller records its own.
+      if (sourceAccount && sourceAccount->GetDomainID() > 0)
+         newMessage->SetRelayingDomainID(sourceAccount->GetDomainID());
+
       // Copy the message file. The queue is plain RFC 822 whatever the account's
       // copy is stored as (MessageStore.h), so the ORIGINAL bytes go.
       const String sourceFile = GetFileName(sourceAccount, sourceMessage);
@@ -771,6 +778,11 @@ namespace HM
       // which the ARC set sealed over a forward attests (Message::GetReceivedSpfResult).
       pTo->SetReceivedSpfResult(sourceMessage->GetReceivedSpfResult());
 
+      // And the hosted domain that sends the message on, which seals that set
+      // (Message::GetRelayingDomainID) - until whoever makes the copy for an account
+      // or a domain of its own records that one (CopyToQueue).
+      pTo->SetRelayingDomainID(sourceMessage->GetRelayingDomainID());
+
       return pTo;
    }
 
@@ -779,7 +791,24 @@ namespace HM
       // The marks OriginColumn writes ahead of the domains.
       const wchar_t *const OutsideMark = L"outside";
       const wchar_t *const SpfMark = L"spf=";
+      const wchar_t *const RelayMark = L"relay=";
       const int OriginColumnWidth = 255;
+
+      // The id a "relay=" mark holds: digits, and a hosted domain's id, or 0.
+      __int64 RelayDomainIdOf(const String &digits)
+      {
+         if (digits.IsEmpty() || digits.GetLength() > 10)
+            return 0;
+
+         for (int i = 0; i < digits.GetLength(); i++)
+         {
+            if (digits[i] < L'0' || digits[i] > L'9')
+               return 0;
+         }
+
+         const __int64 id = _wtoi64(digits.c_str());
+         return id > 0 && id <= INT_MAX ? id : 0;
+      }
    }
 
    String
@@ -795,6 +824,14 @@ namespace HM
       spf.Trim();
       if (!spf.IsEmpty() && spf.Find(_T(",")) < 0 && spf.GetLength() <= 16)
          marks = marks.IsEmpty() ? String(SpfMark) + spf : marks + _T(",") + SpfMark + spf;
+
+      // The hosted domain that sends it on, by its id (Message::GetRelayingDomainID).
+      if (message.GetRelayingDomainID() > 0)
+      {
+         String relay;
+         relay.Format(_T("%s%I64d"), RelayMark, message.GetRelayingDomainID());
+         marks = marks.IsEmpty() ? relay : marks + _T(",") + relay;
+      }
 
       const String domains = message.GetAuthDomains();
 
@@ -816,8 +853,10 @@ namespace HM
       String rest = column;
       bool outside = false;
       String spf;
+      __int64 relay = 0;
 
       // The marks come first; the first word that is not one begins the domains.
+      const int relayMarkLength = static_cast<int>(wcslen(RelayMark));
       for (;;)
       {
          const int comma = rest.Find(_T(","));
@@ -828,6 +867,8 @@ namespace HM
             outside = true;
          else if (word.GetLength() > 4 && word.Left(4).CompareNoCase(SpfMark) == 0)
             spf = word.Mid(4);
+         else if (word.GetLength() > relayMarkLength && word.Left(relayMarkLength).CompareNoCase(RelayMark) == 0)
+            relay = RelayDomainIdOf(word.Mid(relayMarkLength));
          else
             break;
 
@@ -836,6 +877,7 @@ namespace HM
 
       message.SetFromOutside(outside);
       message.SetReceivedSpfResult(spf);
+      message.SetRelayingDomainID(relay);
       message.SetAuthDomains(rest);
    }
 

@@ -1551,6 +1551,7 @@ namespace HM
          held->SetFromOutside(pMessage->GetFromOutside());
          held->SetSubmittedBySignedInUser(pMessage->GetSubmittedBySignedInUser());
          held->SetReceivedSpfResult(pMessage->GetReceivedSpfResult());
+         held->SetRelayingDomainID(DKIMSigner::RelayingDomainID(pMessage, false));
          for (std::shared_ptr<MessageRecipient> recipient : taken)
          {
             std::shared_ptr<MessageRecipient> copy = std::shared_ptr<MessageRecipient>(new MessageRecipient());

@@ -236,10 +236,10 @@ namespace RegressionTests.AntiSpam.DKIM
 
       [Test]
       [Description("A plain account forward leaves nothing local in the envelope or the recipient " +
-                   "list of the queued copy; the forwarding mailbox is only recoverable from the " +
-                   "X-Original-Rcpt-To header written at reception. With that header enabled the " +
-                   "forwarded copy must still be sealed by the forwarding domain. Fails before the " +
-                   "fix for the same reason as the other relay shapes.")]
+                   "list of the queued copy. The forwarded copy must still be sealed by the forwarding " +
+                   "domain, which the server records on the copy it makes (it was read from the " +
+                   "X-Original-Rcpt-To header until 7 October 2026), whether or not that header is written. " +
+                   "Fails before the fix for the same reason as the other relay shapes.")]
       public void WhenForwardingThirdPartyMailWithoutEnvelopeRewrite_ForwardedMessageShouldBeArcSealed()
       {
          try
@@ -652,6 +652,109 @@ namespace RegressionTests.AntiSpam.DKIM
          Assert.IsNotNull(from, messageData);
          StringAssert.DoesNotContain("@", from, messageData);
       }
+      // ---- Which domain seals ----
+
+      // What reaches external@example.com through the route after send, with ARC
+      // sealing on and neither a forward's envelope rewritten nor X-Original-Rcpt-To
+      // written by this server.
+      private string RelayedWithoutRewrite(Action send)
+      {
+         try
+         {
+            WriteSetting("ArcSealingEnabled", "1");
+            WriteSetting("AddXOriginalRcptTo", "0");
+            _application.Reinitialize();
+
+            EnableDkimOnTestDomain();
+
+            var port = TestSetup.GetNextFreePort();
+            using (var smtpServer = new SmtpServerSimulator(1, port))
+            {
+               smtpServer.SecondsToWaitBeforeTerminate = 60;
+               smtpServer.AddRecipientResult(new Dictionary<string, int> { { "external@example.com", 250 } });
+               smtpServer.StartListen();
+
+               Signing.AddRoutePointingAtLocalhost(5, port);
+
+               send();
+
+               CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+               smtpServer.WaitForCompletion();
+
+               return smtpServer.MessageData;
+            }
+         }
+         finally
+         {
+            WriteSetting("ArcSealingEnabled", "0");
+            _application.Reinitialize();
+         }
+      }
+
+      /// <summary>
+      /// The sealing domain was the first hosted domain with a key among the envelope
+      /// sender, the recipients' original addresses and X-Original-Rcpt-To - a field the
+      /// sender writes when this server does not (AddXOriginalRcptTo off, the default). A
+      /// sender who wrote one naming another hosted domain had that domain's key seal an
+      /// account's forward of the message. The forward is sealed by the forwarding
+      /// account's domain, which the server records on the copy it makes.
+      ///
+      /// Against the server before the fix the ARC set is sealed d=rcptforged.test.
+      /// </summary>
+      [Test]
+      [Description("An account's forward is sealed by the account's domain, not by a hosted domain an X-Original-Rcpt-To field the sender wrote names.")]
+      public void AForwardIsSealedByTheForwardersDomainNotOneAHeaderNames()
+      {
+         AddSigningDomain("rcptforged.test");
+
+         var forwarder = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "seal-forwarder@example.test", "test");
+         forwarder.ForwardEnabled = true;
+         forwarder.ForwardAddress = "external@example.com";
+         forwarder.ForwardKeepOriginal = false;
+         forwarder.Save();
+
+         string messageData = RelayedWithoutRewrite(() =>
+            new SmtpClientSimulator().SendRaw(ExternalSender, forwarder.Address,
+               "X-Original-Rcpt-To: ceo@rcptforged.test\r\n" +
+               "From: " + ExternalSender + "\r\n" +
+               "To: " + forwarder.Address + "\r\n" +
+               "Subject: Sealed by whom?\r\n" +
+               "\r\n" +
+               "Body.\r\n"));
+
+         AssertArcSealed(messageData, "example.test");
+         StringAssert.DoesNotContain("d=rcptforged.test", messageData,
+            "The forward was sealed by the domain an X-Original-Rcpt-To field the sender wrote names.\r\n" + messageData);
+      }
+
+      /// <summary>
+      /// The same of an alias's expansion of a message whose envelope sender names
+      /// another hosted domain - a claim an outside sender makes as easily as this
+      /// loopback client: the alias's domain seals it, as the address the server
+      /// accepted the recipient at says, and not the domain the envelope names.
+      ///
+      /// Against the server before the fix the ARC set is sealed d=envforged.test.
+      /// </summary>
+      [Test]
+      [Description("An alias's expansion is sealed by the alias's domain, not by a hosted domain the envelope sender names.")]
+      public void AnAliasExpansionIsSealedByTheAliasDomainNotTheEnvelopes()
+      {
+         AddSigningDomain("envforged.test");
+         SingletonProvider<TestSetup>.Instance.AddAlias(_domain, "seal-alias@example.test", "external@example.com");
+
+         string messageData = RelayedWithoutRewrite(() =>
+            new SmtpClientSimulator().SendRaw("someone@envforged.test", "seal-alias@example.test",
+               "From: " + ExternalSender + "\r\n" +
+               "To: seal-alias@example.test\r\n" +
+               "Subject: Sealed by whom?\r\n" +
+               "\r\n" +
+               "Body.\r\n"));
+
+         AssertArcSealed(messageData, "example.test");
+         StringAssert.DoesNotContain("d=envforged.test", messageData,
+            "The alias's expansion was sealed by the hosted domain the envelope sender named.\r\n" + messageData);
+      }
+
       // ---- What the seal attests of SPF ----
 
       private static void AssertSealDoesNotAttestAPass(string messageData, string how)

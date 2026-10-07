@@ -301,6 +301,27 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   a `redirect`, and finds neither attested, and `AntiSpam/Quarantine.cs` releases a message whose SPF check failed and
   finds the failure attested over its forward. Found by the project's own review.
 
+- **Fixed: which hosted domain's key sealed an ARC set over relayed mail could be chosen by whoever wrote a header or
+  the envelope.** With `ArcSealingEnabled` on, a message this server relays and does not sign as its author's domain
+  is sealed by a domain hosted here, and the sealing domain was the first with a DKIM key among the envelope sender,
+  the recipients' original addresses and the `X-Original-Rcpt-To` field (from 6.0.0, which brought ARC sealing): the
+  field a sender writes when this server does not (`AddXOriginalRcptTo`, off by default), and a Sieve `addheader` or a
+  rule's *Set header value* can write above this server's own; and an outside sender's envelope may name a hosted
+  domain. Whoever wrote it chose which hosted domain's key vouched for the seal, though the results it attested stayed
+  this server's. The sealing domain is now the one the server records as sending the message on, where it makes the
+  message, on the message itself: the forwarding account's domain for an account's forward, its rule's forward or
+  copy and its Sieve `redirect`; the domain of a domain's rule, of a journal rule and of a managed list; for a server
+  rule, the domain the message was received for; the submitting account's domain for its own message; and the hosted
+  domain an alias or a distribution list that expanded to an address outside belongs to. It is carried by every copy,
+  kept on the queue row (`relay=` beside the outside mark) and in a quarantined copy's name (`.relay-<id>`), and a
+  message with none recorded goes unsealed: no header and no envelope is read for it. Messages queued or held before
+  the upgrade are sealed by an alias's domain, or a submitting account's, and otherwise not at all.
+
+  `SigningOriginTester` holds the record on every copy, on the queue row and in a quarantined copy's name to examples,
+  and `AntiSpam/DKIM/ArcSealing.cs` sends an account's forward of a message carrying a forged `X-Original-Rcpt-To`, and
+  an alias's expansion of one whose envelope names another hosted domain, and finds each sealed by the domain that
+  relayed it. Found by the project's own review.
+
 ### Correctness
 
 - **Fixed: a ManageSieve refusal that quoted a script's text with a line break in it was split in two.** RFC 5804's
