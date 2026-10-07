@@ -56,11 +56,20 @@
 
         <!-- The floor: the column headers and three rows, held by the FillPanel
              around the grid, so that the empty state laid over it raises the
-             card's floor where it needs more. -->
+             card's floor where it needs more. The grid keeps its vertical scroll
+             bar, so that its two bars cannot take turns: where the rows fitted
+             only without a horizontal bar and the columns came out a fraction
+             of a pixel wider than the grid, as they can at 125 and 175 %
+             scaling, the horizontal bar came, the rows no longer fitted, the
+             vertical bar came, the columns narrowed to fit, the horizontal bar
+             went, the rows fitted, the vertical bar went, and so on for ever -
+             three rules at the reporter's size at 125 %, four in a 1280 by 800
+             window at 175 % - and the Control Panel stopped answering. -->
         <scaffold:Card scaffold:FillPanel.Fill="True" Padding="8">
             <Grid>
                 <scaffold:FillPanel>
                     <DataGrid x:Name="RuleGrid" scaffold:FillPanel.Fill="True" MinHeight="135"
+                              ScrollViewer.VerticalScrollBarVisibility="Visible"
                               AutoGenerateColumns="False" IsReadOnly="True"
                               SelectionMode="Single" SelectionChanged="RuleGrid_SelectionChanged"
                               AutomationProperties.Name="{loc:L 'Global rules'}">
@@ -111,8 +120,13 @@
                         <ComboBox x:Name="MatchMode" MinWidth="230"
                                   SelectionChanged="MatchMode_SelectionChanged" />
                     </StackPanel>
-                    <!-- The floor: three rows of 34 pixels. -->
+                    <!-- The floor: three rows of 34 pixels. One column, whose text ends
+                         in an ellipsis, so no sideways scrolling: a horizontal bar
+                         that came and went with the vertical one, as a fraction of
+                         a pixel decided, kept the page's layout from ever settling
+                         at 175 % in the narrowest window. -->
                     <DataGrid x:Name="CriteriaGrid" scaffold:FillPanel.Fill="True" MinHeight="102"
+                              ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                               AutoGenerateColumns="False" IsReadOnly="True"
                               HeadersVisibility="None"
                               SelectionMode="Single" MouseDoubleClick="EditCriterion_Click"
@@ -134,8 +148,10 @@
             <!-- Actions -->
             <scaffold:Card x:Name="ActionsCard" Title="{loc:L 'THEN'}" Margin="6,0,0,0">
                 <scaffold:FillPanel>
-                    <!-- The floor: three rows of 34 pixels. -->
+                    <!-- The floor: three rows of 34 pixels. One column, as the
+                         criteria's, so no sideways scrolling either. -->
                     <DataGrid x:Name="ActionsGrid" scaffold:FillPanel.Fill="True" MinHeight="102"
+                              ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                               AutoGenerateColumns="False" IsReadOnly="True"
                               HeadersVisibility="None"
                               SelectionMode="Single" MouseDoubleClick="EditAction_Click"

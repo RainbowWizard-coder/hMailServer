@@ -139,6 +139,36 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Equal("230", (string)Named(page, "MatchMode").Attribute("MinWidth"));
       }
 
+      /// <summary>
+      /// A grid's two scroll bars must not depend on each other. Where a grid's rows fitted
+      /// only without a horizontal bar and its columns came out a fraction of a pixel wider
+      /// than the grid, as layout rounding makes them at 125 and 175 % scaling, the
+      /// horizontal bar came, the rows no longer fitted, the vertical bar came, the columns
+      /// narrowed to fit, the horizontal bar went, and so on for ever: the page's layout
+      /// never settled and the Control Panel stopped answering - with three criteria in the
+      /// narrowest window at 175 %, three rules at the reporter's size at 125 %, and four
+      /// rules in a 1280 by 800 window at 175 % in 6.3.6. The criteria and actions, one
+      /// column whose text ends in an ellipsis, do not scroll sideways; the rules, whose
+      /// columns keep their widths and scroll sideways in a narrow window, keep their
+      /// vertical bar.
+      /// </summary>
+      [Fact]
+      public void NoGridsScrollBars_CanTakeTurns()
+      {
+         XElement page = Page();
+         foreach (string list in new[] { "CriteriaGrid", "ActionsGrid" })
+         {
+            Assert.True((string)Named(page, list).Attribute("ScrollViewer.HorizontalScrollBarVisibility") == "Disabled",
+               list + " can show a horizontal scroll bar, which can come and go with its vertical one for ever.");
+         }
+
+         XElement rules = Named(page, "RuleGrid");
+         Assert.True((string)rules.Attribute("ScrollViewer.HorizontalScrollBarVisibility") != "Disabled",
+            "The rule grid no longer scrolls sideways, so a narrow window squeezes its columns.");
+         Assert.True((string)rules.Attribute("ScrollViewer.VerticalScrollBarVisibility") == "Visible",
+            "The rule grid's vertical scroll bar comes and goes, and with it the horizontal one, for ever.");
+      }
+
       // ---- helpers -------------------------------------------------------------------------
 
       private static XElement Page() => XDocument.Parse(ReadControlPanelFile(Path.Join("Views", "RulesView.xaml"))).Root;

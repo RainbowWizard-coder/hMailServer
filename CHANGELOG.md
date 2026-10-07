@@ -189,6 +189,15 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   narrower than 340, *Generate* and *Create account* go under the password where they do not fit beside it, a list's
   rows are its width with a long name cut short and whole in its tool tip, and the rule grid's columns keep a width
   and scroll sideways.
+- **Fixed: the Control Panel could stop answering on the rules page at some display scalings.** A list of rules,
+  criteria or actions whose rows fitted only without a horizontal scroll bar, at a scaling where its columns came out a
+  fraction of a pixel wider than the list, showed the horizontal bar, which left the rows too little room, so the
+  vertical bar came, the columns narrowed to fit, the horizontal bar went, the rows fitted, the vertical bar went, and
+  so on for ever: the page's layout never settled, and the Control Panel took no more input. In 6.3.6 four rules did it
+  in a 1280 by 800 window at 175 %, and a rule with four criteria or actions in a shorter one. The criteria and actions,
+  one column whose text ends in an ellipsis, no longer scroll sideways, and the list of rules, whose columns keep their
+  widths and scroll sideways in a narrow window, keeps its vertical scroll bar, so that neither bar can turn the other
+  on or off.
 
 ### Operations
 
