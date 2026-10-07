@@ -22,10 +22,10 @@ refusal:
      gates' own files (GATE_FILES: the gate scripts; the CI files that say whether
      and how their jobs run - .gitlab-ci.yml, whose workflow, defaults and includes
      every job takes, and the files under .gitlab/ci/ the jobs are in or take a part
-     from; this script and check-release-chain.py; and sign-off.py and
-     scan-secrets.py, which this runs) needs --gates-read REASON, saying a person
-     read that change whole (exit 9 without it). Nothing is pushed until all of this
-     holds.
+     from; this script and check-release-chain.py; sign-off.py and scan-secrets.py,
+     which this runs; and the source scans' scripts, static-analysis.sh and
+     semgrep.sh) needs --gates-read REASON, saying a person read that change whole
+     (exit 9 without it). Nothing is pushed until all of this holds.
   2. The branch is pushed. batch* is a protected branch, so its pipeline runs
      the whole gate on the project's own runners (docs/ContinuousIntegration.md);
      a merge request from it runs no pipeline of its own, and the branch's
@@ -37,7 +37,8 @@ refusal:
      Then its jobs are read, every page of them, since GitLab calls a pipeline a
      success with a job that failed while allowed to fail and with a job a rule
      never created. The change gates semgrep-sast, semgrep-sast-gate and
-     mr-dependency-check must each have succeeded (GATE_JOBS), and so must the
+     mr-dependency-check, and checkers, which holds the CI files to them, must
+     each have succeeded (GATE_JOBS), and so must the
      source scans static-analysis and semgrep (SOURCE_SCAN_JOBS) unless every
      file the batch changes from master is Markdown at the root or under a
      directory whose name begins with a dot - the changes for which .own-runners
@@ -103,16 +104,24 @@ secret in the batch's commits or could not run, 9 the batch changes the gates' o
 files and --gates-read was not given.
 """
 
+import os
+import sys
+
+# Nothing is imported by name from this script's own directory, which Python puts first
+# on sys.path: a file put there named as one of Python's modules (json.py, re.py) would
+# run as this script's code in a change that leaves the script alone
+# (build/check-release-chain.py, PATH_GUARD).
+sys.path[:] = [p for p in sys.path if os.path.normcase(os.path.realpath(p or os.curdir)) !=
+               os.path.normcase(os.path.dirname(os.path.realpath(__file__)))]
+
 import argparse
 import datetime
 import importlib.util
 import io
 import json
-import os
 import re
 import shutil
 import subprocess
-import sys
 import tempfile
 import time
 import urllib.parse
@@ -141,10 +150,12 @@ SETTLING = {"checking", "unchecked", "approvals_syncing", "preparing", "ci_still
 # The jobs a landing needs to have succeeded, beyond the pipeline as a whole: a pipeline
 # succeeds with a job that failed while it was allowed to fail, and with a job a rule
 # left out of it, and either is a gate that did not hold the batch. The change gates
-# (SECURITY.md, "Vulnerability management policy") always; the two source scans unless
-# every file the batch changes is a document (documents_only). build/check-release-chain.py
-# holds these names to the jobs the CI files define.
-GATE_JOBS = ("semgrep-sast", "semgrep-sast-gate", "mr-dependency-check")
+# (SECURITY.md, "Vulnerability management policy") and checkers, whose
+# check-release-chain.py holds the CI files to what the gates need - a CI file that set
+# checkers allow_failure would take that away unseen - always; the two source scans
+# unless every file the batch changes is a document (documents_only).
+# build/check-release-chain.py holds these names to the jobs the CI files define.
+GATE_JOBS = ("semgrep-sast", "semgrep-sast-gate", "mr-dependency-check", "checkers")
 SOURCE_SCAN_JOBS = ("static-analysis", "semgrep")
 # The gates that find the change's base themselves and say it in their log ("The base:
 # <commit>, ..."): a landing holds it to where the batch leaves master, so that a base a
@@ -167,14 +178,19 @@ BASE_COPY_NONE = "The base has no %s: the change's copy alone judges it."
 # what holds the jobs to it - the gates' code; .gitlab-ci.yml, whose workflow rules,
 # defaults and includes every job takes; the files the gate jobs are in or take a part
 # from (mr-checks.yml, gitlab-security.yml, no-github.yml's .no-github); this script and
-# check-release-chain.py; and the two scripts this runs before anything is pushed. A
-# batch that changes one is judged by the base's copy of the gate scripts too, but only
-# a person reads such a change whole, and --gates-read says that one has; it goes into
-# the landing record. build/check-release-chain.py holds this list to GATE_CODE, to
-# .gitlab-ci.yml and to the files the gate jobs' extends and !reference reach.
+# check-release-chain.py; the two scripts this runs before anything is pushed; and the
+# source scans' scripts, static-analysis.sh and semgrep.sh, whose lines outside their
+# marks (which security-gate.py holds as a narrowing) still say how the job ends and
+# what it hands security-findings.py. A batch that changes one is judged by the base's
+# copy of the gate scripts too, but only a person reads such a change whole, and
+# --gates-read says that one has; it goes into the landing record.
+# build/check-release-chain.py holds this list to GATE_CODE, to .gitlab-ci.yml, to the
+# files the gate jobs' extends and !reference reach and to security-gate.py's
+# SCAN_SCRIPTS.
 GATE_FILES = GATE_CODE + (".gitlab-ci.yml", ".gitlab/ci/mr-checks.yml", ".gitlab/ci/gitlab-security.yml",
                           ".gitlab/ci/no-github.yml", "build/land-via-mr.py", "build/check-release-chain.py",
-                          "build/sign-off.py", "build/scan-secrets.py")
+                          "build/sign-off.py", "build/scan-secrets.py", "build/ci/static-analysis.sh",
+                          "build/ci/semgrep.sh")
 # A pipeline's jobs are read a page at a time; a batch's has more than a hundred.
 JOBS_PER_PAGE = 100
 MOST_JOB_PAGES = 50
@@ -1042,8 +1058,8 @@ def self_test():
         expect("happy: the pipeline's jobs were read to their second page",
                [c[1].split("?")[1] for c in api.calls if "/pipelines/7/jobs" in c[1]], ["per_page=100&page=1", "per_page=100&page=2"])
         expect("happy: the landing record gives each gate job's status", len(api.notes) == 1 and (
-            "- Gate jobs: semgrep-sast success, semgrep-sast-gate success, mr-dependency-check success, static-analysis "
-            "success, semgrep success") in api.notes[0], True)
+            "- Gate jobs: semgrep-sast success, semgrep-sast-gate success, mr-dependency-check success, checkers success, "
+            "static-analysis success, semgrep success") in api.notes[0], True)
 
         # 2. A commit without its sign-off: nothing leaves the machine.
         bare, work = scenario("unsigned")
@@ -1251,6 +1267,14 @@ def self_test():
         expect("a gate that failed while allowed to fail: no merge call", [c for c in api.calls if c[0] == "PUT"], [])
         expect("a gate that failed while allowed to fail: named, and said so",
                "semgrep-sast-gate failed while allowed to fail" in text, True)
+        # checkers, which holds the CI files to the gates: a CI file that let it fail
+        # would let a pipeline pass with the gates' jobs changed unseen.
+        bare, work = scenario("checkers-allowed-to-fail")
+        commit(work, "signed")
+        api = FakeGitLab(bare, approved_by=[zain], jobs=full_pipeline(checkers=("failed", True)))
+        code, text = attempt(work, api)
+        expect("checkers failed while allowed to fail: exit", code, 5)
+        expect("checkers failed while allowed to fail: named", "checkers failed while allowed to fail" in text, True)
         for name in GATE_JOBS:
             bare, work = scenario("missing-" + name)
             commit(work, "signed")
@@ -1377,8 +1401,17 @@ def self_test():
         expect("a gate's job file changed, read, no base's copy: exit", code, 0)
         expect("a gate's job file changed: the record says the base's copy was not needed", len(api.notes) == 1 and
                "Master's copy of the gates' code: not needed" in api.notes[0], True)
-        for path in (".gitlab-ci.yml", ".gitlab/ci/no-github.yml", "build/sign-off.py", "build/scan-secrets.py"):
+        for path in (".gitlab-ci.yml", ".gitlab/ci/no-github.yml", "build/sign-off.py", "build/scan-secrets.py",
+                     "build/ci/static-analysis.sh", "build/ci/semgrep.sh"):
             expect("%s is one of the gates' own files" % path, path in GATE_FILES, True)
+        expect("checkers is a job a landing needs", "checkers" in GATE_JOBS, True)
+        # A source scan's script changed outside its marks (how the job ends) needs a
+        # person's word.
+        bare, work = scenario("scan-script")
+        commit_files(work, {"build/ci/semgrep.sh": "#!/bin/bash\nexit 0\n"}, "a scan's script, signed")
+        code, text = attempt(work, FakeGitLab(bare, approved_by=[zain]))
+        expect("a scan's script changed, unread: exit", code, 9)
+        expect("a scan's script changed, unread: named", "build/ci/semgrep.sh" in text, True)
         expect("the gates' code is in the gates' own files", set(GATE_CODE) <= set(GATE_FILES), True)
     finally:
         for key, value in env_keep.items():

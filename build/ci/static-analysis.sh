@@ -70,9 +70,11 @@
 #
 # The lines between "# scan-scope begin" and "# scan-scope end" below choose what
 # cppcheck and clang-tidy read and report: the files given them, their options, the
-# checks. build/ci/security-gate.py holds a change of one of them, or one of their
+# checks, and what of a run that failed or a file clang-tidy did not finish stands as
+# their report. build/ci/security-gate.py holds a change of one of them, or one of their
 # options put outside them, as a narrowing of the scan, which lands alone
-# (SECURITY.md, "Narrowing a scan is a declaration too").
+# (SECURITY.md, "Narrowing a scan is a declaration too"); and build/land-via-mr.py asks
+# a person's word (--gates-read) for any change of this script.
 set -uo pipefail
 
 out="${HM_OUT_DIR:-security/static-analysis}"
@@ -214,7 +216,6 @@ cppcheck --project="$database" \
   -DOPENSSL_VERSION_TEXT="\"OpenSSL $ossl_major.$ossl_minor.$ossl_patch\"" \
   --platform=unix64 --library=posix --library=gnu --library=boost --library=openssl --library=zlib \
   -j "$jobs" --xml --output-file="$out/cppcheck.xml" > "$out/cppcheck.log" 2>&1
-# scan-scope end
 code=$?
 echo "cppcheck exit $code after $SECONDS s"
 if [ "$code" -ne 0 ] || [ ! -s "$out/cppcheck.xml" ]; then
@@ -222,6 +223,7 @@ if [ "$code" -ne 0 ] || [ ! -s "$out/cppcheck.xml" ]; then
   echo "CPPCHECK FAILED"
   exit 2
 fi
+# scan-scope end
 grep -c '^Checking ' "$out/cppcheck.log" | sed 's/^/files checked: /'
 
 echo ""
@@ -248,7 +250,6 @@ tidy_one() {
 }
 export -f tidy_one
 xargs -a "$out/files.txt" -P "$jobs" -I{} bash -c 'tidy_one "$@"' _ {} "${config[@]}"
-# scan-scope end
 # clang-tidy's own answer is 0, or 1 for an error it reports. Above 1 is how it
 # ended, not what it found: 134 an abort, 137 a kill (the OOM killer's), 139 a
 # segmentation fault. Such a file leaves no finding and no error in the report, so
@@ -280,6 +281,7 @@ if [ "$done_files" -ne "$count" ]; then
   echo "clang-tidy ran on $done_files of $count files"
   exit 2
 fi
+# scan-scope end
 
 echo ""
 python3 build/ci/security-findings.py --job static-analysis \

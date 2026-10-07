@@ -62,11 +62,12 @@
 #                    by hand; refused in a GitLab job
 #
 # The lines between "# scan-scope begin" and "# scan-scope end" below choose what
-# Semgrep reads and reports: the rule packs, the files with no extension and the
-# pages' scripts it is given, its ignore list and its options. build/ci/security-gate.py
-# holds a change of one of them, or one of Semgrep's options put outside them, as a
-# narrowing of the scan, which lands alone (SECURITY.md, "Narrowing a scan is a
-# declaration too").
+# Semgrep reads and reports: the rule packs and the rules fetched for each, the files
+# with no extension and the pages' scripts it is given, its ignore list and its
+# options. build/ci/security-gate.py holds a change of one of them, or one of Semgrep's
+# options put outside them, as a narrowing of the scan, which lands alone (SECURITY.md,
+# "Narrowing a scan is a declaration too"); and build/land-via-mr.py asks a person's
+# word (--gates-read) for any change of this script.
 set -uo pipefail
 
 out="${HM_OUT_DIR:-security/semgrep}"
@@ -113,6 +114,7 @@ printf '{"semgrep": "%s"}\n' "$version" > "$out/versions.json"
 echo ""
 echo "== the rules, from semgrep.dev"
 mkdir -p "$work/rules"
+# scan-scope begin: the rules of each pack, as semgrep.dev serves them
 for pack in $packs; do
   name=$(echo "$pack" | tr '/' '-')
   # Python's urllib rather than curl, which the image does not have. Its failure is
@@ -154,6 +156,7 @@ sys.exit(1)
 EOF
   cp "$work/rules/$name.yml" "$out/rules/"
 done
+# scan-scope end
 ( cd "$out/rules" && sha256sum ./*.yml ) | tee "$out/rules.sha256"
 
 echo ""

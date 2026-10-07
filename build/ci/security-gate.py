@@ -77,21 +77,29 @@ These hold against mistakes, not against a hostile change: the change's own CI f
 say which jobs run and what they run (SECURITY.md, "What the gates cannot hold").
 """
 
+import os
+import sys
+
+# Nothing is imported by name from this script's own directory, which Python puts first
+# on sys.path: a file put there named as one of Python's modules (json.py, re.py) would
+# run as this script's code in a change that leaves the script alone
+# (build/check-release-chain.py, PATH_GUARD).
+sys.path[:] = [p for p in sys.path if os.path.normcase(os.path.realpath(p or os.curdir)) !=
+               os.path.normcase(os.path.dirname(os.path.realpath(__file__)))]
+
 import argparse
 import datetime
 import fnmatch
 import importlib.util
 import json
-import os
 import re
 import shutil
 import subprocess
-import sys
 import tempfile
 import uuid
 import xml.etree.ElementTree as ET
 
-ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+ROOT =os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 EXCEPTIONS = ".gitlab/security-exceptions.yml"
 
 # The four scans, where their reports are, and what blocks. The release job needs each
@@ -625,7 +633,7 @@ def evaluate(root, artifacts, today=None, exceptions_text=None, say=print, not_b
 # .gitlab/sast-ruleset.toml is the file GitLab's analyzers read a custom ruleset from
 # (rules disabled, overridden or added): none is committed, and the one that is added
 # changes the scan as much as an edit of its job does.
-SAST_CONFIG =(".gitlab-ci.yml", ".gitlab/ci/gitlab-security.yml", ".gitlab/ci/mr-checks.yml", ".gitlab/sast-ruleset.toml",
+SAST_CONFIG = (".gitlab-ci.yml", ".gitlab/ci/gitlab-security.yml", ".gitlab/ci/mr-checks.yml", ".gitlab/sast-ruleset.toml",
                "build/ci/security-gate.py", "build/ci/security-findings.py")
 SAST_JOB_FILE = ".gitlab/ci/gitlab-security.yml"
 
@@ -1081,17 +1089,26 @@ def _sarif_note_files(note, text):
     return named
 
 
-def sarif_holes(artifacts, paths):
+def _tree_file(root, path):
+    """Whether path names a file of the checkout at root as SARIF_READ_FOR's analyzer names
+    one: from the root, with no ./, no leading /, no scheme or drive, no .. step."""
+    return bool(path) and not path.startswith("/") and "\\" not in path and ":" not in path and \
+        not any(part in (".", "..", "") for part in path.split("/")) and os.path.isfile(os.path.join(root, *path.split("/")))
+
+
+def sarif_holes(artifacts, paths, root=None):
     """(held, stumbled, None, None) from semgrep-sast's semgrep.sarif: held says, for each
     file of paths, a notification that a rule gave up on it (SARIF_GAVE_UP), and
     stumbled counts those whose parse stumbled (SARIF_PARSE); or (None, None, the
     problem, None) when there is no SARIF to read; or (None, None, None, why) when the
     SARIF says what this cannot read - no run with its invocations, a notification of a
-    kind in neither list, or one that gave up on a file and names none: Semgrep's
-    wording changed (SARIF_READ_FOR), and what it gave up on cannot be told until it is
-    read again. GitLab's analyzer fails the scan on an error-level notification only,
-    and these are warnings: a report that says success can have left a changed file
-    unread by some of its rules."""
+    kind in neither list, or one that gave up on a file and names none - none, with
+    root, of the checkout's files as the analyzer names them (_tree_file): a path in
+    another form (./src/a.cpp, /builds/.../src/a.cpp) would match no changed file, and
+    the hole would pass. Semgrep's wording changed, then (SARIF_READ_FOR), and what it
+    gave up on cannot be told until it is read again. GitLab's analyzer fails the scan
+    on an error-level notification only, and these are warnings: a report that says
+    success can have left a changed file unread by some of its rules."""
     sarif, error = _read_json(os.path.join(artifacts, SEMGREP_SARIF))
     if error:
         return None, None, ("semgrep-sast: %s - the job keeps the SARIF GitLab's analyzer writes beside its report "
@@ -1115,9 +1132,12 @@ def sarif_holes(artifacts, paths):
                     return None, None, None, "semgrep.sarif holds a notification of a kind this does not know (%r, %s: " \
                         "%s): %s" % (kind, note.get("level"), text.split("\n")[0][:200], reread)
                 files = _sarif_note_files(note, text)
+                if kind in SARIF_GAVE_UP and root is not None:
+                    files = [f for f in files if _tree_file(root, f)]
                 if kind in SARIF_GAVE_UP and not files:
-                    return None, None, None, "semgrep.sarif says a rule gave up (%s) and names no file this can find in " \
-                        "%r: %s" % (kind, text.split("\n")[0][:200], reread)
+                    return None, None, None, "semgrep.sarif says a rule gave up (%s) and names no file this can find%s in " \
+                        "%r: %s" % (kind, "" if root is None else " of the checkout, named from its root,",
+                                    text.split("\n")[0][:200], reread)
                 named = "\n".join([text] + files)
                 for path in wanted:
                     if re.search(r"(?<![\w./-])%s(?=[:\s'\"]|$)" % re.escape(path), named):
@@ -1895,11 +1915,41 @@ def self_test():
         shutil.rmtree(work, ignore_errors=True)
     failures.extend(change_base_failures())
     failures.extend(change_gate_failures())
+    failures.extend(path_guard_failures())
 
     for failure in failures:
         print("FAILED: " + failure)
     print("self-test: %d failure(s)" % len(failures))
     return 1 if failures else 0
+
+
+def path_guard_failures():
+    """The self-test's cases for the lines at the top that keep this script's directory
+    off sys.path: a copy of the gate, run beside files named as the modules it imports,
+    runs none of them."""
+    failures = []
+    here = os.path.dirname(os.path.realpath(__file__))
+    if any(os.path.normcase(os.path.realpath(p or os.curdir)) == os.path.normcase(here) for p in sys.path):
+        failures.append("this script's directory is on sys.path: %s" % here)
+    work = tempfile.mkdtemp(prefix="security-gate-path-")
+    try:
+        ci = os.path.join(work, "build", "ci")
+        os.makedirs(ci)
+        for name in ("security-gate.py", "security-findings.py"):
+            shutil.copyfile(os.path.join(here, name), os.path.join(ci, name))
+        for module in ("argparse", "datetime", "fnmatch", "json", "re", "shutil", "subprocess", "tempfile", "uuid",
+                       "collections", "contextlib", "hashlib", "io"):
+            with open(os.path.join(ci, module + ".py"), "w", encoding="utf-8") as f:
+                f.write("import sys\nprint('SHADOWED: %s')\nsys.exit(77)\n" % module)
+        done = subprocess.run([sys.executable, os.path.join(ci, "security-gate.py"), "--help"], cwd=work,
+                              stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=300)
+        said = done.stdout.decode("utf-8", "replace")
+        if done.returncode != 0 or "SHADOWED" in said:
+            failures.append("a copy of the gate beside files named as its modules ran one of them (exit %d): %s" % (
+                done.returncode, said[-400:]))
+    finally:
+        shutil.rmtree(work, ignore_errors=True)
+    return failures
 
 
 # ---------------------------------------------------------------- the change's base
@@ -2487,7 +2537,12 @@ def change_gate_failures():
     # static-analysis.sh takes no check list from a job's variables.
     for path, tool in (("build/ci/static-analysis.sh", "cppcheck --project="), ("build/ci/static-analysis.sh", "clang-tidy -p"),
                        ("build/ci/static-analysis.sh", "--config-file=build/ci/clang-tidy.yaml"),
-                       ("build/ci/semgrep.sh", "\"$semgrep\" scan"), ("build/ci/semgrep.sh", "packs=")):
+                       ("build/ci/static-analysis.sh", "CPPCHECK FAILED"),
+                       ("build/ci/static-analysis.sh", 'cat "$build_dir"/tidy/*.txt > "$out/clang-tidy.txt"'),
+                       ("build/ci/static-analysis.sh", 'tidy_one "$tidy_file" "${config[@]}"'),
+                       ("build/ci/semgrep.sh", "\"$semgrep\" scan"), ("build/ci/semgrep.sh", "packs="),
+                       ("build/ci/semgrep.sh", "for pack in $packs; do"),
+                       ("build/ci/semgrep.sh", "https://semgrep.dev/c/$pack")):
         try:
             with open(os.path.join(ROOT, *path.split("/")), encoding="utf-8") as f:
                 script = f.read()
@@ -2793,6 +2848,22 @@ def change_gate_failures():
              "src/a.cpp: semgrep-sast gave up on it",
              notes=[(SARIF_FIXTURE[0]["descriptor"]["id"], SARIF_FIXTURE[0]["message"]["text"].replace("src/deep/big.py",
                                                                                                        "src/a.cpp"))])
+        # A rule that gave up names a file of the checkout as the analyzer names one, from
+        # its root: a path in another form would match no changed file, and the hole pass.
+        timed_out = SARIF_FIXTURE[0]["message"]["text"]
+        for what, named in (("as ./src/a.cpp", "./src/a.cpp"), ("by its absolute path", "/builds/hm/hm/src/a.cpp"),
+                            ("where the checkout holds no file", "lib/a.cpp")):
+            case("a timeout naming the changed file %s" % what, base, {"src/a.cpp": source + "// more\n"}, 2,
+                 "names no file this can find of the checkout", notes=[("Timeout", timed_out.replace("src/deep/big.py", named))])
+
+        def located(uri):
+            return {"version": "2.1.0", "runs": [{"results": [], "invocations": [{"toolExecutionNotifications": [
+                {"descriptor": {"id": "Timeout"}, "level": "warning", "message": {"text": "Timeout when running c.strcpy:\n "},
+                 "locations": [{"physicalLocation": {"artifactLocation": {"uri": uri}}}]}]}]}]}
+        case("a timeout naming the changed file by a file: URI alone", base, {"src/a.cpp": source + "// more\n"}, 2,
+             "names no file this can find of the checkout", sarif=located("file:///builds/hm/hm/src/a.cpp"))
+        case("a timeout naming the changed file by its location from the root", base, {"src/a.cpp": source + "// more\n"},
+             1, "src/a.cpp: semgrep-sast gave up on it", sarif=located("src/a.cpp"))
         # ... nor a report that is not this pipeline's, or one the change commits.
         case("a report another tool wrote", base, {"docs/Guide.md": "x\n"}, 1, "not written by GitLab's Semgrep analyzer",
              analyzer="semgrep-local")
@@ -2871,7 +2942,7 @@ def merge_request_main(root, artifacts, base, exceptions_text=None, today=None, 
     # What the scan gave up on, in the files it reads that the change adds or alters.
     head_entries, _ = exclusions(inputs["variables"][1])
     read = [new for _, _, new in inputs["moves"] if SAST_SOURCE.search(new) and unread_reason(new, head_entries) is None]
-    held, stumbled, problem, unreadable = sarif_holes(artifacts, read)
+    held, stumbled, problem, unreadable = sarif_holes(artifacts, read, root)
     if problem:
         problems.append(problem)
     elif not unreadable:
