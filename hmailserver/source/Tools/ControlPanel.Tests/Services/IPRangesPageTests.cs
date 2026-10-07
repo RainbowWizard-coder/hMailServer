@@ -48,11 +48,15 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.True(filling.Count == 1, "The FillPanel has " + filling.Count + " filling parts; the list's card is to be the one.");
          Assert.Contains(filling[0].Descendants(Wpf + "DataGrid"), g => (string)g.Attribute(X + "Name") == "RangeGrid");
 
-         // The floor: the card's padding, the column headers and three rows of
-         // AppNavRowHeight (34). Below that the page scrolls rather than the list
-         // shrinking to a sliver with no row in it.
+         // The floor: the card's padding (16) and border (2), the column headers
+         // (33) and three rows of AppNavRowHeight (34). Below that the page scrolls
+         // rather than the list shrinking to a sliver with no row in it. And the
+         // empty state that takes the rows' place when there are none - its glyph,
+         // its sentence and their padding, 139 - inside the same padding and
+         // border: at 154 its sentence was cut off.
          double floor = double.Parse((string)filling[0].Attribute("MinHeight") ?? "0", CultureInfo.InvariantCulture);
-         Assert.True(floor >= 16 + 30 + 3 * 34, "The list's floor is " + floor + " pixels, less than three rows.");
+         Assert.True(floor >= 16 + 2 + 33 + 3 * 34, "The list's floor is " + floor + " pixels, less than three rows.");
+         Assert.True(floor >= 16 + 2 + 139, "The list's floor is " + floor + " pixels, which cuts off the empty state's sentence.");
       }
 
       /// <summary>
@@ -151,6 +155,11 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.True(reload.Contains("(RangeGrid.SelectedItem as RangeRow)?.Id", StringComparison.Ordinal) &&
                      reload.Contains("RangeGrid.SelectedItem = again;", StringComparison.Ordinal),
             "Reload no longer selects again the range that was selected, so every save, edit and add drops the selection.");
+
+         // Selected again, not scrolled into view: ScrollIntoView brings the row into
+         // the page's view too, so a save at the permissions card or an add at the
+         // form scrolled the page away from the button just pressed.
+         Assert.DoesNotContain(".ScrollIntoView(", reload, StringComparison.Ordinal);
 
          // Two ranges may share a name and a lower address; Properties, Save and
          // Delete act on the one selected, which only its ID says.

@@ -12,7 +12,8 @@ namespace hMailServer.ControlPanel.Tests.Services
    /// Views/Scaffold/FillPanel). The numbers are the IP ranges page's own, read off
    /// renders of it (work item 79): the other parts are the toolbar, the
    /// permissions card and the add form with their gaps, and the floor is the list
-   /// card's three rows. Two layouts lost something: 6.3.4's gave the list what the
+   /// card's three rows (153) or, taller, the empty state that takes their place
+   /// where there are none (157). Two layouts lost something: 6.3.4's gave the list what the
    /// window left after the other parts and nothing when that was negative, so in
    /// the reporter's window there was no list; 6.3.5's held the page to the
    /// viewport over a fixed 560 pixels, so in the narrowest window the add form
@@ -20,7 +21,7 @@ namespace hMailServer.ControlPanel.Tests.Services
    /// </summary>
    public class PageFillTests
    {
-      private const double Floor = 154;
+      private const double Floor = 157;
 
       /// <summary>An English page in a 1280 by 800 window: everything fits, the list takes the rest, nothing scrolls.</summary>
       [Fact]

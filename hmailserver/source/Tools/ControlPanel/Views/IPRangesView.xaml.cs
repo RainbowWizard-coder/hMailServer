@@ -91,12 +91,13 @@ namespace hMailServer.ControlPanel.Views
          ListSearch.Apply(RangeGrid, SearchBar.SearchText);
          StatusText.Show(EmptyStatus, null, rows.Count, null, L("No IP ranges defined yet."));
 
+         // Selected, not scrolled into view: the list keeps its own offset when its
+         // rows are replaced, and ScrollIntoView would bring the row into the
+         // page's view as well, scrolling the page away from the Save permissions
+         // button or the Add button just pressed and back up to the list.
          RangeRow again = selectedId == null ? null : rows.FirstOrDefault(r => r.Id == selectedId.Value);
          if (again != null)
-         {
             RangeGrid.SelectedItem = again;
-            RangeGrid.ScrollIntoView(again);
-         }
       }
 
       /// <summary>

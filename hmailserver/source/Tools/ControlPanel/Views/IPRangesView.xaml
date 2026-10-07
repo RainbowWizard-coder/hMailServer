@@ -21,8 +21,7 @@
                              Subtitle="{loc:L 'Access control: which addresses may connect and what they are allowed to do. Higher priority wins.'}" />
 
         <!-- The list takes the height the parts under it leave in the window,
-             down to a floor of three rows (the card's padding, the column
-             headers and three 34-pixel rows), and below that the page scrolls;
+             down to a floor of three rows, and below that the page scrolls;
              every other part keeps its own height. Work item 79: in 6.3.4 the
              list was a grid's star row between rows sized to their content, and
              a window shorter than those rows gave it nothing, so no range could
@@ -37,18 +36,25 @@
                           SearchTextChanged="Search_TextChanged">
             <scaffold:Toolbar.Actions>
                 <!-- Wraps, rather than cutting Delete and Restore defaults off the
-                     right edge in a narrow window. -->
+                     right edge in a narrow window. The gap between wrapped lines
+                     is split above and below each button, so that on one line
+                     the buttons stay centred on the search box. -->
                 <WrapPanel HorizontalAlignment="Right">
-                    <ui:Button x:Name="PropertiesButton" Content="{loc:L 'Pr_operties…'}" Click="Edit_Click" Margin="0,0,8,4" />
+                    <ui:Button x:Name="PropertiesButton" Content="{loc:L 'Pr_operties…'}" Click="Edit_Click" Margin="0,2,8,2" />
                     <ui:Button x:Name="DeleteRangeButton" Content="{loc:L 'Delete selected ra_nge'}"
-                               Style="{StaticResource DangerTextButton}" Click="Delete_Click" Margin="0,0,8,4" />
-                    <ui:Button Content="{loc:L 'Restore de_faults'}" Click="RestoreDefaults_Click" Margin="0,0,0,4"
+                               Style="{StaticResource DangerTextButton}" Click="Delete_Click" Margin="0,2,8,2" />
+                    <ui:Button Content="{loc:L 'Restore de_faults'}" Click="RestoreDefaults_Click" Margin="0,2,0,2"
                                ToolTip="{loc:L 'Replaces every range with the standard two: \'My computer\' (127.0.0.1) and \'Internet\' (everything else).'}" />
                 </WrapPanel>
             </scaffold:Toolbar.Actions>
         </scaffold:Toolbar>
 
-        <scaffold:Card scaffold:FillPanel.Fill="True" MinHeight="154" Padding="8">
+        <!-- The floor: three rows need 153 pixels (the card's padding and border,
+             the column headers and three 34-pixel rows), and the empty state
+             that takes the rows' place when there are none needs 157 (its
+             glyph, its sentence and their padding, 139, inside the card's
+             padding and border); at 154 its sentence was cut off. -->
+        <scaffold:Card scaffold:FillPanel.Fill="True" MinHeight="157" Padding="8">
             <Grid>
                 <DataGrid x:Name="RangeGrid" AutoGenerateColumns="False" IsReadOnly="True"
                           SelectionMode="Single" SelectionChanged="RangeGrid_SelectionChanged"
