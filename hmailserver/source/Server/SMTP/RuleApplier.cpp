@@ -550,6 +550,62 @@ namespace HM
       SendPolicyNotice_(pRule, pAction->GetValue(), pMsgData, false, account);
    }
 
+   String
+   RuleApplier::PolicyNoticeDomain_(std::shared_ptr<Rule> rule, std::shared_ptr<const Account> account, std::shared_ptr<Message> message,
+                                    std::shared_ptr<const Domain> senderDomain) const
+   {
+      // An account's rule: the account's own domain.
+      std::shared_ptr<const Account> owner = account;
+      const __int64 ruleAccountId = rule && rule->GetAccountID() > 0 ? rule->GetAccountID() : rule_account_id_;
+      if (!owner && ruleAccountId > 0)
+         owner = CacheContainer::Instance()->GetAccount(ruleAccountId);
+      if (owner)
+      {
+         std::shared_ptr<const Domain> ownerDomain = CacheContainer::Instance()->GetDomain(owner->GetDomainID());
+         if (ownerDomain)
+            return ownerDomain->GetName();
+
+         return StringParser::ExtractDomain(owner->GetAddress());
+      }
+
+      // A domain's rule: the domain.
+      const __int64 ruleDomainId = rule && rule->GetDomainID() > 0 ? rule->GetDomainID() : rule_domain_id_;
+      if (ruleDomainId > 0)
+      {
+         std::shared_ptr<const Domain> ruleDomain = CacheContainer::Instance()->GetDomain(ruleDomainId);
+         if (ruleDomain)
+            return ruleDomain->GetName();
+      }
+
+      // A server rule, the server administrator's: the server's own domain when one is
+      // configured and hosted here (DefaultDomain), else the domain the message was
+      // addressed to, else - mail to outside alone - the sender's, which the server
+      // runs as it runs every domain hosted here.
+      const String defaultDomainName = Configuration::Instance()->GetDefaultDomain();
+      if (!defaultDomainName.IsEmpty())
+      {
+         std::shared_ptr<const Domain> defaultDomain = CacheContainer::Instance()->GetDomain(defaultDomainName);
+         if (defaultDomain)
+            return defaultDomain->GetName();
+      }
+
+      if (message)
+      {
+         // owned by this call: the recipients of the message this delivery holds
+         for (std::shared_ptr<MessageRecipient> recipient : message->GetRecipients()->GetVector())
+         {
+            if (!recipient || !recipient->GetIsLocalName())
+               continue;
+
+            std::shared_ptr<const Domain> receiving = CacheContainer::Instance()->GetDomain(StringParser::ExtractDomain(recipient->GetAddress()));
+            if (receiving)
+               return receiving->GetName();
+         }
+      }
+
+      return senderDomain ? senderDomain->GetName() : String();
+   }
+
    void
    RuleApplier::SendPolicyNotice_(std::shared_ptr<Rule> pRule, const String &actionText, std::shared_ptr<MessageData> pMsgData, bool notSent, std::shared_ptr<const Account> account) const
    {
@@ -683,10 +739,14 @@ namespace HM
       pNewMsgData->LoadFromMessage(newMessageFileName, pMsg);
       pNewMsgData->GenerateMessageID();
       pNewMsgData->SetTo(sender);
-      // From the postmaster of the sender's own domain, as the quota warning
-      // is: this is the server telling somebody something about their own
-      // mail, and a reply to it should reach whoever runs the domain.
-      pNewMsgData->SetFrom(_T("postmaster@") + senderDomain->GetName());
+      // From the postmaster of the domain whose rule it is (PolicyNoticeDomain_): the
+      // notice carries the rule's name and its owner's text, which are that domain's
+      // words, and the server signs it as the domain its From names. It came from the
+      // postmaster of the sender's own domain, so that an account's or a domain's rule
+      // spoke to a sender of another domain hosted here in that domain's name, signed
+      // with its key.
+      const String noticeDomain = PolicyNoticeDomain_(pRule, account, pOriginalMessage, senderDomain);
+      pNewMsgData->SetFrom(_T("postmaster@") + noticeDomain);
       pNewMsgData->SetSubject(_T("Policy notice: ") + ruleName);
       pNewMsgData->SetBody(body);
       pNewMsgData->SetSentTime(Time::GetCurrentMimeDate());

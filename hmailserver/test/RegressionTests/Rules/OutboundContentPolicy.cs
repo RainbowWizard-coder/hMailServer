@@ -481,6 +481,47 @@ namespace RegressionTests.Rules
          }
       }
 
+      /// <summary>
+      /// A notice carries the rule's name and its owner's text, and came from the
+      /// postmaster of the sender's own domain - so that an account of one domain hosted
+      /// here, with a rule of its own, wrote to a sender of another in that domain's name,
+      /// and the server signed it with that domain's key. It comes from the postmaster of
+      /// the rule owner's domain, and is signed as that domain.
+      ///
+      /// Against the server before the fix the notice is From: postmaster@example.test.
+      /// </summary>
+      [Test]
+      [Description("An account's rule warns a sender of another hosted domain from the postmaster of the account's own domain, signed as that domain")]
+      public void AnAccountsRuleWarnsFromItsOwnDomainsPostmaster()
+      {
+         hMailServer.Domain ownerDomain = SingletonProvider<TestSetup>.Instance.AddDomain("notice-owner.test");
+         ownerDomain.DKIMPrivateKeyFile = Paths.Combine(TestContext.CurrentContext.TestDirectory, "..\\..\\..\\..\\SSL examples\\example.key");
+         ownerDomain.DKIMSelector = "TestSelector";
+         ownerDomain.DKIMSignEnabled = true;
+         ownerDomain.Save();
+
+         Account sender = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "warned-by-another@example.test", "test");
+         Account owner = SingletonProvider<TestSetup>.Instance.AddAccount(ownerDomain, "rule-owner@notice-owner.test", "test");
+
+         Rule rule = NewRule(owner.Rules, "The owner's own words");
+         AddCriterion(rule, (int) eRulePredefinedField.eFTSubject, eRuleMatchType.eMTContains, "Whose notice");
+         AddAction(rule, WarnSender, value: "Written by the rule's owner.");
+         rule.Save();
+
+         SmtpClientSimulator.StaticSend(sender.Address, owner.Address, "Whose notice is this?", "Hello.");
+         Pop3ClientSimulator.AssertMessageCount(owner.Address, "test", 1);
+
+         Pop3ClientSimulator.AssertMessageCount(sender.Address, "test", 1);
+         string notice = Decoded(Pop3ClientSimulator.AssertGetFirstMessageText(sender.Address, "test"));
+         StringAssert.Contains("Written by the rule's owner.", notice, "This is not the notice.");
+         StringAssert.Contains("From: postmaster@notice-owner.test", notice,
+            "An account's rule's notice does not come from the postmaster of the account's own domain.\r\n" + notice);
+         StringAssert.DoesNotContain("postmaster@example.test", notice,
+            "An account's rule's notice came in the name of the sender's own domain.\r\n" + notice);
+         StringAssert.Contains("d=notice-owner.test", notice,
+            "The notice, which the server makes, is not signed as the domain it comes from.\r\n" + notice);
+      }
+
       [Test]
       [Description("No notice goes to a sender this server does not host: the message from outside is delivered and nothing is sent back")]
       public void AnOutsideSenderIsNotWarned()

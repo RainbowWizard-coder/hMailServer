@@ -10,6 +10,7 @@ namespace HM
 {
 
    class Account;
+   class Domain;
    class Message;
    class Rules;
    class Rule; 
@@ -136,6 +137,17 @@ namespace HM
       // Nor has an account's own rule (account set), which runs once for its
       // recipient, at local delivery, whichever pass delivers that recipient.
       void SendPolicyNotice_(std::shared_ptr<Rule> pRule, const String &actionText, std::shared_ptr<MessageData> pMsgData, bool notSent, std::shared_ptr<const Account> account) const;
+
+      // The domain whose postmaster a notice comes from, and as which the server signs
+      // it: the rule owner's - the account's domain for an account's rule, the domain
+      // for a domain's - since the notice carries the rule's name and text. For a
+      // server rule, the server administrator's, the server's default domain when it
+      // is one hosted here, else the hosted domain the message was addressed to, else
+      // the sender's own. Until 7 October 2026 every notice came from the postmaster of
+      // the sender's own domain, so that one tenant's rule wrote to a sender of another
+      // in that domain's name, signed with its key.
+      String PolicyNoticeDomain_(std::shared_ptr<Rule> rule, std::shared_ptr<const Account> account, std::shared_ptr<Message> message,
+                                 std::shared_ptr<const Domain> senderDomain) const;
       bool RuleMatches_(std::shared_ptr<Rule> pRule, std::shared_ptr<MessageData> pMsgData);
       void ApplyAction_SetHeader(std::shared_ptr<Rule> pRule, std::shared_ptr<RuleAction> pAction, std::shared_ptr<const Account> account, std::shared_ptr<MessageData> pMsgData) const;
 

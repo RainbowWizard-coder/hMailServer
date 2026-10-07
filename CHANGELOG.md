@@ -235,6 +235,16 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   delivers a reply from no address under the name of a hosted domain's address, unsigned and naming no address.
   Found by the project's own review.
 
+  A rule's *Warn sender* notice, and the notice a *Reject* met after acceptance sends, carry the rule's name and its
+  owner's text, and came from `postmaster@` the sender's own domain (from 6.3.4, which brought them): an account's or
+  a domain's rule wrote to a sender of another domain hosted here in that domain's name, and the server signed it with
+  that domain's key. A notice now comes from the postmaster of the rule owner's domain - the account's domain for an
+  account's rule, the domain for a domain's rule - and is signed as that domain, as mail the server makes is. A server
+  rule's notice, the administrator's, comes from the postmaster of the server's default domain when one is set and
+  hosted here, else of the hosted domain the message was addressed to, else of the sender's own.
+  `Rules/OutboundContentPolicy.cs` has an account of one hosted domain warn a sender of another, and finds the notice
+  from its own domain's postmaster and signed as it.
+
 - **Fixed: mail from outside whose `From` named a domain hosted here was signed with that domain's DKIM key, and so
   was every forward of it.** The server signed a message as the domain its `From` names on its first delivery pass,
   whatever the message was (in every version that signs): a sender anywhere who wrote `From: ceo@` a domain hosted
