@@ -168,9 +168,13 @@ copy of it (a recipient's forward, a list's copy); with `ArcSealingEnabled` on, 
 leaves is sealed by the domain that relays it. The debug log says why, naming the address
 and the account. The server reads the `From` as the signer does: the first address of the
 first `From` field, or `MAIL FROM` when that field names none. A `From` of a domain this
-server does not host is not affected - the server never signed it. **To keep signing such
-mail**, give the account the right to send as the address (an alias that points at it, or
-the post right on the other mailbox's INBOX), or send it from that domain's own account.
+server does not host is not affected - the server never signed it. A session a trusted
+upstream signed in through `XCLIENT LOGIN` under a name that is no account here is held to
+the same rule with the name in the account's place: it is signed as the domain the name is
+at, and as another hosted domain only for an alias that points at the name. **To keep
+signing such mail**, give the account the right to send as the address (an alias that points
+at it, or the post right on the other mailbox's INBOX), or send it from that domain's own
+account.
 
 The routes
 ----------

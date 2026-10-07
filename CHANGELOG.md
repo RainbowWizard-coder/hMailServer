@@ -135,20 +135,20 @@ prompt. Found by the project's own review (work item 78; CVE requested).
     permitted to delete it, and RFC 3834 section 5.1 allows a message one, so an `addheader` of `no` above it is a
     deletion by another name; either, ahead of a `redirect`, handed an automatic reply to the next mailbox's
     responder as a person's message to answer (from 6.2.22).
-  - A line break in a header value is now written as a space unless it folds the line, by the MIME writer itself, so
-    that no value writes a field of its own. That was not the rules' and the scripts' edits alone: every message the
-    server generates is built from values that are not its own, and the field a line break wrote sat above the ones
-    the generator set, so it was what was read. A Sieve `notify` whose `:message` or `:from` held line breaks wrote
-    `Auto-Submitted: no` and a count of 0 above the notification's own (from 6.2.22), so that a script notifying its
-    own account notified about its own notifications for ever; a copy rule's name, which the copy carries in
-    `X-CopyRule`, reset the count at every copy (in every version), so that an account copying its own mail made
-    copies without end; and a rule's reply subject, an out-of-office subject, and the sender's own subject decoded
-    into a vacation reply or a bounce reset it on the message they made. COM's `Message.Save` refuses a credential's
-    message whose values hold a line break that does not fold them, and says why, rather than send it changed (6.3.6
-    sent a line break that began a field of its own as that field, and checked it as it checks the others). Nor does
-    the writer fold a value before white space that ends it, which left a line of nothing but white space - the end
-    of the header to some programs - and which `Message.Save` refused, from 6.3.6, as a line break the program never
-    gave: a subject of 78 letters and a space.
+  - A line break in a header value is now written as spaces unless it folds the line, a space for each CR and each LF,
+    by the MIME writer itself, so that no value writes a field of its own. That was not the rules' and the scripts'
+    edits alone: every message the server generates is built from values that are not its own, and the field a line
+    break wrote sat above the ones the generator set, so it was what was read. A Sieve `notify` whose `:message` or
+    `:from` held line breaks wrote `Auto-Submitted: no` and a count of 0 above the notification's own (from 6.2.22),
+    so that a script notifying its own account notified about its own notifications for ever; a copy rule's name,
+    which the copy carries in `X-CopyRule`, reset the count at every copy (in every version), so that an account
+    copying its own mail made copies without end; and a rule's reply subject, an out-of-office subject, and the
+    sender's own subject decoded into a vacation reply or a bounce reset it on the message they made. COM's
+    `Message.Save` refuses a credential's message whose values hold a line break that does not fold them, and says
+    why, rather than send it changed (6.3.6 sent a line break that began a field of its own as that field, and checked
+    it as it checks the others). Nor does the writer fold a value before white space that ends it, which left a line
+    of nothing but white space - the end of the header to some programs - and which `Message.Save` refused, from
+    6.3.6, as a line break the program never gave: a subject of 78 letters and a space.
   - An out-of-office reply, an account's or a domain's, carried a count of 1 whatever the message it answered
     carried, where every other reply carries that count + 1: it now does too, and none is sent once the count has
     reached the limit, as a Sieve `vacation` reply is held. So a `RuleLoopLimit` of 0, which already stopped every
@@ -281,16 +281,18 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   message as whatever domain hosted here its `From` named, so an account of one domain that wrote `From: ceo@` another
   had the message signed with that domain's key, which DMARC then passed (in every version that signs). The webmail's
   send and COM's `Message.Save` already hold a `From` to the account. Such a submission is now signed as the `From`'s
-  domain when that is the account's own domain, or one of its domain aliases, whatever the address in it - an
-  account writing as `info@` its own domain is signed as before - and as another hosted domain only when the account
-  may send as that address: its own, an alias pointing at it, a mailbox that granted it the post right, an address it
-  proved, a masked address of its own (`SendAs.md`). Otherwise the message is still accepted and sent, unsigned as
-  that domain, and so is every copy of it, through a restart - it carries the mark mail from outside does - and the
-  debug log says why. **Upgrading:** an installation where accounts send as another hosted domain's addresses
-  without an alias or a grant should give them one, or the mail goes unsigned. `SigningOriginTester` holds the mark
-  and the address the signer reads to examples, and `AntiSpam/DKIM/ArcSealing.cs` sends a signed-in account's
-  message as another hosted domain's address (not signed, nor its forward), as an alias of its own and as its own
-  domain's other address (both signed).
+  domain when that is the account's own domain, or one of its domain aliases, whatever the address in it - an account
+  writing as `info@` its own domain is signed as before - and as another hosted domain only when the account may send
+  as that address: its own, an alias pointing at it, a mailbox that granted it the post right, an address it proved, a
+  masked address of its own (`SendAs.md`). Otherwise the message is still accepted and sent, unsigned as that domain,
+  and so is every copy of it, through a restart - it carries the mark mail from outside does - and the debug log says
+  why. A session a trusted upstream signed in through `XCLIENT LOGIN` under a name that is no account here is held to
+  the same rule with the name in the account's place: signed as the domain the name is at, and as another hosted
+  domain only for an alias that points at the name. **Upgrading:** an installation where accounts send as another
+  hosted domain's addresses without an alias or a grant should give them one, or the mail goes unsigned.
+  `SigningOriginTester` holds the mark and the address the signer reads to examples, and `AntiSpam/DKIM/ArcSealing.cs`
+  sends a signed-in account's message as another hosted domain's address (not signed, nor its forward), as an alias of
+  its own and as its own domain's other address (both signed).
 
 - **Fixed: an ARC seal attested whatever SPF result the first `Received-SPF` field of the message claimed.** With
   `ArcSealingEnabled` on, the `ARC-Authentication-Results` this server seals over mail it relays read `spf=` from
