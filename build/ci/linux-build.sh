@@ -180,8 +180,8 @@ fi
 # Every tester program the CMake build makes (the *-tests targets: spf-tests,
 # script-binding-tests, and any added later), found rather than listed, so a new
 # one runs here the day it is added. They need no server, no database and no
-# network but the loopback, which network-deadline-tests connects over to peers
-# of its own.
+# network but the loopback, which network-deadline-tests and http-server-tests
+# connect over to peers of their own.
 testers=$(find "$build_dir" -maxdepth 1 -type f -name '*-tests' -perm -u+x | sort)
 if [ -z "$testers" ]; then
   echo "No *-tests program in $build_dir: the CMake build no longer makes the testers it did."

@@ -26,21 +26,29 @@
 //    HTTP/1.0 with Connection: close and are answered exactly as before.
 //
 //  - Absolute ceilings, not idle timeouts. A request timer starts when the
-//    server begins waiting for a request and covers reading it and handling
-//    it; a connection timer starts at accept and covers the connection's whole
-//    life. A client that dribbles a byte at a time just under an idle timeout
+//    server begins waiting for a request and covers reading it; a connection
+//    timer starts at accept and covers the connection's whole life. A client that dribbles a byte at a time just under an idle timeout
 //    used to occupy the single worker indefinitely; here it is closed when the
 //    deadline passes, whatever it is doing.
 //
 //  - The response is written in pieces of WriteChunkBytes, and the request
 //    timer is armed afresh for each: a reader that stops reading is closed
 //    after request_seconds without progress, and one that keeps reading gets
-//    as long as the connection timer allows - which a large download moves
-//    out to fit its size (below). Until 26 September 2026 the
+//    as long as the connection timer allows - which every answer moves out,
+//    when it has to, to fit its size (below). Until 26 September 2026 the
 //    request timer that covered reading the request covered writing the
 //    response too, so a download larger than request_seconds of the reader's
 //    bandwidth - a 100 MB file link at under 27 Mbit/s - was cut off part way,
 //    every time.
+//
+//  - An answer once begun is written whole or the connection is reset; it is
+//    never ended part way as though it were complete. A handler that runs past
+//    request_seconds has its answer written all the same (the deadline is for
+//    a peer that stalls, not for an answer slow to make), and a timer that ran
+//    out while it ran no longer closes the connection behind the answer's first
+//    piece (ArmConnectionTimerAt_). A close in the middle of an answer - a
+//    reader that stopped reading, the server stopping - is an abortive one, a
+//    reset, which no client takes for the end of the answer (CloseNow_).
 //
 //  - The head is held to max_request_bytes WHILE it is read (HttpHeadMatch), not
 //    once its blank line has arrived: a head that never ends is refused as soon
@@ -73,9 +81,12 @@
 
 #include <algorithm>
 #include <chrono>
+#include <cstdlib>
 #include <cstring>
 #include <iterator>
+#include <stdexcept>
 #include <string>
+#include <thread>
 #include <type_traits>
 #include <utility>
 
@@ -424,13 +435,31 @@ namespace HM
    private:
       void ArmConnectionTimer_()
       {
-         std::shared_ptr<HttpConnection> self = shared_from_this();
+         ArmConnectionTimerAt_(std::chrono::steady_clock::now() + std::chrono::seconds(limits_.connection_seconds));
+      }
 
-         connection_timer_.expires_after(std::chrono::seconds(limits_.connection_seconds));
+      // The one place the connection timer is set, and the request timer's
+      // below the one place that is. Each setting is numbered, and a wait that
+      // completes with a number that is no longer the latest does nothing.
+      // Moving a deadline cancels the wait pending on the old one - but only a
+      // wait that has not already completed: one whose time ran out while a
+      // handler held the strand has its completion queued behind the handler
+      // by then, cannot be cancelled, and arrives with success. Until 7 October
+      // 2026 that completion closed the connection on the strand's next turn,
+      // which came just after the handler's answer had handed the socket its
+      // first 64 KB: a search that took longer than request_seconds answered
+      // 65,413 bytes of its 67,996 and was closed - measured on server1 with
+      // the full-text index on, Python's IncompleteRead on every such answer.
+      void ArmConnectionTimerAt_(std::chrono::steady_clock::time_point when)
+      {
+         std::shared_ptr<HttpConnection> self = shared_from_this();
+         const unsigned long long arm = ++connection_timer_arms_;
+
+         connection_timer_.expires_at(when);
          connection_timer_.async_wait(boost::asio::bind_executor(strand_,
-            [self](const boost::system::error_code &error)
+            [self, arm](const boost::system::error_code &error)
             {
-               if (!error)
+               if (!error && arm == self->connection_timer_arms_)
                   self->CloseNow_();
             }));
       }
@@ -443,14 +472,16 @@ namespace HM
       void ArmRequestTimer_(unsigned seconds)
       {
          std::shared_ptr<HttpConnection> self = shared_from_this();
+         const unsigned long long arm = ++request_timer_arms_;
 
-         // expires_after cancels a wait already pending, whose handler then runs
-         // with operation_aborted and does nothing.
+         // expires_after cancels a wait still pending, whose handler then runs
+         // with operation_aborted and does nothing; one that completed already
+         // is told apart by its number (ArmConnectionTimerAt_).
          request_timer_.expires_after(std::chrono::seconds(seconds));
          request_timer_.async_wait(boost::asio::bind_executor(strand_,
-            [self](const boost::system::error_code &error)
+            [self, arm](const boost::system::error_code &error)
             {
-               if (!error)
+               if (!error && arm == self->request_timer_arms_)
                   self->CloseNow_();
             }));
       }
@@ -830,13 +861,21 @@ namespace HM
             // Closed after it, as a body file's connection is, so the longer
             // deadline is this download's and not the connection's.
             keep_alive_ = false;
-            ExtendConnectionDeadline_(response.body.GetLength());
          }
+
+         // Whatever its size, an answer is begun only under a connection
+         // deadline it can be written in; one that would come first - a
+         // kept-alive connection near the end of its life, or a handler that
+         // ran past it - is moved out, and the connection closed after this
+         // answer, so the connection's life still ends where it did, give or
+         // take the one answer it was in the middle of.
+         if (ExtendConnectionDeadline_(response.body.GetLength()))
+            keep_alive_ = false;
 
          out_ = HttpServer::Serialize(response, keep_alive_);
          written_ = 0;
 
-         WriteNext_();
+         BeginResponse_();
       }
 
       // A response whose body is a file: the head now, the file's bytes a
@@ -871,7 +910,7 @@ namespace HM
          out_ = HttpServer::SerializeHead(response, false, size);
          written_ = 0;
 
-         WriteNext_();
+         BeginResponse_();
       }
 
       // The next piece of a body file into out_. False when the file ended
@@ -912,10 +951,11 @@ namespace HM
          HttpResponse busy = error_responder_(503, "too many large downloads at once; try again shortly");
          busy.extra_headers += AnsiString("Retry-After: ") + LargeRefusalRetryAfter + "\r\n";
          keep_alive_ = false;
+         ExtendConnectionDeadline_(busy.body.GetLength());
 
          out_ = HttpServer::Serialize(busy, false);
          written_ = 0;
-         WriteNext_();
+         BeginResponse_();
       }
 
       bool TakeLargeResponse_()
@@ -955,29 +995,29 @@ namespace HM
       }
 
       // The connection timer moved out, never in, to the time bytes take at
-      // download_bytes_per_second, with request_seconds to spare.
-      void ExtendConnectionDeadline_(unsigned long long bytes)
+      // download_bytes_per_second, with request_seconds to spare. True when it
+      // moved: the connection's own deadline would have come first.
+      bool ExtendConnectionDeadline_(unsigned long long bytes)
       {
-         if (limits_.download_bytes_per_second == 0)
-            return;
+         unsigned long long seconds = limits_.request_seconds;
+         if (limits_.download_bytes_per_second > 0)
+            seconds += bytes / limits_.download_bytes_per_second;
 
-         const unsigned long long seconds = bytes / limits_.download_bytes_per_second + limits_.request_seconds;
          const std::chrono::steady_clock::time_point wanted = std::chrono::steady_clock::now() + std::chrono::seconds((long long) seconds);
 
          if (connection_timer_.expiry() >= wanted)
-            return;
+            return false;
 
-         std::shared_ptr<HttpConnection> self = shared_from_this();
+         ArmConnectionTimerAt_(wanted);
+         return true;
+      }
 
-         // expires_at cancels the wait already pending, whose handler then runs
-         // with operation_aborted and does nothing.
-         connection_timer_.expires_at(wanted);
-         connection_timer_.async_wait(boost::asio::bind_executor(strand_,
-            [self](const boost::system::error_code &error)
-            {
-               if (!error)
-                  self->CloseNow_();
-            }));
+      // An answer's first byte is about to be handed to the socket. From here
+      // until its last one has been, a close is an abortive one (CloseNow_).
+      void BeginResponse_()
+      {
+         response_started_ = true;
+         WriteNext_();
       }
 
       // One piece of out_, with the request timer armed afresh for it: the
@@ -1035,6 +1075,11 @@ namespace HM
          if (closed_)
             return;
 
+         // Every byte of the answer is with the socket, unless the write
+         // failed - and then the close that follows may as well be abortive.
+         if (!error)
+            response_started_ = false;
+
          // A large download is done with, written or not.
          ReleaseLargeResponse_();
 
@@ -1085,6 +1130,16 @@ namespace HM
          boost::system::error_code ignored;
          request_timer_.cancel();
          connection_timer_.cancel();
+
+         // Closed in the middle of an answer - a reader that stopped reading for
+         // request_seconds, a download past its connection deadline, the server
+         // stopping - is reset, not ended: an orderly close there is an end of
+         // stream a client may read as the end of the answer, and a reset is
+         // an error no client mistakes for one. What was still to be sent is
+         // let go at once rather than sent after the close.
+         if (response_started_)
+            socket_.set_option(boost::asio::socket_base::linger(true, 0), ignored);
+
          socket_.close(ignored);
 
          ReleaseLargeResponse_();
@@ -1116,6 +1171,13 @@ namespace HM
       bool closed_;
       std::string out_;
       size_t written_ = 0;
+
+      // Which setting of each timer is the latest (ArmConnectionTimerAt_), and
+      // whether an answer has begun and is not yet all with the socket
+      // (BeginResponse_, CloseNow_).
+      unsigned long long connection_timer_arms_ = 0;
+      unsigned long long request_timer_arms_ = 0;
+      bool response_started_ = false;
 
       // A response's body file while it is sent, and whether this connection
       // holds one of the server's large-download slots.
@@ -1443,6 +1505,17 @@ namespace HM
       return connections_.size();
    }
 
+   int
+   HttpServer::GetBoundPort() const
+   {
+      if (listeners_.empty())
+         return 0;
+
+      boost::system::error_code error;
+      const boost::asio::ip::tcp::endpoint endpoint = listeners_[0]->acceptor.local_endpoint(error);
+      return error ? 0 : (int) endpoint.port();
+   }
+
    void
    HttpServer::Stop()
    {
@@ -1616,5 +1689,349 @@ namespace HM
          result.Format(_T("%s:%d"), bind_address.c_str(), port);
 
       return result;
+   }
+
+   namespace
+   {
+      // A server of the tester's own on 127.0.0.1, on a port the system
+      // chooses, answering with the handler given; stopped when it goes.
+      class HttpTesterServer
+      {
+      public:
+         HttpTesterServer(const HttpLimits &limits, HttpServer::Handler handler)
+         {
+            server_.reset(new HttpServer("HttpServerTester", limits, handler, HttpServer::AcceptFilter(), HttpServer::ErrorResponder()));
+            if (!server_->Listen(_T("127.0.0.1"), 0, std::shared_ptr<boost::asio::ssl::context>()))
+               throw std::logic_error("HttpServerTester: a listener on 127.0.0.1 could not be opened.");
+
+            server_->Start();
+            port_ = server_->GetBoundPort();
+            if (port_ <= 0)
+               throw std::logic_error("HttpServerTester: the listener's port could not be read back.");
+         }
+
+         ~HttpTesterServer()
+         {
+            server_->Stop();
+         }
+
+         int Port() const { return port_; }
+
+      private:
+         std::shared_ptr<HttpServer> server_;
+         int port_ = 0;
+      };
+
+      // A client of the tester's: what it sends, and every byte it reads back
+      // with how the reading ended, under a deadline of its own so that a
+      // server that never answers fails the case rather than hanging it.
+      class HttpTesterClient
+      {
+      public:
+         HttpTesterClient(int port, int receiveBuffer) :
+            socket_(io_)
+         {
+            socket_.open(boost::asio::ip::tcp::v4());
+
+            // Set before the connection, so the window the server is offered
+            // is this small from the start.
+            if (receiveBuffer > 0)
+               socket_.set_option(boost::asio::socket_base::receive_buffer_size(receiveBuffer));
+
+            socket_.connect(boost::asio::ip::tcp::endpoint(boost::asio::ip::address_v4::loopback(), (unsigned short) port));
+         }
+
+         void Send(const std::string &text)
+         {
+            boost::asio::write(socket_, boost::asio::buffer(text.data(), text.size()));
+         }
+
+         // Reads until `total` bytes have arrived in all, the peer ends the
+         // connection, or `seconds` pass.
+         void ReadUntil(size_t total, unsigned seconds)
+         {
+            const std::chrono::steady_clock::time_point deadline = std::chrono::steady_clock::now() + std::chrono::seconds(seconds);
+            char chunk[65536];
+
+            while (bytes.size() < total && !ended && !timed_out)
+            {
+               const size_t want = std::min(sizeof(chunk), total - bytes.size());
+               bool done = false;
+               size_t got = 0;
+               boost::system::error_code error;
+
+               socket_.async_read_some(boost::asio::buffer(chunk, want),
+                  [&done, &got, &error](const boost::system::error_code &e, size_t n)
+                  {
+                     error = e;
+                     got = n;
+                     done = true;
+                  });
+
+               io_.restart();
+               io_.run_until(deadline);
+
+               if (!done)
+               {
+                  timed_out = true;
+                  boost::system::error_code ignored;
+                  socket_.close(ignored);
+                  io_.restart();
+                  io_.run();
+                  return;
+               }
+
+               bytes.append(chunk, got);
+
+               if (error)
+               {
+                  end = error;
+                  ended = true;
+               }
+            }
+         }
+
+         std::string bytes;
+         boost::system::error_code end;
+         bool ended = false;
+         bool timed_out = false;
+
+      private:
+         boost::asio::io_context io_;
+         boost::asio::ip::tcp::socket socket_;
+      };
+
+      // The head of the first answer in bytes, and the Content-Length it
+      // declares; false while the head has not all arrived.
+      bool HttpTesterHead(const std::string &bytes, std::string &head, size_t &contentLength)
+      {
+         const size_t end = bytes.find("\r\n\r\n");
+         if (end == std::string::npos)
+            return false;
+
+         head = bytes.substr(0, end + 4);
+
+         const size_t field = head.find("Content-Length: ");
+         if (field == std::string::npos)
+            throw std::logic_error("HttpServerTester: an answer came without a Content-Length.");
+
+         contentLength = (size_t) strtoull(head.c_str() + field + 16, nullptr, 10);
+         return true;
+      }
+
+      // A body whose every byte is known, so that one cut short or put
+      // together wrongly cannot pass for the whole.
+      std::string HttpTesterBody(size_t size)
+      {
+         std::string body(size, ' ');
+         for (size_t i = 0; i < size; i++)
+            body[i] = (i % 64 == 63) ? '\n' : (char) ('a' + (i * 7 + i / 64) % 26);
+         return body;
+      }
+
+      HttpResponse HttpTesterAnswer(const std::string &body)
+      {
+         HttpResponse response;
+         response.status = 200;
+         response.content_type = "application/octet-stream";
+         response.body = AnsiString(body);
+         return response;
+      }
+
+      // The deadlines the cases run under: one second for a request, so that a
+      // handler sleeping a little longer is past it.
+      HttpLimits HttpTesterLimits()
+      {
+         HttpLimits limits;
+         limits.request_seconds = 1;
+         limits.connection_seconds = 60;
+         limits.worker_threads = 2;
+         limits.max_connections = 8;
+         limits.compression = false;
+         return limits;
+      }
+
+      const unsigned HttpTesterLateMilliseconds = 1600;
+
+      std::string HttpTesterDescribe(const HttpTesterClient &client)
+      {
+         std::string text = std::to_string(client.bytes.size()) + " bytes read, then ";
+         if (client.timed_out)
+            return text + "nothing more for the client's own deadline";
+         if (client.end == boost::asio::error::eof)
+            return text + "an orderly end of the connection";
+         return text + "the error \"" + client.end.message() + "\"";
+      }
+   }
+
+   void
+   HttpServerTester::Test()
+   {
+      TestLateAnswerArrivesWhole_();
+      TestConnectionDeadlineDuringHandler_();
+      TestStalledReaderIsReset_();
+      TestKeepAliveAfterLateAnswer_();
+   }
+
+   // A handler that returns after request_seconds: its answer, larger than a
+   // piece of the writer's, is written whole. Until 7 October 2026 the expiry
+   // that came while the handler ran closed the connection behind the first
+   // 64 KB.
+   void
+   HttpServerTester::TestLateAnswerArrivesWhole_()
+   {
+      const std::string body = HttpTesterBody(300000);
+
+      HttpTesterServer server(HttpTesterLimits(), [&body](const HttpRequest &)
+      {
+         std::this_thread::sleep_for(std::chrono::milliseconds(HttpTesterLateMilliseconds));
+         return HttpTesterAnswer(body);
+      });
+
+      HttpTesterClient client(server.Port(), 0);
+      client.Send("GET /late HTTP/1.1\r\nHost: tester\r\nConnection: close\r\n\r\n");
+      client.ReadUntil(std::string::npos, 30);
+
+      std::string head;
+      size_t contentLength = 0;
+      if (!HttpTesterHead(client.bytes, head, contentLength))
+         throw std::logic_error("HttpServerTester: a handler that answered after the request deadline sent no complete head (" + HttpTesterDescribe(client) + ").");
+
+      if (contentLength != body.size() || client.bytes.size() - head.size() != body.size() || client.bytes.compare(head.size(), std::string::npos, body) != 0)
+         throw std::logic_error("HttpServerTester: an answer of " + std::to_string(body.size()) + " bytes that its handler returned after the request deadline did not arrive whole: " +
+                                HttpTesterDescribe(client) + ", the head being " + std::to_string(head.size()) + ".");
+
+      if (client.end != boost::asio::error::eof)
+         throw std::logic_error("HttpServerTester: a whole answer the client asked to be closed after was not ended in order (" + HttpTesterDescribe(client) + ").");
+   }
+
+   // The connection's own deadline running out while the handler runs: the
+   // answer is written whole, under a deadline moved out to fit it, and the
+   // connection closed after it, as its head says.
+   void
+   HttpServerTester::TestConnectionDeadlineDuringHandler_()
+   {
+      const std::string body = HttpTesterBody(300000);
+
+      HttpLimits limits = HttpTesterLimits();
+      limits.request_seconds = 30;
+      limits.connection_seconds = 1;
+
+      HttpTesterServer server(limits, [&body](const HttpRequest &)
+      {
+         std::this_thread::sleep_for(std::chrono::milliseconds(HttpTesterLateMilliseconds));
+         return HttpTesterAnswer(body);
+      });
+
+      HttpTesterClient client(server.Port(), 0);
+      client.Send("GET /late HTTP/1.1\r\nHost: tester\r\n\r\n");
+      client.ReadUntil(std::string::npos, 30);
+
+      std::string head;
+      size_t contentLength = 0;
+      if (!HttpTesterHead(client.bytes, head, contentLength) || contentLength != body.size() ||
+          client.bytes.size() - head.size() != body.size() || client.bytes.compare(head.size(), std::string::npos, body) != 0)
+         throw std::logic_error("HttpServerTester: an answer whose handler outlasted the connection's deadline did not arrive whole: " + HttpTesterDescribe(client) + ".");
+
+      if (head.find("Connection: close\r\n") == std::string::npos)
+         throw std::logic_error("HttpServerTester: a connection kept past its deadline for one answer did not say it would be closed after it.");
+
+      if (client.end != boost::asio::error::eof)
+         throw std::logic_error("HttpServerTester: a connection past its deadline was not ended in order after its last answer (" + HttpTesterDescribe(client) + ").");
+   }
+
+   // A reader that stops reading part way through an answer is closed after
+   // request_seconds without progress - and reset, so that what it has is
+   // never taken for the whole: an orderly end there reads as the end of the
+   // answer to a client that does not count the bytes against Content-Length.
+   void
+   HttpServerTester::TestStalledReaderIsReset_()
+   {
+      // Larger than the socket buffers on both sides can hold, so the
+      // server's write stalls for as long as the client does not read.
+      const std::string body = HttpTesterBody(16 * 1024 * 1024);
+
+      HttpLimits limits = HttpTesterLimits();
+      limits.large_response_bytes = 0;
+
+      HttpTesterServer server(limits, [&body](const HttpRequest &)
+      {
+         return HttpTesterAnswer(body);
+      });
+
+      HttpTesterClient client(server.Port(), 16 * 1024);
+      client.Send("GET /large HTTP/1.1\r\nHost: tester\r\nConnection: close\r\n\r\n");
+      client.ReadUntil(4096, 30);
+
+      if (client.ended || client.timed_out)
+         throw std::logic_error("HttpServerTester: the start of a large answer did not arrive (" + HttpTesterDescribe(client) + ").");
+
+      // Not reading for longer than the request deadline.
+      std::this_thread::sleep_for(std::chrono::milliseconds(2500));
+
+      client.ReadUntil(std::string::npos, 60);
+
+      std::string head;
+      size_t contentLength = 0;
+      if (!HttpTesterHead(client.bytes, head, contentLength))
+         throw std::logic_error("HttpServerTester: a large answer sent no complete head (" + HttpTesterDescribe(client) + ").");
+
+      if (client.bytes.size() - head.size() >= contentLength)
+         throw std::logic_error("HttpServerTester: the socket buffers took the whole of a " + std::to_string(body.size()) +
+                                "-byte answer, so a reader that stopped could not stall the writer and this case says nothing.");
+
+      if (client.timed_out || client.end == boost::asio::error::eof)
+         throw std::logic_error("HttpServerTester: a reader that stopped part way through an answer was not reset after the request deadline: " +
+                                HttpTesterDescribe(client) + ", of " + std::to_string(contentLength) + " declared.");
+   }
+
+   // A late answer on a kept-alive connection, and then the next request on
+   // the same connection: answered too. The expiry from the late one must
+   // neither close the connection nor shorten the next request's deadline.
+   void
+   HttpServerTester::TestKeepAliveAfterLateAnswer_()
+   {
+      const std::string body = HttpTesterBody(100000);
+
+      HttpTesterServer server(HttpTesterLimits(), [&body](const HttpRequest &request)
+      {
+         if (request.target == "/quick")
+            return HttpTesterAnswer("quick");
+
+         std::this_thread::sleep_for(std::chrono::milliseconds(HttpTesterLateMilliseconds));
+         return HttpTesterAnswer(body);
+      });
+
+      HttpTesterClient client(server.Port(), 0);
+      client.Send("GET /late HTTP/1.1\r\nHost: tester\r\n\r\n");
+
+      std::string head;
+      size_t contentLength = 0;
+      client.ReadUntil(1, 30);
+      while (!client.ended && !client.timed_out && !HttpTesterHead(client.bytes, head, contentLength))
+         client.ReadUntil(client.bytes.size() + 1, 30);
+
+      if (head.empty())
+         throw std::logic_error("HttpServerTester: a late answer on a kept-alive connection sent no complete head (" + HttpTesterDescribe(client) + ").");
+
+      client.ReadUntil(head.size() + contentLength, 30);
+
+      if (contentLength != body.size() || client.bytes.size() != head.size() + body.size() || client.bytes.compare(head.size(), std::string::npos, body) != 0)
+         throw std::logic_error("HttpServerTester: a late answer on a kept-alive connection did not arrive whole: " + HttpTesterDescribe(client) + ".");
+
+      if (head.find("Connection: keep-alive\r\n") == std::string::npos)
+         throw std::logic_error("HttpServerTester: a late answer on a young connection did not keep it alive.");
+
+      const size_t first = client.bytes.size();
+
+      // A moment, so that anything the late answer's deadline left queued has
+      // run before the next request goes.
+      std::this_thread::sleep_for(std::chrono::milliseconds(300));
+      client.Send("GET /quick HTTP/1.1\r\nHost: tester\r\nConnection: close\r\n\r\n");
+      client.ReadUntil(std::string::npos, 30);
+
+      const std::string second = client.bytes.substr(first);
+      if (second.compare(0, 15, "HTTP/1.1 200 OK") != 0 || second.size() < 5 || second.compare(second.size() - 5, 5, "quick") != 0)
+         throw std::logic_error("HttpServerTester: the request after a late answer on the same connection was not answered: " + HttpTesterDescribe(client) + ".");
    }
 }

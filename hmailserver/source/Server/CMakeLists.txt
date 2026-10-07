@@ -955,6 +955,23 @@ add_executable(network-deadline-tests ${SERVER_DIR}/platform/network_deadline_te
 target_link_libraries(network-deadline-tests PRIVATE hmailserver_core)
 set_target_properties(network-deadline-tests PROPERTIES OUTPUT_NAME network-deadline-tests)
 
+# ---------------------------------------------------------------- the HTTP listeners' deadlines
+#
+# HttpServerTester (Common/Util/HttpServer.h) as a program of its own, for the
+# reason spf-tests is one: on Windows it runs inside the server through
+# ClassTester, which nothing reaches here. Each case against an HttpServer of
+# its own on 127.0.0.1: an answer a handler returns after the request deadline,
+# or after the connection's, arrives whole; a reader that stops part way
+# through an answer is reset rather than handed an orderly end; a kept-alive
+# connection answers on after a late answer. No database, configuration or
+# file, no connection but to 127.0.0.1 - but the loopback, so the source
+# packages' builds, which refuse every socket, leave it out of their lists, as
+# they leave out network-deadline-tests. About ten seconds. Not installed; a
+# bench tool.
+add_executable(http-server-tests ${SERVER_DIR}/platform/http_server_tests_main.cpp)
+target_link_libraries(http-server-tests PRIVATE hmailserver_core)
+set_target_properties(http-server-tests PROPERTIES OUTPUT_NAME http-server-tests)
+
 # ---------------------------------------------------------------- the live log
 #
 # The Logger's live log switched on and off while four threads log and one drains

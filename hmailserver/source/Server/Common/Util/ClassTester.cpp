@@ -157,6 +157,7 @@ namespace
 #include "../Util/CompromiseDetector.h"
 #include "../Util/EventTester.h"
 #include "../Util/HttpCompression.h"
+#include "../Util/HttpServer.h"
 #include "../Util/UpdateChecker.h"
 #include "../Util/Language.h"
 #include "../SQL/PGConnection.h"
@@ -1524,6 +1525,16 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing HttpCompression\n"));
       HttpCompressionTester httpCompressionTester;
       httpCompressionTester.Test();
+
+      // The HTTP listeners' deadlines, over the loopback against a server of
+      // the tester's own: an answer a handler returns after the request
+      // deadline, or after the connection's, arrives whole; a reader that
+      // stops part way through an answer is reset, not given an orderly end
+      // it could take for the whole; and the connection still answers the
+      // request after a late one. Some ten seconds.
+      OutputDebugString(_T("hMailServer: Testing HttpServer\n"));
+      HttpServerTester httpServerTester;
+      httpServerTester.Test();
 
       // The Control Deck's script-src: the SHA-256 of the text a browser
       // hashes for the page's one inline script - CR LF made LF, the script

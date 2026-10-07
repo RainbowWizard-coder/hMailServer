@@ -108,10 +108,22 @@ namespace HM
 
       // From the moment the server starts waiting for a request (which, on a
       // kept-alive connection, is the moment the previous response was written)
-      // to the last byte of the response. Handler time counts.
+      // until the request has been read: a peer that sends it too slowly, or
+      // never finishes, is closed when it passes. The handler cannot be
+      // interrupted, so its time runs on under the same timer; an answer it
+      // returns after the deadline is written all the same, since the peer
+      // waiting for it is not the one at fault. The answer is then written a
+      // piece of 64 KB at a time, each piece given request_seconds to be taken
+      // by the reader. A deadline is for a peer that stalls, never for an
+      // answer that is large or slow to make, and an answer once begun is
+      // either written whole or the connection reset (HttpServer.cpp).
       unsigned request_seconds = 30;
 
-      // The whole life of one connection, from accept, whatever it is doing.
+      // The whole life of one connection, from accept, whatever it is doing -
+      // except that an answer is begun only under a connection deadline it can
+      // be written in (its size at download_bytes_per_second, plus
+      // request_seconds): one that would come sooner is moved out to fit, and
+      // the connection closed after that answer.
       unsigned connection_seconds = 300;
 
       // After this many responses the connection is closed, so a client that
@@ -204,6 +216,10 @@ namespace HM
 
       size_t GetConnectionCount() const;
 
+      // The port the first listener is bound to - the one the system chose,
+      // after a Listen on port 0 - or 0 when there is none.
+      int GetBoundPort() const;
+
       // The reason phrase for a status the listeners use; any other status is
       // reported as 500, deliberately - a wrong number in a response line is
       // worse than an honest server error.
@@ -262,5 +278,26 @@ namespace HM
       // (Accept_), counted so that the log line is written for the first and
       // then once per OverCapLogInterval, as the refusals over the cap are.
       std::atomic<unsigned> dropped_on_accept_;
+   };
+
+   // The server's deadlines held to what they are for, over the loopback
+   // against a server of its own: an answer a handler returns after the
+   // request deadline, or after the connection's own, arrives whole; a reader
+   // that stops reading part way through an answer is reset, not handed an
+   // orderly end it could take for the end of the answer; and a kept-alive
+   // connection still answers the request after one. Run by
+   // ClassTester::DoTests on Windows and by http-server-tests on POSIX. No
+   // database, configuration, file or network but 127.0.0.1; some ten
+   // seconds, most of them handlers sleeping past a one-second deadline.
+   class HttpServerTester
+   {
+   public:
+      void Test();
+
+   private:
+      void TestLateAnswerArrivesWhole_();
+      void TestConnectionDeadlineDuringHandler_();
+      void TestStalledReaderIsReset_();
+      void TestKeepAliveAfterLateAnswer_();
    };
 }

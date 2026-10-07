@@ -490,6 +490,23 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   widths and scroll sideways in a narrow window, keeps its vertical scroll bar, so that neither bar can turn the other
   on or off.
 
+### IMAP, POP3 and the webmail
+
+- **Fixed: an answer of the HTTP listeners that its handler returned after the listener's request deadline was cut off
+  after its first 64 KB.** The REST API, the webmail, the Control Deck, CalDAV and CardDAV, and the web services all
+  answer through one HTTP server, whose request deadline - 30 seconds on the REST listener, 15 on the web services' -
+  runs while a request is read and handled. When it ran out while a handler was still working, its expiry could no
+  longer be cancelled, and it closed the connection as soon as the handler's answer had handed the socket its first
+  64 KB: on server1 a webmail search that took longer than thirty seconds answered 65,413 bytes of its 67,996 and was
+  closed, which Python's client reported as `IncompleteRead` and the page as a search that never drew. An answer under
+  64 KB arrived whole, so nothing smaller showed it. A deadline that ran out while the handler worked no longer ends
+  its answer: the answer is written a piece at a time, each piece given the request deadline to be taken, as a
+  download already was; the deadline is for a peer that stalls, not for an answer slow to make. A connection whose own
+  deadline (five minutes after it was opened) would come first is given the time its answer needs and closed after it.
+  An answer the server does end part way - a reader that stopped reading for the request deadline, the server stopping
+  - now ends with a reset rather than an orderly close, which a client that does not count the bytes against
+  `Content-Length` could take for the end of the answer.
+
 ### Operations
 
 - **Fixed: on Linux, a MySQL or PostgreSQL column the server reads as a `long` went through an `int` on its way
@@ -737,6 +754,14 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   ([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md), "The image").
 - **DBSetup.Tests runs on xUnit.net v3** (`xunit.v3.mtp-off`), as ControlPanel.Tests and ImportTool.Tests have since
   6.3.6; it is new in 6.3.6 and had kept the deprecated `xunit` 2.9.3.
+- **The HTTP listeners' deadlines are tested without the service.** `HttpServerTester`, which `ClassTester` runs on
+  Windows and the new `http-server-tests` program runs on Linux, holds an HttpServer of its own on 127.0.0.1 with a
+  one-second request deadline: an answer of 300,000 bytes its handler returns after the deadline, or after the
+  connection's own, arrives whole; a reader that stops part way through a 16 MB answer is reset; a kept-alive
+  connection answers the request after a late one. Each of the first three fails with its part of the fix taken out -
+  the reset's on Linux, where the reader was given an orderly end after 3,563,520 of the 16,777,216 bytes; Windows
+  resets such a connection of itself. `http-server-tests` needs the loopback, so the source packages' builds leave it
+  out, as they leave out `network-deadline-tests`.
 
 ### Documentation
 

@@ -59,8 +59,9 @@ stdenv.mkDerivation {
   # makes beside it, found rather than listed, as linux-build.sh finds them, so a
   # new one runs here the day it is added. None needs a database or the network;
   # network-deadline-tests connects to peers of its own on 127.0.0.1 and writes a
-  # configuration of its own under $TMPDIR, which the sandbox's loopback and its
-  # temporary directory give it.
+  # configuration of its own under $TMPDIR, and http-server-tests answers itself
+  # on 127.0.0.1, which the sandbox's loopback and its temporary directory give
+  # them.
   doCheck = true;
   checkPhase = ''
     runHook preCheck
