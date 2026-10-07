@@ -351,7 +351,9 @@ hold a change on what it brings:
   lost or moved between the `# scan-scope begin` and `# scan-scope end` marks of
   `build/ci/static-analysis.sh` and `build/ci/semgrep.sh` - the lines that choose
   the files cppcheck, clang-tidy and Semgrep are given, their options, the
-  checks and the rule packs - or one of those tools' options (`--exclude`,
+  checks, the rule packs and the rules fetched for each, and what of a run that
+  failed, or of a file clang-tidy did not finish, stands as the report - or one
+  of those tools' options (`--exclude`,
   `--suppress`, `-i`, `--checks` and the like) put outside them, or marks that do
   not pair (such a change is the narrowing's own file, not a file it changes
   besides, while the script changes nowhere else); an entry of
@@ -420,9 +422,11 @@ hold a change on what it brings:
   notification names, are Semgrep's words, read from analyzer 6.26.1 (Semgrep
   1.174.0) on 6 and 7 October 2026 and kept word for word in the gate's
   `SARIF_FIXTURE`: a notification of a kind the gate does not know, a time limit
-  whose text names no file, or a SARIF with no run stops the gate as an input it
-  cannot read (exit 2), never a pass, so that a new analyzer's words cannot pass
-  a hole unseen ("Re-pinning `semgrep-sast`'s analyzer", below).
+  that names no file of the checkout as the analyzer names one - from the root,
+  with no `./`, no absolute path and no `file:` URI, any of which would match no
+  changed file - or a SARIF with no run stops the gate as an input it cannot read
+  (exit 2), never a pass, so that a new analyzer's words cannot pass a hole
+  unseen ("Re-pinning `semgrep-sast`'s analyzer", below).
 
   When the change alters the gates' own code - `security-gate.py`,
   `security-findings.py`, `mr-dependency-check.py`, `dependency-scan.py` or
@@ -439,8 +443,14 @@ hold a change on what it brings:
   it. Each gate says in its log "The base's copy of <script> exited <code>.", and
   `build/land-via-mr.py` lands a batch that changes those files only when both
   gates' logs say it exited 0 (or that the base has no copy of the script), so
-  that a change of the code that decides whether the copy runs shows. The CI
-  files still say what runs: this stands against a mistake in the code, not
+  that a change of the code that decides whether the copy runs shows. No file
+  beside a gate script runs as its code either: Python puts a script's own
+  directory first on its module path, so a `build/ci/json.py` a change added
+  would stand in for the `json` the gate imports, in a change that leaves every
+  gate file alone; each script of the gates and of the landing takes its own
+  directory off that path before it imports anything else, and
+  `build/check-release-chain.py` holds each to the same line (`PATH_GUARD`). The
+  CI files still say what runs: this stands against a mistake in the code, not
   against a change that edits the jobs, which a person reads
   ([Landing on master](#landing-on-master), `--gates-read`).
 
@@ -684,20 +694,35 @@ reads `SAST_DISABLED`, does not run its script with `auto`, or is not retried on
 exit 2 and on `.gate-retry`'s reasons; when `semgrep-sast-gate` does not need
 `semgrep-sast`'s artifacts; when one of the four scans on linix does not compare
 a batch with `master`; when the release job's `collect` does not refuse a
-committed report or an older one; and when `build/land-via-mr.py` requires a job
-the CI files do not have, or does not require the gates, its `documents_only`
-disagrees with `.own-runners`' paths ([Landing on master](#landing-on-master)),
-its `GATE_FILES` leave out a file of the gates' code, `.gitlab-ci.yml`, a CI
-file a gate job is in or reaches with `extends` or `!reference` (followed from
-template to template: today `mr-checks.yml`, `gitlab-security.yml` and
-`no-github.yml`), or `sign-off.py` or `scan-secrets.py`, which the landing runs;
-its `GATE_CODE` is not `security-gate.py`'s; its `BASE_GATES` are not the two
-gates; or its `BASE_COPY_SCRIPTS` do not name each gate with the script its job
-runs. Each of those has a case in its self-test that must fail.
+committed report or an older one; when `build/land-via-mr.py` requires a job
+the CI files do not have, or does not require the gates and `checkers`, its
+`documents_only` disagrees with `.own-runners`' paths
+([Landing on master](#landing-on-master)), its `GATE_FILES` leave out a file of
+the gates' code, `.gitlab-ci.yml`, a CI file a gate job is in or reaches with
+`extends` or `!reference` (followed from template to template: today
+`mr-checks.yml`, `gitlab-security.yml` and `no-github.yml`), `sign-off.py` or
+`scan-secrets.py`, which the landing runs, or `static-analysis.sh` or
+`semgrep.sh`; its `GATE_CODE` is not `security-gate.py`'s; its `BASE_GATES` are
+not the two gates; or its `BASE_COPY_SCRIPTS` do not name each gate with the
+script its job runs; when a job that holds a change - the two gates,
+`semgrep-sast`, `static-analysis`, `semgrep` and `checkers` - or a template one
+extends or takes a part of is defined in a second CI file, under any name YAML
+spells it with, since GitLab merges the second definition into the first, a
+later include's keys over an earlier one's, and could take the job's rules,
+script or `allow_failure` from a file the landing asks no person's word for;
+when a CI file other than `.gitlab-ci.yml` sets `variables`, `default` or
+`workflow` at its top level, which every job takes, or includes anything but
+one of GitLab's templates; and when a Python script of `GATE_FILES` imports
+anything but `os` and `sys` before it takes its own directory off its module
+path (`PATH_GUARD`). Each of those has a case in its self-test that must fail.
 `security-gate.py`'s own self-test fails while the tree's `static-analysis.sh`
-or `semgrep.sh` has no `# scan-scope` marks around its tools' invocations, or
-one of their options outside them, and while `semgrep-sast` pins another
-analyzer than the one whose words its `SARIF_FIXTURE` holds.
+or `semgrep.sh` has no `# scan-scope` marks around its tools' invocations, the
+rule packs' fetching and what stands as the tools' report, or one of their
+options outside them; while `semgrep-sast` pins another analyzer than the one
+whose words its `SARIF_FIXTURE` holds; and while a copy of the gate, run beside
+files named as the modules it imports, runs one of them.
+`build/land-via-mr.py` lands a batch only when `checkers` succeeded itself,
+not while allowed to fail, since every rule above runs in it.
 
 **What they cannot hold.** The checks are against mistakes, not against a
 hostile change: a change's own CI files say which jobs run and what they run,
@@ -716,13 +741,19 @@ what SECURITY.md says no gate reads - the scripts under `build/`, which
 fetches on a batch, are not pinned (below). An exception is keyed to the text of
 the flagged line, so an edit elsewhere in the same function can make an accepted
 finding exploitable without changing its fingerprint; the exception for
-`ParseIPv6_`'s copies says what would. The scripts of the two scans on linix -
-`static-analysis.sh` and `semgrep.sh` - are held only in the lines they mark as
-choosing what their tools read, and for the tools' options outside them: a
-change elsewhere in them that narrows a scan another way (a file deleted before
-a tool runs, say) is read by the owner as a change to the CI files is; and
-those scans run the change's own `security-findings.py`, whose filters decide
-what a finding is, where the base's copy judges only the gates. And a
+`ParseIPv6_`'s copies says what would. A source file moved where `semgrep-sast`
+does not read it under another name, or into a file already there, and
+rewritten past what git pairs as a move, reads as a deletion and a test like any
+other. The scripts of the two scans on linix -
+`static-analysis.sh` and `semgrep.sh` - are held by a gate only in the lines
+they mark as choosing what their tools read and report, and for the tools'
+options outside them: a change elsewhere in them that narrows a scan another
+way (a file deleted before a tool runs, an exit status taken for another) is
+held by no gate, and a landing asks a person's word for any change of them
+(`--gates-read`), as for a change to the gates' jobs; and those scans run the
+change's own `security-findings.py`, whose filters decide what a finding is,
+where the base's copy judges only the gates - a change of it needs that word
+too. And a
 project variable, which only the owner can set, reaches every job and stands
 above a job's own: one named `SAST_EXCLUDED_PATHS` would replace the job's list.
 
@@ -776,8 +807,9 @@ in to gitlab.com as a Maintainer. In order, and stopping at the first refusal:
    gates' own files - `GATE_FILES`: the five gate scripts; `.gitlab-ci.yml`,
    whose workflow rules, defaults and includes every job takes; the CI files the
    gate jobs are in or take a part from, `mr-checks.yml`, `gitlab-security.yml`
-   and `no-github.yml`; the landing script and `check-release-chain.py`; and
-   `sign-off.py` and `scan-secrets.py`, which this step runs - needs
+   and `no-github.yml`; the landing script and `check-release-chain.py`;
+   `sign-off.py` and `scan-secrets.py`, which this step runs; and the source
+   scans' scripts, `static-analysis.sh` and `semgrep.sh` - needs
    `--gates-read "<who read it, and what>"`, a person's word that the change was
    read whole: the base's copy of the gate scripts judges such a change too, but
    only a person reads an edit of the jobs. Without it the script refuses (exit
@@ -795,9 +827,11 @@ in to gitlab.com as a Maintainer. In order, and stopping at the first refusal:
    success refuses: failed, canceled, skipped, or waiting on a manual job that
    blocks. Then it reads the pipeline's jobs, every page of them, since GitLab
    calls a pipeline a success with a job that failed while allowed to fail and
-   with a job a rule never created. `semgrep-sast`, `semgrep-sast-gate` and
-   `mr-dependency-check` must each have succeeded, and so must `static-analysis`
-   and `semgrep` unless every file the batch changes from `master` is Markdown at
+   with a job a rule never created. `semgrep-sast`, `semgrep-sast-gate`,
+   `mr-dependency-check` and `checkers`, in which `build/check-release-chain.py`
+   holds the CI files to the gates, must each have succeeded, and so must
+   `static-analysis` and `semgrep` unless every file the batch changes from
+   `master` is Markdown at
    the root or under a directory whose name begins with a dot - the changes for
    which `.own-runners` creates no scan. A gate that is not in the pipeline, was
    skipped, or failed, allowed to or not, refuses (exit 5), naming it; the

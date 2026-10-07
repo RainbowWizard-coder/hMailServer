@@ -851,14 +851,16 @@ rewrites. To sign off without remembering the flag, `git config alias.cs "commit
    linear: `python3 build/land-via-mr.py batchN` checks that the batch is on top of `master`, adds no merge commit,
    is signed off throughout and holds no possible secret (`build/scan-secrets.py` over every commit it adds, which
    must run: see [Secrets](#secrets)), pushes it, opens the merge request, waits for the branch's pipeline, and
-   merges only when it passed, with each of its gate jobs - *semgrep-sast*, *semgrep-sast-gate* and
-   *mr-dependency-check*, and *static-analysis* and *semgrep* unless the batch changes only Markdown at the root or
-   under a dot-directory - succeeding itself, in a pipeline of this project whose gates each say in their log that
+   merges only when it passed, with each of its gate jobs - *semgrep-sast*, *semgrep-sast-gate*,
+   *mr-dependency-check* and *checkers*, and *static-analysis* and *semgrep* unless the batch changes only Markdown
+   at the root or under a dot-directory - succeeding itself, in a pipeline of this project whose gates each say in
+   their log that
    they judged the batch against `master`'s tip, and GitLab calls the merge request mergeable; a batch that changes
    the gates' code also needs each gate's log to say that `master`'s copy of its script passed it. A batch that
    changes the gates' own files (their scripts; `.gitlab-ci.yml` and the CI files their jobs are in or take a part
-   from; the landing script, `build/check-release-chain.py`, and `build/sign-off.py` and `build/scan-secrets.py`,
-   which the landing runs) lands only with `--gates-read "<who read it, and what>"`, a person's word that the change
+   from; the landing script, `build/check-release-chain.py`, `build/sign-off.py` and `build/scan-secrets.py`,
+   which the landing runs; and the source scans' scripts, `build/ci/static-analysis.sh` and `build/ci/semgrep.sh`)
+   lands only with `--gates-read "<who read it, and what>"`, a person's word that the change
    was read whole, which is recorded (exit 9 without it). It never squashes. It
    records on the merge request, and in `land-via-mr.log` in the git directory, the pipeline and its gate jobs, the
    sign-off and whether somebody other than the author approved the tip it lands (an approval given before a later

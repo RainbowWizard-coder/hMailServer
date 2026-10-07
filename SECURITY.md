@@ -564,18 +564,26 @@ scanning".
     success. Where Semgrep's parser stumbled, which it reads on past (87 of the C++ and C# files on 6 October 2026, 18
     of them with findings all the same, and three of the Helm chart's templates), the notification is listed, not
     held. The gate reads the SARIF in the words of the analyzer it was checked against (6.26.1, Semgrep 1.174.0): a
-    notification of a kind it does not know, or a time limit whose text names no file, stops it as an input it cannot
-    read (exit 2), never a pass, and its self-test fails while *semgrep-sast* pins another analyzer, until the new
-    one's words are read (`build/ci/mirror-semgrep.sh`'s header).
+    notification of a kind it does not know, or a time limit that names no file of the checkout as the analyzer names
+    one (from the root, not as `./src/a.cpp` or by an absolute path, which would match no changed file), stops it as
+    an input it cannot read (exit 2), never a pass, and its self-test fails while *semgrep-sast* pins another analyzer,
+    until the new one's words are read (`build/ci/mirror-semgrep.sh`'s header).
   - *When the change alters the gates' own code* (`security-gate.py`, `security-findings.py`,
     `mr-dependency-check.py`, `dependency-scan.py`, `osv-offline-db.py`), the base's copy of each gate judges it too,
     over the change's tree, and the change passes only when both copies pass it. Whether that copy runs is read from
     the code that runs, against the base's, and no variable can stop it; each gate's log says how it ended, and
-    `build/land-via-mr.py` lands such a batch only when both logs say the base's copy passed it. A batch that changes
-    the gates' own files - their code; `.gitlab-ci.yml`, whose workflow, defaults and includes every job takes; the CI
-    files the gate jobs are in or take a part from (`mr-checks.yml`, `gitlab-security.yml`, `no-github.yml`);
-    `land-via-mr.py` and `check-release-chain.py`; and `sign-off.py` and `scan-secrets.py`, which a landing runs -
-    lands only with a person's word that the change was read whole (`--gates-read`), which the landing record keeps.
+    `build/land-via-mr.py` lands such a batch only when both logs say the base's copy passed it. No file put beside a
+    gate script runs as its code: each script of the gates and of the landing takes its own directory off Python's
+    module path before it imports anything else, so a `build/ci/json.py` would not stand in for the `json` it
+    imports (`build/check-release-chain.py`, `PATH_GUARD`). A batch that changes the gates' own files - their code;
+    `.gitlab-ci.yml`, whose workflow, defaults and includes every job takes; the CI files the gate jobs are in or take
+    a part from (`mr-checks.yml`, `gitlab-security.yml`, `no-github.yml`); `land-via-mr.py` and
+    `check-release-chain.py`; `sign-off.py` and `scan-secrets.py`, which a landing runs; and the source scans' scripts,
+    `static-analysis.sh` and `semgrep.sh` - lands only with a person's word that the change was read whole
+    (`--gates-read`), which the landing record keeps. No other CI file may define a job that holds a change (the
+    gates, *semgrep-sast*, *static-analysis*, *semgrep*, *checkers*) or a template one reaches, since GitLab merges a
+    second definition into the first, nor set what every job takes or include anything but GitLab's templates; and a
+    landing needs *checkers*, which holds all of this, to have succeeded itself, not while allowed to fail.
 - **What no gate reads.** Stated so that nobody takes it for covered; the owner may widen it. No gate reads
   PowerShell, VBScript, Inno Setup scripts, `.bat` files, SQL, or the Dockerfiles and the other files that describe
   infrastructure. The build and CI scripts under `build/` are read by no gate on a merge request: *semgrep-sast*'s
@@ -598,11 +606,14 @@ scanning".
   which *semgrep* fetches, are not pinned; *semgrep-sast*'s rules have a time limit for each file, which a slower
   runner can reach where another did not (a finding then missing from a file the change does not touch passes the
   change, and holds the release when it is found again); an exception is keyed to the text of its line, so an edit
-  elsewhere in the same function can make an accepted finding exploitable without changing its fingerprint; a change
+  elsewhere in the same function can make an accepted finding exploitable without changing its fingerprint; a source
+  file moved where *semgrep-sast* does not read it under another name, or into a file already there, and rewritten
+  past what git pairs as a move, reads as a deletion and a test like any other; a change
   to the scripts of the two scans on the project's runners (`static-analysis.sh`, `semgrep.sh`) outside the lines
-  they mark as choosing what their tools read - a file taken away before a tool runs, say - can narrow them unseen,
-  and those scans run the change's own `security-findings.py`, whose filters decide what a finding is; and a project
-  variable, which only the owner can set, reaches every job and stands above a job's own
+  they mark as choosing what their tools read and report - a file taken away before a tool runs, an exit status
+  taken for another, say - is held by no gate, only by the person whose word a landing asks for it (`--gates-read`),
+  and those scans run the change's own `security-findings.py`, whose filters decide what a finding is, on the same
+  word; and a project variable, which only the owner can set, reaches every job and stands above a job's own
   ([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md#change-checks), "Change checks").
 
 ### Dependencies (software composition analysis)
