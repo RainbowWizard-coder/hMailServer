@@ -15135,13 +15135,16 @@ namespace HM
       };
 
       // One message a listing or a search walks past, in the order it was met:
-      // a copy to read, or none when the full-text index has already answered
-      // that the message cannot hold the words asked for.
+      // its UID and id, a copy to read - none when the full-text index has
+      // answered that the message cannot hold the words asked for (pruned),
+      // or when it was expunged before it could be copied.
       struct ListingEntry
       {
-         ListingEntry() : uid(0) { }
+         ListingEntry() : uid(0), id(0), pruned(false) { }
 
          unsigned int uid;
+         __int64 id;
+         bool pruned;
          std::shared_ptr<Message> message;
       };
 
@@ -15189,75 +15192,93 @@ namespace HM
       }
 
       // What the full-text index can prove for one query: which of the
-      // account's fully indexed messages cannot contain the text. The filter
+      // messages a search walks past cannot contain the text. The filter
       // SEARCH uses (IMAPCommandSearch.cpp), and it fails open the same way:
       // anything the index cannot answer for is read.
+      //
+      // Asked a window of the walk at a time (Resolve), as the search reaches
+      // it and under the search's own clock - never of the whole account. It
+      // used to ask the account's index whole before the first message was
+      // looked at, which on SQL Server Compact with a hundred thousand
+      // messages took 75 to 180 seconds a request, outside the clock and
+      // holding the database's one connection (PersistentMessageIndex::
+      // GetMessagesThatCannotContain has the measurements).
       class SearchIndexPrune
       {
       public:
-         SearchIndexPrune(__int64 accountId, const String &text) :
-            usable_(false)
+         explicit SearchIndexPrune(const String &text)
          {
             if (text.IsEmpty() || !IniFileSettings::Instance()->GetIndexerFullTextEnabled())
                return;
 
-            std::vector<String> needles;
-            PersistentMessageIndex::CreateQueryNeedles(text, IniFileSettings::Instance()->GetIndexerFullTextMinTokenLength(), needles);
-            if (needles.empty())
-               return;
-
-            if (!PersistentMessageIndex::GetMessagesWithTerm(accountId, PersistentMessageIndex::CompleteMarker(), complete_))
-               return;
-
-            if (!PersistentMessageIndex::GetMessagesWithTerm(accountId, PersistentMessageIndex::OverflowMarker(), overflow_))
-               return;
-
-            bool first = true;
-            for (size_t i = 0; i < needles.size(); i++)
-            {
-               std::set<__int64> matches;
-               if (!PersistentMessageIndex::GetMessagesWithTermContaining(accountId, needles[i], matches))
-                  return;
-
-               if (first)
-               {
-                  candidates_.swap(matches);
-                  first = false;
-               }
-               else
-               {
-                  std::set<__int64> merged;
-                  std::set_intersection(candidates_.begin(), candidates_.end(), matches.begin(), matches.end(), std::inserter(merged, merged.begin()));
-                  candidates_.swap(merged);
-               }
-
-               if (candidates_.empty())
-                  break;
-            }
-
-            usable_ = true;
+            PersistentMessageIndex::CreateQueryNeedles(text, IniFileSettings::Instance()->GetIndexerFullTextMinTokenLength(), needles_);
          }
 
+         // Whether the index can answer for this text at all: it is on, and
+         // the text has a needle it can look for.
+         bool Usable() const { return !needles_.empty(); }
+
+         // Asks the index about these messages, one query for as many as
+         // PersistentMessageIndex::MaxMessagesPerLookup. What it cannot answer
+         // - the database refused - is left to be read.
+         void Resolve(const std::vector<__int64> &messageIds)
+         {
+            if (Usable() && !messageIds.empty())
+               PersistentMessageIndex::GetMessagesThatCannotContain(messageIds, needles_, excluded_);
+         }
+
+         // True only for a message a window asked about proved it cannot
+         // contain the text.
          bool CannotContain(__int64 messageId) const
          {
-            if (!usable_)
-               return false;
-
-            if (complete_.find(messageId) == complete_.end())
-               return false;
-
-            if (overflow_.find(messageId) != overflow_.end())
-               return false;
-
-            return candidates_.find(messageId) == candidates_.end();
+            return excluded_.find(messageId) != excluded_.end();
          }
 
       private:
-         bool usable_;
-         std::set<__int64> complete_;
-         std::set<__int64> overflow_;
-         std::set<__int64> candidates_;
+         std::vector<String> needles_;
+         std::set<__int64> excluded_;
       };
+
+      // How far a search walk has had the index asked about it: the windows
+      // asked, in the walk's order, before any file of theirs is read, for as
+      // long as the clock given allows - always at least one, so that a
+      // request walks on - and until the messages left to be read would fill
+      // what one request may read (wantedReads). Returns how many entries of
+      // the walk are settled: asked about, or not needing it because the index
+      // cannot answer for the text. The walk goes no further than that in this
+      // request; the next goes on from there. The reading that follows has a
+      // clock of its own, so a request that spent its two and a half seconds
+      // asking the index still reads what the index left it, and the next
+      // does not ask about the same windows again.
+      size_t ResolveSearchWalk(SearchIndexPrune &prune, const std::vector<__int64> &walkIds, size_t wantedReads, const WorkClock &clock)
+      {
+         if (!prune.Usable())
+            return walkIds.size();
+
+         const size_t window = PersistentMessageIndex::MaxMessagesPerLookup;
+         size_t settled = 0;
+         size_t toRead = 0;
+
+         while (settled < walkIds.size() && toRead < wantedReads)
+         {
+            if (settled > 0 && clock.Spent())
+               break;
+
+            const size_t end = std::min(walkIds.size(), settled + window);
+            const std::vector<__int64> ids(walkIds.begin() + settled, walkIds.begin() + end);
+            prune.Resolve(ids);
+
+            for (size_t i = settled; i < end; i++)
+            {
+               if (!prune.CannotContain(walkIds[i]))
+                  toRead++;
+            }
+
+            settled = end;
+         }
+
+         return settled;
+      }
 
       // Whether one message matches the query: the operators first (from:,
       // subject:, has:attachment and the rest) against what the head of the
@@ -15734,7 +15755,7 @@ namespace HM
          // needs its body, and is kept by an exclusion that would.
          if (!q.either.empty() || !q.excluded.empty())
          {
-            const SearchIndexPrune noPrune(0, String());
+            const SearchIndexPrune noPrune((String()));
             for (size_t g = 0; g < q.either.size(); g++)
             {
                bool any = false;
@@ -16115,23 +16136,28 @@ namespace HM
       text.TrimRight();
       const SearchQuery searchQuery = ParseSearchQuery(text);
       const bool searching = !text.IsEmpty();
-      SearchIndexPrune prune(account->GetID(), searchQuery.freeText);
+      SearchIndexPrune prune(searchQuery.freeText);
+
+      // The clock the full-text index is asked under (ResolveSearchWalk); the
+      // files are read under one of their own, below.
+      WorkClock indexClock;
 
       // One pass over the folder's shared collection, newest UID first, under
-      // its lock, copying only what this answer reads: the page of a listing,
-      // or what a search will open. It used to copy the whole folder for
-      // every page - a hundred thousand messages allocated, under the lock
-      // IMAP and delivery wait on, to show two hundred of them - and then walk
-      // the copy twice more. The copies are what let the files be read below
-      // without holding the lock.
+      // its lock, copying only what this answer reads: the page of a listing.
+      // It used to copy the whole folder for every page - a hundred thousand
+      // messages allocated, under the lock IMAP and delivery wait on, to show
+      // two hundred of them - and then walk the copy twice more. The copies
+      // are what let the files be read below without holding the lock.
       //
-      // A search also asks the full-text index here, where it costs a set
-      // lookup: a message the index has read whole and that holds none of the
-      // words is walked past without a copy and without counting against the
-      // budget of files one request may open (the same filter IMAP SEARCH
-      // trusts, SearchIndexPrune, which fails open). So an indexed mailbox is
-      // searched as far as it has candidates, not as far as its newest two
-      // thousand.
+      // A search takes the UID and id of each message below before_uid in the
+      // same pass, and copies nothing there: outside the lock, the full-text
+      // index is asked about them a window at a time (ResolveSearchWalk), and
+      // a message the index has read whole and that holds none of the words
+      // is walked past without a copy and without counting against the budget
+      // of files one request may open (the same filter IMAP SEARCH trusts,
+      // SearchIndexPrune, which fails open). Then the ones to be read are
+      // copied, in one more pass. So an indexed mailbox is searched as far as
+      // the clock allows, not as far as its newest two thousand.
       std::shared_ptr<Messages> messages = folder->GetMessages();
 
       std::vector<ListingEntry> entries;
@@ -16164,10 +16190,12 @@ namespace HM
                ringSeen++;
             }
 
-            // A listing walks on to the end for the ring; a search stops once
-            // it holds one more copy than it may read, which is how it knows
-            // there was more.
-            if (copies >= wanted)
+            // A listing walks on to the end for the ring. A search the index
+            // cannot answer for stops once it holds one more message than it
+            // may read, which is how it knows there was more; one it can
+            // answer for takes every message below before_uid, since the ones
+            // the index passes do not count.
+            if (searching ? (!prune.Usable() && entries.size() >= wanted) : copies >= wanted)
                return !searching;
 
             if (beforeUid > 0 && message->GetUID() >= beforeUid)
@@ -16175,18 +16203,46 @@ namespace HM
 
             ListingEntry entry;
             entry.uid = message->GetUID();
+            entry.id = message->GetID();
 
-            if (searching && prune.CannotContain(message->GetID()))
+            if (!searching)
             {
-               entries.push_back(entry);
-               return true;
+               entry.message = std::shared_ptr<Message>(new Message(*message));
+               copies++;
             }
 
-            entry.message = std::shared_ptr<Message>(new Message(*message));
             entries.push_back(entry);
-            copies++;
             return true;
          });
+      }
+
+      // How far this search has had the index asked about it, and copies of
+      // the messages in that stretch it is to read.
+      size_t settled = entries.size();
+      if (searching && messages)
+      {
+         std::vector<__int64> walkIds;
+         walkIds.reserve(entries.size());
+         for (size_t i = 0; i < entries.size(); i++)
+            walkIds.push_back(entries[i].id);
+
+         settled = ResolveSearchWalk(prune, walkIds, wanted, indexClock);
+
+         std::set<__int64> toCopy;
+         for (size_t i = 0; i < settled; i++)
+         {
+            entries[i].pruned = prune.CannotContain(entries[i].id);
+            if (!entries[i].pruned && toCopy.size() < wanted)
+               toCopy.insert(entries[i].id);
+         }
+
+         const std::map<__int64, std::shared_ptr<Message>> copied = messages->GetCopyByIds(toCopy);
+         for (size_t i = 0; i < settled; i++)
+         {
+            std::map<__int64, std::shared_ptr<Message>>::const_iterator copy = copied.find(entries[i].id);
+            if (copy != copied.end() && copy->second && !copy->second->GetFlagDeleted())
+               entries[i].message = copy->second;
+         }
       }
 
       unsigned int oldestBeforeUid = 0;
@@ -16204,6 +16260,9 @@ namespace HM
       int examined = 0;
       bool complete = true;
       unsigned int lastUid = 0;
+
+      // Reading has a clock of its own, so that what the index was asked about
+      // is read through in this request and not asked about again in the next.
       WorkClock workClock;
 
       for (size_t i = 0; i < entries.size(); i++)
@@ -16221,7 +16280,15 @@ namespace HM
 
          if (searching)
          {
-            if (!walked.message)
+            // Past what the index was asked about in this request: the next
+            // one goes on from here.
+            if (i >= settled)
+            {
+               complete = false;
+               break;
+            }
+
+            if (walked.pruned)
             {
                // The index has read this message whole and it holds none of
                // the words: walked past, no file opened.
@@ -16239,6 +16306,10 @@ namespace HM
             examined++;
             scanned++;
             lastUid = walked.uid;
+
+            // Expunged since the walk: nothing to read.
+            if (!walked.message)
+               continue;
 
             if (!MessageMatchesQuery(MessageFile_(walked.message), walked.message, String(), searchQuery, prune))
                continue;
@@ -16274,9 +16345,17 @@ namespace HM
          lastUid = message->GetUID();
       }
 
+      // A search's opened: the message files it read, of the scanned. With the
+      // full-text index on and caught up, a search opens only the messages
+      // whose terms hold its words; one the index has not read yet is opened
+      // too.
+      AnsiString opened;
+      if (searching)
+         opened.Format(",\"opened\":%d", examined);
+
       AnsiString tail;
-      tail.Format("],\"scanned\":%d,\"complete\":%hs,\"next_before_uid\":%u,\"oldest_before_uid\":%u,\"newest_uid\":%u}",
-         scanned, complete ? "true" : "false", complete ? 0 : lastUid, oldestBeforeUid, newestUid);
+      tail.Format("],\"scanned\":%d,\"complete\":%hs%hs,\"next_before_uid\":%u,\"oldest_before_uid\":%u,\"newest_uid\":%u}",
+         scanned, complete ? "true" : "false", opened.c_str(), complete ? 0 : lastUid, oldestBeforeUid, newestUid);
       json += tail;
 
       return BuildResponse_(200, json);
@@ -16334,7 +16413,11 @@ namespace HM
       }
 
       const SearchQuery searchQuery = ParseSearchQuery(text);
-      SearchIndexPrune prune(account->GetID(), searchQuery.freeText);
+      SearchIndexPrune prune(searchQuery.freeText);
+
+      // The clock the full-text index is asked under; the files are read under
+      // one of their own, as in the folder's search.
+      WorkClock indexClock;
 
       String delimiter = Configuration::Instance()->GetIMAPConfiguration()->GetHierarchyDelimiter();
 
@@ -16362,7 +16445,8 @@ namespace HM
       // hundred thousand in the inbox it never reached another folder, and it
       // had no way to go on. Collected under each folder's lock without
       // copying a message - a copy is made below only of what will be read -
-      // and with the full-text index asked as it goes (see the listing).
+      // and the full-text index then asked about it a window at a time, as
+      // far as the clock allows (see the listing).
       struct Walked
       {
          __int64 id;
@@ -16397,7 +16481,7 @@ namespace HM
             Walked one;
             one.id = message->GetID();
             one.folder = f;
-            one.pruned = prune.CannotContain(one.id);
+            one.pruned = false;
             walk.push_back(one);
             return true;
          });
@@ -16406,12 +16490,23 @@ namespace HM
       // Newest first across folders: ids grow with time.
       std::sort(walk.begin(), walk.end(), [](const Walked &a, const Walked &b) { return a.id > b.id; });
 
+      // The index asked about the walk, a window at a time, as far as the
+      // clock allows and no further than what one request may read.
+      std::vector<__int64> walkIds;
+      walkIds.reserve(walk.size());
+      for (size_t i = 0; i < walk.size(); i++)
+         walkIds.push_back(walk[i].id);
+
+      const size_t settled = ResolveSearchWalk(prune, walkIds, (size_t) MaxSearchScan + 1, indexClock);
+      for (size_t i = 0; i < settled; i++)
+         walk[i].pruned = prune.CannotContain(walk[i].id);
+
       // The messages this request may read - one more than the budget, which
       // is how it knows there was more - copied a folder at a time, in one
       // pass over each folder that has any.
       std::vector<std::set<__int64>> toCopy(folders.size());
       size_t chosen = 0;
-      for (size_t i = 0; i < walk.size() && chosen <= (size_t) MaxSearchScan; i++)
+      for (size_t i = 0; i < settled && chosen <= (size_t) MaxSearchScan; i++)
       {
          if (walk[i].pruned)
             continue;
@@ -16439,10 +16534,18 @@ namespace HM
       WorkClock workClock;
 
       // In the walk's order, under one budget of files opened and one clock
-      // for the whole request, until a page and one more are found.
+      // for the reading, until a page and one more are found.
       for (size_t i = 0; i < walk.size(); i++)
       {
          const Walked &one = walk[i];
+
+         if (i >= settled)
+         {
+            // Past what the index was asked about in this request.
+            complete = false;
+            nextBeforeId = one.id + 1;
+            break;
+         }
 
          if (one.pruned)
          {
@@ -16488,9 +16591,11 @@ namespace HM
          hits.push_back(hit);
       }
 
+      // opened: the message files this request read, of the scanned, as the
+      // folder's search says it.
       AnsiString json;
-      json.Format("{\"query\":\"%hs\",\"scanned\":%d,\"complete\":%hs,\"more\":%hs,\"messages\":[",
-         JsonEscape_(Utf8_(text)).c_str(), scanned, complete ? "true" : "false", more ? "true" : "false");
+      json.Format("{\"query\":\"%hs\",\"scanned\":%d,\"complete\":%hs,\"more\":%hs,\"opened\":%d,\"messages\":[",
+         JsonEscape_(Utf8_(text)).c_str(), scanned, complete ? "true" : "false", more ? "true" : "false", examined);
 
       for (size_t i = 0; i < hits.size(); i++)
       {

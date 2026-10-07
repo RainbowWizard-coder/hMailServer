@@ -30,7 +30,8 @@ What each operation is, in both modes:
   search  a word that is in the body of every 1000th message (seed-folder's
           "quokka"), in the folder and across every folder, followed to the
           end through next_before_uid / next_before_id; and a word in every
-          100th subject ("invoice"). Hits, requests and the time of each.
+          100th subject ("invoice"). Hits, requests and the time of each,
+          and the message files the server opened for them.
   select  select-all over the whole folder and one change made to every
           message by the server (POST /api/v1/me/folders/{id}/bulk), stepped
           to the end. HTTP mode adds and then removes a keyword ($PerfMark),
@@ -243,6 +244,7 @@ def http_mode(args):
         calls = []
         hits = 0
         scanned = 0
+        opened = 0
         path = first_path
         answer = None
         while len(calls) < args.search_requests:
@@ -251,12 +253,15 @@ def http_mode(args):
             calls.append(seconds)
             hits += len(answer.get("messages") or [])
             scanned += answer.get("scanned") or 0
+            # The message files the server read, of the scanned: with the full-text
+            # index caught up, the hits alone (Performance.md, the probe).
+            opened += answer.get("opened") or 0
             nxt = answer.get(next_key) or 0
             if answer.get("complete", True) or not nxt:
                 break
             path = "%s&%s=%d" % (first_path, param, nxt)
         return {"requests": len(calls), "first_ms": ms(calls[0]) if calls else None, "all": summary(calls),
-                "hits": hits, "scanned": scanned, "complete": bool(answer and answer.get("complete", True))}
+                "hits": hits, "scanned": scanned, "opened": opened, "complete": bool(answer and answer.get("complete", True))}
 
     needle = urllib.parse.quote(args.needle)
     result["search"] = {

@@ -3966,6 +3966,91 @@ namespace RegressionTests.API
       }
 
       [Test]
+      [Description("With the full-text index on, the webmail's search asks it a window of 200 messages at a time " +
+                   "and finds what the search finds with it off - and opens only the messages whose terms hold " +
+                   "the word, in a folder and across folders alike")]
+      public void TheFullTextIndexNarrowsTheWebmailSearchAWindowAtATime()
+      {
+         // 450 messages: three windows as the search walks them, newest first. The
+         // word in the first and the last, on both sides of a window's edge and in
+         // the middle.
+         int[] carriers = { 1, 200, 201, 333, 450 };
+
+         var appender = new ImapClientSimulator();
+         Assert.IsTrue(appender.ConnectAndLogon(Address, UserPassword));
+         for (var i = 1; i <= 450; i++)
+         {
+            string body = Array.IndexOf(carriers, i) >= 0 ? "Message " + i + " carries the windowedneedle word." : "Message " + i + " holds nothing of note.";
+            string raw = "From: windows@example.test\r\nTo: " + Address + "\r\nSubject: Window " + i + "\r\n\r\n" + body + "\r\n";
+            string tag = "A" + i;
+            StringAssert.Contains(tag + " OK", appender.SendSingleCommandWithLiteral(tag + " APPEND INBOX {" + raw.Length + "}", raw));
+         }
+         appender.Close();
+
+         (int status, string body) tree = Http("GET", "/api/v1/me/folders", UserHeader(UserPassword));
+         long inboxId = IdBefore(tree.body, "\"path\":\"INBOX\"");
+         string listPath = "/api/v1/me/folders/" + inboxId + "/messages?q=windowedneedle";
+         const string acrossPath = "/api/v1/me/search?q=windowedneedle&limit=200";
+
+         // The index off: every message opened, the five found.
+         (int status, string body) offList = Http("GET", listPath, UserHeader(UserPassword));
+         Assert.AreEqual(200, offList.status, "Body: " + offList.body);
+         StringAssert.Contains("\"scanned\":450,\"complete\":true,\"opened\":450", offList.body);
+         (int status, string body) offAcross = Http("GET", acrossPath, UserHeader(UserPassword));
+         Assert.AreEqual(200, offAcross.status, "Body: " + offAcross.body);
+         StringAssert.Contains("\"scanned\":450,\"complete\":true,\"more\":false,\"opened\":450", offAcross.body);
+
+         foreach (int carrier in carriers)
+         {
+            StringAssert.Contains("\"subject\":\"Window " + carrier + "\"", offList.body);
+            StringAssert.Contains("\"subject\":\"Window " + carrier + "\"", offAcross.body);
+         }
+         Assert.AreEqual(carriers.Length, offList.body.Split(new[] { "\"subject\":\"Window " }, StringSplitOptions.None).Length - 1, offList.body);
+
+         try
+         {
+            IniFileSetting.Write("IndexerFullText", "1");
+            _application.Reinitialize();
+            _settings.MessageIndexing.Enabled = true;
+
+            // Until the backfill has read all 450 a message it has not is opened;
+            // once it has, only the five whose terms hold the word are.
+            (int status, string body) onList = (0, "");
+            RetryHelper.TryAction(TimeSpan.FromSeconds(60), () =>
+            {
+               _settings.MessageIndexing.Index();
+               onList = Http("GET", listPath, UserHeader(UserPassword));
+               Assert.AreEqual(200, onList.status, "Body: " + onList.body);
+               StringAssert.Contains("\"scanned\":450,\"complete\":true,\"opened\":5,", onList.body);
+            });
+
+            (int status, string body) onAcross = Http("GET", acrossPath, UserHeader(UserPassword));
+            Assert.AreEqual(200, onAcross.status, "Body: " + onAcross.body);
+            StringAssert.Contains("\"scanned\":450,\"complete\":true,\"more\":false,\"opened\":5,", onAcross.body);
+
+            Assert.AreEqual(offList.body, onList.body.Replace("\"opened\":5,", "\"opened\":450,"),
+               "The index may only spare reads, never change what the folder's search answers.");
+
+            foreach (int carrier in carriers)
+               StringAssert.Contains("\"subject\":\"Window " + carrier + "\"", onAcross.body);
+
+            // A word inside a longer one is still found: the index is asked for
+            // terms that hold it, not for the word.
+            (int status, string body) inside = Http("GET", "/api/v1/me/folders/" + inboxId + "/messages?q=dowedneed", UserHeader(UserPassword));
+            Assert.AreEqual(200, inside.status, "Body: " + inside.body);
+            StringAssert.Contains("\"opened\":5,", inside.body);
+            foreach (int carrier in carriers)
+               StringAssert.Contains("\"subject\":\"Window " + carrier + "\"", inside.body);
+         }
+         finally
+         {
+            IniFileSetting.Delete("IndexerFullText");
+            _application.Reinitialize();
+            _settings.MessageIndexing.Enabled = false;
+         }
+      }
+
+      [Test]
       [Description("GET /api/v1/me/search looks through every folder of the account and names the folder of each hit")]
       public void ASearchAcrossFoldersNamesTheFolder()
       {

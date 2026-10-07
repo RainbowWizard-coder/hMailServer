@@ -28,6 +28,7 @@
 
 #include <algorithm>
 #include <iterator>
+#include <unordered_map>
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -53,156 +54,127 @@ namespace HM
       // matcher signatures (and the command object's header) stay untouched
       // that way. Everything is loaded lazily, so a search with no BODY/TEXT
       // key never queries the index at all.
+      //
+      // Asked a window of the search's messages at a time, as the search
+      // reaches it (SetWalk gives the order): the index answers for the
+      // messages themselves, PersistentMessageIndex::MaxMessagesPerLookup to a
+      // query. It used to load the whole account's index on the first BODY or
+      // TEXT key - the complete markers and every term LIKE '%needle%' - which
+      // on SQL Server Compact with a hundred thousand messages took minutes in
+      // one statement, past any search timeout and holding the database's one
+      // connection (PersistentMessageIndex::GetMessagesThatCannotContain).
+      // Between two windows the search's own ceilings are asked again.
       //---------------------------------------------------------------------------()
       class SearchIndexFilter
       {
       public:
          SearchIndexFilter() :
             initialized_(false),
-            usable_(false),
-            account_id_(0),
+            enabled_(false),
             min_run_length_(0)
          {
+         }
+
+         // The messages of the search, in the order it examines them.
+         void SetWalk(const std::vector<__int64> &messageIds)
+         {
+            walk_ = messageIds;
+            positions_.clear();
+            for (size_t i = 0; i < walk_.size(); i++)
+               positions_[walk_[i]] = i;
          }
 
          // True only when the index proves the message cannot contain the
          // text. Every other answer - feature off, message not fully indexed,
          // message the indexer gave up on, a text the index cannot answer
-         // for, a message from another account scope, any database trouble -
-         // is false, which sends the caller to the scan. A false negative
-         // here costs a file read; a false positive would corrupt search
-         // results, so every default points the same way.
+         // for, a message the search did not list, any database trouble - is
+         // false, which sends the caller to the scan. A false negative here
+         // costs a file read; a false positive would corrupt search results,
+         // so every default points the same way.
          bool CannotContain(const std::shared_ptr<Message> &message, const String &searchText)
          {
             if (!message)
                return false;
 
-            EnsureInitialized_(message);
+            EnsureInitialized_();
 
-            if (!usable_)
-               return false;
-
-            // The marker sets were loaded for one account scope (public
-            // folders index under account id 0, so they have a scope of
-            // their own). A message from any other scope is simply scanned.
-            if (message->GetAccountID() != account_id_)
+            if (!enabled_)
                return false;
 
             const __int64 messageID = message->GetID();
 
-            // No complete-marker means the terms are not all committed - not
-            // yet indexed, indexing interrupted, or deliberately de-indexed
-            // after an edit - and the index has no standing to exclude it.
-            if (complete_set_.find(messageID) == complete_set_.end())
+            const std::unordered_map<__int64, size_t>::const_iterator position = positions_.find(messageID);
+            if (position == positions_.end())
                return false;
 
-            // The indexer gave up on this message (too many distinct terms,
-            // or its file was unreadable when indexed): always a candidate.
-            if (overflow_set_.find(messageID) != overflow_set_.end())
+            TextEntry &entry = EntryFor_(searchText);
+
+            // No usable needle (all runs too short, or non-ASCII): the index
+            // cannot answer for this text, so every message is scanned.
+            if (entry.needles.empty())
                return false;
 
-            const CandidateEntry &entry = CandidatesFor_(searchText);
-            if (!entry.usable)
-               return false;
+            // The window this message is in, asked about once. A window the
+            // database could not answer stays asked, with nothing excluded:
+            // its messages are scanned, and the database is not asked again
+            // for each of them.
+            const size_t window = position->second / PersistentMessageIndex::MaxMessagesPerLookup;
+            if (entry.asked.size() <= window)
+               entry.asked.resize(window + 1, false);
+
+            if (!entry.asked[window])
+            {
+               entry.asked[window] = true;
+
+               const size_t first = window * PersistentMessageIndex::MaxMessagesPerLookup;
+               const size_t last = std::min(walk_.size(), first + PersistentMessageIndex::MaxMessagesPerLookup);
+               const std::vector<__int64> ids(walk_.begin() + first, walk_.begin() + last);
+
+               PersistentMessageIndex::GetMessagesThatCannotContain(ids, entry.needles, entry.excluded);
+            }
 
             // Fully indexed, faithfully indexed, and no stored term of it
             // contains every needle of the text: it cannot contain the text.
-            return entry.candidates.find(messageID) == entry.candidates.end();
+            return entry.excluded.find(messageID) != entry.excluded.end();
          }
 
       private:
 
-         class CandidateEntry
+         class TextEntry
          {
          public:
-            bool usable = false;
-            std::set<__int64> candidates;
+            std::vector<String> needles;
+            std::vector<bool> asked;
+            std::set<__int64> excluded;
          };
 
-         void EnsureInitialized_(const std::shared_ptr<Message> &message)
+         void EnsureInitialized_()
          {
             if (initialized_)
                return;
 
             initialized_ = true;
-
-            if (!IniFileSettings::Instance()->GetIndexerFullTextEnabled())
-               return;
-
+            enabled_ = IniFileSettings::Instance()->GetIndexerFullTextEnabled();
             min_run_length_ = IniFileSettings::Instance()->GetIndexerFullTextMinTokenLength();
-            account_id_ = message->GetAccountID();
-
-            if (!PersistentMessageIndex::GetMessagesWithTerm(account_id_, PersistentMessageIndex::CompleteMarker(), complete_set_))
-               return;
-
-            if (!PersistentMessageIndex::GetMessagesWithTerm(account_id_, PersistentMessageIndex::OverflowMarker(), overflow_set_))
-               return;
-
-            usable_ = true;
          }
 
-         const CandidateEntry& CandidatesFor_(const String &searchText)
+         TextEntry& EntryFor_(const String &searchText)
          {
-            auto existing = candidates_by_text_.find(searchText);
-            if (existing != candidates_by_text_.end())
+            std::map<String, TextEntry>::iterator existing = entries_by_text_.find(searchText);
+            if (existing != entries_by_text_.end())
                return existing->second;
 
-            CandidateEntry &entry = candidates_by_text_[searchText];
-
-            std::vector<String> needles;
-            PersistentMessageIndex::CreateQueryNeedles(searchText, min_run_length_, needles);
-
-            // No usable needle (all runs too short, or non-ASCII): the index
-            // cannot answer for this text, so every message is scanned -
-            // entry.usable stays false.
-            if (needles.empty())
-               return entry;
-
-            // A message containing the text contains every needle, each
-            // inside some stored term, so the candidate set is the
-            // intersection of the per-needle matches. Failing needles fail
-            // open: any DB trouble leaves the entry unusable and the search
-            // scans everything.
-            bool first = true;
-            std::set<__int64> intersection;
-
-            for (const String &needle : needles)
-            {
-               std::set<__int64> matches;
-               if (!PersistentMessageIndex::GetMessagesWithTermContaining(account_id_, needle, matches))
-                  return entry;
-
-               if (first)
-               {
-                  intersection.swap(matches);
-                  first = false;
-               }
-               else
-               {
-                  std::set<__int64> merged;
-                  std::set_intersection(
-                     intersection.begin(), intersection.end(),
-                     matches.begin(), matches.end(),
-                     std::inserter(merged, merged.begin()));
-                  intersection.swap(merged);
-               }
-
-               if (intersection.empty())
-                  break;
-            }
-
-            entry.candidates.swap(intersection);
-            entry.usable = true;
+            TextEntry &entry = entries_by_text_[searchText];
+            PersistentMessageIndex::CreateQueryNeedles(searchText, min_run_length_, entry.needles);
             return entry;
          }
 
          bool initialized_;
-         bool usable_;
-         __int64 account_id_;
+         bool enabled_;
          int min_run_length_;
-         std::set<__int64> complete_set_;
-         std::set<__int64> overflow_set_;
-         std::map<String, CandidateEntry> candidates_by_text_;
+         std::vector<__int64> walk_;
+         std::unordered_map<__int64, size_t> positions_;
+         std::map<String, TextEntry> entries_by_text_;
       };
 
       // The filter for the SEARCH currently executing on this thread, when one
@@ -288,6 +260,12 @@ namespace HM
             // Restore rather than null, so even a nested execution - none
             // exists today - would unwind correctly.
             current_search_index_filter = previous_;
+         }
+
+         // The messages the search examines, in its order (SearchIndexFilter).
+         void SetWalk(const std::vector<__int64> &messageIds)
+         {
+            filter_.SetWalk(messageIds);
          }
 
       private:
@@ -470,8 +448,17 @@ namespace HM
       std::vector<std::pair<int, IMAPViewEntry> > entries = view->GetAllEntries();
 
       std::set<__int64> entry_ids;
+      std::vector<__int64> walk;
+      walk.reserve(entries.size());
       for (const std::pair<int, IMAPViewEntry> &entry : entries)
+      {
          entry_ids.insert(entry.second.message_id);
+         walk.push_back(entry.second.message_id);
+      }
+
+      // The order the index is asked in, a window at a time as the search
+      // reaches it.
+      searchIndexFilterScope.SetWalk(walk);
 
       std::map<__int64, std::shared_ptr<Message> > messagesById = pCurFolder->GetMessages()->GetCopyByIds(entry_ids);
 

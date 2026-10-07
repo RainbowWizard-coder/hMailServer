@@ -506,6 +506,25 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   An answer the server does end part way - a reader that stopped reading for the request deadline, the server stopping
   - now ends with a reset rather than an orderly close, which a client that does not count the bytes against
   `Content-Length` could take for the end of the answer.
+- **Fixed: with the full-text index on, a webmail search on SQL Server Compact took minutes, held the database
+  throughout and stalled the indexer.** Both searches - `q` on a folder's listing and `GET /api/v1/me/search` - asked
+  the account's whole index before they looked at a message: every message it had read whole, then every term holding
+  the word, which `LIKE '%word%'` makes every database find by reading them all. On server1, with the 100,000-message
+  folder of Performance.md, one search took 75 to 180 seconds, against 0.24 s with the index off; timed on SQL Server
+  Compact holding the same folder's 14 million index rows, the word's query alone took 167 seconds and the whole
+  messages' 89 seconds cold. All that while the server's one SQL Server Compact connection was held, so the indexer's
+  batches failed (`HM5180` after 60 seconds, then `HM6260`), and the answer came after the listener's deadline
+  (above). A search now asks the index about the messages it walks past, two hundred to a query - some 40 ms on
+  Compact - before it reads any of them, stops asking after about two and a half seconds and answers where to go on
+  from, as it already did when its reading ran out (`complete: false`, `next_before_uid` or `next_before_id`); what
+  the index leaves is read under a clock of its own. Each answer now says how many message files it opened (`opened`)
+  beside how many messages it walked past (`scanned`). IMAP `SEARCH` and the eDiscovery search, which asked the whole
+  account the same way at their first word, ask a window of their own messages at a time too. A row counts only as the
+  indexer wrote it: a term holds a word only where the scan would find it there, and a marker only spelt as the
+  indexer spells it, whatever the database's collation matches besides. On SQL Server Compact a lookup costs about
+  what reading a small message from a fast local disk does, so there the index spares reads without making a search
+  much faster; it pays where reading a message is slow. [Performance.md](hmailserver/docs/Performance.md),
+  "Searching".
 
 ### Operations
 
@@ -762,6 +781,15 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   the reset's on Linux, where the reader was given an orderly end after 3,563,520 of the 16,777,216 bytes; Windows
   resets such a connection of itself. `http-server-tests` needs the loopback, so the source packages' builds leave it
   out, as they leave out `network-deadline-tests`.
+- **The full-text index's lookups are tested without the service, and the searches over several of its windows with
+  it.** `PersistentMessageIndexTester`, which `ClassTester` runs, holds which messages a lookup's rows rule out - read
+  whole, not given up on, a needle in none of their terms as the scan finds it - and that a message's own terms never
+  rule it out; each rule taken out fails it. Two regression tests search 450 messages, three windows of the index,
+  with the index off and on: `FullTextSearch.AMailboxLargerThanOneLookupIsSearchedAWindowAtATime` over IMAP, under a
+  1 MB examine ceiling the scan alone cannot keep to, and
+  `RestApiSelfService.TheFullTextIndexNarrowsTheWebmailSearchAWindowAtATime` through both of the webmail's searches,
+  which with the index caught up open the five messages that hold the word and no other.
+  `build/perf/webmail-timing.py` records the files a search opened.
 
 ### Documentation
 
@@ -782,6 +810,11 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   checks cannot hold, and "Landing on master" names the four batches that have landed through it and the two
   settings the owner makes once this batch has; `.gitlab/security-exceptions.yml`'s header counts its 500 entries by
   scan and by group, and says how each group was read.
+- **Performance.md's index-on probe passes when the search for `quokka`, followed to its end, opened its hundred hits
+  and no other message**, which is the full-text index having read every other one. It asked for one search answered
+  in one request before, which a request no longer gives on SQL Server Compact however far the index has got, since it
+  asks the index two hundred messages at a time under its own clock; the margin after the probe goes with it.
+  "Searching" says how a search asks the index now and what that costs on SQL Server Compact.
 
 ---
 

@@ -158,6 +158,7 @@ namespace
 #include "../Util/EventTester.h"
 #include "../Util/HttpCompression.h"
 #include "../Util/HttpServer.h"
+#include "../Persistence/PersistentMessageIndex.h"
 #include "../Util/UpdateChecker.h"
 #include "../Util/Language.h"
 #include "../SQL/PGConnection.h"
@@ -1535,6 +1536,14 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing HttpServer\n"));
       HttpServerTester httpServerTester;
       httpServerTester.Test();
+
+      // What the full-text index's lookups prove: a message excluded only when
+      // it is complete, not overflowed and some needle is in none of its terms
+      // as the scan would find it - a collation's looser match, or a marker
+      // spelt otherwise, never excludes one.
+      OutputDebugString(_T("hMailServer: Testing PersistentMessageIndex\n"));
+      PersistentMessageIndexTester persistentMessageIndexTester;
+      persistentMessageIndexTester.Test();
 
       // The Control Deck's script-src: the SHA-256 of the text a browser
       // hashes for the page's one inline script - CR LF made LF, the script

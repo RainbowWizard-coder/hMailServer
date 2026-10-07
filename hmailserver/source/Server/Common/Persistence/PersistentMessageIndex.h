@@ -150,15 +150,49 @@ namespace HM
       // are merely unindexed (always scanned) until this heals them.
       static bool GetUnindexedMessages(__int64 highInclusive, int maxCount, std::vector<IndexableMessage> &result);
 
-      // --- Search-side queries (account-scoped, so a search never crosses
-      //     accounts; public-folder messages live under account id 0). --------
+      // --- The search side. ----------------------------------------------------
 
-      // Messages of the account having at least one term that CONTAINS the
-      // needle (mitterm LIKE '%needle%').
-      static bool GetMessagesWithTermContaining(__int64 accountID, const String &needle, std::set<__int64> &result);
+      // The most messages one lookup below asks the database about; a longer
+      // list is asked in pieces of this many. Two hundred are some 40 ms on
+      // SQL Server Compact with the terms of a hundred thousand messages
+      // (one needle; 80 ms with four), so a searcher asking a window at a
+      // time can stop between two of them when its clock runs out.
+      static const size_t MaxMessagesPerLookup = 200;
 
-      // Messages of the account having exactly this term. Used for the markers.
-      static bool GetMessagesWithTerm(__int64 accountID, const String &term, std::set<__int64> &result);
+      // Of the messages named, the ones the index proves cannot contain the
+      // text the needles came from (CreateQueryNeedles): fully indexed (the
+      // CompleteMarker), not given up on (no OverflowMarker), and with no
+      // stored term containing at least one of the needles. Every other
+      // message is left out of `excluded` and must be read. False when the
+      // database could not be asked; what was proved before that stays in
+      // `excluded`, and the rest are read.
+      //
+      // Asked of the messages themselves (mitmessageid in (...)), never of
+      // every term of an account. The search side used to ask the account's
+      // whole index once per search - its complete messages, then each
+      // needle's matches with mitterm LIKE '%needle%' - and on SQL Server
+      // Compact holding the terms of the hundred thousand messages
+      // Performance.md seeds (14 million rows), the needle's query took 167
+      // seconds and the complete markers' 89 seconds cold, holding the one
+      // pooled connection all the while: on server1 the webmail's search
+      // answered after 75 to 180 seconds, and the indexer, waiting on the
+      // connection, failed its batches. A LIKE with a leading % cannot use an
+      // index on any backend, so asked per message the cost follows the
+      // messages a search walks past (0.2 ms each on Compact), not the size of
+      // the account.
+      static bool GetMessagesThatCannotContain(const std::vector<__int64> &messageIds, const std::vector<String> &needles, std::set<__int64> &excluded);
+
+      // The decision GetMessagesThatCannotContain makes from the rows it read:
+      // each one a message id and a term that is a marker or that the database
+      // matched against a needle's LIKE. Only a term that holds the needle
+      // exactly, as the scan would find it (String::Find on the lowered term),
+      // counts as holding it, and only a marker spelt exactly as the indexer
+      // writes it counts as one - so a database whose collation reads more
+      // into a LIKE or an equality than that (case, accents, ignorable control
+      // characters) can only make a message read that would otherwise have
+      // been passed, never the other way round. Public, and without a
+      // database, so that PersistentMessageIndexTester holds it.
+      static void DecideExclusions(const std::vector<std::pair<__int64, String> > &rows, const std::vector<String> &needles, std::set<__int64> &excluded);
 
    private:
 
@@ -167,6 +201,16 @@ namespace HM
 
       static bool InsertTerm_(__int64 messageID, __int64 accountID, const String &term);
       static bool ReadIndexableMessages_(SQLCommand &command, int maxCount, std::vector<IndexableMessage> &result);
-      static bool ReadMessageIdSet_(SQLCommand &command, std::set<__int64> &result);
+   };
+
+   // The search side's decision, held without a database: which messages the
+   // rows a lookup returns prove cannot contain a text, and which they leave to
+   // be read - incomplete, overflowed, a needle in some term, a term matched
+   // only by the database's collation, a marker spelt otherwise. Run by
+   // ClassTester::DoTests.
+   class PersistentMessageIndexTester
+   {
+   public:
+      void Test();
    };
 }

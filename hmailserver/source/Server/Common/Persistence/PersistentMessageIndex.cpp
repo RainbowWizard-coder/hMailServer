@@ -11,6 +11,9 @@
 #include "../SQL/DatabaseSettings.h"
 
 #include <algorithm>
+#include <map>
+#include <stdexcept>
+#include <utility>
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -492,40 +495,200 @@ namespace HM
    }
 
    bool
-   PersistentMessageIndex::ReadMessageIdSet_(SQLCommand &command, std::set<__int64> &result)
+   PersistentMessageIndex::GetMessagesThatCannotContain(const std::vector<__int64> &messageIds, const std::vector<String> &needles, std::set<__int64> &excluded)
    {
-      std::shared_ptr<DALRecordset> pRS = Application::Instance()->GetDBManager()->OpenRecordset(command);
-      if (!pRS)
-         return false;
+      // No needle, nothing the index can prove.
+      if (needles.empty() || needles.size() > 4)
+         return true;
 
-      while (!pRS->IsEOF())
+      for (size_t first = 0; first < messageIds.size(); first += MaxMessagesPerLookup)
       {
-         result.insert(pRS->GetInt64Value("mitmessageid"));
-         pRS->MoveNext();
+         const size_t last = std::min(messageIds.size(), first + MaxMessagesPerLookup);
+
+         // The ids are numbers of this server's own, written into the text as
+         // CalendarStore::FindByUidAmong writes its; the markers and the
+         // needles are parameters, added in the order they are written, which
+         // is the order SQL Server and SQL Server Compact substitute them in.
+         // The needles are ASCII-alphanumeric by construction
+         // (CreateQueryNeedles), so they carry no LIKE metacharacter, and at
+         // most four, so no name below is the start of another.
+         String sql = _T("select mitmessageid, mitterm from hm_messageindexterms where mitmessageid in (");
+         for (size_t i = first; i < last; i++)
+         {
+            if (i > first)
+               sql += _T(",");
+            sql += StringParser::IntToString(messageIds[i]);
+         }
+         sql += _T(") and (mitterm = @COMPLETE or mitterm = @OVERFLOW");
+
+         static const char *const needleNames[] = { "@NEEDLEA", "@NEEDLEB", "@NEEDLEC", "@NEEDLED" };
+         for (size_t n = 0; n < needles.size(); n++)
+            sql += _T(" or mitterm like ") + String(needleNames[n]);
+         sql += _T(")");
+
+         SQLCommand command(sql);
+         command.AddParameter("@COMPLETE", String(CompleteMarker()));
+         command.AddParameter("@OVERFLOW", String(OverflowMarker()));
+         for (size_t n = 0; n < needles.size(); n++)
+            command.AddParameter(needleNames[n], "%" + needles[n] + "%");
+
+         std::shared_ptr<DALRecordset> pRS = Application::Instance()->GetDBManager()->OpenRecordset(command);
+         if (!pRS)
+            return false;
+
+         std::vector<std::pair<__int64, String> > rows;
+         while (!pRS->IsEOF())
+         {
+            rows.push_back(std::make_pair(pRS->GetInt64Value("mitmessageid"), pRS->GetStringValue("mitterm")));
+            pRS->MoveNext();
+         }
+
+         pRS.reset();
+
+         DecideExclusions(rows, needles, excluded);
       }
 
       return true;
    }
 
-   bool
-   PersistentMessageIndex::GetMessagesWithTermContaining(__int64 accountID, const String &needle, std::set<__int64> &result)
+   void
+   PersistentMessageIndex::DecideExclusions(const std::vector<std::pair<__int64, String> > &rows, const std::vector<String> &needles, std::set<__int64> &excluded)
    {
-      // The needle is ASCII-alphanumeric by construction (CreateQueryNeedles),
-      // so it carries no LIKE metacharacters and needs no escaping.
-      SQLCommand command("select distinct mitmessageid from hm_messageindexterms where mitaccountid = @ACCOUNTID and mitterm like @PATTERN");
-      command.AddParameter("@ACCOUNTID", (int) accountID);
-      command.AddParameter("@PATTERN", "%" + needle + "%");
+      if (needles.empty() || needles.size() > 32)
+         return;
 
-      return ReadMessageIdSet_(command, result);
+      const String complete = CompleteMarker();
+      const String overflow = OverflowMarker();
+
+      // Per message: complete, overflowed, and which needles some term holds.
+      struct State
+      {
+         bool complete = false;
+         bool overflow = false;
+         unsigned int found = 0;
+      };
+
+      std::map<__int64, State> states;
+      for (const std::pair<__int64, String> &row : rows)
+      {
+         State &state = states[row.first];
+
+         if (row.second == complete)
+         {
+            state.complete = true;
+            continue;
+         }
+
+         if (row.second == overflow)
+         {
+            state.overflow = true;
+            continue;
+         }
+
+         // The terms are stored lowered and the needles are lowered ASCII, so
+         // an exact find is the scan's own test: a needle in the message lies
+         // whole inside one stored term (the class comment). A row the
+         // database matched on its collation alone holds no needle here.
+         for (size_t n = 0; n < needles.size(); n++)
+         {
+            if (row.second.Find(needles[n]) >= 0)
+               state.found |= 1u << n;
+         }
+      }
+
+      const unsigned int every = needles.size() == 32 ? 0xFFFFFFFFu : ((1u << needles.size()) - 1);
+
+      for (const std::pair<const __int64, State> &entry : states)
+      {
+         const State &state = entry.second;
+         if (state.complete && !state.overflow && state.found != every)
+            excluded.insert(entry.first);
+      }
    }
 
-   bool
-   PersistentMessageIndex::GetMessagesWithTerm(__int64 accountID, const String &term, std::set<__int64> &result)
+   void
+   PersistentMessageIndexTester::Test()
    {
-      SQLCommand command("select mitmessageid from hm_messageindexterms where mitaccountid = @ACCOUNTID and mitterm = @TERM");
-      command.AddParameter("@ACCOUNTID", (int) accountID);
-      command.AddParameter("@TERM", term);
+      typedef std::vector<std::pair<__int64, String> > Rows;
 
-      return ReadMessageIdSet_(command, result);
+      const String complete = PersistentMessageIndex::CompleteMarker();
+      const String overflow = PersistentMessageIndex::OverflowMarker();
+
+      std::vector<String> needles;
+      needles.push_back(_T("quokka"));
+      needles.push_back(_T("came"));
+
+      Rows rows;
+      // 1: complete, both needles inside terms - a candidate.
+      rows.push_back(std::make_pair(1LL, String(_T("xquokkax"))));
+      rows.push_back(std::make_pair(1LL, String(_T("became"))));
+      rows.push_back(std::make_pair(1LL, complete));
+      // 2: complete, one needle only - cannot contain the text.
+      rows.push_back(std::make_pair(2LL, String(_T("quokka"))));
+      rows.push_back(std::make_pair(2LL, complete));
+      // 3: complete, no needle at all - cannot contain the text.
+      rows.push_back(std::make_pair(3LL, complete));
+      // 4: no complete marker - its terms may not all be in: read.
+      rows.push_back(std::make_pair(4LL, String(_T("other"))));
+      // 5: overflowed - always read, whatever else it has.
+      rows.push_back(std::make_pair(5LL, overflow));
+      rows.push_back(std::make_pair(5LL, complete));
+      // 6: complete, but the terms the database answered match the needles on
+      // its collation only - accents, case - and not as the scan finds them:
+      // cannot contain the text, as the scan would say.
+      rows.push_back(std::make_pair(6LL, String(_T("qu\x00f6kka"))));
+      rows.push_back(std::make_pair(6LL, String(_T("CAME"))));
+      rows.push_back(std::make_pair(6LL, complete));
+      // 7: a marker spelt without its \x01, as a collation that ignores the
+      // control character would match it: not complete, so read.
+      rows.push_back(std::make_pair(7LL, String(_T("ftc"))));
+      rows.push_back(std::make_pair(7LL, String(_T("quokka"))));
+      // 8: complete, both needles in one term - a candidate.
+      rows.push_back(std::make_pair(8LL, String(_T("quokkacame"))));
+      rows.push_back(std::make_pair(8LL, complete));
+
+      std::set<__int64> excluded;
+      PersistentMessageIndex::DecideExclusions(rows, needles, excluded);
+
+      std::set<__int64> expected;
+      expected.insert(2);
+      expected.insert(3);
+      expected.insert(6);
+
+      if (excluded != expected)
+      {
+         String found;
+         for (__int64 id : excluded)
+            found += StringParser::IntToString(id) + _T(" ");
+         throw std::logic_error(("PersistentMessageIndex::DecideExclusions excluded " + AnsiString(found) + "where 2, 3 and 6 alone cannot contain the text.").c_str());
+      }
+
+      // No needle: nothing proved, whatever the rows say.
+      std::set<__int64> none;
+      PersistentMessageIndex::DecideExclusions(rows, std::vector<String>(), none);
+      if (!none.empty())
+         throw std::logic_error("PersistentMessageIndex::DecideExclusions excluded a message for a text with no needle.");
+
+      // The needles of a text, and the soundness the decision rests on: a
+      // needle of the text lies inside a term the tokeniser stores for any
+      // content that holds the text.
+      std::vector<String> made;
+      PersistentMessageIndex::CreateQueryNeedles(_T("The Quokka-came, too"), 3, made);
+      if (made.size() != 4 || made[0] != _T("quokka"))
+         throw std::logic_error("PersistentMessageIndex::CreateQueryNeedles did not make the longest needle first.");
+
+      std::set<String> terms;
+      bool overflowed = false;
+      PersistentMessageIndex::TokenizeForIndex(_T("Subject: x\r\n\r\nand THE QUOKKA-CAME too"), 1000, terms, overflowed);
+
+      Rows stored;
+      for (const String &term : terms)
+         stored.push_back(std::make_pair(9LL, term));
+      stored.push_back(std::make_pair(9LL, complete));
+
+      std::set<__int64> wrongly;
+      PersistentMessageIndex::DecideExclusions(stored, made, wrongly);
+      if (!wrongly.empty())
+         throw std::logic_error("PersistentMessageIndex::DecideExclusions excluded a message whose own terms hold the text.");
    }
 }

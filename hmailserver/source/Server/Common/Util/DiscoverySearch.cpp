@@ -579,15 +579,18 @@ namespace HM
          return Utf8(address);
       }
 
-      // What the full-text index can prove for one account and the query's
-      // words: which of its fully indexed messages cannot contain them. The
-      // filter IMAP SEARCH and the webmail's search apply, and it fails open
-      // the same way - anything it cannot answer for is read.
+      // What the full-text index can prove for the query's words: which of the
+      // messages asked about cannot contain them. The filter IMAP SEARCH and
+      // the webmail's search apply, and it fails open the same way - anything
+      // it cannot answer for is read. Asked a page of an account's messages at
+      // a time (Resolve), never of the account's whole index: that took
+      // minutes on SQL Server Compact with a large mailbox and held the
+      // database's one connection throughout (PersistentMessageIndex::
+      // GetMessagesThatCannotContain).
       class IndexPrune
       {
       public:
-         IndexPrune(__int64 accountId, const std::vector<String> &words) :
-            usable_(false)
+         explicit IndexPrune(const std::vector<String> &words)
          {
             if (words.empty() || !IniFileSettings::Instance()->GetIndexerFullTextEnabled())
                return;
@@ -596,62 +599,29 @@ namespace HM
             for (const String &word : words)
                text += word + _T(" ");
 
-            std::vector<String> needles;
-            PersistentMessageIndex::CreateQueryNeedles(text, IniFileSettings::Instance()->GetIndexerFullTextMinTokenLength(), needles);
-            if (needles.empty())
-               return;
+            PersistentMessageIndex::CreateQueryNeedles(text, IniFileSettings::Instance()->GetIndexerFullTextMinTokenLength(), needles_);
+         }
 
-            if (!PersistentMessageIndex::GetMessagesWithTerm(accountId, PersistentMessageIndex::CompleteMarker(), complete_))
-               return;
+         // The index asked about these messages - a page's, which is what
+         // CannotContain answers for until the next page is asked about - in
+         // pieces of PersistentMessageIndex::MaxMessagesPerLookup; what it
+         // could not answer is read.
+         void Resolve(const std::vector<__int64> &messageIds)
+         {
+            excluded_.clear();
 
-            if (!PersistentMessageIndex::GetMessagesWithTerm(accountId, PersistentMessageIndex::OverflowMarker(), overflow_))
-               return;
-
-            bool first = true;
-            for (size_t i = 0; i < needles.size(); i++)
-            {
-               std::set<__int64> matches;
-               if (!PersistentMessageIndex::GetMessagesWithTermContaining(accountId, needles[i], matches))
-                  return;
-
-               if (first)
-               {
-                  candidates_.swap(matches);
-                  first = false;
-               }
-               else
-               {
-                  std::set<__int64> merged;
-                  std::set_intersection(candidates_.begin(), candidates_.end(), matches.begin(), matches.end(), std::inserter(merged, merged.begin()));
-                  candidates_.swap(merged);
-               }
-
-               if (candidates_.empty())
-                  break;
-            }
-
-            usable_ = true;
+            if (!needles_.empty() && !messageIds.empty())
+               PersistentMessageIndex::GetMessagesThatCannotContain(messageIds, needles_, excluded_);
          }
 
          bool CannotContain(__int64 messageId) const
          {
-            if (!usable_)
-               return false;
-
-            if (complete_.find(messageId) == complete_.end())
-               return false;
-
-            if (overflow_.find(messageId) != overflow_.end())
-               return false;
-
-            return candidates_.find(messageId) == candidates_.end();
+            return excluded_.find(messageId) != excluded_.end();
          }
 
       private:
-         bool usable_;
-         std::set<__int64> complete_;
-         std::set<__int64> overflow_;
-         std::set<__int64> candidates_;
+         std::vector<String> needles_;
+         std::set<__int64> excluded_;
       };
 
       // One thing a search may match: a message in a folder, a deleted item, an
@@ -884,7 +854,7 @@ namespace HM
             // given to index - nothing, since its bodies are encrypted - so it
             // is matched on its headers and never pruned.
             const std::vector<String> noWords;
-            IndexPrune prune(accountId, zeroAccess ? noWords : query_.words);
+            IndexPrune prune(zeroAccess ? noWords : query_.words);
 
             __int64 after = 0;
 
@@ -906,6 +876,11 @@ namespace HM
                }
 
                int rows = 0;
+
+               // The page first, then the index asked about it in one go,
+               // then each message considered.
+               std::vector<Candidate> page;
+               std::vector<__int64> pageIds;
 
                while (!recordset->IsEOF())
                {
@@ -936,12 +911,23 @@ namespace HM
                   candidate.held = held;
                   candidate.prunable = true;
 
+                  page.push_back(candidate);
+                  pageIds.push_back(candidate.id);
+
+                  recordset->MoveNext();
+               }
+
+               recordset.reset();
+
+               if (!query_.words.empty())
+                  prune.Resolve(pageIds);
+
+               for (const Candidate &candidate : page)
+               {
                   Consider_(candidate, &prune);
 
                   if (truncated)
                      return true;
-
-                  recordset->MoveNext();
                }
 
                if (rows < PageRows)

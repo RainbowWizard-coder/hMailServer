@@ -46,16 +46,30 @@ first costs, wherever it is in the folder.
 
 **Searching** - `q` on a folder's listing, and `GET /api/v1/me/search` across
 every folder. A request opens at most 2,000 message files and now also stops
-after about two and a half seconds of reading, answering where to go on from;
+after about two and a half seconds of work, answering where to go on from;
 the page's *Search older messages* carries on. With the full-text index on
 (`IndexerFullText`, off by default) a message the index has read whole and which
 cannot hold the words is walked past without its file being opened and without
 counting against the 2,000 - the same filter IMAP `SEARCH` trusts, which only
-ever rules a message out - so an indexed folder is searched as far as it has
-candidates. The search of every folder used to go folder by folder and stop at
-2,000: with a hundred thousand in the inbox it never reached another folder, and
-it had no way to go on. It now walks the whole mailbox newest first by message
-id and answers `next_before_id`, and the page continues from it.
+ever rules a message out - so an indexed folder is searched as far as the index
+can be asked in two and a half seconds. The index is asked about the messages the
+search walks past, two hundred to a query, before any of them is read, and what
+it leaves is then read under the reading's own clock.
+Until 7 October 2026 it was asked first about the whole account - its complete
+messages, then every one of its terms that held the word, which a database can
+only find by reading them all - and on SQL Server Compact with the hundred
+thousand below that took 75 to 180 seconds a request, outside the clock and
+holding the database's one connection; the answer then came after the listener's
+deadline had passed and was cut at 64 KB (both fixed; `CHANGELOG.md`). On SQL
+Server Compact a lookup costs some 0.2 ms a message, about what reading a small
+message from a fast local disk does, so there the index spares reads without
+making a search much faster; it pays where reading a message is slow - object
+storage, a network share. Each answer says how many message files it opened
+(`opened`), of the ones it walked past (`scanned`). The search of every folder
+used to go folder by folder and stop at 2,000: with a hundred thousand in the
+inbox it never reached another folder, and it had no way to go on. It now walks
+the whole mailbox newest first by message id and answers `next_before_id`, and
+the page continues from it.
 
 **A change in what `GET /api/v1/me/search` answers**, for anything that reads it
 besides the webmail: a search with more hits than `limit` used to answer
@@ -195,15 +209,15 @@ Restart-Service hMailServer; Start-Sleep -Seconds 300
     --label "bench, SQL CE, 100k, index off" --json C:\perf\results\perf-index-off-browser.json --markdown C:\perf\results\perf-index-off-browser.md
 
 # Index on: message indexing and the full-text index. Run the probe until the JSON's
-# http.search.body_word_in_folder says "complete": true and "hits": 100 - one search
-# of the folder answered in one request - and then leave the index on for a twentieth
-# as long again as that took before the restart below (why: under the recipe).
-# Not MessageIndexing.TotalIndexedCount: that counts the metadata index, which
-# reaches the folder's size long before the full-text index has read it.
+# http.search.body_word_in_folder says "complete": true, "hits": 100 and "opened": 100
+# - the search followed to its end opened no message but the hundred that hold the
+# word, so the index has read every other one (why: under the recipe). Not
+# MessageIndexing.TotalIndexedCount: that counts the metadata index, which reaches the
+# folder's size long before the full-text index has read it.
 $app = New-Object -ComObject hMailServer.Application; $null = $app.Authenticate('Administrator', 'testar')
 $app.Settings.MessageIndexing.Enabled = $true; $app.Settings.SetIniSetting('IndexerFullText', '1')
 & $py build\perf\webmail-timing.py --user self@uicheck.test --mode http --no-bulk --repeat 0 --pages 1 `
-    --search-requests 1 --json C:\perf\results\probe.json --markdown C:\perf\results\probe.md
+    --json C:\perf\results\probe.json --markdown C:\perf\results\probe.md
 
 # Then cold again, and the browser's select-all last: it leaves the folder read.
 Restart-Service hMailServer; Start-Sleep -Seconds 300
@@ -225,15 +239,15 @@ would share the database with it. Both passes wait the same, and the folder is
 still read cold, on its first use. The logging may stay off afterwards: the next
 gate's setup switches it on itself.
 
-Why the margin after the probe: a search request reads at most 2,000 message files,
-and stops after about two and a half seconds of reading, and the index spares it only
-the messages it has read whole. So the probe answers complete in one request once
-fewer messages are left for the index than one request may read itself, not only
-once none is: the indexer works through the folder oldest first and the search
-starts at the newest, so up to some 2,000 of the newest messages may still be
-unread by the index when it first passes. At the pace it kept until then, those
-take about a fiftieth of the time from turning the index on; a twentieth leaves a
-margin.
+Why `opened`: a search opens a message's file only when the index cannot rule the
+message out - when the index has not read it yet, or when its words are there. So
+a search for `quokka`, followed to its end, that opened exactly its hundred hits
+has had every other message of the folder ruled out by the index, which is the
+index having caught up. Until 7 October 2026 the probe asked for one search of the
+folder answered in one request instead, which a caught-up index gave because each
+request asked the whole account's index first; a request now asks it two hundred
+messages at a time under its own clock, so on SQL Server Compact a hundred
+thousand take several requests whether the index has caught up or not.
 
 **On Linux** the same two scripts run unchanged against a server with the REST
 listener on, with the same `HMPERF_PASSWORD`: `--base https://host:port --insecure`

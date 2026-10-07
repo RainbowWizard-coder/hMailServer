@@ -220,6 +220,73 @@ namespace RegressionTests.IMAP
          simulator.Close();
       }
 
+      [Test]
+      [Description("A mailbox larger than one lookup of the index (200 messages) is asked about a window at " +
+                   "a time, and finds exactly what the scan finds: the needle in the first and the last " +
+                   "message, on both sides of a window's edge and in the middle, whole and inside a word. " +
+                   "Under a 1 MB examine ceiling over 2.3 MB of messages, the index on answers what the scan " +
+                   "alone could only fail with [LIMIT] - so every window, not only the first, was asked.")]
+      public void AMailboxLargerThanOneLookupIsSearchedAWindowAtATime()
+      {
+         var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "fulltext-windows@example.test", "test", 0);
+
+         // 450 messages, in three windows of 200, 200 and 50 as the search walks
+         // them, oldest first. Each body some 5 KB, so that reading them all is over
+         // the ceiling set below and reading the five that carry the needle is not.
+         int[] carriers = { 1, 200, 201, 333, 450 };
+         var filler = new StringBuilder();
+         while (filler.Length < 5000)
+            filler.Append("plain filler words that hold no needle at all\r\n");
+
+         var appender = new ImapClientSimulator();
+         Assert.IsTrue(appender.ConnectAndLogon(account.Address, "test"));
+         for (var i = 1; i <= 450; i++)
+         {
+            string body = (Array.IndexOf(carriers, i) >= 0 ? "Message " + i + " carries the windowedneedle word.\r\n" : "Message " + i + ".\r\n") + filler;
+            string raw = "From: windows@example.test\r\nTo: " + account.Address + "\r\nSubject: Window " + i + "\r\n\r\n" + body;
+            string tag = "A" + i;
+            StringAssert.Contains(tag + " OK", appender.SendSingleCommandWithLiteral(tag + " APPEND INBOX {" + raw.Length + "}", raw));
+         }
+         appender.Close();
+
+         string[] queries =
+         {
+            "BODY \"windowedneedle\"",
+            "BODY \"dowedneed\"",          // inside the word only
+            "BODY \"absentwindowneedle\"",
+         };
+
+         const string carried = "1 200 201 333 450";
+         string[] expected = { carried, carried, "" };
+
+         var disabledResults = RunSearches(account.Address, queries);
+         for (var i = 0; i < queries.Length; i++)
+            Assert.AreEqual(expected[i], disabledResults[i], "With the index off, " + queries[i] + " returned the wrong result.");
+
+         IniFileSetting.Write("IMAPSearchTimeout", "60");
+         IniFileSetting.Write("IMAPSearchMaxMegabytes", "1");
+         EnableFullTextIndex();
+
+         // Until the backfill has read all 450 the scan reads the rest and the
+         // ceiling fails the search; once it has, every window rules out what
+         // does not carry the needle and the search answers.
+         string[] enabledResults = null;
+         RetryHelper.TryAction(TimeSpan.FromSeconds(60), () =>
+         {
+            _settings.MessageIndexing.Index();
+            enabledResults = RunSearches(account.Address, queries);
+
+            // An answer is sequence numbers; a refusal ([LIMIT]) is anything else.
+            foreach (string result in enabledResults)
+               Assert.IsTrue(System.Text.RegularExpressions.Regex.IsMatch(result, "^[0-9 ]*$"),
+                  "An indexed mailbox must answer under the ceiling, reading only the messages the index cannot rule out: " + result);
+         });
+
+         for (var i = 0; i < queries.Length; i++)
+            Assert.AreEqual(disabledResults[i], enabledResults[i],
+               "Enabling the full-text index changed the result of " + queries[i] + " in a mailbox of several windows.");
+      }
+
       /// <summary>
       ///    A body of roughly the requested size carrying the filler needle, built
       ///    from short plain lines exactly as SearchLimits builds its bodies.
