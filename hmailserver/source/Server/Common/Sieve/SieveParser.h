@@ -179,12 +179,12 @@ namespace HM
       // Why a script may not add or delete a header field of this name, or nothing
       // when it may: no name; a name that is not one (RFC 5322 2.2: printable ASCII
       // without a colon); Received and Return-Path, the trace of how the message
-      // travelled (RFC 5293 7); X-hMailServer-LoopCount, in any case, which counts
+      // travelled (RFC 5293 6 and 9); X-hMailServer-LoopCount, in any case, which counts
       // the generated messages a message has been through and is what ends a mail loop
       // (RuleGuard::WhyHeaderMayNotBeSet says what editing it let through); the fields
       // that say who the message is from (NamesWhoTheMessageIsFrom) and DKIM-Signature,
       // in any case, since a redirect sends the edited message on from this server and
-      // DKIMSigner signs it as the domain its From names (RFC 5293 5 leaves which
+      // DKIMSigner signs it as the domain its From names (RFC 5293 6 leaves which
       // fields may be edited to the implementation). The validator asks it of the name
       // a script writes, and LocalDelivery::EditSieveHeader asks it again of the name
       // as the script's variables expanded it: "${name}" is a legal name to the

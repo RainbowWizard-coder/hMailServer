@@ -226,7 +226,7 @@ namespace HM
       // Rewrites the stored message file with the addheader/deleteheader edits a
       // script decided (RFC 5293), in script order, and refreshes the message's
       // recorded size. Runs BEFORE redirects are queued, so a redirected copy
-      // carries the edits - RFC 5293 2: an edit affects all subsequent actions.
+      // carries the edits - RFC 5293 7: an edit affects all subsequent actions.
       // A failed write is reported through RuleGuard::ReportActionFailed, the
       // same visibility the rules engine's header rewriting gets, and an edit
       // EditSieveHeader refuses with a line in the application log.

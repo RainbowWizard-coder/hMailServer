@@ -252,7 +252,9 @@ namespace HM
          }
       }
 
-      // The trace of how the message got here is not a script's to edit (RFC 5293 7).
+      // The trace of how the message got here is not a script's to edit: RFC 5293 6
+      // forbids deleting Received, which section 9 says is what ends a mail loop, and
+      // leaves the rest - Return-Path among them - to the server.
       if (fieldName.CompareNoCase(_T("Received")) == 0 || fieldName.CompareNoCase(_T("Return-Path")) == 0)
       {
          reason.Format(_T("the %s header records how a message travelled and cannot be edited by a script."), fieldName.c_str());
@@ -1567,7 +1569,7 @@ namespace HM
          }
 
          // The field name must be a legal header name, and neither the trace of how
-         // the message got here (RFC 5293 7), the loop count, who the message is from
+         // the message got here (RFC 5293 6 and 9), the loop count, who the message is from
          // nor its DKIM signature is a script's to edit. A script stored before the
          // last three were protected may still name them when it is run: Purpose's
          // comment says why that is let through here.

@@ -1238,7 +1238,7 @@ namespace HM
       // the keep/fileinto decision came from the other is precisely how the two drift
       // apart. The summary is still what the COM diagnostic and the tests read, so it
       // is not going away - it just is not what delivery acts on.
-      // Header edits first (RFC 5293 2: an edit affects all subsequent actions),
+      // Header edits first (RFC 5293 7: an edit affects all subsequent actions),
       // so the redirected copies below carry them.
       if (!sieveResult.headerEdits.empty())
          ApplySieveHeaderEdits_(account, message, sieveResult.headerEdits);

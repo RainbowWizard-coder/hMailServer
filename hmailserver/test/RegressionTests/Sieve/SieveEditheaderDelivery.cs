@@ -448,7 +448,7 @@ namespace RegressionTests.Sieve
       }
 
       /// <summary>
-      ///    A redirect sends the edited message on from this server (RFC 5293 2), and
+      ///    A redirect sends the edited message on from this server (RFC 5293 7), and
       ///    the server DKIM-signs a message as the domain its From names, wherever it
       ///    signs for that domain and the message carries no signature of it. A script
       ///    that wrote a From, or took away a DKIM-Signature, had the redirected copy

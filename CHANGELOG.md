@@ -177,13 +177,13 @@ prompt. Found by the project's own review (work item 78; CVE requested).
 
 - **Fixed: an account's Sieve script could redirect a message as from any address, and have this server sign it
   with that address's domain's DKIM key.** `editheader` let a script add or delete any field but `Received`,
-  `Return-Path` and the loop count, and a `redirect` sends the message on as the script left it (RFC 5293 2). The
+  `Return-Path` and the loop count, and a `redirect` sends the message on as the script left it (RFC 5293 7). The
   server signs a message as the domain its `From` names wherever it signs for that domain and the message carries no
   signature of it, so a script that wrote a `From` - another account's address, or anyone's at a domain hosted here -
   had the redirected copy sent from this server in that name and signed as that domain; and one that deleted the
   `DKIM-Signature` a colleague's message came with, changed its `Subject` and redirected it had the server sign the
   changed message as the colleague's domain (from 6.2.22, which brought `editheader`). A script may no longer add or
-  delete `From`, `Sender`, `Resent-From`, `Resent-Sender` or `DKIM-Signature`, the name in any case, which RFC 5293 5
+  delete `From`, `Sender`, `Resent-From`, `Resent-Sender` or `DKIM-Signature`, the name in any case, which RFC 5293 6
   leaves to the server: one that does is refused when it is stored or checked (ManageSieve `PUTSCRIPT` and
   `CHECKSCRIPT`, the self-service filter, COM's `CheckSieveSyntax`), as one that edits `Received` is, with the
   reason; the edit is not made at delivery either, of the name as the script's variables made it, and the
