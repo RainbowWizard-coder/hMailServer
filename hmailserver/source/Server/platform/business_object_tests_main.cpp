@@ -42,7 +42,8 @@
 //     addheader or deleteheader of it is refused when the script is stored and not
 //     made when a stored one runs, by name in any case and as the script's variables
 //     made it; a rule may not set it; and a line break in a value a rule or a script
-//     writes, which wrote it as a second field, is a fold or a space.
+//     writes, which wrote it as a second field, is a fold or a space. A script's edit
+//     of Auto-Submitted is held the same way (RFC 5293 section 6).
 //   - A rule's actions are held to who owns the rule (RuleOwnerTester, the same file):
 //     a domain's or an account's rule may not set From, Sender, the Resent- pair or
 //     DKIM-Signature, a reply goes only from an address the rule's owner may send as,
@@ -51,14 +52,18 @@
 //     anyone, signed with the DKIM key of the domain it named.
 //   - DKIM signs a message as the domain its From names only when the server is
 //     entitled to (SigningOriginTester, Common/AntiSpam/DKIM/DKIMSigner.cpp): not mail
-//     from outside, nor a forward, a redirect or a rule's copy of it - the mark that
-//     says so is carried by every copy and kept on the queue row. Until 7 October
-//     2026 a forward of mail from outside whose From named a hosted domain left this
-//     server signed as that domain.
+//     from outside, nor a forward, a redirect or a rule's copy of it, nor a signed-in
+//     submission whose From names another hosted domain the account may not send as -
+//     the mark that says so is carried by every copy and kept on the queue row, as is
+//     the hosted domain recorded as relaying a message, which seals the ARC set over
+//     it. Until 7 October 2026 a forward of mail from outside whose From named a
+//     hosted domain left this server signed as that domain.
 //   - The spf= of the ARC-Authentication-Results this server seals is its own SPF
 //     result for the message (ArcAuthenticationResultsTester, Common/AntiSpam/DKIM/
-//     Arc.cpp), carried by every copy and kept on the queue row; until 7 October 2026
-//     it was read from the first Received-SPF field, which anybody could write.
+//     Arc.cpp), carried by every copy and kept on the queue row and in a quarantined
+//     copy's name; until 7 October 2026 it was read from the first Received-SPF field,
+//     which anybody could write. The value names header.d for each signature that
+//     verified and the domain the SPF check evaluated as smtp.mailfrom.
 //   - A Sieve vacation reply or notification says it is from its :from only when
 //     that address reaches the account, and otherwise from the account's own
 //     address (SieveFromAddressTester, Common/Sieve/SieveVacationResponder.cpp):
@@ -159,6 +164,9 @@ namespace
       source.SetSubmitterAccountID(29);
       source.SetAuthDomains(_T("example.test"));
       source.SetFromOutside(true);
+      source.SetReceivedSpfResult(_T("softfail"));
+      source.SetReceivedSpfDomain(_T("bounces.example.test"));
+      source.SetRelayingDomainID(37);
       source.SetCopiedFromID(31);
 
       for (unsigned char pattern : Patterns)
@@ -185,6 +193,9 @@ namespace
          Expect(copy.GetSubmitterAccountID() == source.GetSubmitterAccountID(), "a copy of a message lost its submitter");
          Expect(copy.GetAuthDomains() == source.GetAuthDomains(), "a copy of a message lost its authenticated domains");
          Expect(copy.GetFromOutside(), "a copy of a message from outside lost the mark that says so");
+         Expect(copy.GetReceivedSpfResult() == source.GetReceivedSpfResult(), "a copy of a message lost the SPF result this server reached for it");
+         Expect(copy.GetReceivedSpfDomain() == source.GetReceivedSpfDomain(), "a copy of a message lost the domain its SPF check evaluated");
+         Expect(copy.GetRelayingDomainID() == 37, "a copy of a message lost the domain recorded as relaying it");
 
          // Left out on purpose (Message.cpp): the recall rows follow the one
          // object CopyToIMAPFolder saves, never a copy of it.
@@ -417,10 +428,10 @@ main(int /*argc*/, char * /*argv*/[])
    failed += Run(&TestScriptObject, "a script object is made with its name and type");
    failed += Run(&TestIpRangePriority, "the IP range's priority a create takes: PUT's whole numbers from -2,000,000,000 to 2,000,000,000");
    failed += Run(&TestLoopCount, "a message's X-hMailServer-LoopCount: digits up to the limit, and anything else the limit, never below 0 or past INT_MAX - 1");
-   failed += Run(&TestLoopCountEdits, "no Sieve edit, rule or line break in a header value resets X-hMailServer-LoopCount");
+   failed += Run(&TestLoopCountEdits, "no Sieve edit, rule or line break in a header value resets X-hMailServer-LoopCount, and no Sieve edit changes Auto-Submitted");
    failed += Run(&TestRuleOwner, "a rule's actions held to its owner: no From or DKIM-Signature set but by a global rule, a reply sent only from an address the owner may send as, and its From one mailbox");
-   failed += Run(&TestSigningOrigin, "no message from outside, nor a forward, redirect or copy of one, is signed as its From's domain; the mark is copied and kept on the queue row");
-   failed += Run(&TestArcAuthenticationResults, "an ARC seal's spf= is the server's own SPF result, carried by copies and the queue row, never a Received-SPF field the message carries");
+   failed += Run(&TestSigningOrigin, "no message from outside, nor a forward, redirect or copy of one, nor a signed-in submission whose From is another's, is signed as its From's domain; the mark and the relaying domain are copied and kept on the queue row and in a quarantined copy's name");
+   failed += Run(&TestArcAuthenticationResults, "an ARC seal's spf= is the server's own SPF result, carried by copies, the queue row and a quarantined copy's name, never a Received-SPF field the message carries, and the seal names header.d and smtp.mailfrom");
    failed += Run(&TestSieveFromAddress, "a Sieve vacation reply or notification is from its :from only when that reaches the account, and no Sieve edit changes who a message is from");
    failed += Run(&TestManageSieveQuoting, "a ManageSieve quoted string holds no line break: a refusal quoting a script's line with one in it is one line");
 
