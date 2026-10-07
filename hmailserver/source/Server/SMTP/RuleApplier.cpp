@@ -430,7 +430,7 @@ namespace HM
             if (RepeatsAttempt_(account, pMsgData, _T("reply")))
                break;
 
-            ApplyAction_Reply(pAction, account, pMsgData);
+            ApplyAction_Reply(pRule, pAction, account, pMsgData);
             break;
          }
       case RuleAction::ScriptFunction:
@@ -453,7 +453,7 @@ namespace HM
             if (OutsideScope_(_T("header")))
                break;
 
-            ApplyAction_SetHeader(pAction, account, pMsgData);
+            ApplyAction_SetHeader(pRule, pAction, account, pMsgData);
             break;
          }
       case RuleAction::StopRuleProcessing:
@@ -1106,16 +1106,20 @@ namespace HM
    }
 
    void 
-   RuleApplier::ApplyAction_SetHeader(std::shared_ptr<RuleAction> pAction, std::shared_ptr<const Account> account, std::shared_ptr<MessageData> pMsgData) const
+   RuleApplier::ApplyAction_SetHeader(std::shared_ptr<Rule> pRule, std::shared_ptr<RuleAction> pAction, std::shared_ptr<const Account> account, std::shared_ptr<MessageData> pMsgData) const
    {
       String sHeader = pAction->GetHeaderName();
       String sValue = pAction->GetValue();
 
       // Not X-hMailServer-LoopCount, which the forward or reply after this action
       // reads - set to 0 it gave every copy the whole rule loop limit again - and not
-      // a name that would write a field of another name. Save refuses both now; this
-      // is for an action stored before it did (RuleGuard::WhyHeaderMayNotBeSet).
-      const String refusal = RuleGuard::WhyHeaderMayNotBeSet(sHeader);
+      // a name that would write a field of another name; and, for a domain's or an
+      // account's rule, not From, Sender, the Resent- pair or DKIM-Signature, which a
+      // forward, a copy or a reply would go out in, signed as the domain they name.
+      // Save refuses all of them now; this is for an action stored before it did,
+      // which is skipped while the rule's other actions are taken
+      // (RuleGuard::WhyHeaderMayNotBeSet).
+      const String refusal = RuleGuard::WhyHeaderMayNotBeSet(sHeader, pRule ? pRule->GetAccountID() : 0, pRule ? pRule->GetDomainID() : 0);
       if (!refusal.IsEmpty())
       {
          std::shared_ptr<Message> message = pMsgData->GetMessage();
@@ -1148,7 +1152,7 @@ namespace HM
    }
 
    void 
-   RuleApplier::ApplyAction_Reply(std::shared_ptr<RuleAction> pAction, std::shared_ptr<const Account> account, std::shared_ptr<MessageData> pMsgData) const
+   RuleApplier::ApplyAction_Reply(std::shared_ptr<Rule> pRule, std::shared_ptr<RuleAction> pAction, std::shared_ptr<const Account> account, std::shared_ptr<MessageData> pMsgData) const
    {
       // true = check AutoSubmitted header and do not respond if set
       if (!IsGeneratedResponseAllowed(pMsgData, true))
@@ -1177,6 +1181,21 @@ namespace HM
          return; // skip message flagged as spam
       }
 
+      // From an address the rule's owner may send as: for an account's rule, what the
+      // account may send as; for a domain's, an address of the domain. Save refuses
+      // any other now, and this is for an action stored before it did - the reply is
+      // not sent, rather than sent in somebody else's name and signed as their domain
+      // (RuleGuard::WhyReplyFromMayNotBeUsed).
+      {
+         const String refusal = RuleGuard::WhyReplyFromMayNotBeUsed(pRule ? pRule->GetAccountID() : 0, pRule ? pRule->GetDomainID() : 0, pAction->GetFromAddress());
+         if (!refusal.IsEmpty())
+         {
+            LOG_APPLICATION(Formatter::Format("RuleApplier: the Reply action of rule {0} was not applied to message {1}: {2}",
+               pAction->GetRuleID(), pOriginalMessage->GetID(), refusal));
+            return;
+         }
+      }
+
       // Reply to the email
       std::shared_ptr<Message> pMsg = std::shared_ptr<Message>(new Message());
       pMsg->SetState(Message::Delivering);
@@ -1187,7 +1206,9 @@ namespace HM
       pNewMsgData->LoadFromMessage(newMessageFileName, pMsg);
       pNewMsgData->GenerateMessageID();
       pNewMsgData->SetTo(sReplyRecipientAddress);
-      pNewMsgData->SetFrom(pAction->GetFromName() + " <" + pAction->GetFromAddress() + ">");
+      // The name as a quoted string, so that a name with a comma or an address in it
+      // adds no address to the From (RuleGuard::ReplyFromHeader).
+      pNewMsgData->SetFrom(RuleGuard::ReplyFromHeader(pAction->GetFromName(), pAction->GetFromAddress()));
       pNewMsgData->SetSubject(pAction->GetSubject());
       pNewMsgData->SetBody(pAction->GetBody());
       pNewMsgData->SetSentTime(Time::GetCurrentMimeDate());

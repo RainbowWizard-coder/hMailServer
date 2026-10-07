@@ -49,6 +49,27 @@ namespace HM
    }
 
    bool
+   PersistentRule::ReadOwner(__int64 ruleId, __int64 &accountId, __int64 &domainId)
+   {
+      accountId = 0;
+      domainId = 0;
+
+      if (ruleId <= 0)
+         return false;
+
+      SQLCommand command("select ruleaccountid, ruledomainid from hm_rules where ruleid = @RULEID");
+      command.AddParameter("@RULEID", ruleId);
+
+      std::shared_ptr<DALRecordset> recordset = Application::Instance()->GetDBManager()->OpenRecordset(command);
+      if (!recordset || recordset->IsEOF())
+         return false;
+
+      accountId = recordset->GetInt64Value("ruleaccountid");
+      domainId = recordset->GetInt64Value("ruledomainid");
+      return true;
+   }
+
+   bool
    PersistentRule::ReadObject(std::shared_ptr<Rule> pRule, std::shared_ptr<DALRecordset> pRS)
    {
       if (pRS->IsEOF())

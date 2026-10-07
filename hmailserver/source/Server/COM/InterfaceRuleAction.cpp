@@ -7,6 +7,7 @@
 
 #include "../Common/BO/RuleAction.h"
 #include "../Common/BO/RuleActions.h"
+#include "../Common/Persistence/PersistentRule.h"
 #include "../Common/Persistence/PersistentRuleAction.h"
 #include "../Common/Rules/RuleGuard.h"
 #include "../Common/Util/Encoding/ModifiedUTF7.h"
@@ -46,11 +47,30 @@ STDMETHODIMP InterfaceRuleAction::Save()
          return COMError::GenerateError(HM::COMAuthentication::NotTakenIn);
 
       // A rule may not set X-hMailServer-LoopCount, which ends a mail loop, nor write
-      // a field under a name that is not one. Refused here with the reason, as the
-      // REST API refuses it; RuleApplier skips such an action stored before.
-      if (object_->GetType() == HM::RuleAction::SetHeaderValue)
+      // a field under a name that is not one; a domain's or an account's rule may not
+      // set who the message is from or the signature it came with; and a reply goes
+      // only from an address the rule's owner may send as. Refused here with the
+      // reason, as the REST API refuses it; RuleApplier skips such an action stored
+      // before. An action of a rule not yet saved is held to it by Rule.Save, which
+      // saves it then (RuleGuard::WhyActionMayNotBeStored).
       {
-         const HM::String refusal = HM::RuleGuard::WhyHeaderMayNotBeSet(object_->GetHeaderName());
+         __int64 ruleId = object_->GetRuleID();
+         if (ruleId <= 0 && parent_collection_)
+            ruleId = parent_collection_->GetRuleID();
+
+         HM::String refusal;
+         if (ruleId > 0)
+         {
+            __int64 ruleAccountId = 0;
+            __int64 ruleDomainId = 0;
+            if (!HM::PersistentRule::ReadOwner(ruleId, ruleAccountId, ruleDomainId))
+               return COMError::GenerateError("The rule this action belongs to could not be read, so the action was not saved. See hMailServer error log.");
+
+            refusal = HM::RuleGuard::WhyActionMayNotBeStored(ruleAccountId, ruleDomainId, *object_);
+         }
+         else if (object_->GetType() == HM::RuleAction::SetHeaderValue)
+            refusal = HM::RuleGuard::WhyHeaderMayNotBeSet(object_->GetHeaderName());
+
          if (!refusal.IsEmpty())
             return COMError::GenerateError(refusal);
       }

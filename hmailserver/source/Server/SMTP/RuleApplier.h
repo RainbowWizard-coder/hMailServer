@@ -110,7 +110,7 @@ namespace HM
 
       // Whether a sender domain is vouched for by what the server itself saw.
       static bool SenderDomainVouched_(std::shared_ptr<Message> message, __int64 senderDomainId, const String &senderDomainName);
-      void ApplyAction_Reply(std::shared_ptr<RuleAction> pAction, std::shared_ptr<const Account> account, std::shared_ptr<MessageData> pMsgData) const;
+      void ApplyAction_Reply(std::shared_ptr<Rule> pRule, std::shared_ptr<RuleAction> pAction, std::shared_ptr<const Account> account, std::shared_ptr<MessageData> pMsgData) const;
       void ApplyAction_ScriptFunction(std::shared_ptr<RuleAction> pAction, std::shared_ptr<const Account> account, std::shared_ptr<MessageData> pMsgData) const;
       void ApplyAction_AddDisclaimer(std::shared_ptr<Rule> pRule, std::shared_ptr<RuleAction> pAction, std::shared_ptr<const Account> account, std::shared_ptr<MessageData> pMsgData) const;
 
@@ -130,7 +130,7 @@ namespace HM
       // recipient, at local delivery, whichever pass delivers that recipient.
       void SendPolicyNotice_(std::shared_ptr<Rule> pRule, const String &actionText, std::shared_ptr<MessageData> pMsgData, bool notSent, std::shared_ptr<const Account> account) const;
       bool RuleMatches_(std::shared_ptr<Rule> pRule, std::shared_ptr<MessageData> pMsgData);
-      void ApplyAction_SetHeader(std::shared_ptr<RuleAction> pAction, std::shared_ptr<const Account> account, std::shared_ptr<MessageData> pMsgData) const;
+      void ApplyAction_SetHeader(std::shared_ptr<Rule> pRule, std::shared_ptr<RuleAction> pAction, std::shared_ptr<const Account> account, std::shared_ptr<MessageData> pMsgData) const;
 
       ;
 

@@ -23,6 +23,11 @@ namespace HM
       static bool SaveObject(std::shared_ptr<Rule> pRule);
       static bool DeleteObject(std::shared_ptr<Rule> pRule);
 
+      // The owner of a stored rule, as its row says: the account, the domain, or
+      // neither for a global rule. False when there is no such row or it could not be
+      // read. What RuleAction.Save holds an action to (RuleGuard::WhyActionMayNotBeStored).
+      static bool ReadOwner(__int64 ruleId, __int64 &accountId, __int64 &domainId);
+
       static void DeleteByAccountID(__int64 ID);
       static void DeleteByDomainID(__int64 ID);
 

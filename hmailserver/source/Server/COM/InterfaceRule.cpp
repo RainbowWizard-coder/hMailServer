@@ -291,15 +291,14 @@ STDMETHODIMP InterfaceRule::Save()
           (object_->GetID() > 0 && !authentication_->MayChangeRule(object_->GetID())))
          return COMError::GenerateError(HM::COMAuthentication::NotTakenIn);
 
-      // Saving the rule saves its actions as they are in memory, so an action whose
-      // header was changed after RuleAction.Save is held to the same rule here
-      // (RuleGuard::WhyHeaderMayNotBeSet).
+      // Saving the rule saves its actions as they are in memory, so an action changed
+      // after RuleAction.Save, or one added before the rule had an owner it was saved
+      // under, is held here to the rule's owner as it is now: a Set header value
+      // action to the headers a rule of this owner may set, and a Reply action to the
+      // addresses it may send from (RuleGuard::WhyActionMayNotBeStored).
       for (std::shared_ptr<HM::RuleAction> action : object_->GetActions()->GetSnapshot())
       {
-         if (action->GetType() != HM::RuleAction::SetHeaderValue)
-            continue;
-
-         const HM::String refusal = HM::RuleGuard::WhyHeaderMayNotBeSet(action->GetHeaderName());
+         const HM::String refusal = HM::RuleGuard::WhyActionMayNotBeStored(object_->GetAccountID(), object_->GetDomainID(), *action);
          if (!refusal.IsEmpty())
             return COMError::GenerateError(refusal);
       }

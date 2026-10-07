@@ -194,6 +194,34 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   `Sieve/SieveEditheaderDelivery.cs` sends them through storing, delivery and a redirect between two accounts. Found
   by the project's own review.
 
+- **Fixed: an account's own rule could reply as any address, or set the `From` of a message it forwarded, and have
+  this server sign it with that address's domain's DKIM key.** An account may change its own rules over COM, signed
+  in as itself, and a domain's administrator, or a REST key confined to the domain, the domain's. A rule's *Reply*
+  went out from whatever address its action named, and its *Set header value* could set any header but the loop
+  count, `From`, `Sender`, the `Resent-` pair and `DKIM-Signature` among them, ahead of a forward or a copy (in every
+  version); the server signs a message as the domain its `From` names wherever it signs for that domain. Which
+  collection a rule is in is recorded, and who saved it is not, so the two actions are now held to the rule's owner:
+  - a *Set header value* of `From`, `Sender`, `Resent-From`, `Resent-Sender` or `DKIM-Signature`, the name in any case
+    and with blanks round it, is for the server's rules alone, which only the server administrator saves - a domain's
+    or an account's rule that sets one is refused, whoever saves it;
+  - a *Reply* goes from an address the owner may send as: for an account's rule, one the account may send as - its
+    own address, an alias of it, a mailbox that granted it the post right, an address it proved, a masked address of
+    its own, the rule authenticated SMTP and the webmail's send apply - and for a domain's rule an address of the
+    domain or of one of its domain aliases; one email address in either case. An account's rule the server
+    administrator saves is held to the account's addresses too, so that what is saved is what is sent;
+  - and the reply's name is written as one quoted name before its address: a name holding a comma and an address was
+    written as it stood, and added that address to the reply's `From`.
+
+  COM's `Rule.Save` and `RuleAction.Save` and the REST API's domain and account rule routes refuse such an action,
+  with the reason. One stored before this release, or restored from a backup since, is not taken at delivery - the
+  header is not set, the reply not sent - and the application log names the rule and why; the rule's other actions
+  are taken. To set `From` on a domain's mail, make the rule a server rule with a condition on the domain.
+
+  `RuleOwnerTester` (`business-object-tests` on Linux) holds the two checks and the reply's `From` to examples, and
+  `Rules/Rules.cs` and `API/RestApiRules.cs` save the rules over COM, signed in as the account and as the
+  administrator, and over REST, and deliver a reply and a `From` stored before the check. Found by the project's own
+  review.
+
 ### Correctness
 
 - **Fixed: a ManageSieve refusal that quoted a script's text with a line break in it was split in two.** RFC 5804's

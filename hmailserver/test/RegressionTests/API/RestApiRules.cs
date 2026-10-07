@@ -543,6 +543,79 @@ namespace RegressionTests.API
          }
       }
 
+      /// <summary>
+      /// A domain's rules are saved by a key confined to the domain, and an account's by
+      /// one confined to its domain; who saved a rule is not recorded, only whose it is.
+      /// So a set_header action on From, Sender, Resent-From, Resent-Sender or
+      /// DKIM-Signature is refused under a domain's and an account's routes and saved
+      /// under the server's; a reply of a domain's rule goes only from an address of the
+      /// domain, and of an account's rule only from one the account may send as. A PUT
+      /// that is refused leaves the rule as it was.
+      ///
+      /// Against the unfixed server every POST and PUT below answers 201 or 200.
+      /// </summary>
+      [Test]
+      [Description("A domain's or an account's rule may not set From or DKIM-Signature, nor reply from an address that is not its owner's, over REST; the server's rule may set From.")]
+      public void ADomainsOrAnAccountsRuleSpeaksOnlyForItsOwner()
+      {
+         Account owner = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "restruleowner@example.test", "test");
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "restruleceo@example.test", "test");
+         string simple = "{\"field\":\"subject\",\"match\":\"contains\",\"value\":\"x\"}";
+         string name = RulePrefix + "owner";
+
+         string domainRoute = "/api/v1/domains/" + _domain.Name + "/rules";
+         string accountRoute = "/api/v1/accounts/" + owner.Address + "/rules";
+
+         foreach (string route in new[] { domainRoute, accountRoute })
+         {
+            foreach (string header in new[] { "From", "sender", "Resent-From", "RESENT-SENDER", "dkim-signature" })
+            {
+               (int status, string body) = Http("POST", route,
+                  RuleBody(name, simple, "{\"type\":\"set_header\",\"header\":\"" + header + "\",\"value\":\"restruleceo@example.test\"}", active: false));
+               Assert.AreEqual(400, status, route + " set " + header + ": " + body);
+               StringAssert.Contains("says who the message is from", body, body);
+            }
+
+            (int replyStatus, string replyBody) = Http("POST", route,
+               RuleBody(name, simple, "{\"type\":\"reply\",\"from_address\":\"ceo@example.net\",\"subject\":\"Re\"}", active: false));
+            Assert.AreEqual(400, replyStatus, route + " replied from ceo@example.net: " + replyBody);
+            StringAssert.Contains("actions[0]: A reply of", replyBody, replyBody);
+         }
+
+         // The account's rule may not reply as another account here; the domain's may,
+         // since it is an address of the domain.
+         (int asOther, string asOtherBody) = Http("POST", accountRoute,
+            RuleBody(name, simple, "{\"type\":\"reply\",\"from_address\":\"restruleceo@example.test\",\"subject\":\"Re\"}", active: false));
+         Assert.AreEqual(400, asOther, asOtherBody);
+
+         (int ownStatus, string ownBody) = Http("POST", accountRoute,
+            RuleBody(name, simple, "{\"type\":\"reply\",\"from_address\":\"" + owner.Address + "\",\"subject\":\"Re\"}", active: false));
+         Assert.AreEqual(201, ownStatus, ownBody);
+         int accountRuleId = ExtractId(ownBody);
+
+         (int domainStatus, string domainBody) = Http("POST", domainRoute,
+            RuleBody(name, simple, "{\"type\":\"reply\",\"from_address\":\"restruleceo@example.test\",\"subject\":\"Re\"}", active: false));
+         Assert.AreEqual(201, domainStatus, domainBody);
+         int domainRuleId = ExtractId(domainBody);
+
+         // A refused PUT leaves the account's rule as it was.
+         (int putStatus, string putBody) = Http("PUT", accountRoute + "/" + accountRuleId,
+            RuleBody(name, simple, "{\"type\":\"set_header\",\"header\":\"From\",\"value\":\"restruleceo@example.test\"}", active: false));
+         Assert.AreEqual(400, putStatus, putBody);
+         Rule kept = owner.Rules.get_ItemByDBID(accountRuleId);
+         Assert.AreEqual(1, kept.Actions.Count);
+         Assert.AreEqual(eRuleActionType.eRAReply, kept.Actions[0].Type);
+
+         // The server's rule may set From.
+         (int globalStatus, string globalBody) = Http("POST", "/api/v1/rules",
+            RuleBody(name + "-global", simple, "{\"type\":\"set_header\",\"header\":\"From\",\"value\":\"noreply@example.test\"}", active: false));
+         Assert.AreEqual(201, globalStatus, globalBody);
+
+         Assert.AreEqual(200, Http("DELETE", "/api/v1/rules/" + ExtractId(globalBody)).status);
+         Assert.AreEqual(200, Http("DELETE", domainRoute + "/" + domainRuleId).status);
+         Assert.AreEqual(200, Http("DELETE", accountRoute + "/" + accountRuleId).status);
+      }
+
       [Test]
       [Description("A key restricted to named domains cannot write a global rule whatever its scope; a read-only key cannot; an unrestricted full key can; no credential is 401.")]
       public void ScopedAndReadOnlyKeysAreRefused()

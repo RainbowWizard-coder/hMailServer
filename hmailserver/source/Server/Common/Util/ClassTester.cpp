@@ -239,6 +239,14 @@ namespace HM
       LoopCountEditTester loopCountEditTester;
       loopCountEditTester.Test();
 
+      // A rule's actions held to who owns the rule: no From, Sender, Resent- pair or
+      // DKIM-Signature set by a domain's or an account's rule, a reply sent only from an
+      // address the rule's owner may send as, and a reply's From one mailbox whatever
+      // its name says (RuleGuard.h, RuleOwnerTester).
+      OutputDebugString(_T("hMailServer: Testing a rule's actions against its owner\n"));
+      RuleOwnerTester ruleOwnerTester;
+      ruleOwnerTester.Test();
+
       // The address a Sieve vacation reply or notification may say it is from: one
       // that reaches the account, or else the account's own. Until 6 October 2026 a
       // notification was sent from whatever its :from said (SieveVacationResponder.h,

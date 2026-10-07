@@ -7,14 +7,25 @@
 #include "RuleGuard.h"
 
 #include "../BO/Account.h"
+#include "../BO/Domain.h"
+#include "../BO/DomainAliases.h"
 #include "../BO/Message.h"
 #include "../BO/MessageData.h"
+#include "../BO/RuleAction.h"
+
+#include "../Application/ObjectCache.h"
+#include "../Cache/CacheContainer.h"
 
 #include "../Persistence/PersistentMessage.h"
 #include "../Persistence/MessageStore.h"
 
 #include "../Util/FileUtilities.h"
+#include "../Util/Parsing/AddresslistParser.h"
 #include "../Util/Strings/Formatter.h"
+
+// The rule a rule's reply is held to for an account's rule: what authenticated SMTP and
+// the webmail's send let the account write as its sender (WhyReplyFromMayNotBeUsed).
+#include "../../SMTP/SMTPConnection.h"
 
 // For LoopCountEditTester, which holds the Sieve validator and the delivery path's
 // header edits to the same answer RuleGuard gives the rules, and the header of a
@@ -414,6 +425,182 @@ namespace HM
       }
 
       return String();
+   }
+
+   bool
+   RuleGuard::NamesWhoTheMessageIsFrom(const String &fieldName)
+   {
+      static const wchar_t *const names[] = { L"From", L"Sender", L"Resent-From", L"Resent-Sender", L"DKIM-Signature" };
+
+      const wchar_t *text = fieldName.c_str();
+      size_t first = 0;
+      size_t last = fieldName.size();
+      while (first < last && (text[first] == L' ' || text[first] == L'\t'))
+         first++;
+      while (last > first && (text[last - 1] == L' ' || text[last - 1] == L'\t'))
+         last--;
+
+      for (const wchar_t *name : names)
+      {
+         const size_t length = wcslen(name);
+         if (last - first != length)
+            continue;
+
+         // ASCII letters folded and nothing else, as IsLoopCountHeader compares: the
+         // MIME reader matches a name with _stricmp in the C locale.
+         bool same = true;
+         for (size_t position = 0; position < length && same; position++)
+         {
+            wchar_t given = text[first + position];
+            wchar_t wanted = name[position];
+            if (given >= L'A' && given <= L'Z')
+               given = static_cast<wchar_t>(given - L'A' + L'a');
+            if (wanted >= L'A' && wanted <= L'Z')
+               wanted = static_cast<wchar_t>(wanted - L'A' + L'a');
+            same = given == wanted;
+         }
+
+         if (same)
+            return true;
+      }
+
+      return false;
+   }
+
+   String
+   RuleGuard::WhyHeaderMayNotBeSet(const String &fieldName, __int64 ruleAccountId, __int64 ruleDomainId)
+   {
+      const String refusal = WhyHeaderMayNotBeSet(fieldName);
+      if (!refusal.IsEmpty())
+         return refusal;
+
+      if ((ruleAccountId > 0 || ruleDomainId > 0) && NamesWhoTheMessageIsFrom(fieldName))
+      {
+         String name = fieldName;
+         name.Trim();
+
+         return _T("'") + HeaderNameForMessage(name) + _T("' says who the message is from, or is the signature it came with, ")
+            _T("and only a rule of the server's own - one with no account and no domain, which only the server ")
+            _T("administrator saves - may set it: a forward, a copy or a reply would go out in that name, signed ")
+            _T("by this server as the domain it names.");
+      }
+
+      return String();
+   }
+
+   String
+   RuleGuard::WhyReplyFromMayNotBeUsed(__int64 ruleAccountId, __int64 ruleDomainId, const String &fromAddress,
+                                       const std::function<bool(const String &address, String &reason)> &accountMaySendAs,
+                                       const std::function<bool(const String &address)> &addressOfDomain)
+   {
+      // A global rule's: only the server administrator saves one.
+      if (ruleAccountId <= 0 && ruleDomainId <= 0)
+         return String();
+
+      // The null sender, as authenticated SMTP takes it: it names nobody.
+      if (fromAddress.IsEmpty())
+         return String();
+
+      const String shown = HeaderNameForMessage(fromAddress);
+
+      // One address and nothing else: what follows it is written into the From
+      // between angle brackets.
+      if (!StringParser::IsValidEmailAddress(fromAddress))
+         return _T("The from address of a reply must be one email address, and '") + shown + _T("' is not.");
+
+      if (ruleAccountId > 0)
+      {
+         String reason;
+         if (accountMaySendAs && accountMaySendAs(fromAddress, reason))
+            return String();
+
+         return _T("A reply of an account's rule is sent only from an address the account may send as - its own, an alias ")
+            _T("of it, a mailbox that granted it the post right, or an address it proved - and '") + shown +
+            _T("' is not one") + (reason.IsEmpty() ? String(_T(".")) : String(_T(": ")) + HeaderNameForMessage(reason));
+      }
+
+      if (addressOfDomain && addressOfDomain(fromAddress))
+         return String();
+
+      return _T("A reply of a domain's rule is sent only from an address of that domain or of one of its domain ")
+         _T("aliases, and '") + shown + _T("' is not one.");
+   }
+
+   String
+   RuleGuard::WhyReplyFromMayNotBeUsed(__int64 ruleAccountId, __int64 ruleDomainId, const String &fromAddress)
+   {
+      auto accountMaySendAs = [ruleAccountId](const String &address, String &reason) -> bool
+      {
+         std::shared_ptr<const Account> account = CacheContainer::Instance()->GetAccount(ruleAccountId);
+         if (!account)
+         {
+            reason = _T("the account the rule belongs to was not found.");
+            return false;
+         }
+
+         return SMTPConnection::SenderPermittedFor(account->GetAddress(), address, reason);
+      };
+
+      auto addressOfDomain = [ruleDomainId](const String &address) -> bool
+      {
+         std::shared_ptr<const Domain> domain = CacheContainer::Instance()->GetDomain(ruleDomainId);
+         if (!domain)
+            return false;
+
+         // An address of one of the domain's aliases is the domain's, as it is to the
+         // domain's administrator (COMAuthentication::MaySendAs).
+         std::shared_ptr<DomainAliases> domainAliases = ObjectCache::Instance()->GetDomainAliases();
+         const String resolved = domainAliases ? domainAliases->ApplyAliasesOnAddress(address) : address;
+
+         return StringParser::ExtractDomain(resolved).CompareNoCase(domain->GetName()) == 0;
+      };
+
+      return WhyReplyFromMayNotBeUsed(ruleAccountId, ruleDomainId, fromAddress, accountMaySendAs, addressOfDomain);
+   }
+
+   String
+   RuleGuard::WhyActionMayNotBeStored(__int64 ruleAccountId, __int64 ruleDomainId, const RuleAction &action)
+   {
+      switch (action.GetType())
+      {
+      case RuleAction::SetHeaderValue:
+         return WhyHeaderMayNotBeSet(action.GetHeaderName(), ruleAccountId, ruleDomainId);
+      case RuleAction::Reply:
+         return WhyReplyFromMayNotBeUsed(ruleAccountId, ruleDomainId, action.GetFromAddress());
+      default:
+         return String();
+      }
+   }
+
+   String
+   RuleGuard::ReplyFromHeader(const String &name, const String &address)
+   {
+      String phrase;
+      const wchar_t *text = name.c_str();
+      for (size_t position = 0; position < name.size(); position++)
+      {
+         const wchar_t character = text[position];
+
+         // A quoted string holds no line break, and a CR LF would be written as two
+         // spaces by the writer anyway (MimeField::AppendAsOneField); a NUL would end
+         // the name where the writer stops.
+         if (character == L'\r' || character == L'\n' || character == L'\t' || character == L'\0')
+         {
+            phrase += L' ';
+            continue;
+         }
+
+         if (character == L'"' || character == L'\\')
+            phrase += L'\\';
+         phrase += character;
+      }
+
+      phrase.Trim();
+
+      if (phrase.IsEmpty())
+         return _T("<") + address + _T(">");
+
+      return _T("\"") + phrase + _T("\" <") + address + _T(">");
    }
 
    String
@@ -1404,5 +1591,221 @@ namespace HM
 
       if (!wrong.empty())
          throw std::logic_error("Header edits of X-hMailServer-LoopCount: " + wrong);
+   }
+
+   void
+   RuleOwnerTester::Test()
+   {
+      std::string wrong;
+      auto fail = [&wrong](const std::string &what)
+      {
+         wrong += (wrong.empty() ? "" : "; ") + what;
+      };
+
+      auto shown = [](const String &value) { return LoopCountValueForMessage(value); };
+
+      // The five names, by name in any case and with the blanks a rule's header name
+      // may carry, and the names beside them that are not they.
+      {
+         const wchar_t *named[] =
+         {
+            L"From", L"from", L"FROM", L" From\t", L"Sender", L"sender", L"Resent-From", L"resent-from",
+            L"Resent-Sender", L"RESENT-SENDER", L"DKIM-Signature", L"dkim-signature", L"\tDKIM-Signature  ",
+         };
+         for (const wchar_t *name : named)
+         {
+            if (!RuleGuard::NamesWhoTheMessageIsFrom(String(name)))
+               fail("NamesWhoTheMessageIsFrom(\"" + shown(String(name)) + "\") is false");
+         }
+
+         const wchar_t *notNamed[] =
+         {
+            L"", L"From:", L"X-From", L"Fromage", L"Reply-To", L"Resent-To", L"Resent-Date", L"DKIM-Signatures",
+            L"ARC-Seal", L"Fr\u043Em", L"Send\u0435r", L"F rom",
+         };
+         for (const wchar_t *name : notNamed)
+         {
+            if (RuleGuard::NamesWhoTheMessageIsFrom(String(name)))
+               fail("NamesWhoTheMessageIsFrom(\"" + shown(String(name)) + "\") is true");
+         }
+      }
+
+      // Set header value: refused for a domain's rule and an account's, whatever the
+      // case, and let through for the server's; the loop count refused for all three;
+      // every other header let through for all three.
+      {
+         struct Owner { __int64 account; __int64 domain; const char *what; };
+         const Owner owners[] = { { 0, 0, "a global rule" }, { 0, 7, "a domain's rule" }, { 5, 0, "an account's rule" } };
+
+         const wchar_t *identity[] = { L"From", L"sender", L" Resent-From ", L"RESENT-SENDER", L"dkim-signature" };
+         const wchar_t *ordinary[] = { L"Subject", L"Reply-To", L"X-Note", L"X-From", L"Return-Receipt-To" };
+
+         for (const Owner &owner : owners)
+         {
+            const bool server = owner.account == 0 && owner.domain == 0;
+
+            for (const wchar_t *name : identity)
+            {
+               const String reason = RuleGuard::WhyHeaderMayNotBeSet(String(name), owner.account, owner.domain);
+               if (server && !reason.IsEmpty())
+                  fail(std::string(owner.what) + " may not set \"" + shown(String(name)) + "\": " + shown(reason));
+               if (!server && reason.IsEmpty())
+                  fail(std::string(owner.what) + " may set \"" + shown(String(name)) + "\"");
+               if (!server && (reason.Find(L"\r") >= 0 || reason.Find(L"\n") >= 0))
+                  fail("the refusal of \"" + shown(String(name)) + "\" has a line break in it");
+            }
+
+            for (const wchar_t *name : ordinary)
+            {
+               const String reason = RuleGuard::WhyHeaderMayNotBeSet(String(name), owner.account, owner.domain);
+               if (!reason.IsEmpty())
+                  fail(std::string(owner.what) + " may not set \"" + shown(String(name)) + "\": " + shown(reason));
+            }
+
+            if (RuleGuard::WhyHeaderMayNotBeSet(L"x-hmailserver-loopcount", owner.account, owner.domain).IsEmpty())
+               fail(std::string(owner.what) + " may set the loop count");
+            if (RuleGuard::WhyHeaderMayNotBeSet(L"X-Note\r\nFrom", owner.account, owner.domain).IsEmpty())
+               fail(std::string(owner.what) + " may set a name with a line break and From after it");
+         }
+
+         // The one question every save asks, of the action itself.
+         RuleAction setFrom;
+         setFrom.SetType(RuleAction::SetHeaderValue);
+         setFrom.SetHeaderName(L"From");
+         setFrom.SetValue(L"ceo@example.test");
+         if (RuleGuard::WhyActionMayNotBeStored(5, 0, setFrom).IsEmpty())
+            fail("WhyActionMayNotBeStored let an account's rule store a Set header value of From");
+         if (RuleGuard::WhyActionMayNotBeStored(0, 7, setFrom).IsEmpty())
+            fail("WhyActionMayNotBeStored let a domain's rule store a Set header value of From");
+         if (!RuleGuard::WhyActionMayNotBeStored(0, 0, setFrom).IsEmpty())
+            fail("WhyActionMayNotBeStored refused a global rule's Set header value of From");
+
+         RuleAction forward;
+         forward.SetType(RuleAction::Forward);
+         forward.SetTo(L"someone@example.net");
+         if (!RuleGuard::WhyActionMayNotBeStored(5, 0, forward).IsEmpty())
+            fail("WhyActionMayNotBeStored refused an account's forward");
+      }
+
+      // A reply's from address, with the two questions answered as examples: the
+      // account may send as its own address and its alias, and the domain's addresses
+      // are those at example.test and at its alias domain. Every question is kept, so
+      // that an answer given without asking is told apart from one asked for.
+      {
+         std::vector<String> askedAccount;
+         auto accountMaySendAs = [&askedAccount](const String &address, String &reason) -> bool
+         {
+            askedAccount.push_back(address);
+            if (address.CompareNoCase(L"own@example.test") == 0 || address.CompareNoCase(L"alias@example.test") == 0)
+               return true;
+            reason = L"the account does not own " + address + L".";
+            return false;
+         };
+
+         std::vector<String> askedDomain;
+         auto addressOfDomain = [&askedDomain](const String &address) -> bool
+         {
+            askedDomain.push_back(address);
+            const String domain = StringParser::ExtractDomain(address);
+            return domain.CompareNoCase(L"example.test") == 0 || domain.CompareNoCase(L"alias.example") == 0;
+         };
+
+         struct Case
+         {
+            __int64 account;
+            __int64 domain;
+            const wchar_t *from;
+            bool allowed;
+            bool asks;
+         };
+
+         const Case cases[] =
+         {
+            { 5, 0, L"own@example.test", true, true },
+            { 5, 0, L"OWN@example.test", true, true },
+            { 5, 0, L"alias@example.test", true, true },
+            { 5, 0, L"", true, false },
+            { 5, 0, L"other@example.test", false, true },
+            { 5, 0, L"ceo@example.net", false, true },
+            { 5, 0, L"own@example.test>, <ceo@example.net", false, false },
+            { 5, 0, L"Boss <own@example.test>", false, false },
+            { 5, 0, L"own@example.test\r\nBcc: x@example.net", false, false },
+            { 0, 7, L"anyone@example.test", true, true },
+            { 0, 7, L"helpdesk@alias.example", true, true },
+            { 0, 7, L"", true, false },
+            { 0, 7, L"ceo@example.net", false, true },
+            { 0, 7, L"x@example.test>, <ceo@example.net", false, false },
+            { 0, 7, L"not an address", false, false },
+            { 0, 0, L"anyone@anywhere.example", true, false },
+            { 0, 0, L"ceo@example.net", true, false },
+         };
+
+         for (const Case &c : cases)
+         {
+            askedAccount.clear();
+            askedDomain.clear();
+
+            const String reason = RuleGuard::WhyReplyFromMayNotBeUsed(c.account, c.domain, String(c.from), accountMaySendAs, addressOfDomain);
+            const std::string what = std::string(c.account > 0 ? "an account's" : c.domain > 0 ? "a domain's" : "a global") +
+               " rule's reply from \"" + shown(String(c.from)) + "\"";
+
+            if (c.allowed && !reason.IsEmpty())
+               fail(what + " was refused: " + shown(reason));
+            if (!c.allowed && reason.IsEmpty())
+               fail(what + " was let through");
+            if (reason.Find(L"\r") >= 0 || reason.Find(L"\n") >= 0)
+               fail(what + ": the refusal has a line break in it");
+
+            const size_t asked = askedAccount.size() + askedDomain.size();
+            if (c.asks && asked != 1)
+               fail(what + " was decided without asking whose address it is");
+            if (!c.asks && asked != 0)
+               fail(what + " asked whose address it is when nothing needed asking");
+            if (c.account > 0 && !askedDomain.empty())
+               fail(what + " asked the domain's question");
+            if (c.domain > 0 && !askedAccount.empty())
+               fail(what + " asked the account's question");
+         }
+      }
+
+      // The From a reply is written with, read back as the address-list parser reads
+      // it: one mailbox, the action's address, whatever the name says.
+      {
+         const wchar_t *names[] =
+         {
+            L"Ada Lovelace", L"x <ceo@example.net>, ceo@example.net", L"a\"b", L"back\\slash\"", L"ends with \\",
+            L"line\r\nBcc: someone@example.net", L"\"", L"\\\"", L"", L"   ", L"Ad\u00E9la", L"(comment) <x@y>",
+            L"\"Boss\" <ceo@example.net>,", L"tab\there",
+         };
+
+         const String address(L"own@example.test");
+
+         for (const wchar_t *name : names)
+         {
+            const String header = RuleGuard::ReplyFromHeader(String(name), address);
+            const std::string what = "the reply From for the name \"" + shown(String(name)) + "\", \"" + shown(header) + "\"";
+
+            if (header.Find(L"\r") >= 0 || header.Find(L"\n") >= 0)
+               fail(what + ", has a line break in it");
+
+            AddresslistParser parser;
+            std::vector<std::shared_ptr<Address> > read = parser.ParseList(header);
+
+            if (read.size() != 1)
+               fail(what + ", reads as " + std::to_string(read.size()) + " addresses");
+            else if ((read[0]->sMailboxName + L"@" + read[0]->sDomainName).CompareNoCase(address) != 0)
+               fail(what + ", reads as the address \"" + shown(read[0]->sMailboxName + L"@" + read[0]->sDomainName) + "\"");
+         }
+
+         if (RuleGuard::ReplyFromHeader(L"Ada Lovelace", address).Compare(L"\"Ada Lovelace\" <own@example.test>") != 0)
+            fail("a plain name is not written as a quoted string before the address in angle brackets");
+         if (RuleGuard::ReplyFromHeader(L"", address).Compare(L"<own@example.test>") != 0)
+            fail("no name is not written as the address alone in angle brackets");
+         if (RuleGuard::ReplyFromHeader(L"a\"b\\c", address).Compare(L"\"a\\\"b\\\\c\" <own@example.test>") != 0)
+            fail("a quote and a backslash in the name are not escaped");
+      }
+
+      if (!wrong.empty())
+         throw std::logic_error("A rule's actions held to its owner: " + wrong);
    }
 }

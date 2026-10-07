@@ -915,6 +915,26 @@ namespace HM
          return body;
       }
 
+      // The actions held to the rule's owner, as COM's Rule.Save holds them
+      // (RuleGuard::WhyActionMayNotBeStored): no From, Sender, Resent- pair or
+      // DKIM-Signature set by a domain's or an account's rule, and a reply only from
+      // an address the owner may send as. False with the sentence, naming the action,
+      // for the first that is refused.
+      bool ActionsFitOwner(const RuleDocument &document, __int64 accountId, __int64 domainId, std::string &error)
+      {
+         for (size_t i = 0; i < document.actions.size(); i++)
+         {
+            const String refusal = RuleGuard::WhyActionMayNotBeStored(accountId, domainId, *document.actions[i]);
+            if (!refusal.IsEmpty())
+            {
+               error = Positioned("actions", i) + std::string(Unicode::ToUtf8(refusal).c_str());
+               return false;
+            }
+         }
+
+         return true;
+      }
+
       // Fills a rule's own collections from a parsed document, the way
       // InterfaceRuleCriteria::Save and InterfaceRuleAction::Save add each part
       // to the rule's collection before InterfaceRule::Save writes them all.
@@ -981,7 +1001,7 @@ namespace HM
    {
       RuleDocument document;
       std::string error;
-      if (!ParseRuleDocument(requestBody, document, error))
+      if (!ParseRuleDocument(requestBody, document, error) || !ActionsFitOwner(document, accountId, domainId, error))
          return BuildResponse_(400, RefusalBody(error, &RestApiServer::JsonEscape_));
 
       // The collection, read as InterfaceApplication::get_Rules reads the global
@@ -1039,7 +1059,7 @@ namespace HM
       // it was.
       RuleDocument document;
       std::string error;
-      if (!ParseRuleDocument(requestBody, document, error))
+      if (!ParseRuleDocument(requestBody, document, error) || !ActionsFitOwner(document, accountId, domainId, error))
          return BuildResponse_(400, RefusalBody(error, &RestApiServer::JsonEscape_));
 
       // The old criteria and actions go, then the new are written beneath the
@@ -1171,7 +1191,7 @@ namespace HM
       static const char *paths =
          ",\"/api/v1/domains/{name}/rules\":{"
          "\"get\":{\"summary\":\"List a domain's own rules\",\"description\":\"The rules that run for this domain's mail - every message with a recipient in the domain or a sender it hosts - after the server's rules and before delivery, in the order they run, with the same criteria and actions as GET /api/v1/rules shows. A domain-restricted key sees its own domains'.\",\"responses\":{\"200\":{\"description\":\"rules\"},\"404\":{\"description\":\"Unknown domain\"}}},"
-         "\"post\":{\"summary\":\"Create a rule for a domain\",\"description\":\"The same body POST /api/v1/rules takes; the rule is the domain's, appended to its order, and runs for the domain's mail alone.\",\"responses\":{\"201\":{\"description\":\"Created\"},\"400\":{\"description\":\"As for POST /api/v1/rules\"},\"404\":{\"description\":\"Unknown domain\"}}}},"
+         "\"post\":{\"summary\":\"Create a rule for a domain\",\"description\":\"The same body POST /api/v1/rules takes; the rule is the domain's, appended to its order, and runs for the domain's mail alone. A set_header action may not set From, Sender, Resent-From, Resent-Sender or DKIM-Signature, which only a server rule may set, and a reply's from_address is an address of the domain or of one of its domain aliases: either is refused, naming the action.\",\"responses\":{\"201\":{\"description\":\"Created\"},\"400\":{\"description\":\"As for POST /api/v1/rules\"},\"404\":{\"description\":\"Unknown domain\"}}}},"
          "\"/api/v1/domains/{name}/rules/{id}\":{"
          "\"put\":{\"summary\":\"Replace one of a domain's rules\",\"description\":\"The whole rule, as PUT /api/v1/rules/{id} replaces a global one. A rule that is not this domain's is 404.\",\"responses\":{\"200\":{\"description\":\"The rule as saved\"},\"400\":{\"description\":\"As for POST; the rule is unchanged\"},\"404\":{\"description\":\"No such rule of this domain\"}}},"
          "\"delete\":{\"summary\":\"Delete one of a domain's rules\",\"responses\":{\"200\":{\"description\":\"Deleted\"},\"404\":{\"description\":\"No such rule of this domain\"}}}}";
@@ -1185,7 +1205,7 @@ namespace HM
       static const char *paths =
          ",\"/api/v1/accounts/{address}/rules\":{"
          "\"get\":{\"summary\":\"List an account's own rules\",\"description\":\"The rules that run for this account's mail alone, in the order they run, each as GET /api/v1/rules lists a global rule - what Account.Rules holds over COM. Scoped to the address's domain.\",\"responses\":{\"200\":{\"description\":\"The rules\"},\"404\":{\"description\":\"Unknown account\"}}},"
-         "\"post\":{\"summary\":\"Create a rule for an account\",\"description\":\"The same body POST /api/v1/rules takes - name, active, all_criteria, criteria and actions - saved under the account and in force for its next message. Scoped to the address's domain.\",\"responses\":{\"201\":{\"description\":\"The rule as saved\"},\"400\":{\"description\":\"The body was refused, with the reason\"},\"404\":{\"description\":\"Unknown account\"}}}}"
+         "\"post\":{\"summary\":\"Create a rule for an account\",\"description\":\"The same body POST /api/v1/rules takes - name, active, all_criteria, criteria and actions - saved under the account and in force for its next message. A set_header action may not set From, Sender, Resent-From, Resent-Sender or DKIM-Signature, which only a server rule may set, and a reply's from_address is one the account may send as - its own address, an alias of it, a mailbox that granted it the post right, an address it proved or a masked address of its own: either is refused, naming the action. Scoped to the address's domain.\",\"responses\":{\"201\":{\"description\":\"The rule as saved\"},\"400\":{\"description\":\"The body was refused, with the reason\"},\"404\":{\"description\":\"Unknown account\"}}}}"
          ",\"/api/v1/accounts/{address}/rules/{id}\":{"
          "\"put\":{\"summary\":\"Replace one of an account's rules\",\"description\":\"The whole rule, as PUT /api/v1/rules/{id} replaces a global one; a rule that is not this account's is not found here.\",\"responses\":{\"200\":{\"description\":\"The rule as saved\"},\"400\":{\"description\":\"The body was refused, with the reason\"},\"404\":{\"description\":\"Unknown account or rule\"}}},"
          "\"delete\":{\"summary\":\"Delete one of an account's rules\",\"responses\":{\"200\":{\"description\":\"Deleted\"},\"404\":{\"description\":\"Unknown account or rule\"}}}}";

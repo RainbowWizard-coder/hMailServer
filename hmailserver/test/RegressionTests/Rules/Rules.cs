@@ -2082,6 +2082,35 @@ namespace RegressionTests.Rules
          return rule;
       }
 
+      // The fields of this name in a delivered message's header, each unfolded - a
+      // continuation line joined to the line before it - up to the first empty line.
+      private static List<string> UnfoldedHeaderFields(string message, string name)
+      {
+         var fields = new List<string>();
+         string current = null;
+         foreach (var line in message.Replace("\r\n", "\n").Split('\n'))
+         {
+            if (line.Length == 0)
+               break;
+
+            if (line[0] == ' ' || line[0] == '\t')
+            {
+               if (current != null)
+                  current += " " + line.Trim();
+               continue;
+            }
+
+            if (current != null)
+               fields.Add(current);
+            current = line.StartsWith(name + ":", StringComparison.OrdinalIgnoreCase) ? line : null;
+         }
+
+         if (current != null)
+            fields.Add(current);
+
+         return fields;
+      }
+
       // The lines of a delivered message's header that begin a field of this name, as
       // a mail client finds them: up to the first empty line.
       private static List<string> HeaderFieldLines(string message, string name)
@@ -2298,6 +2327,236 @@ namespace RegressionTests.Rules
          // The copy at the limit is not copied, which is reported; this reads and clears
          // the log.
          CustomAsserts.AssertReportedError("Maximum rule loop count reached");
+      }
+
+      /// <summary>
+      /// An account may change its own rules over COM, signed in as itself, and a rule's
+      /// reply went out from whatever address its action named - another account's here,
+      /// or anyone's - signed with the DKIM key of the domain it named. A reply of an
+      /// account's rule now goes only from an address the account may send as, the rule
+      /// authenticated SMTP and the webmail's send apply: Rule.Save and RuleAction.Save
+      /// refuse another, whoever saves the rule, and say why; the account's own address
+      /// and an alias of it are saved.
+      ///
+      /// Against the unfixed server every Save below succeeds.
+      /// </summary>
+      [Test]
+      [Description("A reply of an account's rule is saved only from an address the account may send as, whether the account or the administrator saves it.")]
+      public void AnAccountsRuleRepliesOnlyAsTheAccount()
+      {
+         var owner = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "replyas-owner@example.test", "test");
+         var other = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "replyas-ceo@example.test", "test");
+         SingletonProvider<TestSetup>.Instance.AddAlias(_domain, "replyas-alias@example.test", owner.Address);
+
+         // Signed in as the account itself, as a mail client or a script of its own is.
+         var itself = new Application();
+         var signedIn = itself.Authenticate(owner.Address, "test") as Account;
+         Assert.IsNotNull(signedIn, "The account could not sign in to COM.");
+
+         foreach (var asSaved in new[] { signedIn, owner })
+         {
+            foreach (var from in new[] { other.Address, "someone@example.net" })
+            {
+               var rule = NewRuleMatchingEverything(asSaved, "Reply as " + from);
+               var reply = rule.Actions.Add();
+               reply.Type = eRuleActionType.eRAReply;
+               reply.FromAddress = from;
+               reply.FromName = "Reply";
+               reply.Subject = "Autoreply";
+               reply.Save();
+
+               var refused = Assert.Throws<System.Runtime.InteropServices.COMException>(() => rule.Save(),
+                  "An account's rule replying from " + from + " was saved.");
+               StringAssert.Contains("may send as", refused.Message, refused.Message);
+            }
+
+            // The account's own address, and an alias of it, are saved; and an action of
+            // a saved rule changed to another's address is refused by its own Save.
+            foreach (var from in new[] { owner.Address, "replyas-alias@example.test" })
+            {
+               var rule = NewRuleMatchingEverything(asSaved, "Reply as " + from);
+               var reply = rule.Actions.Add();
+               reply.Type = eRuleActionType.eRAReply;
+               reply.FromAddress = from;
+               reply.Subject = "Autoreply";
+               reply.Save();
+               rule.Save();
+
+               reply.FromAddress = other.Address;
+               var refused = Assert.Throws<System.Runtime.InteropServices.COMException>(() => reply.Save(),
+                  "A saved rule's reply changed to " + other.Address + " was saved.");
+               StringAssert.Contains("may send as", refused.Message, refused.Message);
+
+               rule.Delete();
+            }
+         }
+
+         GC.KeepAlive(itself);
+      }
+
+      /// <summary>
+      /// A Set header value action of an account's rule or a domain's set any header but
+      /// the loop count, so an account could set From to another account's address, or
+      /// take away the DKIM-Signature a message came with, ahead of a forward - and the
+      /// forwarded copy went out in that name, signed with that domain's key. From,
+      /// Sender, Resent-From, Resent-Sender and DKIM-Signature may now be set by a global
+      /// rule alone, which only the server administrator saves: an account's or a
+      /// domain's rule is refused, by name in any case, and says why.
+      ///
+      /// Against the unfixed server every Save below succeeds.
+      /// </summary>
+      [Test]
+      [Description("A Set header value action on From, Sender, Resent-From, Resent-Sender or DKIM-Signature is refused for an account's rule and a domain's, and saved for a global rule.")]
+      public void OnlyAGlobalRuleMaySetWhoTheMessageIsFrom()
+      {
+         var owner = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "setfrom-owner@example.test", "test");
+         var names = new[] { "From", "sender", " Resent-From ", "RESENT-SENDER", "DKIM-Signature" };
+
+         var itself = new Application();
+         var signedIn = itself.Authenticate(owner.Address, "test") as Account;
+         Assert.IsNotNull(signedIn, "The account could not sign in to COM.");
+
+         var accountRule = NewRuleMatchingEverything(signedIn, "Set who it is from");
+         accountRule.Save();
+
+         var domainRule = _domain.Rules.Add();
+         domainRule.Name = "Domain sets who it is from";
+         domainRule.Active = false;
+         domainRule.Save();
+
+         foreach (var rule in new[] { accountRule, domainRule })
+         {
+            foreach (var name in names)
+            {
+               var action = rule.Actions.Add();
+               action.Type = eRuleActionType.eRASetHeaderValue;
+               action.HeaderName = name;
+               action.Value = "ceo@example.test";
+
+               var refused = Assert.Throws<System.Runtime.InteropServices.COMException>(() => action.Save(),
+                  "A Set header value action on '" + name + "' was saved for " + rule.Name + ".");
+               StringAssert.Contains("says who the message is from", refused.Message, refused.Message);
+            }
+
+            Assert.AreEqual(0, rule.Actions.Count, "A refused action is among the actions of " + rule.Name + ".");
+
+            // Reply-To names no sender, and is saved.
+            var replyTo = rule.Actions.Add();
+            replyTo.Type = eRuleActionType.eRASetHeaderValue;
+            replyTo.HeaderName = "Reply-To";
+            replyTo.Value = "somewhere@example.test";
+            replyTo.Save();
+         }
+
+         // The server's own rule may.
+         var globalRule = _application.Rules.Add();
+         globalRule.Name = "Global sets who it is from";
+         globalRule.Active = false;
+         globalRule.Save();
+         var setFrom = globalRule.Actions.Add();
+         setFrom.Type = eRuleActionType.eRASetHeaderValue;
+         setFrom.HeaderName = "From";
+         setFrom.Value = "noreply@example.test";
+         setFrom.Save();
+         globalRule.Save();
+         globalRule.Delete();
+         domainRule.Delete();
+
+         GC.KeepAlive(itself);
+      }
+
+      /// <summary>
+      /// A rule's reply wrote its name in front of its address as the name stood, so a
+      /// name of "x &lt;ceo@...&gt;, ceo@..." added that address to the reply's From, and a
+      /// program reading the field took the first address for the sender. The name is
+      /// now one quoted string: the From names the account's address alone.
+      ///
+      /// Against the unfixed server the From begins "x &lt;replyname-ceo@example.test&gt;,".
+      /// </summary>
+      [Test]
+      [Description("A rule reply's name is written as one quoted name, and adds no address to its From.")]
+      public void ARuleReplysNameAddsNoAddress()
+      {
+         var sender = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "replyname-sender@example.test", "test");
+         var owner = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "replyname-owner@example.test", "test");
+
+         var rule = NewRuleMatchingEverything(owner, "Reply with a name");
+         var reply = rule.Actions.Add();
+         reply.Type = eRuleActionType.eRAReply;
+         reply.FromAddress = owner.Address;
+         reply.FromName = "x <replyname-ceo@example.test>, replyname-ceo@example.test";
+         reply.Subject = "Autoreply";
+         reply.Save();
+         rule.Save();
+
+         SmtpClientSimulator.StaticSend(sender.Address, owner.Address, "Named", "Body.");
+         CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+
+         var answer = Pop3ClientSimulator.AssertGetFirstMessageText(sender.Address, "test");
+         var from = UnfoldedHeaderFields(answer, "From");
+         Assert.AreEqual(1, from.Count, answer);
+         StringAssert.StartsWith("From: \"x <replyname-ceo@example.test>, replyname-ceo@example.test\" <" + owner.Address + ">", from[0], answer);
+      }
+
+      /// <summary>
+      /// An action stored before Save refused it - or restored from a backup, or written
+      /// to the table - is not taken at delivery, and the application log says so: an
+      /// account's rule whose reply names another account's address sends no reply, and
+      /// one whose Set header value sets From leaves the From the message came with,
+      /// while the rule's other action is taken.
+      ///
+      /// Against the unfixed server the sender gets a reply from replystored-ceo, and the
+      /// stored message says it is from replystored-ceo.
+      /// </summary>
+      [Test]
+      [Description("A stored reply from another's address is not sent, and a stored Set header value of From is not made, while the rule's other action is.")]
+      public void AStoredReplyOrFromOfAnotherIsNotApplied()
+      {
+         var sender = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "replystored-sender@example.test", "test");
+         var owner = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "replystored-owner@example.test", "test");
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "replystored-ceo@example.test", "test");
+
+         var rule = NewRuleMatchingEverything(owner, "Stored reply and From");
+         var reply = rule.Actions.Add();
+         reply.Type = eRuleActionType.eRAReply;
+         reply.FromAddress = owner.Address;
+         reply.Subject = "Autoreply";
+         reply.Save();
+         var setFrom = rule.Actions.Add();
+         setFrom.Type = eRuleActionType.eRASetHeaderValue;
+         setFrom.HeaderName = "X-From-Placeholder-Stored";
+         setFrom.Value = "replystored-ceo@example.test";
+         setFrom.Save();
+         var note = rule.Actions.Add();
+         note.Type = eRuleActionType.eRASetHeaderValue;
+         note.HeaderName = "X-Rule-Note";
+         note.Value = "taken";
+         note.Save();
+         rule.Save();
+
+         // As stored before Save refused them. The account's rules are read from the
+         // table again at the next delivery, the save having asked for it.
+         _application.Database.ExecuteSQL(
+            "update hm_rule_actions set actionfromaddress = 'replystored-ceo@example.test' where actionfromaddress = '" + owner.Address + "'");
+         _application.Database.ExecuteSQL(
+            "update hm_rule_actions set actionheader = 'From' where actionheader = 'X-From-Placeholder-Stored'");
+
+         SmtpClientSimulator.StaticSend(sender.Address, owner.Address, "Stored", "Body.");
+         CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+
+         var stored = Pop3ClientSimulator.AssertGetFirstMessageText(owner.Address, "test");
+         var storedFrom = UnfoldedHeaderFields(stored, "From");
+         Assert.AreEqual(1, storedFrom.Count, stored);
+         Assert.AreEqual("From: " + sender.Address, storedFrom[0], stored);
+         StringAssert.Contains("X-Rule-Note: taken", stored, "The rule's other action was not taken.");
+
+         CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+         ImapClientSimulator.AssertMessageCount(sender.Address, "test", "Inbox", 0);
+
+         Assert.IsTrue(LogHandler.DefaultLogContains("Reply action of rule"),
+            "The reply not sent is not in the application log.");
+         Assert.IsTrue(LogHandler.DefaultLogContains("Set header value action of rule"),
+            "The Set header value not made is not in the application log.");
       }
 
       /// <summary>

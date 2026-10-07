@@ -78,6 +78,25 @@ reason; at delivery the edit is not made, of the name as the script's variables 
 and the application log says so; and a script stored before still runs without it.
 `Reply-To`, which names no sender, may still be edited.
 
+A rule's reply and the headers a rule sets
+------------------------------------------
+
+An account may change its own rules over COM, signed in as itself, and a domain's
+administrator the domain's ([MailFlowRules.md](MailFlowRules.md)). Since 7 October 2026 a
+rule's **Reply** goes only from an address the rule's owner may send as: for an account's
+rule, the four kinds of address above, as the webmail's send takes them, and a masked
+address of the account's own; for a domain's rule, an address of the domain or of one of
+its domain aliases; for a server rule, any address. The reply's name is written as one
+quoted name before the address, so that a name with a comma or an address in it adds no
+address to the `From`. And a rule's **Set header value** may set `From`, `Sender`,
+`Resent-From`, `Resent-Sender` or `DKIM-Signature` only in a server rule, which only the
+server administrator saves: a forward, a copy or a reply would otherwise go out in the
+name a domain's or an account's rule wrote, signed with that name's domain's key. Who saved
+a rule is not recorded, only whose it is, so an account's rule the server administrator
+saves is held to the account's addresses as well. Either is refused when it is saved, with
+the reason, and one stored before is not taken at delivery, with a line in the application
+log. Up to 6.3.6 an account's rule could reply as any address and set any of the five.
+
 The routes
 ----------
 

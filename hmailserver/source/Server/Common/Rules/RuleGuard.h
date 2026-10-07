@@ -4,11 +4,14 @@
 
 #pragma once
 
+#include <functional>
+
 namespace HM
 {
    class Account;
    class Message;
    class MessageData;
+   class RuleAction;
 
    // The decisions the legacy rules engine either got wrong or never made.
    //
@@ -167,6 +170,91 @@ namespace HM
       // itself, and would break a handler that sets the count on purpose.
       static String WhyHeaderMayNotBeSet(const String &fieldName);
 
+      // The same, for an action of a rule of this owner: what the overload above
+      // refuses, and, for a rule that is not the server's own, a header that says who
+      // the message is from or the signature it came with (NamesWhoTheMessageIsFrom).
+      //
+      // THE DEFECT. A rule's Set header value action wrote any header but the loop
+      // count, and an account may change its own rules over COM, as a domain's
+      // administrator may the domain's - COMAuthentication::MayChangeRuleOwnedBy, and
+      // the REST API's domain and account rule routes for a key confined to a domain.
+      // A rule that set From to another account's address, or anyone's at a domain
+      // hosted here, ahead of a forward had the forwarded copy sent in that name; and
+      // DKIMSigner signs a message the server is entitled to sign as the domain its
+      // From names, so the copy of one of the account's own messages went out signed
+      // with that domain's key. Setting DKIM-Signature took away the signature a
+      // message came with, and with it what stopped the server signing the changed
+      // message as the author's domain. The rule a Sieve script is held to for the same
+      // five names (SieveParser::WhyFieldMayNotBeEdited).
+      //
+      // WHO MAY. The rows say which rules are whose, and not who saved them: a global
+      // rule (no account, no domain) is saved only by the server administrator or an
+      // event script (COMAuthentication::MayChangeRuleOwnedBy) and by a REST key that is
+      // not confined to domains; a domain's by its administrator as well, and an
+      // account's by the account itself. So the five may be set by a global rule
+      // alone - by every rule the server administrator saves as one, and by none that
+      // anyone else could have saved. COM's Rule.Save and RuleAction.Save and the REST
+      // API's rule routes refuse such an action of a domain's or an account's rule,
+      // whoever saves it, and RuleApplier::ApplyAction_SetHeader skips one stored
+      // before they did, with a line in the application log, and goes on with the
+      // rule's other actions.
+      static String WhyHeaderMayNotBeSet(const String &fieldName, __int64 ruleAccountId, __int64 ruleDomainId);
+
+      // From, Sender, Resent-From, Resent-Sender and DKIM-Signature: the fields that say
+      // who wrote or sent a message, and the signature it came with. ASCII letters in
+      // either case, with the spaces and tabs a rule's header name may carry around it.
+      static bool NamesWhoTheMessageIsFrom(const String &fieldName);
+
+      // Why a Reply action of a rule of this owner may not send its reply from
+      // fromAddress, or nothing when it may.
+      //
+      // THE DEFECT. The reply went out from whatever address the action named, and an
+      // account may change its own rules over COM: a rule of an account's own sent mail
+      // to whoever wrote to it, from another account's address or anyone's, and
+      // DKIMSigner signed it as the domain of the address it claimed wherever this
+      // server signs for that domain. Now the address is held to who owns the rule:
+      //
+      //   * an account's rule, to the addresses the account may send as - the rule
+      //     authenticated SMTP applies to MAIL FROM and the webmail's send applies to
+      //     its From (SMTPConnection::SenderPermittedFor: its own address, an alias of
+      //     it, a mailbox that granted it the post right, an address it proved, a masked
+      //     address of its own), which is COM's MaySendAs for an account signed in as
+      //     itself;
+      //   * a domain's rule, to an address of that domain or of one of its domain
+      //     aliases, what its administrator may send as there;
+      //   * a global rule, which only the server administrator saves, to anything.
+      //
+      // An empty address, which names nobody, is the null sender, as authenticated SMTP
+      // takes it. The rows say whose a rule is, not who saved it (above), so an
+      // account's rule the server administrator saves is held to the account's
+      // addresses as well: what is saved is what is sent. COM's Rule.Save and
+      // RuleAction.Save and the REST API's rule routes refuse such an action, and
+      // RuleApplier::ApplyAction_Reply does not send one stored before they did, with a
+      // line in the application log.
+      //
+      // accountMaySendAs answers for an account's rule, from the account's address,
+      // and addressOfDomain for a domain's rule; RuleOwnerTester gives both as examples,
+      // and the overload after this one answers them from the caches.
+      static String WhyReplyFromMayNotBeUsed(__int64 ruleAccountId, __int64 ruleDomainId, const String &fromAddress,
+                                             const std::function<bool(const String &address, String &reason)> &accountMaySendAs,
+                                             const std::function<bool(const String &address)> &addressOfDomain);
+      static String WhyReplyFromMayNotBeUsed(__int64 ruleAccountId, __int64 ruleDomainId, const String &fromAddress);
+
+      // Why this action may not be stored under a rule of this owner, or nothing: a
+      // Set header value action held to WhyHeaderMayNotBeSet, and a Reply action to
+      // WhyReplyFromMayNotBeUsed. The one question COM's Rule.Save and RuleAction.Save
+      // and the REST API's rule routes ask of every action.
+      static String WhyActionMayNotBeStored(__int64 ruleAccountId, __int64 ruleDomainId, const RuleAction &action);
+
+      // The From a rule's reply is written with: the action's name as an RFC 5322
+      // quoted string - a backslash before each quote and backslash in it, each line
+      // break or tab a space - then the address in angle brackets; the address alone,
+      // in angle brackets, when there is no name. Until 7 October 2026 the name was
+      // written as it stood in front of the address, so a name of
+      // "x <a@example.test>, ceo@example.net" added two addresses to the From, and a
+      // program reading the field took the first for the sender.
+      static String ReplyFromHeader(const String &name, const String &address);
+
       // A header value a rule or a Sieve script writes, kept to one field: a CR LF
       // followed by a space or a tab and then by more than white space is a fold and
       // stays, and every other CR or LF becomes a space.
@@ -319,6 +407,23 @@ namespace HM
    // business-object-tests on Linux. Throws std::logic_error naming every case that
    // went wrong.
    class LoopCountEditTester
+   {
+   public:
+      void Test();
+   };
+
+   // A rule's actions held to who owns the rule, with examples: the headers a Set
+   // header value action of a domain's or an account's rule may not set
+   // (NamesWhoTheMessageIsFrom, by name in any case and with blanks around it) and a
+   // global rule's may; the address a Reply action may send from, for an account's
+   // rule (what the account may send as, given as an example answer), a domain's (an
+   // address of the domain, given) and a global rule (any); WhyActionMayNotBeStored
+   // asking both; and the From a reply is written with (ReplyFromHeader), read back by
+   // the address-list parser as one mailbox - the action's address - whatever its name
+   // says. No configuration, database or network. ClassTester runs it on Windows,
+   // business-object-tests on Linux. Throws std::logic_error naming every case that
+   // went wrong.
+   class RuleOwnerTester
    {
    public:
       void Test();
