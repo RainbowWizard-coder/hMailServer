@@ -35,6 +35,15 @@ namespace hMailServer.ControlPanel.Tests.Services
       private static readonly XNamespace Scaffold = "clr-namespace:hMailServer.ControlPanel.Views.Scaffold";
 
       // Each list and the height of one of its rows, as the page draws them.
+      // A ListView keeps a pixel above and below its rows (its template's border,
+      // Bd, has a padding of 1), so three whole rows need two pixels more: at 120,
+      // 114 and 93 the domains, accounts and alias lists' viewports held two whole
+      // rows, a third cut short, and scrolled to the end a blank one. And one more
+      // for layout rounding: two more alone still held two whole rows at 125, 150,
+      // 175 or 225 % scaling, where the list's height rounds down a device pixel.
+      private const double ListChrome = 2;
+      private const double RoundingSlack = 1;
+
       public static TheoryData<string, double> Lists => new()
       {
          { "DomainList", 40 },
@@ -55,7 +64,9 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Equal(Scaffold + "FillPanel", view.Parent.Name);
 
          double floor = double.Parse((string)view.Attribute("MinHeight") ?? "0", CultureInfo.InvariantCulture);
-         Assert.True(floor >= 3 * rowHeight, list + "'s floor is " + floor + " pixels, less than three rows of " + rowHeight + ".");
+         Assert.True(floor >= 3 * rowHeight + ListChrome + RoundingSlack,
+            list + "'s floor is " + floor + " pixels, less than three rows of " + rowHeight + ", the list's own " + ListChrome + " and " + RoundingSlack
+            + " for layout rounding, so it shows two whole rows at some scalings or all of them.");
       }
 
       [Fact]

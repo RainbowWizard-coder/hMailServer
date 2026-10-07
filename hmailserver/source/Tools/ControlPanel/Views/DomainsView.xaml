@@ -50,10 +50,13 @@
                 <scaffold:FillPanel>
                     <scaffold:Toolbar x:Name="DomainSearch" SearchPlaceholder="{loc:L 'Search domains'}"
                                       SearchTextChanged="DomainSearch_TextChanged" Margin="0,0,0,8" />
-                    <!-- The list's floor is three rows of 40 pixels, held by the
-                         FillPanel around it, so that the empty state laid over it
-                         when there are none raises the card's floor where its
-                         sentence needs more than the rows. -->
+                    <!-- The list's floor is three rows of 40 pixels, the pixel a
+                         ListView keeps above and below its rows and one for layout
+                         rounding, 123 (at 120 it held two whole rows, and scrolled
+                         to its end a blank one), held by the FillPanel around it,
+                         so that the empty state laid over it when there are none
+                         raises the card's floor where its sentence needs more than
+                         the rows. -->
                     <Grid scaffold:FillPanel.Fill="True">
                         <!-- A row is the list's width, never wider: a name longer than
                              the room ends in an ellipsis, whole in its tool tip, and
@@ -61,7 +64,7 @@
                              one long domain name put every row's buttons off the
                              list's right edge, in the narrowest window every row's. -->
                         <scaffold:FillPanel>
-                            <ListView x:Name="DomainList" scaffold:FillPanel.Fill="True" MinHeight="120" SelectionChanged="DomainList_SelectionChanged"
+                            <ListView x:Name="DomainList" scaffold:FillPanel.Fill="True" MinHeight="123" SelectionChanged="DomainList_SelectionChanged"
                                       AutomationProperties.AutomationId="domains-grid"
                                       ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                                       BorderThickness="0" Background="Transparent" HorizontalContentAlignment="Stretch"
@@ -151,10 +154,10 @@
                     <scaffold:Toolbar x:Name="AccountSearch" SearchPlaceholder="{loc:L 'Search accounts'}"
                                       SearchTextChanged="AccountSearch_TextChanged" Margin="0,0,0,8" />
 
-                    <!-- The floor: three rows of 38 pixels. -->
+                    <!-- The floor: three rows of 38 pixels, the list's own pixel above and below them, and one for layout rounding. -->
                     <Grid scaffold:FillPanel.Fill="True">
                         <scaffold:FillPanel>
-                            <ListView x:Name="AccountList" scaffold:FillPanel.Fill="True" MinHeight="114" BorderThickness="0" Background="Transparent" HorizontalContentAlignment="Stretch"
+                            <ListView x:Name="AccountList" scaffold:FillPanel.Fill="True" MinHeight="117" BorderThickness="0" Background="Transparent" HorizontalContentAlignment="Stretch"
                                       ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                                       AutomationProperties.Name="{loc:L 'Accounts'}">
                                 <ListView.ItemTemplate>
@@ -253,10 +256,10 @@
 
                 <scaffold:Card x:Name="AliasCard" Title="{loc:L 'Aliases'}" Padding="12" Margin="0,0,6,0">
                     <scaffold:FillPanel>
-                        <!-- The floor: three rows of 31 pixels. -->
+                        <!-- The floor: three rows of 31 pixels, the list's own pixel above and below them, and one for layout rounding. -->
                         <Grid scaffold:FillPanel.Fill="True">
                             <scaffold:FillPanel>
-                                <ListView x:Name="AliasList" scaffold:FillPanel.Fill="True" MinHeight="93" BorderThickness="0" Background="Transparent" HorizontalContentAlignment="Stretch"
+                                <ListView x:Name="AliasList" scaffold:FillPanel.Fill="True" MinHeight="96" BorderThickness="0" Background="Transparent" HorizontalContentAlignment="Stretch"
                                           ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                                           AutomationProperties.Name="{loc:L 'Aliases'}">
                                     <ListView.ItemTemplate>
@@ -310,10 +313,10 @@
 
                 <scaffold:Card x:Name="DistCard" Title="{loc:L 'Distribution lists'}" Padding="12" Margin="6,0,0,0">
                     <scaffold:FillPanel>
-                        <!-- The floor: three rows of 31 pixels. -->
+                        <!-- The floor: three rows of 31 pixels, the list's own pixel above and below them, and one for layout rounding. -->
                         <Grid scaffold:FillPanel.Fill="True">
                             <scaffold:FillPanel>
-                                <ListView x:Name="DistList" scaffold:FillPanel.Fill="True" MinHeight="93" BorderThickness="0" Background="Transparent" HorizontalContentAlignment="Stretch"
+                                <ListView x:Name="DistList" scaffold:FillPanel.Fill="True" MinHeight="96" BorderThickness="0" Background="Transparent" HorizontalContentAlignment="Stretch"
                                           ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                                           AutomationProperties.Name="{loc:L 'Distribution lists'}">
                                     <ListView.ItemTemplate>

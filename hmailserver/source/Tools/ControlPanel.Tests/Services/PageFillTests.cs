@@ -110,12 +110,12 @@ namespace hMailServer.ControlPanel.Tests.Services
       // ---- several filling parts: the domains and rules pages -------------------------------
       //
       // The domains page's right-hand column, in English, read off renders of it: the
-      // accounts card (weight 3) asks for 343 pixels at its floor - its title, search,
+      // accounts card (weight 3) asks for 346 pixels at its floor - its title, search,
       // form and three rows of accounts - and the row of alias and list cards (weight
-      // 2) for 276, its 12-pixel gap and the alias card's three rows and two-line form.
+      // 2) for 279, its 12-pixel gap and the alias card's three rows and two-line form.
       // In 6.3.6 the two were a grid's 3* and 2* rows over a fixed 640 pixels.
 
-      private static readonly double[] DomainColumnFloors = { 343, 276 };
+      private static readonly double[] DomainColumnFloors = { 346, 279 };
       private static readonly double[] DomainColumnWeights = { 3, 2 };
 
       /// <summary>A 1600 by 1000 window (759 pixels of viewport): the floors fit, and the room is shared three to two, as the rows were.</summary>
@@ -129,8 +129,8 @@ namespace hMailServer.ControlPanel.Tests.Services
       }
 
       /// <summary>
-      /// A 1280 by 800 window (559 pixels): the floors come to 619, so each part has its
-      /// floor and the page scrolls by 60, where a fixed 640 scrolled by 81 and, in the
+      /// A 1280 by 800 window (559 pixels): the floors come to 625, so each part has its
+      /// floor and the page scrolls by 66, where a fixed 640 scrolled by 81 and, in the
       /// narrowest window, still cut the alias form off.
       /// </summary>
       [Fact]
@@ -145,15 +145,15 @@ namespace hMailServer.ControlPanel.Tests.Services
       /// <summary>
       /// A part whose share would be under its floor has its floor, and the others share
       /// what is left: at 640 pixels three fifths for the accounts is 384 and two fifths
-      /// for the alias and list cards 256, under their 276.
+      /// for the alias and list cards 256, under their 279.
       /// </summary>
       [Fact]
       public void APartUnderItsFloor_HasItsFloor_AndTheOthersShareTheRest()
       {
          double[] heights = PageFill.Share(640, 0, DomainColumnFloors, DomainColumnWeights);
 
-         Assert.Equal(276, heights[1]);
-         Assert.Equal(640 - 276, heights[0]);
+         Assert.Equal(279, heights[1]);
+         Assert.Equal(640 - 279, heights[0]);
       }
 
       [Fact]
