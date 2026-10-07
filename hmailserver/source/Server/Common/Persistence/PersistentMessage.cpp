@@ -767,6 +767,10 @@ namespace HM
       // vouched for stay with the message the server saw arrive.
       pTo->SetFromOutside(sourceMessage->GetFromOutside());
 
+      // And so does the SPF result this server reached for the message it copies,
+      // which the ARC set sealed over a forward attests (Message::GetReceivedSpfResult).
+      pTo->SetReceivedSpfResult(sourceMessage->GetReceivedSpfResult());
+
       return pTo;
    }
 
@@ -774,6 +778,7 @@ namespace HM
    {
       // The marks OriginColumn writes ahead of the domains.
       const wchar_t *const OutsideMark = L"outside";
+      const wchar_t *const SpfMark = L"spf=";
       const int OriginColumnWidth = 255;
    }
 
@@ -783,6 +788,13 @@ namespace HM
       String marks;
       if (message.GetFromOutside())
          marks = OutsideMark;
+
+      // The SPF result is a keyword of RFC 8601's, the server's own, and holds no
+      // comma; anything else is not written.
+      String spf = message.GetReceivedSpfResult();
+      spf.Trim();
+      if (!spf.IsEmpty() && spf.Find(_T(",")) < 0 && spf.GetLength() <= 16)
+         marks = marks.IsEmpty() ? String(SpfMark) + spf : marks + _T(",") + SpfMark + spf;
 
       const String domains = message.GetAuthDomains();
 
@@ -803,6 +815,7 @@ namespace HM
    {
       String rest = column;
       bool outside = false;
+      String spf;
 
       // The marks come first; the first word that is not one begins the domains.
       for (;;)
@@ -811,14 +824,18 @@ namespace HM
          String word = comma < 0 ? rest : rest.Mid(0, comma);
          word.Trim();
 
-         if (word.CompareNoCase(OutsideMark) != 0)
+         if (word.CompareNoCase(OutsideMark) == 0)
+            outside = true;
+         else if (word.GetLength() > 4 && word.Left(4).CompareNoCase(SpfMark) == 0)
+            spf = word.Mid(4);
+         else
             break;
 
-         outside = true;
          rest = comma < 0 ? String() : rest.Mid(comma + 1);
       }
 
       message.SetFromOutside(outside);
+      message.SetReceivedSpfResult(spf);
       message.SetAuthDomains(rest);
    }
 

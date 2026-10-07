@@ -246,6 +246,22 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   forward, a Sieve `redirect` and a distribution list (none signed, the forwards sealed), and a signed-in member's
   posting to the list (signed). Found by the project's own review.
 
+- **Fixed: an ARC seal attested whatever SPF result the first `Received-SPF` field of the message claimed.** With
+  `ArcSealingEnabled` on, the `ARC-Authentication-Results` this server seals over mail it relays read `spf=` from
+  that field (from 6.0.0, which brought ARC sealing), which is anybody's to write: the sender's own, on mail this
+  server wrote no `Received-SPF` field for - it writes none unless `ReceivedSpfHeaderEnabled` is on - and on mail it
+  did, a field a Sieve `addheader` or a rule's *Set header value* placed above it ahead of a `redirect` or a forward.
+  The seal then told every receiver that trusts this server's ARC sets that SPF had passed for a message whose check
+  never ran or failed. `spf=` is now the result this server's own check reached when the message arrived, recorded
+  on the queued message beside where it came from and carried by every copy of it, through a restart - `none` when
+  the check did not run - and no field of the message is read for it. Messages queued before the upgrade carry no
+  result and are sealed with `spf=none`.
+
+  `ArcAuthenticationResultsTester` (`business-object-tests` on Linux) holds the value, and the result on every copy
+  and the queue row, to examples; `AntiSpam/DKIM/ArcSealing.cs` relays mail
+  from outside with a `Received-SPF: pass` of the sender's through an alias, and with one a Sieve script added through
+  a `redirect`, and finds neither attested. Found by the project's own review.
+
 ### Correctness
 
 - **Fixed: a ManageSieve refusal that quoted a script's text with a line break in it was split in two.** RFC 5804's

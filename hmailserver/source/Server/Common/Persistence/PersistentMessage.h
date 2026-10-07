@@ -149,6 +149,7 @@ namespace HM
 
       // Which members a copy carries is asked of CreateCopy_ itself.
       friend class SigningOriginTester;
+      friend class ArcAuthenticationResultsTester;
 
       static std::shared_ptr<Message> CreateCopy_(std::shared_ptr<Message> sourceMessage, int destinationAccountID);
 

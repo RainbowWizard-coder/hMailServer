@@ -57,6 +57,12 @@ namespace HM
       bool IsEmpty() const;
       bool HasSpfResult() const;
 
+      // The SPF result as its RFC 8601 keyword - "pass", "fail", "softfail" and the
+      // rest - or nothing when the check did not run. What the message's own record
+      // keeps of it (Message::GetReceivedSpfResult), for the ARC set this server seals
+      // when it relays the message on.
+      AnsiString SpfResultKeyword() const;
+
       // What passed, for the message's own record of where it came from
       // (Message::GetAuthDomains, read by a room or a piece of equipment,
       // Util/ResourceBooking.h): "dmarc=<the From domain>", lower-cased, when

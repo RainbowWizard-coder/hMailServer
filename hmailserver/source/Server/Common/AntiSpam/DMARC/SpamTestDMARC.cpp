@@ -81,7 +81,7 @@ namespace HM
       // From with a domain they own, DKIM passes, DMARC finds that domain aligned with
       // the From it read - and the recipient's client displays the other one. The
       // message is delivered looking like it came from the bank, and if it is relayed
-      // on, Arc::BuildAuthenticationResults_ stamps dkim=pass into a sealed
+      // on, Arc::AuthenticationResultsValue stamps dkim=pass into a sealed
       // ARC-Authentication-Results that downstream ARC-trusting receivers accept.
       //
       // Checked before any alignment is computed, so no verdict is ever reached from an

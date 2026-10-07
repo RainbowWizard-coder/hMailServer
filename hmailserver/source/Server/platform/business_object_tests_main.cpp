@@ -55,6 +55,10 @@
 //     says so is carried by every copy and kept on the queue row. Until 7 October
 //     2026 a forward of mail from outside whose From named a hosted domain left this
 //     server signed as that domain.
+//   - The spf= of the ARC-Authentication-Results this server seals is its own SPF
+//     result for the message (ArcAuthenticationResultsTester, Common/AntiSpam/DKIM/
+//     Arc.cpp), carried by every copy and kept on the queue row; until 7 October 2026
+//     it was read from the first Received-SPF field, which anybody could write.
 //   - A Sieve vacation reply or notification says it is from its :from only when
 //     that address reaches the account, and otherwise from the account's own
 //     address (SieveFromAddressTester, Common/Sieve/SieveVacationResponder.cpp):
@@ -82,6 +86,7 @@
 #include "../Common/BO/FetchAccount.h"
 #include "../Common/BO/Message.h"
 #include "../Common/AntiSpam/DKIM/DKIMSigner.h"
+#include "../Common/AntiSpam/DKIM/Arc.h"
 #include "../Common/Diagnostics/DiagnosticResult.h"
 #include "../Common/Rules/RuleGuard.h"
 #include "../Common/Sieve/SieveVacationResponder.h"
@@ -377,6 +382,13 @@ namespace
    }
 
    void
+   TestArcAuthenticationResults()
+   {
+      HM::ArcAuthenticationResultsTester tester;
+      tester.Test();
+   }
+
+   void
    TestSieveFromAddress()
    {
       HM::SieveFromAddressTester tester;
@@ -408,6 +420,7 @@ main(int /*argc*/, char * /*argv*/[])
    failed += Run(&TestLoopCountEdits, "no Sieve edit, rule or line break in a header value resets X-hMailServer-LoopCount");
    failed += Run(&TestRuleOwner, "a rule's actions held to its owner: no From or DKIM-Signature set but by a global rule, a reply sent only from an address the owner may send as, and its From one mailbox");
    failed += Run(&TestSigningOrigin, "no message from outside, nor a forward, redirect or copy of one, is signed as its From's domain; the mark is copied and kept on the queue row");
+   failed += Run(&TestArcAuthenticationResults, "an ARC seal's spf= is the server's own SPF result, carried by copies and the queue row, never a Received-SPF field the message carries");
    failed += Run(&TestSieveFromAddress, "a Sieve vacation reply or notification is from its :from only when that reaches the account, and no Sieve edit changes who a message is from");
    failed += Run(&TestManageSieveQuoting, "a ManageSieve quoted string holds no line break: a refusal quoting a script's line with one in it is one line");
 

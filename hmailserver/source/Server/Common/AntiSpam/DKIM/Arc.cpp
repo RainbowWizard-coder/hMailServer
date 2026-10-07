@@ -21,6 +21,7 @@
 #include "../../Util/Hashing/HashCreator.h"
 
 #include <ctime>
+#include <stdexcept>
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -136,7 +137,10 @@ namespace HM
       RelaxedCanonicalization relaxed;
 
       // 1) ARC-Authentication-Results
-      AnsiString aarValue = BuildAuthenticationResults_(instance, fileName, header);
+      AnsiString authservId = Utilities::ComputerName();
+      authservId.MakeLower();
+
+      AnsiString aarValue = AuthenticationResultsValue(instance, authservId, DkimResultOf_(fileName), message->GetReceivedSpfResult());
 
       // 2) ARC-Message-Signature: a DKIM-style signature over the message,
       //    excluding all ARC header fields.
@@ -769,12 +773,9 @@ namespace HM
    }
 
    AnsiString
-   Arc::BuildAuthenticationResults_(int instance, const String &messageFileName, const AnsiString &header)
+   Arc::DkimResultOf_(const String &messageFileName)
    {
-      AnsiString authservId = Utilities::ComputerName();
-      authservId.MakeLower();
-
-      // DKIM result: verify the message as stored right now.
+      // Verify the message as stored right now.
       AnsiString dkimResult = "none";
 
       DKIM dkim;
@@ -794,73 +795,127 @@ namespace HM
          break;
       }
 
-      // SPF result: reuse the result recorded at reception time, if any.
-      AnsiString spfResult = "none";
+      return dkimResult;
+   }
 
-      AnsiString receivedSpf = GetHeaderFieldValue_(header, "received-spf");
-      if (!receivedSpf.IsEmpty())
+   AnsiString
+   Arc::AuthenticationResultsValue(int instance, const AnsiString &authservId, const AnsiString &dkimResult, const String &spfResult)
+   {
+      // SPF result: the one this server's own check reached when the message arrived,
+      // recorded on the message (Message::GetReceivedSpfResult) - never a Received-SPF
+      // field, which anybody before this point could have written.
+      AnsiString spfKeyword = "none";
+
+      AnsiString given = spfResult;
+      given.Trim();
+      given.MakeLower();
+
+      if (given == "pass" || given == "fail" || given == "softfail" ||
+          given == "neutral" || given == "none" || given == "temperror" ||
+          given == "permerror")
       {
-         int spacePosition = receivedSpf.Find(" ");
-         AnsiString firstToken = spacePosition > 0 ? receivedSpf.Mid(0, spacePosition) : receivedSpf;
-         firstToken.Trim();
-         firstToken.MakeLower();
-
-         if (firstToken == "pass" || firstToken == "fail" || firstToken == "softfail" ||
-             firstToken == "neutral" || firstToken == "none" || firstToken == "temperror" ||
-             firstToken == "permerror")
-         {
-            spfResult = firstToken;
-         }
+         spfKeyword = given;
       }
 
       AnsiString result;
       result.Format("i=%d; %hs; dkim=%hs; spf=%hs",
-         instance, authservId.c_str(), dkimResult.c_str(), spfResult.c_str());
+         instance, authservId.c_str(), dkimResult.c_str(), spfKeyword.c_str());
 
       return result;
    }
 
-   AnsiString
-   Arc::GetHeaderFieldValue_(const AnsiString &header, const AnsiString &fieldName)
+   void
+   ArcAuthenticationResultsTester::Test()
    {
-      std::vector<AnsiString> lines = StringParser::SplitString(header, "\n");
-
-      bool inField = false;
-      AnsiString value;
-
-      for (AnsiString line : lines)
+      std::string wrong;
+      auto fail = [&wrong](const std::string &what)
       {
-         line.TrimRight("\r");
+         wrong += (wrong.empty() ? "" : "; ") + what;
+      };
 
-         if (line.IsEmpty())
-            break;
+      struct Case
+      {
+         const wchar_t *given;
+         const char *spf;
+      };
 
-         if (line[0] == ' ' || line[0] == '\t')
-         {
-            if (inField)
-               value += " " + AnsiString(line).TrimLeft();
-            continue;
-         }
+      const Case cases[] =
+      {
+         { L"", "none" },
+         { L"none", "none" },
+         { L"pass", "pass" },
+         { L"fail", "fail" },
+         { L"softfail", "softfail" },
+         { L"SoftFail", "softfail" },
+         { L"temperror", "temperror" },
+         { L"pass; dkim=pass", "none" },
+         { L"fail\r\nARC-Seal: forged", "none" },
+      };
 
-         if (inField)
-            break; // Field complete.
+      for (const Case &c : cases)
+      {
+         const AnsiString value = Arc::AuthenticationResultsValue(1, "mail.example.test", "none", String(c.given));
+         const std::string got(value.c_str());
+         const std::string wanted = std::string("spf=") + c.spf;
 
-         int colonPosition = line.Find(":");
-         if (colonPosition <= 0)
-            continue;
-
-         AnsiString name = line.Mid(0, colonPosition);
-         name.Trim();
-         name.MakeLower();
-
-         if (name == fieldName)
-         {
-            inField = true;
-            value = line.Mid(colonPosition + 1);
-            value.Trim();
-         }
+         if (got.find("i=1; mail.example.test; ") != 0)
+            fail("\"" + got + "\" does not begin with its instance and this server's identity");
+         if (got.size() < wanted.size() || got.compare(got.size() - wanted.size(), wanted.size(), wanted) != 0)
+            fail("for the result \"" + std::string(AnsiString(String(c.given)).c_str()) + "\" the value is \"" + got + "\", not one ending " + wanted);
+         if (got.find("dkim=none") == std::string::npos)
+            fail("\"" + got + "\" does not say dkim=none of a message with no signature");
+         if (got.find('\r') != std::string::npos || got.find('\n') != std::string::npos)
+            fail("\"" + got + "\" has a line break in it");
       }
 
-      return value;
+      // The DKIM verdict is the one given, beside the SPF result.
+      {
+         const std::string value(Arc::AuthenticationResultsValue(2, "mail.example.test", "pass", _T("fail")).c_str());
+         if (value.find("i=2; ") != 0 || value.find("dkim=pass; spf=fail") == std::string::npos)
+            fail("\"" + value + "\" is not instance 2 with dkim=pass and spf=fail");
+      }
+
+      // The result travels with every copy, and through the queue row.
+      {
+         std::shared_ptr<Message> received(new Message(false));
+         received->SetFromOutside(true);
+         received->SetReceivedSpfResult(_T("softfail"));
+         received->SetAuthDomains(_T("dmarc=example.net"));
+
+         if (Message(*received).GetReceivedSpfResult().Compare(_T("softfail")) != 0)
+            fail("the copy constructor's copy lost the SPF result");
+
+         std::shared_ptr<Message> forwarded = PersistentMessage::CreateCopy_(received, 0);
+         if (!forwarded || forwarded->GetReceivedSpfResult().Compare(_T("softfail")) != 0)
+            fail("the queued copy (a forward, a redirect) lost the SPF result");
+
+         const String column = PersistentMessage::OriginColumn(*received);
+         if (column.Compare(_T("outside,spf=softfail,dmarc=example.net")) != 0)
+            fail("the queue row's column is \"" + std::string(AnsiString(column).c_str()) + "\"");
+
+         Message read(false);
+         PersistentMessage::ReadOriginColumn(column, read);
+         if (!read.GetFromOutside() || read.GetReceivedSpfResult().Compare(_T("softfail")) != 0 ||
+             read.GetAuthDomains().Compare(_T("dmarc=example.net")) != 0)
+            fail("the column \"" + std::string(AnsiString(column).c_str()) + "\" read back as something else");
+
+         Message notOutside(false);
+         notOutside.SetReceivedSpfResult(_T("pass"));
+         if (PersistentMessage::OriginColumn(notOutside).Compare(_T("spf=pass")) != 0)
+            fail("the column of a message with a result and nothing else is \"" + std::string(AnsiString(PersistentMessage::OriginColumn(notOutside)).c_str()) + "\"");
+
+         Message forged(false);
+         forged.SetReceivedSpfResult(_T("pass,dmarc=example.test"));
+         if (PersistentMessage::OriginColumn(forged).Find(_T("dmarc")) >= 0)
+            fail("a result with a comma in it was written into the column");
+
+         Message legacy(false);
+         PersistentMessage::ReadOriginColumn(_T("dmarc=example.net"), legacy);
+         if (!legacy.GetReceivedSpfResult().IsEmpty() || legacy.GetAuthDomains().Compare(_T("dmarc=example.net")) != 0)
+            fail("a column written before the SPF result was kept read as something else");
+      }
+
+      if (!wrong.empty())
+         throw std::logic_error("ARC-Authentication-Results: " + wrong);
    }
 }

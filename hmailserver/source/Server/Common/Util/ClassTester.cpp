@@ -46,6 +46,7 @@
 #include "../Util/XmlSignature.h"
 #include "../AntiSpam/DKIM/DkimRotationPlan.h"
 #include "../AntiSpam/DKIM/DKIMSigner.h"
+#include "../AntiSpam/DKIM/Arc.h"
 #include "../Persistence/PersistentDkimRotation.h"
 #include "../../SMTP/BounceClassifier.h"
 #include "BrandLogo.h"
@@ -255,6 +256,14 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing which messages are signed as their From's domain\n"));
       SigningOriginTester signingOriginTester;
       signingOriginTester.Test();
+
+      // The spf= an ARC seal attests is this server's own SPF result for the message,
+      // carried by its copies, and never a Received-SPF field it carries, which a
+      // sender, a Sieve addheader or a rule could have written until 7 October 2026
+      // (Arc.h, ArcAuthenticationResultsTester).
+      OutputDebugString(_T("hMailServer: Testing the ARC-Authentication-Results a seal attests\n"));
+      ArcAuthenticationResultsTester arcAuthenticationResultsTester;
+      arcAuthenticationResultsTester.Test();
 
       // The address a Sieve vacation reply or notification may say it is from: one
       // that reaches the account, or else the account's own. Until 6 October 2026 a

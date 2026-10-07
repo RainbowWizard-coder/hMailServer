@@ -78,6 +78,12 @@ namespace HM
       return spf_result_ != ResultNotEvaluated;
    }
 
+   AnsiString
+   AuthenticationResults::SpfResultKeyword() const
+   {
+      return HasSpfResult() ? ResultKeyword_(spf_result_) : AnsiString();
+   }
+
    namespace
    {
       // The domain of an address, or the value itself when it is one: lower-cased,

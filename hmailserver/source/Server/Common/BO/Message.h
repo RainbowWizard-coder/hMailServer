@@ -293,6 +293,19 @@ namespace HM
       bool GetFromOutside() const { return from_outside_; }
       void SetFromOutside(bool fromOutside) { from_outside_ = fromOutside; }
 
+      // The SPF result this server's own check reached when the message arrived, as
+      // its RFC 8601 keyword ("pass", "fail", "softfail", ...), or empty when the check
+      // did not run - a session that signed in, a range without spam protection, a
+      // message this server made. The spf= of the ARC-Authentication-Results this
+      // server seals when it relays the message on (Arc::Seal): a Received-SPF field
+      // in the message is anybody's to write - the sender's, or a Sieve addheader's or
+      // a rule's above the one this server wrote - and is never read for it. Set by
+      // SMTPConnection::RecordOrigin_ from the session's own evaluation, carried by
+      // every copy as GetFromOutside is, and kept on a queue row
+      // (PersistentMessage::OriginColumn).
+      String GetReceivedSpfResult() const { return received_spf_result_; }
+      void SetReceivedSpfResult(const String &result) { received_spf_result_ = result; }
+
       bool GetBinaryMime() const { return (GetFlags() & FlagBinaryMime) != 0; }
       void SetBinaryMime(bool bNewVal)
       {
@@ -381,6 +394,9 @@ namespace HM
 
       // See GetFromOutside.
       bool from_outside_ = false;
+
+      // See GetReceivedSpfResult.
+      String received_spf_result_;
 
    private:
 

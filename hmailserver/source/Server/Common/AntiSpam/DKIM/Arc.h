@@ -34,6 +34,22 @@ namespace HM
                 const AnsiString &selector,
                 const String &privateKeyFile);
 
+      // The ARC-Authentication-Results value of the set Seal adds: the instance, this
+      // server's identity as given (Seal gives its computer name), dkim= as given - Seal gives the verdict of verifying the
+      // message as it is stored now (DkimResultOf_) - and spf= from spfResult, the
+      // result this server's own check reached when the message arrived
+      // (Message::GetReceivedSpfResult), "none" when it did not run or is no RFC 8601
+      // SPF keyword.
+      //
+      // THE DEFECT. spf= was read from the first Received-SPF field of the message,
+      // which is whoever's put it there: the sender's own, on mail whose arrival this
+      // server did not record one for, and on mail it did, a field a Sieve addheader or
+      // a rule's Set header value placed above this server's own before a redirect or a
+      // forward. The seal then attested "spf=pass" for a check that never passed, to
+      // every receiver that trusts this server's ARC sets. No field of the message is
+      // read for it now. ArcAuthenticationResultsTester holds it to examples.
+      static AnsiString AuthenticationResultsValue(int instance, const AnsiString &authservId, const AnsiString &dkimResult, const String &spfResult);
+
       // ---- Inbound chain evaluation (used by SpamTestArc) ----
 
       enum class ChainParseStatus
@@ -119,7 +135,25 @@ namespace HM
                                                    std::map<AnsiString, KeyLookupResult> &keyCache);
 
       static AnsiString StripSealSignatureValue_(const AnsiString &sealValue);
-      static AnsiString BuildAuthenticationResults_(int instance, const String &messageFileName, const AnsiString &header);
-      static AnsiString GetHeaderFieldValue_(const AnsiString &header, const AnsiString &fieldName);
+
+      // pass, fail, temperror or none: what verifying the message's DKIM signatures as
+      // it is stored now concludes.
+      static AnsiString DkimResultOf_(const String &messageFileName);
+   };
+
+   // Arc::AuthenticationResultsValue held to examples: spf= is the result given -
+   // none, pass, fail, softfail, temperror, in any case - a value that is no SPF keyword,
+   // or holds a line break and a field after it, is none, and dkim= is the verdict given.
+   // And the result it is given: carried
+   // by every copy (PersistentMessage::CreateCopy_, Message's copy constructor) and kept
+   // on the queue row beside the outside mark and the DMARC domain, read back as it was
+   // written, and absent from a row written before. No configuration, database, file or
+   // network. ClassTester runs
+   // it on Windows, business-object-tests on Linux. Throws std::logic_error naming every
+   // case that went wrong.
+   class ArcAuthenticationResultsTester
+   {
+   public:
+      void Test();
    };
 }

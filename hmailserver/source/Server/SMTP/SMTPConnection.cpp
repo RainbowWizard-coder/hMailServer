@@ -3238,6 +3238,11 @@ namespace HM
          const AnsiString passed = authentication_results_->PassedDomains();
          if (!passed.IsEmpty())
             current_message_->SetAuthDomains(String(passed));
+
+         // The SPF result this session's own check reached, for the ARC set sealed if
+         // the message is relayed on: never a Received-SPF field the message carries
+         // (Message::GetReceivedSpfResult).
+         current_message_->SetReceivedSpfResult(String(authentication_results_->SpfResultKeyword()));
       }
 
       // A message this server is not the submission server for - the session did not

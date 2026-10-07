@@ -535,5 +535,75 @@ namespace RegressionTests.AntiSpam.DKIM
          Assert.IsNotNull(signature, "A signed-in member's posting was not DKIM-signed.\r\n" + fromMember);
          StringAssert.Contains("d=example.test", signature, fromMember);
       }
+      // ---- What the seal attests of SPF ----
+
+      private static void AssertSealDoesNotAttestAPass(string messageData, string how)
+      {
+         AssertArcSealed(messageData, "example.test");
+
+         string results = ExtractHeader(messageData, "ARC-Authentication-Results");
+         Assert.IsNotNull(results, "No ARC-Authentication-Results.\r\n" + messageData);
+         StringAssert.Contains("spf=", results, results);
+         StringAssert.DoesNotContain("spf=pass", results,
+            "The ARC seal attests an SPF pass this server never reached: it read " + how + ".\r\n" + messageData);
+      }
+
+      /// <summary>
+      /// The ARC-Authentication-Results this server seals read spf= from the first
+      /// Received-SPF field of the message - the sender's own, when this server wrote
+      /// none, as it does not by default. It is now the result this server's own check
+      /// reached when the message arrived, recorded on the message.
+      ///
+      /// Against the unfixed server the seal attests spf=pass.
+      /// </summary>
+      [Test]
+      [Description("An ARC seal over relayed mail attests this server's own SPF result, not a Received-SPF field the sender wrote.")]
+      public void TheSealAttestsTheServersSpfResultNotTheSenders()
+      {
+         SingletonProvider<TestSetup>.Instance.AddAlias(_domain, "spf-alias@example.test", "external@example.com");
+
+         string messageData = DeliveredToTheRoute(() =>
+            new SmtpClientSimulator().SendRaw(ExternalSender, "spf-alias@example.test",
+               "Received-SPF: pass (written by the sender) client-ip=192.0.2.1;\r\n" +
+               "From: " + ExternalSender + "\r\n" +
+               "To: spf-alias@example.test\r\n" +
+               "Subject: A verdict of its own\r\n" +
+               "\r\n" +
+               "Body.\r\n"));
+
+         AssertSealDoesNotAttestAPass(messageData, "the Received-SPF field the sender wrote");
+      }
+
+      /// <summary>
+      /// The same, with the field added on this server: a Sieve addheader - which
+      /// prepends - ahead of a redirect put a Received-SPF field of the script's choosing
+      /// above any this server wrote, and the seal over the redirected copy attested it.
+      ///
+      /// Against the unfixed server the seal attests spf=pass.
+      /// </summary>
+      [Test]
+      [Description("An ARC seal over a Sieve redirect attests this server's own SPF result, not a Received-SPF field the script added.")]
+      public void TheSealAttestsTheServersSpfResultNotAScripts()
+      {
+         var redirector = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "spf-redirect@example.test", "test");
+         redirector.GetType().InvokeMember("SieveScript", System.Reflection.BindingFlags.SetProperty, null, redirector,
+            new object[]
+            {
+               "require \"editheader\";\r\n" +
+               "addheader \"Received-SPF\" \"pass (added by a script) client-ip=192.0.2.1;\";\r\n" +
+               "redirect \"external@example.com\";\r\n"
+            });
+
+         string messageData = DeliveredToTheRoute(() =>
+            new SmtpClientSimulator().SendRaw(ExternalSender, redirector.Address,
+               "From: " + ExternalSender + "\r\n" +
+               "To: " + redirector.Address + "\r\n" +
+               "Subject: Redirected\r\n" +
+               "\r\n" +
+               "Body.\r\n"));
+
+         StringAssert.Contains("added by a script", messageData, "The script's field is not in the redirected copy, so this proves nothing.");
+         AssertSealDoesNotAttestAPass(messageData, "the Received-SPF field a Sieve script added");
+      }
    }
 }
