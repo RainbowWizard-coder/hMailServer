@@ -232,6 +232,11 @@ namespace HM
 
          pMessage->SetState(Message::Delivering);
 
+         // Read from a file: its From is whatever wrote it, and this server signs
+         // neither it nor a forward of it as the domain that From names
+         // (Message::GetFromOutside).
+         pMessage->SetFromOutside(true);
+
          // Remove all non-local recipients to prevent duplicate email from being sent.
          pMessage->GetRecipients()->RemoveNonLocalAccounts();
 

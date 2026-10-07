@@ -3239,6 +3239,14 @@ namespace HM
          if (!passed.IsEmpty())
             current_message_->SetAuthDomains(String(passed));
       }
+
+      // A message this server is not the submission server for - the session did not
+      // sign in, and did not send as one of this server's domains from a range that
+      // lets it do so without signing in (message_submission_, decided at RCPT TO) -
+      // is mail from outside, and its From is whatever its sender wrote. DKIMSigner
+      // does not sign it, or any copy made of it, as the domain that From names
+      // (Message::GetFromOutside).
+      current_message_->SetFromOutside(!isAuthenticated_ && !message_submission_);
    }
 
    bool

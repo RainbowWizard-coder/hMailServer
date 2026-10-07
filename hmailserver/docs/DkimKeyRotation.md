@@ -14,6 +14,12 @@ key file removed, and its record listed as one that may go.
 rotation is off and has nothing in flight is never looked up and never changed.
 The server never edits DNS. It says what to publish, checks it, and waits.
 
+Whichever key signs, it signs only the mail the server is entitled to sign as the
+domain: what a signed-in user submits, what the server makes itself, and what an IP
+range lets in as one of the server's domains without signing in - not mail from
+outside whose `From` names the domain, nor a forward of it
+([SendAs.md](SendAs.md#which-messages-the-server-signs-as-a-domain)).
+
 ---
 
 The walk

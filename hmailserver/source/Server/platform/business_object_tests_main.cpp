@@ -49,6 +49,12 @@
 //     and a reply's From reads as the one address whatever its name says - until 7
 //     October 2026 an account's rule could send its reply, or forward a message, as
 //     anyone, signed with the DKIM key of the domain it named.
+//   - DKIM signs a message as the domain its From names only when the server is
+//     entitled to (SigningOriginTester, Common/AntiSpam/DKIM/DKIMSigner.cpp): not mail
+//     from outside, nor a forward, a redirect or a rule's copy of it - the mark that
+//     says so is carried by every copy and kept on the queue row. Until 7 October
+//     2026 a forward of mail from outside whose From named a hosted domain left this
+//     server signed as that domain.
 //   - A Sieve vacation reply or notification says it is from its :from only when
 //     that address reaches the account, and otherwise from the account's own
 //     address (SieveFromAddressTester, Common/Sieve/SieveVacationResponder.cpp):
@@ -75,6 +81,7 @@
 #include "../Common/BO/Account.h"
 #include "../Common/BO/FetchAccount.h"
 #include "../Common/BO/Message.h"
+#include "../Common/AntiSpam/DKIM/DKIMSigner.h"
 #include "../Common/Diagnostics/DiagnosticResult.h"
 #include "../Common/Rules/RuleGuard.h"
 #include "../Common/Sieve/SieveVacationResponder.h"
@@ -146,6 +153,7 @@ namespace
       source.SetModSeq(123456789012LL);
       source.SetSubmitterAccountID(29);
       source.SetAuthDomains(_T("example.test"));
+      source.SetFromOutside(true);
       source.SetCopiedFromID(31);
 
       for (unsigned char pattern : Patterns)
@@ -171,6 +179,7 @@ namespace
          Expect(copy.GetModSeq() == source.GetModSeq(), "a copy of a message lost its mod-sequence");
          Expect(copy.GetSubmitterAccountID() == source.GetSubmitterAccountID(), "a copy of a message lost its submitter");
          Expect(copy.GetAuthDomains() == source.GetAuthDomains(), "a copy of a message lost its authenticated domains");
+         Expect(copy.GetFromOutside(), "a copy of a message from outside lost the mark that says so");
 
          // Left out on purpose (Message.cpp): the recall rows follow the one
          // object CopyToIMAPFolder saves, never a copy of it.
@@ -361,6 +370,13 @@ namespace
    }
 
    void
+   TestSigningOrigin()
+   {
+      HM::SigningOriginTester tester;
+      tester.Test();
+   }
+
+   void
    TestSieveFromAddress()
    {
       HM::SieveFromAddressTester tester;
@@ -391,6 +407,7 @@ main(int /*argc*/, char * /*argv*/[])
    failed += Run(&TestLoopCount, "a message's X-hMailServer-LoopCount: digits up to the limit, and anything else the limit, never below 0 or past INT_MAX - 1");
    failed += Run(&TestLoopCountEdits, "no Sieve edit, rule or line break in a header value resets X-hMailServer-LoopCount");
    failed += Run(&TestRuleOwner, "a rule's actions held to its owner: no From or DKIM-Signature set but by a global rule, a reply sent only from an address the owner may send as, and its From one mailbox");
+   failed += Run(&TestSigningOrigin, "no message from outside, nor a forward, redirect or copy of one, is signed as its From's domain; the mark is copied and kept on the queue row");
    failed += Run(&TestSieveFromAddress, "a Sieve vacation reply or notification is from its :from only when that reaches the account, and no Sieve edit changes who a message is from");
    failed += Run(&TestManageSieveQuoting, "a ManageSieve quoted string holds no line break: a refusal quoting a script's line with one in it is one line");
 

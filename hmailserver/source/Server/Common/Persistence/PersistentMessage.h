@@ -35,6 +35,21 @@ namespace HM
       // still needs its trace headers and a link from the template already has them.
       static std::shared_ptr<Message> CopyFromQueueToInbox(std::shared_ptr<Message> sourceMessage, std::shared_ptr<const Account> destinationAccount, const String &linkFrom, bool &linked);
 
+      // What a queue row's messageauthdomains holds: where the message came from, as
+      // the server saw it, beside the submitter. The marks of the server's own record
+      // come first, each a word of its own - "outside" for Message::GetFromOutside -
+      // then the domains the inbound checks vouched for (Message::GetAuthDomains, a
+      // "dmarc=" word or nothing), commas between. Never longer than the column's 255
+      // characters: when all of it would not fit, the marks are kept and the domains
+      // dropped whole, as a value too long for the column always was, since a mark
+      // left out would let a message from outside be signed as the domain its From
+      // names. ReadOriginColumn takes the marks back off the front, so that
+      // GetAuthDomains answers the domains as they were, and a row written before the
+      // marks existed reads as it did. No database: SigningOriginTester holds
+      // the two to examples.
+      static String OriginColumn(const Message &message);
+      static void ReadOriginColumn(const String &column, Message &message);
+
       static bool DeleteObject(std::shared_ptr<Message> pMessage);
       static bool SaveObject(std::shared_ptr<Message> pMessage);
       static bool SaveObject(std::shared_ptr<Message> pMessage, String &errorMessage, PersistenceMode mode);
@@ -131,7 +146,10 @@ namespace HM
       int GetLatestMessageId();
 
    private:
-      
+
+      // Which members a copy carries is asked of CreateCopy_ itself.
+      friend class SigningOriginTester;
+
       static std::shared_ptr<Message> CreateCopy_(std::shared_ptr<Message> sourceMessage, int destinationAccountID);
 
       // Recipient functions begin

@@ -19,6 +19,7 @@
 
 #include "../Application/ObjectCache.h"
 #include "../AntiSpam/DKIM/DKIMSigner.h"
+#include "../AntiSpam/DMARC/DMARC.h"
 #include "../Persistence/PersistentDistributionListRecipient.h"
 #include "../BO/Account.h"
 #include "../BO/Alias.h"
@@ -1196,6 +1197,17 @@ namespace HM
          mime->DeleteFields("DKIM-Signature");
       }
 
+      // A posting from outside is its sender's, and so is every copy of it
+      // (Message::GetFromOutside): no copy is signed as the domain its From names,
+      // nor as the list's own domain when that is the From's organisation.
+      const bool fromOutside = message->GetFromOutside();
+      const bool signAsListDomain = SignsCopiesAsListDomain(fromOutside, data->GetFrom(), listAddress);
+      if (!signAsListDomain)
+      {
+         LOG_APPLICATION(Formatter::Format("ListManager: posting {0} to {1} came from outside with a From of the list's own domain, so its copies are not signed as that domain.",
+            message->GetID(), listAddress));
+      }
+
       // The list's copy, written once beside the posting and read by every
       // member copy, the archive and the digest.
       const String copyFile = fileName + _T(".list");
@@ -1270,7 +1282,7 @@ namespace HM
 
          EnsureToken(row);
 
-         if (QueueCopy(list, address, row->GetToken(), copyFile, false))
+         if (QueueCopy(list, address, row->GetToken(), copyFile, false, fromOutside, signAsListDomain))
             each++;
          else
             failed++;
@@ -1304,7 +1316,7 @@ namespace HM
             if (IsListOwnAddress(member, listAddress))
                continue;
 
-            if (QueueCopy(list, member, QueryMemberToken(secret, member), copyFile, true))
+            if (QueueCopy(list, member, QueryMemberToken(secret, member), copyFile, true, fromOutside, signAsListDomain))
                each++;
             else
                failed++;
@@ -1416,10 +1428,27 @@ namespace HM
    }
 
    bool
-   ListManager::QueueCopy(std::shared_ptr<const DistributionList> list, const String &member, const String &token, const String &contentFile, bool queryMember)
+   ListManager::SignsCopiesAsListDomain(bool fromOutside, const String &fromHeaderValue, const String &listAddress)
+   {
+      if (!fromOutside)
+         return true;
+
+      const String fromDomain = StringParser::ExtractDomain(DMARC::ExtractAddressFromHeaderValue(fromHeaderValue));
+      const String listDomain = StringParser::ExtractDomain(listAddress);
+      if (fromDomain.IsEmpty() || listDomain.IsEmpty())
+         return true;
+
+      return DMARC::GetOrganizationalDomainByPublicSuffixList(fromDomain).CompareNoCase(
+         DMARC::GetOrganizationalDomainByPublicSuffixList(listDomain)) != 0;
+   }
+
+   bool
+   ListManager::QueueCopy(std::shared_ptr<const DistributionList> list, const String &member, const String &token, const String &contentFile, bool queryMember,
+                          bool fromOutside, bool signAsListDomain)
    {
       std::shared_ptr<Message> copy(new Message());
       copy->SetState(Message::Delivering);
+      copy->SetFromOutside(fromOutside);
 
       const String copyName = MessageStore::WorkingFile(copy);
       const String directory = FileUtilities::GetFilePath(copyName);
@@ -1464,8 +1493,11 @@ namespace HM
       // signature over List-Unsubscribe and List-Unsubscribe-Post before a
       // receiver offers the one-click. The copy's own delivery pass then finds
       // a signature of that domain and does not sign again.
-      DKIMSigner signer;
-      signer.SignAsDomain(copy, AnsiString(StringParser::ExtractDomain(list->GetAddress())));
+      if (signAsListDomain)
+      {
+         DKIMSigner signer;
+         signer.SignAsDomain(copy, AnsiString(StringParser::ExtractDomain(list->GetAddress())));
+      }
 
       // The list's bounce address, or with VERP the member's own form of it,
       // is the envelope sender of every copy: a failure comes back to the

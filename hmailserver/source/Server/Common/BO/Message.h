@@ -276,6 +276,23 @@ namespace HM
       String GetAuthDomains() const { return auth_domains_; }
       void SetAuthDomains(const String &domains) { auth_domains_ = domains; }
 
+      // Whether the message, or the message it is a copy of, came in from outside
+      // through no submission, so that its From was written by somebody this server
+      // cannot vouch for: an SMTP session that neither signed in nor sent as one of
+      // this server's domains from an IP range that lets it do so without signing in
+      // (SMTPConnection's message_submission_), a download from another server's
+      // mailbox (ExternalFetcher), a message imported from a file (MailImporter), or a
+      // quarantined one released whose Received field this server wrote for a session
+      // that did not sign in (QuarantineStore). A copy carries it - a forward, a Sieve
+      // redirect, a rule's forward or copy, the mirror, a managed list's copy, the
+      // gateway's sealed copy - since its From is still the one the outside sender
+      // wrote. DKIMSigner does not sign such a message as the domain its From names
+      // (SignsAsAuthorDomain). Set by the server where it creates the message, never
+      // read from anything a sender wrote, and kept with the rest of where the message
+      // came from on a queue row (PersistentMessage::OriginColumn).
+      bool GetFromOutside() const { return from_outside_; }
+      void SetFromOutside(bool fromOutside) { from_outside_ = fromOutside; }
+
       bool GetBinaryMime() const { return (GetFlags() & FlagBinaryMime) != 0; }
       void SetBinaryMime(bool bNewVal)
       {
@@ -361,6 +378,9 @@ namespace HM
       // See GetSubmitterAccountID.
       __int64 submitter_account_id_ = 0;
       String auth_domains_;
+
+      // See GetFromOutside.
+      bool from_outside_ = false;
 
    private:
 

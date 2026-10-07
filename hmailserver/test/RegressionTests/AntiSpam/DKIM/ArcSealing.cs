@@ -360,5 +360,180 @@ namespace RegressionTests.AntiSpam.DKIM
             _application.Reinitialize();
          }
       }
+      // ---- Which messages are signed as the domain their From names ----
+
+      // A message from outside whose From names the test domain, which signs: the
+      // forgery the tests below send through each way a copy of it can leave.
+      private static string FromOutsideAsTheTestDomain(string to)
+      {
+         return
+            "From: The CEO <ceo@example.test>\r\n" +
+            "To: " + to + "\r\n" +
+            "Subject: Signed as ours?\r\n" +
+            "\r\n" +
+            "Please pay the invoice.\r\n";
+      }
+
+      // What reaches external@example.com through the route after send, with the test
+      // domain signing and ARC sealing on, and the envelope of a forward rewritten to the
+      // forwarder, so that the forwarding domain seals it.
+      private string DeliveredToTheRoute(Action send)
+      {
+         try
+         {
+            WriteSetting("ArcSealingEnabled", "1");
+            _application.Reinitialize();
+            _settings.RewriteEnvelopeFromWhenForwarding = true;
+
+            EnableDkimOnTestDomain();
+
+            var port = TestSetup.GetNextFreePort();
+            using (var smtpServer = new SmtpServerSimulator(1, port))
+            {
+               smtpServer.SecondsToWaitBeforeTerminate = 60;
+               smtpServer.AddRecipientResult(new Dictionary<string, int> { { "external@example.com", 250 } });
+               smtpServer.StartListen();
+
+               Signing.AddRoutePointingAtLocalhost(5, port);
+
+               send();
+
+               CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+               smtpServer.WaitForCompletion();
+
+               return smtpServer.MessageData;
+            }
+         }
+         finally
+         {
+            _settings.RewriteEnvelopeFromWhenForwarding = false;
+            WriteSetting("ArcSealingEnabled", "0");
+            _application.Reinitialize();
+         }
+      }
+
+      private static void AssertNotSignedAsTheTestDomain(string messageData, string how)
+      {
+         Assert.IsFalse(messageData.ToLower().Contains("dkim-signature"),
+            how + " of a message from outside whose From names a domain hosted here left this server signed as that " +
+            "domain: a forgery DMARC passes.\r\n" + messageData);
+      }
+
+      [Test]
+      [Description("A message an account submits after signing in is signed as its From's domain, as it always was.")]
+      public void AnAuthenticatedSubmissionIsSignedAsItsFromDomain()
+      {
+         var sender = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "signed-in-sender@example.test", "test");
+
+         string messageData = DeliveredToTheRoute(() =>
+            new SmtpClientSimulator().SendRaw(sender.Address, "test", sender.Address, "external@example.com",
+               "From: " + sender.Address + "\r\nTo: external@example.com\r\nSubject: Signed\r\n\r\nBody.\r\n"));
+
+         string signature = ExtractHeader(messageData, "DKIM-Signature");
+         Assert.IsNotNull(signature, "A signed-in submission was not DKIM-signed.\r\n" + messageData);
+         StringAssert.Contains("d=example.test", signature, messageData);
+      }
+
+      /// <summary>
+      /// Mail from outside whose From named a domain hosted here was signed as that
+      /// domain on its first delivery pass, before local delivery, and an account's
+      /// forward of it then left this server with the signature - a forgery any receiver
+      /// would take as the domain's own. Neither the message stored nor the forward is
+      /// signed now; the forward goes with an ARC set of the forwarding domain.
+      ///
+      /// Against the unfixed server both carry a DKIM-Signature with d=example.test.
+      /// </summary>
+      [Test]
+      [Description("An account's forward of mail from outside whose From names a hosted domain is not signed as that domain, and neither is the copy kept.")]
+      public void AnAccountsForwardOfOutsideMailIsNotSignedAsItsFromDomain()
+      {
+         var forwarder = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "outside-forwarder@example.test", "test");
+         forwarder.ForwardEnabled = true;
+         forwarder.ForwardAddress = "external@example.com";
+         forwarder.ForwardKeepOriginal = true;
+         forwarder.Save();
+
+         string messageData = DeliveredToTheRoute(() =>
+            new SmtpClientSimulator().SendRaw(ExternalSender, forwarder.Address, FromOutsideAsTheTestDomain(forwarder.Address)));
+
+         AssertNotSignedAsTheTestDomain(messageData, "An account's forward");
+         AssertArcSealed(messageData, "example.test");
+
+         string kept = Pop3ClientSimulator.AssertGetFirstMessageText(forwarder.Address, "test");
+         AssertNotSignedAsTheTestDomain(kept, "The copy kept in the mailbox");
+      }
+
+      [Test]
+      [Description("An account rule's forward of mail from outside whose From names a hosted domain is not signed as that domain.")]
+      public void AnAccountRulesForwardOfOutsideMailIsNotSignedAsItsFromDomain()
+      {
+         var forwarder = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "outside-ruleforward@example.test", "test");
+
+         var rule = forwarder.Rules.Add();
+         rule.Name = "Forward everything";
+         rule.Active = true;
+         var criteria = rule.Criterias.Add();
+         criteria.UsePredefined = true;
+         criteria.PredefinedField = hMailServer.eRulePredefinedField.eFTMessageSize;
+         criteria.MatchType = hMailServer.eRuleMatchType.eMTGreaterThan;
+         criteria.MatchValue = "0";
+         criteria.Save();
+         var forward = rule.Actions.Add();
+         forward.Type = hMailServer.eRuleActionType.eRAForwardEmail;
+         forward.To = "external@example.com";
+         forward.Save();
+         rule.Save();
+
+         string messageData = DeliveredToTheRoute(() =>
+            new SmtpClientSimulator().SendRaw(ExternalSender, forwarder.Address, FromOutsideAsTheTestDomain(forwarder.Address)));
+
+         AssertNotSignedAsTheTestDomain(messageData, "An account rule's forward");
+         AssertArcSealed(messageData, "example.test");
+      }
+
+      [Test]
+      [Description("A Sieve redirect of mail from outside whose From names a hosted domain is not signed as that domain.")]
+      public void ASieveRedirectOfOutsideMailIsNotSignedAsItsFromDomain()
+      {
+         var redirector = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "outside-redirect@example.test", "test");
+         redirector.GetType().InvokeMember("SieveScript", System.Reflection.BindingFlags.SetProperty, null, redirector,
+            new object[] { "redirect \"external@example.com\";\r\n" });
+
+         string messageData = DeliveredToTheRoute(() =>
+            new SmtpClientSimulator().SendRaw(ExternalSender, redirector.Address, FromOutsideAsTheTestDomain(redirector.Address)));
+
+         AssertNotSignedAsTheTestDomain(messageData, "A Sieve redirect");
+         AssertArcSealed(messageData, "example.test");
+      }
+
+      /// <summary>
+      /// A distribution list expands to its members while the message is received, so a
+      /// member outside is a recipient of the very message that arrived - and the list
+      /// does not rewrite From. A posting from outside is therefore the outside sender's,
+      /// and is not signed as the domain its From names; a member's posting after signing
+      /// in is that member's, and is.
+      ///
+      /// Against the unfixed server the posting from outside reaches the member signed
+      /// d=example.test.
+      /// </summary>
+      [Test]
+      [Description("A distribution list's copy of a posting from outside whose From names a hosted domain is not signed as that domain; a signed-in member's posting is.")]
+      public void ADistributionListsCopyIsSignedOnlyForASignedInPoster()
+      {
+         var member = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "list-poster@example.test", "test");
+         SingletonProvider<TestSetup>.Instance.AddDistributionList(_domain, "outside-list@example.test",
+            new List<string> { "external@example.com" });
+
+         string fromOutside = DeliveredToTheRoute(() =>
+            new SmtpClientSimulator().SendRaw(ExternalSender, "outside-list@example.test", FromOutsideAsTheTestDomain("outside-list@example.test")));
+         AssertNotSignedAsTheTestDomain(fromOutside, "A distribution list's copy");
+
+         string fromMember = DeliveredToTheRoute(() =>
+            new SmtpClientSimulator().SendRaw(member.Address, "test", member.Address, "outside-list@example.test",
+               "From: " + member.Address + "\r\nTo: outside-list@example.test\r\nSubject: Posted\r\n\r\nBody.\r\n"));
+         string signature = ExtractHeader(fromMember, "DKIM-Signature");
+         Assert.IsNotNull(signature, "A signed-in member's posting was not DKIM-signed.\r\n" + fromMember);
+         StringAssert.Contains("d=example.test", signature, fromMember);
+      }
    }
 }

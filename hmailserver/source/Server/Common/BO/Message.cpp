@@ -64,6 +64,7 @@ namespace HM
 
       submitter_account_id_ = other.submitter_account_id_;
       auth_domains_ = other.auth_domains_;
+      from_outside_ = other.from_outside_;
 
       // Not copied, on purpose: copied_from_id_, which belongs to the one
       // object CopyToIMAPFolder saves (a copy saved as well would carry the

@@ -299,10 +299,21 @@ namespace HM
       static AnsiString CopyHeaders(std::shared_ptr<const DistributionList> list, const String &member, const String &token, bool queryMember);
 
       // Queues one copy of contentFile for the member: CopyHeaders, then the
-      // file's bytes, signed as the list's domain when that domain has DKIM on,
-      // from the list's bounce address (or the member's VERP form). False when
-      // it could not be queued; the reason is reported.
-      static bool QueueCopy(std::shared_ptr<const DistributionList> list, const String &member, const String &token, const String &contentFile, bool queryMember);
+      // file's bytes, signed as the list's domain when that domain has DKIM on
+      // and signAsListDomain says so, from the list's bounce address (or the
+      // member's VERP form). fromOutside is the posting's Message::GetFromOutside,
+      // which the copy carries, so that it is not signed as the domain its From
+      // names either. False when it could not be queued; the reason is reported.
+      static bool QueueCopy(std::shared_ptr<const DistributionList> list, const String &member, const String &token, const String &contentFile, bool queryMember,
+                            bool fromOutside = false, bool signAsListDomain = true);
+
+      // Whether the list may sign a copy of this posting as its own domain: always,
+      // but for a posting from outside (Message::GetFromOutside) whose From names a
+      // domain of the list domain's organisation (the public suffix list's answer, as
+      // DMARC's relaxed alignment reads it). The list does not rewrite From, and a
+      // signature of its domain would be one DMARC aligns with that From - a pass for
+      // a From the list never checked.
+      static bool SignsCopiesAsListDomain(bool fromOutside, const String &fromHeaderValue, const String &listAddress);
 
       // ---- the pages' budget --------------------------------------------------
 

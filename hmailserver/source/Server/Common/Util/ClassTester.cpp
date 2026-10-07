@@ -45,6 +45,7 @@
 #include "JsonDocument.h"
 #include "../Util/XmlSignature.h"
 #include "../AntiSpam/DKIM/DkimRotationPlan.h"
+#include "../AntiSpam/DKIM/DKIMSigner.h"
 #include "../Persistence/PersistentDkimRotation.h"
 #include "../../SMTP/BounceClassifier.h"
 #include "BrandLogo.h"
@@ -246,6 +247,14 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing a rule's actions against its owner\n"));
       RuleOwnerTester ruleOwnerTester;
       ruleOwnerTester.Test();
+
+      // Which messages DKIM signs as the domain their From names: not mail from
+      // outside, nor a forward, a redirect or a copy of it, which were signed until 7
+      // October 2026 - and the mark that says so, carried by every copy and kept on
+      // the queue row (DKIMSigner.h, SigningOriginTester).
+      OutputDebugString(_T("hMailServer: Testing which messages are signed as their From's domain\n"));
+      SigningOriginTester signingOriginTester;
+      signingOriginTester.Test();
 
       // The address a Sieve vacation reply or notification may say it is from: one
       // that reaches the account, or else the account's own. Until 6 October 2026 a

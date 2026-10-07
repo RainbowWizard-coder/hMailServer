@@ -354,7 +354,7 @@ namespace HM
       pMessage->SetModSeq(pRS->GetInt64Value("messagemodseq"));
       // Where it came from (schema 6101, Message::GetSubmitterAccountID).
       pMessage->SetSubmitterAccountID(pRS->GetInt64Value("messagesubmitterid"));
-      pMessage->SetAuthDomains(pRS->GetStringValue("messageauthdomains"));
+      ReadOriginColumn(pRS->GetStringValue("messageauthdomains"), *pMessage);
 
       if (bReadRecipients)
       {
@@ -760,7 +760,66 @@ namespace HM
       pTo->SetFlags(sourceMessage->GetFlags());
       pTo->SetKeywords(sourceMessage->GetKeywords());
 
+      // A copy of a message from outside is still from outside: a forward, a Sieve
+      // redirect, a rule's forward or copy and the mirror are made here, from the
+      // queued message or the recipient's copy of it, and their From is the one the
+      // outside sender wrote (Message::GetFromOutside). The submitter and the domains
+      // vouched for stay with the message the server saw arrive.
+      pTo->SetFromOutside(sourceMessage->GetFromOutside());
+
       return pTo;
+   }
+
+   namespace
+   {
+      // The marks OriginColumn writes ahead of the domains.
+      const wchar_t *const OutsideMark = L"outside";
+      const int OriginColumnWidth = 255;
+   }
+
+   String
+   PersistentMessage::OriginColumn(const Message &message)
+   {
+      String marks;
+      if (message.GetFromOutside())
+         marks = OutsideMark;
+
+      const String domains = message.GetAuthDomains();
+
+      String column = marks;
+      if (!domains.IsEmpty())
+         column = column.IsEmpty() ? domains : column + _T(",") + domains;
+
+      // The domains are dropped whole rather than cut, as a value too long for the
+      // column always was; the marks, which are short, are kept.
+      if (column.GetLength() > OriginColumnWidth)
+         column = marks.GetLength() > OriginColumnWidth ? String() : marks;
+
+      return column;
+   }
+
+   void
+   PersistentMessage::ReadOriginColumn(const String &column, Message &message)
+   {
+      String rest = column;
+      bool outside = false;
+
+      // The marks come first; the first word that is not one begins the domains.
+      for (;;)
+      {
+         const int comma = rest.Find(_T(","));
+         String word = comma < 0 ? rest : rest.Mid(0, comma);
+         word.Trim();
+
+         if (word.CompareNoCase(OutsideMark) != 0)
+            break;
+
+         outside = true;
+         rest = comma < 0 ? String() : rest.Mid(comma + 1);
+      }
+
+      message.SetFromOutside(outside);
+      message.SetAuthDomains(rest);
    }
 
    bool
@@ -906,9 +965,7 @@ namespace HM
       // longer than its column is not written at all, rather than refused by
       // the database or cut into the name of another domain.
       const bool queueRow = pMessage->GetState() != Message::Delivered;
-      String authDomains = queueRow ? pMessage->GetAuthDomains() : String();
-      if (authDomains.GetLength() > 255)
-         authDomains = _T("");
+      const String authDomains = queueRow ? OriginColumn(*pMessage) : String();
       oStatement.AddColumnInt64("messagesubmitterid", queueRow ? pMessage->GetSubmitterAccountID() : 0);
       oStatement.AddColumn("messageauthdomains", authDomains);
       oStatement.AddColumnInt64("messagefolderid", pMessage->GetFolderID());

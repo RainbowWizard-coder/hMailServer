@@ -524,7 +524,7 @@ namespace HM
 
    bool
    Journaling::Queue_(std::shared_ptr<JournalRule> rule, const String &originalFileName,
-                      const Envelope &envelope, unsigned int sessionId)
+                      const Envelope &envelope, unsigned int sessionId, bool fromOutside)
    {
       std::shared_ptr<const Domain> domain = CacheContainer::Instance()->GetDomain(rule->GetDomainID());
 
@@ -557,6 +557,12 @@ namespace HM
       std::shared_ptr<Message> journal = std::shared_ptr<Message>(new Message);
       journal->SetState(Message::Delivering);
       journal->SetFromAddress(envelopeSender);
+
+      // A copy delivered as it was accepted keeps its sender's From, and so whether
+      // that sender was outside (Message::GetFromOutside): DKIMSigner signs it as that
+      // From's domain only when it would have signed the message. A report is this
+      // server's own, from the domain's postmaster.
+      journal->SetFromOutside(rule->GetMode() == JournalRule::ModeCopy && fromOutside);
 
       const String fileName = MessageStore::WorkingFile(journal);
 
@@ -825,7 +831,7 @@ namespace HM
 
       for (std::shared_ptr<JournalRule> rule : matched)
       {
-         if (Queue_(rule, fileName, envelope, sessionId))
+         if (Queue_(rule, fileName, envelope, sessionId, message->GetFromOutside()))
             queued++;
       }
 

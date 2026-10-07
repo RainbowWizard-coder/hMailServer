@@ -29,6 +29,7 @@
 #include "../AntiVirus/Sandbox.h"
 #include "../Util/ContentPolicy.h"
 #include "../Util/Unicode.h"
+#include "../Util/MessageOrigin.h"
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -197,6 +198,17 @@ namespace HM
          return String();
 
       return HeloFromReceivedHeader(String(received->GetValue()), Utilities::ComputerName());
+   }
+
+   bool
+   QuarantineStore::ReleasedCopyIsFromOutside_(const String &file)
+   {
+      const AnsiString header = PersistentMessage::LoadHeader(file, false);
+      if (header.IsEmpty())
+         return false;
+
+      const String thisServer = Utilities::ComputerName();
+      return MessageOrigin::ReceivedByThisServer(header, thisServer) && !MessageOrigin::ReceivedSaysAuthenticated(header, thisServer);
    }
 
    bool
@@ -678,6 +690,7 @@ namespace HM
       }
 
       message->SetSize(MessageStore::FileSize(targetFile));
+      message->SetFromOutside(ReleasedCopyIsFromOutside_(targetFile));
 
       RecipientParser recipientParser;
 
@@ -857,6 +870,7 @@ namespace HM
       }
 
       message->SetSize(MessageStore::FileSize(targetFile));
+      message->SetFromOutside(ReleasedCopyIsFromOutside_(targetFile));
 
       RecipientParser recipientParser;
       bool recipientOk = false;

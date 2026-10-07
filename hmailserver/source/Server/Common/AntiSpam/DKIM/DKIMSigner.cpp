@@ -22,6 +22,10 @@
 #include "../../Persistence/PersistentMessage.h"
 #include "../../Persistence/MessageStore.h"
 #include "../../Util/Parsing/AddresslistParser.h"
+#include "../../Util/Unicode.h"
+#include "../../Util/ListManager.h"
+
+#include <stdexcept>
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -151,6 +155,15 @@ namespace HM
                                    AnsiString &signingSelector,
                                    String &signingPrivateKeyFile)
    {
+      // Only a message this server is entitled to sign as its author's domain - not
+      // mail from outside, nor a copy of it (SignsAsAuthorDomain). Such a message goes
+      // with the signature it came with, and Sign seals it with ARC when it relays it.
+      if (!SignsAsAuthorDomain(*message))
+      {
+         LOG_DEBUG("DKIM: not signing as the From's domain: the message came from outside, and its From is its sender's.");
+         return false;
+      }
+
       // Determine the signing domain from the RFC 5322 From: header, not the
       // envelope from (MAIL FROM). DMARC alignment requires d= to match the
       // From: header domain.
@@ -250,6 +263,18 @@ namespace HM
       signingPrivateKeyFile = privateKeyFile;
 
       return true;
+   }
+
+   bool
+   DKIMSigner::SignsAsAuthorDomain(const Message &message)
+   {
+      // A signed-in submission is never marked from outside (SMTPConnection::
+      // RecordOrigin_); asked first all the same, since it is the one entitlement
+      // a sender proved.
+      if (message.GetSubmittedBySignedInUser())
+         return true;
+
+      return !message.GetFromOutside();
    }
 
    bool
@@ -404,5 +429,167 @@ namespace HM
       signingPrivateKeyFile = privateKeyFile;
 
       return true;
+   }
+
+   void
+   SigningOriginTester::Test()
+   {
+      std::string wrong;
+      auto fail = [&wrong](const std::string &what)
+      {
+         wrong += (wrong.empty() ? "" : "; ") + what;
+      };
+
+      // Who may be signed as the From's domain.
+      {
+         Message generated(false);
+         if (!DKIMSigner::SignsAsAuthorDomain(generated))
+            fail("a message the server made is not signed as its From's domain");
+
+         Message submitted(false);
+         submitted.SetSubmittedBySignedInUser(true);
+         if (!DKIMSigner::SignsAsAuthorDomain(submitted))
+            fail("a signed-in submission is not signed as its From's domain");
+
+         Message outside(false);
+         outside.SetFromOutside(true);
+         if (DKIMSigner::SignsAsAuthorDomain(outside))
+            fail("a message from outside is signed as its From's domain");
+
+         Message both(false);
+         both.SetFromOutside(true);
+         both.SetSubmittedBySignedInUser(true);
+         if (!DKIMSigner::SignsAsAuthorDomain(both))
+            fail("a signed-in submission marked from outside is not signed as its From's domain");
+      }
+
+      // Every copy carries the mark, and a copy of a message without it has none.
+      for (bool fromOutside : { false, true })
+      {
+         std::shared_ptr<Message> source(new Message(false));
+         source->SetFromAddress(_T("sender@example.net"));
+         source->SetState(Message::Delivered);
+         source->SetAccountID(17);
+         source->SetFromOutside(fromOutside);
+         source->SetSubmitterAccountID(0);
+         source->SetAuthDomains(_T("dmarc=example.net"));
+
+         const std::string what = fromOutside ? "a message from outside" : "a message not from outside";
+
+         Message constructed(*source);
+         if (constructed.GetFromOutside() != fromOutside)
+            fail("the copy constructor's copy of " + what + " does not say so");
+
+         std::shared_ptr<Message> forwarded = PersistentMessage::CreateCopy_(source, 0);
+         if (!forwarded)
+            fail("CreateCopy_ made no copy of " + what);
+         else
+         {
+            if (forwarded->GetFromOutside() != fromOutside)
+               fail("the queued copy (a forward, a redirect, a rule's copy) of " + what + " does not say so");
+            if (DKIMSigner::SignsAsAuthorDomain(*forwarded) == fromOutside)
+               fail("the queued copy of " + what + " is " + (fromOutside ? "" : "not ") + "signed as its From's domain");
+         }
+
+         std::shared_ptr<Message> stored = PersistentMessage::CreateCopy_(source, 23);
+         if (!stored || stored->GetFromOutside() != fromOutside)
+            fail("the recipient's copy of " + what + ", which an account's forward is made from, does not say so");
+      }
+
+      // The column: written, and read back as it was written.
+      {
+         struct Case
+         {
+            bool outside;
+            const wchar_t *domains;
+            const wchar_t *column;
+         };
+
+         const String longDomains = String(_T("dmarc=")) + String(std::wstring(250, L'd'));
+         const Case cases[] =
+         {
+            { false, L"", L"" },
+            { false, L"dmarc=example.net", L"dmarc=example.net" },
+            { true, L"", L"outside" },
+            { true, L"dmarc=example.net", L"outside,dmarc=example.net" },
+         };
+
+         for (const Case &c : cases)
+         {
+            Message written(false);
+            written.SetFromOutside(c.outside);
+            written.SetAuthDomains(String(c.domains));
+
+            const String column = PersistentMessage::OriginColumn(written);
+            if (column.Compare(c.column) != 0)
+               fail("the column for " + std::string(c.outside ? "a message from outside" : "a message") + " with \"" +
+                  std::string(Unicode::ToUtf8(String(c.domains)).c_str()) + "\" is \"" + std::string(Unicode::ToUtf8(column).c_str()) + "\"");
+
+            Message read(false);
+            PersistentMessage::ReadOriginColumn(column, read);
+            if (read.GetFromOutside() != c.outside || read.GetAuthDomains().Compare(c.domains) != 0)
+               fail("the column \"" + std::string(Unicode::ToUtf8(column).c_str()) + "\" read back as something else");
+         }
+
+         // Too long for the column: the domains go whole, and the mark stays.
+         Message tooLong(false);
+         tooLong.SetFromOutside(true);
+         tooLong.SetAuthDomains(longDomains);
+         const String tooLongColumn = PersistentMessage::OriginColumn(tooLong);
+         if (tooLongColumn.Compare(_T("outside")) != 0)
+            fail("a column too long for its 255 characters is \"" + std::string(Unicode::ToUtf8(tooLongColumn).c_str()) + "\", not the mark alone");
+
+         Message tooLongWithout(false);
+         tooLongWithout.SetAuthDomains(String(_T("dmarc=")) + String(std::wstring(260, L'd')));
+         if (!PersistentMessage::OriginColumn(tooLongWithout).IsEmpty())
+            fail("a column too long for its 255 characters, with no mark, is not left empty as it always was");
+
+         // A row written before the mark existed, and a value of another shape.
+         const wchar_t *legacy[] = { L"dmarc=example.net", L"example.test", L"" };
+         for (const wchar_t *value : legacy)
+         {
+            Message read(false);
+            PersistentMessage::ReadOriginColumn(String(value), read);
+            if (read.GetFromOutside() || read.GetAuthDomains().Compare(value) != 0)
+               fail("a column written before the mark, \"" + std::string(Unicode::ToUtf8(String(value)).c_str()) + "\", read as something else");
+         }
+
+         Message readBack(false);
+         PersistentMessage::ReadOriginColumn(_T("outside,dmarc=example.net"), readBack);
+         if (DKIMSigner::SignsAsAuthorDomain(readBack))
+            fail("a message read back from outside is signed as its From's domain");
+      }
+
+      // A managed list's copies of a posting from outside: not signed as the list's
+      // domain when that is the From's organisation, which DMARC would align with it.
+      {
+         struct ListCase
+         {
+            bool fromOutside;
+            const wchar_t *from;
+            bool signs;
+         };
+
+         const ListCase cases[] =
+         {
+            { false, L"ceo@example.test", true },
+            { false, L"Boss <ceo@example.test>", true },
+            { true, L"Boss <ceo@example.test>", false },
+            { true, L"ceo@EXAMPLE.test", false },
+            { true, L"ceo@sub.example.test", false },
+            { true, L"author@example.net", true },
+            { true, L"", true },
+         };
+
+         for (const ListCase &c : cases)
+         {
+            if (ListManager::SignsCopiesAsListDomain(c.fromOutside, String(c.from), _T("list@example.test")) != c.signs)
+               fail(std::string("a list copy of a posting ") + (c.fromOutside ? "from outside" : "not from outside") + " from \"" +
+                  std::string(Unicode::ToUtf8(String(c.from)).c_str()) + "\" is " + (c.signs ? "not " : "") + "signed as the list's domain");
+         }
+      }
+
+      if (!wrong.empty())
+         throw std::logic_error("DKIM signing as the From's domain: " + wrong);
    }
 }

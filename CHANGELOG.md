@@ -222,6 +222,30 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   administrator, and over REST, and deliver a reply and a `From` stored before the check. Found by the project's own
   review.
 
+- **Fixed: mail from outside whose `From` named a domain hosted here was signed with that domain's DKIM key, and so
+  was every forward of it.** The server signed a message as the domain its `From` names on its first delivery pass,
+  whatever the message was (in every version that signs): a sender anywhere who wrote `From: ceo@` a domain hosted
+  here had the message signed as that domain before local delivery, and an account's forward of it, a rule's
+  forward or copy, a Sieve `redirect`, an alias or a distribution list to an address outside, the mirror copy or a
+  journal rule's copy left the server as a forgery that passes DMARC. A message is now signed as its `From`'s domain only when the server is
+  entitled to: a submission by a signed-in user, and every copy of it, unchanged; a message the server makes itself;
+  and one an IP range lets in as one of this server's domains without signing in - the session the server is the
+  submission server for, as `My computer`'s web sites and scripts are. Anything else came in from outside - an SMTP
+  session that did not sign in and was not such a submission, a download from an external account, a message
+  imported from a file - and is recorded so on the queued message, never in a header, and on every copy made of it,
+  through a restart (`hm_messages.messageauthdomains` carries the mark ahead of the DMARC domain, with no schema
+  change). It leaves with the signature it came with, and with `ArcSealingEnabled` on, the ARC set the relaying
+  domain seals. A managed list does not sign its copies of such a posting as the list's domain when the `From` is of
+  the list domain's organisation, which DMARC would align, and a message released from the quarantine is read as
+  from outside when the `Received` field this server wrote at its arrival names a session that did not sign in.
+  Messages in the queue at the upgrade were recorded without the mark and are signed as before.
+
+  `SigningOriginTester` (`business-object-tests` on Linux) holds which messages are signed, the mark on every copy
+  and on the queue row, and the list's decision to examples; `AntiSpam/DKIM/ArcSealing.cs` sends a signed-in
+  submission (signed) and mail from outside with a hosted `From` through an account's forward, an account rule's
+  forward, a Sieve `redirect` and a distribution list (none signed, the forwards sealed), and a signed-in member's
+  posting to the list (signed). Found by the project's own review.
+
 ### Correctness
 
 - **Fixed: a ManageSieve refusal that quoted a script's text with a line break in it was split in two.** RFC 5804's

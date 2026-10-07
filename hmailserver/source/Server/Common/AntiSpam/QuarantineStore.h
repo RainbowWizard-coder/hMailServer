@@ -146,6 +146,16 @@ namespace HM
       static bool Quarantine_(std::shared_ptr<Message> message, const String &reason, int score, const String &sourceFile,
                               bool heloKnown, const String &heloName);
       static String HeloOfStoredCopy_(const String &file);
+
+      // Whether a released copy is mail from outside (Message::GetFromOutside). The
+      // quarantine keeps no record of where a message came from, so it is read from the
+      // Received field this server wrote when the message arrived: one written for a
+      // session that did not sign in is from outside, as is a copy of such a message;
+      // one written for a signed-in session, or none - a message this server made - is
+      // not. A message an IP range let in without signing in as one of this server's
+      // domains is from outside here too, and is released without this server's DKIM
+      // signature: the safe side of a record that is not kept.
+      static bool ReleasedCopyIsFromOutside_(const String &file);
       static bool OpenFile_(__int64 id, String &out_file, String &out_error);
       static String BuildRelativePath_();
       static bool ReadRow_(std::shared_ptr<DALRecordset> recordset, QuarantinedMessage &out_message);

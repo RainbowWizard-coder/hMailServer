@@ -233,7 +233,15 @@ fields are in place, so the signature covers `List-Unsubscribe` and
 offers its one-click, and which Gmail and Yahoo check. A signature of the list's
 own domain that the posting carried - made before the list's fields existed - is
 taken off for the new one. With DKIM off for the list's domain the copies go
-unsigned by it, and the providers do not offer the one-click. ARC sealing
+unsigned by it, and the providers do not offer the one-click. **A posting from
+outside** - one that did not come from a signed-in session or a range that lets
+a sender in as one of this server's domains ([SendAs.md](SendAs.md#which-messages-the-server-signs-as-a-domain)) -
+is its sender's, and so is every copy: none is signed as the domain its `From`
+names, and when that `From` is of the list domain's own organisation none is
+signed as the list's domain either, since that signature would be one DMARC
+aligns with the `From` (the application log says so for the posting; the
+one-click is then not offered). Until 7 October 2026 such a posting was signed
+as its `From`'s domain before it was distributed. ARC sealing
 (`DKIMSigner`, as for any forward) applies only with `ArcSealingEnabled` on,
 which it is not by default. **The list does not rewrite `From`.** A posting from
 outside, from a domain that publishes `p=reject`, reaches outside members with a

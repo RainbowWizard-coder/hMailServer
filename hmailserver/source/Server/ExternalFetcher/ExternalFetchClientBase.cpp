@@ -318,6 +318,11 @@ namespace HM
       {
          current_message_->SetState(Message::Delivering);
 
+         // Downloaded from another server's mailbox: its From is whatever its sender
+         // wrote, and this server signs neither it nor a forward of it as the domain
+         // that From names (Message::GetFromOutside).
+         current_message_->SetFromOutside(true);
+
          // Unchecked, and this is the one place in this class where that could
          // destroy mail rather than merely mislay it. On failure the message was not
          // stored, but MarkCurrentMessageAsRead_ ran anyway and the DELE that follows

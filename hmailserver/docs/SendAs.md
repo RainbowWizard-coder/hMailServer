@@ -97,6 +97,45 @@ saves is held to the account's addresses as well. Either is refused when it is s
 the reason, and one stored before is not taken at delivery, with a line in the application
 log. Up to 6.3.6 an account's rule could reply as any address and set any of the five.
 
+Which messages the server signs as a domain
+-------------------------------------------
+
+With DKIM signing on for a domain, the server signs a message as the domain its `From`
+names on the message's first delivery pass - but since 7 October 2026 only a message it is
+entitled to sign:
+
+* **A submission by a signed-in user** - an authenticated SMTP session, the webmail's send,
+  a scheduled send, the send API - and every copy of it: as before.
+* **A message the server made** - a bounce, an out-of-office or Sieve reply, a rule's reply,
+  a notification, a report, a list's notice - whose `From` its maker chose under the rules
+  above.
+* **A message an IP range lets in as one of this server's domains without signing in** -
+  what `My computer` lets the server's own web sites and scripts send - since the range was
+  set up to trust that sender as a submitter (the session is the message's submission
+  server, RFC 6409).
+
+Every other message came in from **outside**: an SMTP session that did not sign in, and did
+not send as one of this server's domains from a range that lets it, a download from another
+server's mailbox (external accounts), or a message imported from a file. Its `From` is
+whatever its sender wrote, and the server does not sign it as the domain that `From` names -
+nor any copy of it: an account's forward, a rule's forward or copy, a Sieve `redirect`, an
+alias or a distribution list expanding to an address outside, the mirror copy, a managed
+list's copy, a journal rule's copy delivered as it was accepted, or the encrypted copy
+for a partner domain. A forward leaves with the
+signature the message came with, untouched, and - with `ArcSealingEnabled` on - with an ARC set the relaying
+domain seals over the authentication results this server saw when it arrived. A managed list
+that took a posting from outside whose `From` is of the list's own organisation does not
+sign its copies as the list's domain either ([MailingLists.md](MailingLists.md)): that
+signature would be one DMARC aligns with the `From`. A message released from the quarantine
+is from outside when the `Received` field this server wrote at its arrival names a session
+that did not sign in, since the quarantine keeps no other record of where it came from.
+
+Up to 6.3.6 the server signed every message whose `From` named a domain it signs for,
+whatever it was: a message from outside claiming to be from `ceo@` such a domain was signed
+before local delivery, and a forward of it to an address outside left the server as a
+forgery that passed DMARC. Messages already in the queue when the server is upgraded were
+recorded without the mark and are signed as before.
+
 The routes
 ----------
 

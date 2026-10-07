@@ -227,7 +227,7 @@ namespace HM
       static bool Refresh_();
 
       static bool Queue_(std::shared_ptr<JournalRule> rule, const String &originalFileName,
-                         const Envelope &envelope, unsigned int sessionId);
+                         const Envelope &envelope, unsigned int sessionId, bool fromOutside = false);
    };
 
    class JournalingTester
