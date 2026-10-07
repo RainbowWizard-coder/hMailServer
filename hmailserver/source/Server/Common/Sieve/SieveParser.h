@@ -161,8 +161,9 @@ namespace HM
       // diagnostics - is refused for every edit WhyFieldMayNotBeEdited refuses, and
       // for a notify ":from" that is not an address. One already stored and now run
       // at delivery is not refused for what a script stored before those checks came
-      // in can hold: an edit of X-hMailServer-LoopCount, of a field that names who the
-      // message is from (NamesWhoTheMessageIsFrom) or of DKIM-Signature is let through
+      // in can hold: an edit of X-hMailServer-LoopCount, of Auto-Submitted, of a field
+      // that names who the message is from (NamesWhoTheMessageIsFrom) or of
+      // DKIM-Signature is let through
       // for LocalDelivery::EditSieveHeader to skip, and a notify ":from" for
       // SieveFromAddress to put the account's own address in place of, each with a
       // line in the application log, so that the rest of the script still runs rather
@@ -181,7 +182,9 @@ namespace HM
       // without a colon); Received and Return-Path, the trace of how the message
       // travelled (RFC 5293 6 and 9); X-hMailServer-LoopCount, in any case, which counts
       // the generated messages a message has been through and is what ends a mail loop
-      // (RuleGuard::WhyHeaderMayNotBeSet says what editing it let through); the fields
+      // (RuleGuard::WhyHeaderMayNotBeSet says what editing it let through);
+      // Auto-Submitted, in any case, which says whether a program sent the message
+      // (IsAutoSubmittedHeader: RFC 5293 6 forbids deleting it); the fields
       // that say who the message is from (NamesWhoTheMessageIsFrom) and DKIM-Signature,
       // in any case, since a redirect sends the edited message on from this server and
       // DKIMSigner signs it as the domain its From names (RFC 5293 6 leaves which
@@ -195,6 +198,11 @@ namespace HM
       // From, Sender, Resent-From and Resent-Sender, in any case: the fields that say
       // who wrote or sent a message, which no script may edit (WhyFieldMayNotBeEdited).
       static bool NamesWhoTheMessageIsFrom(const String &fieldName);
+
+      // Auto-Submitted, in any case: whether a program sent the message, which no
+      // script may delete (RFC 5293 6) nor add a second of (RFC 3834 5.1), since the
+      // first is what every automatic responder reads (WhyFieldMayNotBeEdited).
+      static bool IsAutoSubmittedHeader(const String &fieldName);
 
       // True for the capability names this implementation can honour in a
       // "require". Anything else is refused when the script is uploaded rather

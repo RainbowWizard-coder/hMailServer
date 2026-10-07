@@ -335,7 +335,8 @@ namespace HM
       // refreshes the recorded size. Received and Return-Path are protected at
       // upload: the trace of how a message travelled is not a script's to edit.
       // So, since 6 October 2026, is X-hMailServer-LoopCount, which ends a mail loop,
-      // and LocalDelivery::EditSieveHeader refuses all three again at delivery, of
+      // and since 7 October Auto-Submitted, which RFC 5293 6 forbids a script to
+      // delete, and LocalDelivery::EditSieveHeader refuses them again at delivery, of
       // the name as the script's variables made it.
       // End-to-end tests in SieveEditheaderDelivery.cs read the delivered message
       // over POP3 and assert on its actual bytes.

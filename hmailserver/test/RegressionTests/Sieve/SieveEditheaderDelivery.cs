@@ -350,6 +350,131 @@ namespace RegressionTests.Sieve
             "The deleteheader that was not made is not in the application log.");
       }
 
+      // A store refused, through reflection or not, for the reason the check at upload
+      // gives an edit of Auto-Submitted, and for no other.
+      private static bool RefusedForAutoSubmitted(Exception refused)
+      {
+         Exception cause = refused is TargetInvocationException && refused.InnerException != null ? refused.InnerException : refused;
+         return cause is COMException && cause.Message.Contains("automatic replies");
+      }
+
+      /// <summary>
+      ///    Auto-Submitted says a program sent the message, and an automatic responder
+      ///    does not answer one that says so (RFC 3834 2) - this server's vacation,
+      ///    notify and out-of-office among them, each reading the first such field.
+      ///    RFC 5293 6: an implementation MUST NOT permit a script to delete it; and RFC
+      ///    3834 5.1 allows a message one, so an "Auto-Submitted: no" added above the
+      ///    one it came with is a deletion by another name. A script that did either
+      ///    ahead of a redirect handed an automatic reply to the next mailbox's
+      ///    responder as a person's message. Such a script is refused at upload, the
+      ///    name in any case, and the refusal names the header and says why.
+      ///
+      ///    Against the unfixed server every script below is accepted.
+      /// </summary>
+      [Test]
+      [Description("A script editing Auto-Submitted is refused at upload, and the refusal says why.")]
+      public void AutoSubmittedIsProtected()
+      {
+         foreach (string name in new[] { "Auto-Submitted", "auto-submitted", "AUTO-SUBMITTED" })
+         {
+            foreach (string script in new[]
+            {
+               "require \"editheader\";\r\ndeleteheader \"" + name + "\";",
+               "require \"editheader\";\r\naddheader \"" + name + "\" \"no\";",
+               "require \"editheader\";\r\naddheader :last \"" + name + "\" \"auto-generated\";",
+               "require [\"editheader\", \"index\"];\r\ndeleteheader :index 1 \"" + name + "\";"
+            })
+            {
+               string error = CheckSyntax(script);
+
+               StringAssert.Contains("Line 2:", error,
+                  "A script editing Auto-Submitted was accepted at upload: " + script);
+               StringAssert.Contains(name, error, "The refusal does not name the header: " + error);
+               StringAssert.Contains("automatic replies", error, "The refusal does not say why: " + error);
+            }
+         }
+
+         // The control: a header of a name beside it may be edited.
+         Assert.IsEmpty(CheckSyntax("require \"editheader\";\r\naddheader \"X-Auto-Submitted\" \"no\";"),
+            "An edit of a header that is not Auto-Submitted was refused.");
+      }
+
+      /// <summary>
+      ///    The check at upload sees "${mark}", a legal name, so the edit is refused
+      ///    again where it is made, of the name as the variables expanded it: the
+      ///    delivered message keeps the one Auto-Submitted it came with, the script's
+      ///    other edit is made, and the application log says which edits were not made.
+      ///
+      ///    Against the unfixed server the delivered message carries
+      ///    Auto-Submitted: no and no auto-replied.
+      /// </summary>
+      [Test]
+      [Description("An edit of Auto-Submitted named by the script's variables is not made at delivery, and is logged; the script's other edit is made.")]
+      public void AnEditOfAutoSubmittedIsNotMadeAtDelivery()
+      {
+         Account recipient = NewRecipient();
+         SetScript(recipient,
+            "require [\"editheader\", \"variables\"];\r\n" +
+            "set \"mark\" \"AUTO-submitted\";\r\n" +
+            "addheader \"X-Sieve-Ran\" \"yes\";\r\n" +
+            "deleteheader \"${mark}\";\r\n" +
+            "addheader \"${mark}\" \"no\";\r\n");
+
+         string message = SendAndFetch(recipient, "Auto-Submitted: auto-replied\r\n", "I am away.\r\n");
+
+         StringAssert.Contains("X-Sieve-Ran: yes", message,
+            "The script's other edit was not made, so the script did not run and the case proves nothing.");
+         CollectionAssert.AreEqual(new[] { "Auto-Submitted: auto-replied" }, FieldLines(message, "Auto-Submitted"),
+            "The Auto-Submitted the message came with was edited. The message was:\r\n" + message);
+
+         Assert.IsTrue(LogHandler.DefaultLogContains("a header edit the Sieve script for " + recipient.Address +
+               " asked for was not made: deleteheader: the AUTO-submitted header says whether a program sent the message"),
+            "The deleteheader that was not made is not in the application log.");
+         Assert.IsTrue(LogHandler.DefaultLogContains("a header edit the Sieve script for " + recipient.Address +
+               " asked for was not made: addheader: the AUTO-submitted header says whether a program sent the message"),
+            "The addheader that was not made is not in the application log.");
+      }
+
+      /// <summary>
+      ///    A script stored before the check at upload refused this edit still runs,
+      ///    without the edit, which is logged; the rest of it does what it did. Stored
+      ///    over COM's SieveScript property, which writes a script as it is given; the
+      ///    Linux suite's REST filter route checks it as PUTSCRIPT does, and the case is
+      ///    then skipped, with that said.
+      ///
+      ///    Against the unfixed server the delivered message carries no Auto-Submitted.
+      /// </summary>
+      [Test]
+      [Description("A stored script that deletes Auto-Submitted runs, without that edit, which is logged.")]
+      public void AStoredScriptRunsWithoutItsEditOfAutoSubmitted()
+      {
+         Account recipient = NewRecipient();
+
+         try
+         {
+            SetScript(recipient,
+               "require \"editheader\";\r\n" +
+               "addheader \"X-Sieve-Ran\" \"yes\";\r\n" +
+               "deleteheader \"Auto-Submitted\";\r\n");
+         }
+         catch (Exception refused) when (RefusedForAutoSubmitted(refused))
+         {
+            Assert.Ignore("This server checks a script when it is stored and refused this one, so no script of the kind " +
+               "this case runs can be stored here: " + refused.GetBaseException().Message);
+         }
+
+         string message = SendAndFetch(recipient, "Auto-Submitted: auto-generated\r\n", "Body text.\r\n");
+
+         StringAssert.Contains("X-Sieve-Ran: yes", message,
+            "The stored script did not run: its other edit was not made.");
+         CollectionAssert.AreEqual(new[] { "Auto-Submitted: auto-generated" }, FieldLines(message, "Auto-Submitted"),
+            "The Auto-Submitted the message came with was deleted. The message was:\r\n" + message);
+
+         Assert.IsTrue(LogHandler.DefaultLogContains("a header edit the Sieve script for " + recipient.Address +
+               " asked for was not made: deleteheader: the Auto-Submitted header says whether a program sent the message"),
+            "The deleteheader that was not made is not in the application log.");
+      }
+
       /// <summary>
       ///    The writer wrote a line break in a value as it stood, so a value of "a",
       ///    a line break and "X-hMailServer-LoopCount: 0" wrote a second field - the

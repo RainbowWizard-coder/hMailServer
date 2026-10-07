@@ -194,7 +194,8 @@ namespace HM
          L"duplicate",
          // RFC 5293: addheader / deleteheader. Received and Return-Path are
          // protected - a script cannot edit the trace of how a message got here -
-         // and so is X-hMailServer-LoopCount, which ends a mail loop
+         // and so are X-hMailServer-LoopCount, which ends a mail loop, and
+         // Auto-Submitted, which stops automatic replies answering one another
          // (WhyFieldMayNotBeEdited).
          L"editheader",
          // RFC 5229: set, ${} expansion at evaluation, match variables from
@@ -272,6 +273,20 @@ namespace HM
          return reason;
       }
 
+      // Nor whether a program sent it. RFC 5293 6: an implementation MUST NOT permit
+      // a script to delete Auto-Submitted. And RFC 3834 5.1 allows a message one such
+      // field, which every automatic responder - this server's vacation, notify and
+      // out-of-office among them - reads as the first one: an "Auto-Submitted: no"
+      // added above an "auto-replied" is a deletion by another name. Ahead of a
+      // redirect, either gave an automatic reply or notification to the next
+      // mailbox's responder as a person's message to answer (RFC 3834 2).
+      if (IsAutoSubmittedHeader(fieldName))
+      {
+         reason.Format(_T("the %s header says whether a program sent the message, which is what stops automatic ")
+                       _T("replies answering one another, and cannot be edited by a script."), fieldName.c_str());
+         return reason;
+      }
+
       // Nor who the message is from, nor the signature it came with. A redirect sends
       // the edited message on from this server, and DKIMSigner signs a message as the
       // domain its From names wherever this server signs for that domain
@@ -314,8 +329,15 @@ namespace HM
    SieveParser::IsRefusedOnlyWhenStored_(const String &fieldName)
    {
       return RuleGuard::IsLoopCountHeader(fieldName) ||
+             IsAutoSubmittedHeader(fieldName) ||
              NamesWhoTheMessageIsFrom(fieldName) ||
              fieldName.CompareNoCase(_T("DKIM-Signature")) == 0;
+   }
+
+   bool
+   SieveParser::IsAutoSubmittedHeader(const String &fieldName)
+   {
+      return fieldName.CompareNoCase(_T("Auto-Submitted")) == 0;
    }
 
    bool
@@ -1569,10 +1591,11 @@ namespace HM
          }
 
          // The field name must be a legal header name, and neither the trace of how
-         // the message got here (RFC 5293 6 and 9), the loop count, who the message is from
-         // nor its DKIM signature is a script's to edit. A script stored before the
-         // last three were protected may still name them when it is run: Purpose's
-         // comment says why that is let through here.
+         // the message got here (RFC 5293 6 and 9), the loop count, whether a program
+         // sent it (RFC 5293 6), who the message is from nor its DKIM signature is a
+         // script's to edit. A script stored before the last four were protected may
+         // still name them when it is run: Purpose's comment says why that is let
+         // through here.
          const String &fieldName = set.stringLists[0][0];
 
          if (purpose_ == Purpose::Running && IsRefusedOnlyWhenStored_(fieldName))

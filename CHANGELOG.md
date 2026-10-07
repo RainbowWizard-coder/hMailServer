@@ -128,7 +128,13 @@ prompt. Found by the project's own review (work item 78; CVE requested).
     release still runs, without that edit, which the application log names. A *Set header value* action on the header,
     or on a name with a line break, a colon or a character outside ASCII in it, is refused by `RuleAction.Save`,
     `Rule.Save` and the REST API's rule routes, and one stored before is skipped, with a line in the application log.
-    Event scripts, which are the administrator's own code, may still set the header.
+    Event scripts, which are the administrator's own code, may still set the header. A script's edit of
+    `Auto-Submitted` is held the same way, refused when stored and not made at delivery: the field says a program
+    sent the message, and every automatic responder, this server's vacation, notification and out-of-office among
+    them, reads the first one and does not answer (RFC 3834 section 2). RFC 5293 section 6 says a script MUST NOT be
+    permitted to delete it, and RFC 3834 section 5.1 allows a message one, so an `addheader` of `no` above it is a
+    deletion by another name; either, ahead of a `redirect`, handed an automatic reply to the next mailbox's
+    responder as a person's message to answer (from 6.2.22).
   - A line break in a header value is now written as a space unless it folds the line, by the MIME writer itself, so
     that no value writes a field of its own. That was not the rules' and the scripts' edits alone: every message the
     server generates is built from values that are not its own, and the field a line break wrote sat above the ones

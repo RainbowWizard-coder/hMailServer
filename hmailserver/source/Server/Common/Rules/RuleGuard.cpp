@@ -1611,8 +1611,117 @@ namespace HM
             fail("the body case's value does not hold the body's line break, so it no longer shows a sender reaching the header");
       }
 
+      // Auto-Submitted, which RFC 5293 6 forbids a script to delete and of which RFC
+      // 3834 5.1 allows one: refused when stored, in any case, added or deleted; a
+      // stored script run with the edit let through; and at delivery the edit not
+      // made, by name or as the variables made it, and the edit beside it made.
+      {
+         const wchar_t *scripts[] =
+         {
+            L"require \"editheader\";\r\ndeleteheader \"Auto-Submitted\";\r\n",
+            L"require \"editheader\";\r\ndeleteheader \"auto-submitted\";\r\n",
+            L"require \"editheader\";\r\naddheader \"AUTO-SUBMITTED\" \"no\";\r\n",
+            L"require \"editheader\";\r\naddheader :last \"Auto-Submitted\" \"auto-generated\";\r\n",
+            L"require [\"editheader\", \"index\"];\r\ndeleteheader :index 1 \"Auto-Submitted\";\r\n",
+            L"require \"editheader\";\r\ndeleteheader :contains \"Auto-Submitted\" \"auto\";\r\n",
+         };
+
+         for (const wchar_t *script : scripts)
+         {
+            const String error = SieveScript::CheckSyntax(String(script));
+            if (!Holds(error, L"Line 2:") || !Holds(error, L"automatic replies"))
+               fail("the script \"" + LoopCountValueForMessage(String(script)) + "\" was not refused for editing Auto-Submitted: \"" +
+                  LoopCountValueForMessage(error) + "\"");
+         }
+
+         const wchar_t *accepted[] =
+         {
+            L"require \"editheader\";\r\naddheader \"X-Auto-Submitted\" \"no\";\r\n",
+            L"require \"editheader\";\r\ndeleteheader \"Auto-Submitted-By\";\r\n",
+         };
+
+         for (const wchar_t *script : accepted)
+         {
+            const String error = SieveScript::CheckSyntax(String(script));
+            if (!error.IsEmpty())
+               fail("the script \"" + LoopCountValueForMessage(String(script)) + "\" was refused: \"" + LoopCountValueForMessage(error) + "\"");
+         }
+
+         const String stored(L"require \"editheader\";\r\ndeleteheader \"Auto-Submitted\";\r\n");
+         String error;
+
+         SieveScript storing;
+         if (storing.Parse(stored, error))
+            fail("SieveScript::Parse stored a script that deletes Auto-Submitted");
+
+         SieveScript running;
+         if (!running.Parse(stored, error, SieveParser::Purpose::Running))
+            fail("a stored script that deletes Auto-Submitted did not run: \"" + LoopCountValueForMessage(error) + "\"");
+
+         const char *autoReplied =
+            "From: responder@example.test\r\n"
+            "To: recipient@example.test\r\n"
+            "Subject: Away\r\n"
+            "Auto-Submitted: auto-replied\r\n"
+            "X-hMailServer-LoopCount: 3\r\n"
+            "\r\n";
+
+         const wchar_t *autoRepliedMessage =
+            L"From: responder@example.test\r\n"
+            L"To: recipient@example.test\r\n"
+            L"Subject: Away\r\n"
+            L"Auto-Submitted: auto-replied\r\n"
+            L"X-hMailServer-LoopCount: 3\r\n"
+            L"\r\n"
+            L"I am away.\r\n";
+
+         const wchar_t *delivered[] =
+         {
+            L"require \"editheader\";\r\naddheader \"X-Sieve\" \"yes\";\r\ndeleteheader \"Auto-Submitted\";\r\naddheader \"auto-submitted\" \"no\";\r\n",
+            L"require [\"editheader\", \"variables\"];\r\nset \"h\" \"AUTO-SUBMITTED\";\r\naddheader \"X-Sieve\" \"yes\";\r\ndeleteheader \"${h}\";\r\naddheader \"${h}\" \"no\";\r\n",
+         };
+
+         for (const wchar_t *script : delivered)
+         {
+            const std::string what = "the script \"" + LoopCountValueForMessage(String(script)) + "\"";
+
+            SieveEnvelope envelope;
+            SieveResult result;
+            const String actions = SieveScript::Evaluate(String(script), String(autoRepliedMessage), envelope, result);
+            if (actions.StartsWith(_T("error:")))
+            {
+               fail(what + " did not run: " + LoopCountValueForMessage(actions));
+               continue;
+            }
+
+            MimeHeader header;
+            LoadHeader(header, autoReplied);
+
+            std::vector<String> refusedEdits;
+            const bool edited = LocalDelivery::EditSieveHeader(header, result.headerEdits, refusedEdits);
+
+            if (!edited || refusedEdits.size() != 2)
+               fail(what + ": " + std::to_string(refusedEdits.size()) + " edits refused and " + (edited ? "" : "nothing ") + "edited, not 2 and the X-Sieve");
+
+            for (const String &refusal : refusedEdits)
+            {
+               if (!Holds(refusal, L"automatic replies"))
+                  fail(what + ": the refusal does not say why: " + LoopCountValueForMessage(refusal));
+            }
+
+            std::string first;
+            const int marks = FieldsNamedAfterRewrite(header, "Auto-Submitted", first);
+            if (marks != 1 || first != "auto-replied")
+               fail(what + ": the header holds " + std::to_string(marks) + " Auto-Submitted, the first \"" + first + "\", not one auto-replied");
+
+            std::string added;
+            if (FieldsNamedAfterRewrite(header, "X-Sieve", added) != 1)
+               fail(what + ": the edit beside the refused ones was not made");
+         }
+      }
+
       if (!wrong.empty())
-         throw std::logic_error("Header edits of X-hMailServer-LoopCount: " + wrong);
+         throw std::logic_error("Header edits of X-hMailServer-LoopCount and Auto-Submitted: " + wrong);
    }
 
    void

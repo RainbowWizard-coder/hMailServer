@@ -405,7 +405,8 @@ namespace HM
    // header refused when they are stored, with the reason, and let through when a
    // stored one is run (SieveParser::Purpose) for LocalDelivery::EditSieveHeader to
    // refuse - by name, in any case, as the script's variables made it, and with a line
-   // break in the name or the value; and the edits beside it still made. No
+   // break in the name or the value; and the edits beside it still made. The same for
+   // Auto-Submitted (SieveParser::IsAutoSubmittedHeader), added or deleted. No
    // configuration, database or network. ClassTester runs it on Windows,
    // business-object-tests on Linux. Throws std::logic_error naming every case that
    // went wrong.
