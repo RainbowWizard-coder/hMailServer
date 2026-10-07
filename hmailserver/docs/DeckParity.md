@@ -553,7 +553,7 @@ Every COM property the desktop program writes, the page that writes it, the REST
 |---|---|---|---|
 | `AbortSpamFlagged` | RuleActionDialog | `PUT /api/v1/accounts/{address}/review` (setter, scope unknown)<br>`POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter)<br>`POST /api/v1/rules/match` (setter)<br>`PUT /api/v1/warmup/{id}` (setter, scope unknown) | queue, review, rules |
 | `Body` | RuleActionDialog | `PUT /api/v1/accounts/{address}/review` (setter, scope unknown)<br>`POST /api/v1/protected/{token}/reply` (name, scope unknown)<br>`POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter)<br>`POST /api/v1/rules/match` (setter)<br>`PUT /api/v1/warmup/{id}` (setter, scope unknown)<br>`POST /api/v1/webhooks` (name, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (name, scope unknown) | queue, review, rules, webhooks |
-| `FromAddress` | RuleActionDialog | `PUT /api/v1/accounts/{address}/review` (setter, scope unknown)<br>`POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter)<br>`POST /api/v1/rules/match` (setter)<br>`PUT /api/v1/warmup/{id}` (setter, scope unknown) | queue, review, rules |
+| `FromAddress` | RuleActionDialog | `PUT /api/v1/accounts/{address}/review` (setter, scope unknown)<br>`POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter)<br>`POST /api/v1/rules/match` (setter)<br>`POST /api/v1/domains/{name}/rules` (name)<br>`PUT /api/v1/domains/{name}/rules/{id}` (name)<br>`POST /api/v1/accounts/{address}/rules` (name)<br>`PUT /api/v1/accounts/{address}/rules/{id}` (name)<br>`PUT /api/v1/warmup/{id}` (setter, scope unknown) | queue, review, rules |
 | `FromName` | RuleActionDialog | `PUT /api/v1/accounts/{address}/review` (setter, scope unknown)<br>`POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter)<br>`POST /api/v1/rules/match` (setter)<br>`PUT /api/v1/warmup/{id}` (setter, scope unknown) | queue, review, rules |
 | `HeaderName` | RuleActionDialog | `PUT /api/v1/accounts/{address}/review` (setter, scope unknown)<br>`POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter)<br>`POST /api/v1/rules/match` (setter)<br>`PUT /api/v1/warmup/{id}` (setter, scope unknown) | queue, review, rules |
 | `IMAPFolder` | RuleActionDialog | `PUT /api/v1/accounts/{address}/review` (setter, scope unknown)<br>`POST /api/v1/rules` (setter)<br>`PUT /api/v1/rules/{id}` (setter)<br>`POST /api/v1/rules/match` (setter)<br>`PUT /api/v1/warmup/{id}` (setter, scope unknown) | queue, review, rules |
@@ -924,8 +924,8 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `POST /api/v1/accounts/{address}/password` | ? | `account`, `breach_check_enabled`, `breach_check_unavailable`, `credential`, `directory`, `domain`, `password`, `reason`, `reset_password`, `role`, `to` | yes |
 | `PUT /api/v1/accounts/{address}/review` | ? | `account`, `exempt`, `field`, `from`, `new`, `sender`, `sensitivity`, `type`, `value` | yes |
 | `POST /api/v1/accounts/{address}/review/unlock` | ? | - | yes |
-| `POST /api/v1/accounts/{address}/rules` | Rule, RuleCriteria, RuleAction | `all_criteria` | - |
-| `PUT /api/v1/accounts/{address}/rules/{id}` | Rule, RuleCriteria, RuleAction | `all_criteria` | - |
+| `POST /api/v1/accounts/{address}/rules` | Rule, RuleCriteria, RuleAction | `all_criteria`, `from_address`, `set_header` | - |
+| `PUT /api/v1/accounts/{address}/rules/{id}` | Rule, RuleCriteria, RuleAction | `all_criteria`, `from_address`, `set_header` | - |
 | `POST /api/v1/accounts/{address}/support-session` | - | - | - |
 | `POST /api/v1/accounts/{address}/unlock` | ? | `compromise_lock_cleared`, `unlock_account` | yes |
 | `POST /api/v1/addresses/erase` | ? | `address`, `include_archive`, `include_logs` | yes |
@@ -977,8 +977,8 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `POST /api/v1/domains/{domain}/smime-ca/rotate` | SmimeAuthority | `certificate`, `certificates`, `chain`, `create`, `current`, `deleted`, `from`, `key`, `new`, `revoked` | yes |
 | `POST /api/v1/domains/{domain}/spam-traps` | Domain | `account`, `address`, `list`, `to` | yes |
 | `POST /api/v1/domains/{domain}/suppressions` | - | `address`, `diagnostic`, `expires_days`, `key`, `list`, `note`, `read`, `to`, `until` | yes |
-| `POST /api/v1/domains/{name}/rules` | Rule, RuleCriteria, RuleAction | - | yes |
-| `PUT /api/v1/domains/{name}/rules/{id}` | Rule, RuleCriteria, RuleAction | - | yes |
+| `POST /api/v1/domains/{name}/rules` | Rule, RuleCriteria, RuleAction | `from_address`, `set_header` | yes |
+| `PUT /api/v1/domains/{name}/rules/{id}` | Rule, RuleCriteria, RuleAction | `from_address`, `set_header` | yes |
 | `POST /api/v1/greylisting-bypass` | GreyListingBypassEntry | `domain`, `keys`, `list`, `match`, `message`, `note`, `pattern`, `read`, `recipient`, `require_dkim`, `require_dmarc`, `require_spf`, `to` | yes |
 | `PUT /api/v1/greylisting-bypass/{id}` | GreyListingBypassEntry | `body`, `domain`, `field`, `keys`, `list`, `match`, `message`, `note`, `pattern`, `read`, `recipient`, `require_dkim`, `require_dmarc`, `require_spf`, `to`, `value` | - |
 | `POST /api/v1/greylisting-white-addresses` | GreyListingWhiteAddress | `address`, `description`, `domain`, `ip_address`, `keys`, `pattern`, `read` | yes |
