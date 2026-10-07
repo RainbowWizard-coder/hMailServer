@@ -103,15 +103,25 @@ namespace HM
       const wchar_t *const OutsideNameEnd = L".outside.eml";
       const wchar_t *const InsideNameEnd = L".inside.eml";
 
+      // The words of a stored copy's name between the GUID and its end
+      // (QuarantineStore::StoredMarks).
+      const wchar_t *const SpfNameMark = L"spf-";
+
       bool EndsWithNoCase(const String &text, const wchar_t *end)
       {
          const int length = static_cast<int>(wcslen(end));
          return text.GetLength() >= length && text.Right(length).CompareNoCase(end) == 0;
       }
+
+      bool StartsWithNoCase(const String &text, const wchar_t *start)
+      {
+         const int length = static_cast<int>(wcslen(start));
+         return text.GetLength() > length && text.Left(length).CompareNoCase(start) == 0;
+      }
    }
 
    String
-   QuarantineStore::BuildRelativePath_(bool fromOutside)
+   QuarantineStore::BuildRelativePath_(const StoredMarks &marks)
    {
       // A day-per-directory layout. A flat directory is fine until the day somebody
       // points this at a mail stream that quarantines thousands a day, at which point
@@ -119,25 +129,73 @@ namespace HM
       // sweep gets to delete whole directories rather than walking every file.
       String day = Time::GetCurrentDateTime().Mid(0, 10);   // YYYY-MM-DD
 
-      return FileUtilities::Combine(day, StoredName(GUIDCreator::GetGUID(), fromOutside));
+      return FileUtilities::Combine(day, StoredName(GUIDCreator::GetGUID(), marks));
    }
 
    String
-   QuarantineStore::StoredName(const String &guid, bool fromOutside)
+   QuarantineStore::StoredName(const String &guid, const StoredMarks &marks)
    {
-      return guid + (fromOutside ? OutsideNameEnd : InsideNameEnd);
+      String name = guid;
+
+      // One of RFC 8601's seven keywords, in lower case, or nothing: none holds a dot
+      // or anything else a file name may not (Message::SpfResultKeyword).
+      const String spf = Message::SpfResultKeyword(marks.spf_result);
+      if (!spf.IsEmpty())
+         name += String(_T(".")) + SpfNameMark + spf;
+
+      return name + (marks.from_outside ? OutsideNameEnd : InsideNameEnd);
+   }
+
+   QuarantineStore::StoredMarks
+   QuarantineStore::MarksOfStoredName(const String &relativePath)
+   {
+      StoredMarks marks;
+
+      // The name, without the day's directory, whichever separator wrote it.
+      const int backslash = relativePath.ReverseFind(L'\\');
+      const int forwardSlash = relativePath.ReverseFind(L'/');
+      const int slash = backslash > forwardSlash ? backslash : forwardSlash;
+      const String name = slash >= 0 ? relativePath.Mid(slash + 1) : relativePath;
+
+      String stem;
+      if (EndsWithNoCase(name, OutsideNameEnd))
+      {
+         marks.from_outside = true;
+         stem = name.Left(name.GetLength() - static_cast<int>(wcslen(OutsideNameEnd)));
+      }
+      else if (EndsWithNoCase(name, InsideNameEnd))
+      {
+         stem = name.Left(name.GetLength() - static_cast<int>(wcslen(InsideNameEnd)));
+      }
+      else
+      {
+         return marks;
+      }
+
+      marks.known = true;
+
+      // The GUID, then each mark after a dot. A word this version does not know is
+      // passed over: a later one may write more.
+      const std::vector<String> words = StringParser::SplitString(stem, _T("."));
+      for (size_t i = 1; i < words.size(); i++)
+      {
+         const String &word = words[i];
+
+         if (StartsWithNoCase(word, SpfNameMark))
+            marks.spf_result = Message::SpfResultKeyword(word.Mid(static_cast<int>(wcslen(SpfNameMark))));
+      }
+
+      return marks;
    }
 
    QuarantineStore::StoredOrigin
    QuarantineStore::OriginOfStoredName(const String &relativePath)
    {
-      if (EndsWithNoCase(relativePath, OutsideNameEnd))
-         return OriginOutside;
+      const StoredMarks marks = MarksOfStoredName(relativePath);
+      if (!marks.known)
+         return OriginUnknown;
 
-      if (EndsWithNoCase(relativePath, InsideNameEnd))
-         return OriginInside;
-
-      return OriginUnknown;
+      return marks.from_outside ? OriginOutside : OriginInside;
    }
 
    bool
@@ -305,6 +363,16 @@ namespace HM
       return HeaderSaysFromOutside(PersistentMessage::LoadHeader(file, false), Utilities::ComputerName());
    }
 
+   void
+   QuarantineStore::ApplyStoredMarks_(const QuarantinedMessage &quarantined, Message &message)
+   {
+      // What the name kept beside the origin, which nothing in the message can change.
+      // A copy held before the name kept it has none: no SPF result, as it was
+      // released before.
+      const StoredMarks marks = MarksOfStoredName(quarantined.file_name);
+      message.SetReceivedSpfResult(marks.spf_result);
+   }
+
    bool
    QuarantineStore::Quarantine_(std::shared_ptr<Message> message, const String &reason, int score, const String &sourceFileName,
                                 bool heloKnown, const String &heloName)
@@ -319,10 +387,14 @@ namespace HM
          if (sourceFile.IsEmpty() || !FileUtilities::Exists(sourceFile))
             return false;
 
-         // The name of the copy says whether the message is from outside, for its
-         // release to read back (StoredName): mail this server would not sign as the
-         // domain its From names.
-         String relativePath = BuildRelativePath_(!DKIMSigner::SignsAsAuthorDomain(*message));
+         // The name of the copy says where the message came from, for its release to
+         // read back (StoredName): whether it is mail this server would not sign as
+         // the domain its From names, and the SPF result the ARC set over a copy of it
+         // relayed on attests.
+         StoredMarks marks;
+         marks.from_outside = !DKIMSigner::SignsAsAuthorDomain(*message);
+         marks.spf_result = message->GetReceivedSpfResult();
+         String relativePath = BuildRelativePath_(marks);
          String targetFile = FileUtilities::Combine(GetQuarantineDirectory(), relativePath);
 
          // Copied rather than moved: the caller still owns the original and will
@@ -788,6 +860,7 @@ namespace HM
 
       message->SetSize(MessageStore::FileSize(targetFile));
       message->SetFromOutside(ReleasedCopyIsFromOutside_(quarantined.file_name, targetFile));
+      ApplyStoredMarks_(quarantined, *message);
 
       RecipientParser recipientParser;
 
@@ -968,6 +1041,7 @@ namespace HM
 
       message->SetSize(MessageStore::FileSize(targetFile));
       message->SetFromOutside(ReleasedCopyIsFromOutside_(quarantined.file_name, targetFile));
+      ApplyStoredMarks_(quarantined, *message);
 
       RecipientParser recipientParser;
       bool recipientOk = false;

@@ -718,8 +718,11 @@ namespace HM
       // from there; a copy held before the name carried it is read from its header.
       {
          const String guid = _T("{0F8E4C2A-6B1D-4E5F-9A3C-7D2B8E1F4A6C}");
-         const String outsideName = QuarantineStore::StoredName(guid, true);
-         const String insideName = QuarantineStore::StoredName(guid, false);
+         QuarantineStore::StoredMarks outsideMarks;
+         outsideMarks.from_outside = true;
+         QuarantineStore::StoredMarks insideMarks;
+         const String outsideName = QuarantineStore::StoredName(guid, outsideMarks);
+         const String insideName = QuarantineStore::StoredName(guid, insideMarks);
 
          if (outsideName.Find(guid) != 0 || insideName.Find(guid) != 0 || outsideName.Compare(insideName) == 0)
             fail("a quarantined copy's name is \"" + std::string(Unicode::ToUtf8(outsideName).c_str()) + "\" from outside and \"" +

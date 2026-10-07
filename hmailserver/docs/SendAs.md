@@ -133,9 +133,10 @@ that took a posting from outside with an address of the list's own organisation 
 its `From` fields does not sign its copies as the list's domain either
 ([MailingLists.md](MailingLists.md)): that signature would be one DMARC aligns with the
 `From`. The quarantine keeps whether a message it holds came from outside with the copy it
-stores - in the copy's file name, since its row has no column for it - and a release reads
-it from there, never from the message, whose `Received` field a domain's rule may have
-rewritten before another of its actions held it. A message held before 7 October 2026 is
+stores - in the copy's file name, since its row has no column for it, beside the SPF result
+the ARC set over a forward of it attests - and a release reads it from there, never from the
+message, whose `Received` field a domain's rule may have rewritten before another of its
+actions held it. A message held before 7 October 2026 is
 read from its header instead: from outside unless it has no `Received` field (a message the
 server made), or the one on top is this server's own for a session that signed in, or the
 send API's; a download from another server's mailbox, whose top field is that server's, is

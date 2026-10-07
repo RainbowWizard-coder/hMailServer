@@ -1550,6 +1550,7 @@ namespace HM
          // not what its Received field says by now - a domain's rule ran on it.
          held->SetFromOutside(pMessage->GetFromOutside());
          held->SetSubmittedBySignedInUser(pMessage->GetSubmittedBySignedInUser());
+         held->SetReceivedSpfResult(pMessage->GetReceivedSpfResult());
          for (std::shared_ptr<MessageRecipient> recipient : taken)
          {
             std::shared_ptr<MessageRecipient> copy = std::shared_ptr<MessageRecipient>(new MessageRecipient());

@@ -147,7 +147,9 @@ namespace HM
    // And the result it is given: carried
    // by every copy (PersistentMessage::CreateCopy_, Message's copy constructor) and kept
    // on the queue row beside the outside mark and the DMARC domain, read back as it was
-   // written, and absent from a row written before. No configuration, database, file or
+   // written, and absent from a row written before; and kept in the name of a
+   // quarantined copy (QuarantineStore::StoredName), read back from it, and absent from
+   // the name of a copy held before. No configuration, database, file or
    // network. ClassTester runs
    // it on Windows, business-object-tests on Linux. Throws std::logic_error naming every
    // case that went wrong.

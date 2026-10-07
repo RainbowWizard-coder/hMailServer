@@ -312,6 +312,10 @@ namespace HM
       String GetReceivedSpfResult() const;
       void SetReceivedSpfResult(const String &result);
 
+      // The keyword SetReceivedSpfResult keeps of a value: one of RFC 8601's seven SPF
+      // results, in lower case, blanks round it aside, or nothing at all.
+      static String SpfResultKeyword(const String &result);
+
       bool GetBinaryMime() const { return (GetFlags() & FlagBinaryMime) != 0; }
       void SetBinaryMime(bool bNewVal)
       {

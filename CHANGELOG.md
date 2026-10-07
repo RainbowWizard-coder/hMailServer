@@ -290,13 +290,16 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   The seal then told every receiver that trusts this server's ARC sets that SPF had passed for a message whose check
   never ran or failed. `spf=` is now the result this server's own check reached when the message arrived, recorded
   on the queued message beside where it came from and carried by every copy of it, through a restart - `none` when
-  the check did not run - and no field of the message is read for it. Messages queued before the upgrade carry no
-  result and are sealed with `spf=none`.
+  the check did not run - and no field of the message is read for it. The quarantine keeps it in the name of the
+  copy it stores, beside whether the message came from outside (`<GUID>.spf-fail.outside.eml`), and a release puts
+  it back, so that a released message and its forward are sealed with the result the message arrived with.
+  Messages queued before the upgrade, and messages held before it, carry no result and are sealed with `spf=none`.
 
-  `ArcAuthenticationResultsTester` (`business-object-tests` on Linux) holds the value, and the result on every copy
-  and the queue row, to examples; `AntiSpam/DKIM/ArcSealing.cs` relays mail
+  `ArcAuthenticationResultsTester` (`business-object-tests` on Linux) holds the value, and the result on every copy,
+  the queue row and a quarantined copy's name, to examples; `AntiSpam/DKIM/ArcSealing.cs` relays mail
   from outside with a `Received-SPF: pass` of the sender's through an alias, and with one a Sieve script added through
-  a `redirect`, and finds neither attested. Found by the project's own review.
+  a `redirect`, and finds neither attested, and `AntiSpam/Quarantine.cs` releases a message whose SPF check failed and
+  finds the failure attested over its forward. Found by the project's own review.
 
 ### Correctness
 

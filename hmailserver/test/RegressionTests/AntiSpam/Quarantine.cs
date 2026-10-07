@@ -351,5 +351,101 @@ namespace RegressionTests.AntiSpam
                "after its release, because a rule had written in its Received field that a client signed in.\r\n" + forwarded);
          }
       }
+
+      /// <summary>
+      /// The ARC set this server seals over a message it relays attests the SPF result
+      /// its own check reached when the message arrived, recorded on the queued message.
+      /// The quarantine kept nothing of it, so a released message - and a forward of it -
+      /// was sealed spf=none whatever the check had found. The stored copy's name now
+      /// keeps the result beside where the message came from, and a release puts it back.
+      ///
+      /// The sender's domain publishes "v=spf1 -all" in the suite's zone, so the check
+      /// fails for the loopback client; the score is 0, so that the failure marks nothing.
+      ///
+      /// Against the server before the fix the forward is sealed spf=none.
+      /// </summary>
+      [Test]
+      [Description("A message released from the quarantine keeps the SPF result this server reached for it, which the ARC set sealed over its forward attests.")]
+      public void AReleasedMessageKeepsItsSpfResultForTheArcSeal()
+      {
+         EnableQuarantine();
+
+         try
+         {
+            IniFileSetting.Write("ArcSealingEnabled", "1");
+            _application.Reinitialize();
+            _settings.RewriteEnvelopeFromWhenForwarding = true;
+
+            SuiteDns.Zone.WithTxt("spf-held.example", "v=spf1 -all");
+
+            var antiSpam = _application.Settings.AntiSpam;
+            antiSpam.UseSPF = true;
+            antiSpam.UseSPFScore = 0;
+
+            _domain.DKIMPrivateKeyFile = Paths.Combine(TestContext.CurrentContext.TestDirectory, "..\\..\\..\\..\\SSL examples\\example.key");
+            _domain.DKIMSelector = "TestSelector";
+            _domain.DKIMSignEnabled = true;
+            _domain.Save();
+
+            _recipient.ForwardEnabled = true;
+            _recipient.ForwardAddress = "external@example.com";
+            _recipient.ForwardKeepOriginal = true;
+            _recipient.Save();
+
+            var rule = _domain.Rules.Add();
+            rule.Name = "Hold everything";
+            rule.Active = true;
+            var criteria = rule.Criterias.Add();
+            criteria.UsePredefined = true;
+            criteria.PredefinedField = eRulePredefinedField.eFTMessageSize;
+            criteria.MatchType = eRuleMatchType.eMTGreaterThan;
+            criteria.MatchValue = "0";
+            criteria.Save();
+            var hold = rule.Actions.Add();
+            hold.Type = eRuleActionType.eRAQuarantine;
+            hold.Save();
+            rule.Save();
+
+            var port = TestSetup.GetNextFreePort();
+            using (var smtpServer = new SmtpServerSimulator(1, port))
+            {
+               smtpServer.SecondsToWaitBeforeTerminate = 60;
+               smtpServer.AddRecipientResult(new System.Collections.Generic.Dictionary<string, int> { { "external@example.com", 250 } });
+               smtpServer.StartListen();
+
+               RegressionTests.AntiSpam.DKIM.Signing.AddRoutePointingAtLocalhost(5, port);
+
+               new SmtpClientSimulator().SendRaw("someone@spf-held.example", _recipient.Address,
+                  "From: someone@spf-held.example\r\n" +
+                  "To: " + _recipient.Address + "\r\n" +
+                  "Subject: Held, released and forwarded\r\n" +
+                  "\r\n" +
+                  "Hello.\r\n");
+
+               CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+
+               var quarantine = _application.Settings.AntiSpam.Quarantine;
+               quarantine.Refresh();
+               ClassicAssert.AreEqual(1, quarantine.Count, "The domain's rule did not hold the message.");
+               quarantine[0].ReleaseMessage();
+
+               CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+               smtpServer.WaitForCompletion();
+
+               string forwarded = smtpServer.MessageData;
+               StringAssert.Contains("ARC-Authentication-Results:", forwarded, "The forward was not sealed, so this proves nothing.\r\n" + forwarded);
+               StringAssert.Contains("spf=fail", forwarded,
+                  "The ARC set sealed over the forward of a released message does not attest the SPF result this server reached " +
+                  "when the message arrived.\r\n" + forwarded);
+            }
+         }
+         finally
+         {
+            _settings.RewriteEnvelopeFromWhenForwarding = false;
+            IniFileSetting.Write("ArcSealingEnabled", "0");
+            _application.Reinitialize();
+            SuiteDns.Reset();
+         }
+      }
    }
 }

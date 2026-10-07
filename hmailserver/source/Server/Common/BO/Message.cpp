@@ -92,27 +92,39 @@ namespace HM
       return received_spf_result_ < SpfResultKeywordCount ? String(SpfResultKeywords[received_spf_result_]) : String();
    }
 
+   namespace
+   {
+      // The place of the keyword result names in SpfResultKeywords, or 0.
+      unsigned char SpfResultIndex(const String &result)
+      {
+         String keyword = result;
+         keyword.Trim();
+         if (keyword.IsEmpty())
+            return 0;
+
+         for (size_t i = 1; i < SpfResultKeywordCount; i++)
+         {
+            // The length as well: CompareNoCase reads both as C strings, and a value
+            // with a NUL in it would compare as what comes before the NUL.
+            const String candidate(SpfResultKeywords[i]);
+            if (keyword.GetLength() == candidate.GetLength() && keyword.CompareNoCase(candidate) == 0)
+               return static_cast<unsigned char>(i);
+         }
+
+         return 0;
+      }
+   }
+
    void
    Message::SetReceivedSpfResult(const String &result)
    {
-      received_spf_result_ = 0;
+      received_spf_result_ = SpfResultIndex(result);
+   }
 
-      String keyword = result;
-      keyword.Trim();
-      if (keyword.IsEmpty())
-         return;
-
-      for (size_t i = 1; i < SpfResultKeywordCount; i++)
-      {
-         // The length as well: CompareNoCase reads both as C strings, and a value
-         // with a NUL in it would compare as what comes before the NUL.
-         const String candidate(SpfResultKeywords[i]);
-         if (keyword.GetLength() == candidate.GetLength() && keyword.CompareNoCase(candidate) == 0)
-         {
-            received_spf_result_ = static_cast<unsigned char>(i);
-            return;
-         }
-      }
+   String
+   Message::SpfResultKeyword(const String &result)
+   {
+      return String(SpfResultKeywords[SpfResultIndex(result)]);
    }
 
    String

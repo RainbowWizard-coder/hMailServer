@@ -158,7 +158,24 @@ namespace HM
          OriginInside
       };
 
-      static String StoredName(const String &guid, bool fromOutside);
+      // And what else the queued message records of where it came from, which a
+      // release puts back on the message it queues, so that a copy of it relayed on
+      // is sealed as one never held would be: the SPF result this server's own check
+      // reached (Message::GetReceivedSpfResult), which the ARC set attests. Each is a
+      // word of the name between the GUID and the end - ".spf-pass" - written only
+      // when there is something to say, and none holds a dot. A copy held before 7
+      // October 2026 has none, and is released as it always was, with no SPF result.
+      struct StoredMarks
+      {
+         // Whether the name says where the message came from at all: false for a
+         // copy held before it did, whose other marks are then empty too.
+         bool known = false;
+         bool from_outside = false;
+         String spf_result;
+      };
+
+      static String StoredName(const String &guid, const StoredMarks &marks);
+      static StoredMarks MarksOfStoredName(const String &relativePath);
       static StoredOrigin OriginOfStoredName(const String &relativePath);
 
       // For a copy held before its name said where it came from: from outside unless
@@ -182,11 +199,15 @@ namespace HM
       // the stored copy's name says (OriginOfStoredName), or for a copy held before it
       // said so, what its header says (HeaderSaysFromOutside).
       static bool ReleasedCopyIsFromOutside_(const String &relativePath, const String &file);
+
+      // Puts back on a released copy's message what the stored copy's name kept of
+      // where it came from beside the origin (StoredMarks): the SPF result.
+      static void ApplyStoredMarks_(const QuarantinedMessage &quarantined, Message &message);
       static bool OpenFile_(__int64 id, String &out_file, String &out_error);
 
       // A new copy's path under the quarantine directory: the day's directory and the
-      // stored name, which says whether the message is from outside (StoredName).
-      static String BuildRelativePath_(bool fromOutside);
+      // stored name, which says where the message came from (StoredName).
+      static String BuildRelativePath_(const StoredMarks &marks);
       static bool ReadRow_(std::shared_ptr<DALRecordset> recordset, QuarantinedMessage &out_message);
       static bool RemoveRecipient_(__int64 id, const QuarantinedMessage &quarantined, const String &recipient);
    };

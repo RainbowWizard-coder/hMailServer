@@ -13,6 +13,7 @@
 
 #include "../../BO/Message.h"
 #include "../../Mime/Mime.h"
+#include "../QuarantineStore.h"
 #include "../../Persistence/PersistentMessage.h"
 #include "../../Persistence/MessageStore.h"
 #include "../../TCPIP/DNSResolver.h"
@@ -913,6 +914,62 @@ namespace HM
          PersistentMessage::ReadOriginColumn(_T("dmarc=example.net"), legacy);
          if (!legacy.GetReceivedSpfResult().IsEmpty() || legacy.GetAuthDomains().Compare(_T("dmarc=example.net")) != 0)
             fail("a column written before the SPF result was kept read as something else");
+
+         // And through the quarantine: the stored copy's name keeps it beside the
+         // origin, and a release reads it back from there; a name of a copy held before
+         // it kept one has none, and a word of a later version is passed over.
+         const String guid = _T("{0F8E4C2A-6B1D-4E5F-9A3C-7D2B8E1F4A6C}");
+         const wchar_t *results[] = { L"pass", L"fail", L"softfail", L"neutral", L"none", L"temperror", L"permerror" };
+         for (const wchar_t *result : results)
+         {
+            for (bool fromOutside : { true, false })
+            {
+               QuarantineStore::StoredMarks marks;
+               marks.from_outside = fromOutside;
+               marks.spf_result = String(result);
+
+               const String name = QuarantineStore::StoredName(guid, marks);
+               const QuarantineStore::StoredMarks read = QuarantineStore::MarksOfStoredName(_T("2026-10-07\\") + name);
+               if (name.Find(guid) != 0 || name.Find(String(_T(".spf-")) + result) < 0 || !read.known ||
+                   read.from_outside != fromOutside || read.spf_result.Compare(result) != 0)
+                  fail("the quarantined copy's name \"" + std::string(AnsiString(name).c_str()) + "\" did not keep the SPF result " +
+                     std::string(AnsiString(String(result)).c_str()));
+               if (QuarantineStore::OriginOfStoredName(_T("2026-10-07/") + name) != (fromOutside ? QuarantineStore::OriginOutside : QuarantineStore::OriginInside))
+                  fail("the quarantined copy's name \"" + std::string(AnsiString(name).c_str()) + "\" does not say where the message came from");
+            }
+         }
+
+         struct NameCase
+         {
+            const wchar_t *name;
+            bool known;
+            bool outside;
+            const wchar_t *spf;
+         };
+
+         const NameCase names[] =
+         {
+            { L"{0F8E4C2A-6B1D-4E5F-9A3C-7D2B8E1F4A6C}.outside.eml", true, true, L"" },
+            { L"{0F8E4C2A-6B1D-4E5F-9A3C-7D2B8E1F4A6C}.eml", false, false, L"" },
+            { L"{0F8E4C2A-6B1D-4E5F-9A3C-7D2B8E1F4A6C}.SPF-SoftFail.OUTSIDE.EML", true, true, L"softfail" },
+            { L"{0F8E4C2A-6B1D-4E5F-9A3C-7D2B8E1F4A6C}.spf-fail.later-7.inside.eml", true, false, L"fail" },
+            { L"{0F8E4C2A-6B1D-4E5F-9A3C-7D2B8E1F4A6C}.spf-passed.outside.eml", true, true, L"" },
+            { L"{0F8E4C2A-6B1D-4E5F-9A3C-7D2B8E1F4A6C}.spf-.outside.eml", true, true, L"" },
+         };
+
+         for (const NameCase &c : names)
+         {
+            const QuarantineStore::StoredMarks read = QuarantineStore::MarksOfStoredName(_T("2026-10-06\\") + String(c.name));
+            if (read.known != c.known || read.from_outside != c.outside || read.spf_result.Compare(c.spf) != 0)
+               fail("the quarantined copy's name \"" + std::string(AnsiString(String(c.name)).c_str()) + "\" read as something else");
+         }
+
+         // A value that is no keyword is not written into a name at all.
+         QuarantineStore::StoredMarks notKeyword;
+         notKeyword.from_outside = true;
+         notKeyword.spf_result = _T("pass.inside");
+         if (QuarantineStore::StoredName(guid, notKeyword).Compare(guid + _T(".outside.eml")) != 0)
+            fail("an SPF result that is no keyword was written into a quarantined copy's name");
 
          // The message keeps one of the seven keywords, in lower case, and nothing
          // else: a value that is none of them - with a NUL after a keyword among them -
