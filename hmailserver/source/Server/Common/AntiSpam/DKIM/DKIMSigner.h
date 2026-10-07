@@ -39,7 +39,11 @@ namespace HM
       // or a managed list's copy of one: its From is the outside sender's, a signature
       // of the domain it names would vouch for a sender this server never saw sign in,
       // and the signature the message came with stays as it came, with the ARC set
-      // this server seals over it when it relays the message onward.
+      // this server seals over it when it relays the message onward. Nor, since 7
+      // October 2026, a signed-in submission whose From names another domain hosted
+      // here that the account may not send as (SubmitterMaySignAs), which
+      // SMTPConnection::RecordOrigin_ marks as it marks mail from outside, so that no
+      // copy of it is signed as that domain either.
       //
       // THE DEFECT. SignAsAuthorDomain_ signed every message whose From named a domain
       // hosted here with DKIM on, on its first delivery pass, whatever it was: mail
@@ -48,6 +52,27 @@ namespace HM
       // list to an outside address - left this server signed as that domain, a forgery
       // DMARC passed.
       static bool SignsAsAuthorDomain(const Message &message);
+
+      // The address SignAsAuthorDomain_ signs a message as, and its domain: the first
+      // address of the message's first From field, or the envelope sender when that
+      // field names none.
+      static void AuthorOf(MimeHeader &mimeHeader, const String &envelopeSender, AnsiString &address, AnsiString &domain);
+
+      // Whether a message an account signed in as accountAddress submitted may be
+      // signed as the domain authorAddress (AuthorOf) names: yes when that is no
+      // domain hosted here, since no signature of this server's is then made, and when
+      // it is the account's own domain, through the domain aliases, whatever the
+      // address in it - as it always was; and for another domain hosted here only
+      // when the account may send as that address (SMTPConnection::SenderPermittedFor,
+      // the rule the webmail's send and COM's Message.Save hold a From to), with
+      // reason saying why not.
+      //
+      // Until 7 October 2026 a signed-in user's submission was signed as whatever
+      // domain hosted here its From named. Authenticated SMTP holds no From to the
+      // account (SmtpAuthenticatedSenderCheck, off by default, holds MAIL FROM alone),
+      // so an account of one domain that wrote From: ceo@ another had the message
+      // signed with that other domain's key, which DMARC then passed.
+      static bool SubmitterMaySignAs(const String &accountAddress, const String &authorAddress, String &reason);
 
    private:
 
@@ -84,7 +109,9 @@ namespace HM
 
    // Which messages DKIMSigner may sign as the domain their From names, held to
    // examples: a signed-in submission, a generated message and one from a trusted IP
-   // range may be signed, and a message from outside may not; the mark that says so is
+   // range may be signed, and a message from outside may not, nor a signed-in
+   // submission marked so because its From is another's (DKIMSigner::AuthorOf finds
+   // the address the signer reads); the mark that says so is
    // carried by every copy a forward, a redirect, a rule or the mirror makes
    // (PersistentMessage::CreateCopy_) and by Message's copy constructor; and it is kept
    // on a queue row beside the domains DMARC vouched for, read back as it was written,

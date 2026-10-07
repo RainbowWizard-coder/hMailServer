@@ -434,6 +434,77 @@ namespace RegressionTests.AntiSpam.DKIM
          StringAssert.Contains("d=example.test", signature, messageData);
       }
 
+      // A second hosted domain that signs, with the test domain's key and selector.
+      private hMailServer.Domain AddSigningDomain(string name)
+      {
+         var domain = SingletonProvider<TestSetup>.Instance.AddDomain(name);
+         domain.DKIMPrivateKeyFile = GetPrivateKeyFile();
+         domain.DKIMSelector = "TestSelector";
+         domain.DKIMSignEnabled = true;
+         domain.Save();
+         return domain;
+      }
+
+      /// <summary>
+      /// Authenticated SMTP holds no From header to the account, and a signed-in user's
+      /// message was signed as whatever domain hosted here its From named: an account of
+      /// example.test that wrote From: ceo@ another hosted domain had its message signed
+      /// with that domain's key. It is now signed as another hosted domain only when the
+      /// account may send as the address, and neither the message nor a forward of it is
+      /// signed otherwise.
+      ///
+      /// Against the server before the change both carry a DKIM-Signature of
+      /// d=othersigner.test.
+      /// </summary>
+      [Test]
+      [Description("A signed-in account's message whose From is another hosted domain's address it may not send as is not signed as that domain, nor is a forward of it.")]
+      public void ASignedInSubmissionAsAnotherHostedDomainIsNotSignedAsIt()
+      {
+         AddSigningDomain("othersigner.test");
+         var sender = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "submits-as-other@example.test", "test");
+
+         string direct = DeliveredToTheRoute(() =>
+            new SmtpClientSimulator().SendRaw(sender.Address, "test", sender.Address, "external@example.com",
+               "From: The CEO <ceo@othersigner.test>\r\nTo: external@example.com\r\nSubject: Signed as theirs?\r\n\r\nBody.\r\n"));
+         StringAssert.DoesNotContain("d=othersigner.test", direct,
+            "A signed-in account's message was signed as another hosted domain whose address it may not send as.\r\n" + direct);
+
+         var forwarder = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "forwards-submission@example.test", "test");
+         forwarder.ForwardEnabled = true;
+         forwarder.ForwardAddress = "external@example.com";
+         forwarder.ForwardKeepOriginal = false;
+         forwarder.Save();
+
+         string forwarded = DeliveredToTheRoute(() =>
+            new SmtpClientSimulator().SendRaw(sender.Address, "test", sender.Address, forwarder.Address,
+               "From: The CEO <ceo@othersigner.test>\r\nTo: " + forwarder.Address + "\r\nSubject: Signed as theirs?\r\n\r\nBody.\r\n"));
+         StringAssert.DoesNotContain("d=othersigner.test", forwarded,
+            "A forward of a signed-in account's message whose From it may not send as was signed as that domain.\r\n" + forwarded);
+      }
+
+      [Test]
+      [Description("A signed-in account's message is signed as its own domain whatever the address in it, and as another hosted domain whose address is an alias of its own.")]
+      public void ASignedInSubmissionIsSignedAsItsOwnDomainAndAsAnAddressItMaySendAs()
+      {
+         var other = AddSigningDomain("aliassigner.test");
+         var sender = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "submits-as-own@example.test", "test");
+         SingletonProvider<TestSetup>.Instance.AddAlias(other, "desk@aliassigner.test", sender.Address);
+
+         string ownDomain = DeliveredToTheRoute(() =>
+            new SmtpClientSimulator().SendRaw(sender.Address, "test", sender.Address, "external@example.com",
+               "From: Information <info@example.test>\r\nTo: external@example.com\r\nSubject: Ours\r\n\r\nBody.\r\n"));
+         string ownSignature = ExtractHeader(ownDomain, "DKIM-Signature");
+         Assert.IsNotNull(ownSignature, "A signed-in account's message as another address of its own domain was not signed.\r\n" + ownDomain);
+         StringAssert.Contains("d=example.test", ownSignature, ownDomain);
+
+         string alias = DeliveredToTheRoute(() =>
+            new SmtpClientSimulator().SendRaw(sender.Address, "test", sender.Address, "external@example.com",
+               "From: The desk <desk@aliassigner.test>\r\nTo: external@example.com\r\nSubject: Theirs, and mine to send as\r\n\r\nBody.\r\n"));
+         string aliasSignature = ExtractHeader(alias, "DKIM-Signature");
+         Assert.IsNotNull(aliasSignature, "A signed-in account's message as an alias of its own in another hosted domain was not signed.\r\n" + alias);
+         StringAssert.Contains("d=aliassigner.test", aliasSignature, alias);
+      }
+
       /// <summary>
       /// Mail from outside whose From named a domain hosted here was signed as that
       /// domain on its first delivery pass, before local delivery, and an account's

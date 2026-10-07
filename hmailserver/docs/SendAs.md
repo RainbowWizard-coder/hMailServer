@@ -109,7 +109,8 @@ names on the message's first delivery pass - but since 7 October 2026 only a mes
 entitled to sign:
 
 * **A submission by a signed-in user** - an authenticated SMTP session, the webmail's send,
-  a scheduled send, the send API - and every copy of it: as before.
+  a scheduled send, the send API - and every copy of it, as before, with one exception
+  since 7 October 2026 (below).
 * **A message the server made** - a bounce, an out-of-office or Sieve reply, a rule's reply,
   a notification, a report, a list's notice - whose `From` its maker chose under the rules
   above.
@@ -145,6 +146,28 @@ whatever it was: a message from outside claiming to be from `ceo@` such a domain
 before local delivery, and a forward of it to an address outside left the server as a
 forgery that passed DMARC. Messages already in the queue when the server is upgraded were
 recorded without the mark and are signed as before.
+
+**A signed-in user's message whose `From` is another hosted domain's.** Authenticated SMTP
+does not hold the `From` header to the account - `SmtpAuthenticatedSenderCheck`, off by
+default, holds `MAIL FROM` alone - so until 7 October 2026 an account of one domain that
+wrote `From: ceo@` another domain hosted here had its message signed with that other
+domain's key. The server now signs an authenticated SMTP submission as the domain its
+`From` names when that is:
+
+* **the account's own domain**, or one of its domain aliases, whatever the address in it -
+  an account writing as `info@` its own domain is signed as before;
+* or **another domain hosted here**, only when the `From` address is one the account may
+  send as - the four kinds of address at the top of this page, or a masked address of its
+  own, as the webmail's send and COM's `Message.Save` take them.
+
+Otherwise the message is still accepted and sent, but not signed as that domain, nor is any
+copy of it (a recipient's forward, a list's copy); with `ArcSealingEnabled` on, a copy that
+leaves is sealed by the domain that relays it. The debug log says why, naming the address
+and the account. The server reads the `From` as the signer does: the first address of the
+first `From` field, or `MAIL FROM` when that field names none. A `From` of a domain this
+server does not host is not affected - the server never signed it. **To keep signing such
+mail**, give the account the right to send as the address (an alias that points at it, or
+the post right on the other mailbox's INBOX), or send it from that domain's own account.
 
 The routes
 ----------

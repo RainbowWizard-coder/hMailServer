@@ -37,6 +37,7 @@
 #include "../Common/Util/File.h"
 #include "../Common/Scripting/ClientInfo.h"
 #include "../Common/AntiSpam/SpamTestResult.h"
+#include "../Common/AntiSpam/DKIM/DKIMSigner.h"
 #include "../Common/Util/Math.h"
 #include "../Common/Util/OutgoingFooters.h"
 #include "../Common/Persistence/PersistentKnownSender.h"
@@ -3259,7 +3260,38 @@ namespace HM
       // is mail from outside, and its From is whatever its sender wrote. DKIMSigner
       // does not sign it, or any copy made of it, as the domain that From names
       // (Message::GetFromOutside).
-      current_message_->SetFromOutside(!isAuthenticated_ && !message_submission_);
+      if (!isAuthenticated_)
+      {
+         current_message_->SetFromOutside(!message_submission_);
+         return;
+      }
+
+      // A signed-in user's message is marked so too when its From names another domain
+      // hosted here that the account may not send as (DKIMSigner::SubmitterMaySignAs):
+      // authenticated SMTP holds no From to the account, and this server would
+      // otherwise sign the message, and every copy of it, as that domain. Asked of the
+      // header as it is now, after the event script that may have changed it, each
+      // time this runs; said once, when the mark is first set.
+      const bool markedBefore = current_message_->GetFromOutside();
+
+      AnsiString author;
+      AnsiString authorDomain;
+      {
+         AnsiString header = PersistentMessage::LoadHeader(MessageStore::WorkingFile(current_message_));
+         MimeHeader mimeHeader;
+         mimeHeader.Load(header.c_str(), header.GetLength(), false);
+         DKIMSigner::AuthorOf(mimeHeader, current_message_->GetFromAddress(), author, authorDomain);
+      }
+
+      String reason;
+      const bool maySign = DKIMSigner::SubmitterMaySignAs(SignedInAddress_(), String(author), reason);
+      current_message_->SetFromOutside(!maySign);
+
+      if (!maySign && !markedBefore)
+      {
+         LOG_DEBUG("DKIM: the message will not be signed as the domain of its From, " + String(author) +
+            ", which is another domain hosted here: " + reason);
+      }
    }
 
    bool

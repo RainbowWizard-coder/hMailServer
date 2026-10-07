@@ -10,6 +10,7 @@
 
 #include "Canonicalization.h"
 
+#include "../../BO/Account.h"
 #include "../../BO/Message.h"
 #include "../../BO/MessageRecipient.h"
 #include "../../BO/MessageRecipients.h"
@@ -25,6 +26,7 @@
 #include "../../Util/Unicode.h"
 #include "../../Util/ListManager.h"
 #include "../QuarantineStore.h"
+#include "../../../SMTP/SMTPConnection.h"
 
 #include <stdexcept>
 
@@ -161,7 +163,14 @@ namespace HM
       // with the signature it came with, and Sign seals it with ARC when it relays it.
       if (!SignsAsAuthorDomain(*message))
       {
-         LOG_DEBUG("DKIM: not signing as the From's domain: the message came from outside, and its From is its sender's.");
+         if (message->GetSubmittedBySignedInUser())
+         {
+            LOG_DEBUG("DKIM: not signing as the From's domain: the account that signed in and submitted the message may not send as its From, which names another domain hosted here.");
+         }
+         else
+         {
+            LOG_DEBUG("DKIM: not signing as the From's domain: the message came from outside, and its From is its sender's.");
+         }
          return false;
       }
 
@@ -170,23 +179,7 @@ namespace HM
       // From: header domain.
       AnsiString senderDomain;
       AnsiString senderAddress;
-      MimeField *fromField = mimeHeader.GetField("From");
-      if (fromField)
-      {
-         AddresslistParser parser;
-         auto addresses = parser.ParseList(String(fromField->GetValue()));
-         if (!addresses.empty())
-         {
-            senderAddress = addresses[0]->sMailboxName + "@" + addresses[0]->sDomainName;
-            senderDomain = addresses[0]->sDomainName;
-         }
-      }
-
-      if (senderDomain.IsEmpty())
-      {
-         senderAddress = message->GetFromAddress();
-         senderDomain = StringParser::ExtractDomain(senderAddress);
-      }
+      AuthorOf(mimeHeader, message->GetFromAddress(), senderAddress, senderDomain);
 
       std::shared_ptr<DomainAliases> pDA = ObjectCache::Instance()->GetDomainAliases();
       // try to get mailbox from the alias (if it is an alias actually)
@@ -269,13 +262,65 @@ namespace HM
    bool
    DKIMSigner::SignsAsAuthorDomain(const Message &message)
    {
-      // A signed-in submission is never marked from outside (SMTPConnection::
-      // RecordOrigin_); asked first all the same, since it is the one entitlement
-      // a sender proved.
-      if (message.GetSubmittedBySignedInUser())
+      // A signed-in submission is marked so too when its From names another domain
+      // hosted here that the account may not send as (SMTPConnection::RecordOrigin_,
+      // SubmitterMaySignAs), and every copy of it carries the mark.
+      return !message.GetFromOutside();
+   }
+
+   void
+   DKIMSigner::AuthorOf(MimeHeader &mimeHeader, const String &envelopeSender, AnsiString &address, AnsiString &domain)
+   {
+      address.Empty();
+      domain.Empty();
+
+      MimeField *fromField = mimeHeader.GetField("From");
+      if (fromField)
+      {
+         AddresslistParser parser;
+         auto addresses = parser.ParseList(String(fromField->GetValue()));
+         if (!addresses.empty())
+         {
+            address = addresses[0]->sMailboxName + "@" + addresses[0]->sDomainName;
+            domain = addresses[0]->sDomainName;
+         }
+      }
+
+      if (domain.IsEmpty())
+      {
+         address = envelopeSender;
+         domain = StringParser::ExtractDomain(envelopeSender);
+      }
+   }
+
+   bool
+   DKIMSigner::SubmitterMaySignAs(const String &accountAddress, const String &authorAddress, String &reason)
+   {
+      reason.Empty();
+
+      // The domain the signature would be of, through the domain aliases, as
+      // SignAsAuthorDomain_ finds its key: none hosted here, and no signature of
+      // this server's says anything about the address.
+      std::shared_ptr<DomainAliases> domainAliases = ObjectCache::Instance()->GetDomainAliases();
+      const String resolvedAuthor = domainAliases ? domainAliases->ApplyAliasesOnAddress(authorAddress) : authorAddress;
+      const String signingDomainName = StringParser::ExtractDomain(resolvedAuthor);
+      if (signingDomainName.IsEmpty())
          return true;
 
-      return !message.GetFromOutside();
+      std::shared_ptr<const Domain> signingDomain = CacheContainer::Instance()->GetDomain(signingDomainName);
+      if (!signingDomain)
+         return true;
+
+      // The account's own domain, whatever the address in it: as it always was.
+      const String resolvedAccount = domainAliases ? domainAliases->ApplyAliasesOnAddress(accountAddress) : accountAddress;
+      std::shared_ptr<const Account> account = CacheContainer::Instance()->GetAccount(resolvedAccount);
+      if (account ? account->GetDomainID() == signingDomain->GetID()
+                  : StringParser::ExtractDomain(resolvedAccount).CompareNoCase(signingDomain->GetName()) == 0)
+         return true;
+
+      // Another domain's: only an address the account may send as, the rule the
+      // webmail's send and COM's Message.Save hold a From to (SendAs.md).
+      return SMTPConnection::SenderPermittedFor(accountAddress, authorAddress, reason);
    }
 
    bool
@@ -457,11 +502,61 @@ namespace HM
          if (DKIMSigner::SignsAsAuthorDomain(outside))
             fail("a message from outside is signed as its From's domain");
 
-         Message both(false);
-         both.SetFromOutside(true);
-         both.SetSubmittedBySignedInUser(true);
-         if (!DKIMSigner::SignsAsAuthorDomain(both))
-            fail("a signed-in submission marked from outside is not signed as its From's domain");
+         // A signed-in submission whose From names another domain hosted here that the
+         // account may not send as is marked as mail from outside is
+         // (SMTPConnection::RecordOrigin_), and neither it nor a copy of it is signed.
+         std::shared_ptr<Message> both(new Message(false));
+         both->SetFromOutside(true);
+         both->SetSubmittedBySignedInUser(true);
+         both->SetState(Message::Delivering);
+         if (DKIMSigner::SignsAsAuthorDomain(*both))
+            fail("a signed-in submission whose From the account may not send as is signed as its From's domain");
+
+         std::shared_ptr<Message> bothForwarded = PersistentMessage::CreateCopy_(both, 0);
+         if (!bothForwarded || DKIMSigner::SignsAsAuthorDomain(*bothForwarded))
+            fail("a forward of a signed-in submission whose From the account may not send as is signed as its From's domain");
+         if (DKIMSigner::SignsAsAuthorDomain(Message(*both)))
+            fail("the copy constructor's copy of a signed-in submission whose From the account may not send as is signed as its From's domain");
+
+         Message submittedRead(false);
+         PersistentMessage::ReadOriginColumn(PersistentMessage::OriginColumn(*both), submittedRead);
+         if (DKIMSigner::SignsAsAuthorDomain(submittedRead))
+            fail("a signed-in submission whose From the account may not send as, read back from its queue row, is signed as its From's domain");
+      }
+
+      // The address the signer signs a message as: the From's first address, or the
+      // envelope sender when the From names none.
+      {
+         struct AuthorCase
+         {
+            const char *header;
+            const wchar_t *envelope;
+            const char *address;
+            const char *domain;
+         };
+
+         const AuthorCase cases[] =
+         {
+            { "From: Boss <ceo@example.test>\r\nTo: a@example.net\r\n\r\n", L"x@example.net", "ceo@example.test", "example.test" },
+            { "From: ceo@example.test, other@example.org\r\n\r\n", L"x@example.net", "ceo@example.test", "example.test" },
+            { "From: first@example.org\r\nFrom: ceo@example.test\r\n\r\n", L"x@example.net", "first@example.org", "example.org" },
+            { "To: a@example.net\r\n\r\n", L"x@example.net", "x@example.net", "example.net" },
+            { "From: Nobody at all\r\n\r\n", L"x@example.net", "x@example.net", "example.net" },
+            { "To: a@example.net\r\n\r\n", L"", "", "" },
+         };
+
+         for (const AuthorCase &c : cases)
+         {
+            MimeHeader header;
+            header.Load(c.header, strlen(c.header), false);
+
+            AnsiString address;
+            AnsiString domain;
+            DKIMSigner::AuthorOf(header, String(c.envelope), address, domain);
+            if (address.CompareNoCase(c.address) != 0 || domain.CompareNoCase(c.domain) != 0)
+               fail(std::string("the author of \"") + c.header + "\" is \"" + address.c_str() + "\" at \"" + domain.c_str() +
+                  "\", not \"" + c.address + "\" at \"" + c.domain + "\"");
+         }
       }
 
       // Every copy carries the mark, and a copy of a message without it has none.

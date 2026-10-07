@@ -286,8 +286,12 @@ namespace HM
       // that did not sign in (QuarantineStore). A copy carries it - a forward, a Sieve
       // redirect, a rule's forward or copy, the mirror, a managed list's copy, the
       // gateway's sealed copy - since its From is still the one the outside sender
-      // wrote. DKIMSigner does not sign such a message as the domain its From names
-      // (SignsAsAuthorDomain). Set by the server where it creates the message, never
+      // wrote. A signed-in user's submission is marked so too when its From names
+      // another domain hosted here that the account may not send as
+      // (SMTPConnection::RecordOrigin_, DKIMSigner::SubmitterMaySignAs): this server
+      // cannot vouch for that From either. DKIMSigner does not sign such a message as
+      // the domain its From names (SignsAsAuthorDomain). Set by the server where it
+      // creates the message, never
       // read from anything a sender wrote, and kept with the rest of where the message
       // came from on a queue row (PersistentMessage::OriginColumn).
       bool GetFromOutside() const { return from_outside_; }

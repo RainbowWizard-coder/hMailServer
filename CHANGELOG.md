@@ -265,6 +265,23 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   releases mail from outside that a domain's rule claimed a signed-in client for and then held, and finds its forward
   not signed. Found by the project's own review.
 
+- **Changed: an authenticated SMTP submission is signed as another domain hosted here only when its account may send
+  as the address its `From` names.** Authenticated SMTP does not hold the `From` header to the account
+  (`SmtpAuthenticatedSenderCheck`, off by default, holds `MAIL FROM` alone), and the server signed a signed-in user's
+  message as whatever domain hosted here its `From` named, so an account of one domain that wrote `From: ceo@` another
+  had the message signed with that domain's key, which DMARC then passed (in every version that signs). The webmail's
+  send and COM's `Message.Save` already hold a `From` to the account. Such a submission is now signed as the `From`'s
+  domain when that is the account's own domain, or one of its domain aliases, whatever the address in it - an
+  account writing as `info@` its own domain is signed as before - and as another hosted domain only when the account
+  may send as that address: its own, an alias pointing at it, a mailbox that granted it the post right, an address it
+  proved, a masked address of its own (`SendAs.md`). Otherwise the message is still accepted and sent, unsigned as
+  that domain, and so is every copy of it, through a restart - it carries the mark mail from outside does - and the
+  debug log says why. **Upgrading:** an installation where accounts send as another hosted domain's addresses
+  without an alias or a grant should give them one, or the mail goes unsigned. `SigningOriginTester` holds the mark
+  and the address the signer reads to examples, and `AntiSpam/DKIM/ArcSealing.cs` sends a signed-in account's
+  message as another hosted domain's address (not signed, nor its forward), as an alias of its own and as its own
+  domain's other address (both signed).
+
 - **Fixed: an ARC seal attested whatever SPF result the first `Received-SPF` field of the message claimed.** With
   `ArcSealingEnabled` on, the `ARC-Authentication-Results` this server seals over mail it relays read `spf=` from
   that field (from 6.0.0, which brought ARC sealing), which is anybody's to write: the sender's own, on mail this
