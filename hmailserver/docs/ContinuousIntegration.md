@@ -1278,8 +1278,15 @@ once; since 6 October 2026 it names it by digest:
   commit's own Dockerfile. The image was first pushed so on 6 October 2026, at
   about 03:55 UTC, from linix:
   `ci-linux:26.04-52e9976e73bf@sha256:4eead00163c2c0b30108de94d861ee0c8b260578adb44d495fa47b535617eae9`,
+  which `.linix` named until 8 October 2026, when the image was built again
+  from the same Dockerfile, for Ubuntu's kernel-header and libc updates
+  (`linux-libc-dev` 7.0.0-38.38, `libc6` 2.43-2ubuntu2.4, `openssl`
+  3.5.5-1ubuntu3.7), and pushed: the same tag, moved to
+  `sha256:350484026f1ade2f1c8bb0b9248fcbb32bf45394c40e9a89af4f92445e31d2d6`,
   which `.linix` has named since, and both runners with the tag, linix and
-  server2, pull it by that digest.
+  server2, pull it by that digest. The 6 October digest stays in the registry,
+  with no tag, for the commits that name it: both answered an anonymous read on
+  8 October, and step 2 below says what an untagged manifest's keeping rests on.
 - **By its tag on the runner**, `hmailserver-ci/linux:26.04-<hash>`, found in
   the runner's own image store and never pulled: the only form until the second
   security review of 6.3.6 (SUP2-1), and the one `.gitlab-ci.yml` kept until the
@@ -1332,7 +1339,11 @@ the step, which would refuse it. So an edit to the Dockerfile goes like this:
    A Dockerfile that has not changed builds again to the same tag, and
    `--push` then gives that tag in the registry to the new image: the digest
    an older commit names is left with no tag, and an image no tag names may
-   be removed by the registry's garbage collection.
+   be removed by the registry's garbage collection. That is the rebuild rule,
+   for Ubuntu's updates between edits of the Dockerfile: a rebuild at the same
+   Dockerfile moves the tag to a new digest, the pin in `.linix` follows it in
+   a commit of its own, and the old digest stays for the commits that name it
+   (first on 8 October 2026, for the kernel-header and libc updates above).
    (Without `--push` it builds `hmailserver-ci/linux:<tag>` alone, the earlier
    form.)
 3. Put that line into `.linix` in `.gitlab-ci.yml`, in the same commit as the

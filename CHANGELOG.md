@@ -698,6 +698,17 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   job before it builds anything unless the image it was started in is named so, with the tag of the commit's own
   Dockerfile. The registry's cleanup policy, still switched off, keeps this image's tags and the Tumbleweed mirror's
   by name since the same day.
+- **The CI image was rebuilt on 8 October 2026, from the unchanged Dockerfile, for Ubuntu's kernel-header and libc
+  updates.** The image pushed on 6 October carried `linux-libc-dev` 7.0.0-34.34; Ubuntu then published 7.0.0-38.38,
+  and `dependency-scan` in `batch44`'s pipeline counted 60 kernel advisories against the headers as High or Critical
+  with a fixed version, which would have held the next release. The rebuild carries `linux-libc-dev` 7.0.0-38.38,
+  `libc6` 2.43-2ubuntu2.4 and `openssl` 3.5.5-1ubuntu3.7, and `.linix` names it
+  `ci-linux:26.04-52e9976e73bf@sha256:35048402…`. The rule for a rebuild at the same Dockerfile: it builds to the same
+  tag, `26.04-<hash>`, and `build/ci/build-linux-image.sh --push` moves that tag in the registry to the new image's
+  digest; the pin in `.linix` follows the digest, in a commit of its own, with `build/check-ci-image.py` holding the
+  tag beside it to the Dockerfile's; and the old digest, `sha256:4eead001…`, stays in the registry, now without a
+  tag, for the commits that name it - both digests answered an anonymous read on 8 October
+  ([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md), "The image").
 - **DBSetup.Tests runs on xUnit.net v3** (`xunit.v3.mtp-off`), as ControlPanel.Tests and ImportTool.Tests have since
   6.3.6; it is new in 6.3.6 and had kept the deprecated `xunit` 2.9.3.
 
