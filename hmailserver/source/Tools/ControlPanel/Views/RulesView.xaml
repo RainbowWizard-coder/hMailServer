@@ -22,54 +22,66 @@
         <scaffold:PageHeader x:Name="HeaderPanel" Title="{loc:L 'Global rules'}"
                              Subtitle="{loc:L 'Server-wide message rules, evaluated top to bottom.'}" />
 
-        <!-- The rest fills the window down to a floor, below which the page
-             scrolls: in a 700-pixel window the list of rules kept only its icon
-             and the criteria and actions were cut off at the bottom. -->
+        <!-- The list of rules and the criteria and actions under it take the
+             height the toolbar and the add form leave in the window, one to 1.3
+             as the two rows did, each down to a floor of three rows, and below
+             that the page scrolls; every other part keeps its own height. The
+             page held a grid to the window over a fixed 620 pixels, which knew
+             nothing of how tall the parts are: in the narrowest window the
+             actions list had no height at all and the criteria list less than a
+             row, so a rule's actions could not be seen, and in German, where the
+             toolbar wraps to three lines and the actions' buttons to four, Down
+             ran past those 620 pixels, where scrolling could not reach it. -->
         <ScrollViewer x:Name="PageScroll" Grid.Row="1" VerticalScrollBarVisibility="Auto"
                       HorizontalScrollBarVisibility="Disabled" Focusable="False">
-        <Grid MinHeight="620" Height="{Binding ViewportHeight, ElementName=PageScroll}">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" MinHeight="170" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="1.3*" />
-        </Grid.RowDefinitions>
+        <scaffold:FillPanel ViewportHeight="{Binding ViewportHeight, ElementName=PageScroll}">
 
-        <scaffold:Toolbar x:Name="SearchBar" Grid.Row="0" SearchPlaceholder="{loc:L 'Search rules'}"
+        <scaffold:Toolbar x:Name="SearchBar" SearchPlaceholder="{loc:L 'Search rules'}"
                           SearchTextChanged="Search_TextChanged">
             <scaffold:Toolbar.Actions>
                 <!-- Wraps, rather than cutting "Enable / disable" and Delete rule
-                     off the right edge in a narrow window. -->
+                     off the right edge in a narrow window. The gap between wrapped
+                     lines is split above and below each control, so that on one
+                     line they stay centred on the search box. -->
                 <WrapPanel HorizontalAlignment="Right">
-                    <ComboBox x:Name="ScopeBox" MinWidth="200" Margin="0,0,8,4" SelectionChanged="Scope_Changed"
+                    <ComboBox x:Name="ScopeBox" MinWidth="200" Margin="0,2,8,2" SelectionChanged="Scope_Changed"
                               AutomationProperties.Name="{loc:L 'Rules of'}" />
-                    <ui:Button x:Name="MoveUpButton" Content="{loc:L 'Move _up'}" Click="MoveUp_Click" Margin="0,0,8,4" />
-                    <ui:Button x:Name="MoveDownButton" Content="{loc:L 'Move _down'}" Click="MoveDown_Click" Margin="0,0,8,4" />
-                    <ui:Button x:Name="ToggleButton" Content="{loc:L 'Ena_ble / disable'}" Click="Toggle_Click" Margin="0,0,8,4" />
-                    <ui:Button x:Name="DeleteRuleButton" Content="{loc:L 'De_lete rule'}" Style="{StaticResource DangerTextButton}" Click="Delete_Click" Margin="0,0,0,4" />
+                    <ui:Button x:Name="MoveUpButton" Content="{loc:L 'Move _up'}" Click="MoveUp_Click" Margin="0,2,8,2" />
+                    <ui:Button x:Name="MoveDownButton" Content="{loc:L 'Move _down'}" Click="MoveDown_Click" Margin="0,2,8,2" />
+                    <ui:Button x:Name="ToggleButton" Content="{loc:L 'Ena_ble / disable'}" Click="Toggle_Click" Margin="0,2,8,2" />
+                    <ui:Button x:Name="DeleteRuleButton" Content="{loc:L 'De_lete rule'}" Style="{StaticResource DangerTextButton}" Click="Delete_Click" Margin="0,2,0,2" />
                 </WrapPanel>
             </scaffold:Toolbar.Actions>
         </scaffold:Toolbar>
 
-        <scaffold:Card Grid.Row="1" Padding="8">
+        <!-- The floor: the column headers and three rows, held by the FillPanel
+             around the grid, so that the empty state laid over it raises the
+             card's floor where it needs more. -->
+        <scaffold:Card scaffold:FillPanel.Fill="True" Padding="8">
             <Grid>
-                <DataGrid x:Name="RuleGrid" AutoGenerateColumns="False" IsReadOnly="True"
-                          SelectionMode="Single" SelectionChanged="RuleGrid_SelectionChanged"
-                          AutomationProperties.Name="{loc:L 'Global rules'}">
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="#" Binding="{Binding Position}" Width="50"
-                                            ElementStyle="{StaticResource GridNumberText}" HeaderStyle="{StaticResource GridNumberHeader}" />
-                        <DataGridTextColumn Header="{loc:L 'Name'}" Binding="{Binding Name}" Width="*" ElementStyle="{StaticResource GridTrimmedText}" />
-                        <DataGridTextColumn Header="{loc:L 'Enabled'}" Binding="{Binding Enabled}" Width="100" />
-                    </DataGrid.Columns>
-                </DataGrid>
+                <scaffold:FillPanel>
+                    <DataGrid x:Name="RuleGrid" scaffold:FillPanel.Fill="True" MinHeight="135"
+                              AutoGenerateColumns="False" IsReadOnly="True"
+                              SelectionMode="Single" SelectionChanged="RuleGrid_SelectionChanged"
+                              AutomationProperties.Name="{loc:L 'Global rules'}">
+                        <DataGrid.Columns>
+                            <!-- A floor under every column, so that a narrow window scrolls
+                                 the grid sideways rather than squeezing the name, the one
+                                 column that says which rule a row is, to nothing. -->
+                            <DataGridTextColumn Header="#" Binding="{Binding Position}" Width="50" MinWidth="40"
+                                                ElementStyle="{StaticResource GridNumberText}" HeaderStyle="{StaticResource GridNumberHeader}" />
+                            <DataGridTextColumn Header="{loc:L 'Name'}" Binding="{Binding Name}" Width="*" MinWidth="160" ElementStyle="{StaticResource GridTrimmedText}" />
+                            <DataGridTextColumn Header="{loc:L 'Enabled'}" Binding="{Binding Enabled}" Width="100" MinWidth="80" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </scaffold:FillPanel>
                 <scaffold:EmptyState x:Name="EmptyStatus" Icon="TextBulletListSquare24" Visibility="Collapsed"
                                      AutomationProperties.LiveSetting="Polite" />
             </Grid>
         </scaffold:Card>
 
         <!-- The add form, under the grid so the grid keeps the height. -->
-        <scaffold:Card Grid.Row="2" Margin="0,12,0,12" Padding="20,12,20,0">
+        <scaffold:Card Margin="0,12,0,12" Padding="20,12,20,0">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" MaxWidth="360" />
@@ -83,52 +95,56 @@
             </Grid>
         </scaffold:Card>
 
-        <Grid Grid.Row="3">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
+        <!-- The selected rule's criteria and actions: side by side, or one above
+             the other where either would be narrower than 340 pixels
+             (RulesView.RuleParts_SizeChanged). Side by side in the narrowest
+             window they were 250 pixels wide, and the match list ran off the
+             right edge of its card. -->
+        <UniformGrid x:Name="RuleParts" scaffold:FillPanel.Fill="True" scaffold:FillPanel.Weight="1.3"
+                     Columns="2" SizeChanged="RuleParts_SizeChanged">
 
             <!-- Criteria -->
-            <scaffold:Card Margin="0,0,6,0" AutomationProperties.Name="{loc:L 'IF'}">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
-                    </Grid.RowDefinitions>
+            <scaffold:Card x:Name="CriteriaCard" Margin="0,0,6,0" AutomationProperties.Name="{loc:L 'IF'}">
+                <scaffold:FillPanel>
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                         <TextBlock Text="{loc:L 'IF'}" Style="{StaticResource TextBodyStrong}" VerticalAlignment="Center" Margin="0,0,12,0" />
                         <ComboBox x:Name="MatchMode" MinWidth="230"
                                   SelectionChanged="MatchMode_SelectionChanged" />
                     </StackPanel>
-                    <DataGrid Grid.Row="1" x:Name="CriteriaGrid" AutoGenerateColumns="False" IsReadOnly="True"
+                    <!-- The floor: three rows of 34 pixels. -->
+                    <DataGrid x:Name="CriteriaGrid" scaffold:FillPanel.Fill="True" MinHeight="102"
+                              AutoGenerateColumns="False" IsReadOnly="True"
                               HeadersVisibility="None"
                               SelectionMode="Single" MouseDoubleClick="EditCriterion_Click"
                               AutomationProperties.Name="{loc:L 'IF'}">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Binding="{Binding Description}" Width="*" />
+                            <DataGridTextColumn Binding="{Binding Description}" Width="*" MinWidth="160" ElementStyle="{StaticResource GridTrimmedText}" />
                         </DataGrid.Columns>
                     </DataGrid>
-                </Grid>
+                </scaffold:FillPanel>
                 <scaffold:Card.Footer>
                     <WrapPanel Orientation="Horizontal">
-                        <ui:Button Content="{loc:L 'Add _criterion…'}" Appearance="Primary" Click="AddCriterion_Click" Margin="0,0,8,0" />
-                        <ui:Button x:Name="EditCriterionButton" Content="{loc:L '_Edit criterion…'}" Click="EditCriterion_Click" Margin="0,0,8,0" />
-                        <ui:Button x:Name="RemoveCriterionButton" Content="{loc:L '_Remove criterion'}" Style="{StaticResource DangerTextButton}" Click="RemoveCriterion_Click" />
+                        <ui:Button Content="{loc:L 'Add _criterion…'}" Appearance="Primary" Click="AddCriterion_Click" Margin="0,0,8,4" />
+                        <ui:Button x:Name="EditCriterionButton" Content="{loc:L '_Edit criterion…'}" Click="EditCriterion_Click" Margin="0,0,8,4" />
+                        <ui:Button x:Name="RemoveCriterionButton" Content="{loc:L '_Remove criterion'}" Style="{StaticResource DangerTextButton}" Click="RemoveCriterion_Click" Margin="0,0,0,4" />
                     </WrapPanel>
                 </scaffold:Card.Footer>
             </scaffold:Card>
 
             <!-- Actions -->
-            <scaffold:Card Grid.Column="1" Title="{loc:L 'THEN'}" Margin="6,0,0,0">
-                <DataGrid x:Name="ActionsGrid" AutoGenerateColumns="False" IsReadOnly="True"
-                          HeadersVisibility="None"
-                          SelectionMode="Single" MouseDoubleClick="EditAction_Click"
-                          AutomationProperties.Name="{loc:L 'THEN'}">
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Binding="{Binding Description}" Width="*" />
-                    </DataGrid.Columns>
-                </DataGrid>
+            <scaffold:Card x:Name="ActionsCard" Title="{loc:L 'THEN'}" Margin="6,0,0,0">
+                <scaffold:FillPanel>
+                    <!-- The floor: three rows of 34 pixels. -->
+                    <DataGrid x:Name="ActionsGrid" scaffold:FillPanel.Fill="True" MinHeight="102"
+                              AutoGenerateColumns="False" IsReadOnly="True"
+                              HeadersVisibility="None"
+                              SelectionMode="Single" MouseDoubleClick="EditAction_Click"
+                              AutomationProperties.Name="{loc:L 'THEN'}">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Binding="{Binding Description}" Width="*" MinWidth="160" ElementStyle="{StaticResource GridTrimmedText}" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </scaffold:FillPanel>
                 <scaffold:Card.Footer>
                     <!-- A WrapPanel, not a StackPanel: five buttons do not fit one row of
                          the half-width card at 1920 wide, and a StackPanel clips the last
@@ -142,8 +158,8 @@
                     </WrapPanel>
                 </scaffold:Card.Footer>
             </scaffold:Card>
-        </Grid>
-        </Grid>
+        </UniformGrid>
+        </scaffold:FillPanel>
         </ScrollViewer>
     </Grid>
 </UserControl>

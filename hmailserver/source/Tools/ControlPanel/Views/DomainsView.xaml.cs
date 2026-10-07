@@ -14,12 +14,93 @@ namespace hMailServer.ControlPanel.Views
 {
    public partial class DomainsView : UserControl, IPageLifecycle
    {
+      // The page's columns and cards keep a width below which what they hold runs
+      // off their right edges: the domains column 280 pixels (its card 268, room
+      // for a name beside Properties and Delete), the column of accounts, aliases
+      // and lists 400, an alias or list card 280, and the new account's password
+      // box 120 beside Generate and Create account. In the narrowest window
+      // (760 by 520) the two columns were 268 and 232 pixels wide: Create account
+      // ran off its card, and the alias and list cards, 104 and 116 pixels side by
+      // side, had boxes 0 and 13 pixels wide.
+      private const double DomainColumnMinWidth = 280;
+      private const double DetailColumnMinWidth = 400;
+      private const double ListCardMinWidth = 280;
+      private const double PasswordMinWidth = 120;
+      private static readonly double[] ColumnWeights = { 2, 3 };
+      private static readonly double[] ColumnMinWidths = { DomainColumnMinWidth, DetailColumnMinWidth };
+      private static readonly double[] ListCardWeights = { 1, 1 };
+      private static readonly double[] ListCardMinWidths = { ListCardMinWidth, ListCardMinWidth };
+
       public DomainsView()
       {
          InitializeComponent();
       }
 
       public void OnEnter() => ReloadDomains();
+
+      private void PageColumns_SizeChanged(object sender, SizeChangedEventArgs e)
+         => ArrangeColumns(SideBySide.Fits(e.NewSize.Width, ColumnWeights, ColumnMinWidths));
+
+      /// <summary>
+      /// Two columns - the domains card beside the accounts card and the alias and
+      /// list cards - where both keep their minimum widths, and otherwise one: the
+      /// domains card goes above the accounts card, in the same FillPanel, so that
+      /// the three share the window's height by their weights (two, three and two)
+      /// rather than the domains card taking a window of its own.
+      /// </summary>
+      private void ArrangeColumns(bool twoColumns)
+      {
+         if (twoColumns == DomainColumn.Children.Contains(DomainCard))
+            return;
+
+         if (twoColumns)
+         {
+            DetailColumn.Children.Remove(DomainCard);
+            DomainCard.Margin = new Thickness(0, 0, 12, 0);
+            DomainColumn.Children.Add(DomainCard);
+            DomainColumn.Visibility = Visibility.Visible;
+            Grid.SetColumn(DetailColumn, 1);
+            Grid.SetColumnSpan(DetailColumn, 1);
+         }
+         else
+         {
+            DomainColumn.Children.Remove(DomainCard);
+            DomainCard.Margin = new Thickness(0, 0, 0, 12);
+            DetailColumn.Children.Insert(0, DomainCard);
+            DomainColumn.Visibility = Visibility.Collapsed;
+            Grid.SetColumn(DetailColumn, 0);
+            Grid.SetColumnSpan(DetailColumn, 2);
+         }
+      }
+
+      /// <summary>The alias and list cards side by side where both keep 280 pixels, and otherwise one above the other.</summary>
+      private void ListCards_SizeChanged(object sender, SizeChangedEventArgs e)
+      {
+         bool sideBySide = SideBySide.Fits(e.NewSize.Width, ListCardWeights, ListCardMinWidths);
+         ListCards.Columns = sideBySide ? 2 : 1;
+         AliasCard.Margin = sideBySide ? new Thickness(0, 0, 6, 0) : new Thickness(0, 0, 0, 6);
+         DistCard.Margin = sideBySide ? new Thickness(6, 0, 0, 0) : new Thickness(0, 6, 0, 0);
+      }
+
+      /// <summary>
+      /// Generate and Create account beside the password while the password box
+      /// keeps 120 pixels, and on a line of their own under it where it would not,
+      /// as a toolbar's actions wrap.
+      /// </summary>
+      private void AccountForm_SizeChanged(object sender, SizeChangedEventArgs e)
+      {
+         double buttons = 0;
+         foreach (UIElement button in AccountButtons.Children)
+            buttons += button.DesiredSize.Width;
+
+         bool beside = e.NewSize.Width >= PasswordMinWidth + 8 + buttons;
+         Grid.SetColumnSpan(PasswordRow, beside ? 1 : 2);
+         PasswordRow.Margin = beside ? new Thickness(0, 0, 8, 0) : new Thickness(0);
+         Grid.SetRow(AccountButtons, beside ? 1 : 2);
+         Grid.SetColumn(AccountButtons, beside ? 1 : 0);
+         Grid.SetColumnSpan(AccountButtons, beside ? 1 : 2);
+         AccountButtons.Margin = beside ? new Thickness(0) : new Thickness(0, 8, 0, 0);
+      }
 
       public void OnLeave()
       {

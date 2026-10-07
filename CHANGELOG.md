@@ -161,23 +161,34 @@ prompt. Found by the project's own review (work item 78; CVE requested).
 
 ### Administration
 
-- **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79).** In
-  6.3.4 the list was given the height the window left after the page's title, the toolbar, the permissions card and
-  the add form, and the page did not scroll, so a window less than about 700 pixels high (875 at 125 % scaling) left
-  it no room for a whole row, and one less than about 630 (790) no list at all: no range could be seen or selected,
-  and so none could be edited or deleted. 6.3.5 kept 150 pixels of list by holding the page to the window over a
-  fixed 560 pixels, which knew nothing of how tall the cards are: in the narrowest window (760 by 520), where the
-  permissions wrap, the add form ran past those 560 pixels and could not be scrolled to. The page is now laid out by
-  a new scaffold panel, `FillPanel`: the list takes the height the other parts leave, down to three rows, below which
-  the whole page scrolls, and every other part always keeps its own height, so all of the page can be reached at
-  every window size. In a narrow window the toolbar's buttons wrap where *Delete selected range* and *Restore
-  defaults* ran off the right edge, the grid scrolls sideways where it squeezed the ranges' names to nothing and cut
-  the upper address short, and the permissions take two columns, where a quarter of the card broke a word in two.
-  The permissions card shows the selected range's permissions or none: with no range selected its boxes are clear
-  and disabled, where they kept the last range's values under *Permissions (select a range)*; a save, an edit or an
-  add keeps the range selected, where the reload dropped the selection and with it the card's *(saved)*; and Save,
-  Properties and Delete find the selected range by its ID, where two ranges with one name and one lower address
-  were both taken for the first of them.
+- **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the
+  domains and rules pages cut parts of themselves off in a narrow window.** In 6.3.4 the IP ranges page's list was
+  given the height the window left after the page's title, the toolbar, the permissions card and the add form, and the
+  page did not scroll, so a window less than about 700 pixels high (875 at 125 % scaling) left it no room for a whole
+  row, and one less than about 630 (790) no list at all: no range could be seen or selected, and so none could be
+  edited or deleted. 6.3.5 kept 150 pixels of list by holding the page to the window over a fixed 560 pixels, which
+  knew nothing of how tall the cards are: in the narrowest window (760 by 520), where the permissions wrap, the add
+  form ran past those 560 pixels and could not be scrolled to. The page is now laid out by a new scaffold panel,
+  `FillPanel`: the list takes the height the other parts leave, down to three rows, below which the whole page
+  scrolls, and every other part always keeps its own height, so all of the page can be reached at every window size.
+  In a narrow window the toolbar's buttons wrap where *Delete selected range* and *Restore defaults* ran off the right
+  edge, the grid scrolls sideways where it squeezed the ranges' names to nothing and cut the upper address short, and
+  the permissions take two columns, where a quarter of the card broke a word in two. The permissions card shows the
+  selected range's permissions or none: with no range selected its boxes are clear and disabled, where they kept the
+  last range's values under *Permissions (select a range)*; a save, an edit or an add keeps the range selected, where
+  the reload dropped the selection and with it the card's *(saved)*; and Save, Properties and Delete find the selected
+  range by its ID, where two ranges with one name and one lower address were both taken for the first of them. The
+  domains and rules pages held a grid to the window over a fixed 640 and 620 pixels in the same way, and in the
+  narrowest window the domains page's alias form ran past them and could not be scrolled to, its alias list had no
+  height, *Create account* ran off its card and every domain's *Properties* and *Delete* off the list, and the rules
+  page left a rule's actions no height and cut its match list off. Both pages are laid out by `FillPanel` now, which
+  shares the window between several lists by weight: every list takes what the window leaves, down to three rows, and
+  each card holds its toolbar, its list and its form whole, so all of either page can be reached at every window size.
+  Below a page of 700 pixels the domains card goes above the accounts card, the alias and list cards go one above the
+  other where they would be narrower than 280 pixels and the rules page's criteria and actions where they would be
+  narrower than 340, *Generate* and *Create account* go under the password where they do not fit beside it, a list's
+  rows are its width with a long name cut short and whole in its tool tip, and the rule grid's columns keep a width
+  and scroll sideways.
 
 ### Operations
 

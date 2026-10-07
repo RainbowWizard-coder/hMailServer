@@ -68,6 +68,23 @@ namespace hMailServer.ControlPanel.Views
          suppressMatchMode_ = false;
       }
 
+      // The criteria and the actions side by side where each keeps 340 pixels -
+      // the IF caption and its 230-pixel match list inside the card's padding -
+      // and one above the other where they would not: side by side in the
+      // narrowest window (760 by 520) and in the account dialog's Rules tab they
+      // were 250 and 266 pixels wide, and the match list ran off its card.
+      private const double RulePartMinWidth = 340;
+      private static readonly double[] RulePartWeights = { 1, 1 };
+      private static readonly double[] RulePartMinWidths = { RulePartMinWidth, RulePartMinWidth };
+
+      private void RuleParts_SizeChanged(object sender, SizeChangedEventArgs e)
+      {
+         bool sideBySide = SideBySide.Fits(e.NewSize.Width, RulePartWeights, RulePartMinWidths);
+         RuleParts.Columns = sideBySide ? 2 : 1;
+         CriteriaCard.Margin = sideBySide ? new Thickness(0, 0, 6, 0) : new Thickness(0, 0, 0, 6);
+         ActionsCard.Margin = sideBySide ? new Thickness(6, 0, 0, 0) : new Thickness(0, 6, 0, 0);
+      }
+
       public void OnEnter()
       {
          LoadScopes();
