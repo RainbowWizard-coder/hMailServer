@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System;
+using System.IO;
 using System.Linq;
 using hMailServer.ControlPanel.Services;
 using Xunit;
@@ -199,6 +200,62 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Throws<ArgumentException>(() => PageFill.Share(500, 0, new[] { 100.0, 100 }, new[] { 1.0 }));
          Assert.Throws<ArgumentNullException>(() => PageFill.Share(500, 0, null, new[] { 1.0 }));
          Assert.Empty(PageFill.Share(500, 0, Array.Empty<double>(), Array.Empty<double>()));
+      }
+
+      // ---- layout rounding ------------------------------------------------------------------
+      //
+      // At 150 % scaling a pixel is two thirds of a device-independent one, and WPF
+      // rounds a part's size to whole device pixels: the IP ranges page's list card,
+      // with a MinHeight of 157, is 236 device pixels high and asks for 157.33. Held
+      // to 157 by its floor, every part under it was drawn a device pixel higher than
+      // FillPanel's first version drew it, and the page was that much shorter than
+      // its parts.
+
+      private const double RoundedAt150 = 236 / 1.5;
+
+      [Fact]
+      public void APartAskingForMoreThanItsShare_ByLayoutRounding_IsFlooredAtWhatItAsks()
+      {
+         Assert.Equal(RoundedAt150, PageFill.MeasuredFloor(Floor, Floor, RoundedAt150));
+
+         // A share above the floor that rounding takes up raises the floor to it too.
+         Assert.Equal(300 + 1 / 3.0, PageFill.MeasuredFloor(Floor, 300, 300 + 1 / 3.0));
+      }
+
+      [Fact]
+      public void APartAskingForNoMoreThanItsShare_KeepsItsFloor()
+      {
+         Assert.Equal(Floor, PageFill.MeasuredFloor(Floor, Floor, Floor));
+         Assert.Equal(Floor, PageFill.MeasuredFloor(Floor, 300, 300));
+         Assert.Equal(Floor, PageFill.MeasuredFloor(Floor, 300, 120));
+         Assert.Equal(Floor, PageFill.MeasuredFloor(Floor, Floor, double.NaN));
+      }
+
+      [Fact]
+      public void FillPanel_FloorsAMeasuredPart_AtWhatItAsksFor()
+      {
+         string code = ReadControlPanelFile(Path.Join("Views", "Scaffold", "FillPanel.cs"));
+         string measure = WithheldRowTests.MemberText(code, "protected override Size MeasureOverride(Size availableSize)");
+         Assert.True(measure != null, "FillPanel.MeasureOverride is gone.");
+         Assert.True(measure.Contains("PageFill.MeasuredFloor(floors[i], heights[i], fill.DesiredSize.Height)", StringComparison.Ordinal),
+            "FillPanel no longer floors a part it measured at what the part asks for, so layout rounding at 125 or 150 % moves the parts under it.");
+         Assert.True(measure.IndexOf("PageFill.MeasuredFloor(", StringComparison.Ordinal) < measure.IndexOf("floors_ = floors;", StringComparison.Ordinal),
+            "FillPanel keeps the floors it arranges by before a measured part's floor is raised.");
+      }
+
+      private static string ReadControlPanelFile(string relative)
+      {
+         var directory = new DirectoryInfo(AppContext.BaseDirectory);
+         while (directory != null)
+         {
+            string candidate = Path.Join(directory.FullName, "ControlPanel", relative);
+            if (File.Exists(candidate))
+               return File.ReadAllText(candidate);
+            directory = directory.Parent;
+         }
+
+         Assert.Fail("ControlPanel/" + relative.Replace('\\', '/') + " could not be found from the test binaries.");
+         return null;
       }
    }
 }

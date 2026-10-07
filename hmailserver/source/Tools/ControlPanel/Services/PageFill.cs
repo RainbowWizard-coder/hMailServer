@@ -46,6 +46,18 @@ namespace hMailServer.ControlPanel.Services
          => Math.Max(Positive(viewport), Positive(otherParts) + Positive(floor));
 
       /// <summary>
+      /// A filling part's floor once it has been measured at its share: its floor,
+      /// or what it asks for where that is more than its share. WPF caps what a part
+      /// asks for at what it is offered, but layout rounding can take it a device
+      /// pixel past: at 150 % scaling a MinHeight of 157 is 236 device pixels, 157.33,
+      /// and that is what the IP ranges page's list card asks for. Held to 157, the
+      /// parts under it were drawn a device pixel higher than FillPanel's first
+      /// version drew them, and the page came out that much shorter than its parts.
+      /// </summary>
+      public static double MeasuredFloor(double floor, double share, double asked)
+         => Positive(asked) > Positive(share) ? Math.Max(Positive(floor), Positive(asked)) : Positive(floor);
+
+      /// <summary>
       /// The heights of several filling parts - the domains page's accounts card
       /// and the row of alias and list cards under it, say - which share what the
       /// viewport leaves after the other parts in proportion to their weights, as a

@@ -148,6 +148,11 @@ namespace hMailServer.ControlPanel.Views.Scaffold
             if (HasFloor(fill) && fill.Visibility != Visibility.Collapsed)
             {
                fill.Measure(new Size(availableSize.Width, heights[i]));
+
+               // Layout rounding can leave the part asking for a device pixel
+               // more than its share; it is given that, and arranged no shorter.
+               floors[i] = PageFill.MeasuredFloor(floors[i], heights[i], fill.DesiredSize.Height);
+               heights[i] = Math.Max(heights[i], floors[i]);
                measuredAt[i] = heights[i];
             }
 
