@@ -16,7 +16,10 @@
 // the first one's RDATA; debian.org's three point to the question, under an
 // RSA/SHA-256 signature and an ECDSA P-256 one. The tester runs the resolver
 // against these answers on its own thread, with its clock at CapturedAt and the
-// built-in IANA root anchors, and sends nothing anywhere.
+// built-in IANA root anchors, and sends nothing anywhere. The root's DNSKEY
+// RRset here is signed by KSK-2017 (key tag 20326) alone - KSK-2024 (38696) is
+// in it but was not yet signing - so a change that takes 20326 out of the
+// built-in anchors has to capture these answers again.
 
 #pragma once
 

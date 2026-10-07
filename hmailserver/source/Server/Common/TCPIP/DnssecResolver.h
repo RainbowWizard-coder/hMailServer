@@ -151,8 +151,11 @@ namespace HM
    // (DnssecCapturedAnswers.h) on its own thread, with its clock at their
    // capture: the MX RRsets of live.com and cloudflare.com Secure from the
    // root's keys down, which until work item 80 were Bogus, debian.org's under
-   // both its signatures, and the same answers expired, tampered with and
-   // stripped of their signatures failing with the reason said. No network,
+   // both its signatures, and the same answers expired, tampered with -
+   // the exchange, the signature, the key tag it names, the key its DS record
+   // names, an MX record added - and stripped of their signatures failing with
+   // the reason said, while the signed record repeated in another spelling is
+   // counted once. No network,
    // configuration or file. DaneTester runs it, inside the service on Windows
    // (ClassTester) and as dane-tests on Linux. Throws std::logic_error naming
    // the first thing that is wrong.

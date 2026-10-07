@@ -4110,14 +4110,27 @@ namespace HM
       expect(canonical(answer(expanded), out) && out == expanded,
              "an exchange already in canonical form is taken as it is.");
 
-      // The pointer in the RDATA aimed at itself, and then at the RDATA's own
-      // start: neither points backwards to a name before it.
+      // The pointer in the RDATA aimed at itself: it does not point backwards,
+      // and followed it would never end.
       std::vector<unsigned char> selfPointing = compressed;
       std::vector<unsigned char> probe = answer(compressed);
       const size_t rdataStart = probe.size() - compressed.size();
       selfPointing[7] = static_cast<unsigned char>(0xC0 | ((rdataStart + 7) >> 8));
       selfPointing[8] = static_cast<unsigned char>((rdataStart + 7) & 0xFF);
-      expect(!canonical(answer(selfPointing), out), "a pointer in the RDATA that does not point backwards is refused.");
+      expect(!canonical(answer(selfPointing), out), "a pointer in the RDATA that points at itself is refused.");
+
+      // The pointer aimed forwards, at a whole name ("test") the packet holds
+      // after the record: a name that would read, and only the rule that a
+      // pointer points backwards (RFC 1035 section 4.1.4, "a prior occurrence")
+      // refuses it.
+      std::vector<unsigned char> forwardPointing = compressed;
+      const size_t after = rdataStart + compressed.size();
+      forwardPointing[7] = static_cast<unsigned char>(0xC0 | (after >> 8));
+      forwardPointing[8] = static_cast<unsigned char>(after & 0xFF);
+      std::vector<unsigned char> forwardPacket = answer(forwardPointing);
+      const unsigned char laterName[] = { 4, 't', 'e', 's', 't', 0 };
+      forwardPacket.insert(forwardPacket.end(), laterName, laterName + sizeof(laterName));
+      expect(!canonical(forwardPacket, out), "a pointer in the RDATA that points forwards, to a name after the record, is refused.");
 
       // The name runs past the RDATA: its RDLENGTH ends inside the first label,
       // and the octets after it are still in the packet.
@@ -4307,6 +4320,124 @@ namespace HM
          expect(status == DnssecResolver::ChainStatus::Indeterminate && exchanges.empty() &&
                 why.Find("signed zone live.com") >= 0 && why.Find("came without its signatures") >= 0,
                 "an MX answer without its RRSIG from a signed zone is Indeterminate, and the reason says the DNS server did not return the signatures: " + std::string(why.c_str()));
+      }
+
+      // live.com's MX lookup against the answers given, on this thread.
+      auto liveComMx = [](const TestEnvironment &environment, std::vector<AnsiString> &exchanges, AnsiString &why) -> DnssecResolver::ChainStatus
+      {
+         Installed installed(environment);
+         DnssecResolver resolver;
+         const DnssecResolver::ChainStatus status = resolver.QueryMx(String(_T("live.com")), exchanges);
+         why = resolver.GetFailureReason();
+         return status;
+      };
+
+      const ParsedRr *liveSigRecord = nullptr;
+      for (const ParsedRr &record : liveMx.answers)
+      {
+         if (record.type == DnsTypeRrsig)
+            liveSigRecord = &record;
+      }
+      expect(liveSigRecord != nullptr && liveSigRecord->rdata.size() > 20, "the captured live.com MX answer holds its RRSIG.");
+
+      // One octet of the signature itself changed on the way.
+      {
+         TestEnvironment tampered = captured;
+         std::vector<unsigned char> &packet = tampered.answers[std::make_pair(AnsiString("live.com"), DnsTypeMx)];
+         packet[liveSigRecord->rdata_offset + liveSigRecord->rdata.size() - 1] ^= 0x01;
+
+         std::vector<AnsiString> exchanges;
+         AnsiString why;
+         const DnssecResolver::ChainStatus status = liveComMx(tampered, exchanges, why);
+         expect(status == DnssecResolver::ChainStatus::Bogus && exchanges.empty() && why.Find("key tag 44331") >= 0 && why.Find("does not match") >= 0,
+                "an MX RRSIG whose signature was changed on the way is Bogus, and the reason says it does not match: " + std::string(why.c_str()));
+      }
+
+      // The RRSIG names key tag 44330, a key live.com does not publish.
+      {
+         TestEnvironment tampered = captured;
+         std::vector<unsigned char> &packet = tampered.answers[std::make_pair(AnsiString("live.com"), DnsTypeMx)];
+         packet[liveSigRecord->rdata_offset + 17] ^= 0x01;
+
+         std::vector<AnsiString> exchanges;
+         AnsiString why;
+         const DnssecResolver::ChainStatus status = liveComMx(tampered, exchanges, why);
+         expect(status == DnssecResolver::ChainStatus::Bogus && exchanges.empty() && why.Find("key tag 44330") >= 0 && why.Find("names no key live.com publishes") >= 0,
+                "an MX RRSIG naming a key the zone does not publish is Bogus, and the reason says so: " + std::string(why.c_str()));
+      }
+
+      // A wrong DS: live.com's key-signing key, the one its DS record 28654
+      // names, is not the key that came, so no DNSKEY of the zone matches.
+      {
+         TestEnvironment tampered = captured;
+         std::vector<unsigned char> &packet = tampered.answers[std::make_pair(AnsiString("live.com"), DnsTypeDnskey)];
+         DnsResponse keys;
+         expect(ParseResponse(packet, keys), "the captured live.com DNSKEY answer parses.");
+
+         bool altered = false;
+         for (const ParsedRr &record : keys.answers)
+         {
+            if (record.type == DnsTypeDnskey && record.rdata.size() > 4 && record.rdata[0] == 1 && record.rdata[1] == 1)
+            {
+               packet[record.rdata_offset + record.rdata.size() - 1] ^= 0x01;
+               altered = true;
+            }
+         }
+         expect(altered, "the captured live.com DNSKEY answer holds its key-signing key.");
+
+         std::vector<AnsiString> exchanges;
+         AnsiString why;
+         const DnssecResolver::ChainStatus status = liveComMx(tampered, exchanges, why);
+         expect(status == DnssecResolver::ChainStatus::Bogus && exchanges.empty() && why.Find("no DNSKEY of live.com matches its DS records (key tag 28654") >= 0,
+                "a zone none of whose keys matches its DS record is Bogus, and the reason names the DS record: " + std::string(why.c_str()));
+      }
+
+      // An MX record of 10 evil.example, signed by nobody, added after the
+      // signed one: the RRset is no longer the one signed.
+      // And the signed record again, written out and in capitals: in canonical
+      // form the same record, which the signer counted once (RFC 4034 section
+      // 6.3), so the RRset is the one signed.
+      {
+         const std::vector<unsigned char> &original = captured.answers[std::make_pair(AnsiString("live.com"), DnsTypeMx)];
+         const size_t afterMx = liveMx.answers[0].rdata_offset + liveMx.answers[0].rdata.size();
+
+         auto withRecord = [&](const char *exchange, unsigned short preference) -> std::vector<unsigned char>
+         {
+            std::vector<unsigned char> rdata;
+            Push16(rdata, preference);
+            AnsiString spelled(exchange);
+            for (const AnsiString &label : StringParser::SplitString(spelled, "."))
+            {
+               rdata.push_back(static_cast<unsigned char>(label.GetLength()));
+               rdata.insert(rdata.end(), label.c_str(), label.c_str() + label.GetLength());
+            }
+            rdata.push_back(0);
+
+            std::vector<unsigned char> record = { 0xC0, 0x0C, 0, 15, 0, 1, 0, 0, 0x0E, 0x10 };
+            Push16(record, static_cast<unsigned short>(rdata.size()));
+            record.insert(record.end(), rdata.begin(), rdata.end());
+
+            std::vector<unsigned char> packet = original;
+            packet.insert(packet.begin() + static_cast<std::ptrdiff_t>(afterMx), record.begin(), record.end());
+            packet[7] = static_cast<unsigned char>(packet[7] + 1);   // ANCOUNT, 2 in the capture
+            return packet;
+         };
+
+         TestEnvironment added = captured;
+         added.answers[std::make_pair(AnsiString("live.com"), DnsTypeMx)] = withRecord("evil.example", 1);
+
+         std::vector<AnsiString> exchanges;
+         AnsiString why;
+         DnssecResolver::ChainStatus status = liveComMx(added, exchanges, why);
+         expect(status == DnssecResolver::ChainStatus::Bogus && exchanges.empty() && why.Find("does not match") >= 0,
+                "an MX record nobody signed, added to a signed RRset, makes it Bogus: " + std::string(why.c_str()));
+
+         TestEnvironment repeated = captured;
+         repeated.answers[std::make_pair(AnsiString("live.com"), DnsTypeMx)] = withRecord("LIVE-COM.OLC.Protection.OUTLOOK.com", 2);
+
+         status = liveComMx(repeated, exchanges, why);
+         expect(status == DnssecResolver::ChainStatus::Secure && !exchanges.empty() && why.IsEmpty(),
+                "the signed MX record repeated, written out and in capitals - the same record in canonical form - is counted once, and the RRset validates: " + std::string(why.c_str()));
       }
 
       expect(test_environment == nullptr, "the tester's answers are taken off its thread when it is done.");

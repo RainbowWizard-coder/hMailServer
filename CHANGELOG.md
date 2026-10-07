@@ -318,13 +318,14 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   resolver on its own thread against replies captured on 7 October 2026 (`DnssecCapturedAnswers.h`), with its clock
   at their capture and the built-in root anchors: live.com's and cloudflare.com's MX RRsets validate from the root's
   keys down, debian.org's under both its RSA/SHA-256 and ECDSA P-256 signatures, and the same answers expired,
-  altered and stripped of their signatures fail with the reason the log gives - nothing is sent, and the tester's
-  answers reach no other thread and no cache. It also holds the canonical form itself: an exchange compressed and in
-  mixed case is written out and lowercased, and a pointer that does not point backwards or a name that runs past its
-  RDATA is refused. The suite's DNS server now sends an MX record's exchange compressed against the question, as
-  resolvers do, so every signed delivery in `SMTP/DaneIndeterminateLookups` goes through it, with a test of an
-  exchange in mixed case besides; `Security/DnssecCompressedMx` (Windows) holds the verdicts and the debug log's
-  reason.
+  altered - the exchange, the signature, the key tag it names, the key-signing key the DS record names, an MX record
+  added - and stripped of their signatures fail with the reason the log gives, while the signed record repeated in
+  another spelling is counted once - nothing is sent, and the tester's answers reach no other thread and no cache. It
+  also holds the canonical form itself: an exchange compressed and in mixed case is written out and lowercased, and
+  a pointer that points at itself or forwards, or a name that runs past its RDATA, is refused. The suite's DNS server
+  now sends an MX record's exchange compressed against the question, as resolvers do, so every signed delivery in
+  `SMTP/DaneIndeterminateLookups` goes through it, with a test of an exchange in mixed case besides;
+  `Security/DnssecCompressedMx` (Windows) holds the verdicts and the debug log's reason.
 - **The static-analysis job's baseline holds 691 findings, down from 887.** The 191 that the security dashboard's
   triage of 5 October 2026 marked to harden or fix are changed in the code, and five more went with the same edits:
   the Linux command line's and `openpgp-writer`'s unchecked writes to the terminal discard their results with
