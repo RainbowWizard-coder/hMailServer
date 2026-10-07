@@ -99,25 +99,25 @@ namespace HM
    namespace
    {
       // The ends of a stored copy's name that say where the message came from
-      // (QuarantineStore::StoredName).
-      const wchar_t *const OutsideNameEnd = L".outside.eml";
-      const wchar_t *const InsideNameEnd = L".inside.eml";
+      // (QuarantineStore::StoredName). Strings, so that each carries its length.
+      const String OutsideNameEnd = _T(".outside.eml");
+      const String InsideNameEnd = _T(".inside.eml");
 
       // The words of a stored copy's name between the GUID and its end
       // (QuarantineStore::StoredMarks).
-      const wchar_t *const SpfNameMark = L"spf-";
-      const wchar_t *const RelayNameMark = L"relay-";
-      const wchar_t *const SendersDomainNameMark = L"mailfrom";
+      const String SpfNameMark = _T("spf-");
+      const String RelayNameMark = _T("relay-");
+      const String SendersDomainNameMark = _T("mailfrom");
 
-      bool EndsWithNoCase(const String &text, const wchar_t *end)
+      bool EndsWithNoCase(const String &text, const String &end)
       {
-         const int length = static_cast<int>(wcslen(end));
+         const int length = end.GetLength();
          return text.GetLength() >= length && text.Right(length).CompareNoCase(end) == 0;
       }
 
-      bool StartsWithNoCase(const String &text, const wchar_t *start)
+      bool StartsWithNoCase(const String &text, const String &start)
       {
-         const int length = static_cast<int>(wcslen(start));
+         const int length = start.GetLength();
          return text.GetLength() > length && text.Left(length).CompareNoCase(start) == 0;
       }
    }
@@ -152,7 +152,7 @@ namespace HM
       if (marks.relaying_domain_id > 0 && marks.relaying_domain_id <= INT_MAX)
       {
          String relay;
-         relay.Format(_T(".%s%I64d"), RelayNameMark, marks.relaying_domain_id);
+         relay.Format(_T(".%s%I64d"), RelayNameMark.c_str(), marks.relaying_domain_id);
          name += relay;
       }
 
@@ -174,11 +174,11 @@ namespace HM
       if (EndsWithNoCase(name, OutsideNameEnd))
       {
          marks.from_outside = true;
-         stem = name.Left(name.GetLength() - static_cast<int>(wcslen(OutsideNameEnd)));
+         stem = name.Left(name.GetLength() - OutsideNameEnd.GetLength());
       }
       else if (EndsWithNoCase(name, InsideNameEnd))
       {
-         stem = name.Left(name.GetLength() - static_cast<int>(wcslen(InsideNameEnd)));
+         stem = name.Left(name.GetLength() - InsideNameEnd.GetLength());
       }
       else
       {
@@ -195,12 +195,12 @@ namespace HM
          const String &word = words[i];
 
          if (StartsWithNoCase(word, SpfNameMark))
-            marks.spf_result = Message::SpfResultKeyword(word.Mid(static_cast<int>(wcslen(SpfNameMark))));
+            marks.spf_result = Message::SpfResultKeyword(word.Mid(SpfNameMark.GetLength()));
          else if (word.CompareNoCase(SendersDomainNameMark) == 0)
             marks.spf_domain_is_senders = true;
          else if (StartsWithNoCase(word, RelayNameMark))
          {
-            const String digits = word.Mid(static_cast<int>(wcslen(RelayNameMark)));
+            const String digits = word.Mid(RelayNameMark.GetLength());
             bool allDigits = digits.GetLength() <= 10;
             __int64 id = 0;
             for (int c = 0; allDigits && c < digits.GetLength(); c++)

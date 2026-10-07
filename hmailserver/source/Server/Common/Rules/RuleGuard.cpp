@@ -329,11 +329,14 @@ namespace HM
    namespace
    {
       // A header name as a refusal shows it: printable ASCII as it is, and every
-      // other character as a backslash, a u and its number, so that a line break or
-      // a character outside ASCII is seen for what it is and does not break the line.
+      // other character as a backslash, a u and its number in upper-case hexadecimal,
+      // four digits at least, so that a line break or a character outside ASCII is
+      // seen for what it is and does not break the line.
       String
       HeaderNameForMessage(const String &name)
       {
+         static const wchar_t digits[] = L"0123456789ABCDEF";
+
          String out;
          const wchar_t *text = name.c_str();
          for (size_t position = 0; position < name.size(); position++)
@@ -345,9 +348,15 @@ namespace HM
             }
             else
             {
-               wchar_t escaped[16];
-               swprintf(escaped, sizeof(escaped) / sizeof(escaped[0]), L"\\u%04lX", character);
-               out += escaped;
+               // The digits, lowest first: two a byte at most, and four at least.
+               wchar_t escaped[2 * sizeof(character)];
+               size_t count = 0;
+               for (unsigned long rest = character; rest != 0 || count < 4; rest >>= 4)
+                  escaped[count++] = digits[rest & 0xF];
+
+               out += L"\\u";
+               while (count > 0)
+                  out += escaped[--count];
             }
          }
 
@@ -430,7 +439,7 @@ namespace HM
    bool
    RuleGuard::NamesWhoTheMessageIsFrom(const String &fieldName)
    {
-      static const wchar_t *const names[] = { L"From", L"Sender", L"Resent-From", L"Resent-Sender", L"DKIM-Signature" };
+      static const String names[] = { _T("From"), _T("Sender"), _T("Resent-From"), _T("Resent-Sender"), _T("DKIM-Signature") };
 
       const wchar_t *text = fieldName.c_str();
       size_t first = 0;
@@ -440,19 +449,20 @@ namespace HM
       while (last > first && (text[last - 1] == L' ' || text[last - 1] == L'\t'))
          last--;
 
-      for (const wchar_t *name : names)
+      for (const String &name : names)
       {
-         const size_t length = wcslen(name);
+         const size_t length = name.size();
          if (last - first != length)
             continue;
 
          // ASCII letters folded and nothing else, as IsLoopCountHeader compares: the
          // MIME reader matches a name with _stricmp in the C locale.
+         const wchar_t *wantedText = name.c_str();
          bool same = true;
          for (size_t position = 0; position < length && same; position++)
          {
             wchar_t given = text[first + position];
-            wchar_t wanted = name[position];
+            wchar_t wanted = wantedText[position];
             if (given >= L'A' && given <= L'Z')
                given = static_cast<wchar_t>(given - L'A' + L'a');
             if (wanted >= L'A' && wanted <= L'Z')
@@ -1090,9 +1100,9 @@ namespace HM
          L"X-hMailServer-LoopCount: 0\r\n";
 
       void
-      LoadHeader(MimeHeader &header, const char *text)
+      LoadHeader(MimeHeader &header, const std::string &text)
       {
-         header.Load(text, strlen(text), true);
+         header.Load(text.c_str(), text.size(), true);
       }
 
       // The header as the writer writes it, read back as the reader reads it: the
@@ -1202,6 +1212,34 @@ namespace HM
          const String breakReason = RuleGuard::WhyHeaderMayNotBeSet(L"X-Note\r\nX-hMailServer-LoopCount");
          if (!Holds(breakReason, L"\\u000D\\u000A"))
             fail("the refusal of a name with a line break does not show the line break: " + LoopCountValueForMessage(breakReason));
+
+         // Every character the refusal cannot show as it is is shown as its number:
+         // upper-case hexadecimal, four digits with the zeros that pad it, a NUL among
+         // them; and a name of printable ASCII alone is shown as it is, with no number.
+         struct ShownCase
+         {
+            String name;
+            const wchar_t *shown;
+         };
+
+         const ShownCase shownCases[] =
+         {
+            { withNul, L"'X-hMailServer-LoopCount\\u0000x'" },
+            { L"X-Caf\u00E9", L"'X-Caf\\u00E9'" },
+            { L"X-Note\u007F", L"'X-Note\\u007F'" },
+            { L"X-Note\u0100", L"'X-Note\\u0100'" },
+            { L"X-Note\u0001", L"'X-Note\\u0001'" },
+            { L"X-Note:", L"'X-Note:'" },
+         };
+
+         for (const ShownCase &c : shownCases)
+         {
+            const String reason = RuleGuard::WhyHeaderMayNotBeSet(c.name);
+            if (!Holds(reason, c.shown))
+               fail("the refusal of \"" + LoopCountValueForMessage(c.name) + "\" does not show the name as " + LoopCountValueForMessage(String(c.shown)) + ": " + LoopCountValueForMessage(reason));
+            else if (String(c.shown).Find(L"\\u") < 0 && Holds(reason, L"\\u"))
+               fail("the refusal of \"" + LoopCountValueForMessage(c.name) + "\" shows a character of printable ASCII as a number: " + LoopCountValueForMessage(reason));
+         }
 
          const wchar_t *allowed[] = { L"X-Note", L"Subject", L"SomeHeader", L"X-Domain-Rule", L"My Header", L"X-hMailServer-LoopCounter" };
          for (const wchar_t *name : allowed)

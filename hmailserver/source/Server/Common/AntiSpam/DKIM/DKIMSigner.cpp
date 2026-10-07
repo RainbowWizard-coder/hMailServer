@@ -603,7 +603,7 @@ namespace HM
       {
          struct AuthorCase
          {
-            const char *header;
+            std::string header;
             const wchar_t *envelope;
             const char *address;
             const char *domain;
@@ -622,7 +622,7 @@ namespace HM
          for (const AuthorCase &c : cases)
          {
             MimeHeader header;
-            header.Load(c.header, strlen(c.header), false);
+            header.Load(c.header.c_str(), c.header.size(), false);
 
             AnsiString address;
             AnsiString domain;
