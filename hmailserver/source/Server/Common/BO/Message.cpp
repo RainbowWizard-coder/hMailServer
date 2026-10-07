@@ -73,6 +73,48 @@ namespace HM
       // its maker to fill (ExternalDelivery's sealed copy), and the two mutexes.
    }
 
+   namespace
+   {
+      // The SPF results Message::GetReceivedSpfResult answers, RFC 8601's keywords,
+      // each by the byte that stands for it in received_spf_result_; 0 is none
+      // recorded.
+      const wchar_t *const SpfResultKeywords[] =
+      {
+         L"", L"pass", L"fail", L"softfail", L"neutral", L"none", L"temperror", L"permerror"
+      };
+
+      const size_t SpfResultKeywordCount = sizeof(SpfResultKeywords) / sizeof(SpfResultKeywords[0]);
+   }
+
+   String
+   Message::GetReceivedSpfResult() const
+   {
+      return received_spf_result_ < SpfResultKeywordCount ? String(SpfResultKeywords[received_spf_result_]) : String();
+   }
+
+   void
+   Message::SetReceivedSpfResult(const String &result)
+   {
+      received_spf_result_ = 0;
+
+      String keyword = result;
+      keyword.Trim();
+      if (keyword.IsEmpty())
+         return;
+
+      for (size_t i = 1; i < SpfResultKeywordCount; i++)
+      {
+         // The length as well: CompareNoCase reads both as C strings, and a value
+         // with a NUL in it would compare as what comes before the NUL.
+         const String candidate(SpfResultKeywords[i]);
+         if (keyword.GetLength() == candidate.GetLength() && keyword.CompareNoCase(candidate) == 0)
+         {
+            received_spf_result_ = static_cast<unsigned char>(i);
+            return;
+         }
+      }
+   }
+
    String
    Message::GetKeywords() const
    {

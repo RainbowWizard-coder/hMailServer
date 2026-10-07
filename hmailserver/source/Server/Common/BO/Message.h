@@ -302,9 +302,11 @@ namespace HM
       // a rule's above the one this server wrote - and is never read for it. Set by
       // SMTPConnection::RecordOrigin_ from the session's own evaluation, carried by
       // every copy as GetFromOutside is, and kept on a queue row
-      // (PersistentMessage::OriginColumn).
-      String GetReceivedSpfResult() const { return received_spf_result_; }
-      void SetReceivedSpfResult(const String &result) { received_spf_result_ = result; }
+      // (PersistentMessage::OriginColumn). Only those seven keywords are kept, in
+      // lower case, whatever the case they are given in; anything else is kept as
+      // none, as Arc::AuthenticationResultsValue would read it.
+      String GetReceivedSpfResult() const;
+      void SetReceivedSpfResult(const String &result);
 
       bool GetBinaryMime() const { return (GetFlags() & FlagBinaryMime) != 0; }
       void SetBinaryMime(bool bNewVal)
@@ -395,8 +397,11 @@ namespace HM
       // See GetFromOutside.
       bool from_outside_ = false;
 
-      // See GetReceivedSpfResult.
-      String received_spf_result_;
+      // See GetReceivedSpfResult: which of its keywords, by its place in
+      // Message.cpp's list, 0 for none recorded. A byte beside from_outside_ rather
+      // than the keyword as a String, since every Message an IMAP folder's cached
+      // listing holds carries it: a String here made each of them 32 bytes larger.
+      unsigned char received_spf_result_ = 0;
 
    private:
 

@@ -913,6 +913,37 @@ namespace HM
          PersistentMessage::ReadOriginColumn(_T("dmarc=example.net"), legacy);
          if (!legacy.GetReceivedSpfResult().IsEmpty() || legacy.GetAuthDomains().Compare(_T("dmarc=example.net")) != 0)
             fail("a column written before the SPF result was kept read as something else");
+
+         // The message keeps one of the seven keywords, in lower case, and nothing
+         // else: a value that is none of them - with a NUL after a keyword among them -
+         // is kept as no result at all.
+         struct KeptCase
+         {
+            String given;
+            const wchar_t *kept;
+         };
+
+         const KeptCase kept[] =
+         {
+            { String(_T("pass")), L"pass" },
+            { String(_T(" SoftFail ")), L"softfail" },
+            { String(_T("PERMERROR")), L"permerror" },
+            { String(_T("none")), L"none" },
+            { String(_T("")), L"" },
+            { String(_T("passed")), L"" },
+            { String(_T("pass,dmarc=example.test")), L"" },
+            { String(std::wstring(L"pass\0fail", 9)), L"" },
+         };
+
+         for (const KeptCase &c : kept)
+         {
+            Message message(false);
+            message.SetReceivedSpfResult(_T("fail"));
+            message.SetReceivedSpfResult(c.given);
+            if (message.GetReceivedSpfResult().Compare(c.kept) != 0 || Message(message).GetReceivedSpfResult().Compare(c.kept) != 0)
+               fail("the result \"" + std::string(AnsiString(c.given).c_str()) + "\" is kept as \"" +
+                  std::string(AnsiString(message.GetReceivedSpfResult()).c_str()) + "\", not \"" + std::string(AnsiString(String(c.kept)).c_str()) + "\"");
+         }
       }
 
       if (!wrong.empty())
