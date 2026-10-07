@@ -37,16 +37,18 @@ namespace HM
 
       // What a queue row's messageauthdomains holds: where the message came from, as
       // the server saw it, beside the submitter. The marks of the server's own record
-      // come first, each a word of its own - "outside" for Message::GetFromOutside -
-      // then the domains the inbound checks vouched for (Message::GetAuthDomains, a
-      // "dmarc=" word or nothing), commas between. Never longer than the column's 255
+      // come first, each a word of its own - "outside" for Message::GetFromOutside, and
+      // "spf=" and the keyword for Message::GetReceivedSpfResult, written only when it
+      // is one word of at most 16 characters - then the domains the inbound checks
+      // vouched for (Message::GetAuthDomains, a "dmarc=" word or nothing), commas
+      // between. Never longer than the column's 255
       // characters: when all of it would not fit, the marks are kept and the domains
       // dropped whole, as a value too long for the column always was, since a mark
       // left out would let a message from outside be signed as the domain its From
       // names. ReadOriginColumn takes the marks back off the front, so that
       // GetAuthDomains answers the domains as they were, and a row written before the
-      // marks existed reads as it did. No database: SigningOriginTester holds
-      // the two to examples.
+      // marks existed reads as it did. No database: SigningOriginTester and
+      // ArcAuthenticationResultsTester hold the two to examples.
       static String OriginColumn(const Message &message);
       static void ReadOriginColumn(const String &column, Message &message);
 
