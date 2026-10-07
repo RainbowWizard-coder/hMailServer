@@ -128,11 +128,17 @@ list's copy, a journal rule's copy delivered as it was accepted, or the encrypte
 for a partner domain. A forward leaves with the
 signature the message came with, untouched, and - with `ArcSealingEnabled` on - with an ARC set the relaying
 domain seals over the authentication results this server saw when it arrived. A managed list
-that took a posting from outside whose `From` is of the list's own organisation does not
-sign its copies as the list's domain either ([MailingLists.md](MailingLists.md)): that
-signature would be one DMARC aligns with the `From`. A message released from the quarantine
-is from outside when the `Received` field this server wrote at its arrival names a session
-that did not sign in, since the quarantine keeps no other record of where it came from.
+that took a posting from outside with an address of the list's own organisation anywhere in
+its `From` fields does not sign its copies as the list's domain either
+([MailingLists.md](MailingLists.md)): that signature would be one DMARC aligns with the
+`From`. The quarantine keeps whether a message it holds came from outside with the copy it
+stores - in the copy's file name, since its row has no column for it - and a release reads
+it from there, never from the message, whose `Received` field a domain's rule may have
+rewritten before another of its actions held it. A message held before 7 October 2026 is
+read from its header instead: from outside unless it has no `Received` field (a message the
+server made), or the one on top is this server's own for a session that signed in, or the
+send API's; a download from another server's mailbox, whose top field is that server's, is
+from outside.
 
 Up to 6.3.6 the server signed every message whose `From` named a domain it signs for,
 whatever it was: a message from outside claiming to be from `ceo@` such a domain was signed

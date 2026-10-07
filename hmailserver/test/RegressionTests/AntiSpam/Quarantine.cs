@@ -270,5 +270,86 @@ namespace RegressionTests.AntiSpam
                "The stored message file must be deleted with its row.");
          }
       }
+
+      /// <summary>
+      /// A release decided whether to sign a message as the domain its From names from the
+      /// Received field on top of the stored copy - which a domain's rule may rewrite
+      /// before another of its actions holds the message, here to say that this server
+      /// took it from a client that signed in. The release then signed a From an outside
+      /// sender wrote with the domain's key, and the recipient's forward carried the
+      /// signature out: a forgery DMARC passes. The quarantine now keeps where the message
+      /// came from with its stored copy, and a release reads it from there.
+      ///
+      /// Against the server before the fix the forward arrives with a DKIM-Signature of
+      /// d=example.test.
+      /// </summary>
+      [Test]
+      [Description("A message from outside released from the quarantine is not signed as the domain its From names, whatever a rule wrote in its Received field before the hold.")]
+      public void AReleasedMessageFromOutsideIsNotSignedAsItsFromDomain()
+      {
+         EnableQuarantine();
+
+         _domain.DKIMPrivateKeyFile = Paths.Combine(TestContext.CurrentContext.TestDirectory, "..\\..\\..\\..\\SSL examples\\example.key");
+         _domain.DKIMSelector = "TestSelector";
+         _domain.DKIMSignEnabled = true;
+         _domain.Save();
+
+         _recipient.ForwardEnabled = true;
+         _recipient.ForwardAddress = "external@example.com";
+         _recipient.ForwardKeepOriginal = true;
+         _recipient.Save();
+
+         var rule = _domain.Rules.Add();
+         rule.Name = "Claim a signed-in client, then hold";
+         rule.Active = true;
+         var criteria = rule.Criterias.Add();
+         criteria.UsePredefined = true;
+         criteria.PredefinedField = eRulePredefinedField.eFTMessageSize;
+         criteria.MatchType = eRuleMatchType.eMTGreaterThan;
+         criteria.MatchValue = "0";
+         criteria.Save();
+         var received = rule.Actions.Add();
+         received.Type = eRuleActionType.eRASetHeaderValue;
+         received.HeaderName = "Received";
+         received.Value = "from client (client [192.0.2.9]) by " + Environment.MachineName +
+                          " with ESMTPSA id 1; Mon, 5 Oct 2026 09:00:00 +0000";
+         received.Save();
+         var hold = rule.Actions.Add();
+         hold.Type = eRuleActionType.eRAQuarantine;
+         hold.Save();
+         rule.Save();
+
+         var port = TestSetup.GetNextFreePort();
+         using (var smtpServer = new SmtpServerSimulator(1, port))
+         {
+            smtpServer.SecondsToWaitBeforeTerminate = 60;
+            smtpServer.AddRecipientResult(new System.Collections.Generic.Dictionary<string, int> { { "external@example.com", 250 } });
+            smtpServer.StartListen();
+
+            RegressionTests.AntiSpam.DKIM.Signing.AddRoutePointingAtLocalhost(5, port);
+
+            new SmtpClientSimulator().SendRaw("outsider@example.com", _recipient.Address,
+               "From: The CEO <ceo@example.test>\r\n" +
+               "To: " + _recipient.Address + "\r\n" +
+               "Subject: Held and released\r\n" +
+               "\r\n" +
+               "Please pay the invoice.\r\n");
+
+            CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+
+            var quarantine = _application.Settings.AntiSpam.Quarantine;
+            quarantine.Refresh();
+            ClassicAssert.AreEqual(1, quarantine.Count, "The domain's rule did not hold the message.");
+            quarantine[0].ReleaseMessage();
+
+            CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+            smtpServer.WaitForCompletion();
+
+            string forwarded = smtpServer.MessageData;
+            ClassicAssert.IsFalse(forwarded.ToLower().Contains("dkim-signature"),
+               "A message from outside whose From names a domain hosted here left this server signed as that domain " +
+               "after its release, because a rule had written in its Received field that a client signed in.\r\n" + forwarded);
+         }
+      }
    }
 }

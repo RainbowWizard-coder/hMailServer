@@ -30,6 +30,7 @@
 #include "../Util/ContentPolicy.h"
 #include "../Util/Unicode.h"
 #include "../Util/MessageOrigin.h"
+#include "DKIM/DKIMSigner.h"
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -95,8 +96,22 @@ namespace HM
       return FileUtilities::Combine(IniFileSettings::Instance()->GetDataDirectory(), "Quarantine");
    }
 
+   namespace
+   {
+      // The ends of a stored copy's name that say where the message came from
+      // (QuarantineStore::StoredName).
+      const wchar_t *const OutsideNameEnd = L".outside.eml";
+      const wchar_t *const InsideNameEnd = L".inside.eml";
+
+      bool EndsWithNoCase(const String &text, const wchar_t *end)
+      {
+         const int length = static_cast<int>(wcslen(end));
+         return text.GetLength() >= length && text.Right(length).CompareNoCase(end) == 0;
+      }
+   }
+
    String
-   QuarantineStore::BuildRelativePath_()
+   QuarantineStore::BuildRelativePath_(bool fromOutside)
    {
       // A day-per-directory layout. A flat directory is fine until the day somebody
       // points this at a mail stream that quarantines thousands a day, at which point
@@ -104,7 +119,77 @@ namespace HM
       // sweep gets to delete whole directories rather than walking every file.
       String day = Time::GetCurrentDateTime().Mid(0, 10);   // YYYY-MM-DD
 
-      return FileUtilities::Combine(day, GUIDCreator::GetGUID() + ".eml");
+      return FileUtilities::Combine(day, StoredName(GUIDCreator::GetGUID(), fromOutside));
+   }
+
+   String
+   QuarantineStore::StoredName(const String &guid, bool fromOutside)
+   {
+      return guid + (fromOutside ? OutsideNameEnd : InsideNameEnd);
+   }
+
+   QuarantineStore::StoredOrigin
+   QuarantineStore::OriginOfStoredName(const String &relativePath)
+   {
+      if (EndsWithNoCase(relativePath, OutsideNameEnd))
+         return OriginOutside;
+
+      if (EndsWithNoCase(relativePath, InsideNameEnd))
+         return OriginInside;
+
+      return OriginUnknown;
+   }
+
+   bool
+   QuarantineStore::HeaderSaysFromOutside(const AnsiString &header, const String &thisServerName)
+   {
+      // Nothing to read: the safe side, unsigned.
+      if (header.IsEmpty())
+         return true;
+
+      // No trace field at all: a message this server made - a reply, a notice, a
+      // message made over COM or the webmail - since every message that came in over
+      // SMTP has the field this server wrote on top.
+      AnsiString received = MessageOrigin::FirstFieldValue(header, "Received");
+      received.Trim();
+      if (received.IsEmpty())
+         return false;
+
+      if (thisServerName.IsEmpty())
+         return true;
+
+      AnsiString thisServer = AnsiString(thisServerName);
+      thisServer.MakeLower();
+
+      AnsiString lowered = received;
+      lowered.MakeLower();
+
+      // The send API's own field (RestApiSend), for a key's sender it held to its own.
+      if (lowered.Find("by " + thisServer + " (hmailserver send api") == 0)
+         return false;
+
+      // Whose field it is: the name after its last "by", since everything a client
+      // puts in a Received field - its HELO, the name its address resolves to - comes
+      // before the clause the field's writer adds. Another server's field on top is a
+      // download from another mailbox or a message imported from a file, whose From
+      // this server never saw written, even when the HELO in it names this server.
+      AnsiString writer;
+      for (int at = lowered.Find("by "); at >= 0; at = lowered.Find("by ", at + 1))
+      {
+         if (at > 0 && lowered[at - 1] != ' ')
+            continue;
+
+         writer = lowered.Mid(at + 3);
+         const int end = writer.Find(" ");
+         if (end >= 0)
+            writer = writer.Left(end);
+      }
+
+      if (writer != thisServer || !MessageOrigin::ReceivedByThisServer(header, thisServerName))
+         return true;
+
+      // This server's own SMTP field on top: from outside unless the session signed in.
+      return !MessageOrigin::ReceivedSaysAuthenticated(header, thisServerName);
    }
 
    bool
@@ -201,14 +286,23 @@ namespace HM
    }
 
    bool
-   QuarantineStore::ReleasedCopyIsFromOutside_(const String &file)
+   QuarantineStore::ReleasedCopyIsFromOutside_(const String &relativePath, const String &file)
    {
-      const AnsiString header = PersistentMessage::LoadHeader(file, false);
-      if (header.IsEmpty())
+      // What the quarantine kept when it held the message, which nothing in the
+      // message can change: a domain's rule may rewrite the Received field on top
+      // before another of its rules holds the message, and a message downloaded from
+      // another mailbox carries whatever that mailbox's server and its sender wrote.
+      switch (OriginOfStoredName(relativePath))
+      {
+      case OriginOutside:
+         return true;
+      case OriginInside:
          return false;
+      default:
+         break;
+      }
 
-      const String thisServer = Utilities::ComputerName();
-      return MessageOrigin::ReceivedByThisServer(header, thisServer) && !MessageOrigin::ReceivedSaysAuthenticated(header, thisServer);
+      return HeaderSaysFromOutside(PersistentMessage::LoadHeader(file, false), Utilities::ComputerName());
    }
 
    bool
@@ -225,7 +319,10 @@ namespace HM
          if (sourceFile.IsEmpty() || !FileUtilities::Exists(sourceFile))
             return false;
 
-         String relativePath = BuildRelativePath_();
+         // The name of the copy says whether the message is from outside, for its
+         // release to read back (StoredName): mail this server would not sign as the
+         // domain its From names.
+         String relativePath = BuildRelativePath_(!DKIMSigner::SignsAsAuthorDomain(*message));
          String targetFile = FileUtilities::Combine(GetQuarantineDirectory(), relativePath);
 
          // Copied rather than moved: the caller still owns the original and will
@@ -690,7 +787,7 @@ namespace HM
       }
 
       message->SetSize(MessageStore::FileSize(targetFile));
-      message->SetFromOutside(ReleasedCopyIsFromOutside_(targetFile));
+      message->SetFromOutside(ReleasedCopyIsFromOutside_(quarantined.file_name, targetFile));
 
       RecipientParser recipientParser;
 
@@ -870,7 +967,7 @@ namespace HM
       }
 
       message->SetSize(MessageStore::FileSize(targetFile));
-      message->SetFromOutside(ReleasedCopyIsFromOutside_(targetFile));
+      message->SetFromOutside(ReleasedCopyIsFromOutside_(quarantined.file_name, targetFile));
 
       RecipientParser recipientParser;
       bool recipientOk = false;

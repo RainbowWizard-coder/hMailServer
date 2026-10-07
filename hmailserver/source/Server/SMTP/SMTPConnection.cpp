@@ -2348,6 +2348,14 @@ namespace HM
          // message now exists - which is why a quarantine that fails to store falls
          // through to refusing rather than accepting. Silently accepting mail that
          // was not stored would turn a spam refusal into silent deletion.
+         //
+         // Where the message came from is recorded on it first, as it is when a
+         // message is accepted further on: the quarantine keeps whether it is from
+         // outside with the copy, and a release signs it as its From's domain only
+         // when this server would have (Message::GetFromOutside).
+         if (spType == SPPostTransmission && QuarantineStore::GetEnabled())
+            RecordOrigin_();
+
          if (spType == SPPostTransmission &&
              QuarantineStore::GetEnabled() &&
              QuarantineStore::QuarantineFromSession(current_message_, messageText, iTotalSpamScore, helo_host_))

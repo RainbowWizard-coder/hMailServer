@@ -1544,6 +1544,12 @@ namespace HM
       {
          std::shared_ptr<Message> held = std::shared_ptr<Message>(new Message(false));
          held->SetFromAddress(pMessage->GetFromAddress());
+
+         // Where the message came from, which the quarantine keeps with the copy for
+         // its release (QuarantineStore::StoredName): the message's own record, and
+         // not what its Received field says by now - a domain's rule ran on it.
+         held->SetFromOutside(pMessage->GetFromOutside());
+         held->SetSubmittedBySignedInUser(pMessage->GetSubmittedBySignedInUser());
          for (std::shared_ptr<MessageRecipient> recipient : taken)
          {
             std::shared_ptr<MessageRecipient> copy = std::shared_ptr<MessageRecipient>(new MessageRecipient());

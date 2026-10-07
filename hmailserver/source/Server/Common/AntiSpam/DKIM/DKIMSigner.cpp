@@ -24,6 +24,7 @@
 #include "../../Util/Parsing/AddresslistParser.h"
 #include "../../Util/Unicode.h"
 #include "../../Util/ListManager.h"
+#include "../QuarantineStore.h"
 
 #include <stdexcept>
 
@@ -586,6 +587,86 @@ namespace HM
             if (ListManager::SignsCopiesAsListDomain(c.fromOutside, String(c.from), _T("list@example.test")) != c.signs)
                fail(std::string("a list copy of a posting ") + (c.fromOutside ? "from outside" : "not from outside") + " from \"" +
                   std::string(Unicode::ToUtf8(String(c.from)).c_str()) + "\" is " + (c.signs ? "not " : "") + "signed as the list's domain");
+         }
+
+         // Every From field, and every address in one: any of the list domain's
+         // organisation, from outside, and the copies are not signed as that domain.
+         struct FieldsCase
+         {
+            bool fromOutside;
+            std::vector<String> fields;
+            bool signs;
+            const char *what;
+         };
+
+         const FieldsCase fieldsCases[] =
+         {
+            { true, { L"x@evil.example", L"ceo@example.test" }, false, "a second From field of the list's domain under one of another" },
+            { true, { L"x@evil.example, ceo@sub.example.test" }, false, "a second address of the list's organisation in one From field" },
+            { true, { L"x@evil.example (ceo@example.test)" }, false, "an address of the list's domain in a comment" },
+            { true, { L"staff: ceo@EXAMPLE.TEST;" }, false, "an address of the list's domain in a group" },
+            { true, { L"Boss <x@evil.example>" }, true, "one address of another domain" },
+            { true, { L"x@evil.example", L"y@other.example" }, true, "two From fields, neither of the list's organisation" },
+            { true, { L"x@notexample.test" }, true, "a domain whose name ends in the list's without being of it" },
+            { true, {}, true, "no From field" },
+            { false, { L"x@evil.example", L"ceo@example.test" }, true, "two From fields of a posting not from outside" },
+         };
+
+         for (const FieldsCase &c : fieldsCases)
+         {
+            if (ListManager::SignsCopiesAsListDomain(c.fromOutside, c.fields, _T("list@example.test")) != c.signs)
+               fail(std::string("a list copy of a posting with ") + c.what + " is " + (c.signs ? "not " : "") + "signed as the list's domain");
+         }
+      }
+
+      // A quarantined copy keeps the mark in its name, and its release reads it back
+      // from there; a copy held before the name carried it is read from its header.
+      {
+         const String guid = _T("{0F8E4C2A-6B1D-4E5F-9A3C-7D2B8E1F4A6C}");
+         const String outsideName = QuarantineStore::StoredName(guid, true);
+         const String insideName = QuarantineStore::StoredName(guid, false);
+
+         if (outsideName.Find(guid) != 0 || insideName.Find(guid) != 0 || outsideName.Compare(insideName) == 0)
+            fail("a quarantined copy's name is \"" + std::string(Unicode::ToUtf8(outsideName).c_str()) + "\" from outside and \"" +
+               std::string(Unicode::ToUtf8(insideName).c_str()) + "\" otherwise");
+         if (QuarantineStore::OriginOfStoredName(_T("2026-10-07\\") + outsideName) != QuarantineStore::OriginOutside)
+            fail("the name of a quarantined copy from outside does not read back as from outside");
+         if (QuarantineStore::OriginOfStoredName(_T("2026-10-07/") + insideName) != QuarantineStore::OriginInside)
+            fail("the name of a quarantined copy not from outside does not read back as such");
+         if (QuarantineStore::OriginOfStoredName(_T("2026-10-06\\") + guid + _T(".eml")) != QuarantineStore::OriginUnknown)
+            fail("the name of a copy held before the mark read as if it said where the message came from");
+
+         struct HeaderCase
+         {
+            const char *header;
+            bool outside;
+            const char *what;
+         };
+
+         const HeaderCase cases[] =
+         {
+            { "From: a@example.net\r\nSubject: x\r\n\r\n", false, "a message with no Received field, which this server made" },
+            { "Received: from client (client [192.0.2.9])\r\n\tby MAILBOX with ESMTPSA id 41\r\n\t; Mon, 5 Oct 2026 09:00:00 +0000\r\nFrom: a@example.net\r\n\r\n",
+              false, "this server's Received field for a session that signed in" },
+            { "Received: from client (client [192.0.2.9])\r\n\tby MAILBOX with ESMTP id 41\r\n\t; Mon, 5 Oct 2026 09:00:00 +0000\r\nFrom: ceo@example.test\r\n\r\n",
+              true, "this server's Received field for a session that did not sign in" },
+            { "Received: by MAILBOX (hMailServer send API, key \"app\") with HTTPS; Mon, 5 Oct 2026 09:00:00 +0000\r\nFrom: a@example.test\r\n\r\n",
+              false, "the send API's Received field" },
+            { "Received: from mx.example.net by mx.example.net with ESMTPS id 7; Mon, 5 Oct 2026 09:00:00 +0000\r\nFrom: ceo@example.test\r\n\r\n",
+              true, "a message downloaded from another server's mailbox" },
+            { "Received: from x by MAILBOX with ESMTPA y (client [192.0.2.9])\r\n\tby OTHERHOST with ESMTP id 3\r\nFrom: ceo@example.test\r\n\r\n",
+              true, "another server's Received field that names this one in its HELO" },
+            { "Received: from client (client [192.0.2.9])\r\n\tby MAILBOX with ESMTPS id 41\r\n\t(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256)\r\n\t; Mon, 5 Oct 2026 09:00:00 +0000\r\nFrom: ceo@example.test\r\n\r\n",
+              true, "this server's Received field for a TLS session that did not sign in" },
+            { "Received: from x by MAILBOX with ESMTP y (client [192.0.2.9])\r\n\tby MAILBOX with ESMTPSA id 41\r\n\t(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256)\r\n\t; Mon, 5 Oct 2026 09:00:00 +0000\r\n\r\n",
+              false, "this server's Received field for a TLS session that signed in, its HELO naming this server" },
+            { "", true, "a header that could not be read" },
+         };
+
+         for (const HeaderCase &c : cases)
+         {
+            if (QuarantineStore::HeaderSaysFromOutside(AnsiString(c.header), _T("MAILBOX")) != c.outside)
+               fail(std::string(c.what) + " is " + (c.outside ? "not " : "") + "read as from outside on its release");
          }
       }
 

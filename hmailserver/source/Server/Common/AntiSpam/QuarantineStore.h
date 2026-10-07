@@ -142,22 +142,51 @@ namespace HM
       // The directory holding quarantined message files. Created on demand.
       static String GetQuarantineDirectory();
 
+      // Where a held message came from, as the quarantine keeps it: whether it was
+      // mail from outside, which DKIMSigner does not sign as the domain its From names
+      // (Message::GetFromOutside, DKIMSigner::SignsAsAuthorDomain). The row has no
+      // column for it, so the name of the stored copy carries it - the GUID, then
+      // ".outside.eml" or ".inside.eml" (StoredName) - and a release reads it back
+      // from there (OriginOfStoredName), never from the message, whose header a
+      // sender, a rule or a Sieve script may have written. A copy held before 7
+      // October 2026 has a name without it, OriginUnknown, and its header is read
+      // instead (HeaderSaysFromOutside).
+      enum StoredOrigin
+      {
+         OriginUnknown,
+         OriginOutside,
+         OriginInside
+      };
+
+      static String StoredName(const String &guid, bool fromOutside);
+      static StoredOrigin OriginOfStoredName(const String &relativePath);
+
+      // For a copy held before its name said where it came from: from outside unless
+      // its trace fields show this server made it or took it from a signed-in client -
+      // no Received field at all (a reply, a notice, a message made over COM or the
+      // webmail), this server's own SMTP Received field for a session that signed in,
+      // or the one the send API writes. A Received field of this server's for a session
+      // that did not sign in is from outside, and so is one another server wrote on
+      // top - a download from another mailbox, a message imported from a file - which
+      // until 7 October 2026 was released as not from outside and signed as its From's
+      // domain. No configuration, database or file: the header and the name this
+      // server writes in its Received fields are given.
+      static bool HeaderSaysFromOutside(const AnsiString &header, const String &thisServerName);
+
    private:
       static bool Quarantine_(std::shared_ptr<Message> message, const String &reason, int score, const String &sourceFile,
                               bool heloKnown, const String &heloName);
       static String HeloOfStoredCopy_(const String &file);
 
-      // Whether a released copy is mail from outside (Message::GetFromOutside). The
-      // quarantine keeps no record of where a message came from, so it is read from the
-      // Received field this server wrote when the message arrived: one written for a
-      // session that did not sign in is from outside, as is a copy of such a message;
-      // one written for a signed-in session, or none - a message this server made - is
-      // not. A message an IP range let in without signing in as one of this server's
-      // domains is from outside here too, and is released without this server's DKIM
-      // signature: the safe side of a record that is not kept.
-      static bool ReleasedCopyIsFromOutside_(const String &file);
+      // Whether a released copy is mail from outside (Message::GetFromOutside): what
+      // the stored copy's name says (OriginOfStoredName), or for a copy held before it
+      // said so, what its header says (HeaderSaysFromOutside).
+      static bool ReleasedCopyIsFromOutside_(const String &relativePath, const String &file);
       static bool OpenFile_(__int64 id, String &out_file, String &out_error);
-      static String BuildRelativePath_();
+
+      // A new copy's path under the quarantine directory: the day's directory and the
+      // stored name, which says whether the message is from outside (StoredName).
+      static String BuildRelativePath_(bool fromOutside);
       static bool ReadRow_(std::shared_ptr<DALRecordset> recordset, QuarantinedMessage &out_message);
       static bool RemoveRecipient_(__int64 id, const QuarantinedMessage &quarantined, const String &recipient);
    };

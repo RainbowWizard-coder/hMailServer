@@ -239,16 +239,22 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   imported from a file - and is recorded so on the queued message, never in a header, and on every copy made of it,
   through a restart (`hm_messages.messageauthdomains` carries the mark ahead of the DMARC domain, with no schema
   change). It leaves with the signature it came with, and with `ArcSealingEnabled` on, the ARC set the relaying
-  domain seals. A managed list does not sign its copies of such a posting as the list's domain when the `From` is of
-  the list domain's organisation, which DMARC would align, and a message released from the quarantine is read as
-  from outside when the `Received` field this server wrote at its arrival names a session that did not sign in.
-  Messages in the queue at the upgrade were recorded without the mark and are signed as before.
+  domain seals. A managed list does not sign its copies of such a posting as the list's domain when an address of
+  the list domain's organisation is anywhere in its `From` fields, which DMARC would align. The quarantine keeps
+  whether a message it holds came from outside in the name of the copy it stores, and a release reads it from there
+  rather than from the message, whose `Received` field a domain's rule may have rewritten before holding it; a
+  message held before the upgrade is from outside unless it has no `Received` field, or the one on top is this
+  server's own for a session that signed in, or the send API's - so that a download from an external account, whose
+  top field is the other server's, is released unsigned. Messages in the queue at the upgrade were recorded without
+  the mark and are signed as before.
 
-  `SigningOriginTester` (`business-object-tests` on Linux) holds which messages are signed, the mark on every copy
-  and on the queue row, and the list's decision to examples; `AntiSpam/DKIM/ArcSealing.cs` sends a signed-in
-  submission (signed) and mail from outside with a hosted `From` through an account's forward, an account rule's
-  forward, a Sieve `redirect` and a distribution list (none signed, the forwards sealed), and a signed-in member's
-  posting to the list (signed). Found by the project's own review.
+  `SigningOriginTester` (`business-object-tests` on Linux) holds which messages are signed, the mark on every copy,
+  on the queue row and in a quarantined copy's name, a release's reading of a header, and the list's decision to
+  examples; `AntiSpam/DKIM/ArcSealing.cs` sends a signed-in submission (signed) and mail from outside with a hosted
+  `From` through an account's forward, an account rule's forward, a Sieve `redirect` and a distribution list (none
+  signed, the forwards sealed) and a signed-in member's posting to the list (signed); `AntiSpam/Quarantine.cs`
+  releases mail from outside that a domain's rule claimed a signed-in client for and then held, and finds its forward
+  not signed. Found by the project's own review.
 
 - **Fixed: an ARC seal attested whatever SPF result the first `Received-SPF` field of the message claimed.** With
   `ArcSealingEnabled` on, the `ARC-Authentication-Results` this server seals over mail it relays read `spf=` from

@@ -237,9 +237,10 @@ unsigned by it, and the providers do not offer the one-click. **A posting from
 outside** - one that did not come from a signed-in session or a range that lets
 a sender in as one of this server's domains ([SendAs.md](SendAs.md#which-messages-the-server-signs-as-a-domain)) -
 is its sender's, and so is every copy: none is signed as the domain its `From`
-names, and when that `From` is of the list domain's own organisation none is
-signed as the list's domain either, since that signature would be one DMARC
-aligns with the `From` (the application log says so for the posting; the
+names, and when an address of the list domain's own organisation is anywhere in
+its `From` fields - a second field, a second address in one, one in a comment or
+a group - none is signed as the list's domain either, since that signature would
+be one DMARC aligns with the `From` a receiver reads (the application log says so for the posting; the
 one-click is then not offered). Until 7 October 2026 such a posting was signed
 as its `From`'s domain before it was distributed. ARC sealing
 (`DKIMSigner`, as for any forward) applies only with `ArcSealingEnabled` on,

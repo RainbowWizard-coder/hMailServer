@@ -315,6 +315,16 @@ namespace HM
       // a From the list never checked.
       static bool SignsCopiesAsListDomain(bool fromOutside, const String &fromHeaderValue, const String &listAddress);
 
+      // The same for every From field a posting has, as written: not when any of
+      // them names an address of the list domain's organisation, whether DMARC here
+      // reads it as the author's or not - a second From field, a second address in
+      // one, an address in a comment or a group. A receiver may take any of them for
+      // the author, and a DKIM signature covers the From field nearest the body: the
+      // form above, which reads the first field's first address alone, lets a posting
+      // with "From: x@evil.example" above "From: ceo@" the list's domain be signed as
+      // the list's domain.
+      static bool SignsCopiesAsListDomain(bool fromOutside, const std::vector<String> &fromHeaderValues, const String &listAddress);
+
       // ---- the pages' budget --------------------------------------------------
 
       // At most so many unauthenticated requests an hour to the list pages from

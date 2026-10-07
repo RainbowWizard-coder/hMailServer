@@ -1199,9 +1199,18 @@ namespace HM
 
       // A posting from outside is its sender's, and so is every copy of it
       // (Message::GetFromOutside): no copy is signed as the domain its From names,
-      // nor as the list's own domain when that is the From's organisation.
+      // nor as the list's own domain when that is the From's organisation - the
+      // organisation of any address in any of its From fields, as they are written.
       const bool fromOutside = message->GetFromOutside();
-      const bool signAsListDomain = SignsCopiesAsListDomain(fromOutside, data->GetFrom(), listAddress);
+      std::vector<String> fromValues;
+      fromValues.push_back(data->GetFrom());
+      for (MimeField &field : mime->Fields())
+      {
+         if (AnsiString(field.GetName()).CompareNoCase("From") == 0)
+            fromValues.push_back(String(AnsiString(field.GetValue())));
+      }
+
+      const bool signAsListDomain = SignsCopiesAsListDomain(fromOutside, fromValues, listAddress);
       if (!signAsListDomain)
       {
          LOG_APPLICATION(Formatter::Format("ListManager: posting {0} to {1} came from outside with a From of the list's own domain, so its copies are not signed as that domain.",
@@ -1440,6 +1449,56 @@ namespace HM
 
       return DMARC::GetOrganizationalDomainByPublicSuffixList(fromDomain).CompareNoCase(
          DMARC::GetOrganizationalDomainByPublicSuffixList(listDomain)) != 0;
+   }
+
+   bool
+   ListManager::SignsCopiesAsListDomain(bool fromOutside, const std::vector<String> &fromHeaderValues, const String &listAddress)
+   {
+      if (!fromOutside)
+         return true;
+
+      const String listDomain = StringParser::ExtractDomain(listAddress);
+      if (listDomain.IsEmpty())
+         return true;
+
+      const String listOrganisation = DMARC::GetOrganizationalDomainByPublicSuffixList(listDomain);
+
+      for (const String &value : fromHeaderValues)
+      {
+         // The address DMARC here reads in the field.
+         if (!SignsCopiesAsListDomain(fromOutside, value, listAddress))
+            return false;
+
+         // And every domain written after an @ anywhere in it - a second address, one
+         // in a group or in a comment - and in every From field the posting has: a
+         // receiver may take any of them for the author, and a DKIM signature covers
+         // the From field nearest the body, which need not be the first.
+         String lowered = value;
+         lowered.MakeLower();
+
+         for (int at = lowered.Find(_T("@")); at >= 0; at = lowered.Find(_T("@"), at + 1))
+         {
+            int end = at + 1;
+            while (end < lowered.GetLength())
+            {
+               const wchar_t character = lowered[end];
+               const bool ascii = character < 0x80;
+               if (ascii && !((character >= L'a' && character <= L'z') || (character >= L'0' && character <= L'9') ||
+                              character == L'.' || character == L'-'))
+                  break;
+               end++;
+            }
+
+            String domain = lowered.Mid(at + 1, end - at - 1);
+            domain.TrimLeft(L'.');
+            domain.TrimRight(L'.');
+
+            if (!domain.IsEmpty() && DMARC::GetOrganizationalDomainByPublicSuffixList(domain).CompareNoCase(listOrganisation) == 0)
+               return false;
+         }
+      }
+
+      return true;
    }
 
    bool
