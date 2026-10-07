@@ -825,5 +825,82 @@ namespace RegressionTests.AntiSpam.DKIM
          StringAssert.Contains("added by a script", messageData, "The script's field is not in the redirected copy, so this proves nothing.");
          AssertSealDoesNotAttestAPass(messageData, "the Received-SPF field a Sieve script added");
       }
+
+      // ---- Whose results the seal attests ----
+
+      // The test key's public half (SSL examples\example.key), as the suite's zone
+      // publishes it for a domain signing with it.
+      private const string ExampleKeyPublic =
+         "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAit1HZshVeIm3Yu3dBqKzIAQDM+k5hPu+S9RzJeaFnPQw888jfvuBQkVTinZWn65X4TLhcEjsV7iDgWzVhcEKUUphhpR9i+JgOjncOSxs7zvv2xOpFuYweOqVrWV9brr8DEt3f+MdfYUiz62toL82Za447DOhNI/YAVEJqCmgbeSycN2emmZC6Z8dXV7fxKM3IeJ6G8hVLbvWhZe8fHkJ0+tJXeARBHhowFW1VXgkOGOHFtPjpmNrJRbbDKf8+IqyUk9uV51y3GEIunovr1Yc3vvExpXwWLZIdqKtvGVFBxyvTtuAmtw7Ebmz0evN41wH7vTWgui0VgsZqNIIUwz+fQIDAQAB";
+
+      /// <summary>
+      /// The seal's results said dkim=pass with no header.d, so a receiver could not tell
+      /// whose signature had passed - a sender's own domain's, or the author's. Each
+      /// domain whose signature verified is now named (RFC 8601 2.7.1).
+      ///
+      /// Against the server before the fix the results say "dkim=pass;" alone.
+      /// </summary>
+      [Test]
+      [Description("An ARC seal names, as header.d, the domain of each DKIM signature that verified.")]
+      public void TheSealNamesTheDomainWhoseSignatureVerified()
+      {
+         var sender = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "seal-names-d@example.test", "test");
+         SuiteDns.Zone.WithTxt("TestSelector._domainkey.example.test", "v=DKIM1; k=rsa; p=" + ExampleKeyPublic);
+
+         try
+         {
+            string messageData = DeliveredToTheRoute(() =>
+               new SmtpClientSimulator().SendRaw(sender.Address, "test", sender.Address, "external@example.com",
+                  "From: " + sender.Address + "\r\nTo: external@example.com\r\nSubject: Whose pass?\r\n\r\nBody.\r\n"));
+
+            AssertArcSealed(messageData, "example.test");
+            string results = ExtractHeader(messageData, "ARC-Authentication-Results");
+            Assert.IsNotNull(results, messageData);
+            StringAssert.Contains("dkim=pass header.d=example.test", results,
+               "The seal does not name the domain whose signature verified.\r\n" + messageData);
+         }
+         finally
+         {
+            SuiteDns.Reset();
+         }
+      }
+
+      /// <summary>
+      /// The seal's results said spf= with no smtp.mailfrom, so a receiver could not tell
+      /// which domain's policy had been checked. The domain the check evaluated - the
+      /// envelope sender's, recorded when the message arrived, since a forward's envelope
+      /// may be rewritten since - is now named (RFC 8601 2.7.2). The sender's domain
+      /// publishes "v=spf1 -all" in the suite's zone, so the check fails for the loopback
+      /// client; its score is 0, so the failure marks nothing.
+      ///
+      /// Against the server before the fix the results say "spf=fail" alone.
+      /// </summary>
+      [Test]
+      [Description("An ARC seal names, as smtp.mailfrom, the domain the SPF check evaluated.")]
+      public void TheSealNamesTheDomainTheSpfCheckEvaluated()
+      {
+         SingletonProvider<TestSetup>.Instance.AddAlias(_domain, "spf-named@example.test", "external@example.com");
+         SuiteDns.Zone.WithTxt("spf-sealed.example", "v=spf1 -all");
+         _settings.AntiSpam.UseSPF = true;
+         _settings.AntiSpam.UseSPFScore = 0;
+
+         try
+         {
+            string messageData = DeliveredToTheRoute(() =>
+               new SmtpClientSimulator().SendRaw("someone@spf-sealed.example", "spf-named@example.test",
+                  "From: someone@spf-sealed.example\r\nTo: spf-named@example.test\r\nSubject: Which domain?\r\n\r\nBody.\r\n"));
+
+            AssertArcSealed(messageData, "example.test");
+            string results = ExtractHeader(messageData, "ARC-Authentication-Results");
+            Assert.IsNotNull(results, messageData);
+            StringAssert.Contains("spf=fail smtp.mailfrom=spf-sealed.example", results,
+               "The seal does not name the domain the SPF check evaluated.\r\n" + messageData);
+         }
+         finally
+         {
+            _settings.AntiSpam.UseSPF = false;
+            SuiteDns.Reset();
+         }
+      }
    }
 }

@@ -133,6 +133,20 @@ namespace HM
    }
 
    AnsiString
+   AuthenticationResults::SpfMailFromDomain() const
+   {
+      if (!HasSpfResult() || spf_identity_type_ != "smtp.mailfrom")
+         return "";
+
+      // The envelope sender's domain: an address with no "@" in it is no envelope
+      // sender a domain can be read from.
+      if (spf_identity_value_.Find("@") < 0)
+         return "";
+
+      return PassedDomainOf(spf_identity_value_);
+   }
+
+   AnsiString
    AuthenticationResults::ResultKeyword_(MethodResult result)
    {
       switch (result)

@@ -306,10 +306,14 @@ namespace HM
       // names either; receivedSpfResult is the posting's
       // Message::GetReceivedSpfResult, which the copy carries as well, so that the
       // ARC set sealed over it attests the SPF result this server reached for the
-      // posting rather than none. False when it could not be queued; the reason is
+      // posting rather than none, and receivedSpfDomain the domain that check
+      // evaluated (Message::GetReceivedSpfDomain), which the set names beside it. The
+      // copy is recorded as sent on by the list's domain (Message::GetRelayingDomainID),
+      // whose key seals that set. False when it could not be queued; the reason is
       // reported.
       static bool QueueCopy(std::shared_ptr<const DistributionList> list, const String &member, const String &token, const String &contentFile, bool queryMember,
-                            bool fromOutside = false, bool signAsListDomain = true, const String &receivedSpfResult = String());
+                            bool fromOutside = false, bool signAsListDomain = true, const String &receivedSpfResult = String(),
+                            const String &receivedSpfDomain = String());
 
       // Whether the list may sign a copy of this posting as its own domain: always,
       // but for a posting from outside (Message::GetFromOutside) whose From names a

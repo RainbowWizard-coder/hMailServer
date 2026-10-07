@@ -161,13 +161,17 @@ namespace HM
       // And what else the queued message records of where it came from, which a
       // release puts back on the message it queues, so that a copy of it relayed on
       // is sealed as one never held would be: the SPF result this server's own check
-      // reached (Message::GetReceivedSpfResult), which the ARC set attests, and the
-      // hosted domain that sends it on (DKIMSigner::RelayingDomainID), whose key seals
-      // that set - an alias's, whose expansion a release does not repeat. Each is a
-      // word of the name between the GUID and the end - ".spf-pass", ".relay-12" -
-      // written only when there is something to say, and none holds a dot. A copy held
-      // before 7 October 2026 has none, and is released as it always was, with no SPF
-      // result and no domain recorded to seal it.
+      // reached (Message::GetReceivedSpfResult), which the ARC set attests; whether the
+      // domain that check evaluated (Message::GetReceivedSpfDomain), which the set
+      // names beside it, is the domain of the held message's envelope sender, which
+      // the row keeps - a domain is too long for a file name, and is that sender's for
+      // every message held as it arrived; and the hosted domain that sends it on
+      // (DKIMSigner::RelayingDomainID), whose key seals that set - an alias's, whose
+      // expansion a release does not repeat. Each is a word of the name between the
+      // GUID and the end - ".spf-pass", ".mailfrom", ".relay-12" - written only when
+      // there is something to say, and none holds a dot. A copy held before 7 October
+      // 2026 has none, and is released as it always was, with no SPF result and no
+      // domain recorded to seal it.
       struct StoredMarks
       {
          // Whether the name says where the message came from at all: false for a
@@ -175,6 +179,7 @@ namespace HM
          bool known = false;
          bool from_outside = false;
          String spf_result;
+         bool spf_domain_is_senders = false;
          __int64 relaying_domain_id = 0;
       };
 
@@ -205,8 +210,9 @@ namespace HM
       static bool ReleasedCopyIsFromOutside_(const String &relativePath, const String &file);
 
       // Puts back on a released copy's message what the stored copy's name kept of
-      // where it came from beside the origin (StoredMarks): the SPF result and the
-      // hosted domain that sends it on.
+      // where it came from beside the origin (StoredMarks): the SPF result, the domain
+      // it was reached for when that is the sender's, and the hosted domain that sends
+      // it on.
       static void ApplyStoredMarks_(const QuarantinedMessage &quarantined, Message &message);
       static bool OpenFile_(__int64 id, String &out_file, String &out_error);
 

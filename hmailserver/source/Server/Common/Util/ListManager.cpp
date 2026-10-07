@@ -1208,6 +1208,7 @@ namespace HM
       // is made from nothing but the posting's file, and without it the seal said
       // spf=none for every posting, a passing one among them.
       const String receivedSpfResult = message->GetReceivedSpfResult();
+      const String receivedSpfDomain = message->GetReceivedSpfDomain();
 
       std::vector<String> fromValues;
       fromValues.push_back(data->GetFrom());
@@ -1298,7 +1299,7 @@ namespace HM
 
          EnsureToken(row);
 
-         if (QueueCopy(list, address, row->GetToken(), copyFile, false, fromOutside, signAsListDomain, receivedSpfResult))
+         if (QueueCopy(list, address, row->GetToken(), copyFile, false, fromOutside, signAsListDomain, receivedSpfResult, receivedSpfDomain))
             each++;
          else
             failed++;
@@ -1332,7 +1333,7 @@ namespace HM
             if (IsListOwnAddress(member, listAddress))
                continue;
 
-            if (QueueCopy(list, member, QueryMemberToken(secret, member), copyFile, true, fromOutside, signAsListDomain, receivedSpfResult))
+            if (QueueCopy(list, member, QueryMemberToken(secret, member), copyFile, true, fromOutside, signAsListDomain, receivedSpfResult, receivedSpfDomain))
                each++;
             else
                failed++;
@@ -1510,12 +1511,13 @@ namespace HM
 
    bool
    ListManager::QueueCopy(std::shared_ptr<const DistributionList> list, const String &member, const String &token, const String &contentFile, bool queryMember,
-                          bool fromOutside, bool signAsListDomain, const String &receivedSpfResult)
+                          bool fromOutside, bool signAsListDomain, const String &receivedSpfResult, const String &receivedSpfDomain)
    {
       std::shared_ptr<Message> copy(new Message());
       copy->SetState(Message::Delivering);
       copy->SetFromOutside(fromOutside);
       copy->SetReceivedSpfResult(receivedSpfResult);
+      copy->SetReceivedSpfDomain(receivedSpfDomain);
 
       // The list's domain sends every copy on, a digest among them, and seals the ARC
       // set over one it does not sign (Message::GetRelayingDomainID).

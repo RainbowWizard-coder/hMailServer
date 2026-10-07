@@ -3252,6 +3252,10 @@ namespace HM
          // the message is relayed on: never a Received-SPF field the message carries
          // (Message::GetReceivedSpfResult).
          current_message_->SetReceivedSpfResult(String(authentication_results_->SpfResultKeyword()));
+
+         // And the domain it evaluated, which the seal reports as smtp.mailfrom: a
+         // forward's envelope sender may be rewritten before then.
+         current_message_->SetReceivedSpfDomain(String(authentication_results_->SpfMailFromDomain()));
       }
 
       // A message this server is not the submission server for - the session did not

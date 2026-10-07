@@ -63,6 +63,13 @@ namespace HM
       // when it relays the message on.
       AnsiString SpfResultKeyword() const;
 
+      // The domain the SPF check evaluated, the domain of the envelope sender, as the
+      // ARC set this server seals reports it (smtp.mailfrom, RFC 8601 2.7.2: the
+      // domain, without the local part): lower-cased, and nothing when the check did
+      // not run, the envelope sender was null - the check then evaluated the HELO name
+      // - or the value is not purely a domain's characters.
+      AnsiString SpfMailFromDomain() const;
+
       // What passed, for the message's own record of where it came from
       // (Message::GetAuthDomains, read by a room or a piece of equipment,
       // Util/ResourceBooking.h): "dmarc=<the From domain>", lower-cased, when

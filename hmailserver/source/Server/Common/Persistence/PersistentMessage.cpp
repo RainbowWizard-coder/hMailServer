@@ -777,6 +777,7 @@ namespace HM
       // And so does the SPF result this server reached for the message it copies,
       // which the ARC set sealed over a forward attests (Message::GetReceivedSpfResult).
       pTo->SetReceivedSpfResult(sourceMessage->GetReceivedSpfResult());
+      pTo->SetReceivedSpfDomain(sourceMessage->GetReceivedSpfDomain());
 
       // And the hosted domain that sends the message on, which seals that set
       // (Message::GetRelayingDomainID) - until whoever makes the copy for an account
@@ -792,6 +793,7 @@ namespace HM
       const wchar_t *const OutsideMark = L"outside";
       const wchar_t *const SpfMark = L"spf=";
       const wchar_t *const RelayMark = L"relay=";
+      const wchar_t *const SpfDomainMark = L"mailfrom=";
       const int OriginColumnWidth = 255;
 
       // The id a "relay=" mark holds: digits, and a hosted domain's id, or 0.
@@ -833,14 +835,31 @@ namespace HM
          marks = marks.IsEmpty() ? relay : marks + _T(",") + relay;
       }
 
+      // Those are short and always kept. The domain the SPF check evaluated
+      // (Message::GetReceivedSpfDomain) may be long, and is what the seal names beside
+      // the result: kept when it fits beside the rest, the domains vouched for first.
+      String spfDomain = message.GetReceivedSpfDomain();
+      const String spfDomainMark = spfDomain.IsEmpty() || spfDomain.Find(_T(",")) >= 0 ? String() : String(SpfDomainMark) + spfDomain;
+
       const String domains = message.GetAuthDomains();
 
-      String column = marks;
-      if (!domains.IsEmpty())
-         column = column.IsEmpty() ? domains : column + _T(",") + domains;
+      auto joined = [](const String &left, const String &right)
+      {
+         if (left.IsEmpty())
+            return right;
+         if (right.IsEmpty())
+            return left;
+         return left + _T(",") + right;
+      };
+
+      String column = joined(joined(marks, spfDomainMark), domains);
 
       // The domains are dropped whole rather than cut, as a value too long for the
-      // column always was; the marks, which are short, are kept.
+      // column always was - after the SPF domain, and before the marks, which are kept.
+      if (column.GetLength() > OriginColumnWidth)
+         column = joined(marks, domains);
+      if (column.GetLength() > OriginColumnWidth)
+         column = joined(marks, spfDomainMark);
       if (column.GetLength() > OriginColumnWidth)
          column = marks.GetLength() > OriginColumnWidth ? String() : marks;
 
@@ -854,9 +873,11 @@ namespace HM
       bool outside = false;
       String spf;
       __int64 relay = 0;
+      String spfDomain;
 
       // The marks come first; the first word that is not one begins the domains.
       const int relayMarkLength = static_cast<int>(wcslen(RelayMark));
+      const int spfDomainMarkLength = static_cast<int>(wcslen(SpfDomainMark));
       for (;;)
       {
          const int comma = rest.Find(_T(","));
@@ -869,6 +890,8 @@ namespace HM
             spf = word.Mid(4);
          else if (word.GetLength() > relayMarkLength && word.Left(relayMarkLength).CompareNoCase(RelayMark) == 0)
             relay = RelayDomainIdOf(word.Mid(relayMarkLength));
+         else if (word.GetLength() > spfDomainMarkLength && word.Left(spfDomainMarkLength).CompareNoCase(SpfDomainMark) == 0)
+            spfDomain = word.Mid(spfDomainMarkLength);
          else
             break;
 
@@ -878,6 +901,7 @@ namespace HM
       message.SetFromOutside(outside);
       message.SetReceivedSpfResult(spf);
       message.SetRelayingDomainID(relay);
+      message.SetReceivedSpfDomain(spfDomain);
       message.SetAuthDomains(rest);
    }
 

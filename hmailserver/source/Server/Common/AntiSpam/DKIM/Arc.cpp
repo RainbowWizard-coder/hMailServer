@@ -13,6 +13,7 @@
 
 #include "../../BO/Message.h"
 #include "../../Mime/Mime.h"
+#include "../AuthenticationResults.h"
 #include "../QuarantineStore.h"
 #include "../../Persistence/PersistentMessage.h"
 #include "../../Persistence/MessageStore.h"
@@ -141,7 +142,10 @@ namespace HM
       AnsiString authservId = Utilities::ComputerName();
       authservId.MakeLower();
 
-      AnsiString aarValue = AuthenticationResultsValue(instance, authservId, DkimResultOf_(fileName), message->GetReceivedSpfResult());
+      std::vector<AnsiString> dkimPassingDomains;
+      const AnsiString dkimResult = DkimResultOf_(fileName, dkimPassingDomains);
+      AnsiString aarValue = AuthenticationResultsValue(instance, authservId, dkimResult, dkimPassingDomains,
+                                                       message->GetReceivedSpfResult(), message->GetReceivedSpfDomain());
 
       // 2) ARC-Message-Signature: a DKIM-style signature over the message,
       //    excluding all ARC header fields.
@@ -774,13 +778,13 @@ namespace HM
    }
 
    AnsiString
-   Arc::DkimResultOf_(const String &messageFileName)
+   Arc::DkimResultOf_(const String &messageFileName, std::vector<AnsiString> &passingDomains)
    {
       // Verify the message as stored right now.
       AnsiString dkimResult = "none";
 
       DKIM dkim;
-      switch (dkim.Verify(messageFileName))
+      switch (dkim.Verify(messageFileName, passingDomains))
       {
       case DKIM::Pass:
          dkimResult = "pass";
@@ -799,8 +803,52 @@ namespace HM
       return dkimResult;
    }
 
+   namespace
+   {
+      // A domain as a property value of the seal's results: lower-cased, and nothing
+      // unless it is a domain's characters alone - letters, digits, dots, hyphens and
+      // the underscores a DKIM d= may hold - of at most 253, so that no value can end
+      // a method or write a line of its own.
+      AnsiString ResultsDomain(const AnsiString &given)
+      {
+         AnsiString domain = given;
+         domain.Trim();
+         domain.MakeLower();
+
+         if (domain.IsEmpty() || domain.GetLength() > 253)
+            return "";
+
+         for (int i = 0; i < domain.GetLength(); i++)
+         {
+            const char c = domain.c_str()[i];
+            if (!((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '.' || c == '-' || c == '_'))
+               return "";
+         }
+
+         return domain;
+      }
+
+      // Appends one method's result, ";" before it as RFC 8601's ABNF has it, on a
+      // folded line of its own once the line it would go on has grown past a width a
+      // reader keeps to: a set of several DKIM results with long domains would
+      // otherwise pass RFC 5322's 998 characters. The line starts after the field's
+      // name, "ARC-Authentication-Results: ", which TraceHeaderWriter writes before it.
+      void AppendResult(AnsiString &value, const AnsiString &method)
+      {
+         const int fieldNameLength = 28;
+         const int lastFold = value.ReverseFind('\n');
+         const int lineLength = lastFold < 0 ? fieldNameLength + value.GetLength() : value.GetLength() - lastFold - 1;
+
+         value += ";";
+         value += lineLength + 2 + method.GetLength() > 78 ? "\r\n\t" : " ";
+         value += method;
+      }
+   }
+
    AnsiString
-   Arc::AuthenticationResultsValue(int instance, const AnsiString &authservId, const AnsiString &dkimResult, const String &spfResult)
+   Arc::AuthenticationResultsValue(int instance, const AnsiString &authservId, const AnsiString &dkimResult,
+                                   const std::vector<AnsiString> &dkimPassingDomains, const String &spfResult,
+                                   const String &spfDomain)
    {
       // SPF result: the one this server's own check reached when the message arrived,
       // recorded on the message (Message::GetReceivedSpfResult) - never a Received-SPF
@@ -819,8 +867,51 @@ namespace HM
       }
 
       AnsiString result;
-      result.Format("i=%d; %hs; dkim=%hs; spf=%hs",
-         instance, authservId.c_str(), dkimResult.c_str(), spfKeyword.c_str());
+      result.Format("i=%d; %hs", instance, authservId.c_str());
+
+      // dkim=: one result for each signing domain whose signature verified, with its
+      // d= as header.d (RFC 8601 2.7.1), so that a receiver can tell whose signature
+      // passed - a pass for a sender's own domain says nothing of the author's. A
+      // domain that signed twice is named once. Otherwise the one verdict, which names
+      // no domain: none, fail or temperror.
+      std::vector<AnsiString> named;
+      if (dkimResult == "pass")
+      {
+         for (const AnsiString &passing : dkimPassingDomains)
+         {
+            const AnsiString domain = ResultsDomain(passing);
+            if (domain.IsEmpty())
+               continue;
+
+            bool already = false;
+            for (const AnsiString &name : named)
+               already = already || name == domain;
+
+            if (!already)
+               named.push_back(domain);
+         }
+      }
+
+      if (named.empty())
+      {
+         AppendResult(result, "dkim=" + dkimResult);
+      }
+      else
+      {
+         for (const AnsiString &domain : named)
+            AppendResult(result, "dkim=pass header.d=" + domain);
+      }
+
+      // spf=, with the domain the check evaluated as smtp.mailfrom (RFC 8601 2.7.2: the
+      // domain alone, without the local part) - recorded with the result, since a
+      // forward's envelope sender may have been rewritten since - when there is one: a
+      // check that did not run, or ran for a null envelope sender, names none.
+      AnsiString spf = "spf=" + spfKeyword;
+      const AnsiString mailFrom = ResultsDomain(AnsiString(spfDomain));
+      if (!mailFrom.IsEmpty() && spfKeyword == given)
+         spf += " smtp.mailfrom=" + mailFrom;
+
+      AppendResult(result, spf);
 
       return result;
    }
@@ -853,9 +944,11 @@ namespace HM
          { L"fail\r\nARC-Seal: forged", "none" },
       };
 
+      const std::vector<AnsiString> noDomains;
+
       for (const Case &c : cases)
       {
-         const AnsiString value = Arc::AuthenticationResultsValue(1, "mail.example.test", "none", String(c.given));
+         const AnsiString value = Arc::AuthenticationResultsValue(1, "mail.example.test", "none", noDomains, String(c.given), String());
          const std::string got(value.c_str());
          const std::string wanted = std::string("spf=") + c.spf;
 
@@ -871,9 +964,103 @@ namespace HM
 
       // The DKIM verdict is the one given, beside the SPF result.
       {
-         const std::string value(Arc::AuthenticationResultsValue(2, "mail.example.test", "pass", _T("fail")).c_str());
+         const std::string value(Arc::AuthenticationResultsValue(2, "mail.example.test", "pass", noDomains, _T("fail"), String()).c_str());
          if (value.find("i=2; ") != 0 || value.find("dkim=pass; spf=fail") == std::string::npos)
             fail("\"" + value + "\" is not instance 2 with dkim=pass and spf=fail");
+      }
+
+      // Whose results they are (RFC 8601 2.7.1, 2.7.2): a dkim=pass with header.d for
+      // each domain whose signature verified, each named once, and the domain the SPF
+      // check evaluated as smtp.mailfrom - and neither when it is no domain.
+      {
+         struct PropertyCase
+         {
+            const char *dkim;
+            std::vector<AnsiString> domains;
+            const wchar_t *spf;
+            const wchar_t *spfDomain;
+            const char *wanted;
+            const char *what;
+         };
+
+         const PropertyCase propertyCases[] =
+         {
+            { "pass", { "example.net" }, L"pass", L"example.org",
+              "i=1; mx.test; dkim=pass header.d=example.net; spf=pass smtp.mailfrom=example.org", "one signature and an SPF pass" },
+            { "pass", { "Example.NET", "example.net", "lists.example.com" }, L"softfail", L"example.org",
+              "i=1; mx.test; dkim=pass header.d=example.net; dkim=pass header.d=lists.example.com; spf=softfail smtp.mailfrom=example.org",
+              "a domain that signed twice and another" },
+            { "fail", { }, L"fail", L"example.org", "i=1; mx.test; dkim=fail; spf=fail smtp.mailfrom=example.org", "no signature that verified" },
+            { "none", { }, L"", L"example.org", "i=1; mx.test; dkim=none; spf=none", "an SPF check that did not run" },
+            { "none", { }, L"none", L"example.org", "i=1; mx.test; dkim=none; spf=none smtp.mailfrom=example.org", "a domain with no SPF policy" },
+            { "none", { }, L"pass", L"", "i=1; mx.test; dkim=none; spf=pass", "a null envelope sender" },
+            { "pass", { "a;b.example", "ok.example" }, L"pass", L"x\r\nARC-Seal: forged", "i=1; mx.test; dkim=pass header.d=ok.example; spf=pass",
+              "values that are no domains" },
+            { "pass", { "a;b.example" }, L"pass", L"example.org", "i=1; mx.test; dkim=pass; spf=pass smtp.mailfrom=example.org",
+              "a pass whose only domain is no domain" },
+         };
+
+         for (const PropertyCase &c : propertyCases)
+         {
+            // Unfolded, as a reader reads it: where the value is folded is the case below.
+            AnsiString value = Arc::AuthenticationResultsValue(1, "mx.test", c.dkim, c.domains, String(c.spf), String(c.spfDomain));
+            value.Replace("\r\n\t", " ");
+            const std::string got(value.c_str());
+            if (got != c.wanted)
+               fail(std::string("for ") + c.what + " the value is \"" + got + "\", not \"" + c.wanted + "\"");
+         }
+
+         // Many long domains fold the value between its methods: each line after the
+         // first is a fold - a tab and a method - and none nears RFC 5322's 998
+         // characters, the field's name on the first among them.
+         std::vector<AnsiString> many;
+         for (int i = 0; i < 6; i++)
+            many.push_back(AnsiString(std::string(240, (char) ('a' + i)).c_str()) + ".example");
+
+         const std::string folded(Arc::AuthenticationResultsValue(1, "mx.test", "pass", many, _T("pass"), _T("example.org")).c_str());
+         std::vector<std::string> lines;
+         for (size_t start = 0;;)
+         {
+            const size_t end = folded.find("\r\n", start);
+            lines.push_back(folded.substr(start, end == std::string::npos ? std::string::npos : end - start));
+            if (end == std::string::npos)
+               break;
+            start = end + 2;
+         }
+
+         // The instance and the identity, a line for each signature and one for SPF.
+         if (lines.size() != 8)
+            fail("a value with six long domains is " + std::to_string(lines.size()) + " lines, not eight: \"" + folded + "\"");
+         for (size_t i = 0; i < lines.size(); i++)
+         {
+            const size_t length = lines[i].size() + (i == 0 ? std::string("ARC-Authentication-Results: ").size() : 0);
+            if (length > 300 || lines[i].find('\r') != std::string::npos || lines[i].find('\n') != std::string::npos)
+               fail("a folded value has a line of " + std::to_string(length) + " characters, or a line break that is not a fold");
+            if (i > 0 && lines[i].find("\tdkim=pass header.d=") != 0 && lines[i].find("\tspf=pass smtp.mailfrom=example.org") != 0)
+               fail("a folded value's line " + std::to_string(i + 1) + " is not a fold before a method: \"" + lines[i] + "\"");
+         }
+
+         // Relaxed canonicalization, which the seal signs it under, unfolds it to the
+         // value written on one line.
+         RelaxedCanonicalization relaxed;
+         AnsiString oneLine = folded.c_str();
+         oneLine.Replace("\r\n\t", " ");
+         if (relaxed.CanonicalizeHeaderValue(AnsiString(folded.c_str())) != relaxed.CanonicalizeHeaderValue(oneLine))
+            fail("a folded value canonicalizes to something other than the value on one line");
+
+         // And the domain the check evaluated: the session's, from the envelope sender.
+         AuthenticationResults results;
+         results.SetSpf(AuthenticationResults::ResultFail, "smtp.mailfrom", "Someone@Example.ORG", "192.0.2.1", "helo.example");
+         if (results.SpfMailFromDomain() != "example.org")
+            fail("the SPF check's domain is \"" + std::string(results.SpfMailFromDomain().c_str()) + "\", not example.org");
+
+         AuthenticationResults nullSender;
+         nullSender.SetSpf(AuthenticationResults::ResultPass, "smtp.mailfrom", "", "192.0.2.1", "helo.example");
+         AuthenticationResults notRun;
+         AuthenticationResults notADomain;
+         notADomain.SetSpf(AuthenticationResults::ResultFail, "smtp.mailfrom", "x@exa mple.org", "192.0.2.1", "helo.example");
+         if (!nullSender.SpfMailFromDomain().IsEmpty() || !notRun.SpfMailFromDomain().IsEmpty() || !notADomain.SpfMailFromDomain().IsEmpty())
+            fail("a null envelope sender, a check that did not run or a value that is no domain gave the SPF check a domain");
       }
 
       // The result travels with every copy, and through the queue row.
@@ -914,6 +1101,76 @@ namespace HM
          PersistentMessage::ReadOriginColumn(_T("dmarc=example.net"), legacy);
          if (!legacy.GetReceivedSpfResult().IsEmpty() || legacy.GetAuthDomains().Compare(_T("dmarc=example.net")) != 0)
             fail("a column written before the SPF result was kept read as something else");
+
+         // The domain the check evaluated travels the same way: every copy, the queue row
+         // while it fits - the domains vouched for keep their place before it - and only
+         // a domain's characters.
+         {
+            std::shared_ptr<Message> checked(new Message(false));
+            checked->SetFromOutside(true);
+            checked->SetReceivedSpfResult(_T("softfail"));
+            checked->SetReceivedSpfDomain(_T("Bounces.Example.ORG"));
+            checked->SetAuthDomains(_T("dmarc=example.net"));
+
+            if (checked->GetReceivedSpfDomain().Compare(_T("bounces.example.org")) != 0)
+               fail("the SPF check's domain is kept as \"" + std::string(AnsiString(checked->GetReceivedSpfDomain()).c_str()) + "\"");
+            if (Message(*checked).GetReceivedSpfDomain().Compare(_T("bounces.example.org")) != 0 ||
+                Message(*checked).GetAuthDomains().Compare(_T("dmarc=example.net")) != 0)
+               fail("the copy constructor's copy lost the SPF check's domain or the domains vouched for");
+
+            std::shared_ptr<Message> copied = PersistentMessage::CreateCopy_(checked, 0);
+            if (!copied || copied->GetReceivedSpfDomain().Compare(_T("bounces.example.org")) != 0 || !copied->GetAuthDomains().IsEmpty())
+               fail("the queued copy did not carry the SPF check's domain, or carried the domains vouched for");
+
+            const String checkedColumn = PersistentMessage::OriginColumn(*checked);
+            if (checkedColumn.Compare(_T("outside,spf=softfail,mailfrom=bounces.example.org,dmarc=example.net")) != 0)
+               fail("the queue row's column with the SPF check's domain is \"" + std::string(AnsiString(checkedColumn).c_str()) + "\"");
+
+            Message checkedRead(false);
+            PersistentMessage::ReadOriginColumn(checkedColumn, checkedRead);
+            if (checkedRead.GetReceivedSpfDomain().Compare(_T("bounces.example.org")) != 0 ||
+                checkedRead.GetAuthDomains().Compare(_T("dmarc=example.net")) != 0 || checkedRead.GetReceivedSpfResult().Compare(_T("softfail")) != 0)
+               fail("the column \"" + std::string(AnsiString(checkedColumn).c_str()) + "\" read back as something else");
+
+            // Too long beside the domains vouched for: it goes first, and they stay.
+            Message crowded(false);
+            crowded.SetFromOutside(true);
+            crowded.SetReceivedSpfDomain(String(std::wstring(120, L'm')) + _T(".example"));
+            crowded.SetAuthDomains(String(_T("dmarc=")) + String(std::wstring(120, L'd')) + _T(".example"));
+            const String crowdedColumn = PersistentMessage::OriginColumn(crowded);
+            if (crowdedColumn.Find(_T("mailfrom=")) >= 0 || crowdedColumn.Find(_T("dmarc=")) < 0 || crowdedColumn.Find(_T("outside")) != 0)
+               fail("a column too long for the SPF check's domain and the domains vouched for is \"" + std::string(AnsiString(crowdedColumn).c_str()) + "\"");
+
+            Message alone(false);
+            alone.SetReceivedSpfDomain(String(std::wstring(200, L'm')) + _T(".example"));
+            if (PersistentMessage::OriginColumn(alone).Find(_T("mailfrom=")) != 0)
+               fail("the SPF check's domain alone, which fits, was not written");
+
+            const wchar_t *notDomains[] = { L"a,b.example", L"x\r\nARC-Seal: y", L"exa mple.org", L"under_score.example" };
+            for (const wchar_t *notDomain : notDomains)
+            {
+               Message kept(false);
+               kept.SetReceivedSpfDomain(_T("example.org"));
+               kept.SetReceivedSpfDomain(String(notDomain));
+               if (!kept.GetReceivedSpfDomain().IsEmpty())
+                  fail("\"" + std::string(AnsiString(String(notDomain)).c_str()) + "\" is kept as the SPF check's domain");
+            }
+
+            Message empty(false);
+            if (!empty.GetReceivedSpfDomain().IsEmpty() || !empty.GetAuthDomains().IsEmpty() || !Message(empty).GetAuthDomains().IsEmpty())
+               fail("a message with nothing recorded of where it came from has something");
+
+            // A quarantined copy's name says whether it was the held sender's domain.
+            QuarantineStore::StoredMarks marks;
+            marks.from_outside = true;
+            marks.spf_result = _T("fail");
+            marks.spf_domain_is_senders = true;
+            const String name = QuarantineStore::StoredName(_T("{0F8E4C2A-6B1D-4E5F-9A3C-7D2B8E1F4A6C}"), marks);
+            const QuarantineStore::StoredMarks read = QuarantineStore::MarksOfStoredName(name);
+            if (name.Compare(_T("{0F8E4C2A-6B1D-4E5F-9A3C-7D2B8E1F4A6C}.spf-fail.mailfrom.outside.eml")) != 0 || !read.spf_domain_is_senders ||
+                QuarantineStore::MarksOfStoredName(_T("{0F8E4C2A-6B1D-4E5F-9A3C-7D2B8E1F4A6C}.spf-fail.outside.eml")).spf_domain_is_senders)
+               fail("the quarantined copy's name \"" + std::string(AnsiString(name).c_str()) + "\" does not say whether the SPF check was of the sender's domain");
+         }
 
          // And through the quarantine: the stored copy's name keeps it beside the
          // origin, and a release reads it back from there; a name of a copy held before

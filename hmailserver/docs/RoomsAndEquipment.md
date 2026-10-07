@@ -170,8 +170,9 @@ and `messageauthdomains`):
   organiser. SPF on its own is not enough, and is never read for it: it vouches
   for the connecting address for an envelope domain whatever the From says, and a
   shared platform named in a partner's SPF record carries other tenants' mail (the
-  column keeps the SPF result beside the DMARC domain, for the ARC seal of a
-  relayed copy, and nothing here reads it). The result is the inbound check's own
+  column keeps the SPF result beside the DMARC domain, and the domain the check
+  evaluated where it fits after it, for the ARC seal of a relayed copy, and nothing
+  here reads them). The result is the inbound check's own
   (`AuthenticationResults::PassedDomains`), recorded whether or not the
   `Authentication-Results` header is switched on, and only when it fits its
   column beside the marks of where the message came from and its SPF result,

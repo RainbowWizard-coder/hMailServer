@@ -273,8 +273,8 @@ namespace HM
       // never carries them.
       __int64 GetSubmitterAccountID() const { return submitter_account_id_; }
       void SetSubmitterAccountID(__int64 accountId) { submitter_account_id_ = accountId; }
-      String GetAuthDomains() const { return auth_domains_; }
-      void SetAuthDomains(const String &domains) { auth_domains_ = domains; }
+      String GetAuthDomains() const;
+      void SetAuthDomains(const String &domains);
 
       // Whether the message, or the message it is a copy of, came in from outside
       // through no submission, so that its From was written by somebody this server
@@ -315,6 +315,20 @@ namespace HM
       // The keyword SetReceivedSpfResult keeps of a value: one of RFC 8601's seven SPF
       // results, in lower case, blanks round it aside, or nothing at all.
       static String SpfResultKeyword(const String &result);
+
+      // The domain that check evaluated - the envelope sender's, as the session gave
+      // it (AuthenticationResults::SpfMailFromDomain) - which the ARC set reports
+      // beside the result as smtp.mailfrom (RFC 8601 2.7.2), or empty: the check did
+      // not run, or the envelope sender was null. A copy's envelope sender may be
+      // rewritten (SRS, RewriteEnvelopeFromWhenForwarding, a list's bounce address),
+      // so the domain checked is kept apart from it. Carried and kept as
+      // GetReceivedSpfResult is - on a queue row only while it fits beside the rest
+      // (PersistentMessage::OriginColumn), and in a quarantined copy's name only as
+      // "the held message's sender's domain" (QuarantineStore::StoredMarks). Only a
+      // domain's characters are kept, in lower case, at most 253 of them; anything
+      // else is kept as none.
+      String GetReceivedSpfDomain() const;
+      void SetReceivedSpfDomain(const String &domain);
 
       // The domain hosted here on whose behalf this server sends the message on, as
       // the server recorded it where it made the message: the domain of the account
@@ -414,7 +428,17 @@ namespace HM
 
       // See GetSubmitterAccountID.
       __int64 submitter_account_id_ = 0;
-      String auth_domains_;
+
+      // The strings of where the message came from - GetAuthDomains and
+      // GetReceivedSpfDomain - which a queued message has and a message in a mailbox
+      // never does: made when one is set, so that every Message an IMAP folder's
+      // cached listing holds carries a pointer for them, not two Strings.
+      struct OriginStrings
+      {
+         String auth_domains;
+         String spf_domain;
+      };
+      std::unique_ptr<OriginStrings> origin_strings_;
 
       // See GetFromOutside.
       bool from_outside_ = false;

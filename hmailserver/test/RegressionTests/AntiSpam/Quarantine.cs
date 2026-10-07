@@ -437,6 +437,8 @@ namespace RegressionTests.AntiSpam
                StringAssert.Contains("spf=fail", forwarded,
                   "The ARC set sealed over the forward of a released message does not attest the SPF result this server reached " +
                   "when the message arrived.\r\n" + forwarded);
+               StringAssert.Contains("smtp.mailfrom=spf-held.example", forwarded,
+                  "The ARC set sealed over the forward of a released message does not name the domain the SPF check evaluated.\r\n" + forwarded);
             }
          }
          finally

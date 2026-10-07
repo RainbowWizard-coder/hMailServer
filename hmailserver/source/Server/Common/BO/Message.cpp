@@ -63,7 +63,8 @@ namespace HM
       message_modseq_.store(other.message_modseq_.load());
 
       submitter_account_id_ = other.submitter_account_id_;
-      auth_domains_ = other.auth_domains_;
+      if (other.origin_strings_)
+         origin_strings_.reset(new OriginStrings(*other.origin_strings_));
       from_outside_ = other.from_outside_;
       received_spf_result_ = other.received_spf_result_;
       relaying_domain_id_ = other.relaying_domain_id_;
@@ -126,6 +127,62 @@ namespace HM
    Message::SpfResultKeyword(const String &result)
    {
       return String(SpfResultKeywords[SpfResultIndex(result)]);
+   }
+
+   String
+   Message::GetAuthDomains() const
+   {
+      return origin_strings_ ? origin_strings_->auth_domains : String();
+   }
+
+   void
+   Message::SetAuthDomains(const String &domains)
+   {
+      if (!origin_strings_)
+      {
+         if (domains.IsEmpty())
+            return;
+
+         origin_strings_.reset(new OriginStrings());
+      }
+
+      origin_strings_->auth_domains = domains;
+   }
+
+   String
+   Message::GetReceivedSpfDomain() const
+   {
+      return origin_strings_ ? origin_strings_->spf_domain : String();
+   }
+
+   void
+   Message::SetReceivedSpfDomain(const String &domain)
+   {
+      // A domain's characters alone, as AuthenticationResults::SpfMailFromDomain gives
+      // it: anything else - a comma, a line break, a NUL - is kept as none.
+      String kept = domain;
+      kept.Trim();
+      kept.MakeLower();
+
+      bool valid = kept.GetLength() <= 253;
+      for (int i = 0; valid && i < kept.GetLength(); i++)
+      {
+         const wchar_t c = kept[i];
+         valid = (c >= L'a' && c <= L'z') || (c >= L'0' && c <= L'9') || c == L'.' || c == L'-';
+      }
+
+      if (!valid)
+         kept.Empty();
+
+      if (!origin_strings_)
+      {
+         if (kept.IsEmpty())
+            return;
+
+         origin_strings_.reset(new OriginStrings());
+      }
+
+      origin_strings_->spf_domain = kept;
    }
 
    String

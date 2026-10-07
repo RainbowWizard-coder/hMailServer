@@ -40,11 +40,14 @@ namespace HM
       // come first, each a word of its own - "outside" for Message::GetFromOutside, and
       // "spf=" and the keyword for Message::GetReceivedSpfResult, written only when it
       // is one word of at most 16 characters, and "relay=" and a domain's id for
-      // Message::GetRelayingDomainID, written only when there is one - then the domains the inbound checks
+      // Message::GetRelayingDomainID, written only when there is one - then
+      // "mailfrom=" and the domain the SPF check evaluated (Message::GetReceivedSpfDomain),
+      // then the domains the inbound checks
       // vouched for (Message::GetAuthDomains, a "dmarc=" word or nothing), commas
       // between. Never longer than the column's 255
-      // characters: when all of it would not fit, the marks are kept and the domains
-      // dropped whole, as a value too long for the column always was, since a mark
+      // characters: when all of it would not fit, the SPF check's domain is dropped
+      // first, then the domains, whole, as a value too long for the column always
+      // was, and the marks are kept, since a mark
       // left out would let a message from outside be signed as the domain its From
       // names. ReadOriginColumn takes the marks back off the front, so that
       // GetAuthDomains answers the domains as they were, and a row written before the

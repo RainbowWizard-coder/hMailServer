@@ -322,6 +322,22 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   an alias's expansion of one whose envelope names another hosted domain, and finds each sealed by the domain that
   relayed it. Found by the project's own review.
 
+- **Fixed: an ARC seal's results did not say whose they were.** The `ARC-Authentication-Results` this server seals
+  said `dkim=pass` and `spf=pass` with no property (from 6.0.0), so a receiver could not tell a pass for the sender's
+  own domain from one for the author's. Each now says, as RFC 8601 section 2.7 and RFC 8617 section 4.1.1 have it:
+  a `dkim=pass header.d=` for each domain whose signature verified when the server sealed the message, each named once,
+  and the domain the SPF check evaluated - the envelope sender's, the local part left out - as `smtp.mailfrom=`. That
+  domain is recorded with the result when the message arrives, since a forward's envelope may be rewritten (SRS,
+  `RewriteEnvelopeFromWhenForwarding`, a list's bounce address), and travels as the result does: on every copy, on the
+  queue row (`mailfrom=`, left out when it does not fit beside the DMARC domain, which keeps its place) and, for a
+  message held as it arrived, as a mark in the quarantined copy's name that it was the sender's domain. A check that
+  did not run, or ran for a null envelope sender, names none, nor is a value that is not a domain's characters ever
+  written. A value too long for one line is folded between its results. A message's record of where it came from
+  costs it less than before: the two strings are kept apart from it, made only when set, so that every message an
+  IMAP folder's cached listing holds is 24 bytes smaller. `ArcAuthenticationResultsTester` holds the value, its folds
+  and the domain's travel to examples, and `AntiSpam/DKIM/ArcSealing.cs` and `AntiSpam/Quarantine.cs` find both
+  named in a seal. Found by the project's own review.
+
 ### Correctness
 
 - **Fixed: a ManageSieve refusal that quoted a script's text with a line break in it was split in two.** RFC 5804's

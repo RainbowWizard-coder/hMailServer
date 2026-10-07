@@ -107,6 +107,7 @@ namespace HM
       // (QuarantineStore::StoredMarks).
       const wchar_t *const SpfNameMark = L"spf-";
       const wchar_t *const RelayNameMark = L"relay-";
+      const wchar_t *const SendersDomainNameMark = L"mailfrom";
 
       bool EndsWithNoCase(const String &text, const wchar_t *end)
       {
@@ -143,6 +144,9 @@ namespace HM
       const String spf = Message::SpfResultKeyword(marks.spf_result);
       if (!spf.IsEmpty())
          name += String(_T(".")) + SpfNameMark + spf;
+
+      if (marks.spf_domain_is_senders)
+         name += String(_T(".")) + SendersDomainNameMark;
 
       // A hosted domain's id, digits alone.
       if (marks.relaying_domain_id > 0 && marks.relaying_domain_id <= INT_MAX)
@@ -192,6 +196,8 @@ namespace HM
 
          if (StartsWithNoCase(word, SpfNameMark))
             marks.spf_result = Message::SpfResultKeyword(word.Mid(static_cast<int>(wcslen(SpfNameMark))));
+         else if (word.CompareNoCase(SendersDomainNameMark) == 0)
+            marks.spf_domain_is_senders = true;
          else if (StartsWithNoCase(word, RelayNameMark))
          {
             const String digits = word.Mid(static_cast<int>(wcslen(RelayNameMark)));
@@ -391,6 +397,11 @@ namespace HM
       const StoredMarks marks = MarksOfStoredName(quarantined.file_name);
       message.SetReceivedSpfResult(marks.spf_result);
       message.SetRelayingDomainID(marks.relaying_domain_id);
+
+      // The domain the check evaluated, when it was the held message's sender's - the
+      // row's sender, which the release gives the message it queues.
+      if (marks.spf_domain_is_senders)
+         message.SetReceivedSpfDomain(StringParser::ExtractDomain(quarantined.sender));
    }
 
    bool
@@ -414,6 +425,8 @@ namespace HM
          StoredMarks marks;
          marks.from_outside = !DKIMSigner::SignsAsAuthorDomain(*message);
          marks.spf_result = message->GetReceivedSpfResult();
+         marks.spf_domain_is_senders = !message->GetReceivedSpfDomain().IsEmpty() &&
+            message->GetReceivedSpfDomain().CompareNoCase(StringParser::ExtractDomain(message->GetFromAddress())) == 0;
          marks.relaying_domain_id = DKIMSigner::RelayingDomainID(message, false);
          String relativePath = BuildRelativePath_(marks);
          String targetFile = FileUtilities::Combine(GetQuarantineDirectory(), relativePath);

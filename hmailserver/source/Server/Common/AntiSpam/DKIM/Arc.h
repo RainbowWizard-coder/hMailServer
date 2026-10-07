@@ -39,7 +39,15 @@ namespace HM
       // message as it is stored now (DkimResultOf_) - and spf= from spfResult, the
       // result this server's own check reached when the message arrived
       // (Message::GetReceivedSpfResult), "none" when it did not run or is no RFC 8601
-      // SPF keyword.
+      // SPF keyword. Each with the property a receiver needs to know whose result it
+      // is (RFC 8601 2.7.1 and 2.7.2, RFC 8617 4.1.1): a dkim=pass for each domain
+      // whose signature verified, as header.d (dkimPassingDomains, which Seal takes
+      // from the same verification, each named once), and the domain the SPF check
+      // evaluated as smtp.mailfrom (spfDomain, Message::GetReceivedSpfDomain) when it
+      // ran for one. A value that is not a domain's characters is left out, and a
+      // method that would make its line too long goes on a folded line of its own.
+      // Until 7 October 2026 the value said dkim=pass and spf=pass with neither, so
+      // that a pass for a sender's own domain read, to a receiver, as one for anybody's.
       //
       // THE DEFECT. spf= was read from the first Received-SPF field of the message,
       // which is whoever's put it there: the sender's own, on mail whose arrival this
@@ -48,7 +56,9 @@ namespace HM
       // forward. The seal then attested "spf=pass" for a check that never passed, to
       // every receiver that trusts this server's ARC sets. No field of the message is
       // read for it now. ArcAuthenticationResultsTester holds it to examples.
-      static AnsiString AuthenticationResultsValue(int instance, const AnsiString &authservId, const AnsiString &dkimResult, const String &spfResult);
+      static AnsiString AuthenticationResultsValue(int instance, const AnsiString &authservId, const AnsiString &dkimResult,
+                                                   const std::vector<AnsiString> &dkimPassingDomains, const String &spfResult,
+                                                   const String &spfDomain);
 
       // ---- Inbound chain evaluation (used by SpamTestArc) ----
 
@@ -137,8 +147,8 @@ namespace HM
       static AnsiString StripSealSignatureValue_(const AnsiString &sealValue);
 
       // pass, fail, temperror or none: what verifying the message's DKIM signatures as
-      // it is stored now concludes.
-      static AnsiString DkimResultOf_(const String &messageFileName);
+      // it is stored now concludes, with the d= of every signature that verified.
+      static AnsiString DkimResultOf_(const String &messageFileName, std::vector<AnsiString> &passingDomains);
    };
 
    // Arc::AuthenticationResultsValue held to examples: spf= is the result given -
