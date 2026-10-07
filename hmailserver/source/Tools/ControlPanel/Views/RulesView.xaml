@@ -54,9 +54,12 @@
             </scaffold:Toolbar.Actions>
         </scaffold:Toolbar>
 
-        <!-- The floor: the column headers and three rows, held by the FillPanel
-             around the grid, so that the empty state laid over it raises the
-             card's floor where it needs more. The grid keeps its vertical scroll
+        <!-- The floor: the column headers, three rows and a pixel for layout
+             rounding, 136 (at 135 the grid rounded a device pixel short and
+             the header one long at 150 and 175 % scaling, and it held two
+             whole rows), held by the FillPanel around the grid, so that the
+             empty state laid over it raises the card's floor where it needs
+             more. The grid keeps its vertical scroll
              bar, so that its two bars cannot take turns: where the rows fitted
              only without a horizontal bar and the columns came out a fraction
              of a pixel wider than the grid, as they can at 125 and 175 %
@@ -68,7 +71,7 @@
         <scaffold:Card scaffold:FillPanel.Fill="True" Padding="8">
             <Grid>
                 <scaffold:FillPanel>
-                    <DataGrid x:Name="RuleGrid" scaffold:FillPanel.Fill="True" MinHeight="135"
+                    <DataGrid x:Name="RuleGrid" scaffold:FillPanel.Fill="True" MinHeight="136"
                               ScrollViewer.VerticalScrollBarVisibility="Visible"
                               AutoGenerateColumns="False" IsReadOnly="True"
                               SelectionMode="Single" SelectionChanged="RuleGrid_SelectionChanged"
@@ -120,12 +123,14 @@
                         <ComboBox x:Name="MatchMode" MinWidth="230"
                                   SelectionChanged="MatchMode_SelectionChanged" />
                     </StackPanel>
-                    <!-- The floor: three rows of 34 pixels. One column, whose text ends
+                    <!-- The floor: three rows of 34 pixels and a pixel for layout
+                         rounding (at 102 the grid held two whole rows at 175 %
+                         scaling, rounded a device pixel short). One column, whose text ends
                          in an ellipsis, so no sideways scrolling: a horizontal bar
                          that came and went with the vertical one, as a fraction of
                          a pixel decided, kept the page's layout from ever settling
                          at 175 % in the narrowest window. -->
-                    <DataGrid x:Name="CriteriaGrid" scaffold:FillPanel.Fill="True" MinHeight="102"
+                    <DataGrid x:Name="CriteriaGrid" scaffold:FillPanel.Fill="True" MinHeight="103"
                               ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                               AutoGenerateColumns="False" IsReadOnly="True"
                               HeadersVisibility="None"
@@ -148,9 +153,10 @@
             <!-- Actions -->
             <scaffold:Card x:Name="ActionsCard" Title="{loc:L 'THEN'}" Margin="6,0,0,0">
                 <scaffold:FillPanel>
-                    <!-- The floor: three rows of 34 pixels. One column, as the
+                    <!-- The floor: three rows of 34 pixels and a pixel for layout
+                         rounding. One column, as the
                          criteria's, so no sideways scrolling either. -->
-                    <DataGrid x:Name="ActionsGrid" scaffold:FillPanel.Fill="True" MinHeight="102"
+                    <DataGrid x:Name="ActionsGrid" scaffold:FillPanel.Fill="True" MinHeight="103"
                               ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                               AutoGenerateColumns="False" IsReadOnly="True"
                               HeadersVisibility="None"

@@ -30,6 +30,11 @@ namespace hMailServer.ControlPanel.Tests.Services
       private static readonly XNamespace Scaffold = "clr-namespace:hMailServer.ControlPanel.Views.Scaffold";
 
       // Each list and its floor: three rows of 34 pixels, and the rules' column headers.
+      // And a pixel for layout rounding: at 135 and 102 the rule grid held two whole rows
+      // at 150 and 175 % scaling, its height rounded a device pixel short and its header
+      // one long, and the actions grid at 175 %.
+      private const double RoundingSlack = 1;
+
       public static TheoryData<string, double> Lists => new()
       {
          { "RuleGrid", 33 + 3 * 34 },
@@ -49,7 +54,8 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Equal(Scaffold + "FillPanel", grid.Parent.Name);
 
          double minHeight = double.Parse((string)grid.Attribute("MinHeight") ?? "0", CultureInfo.InvariantCulture);
-         Assert.True(minHeight >= floor, list + "'s floor is " + minHeight + " pixels, less than its three rows' " + floor + ".");
+         Assert.True(minHeight >= floor + RoundingSlack,
+            list + "'s floor is " + minHeight + " pixels, less than its three rows' " + floor + " and " + RoundingSlack + " for layout rounding.");
       }
 
       [Fact]
