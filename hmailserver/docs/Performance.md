@@ -61,10 +61,14 @@ only find by reading them all - and on SQL Server Compact with the hundred
 thousand below that took 75 to 180 seconds a request, outside the clock and
 holding the database's one connection; the answer then came after the listener's
 deadline had passed and was cut at 64 KB (both fixed; `CHANGELOG.md`). On SQL
-Server Compact a lookup costs some 0.2 ms a message, about what reading a small
-message from a fast local disk does, so there the index spares reads without
-making a search much faster; it pays where reading a message is slow - object
-storage, a network share. Each answer says how many message files it opened
+Server Compact a lookup costs about what reading a small message from a fast local
+disk does, so there the index spares reads without making a search faster; it pays
+where reading a message is slow - object storage, a network share. On server1 on
+7 October 2026, with the hundred thousand below: the word in every thousandth body,
+followed to the end, took 50 requests of some 250 ms and 12.5 s in all with the
+index off, and 5 requests of 2.5 s and 12.4 s in all with it caught up, the first
+answer then coming after 2.5 s rather than 0.24 s; IMAP `SEARCH BODY` took 9.8 s
+off and 12.5 s on. Each answer says how many message files it opened
 (`opened`), of the ones it walked past (`scanned`). The search of every folder
 used to go folder by folder and stop at 2,000: with a hundred thousand in the
 inbox it never reached another folder, and it had no way to go on. It now walks

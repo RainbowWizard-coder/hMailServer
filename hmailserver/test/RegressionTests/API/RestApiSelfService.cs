@@ -4014,15 +4014,23 @@ namespace RegressionTests.API
             _settings.MessageIndexing.Enabled = true;
 
             // Until the backfill has read all 450 a message it has not is opened;
-            // once it has, only the five whose terms hold the word are.
+            // once it has, only the five whose terms hold the word are. Polled
+            // and asserted once: the backfill took over a minute on the bench,
+            // and NUnit reported failures from attempts a retry had caught.
             (int status, string body) onList = (0, "");
-            RetryHelper.TryAction(TimeSpan.FromSeconds(60), () =>
+            DateTime started = DateTime.Now, until = started.AddMinutes(5);
+            for (;;)
             {
                _settings.MessageIndexing.Index();
                onList = Http("GET", listPath, UserHeader(UserPassword));
-               Assert.AreEqual(200, onList.status, "Body: " + onList.body);
-               StringAssert.Contains("\"scanned\":450,\"complete\":true,\"opened\":5,", onList.body);
-            });
+               if (onList.body.Contains("\"opened\":5,") || DateTime.Now > until)
+                  break;
+               Thread.Sleep(1000);
+            }
+
+            Console.WriteLine("The index answered for all 450 after {0:F0} s.", (DateTime.Now - started).TotalSeconds);
+            Assert.AreEqual(200, onList.status, "Body: " + onList.body);
+            StringAssert.Contains("\"scanned\":450,\"complete\":true,\"opened\":5,", onList.body);
 
             (int status, string body) onAcross = Http("GET", acrossPath, UserHeader(UserPassword));
             Assert.AreEqual(200, onAcross.status, "Body: " + onAcross.body);

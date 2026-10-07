@@ -269,18 +269,25 @@ namespace RegressionTests.IMAP
 
          // Until the backfill has read all 450 the scan reads the rest and the
          // ceiling fails the search; once it has, every window rules out what
-         // does not carry the needle and the search answers.
+         // does not carry the needle and the search answers. An answer is
+         // sequence numbers; a refusal ([LIMIT]) is anything else. Polled and
+         // asserted once: the backfill took over a minute on the bench, and
+         // NUnit reported failures from attempts a retry had caught.
          string[] enabledResults = null;
-         RetryHelper.TryAction(TimeSpan.FromSeconds(60), () =>
+         DateTime started = DateTime.Now, until = started.AddMinutes(5);
+         for (;;)
          {
             _settings.MessageIndexing.Index();
             enabledResults = RunSearches(account.Address, queries);
+            if (Array.TrueForAll(enabledResults, result => System.Text.RegularExpressions.Regex.IsMatch(result, "^[0-9 ]*$")) || DateTime.Now > until)
+               break;
+            Thread.Sleep(1000);
+         }
 
-            // An answer is sequence numbers; a refusal ([LIMIT]) is anything else.
-            foreach (string result in enabledResults)
-               Assert.IsTrue(System.Text.RegularExpressions.Regex.IsMatch(result, "^[0-9 ]*$"),
-                  "An indexed mailbox must answer under the ceiling, reading only the messages the index cannot rule out: " + result);
-         });
+         Console.WriteLine("The searches answered under the ceiling after {0:F0} s.", (DateTime.Now - started).TotalSeconds);
+         foreach (string result in enabledResults)
+            Assert.IsTrue(System.Text.RegularExpressions.Regex.IsMatch(result, "^[0-9 ]*$"),
+               "An indexed mailbox must answer under the ceiling, reading only the messages the index cannot rule out: " + result);
 
          for (var i = 0; i < queries.Length; i++)
             Assert.AreEqual(disabledResults[i], enabledResults[i],

@@ -521,10 +521,12 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   beside how many messages it walked past (`scanned`). IMAP `SEARCH` and the eDiscovery search, which asked the whole
   account the same way at their first word, ask a window of their own messages at a time too. A row counts only as the
   indexer wrote it: a term holds a word only where the scan would find it there, and a marker only spelt as the
-  indexer spells it, whatever the database's collation matches besides. On SQL Server Compact a lookup costs about
-  what reading a small message from a fast local disk does, so there the index spares reads without making a search
-  much faster; it pays where reading a message is slow. [Performance.md](hmailserver/docs/Performance.md),
-  "Searching".
+  indexer spells it, whatever the database's collation matches besides. On server1, with the index caught up, the
+  folder's search for a word in every thousandth body answered in 5 requests of 2.5 seconds, 12.4 seconds in all, and
+  IMAP `SEARCH BODY` in 12.5 seconds, with no `HM5180` while the index was built and searched; with the index off they
+  take 12.5 and 9.8 seconds. On SQL Server Compact a lookup costs about what reading a small message from a fast local
+  disk does, so there the index spares reads without making a search faster; it pays where reading a message is slow.
+  [Performance.md](hmailserver/docs/Performance.md), "Searching".
 
 ### Operations
 
