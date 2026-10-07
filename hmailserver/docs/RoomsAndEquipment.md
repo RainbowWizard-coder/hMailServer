@@ -167,17 +167,20 @@ and `messageauthdomains`):
   another address in it ([Calendar.md](Calendar.md), "Who may change a stored
   event"). DMARC vouches for a domain, and the From is the address that domain
   let be written, so another sender at the organiser's domain is not the
-  organiser. SPF on its own is not enough, and is not recorded: it vouches for the
-  connecting address for an envelope domain whatever the From says, and a shared
-  platform named in a partner's SPF record carries other tenants' mail. The
-  result is the inbound check's own (`AuthenticationResults::PassedDomains`),
-  recorded whether or not the `Authentication-Results` header is switched on,
-  and only when it fits its column (a From domain of 250 characters or more is
-  never recorded, and never fails the message's save); with DMARC off, or for
-  mail from an address range spam protection skips, no outside organiser is ever
-  believed. The `CANCEL` of a booking the room already holds from such an
-  organiser needs the DMARC pass but not the list, so that taking a partner off
-  the list does not leave their bookings where they cannot cancel them.
+  organiser. SPF on its own is not enough, and is never read for it: it vouches
+  for the connecting address for an envelope domain whatever the From says, and a
+  shared platform named in a partner's SPF record carries other tenants' mail (the
+  column keeps the SPF result beside the DMARC domain, for the ARC seal of a
+  relayed copy, and nothing here reads it). The result is the inbound check's own
+  (`AuthenticationResults::PassedDomains`), recorded whether or not the
+  `Authentication-Results` header is switched on, and only when it fits its
+  column beside the marks of where the message came from and its SPF result,
+  which come first (a From domain of 228 characters or more may not be recorded,
+  and never fails the message's save); with DMARC off, or for mail from an
+  address range spam protection skips, no outside organiser is ever believed.
+  The `CANCEL` of a booking the room already holds from such an organiser needs
+  the DMARC pass but not the list, so that taking a partner off the list does
+  not leave their bookings where they cannot cancel them.
 * **Anything else is not the organiser.** Its request is not filed into the
   room's calendar and not answered, its update changes no booking and its
   `CANCEL` frees nothing. The message stays in the room's mailbox, and the
