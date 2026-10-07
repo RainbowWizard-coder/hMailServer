@@ -210,7 +210,10 @@ prompt. Found by the project's own review (work item 78; CVE requested).
     domain or of one of its domain aliases; one email address in either case. An account's rule the server
     administrator saves is held to the account's addresses too, so that what is saved is what is sent;
   - and the reply's name is written as one quoted name before its address: a name holding a comma and an address was
-    written as it stood, and added that address to the reply's `From`.
+    written as it stood, and added that address to the reply's `From`. A reply from no address, the null sender, has
+    its name before an empty `<>`, and a name with an `@` in it is left out: the reader the server picks a `From`'s
+    address with takes a name that is one email address for the address, so a reply from no address under the name
+    `ceo@` a domain hosted here was signed as that domain.
 
   COM's `Rule.Save` and `RuleAction.Save` and the REST API's domain and account rule routes refuse such an action,
   with the reason. One stored before this release, or restored from a backup since, is not taken at delivery - the
@@ -219,8 +222,9 @@ prompt. Found by the project's own review (work item 78; CVE requested).
 
   `RuleOwnerTester` (`business-object-tests` on Linux) holds the two checks and the reply's `From` to examples, and
   `Rules/Rules.cs` and `API/RestApiRules.cs` save the rules over COM, signed in as the account and as the
-  administrator, and over REST, and deliver a reply and a `From` stored before the check. Found by the project's own
-  review.
+  administrator, and over REST, and deliver a reply and a `From` stored before the check; `AntiSpam/DKIM/ArcSealing.cs`
+  delivers a reply from no address under the name of a hosted domain's address, unsigned and naming no address.
+  Found by the project's own review.
 
 - **Fixed: mail from outside whose `From` named a domain hosted here was signed with that domain's DKIM key, and so
   was every forward of it.** The server signed a message as the domain its `From` names on its first delivery pass,

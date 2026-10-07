@@ -252,7 +252,10 @@ namespace HM
       // in angle brackets, when there is no name. Until 7 October 2026 the name was
       // written as it stood in front of the address, so a name of
       // "x <a@example.test>, ceo@example.net" added two addresses to the From, and a
-      // program reading the field took the first for the sender.
+      // program reading the field took the first for the sender. With no address, the
+      // null sender, a name with an @ in it or one AddresslistParser reads an address
+      // in is left out and the From is <> alone: that parser takes a lone name that is
+      // an email address for the address, and DKIMSigner signs as its domain.
       static String ReplyFromHeader(const String &name, const String &address);
 
       // A header value a rule or a Sieve script writes, kept to one field: a CR LF

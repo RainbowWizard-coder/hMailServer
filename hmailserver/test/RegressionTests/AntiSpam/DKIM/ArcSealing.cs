@@ -535,6 +535,52 @@ namespace RegressionTests.AntiSpam.DKIM
          Assert.IsNotNull(signature, "A signed-in member's posting was not DKIM-signed.\r\n" + fromMember);
          StringAssert.Contains("d=example.test", signature, fromMember);
       }
+
+      /// <summary>
+      /// A rule's reply may go from no address, the null sender, and its From was then the
+      /// rule's name before an empty &lt;&gt;. The address-list reader this server picks a
+      /// From's address with takes a name that is one email address for the address
+      /// itself, and the signer signs as that address's domain - so an account of another
+      /// domain, replying from no address under the name ceo@example.test, had its reply
+      /// signed as example.test. Such a name is now left out, and the From is &lt;&gt; alone.
+      ///
+      /// Against the server before the fix the reply's From is "ceo@example.test" &lt;&gt; and
+      /// it carries a DKIM-Signature of d=example.test.
+      /// </summary>
+      [Test]
+      [Description("A rule's reply from no address, under a name that is an address of a domain hosted here, is not signed as that domain and names no address in its From.")]
+      public void ARuleReplyFromNoAddressIsNotSignedAsTheDomainItsNameNames()
+      {
+         var otherDomain = SingletonProvider<TestSetup>.Instance.AddDomain("replynull.test");
+         var owner = SingletonProvider<TestSetup>.Instance.AddAccount(otherDomain, "owner@replynull.test", "test");
+
+         var rule = owner.Rules.Add();
+         rule.Name = "Reply from no address";
+         rule.Active = true;
+         var criteria = rule.Criterias.Add();
+         criteria.UsePredefined = true;
+         criteria.PredefinedField = hMailServer.eRulePredefinedField.eFTMessageSize;
+         criteria.MatchType = hMailServer.eRuleMatchType.eMTGreaterThan;
+         criteria.MatchValue = "0";
+         criteria.Save();
+         var reply = rule.Actions.Add();
+         reply.Type = hMailServer.eRuleActionType.eRAReply;
+         reply.FromAddress = "";
+         reply.FromName = "ceo@example.test";
+         reply.Subject = "Autoreply";
+         reply.Body = "Away.";
+         reply.Save();
+         rule.Save();
+
+         string messageData = DeliveredToTheRoute(() =>
+            new SmtpClientSimulator().SendRaw("external@example.com", owner.Address,
+               "From: external@example.com\r\nTo: " + owner.Address + "\r\nSubject: Anyone there?\r\n\r\nBody.\r\n"));
+
+         AssertNotSignedAsTheTestDomain(messageData, "A rule's reply from no address under the name ceo@example.test");
+         string from = ExtractHeader(messageData, "From");
+         Assert.IsNotNull(from, messageData);
+         StringAssert.DoesNotContain("@", from, messageData);
+      }
       // ---- What the seal attests of SPF ----
 
       private static void AssertSealDoesNotAttestAPass(string messageData, string how)

@@ -88,8 +88,12 @@ rule, the four kinds of address above, as the webmail's send takes them, and a m
 address of the account's own; for a domain's rule, an address of the domain or of one of
 its domain aliases; for a server rule, any address. The reply's name is written as one
 quoted name before the address, so that a name with a comma or an address in it adds no
-address to the `From`. And a rule's **Set header value** may set `From`, `Sender`,
-`Resent-From`, `Resent-Sender` or `DKIM-Signature` only in a server rule, which only the
+address to the `From`. A reply may go from no address, the null sender; its `From` is then
+the name before an empty `<>`, and a name with an `@` in it is left out, so that the `From`
+is `<>` alone: the reader the server picks a `From`'s address with takes a name that is one
+email address for the address itself, and a reply from no address under the name
+`ceo@example.com` was signed as `example.com`. And a rule's **Set header value** may set
+`From`, `Sender`, `Resent-From`, `Resent-Sender` or `DKIM-Signature` only in a server rule, which only the
 server administrator saves: a forward, a copy or a reply would otherwise go out in the
 name a domain's or an account's rule wrote, signed with that name's domain's key. Who saved
 a rule is not recorded, only whose it is, so an account's rule the server administrator

@@ -600,7 +600,29 @@ namespace HM
       if (phrase.IsEmpty())
          return _T("<") + address + _T(">");
 
-      return _T("\"") + phrase + _T("\" <") + address + _T(">");
+      const String header = _T("\"") + phrase + _T("\" <") + address + _T(">");
+
+      // With no address - the null sender a reply may go from - the name stands before
+      // an empty <>, and the reader this server picks a From's address with
+      // (AddresslistParser, whose domain DKIMSigner::SignAsAuthorDomain_ signs as)
+      // takes a name that is one email address for the address itself. A name with an
+      // @ in it, or one that reader finds an address in, is left out then, and the
+      // From is <> alone: an account's rule replying from no address under the name
+      // ceo@example.net would otherwise be signed as example.net.
+      if (address.IsEmpty())
+      {
+         if (phrase.Find(_T("@")) >= 0)
+            return _T("<>");
+
+         AddresslistParser parser;
+         for (std::shared_ptr<Address> read : parser.ParseList(header))
+         {
+            if (!read->sMailboxName.IsEmpty() || !read->sDomainName.IsEmpty())
+               return _T("<>");
+         }
+      }
+
+      return header;
    }
 
    String
@@ -1803,6 +1825,36 @@ namespace HM
             fail("no name is not written as the address alone in angle brackets");
          if (RuleGuard::ReplyFromHeader(L"a\"b\\c", address).Compare(L"\"a\\\"b\\\\c\" <own@example.test>") != 0)
             fail("a quote and a backslash in the name are not escaped");
+
+         // A reply from no address: the name before <>, and no address read from the
+         // From whatever the name says - a name the reader would take for the address
+         // is left out, since the reply would be signed as that address's domain.
+         const wchar_t *nobodysNames[] =
+         {
+            L"ceo@example.net", L" ceo@example.net ", L"\"ceo@example.net\"", L"ceo\\@example.net", L"x <ceo@example.net>",
+            L"ceo@example.net, other@example.org", L"line\r\nceo@example.net", L"Support", L"", L"a\"b",
+         };
+
+         for (const wchar_t *name : nobodysNames)
+         {
+            const String header = RuleGuard::ReplyFromHeader(String(name), String());
+            const std::string what = "the reply From from no address for the name \"" + shown(String(name)) + "\", \"" + shown(header) + "\"";
+
+            AddresslistParser parser;
+            for (std::shared_ptr<Address> read : parser.ParseList(header))
+            {
+               if (!read->sMailboxName.IsEmpty() || !read->sDomainName.IsEmpty())
+                  fail(what + ", reads as the address \"" + shown(read->sMailboxName + L"@" + read->sDomainName) + "\"");
+            }
+
+            if (header.Right(2).Compare(L"<>") != 0)
+               fail(what + ", does not end in an empty address");
+         }
+
+         if (RuleGuard::ReplyFromHeader(L"ceo@example.net", String()).Compare(L"<>") != 0)
+            fail("a name that is an address, with no address, is not left out of the From");
+         if (RuleGuard::ReplyFromHeader(L"Support", String()).Compare(L"\"Support\" <>") != 0)
+            fail("a plain name with no address is not written as a quoted string before <>");
       }
 
       if (!wrong.empty())
