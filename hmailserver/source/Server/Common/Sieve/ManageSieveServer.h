@@ -130,6 +130,18 @@ namespace HM
       String GetBindAddress() const { return bind_address_; }
       int GetPort() const { return port_; }
 
+      // What goes between the quotes of an RFC 5804 quoted string the server sends:
+      // a script's name in LISTSCRIPTS, the refusal PUTSCRIPT and CHECKSCRIPT give a
+      // script that does not parse. The quote and the backslash are escaped, the two
+      // characters the grammar has an escape for, and a CR, an LF or a NUL - which a
+      // quoted string may not hold at all - is a space, a CR LF pair one space. A
+      // refusal quotes the script's own text, which may hold a line break: until 7
+      // October 2026 that was sent as it stood, so that the NO response ended part-way
+      // through its text and the rest reached the client as a line of its own, which
+      // it read as the answer to its next command. ManageSieveResponseTester holds it
+      // to examples.
+      static AnsiString EscapeQuoted(const String &value);
+
    private:
       // Failed AUTHENTICATE attempts allowed on one connection before it is
       // dropped, matching the other protocol servers.
@@ -476,5 +488,17 @@ namespace HM
       // checks before it acts (a DELETESCRIPT beside a SETACTIVE of the same
       // script could delete the active one).
       std::mutex storage_mutex_;
+   };
+
+   // ManageSieveServer::EscapeQuoted held to examples: a refusal that quotes a line of
+   // a script with a CR LF, a lone CR, a lone LF or a NUL in it is one line between
+   // its quotes, each break one space; a quote and a backslash are escaped; and
+   // a value with none of them is as it was. No configuration, database or network.
+   // ClassTester runs it on Windows, business-object-tests on Linux. Throws
+   // std::logic_error naming every value written wrongly.
+   class ManageSieveResponseTester
+   {
+   public:
+      void Test();
    };
 }

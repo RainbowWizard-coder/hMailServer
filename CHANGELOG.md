@@ -194,6 +194,18 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   `Sieve/SieveEditheaderDelivery.cs` sends them through storing, delivery and a redirect between two accounts. Found
   by the project's own review.
 
+### Correctness
+
+- **Fixed: a ManageSieve refusal that quoted a script's text with a line break in it was split in two.** RFC 5804's
+  quoted string may hold no CR or LF, and `PUTSCRIPT` and `CHECKSCRIPT` quote the script's own text when they refuse
+  it - an extension name, a string - which a Sieve string may write across lines. The server sent the text as it
+  stood, so its `NO` ended at the break and the rest of the refusal reached the client as a line of its own, which it
+  read as the start of the answer to its next command (from 6.2.3, which brought ManageSieve). A line break in a
+  quoted string the server sends is now a space - a CR LF pair one space - and so is a NUL, and a script's name in
+  `LISTSCRIPTS` is written the same way. `ManageSieveResponseTester` (`business-object-tests` on Linux) holds it to
+  examples, and `Sieve/ManageSieve.cs` sends a script requiring an extension whose name holds a line break through
+  `CHECKSCRIPT` and `PUTSCRIPT` and reads the `NOOP` after each. Found by the project's own review.
+
 ### Downloads and the release
 
 - **The Helm chart's and the container image's repositories are on Artifact Hub, and the tree holds the IDs Artifact

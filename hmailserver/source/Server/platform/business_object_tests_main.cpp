@@ -52,6 +52,10 @@
 //     is from what the message said: an addheader or deleteheader of From, Sender,
 //     the Resent- pair or DKIM-Signature is refused when stored and not made when a
 //     stored script runs.
+//   - A ManageSieve quoted string holds no CR, LF or NUL (ManageSieveResponseTester,
+//     Common/Sieve/ManageSieveServer.cpp): a PUTSCRIPT or CHECKSCRIPT refusal quoting
+//     a script's line with a line break in it split the NO response until 7 October
+//     2026.
 //
 // No database, configuration or network. It prints a line per check and exits
 // non-zero when one fails.
@@ -68,6 +72,7 @@
 #include "../Common/Diagnostics/DiagnosticResult.h"
 #include "../Common/Rules/RuleGuard.h"
 #include "../Common/Sieve/SieveVacationResponder.h"
+#include "../Common/Sieve/ManageSieveServer.h"
 #include "../Common/Tracking/ChangeNotification.h"
 #include "../Common/Threading/WorkQueue.h"
 #include "../Common/Scripting/ScriptObjectContainer.h"
@@ -348,6 +353,13 @@ namespace
       HM::SieveFromAddressTester tester;
       tester.Test();
    }
+
+   void
+   TestManageSieveQuoting()
+   {
+      HM::ManageSieveResponseTester tester;
+      tester.Test();
+   }
 }
 
 int
@@ -366,6 +378,7 @@ main(int /*argc*/, char * /*argv*/[])
    failed += Run(&TestLoopCount, "a message's X-hMailServer-LoopCount: digits up to the limit, and anything else the limit, never below 0 or past INT_MAX - 1");
    failed += Run(&TestLoopCountEdits, "no Sieve edit, rule or line break in a header value resets X-hMailServer-LoopCount");
    failed += Run(&TestSieveFromAddress, "a Sieve vacation reply or notification is from its :from only when that reaches the account, and no Sieve edit changes who a message is from");
+   failed += Run(&TestManageSieveQuoting, "a ManageSieve quoted string holds no line break: a refusal quoting a script's line with one in it is one line");
 
    return failed == 0 ? 0 : 1;
 }

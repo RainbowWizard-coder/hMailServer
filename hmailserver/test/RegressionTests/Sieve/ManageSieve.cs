@@ -562,6 +562,64 @@ namespace RegressionTests.Sieve
       }
 
       /// <summary>
+      ///    A refusal quotes the script's own text, and a Sieve string may hold a line
+      ///    break. RFC 5804's quoted string may not, and until 7 October 2026 the server
+      ///    sent the text as it stood: the NO ended at the break, and the rest of the
+      ///    refusal reached the client as a line of its own, which it read as the start
+      ///    of the answer to its next command. Here the refusal is one line, the break a
+      ///    space in it, and the NOOP after it is answered OK on its first line.
+      ///
+      ///    Against the unfixed server the CHECKSCRIPT's NO ends at "'unknown-one" and
+      ///    the NOOP's answer begins with "unknown-two' extension".
+      /// </summary>
+      [Test]
+      [Description("A PUTSCRIPT or CHECKSCRIPT refusal that quotes script text with a line break in it is one line, and the next command's answer is its own.")]
+      public void ARefusalQuotingALineBreakIsOneLine()
+      {
+         const string address = "managesieve-break@example.test";
+         const string password = "Sieve-Pass1";
+         SingletonProvider<TestSetup>.Instance.AddAccount(_domain, address, password);
+
+         WriteSetting("ManageSieveServerBindAddress", "127.0.0.1");
+         WriteSetting("ManageSieveServerPort", ManageSievePort.ToString());
+         _application.Reinitialize();
+
+         try
+         {
+            using (var session = new Session())
+            {
+               StringAssert.Contains("IMPLEMENTATION", session.ReadResponse());
+               StringAssert.StartsWith("OK", session.Authenticate(address, password).TrimStart());
+
+               // An extension name with a line break in it: refused, and named.
+               const string script = "require \"unknown-one\r\nunknown-two\";\r\nkeep;\r\n";
+
+               foreach (string command in new[] { "CHECKSCRIPT", "PUTSCRIPT \"break\"" })
+               {
+                  string refusal = session.SendWithLiteral(command, script);
+                  string[] lines = refusal.TrimEnd('\r', '\n').Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
+
+                  Assert.AreEqual(1, lines.Length, command + " answered more than one line: " + refusal);
+                  StringAssert.StartsWith("NO \"", lines[0], refusal);
+                  StringAssert.EndsWith("\"", lines[0], refusal);
+                  StringAssert.Contains("unknown-one unknown-two", lines[0], refusal);
+
+                  string noop = session.SendCommand("NOOP");
+                  StringAssert.StartsWith("OK", noop.TrimStart(),
+                     "The answer to the command after the refusal began with the refusal's rest: " + noop);
+               }
+
+               StringAssert.DoesNotContain("\"break\"", session.SendCommand("LISTSCRIPTS"), "A refused script was stored.");
+            }
+         }
+         finally
+         {
+            WriteSetting("ManageSieveServerPort", "0");
+            _application.Reinitialize();
+         }
+      }
+
+      /// <summary>
       ///    Before signing in, the connections of one address are served one at a time
       ///    (one thread served every connection one at a time until 6.3.6's re-check),
       ///    so a client that connects and then says nothing must be let go after the

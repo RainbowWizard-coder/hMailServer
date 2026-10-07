@@ -12,6 +12,7 @@
 #include "../BO/FetchAccount.h"
 #include "../Rules/RuleGuard.h"
 #include "../Sieve/SieveVacationResponder.h"
+#include "../Sieve/ManageSieveServer.h"
 #include "../Mime/MimeTester.h"
 #include "../Util/Utilities.h"
 #include "../Util/MessageUtilities.h"
@@ -247,6 +248,13 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing the Sieve :from rule\n"));
       SieveFromAddressTester sieveFromAddressTester;
       sieveFromAddressTester.Test();
+
+      // A ManageSieve quoted string holds no line break: a refusal that quotes a
+      // script's line with one in it was sent as it stood until 7 October 2026, and
+      // split the NO response (ManageSieveServer::EscapeQuoted).
+      OutputDebugString(_T("hMailServer: Testing ManageSieve's quoted strings\n"));
+      ManageSieveResponseTester manageSieveResponseTester;
+      manageSieveResponseTester.Test();
 
       // Every TLS context's options read back with SSL_CTX_get_options: exactly what
       // SetContextOptions_ asks for, nothing from bit 32 up but certificate compression

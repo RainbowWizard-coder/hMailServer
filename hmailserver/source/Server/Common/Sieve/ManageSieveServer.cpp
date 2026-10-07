@@ -42,6 +42,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <stdexcept>
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -379,21 +380,6 @@ namespace HM
       // ARRIVES in the target mailbox with the loop markers on it.
       const char *AdvertisedSieveExtensions = "fileinto copy relational subaddress vacation vacation-seconds imap4flags body mailbox regex ihave environment date index spamtest spamtestplus duplicate editheader variables reject ereject include enotify envelope";
 
-      AnsiString EscapeQuoted(const String &value)
-      {
-         String escaped;
-         for (int i = 0; i < value.GetLength(); i++)
-         {
-            wchar_t ch = value[i];
-            if (ch == L'"' || ch == L'\\')
-               escaped += L'\\';
-            escaped += ch;
-         }
-
-         AnsiString result = escaped;
-         return result;
-      }
-
       // The refusal for a script that is over the size limit, shared by HAVESPACE,
       // PUTSCRIPT and CHECKSCRIPT so that all three quote the same number.
       //
@@ -405,6 +391,37 @@ namespace HM
       {
          return Formatter::FormatAsAnsi("NO (QUOTA/MAXSIZE) \"The script exceeds the maximum size of {0} bytes.\"\r\n", limit);
       }
+   }
+
+   AnsiString
+   ManageSieveServer::EscapeQuoted(const String &value)
+   {
+      String escaped;
+      const int length = value.GetLength();
+
+      for (int i = 0; i < length; i++)
+      {
+         const wchar_t ch = value[i];
+
+         // RFC 5804 4: a quoted string's characters are SAFE-CHAR, which leaves out
+         // CR, LF and NUL, and its escape is for the quote and the backslash alone.
+         // A line break is a space: a CR LF pair one space, a lone CR or LF another.
+         if (ch == L'\r' || ch == L'\n' || ch == L'\0')
+         {
+            if (ch == L'\r' && i + 1 < length && value[i + 1] == L'\n')
+               i++;
+
+            escaped += L' ';
+            continue;
+         }
+
+         if (ch == L'"' || ch == L'\\')
+            escaped += L'\\';
+         escaped += ch;
+      }
+
+      AnsiString result = escaped;
+      return result;
    }
 
    ManageSieveServer::ManageSieveServer() :
@@ -2326,5 +2343,74 @@ namespace HM
 
       // The socket and any TLS session are closed by the accept loop, in
       // CloseConnection_, so that the exception barrier cannot leak either.
+   }
+
+   void
+   ManageSieveResponseTester::Test()
+   {
+      std::string wrong;
+
+      struct Case
+      {
+         const wchar_t *value;
+         const char *quoted;
+      };
+
+      // A refusal as SieveParser words one, with the script's text in it, and the
+      // shapes a line break can take there.
+      const Case cases[] =
+      {
+         { L"line 2: unknown command 'keep'", "line 2: unknown command 'keep'" },
+         { L"unknown command 'fileinto\r\n\"INBOX\"'", "unknown command 'fileinto \\\"INBOX\\\"'" },
+         { L"a\rb", "a b" },
+         { L"a\nb", "a b" },
+         { L"a\r\n\r\nb", "a  b" },
+         { L"a\n\rb", "a  b" },
+         { L"ends with a break\r\n", "ends with a break " },
+         { L"\r\nOK", " OK" },
+         { L"back\\slash \"quote\"", "back\\\\slash \\\"quote\\\"" },
+         { L"", "" },
+      };
+
+      for (const Case &c : cases)
+      {
+         const AnsiString got = ManageSieveServer::EscapeQuoted(String(c.value));
+         if (std::string(got.c_str()) != c.quoted)
+            wrong += std::string(wrong.empty() ? "" : "; ") + "\"" + c.quoted + "\" came out as \"" + got.c_str() + "\"";
+      }
+
+      // A NUL inside the value, which a C string cannot spell.
+      std::wstring withNul(L"a");
+      withNul.push_back(L'\0');
+      withNul += L"b";
+      const AnsiString nul = ManageSieveServer::EscapeQuoted(String(withNul));
+      if (std::string(nul.c_str(), nul.GetLength()) != "a b")
+         wrong += std::string(wrong.empty() ? "" : "; ") + "a NUL was not written as a space";
+
+      // Whatever it was given, what it gives has no CR, LF or NUL, and no quote that
+      // the escape before it does not cover: the line it is put in is one line, and
+      // its quoted string ends where the server ends it.
+      const wchar_t *anything[] = { L"\"\r\n\\\r\"\n", L"\\\r\n\"", L"x\r\n\r\n\r\n", L"\\\\\"" };
+      for (const wchar_t *value : anything)
+      {
+         const AnsiString got = ManageSieveServer::EscapeQuoted(String(value));
+         bool escaping = false;
+         for (int i = 0; i < got.GetLength(); i++)
+         {
+            const char ch = got[i];
+            if (ch == '\r' || ch == '\n' || ch == '\0')
+               wrong += std::string(wrong.empty() ? "" : "; ") + "a line break or a NUL was left in \"" + got.c_str() + "\"";
+            else if (ch == '"' && !escaping)
+               wrong += std::string(wrong.empty() ? "" : "; ") + "a quote was left unescaped in \"" + got.c_str() + "\"";
+
+            escaping = !escaping && ch == '\\';
+         }
+
+         if (escaping)
+            wrong += std::string(wrong.empty() ? "" : "; ") + "\"" + got.c_str() + "\" ends in an escape that takes the closing quote";
+      }
+
+      if (!wrong.empty())
+         throw std::logic_error("ManageSieve quoted string: " + wrong);
    }
 }
