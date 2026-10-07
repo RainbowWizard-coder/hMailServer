@@ -802,13 +802,15 @@ namespace HM
          if (digits.IsEmpty() || digits.GetLength() > 10)
             return 0;
 
+         __int64 id = 0;
          for (int i = 0; i < digits.GetLength(); i++)
          {
             if (digits[i] < L'0' || digits[i] > L'9')
                return 0;
+
+            id = id * 10 + (digits[i] - L'0');
          }
 
-         const __int64 id = _wtoi64(digits.c_str());
          return id > 0 && id <= INT_MAX ? id : 0;
       }
    }

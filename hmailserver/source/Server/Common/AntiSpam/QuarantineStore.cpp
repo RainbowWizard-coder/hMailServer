@@ -202,11 +202,14 @@ namespace HM
          {
             const String digits = word.Mid(static_cast<int>(wcslen(RelayNameMark)));
             bool allDigits = digits.GetLength() <= 10;
+            __int64 id = 0;
             for (int c = 0; allDigits && c < digits.GetLength(); c++)
+            {
                allDigits = digits[c] >= L'0' && digits[c] <= L'9';
+               id = id * 10 + (digits[c] - L'0');
+            }
 
-            const __int64 id = allDigits ? _wtoi64(digits.c_str()) : 0;
-            marks.relaying_domain_id = id > 0 && id <= INT_MAX ? id : 0;
+            marks.relaying_domain_id = allDigits && id > 0 && id <= INT_MAX ? id : 0;
          }
       }
 
