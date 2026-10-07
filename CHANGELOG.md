@@ -157,16 +157,22 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   not wait on an exception no gate could judge.
 - **A narrowing of what a scan reads lands alone, as a declaration.** Whole-tree mode widens what counts and cannot
   see a finding a change keeps out of the report: a `.semgrepignore` (GitLab's analyzer includes the root's), an entry
-  of `SAST_EXCLUDED_PATHS` or `SAST_SEMGREP_EXCLUDED_PATHS` in any CI file, the analyzer's options, a custom ruleset, or
-  the source scans' ignore and suppression lists could hide the finding the same change brought. `semgrep-sast-gate`
+  of `SAST_EXCLUDED_PATHS` or `SAST_SEMGREP_EXCLUDED_PATHS` in any CI file, the analyzer's options, a custom ruleset,
+  the source scans' ignore and suppression lists - a line gained, or a `!` line Semgrep's list loses or puts before the
+  line it takes back from - clang-tidy's checks, or the lines of `static-analysis.sh` and `semgrep.sh` that choose what
+  cppcheck, clang-tidy and Semgrep read and report, now marked `# scan-scope begin` and `# scan-scope end`, or one of
+  those tools' options put outside them, could hide the finding the same change brought. `semgrep-sast-gate`
   holds a change that narrows what a scan reads while it changes anything else a scan reads; a narrowing that lands
-  by itself, with its documents, passes. `semgrep-sast`'s exclusions are held to the root - Semgrep's `--exclude` and
-  GitLab's report filter read `tests` as any directory of that name, as the analyzer's Semgrep 1.174 showed on 6
-  October 2026 - and the job sets `SAST_SEMGREP_EXCLUDED_PATHS` to nothing itself. A source file moved to where the
-  scan does not read it, or added under a `vendor/`, `dist/` or `build/` below the root, which the analyzer's own
-  template leaves out, is held too. SECURITY.md says that the scripts under `build/`, the gates' own among them, are
-  read by the `semgrep` job alone, in a batch, and that an edit of the vendored zlib or QuickJS sources is read by no
-  gate.
+  by itself, with its documents, passes. `static-analysis.sh` refuses `HM_TIDY_CHECKS` in a GitLab job, so that no
+  project variable chooses its checks, and `semgrep.sh` refuses to run without its ignore list, without which Semgrep's
+  default would leave out `build/` and every test directory. `semgrep-sast`'s exclusions are held to the root -
+  Semgrep's `--exclude` and GitLab's report filter read `tests` as any directory of that name, as the analyzer's
+  Semgrep 1.174 showed on 6 October 2026 - and the job sets `SAST_SEMGREP_EXCLUDED_PATHS` to nothing itself. A source
+  file moved to where the scan does not read it - as git pairs a move, or deleted while a file of its name is added
+  there, a move rewritten past what git pairs - or added under a `vendor/`, `dist/` or `build/` below the root, which
+  the analyzer's own template leaves out, is held too. SECURITY.md says that the scripts under `build/`, the gates'
+  own among them, are read by the `semgrep` job alone, in a batch, and that an edit of the vendored zlib or QuickJS
+  sources is read by no gate.
 - **A report the scan did not write in this pipeline stands for nothing.** `semgrep-sast` was `allow_failure`, so a
   scan that failed - an image the registry no longer served, a timeout - let `semgrep-sast-gate` run on whatever
   `gl-sast-report.json` the checkout held, a committed one among them. `semgrep-sast` is no longer `allow_failure`, and
@@ -174,7 +180,11 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   tree that tracks a scan's report, and a `semgrep-sast` report that GitLab's analyzer did not write or that began
   before the pipeline was created; `.gitignore` keeps the scans' outputs out of a `git add`. `semgrep-sast` keeps
   Semgrep's SARIF beside its report, and the gate holds a change to a file one of Semgrep's rules gave up on, which the
-  analyzer leaves at a warning.
+  analyzer leaves at a warning. It reads the SARIF in the words of the analyzer it was checked against (6.26.1,
+  Semgrep 1.174.0, kept word for word in its self-test): a notification of a kind it does not know, a time limit whose
+  text names no file, or a SARIF with no run stops it as an input it cannot read (exit 2), never a pass, and its
+  self-test fails while `semgrep-sast` pins another analyzer, until the new one's words are read
+  (`build/ci/mirror-semgrep.sh`'s header; ContinuousIntegration.md, "Re-pinning `semgrep-sast`'s analyzer").
 - **A fork's merge request runs a pipeline of its own, and does not land on it.** The workflow's first rule compared a
   merge request's source project with `CI_PROJECT_ID`, which in a fork's pipeline is the fork's, so a merge request from
   a fork's protected branch ran no merge request pipeline and was held to a branch pipeline that runs no gate. The rule
@@ -190,10 +200,15 @@ prompt. Found by the project's own review (work item 78; CVE requested).
 - **A change to the gates' own code is judged by the base's copy too.** The gates ran the change's own scripts, so an
   edit of them judged the change that made it. When a change alters `security-gate.py`, `security-findings.py`,
   `mr-dependency-check.py`, `dependency-scan.py` or `osv-offline-db.py`, each gate also runs the base's copies over a
-  worktree of the change's head, and a hold from either holds it; and `land-via-mr.py` lands a batch that changes the
-  gates' own files only with `--gates-read "<reason>"`, a person's word that the change was read, which the landing
-  record keeps (exit 9 without it). SECURITY.md says the gates stand against mistakes, not against a change that edits
-  the jobs themselves.
+  worktree of the change's head, and a hold from either holds it. Whether the base's copy runs is read from the code
+  that runs, against the base's, never from a variable, so neither a CI file nor a project variable can stop it; each
+  gate says in its log how the copy ended, and `land-via-mr.py` lands a batch that changes the gates' code only when
+  both logs say it passed. `land-via-mr.py` lands a batch that changes the gates' own files - their code,
+  `.gitlab-ci.yml`, the CI files the gate jobs are in or take a part from (`mr-checks.yml`, `gitlab-security.yml`,
+  `no-github.yml`), itself, `check-release-chain.py`, and `sign-off.py` and `scan-secrets.py`, which it runs - only with
+  `--gates-read "<reason>"`, a person's word that the change was read, which the landing record keeps (exit 9 without
+  it); `check-release-chain.py` holds that list to the files the gate jobs reach with `extends` and `!reference`.
+  SECURITY.md says the gates stand against mistakes, not against a change that edits the jobs themselves.
 - **`mr-dependency-check` holds a requirement that pins no version, and does not take OSV's silence for an answer.** A
   requirements line it could not read as `name==version` - a range, `name @ <url>`, another index - was skipped; one a
   change adds now holds it, and so does a `-r` or `-c` naming a requirements file the tree does not hold (a URL, an

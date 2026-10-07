@@ -534,11 +534,16 @@ scanning".
     exclusion that reaches a path the base's did not, the analyzer's options or any other `SAST_*`, `SEMGREP_*` or
     `SECURE_*` variable, GitLab's custom ruleset, or the ignore and suppression lists of the scans on the project's
     runners (`build/ci/semgrepignore`, `build/ci/cppcheck-suppressions.txt`, `build/ci/clang-tidy.yaml`,
-    `HM_TIDY_CHECKS`) - is a declaration, as an exception is, and lands alone: it is held while it changes anything
-    else a scan reads. A report that is missing, that GitLab's analyzer did not write in this pipeline (its
-    `scan.analyzer.id`, and a start no earlier than the pipeline's creation), or whose scan did not finish, holds the
-    change as well, and so does a tree that commits a scan's report or Semgrep's SARIF: *semgrep-sast* is not
-    `allow_failure`, and removes any such file before its analyzer runs.
+    `HM_TIDY_CHECKS`): a line one of the lists gains, a `!` line Semgrep's list loses or puts before the line whose
+    path it takes back, or a change of the lines of `static-analysis.sh` and `semgrep.sh` that choose what cppcheck,
+    clang-tidy and Semgrep read and report (between their `# scan-scope begin` and `# scan-scope end` marks), or one
+    of those tools' options put outside them - is a declaration, as an exception is, and lands alone: it is held while
+    it changes anything else a scan reads. `static-analysis.sh` refuses `HM_TIDY_CHECKS` in a GitLab job, so that no
+    project variable chooses its checks, and `semgrep.sh` refuses to run without its ignore list, without which
+    Semgrep's own default would leave out `build/` and every test directory. A report that is missing, that GitLab's
+    analyzer did not write in this pipeline (its `scan.analyzer.id`, and a start no earlier than the pipeline's
+    creation), or whose scan did not finish, holds the change as well, and so does a tree that commits a scan's report
+    or Semgrep's SARIF: *semgrep-sast* is not `allow_failure`, and removes any such file before its analyzer runs.
   - *In a batch's pipeline*, which the project's own runners serve, two scans more: *static-analysis* (cppcheck, and
     clang-tidy with the Clang static analyser) over the C++ the Linux build compiles, and *semgrep*, Semgrep's open
     rules over the C#, Python, JavaScript and shell. There a violation is any finding that is neither in the scan's
@@ -550,16 +555,27 @@ scanning".
     inline suppression comment added to a file a scan reads (`nosemgrep`, `NOLINT` with `NOLINTNEXTLINE` and
     `NOLINTBEGIN`, or `cppcheck-suppress` in each form that begins one) is a violation of its own, which
     *semgrep-sast-gate* holds: it counts each file's comments at the change's base and at its head. So is a source
-    file moved from where *semgrep-sast* reads it to where it does not, or added where only the analyzer's template
-    leaves it unread (a `vendor/` below the root, say) and no exclusion of the project's names the place; and a file
-    the change adds or alters that a rule gave up on - a time limit, memory or stack it ran out of - as Semgrep's SARIF
-    beside the report says, which the analyzer leaves at a warning and calls a success. Where Semgrep's parser
-    stumbled, which it reads on past (87 of the C++ and C# files on 6 October 2026, 18 of them with findings all the
-    same, and three of the Helm chart's templates), the notification is listed, not held.
+    file moved from where *semgrep-sast* reads it to where it does not - as git pairs a move, or deleted while a file
+    of its name is added where the scan reads nothing, a move rewritten past what git pairs (a test of the same name
+    as a source file the same change deletes is held with it, and lands apart or under a name of its own) - or added
+    where only the analyzer's template leaves it unread (a `vendor/` below the root, say) and no exclusion of the
+    project's names the place; and a file the change adds or alters that a rule gave up on - a time limit, memory or
+    stack it ran out of - as Semgrep's SARIF beside the report says, which the analyzer leaves at a warning and calls a
+    success. Where Semgrep's parser stumbled, which it reads on past (87 of the C++ and C# files on 6 October 2026, 18
+    of them with findings all the same, and three of the Helm chart's templates), the notification is listed, not
+    held. The gate reads the SARIF in the words of the analyzer it was checked against (6.26.1, Semgrep 1.174.0): a
+    notification of a kind it does not know, or a time limit whose text names no file, stops it as an input it cannot
+    read (exit 2), never a pass, and its self-test fails while *semgrep-sast* pins another analyzer, until the new
+    one's words are read (`build/ci/mirror-semgrep.sh`'s header).
   - *When the change alters the gates' own code* (`security-gate.py`, `security-findings.py`,
     `mr-dependency-check.py`, `dependency-scan.py`, `osv-offline-db.py`), the base's copy of each gate judges it too,
-    over the change's tree, and the change passes only when both copies pass it; and `build/land-via-mr.py` lands such a
-    batch only with a person's word that the change was read whole (`--gates-read`), which the landing record keeps.
+    over the change's tree, and the change passes only when both copies pass it. Whether that copy runs is read from
+    the code that runs, against the base's, and no variable can stop it; each gate's log says how it ended, and
+    `build/land-via-mr.py` lands such a batch only when both logs say the base's copy passed it. A batch that changes
+    the gates' own files - their code; `.gitlab-ci.yml`, whose workflow, defaults and includes every job takes; the CI
+    files the gate jobs are in or take a part from (`mr-checks.yml`, `gitlab-security.yml`, `no-github.yml`);
+    `land-via-mr.py` and `check-release-chain.py`; and `sign-off.py` and `scan-secrets.py`, which a landing runs -
+    lands only with a person's word that the change was read whole (`--gates-read`), which the landing record keeps.
 - **What no gate reads.** Stated so that nobody takes it for covered; the owner may widen it. No gate reads
   PowerShell, VBScript, Inno Setup scripts, `.bat` files, SQL, or the Dockerfiles and the other files that describe
   infrastructure. The build and CI scripts under `build/` are read by no gate on a merge request: *semgrep-sast*'s
@@ -583,9 +599,11 @@ scanning".
   runner can reach where another did not (a finding then missing from a file the change does not touch passes the
   change, and holds the release when it is found again); an exception is keyed to the text of its line, so an edit
   elsewhere in the same function can make an accepted finding exploitable without changing its fingerprint; a change
-  to the scripts of the two scans on the project's runners (`static-analysis.sh`, `semgrep.sh`) can narrow them
-  unseen by any gate; and a project variable, which only the owner can set, reaches every job and stands above a
-  job's own ([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md#change-checks), "Change checks").
+  to the scripts of the two scans on the project's runners (`static-analysis.sh`, `semgrep.sh`) outside the lines
+  they mark as choosing what their tools read - a file taken away before a tool runs, say - can narrow them unseen,
+  and those scans run the change's own `security-findings.py`, whose filters decide what a finding is; and a project
+  variable, which only the owner can set, reaches every job and stands above a job's own
+  ([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md#change-checks), "Change checks").
 
 ### Dependencies (software composition analysis)
 
@@ -692,8 +710,9 @@ under *Order*, below.
   scan could judge. Any other change of the scan's configuration answers for the whole tree by the base's
   declarations alone.
 - **Narrowing a scan is a declaration too.** What a scan leaves out - an exclusion, the analyzer's options, the
-  source scans' ignore and suppression lists - is said in a change of its own, which touches nothing else a scan
-  reads, and the change after it is judged as it says ([Every change](#every-change)). A `.semgrepignore` and
+  source scans' ignore and suppression lists, the lines of their scripts marked as choosing what their tools read -
+  is said in a change of its own, which touches nothing else a scan reads (the script whose marked lines it changes
+  is its own file), and the change after it is judged as it says ([Every change](#every-change)). A `.semgrepignore` and
   GitLab's custom ruleset (`.gitlab/sast-ruleset.toml`) are not said at all: `build/check-release-chain.py` refuses a
   tree that carries either, so that what *semgrep-sast* leaves out is said in one place, its `SAST_EXCLUDED_PATHS`.
 - **Baselines are not declarations.** `build/ci/static-analysis-baseline.txt` and `build/ci/semgrep-baseline.txt` are
