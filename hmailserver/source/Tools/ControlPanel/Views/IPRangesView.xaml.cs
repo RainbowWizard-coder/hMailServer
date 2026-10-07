@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using hMailServer.ControlPanel.Services;
@@ -14,6 +15,11 @@ namespace hMailServer.ControlPanel.Views
 {
    public partial class IPRangesView : UserControl, IPageLifecycle
    {
+      // The narrowest a column of permissions may be before the card takes two
+      // columns instead of four: at a quarter of a narrow card, the Portuguese
+      // for "Require TLS for auth" broke in the middle of its last word.
+      private const double PermColumnMinWidth = 180;
+
       public class RangeRow
       {
          public int Id { get; set; }
@@ -37,6 +43,7 @@ namespace hMailServer.ControlPanel.Views
          // Properties and Delete act on the selected range: live with nothing
          // selected, one answered with a message box and the other with nothing.
          SelectionGate.Bind(RangeGrid, PropertiesButton, DeleteRangeButton);
+         ShowNoRange();
       }
 
       public void OnEnter() => Reload();
@@ -47,6 +54,12 @@ namespace hMailServer.ControlPanel.Views
 
       private void Reload()
       {
+         // The range selected before stays selected after: a reload follows every
+         // save, edit and add, and replacing the rows used to drop the selection,
+         // which emptied the permissions card's title and left its boxes showing
+         // the range that had just been saved.
+         int? selectedId = (RangeGrid.SelectedItem as RangeRow)?.Id;
+
          var rows = new List<RangeRow>();
          dynamic ranges = ServerSession.Current.Application.Settings.SecurityRanges;
          try
@@ -77,7 +90,34 @@ namespace hMailServer.ControlPanel.Views
          RangeGrid.ItemsSource = rows;
          ListSearch.Apply(RangeGrid, SearchBar.SearchText);
          StatusText.Show(EmptyStatus, null, rows.Count, null, L("No IP ranges defined yet."));
+
+         RangeRow again = selectedId == null ? null : rows.FirstOrDefault(r => r.Id == selectedId.Value);
+         if (again != null)
+         {
+            RangeGrid.SelectedItem = again;
+            RangeGrid.ScrollIntoView(again);
+         }
       }
+
+      /// <summary>
+      /// The permissions card with no range selected: the title asks for one, and
+      /// the boxes are clear and disabled, so they show no range's permissions and
+      /// cannot be changed with nothing to save them to.
+      /// </summary>
+      private void ShowNoRange()
+      {
+         PermCard.Title = L("Permissions (select a range)");
+         foreach (CheckBox box in PermissionBoxes())
+            box.IsChecked = false;
+         PermGrid.IsEnabled = false;
+         SavePermsButton.IsEnabled = false;
+      }
+
+      private IEnumerable<CheckBox> PermissionBoxes()
+         => new[] { PermSmtp, PermImap, PermPop3, PermTlsAuth, PermLL, PermLR, PermRL, PermRR };
+
+      private void PermGrid_SizeChanged(object sender, SizeChangedEventArgs e)
+         => PermGrid.Columns = e.NewSize.Width >= 4 * PermColumnMinWidth ? 4 : 2;
 
       private void Search_TextChanged(object sender, EventArgs e)
          => ListSearch.Apply(RangeGrid, SearchBar.SearchText);
@@ -86,8 +126,7 @@ namespace hMailServer.ControlPanel.Views
       {
          if (RangeGrid.SelectedItem is not RangeRow row)
          {
-            PermCard.Title = L("Permissions (select a range)");
-            SavePermsButton.IsEnabled = false;
+            ShowNoRange();
             return;
          }
 
@@ -96,7 +135,10 @@ namespace hMailServer.ControlPanel.Views
          {
             dynamic range = FindRange(ranges, row);
             if (range == null)
+            {
+               ShowNoRange();
                return;
+            }
 
             PermCard.Title = F("Permissions - {0}", row.Name);
             PermSmtp.IsChecked = (bool)range.AllowSMTPConnections;
@@ -107,12 +149,13 @@ namespace hMailServer.ControlPanel.Views
             PermLR.IsChecked = (bool)range.AllowDeliveryFromLocalToRemote;
             PermRL.IsChecked = (bool)range.AllowDeliveryFromRemoteToLocal;
             PermRR.IsChecked = (bool)range.AllowDeliveryFromRemoteToRemote;
+            PermGrid.IsEnabled = true;
             SavePermsButton.IsEnabled = true;
             ServerSession.Release(range);
          }
          catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
          {
-            SavePermsButton.IsEnabled = false;
+            ShowNoRange();
          }
          finally
          {
@@ -120,13 +163,16 @@ namespace hMailServer.ControlPanel.Views
          }
       }
 
+      // By the range's ID, as the properties dialog finds it: two ranges may
+      // share a name and a lower address, and matching on those acted on the
+      // first of them whichever was selected.
       private static dynamic FindRange(dynamic ranges, RangeRow row)
       {
          int count = (int)ranges.Count;
          for (int i = 0; i < count; i++)
          {
             dynamic range = ranges.Item[i];
-            if ((string)range.Name == row.Name && (string)range.LowerIP == row.LowerIP)
+            if ((int)range.ID == row.Id)
                return range;
             ServerSession.Release(range);
          }
@@ -138,6 +184,7 @@ namespace hMailServer.ControlPanel.Views
          if (RangeGrid.SelectedItem is not RangeRow row)
             return;
 
+         bool saved = false;
          dynamic ranges = ServerSession.Current.Application.Settings.SecurityRanges;
          try
          {
@@ -155,7 +202,7 @@ namespace hMailServer.ControlPanel.Views
             range.AllowDeliveryFromRemoteToRemote = PermRR.IsChecked is true;
             range.Save();
             ServerSession.Release(range);
-            PermCard.Title = F("Permissions - {0} (saved)", row.Name);
+            saved = true;
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
@@ -166,7 +213,10 @@ namespace hMailServer.ControlPanel.Views
             ServerSession.Release(ranges);
          }
 
+         // After the reload, which selects the range again and so retitles the card.
          Reload();
+         if (saved && RangeGrid.SelectedItem is RangeRow still && still.Id == row.Id)
+            PermCard.Title = F("Permissions - {0} (saved)", row.Name);
       }
 
       private void Edit_Click(object sender, RoutedEventArgs e)
@@ -269,16 +319,10 @@ namespace hMailServer.ControlPanel.Views
          dynamic ranges = ServerSession.Current.Application.Settings.SecurityRanges;
          try
          {
-            int count = (int)ranges.Count;
-            for (int i = 0; i < count; i++)
+            dynamic range = FindRange(ranges, row);
+            if (range != null)
             {
-               dynamic range = ranges.Item[i];
-               if ((string)range.Name == row.Name && (string)range.LowerIP == row.LowerIP)
-               {
-                  range.Delete();
-                  ServerSession.Release(range);
-                  break;
-               }
+               range.Delete();
                ServerSession.Release(range);
             }
          }

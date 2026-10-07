@@ -20,49 +20,53 @@
         <scaffold:PageHeader Title="{loc:L 'IP ranges'}"
                              Subtitle="{loc:L 'Access control: which addresses may connect and what they are allowed to do. Higher priority wins.'}" />
 
-        <!-- The page is the window's height and the list takes what the cards
-             below it leave, down to a floor: in a 700-pixel window the two cards
-             left the list of ranges a sliver with no row in it, so the page
-             scrolls instead of the list disappearing. -->
+        <!-- The list takes the height the parts under it leave in the window,
+             down to a floor of three rows (the card's padding, the column
+             headers and three 34-pixel rows), and below that the page scrolls;
+             every other part keeps its own height. Work item 79: in 6.3.4 the
+             list was a grid's star row between rows sized to their content, and
+             a window shorter than those rows gave it nothing, so no range could
+             be seen or selected; in 6.3.5 a fixed 560-pixel floor kept the list
+             but cut the add form off in a narrow window, where the permissions
+             wrap. FillPanel sizes the page from the parts themselves. -->
         <ScrollViewer x:Name="PageScroll" Grid.Row="1" VerticalScrollBarVisibility="Auto"
                       HorizontalScrollBarVisibility="Disabled" Focusable="False">
-        <Grid MinHeight="560" Height="{Binding ViewportHeight, ElementName=PageScroll}">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" MinHeight="150" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-        </Grid.RowDefinitions>
+        <scaffold:FillPanel ViewportHeight="{Binding ViewportHeight, ElementName=PageScroll}">
 
-        <scaffold:Toolbar x:Name="SearchBar" Grid.Row="1" SearchPlaceholder="{loc:L 'Search IP ranges'}"
+        <scaffold:Toolbar x:Name="SearchBar" SearchPlaceholder="{loc:L 'Search IP ranges'}"
                           SearchTextChanged="Search_TextChanged">
             <scaffold:Toolbar.Actions>
-                <StackPanel Orientation="Horizontal">
-                    <ui:Button x:Name="PropertiesButton" Content="{loc:L 'Pr_operties…'}" Click="Edit_Click" Margin="0,0,8,0" />
+                <!-- Wraps, rather than cutting Delete and Restore defaults off the
+                     right edge in a narrow window. -->
+                <WrapPanel HorizontalAlignment="Right">
+                    <ui:Button x:Name="PropertiesButton" Content="{loc:L 'Pr_operties…'}" Click="Edit_Click" Margin="0,0,8,4" />
                     <ui:Button x:Name="DeleteRangeButton" Content="{loc:L 'Delete selected ra_nge'}"
-                               Style="{StaticResource DangerTextButton}" Click="Delete_Click" Margin="0,0,8,0" />
-                    <ui:Button Content="{loc:L 'Restore de_faults'}" Click="RestoreDefaults_Click"
+                               Style="{StaticResource DangerTextButton}" Click="Delete_Click" Margin="0,0,8,4" />
+                    <ui:Button Content="{loc:L 'Restore de_faults'}" Click="RestoreDefaults_Click" Margin="0,0,0,4"
                                ToolTip="{loc:L 'Replaces every range with the standard two: \'My computer\' (127.0.0.1) and \'Internet\' (everything else).'}" />
-                </StackPanel>
+                </WrapPanel>
             </scaffold:Toolbar.Actions>
         </scaffold:Toolbar>
 
-        <scaffold:Card Grid.Row="2" Padding="8">
+        <scaffold:Card scaffold:FillPanel.Fill="True" MinHeight="154" Padding="8">
             <Grid>
                 <DataGrid x:Name="RangeGrid" AutoGenerateColumns="False" IsReadOnly="True"
                           SelectionMode="Single" SelectionChanged="RangeGrid_SelectionChanged"
                           MouseDoubleClick="Edit_Click"
                           AutomationProperties.Name="{loc:L 'IP ranges'}">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="{loc:L 'Name'}" Binding="{Binding Name}" Width="*" ElementStyle="{StaticResource GridTrimmedText}" />
-                        <DataGridTextColumn Header="{loc:L 'Lower IP'}" Binding="{Binding LowerIP}" Width="150" />
-                        <DataGridTextColumn Header="{loc:L 'Upper IP'}" Binding="{Binding UpperIP}" Width="150" />
-                        <DataGridTextColumn Header="{loc:L 'Priority'}" Binding="{Binding Priority}" Width="80"
+                        <!-- A floor under every column, so that a narrow window scrolls
+                             the grid sideways rather than squeezing columns: the name,
+                             the one column that says which range a row is, went to
+                             nothing, and then the upper address was cut short. -->
+                        <DataGridTextColumn Header="{loc:L 'Name'}" Binding="{Binding Name}" Width="*" MinWidth="160" ElementStyle="{StaticResource GridTrimmedText}" />
+                        <DataGridTextColumn Header="{loc:L 'Lower IP'}" Binding="{Binding LowerIP}" Width="150" MinWidth="120" />
+                        <DataGridTextColumn Header="{loc:L 'Upper IP'}" Binding="{Binding UpperIP}" Width="150" MinWidth="120" />
+                        <DataGridTextColumn Header="{loc:L 'Priority'}" Binding="{Binding Priority}" Width="80" MinWidth="64"
                                             ElementStyle="{StaticResource GridNumberText}" HeaderStyle="{StaticResource GridNumberHeader}" />
-                        <DataGridTextColumn Header="SMTP" Binding="{Binding Smtp}" Width="70" />
-                        <DataGridTextColumn Header="IMAP" Binding="{Binding Imap}" Width="70" />
-                        <DataGridTextColumn Header="POP3" Binding="{Binding Pop3}" Width="70" />
+                        <DataGridTextColumn Header="SMTP" Binding="{Binding Smtp}" Width="70" MinWidth="56" />
+                        <DataGridTextColumn Header="IMAP" Binding="{Binding Imap}" Width="70" MinWidth="56" />
+                        <DataGridTextColumn Header="POP3" Binding="{Binding Pop3}" Width="70" MinWidth="56" />
                     </DataGrid.Columns>
                 </DataGrid>
                 <scaffold:EmptyState x:Name="EmptyStatus" Icon="ShieldLock24" Visibility="Collapsed"
@@ -71,9 +75,11 @@
         </scaffold:Card>
 
         <!-- The selected range's permissions. The card's title names the range;
-             Save is the card's own action, in its footer. -->
-        <scaffold:Card x:Name="PermCard" Grid.Row="3" Title="{loc:L 'Permissions (select a range)'}" Margin="0,12,0,0">
-            <UniformGrid Columns="4">
+             Save is the card's own action, in its footer. With no range selected
+             the boxes are clear and disabled, so that they never show the
+             permissions of a range that is no longer the one selected. -->
+        <scaffold:Card x:Name="PermCard" Title="{loc:L 'Permissions (select a range)'}" Margin="0,12,0,0">
+            <UniformGrid x:Name="PermGrid" Columns="4" SizeChanged="PermGrid_SizeChanged">
                 <!-- A caption longer than its quarter of the card wraps under
                      itself: "Deliver remote → remote (relay)" was cut at "(rela".
                      AccessText, not TextBlock, so the Alt key still works. -->
@@ -103,7 +109,7 @@
             </scaffold:Card.Footer>
         </scaffold:Card>
 
-        <scaffold:Card Grid.Row="4" Title="{loc:L 'Add range'}" Margin="0,12,0,0">
+        <scaffold:Card Title="{loc:L 'Add range'}" Margin="0,12,0,0">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="2*" />
@@ -112,23 +118,23 @@
                     <ColumnDefinition Width="*" MinWidth="80" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <scaffold:FieldRow Label="{loc:L 'Name'}" Margin="0,0,8,0">
+                <scaffold:FieldRow Label="{loc:L 'Name'}" Margin="0,0,8,0" VerticalAlignment="Bottom">
                     <ui:TextBox x:Name="NewName" />
                 </scaffold:FieldRow>
-                <scaffold:FieldRow Grid.Column="1" Label="{loc:L 'Lower IP (e.g. 10.0.0.0)'}" Margin="0,0,8,0">
+                <scaffold:FieldRow Grid.Column="1" Label="{loc:L 'Lower IP (e.g. 10.0.0.0)'}" Margin="0,0,8,0" VerticalAlignment="Bottom">
                     <ui:TextBox x:Name="NewLower" />
                 </scaffold:FieldRow>
-                <scaffold:FieldRow Grid.Column="2" Label="{loc:L 'Upper IP (e.g. 10.0.0.255)'}" Margin="0,0,8,0">
+                <scaffold:FieldRow Grid.Column="2" Label="{loc:L 'Upper IP (e.g. 10.0.0.255)'}" Margin="0,0,8,0" VerticalAlignment="Bottom">
                     <ui:TextBox x:Name="NewUpper" />
                 </scaffold:FieldRow>
-                <scaffold:FieldRow Grid.Column="3" Label="{loc:L 'Priority'}" Margin="0,0,8,0">
+                <scaffold:FieldRow Grid.Column="3" Label="{loc:L 'Priority'}" Margin="0,0,8,0" VerticalAlignment="Bottom">
                     <ui:TextBox x:Name="NewPriority" Text="15" />
                 </scaffold:FieldRow>
                 <ui:Button Grid.Column="4" Content="{loc:L '_Add'}" Appearance="Primary" Click="Add_Click"
                            VerticalAlignment="Bottom" Margin="0" />
             </Grid>
         </scaffold:Card>
-        </Grid>
+        </scaffold:FillPanel>
         </ScrollViewer>
     </Grid>
 </UserControl>
