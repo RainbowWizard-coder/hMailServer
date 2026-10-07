@@ -147,7 +147,7 @@ if [ "$database_in_environment" = 1 ] && [ -z "$database" ]; then
    echo "--database-in-environment goes with --database" >&2
    exit 2
 fi
-if [ "$weak_parent" = 1 ] && [ -z "$install_directory" ]; then
+if [[ "$weak_parent" = 1 && -z "$install_directory" ]]; then
    echo "--weak-parent goes with --install-directory" >&2
    exit 2
 fi
@@ -378,8 +378,8 @@ if [ -n "$second_local" ]; then
 fi
 retry_copy copy_to_vm "$smoke_ps1" C:/smoke/installer-smoke.ps1 || { say "installer-smoke.ps1 could not be copied"; exit 3; }
 [ "$allow_unsigned" = 1 ] && arguments="$arguments -AllowUnsigned"
-[ -n "$install_directory" ] && arguments="$arguments -InstallDirectory \"$install_directory\""
-[ "$weak_parent" = 1 ] && arguments="$arguments -WeakParent"
+[[ -n "$install_directory" ]] && arguments="$arguments -InstallDirectory \"$install_directory\""
+[[ "$weak_parent" = 1 ]] && arguments="$arguments -WeakParent"
 # The database settings and the password travel by scp, as files; only their paths
 # on the VM are on the command line.
 if [ -n "$database_local" ]; then
