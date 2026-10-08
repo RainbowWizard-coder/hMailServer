@@ -46,6 +46,12 @@ STDMETHODIMP InterfaceRuleCriteria::Save()
 
       if (parent_collection_->GetRuleID() > 0)
       {
+         // A criterion made by Rule.Criterias.Add before its rule had an id carries rule
+         // id 0, and is stored under the rule its collection now belongs to
+         // (PersistentRule::SaveObject binds the collection), not as a row of no rule.
+         if (object_->GetRuleID() <= 0)
+            object_->SetRuleID(parent_collection_->GetRuleID());
+
          // Through the overload that can SAY why - the length check refuses
          // over-long criteria values with the number in the message, and an
          // administrator staring at "see the error log" for a validation error

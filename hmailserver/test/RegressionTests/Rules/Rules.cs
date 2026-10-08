@@ -2472,12 +2472,15 @@ namespace RegressionTests.Rules
       /// An action or a criterion added through the same Rule object after that save was
       /// then stored by nothing but another Rule.Save, and RuleAction.Save held such an
       /// action to no owner's limits (OnlyAGlobalRuleMaySetWhoTheMessageIsFrom). They are
-      /// bound to the id the save gives the rule. Nor does a rule not yet saved read the
-      /// rows of rule id 0, which are no rule's - a rule whose own insert failed left them
-      /// - and which its Save stored as its own.
+      /// bound to the id the save gives the rule, and an action or a criterion made before
+      /// that save and saved after it is stored under the rule too, not as a row of rule
+      /// id 0. Nor does a rule not yet saved read the rows of rule id 0, which are no
+      /// rule's - a rule whose own insert failed left them - and which its Save stored as
+      /// its own.
       ///
-      /// Against the server before the fix the action and the second criterion are not
-      /// stored, and the new rule takes the action and the criterion of no rule as its own.
+      /// Against the server before the fix the actions and criteria saved after the rule's
+      /// first save are not stored, and the new rule takes the action and the criterion of
+      /// no rule as its own.
       /// </summary>
       [Test]
       [Description("An action or a criterion saved through a new rule after the rule's first save is stored under it at once, and a new rule takes in no action or criterion of no rule.")]
@@ -2508,7 +2511,22 @@ namespace RegressionTests.Rules
                "update hm_rule_actions set actionruleid = 0 where actionheader = 'X-Action-Of-No-Rule'");
 
             var rule = NewRuleMatchingEverything(account, "Parts saved after the rule");
+
+            // Made before the rule's first save and saved after it: stored under the rule,
+            // not as a row of rule id 0.
+            var early = rule.Actions.Add();
+            early.Type = eRuleActionType.eRASetHeaderValue;
+            early.HeaderName = "X-Rule-Early";
+            early.Value = "stored";
+            var earlyCriterion = rule.Criterias.Add();
+            earlyCriterion.UsePredefined = true;
+            earlyCriterion.PredefinedField = eRulePredefinedField.eFTSubject;
+            earlyCriterion.MatchType = eRuleMatchType.eMTContains;
+            earlyCriterion.MatchValue = "early criterion";
+
             rule.Save();
+            early.Save();
+            earlyCriterion.Save();
 
             var note = rule.Actions.Add();
             note.Type = eRuleActionType.eRASetHeaderValue;
@@ -2535,15 +2553,18 @@ namespace RegressionTests.Rules
             for (int i = 0; i < stored.Criterias.Count; i++)
                criteria.Add(stored.Criterias[i].MatchValue);
 
-            CollectionAssert.AreEqual(new[] { "X-Rule-Note" }, actions,
-               "The actions stored under the rule are not the one saved through it after its first save: " + string.Join(", ", actions));
-            CollectionAssert.AreEqual(new[] { "0", "second criterion" }, criteria,
-               "The criteria stored under the rule are not the two saved through it: " + string.Join(", ", criteria));
+            CollectionAssert.AreEqual(new[] { "X-Rule-Early", "X-Rule-Note" }, actions,
+               "The actions stored under the rule are not the two saved through it after its first save: " + string.Join(", ", actions));
+            CollectionAssert.AreEqual(new[] { "0", "early criterion", "second criterion" }, criteria,
+               "The criteria stored under the rule are not the three saved through it: " + string.Join(", ", criteria));
          }
          finally
          {
-            _application.Database.ExecuteSQL("delete from hm_rule_criterias where criteriamatchvalue = 'criterion-of-no-rule'");
-            _application.Database.ExecuteSQL("delete from hm_rule_actions where actionheader = 'X-Action-Of-No-Rule'");
+            // The planted rows, and any a failing server wrote under no rule.
+            _application.Database.ExecuteSQL("delete from hm_rule_criterias where criteriamatchvalue = 'criterion-of-no-rule' or " +
+               "(criteriaruleid = 0 and criteriamatchvalue in ('early criterion', 'second criterion'))");
+            _application.Database.ExecuteSQL("delete from hm_rule_actions where actionheader = 'X-Action-Of-No-Rule' or " +
+               "(actionruleid = 0 and actionheader in ('X-Rule-Early', 'X-Rule-Note'))");
          }
       }
 

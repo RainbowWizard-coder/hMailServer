@@ -92,6 +92,12 @@ STDMETHODIMP InterfaceRuleAction::Save()
    
       if (parent_collection_->GetRuleID() > 0)
       {
+         // An action made by Rule.Actions.Add before its rule had an id carries rule id
+         // 0, and is stored under the rule its collection now belongs to
+         // (PersistentRule::SaveObject binds the collection), not as a row of no rule.
+         if (object_->GetRuleID() <= 0)
+            object_->SetRuleID(parent_collection_->GetRuleID());
+
          if (!HM::PersistentRuleAction::SaveObject(object_))
          {
             // Saving failed.
