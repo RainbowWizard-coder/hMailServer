@@ -1382,6 +1382,9 @@ Le Control Panel ne peut lire les fichiers de messages que lorsqu'il s'exécute 
   <data name="Alias cache max size (KB, resets at service restart)" xml:space="preserve">
     <value>Taille max. du cache des alias (Ko, remis à zéro au redémarrage du service)</value>
   </data>
+  <data name="Alias domain" xml:space="preserve">
+    <value>Domaine alias</value>
+  </data>
   <data name="Alias domain name (e.g. example.net)" xml:space="preserve">
     <value>Nom de domaine alias (ex. example.net)</value>
   </data>
@@ -1402,6 +1405,9 @@ Le Control Panel ne peut lire les fichiers de messages que lorsqu'il s'exécute 
   </data>
   <data name="All linked domains" xml:space="preserve">
     <value>Tous les domaines liés</value>
+  </data>
+  <data name="Allow" xml:space="preserve">
+    <value>Autoriser</value>
   </data>
   <data name="Allow SASL PLAIN authentication" xml:space="preserve">
     <value>Autoriser l'authentification SASL PLAIN</value>
@@ -2033,6 +2039,9 @@ Redémarrer le Control Panel maintenant ? Choisissez Non pour essayer de continu
   </data>
   <data name="Blacklisted. List entries: {0}. Messages deleted: {1}." xml:space="preserve">
     <value>Mis sur liste noire. Entrées de liste : {0}. Messages supprimés : {1}.</value>
+  </data>
+  <data name="Block" xml:space="preserve">
+    <value>Bloquer</value>
   </data>
   <data name="Block lists and this server's own addresses" xml:space="preserve">
     <value>Listes de blocage et adresses propres de ce serveur</value>
@@ -5172,6 +5181,9 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="Inactive" xml:space="preserve">
     <value>Inactif</value>
   </data>
+  <data name="Inbound TLS" xml:space="preserve">
+    <value>TLS entrant</value>
+  </data>
   <data name="Inbound client certificates - the port needs a CA bundle, the clients need certificates" xml:space="preserve">
     <value>Certificats client entrants - le port a besoin d'un bundle d'AC, les clients ont besoin de certificats</value>
   </data>
@@ -5410,6 +5422,9 @@ L'installateur vérifié est remis à l'assistant de mise à jour : le service s
   </data>
   <data name="Language (VBScript, JScript or JavaScript)" xml:space="preserve">
     <value>Langage (VBScript, JScript ou JavaScript)</value>
+  </data>
+  <data name="Largest (KB)" xml:space="preserve">
+    <value>Taille max. (KB)</value>
   </data>
   <data name="Largest attachment submitted (KB)" xml:space="preserve">
     <value>Plus grande pièce jointe soumise (Ko)</value>
@@ -8199,6 +8214,9 @@ Exécutez ceci si des clients signalent des messages apparaissant sous le mauvai
   <data name="Recipient" xml:space="preserve">
     <value>Destinataire</value>
   </data>
+  <data name="Recipient check" xml:space="preserve">
+    <value>Vérification du destinataire</value>
+  </data>
   <data name="Recipient list" xml:space="preserve">
     <value>Liste des destinataires</value>
   </data>
@@ -8649,6 +8667,9 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   </data>
   <data name="Require the assertion itself to be signed" xml:space="preserve">
     <value>Exiger que l'assertion elle-même soit signée</value>
+  </data>
+  <data name="Required" xml:space="preserve">
+    <value>Requis</value>
   </data>
   <data name="Required. The Active Directory domain controller or other LDAP server to bind against. For LDAPS the name must match the server's certificate, so use the DNS name, not an IP address." xml:space="preserve">
     <value>Obligatoire. Le contrôleur de domaine Active Directory ou autre serveur LDAP auquel se lier. Pour LDAPS, le nom doit correspondre au certificat du serveur : utilisez donc le nom DNS, pas une adresse IP.</value>

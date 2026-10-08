@@ -52,6 +52,34 @@ namespace hMailServer.ControlPanel.Services
          if (Application.Current.TryFindResource("GridNumberHeader") is Style header)
             column.HeaderStyle = header;
       }
+
+      /// <summary>
+      /// A header of a few words standing for a caption that is a sentence: the
+      /// caption is the header's tool tip and its help text. The header's words
+      /// are drawn by a template of this column's own, trimmed as the shared
+      /// header template trims them, because that template's tool tip is the
+      /// words themselves and would say "SPF" over a header that stands for
+      /// "Requires an SPF pass". The style builds on the column's own header
+      /// style - a number column's right-aligned one - or the application's.
+      /// </summary>
+      public static void HeaderCaption(DataGridColumn column, string caption)
+      {
+         if (column == null || string.IsNullOrEmpty(caption))
+            return;
+
+         var words = new FrameworkElementFactory(typeof(TextBlock));
+         words.SetBinding(TextBlock.TextProperty, new System.Windows.Data.Binding());
+         words.SetValue(TextBlock.TextTrimmingProperty, TextTrimming.CharacterEllipsis);
+         words.SetValue(FrameworkElement.ToolTipProperty, caption);
+
+         Style basis = column.HeaderStyle
+            ?? (Application.Current?.TryFindResource(typeof(System.Windows.Controls.Primitives.DataGridColumnHeader)) as Style);
+         var style = new Style(typeof(System.Windows.Controls.Primitives.DataGridColumnHeader), basis);
+         style.Setters.Add(new Setter(ContentControl.ContentTemplateProperty, new DataTemplate { VisualTree = words }));
+         style.Setters.Add(new Setter(FrameworkElement.ToolTipProperty, caption));
+         style.Setters.Add(new Setter(System.Windows.Automation.AutomationProperties.HelpTextProperty, caption));
+         column.HeaderStyle = style;
+      }
    }
 
    /// <summary>

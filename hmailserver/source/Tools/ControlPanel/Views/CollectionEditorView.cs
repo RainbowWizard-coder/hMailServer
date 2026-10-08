@@ -56,6 +56,27 @@ namespace hMailServer.ControlPanel.Views
          public double GridWidth = double.NaN;          // NaN => *
          public object Default;
 
+         // The column's header, where the dialog's caption is a sentence: the
+         // caption of a tick box, "Requires a verified DKIM signature (decided
+         // after DATA)", headed an 80-pixel column, in which it read "Requir…"
+         // three columns in a row, and the allow and block list's "Block rather
+         // than allow" read "Block rath…". The caption stays the header's tool
+         // tip and its help text. Null heads the column with the caption.
+         public string GridLabel;
+
+         // A Bool's words in the grid, in place of Yes and No, which say nothing
+         // without the sentence they answer: "Required" and "—" under SPF,
+         // "Block" and "Allow" under Action.
+         public string GridTrue, GridFalse;
+
+         // What the grid shows for an empty value: "Never" for an expiry.
+         public string GridEmpty;
+
+         // The Bool property that gates the value: while it is false the grid
+         // shows GridEmpty, as a date that does not apply is no date. Null
+         // shows the value as it is.
+         public string GridOnlyWhen;
+
          // Shown, never written: a property the server answers about the
          // object and does not take (a key's fingerprint and expiry, say).
          public bool ReadOnly;
@@ -110,6 +131,10 @@ namespace hMailServer.ControlPanel.Views
          public override string ToString()
             => string.Join(", ", Values.Values.Select(FormatCell).Where(s => !string.IsNullOrWhiteSpace(s)).Take(3));
       }
+
+      // The floor of a star column - a description, a reject message, a note -
+      // below which the grid scrolls sideways rather than squeezing it.
+      private const double StarColumnFloor = 120;
 
       private readonly CollectionSpec spec_;
       private readonly bool embedded_;
@@ -256,6 +281,10 @@ namespace hMailServer.ControlPanel.Views
          grid_.IsReadOnly = true;
          grid_.SelectionMode = DataGridSelectionMode.Single;
          grid_.ItemsSource = rows_;
+         // A grid whose columns keep their widths and scroll sideways keeps its
+         // vertical bar, as the rules page's list does, so that neither bar can
+         // turn the other on and off for ever (ControlPanelDesign.md, Grids).
+         ScrollViewer.SetVerticalScrollBarVisibility(grid_, ScrollBarVisibility.Visible);
          grid_.MouseDoubleClick += (_, _) => EditSelected();
          System.Windows.Automation.AutomationProperties.SetName(grid_, spec_.Title);
 
@@ -264,7 +293,7 @@ namespace hMailServer.ControlPanel.Views
             string prop = f.Prop;
             var col = new DataGridTextColumn
             {
-               Header = f.Label,
+               Header = f.GridLabel ?? f.Label,
                // A Combo column stores the enum's number, and a grid cell reading
                // "1" where the dialog above it reads "SSL/TLS" is not a display
                // detail - it is the difference between a list an administrator can
@@ -273,17 +302,41 @@ namespace hMailServer.ControlPanel.Views
                {
                   Converter = f.Kind == FieldKind.Combo && f.Options != null
                      ? new CellConverter(f.Options)
-                     : CellConverter.Instance
+                     : new CellConverter(f.GridTrue, f.GridFalse, f.GridEmpty)
                },
                Width = double.IsNaN(f.GridWidth)
                   ? new DataGridLength(1, DataGridLengthUnitType.Star)
-                  : new DataGridLength(f.GridWidth)
+                  : new DataGridLength(f.GridWidth),
+               // A floor under every column, as the IP ranges page's columns
+               // have, so that a grid wider than its card scrolls sideways
+               // rather than squeezing its columns: given less than its
+               // columns ask for, a DataGrid takes the difference from them,
+               // down to 20 pixels each, and the remote domains grid's
+               // headers were cut at every width their fields named.
+               MinWidth = double.IsNaN(f.GridWidth) ? StarColumnFloor : f.GridWidth
             };
+
+            // A value that applies only while another is true - an expiry
+            // date while "Expires" is ticked - reads both, and shows what an
+            // empty value shows while the other is false.
+            if (f.GridOnlyWhen != null)
+            {
+               var gated = new System.Windows.Data.MultiBinding { Converter = new GatedCellConverter(f.GridTrue, f.GridFalse, f.GridEmpty) };
+               gated.Bindings.Add(new System.Windows.Data.Binding($"Values[{prop}]"));
+               gated.Bindings.Add(new System.Windows.Data.Binding($"Values[{f.GridOnlyWhen}]"));
+               col.Binding = gated;
+            }
 
             // A number column is right-aligned, header and all, so the digits
             // line up and a column of scores can be read down.
             if (f.Kind == FieldKind.Number)
                GridStyles.Number(col);
+
+            // A short header keeps the caption it stands for as its tool tip
+            // and its help text, so the sentence is a hover or a screen
+            // reader's question away.
+            if (f.GridLabel != null)
+               GridStyles.HeaderCaption(col, f.Label);
 
             // A value of several lines - a server message, a signature - is one
             // line in its cell, its line breaks read as spaces: printed as it is,
@@ -536,10 +589,22 @@ namespace hMailServer.ControlPanel.Views
          public object ConvertBack(object value, Type t, object p, CultureInfo c) => value;
       }
 
+      /// <summary>A cell's words for a value: a Bool's own words where the field names them, an empty value's word, and otherwise the value as text.</summary>
+      internal static string Words(object value, string whenTrue, string whenFalse, string whenEmpty)
+      {
+         if (value is bool b && (whenTrue != null || whenFalse != null))
+            return b ? whenTrue ?? L("Yes") : whenFalse ?? L("No");
+
+         string text = FormatCell(value);
+         return text.Length == 0 && whenEmpty != null ? whenEmpty : text;
+      }
+
       private sealed class CellConverter : System.Windows.Data.IValueConverter
       {
          /// <summary>Option labels for a Combo column, or null for every other kind.</summary>
          private readonly (int Value, string Label)[] options_;
+
+         private readonly string whenTrue_, whenFalse_, whenEmpty_;
 
          private CellConverter()
          {
@@ -547,10 +612,20 @@ namespace hMailServer.ControlPanel.Views
 
          public CellConverter((int Value, string Label)[] options) => options_ = options;
 
+         public CellConverter(string whenTrue, string whenFalse, string whenEmpty)
+         {
+            whenTrue_ = whenTrue;
+            whenFalse_ = whenFalse;
+            whenEmpty_ = whenEmpty;
+         }
+
          public static readonly CellConverter Instance = new();
 
          public object Convert(object value, Type t, object p, CultureInfo c)
          {
+            if (options_ == null)
+               return Words(value, whenTrue_, whenFalse_, whenEmpty_);
+
             if (options_ != null && value != null)
             {
                // A value with no matching option falls through to the number
@@ -581,6 +656,33 @@ namespace hMailServer.ControlPanel.Views
          }
 
          public object ConvertBack(object value, Type t, object p, CultureInfo c) => value;
+      }
+
+      /// <summary>
+      /// A cell whose value applies only while another Bool is true: the value's
+      /// words while it is, and the empty value's word - "Never" - while it is not.
+      /// </summary>
+      private sealed class GatedCellConverter : System.Windows.Data.IMultiValueConverter
+      {
+         private readonly string whenTrue_, whenFalse_, whenEmpty_;
+
+         public GatedCellConverter(string whenTrue, string whenFalse, string whenEmpty)
+         {
+            whenTrue_ = whenTrue;
+            whenFalse_ = whenFalse;
+            whenEmpty_ = whenEmpty;
+         }
+
+         public object Convert(object[] values, Type t, object p, CultureInfo c)
+         {
+            object value = values != null && values.Length > 0 ? values[0] : null;
+            object gate = values != null && values.Length > 1 ? values[1] : null;
+            if (gate is bool applies && !applies)
+               return whenEmpty_ ?? "";
+            return Words(value, whenTrue_, whenFalse_, whenEmpty_);
+         }
+
+         public object[] ConvertBack(object value, Type[] t, object p, CultureInfo c) => throw new NotSupportedException();
       }
    }
 }

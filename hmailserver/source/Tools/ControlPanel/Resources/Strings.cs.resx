@@ -1382,6 +1382,9 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   <data name="Alias cache max size (KB, resets at service restart)" xml:space="preserve">
     <value>Maximální velikost cache aliasů (KB, nuluje se při restartu služby)</value>
   </data>
+  <data name="Alias domain" xml:space="preserve">
+    <value>Doména aliasu</value>
+  </data>
   <data name="Alias domain name (e.g. example.net)" xml:space="preserve">
     <value>Název aliasové domény (např. example.net)</value>
   </data>
@@ -1402,6 +1405,9 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   </data>
   <data name="All linked domains" xml:space="preserve">
     <value>Všechny propojené domény</value>
+  </data>
+  <data name="Allow" xml:space="preserve">
+    <value>Povolit</value>
   </data>
   <data name="Allow SASL PLAIN authentication" xml:space="preserve">
     <value>Povolit ověřování SASL PLAIN</value>
@@ -2033,6 +2039,9 @@ Restartovat nyní Control Panel? Volbou Ne se pokusíte pokračovat v práci.</v
   </data>
   <data name="Blacklisted. List entries: {0}. Messages deleted: {1}." xml:space="preserve">
     <value>Zařazeno na černou listinu. Záznamů na listině: {0}. Odstraněných zpráv: {1}.</value>
+  </data>
+  <data name="Block" xml:space="preserve">
+    <value>Blokovat</value>
   </data>
   <data name="Block lists and this server's own addresses" xml:space="preserve">
     <value>Seznamy blokovaných a vlastní adresy tohoto serveru</value>
@@ -5172,6 +5181,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Inactive" xml:space="preserve">
     <value>Neaktivní</value>
   </data>
+  <data name="Inbound TLS" xml:space="preserve">
+    <value>Příchozí TLS</value>
+  </data>
   <data name="Inbound client certificates - the port needs a CA bundle, the clients need certificates" xml:space="preserve">
     <value>Příchozí klientské certifikáty - port potřebuje balíček CA, klienti potřebují certifikáty</value>
   </data>
@@ -5410,6 +5422,9 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   </data>
   <data name="Language (VBScript, JScript or JavaScript)" xml:space="preserve">
     <value>Jazyk (VBScript, JScript nebo JavaScript)</value>
+  </data>
+  <data name="Largest (KB)" xml:space="preserve">
+    <value>Největší (KB)</value>
   </data>
   <data name="Largest attachment submitted (KB)" xml:space="preserve">
     <value>Největší odesílaná příloha (KB)</value>
@@ -8199,6 +8214,9 @@ Spusťte to, pokud klienti hlásí zprávy pod špatným UID, nebo po obnovení 
   <data name="Recipient" xml:space="preserve">
     <value>Příjemce</value>
   </data>
+  <data name="Recipient check" xml:space="preserve">
+    <value>Ověření příjemce</value>
+  </data>
   <data name="Recipient list" xml:space="preserve">
     <value>Seznam příjemců</value>
   </data>
@@ -8649,6 +8667,9 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   </data>
   <data name="Require the assertion itself to be signed" xml:space="preserve">
     <value>Vyžadovat, aby byl podepsaný samotný kontrolní výraz</value>
+  </data>
+  <data name="Required" xml:space="preserve">
+    <value>Vyžadováno</value>
   </data>
   <data name="Required. The Active Directory domain controller or other LDAP server to bind against. For LDAPS the name must match the server's certificate, so use the DNS name, not an IP address." xml:space="preserve">
     <value>Povinné. Řadič domény Active Directory nebo jiný LDAP server, proti kterému se provádí bind. Pro LDAPS musí název odpovídat certifikátu serveru, takže použijte DNS název, ne IP adresu.</value>

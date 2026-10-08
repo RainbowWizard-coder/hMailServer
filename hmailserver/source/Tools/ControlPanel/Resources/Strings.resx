@@ -1382,6 +1382,9 @@ The Control Panel can only read message files when it runs on the same machine a
   <data name="Alias cache max size (KB, resets at service restart)" xml:space="preserve">
     <value>Alias cache max size (KB, resets at service restart)</value>
   </data>
+  <data name="Alias domain" xml:space="preserve">
+    <value>Alias domain</value>
+  </data>
   <data name="Alias domain name (e.g. example.net)" xml:space="preserve">
     <value>Alias domain name (e.g. example.net)</value>
   </data>
@@ -1402,6 +1405,9 @@ The Control Panel can only read message files when it runs on the same machine a
   </data>
   <data name="All linked domains" xml:space="preserve">
     <value>All linked domains</value>
+  </data>
+  <data name="Allow" xml:space="preserve">
+    <value>Allow</value>
   </data>
   <data name="Allow SASL PLAIN authentication" xml:space="preserve">
     <value>Allow SASL PLAIN authentication</value>
@@ -2033,6 +2039,9 @@ Restart the Control Panel now? Choose No to try to keep working.</value>
   </data>
   <data name="Blacklisted. List entries: {0}. Messages deleted: {1}." xml:space="preserve">
     <value>Blacklisted. List entries: {0}. Messages deleted: {1}.</value>
+  </data>
+  <data name="Block" xml:space="preserve">
+    <value>Block</value>
   </data>
   <data name="Block lists and this server's own addresses" xml:space="preserve">
     <value>Block lists and this server's own addresses</value>
@@ -5172,6 +5181,9 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="Inactive" xml:space="preserve">
     <value>Inactive</value>
   </data>
+  <data name="Inbound TLS" xml:space="preserve">
+    <value>Inbound TLS</value>
+  </data>
   <data name="Inbound client certificates - the port needs a CA bundle, the clients need certificates" xml:space="preserve">
     <value>Inbound client certificates - the port needs a CA bundle, the clients need certificates</value>
   </data>
@@ -5410,6 +5422,9 @@ The verified installer is handed to the update helper: the service stops, the ne
   </data>
   <data name="Language (VBScript, JScript or JavaScript)" xml:space="preserve">
     <value>Language (VBScript, JScript or JavaScript)</value>
+  </data>
+  <data name="Largest (KB)" xml:space="preserve">
+    <value>Largest (KB)</value>
   </data>
   <data name="Largest attachment submitted (KB)" xml:space="preserve">
     <value>Largest attachment submitted (KB)</value>
@@ -8199,6 +8214,9 @@ Run this if clients report messages appearing under the wrong UID, or after rest
   <data name="Recipient" xml:space="preserve">
     <value>Recipient</value>
   </data>
+  <data name="Recipient check" xml:space="preserve">
+    <value>Recipient check</value>
+  </data>
   <data name="Recipient list" xml:space="preserve">
     <value>Recipient list</value>
   </data>
@@ -8649,6 +8667,9 @@ Every folder is emptied first: mail that arrived since the backup is gone. It is
   </data>
   <data name="Require the assertion itself to be signed" xml:space="preserve">
     <value>Require the assertion itself to be signed</value>
+  </data>
+  <data name="Required" xml:space="preserve">
+    <value>Required</value>
   </data>
   <data name="Required. The Active Directory domain controller or other LDAP server to bind against. For LDAPS the name must match the server's certificate, so use the DNS name, not an IP address." xml:space="preserve">
     <value>Required. The Active Directory domain controller or other LDAP server to bind against. For LDAPS the name must match the server's certificate, so use the DNS name, not an IP address.</value>

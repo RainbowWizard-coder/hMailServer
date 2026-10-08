@@ -1382,6 +1382,9 @@ Control Panel kan kun læse meddelelsesfiler, når det kører på samme maskine 
   <data name="Alias cache max size (KB, resets at service restart)" xml:space="preserve">
     <value>Maks. størrelse for aliascache (KB, nulstilles ved genstart af tjenesten)</value>
   </data>
+  <data name="Alias domain" xml:space="preserve">
+    <value>Aliasdomæne</value>
+  </data>
   <data name="Alias domain name (e.g. example.net)" xml:space="preserve">
     <value>Aliasdomænenavn (f.eks. example.net)</value>
   </data>
@@ -1402,6 +1405,9 @@ Control Panel kan kun læse meddelelsesfiler, når det kører på samme maskine 
   </data>
   <data name="All linked domains" xml:space="preserve">
     <value>Alle tilknyttede domæner</value>
+  </data>
+  <data name="Allow" xml:space="preserve">
+    <value>Tillad</value>
   </data>
   <data name="Allow SASL PLAIN authentication" xml:space="preserve">
     <value>Tillad SASL PLAIN-godkendelse</value>
@@ -2033,6 +2039,9 @@ Vil du genstarte Control Panel nu? Vælg Nej for at forsøge at fortsætte arbej
   </data>
   <data name="Blacklisted. List entries: {0}. Messages deleted: {1}." xml:space="preserve">
     <value>Sortlistet. Listeposter: {0}. Slettede meddelelser: {1}.</value>
+  </data>
+  <data name="Block" xml:space="preserve">
+    <value>Bloker</value>
   </data>
   <data name="Block lists and this server's own addresses" xml:space="preserve">
     <value>Blokeringslister og serverens egne adresser</value>
@@ -5172,6 +5181,9 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="Inactive" xml:space="preserve">
     <value>Inaktiv</value>
   </data>
+  <data name="Inbound TLS" xml:space="preserve">
+    <value>Indgående TLS</value>
+  </data>
   <data name="Inbound client certificates - the port needs a CA bundle, the clients need certificates" xml:space="preserve">
     <value>Indgående klientcertifikater - porten kræver et CA-bundt, klienterne kræver certifikater</value>
   </data>
@@ -5410,6 +5422,9 @@ Det verificerede installationsprogram overdrages til opdateringshjælperen: tjen
   </data>
   <data name="Language (VBScript, JScript or JavaScript)" xml:space="preserve">
     <value>Sprog (VBScript, JScript eller JavaScript)</value>
+  </data>
+  <data name="Largest (KB)" xml:space="preserve">
+    <value>Største (KB)</value>
   </data>
   <data name="Largest attachment submitted (KB)" xml:space="preserve">
     <value>Største vedhæftning, der indsendes (KB)</value>
@@ -8199,6 +8214,9 @@ Kør dette, hvis klienter melder om meddelelser, der dukker op under det forkert
   <data name="Recipient" xml:space="preserve">
     <value>Modtager</value>
   </data>
+  <data name="Recipient check" xml:space="preserve">
+    <value>Modtagerkontrol</value>
+  </data>
   <data name="Recipient list" xml:space="preserve">
     <value>Modtagerliste</value>
   </data>
@@ -8649,6 +8667,9 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Den gem
   </data>
   <data name="Require the assertion itself to be signed" xml:space="preserve">
     <value>Kræv, at selve påstanden er signeret</value>
+  </data>
+  <data name="Required" xml:space="preserve">
+    <value>Påkrævet</value>
   </data>
   <data name="Required. The Active Directory domain controller or other LDAP server to bind against. For LDAPS the name must match the server's certificate, so use the DNS name, not an IP address." xml:space="preserve">
     <value>Påkrævet. Den Active Directory-domænecontroller eller anden LDAP-server, der bindes mod. Ved LDAPS skal navnet svare til serverens certifikat, så brug DNS-navnet, ikke en IP-adresse.</value>

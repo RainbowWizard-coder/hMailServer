@@ -1382,6 +1382,9 @@ Control Panel może czytać pliki wiadomości tylko wtedy, gdy działa na tym sa
   <data name="Alias cache max size (KB, resets at service restart)" xml:space="preserve">
     <value>Maksymalny rozmiar pamięci podręcznej aliasów (KB, zerowany przy ponownym uruchomieniu usługi)</value>
   </data>
+  <data name="Alias domain" xml:space="preserve">
+    <value>Domena aliasu</value>
+  </data>
   <data name="Alias domain name (e.g. example.net)" xml:space="preserve">
     <value>Nazwa domeny aliasu (np. example.net)</value>
   </data>
@@ -1402,6 +1405,9 @@ Control Panel może czytać pliki wiadomości tylko wtedy, gdy działa na tym sa
   </data>
   <data name="All linked domains" xml:space="preserve">
     <value>Wszystkie powiązane domeny</value>
+  </data>
+  <data name="Allow" xml:space="preserve">
+    <value>Zezwól</value>
   </data>
   <data name="Allow SASL PLAIN authentication" xml:space="preserve">
     <value>Zezwalaj na uwierzytelnianie SASL PLAIN</value>
@@ -2033,6 +2039,9 @@ Uruchomić teraz ponownie aplikację Control Panel? Wybierz Nie, aby spróbować
   </data>
   <data name="Blacklisted. List entries: {0}. Messages deleted: {1}." xml:space="preserve">
     <value>Wpisano na czarną listę. Wpisy na liście: {0}. Usunięte wiadomości: {1}.</value>
+  </data>
+  <data name="Block" xml:space="preserve">
+    <value>Blokuj</value>
   </data>
   <data name="Block lists and this server's own addresses" xml:space="preserve">
     <value>Listy blokowanych i własne adresy tego serwera</value>
@@ -5172,6 +5181,9 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   <data name="Inactive" xml:space="preserve">
     <value>Nieaktywne</value>
   </data>
+  <data name="Inbound TLS" xml:space="preserve">
+    <value>TLS przychodzący</value>
+  </data>
   <data name="Inbound client certificates - the port needs a CA bundle, the clients need certificates" xml:space="preserve">
     <value>Przychodzące certyfikaty klienta - port potrzebuje pakietu certyfikatów CA, a klienty potrzebują certyfikatów</value>
   </data>
@@ -5410,6 +5422,9 @@ Zweryfikowany instalator zostaje przekazany pomocnikowi aktualizacji: usługa je
   </data>
   <data name="Language (VBScript, JScript or JavaScript)" xml:space="preserve">
     <value>Język (VBScript, JScript lub JavaScript)</value>
+  </data>
+  <data name="Largest (KB)" xml:space="preserve">
+    <value>Największa (KB)</value>
   </data>
   <data name="Largest attachment submitted (KB)" xml:space="preserve">
     <value>Największy przesyłany załącznik (KB)</value>
@@ -8199,6 +8214,9 @@ Warto to uruchomić, gdy klienty zgłaszają wiadomości pojawiające się pod n
   <data name="Recipient" xml:space="preserve">
     <value>Odbiorca</value>
   </data>
+  <data name="Recipient check" xml:space="preserve">
+    <value>Weryfikacja odbiorcy</value>
+  </data>
   <data name="Recipient list" xml:space="preserve">
     <value>Lista odbiorców</value>
   </data>
@@ -8649,6 +8667,9 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   </data>
   <data name="Require the assertion itself to be signed" xml:space="preserve">
     <value>Wymagaj, aby samo potwierdzenie było podpisane</value>
+  </data>
+  <data name="Required" xml:space="preserve">
+    <value>Wymagane</value>
   </data>
   <data name="Required. The Active Directory domain controller or other LDAP server to bind against. For LDAPS the name must match the server's certificate, so use the DNS name, not an IP address." xml:space="preserve">
     <value>Wymagane. Kontroler domeny Active Directory lub inny serwer LDAP, względem którego wykonywany jest bind. Dla LDAPS nazwa musi zgadzać się z certyfikatem serwera, więc należy podać nazwę DNS, a nie adres IP.</value>

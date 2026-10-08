@@ -1382,6 +1382,9 @@
   <data name="Alias cache max size (KB, resets at service restart)" xml:space="preserve">
     <value>エイリアス キャッシュの最大サイズ (KB、サービスの再起動でリセット)</value>
   </data>
+  <data name="Alias domain" xml:space="preserve">
+    <value>エイリアス ドメイン</value>
+  </data>
   <data name="Alias domain name (e.g. example.net)" xml:space="preserve">
     <value>エイリアス ドメイン名 (例: example.net)</value>
   </data>
@@ -1402,6 +1405,9 @@
   </data>
   <data name="All linked domains" xml:space="preserve">
     <value>連携しているすべてのドメイン</value>
+  </data>
+  <data name="Allow" xml:space="preserve">
+    <value>許可</value>
   </data>
   <data name="Allow SASL PLAIN authentication" xml:space="preserve">
     <value>SASL PLAIN 認証を許可する</value>
@@ -2033,6 +2039,9 @@
   </data>
   <data name="Blacklisted. List entries: {0}. Messages deleted: {1}." xml:space="preserve">
     <value>ブラックリストに登録しました。エントリ数: {0}。削除したメッセージ: {1}。</value>
+  </data>
+  <data name="Block" xml:space="preserve">
+    <value>ブロック</value>
   </data>
   <data name="Block lists and this server's own addresses" xml:space="preserve">
     <value>ブロック リストとこのサーバー自身のアドレス</value>
@@ -5172,6 +5181,9 @@
   <data name="Inactive" xml:space="preserve">
     <value>非アクティブ</value>
   </data>
+  <data name="Inbound TLS" xml:space="preserve">
+    <value>受信 TLS</value>
+  </data>
   <data name="Inbound client certificates - the port needs a CA bundle, the clients need certificates" xml:space="preserve">
     <value>受信クライアント証明書 - ポートには CA バンドルが、クライアントには証明書が必要です</value>
   </data>
@@ -5410,6 +5422,9 @@
   </data>
   <data name="Language (VBScript, JScript or JavaScript)" xml:space="preserve">
     <value>言語 (VBScript、JScript または JavaScript)</value>
+  </data>
+  <data name="Largest (KB)" xml:space="preserve">
+    <value>最大 (KB)</value>
   </data>
   <data name="Largest attachment submitted (KB)" xml:space="preserve">
     <value>送信する添付ファイルの最大サイズ (KB)</value>
@@ -8199,6 +8214,9 @@
   <data name="Recipient" xml:space="preserve">
     <value>受信者</value>
   </data>
+  <data name="Recipient check" xml:space="preserve">
+    <value>受信者の確認</value>
+  </data>
   <data name="Recipient list" xml:space="preserve">
     <value>受信者リスト</value>
   </data>
@@ -8649,6 +8667,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Require the assertion itself to be signed" xml:space="preserve">
     <value>アサーション自体の署名を必須にする</value>
+  </data>
+  <data name="Required" xml:space="preserve">
+    <value>必須</value>
   </data>
   <data name="Required. The Active Directory domain controller or other LDAP server to bind against. For LDAPS the name must match the server's certificate, so use the DNS name, not an IP address." xml:space="preserve">
     <value>必須です。バインド先となる Active Directory のドメイン コントローラー、またはほかの LDAP サーバーです。LDAPS ではその名前がサーバーの証明書と一致している必要があるため、IP アドレスではなく DNS 名を使用してください。</value>

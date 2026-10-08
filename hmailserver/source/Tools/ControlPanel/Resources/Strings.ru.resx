@@ -1382,6 +1382,9 @@ Control Panel может читать файлы сообщений только
   <data name="Alias cache max size (KB, resets at service restart)" xml:space="preserve">
     <value>Максимальный размер кэша псевдонимов (КБ, сбрасывается при перезапуске службы)</value>
   </data>
+  <data name="Alias domain" xml:space="preserve">
+    <value>Домен-псевдоним</value>
+  </data>
   <data name="Alias domain name (e.g. example.net)" xml:space="preserve">
     <value>Имя домена-псевдонима (например, example.net)</value>
   </data>
@@ -1402,6 +1405,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="All linked domains" xml:space="preserve">
     <value>Все связанные домены</value>
+  </data>
+  <data name="Allow" xml:space="preserve">
+    <value>Разрешить</value>
   </data>
   <data name="Allow SASL PLAIN authentication" xml:space="preserve">
     <value>Разрешить аутентификацию SASL PLAIN</value>
@@ -2033,6 +2039,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Blacklisted. List entries: {0}. Messages deleted: {1}." xml:space="preserve">
     <value>Внесено в чёрный список. Записей в списке: {0}. Удалено сообщений: {1}.</value>
+  </data>
+  <data name="Block" xml:space="preserve">
+    <value>Блокировать</value>
   </data>
   <data name="Block lists and this server's own addresses" xml:space="preserve">
     <value>Списки блокировки и собственные адреса этого сервера</value>
@@ -5172,6 +5181,9 @@ Control Panel может читать файлы сообщений только
   <data name="Inactive" xml:space="preserve">
     <value>Неактивно</value>
   </data>
+  <data name="Inbound TLS" xml:space="preserve">
+    <value>Входящий TLS</value>
+  </data>
   <data name="Inbound client certificates - the port needs a CA bundle, the clients need certificates" xml:space="preserve">
     <value>Входящие клиентские сертификаты — порту нужен набор сертификатов ЦС, а клиентам нужны сертификаты</value>
   </data>
@@ -5410,6 +5422,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Language (VBScript, JScript or JavaScript)" xml:space="preserve">
     <value>Язык (VBScript, JScript или JavaScript)</value>
+  </data>
+  <data name="Largest (KB)" xml:space="preserve">
+    <value>Наибольшее (KB)</value>
   </data>
   <data name="Largest attachment submitted (KB)" xml:space="preserve">
     <value>Наибольшее отправляемое вложение (КБ)</value>
@@ -8199,6 +8214,9 @@ Control Panel может читать файлы сообщений только
   <data name="Recipient" xml:space="preserve">
     <value>Получатель</value>
   </data>
+  <data name="Recipient check" xml:space="preserve">
+    <value>Проверка получателя</value>
+  </data>
   <data name="Recipient list" xml:space="preserve">
     <value>Список получателей</value>
   </data>
@@ -8649,6 +8667,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Require the assertion itself to be signed" xml:space="preserve">
     <value>Требовать, чтобы само утверждение было подписано</value>
+  </data>
+  <data name="Required" xml:space="preserve">
+    <value>Требуется</value>
   </data>
   <data name="Required. The Active Directory domain controller or other LDAP server to bind against. For LDAPS the name must match the server's certificate, so use the DNS name, not an IP address." xml:space="preserve">
     <value>Обязательно. Контроллер домена Active Directory или другой сервер LDAP, к которому выполняется привязка. Для LDAPS имя должно совпадать с сертификатом сервера, поэтому используйте DNS-имя, а не IP-адрес.</value>

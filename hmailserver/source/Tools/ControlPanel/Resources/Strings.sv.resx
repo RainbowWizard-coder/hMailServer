@@ -1382,6 +1382,9 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   <data name="Alias cache max size (KB, resets at service restart)" xml:space="preserve">
     <value>Maxstorlek för aliascache (KB, nollställs vid omstart av tjänsten)</value>
   </data>
+  <data name="Alias domain" xml:space="preserve">
+    <value>Aliasdomän</value>
+  </data>
   <data name="Alias domain name (e.g. example.net)" xml:space="preserve">
     <value>Aliasdomännamn (t.ex. example.net)</value>
   </data>
@@ -1402,6 +1405,9 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   </data>
   <data name="All linked domains" xml:space="preserve">
     <value>Alla kopplade domäner</value>
+  </data>
+  <data name="Allow" xml:space="preserve">
+    <value>Tillåt</value>
   </data>
   <data name="Allow SASL PLAIN authentication" xml:space="preserve">
     <value>Tillåt SASL PLAIN-autentisering</value>
@@ -2033,6 +2039,9 @@ Starta om Kontrollpanelen nu? Välj Nej för att försöka fortsätta arbeta.</v
   </data>
   <data name="Blacklisted. List entries: {0}. Messages deleted: {1}." xml:space="preserve">
     <value>Svartlistad. Listposter: {0}. Borttagna meddelanden: {1}.</value>
+  </data>
+  <data name="Block" xml:space="preserve">
+    <value>Blockera</value>
   </data>
   <data name="Block lists and this server's own addresses" xml:space="preserve">
     <value>Spärrlistor och serverns egna adresser</value>
@@ -5172,6 +5181,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Inactive" xml:space="preserve">
     <value>Inaktiv</value>
   </data>
+  <data name="Inbound TLS" xml:space="preserve">
+    <value>Inkommande TLS</value>
+  </data>
   <data name="Inbound client certificates - the port needs a CA bundle, the clients need certificates" xml:space="preserve">
     <value>Inkommande klientcertifikat - porten behöver ett CA-paket, klienterna behöver certifikat</value>
   </data>
@@ -5410,6 +5422,9 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   </data>
   <data name="Language (VBScript, JScript or JavaScript)" xml:space="preserve">
     <value>Språk (VBScript, JScript eller JavaScript)</value>
+  </data>
+  <data name="Largest (KB)" xml:space="preserve">
+    <value>Största (KB)</value>
   </data>
   <data name="Largest attachment submitted (KB)" xml:space="preserve">
     <value>Största bilaga som skickas in (KB)</value>
@@ -8199,6 +8214,9 @@ Kör detta om klienter rapporterar meddelanden som dyker upp under fel UID, elle
   <data name="Recipient" xml:space="preserve">
     <value>Mottagare</value>
   </data>
+  <data name="Recipient check" xml:space="preserve">
+    <value>Mottagarkontroll</value>
+  </data>
   <data name="Recipient list" xml:space="preserve">
     <value>Mottagarlista</value>
   </data>
@@ -8649,6 +8667,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Den b
   </data>
   <data name="Require the assertion itself to be signed" xml:space="preserve">
     <value>Kräv att själva försäkran är signerad</value>
+  </data>
+  <data name="Required" xml:space="preserve">
+    <value>Krävs</value>
   </data>
   <data name="Required. The Active Directory domain controller or other LDAP server to bind against. For LDAPS the name must match the server's certificate, so use the DNS name, not an IP address." xml:space="preserve">
     <value>Krävs. Active Directory-domänkontrollanten eller annan LDAP-server att binda mot. För LDAPS måste namnet matcha serverns certifikat, så använd DNS-namnet, inte en IP-adress.</value>

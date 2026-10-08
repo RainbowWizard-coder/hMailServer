@@ -773,6 +773,24 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   restore, Delete and Refresh are under the list, where they act, the first two enabled only while a row is selected
   and Delete drawn as every list page's Delete is; a name left empty is said on the field, with the keyboard put in
   it; the panel starts where the other tabs do, and its list and its one-time password are on the component card.
+- **Fixed: the Control Panel's collection grids were headed by the dialogs' sentences, cut until the columns could
+  not be told apart.** The greylisting bypass list's SPF, DKIM and DMARC columns were all headed "Requires…" at 80
+  pixels ("Requir…" in a 760-pixel window, "Erfordert…" three times in German); the allow and block list's "Block
+  rather than allow" read "Block rath…" and its cells Yes and No, and the expiry date itself was kept off the grid,
+  which showed only whether one was set; the domain dialog's Names tab carried an example in its header ("Alias
+  domain name (e.g. example.net)"); and the account dialog's External tab left the server, its one star column,
+  about 40 pixels ("Ser…") beside five fixed ones. A field can name its column's header apart from its caption now
+  (`FieldSpec.GridLabel`), the caption staying the header's tool tip and help text, and a Bool's cells can be words
+  of their own: the bypass list is headed SPF, DKIM and DMARC, reading *Required* or a dash; the allow and block list
+  has an *Action* column reading Block or Allow and one *Expires* column showing the date, or *Never*; the Names tab
+  is headed *Alias domain*; the External tab's server type is off the grid, so the server keeps its width, and its
+  connection security is headed *Security*; and the remote domains grid is headed *Inbound TLS*, *Largest (KB)*,
+  *Connections*, *Recipient check* and *Encryption* where the sentences were cut. Every column of a collection grid
+  keeps its width now, as the IP ranges page's do, so that a grid wider than its card scrolls sideways rather than
+  squeezing its columns - given less than its columns ask for, a grid took the difference from them, which cut the
+  remote domains grid's headers at every width their fields named - and such a grid keeps its vertical bar, as the
+  rules page's list does. A test holds every narrow column whose caption is longer than a few words to a header of
+  its own, and every column to its width.
 
 ### IMAP, POP3 and the webmail
 

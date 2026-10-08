@@ -1382,6 +1382,9 @@
   <data name="Alias cache max size (KB, resets at service restart)" xml:space="preserve">
     <value>别名缓存最大大小（KB，重启服务后重置）</value>
   </data>
+  <data name="Alias domain" xml:space="preserve">
+    <value>别名域</value>
+  </data>
   <data name="Alias domain name (e.g. example.net)" xml:space="preserve">
     <value>别名域名（例如 example.net）</value>
   </data>
@@ -1402,6 +1405,9 @@
   </data>
   <data name="All linked domains" xml:space="preserve">
     <value>所有关联的域</value>
+  </data>
+  <data name="Allow" xml:space="preserve">
+    <value>允许</value>
   </data>
   <data name="Allow SASL PLAIN authentication" xml:space="preserve">
     <value>允许 SASL PLAIN 身份验证</value>
@@ -2033,6 +2039,9 @@
   </data>
   <data name="Blacklisted. List entries: {0}. Messages deleted: {1}." xml:space="preserve">
     <value>已加入黑名单。名单条目数：{0}。已删除邮件数：{1}。</value>
+  </data>
+  <data name="Block" xml:space="preserve">
+    <value>拦截</value>
   </data>
   <data name="Block lists and this server's own addresses" xml:space="preserve">
     <value>阻止列表和本服务器自己的地址</value>
@@ -5172,6 +5181,9 @@
   <data name="Inactive" xml:space="preserve">
     <value>非活动</value>
   </data>
+  <data name="Inbound TLS" xml:space="preserve">
+    <value>入站 TLS</value>
+  </data>
   <data name="Inbound client certificates - the port needs a CA bundle, the clients need certificates" xml:space="preserve">
     <value>入站客户端证书 - 端口需要 CA 证书包，客户端需要证书</value>
   </data>
@@ -5410,6 +5422,9 @@
   </data>
   <data name="Language (VBScript, JScript or JavaScript)" xml:space="preserve">
     <value>语言（VBScript、JScript 或 JavaScript）</value>
+  </data>
+  <data name="Largest (KB)" xml:space="preserve">
+    <value>最大 (KB)</value>
   </data>
   <data name="Largest attachment submitted (KB)" xml:space="preserve">
     <value>提交的最大附件（KB）</value>
@@ -8199,6 +8214,9 @@
   <data name="Recipient" xml:space="preserve">
     <value>收件人</value>
   </data>
+  <data name="Recipient check" xml:space="preserve">
+    <value>收件人检查</value>
+  </data>
   <data name="Recipient list" xml:space="preserve">
     <value>收件人列表</value>
   </data>
@@ -8649,6 +8667,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Require the assertion itself to be signed" xml:space="preserve">
     <value>要求断言本身已签名</value>
+  </data>
+  <data name="Required" xml:space="preserve">
+    <value>必需</value>
   </data>
   <data name="Required. The Active Directory domain controller or other LDAP server to bind against. For LDAPS the name must match the server's certificate, so use the DNS name, not an IP address." xml:space="preserve">
     <value>必填。用于绑定的 Active Directory 域控制器或其他 LDAP 服务器。对于 LDAPS，名称必须与服务器的证书相符，因此请使用 DNS 名称，而不是 IP 地址。</value>

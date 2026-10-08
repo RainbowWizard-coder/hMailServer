@@ -1382,6 +1382,9 @@ Control Panel kan bare lese meldingsfiler når det kjører på den samme maskine
   <data name="Alias cache max size (KB, resets at service restart)" xml:space="preserve">
     <value>Maks størrelse på aliashurtigbuffer (KB, nullstilles ved omstart av tjenesten)</value>
   </data>
+  <data name="Alias domain" xml:space="preserve">
+    <value>Aliasdomene</value>
+  </data>
   <data name="Alias domain name (e.g. example.net)" xml:space="preserve">
     <value>Aliasdomenenavn (f.eks. example.net)</value>
   </data>
@@ -1402,6 +1405,9 @@ Control Panel kan bare lese meldingsfiler når det kjører på den samme maskine
   </data>
   <data name="All linked domains" xml:space="preserve">
     <value>Alle tilknyttede domener</value>
+  </data>
+  <data name="Allow" xml:space="preserve">
+    <value>Tillat</value>
   </data>
   <data name="Allow SASL PLAIN authentication" xml:space="preserve">
     <value>Tillat SASL PLAIN-autentisering</value>
@@ -2033,6 +2039,9 @@ Vil du starte Control Panel på nytt nå? Velg Nei for å prøve å fortsette å
   </data>
   <data name="Blacklisted. List entries: {0}. Messages deleted: {1}." xml:space="preserve">
     <value>Svartelistet. Listeoppføringer: {0}. Slettede meldinger: {1}.</value>
+  </data>
+  <data name="Block" xml:space="preserve">
+    <value>Blokker</value>
   </data>
   <data name="Block lists and this server's own addresses" xml:space="preserve">
     <value>Blokkeringslister og serverens egne adresser</value>
@@ -5172,6 +5181,9 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="Inactive" xml:space="preserve">
     <value>Inaktiv</value>
   </data>
+  <data name="Inbound TLS" xml:space="preserve">
+    <value>Innkommende TLS</value>
+  </data>
   <data name="Inbound client certificates - the port needs a CA bundle, the clients need certificates" xml:space="preserve">
     <value>Innkommende klientsertifikater - porten trenger en CA-bunt, klientene trenger sertifikater</value>
   </data>
@@ -5410,6 +5422,9 @@ Det verifiserte installasjonsprogrammet overleveres til oppdateringshjelperen: t
   </data>
   <data name="Language (VBScript, JScript or JavaScript)" xml:space="preserve">
     <value>Språk (VBScript, JScript eller JavaScript)</value>
+  </data>
+  <data name="Largest (KB)" xml:space="preserve">
+    <value>Største (KB)</value>
   </data>
   <data name="Largest attachment submitted (KB)" xml:space="preserve">
     <value>Største vedlegg som sendes inn (KB)</value>
@@ -8199,6 +8214,9 @@ Kjør dette hvis klienter melder om meldinger som dukker opp under feil UID, ell
   <data name="Recipient" xml:space="preserve">
     <value>Mottaker</value>
   </data>
+  <data name="Recipient check" xml:space="preserve">
+    <value>Mottakerkontroll</value>
+  </data>
   <data name="Recipient list" xml:space="preserve">
     <value>Mottakerliste</value>
   </data>
@@ -8649,6 +8667,9 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   </data>
   <data name="Require the assertion itself to be signed" xml:space="preserve">
     <value>Krev at selve påstanden er signert</value>
+  </data>
+  <data name="Required" xml:space="preserve">
+    <value>Påkrevd</value>
   </data>
   <data name="Required. The Active Directory domain controller or other LDAP server to bind against. For LDAPS the name must match the server's certificate, so use the DNS name, not an IP address." xml:space="preserve">
     <value>Påkrevd. Active Directory-domenekontrolleren eller en annen LDAP-server å binde mot. For LDAPS må navnet stemme med serverens sertifikat, så bruk DNS-navnet, ikke en IP-adresse.</value>

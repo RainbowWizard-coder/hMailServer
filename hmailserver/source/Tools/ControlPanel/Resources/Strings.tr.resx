@@ -1382,6 +1382,9 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   <data name="Alias cache max size (KB, resets at service restart)" xml:space="preserve">
     <value>Diğer ad önbelleği en büyük boyutu (KB, hizmet yeniden başlatıldığında sıfırlanır)</value>
   </data>
+  <data name="Alias domain" xml:space="preserve">
+    <value>Diğer ad etki alanı</value>
+  </data>
   <data name="Alias domain name (e.g. example.net)" xml:space="preserve">
     <value>Diğer ad etki alanı adı (örneğin example.net)</value>
   </data>
@@ -1402,6 +1405,9 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   </data>
   <data name="All linked domains" xml:space="preserve">
     <value>Bağlı tüm etki alanları</value>
+  </data>
+  <data name="Allow" xml:space="preserve">
+    <value>İzin ver</value>
   </data>
   <data name="Allow SASL PLAIN authentication" xml:space="preserve">
     <value>SASL PLAIN kimlik doğrulamasına izin ver</value>
@@ -2033,6 +2039,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Çalışmayı sürdürmeyi de
   </data>
   <data name="Blacklisted. List entries: {0}. Messages deleted: {1}." xml:space="preserve">
     <value>Kara listeye alındı. Liste kaydı: {0}. Silinen ileti: {1}.</value>
+  </data>
+  <data name="Block" xml:space="preserve">
+    <value>Engelle</value>
   </data>
   <data name="Block lists and this server's own addresses" xml:space="preserve">
     <value>Engelleme listeleri ve bu sunucunun kendi adresleri</value>
@@ -5172,6 +5181,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Inactive" xml:space="preserve">
     <value>Etkin değil</value>
   </data>
+  <data name="Inbound TLS" xml:space="preserve">
+    <value>Gelen TLS</value>
+  </data>
   <data name="Inbound client certificates - the port needs a CA bundle, the clients need certificates" xml:space="preserve">
     <value>Gelen istemci sertifikaları - portun bir CA paketine, istemcilerin sertifikalara ihtiyacı var</value>
   </data>
@@ -5410,6 +5422,9 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   </data>
   <data name="Language (VBScript, JScript or JavaScript)" xml:space="preserve">
     <value>Dil (VBScript, JScript veya JavaScript)</value>
+  </data>
+  <data name="Largest (KB)" xml:space="preserve">
+    <value>En büyük (KB)</value>
   </data>
   <data name="Largest attachment submitted (KB)" xml:space="preserve">
     <value>Gönderilen en büyük ek (KB)</value>
@@ -8199,6 +8214,9 @@ Her klasör için sayaç, o klasörün gerçekten tuttuğu en yüksek ileti UID'
   <data name="Recipient" xml:space="preserve">
     <value>Alıcı</value>
   </data>
+  <data name="Recipient check" xml:space="preserve">
+    <value>Alıcı denetimi</value>
+  </data>
   <data name="Recipient list" xml:space="preserve">
     <value>Alıcı listesi</value>
   </data>
@@ -8649,6 +8667,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   </data>
   <data name="Require the assertion itself to be signed" xml:space="preserve">
     <value>Onaylamanın kendisinin imzalanmasını zorunlu kıl</value>
+  </data>
+  <data name="Required" xml:space="preserve">
+    <value>Gerekli</value>
   </data>
   <data name="Required. The Active Directory domain controller or other LDAP server to bind against. For LDAPS the name must match the server's certificate, so use the DNS name, not an IP address." xml:space="preserve">
     <value>Gerekli. Bind yapılacak Active Directory etki alanı denetleyicisi ya da başka bir LDAP sunucusu. LDAPS için adın sunucunun sertifikasıyla eşleşmesi gerekir; bu yüzden IP adresi değil DNS adı kullanın.</value>

@@ -1382,6 +1382,9 @@ O Control Panel só consegue ler arquivos de mensagens quando roda na mesma máq
   <data name="Alias cache max size (KB, resets at service restart)" xml:space="preserve">
     <value>Tamanho máx. do cache de aliases (KB, zerado ao reiniciar o serviço)</value>
   </data>
+  <data name="Alias domain" xml:space="preserve">
+    <value>Domínio alias</value>
+  </data>
   <data name="Alias domain name (e.g. example.net)" xml:space="preserve">
     <value>Nome de domínio alias (ex.: example.net)</value>
   </data>
@@ -1402,6 +1405,9 @@ O Control Panel só consegue ler arquivos de mensagens quando roda na mesma máq
   </data>
   <data name="All linked domains" xml:space="preserve">
     <value>Todos os domínios vinculados</value>
+  </data>
+  <data name="Allow" xml:space="preserve">
+    <value>Permitir</value>
   </data>
   <data name="Allow SASL PLAIN authentication" xml:space="preserve">
     <value>Permitir autenticação SASL PLAIN</value>
@@ -2033,6 +2039,9 @@ Reiniciar o Control Panel agora? Escolha Não para tentar continuar trabalhando.
   </data>
   <data name="Blacklisted. List entries: {0}. Messages deleted: {1}." xml:space="preserve">
     <value>Colocado na lista negra. Entradas na lista: {0}. Mensagens excluídas: {1}.</value>
+  </data>
+  <data name="Block" xml:space="preserve">
+    <value>Bloquear</value>
   </data>
   <data name="Block lists and this server's own addresses" xml:space="preserve">
     <value>Listas de bloqueio e os endereços do próprio servidor</value>
@@ -5172,6 +5181,9 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="Inactive" xml:space="preserve">
     <value>Inativo</value>
   </data>
+  <data name="Inbound TLS" xml:space="preserve">
+    <value>TLS de entrada</value>
+  </data>
   <data name="Inbound client certificates - the port needs a CA bundle, the clients need certificates" xml:space="preserve">
     <value>Certificados de cliente de entrada - a porta precisa de um pacote de certificados de CA, os clientes precisam de certificados</value>
   </data>
@@ -5410,6 +5422,9 @@ O instalador verificado é entregue ao auxiliar de atualização: o serviço par
   </data>
   <data name="Language (VBScript, JScript or JavaScript)" xml:space="preserve">
     <value>Linguagem (VBScript, JScript ou JavaScript)</value>
+  </data>
+  <data name="Largest (KB)" xml:space="preserve">
+    <value>Maior (KB)</value>
   </data>
   <data name="Largest attachment submitted (KB)" xml:space="preserve">
     <value>Maior anexo enviado (KB)</value>
@@ -8199,6 +8214,9 @@ Execute isto se os clientes relatarem mensagens aparecendo com o UID errado, ou 
   <data name="Recipient" xml:space="preserve">
     <value>Destinatário</value>
   </data>
+  <data name="Recipient check" xml:space="preserve">
+    <value>Verificação do destinatário</value>
+  </data>
   <data name="Recipient list" xml:space="preserve">
     <value>Lista de destinatários</value>
   </data>
@@ -8649,6 +8667,9 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   </data>
   <data name="Require the assertion itself to be signed" xml:space="preserve">
     <value>Exigir que a própria asserção esteja assinada</value>
+  </data>
+  <data name="Required" xml:space="preserve">
+    <value>Obrigatório</value>
   </data>
   <data name="Required. The Active Directory domain controller or other LDAP server to bind against. For LDAPS the name must match the server's certificate, so use the DNS name, not an IP address." xml:space="preserve">
     <value>Obrigatório. O controlador de domínio do Active Directory ou outro servidor LDAP contra o qual fazer o bind. Para LDAPS o nome precisa corresponder ao certificado do servidor, então use o nome DNS, não um endereço IP.</value>

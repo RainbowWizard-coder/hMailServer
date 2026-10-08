@@ -1382,6 +1382,9 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="Alias cache max size (KB, resets at service restart)" xml:space="preserve">
     <value>Maximale grootte aliascache (KB, reset bij herstart van de service)</value>
   </data>
+  <data name="Alias domain" xml:space="preserve">
+    <value>Aliasdomein</value>
+  </data>
   <data name="Alias domain name (e.g. example.net)" xml:space="preserve">
     <value>Aliasdomeinnaam (bijv. example.net)</value>
   </data>
@@ -1402,6 +1405,9 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   </data>
   <data name="All linked domains" xml:space="preserve">
     <value>Alle gekoppelde domeinen</value>
+  </data>
+  <data name="Allow" xml:space="preserve">
+    <value>Toestaan</value>
   </data>
   <data name="Allow SASL PLAIN authentication" xml:space="preserve">
     <value>SASL PLAIN-authenticatie toestaan</value>
@@ -2033,6 +2039,9 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   </data>
   <data name="Blacklisted. List entries: {0}. Messages deleted: {1}." xml:space="preserve">
     <value>Op de zwarte lijst gezet. Lijstitems: {0}. Berichten verwijderd: {1}.</value>
+  </data>
+  <data name="Block" xml:space="preserve">
+    <value>Blokkeren</value>
   </data>
   <data name="Block lists and this server's own addresses" xml:space="preserve">
     <value>Blokkeerlijsten en de eigen adressen van deze server</value>
@@ -5172,6 +5181,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Inactive" xml:space="preserve">
     <value>Inactief</value>
   </data>
+  <data name="Inbound TLS" xml:space="preserve">
+    <value>Inkomende TLS</value>
+  </data>
   <data name="Inbound client certificates - the port needs a CA bundle, the clients need certificates" xml:space="preserve">
     <value>Inkomende clientcertificaten - de poort heeft een CA-bundel nodig, de clients hebben certificaten nodig</value>
   </data>
@@ -5410,6 +5422,9 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   </data>
   <data name="Language (VBScript, JScript or JavaScript)" xml:space="preserve">
     <value>Taal (VBScript, JScript of JavaScript)</value>
+  </data>
+  <data name="Largest (KB)" xml:space="preserve">
+    <value>Grootste (KB)</value>
   </data>
   <data name="Largest attachment submitted (KB)" xml:space="preserve">
     <value>Grootste ingediende bijlage (KB)</value>
@@ -8199,6 +8214,9 @@ Voer dit uit als clients melden dat berichten onder de verkeerde UID verschijnen
   <data name="Recipient" xml:space="preserve">
     <value>Ontvanger</value>
   </data>
+  <data name="Recipient check" xml:space="preserve">
+    <value>Ontvangerscontrole</value>
+  </data>
   <data name="Recipient list" xml:space="preserve">
     <value>Ontvangerslijst</value>
   </data>
@@ -8649,6 +8667,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   </data>
   <data name="Require the assertion itself to be signed" xml:space="preserve">
     <value>Vereisen dat de assertion zelf is ondertekend</value>
+  </data>
+  <data name="Required" xml:space="preserve">
+    <value>Vereist</value>
   </data>
   <data name="Required. The Active Directory domain controller or other LDAP server to bind against. For LDAPS the name must match the server's certificate, so use the DNS name, not an IP address." xml:space="preserve">
     <value>Verplicht. De Active Directory-domeincontroller of andere LDAP-server waartegen wordt gebonden. Voor LDAPS moet de naam overeenkomen met het certificaat van de server, dus gebruik de DNS-naam en geen IP-adres.</value>

@@ -1382,6 +1382,9 @@
   <data name="Alias cache max size (KB, resets at service restart)" xml:space="preserve">
     <value>Максимальний розмір кешу псевдонімів (КБ, скидається під час перезапуску служби)</value>
   </data>
+  <data name="Alias domain" xml:space="preserve">
+    <value>Домен-псевдонім</value>
+  </data>
   <data name="Alias domain name (e.g. example.net)" xml:space="preserve">
     <value>Ім’я домену-псевдоніма (наприклад, example.net)</value>
   </data>
@@ -1402,6 +1405,9 @@
   </data>
   <data name="All linked domains" xml:space="preserve">
     <value>Усі пов’язані домени</value>
+  </data>
+  <data name="Allow" xml:space="preserve">
+    <value>Дозволити</value>
   </data>
   <data name="Allow SASL PLAIN authentication" xml:space="preserve">
     <value>Дозволити автентифікацію SASL PLAIN</value>
@@ -2033,6 +2039,9 @@
   </data>
   <data name="Blacklisted. List entries: {0}. Messages deleted: {1}." xml:space="preserve">
     <value>Внесено до чорного списку. Записів у списку: {0}. Видалено повідомлень: {1}.</value>
+  </data>
+  <data name="Block" xml:space="preserve">
+    <value>Блокувати</value>
   </data>
   <data name="Block lists and this server's own addresses" xml:space="preserve">
     <value>Списки блокування і власні адреси цього сервера</value>
@@ -5172,6 +5181,9 @@
   <data name="Inactive" xml:space="preserve">
     <value>Неактивний</value>
   </data>
+  <data name="Inbound TLS" xml:space="preserve">
+    <value>Вхідний TLS</value>
+  </data>
   <data name="Inbound client certificates - the port needs a CA bundle, the clients need certificates" xml:space="preserve">
     <value>Вхідні клієнтські сертифікати - порту потрібен пакет ЦС, клієнтам потрібні сертифікати</value>
   </data>
@@ -5410,6 +5422,9 @@
   </data>
   <data name="Language (VBScript, JScript or JavaScript)" xml:space="preserve">
     <value>Мова (VBScript, JScript або JavaScript)</value>
+  </data>
+  <data name="Largest (KB)" xml:space="preserve">
+    <value>Найбільше (KB)</value>
   </data>
   <data name="Largest attachment submitted (KB)" xml:space="preserve">
     <value>Найбільше вкладення, що надсилається (КБ)</value>
@@ -8199,6 +8214,9 @@
   <data name="Recipient" xml:space="preserve">
     <value>Отримувач</value>
   </data>
+  <data name="Recipient check" xml:space="preserve">
+    <value>Перевірка одержувача</value>
+  </data>
   <data name="Recipient list" xml:space="preserve">
     <value>Список отримувачів</value>
   </data>
@@ -8649,6 +8667,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Require the assertion itself to be signed" xml:space="preserve">
     <value>Вимагати, щоб саме твердження було підписане</value>
+  </data>
+  <data name="Required" xml:space="preserve">
+    <value>Потрібно</value>
   </data>
   <data name="Required. The Active Directory domain controller or other LDAP server to bind against. For LDAPS the name must match the server's certificate, so use the DNS name, not an IP address." xml:space="preserve">
     <value>Обов’язково. Контролер домену Active Directory або інший сервер LDAP, до якого виконується прив’язка. Для LDAPS ім’я має відповідати сертифікату сервера, тому використовуйте DNS-ім’я, а не IP-адресу.</value>

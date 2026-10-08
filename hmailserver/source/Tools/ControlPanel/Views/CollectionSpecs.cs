@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
@@ -128,15 +129,25 @@ namespace hMailServer.ControlPanel.Views
          Subtitle = L("Addresses and whole domains that every account wants, or does not. An allowed sender's mail skips the spam verdict; a blocked sender's is held in the quarantine where that is on, and marked as spam where it is not - never deleted. An account's own list is consulted first and its domain's next, so this list only decides for a recipient whose own lists say nothing. To refuse a sender for everyone during the SMTP conversation, whatever anybody's own list says, use Blocked senders."),
          ItemNoun = L("list entry"),
          GetCollection = () => AntiSpam.SenderList,
-         Fields =
-         {
-            new FieldSpec { Prop = "Value", Label = L("Address, domain or URL (https://host/...)"), GridWidth = 260 },
-            new FieldSpec { Prop = "Blocked", Label = L("Block rather than allow"), Kind = FieldKind.Bool, GridWidth = 90, Default = false },
-            new FieldSpec { Prop = "Reason", Label = L("Reason") },
-            new FieldSpec { Prop = "Expires", Label = L("Stops mattering at a date"), Kind = FieldKind.Bool, GridWidth = 90, Default = false },
-            new FieldSpec { Prop = "ExpiresTime", Label = L("Expires on (yyyy-mm-dd hh:mm:ss, when it stops mattering)"), ShowInGrid = false }
-         }
+         Fields = SenderListFields(260)
       });
+
+      /// <summary>
+      /// The allow and block list's fields, the server's and a domain's alike.
+      /// In the grid the dialog's sentences are short headers: Action, which
+      /// reads Block or Allow where the tick box's "Block rather than allow" read
+      /// "Block rath…" and its cells Yes and No; and one Expires column, showing
+      /// the date, or Never, where the grid showed whether a date was set and
+      /// kept the date itself off it.
+      /// </summary>
+      private static List<FieldSpec> SenderListFields(double valueWidth) => new()
+      {
+         new FieldSpec { Prop = "Value", Label = L("Address, domain or URL (https://host/...)"), GridLabel = L("Address or domain"), GridWidth = valueWidth },
+         new FieldSpec { Prop = "Blocked", Label = L("Block rather than allow"), GridLabel = L("Action"), GridTrue = L("Block"), GridFalse = L("Allow"), Kind = FieldKind.Bool, GridWidth = 90, Default = false },
+         new FieldSpec { Prop = "Reason", Label = L("Reason") },
+         new FieldSpec { Prop = "Expires", Label = L("Stops mattering at a date"), Kind = FieldKind.Bool, ShowInGrid = false, Default = false },
+         new FieldSpec { Prop = "ExpiresTime", Label = L("Expires on (yyyy-mm-dd hh:mm:ss, when it stops mattering)"), GridLabel = L("Expires"), GridOnlyWhen = "Expires", GridEmpty = L("Never"), GridWidth = 150 } // no-loc: GridOnlyWhen names the Bool property
+      };
 
       public static CollectionEditorView GreyListWhiteList() => new(new CollectionSpec
       {
@@ -179,9 +190,12 @@ namespace hMailServer.ControlPanel.Views
          {
             new FieldSpec { Prop = "Pattern", Label = L("Domain, or .suffix"), GridWidth = 220, Default = "" },
             new FieldSpec { Prop = "MatchOn", Label = L("Matched against"), Kind = FieldKind.Combo, Options = GreyListBypassMatchOptions, GridWidth = 200, Default = 1 },
-            new FieldSpec { Prop = "RequireSPF", Label = L("Requires an SPF pass"), Kind = FieldKind.Bool, GridWidth = 80, Default = true },
-            new FieldSpec { Prop = "RequireDKIM", Label = L("Requires a verified DKIM signature (decided after DATA)"), Kind = FieldKind.Bool, GridWidth = 80, Default = false },
-            new FieldSpec { Prop = "RequireDMARC", Label = L("Requires a DMARC pass (decided after DATA)"), Kind = FieldKind.Bool, GridWidth = 80, Default = false },
+            // Headed by the result's name alone, reading Required or a dash: the
+            // three tick boxes' captions headed 80-pixel columns, in which all
+            // three read "Requires…".
+            new FieldSpec { Prop = "RequireSPF", Label = L("Requires an SPF pass"), GridLabel = L("SPF"), GridTrue = L("Required"), GridFalse = "—", Kind = FieldKind.Bool, GridWidth = 72, Default = true },
+            new FieldSpec { Prop = "RequireDKIM", Label = L("Requires a verified DKIM signature (decided after DATA)"), GridLabel = L("DKIM"), GridTrue = L("Required"), GridFalse = "—", Kind = FieldKind.Bool, GridWidth = 72, Default = false },
+            new FieldSpec { Prop = "RequireDMARC", Label = L("Requires a DMARC pass (decided after DATA)"), GridLabel = L("DMARC"), GridTrue = L("Required"), GridFalse = "—", Kind = FieldKind.Bool, GridWidth = 72, Default = false },
             new FieldSpec { Prop = "Note", Label = L("Note"), Default = "" }
          }
       });
@@ -285,13 +299,16 @@ namespace hMailServer.ControlPanel.Views
             new FieldSpec { Prop = "Active", Label = L("Active"), Kind = FieldKind.Bool, GridWidth = 70, Default = true },
             new FieldSpec { Prop = "DomainName", Label = L("Domain or pattern"), GridWidth = 200, Default = "" },
             new FieldSpec { Prop = "OutboundTls", Label = L("Outbound TLS"), Kind = FieldKind.Combo, Options = RemoteTlsOptions, GridWidth = 160, Default = 0 },
-            new FieldSpec { Prop = "RequireInboundTls", Label = L("Require TLS on mail from this domain"), Kind = FieldKind.Bool, GridWidth = 90, Default = false },
-            new FieldSpec { Prop = "MaxMessageSizeKB", Label = L("Largest message in KB (0 is no limit)"), Kind = FieldKind.Number, GridWidth = 110, Default = 0 },
-            new FieldSpec { Prop = "MaxConnections", Label = L("Simultaneous connections (0 is unlimited)"), Kind = FieldKind.Number, GridWidth = 110, Default = 0 },
+            // Short headers over the narrow columns, the dialog's sentences in
+            // their tool tips: "Require TLS on mail from this domain" read
+            // "Require TLS o" over 90 pixels.
+            new FieldSpec { Prop = "RequireInboundTls", Label = L("Require TLS on mail from this domain"), GridLabel = L("Inbound TLS"), GridTrue = L("Required"), GridFalse = "—", Kind = FieldKind.Bool, GridWidth = 125, Default = false },
+            new FieldSpec { Prop = "MaxMessageSizeKB", Label = L("Largest message in KB (0 is no limit)"), GridLabel = L("Largest (KB)"), Kind = FieldKind.Number, GridWidth = 110, Default = 0 },
+            new FieldSpec { Prop = "MaxConnections", Label = L("Simultaneous connections (0 is unlimited)"), GridLabel = L("Connections"), Kind = FieldKind.Number, GridWidth = 110, Default = 0 },
             new FieldSpec { Prop = "MaxMessagesPerMinute", Label = L("Messages a minute (0 is unlimited)"), Kind = FieldKind.Number, ShowInGrid = false, Default = 0 },
             new FieldSpec { Prop = "AllowAutomaticReplies", Label = L("Automatic replies may go to this domain"), Kind = FieldKind.Bool, ShowInGrid = false, Default = true },
             new FieldSpec { Prop = "AllowForwarding", Label = L("Mail may be forwarded to this domain"), Kind = FieldKind.Bool, ShowInGrid = false, Default = true },
-            new FieldSpec { Prop = "CalloutEnabled", Label = L("Verify a recipient with the domain's own server"), Kind = FieldKind.Bool, GridWidth = 90, Default = false },
+            new FieldSpec { Prop = "CalloutEnabled", Label = L("Verify a recipient with the domain's own server"), GridLabel = L("Recipient check"), Kind = FieldKind.Bool, GridWidth = 125, Default = false },
             new FieldSpec { Prop = "CalloutHost", Label = L("The server to ask (empty asks the domain's MX hosts)"), ShowInGrid = false, Default = "" },
             new FieldSpec { Prop = "CalloutPort", Label = L("The port to ask on"), Kind = FieldKind.Number, ShowInGrid = false, Default = 25 },
             new FieldSpec { Prop = "CalloutTimeoutSeconds", Label = L("How long to wait, in seconds"), Kind = FieldKind.Number, ShowInGrid = false, Default = 10 },
@@ -303,7 +320,7 @@ namespace hMailServer.ControlPanel.Views
             // below it, which the server writes: the fingerprint to check with
             // the partner, the expiry, and whether a message can be encrypted
             // to it now.
-            new FieldSpec { Prop = "Encrypt", Label = L("Encrypt mail to this domain at this server"), Kind = FieldKind.Combo, Options = RemoteEncryptionOptions, GridWidth = 110, Default = 0 },
+            new FieldSpec { Prop = "Encrypt", Label = L("Encrypt mail to this domain at this server"), GridLabel = L("Encryption"), Kind = FieldKind.Combo, Options = RemoteEncryptionOptions, GridWidth = 125, Default = 0 },
             new FieldSpec { Prop = "EncryptKey", Label = L("The partner's key: an OpenPGP public key or PEM certificates (left empty, the key held is kept)"), Kind = FieldKind.Multiline, WriteOnly = true, ShowInGrid = false, Default = "" },
             new FieldSpec { Prop = "EncryptKeySummary", Label = L("The key held"), ReadOnly = true, ShowInGrid = false },
             new FieldSpec { Prop = "EncryptFallback", Label = L("When a message cannot be encrypted"), Kind = FieldKind.Combo, Options = RemoteEncryptFallbackOptions, ShowInGrid = false, Default = 0 },
@@ -359,14 +376,7 @@ namespace hMailServer.ControlPanel.Views
             ServerSession.Release(domain);
             return list;
          },
-         Fields =
-         {
-            new FieldSpec { Prop = "Value", Label = L("Address, domain or URL (https://host/...)"), GridWidth = 240 },
-            new FieldSpec { Prop = "Blocked", Label = L("Block rather than allow"), Kind = FieldKind.Bool, GridWidth = 90, Default = false },
-            new FieldSpec { Prop = "Reason", Label = L("Reason") },
-            new FieldSpec { Prop = "Expires", Label = L("Stops mattering at a date"), Kind = FieldKind.Bool, GridWidth = 90, Default = false },
-            new FieldSpec { Prop = "ExpiresTime", Label = L("Expires on (yyyy-mm-dd hh:mm:ss, when it stops mattering)"), ShowInGrid = false }
-         }
+         Fields = SenderListFields(240)
       }, embedded: true);
 
       /// <summary>Domain-name aliases for one domain (embedded in the Domain editor).</summary>
@@ -384,7 +394,8 @@ namespace hMailServer.ControlPanel.Views
          },
          Fields =
          {
-            new FieldSpec { Prop = "AliasName", Label = L("Alias domain name (e.g. example.net)"), Default = "" }
+            // The example stays in the dialog's caption; the column is headed by the name alone.
+            new FieldSpec { Prop = "AliasName", Label = L("Alias domain name (e.g. example.net)"), GridLabel = L("Alias domain"), Default = "" }
          }
       }, embedded: true);
 
@@ -408,7 +419,10 @@ namespace hMailServer.ControlPanel.Views
             // Edit opened to switch the account off must find it in sight.
             new FieldSpec { Prop = "Enabled", Label = L("Enabled"), Kind = FieldKind.Bool, GridWidth = 70, Default = true },
             new FieldSpec { Prop = "Name", Label = L("Name"), GridWidth = 150, Default = "" },
-            new FieldSpec { Prop = "ServerType", Label = L("Server type"), Kind = FieldKind.Combo, Options = ServerTypeOptions, GridWidth = 90, Default = 0 },
+            // Off the grid: its wording is a sentence about collection and
+            // deletion, and five fixed columns left the server's name, the one
+            // star column, about 40 pixels ("Ser…") in the account dialog.
+            new FieldSpec { Prop = "ServerType", Label = L("Server type"), Kind = FieldKind.Combo, Options = ServerTypeOptions, ShowInGrid = false, Default = 0 },
             new FieldSpec { Prop = "ServerAddress", Label = L("Server"), Default = "" },
             new FieldSpec { Prop = "Port", Label = L("Port"), Kind = FieldKind.Number, GridWidth = 70, Default = 110 },
             new FieldSpec { Prop = "Username", Label = L("User name"), ShowInGrid = false, Default = "" },
@@ -435,6 +449,7 @@ namespace hMailServer.ControlPanel.Views
             {
                Prop = "ConnectionSecurity",
                Label = L("Connection security"),
+               GridLabel = L("Security"),
                Kind = FieldKind.Combo,
                Options = ConnectionSecurityOptions,
                GridWidth = 150,

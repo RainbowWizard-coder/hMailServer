@@ -1382,6 +1382,9 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   <data name="Alias cache max size (KB, resets at service restart)" xml:space="preserve">
     <value>Aliasvälimuistin enimmäiskoko (KB, nollautuu palvelun uudelleenkäynnistyksessä)</value>
   </data>
+  <data name="Alias domain" xml:space="preserve">
+    <value>Aliasverkkotunnus</value>
+  </data>
   <data name="Alias domain name (e.g. example.net)" xml:space="preserve">
     <value>Aliasverkkotunnuksen nimi (esim. example.net)</value>
   </data>
@@ -1402,6 +1405,9 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   </data>
   <data name="All linked domains" xml:space="preserve">
     <value>Kaikki liitetyt verkkotunnukset</value>
+  </data>
+  <data name="Allow" xml:space="preserve">
+    <value>Salli</value>
   </data>
   <data name="Allow SASL PLAIN authentication" xml:space="preserve">
     <value>Salli SASL PLAIN -todennus</value>
@@ -2033,6 +2039,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
   </data>
   <data name="Blacklisted. List entries: {0}. Messages deleted: {1}." xml:space="preserve">
     <value>Lisätty mustalle listalle. Listamerkintöjä: {0}. Poistettuja viestejä: {1}.</value>
+  </data>
+  <data name="Block" xml:space="preserve">
+    <value>Estä</value>
   </data>
   <data name="Block lists and this server's own addresses" xml:space="preserve">
     <value>Estolistat ja tämän palvelimen omat osoitteet</value>
@@ -5172,6 +5181,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Inactive" xml:space="preserve">
     <value>Ei aktiivinen</value>
   </data>
+  <data name="Inbound TLS" xml:space="preserve">
+    <value>Saapuva TLS</value>
+  </data>
   <data name="Inbound client certificates - the port needs a CA bundle, the clients need certificates" xml:space="preserve">
     <value>Saapuvat asiakasvarmenteet - portti tarvitsee CA-paketin, asiakkaat tarvitsevat varmenteet</value>
   </data>
@@ -5410,6 +5422,9 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   </data>
   <data name="Language (VBScript, JScript or JavaScript)" xml:space="preserve">
     <value>Kieli (VBScript, JScript tai JavaScript)</value>
+  </data>
+  <data name="Largest (KB)" xml:space="preserve">
+    <value>Suurin (KB)</value>
   </data>
   <data name="Largest attachment submitted (KB)" xml:space="preserve">
     <value>Suurin lähetettävä liite (kt)</value>
@@ -8199,6 +8214,9 @@ Aja tämä, jos asiakkaat raportoivat viestien näkyvän väärän UID:n alla, t
   <data name="Recipient" xml:space="preserve">
     <value>Vastaanottaja</value>
   </data>
+  <data name="Recipient check" xml:space="preserve">
+    <value>Vastaanottajan tarkistus</value>
+  </data>
   <data name="Recipient list" xml:space="preserve">
     <value>Vastaanottajaluettelo</value>
   </data>
@@ -8649,6 +8667,9 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   </data>
   <data name="Require the assertion itself to be signed" xml:space="preserve">
     <value>Vaadi, että itse väittämä on allekirjoitettu</value>
+  </data>
+  <data name="Required" xml:space="preserve">
+    <value>Vaaditaan</value>
   </data>
   <data name="Required. The Active Directory domain controller or other LDAP server to bind against. For LDAPS the name must match the server's certificate, so use the DNS name, not an IP address." xml:space="preserve">
     <value>Pakollinen. Active Directory -toimialueen ohjauskone tai muu LDAP-palvelin, johon sidotaan. LDAPS:ssä nimen on vastattava palvelimen varmennetta, joten käytä DNS-nimeä, ei IP-osoitetta.</value>
