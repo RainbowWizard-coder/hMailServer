@@ -720,10 +720,20 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   `ci-linux:26.04-52e9976e73bf@sha256:35048402…`. The rule for a rebuild at the same Dockerfile: it builds to the same
   tag, `26.04-<hash>`, and `build/ci/build-linux-image.sh --push` moves that tag in the registry to the new image's
   digest; the pin in `.linix` follows the digest, in a commit of its own, with `build/check-ci-image.py` holding the
-  tag beside it to the Dockerfile's; and the old digest, `sha256:4eead001…`, is left without a tag, which GitLab.com's
-  registry removes after 24 hours when nothing references it (its online garbage collection; the cleanup policy
-  governs tags alone), so the commits that name it, `master` at 9b2001ce9 and `batch44` among them, run from then on
-  only on a runner that still holds the image - both digests answered an anonymous read on 8 October
+  tag beside it to the Dockerfile's; and the old digest, which would be left without a tag - GitLab.com's registry
+  removes an untagged manifest about 24 hours after nothing references it (its online garbage collection; the cleanup
+  policy governs tags alone) - is kept under a dated tag, `26.04-<hash>-<yyyymmdd>`, for the commits that name it.
+  The 6 October digest, `sha256:4eead001…`, was kept so by hand on 8 October, as
+  `ci-linux:26.04-52e9976e73bf-20261006`, a day after the tag moved off it, by a copy inside the registry that
+  preserves the digest; `master` at 9b2001ce9 and `batch44`, which name it, pull it as before. `--push` now does that
+  itself, before the push: it reads the digest the tag names (`skopeo inspect --raw`, without credentials, hashed),
+  gives it the dated tag by `skopeo copy --all --preserve-digests` with the login's file mounted read-only for the
+  destination alone, as `mirror-semgrep.sh` does, reads it back and holds it to the digest, then pushes and prints the
+  pin line with the dated tag; a second rebuild the same day takes `-2` on when the dated tag names another digest and
+  does nothing more when it names this one; and it stops before the push when the registry cannot be read.
+  `build/check-ci-image.py` holds the script to those steps in their order, and its self-test runs the script with a
+  docker of its own. The registry's cleanup policy keeps the dated tags by name, its ninth pattern,
+  `^[0-9]{2}\.[0-9]{2}-[0-9a-f]{12}-[0-9]{8}$`
   ([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md), "The image").
 - **DBSetup.Tests runs on xUnit.net v3** (`xunit.v3.mtp-off`), as ControlPanel.Tests and ImportTool.Tests have since
   6.3.6; it is new in 6.3.6 and had kept the deprecated `xunit` 2.9.3.

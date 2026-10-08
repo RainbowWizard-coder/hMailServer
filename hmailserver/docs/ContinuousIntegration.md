@@ -1286,12 +1286,15 @@ once; since 6 October 2026 it names it by digest:
   which `.linix` has named since, and both runners with the tag, linix and
   server2, pull it by that digest. The 6 October digest was left with no tag,
   which the registry does not keep: GitLab.com's registry removes an untagged
-  manifest that nothing references after 24 hours (its online garbage
-  collection; the cleanup policy, switched off, governs tags alone). Both
-  digests answered an anonymous read on 8 October, and the commits that name
-  the old one - `master` at 9b2001ce9, `batch44` - run from then on only on a
-  runner that still holds the image, which `if-not-present` never pulls again;
-  step 2 below says the rule.
+  manifest that nothing references about 24 hours later (its online garbage
+  collection; the cleanup policy, switched off, governs tags alone). So on 8
+  October, within that day, the maintainers gave it a dated tag by hand,
+  `26.04-52e9976e73bf-20261006`, by a copy inside the registry that preserves
+  the digest (`skopeo copy --preserve-digests`, from the digest to the tag,
+  with a login of the moment): the registry's tag list shows both tags since,
+  the dated one answers that digest, and the commits that name it - `master`
+  at 9b2001ce9, `batch44` - pull it as before. Since then `--push` keeps the
+  previous digest itself, before the tag moves; step 2 below says the rule.
 - **By its tag on the runner**, `hmailserver-ci/linux:26.04-<hash>`, found in
   the runner's own image store and never pulled: the only form until the second
   security review of 6.3.6 (SUP2-1), and the one `.gitlab-ci.yml` kept until the
@@ -1333,7 +1336,11 @@ the step, which would refuse it. So an edit to the Dockerfile goes like this:
        bash build/ci/build-linux-image.sh --push
 
    Then `docker logout registry.gitlab.com` and remove that directory. The 6
-   October 2026 image was pushed so. The script prints the line to write,
+   October 2026 image was pushed so. The script hands that configuration's
+   file to skopeo's container for the copy below, read-only and for the
+   destination alone, and refuses, before it builds, one that keeps its login
+   in a credential helper, which the container cannot reach, as
+   `build/ci/mirror-semgrep.sh` does. The script prints the line to write,
    `name: registry.gitlab.com/hmailserver/hmailserver/ci-linux:26.04-<hash>@sha256:<digest>`,
    and the checker holds the commit to it. It removes no older tag, because a
    pipeline for an older commit still asks for its own image. It lists them
@@ -1342,16 +1349,34 @@ the step, which would refuse it. So an edit to the Dockerfile goes like this:
    policy, were it switched on, would keep them by name ([The container
    image](#the-container-image), "What the owner sets on the registry").
    A Dockerfile that has not changed builds again to the same tag, and
-   `--push` then gives that tag in the registry to the new image: the digest
-   an older commit names is left with no tag, and GitLab.com's registry removes
-   an untagged manifest that nothing references after 24 hours (its online
-   garbage collection, which no cleanup policy governs: a cleanup policy keeps
-   or removes tags). That is the rebuild rule, for Ubuntu's updates between
-   edits of the Dockerfile: a rebuild at the same Dockerfile moves the tag to a
-   new digest, the pin in `.linix` follows it in a commit of its own, and the
-   commits before that one keep their image only on a runner that already
-   holds it (first on 8 October 2026, for the kernel-header and libc updates
-   above).
+   `--push` then gives that tag in the registry to the new image. The digest
+   an older commit names would be left with no tag, and GitLab.com's registry
+   removes an untagged manifest that nothing references about 24 hours later
+   (its online garbage collection, which no cleanup policy governs: a cleanup
+   policy keeps or removes tags). So before the push the script reads the
+   digest the registry's tag names now - without credentials, as a runner
+   pulls it: `skopeo inspect --raw` in a container, the bytes hashed - and,
+   unless the image about to be pushed carries that digest already, gives it
+   the dated tag `26.04-<hash>-<yyyymmdd>` (the UTC date) by a copy inside the
+   registry that preserves the digest (`skopeo copy --all --preserve-digests`,
+   the login's file mounted read-only for the destination alone, as
+   `build/ci/mirror-semgrep.sh` does), reads the dated tag back and holds it
+   to the digest, and only then pushes; it prints the pin line and the dated
+   tag with the digest it keeps. A second rebuild the same day finds the dated
+   tag taken: when it names the digest to keep, nothing more is done, and
+   otherwise the first free of `-<yyyymmdd>-2`, `-3`... is used. A tag new to
+   the registry, a changed Dockerfile's, has nothing to keep. When the
+   registry cannot be read, or the read-back is not the digest, the script
+   stops before the push rather than move the tag off a digest it could not
+   keep. That is the rebuild rule, for Ubuntu's updates between edits of the
+   Dockerfile: a rebuild at the same Dockerfile moves the tag to a new digest,
+   the pin in `.linix` follows it in a commit of its own, and the commits
+   before that one keep their image under the dated tag (first on 8 October
+   2026, for the kernel-header and libc updates above, when the 6 October
+   digest was kept by hand, as `26.04-52e9976e73bf-20261006`, a day after the
+   tag moved off it). `build/check-ci-image.py` holds the script to those
+   steps, in their order, and its self-test runs the script against a docker
+   of its own and a registry of files.
    (Without `--push` it builds `hmailserver-ci/linux:<tag>` alone, the earlier
    form.)
 3. Put that line into `.linix` in `.gitlab-ci.yml`, in the same commit as the
@@ -2654,29 +2679,35 @@ certificates as ContainerImage.md, "Checking an image", shows, and
 to it.
 
 **What the owner sets on the registry.** Nothing in the pipeline can. As the
-project's API answered on 6 October 2026:
+project's API answered on 6 October 2026, and on 8 October for the ninth
+pattern:
 
 1. **The cleanup policy** is switched off. Its tags to keep
-   (`name_regex_keep`) are eight patterns: `^v?[0-9]+\.[0-9]+\.[0-9]+.*$`,
+   (`name_regex_keep`) are nine patterns: `^v?[0-9]+\.[0-9]+\.[0-9]+.*$`,
    `^latest$`, `^stable$`, `^[0-9]+\.[0-9]+$` (the `6.3` line),
    `^sha256-[0-9a-f]{64}\.(sig|att|sbom)$` (cosign's signatures and
    attestations), `^artifacthub\.io$` (the tag Artifact Hub reads the image
    repository's metadata from, which `container-image-artifacthub` pushes again
    with each release), `^[0-9]{2}\.[0-9]{2}-[0-9a-f]{12}$` (the Linux CI
    image's tags in `ci-linux`, `<Ubuntu release>-<hash>`, which `.linix` names
-   with the digest) and `^[0-9]{8}-(amd64|arm64)$` (the Tumbleweed mirror's in
-   `mirror/opensuse-tumbleweed`, `<YYYYMMDD>-<arch>`, whose images the RPM jobs
-   pin by digest), so that, switched on, it never deletes a release's tags,
-   their signatures, that tag, or an image a commit's CI files name; it would
-   remove every other tag older than 90 days and beyond the newest ten of its
-   repository, every week. The API gave only the first two on 27 and on 28
-   September 2026, though this item said all five then documented were set; the
-   maintainers added the other three through the API on 28 September, before the
-   first image, the sixth on 6 October 2026, the day the image's repository was
-   added to Artifact Hub, and the last two the same day, for the CI image and the
-   Tumbleweed mirror. The policy covers every repository of the project's
-   registry: on 6 October 2026 the image's, `mirror/opensuse-tumbleweed` and
-   `ci-linux`.
+   with the digest), `^[0-9]{2}\.[0-9]{2}-[0-9a-f]{12}-[0-9]{8}$` (the dated
+   tags in `ci-linux`, `<that tag>-<YYYYMMDD>`, under which
+   `build/ci/build-linux-image.sh --push` keeps the digest the tag named
+   before a rebuild moved it, [The image](#the-image); a second rebuild's
+   `-2` is outside the pattern) and `^[0-9]{8}-(amd64|arm64)$` (the Tumbleweed
+   mirror's in `mirror/opensuse-tumbleweed`, `<YYYYMMDD>-<arch>`, whose images
+   the RPM jobs pin by digest), so that, switched on, it never deletes a
+   release's tags, their signatures, that tag, or an image a commit's CI files
+   name; it would remove every other tag older than 90 days and beyond the
+   newest ten of its repository, every week. The API gave only the first two
+   on 27 and on 28 September 2026, though this item said all five then
+   documented were set; the maintainers added the other three through the API
+   on 28 September, before the first image, the sixth on 6 October 2026, the
+   day the image's repository was added to Artifact Hub, two more the same
+   day, for the CI image and the Tumbleweed mirror, and the dated tags' on 8
+   October, the day the 6 October digest was kept under the first of them. The
+   policy covers every repository of the project's registry: on 6 October 2026
+   the image's, `mirror/opensuse-tumbleweed` and `ci-linux`.
 2. **Protected container tags**: one rule, for
    `^(latest|stable|[0-9]+\.[0-9]+(\.[0-9]+)?)$`, push Maintainer, delete Owner,
    so that nobody but a maintainer can push the release's tags and nobody but

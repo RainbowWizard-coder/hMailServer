@@ -50,7 +50,18 @@ This checker fails when:
     or such a job with a before_script of its own that leaves the step out; or a job
     that extends .linix keeps the step in an image of its own, where it would refuse;
   * a FROM line of the Dockerfile is not pinned by digest, which would let the
-    same tag stand for two different images on two days.
+    same tag stand for two different images on two days;
+  * build/ci/build-linux-image.sh --push no longer keeps the digest the registry's
+    tag named before the push. A rebuild from an unchanged Dockerfile moves the tag
+    to the new manifest, and GitLab.com's registry removes an untagged manifest
+    that nothing references about 24 hours later, while master and every open
+    batch still pin the old digest; so the script, before it pushes, reads the
+    digest the tag names (skopeo inspect --raw, hashed), gives it the dated tag
+    <tag>-<yyyymmdd> by a copy that preserves the digest (skopeo copy --all
+    --preserve-digests, the login's file mounted read-only for the destination
+    alone), reads that back and holds it to the digest, and refuses a login kept
+    in a credential helper. Each step is held to the script's text, in that order;
+    the self-test runs the script with a docker of its own and a registry of files.
 
 A job whose image has not been built on linix (or pushed) fails at its first step,
 naming the image it could not find: loud, and in the right place.
@@ -60,24 +71,59 @@ naming the image it could not find: loud, and in the right place.
                form, named by digest, with the tag of this checkout's Dockerfile.
                A job of a release that starts from an image named by tag alone
                stops here, before it builds anything.
-  --self-test  each rule broken in memory, and the check made to say so.
+  --self-test  each rule broken in memory, and the check made to say so; and
+               build/ci/build-linux-image.sh --push run, with a docker of its own
+               first on the PATH, through a rebuild that keeps the previous digest,
+               a tag new to the registry, a dated tag already taken, a registry that
+               cannot be read, a copy that did not preserve the digest and a login
+               the copy could not use.
 
 Usage:  python build/check-ci-image.py [--job | --self-test]
 """
 
+import datetime
 import hashlib
 import io
 import os
 import re
+import shutil
+import subprocess
 import sys
+import tempfile
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DOCKERFILE = os.path.join(ROOT, "build", "ci", "linux.Dockerfile")
 CI_FILE = os.path.join(ROOT, ".gitlab-ci.yml")
 CI_DIR = os.path.join(ROOT, ".gitlab", "ci")
+SCRIPT = os.path.join(ROOT, "build", "ci", "build-linux-image.sh")
 
 LOCAL = "hmailserver-ci/linux"
 REGISTRY = "registry.gitlab.com/hmailserver/hmailserver/ci-linux"
+SKOPEO = "quay.io/skopeo/stable:v1.20.0"
+
+# What build/ci/build-linux-image.sh --push does before the push moves the tag, each
+# as the script writes it, in the order the script must keep them: the digest the tag
+# names read first, the dated tag made from the UTC date, the copy that preserves the
+# digest with the login for the destination alone, the read-back held to the digest,
+# then the push. And the login's file: mounted read-only, refused when it names a
+# credential helper the container cannot reach.
+SCRIPT_STEPS = (
+    ('previous=$(registry_digest "$remote")', "reads the digest the registry's tag names before the push"),
+    ('today=$(date -u +%Y%m%d)', "the dated tag's date, UTC"),
+    ('kept="${release}-${digest}-${today}"', "the dated tag, <tag>-<yyyymmdd>"),
+    ('kept="${release}-${digest}-${today}-${n}"', "the next free dated tag of the same day, -<yyyymmdd>-2 on"),
+    ('copy --quiet --all --preserve-digests', "a copy that preserves the digest"),
+    ('--dest-authfile "$mounted" "docker://$registry@$previous" "docker://$registry:$kept"',
+     "from the digest to the dated tag, with the login for the destination alone"),
+    ('copied=$(registry_digest "$registry:$kept")', "reads the dated tag back"),
+    ('if [ "$copied" != "$previous" ]; then', "and holds it to the digest"),
+    ('docker push "$remote"', "the push"),
+)
+SCRIPT_LOGIN = (
+    ('-v "$login:$mounted:ro"', "the login's file mounted read-only"),
+    ("""grep -Eq '"(credsStore|credHelpers)"' "$login\"""", "a login kept in a credential helper refused"),
+    ("""grep -Eq 'manifest unknown|name unknown' "$err\"""", "a name the registry does not hold read as nothing"),
+)
 
 LOCAL_IMAGE = re.compile(r"hmailserver-ci/linux:[A-Za-z0-9_.\-]+")
 REGISTRY_IMAGE = re.compile(re.escape(REGISTRY) + r"(?::[A-Za-z0-9_.\-]+)?(?:@[A-Za-z0-9]+:[A-Za-z0-9]*)?")
@@ -289,6 +335,179 @@ def tree_problems(raw, files):
     return problems
 
 
+def script_problems(text):
+    """What build/ci/build-linux-image.sh no longer does of SCRIPT_STEPS, in their order,
+    and of SCRIPT_LOGIN."""
+    problems = []
+    last = -1
+    for needle, why in SCRIPT_STEPS:
+        at = text.find(needle)
+        if at < 0:
+            problems.append("build/ci/build-linux-image.sh no longer has %s (%s)" % (needle, why))
+        elif at < last:
+            problems.append("build/ci/build-linux-image.sh has %s (%s) before the step it must follow: the digest is read,"
+                            " kept, read back, and only then pushed" % (needle, why))
+        else:
+            last = at
+    for needle, why in SCRIPT_LOGIN:
+        if needle not in text:
+            problems.append("build/ci/build-linux-image.sh no longer has %s (%s)" % (needle, why))
+    return problems
+
+
+def bash_program():
+    """The bash that runs the script in the self-test: on Windows, Git's own (found
+    from git's exec path, or at its usual place), never System32's, which is WSL's;
+    elsewhere the one on the PATH. None when there is none."""
+    if sys.platform != "win32":
+        return shutil.which("bash")
+    roots = [r"C:\Program Files\Git"]
+    git = shutil.which("git")
+    if git:
+        try:
+            exec_path = subprocess.run([git, "--exec-path"], capture_output=True, text=True, check=True).stdout.strip()
+            roots.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(exec_path))))
+        except (OSError, subprocess.CalledProcessError):
+            pass
+    for root in roots:
+        for candidate in (os.path.join(root, "bin", "bash.exe"), os.path.join(root, "usr", "bin", "bash.exe")):
+            if os.path.isfile(candidate):
+                return candidate
+    found = shutil.which("bash")
+    if found and "system32" not in found.lower():
+        return found
+    return None
+
+
+# The docker of the self-test, first on the script's PATH: it answers build, tag, push,
+# image inspect and image ls, and skopeo's inspect --raw and copy, from the files under
+# $FAKE - the registry's tags as files under registry/, each holding its manifest's
+# bytes; new-manifest, what the push gives the tag; carries, what the built image's
+# RepoDigests already hold; others, the other tags on the host; down, present when the
+# registry answers nothing; corrupt-copy, present when the copy alters the bytes -
+# and records every call, one line each, in calls.
+FAKE_DOCKER = r'''#!/bin/bash
+set -eu
+reg="$FAKE/registry"
+printf '%s\n' "$*" >> "$FAKE/calls"
+digest_of() { printf 'sha256:%s' "$(sha256sum "$1" | cut -d' ' -f1)"; }
+by_digest() {
+  local f
+  for f in "$reg"/*; do
+    [ -f "$f" ] || continue
+    if [ "$(digest_of "$f")" = "$1" ]; then printf '%s' "$f"; return; fi
+  done
+}
+unknown() {
+  echo "time=\"2026-10-08T00:00:00Z\" level=fatal msg=\"Error parsing image name \\\"docker://$1\\\": reading manifest ${1##*:} in ${1%%:*}: manifest unknown\"" >&2
+  exit 2
+}
+case "$1" in
+  build|tag) exit 0 ;;
+  push)
+    cp "$FAKE/new-manifest" "$reg/${2##*:}"
+    digest_of "$FAKE/new-manifest" > "$FAKE/pushed"
+    echo "${2##*:}: digest: $(cat "$FAKE/pushed") size: 2278"
+    exit 0 ;;
+  image)
+    case "$2" in
+      inspect)
+        if [[ "$*" == *RepoDigests* ]]; then
+          if [ -f "$FAKE/pushed" ]; then echo "${3%%:*}@$(cat "$FAKE/pushed")"
+          elif [ -f "$FAKE/carries" ]; then cat "$FAKE/carries"; fi
+        else
+          echo "   id sha256:0000   1 bytes"
+        fi
+        exit 0 ;;
+      ls) [ ! -f "$FAKE/others" ] || cat "$FAKE/others"; exit 0 ;;
+    esac ;;
+  run)
+    shift
+    [ "${1:-}" != "--rm" ] || shift
+    mount=""
+    if [ "${1:-}" = "-v" ]; then mount="$2"; shift 2; fi
+    [ "${1:-}" = "$SKOPEO" ] || { echo "fake docker: not skopeo: ${1:-}" >&2; exit 9; }
+    shift
+    cmd="$1"; shift
+    if [ -f "$FAKE/down" ]; then
+      echo 'time="2026-10-08T00:00:00Z" level=fatal msg="pinging container registry registry.gitlab.com: Get \"https://registry.gitlab.com/v2/\": dial tcp: i/o timeout"' >&2
+      exit 2
+    fi
+    case "$cmd" in
+      inspect)
+        name="${*: -1}"; name="${name#docker://}"
+        if [[ "$name" == *@sha256:* ]]; then f=$(by_digest "${name#*@}"); else f="$reg/${name##*:}"; [ -f "$f" ] || f=""; fi
+        [ -n "$f" ] || unknown "$name"
+        cat "$f"; exit 0 ;;
+      copy)
+        [ -n "$mount" ] || { echo "fake docker: a copy without the login mounted" >&2; exit 9; }
+        [[ "$mount" == *:ro ]] || { echo "fake docker: the login mounted writable: $mount" >&2; exit 9; }
+        from="${*: -2:1}"; to="${*: -1}"; from="${from#docker://}"; to="${to#docker://}"
+        f=$(by_digest "${from#*@}")
+        [ -n "$f" ] || unknown "$from"
+        if [ -f "$FAKE/corrupt-copy" ]; then echo '{"altered": true}' > "$reg/${to##*:}"; else cp "$f" "$reg/${to##*:}"; fi
+        exit 0 ;;
+    esac ;;
+esac
+echo "fake docker: unexpected call: $*" >&2
+exit 9
+'''
+
+
+def run_push(bash, registry_tags, new_manifest, carries=None, others="", down=False, corrupt_copy=False, login=None):
+    """build/ci/build-linux-image.sh --push, run with the fake docker and a registry of
+    files: registry_tags maps each tag to its manifest's bytes, new_manifest is what the
+    push gives the tag, carries the RepoDigests the built image holds, login the docker
+    configuration's text (None for the usual one, "" for none). Returns (exit code,
+    output, the calls made, {tag: digest} as the registry is left)."""
+    base = tempfile.mkdtemp(prefix="hm-ci-image-")
+    try:
+        fake = os.path.join(base, "fake").replace("\\", "/")
+        config = os.path.join(base, "docker").replace("\\", "/")
+        for d in (os.path.join(fake, "bin"), os.path.join(fake, "registry"), config):
+            os.makedirs(d)
+        docker = os.path.join(fake, "bin", "docker")
+        with io.open(docker, "w", encoding="utf-8", newline="\n") as f:
+            f.write(FAKE_DOCKER)
+        os.chmod(docker, 0o755)
+        for tag, manifest in registry_tags.items():
+            with open(os.path.join(fake, "registry", tag), "wb") as f:
+                f.write(manifest)
+        with open(os.path.join(fake, "new-manifest"), "wb") as f:
+            f.write(new_manifest)
+        if carries is not None:
+            with io.open(os.path.join(fake, "carries"), "w", encoding="utf-8", newline="\n") as f:
+                f.write(carries + "\n")
+        with io.open(os.path.join(fake, "others"), "w", encoding="utf-8", newline="\n") as f:
+            f.write(others)
+        for name, present in (("down", down), ("corrupt-copy", corrupt_copy)):
+            if present:
+                open(os.path.join(fake, name), "w").close()
+        if login is None:
+            login = '{\n\t"auths": {\n\t\t"registry.gitlab.com": {\n\t\t\t"auth": "bm90LWEtdG9rZW4="\n\t\t}\n\t}\n}\n'
+        if login != "":
+            with io.open(os.path.join(config, "config.json"), "w", encoding="utf-8", newline="\n") as f:
+                f.write(login)
+        env = dict(os.environ)
+        env["PATH"] = os.path.join(fake, "bin") + os.pathsep + env.get("PATH", "")
+        env["FAKE"] = fake
+        env["SKOPEO"] = SKOPEO
+        env["DOCKER_CONFIG"] = config
+        run = subprocess.run([bash, SCRIPT, "--push"], cwd=ROOT, env=env, capture_output=True, text=True,
+                             encoding="utf-8", errors="replace")
+        calls = []
+        if os.path.isfile(os.path.join(fake, "calls")):
+            with io.open(os.path.join(fake, "calls"), "r", encoding="utf-8") as f:
+                calls = f.read().splitlines()
+        left = {}
+        for tag in sorted(os.listdir(os.path.join(fake, "registry"))):
+            with open(os.path.join(fake, "registry", tag), "rb") as f:
+                left[tag] = "sha256:" + hashlib.sha256(f.read()).hexdigest()
+        return run.returncode, run.stdout + run.stderr, calls, left
+    finally:
+        shutil.rmtree(base, ignore_errors=True)
+
+
 def self_test():
     failures = []
 
@@ -372,6 +591,86 @@ def self_test():
     expect("by digest, a job extending .linix that names an image of its own and keeps the step: refused",
            tree_problems(dockerfile, [(".gitlab-ci.yml", digest_linix + "other:\n  extends: [.linix]\n  image: ubuntu:26.04\n")]) != [])
 
+    # The script's text: each step there, in its order.
+    with io.open(SCRIPT, "r", encoding="utf-8") as f:
+        script = f.read()
+    expect("build-linux-image.sh as it is: passed", script_problems(script) == [])
+    for needle, why in SCRIPT_STEPS + SCRIPT_LOGIN:
+        expect("build-linux-image.sh without %s: refused" % why, script_problems(script.replace(needle, "")) != [])
+    read, pushed = 'previous=$(registry_digest "$remote")', 'docker push "$remote"'
+    expect("build-linux-image.sh reading the digest after the push: refused",
+           script_problems(script.replace(read, "", 1).replace(pushed, pushed + "\n  " + read, 1)) != [])
+
+    # The script run, with the fake docker: the registry's tag names the old manifest,
+    # the push gives it the new one, and the old digest is kept under the dated tag.
+    bash = bash_program()
+    expect("a bash to run build-linux-image.sh with (Git's on Windows)", bash is not None)
+    if bash is not None:
+        with open(DOCKERFILE, "rb") as f:
+            real_tag = expected_tag(f.read())
+        old, new, other = b'{"m": "old"}\n', b'{"m": "new"}\n', b'{"m": "other"}\n'
+        old_digest = "sha256:" + hashlib.sha256(old).hexdigest()
+        new_digest = "sha256:" + hashlib.sha256(new).hexdigest()
+        before = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%d")
+        code, out, calls, left = run_push(bash, {real_tag: old}, new, others="%s:26.04-000000000000\n" % LOCAL)
+        after = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%d")
+        dated = [t for t in left if t in ("%s-%s" % (real_tag, before), "%s-%s" % (real_tag, after))]
+        copies = [i for i, c in enumerate(calls) if " copy --quiet --all --preserve-digests " in c]
+        pushes = [i for i, c in enumerate(calls) if c.startswith("push ")]
+        expect("a rebuild: the script exits 0 (%s)" % out.strip().splitlines()[-1:], code == 0)
+        expect("a rebuild: the old digest is kept under <tag>-<yyyymmdd>, the tag names the new one",
+               len(dated) == 1 and left[dated[0]] == old_digest and left.get(real_tag) == new_digest)
+        expect("a rebuild: one copy, from the old digest to the dated tag, before the one push",
+               len(copies) == 1 and len(pushes) == 1 and copies[0] < pushes[0] and dated and
+               calls[copies[0]].endswith('--dest-authfile /run/hm-registry-login.json docker://%s@%s docker://%s:%s'
+                                         % (REGISTRY, old_digest, REGISTRY, dated[0])))
+        expect("a rebuild: the copy's login is the configuration's file, read-only",
+               bool(copies) and re.search(r"^run --rm -v \S+/config\.json:/run/hm-registry-login\.json:ro %s copy " % re.escape(SKOPEO),
+                                           calls[copies[0]]))
+        expect("a rebuild: the pin line and the dated tag with the old digest are printed",
+               "    name: %s:%s@%s" % (REGISTRY, real_tag, new_digest) in out and dated and
+               "    %s:%s@%s" % (REGISTRY, dated[0], old_digest) in out)
+        expect("a rebuild: the other tags on the host are still listed", "%s:26.04-000000000000" % LOCAL in out)
+
+        code, out, calls, left = run_push(bash, {}, new)
+        expect("a tag new to the registry: pushed, nothing copied, nothing kept",
+               code == 0 and not any(" copy " in c for c in calls) and any(c.startswith("push ") for c in calls)
+               and list(left) == [real_tag] and "there is no digest to keep" in out)
+
+        code, out, calls, left = run_push(bash, {real_tag: old, "%s-%s" % (real_tag, before): old}, new)
+        expect("the dated tag already names the old digest: pushed, nothing copied, said so",
+               code == 0 and not any(" copy " in c for c in calls) and any(c.startswith("push ") for c in calls)
+               and "kept already as %s:%s-%s" % (REGISTRY, real_tag, before) in out)
+
+        code, out, calls, left = run_push(bash, {real_tag: old, "%s-%s" % (real_tag, before): other}, new)
+        second = "%s-%s-2" % (real_tag, before)
+        expect("the dated tag names another digest: the old one is kept as -<yyyymmdd>-2",
+               code == 0 and left.get(second) == old_digest and "    %s:%s@%s" % (REGISTRY, second, old_digest) in out)
+
+        code, out, calls, left = run_push(bash, {real_tag: old}, new, carries="%s@%s" % (REGISTRY, old_digest))
+        expect("the image carries the digest the tag names: pushed, nothing copied",
+               code == 0 and not any(" copy " in c for c in calls) and any(c.startswith("push ") for c in calls)
+               and "the tag will not move" in out)
+
+        code, out, calls, left = run_push(bash, {real_tag: old}, new, down=True)
+        expect("the registry cannot be read: stopped before the push, the tag still names the old digest",
+               code != 0 and not any(c.startswith("push ") for c in calls) and left.get(real_tag) == old_digest
+               and "stopping before the push" in out)
+
+        code, out, calls, left = run_push(bash, {real_tag: old}, new, corrupt_copy=True)
+        expect("the copy did not preserve the digest: stopped before the push",
+               code == 4 and not any(c.startswith("push ") for c in calls) and left.get(real_tag) == old_digest
+               and "the digest was not preserved" in out)
+
+        code, out, calls, left = run_push(bash, {real_tag: old}, new, login='{\n\t"auths": {},\n\t"credsStore": "pass"\n}\n')
+        expect("a login kept in a credential helper: refused before the build",
+               code == 1 and calls == [] and "credential helper" in out)
+        code, out, calls, left = run_push(bash, {real_tag: old}, new, login="")
+        expect("no login file: refused before the build", code == 1 and calls == [] and "No docker login to read" in out)
+        code, out, calls, left = run_push(bash, {real_tag: old}, new, login='{\n\t"auths": {\n\t\t"docker.io": {\n\t\t\t"auth": "eA=="\n\t\t}\n\t}\n}\n')
+        expect("a login to another registry alone: refused before the build",
+               code == 1 and calls == [] and "no login to registry.gitlab.com" in out)
+
     print("")
     if failures:
         print("%d self-test case(s) failed" % len(failures))
@@ -399,7 +698,9 @@ def main():
         return 0
 
     files = ci_files()
-    problems = tree_problems(raw, files)
+    with io.open(SCRIPT, "r", encoding="utf-8") as f:
+        script = f.read()
+    problems = tree_problems(raw, files) + script_problems(script)
 
     if problems:
         for p in problems:
@@ -409,8 +710,8 @@ def main():
     local, remote = named_images("\n".join(text for _, text in files))
     named = local + remote
     print("OK    the CI files (.gitlab-ci.yml and %d under .gitlab/ci) run the Linux jobs on %s, made from"
-          " build/ci/linux.Dockerfile as it is%s." % (len(files) - 1, ", ".join(named),
-                                                     ", each job in it starting with the --job step" if remote else ""))
+          " build/ci/linux.Dockerfile as it is%s; build-linux-image.sh --push keeps the digest the tag named before."
+          % (len(files) - 1, ", ".join(named), ", each job in it starting with the --job step" if remote else ""))
     return 0
 
 
