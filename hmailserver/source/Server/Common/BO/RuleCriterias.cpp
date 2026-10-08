@@ -25,9 +25,16 @@ namespace HM
 
    }
 
-   void 
+   void
    RuleCriterias::Refresh()
    {
+      // A rule not yet saved has nothing stored. The rows of rule id 0 are no rule's -
+      // left by a rule whose own insert failed, before PersistentRule::SaveObject
+      // checked it - and reading them gave a new rule criteria nobody gave it, which
+      // its Save then stored as its own. What the collection holds in memory stays.
+      if (rule_id_ <= 0)
+         return;
+
       String sSQL;
       sSQL.Format(_T("select * from hm_rule_criterias where criteriaruleid = %I64d order by criteriaid asc"), rule_id_);
 

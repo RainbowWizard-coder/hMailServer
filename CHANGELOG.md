@@ -361,6 +361,19 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   `LISTSCRIPTS` is written the same way. `ManageSieveResponseTester` (`business-object-tests` on Linux) holds it to
   examples, and `Sieve/ManageSieve.cs` sends a script requiring an extension whose name holds a line break through
   `CHECKSCRIPT` and `PUTSCRIPT` and reads the `NOOP` after each. Found by the project's own review.
+- **Fixed: a criterion or an action added over COM to a new rule after its first save was stored only when the rule
+  was saved again, and a new rule could take in criteria and actions that belonged to no rule.** A rule's criteria
+  and actions are read when COM first asks for them, and a new rule's were bound to the rule as it then was, with no
+  id: once the rule was saved, a criterion or an action added through the same `Rule` object was kept in memory by its
+  own `Save` and stored by nothing but another `Rule.Save` (in every version). In the tree after 6.3.6 `Rule.Save`
+  reads the rule's actions itself, to hold them to the rule's owner (*Security*, above), which bound the actions of
+  every rule saved over COM so, and `RuleAction.Save` held an action saved that way to no owner: an account's rule
+  took a *Set header value* of `From`, which it refuses, though it stored it nowhere and `Rule.Save` and delivery
+  still refused it. A new rule's criteria and actions are now bound to the id its save gives it. Nor does a rule not
+  yet saved read the stored criteria and actions of rule id 0 any more: a rule whose own insert failed left them in
+  versions that did not check it, they belong to no rule, and the new rule's `Save` stored them as its own.
+  `Rules/Rules.cs` saves an action and a criterion through a new rule after its first save, with an action and a
+  criterion of no rule in the table, and reads the rule back from the database. Found by the batch's regression gate.
 
 ### Downloads and the release
 

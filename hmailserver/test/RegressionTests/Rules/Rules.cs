@@ -2466,6 +2466,88 @@ namespace RegressionTests.Rules
       }
 
       /// <summary>
+      /// A new rule's criteria and actions were bound to rule id 0 when they were first
+      /// read before its first save - and Rule.Save reads the actions itself, to hold them
+      /// to the rule's owner, so that every rule saved over COM had its actions bound so.
+      /// An action or a criterion added through the same Rule object after that save was
+      /// then stored by nothing but another Rule.Save, and RuleAction.Save held such an
+      /// action to no owner's limits (OnlyAGlobalRuleMaySetWhoTheMessageIsFrom). They are
+      /// bound to the id the save gives the rule. Nor does a rule not yet saved read the
+      /// rows of rule id 0, which are no rule's - a rule whose own insert failed left them
+      /// - and which its Save stored as its own.
+      ///
+      /// Against the server before the fix the action and the second criterion are not
+      /// stored, and the new rule takes the action and the criterion of no rule as its own.
+      /// </summary>
+      [Test]
+      [Description("An action or a criterion saved through a new rule after the rule's first save is stored under it at once, and a new rule takes in no action or criterion of no rule.")]
+      public void ANewRulesPartsAreStoredUnderItAndNoOthers()
+      {
+         var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "ruleparts@example.test", "test");
+
+         // An action and a criterion of no rule.
+         var orphaned = NewRuleMatchingEverything(account, "To be left with no rule");
+         var orphanedCriterion = orphaned.Criterias.Add();
+         orphanedCriterion.UsePredefined = true;
+         orphanedCriterion.PredefinedField = eRulePredefinedField.eFTSubject;
+         orphanedCriterion.MatchType = eRuleMatchType.eMTContains;
+         orphanedCriterion.MatchValue = "criterion-of-no-rule";
+         orphanedCriterion.Save();
+         var orphanedAction = orphaned.Actions.Add();
+         orphanedAction.Type = eRuleActionType.eRASetHeaderValue;
+         orphanedAction.HeaderName = "X-Action-Of-No-Rule";
+         orphanedAction.Value = "1";
+         orphanedAction.Save();
+         orphaned.Save();
+
+         try
+         {
+            _application.Database.ExecuteSQL(
+               "update hm_rule_criterias set criteriaruleid = 0 where criteriamatchvalue = 'criterion-of-no-rule'");
+            _application.Database.ExecuteSQL(
+               "update hm_rule_actions set actionruleid = 0 where actionheader = 'X-Action-Of-No-Rule'");
+
+            var rule = NewRuleMatchingEverything(account, "Parts saved after the rule");
+            rule.Save();
+
+            var note = rule.Actions.Add();
+            note.Type = eRuleActionType.eRASetHeaderValue;
+            note.HeaderName = "X-Rule-Note";
+            note.Value = "stored";
+            note.Save();
+
+            var second = rule.Criterias.Add();
+            second.UsePredefined = true;
+            second.PredefinedField = eRulePredefinedField.eFTSubject;
+            second.MatchType = eRuleMatchType.eMTContains;
+            second.MatchValue = "second criterion";
+            second.Save();
+
+            // As stored: the rule read again from the database, through collections of
+            // their own, and not the Rule object above.
+            var stored = _application.Domains.get_ItemByName(_domain.Name).Accounts.get_ItemByAddress(account.Address).Rules
+               .get_ItemByDBID(rule.ID);
+
+            var actions = new List<string>();
+            for (int i = 0; i < stored.Actions.Count; i++)
+               actions.Add(stored.Actions[i].HeaderName);
+            var criteria = new List<string>();
+            for (int i = 0; i < stored.Criterias.Count; i++)
+               criteria.Add(stored.Criterias[i].MatchValue);
+
+            CollectionAssert.AreEqual(new[] { "X-Rule-Note" }, actions,
+               "The actions stored under the rule are not the one saved through it after its first save: " + string.Join(", ", actions));
+            CollectionAssert.AreEqual(new[] { "0", "second criterion" }, criteria,
+               "The criteria stored under the rule are not the two saved through it: " + string.Join(", ", criteria));
+         }
+         finally
+         {
+            _application.Database.ExecuteSQL("delete from hm_rule_criterias where criteriamatchvalue = 'criterion-of-no-rule'");
+            _application.Database.ExecuteSQL("delete from hm_rule_actions where actionheader = 'X-Action-Of-No-Rule'");
+         }
+      }
+
+      /// <summary>
       /// A rule's reply wrote its name in front of its address as the name stood, so a
       /// name of "x &lt;ceo@...&gt;, ceo@..." added that address to the reply's From, and a
       /// program reading the field took the first address for the sender. The name is

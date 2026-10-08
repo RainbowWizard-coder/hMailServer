@@ -157,8 +157,20 @@ namespace HM
       // so the empty case was never the danger. The partial case was.
       bool allPartsSaved = true;
 
+      // The rule's criteria and actions collections may have been made before the rule
+      // had an id - COM's Rule.Criterias or Rule.Actions read on a new rule, as
+      // InterfaceRule::Save itself reads the actions to hold them to the rule's owner -
+      // and they are bound to the id the insert gave it. A collection left at rule id 0
+      // stored nothing added to it afterwards through the item's own Save
+      // (InterfaceRuleAction::Save and InterfaceRuleCriteria::Save store an item only
+      // under a rule id), until the rule itself was saved again, and RuleAction.Save
+      // held such an action to no owner's limits: an account's rule took a Set header
+      // value of From, which RuleGuard::WhyActionMayNotBeStored refuses it, without a
+      // word.
       __int64 iRuleID = pRule->GetID();
       std::shared_ptr<RuleCriterias> pRuleCriterias = pRule->GetCriterias();
+      pRuleCriterias->SetRuleID(iRuleID);
+      pRule->GetActions()->SetRuleID(iRuleID);
       for (int i = 0; i < pRuleCriterias->GetCount(); i++)
       {
          std::shared_ptr<RuleCriteria> pRuleCriteria = pRuleCriterias->GetItem(i);
