@@ -845,6 +845,17 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   it is visible, and `InlineNotice`, `LoadingState`, `EmptyState` - now a polite live region like the loading state
   it follows - a `FieldRow`'s error and the two result lines call it; the result lines are named by their text.
 
+- **Fixed: the verdicts and notes of the Control Panel's transport encryption and virus scanning overviews were
+  put together from translated fragments and read as nonsense in most languages.** A verdict was a counted noun
+  with its verb (*client listener has* / *client listeners have*), a pronoun (*it cross* / *them cross*) and a
+  template around them, each translated apart, so Polish read *przechodzą przez przez sieć*, German *kann es aber
+  nicht* and Czech *z ten neběží*; a certificate note was *expires in {1}{2}{3}* with *day* or *days* and a trailing
+  clause, which German rendered *vor 5 Tage* and Japanese with the clause before the verb. Every verdict and note
+  is now one whole sentence per case - one listener or several, a certificate that expired yesterday or days ago,
+  expires today, tomorrow or in days, in use or not, TLS 1.0, 1.1 or both, one scanner or several, one fetch account
+  or several with and without *at least*, one blocked pattern or several, and who is told when an infected message
+  is deleted - translated whole in every language, and the Control Panel's tests pin the English of each.
+
 ### IMAP, POP3 and the webmail
 
 - **Fixed: an answer of the HTTP listeners that its handler returned after the listener's request deadline was cut off

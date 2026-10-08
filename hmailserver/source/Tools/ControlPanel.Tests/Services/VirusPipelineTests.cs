@@ -421,5 +421,141 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.DoesNotContain(VirusPipeline.Scanners(config), s => s.Unread);
          Assert.DoesNotContain("could not be read", VirusPipeline.Verdict(config));
       }
+
+      // ---- whole sentences, one per case ----------------------------------------
+      //
+      // A sentence put together from a counted noun ("2 scanners"), a pronoun
+      // ("them is") and a template could not be translated: the pieces are
+      // translated apart, and Czech read "z ten neběží", Japanese put a Latin "s"
+      // on its noun. Each case is now one text in the catalogue, and these pin the
+      // English of each so that no piece can come back.
+
+      /// <summary>Scanning() with the custom scanner able to run as well: two usable scanners.</summary>
+      private static VirusPipelineConfig TwoScanners()
+      {
+         VirusPipelineConfig config = Scanning();
+         config.CustomScannerEnabled = true;
+         config.CustomScannerExecutable = @"C:\scan\scan.exe";
+         config.CustomScannerVirusReturnValue = 1;
+         return config;
+      }
+
+      [Fact]
+      public void TheVerdictIsOneWholeSentenceForOneScannerAndAnotherForSeveral()
+      {
+         VirusPipelineConfig config = Scanning();
+         Assert.Equal("Every message is scanned by one scanner. If a virus is found, the whole message is deleted and never delivered.",
+            VirusPipeline.Verdict(config));
+
+         config.Action = VirusAction.StripAttachments;
+         Assert.Equal("Every message is scanned by one scanner. If a virus is found, the attachments are stripped and the message is still delivered.",
+            VirusPipeline.Verdict(config));
+
+         config = TwoScanners();
+         Assert.Equal(2, VirusPipeline.CountUsable(config));
+         Assert.Equal("Every message is scanned by 2 scanners. If a virus is found, the whole message is deleted and never delivered.",
+            VirusPipeline.Verdict(config));
+
+         config.MaxScanKilobytes = 512;
+         Assert.Equal("Messages up to 512 KB are scanned by 2 scanners; anything larger is delivered without being scanned at all. If a virus is found, the whole message is deleted and never delivered.",
+            VirusPipeline.Verdict(config));
+
+         config = Scanning();
+         config.MaxScanKilobytes = 512;
+         Assert.Equal("Messages up to 512 KB are scanned by one scanner; anything larger is delivered without being scanned at all. If a virus is found, the whole message is deleted and never delivered.",
+            VirusPipeline.Verdict(config));
+      }
+
+      [Fact]
+      public void TheVerdictCountsTheBlockedPatternsInOneWholeSentence()
+      {
+         VirusPipelineConfig config = Defaults();
+         config.AttachmentBlockingEnabled = true;
+         Assert.Equal("No message is scanned for viruses. Attachment blocking is still stripping 20 file-name patterns, but nothing examines the contents of a message.",
+            VirusPipeline.Verdict(config));
+
+         config.BlockedAttachmentPatterns = 1;
+         Assert.Equal("No message is scanned for viruses. Attachment blocking is still stripping one file-name pattern, but nothing examines the contents of a message.",
+            VirusPipeline.Verdict(config));
+      }
+
+      [Fact]
+      public void TheActionSummaryNamesWhoIsToldInOneWholeSentence()
+      {
+         VirusPipelineConfig config = Scanning();
+         config.NotifyRecipient = true;
+         Assert.Equal("The message is deleted and a notice is sent to every recipient.", VirusPipeline.ActionSummary(config));
+
+         config.NotifySender = true;
+         Assert.Equal("The message is deleted and a notice is sent to every recipient and to the envelope sender.", VirusPipeline.ActionSummary(config));
+
+         config.NotifyRecipient = false;
+         Assert.Equal("The message is deleted and a notice is sent to the envelope sender.", VirusPipeline.ActionSummary(config));
+      }
+
+      [Fact]
+      public void TheFetchAccountNoteIsOneWholeSentencePerCountAndPerFloor()
+      {
+         VirusPipelineConfig config = Scanning();
+         config.FetchAccountsTotal = 3;
+
+         config.FetchAccountsWithScanningOff = 1;
+         Assert.True(HasNote(config, StatusLevel.Warning, "One external POP3 fetch account has anti-virus turned off, so mail collected by it is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page."));
+
+         config.FetchAccountsWithScanningOff = 2;
+         Assert.True(HasNote(config, StatusLevel.Warning, "2 external POP3 fetch accounts have anti-virus turned off, so mail collected by them is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page."));
+
+         config.FetchAccountScanIncomplete = true;
+         Assert.True(HasNote(config, StatusLevel.Warning, "At least 2 external POP3 fetch accounts have anti-virus turned off, so mail collected by them is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page. There are more accounts on this server than this page walks, so there may be others."));
+
+         config.FetchAccountsWithScanningOff = 1;
+         Assert.True(HasNote(config, StatusLevel.Warning, "At least one external POP3 fetch account has anti-virus turned off, so mail collected by it is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page. There are more accounts on this server than this page walks, so there may be others."));
+      }
+
+      [Fact]
+      public void TheUnappliedPatternsNoteIsOneWholeSentenceForOneAndForSeveral()
+      {
+         VirusPipelineConfig config = Defaults();
+         Assert.True(HasNote(config, StatusLevel.Information, "20 blocked-attachment patterns are configured but attachment blocking is switched off, so none of them is applied."));
+
+         config.BlockedAttachmentPatterns = 1;
+         Assert.True(HasNote(config, StatusLevel.Information, "One blocked-attachment pattern is configured but attachment blocking is switched off, so it is not applied."));
+      }
+
+      [Fact]
+      public void TheScannersInTurnNoteCountsThemInOneWholeSentence()
+      {
+         Assert.True(HasNote(TwoScanners(), StatusLevel.Information, "Every message goes through 2 scanners in turn, and each is asked about the whole message"));
+         Assert.False(HasNote(Scanning(), StatusLevel.Information, "in turn, and each is asked"));
+      }
+
+      [Fact]
+      public void NoVerdictOrNoteBeginsOrEndsInTheMiddleOfASentence()
+      {
+         // A text that starts with a lower-case word or ends without a full stop is
+         // a piece of a sentence, which is what the catalogue must never hold.
+         VirusPipelineConfig blocking = Defaults();
+         blocking.AttachmentBlockingEnabled = true;
+         VirusPipelineConfig gaps = TwoScanners();
+         gaps.MaxScanKilobytes = 512;
+         gaps.Action = VirusAction.StripAttachments;
+         gaps.FetchAccountsWithScanningOff = 2;
+         gaps.FetchAccountScanIncomplete = true;
+         gaps.ClamWinEnabled = true;
+         VirusPipelineConfig notices = Scanning();
+         notices.NotifySender = true;
+         notices.FetchAccountsWithScanningOff = 1;
+
+         foreach (VirusPipelineConfig config in new[] { Defaults(), Scanning(), blocking, gaps, notices })
+         {
+            var texts = new List<string> { VirusPipeline.Verdict(config), VirusPipeline.ActionSummary(config) };
+            texts.AddRange(VirusPipeline.Notes(config).Select(n => n.Text));
+            foreach (string text in texts.Where(t => t.Length > 0))
+            {
+               Assert.True(char.IsUpper(text[0]) || char.IsDigit(text[0]), text);
+               Assert.EndsWith(".", text);
+            }
+         }
+      }
    }
 }

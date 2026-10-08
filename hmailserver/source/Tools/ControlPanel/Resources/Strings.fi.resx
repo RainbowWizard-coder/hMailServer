@@ -125,9 +125,6 @@ Tallennetaanko tämä heikko salasana silti?</value>
   <data name=" The total is open-ended, because a list entry or SpamAssassin's own score can be any size." xml:space="preserve">
     <value> Yhteispistemäärällä ei ole ylärajaa, koska listamerkinnän tai SpamAssassinin oman pistemäärän suuruutta ei ole rajoitettu.</value>
   </data>
-  <data name=" There are more accounts on this server than this page walks, so there may be others." xml:space="preserve">
-    <value> Tällä palvelimella on enemmän tilejä kuin tämä sivu käy läpi, joten niitä voi olla muitakin.</value>
-  </data>
   <data name=" There are more index entries than messages, which means entries for mail that no longer exists - discard and rebuild the index to clear them." xml:space="preserve">
     <value> Indeksimerkintöjä on enemmän kuin viestejä, eli osa merkinnöistä viittaa postiin jota ei enää ole – poista ne hylkäämällä indeksi ja rakentamalla se uudelleen.</value>
   </data>
@@ -143,12 +140,6 @@ Tallennetaanko tämä heikko salasana silti?</value>
   <data name=" With the checks currently enabled the highest total reachable is {0}." xml:space="preserve">
     <value> Tällä hetkellä käytössä olevilla tarkistuksilla suurin saavutettavissa oleva yhteispistemäärä on {0}.</value>
   </data>
-  <data name=" and is in use by a listener." xml:space="preserve">
-    <value> ja on kuuntelijan käytössä.</value>
-  </data>
-  <data name=" and is still assigned to a listener. Clients are refusing or warning about every connection to it." xml:space="preserve">
-    <value> ja on yhä liitetty kuuntelijaan. Asiakasohjelmat hylkäävät jokaisen yhteyden siihen tai varoittavat siitä.</value>
-  </data>
   <data name=" and the listener is not started (server error 6142)." xml:space="preserve">
     <value> eikä kuuntelijaa ole käynnistetty (palvelinvirhe 6142).</value>
   </data>
@@ -157,12 +148,6 @@ Tallennetaanko tämä heikko salasana silti?</value>
   </data>
   <data name=" and the policy verifies nothing." xml:space="preserve">
     <value> eikä käytäntö varmenna mitään.</value>
-  </data>
-  <data name=" day" xml:space="preserve">
-    <value> päivä</value>
-  </data>
-  <data name=" days" xml:space="preserve">
-    <value> päivää</value>
   </data>
   <data name=" of {0} KB" xml:space="preserve">
     <value> / {0} KB</value>
@@ -271,9 +256,6 @@ Tallennetaanko tämä heikko salasana silti?</value>
   </data>
   <data name=". Connections to them are refused. The usual causes are another program already holding the port, a bind address that does not exist on this machine, or - on a TLS port - a certificate the server could not load; the server records which, once, in the error log at start-up." xml:space="preserve">
     <value>. Yhteydet niihin hylätään. Tavallisimmat syyt ovat toinen ohjelma joka jo varaa portin, sidososoite jota tällä koneella ei ole, tai – TLS-portissa – varmenne jota palvelin ei saanut ladattua; palvelin kirjaa syyn kerran virhelokiin käynnistyksen yhteydessä.</value>
-  </data>
-  <data name=". It is not assigned to any listener." xml:space="preserve">
-    <value>. Sitä ei ole liitetty mihinkään kuuntelijaan.</value>
   </data>
   <data name=". No account will be disabled." xml:space="preserve">
     <value>. Yhtään tiliä ei poisteta käytöstä.</value>
@@ -1749,11 +1731,14 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
   <data name="At RCPT TO, before the body is transferred — a refusal here is a 550" xml:space="preserve">
     <value>RCPT TO -vaiheessa, ennen rungon siirtoa — hylkäys tässä vaiheessa on 550</value>
   </data>
-  <data name="At least " xml:space="preserve">
-    <value>Vähintään </value>
-  </data>
   <data name="At least 12 printable ASCII characters. Leave both boxes empty to keep the passphrase already set. The server never gives it back - not to this program and not to anyone else - so keep it somewhere other than beside the backups: a restore asks for it, and nothing in an archive whose passphrase is lost can be recovered by anybody." xml:space="preserve">
     <value>Vähintään 12 tulostuvaa ASCII-merkkiä. Jätä molemmat kentät tyhjiksi, niin jo asetettu salasanalause säilyy. Palvelin ei anna sitä koskaan takaisin - ei tälle ohjelmalle eikä kenellekään muulle - joten säilytä se muualla kuin varmuuskopioiden vieressä: palautus kysyy sitä, eikä arkistosta, jonka salasanalause on kadonnut, saa kukaan mitään.</value>
+  </data>
+  <data name="At least one external POP3 fetch account has anti-virus turned off, so mail collected by it is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page. There are more accounts on this server than this page walks, so there may be others." xml:space="preserve">
+    <value>Vähintään yhdellä ulkoisella POP3-noutotilillä on virustorjunta pois päältä, joten sen noutama posti toimitetaan skannaamatta riippumatta siitä, mitä tässä on asetettu. Kytkin on noutotilillä, ei tällä sivulla. Tällä palvelimella on enemmän tilejä kuin tämä sivu käy läpi, joten niitä voi olla muitakin.</value>
+  </data>
+  <data name="At least {0} external POP3 fetch accounts have anti-virus turned off, so mail collected by them is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page. There are more accounts on this server than this page walks, so there may be others." xml:space="preserve">
+    <value>Vähintään {0} ulkoisella POP3-noutotilillä on virustorjunta pois päältä, joten niiden noutama posti toimitetaan skannaamatta riippumatta siitä, mitä tässä on asetettu. Kytkin on noutotilillä, ei tällä sivulla. Tällä palvelimella on enemmän tilejä kuin tämä sivu käy läpi, joten niitä voi olla muitakin.</value>
   </data>
   <data name="At most 2592000, thirty days." xml:space="preserve">
     <value>Enintään 2592000 eli kolmekymmentä päivää.</value>
@@ -4281,11 +4266,14 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Every local recipient's copy becomes another name for the same file inside the archive folder, so a message to ten mailboxes costs one copy rather than ten. Needs an NTFS archive folder; if the link cannot be created the server copies the file and says so in the SMTP log." xml:space="preserve">
     <value>Jokaisen paikallisen vastaanottajan kopiosta tulee toinen nimi samalle tiedostolle arkistokansiossa, joten viesti kymmeneen postilaatikkoon maksaa yhden kopion kymmenen sijaan. Vaatii NTFS-arkistokansion; jos linkkiä ei voi luoda, palvelin kopioi tiedoston ja kertoo siitä SMTP-lokissa.</value>
   </data>
-  <data name="Every message goes through {0} in turn, and each is asked about the whole message and then about each attachment separately. That is thorough and it is not free: the scan happens while the sender is waiting for its &quot;250 OK&quot;." xml:space="preserve">
-    <value>Jokainen viesti kulkee vuorollaan kohteen {0} läpi, ja kultakin kysytään koko viestistä ja sitten jokaisesta liitteestä erikseen. Se on perusteellista eikä ilmaista: skannaus tapahtuu, kun lähettäjä odottaa "250 OK" -vastaustaan.</value>
+  <data name="Every message goes through {0} scanners in turn, and each is asked about the whole message and then about each attachment separately. That is thorough and it is not free: the scan happens while the sender is waiting for its &quot;250 OK&quot;." xml:space="preserve">
+    <value>Jokainen viesti kulkee vuorollaan {0} tarkistimen läpi, ja kultakin kysytään koko viestistä ja sitten jokaisesta liitteestä erikseen. Se on perusteellista eikä ilmaista: skannaus tapahtuu, kun lähettäjä odottaa "250 OK" -vastaustaan.</value>
   </data>
-  <data name="Every message is scanned by {0}" xml:space="preserve">
-    <value>Jokaisen viestin skannaa {0}</value>
+  <data name="Every message is scanned by one scanner." xml:space="preserve">
+    <value>Jokaisen viestin skannaa yksi tarkistin.</value>
+  </data>
+  <data name="Every message is scanned by {0} scanners." xml:space="preserve">
+    <value>Jokaisen viestin skannaa {0} tarkistinta.</value>
   </data>
   <data name="Every message still in the delivery queue, the last error the server got for it, and when it is retried." xml:space="preserve">
     <value>Jokainen yhä toimitusjonossa oleva viesti, viimeisin virhe, jonka palvelin sille sai, ja milloin sitä yritetään uudelleen.</value>
@@ -6159,8 +6147,11 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="Messages the server would otherwise have refused, held so somebody can look. The sender was told each of these was accepted, so nothing will arrive again on its own: releasing one delivers it, and deleting one is final. The icons act on one message, on a group, or - in the header - on every checked message." xml:space="preserve">
     <value>Viestit, jotka palvelin olisi muuten hylännyt, on pidätetty, jotta joku voi tarkistaa ne. Jokaisen lähettäjälle ilmoitettiin, että viesti oli hyväksytty, joten mikään ei saavu uudelleen itsestään: yhden vapauttaminen toimittaa sen, ja yhden poistaminen on lopullista. Kuvakkeet vaikuttavat yhteen viestiin, ryhmään tai - otsikkorivillä - kaikkiin valittuihin viesteihin.</value>
   </data>
-  <data name="Messages up to {0} are scanned by {1}; anything larger is delivered without being scanned at all" xml:space="preserve">
-    <value>Enintään {0}:n kokoiset viestit skannaa {1}; kaikki suurempi toimitetaan skannaamatta lainkaan</value>
+  <data name="Messages up to {0} are scanned by one scanner; anything larger is delivered without being scanned at all." xml:space="preserve">
+    <value>Enintään {0}:n kokoiset viestit skannaa yksi tarkistin; kaikki suurempi toimitetaan skannaamatta lainkaan.</value>
+  </data>
+  <data name="Messages up to {0} are scanned by {1} scanners; anything larger is delivered without being scanned at all." xml:space="preserve">
+    <value>Enintään {0}:n kokoiset viestit skannaa {1} tarkistinta; kaikki suurempi toimitetaan skannaamatta lainkaan.</value>
   </data>
   <data name="Messages up to {0}. A larger message is delivered without being scanned — it is not refused, and nothing is logged." xml:space="preserve">
     <value>Enintään {0}:n kokoiset viestit. Suurempi viesti toimitetaan skannaamatta — sitä ei hylätä, eikä mitään kirjata lokiin.</value>
@@ -6648,8 +6639,11 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="No message is scanned for viruses, and no attachment is blocked. Everything is delivered as it arrives." xml:space="preserve">
     <value>Yhtään viestiä ei skannata virusten varalta, eikä yhtään liitettä estetä. Kaikki toimitetaan sellaisenaan kuin se saapuu.</value>
   </data>
-  <data name="No message is scanned for viruses. Attachment blocking is still stripping {0}, but nothing examines the contents of a message." xml:space="preserve">
-    <value>Yhtään viestiä ei skannata virusten varalta. Liitteiden esto poistaa yhä kohteen {0}, mutta mikään ei tutki viestin sisältöä.</value>
+  <data name="No message is scanned for viruses. Attachment blocking is still stripping one file-name pattern, but nothing examines the contents of a message." xml:space="preserve">
+    <value>Yhtään viestiä ei skannata virusten varalta. Liitteiden esto poistaa yhä yhden tiedostonimikuvion mukaiset liitteet, mutta mikään ei tutki viestin sisältöä.</value>
+  </data>
+  <data name="No message is scanned for viruses. Attachment blocking is still stripping {0} file-name patterns, but nothing examines the contents of a message." xml:space="preserve">
+    <value>Yhtään viestiä ei skannata virusten varalta. Liitteiden esto poistaa yhä {0} tiedostonimikuvion mukaiset liitteet, mutta mikään ei tutki viestin sisältöä.</value>
   </data>
   <data name="No one-time code was given, so the password in use now could not be checked." xml:space="preserve">
     <value>Kertakäyttökoodia ei annettu, joten nykyistä salasanaa ei voitu tarkistaa.</value>
@@ -7188,17 +7182,32 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="One address of this machine: 127.0.0.1 when the manager runs here, otherwise an address on a management network." xml:space="preserve">
     <value>Yksi tämän koneen osoite: 127.0.0.1, kun hallintapiste toimii täällä, muuten hallintaverkon osoite.</value>
   </data>
+  <data name="One blocked-attachment pattern is configured but attachment blocking is switched off, so it is not applied." xml:space="preserve">
+    <value>Yksi estetyn liitteen kuvio on määritetty, mutta liitteiden esto on pois päältä, joten sitä ei sovelleta.</value>
+  </data>
+  <data name="One client listener has no encryption available, so passwords used on it cross the network in the clear." xml:space="preserve">
+    <value>Yhdellä asiakaskuuntelijalla ei ole salausta saatavilla, joten siinä käytetyt salasanat kulkevat verkon yli selväkielisinä.</value>
+  </data>
+  <data name="One client listener offers STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
+    <value>Yksi asiakaskuuntelija tarjoaa STARTTLS:n vaatimatta sitä, joten asiakas, joka ei pyydä salausta, todentaa ilman sitä eikä mikään raportoi tapahtuneesta.</value>
+  </data>
   <data name="One configured port is not being listened on: " xml:space="preserve">
     <value>Yhtä määritettyä porttia ei kuunnella: </value>
   </data>
   <data name="One event script invocation. 0 = no bound." xml:space="preserve">
     <value>Yksi tapahtumakomentosarjan kutsu. 0 = ei rajaa.</value>
   </data>
+  <data name="One external POP3 fetch account has anti-virus turned off, so mail collected by it is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page." xml:space="preserve">
+    <value>Yhdellä ulkoisella POP3-noutotilillä on virustorjunta pois päältä, joten sen noutama posti toimitetaan skannaamatta riippumatta siitä, mitä tässä on asetettu. Kytkin on noutotilillä, ei tällä sivulla.</value>
+  </data>
   <data name="One line of up to 60 characters. The default, Sign in with SAML, is shown in each reader's language; anything else as written." xml:space="preserve">
     <value>Yksi rivi, enintään 60 merkkiä. Oletus, Sign in with SAML, näytetään kunkin lukijan kielellä; muu kuten kirjoitettu.</value>
   </data>
   <data name="One list of the nine checks, which are on, and which of the two phases each one runs in." xml:space="preserve">
     <value>Yksi luettelo yhdeksästä tarkistuksesta, mitkä ovat päällä ja kummassa kahdesta vaiheesta kukin ajetaan.</value>
+  </data>
+  <data name="One listener is configured for TLS but cannot serve it, so that port is not listening at all." xml:space="preserve">
+    <value>Yksi kuuntelija on määritetty TLS:lle, mutta ei voi tarjota sitä, joten tuo portti ei kuuntele lainkaan.</value>
   </data>
   <data name="One message to each account of this domain that has something newly held for it, listing what was held with a link that delivers it. A link works once and stops working after the hours set on the Quarantine page, which is also where the address the links point at is set - without that address nothing is sent. An empty digest is never sent, and each message says how to stop it." xml:space="preserve">
     <value>Yksi viesti tämän verkkotunnuksen jokaiselle tilille, jolle on pidätetty jotain uutta, luettelona pidätetyistä ja linkillä, joka toimittaa ne. Linkki toimii kerran ja lakkaa toimimasta, kun sivulla Karanteeni asetettu tuntimäärä on kulunut; samalla sivulla asetetaan myös osoite, johon linkit osoittavat - ilman sitä mitään ei lähetetä. Tyhjää koostetta ei koskaan lähetetä, ja jokainen viesti kertoo, miten sen voi lopettaa.</value>
@@ -10347,11 +10356,11 @@ Käynnistetäänkö se uudelleen nyt?</value>
   <data name="TLS 1.0 (legacy)" xml:space="preserve">
     <value>TLS 1.0 (vanhentunut)</value>
   </data>
-  <data name="TLS 1.0 and TLS 1.1 are" xml:space="preserve">
-    <value>TLS 1.0 ja TLS 1.1 ovat</value>
+  <data name="TLS 1.0 and TLS 1.1 are enabled. Both are deprecated by RFC 8996 and are refused outright by current clients, so leaving them on rarely buys the compatibility they were kept for, and a client that does negotiate one gets materially weaker protection than the rest." xml:space="preserve">
+    <value>TLS 1.0 ja TLS 1.1 ovat käytössä. RFC 8996 on vanhentanut molemmat ja nykyiset asiakkaat hylkäävät ne suoraan, joten niiden jättäminen päälle tuo harvoin sen yhteensopivuuden, jonka vuoksi ne säilytettiin, ja asiakas, joka neuvottelee jommankumman, saa selvästi heikomman suojan kuin muut.</value>
   </data>
-  <data name="TLS 1.0 is" xml:space="preserve">
-    <value>TLS 1.0 on</value>
+  <data name="TLS 1.0 is enabled. It is deprecated by RFC 8996 and is refused outright by current clients, so leaving it on rarely buys the compatibility it was kept for, and a client that does negotiate it gets materially weaker protection than the rest." xml:space="preserve">
+    <value>TLS 1.0 on käytössä. RFC 8996 on vanhentanut sen ja nykyiset asiakkaat hylkäävät sen suoraan, joten sen jättäminen päälle tuo harvoin sen yhteensopivuuden, jonka vuoksi se säilytettiin, ja asiakas, joka neuvottelee sen, saa selvästi heikomman suojan kuin muut.</value>
   </data>
   <data name="TLS 1.1" xml:space="preserve">
     <value>TLS 1.1</value>
@@ -10359,8 +10368,8 @@ Käynnistetäänkö se uudelleen nyt?</value>
   <data name="TLS 1.1 (legacy)" xml:space="preserve">
     <value>TLS 1.1 (vanhentunut)</value>
   </data>
-  <data name="TLS 1.1 is" xml:space="preserve">
-    <value>TLS 1.1 on</value>
+  <data name="TLS 1.1 is enabled. It is deprecated by RFC 8996 and is refused outright by current clients, so leaving it on rarely buys the compatibility it was kept for, and a client that does negotiate it gets materially weaker protection than the rest." xml:space="preserve">
+    <value>TLS 1.1 on käytössä. RFC 8996 on vanhentanut sen ja nykyiset asiakkaat hylkäävät sen suoraan, joten sen jättäminen päälle tuo harvoin sen yhteensopivuuden, jonka vuoksi se säilytettiin, ja asiakas, joka neuvottelee sen, saa selvästi heikomman suojan kuin muut.</value>
   </data>
   <data name="TLS 1.2" xml:space="preserve">
     <value>TLS 1.2</value>
@@ -10799,11 +10808,35 @@ Seuraava viesti tähän osoitteeseen lähetetään, ja osoite palaa listalle vas
   <data name="The ceilings on what a person may add for themselves in the webmail." xml:space="preserve">
     <value>Ylärajat sille, mitä henkilö saa itse lisätä verkkopostissa.</value>
   </data>
-  <data name="The certificate &quot;{0}&quot; expired {1}{2} ago{3}" xml:space="preserve">
-    <value>Varmenne "{0}" vanheni {1}{2} sitten{3}</value>
+  <data name="The certificate &quot;{0}&quot; expired yesterday and is still assigned to a listener. Clients are refusing or warning about every connection to it." xml:space="preserve">
+    <value>Varmenne "{0}" vanheni eilen ja on yhä liitetty kuuntelijaan. Asiakasohjelmat hylkäävät jokaisen yhteyden siihen tai varoittavat siitä.</value>
   </data>
-  <data name="The certificate &quot;{0}&quot; expires in {1}{2}{3}" xml:space="preserve">
-    <value>Varmenne "{0}" vanhenee {1}{2}{3} kuluttua</value>
+  <data name="The certificate &quot;{0}&quot; expired yesterday. It is not assigned to any listener." xml:space="preserve">
+    <value>Varmenne "{0}" vanheni eilen. Sitä ei ole liitetty mihinkään kuuntelijaan.</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; expired {1} days ago and is still assigned to a listener. Clients are refusing or warning about every connection to it." xml:space="preserve">
+    <value>Varmenne "{0}" vanheni {1} päivää sitten ja on yhä liitetty kuuntelijaan. Asiakasohjelmat hylkäävät jokaisen yhteyden siihen tai varoittavat siitä.</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; expired {1} days ago. It is not assigned to any listener." xml:space="preserve">
+    <value>Varmenne "{0}" vanheni {1} päivää sitten. Sitä ei ole liitetty mihinkään kuuntelijaan.</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; expires in {1} days and is in use by a listener." xml:space="preserve">
+    <value>Varmenne "{0}" vanhenee {1} päivän kuluttua ja on kuuntelijan käytössä.</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; expires in {1} days. It is not assigned to any listener." xml:space="preserve">
+    <value>Varmenne "{0}" vanhenee {1} päivän kuluttua. Sitä ei ole liitetty mihinkään kuuntelijaan.</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; expires today and is in use by a listener." xml:space="preserve">
+    <value>Varmenne "{0}" vanhenee tänään ja on kuuntelijan käytössä.</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; expires today. It is not assigned to any listener." xml:space="preserve">
+    <value>Varmenne "{0}" vanhenee tänään. Sitä ei ole liitetty mihinkään kuuntelijaan.</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; expires tomorrow and is in use by a listener." xml:space="preserve">
+    <value>Varmenne "{0}" vanhenee huomenna ja on kuuntelijan käytössä.</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; expires tomorrow. It is not assigned to any listener." xml:space="preserve">
+    <value>Varmenne "{0}" vanhenee huomenna. Sitä ei ole liitetty mihinkään kuuntelijaan.</value>
   </data>
   <data name="The certificate &quot;{0}&quot; is in use by a listener and has a problem: {1}" xml:space="preserve">
     <value>Varmenne "{0}" on kuuntelijan käytössä ja siinä on ongelma: {1}</value>
@@ -11169,8 +11202,14 @@ ei voitu ladata. Viesti on todennäköisesti toimitettu eikä ole enää jonossa
   <data name="The message is accepted - the sender got a 250 - is visible in the delivery queue, and never leaves." xml:space="preserve">
     <value>Viesti on hyväksytty - lähettäjä sai 250:n -, näkyy toimitusjonossa eikä koskaan lähde.</value>
   </data>
-  <data name="The message is deleted and a notice is sent to {0}." xml:space="preserve">
-    <value>Viesti poistetaan, ja ilmoitus lähetetään osoitteeseen {0}.</value>
+  <data name="The message is deleted and a notice is sent to every recipient and to the envelope sender." xml:space="preserve">
+    <value>Viesti poistetaan, ja ilmoitus lähetetään jokaiselle vastaanottajalle ja kuoren lähettäjälle.</value>
+  </data>
+  <data name="The message is deleted and a notice is sent to every recipient." xml:space="preserve">
+    <value>Viesti poistetaan, ja ilmoitus lähetetään jokaiselle vastaanottajalle.</value>
+  </data>
+  <data name="The message is deleted and a notice is sent to the envelope sender." xml:space="preserve">
+    <value>Viesti poistetaan, ja ilmoitus lähetetään kuoren lähettäjälle.</value>
   </data>
   <data name="The message is deleted and nobody is told. The deletion is recorded in the application log." xml:space="preserve">
     <value>Viesti poistetaan, eikä kenellekään kerrota. Poisto kirjataan sovelluslokiin.</value>
@@ -13507,12 +13546,6 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="blocked sender" xml:space="preserve">
     <value>estetty lähettäjä</value>
   </data>
-  <data name="blocked-attachment pattern is" xml:space="preserve">
-    <value>estetyn liitteen kuvio on</value>
-  </data>
-  <data name="blocked-attachment patterns are" xml:space="preserve">
-    <value>estetyn liitteen kuviota on</value>
-  </data>
   <data name="bypass entry" xml:space="preserve">
     <value>ohitusmerkintä</value>
   </data>
@@ -13545,18 +13578,6 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="clamscan.exe path" xml:space="preserve">
     <value>clamscan.exe-polku</value>
-  </data>
-  <data name="client listener has" xml:space="preserve">
-    <value>asiakaskuuntelijalla ei ole</value>
-  </data>
-  <data name="client listener offers" xml:space="preserve">
-    <value>asiakaskuuntelija tarjoaa</value>
-  </data>
-  <data name="client listeners have" xml:space="preserve">
-    <value>asiakaskuuntelijalla ei ole</value>
-  </data>
-  <data name="client listeners offer" xml:space="preserve">
-    <value>asiakaskuuntelijaa tarjoaa</value>
   </data>
   <data name="collect mail from another provider" xml:space="preserve">
     <value>nouda postia toiselta palveluntarjoajalta</value>
@@ -13630,9 +13651,6 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="every domain" xml:space="preserve">
     <value>jokainen verkkotunnus</value>
   </data>
-  <data name="every recipient" xml:space="preserve">
-    <value>jokainen vastaanottaja</value>
-  </data>
   <data name="example.com is that domain alone; .example.com is the domain and everything beneath it." xml:space="preserve">
     <value>example.com on vain se verkkotunnus; .example.com on verkkotunnus ja kaikki sen alla.</value>
   </data>
@@ -13648,12 +13666,6 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="expiry not checked from here" xml:space="preserve">
     <value>vanhenemista ei tarkistettu täältä</value>
   </data>
-  <data name="external POP3 fetch account has" xml:space="preserve">
-    <value>ulkoisella POP3-noutotilillä on</value>
-  </data>
-  <data name="external POP3 fetch accounts have" xml:space="preserve">
-    <value>ulkoisella POP3-noutotilillä on</value>
-  </data>
   <data name="external account" xml:space="preserve">
     <value>ulkoinen tili</value>
   </data>
@@ -13662,12 +13674,6 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="fetching the version to go back to" xml:space="preserve">
     <value>haetaan versiota, johon palataan</value>
-  </data>
-  <data name="file-name pattern" xml:space="preserve">
-    <value>tiedostonimikuvio</value>
-  </data>
-  <data name="file-name patterns" xml:space="preserve">
-    <value>tiedostonimikuviota</value>
   </data>
   <data name="find out why a message bounced" xml:space="preserve">
     <value>selvitä, miksi viesti palautui</value>
@@ -13844,14 +13850,8 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="is set to &quot;{0}&quot; in the INI" xml:space="preserve">
     <value>on asetettu arvoon "{0}" INI-tiedostossa</value>
   </data>
-  <data name="it cross" xml:space="preserve">
-    <value>siinä käytetyt salasanat kulkevat</value>
-  </data>
   <data name="it ended with code {0}" xml:space="preserve">
     <value>se päättyi koodiin {0}</value>
-  </data>
-  <data name="it is" xml:space="preserve">
-    <value>sen</value>
   </data>
   <data name="item" xml:space="preserve">
     <value>kohde</value>
@@ -13915,12 +13915,6 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="list entry" xml:space="preserve">
     <value>luettelon merkintä</value>
-  </data>
-  <data name="listener is" xml:space="preserve">
-    <value>kuuntelija on</value>
-  </data>
-  <data name="listeners are" xml:space="preserve">
-    <value>kuuntelijaa on</value>
   </data>
   <data name="lock out repeated failed logons" xml:space="preserve">
     <value>sulje ulos toistuvat epäonnistuneet kirjautumiset</value>
@@ -14108,12 +14102,6 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="scan for viruses" xml:space="preserve">
     <value>skannaa virusten varalta</value>
   </data>
-  <data name="scanner" xml:space="preserve">
-    <value>tarkistin</value>
-  </data>
-  <data name="scanners" xml:space="preserve">
-    <value>tarkistinta</value>
-  </data>
   <data name="script/save slow" xml:space="preserve">
     <value>script/save hidas</value>
   </data>
@@ -14201,9 +14189,6 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="test whether port 25 is open" xml:space="preserve">
     <value>testaa, onko portti 25 auki</value>
   </data>
-  <data name="that port is not listening" xml:space="preserve">
-    <value>tuo portti ei kuuntele</value>
-  </data>
   <data name="the Control Panel is connected to '{0}'; hMailServer.INI and files on disk can only be inspected on the server machine itself." xml:space="preserve">
     <value>Control Panel on yhteydessä kohteeseen '{0}'; hMailServer.INI-tiedostoa ja levyn tiedostoja voi tarkastella vain palvelinkoneella itsellään.</value>
   </data>
@@ -14221,9 +14206,6 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="the address is one of the {0} on the greylisting white list" xml:space="preserve">
     <value>osoite on yksi harmaalistauksen sallittujen listan {0} merkinnästä</value>
-  </data>
-  <data name="the attachments are stripped and the message is still delivered" xml:space="preserve">
-    <value>liitteet poistetaan ja viesti toimitetaan silti</value>
   </data>
   <data name="the audience (aud) is not checked" xml:space="preserve">
     <value>yleisöä (aud) ei tarkisteta</value>
@@ -14269,9 +14251,6 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="the entry does not exist (check SearchBase, or UserDnTemplate)" xml:space="preserve">
     <value>merkintää ei ole olemassa (tarkista SearchBase tai UserDnTemplate)</value>
-  </data>
-  <data name="the envelope sender" xml:space="preserve">
-    <value>kuoren lähettäjä</value>
   </data>
   <data name="the file could not be parsed as a certificate." xml:space="preserve">
     <value>tiedostoa ei voitu jäsentää varmenteeksi.</value>
@@ -14342,15 +14321,6 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="the user name" xml:space="preserve">
     <value>käyttäjänimi</value>
   </data>
-  <data name="the whole message is deleted and never delivered" xml:space="preserve">
-    <value>koko viesti poistetaan eikä sitä koskaan toimiteta</value>
-  </data>
-  <data name="them cross" xml:space="preserve">
-    <value>niissä käytetyt salasanat kulkevat</value>
-  </data>
-  <data name="them is" xml:space="preserve">
-    <value>niiden</value>
-  </data>
   <data name="there is less than 1 GB free on the installation's drive" xml:space="preserve">
     <value>asennuksen asemalla on vapaata alle 1 Gt</value>
   </data>
@@ -14359,9 +14329,6 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="this setting" xml:space="preserve">
     <value>tämä asetus</value>
-  </data>
-  <data name="those ports are not listening" xml:space="preserve">
-    <value>nuo portit eivät kuuntele</value>
   </data>
   <data name="too many context IDs (the directory is out of resources)" xml:space="preserve">
     <value>liian monta kontekstitunnusta (hakemiston resurssit ovat lopussa)</value>
@@ -14456,14 +14423,17 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="{0} DNS records are still being checked in the background; this summary will update." xml:space="preserve">
     <value>{0} DNS-tietuetta tarkistetaan yhä taustalla; tämä yhteenveto päivittyy.</value>
   </data>
+  <data name="{0} If a virus is found, the attachments are stripped and the message is still delivered." xml:space="preserve">
+    <value>{0} Jos virus löytyy, liitteet poistetaan ja viesti toimitetaan silti.</value>
+  </data>
+  <data name="{0} If a virus is found, the whole message is deleted and never delivered." xml:space="preserve">
+    <value>{0} Jos virus löytyy, koko viesti poistetaan eikä sitä koskaan toimiteta.</value>
+  </data>
   <data name="{0} KB" xml:space="preserve">
     <value>{0} kt</value>
   </data>
   <data name="{0} KB ({1} MB)" xml:space="preserve">
     <value>{0} kt ({1} Mt)</value>
-  </data>
-  <data name="{0} STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
-    <value>{0} STARTTLS:n vaatimatta sitä, joten asiakas, joka ei pyydä salausta, todentaa ilman sitä eikä mikään raportoi tapahtuneesta.</value>
   </data>
   <data name="{0} TXT record(s) exist at {1}, but none begins &quot;v=DMARC1&quot;, so receivers - and this server's own DMARC check - see no policy." xml:space="preserve">
     <value>{0} TXT-tietuetta on olemassa kohteessa {1}, mutta yksikään ei ala "v=DMARC1", joten vastaanottajat - ja tämän palvelimen oma DMARC-tarkistus - eivät näe käytäntöä.</value>
@@ -14510,20 +14480,23 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="{0} app passwords." xml:space="preserve">
     <value>{0} sovellussalasanaa.</value>
   </data>
+  <data name="{0} blocked-attachment patterns are configured but attachment blocking is switched off, so none of them is applied." xml:space="preserve">
+    <value>{0} estetyn liitteen kuviota on määritetty, mutta liitteiden esto on pois päältä, joten yhtäkään niistä ei sovelleta.</value>
+  </data>
   <data name="{0} case(s). Select one for its lines on the audit trail." xml:space="preserve">
     <value>{0} tapausta. Valitse yksi nähdäksesi sen rivit tarkastuslokissa.</value>
   </data>
   <data name="{0} change(s) carried out, none failed." xml:space="preserve">
     <value>{0} muutosta tehty, yksikään ei epäonnistunut.</value>
   </data>
+  <data name="{0} client listeners have no encryption available, so passwords used on them cross the network in the clear." xml:space="preserve">
+    <value>{0} asiakaskuuntelijalla ei ole salausta saatavilla, joten niissä käytetyt salasanat kulkevat verkon yli selväkielisinä.</value>
+  </data>
+  <data name="{0} client listeners offer STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
+    <value>{0} asiakaskuuntelijaa tarjoaa STARTTLS:n vaatimatta sitä, joten asiakas, joka ei pyydä salausta, todentaa ilman sitä eikä mikään raportoi tapahtuneesta.</value>
+  </data>
   <data name="{0} closed. It picks up where you left off." xml:space="preserve">
     <value>”{0}” suljettu. Se jatkuu siitä, mihin jäit.</value>
-  </data>
-  <data name="{0} configured but attachment blocking is switched off, so none of them is applied." xml:space="preserve">
-    <value>{0} määritetty, mutta liitteiden esto on pois päältä, joten yhtäkään niistä ei sovelleta.</value>
-  </data>
-  <data name="{0} configured for TLS but cannot serve it, so {1} at all." xml:space="preserve">
-    <value>{0} määritetty TLS:lle, mutta ei voi tarjota sitä, joten {1} lainkaan.</value>
   </data>
   <data name="{0} configured ports are not being listened on: " xml:space="preserve">
     <value>{0} määritettyä porttia ei kuunnella: </value>
@@ -14552,9 +14525,6 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="{0} domains, none of them active." xml:space="preserve">
     <value>{0} verkkotunnusta, yksikään ei aktiivinen.</value>
   </data>
-  <data name="{0} enabled. Both are deprecated by RFC 8996 and are refused outright by current clients, so leaving them on rarely buys the compatibility they were kept for, and a client that does negotiate one gets materially weaker protection than the rest." xml:space="preserve">
-    <value>{0} käytössä. RFC 8996 on vanhentanut molemmat ja nykyiset asiakkaat hylkäävät ne suoraan, joten niiden jättäminen päälle tuo harvoin sen yhteensopivuuden, jonka vuoksi ne säilytettiin, ja asiakas, joka neuvottelee jommankumman, saa selvästi heikomman suojan kuin muut.</value>
-  </data>
   <data name="{0} entries" xml:space="preserve">
     <value>{0} merkintää</value>
   </data>
@@ -14569,6 +14539,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="{0} expired and now refused" xml:space="preserve">
     <value>{0} vanhentunut ja nyt hylätään</value>
+  </data>
+  <data name="{0} external POP3 fetch accounts have anti-virus turned off, so mail collected by them is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page." xml:space="preserve">
+    <value>{0} ulkoisella POP3-noutotilillä on virustorjunta pois päältä, joten niiden noutama posti toimitetaan skannaamatta riippumatta siitä, mitä tässä on asetettu. Kytkin on noutotilillä, ei tällä sivulla.</value>
   </data>
   <data name="{0} has been moved to {1}." xml:space="preserve">
     <value>{0} on siirretty osoitteeseen {1}.</value>
@@ -14648,6 +14621,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="{0} latest {1}" xml:space="preserve">
     <value>{0}: viimeisin {1}</value>
   </data>
+  <data name="{0} listeners are configured for TLS but cannot serve it, so those ports are not listening at all." xml:space="preserve">
+    <value>{0} kuuntelijaa on määritetty TLS:lle, mutta ne eivät voi tarjota sitä, joten nuo portit eivät kuuntele lainkaan.</value>
+  </data>
   <data name="{0} message references a file that is missing on disk." xml:space="preserve">
     <value>{0} viesti viittaa tiedostoon, joka puuttuu levyltä.</value>
   </data>
@@ -14686,9 +14662,6 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="{0} need action, {1} cannot be told from here, {2} done, {3} not needed." xml:space="preserve">
     <value>{0} vaatii toimia, {1} ei voi selvittää täältä, {2} tehty, {3} ei tarvita.</value>
-  </data>
-  <data name="{0} no encryption available, so passwords used on {1} the network in the clear." xml:space="preserve">
-    <value>{0} salausta saatavilla, joten {1} verkon yli selväkielisinä.</value>
   </data>
   <data name="{0} of its {1} settings would change on this server." xml:space="preserve">
     <value>{0} sen {1} asetuksesta muuttuisi tällä palvelimella.</value>
@@ -14840,9 +14813,6 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="{0}. Any token the identity provider signs with this key is then accepted, including one it issued to a different application - which is enough to log in as whichever mailbox that token names. Set both to the exact values the provider puts in its tokens. The values come from the provider, which is why they are on this list." xml:space="preserve">
     <value>{0}. Mikä tahansa token, jonka identiteetintarjoaja allekirjoittaa tällä avaimella, hyväksytään silloin, myös sellainen, jonka se myönsi eri sovellukselle - mikä riittää kirjautumiseen siihen postilaatikkoon, jonka tuo token nimeää. Aseta molemmat täsmälleen niihin arvoihin, jotka tarjoaja laittaa tokeneihinsa. Arvot tulevat tarjoajalta, minkä vuoksi ne ovat tällä luettelolla.</value>
   </data>
-  <data name="{0}. If a virus is found, {1}." xml:space="preserve">
-    <value>{0}. Jos virus löytyy, {1}.</value>
-  </data>
   <data name="{0}. No entries are configured, so the check does not run." xml:space="preserve">
     <value>{0}. Merkintöjä ei ole määritetty, joten tarkistusta ei ajeta.</value>
   </data>
@@ -14980,9 +14950,6 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="{0}: {1} set, {2} unchanged, {3} skipped; {4} wait for a reinitialise and {5} for a restart." xml:space="preserve">
     <value>{0}: {1} asetettu, {2} ennallaan, {3} ohitettu; {4} odottaa uudelleenalustusta ja {5} uudelleenkäynnistystä.</value>
-  </data>
-  <data name="{0}{1} anti-virus turned off, so mail collected by {2} delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page.{3}" xml:space="preserve">
-    <value>{0}{1} virustorjunta pois päältä, joten {2} noutama posti toimitetaan skannaamatta riippumatta siitä, mitä tässä on asetettu. Kytkin on noutotilillä, ei tällä sivulla.{3}</value>
   </data>
   <data name="~all: the domain says the client is probably not authorised and asks that the message be accepted anyway. Many spray sources live behind it. A score at or above the delete threshold refuses the message during the SMTP conversation as a fail does; a softfail is never a pass for the greylisting bypass." xml:space="preserve">
     <value>~all: verkkotunnus sanoo, että asiakas ei luultavasti ole valtuutettu, ja pyytää hyväksymään viestin silti. Moni massalähettäjä piileskelee sen takana. Poistokynnyksen saavuttava pistemäärä hylkää viestin SMTP-keskustelun aikana kuten fail; softfail ei koskaan ole pass greylisting-poikkeukselle.</value>

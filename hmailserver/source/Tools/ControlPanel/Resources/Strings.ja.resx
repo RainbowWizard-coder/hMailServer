@@ -125,9 +125,6 @@
   <data name=" The total is open-ended, because a list entry or SpamAssassin's own score can be any size." xml:space="preserve">
     <value> 合計に上限はありません。リストの項目や SpamAssassin 自身のスコアは任意の大きさになり得るためです。</value>
   </data>
-  <data name=" There are more accounts on this server than this page walks, so there may be others." xml:space="preserve">
-    <value> このサーバーには、このページが調べる件数より多くのアカウントがあるため、ほかにも該当するものがあるかもしれません。</value>
-  </data>
   <data name=" There are more index entries than messages, which means entries for mail that no longer exists - discard and rebuild the index to clear them." xml:space="preserve">
     <value> インデックスのエントリ数がメッセージ数を上回っています。つまり、すでに存在しないメールのエントリが残っています。インデックスを破棄して再構築すると解消されます。</value>
   </data>
@@ -143,12 +140,6 @@
   <data name=" With the checks currently enabled the highest total reachable is {0}." xml:space="preserve">
     <value> 現在有効になっているチェックでは、到達し得る合計の最大値は {0} です。</value>
   </data>
-  <data name=" and is in use by a listener." xml:space="preserve">
-    <value> であり、リスナーが使用しています。</value>
-  </data>
-  <data name=" and is still assigned to a listener. Clients are refusing or warning about every connection to it." xml:space="preserve">
-    <value> であり、まだリスナーに割り当てられています。クライアントはこのリスナーへの接続をすべて拒否するか、警告を出しています。</value>
-  </data>
   <data name=" and the listener is not started (server error 6142)." xml:space="preserve">
     <value> であり、リスナーは開始されていません (サーバー エラー 6142)。</value>
   </data>
@@ -157,12 +148,6 @@
   </data>
   <data name=" and the policy verifies nothing." xml:space="preserve">
     <value> であり、ポリシーは何も検証しません。</value>
-  </data>
-  <data name=" day" xml:space="preserve">
-    <value> 日</value>
-  </data>
-  <data name=" days" xml:space="preserve">
-    <value> 日</value>
   </data>
   <data name=" of {0} KB" xml:space="preserve">
     <value> / {0} KB</value>
@@ -271,9 +256,6 @@
   </data>
   <data name=". Connections to them are refused. The usual causes are another program already holding the port, a bind address that does not exist on this machine, or - on a TLS port - a certificate the server could not load; the server records which, once, in the error log at start-up." xml:space="preserve">
     <value>。これらへの接続は拒否されます。よくある原因は、別のプログラムがすでにそのポートを使用している、このコンピューターに存在しないバインド アドレスが指定されている、または TLS ポートの場合はサーバーが証明書を読み込めなかった、のいずれかです。どれに当たるかは、起動時にエラー ログへ一度だけ記録されます。</value>
-  </data>
-  <data name=". It is not assigned to any listener." xml:space="preserve">
-    <value>。どのリスナーにも割り当てられていません。</value>
   </data>
   <data name=". No account will be disabled." xml:space="preserve">
     <value>。アカウントが無効化されることはありません。</value>
@@ -1749,11 +1731,14 @@
   <data name="At RCPT TO, before the body is transferred — a refusal here is a 550" xml:space="preserve">
     <value>RCPT TO の時点、本文が転送される前 — ここでの拒否は 550 になります</value>
   </data>
-  <data name="At least " xml:space="preserve">
-    <value>少なくとも </value>
-  </data>
   <data name="At least 12 printable ASCII characters. Leave both boxes empty to keep the passphrase already set. The server never gives it back - not to this program and not to anyone else - so keep it somewhere other than beside the backups: a restore asks for it, and nothing in an archive whose passphrase is lost can be recovered by anybody." xml:space="preserve">
     <value>印字可能な ASCII 文字で 12 文字以上。両方の欄を空のままにすると、すでに設定されているパスフレーズがそのまま残ります。サーバーはパスフレーズを返しません。このプログラムにも、ほかの誰にも返しません。バックアップの隣以外の場所に保管してください: 復元のときに必要になり、パスフレーズを失ったアーカイブからは誰も何も取り出せません。</value>
+  </data>
+  <data name="At least one external POP3 fetch account has anti-virus turned off, so mail collected by it is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page. There are more accounts on this server than this page walks, so there may be others." xml:space="preserve">
+    <value>少なくとも 1 件の外部 POP3 取り込みアカウントでウイルス対策が無効になっているため、そのアカウントが収集したメールは、ここでの設定にかかわらずスキャンされずに配信されます。このスイッチはこのページではなく、取り込みアカウント側にあります。このサーバーには、このページが調べる件数より多くのアカウントがあるため、ほかにも該当するものがあるかもしれません。</value>
+  </data>
+  <data name="At least {0} external POP3 fetch accounts have anti-virus turned off, so mail collected by them is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page. There are more accounts on this server than this page walks, so there may be others." xml:space="preserve">
+    <value>少なくとも {0} 件の外部 POP3 取り込みアカウントでウイルス対策が無効になっているため、それらのアカウントが収集したメールは、ここでの設定にかかわらずスキャンされずに配信されます。このスイッチはこのページではなく、取り込みアカウント側にあります。このサーバーには、このページが調べる件数より多くのアカウントがあるため、ほかにも該当するものがあるかもしれません。</value>
   </data>
   <data name="At most 2592000, thirty days." xml:space="preserve">
     <value>最大は 2592000、つまり 30 日です。</value>
@@ -4281,11 +4266,14 @@
   <data name="Every local recipient's copy becomes another name for the same file inside the archive folder, so a message to ten mailboxes costs one copy rather than ten. Needs an NTFS archive folder; if the link cannot be created the server copies the file and says so in the SMTP log." xml:space="preserve">
     <value>ローカルの各受信者のコピーは、アーカイブ フォルダー内の同じファイルの別名になるため、10 個のメールボックス宛てのメッセージのコストは 10 コピーではなく 1 コピーで済みます。NTFS のアーカイブ フォルダーが必要です。リンクを作成できない場合、サーバーはファイルをコピーし、その旨を SMTP ログに記録します。</value>
   </data>
-  <data name="Every message goes through {0} in turn, and each is asked about the whole message and then about each attachment separately. That is thorough and it is not free: the scan happens while the sender is waiting for its &quot;250 OK&quot;." xml:space="preserve">
-    <value>すべてのメッセージは {0} を順に通過し、それぞれにメッセージ全体について、次に各添付ファイルについて個別に問い合わせます。徹底的ですが無料ではありません。スキャンは送信者が "250 OK" を待っている間に行われます。</value>
+  <data name="Every message goes through {0} scanners in turn, and each is asked about the whole message and then about each attachment separately. That is thorough and it is not free: the scan happens while the sender is waiting for its &quot;250 OK&quot;." xml:space="preserve">
+    <value>すべてのメッセージは {0} 件のスキャナーを順に通過し、それぞれにメッセージ全体について、次に各添付ファイルについて個別に問い合わせます。徹底的ですが無料ではありません。スキャンは送信者が "250 OK" を待っている間に行われます。</value>
   </data>
-  <data name="Every message is scanned by {0}" xml:space="preserve">
-    <value>すべてのメッセージは {0} によってスキャンされます</value>
+  <data name="Every message is scanned by one scanner." xml:space="preserve">
+    <value>すべてのメッセージは 1 件のスキャナーによってスキャンされます。</value>
+  </data>
+  <data name="Every message is scanned by {0} scanners." xml:space="preserve">
+    <value>すべてのメッセージは {0} 件のスキャナーによってスキャンされます。</value>
   </data>
   <data name="Every message still in the delivery queue, the last error the server got for it, and when it is retried." xml:space="preserve">
     <value>配信キューにまだ残っているすべてのメッセージ、サーバーがそれについて最後に受け取ったエラー、次に再試行される時刻。</value>
@@ -6159,8 +6147,11 @@
   <data name="Messages the server would otherwise have refused, held so somebody can look. The sender was told each of these was accepted, so nothing will arrive again on its own: releasing one delivers it, and deleting one is final. The icons act on one message, on a group, or - in the header - on every checked message." xml:space="preserve">
     <value>本来ならサーバーが拒否していたはずのメッセージを、誰かが確認できるよう保留しています。送信者にはそれぞれ受理されたと伝えてあるため、放っておいても再び届くことはありません。解放すれば配信され、削除すれば元に戻せません。アイコンは 1 件のメッセージ、1 つのグループ、またはヘッダーではチェックしたすべてのメッセージに作用します。</value>
   </data>
-  <data name="Messages up to {0} are scanned by {1}; anything larger is delivered without being scanned at all" xml:space="preserve">
-    <value>{0} までのメッセージは {1} によってスキャンされます。それより大きいものはまったくスキャンされずに配信されます</value>
+  <data name="Messages up to {0} are scanned by one scanner; anything larger is delivered without being scanned at all." xml:space="preserve">
+    <value>{0} までのメッセージは 1 件のスキャナーによってスキャンされます。それより大きいものはまったくスキャンされずに配信されます。</value>
+  </data>
+  <data name="Messages up to {0} are scanned by {1} scanners; anything larger is delivered without being scanned at all." xml:space="preserve">
+    <value>{0} までのメッセージは {1} 件のスキャナーによってスキャンされます。それより大きいものはまったくスキャンされずに配信されます。</value>
   </data>
   <data name="Messages up to {0}. A larger message is delivered without being scanned — it is not refused, and nothing is logged." xml:space="preserve">
     <value>{0} までのメッセージ。それより大きいメッセージはスキャンされずに配信されます — 拒否はされず、何もログに記録されません。</value>
@@ -6648,8 +6639,11 @@
   <data name="No message is scanned for viruses, and no attachment is blocked. Everything is delivered as it arrives." xml:space="preserve">
     <value>ウイルス スキャンされるメッセージはなく、ブロックされる添付ファイルもありません。すべてが到着したままの状態で配信されます。</value>
   </data>
-  <data name="No message is scanned for viruses. Attachment blocking is still stripping {0}, but nothing examines the contents of a message." xml:space="preserve">
-    <value>ウイルス スキャンされるメッセージはありません。添付ファイルのブロックは引き続き {0} を取り除いていますが、メッセージの中身を調べるものは何もありません。</value>
+  <data name="No message is scanned for viruses. Attachment blocking is still stripping one file-name pattern, but nothing examines the contents of a message." xml:space="preserve">
+    <value>ウイルス スキャンされるメッセージはありません。添付ファイルのブロックは引き続き 1 件のファイル名パターンを取り除いていますが、メッセージの中身を調べるものは何もありません。</value>
+  </data>
+  <data name="No message is scanned for viruses. Attachment blocking is still stripping {0} file-name patterns, but nothing examines the contents of a message." xml:space="preserve">
+    <value>ウイルス スキャンされるメッセージはありません。添付ファイルのブロックは引き続き {0} 件のファイル名パターンを取り除いていますが、メッセージの中身を調べるものは何もありません。</value>
   </data>
   <data name="No one-time code was given, so the password in use now could not be checked." xml:space="preserve">
     <value>ワンタイム コードが入力されなかったため、現在のパスワードを確認できませんでした。</value>
@@ -7188,17 +7182,32 @@
   <data name="One address of this machine: 127.0.0.1 when the manager runs here, otherwise an address on a management network." xml:space="preserve">
     <value>このコンピューターのアドレスの 1 つ: 管理ステーションがここで動いていれば 127.0.0.1、そうでなければ管理ネットワーク上のアドレス。</value>
   </data>
+  <data name="One blocked-attachment pattern is configured but attachment blocking is switched off, so it is not applied." xml:space="preserve">
+    <value>1 件のブロック対象の添付ファイル パターンが設定されていますが、添付ファイルのブロックは無効になっているため、適用されません。</value>
+  </data>
+  <data name="One client listener has no encryption available, so passwords used on it cross the network in the clear." xml:space="preserve">
+    <value>1 件のクライアント リスナーには暗号化が利用できないため、そのリスナーで使われるパスワードは平文でネットワークを流れます。</value>
+  </data>
+  <data name="One client listener offers STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
+    <value>1 件のクライアント リスナーが STARTTLS を提供していますが必須にはしていないため、暗号化を要求しないクライアントは暗号化なしで認証し、そのことは何にも報告されません。</value>
+  </data>
   <data name="One configured port is not being listened on: " xml:space="preserve">
     <value>設定済みのポートのうち 1 つが待ち受けされていません: </value>
   </data>
   <data name="One event script invocation. 0 = no bound." xml:space="preserve">
     <value>1 回のイベント スクリプト呼び出し。0 = 上限なし。</value>
   </data>
+  <data name="One external POP3 fetch account has anti-virus turned off, so mail collected by it is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page." xml:space="preserve">
+    <value>1 件の外部 POP3 取り込みアカウントでウイルス対策が無効になっているため、そのアカウントが収集したメールは、ここでの設定にかかわらずスキャンされずに配信されます。このスイッチはこのページではなく、取り込みアカウント側にあります。</value>
+  </data>
   <data name="One line of up to 60 characters. The default, Sign in with SAML, is shown in each reader's language; anything else as written." xml:space="preserve">
     <value>最大 60 文字の 1 行。既定の Sign in with SAML は各利用者の言語で表示され、ほかの文字列は書いたとおりに表示されます。</value>
   </data>
   <data name="One list of the nine checks, which are on, and which of the two phases each one runs in." xml:space="preserve">
     <value>9 つのチェックの一覧。どれがオンか、それぞれが 2 つのフェーズのどちらで実行されるか。</value>
+  </data>
+  <data name="One listener is configured for TLS but cannot serve it, so that port is not listening at all." xml:space="preserve">
+    <value>1 件のリスナーが TLS 用に設定されていますが TLS を提供できないため、そのポートはまったく待ち受けていません。</value>
   </data>
   <data name="One message to each account of this domain that has something newly held for it, listing what was held with a link that delivers it. A link works once and stops working after the hours set on the Quarantine page, which is also where the address the links point at is set - without that address nothing is sent. An empty digest is never sent, and each message says how to stop it." xml:space="preserve">
     <value>このドメインで新たに何かが保留されたアカウントそれぞれに、保留されたものの一覧と配信用のリンクを 1 通で送ります。リンクは一度だけ使え、検疫 ページで設定した時間が過ぎると無効になります。リンクが指すアドレスも同じページで設定し、それがなければ何も送られません。空のダイジェストは送られず、各メールには停止方法が書かれています。</value>
@@ -10347,11 +10356,11 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="TLS 1.0 (legacy)" xml:space="preserve">
     <value>TLS 1.0 (レガシー)</value>
   </data>
-  <data name="TLS 1.0 and TLS 1.1 are" xml:space="preserve">
-    <value>TLS 1.0 と TLS 1.1 は</value>
+  <data name="TLS 1.0 and TLS 1.1 are enabled. Both are deprecated by RFC 8996 and are refused outright by current clients, so leaving them on rarely buys the compatibility they were kept for, and a client that does negotiate one gets materially weaker protection than the rest." xml:space="preserve">
+    <value>TLS 1.0 と TLS 1.1 が有効になっています。どちらも RFC 8996 で非推奨とされ、現在のクライアントからは端的に拒否されます。そのため、有効のままにしても、残しておいた目的である互換性が得られることはめったになく、実際にどちらかをネゴシエートしたクライアントは、ほかより明らかに弱い保護しか受けられません。</value>
   </data>
-  <data name="TLS 1.0 is" xml:space="preserve">
-    <value>TLS 1.0 は</value>
+  <data name="TLS 1.0 is enabled. It is deprecated by RFC 8996 and is refused outright by current clients, so leaving it on rarely buys the compatibility it was kept for, and a client that does negotiate it gets materially weaker protection than the rest." xml:space="preserve">
+    <value>TLS 1.0 が有効になっています。RFC 8996 で非推奨とされ、現在のクライアントからは端的に拒否されます。そのため、有効のままにしても、残しておいた目的である互換性が得られることはめったになく、実際にこれをネゴシエートしたクライアントは、ほかより明らかに弱い保護しか受けられません。</value>
   </data>
   <data name="TLS 1.1" xml:space="preserve">
     <value>TLS 1.1</value>
@@ -10359,8 +10368,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="TLS 1.1 (legacy)" xml:space="preserve">
     <value>TLS 1.1 (レガシー)</value>
   </data>
-  <data name="TLS 1.1 is" xml:space="preserve">
-    <value>TLS 1.1 は</value>
+  <data name="TLS 1.1 is enabled. It is deprecated by RFC 8996 and is refused outright by current clients, so leaving it on rarely buys the compatibility it was kept for, and a client that does negotiate it gets materially weaker protection than the rest." xml:space="preserve">
+    <value>TLS 1.1 が有効になっています。RFC 8996 で非推奨とされ、現在のクライアントからは端的に拒否されます。そのため、有効のままにしても、残しておいた目的である互換性が得られることはめったになく、実際にこれをネゴシエートしたクライアントは、ほかより明らかに弱い保護しか受けられません。</value>
   </data>
   <data name="TLS 1.2" xml:space="preserve">
     <value>TLS 1.2</value>
@@ -10799,11 +10808,35 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The ceilings on what a person may add for themselves in the webmail." xml:space="preserve">
     <value>利用者がウェブメールで自分で追加できるものの上限。</value>
   </data>
-  <data name="The certificate &quot;{0}&quot; expired {1}{2} ago{3}" xml:space="preserve">
-    <value>証明書 "{0}" は {1}{2} 前に期限切れになりました{3}</value>
+  <data name="The certificate &quot;{0}&quot; expired yesterday and is still assigned to a listener. Clients are refusing or warning about every connection to it." xml:space="preserve">
+    <value>証明書 "{0}" は昨日期限切れになりましたが、まだリスナーに割り当てられています。クライアントはこのリスナーへの接続をすべて拒否するか、警告を出しています。</value>
   </data>
-  <data name="The certificate &quot;{0}&quot; expires in {1}{2}{3}" xml:space="preserve">
-    <value>証明書 "{0}" は {1}{2}{3} 後に期限切れになります</value>
+  <data name="The certificate &quot;{0}&quot; expired yesterday. It is not assigned to any listener." xml:space="preserve">
+    <value>証明書 "{0}" は昨日期限切れになりました。どのリスナーにも割り当てられていません。</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; expired {1} days ago and is still assigned to a listener. Clients are refusing or warning about every connection to it." xml:space="preserve">
+    <value>証明書 "{0}" は {1} 日前に期限切れになりましたが、まだリスナーに割り当てられています。クライアントはこのリスナーへの接続をすべて拒否するか、警告を出しています。</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; expired {1} days ago. It is not assigned to any listener." xml:space="preserve">
+    <value>証明書 "{0}" は {1} 日前に期限切れになりました。どのリスナーにも割り当てられていません。</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; expires in {1} days and is in use by a listener." xml:space="preserve">
+    <value>証明書 "{0}" は {1} 日後に期限切れになり、リスナーが使用しています。</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; expires in {1} days. It is not assigned to any listener." xml:space="preserve">
+    <value>証明書 "{0}" は {1} 日後に期限切れになります。どのリスナーにも割り当てられていません。</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; expires today and is in use by a listener." xml:space="preserve">
+    <value>証明書 "{0}" は今日期限切れになり、リスナーが使用しています。</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; expires today. It is not assigned to any listener." xml:space="preserve">
+    <value>証明書 "{0}" は今日期限切れになります。どのリスナーにも割り当てられていません。</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; expires tomorrow and is in use by a listener." xml:space="preserve">
+    <value>証明書 "{0}" は明日期限切れになり、リスナーが使用しています。</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; expires tomorrow. It is not assigned to any listener." xml:space="preserve">
+    <value>証明書 "{0}" は明日期限切れになります。どのリスナーにも割り当てられていません。</value>
   </data>
   <data name="The certificate &quot;{0}&quot; is in use by a listener and has a problem: {1}" xml:space="preserve">
     <value>証明書 "{0}" はリスナーで使用中で、問題があります: {1}</value>
@@ -11169,8 +11202,14 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The message is accepted - the sender got a 250 - is visible in the delivery queue, and never leaves." xml:space="preserve">
     <value>メッセージは受け入れられ (送信者は 250 を受け取り)、配信キューに表示されますが、決して出て行きません。</value>
   </data>
-  <data name="The message is deleted and a notice is sent to {0}." xml:space="preserve">
-    <value>メッセージは削除され、{0} に通知が送信されます。</value>
+  <data name="The message is deleted and a notice is sent to every recipient and to the envelope sender." xml:space="preserve">
+    <value>メッセージは削除され、すべての受信者とエンベロープ送信者に通知が送信されます。</value>
+  </data>
+  <data name="The message is deleted and a notice is sent to every recipient." xml:space="preserve">
+    <value>メッセージは削除され、すべての受信者に通知が送信されます。</value>
+  </data>
+  <data name="The message is deleted and a notice is sent to the envelope sender." xml:space="preserve">
+    <value>メッセージは削除され、エンベロープ送信者に通知が送信されます。</value>
   </data>
   <data name="The message is deleted and nobody is told. The deletion is recorded in the application log." xml:space="preserve">
     <value>メッセージは削除され、誰にも通知されません。削除はアプリケーション ログに記録されます。</value>
@@ -13507,12 +13546,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="blocked sender" xml:space="preserve">
     <value>ブロックされた送信者</value>
   </data>
-  <data name="blocked-attachment pattern is" xml:space="preserve">
-    <value>件のブロック対象の添付ファイル パターンが</value>
-  </data>
-  <data name="blocked-attachment patterns are" xml:space="preserve">
-    <value>件のブロック対象の添付ファイル パターンが</value>
-  </data>
   <data name="bypass entry" xml:space="preserve">
     <value>バイパス エントリ</value>
   </data>
@@ -13545,18 +13578,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="clamscan.exe path" xml:space="preserve">
     <value>clamscan.exe のパス</value>
-  </data>
-  <data name="client listener has" xml:space="preserve">
-    <value>件のクライアント リスナーには</value>
-  </data>
-  <data name="client listener offers" xml:space="preserve">
-    <value>件のクライアント リスナーが</value>
-  </data>
-  <data name="client listeners have" xml:space="preserve">
-    <value>件のクライアント リスナーには</value>
-  </data>
-  <data name="client listeners offer" xml:space="preserve">
-    <value>件のクライアント リスナーが</value>
   </data>
   <data name="collect mail from another provider" xml:space="preserve">
     <value>別のプロバイダーからメールを収集する</value>
@@ -13630,9 +13651,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="every domain" xml:space="preserve">
     <value>すべてのドメイン</value>
   </data>
-  <data name="every recipient" xml:space="preserve">
-    <value>すべての受信者</value>
-  </data>
   <data name="example.com is that domain alone; .example.com is the domain and everything beneath it." xml:space="preserve">
     <value>example.com はそのドメインだけ、.example.com はそのドメインとその配下すべてです。</value>
   </data>
@@ -13648,12 +13666,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="expiry not checked from here" xml:space="preserve">
     <value>有効期限はここでは確認していません</value>
   </data>
-  <data name="external POP3 fetch account has" xml:space="preserve">
-    <value>件の外部 POP3 取り込みアカウントで</value>
-  </data>
-  <data name="external POP3 fetch accounts have" xml:space="preserve">
-    <value>件の外部 POP3 取り込みアカウントで</value>
-  </data>
   <data name="external account" xml:space="preserve">
     <value>外部アカウント</value>
   </data>
@@ -13662,12 +13674,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="fetching the version to go back to" xml:space="preserve">
     <value>戻す先のバージョンを取得中</value>
-  </data>
-  <data name="file-name pattern" xml:space="preserve">
-    <value>件のファイル名パターン</value>
-  </data>
-  <data name="file-name patterns" xml:space="preserve">
-    <value>件のファイル名パターン</value>
   </data>
   <data name="find out why a message bounced" xml:space="preserve">
     <value>メッセージがバウンスした理由を調べる</value>
@@ -13844,14 +13850,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="is set to &quot;{0}&quot; in the INI" xml:space="preserve">
     <value>INI では "{0}" に設定されています</value>
   </data>
-  <data name="it cross" xml:space="preserve">
-    <value>そのリスナーで</value>
-  </data>
   <data name="it ended with code {0}" xml:space="preserve">
     <value>コード {0} で終了しました</value>
-  </data>
-  <data name="it is" xml:space="preserve">
-    <value>そのアカウントが</value>
   </data>
   <data name="item" xml:space="preserve">
     <value>項目</value>
@@ -13915,12 +13915,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="list entry" xml:space="preserve">
     <value>一覧のエントリ</value>
-  </data>
-  <data name="listener is" xml:space="preserve">
-    <value>件のリスナーが</value>
-  </data>
-  <data name="listeners are" xml:space="preserve">
-    <value>件のリスナーが</value>
   </data>
   <data name="lock out repeated failed logons" xml:space="preserve">
     <value>繰り返されるログオン失敗をロックアウトする</value>
@@ -14108,12 +14102,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="scan for viruses" xml:space="preserve">
     <value>ウイルスをスキャンする</value>
   </data>
-  <data name="scanner" xml:space="preserve">
-    <value>件のスキャナー</value>
-  </data>
-  <data name="scanners" xml:space="preserve">
-    <value>件のスキャナー</value>
-  </data>
   <data name="script/save slow" xml:space="preserve">
     <value>script/save slow</value>
   </data>
@@ -14201,9 +14189,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="test whether port 25 is open" xml:space="preserve">
     <value>ポート 25 が開いているかテストする</value>
   </data>
-  <data name="that port is not listening" xml:space="preserve">
-    <value>そのポートはまったく待ち受けていません</value>
-  </data>
   <data name="the Control Panel is connected to '{0}'; hMailServer.INI and files on disk can only be inspected on the server machine itself." xml:space="preserve">
     <value>コントロールパネルは '{0}' に接続しています。hMailServer.INI とディスク上のファイルは、サーバーのコンピューター自身でしか調べられません。</value>
   </data>
@@ -14221,9 +14206,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="the address is one of the {0} on the greylisting white list" xml:space="preserve">
     <value>このアドレスは、グレイリスティングのホワイト リストにある {0} 件のうちの 1 つです</value>
-  </data>
-  <data name="the attachments are stripped and the message is still delivered" xml:space="preserve">
-    <value>添付ファイルは取り除かれ、メッセージはそのまま配信されます</value>
   </data>
   <data name="the audience (aud) is not checked" xml:space="preserve">
     <value>対象者 (aud) は確認されません</value>
@@ -14269,9 +14251,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="the entry does not exist (check SearchBase, or UserDnTemplate)" xml:space="preserve">
     <value>エントリが存在しません (SearchBase または UserDnTemplate を確認してください)</value>
-  </data>
-  <data name="the envelope sender" xml:space="preserve">
-    <value>エンベロープ送信者</value>
   </data>
   <data name="the file could not be parsed as a certificate." xml:space="preserve">
     <value>そのファイルを証明書として解析できませんでした。</value>
@@ -14342,15 +14321,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="the user name" xml:space="preserve">
     <value>ユーザー名</value>
   </data>
-  <data name="the whole message is deleted and never delivered" xml:space="preserve">
-    <value>メッセージ全体が削除され、配信されることはありません</value>
-  </data>
-  <data name="them cross" xml:space="preserve">
-    <value>それらのリスナーで</value>
-  </data>
-  <data name="them is" xml:space="preserve">
-    <value>それらのアカウントが</value>
-  </data>
   <data name="there is less than 1 GB free on the installation's drive" xml:space="preserve">
     <value>インストール先のドライブの空き領域が 1 GB 未満です</value>
   </data>
@@ -14359,9 +14329,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="this setting" xml:space="preserve">
     <value>この設定</value>
-  </data>
-  <data name="those ports are not listening" xml:space="preserve">
-    <value>それらのポートはまったく待ち受けていません</value>
   </data>
   <data name="too many context IDs (the directory is out of resources)" xml:space="preserve">
     <value>コンテキスト ID が多すぎます (ディレクトリのリソースが不足しています)</value>
@@ -14456,14 +14423,17 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="{0} DNS records are still being checked in the background; this summary will update." xml:space="preserve">
     <value>{0} 件の DNS レコードをバックグラウンドで確認中です。この概要は自動的に更新されます。</value>
   </data>
+  <data name="{0} If a virus is found, the attachments are stripped and the message is still delivered." xml:space="preserve">
+    <value>{0}ウイルスが見つかった場合は、添付ファイルは取り除かれ、メッセージはそのまま配信されます。</value>
+  </data>
+  <data name="{0} If a virus is found, the whole message is deleted and never delivered." xml:space="preserve">
+    <value>{0}ウイルスが見つかった場合は、メッセージ全体が削除され、配信されることはありません。</value>
+  </data>
   <data name="{0} KB" xml:space="preserve">
     <value>{0} KB</value>
   </data>
   <data name="{0} KB ({1} MB)" xml:space="preserve">
     <value>{0} KB ({1} MB)</value>
-  </data>
-  <data name="{0} STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
-    <value>{0} STARTTLS を提供していますが必須にはしていないため、暗号化を要求しないクライアントは暗号化なしで認証し、そのことは何にも報告されません。</value>
   </data>
   <data name="{0} TXT record(s) exist at {1}, but none begins &quot;v=DMARC1&quot;, so receivers - and this server's own DMARC check - see no policy." xml:space="preserve">
     <value>{1} に TXT レコードが {0} 件ありますが、"v=DMARC1" で始まるものが 1 つもないため、受信側も、このサーバー自身の DMARC チェックも、ポリシーがないものとして扱います。</value>
@@ -14510,20 +14480,23 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="{0} app passwords." xml:space="preserve">
     <value>アプリ パスワード {0} 件。</value>
   </data>
+  <data name="{0} blocked-attachment patterns are configured but attachment blocking is switched off, so none of them is applied." xml:space="preserve">
+    <value>{0} 件のブロック対象の添付ファイル パターンが設定されていますが、添付ファイルのブロックは無効になっているため、どれも適用されません。</value>
+  </data>
   <data name="{0} case(s). Select one for its lines on the audit trail." xml:space="preserve">
     <value>{0} 件のケース。ケースを選択すると監査ログの行が表示されます。</value>
   </data>
   <data name="{0} change(s) carried out, none failed." xml:space="preserve">
     <value>{0} 件の変更を実行し、失敗はありませんでした。</value>
   </data>
+  <data name="{0} client listeners have no encryption available, so passwords used on them cross the network in the clear." xml:space="preserve">
+    <value>{0} 件のクライアント リスナーには暗号化が利用できないため、それらのリスナーで使われるパスワードは平文でネットワークを流れます。</value>
+  </data>
+  <data name="{0} client listeners offer STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
+    <value>{0} 件のクライアント リスナーが STARTTLS を提供していますが必須にはしていないため、暗号化を要求しないクライアントは暗号化なしで認証し、そのことは何にも報告されません。</value>
+  </data>
   <data name="{0} closed. It picks up where you left off." xml:space="preserve">
     <value>「{0}」を閉じました。中断したところから再開します。</value>
-  </data>
-  <data name="{0} configured but attachment blocking is switched off, so none of them is applied." xml:space="preserve">
-    <value>{0}設定されていますが、添付ファイルのブロックは無効になっているため、どれも適用されません。</value>
-  </data>
-  <data name="{0} configured for TLS but cannot serve it, so {1} at all." xml:space="preserve">
-    <value>{0} TLS 用に設定されていますが TLS を提供できないため、{1}。</value>
   </data>
   <data name="{0} configured ports are not being listened on: " xml:space="preserve">
     <value>設定済みのポートのうち {0} 件が待ち受けされていません: </value>
@@ -14552,9 +14525,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="{0} domains, none of them active." xml:space="preserve">
     <value>{0} 件のドメインがありますが、有効なものはありません。</value>
   </data>
-  <data name="{0} enabled. Both are deprecated by RFC 8996 and are refused outright by current clients, so leaving them on rarely buys the compatibility they were kept for, and a client that does negotiate one gets materially weaker protection than the rest." xml:space="preserve">
-    <value>{0} 有効になっています。どちらも RFC 8996 で非推奨とされ、現在のクライアントからは端的に拒否されます。そのため、有効のままにしても、残しておいた目的である互換性が得られることはめったになく、実際にどちらかをネゴシエートしたクライアントは、ほかより明らかに弱い保護しか受けられません。</value>
-  </data>
   <data name="{0} entries" xml:space="preserve">
     <value>{0} 件のエントリ</value>
   </data>
@@ -14569,6 +14539,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="{0} expired and now refused" xml:space="preserve">
     <value>{0} 件は期限切れで、現在は拒否されます</value>
+  </data>
+  <data name="{0} external POP3 fetch accounts have anti-virus turned off, so mail collected by them is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page." xml:space="preserve">
+    <value>{0} 件の外部 POP3 取り込みアカウントでウイルス対策が無効になっているため、それらのアカウントが収集したメールは、ここでの設定にかかわらずスキャンされずに配信されます。このスイッチはこのページではなく、取り込みアカウント側にあります。</value>
   </data>
   <data name="{0} has been moved to {1}." xml:space="preserve">
     <value>{0} を {1} に移動しました。</value>
@@ -14648,6 +14621,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="{0} latest {1}" xml:space="preserve">
     <value>{0}: 最新 {1}</value>
   </data>
+  <data name="{0} listeners are configured for TLS but cannot serve it, so those ports are not listening at all." xml:space="preserve">
+    <value>{0} 件のリスナーが TLS 用に設定されていますが TLS を提供できないため、それらのポートはまったく待ち受けていません。</value>
+  </data>
   <data name="{0} message references a file that is missing on disk." xml:space="preserve">
     <value>{0} 件のメッセージが、ディスク上に存在しないファイルを参照しています。</value>
   </data>
@@ -14686,9 +14662,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="{0} need action, {1} cannot be told from here, {2} done, {3} not needed." xml:space="preserve">
     <value>{0} 件は対応が必要、{1} 件はここでは判断できません、{2} 件は完了、{3} 件は不要です。</value>
-  </data>
-  <data name="{0} no encryption available, so passwords used on {1} the network in the clear." xml:space="preserve">
-    <value>{0}暗号化が利用できないため、{1}使われるパスワードは平文でネットワークを流れます。</value>
   </data>
   <data name="{0} of its {1} settings would change on this server." xml:space="preserve">
     <value>{1} 個の設定のうち {0} 個がこのサーバーで変わります。</value>
@@ -14840,9 +14813,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="{0}. Any token the identity provider signs with this key is then accepted, including one it issued to a different application - which is enough to log in as whichever mailbox that token names. Set both to the exact values the provider puts in its tokens. The values come from the provider, which is why they are on this list." xml:space="preserve">
     <value>{0}。そのため、ID プロバイダーがこの鍵で署名したトークンはすべて受け入れられます。別のアプリケーション向けに発行したトークンも含まれ、それだけで、そのトークンが指すメールボックスとしてログインできてしまいます。どちらも、プロバイダーがトークンに入れる値とまったく同じ値に設定してください。値はプロバイダーから提供されるものであり、それがこのリストに載っている理由です。</value>
   </data>
-  <data name="{0}. If a virus is found, {1}." xml:space="preserve">
-    <value>{0}。ウイルスが見つかった場合は、{1}。</value>
-  </data>
   <data name="{0}. No entries are configured, so the check does not run." xml:space="preserve">
     <value>{0}。エントリが 1 つも設定されていないため、このチェックは実行されません。</value>
   </data>
@@ -14980,9 +14950,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="{0}: {1} set, {2} unchanged, {3} skipped; {4} wait for a reinitialise and {5} for a restart." xml:space="preserve">
     <value>{0}: {1} 個を設定、{2} 個は変更なし、{3} 個をスキップ。{4} 個は再初期化まで、{5} 個は再起動まで待ちます。</value>
-  </data>
-  <data name="{0}{1} anti-virus turned off, so mail collected by {2} delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page.{3}" xml:space="preserve">
-    <value>{0}{1}ウイルス対策が無効になっているため、{2}収集したメールは、ここでの設定にかかわらずスキャンされずに配信されます。このスイッチはこのページではなく、取り込みアカウント側にあります。{3}</value>
   </data>
   <data name="~all: the domain says the client is probably not authorised and asks that the message be accepted anyway. Many spray sources live behind it. A score at or above the delete threshold refuses the message during the SMTP conversation as a fail does; a softfail is never a pass for the greylisting bypass." xml:space="preserve">
     <value>~all: ドメインはクライアントがおそらく承認されていないと述べつつ、それでもメッセージを受け入れるよう求めています。多くの大量送信元がその陰に隠れています。削除しきい値以上のスコアは fail と同様に SMTP の会話中にメッセージを拒否します。softfail はグレイリスト免除の pass には決してなりません。</value>

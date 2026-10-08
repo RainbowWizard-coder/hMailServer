@@ -324,19 +324,30 @@ namespace hMailServer.ControlPanel.Services
          int exposed = listeners.Count(v => IsClientPort(v.Listener) && v.Listener.Security == TlsListenerSecurity.None);
          int optional = listeners.Count(v => IsClientPort(v.Listener) && v.Listener.Security == TlsListenerSecurity.StartTlsOptional);
 
+         // Each verdict is one whole text for one listener and one for several:
+         // a sentence put together from a counted noun, its verb and a pronoun
+         // read "przechodzą przez przez sieć" in Polish and "kann es aber nicht"
+         // in German, since no translator can agree three pieces that are
+         // translated apart.
          if (broken > 0)
          {
-            return F("{0} configured for TLS but cannot serve it, so {1} at all.", Count(broken, L("listener is"), L("listeners are")), (broken == 1 ? L("that port is not listening") : L("those ports are not listening")));
+            return broken == 1
+               ? L("One listener is configured for TLS but cannot serve it, so that port is not listening at all.")
+               : F("{0} listeners are configured for TLS but cannot serve it, so those ports are not listening at all.", broken);
          }
 
          if (exposed > 0)
          {
-            return F("{0} no encryption available, so passwords used on {1} the network in the clear.", Count(exposed, L("client listener has"), L("client listeners have")), (exposed == 1 ? L("it cross") : L("them cross")));
+            return exposed == 1
+               ? L("One client listener has no encryption available, so passwords used on it cross the network in the clear.")
+               : F("{0} client listeners have no encryption available, so passwords used on them cross the network in the clear.", exposed);
          }
 
          if (optional > 0)
          {
-            return F("{0} STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened.", Count(optional, L("client listener offers"), L("client listeners offer")));
+            return optional == 1
+               ? L("One client listener offers STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened.")
+               : F("{0} client listeners offer STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened.", optional);
          }
 
          return L("Every listener that a mail client connects to requires encryption before it will accept a password.");
@@ -384,13 +395,20 @@ namespace hMailServer.ControlPanel.Services
 
          // ---- weak, rather than absent -----------------------------------------
 
-         if (versions && (config.Tls10Enabled || config.Tls11Enabled))
+         if (versions && config.Tls10Enabled && config.Tls11Enabled)
          {
-            string which = config.Tls10Enabled && config.Tls11Enabled ? L("TLS 1.0 and TLS 1.1 are")
-               : config.Tls10Enabled ? L("TLS 1.0 is") : L("TLS 1.1 is");
-
             notes.Add(new TlsPostureNote(StatusLevel.Warning,
-               F("{0} enabled. Both are deprecated by RFC 8996 and are refused outright by current clients, so leaving them on rarely buys the compatibility they were kept for, and a client that does negotiate one gets materially weaker protection than the rest.", which)));
+               L("TLS 1.0 and TLS 1.1 are enabled. Both are deprecated by RFC 8996 and are refused outright by current clients, so leaving them on rarely buys the compatibility they were kept for, and a client that does negotiate one gets materially weaker protection than the rest.")));
+         }
+         else if (versions && config.Tls10Enabled)
+         {
+            notes.Add(new TlsPostureNote(StatusLevel.Warning,
+               L("TLS 1.0 is enabled. It is deprecated by RFC 8996 and is refused outright by current clients, so leaving it on rarely buys the compatibility it was kept for, and a client that does negotiate it gets materially weaker protection than the rest.")));
+         }
+         else if (versions && config.Tls11Enabled)
+         {
+            notes.Add(new TlsPostureNote(StatusLevel.Warning,
+               L("TLS 1.1 is enabled. It is deprecated by RFC 8996 and is refused outright by current clients, so leaving it on rarely buys the compatibility it was kept for, and a client that does negotiate it gets materially weaker protection than the rest.")));
          }
 
          if (versions && config.WasRead(nameof(config.CipherList)) && IsAeadOnlyPreset(config.CipherList) && (config.Tls10Enabled || config.Tls11Enabled))
@@ -442,17 +460,22 @@ namespace hMailServer.ControlPanel.Services
             if (certificate.DaysRemaining == null)
                continue;
 
+            // DaysRemaining is the floor of the days to the expiry: 0 is within
+            // the next 24 hours, -1 within the last 24. Each case is one whole
+            // text: "in {1}{2}" with " day" or " days" and a trailing clause
+            // read "vor 5 Tage" in German and "であり、リスナーが使用しています。
+            // 後に期限切れになります" in Japanese, the clause before the verb.
             int days = certificate.DaysRemaining.Value;
 
             if (days < 0)
             {
                notes.Add(new TlsPostureNote(certificate.InUse ? StatusLevel.Critical : StatusLevel.Warning,
-                  F("The certificate \"{0}\" expired {1}{2} ago{3}", certificate.Name, Math.Abs(days), (Math.Abs(days) == 1 ? L(" day") : L(" days")), (certificate.InUse ? L(" and is still assigned to a listener. Clients are refusing or warning about every connection to it.") : L(". It is not assigned to any listener.")))));
+                  ExpiredNote(certificate.Name, -days, certificate.InUse)));
             }
             else if (days <= ExpiryWarningDays)
             {
                notes.Add(new TlsPostureNote(certificate.InUse ? StatusLevel.Warning : StatusLevel.Information,
-                  F("The certificate \"{0}\" expires in {1}{2}{3}", certificate.Name, days, (days == 1 ? L(" day") : L(" days")), (certificate.InUse ? L(" and is in use by a listener.") : L(". It is not assigned to any listener.")))));
+                  ExpiringNote(certificate.Name, days, certificate.InUse)));
             }
          }
 
@@ -489,7 +512,34 @@ namespace hMailServer.ControlPanel.Services
       private static string Ports(IEnumerable<TlsListenerVerdict> verdicts) =>
          string.Join(", ", verdicts.Select(v => v.Listener.Protocol + " " + v.Listener.Port));
 
-      private static string Count(int n, string singular, string plural) =>
-         n + " " + (n == 1 ? singular : plural);
+      /// <summary>The note on a certificate that expired <paramref name="daysAgo"/> days ago (1 or more).</summary>
+      internal static string ExpiredNote(string name, int daysAgo, bool inUse)
+      {
+         if (inUse)
+         {
+            return daysAgo == 1
+               ? F("The certificate \"{0}\" expired yesterday and is still assigned to a listener. Clients are refusing or warning about every connection to it.", name)
+               : F("The certificate \"{0}\" expired {1} days ago and is still assigned to a listener. Clients are refusing or warning about every connection to it.", name, daysAgo);
+         }
+
+         return daysAgo == 1
+            ? F("The certificate \"{0}\" expired yesterday. It is not assigned to any listener.", name)
+            : F("The certificate \"{0}\" expired {1} days ago. It is not assigned to any listener.", name, daysAgo);
+      }
+
+      /// <summary>The note on a certificate that expires in <paramref name="days"/> days (0 or more).</summary>
+      internal static string ExpiringNote(string name, int days, bool inUse)
+      {
+         if (inUse)
+         {
+            return days == 0 ? F("The certificate \"{0}\" expires today and is in use by a listener.", name)
+               : days == 1 ? F("The certificate \"{0}\" expires tomorrow and is in use by a listener.", name)
+               : F("The certificate \"{0}\" expires in {1} days and is in use by a listener.", name, days);
+         }
+
+         return days == 0 ? F("The certificate \"{0}\" expires today. It is not assigned to any listener.", name)
+            : days == 1 ? F("The certificate \"{0}\" expires tomorrow. It is not assigned to any listener.", name)
+            : F("The certificate \"{0}\" expires in {1} days. It is not assigned to any listener.", name, days);
+      }
    }
 }

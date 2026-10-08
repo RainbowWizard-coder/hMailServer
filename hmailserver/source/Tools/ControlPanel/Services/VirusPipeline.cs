@@ -312,22 +312,39 @@ namespace hMailServer.ControlPanel.Services
 
          int usable = CountUsable(config);
 
+         // Every sentence here is one whole text for one scanner or pattern and
+         // one for several: a counted noun translated apart from its sentence
+         // took a Latin "s" in Japanese and could not be declined in Polish.
          if (usable == 0)
          {
-            return config.AttachmentBlockingEnabled && config.BlockedAttachmentPatterns > 0
-               ? F("No message is scanned for viruses. Attachment blocking is still stripping {0}, but nothing examines the contents of a message.", Count(config.BlockedAttachmentPatterns, L("file-name pattern"), L("file-name patterns")))
-               : L("No message is scanned for viruses, and no attachment is blocked. Everything is delivered as it arrives.");
+            if (!config.AttachmentBlockingEnabled || config.BlockedAttachmentPatterns <= 0)
+               return L("No message is scanned for viruses, and no attachment is blocked. Everything is delivered as it arrives.");
+
+            return config.BlockedAttachmentPatterns == 1
+               ? L("No message is scanned for viruses. Attachment blocking is still stripping one file-name pattern, but nothing examines the contents of a message.")
+               : F("No message is scanned for viruses. Attachment blocking is still stripping {0} file-name patterns, but nothing examines the contents of a message.", config.BlockedAttachmentPatterns);
          }
 
-         string found = config.Action == VirusAction.DeleteMessage
-            ? L("the whole message is deleted and never delivered")
-            : L("the attachments are stripped and the message is still delivered");
+         string scanned;
+         if (config.MaxScanKilobytes > 0)
+         {
+            scanned = usable == 1
+               ? F("Messages up to {0} are scanned by one scanner; anything larger is delivered without being scanned at all.", Kilobytes(config.MaxScanKilobytes))
+               : F("Messages up to {0} are scanned by {1} scanners; anything larger is delivered without being scanned at all.", Kilobytes(config.MaxScanKilobytes), usable);
+         }
+         else
+         {
+            scanned = usable == 1
+               ? L("Every message is scanned by one scanner.")
+               : F("Every message is scanned by {0} scanners.", usable);
+         }
 
-         string scanned = config.MaxScanKilobytes > 0
-            ? F("Messages up to {0} are scanned by {1}; anything larger is delivered without being scanned at all", Kilobytes(config.MaxScanKilobytes), Count(usable, L("scanner"), L("scanners")))
-            : F("Every message is scanned by {0}", Count(usable, L("scanner"), L("scanners")));
-
-         return F("{0}. If a virus is found, {1}.", scanned, found);
+         // The first sentence is whole, and the second is written whole in the
+         // text that places it, so that a language with no space between
+         // sentences can join them its own way.
+         return config.Action == VirusAction.DeleteMessage
+            ? F("{0} If a virus is found, the whole message is deleted and never delivered.", scanned)
+            : F("{0} If a virus is found, the attachments are stripped and the message is still delivered.", scanned);
       }
 
       /// <summary>
@@ -352,11 +369,12 @@ namespace hMailServer.ControlPanel.Services
          if (!config.NotifySender && !config.NotifyRecipient)
             return L("The message is deleted and nobody is told. The deletion is recorded in the application log.");
 
-         string told = config.NotifyRecipient && config.NotifySender
-            ? F("{0} and {1}", L("every recipient"), L("the envelope sender"))
-            : config.NotifyRecipient ? L("every recipient") : L("the envelope sender");
+         if (config.NotifyRecipient && config.NotifySender)
+            return L("The message is deleted and a notice is sent to every recipient and to the envelope sender.");
 
-         return F("The message is deleted and a notice is sent to {0}.", told);
+         return config.NotifyRecipient
+            ? L("The message is deleted and a notice is sent to every recipient.")
+            : L("The message is deleted and a notice is sent to the envelope sender.");
       }
 
       /// <summary>
@@ -440,8 +458,25 @@ namespace hMailServer.ControlPanel.Services
 
          if (config.WasRead(nameof(config.FetchAccountsWithScanningOff)) && config.FetchAccountsWithScanningOff > 0)
          {
-            notes.Add(new VirusPipelineNote(StatusLevel.Warning,
-               F("{0}{1} anti-virus turned off, so mail collected by {2} delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page.{3}", (config.FetchAccountScanIncomplete ? L("At least ") : ""), Count(config.FetchAccountsWithScanningOff, L("external POP3 fetch account has"), L("external POP3 fetch accounts have")), (config.FetchAccountsWithScanningOff == 1 ? L("it is") : L("them is")), (config.FetchAccountScanIncomplete ? L(" There are more accounts on this server than this page walks, so there may be others.") : ""))));
+            // One whole text per case: the count is exact or a floor (the walk
+            // stopped before the last account), and there is one account or
+            // several. "At least " before a counted noun and " it is"/" them is"
+            // after it were three pieces no translator could agree.
+            int off = config.FetchAccountsWithScanningOff;
+            string text;
+            if (config.FetchAccountScanIncomplete)
+            {
+               text = off == 1
+                  ? L("At least one external POP3 fetch account has anti-virus turned off, so mail collected by it is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page. There are more accounts on this server than this page walks, so there may be others.")
+                  : F("At least {0} external POP3 fetch accounts have anti-virus turned off, so mail collected by them is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page. There are more accounts on this server than this page walks, so there may be others.", off);
+            }
+            else
+            {
+               text = off == 1
+                  ? L("One external POP3 fetch account has anti-virus turned off, so mail collected by it is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page.")
+                  : F("{0} external POP3 fetch accounts have anti-virus turned off, so mail collected by them is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page.", off);
+            }
+            notes.Add(new VirusPipelineNote(StatusLevel.Warning, text));
          }
 
          // ---- worth knowing ----------------------------------------------------
@@ -449,13 +484,15 @@ namespace hMailServer.ControlPanel.Services
          if (blocking && !config.AttachmentBlockingEnabled && config.BlockedAttachmentPatterns > 0)
          {
             notes.Add(new VirusPipelineNote(StatusLevel.Information,
-               F("{0} configured but attachment blocking is switched off, so none of them is applied.", Count(config.BlockedAttachmentPatterns, L("blocked-attachment pattern is"), L("blocked-attachment patterns are")))));
+               config.BlockedAttachmentPatterns == 1
+                  ? L("One blocked-attachment pattern is configured but attachment blocking is switched off, so it is not applied.")
+                  : F("{0} blocked-attachment patterns are configured but attachment blocking is switched off, so none of them is applied.", config.BlockedAttachmentPatterns)));
          }
 
          if (scannersRead && usable > 1)
          {
             notes.Add(new VirusPipelineNote(StatusLevel.Information,
-               F("Every message goes through {0} in turn, and each is asked about the whole message and then about each attachment separately. That is thorough and it is not free: the scan happens while the sender is waiting for its \"250 OK\".", Count(usable, L("scanner"), L("scanners")))));
+               F("Every message goes through {0} scanners in turn, and each is asked about the whole message and then about each attachment separately. That is thorough and it is not free: the scan happens while the sender is waiting for its \"250 OK\".", usable)));
          }
 
          if (scannersRead && config.ClamWinEnabled && config.ClamAvEnabled)
@@ -484,9 +521,6 @@ namespace hMailServer.ControlPanel.Services
          => Scanners(config).Count(scanner => scanner.Usable);
 
       private static bool IsBlank(string value) => string.IsNullOrWhiteSpace(value);
-
-      private static string Count(int n, string singular, string plural) =>
-         n + " " + (n == 1 ? singular : plural);
 
       /// <summary>
       /// The size limit in the units the setting is stored in, with a megabyte

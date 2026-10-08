@@ -125,9 +125,6 @@
   <data name=" The total is open-ended, because a list entry or SpamAssassin's own score can be any size." xml:space="preserve">
     <value> Итог ничем не ограничен сверху, поскольку запись списка или собственная оценка SpamAssassin может быть любой величины.</value>
   </data>
-  <data name=" There are more accounts on this server than this page walks, so there may be others." xml:space="preserve">
-    <value> На этом сервере учётных записей больше, чем обходит эта страница, поэтому могут быть и другие.</value>
-  </data>
   <data name=" There are more index entries than messages, which means entries for mail that no longer exists - discard and rebuild the index to clear them." xml:space="preserve">
     <value> Записей в индексе больше, чем сообщений: значит, есть записи для писем, которых уже нет, — сбросьте и перестройте индекс, чтобы их убрать.</value>
   </data>
@@ -143,12 +140,6 @@
   <data name=" With the checks currently enabled the highest total reachable is {0}." xml:space="preserve">
     <value> При включённых сейчас проверках максимально достижимый итог — {0}.</value>
   </data>
-  <data name=" and is in use by a listener." xml:space="preserve">
-    <value> и используется прослушивателем.</value>
-  </data>
-  <data name=" and is still assigned to a listener. Clients are refusing or warning about every connection to it." xml:space="preserve">
-    <value> и всё ещё назначен прослушивателю. Клиенты отклоняют каждое подключение к нему или предупреждают о нём.</value>
-  </data>
   <data name=" and the listener is not started (server error 6142)." xml:space="preserve">
     <value> и прослушиватель не запущен (ошибка сервера 6142).</value>
   </data>
@@ -157,12 +148,6 @@
   </data>
   <data name=" and the policy verifies nothing." xml:space="preserve">
     <value> и политика ничего не проверяет.</value>
-  </data>
-  <data name=" day" xml:space="preserve">
-    <value> день</value>
-  </data>
-  <data name=" days" xml:space="preserve">
-    <value> дн.</value>
   </data>
   <data name=" of {0} KB" xml:space="preserve">
     <value> из {0} КБ</value>
@@ -271,9 +256,6 @@
   </data>
   <data name=". Connections to them are refused. The usual causes are another program already holding the port, a bind address that does not exist on this machine, or - on a TLS port - a certificate the server could not load; the server records which, once, in the error log at start-up." xml:space="preserve">
     <value>. Подключения к ним отклоняются. Обычные причины: порт уже занят другой программой, адрес привязки не существует на этом компьютере или — на порту TLS — сертификат, который серверу не удалось загрузить; сервер один раз записывает причину в журнал ошибок при запуске.</value>
-  </data>
-  <data name=". It is not assigned to any listener." xml:space="preserve">
-    <value>. Он не назначен ни одному прослушивателю.</value>
   </data>
   <data name=". No account will be disabled." xml:space="preserve">
     <value>. Ни одна учётная запись отключена не будет.</value>
@@ -1749,11 +1731,14 @@ Control Panel может читать файлы сообщений только
   <data name="At RCPT TO, before the body is transferred — a refusal here is a 550" xml:space="preserve">
     <value>На этапе RCPT TO, до передачи тела письма — отказ здесь возвращает 550</value>
   </data>
-  <data name="At least " xml:space="preserve">
-    <value>Не менее </value>
-  </data>
   <data name="At least 12 printable ASCII characters. Leave both boxes empty to keep the passphrase already set. The server never gives it back - not to this program and not to anyone else - so keep it somewhere other than beside the backups: a restore asks for it, and nothing in an archive whose passphrase is lost can be recovered by anybody." xml:space="preserve">
     <value>Не менее 12 печатных символов ASCII. Оставьте оба поля пустыми, чтобы сохранить уже заданную парольную фразу. Сервер никогда не возвращает её - ни этой программе, ни кому-либо ещё - поэтому храните её не рядом с резервными копиями: восстановление её запрашивает, и из архива с потерянной парольной фразой никто ничего не восстановит.</value>
+  </data>
+  <data name="At least one external POP3 fetch account has anti-virus turned off, so mail collected by it is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page. There are more accounts on this server than this page walks, so there may be others." xml:space="preserve">
+    <value>Не менее чем у одной внешней учётной записи сбора POP3 антивирус выключен, поэтому собираемая ею почта доставляется без проверки, что бы здесь ни было задано. Переключатель находится на учётной записи сбора почты, а не на этой странице. На этом сервере учётных записей больше, чем обходит эта страница, поэтому могут быть и другие.</value>
+  </data>
+  <data name="At least {0} external POP3 fetch accounts have anti-virus turned off, so mail collected by them is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page. There are more accounts on this server than this page walks, so there may be others." xml:space="preserve">
+    <value>Не менее чем у {0} внешних учётных записей сбора POP3 антивирус выключен, поэтому собираемая ими почта доставляется без проверки, что бы здесь ни было задано. Переключатель находится на учётной записи сбора почты, а не на этой странице. На этом сервере учётных записей больше, чем обходит эта страница, поэтому могут быть и другие.</value>
   </data>
   <data name="At most 2592000, thirty days." xml:space="preserve">
     <value>Не более 2592000, то есть тридцати дней.</value>
@@ -4281,11 +4266,14 @@ Control Panel может читать файлы сообщений только
   <data name="Every local recipient's copy becomes another name for the same file inside the archive folder, so a message to ten mailboxes costs one copy rather than ten. Needs an NTFS archive folder; if the link cannot be created the server copies the file and says so in the SMTP log." xml:space="preserve">
     <value>Копия каждого локального получателя становится ещё одним именем того же файла внутри папки архива, поэтому сообщение для десяти почтовых ящиков стоит одной копии, а не десяти. Требуется папка архива на NTFS; если создать ссылку не удаётся, сервер копирует файл и сообщает об этом в журнале SMTP.</value>
   </data>
-  <data name="Every message goes through {0} in turn, and each is asked about the whole message and then about each attachment separately. That is thorough and it is not free: the scan happens while the sender is waiting for its &quot;250 OK&quot;." xml:space="preserve">
-    <value>Каждое сообщение проходит через {0} по очереди, и каждого спрашивают сначала о сообщении целиком, а затем о каждом вложении отдельно. Это тщательно и это не бесплатно: проверка выполняется, пока отправитель ждёт своего «250 OK».</value>
+  <data name="Every message goes through {0} scanners in turn, and each is asked about the whole message and then about each attachment separately. That is thorough and it is not free: the scan happens while the sender is waiting for its &quot;250 OK&quot;." xml:space="preserve">
+    <value>Каждое сообщение проходит по очереди через каждый из {0} сканеров, и каждого спрашивают сначала о сообщении целиком, а затем о каждом вложении отдельно. Это тщательно и это не бесплатно: проверка выполняется, пока отправитель ждёт своего «250 OK».</value>
   </data>
-  <data name="Every message is scanned by {0}" xml:space="preserve">
-    <value>Каждое сообщение проверяется {0}</value>
+  <data name="Every message is scanned by one scanner." xml:space="preserve">
+    <value>Каждое сообщение проверяется одним сканером.</value>
+  </data>
+  <data name="Every message is scanned by {0} scanners." xml:space="preserve">
+    <value>Каждое сообщение проверяет каждый из {0} сканеров.</value>
   </data>
   <data name="Every message still in the delivery queue, the last error the server got for it, and when it is retried." xml:space="preserve">
     <value>Все сообщения, ещё находящиеся в очереди доставки, последняя ошибка, полученная сервером по каждому из них, и время следующей попытки.</value>
@@ -6159,8 +6147,11 @@ Control Panel может читать файлы сообщений только
   <data name="Messages the server would otherwise have refused, held so somebody can look. The sender was told each of these was accepted, so nothing will arrive again on its own: releasing one delivers it, and deleting one is final. The icons act on one message, on a group, or - in the header - on every checked message." xml:space="preserve">
     <value>Сообщения, которые сервер иначе отклонил бы, задержаны, чтобы кто-то мог их посмотреть. Отправителю каждого из них сообщили, что оно принято, поэтому ничто не придёт снова само по себе: выпуск одного доставляет его, а удаление окончательно. Значки действуют на одно сообщение, на группу или - в заголовке - на каждое отмеченное сообщение.</value>
   </data>
-  <data name="Messages up to {0} are scanned by {1}; anything larger is delivered without being scanned at all" xml:space="preserve">
-    <value>Сообщения размером до {0} проверяет {1}; всё, что крупнее, доставляется вообще без проверки</value>
+  <data name="Messages up to {0} are scanned by one scanner; anything larger is delivered without being scanned at all." xml:space="preserve">
+    <value>Сообщения размером до {0} проверяет один сканер; всё, что крупнее, доставляется вообще без проверки.</value>
+  </data>
+  <data name="Messages up to {0} are scanned by {1} scanners; anything larger is delivered without being scanned at all." xml:space="preserve">
+    <value>Сообщения размером до {0} проверяет каждый из {1} сканеров; всё, что крупнее, доставляется вообще без проверки.</value>
   </data>
   <data name="Messages up to {0}. A larger message is delivered without being scanned — it is not refused, and nothing is logged." xml:space="preserve">
     <value>Сообщения размером до {0}. Более крупное сообщение доставляется без проверки — оно не отклоняется, и в журнал ничего не пишется.</value>
@@ -6648,8 +6639,11 @@ Control Panel может читать файлы сообщений только
   <data name="No message is scanned for viruses, and no attachment is blocked. Everything is delivered as it arrives." xml:space="preserve">
     <value>Ни одно сообщение не проверяется на вирусы, и ни одно вложение не блокируется. Всё доставляется в том виде, в каком приходит.</value>
   </data>
-  <data name="No message is scanned for viruses. Attachment blocking is still stripping {0}, but nothing examines the contents of a message." xml:space="preserve">
-    <value>Ни одно сообщение не проверяется на вирусы. Блокировка вложений всё ещё удаляет {0}, но содержимое сообщений не исследует ничто.</value>
+  <data name="No message is scanned for viruses. Attachment blocking is still stripping one file-name pattern, but nothing examines the contents of a message." xml:space="preserve">
+    <value>Ни одно сообщение не проверяется на вирусы. Блокировка вложений всё ещё удаляет вложения по одному шаблону имени файла, но содержимое сообщений не исследует ничто.</value>
+  </data>
+  <data name="No message is scanned for viruses. Attachment blocking is still stripping {0} file-name patterns, but nothing examines the contents of a message." xml:space="preserve">
+    <value>Ни одно сообщение не проверяется на вирусы. Блокировка вложений всё ещё удаляет вложения по {0} шаблонам имён файлов, но содержимое сообщений не исследует ничто.</value>
   </data>
   <data name="No one-time code was given, so the password in use now could not be checked." xml:space="preserve">
     <value>Одноразовый код не был введён, поэтому текущий пароль проверить не удалось.</value>
@@ -7188,17 +7182,32 @@ Control Panel может читать файлы сообщений только
   <data name="One address of this machine: 127.0.0.1 when the manager runs here, otherwise an address on a management network." xml:space="preserve">
     <value>Один адрес этого компьютера: 127.0.0.1, когда станция управления работает здесь, иначе адрес в сети управления.</value>
   </data>
+  <data name="One blocked-attachment pattern is configured but attachment blocking is switched off, so it is not applied." xml:space="preserve">
+    <value>Настроен один шаблон блокируемых вложений, но блокировка вложений выключена, поэтому он не применяется.</value>
+  </data>
+  <data name="One client listener has no encryption available, so passwords used on it cross the network in the clear." xml:space="preserve">
+    <value>У одного клиентского прослушивателя шифрование недоступно, поэтому пароли, используемые на нём, передаются по сети в открытом виде.</value>
+  </data>
+  <data name="One client listener offers STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
+    <value>Один клиентский прослушиватель предлагает STARTTLS, не требуя его, поэтому клиент, который не просит шифрования, проходит аутентификацию без него, и о том, что это произошло, никто не сообщает.</value>
+  </data>
   <data name="One configured port is not being listened on: " xml:space="preserve">
     <value>Один из настроенных портов не прослушивается: </value>
   </data>
   <data name="One event script invocation. 0 = no bound." xml:space="preserve">
     <value>Один вызов сценария события. 0 — без предела.</value>
   </data>
+  <data name="One external POP3 fetch account has anti-virus turned off, so mail collected by it is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page." xml:space="preserve">
+    <value>У одной внешней учётной записи сбора POP3 антивирус выключен, поэтому собираемая ею почта доставляется без проверки, что бы здесь ни было задано. Переключатель находится на учётной записи сбора почты, а не на этой странице.</value>
+  </data>
   <data name="One line of up to 60 characters. The default, Sign in with SAML, is shown in each reader's language; anything else as written." xml:space="preserve">
     <value>Одна строка длиной до 60 символов. Текст по умолчанию, Sign in with SAML, показывается на языке каждого читателя; любой другой — как написан.</value>
   </data>
   <data name="One list of the nine checks, which are on, and which of the two phases each one runs in." xml:space="preserve">
     <value>Единый список девяти проверок: какие включены и в какой из двух фаз выполняется каждая.</value>
+  </data>
+  <data name="One listener is configured for TLS but cannot serve it, so that port is not listening at all." xml:space="preserve">
+    <value>Один прослушиватель настроен для TLS, но предоставлять его не может, поэтому этот порт вообще не прослушивается.</value>
   </data>
   <data name="One message to each account of this domain that has something newly held for it, listing what was held with a link that delivers it. A link works once and stops working after the hours set on the Quarantine page, which is also where the address the links point at is set - without that address nothing is sent. An empty digest is never sent, and each message says how to stop it." xml:space="preserve">
     <value>Одно письмо каждой учётной записи этого домена, для которой задержано что-то новое, со списком задержанного и ссылкой, которая это доставит. Ссылка срабатывает один раз и перестаёт действовать через число часов, заданное на странице Карантин, где задаётся и адрес, на который ведут ссылки, — без него ничего не отправляется. Пустая сводка никогда не отправляется, и в каждом письме сказано, как её отключить.</value>
@@ -10347,11 +10356,11 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="TLS 1.0 (legacy)" xml:space="preserve">
     <value>TLS 1.0 (устаревший)</value>
   </data>
-  <data name="TLS 1.0 and TLS 1.1 are" xml:space="preserve">
-    <value>TLS 1.0 и TLS 1.1</value>
+  <data name="TLS 1.0 and TLS 1.1 are enabled. Both are deprecated by RFC 8996 and are refused outright by current clients, so leaving them on rarely buys the compatibility they were kept for, and a client that does negotiate one gets materially weaker protection than the rest." xml:space="preserve">
+    <value>TLS 1.0 и TLS 1.1 включены. Оба объявлены устаревшими в RFC 8996 и прямо отклоняются современными клиентами, поэтому оставлять их включёнными редко даёт ту совместимость, ради которой их сохраняли, а клиент, который всё же согласует один из них, получает заметно более слабую защиту, чем остальные.</value>
   </data>
-  <data name="TLS 1.0 is" xml:space="preserve">
-    <value>TLS 1.0</value>
+  <data name="TLS 1.0 is enabled. It is deprecated by RFC 8996 and is refused outright by current clients, so leaving it on rarely buys the compatibility it was kept for, and a client that does negotiate it gets materially weaker protection than the rest." xml:space="preserve">
+    <value>TLS 1.0 включён. Он объявлен устаревшим в RFC 8996 и прямо отклоняется современными клиентами, поэтому оставлять его включённым редко даёт ту совместимость, ради которой его сохраняли, а клиент, который всё же его согласует, получает заметно более слабую защиту, чем остальные.</value>
   </data>
   <data name="TLS 1.1" xml:space="preserve">
     <value>TLS 1.1</value>
@@ -10359,8 +10368,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="TLS 1.1 (legacy)" xml:space="preserve">
     <value>TLS 1.1 (устаревший)</value>
   </data>
-  <data name="TLS 1.1 is" xml:space="preserve">
-    <value>TLS 1.1</value>
+  <data name="TLS 1.1 is enabled. It is deprecated by RFC 8996 and is refused outright by current clients, so leaving it on rarely buys the compatibility it was kept for, and a client that does negotiate it gets materially weaker protection than the rest." xml:space="preserve">
+    <value>TLS 1.1 включён. Он объявлен устаревшим в RFC 8996 и прямо отклоняется современными клиентами, поэтому оставлять его включённым редко даёт ту совместимость, ради которой его сохраняли, а клиент, который всё же его согласует, получает заметно более слабую защиту, чем остальные.</value>
   </data>
   <data name="TLS 1.2" xml:space="preserve">
     <value>TLS 1.2</value>
@@ -10799,11 +10808,35 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The ceilings on what a person may add for themselves in the webmail." xml:space="preserve">
     <value>Пределы того, что человек может добавить сам в веб-почте.</value>
   </data>
-  <data name="The certificate &quot;{0}&quot; expired {1}{2} ago{3}" xml:space="preserve">
-    <value>Срок действия сертификата «{0}» истёк {1}{2} назад{3}</value>
+  <data name="The certificate &quot;{0}&quot; expired yesterday and is still assigned to a listener. Clients are refusing or warning about every connection to it." xml:space="preserve">
+    <value>Срок действия сертификата «{0}» истёк вчера, и он всё ещё назначен прослушивателю. Клиенты отклоняют каждое подключение к нему или предупреждают о нём.</value>
   </data>
-  <data name="The certificate &quot;{0}&quot; expires in {1}{2}{3}" xml:space="preserve">
-    <value>Срок действия сертификата «{0}» истекает через {1}{2}{3}</value>
+  <data name="The certificate &quot;{0}&quot; expired yesterday. It is not assigned to any listener." xml:space="preserve">
+    <value>Срок действия сертификата «{0}» истёк вчера. Он не назначен ни одному прослушивателю.</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; expired {1} days ago and is still assigned to a listener. Clients are refusing or warning about every connection to it." xml:space="preserve">
+    <value>Срок действия сертификата «{0}» истёк {1} дн. назад, и он всё ещё назначен прослушивателю. Клиенты отклоняют каждое подключение к нему или предупреждают о нём.</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; expired {1} days ago. It is not assigned to any listener." xml:space="preserve">
+    <value>Срок действия сертификата «{0}» истёк {1} дн. назад. Он не назначен ни одному прослушивателю.</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; expires in {1} days and is in use by a listener." xml:space="preserve">
+    <value>Срок действия сертификата «{0}» истекает через {1} дн., и он используется прослушивателем.</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; expires in {1} days. It is not assigned to any listener." xml:space="preserve">
+    <value>Срок действия сертификата «{0}» истекает через {1} дн. Он не назначен ни одному прослушивателю.</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; expires today and is in use by a listener." xml:space="preserve">
+    <value>Срок действия сертификата «{0}» истекает сегодня, и он используется прослушивателем.</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; expires today. It is not assigned to any listener." xml:space="preserve">
+    <value>Срок действия сертификата «{0}» истекает сегодня. Он не назначен ни одному прослушивателю.</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; expires tomorrow and is in use by a listener." xml:space="preserve">
+    <value>Срок действия сертификата «{0}» истекает завтра, и он используется прослушивателем.</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; expires tomorrow. It is not assigned to any listener." xml:space="preserve">
+    <value>Срок действия сертификата «{0}» истекает завтра. Он не назначен ни одному прослушивателю.</value>
   </data>
   <data name="The certificate &quot;{0}&quot; is in use by a listener and has a problem: {1}" xml:space="preserve">
     <value>Сертификат «{0}» используется прослушивателем, и с ним есть проблема: {1}</value>
@@ -11169,8 +11202,14 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The message is accepted - the sender got a 250 - is visible in the delivery queue, and never leaves." xml:space="preserve">
     <value>Сообщение принято - отправитель получил 250, - видно в очереди доставки и никогда её не покидает.</value>
   </data>
-  <data name="The message is deleted and a notice is sent to {0}." xml:space="preserve">
-    <value>Сообщение удаляется, и уведомление отправляется на {0}.</value>
+  <data name="The message is deleted and a notice is sent to every recipient and to the envelope sender." xml:space="preserve">
+    <value>Сообщение удаляется, и уведомление отправляется всем получателям и отправителю конверта.</value>
+  </data>
+  <data name="The message is deleted and a notice is sent to every recipient." xml:space="preserve">
+    <value>Сообщение удаляется, и уведомление отправляется всем получателям.</value>
+  </data>
+  <data name="The message is deleted and a notice is sent to the envelope sender." xml:space="preserve">
+    <value>Сообщение удаляется, и уведомление отправляется отправителю конверта.</value>
   </data>
   <data name="The message is deleted and nobody is told. The deletion is recorded in the application log." xml:space="preserve">
     <value>Сообщение удаляется, и никому не сообщается. Удаление фиксируется в журнале приложения.</value>
@@ -13507,12 +13546,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="blocked sender" xml:space="preserve">
     <value>заблокированный отправитель</value>
   </data>
-  <data name="blocked-attachment pattern is" xml:space="preserve">
-    <value>шаблон блокируемых вложений</value>
-  </data>
-  <data name="blocked-attachment patterns are" xml:space="preserve">
-    <value>шаблонов блокируемых вложений</value>
-  </data>
   <data name="bypass entry" xml:space="preserve">
     <value>исключение</value>
   </data>
@@ -13545,18 +13578,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="clamscan.exe path" xml:space="preserve">
     <value>путь к clamscan.exe</value>
-  </data>
-  <data name="client listener has" xml:space="preserve">
-    <value>клиентский прослушиватель имеет</value>
-  </data>
-  <data name="client listener offers" xml:space="preserve">
-    <value>клиентский прослушиватель предлагает</value>
-  </data>
-  <data name="client listeners have" xml:space="preserve">
-    <value>клиентских прослушивателей имеют</value>
-  </data>
-  <data name="client listeners offer" xml:space="preserve">
-    <value>клиентских прослушивателей предлагают</value>
   </data>
   <data name="collect mail from another provider" xml:space="preserve">
     <value>собирать почту у другого поставщика</value>
@@ -13630,9 +13651,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="every domain" xml:space="preserve">
     <value>все домены</value>
   </data>
-  <data name="every recipient" xml:space="preserve">
-    <value>все получатели</value>
-  </data>
   <data name="example.com is that domain alone; .example.com is the domain and everything beneath it." xml:space="preserve">
     <value>example.com - только этот домен; .example.com - домен и всё, что под ним.</value>
   </data>
@@ -13648,12 +13666,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="expiry not checked from here" xml:space="preserve">
     <value>срок действия отсюда не проверяется</value>
   </data>
-  <data name="external POP3 fetch account has" xml:space="preserve">
-    <value>внешняя учётная запись сбора POP3 имеет</value>
-  </data>
-  <data name="external POP3 fetch accounts have" xml:space="preserve">
-    <value>внешних учётных записей сбора POP3 имеют</value>
-  </data>
   <data name="external account" xml:space="preserve">
     <value>внешняя учётная запись</value>
   </data>
@@ -13662,12 +13674,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="fetching the version to go back to" xml:space="preserve">
     <value>загрузка версии для возврата</value>
-  </data>
-  <data name="file-name pattern" xml:space="preserve">
-    <value>шаблон имени файла</value>
-  </data>
-  <data name="file-name patterns" xml:space="preserve">
-    <value>шаблонов имён файлов</value>
   </data>
   <data name="find out why a message bounced" xml:space="preserve">
     <value>выяснить, почему сообщение вернулось</value>
@@ -13844,14 +13850,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="is set to &quot;{0}&quot; in the INI" xml:space="preserve">
     <value>в INI задан как «{0}»</value>
   </data>
-  <data name="it cross" xml:space="preserve">
-    <value>он пересекает</value>
-  </data>
   <data name="it ended with code {0}" xml:space="preserve">
     <value>он завершился с кодом {0}</value>
-  </data>
-  <data name="it is" xml:space="preserve">
-    <value>он</value>
   </data>
   <data name="item" xml:space="preserve">
     <value>элемент</value>
@@ -13915,12 +13915,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="list entry" xml:space="preserve">
     <value>запись списка</value>
-  </data>
-  <data name="listener is" xml:space="preserve">
-    <value>прослушиватель</value>
-  </data>
-  <data name="listeners are" xml:space="preserve">
-    <value>прослушивателей</value>
   </data>
   <data name="lock out repeated failed logons" xml:space="preserve">
     <value>блокировать при повторяющихся неудачных входах</value>
@@ -14108,12 +14102,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="scan for viruses" xml:space="preserve">
     <value>проверять на вирусы</value>
   </data>
-  <data name="scanner" xml:space="preserve">
-    <value>сканер</value>
-  </data>
-  <data name="scanners" xml:space="preserve">
-    <value>сканеров</value>
-  </data>
   <data name="script/save slow" xml:space="preserve">
     <value>этап script/save выполняется медленно</value>
   </data>
@@ -14201,9 +14189,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="test whether port 25 is open" xml:space="preserve">
     <value>проверить, открыт ли порт 25</value>
   </data>
-  <data name="that port is not listening" xml:space="preserve">
-    <value>этот порт не прослушивается</value>
-  </data>
   <data name="the Control Panel is connected to '{0}'; hMailServer.INI and files on disk can only be inspected on the server machine itself." xml:space="preserve">
     <value>Control Panel подключён к «{0}»; hMailServer.INI и файлы на диске можно просмотреть только на самом компьютере сервера.</value>
   </data>
@@ -14221,9 +14206,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="the address is one of the {0} on the greylisting white list" xml:space="preserve">
     <value>адрес — один из {0} в белом списке серых списков</value>
-  </data>
-  <data name="the attachments are stripped and the message is still delivered" xml:space="preserve">
-    <value>вложения удаляются, а сообщение всё равно доставляется</value>
   </data>
   <data name="the audience (aud) is not checked" xml:space="preserve">
     <value>аудитория (aud) не проверяется</value>
@@ -14269,9 +14251,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="the entry does not exist (check SearchBase, or UserDnTemplate)" xml:space="preserve">
     <value>запись не существует (проверьте SearchBase или UserDnTemplate)</value>
-  </data>
-  <data name="the envelope sender" xml:space="preserve">
-    <value>отправитель конверта</value>
   </data>
   <data name="the file could not be parsed as a certificate." xml:space="preserve">
     <value>файл не удалось разобрать как сертификат.</value>
@@ -14342,15 +14321,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="the user name" xml:space="preserve">
     <value>имя пользователя</value>
   </data>
-  <data name="the whole message is deleted and never delivered" xml:space="preserve">
-    <value>сообщение удаляется целиком и не доставляется вовсе</value>
-  </data>
-  <data name="them cross" xml:space="preserve">
-    <value>они пересекают</value>
-  </data>
-  <data name="them is" xml:space="preserve">
-    <value>они</value>
-  </data>
   <data name="there is less than 1 GB free on the installation's drive" xml:space="preserve">
     <value>на диске установки свободно меньше 1 ГБ</value>
   </data>
@@ -14359,9 +14329,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="this setting" xml:space="preserve">
     <value>этот параметр</value>
-  </data>
-  <data name="those ports are not listening" xml:space="preserve">
-    <value>эти порты не прослушиваются</value>
   </data>
   <data name="too many context IDs (the directory is out of resources)" xml:space="preserve">
     <value>слишком много идентификаторов контекста (у каталога закончились ресурсы)</value>
@@ -14456,14 +14423,17 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0} DNS records are still being checked in the background; this summary will update." xml:space="preserve">
     <value>Записей DNS проверяется в фоне: {0}; эта сводка будет обновлена.</value>
   </data>
+  <data name="{0} If a virus is found, the attachments are stripped and the message is still delivered." xml:space="preserve">
+    <value>{0} Если вирус найден, вложения удаляются, а сообщение всё равно доставляется.</value>
+  </data>
+  <data name="{0} If a virus is found, the whole message is deleted and never delivered." xml:space="preserve">
+    <value>{0} Если вирус найден, сообщение удаляется целиком и не доставляется вовсе.</value>
+  </data>
   <data name="{0} KB" xml:space="preserve">
     <value>{0} КБ</value>
   </data>
   <data name="{0} KB ({1} MB)" xml:space="preserve">
     <value>{0} КБ ({1} МБ)</value>
-  </data>
-  <data name="{0} STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
-    <value>{0} STARTTLS, не требуя его, поэтому клиент, который не просит шифрования, проходит аутентификацию без него, и о том, что это произошло, никто не сообщает.</value>
   </data>
   <data name="{0} TXT record(s) exist at {1}, but none begins &quot;v=DMARC1&quot;, so receivers - and this server's own DMARC check - see no policy." xml:space="preserve">
     <value>Записей TXT по адресу {1}: {0}, но ни одна не начинается с «v=DMARC1», поэтому получатели — и собственная проверка DMARC этого сервера — не видят никакой политики.</value>
@@ -14510,20 +14480,23 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0} app passwords." xml:space="preserve">
     <value>Паролей приложений: {0}.</value>
   </data>
+  <data name="{0} blocked-attachment patterns are configured but attachment blocking is switched off, so none of them is applied." xml:space="preserve">
+    <value>Шаблонов блокируемых вложений настроено: {0}; блокировка вложений выключена, поэтому ни один из них не применяется.</value>
+  </data>
   <data name="{0} case(s). Select one for its lines on the audit trail." xml:space="preserve">
     <value>Дел: {0}. Выберите одно, чтобы увидеть его строки в журнале аудита.</value>
   </data>
   <data name="{0} change(s) carried out, none failed." xml:space="preserve">
     <value>Выполнено изменений: {0}, ни одно не завершилось ошибкой.</value>
   </data>
+  <data name="{0} client listeners have no encryption available, so passwords used on them cross the network in the clear." xml:space="preserve">
+    <value>Клиентских прослушивателей без доступного шифрования: {0}; пароли, используемые на них, передаются по сети в открытом виде.</value>
+  </data>
+  <data name="{0} client listeners offer STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
+    <value>Клиентских прослушивателей, предлагающих STARTTLS без его требования: {0}; клиент, который не просит шифрования, проходит аутентификацию без него, и о том, что это произошло, никто не сообщает.</value>
+  </data>
   <data name="{0} closed. It picks up where you left off." xml:space="preserve">
     <value>«{0}» закрыта. Она продолжится с того места, где вы остановились.</value>
-  </data>
-  <data name="{0} configured but attachment blocking is switched off, so none of them is applied." xml:space="preserve">
-    <value>{0} настроено, но блокировка вложений выключена, поэтому ни одно из них не применяется.</value>
-  </data>
-  <data name="{0} configured for TLS but cannot serve it, so {1} at all." xml:space="preserve">
-    <value>{0} настроены для TLS, но предоставлять его не могут, поэтому {1} вообще.</value>
   </data>
   <data name="{0} configured ports are not being listened on: " xml:space="preserve">
     <value>{0} настроенных портов не прослушиваются: </value>
@@ -14552,9 +14525,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0} domains, none of them active." xml:space="preserve">
     <value>Доменов: {0}, ни один не активен.</value>
   </data>
-  <data name="{0} enabled. Both are deprecated by RFC 8996 and are refused outright by current clients, so leaving them on rarely buys the compatibility they were kept for, and a client that does negotiate one gets materially weaker protection than the rest." xml:space="preserve">
-    <value>{0} включены. Оба объявлены устаревшими в RFC 8996 и прямо отклоняются современными клиентами, поэтому оставлять их включёнными редко даёт ту совместимость, ради которой их сохраняли, а клиент, который всё же согласует один из них, получает заметно более слабую защиту, чем остальные.</value>
-  </data>
   <data name="{0} entries" xml:space="preserve">
     <value>Записей: {0}</value>
   </data>
@@ -14569,6 +14539,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0} expired and now refused" xml:space="preserve">
     <value>{0} с истёкшим сроком действия, теперь отклоняются</value>
+  </data>
+  <data name="{0} external POP3 fetch accounts have anti-virus turned off, so mail collected by them is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page." xml:space="preserve">
+    <value>У {0} внешних учётных записей сбора POP3 антивирус выключен, поэтому собираемая ими почта доставляется без проверки, что бы здесь ни было задано. Переключатель находится на учётной записи сбора почты, а не на этой странице.</value>
   </data>
   <data name="{0} has been moved to {1}." xml:space="preserve">
     <value>{0} перенесён на {1}.</value>
@@ -14648,6 +14621,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0} latest {1}" xml:space="preserve">
     <value>{0}: последнее {1}</value>
   </data>
+  <data name="{0} listeners are configured for TLS but cannot serve it, so those ports are not listening at all." xml:space="preserve">
+    <value>Прослушивателей, настроенных для TLS, но не способных его предоставить: {0}; эти порты вообще не прослушиваются.</value>
+  </data>
   <data name="{0} message references a file that is missing on disk." xml:space="preserve">
     <value>{0} сообщение ссылается на файл, отсутствующий на диске.</value>
   </data>
@@ -14686,9 +14662,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0} need action, {1} cannot be told from here, {2} done, {3} not needed." xml:space="preserve">
     <value>{0} требуют действий, {1} невозможно определить отсюда, {2} сделано, {3} не требуется.</value>
-  </data>
-  <data name="{0} no encryption available, so passwords used on {1} the network in the clear." xml:space="preserve">
-    <value>{0} шифрование недоступно, поэтому пароли, используемые на {1}, передаются по сети в открытом виде.</value>
   </data>
   <data name="{0} of its {1} settings would change on this server." xml:space="preserve">
     <value>На этом сервере изменилось бы {0} из {1} его параметров.</value>
@@ -14840,9 +14813,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0}. Any token the identity provider signs with this key is then accepted, including one it issued to a different application - which is enough to log in as whichever mailbox that token names. Set both to the exact values the provider puts in its tokens. The values come from the provider, which is why they are on this list." xml:space="preserve">
     <value>{0}. После этого принимается любой токен, который поставщик удостоверений подписывает этим ключом, — в том числе выданный им другому приложению, а этого достаточно, чтобы войти в тот почтовый ящик, который назван в токене. Задайте оба значения в точности такими, какие поставщик помещает в свои токены. Значения берутся у поставщика — именно поэтому они находятся в этом списке.</value>
   </data>
-  <data name="{0}. If a virus is found, {1}." xml:space="preserve">
-    <value>{0}. Если вирус найден, {1}.</value>
-  </data>
   <data name="{0}. No entries are configured, so the check does not run." xml:space="preserve">
     <value>{0}. Записи не настроены, поэтому проверка не выполняется.</value>
   </data>
@@ -14980,9 +14950,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0}: {1} set, {2} unchanged, {3} skipped; {4} wait for a reinitialise and {5} for a restart." xml:space="preserve">
     <value>{0}: установлено {1}, без изменений {2}, пропущено {3}; повторной инициализации ждут {4}, перезапуска {5}.</value>
-  </data>
-  <data name="{0}{1} anti-virus turned off, so mail collected by {2} delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page.{3}" xml:space="preserve">
-    <value>{0}{1} антивирус выключен, поэтому почта, собираемая {2}, доставляется без проверки, что бы здесь ни было задано. Переключатель находится на учётной записи сбора почты, а не на этой странице.{3}</value>
   </data>
   <data name="~all: the domain says the client is probably not authorised and asks that the message be accepted anyway. Many spray sources live behind it. A score at or above the delete threshold refuses the message during the SMTP conversation as a fail does; a softfail is never a pass for the greylisting bypass." xml:space="preserve">
     <value>~all: домен говорит, что клиент, вероятно, не авторизован, и просит всё же принять письмо. За этим прячутся многие массовые рассылки. Балл на пороге удаления или выше отклоняет письмо в ходе SMTP-диалога, как это делает fail; softfail никогда не считается pass для исключения из greylisting.</value>

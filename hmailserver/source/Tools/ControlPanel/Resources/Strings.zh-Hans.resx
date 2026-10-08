@@ -125,9 +125,6 @@
   <data name=" The total is open-ended, because a list entry or SpamAssassin's own score can be any size." xml:space="preserve">
     <value> 总分没有上限，因为一个列表条目或 SpamAssassin 自身的分数可以是任意大小。</value>
   </data>
-  <data name=" There are more accounts on this server than this page walks, so there may be others." xml:space="preserve">
-    <value> 本服务器上的账户比本页所遍历的更多，因此可能还有其他账户。</value>
-  </data>
   <data name=" There are more index entries than messages, which means entries for mail that no longer exists - discard and rebuild the index to clear them." xml:space="preserve">
     <value> 索引条目多于邮件数，这意味着存在指向已不存在邮件的条目 - 请丢弃并重建索引以清除它们。</value>
   </data>
@@ -143,12 +140,6 @@
   <data name=" With the checks currently enabled the highest total reachable is {0}." xml:space="preserve">
     <value> 在当前启用的这些检查下，可达到的最高总分是 {0}。</value>
   </data>
-  <data name=" and is in use by a listener." xml:space="preserve">
-    <value> 且正在被某个监听器使用。</value>
-  </data>
-  <data name=" and is still assigned to a listener. Clients are refusing or warning about every connection to it." xml:space="preserve">
-    <value> 且仍分配给某个监听器。客户端对它的每一次连接都会拒绝或发出警告。</value>
-  </data>
   <data name=" and the listener is not started (server error 6142)." xml:space="preserve">
     <value> 且监听器未启动（服务器错误 6142）。</value>
   </data>
@@ -157,12 +148,6 @@
   </data>
   <data name=" and the policy verifies nothing." xml:space="preserve">
     <value> 且该策略不验证任何内容。</value>
-  </data>
-  <data name=" day" xml:space="preserve">
-    <value> 天</value>
-  </data>
-  <data name=" days" xml:space="preserve">
-    <value> 天</value>
   </data>
   <data name=" of {0} KB" xml:space="preserve">
     <value> / 共 {0} KB</value>
@@ -271,9 +256,6 @@
   </data>
   <data name=". Connections to them are refused. The usual causes are another program already holding the port, a bind address that does not exist on this machine, or - on a TLS port - a certificate the server could not load; the server records which, once, in the error log at start-up." xml:space="preserve">
     <value>。与它们的连接会被拒绝。常见原因是端口已被另一个程序占用、绑定地址在本机上并不存在，或者在 TLS 端口上服务器无法加载证书；服务器会在启动时把具体原因记入错误日志一次。</value>
-  </data>
-  <data name=". It is not assigned to any listener." xml:space="preserve">
-    <value>。它未分配给任何监听器。</value>
   </data>
   <data name=". No account will be disabled." xml:space="preserve">
     <value>。不会禁用任何账户。</value>
@@ -1749,11 +1731,14 @@
   <data name="At RCPT TO, before the body is transferred — a refusal here is a 550" xml:space="preserve">
     <value>在 RCPT TO 时、正文传输之前 — 此处的拒绝是 550</value>
   </data>
-  <data name="At least " xml:space="preserve">
-    <value>至少 </value>
-  </data>
   <data name="At least 12 printable ASCII characters. Leave both boxes empty to keep the passphrase already set. The server never gives it back - not to this program and not to anyone else - so keep it somewhere other than beside the backups: a restore asks for it, and nothing in an archive whose passphrase is lost can be recovered by anybody." xml:space="preserve">
     <value>至少 12 个可打印的 ASCII 字符。两个框都留空则保留已经设置的口令。服务器不会把口令交还给任何人，本程序也不例外，因此请把它保存在备份旁边以外的地方：还原时需要它，口令一旦丢失，存档中的任何内容都无人能够恢复。</value>
+  </data>
+  <data name="At least one external POP3 fetch account has anti-virus turned off, so mail collected by it is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page. There are more accounts on this server than this page walks, so there may be others." xml:space="preserve">
+    <value>至少有 1 个外部 POP3 收取账户关闭了反病毒，因此由它收取的邮件会以未扫描的状态投递，无论此处如何设置。该开关在收取账户上，而不在本页上。本服务器上的账户比本页所遍历的更多，因此可能还有其他账户。</value>
+  </data>
+  <data name="At least {0} external POP3 fetch accounts have anti-virus turned off, so mail collected by them is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page. There are more accounts on this server than this page walks, so there may be others." xml:space="preserve">
+    <value>至少有 {0} 个外部 POP3 收取账户关闭了反病毒，因此由它们收取的邮件会以未扫描的状态投递，无论此处如何设置。该开关在收取账户上，而不在本页上。本服务器上的账户比本页所遍历的更多，因此可能还有其他账户。</value>
   </data>
   <data name="At most 2592000, thirty days." xml:space="preserve">
     <value>最多 2592000，即三十天。</value>
@@ -4281,11 +4266,14 @@
   <data name="Every local recipient's copy becomes another name for the same file inside the archive folder, so a message to ten mailboxes costs one copy rather than ten. Needs an NTFS archive folder; if the link cannot be created the server copies the file and says so in the SMTP log." xml:space="preserve">
     <value>每个本地收件人的副本都成为存档文件夹中同一个文件的另一个名称，因此发给十个邮箱的邮件只占一份副本而不是十份。需要 NTFS 存档文件夹；如果无法创建链接，服务器会复制文件并在 SMTP 日志中说明。</value>
   </data>
-  <data name="Every message goes through {0} in turn, and each is asked about the whole message and then about each attachment separately. That is thorough and it is not free: the scan happens while the sender is waiting for its &quot;250 OK&quot;." xml:space="preserve">
-    <value>每封邮件依次经过 {0}，每个扫描器都会被问及整封邮件，然后再分别问及每个附件。这很彻底，但并非没有代价：扫描发生在发件方等待其 "250 OK" 的期间。</value>
+  <data name="Every message goes through {0} scanners in turn, and each is asked about the whole message and then about each attachment separately. That is thorough and it is not free: the scan happens while the sender is waiting for its &quot;250 OK&quot;." xml:space="preserve">
+    <value>每封邮件依次经过 {0} 个扫描器，每个扫描器都会被问及整封邮件，然后再分别问及每个附件。这很彻底，但并非没有代价：扫描发生在发件方等待其 "250 OK" 的期间。</value>
   </data>
-  <data name="Every message is scanned by {0}" xml:space="preserve">
-    <value>每封邮件都由 {0} 扫描</value>
+  <data name="Every message is scanned by one scanner." xml:space="preserve">
+    <value>每封邮件都由 1 个扫描器扫描。</value>
+  </data>
+  <data name="Every message is scanned by {0} scanners." xml:space="preserve">
+    <value>每封邮件都由 {0} 个扫描器扫描。</value>
   </data>
   <data name="Every message still in the delivery queue, the last error the server got for it, and when it is retried." xml:space="preserve">
     <value>仍在投递队列中的每封邮件、服务器为它收到的最后一个错误，以及重试时间。</value>
@@ -6159,8 +6147,11 @@
   <data name="Messages the server would otherwise have refused, held so somebody can look. The sender was told each of these was accepted, so nothing will arrive again on its own: releasing one delivers it, and deleting one is final. The icons act on one message, on a group, or - in the header - on every checked message." xml:space="preserve">
     <value>这些是服务器原本会拒绝、但被暂挂以便有人查看的邮件。发件人都已被告知邮件已被接受，因此放着不管也不会再次收到：放行会投递它，删除则是最终操作。图标可作用于一封邮件、一个组，或者在标题行中作用于每一封已勾选的邮件。</value>
   </data>
-  <data name="Messages up to {0} are scanned by {1}; anything larger is delivered without being scanned at all" xml:space="preserve">
-    <value>不超过 {0} 的邮件由 {1} 扫描；更大的邮件会在完全不扫描的情况下投递</value>
+  <data name="Messages up to {0} are scanned by one scanner; anything larger is delivered without being scanned at all." xml:space="preserve">
+    <value>不超过 {0} 的邮件由 1 个扫描器扫描；更大的邮件会在完全不扫描的情况下投递。</value>
+  </data>
+  <data name="Messages up to {0} are scanned by {1} scanners; anything larger is delivered without being scanned at all." xml:space="preserve">
+    <value>不超过 {0} 的邮件由 {1} 个扫描器扫描；更大的邮件会在完全不扫描的情况下投递。</value>
   </data>
   <data name="Messages up to {0}. A larger message is delivered without being scanned — it is not refused, and nothing is logged." xml:space="preserve">
     <value>不超过 {0} 的邮件。更大的邮件会在不扫描的情况下投递 — 不会被拒绝，也不会记录任何内容。</value>
@@ -6648,8 +6639,11 @@
   <data name="No message is scanned for viruses, and no attachment is blocked. Everything is delivered as it arrives." xml:space="preserve">
     <value>没有任何邮件被扫描病毒，也没有任何附件被拦截。所有邮件都按到达时的原样投递。</value>
   </data>
-  <data name="No message is scanned for viruses. Attachment blocking is still stripping {0}, but nothing examines the contents of a message." xml:space="preserve">
-    <value>没有任何邮件被扫描病毒。附件拦截仍在剥除 {0}，但没有任何东西检查邮件的内容。</value>
+  <data name="No message is scanned for viruses. Attachment blocking is still stripping one file-name pattern, but nothing examines the contents of a message." xml:space="preserve">
+    <value>没有任何邮件被扫描病毒。附件拦截仍在按 1 条文件名模式剥除附件，但没有任何东西检查邮件的内容。</value>
+  </data>
+  <data name="No message is scanned for viruses. Attachment blocking is still stripping {0} file-name patterns, but nothing examines the contents of a message." xml:space="preserve">
+    <value>没有任何邮件被扫描病毒。附件拦截仍在按 {0} 条文件名模式剥除附件，但没有任何东西检查邮件的内容。</value>
   </data>
   <data name="No one-time code was given, so the password in use now could not be checked." xml:space="preserve">
     <value>未提供一次性验证码，因此无法检查当前使用的密码。</value>
@@ -7188,17 +7182,32 @@
   <data name="One address of this machine: 127.0.0.1 when the manager runs here, otherwise an address on a management network." xml:space="preserve">
     <value>本计算机的一个地址：管理站在本机运行时为 127.0.0.1，否则为管理网络上的地址。</value>
   </data>
+  <data name="One blocked-attachment pattern is configured but attachment blocking is switched off, so it is not applied." xml:space="preserve">
+    <value>已配置 1 条附件拦截模式，但附件拦截已关闭，因此它不会被应用。</value>
+  </data>
+  <data name="One client listener has no encryption available, so passwords used on it cross the network in the clear." xml:space="preserve">
+    <value>有 1 个客户端监听器不提供加密，因此在它上面使用的密码以明文经过网络。</value>
+  </data>
+  <data name="One client listener offers STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
+    <value>有 1 个客户端监听器提供 STARTTLS 但不作强制要求，因此不请求加密的客户端就会在没有加密的情况下完成身份验证，而且没有任何东西会报告这件事发生过。</value>
+  </data>
   <data name="One configured port is not being listened on: " xml:space="preserve">
     <value>有一个已配置的端口未被监听： </value>
   </data>
   <data name="One event script invocation. 0 = no bound." xml:space="preserve">
     <value>单次事件脚本调用。0 = 不限制。</value>
   </data>
+  <data name="One external POP3 fetch account has anti-virus turned off, so mail collected by it is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page." xml:space="preserve">
+    <value>有 1 个外部 POP3 收取账户关闭了反病毒，因此由它收取的邮件会以未扫描的状态投递，无论此处如何设置。该开关在收取账户上，而不在本页上。</value>
+  </data>
   <data name="One line of up to 60 characters. The default, Sign in with SAML, is shown in each reader's language; anything else as written." xml:space="preserve">
     <value>一行，最多 60 个字符。默认的 Sign in with SAML 以每位读者的语言显示；其他任何文字按原样显示。</value>
   </data>
   <data name="One list of the nine checks, which are on, and which of the two phases each one runs in." xml:space="preserve">
     <value>九项检查的一份清单：哪些已打开，以及每一项在两个阶段中的哪一个运行。</value>
+  </data>
+  <data name="One listener is configured for TLS but cannot serve it, so that port is not listening at all." xml:space="preserve">
+    <value>有 1 个监听器配置为使用 TLS，却无法提供 TLS，因此该端口根本没有在监听。</value>
   </data>
   <data name="One message to each account of this domain that has something newly held for it, listing what was held with a link that delivers it. A link works once and stops working after the hours set on the Quarantine page, which is also where the address the links point at is set - without that address nothing is sent. An empty digest is never sent, and each message says how to stop it." xml:space="preserve">
     <value>给本域名中新近有邮件被扣留的每个账户发送一封邮件，列出被扣留的邮件，并附上投递它们的链接。链接只能用一次，并在 隔离 页面设置的小时数过后失效；链接指向的地址也在该页面设置——没有这个地址就不会发送任何内容。空的摘要永远不会发送，每封邮件都会说明如何停止接收。</value>
@@ -10347,11 +10356,11 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="TLS 1.0 (legacy)" xml:space="preserve">
     <value>TLS 1.0 (旧版)</value>
   </data>
-  <data name="TLS 1.0 and TLS 1.1 are" xml:space="preserve">
-    <value>TLS 1.0 和 TLS 1.1 为</value>
+  <data name="TLS 1.0 and TLS 1.1 are enabled. Both are deprecated by RFC 8996 and are refused outright by current clients, so leaving them on rarely buys the compatibility they were kept for, and a client that does negotiate one gets materially weaker protection than the rest." xml:space="preserve">
+    <value>已启用 TLS 1.0 和 TLS 1.1。两者都已被 RFC 8996 废弃，并且会被当前的客户端直接拒绝，因此让它们开着，很少能换来当初保留它们所图的那份兼容性，而真的协商到其中之一的客户端，所得到的保护也明显弱于其余客户端。</value>
   </data>
-  <data name="TLS 1.0 is" xml:space="preserve">
-    <value>TLS 1.0 为</value>
+  <data name="TLS 1.0 is enabled. It is deprecated by RFC 8996 and is refused outright by current clients, so leaving it on rarely buys the compatibility it was kept for, and a client that does negotiate it gets materially weaker protection than the rest." xml:space="preserve">
+    <value>已启用 TLS 1.0。它已被 RFC 8996 废弃，并且会被当前的客户端直接拒绝，因此让它开着，很少能换来当初保留它所图的那份兼容性，而真的协商到它的客户端，所得到的保护也明显弱于其余客户端。</value>
   </data>
   <data name="TLS 1.1" xml:space="preserve">
     <value>TLS 1.1</value>
@@ -10359,8 +10368,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="TLS 1.1 (legacy)" xml:space="preserve">
     <value>TLS 1.1 (旧版)</value>
   </data>
-  <data name="TLS 1.1 is" xml:space="preserve">
-    <value>TLS 1.1 为</value>
+  <data name="TLS 1.1 is enabled. It is deprecated by RFC 8996 and is refused outright by current clients, so leaving it on rarely buys the compatibility it was kept for, and a client that does negotiate it gets materially weaker protection than the rest." xml:space="preserve">
+    <value>已启用 TLS 1.1。它已被 RFC 8996 废弃，并且会被当前的客户端直接拒绝，因此让它开着，很少能换来当初保留它所图的那份兼容性，而真的协商到它的客户端，所得到的保护也明显弱于其余客户端。</value>
   </data>
   <data name="TLS 1.2" xml:space="preserve">
     <value>TLS 1.2</value>
@@ -10799,11 +10808,35 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The ceilings on what a person may add for themselves in the webmail." xml:space="preserve">
     <value>用户在网页邮箱中可自行添加内容的上限。</value>
   </data>
-  <data name="The certificate &quot;{0}&quot; expired {1}{2} ago{3}" xml:space="preserve">
-    <value>证书 "{0}" 已于 {1}{2} 前到期{3}</value>
+  <data name="The certificate &quot;{0}&quot; expired yesterday and is still assigned to a listener. Clients are refusing or warning about every connection to it." xml:space="preserve">
+    <value>证书 "{0}" 已于昨天到期，且仍分配给某个监听器。客户端对它的每一次连接都会拒绝或发出警告。</value>
   </data>
-  <data name="The certificate &quot;{0}&quot; expires in {1}{2}{3}" xml:space="preserve">
-    <value>证书 "{0}" 将在 {1}{2}{3} 后到期</value>
+  <data name="The certificate &quot;{0}&quot; expired yesterday. It is not assigned to any listener." xml:space="preserve">
+    <value>证书 "{0}" 已于昨天到期。它未分配给任何监听器。</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; expired {1} days ago and is still assigned to a listener. Clients are refusing or warning about every connection to it." xml:space="preserve">
+    <value>证书 "{0}" 已于 {1} 天前到期，且仍分配给某个监听器。客户端对它的每一次连接都会拒绝或发出警告。</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; expired {1} days ago. It is not assigned to any listener." xml:space="preserve">
+    <value>证书 "{0}" 已于 {1} 天前到期。它未分配给任何监听器。</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; expires in {1} days and is in use by a listener." xml:space="preserve">
+    <value>证书 "{0}" 将在 {1} 天后到期，且正在被某个监听器使用。</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; expires in {1} days. It is not assigned to any listener." xml:space="preserve">
+    <value>证书 "{0}" 将在 {1} 天后到期。它未分配给任何监听器。</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; expires today and is in use by a listener." xml:space="preserve">
+    <value>证书 "{0}" 将于今天到期，且正在被某个监听器使用。</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; expires today. It is not assigned to any listener." xml:space="preserve">
+    <value>证书 "{0}" 将于今天到期。它未分配给任何监听器。</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; expires tomorrow and is in use by a listener." xml:space="preserve">
+    <value>证书 "{0}" 将于明天到期，且正在被某个监听器使用。</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; expires tomorrow. It is not assigned to any listener." xml:space="preserve">
+    <value>证书 "{0}" 将于明天到期。它未分配给任何监听器。</value>
   </data>
   <data name="The certificate &quot;{0}&quot; is in use by a listener and has a problem: {1}" xml:space="preserve">
     <value>证书 "{0}" 正被某个监听器使用，并且存在问题: {1}</value>
@@ -11169,8 +11202,14 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The message is accepted - the sender got a 250 - is visible in the delivery queue, and never leaves." xml:space="preserve">
     <value>邮件已被接受 - 发件人收到了 250 - 在投递队列中可见，却永远不会离开。</value>
   </data>
-  <data name="The message is deleted and a notice is sent to {0}." xml:space="preserve">
-    <value>邮件被删除，并向 {0} 发送一条通知。</value>
+  <data name="The message is deleted and a notice is sent to every recipient and to the envelope sender." xml:space="preserve">
+    <value>邮件被删除，并向每个收件人和信封发件人发送一条通知。</value>
+  </data>
+  <data name="The message is deleted and a notice is sent to every recipient." xml:space="preserve">
+    <value>邮件被删除，并向每个收件人发送一条通知。</value>
+  </data>
+  <data name="The message is deleted and a notice is sent to the envelope sender." xml:space="preserve">
+    <value>邮件被删除，并向信封发件人发送一条通知。</value>
   </data>
   <data name="The message is deleted and nobody is told. The deletion is recorded in the application log." xml:space="preserve">
     <value>邮件被删除，不通知任何人。删除会记录在应用程序日志中。</value>
@@ -13507,12 +13546,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="blocked sender" xml:space="preserve">
     <value>被拦截的发件人</value>
   </data>
-  <data name="blocked-attachment pattern is" xml:space="preserve">
-    <value>个附件拦截模式已</value>
-  </data>
-  <data name="blocked-attachment patterns are" xml:space="preserve">
-    <value>个附件拦截模式已</value>
-  </data>
   <data name="bypass entry" xml:space="preserve">
     <value>绕过条目</value>
   </data>
@@ -13545,18 +13578,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="clamscan.exe path" xml:space="preserve">
     <value>clamscan.exe 路径</value>
-  </data>
-  <data name="client listener has" xml:space="preserve">
-    <value>个客户端监听器</value>
-  </data>
-  <data name="client listener offers" xml:space="preserve">
-    <value>个客户端监听器提供</value>
-  </data>
-  <data name="client listeners have" xml:space="preserve">
-    <value>个客户端监听器</value>
-  </data>
-  <data name="client listeners offer" xml:space="preserve">
-    <value>个客户端监听器提供</value>
   </data>
   <data name="collect mail from another provider" xml:space="preserve">
     <value>从其他提供商处收取邮件</value>
@@ -13630,9 +13651,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="every domain" xml:space="preserve">
     <value>每个域</value>
   </data>
-  <data name="every recipient" xml:space="preserve">
-    <value>每个收件人</value>
-  </data>
   <data name="example.com is that domain alone; .example.com is the domain and everything beneath it." xml:space="preserve">
     <value>example.com 只是该域；.example.com 是该域及其下的一切。</value>
   </data>
@@ -13648,12 +13666,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="expiry not checked from here" xml:space="preserve">
     <value>未从此处检查到期时间</value>
   </data>
-  <data name="external POP3 fetch account has" xml:space="preserve">
-    <value>个外部 POP3 收取账户</value>
-  </data>
-  <data name="external POP3 fetch accounts have" xml:space="preserve">
-    <value>个外部 POP3 收取账户</value>
-  </data>
   <data name="external account" xml:space="preserve">
     <value>外部账户</value>
   </data>
@@ -13662,12 +13674,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="fetching the version to go back to" xml:space="preserve">
     <value>正在获取要恢复到的版本</value>
-  </data>
-  <data name="file-name pattern" xml:space="preserve">
-    <value>文件名模式</value>
-  </data>
-  <data name="file-name patterns" xml:space="preserve">
-    <value>文件名模式</value>
   </data>
   <data name="find out why a message bounced" xml:space="preserve">
     <value>查明邮件为何被退回</value>
@@ -13844,14 +13850,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="is set to &quot;{0}&quot; in the INI" xml:space="preserve">
     <value>在 INI 中被设置为 "{0}"</value>
   </data>
-  <data name="it cross" xml:space="preserve">
-    <value>在它上面使用的密码</value>
-  </data>
   <data name="it ended with code {0}" xml:space="preserve">
     <value>它以代码 {0} 结束</value>
-  </data>
-  <data name="it is" xml:space="preserve">
-    <value>由它收取的邮件会</value>
   </data>
   <data name="item" xml:space="preserve">
     <value>项</value>
@@ -13915,12 +13915,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="list entry" xml:space="preserve">
     <value>名单条目</value>
-  </data>
-  <data name="listener is" xml:space="preserve">
-    <value>个监听器已</value>
-  </data>
-  <data name="listeners are" xml:space="preserve">
-    <value>个监听器已</value>
   </data>
   <data name="lock out repeated failed logons" xml:space="preserve">
     <value>锁定反复失败的登录</value>
@@ -14108,12 +14102,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="scan for viruses" xml:space="preserve">
     <value>扫描病毒</value>
   </data>
-  <data name="scanner" xml:space="preserve">
-    <value>扫描器</value>
-  </data>
-  <data name="scanners" xml:space="preserve">
-    <value>扫描器</value>
-  </data>
   <data name="script/save slow" xml:space="preserve">
     <value>script/save slow</value>
   </data>
@@ -14201,9 +14189,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="test whether port 25 is open" xml:space="preserve">
     <value>测试端口 25 是否开放</value>
   </data>
-  <data name="that port is not listening" xml:space="preserve">
-    <value>该端口根本没有在监听</value>
-  </data>
   <data name="the Control Panel is connected to '{0}'; hMailServer.INI and files on disk can only be inspected on the server machine itself." xml:space="preserve">
     <value>控制面板已连接到 '{0}'；hMailServer.INI 和磁盘上的文件只能在服务器本机上检查。</value>
   </data>
@@ -14221,9 +14206,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="the address is one of the {0} on the greylisting white list" xml:space="preserve">
     <value>该地址是灰名单白名单上的 {0} 之一</value>
-  </data>
-  <data name="the attachments are stripped and the message is still delivered" xml:space="preserve">
-    <value>附件被剥除，邮件仍然投递</value>
   </data>
   <data name="the audience (aud) is not checked" xml:space="preserve">
     <value>受众（aud）不会被检查</value>
@@ -14269,9 +14251,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="the entry does not exist (check SearchBase, or UserDnTemplate)" xml:space="preserve">
     <value>该条目不存在（请检查 SearchBase 或 UserDnTemplate）</value>
-  </data>
-  <data name="the envelope sender" xml:space="preserve">
-    <value>信封发件人</value>
   </data>
   <data name="the file could not be parsed as a certificate." xml:space="preserve">
     <value>无法把该文件解析为证书。</value>
@@ -14342,15 +14321,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="the user name" xml:space="preserve">
     <value>该用户名</value>
   </data>
-  <data name="the whole message is deleted and never delivered" xml:space="preserve">
-    <value>整封邮件被删除，永不投递</value>
-  </data>
-  <data name="them cross" xml:space="preserve">
-    <value>在它们上面使用的密码</value>
-  </data>
-  <data name="them is" xml:space="preserve">
-    <value>由它们收取的邮件会</value>
-  </data>
   <data name="there is less than 1 GB free on the installation's drive" xml:space="preserve">
     <value>安装所在驱动器的可用空间不足 1 GB</value>
   </data>
@@ -14359,9 +14329,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="this setting" xml:space="preserve">
     <value>此设置</value>
-  </data>
-  <data name="those ports are not listening" xml:space="preserve">
-    <value>那些端口根本没有在监听</value>
   </data>
   <data name="too many context IDs (the directory is out of resources)" xml:space="preserve">
     <value>上下文 ID 过多（目录资源已耗尽）</value>
@@ -14456,14 +14423,17 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="{0} DNS records are still being checked in the background; this summary will update." xml:space="preserve">
     <value>还有 {0} 条 DNS 记录正在后台检查；此摘要将会更新。</value>
   </data>
+  <data name="{0} If a virus is found, the attachments are stripped and the message is still delivered." xml:space="preserve">
+    <value>{0}如果发现病毒，附件被剥除，邮件仍然投递。</value>
+  </data>
+  <data name="{0} If a virus is found, the whole message is deleted and never delivered." xml:space="preserve">
+    <value>{0}如果发现病毒，整封邮件被删除，永不投递。</value>
+  </data>
   <data name="{0} KB" xml:space="preserve">
     <value>{0} KB</value>
   </data>
   <data name="{0} KB ({1} MB)" xml:space="preserve">
     <value>{0} KB（{1} MB）</value>
-  </data>
-  <data name="{0} STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
-    <value>{0} STARTTLS 但不作强制要求，因此不请求加密的客户端就会在没有加密的情况下完成身份验证，而且没有任何东西会报告这件事发生过。</value>
   </data>
   <data name="{0} TXT record(s) exist at {1}, but none begins &quot;v=DMARC1&quot;, so receivers - and this server's own DMARC check - see no policy." xml:space="preserve">
     <value>在 {1} 存在 {0} 条 TXT 记录，但没有一条以 "v=DMARC1" 开头，因此接收方 - 以及本服务器自己的 DMARC 检查 - 看不到任何策略。</value>
@@ -14510,20 +14480,23 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="{0} app passwords." xml:space="preserve">
     <value>{0} 个应用密码。</value>
   </data>
+  <data name="{0} blocked-attachment patterns are configured but attachment blocking is switched off, so none of them is applied." xml:space="preserve">
+    <value>已配置 {0} 条附件拦截模式，但附件拦截已关闭，因此其中没有一条会被应用。</value>
+  </data>
   <data name="{0} case(s). Select one for its lines on the audit trail." xml:space="preserve">
     <value>{0} 个案件。选择一个即可查看其在审计记录中的行。</value>
   </data>
   <data name="{0} change(s) carried out, none failed." xml:space="preserve">
     <value>已执行 {0} 项更改，没有失败。</value>
   </data>
+  <data name="{0} client listeners have no encryption available, so passwords used on them cross the network in the clear." xml:space="preserve">
+    <value>有 {0} 个客户端监听器不提供加密，因此在它们上面使用的密码以明文经过网络。</value>
+  </data>
+  <data name="{0} client listeners offer STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
+    <value>有 {0} 个客户端监听器提供 STARTTLS 但不作强制要求，因此不请求加密的客户端就会在没有加密的情况下完成身份验证，而且没有任何东西会报告这件事发生过。</value>
+  </data>
   <data name="{0} closed. It picks up where you left off." xml:space="preserve">
     <value>“{0}”已关闭。下次会从您离开的地方继续。</value>
-  </data>
-  <data name="{0} configured but attachment blocking is switched off, so none of them is applied." xml:space="preserve">
-    <value>{0}配置，但附件拦截已关闭，因此其中没有一条会被应用。</value>
-  </data>
-  <data name="{0} configured for TLS but cannot serve it, so {1} at all." xml:space="preserve">
-    <value>{0}配置为使用 TLS，却无法提供 TLS，因此{1}。</value>
   </data>
   <data name="{0} configured ports are not being listened on: " xml:space="preserve">
     <value>有 {0} 个已配置的端口未被监听： </value>
@@ -14552,9 +14525,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="{0} domains, none of them active." xml:space="preserve">
     <value>{0} 个域，没有一个处于活动状态。</value>
   </data>
-  <data name="{0} enabled. Both are deprecated by RFC 8996 and are refused outright by current clients, so leaving them on rarely buys the compatibility they were kept for, and a client that does negotiate one gets materially weaker protection than the rest." xml:space="preserve">
-    <value>已启用 {0}。两者都已被 RFC 8996 废弃，并且会被当前的客户端直接拒绝，因此让它们开着，很少能换来当初保留它们所图的那份兼容性，而真的协商到其中之一的客户端，所得到的保护也明显弱于其余客户端。</value>
-  </data>
   <data name="{0} entries" xml:space="preserve">
     <value>{0} 个条目</value>
   </data>
@@ -14569,6 +14539,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="{0} expired and now refused" xml:space="preserve">
     <value>{0} 已过期，现在会被拒绝</value>
+  </data>
+  <data name="{0} external POP3 fetch accounts have anti-virus turned off, so mail collected by them is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page." xml:space="preserve">
+    <value>有 {0} 个外部 POP3 收取账户关闭了反病毒，因此由它们收取的邮件会以未扫描的状态投递，无论此处如何设置。该开关在收取账户上，而不在本页上。</value>
   </data>
   <data name="{0} has been moved to {1}." xml:space="preserve">
     <value>{0} 已迁移到 {1}。</value>
@@ -14648,6 +14621,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="{0} latest {1}" xml:space="preserve">
     <value>{0}：最新 {1}</value>
   </data>
+  <data name="{0} listeners are configured for TLS but cannot serve it, so those ports are not listening at all." xml:space="preserve">
+    <value>有 {0} 个监听器配置为使用 TLS，却无法提供 TLS，因此那些端口根本没有在监听。</value>
+  </data>
   <data name="{0} message references a file that is missing on disk." xml:space="preserve">
     <value>有 {0} 封邮件引用了磁盘上已缺失的文件。</value>
   </data>
@@ -14686,9 +14662,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="{0} need action, {1} cannot be told from here, {2} done, {3} not needed." xml:space="preserve">
     <value>{0} 项需要处理，{1} 项无法从此处判断，{2} 项已完成，{3} 项不需要。</value>
-  </data>
-  <data name="{0} no encryption available, so passwords used on {1} the network in the clear." xml:space="preserve">
-    <value>{0}不提供加密，因此{1}以明文经过网络。</value>
   </data>
   <data name="{0} of its {1} settings would change on this server." xml:space="preserve">
     <value>此服务器上其 {1} 项设置中将有 {0} 项发生更改。</value>
@@ -14840,9 +14813,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="{0}. Any token the identity provider signs with this key is then accepted, including one it issued to a different application - which is enough to log in as whichever mailbox that token names. Set both to the exact values the provider puts in its tokens. The values come from the provider, which is why they are on this list." xml:space="preserve">
     <value>{0}。这样一来，身份提供方用此密钥签名的任何令牌都会被接受，包括它签发给另一个应用程序的令牌 - 而那已经足以让人以该令牌所指的任意邮箱身份登录。请把两者都设置为提供方写进其令牌中的确切值。这些值来自提供方，这也正是它们出现在此列表中的原因。</value>
   </data>
-  <data name="{0}. If a virus is found, {1}." xml:space="preserve">
-    <value>{0}。如果发现病毒，{1}。</value>
-  </data>
   <data name="{0}. No entries are configured, so the check does not run." xml:space="preserve">
     <value>{0}。没有配置任何条目，因此该检查不会运行。</value>
   </data>
@@ -14980,9 +14950,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="{0}: {1} set, {2} unchanged, {3} skipped; {4} wait for a reinitialise and {5} for a restart." xml:space="preserve">
     <value>{0}：已设置 {1} 项，{2} 项未变，跳过 {3} 项；{4} 项等待重新初始化，{5} 项等待重启。</value>
-  </data>
-  <data name="{0}{1} anti-virus turned off, so mail collected by {2} delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page.{3}" xml:space="preserve">
-    <value>{0}{1}关闭了反病毒，因此{2}以未扫描的状态投递，无论此处如何设置。该开关在收取账户上，而不在本页上。{3}</value>
   </data>
   <data name="~all: the domain says the client is probably not authorised and asks that the message be accepted anyway. Many spray sources live behind it. A score at or above the delete threshold refuses the message during the SMTP conversation as a fail does; a softfail is never a pass for the greylisting bypass." xml:space="preserve">
     <value>~all：该域表示客户端可能未获授权，但请求仍然接受邮件。许多群发来源就藏在它后面。达到或超过删除阈值的分数会像 fail 一样在 SMTP 会话期间拒绝邮件；softfail 永远不会被视为灰名单豁免的 pass。</value>

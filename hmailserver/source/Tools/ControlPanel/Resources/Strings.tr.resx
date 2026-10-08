@@ -125,9 +125,6 @@ Bu zayıf parola yine de kaydedilsin mi?</value>
   <data name=" The total is open-ended, because a list entry or SpamAssassin's own score can be any size." xml:space="preserve">
     <value> Toplam açık uçludur, çünkü bir liste girdisi veya SpamAssassin'in kendi puanı herhangi bir büyüklükte olabilir.</value>
   </data>
-  <data name=" There are more accounts on this server than this page walks, so there may be others." xml:space="preserve">
-    <value> Bu sunucuda, bu sayfanın taradığından daha fazla hesap var; dolayısıyla başkaları da olabilir.</value>
-  </data>
   <data name=" There are more index entries than messages, which means entries for mail that no longer exists - discard and rebuild the index to clear them." xml:space="preserve">
     <value> İleti sayısından daha fazla indeks girdisi var; bu, artık var olmayan postalara ait girdiler demektir - bunları temizlemek için indeksi atıp yeniden oluşturun.</value>
   </data>
@@ -143,12 +140,6 @@ Bu zayıf parola yine de kaydedilsin mi?</value>
   <data name=" With the checks currently enabled the highest total reachable is {0}." xml:space="preserve">
     <value> Şu anda etkin olan denetimlerle ulaşılabilecek en yüksek toplam {0}.</value>
   </data>
-  <data name=" and is in use by a listener." xml:space="preserve">
-    <value> ve bir dinleyici tarafından kullanılıyor.</value>
-  </data>
-  <data name=" and is still assigned to a listener. Clients are refusing or warning about every connection to it." xml:space="preserve">
-    <value> ve hâlâ bir dinleyiciye atanmış durumda. İstemciler ona yapılan her bağlantıyı reddediyor veya her bağlantı için uyarı veriyor.</value>
-  </data>
   <data name=" and the listener is not started (server error 6142)." xml:space="preserve">
     <value> ve dinleyici başlatılmamış (sunucu hatası 6142).</value>
   </data>
@@ -157,12 +148,6 @@ Bu zayıf parola yine de kaydedilsin mi?</value>
   </data>
   <data name=" and the policy verifies nothing." xml:space="preserve">
     <value> ve ilke hiçbir şeyi doğrulamıyor.</value>
-  </data>
-  <data name=" day" xml:space="preserve">
-    <value> gün</value>
-  </data>
-  <data name=" days" xml:space="preserve">
-    <value> gün</value>
   </data>
   <data name=" of {0} KB" xml:space="preserve">
     <value> / {0} KB</value>
@@ -271,9 +256,6 @@ Bu zayıf parola yine de kaydedilsin mi?</value>
   </data>
   <data name=". Connections to them are refused. The usual causes are another program already holding the port, a bind address that does not exist on this machine, or - on a TLS port - a certificate the server could not load; the server records which, once, in the error log at start-up." xml:space="preserve">
     <value>. Bunlara yapılan bağlantılar reddedilir. Olağan nedenler şunlardır: portu zaten tutan başka bir program, bu makinede var olmayan bir bağlanma adresi veya - bir TLS portunda - sunucunun yükleyemediği bir sertifika; sunucu hangisi olduğunu başlangıçta bir kez hata günlüğüne yazar.</value>
-  </data>
-  <data name=". It is not assigned to any listener." xml:space="preserve">
-    <value>. Hiçbir dinleyiciye atanmamış.</value>
   </data>
   <data name=". No account will be disabled." xml:space="preserve">
     <value>. Hiçbir hesap devre dışı bırakılmayacak.</value>
@@ -1749,11 +1731,14 @@ Denetim Masası şimdi yeniden başlatılsın mı? Çalışmayı sürdürmeyi de
   <data name="At RCPT TO, before the body is transferred — a refusal here is a 550" xml:space="preserve">
     <value>RCPT TO aşamasında, gövde aktarılmadan önce — burada verilen ret 550'dir</value>
   </data>
-  <data name="At least " xml:space="preserve">
-    <value>En az </value>
-  </data>
   <data name="At least 12 printable ASCII characters. Leave both boxes empty to keep the passphrase already set. The server never gives it back - not to this program and not to anyone else - so keep it somewhere other than beside the backups: a restore asks for it, and nothing in an archive whose passphrase is lost can be recovered by anybody." xml:space="preserve">
     <value>En az 12 yazdırılabilir ASCII karakteri. Zaten ayarlı olan parola tümcesini korumak için iki kutuyu da boş bırakın. Sunucu onu asla geri vermez - ne bu programa ne de başka birine - bu yüzden yedeklerin yanında değil, başka bir yerde saklayın: geri yükleme onu ister ve parola tümcesi kaybolmuş bir arşivden hiç kimse hiçbir şey kurtaramaz.</value>
+  </data>
+  <data name="At least one external POP3 fetch account has anti-virus turned off, so mail collected by it is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page. There are more accounts on this server than this page walks, so there may be others." xml:space="preserve">
+    <value>En az bir dış POP3 toplama hesabında virüsten koruma kapalı; bu yüzden onun topladığı posta, burada ne ayarlanırsa ayarlansın taranmadan teslim ediliyor. Anahtar bu sayfada değil, toplama hesabının üzerindedir. Bu sunucuda, bu sayfanın taradığından daha fazla hesap var; dolayısıyla başkaları da olabilir.</value>
+  </data>
+  <data name="At least {0} external POP3 fetch accounts have anti-virus turned off, so mail collected by them is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page. There are more accounts on this server than this page walks, so there may be others." xml:space="preserve">
+    <value>En az {0} dış POP3 toplama hesabında virüsten koruma kapalı; bu yüzden onların topladığı posta, burada ne ayarlanırsa ayarlansın taranmadan teslim ediliyor. Anahtar bu sayfada değil, toplama hesabının üzerindedir. Bu sunucuda, bu sayfanın taradığından daha fazla hesap var; dolayısıyla başkaları da olabilir.</value>
   </data>
   <data name="At most 2592000, thirty days." xml:space="preserve">
     <value>En fazla 2592000, yani otuz gün.</value>
@@ -4281,11 +4266,14 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Every local recipient's copy becomes another name for the same file inside the archive folder, so a message to ten mailboxes costs one copy rather than ten. Needs an NTFS archive folder; if the link cannot be created the server copies the file and says so in the SMTP log." xml:space="preserve">
     <value>Her yerel alıcının kopyası, arşiv klasörü içindeki aynı dosyanın başka bir adı olur; böylece on posta kutusuna giden bir ileti on değil bir kopyaya mal olur. NTFS bir arşiv klasörü gerektirir; bağlantı oluşturulamazsa sunucu dosyayı kopyalar ve bunu SMTP günlüğünde söyler.</value>
   </data>
-  <data name="Every message goes through {0} in turn, and each is asked about the whole message and then about each attachment separately. That is thorough and it is not free: the scan happens while the sender is waiting for its &quot;250 OK&quot;." xml:space="preserve">
-    <value>Her ileti sırayla {0} üzerinden geçer ve her birine önce iletinin tamamı, sonra her ek ayrı ayrı sorulur. Bu kapsamlıdır ve bedelsiz değildir: tarama, gönderen "250 OK" yanıtını beklerken yapılır.</value>
+  <data name="Every message goes through {0} scanners in turn, and each is asked about the whole message and then about each attachment separately. That is thorough and it is not free: the scan happens while the sender is waiting for its &quot;250 OK&quot;." xml:space="preserve">
+    <value>Her ileti sırayla {0} tarayıcı üzerinden geçer ve her birine önce iletinin tamamı, sonra her ek ayrı ayrı sorulur. Bu kapsamlıdır ve bedelsiz değildir: tarama, gönderen "250 OK" yanıtını beklerken yapılır.</value>
   </data>
-  <data name="Every message is scanned by {0}" xml:space="preserve">
-    <value>Her ileti {0} tarafından taranır</value>
+  <data name="Every message is scanned by one scanner." xml:space="preserve">
+    <value>Her ileti bir tarayıcı tarafından taranır.</value>
+  </data>
+  <data name="Every message is scanned by {0} scanners." xml:space="preserve">
+    <value>Her ileti {0} tarayıcı tarafından taranır.</value>
   </data>
   <data name="Every message still in the delivery queue, the last error the server got for it, and when it is retried." xml:space="preserve">
     <value>Teslim kuyruğunda hâlâ bekleyen her ileti, sunucunun onun için aldığı son hata ve ne zaman yeniden deneneceği.</value>
@@ -6159,8 +6147,11 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="Messages the server would otherwise have refused, held so somebody can look. The sender was told each of these was accepted, so nothing will arrive again on its own: releasing one delivers it, and deleting one is final. The icons act on one message, on a group, or - in the header - on every checked message." xml:space="preserve">
     <value>Sunucunun aksi halde reddedeceği iletiler, birisi bakabilsin diye bekletiliyor. Bunların her birinin gönderenine kabul edildiği söylendi; bu yüzden hiçbir şey kendiliğinden yeniden gelmeyecek: birini serbest bırakmak onu teslim eder, birini silmek ise kesindir. Simgeler bir iletiye, bir gruba ya da - üstbilgide - işaretli her iletiye etki eder.</value>
   </data>
-  <data name="Messages up to {0} are scanned by {1}; anything larger is delivered without being scanned at all" xml:space="preserve">
-    <value>{0} boyutuna kadar iletiler {1} tarafından taranır; daha büyük olan her şey hiç taranmadan teslim edilir</value>
+  <data name="Messages up to {0} are scanned by one scanner; anything larger is delivered without being scanned at all." xml:space="preserve">
+    <value>{0} boyutuna kadar iletiler bir tarayıcı tarafından taranır; daha büyük olan her şey hiç taranmadan teslim edilir.</value>
+  </data>
+  <data name="Messages up to {0} are scanned by {1} scanners; anything larger is delivered without being scanned at all." xml:space="preserve">
+    <value>{0} boyutuna kadar iletiler {1} tarayıcı tarafından taranır; daha büyük olan her şey hiç taranmadan teslim edilir.</value>
   </data>
   <data name="Messages up to {0}. A larger message is delivered without being scanned — it is not refused, and nothing is logged." xml:space="preserve">
     <value>{0} boyutuna kadar iletiler. Daha büyük bir ileti taranmadan teslim edilir — reddedilmez ve hiçbir şey günlüğe yazılmaz.</value>
@@ -6648,8 +6639,11 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="No message is scanned for viruses, and no attachment is blocked. Everything is delivered as it arrives." xml:space="preserve">
     <value>Hiçbir ileti virüslere karşı taranmıyor ve hiçbir ek engellenmiyor. Her şey geldiği gibi teslim ediliyor.</value>
   </data>
-  <data name="No message is scanned for viruses. Attachment blocking is still stripping {0}, but nothing examines the contents of a message." xml:space="preserve">
-    <value>Hiçbir ileti virüslere karşı taranmıyor. Ek engelleme hâlâ {0} çıkarıyor, ama hiçbir şey bir iletinin içeriğini incelemiyor.</value>
+  <data name="No message is scanned for viruses. Attachment blocking is still stripping one file-name pattern, but nothing examines the contents of a message." xml:space="preserve">
+    <value>Hiçbir ileti virüslere karşı taranmıyor. Ek engelleme hâlâ bir dosya adı desenini çıkarıyor, ama hiçbir şey bir iletinin içeriğini incelemiyor.</value>
+  </data>
+  <data name="No message is scanned for viruses. Attachment blocking is still stripping {0} file-name patterns, but nothing examines the contents of a message." xml:space="preserve">
+    <value>Hiçbir ileti virüslere karşı taranmıyor. Ek engelleme hâlâ {0} dosya adı desenini çıkarıyor, ama hiçbir şey bir iletinin içeriğini incelemiyor.</value>
   </data>
   <data name="No one-time code was given, so the password in use now could not be checked." xml:space="preserve">
     <value>Tek kullanımlık kod verilmediği için şu anda kullanılan parola denetlenemedi.</value>
@@ -7188,17 +7182,32 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="One address of this machine: 127.0.0.1 when the manager runs here, otherwise an address on a management network." xml:space="preserve">
     <value>Bu bilgisayarın bir adresi: yönetici burada çalışıyorsa 127.0.0.1, değilse yönetim ağındaki adres.</value>
   </data>
+  <data name="One blocked-attachment pattern is configured but attachment blocking is switched off, so it is not applied." xml:space="preserve">
+    <value>Bir engellenen ek deseni yapılandırılmış ama ek engelleme kapalı; bu yüzden uygulanmıyor.</value>
+  </data>
+  <data name="One client listener has no encryption available, so passwords used on it cross the network in the clear." xml:space="preserve">
+    <value>Bir istemci dinleyicisinde hiçbir şifreleme yok; bu yüzden onda kullanılan parolalar ağdan düz metin olarak geçer.</value>
+  </data>
+  <data name="One client listener offers STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
+    <value>Bir istemci dinleyicisi STARTTLS'yi zorunlu kılmadan sunuyor; bu yüzden şifreleme istemeyen bir istemci onsuz kimlik doğrular ve hiçbir şey bunun olduğunu bildirmez.</value>
+  </data>
   <data name="One configured port is not being listened on: " xml:space="preserve">
     <value>Yapılandırılmış bir port dinlenmiyor: </value>
   </data>
   <data name="One event script invocation. 0 = no bound." xml:space="preserve">
     <value>Tek bir olay betiği çağrısı. 0 = sınır yok.</value>
   </data>
+  <data name="One external POP3 fetch account has anti-virus turned off, so mail collected by it is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page." xml:space="preserve">
+    <value>Bir dış POP3 toplama hesabında virüsten koruma kapalı; bu yüzden onun topladığı posta, burada ne ayarlanırsa ayarlansın taranmadan teslim ediliyor. Anahtar bu sayfada değil, toplama hesabının üzerindedir.</value>
+  </data>
   <data name="One line of up to 60 characters. The default, Sign in with SAML, is shown in each reader's language; anything else as written." xml:space="preserve">
     <value>En fazla 60 karakterlik tek satır. Varsayılan Sign in with SAML her okuyucunun dilinde gösterilir; başka herhangi bir metin yazıldığı gibi.</value>
   </data>
   <data name="One list of the nine checks, which are on, and which of the two phases each one runs in." xml:space="preserve">
     <value>Dokuz denetimin tek bir listesi, hangilerinin açık olduğu ve her birinin iki aşamadan hangisinde çalıştığı.</value>
+  </data>
+  <data name="One listener is configured for TLS but cannot serve it, so that port is not listening at all." xml:space="preserve">
+    <value>Bir dinleyici TLS için yapılandırılmış ama bunu sunamıyor; bu yüzden o port hiç dinlemiyor.</value>
   </data>
   <data name="One message to each account of this domain that has something newly held for it, listing what was held with a link that delivers it. A link works once and stops working after the hours set on the Quarantine page, which is also where the address the links point at is set - without that address nothing is sent. An empty digest is never sent, and each message says how to stop it." xml:space="preserve">
     <value>Bu alan adının, kendisi için yeni bir şey alıkonan her hesabına, alıkonanları listeleyen ve bunları teslim eden bir bağlantı içeren tek bir ileti. Bağlantı bir kez çalışır ve Karantina sayfasında ayarlanan saat dolunca geçersiz olur; bağlantıların gösterdiği adres de aynı sayfada ayarlanır - o adres olmadan hiçbir şey gönderilmez. Boş bir özet asla gönderilmez ve her ileti nasıl durdurulacağını söyler.</value>
@@ -10347,11 +10356,11 @@ Devam edilsin mi?</value>
   <data name="TLS 1.0 (legacy)" xml:space="preserve">
     <value>TLS 1.0 (eski)</value>
   </data>
-  <data name="TLS 1.0 and TLS 1.1 are" xml:space="preserve">
-    <value>TLS 1.0 ve TLS 1.1</value>
+  <data name="TLS 1.0 and TLS 1.1 are enabled. Both are deprecated by RFC 8996 and are refused outright by current clients, so leaving them on rarely buys the compatibility they were kept for, and a client that does negotiate one gets materially weaker protection than the rest." xml:space="preserve">
+    <value>TLS 1.0 ve TLS 1.1 etkin. İkisi de RFC 8996 ile kullanımdan kaldırıldı ve güncel istemciler tarafından doğrudan reddediliyor; bu yüzden açık bırakmak, uğruna tutuldukları uyumluluğu nadiren sağlar ve birini gerçekten pazarlık eden bir istemci diğerlerinden belirgin biçimde daha zayıf koruma alır.</value>
   </data>
-  <data name="TLS 1.0 is" xml:space="preserve">
-    <value>TLS 1.0</value>
+  <data name="TLS 1.0 is enabled. It is deprecated by RFC 8996 and is refused outright by current clients, so leaving it on rarely buys the compatibility it was kept for, and a client that does negotiate it gets materially weaker protection than the rest." xml:space="preserve">
+    <value>TLS 1.0 etkin. RFC 8996 ile kullanımdan kaldırıldı ve güncel istemciler tarafından doğrudan reddediliyor; bu yüzden açık bırakmak, uğruna tutulduğu uyumluluğu nadiren sağlar ve onu gerçekten pazarlık eden bir istemci diğerlerinden belirgin biçimde daha zayıf koruma alır.</value>
   </data>
   <data name="TLS 1.1" xml:space="preserve">
     <value>TLS 1.1</value>
@@ -10359,8 +10368,8 @@ Devam edilsin mi?</value>
   <data name="TLS 1.1 (legacy)" xml:space="preserve">
     <value>TLS 1.1 (eski)</value>
   </data>
-  <data name="TLS 1.1 is" xml:space="preserve">
-    <value>TLS 1.1</value>
+  <data name="TLS 1.1 is enabled. It is deprecated by RFC 8996 and is refused outright by current clients, so leaving it on rarely buys the compatibility it was kept for, and a client that does negotiate it gets materially weaker protection than the rest." xml:space="preserve">
+    <value>TLS 1.1 etkin. RFC 8996 ile kullanımdan kaldırıldı ve güncel istemciler tarafından doğrudan reddediliyor; bu yüzden açık bırakmak, uğruna tutulduğu uyumluluğu nadiren sağlar ve onu gerçekten pazarlık eden bir istemci diğerlerinden belirgin biçimde daha zayıf koruma alır.</value>
   </data>
   <data name="TLS 1.2" xml:space="preserve">
     <value>TLS 1.2</value>
@@ -10799,11 +10808,35 @@ Bu adrese giden bir sonraki ileti gönderilir; adres ancak eşik değerin gerekt
   <data name="The ceilings on what a person may add for themselves in the webmail." xml:space="preserve">
     <value>Bir kişinin web postasında kendi başına ekleyebileceklerinin sınırları.</value>
   </data>
-  <data name="The certificate &quot;{0}&quot; expired {1}{2} ago{3}" xml:space="preserve">
-    <value>"{0}" sertifikasının süresi {1}{2} önce doldu{3}</value>
+  <data name="The certificate &quot;{0}&quot; expired yesterday and is still assigned to a listener. Clients are refusing or warning about every connection to it." xml:space="preserve">
+    <value>"{0}" sertifikasının süresi dün doldu ve sertifika hâlâ bir dinleyiciye atanmış durumda. İstemciler ona yapılan her bağlantıyı reddediyor veya her bağlantı için uyarı veriyor.</value>
   </data>
-  <data name="The certificate &quot;{0}&quot; expires in {1}{2}{3}" xml:space="preserve">
-    <value>"{0}" sertifikasının süresi {1}{2}{3} içinde doluyor</value>
+  <data name="The certificate &quot;{0}&quot; expired yesterday. It is not assigned to any listener." xml:space="preserve">
+    <value>"{0}" sertifikasının süresi dün doldu. Hiçbir dinleyiciye atanmamış.</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; expired {1} days ago and is still assigned to a listener. Clients are refusing or warning about every connection to it." xml:space="preserve">
+    <value>"{0}" sertifikasının süresi {1} gün önce doldu ve sertifika hâlâ bir dinleyiciye atanmış durumda. İstemciler ona yapılan her bağlantıyı reddediyor veya her bağlantı için uyarı veriyor.</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; expired {1} days ago. It is not assigned to any listener." xml:space="preserve">
+    <value>"{0}" sertifikasının süresi {1} gün önce doldu. Hiçbir dinleyiciye atanmamış.</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; expires in {1} days and is in use by a listener." xml:space="preserve">
+    <value>"{0}" sertifikasının süresi {1} gün içinde doluyor ve sertifika bir dinleyici tarafından kullanılıyor.</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; expires in {1} days. It is not assigned to any listener." xml:space="preserve">
+    <value>"{0}" sertifikasının süresi {1} gün içinde doluyor. Hiçbir dinleyiciye atanmamış.</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; expires today and is in use by a listener." xml:space="preserve">
+    <value>"{0}" sertifikasının süresi bugün doluyor ve sertifika bir dinleyici tarafından kullanılıyor.</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; expires today. It is not assigned to any listener." xml:space="preserve">
+    <value>"{0}" sertifikasının süresi bugün doluyor. Hiçbir dinleyiciye atanmamış.</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; expires tomorrow and is in use by a listener." xml:space="preserve">
+    <value>"{0}" sertifikasının süresi yarın doluyor ve sertifika bir dinleyici tarafından kullanılıyor.</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; expires tomorrow. It is not assigned to any listener." xml:space="preserve">
+    <value>"{0}" sertifikasının süresi yarın doluyor. Hiçbir dinleyiciye atanmamış.</value>
   </data>
   <data name="The certificate &quot;{0}&quot; is in use by a listener and has a problem: {1}" xml:space="preserve">
     <value>"{0}" sertifikası bir dinleyici tarafından kullanılıyor ve bir sorunu var: {1}</value>
@@ -11169,8 +11202,14 @@ yüklenemedi. İleti büyük olasılıkla teslim edildi ve artık kuyrukta deği
   <data name="The message is accepted - the sender got a 250 - is visible in the delivery queue, and never leaves." xml:space="preserve">
     <value>İleti kabul edildi - gönderen 250 aldı -, teslim kuyruğunda görünüyor ve hiçbir zaman ayrılmıyor.</value>
   </data>
-  <data name="The message is deleted and a notice is sent to {0}." xml:space="preserve">
-    <value>İleti silinir ve {0} adresine bir bildirim gönderilir.</value>
+  <data name="The message is deleted and a notice is sent to every recipient and to the envelope sender." xml:space="preserve">
+    <value>İleti silinir ve her alıcıya ve zarf gönderene bir bildirim gönderilir.</value>
+  </data>
+  <data name="The message is deleted and a notice is sent to every recipient." xml:space="preserve">
+    <value>İleti silinir ve her alıcıya bir bildirim gönderilir.</value>
+  </data>
+  <data name="The message is deleted and a notice is sent to the envelope sender." xml:space="preserve">
+    <value>İleti silinir ve zarf gönderene bir bildirim gönderilir.</value>
   </data>
   <data name="The message is deleted and nobody is told. The deletion is recorded in the application log." xml:space="preserve">
     <value>İleti silinir ve kimseye söylenmez. Silme, uygulama günlüğüne kaydedilir.</value>
@@ -13507,12 +13546,6 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="blocked sender" xml:space="preserve">
     <value>engellenen gönderen</value>
   </data>
-  <data name="blocked-attachment pattern is" xml:space="preserve">
-    <value>engellenen ek deseni</value>
-  </data>
-  <data name="blocked-attachment patterns are" xml:space="preserve">
-    <value>engellenen ek deseni</value>
-  </data>
   <data name="bypass entry" xml:space="preserve">
     <value>atlama kaydı</value>
   </data>
@@ -13545,18 +13578,6 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="clamscan.exe path" xml:space="preserve">
     <value>clamscan.exe yolu</value>
-  </data>
-  <data name="client listener has" xml:space="preserve">
-    <value>istemci dinleyicisinde</value>
-  </data>
-  <data name="client listener offers" xml:space="preserve">
-    <value>istemci dinleyicisi</value>
-  </data>
-  <data name="client listeners have" xml:space="preserve">
-    <value>istemci dinleyicisinde</value>
-  </data>
-  <data name="client listeners offer" xml:space="preserve">
-    <value>istemci dinleyicisi</value>
   </data>
   <data name="collect mail from another provider" xml:space="preserve">
     <value>başka bir sağlayıcıdan posta topla</value>
@@ -13630,9 +13651,6 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="every domain" xml:space="preserve">
     <value>her etki alanı</value>
   </data>
-  <data name="every recipient" xml:space="preserve">
-    <value>her alıcı</value>
-  </data>
   <data name="example.com is that domain alone; .example.com is the domain and everything beneath it." xml:space="preserve">
     <value>example.com yalnızca o alan adıdır; .example.com alan adı ve altındaki her şeydir.</value>
   </data>
@@ -13648,12 +13666,6 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="expiry not checked from here" xml:space="preserve">
     <value>süre sonu buradan denetlenmedi</value>
   </data>
-  <data name="external POP3 fetch account has" xml:space="preserve">
-    <value>dış POP3 toplama hesabında</value>
-  </data>
-  <data name="external POP3 fetch accounts have" xml:space="preserve">
-    <value>dış POP3 toplama hesabında</value>
-  </data>
   <data name="external account" xml:space="preserve">
     <value>dış hesap</value>
   </data>
@@ -13662,12 +13674,6 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="fetching the version to go back to" xml:space="preserve">
     <value>geri dönülecek sürüm alınıyor</value>
-  </data>
-  <data name="file-name pattern" xml:space="preserve">
-    <value>dosya adı deseni</value>
-  </data>
-  <data name="file-name patterns" xml:space="preserve">
-    <value>dosya adı deseni</value>
   </data>
   <data name="find out why a message bounced" xml:space="preserve">
     <value>bir iletinin neden geri döndüğünü öğren</value>
@@ -13844,14 +13850,8 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="is set to &quot;{0}&quot; in the INI" xml:space="preserve">
     <value>INI'de "{0}" olarak ayarlanmış</value>
   </data>
-  <data name="it cross" xml:space="preserve">
-    <value>onda</value>
-  </data>
   <data name="it ended with code {0}" xml:space="preserve">
     <value>{0} koduyla sona erdi</value>
-  </data>
-  <data name="it is" xml:space="preserve">
-    <value>onun</value>
   </data>
   <data name="item" xml:space="preserve">
     <value>öğe</value>
@@ -13915,12 +13915,6 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="list entry" xml:space="preserve">
     <value>liste kaydı</value>
-  </data>
-  <data name="listener is" xml:space="preserve">
-    <value>dinleyici</value>
-  </data>
-  <data name="listeners are" xml:space="preserve">
-    <value>dinleyici</value>
   </data>
   <data name="lock out repeated failed logons" xml:space="preserve">
     <value>tekrarlanan başarısız oturum açmaları kilitle</value>
@@ -14108,12 +14102,6 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="scan for viruses" xml:space="preserve">
     <value>virüs tara</value>
   </data>
-  <data name="scanner" xml:space="preserve">
-    <value>tarayıcı</value>
-  </data>
-  <data name="scanners" xml:space="preserve">
-    <value>tarayıcı</value>
-  </data>
   <data name="script/save slow" xml:space="preserve">
     <value>script/save yavaş</value>
   </data>
@@ -14201,9 +14189,6 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="test whether port 25 is open" xml:space="preserve">
     <value>port 25'in açık olup olmadığını sına</value>
   </data>
-  <data name="that port is not listening" xml:space="preserve">
-    <value>o port dinlemiyor</value>
-  </data>
   <data name="the Control Panel is connected to '{0}'; hMailServer.INI and files on disk can only be inspected on the server machine itself." xml:space="preserve">
     <value>Denetim Masası '{0}' sunucusuna bağlı; hMailServer.INI ve diskteki dosyalar yalnızca sunucu makinesinin kendisinde incelenebilir.</value>
   </data>
@@ -14221,9 +14206,6 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="the address is one of the {0} on the greylisting white list" xml:space="preserve">
     <value>adres, greylisting beyaz listesindeki {0} girdiden biri</value>
-  </data>
-  <data name="the attachments are stripped and the message is still delivered" xml:space="preserve">
-    <value>ekler çıkarılır ve ileti yine teslim edilir</value>
   </data>
   <data name="the audience (aud) is not checked" xml:space="preserve">
     <value>hedef kitle (aud) denetlenmiyor</value>
@@ -14269,9 +14251,6 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="the entry does not exist (check SearchBase, or UserDnTemplate)" xml:space="preserve">
     <value>girdi yok (SearchBase'i ya da UserDnTemplate'i denetleyin)</value>
-  </data>
-  <data name="the envelope sender" xml:space="preserve">
-    <value>zarf gönderen</value>
   </data>
   <data name="the file could not be parsed as a certificate." xml:space="preserve">
     <value>dosya sertifika olarak ayrıştırılamadı.</value>
@@ -14342,15 +14321,6 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="the user name" xml:space="preserve">
     <value>kullanıcı adı</value>
   </data>
-  <data name="the whole message is deleted and never delivered" xml:space="preserve">
-    <value>iletinin tamamı silinir ve hiç teslim edilmez</value>
-  </data>
-  <data name="them cross" xml:space="preserve">
-    <value>onlarda</value>
-  </data>
-  <data name="them is" xml:space="preserve">
-    <value>onların</value>
-  </data>
   <data name="there is less than 1 GB free on the installation's drive" xml:space="preserve">
     <value>yüklemenin sürücüsünde 1 GB'tan az boş alan var</value>
   </data>
@@ -14359,9 +14329,6 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="this setting" xml:space="preserve">
     <value>bu ayar</value>
-  </data>
-  <data name="those ports are not listening" xml:space="preserve">
-    <value>o portlar dinlemiyor</value>
   </data>
   <data name="too many context IDs (the directory is out of resources)" xml:space="preserve">
     <value>çok fazla bağlam kimliği (dizinin kaynakları tükendi)</value>
@@ -14456,14 +14423,17 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="{0} DNS records are still being checked in the background; this summary will update." xml:space="preserve">
     <value>{0} DNS kaydı hâlâ arka planda denetleniyor; bu özet güncellenecek.</value>
   </data>
+  <data name="{0} If a virus is found, the attachments are stripped and the message is still delivered." xml:space="preserve">
+    <value>{0} Virüs bulunursa ekler çıkarılır ve ileti yine teslim edilir.</value>
+  </data>
+  <data name="{0} If a virus is found, the whole message is deleted and never delivered." xml:space="preserve">
+    <value>{0} Virüs bulunursa iletinin tamamı silinir ve hiç teslim edilmez.</value>
+  </data>
   <data name="{0} KB" xml:space="preserve">
     <value>{0} KB</value>
   </data>
   <data name="{0} KB ({1} MB)" xml:space="preserve">
     <value>{0} KB ({1} MB)</value>
-  </data>
-  <data name="{0} STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
-    <value>{0} STARTTLS'yi zorunlu kılmadan sunuyor; bu yüzden şifreleme istemeyen bir istemci onsuz kimlik doğrular ve hiçbir şey bunun olduğunu bildirmez.</value>
   </data>
   <data name="{0} TXT record(s) exist at {1}, but none begins &quot;v=DMARC1&quot;, so receivers - and this server's own DMARC check - see no policy." xml:space="preserve">
     <value>{1} konumunda {0} TXT kaydı var, ama hiçbiri "v=DMARC1" ile başlamıyor; bu yüzden alıcılar - ve bu sunucunun kendi DMARC denetimi - ilke görmüyor.</value>
@@ -14510,20 +14480,23 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="{0} app passwords." xml:space="preserve">
     <value>{0} uygulama parolası.</value>
   </data>
+  <data name="{0} blocked-attachment patterns are configured but attachment blocking is switched off, so none of them is applied." xml:space="preserve">
+    <value>{0} engellenen ek deseni yapılandırılmış ama ek engelleme kapalı; bu yüzden hiçbiri uygulanmıyor.</value>
+  </data>
   <data name="{0} case(s). Select one for its lines on the audit trail." xml:space="preserve">
     <value>{0} dava. Denetim izindeki satırlarını görmek için birini seçin.</value>
   </data>
   <data name="{0} change(s) carried out, none failed." xml:space="preserve">
     <value>{0} değişiklik yapıldı, hiçbiri başarısız olmadı.</value>
   </data>
+  <data name="{0} client listeners have no encryption available, so passwords used on them cross the network in the clear." xml:space="preserve">
+    <value>{0} istemci dinleyicisinde hiçbir şifreleme yok; bu yüzden onlarda kullanılan parolalar ağdan düz metin olarak geçer.</value>
+  </data>
+  <data name="{0} client listeners offer STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
+    <value>{0} istemci dinleyicisi STARTTLS'yi zorunlu kılmadan sunuyor; bu yüzden şifreleme istemeyen bir istemci onsuz kimlik doğrular ve hiçbir şey bunun olduğunu bildirmez.</value>
+  </data>
   <data name="{0} closed. It picks up where you left off." xml:space="preserve">
     <value>“{0}” kapatıldı. Kaldığınız yerden devam eder.</value>
-  </data>
-  <data name="{0} configured but attachment blocking is switched off, so none of them is applied." xml:space="preserve">
-    <value>{0} yapılandırılmış ama ek engelleme kapalı; bu yüzden hiçbiri uygulanmıyor.</value>
-  </data>
-  <data name="{0} configured for TLS but cannot serve it, so {1} at all." xml:space="preserve">
-    <value>{0} TLS için yapılandırılmış ama bunu hiçbir biçimde sunamıyor; bu yüzden {1}.</value>
   </data>
   <data name="{0} configured ports are not being listened on: " xml:space="preserve">
     <value>{0} yapılandırılmış port dinlenmiyor: </value>
@@ -14552,9 +14525,6 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="{0} domains, none of them active." xml:space="preserve">
     <value>{0} alan adı, hiçbiri etkin değil.</value>
   </data>
-  <data name="{0} enabled. Both are deprecated by RFC 8996 and are refused outright by current clients, so leaving them on rarely buys the compatibility they were kept for, and a client that does negotiate one gets materially weaker protection than the rest." xml:space="preserve">
-    <value>{0} etkin. İkisi de RFC 8996 ile kullanımdan kaldırıldı ve güncel istemciler tarafından doğrudan reddediliyor; bu yüzden açık bırakmak, uğruna tutuldukları uyumluluğu nadiren sağlar ve birini gerçekten pazarlık eden bir istemci diğerlerinden belirgin biçimde daha zayıf koruma alır.</value>
-  </data>
   <data name="{0} entries" xml:space="preserve">
     <value>{0} girdi</value>
   </data>
@@ -14569,6 +14539,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="{0} expired and now refused" xml:space="preserve">
     <value>{0} süresi dolmuş ve artık reddediliyor</value>
+  </data>
+  <data name="{0} external POP3 fetch accounts have anti-virus turned off, so mail collected by them is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page." xml:space="preserve">
+    <value>{0} dış POP3 toplama hesabında virüsten koruma kapalı; bu yüzden onların topladığı posta, burada ne ayarlanırsa ayarlansın taranmadan teslim ediliyor. Anahtar bu sayfada değil, toplama hesabının üzerindedir.</value>
   </data>
   <data name="{0} has been moved to {1}." xml:space="preserve">
     <value>{0} posta kutusu {1} adresine taşındı.</value>
@@ -14648,6 +14621,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="{0} latest {1}" xml:space="preserve">
     <value>{0}: son {1}</value>
   </data>
+  <data name="{0} listeners are configured for TLS but cannot serve it, so those ports are not listening at all." xml:space="preserve">
+    <value>{0} dinleyici TLS için yapılandırılmış ama bunu sunamıyor; bu yüzden o portlar hiç dinlemiyor.</value>
+  </data>
   <data name="{0} message references a file that is missing on disk." xml:space="preserve">
     <value>{0} ileti diskte eksik olan bir dosyaya başvuruyor.</value>
   </data>
@@ -14686,9 +14662,6 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="{0} need action, {1} cannot be told from here, {2} done, {3} not needed." xml:space="preserve">
     <value>{0} eylem gerektiriyor, {1} buradan anlaşılamıyor, {2} yapıldı, {3} gerekmiyor.</value>
-  </data>
-  <data name="{0} no encryption available, so passwords used on {1} the network in the clear." xml:space="preserve">
-    <value>{0} hiçbir şifreleme yok; bu yüzden {1} kullanılan parolalar ağdan düz metin olarak geçer.</value>
   </data>
   <data name="{0} of its {1} settings would change on this server." xml:space="preserve">
     <value>{1} ayarından {0} tanesi bu sunucuda değişirdi.</value>
@@ -14840,9 +14813,6 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="{0}. Any token the identity provider signs with this key is then accepted, including one it issued to a different application - which is enough to log in as whichever mailbox that token names. Set both to the exact values the provider puts in its tokens. The values come from the provider, which is why they are on this list." xml:space="preserve">
     <value>{0}. Kimlik sağlayıcısının bu anahtarla imzaladığı her belirteç o zaman kabul edilir; başka bir uygulamaya verdiği bir belirteç de dâhil - bu da o belirtecin adlandırdığı posta kutusu hangisiyse onun olarak oturum açmaya yeter. İkisini de sağlayıcının belirteçlerine koyduğu tam değerlere ayarlayın. Değerler sağlayıcıdan gelir; bu listede olmalarının nedeni budur.</value>
   </data>
-  <data name="{0}. If a virus is found, {1}." xml:space="preserve">
-    <value>{0}. Virüs bulunursa {1}.</value>
-  </data>
   <data name="{0}. No entries are configured, so the check does not run." xml:space="preserve">
     <value>{0}. Hiç girdi yapılandırılmamış; bu yüzden denetim çalışmıyor.</value>
   </data>
@@ -14980,9 +14950,6 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="{0}: {1} set, {2} unchanged, {3} skipped; {4} wait for a reinitialise and {5} for a restart." xml:space="preserve">
     <value>{0}: {1} ayarlandı, {2} değişmedi, {3} atlandı; {4} yeniden ilklendirmeyi, {5} yeniden başlatmayı bekliyor.</value>
-  </data>
-  <data name="{0}{1} anti-virus turned off, so mail collected by {2} delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page.{3}" xml:space="preserve">
-    <value>{0}{1} virüsten koruma kapalı; bu yüzden {2} topladığı posta, burada ne ayarlanırsa ayarlansın taranmadan teslim ediliyor. Anahtar bu sayfada değil, toplama hesabının üzerindedir.{3}</value>
   </data>
   <data name="~all: the domain says the client is probably not authorised and asks that the message be accepted anyway. Many spray sources live behind it. A score at or above the delete threshold refuses the message during the SMTP conversation as a fail does; a softfail is never a pass for the greylisting bypass." xml:space="preserve">
     <value>~all: alan adı, istemcinin büyük olasılıkla yetkili olmadığını söyler ve iletinin yine de kabul edilmesini ister. Pek çok toplu gönderim kaynağı bunun arkasına saklanır. Silme eşiğine eşit veya üstünde bir puan, iletiyi SMTP görüşmesi sırasında bir fail gibi reddeder; softfail, greylisting muafiyeti için asla pass sayılmaz.</value>

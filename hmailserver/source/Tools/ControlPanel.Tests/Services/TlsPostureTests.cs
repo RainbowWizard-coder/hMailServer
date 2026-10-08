@@ -476,5 +476,135 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.True(config.WasRead(nameof(config.Listeners), nameof(config.Certificates), nameof(config.RangesTotal)));
          Assert.DoesNotContain("could not be read", TlsPosture.Verdict(config));
       }
+
+      // ---- whole sentences, one per case ----------------------------------------
+      //
+      // A verdict put together from a counted noun ("1 client listener has"), a
+      // pronoun ("it cross") and a template could not be translated: the pieces
+      // are translated apart, and Polish read "przechodzą przez przez sieć", German
+      // "kann es aber nicht". Each case is now one text in the catalogue, and these
+      // pin the English of each so that no piece can come back.
+
+      [Fact]
+      public void TheVerdictIsOneWholeSentenceForOneListenerAndAnotherForSeveral()
+      {
+         TlsPostureConfig config = Healthy();
+
+         config.Listeners = new List<TlsListener> { Listener("IMAP", 143, TlsListenerSecurity.None) };
+         Assert.Equal("One client listener has no encryption available, so passwords used on it cross the network in the clear.",
+            TlsPosture.Verdict(config));
+         config.Listeners.Add(Listener("POP3", 110, TlsListenerSecurity.None));
+         Assert.Equal("2 client listeners have no encryption available, so passwords used on them cross the network in the clear.",
+            TlsPosture.Verdict(config));
+
+         config.Listeners = new List<TlsListener> { Listener("IMAP", 143, TlsListenerSecurity.StartTlsOptional) };
+         Assert.Equal("One client listener offers STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened.",
+            TlsPosture.Verdict(config));
+         config.Listeners.Add(Listener("POP3", 110, TlsListenerSecurity.StartTlsOptional));
+         Assert.Equal("2 client listeners offer STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened.",
+            TlsPosture.Verdict(config));
+
+         config.Listeners = new List<TlsListener> { Listener("IMAP", 993, TlsListenerSecurity.Implicit, certificate: "") };
+         Assert.Equal("One listener is configured for TLS but cannot serve it, so that port is not listening at all.",
+            TlsPosture.Verdict(config));
+         config.Listeners.Add(Listener("POP3", 995, TlsListenerSecurity.Implicit, certificate: ""));
+         Assert.Equal("2 listeners are configured for TLS but cannot serve it, so those ports are not listening at all.",
+            TlsPosture.Verdict(config));
+      }
+
+      [Fact]
+      public void ACertificateNoteIsOneWholeSentencePerCase()
+      {
+         // "expires in {1}{2}{3}" took " day" or " days" and a clause: German read
+         // "vor 5 Tage", and Japanese put the clause before the verb.
+         Assert.Equal("The certificate \"server cert\" expired yesterday and is still assigned to a listener. Clients are refusing or warning about every connection to it.",
+            TlsPosture.ExpiredNote("server cert", 1, true));
+         Assert.Equal("The certificate \"server cert\" expired 5 days ago and is still assigned to a listener. Clients are refusing or warning about every connection to it.",
+            TlsPosture.ExpiredNote("server cert", 5, true));
+         Assert.Equal("The certificate \"server cert\" expired yesterday. It is not assigned to any listener.",
+            TlsPosture.ExpiredNote("server cert", 1, false));
+         Assert.Equal("The certificate \"server cert\" expired 5 days ago. It is not assigned to any listener.",
+            TlsPosture.ExpiredNote("server cert", 5, false));
+
+         Assert.Equal("The certificate \"server cert\" expires today and is in use by a listener.",
+            TlsPosture.ExpiringNote("server cert", 0, true));
+         Assert.Equal("The certificate \"server cert\" expires tomorrow and is in use by a listener.",
+            TlsPosture.ExpiringNote("server cert", 1, true));
+         Assert.Equal("The certificate \"server cert\" expires in 30 days and is in use by a listener.",
+            TlsPosture.ExpiringNote("server cert", 30, true));
+         Assert.Equal("The certificate \"server cert\" expires today. It is not assigned to any listener.",
+            TlsPosture.ExpiringNote("server cert", 0, false));
+         Assert.Equal("The certificate \"server cert\" expires tomorrow. It is not assigned to any listener.",
+            TlsPosture.ExpiringNote("server cert", 1, false));
+         Assert.Equal("The certificate \"server cert\" expires in 30 days. It is not assigned to any listener.",
+            TlsPosture.ExpiringNote("server cert", 30, false));
+      }
+
+      [Fact]
+      public void TheNotesPlaceEachCertificateByItsDaysRemaining()
+      {
+         // DaysRemaining is the floor of the days to the expiry: -1 is within the
+         // last 24 hours, 0 within the next 24.
+         TlsPostureConfig config = Healthy();
+         config.Certificates = new List<TlsCertificate>
+         {
+            new() { Name = "gone", DaysRemaining = -1, InUse = true },
+            new() { Name = "spare", DaysRemaining = -12, InUse = false },
+            new() { Name = "today", DaysRemaining = 0, InUse = true },
+            new() { Name = "soon", DaysRemaining = 1, InUse = false }
+         };
+
+         Assert.True(HasNote(config, StatusLevel.Critical, "The certificate \"gone\" expired yesterday and is still assigned to a listener."));
+         Assert.True(HasNote(config, StatusLevel.Warning, "The certificate \"spare\" expired 12 days ago. It is not assigned to any listener."));
+         Assert.True(HasNote(config, StatusLevel.Warning, "The certificate \"today\" expires today and is in use by a listener."));
+         Assert.True(HasNote(config, StatusLevel.Information, "The certificate \"soon\" expires tomorrow. It is not assigned to any listener."));
+      }
+
+      [Fact]
+      public void TheDeprecatedVersionsNoteIsWrittenWholeForEachCombination()
+      {
+         TlsPostureConfig config = Healthy();
+
+         config.Tls10Enabled = true;
+         Assert.True(HasNote(config, StatusLevel.Warning, "TLS 1.0 is enabled. It is deprecated by RFC 8996"));
+         Assert.False(HasNote(config, StatusLevel.Warning, "TLS 1.1"));
+
+         config.Tls10Enabled = false;
+         config.Tls11Enabled = true;
+         Assert.True(HasNote(config, StatusLevel.Warning, "TLS 1.1 is enabled. It is deprecated by RFC 8996"));
+         Assert.False(HasNote(config, StatusLevel.Warning, "TLS 1.0"));
+
+         config.Tls10Enabled = true;
+         Assert.True(HasNote(config, StatusLevel.Warning, "TLS 1.0 and TLS 1.1 are enabled. Both are deprecated by RFC 8996"));
+         Assert.Equal(1, TlsPosture.Notes(config).Count(n => n.Text.Contains("RFC 8996")));
+      }
+
+      [Fact]
+      public void NoVerdictOrNoteBeginsOrEndsInTheMiddleOfASentence()
+      {
+         // A text that starts with a lower-case word or ends without a full stop is
+         // a piece of a sentence, which is what the catalogue must never hold.
+         var configs = new List<TlsPostureConfig> { Healthy(), StockPorts() };
+         TlsPostureConfig optional = Healthy();
+         optional.Listeners = new List<TlsListener> { Listener("IMAP", 143, TlsListenerSecurity.StartTlsOptional), Listener("POP3", 110, TlsListenerSecurity.StartTlsOptional) };
+         optional.Tls10Enabled = true;
+         optional.Certificates = new List<TlsCertificate> { new() { Name = "a", DaysRemaining = -3, InUse = true }, new() { Name = "b", DaysRemaining = 2, InUse = false } };
+         optional.RangesRequiringTlsForAuth = 0;
+         configs.Add(optional);
+         TlsPostureConfig broken = Healthy();
+         broken.Listeners = new List<TlsListener> { Listener("IMAP", 993, TlsListenerSecurity.Implicit, certificate: ""), Listener("POP3", 995, TlsListenerSecurity.Implicit, certificate: "") };
+         configs.Add(broken);
+
+         foreach (TlsPostureConfig config in configs)
+         {
+            var texts = new List<string> { TlsPosture.Verdict(config) };
+            texts.AddRange(TlsPosture.Notes(config).Select(n => n.Text));
+            foreach (string text in texts)
+            {
+               Assert.True(char.IsUpper(text[0]) || char.IsDigit(text[0]), text);
+               Assert.EndsWith(".", text);
+            }
+         }
+      }
    }
 }
