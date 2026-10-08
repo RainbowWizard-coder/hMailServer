@@ -2781,6 +2781,9 @@ Los detalles completos se escribieron en:
   <data name="Could not add the route: {0}" xml:space="preserve">
     <value>No se pudo añadir la ruta: {0}</value>
   </data>
+  <data name="Could not build this page" xml:space="preserve">
+    <value>No se pudo construir esta página</value>
+  </data>
   <data name="Could not change how the member is sent mail: {0}" xml:space="preserve">
     <value>No se pudo cambiar cómo recibe el correo el miembro: {0}</value>
   </data>

@@ -2781,6 +2781,9 @@ Starta om Kontrollpanelen nu? Välj Nej för att försöka fortsätta arbeta.</v
   <data name="Could not add the route: {0}" xml:space="preserve">
     <value>Kunde inte lägga till rutten: {0}</value>
   </data>
+  <data name="Could not build this page" xml:space="preserve">
+    <value>Kunde inte bygga den här sidan</value>
+  </data>
   <data name="Could not change how the member is sent mail: {0}" xml:space="preserve">
     <value>Det gick inte att ändra hur medlemmen får post: {0}</value>
   </data>

@@ -2781,6 +2781,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Çalışmayı sürdürmeyi de
   <data name="Could not add the route: {0}" xml:space="preserve">
     <value>Rota eklenemedi: {0}</value>
   </data>
+  <data name="Could not build this page" xml:space="preserve">
+    <value>Bu sayfa oluşturulamadı</value>
+  </data>
   <data name="Could not change how the member is sent mail: {0}" xml:space="preserve">
     <value>Üyenin posta alma biçimi değiştirilemedi: {0}</value>
   </data>

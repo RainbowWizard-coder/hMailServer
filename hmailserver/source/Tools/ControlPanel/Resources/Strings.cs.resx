@@ -2781,6 +2781,9 @@ Restartovat nyní Control Panel? Volbou Ne se pokusíte pokračovat v práci.</v
   <data name="Could not add the route: {0}" xml:space="preserve">
     <value>Nepodařilo se přidat trasu: {0}</value>
   </data>
+  <data name="Could not build this page" xml:space="preserve">
+    <value>Stránku se nepodařilo sestavit</value>
+  </data>
   <data name="Could not change how the member is sent mail: {0}" xml:space="preserve">
     <value>Nepodařilo se změnit, jak člen dostává poštu: {0}</value>
   </data>

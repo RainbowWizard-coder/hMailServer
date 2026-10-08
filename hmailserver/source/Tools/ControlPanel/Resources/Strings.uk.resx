@@ -2781,6 +2781,9 @@
   <data name="Could not add the route: {0}" xml:space="preserve">
     <value>Не вдалося додати маршрут: {0}</value>
   </data>
+  <data name="Could not build this page" xml:space="preserve">
+    <value>Не вдалося побудувати цю сторінку</value>
+  </data>
   <data name="Could not change how the member is sent mail: {0}" xml:space="preserve">
     <value>Не вдалося змінити, як учасник отримує пошту: {0}</value>
   </data>

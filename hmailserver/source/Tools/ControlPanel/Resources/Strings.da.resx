@@ -2781,6 +2781,9 @@ Vil du genstarte Control Panel nu? Vælg Nej for at forsøge at fortsætte arbej
   <data name="Could not add the route: {0}" xml:space="preserve">
     <value>Kunne ikke tilføje ruten: {0}</value>
   </data>
+  <data name="Could not build this page" xml:space="preserve">
+    <value>Siden kunne ikke bygges</value>
+  </data>
   <data name="Could not change how the member is sent mail: {0}" xml:space="preserve">
     <value>Det lykkedes ikke at ændre, hvordan medlemmet får post: {0}</value>
   </data>

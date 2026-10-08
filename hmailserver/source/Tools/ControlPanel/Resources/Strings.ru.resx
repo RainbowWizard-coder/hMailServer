@@ -2781,6 +2781,9 @@ Control Panel может читать файлы сообщений только
   <data name="Could not add the route: {0}" xml:space="preserve">
     <value>Не удалось добавить маршрут: {0}</value>
   </data>
+  <data name="Could not build this page" xml:space="preserve">
+    <value>Не удалось построить эту страницу</value>
+  </data>
   <data name="Could not change how the member is sent mail: {0}" xml:space="preserve">
     <value>Не удалось изменить способ получения почты участником: {0}</value>
   </data>

@@ -2781,6 +2781,9 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   <data name="Could not add the route: {0}" xml:space="preserve">
     <value>Kon de route niet toevoegen: {0}</value>
   </data>
+  <data name="Could not build this page" xml:space="preserve">
+    <value>Kon deze pagina niet opbouwen</value>
+  </data>
   <data name="Could not change how the member is sent mail: {0}" xml:space="preserve">
     <value>Kon niet wijzigen hoe het lid mail ontvangt: {0}</value>
   </data>

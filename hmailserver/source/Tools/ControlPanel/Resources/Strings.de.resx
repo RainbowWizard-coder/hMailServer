@@ -2781,6 +2781,9 @@ Control Panel jetzt neu starten? Wählen Sie Nein, um zu versuchen weiterzuarbei
   <data name="Could not add the route: {0}" xml:space="preserve">
     <value>Die Route konnte nicht hinzugefügt werden: {0}</value>
   </data>
+  <data name="Could not build this page" xml:space="preserve">
+    <value>Die Seite konnte nicht aufgebaut werden</value>
+  </data>
   <data name="Could not change how the member is sent mail: {0}" xml:space="preserve">
     <value>Wie das Mitglied Post erhält, konnte nicht geändert werden: {0}</value>
   </data>

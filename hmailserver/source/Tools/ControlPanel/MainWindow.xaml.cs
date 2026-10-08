@@ -1350,8 +1350,13 @@ namespace hMailServer.ControlPanel
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
+            // A fault of the page's own - a control added to a second panel, a
+            // cast that failed - is not the server's: calling it "Server
+            // unavailable" sent an administrator to restart a service that was
+            // fine (the Auto-ban page did exactly that on every second visit).
+            bool server = ex is System.Runtime.InteropServices.COMException || ServerSession.IsTransportFailure(ex);
             Services.Toast.Failure(F("Could not load this page: {0}", ServerSession.DescribeComError(ex)),
-               L("Server unavailable"));
+               server ? L("Server unavailable") : L("Could not build this page"));
          }
          finally
          {

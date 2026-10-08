@@ -2781,6 +2781,9 @@ Restart the Control Panel now? Choose No to try to keep working.</value>
   <data name="Could not add the route: {0}" xml:space="preserve">
     <value>Could not add the route: {0}</value>
   </data>
+  <data name="Could not build this page" xml:space="preserve">
+    <value>Could not build this page</value>
+  </data>
   <data name="Could not change how the member is sent mail: {0}" xml:space="preserve">
     <value>Could not change how the member is sent mail: {0}</value>
   </data>

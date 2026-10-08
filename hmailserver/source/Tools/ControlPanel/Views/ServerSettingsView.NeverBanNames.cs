@@ -33,28 +33,38 @@ namespace hMailServer.ControlPanel.Views
       /// </summary>
       private sealed class NeverBanNameRows : ComSetting, INotPersisted
       {
-         private readonly DataGrid grid_ = new()
-         {
-            AutoGenerateColumns = false,
-            IsReadOnly = true,
-            CanUserAddRows = false,
-            CanUserDeleteRows = false,
-            SelectionMode = DataGridSelectionMode.Single,
-            MinHeight = 120,
-            MaxHeight = 280
-         };
-
-         private readonly TextBlock status_ = new()
-         {
-            TextWrapping = TextWrapping.Wrap,
-            Visibility = Visibility.Collapsed
-         };
+         // The grid and the status line of the editor last built. Made anew by
+         // every BuildEditor, not once: the definition is built once, with the
+         // page, and BuildUi builds the editors again on every visit and every
+         // Reload, so a grid made once and added to the second visit's panel was
+         // "already the logical child of another element" - WPF threw, the shell
+         // called it "Server unavailable", and the Auto-ban page was blank on
+         // every second visit. The actions below act on whichever build is on
+         // the page, which is these.
+         private DataGrid grid_;
+         private TextBlock status_;
 
          public override bool WantsInitialValue => false;
 
          protected override FrameworkElement BuildEditor(object value)
          {
-            grid_.Columns.Clear();
+            grid_ = new DataGrid
+            {
+               AutoGenerateColumns = false,
+               IsReadOnly = true,
+               CanUserAddRows = false,
+               CanUserDeleteRows = false,
+               SelectionMode = DataGridSelectionMode.Single,
+               MinHeight = 120,
+               MaxHeight = 280
+            };
+
+            status_ = new TextBlock
+            {
+               TextWrapping = TextWrapping.Wrap,
+               Visibility = Visibility.Collapsed
+            };
+
             grid_.Columns.Add(Column_(L("Name or suffix"), nameof(NeverBanNameRow.Pattern), new DataGridLength(2, DataGridLengthUnitType.Star)));
             grid_.Columns.Add(Column_(L("Note"), nameof(NeverBanNameRow.Note), new DataGridLength(2, DataGridLengthUnitType.Star)));
             grid_.Columns.Add(Column_(L("Added"), nameof(NeverBanNameRow.Created), DataGridLength.Auto));

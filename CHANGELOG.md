@@ -521,6 +521,14 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   message* and *Remove all attachments and deliver the text*, as the virus scanning overview already described them,
   with a note under the row: "Every attachment is replaced by a short note, not only the infected one; an encrypted
   message is delivered unchanged."
+- **Fixed: the Control Panel's Auto-ban page was blank on every second visit and after every Reload.** The never-ban
+  list's editor kept its grid in a field built once with the page's definition, while the page builds every editor
+  again on every visit; the second build added the same grid to a new panel, WPF refused ("Specified element is
+  already the logical child of another element"), and the shell reported that as "Server unavailable" over an empty
+  page, sending an administrator to restart a service that was fine. The editor makes its grid and status line anew
+  on every build, and the shell titles a fault of a page's own "Could not build this page", keeping "Server
+  unavailable" for a COM failure or a lost link. `NeverBanEditorTests` holds the editor to building afresh and the
+  shell to telling the two apart.
 
 ### Administration
 

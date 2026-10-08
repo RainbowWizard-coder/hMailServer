@@ -2781,6 +2781,9 @@ Redémarrer le Control Panel maintenant ? Choisissez Non pour essayer de continu
   <data name="Could not add the route: {0}" xml:space="preserve">
     <value>Impossible d'ajouter la route : {0}</value>
   </data>
+  <data name="Could not build this page" xml:space="preserve">
+    <value>Impossible de construire cette page</value>
+  </data>
   <data name="Could not change how the member is sent mail: {0}" xml:space="preserve">
     <value>Impossible de changer la façon dont le membre reçoit le courrier : {0}</value>
   </data>
