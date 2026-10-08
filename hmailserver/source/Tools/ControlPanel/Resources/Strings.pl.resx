@@ -10853,6 +10853,12 @@ Następna wiadomość na ten adres zostanie wysłana, a adres wróci na listę d
   <data name="The ceilings on what a person may add for themselves in the webmail." xml:space="preserve">
     <value>Górne granice tego, co osoba może sama dodać w poczcie w przeglądarce.</value>
   </data>
+  <data name="The certificate &quot;{0}&quot; expired earlier today and is still assigned to a listener. Clients are refusing or warning about every connection to it." xml:space="preserve">
+    <value>Certyfikat „{0}” wygasł już dzisiaj i nadal jest przypisany do nasłuchu. Klienty odrzucają każde połączenie z nim lub o nim ostrzegają.</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; expired earlier today. It is not assigned to any listener." xml:space="preserve">
+    <value>Certyfikat „{0}” wygasł już dzisiaj. Nie jest przypisany do żadnego nasłuchu.</value>
+  </data>
   <data name="The certificate &quot;{0}&quot; expired yesterday and is still assigned to a listener. Clients are refusing or warning about every connection to it." xml:space="preserve">
     <value>Certyfikat „{0}” wygasł wczoraj i nadal jest przypisany do nasłuchu. Klienty odrzucają każde połączenie z nim lub o nim ostrzegają.</value>
   </data>
@@ -13702,11 +13708,17 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="example.com, example.net - empty means every domain" xml:space="preserve">
     <value>example.com, example.net - puste oznacza każdą domenę</value>
   </data>
+  <data name="expired today" xml:space="preserve">
+    <value>wygasł dzisiaj</value>
+  </data>
   <data name="expired {0} day(s) ago" xml:space="preserve">
     <value>wygasł {0} dni temu</value>
   </data>
   <data name="expires in {0} day(s)" xml:space="preserve">
     <value>wygasa za {0} dni</value>
+  </data>
+  <data name="expires today" xml:space="preserve">
+    <value>wygasa dzisiaj</value>
   </data>
   <data name="expiry not checked from here" xml:space="preserve">
     <value>termin wygaśnięcia nie jest sprawdzany z tego miejsca</value>

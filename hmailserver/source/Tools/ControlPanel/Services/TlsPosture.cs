@@ -63,8 +63,21 @@ namespace hMailServer.ControlPanel.Services
 
       public string Name { get; set; } = "";
 
-      /// <summary>Days until it expires; negative when it already has. Null when it could not be read.</summary>
+      /// <summary>
+      /// Whole days until it expires, the floor of the time left: 0 within the next
+      /// 24 hours, -1 within the last 24. Decides the level and whether it is inside
+      /// the warning window. Null when it could not be read.
+      /// </summary>
       public int? DaysRemaining { get; set; }
+
+      /// <summary>
+      /// When it expires, in local time, as the certificate says. The day a note
+      /// names - today, tomorrow, yesterday, in so many days - is counted on the
+      /// calendar from this, not from <see cref="DaysRemaining"/>, whose 0 covers a
+      /// certificate that expires at six tomorrow morning. Null when it could not be
+      /// read, and the count then falls back to DaysRemaining.
+      /// </summary>
+      public DateTime? ExpiresOn { get; set; }
 
       /// <summary>A problem with the files themselves - missing, unreadable, mismatched pair. Null when there is none.</summary>
       public string Problem { get; set; }
@@ -357,7 +370,13 @@ namespace hMailServer.ControlPanel.Services
       /// Everything about this posture an administrator would rather be told than
       /// discover from a packet capture.
       /// </summary>
-      public static IReadOnlyList<TlsPostureNote> Notes(TlsPostureConfig config)
+      public static IReadOnlyList<TlsPostureNote> Notes(TlsPostureConfig config) => Notes(config, DateTime.Today);
+
+      /// <summary>
+      /// The notes as of <paramref name="today"/>, the calendar day the certificate
+      /// notes count from. The tests pass a fixed day; the page passes today's.
+      /// </summary>
+      internal static IReadOnlyList<TlsPostureNote> Notes(TlsPostureConfig config, DateTime today)
       {
          var notes = new List<TlsPostureNote>();
 
@@ -460,22 +479,29 @@ namespace hMailServer.ControlPanel.Services
             if (certificate.DaysRemaining == null)
                continue;
 
-            // DaysRemaining is the floor of the days to the expiry: 0 is within
-            // the next 24 hours, -1 within the last 24. Each case is one whole
-            // text: "in {1}{2}" with " day" or " days" and a trailing clause
-            // read "vor 5 Tage" in German and "であり、リスナーが使用しています。
-            // 後に期限切れになります" in Japanese, the clause before the verb.
+            // DaysRemaining, the floor of the days to the expiry, decides the level
+            // and the window: 0 is within the next 24 hours, -1 within the last 24.
+            // The day the note names is counted on the calendar from the expiry
+            // date, because "expires today" is a claim about the date: read at eight
+            // in the evening, a certificate that expires at six the next morning has
+            // a DaysRemaining of 0 and expires tomorrow, and one that expired at five
+            // that morning has -1 and expired earlier today, not yesterday. Each
+            // case is one whole text: "in {1}{2}" with " day" or " days" and a
+            // trailing clause read "vor 5 Tage" in German and
+            // "であり、リスナーが使用しています。後に期限切れになります" in
+            // Japanese, the clause before the verb.
             int days = certificate.DaysRemaining.Value;
+            int calendar = CalendarDays(certificate, today).Value;
 
             if (days < 0)
             {
                notes.Add(new TlsPostureNote(certificate.InUse ? StatusLevel.Critical : StatusLevel.Warning,
-                  ExpiredNote(certificate.Name, -days, certificate.InUse)));
+                  ExpiredNote(certificate.Name, Math.Max(0, -calendar), certificate.InUse)));
             }
             else if (days <= ExpiryWarningDays)
             {
                notes.Add(new TlsPostureNote(certificate.InUse ? StatusLevel.Warning : StatusLevel.Information,
-                  ExpiringNote(certificate.Name, days, certificate.InUse)));
+                  ExpiringNote(certificate.Name, Math.Max(0, calendar), certificate.InUse)));
             }
          }
 
@@ -512,22 +538,43 @@ namespace hMailServer.ControlPanel.Services
       private static string Ports(IEnumerable<TlsListenerVerdict> verdicts) =>
          string.Join(", ", verdicts.Select(v => v.Listener.Protocol + " " + v.Listener.Port));
 
-      /// <summary>The note on a certificate that expired <paramref name="daysAgo"/> days ago (1 or more).</summary>
+      /// <summary>
+      /// The calendar day the certificate expires, counted from <paramref name="today"/>:
+      /// 0 is today, 1 tomorrow, -1 yesterday, whatever the time of day. Falls back to
+      /// <see cref="TlsCertificate.DaysRemaining"/>, the floor of the time left, when
+      /// the expiry date is not known; null when neither is.
+      /// </summary>
+      public static int? CalendarDays(TlsCertificate certificate, DateTime today) =>
+         certificate.ExpiresOn != null
+            ? (certificate.ExpiresOn.Value.Date - today.Date).Days
+            : certificate.DaysRemaining;
+
+      /// <summary>
+      /// The note on a certificate that expired <paramref name="daysAgo"/> calendar
+      /// days ago: 0 is earlier today, 1 yesterday.
+      /// </summary>
       internal static string ExpiredNote(string name, int daysAgo, bool inUse)
       {
          if (inUse)
          {
-            return daysAgo == 1
+            return daysAgo == 0
+               ? F("The certificate \"{0}\" expired earlier today and is still assigned to a listener. Clients are refusing or warning about every connection to it.", name)
+               : daysAgo == 1
                ? F("The certificate \"{0}\" expired yesterday and is still assigned to a listener. Clients are refusing or warning about every connection to it.", name)
                : F("The certificate \"{0}\" expired {1} days ago and is still assigned to a listener. Clients are refusing or warning about every connection to it.", name, daysAgo);
          }
 
-         return daysAgo == 1
+         return daysAgo == 0
+            ? F("The certificate \"{0}\" expired earlier today. It is not assigned to any listener.", name)
+            : daysAgo == 1
             ? F("The certificate \"{0}\" expired yesterday. It is not assigned to any listener.", name)
             : F("The certificate \"{0}\" expired {1} days ago. It is not assigned to any listener.", name, daysAgo);
       }
 
-      /// <summary>The note on a certificate that expires in <paramref name="days"/> days (0 or more).</summary>
+      /// <summary>
+      /// The note on a certificate that expires in <paramref name="days"/> calendar
+      /// days: 0 is today, 1 tomorrow.
+      /// </summary>
       internal static string ExpiringNote(string name, int days, bool inUse)
       {
          if (inUse)

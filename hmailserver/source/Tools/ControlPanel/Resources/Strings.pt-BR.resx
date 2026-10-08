@@ -10853,6 +10853,12 @@ A próxima mensagem para esse endereço será enviada, e ele só volta à lista 
   <data name="The ceilings on what a person may add for themselves in the webmail." xml:space="preserve">
     <value>Os limites do que uma pessoa pode acrescentar por conta própria no webmail.</value>
   </data>
+  <data name="The certificate &quot;{0}&quot; expired earlier today and is still assigned to a listener. Clients are refusing or warning about every connection to it." xml:space="preserve">
+    <value>O certificado "{0}" já expirou hoje e ainda está atribuído a um ouvinte. Os clientes recusam ou alertam sobre cada conexão com ele.</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; expired earlier today. It is not assigned to any listener." xml:space="preserve">
+    <value>O certificado "{0}" já expirou hoje. Não está atribuído a nenhum ouvinte.</value>
+  </data>
   <data name="The certificate &quot;{0}&quot; expired yesterday and is still assigned to a listener. Clients are refusing or warning about every connection to it." xml:space="preserve">
     <value>O certificado "{0}" expirou ontem e ainda está atribuído a um ouvinte. Os clientes recusam ou alertam sobre cada conexão com ele.</value>
   </data>
@@ -13702,11 +13708,17 @@ Nenhuma mensagem é excluída e nenhuma conta é removida. Continuar?</value>
   <data name="example.com, example.net - empty means every domain" xml:space="preserve">
     <value>example.com, example.net - vazio significa todos os domínios</value>
   </data>
+  <data name="expired today" xml:space="preserve">
+    <value>expirou hoje</value>
+  </data>
   <data name="expired {0} day(s) ago" xml:space="preserve">
     <value>expirou há {0} dia(s)</value>
   </data>
   <data name="expires in {0} day(s)" xml:space="preserve">
     <value>expira em {0} dia(s)</value>
+  </data>
+  <data name="expires today" xml:space="preserve">
+    <value>expira hoje</value>
   </data>
   <data name="expiry not checked from here" xml:space="preserve">
     <value>validade não verificada daqui</value>

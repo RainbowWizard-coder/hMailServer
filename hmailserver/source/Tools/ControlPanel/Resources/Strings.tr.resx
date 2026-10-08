@@ -10853,6 +10853,12 @@ Bu adrese giden bir sonraki ileti gönderilir; adres ancak eşik değerin gerekt
   <data name="The ceilings on what a person may add for themselves in the webmail." xml:space="preserve">
     <value>Bir kişinin web postasında kendi başına ekleyebileceklerinin sınırları.</value>
   </data>
+  <data name="The certificate &quot;{0}&quot; expired earlier today and is still assigned to a listener. Clients are refusing or warning about every connection to it." xml:space="preserve">
+    <value>"{0}" sertifikasının süresi bugün doldu ve sertifika hâlâ bir dinleyiciye atanmış durumda. İstemciler ona yapılan her bağlantıyı reddediyor veya her bağlantı için uyarı veriyor.</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; expired earlier today. It is not assigned to any listener." xml:space="preserve">
+    <value>"{0}" sertifikasının süresi bugün doldu. Hiçbir dinleyiciye atanmamış.</value>
+  </data>
   <data name="The certificate &quot;{0}&quot; expired yesterday and is still assigned to a listener. Clients are refusing or warning about every connection to it." xml:space="preserve">
     <value>"{0}" sertifikasının süresi dün doldu ve sertifika hâlâ bir dinleyiciye atanmış durumda. İstemciler ona yapılan her bağlantıyı reddediyor veya her bağlantı için uyarı veriyor.</value>
   </data>
@@ -13702,11 +13708,17 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="example.com, example.net - empty means every domain" xml:space="preserve">
     <value>example.com, example.net - boş, her etki alanı demektir</value>
   </data>
+  <data name="expired today" xml:space="preserve">
+    <value>süresi bugün doldu</value>
+  </data>
   <data name="expired {0} day(s) ago" xml:space="preserve">
     <value>{0} gün önce süresi doldu</value>
   </data>
   <data name="expires in {0} day(s)" xml:space="preserve">
     <value>{0} gün içinde süresi dolacak</value>
+  </data>
+  <data name="expires today" xml:space="preserve">
+    <value>süresi bugün dolacak</value>
   </data>
   <data name="expiry not checked from here" xml:space="preserve">
     <value>süre sonu buradan denetlenmedi</value>

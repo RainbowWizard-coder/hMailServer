@@ -10853,6 +10853,12 @@ Seuraava viesti tähän osoitteeseen lähetetään, ja osoite palaa listalle vas
   <data name="The ceilings on what a person may add for themselves in the webmail." xml:space="preserve">
     <value>Ylärajat sille, mitä henkilö saa itse lisätä verkkopostissa.</value>
   </data>
+  <data name="The certificate &quot;{0}&quot; expired earlier today and is still assigned to a listener. Clients are refusing or warning about every connection to it." xml:space="preserve">
+    <value>Varmenne "{0}" vanheni aiemmin tänään ja on yhä liitetty kuuntelijaan. Asiakasohjelmat hylkäävät jokaisen yhteyden siihen tai varoittavat siitä.</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; expired earlier today. It is not assigned to any listener." xml:space="preserve">
+    <value>Varmenne "{0}" vanheni aiemmin tänään. Sitä ei ole liitetty mihinkään kuuntelijaan.</value>
+  </data>
   <data name="The certificate &quot;{0}&quot; expired yesterday and is still assigned to a listener. Clients are refusing or warning about every connection to it." xml:space="preserve">
     <value>Varmenne "{0}" vanheni eilen ja on yhä liitetty kuuntelijaan. Asiakasohjelmat hylkäävät jokaisen yhteyden siihen tai varoittavat siitä.</value>
   </data>
@@ -13702,11 +13708,17 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="example.com, example.net - empty means every domain" xml:space="preserve">
     <value>example.com, example.net - tyhjä tarkoittaa jokaista verkkotunnusta</value>
   </data>
+  <data name="expired today" xml:space="preserve">
+    <value>vanheni tänään</value>
+  </data>
   <data name="expired {0} day(s) ago" xml:space="preserve">
     <value>vanheni {0} päivää sitten</value>
   </data>
   <data name="expires in {0} day(s)" xml:space="preserve">
     <value>vanhenee {0} päivän kuluttua</value>
+  </data>
+  <data name="expires today" xml:space="preserve">
+    <value>vanhenee tänään</value>
   </data>
   <data name="expiry not checked from here" xml:space="preserve">
     <value>vanhenemista ei tarkistettu täältä</value>

@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using hMailServer.ControlPanel.Services;
@@ -517,10 +518,14 @@ namespace hMailServer.ControlPanel.Tests.Services
       {
          // "expires in {1}{2}{3}" took " day" or " days" and a clause: German read
          // "vor 5 Tage", and Japanese put the clause before the verb.
+         Assert.Equal("The certificate \"server cert\" expired earlier today and is still assigned to a listener. Clients are refusing or warning about every connection to it.",
+            TlsPosture.ExpiredNote("server cert", 0, true));
          Assert.Equal("The certificate \"server cert\" expired yesterday and is still assigned to a listener. Clients are refusing or warning about every connection to it.",
             TlsPosture.ExpiredNote("server cert", 1, true));
          Assert.Equal("The certificate \"server cert\" expired 5 days ago and is still assigned to a listener. Clients are refusing or warning about every connection to it.",
             TlsPosture.ExpiredNote("server cert", 5, true));
+         Assert.Equal("The certificate \"server cert\" expired earlier today. It is not assigned to any listener.",
+            TlsPosture.ExpiredNote("server cert", 0, false));
          Assert.Equal("The certificate \"server cert\" expired yesterday. It is not assigned to any listener.",
             TlsPosture.ExpiredNote("server cert", 1, false));
          Assert.Equal("The certificate \"server cert\" expired 5 days ago. It is not assigned to any listener.",
@@ -541,10 +546,54 @@ namespace hMailServer.ControlPanel.Tests.Services
       }
 
       [Fact]
-      public void TheNotesPlaceEachCertificateByItsDaysRemaining()
+      public void TheNotesNameTheCalendarDayACertificateExpiresOn()
       {
-         // DaysRemaining is the floor of the days to the expiry: -1 is within the
-         // last 24 hours, 0 within the next 24.
+         // DaysRemaining is the floor of the days to the expiry and decides the
+         // level: -1 is within the last 24 hours, 0 within the next 24. The day a
+         // note names is read from the expiry date, because "expires today" is a
+         // claim about the date: at eight in the evening a certificate that expires
+         // at six the next morning has 0 days remaining and expires tomorrow, and
+         // one that expired at five that morning has -1 and expired earlier today,
+         // not yesterday.
+         var today = new DateTime(2026, 10, 9);
+         TlsPostureConfig config = Healthy();
+         config.Certificates = new List<TlsCertificate>
+         {
+            new() { Name = "this morning", DaysRemaining = -1, ExpiresOn = today.AddHours(5), InUse = true },
+            new() { Name = "last night", DaysRemaining = -1, ExpiresOn = today.AddHours(-1), InUse = true },
+            new() { Name = "spare", DaysRemaining = -12, ExpiresOn = today.AddDays(-12).AddHours(14), InUse = false },
+            new() { Name = "tonight", DaysRemaining = 0, ExpiresOn = today.AddHours(23), InUse = true },
+            new() { Name = "dawn", DaysRemaining = 0, ExpiresOn = today.AddDays(1).AddHours(6), InUse = true },
+            new() { Name = "soon", DaysRemaining = 1, ExpiresOn = today.AddDays(2).AddHours(2), InUse = false },
+            new() { Name = "edge", DaysRemaining = TlsPosture.ExpiryWarningDays, ExpiresOn = today.AddDays(TlsPosture.ExpiryWarningDays + 1).AddHours(2), InUse = true }
+         };
+
+         IReadOnlyList<TlsPostureNote> notes = TlsPosture.Notes(config, today);
+
+         Assert.Contains(notes, n => n.Level == StatusLevel.Critical
+            && n.Text == "The certificate \"this morning\" expired earlier today and is still assigned to a listener. Clients are refusing or warning about every connection to it.");
+         Assert.Contains(notes, n => n.Level == StatusLevel.Critical
+            && n.Text == "The certificate \"last night\" expired yesterday and is still assigned to a listener. Clients are refusing or warning about every connection to it.");
+         Assert.Contains(notes, n => n.Level == StatusLevel.Warning
+            && n.Text == "The certificate \"spare\" expired 12 days ago. It is not assigned to any listener.");
+         Assert.Contains(notes, n => n.Level == StatusLevel.Warning
+            && n.Text == "The certificate \"tonight\" expires today and is in use by a listener.");
+         Assert.Contains(notes, n => n.Level == StatusLevel.Warning
+            && n.Text == "The certificate \"dawn\" expires tomorrow and is in use by a listener.");
+         Assert.Contains(notes, n => n.Level == StatusLevel.Information
+            && n.Text == "The certificate \"soon\" expires in 2 days. It is not assigned to any listener.");
+
+         // The window is DaysRemaining's: 30 whole days left is inside it even when
+         // the calendar says the 31st day, and the note counts the calendar's days.
+         Assert.Contains(notes, n => n.Level == StatusLevel.Warning
+            && n.Text == "The certificate \"edge\" expires in 31 days and is in use by a listener.");
+      }
+
+      [Fact]
+      public void ACertificateWithoutAnExpiryDateIsCountedFromItsDaysRemaining()
+      {
+         // A certificate read somewhere that gave the whole days but not the date
+         // keeps the day-count sentence, the floor standing in for the calendar.
          TlsPostureConfig config = Healthy();
          config.Certificates = new List<TlsCertificate>
          {
@@ -558,6 +607,43 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.True(HasNote(config, StatusLevel.Warning, "The certificate \"spare\" expired 12 days ago. It is not assigned to any listener."));
          Assert.True(HasNote(config, StatusLevel.Warning, "The certificate \"today\" expires today and is in use by a listener."));
          Assert.True(HasNote(config, StatusLevel.Information, "The certificate \"soon\" expires tomorrow. It is not assigned to any listener."));
+      }
+
+      [Fact]
+      public void CalendarDaysCountsTheDateAndNotTheHours()
+      {
+         var evening = new DateTime(2026, 10, 9, 20, 0, 0);   // the time of day of "today" is ignored
+
+         Assert.Equal(1, TlsPosture.CalendarDays(new TlsCertificate { DaysRemaining = 0, ExpiresOn = new DateTime(2026, 10, 10, 6, 0, 0) }, evening));
+         Assert.Equal(0, TlsPosture.CalendarDays(new TlsCertificate { DaysRemaining = 0, ExpiresOn = new DateTime(2026, 10, 9, 23, 30, 0) }, evening));
+         Assert.Equal(0, TlsPosture.CalendarDays(new TlsCertificate { DaysRemaining = -1, ExpiresOn = new DateTime(2026, 10, 9, 5, 0, 0) }, evening));
+         Assert.Equal(-1, TlsPosture.CalendarDays(new TlsCertificate { DaysRemaining = -1, ExpiresOn = new DateTime(2026, 10, 8, 23, 0, 0) }, evening));
+         Assert.Equal(2, TlsPosture.CalendarDays(new TlsCertificate { DaysRemaining = 1, ExpiresOn = new DateTime(2026, 10, 11, 2, 0, 0) }, evening));
+         Assert.Equal(7, TlsPosture.CalendarDays(new TlsCertificate { DaysRemaining = 7 }, evening));
+         Assert.Null(TlsPosture.CalendarDays(new TlsCertificate(), evening));
+      }
+
+      [Fact]
+      public void AMidnightBetweenTheReadAndThePageMakesNoNegativeCount()
+      {
+         // The certificates were inspected just before midnight and the notes are
+         // written just after: a certificate that was expiring with 0 whole days
+         // left is now on yesterday's date, and its note stays on the side
+         // DaysRemaining chose with the count held at today, rather than "expires
+         // in -1 days". One that expired five seconds after that midnight, read
+         // just after it, expired earlier today.
+         TlsPostureConfig config = Healthy();
+         config.Certificates = new List<TlsCertificate>
+         {
+            new() { Name = "late", DaysRemaining = 0, ExpiresOn = new DateTime(2026, 10, 9, 23, 59, 50), InUse = true },
+            new() { Name = "early", DaysRemaining = -1, ExpiresOn = new DateTime(2026, 10, 10, 0, 0, 5), InUse = true }
+         };
+
+         IReadOnlyList<TlsPostureNote> notes = TlsPosture.Notes(config, new DateTime(2026, 10, 10));
+
+         Assert.Contains(notes, n => n.Text == "The certificate \"late\" expires today and is in use by a listener.");
+         Assert.Contains(notes, n => n.Text.StartsWith("The certificate \"early\" expired earlier today"));
+         Assert.DoesNotContain(notes, n => n.Text.Contains("-1"));
       }
 
       [Fact]

@@ -861,10 +861,14 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   template around them, each translated apart, so Polish read *przechodzą przez przez sieć*, German *kann es aber
   nicht* and Czech *z ten neběží*; a certificate note was *expires in {1}{2}{3}* with *day* or *days* and a trailing
   clause, which German rendered *vor 5 Tage* and Japanese with the clause before the verb. Every verdict and note
-  is now one whole sentence per case - one listener or several, a certificate that expired yesterday or days ago,
-  expires today, tomorrow or in days, in use or not, TLS 1.0, 1.1 or both, one scanner or several, one fetch account
-  or several with and without *at least*, one blocked pattern or several, and who is told when an infected message
-  is deleted - translated whole in every language, and the Control Panel's tests pin the English of each.
+  is now one whole sentence per case - one listener or several, a certificate that expired earlier today, yesterday
+  or days ago, expires today, tomorrow or in days, in use or not, TLS 1.0, 1.1 or both, one scanner or several, one
+  fetch account or several with and without *at least*, one blocked pattern or several, and who is told when an
+  infected message is deleted - translated whole in every language, and the Control Panel's tests pin the English of
+  each. The day a certificate note names is read from the calendar date the certificate expires on, not from the
+  count of whole days left, whose zero covers a certificate that expires at six tomorrow morning: that one *expires
+  tomorrow*, one that expired at five this morning *expired earlier today* rather than *yesterday*, and the day count
+  in the certificate's own row on the page is the same calendar count as its note's.
 
 ### IMAP, POP3 and the webmail
 

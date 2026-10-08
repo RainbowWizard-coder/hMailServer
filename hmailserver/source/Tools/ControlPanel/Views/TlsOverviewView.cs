@@ -210,6 +210,7 @@ namespace hMailServer.ControlPanel.Views
                         true);
 
                      entry.DaysRemaining = health.DaysRemaining;
+                     entry.ExpiresOn = health.ExpiresOn;
 
                      // Only the findings that stop the certificate working. An
                      // encrypted key with a passphrase configured, for instance, is
@@ -595,18 +596,20 @@ namespace hMailServer.ControlPanel.Views
          }
          else if (certificate.DaysRemaining < 0)
          {
-            detail = F("expired {0} day(s) ago", Math.Abs(certificate.DaysRemaining.Value));
+            // The level comes from DaysRemaining, the floor of the time left; the
+            // day count is the calendar's, the same one the note on this
+            // certificate names, so that the row and the note agree.
+            int daysAgo = Math.Max(0, -TlsPosture.CalendarDays(certificate, DateTime.Today).Value);
+            detail = daysAgo == 0 ? L("expired today") : F("expired {0} day(s) ago", daysAgo);
             level = certificate.InUse ? StatusLevel.Critical : StatusLevel.Warning;
-         }
-         else if (certificate.DaysRemaining <= TlsPosture.ExpiryWarningDays)
-         {
-            detail = F("expires in {0} day(s)", certificate.DaysRemaining.Value);
-            level = certificate.InUse ? StatusLevel.Warning : StatusLevel.Information;
          }
          else
          {
-            detail = F("expires in {0} day(s)", certificate.DaysRemaining.Value);
-            level = StatusLevel.Good;
+            int days = Math.Max(0, TlsPosture.CalendarDays(certificate, DateTime.Today).Value);
+            detail = days == 0 ? L("expires today") : F("expires in {0} day(s)", days);
+            level = certificate.DaysRemaining > TlsPosture.ExpiryWarningDays ? StatusLevel.Good
+               : certificate.InUse ? StatusLevel.Warning
+               : StatusLevel.Information;
          }
 
          StatusPresentation presentation = StatusSemantics.For(level);

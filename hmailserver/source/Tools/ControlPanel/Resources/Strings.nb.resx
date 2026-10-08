@@ -10853,6 +10853,12 @@ Neste melding til adressen blir sendt, og den kommer først på listen igjen ett
   <data name="The ceilings on what a person may add for themselves in the webmail." xml:space="preserve">
     <value>Takene for hva en person selv kan legge til i webmailen.</value>
   </data>
+  <data name="The certificate &quot;{0}&quot; expired earlier today and is still assigned to a listener. Clients are refusing or warning about every connection to it." xml:space="preserve">
+    <value>Sertifikatet "{0}" utløp tidligere i dag og er fortsatt tilordnet en lytter. Klienter avviser eller advarer om hver eneste tilkobling til den.</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; expired earlier today. It is not assigned to any listener." xml:space="preserve">
+    <value>Sertifikatet "{0}" utløp tidligere i dag. Det er ikke tilordnet noen lytter.</value>
+  </data>
   <data name="The certificate &quot;{0}&quot; expired yesterday and is still assigned to a listener. Clients are refusing or warning about every connection to it." xml:space="preserve">
     <value>Sertifikatet "{0}" utløp i går og er fortsatt tilordnet en lytter. Klienter avviser eller advarer om hver eneste tilkobling til den.</value>
   </data>
@@ -13702,11 +13708,17 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   <data name="example.com, example.net - empty means every domain" xml:space="preserve">
     <value>example.com, example.net - tom betyr hvert domene</value>
   </data>
+  <data name="expired today" xml:space="preserve">
+    <value>utløp i dag</value>
+  </data>
   <data name="expired {0} day(s) ago" xml:space="preserve">
     <value>utløp for {0} dag(er) siden</value>
   </data>
   <data name="expires in {0} day(s)" xml:space="preserve">
     <value>utløper om {0} dag(er)</value>
+  </data>
+  <data name="expires today" xml:space="preserve">
+    <value>utløper i dag</value>
   </data>
   <data name="expiry not checked from here" xml:space="preserve">
     <value>utløp ikke kontrollert herfra</value>

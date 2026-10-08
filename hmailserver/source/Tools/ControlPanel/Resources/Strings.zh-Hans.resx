@@ -10853,6 +10853,12 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The ceilings on what a person may add for themselves in the webmail." xml:space="preserve">
     <value>用户在网页邮箱中可自行添加内容的上限。</value>
   </data>
+  <data name="The certificate &quot;{0}&quot; expired earlier today and is still assigned to a listener. Clients are refusing or warning about every connection to it." xml:space="preserve">
+    <value>证书 "{0}" 已于今天早些时候到期，且仍分配给某个监听器。客户端对它的每一次连接都会拒绝或发出警告。</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; expired earlier today. It is not assigned to any listener." xml:space="preserve">
+    <value>证书 "{0}" 已于今天早些时候到期。它未分配给任何监听器。</value>
+  </data>
   <data name="The certificate &quot;{0}&quot; expired yesterday and is still assigned to a listener. Clients are refusing or warning about every connection to it." xml:space="preserve">
     <value>证书 "{0}" 已于昨天到期，且仍分配给某个监听器。客户端对它的每一次连接都会拒绝或发出警告。</value>
   </data>
@@ -13702,11 +13708,17 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="example.com, example.net - empty means every domain" xml:space="preserve">
     <value>example.com, example.net - 留空表示每个域</value>
   </data>
+  <data name="expired today" xml:space="preserve">
+    <value>已于今天过期</value>
+  </data>
   <data name="expired {0} day(s) ago" xml:space="preserve">
     <value>已于 {0} 天前过期</value>
   </data>
   <data name="expires in {0} day(s)" xml:space="preserve">
     <value>将在 {0} 天后过期</value>
+  </data>
+  <data name="expires today" xml:space="preserve">
+    <value>将于今天过期</value>
   </data>
   <data name="expiry not checked from here" xml:space="preserve">
     <value>未从此处检查到期时间</value>

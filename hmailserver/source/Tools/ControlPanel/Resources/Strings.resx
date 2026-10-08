@@ -10853,6 +10853,12 @@ The next message to it will be sent, and it is listed again only after as many h
   <data name="The ceilings on what a person may add for themselves in the webmail." xml:space="preserve">
     <value>The ceilings on what a person may add for themselves in the webmail.</value>
   </data>
+  <data name="The certificate &quot;{0}&quot; expired earlier today and is still assigned to a listener. Clients are refusing or warning about every connection to it." xml:space="preserve">
+    <value>The certificate "{0}" expired earlier today and is still assigned to a listener. Clients are refusing or warning about every connection to it.</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; expired earlier today. It is not assigned to any listener." xml:space="preserve">
+    <value>The certificate "{0}" expired earlier today. It is not assigned to any listener.</value>
+  </data>
   <data name="The certificate &quot;{0}&quot; expired yesterday and is still assigned to a listener. Clients are refusing or warning about every connection to it." xml:space="preserve">
     <value>The certificate "{0}" expired yesterday and is still assigned to a listener. Clients are refusing or warning about every connection to it.</value>
   </data>
@@ -13702,11 +13708,17 @@ No message is deleted and no account is removed. Continue?</value>
   <data name="example.com, example.net - empty means every domain" xml:space="preserve">
     <value>example.com, example.net - empty means every domain</value>
   </data>
+  <data name="expired today" xml:space="preserve">
+    <value>expired today</value>
+  </data>
   <data name="expired {0} day(s) ago" xml:space="preserve">
     <value>expired {0} day(s) ago</value>
   </data>
   <data name="expires in {0} day(s)" xml:space="preserve">
     <value>expires in {0} day(s)</value>
+  </data>
+  <data name="expires today" xml:space="preserve">
+    <value>expires today</value>
   </data>
   <data name="expiry not checked from here" xml:space="preserve">
     <value>expiry not checked from here</value>
