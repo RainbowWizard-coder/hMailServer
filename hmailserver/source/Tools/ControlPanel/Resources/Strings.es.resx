@@ -1256,6 +1256,9 @@ El Control Panel solo puede leer archivos de mensajes cuando se ejecuta en la mi
   <data name="Added once, to mail with at least one recipient outside this server. Never to a signed or encrypted message, an automatic reply, a bounce or a list posting, and never a second time to a reply that already quotes it." xml:space="preserve">
     <value>Se añade una vez, al correo con al menos un destinatario fuera de este servidor. Nunca a un mensaje firmado o cifrado, a una respuesta automática, a un informe de no entrega ni a un envío a una lista, y nunca una segunda vez a una respuesta que ya lo cita.</value>
   </data>
+  <data name="Added to the message's spam score when this list matches" xml:space="preserve">
+    <value>Se suma a la puntuación de spam del mensaje cuando esta lista coincide</value>
+  </data>
   <data name="Address" xml:space="preserve">
     <value>Dirección</value>
   </data>
@@ -10173,6 +10176,12 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="Such as GeoLite2-Country.mmdb, kept up to date by you. Empty, the default, judges nothing by country whatever the policies say." xml:space="preserve">
     <value>Por ejemplo GeoLite2-Country.mmdb, que usted mantiene al día. Vacío, el valor predeterminado, no evalúa nada por país diga lo que digan las políticas.</value>
   </data>
+  <data name="Such as multi.surbl.org or dbl.spamhaus.org" xml:space="preserve">
+    <value>Por ejemplo multi.surbl.org o dbl.spamhaus.org</value>
+  </data>
+  <data name="Such as zen.spamhaus.org or bl.spamcop.net" xml:space="preserve">
+    <value>Por ejemplo zen.spamhaus.org o bl.spamcop.net</value>
+  </data>
   <data name="Suppression list" xml:space="preserve">
     <value>Lista de supresión</value>
   </data>
@@ -10618,6 +10627,12 @@ El próximo mensaje a esa dirección se enviará, y solo volverá a la lista tra
   </data>
   <data name="The alternative to the bearer token, for scrapers that only speak HTTP Basic. The user name and the password must BOTH be set: with only one of them the server logs a warning at startup and behaves as if neither were set." xml:space="preserve">
     <value>La alternativa al token de portador, para recolectores que solo hablan HTTP Basic. El nombre de usuario y la contraseña deben estar definidos AMBOS: con solo uno de ellos, el servidor registra una advertencia al arrancar y se comporta como si no hubiera ninguno.</value>
+  </data>
+  <data name="The answer that means listed: 127.0.0.2, a range such as 127.0.0.2-11, a wildcard such as 127.0.0.*, or several joined by |" xml:space="preserve">
+    <value>La respuesta que significa que está en la lista: 127.0.0.2, un intervalo como 127.0.0.2-11, un comodín como 127.0.0.* o varias unidas con |</value>
+  </data>
+  <data name="The answer that means listed: 127.0.0.2, a range such as 127.0.0.2-126, or several joined by |. Left empty, any answer but the list's own error codes is a listing." xml:space="preserve">
+    <value>La respuesta que significa que está en la lista: 127.0.0.2, un intervalo como 127.0.0.2-126 o varias unidas con |. Si se deja vacío, cualquier respuesta salvo los códigos de error propios de la lista cuenta como listado.</value>
   </data>
   <data name="The anti-virus configuration could not be read." xml:space="preserve">
     <value>No se pudo leer la configuración del antivirus.</value>
@@ -14413,6 +14428,9 @@ No se borra ningún mensaje ni se elimina ninguna cuenta. ¿Continuar?</value>
   </data>
   <data name="{0} is ready to be installed; the install goes on in its window" xml:space="preserve">
     <value>{0} está listo para instalarse; la instalación sigue en su ventana</value>
+  </data>
+  <data name="{0} is required." xml:space="preserve">
+    <value>El campo {0} es obligatorio.</value>
   </data>
   <data name="{0} is switched on but cannot run. {1} Every scan it is asked for fails, and a failed scan is not a failed message: the error is logged and the message is delivered as though it had been examined and found clean." xml:space="preserve">
     <value>{0} está activado pero no puede ejecutarse. {1} Cada análisis que se le pide falla, y un análisis fallido no es un mensaje fallido: el error se registra y el mensaje se entrega como si se hubiera examinado y encontrado limpio.</value>

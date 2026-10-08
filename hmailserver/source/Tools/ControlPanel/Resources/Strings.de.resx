@@ -1256,6 +1256,9 @@ Das Control Panel kann Nachrichtendateien nur lesen, wenn es auf demselben Rechn
   <data name="Added once, to mail with at least one recipient outside this server. Never to a signed or encrypted message, an automatic reply, a bounce or a list posting, and never a second time to a reply that already quotes it." xml:space="preserve">
     <value>Einmal hinzugefügt, an Post mit mindestens einem Empfänger außerhalb dieses Servers. Nie an eine signierte oder verschlüsselte Nachricht, eine automatische Antwort, einen Unzustellbarkeitsbericht oder einen Listenbeitrag, und nie ein zweites Mal an eine Antwort, die ihn bereits zitiert.</value>
   </data>
+  <data name="Added to the message's spam score when this list matches" xml:space="preserve">
+    <value>Wird zur Spam-Punktzahl der Nachricht addiert, wenn diese Liste zutrifft</value>
+  </data>
   <data name="Address" xml:space="preserve">
     <value>Adresse</value>
   </data>
@@ -10173,6 +10176,12 @@ Jetzt neu starten?</value>
   <data name="Such as GeoLite2-Country.mmdb, kept up to date by you. Empty, the default, judges nothing by country whatever the policies say." xml:space="preserve">
     <value>Etwa GeoLite2-Country.mmdb, von Ihnen aktuell gehalten. Leer, die Vorgabe, bewertet nichts nach Land, was auch immer die Richtlinien sagen.</value>
   </data>
+  <data name="Such as multi.surbl.org or dbl.spamhaus.org" xml:space="preserve">
+    <value>Etwa multi.surbl.org oder dbl.spamhaus.org</value>
+  </data>
+  <data name="Such as zen.spamhaus.org or bl.spamcop.net" xml:space="preserve">
+    <value>Etwa zen.spamhaus.org oder bl.spamcop.net</value>
+  </data>
   <data name="Suppression list" xml:space="preserve">
     <value>Sperrliste</value>
   </data>
@@ -10618,6 +10627,12 @@ Die nächste Nachricht an diese Adresse wird gesendet, und sie kommt erst wieder
   </data>
   <data name="The alternative to the bearer token, for scrapers that only speak HTTP Basic. The user name and the password must BOTH be set: with only one of them the server logs a warning at startup and behaves as if neither were set." xml:space="preserve">
     <value>Die Alternative zum Bearer-Token, für Scraper, die nur HTTP Basic sprechen. Benutzername und Passwort müssen BEIDE gesetzt sein: Mit nur einem davon protokolliert der Server beim Start eine Warnung und verhält sich, als wäre keines gesetzt.</value>
+  </data>
+  <data name="The answer that means listed: 127.0.0.2, a range such as 127.0.0.2-11, a wildcard such as 127.0.0.*, or several joined by |" xml:space="preserve">
+    <value>Die Antwort, die als gelistet gilt: 127.0.0.2, ein Bereich wie 127.0.0.2-11, ein Platzhalter wie 127.0.0.* oder mehrere, mit | verbunden</value>
+  </data>
+  <data name="The answer that means listed: 127.0.0.2, a range such as 127.0.0.2-126, or several joined by |. Left empty, any answer but the list's own error codes is a listing." xml:space="preserve">
+    <value>Die Antwort, die als gelistet gilt: 127.0.0.2, ein Bereich wie 127.0.0.2-126 oder mehrere, mit | verbunden. Bleibt das Feld leer, gilt jede Antwort außer den eigenen Fehlercodes der Liste als Listung.</value>
   </data>
   <data name="The anti-virus configuration could not be read." xml:space="preserve">
     <value>Die Virenschutzkonfiguration konnte nicht gelesen werden.</value>
@@ -14413,6 +14428,9 @@ Es wird keine Nachricht gelöscht und kein Konto entfernt. Fortfahren?</value>
   </data>
   <data name="{0} is ready to be installed; the install goes on in its window" xml:space="preserve">
     <value>{0} ist zur Installation bereit; die Installation geht in ihrem Fenster weiter</value>
+  </data>
+  <data name="{0} is required." xml:space="preserve">
+    <value>{0} ist erforderlich.</value>
   </data>
   <data name="{0} is switched on but cannot run. {1} Every scan it is asked for fails, and a failed scan is not a failed message: the error is logged and the message is delivered as though it had been examined and found clean." xml:space="preserve">
     <value>{0} ist eingeschaltet, kann aber nicht laufen. {1} Jeder Scan, der davon verlangt wird, schlägt fehl, und ein fehlgeschlagener Scan ist keine fehlgeschlagene Nachricht: der Fehler wird protokolliert und die Nachricht wird zugestellt, als wäre sie untersucht und für sauber befunden worden.</value>

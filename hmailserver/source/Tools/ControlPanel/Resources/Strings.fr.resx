@@ -1256,6 +1256,9 @@ Le Control Panel ne peut lire les fichiers de messages que lorsqu'il s'exécute 
   <data name="Added once, to mail with at least one recipient outside this server. Never to a signed or encrypted message, an automatic reply, a bounce or a list posting, and never a second time to a reply that already quotes it." xml:space="preserve">
     <value>Ajoutée une fois, au courrier ayant au moins un destinataire hors de ce serveur. Jamais à un message signé ou chiffré, à une réponse automatique, à un avis de non-remise ni à un envoi de liste, et jamais une seconde fois à une réponse qui la cite déjà.</value>
   </data>
+  <data name="Added to the message's spam score when this list matches" xml:space="preserve">
+    <value>Ajouté au score de spam du message quand cette liste correspond</value>
+  </data>
   <data name="Address" xml:space="preserve">
     <value>Adresse</value>
   </data>
@@ -10173,6 +10176,12 @@ Le redémarrer maintenant ?</value>
   <data name="Such as GeoLite2-Country.mmdb, kept up to date by you. Empty, the default, judges nothing by country whatever the policies say." xml:space="preserve">
     <value>Par exemple GeoLite2-Country.mmdb, que vous tenez à jour. Vide, la valeur par défaut, n'évalue rien par pays, quoi que disent les politiques.</value>
   </data>
+  <data name="Such as multi.surbl.org or dbl.spamhaus.org" xml:space="preserve">
+    <value>Par exemple multi.surbl.org ou dbl.spamhaus.org</value>
+  </data>
+  <data name="Such as zen.spamhaus.org or bl.spamcop.net" xml:space="preserve">
+    <value>Par exemple zen.spamhaus.org ou bl.spamcop.net</value>
+  </data>
   <data name="Suppression list" xml:space="preserve">
     <value>Liste de suppression</value>
   </data>
@@ -10618,6 +10627,12 @@ Le prochain message vers cette adresse sera envoyé, et elle n'y reviendra qu'ap
   </data>
   <data name="The alternative to the bearer token, for scrapers that only speak HTTP Basic. The user name and the password must BOTH be set: with only one of them the server logs a warning at startup and behaves as if neither were set." xml:space="preserve">
     <value>L'alternative au jeton porteur, pour les collecteurs qui ne parlent que HTTP Basic. Le nom d'utilisateur et le mot de passe doivent TOUS DEUX être définis : avec un seul des deux, le serveur consigne un avertissement au démarrage et se comporte comme si aucun n'était défini.</value>
+  </data>
+  <data name="The answer that means listed: 127.0.0.2, a range such as 127.0.0.2-11, a wildcard such as 127.0.0.*, or several joined by |" xml:space="preserve">
+    <value>La réponse qui signifie « listé » : 127.0.0.2, une plage comme 127.0.0.2-11, un joker comme 127.0.0.*, ou plusieurs réunies par |</value>
+  </data>
+  <data name="The answer that means listed: 127.0.0.2, a range such as 127.0.0.2-126, or several joined by |. Left empty, any answer but the list's own error codes is a listing." xml:space="preserve">
+    <value>La réponse qui signifie « listé » : 127.0.0.2, une plage comme 127.0.0.2-126, ou plusieurs réunies par |. Laissé vide, toute réponse hormis les codes d'erreur propres à la liste vaut listage.</value>
   </data>
   <data name="The anti-virus configuration could not be read." xml:space="preserve">
     <value>La configuration antivirus n'a pas pu être lue.</value>
@@ -14413,6 +14428,9 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   </data>
   <data name="{0} is ready to be installed; the install goes on in its window" xml:space="preserve">
     <value>{0} est prêt à être installé ; l'installation continue dans sa fenêtre</value>
+  </data>
+  <data name="{0} is required." xml:space="preserve">
+    <value>Le champ {0} est obligatoire.</value>
   </data>
   <data name="{0} is switched on but cannot run. {1} Every scan it is asked for fails, and a failed scan is not a failed message: the error is logged and the message is delivered as though it had been examined and found clean." xml:space="preserve">
     <value>{0} est activé mais ne peut pas s'exécuter. {1} Chaque analyse qu'on lui demande échoue, et une analyse échouée n'est pas un message échoué : l'erreur est consignée et le message est livré comme s'il avait été examiné et jugé sain.</value>

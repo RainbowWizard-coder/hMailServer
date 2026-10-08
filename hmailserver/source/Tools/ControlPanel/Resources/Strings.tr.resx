@@ -1256,6 +1256,9 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   <data name="Added once, to mail with at least one recipient outside this server. Never to a signed or encrypted message, an automatic reply, a bounce or a list posting, and never a second time to a reply that already quotes it." xml:space="preserve">
     <value>Bu sunucunun dışında en az bir alıcısı olan postaya bir kez eklenir. İmzalı veya şifreli bir iletiye, otomatik bir yanıta, bir teslim edilemedi bildirimine veya bir liste gönderisine asla eklenmez ve onu zaten alıntılayan bir yanıta ikinci kez eklenmez.</value>
   </data>
+  <data name="Added to the message's spam score when this list matches" xml:space="preserve">
+    <value>Bu liste eşleştiğinde iletinin spam puanına eklenir</value>
+  </data>
   <data name="Address" xml:space="preserve">
     <value>Adres</value>
   </data>
@@ -10173,6 +10176,12 @@ Devam edilsin mi?</value>
   <data name="Such as GeoLite2-Country.mmdb, kept up to date by you. Empty, the default, judges nothing by country whatever the policies say." xml:space="preserve">
     <value>Örneğin güncel tuttuğunuz GeoLite2-Country.mmdb. Boş, varsayılan, ilkeler ne derse desin hiçbir şeyi ülkeye göre değerlendirmez.</value>
   </data>
+  <data name="Such as multi.surbl.org or dbl.spamhaus.org" xml:space="preserve">
+    <value>Örneğin multi.surbl.org veya dbl.spamhaus.org</value>
+  </data>
+  <data name="Such as zen.spamhaus.org or bl.spamcop.net" xml:space="preserve">
+    <value>Örneğin zen.spamhaus.org veya bl.spamcop.net</value>
+  </data>
   <data name="Suppression list" xml:space="preserve">
     <value>Engelleme listesi</value>
   </data>
@@ -10618,6 +10627,12 @@ Bu adrese giden bir sonraki ileti gönderilir; adres ancak eşik değerin gerekt
   </data>
   <data name="The alternative to the bearer token, for scrapers that only speak HTTP Basic. The user name and the password must BOTH be set: with only one of them the server logs a warning at startup and behaves as if neither were set." xml:space="preserve">
     <value>Yalnızca HTTP Basic konuşan toplayıcılar için taşıyıcı belirtece alternatif. Kullanıcı adı ve parola İKİSİ DE ayarlanmalıdır: yalnızca biriyle sunucu başlangıçta bir uyarı kaydeder ve hiçbiri ayarlanmamış gibi davranır.</value>
+  </data>
+  <data name="The answer that means listed: 127.0.0.2, a range such as 127.0.0.2-11, a wildcard such as 127.0.0.*, or several joined by |" xml:space="preserve">
+    <value>Listede olduğunu belirten yanıt: 127.0.0.2, 127.0.0.2-11 gibi bir aralık, 127.0.0.* gibi bir joker veya | ile birleştirilmiş birkaç değer</value>
+  </data>
+  <data name="The answer that means listed: 127.0.0.2, a range such as 127.0.0.2-126, or several joined by |. Left empty, any answer but the list's own error codes is a listing." xml:space="preserve">
+    <value>Listede olduğunu belirten yanıt: 127.0.0.2, 127.0.0.2-126 gibi bir aralık veya | ile birleştirilmiş birkaç değer. Boş bırakılırsa listenin kendi hata kodları dışındaki her yanıt listede sayılır.</value>
   </data>
   <data name="The anti-virus configuration could not be read." xml:space="preserve">
     <value>Virüsten koruma yapılandırması okunamadı.</value>
@@ -14413,6 +14428,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="{0} is ready to be installed; the install goes on in its window" xml:space="preserve">
     <value>{0} yüklenmeye hazır; yükleme kendi penceresinde sürüyor</value>
+  </data>
+  <data name="{0} is required." xml:space="preserve">
+    <value>{0} alanı zorunludur.</value>
   </data>
   <data name="{0} is switched on but cannot run. {1} Every scan it is asked for fails, and a failed scan is not a failed message: the error is logged and the message is delivered as though it had been examined and found clean." xml:space="preserve">
     <value>{0} açık ama çalışamıyor. {1} İstenen her tarama başarısız oluyor ve başarısız bir tarama başarısız bir ileti değildir: hata günlüğe yazılır ve ileti incelenip temiz bulunmuş gibi teslim edilir.</value>

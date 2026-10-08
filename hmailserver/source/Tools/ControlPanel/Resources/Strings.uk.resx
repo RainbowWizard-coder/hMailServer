@@ -1256,6 +1256,9 @@
   <data name="Added once, to mail with at least one recipient outside this server. Never to a signed or encrypted message, an automatic reply, a bounce or a list posting, and never a second time to a reply that already quotes it." xml:space="preserve">
     <value>Додається один раз, до пошти, яка має принаймні одного отримувача поза цим сервером. Ніколи до підписаного чи зашифрованого повідомлення, до автовідповіді, до сповіщення про недоставку чи до допису в список розсилки, і ніколи вдруге до відповіді, яка вже його цитує.</value>
   </data>
+  <data name="Added to the message's spam score when this list matches" xml:space="preserve">
+    <value>Додається до балу спаму повідомлення, коли цей список збігається</value>
+  </data>
   <data name="Address" xml:space="preserve">
     <value>Адреса</value>
   </data>
@@ -10173,6 +10176,12 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Such as GeoLite2-Country.mmdb, kept up to date by you. Empty, the default, judges nothing by country whatever the policies say." xml:space="preserve">
     <value>Наприклад GeoLite2-Country.mmdb, яку ви підтримуєте в актуальному стані. Порожньо, типово, нічого не оцінює за країною, хоч би що казали політики.</value>
   </data>
+  <data name="Such as multi.surbl.org or dbl.spamhaus.org" xml:space="preserve">
+    <value>Наприклад, multi.surbl.org або dbl.spamhaus.org</value>
+  </data>
+  <data name="Such as zen.spamhaus.org or bl.spamcop.net" xml:space="preserve">
+    <value>Наприклад, zen.spamhaus.org або bl.spamcop.net</value>
+  </data>
   <data name="Suppression list" xml:space="preserve">
     <value>Список придушення</value>
   </data>
@@ -10618,6 +10627,12 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="The alternative to the bearer token, for scrapers that only speak HTTP Basic. The user name and the password must BOTH be set: with only one of them the server logs a warning at startup and behaves as if neither were set." xml:space="preserve">
     <value>Альтернатива bearer-токену для збирачів, які розуміють лише HTTP Basic. Мають бути задані І ім'я користувача, І пароль: з одним із них сервер записує попередження під час запуску і поводиться так, ніби не задано жодного.</value>
+  </data>
+  <data name="The answer that means listed: 127.0.0.2, a range such as 127.0.0.2-11, a wildcard such as 127.0.0.*, or several joined by |" xml:space="preserve">
+    <value>Відповідь, яка означає, що адреса в списку: 127.0.0.2, діапазон на кшталт 127.0.0.2-11, шаблон на кшталт 127.0.0.* або кілька значень, з'єднаних знаком |</value>
+  </data>
+  <data name="The answer that means listed: 127.0.0.2, a range such as 127.0.0.2-126, or several joined by |. Left empty, any answer but the list's own error codes is a listing." xml:space="preserve">
+    <value>Відповідь, яка означає, що адреса в списку: 127.0.0.2, діапазон на кшталт 127.0.0.2-126 або кілька значень, з'єднаних знаком |. Якщо залишити порожнім, будь-яка відповідь, крім власних кодів помилок списку, вважається потраплянням до списку.</value>
   </data>
   <data name="The anti-virus configuration could not be read." xml:space="preserve">
     <value>Не вдалося прочитати конфігурацію захисту від вірусів.</value>
@@ -14413,6 +14428,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="{0} is ready to be installed; the install goes on in its window" xml:space="preserve">
     <value>{0} готове до встановлення; встановлення триває в його вікні</value>
+  </data>
+  <data name="{0} is required." xml:space="preserve">
+    <value>Поле {0} обов'язкове.</value>
   </data>
   <data name="{0} is switched on but cannot run. {1} Every scan it is asked for fails, and a failed scan is not a failed message: the error is logged and the message is delivered as though it had been examined and found clean." xml:space="preserve">
     <value>{0} увімкнено, але не може працювати. {1} Кожне сканування, яке від нього просять, зазнає невдачі, а невдале сканування — це не невдале повідомлення: помилка записується в журнал, а повідомлення доставляється так, ніби його перевірили й визнали чистим.</value>

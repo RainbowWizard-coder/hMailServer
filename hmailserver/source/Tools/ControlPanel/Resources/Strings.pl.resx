@@ -1256,6 +1256,9 @@ Control Panel może czytać pliki wiadomości tylko wtedy, gdy działa na tym sa
   <data name="Added once, to mail with at least one recipient outside this server. Never to a signed or encrypted message, an automatic reply, a bounce or a list posting, and never a second time to a reply that already quotes it." xml:space="preserve">
     <value>Dodawane raz, do poczty mającej co najmniej jednego odbiorcę poza tym serwerem. Nigdy do wiadomości podpisanej lub zaszyfrowanej, do odpowiedzi automatycznej, do powiadomienia o niedostarczeniu ani do wpisu na listę, i nigdy po raz drugi do odpowiedzi, która już je cytuje.</value>
   </data>
+  <data name="Added to the message's spam score when this list matches" xml:space="preserve">
+    <value>Dodawane do wyniku spamu wiadomości, gdy ta lista pasuje</value>
+  </data>
   <data name="Address" xml:space="preserve">
     <value>Adres</value>
   </data>
@@ -10173,6 +10176,12 @@ Uruchomić ją ponownie teraz?</value>
   <data name="Such as GeoLite2-Country.mmdb, kept up to date by you. Empty, the default, judges nothing by country whatever the policies say." xml:space="preserve">
     <value>Na przykład GeoLite2-Country.mmdb, aktualizowany przez ciebie. Puste, domyślne, niczego nie ocenia według kraju, bez względu na zasady.</value>
   </data>
+  <data name="Such as multi.surbl.org or dbl.spamhaus.org" xml:space="preserve">
+    <value>Na przykład multi.surbl.org lub dbl.spamhaus.org</value>
+  </data>
+  <data name="Such as zen.spamhaus.org or bl.spamcop.net" xml:space="preserve">
+    <value>Na przykład zen.spamhaus.org lub bl.spamcop.net</value>
+  </data>
   <data name="Suppression list" xml:space="preserve">
     <value>Lista blokowanych</value>
   </data>
@@ -10618,6 +10627,12 @@ Następna wiadomość na ten adres zostanie wysłana, a adres wróci na listę d
   </data>
   <data name="The alternative to the bearer token, for scrapers that only speak HTTP Basic. The user name and the password must BOTH be set: with only one of them the server logs a warning at startup and behaves as if neither were set." xml:space="preserve">
     <value>Alternatywa dla tokenu bearer, dla systemów pobierających metryki, które mówią wyłącznie przez HTTP Basic. Ustawione muszą być OBA pola - nazwa użytkownika i hasło: gdy ustawiono tylko jedno z nich, serwer zapisuje ostrzeżenie przy uruchamianiu i zachowuje się tak, jakby nie ustawiono żadnego.</value>
+  </data>
+  <data name="The answer that means listed: 127.0.0.2, a range such as 127.0.0.2-11, a wildcard such as 127.0.0.*, or several joined by |" xml:space="preserve">
+    <value>Odpowiedź oznaczająca obecność na liście: 127.0.0.2, zakres taki jak 127.0.0.2-11, symbol wieloznaczny taki jak 127.0.0.* lub kilka wartości połączonych znakiem |</value>
+  </data>
+  <data name="The answer that means listed: 127.0.0.2, a range such as 127.0.0.2-126, or several joined by |. Left empty, any answer but the list's own error codes is a listing." xml:space="preserve">
+    <value>Odpowiedź oznaczająca obecność na liście: 127.0.0.2, zakres taki jak 127.0.0.2-126 lub kilka wartości połączonych znakiem |. Pozostawione puste: za wpis na liście uznaje się każdą odpowiedź poza własnymi kodami błędów listy.</value>
   </data>
   <data name="The anti-virus configuration could not be read." xml:space="preserve">
     <value>Nie udało się odczytać konfiguracji antywirusowej.</value>
@@ -14413,6 +14428,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="{0} is ready to be installed; the install goes on in its window" xml:space="preserve">
     <value>{0} jest gotowy do instalacji; instalacja trwa dalej w swoim oknie</value>
+  </data>
+  <data name="{0} is required." xml:space="preserve">
+    <value>Pole {0} jest wymagane.</value>
   </data>
   <data name="{0} is switched on but cannot run. {1} Every scan it is asked for fails, and a failed scan is not a failed message: the error is logged and the message is delivered as though it had been examined and found clean." xml:space="preserve">
     <value>{0} jest włączony, ale nie da się go uruchomić. {1} Każde żądane od niego skanowanie kończy się niepowodzeniem, a nieudane skanowanie nie oznacza odrzucenia wiadomości: błąd jest zapisywany w dzienniku, a wiadomość jest dostarczana tak, jakby została zbadana i uznana za czystą.</value>

@@ -1256,6 +1256,9 @@ Il Control Panel può leggere i file dei messaggi solo quando è in esecuzione s
   <data name="Added once, to mail with at least one recipient outside this server. Never to a signed or encrypted message, an automatic reply, a bounce or a list posting, and never a second time to a reply that already quotes it." xml:space="preserve">
     <value>Aggiunta una volta, alla posta con almeno un destinatario fuori da questo server. Mai a un messaggio firmato o cifrato, a una risposta automatica, a un avviso di mancata consegna o a un invio a una lista, e mai una seconda volta a una risposta che la cita già.</value>
   </data>
+  <data name="Added to the message's spam score when this list matches" xml:space="preserve">
+    <value>Aggiunto al punteggio spam del messaggio quando questo elenco corrisponde</value>
+  </data>
   <data name="Address" xml:space="preserve">
     <value>Indirizzo</value>
   </data>
@@ -10173,6 +10176,12 @@ Riavviarlo ora?</value>
   <data name="Such as GeoLite2-Country.mmdb, kept up to date by you. Empty, the default, judges nothing by country whatever the policies say." xml:space="preserve">
     <value>Per esempio GeoLite2-Country.mmdb, tenuto aggiornato da te. Vuoto, il predefinito, non valuta nulla per paese qualunque cosa dicano le politiche.</value>
   </data>
+  <data name="Such as multi.surbl.org or dbl.spamhaus.org" xml:space="preserve">
+    <value>Ad esempio multi.surbl.org o dbl.spamhaus.org</value>
+  </data>
+  <data name="Such as zen.spamhaus.org or bl.spamcop.net" xml:space="preserve">
+    <value>Ad esempio zen.spamhaus.org o bl.spamcop.net</value>
+  </data>
   <data name="Suppression list" xml:space="preserve">
     <value>Lista di soppressione</value>
   </data>
@@ -10618,6 +10627,12 @@ Il prossimo messaggio a questo indirizzo verrà inviato, e tornerà in lista sol
   </data>
   <data name="The alternative to the bearer token, for scrapers that only speak HTTP Basic. The user name and the password must BOTH be set: with only one of them the server logs a warning at startup and behaves as if neither were set." xml:space="preserve">
     <value>L'alternativa al token bearer, per gli scraper che parlano solo HTTP Basic. Il nome utente e la password devono essere impostati ENTRAMBI: con uno solo dei due il server registra un avviso all'avvio e si comporta come se non fosse impostato nessuno dei due.</value>
+  </data>
+  <data name="The answer that means listed: 127.0.0.2, a range such as 127.0.0.2-11, a wildcard such as 127.0.0.*, or several joined by |" xml:space="preserve">
+    <value>La risposta che significa in elenco: 127.0.0.2, un intervallo come 127.0.0.2-11, un carattere jolly come 127.0.0.* oppure più valori uniti con |</value>
+  </data>
+  <data name="The answer that means listed: 127.0.0.2, a range such as 127.0.0.2-126, or several joined by |. Left empty, any answer but the list's own error codes is a listing." xml:space="preserve">
+    <value>La risposta che significa in elenco: 127.0.0.2, un intervallo come 127.0.0.2-126, oppure più valori uniti con |. Lasciato vuoto, qualsiasi risposta tranne i codici di errore propri dell'elenco vale come presenza in elenco.</value>
   </data>
   <data name="The anti-virus configuration could not be read." xml:space="preserve">
     <value>Non è stato possibile leggere la configurazione antivirus.</value>
@@ -14413,6 +14428,9 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   </data>
   <data name="{0} is ready to be installed; the install goes on in its window" xml:space="preserve">
     <value>{0} è pronto per l'installazione; l'installazione prosegue nella sua finestra</value>
+  </data>
+  <data name="{0} is required." xml:space="preserve">
+    <value>Il campo {0} è obbligatorio.</value>
   </data>
   <data name="{0} is switched on but cannot run. {1} Every scan it is asked for fails, and a failed scan is not a failed message: the error is logged and the message is delivered as though it had been examined and found clean." xml:space="preserve">
     <value>{0} è attivo ma non può funzionare. {1} Ogni scansione che gli viene chiesta fallisce, e una scansione fallita non è un messaggio fallito: l'errore viene registrato e il messaggio viene consegnato come se fosse stato esaminato e trovato pulito.</value>

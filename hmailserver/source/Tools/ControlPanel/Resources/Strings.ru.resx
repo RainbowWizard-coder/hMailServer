@@ -1256,6 +1256,9 @@ Control Panel может читать файлы сообщений только
   <data name="Added once, to mail with at least one recipient outside this server. Never to a signed or encrypted message, an automatic reply, a bounce or a list posting, and never a second time to a reply that already quotes it." xml:space="preserve">
     <value>Добавляется один раз, к почте, у которой есть хотя бы один получатель за пределами этого сервера. Никогда к подписанному или зашифрованному сообщению, к автоответу, к уведомлению о недоставке или к письму в список рассылки, и никогда второй раз к ответу, который её уже цитирует.</value>
   </data>
+  <data name="Added to the message's spam score when this list matches" xml:space="preserve">
+    <value>Прибавляется к баллу спама сообщения, когда этот список совпадает</value>
+  </data>
   <data name="Address" xml:space="preserve">
     <value>Адрес</value>
   </data>
@@ -10173,6 +10176,12 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Such as GeoLite2-Country.mmdb, kept up to date by you. Empty, the default, judges nothing by country whatever the policies say." xml:space="preserve">
     <value>Например GeoLite2-Country.mmdb, которую вы поддерживаете в актуальном состоянии. Пусто, по умолчанию, ничего не оценивает по стране, что бы ни говорили политики.</value>
   </data>
+  <data name="Such as multi.surbl.org or dbl.spamhaus.org" xml:space="preserve">
+    <value>Например, multi.surbl.org или dbl.spamhaus.org</value>
+  </data>
+  <data name="Such as zen.spamhaus.org or bl.spamcop.net" xml:space="preserve">
+    <value>Например, zen.spamhaus.org или bl.spamcop.net</value>
+  </data>
   <data name="Suppression list" xml:space="preserve">
     <value>Список подавления</value>
   </data>
@@ -10618,6 +10627,12 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The alternative to the bearer token, for scrapers that only speak HTTP Basic. The user name and the password must BOTH be set: with only one of them the server logs a warning at startup and behaves as if neither were set." xml:space="preserve">
     <value>Замена токену-носителю для сборщиков, умеющих только HTTP Basic. Имя пользователя и пароль должны быть заданы ОБА: имея только одно из двух, сервер записывает при запуске предупреждение и ведёт себя так, будто не задано ни то ни другое.</value>
+  </data>
+  <data name="The answer that means listed: 127.0.0.2, a range such as 127.0.0.2-11, a wildcard such as 127.0.0.*, or several joined by |" xml:space="preserve">
+    <value>Ответ, означающий, что адрес в списке: 127.0.0.2, диапазон вроде 127.0.0.2-11, шаблон вроде 127.0.0.* или несколько значений, соединённых знаком |</value>
+  </data>
+  <data name="The answer that means listed: 127.0.0.2, a range such as 127.0.0.2-126, or several joined by |. Left empty, any answer but the list's own error codes is a listing." xml:space="preserve">
+    <value>Ответ, означающий, что адрес в списке: 127.0.0.2, диапазон вроде 127.0.0.2-126 или несколько значений, соединённых знаком |. Если оставить пустым, любой ответ, кроме собственных кодов ошибок списка, считается попаданием в список.</value>
   </data>
   <data name="The anti-virus configuration could not be read." xml:space="preserve">
     <value>Не удалось прочитать конфигурацию антивируса.</value>
@@ -14413,6 +14428,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0} is ready to be installed; the install goes on in its window" xml:space="preserve">
     <value>{0} готово к установке; установка продолжается в своём окне</value>
+  </data>
+  <data name="{0} is required." xml:space="preserve">
+    <value>Поле {0} обязательно для заполнения.</value>
   </data>
   <data name="{0} is switched on but cannot run. {1} Every scan it is asked for fails, and a failed scan is not a failed message: the error is logged and the message is delivered as though it had been examined and found clean." xml:space="preserve">
     <value>{0}: включено, но работать не может. {1} Каждая запрошенная у него проверка завершается ошибкой, а неудавшаяся проверка — это не неудавшееся сообщение: ошибка записывается в журнал, а сообщение доставляется так, как будто его осмотрели и признали чистым.</value>

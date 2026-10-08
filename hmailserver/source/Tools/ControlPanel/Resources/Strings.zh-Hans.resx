@@ -1256,6 +1256,9 @@
   <data name="Added once, to mail with at least one recipient outside this server. Never to a signed or encrypted message, an automatic reply, a bounce or a list posting, and never a second time to a reply that already quotes it." xml:space="preserve">
     <value>只添加一次，加到至少有一位收件人在本服务器之外的邮件上。绝不会加到已签名或已加密的邮件、自动回复、退信或邮件列表投稿上，也绝不会第二次加到已经引用了它的回复上。</value>
   </data>
+  <data name="Added to the message's spam score when this list matches" xml:space="preserve">
+    <value>此列表匹配时计入邮件的垃圾邮件分数</value>
+  </data>
   <data name="Address" xml:space="preserve">
     <value>地址</value>
   </data>
@@ -10173,6 +10176,12 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Such as GeoLite2-Country.mmdb, kept up to date by you. Empty, the default, judges nothing by country whatever the policies say." xml:space="preserve">
     <value>例如由你保持更新的 GeoLite2-Country.mmdb。默认为空，无论策略如何都不按国家判断。</value>
   </data>
+  <data name="Such as multi.surbl.org or dbl.spamhaus.org" xml:space="preserve">
+    <value>例如 multi.surbl.org 或 dbl.spamhaus.org</value>
+  </data>
+  <data name="Such as zen.spamhaus.org or bl.spamcop.net" xml:space="preserve">
+    <value>例如 zen.spamhaus.org 或 bl.spamcop.net</value>
+  </data>
   <data name="Suppression list" xml:space="preserve">
     <value>抑制列表</value>
   </data>
@@ -10618,6 +10627,12 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="The alternative to the bearer token, for scrapers that only speak HTTP Basic. The user name and the password must BOTH be set: with only one of them the server logs a warning at startup and behaves as if neither were set." xml:space="preserve">
     <value>持有者令牌的替代方案，供只支持 HTTP Basic 的抓取器使用。用户名和密码必须同时设置: 只设置其一时，服务器会在启动时记录一条警告，并当作两者都未设置来处理。</value>
+  </data>
+  <data name="The answer that means listed: 127.0.0.2, a range such as 127.0.0.2-11, a wildcard such as 127.0.0.*, or several joined by |" xml:space="preserve">
+    <value>表示已列入的应答：127.0.0.2、形如 127.0.0.2-11 的范围、形如 127.0.0.* 的通配符，或用 | 连接的多个值</value>
+  </data>
+  <data name="The answer that means listed: 127.0.0.2, a range such as 127.0.0.2-126, or several joined by |. Left empty, any answer but the list's own error codes is a listing." xml:space="preserve">
+    <value>表示已列入的应答：127.0.0.2、形如 127.0.0.2-126 的范围，或用 | 连接的多个值。留空时，除列表自身的错误代码外，任何应答都视为已列入。</value>
   </data>
   <data name="The anti-virus configuration could not be read." xml:space="preserve">
     <value>无法读取防病毒配置。</value>
@@ -14413,6 +14428,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="{0} is ready to be installed; the install goes on in its window" xml:space="preserve">
     <value>{0} 已准备好安装；安装在其窗口中继续进行</value>
+  </data>
+  <data name="{0} is required." xml:space="preserve">
+    <value>{0} 为必填项。</value>
   </data>
   <data name="{0} is switched on but cannot run. {1} Every scan it is asked for fails, and a failed scan is not a failed message: the error is logged and the message is delivered as though it had been examined and found clean." xml:space="preserve">
     <value>{0} 已开启，但无法运行。{1} 它被要求执行的每一次扫描都会失败，而失败的扫描并不等于失败的邮件：错误会被记录下来，邮件则会像已经检查过并判定干净一样被投递。</value>

@@ -1256,6 +1256,9 @@ Control Panel kan kun læse meddelelsesfiler, når det kører på samme maskine 
   <data name="Added once, to mail with at least one recipient outside this server. Never to a signed or encrypted message, an automatic reply, a bounce or a list posting, and never a second time to a reply that already quotes it." xml:space="preserve">
     <value>Tilføjes én gang, til post med mindst én modtager uden for denne server. Aldrig til en signeret eller krypteret meddelelse, et automatisk svar, en returmail eller et listeindlæg, og aldrig anden gang til et svar, der allerede citerer den.</value>
   </data>
+  <data name="Added to the message's spam score when this list matches" xml:space="preserve">
+    <value>Lægges til meddelelsens spamscore, når denne liste matcher</value>
+  </data>
   <data name="Address" xml:space="preserve">
     <value>Adresse</value>
   </data>
@@ -10173,6 +10176,12 @@ Genstart den nu?</value>
   <data name="Such as GeoLite2-Country.mmdb, kept up to date by you. Empty, the default, judges nothing by country whatever the policies say." xml:space="preserve">
     <value>Fx GeoLite2-Country.mmdb, som du holder opdateret. Tom, standarden, vurderer intet efter land, uanset hvad politikkerne siger.</value>
   </data>
+  <data name="Such as multi.surbl.org or dbl.spamhaus.org" xml:space="preserve">
+    <value>Såsom multi.surbl.org eller dbl.spamhaus.org</value>
+  </data>
+  <data name="Such as zen.spamhaus.org or bl.spamcop.net" xml:space="preserve">
+    <value>Såsom zen.spamhaus.org eller bl.spamcop.net</value>
+  </data>
   <data name="Suppression list" xml:space="preserve">
     <value>Spærreliste</value>
   </data>
@@ -10618,6 +10627,12 @@ Den næste besked til adressen bliver sendt, og den kommer først på listen ige
   </data>
   <data name="The alternative to the bearer token, for scrapers that only speak HTTP Basic. The user name and the password must BOTH be set: with only one of them the server logs a warning at startup and behaves as if neither were set." xml:space="preserve">
     <value>Alternativet til bearer-tokenet, til scrapere, der kun taler HTTP Basic. Brugernavnet og adgangskoden skal BEGGE være sat: med kun én af dem logger serveren en advarsel ved opstart og opfører sig, som om ingen af dem var sat.</value>
+  </data>
+  <data name="The answer that means listed: 127.0.0.2, a range such as 127.0.0.2-11, a wildcard such as 127.0.0.*, or several joined by |" xml:space="preserve">
+    <value>Det svar, der betyder, at adressen står på listen: 127.0.0.2, et interval såsom 127.0.0.2-11, et jokertegn såsom 127.0.0.*, eller flere adskilt med |</value>
+  </data>
+  <data name="The answer that means listed: 127.0.0.2, a range such as 127.0.0.2-126, or several joined by |. Left empty, any answer but the list's own error codes is a listing." xml:space="preserve">
+    <value>Det svar, der betyder, at noget står på listen: 127.0.0.2, et interval såsom 127.0.0.2-126, eller flere adskilt med |. Står feltet tomt, tæller ethvert svar bortset fra listens egne fejlkoder som en notering.</value>
   </data>
   <data name="The anti-virus configuration could not be read." xml:space="preserve">
     <value>Antiviruskonfigurationen kunne ikke læses.</value>
@@ -14413,6 +14428,9 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   </data>
   <data name="{0} is ready to be installed; the install goes on in its window" xml:space="preserve">
     <value>{0} er klar til at blive installeret; installationen fortsætter i dens vindue</value>
+  </data>
+  <data name="{0} is required." xml:space="preserve">
+    <value>{0} skal udfyldes.</value>
   </data>
   <data name="{0} is switched on but cannot run. {1} Every scan it is asked for fails, and a failed scan is not a failed message: the error is logged and the message is delivered as though it had been examined and found clean." xml:space="preserve">
     <value>{0} er slået til, men kan ikke køre. {1} Hver scanning, den bliver bedt om, mislykkes, og en mislykket scanning er ikke en mislykket meddelelse: fejlen logges, og meddelelsen leveres, som om den var blevet undersøgt og fundet ren.</value>

@@ -1256,6 +1256,9 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   <data name="Added once, to mail with at least one recipient outside this server. Never to a signed or encrypted message, an automatic reply, a bounce or a list posting, and never a second time to a reply that already quotes it." xml:space="preserve">
     <value>Läggs till en gång, på post med minst en mottagare utanför den här servern. Aldrig på ett signerat eller krypterat meddelande, ett automatiskt svar, ett returmeddelande eller ett listinlägg, och aldrig en andra gång på ett svar som redan citerar den.</value>
   </data>
+  <data name="Added to the message's spam score when this list matches" xml:space="preserve">
+    <value>Läggs till meddelandets skräppostpoäng när den här listan matchar</value>
+  </data>
   <data name="Address" xml:space="preserve">
     <value>Adress</value>
   </data>
@@ -10173,6 +10176,12 @@ Starta om den nu?</value>
   <data name="Such as GeoLite2-Country.mmdb, kept up to date by you. Empty, the default, judges nothing by country whatever the policies say." xml:space="preserve">
     <value>Till exempel GeoLite2-Country.mmdb, som du håller uppdaterad. Tomt, standard, bedömer ingenting per land vad policyerna än säger.</value>
   </data>
+  <data name="Such as multi.surbl.org or dbl.spamhaus.org" xml:space="preserve">
+    <value>Till exempel multi.surbl.org eller dbl.spamhaus.org</value>
+  </data>
+  <data name="Such as zen.spamhaus.org or bl.spamcop.net" xml:space="preserve">
+    <value>Till exempel zen.spamhaus.org eller bl.spamcop.net</value>
+  </data>
   <data name="Suppression list" xml:space="preserve">
     <value>Spärrlista</value>
   </data>
@@ -10618,6 +10627,12 @@ Nästa meddelande till adressen skickas, och den hamnar på listan igen först e
   </data>
   <data name="The alternative to the bearer token, for scrapers that only speak HTTP Basic. The user name and the password must BOTH be set: with only one of them the server logs a warning at startup and behaves as if neither were set." xml:space="preserve">
     <value>Alternativet till bearer-token, för skrapare som bara talar HTTP Basic. Användarnamnet och lösenordet måste BÅDA vara satta: med bara ett av dem loggar servern en varning vid start och beter sig som om inget av dem vore satt.</value>
+  </data>
+  <data name="The answer that means listed: 127.0.0.2, a range such as 127.0.0.2-11, a wildcard such as 127.0.0.*, or several joined by |" xml:space="preserve">
+    <value>Svaret som betyder listad: 127.0.0.2, ett intervall som 127.0.0.2-11, ett jokertecken som 127.0.0.*, eller flera sammanfogade med |</value>
+  </data>
+  <data name="The answer that means listed: 127.0.0.2, a range such as 127.0.0.2-126, or several joined by |. Left empty, any answer but the list's own error codes is a listing." xml:space="preserve">
+    <value>Svaret som betyder listad: 127.0.0.2, ett intervall som 127.0.0.2-126, eller flera sammanfogade med |. Lämnas fältet tomt räknas varje svar utom listans egna felkoder som en listning.</value>
   </data>
   <data name="The anti-virus configuration could not be read." xml:space="preserve">
     <value>Antiviruskonfigurationen kunde inte läsas.</value>
@@ -14413,6 +14428,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   </data>
   <data name="{0} is ready to be installed; the install goes on in its window" xml:space="preserve">
     <value>{0} är redo att installeras; installationen fortsätter i sitt fönster</value>
+  </data>
+  <data name="{0} is required." xml:space="preserve">
+    <value>{0} måste anges.</value>
   </data>
   <data name="{0} is switched on but cannot run. {1} Every scan it is asked for fails, and a failed scan is not a failed message: the error is logged and the message is delivered as though it had been examined and found clean." xml:space="preserve">
     <value>{0} är påslagen men kan inte köras. {1} Varje skanning den ombeds göra misslyckas, och en misslyckad skanning är inte ett misslyckat meddelande: felet loggas och meddelandet levereras som om det hade undersökts och befunnits rent.</value>

@@ -1256,6 +1256,9 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   <data name="Added once, to mail with at least one recipient outside this server. Never to a signed or encrypted message, an automatic reply, a bounce or a list posting, and never a second time to a reply that already quotes it." xml:space="preserve">
     <value>Lisätään kerran postiin, jolla on vähintään yksi vastaanottaja tämän palvelimen ulkopuolella. Ei koskaan allekirjoitettuun tai salattuun viestiin, automaattiseen vastaukseen, palautusilmoitukseen tai postituslistaviestiin, eikä koskaan toista kertaa vastaukseen, joka jo lainaa sitä.</value>
   </data>
+  <data name="Added to the message's spam score when this list matches" xml:space="preserve">
+    <value>Lisätään viestin roskapostipisteisiin, kun tämä lista täsmää</value>
+  </data>
   <data name="Address" xml:space="preserve">
     <value>Osoite</value>
   </data>
@@ -10173,6 +10176,12 @@ Käynnistetäänkö se uudelleen nyt?</value>
   <data name="Such as GeoLite2-Country.mmdb, kept up to date by you. Empty, the default, judges nothing by country whatever the policies say." xml:space="preserve">
     <value>Esimerkiksi GeoLite2-Country.mmdb, jonka pidät ajan tasalla. Tyhjä, oletus, ei arvioi mitään maan mukaan, sanoivat käytännöt mitä tahansa.</value>
   </data>
+  <data name="Such as multi.surbl.org or dbl.spamhaus.org" xml:space="preserve">
+    <value>Esimerkiksi multi.surbl.org tai dbl.spamhaus.org</value>
+  </data>
+  <data name="Such as zen.spamhaus.org or bl.spamcop.net" xml:space="preserve">
+    <value>Esimerkiksi zen.spamhaus.org tai bl.spamcop.net</value>
+  </data>
   <data name="Suppression list" xml:space="preserve">
     <value>Estolista</value>
   </data>
@@ -10618,6 +10627,12 @@ Seuraava viesti tähän osoitteeseen lähetetään, ja osoite palaa listalle vas
   </data>
   <data name="The alternative to the bearer token, for scrapers that only speak HTTP Basic. The user name and the password must BOTH be set: with only one of them the server logs a warning at startup and behaves as if neither were set." xml:space="preserve">
     <value>Vaihtoehto bearer-tokenille kerääjille, jotka puhuvat vain HTTP Basicia. Käyttäjänimen ja salasanan on MOLEMPIEN oltava asetettuina: jos vain toinen on, palvelin kirjaa varoituksen käynnistyksessä ja toimii kuin kumpaakaan ei olisi asetettu.</value>
+  </data>
+  <data name="The answer that means listed: 127.0.0.2, a range such as 127.0.0.2-11, a wildcard such as 127.0.0.*, or several joined by |" xml:space="preserve">
+    <value>Vastaus, joka tarkoittaa listalla olemista: 127.0.0.2, alue kuten 127.0.0.2-11, jokerimerkki kuten 127.0.0.* tai useita |-merkillä yhdistettynä</value>
+  </data>
+  <data name="The answer that means listed: 127.0.0.2, a range such as 127.0.0.2-126, or several joined by |. Left empty, any answer but the list's own error codes is a listing." xml:space="preserve">
+    <value>Vastaus, joka tarkoittaa listalla olemista: 127.0.0.2, alue kuten 127.0.0.2-126 tai useita |-merkillä yhdistettynä. Tyhjäksi jätettynä mikä tahansa vastaus listan omia virhekoodeja lukuun ottamatta tarkoittaa listausta.</value>
   </data>
   <data name="The anti-virus configuration could not be read." xml:space="preserve">
     <value>Virustorjunnan määritystä ei voitu lukea.</value>
@@ -14413,6 +14428,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="{0} is ready to be installed; the install goes on in its window" xml:space="preserve">
     <value>{0} on valmis asennettavaksi; asennus jatkuu omassa ikkunassaan</value>
+  </data>
+  <data name="{0} is required." xml:space="preserve">
+    <value>{0} on pakollinen.</value>
   </data>
   <data name="{0} is switched on but cannot run. {1} Every scan it is asked for fails, and a failed scan is not a failed message: the error is logged and the message is delivered as though it had been examined and found clean." xml:space="preserve">
     <value>{0} on kytketty päälle, mutta ei voi toimia. {1} Jokainen siltä pyydetty skannaus epäonnistuu, eikä epäonnistunut skannaus ole epäonnistunut viesti: virhe kirjataan lokiin ja viesti toimitetaan kuin se olisi tutkittu ja todettu puhtaaksi.</value>

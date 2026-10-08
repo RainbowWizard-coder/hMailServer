@@ -537,6 +537,16 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   The box opens on no role now, saying *Choose a role*, and `serveradmin` - the role that holds `administer_server`,
   everything in every domain - is asked about before it is given, naming the account and the role, with Cancel the
   answer Enter gives.
+- **Fixed: a SURBL server or DNS blacklist added in the Control Panel started switched off, and a DNS blacklist saved
+  with no expected result was never a match.** *Add SURBL server* and *Add blacklist* opened on an unticked *Active*
+  box, listed first, and on an empty *Expected result* with nothing to say what goes in it. The server expands that
+  field into the answers that mean listed, so a DNS blacklist with none matches no answer at all: an administrator who
+  added `zen.spamhaus.org` and pressed Save had added a list that was never asked, or never counted. A new entry is
+  active now, its tick box after the fields that say what the entry is; the DNS host and, on a DNS blacklist, the
+  expected result are required, and refused empty on the field; each field says under it what it wants - example
+  hosts, the `127.0.0.2`, `127.0.0.2-11`, `127.0.0.*` and `|` forms the server reads, and that a SURBL server with no
+  expected result takes any answer but the list's own error codes; and the dialog's button says *Add* when it adds and
+  *Save* when it edits.
 
 ### IMAP, POP3 and the webmail
 

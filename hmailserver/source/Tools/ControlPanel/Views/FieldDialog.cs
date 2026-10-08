@@ -36,6 +36,9 @@ namespace hMailServer.ControlPanel.Views
 
       private readonly List<Func<bool>> committers_ = new();
 
+      // Every field's row, so that a refusal on one is cleared before the next try.
+      private readonly List<FieldRow> rows_ = new();
+
       public FieldDialog(CollectionEditorView.CollectionSpec spec, CollectionEditorView.Row existing, Window owner)
       {
          Owner = owner;
@@ -44,8 +47,12 @@ namespace hMailServer.ControlPanel.Views
 
          var panel = new StackPanel();
 
-         List<CollectionEditorView.FieldSpec> fields =
-            spec.Fields.Where(f => f.Prop != "ID").ToList();
+         // The tick boxes that lead a spec - Active, Enabled, the grid's first
+         // column - go after the fields that say what the entry is, so that an
+         // Add dialog opens on the host and not on a tick (review finding F174).
+         List<CollectionEditorView.FieldSpec> fields = FieldDialogRules.TickBoxesAfterTheRest(
+            spec.Fields.Where(f => f.Prop != "ID").ToList(),
+            f => f.Kind == CollectionEditorView.FieldKind.Bool);
 
          // Resolved for the whole dialog at once, the same way the settings pages
          // do it, so that two fields with the same wording are told apart by the
@@ -61,12 +68,16 @@ namespace hMailServer.ControlPanel.Views
                ? v
                : f.Default;
 
-            panel.Children.Add(BuildField(f, current, names[i]));
+            FieldRow row = BuildField(f, current, names[i]);
+            rows_.Add(row);
+            panel.Children.Add(row);
          }
 
-         var ok = new Button { Content = L("_Save"), Appearance = ControlAppearance.Primary, MinWidth = 88 };
+         // The button says what it does: Add on an Add dialog, Save on an Edit one.
+         var ok = new Button { Content = existing == null ? L("_Add") : L("_Save"), Appearance = ControlAppearance.Primary, MinWidth = 88 };
          ok.Click += (_, _) =>
          {
+            DialogFields.ClearErrors(rows_.ToArray());
             if (committers_.Any(commit => !commit()))
                return;
             DialogResult = true;
@@ -93,7 +104,7 @@ namespace hMailServer.ControlPanel.Views
                TextWrapping = TextWrapping.Wrap
             };
             Describe(shown, prop, accessibleName);
-            return DialogFields.Field(f.Label, shown);
+            return DialogFields.Field(f.Label, shown, f.Hint);
          }
 
          switch (f.Kind)
@@ -117,7 +128,7 @@ namespace hMailServer.ControlPanel.Views
                      AutomationProperties.SetName(box, f.Label);
                   }
                   committers_.Add(() => { Result[prop] = box.IsChecked is true; return true; });
-                  return DialogFields.Field(null, box);
+                  return DialogFields.Field(null, box, f.Hint);
                }
             case CollectionEditorView.FieldKind.Combo:
                {
@@ -138,7 +149,7 @@ namespace hMailServer.ControlPanel.Views
                      Result[prop] = combo.SelectedItem is ComboBoxItem cbi ? (int)cbi.Tag : 0;
                      return true;
                   });
-                  return DialogFields.Field(f.Label, combo);
+                  return DialogFields.Field(f.Label, combo, f.Hint);
                }
             case CollectionEditorView.FieldKind.Multiline:
                {
@@ -162,14 +173,14 @@ namespace hMailServer.ControlPanel.Views
                      Result[prop] = box.Text;
                      return true;
                   });
-                  return DialogFields.Field(f.Label, box);
+                  return DialogFields.Field(f.Label, box, f.Hint);
                }
             case CollectionEditorView.FieldKind.Password:
                {
                   var box = new hMailServer.ControlPanel.Views.PasswordField { Password = Convert.ToString(current) ?? "" };
                   Describe(box, prop, accessibleName);
                   committers_.Add(() => { Result[prop] = box.Password; return true; });
-                  return DialogFields.Field(f.Label, box);
+                  return DialogFields.Field(f.Label, box, f.Hint);
                }
             case CollectionEditorView.FieldKind.Number:
                {
@@ -184,14 +195,26 @@ namespace hMailServer.ControlPanel.Views
                   };
                   Describe(box, prop, accessibleName);
                   committers_.Add(() => { Result[prop] = (int)(box.Value ?? 0); return true; });
-                  return DialogFields.Field(f.Label, box);
+                  return DialogFields.Field(f.Label, box, f.Hint);
                }
             default:
                {
                   var box = new TextBox { Text = Convert.ToString(current) ?? "" };
                   Describe(box, prop, accessibleName);
-                  committers_.Add(() => { Result[prop] = box.Text; return true; });
-                  return DialogFields.Field(f.Label, box);
+                  FieldRow row = DialogFields.Field(f.Label, box, f.Hint);
+                  committers_.Add(() =>
+                  {
+                     // A field the entry is useless without is refused empty, on
+                     // the field, with the keyboard put in it (review finding F174).
+                     if (f.Required && string.IsNullOrWhiteSpace(box.Text))
+                     {
+                        DialogFields.ShowError(row, FieldDialogRules.RequiredMessage(f.Label));
+                        return false;
+                     }
+                     Result[prop] = box.Text;
+                     return true;
+                  });
+                  return row;
                }
          }
       }

@@ -1256,6 +1256,9 @@ Control Panel kan bare lese meldingsfiler når det kjører på den samme maskine
   <data name="Added once, to mail with at least one recipient outside this server. Never to a signed or encrypted message, an automatic reply, a bounce or a list posting, and never a second time to a reply that already quotes it." xml:space="preserve">
     <value>Legges til én gang, til post med minst én mottaker utenfor denne serveren. Aldri til en signert eller kryptert melding, et automatisk svar, en returmelding eller et listeinnlegg, og aldri en gang til på et svar som allerede siterer den.</value>
   </data>
+  <data name="Added to the message's spam score when this list matches" xml:space="preserve">
+    <value>Legges til meldingens spampoengsum når denne listen treffer</value>
+  </data>
   <data name="Address" xml:space="preserve">
     <value>Adresse</value>
   </data>
@@ -10173,6 +10176,12 @@ Starte den på nytt nå?</value>
   <data name="Such as GeoLite2-Country.mmdb, kept up to date by you. Empty, the default, judges nothing by country whatever the policies say." xml:space="preserve">
     <value>For eksempel GeoLite2-Country.mmdb, som du holder oppdatert. Tomt, standard, vurderer ingenting etter land, uansett hva policyene sier.</value>
   </data>
+  <data name="Such as multi.surbl.org or dbl.spamhaus.org" xml:space="preserve">
+    <value>For eksempel multi.surbl.org eller dbl.spamhaus.org</value>
+  </data>
+  <data name="Such as zen.spamhaus.org or bl.spamcop.net" xml:space="preserve">
+    <value>For eksempel zen.spamhaus.org eller bl.spamcop.net</value>
+  </data>
   <data name="Suppression list" xml:space="preserve">
     <value>Sperreliste</value>
   </data>
@@ -10618,6 +10627,12 @@ Neste melding til adressen blir sendt, og den kommer først på listen igjen ett
   </data>
   <data name="The alternative to the bearer token, for scrapers that only speak HTTP Basic. The user name and the password must BOTH be set: with only one of them the server logs a warning at startup and behaves as if neither were set." xml:space="preserve">
     <value>Alternativet til bearer-tokenet, for innsamlere som bare snakker HTTP Basic. Brukernavnet og passordet må BEGGE være satt: med bare ett av dem logger serveren en advarsel ved oppstart og oppfører seg som om ingen av dem var satt.</value>
+  </data>
+  <data name="The answer that means listed: 127.0.0.2, a range such as 127.0.0.2-11, a wildcard such as 127.0.0.*, or several joined by |" xml:space="preserve">
+    <value>Svaret som betyr oppført: 127.0.0.2, et område som 127.0.0.2-11, et jokertegn som 127.0.0.*, eller flere satt sammen med |</value>
+  </data>
+  <data name="The answer that means listed: 127.0.0.2, a range such as 127.0.0.2-126, or several joined by |. Left empty, any answer but the list's own error codes is a listing." xml:space="preserve">
+    <value>Svaret som betyr oppført: 127.0.0.2, et område som 127.0.0.2-126, eller flere satt sammen med |. Står feltet tomt, regnes ethvert svar unntatt listens egne feilkoder som en oppføring.</value>
   </data>
   <data name="The anti-virus configuration could not be read." xml:space="preserve">
     <value>Antiviruskonfigurasjonen kunne ikke leses.</value>
@@ -14413,6 +14428,9 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   </data>
   <data name="{0} is ready to be installed; the install goes on in its window" xml:space="preserve">
     <value>{0} er klar til å installeres; installasjonen fortsetter i sitt vindu</value>
+  </data>
+  <data name="{0} is required." xml:space="preserve">
+    <value>{0} må fylles ut.</value>
   </data>
   <data name="{0} is switched on but cannot run. {1} Every scan it is asked for fails, and a failed scan is not a failed message: the error is logged and the message is delivered as though it had been examined and found clean." xml:space="preserve">
     <value>{0} er slått på, men kan ikke kjøre. {1} Hver skanning den blir bedt om, mislykkes, og en mislykket skanning er ikke en mislykket melding: feilen logges og meldingen leveres som om den var undersøkt og funnet ren.</value>

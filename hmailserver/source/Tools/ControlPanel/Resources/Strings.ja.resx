@@ -1256,6 +1256,9 @@
   <data name="Added once, to mail with at least one recipient outside this server. Never to a signed or encrypted message, an automatic reply, a bounce or a list posting, and never a second time to a reply that already quotes it." xml:space="preserve">
     <value>このサーバーの外に受信者が一人以上いるメールに、一度だけ付きます。署名済みまたは暗号化されたメッセージ、自動応答、不達通知、メーリングリストへの投稿には決して付かず、すでに引用している返信に二度目が付くこともありません。</value>
   </data>
+  <data name="Added to the message's spam score when this list matches" xml:space="preserve">
+    <value>このリストに一致したときにメッセージのスパムスコアに加算されます</value>
+  </data>
   <data name="Address" xml:space="preserve">
     <value>アドレス</value>
   </data>
@@ -10173,6 +10176,12 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Such as GeoLite2-Country.mmdb, kept up to date by you. Empty, the default, judges nothing by country whatever the policies say." xml:space="preserve">
     <value>たとえば、最新の状態に保っている GeoLite2-Country.mmdb。既定の空では、ポリシーの内容にかかわらず、国による判定は行われません。</value>
   </data>
+  <data name="Such as multi.surbl.org or dbl.spamhaus.org" xml:space="preserve">
+    <value>multi.surbl.org や dbl.spamhaus.org など</value>
+  </data>
+  <data name="Such as zen.spamhaus.org or bl.spamcop.net" xml:space="preserve">
+    <value>zen.spamhaus.org や bl.spamcop.net など</value>
+  </data>
   <data name="Suppression list" xml:space="preserve">
     <value>抑止リスト</value>
   </data>
@@ -10618,6 +10627,12 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="The alternative to the bearer token, for scrapers that only speak HTTP Basic. The user name and the password must BOTH be set: with only one of them the server logs a warning at startup and behaves as if neither were set." xml:space="preserve">
     <value>HTTP Basic しか話せないスクレイパー向けの、ベアラー トークンの代替。ユーザー名とパスワードの両方を設定する必要があります。片方だけの場合、サーバーは起動時に警告を記録し、どちらも設定されていないものとして動作します。</value>
+  </data>
+  <data name="The answer that means listed: 127.0.0.2, a range such as 127.0.0.2-11, a wildcard such as 127.0.0.*, or several joined by |" xml:space="preserve">
+    <value>掲載を意味する応答: 127.0.0.2、127.0.0.2-11 のような範囲、127.0.0.* のようなワイルドカード、または | でつないだ複数の値</value>
+  </data>
+  <data name="The answer that means listed: 127.0.0.2, a range such as 127.0.0.2-126, or several joined by |. Left empty, any answer but the list's own error codes is a listing." xml:space="preserve">
+    <value>掲載を意味する応答: 127.0.0.2、127.0.0.2-126 のような範囲、または | でつないだ複数の値。空のままにすると、リスト自身のエラーコードを除くすべての応答が掲載とみなされます。</value>
   </data>
   <data name="The anti-virus configuration could not be read." xml:space="preserve">
     <value>ウイルス対策の設定を読み取れませんでした。</value>
@@ -14413,6 +14428,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="{0} is ready to be installed; the install goes on in its window" xml:space="preserve">
     <value>{0} をインストールする準備ができました。インストールはそのウィンドウで続きます</value>
+  </data>
+  <data name="{0} is required." xml:space="preserve">
+    <value>{0} は必須です。</value>
   </data>
   <data name="{0} is switched on but cannot run. {1} Every scan it is asked for fails, and a failed scan is not a failed message: the error is logged and the message is delivered as though it had been examined and found clean." xml:space="preserve">
     <value>{0} は有効になっていますが実行できません。{1} 要求されたスキャンはすべて失敗します。そして、スキャンの失敗はメッセージの失敗ではありません。エラーはログに記録され、メッセージは検査されて問題なしと判定されたかのように配信されます。</value>

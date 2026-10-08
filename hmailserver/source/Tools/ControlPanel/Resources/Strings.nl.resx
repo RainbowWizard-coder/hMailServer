@@ -1256,6 +1256,9 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="Added once, to mail with at least one recipient outside this server. Never to a signed or encrypted message, an automatic reply, a bounce or a list posting, and never a second time to a reply that already quotes it." xml:space="preserve">
     <value>Wordt één keer toegevoegd, aan post met minstens één ontvanger buiten deze server. Nooit aan een ondertekend of versleuteld bericht, een automatisch antwoord, een onbestelbaarheidsbericht of een lijstbericht, en nooit een tweede keer aan een antwoord dat hem al citeert.</value>
   </data>
+  <data name="Added to the message's spam score when this list matches" xml:space="preserve">
+    <value>Wordt bij de spamscore van het bericht opgeteld wanneer deze lijst overeenkomt</value>
+  </data>
   <data name="Address" xml:space="preserve">
     <value>Adres</value>
   </data>
@@ -10173,6 +10176,12 @@ Nu opnieuw starten?</value>
   <data name="Such as GeoLite2-Country.mmdb, kept up to date by you. Empty, the default, judges nothing by country whatever the policies say." xml:space="preserve">
     <value>Zoals GeoLite2-Country.mmdb, door u actueel gehouden. Leeg, de standaard, beoordeelt niets per land, wat de beleidsregels ook zeggen.</value>
   </data>
+  <data name="Such as multi.surbl.org or dbl.spamhaus.org" xml:space="preserve">
+    <value>Bijvoorbeeld multi.surbl.org of dbl.spamhaus.org</value>
+  </data>
+  <data name="Such as zen.spamhaus.org or bl.spamcop.net" xml:space="preserve">
+    <value>Bijvoorbeeld zen.spamhaus.org of bl.spamcop.net</value>
+  </data>
   <data name="Suppression list" xml:space="preserve">
     <value>Onderdrukkingslijst</value>
   </data>
@@ -10618,6 +10627,12 @@ Het volgende bericht aan dit adres wordt verzonden, en het komt pas weer op de l
   </data>
   <data name="The alternative to the bearer token, for scrapers that only speak HTTP Basic. The user name and the password must BOTH be set: with only one of them the server logs a warning at startup and behaves as if neither were set." xml:space="preserve">
     <value>Het alternatief voor het bearertoken, voor scrapers die alleen HTTP Basic spreken. De gebruikersnaam en het wachtwoord moeten ALLEBEI zijn ingesteld: met slechts één van de twee logt de server bij het opstarten een waarschuwing en gedraagt hij zich alsof geen van beide is ingesteld.</value>
+  </data>
+  <data name="The answer that means listed: 127.0.0.2, a range such as 127.0.0.2-11, a wildcard such as 127.0.0.*, or several joined by |" xml:space="preserve">
+    <value>Het antwoord dat 'vermeld' betekent: 127.0.0.2, een bereik zoals 127.0.0.2-11, een jokerteken zoals 127.0.0.*, of meerdere verbonden met |</value>
+  </data>
+  <data name="The answer that means listed: 127.0.0.2, a range such as 127.0.0.2-126, or several joined by |. Left empty, any answer but the list's own error codes is a listing." xml:space="preserve">
+    <value>Het antwoord dat 'vermeld' betekent: 127.0.0.2, een bereik zoals 127.0.0.2-126, of meerdere verbonden met |. Leeg gelaten geldt elk antwoord behalve de eigen foutcodes van de lijst als vermelding.</value>
   </data>
   <data name="The anti-virus configuration could not be read." xml:space="preserve">
     <value>De antivirusconfiguratie kon niet worden gelezen.</value>
@@ -14413,6 +14428,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="{0} is ready to be installed; the install goes on in its window" xml:space="preserve">
     <value>{0} staat klaar om te installeren; de installatie gaat verder in het eigen venster</value>
+  </data>
+  <data name="{0} is required." xml:space="preserve">
+    <value>{0} is verplicht.</value>
   </data>
   <data name="{0} is switched on but cannot run. {1} Every scan it is asked for fails, and a failed scan is not a failed message: the error is logged and the message is delivered as though it had been examined and found clean." xml:space="preserve">
     <value>{0} staat aan maar kan niet draaien. {1} Elke scan die eraan wordt gevraagd, mislukt, en een mislukte scan is geen mislukt bericht: de fout wordt gelogd en het bericht wordt bezorgd alsof het was onderzocht en schoon bevonden.</value>

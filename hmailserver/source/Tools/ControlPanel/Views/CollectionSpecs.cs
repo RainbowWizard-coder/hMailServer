@@ -51,11 +51,16 @@ namespace hMailServer.ControlPanel.Views
          GetCollection = () => AntiSpam.SURBLServers,
          Fields =
          {
-            new FieldSpec { Prop = "Active", Label = L("Active"), Kind = FieldKind.Bool, GridWidth = 70 },
-            new FieldSpec { Prop = "DNSHost", Label = L("DNS host") },
+            // A new list starts active, its box after the fields that say what
+            // the list is (FieldDialog): one added and saved was never asked
+            // (review finding F174). The host is required. The expected result
+            // is not: empty, any answer but the list's own error codes is a
+            // listing (SURBL.cpp). Each field says what goes in it.
+            new FieldSpec { Prop = "Active", Label = L("Active"), Kind = FieldKind.Bool, GridWidth = 70, Default = true },
+            new FieldSpec { Prop = "DNSHost", Label = L("DNS host"), Required = true, Hint = L("Such as multi.surbl.org or dbl.spamhaus.org") },
             new FieldSpec { Prop = "RejectMessage", Label = L("Reject message") },
-            new FieldSpec { Prop = "ExpectedResult", Label = L("Expected result"), GridWidth = 130 },
-            new FieldSpec { Prop = "Score", Label = L("Score"), Kind = FieldKind.Number, GridWidth = 80, Default = 5 }
+            new FieldSpec { Prop = "ExpectedResult", Label = L("Expected result"), GridWidth = 130, Hint = L("The answer that means listed: 127.0.0.2, a range such as 127.0.0.2-126, or several joined by |. Left empty, any answer but the list's own error codes is a listing.") },
+            new FieldSpec { Prop = "Score", Label = L("Score"), Kind = FieldKind.Number, GridWidth = 80, Default = 5, Hint = L("Added to the message's spam score when this list matches") }
          }
       });
 
@@ -67,11 +72,15 @@ namespace hMailServer.ControlPanel.Views
          GetCollection = () => AntiSpam.DNSBlackLists,
          Fields =
          {
-            new FieldSpec { Prop = "Active", Label = L("Active"), Kind = FieldKind.Bool, GridWidth = 70 },
-            new FieldSpec { Prop = "DNSHost", Label = L("DNS host") },
-            new FieldSpec { Prop = "ExpectedResult", Label = L("Expected result"), GridWidth = 130 },
+            // As for a SURBL server, but the expected result is required here:
+            // the server expands it into the answers that mean listed, and an
+            // empty one matches no answer at all (BLCheck::ClientExistsInDNSBL),
+            // so a list saved without one was never a match (review finding F174).
+            new FieldSpec { Prop = "Active", Label = L("Active"), Kind = FieldKind.Bool, GridWidth = 70, Default = true },
+            new FieldSpec { Prop = "DNSHost", Label = L("DNS host"), Required = true, Hint = L("Such as zen.spamhaus.org or bl.spamcop.net") },
+            new FieldSpec { Prop = "ExpectedResult", Label = L("Expected result"), GridWidth = 130, Required = true, Hint = L("The answer that means listed: 127.0.0.2, a range such as 127.0.0.2-11, a wildcard such as 127.0.0.*, or several joined by |") },
             new FieldSpec { Prop = "RejectMessage", Label = L("Reject message") },
-            new FieldSpec { Prop = "Score", Label = L("Score"), Kind = FieldKind.Number, GridWidth = 80, Default = 5 }
+            new FieldSpec { Prop = "Score", Label = L("Score"), Kind = FieldKind.Number, GridWidth = 80, Default = 5, Hint = L("Added to the message's spam score when this list matches") }
          }
       });
 

@@ -103,6 +103,9 @@
     <Compile Include="..\ControlPanel\Services\PepperChange.cs" />
     <!-- Which roles hand out the whole server, asked about before one is given. -->
     <Compile Include="..\ControlPanel\Services\RoleGrant.cs" />
+    <!-- The order the generated Add and Edit dialog lays its fields out in, and the
+         words for a required field left empty. -->
+    <Compile Include="..\ControlPanel\Services\FieldDialogRules.cs" />
   </ItemGroup>
 
   <!-- The operator documentation, embedded straight from the repository as

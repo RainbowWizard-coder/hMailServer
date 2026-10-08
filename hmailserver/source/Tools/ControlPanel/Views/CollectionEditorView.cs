@@ -63,6 +63,15 @@ namespace hMailServer.ControlPanel.Views
          // opens empty, and what is left empty is not sent - which keeps what
          // the server holds rather than replacing it with nothing.
          public bool WriteOnly;
+
+         // What the field wants, in one line under its editor in the dialog: an
+         // example host, the forms the server reads (review finding F174).
+         public string Hint;
+
+         // Refused empty, on the field, by the dialog: a value the entry is
+         // useless without, such as a DNS blacklist's expected result, which
+         // empty matches no answer at all. Text fields only.
+         public bool Required;
       }
 
       public class CollectionSpec

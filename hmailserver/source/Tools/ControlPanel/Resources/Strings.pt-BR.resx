@@ -1256,6 +1256,9 @@ O Control Panel só consegue ler arquivos de mensagens quando roda na mesma máq
   <data name="Added once, to mail with at least one recipient outside this server. Never to a signed or encrypted message, an automatic reply, a bounce or a list posting, and never a second time to a reply that already quotes it." xml:space="preserve">
     <value>Acrescentado uma vez, às mensagens com pelo menos um destinatário fora deste servidor. Nunca a uma mensagem assinada ou criptografada, a uma resposta automática, a um aviso de não entrega ou a um envio para lista, e nunca uma segunda vez a uma resposta que já o cita.</value>
   </data>
+  <data name="Added to the message's spam score when this list matches" xml:space="preserve">
+    <value>Somado à pontuação de spam da mensagem quando esta lista corresponde</value>
+  </data>
   <data name="Address" xml:space="preserve">
     <value>Endereço</value>
   </data>
@@ -10173,6 +10176,12 @@ Reiniciá-lo agora?</value>
   <data name="Such as GeoLite2-Country.mmdb, kept up to date by you. Empty, the default, judges nothing by country whatever the policies say." xml:space="preserve">
     <value>Por exemplo GeoLite2-Country.mmdb, mantido atualizado por você. Vazio, o padrão, não avalia nada por país, digam o que disserem as políticas.</value>
   </data>
+  <data name="Such as multi.surbl.org or dbl.spamhaus.org" xml:space="preserve">
+    <value>Por exemplo, multi.surbl.org ou dbl.spamhaus.org</value>
+  </data>
+  <data name="Such as zen.spamhaus.org or bl.spamcop.net" xml:space="preserve">
+    <value>Por exemplo, zen.spamhaus.org ou bl.spamcop.net</value>
+  </data>
   <data name="Suppression list" xml:space="preserve">
     <value>Lista de supressão</value>
   </data>
@@ -10618,6 +10627,12 @@ A próxima mensagem para esse endereço será enviada, e ele só volta à lista 
   </data>
   <data name="The alternative to the bearer token, for scrapers that only speak HTTP Basic. The user name and the password must BOTH be set: with only one of them the server logs a warning at startup and behaves as if neither were set." xml:space="preserve">
     <value>A alternativa ao token portador, para coletores que só falam HTTP Basic. O nome de usuário e a senha precisam AMBOS estar definidos: com apenas um deles, o servidor registra um aviso na inicialização e se comporta como se nenhum estivesse definido.</value>
+  </data>
+  <data name="The answer that means listed: 127.0.0.2, a range such as 127.0.0.2-11, a wildcard such as 127.0.0.*, or several joined by |" xml:space="preserve">
+    <value>A resposta que significa listado: 127.0.0.2, um intervalo como 127.0.0.2-11, um curinga como 127.0.0.* ou várias unidas por |</value>
+  </data>
+  <data name="The answer that means listed: 127.0.0.2, a range such as 127.0.0.2-126, or several joined by |. Left empty, any answer but the list's own error codes is a listing." xml:space="preserve">
+    <value>A resposta que significa listado: 127.0.0.2, um intervalo como 127.0.0.2-126 ou várias unidas por |. Deixado vazio, qualquer resposta exceto os códigos de erro da própria lista conta como listagem.</value>
   </data>
   <data name="The anti-virus configuration could not be read." xml:space="preserve">
     <value>A configuração de antivírus não pôde ser lida.</value>
@@ -14413,6 +14428,9 @@ Nenhuma mensagem é excluída e nenhuma conta é removida. Continuar?</value>
   </data>
   <data name="{0} is ready to be installed; the install goes on in its window" xml:space="preserve">
     <value>{0} está pronto para ser instalado; a instalação continua na janela dela</value>
+  </data>
+  <data name="{0} is required." xml:space="preserve">
+    <value>O campo {0} é obrigatório.</value>
   </data>
   <data name="{0} is switched on but cannot run. {1} Every scan it is asked for fails, and a failed scan is not a failed message: the error is logged and the message is delivered as though it had been examined and found clean." xml:space="preserve">
     <value>{0} está ligado mas não consegue rodar. {1} Toda verificação solicitada a ele falha, e uma verificação com falha não é uma mensagem com falha: o erro é gravado no log e a mensagem é entregue como se tivesse sido examinada e considerada limpa.</value>
