@@ -140,10 +140,17 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.True(constructor != null && constructor.Contains("ShowNoRange();", StringComparison.Ordinal),
             "The page opens with the permission boxes live and nothing selected.");
 
+         // The selection's change shows the selected range's permissions, or none,
+         // through ShowPermissions_ - once any unsaved changes on the card have been
+         // asked about (UnsavedChangesTests).
          string changed = WithheldRowTests.MemberText(code, "private void RangeGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)");
          Assert.True(changed != null, "IPRangesView.RangeGrid_SelectionChanged is gone.");
-         Assert.True(changed.Contains("ShowNoRange();", StringComparison.Ordinal), "A selection that goes away leaves the last range's permissions on show.");
-         Assert.True(changed.Contains("PermGrid.IsEnabled = true;", StringComparison.Ordinal), "A selected range's permissions cannot be changed.");
+         Assert.True(changed.Contains("ShowPermissions_();", StringComparison.Ordinal), "Choosing a range no longer shows its permissions.");
+
+         string shows = WithheldRowTests.MemberText(code, "private void ShowPermissions_()");
+         Assert.True(shows != null, "IPRangesView.ShowPermissions_ is gone.");
+         Assert.True(shows.Contains("ShowNoRange();", StringComparison.Ordinal), "A selection that goes away leaves the last range's permissions on show.");
+         Assert.True(shows.Contains("PermGrid.IsEnabled = true;", StringComparison.Ordinal), "A selected range's permissions cannot be changed.");
       }
 
       [Fact]

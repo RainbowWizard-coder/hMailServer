@@ -38,15 +38,18 @@ namespace hMailServer.ControlPanel.Tests.Services
          int builds = buildUi.IndexOf("setting.CreateRow(value)", StringComparison.Ordinal);
          Assert.True(forgets >= 0 && forgets < builds, "BuildUi does not forget the rows of its last build before it builds the page again.");
 
-         // ... and a save passes over any other row before it writes or counts it.
-         string save = WithheldRowTests.MemberText(source, "private void Save_Click(object sender, RoutedEventArgs e)");
-         Assert.True(save != null, "Save_Click is gone from ServerSettingsView.");
+         // ... and a save passes over any other row before it writes or counts it. The
+         // save is Save_, which the Save button and the question before leaving a page
+         // with unsaved changes both call.
+         Assert.Contains("private void Save_Click(object sender, RoutedEventArgs e) => Save_();", source, StringComparison.Ordinal);
+         string save = WithheldRowTests.MemberText(source, "private bool Save_()");
+         Assert.True(save != null, "Save_ is gone from ServerSettingsView.");
          int passes = save.IndexOf("!" + built + ".Contains(setting)", StringComparison.Ordinal);
-         Assert.True(passes >= 0, "Save_Click writes rows the page showed no editor for.");
+         Assert.True(passes >= 0, "Save_ writes rows the page showed no editor for.");
          foreach (string write in new[] { "SaveToIni(", "restRows.Add(", "setting.Write(", "saved++" })
          {
             int at = save.IndexOf(write, StringComparison.Ordinal);
-            Assert.True(at > passes, "Save_Click reaches " + write + " before it passes over a row the page showed no editor for.");
+            Assert.True(at > passes, "Save_ reaches " + write + " before it passes over a row the page showed no editor for.");
          }
       }
    }

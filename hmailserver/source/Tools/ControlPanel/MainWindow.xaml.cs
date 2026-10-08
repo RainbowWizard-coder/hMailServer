@@ -1103,7 +1103,14 @@ namespace hMailServer.ControlPanel
                return;
 
             Services.Toast.Info(F("Reconnected to {0} after the service restarted.", session.Host), L("Connection restored"));
-            EnterPage(ContentHost.Content);
+
+            // Entering the page again reads it from the server, which would put the
+            // edits on a page with unsaved changes out of the way without a word;
+            // such a page keeps them, and its Reload reads the server when asked.
+            if (CurrentPageHasUnsavedChanges_())
+               RefreshPendingBar_(fresh: true);
+            else
+               EnterPage(ContentHost.Content);
          }));
       }
 
@@ -1129,11 +1136,22 @@ namespace hMailServer.ControlPanel
 
       private void NavTree_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
       {
-         if (!connected_ || ContentHost == null)
+         if (!connected_ || ContentHost == null || restoringSelection_)
             return;
 
          if (e.NewValue is not TreeViewItem item || item.Tag is not string key)
             return;
+
+         // Every way to another page comes through here - a sidebar row, a Related
+         // link, a palette result, a page's own link, a tour's step - so this is
+         // where a page with unsaved changes is asked about. Stay leaves the page on
+         // screen and puts the sidebar back on it.
+         if (!string.Equals(key, currentPage_, StringComparison.OrdinalIgnoreCase) && !MayLeaveCurrentPage_())
+         {
+            arrivedFromSearch_ = false;
+            RestoreSelection_();
+            return;
+         }
 
          if (!pageCache_.TryGetValue(key, out UserControl page))
          {
@@ -1192,6 +1210,128 @@ namespace hMailServer.ControlPanel
          // step points at is in the tree that has just been replaced.
          OfferPageTour_(page, key);
          TourPageChanged_();
+      }
+
+      /// <summary>
+      /// Whether the page on screen holds edits that have not reached the server.
+      /// A page that cannot say is taken to hold none: the question must never be
+      /// what stops somebody leaving a page.
+      /// </summary>
+      private bool CurrentPageHasUnsavedChanges_()
+      {
+         if (ContentHost?.Content is not IPageLifecycle page)
+            return false;
+
+         try
+         {
+            return page.HasUnsavedChanges;
+         }
+         catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
+         {
+            return false;
+         }
+      }
+
+      /// <summary>
+      /// Asks about the page on screen's unsaved changes, if it has any, and says
+      /// whether it may be left: Save saves as the page's own Save does and goes on
+      /// only when everything was saved, Discard goes on, Stay does not
+      /// (Services/UnsavedChanges). Asked of the sidebar's selection, the window's
+      /// close and a change of language, which restarts the Control Panel.
+      /// </summary>
+      private bool MayLeaveCurrentPage_()
+      {
+         var page = ContentHost?.Content as IPageLifecycle;
+         string title = currentPage_ == null ? "" : L(NavigationMap.TitleOf(currentPage_));
+
+         return UnsavedChanges.MayLeave(
+            CurrentPageHasUnsavedChanges_(),
+            () => MessageBox.AskUnsaved(UnsavedChanges.LeaveQuestion(title), L("Control Panel")),
+            () =>
+            {
+               try
+               {
+                  return page == null || page.SaveChanges();
+               }
+               catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
+               {
+                  Services.Toast.Failure(F("Could not save: {0}", ServerSession.DescribeComError(ex)), L("Control Panel"));
+                  return false;
+               }
+            });
+      }
+
+      // Set while the sidebar is put back on the page that was kept, so that the
+      // selection change it makes is not taken for a request to go there.
+      private bool restoringSelection_;
+
+      /// <summary>
+      /// Puts the sidebar's selection back on the page on screen, after a Stay: the
+      /// row clicked, or the one the arrow keys moved to, was selected before the
+      /// question was asked. After the click has finished rather than inside it, so
+      /// that the tree is not reselected in the middle of its own selection change;
+      /// the keyboard goes back to the row when the tree had it.
+      /// </summary>
+      private void RestoreSelection_()
+      {
+         string key = currentPage_;
+         Dispatcher.BeginInvoke(new Action(() =>
+         {
+            TreeViewItem leaf = AllLeaves(NavTree.Items).FirstOrDefault(l => string.Equals(l.Tag as string, key, StringComparison.OrdinalIgnoreCase));
+            if (leaf == null)
+               return;
+
+            restoringSelection_ = true;
+            try
+            {
+               bool keyboard = NavTree.IsKeyboardFocusWithin;
+               leaf.IsSelected = true;
+               if (keyboard)
+                  leaf.Focus();
+               leaf.BringIntoView();
+            }
+            finally
+            {
+               restoringSelection_ = false;
+            }
+
+            UpdateRail_(key);
+         }), System.Windows.Threading.DispatcherPriority.Input);
+      }
+
+      /// <summary>
+      /// Closing the window is a way of leaving the page too, and is asked about in
+      /// the same words; Stay keeps the window open. Not while the Control Panel
+      /// restarts (App.Restart, for a change of language or after a fault): the
+      /// language was asked about before, and a fault's restart cannot be stopped.
+      /// The window's own Closing handlers - the bounds, the palette's history, the
+      /// events they let go of - run only when it does close.
+      /// </summary>
+      protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
+      {
+         if (connected_ && !App.Restarting && !MayLeaveCurrentPage_())
+         {
+            e.Cancel = true;
+            return;
+         }
+
+         base.OnClosing(e);
+      }
+
+      /// <summary>
+      /// A change of language restarts the Control Panel, which leaves the page as
+      /// surely as closing the window does: asked about first, and only for a
+      /// language other than the one in use, which changes nothing.
+      /// </summary>
+      private void OfferLanguage_(string tag)
+      {
+         if (string.Equals(tag, LanguageChoice.Stored, StringComparison.OrdinalIgnoreCase))
+            return;
+
+         if (connected_ && !MayLeaveCurrentPage_())
+            return;
+
+         LanguageChoice.Offer(tag);
       }
 
       /// <summary>
@@ -1354,8 +1494,12 @@ namespace hMailServer.ControlPanel
          }
 
          // Entering the page again refreshes the bar and puts what the server now
-         // runs on in front of the administrator.
-         EnterPage(ContentHost.Content);
+         // runs on in front of the administrator - except over a page's unsaved
+         // changes, which a reinitialise does not touch and a fresh read would lose.
+         if (CurrentPageHasUnsavedChanges_())
+            RefreshPendingBar_(fresh: true);
+         else
+            EnterPage(ContentHost.Content);
       }
 
       /// <summary>
@@ -1670,7 +1814,7 @@ namespace hMailServer.ControlPanel
             Tag = candidate.Tag
          }))
          {
-            item.Click += (s, args) => LanguageChoice.Offer((string)((MenuItem)s).Tag);
+            item.Click += (s, args) => OfferLanguage_((string)((MenuItem)s).Tag);
             language.Items.Add(item);
          }
          menu.Items.Add(language);
@@ -1739,5 +1883,21 @@ namespace hMailServer.ControlPanel
    {
       void OnEnter();
       void OnLeave();
+
+      /// <summary>
+      /// Whether the page holds edits that have not reached the server. The shell
+      /// asks before it leaves such a page - by the sidebar, a link, the palette, a
+      /// tour, a change of language or closing the window - because the page is kept
+      /// and read again from the server as it is next opened, and the edits would be
+      /// gone. A page with nothing to edit says no, which is the default.
+      /// </summary>
+      bool HasUnsavedChanges => false;
+
+      /// <summary>
+      /// Saves the unsaved changes as the page's own Save does, reporting on the
+      /// page as that does; true only when every change was saved, so that a save
+      /// that failed anywhere keeps the administrator on the page with its sentence.
+      /// </summary>
+      bool SaveChanges() => true;
    }
 }

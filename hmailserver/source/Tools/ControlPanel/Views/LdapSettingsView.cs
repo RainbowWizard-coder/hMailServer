@@ -165,6 +165,53 @@ namespace hMailServer.ControlPanel.Views
       {
       }
 
+      /// <summary>What the editors held when they were last read from the INI or saved to it.</summary>
+      private readonly EditorBaseline baseline_ = new();
+
+      /// <summary>
+      /// Every editor a save writes, in one list: the service password as whether
+      /// one was typed, never as what was. The connection test's boxes are not here,
+      /// since nothing saves them.
+      /// </summary>
+      private IEnumerable<string> EditorValues_() => new[]
+      {
+         enabled_.IsChecked is true ? "1" : "0",
+         server_.Text,
+         port_.Text,
+         SelectedTag_(security_, 2).ToString(),
+         verifyCertificate_.IsChecked is true ? "1" : "0",
+         timeout_.Text,
+         SelectedTag_(bindMethod_, 0).ToString(),
+         allowUnprotected_.IsChecked is true ? "1" : "0",
+         searchBase_.Text,
+         userSearchFilter_.Text,
+         userDnTemplate_.Text,
+         serviceUsername_.Text,
+         servicePassword_.Password.Length > 0 ? "1" : "0",
+         clearServicePassword_.IsChecked is true ? "1" : "0",
+         fallback_.IsChecked is true ? "1" : "0"
+      };
+
+      /// <summary>
+      /// Whether an editor holds something other than what was last read or saved.
+      /// OnEnter reads the INI again, so such an edit is gone when the page is next
+      /// opened.
+      /// </summary>
+      public bool HasUnsavedChanges => store_.IsAvailable && baseline_.Differs(EditorValues_());
+
+      /// <summary>The page's own Save; true when it wrote the section.</summary>
+      public bool SaveChanges() => Save_();
+
+      /// <summary>Reload: asked about first while an edit is unsaved, since it replaces every editor.</summary>
+      private void Reload_()
+      {
+         if (HasUnsavedChanges &&
+             !MessageBox.Confirm(UnsavedChanges.ReloadQuestion, L("Control Panel"), L("_Discard"), destructive: true, cancelByDefault: true))
+            return;
+
+         Load_();
+      }
+
       // =========================================================================
       // Layout
       // =========================================================================
@@ -185,7 +232,7 @@ namespace hMailServer.ControlPanel.Views
          var reload = new Wpf.Ui.Controls.Button { Content = L("_Reload"), Margin = new Thickness(0, 0, 8, 0) };
          System.Windows.Automation.AutomationProperties.SetName(reload, L("Re-read the LDAP settings from hMailServer.INI"));
          System.Windows.Automation.AutomationProperties.SetAutomationId(reload, "ldap-reload");
-         reload.Click += (s, e) => Load_();
+         reload.Click += (s, e) => Reload_();
          buttons.Children.Add(reload);
 
          saveButton_ = new Wpf.Ui.Controls.Button { Content = L("_Save changes"), Appearance = Wpf.Ui.Controls.ControlAppearance.Primary };
@@ -651,20 +698,22 @@ namespace hMailServer.ControlPanel.Views
 
          loading_ = false;
          RefreshState_();
+         baseline_.Take(EditorValues_());
       }
 
-      private void Save_()
+      /// <summary>Writes the [LDAP] section; true when it was written.</summary>
+      private bool Save_()
       {
          if (!NumericField.TryValidate(port_.Text, L("Port"), 0, 65535, out int port, out bool hasPort, out string portError))
          {
             MessageBox.Show(portError, L("Control Panel"), MessageBoxButton.OK, MessageBoxImage.Warning);
-            return;
+            return false;
          }
 
          if (!NumericField.TryValidate(timeout_.Text, L("Timeout in seconds"), 1, 90, out int timeoutSeconds, out bool hasTimeout, out string timeoutError))
          {
             MessageBox.Show(timeoutError, L("Control Panel"), MessageBoxButton.OK, MessageBoxImage.Warning);
-            return;
+            return false;
          }
 
          string newServicePassword = servicePassword_.Password;
@@ -672,7 +721,7 @@ namespace hMailServer.ControlPanel.Views
          {
             MessageBox.Show(L("A new service account password has been typed AND \"remove the stored password\" is ticked. Untick one of them - guessing which was meant is not this page's decision to make."),
                L("Control Panel"), MessageBoxButton.OK, MessageBoxImage.Warning);
-            return;
+            return false;
          }
 
          try
@@ -703,7 +752,7 @@ namespace hMailServer.ControlPanel.Views
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
             MessageBox.Show(F("Could not save: {0}", ex.Message), L("Control Panel"), MessageBoxButton.OK, MessageBoxImage.Error);
-            return;
+            return false;
          }
 
          // No restart offer, and that is the point of this section's design: the
@@ -720,6 +769,8 @@ namespace hMailServer.ControlPanel.Views
          clearServicePassword_.IsChecked = false;
 
          RefreshState_();
+         baseline_.Take(EditorValues_());
+         return true;
       }
 
       // =========================================================================

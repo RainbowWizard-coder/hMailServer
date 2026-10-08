@@ -145,6 +145,35 @@ namespace hMailServer.ControlPanel.Views
       {
       }
 
+      /// <summary>What the six saved editors held when they were last read from the INI or saved to it.</summary>
+      private readonly EditorBaseline baseline_ = new();
+
+      /// <summary>The editors Save writes. The domain and the inactive switch are a run's, and are not saved.</summary>
+      private IEnumerable<string> EditorValues_() => new[]
+      {
+         filter_.Text, mailAttribute_.Text, usernameAttribute_.Text, displayNameAttribute_.Text, maxUsers_.Text, scheduleMinutes_.Text
+      };
+
+      /// <summary>
+      /// Whether a saved editor holds something other than what was last read or
+      /// saved. OnEnter reads the INI again, so such an edit is gone when the page is
+      /// next opened.
+      /// </summary>
+      public bool HasUnsavedChanges => store_.IsAvailable && baseline_.Differs(EditorValues_());
+
+      /// <summary>The page's own Save; true when it wrote the settings.</summary>
+      public bool SaveChanges() => Save_();
+
+      /// <summary>Reload: asked about first while an edit is unsaved, since it replaces the editors.</summary>
+      private void Reload_()
+      {
+         if (HasUnsavedChanges &&
+             !MessageBox.Confirm(UnsavedChanges.ReloadQuestion, L("Control Panel"), L("_Discard"), destructive: true, cancelByDefault: true))
+            return;
+
+         Load_();
+      }
+
       // =========================================================================
       // Layout
       // =========================================================================
@@ -343,7 +372,7 @@ namespace hMailServer.ControlPanel.Views
          var reload = new Wpf.Ui.Controls.Button { Content = L("_Reload"), Margin = new Thickness(0, 0, 8, 0) };
          System.Windows.Automation.AutomationProperties.SetName(reload, L("Re-read these settings from hMailServer.INI"));
          System.Windows.Automation.AutomationProperties.SetAutomationId(reload, "dirsync-reload");
-         reload.Click += (s, e) => Load_();
+         reload.Click += (s, e) => Reload_();
          buttons.Children.Add(reload);
 
          saveButton_ = new Wpf.Ui.Controls.Button
@@ -418,13 +447,15 @@ namespace hMailServer.ControlPanel.Views
             loading_ = false;
          }
 
+         baseline_.Take(EditorValues_());
          InvalidatePreview_();
       }
 
-      private void Save_()
+      /// <summary>Writes the six settings; true when they were written.</summary>
+      private bool Save_()
       {
          if (!store_.IsAvailable)
-            return;
+            return false;
 
          try
          {
@@ -444,10 +475,13 @@ namespace hMailServer.ControlPanel.Views
             // A saved change alters what a run would select, so a preview taken before
             // it no longer describes what Apply would do.
             InvalidatePreview_();
+            baseline_.Take(EditorValues_());
+            return true;
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
             footerStatus_.Text = L("Could not save: ") + ex.Message;
+            return false;
          }
       }
 

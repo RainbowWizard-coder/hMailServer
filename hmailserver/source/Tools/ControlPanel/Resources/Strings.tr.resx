@@ -3654,6 +3654,12 @@ Gönderene kabul edildiği söylendi; bu nedenle hiçbir şey yeniden denemeyece
 
 Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene kadar IMAP SEARCH bulması gerekenden azını bulur.</value>
   </data>
+  <data name="Discard your unsaved changes and read the script from disk again?" xml:space="preserve">
+    <value>Kaydedilmemiş değişiklikler atılıp betik diskten yeniden okunsun mu?</value>
+  </data>
+  <data name="Discard your unsaved changes and read the settings again?" xml:space="preserve">
+    <value>Kaydedilmemiş değişiklikler atılıp ayarlar yeniden okunsun mu?</value>
+  </data>
   <data name="Disconnect clients sending too many invalid commands" xml:space="preserve">
     <value>Çok fazla geçersiz komut gönderen istemcilerin bağlantısını kes</value>
   </data>
@@ -8960,6 +8966,9 @@ Devam edilsin mi?</value>
   <data name="S_MTP authentication" xml:space="preserve">
     <value>S_MTP kimlik doğrulaması</value>
   </data>
+  <data name="S_tay" xml:space="preserve">
+    <value>_Sayfada kal</value>
+  </data>
   <data name="S_witch the rule over" xml:space="preserve">
     <value>Kuralı de_ğiştir</value>
   </data>
@@ -11052,6 +11061,9 @@ yüklenemedi. İleti büyük olasılıkla teslim edildi ve artık kuyrukta deği
   <data name="The permission is inherited from {0}; the command stops the folder inheriting it." xml:space="preserve">
     <value>İzin {0} öğesinden devralınıyor; komut klasörün bunu devralmasını durdurur.</value>
   </data>
+  <data name="The permissions of {0} have unsaved changes." xml:space="preserve">
+    <value>{0} aralığının izinlerinde kaydedilmemiş değişiklikler var.</value>
+  </data>
   <data name="The person's data" xml:space="preserve">
     <value>Kişinin verileri</value>
   </data>
@@ -12580,6 +12592,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="You arrived here from the search palette" xml:space="preserve">
     <value>Buraya arama paletinden geldiniz</value>
   </data>
+  <data name="You have unsaved changes on {0}." xml:space="preserve">
+    <value>{0} sayfasında kaydedilmemiş değişiklikler var.</value>
+  </data>
   <data name="Your domains live in this list. Opening one gives you its accounts, aliases and distribution lists." xml:space="preserve">
     <value>Etki alanlarınız bu listede yer alır. Birini açtığınızda hesaplarına, diğer adlarına ve dağıtım listelerine ulaşırsınız.</value>
   </data>
@@ -12738,6 +12753,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="_Disable two-factor authentication" xml:space="preserve">
     <value>İki etkenli kimlik doğrulamayı _devre dışı bırak</value>
+  </data>
+  <data name="_Discard" xml:space="preserve">
+    <value>_Yok say</value>
   </data>
   <data name="_Display name attribute" xml:space="preserve">
     <value>_Görünen ad özniteliği</value>
@@ -14017,6 +14035,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="the program Windows was asked to run is not the one the hMailServer service is registered with, or was given something it does not take" xml:space="preserve">
     <value>Windows'un çalıştırması istenen program, hMailServer hizmetinin kayıtlı olduğu program değil ya da kabul etmediği bir şey verildi</value>
+  </data>
+  <data name="the range is no longer on the server." xml:space="preserve">
+    <value>aralık artık sunucuda yok.</value>
   </data>
   <data name="the sender's SPF check passed" xml:space="preserve">
     <value>gönderenin SPF denetimi geçti</value>

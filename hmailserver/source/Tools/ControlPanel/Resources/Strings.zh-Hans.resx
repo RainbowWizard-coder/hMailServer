@@ -3654,6 +3654,12 @@
 
 不会触及任何邮件 - 索引是由邮件推导出来的 - 但在重建赶上进度之前，IMAP SEARCH 找到的结果会比应有的少。</value>
   </data>
+  <data name="Discard your unsaved changes and read the script from disk again?" xml:space="preserve">
+    <value>放弃未保存的更改并从磁盘重新读取脚本？</value>
+  </data>
+  <data name="Discard your unsaved changes and read the settings again?" xml:space="preserve">
+    <value>放弃未保存的更改并重新读取设置？</value>
+  </data>
   <data name="Disconnect clients sending too many invalid commands" xml:space="preserve">
     <value>断开发送过多无效命令的客户端</value>
   </data>
@@ -8960,6 +8966,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="S_MTP authentication" xml:space="preserve">
     <value>SMTP 身份验证(_M)</value>
   </data>
+  <data name="S_tay" xml:space="preserve">
+    <value>留在此页(_T)</value>
+  </data>
   <data name="S_witch the rule over" xml:space="preserve">
     <value>切换规则(_W)</value>
   </data>
@@ -11052,6 +11061,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The permission is inherited from {0}; the command stops the folder inheriting it." xml:space="preserve">
     <value>该权限继承自 {0}；该命令会阻止此文件夹继承它。</value>
   </data>
+  <data name="The permissions of {0} have unsaved changes." xml:space="preserve">
+    <value>{0} 的权限有未保存的更改。</value>
+  </data>
   <data name="The person's data" xml:space="preserve">
     <value>此人的数据</value>
   </data>
@@ -12580,6 +12592,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="You arrived here from the search palette" xml:space="preserve">
     <value>您是从搜索面板来到这里的</value>
   </data>
+  <data name="You have unsaved changes on {0}." xml:space="preserve">
+    <value>{0} 上有未保存的更改。</value>
+  </data>
   <data name="Your domains live in this list. Opening one gives you its accounts, aliases and distribution lists." xml:space="preserve">
     <value>您的域都在这个列表里。打开其中一个，就能看到它的账户、别名和分发列表。</value>
   </data>
@@ -12738,6 +12753,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="_Disable two-factor authentication" xml:space="preserve">
     <value>禁用双因素身份验证(_D)</value>
+  </data>
+  <data name="_Discard" xml:space="preserve">
+    <value>放弃(_D)</value>
   </data>
   <data name="_Display name attribute" xml:space="preserve">
     <value>显示名称属性(_D)</value>
@@ -14017,6 +14035,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="the program Windows was asked to run is not the one the hMailServer service is registered with, or was given something it does not take" xml:space="preserve">
     <value>Windows 被要求运行的程序不是 hMailServer 服务注册时使用的程序，或者收到了它不接受的内容</value>
+  </data>
+  <data name="the range is no longer on the server." xml:space="preserve">
+    <value>该范围已不在服务器上。</value>
   </data>
   <data name="the sender's SPF check passed" xml:space="preserve">
     <value>发件人的 SPF 检查已通过</value>

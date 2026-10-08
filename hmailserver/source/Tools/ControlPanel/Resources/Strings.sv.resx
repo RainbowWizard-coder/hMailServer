@@ -3654,6 +3654,12 @@ Avsändaren fick veta att det accepterades, så inget kommer att försöka igen 
 
 Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ikapp hittar IMAP SEARCH mindre än det borde.</value>
   </data>
+  <data name="Discard your unsaved changes and read the script from disk again?" xml:space="preserve">
+    <value>Kasta de osparade ändringarna och läsa om skriptet från disk?</value>
+  </data>
+  <data name="Discard your unsaved changes and read the settings again?" xml:space="preserve">
+    <value>Kasta de osparade ändringarna och läsa om inställningarna?</value>
+  </data>
   <data name="Disconnect clients sending too many invalid commands" xml:space="preserve">
     <value>Koppla från klienter som skickar för många ogiltiga kommandon</value>
   </data>
@@ -8960,6 +8966,9 @@ Fortsätt?</value>
   <data name="S_MTP authentication" xml:space="preserve">
     <value>S_MTP-autentisering</value>
   </data>
+  <data name="S_tay" xml:space="preserve">
+    <value>S_tanna</value>
+  </data>
   <data name="S_witch the rule over" xml:space="preserve">
     <value>_Växla regeln</value>
   </data>
@@ -11052,6 +11061,9 @@ kunde inte läsas in. Meddelandet har troligen levererats och finns inte längre
   <data name="The permission is inherited from {0}; the command stops the folder inheriting it." xml:space="preserve">
     <value>Behörigheten ärvs från {0}; kommandot gör att mappen slutar ärva den.</value>
   </data>
+  <data name="The permissions of {0} have unsaved changes." xml:space="preserve">
+    <value>Behörigheterna för {0} har osparade ändringar.</value>
+  </data>
   <data name="The person's data" xml:space="preserve">
     <value>Personens uppgifter</value>
   </data>
@@ -12580,6 +12592,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   <data name="You arrived here from the search palette" xml:space="preserve">
     <value>Du kom hit från sökpaletten</value>
   </data>
+  <data name="You have unsaved changes on {0}." xml:space="preserve">
+    <value>Du har osparade ändringar på {0}.</value>
+  </data>
   <data name="Your domains live in this list. Opening one gives you its accounts, aliases and distribution lists." xml:space="preserve">
     <value>Dina domäner finns i den här listan. Öppnar du en får du dess konton, alias och distributionslistor.</value>
   </data>
@@ -12738,6 +12753,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   </data>
   <data name="_Disable two-factor authentication" xml:space="preserve">
     <value>_Inaktivera tvåfaktorsautentisering</value>
+  </data>
+  <data name="_Discard" xml:space="preserve">
+    <value>_Kasta</value>
   </data>
   <data name="_Display name attribute" xml:space="preserve">
     <value>Attribut för _visningsnamn</value>
@@ -14017,6 +14035,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   </data>
   <data name="the program Windows was asked to run is not the one the hMailServer service is registered with, or was given something it does not take" xml:space="preserve">
     <value>programmet som Windows ombads köra är inte det som hMailServer-tjänsten är registrerad med, eller så fick det något som det inte tar emot</value>
+  </data>
+  <data name="the range is no longer on the server." xml:space="preserve">
+    <value>intervallet finns inte längre på servern.</value>
   </data>
   <data name="the sender's SPF check passed" xml:space="preserve">
     <value>avsändarens SPF-kontroll godkändes</value>

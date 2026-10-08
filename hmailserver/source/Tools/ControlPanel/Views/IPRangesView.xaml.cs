@@ -46,10 +46,45 @@ namespace hMailServer.ControlPanel.Views
          ShowNoRange();
       }
 
-      public void OnEnter() => Reload();
+      // The range whose permissions the card shows, and what its boxes held when
+      // they were filled from the server or saved to it: a box ticked or cleared
+      // since is an unsaved change.
+      private RangeRow permsRow_;
+      private readonly EditorBaseline perms_ = new();
+
+      // Set while the rows are replaced, and while the selection is put back on the
+      // range whose changes are on the card, so that neither is taken for a choice
+      // of another range.
+      private bool reloading_;
+      private bool restoringRow_;
+
+      /// <summary>
+      /// The page as it is opened: read from the server, the card's boxes included.
+      /// Changes left on the card when the page was left were discarded by leaving it
+      /// (MainWindow asked), so they are not kept.
+      /// </summary>
+      public void OnEnter()
+      {
+         ForgetPermissionChanges_();
+         Reload();
+      }
 
       public void OnLeave()
       {
+      }
+
+      /// <summary>Whether a permission box holds something other than what the range has on the server.</summary>
+      public bool HasUnsavedChanges => permsRow_ != null && PermGrid.IsEnabled && perms_.Differs(PermissionValues_());
+
+      /// <summary>Save permissions, for the range the card shows; true when it was saved.</summary>
+      public bool SaveChanges() => permsRow_ == null || SavePermissions_(permsRow_);
+
+      private IEnumerable<string> PermissionValues_() => PermissionBoxes().Select(box => box.IsChecked is true ? "1" : "0");
+
+      private void ForgetPermissionChanges_()
+      {
+         permsRow_ = null;
+         perms_.Forget();
       }
 
       private void Reload()
@@ -57,8 +92,11 @@ namespace hMailServer.ControlPanel.Views
          // The range selected before stays selected after: a reload follows every
          // save, edit and add, and replacing the rows used to drop the selection,
          // which emptied the permissions card's title and left its boxes showing
-         // the range that had just been saved.
-         int? selectedId = (RangeGrid.SelectedItem as RangeRow)?.Id;
+         // the range that had just been saved. A range whose permissions have
+         // unsaved changes on the card is the one selected again, and keeps them:
+         // adding a range is no reason to lose them.
+         bool keepChanges = HasUnsavedChanges;
+         int? selectedId = keepChanges ? permsRow_.Id : (RangeGrid.SelectedItem as RangeRow)?.Id;
 
          var rows = new List<RangeRow>();
          dynamic ranges = ServerSession.Current.Application.Settings.SecurityRanges;
@@ -87,17 +125,31 @@ namespace hMailServer.ControlPanel.Views
             ServerSession.Release(ranges);
          }
 
-         RangeGrid.ItemsSource = rows;
-         ListSearch.Apply(RangeGrid, SearchBar.SearchText);
-         StatusText.Show(EmptyStatus, null, rows.Count, null, L("No IP ranges defined yet."));
+         reloading_ = true;
+         try
+         {
+            RangeGrid.ItemsSource = rows;
+            ListSearch.Apply(RangeGrid, SearchBar.SearchText);
+            StatusText.Show(EmptyStatus, null, rows.Count, null, L("No IP ranges defined yet."));
 
-         // Selected, not scrolled into view: the list keeps its own offset when its
-         // rows are replaced, and ScrollIntoView would bring the row into the
-         // page's view as well, scrolling the page away from the Save permissions
-         // button or the Add button just pressed and back up to the list.
-         RangeRow again = selectedId == null ? null : rows.FirstOrDefault(r => r.Id == selectedId.Value);
-         if (again != null)
-            RangeGrid.SelectedItem = again;
+            // Selected, not scrolled into view: the list keeps its own offset when its
+            // rows are replaced, and ScrollIntoView would bring the row into the
+            // page's view as well, scrolling the page away from the Save permissions
+            // button or the Add button just pressed and back up to the list.
+            RangeRow again = selectedId == null ? null : rows.FirstOrDefault(r => r.Id == selectedId.Value);
+            if (again != null)
+               RangeGrid.SelectedItem = again;
+         }
+         finally
+         {
+            reloading_ = false;
+         }
+
+         RangeRow kept = keepChanges ? rows.FirstOrDefault(r => r.Id == permsRow_.Id) : null;
+         if (kept != null)
+            permsRow_ = kept;
+         else
+            ShowPermissions_();
       }
 
       /// <summary>
@@ -107,6 +159,7 @@ namespace hMailServer.ControlPanel.Views
       /// </summary>
       private void ShowNoRange()
       {
+         ForgetPermissionChanges_();
          PermCard.Title = L("Permissions (select a range)");
          foreach (CheckBox box in PermissionBoxes())
             box.IsChecked = false;
@@ -124,6 +177,73 @@ namespace hMailServer.ControlPanel.Views
          => ListSearch.Apply(RangeGrid, SearchBar.SearchText);
 
       private void RangeGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
+      {
+         if (reloading_ || restoringRow_)
+            return;
+
+         // Changed permissions are not put out of the way by another range's: the
+         // question comes first, once the click that chose the range has finished.
+         // A selection that goes - a search that hides the range - leaves the card
+         // on the range it shows, with its changes.
+         if (HasUnsavedChanges)
+         {
+            if (RangeGrid.SelectedItem is RangeRow chosen && chosen.Id != permsRow_.Id)
+            {
+               RangeRow edited = permsRow_;
+               Dispatcher.BeginInvoke(new Action(() => AskAboutPermissions_(edited)), System.Windows.Threading.DispatcherPriority.Input);
+            }
+
+            return;
+         }
+
+         ShowPermissions_();
+      }
+
+      /// <summary>
+      /// The unsaved permissions of <paramref name="edited"/>, asked about after
+      /// another range was chosen: Save writes them and shows the chosen range's,
+      /// Discard shows the chosen range's, and Stay - or a save that failed - puts
+      /// the selection back on the range whose changes are on the card.
+      /// </summary>
+      private void AskAboutPermissions_(RangeRow edited)
+      {
+         if (!HasUnsavedChanges || !ReferenceEquals(permsRow_, edited))
+            return;
+
+         if (RangeGrid.SelectedItem is not RangeRow chosen || chosen.Id == edited.Id)
+            return;
+
+         UnsavedAnswer answer = MessageBox.AskUnsaved(UnsavedChanges.PermissionsQuestion(edited.Name), L("Control Panel"));
+         if (answer == UnsavedAnswer.Discard)
+         {
+            ForgetPermissionChanges_();
+            ShowPermissions_();
+            return;
+         }
+
+         if (answer == UnsavedAnswer.Save && SavePermissions_(edited))
+         {
+            // The list's Yes and No follow the save; the chosen range stays chosen.
+            Reload();
+            return;
+         }
+
+         restoringRow_ = true;
+         try
+         {
+            RangeGrid.SelectedItem = (RangeGrid.ItemsSource as IEnumerable<RangeRow>)?.FirstOrDefault(r => r.Id == edited.Id);
+         }
+         finally
+         {
+            restoringRow_ = false;
+         }
+      }
+
+      /// <summary>
+      /// Fills the card with the selected range's permissions as the server holds
+      /// them, or empties it when no range is selected.
+      /// </summary>
+      private void ShowPermissions_()
       {
          if (RangeGrid.SelectedItem is not RangeRow row)
          {
@@ -153,6 +273,8 @@ namespace hMailServer.ControlPanel.Views
             PermGrid.IsEnabled = true;
             SavePermsButton.IsEnabled = true;
             ServerSession.Release(range);
+            permsRow_ = row;
+            perms_.Take(PermissionValues_());
          }
          catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
          {
@@ -182,16 +304,38 @@ namespace hMailServer.ControlPanel.Views
 
       private void SavePerms_Click(object sender, RoutedEventArgs e)
       {
-         if (RangeGrid.SelectedItem is not RangeRow row)
+         // The range the card shows, which is the selected one unless a search has
+         // hidden it while its permissions were being changed.
+         RangeRow row = permsRow_;
+         if (row == null)
             return;
 
+         bool saved = SavePermissions_(row);
+
+         // After the reload, which selects the range again and so retitles the card.
+         Reload();
+         if (saved && permsRow_ != null && permsRow_.Id == row.Id)
+            PermCard.Title = F("Permissions - {0} (saved)", row.Name);
+      }
+
+      /// <summary>
+      /// Writes the card's boxes to <paramref name="row"/>'s range; true when the
+      /// server took them, and the boxes are then what the range holds.
+      /// </summary>
+      private bool SavePermissions_(RangeRow row)
+      {
          bool saved = false;
          dynamic ranges = ServerSession.Current.Application.Settings.SecurityRanges;
          try
          {
             dynamic range = FindRange(ranges, row);
             if (range == null)
-               return;
+            {
+               // Deleted from elsewhere since the list was read: said, rather than a
+               // Save that does nothing.
+               MessageBox.Show(F("Could not save the permissions: {0}", L("the range is no longer on the server.")), L("Control Panel"));
+               return false;
+            }
 
             range.AllowSMTPConnections = PermSmtp.IsChecked is true;
             range.AllowIMAPConnections = PermImap.IsChecked is true;
@@ -214,10 +358,9 @@ namespace hMailServer.ControlPanel.Views
             ServerSession.Release(ranges);
          }
 
-         // After the reload, which selects the range again and so retitles the card.
-         Reload();
-         if (saved && RangeGrid.SelectedItem is RangeRow still && still.Id == row.Id)
-            PermCard.Title = F("Permissions - {0} (saved)", row.Name);
+         if (saved)
+            perms_.Take(PermissionValues_());
+         return saved;
       }
 
       private void Edit_Click(object sender, RoutedEventArgs e)
@@ -226,6 +369,20 @@ namespace hMailServer.ControlPanel.Views
          {
             MessageBox.Show(L("Select a range first."), L("Control Panel"));
             return;
+         }
+
+         // The dialog edits the same permissions as the card, from what the server
+         // holds: changes on the card are saved or let go first, or the dialog is
+         // not opened.
+         if (HasUnsavedChanges)
+         {
+            RangeRow edited = permsRow_;
+            if (!UnsavedChanges.MayLeave(true,
+                   () => MessageBox.AskUnsaved(UnsavedChanges.PermissionsQuestion(edited.Name), L("Control Panel")),
+                   () => SavePermissions_(edited)))
+               return;
+
+            ForgetPermissionChanges_();
          }
 
          new IPRangeDialog(Window.GetWindow(this), row.Id).ShowDialog();

@@ -3654,6 +3654,12 @@ Nadawca otrzymał informację, że została przyjęta, więc nic nie ponowi pró
 
 Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa nie nadrobi zaległości, IMAP SEARCH znajdzie mniej, niż powinien.</value>
   </data>
+  <data name="Discard your unsaved changes and read the script from disk again?" xml:space="preserve">
+    <value>Odrzucić niezapisane zmiany i ponownie wczytać skrypt z dysku?</value>
+  </data>
+  <data name="Discard your unsaved changes and read the settings again?" xml:space="preserve">
+    <value>Odrzucić niezapisane zmiany i ponownie odczytać ustawienia?</value>
+  </data>
   <data name="Disconnect clients sending too many invalid commands" xml:space="preserve">
     <value>Rozłączaj klientów wysyłających zbyt wiele nieprawidłowych poleceń</value>
   </data>
@@ -8960,6 +8966,9 @@ Kontynuować?</value>
   <data name="S_MTP authentication" xml:space="preserve">
     <value>Uwierzytelnianie S_MTP</value>
   </data>
+  <data name="S_tay" xml:space="preserve">
+    <value>_Pozostań</value>
+  </data>
   <data name="S_witch the rule over" xml:space="preserve">
     <value>_Przełącz regułę</value>
   </data>
@@ -11052,6 +11061,9 @@ Wiadomość została prawdopodobnie dostarczona i nie ma jej już w kolejce.</va
   <data name="The permission is inherited from {0}; the command stops the folder inheriting it." xml:space="preserve">
     <value>Uprawnienie jest dziedziczone z {0}; polecenie zatrzymuje jego dziedziczenie w folderze.</value>
   </data>
+  <data name="The permissions of {0} have unsaved changes." xml:space="preserve">
+    <value>Uprawnienia zakresu {0} mają niezapisane zmiany.</value>
+  </data>
   <data name="The person's data" xml:space="preserve">
     <value>Dane osoby</value>
   </data>
@@ -12580,6 +12592,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="You arrived here from the search palette" xml:space="preserve">
     <value>Otwarto tę stronę z palety wyszukiwania</value>
   </data>
+  <data name="You have unsaved changes on {0}." xml:space="preserve">
+    <value>Na stronie {0} są niezapisane zmiany.</value>
+  </data>
   <data name="Your domains live in this list. Opening one gives you its accounts, aliases and distribution lists." xml:space="preserve">
     <value>Domeny znajdują się na tej liście. Otwarcie jednej daje dostęp do jej kont, aliasów i list dystrybucyjnych.</value>
   </data>
@@ -12738,6 +12753,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="_Disable two-factor authentication" xml:space="preserve">
     <value>_Wyłącz uwierzytelnianie dwuskładnikowe</value>
+  </data>
+  <data name="_Discard" xml:space="preserve">
+    <value>_Odrzuć</value>
   </data>
   <data name="_Display name attribute" xml:space="preserve">
     <value>Atrybut nazwy _wyświetlanej</value>
@@ -14017,6 +14035,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="the program Windows was asked to run is not the one the hMailServer service is registered with, or was given something it does not take" xml:space="preserve">
     <value>program, który system Windows miał uruchomić, nie jest tym, z którym zarejestrowano usługę hMailServer, albo otrzymał coś, czego nie przyjmuje</value>
+  </data>
+  <data name="the range is no longer on the server." xml:space="preserve">
+    <value>zakres nie istnieje już na serwerze.</value>
   </data>
   <data name="the sender's SPF check passed" xml:space="preserve">
     <value>kontrola SPF nadawcy zakończyła się powodzeniem</value>

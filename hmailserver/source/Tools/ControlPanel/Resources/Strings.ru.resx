@@ -3654,6 +3654,12 @@ Control Panel может читать файлы сообщений только
 
 Почта не затрагивается — индекс из неё и получается, — но пока перестроение не нагонит, IMAP SEARCH будет находить меньше, чем должен.</value>
   </data>
+  <data name="Discard your unsaved changes and read the script from disk again?" xml:space="preserve">
+    <value>Отбросить несохранённые изменения и перечитать сценарий с диска?</value>
+  </data>
+  <data name="Discard your unsaved changes and read the settings again?" xml:space="preserve">
+    <value>Отбросить несохранённые изменения и перечитать параметры?</value>
+  </data>
   <data name="Disconnect clients sending too many invalid commands" xml:space="preserve">
     <value>Отключать клиентов, отправляющих слишком много недопустимых команд</value>
   </data>
@@ -8960,6 +8966,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="S_MTP authentication" xml:space="preserve">
     <value>Аутентификация S_MTP</value>
   </data>
+  <data name="S_tay" xml:space="preserve">
+    <value>Ос_таться</value>
+  </data>
   <data name="S_witch the rule over" xml:space="preserve">
     <value>_Переключить правило</value>
   </data>
@@ -11052,6 +11061,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The permission is inherited from {0}; the command stops the folder inheriting it." xml:space="preserve">
     <value>Разрешение унаследовано от {0}; команда прекращает его наследование для папки.</value>
   </data>
+  <data name="The permissions of {0} have unsaved changes." xml:space="preserve">
+    <value>В разрешениях диапазона «{0}» есть несохранённые изменения.</value>
+  </data>
   <data name="The person's data" xml:space="preserve">
     <value>Данные человека</value>
   </data>
@@ -12580,6 +12592,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="You arrived here from the search palette" xml:space="preserve">
     <value>Вы попали сюда из палитры поиска</value>
   </data>
+  <data name="You have unsaved changes on {0}." xml:space="preserve">
+    <value>На странице «{0}» есть несохранённые изменения.</value>
+  </data>
   <data name="Your domains live in this list. Opening one gives you its accounts, aliases and distribution lists." xml:space="preserve">
     <value>Ваши домены находятся в этом списке. Открыв домен, вы получите его учётные записи, псевдонимы и списки рассылки.</value>
   </data>
@@ -12738,6 +12753,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="_Disable two-factor authentication" xml:space="preserve">
     <value>_Отключить двухфакторную аутентификацию</value>
+  </data>
+  <data name="_Discard" xml:space="preserve">
+    <value>_Отбросить</value>
   </data>
   <data name="_Display name attribute" xml:space="preserve">
     <value>Атрибут _отображаемого имени</value>
@@ -14017,6 +14035,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="the program Windows was asked to run is not the one the hMailServer service is registered with, or was given something it does not take" xml:space="preserve">
     <value>программа, которую Windows должен был запустить, не та, с которой зарегистрирована служба hMailServer, или ей передано то, что она не принимает</value>
+  </data>
+  <data name="the range is no longer on the server." xml:space="preserve">
+    <value>диапазона больше нет на сервере.</value>
   </data>
   <data name="the sender's SPF check passed" xml:space="preserve">
     <value>проверка SPF отправителя пройдена</value>

@@ -91,6 +91,11 @@
     <Compile Include="..\ControlPanel\Services\Tour.cs" />
     <Compile Include="..\ControlPanel\Services\TourSession.cs" />
     <Compile Include="..\ControlPanel\Services\TourProgress.cs" />
+    <!-- Whether a page with unsaved changes may be left, the words that ask, and
+         the record of what a page's editors held when they were last read or
+         saved: the half of the question every way of leaving a page asks that
+         needs no window. -->
+    <Compile Include="..\ControlPanel\Services\UnsavedChanges.cs" />
   </ItemGroup>
 
   <!-- The operator documentation, embedded straight from the repository as

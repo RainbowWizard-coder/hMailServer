@@ -78,6 +78,25 @@ namespace hMailServer.ControlPanel.Views
          public virtual string LiveValue => null;
 
          /// <summary>
+         /// What the editor held as the page was built, or as it was last saved -
+         /// what <see cref="IsChanged"/> compares against. The editor's own value
+         /// rather than what the file holds, so that a value the editor cannot show
+         /// as it was stored (a choice the list does not have, a number written
+         /// with spaces) is not taken for an edit nobody made.
+         /// </summary>
+         private string shown_;
+
+         /// <summary>Records the editor's value as the one on record: just built, or just saved.</summary>
+         public void MarkShown() => shown_ = LiveValue;
+
+         /// <summary>
+         /// Whether the editor holds something other than what it was filled with or
+         /// last saved. A row with no editor value - a link to another page, a button
+         /// - is never changed.
+         /// </summary>
+         public bool IsChanged => LiveValue != null && !string.Equals(LiveValue, shown_, StringComparison.Ordinal);
+
+         /// <summary>
          /// Calls <paramref name="handler"/> whenever the editor's value changes.
          /// No-op for editors that never take part in a computed warning.
          /// </summary>
@@ -633,6 +652,8 @@ namespace hMailServer.ControlPanel.Views
                current.Length == 0 ? new string[0] : current.Split('\n'));
             loaded_ = current;
          }
+
+         public override string LiveValue => box_?.Text;
       }
 
       /// <summary>
@@ -1540,6 +1561,17 @@ namespace hMailServer.ControlPanel.Views
       public void OnLeave()
       {
       }
+
+      /// <summary>
+      /// Whether any editor holds something other than what it was filled with or
+      /// last saved. OnEnter reads the file again, so such an edit is gone when the
+      /// page is next opened.
+      /// </summary>
+      public bool HasUnsavedChanges
+         => store_.IsAvailable && cards_ != null && cards_.SelectMany(card => card.Settings).Any(setting => setting.IsChanged);
+
+      /// <summary>The page's own Save; true when every write was made.</summary>
+      public bool SaveChanges() => Save_();
 
       private void BuildDefinition()
       {
@@ -2820,6 +2852,11 @@ namespace hMailServer.ControlPanel.Views
             foreach (Setting setting in card.Settings)
                setting.OnEditorChanged(RefreshWarnings_);
 
+         // What every editor was filled with, which is what an unsaved change is
+         // measured from.
+         foreach (Setting setting in cards_.SelectMany(card => card.Settings))
+            setting.MarkShown();
+
          RefreshWarnings_();
 
          PathText.Text = F("Editing {0}", store_.IniPath);
@@ -2907,6 +2944,12 @@ namespace hMailServer.ControlPanel.Views
 
       private void Reload_Click(object sender, RoutedEventArgs e)
       {
+         // Reading again replaces every editor, so an unsaved edit is asked about
+         // first, Cancel being the answer Enter gives.
+         if (HasUnsavedChanges &&
+             !MessageBox.Confirm(UnsavedChanges.ReloadQuestion, L("Control Panel"), L("_Discard"), destructive: true, cancelByDefault: true))
+            return;
+
          // Reload means reload, including the state read from outside the INI.
          // Without this the button re-read the file but kept the cached Service
          // Control Manager snapshot, so an administrator who ran the registration
@@ -2936,8 +2979,19 @@ namespace hMailServer.ControlPanel.Views
          acmeHealthFolder_ = null;
       }
 
-      private void Save_Click(object sender, RoutedEventArgs e)
+      private void Save_Click(object sender, RoutedEventArgs e) => Save_();
+
+      /// <summary>
+      /// Writes every editor whose value is not what it was filled with, and says on
+      /// the pill and under the header when the change takes effect. True when every
+      /// write was made - which is what the question before leaving a page with
+      /// unsaved changes waits for before it goes on.
+      /// </summary>
+      private bool Save_()
       {
+         if (!store_.IsAvailable)
+            return false;
+
          try
          {
             foreach (CardDef card in cards_)
@@ -2947,8 +3001,12 @@ namespace hMailServer.ControlPanel.Views
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
             SetState_(SettingsPageState.Editing, F("Could not save: {0}", ex.Message), StatusLevel.Critical);
-            return;
+            return false;
          }
+
+         // Every editor now holds what the file does.
+         foreach (Setting setting in cards_.SelectMany(card => card.Settings))
+            setting.MarkShown();
 
          // The server published what it stored (docs/SettingsApply.md): a key marked
          // now is in effect already. What is not is what the server lists as pending
@@ -2971,7 +3029,7 @@ namespace hMailServer.ControlPanel.Views
             {
                RestartService();
             }
-            return;
+            return true;
          }
 
          var pageKeys = new HashSet<string>(
@@ -2983,13 +3041,13 @@ namespace hMailServer.ControlPanel.Views
          if (waiting.Count == 0)
          {
             SetState_(SettingsPageState.Applied, F("Saved {0} - every setting on this page is in effect.", time));
-            return;
+            return true;
          }
 
          if (waitingForRestart == 0)
          {
             SetState_(SettingsPageState.Saved, F("Saved {0} - {1} setting(s) wait for a reinitialize; Apply now, in the bar at the foot of the window, takes them.", time, waiting.Count));
-            return;
+            return true;
          }
 
          SetState_(SettingsPageState.Saved, F("Saved {0} - restart the service to apply.", time));
@@ -3000,6 +3058,8 @@ namespace hMailServer.ControlPanel.Views
          {
             RestartService();
          }
+
+         return true;
       }
 
       private async void RestartService()

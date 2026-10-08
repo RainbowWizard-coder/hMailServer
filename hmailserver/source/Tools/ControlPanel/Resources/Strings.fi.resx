@@ -3654,6 +3654,12 @@ Lähettäjälle kerrottiin, että se hyväksyttiin, joten mikään ei yritä uud
 
 Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus saavuttaa tilanteen, IMAP SEARCH löytää vähemmän kuin sen pitäisi.</value>
   </data>
+  <data name="Discard your unsaved changes and read the script from disk again?" xml:space="preserve">
+    <value>Hylätäänkö tallentamattomat muutokset ja luetaanko komentosarja uudelleen levyltä?</value>
+  </data>
+  <data name="Discard your unsaved changes and read the settings again?" xml:space="preserve">
+    <value>Hylätäänkö tallentamattomat muutokset ja luetaanko asetukset uudelleen?</value>
+  </data>
   <data name="Disconnect clients sending too many invalid commands" xml:space="preserve">
     <value>Katkaise yhteys asiakkaisiin, jotka lähettävät liikaa virheellisiä komentoja</value>
   </data>
@@ -8960,6 +8966,9 @@ Jatketaanko?</value>
   <data name="S_MTP authentication" xml:space="preserve">
     <value>S_MTP-todennus</value>
   </data>
+  <data name="S_tay" xml:space="preserve">
+    <value>_Pysy</value>
+  </data>
   <data name="S_witch the rule over" xml:space="preserve">
     <value>_Vaihda säännön tila</value>
   </data>
@@ -11052,6 +11061,9 @@ ei voitu ladata. Viesti on todennäköisesti toimitettu eikä ole enää jonossa
   <data name="The permission is inherited from {0}; the command stops the folder inheriting it." xml:space="preserve">
     <value>Käyttöoikeus periytyy kohteesta {0}; komento lopettaa sen periytymisen kansioon.</value>
   </data>
+  <data name="The permissions of {0} have unsaved changes." xml:space="preserve">
+    <value>Alueen {0} käyttöoikeuksissa on tallentamattomia muutoksia.</value>
+  </data>
   <data name="The person's data" xml:space="preserve">
     <value>Henkilön tiedot</value>
   </data>
@@ -12580,6 +12592,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="You arrived here from the search palette" xml:space="preserve">
     <value>Saavuit tänne hakupaletista</value>
   </data>
+  <data name="You have unsaved changes on {0}." xml:space="preserve">
+    <value>Sivulla {0} on tallentamattomia muutoksia.</value>
+  </data>
   <data name="Your domains live in this list. Opening one gives you its accounts, aliases and distribution lists." xml:space="preserve">
     <value>Verkkotunnuksesi ovat tässä luettelossa. Avaamalla yhden saat sen tilit, aliakset ja jakelulistat.</value>
   </data>
@@ -12738,6 +12753,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="_Disable two-factor authentication" xml:space="preserve">
     <value>_Poista kaksivaiheinen todennus käytöstä</value>
+  </data>
+  <data name="_Discard" xml:space="preserve">
+    <value>_Hylkää</value>
   </data>
   <data name="_Display name attribute" xml:space="preserve">
     <value>_Näyttönimen attribuutti</value>
@@ -14017,6 +14035,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="the program Windows was asked to run is not the one the hMailServer service is registered with, or was given something it does not take" xml:space="preserve">
     <value>ohjelma, jota Windowsia pyydettiin ajamaan, ei ole se, jolla hMailServer-palvelu on rekisteröity, tai se sai jotain, mitä se ei ota vastaan</value>
+  </data>
+  <data name="the range is no longer on the server." xml:space="preserve">
+    <value>aluetta ei enää ole palvelimella.</value>
   </data>
   <data name="the sender's SPF check passed" xml:space="preserve">
     <value>lähettäjän SPF-tarkistus läpäistiin</value>

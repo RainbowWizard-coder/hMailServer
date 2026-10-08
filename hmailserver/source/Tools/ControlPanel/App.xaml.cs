@@ -111,8 +111,19 @@ namespace hMailServer.ControlPanel
          }
       }
 
+      /// <summary>
+      /// True once the Control Panel has started a copy of itself and is closing
+      /// for it - a change of language, or the restart offered after a fault. The
+      /// window asks about a page's unsaved changes before it closes, and does not
+      /// then: a change of language asked before it got here, and a closing that
+      /// Application.Shutdown makes cannot be stopped by a Stay.
+      /// </summary>
+      internal static bool Restarting { get; private set; }
+
       internal void Restart()
       {
+         Restarting = true;
+
          try
          {
             string exe = Process.GetCurrentProcess().MainModule?.FileName;

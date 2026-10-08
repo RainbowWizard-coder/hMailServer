@@ -1611,6 +1611,18 @@ namespace hMailServer.ControlPanel.Views
       {
       }
 
+      /// <summary>
+      /// What the pill says: an edit since the page was read or saved, or a save
+      /// that did not write everything - in both, what is on screen is not what the
+      /// server holds, and the page is read again from the server when it is next
+      /// opened (OnEnter).
+      /// </summary>
+      public bool HasUnsavedChanges
+         => state_ == ServerSettingsPageState.Unsaved || state_ == ServerSettingsPageState.PartlySaved;
+
+      /// <summary>The page's own Save; true when every row was saved.</summary>
+      public bool SaveChanges() => Save_();
+
       // ---- definitions -------------------------------------------------------
 
       /// <summary>
@@ -5780,6 +5792,12 @@ namespace hMailServer.ControlPanel.Views
 
       private void Reload_Click(object sender, RoutedEventArgs e)
       {
+         // Reading again replaces every editor, so an unsaved edit is asked about
+         // first, Cancel being the answer Enter gives.
+         if (HasUnsavedChanges &&
+             !MessageBox.Confirm(UnsavedChanges.ReloadQuestion, L("Control Panel"), L("_Discard"), destructive: true, cancelByDefault: true))
+            return;
+
          restAskAgain_ = true;
          BuildUi();
       }
@@ -5911,7 +5929,15 @@ namespace hMailServer.ControlPanel.Views
          }
       }
 
-      private void Save_Click(object sender, RoutedEventArgs e)
+      private void Save_Click(object sender, RoutedEventArgs e) => Save_();
+
+      /// <summary>
+      /// Writes every row this build of the page showed an editor for, and says on
+      /// the pill and under the header what reached the server. True when every row
+      /// was saved - which is what the question before leaving a page with unsaved
+      /// changes waits for before it goes on.
+      /// </summary>
+      private bool Save_()
       {
          // The writes below are synchronous COM calls, and a page of a hundred and
          // fifty of them over a remote link takes long enough to be worth saying
@@ -6060,6 +6086,8 @@ namespace hMailServer.ControlPanel.Views
                // Deliberately ignored: best effort only, and the outcome of the surrounding operation does not depend on this succeeding.
             }
          }
+
+         return failed == 0;
       }
    }
 }

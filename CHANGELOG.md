@@ -498,6 +498,19 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   client generated from the document had the import and not the listing, and the older status description; the
   server's own the first. Each path is now one entry carrying every method it answers, as the other paths with
   several were written. Nothing changed in what the server answers, only in what it says it answers.
+- **Fixed: the Control Panel threw away unsaved edits without a word.** The window keeps a page once it has been opened,
+  and every settings page reads the server again as it is opened, so an edit left behind by a click in the sidebar, a
+  *Related* link, a palette result, closing the window or the page's own *Reload* was gone when the page came back -
+  while its pill had said *Unsaved changes* the whole time. Leaving a page that holds an unsaved change now asks, *You
+  have unsaved changes on* the page: *Save* saves it as the page's own Save does and goes on only when everything was
+  saved, *Discard* goes on, and *Stay*, which Escape and Enter give, keeps the page and puts the sidebar back on it.
+  The question is asked of every way to another page - the sidebar, a link, the palette, a tour - and of closing the
+  window and a change of language, which restarts the Control Panel; *Reload* (and the event scripts page's *Reload
+  from disk*) asks *Discard your unsaved changes and read the settings again?* first, Cancel being the answer Enter
+  gives; and a reconnect after a service restart or *Apply now* no longer reads a page with unsaved changes again over
+  them. The pages it covers are the two kinds of settings page (every page of hMailServer.ini settings and every page of
+  the server's settings), directory authentication, directory synchronisation, the event scripts and the IP ranges
+  page, whose permission boxes are asked about before another range's are put over them, and kept across an add.
 
 ### IMAP, POP3 and the webmail
 

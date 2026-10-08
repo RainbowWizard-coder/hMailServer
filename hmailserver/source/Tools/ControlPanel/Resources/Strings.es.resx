@@ -3654,6 +3654,12 @@ Al remitente se le dijo que fue aceptado, así que nada lo reintentará y no hay
 
 No se toca ningún correo - el índice se deriva de él - pero hasta que la reconstrucción se ponga al día, IMAP SEARCH encontrará menos de lo que debería.</value>
   </data>
+  <data name="Discard your unsaved changes and read the script from disk again?" xml:space="preserve">
+    <value>¿Descartar los cambios sin guardar y volver a leer el script desde el disco?</value>
+  </data>
+  <data name="Discard your unsaved changes and read the settings again?" xml:space="preserve">
+    <value>¿Descartar los cambios sin guardar y volver a leer los ajustes?</value>
+  </data>
   <data name="Disconnect clients sending too many invalid commands" xml:space="preserve">
     <value>Desconectar a los clientes que envían demasiados comandos no válidos</value>
   </data>
@@ -8960,6 +8966,9 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="S_MTP authentication" xml:space="preserve">
     <value>Autenticación S_MTP</value>
   </data>
+  <data name="S_tay" xml:space="preserve">
+    <value>_Quedarse</value>
+  </data>
   <data name="S_witch the rule over" xml:space="preserve">
     <value>Ca_mbiar la regla</value>
   </data>
@@ -11052,6 +11061,9 @@ no se pudo cargar. Probablemente el mensaje ya se ha entregado y ya no está en 
   <data name="The permission is inherited from {0}; the command stops the folder inheriting it." xml:space="preserve">
     <value>El permiso se hereda de {0}; el comando hace que la carpeta deje de heredarlo.</value>
   </data>
+  <data name="The permissions of {0} have unsaved changes." xml:space="preserve">
+    <value>Los permisos de {0} tienen cambios sin guardar.</value>
+  </data>
   <data name="The person's data" xml:space="preserve">
     <value>Los datos de la persona</value>
   </data>
@@ -12580,6 +12592,9 @@ No se borra ningún mensaje ni se elimina ninguna cuenta. ¿Continuar?</value>
   <data name="You arrived here from the search palette" xml:space="preserve">
     <value>Ha llegado aquí desde la paleta de búsqueda</value>
   </data>
+  <data name="You have unsaved changes on {0}." xml:space="preserve">
+    <value>Tiene cambios sin guardar en {0}.</value>
+  </data>
   <data name="Your domains live in this list. Opening one gives you its accounts, aliases and distribution lists." xml:space="preserve">
     <value>Sus dominios están en esta lista. Al abrir uno obtiene sus cuentas, alias y listas de distribución.</value>
   </data>
@@ -12738,6 +12753,9 @@ No se borra ningún mensaje ni se elimina ninguna cuenta. ¿Continuar?</value>
   </data>
   <data name="_Disable two-factor authentication" xml:space="preserve">
     <value>_Desactivar la autenticación en dos factores</value>
+  </data>
+  <data name="_Discard" xml:space="preserve">
+    <value>_Descartar</value>
   </data>
   <data name="_Display name attribute" xml:space="preserve">
     <value>Atributo del nombre para _mostrar</value>
@@ -14017,6 +14035,9 @@ No se borra ningún mensaje ni se elimina ninguna cuenta. ¿Continuar?</value>
   </data>
   <data name="the program Windows was asked to run is not the one the hMailServer service is registered with, or was given something it does not take" xml:space="preserve">
     <value>el programa que se pidió a Windows ejecutar no es aquel con el que está registrado el servicio hMailServer, o recibió algo que no acepta</value>
+  </data>
+  <data name="the range is no longer on the server." xml:space="preserve">
+    <value>el rango ya no está en el servidor.</value>
   </data>
   <data name="the sender's SPF check passed" xml:space="preserve">
     <value>la comprobación SPF del remitente pasó</value>

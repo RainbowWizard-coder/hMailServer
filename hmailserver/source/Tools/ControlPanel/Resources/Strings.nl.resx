@@ -3654,6 +3654,12 @@ De afzender heeft te horen gekregen dat het is geaccepteerd, dus niets probeert 
 
 Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opnieuw opbouwen is bijgewerkt, vindt IMAP SEARCH minder dan zou moeten.</value>
   </data>
+  <data name="Discard your unsaved changes and read the script from disk again?" xml:space="preserve">
+    <value>Niet-opgeslagen wijzigingen verwerpen en het script opnieuw van schijf lezen?</value>
+  </data>
+  <data name="Discard your unsaved changes and read the settings again?" xml:space="preserve">
+    <value>Niet-opgeslagen wijzigingen verwerpen en de instellingen opnieuw lezen?</value>
+  </data>
   <data name="Disconnect clients sending too many invalid commands" xml:space="preserve">
     <value>Verbinding verbreken met clients die te veel ongeldige commando's sturen</value>
   </data>
@@ -8960,6 +8966,9 @@ Doorgaan?</value>
   <data name="S_MTP authentication" xml:space="preserve">
     <value>S_MTP-authenticatie</value>
   </data>
+  <data name="S_tay" xml:space="preserve">
+    <value>_Blijven</value>
+  </data>
   <data name="S_witch the rule over" xml:space="preserve">
     <value>Regel om_schakelen</value>
   </data>
@@ -11052,6 +11061,9 @@ kon niet worden geladen. Het bericht is waarschijnlijk bezorgd en staat niet mee
   <data name="The permission is inherited from {0}; the command stops the folder inheriting it." xml:space="preserve">
     <value>Het recht is overgenomen van {0}; de opdracht zorgt dat de map het niet meer overneemt.</value>
   </data>
+  <data name="The permissions of {0} have unsaved changes." xml:space="preserve">
+    <value>De rechten van {0} hebben niet-opgeslagen wijzigingen.</value>
+  </data>
   <data name="The person's data" xml:space="preserve">
     <value>De gegevens van de persoon</value>
   </data>
@@ -12580,6 +12592,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="You arrived here from the search palette" xml:space="preserve">
     <value>U bent hier via het zoekpalet terechtgekomen</value>
   </data>
+  <data name="You have unsaved changes on {0}." xml:space="preserve">
+    <value>Er zijn niet-opgeslagen wijzigingen op {0}.</value>
+  </data>
   <data name="Your domains live in this list. Opening one gives you its accounts, aliases and distribution lists." xml:space="preserve">
     <value>Uw domeinen staan in deze lijst. Als u er een opent, krijgt u de accounts, aliassen en distributielijsten ervan.</value>
   </data>
@@ -12738,6 +12753,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="_Disable two-factor authentication" xml:space="preserve">
     <value>_Tweefactorauthenticatie uitschakelen</value>
+  </data>
+  <data name="_Discard" xml:space="preserve">
+    <value>_Verwerpen</value>
   </data>
   <data name="_Display name attribute" xml:space="preserve">
     <value>W_eergavenaamattribuut</value>
@@ -14017,6 +14035,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="the program Windows was asked to run is not the one the hMailServer service is registered with, or was given something it does not take" xml:space="preserve">
     <value>het programma dat Windows moest uitvoeren, is niet het programma waarmee de hMailServer-service is geregistreerd, of het kreeg iets wat het niet aanneemt</value>
+  </data>
+  <data name="the range is no longer on the server." xml:space="preserve">
+    <value>het bereik staat niet meer op de server.</value>
   </data>
   <data name="the sender's SPF check passed" xml:space="preserve">
     <value>de SPF-controle van de afzender is geslaagd</value>

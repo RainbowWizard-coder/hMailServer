@@ -39,10 +39,34 @@ namespace hMailServer.ControlPanel.Views
 
       private string scriptPath_;
 
+      // The script as it was last read from disk or written to it: what an unsaved
+      // edit is measured from. Null while there is no script in the editor.
+      private string loaded_;
+
       public ScriptsView() => Build();
 
       public void OnEnter() => LoadScript();
       public void OnLeave() { }
+
+      /// <summary>
+      /// Whether the editor holds something other than the file as it was last read
+      /// or written. OnEnter reads the file again, so such an edit is gone when the
+      /// page is next opened.
+      /// </summary>
+      public bool HasUnsavedChanges => editor_.IsEnabled && loaded_ != null && !string.Equals(editor_.Text, loaded_, StringComparison.Ordinal);
+
+      /// <summary>Save &amp; reload; true when the file was written.</summary>
+      public bool SaveChanges() => SaveScript();
+
+      /// <summary>Reload from disk: asked about first while the script holds unsaved changes.</summary>
+      private void ReloadFromDisk_()
+      {
+         if (HasUnsavedChanges &&
+             !MessageBox.Confirm(UnsavedChanges.ReloadScriptQuestion, L("Control Panel"), L("_Discard"), destructive: true, cancelByDefault: true))
+            return;
+
+         LoadScript();
+      }
 
       private void Build()
       {
@@ -84,7 +108,7 @@ namespace hMailServer.ControlPanel.Views
 
          actions.Children.Add(MakeButton(L("_Save & reload"), Wpf.Ui.Controls.ControlAppearance.Primary, (_, _) => SaveScript()));
          actions.Children.Add(MakeButton(L("_Check syntax"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => CheckSyntax()));
-         actions.Children.Add(MakeButton(L("_Reload from disk"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => LoadScript()));
+         actions.Children.Add(MakeButton(L("_Reload from disk"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => ReloadFromDisk_()));
 
          root.Children.Add(new PageHeader
          {
@@ -187,6 +211,7 @@ End Sub
 
       private void LoadScript()
       {
+         loaded_ = null;
          scriptPath_ = ResolveScriptPath();
          if (scriptPath_ == null)
          {
@@ -205,6 +230,7 @@ End Sub
             else
                Status_(StatusLevel.Information, L("File does not exist yet; saving will create it."));
             editor_.IsEnabled = true;
+            loaded_ = editor_.Text;
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
@@ -241,10 +267,11 @@ End Sub
          }
       }
 
-      private void SaveScript()
+      /// <summary>Writes the file and reloads the scripting engine; true when the file was written.</summary>
+      private bool SaveScript()
       {
          if (scriptPath_ == null || !editor_.IsEnabled)
-            return;
+            return false;
          try
          {
             // Keep the previous version next to the file: event handlers are
@@ -257,8 +284,11 @@ End Sub
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
             MessageBox.Show(F("Could not write the script file: {0}", ex.Message), L("Control Panel"));
-            return;
+            return false;
          }
+
+         // On disk now, whatever the engine makes of it below.
+         loaded_ = editor_.Text;
 
          dynamic scripting = ServerSession.Current.Application.Settings.Scripting;
          try
@@ -279,6 +309,8 @@ End Sub
          {
             ServerSession.Release(scripting);
          }
+
+         return true;
       }
 
       private void CheckSyntax()

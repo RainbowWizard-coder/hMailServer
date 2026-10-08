@@ -110,21 +110,57 @@ namespace hMailServer.ControlPanel.Views
       /// </summary>
       /// <param name="action">The caption of the affirmative, with its Alt key - one of the catalogued button captions.</param>
       /// <param name="destructive">Whether the affirmative deletes, revokes or replaces something.</param>
-      public static bool Confirm(string text, string caption, string action, bool destructive = false)
+      /// <param name="cancelByDefault">
+      /// Whether Enter declines rather than chooses the action: for a question whose
+      /// affirmative cannot be taken back - a pepper that stops passwords working, a
+      /// role that hands out everything - a reflexive Enter must not be the yes. The
+      /// action keeps the primary appearance; only the key moves.
+      /// </param>
+      public static bool Confirm(string text, string caption, string action, bool destructive = false, bool cancelByDefault = false)
       {
          var dispatcher = Application.Current?.Dispatcher;
          if (dispatcher != null && !dispatcher.CheckAccess())
-            return dispatcher.Invoke(() => Confirm(text, caption, action, destructive));
+            return dispatcher.Invoke(() => Confirm(text, caption, action, destructive, cancelByDefault));
 
          var dialog = new MessageDialog(ActiveWindow_(), CaptionOrDefault_(caption), text,
             destructive ? StatusLevel.Warning : StatusLevel.Normal,
             new[]
             {
-               new Choice(action, MessageBoxResult.Yes, Primary: true, IsCancel: false, IsDefault: true, Destructive: destructive),
-               new Choice(L("Cancel"), MessageBoxResult.Cancel, Primary: false, IsCancel: true, IsDefault: false, Destructive: false)
+               new Choice(action, MessageBoxResult.Yes, Primary: true, IsCancel: false, IsDefault: !cancelByDefault, Destructive: destructive),
+               new Choice(L("Cancel"), MessageBoxResult.Cancel, Primary: false, IsCancel: true, IsDefault: cancelByDefault, Destructive: false)
             });
          dialog.ShowDialog();
          return dialog.Result == MessageBoxResult.Yes;
+      }
+
+      /// <summary>
+      /// The question asked before a page with unsaved changes is left or read
+      /// again: Save, the primary, which saves as the page's own Save does; Discard;
+      /// and Stay, which Escape, Enter and the title bar's close all give, because
+      /// staying is the answer that loses nothing. A warning, since two of the three
+      /// answers can lose the edits.
+      /// </summary>
+      public static UnsavedAnswer AskUnsaved(string text, string caption = null)
+      {
+         var dispatcher = Application.Current?.Dispatcher;
+         if (dispatcher != null && !dispatcher.CheckAccess())
+            return dispatcher.Invoke(() => AskUnsaved(text, caption));
+
+         var dialog = new MessageDialog(ActiveWindow_(), CaptionOrDefault_(caption), text, StatusLevel.Warning,
+            new[]
+            {
+               new Choice(L("_Save"), MessageBoxResult.Yes, Primary: true, IsCancel: false, IsDefault: false, Destructive: false),
+               new Choice(L("_Discard"), MessageBoxResult.No, Primary: false, IsCancel: false, IsDefault: false, Destructive: false),
+               new Choice(L("S_tay"), MessageBoxResult.Cancel, Primary: false, IsCancel: true, IsDefault: true, Destructive: false)
+            });
+         dialog.ShowDialog();
+
+         return dialog.Result switch
+         {
+            MessageBoxResult.Yes => UnsavedAnswer.Save,
+            MessageBoxResult.No => UnsavedAnswer.Discard,
+            _ => UnsavedAnswer.Stay
+         };
       }
 
       /// <summary>A fact the user must acknowledge, at the information level.</summary>

@@ -3654,6 +3654,12 @@
 
 メールには触れません (インデックスはメールから導き出されるものです) が、再構築が追いつくまでは、IMAP SEARCH の検索結果が本来より少なくなります。</value>
   </data>
+  <data name="Discard your unsaved changes and read the script from disk again?" xml:space="preserve">
+    <value>未保存の変更を破棄して、スクリプトをディスクから読み込み直しますか?</value>
+  </data>
+  <data name="Discard your unsaved changes and read the settings again?" xml:space="preserve">
+    <value>未保存の変更を破棄して、設定を読み込み直しますか?</value>
+  </data>
   <data name="Disconnect clients sending too many invalid commands" xml:space="preserve">
     <value>無効なコマンドを送りすぎるクライアントを切断する</value>
   </data>
@@ -8960,6 +8966,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="S_MTP authentication" xml:space="preserve">
     <value>SMTP 認証(_M)</value>
   </data>
+  <data name="S_tay" xml:space="preserve">
+    <value>このページに残る(_T)</value>
+  </data>
   <data name="S_witch the rule over" xml:space="preserve">
     <value>ルールを切り替え(_W)</value>
   </data>
@@ -11052,6 +11061,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The permission is inherited from {0}; the command stops the folder inheriting it." xml:space="preserve">
     <value>このアクセス許可は {0} から継承されています。コマンドはフォルダーによるその継承を停止します。</value>
   </data>
+  <data name="The permissions of {0} have unsaved changes." xml:space="preserve">
+    <value>{0} の権限に未保存の変更があります。</value>
+  </data>
   <data name="The person's data" xml:space="preserve">
     <value>本人のデータ</value>
   </data>
@@ -12580,6 +12592,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="You arrived here from the search palette" xml:space="preserve">
     <value>検索パレットからこのページに来ました</value>
   </data>
+  <data name="You have unsaved changes on {0}." xml:space="preserve">
+    <value>{0} に未保存の変更があります。</value>
+  </data>
   <data name="Your domains live in this list. Opening one gives you its accounts, aliases and distribution lists." xml:space="preserve">
     <value>ドメインはこの一覧にあります。開くと、そのアカウント、エイリアス、配布リストが表示されます。</value>
   </data>
@@ -12738,6 +12753,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="_Disable two-factor authentication" xml:space="preserve">
     <value>2 要素認証を無効にする(_D)</value>
+  </data>
+  <data name="_Discard" xml:space="preserve">
+    <value>破棄(_D)</value>
   </data>
   <data name="_Display name attribute" xml:space="preserve">
     <value>表示名の属性(_D)</value>
@@ -14017,6 +14035,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="the program Windows was asked to run is not the one the hMailServer service is registered with, or was given something it does not take" xml:space="preserve">
     <value>Windows に実行を求めたプログラムが hMailServer サービスの登録先のプログラムではないか、受け付けない内容が渡されました</value>
+  </data>
+  <data name="the range is no longer on the server." xml:space="preserve">
+    <value>この範囲はサーバー上にもうありません。</value>
   </data>
   <data name="the sender's SPF check passed" xml:space="preserve">
     <value>送信者の SPF チェックに合格しました</value>

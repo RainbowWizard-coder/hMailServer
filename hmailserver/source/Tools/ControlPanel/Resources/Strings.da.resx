@@ -3654,6 +3654,12 @@ Afsenderen fik at vide, at den var accepteret, så intet forsøger igen, og der 
 
 Ingen post røres – indekset er udledt af den – men indtil genopbygningen har indhentet det, finder IMAP SEARCH mindre, end den burde.</value>
   </data>
+  <data name="Discard your unsaved changes and read the script from disk again?" xml:space="preserve">
+    <value>Vil du kassere dine ikke-gemte ændringer og indlæse scriptet fra disken igen?</value>
+  </data>
+  <data name="Discard your unsaved changes and read the settings again?" xml:space="preserve">
+    <value>Vil du kassere dine ikke-gemte ændringer og indlæse indstillingerne igen?</value>
+  </data>
   <data name="Disconnect clients sending too many invalid commands" xml:space="preserve">
     <value>Afbryd klienter, der sender for mange ugyldige kommandoer</value>
   </data>
@@ -8960,6 +8966,9 @@ Vil du fortsætte?</value>
   <data name="S_MTP authentication" xml:space="preserve">
     <value>S_MTP-godkendelse</value>
   </data>
+  <data name="S_tay" xml:space="preserve">
+    <value>_Bliv</value>
+  </data>
   <data name="S_witch the rule over" xml:space="preserve">
     <value>S_kift reglen om</value>
   </data>
@@ -11052,6 +11061,9 @@ kunne ikke indlæses. Meddelelsen er sandsynligvis leveret og ikke længere i k�
   <data name="The permission is inherited from {0}; the command stops the folder inheriting it." xml:space="preserve">
     <value>Tilladelsen er nedarvet fra {0}; kommandoen får mappen til at holde op med at nedarve den.</value>
   </data>
+  <data name="The permissions of {0} have unsaved changes." xml:space="preserve">
+    <value>Rettighederne for {0} har ikke-gemte ændringer.</value>
+  </data>
   <data name="The person's data" xml:space="preserve">
     <value>Personens data</value>
   </data>
@@ -12580,6 +12592,9 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="You arrived here from the search palette" xml:space="preserve">
     <value>Du kom hertil fra søgepaletten</value>
   </data>
+  <data name="You have unsaved changes on {0}." xml:space="preserve">
+    <value>Du har ikke-gemte ændringer på {0}.</value>
+  </data>
   <data name="Your domains live in this list. Opening one gives you its accounts, aliases and distribution lists." xml:space="preserve">
     <value>Dine domæner ligger på denne liste. Åbner du et, får du dets konti, aliasser og distributionslister.</value>
   </data>
@@ -12738,6 +12753,9 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   </data>
   <data name="_Disable two-factor authentication" xml:space="preserve">
     <value>_Deaktivér tofaktorgodkendelse</value>
+  </data>
+  <data name="_Discard" xml:space="preserve">
+    <value>_Kassér</value>
   </data>
   <data name="_Display name attribute" xml:space="preserve">
     <value>Attribut for _visningsnavn</value>
@@ -14017,6 +14035,9 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   </data>
   <data name="the program Windows was asked to run is not the one the hMailServer service is registered with, or was given something it does not take" xml:space="preserve">
     <value>det program, Windows blev bedt om at køre, er ikke det, som hMailServer-tjenesten er registreret med, eller det fik noget, det ikke tager imod</value>
+  </data>
+  <data name="the range is no longer on the server." xml:space="preserve">
+    <value>intervallet findes ikke længere på serveren.</value>
   </data>
   <data name="the sender's SPF check passed" xml:space="preserve">
     <value>afsenderens SPF-kontrol blev bestået</value>

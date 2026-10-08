@@ -3654,6 +3654,12 @@ Odesílateli bylo řečeno, že byla přijata, takže nic ji nezopakuje a jiná 
 
 Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene, IMAP SEARCH bude nacházet méně, než by měl.</value>
   </data>
+  <data name="Discard your unsaved changes and read the script from disk again?" xml:space="preserve">
+    <value>Zahodit neuložené změny a znovu načíst skript z disku?</value>
+  </data>
+  <data name="Discard your unsaved changes and read the settings again?" xml:space="preserve">
+    <value>Zahodit neuložené změny a znovu načíst nastavení?</value>
+  </data>
   <data name="Disconnect clients sending too many invalid commands" xml:space="preserve">
     <value>Odpojovat klienty, kteří posílají příliš mnoho neplatných příkazů</value>
   </data>
@@ -8960,6 +8966,9 @@ Pokračovat?</value>
   <data name="S_MTP authentication" xml:space="preserve">
     <value>Ověřování S_MTP</value>
   </data>
+  <data name="S_tay" xml:space="preserve">
+    <value>Zů_stat</value>
+  </data>
   <data name="S_witch the rule over" xml:space="preserve">
     <value>Pře_pnout pravidlo</value>
   </data>
@@ -11052,6 +11061,9 @@ nešlo načíst. Zpráva byla pravděpodobně doručena a už není ve frontě.<
   <data name="The permission is inherited from {0}; the command stops the folder inheriting it." xml:space="preserve">
     <value>Oprávnění se dědí z {0}; příkaz zastaví jeho dědění ve složce.</value>
   </data>
+  <data name="The permissions of {0} have unsaved changes." xml:space="preserve">
+    <value>Oprávnění rozsahu {0} mají neuložené změny.</value>
+  </data>
   <data name="The person's data" xml:space="preserve">
     <value>Data osoby</value>
   </data>
@@ -12580,6 +12592,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="You arrived here from the search palette" xml:space="preserve">
     <value>Přišli jste sem z palety hledání</value>
   </data>
+  <data name="You have unsaved changes on {0}." xml:space="preserve">
+    <value>Na stránce {0} máte neuložené změny.</value>
+  </data>
   <data name="Your domains live in this list. Opening one gives you its accounts, aliases and distribution lists." xml:space="preserve">
     <value>Vaše domény najdete v tomto seznamu. Otevřením domény získáte její účty, aliasy a distribuční seznamy.</value>
   </data>
@@ -12738,6 +12753,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="_Disable two-factor authentication" xml:space="preserve">
     <value>_Vypnout dvoufaktorové ověřování</value>
+  </data>
+  <data name="_Discard" xml:space="preserve">
+    <value>_Zahodit</value>
   </data>
   <data name="_Display name attribute" xml:space="preserve">
     <value>Atribut zobrazovaného _jména</value>
@@ -14017,6 +14035,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="the program Windows was asked to run is not the one the hMailServer service is registered with, or was given something it does not take" xml:space="preserve">
     <value>program, který měl Windows spustit, není ten, se kterým je služba hMailServer zaregistrována, nebo dostal něco, co nepřijímá</value>
+  </data>
+  <data name="the range is no longer on the server." xml:space="preserve">
+    <value>rozsah už na serveru není.</value>
   </data>
   <data name="the sender's SPF check passed" xml:space="preserve">
     <value>kontrola SPF odesílatele prošla</value>
