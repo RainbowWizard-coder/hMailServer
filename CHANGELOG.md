@@ -814,6 +814,16 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   a captioned row with its hint under it, the expiry in the short date beside quick picks of 30 days, 90 days and a
   year, and a refused value said on the field at fault, with the keyboard put in it.
 
+- **Fixed: the Control Panel's notices were silent to screen readers.** Every notice, loading state, empty state,
+  field error and result line declared itself a live region, which only promises an announcement: a reader says the
+  region when the element raises the live-region event, and nothing in the Control Panel raised it, so "Released 3
+  messages", "Deleted.", "Could not load…", a failed sign-in and every Save or Test outcome reached a sighted
+  administrator and nobody else; and the result lines under *Clear logon-failure list* and the never-ban list's
+  buttons carried a fixed accessible name, so a reader that was moved to one said the label in place of the outcome.
+  A new `Announce` helper raises the event once per change, after the layout that shows the element and only while
+  it is visible, and `InlineNotice`, `LoadingState`, `EmptyState` - now a polite live region like the loading state
+  it follows - a `FieldRow`'s error and the two result lines call it; the result lines are named by their text.
+
 ### IMAP, POP3 and the webmail
 
 - **Fixed: an answer of the HTTP listeners that its handler returned after the listener's request deadline was cut off

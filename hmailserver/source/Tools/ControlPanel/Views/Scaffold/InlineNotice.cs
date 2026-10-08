@@ -21,7 +21,10 @@ namespace hMailServer.ControlPanel.Views.Scaffold
    /// outline stays.
    ///
    /// It is a polite live region: a notice that appears while the user is
-   /// working is announced without cutting them off. Set
+   /// working is announced without cutting them off - the component raises the
+   /// live-region event itself, through <see cref="Announce"/>, whenever its
+   /// text or level changes or it comes into view, since the setting alone
+   /// announces nothing. Set
    /// <c>AutomationProperties.LiveSetting="Assertive"</c> on one that must
    /// interrupt, as the sign-in failure does.
    ///
@@ -45,6 +48,14 @@ namespace hMailServer.ControlPanel.Views.Scaffold
       public InlineNotice()
       {
          AutomationProperties.SetLiveSetting(this, AutomationLiveSetting.Polite);
+
+         // A notice that was filled in while it was collapsed is announced as it
+         // is shown; one that changes while it is on screen, as it changes.
+         IsVisibleChanged += (s, e) =>
+         {
+            if ((bool)e.NewValue && !string.IsNullOrEmpty(Text))
+               Announce.Request(this);
+         };
       }
 
       /// <summary>How much attention the notice asks for. Information by default.</summary>
@@ -74,7 +85,12 @@ namespace hMailServer.ControlPanel.Views.Scaffold
       }
 
       private static void OnPresentationChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-         => ((InlineNotice)d).Apply_();
+      {
+         var notice = (InlineNotice)d;
+         notice.Apply_();
+         if (!string.IsNullOrEmpty(notice.Text))
+            Announce.Request(notice);
+      }
 
       /// <summary>
       /// Paints the level into the template's parts. Brushes go by resource key,

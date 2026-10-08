@@ -70,10 +70,12 @@ namespace hMailServer.ControlPanel.Views
             grid_.Columns.Add(Column_(L("Added"), nameof(NeverBanNameRow.Created), DataGridLength.Auto));
             Describe(grid_, "never-ban-names");
 
+            // A polite live region whose accessible name is its text: with a fixed
+            // name ("Never-ban list status") a reader said the label in place of
+            // the outcome, and nothing raised the event that announces it at all.
             status_.Margin = new Thickness(0, DesignTokens.Space.Sm, 0, 0);
             status_.FontSize = Typography.Caption;
             AutomationProperties.SetLiveSetting(status_, AutomationLiveSetting.Polite);
-            AutomationProperties.SetName(status_, L("Never-ban list status"));
 
             var add = MakeButton(L("_Add name…"), Wpf.Ui.Controls.ControlAppearance.Secondary, "never-ban-add");
             add.Click += (_, _) => Add_();
@@ -126,6 +128,7 @@ namespace hMailServer.ControlPanel.Views
             status_.Text = text;
             status_.Visibility = Visibility.Visible;
             status_.SetResourceReference(TextBlock.ForegroundProperty, ok ? "AppSuccessBrush" : "AppDangerBrush");
+            Announce.Request(status_);
          }
 
          private void Reload_()

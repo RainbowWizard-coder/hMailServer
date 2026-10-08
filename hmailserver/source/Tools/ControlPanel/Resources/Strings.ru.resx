@@ -6357,9 +6357,6 @@ Control Panel может читать файлы сообщений только
   <data name="Never judged by country (addresses and CIDR ranges, comma separated)" xml:space="preserve">
     <value>Никогда не оцениваются по стране (адреса и диапазоны CIDR, через запятую)</value>
   </data>
-  <data name="Never-ban list status" xml:space="preserve">
-    <value>Состояние списка «никогда не банить»</value>
-  </data>
   <data name="New IMAP folder" xml:space="preserve">
     <value>Новая папка IMAP</value>
   </data>
@@ -10483,9 +10480,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Temporary failure" xml:space="preserve">
     <value>Временный сбой</value>
-  </data>
-  <data name="Test" xml:space="preserve">
-    <value>Проверить</value>
   </data>
   <data name="Test ClamAV connection" xml:space="preserve">
     <value>Проверить подключение к ClamAV</value>
@@ -14725,9 +14719,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0} records beginning &quot;v=spf1&quot; exist at {1}. RFC 7208 makes that a permanent SPF error at every receiver - worse than no record. Merge them into one." xml:space="preserve">
     <value>По адресу {1} существует {0} записей, начинающихся с «v=spf1». По RFC 7208 это постоянная ошибка SPF у каждого получателя — хуже, чем полное отсутствие записи. Объедините их в одну.</value>
-  </data>
-  <data name="{0} result" xml:space="preserve">
-    <value>Результатов: {0}</value>
   </data>
   <data name="{0} row(s) need reading before you apply - a skipped entry is a mailbox somebody expects and will not get, and a disabled one is a mailbox being taken away." xml:space="preserve">
     <value>Перед применением нужно прочитать строк: {0} — пропущенная запись означает почтовый ящик, которого кто-то ждёт и не получит, а отключённая — почтовый ящик, который отбирают.</value>

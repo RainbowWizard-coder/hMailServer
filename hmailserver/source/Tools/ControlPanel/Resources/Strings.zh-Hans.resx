@@ -6357,9 +6357,6 @@
   <data name="Never judged by country (addresses and CIDR ranges, comma separated)" xml:space="preserve">
     <value>从不按国家判断（地址和 CIDR 范围，逗号分隔）</value>
   </data>
-  <data name="Never-ban list status" xml:space="preserve">
-    <value>永不封禁列表状态</value>
-  </data>
   <data name="New IMAP folder" xml:space="preserve">
     <value>新建 IMAP 文件夹</value>
   </data>
@@ -10483,9 +10480,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Temporary failure" xml:space="preserve">
     <value>临时失败</value>
-  </data>
-  <data name="Test" xml:space="preserve">
-    <value>测试</value>
   </data>
   <data name="Test ClamAV connection" xml:space="preserve">
     <value>测试 ClamAV 连接</value>
@@ -14725,9 +14719,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="{0} records beginning &quot;v=spf1&quot; exist at {1}. RFC 7208 makes that a permanent SPF error at every receiver - worse than no record. Merge them into one." xml:space="preserve">
     <value>在 {1} 存在 {0} 条以 "v=spf1" 开头的记录。RFC 7208 规定这在每一个接收方那里都是永久性 SPF 错误 - 比没有记录还糟。请把它们合并成一条。</value>
-  </data>
-  <data name="{0} result" xml:space="preserve">
-    <value>{0} 条结果</value>
   </data>
   <data name="{0} row(s) need reading before you apply - a skipped entry is a mailbox somebody expects and will not get, and a disabled one is a mailbox being taken away." xml:space="preserve">
     <value>在您应用之前有 {0} 行需要先读一读 - 被跳过的条目意味着有人期待的邮箱不会出现，而被禁用的条目意味着一个邮箱正在被收回。</value>

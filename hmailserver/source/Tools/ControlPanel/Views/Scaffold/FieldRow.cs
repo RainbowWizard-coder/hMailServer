@@ -22,8 +22,10 @@ namespace hMailServer.ControlPanel.Views.Scaffold
    /// wrong with it - the same three things a sighted user reads around it.
    ///
    /// The message is drawn with the danger colour, a cross and the words
-   /// themselves; it is an assertive live region, so it is announced when it
-   /// appears. Set <see cref="Error"/> to null to clear it.
+   /// themselves; it is an assertive live region, and the row raises the
+   /// live-region event on it (<see cref="Announce"/>) as the message is set,
+   /// so it is announced when it appears. Set <see cref="Error"/> to null to
+   /// clear it.
    ///
    /// <code>
    /// &lt;scaffold:FieldRow Label="{loc:L '_Host'}" Hint="{loc:L 'The name or address of the server.'}"&gt;
@@ -103,7 +105,15 @@ namespace hMailServer.ControlPanel.Views.Scaffold
       }
 
       private static void OnAnyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-         => ((FieldRow)d).Apply_();
+      {
+         var row = (FieldRow)d;
+         row.Apply_();
+
+         // The message is the template's own live region: announced as it is
+         // set, after the layout that shows it. Clearing it says nothing.
+         if (e.Property == ErrorProperty && e.NewValue != null && row.Part<TextBlock>("PART_Error") is { } message)
+            Announce.Request(message);
+      }
 
       private void Apply_()
       {

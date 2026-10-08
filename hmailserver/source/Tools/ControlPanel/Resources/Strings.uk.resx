@@ -6357,9 +6357,6 @@
   <data name="Never judged by country (addresses and CIDR ranges, comma separated)" xml:space="preserve">
     <value>Ніколи не оцінюються за країною (адреси та діапазони CIDR, через кому)</value>
   </data>
-  <data name="Never-ban list status" xml:space="preserve">
-    <value>Стан списку «ніколи не банити»</value>
-  </data>
   <data name="New IMAP folder" xml:space="preserve">
     <value>Нова папка IMAP</value>
   </data>
@@ -10483,9 +10480,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Temporary failure" xml:space="preserve">
     <value>Тимчасовий збій</value>
-  </data>
-  <data name="Test" xml:space="preserve">
-    <value>Тест</value>
   </data>
   <data name="Test ClamAV connection" xml:space="preserve">
     <value>Перевірити з'єднання з ClamAV</value>
@@ -14725,9 +14719,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="{0} records beginning &quot;v=spf1&quot; exist at {1}. RFC 7208 makes that a permanent SPF error at every receiver - worse than no record. Merge them into one." xml:space="preserve">
     <value>За адресою {1} існує {0} записів, що починаються з "v=spf1". За RFC 7208 це постійна помилка SPF у кожного отримувача — гірше, ніж відсутність запису. Об’єднайте їх в один.</value>
-  </data>
-  <data name="{0} result" xml:space="preserve">
-    <value>{0} результат</value>
   </data>
   <data name="{0} row(s) need reading before you apply - a skipped entry is a mailbox somebody expects and will not get, and a disabled one is a mailbox being taken away." xml:space="preserve">
     <value>{0} рядків потрібно прочитати перед застосуванням — пропущений запис означає поштову скриньку, на яку хтось розраховує й не отримає, а вимкнений — поштову скриньку, яку забирають.</value>

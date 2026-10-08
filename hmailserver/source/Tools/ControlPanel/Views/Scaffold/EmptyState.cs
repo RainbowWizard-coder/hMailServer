@@ -5,6 +5,7 @@
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Automation.Peers;
+using hMailServer.ControlPanel.Services;
 
 namespace hMailServer.ControlPanel.Views.Scaffold
 {
@@ -13,6 +14,11 @@ namespace hMailServer.ControlPanel.Views.Scaffold
    /// sentence that says so and what to do about it, and the action that does
    /// it. An empty box reads as broken; silence reads as "never loaded". Shown
    /// in the grid's place, never over a grid with rows in it.
+   ///
+   /// A polite live region, like the loading state it follows: the sentence -
+   /// and the failure a page with no notice of its own puts here - is announced
+   /// as it is shown and as it changes, through <see cref="Announce"/>, since
+   /// the setting alone announces nothing.
    ///
    /// <code>
    /// &lt;scaffold:EmptyState Icon="Globe24" Text="{loc:L 'No domains yet. Add the first one to start receiving mail.'}"&gt;
@@ -36,6 +42,16 @@ namespace hMailServer.ControlPanel.Views.Scaffold
 
       public static readonly DependencyProperty ActionProperty = DependencyProperty.Register(
          nameof(Action), typeof(object), typeof(EmptyState), new PropertyMetadata(null));
+
+      public EmptyState()
+      {
+         AutomationProperties.SetLiveSetting(this, AutomationLiveSetting.Polite);
+         IsVisibleChanged += (s, e) =>
+         {
+            if ((bool)e.NewValue)
+               Announce.Request(this);
+         };
+      }
 
       /// <summary>The Fluent glyph above the sentence; <see cref="Wpf.Ui.Controls.SymbolRegular.Empty"/> shows none.</summary>
       public Wpf.Ui.Controls.SymbolRegular Icon
@@ -61,6 +77,9 @@ namespace hMailServer.ControlPanel.Views.Scaffold
       protected override AutomationControlType ControlType => AutomationControlType.Text;
 
       private static void OnTextChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-         => AutomationProperties.SetName(d, (string)e.NewValue ?? "");
+      {
+         AutomationProperties.SetName(d, (string)e.NewValue ?? "");
+         Announce.Request((UIElement)d);
+      }
    }
 }

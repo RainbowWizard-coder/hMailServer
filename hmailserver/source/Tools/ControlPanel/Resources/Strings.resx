@@ -6357,9 +6357,6 @@ Nothing already there is removed.</value>
   <data name="Never judged by country (addresses and CIDR ranges, comma separated)" xml:space="preserve">
     <value>Never judged by country (addresses and CIDR ranges, comma separated)</value>
   </data>
-  <data name="Never-ban list status" xml:space="preserve">
-    <value>Never-ban list status</value>
-  </data>
   <data name="New IMAP folder" xml:space="preserve">
     <value>New IMAP folder</value>
   </data>
@@ -10483,9 +10480,6 @@ The next message to it will be sent, and it is listed again only after as many h
   </data>
   <data name="Temporary failure" xml:space="preserve">
     <value>Temporary failure</value>
-  </data>
-  <data name="Test" xml:space="preserve">
-    <value>Test</value>
   </data>
   <data name="Test ClamAV connection" xml:space="preserve">
     <value>Test ClamAV connection</value>
@@ -14725,9 +14719,6 @@ No message is deleted and no account is removed. Continue?</value>
   </data>
   <data name="{0} records beginning &quot;v=spf1&quot; exist at {1}. RFC 7208 makes that a permanent SPF error at every receiver - worse than no record. Merge them into one." xml:space="preserve">
     <value>{0} records beginning "v=spf1" exist at {1}. RFC 7208 makes that a permanent SPF error at every receiver - worse than no record. Merge them into one.</value>
-  </data>
-  <data name="{0} result" xml:space="preserve">
-    <value>{0} result</value>
   </data>
   <data name="{0} row(s) need reading before you apply - a skipped entry is a mailbox somebody expects and will not get, and a disabled one is a mailbox being taken away." xml:space="preserve">
     <value>{0} row(s) need reading before you apply - a skipped entry is a mailbox somebody expects and will not get, and a disabled one is a mailbox being taken away.</value>

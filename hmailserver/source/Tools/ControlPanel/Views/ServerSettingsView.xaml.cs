@@ -1068,11 +1068,12 @@ namespace hMailServer.ControlPanel.Views
             // Polite rather than assertive, and safe to make a live region here in a
             // way the dashboard's summary line is not (see AccessibleChartCard): this
             // text changes only when the user presses the button, so an announcement
-            // is the answer to something they just asked.
+            // is the answer to something they just asked. The line's accessible name
+            // is its text and nothing else: a fixed name ("Clear logon-failure list
+            // result") was what a reader said in place of the outcome, both when the
+            // line was announced and when the reader moved to it.
             System.Windows.Automation.AutomationProperties.SetLiveSetting(
                result_, System.Windows.Automation.AutomationLiveSetting.Polite);
-            System.Windows.Automation.AutomationProperties.SetName(result_,
-               F("{0} result", ButtonText ?? L("Test")));
 
             btn.Click += (s, e) =>
             {
@@ -1107,6 +1108,7 @@ namespace hMailServer.ControlPanel.Views
             result_.Visibility = Visibility.Visible;
             result_.SetResourceReference(System.Windows.Controls.TextBlock.ForegroundProperty,
                ok ? "AppSuccessBrush" : "AppDangerBrush");
+            Announce.Request(result_);
          }
 
          public override object ReadEditor() => null;

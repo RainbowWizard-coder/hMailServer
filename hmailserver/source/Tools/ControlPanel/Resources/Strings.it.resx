@@ -6357,9 +6357,6 @@ Nulla di ciò che è già presente viene rimosso.</value>
   <data name="Never judged by country (addresses and CIDR ranges, comma separated)" xml:space="preserve">
     <value>Mai valutati per paese (indirizzi e intervalli CIDR, separati da virgole)</value>
   </data>
-  <data name="Never-ban list status" xml:space="preserve">
-    <value>Stato della lista dei mai bloccati</value>
-  </data>
   <data name="New IMAP folder" xml:space="preserve">
     <value>Nuova cartella IMAP</value>
   </data>
@@ -10483,9 +10480,6 @@ Il prossimo messaggio a questo indirizzo verrà inviato, e tornerà in lista sol
   </data>
   <data name="Temporary failure" xml:space="preserve">
     <value>Errore temporaneo</value>
-  </data>
-  <data name="Test" xml:space="preserve">
-    <value>Test</value>
   </data>
   <data name="Test ClamAV connection" xml:space="preserve">
     <value>Prova la connessione a ClamAV</value>
@@ -14725,9 +14719,6 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   </data>
   <data name="{0} records beginning &quot;v=spf1&quot; exist at {1}. RFC 7208 makes that a permanent SPF error at every receiver - worse than no record. Merge them into one." xml:space="preserve">
     <value>Esistono {0} record che iniziano con "v=spf1" su {1}. La RFC 7208 rende questo un errore SPF permanente presso ogni ricevente - peggio che nessun record. Uniscili in uno solo.</value>
-  </data>
-  <data name="{0} result" xml:space="preserve">
-    <value>{0} risultato</value>
   </data>
   <data name="{0} row(s) need reading before you apply - a skipped entry is a mailbox somebody expects and will not get, and a disabled one is a mailbox being taken away." xml:space="preserve">
     <value>{0} righe vanno lette prima di applicare: una voce saltata è una casella che qualcuno si aspetta e non riceverà, e una disattivata è una casella che viene tolta.</value>
