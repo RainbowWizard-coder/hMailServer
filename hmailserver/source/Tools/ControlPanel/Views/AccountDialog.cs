@@ -346,7 +346,12 @@ namespace hMailServer.ControlPanel.Views
          panel.Children.Add(Label(L("Subject for _colleagues (empty = same as above)"), vacationInternalSubject_));
          panel.Children.Add(Label(L("Message for colleag_ues (empty = same as above)"), vacationInternalMessage_));
          panel.Children.Add(DialogFields.Check(vacationInternalOnly_));
-         panel.Children.Add(DialogFields.Note(L("Outside senders get nothing, or the domain's text when its override is on.")));
+         // The outside senders' fate, under the box and told to the box as its help
+         // text, so that a screen reader reading the box hears it as it did when the
+         // caption said it.
+         string outsideNote = L("Outside senders get nothing, or the domain's text when its override is on.");
+         panel.Children.Add(DialogFields.Note(outsideNote));
+         AutomationProperties.SetHelpText(vacationInternalOnly_, outsideNote);
          return DialogFields.Scroll(panel);
       }
 

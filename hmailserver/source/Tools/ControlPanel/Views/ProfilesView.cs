@@ -57,8 +57,9 @@ namespace hMailServer.ControlPanel.Views
       };
       // What the marked changes do, under the box rather than in its caption: a
       // caption of three lines is read by nobody, and a check box names itself to a
-      // screen reader by its whole caption. Indented to the caption: WPF-UI's check
-      // box pads 11 before its 20-pixel box and keeps 8 between the box and the caption.
+      // screen reader by its whole caption; Build tells the box the note as its help
+      // text instead. Indented to the caption: WPF-UI's check box pads 11 before its
+      // 20-pixel box and keeps 8 between the box and the caption.
       private readonly TextBlock confirmNote_ = new()
       {
          Text = L("They close a listener, trust an address range, turn a filter or a check off, or shorten how long data is kept. What a shorter window deletes, putting the settings back does not bring back."),
@@ -539,6 +540,9 @@ namespace hMailServer.ControlPanel.Views
          bottom.Children.Add(confirm_);
          confirmNote_.SetResourceReference(FrameworkElement.StyleProperty, "TextCaption");
          bottom.Children.Add(confirmNote_);
+         // The note is the box's help text as well, so that a screen reader reading
+         // the box hears what confirming does, as it heard it when the caption said it.
+         AutomationProperties.SetHelpText(confirm_, confirmNote_.Text);
          bottom.Children.Add(steps_);
          DockPanel.SetDock(bottom, Dock.Bottom);
          body.Children.Add(bottom);

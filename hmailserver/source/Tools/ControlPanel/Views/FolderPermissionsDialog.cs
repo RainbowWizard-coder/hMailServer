@@ -326,9 +326,13 @@ namespace hMailServer.ControlPanel.Views
             body.Children.Add(cb);
             // Under the box, not in its caption: "Post - and send as this mailbox's
             // address over SMTP (Send-As, when SmtpAuthenticatedSenderCheck is on)"
-            // was wider than the dialog.
+            // was wider than the dialog. The box is told it as help text, so that a
+            // screen reader reading the box hears it as it did when the caption said it.
             if (note != null)
+            {
                body.Children.Add(DialogFields.Note(note));
+               AutomationProperties.SetHelpText(cb, note);
+            }
          }
 
          // Enter saves, Escape cancels.
