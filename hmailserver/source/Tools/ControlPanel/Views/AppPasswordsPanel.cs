@@ -6,6 +6,7 @@ using System;
 using System.Windows;
 using System.Windows.Controls;
 using hMailServer.ControlPanel.Services;
+using hMailServer.ControlPanel.Views.Scaffold;
 using MessageBox = hMailServer.ControlPanel.Views.Dialogs;
 using static hMailServer.ControlPanel.Services.Loc;
 
@@ -60,10 +61,11 @@ namespace hMailServer.ControlPanel.Views
          MinHeight = 160
       };
 
-      private readonly TextBox newName_ = new() { Width = 220, VerticalContentAlignment = VerticalAlignment.Center };
+      private readonly TextBox newName_ = new() { VerticalContentAlignment = VerticalAlignment.Center };
+      private FieldRow nameRow_;
       private readonly TextBlock status_ = new() { FontSize = Typography.Caption, Margin = new Thickness(0, 10, 0, 0), TextWrapping = TextWrapping.Wrap };
 
-      private readonly Border issuedCard_;
+      private readonly Card issuedCard_ = new() { Padding = new Thickness(12), Margin = new Thickness(0, 12, 0, 0), Visibility = Visibility.Collapsed };
       private readonly TextBox issuedValue_ = new()
       {
          IsReadOnly = true,
@@ -77,9 +79,6 @@ namespace hMailServer.ControlPanel.Views
       {
          domainName_ = domainName;
          address_ = address;
-
-         issuedCard_ = new Border { Padding = new Thickness(12), Margin = new Thickness(0, 12, 0, 0), Visibility = Visibility.Collapsed };
-         issuedCard_.SetResourceReference(StyleProperty, "Card");
 
          Build();
       }
@@ -230,7 +229,9 @@ namespace hMailServer.ControlPanel.Views
 
       private void Build()
       {
-         var root = new StackPanel { Margin = new Thickness(4, 8, 4, 4) };
+         // No inset of the panel's own: the account dialog's other tabs start at
+         // the dialog's inset, and this one started four pixels further in.
+         var root = new StackPanel { Margin = new Thickness(0, 8, 0, 0) };
 
          var hint = new TextBlock
          {
@@ -241,27 +242,45 @@ namespace hMailServer.ControlPanel.Views
          hint.SetResourceReference(ForegroundProperty, "TextFillColorSecondaryBrush");
          root.Children.Add(hint);
 
-         var toolbar = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 0, 10) };
-         toolbar.Children.Add(new TextBlock
-         {
-            Text = L("Name"),
-            VerticalAlignment = VerticalAlignment.Center,
-            Margin = new Thickness(0, 0, 8, 0)
-         });
+         // The name captioned above its box, as every other field of the dialog
+         // is, with Create beside it; the three buttons that act on the selected
+         // row go under the list, where they act. In one row - an inline "Name",
+         // a 220-pixel box, Create, Revoke / restore, Delete and Refresh, each at
+         // least 92 pixels - Delete lost its right edge in the dialog's 592
+         // pixels and Refresh was not on the tab at all.
+         var create = new Grid { Margin = new Thickness(0, 0, 0, 10) };
+         create.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+         create.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
          newName_.Text = "";
-         toolbar.Children.Add(newName_);
-         toolbar.Children.Add(MakeButton(L("_Create"), Wpf.Ui.Controls.ControlAppearance.Primary, (_, _) => Create()));
-         toolbar.Children.Add(MakeButton(L("Re_voke / restore"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => ToggleActive()));
-         toolbar.Children.Add(MakeButton(L("_Delete"), Wpf.Ui.Controls.ControlAppearance.Danger, (_, _) => Delete()));
-         toolbar.Children.Add(MakeButton(L("_Refresh"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => Reload()));
-         root.Children.Add(toolbar);
+         nameRow_ = DialogFields.Field(L("_Name"), newName_);
+         nameRow_.Margin = new Thickness(0, 0, 8, 0);
+         create.Children.Add(nameRow_);
+         Wpf.Ui.Controls.Button createButton = MakeButton(L("_Create"), Wpf.Ui.Controls.ControlAppearance.Primary, (_, _) => Create());
+         createButton.Margin = new Thickness(0);
+         createButton.VerticalAlignment = VerticalAlignment.Bottom;
+         Grid.SetColumn(createButton, 1);
+         create.Children.Add(createButton);
+         root.Children.Add(create);
 
-         var card = new Border { Padding = new Thickness(8) };
-         card.SetResourceReference(StyleProperty, "Card");
+         var card = new Card { Padding = new Thickness(8) };
          BuildColumns();
 
-         card.Child = list_;
+         card.Content = list_;
          root.Children.Add(card);
+
+         // Wraps where the three do not fit on one line, rather than running off
+         // the tab. Revoke / restore and Delete act on the selected row, so they
+         // can be pressed only while there is one; Delete is the list pages' one
+         // Delete style, red words rather than a filled red button.
+         var rowActions = new WrapPanel { HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 8, 0, 0) };
+         Wpf.Ui.Controls.Button revoke = MakeButton(L("Re_voke / restore"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => ToggleActive());
+         rowActions.Children.Add(revoke);
+         Wpf.Ui.Controls.Button delete = MakeButton(L("_Delete"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => Delete());
+         ButtonStyles.DangerText(delete);
+         rowActions.Children.Add(delete);
+         rowActions.Children.Add(MakeButton(L("_Refresh"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => Reload()));
+         SelectionGate.Bind(list_, revoke, delete);
+         root.Children.Add(rowActions);
 
          var issued = new StackPanel();
          var issuedTitle = new TextBlock
@@ -277,7 +296,7 @@ namespace hMailServer.ControlPanel.Views
          copy.Margin = new Thickness(0, 8, 0, 0);
          copy.HorizontalAlignment = HorizontalAlignment.Left;
          issued.Children.Add(copy);
-         issuedCard_.Child = issued;
+         issuedCard_.Content = issued;
          root.Children.Add(issuedCard_);
 
          status_.SetResourceReference(ForegroundProperty, "TextFillColorSecondaryBrush");
@@ -303,9 +322,12 @@ namespace hMailServer.ControlPanel.Views
 
          string name = newName_.Text.Trim();
 
+         // On the field it is about, with the keyboard put in it, rather than
+         // in the status line under the list.
+         DialogFields.ClearErrors(nameRow_);
          if (name.Length == 0)
          {
-            status_.Text = L("Give it a name first - it is what you will recognise this credential by when you come to revoke it.");
+            DialogFields.ShowError(nameRow_, L("Give it a name first - it is what you will recognise this credential by when you come to revoke it."));
             return;
          }
 

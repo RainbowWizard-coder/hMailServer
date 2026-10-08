@@ -766,6 +766,13 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   "Ausgewählte entfernen" left the box 30 pixels, Japanese 100 and English 155, too narrow to read an address in. The
   box has the dialog's width now but for Add beside it, and *Add from AD…* and *Remove selected* are under the list,
   where they act, wrapping onto two lines in a language where they do not fit on one.
+- **Fixed: the App passwords tab of the Control Panel's account dialog cut Delete off and did not draw Refresh.** An
+  inline "Name", a 220-pixel box, Create, Revoke / restore, Delete and Refresh sat in one horizontal row, so in the
+  dialog's 592 pixels Delete lost its right edge and Refresh was off the tab; the panel also started four pixels
+  further in than the other tabs. The name is a captioned field with its Alt key, with Create beside it; Revoke /
+  restore, Delete and Refresh are under the list, where they act, the first two enabled only while a row is selected
+  and Delete drawn as every list page's Delete is; a name left empty is said on the field, with the keyboard put in
+  it; the panel starts where the other tabs do, and its list and its one-time password are on the component card.
 
 ### IMAP, POP3 and the webmail
 
