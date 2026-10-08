@@ -12,10 +12,14 @@ using Xunit;
 namespace hMailServer.ControlPanel.Tests.Services
 {
    /// <summary>
-   /// Selection is one language across the application, the sidebar's: the
+   /// Selection is one language across the application's grids and lists: the
    /// selected row of every grid, list box and list view takes the selection
-   /// fill (AppSelectionFillBrush) and the brand pill, hover keeps the subtle
-   /// grey, and under High Contrast an outline in the highlight draws the row.
+   /// fill (AppSelectionFillBrush) and the sidebar's brand pill, hover keeps
+   /// the subtle grey, and under High Contrast an outline in the highlight
+   /// draws the row. The sidebar and the rail keep the subtle grey behind the
+   /// row they mark with the pill, so the tint is the lists' own and the pill
+   /// is what they share with the shell; the last test holds the shell to that,
+   /// so that the Selection paragraph of docs/ControlPanelDesign.md stays true.
    /// Before this a selected grid row was the hover grey (1.08:1 against its
    /// neighbours, exactly as a hovered one), the palette and the bare list
    /// boxes drew WPF-UI's solid accent band - the palette's own text at 1.9 to
@@ -151,6 +155,33 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("Brushes.Transparent", source, StringComparison.Ordinal);
       }
 
+      /// <summary>
+      /// What the lists share with the shell is the pill: the sidebar's row and
+      /// the rail's keep the theme's subtle grey behind the page they mark with
+      /// it - the same grey a hovered row has - and the pill alone tells the two
+      /// apart, the Fluent navigation convention. The Selection paragraph of
+      /// docs/ControlPanelDesign.md says so, and a shell that took the tint, or
+      /// dropped the pill, would need that paragraph rewritten with it.
+      /// </summary>
+      [Fact]
+      public void TheSidebarAndTheRail_KeepTheSubtleGrey_BehindThePillTheyMarkTheirRowWith()
+      {
+         XElement sidebar = SidebarRowTemplate();
+         XElement selected = TemplateTrigger(sidebar, "IsSelected");
+         XElement hover = TemplateTrigger(sidebar, "IsMouseOver");
+         Assert.Equal("{DynamicResource SubtleFillColorSecondaryBrush}", TargetSetterValue(selected, "Bd", "Background"));
+         Assert.Equal(TargetSetterValue(hover, "Bd", "Background"), TargetSetterValue(selected, "Bd", "Background"));
+         Assert.Equal("1", TargetSetterValue(selected, "Pill", "Opacity"));
+         Assert.Equal("{DynamicResource AppBrandBrush}", (string)Named(sidebar, "Pill").Attribute("Fill"));
+
+         XElement rail = Template(KeyedStyle(App(), "NavRailItem"));
+         XElement isChecked = TemplateTrigger(rail, "IsChecked");
+         Assert.Equal("{DynamicResource SubtleFillColorSecondaryBrush}", TargetSetterValue(isChecked, "Bg", "Background"));
+         Assert.Equal(TargetSetterValue(TemplateTrigger(rail, "IsMouseOver"), "Bg", "Background"), TargetSetterValue(isChecked, "Bg", "Background"));
+         Assert.Equal("1", TargetSetterValue(isChecked, "Pill", "Opacity"));
+         Assert.Equal("{DynamicResource AppBrandBrush}", (string)Named(rail, "Pill").Attribute("Fill"));
+      }
+
       // ---- App.xaml readers -------------------------------------------------------
 
       private static XElement App()
@@ -166,6 +197,23 @@ namespace hMailServer.ControlPanel.Tests.Services
             .SingleOrDefault(s => (string)s.Attribute("TargetType") == targetType && s.Attribute(X + "Key") == null);
          Assert.True(style != null, "App.xaml has no implicit " + targetType + " style.");
          return style;
+      }
+
+      private static XElement KeyedStyle(XElement app, string key)
+      {
+         XElement style = app.Descendants(Wpf + "Style").SingleOrDefault(s => (string)s.Attribute(X + "Key") == key);
+         Assert.True(style != null, "App.xaml has no style " + key + ".");
+         return style;
+      }
+
+      /// <summary>The sidebar row's template: the TreeView's item container style in MainWindow.xaml.</summary>
+      private static XElement SidebarRowTemplate()
+      {
+         string xaml = ReadControlPanelFile("MainWindow.xaml");
+         Assert.NotNull(xaml);
+         XElement style = XDocument.Parse(xaml).Root.Descendants(Wpf + "TreeView.ItemContainerStyle")
+            .Single().Elements(Wpf + "Style").Single(s => (string)s.Attribute("TargetType") == "TreeViewItem");
+         return Template(style);
       }
 
       private static XElement Template(XElement style)

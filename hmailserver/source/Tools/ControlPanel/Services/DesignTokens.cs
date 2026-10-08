@@ -297,16 +297,17 @@ namespace hMailServer.ControlPanel.Services
          => theme == ChartTheme.HighContrast ? 1 : 0;
 
       /// <summary>
-      /// A selected row's look, one language for every grid and list - the
-      /// sidebar's: the fill behind the row and the outline round it, as
-      /// 0xAARRGGBB. The fill is the brand colour at the notice tint's opacity
-      /// over whatever the row sits on, so near the card's own that the row's
-      /// text stays what it was - the theme's primary and secondary text clear
-      /// 4.5:1 on it, where the stock accent band drew the palette's at 1.9 to
-      /// 3.5:1 - and the brand pill at the row's left edge says "selected" apart
-      /// from the hover grey, which a selected grid row was the same as (1.08:1
-      /// against its neighbours). Under High Contrast the fill is nothing, as
-      /// the notice tint is - a tinted surface is a colour the user asked
+      /// A selected row's look, one language for every grid and list: the fill
+      /// behind the row and the outline round it, as 0xAARRGGBB. The fill is
+      /// the brand colour at the notice tint's opacity over whatever the row
+      /// sits on, so near the card's own that the row's text stays what it was
+      /// - the theme's primary and secondary text clear 4.5:1 on it, where the
+      /// stock accent band drew the palette's at 1.9 to 3.5:1 - and the
+      /// sidebar's brand pill at the row's left edge says "selected" apart from
+      /// the hover grey, which a selected grid row was the same as (1.08:1
+      /// against its neighbours); the sidebar and the rail themselves keep the
+      /// subtle grey behind their pill. Under High Contrast the fill is nothing,
+      /// as the notice tint is - a tinted surface is a colour the user asked
       /// Windows not to show them - and the outline is the highlight, as the
       /// pill is; in the other themes the outline is nothing.
       /// </summary>

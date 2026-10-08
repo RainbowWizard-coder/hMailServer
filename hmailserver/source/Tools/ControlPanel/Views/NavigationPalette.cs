@@ -41,9 +41,9 @@ namespace hMailServer.ControlPanel.Views
    /// for the frame, the type ramp's keyed styles for every line of text, and
    /// the results list on the application's own list styles (App.xaml) with
    /// nothing but its border and background taken away, so that a theme change
-   /// reaches every row. The rows take the sidebar's selection language from
-   /// those styles - the selection fill near the page's own colour and the brand
-   /// pill - which is what lets each row keep TextBody and TextCaption: on the
+   /// reaches every row. The rows take the lists' selection language from those
+   /// styles - the selection fill near the page's own colour and the sidebar's
+   /// brand pill - which is what lets each row keep TextBody and TextCaption: on the
    /// stock accent band those styles' pinned colours measured 3.5:1 and 1.9:1.
    /// </summary>
    public class NavigationPalette : Window

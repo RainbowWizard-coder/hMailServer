@@ -442,23 +442,27 @@
                 <Setter Property="HorizontalContentAlignment" Value="Right" />
             </Style>
 
-            <!-- A selected row is one language across the application, the
-                 sidebar's: the brand at the notice tint's opacity behind the row
-                 (AppSelectionFillBrush), the 3 x 16 brand pill at its left edge,
-                 and the row's own text, which stays what it was - the fill is so
-                 near the card's own that the primary and secondary text clear
-                 4.5:1 on it (DesignTokensTests holds them to it). Hover keeps the
-                 theme's subtle grey, so a hovered row and the selected one no
-                 longer look the same: the selected row measured 1.08:1 against
-                 its neighbours, exactly as hover did, and Edit and Delete acted
-                 on one of the two. Under High Contrast the fill is nothing and
-                 AppSelectionOutlineBrush draws a one-pixel outline in the
-                 highlight, as the pill is. This style is the grid row's; the
-                 list item styles after the cell style are the same look for
-                 every ListBox and ListView - the palette, the public folders,
-                 the dialogs' member lists, the four lists on the domains page -
-                 which took WPF-UI's solid accent band (the palette's own text
-                 at 1.9 to 3.5:1 on it) or its grey with an outline. -->
+            <!-- A selected row is one language across the application's grids
+                 and lists: the brand at the notice tint's opacity behind the row
+                 (AppSelectionFillBrush), the sidebar's 3 x 16 brand pill at its
+                 left edge, and the row's own text, which stays what it was - the
+                 fill is so near the card's own that the primary and secondary
+                 text clear 4.5:1 on it (DesignTokensTests holds them to it). The
+                 sidebar and the rail keep the subtle grey behind the row they
+                 mark with the pill (MainWindow.xaml, NavRailItem above), so
+                 what the lists share with the shell is the pill; the tint is
+                 the lists' own. Hover keeps the theme's subtle grey, so a
+                 hovered row and the selected one no longer look the same: the
+                 selected row measured 1.08:1 against its neighbours, exactly as
+                 hover did, and Edit and Delete acted on one of the two. Under
+                 High Contrast the fill is nothing and AppSelectionOutlineBrush
+                 draws a one-pixel outline in the highlight, as the pill is.
+                 This style is the grid row's; the list item styles after the
+                 cell style are the same look for every ListBox and ListView -
+                 the palette, the public folders, the dialogs' member lists, the
+                 four lists on the domains page - which took WPF-UI's solid
+                 accent band (the palette's own text at 1.9 to 3.5:1 on it) or
+                 its grey with an outline. -->
             <Style TargetType="DataGridRow">
                 <Setter Property="Background" Value="Transparent" />
                 <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
@@ -540,7 +544,7 @@
 
             <!-- ============================================================
                  List rows. The row of every ListBox and ListView, drawn as the
-                 sidebar's row and the grid row above: the control radius, the
+                 grid row above, with the sidebar's pill: the control radius, the
                  subtle grey under the pointer, the selection fill and the brand
                  pill on the selected row, and a 1.5-pixel ring in the focus
                  colour round the row the keyboard is on in place of the stock

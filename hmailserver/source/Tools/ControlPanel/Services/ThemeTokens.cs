@@ -325,8 +325,9 @@ namespace hMailServer.ControlPanel.Services
          }
 
          // A selected row's fill, and the outline only High Contrast draws
-         // round it (DesignTokens.Selection): the sidebar's selection language,
-         // which App.xaml's row styles give every grid, list box and list view.
+         // round it (DesignTokens.Selection): the lists' selection language,
+         // which App.xaml's row styles give every grid, list box and list view
+         // beside the sidebar's pill.
          DesignTokens.SelectionArgb selection = DesignTokens.Selection(CurrentChartTheme, CurrentSystemColors);
          Publish("AppSelectionFillBrush", FromArgb(selection.Fill));
          Publish("AppSelectionOutlineBrush", FromArgb(selection.Outline));
