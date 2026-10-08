@@ -109,7 +109,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Equal("Border", (string)style.Attribute("TargetType"));
 
          // And the element that takes it holds the glyph alone: no name, no word.
-         XElement glyphHost = Assert.Single(template.Descendants(Wpf + "Border").Where(b => (string)b.Attribute("Style") == "{StaticResource RowGlyphDimsWhenInactive}"));
+         XElement glyphHost = Assert.Single(template.Descendants(Wpf + "Border"), b => (string)b.Attribute("Style") == "{StaticResource RowGlyphDimsWhenInactive}");
          Assert.Single(glyphHost.Elements(), e => e.Name == Ui + "SymbolIcon");
          Assert.Empty(glyphHost.Descendants(Wpf + "TextBlock"));
          Assert.Empty(glyphHost.Descendants(Scaffold + "StatusPill"));
@@ -124,7 +124,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          XElement page = Page();
          XElement template = ItemTemplate(page, list);
 
-         XElement name = Assert.Single(template.Descendants(Wpf + "TextBlock").Where(t => (string)t.Attribute("Text") == "{Binding " + property + "}"));
+         XElement name = Assert.Single(template.Descendants(Wpf + "TextBlock"), t => (string)t.Attribute("Text") == "{Binding " + property + "}");
          Assert.Equal("{StaticResource RowName}", (string)name.Attribute("Style"));
          Assert.Null(name.Attribute("Foreground"));
          Assert.Null(name.Attribute("Opacity"));
