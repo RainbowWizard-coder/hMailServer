@@ -305,17 +305,35 @@ Enregistrer quand même ce mot de passe faible ?</value>
   <data name="1 DNS record is still being checked in the background; this summary will update." xml:space="preserve">
     <value>1 enregistrement DNS est encore vérifié en arrière-plan ; ce résumé se mettra à jour.</value>
   </data>
+  <data name="1 IP address" xml:space="preserve">
+    <value>1 adresse IP</value>
+  </data>
+  <data name="1 SURBL server" xml:space="preserve">
+    <value>1 serveur SURBL</value>
+  </data>
   <data name="1 account is a member." xml:space="preserve">
     <value>1 compte est membre.</value>
   </data>
   <data name="1 address listed." xml:space="preserve">
     <value>1 adresse listée.</value>
   </data>
+  <data name="1 alias" xml:space="preserve">
+    <value>1 alias</value>
+  </data>
   <data name="1 app password." xml:space="preserve">
     <value>1 mot de passe d'application.</value>
   </data>
+  <data name="1 blacklist" xml:space="preserve">
+    <value>1 liste noire</value>
+  </data>
+  <data name="1 blocked sender" xml:space="preserve">
+    <value>1 expéditeur bloqué</value>
+  </data>
   <data name="1 by default." xml:space="preserve">
     <value>1 par défaut.</value>
+  </data>
+  <data name="1 bypass entry" xml:space="preserve">
+    <value>1 entrée de contournement</value>
   </data>
   <data name="1 day" xml:space="preserve">
     <value>1 jour</value>
@@ -323,14 +341,26 @@ Enregistrer quand même ce mot de passe faible ?</value>
   <data name="1 event." xml:space="preserve">
     <value>1 événement.</value>
   </data>
+  <data name="1 external account" xml:space="preserve">
+    <value>1 compte externe</value>
+  </data>
   <data name="1 hour ago" xml:space="preserve">
     <value>il y a 1 heure</value>
+  </data>
+  <data name="1 item" xml:space="preserve">
+    <value>1 élément</value>
   </data>
   <data name="1 item cannot be checked from here" xml:space="preserve">
     <value>1 élément ne peut pas être vérifié d'ici</value>
   </data>
   <data name="1 item cannot be checked from here." xml:space="preserve">
     <value>1 élément ne peut pas être vérifié d'ici.</value>
+  </data>
+  <data name="1 key" xml:space="preserve">
+    <value>1 clé</value>
+  </data>
+  <data name="1 list entry" xml:space="preserve">
+    <value>1 entrée de liste</value>
   </data>
   <data name="1 message" xml:space="preserve">
     <value>1 message</value>
@@ -350,14 +380,29 @@ Enregistrer quand même ce mot de passe faible ?</value>
   <data name="1 refuses a password that has appeared in the corpus even once." xml:space="preserve">
     <value>1 refuse un mot de passe apparu dans le corpus ne serait-ce qu'une fois.</value>
   </data>
+  <data name="1 remote domain policy" xml:space="preserve">
+    <value>1 règle de domaine distant</value>
+  </data>
+  <data name="1 rule" xml:space="preserve">
+    <value>1 règle</value>
+  </data>
   <data name="1 sample copied to the clipboard." xml:space="preserve">
     <value>1 échantillon copié dans le presse-papiers.</value>
   </data>
   <data name="1 sample." xml:space="preserve">
     <value>1 échantillon.</value>
   </data>
+  <data name="1 security group" xml:space="preserve">
+    <value>1 groupe de sécurité</value>
+  </data>
+  <data name="1 server message" xml:space="preserve">
+    <value>1 message du serveur</value>
+  </data>
   <data name="1 thing needs attention" xml:space="preserve">
     <value>1 point demande votre attention</value>
+  </data>
+  <data name="1 white-list entry" xml:space="preserve">
+    <value>1 entrée de liste blanche</value>
   </data>
   <data name="1.  Scan this QR code with an authenticator app (Microsoft Authenticator, Google Authenticator, Authy, 1Password…)." xml:space="preserve">
     <value>1.  Scannez ce code QR avec une application d'authentification (Microsoft Authenticator, Google Authenticator, Authy, 1Password…).</value>
@@ -13868,12 +13913,6 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   <data name="keep a copy of every message" xml:space="preserve">
     <value>conserver une copie de chaque message</value>
   </data>
-  <data name="key" xml:space="preserve">
-    <value>clé</value>
-  </data>
-  <data name="keys" xml:space="preserve">
-    <value>clés</value>
-  </data>
   <data name="last hour" xml:space="preserve">
     <value>dernière heure</value>
   </data>
@@ -14423,6 +14462,9 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   <data name="{0} DNS records are still being checked in the background; this summary will update." xml:space="preserve">
     <value>{0} enregistrements DNS sont encore vérifiés en arrière-plan ; ce résumé se mettra à jour.</value>
   </data>
+  <data name="{0} IP addresses" xml:space="preserve">
+    <value>{0} adresses IP</value>
+  </data>
   <data name="{0} If a virus is found, the attachments are stripped and the message is still delivered." xml:space="preserve">
     <value>{0} Si un virus est trouvé, les pièces jointes sont retirées et le message est tout de même livré.</value>
   </data>
@@ -14434,6 +14476,9 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   </data>
   <data name="{0} KB ({1} MB)" xml:space="preserve">
     <value>{0} Ko ({1} Mo)</value>
+  </data>
+  <data name="{0} SURBL servers" xml:space="preserve">
+    <value>{0} serveurs SURBL</value>
   </data>
   <data name="{0} TXT record(s) exist at {1}, but none begins &quot;v=DMARC1&quot;, so receivers - and this server's own DMARC check - see no policy." xml:space="preserve">
     <value>{0} enregistrement(s) TXT existent à {1}, mais aucun ne commence par « v=DMARC1 », si bien que les destinataires - et la propre vérification DMARC de ce serveur - ne voient aucune politique.</value>
@@ -14465,6 +14510,9 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   <data name="{0} addresses listed." xml:space="preserve">
     <value>{0} adresses listées.</value>
   </data>
+  <data name="{0} aliases" xml:space="preserve">
+    <value>{0} alias</value>
+  </data>
   <data name="{0} and {1}" xml:space="preserve">
     <value>{0} et {1}</value>
   </data>
@@ -14480,8 +14528,17 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   <data name="{0} app passwords." xml:space="preserve">
     <value>{0} mots de passe d'application.</value>
   </data>
+  <data name="{0} blacklists" xml:space="preserve">
+    <value>{0} listes noires</value>
+  </data>
+  <data name="{0} blocked senders" xml:space="preserve">
+    <value>{0} expéditeurs bloqués</value>
+  </data>
   <data name="{0} blocked-attachment patterns are configured but attachment blocking is switched off, so none of them is applied." xml:space="preserve">
     <value>{0} motifs de pièces jointes bloquées sont configurés mais le blocage des pièces jointes est désactivé, si bien qu'aucun n'est appliqué.</value>
+  </data>
+  <data name="{0} bypass entries" xml:space="preserve">
+    <value>{0} entrées de contournement</value>
   </data>
   <data name="{0} case(s). Select one for its lines on the audit trail." xml:space="preserve">
     <value>{0} affaire(s). Sélectionnez-en une pour voir ses lignes dans le journal d'audit.</value>
@@ -14542,6 +14599,9 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   </data>
   <data name="{0} external POP3 fetch accounts have anti-virus turned off, so mail collected by them is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page." xml:space="preserve">
     <value>{0} comptes de collecte POP3 externes ont l'antivirus désactivé, si bien que le courrier collecté par ceux-ci est livré sans analyse quel que soit le réglage ici. L'interrupteur est sur le compte de collecte, pas sur cette page.</value>
+  </data>
+  <data name="{0} external accounts" xml:space="preserve">
+    <value>{0} comptes externes</value>
   </data>
   <data name="{0} has been moved to {1}." xml:space="preserve">
     <value>{0} a été déplacé vers {1}.</value>
@@ -14612,14 +14672,23 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   <data name="{0} is {1} again." xml:space="preserve">
     <value>{0} vaut de nouveau {1}.</value>
   </data>
+  <data name="{0} items" xml:space="preserve">
+    <value>{0} éléments</value>
+  </data>
   <data name="{0} items cannot be checked from here" xml:space="preserve">
     <value>{0} éléments ne peuvent pas être vérifiés d'ici</value>
   </data>
   <data name="{0} items cannot be checked from here." xml:space="preserve">
     <value>{0} éléments ne peuvent pas être vérifiés d'ici.</value>
   </data>
+  <data name="{0} keys" xml:space="preserve">
+    <value>{0} clés</value>
+  </data>
   <data name="{0} latest {1}" xml:space="preserve">
     <value>{0} : dernier {1}</value>
+  </data>
+  <data name="{0} list entries" xml:space="preserve">
+    <value>{0} entrées de liste</value>
   </data>
   <data name="{0} listeners are configured for TLS but cannot serve it, so those ports are not listening at all." xml:space="preserve">
     <value>{0} écouteurs sont configurés pour TLS sans pouvoir le servir, si bien que ces ports n'écoutent pas du tout.</value>
@@ -14711,11 +14780,17 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   <data name="{0} records beginning &quot;v=spf1&quot; exist at {1}. RFC 7208 makes that a permanent SPF error at every receiver - worse than no record. Merge them into one." xml:space="preserve">
     <value>{0} enregistrements commençant par « v=spf1 » existent à {1}. La RFC 7208 en fait une erreur SPF permanente chez chaque destinataire - pire que pas d'enregistrement. Fusionnez-les en un seul.</value>
   </data>
+  <data name="{0} remote domain policies" xml:space="preserve">
+    <value>{0} règles de domaine distant</value>
+  </data>
   <data name="{0} row(s) need reading before you apply - a skipped entry is a mailbox somebody expects and will not get, and a disabled one is a mailbox being taken away." xml:space="preserve">
     <value>{0} ligne(s) sont à lire avant d'appliquer - une entrée ignorée est une boîte que quelqu'un attend et n'aura pas, et une entrée désactivée est une boîte qu'on retire.</value>
   </data>
   <data name="{0} rule(s), evaluated top to bottom." xml:space="preserve">
     <value>{0} règle(s), évaluées de haut en bas.</value>
+  </data>
+  <data name="{0} rules" xml:space="preserve">
+    <value>{0} règles</value>
   </data>
   <data name="{0} samples copied to the clipboard." xml:space="preserve">
     <value>{0} échantillons copiés dans le presse-papiers.</value>
@@ -14734,6 +14809,12 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   </data>
   <data name="{0} scores {1} on its own, which reaches the {2} at which the server stops testing - so {3} will not run for a message it fails, and will not appear in the log." xml:space="preserve">
     <value>{0} obtient à lui seul un score de {1}, ce qui atteint le {2} auquel le serveur arrête de tester - {3} ne s'exécutera donc pas pour un message qui y échoue, et n'apparaîtra pas dans le journal.</value>
+  </data>
+  <data name="{0} security groups" xml:space="preserve">
+    <value>{0} groupes de sécurité</value>
+  </data>
+  <data name="{0} server messages" xml:space="preserve">
+    <value>{0} messages du serveur</value>
   </data>
   <data name="{0} setting(s) could not be read — {1}" xml:space="preserve">
     <value>{0} réglage(s) n'ont pas pu être lus — {1}</value>
@@ -14779,6 +14860,9 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   </data>
   <data name="{0} was removed: {1} mailbox(es), {2} distribution list(s), {3} rule(s) and {4} message(s) went with it." xml:space="preserve">
     <value>{0} a été supprimé : {1} boîtes, {2} listes de diffusion, {3} règles et {4} messages sont partis avec lui.</value>
+  </data>
+  <data name="{0} white-list entries" xml:space="preserve">
+    <value>{0} entrées de liste blanche</value>
   </data>
   <data name="{0} with full authority" xml:space="preserve">
     <value>{0} avec pleine autorité</value>

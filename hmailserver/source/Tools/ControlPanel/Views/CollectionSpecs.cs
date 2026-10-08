@@ -49,6 +49,8 @@ namespace hMailServer.ControlPanel.Views
          Title = L("SURBL servers"),
          Subtitle = L("Spam URI Realtime Block Lists. Messages whose body links resolve on these hosts gain spam score."),
          ItemNoun = L("SURBL server"),
+         CountOne = N("1 SURBL server"),
+         CountMany = N("{0} SURBL servers"),
          GetCollection = () => AntiSpam.SURBLServers,
          TickBoxesLast = true,
          Fields =
@@ -71,6 +73,8 @@ namespace hMailServer.ControlPanel.Views
          Title = L("DNS blacklists (DNSBL)"),
          Subtitle = L("Real-time blackhole lists checked against the connecting IP address."),
          ItemNoun = L("blacklist"),
+         CountOne = N("1 blacklist"),
+         CountMany = N("{0} blacklists"),
          GetCollection = () => AntiSpam.DNSBlackLists,
          TickBoxesLast = true,
          Fields =
@@ -92,6 +96,8 @@ namespace hMailServer.ControlPanel.Views
          Title = L("Anti-spam white list"),
          Subtitle = L("Senders or IP ranges that bypass spam protection entirely."),
          ItemNoun = L("white-list entry"),
+         CountOne = N("1 white-list entry"),
+         CountMany = N("{0} white-list entries"),
          GetCollection = () => AntiSpam.WhiteListAddresses,
          Fields =
          {
@@ -107,6 +113,8 @@ namespace hMailServer.ControlPanel.Views
          Title = L("Blocked senders"),
          Subtitle = L("Envelope senders refused outright, or scored. An entry with an @ is one exact address; without one it is a whole domain including its subdomains. The default score of 100 crosses the delete threshold and refuses the message during the SMTP conversation. This matches the address the sender CLAIMS, so it stops a correspondent who keeps using one address - it is not an anti-spoofing tool, and stops nothing that rotates addresses."),
          ItemNoun = L("blocked sender"),
+         CountOne = N("1 blocked sender"),
+         CountMany = N("{0} blocked senders"),
          GetCollection = () => AntiSpam.BlockedSenders,
          Fields =
          {
@@ -128,6 +136,8 @@ namespace hMailServer.ControlPanel.Views
          Title = L("Allow and block list"),
          Subtitle = L("Addresses and whole domains that every account wants, or does not. An allowed sender's mail skips the spam verdict; a blocked sender's is held in the quarantine where that is on, and marked as spam where it is not - never deleted. An account's own list is consulted first and its domain's next, so this list only decides for a recipient whose own lists say nothing. To refuse a sender for everyone during the SMTP conversation, whatever anybody's own list says, use Blocked senders."),
          ItemNoun = L("list entry"),
+         CountOne = N("1 list entry"),
+         CountMany = N("{0} list entries"),
          GetCollection = () => AntiSpam.SenderList,
          Fields = SenderListFields(260)
       });
@@ -154,6 +164,8 @@ namespace hMailServer.ControlPanel.Views
          Title = L("Greylisting white list"),
          Subtitle = L("IP addresses exempt from greylisting delays."),
          ItemNoun = L("IP address"),
+         CountOne = N("1 IP address"),
+         CountMany = N("{0} IP addresses"),
          GetCollection = () => AntiSpam.GreyListingWhiteAddresses,
          Fields =
          {
@@ -185,6 +197,8 @@ namespace hMailServer.ControlPanel.Views
          Title = L("Greylisting bypass list"),
          Subtitle = L("Envelope domains and HELO suffixes let past greylisting when the message carries the authentication results the entry requires - SPF, DKIM, DMARC, any combination. A domain matched exactly, or a suffix with a leading dot such as .mail.example.com covering that name and every name under it. SPF is known at RCPT TO, so an entry requiring SPF alone decides there; DKIM and DMARC exist only after the message is in, so an entry requiring either lets the recipient through for now and the message is greylisted after DATA if the result is not a pass - and only while DKIM verification or DMARC is switched on, since otherwise the entry can never be satisfied. Unlike Bypass on SPF success, this is a privilege you grant to a named domain rather than a property of every SPF pass in the world."),
          ItemNoun = L("bypass entry"),
+         CountOne = N("1 bypass entry"),
+         CountMany = N("{0} bypass entries"),
          GetCollection = () => AntiSpam.GreyListingBypassEntries,
          Fields =
          {
@@ -205,6 +219,8 @@ namespace hMailServer.ControlPanel.Views
          Title = L("Blocked attachments"),
          Subtitle = L("File-name wildcards that are stripped from incoming messages (requires attachment blocking on the Anti-virus page)."),
          ItemNoun = L("rule"),
+         CountOne = N("1 rule"),
+         CountMany = N("{0} rules"),
          GetCollection = () => Settings.AntiVirus.BlockedAttachments,
          Fields =
          {
@@ -225,6 +241,8 @@ namespace hMailServer.ControlPanel.Views
          Title = L("Groups"),
          Subtitle = L("Security groups used to grant shared-folder (IMAP ACL) permissions to several accounts at once. A group's permissions cover exactly the accounts on its member list - select a group and choose Members to edit that list."),
          ItemNoun = L("security group"),
+         CountOne = N("1 security group"),
+         CountMany = N("{0} security groups"),
          GetCollection = () => Settings.Groups,
          Fields =
          {
@@ -290,6 +308,8 @@ namespace hMailServer.ControlPanel.Views
          Title = L("Remote domains"),
          Subtitle = L("What this server does when it talks to a named remote domain: the TLS it demands of the connection in each direction, the largest message and the number of connections it will attempt, whether an automatic reply or a forward may go there, and whether a recipient is verified with the domain's own server before mail for it is accepted. A name may carry a wildcard - the most specific active entry governs a delivery. A TLS requirement here is added to whatever the domain publishes for itself: an MTA-STS or DANE policy is never weakened by an entry on this page. Recipient verification is for a domain this server is a backup MX for, and for nothing else."),
          ItemNoun = L("remote domain policy"),
+         CountOne = N("1 remote domain policy"),
+         CountMany = N("{0} remote domain policies"),
          GetCollection = () => Settings.RemoteDomainPolicies,
          Fields =
          {
@@ -333,6 +353,8 @@ namespace hMailServer.ControlPanel.Views
          Title = L("Server messages"),
          Subtitle = L("The text templates the server returns to clients (greetings, bounce and error messages). These are a fixed set you can edit."),
          ItemNoun = L("server message"),
+         CountOne = N("1 server message"),
+         CountMany = N("{0} server messages"),
          CanAdd = false,
          CanDelete = false,
          GetCollection = () => Settings.ServerMessages,
@@ -369,6 +391,8 @@ namespace hMailServer.ControlPanel.Views
          Title = L("Allow and block list"),
          Subtitle = F("Addresses and whole domains that the accounts of {0} want, or do not. Consulted after an account's own list and before the server's.", domainName),
          ItemNoun = L("list entry"),
+         CountOne = N("1 list entry"),
+         CountMany = N("{0} list entries"),
          GetCollection = () =>
          {
             dynamic domain = OpenDomain(domainName);
@@ -391,6 +415,8 @@ namespace hMailServer.ControlPanel.Views
          Title = L("Domain aliases"),
          Subtitle = F("Alternative domain names treated as this domain. Mail sent to user@alias is delivered to user@{0}.", domainName),
          ItemNoun = L("alias"),
+         CountOne = N("1 alias"),
+         CountMany = N("{0} aliases"),
          GetCollection = () =>
          {
             dynamic domain = OpenDomain(domainName);
@@ -411,6 +437,8 @@ namespace hMailServer.ControlPanel.Views
          Title = L("External accounts"),
          Subtitle = L("POP3 or IMAP mailboxes hMailServer collects mail from on behalf of this account. Connection security and port go together: SSL/TLS on 995 (POP3) or 993 (IMAP), STARTTLS on 110 or 143."),
          ItemNoun = L("external account"),
+         CountOne = N("1 external account"),
+         CountMany = N("{0} external accounts"),
          GetCollection = () =>
          {
             dynamic account = OpenAccount(domainName, address);
@@ -484,6 +512,8 @@ namespace hMailServer.ControlPanel.Views
          Title = L("Rules"),
          Subtitle = L("Per-account rules. You can add, rename, enable/disable and delete rules here; matching criteria and actions are managed on the server."),
          ItemNoun = L("rule"),
+         CountOne = N("1 rule"),
+         CountMany = N("{0} rules"),
          GetCollection = () =>
          {
             dynamic account = OpenAccount(domainName, address);

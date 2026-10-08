@@ -305,17 +305,35 @@
   <data name="1 DNS record is still being checked in the background; this summary will update." xml:space="preserve">
     <value>仍有 1 条 DNS 记录正在后台检查；此摘要会自动更新。</value>
   </data>
+  <data name="1 IP address" xml:space="preserve">
+    <value>1 个 IP 地址</value>
+  </data>
+  <data name="1 SURBL server" xml:space="preserve">
+    <value>1 个 SURBL 服务器</value>
+  </data>
   <data name="1 account is a member." xml:space="preserve">
     <value>有 1 个账户是成员。</value>
   </data>
   <data name="1 address listed." xml:space="preserve">
     <value>列表中有 1 个地址。</value>
   </data>
+  <data name="1 alias" xml:space="preserve">
+    <value>1 个别名</value>
+  </data>
   <data name="1 app password." xml:space="preserve">
     <value>1 个应用密码。</value>
   </data>
+  <data name="1 blacklist" xml:space="preserve">
+    <value>1 个黑名单</value>
+  </data>
+  <data name="1 blocked sender" xml:space="preserve">
+    <value>1 个被拦截的发件人</value>
+  </data>
   <data name="1 by default." xml:space="preserve">
     <value>默认 1。</value>
+  </data>
+  <data name="1 bypass entry" xml:space="preserve">
+    <value>1 条绕过条目</value>
   </data>
   <data name="1 day" xml:space="preserve">
     <value>1 天</value>
@@ -323,14 +341,26 @@
   <data name="1 event." xml:space="preserve">
     <value>1 个事件。</value>
   </data>
+  <data name="1 external account" xml:space="preserve">
+    <value>1 个外部账户</value>
+  </data>
   <data name="1 hour ago" xml:space="preserve">
     <value>1 小时前</value>
+  </data>
+  <data name="1 item" xml:space="preserve">
+    <value>1 项</value>
   </data>
   <data name="1 item cannot be checked from here" xml:space="preserve">
     <value>有 1 项无法从此处检查</value>
   </data>
   <data name="1 item cannot be checked from here." xml:space="preserve">
     <value>有 1 项无法从此处检查。</value>
+  </data>
+  <data name="1 key" xml:space="preserve">
+    <value>1 个密钥</value>
+  </data>
+  <data name="1 list entry" xml:space="preserve">
+    <value>1 条名单条目</value>
   </data>
   <data name="1 message" xml:space="preserve">
     <value>1 封邮件</value>
@@ -350,14 +380,29 @@
   <data name="1 refuses a password that has appeared in the corpus even once." xml:space="preserve">
     <value>设为 1 时，只要密码在语料库中出现过一次就会被拒绝。</value>
   </data>
+  <data name="1 remote domain policy" xml:space="preserve">
+    <value>1 条远程域策略</value>
+  </data>
+  <data name="1 rule" xml:space="preserve">
+    <value>1 条规则</value>
+  </data>
   <data name="1 sample copied to the clipboard." xml:space="preserve">
     <value>已将 1 个样本复制到剪贴板。</value>
   </data>
   <data name="1 sample." xml:space="preserve">
     <value>1 个样本。</value>
   </data>
+  <data name="1 security group" xml:space="preserve">
+    <value>1 个安全组</value>
+  </data>
+  <data name="1 server message" xml:space="preserve">
+    <value>1 条服务器消息</value>
+  </data>
   <data name="1 thing needs attention" xml:space="preserve">
     <value>有 1 项需要处理</value>
+  </data>
+  <data name="1 white-list entry" xml:space="preserve">
+    <value>1 条白名单条目</value>
   </data>
   <data name="1.  Scan this QR code with an authenticator app (Microsoft Authenticator, Google Authenticator, Authy, 1Password…)." xml:space="preserve">
     <value>1.  用身份验证器应用（Microsoft Authenticator、Google Authenticator、Authy、1Password…）扫描此二维码。</value>
@@ -13868,12 +13913,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="keep a copy of every message" xml:space="preserve">
     <value>保留每封邮件的副本</value>
   </data>
-  <data name="key" xml:space="preserve">
-    <value>密钥</value>
-  </data>
-  <data name="keys" xml:space="preserve">
-    <value>密钥</value>
-  </data>
   <data name="last hour" xml:space="preserve">
     <value>最近 1 小时</value>
   </data>
@@ -14423,6 +14462,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="{0} DNS records are still being checked in the background; this summary will update." xml:space="preserve">
     <value>还有 {0} 条 DNS 记录正在后台检查；此摘要将会更新。</value>
   </data>
+  <data name="{0} IP addresses" xml:space="preserve">
+    <value>{0} 个 IP 地址</value>
+  </data>
   <data name="{0} If a virus is found, the attachments are stripped and the message is still delivered." xml:space="preserve">
     <value>{0}如果发现病毒，附件被剥除，邮件仍然投递。</value>
   </data>
@@ -14434,6 +14476,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="{0} KB ({1} MB)" xml:space="preserve">
     <value>{0} KB（{1} MB）</value>
+  </data>
+  <data name="{0} SURBL servers" xml:space="preserve">
+    <value>{0} 个 SURBL 服务器</value>
   </data>
   <data name="{0} TXT record(s) exist at {1}, but none begins &quot;v=DMARC1&quot;, so receivers - and this server's own DMARC check - see no policy." xml:space="preserve">
     <value>在 {1} 存在 {0} 条 TXT 记录，但没有一条以 "v=DMARC1" 开头，因此接收方 - 以及本服务器自己的 DMARC 检查 - 看不到任何策略。</value>
@@ -14465,6 +14510,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="{0} addresses listed." xml:space="preserve">
     <value>列表中有 {0} 个地址。</value>
   </data>
+  <data name="{0} aliases" xml:space="preserve">
+    <value>{0} 个别名</value>
+  </data>
   <data name="{0} and {1}" xml:space="preserve">
     <value>{0} 和 {1}</value>
   </data>
@@ -14480,8 +14528,17 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="{0} app passwords." xml:space="preserve">
     <value>{0} 个应用密码。</value>
   </data>
+  <data name="{0} blacklists" xml:space="preserve">
+    <value>{0} 个黑名单</value>
+  </data>
+  <data name="{0} blocked senders" xml:space="preserve">
+    <value>{0} 个被拦截的发件人</value>
+  </data>
   <data name="{0} blocked-attachment patterns are configured but attachment blocking is switched off, so none of them is applied." xml:space="preserve">
     <value>已配置 {0} 条附件拦截模式，但附件拦截已关闭，因此其中没有一条会被应用。</value>
+  </data>
+  <data name="{0} bypass entries" xml:space="preserve">
+    <value>{0} 条绕过条目</value>
   </data>
   <data name="{0} case(s). Select one for its lines on the audit trail." xml:space="preserve">
     <value>{0} 个案件。选择一个即可查看其在审计记录中的行。</value>
@@ -14542,6 +14599,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="{0} external POP3 fetch accounts have anti-virus turned off, so mail collected by them is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page." xml:space="preserve">
     <value>有 {0} 个外部 POP3 收取账户关闭了反病毒，因此由它们收取的邮件会以未扫描的状态投递，无论此处如何设置。该开关在收取账户上，而不在本页上。</value>
+  </data>
+  <data name="{0} external accounts" xml:space="preserve">
+    <value>{0} 个外部账户</value>
   </data>
   <data name="{0} has been moved to {1}." xml:space="preserve">
     <value>{0} 已迁移到 {1}。</value>
@@ -14612,14 +14672,23 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="{0} is {1} again." xml:space="preserve">
     <value>{0} 又是 {1} 了。</value>
   </data>
+  <data name="{0} items" xml:space="preserve">
+    <value>{0} 项</value>
+  </data>
   <data name="{0} items cannot be checked from here" xml:space="preserve">
     <value>有 {0} 项无法从此处检查</value>
   </data>
   <data name="{0} items cannot be checked from here." xml:space="preserve">
     <value>有 {0} 项无法从此处检查。</value>
   </data>
+  <data name="{0} keys" xml:space="preserve">
+    <value>{0} 个密钥</value>
+  </data>
   <data name="{0} latest {1}" xml:space="preserve">
     <value>{0}：最新 {1}</value>
+  </data>
+  <data name="{0} list entries" xml:space="preserve">
+    <value>{0} 条名单条目</value>
   </data>
   <data name="{0} listeners are configured for TLS but cannot serve it, so those ports are not listening at all." xml:space="preserve">
     <value>有 {0} 个监听器配置为使用 TLS，却无法提供 TLS，因此那些端口根本没有在监听。</value>
@@ -14711,11 +14780,17 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="{0} records beginning &quot;v=spf1&quot; exist at {1}. RFC 7208 makes that a permanent SPF error at every receiver - worse than no record. Merge them into one." xml:space="preserve">
     <value>在 {1} 存在 {0} 条以 "v=spf1" 开头的记录。RFC 7208 规定这在每一个接收方那里都是永久性 SPF 错误 - 比没有记录还糟。请把它们合并成一条。</value>
   </data>
+  <data name="{0} remote domain policies" xml:space="preserve">
+    <value>{0} 条远程域策略</value>
+  </data>
   <data name="{0} row(s) need reading before you apply - a skipped entry is a mailbox somebody expects and will not get, and a disabled one is a mailbox being taken away." xml:space="preserve">
     <value>在您应用之前有 {0} 行需要先读一读 - 被跳过的条目意味着有人期待的邮箱不会出现，而被禁用的条目意味着一个邮箱正在被收回。</value>
   </data>
   <data name="{0} rule(s), evaluated top to bottom." xml:space="preserve">
     <value>{0} 条规则，自上而下依次求值。</value>
+  </data>
+  <data name="{0} rules" xml:space="preserve">
+    <value>{0} 条规则</value>
   </data>
   <data name="{0} samples copied to the clipboard." xml:space="preserve">
     <value>已把 {0} 个样本复制到剪贴板。</value>
@@ -14734,6 +14809,12 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="{0} scores {1} on its own, which reaches the {2} at which the server stops testing - so {3} will not run for a message it fails, and will not appear in the log." xml:space="preserve">
     <value>{0} 单独就得 {1} 分，达到了服务器停止继续检测的{2}，因此对于它判定失败的邮件，{3} 不会运行，也不会出现在日志中。</value>
+  </data>
+  <data name="{0} security groups" xml:space="preserve">
+    <value>{0} 个安全组</value>
+  </data>
+  <data name="{0} server messages" xml:space="preserve">
+    <value>{0} 条服务器消息</value>
   </data>
   <data name="{0} setting(s) could not be read — {1}" xml:space="preserve">
     <value>有 {0} 项设置无法读取 — {1}</value>
@@ -14779,6 +14860,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="{0} was removed: {1} mailbox(es), {2} distribution list(s), {3} rule(s) and {4} message(s) went with it." xml:space="preserve">
     <value>已移除 {0}：{1} 个邮箱、{2} 个通讯组列表、{3} 条规则和 {4} 封邮件随之移除。</value>
+  </data>
+  <data name="{0} white-list entries" xml:space="preserve">
+    <value>{0} 条白名单条目</value>
   </data>
   <data name="{0} with full authority" xml:space="preserve">
     <value>{0} 具有完全权限</value>

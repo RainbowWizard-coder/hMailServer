@@ -305,17 +305,35 @@ Bu zayıf parola yine de kaydedilsin mi?</value>
   <data name="1 DNS record is still being checked in the background; this summary will update." xml:space="preserve">
     <value>1 DNS kaydı hâlâ arka planda denetleniyor; bu özet güncellenecek.</value>
   </data>
+  <data name="1 IP address" xml:space="preserve">
+    <value>1 IP adresi</value>
+  </data>
+  <data name="1 SURBL server" xml:space="preserve">
+    <value>1 SURBL sunucusu</value>
+  </data>
   <data name="1 account is a member." xml:space="preserve">
     <value>1 hesap üyedir.</value>
   </data>
   <data name="1 address listed." xml:space="preserve">
     <value>Listede 1 adres var.</value>
   </data>
+  <data name="1 alias" xml:space="preserve">
+    <value>1 diğer ad</value>
+  </data>
   <data name="1 app password." xml:space="preserve">
     <value>1 uygulama parolası.</value>
   </data>
+  <data name="1 blacklist" xml:space="preserve">
+    <value>1 kara liste</value>
+  </data>
+  <data name="1 blocked sender" xml:space="preserve">
+    <value>1 engellenen gönderen</value>
+  </data>
   <data name="1 by default." xml:space="preserve">
     <value>Varsayılan 1.</value>
+  </data>
+  <data name="1 bypass entry" xml:space="preserve">
+    <value>1 atlama kaydı</value>
   </data>
   <data name="1 day" xml:space="preserve">
     <value>1 gün</value>
@@ -323,14 +341,26 @@ Bu zayıf parola yine de kaydedilsin mi?</value>
   <data name="1 event." xml:space="preserve">
     <value>1 olay.</value>
   </data>
+  <data name="1 external account" xml:space="preserve">
+    <value>1 dış hesap</value>
+  </data>
   <data name="1 hour ago" xml:space="preserve">
     <value>1 saat önce</value>
+  </data>
+  <data name="1 item" xml:space="preserve">
+    <value>1 öğe</value>
   </data>
   <data name="1 item cannot be checked from here" xml:space="preserve">
     <value>1 öğe buradan denetlenemiyor</value>
   </data>
   <data name="1 item cannot be checked from here." xml:space="preserve">
     <value>1 öğe buradan denetlenemiyor.</value>
+  </data>
+  <data name="1 key" xml:space="preserve">
+    <value>1 anahtar</value>
+  </data>
+  <data name="1 list entry" xml:space="preserve">
+    <value>1 liste kaydı</value>
   </data>
   <data name="1 message" xml:space="preserve">
     <value>1 ileti</value>
@@ -350,14 +380,29 @@ Bu zayıf parola yine de kaydedilsin mi?</value>
   <data name="1 refuses a password that has appeared in the corpus even once." xml:space="preserve">
     <value>1, derlemde tek bir kez bile görülmüş bir parolayı reddeder.</value>
   </data>
+  <data name="1 remote domain policy" xml:space="preserve">
+    <value>1 uzak alan adı ilkesi</value>
+  </data>
+  <data name="1 rule" xml:space="preserve">
+    <value>1 kural</value>
+  </data>
   <data name="1 sample copied to the clipboard." xml:space="preserve">
     <value>1 örnek panoya kopyalandı.</value>
   </data>
   <data name="1 sample." xml:space="preserve">
     <value>1 örnek.</value>
   </data>
+  <data name="1 security group" xml:space="preserve">
+    <value>1 güvenlik grubu</value>
+  </data>
+  <data name="1 server message" xml:space="preserve">
+    <value>1 sunucu iletisi</value>
+  </data>
   <data name="1 thing needs attention" xml:space="preserve">
     <value>1 öğe dikkat gerektiriyor</value>
+  </data>
+  <data name="1 white-list entry" xml:space="preserve">
+    <value>1 beyaz liste girdisi</value>
   </data>
   <data name="1.  Scan this QR code with an authenticator app (Microsoft Authenticator, Google Authenticator, Authy, 1Password…)." xml:space="preserve">
     <value>1.  Bu QR kodunu bir kimlik doğrulayıcı uygulamayla (Microsoft Authenticator, Google Authenticator, Authy, 1Password…) tarayın.</value>
@@ -13868,12 +13913,6 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="keep a copy of every message" xml:space="preserve">
     <value>her iletinin bir kopyasını sakla</value>
   </data>
-  <data name="key" xml:space="preserve">
-    <value>anahtar</value>
-  </data>
-  <data name="keys" xml:space="preserve">
-    <value>anahtar</value>
-  </data>
   <data name="last hour" xml:space="preserve">
     <value>son saat</value>
   </data>
@@ -14423,6 +14462,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="{0} DNS records are still being checked in the background; this summary will update." xml:space="preserve">
     <value>{0} DNS kaydı hâlâ arka planda denetleniyor; bu özet güncellenecek.</value>
   </data>
+  <data name="{0} IP addresses" xml:space="preserve">
+    <value>{0} IP adresi</value>
+  </data>
   <data name="{0} If a virus is found, the attachments are stripped and the message is still delivered." xml:space="preserve">
     <value>{0} Virüs bulunursa ekler çıkarılır ve ileti yine teslim edilir.</value>
   </data>
@@ -14434,6 +14476,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="{0} KB ({1} MB)" xml:space="preserve">
     <value>{0} KB ({1} MB)</value>
+  </data>
+  <data name="{0} SURBL servers" xml:space="preserve">
+    <value>{0} SURBL sunucusu</value>
   </data>
   <data name="{0} TXT record(s) exist at {1}, but none begins &quot;v=DMARC1&quot;, so receivers - and this server's own DMARC check - see no policy." xml:space="preserve">
     <value>{1} konumunda {0} TXT kaydı var, ama hiçbiri "v=DMARC1" ile başlamıyor; bu yüzden alıcılar - ve bu sunucunun kendi DMARC denetimi - ilke görmüyor.</value>
@@ -14465,6 +14510,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="{0} addresses listed." xml:space="preserve">
     <value>Listede {0} adres var.</value>
   </data>
+  <data name="{0} aliases" xml:space="preserve">
+    <value>{0} diğer ad</value>
+  </data>
   <data name="{0} and {1}" xml:space="preserve">
     <value>{0} ve {1}</value>
   </data>
@@ -14480,8 +14528,17 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="{0} app passwords." xml:space="preserve">
     <value>{0} uygulama parolası.</value>
   </data>
+  <data name="{0} blacklists" xml:space="preserve">
+    <value>{0} kara liste</value>
+  </data>
+  <data name="{0} blocked senders" xml:space="preserve">
+    <value>{0} engellenen gönderen</value>
+  </data>
   <data name="{0} blocked-attachment patterns are configured but attachment blocking is switched off, so none of them is applied." xml:space="preserve">
     <value>{0} engellenen ek deseni yapılandırılmış ama ek engelleme kapalı; bu yüzden hiçbiri uygulanmıyor.</value>
+  </data>
+  <data name="{0} bypass entries" xml:space="preserve">
+    <value>{0} atlama kaydı</value>
   </data>
   <data name="{0} case(s). Select one for its lines on the audit trail." xml:space="preserve">
     <value>{0} dava. Denetim izindeki satırlarını görmek için birini seçin.</value>
@@ -14542,6 +14599,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="{0} external POP3 fetch accounts have anti-virus turned off, so mail collected by them is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page." xml:space="preserve">
     <value>{0} dış POP3 toplama hesabında virüsten koruma kapalı; bu yüzden onların topladığı posta, burada ne ayarlanırsa ayarlansın taranmadan teslim ediliyor. Anahtar bu sayfada değil, toplama hesabının üzerindedir.</value>
+  </data>
+  <data name="{0} external accounts" xml:space="preserve">
+    <value>{0} dış hesap</value>
   </data>
   <data name="{0} has been moved to {1}." xml:space="preserve">
     <value>{0} posta kutusu {1} adresine taşındı.</value>
@@ -14612,14 +14672,23 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="{0} is {1} again." xml:space="preserve">
     <value>{0} yeniden {1}.</value>
   </data>
+  <data name="{0} items" xml:space="preserve">
+    <value>{0} öğe</value>
+  </data>
   <data name="{0} items cannot be checked from here" xml:space="preserve">
     <value>{0} öğe buradan denetlenemiyor</value>
   </data>
   <data name="{0} items cannot be checked from here." xml:space="preserve">
     <value>{0} öğe buradan denetlenemiyor.</value>
   </data>
+  <data name="{0} keys" xml:space="preserve">
+    <value>{0} anahtar</value>
+  </data>
   <data name="{0} latest {1}" xml:space="preserve">
     <value>{0}: son {1}</value>
+  </data>
+  <data name="{0} list entries" xml:space="preserve">
+    <value>{0} liste kaydı</value>
   </data>
   <data name="{0} listeners are configured for TLS but cannot serve it, so those ports are not listening at all." xml:space="preserve">
     <value>{0} dinleyici TLS için yapılandırılmış ama bunu sunamıyor; bu yüzden o portlar hiç dinlemiyor.</value>
@@ -14711,11 +14780,17 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="{0} records beginning &quot;v=spf1&quot; exist at {1}. RFC 7208 makes that a permanent SPF error at every receiver - worse than no record. Merge them into one." xml:space="preserve">
     <value>{1} konumunda "v=spf1" ile başlayan {0} kayıt var. RFC 7208 bunu her alıcıda kalıcı bir SPF hatası yapar - hiç kayıt olmamasından daha kötü. Bunları tek bir kayıtta birleştirin.</value>
   </data>
+  <data name="{0} remote domain policies" xml:space="preserve">
+    <value>{0} uzak alan adı ilkesi</value>
+  </data>
   <data name="{0} row(s) need reading before you apply - a skipped entry is a mailbox somebody expects and will not get, and a disabled one is a mailbox being taken away." xml:space="preserve">
     <value>Uygulamadan önce {0} satırın okunması gerekiyor - atlanan bir girdi, birinin beklediği ve alamayacağı bir posta kutusudur; devre dışı bırakılan biri ise elinden alınan bir posta kutusudur.</value>
   </data>
   <data name="{0} rule(s), evaluated top to bottom." xml:space="preserve">
     <value>{0} kural, yukarıdan aşağıya değerlendirilir.</value>
+  </data>
+  <data name="{0} rules" xml:space="preserve">
+    <value>{0} kural</value>
   </data>
   <data name="{0} samples copied to the clipboard." xml:space="preserve">
     <value>{0} örnek panoya kopyalandı.</value>
@@ -14734,6 +14809,12 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="{0} scores {1} on its own, which reaches the {2} at which the server stops testing - so {3} will not run for a message it fails, and will not appear in the log." xml:space="preserve">
     <value>{0} tek başına {1} puan veriyor; bu, sunucunun sınamayı durdurduğu {2} değerine ulaşıyor - bu yüzden {3}, onda başarısız olan bir ileti için çalışmayacak ve günlükte görünmeyecek.</value>
+  </data>
+  <data name="{0} security groups" xml:space="preserve">
+    <value>{0} güvenlik grubu</value>
+  </data>
+  <data name="{0} server messages" xml:space="preserve">
+    <value>{0} sunucu iletisi</value>
   </data>
   <data name="{0} setting(s) could not be read — {1}" xml:space="preserve">
     <value>{0} ayar okunamadı — {1}</value>
@@ -14779,6 +14860,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="{0} was removed: {1} mailbox(es), {2} distribution list(s), {3} rule(s) and {4} message(s) went with it." xml:space="preserve">
     <value>{0} kaldırıldı: {1} posta kutusu, {2} dağıtım listesi, {3} kural ve {4} ileti onunla birlikte gitti.</value>
+  </data>
+  <data name="{0} white-list entries" xml:space="preserve">
+    <value>{0} beyaz liste girdisi</value>
   </data>
   <data name="{0} with full authority" xml:space="preserve">
     <value>{0} tam yetkili</value>

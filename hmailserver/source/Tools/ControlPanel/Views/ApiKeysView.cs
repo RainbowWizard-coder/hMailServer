@@ -301,7 +301,7 @@ namespace hMailServer.ControlPanel.Views
             int full = keys.FindAll(k => !k.ReadOnly && !k.IsExpired).Count;
             int unusable = keys.FindAll(k => k.Unusable).Count;
 
-            var parts = new List<string> { Plural_(keys.Count, L("key"), L("keys")) };
+            var parts = new List<string> { keys.Count == 1 ? L("1 key") : F("{0} keys", keys.Count) };
             if (full > 0)
                parts.Add(F("{0} with full authority", full));
             if (expired > 0)
@@ -317,9 +317,6 @@ namespace hMailServer.ControlPanel.Views
 
          StatusText.Show(empty_, null, keys.Count, null, L("No keys yet."));
       }
-
-      private static string Plural_(int count, string one, string many)
-         => count + " " + (count == 1 ? one : many);
 
       private FrameworkElement BuildKeyRow_(ApiKeyRecord key)
       {

@@ -305,17 +305,35 @@ Dit zwakke wachtwoord toch opslaan?</value>
   <data name="1 DNS record is still being checked in the background; this summary will update." xml:space="preserve">
     <value>1 DNS-record wordt nog op de achtergrond gecontroleerd; deze samenvatting wordt bijgewerkt.</value>
   </data>
+  <data name="1 IP address" xml:space="preserve">
+    <value>1 IP-adres</value>
+  </data>
+  <data name="1 SURBL server" xml:space="preserve">
+    <value>1 SURBL-server</value>
+  </data>
   <data name="1 account is a member." xml:space="preserve">
     <value>1 account is lid.</value>
   </data>
   <data name="1 address listed." xml:space="preserve">
     <value>1 adres op de lijst.</value>
   </data>
+  <data name="1 alias" xml:space="preserve">
+    <value>1 alias</value>
+  </data>
   <data name="1 app password." xml:space="preserve">
     <value>1 app-wachtwoord.</value>
   </data>
+  <data name="1 blacklist" xml:space="preserve">
+    <value>1 blokkadelijst</value>
+  </data>
+  <data name="1 blocked sender" xml:space="preserve">
+    <value>1 geblokkeerde afzender</value>
+  </data>
   <data name="1 by default." xml:space="preserve">
     <value>Standaard 1.</value>
+  </data>
+  <data name="1 bypass entry" xml:space="preserve">
+    <value>1 omzeiling</value>
   </data>
   <data name="1 day" xml:space="preserve">
     <value>1 dag</value>
@@ -323,14 +341,26 @@ Dit zwakke wachtwoord toch opslaan?</value>
   <data name="1 event." xml:space="preserve">
     <value>1 gebeurtenis.</value>
   </data>
+  <data name="1 external account" xml:space="preserve">
+    <value>1 extern account</value>
+  </data>
   <data name="1 hour ago" xml:space="preserve">
     <value>1 uur geleden</value>
+  </data>
+  <data name="1 item" xml:space="preserve">
+    <value>1 item</value>
   </data>
   <data name="1 item cannot be checked from here" xml:space="preserve">
     <value>1 item kan vanaf hier niet worden gecontroleerd</value>
   </data>
   <data name="1 item cannot be checked from here." xml:space="preserve">
     <value>1 item kan vanaf hier niet worden gecontroleerd.</value>
+  </data>
+  <data name="1 key" xml:space="preserve">
+    <value>1 sleutel</value>
+  </data>
+  <data name="1 list entry" xml:space="preserve">
+    <value>1 lijstvermelding</value>
   </data>
   <data name="1 message" xml:space="preserve">
     <value>1 bericht</value>
@@ -350,14 +380,29 @@ Dit zwakke wachtwoord toch opslaan?</value>
   <data name="1 refuses a password that has appeared in the corpus even once." xml:space="preserve">
     <value>1 weigert een wachtwoord dat ook maar één keer in de verzameling is voorgekomen.</value>
   </data>
+  <data name="1 remote domain policy" xml:space="preserve">
+    <value>1 regel voor een extern domein</value>
+  </data>
+  <data name="1 rule" xml:space="preserve">
+    <value>1 regel</value>
+  </data>
   <data name="1 sample copied to the clipboard." xml:space="preserve">
     <value>1 meetpunt naar het klembord gekopieerd.</value>
   </data>
   <data name="1 sample." xml:space="preserve">
     <value>1 meetpunt.</value>
   </data>
+  <data name="1 security group" xml:space="preserve">
+    <value>1 beveiligingsgroep</value>
+  </data>
+  <data name="1 server message" xml:space="preserve">
+    <value>1 servermelding</value>
+  </data>
   <data name="1 thing needs attention" xml:space="preserve">
     <value>1 punt vraagt aandacht</value>
+  </data>
+  <data name="1 white-list entry" xml:space="preserve">
+    <value>1 vermelding op de witte lijst</value>
   </data>
   <data name="1.  Scan this QR code with an authenticator app (Microsoft Authenticator, Google Authenticator, Authy, 1Password…)." xml:space="preserve">
     <value>1.  Scan deze QR-code met een authenticator-app (Microsoft Authenticator, Google Authenticator, Authy, 1Password…).</value>
@@ -13868,12 +13913,6 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="keep a copy of every message" xml:space="preserve">
     <value>een kopie van elk bericht bewaren</value>
   </data>
-  <data name="key" xml:space="preserve">
-    <value>sleutel</value>
-  </data>
-  <data name="keys" xml:space="preserve">
-    <value>sleutels</value>
-  </data>
   <data name="last hour" xml:space="preserve">
     <value>laatste uur</value>
   </data>
@@ -14423,6 +14462,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="{0} DNS records are still being checked in the background; this summary will update." xml:space="preserve">
     <value>{0} DNS-records worden nog op de achtergrond gecontroleerd; deze samenvatting wordt bijgewerkt.</value>
   </data>
+  <data name="{0} IP addresses" xml:space="preserve">
+    <value>{0} IP-adressen</value>
+  </data>
   <data name="{0} If a virus is found, the attachments are stripped and the message is still delivered." xml:space="preserve">
     <value>{0} Als er een virus wordt gevonden, worden de bijlagen verwijderd en wordt het bericht alsnog bezorgd.</value>
   </data>
@@ -14434,6 +14476,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="{0} KB ({1} MB)" xml:space="preserve">
     <value>{0} KB ({1} MB)</value>
+  </data>
+  <data name="{0} SURBL servers" xml:space="preserve">
+    <value>{0} SURBL-servers</value>
   </data>
   <data name="{0} TXT record(s) exist at {1}, but none begins &quot;v=DMARC1&quot;, so receivers - and this server's own DMARC check - see no policy." xml:space="preserve">
     <value>Er bestaan {0} TXT-record(s) op {1}, maar geen ervan begint met "v=DMARC1", dus ontvangers - en de eigen DMARC-controle van deze server - zien geen beleid.</value>
@@ -14465,6 +14510,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="{0} addresses listed." xml:space="preserve">
     <value>{0} adressen op de lijst.</value>
   </data>
+  <data name="{0} aliases" xml:space="preserve">
+    <value>{0} aliassen</value>
+  </data>
   <data name="{0} and {1}" xml:space="preserve">
     <value>{0} en {1}</value>
   </data>
@@ -14480,8 +14528,17 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="{0} app passwords." xml:space="preserve">
     <value>{0} app-wachtwoorden.</value>
   </data>
+  <data name="{0} blacklists" xml:space="preserve">
+    <value>{0} blokkadelijsten</value>
+  </data>
+  <data name="{0} blocked senders" xml:space="preserve">
+    <value>{0} geblokkeerde afzenders</value>
+  </data>
   <data name="{0} blocked-attachment patterns are configured but attachment blocking is switched off, so none of them is applied." xml:space="preserve">
     <value>{0} patronen voor geblokkeerde bijlagen zijn geconfigureerd, maar bijlageblokkering staat uit, dus geen ervan wordt toegepast.</value>
+  </data>
+  <data name="{0} bypass entries" xml:space="preserve">
+    <value>{0} omzeilingen</value>
   </data>
   <data name="{0} case(s). Select one for its lines on the audit trail." xml:space="preserve">
     <value>{0} zaak/zaken. Selecteer er een voor de regels in het auditlogboek.</value>
@@ -14542,6 +14599,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="{0} external POP3 fetch accounts have anti-virus turned off, so mail collected by them is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page." xml:space="preserve">
     <value>{0} externe POP3-ophaalaccounts hebben antivirus uitgeschakeld, dus mail die door deze accounts wordt opgehaald, wordt ongescand bezorgd, wat hier ook is ingesteld. De schakelaar staat op het ophaalaccount, niet op deze pagina.</value>
+  </data>
+  <data name="{0} external accounts" xml:space="preserve">
+    <value>{0} externe accounts</value>
   </data>
   <data name="{0} has been moved to {1}." xml:space="preserve">
     <value>{0} is verplaatst naar {1}.</value>
@@ -14612,14 +14672,23 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="{0} is {1} again." xml:space="preserve">
     <value>{0} is weer {1}.</value>
   </data>
+  <data name="{0} items" xml:space="preserve">
+    <value>{0} items</value>
+  </data>
   <data name="{0} items cannot be checked from here" xml:space="preserve">
     <value>{0} items kunnen vanaf hier niet worden gecontroleerd</value>
   </data>
   <data name="{0} items cannot be checked from here." xml:space="preserve">
     <value>{0} items kunnen vanaf hier niet worden gecontroleerd.</value>
   </data>
+  <data name="{0} keys" xml:space="preserve">
+    <value>{0} sleutels</value>
+  </data>
   <data name="{0} latest {1}" xml:space="preserve">
     <value>{0}: laatste {1}</value>
+  </data>
+  <data name="{0} list entries" xml:space="preserve">
+    <value>{0} lijstvermeldingen</value>
   </data>
   <data name="{0} listeners are configured for TLS but cannot serve it, so those ports are not listening at all." xml:space="preserve">
     <value>{0} listeners zijn geconfigureerd voor TLS maar kunnen dat niet serveren, dus die poorten luisteren helemaal niet.</value>
@@ -14711,11 +14780,17 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="{0} records beginning &quot;v=spf1&quot; exist at {1}. RFC 7208 makes that a permanent SPF error at every receiver - worse than no record. Merge them into one." xml:space="preserve">
     <value>Op {1} bestaan {0} records die met "v=spf1" beginnen. RFC 7208 maakt daar bij elke ontvanger een permanente SPF-fout van - erger dan geen record. Voeg ze samen tot één.</value>
   </data>
+  <data name="{0} remote domain policies" xml:space="preserve">
+    <value>{0} regels voor externe domeinen</value>
+  </data>
   <data name="{0} row(s) need reading before you apply - a skipped entry is a mailbox somebody expects and will not get, and a disabled one is a mailbox being taken away." xml:space="preserve">
     <value>{0} rij(en) moeten worden gelezen voordat u toepast - een overgeslagen vermelding is een postvak dat iemand verwacht en niet zal krijgen, en een uitgeschakelde is een postvak dat wordt afgenomen.</value>
   </data>
   <data name="{0} rule(s), evaluated top to bottom." xml:space="preserve">
     <value>{0} regel(s), van boven naar beneden geëvalueerd.</value>
+  </data>
+  <data name="{0} rules" xml:space="preserve">
+    <value>{0} regels</value>
   </data>
   <data name="{0} samples copied to the clipboard." xml:space="preserve">
     <value>{0} meetpunten naar het klembord gekopieerd.</value>
@@ -14734,6 +14809,12 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="{0} scores {1} on its own, which reaches the {2} at which the server stops testing - so {3} will not run for a message it fails, and will not appear in the log." xml:space="preserve">
     <value>{0} scoort op zichzelf al {1}, wat de {2} bereikt waarbij de server stopt met testen - dus {3} draait niet voor een bericht dat erop faalt, en verschijnt niet in het logboek.</value>
+  </data>
+  <data name="{0} security groups" xml:space="preserve">
+    <value>{0} beveiligingsgroepen</value>
+  </data>
+  <data name="{0} server messages" xml:space="preserve">
+    <value>{0} servermeldingen</value>
   </data>
   <data name="{0} setting(s) could not be read — {1}" xml:space="preserve">
     <value>{0} instelling(en) konden niet worden gelezen — {1}</value>
@@ -14779,6 +14860,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="{0} was removed: {1} mailbox(es), {2} distribution list(s), {3} rule(s) and {4} message(s) went with it." xml:space="preserve">
     <value>{0} is verwijderd: {1} postbussen, {2} distributielijsten, {3} regels en {4} berichten gingen mee.</value>
+  </data>
+  <data name="{0} white-list entries" xml:space="preserve">
+    <value>{0} vermeldingen op de witte lijst</value>
   </data>
   <data name="{0} with full authority" xml:space="preserve">
     <value>{0} met volledige bevoegdheid</value>

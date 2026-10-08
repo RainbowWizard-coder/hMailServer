@@ -305,17 +305,35 @@ Přesto toto slabé heslo uložit?</value>
   <data name="1 DNS record is still being checked in the background; this summary will update." xml:space="preserve">
     <value>Na pozadí se stále kontroluje 1 záznam DNS; tento souhrn se aktualizuje.</value>
   </data>
+  <data name="1 IP address" xml:space="preserve">
+    <value>Adresy IP: 1</value>
+  </data>
+  <data name="1 SURBL server" xml:space="preserve">
+    <value>Servery SURBL: 1</value>
+  </data>
   <data name="1 account is a member." xml:space="preserve">
     <value>Členem je 1 účet.</value>
   </data>
   <data name="1 address listed." xml:space="preserve">
     <value>1 adresa na seznamu.</value>
   </data>
+  <data name="1 alias" xml:space="preserve">
+    <value>Aliasy: 1</value>
+  </data>
   <data name="1 app password." xml:space="preserve">
     <value>1 heslo aplikace.</value>
   </data>
+  <data name="1 blacklist" xml:space="preserve">
+    <value>Blacklisty: 1</value>
+  </data>
+  <data name="1 blocked sender" xml:space="preserve">
+    <value>Blokovaní odesílatelé: 1</value>
+  </data>
   <data name="1 by default." xml:space="preserve">
     <value>Výchozí 1.</value>
+  </data>
+  <data name="1 bypass entry" xml:space="preserve">
+    <value>Výjimky: 1</value>
   </data>
   <data name="1 day" xml:space="preserve">
     <value>1 den</value>
@@ -323,14 +341,26 @@ Přesto toto slabé heslo uložit?</value>
   <data name="1 event." xml:space="preserve">
     <value>1 událost.</value>
   </data>
+  <data name="1 external account" xml:space="preserve">
+    <value>Externí účty: 1</value>
+  </data>
   <data name="1 hour ago" xml:space="preserve">
     <value>před 1 hodinou</value>
+  </data>
+  <data name="1 item" xml:space="preserve">
+    <value>Položky: 1</value>
   </data>
   <data name="1 item cannot be checked from here" xml:space="preserve">
     <value>1 položku odsud nelze zkontrolovat</value>
   </data>
   <data name="1 item cannot be checked from here." xml:space="preserve">
     <value>1 položku odsud nelze zkontrolovat.</value>
+  </data>
+  <data name="1 key" xml:space="preserve">
+    <value>Klíče: 1</value>
+  </data>
+  <data name="1 list entry" xml:space="preserve">
+    <value>Položky seznamu: 1</value>
   </data>
   <data name="1 message" xml:space="preserve">
     <value>1 zpráva</value>
@@ -350,14 +380,29 @@ Přesto toto slabé heslo uložit?</value>
   <data name="1 refuses a password that has appeared in the corpus even once." xml:space="preserve">
     <value>1 odmítne heslo, které se v databázi objevilo byť jen jednou.</value>
   </data>
+  <data name="1 remote domain policy" xml:space="preserve">
+    <value>Pravidla pro vzdálené domény: 1</value>
+  </data>
+  <data name="1 rule" xml:space="preserve">
+    <value>Pravidla: 1</value>
+  </data>
   <data name="1 sample copied to the clipboard." xml:space="preserve">
     <value>1 vzorek zkopírován do schránky.</value>
   </data>
   <data name="1 sample." xml:space="preserve">
     <value>1 vzorek.</value>
   </data>
+  <data name="1 security group" xml:space="preserve">
+    <value>Skupiny zabezpečení: 1</value>
+  </data>
+  <data name="1 server message" xml:space="preserve">
+    <value>Zprávy serveru: 1</value>
+  </data>
   <data name="1 thing needs attention" xml:space="preserve">
     <value>1 věc vyžaduje pozornost</value>
+  </data>
+  <data name="1 white-list entry" xml:space="preserve">
+    <value>Položky bílého seznamu: 1</value>
   </data>
   <data name="1.  Scan this QR code with an authenticator app (Microsoft Authenticator, Google Authenticator, Authy, 1Password…)." xml:space="preserve">
     <value>1.  Naskenujte tento QR kód ověřovací aplikací (Microsoft Authenticator, Google Authenticator, Authy, 1Password…).</value>
@@ -13868,12 +13913,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="keep a copy of every message" xml:space="preserve">
     <value>uchovávat kopii každé zprávy</value>
   </data>
-  <data name="key" xml:space="preserve">
-    <value>klíč</value>
-  </data>
-  <data name="keys" xml:space="preserve">
-    <value>klíče</value>
-  </data>
   <data name="last hour" xml:space="preserve">
     <value>poslední hodina</value>
   </data>
@@ -14423,6 +14462,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} DNS records are still being checked in the background; this summary will update." xml:space="preserve">
     <value>Na pozadí se stále kontroluje {0} záznamů DNS; tento souhrn se aktualizuje.</value>
   </data>
+  <data name="{0} IP addresses" xml:space="preserve">
+    <value>Adresy IP: {0}</value>
+  </data>
   <data name="{0} If a virus is found, the attachments are stripped and the message is still delivered." xml:space="preserve">
     <value>{0} Pokud je nalezen virus, přílohy se odstraní a zpráva se přesto doručí.</value>
   </data>
@@ -14434,6 +14476,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="{0} KB ({1} MB)" xml:space="preserve">
     <value>{0} KB ({1} MB)</value>
+  </data>
+  <data name="{0} SURBL servers" xml:space="preserve">
+    <value>Servery SURBL: {0}</value>
   </data>
   <data name="{0} TXT record(s) exist at {1}, but none begins &quot;v=DMARC1&quot;, so receivers - and this server's own DMARC check - see no policy." xml:space="preserve">
     <value>Na {1} existuje {0} TXT záznam(ů), ale žádný nezačíná „v=DMARC1“, takže příjemci – ani vlastní kontrola DMARC tohoto serveru – nevidí žádnou politiku.</value>
@@ -14465,6 +14510,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} addresses listed." xml:space="preserve">
     <value>Na seznamu je {0} adres.</value>
   </data>
+  <data name="{0} aliases" xml:space="preserve">
+    <value>Aliasy: {0}</value>
+  </data>
   <data name="{0} and {1}" xml:space="preserve">
     <value>{0} a {1}</value>
   </data>
@@ -14480,8 +14528,17 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} app passwords." xml:space="preserve">
     <value>{0} hesel aplikací.</value>
   </data>
+  <data name="{0} blacklists" xml:space="preserve">
+    <value>Blacklisty: {0}</value>
+  </data>
+  <data name="{0} blocked senders" xml:space="preserve">
+    <value>Blokovaní odesílatelé: {0}</value>
+  </data>
   <data name="{0} blocked-attachment patterns are configured but attachment blocking is switched off, so none of them is applied." xml:space="preserve">
     <value>Vzory blokovaných příloh v konfiguraci: {0}; blokování příloh je ale vypnuté, takže se žádný z nich neuplatní.</value>
+  </data>
+  <data name="{0} bypass entries" xml:space="preserve">
+    <value>Výjimky: {0}</value>
   </data>
   <data name="{0} case(s). Select one for its lines on the audit trail." xml:space="preserve">
     <value>Případů: {0}. Vyberte jeden a zobrazí se jeho řádky v auditním záznamu.</value>
@@ -14542,6 +14599,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="{0} external POP3 fetch accounts have anti-virus turned off, so mail collected by them is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page." xml:space="preserve">
     <value>U {0} externích účtů pro stahování POP3 je antivirus vypnutý, takže pošta, kterou vyzvedávají, se doručuje neskenovaná bez ohledu na to, co je nastaveno zde. Přepínač je na účtu pro stahování, ne na této stránce.</value>
+  </data>
+  <data name="{0} external accounts" xml:space="preserve">
+    <value>Externí účty: {0}</value>
   </data>
   <data name="{0} has been moved to {1}." xml:space="preserve">
     <value>{0} byla přesunuta na {1}.</value>
@@ -14612,14 +14672,23 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} is {1} again." xml:space="preserve">
     <value>{0} je opět {1}.</value>
   </data>
+  <data name="{0} items" xml:space="preserve">
+    <value>Položky: {0}</value>
+  </data>
   <data name="{0} items cannot be checked from here" xml:space="preserve">
     <value>{0} položek odsud nelze zkontrolovat</value>
   </data>
   <data name="{0} items cannot be checked from here." xml:space="preserve">
     <value>{0} položek odsud nelze zkontrolovat.</value>
   </data>
+  <data name="{0} keys" xml:space="preserve">
+    <value>Klíče: {0}</value>
+  </data>
   <data name="{0} latest {1}" xml:space="preserve">
     <value>{0}: poslední {1}</value>
+  </data>
+  <data name="{0} list entries" xml:space="preserve">
+    <value>Položky seznamu: {0}</value>
   </data>
   <data name="{0} listeners are configured for TLS but cannot serve it, so those ports are not listening at all." xml:space="preserve">
     <value>Listenerů s nastaveným TLS, které ho ale nemohou poskytovat: {0}; na těchto portech se vůbec nenaslouchá.</value>
@@ -14711,11 +14780,17 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} records beginning &quot;v=spf1&quot; exist at {1}. RFC 7208 makes that a permanent SPF error at every receiver - worse than no record. Merge them into one." xml:space="preserve">
     <value>Na {1} existuje {0} záznamů začínajících „v=spf1“. Podle RFC 7208 je to u každého příjemce trvalá chyba SPF – horší než žádný záznam. Slučte je do jednoho.</value>
   </data>
+  <data name="{0} remote domain policies" xml:space="preserve">
+    <value>Pravidla pro vzdálené domény: {0}</value>
+  </data>
   <data name="{0} row(s) need reading before you apply - a skipped entry is a mailbox somebody expects and will not get, and a disabled one is a mailbox being taken away." xml:space="preserve">
     <value>{0} řádků je třeba přečíst, než použijete – přeskočená položka je poštovní schránka, kterou někdo očekává a nedostane, a zakázaná je poštovní schránka, která se někomu odebírá.</value>
   </data>
   <data name="{0} rule(s), evaluated top to bottom." xml:space="preserve">
     <value>{0} pravidel, vyhodnocovaných shora dolů.</value>
+  </data>
+  <data name="{0} rules" xml:space="preserve">
+    <value>Pravidla: {0}</value>
   </data>
   <data name="{0} samples copied to the clipboard." xml:space="preserve">
     <value>{0} vzorků zkopírováno do schránky.</value>
@@ -14734,6 +14809,12 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="{0} scores {1} on its own, which reaches the {2} at which the server stops testing - so {3} will not run for a message it fails, and will not appear in the log." xml:space="preserve">
     <value>{0} má samo o sobě skóre {1}, které dosahuje {2}, při níž server přestává testovat – takže {3} u zprávy, která jím neprojde, nepoběží a v logu se neobjeví.</value>
+  </data>
+  <data name="{0} security groups" xml:space="preserve">
+    <value>Skupiny zabezpečení: {0}</value>
+  </data>
+  <data name="{0} server messages" xml:space="preserve">
+    <value>Zprávy serveru: {0}</value>
   </data>
   <data name="{0} setting(s) could not be read — {1}" xml:space="preserve">
     <value>{0} nastavení nešlo přečíst — {1}</value>
@@ -14779,6 +14860,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="{0} was removed: {1} mailbox(es), {2} distribution list(s), {3} rule(s) and {4} message(s) went with it." xml:space="preserve">
     <value>{0} odstraněna: odešlo {1} schránek, {2} distribučních seznamů, {3} pravidel a {4} zpráv.</value>
+  </data>
+  <data name="{0} white-list entries" xml:space="preserve">
+    <value>Položky bílého seznamu: {0}</value>
   </data>
   <data name="{0} with full authority" xml:space="preserve">
     <value>{0} s plnou pravomocí</value>

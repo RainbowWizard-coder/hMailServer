@@ -305,17 +305,35 @@ Vil du gemme denne svage adgangskode alligevel?</value>
   <data name="1 DNS record is still being checked in the background; this summary will update." xml:space="preserve">
     <value>1 DNS-post kontrolleres stadig i baggrunden; denne oversigt bliver opdateret.</value>
   </data>
+  <data name="1 IP address" xml:space="preserve">
+    <value>1 IP-adresse</value>
+  </data>
+  <data name="1 SURBL server" xml:space="preserve">
+    <value>1 SURBL-server</value>
+  </data>
   <data name="1 account is a member." xml:space="preserve">
     <value>1 konto er medlem.</value>
   </data>
   <data name="1 address listed." xml:space="preserve">
     <value>1 adresse på listen.</value>
   </data>
+  <data name="1 alias" xml:space="preserve">
+    <value>1 alias</value>
+  </data>
   <data name="1 app password." xml:space="preserve">
     <value>1 app-adgangskode.</value>
   </data>
+  <data name="1 blacklist" xml:space="preserve">
+    <value>1 sortliste</value>
+  </data>
+  <data name="1 blocked sender" xml:space="preserve">
+    <value>1 blokeret afsender</value>
+  </data>
   <data name="1 by default." xml:space="preserve">
     <value>1 som standard.</value>
+  </data>
+  <data name="1 bypass entry" xml:space="preserve">
+    <value>1 undtagelse</value>
   </data>
   <data name="1 day" xml:space="preserve">
     <value>1 dag</value>
@@ -323,14 +341,26 @@ Vil du gemme denne svage adgangskode alligevel?</value>
   <data name="1 event." xml:space="preserve">
     <value>1 hændelse.</value>
   </data>
+  <data name="1 external account" xml:space="preserve">
+    <value>1 ekstern konto</value>
+  </data>
   <data name="1 hour ago" xml:space="preserve">
     <value>for 1 time siden</value>
+  </data>
+  <data name="1 item" xml:space="preserve">
+    <value>1 element</value>
   </data>
   <data name="1 item cannot be checked from here" xml:space="preserve">
     <value>1 element kan ikke kontrolleres herfra</value>
   </data>
   <data name="1 item cannot be checked from here." xml:space="preserve">
     <value>1 element kan ikke kontrolleres herfra.</value>
+  </data>
+  <data name="1 key" xml:space="preserve">
+    <value>1 nøgle</value>
+  </data>
+  <data name="1 list entry" xml:space="preserve">
+    <value>1 listepost</value>
   </data>
   <data name="1 message" xml:space="preserve">
     <value>1 meddelelse</value>
@@ -350,14 +380,29 @@ Vil du gemme denne svage adgangskode alligevel?</value>
   <data name="1 refuses a password that has appeared in the corpus even once." xml:space="preserve">
     <value>1 afviser en adgangskode, der er dukket op i samlingen blot én gang.</value>
   </data>
+  <data name="1 remote domain policy" xml:space="preserve">
+    <value>1 politik for eksternt domæne</value>
+  </data>
+  <data name="1 rule" xml:space="preserve">
+    <value>1 regel</value>
+  </data>
   <data name="1 sample copied to the clipboard." xml:space="preserve">
     <value>1 eksempel kopieret til udklipsholderen.</value>
   </data>
   <data name="1 sample." xml:space="preserve">
     <value>1 eksempel.</value>
   </data>
+  <data name="1 security group" xml:space="preserve">
+    <value>1 sikkerhedsgruppe</value>
+  </data>
+  <data name="1 server message" xml:space="preserve">
+    <value>1 servermeddelelse</value>
+  </data>
   <data name="1 thing needs attention" xml:space="preserve">
     <value>1 ting kræver opmærksomhed</value>
+  </data>
+  <data name="1 white-list entry" xml:space="preserve">
+    <value>1 hvidlistepost</value>
   </data>
   <data name="1.  Scan this QR code with an authenticator app (Microsoft Authenticator, Google Authenticator, Authy, 1Password…)." xml:space="preserve">
     <value>1.  Scan denne QR-kode med en godkendelsesapp (Microsoft Authenticator, Google Authenticator, Authy, 1Password…).</value>
@@ -13868,12 +13913,6 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="keep a copy of every message" xml:space="preserve">
     <value>behold en kopi af hver meddelelse</value>
   </data>
-  <data name="key" xml:space="preserve">
-    <value>nøgle</value>
-  </data>
-  <data name="keys" xml:space="preserve">
-    <value>nøgler</value>
-  </data>
   <data name="last hour" xml:space="preserve">
     <value>seneste time</value>
   </data>
@@ -14423,6 +14462,9 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="{0} DNS records are still being checked in the background; this summary will update." xml:space="preserve">
     <value>{0} DNS-poster kontrolleres stadig i baggrunden; denne oversigt bliver opdateret.</value>
   </data>
+  <data name="{0} IP addresses" xml:space="preserve">
+    <value>{0} IP-adresser</value>
+  </data>
   <data name="{0} If a virus is found, the attachments are stripped and the message is still delivered." xml:space="preserve">
     <value>{0} Hvis der findes en virus, fjernes de vedhæftede filer, og meddelelsen leveres stadig.</value>
   </data>
@@ -14434,6 +14476,9 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   </data>
   <data name="{0} KB ({1} MB)" xml:space="preserve">
     <value>{0} KB ({1} MB)</value>
+  </data>
+  <data name="{0} SURBL servers" xml:space="preserve">
+    <value>{0} SURBL-servere</value>
   </data>
   <data name="{0} TXT record(s) exist at {1}, but none begins &quot;v=DMARC1&quot;, so receivers - and this server's own DMARC check - see no policy." xml:space="preserve">
     <value>Der findes {0} TXT-post(er) på {1}, men ingen begynder med "v=DMARC1", så modtagere - og denne servers egen DMARC-kontrol - ser ingen politik.</value>
@@ -14465,6 +14510,9 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="{0} addresses listed." xml:space="preserve">
     <value>{0} adresser på listen.</value>
   </data>
+  <data name="{0} aliases" xml:space="preserve">
+    <value>{0} aliasser</value>
+  </data>
   <data name="{0} and {1}" xml:space="preserve">
     <value>{0} og {1}</value>
   </data>
@@ -14480,8 +14528,17 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="{0} app passwords." xml:space="preserve">
     <value>{0} app-adgangskoder.</value>
   </data>
+  <data name="{0} blacklists" xml:space="preserve">
+    <value>{0} sortlister</value>
+  </data>
+  <data name="{0} blocked senders" xml:space="preserve">
+    <value>{0} blokerede afsendere</value>
+  </data>
   <data name="{0} blocked-attachment patterns are configured but attachment blocking is switched off, so none of them is applied." xml:space="preserve">
     <value>{0} mønstre for blokerede vedhæftede filer er konfigureret, men blokering af vedhæftede filer er slået fra, så ingen af dem anvendes.</value>
+  </data>
+  <data name="{0} bypass entries" xml:space="preserve">
+    <value>{0} undtagelser</value>
   </data>
   <data name="{0} case(s). Select one for its lines on the audit trail." xml:space="preserve">
     <value>{0} sag(er). Vælg en for at se dens linjer i revisionsloggen.</value>
@@ -14542,6 +14599,9 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   </data>
   <data name="{0} external POP3 fetch accounts have anti-virus turned off, so mail collected by them is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page." xml:space="preserve">
     <value>{0} eksterne POP3-afhentningskonti har antivirus slået fra, så post, der afhentes af dem, leveres uscannet, uanset hvad der er sat her. Kontakten sidder på afhentningskontoen, ikke på denne side.</value>
+  </data>
+  <data name="{0} external accounts" xml:space="preserve">
+    <value>{0} eksterne konti</value>
   </data>
   <data name="{0} has been moved to {1}." xml:space="preserve">
     <value>{0} er blevet flyttet til {1}.</value>
@@ -14612,14 +14672,23 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="{0} is {1} again." xml:space="preserve">
     <value>{0} er {1} igen.</value>
   </data>
+  <data name="{0} items" xml:space="preserve">
+    <value>{0} elementer</value>
+  </data>
   <data name="{0} items cannot be checked from here" xml:space="preserve">
     <value>{0} elementer kan ikke kontrolleres herfra</value>
   </data>
   <data name="{0} items cannot be checked from here." xml:space="preserve">
     <value>{0} elementer kan ikke kontrolleres herfra.</value>
   </data>
+  <data name="{0} keys" xml:space="preserve">
+    <value>{0} nøgler</value>
+  </data>
   <data name="{0} latest {1}" xml:space="preserve">
     <value>{0}: seneste {1}</value>
+  </data>
+  <data name="{0} list entries" xml:space="preserve">
+    <value>{0} listeposter</value>
   </data>
   <data name="{0} listeners are configured for TLS but cannot serve it, so those ports are not listening at all." xml:space="preserve">
     <value>{0} lyttere er konfigureret til TLS, men kan ikke levere det, så de porte lytter slet ikke.</value>
@@ -14711,11 +14780,17 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="{0} records beginning &quot;v=spf1&quot; exist at {1}. RFC 7208 makes that a permanent SPF error at every receiver - worse than no record. Merge them into one." xml:space="preserve">
     <value>Der findes {0} poster, der begynder med "v=spf1", på {1}. RFC 7208 gør det til en permanent SPF-fejl hos hver modtager - værre end ingen post. Flet dem sammen til én.</value>
   </data>
+  <data name="{0} remote domain policies" xml:space="preserve">
+    <value>{0} politikker for eksterne domæner</value>
+  </data>
   <data name="{0} row(s) need reading before you apply - a skipped entry is a mailbox somebody expects and will not get, and a disabled one is a mailbox being taken away." xml:space="preserve">
     <value>{0} række(r) skal læses, før du anvender - en oversprunget post er en postkasse, nogen forventer og ikke får, og en deaktiveret er en postkasse, der bliver taget fra nogen.</value>
   </data>
   <data name="{0} rule(s), evaluated top to bottom." xml:space="preserve">
     <value>{0} regel/regler, evalueret fra top til bund.</value>
+  </data>
+  <data name="{0} rules" xml:space="preserve">
+    <value>{0} regler</value>
   </data>
   <data name="{0} samples copied to the clipboard." xml:space="preserve">
     <value>{0} målinger kopieret til udklipsholderen.</value>
@@ -14734,6 +14809,12 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   </data>
   <data name="{0} scores {1} on its own, which reaches the {2} at which the server stops testing - so {3} will not run for a message it fails, and will not appear in the log." xml:space="preserve">
     <value>{0} scorer {1} alene, hvilket når den {2}, hvor serveren holder op med at teste - så {3} kører ikke for en meddelelse, der fejler den, og vises ikke i loggen.</value>
+  </data>
+  <data name="{0} security groups" xml:space="preserve">
+    <value>{0} sikkerhedsgrupper</value>
+  </data>
+  <data name="{0} server messages" xml:space="preserve">
+    <value>{0} servermeddelelser</value>
   </data>
   <data name="{0} setting(s) could not be read — {1}" xml:space="preserve">
     <value>{0} indstilling(er) kunne ikke læses — {1}</value>
@@ -14779,6 +14860,9 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   </data>
   <data name="{0} was removed: {1} mailbox(es), {2} distribution list(s), {3} rule(s) and {4} message(s) went with it." xml:space="preserve">
     <value>{0} blev fjernet: {1} postkasser, {2} distributionslister, {3} regler og {4} beskeder fulgte med.</value>
+  </data>
+  <data name="{0} white-list entries" xml:space="preserve">
+    <value>{0} hvidlisteposter</value>
   </data>
   <data name="{0} with full authority" xml:space="preserve">
     <value>{0} med fuld myndighed</value>

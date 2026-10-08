@@ -114,6 +114,15 @@ namespace hMailServer.ControlPanel.Views
          // laid last it is below the fold of an Edit dialog opened to switch
          // the entry off. The grid keeps the spec's order either way.
          public bool TickBoxesLast;
+
+         // The count beside the title, one whole catalogued text for one entry
+         // and one for any other number, each marked with N() and translated
+         // where it is shown: "1 security group" and "{0} security groups". A
+         // noun with an English plural ending put on it read "3 Sicherheitsgruppes"
+         // in German and "5 ルールs" in Japanese; a whole text lets each language
+         // count its own way (Russian puts the noun first, "Групп безопасности: 3").
+         public string CountOne = N("1 item");
+         public string CountMany = N("{0} items");
       }
 
       internal sealed class Row
@@ -439,8 +448,8 @@ namespace hMailServer.ControlPanel.Views
          ReadFailure.Clear(status_, addButton_);
          countBadge_.Visibility = Visibility.Visible;
          countBadge_.Text = rows_.Count == 1
-            ? "1 " + spec_.ItemNoun
-            : rows_.Count + " " + Pluralize(spec_.ItemNoun);
+            ? L(spec_.CountOne)
+            : F(spec_.CountMany, rows_.Count);
       }
 
       /// <summary>What the last action said, at its level.</summary>
@@ -450,18 +459,6 @@ namespace hMailServer.ControlPanel.Views
          status_.Level = level;
          status_.Text = text;
          status_.Visibility = Visibility.Visible;
-      }
-
-      private static string Pluralize(string noun)
-      {
-         if (string.IsNullOrEmpty(noun))
-            return noun;
-         if (noun.EndsWith("s") || noun.EndsWith("x") || noun.EndsWith("z") ||
-             noun.EndsWith("ch") || noun.EndsWith("sh"))
-            return noun + "es";
-         if (noun.EndsWith("y") && noun.Length > 1 && !"aeiou".Contains(noun[^2]))
-            return noun.Substring(0, noun.Length - 1) + "ies";
-         return noun + "s";
       }
 
       private void EditSelected()

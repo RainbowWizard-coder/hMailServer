@@ -305,17 +305,35 @@ Tallennetaanko tämä heikko salasana silti?</value>
   <data name="1 DNS record is still being checked in the background; this summary will update." xml:space="preserve">
     <value>1 DNS-tietuetta tarkistetaan yhä taustalla; tämä yhteenveto päivittyy.</value>
   </data>
+  <data name="1 IP address" xml:space="preserve">
+    <value>1 IP-osoite</value>
+  </data>
+  <data name="1 SURBL server" xml:space="preserve">
+    <value>1 SURBL-palvelin</value>
+  </data>
   <data name="1 account is a member." xml:space="preserve">
     <value>1 tili on jäsenenä.</value>
   </data>
   <data name="1 address listed." xml:space="preserve">
     <value>1 osoite listalla.</value>
   </data>
+  <data name="1 alias" xml:space="preserve">
+    <value>1 alias</value>
+  </data>
   <data name="1 app password." xml:space="preserve">
     <value>1 sovellussalasana.</value>
   </data>
+  <data name="1 blacklist" xml:space="preserve">
+    <value>1 estolista</value>
+  </data>
+  <data name="1 blocked sender" xml:space="preserve">
+    <value>1 estetty lähettäjä</value>
+  </data>
   <data name="1 by default." xml:space="preserve">
     <value>Oletus 1.</value>
+  </data>
+  <data name="1 bypass entry" xml:space="preserve">
+    <value>1 ohitusmerkintä</value>
   </data>
   <data name="1 day" xml:space="preserve">
     <value>1 päivä</value>
@@ -323,14 +341,26 @@ Tallennetaanko tämä heikko salasana silti?</value>
   <data name="1 event." xml:space="preserve">
     <value>1 tapahtuma.</value>
   </data>
+  <data name="1 external account" xml:space="preserve">
+    <value>1 ulkoinen tili</value>
+  </data>
   <data name="1 hour ago" xml:space="preserve">
     <value>1 tunti sitten</value>
+  </data>
+  <data name="1 item" xml:space="preserve">
+    <value>1 kohde</value>
   </data>
   <data name="1 item cannot be checked from here" xml:space="preserve">
     <value>1 kohdetta ei voi tarkistaa täältä</value>
   </data>
   <data name="1 item cannot be checked from here." xml:space="preserve">
     <value>1 kohdetta ei voi tarkistaa täältä.</value>
+  </data>
+  <data name="1 key" xml:space="preserve">
+    <value>1 avain</value>
+  </data>
+  <data name="1 list entry" xml:space="preserve">
+    <value>1 luettelon merkintä</value>
   </data>
   <data name="1 message" xml:space="preserve">
     <value>1 viesti</value>
@@ -350,14 +380,29 @@ Tallennetaanko tämä heikko salasana silti?</value>
   <data name="1 refuses a password that has appeared in the corpus even once." xml:space="preserve">
     <value>1 hylkää salasanan, joka on esiintynyt kokoelmassa edes kerran.</value>
   </data>
+  <data name="1 remote domain policy" xml:space="preserve">
+    <value>1 etäverkkotunnuksen käytäntö</value>
+  </data>
+  <data name="1 rule" xml:space="preserve">
+    <value>1 sääntö</value>
+  </data>
   <data name="1 sample copied to the clipboard." xml:space="preserve">
     <value>1 näyte kopioitu leikepöydälle.</value>
   </data>
   <data name="1 sample." xml:space="preserve">
     <value>1 näyte.</value>
   </data>
+  <data name="1 security group" xml:space="preserve">
+    <value>1 suojausryhmä</value>
+  </data>
+  <data name="1 server message" xml:space="preserve">
+    <value>1 palvelimen viesti</value>
+  </data>
   <data name="1 thing needs attention" xml:space="preserve">
     <value>1 asia vaatii huomiota</value>
+  </data>
+  <data name="1 white-list entry" xml:space="preserve">
+    <value>1 sallittujen listan merkintä</value>
   </data>
   <data name="1.  Scan this QR code with an authenticator app (Microsoft Authenticator, Google Authenticator, Authy, 1Password…)." xml:space="preserve">
     <value>1.  Lue tämä QR-koodi todennussovelluksella (Microsoft Authenticator, Google Authenticator, Authy, 1Password…).</value>
@@ -13868,12 +13913,6 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="keep a copy of every message" xml:space="preserve">
     <value>säilytä kopio jokaisesta viestistä</value>
   </data>
-  <data name="key" xml:space="preserve">
-    <value>avain</value>
-  </data>
-  <data name="keys" xml:space="preserve">
-    <value>avainta</value>
-  </data>
   <data name="last hour" xml:space="preserve">
     <value>viimeinen tunti</value>
   </data>
@@ -14423,6 +14462,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="{0} DNS records are still being checked in the background; this summary will update." xml:space="preserve">
     <value>{0} DNS-tietuetta tarkistetaan yhä taustalla; tämä yhteenveto päivittyy.</value>
   </data>
+  <data name="{0} IP addresses" xml:space="preserve">
+    <value>{0} IP-osoitetta</value>
+  </data>
   <data name="{0} If a virus is found, the attachments are stripped and the message is still delivered." xml:space="preserve">
     <value>{0} Jos virus löytyy, liitteet poistetaan ja viesti toimitetaan silti.</value>
   </data>
@@ -14434,6 +14476,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="{0} KB ({1} MB)" xml:space="preserve">
     <value>{0} kt ({1} Mt)</value>
+  </data>
+  <data name="{0} SURBL servers" xml:space="preserve">
+    <value>{0} SURBL-palvelinta</value>
   </data>
   <data name="{0} TXT record(s) exist at {1}, but none begins &quot;v=DMARC1&quot;, so receivers - and this server's own DMARC check - see no policy." xml:space="preserve">
     <value>{0} TXT-tietuetta on olemassa kohteessa {1}, mutta yksikään ei ala "v=DMARC1", joten vastaanottajat - ja tämän palvelimen oma DMARC-tarkistus - eivät näe käytäntöä.</value>
@@ -14465,6 +14510,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="{0} addresses listed." xml:space="preserve">
     <value>{0} osoitetta listalla.</value>
   </data>
+  <data name="{0} aliases" xml:space="preserve">
+    <value>{0} aliasta</value>
+  </data>
   <data name="{0} and {1}" xml:space="preserve">
     <value>{0} ja {1}</value>
   </data>
@@ -14480,8 +14528,17 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="{0} app passwords." xml:space="preserve">
     <value>{0} sovellussalasanaa.</value>
   </data>
+  <data name="{0} blacklists" xml:space="preserve">
+    <value>{0} estolistaa</value>
+  </data>
+  <data name="{0} blocked senders" xml:space="preserve">
+    <value>{0} estettyä lähettäjää</value>
+  </data>
   <data name="{0} blocked-attachment patterns are configured but attachment blocking is switched off, so none of them is applied." xml:space="preserve">
     <value>{0} estetyn liitteen kuviota on määritetty, mutta liitteiden esto on pois päältä, joten yhtäkään niistä ei sovelleta.</value>
+  </data>
+  <data name="{0} bypass entries" xml:space="preserve">
+    <value>{0} ohitusmerkintää</value>
   </data>
   <data name="{0} case(s). Select one for its lines on the audit trail." xml:space="preserve">
     <value>{0} tapausta. Valitse yksi nähdäksesi sen rivit tarkastuslokissa.</value>
@@ -14542,6 +14599,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="{0} external POP3 fetch accounts have anti-virus turned off, so mail collected by them is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page." xml:space="preserve">
     <value>{0} ulkoisella POP3-noutotilillä on virustorjunta pois päältä, joten niiden noutama posti toimitetaan skannaamatta riippumatta siitä, mitä tässä on asetettu. Kytkin on noutotilillä, ei tällä sivulla.</value>
+  </data>
+  <data name="{0} external accounts" xml:space="preserve">
+    <value>{0} ulkoista tiliä</value>
   </data>
   <data name="{0} has been moved to {1}." xml:space="preserve">
     <value>{0} on siirretty osoitteeseen {1}.</value>
@@ -14612,14 +14672,23 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="{0} is {1} again." xml:space="preserve">
     <value>{0} on jälleen {1}.</value>
   </data>
+  <data name="{0} items" xml:space="preserve">
+    <value>{0} kohdetta</value>
+  </data>
   <data name="{0} items cannot be checked from here" xml:space="preserve">
     <value>{0} kohdetta ei voi tarkistaa täältä</value>
   </data>
   <data name="{0} items cannot be checked from here." xml:space="preserve">
     <value>{0} kohdetta ei voi tarkistaa täältä.</value>
   </data>
+  <data name="{0} keys" xml:space="preserve">
+    <value>{0} avainta</value>
+  </data>
   <data name="{0} latest {1}" xml:space="preserve">
     <value>{0}: viimeisin {1}</value>
+  </data>
+  <data name="{0} list entries" xml:space="preserve">
+    <value>{0} luettelon merkintää</value>
   </data>
   <data name="{0} listeners are configured for TLS but cannot serve it, so those ports are not listening at all." xml:space="preserve">
     <value>{0} kuuntelijaa on määritetty TLS:lle, mutta ne eivät voi tarjota sitä, joten nuo portit eivät kuuntele lainkaan.</value>
@@ -14711,11 +14780,17 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="{0} records beginning &quot;v=spf1&quot; exist at {1}. RFC 7208 makes that a permanent SPF error at every receiver - worse than no record. Merge them into one." xml:space="preserve">
     <value>{0} "v=spf1"-alkuista tietuetta on olemassa kohteessa {1}. RFC 7208 tekee siitä pysyvän SPF-virheen jokaisella vastaanottajalla - huonompi kuin ei tietuetta. Yhdistä ne yhdeksi.</value>
   </data>
+  <data name="{0} remote domain policies" xml:space="preserve">
+    <value>{0} etäverkkotunnuksen käytäntöä</value>
+  </data>
   <data name="{0} row(s) need reading before you apply - a skipped entry is a mailbox somebody expects and will not get, and a disabled one is a mailbox being taken away." xml:space="preserve">
     <value>{0} riviä on luettava ennen käyttöönottoa - ohitettu merkintä on postilaatikko, jota joku odottaa eikä saa, ja käytöstä poistettu on postilaatikko, joka otetaan pois.</value>
   </data>
   <data name="{0} rule(s), evaluated top to bottom." xml:space="preserve">
     <value>{0} sääntöä, arvioidaan ylhäältä alas.</value>
+  </data>
+  <data name="{0} rules" xml:space="preserve">
+    <value>{0} sääntöä</value>
   </data>
   <data name="{0} samples copied to the clipboard." xml:space="preserve">
     <value>{0} näytettä kopioitu leikepöydälle.</value>
@@ -14734,6 +14809,12 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="{0} scores {1} on its own, which reaches the {2} at which the server stops testing - so {3} will not run for a message it fails, and will not appear in the log." xml:space="preserve">
     <value>{0} antaa yksin {1} pistettä, mikä saavuttaa {2}, jossa palvelin lopettaa testaamisen - joten {3} ei ajeta viestille, jossa se epäonnistuu, eikä se näy lokissa.</value>
+  </data>
+  <data name="{0} security groups" xml:space="preserve">
+    <value>{0} suojausryhmää</value>
+  </data>
+  <data name="{0} server messages" xml:space="preserve">
+    <value>{0} palvelimen viestiä</value>
   </data>
   <data name="{0} setting(s) could not be read — {1}" xml:space="preserve">
     <value>{0} asetusta ei voitu lukea — {1}</value>
@@ -14779,6 +14860,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="{0} was removed: {1} mailbox(es), {2} distribution list(s), {3} rule(s) and {4} message(s) went with it." xml:space="preserve">
     <value>{0} poistettiin: mukana lähti {1} postilaatikkoa, {2} jakelulistaa, {3} sääntöä ja {4} viestiä.</value>
+  </data>
+  <data name="{0} white-list entries" xml:space="preserve">
+    <value>{0} sallittujen listan merkintää</value>
   </data>
   <data name="{0} with full authority" xml:space="preserve">
     <value>{0} täysillä oikeuksilla</value>

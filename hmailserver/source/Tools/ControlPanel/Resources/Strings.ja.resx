@@ -305,17 +305,35 @@
   <data name="1 DNS record is still being checked in the background; this summary will update." xml:space="preserve">
     <value>1 件の DNS レコードをまだバックグラウンドで確認しています。この要約は自動的に更新されます。</value>
   </data>
+  <data name="1 IP address" xml:space="preserve">
+    <value>IP アドレス 1 件</value>
+  </data>
+  <data name="1 SURBL server" xml:space="preserve">
+    <value>SURBL サーバー 1 件</value>
+  </data>
   <data name="1 account is a member." xml:space="preserve">
     <value>1 件のアカウントがメンバーです。</value>
   </data>
   <data name="1 address listed." xml:space="preserve">
     <value>1 件のアドレスがリストにあります。</value>
   </data>
+  <data name="1 alias" xml:space="preserve">
+    <value>エイリアス 1 件</value>
+  </data>
   <data name="1 app password." xml:space="preserve">
     <value>アプリ パスワード 1 件。</value>
   </data>
+  <data name="1 blacklist" xml:space="preserve">
+    <value>ブラックリスト 1 件</value>
+  </data>
+  <data name="1 blocked sender" xml:space="preserve">
+    <value>ブロックされた送信者 1 件</value>
+  </data>
   <data name="1 by default." xml:space="preserve">
     <value>既定は 1 です。</value>
+  </data>
+  <data name="1 bypass entry" xml:space="preserve">
+    <value>バイパス エントリ 1 件</value>
   </data>
   <data name="1 day" xml:space="preserve">
     <value>1 日</value>
@@ -323,14 +341,26 @@
   <data name="1 event." xml:space="preserve">
     <value>1 件のイベント。</value>
   </data>
+  <data name="1 external account" xml:space="preserve">
+    <value>外部アカウント 1 件</value>
+  </data>
   <data name="1 hour ago" xml:space="preserve">
     <value>1 時間前</value>
+  </data>
+  <data name="1 item" xml:space="preserve">
+    <value>項目 1 件</value>
   </data>
   <data name="1 item cannot be checked from here" xml:space="preserve">
     <value>1 件はここからは確認できません</value>
   </data>
   <data name="1 item cannot be checked from here." xml:space="preserve">
     <value>1 件はここからは確認できません。</value>
+  </data>
+  <data name="1 key" xml:space="preserve">
+    <value>キー 1 件</value>
+  </data>
+  <data name="1 list entry" xml:space="preserve">
+    <value>一覧のエントリ 1 件</value>
   </data>
   <data name="1 message" xml:space="preserve">
     <value>1 件のメッセージ</value>
@@ -350,14 +380,29 @@
   <data name="1 refuses a password that has appeared in the corpus even once." xml:space="preserve">
     <value>1 にすると、コーパスに一度でも現れたパスワードを拒否します。</value>
   </data>
+  <data name="1 remote domain policy" xml:space="preserve">
+    <value>リモートドメインのポリシー 1 件</value>
+  </data>
+  <data name="1 rule" xml:space="preserve">
+    <value>ルール 1 件</value>
+  </data>
   <data name="1 sample copied to the clipboard." xml:space="preserve">
     <value>1 件のサンプルをクリップボードにコピーしました。</value>
   </data>
   <data name="1 sample." xml:space="preserve">
     <value>1 件のサンプル。</value>
   </data>
+  <data name="1 security group" xml:space="preserve">
+    <value>セキュリティ グループ 1 件</value>
+  </data>
+  <data name="1 server message" xml:space="preserve">
+    <value>サーバー メッセージ 1 件</value>
+  </data>
   <data name="1 thing needs attention" xml:space="preserve">
     <value>1 件、対応が必要です</value>
+  </data>
+  <data name="1 white-list entry" xml:space="preserve">
+    <value>ホワイト リストのエントリ 1 件</value>
   </data>
   <data name="1.  Scan this QR code with an authenticator app (Microsoft Authenticator, Google Authenticator, Authy, 1Password…)." xml:space="preserve">
     <value>1.  認証アプリ (Microsoft Authenticator、Google Authenticator、Authy、1Password…) でこの QR コードを読み取ります。</value>
@@ -13868,12 +13913,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="keep a copy of every message" xml:space="preserve">
     <value>すべてのメッセージのコピーを保管する</value>
   </data>
-  <data name="key" xml:space="preserve">
-    <value>件のキー</value>
-  </data>
-  <data name="keys" xml:space="preserve">
-    <value>件のキー</value>
-  </data>
   <data name="last hour" xml:space="preserve">
     <value>直近 1 時間</value>
   </data>
@@ -14423,6 +14462,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="{0} DNS records are still being checked in the background; this summary will update." xml:space="preserve">
     <value>{0} 件の DNS レコードをバックグラウンドで確認中です。この概要は自動的に更新されます。</value>
   </data>
+  <data name="{0} IP addresses" xml:space="preserve">
+    <value>IP アドレス {0} 件</value>
+  </data>
   <data name="{0} If a virus is found, the attachments are stripped and the message is still delivered." xml:space="preserve">
     <value>{0}ウイルスが見つかった場合は、添付ファイルは取り除かれ、メッセージはそのまま配信されます。</value>
   </data>
@@ -14434,6 +14476,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="{0} KB ({1} MB)" xml:space="preserve">
     <value>{0} KB ({1} MB)</value>
+  </data>
+  <data name="{0} SURBL servers" xml:space="preserve">
+    <value>SURBL サーバー {0} 件</value>
   </data>
   <data name="{0} TXT record(s) exist at {1}, but none begins &quot;v=DMARC1&quot;, so receivers - and this server's own DMARC check - see no policy." xml:space="preserve">
     <value>{1} に TXT レコードが {0} 件ありますが、"v=DMARC1" で始まるものが 1 つもないため、受信側も、このサーバー自身の DMARC チェックも、ポリシーがないものとして扱います。</value>
@@ -14465,6 +14510,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="{0} addresses listed." xml:space="preserve">
     <value>{0} 件のアドレスがリストにあります。</value>
   </data>
+  <data name="{0} aliases" xml:space="preserve">
+    <value>エイリアス {0} 件</value>
+  </data>
   <data name="{0} and {1}" xml:space="preserve">
     <value>{0} と {1}</value>
   </data>
@@ -14480,8 +14528,17 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="{0} app passwords." xml:space="preserve">
     <value>アプリ パスワード {0} 件。</value>
   </data>
+  <data name="{0} blacklists" xml:space="preserve">
+    <value>ブラックリスト {0} 件</value>
+  </data>
+  <data name="{0} blocked senders" xml:space="preserve">
+    <value>ブロックされた送信者 {0} 件</value>
+  </data>
   <data name="{0} blocked-attachment patterns are configured but attachment blocking is switched off, so none of them is applied." xml:space="preserve">
     <value>{0} 件のブロック対象の添付ファイル パターンが設定されていますが、添付ファイルのブロックは無効になっているため、どれも適用されません。</value>
+  </data>
+  <data name="{0} bypass entries" xml:space="preserve">
+    <value>バイパス エントリ {0} 件</value>
   </data>
   <data name="{0} case(s). Select one for its lines on the audit trail." xml:space="preserve">
     <value>{0} 件のケース。ケースを選択すると監査ログの行が表示されます。</value>
@@ -14542,6 +14599,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="{0} external POP3 fetch accounts have anti-virus turned off, so mail collected by them is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page." xml:space="preserve">
     <value>{0} 件の外部 POP3 取り込みアカウントでウイルス対策が無効になっているため、それらのアカウントが収集したメールは、ここでの設定にかかわらずスキャンされずに配信されます。このスイッチはこのページではなく、取り込みアカウント側にあります。</value>
+  </data>
+  <data name="{0} external accounts" xml:space="preserve">
+    <value>外部アカウント {0} 件</value>
   </data>
   <data name="{0} has been moved to {1}." xml:space="preserve">
     <value>{0} を {1} に移動しました。</value>
@@ -14612,14 +14672,23 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="{0} is {1} again." xml:space="preserve">
     <value>{0} は再び {1} です。</value>
   </data>
+  <data name="{0} items" xml:space="preserve">
+    <value>項目 {0} 件</value>
+  </data>
   <data name="{0} items cannot be checked from here" xml:space="preserve">
     <value>{0} 件の項目はここでは確認できません</value>
   </data>
   <data name="{0} items cannot be checked from here." xml:space="preserve">
     <value>{0} 件の項目はここでは確認できません。</value>
   </data>
+  <data name="{0} keys" xml:space="preserve">
+    <value>キー {0} 件</value>
+  </data>
   <data name="{0} latest {1}" xml:space="preserve">
     <value>{0}: 最新 {1}</value>
+  </data>
+  <data name="{0} list entries" xml:space="preserve">
+    <value>一覧のエントリ {0} 件</value>
   </data>
   <data name="{0} listeners are configured for TLS but cannot serve it, so those ports are not listening at all." xml:space="preserve">
     <value>{0} 件のリスナーが TLS 用に設定されていますが TLS を提供できないため、それらのポートはまったく待ち受けていません。</value>
@@ -14711,11 +14780,17 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="{0} records beginning &quot;v=spf1&quot; exist at {1}. RFC 7208 makes that a permanent SPF error at every receiver - worse than no record. Merge them into one." xml:space="preserve">
     <value>{1} には "v=spf1" で始まるレコードが {0} 件あります。RFC 7208 では、これはすべての受信側で恒久的な SPF エラーになります。レコードがないより悪い状態です。1 つにまとめてください。</value>
   </data>
+  <data name="{0} remote domain policies" xml:space="preserve">
+    <value>リモートドメインのポリシー {0} 件</value>
+  </data>
   <data name="{0} row(s) need reading before you apply - a skipped entry is a mailbox somebody expects and will not get, and a disabled one is a mailbox being taken away." xml:space="preserve">
     <value>適用する前に読むべき行が {0} 件あります。スキップされたエントリは、誰かが期待しているのに手に入らないメールボックスであり、無効にされたエントリは取り上げられるメールボックスです。</value>
   </data>
   <data name="{0} rule(s), evaluated top to bottom." xml:space="preserve">
     <value>{0} 件のルール。上から順に評価されます。</value>
+  </data>
+  <data name="{0} rules" xml:space="preserve">
+    <value>ルール {0} 件</value>
   </data>
   <data name="{0} samples copied to the clipboard." xml:space="preserve">
     <value>{0} 件のサンプルをクリップボードにコピーしました。</value>
@@ -14734,6 +14809,12 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="{0} scores {1} on its own, which reaches the {2} at which the server stops testing - so {3} will not run for a message it fails, and will not appear in the log." xml:space="preserve">
     <value>{0} は単独で {1} のスコアを付け、これはサーバーがテストを打ち切る {2} に達します。そのため、これに失敗したメッセージについて {3} は実行されず、ログにも現れません。</value>
+  </data>
+  <data name="{0} security groups" xml:space="preserve">
+    <value>セキュリティ グループ {0} 件</value>
+  </data>
+  <data name="{0} server messages" xml:space="preserve">
+    <value>サーバー メッセージ {0} 件</value>
   </data>
   <data name="{0} setting(s) could not be read — {1}" xml:space="preserve">
     <value>{0} 件の設定を読み取れませんでした — {1}</value>
@@ -14779,6 +14860,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="{0} was removed: {1} mailbox(es), {2} distribution list(s), {3} rule(s) and {4} message(s) went with it." xml:space="preserve">
     <value>{0} を削除しました: メールボックス {1} 件、配布リスト {2} 件、ルール {3} 件、メッセージ {4} 件が一緒に削除されました。</value>
+  </data>
+  <data name="{0} white-list entries" xml:space="preserve">
+    <value>ホワイト リストのエントリ {0} 件</value>
   </data>
   <data name="{0} with full authority" xml:space="preserve">
     <value>{0} 件は完全な権限</value>

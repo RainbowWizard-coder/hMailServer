@@ -305,17 +305,35 @@ Czy mimo to zapisać to słabe hasło?</value>
   <data name="1 DNS record is still being checked in the background; this summary will update." xml:space="preserve">
     <value>1 rekord DNS jest wciąż sprawdzany w tle; to podsumowanie zostanie zaktualizowane.</value>
   </data>
+  <data name="1 IP address" xml:space="preserve">
+    <value>Adresy IP: 1</value>
+  </data>
+  <data name="1 SURBL server" xml:space="preserve">
+    <value>Serwery SURBL: 1</value>
+  </data>
   <data name="1 account is a member." xml:space="preserve">
     <value>Członkiem jest 1 konto.</value>
   </data>
   <data name="1 address listed." xml:space="preserve">
     <value>1 adres na liście.</value>
   </data>
+  <data name="1 alias" xml:space="preserve">
+    <value>Aliasy: 1</value>
+  </data>
   <data name="1 app password." xml:space="preserve">
     <value>1 hasło aplikacji.</value>
   </data>
+  <data name="1 blacklist" xml:space="preserve">
+    <value>Czarne listy: 1</value>
+  </data>
+  <data name="1 blocked sender" xml:space="preserve">
+    <value>Zablokowani nadawcy: 1</value>
+  </data>
   <data name="1 by default." xml:space="preserve">
     <value>Domyślnie 1.</value>
+  </data>
+  <data name="1 bypass entry" xml:space="preserve">
+    <value>Wyjątki: 1</value>
   </data>
   <data name="1 day" xml:space="preserve">
     <value>1 dzień</value>
@@ -323,14 +341,26 @@ Czy mimo to zapisać to słabe hasło?</value>
   <data name="1 event." xml:space="preserve">
     <value>1 zdarzenie.</value>
   </data>
+  <data name="1 external account" xml:space="preserve">
+    <value>Konta zewnętrzne: 1</value>
+  </data>
   <data name="1 hour ago" xml:space="preserve">
     <value>godzinę temu</value>
+  </data>
+  <data name="1 item" xml:space="preserve">
+    <value>Pozycje: 1</value>
   </data>
   <data name="1 item cannot be checked from here" xml:space="preserve">
     <value>1 pozycji nie da się sprawdzić z tego miejsca</value>
   </data>
   <data name="1 item cannot be checked from here." xml:space="preserve">
     <value>1 pozycji nie da się sprawdzić z tego miejsca.</value>
+  </data>
+  <data name="1 key" xml:space="preserve">
+    <value>Klucze: 1</value>
+  </data>
+  <data name="1 list entry" xml:space="preserve">
+    <value>Wpisy listy: 1</value>
   </data>
   <data name="1 message" xml:space="preserve">
     <value>1 wiadomość</value>
@@ -350,14 +380,29 @@ Czy mimo to zapisać to słabe hasło?</value>
   <data name="1 refuses a password that has appeared in the corpus even once." xml:space="preserve">
     <value>1 odrzuca hasło, które pojawiło się w zbiorze choćby raz.</value>
   </data>
+  <data name="1 remote domain policy" xml:space="preserve">
+    <value>Zasady dla domen zdalnych: 1</value>
+  </data>
+  <data name="1 rule" xml:space="preserve">
+    <value>Reguły: 1</value>
+  </data>
   <data name="1 sample copied to the clipboard." xml:space="preserve">
     <value>Skopiowano 1 próbkę do schowka.</value>
   </data>
   <data name="1 sample." xml:space="preserve">
     <value>1 próbka.</value>
   </data>
+  <data name="1 security group" xml:space="preserve">
+    <value>Grupy zabezpieczeń: 1</value>
+  </data>
+  <data name="1 server message" xml:space="preserve">
+    <value>Komunikaty serwera: 1</value>
+  </data>
   <data name="1 thing needs attention" xml:space="preserve">
     <value>1 rzecz wymaga uwagi</value>
+  </data>
+  <data name="1 white-list entry" xml:space="preserve">
+    <value>Wpisy białej listy: 1</value>
   </data>
   <data name="1.  Scan this QR code with an authenticator app (Microsoft Authenticator, Google Authenticator, Authy, 1Password…)." xml:space="preserve">
     <value>1.  Zeskanuj ten kod QR aplikacją uwierzytelniającą (Microsoft Authenticator, Google Authenticator, Authy, 1Password…).</value>
@@ -13868,12 +13913,6 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="keep a copy of every message" xml:space="preserve">
     <value>zachowaj kopię każdej wiadomości</value>
   </data>
-  <data name="key" xml:space="preserve">
-    <value>klucz</value>
-  </data>
-  <data name="keys" xml:space="preserve">
-    <value>klucze</value>
-  </data>
   <data name="last hour" xml:space="preserve">
     <value>ostatnia godzina</value>
   </data>
@@ -14423,6 +14462,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="{0} DNS records are still being checked in the background; this summary will update." xml:space="preserve">
     <value>{0} rekordów DNS jest wciąż sprawdzanych w tle; to podsumowanie zostanie zaktualizowane.</value>
   </data>
+  <data name="{0} IP addresses" xml:space="preserve">
+    <value>Adresy IP: {0}</value>
+  </data>
   <data name="{0} If a virus is found, the attachments are stripped and the message is still delivered." xml:space="preserve">
     <value>{0} Jeśli zostanie znaleziony wirus, załączniki są usuwane, a wiadomość mimo to jest dostarczana.</value>
   </data>
@@ -14434,6 +14476,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="{0} KB ({1} MB)" xml:space="preserve">
     <value>{0} KB ({1} MB)</value>
+  </data>
+  <data name="{0} SURBL servers" xml:space="preserve">
+    <value>Serwery SURBL: {0}</value>
   </data>
   <data name="{0} TXT record(s) exist at {1}, but none begins &quot;v=DMARC1&quot;, so receivers - and this server's own DMARC check - see no policy." xml:space="preserve">
     <value>Pod adresem {1} istnieje {0} rekordów TXT, ale żaden nie zaczyna się od „v=DMARC1”, więc odbiorcy - i własna kontrola DMARC tego serwera - nie widzą żadnej polityki.</value>
@@ -14465,6 +14510,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="{0} addresses listed." xml:space="preserve">
     <value>Adresów na liście: {0}.</value>
   </data>
+  <data name="{0} aliases" xml:space="preserve">
+    <value>Aliasy: {0}</value>
+  </data>
   <data name="{0} and {1}" xml:space="preserve">
     <value>{0} i {1}</value>
   </data>
@@ -14480,8 +14528,17 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="{0} app passwords." xml:space="preserve">
     <value>{0} haseł aplikacji.</value>
   </data>
+  <data name="{0} blacklists" xml:space="preserve">
+    <value>Czarne listy: {0}</value>
+  </data>
+  <data name="{0} blocked senders" xml:space="preserve">
+    <value>Zablokowani nadawcy: {0}</value>
+  </data>
   <data name="{0} blocked-attachment patterns are configured but attachment blocking is switched off, so none of them is applied." xml:space="preserve">
     <value>Wzorce blokowanych załączników w konfiguracji: {0}; blokowanie załączników jest jednak wyłączone, więc żaden z nich nie jest stosowany.</value>
+  </data>
+  <data name="{0} bypass entries" xml:space="preserve">
+    <value>Wyjątki: {0}</value>
   </data>
   <data name="{0} case(s). Select one for its lines on the audit trail." xml:space="preserve">
     <value>Spraw: {0}. Wybierz jedną, aby zobaczyć jej wiersze w dzienniku audytu.</value>
@@ -14542,6 +14599,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="{0} external POP3 fetch accounts have anti-virus turned off, so mail collected by them is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page." xml:space="preserve">
     <value>Na {0} zewnętrznych kontach pobierania POP3 antywirus jest wyłączony, więc poczta pobierana przez te konta jest dostarczana bez skanowania, niezależnie od tego, co ustawiono tutaj. Przełącznik jest na koncie pobierania, a nie na tej stronie.</value>
+  </data>
+  <data name="{0} external accounts" xml:space="preserve">
+    <value>Konta zewnętrzne: {0}</value>
   </data>
   <data name="{0} has been moved to {1}." xml:space="preserve">
     <value>{0} została przeniesiona do {1}.</value>
@@ -14612,14 +14672,23 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="{0} is {1} again." xml:space="preserve">
     <value>{0} to znów {1}.</value>
   </data>
+  <data name="{0} items" xml:space="preserve">
+    <value>Pozycje: {0}</value>
+  </data>
   <data name="{0} items cannot be checked from here" xml:space="preserve">
     <value>{0} pozycji nie da się sprawdzić z tego miejsca</value>
   </data>
   <data name="{0} items cannot be checked from here." xml:space="preserve">
     <value>{0} pozycji nie da się sprawdzić z tego miejsca.</value>
   </data>
+  <data name="{0} keys" xml:space="preserve">
+    <value>Klucze: {0}</value>
+  </data>
   <data name="{0} latest {1}" xml:space="preserve">
     <value>{0}: ostatnio {1}</value>
+  </data>
+  <data name="{0} list entries" xml:space="preserve">
+    <value>Wpisy listy: {0}</value>
   </data>
   <data name="{0} listeners are configured for TLS but cannot serve it, so those ports are not listening at all." xml:space="preserve">
     <value>Nasłuchy skonfigurowane dla TLS, którego nie da się tam obsłużyć: {0}; te porty w ogóle nie nasłuchują.</value>
@@ -14711,11 +14780,17 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="{0} records beginning &quot;v=spf1&quot; exist at {1}. RFC 7208 makes that a permanent SPF error at every receiver - worse than no record. Merge them into one." xml:space="preserve">
     <value>Pod adresem {1} istnieje {0} rekordów zaczynających się od „v=spf1”. RFC 7208 czyni z tego trwały błąd SPF u każdego odbiorcy - gorszy niż brak rekordu. Należy scalić je w jeden.</value>
   </data>
+  <data name="{0} remote domain policies" xml:space="preserve">
+    <value>Zasady dla domen zdalnych: {0}</value>
+  </data>
   <data name="{0} row(s) need reading before you apply - a skipped entry is a mailbox somebody expects and will not get, and a disabled one is a mailbox being taken away." xml:space="preserve">
     <value>{0} wierszy wymaga przeczytania przed zastosowaniem zmian - pominięty wpis to skrzynka pocztowa, której ktoś oczekuje, a jej nie dostanie, natomiast wpis wyłączony to skrzynka pocztowa komuś odbierana.</value>
   </data>
   <data name="{0} rule(s), evaluated top to bottom." xml:space="preserve">
     <value>{0} reguł, przetwarzanych od góry do dołu.</value>
+  </data>
+  <data name="{0} rules" xml:space="preserve">
+    <value>Reguły: {0}</value>
   </data>
   <data name="{0} samples copied to the clipboard." xml:space="preserve">
     <value>Skopiowano {0} próbek do schowka.</value>
@@ -14734,6 +14809,12 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="{0} scores {1} on its own, which reaches the {2} at which the server stops testing - so {3} will not run for a message it fails, and will not appear in the log." xml:space="preserve">
     <value>{0} sam w sobie daje punktację {1}, co osiąga {2} - wartość, przy której serwer przerywa dalsze kontrole - więc {3} nie zostanie uruchomione dla wiadomości, która go nie przejdzie, i nie pojawi się w dzienniku.</value>
+  </data>
+  <data name="{0} security groups" xml:space="preserve">
+    <value>Grupy zabezpieczeń: {0}</value>
+  </data>
+  <data name="{0} server messages" xml:space="preserve">
+    <value>Komunikaty serwera: {0}</value>
   </data>
   <data name="{0} setting(s) could not be read — {1}" xml:space="preserve">
     <value>Nie udało się odczytać {0} ustawień — {1}</value>
@@ -14779,6 +14860,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="{0} was removed: {1} mailbox(es), {2} distribution list(s), {3} rule(s) and {4} message(s) went with it." xml:space="preserve">
     <value>Usunięto {0}: zniknęło {1} skrzynek, {2} list dystrybucyjnych, {3} reguł i {4} wiadomości.</value>
+  </data>
+  <data name="{0} white-list entries" xml:space="preserve">
+    <value>Wpisy białej listy: {0}</value>
   </data>
   <data name="{0} with full authority" xml:space="preserve">
     <value>{0} z pełnymi uprawnieniami</value>

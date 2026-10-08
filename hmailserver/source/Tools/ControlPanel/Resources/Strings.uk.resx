@@ -305,17 +305,35 @@
   <data name="1 DNS record is still being checked in the background; this summary will update." xml:space="preserve">
     <value>1 DNS-запис ще перевіряється у фоновому режимі; цей підсумок оновиться.</value>
   </data>
+  <data name="1 IP address" xml:space="preserve">
+    <value>IP-адрес: 1</value>
+  </data>
+  <data name="1 SURBL server" xml:space="preserve">
+    <value>Серверів SURBL: 1</value>
+  </data>
   <data name="1 account is a member." xml:space="preserve">
     <value>1 обліковий запис є учасником.</value>
   </data>
   <data name="1 address listed." xml:space="preserve">
     <value>1 адреса у списку.</value>
   </data>
+  <data name="1 alias" xml:space="preserve">
+    <value>Псевдонімів: 1</value>
+  </data>
   <data name="1 app password." xml:space="preserve">
     <value>1 пароль програми.</value>
   </data>
+  <data name="1 blacklist" xml:space="preserve">
+    <value>Чорних списків: 1</value>
+  </data>
+  <data name="1 blocked sender" xml:space="preserve">
+    <value>Заблокованих відправників: 1</value>
+  </data>
   <data name="1 by default." xml:space="preserve">
     <value>Типово 1.</value>
+  </data>
+  <data name="1 bypass entry" xml:space="preserve">
+    <value>Винятків: 1</value>
   </data>
   <data name="1 day" xml:space="preserve">
     <value>1 день</value>
@@ -323,14 +341,26 @@
   <data name="1 event." xml:space="preserve">
     <value>1 подія.</value>
   </data>
+  <data name="1 external account" xml:space="preserve">
+    <value>Зовнішніх облікових записів: 1</value>
+  </data>
   <data name="1 hour ago" xml:space="preserve">
     <value>1 годину тому</value>
+  </data>
+  <data name="1 item" xml:space="preserve">
+    <value>Пунктів: 1</value>
   </data>
   <data name="1 item cannot be checked from here" xml:space="preserve">
     <value>1 пункт неможливо перевірити звідси</value>
   </data>
   <data name="1 item cannot be checked from here." xml:space="preserve">
     <value>1 пункт неможливо перевірити звідси.</value>
+  </data>
+  <data name="1 key" xml:space="preserve">
+    <value>Ключів: 1</value>
+  </data>
+  <data name="1 list entry" xml:space="preserve">
+    <value>Записів списку: 1</value>
   </data>
   <data name="1 message" xml:space="preserve">
     <value>1 повідомлення</value>
@@ -350,14 +380,29 @@
   <data name="1 refuses a password that has appeared in the corpus even once." xml:space="preserve">
     <value>1 відхиляє пароль, який трапився в базі хоча б один раз.</value>
   </data>
+  <data name="1 remote domain policy" xml:space="preserve">
+    <value>Правил для зовнішніх доменів: 1</value>
+  </data>
+  <data name="1 rule" xml:space="preserve">
+    <value>Правил: 1</value>
+  </data>
   <data name="1 sample copied to the clipboard." xml:space="preserve">
     <value>1 зразок скопійовано до буфера обміну.</value>
   </data>
   <data name="1 sample." xml:space="preserve">
     <value>1 зразок.</value>
   </data>
+  <data name="1 security group" xml:space="preserve">
+    <value>Груп безпеки: 1</value>
+  </data>
+  <data name="1 server message" xml:space="preserve">
+    <value>Повідомлень сервера: 1</value>
+  </data>
   <data name="1 thing needs attention" xml:space="preserve">
     <value>1 пункт потребує уваги</value>
+  </data>
+  <data name="1 white-list entry" xml:space="preserve">
+    <value>Записів білого списку: 1</value>
   </data>
   <data name="1.  Scan this QR code with an authenticator app (Microsoft Authenticator, Google Authenticator, Authy, 1Password…)." xml:space="preserve">
     <value>1.  Відскануйте цей QR-код програмою автентифікації (Microsoft Authenticator, Google Authenticator, Authy, 1Password…).</value>
@@ -13868,12 +13913,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="keep a copy of every message" xml:space="preserve">
     <value>зберігати копію кожного повідомлення</value>
   </data>
-  <data name="key" xml:space="preserve">
-    <value>ключ</value>
-  </data>
-  <data name="keys" xml:space="preserve">
-    <value>ключів</value>
-  </data>
   <data name="last hour" xml:space="preserve">
     <value>остання година</value>
   </data>
@@ -14423,6 +14462,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0} DNS records are still being checked in the background; this summary will update." xml:space="preserve">
     <value>{0} DNS-записів ще перевіряються у фоновому режимі; цей підсумок оновиться.</value>
   </data>
+  <data name="{0} IP addresses" xml:space="preserve">
+    <value>IP-адрес: {0}</value>
+  </data>
   <data name="{0} If a virus is found, the attachments are stripped and the message is still delivered." xml:space="preserve">
     <value>{0} Якщо знайдено вірус, вкладення вилучаються, а повідомлення все одно доставляється.</value>
   </data>
@@ -14434,6 +14476,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="{0} KB ({1} MB)" xml:space="preserve">
     <value>{0} КБ ({1} МБ)</value>
+  </data>
+  <data name="{0} SURBL servers" xml:space="preserve">
+    <value>Серверів SURBL: {0}</value>
   </data>
   <data name="{0} TXT record(s) exist at {1}, but none begins &quot;v=DMARC1&quot;, so receivers - and this server's own DMARC check - see no policy." xml:space="preserve">
     <value>За адресою {1} існує {0} TXT-записів, але жоден не починається з "v=DMARC1", тому отримувачі — і власна перевірка DMARC цього сервера — не бачать політики.</value>
@@ -14465,6 +14510,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0} addresses listed." xml:space="preserve">
     <value>Адрес у списку: {0}.</value>
   </data>
+  <data name="{0} aliases" xml:space="preserve">
+    <value>Псевдонімів: {0}</value>
+  </data>
   <data name="{0} and {1}" xml:space="preserve">
     <value>{0} і {1}</value>
   </data>
@@ -14480,8 +14528,17 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0} app passwords." xml:space="preserve">
     <value>{0} паролів програм.</value>
   </data>
+  <data name="{0} blacklists" xml:space="preserve">
+    <value>Чорних списків: {0}</value>
+  </data>
+  <data name="{0} blocked senders" xml:space="preserve">
+    <value>Заблокованих відправників: {0}</value>
+  </data>
   <data name="{0} blocked-attachment patterns are configured but attachment blocking is switched off, so none of them is applied." xml:space="preserve">
     <value>Шаблонів блокування вкладень налаштовано: {0}; блокування вкладень вимкнено, тому жоден із них не застосовується.</value>
+  </data>
+  <data name="{0} bypass entries" xml:space="preserve">
+    <value>Винятків: {0}</value>
   </data>
   <data name="{0} case(s). Select one for its lines on the audit trail." xml:space="preserve">
     <value>Справ: {0}. Виберіть одну, щоб побачити її рядки в журналі аудиту.</value>
@@ -14542,6 +14599,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="{0} external POP3 fetch accounts have anti-virus turned off, so mail collected by them is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page." xml:space="preserve">
     <value>У {0} зовнішніх облікових записів збирання POP3 антивірус вимкнено, тому зібрана ними пошта доставляється без сканування, хай що тут задано. Перемикач на обліковому записі збирання, а не на цій сторінці.</value>
+  </data>
+  <data name="{0} external accounts" xml:space="preserve">
+    <value>Зовнішніх облікових записів: {0}</value>
   </data>
   <data name="{0} has been moved to {1}." xml:space="preserve">
     <value>{0} перенесено на {1}.</value>
@@ -14612,14 +14672,23 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0} is {1} again." xml:space="preserve">
     <value>{0} знову {1}.</value>
   </data>
+  <data name="{0} items" xml:space="preserve">
+    <value>Пунктів: {0}</value>
+  </data>
   <data name="{0} items cannot be checked from here" xml:space="preserve">
     <value>{0} пунктів неможливо перевірити звідси</value>
   </data>
   <data name="{0} items cannot be checked from here." xml:space="preserve">
     <value>{0} пунктів неможливо перевірити звідси.</value>
   </data>
+  <data name="{0} keys" xml:space="preserve">
+    <value>Ключів: {0}</value>
+  </data>
   <data name="{0} latest {1}" xml:space="preserve">
     <value>{0}: останнє {1}</value>
+  </data>
+  <data name="{0} list entries" xml:space="preserve">
+    <value>Записів списку: {0}</value>
   </data>
   <data name="{0} listeners are configured for TLS but cannot serve it, so those ports are not listening at all." xml:space="preserve">
     <value>Слухачів, налаштованих для TLS, які не можуть його надати: {0}; ці порти взагалі не прослуховуються.</value>
@@ -14711,11 +14780,17 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0} records beginning &quot;v=spf1&quot; exist at {1}. RFC 7208 makes that a permanent SPF error at every receiver - worse than no record. Merge them into one." xml:space="preserve">
     <value>За адресою {1} існує {0} записів, що починаються з "v=spf1". За RFC 7208 це постійна помилка SPF у кожного отримувача — гірше, ніж відсутність запису. Об’єднайте їх в один.</value>
   </data>
+  <data name="{0} remote domain policies" xml:space="preserve">
+    <value>Правил для зовнішніх доменів: {0}</value>
+  </data>
   <data name="{0} row(s) need reading before you apply - a skipped entry is a mailbox somebody expects and will not get, and a disabled one is a mailbox being taken away." xml:space="preserve">
     <value>{0} рядків потрібно прочитати перед застосуванням — пропущений запис означає поштову скриньку, на яку хтось розраховує й не отримає, а вимкнений — поштову скриньку, яку забирають.</value>
   </data>
   <data name="{0} rule(s), evaluated top to bottom." xml:space="preserve">
     <value>{0} правил, оцінюються згори донизу.</value>
+  </data>
+  <data name="{0} rules" xml:space="preserve">
+    <value>Правил: {0}</value>
   </data>
   <data name="{0} samples copied to the clipboard." xml:space="preserve">
     <value>{0} зразків скопійовано до буфера обміну.</value>
@@ -14734,6 +14809,12 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="{0} scores {1} on its own, which reaches the {2} at which the server stops testing - so {3} will not run for a message it fails, and will not appear in the log." xml:space="preserve">
     <value>{0} сама по собі дає {1}, що досягає {2}, на якому сервер припиняє перевірку, — тому {3} не виконуватиметься для повідомлення, яке її не проходить, і не з’явиться в журналі.</value>
+  </data>
+  <data name="{0} security groups" xml:space="preserve">
+    <value>Груп безпеки: {0}</value>
+  </data>
+  <data name="{0} server messages" xml:space="preserve">
+    <value>Повідомлень сервера: {0}</value>
   </data>
   <data name="{0} setting(s) could not be read — {1}" xml:space="preserve">
     <value>{0} параметрів не вдалося прочитати — {1}</value>
@@ -14779,6 +14860,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="{0} was removed: {1} mailbox(es), {2} distribution list(s), {3} rule(s) and {4} message(s) went with it." xml:space="preserve">
     <value>{0} вилучено: разом з ним пішли {1} скриньок, {2} списків розсилки, {3} правил і {4} повідомлень.</value>
+  </data>
+  <data name="{0} white-list entries" xml:space="preserve">
+    <value>Записів білого списку: {0}</value>
   </data>
   <data name="{0} with full authority" xml:space="preserve">
     <value>{0} з повними повноваженнями</value>

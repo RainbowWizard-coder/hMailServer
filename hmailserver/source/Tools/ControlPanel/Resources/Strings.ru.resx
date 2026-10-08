@@ -305,17 +305,35 @@
   <data name="1 DNS record is still being checked in the background; this summary will update." xml:space="preserve">
     <value>1 запись DNS всё ещё проверяется в фоне; эта сводка будет обновлена.</value>
   </data>
+  <data name="1 IP address" xml:space="preserve">
+    <value>IP-адресов: 1</value>
+  </data>
+  <data name="1 SURBL server" xml:space="preserve">
+    <value>Серверов SURBL: 1</value>
+  </data>
   <data name="1 account is a member." xml:space="preserve">
     <value>1 учётная запись входит в группу.</value>
   </data>
   <data name="1 address listed." xml:space="preserve">
     <value>1 адрес в списке.</value>
   </data>
+  <data name="1 alias" xml:space="preserve">
+    <value>Псевдонимов: 1</value>
+  </data>
   <data name="1 app password." xml:space="preserve">
     <value>1 пароль приложения.</value>
   </data>
+  <data name="1 blacklist" xml:space="preserve">
+    <value>Чёрных списков: 1</value>
+  </data>
+  <data name="1 blocked sender" xml:space="preserve">
+    <value>Заблокированных отправителей: 1</value>
+  </data>
   <data name="1 by default." xml:space="preserve">
     <value>По умолчанию 1.</value>
+  </data>
+  <data name="1 bypass entry" xml:space="preserve">
+    <value>Исключений: 1</value>
   </data>
   <data name="1 day" xml:space="preserve">
     <value>1 день</value>
@@ -323,14 +341,26 @@
   <data name="1 event." xml:space="preserve">
     <value>1 событие.</value>
   </data>
+  <data name="1 external account" xml:space="preserve">
+    <value>Внешних учётных записей: 1</value>
+  </data>
   <data name="1 hour ago" xml:space="preserve">
     <value>1 час назад</value>
+  </data>
+  <data name="1 item" xml:space="preserve">
+    <value>Элементов: 1</value>
   </data>
   <data name="1 item cannot be checked from here" xml:space="preserve">
     <value>1 пункт невозможно проверить отсюда</value>
   </data>
   <data name="1 item cannot be checked from here." xml:space="preserve">
     <value>1 пункт невозможно проверить отсюда.</value>
+  </data>
+  <data name="1 key" xml:space="preserve">
+    <value>Ключей: 1</value>
+  </data>
+  <data name="1 list entry" xml:space="preserve">
+    <value>Записей списка: 1</value>
   </data>
   <data name="1 message" xml:space="preserve">
     <value>1 сообщение</value>
@@ -350,14 +380,29 @@
   <data name="1 refuses a password that has appeared in the corpus even once." xml:space="preserve">
     <value>1 отклоняет пароль, который встретился в базе хотя бы один раз.</value>
   </data>
+  <data name="1 remote domain policy" xml:space="preserve">
+    <value>Правил для внешних доменов: 1</value>
+  </data>
+  <data name="1 rule" xml:space="preserve">
+    <value>Правил: 1</value>
+  </data>
   <data name="1 sample copied to the clipboard." xml:space="preserve">
     <value>1 образец скопирован в буфер обмена.</value>
   </data>
   <data name="1 sample." xml:space="preserve">
     <value>1 образец.</value>
   </data>
+  <data name="1 security group" xml:space="preserve">
+    <value>Групп безопасности: 1</value>
+  </data>
+  <data name="1 server message" xml:space="preserve">
+    <value>Сообщений сервера: 1</value>
+  </data>
   <data name="1 thing needs attention" xml:space="preserve">
     <value>1 пункт требует внимания</value>
+  </data>
+  <data name="1 white-list entry" xml:space="preserve">
+    <value>Записей белого списка: 1</value>
   </data>
   <data name="1.  Scan this QR code with an authenticator app (Microsoft Authenticator, Google Authenticator, Authy, 1Password…)." xml:space="preserve">
     <value>1.  Отсканируйте этот QR-код приложением-аутентификатором (Microsoft Authenticator, Google Authenticator, Authy, 1Password…).</value>
@@ -13868,12 +13913,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="keep a copy of every message" xml:space="preserve">
     <value>хранить копию каждого сообщения</value>
   </data>
-  <data name="key" xml:space="preserve">
-    <value>ключ</value>
-  </data>
-  <data name="keys" xml:space="preserve">
-    <value>ключей</value>
-  </data>
   <data name="last hour" xml:space="preserve">
     <value>последний час</value>
   </data>
@@ -14423,6 +14462,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0} DNS records are still being checked in the background; this summary will update." xml:space="preserve">
     <value>Записей DNS проверяется в фоне: {0}; эта сводка будет обновлена.</value>
   </data>
+  <data name="{0} IP addresses" xml:space="preserve">
+    <value>IP-адресов: {0}</value>
+  </data>
   <data name="{0} If a virus is found, the attachments are stripped and the message is still delivered." xml:space="preserve">
     <value>{0} Если вирус найден, вложения удаляются, а сообщение всё равно доставляется.</value>
   </data>
@@ -14434,6 +14476,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0} KB ({1} MB)" xml:space="preserve">
     <value>{0} КБ ({1} МБ)</value>
+  </data>
+  <data name="{0} SURBL servers" xml:space="preserve">
+    <value>Серверов SURBL: {0}</value>
   </data>
   <data name="{0} TXT record(s) exist at {1}, but none begins &quot;v=DMARC1&quot;, so receivers - and this server's own DMARC check - see no policy." xml:space="preserve">
     <value>Записей TXT по адресу {1}: {0}, но ни одна не начинается с «v=DMARC1», поэтому получатели — и собственная проверка DMARC этого сервера — не видят никакой политики.</value>
@@ -14465,6 +14510,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0} addresses listed." xml:space="preserve">
     <value>Адресов в списке: {0}.</value>
   </data>
+  <data name="{0} aliases" xml:space="preserve">
+    <value>Псевдонимов: {0}</value>
+  </data>
   <data name="{0} and {1}" xml:space="preserve">
     <value>{0} и {1}</value>
   </data>
@@ -14480,8 +14528,17 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0} app passwords." xml:space="preserve">
     <value>Паролей приложений: {0}.</value>
   </data>
+  <data name="{0} blacklists" xml:space="preserve">
+    <value>Чёрных списков: {0}</value>
+  </data>
+  <data name="{0} blocked senders" xml:space="preserve">
+    <value>Заблокированных отправителей: {0}</value>
+  </data>
   <data name="{0} blocked-attachment patterns are configured but attachment blocking is switched off, so none of them is applied." xml:space="preserve">
     <value>Шаблонов блокируемых вложений настроено: {0}; блокировка вложений выключена, поэтому ни один из них не применяется.</value>
+  </data>
+  <data name="{0} bypass entries" xml:space="preserve">
+    <value>Исключений: {0}</value>
   </data>
   <data name="{0} case(s). Select one for its lines on the audit trail." xml:space="preserve">
     <value>Дел: {0}. Выберите одно, чтобы увидеть его строки в журнале аудита.</value>
@@ -14542,6 +14599,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0} external POP3 fetch accounts have anti-virus turned off, so mail collected by them is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page." xml:space="preserve">
     <value>У {0} внешних учётных записей сбора POP3 антивирус выключен, поэтому собираемая ими почта доставляется без проверки, что бы здесь ни было задано. Переключатель находится на учётной записи сбора почты, а не на этой странице.</value>
+  </data>
+  <data name="{0} external accounts" xml:space="preserve">
+    <value>Внешних учётных записей: {0}</value>
   </data>
   <data name="{0} has been moved to {1}." xml:space="preserve">
     <value>{0} перенесён на {1}.</value>
@@ -14612,14 +14672,23 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0} is {1} again." xml:space="preserve">
     <value>{0} снова {1}.</value>
   </data>
+  <data name="{0} items" xml:space="preserve">
+    <value>Элементов: {0}</value>
+  </data>
   <data name="{0} items cannot be checked from here" xml:space="preserve">
     <value>Пунктов, которые невозможно проверить отсюда: {0}</value>
   </data>
   <data name="{0} items cannot be checked from here." xml:space="preserve">
     <value>Пунктов, которые невозможно проверить отсюда: {0}.</value>
   </data>
+  <data name="{0} keys" xml:space="preserve">
+    <value>Ключей: {0}</value>
+  </data>
   <data name="{0} latest {1}" xml:space="preserve">
     <value>{0}: последнее {1}</value>
+  </data>
+  <data name="{0} list entries" xml:space="preserve">
+    <value>Записей списка: {0}</value>
   </data>
   <data name="{0} listeners are configured for TLS but cannot serve it, so those ports are not listening at all." xml:space="preserve">
     <value>Прослушивателей, настроенных для TLS, но не способных его предоставить: {0}; эти порты вообще не прослушиваются.</value>
@@ -14711,11 +14780,17 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0} records beginning &quot;v=spf1&quot; exist at {1}. RFC 7208 makes that a permanent SPF error at every receiver - worse than no record. Merge them into one." xml:space="preserve">
     <value>По адресу {1} существует {0} записей, начинающихся с «v=spf1». По RFC 7208 это постоянная ошибка SPF у каждого получателя — хуже, чем полное отсутствие записи. Объедините их в одну.</value>
   </data>
+  <data name="{0} remote domain policies" xml:space="preserve">
+    <value>Правил для внешних доменов: {0}</value>
+  </data>
   <data name="{0} row(s) need reading before you apply - a skipped entry is a mailbox somebody expects and will not get, and a disabled one is a mailbox being taken away." xml:space="preserve">
     <value>Перед применением нужно прочитать строк: {0} — пропущенная запись означает почтовый ящик, которого кто-то ждёт и не получит, а отключённая — почтовый ящик, который отбирают.</value>
   </data>
   <data name="{0} rule(s), evaluated top to bottom." xml:space="preserve">
     <value>Правил: {0}, обрабатываются сверху вниз.</value>
+  </data>
+  <data name="{0} rules" xml:space="preserve">
+    <value>Правил: {0}</value>
   </data>
   <data name="{0} samples copied to the clipboard." xml:space="preserve">
     <value>Скопировано образцов в буфер обмена: {0}.</value>
@@ -14734,6 +14809,12 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0} scores {1} on its own, which reaches the {2} at which the server stops testing - so {3} will not run for a message it fails, and will not appear in the log." xml:space="preserve">
     <value>{0} сам по себе даёт оценку {1} — это уже {2}, при котором сервер прекращает проверки, поэтому {3} не будет выполняться для сообщения, не прошедшего эту проверку, и не появится в журнале.</value>
+  </data>
+  <data name="{0} security groups" xml:space="preserve">
+    <value>Групп безопасности: {0}</value>
+  </data>
+  <data name="{0} server messages" xml:space="preserve">
+    <value>Сообщений сервера: {0}</value>
   </data>
   <data name="{0} setting(s) could not be read — {1}" xml:space="preserve">
     <value>Не удалось прочитать параметров: {0} — {1}</value>
@@ -14779,6 +14860,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0} was removed: {1} mailbox(es), {2} distribution list(s), {3} rule(s) and {4} message(s) went with it." xml:space="preserve">
     <value>{0} удалён: вместе с ним ушли {1} почтовых ящиков, {2} списков рассылки, {3} правил и {4} сообщений.</value>
+  </data>
+  <data name="{0} white-list entries" xml:space="preserve">
+    <value>Записей белого списка: {0}</value>
   </data>
   <data name="{0} with full authority" xml:space="preserve">
     <value>{0} с полными правами</value>

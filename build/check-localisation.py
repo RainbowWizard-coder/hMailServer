@@ -40,6 +40,10 @@ What is checked
   * No C# source splits a sentence around a value with its closing
     punctuation left as a literal - L("... followed by @") + domain + "." -
     since its translator cannot place the value; F("... @{0}.", domain).
+  * No C# source joins a count to a text with a space - rows.Count + " " +
+    noun, or n + " " + (n == 1 ? one : many) - since the noun is translated
+    alone and the code then inflects it in English; one text per number,
+    L("1 item") and F("{0} items", n), lets each language count its own way.
 
 Usage: python3 build/check-localisation.py [--write] [--inventory] [--self-test]
   --write      regenerate Strings.resx and bring every language catalogue up
@@ -554,6 +558,22 @@ def cs_split_sentences(src):
    return [(src.count("\n", 0, m.start()) + 1, " ".join(m.group(0).split())) for m in SPLIT_SENTENCE.finditer(src)]
 
 
+# A count joined to a text with a space: rows_.Count + " " + noun, or a helper's
+# n + " " + (n == 1 ? one : many). The noun reaches its translator alone, and what
+# the code then does to it is English: the count pill read "3 Sicherheitsgruppes"
+# in German and "5 ルールs" in Japanese until 6.3.7, and "2 Scanner" lost its
+# verb in the anti-virus verdict. One text per number - L("1 item") and
+# F("{0} items", n) - lets each language count its own way. A name joined to
+# a number (protocol + " " + port) is not a count and is not this.
+COUNT_JOINED = re.compile(r"(?:\.Count|\.Length|\b(?:count|total|n))\s*\+\s*\"\s\"\s*\+")
+
+
+def cs_counts_joined(src):
+   """(line, code) for every count joined to a text with a space."""
+   return [(src.count("\n", 0, m.start()) + 1, " ".join(src[m.start():m.end() + 40].split()))
+           for m in COUNT_JOINED.finditer(src)]
+
+
 # --- main -------------------------------------------------------------------------
 
 def mnemonic_key(caption):
@@ -736,6 +756,25 @@ def self_test():
          print(f"FAIL: {line!r} is {'reported' if found else 'not reported'} as a sentence split around a value")
          failures += 1
 
+   counts = {
+      # (source, reported): a count joined to a text with a space is reported; one
+      # text per number, and a name joined to a number, are not
+      'countBadge_.Text = rows_.Count + " " + Pluralize(spec_.ItemNoun);': True,
+      'private static string Plural_(int count, string one, string many) => count + " " + (count == 1 ? one : many);': True,
+      'private static string Count(int n, string singular, string plural) =>\n   n + " " + (n == 1 ? singular : plural);': True,
+      'pill.Text = total + " " + L("messages");': True,
+      'countBadge_.Text = rows_.Count == 1 ? L(spec_.CountOne) : F(spec_.CountMany, rows_.Count);': False,
+      'count_.Text = count == 1 ? L("1 public folder.") : F("{0} public folders.", count);': False,
+      'string label = ProtocolName(protocol) + " " + address + ":" + port;': False,
+      'line = L("Total") + ": " + count;': False,
+      'return v.Listener.Protocol + " " + v.Listener.Port;': False,
+   }
+   for line, expected in counts.items():
+      found = bool(cs_counts_joined(line + "\n"))
+      if found != expected:
+         print(f"FAIL: {line!r} is {'reported' if found else 'not reported'} as a count joined to a text")
+         failures += 1
+
    print(f"self-test: {failures} failure(s)")
    return 1 if failures else 0
 
@@ -829,6 +868,9 @@ def main():
          for line, code in cs_split_sentences(read(path)):
             problems.append(f"{rel(path)}:{line}: a sentence split around a value, its end a literal: {code!r}; "
                             f"write it whole, F(\"... {{0}}.\", value), so that a translator can place the value")
+         for line, code in cs_counts_joined(read(path)):
+            problems.append(f"{rel(path)}:{line}: a count joined to a text with a space: {code!r}; write one text per "
+                            f"number, L(\"1 item\") and F(\"{{0}} items\", n), so that each language counts its own way")
    for path in sorted(LOCALISED):
       if not os.path.exists(os.path.join(ROOT, path)):
          problems.append(f"LOCALISED names {path}, which does not exist")

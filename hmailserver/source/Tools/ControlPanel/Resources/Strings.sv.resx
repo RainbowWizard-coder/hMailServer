@@ -305,17 +305,35 @@ Spara det här svaga lösenordet ändå?</value>
   <data name="1 DNS record is still being checked in the background; this summary will update." xml:space="preserve">
     <value>1 DNS-post kontrolleras fortfarande i bakgrunden; den här sammanfattningen uppdateras.</value>
   </data>
+  <data name="1 IP address" xml:space="preserve">
+    <value>1 IP-adress</value>
+  </data>
+  <data name="1 SURBL server" xml:space="preserve">
+    <value>1 SURBL-server</value>
+  </data>
   <data name="1 account is a member." xml:space="preserve">
     <value>1 konto är medlem.</value>
   </data>
   <data name="1 address listed." xml:space="preserve">
     <value>1 adress listad.</value>
   </data>
+  <data name="1 alias" xml:space="preserve">
+    <value>1 alias</value>
+  </data>
   <data name="1 app password." xml:space="preserve">
     <value>1 applösenord.</value>
   </data>
+  <data name="1 blacklist" xml:space="preserve">
+    <value>1 svartlista</value>
+  </data>
+  <data name="1 blocked sender" xml:space="preserve">
+    <value>1 blockerad avsändare</value>
+  </data>
   <data name="1 by default." xml:space="preserve">
     <value>1 som standard.</value>
+  </data>
+  <data name="1 bypass entry" xml:space="preserve">
+    <value>1 undantag</value>
   </data>
   <data name="1 day" xml:space="preserve">
     <value>1 dag</value>
@@ -323,14 +341,26 @@ Spara det här svaga lösenordet ändå?</value>
   <data name="1 event." xml:space="preserve">
     <value>1 händelse.</value>
   </data>
+  <data name="1 external account" xml:space="preserve">
+    <value>1 externt konto</value>
+  </data>
   <data name="1 hour ago" xml:space="preserve">
     <value>1 timme sedan</value>
+  </data>
+  <data name="1 item" xml:space="preserve">
+    <value>1 post</value>
   </data>
   <data name="1 item cannot be checked from here" xml:space="preserve">
     <value>1 punkt kan inte kontrolleras härifrån</value>
   </data>
   <data name="1 item cannot be checked from here." xml:space="preserve">
     <value>1 punkt kan inte kontrolleras härifrån.</value>
+  </data>
+  <data name="1 key" xml:space="preserve">
+    <value>1 nyckel</value>
+  </data>
+  <data name="1 list entry" xml:space="preserve">
+    <value>1 listpost</value>
   </data>
   <data name="1 message" xml:space="preserve">
     <value>1 meddelande</value>
@@ -350,14 +380,29 @@ Spara det här svaga lösenordet ändå?</value>
   <data name="1 refuses a password that has appeared in the corpus even once." xml:space="preserve">
     <value>1 avvisar ett lösenord som har förekommit i samlingen bara en enda gång.</value>
   </data>
+  <data name="1 remote domain policy" xml:space="preserve">
+    <value>1 regel för extern domän</value>
+  </data>
+  <data name="1 rule" xml:space="preserve">
+    <value>1 regel</value>
+  </data>
   <data name="1 sample copied to the clipboard." xml:space="preserve">
     <value>1 stickprov kopierat till urklipp.</value>
   </data>
   <data name="1 sample." xml:space="preserve">
     <value>1 stickprov.</value>
   </data>
+  <data name="1 security group" xml:space="preserve">
+    <value>1 säkerhetsgrupp</value>
+  </data>
+  <data name="1 server message" xml:space="preserve">
+    <value>1 servermeddelande</value>
+  </data>
   <data name="1 thing needs attention" xml:space="preserve">
     <value>1 sak behöver åtgärdas</value>
+  </data>
+  <data name="1 white-list entry" xml:space="preserve">
+    <value>1 vitlistepost</value>
   </data>
   <data name="1.  Scan this QR code with an authenticator app (Microsoft Authenticator, Google Authenticator, Authy, 1Password…)." xml:space="preserve">
     <value>1.  Skanna den här QR-koden med en autentiseringsapp (Microsoft Authenticator, Google Authenticator, Authy, 1Password…).</value>
@@ -13868,12 +13913,6 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   <data name="keep a copy of every message" xml:space="preserve">
     <value>behåll en kopia av varje meddelande</value>
   </data>
-  <data name="key" xml:space="preserve">
-    <value>nyckel</value>
-  </data>
-  <data name="keys" xml:space="preserve">
-    <value>nycklar</value>
-  </data>
   <data name="last hour" xml:space="preserve">
     <value>senaste timmen</value>
   </data>
@@ -14423,6 +14462,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   <data name="{0} DNS records are still being checked in the background; this summary will update." xml:space="preserve">
     <value>{0} DNS-poster kontrolleras fortfarande i bakgrunden; den här sammanfattningen uppdateras.</value>
   </data>
+  <data name="{0} IP addresses" xml:space="preserve">
+    <value>{0} IP-adresser</value>
+  </data>
   <data name="{0} If a virus is found, the attachments are stripped and the message is still delivered." xml:space="preserve">
     <value>{0} Om ett virus hittas tas bilagorna bort och meddelandet levereras ändå.</value>
   </data>
@@ -14434,6 +14476,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   </data>
   <data name="{0} KB ({1} MB)" xml:space="preserve">
     <value>{0} KB ({1} MB)</value>
+  </data>
+  <data name="{0} SURBL servers" xml:space="preserve">
+    <value>{0} SURBL-servrar</value>
   </data>
   <data name="{0} TXT record(s) exist at {1}, but none begins &quot;v=DMARC1&quot;, so receivers - and this server's own DMARC check - see no policy." xml:space="preserve">
     <value>{0} TXT-post(er) finns på {1}, men ingen börjar med "v=DMARC1", så mottagare - och den här serverns egen DMARC-kontroll - ser ingen policy.</value>
@@ -14465,6 +14510,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   <data name="{0} addresses listed." xml:space="preserve">
     <value>{0} adresser listade.</value>
   </data>
+  <data name="{0} aliases" xml:space="preserve">
+    <value>{0} alias</value>
+  </data>
   <data name="{0} and {1}" xml:space="preserve">
     <value>{0} och {1}</value>
   </data>
@@ -14480,8 +14528,17 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   <data name="{0} app passwords." xml:space="preserve">
     <value>{0} applösenord.</value>
   </data>
+  <data name="{0} blacklists" xml:space="preserve">
+    <value>{0} svartlistor</value>
+  </data>
+  <data name="{0} blocked senders" xml:space="preserve">
+    <value>{0} blockerade avsändare</value>
+  </data>
   <data name="{0} blocked-attachment patterns are configured but attachment blocking is switched off, so none of them is applied." xml:space="preserve">
     <value>{0} mönster för blockerade bilagor är konfigurerade men bilageblockering är avstängd, så inget av dem tillämpas.</value>
+  </data>
+  <data name="{0} bypass entries" xml:space="preserve">
+    <value>{0} undantag</value>
   </data>
   <data name="{0} case(s). Select one for its lines on the audit trail." xml:space="preserve">
     <value>{0} ärende(n). Välj ett för dess rader i granskningsloggen.</value>
@@ -14542,6 +14599,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   </data>
   <data name="{0} external POP3 fetch accounts have anti-virus turned off, so mail collected by them is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page." xml:space="preserve">
     <value>{0} externa POP3-hämtningskonton har antivirus avstängt, så post som hämtas av dem levereras oskannad oavsett vad som är satt här. Brytaren finns på hämtningskontot, inte på den här sidan.</value>
+  </data>
+  <data name="{0} external accounts" xml:space="preserve">
+    <value>{0} externa konton</value>
   </data>
   <data name="{0} has been moved to {1}." xml:space="preserve">
     <value>{0} har flyttats till {1}.</value>
@@ -14612,14 +14672,23 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   <data name="{0} is {1} again." xml:space="preserve">
     <value>{0} är {1} igen.</value>
   </data>
+  <data name="{0} items" xml:space="preserve">
+    <value>{0} poster</value>
+  </data>
   <data name="{0} items cannot be checked from here" xml:space="preserve">
     <value>{0} punkter kan inte kontrolleras härifrån</value>
   </data>
   <data name="{0} items cannot be checked from here." xml:space="preserve">
     <value>{0} punkter kan inte kontrolleras härifrån.</value>
   </data>
+  <data name="{0} keys" xml:space="preserve">
+    <value>{0} nycklar</value>
+  </data>
   <data name="{0} latest {1}" xml:space="preserve">
     <value>{0}: senaste {1}</value>
+  </data>
+  <data name="{0} list entries" xml:space="preserve">
+    <value>{0} listposter</value>
   </data>
   <data name="{0} listeners are configured for TLS but cannot serve it, so those ports are not listening at all." xml:space="preserve">
     <value>{0} lyssnare är konfigurerade för TLS men kan inte leverera det, så de portarna lyssnar inte alls.</value>
@@ -14711,11 +14780,17 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   <data name="{0} records beginning &quot;v=spf1&quot; exist at {1}. RFC 7208 makes that a permanent SPF error at every receiver - worse than no record. Merge them into one." xml:space="preserve">
     <value>{0} poster som börjar med "v=spf1" finns på {1}. RFC 7208 gör det till ett permanent SPF-fel hos varje mottagare - värre än ingen post. Slå ihop dem till en.</value>
   </data>
+  <data name="{0} remote domain policies" xml:space="preserve">
+    <value>{0} regler för externa domäner</value>
+  </data>
   <data name="{0} row(s) need reading before you apply - a skipped entry is a mailbox somebody expects and will not get, and a disabled one is a mailbox being taken away." xml:space="preserve">
     <value>{0} rad(er) behöver läsas innan du tillämpar - en överhoppad post är en brevlåda någon förväntar sig och inte får, och en inaktiverad är en brevlåda som tas bort.</value>
   </data>
   <data name="{0} rule(s), evaluated top to bottom." xml:space="preserve">
     <value>{0} regel/regler, utvärderade uppifrån och ned.</value>
+  </data>
+  <data name="{0} rules" xml:space="preserve">
+    <value>{0} regler</value>
   </data>
   <data name="{0} samples copied to the clipboard." xml:space="preserve">
     <value>{0} stickprov kopierade till urklipp.</value>
@@ -14734,6 +14809,12 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   </data>
   <data name="{0} scores {1} on its own, which reaches the {2} at which the server stops testing - so {3} will not run for a message it fails, and will not appear in the log." xml:space="preserve">
     <value>{0} ger {1} poäng på egen hand, vilket når de {2} där servern slutar testa - så {3} körs inte för ett meddelande den underkänner, och syns inte i loggen.</value>
+  </data>
+  <data name="{0} security groups" xml:space="preserve">
+    <value>{0} säkerhetsgrupper</value>
+  </data>
+  <data name="{0} server messages" xml:space="preserve">
+    <value>{0} servermeddelanden</value>
   </data>
   <data name="{0} setting(s) could not be read — {1}" xml:space="preserve">
     <value>{0} inställning(ar) kunde inte läsas — {1}</value>
@@ -14779,6 +14860,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   </data>
   <data name="{0} was removed: {1} mailbox(es), {2} distribution list(s), {3} rule(s) and {4} message(s) went with it." xml:space="preserve">
     <value>{0} togs bort: {1} brevlådor, {2} distributionslistor, {3} regler och {4} meddelanden följde med.</value>
+  </data>
+  <data name="{0} white-list entries" xml:space="preserve">
+    <value>{0} vitlisteposter</value>
   </data>
   <data name="{0} with full authority" xml:space="preserve">
     <value>{0} med full behörighet</value>

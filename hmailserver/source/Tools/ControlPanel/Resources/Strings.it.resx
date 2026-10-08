@@ -305,17 +305,35 @@ Salvare comunque questa password debole?</value>
   <data name="1 DNS record is still being checked in the background; this summary will update." xml:space="preserve">
     <value>1 record DNS è ancora in verifica in background; questo riepilogo si aggiornerà.</value>
   </data>
+  <data name="1 IP address" xml:space="preserve">
+    <value>1 indirizzo IP</value>
+  </data>
+  <data name="1 SURBL server" xml:space="preserve">
+    <value>1 server SURBL</value>
+  </data>
   <data name="1 account is a member." xml:space="preserve">
     <value>1 account è membro.</value>
   </data>
   <data name="1 address listed." xml:space="preserve">
     <value>1 indirizzo in lista.</value>
   </data>
+  <data name="1 alias" xml:space="preserve">
+    <value>1 alias</value>
+  </data>
   <data name="1 app password." xml:space="preserve">
     <value>1 password per app.</value>
   </data>
+  <data name="1 blacklist" xml:space="preserve">
+    <value>1 blacklist</value>
+  </data>
+  <data name="1 blocked sender" xml:space="preserve">
+    <value>1 mittente bloccato</value>
+  </data>
   <data name="1 by default." xml:space="preserve">
     <value>1 per impostazione predefinita.</value>
+  </data>
+  <data name="1 bypass entry" xml:space="preserve">
+    <value>1 esenzione</value>
   </data>
   <data name="1 day" xml:space="preserve">
     <value>1 giorno</value>
@@ -323,14 +341,26 @@ Salvare comunque questa password debole?</value>
   <data name="1 event." xml:space="preserve">
     <value>1 evento.</value>
   </data>
+  <data name="1 external account" xml:space="preserve">
+    <value>1 account esterno</value>
+  </data>
   <data name="1 hour ago" xml:space="preserve">
     <value>1 ora fa</value>
+  </data>
+  <data name="1 item" xml:space="preserve">
+    <value>1 elemento</value>
   </data>
   <data name="1 item cannot be checked from here" xml:space="preserve">
     <value>1 elemento non può essere verificato da qui</value>
   </data>
   <data name="1 item cannot be checked from here." xml:space="preserve">
     <value>1 elemento non può essere verificato da qui.</value>
+  </data>
+  <data name="1 key" xml:space="preserve">
+    <value>1 chiave</value>
+  </data>
+  <data name="1 list entry" xml:space="preserve">
+    <value>1 voce di elenco</value>
   </data>
   <data name="1 message" xml:space="preserve">
     <value>1 messaggio</value>
@@ -350,14 +380,29 @@ Salvare comunque questa password debole?</value>
   <data name="1 refuses a password that has appeared in the corpus even once." xml:space="preserve">
     <value>1 rifiuta una password comparsa nel corpus anche una sola volta.</value>
   </data>
+  <data name="1 remote domain policy" xml:space="preserve">
+    <value>1 criterio per dominio remoto</value>
+  </data>
+  <data name="1 rule" xml:space="preserve">
+    <value>1 regola</value>
+  </data>
   <data name="1 sample copied to the clipboard." xml:space="preserve">
     <value>1 campione copiato negli appunti.</value>
   </data>
   <data name="1 sample." xml:space="preserve">
     <value>1 campione.</value>
   </data>
+  <data name="1 security group" xml:space="preserve">
+    <value>1 gruppo di sicurezza</value>
+  </data>
+  <data name="1 server message" xml:space="preserve">
+    <value>1 messaggio del server</value>
+  </data>
   <data name="1 thing needs attention" xml:space="preserve">
     <value>1 elemento richiede attenzione</value>
+  </data>
+  <data name="1 white-list entry" xml:space="preserve">
+    <value>1 voce della lista bianca</value>
   </data>
   <data name="1.  Scan this QR code with an authenticator app (Microsoft Authenticator, Google Authenticator, Authy, 1Password…)." xml:space="preserve">
     <value>1.  Scansiona questo codice QR con un'app di autenticazione (Microsoft Authenticator, Google Authenticator, Authy, 1Password…).</value>
@@ -13868,12 +13913,6 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   <data name="keep a copy of every message" xml:space="preserve">
     <value>conservare una copia di ogni messaggio</value>
   </data>
-  <data name="key" xml:space="preserve">
-    <value>chiave</value>
-  </data>
-  <data name="keys" xml:space="preserve">
-    <value>chiavi</value>
-  </data>
   <data name="last hour" xml:space="preserve">
     <value>ultima ora</value>
   </data>
@@ -14423,6 +14462,9 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   <data name="{0} DNS records are still being checked in the background; this summary will update." xml:space="preserve">
     <value>{0} record DNS sono ancora in verifica in background; questo riepilogo si aggiornerà.</value>
   </data>
+  <data name="{0} IP addresses" xml:space="preserve">
+    <value>{0} indirizzi IP</value>
+  </data>
   <data name="{0} If a virus is found, the attachments are stripped and the message is still delivered." xml:space="preserve">
     <value>{0} Se viene trovato un virus, gli allegati vengono rimossi e il messaggio viene comunque consegnato.</value>
   </data>
@@ -14434,6 +14476,9 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   </data>
   <data name="{0} KB ({1} MB)" xml:space="preserve">
     <value>{0} KB ({1} MB)</value>
+  </data>
+  <data name="{0} SURBL servers" xml:space="preserve">
+    <value>{0} server SURBL</value>
   </data>
   <data name="{0} TXT record(s) exist at {1}, but none begins &quot;v=DMARC1&quot;, so receivers - and this server's own DMARC check - see no policy." xml:space="preserve">
     <value>Esistono {0} record TXT su {1}, ma nessuno inizia con "v=DMARC1", quindi i server riceventi - e il controllo DMARC di questo stesso server - non vedono alcun criterio.</value>
@@ -14465,6 +14510,9 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   <data name="{0} addresses listed." xml:space="preserve">
     <value>{0} indirizzi in lista.</value>
   </data>
+  <data name="{0} aliases" xml:space="preserve">
+    <value>{0} alias</value>
+  </data>
   <data name="{0} and {1}" xml:space="preserve">
     <value>{0} e {1}</value>
   </data>
@@ -14480,8 +14528,17 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   <data name="{0} app passwords." xml:space="preserve">
     <value>{0} password per app.</value>
   </data>
+  <data name="{0} blacklists" xml:space="preserve">
+    <value>{0} blacklist</value>
+  </data>
+  <data name="{0} blocked senders" xml:space="preserve">
+    <value>{0} mittenti bloccati</value>
+  </data>
   <data name="{0} blocked-attachment patterns are configured but attachment blocking is switched off, so none of them is applied." xml:space="preserve">
     <value>{0} schemi di allegati bloccati sono configurati ma il blocco degli allegati è disattivato, quindi nessuno di essi viene applicato.</value>
+  </data>
+  <data name="{0} bypass entries" xml:space="preserve">
+    <value>{0} esenzioni</value>
   </data>
   <data name="{0} case(s). Select one for its lines on the audit trail." xml:space="preserve">
     <value>{0} caso/i. Selezionane uno per vederne le righe nel registro di audit.</value>
@@ -14542,6 +14599,9 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   </data>
   <data name="{0} external POP3 fetch accounts have anti-virus turned off, so mail collected by them is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page." xml:space="preserve">
     <value>{0} account di raccolta POP3 esterni hanno l'antivirus disattivato, quindi la posta raccolta da essi viene consegnata senza scansione qualunque cosa sia impostata qui. L'interruttore è sull'account di raccolta, non su questa pagina.</value>
+  </data>
+  <data name="{0} external accounts" xml:space="preserve">
+    <value>{0} account esterni</value>
   </data>
   <data name="{0} has been moved to {1}." xml:space="preserve">
     <value>{0} è stata spostata a {1}.</value>
@@ -14612,14 +14672,23 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   <data name="{0} is {1} again." xml:space="preserve">
     <value>{0} è di nuovo {1}.</value>
   </data>
+  <data name="{0} items" xml:space="preserve">
+    <value>{0} elementi</value>
+  </data>
   <data name="{0} items cannot be checked from here" xml:space="preserve">
     <value>{0} elementi non possono essere verificati da qui</value>
   </data>
   <data name="{0} items cannot be checked from here." xml:space="preserve">
     <value>{0} elementi non possono essere verificati da qui.</value>
   </data>
+  <data name="{0} keys" xml:space="preserve">
+    <value>{0} chiavi</value>
+  </data>
   <data name="{0} latest {1}" xml:space="preserve">
     <value>{0}: ultimo {1}</value>
+  </data>
+  <data name="{0} list entries" xml:space="preserve">
+    <value>{0} voci di elenco</value>
   </data>
   <data name="{0} listeners are configured for TLS but cannot serve it, so those ports are not listening at all." xml:space="preserve">
     <value>{0} listener sono configurati per TLS ma non riescono a servirlo, quindi quelle porte non sono affatto in ascolto.</value>
@@ -14711,11 +14780,17 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   <data name="{0} records beginning &quot;v=spf1&quot; exist at {1}. RFC 7208 makes that a permanent SPF error at every receiver - worse than no record. Merge them into one." xml:space="preserve">
     <value>Esistono {0} record che iniziano con "v=spf1" su {1}. La RFC 7208 rende questo un errore SPF permanente presso ogni ricevente - peggio che nessun record. Uniscili in uno solo.</value>
   </data>
+  <data name="{0} remote domain policies" xml:space="preserve">
+    <value>{0} criteri per dominio remoto</value>
+  </data>
   <data name="{0} row(s) need reading before you apply - a skipped entry is a mailbox somebody expects and will not get, and a disabled one is a mailbox being taken away." xml:space="preserve">
     <value>{0} righe vanno lette prima di applicare: una voce saltata è una casella che qualcuno si aspetta e non riceverà, e una disattivata è una casella che viene tolta.</value>
   </data>
   <data name="{0} rule(s), evaluated top to bottom." xml:space="preserve">
     <value>{0} regole, valutate dall'alto verso il basso.</value>
+  </data>
+  <data name="{0} rules" xml:space="preserve">
+    <value>{0} regole</value>
   </data>
   <data name="{0} samples copied to the clipboard." xml:space="preserve">
     <value>{0} campioni copiati negli appunti.</value>
@@ -14734,6 +14809,12 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   </data>
   <data name="{0} scores {1} on its own, which reaches the {2} at which the server stops testing - so {3} will not run for a message it fails, and will not appear in the log." xml:space="preserve">
     <value>{0} da solo assegna {1}, il che raggiunge {2}, il valore al quale il server smette di verificare - quindi {3} non verrà eseguito per un messaggio che lo fallisce, e non comparirà nel registro.</value>
+  </data>
+  <data name="{0} security groups" xml:space="preserve">
+    <value>{0} gruppi di sicurezza</value>
+  </data>
+  <data name="{0} server messages" xml:space="preserve">
+    <value>{0} messaggi del server</value>
   </data>
   <data name="{0} setting(s) could not be read — {1}" xml:space="preserve">
     <value>Non è stato possibile leggere {0} impostazioni — {1}</value>
@@ -14779,6 +14860,9 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   </data>
   <data name="{0} was removed: {1} mailbox(es), {2} distribution list(s), {3} rule(s) and {4} message(s) went with it." xml:space="preserve">
     <value>{0} è stato rimosso: se ne sono andate {1} caselle, {2} liste di distribuzione, {3} regole e {4} messaggi.</value>
+  </data>
+  <data name="{0} white-list entries" xml:space="preserve">
+    <value>{0} voci della lista bianca</value>
   </data>
   <data name="{0} with full authority" xml:space="preserve">
     <value>{0} con autorità completa</value>

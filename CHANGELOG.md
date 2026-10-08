@@ -845,6 +845,16 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   it is visible, and `InlineNotice`, `LoadingState`, `EmptyState` - now a polite live region like the loading state
   it follows - a `FieldRow`'s error and the two result lines call it; the result lines are named by their text.
 
+- **Fixed: the count beside a Control Panel list's title put an English plural ending on a translated noun.** The
+  pill on every list the generic editor draws - SURBL servers, DNS blacklists, the white list, blocked senders, the
+  allow and block lists, the greylisting lists, blocked attachments, groups, remote domains, server messages, and the
+  aliases, external accounts and rules in the domain and account dialogs - was the count, a space, the noun translated
+  on its own and then an English `s`, `es` or `ies`: German read *3 Sicherheitsgruppes* and *2 Listeneintrags*,
+  Japanese *5 ルールs*. The REST API keys page counted its keys the same way. Each count is now one text of the
+  catalogue per number, *1 security group* and *{0} security groups*, translated whole in every language, so that
+  Russian can put the noun first, *Групп безопасности: 3*, and Japanese its counter after the number. The
+  localisation checker now refuses a count joined to a text with a space, which is what the two helpers did, so the
+  shape cannot come back.
 - **Fixed: the verdicts and notes of the Control Panel's transport encryption and virus scanning overviews were
   put together from translated fragments and read as nonsense in most languages.** A verdict was a counted noun
   with its verb (*client listener has* / *client listeners have*), a pronoun (*it cross* / *them cross*) and a
