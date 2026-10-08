@@ -162,6 +162,34 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.DoesNotContain(name.Ancestors(), a => a.Name == Wpf + "StackPanel" && (string)a.Attribute("Orientation") == "Horizontal");
       }
 
+      /// <summary>
+      /// The rows carry a four-pixel margin of their own, and their heights are
+      /// what the floors above are built on, so the page narrows the list row's
+      /// inset to six pixels at the sides and nothing above and below - in its
+      /// own resources, based on the application's row, and not in App.xaml,
+      /// where the same six left the incoming relays' bare rows three pixels
+      /// from the pill. No list on the page styles its items otherwise.
+      /// </summary>
+      [Theory]
+      [MemberData(nameof(ListNames))]
+      public void TheRows_NarrowTheListRowsInset_InThePagesOwnResources(string list)
+      {
+         XElement page = Page();
+         XElement own = Assert.Single(page.Element(Wpf + "UserControl.Resources").Elements(Wpf + "Style"),
+            s => (string)s.Attribute("TargetType") == "ListViewItem" && s.Attribute(X + "Key") == null);
+         Assert.Equal("{StaticResource {x:Type ListViewItem}}", (string)own.Attribute("BasedOn"));
+         XElement setter = Assert.Single(own.Elements());
+         Assert.Equal(Wpf + "Setter", setter.Name);
+         Assert.Equal("Padding", (string)setter.Attribute("Property"));
+         Assert.Equal("6,0", (string)setter.Attribute("Value"));
+
+         XElement view = Named(page, list);
+         Assert.Null(view.Attribute("ItemContainerStyle"));
+         Assert.Empty(view.Elements(Wpf + "ListView.ItemContainerStyle"));
+         XElement row = view.Descendants(Wpf + "DataTemplate").Single().Elements().Single();
+         Assert.StartsWith("4,", (string)row.Attribute("Margin"), StringComparison.Ordinal);
+      }
+
       [Fact]
       public void CreateAccount_GoesUnderThePassword_WhereItDoesNotFitBesideIt()
       {

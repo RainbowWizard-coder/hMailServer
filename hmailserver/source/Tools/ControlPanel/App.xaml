@@ -602,15 +602,14 @@
                 </Setter>
             </Style>
 
-            <!-- A list view's row is the same control. Its content carries its own
-                 vertical inset - the domains page's rows have a margin of their
-                 own, and their heights are what the page's floors are built on -
-                 so the row adds only the sides: with the row's own four pixels
-                 the content starts where a grid cell's does, past the pill, where
-                 at nothing the pill touched the domain's glyph. -->
-            <Style TargetType="ListViewItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
-                <Setter Property="Padding" Value="6,0" />
-            </Style>
+            <!-- A list view's row is the same control, inset and all: its content
+                 starts where a grid cell's does, ten pixels in and past the pill.
+                 A page whose rows carry an inset of their own narrows the row's
+                 in its own resources, as the domains page does, and not here:
+                 the incoming relays' rows are bare strings, and with the domains
+                 page's six pixels here their text began three pixels after the
+                 pill. -->
+            <Style TargetType="ListViewItem" BasedOn="{StaticResource {x:Type ListBoxItem}}" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

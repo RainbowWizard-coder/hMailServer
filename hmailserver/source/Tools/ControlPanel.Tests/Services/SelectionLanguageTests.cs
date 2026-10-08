@@ -104,13 +104,21 @@ namespace hMailServer.ControlPanel.Tests.Services
             Assert.DoesNotContain("Accent", (string)setter.Attribute("Value"), StringComparison.Ordinal);
       }
 
+      /// <summary>
+      /// The list view's row is the list row, inset and all: its content starts
+      /// where a grid cell's does, ten pixels in and past the pill. The style
+      /// once narrowed the sides to six for the domains page, whose rows carry a
+      /// margin of their own, and the incoming relays' bare rows, the one other
+      /// list view, began three pixels after the pill; the domains page narrows
+      /// its own rows in its own resources now (DomainsPageTests).
+      /// </summary>
       [Fact]
-      public void TheListViewRow_IsTheListRow()
+      public void TheListViewRow_IsTheListRow_InsetAndAll()
       {
          XElement style = ImplicitStyle(App(), "ListViewItem");
          Assert.Equal("{StaticResource {x:Type ListBoxItem}}", (string)style.Attribute("BasedOn"));
-         Assert.Null(style.Element(Wpf + "Setter.Template"));
-         Assert.DoesNotContain(style.Elements(Wpf + "Setter"), s => (string)s.Attribute("Property") == "Template");
+         Assert.Empty(style.Elements());
+         Assert.Equal("10,6", StyleSetterValue(ImplicitStyle(App(), "ListBoxItem"), "Padding"));
       }
 
       /// <summary>

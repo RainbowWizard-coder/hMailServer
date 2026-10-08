@@ -13,6 +13,16 @@
     xmlns:local="clr-namespace:hMailServer.ControlPanel.Views">
 
     <UserControl.Resources>
+        <!-- The rows of the four lists carry a four-pixel margin of their own,
+             and their heights are what the page's floors are built on, so the
+             list row keeps its vertical inset out of them and adds six pixels at
+             the sides alone: with the row's own four the content starts where a
+             grid cell's does, past the pill, where at nothing the pill touched
+             the domain's glyph. The application's row (App.xaml) keeps the full
+             inset for a list whose rows are bare, as the incoming relays' are. -->
+        <Style TargetType="ListViewItem" BasedOn="{StaticResource {x:Type ListViewItem}}">
+            <Setter Property="Padding" Value="6,0" />
+        </Style>
         <!-- The three parts of a domain or account row that follow its Active
              flag. An inactive row used to be dimmed whole, at 0.55, with the
              word "inactive" in italics inside the dimmed part: the word was the
