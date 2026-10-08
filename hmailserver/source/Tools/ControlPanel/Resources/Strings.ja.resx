@@ -3470,14 +3470,8 @@
   <data name="Delete e-mail" xml:space="preserve">
     <value>メールを削除</value>
   </data>
-  <data name="Delete entire e-mail" xml:space="preserve">
-    <value>メール全体を削除</value>
-  </data>
   <data name="Delete folder" xml:space="preserve">
     <value>フォルダーを削除</value>
-  </data>
-  <data name="Delete infected attachments only" xml:space="preserve">
-    <value>感染した添付ファイルのみ削除</value>
   </data>
   <data name="Delete logs older than N days (0 = keep everything)" xml:space="preserve">
     <value>N 日より古いログを削除 (0 = すべて保持)</value>
@@ -3531,6 +3525,9 @@
   </data>
   <data name="Delete the selected certificate" xml:space="preserve">
     <value>選択した証明書を削除</value>
+  </data>
+  <data name="Delete the whole message" xml:space="preserve">
+    <value>メッセージ全体を削除する</value>
   </data>
   <data name="Delete the {0} checked messages permanently?&#10;&#10;The senders were told they were accepted, so nothing will retry and there is no other copy." xml:space="preserve">
     <value>チェックした {0} 件のメッセージを完全に削除しますか？
@@ -4223,6 +4220,9 @@
   </data>
   <data name="Every administrative change as one row in a hash chain: who made it, when, over which interface, from where, and with what authority. A setting's change can be put back from its row." xml:space="preserve">
     <value>すべての管理上の変更をハッシュチェーンの 1 行として記録します。誰が、いつ、どのインターフェースで、どこから、どの権限で行ったか。設定の変更はその行から元に戻せます。</value>
+  </data>
+  <data name="Every attachment is replaced by a short note, not only the infected one; an encrypted message is delivered unchanged." xml:space="preserve">
+    <value>感染した添付ファイルだけでなく、すべての添付ファイルが短い注記に置き換えられます。暗号化されたメッセージはそのまま配信されます。</value>
   </data>
   <data name="Every check in the order the server runs them, and what the score they add does to the message. Nothing on this page can be edited - each row opens the page that owns the setting." xml:space="preserve">
     <value>サーバーが実行する順に並べたすべてのチェックと、それぞれが加えるスコアがメッセージに何をもたらすか。このページでは何も編集できません。各行は、その設定を持つページを開きます。</value>
@@ -8417,6 +8417,9 @@
   </data>
   <data name="Remove _expired" xml:space="preserve">
     <value>期限切れを削除(_E)</value>
+  </data>
+  <data name="Remove all attachments and deliver the text" xml:space="preserve">
+    <value>すべての添付ファイルを削除して本文を配信する</value>
   </data>
   <data name="Remove from the domain list" xml:space="preserve">
     <value>ドメインリストから削除</value>

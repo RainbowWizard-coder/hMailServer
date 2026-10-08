@@ -514,6 +514,13 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   auto-ban count and "could not evaluate" Information - and the word-to-level mapping and its vocabulary are gone,
   since a level cannot be translated. `StatusWarningLevelTests` holds every warning to a level and the file to no
   translated severity word.
+- **Fixed: the Anti-virus settings page's "Delete infected attachments only" understated what the server deletes.**
+  The strip action keeps one text part and removes every attachment, not only the infected one, and puts the server's
+  "attachment removed" note before the text; an encrypted message, which has no part to keep, is delivered exactly as
+  it arrived, with the log saying so. The two choices under *When a virus is found* now read *Delete the whole
+  message* and *Remove all attachments and deliver the text*, as the virus scanning overview already described them,
+  with a note under the row: "Every attachment is replaced by a short note, not only the infected one; an encrypted
+  message is delivered unchanged."
 
 ### Administration
 

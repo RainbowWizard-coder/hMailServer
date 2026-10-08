@@ -3470,14 +3470,8 @@ Restart the Control Panel now? Choose No to try to keep working.</value>
   <data name="Delete e-mail" xml:space="preserve">
     <value>Delete e-mail</value>
   </data>
-  <data name="Delete entire e-mail" xml:space="preserve">
-    <value>Delete entire e-mail</value>
-  </data>
   <data name="Delete folder" xml:space="preserve">
     <value>Delete folder</value>
-  </data>
-  <data name="Delete infected attachments only" xml:space="preserve">
-    <value>Delete infected attachments only</value>
   </data>
   <data name="Delete logs older than N days (0 = keep everything)" xml:space="preserve">
     <value>Delete logs older than N days (0 = keep everything)</value>
@@ -3531,6 +3525,9 @@ This permanently removes {1}, every message stored in them, and all of the domai
   </data>
   <data name="Delete the selected certificate" xml:space="preserve">
     <value>Delete the selected certificate</value>
+  </data>
+  <data name="Delete the whole message" xml:space="preserve">
+    <value>Delete the whole message</value>
   </data>
   <data name="Delete the {0} checked messages permanently?&#10;&#10;The senders were told they were accepted, so nothing will retry and there is no other copy." xml:space="preserve">
     <value>Delete the {0} checked messages permanently?
@@ -4223,6 +4220,9 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   </data>
   <data name="Every administrative change as one row in a hash chain: who made it, when, over which interface, from where, and with what authority. A setting's change can be put back from its row." xml:space="preserve">
     <value>Every administrative change as one row in a hash chain: who made it, when, over which interface, from where, and with what authority. A setting's change can be put back from its row.</value>
+  </data>
+  <data name="Every attachment is replaced by a short note, not only the infected one; an encrypted message is delivered unchanged." xml:space="preserve">
+    <value>Every attachment is replaced by a short note, not only the infected one; an encrypted message is delivered unchanged.</value>
   </data>
   <data name="Every check in the order the server runs them, and what the score they add does to the message. Nothing on this page can be edited - each row opens the page that owns the setting." xml:space="preserve">
     <value>Every check in the order the server runs them, and what the score they add does to the message. Nothing on this page can be edited - each row opens the page that owns the setting.</value>
@@ -8417,6 +8417,9 @@ Run this if clients report messages appearing under the wrong UID, or after rest
   </data>
   <data name="Remove _expired" xml:space="preserve">
     <value>Remove _expired</value>
+  </data>
+  <data name="Remove all attachments and deliver the text" xml:space="preserve">
+    <value>Remove all attachments and deliver the text</value>
   </data>
   <data name="Remove from the domain list" xml:space="preserve">
     <value>Remove from the domain list</value>

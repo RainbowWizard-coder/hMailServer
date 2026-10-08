@@ -3470,14 +3470,8 @@ Denetim Masası şimdi yeniden başlatılsın mı? Çalışmayı sürdürmeyi de
   <data name="Delete e-mail" xml:space="preserve">
     <value>E-postayı sil</value>
   </data>
-  <data name="Delete entire e-mail" xml:space="preserve">
-    <value>E-postanın tamamını sil</value>
-  </data>
   <data name="Delete folder" xml:space="preserve">
     <value>Klasörü sil</value>
-  </data>
-  <data name="Delete infected attachments only" xml:space="preserve">
-    <value>Yalnızca virüslü ekleri sil</value>
   </data>
   <data name="Delete logs older than N days (0 = keep everything)" xml:space="preserve">
     <value>N günden eski günlükleri sil (0 = hepsini sakla)</value>
@@ -3531,6 +3525,9 @@ Bu işlem {1}, içlerinde saklanan her iletiyi ve etki alanının tüm diğer ad
   </data>
   <data name="Delete the selected certificate" xml:space="preserve">
     <value>Seçili sertifikayı sil</value>
+  </data>
+  <data name="Delete the whole message" xml:space="preserve">
+    <value>İletinin tamamını sil</value>
   </data>
   <data name="Delete the {0} checked messages permanently?&#10;&#10;The senders were told they were accepted, so nothing will retry and there is no other copy." xml:space="preserve">
     <value>İşaretli {0} ileti kalıcı olarak silinsin mi?
@@ -4223,6 +4220,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   </data>
   <data name="Every administrative change as one row in a hash chain: who made it, when, over which interface, from where, and with what authority. A setting's change can be put back from its row." xml:space="preserve">
     <value>Her yönetimsel değişiklik bir karma zincirinde bir satır olarak: kim yaptı, ne zaman, hangi arayüz üzerinden, nereden ve hangi yetkiyle. Bir ayarın değişikliği kendi satırından geri alınabilir.</value>
+  </data>
+  <data name="Every attachment is replaced by a short note, not only the infected one; an encrypted message is delivered unchanged." xml:space="preserve">
+    <value>Yalnızca virüslü olan değil, her ek kısa bir notla değiştirilir; şifrelenmiş bir ileti değiştirilmeden teslim edilir.</value>
   </data>
   <data name="Every check in the order the server runs them, and what the score they add does to the message. Nothing on this page can be edited - each row opens the page that owns the setting." xml:space="preserve">
     <value>Sunucunun çalıştırdığı sırayla her denetim ve ekledikleri puanın iletiye ne yaptığı. Bu sayfada hiçbir şey düzenlenemez - her satır, ayarın sahibi olan sayfayı açar.</value>
@@ -8417,6 +8417,9 @@ Her klasör için sayaç, o klasörün gerçekten tuttuğu en yüksek ileti UID'
   </data>
   <data name="Remove _expired" xml:space="preserve">
     <value>Süresi _dolanları kaldır</value>
+  </data>
+  <data name="Remove all attachments and deliver the text" xml:space="preserve">
+    <value>Tüm ekleri kaldır ve metni teslim et</value>
   </data>
   <data name="Remove from the domain list" xml:space="preserve">
     <value>Alan adı listesinden kaldır</value>

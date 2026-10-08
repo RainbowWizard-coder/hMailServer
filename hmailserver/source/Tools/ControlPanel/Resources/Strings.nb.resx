@@ -3470,14 +3470,8 @@ Vil du starte Control Panel på nytt nå? Velg Nei for å prøve å fortsette å
   <data name="Delete e-mail" xml:space="preserve">
     <value>Slett e-post</value>
   </data>
-  <data name="Delete entire e-mail" xml:space="preserve">
-    <value>Slett hele e-posten</value>
-  </data>
   <data name="Delete folder" xml:space="preserve">
     <value>Slett mappe</value>
-  </data>
-  <data name="Delete infected attachments only" xml:space="preserve">
-    <value>Slett bare infiserte vedlegg</value>
   </data>
   <data name="Delete logs older than N days (0 = keep everything)" xml:space="preserve">
     <value>Slett logger eldre enn N dager (0 = behold alt)</value>
@@ -3531,6 +3525,9 @@ Dette fjerner {1} permanent, hver melding som er lagret i dem, og alle domenets 
   </data>
   <data name="Delete the selected certificate" xml:space="preserve">
     <value>Slett det valgte sertifikatet</value>
+  </data>
+  <data name="Delete the whole message" xml:space="preserve">
+    <value>Slett hele meldingen</value>
   </data>
   <data name="Delete the {0} checked messages permanently?&#10;&#10;The senders were told they were accepted, so nothing will retry and there is no other copy." xml:space="preserve">
     <value>Slette de {0} merkede meldingene permanent?
@@ -4223,6 +4220,9 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   </data>
   <data name="Every administrative change as one row in a hash chain: who made it, when, over which interface, from where, and with what authority. A setting's change can be put back from its row." xml:space="preserve">
     <value>Hver administrativ endring som én rad i en hashkjede: hvem som gjorde den, når, over hvilket grensesnitt, hvorfra og med hvilken myndighet. En innstillings endring kan settes tilbake fra raden sin.</value>
+  </data>
+  <data name="Every attachment is replaced by a short note, not only the infected one; an encrypted message is delivered unchanged." xml:space="preserve">
+    <value>Hvert vedlegg erstattes av en kort merknad, ikke bare det infiserte; en kryptert melding leveres uendret.</value>
   </data>
   <data name="Every check in the order the server runs them, and what the score they add does to the message. Nothing on this page can be edited - each row opens the page that owns the setting." xml:space="preserve">
     <value>Hver kontroll i rekkefølgen serveren kjører dem, og hva poengene den legger til gjør med meldingen. Ingenting på denne siden kan redigeres - hver rad åpner siden som eier innstillingen.</value>
@@ -8417,6 +8417,9 @@ Kjør dette hvis klienter melder om meldinger som dukker opp under feil UID, ell
   </data>
   <data name="Remove _expired" xml:space="preserve">
     <value>Fjern _utløpte</value>
+  </data>
+  <data name="Remove all attachments and deliver the text" xml:space="preserve">
+    <value>Fjern alle vedlegg og lever teksten</value>
   </data>
   <data name="Remove from the domain list" xml:space="preserve">
     <value>Fjern fra domenelisten</value>

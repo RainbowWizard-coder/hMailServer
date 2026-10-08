@@ -3470,14 +3470,8 @@ Los detalles completos se escribieron en:
   <data name="Delete e-mail" xml:space="preserve">
     <value>Borrar correo</value>
   </data>
-  <data name="Delete entire e-mail" xml:space="preserve">
-    <value>Borrar el correo entero</value>
-  </data>
   <data name="Delete folder" xml:space="preserve">
     <value>Borrar carpeta</value>
-  </data>
-  <data name="Delete infected attachments only" xml:space="preserve">
-    <value>Borrar solo los adjuntos infectados</value>
   </data>
   <data name="Delete logs older than N days (0 = keep everything)" xml:space="preserve">
     <value>Borrar los registros de más de N días (0 = conservar todo)</value>
@@ -3531,6 +3525,9 @@ Esto elimina permanentemente {1}, cada mensaje almacenado en ellos y todos los a
   </data>
   <data name="Delete the selected certificate" xml:space="preserve">
     <value>Borrar el certificado seleccionado</value>
+  </data>
+  <data name="Delete the whole message" xml:space="preserve">
+    <value>Eliminar el mensaje entero</value>
   </data>
   <data name="Delete the {0} checked messages permanently?&#10;&#10;The senders were told they were accepted, so nothing will retry and there is no other copy." xml:space="preserve">
     <value>¿Eliminar definitivamente los {0} mensajes seleccionados?
@@ -4223,6 +4220,9 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   </data>
   <data name="Every administrative change as one row in a hash chain: who made it, when, over which interface, from where, and with what authority. A setting's change can be put back from its row." xml:space="preserve">
     <value>Cada cambio administrativo como una fila de una cadena de hash: quién lo hizo, cuándo, por qué interfaz, desde dónde y con qué autoridad. El cambio de un ajuste puede restablecerse desde su fila.</value>
+  </data>
+  <data name="Every attachment is replaced by a short note, not only the infected one; an encrypted message is delivered unchanged." xml:space="preserve">
+    <value>Cada adjunto se sustituye por una breve nota, no solo el infectado; un mensaje cifrado se entrega sin cambios.</value>
   </data>
   <data name="Every check in the order the server runs them, and what the score they add does to the message. Nothing on this page can be edited - each row opens the page that owns the setting." xml:space="preserve">
     <value>Cada comprobación en el orden en que el servidor las ejecuta, y qué hace con el mensaje la puntuación que añade. Nada de esta página puede editarse - cada fila abre la página propietaria del ajuste.</value>
@@ -8417,6 +8417,9 @@ Ejecute esto si los clientes informan de mensajes que aparecen con un UID equivo
   </data>
   <data name="Remove _expired" xml:space="preserve">
     <value>Quitar los _caducados</value>
+  </data>
+  <data name="Remove all attachments and deliver the text" xml:space="preserve">
+    <value>Quitar todos los adjuntos y entregar el texto</value>
   </data>
   <data name="Remove from the domain list" xml:space="preserve">
     <value>Quitar de la lista de dominios</value>

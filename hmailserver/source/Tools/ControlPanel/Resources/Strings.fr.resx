@@ -3470,14 +3470,8 @@ Redémarrer le Control Panel maintenant ? Choisissez Non pour essayer de continu
   <data name="Delete e-mail" xml:space="preserve">
     <value>Supprimer l'e-mail</value>
   </data>
-  <data name="Delete entire e-mail" xml:space="preserve">
-    <value>Supprimer l'e-mail entier</value>
-  </data>
   <data name="Delete folder" xml:space="preserve">
     <value>Supprimer le dossier</value>
-  </data>
-  <data name="Delete infected attachments only" xml:space="preserve">
-    <value>Supprimer seulement les pièces jointes infectées</value>
   </data>
   <data name="Delete logs older than N days (0 = keep everything)" xml:space="preserve">
     <value>Supprimer les journaux de plus de N jours (0 = tout garder)</value>
@@ -3531,6 +3525,9 @@ Ceci supprime définitivement {1}, chaque message qui y est stocké, et tous les
   </data>
   <data name="Delete the selected certificate" xml:space="preserve">
     <value>Supprimer le certificat sélectionné</value>
+  </data>
+  <data name="Delete the whole message" xml:space="preserve">
+    <value>Supprimer le message entier</value>
   </data>
   <data name="Delete the {0} checked messages permanently?&#10;&#10;The senders were told they were accepted, so nothing will retry and there is no other copy." xml:space="preserve">
     <value>Supprimer définitivement les {0} messages cochés ?
@@ -4223,6 +4220,9 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   </data>
   <data name="Every administrative change as one row in a hash chain: who made it, when, over which interface, from where, and with what authority. A setting's change can be put back from its row." xml:space="preserve">
     <value>Chaque modification administrative comme une ligne d'une chaîne de hachage : qui l'a faite, quand, par quelle interface, d'où et avec quelle autorité. La modification d'un réglage peut être remise depuis sa ligne.</value>
+  </data>
+  <data name="Every attachment is replaced by a short note, not only the infected one; an encrypted message is delivered unchanged." xml:space="preserve">
+    <value>Chaque pièce jointe est remplacée par une courte note, pas seulement celle qui est infectée ; un message chiffré est distribué tel quel.</value>
   </data>
   <data name="Every check in the order the server runs them, and what the score they add does to the message. Nothing on this page can be edited - each row opens the page that owns the setting." xml:space="preserve">
     <value>Chaque vérification dans l'ordre où le serveur les exécute, et ce que le score qu'elle ajoute fait au message. Rien sur cette page ne peut être modifié - chaque ligne ouvre la page qui possède le réglage.</value>
@@ -8417,6 +8417,9 @@ Exécutez ceci si des clients signalent des messages apparaissant sous le mauvai
   </data>
   <data name="Remove _expired" xml:space="preserve">
     <value>Supprimer les _expirés</value>
+  </data>
+  <data name="Remove all attachments and deliver the text" xml:space="preserve">
+    <value>Retirer toutes les pièces jointes et distribuer le texte</value>
   </data>
   <data name="Remove from the domain list" xml:space="preserve">
     <value>Retirer de la liste de domaines</value>

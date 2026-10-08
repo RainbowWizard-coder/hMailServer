@@ -3470,14 +3470,8 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
   <data name="Delete e-mail" xml:space="preserve">
     <value>Poista sähköposti</value>
   </data>
-  <data name="Delete entire e-mail" xml:space="preserve">
-    <value>Poista koko sähköposti</value>
-  </data>
   <data name="Delete folder" xml:space="preserve">
     <value>Poista kansio</value>
-  </data>
-  <data name="Delete infected attachments only" xml:space="preserve">
-    <value>Poista vain tartunnan saaneet liitteet</value>
   </data>
   <data name="Delete logs older than N days (0 = keep everything)" xml:space="preserve">
     <value>Poista N päivää vanhemmat lokit (0 = säilytä kaikki)</value>
@@ -3531,6 +3525,9 @@ Tämä poistaa pysyvästi kohteen {1}, jokaisen niihin tallennetun viestin sekä
   </data>
   <data name="Delete the selected certificate" xml:space="preserve">
     <value>Poista valittu varmenne</value>
+  </data>
+  <data name="Delete the whole message" xml:space="preserve">
+    <value>Poista koko viesti</value>
   </data>
   <data name="Delete the {0} checked messages permanently?&#10;&#10;The senders were told they were accepted, so nothing will retry and there is no other copy." xml:space="preserve">
     <value>Poistetaanko nämä {0} valittua viestiä pysyvästi?
@@ -4223,6 +4220,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   </data>
   <data name="Every administrative change as one row in a hash chain: who made it, when, over which interface, from where, and with what authority. A setting's change can be put back from its row." xml:space="preserve">
     <value>Jokainen hallinnollinen muutos yhtenä rivinä hajautusketjussa: kuka sen teki, milloin, minkä rajapinnan kautta, mistä ja millä valtuudella. Asetuksen muutos voidaan palauttaa sen riviltä.</value>
+  </data>
+  <data name="Every attachment is replaced by a short note, not only the infected one; an encrypted message is delivered unchanged." xml:space="preserve">
+    <value>Jokainen liite korvataan lyhyellä huomautuksella, ei vain saastunut; salattu viesti toimitetaan muuttamattomana.</value>
   </data>
   <data name="Every check in the order the server runs them, and what the score they add does to the message. Nothing on this page can be edited - each row opens the page that owns the setting." xml:space="preserve">
     <value>Jokainen tarkistus siinä järjestyksessä, jossa palvelin ajaa ne, ja mitä sen lisäämä pistemäärä tekee viestille. Mitään tällä sivulla ei voi muokata - jokainen rivi avaa sivun, joka omistaa asetuksen.</value>
@@ -8417,6 +8417,9 @@ Aja tämä, jos asiakkaat raportoivat viestien näkyvän väärän UID:n alla, t
   </data>
   <data name="Remove _expired" xml:space="preserve">
     <value>P_oista vanhentuneet</value>
+  </data>
+  <data name="Remove all attachments and deliver the text" xml:space="preserve">
+    <value>Poista kaikki liitteet ja toimita teksti</value>
   </data>
   <data name="Remove from the domain list" xml:space="preserve">
     <value>Poista verkkotunnusluettelosta</value>

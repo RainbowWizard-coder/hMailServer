@@ -1543,9 +1543,14 @@ namespace hMailServer.ControlPanel.Views
          (0, L("None")), (1, L("SSL/TLS")), (2, L("STARTTLS (optional)")), (3, L("STARTTLS (required)"))
       };
 
+      // eAntivirusAction: 0 deletes the message, 1 strips its attachments - all of
+      // them, not the infected one: MessageAttachmentStripper keeps one text part
+      // and removes every other part, which "Delete infected attachments only"
+      // understated. The overview says "the attachments are stripped"; so does
+      // this now.
       private static readonly (int, string)[] AntivirusAction =
       {
-         (0, L("Delete entire e-mail")), (1, L("Delete infected attachments only"))
+         (0, L("Delete the whole message")), (1, L("Remove all attachments and deliver the text"))
       };
 
       // AVFailAction ([Settings] in hMailServer.INI): what a message no scanner could
@@ -2663,7 +2668,13 @@ namespace hMailServer.ControlPanel.Views
          Header.Subtitle = L("Virus scanning and attachment blocking of received messages.");
 
          var general = Card(L("Action & notifications"));
-         general.Settings.Add(new ComCombo { Path = "AntiVirus.Action", Label = L("When a virus is found"), Options = AntivirusAction });
+         general.Settings.Add(new ComCombo
+         {
+            Path = "AntiVirus.Action",
+            Label = L("When a virus is found"),
+            Options = AntivirusAction,
+            Blurb = L("Every attachment is replaced by a short note, not only the infected one; an encrypted message is delivered unchanged.")
+         });
          general.Settings.Add(new ComBool { Path = "AntiVirus.NotifySender", Label = L("Notify sender") });
          general.Settings.Add(new ComBool { Path = "AntiVirus.NotifyReceiver", Label = L("Notify receiver") });
          general.Settings.Add(new ComText { Path = "AntiVirus.MaximumMessageSize", Label = L("Max message size to virus-scan (KB, 0 = unlimited)"), Numeric = true });
