@@ -9566,6 +9566,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Senders or IP ranges that bypass spam protection entirely." xml:space="preserve">
     <value>スパム対策を完全にバイパスする送信者または IP 範囲。</value>
   </data>
+  <data name="Sending _domain" xml:space="preserve">
+    <value>送信ドメイン(_D)</value>
+  </data>
   <data name="Sending domains this server has decided about: white skips greylisting and the score's refusals, black is refused at MAIL FROM - by domain or HELO suffix, not by IP address." xml:space="preserve">
     <value>このサーバーが判断を下した送信ドメイン。ホワイトはグレイリストとスコアによる拒否を省略し、ブラックは MAIL FROM で拒否されます。IP アドレスではなく、ドメインまたは HELO サフィックスで判定します。</value>
   </data>

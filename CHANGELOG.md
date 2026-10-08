@@ -742,6 +742,18 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   Every card's add form is at the top of the card now, under its search where it has one, with the list under it, so
   the thing to do is on screen whatever the window's height; and the empty domains state offers *Add a domain*, which
   puts the keyboard in the Domain box.
+- **Fixed: the Control Panel's Suppression list cut its Source column short and kept Since and Expires off the card,
+  and in the narrowest window lost its Add…, Remove and Refresh buttons.** The address column took two stars and about
+  670 of a 1280-pixel window, so Source read "Refuse" and "An ad" and the two date columns were not drawn, and when an
+  entry lapses could not be seen; the bounce counts' address was cut to "gone@old-provider.exampl" with no ellipsis
+  while its date columns had room to spare; and the domain box sized itself to the longest domain name, so with one
+  of sixty characters it filled the toolbar in a 760-pixel window, its own chevron cut off, left the three buttons
+  no width, and in a 1280 one pushed Refresh onto a second line. The three buttons are in the page header now, as the
+  delivery queue's are; the box is captioned *Sending domain*, with an Alt key, capped at 320 pixels, a name wider
+  than it ending in an ellipsis and whole in its tool tip; and every column keeps a width - the address and the
+  source share what is left between them, each over a floor and trimmed with an ellipsis, Why is 140 pixels and
+  trimmed too, Status and the six counts are 64 or their header's width, Since, Expires and the dates 150 and Listed
+  70 - so a narrow window scrolls a grid sideways rather than squeezing a column out.
 - **Fixed: the Control Panel's distribution lists card cut every address to about ten characters beside two
   10-pixel word buttons.** Properties and Members were words at 10 pixels, the only text in the Control Panel below
   the 12-pixel caption size, and with the trash button took most of a half-width card from the address, the row's

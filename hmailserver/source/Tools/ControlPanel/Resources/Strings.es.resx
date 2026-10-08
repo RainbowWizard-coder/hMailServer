@@ -9566,6 +9566,9 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="Senders or IP ranges that bypass spam protection entirely." xml:space="preserve">
     <value>Remitentes o rangos de IP que eluden por completo la protección antispam.</value>
   </data>
+  <data name="Sending _domain" xml:space="preserve">
+    <value>Dominio _remitente</value>
+  </data>
   <data name="Sending domains this server has decided about: white skips greylisting and the score's refusals, black is refused at MAIL FROM - by domain or HELO suffix, not by IP address." xml:space="preserve">
     <value>Dominios remitentes sobre los que este servidor ha decidido: el blanco omite el greylisting y los rechazos por puntuación, el negro se rechaza en MAIL FROM - por dominio o sufijo HELO, no por dirección IP.</value>
   </data>

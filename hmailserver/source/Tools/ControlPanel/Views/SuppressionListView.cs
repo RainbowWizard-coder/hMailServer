@@ -31,7 +31,11 @@ namespace hMailServer.ControlPanel.Views
    /// </summary>
    public class SuppressionListView : UserControl, IPageLifecycle
    {
-      private readonly ComboBox domainChoice_ = new() { MinWidth = 220 };
+      // Capped: the box sized itself to the longest domain name, and with one
+      // of sixty characters it filled the toolbar in the narrowest window, its
+      // own chevron cut off, and pushed Refresh onto a second line in a 1280
+      // one. A name longer than the box ends in an ellipsis, whole in its tip.
+      private readonly ComboBox domainChoice_ = new() { MinWidth = 220, MaxWidth = 320 };
       private readonly Toolbar toolbar_ = new() { SearchPlaceholder = L("Address contains") };
 
       // No MinHeight of the grids' own: the card around each is floored, and
@@ -384,10 +388,23 @@ namespace hMailServer.ControlPanel.Views
          root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
          root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
 
+         // Add…, Remove and Refresh in the page header, as the delivery queue's
+         // actions are: beside the domain box in the toolbar they had no width
+         // left in the narrowest window, and were not drawn at all.
+         var actions = new StackPanel { Orientation = Orientation.Horizontal };
+         addButton_ = MakeButton(L("_Add…"), Wpf.Ui.Controls.ControlAppearance.Primary, (_, _) => AddEntry());
+         actions.Children.Add(addButton_);
+         var remove = MakeButton(L("_Remove"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => RemoveSelected());
+         ButtonStyles.DangerText(remove);
+         actions.Children.Add(remove);
+         SelectionGate.Bind(entries_, remove);
+         actions.Children.Add(MakeButton(L("Re_fresh"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => Reload()));
+
          root.Children.Add(new PageHeader
          {
             Title = L("Suppression list"),
-            Subtitle = L("Addresses a domain no longer sends to because mail to them bounced for good, or because somebody put them here - with the counts behind each one. The list is per sending domain.")
+            Subtitle = L("Addresses a domain no longer sends to because mail to them bounced for good, or because somebody put them here - with the counts behind each one. The list is per sending domain."),
+            Actions = actions
          });
 
          // The IP ranges shape, with two lists: the list and the bounce counts
@@ -400,30 +417,21 @@ namespace hMailServer.ControlPanel.Views
          Grid.SetRow(scroll, 1);
          root.Children.Add(scroll);
 
-         AutomationProperties.SetName(domainChoice_, L("Domain"));
+         // The box captioned, with an Alt key, as the quarantine page's Group by
+         // is: a bare box of domain names beside the search said what it chose
+         // to nobody. The caption's words are the box's accessible name.
+         AutomationProperties.SetName(domainChoice_, MnemonicText.Strip(L("Sending _domain")));
          domainChoice_.SelectionChanged += (_, _) => Reload();
+         domainChoice_.ItemTemplate = TrimmedItem_();
          // Enter in the search box searches, and Refresh reads again with whatever
          // it holds: a search is a query to the server, not a filter over rows
          // already here, so it does not run on every keystroke.
          toolbar_.PreviewKeyDown += (_, e) => { if (e.Key == System.Windows.Input.Key.Enter) Reload(); };
 
          var filters = new StackPanel { Orientation = Orientation.Horizontal };
+         filters.Children.Add(new Label { Content = L("Sending _domain"), Target = domainChoice_, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 6, 0) });
          filters.Children.Add(domainChoice_);
          toolbar_.Filters = filters;
-
-         // A WrapPanel, so that in a narrow window Refresh moves to a second
-         // line rather than off the edge.
-         var actions = new WrapPanel { Orientation = Orientation.Horizontal };
-         addButton_ = MakeButton(L("_Add…"), Wpf.Ui.Controls.ControlAppearance.Primary, (_, _) => AddEntry());
-         actions.Children.Add(addButton_);
-         var remove = MakeButton(L("_Remove"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => RemoveSelected());
-         ButtonStyles.DangerText(remove);
-         actions.Children.Add(remove);
-         SelectionGate.Bind(entries_, remove);
-         actions.Children.Add(MakeButton(L("Re_fresh"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => Reload()));
-         foreach (FrameworkElement button in actions.Children)
-            button.Margin = new Thickness(button.Margin.Left, 3, button.Margin.Right, 3);
-         toolbar_.Actions = actions;
          parts.Children.Add(toolbar_);
 
          parts.Children.Add(processingOff_);
@@ -454,14 +462,31 @@ namespace hMailServer.ControlPanel.Views
          Content = root;
       }
 
+      /// <summary>A domain name in the box, and in its list: cut short with an ellipsis where it is wider than the box, and whole in its tool tip.</summary>
+      private static DataTemplate TrimmedItem_()
+      {
+         var text = new FrameworkElementFactory(typeof(TextBlock));
+         text.SetBinding(TextBlock.TextProperty, new System.Windows.Data.Binding());
+         text.SetBinding(ToolTipProperty, new System.Windows.Data.Binding());
+         text.SetValue(TextBlock.TextTrimmingProperty, TextTrimming.CharacterEllipsis);
+         return new DataTemplate { VisualTree = text };
+      }
+
+      // Every column keeps a width, and the address and the source take what is
+      // left between them, so that a narrow window scrolls the grid sideways
+      // rather than squeezing a column out: with the address alone at two
+      // stars, Source read "Refuse" and "An ad" in a 1280 window and Since and
+      // Expires were off the card altogether, so when an entry lapses could not
+      // be seen; and the counts' address was cut to "gone@old-provider.exampl"
+      // with no ellipsis while its date columns had room to spare.
       private void BuildColumns_()
       {
-         entries_.Columns.Add(Text_(L("Address"), nameof(EntryView.Address), new DataGridLength(2, DataGridLengthUnitType.Star)));
-         entries_.Columns.Add(Text_(L("Why"), nameof(EntryView.Why), DataGridLength.Auto));
-         entries_.Columns.Add(Text_(L("Status"), nameof(EntryView.Status), DataGridLength.Auto));
-         entries_.Columns.Add(Text_(L("Source"), nameof(EntryView.Source), DataGridLength.Auto));
-         entries_.Columns.Add(Text_(L("Since"), nameof(EntryView.Since), DataGridLength.Auto));
-         entries_.Columns.Add(Text_(L("Expires"), nameof(EntryView.Expires), DataGridLength.Auto));
+         entries_.Columns.Add(Trimmed_(L("Address"), nameof(EntryView.Address), new DataGridLength(1, DataGridLengthUnitType.Star), 200));
+         entries_.Columns.Add(Trimmed_(L("Why"), nameof(EntryView.Why), new DataGridLength(140), 140));
+         entries_.Columns.Add(Fitted_(L("Status"), nameof(EntryView.Status), 64));
+         entries_.Columns.Add(Trimmed_(L("Source"), nameof(EntryView.Source), new DataGridLength(1, DataGridLengthUnitType.Star), 160));
+         entries_.Columns.Add(Text_(L("Since"), nameof(EntryView.Since), new DataGridLength(150)));
+         entries_.Columns.Add(Text_(L("Expires"), nameof(EntryView.Expires), new DataGridLength(150)));
 
          // The remote's own words, or the note, on the row's tip rather than in a
          // column: they are sentences, and a column of sentences takes the width
@@ -474,25 +499,34 @@ namespace hMailServer.ControlPanel.Views
          rowStyle.Setters.Add(new Setter(ToolTipProperty, new System.Windows.Data.Binding(nameof(EntryView.Detail))));
          entries_.RowStyle = rowStyle;
 
-         counts_.Columns.Add(Text_(L("Address"), nameof(CountView.Address), new DataGridLength(2, DataGridLengthUnitType.Star)));
+         counts_.Columns.Add(Trimmed_(L("Address"), nameof(CountView.Address), new DataGridLength(1, DataGridLengthUnitType.Star), 180));
          counts_.Columns.Add(Number_(L("Hard"), nameof(CountView.Hard)));
          counts_.Columns.Add(Number_(L("Soft"), nameof(CountView.Soft)));
          counts_.Columns.Add(Number_(L("Mailbox full"), nameof(CountView.MailboxFull)));
          counts_.Columns.Add(Number_(L("Policy"), nameof(CountView.Policy)));
          counts_.Columns.Add(Number_(L("Other"), nameof(CountView.Other)));
          counts_.Columns.Add(Number_(L("In a row"), nameof(CountView.InARow)));
-         counts_.Columns.Add(Text_(L("Last status"), nameof(CountView.LastStatus), DataGridLength.Auto));
-         counts_.Columns.Add(Text_(L("Last bounce"), nameof(CountView.LastBounce), DataGridLength.Auto));
-         counts_.Columns.Add(Text_(L("Last delivered"), nameof(CountView.LastDelivered), DataGridLength.Auto));
-         counts_.Columns.Add(Text_(L("Listed"), nameof(CountView.Listed), DataGridLength.Auto));
+         counts_.Columns.Add(Text_(L("Last status"), nameof(CountView.LastStatus), new DataGridLength(90)));
+         counts_.Columns.Add(Text_(L("Last bounce"), nameof(CountView.LastBounce), new DataGridLength(150)));
+         counts_.Columns.Add(Text_(L("Last delivered"), nameof(CountView.LastDelivered), new DataGridLength(150)));
+         counts_.Columns.Add(Text_(L("Listed"), nameof(CountView.Listed), new DataGridLength(70)));
       }
 
       private static DataGridTextColumn Text_(string header, string path, DataGridLength width)
-         => new() { Header = header, Binding = new System.Windows.Data.Binding(path), Width = width };
+         => new() { Header = header, Binding = new System.Windows.Data.Binding(path), Width = width, MinWidth = width.IsAbsolute ? width.Value : 0 };
 
+      /// <summary>A column of names: a star's share of the width over a floor, each cut short with an ellipsis and whole in its tool tip.</summary>
+      private static DataGridTextColumn Trimmed_(string header, string path, DataGridLength width, double minWidth)
+         => GridStyles.Trimmed(new DataGridTextColumn { Header = header, Binding = new System.Windows.Data.Binding(path), Width = width, MinWidth = minWidth });
+
+      /// <summary>A column of short codes: so many pixels, or its header's width where that is more ("ステータス" is wider than 64).</summary>
+      private static DataGridTextColumn Fitted_(string header, string path, double minWidth)
+         => new() { Header = header, Binding = new System.Windows.Data.Binding(path), Width = DataGridLength.Auto, MinWidth = minWidth };
+
+      /// <summary>A column of counts: 64 pixels, or its header's width where that is more, the digits and the header right-aligned.</summary>
       private static DataGridTextColumn Number_(string header, string path)
       {
-         var column = new DataGridTextColumn { Header = header, Binding = new System.Windows.Data.Binding(path), Width = DataGridLength.Auto };
+         DataGridTextColumn column = Fitted_(header, path, 64);
          GridStyles.Number(column);
          return column;
       }
@@ -504,7 +538,7 @@ namespace hMailServer.ControlPanel.Views
             Content = text,
             Appearance = appearance,
             Margin = new Thickness(8, 0, 0, 0),
-            MinWidth = 110
+            MinWidth = 88
          };
          button.Click += onClick;
          return button;

@@ -9566,6 +9566,9 @@ Continuar?</value>
   <data name="Senders or IP ranges that bypass spam protection entirely." xml:space="preserve">
     <value>Remetentes ou faixas de IP que ignoram completamente a proteção contra spam.</value>
   </data>
+  <data name="Sending _domain" xml:space="preserve">
+    <value>_Domínio remetente</value>
+  </data>
   <data name="Sending domains this server has decided about: white skips greylisting and the score's refusals, black is refused at MAIL FROM - by domain or HELO suffix, not by IP address." xml:space="preserve">
     <value>Domínios remetentes sobre os quais este servidor decidiu: o branco pula o greylisting e as recusas por pontuação, o negro é recusado no MAIL FROM - por domínio ou sufixo HELO, não por endereço IP.</value>
   </data>

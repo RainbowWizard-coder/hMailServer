@@ -9566,6 +9566,9 @@ Devam edilsin mi?</value>
   <data name="Senders or IP ranges that bypass spam protection entirely." xml:space="preserve">
     <value>Spam korumasını tamamen atlayan gönderenler veya IP aralıkları.</value>
   </data>
+  <data name="Sending _domain" xml:space="preserve">
+    <value>_Gönderen etki alanı</value>
+  </data>
   <data name="Sending domains this server has decided about: white skips greylisting and the score's refusals, black is refused at MAIL FROM - by domain or HELO suffix, not by IP address." xml:space="preserve">
     <value>Bu sunucunun karar verdiği gönderen alan adları: beyaz, greylisting’i ve puana bağlı reddi atlar; kara, MAIL FROM’da reddedilir - IP adresine göre değil, alan adına veya HELO sonekine göre.</value>
   </data>

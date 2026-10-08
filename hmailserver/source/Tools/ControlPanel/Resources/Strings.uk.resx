@@ -9566,6 +9566,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Senders or IP ranges that bypass spam protection entirely." xml:space="preserve">
     <value>Відправники або діапазони IP, які повністю оминають захист від спаму.</value>
   </data>
+  <data name="Sending _domain" xml:space="preserve">
+    <value>До_мен-відправник</value>
+  </data>
   <data name="Sending domains this server has decided about: white skips greylisting and the score's refusals, black is refused at MAIL FROM - by domain or HELO suffix, not by IP address." xml:space="preserve">
     <value>Домени відправників, щодо яких цей сервер ухвалив рішення: білий пропускає greylisting і відмови за балом, чорний відхиляється на MAIL FROM - за доменом або суфіксом HELO, а не за IP-адресою.</value>
   </data>

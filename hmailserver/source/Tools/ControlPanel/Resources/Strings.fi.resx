@@ -9566,6 +9566,9 @@ Jatketaanko?</value>
   <data name="Senders or IP ranges that bypass spam protection entirely." xml:space="preserve">
     <value>Lähettäjät tai IP-alueet, jotka ohittavat roskapostisuojauksen kokonaan.</value>
   </data>
+  <data name="Sending _domain" xml:space="preserve">
+    <value>Lähettävä _verkkotunnus</value>
+  </data>
   <data name="Sending domains this server has decided about: white skips greylisting and the score's refusals, black is refused at MAIL FROM - by domain or HELO suffix, not by IP address." xml:space="preserve">
     <value>Lähettäjäverkkotunnukset, joista tämä palvelin on päättänyt: valkoinen ohittaa greylistingin ja pisteiden hylkäykset, musta hylätään MAIL FROM -vaiheessa - verkkotunnuksen tai HELO-päätteen, ei IP-osoitteen perusteella.</value>
   </data>
