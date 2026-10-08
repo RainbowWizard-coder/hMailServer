@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
+using hMailServer.ControlPanel.Services;
 using Xunit;
 
 namespace hMailServer.ControlPanel.Tests.Services
@@ -178,23 +179,94 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.True(clear.Contains("ReferenceEquals(notice.Tag, Marker)", StringComparison.Ordinal),
             "ReadFailure.Clear hides a notice that is not showing a failure of its own.");
 
-         Assert.True(source.Contains("L(\"_Try again\")", StringComparison.Ordinal), "The Try again button has lost its caption.");
+         Assert.True(source.Contains("L(\"Try again\")", StringComparison.Ordinal), "The Try again button has lost its caption.");
+      }
+
+      /// <summary>
+      /// The Try again button is on some twenty pages, and no letter is free of a
+      /// collision on every one of them - in English T is Require TLS for auth, Add
+      /// action, Take the role away, Restore settings and Test connection - so its
+      /// caption carries no Alt key, in English or in any catalogue: WPF, given two
+      /// enabled targets for one key, moves the focus between them and presses
+      /// neither, and a mnemonic checker that never saw the helper's file called
+      /// the key checked. build/check-mnemonics.py scans the helper now, exempts the
+      /// caption from coverage, and puts the helper's captions into the scope of
+      /// every page that calls it, so a key given back to one collides there.
+      /// </summary>
+      [Fact]
+      public void TheSharedTryAgainCaption_CarriesNoAltKey_InAnyLanguage()
+      {
+         string helper = ReadControlPanelFile(Path.Join("Services", "ReadFailure.cs"));
+         string button = WithheldRowTests.MemberText(helper, "public static Wpf.Ui.Controls.Button TryAgainButton(Action tryAgain)");
+         Assert.True(button != null, "ReadFailure.TryAgainButton is gone.");
+
+         MatchCollection captions = Regex.Matches(button, @"L\(""((?:[^""\\]|\\.)*)""\)");
+         Assert.True(captions.Count > 0, "ReadFailure.TryAgainButton has no caption that goes through the catalogue.");
+
+         string resources = ControlPanelPath("Resources");
+         string[] catalogues = Directory.GetFiles(resources, "Strings*.resx");
+         Assert.True(catalogues.Length >= 18, "The catalogues were not found under " + resources + ".");
+
+         foreach (Match caption in captions)
+         {
+            string key = caption.Groups[1].Value;
+            Assert.True(MnemonicText.Parse(key).KeyIndex < 0,
+               "The shared caption \"" + key + "\" carries an Alt key, which collides on the pages that show it.");
+
+            foreach (string catalogue in catalogues)
+            {
+               XElement data = XDocument.Load(catalogue).Root.Elements("data")
+                  .FirstOrDefault(d => (string)d.Attribute("name") == key);
+               Assert.True(data != null, Path.GetFileName(catalogue) + " has no entry for \"" + key + "\".");
+
+               string value = (string)data.Element("value") ?? "";
+               Assert.True(MnemonicText.Parse(value).KeyIndex < 0,
+                  Path.GetFileName(catalogue) + " gives the shared caption \"" + key + "\" an Alt key: \"" + value + "\".");
+            }
+         }
+
+         // The checker's two halves of the rule: the caption is exempt from coverage,
+         // and the helper's captions are checked against every page that calls it.
+         string checker = ReadRepositoryFile(Path.Join("build", "check-mnemonics.py"));
+         Assert.True(checker.Contains("\"Try again\"", StringComparison.Ordinal),
+            "build/check-mnemonics.py no longer exempts \"Try again\" from carrying a key.");
+         Assert.True(checker.Contains("ReadFailure.cs", StringComparison.Ordinal) && checker.Contains("ReadFailure.Show(", StringComparison.Ordinal),
+            "build/check-mnemonics.py no longer puts ReadFailure's captions into the scope of every page that calls ReadFailure.Show.");
       }
 
       private static string ReadView(string file) => ReadControlPanelFile(Path.Join("Views", file));
 
-      private static string ReadControlPanelFile(string relative)
+      private static string ReadControlPanelFile(string relative) => File.ReadAllText(ControlPanelPath(relative));
+
+      /// <summary>A file or folder under the ControlPanel project, found from the test binaries.</summary>
+      private static string ControlPanelPath(string relative)
       {
          var directory = new DirectoryInfo(AppContext.BaseDirectory);
          while (directory != null)
          {
             string candidate = Path.Join(directory.FullName, "ControlPanel", relative);
-            if (File.Exists(candidate))
-               return File.ReadAllText(candidate);
+            if (File.Exists(candidate) || Directory.Exists(candidate))
+               return candidate;
             directory = directory.Parent;
          }
 
          Assert.Fail("ControlPanel/" + relative.Replace('\\', '/') + " could not be found from the test binaries.");
+         return null;
+      }
+
+      /// <summary>A file under the repository root, found from the test binaries.</summary>
+      private static string ReadRepositoryFile(string relative)
+      {
+         var directory = new DirectoryInfo(AppContext.BaseDirectory);
+         while (directory != null)
+         {
+            string candidate = Path.Join(directory.FullName, relative);
+            if (File.Exists(candidate) && Directory.Exists(Path.Join(directory.FullName, "build")))
+               return File.ReadAllText(candidate);
+            directory = directory.Parent;
+         }
+
+         Assert.Fail(relative.Replace('\\', '/') + " could not be found from the test binaries.");
          return null;
       }
    }

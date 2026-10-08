@@ -11908,6 +11908,9 @@ No message is deleted and no account is removed. Continue?</value>
   <data name="Trusts an address range" xml:space="preserve">
     <value>Trusts an address range</value>
   </data>
+  <data name="Try again" xml:space="preserve">
+    <value>Try again</value>
+  </data>
   <data name="Turn debug logging off again" xml:space="preserve">
     <value>Turn debug logging off again</value>
   </data>
@@ -13290,9 +13293,6 @@ No message is deleted and no account is removed. Continue?</value>
   </data>
   <data name="_To" xml:space="preserve">
     <value>_To</value>
-  </data>
-  <data name="_Try again" xml:space="preserve">
-    <value>_Try again</value>
   </data>
   <data name="_Turn on debug logging now" xml:space="preserve">
     <value>_Turn on debug logging now</value>

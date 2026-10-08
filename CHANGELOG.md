@@ -466,8 +466,12 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   again; and the controls that write - Add, Restore defaults, the account form, the backup card - are disabled until a
   read works. The suppression list says there are no domains only after it has read that there are none, the
   collection pages' notice sits under the header rather than under three hundred pixels of blank card, and a role
-  that could not be given is a Critical failure rather than an amber warning. `ReadFailurePageTests` holds every page
-  to the pattern.
+  that could not be given is a Critical failure rather than an amber warning. The Try again button carries no Alt key
+  in any language: it is on some twenty pages, and no letter is free of a collision on every one of them - in English
+  T is also Require TLS for auth, Add action, Take the role away and Restore settings - and WPF, given two enabled
+  targets for one key, moves the focus between them and presses neither; it is reached by Tab.
+  `build/check-mnemonics.py` scans the shared helper and checks its captions against every page that calls it.
+  `ReadFailurePageTests` holds every page to the pattern and the caption to no key in any catalogue.
 - **Fixed: the three read-only overviews drew defaults as findings when nothing could be read.** With the link to the
   service lost, the spam filtering overview said "1 value(s) could not be read" and then that nothing at all happens on
   score because both thresholds are 0, with every check Off at a score of 0; the virus scanning overview that no

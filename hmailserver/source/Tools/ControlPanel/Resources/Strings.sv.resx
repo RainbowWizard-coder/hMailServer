@@ -11908,6 +11908,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   <data name="Trusts an address range" xml:space="preserve">
     <value>Litar på ett adressintervall</value>
   </data>
+  <data name="Try again" xml:space="preserve">
+    <value>Försök igen</value>
+  </data>
   <data name="Turn debug logging off again" xml:space="preserve">
     <value>Stäng av felsökningsloggningen igen</value>
   </data>
@@ -13290,9 +13293,6 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   </data>
   <data name="_To" xml:space="preserve">
     <value>_Till</value>
-  </data>
-  <data name="_Try again" xml:space="preserve">
-    <value>_Försök igen</value>
   </data>
   <data name="_Turn on debug logging now" xml:space="preserve">
     <value>Slå på _felsökningsloggning nu</value>

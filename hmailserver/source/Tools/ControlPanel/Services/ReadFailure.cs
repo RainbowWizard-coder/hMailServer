@@ -101,12 +101,19 @@ namespace hMailServer.ControlPanel.Services
       /// <summary>
       /// The action a failure notice carries: Try again, which runs the read once
       /// more. One button for every page, so that it reads the same everywhere.
+      ///
+      /// It carries no Alt key, in any language. It is on some twenty pages, and
+      /// no letter is free of a collision on every one of them - in English T is
+      /// Require TLS for auth, Add action, Take the role away, Restore settings
+      /// and Test connection - and WPF, given two enabled targets for one key,
+      /// moves the focus between them and presses neither. It is reached by Tab,
+      /// as the one action in a notice that is a live region.
       /// </summary>
       public static Wpf.Ui.Controls.Button TryAgainButton(Action tryAgain)
       {
          var button = new Wpf.Ui.Controls.Button
          {
-            Content = L("_Try again"),
+            Content = L("Try again"),
             Appearance = Wpf.Ui.Controls.ControlAppearance.Secondary,
             VerticalAlignment = VerticalAlignment.Center
          };

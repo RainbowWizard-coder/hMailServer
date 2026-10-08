@@ -11908,6 +11908,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="Trusts an address range" xml:space="preserve">
     <value>Bir adres aralığına güvenir</value>
   </data>
+  <data name="Try again" xml:space="preserve">
+    <value>Tekrar dene</value>
+  </data>
   <data name="Turn debug logging off again" xml:space="preserve">
     <value>Hata ayıklama günlüğünü yeniden kapat</value>
   </data>
@@ -13290,9 +13293,6 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="_To" xml:space="preserve">
     <value>Ki_me</value>
-  </data>
-  <data name="_Try again" xml:space="preserve">
-    <value>_Tekrar dene</value>
   </data>
   <data name="_Turn on debug logging now" xml:space="preserve">
     <value>Hata ayıklama günlüklemesini şimdi _aç</value>

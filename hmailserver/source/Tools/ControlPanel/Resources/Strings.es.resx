@@ -11908,6 +11908,9 @@ No se borra ningún mensaje ni se elimina ninguna cuenta. ¿Continuar?</value>
   <data name="Trusts an address range" xml:space="preserve">
     <value>Confía en un rango de direcciones</value>
   </data>
+  <data name="Try again" xml:space="preserve">
+    <value>Reintentar</value>
+  </data>
   <data name="Turn debug logging off again" xml:space="preserve">
     <value>Volver a desactivar el registro de depuración</value>
   </data>
@@ -13290,9 +13293,6 @@ No se borra ningún mensaje ni se elimina ninguna cuenta. ¿Continuar?</value>
   </data>
   <data name="_To" xml:space="preserve">
     <value>_Para</value>
-  </data>
-  <data name="_Try again" xml:space="preserve">
-    <value>_Reintentar</value>
   </data>
   <data name="_Turn on debug logging now" xml:space="preserve">
     <value>_Activar ahora el registro de depuración</value>

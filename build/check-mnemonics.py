@@ -34,6 +34,12 @@ What is checked
     language catalogue (Resources/Strings.<culture>.resx) is then checked the
     same way: each translated caption carries its own key, chosen for that
     language, and no two that share a scope share one.
+  * A shared helper that places a caption on every page that calls it
+    (Services/ReadFailure's Try again button) is scanned once for coverage, and
+    its captions join the scope of every calling page - the class the call is
+    in, and the view file as well for a XAML page - so a key it carries is
+    checked against each of those pages. Such a caption is on screen with
+    pages it never knows about, and the one in the tree carries no key at all.
 
 Usage: python3 build/check-mnemonics.py [--list]
 Exit status 0 when every caption is covered and every scope is collision-free.
@@ -43,7 +49,18 @@ import re
 import sys
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "hmailserver", "source", "Tools", "ControlPanel")
-EXEMPT = {"Cancel", "OK", "Close", "…", "..."}
+EXEMPT = {"Cancel", "OK", "Close", "…", "...",
+          # The one action in a read-failure notice (Services/ReadFailure), on some
+          # twenty pages and reached by Tab. No letter is free of a collision on every
+          # page that shows it - in English T is Require TLS for auth, Add action, Take
+          # the role away, Restore settings and Test connection - and WPF, given two
+          # enabled targets for one key, moves the focus between them and presses
+          # neither, so the caption carries no key in any language.
+          "Try again"}
+
+# Shared helpers, each with the call that places its captions on a page: every
+# caption of the helper joins the scope of every page whose code makes the call.
+SHARED = {os.path.join("Services", "ReadFailure.cs"): "ReadFailure.Show("}
 
 
 def parse(caption):
@@ -74,14 +91,41 @@ def unescape_cs(literal):
 
 
 class Caption:
-    def __init__(self, file, line, scope, raw, class_name=None):
+    def __init__(self, file, line, scope, raw, class_name=None, page=None, via=None):
         self.file, self.line, self.scope, self.raw = file, line, scope, raw
         self.class_name = class_name
+        # The file whose scope the caption joins: its own, or for a shared helper's
+        # caption the page the helper put it on, with the call that did - (file,
+        # line, call) - in via.
+        self.page = page or file
+        self.via = via
         self.text, self.key = parse(raw)
+
+
+def location(c):
+    """Where a problem with the caption is reported: the caption, or for a shared
+    helper's caption the call that put it on the page."""
+    if c.via:
+        return f"{os.path.relpath(c.via[0], ROOT)}:{c.via[1]}"
+    return f"{os.path.relpath(c.file, ROOT)}:{c.line}"
+
+
+def describe(c, raw=None):
+    """The caption in a problem, with where it comes from when that is a shared helper."""
+    raw = c.raw if raw is None else raw
+    if c.via:
+        return f"\"{raw}\" ({os.path.relpath(c.file, ROOT)} line {c.line}, placed by {c.via[2]})"
+    return f"\"{raw}\" (line {c.line})"
 
 
 def line_of(text, pos):
     return text.count("\n", 0, pos) + 1
+
+
+def innermost(ranges, pos):
+    """The smallest (name, start, end) range around pos, or None."""
+    hits = [(name, a, b) for name, a, b in ranges if a <= pos <= b]
+    return min(hits, key=lambda r: r[2] - r[1]) if hits else None
 
 
 def xaml_captions(path):
@@ -160,22 +204,16 @@ def cs_captions(path):
     methods = body_ranges(src, METHOD)
     lines = src.split("\n")
 
-    def enclosing(ranges, pos, innermost=True):
-        hits = [(name, a, b) for name, a, b in ranges if a <= pos <= b]
-        if not hits:
-            return None
-        return min(hits, key=lambda r: r[2] - r[1]) if innermost else max(hits, key=lambda r: r[2] - r[1])
-
     def scope_for(pos, field=None):
         """A class shown as a whole is one scope; a class with tabs is one scope per
         method, its constructor global to all of them. A field belongs to the method
         that first mentions it."""
-        cls = enclosing(classes, pos)
+        cls = innermost(classes, pos)
         class_name = cls[0] if cls else ""
         tabbed = bool(cls) and "new TabItem" in src[cls[1]:cls[2]]
         if not tabbed:
             return class_name, class_name
-        method = enclosing(methods, pos)
+        method = innermost(methods, pos)
         if method is None and field:
             users = [(name, a, b) for name, a, b in methods
                      if cls[1] <= a <= cls[2] and re.search(r"\b" + re.escape(field) + r"\b", src[a:b])]
@@ -218,6 +256,58 @@ def cs_captions(path):
     return out
 
 
+def placed_captions(own, call, files):
+    """A shared helper's captions, copied onto every page whose code makes the call
+    that places them: into the scope of the class the call is in, and for a XAML
+    page into the view file's scope as well, since its captions are scoped by file.
+    One copy per page and scope, however many calls the page makes."""
+    out = []
+    seen = set()
+    for path in files:
+        if not path.endswith(".cs"):
+            continue
+        with open(path, encoding="utf-8") as handle:
+            src = handle.read()
+        classes = body_ranges(src, CLASS)
+        for m in re.finditer(re.escape(call), src):
+            cls = innermost(classes, m.start())
+            class_name = cls[0] if cls else ""
+            via = (path, line_of(src, m.start()), call.rstrip("("))
+            targets = [(path, class_name, class_name)]
+            if path.endswith(".xaml.cs") and os.path.exists(path[:-3]):
+                targets.append((path[:-3], os.path.basename(path[:-3]), None))
+            for page, scope, scoped_class in targets:
+                if (page, scope) in seen:
+                    continue
+                seen.add((page, scope))
+                for c in own:
+                    out.append(Caption(c.file, c.line, scope, c.raw, scoped_class, page=page, via=via))
+    return out
+
+
+def collisions(captions, tag=None):
+    """No two captions in one scope share a key; a tabbed class's constructor scope
+    is global to its methods. One problem line per collision, for the caption that
+    came second in its scope."""
+    problems = []
+    by_scope = {}
+    for c in captions:
+        if c.key:
+            by_scope.setdefault((c.page, c.scope), []).append(c)
+    language = f"[{tag}] " if tag else ""
+    for (page, scope), items in by_scope.items():
+        ctor = by_scope.get((page, items[0].class_name), []) if items[0].class_name and items[0].class_name != scope else []
+        seen = {}
+        for c in items + ctor:
+            if c.key in seen:
+                other = seen[c.key]
+                if c in items:
+                    problems.append(f"{location(c)}: {language}Alt+{c.key} in {describe(c)} collides with {describe(other)} (scope {scope})")
+            else:
+                seen[c.key] = c
+    return problems
+
+
 def language_problems(captions):
     """Every translated caption must carry a key, and no two in one scope may share
     one - the rule above, applied to each catalogue in Resources with the captions
@@ -238,28 +328,16 @@ def language_problems(captions):
             value = data.find("value")
             if value is not None and value.text:
                 catalogue[data.get("name")] = value.text
-        by_scope = {}
+        translated = []
         for c in captions:
             raw = catalogue.get(c.raw)
             if raw is None or c.text in EXEMPT:
                 continue
-            translated = Caption(c.file, c.line, c.scope, raw, c.class_name)
-            rel = os.path.relpath(c.file, ROOT)
-            if c.key is not None and translated.key is None:
-                problems.append(f"{rel}:{c.line}: [{tag}] no mnemonic in \"{raw}\" (translation of \"{c.raw}\")")
-            if translated.key:
-                by_scope.setdefault((c.file, c.scope), []).append(translated)
-        for (file, scope), items in by_scope.items():
-            ctor = by_scope.get((file, items[0].class_name), []) if items[0].class_name and items[0].class_name != scope else []
-            seen = {}
-            rel = os.path.relpath(file, ROOT)
-            for c in items + ctor:
-                if c.key in seen:
-                    other = seen[c.key]
-                    if c in items:
-                        problems.append(f"{rel}:{c.line}: [{tag}] Alt+{c.key} in \"{c.raw}\" collides with \"{other.raw}\" (line {other.line}, scope {scope})")
-                else:
-                    seen[c.key] = c
+            t = Caption(c.file, c.line, c.scope, raw, c.class_name, page=c.page, via=c.via)
+            if c.key is not None and t.key is None and not c.via:
+                problems.append(f"{location(c)}: [{tag}] no mnemonic in \"{raw}\" (translation of \"{c.raw}\")")
+            translated.append(t)
+        problems += collisions(translated, tag)
     return problems
 
 
@@ -273,38 +351,28 @@ def main():
     files = sorted(os.path.join(views, f) for f in os.listdir(views)) + [os.path.join(ROOT, "MainWindow.xaml")]
     for path in files:
         if path.endswith(".xaml"):
-            captions = xaml_captions(path)
+            all_captions += xaml_captions(path)
         elif path.endswith(".cs"):
-            captions = cs_captions(path)
-        else:
+            all_captions += cs_captions(path)
+    # A shared helper's captions: scanned once, where they are, for coverage, and
+    # copied onto every page that calls the helper for the collision check.
+    placed = []
+    for helper, call in SHARED.items():
+        own = cs_captions(os.path.join(ROOT, helper))
+        all_captions += own
+        placed += placed_captions(own, call, files)
+    # coverage
+    for c in all_captions:
+        if c.text in EXEMPT:
             continue
-        all_captions += captions
-        rel = os.path.relpath(path, ROOT)
-        # coverage
-        for c in captions:
-            if c.text in EXEMPT:
-                continue
-            if c.key is None:
-                problems.append(f"{rel}:{c.line}: no mnemonic in \"{c.raw}\"")
-        # uniqueness per scope; a tabbed class's constructor scope is global to its methods
-        by_scope = {}
-        for c in captions:
-            if c.key:
-                by_scope.setdefault(c.scope, []).append(c)
-        for scope, items in by_scope.items():
-            ctor = by_scope.get(items[0].class_name, []) if items[0].class_name and items[0].class_name != scope else []
-            seen = {}
-            for c in items + ctor:
-                if c.key in seen:
-                    other = seen[c.key]
-                    if c in items:
-                        problems.append(f"{rel}:{c.line}: Alt+{c.key} in \"{c.raw}\" collides with \"{other.raw}\" (line {other.line}, scope {scope})")
-                else:
-                    seen[c.key] = c
-    problems += language_problems(all_captions)
+        if c.key is None:
+            problems.append(f"{location(c)}: no mnemonic in \"{c.raw}\"")
+    # uniqueness per scope, with the shared helpers' captions on the pages that call them
+    problems += collisions(all_captions + placed)
+    problems += language_problems(all_captions + placed)
     if listing:
-        for c in all_captions:
-            print(f"{os.path.relpath(c.file, ROOT)}:{c.line}: [{c.scope}] {'Alt+' + c.key if c.key else '   -'}  {c.text}")
+        for c in all_captions + placed:
+            print(f"{location(c)}: [{c.scope}] {'Alt+' + c.key if c.key else '   -'}  {c.text}" + (f"  (from {os.path.relpath(c.file, ROOT)})" if c.via else ""))
     covered = sum(1 for c in all_captions if c.key)
     exempt = sum(1 for c in all_captions if c.text in EXEMPT)
     print(f"{len(all_captions)} static captions: {covered} with a mnemonic, {exempt} exempt, {len(all_captions) - covered - exempt} missing")
