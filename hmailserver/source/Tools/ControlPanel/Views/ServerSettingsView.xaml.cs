@@ -1016,7 +1016,23 @@ namespace hMailServer.ControlPanel.Views
       private class ComAction : ComSetting, INotPersisted
       {
          public string ButtonText;
+
+         /// <summary>
+         /// What the button did, in a word of good or bad and a sentence; a null
+         /// sentence says nothing happened worth reporting - a dialog that was
+         /// cancelled - and leaves the line as it was.
+         /// </summary>
          public Func<(bool ok, string text)> Action;
+
+         /// <summary>
+         /// Whether the row's Label is printed above the button. A row whose button
+         /// says all there is to say - and whose card's title is its Label - keeps
+         /// the Label for the settings search and the accessible name alone.
+         /// </summary>
+         public bool CaptionAbove = true;
+
+         protected override bool CaptionOnRow => CaptionAbove;
+
          private System.Windows.Controls.TextBlock result_;
          public override bool WantsInitialValue => false;
 
@@ -1063,7 +1079,8 @@ namespace hMailServer.ControlPanel.Views
                try
                {
                   (bool ok, string text) r = Action();
-                  Report_(r.text, r.ok);
+                  if (r.text != null)
+                     Report_(r.text, r.ok);
                }
                catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
                {
@@ -4839,13 +4856,24 @@ namespace hMailServer.ControlPanel.Views
          Header.Title = L("Administrative access");
          Header.Subtitle = L("The credentials used to administer this server.");
 
+         // Changed in a dialog of its own - the password in use now, the new one and
+         // the new one again - and never by this page's Save: one unconfirmed box,
+         // written with the mailbox policy beside it, was a typo away from locking
+         // the administrator out of every client (review finding F168).
          var password = Card(L("Administrator password"),
             L("The main hMailServer administration password. It is used by this Control Panel, the REST API and any script that connects through the COM API, and is stored hashed in hMailServer.ini. Changing it does not affect mailbox passwords."));
-         password.Settings.Add(new ComPassword
+         password.Settings.Add(new ComAction
          {
             Path = "SetAdministratorPassword",
-            Label = L("New administrator password (leave empty to keep the current one)"),
-            MethodName = "SetAdministratorPassword"
+            Label = L("Administrator password"),
+            CaptionAbove = false,
+            ButtonText = L("Change the administrator password…"),
+            Action = () =>
+            {
+               var dialog = new AdministratorPasswordDialog(Window.GetWindow(this) ?? Application.Current?.MainWindow);
+               dialog.ShowDialog();
+               return dialog.Changed ? (true, AdministratorPasswordChange.Changed) : (true, null);
+            }
          });
          Tab(L("Password")).Cards.Add(password);
 

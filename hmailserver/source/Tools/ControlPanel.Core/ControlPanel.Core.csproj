@@ -96,6 +96,9 @@
          saved: the half of the question every way of leaving a page asks that
          needs no window. -->
     <Compile Include="..\ControlPanel\Services\UnsavedChanges.cs" />
+    <!-- What the administrator password dialog asks of the three boxes before it
+         asks the server, and the sentences it says. -->
+    <Compile Include="..\ControlPanel\Services\AdministratorPasswordChange.cs" />
   </ItemGroup>
 
   <!-- The operator documentation, embedded straight from the repository as

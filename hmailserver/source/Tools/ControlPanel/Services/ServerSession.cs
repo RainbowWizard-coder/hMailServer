@@ -227,6 +227,95 @@ namespace hMailServer.ControlPanel.Services
          return Connect(host, userName, password, null, out error);
       }
 
+      /// <summary>The name the server's administrator signs in with (COMAuthentication).</summary>
+      public const string AdministratorName = "Administrator"; // no-loc: the account's name
+
+      /// <summary>Whether this session signed in as the server's administrator, whose password is the one the Administrative access page changes.</summary>
+      public bool IsAdministrator => string.Equals(UserName, AdministratorName, StringComparison.OrdinalIgnoreCase);
+
+      /// <summary>
+      /// Whether <paramref name="password"/> is the administrator password the server
+      /// holds now, which the administrator password dialog asks for before it
+      /// changes it. The password this session signed in with answers at once, and
+      /// costs the server nothing; any other - this session is somebody else's, or the
+      /// password was changed elsewhere since - is put to the server as a sign-in of
+      /// its own, in a connection of its own that this session never uses, asking for
+      /// a one-time code when the server wants one.
+      /// </summary>
+      /// <param name="askForCode">Asks for a one-time code; null when none was given.</param>
+      /// <param name="refused">True when the server said the password (or the code) was wrong, rather than not answering.</param>
+      public bool CheckAdministratorPassword(string password, Func<string> askForCode, out bool refused, out string error)
+      {
+         refused = false;
+         error = null;
+
+         lock (gate_)
+         {
+            if (password_ != null && IsAdministrator && SamePassword_(password_.Reveal(), password))
+               return true;
+         }
+
+         if (!Open(Host, AdministratorName, password, null, out dynamic app, out bool secondFactor, out error))
+         {
+            if (!secondFactor)
+            {
+               refused = error == AuthenticationFailed_;
+               return false;
+            }
+
+            string code = askForCode?.Invoke();
+            if (string.IsNullOrEmpty(code))
+            {
+               error = L("No one-time code was given, so the password in use now could not be checked.");
+               return false;
+            }
+
+            if (!Open(Host, AdministratorName, password, code, out app, out _, out error))
+            {
+               refused = error == AuthenticationFailed_;
+               return false;
+            }
+         }
+
+         Release((object)app);
+         return true;
+      }
+
+      /// <summary>
+      /// The administrator password was changed: a session signed in as the
+      /// administrator signs in again, after a service restart, and opens its REST
+      /// session, with the new one. A session of another account keeps its own.
+      /// </summary>
+      public void AdministratorPasswordChanged(string newPassword)
+      {
+         lock (gate_)
+         {
+            if (!IsAdministrator || password_ == null)
+               return;
+
+            password_.Dispose();
+            password_ = new ProtectedSecret(newPassword);
+         }
+      }
+
+      /// <summary>What a sign-in the server refused says: the password, or the code with it, was not the server's.</summary>
+      private static string AuthenticationFailed_ => L("Authentication failed. Check the user name and password.");
+
+      private static bool SamePassword_(string a, string b)
+      {
+         byte[] left = Encoding.UTF8.GetBytes(a ?? "");
+         byte[] right = Encoding.UTF8.GetBytes(b ?? "");
+         try
+         {
+            return System.Security.Cryptography.CryptographicOperations.FixedTimeEquals(left, right);
+         }
+         finally
+         {
+            Array.Clear(left, 0, left.Length);
+            Array.Clear(right, 0, right.Length);
+         }
+      }
+
       /// <summary>
       /// What this credential holds, asked of the server once. An older server
       /// has neither property and throws; that leaves Permissions null, which
@@ -656,7 +745,7 @@ namespace hMailServer.ControlPanel.Services
 
                error = secondFactorRequired
                   ? L("This server requires a one-time code for the administrator.")
-                  : L("Authentication failed. Check the user name and password.");
+                  : AuthenticationFailed_;
                return false;
             }
 

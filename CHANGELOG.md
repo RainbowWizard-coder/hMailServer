@@ -511,6 +511,18 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   them. The pages it covers are the two kinds of settings page (every page of hMailServer.ini settings and every page of
   the server's settings), directory authentication, directory synchronisation, the event scripts and the IP ranges
   page, whose permission boxes are asked about before another range's are put over them, and kept across an add.
+- **Changed: the Control Panel changes the administrator password in a dialog that asks for the password in use now
+  and the new one twice.** It was one masked box on the *Administrative access* page, *New administrator password
+  (leave empty to keep the current one)*, written by the page's *Save changes* together with the mailbox password
+  policy beside it, with no second box, no current password and nothing said afterwards: a typo locked the
+  administrator out of the Control Panel, the REST API and every COM script, and the way back in is an elevated prompt
+  on the server. The card has a *Change the administrator password…* button now, which opens *Set a new administrator
+  password*: each box says on itself what is wrong with it - *The two passwords do not match* among them - the password
+  in use now is put to the server before the new one is written (a one-time code is asked for when the server wants
+  one), what the server refuses, such as a password found in a published breach, is said in its words, and the card
+  says afterwards that the password was changed and to use the new one at the next sign-in, in scripts and in REST API
+  clients. A Control Panel signed in as the administrator goes on with the new password, after a service restart and
+  for the settings it reads over the REST API.
 
 ### IMAP, POP3 and the webmail
 

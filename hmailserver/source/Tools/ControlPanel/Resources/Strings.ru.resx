@@ -2148,6 +2148,9 @@ Control Panel может читать файлы сообщений только
   <data name="C_A certificate bundle (PEM) that client certificates must chain to" xml:space="preserve">
     <value>Набор сертификатов _ЦС (PEM), до которого должна выстраиваться цепочка клиентских сертификатов</value>
   </data>
+  <data name="C_hange the password" xml:space="preserve">
+    <value>_Изменить пароль</value>
+  </data>
   <data name="C_heck an address…" xml:space="preserve">
     <value>_Проверить адрес…</value>
   </data>
@@ -2279,6 +2282,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Change history for synchronising clients" xml:space="preserve">
     <value>История изменений для синхронизирующихся клиентов</value>
+  </data>
+  <data name="Change the administrator password…" xml:space="preserve">
+    <value>Изменить пароль администратора…</value>
   </data>
   <data name="Change the language" xml:space="preserve">
     <value>Сменить язык</value>
@@ -2576,6 +2582,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Compromised accounts" xml:space="preserve">
     <value>Скомпрометированные учётные записи</value>
+  </data>
+  <data name="Con_firm the new password" xml:space="preserve">
+    <value>_Подтверждение нового пароля</value>
   </data>
   <data name="Concurrent SMTP, IMAP and POP3 sessions, sampled every 2 seconds." xml:space="preserve">
     <value>Одновременные сеансы SMTP, IMAP и POP3; замер каждые 2 секунды.</value>
@@ -6267,9 +6276,6 @@ Control Panel может читать файлы сообщений только
   <data name="New _password (leave empty to keep current)" xml:space="preserve">
     <value>Новый _пароль (оставьте пустым, чтобы сохранить текущий)</value>
   </data>
-  <data name="New administrator password (leave empty to keep the current one)" xml:space="preserve">
-    <value>Новый пароль администратора (оставьте пустым, чтобы сохранить текущий)</value>
-  </data>
   <data name="New passphrase" xml:space="preserve">
     <value>Новая парольная фраза</value>
   </data>
@@ -6545,6 +6551,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="No message is scanned for viruses. Attachment blocking is still stripping {0}, but nothing examines the contents of a message." xml:space="preserve">
     <value>Ни одно сообщение не проверяется на вирусы. Блокировка вложений всё ещё удаляет {0}, но содержимое сообщений не исследует ничто.</value>
+  </data>
+  <data name="No one-time code was given, so the password in use now could not be checked." xml:space="preserve">
+    <value>Одноразовый код не был введён, поэтому текущий пароль проверить не удалось.</value>
   </data>
   <data name="No passphrase is set: the archive is not encrypted, and anyone who can reach the destination folder can read every mailbox in it." xml:space="preserve">
     <value>Парольная фраза не задана: архив не шифруется, и любой, кто доберётся до папки назначения, прочитает в нём каждый почтовый ящик.</value>
@@ -9638,6 +9647,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Set TlsRptFromAddress in the [Settings] section of hMailServer.ini to a mailbox reports should be sent from. Leaving it empty is a valid choice - it just means the collected statistics are discarded and no reports are ever sent." xml:space="preserve">
     <value>Задайте TlsRptFromAddress в разделе [Settings] файла hMailServer.ini, указав почтовый ящик, от имени которого следует отправлять отчёты. Оставить его пустым — допустимый выбор: это просто означает, что собранная статистика отбрасывается и отчёты не отправляются никогда.</value>
   </data>
+  <data name="Set a new administrator password" xml:space="preserve">
+    <value>Новый пароль администратора</value>
+  </data>
   <data name="Set a new server administration password." xml:space="preserve">
     <value>Задайте новый пароль администрирования сервера.</value>
   </data>
@@ -10397,6 +10409,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="That is greylisting. Exempt the sending address here, or turn greylisting off entirely." xml:space="preserve">
     <value>Это серые списки. Освободите отправляющий адрес здесь или отключите серые списки полностью.</value>
   </data>
+  <data name="That is not the administrator password in use now." xml:space="preserve">
+    <value>Это не текущий пароль администратора.</value>
+  </data>
   <data name="That is the accept pipeline stalling after the 354: the stage timings in the debug log say which stage." xml:space="preserve">
     <value>Это конвейер приёма застревает после 354: тайминги этапов в отладочном журнале показывают, на каком именно этапе.</value>
   </data>
@@ -10570,6 +10585,12 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The administrator password opens everything; a one-time code beside it keeps a leaked password from being enough." xml:space="preserve">
     <value>Пароль администратора открывает всё; одноразовый код рядом с ним не даёт утёкшему паролю быть достаточным.</value>
+  </data>
+  <data name="The administrator password was changed. Use the new one the next time you sign in, in scripts and in REST API clients." xml:space="preserve">
+    <value>Пароль администратора изменён. Используйте новый при следующем входе, в скриптах и в клиентах REST API.</value>
+  </data>
+  <data name="The administrator password was not changed: {0}" xml:space="preserve">
+    <value>Пароль администратора не изменён: {0}</value>
   </data>
   <data name="The administrator password, and a second factor the server itself enforces on every client." xml:space="preserve">
     <value>Пароль администратора и второй фактор, который сам сервер требует от каждого клиента.</value>
@@ -11052,6 +11073,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The password could not be checked against published data breaches just now, and this server is set to refuse a change it cannot check. Try again later." xml:space="preserve">
     <value>Сейчас не удалось проверить пароль по опубликованным утечкам данных, а этот сервер настроен отклонять изменение, которое он не может проверить. Повторите попытку позже.</value>
   </data>
+  <data name="The password this Control Panel, the REST API and every script that connects through the COM API sign in to the server with. Mailbox passwords are not changed." xml:space="preserve">
+    <value>Пароль, с которым этот Control Panel, REST API и любой скрипт, подключающийся через COM API, входят на сервер. Пароли почтовых ящиков не меняются.</value>
+  </data>
   <data name="The people and the domains this server carries mail for." xml:space="preserve">
     <value>Люди и домены, для которых этот сервер обслуживает почту.</value>
   </data>
@@ -11404,6 +11428,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The two passphrases are not the same. Nothing has been saved." xml:space="preserve">
     <value>Две парольные фразы не совпадают. Ничего не сохранено.</value>
+  </data>
+  <data name="The two passwords do not match." xml:space="preserve">
+    <value>Пароли не совпадают.</value>
   </data>
   <data name="The update helper has started. This Control Panel closes now so that the installer can replace its files; open it again in a minute to see the outcome." xml:space="preserve">
     <value>Вспомогательная программа обновления запущена. Этот Control Panel сейчас закроется, чтобы установщик мог заменить его файлы; откройте его снова через минуту, чтобы увидеть итог.</value>
@@ -11839,11 +11866,17 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Type a user name to also test the search and, with a password, a real logon." xml:space="preserve">
     <value>Введите имя пользователя, чтобы проверить ещё и поиск, а с паролем - реальный вход.</value>
   </data>
+  <data name="Type the administrator password in use now." xml:space="preserve">
+    <value>Введите текущий пароль администратора.</value>
+  </data>
   <data name="Type the directory server host name first." xml:space="preserve">
     <value>Сначала введите имя хоста сервера каталога.</value>
   </data>
   <data name="Type the new passphrase first. To remove the stored one, use &quot;Remove stored passphrase&quot;." xml:space="preserve">
     <value>Сначала введите новую парольную фразу. Чтобы удалить сохранённую, используйте «Удалить сохранённую парольную фразу».</value>
+  </data>
+  <data name="Type the new password." xml:space="preserve">
+    <value>Введите новый пароль.</value>
   </data>
   <data name="Type the user name the password belongs to." xml:space="preserve">
     <value>Введите имя пользователя, которому принадлежит пароль.</value>
@@ -12724,6 +12757,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="_Create key" xml:space="preserve">
     <value>_Создать ключ</value>
   </data>
+  <data name="_Current administrator password" xml:space="preserve">
+    <value>_Текущий пароль администратора</value>
+  </data>
   <data name="_Delete" xml:space="preserve">
     <value>_Удалить</value>
   </data>
@@ -12933,6 +12969,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="_New address (it may be at any domain this server holds)" xml:space="preserve">
     <value>_Новый адрес (он может быть в любом домене этого сервера)</value>
+  </data>
+  <data name="_New password" xml:space="preserve">
+    <value>_Новый пароль</value>
   </data>
   <data name="_Newer" xml:space="preserve">
     <value>_Новее</value>

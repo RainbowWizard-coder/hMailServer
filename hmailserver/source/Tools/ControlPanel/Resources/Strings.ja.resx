@@ -2148,6 +2148,9 @@
   <data name="C_A certificate bundle (PEM) that client certificates must chain to" xml:space="preserve">
     <value>クライアント証明書のチェーン先となる CA 証明書バンドル (PEM)(_A)</value>
   </data>
+  <data name="C_hange the password" xml:space="preserve">
+    <value>パスワードを変更(_H)</value>
+  </data>
   <data name="C_heck an address…" xml:space="preserve">
     <value>アドレスを確認(_H)…</value>
   </data>
@@ -2279,6 +2282,9 @@
   </data>
   <data name="Change history for synchronising clients" xml:space="preserve">
     <value>同期するクライアント向けの変更履歴</value>
+  </data>
+  <data name="Change the administrator password…" xml:space="preserve">
+    <value>管理者パスワードを変更…</value>
   </data>
   <data name="Change the language" xml:space="preserve">
     <value>言語を変更</value>
@@ -2576,6 +2582,9 @@
   </data>
   <data name="Compromised accounts" xml:space="preserve">
     <value>侵害されたアカウント</value>
+  </data>
+  <data name="Con_firm the new password" xml:space="preserve">
+    <value>新しいパスワードの確認(_F)</value>
   </data>
   <data name="Concurrent SMTP, IMAP and POP3 sessions, sampled every 2 seconds." xml:space="preserve">
     <value>同時 SMTP、IMAP、POP3 セッション数。2 秒ごとにサンプリングされます。</value>
@@ -6267,9 +6276,6 @@
   <data name="New _password (leave empty to keep current)" xml:space="preserve">
     <value>新しいパスワード (現在のものを維持するには空のまま)(_P)</value>
   </data>
-  <data name="New administrator password (leave empty to keep the current one)" xml:space="preserve">
-    <value>新しい管理者パスワード (現在のものを維持するには空のまま)</value>
-  </data>
   <data name="New passphrase" xml:space="preserve">
     <value>新しいパスフレーズ</value>
   </data>
@@ -6545,6 +6551,9 @@
   </data>
   <data name="No message is scanned for viruses. Attachment blocking is still stripping {0}, but nothing examines the contents of a message." xml:space="preserve">
     <value>ウイルス スキャンされるメッセージはありません。添付ファイルのブロックは引き続き {0} を取り除いていますが、メッセージの中身を調べるものは何もありません。</value>
+  </data>
+  <data name="No one-time code was given, so the password in use now could not be checked." xml:space="preserve">
+    <value>ワンタイム コードが入力されなかったため、現在のパスワードを確認できませんでした。</value>
   </data>
   <data name="No passphrase is set: the archive is not encrypted, and anyone who can reach the destination folder can read every mailbox in it." xml:space="preserve">
     <value>パスフレーズは設定されていません: アーカイブは暗号化されず、宛先フォルダーに到達できる人は誰でも、その中のすべてのメールボックスを読めます。</value>
@@ -9638,6 +9647,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Set TlsRptFromAddress in the [Settings] section of hMailServer.ini to a mailbox reports should be sent from. Leaving it empty is a valid choice - it just means the collected statistics are discarded and no reports are ever sent." xml:space="preserve">
     <value>hMailServer.ini の [Settings] セクションで TlsRptFromAddress を、レポートの送信元にするメールボックスに設定してください。空のままにするのも有効な選択です。収集した統計が破棄され、レポートが送信されないというだけです。</value>
   </data>
+  <data name="Set a new administrator password" xml:space="preserve">
+    <value>新しい管理者パスワードの設定</value>
+  </data>
   <data name="Set a new server administration password." xml:space="preserve">
     <value>新しいサーバー管理パスワードを設定します。</value>
   </data>
@@ -10397,6 +10409,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="That is greylisting. Exempt the sending address here, or turn greylisting off entirely." xml:space="preserve">
     <value>それはグレイリスティングです。ここで送信アドレスを除外するか、グレイリスティングを完全にオフにしてください。</value>
   </data>
+  <data name="That is not the administrator password in use now." xml:space="preserve">
+    <value>これは現在使用されている管理者パスワードではありません。</value>
+  </data>
   <data name="That is the accept pipeline stalling after the 354: the stage timings in the debug log say which stage." xml:space="preserve">
     <value>それは 354 の後で受け入れパイプラインが停滞しているものです。デバッグ ログのステージ タイミングがどのステージかを示します。</value>
   </data>
@@ -10570,6 +10585,12 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="The administrator password opens everything; a one-time code beside it keeps a leaked password from being enough." xml:space="preserve">
     <value>管理者パスワードはすべてを開きます。ワンタイムコードを併用すれば、漏えいしたパスワードだけでは足りなくなります。</value>
+  </data>
+  <data name="The administrator password was changed. Use the new one the next time you sign in, in scripts and in REST API clients." xml:space="preserve">
+    <value>管理者パスワードを変更しました。次回のサインイン、スクリプト、REST API クライアントでは新しいパスワードを使用してください。</value>
+  </data>
+  <data name="The administrator password was not changed: {0}" xml:space="preserve">
+    <value>管理者パスワードは変更されませんでした: {0}</value>
   </data>
   <data name="The administrator password, and a second factor the server itself enforces on every client." xml:space="preserve">
     <value>管理者パスワードと、サーバー自身がすべてのクライアントに強制する第 2 要素。</value>
@@ -11052,6 +11073,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The password could not be checked against published data breaches just now, and this server is set to refuse a change it cannot check. Try again later." xml:space="preserve">
     <value>現在、公開されたデータ漏えいとパスワードを照合できませんでした。このサーバーは照合できない変更を拒否するように設定されています。しばらくしてからもう一度お試しください。</value>
   </data>
+  <data name="The password this Control Panel, the REST API and every script that connects through the COM API sign in to the server with. Mailbox passwords are not changed." xml:space="preserve">
+    <value>このコントロールパネル、REST API、そして COM API 経由で接続するすべてのスクリプトがサーバーへのサインインに使うパスワードです。メールボックスのパスワードは変わりません。</value>
+  </data>
   <data name="The people and the domains this server carries mail for." xml:space="preserve">
     <value>このサーバーがメールを扱う人とドメイン。</value>
   </data>
@@ -11404,6 +11428,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="The two passphrases are not the same. Nothing has been saved." xml:space="preserve">
     <value>ふたつのパスフレーズが一致しません。何も保存されていません。</value>
+  </data>
+  <data name="The two passwords do not match." xml:space="preserve">
+    <value>パスワードが一致しません。</value>
   </data>
   <data name="The update helper has started. This Control Panel closes now so that the installer can replace its files; open it again in a minute to see the outcome." xml:space="preserve">
     <value>更新ヘルパーが起動しました。インストーラーがファイルを置き換えられるように、このコントロールパネルは今すぐ閉じます。結果を確認するには、1 分ほど後にもう一度開いてください。</value>
@@ -11839,11 +11866,17 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Type a user name to also test the search and, with a password, a real logon." xml:space="preserve">
     <value>検索もテストするにはユーザー名を、実際のログオンもテストするにはさらにパスワードを入力してください。</value>
   </data>
+  <data name="Type the administrator password in use now." xml:space="preserve">
+    <value>現在使用している管理者パスワードを入力してください。</value>
+  </data>
   <data name="Type the directory server host name first." xml:space="preserve">
     <value>まずディレクトリ サーバーのホスト名を入力してください。</value>
   </data>
   <data name="Type the new passphrase first. To remove the stored one, use &quot;Remove stored passphrase&quot;." xml:space="preserve">
     <value>まず新しいパスフレーズを入力してください。保存されたものを削除するには、「保存されたパスフレーズを削除」を使います。</value>
+  </data>
+  <data name="Type the new password." xml:space="preserve">
+    <value>新しいパスワードを入力してください。</value>
   </data>
   <data name="Type the user name the password belongs to." xml:space="preserve">
     <value>パスワードが属するユーザー名を入力してください。</value>
@@ -12724,6 +12757,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="_Create key" xml:space="preserve">
     <value>鍵を作成(_C)</value>
   </data>
+  <data name="_Current administrator password" xml:space="preserve">
+    <value>現在の管理者パスワード(_C)</value>
+  </data>
   <data name="_Delete" xml:space="preserve">
     <value>削除(_D)</value>
   </data>
@@ -12933,6 +12969,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="_New address (it may be at any domain this server holds)" xml:space="preserve">
     <value>新しいアドレス (このサーバーが保持するどのドメインでも可)(_N)</value>
+  </data>
+  <data name="_New password" xml:space="preserve">
+    <value>新しいパスワード(_N)</value>
   </data>
   <data name="_Newer" xml:space="preserve">
     <value>新しい方(_N)</value>

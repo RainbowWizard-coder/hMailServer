@@ -2148,6 +2148,9 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   <data name="C_A certificate bundle (PEM) that client certificates must chain to" xml:space="preserve">
     <value>C_A-certificaatbundel (PEM) waarnaar clientcertificaten moeten ketenen</value>
   </data>
+  <data name="C_hange the password" xml:space="preserve">
+    <value>Wachtwoord _wijzigen</value>
+  </data>
   <data name="C_heck an address…" xml:space="preserve">
     <value>_Adres controleren…</value>
   </data>
@@ -2279,6 +2282,9 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   </data>
   <data name="Change history for synchronising clients" xml:space="preserve">
     <value>Wijzigingsgeschiedenis voor synchroniserende clients</value>
+  </data>
+  <data name="Change the administrator password…" xml:space="preserve">
+    <value>Beheerderswachtwoord wijzigen…</value>
   </data>
   <data name="Change the language" xml:space="preserve">
     <value>De taal wijzigen</value>
@@ -2576,6 +2582,9 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   </data>
   <data name="Compromised accounts" xml:space="preserve">
     <value>Gecompromitteerde accounts</value>
+  </data>
+  <data name="Con_firm the new password" xml:space="preserve">
+    <value>Nieuw wachtwoord _bevestigen</value>
   </data>
   <data name="Concurrent SMTP, IMAP and POP3 sessions, sampled every 2 seconds." xml:space="preserve">
     <value>Gelijktijdige SMTP-, IMAP- en POP3-sessies, elke 2 seconden gemeten.</value>
@@ -6267,9 +6276,6 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="New _password (leave empty to keep current)" xml:space="preserve">
     <value>Nieuw _wachtwoord (leeg laten om het huidige te behouden)</value>
   </data>
-  <data name="New administrator password (leave empty to keep the current one)" xml:space="preserve">
-    <value>Nieuw beheerderswachtwoord (leeg laten om het huidige te behouden)</value>
-  </data>
   <data name="New passphrase" xml:space="preserve">
     <value>Nieuwe wachtwoordzin</value>
   </data>
@@ -6545,6 +6551,9 @@ Niets wat er al staat wordt verwijderd.</value>
   </data>
   <data name="No message is scanned for viruses. Attachment blocking is still stripping {0}, but nothing examines the contents of a message." xml:space="preserve">
     <value>Geen enkel bericht wordt op virussen gescand. Bijlageblokkering verwijdert nog steeds {0}, maar niets onderzoekt de inhoud van een bericht.</value>
+  </data>
+  <data name="No one-time code was given, so the password in use now could not be checked." xml:space="preserve">
+    <value>Er is geen eenmalige code opgegeven, dus het huidige wachtwoord kon niet worden gecontroleerd.</value>
   </data>
   <data name="No passphrase is set: the archive is not encrypted, and anyone who can reach the destination folder can read every mailbox in it." xml:space="preserve">
     <value>Er is geen wachtwoordzin ingesteld: het archief is niet versleuteld, en iedereen die bij de doelmap kan, kan elke mailbox erin lezen.</value>
@@ -9638,6 +9647,9 @@ Doorgaan?</value>
   <data name="Set TlsRptFromAddress in the [Settings] section of hMailServer.ini to a mailbox reports should be sent from. Leaving it empty is a valid choice - it just means the collected statistics are discarded and no reports are ever sent." xml:space="preserve">
     <value>Stel TlsRptFromAddress in de sectie [Settings] van hMailServer.ini in op een postvak waarvandaan rapporten moeten worden verstuurd. Het leeg laten is een geldige keuze - het betekent alleen dat de verzamelde statistieken worden weggegooid en er nooit rapporten worden verstuurd.</value>
   </data>
+  <data name="Set a new administrator password" xml:space="preserve">
+    <value>Nieuw beheerderswachtwoord instellen</value>
+  </data>
   <data name="Set a new server administration password." xml:space="preserve">
     <value>Stel een nieuw wachtwoord voor serverbeheer in.</value>
   </data>
@@ -10397,6 +10409,9 @@ Het volgende bericht aan dit adres wordt verzonden, en het komt pas weer op de l
   <data name="That is greylisting. Exempt the sending address here, or turn greylisting off entirely." xml:space="preserve">
     <value>Dat is greylisting. Stel het verzendende adres hier vrij, of schakel greylisting helemaal uit.</value>
   </data>
+  <data name="That is not the administrator password in use now." xml:space="preserve">
+    <value>Dat is niet het beheerderswachtwoord dat nu in gebruik is.</value>
+  </data>
   <data name="That is the accept pipeline stalling after the 354: the stage timings in the debug log say which stage." xml:space="preserve">
     <value>Dat is de acceptatiepijplijn die na de 354 vastloopt: de fasetijden in het debuglogboek zeggen welke fase.</value>
   </data>
@@ -10570,6 +10585,12 @@ Het volgende bericht aan dit adres wordt verzonden, en het komt pas weer op de l
   </data>
   <data name="The administrator password opens everything; a one-time code beside it keeps a leaked password from being enough." xml:space="preserve">
     <value>Het beheerderswachtwoord opent alles; een eenmalige code ernaast zorgt dat een gelekt wachtwoord niet genoeg is.</value>
+  </data>
+  <data name="The administrator password was changed. Use the new one the next time you sign in, in scripts and in REST API clients." xml:space="preserve">
+    <value>Het beheerderswachtwoord is gewijzigd. Gebruik het nieuwe bij de volgende aanmelding, in scripts en in REST-API-clients.</value>
+  </data>
+  <data name="The administrator password was not changed: {0}" xml:space="preserve">
+    <value>Het beheerderswachtwoord is niet gewijzigd: {0}</value>
   </data>
   <data name="The administrator password, and a second factor the server itself enforces on every client." xml:space="preserve">
     <value>Het beheerderswachtwoord, en een tweede factor die de server zelf op elke client afdwingt.</value>
@@ -11052,6 +11073,9 @@ kon niet worden geladen. Het bericht is waarschijnlijk bezorgd en staat niet mee
   <data name="The password could not be checked against published data breaches just now, and this server is set to refuse a change it cannot check. Try again later." xml:space="preserve">
     <value>Het wachtwoord kon nu niet worden gecontroleerd tegen gepubliceerde datalekken, en deze server is ingesteld om een wijziging te weigeren die hij niet kan controleren. Probeer het later opnieuw.</value>
   </data>
+  <data name="The password this Control Panel, the REST API and every script that connects through the COM API sign in to the server with. Mailbox passwords are not changed." xml:space="preserve">
+    <value>Het wachtwoord waarmee dit Control Panel, de REST-API en elk script dat via de COM-API verbinding maakt, zich bij de server aanmelden. Wachtwoorden van postvakken veranderen niet.</value>
+  </data>
   <data name="The people and the domains this server carries mail for." xml:space="preserve">
     <value>De mensen en de domeinen waarvoor deze server mail vervoert.</value>
   </data>
@@ -11404,6 +11428,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="The two passphrases are not the same. Nothing has been saved." xml:space="preserve">
     <value>De twee wachtwoordzinnen zijn niet gelijk. Er is niets opgeslagen.</value>
+  </data>
+  <data name="The two passwords do not match." xml:space="preserve">
+    <value>De twee wachtwoorden komen niet overeen.</value>
   </data>
   <data name="The update helper has started. This Control Panel closes now so that the installer can replace its files; open it again in a minute to see the outcome." xml:space="preserve">
     <value>De updatehelper is gestart. Dit Control Panel sluit nu, zodat het installatieprogramma zijn bestanden kan vervangen; open het over een minuut opnieuw om de uitkomst te zien.</value>
@@ -11839,11 +11866,17 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="Type a user name to also test the search and, with a password, a real logon." xml:space="preserve">
     <value>Typ een gebruikersnaam om ook het zoeken te testen, en met een wachtwoord een echte aanmelding.</value>
   </data>
+  <data name="Type the administrator password in use now." xml:space="preserve">
+    <value>Typ het beheerderswachtwoord dat nu in gebruik is.</value>
+  </data>
   <data name="Type the directory server host name first." xml:space="preserve">
     <value>Typ eerst de hostnaam van de directoryserver.</value>
   </data>
   <data name="Type the new passphrase first. To remove the stored one, use &quot;Remove stored passphrase&quot;." xml:space="preserve">
     <value>Typ eerst de nieuwe wachtwoordzin. Gebruik "Opgeslagen wachtwoordzin verwijderen" om de opgeslagen wachtwoordzin te verwijderen.</value>
+  </data>
+  <data name="Type the new password." xml:space="preserve">
+    <value>Typ het nieuwe wachtwoord.</value>
   </data>
   <data name="Type the user name the password belongs to." xml:space="preserve">
     <value>Typ de gebruikersnaam waar het wachtwoord bij hoort.</value>
@@ -12724,6 +12757,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="_Create key" xml:space="preserve">
     <value>_Sleutel aanmaken</value>
   </data>
+  <data name="_Current administrator password" xml:space="preserve">
+    <value>_Huidig beheerderswachtwoord</value>
+  </data>
   <data name="_Delete" xml:space="preserve">
     <value>V_erwijderen</value>
   </data>
@@ -12933,6 +12969,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="_New address (it may be at any domain this server holds)" xml:space="preserve">
     <value>_Nieuw adres (het mag in elk domein van deze server liggen)</value>
+  </data>
+  <data name="_New password" xml:space="preserve">
+    <value>_Nieuw wachtwoord</value>
   </data>
   <data name="_Newer" xml:space="preserve">
     <value>_Nieuwere</value>

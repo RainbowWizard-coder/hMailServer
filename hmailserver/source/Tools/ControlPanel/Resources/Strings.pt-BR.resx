@@ -2148,6 +2148,9 @@ Reiniciar o Control Panel agora? Escolha Não para tentar continuar trabalhando.
   <data name="C_A certificate bundle (PEM) that client certificates must chain to" xml:space="preserve">
     <value>Pacote de certificados de C_A (PEM) ao qual os certificados de cliente devem encadear</value>
   </data>
+  <data name="C_hange the password" xml:space="preserve">
+    <value>Al_terar a senha</value>
+  </data>
   <data name="C_heck an address…" xml:space="preserve">
     <value>_Verificar um endereço…</value>
   </data>
@@ -2279,6 +2282,9 @@ Reiniciar o Control Panel agora? Escolha Não para tentar continuar trabalhando.
   </data>
   <data name="Change history for synchronising clients" xml:space="preserve">
     <value>Histórico de alterações para os clientes que sincronizam</value>
+  </data>
+  <data name="Change the administrator password…" xml:space="preserve">
+    <value>Alterar a senha de administrador…</value>
   </data>
   <data name="Change the language" xml:space="preserve">
     <value>Alterar o idioma</value>
@@ -2576,6 +2582,9 @@ Reiniciar o Control Panel agora? Escolha Não para tentar continuar trabalhando.
   </data>
   <data name="Compromised accounts" xml:space="preserve">
     <value>Contas comprometidas</value>
+  </data>
+  <data name="Con_firm the new password" xml:space="preserve">
+    <value>_Confirme a nova senha</value>
   </data>
   <data name="Concurrent SMTP, IMAP and POP3 sessions, sampled every 2 seconds." xml:space="preserve">
     <value>Sessões SMTP, IMAP e POP3 simultâneas, amostradas a cada 2 segundos.</value>
@@ -6267,9 +6276,6 @@ Nada do que já está lá é removido.</value>
   <data name="New _password (leave empty to keep current)" xml:space="preserve">
     <value>Nova senha (_deixe vazio para manter a atual)</value>
   </data>
-  <data name="New administrator password (leave empty to keep the current one)" xml:space="preserve">
-    <value>Nova senha de administrador (deixe vazio para manter a atual)</value>
-  </data>
   <data name="New passphrase" xml:space="preserve">
     <value>Nova frase secreta</value>
   </data>
@@ -6545,6 +6551,9 @@ Nada do que já está lá é removido.</value>
   </data>
   <data name="No message is scanned for viruses. Attachment blocking is still stripping {0}, but nothing examines the contents of a message." xml:space="preserve">
     <value>Nenhuma mensagem é verificada contra vírus. O bloqueio de anexos ainda está removendo {0}, mas nada examina o conteúdo de uma mensagem.</value>
+  </data>
+  <data name="No one-time code was given, so the password in use now could not be checked." xml:space="preserve">
+    <value>Nenhum código de uso único foi informado, então a senha atual não pôde ser verificada.</value>
   </data>
   <data name="No passphrase is set: the archive is not encrypted, and anyone who can reach the destination folder can read every mailbox in it." xml:space="preserve">
     <value>Nenhuma frase secreta definida: o arquivo não é criptografado, e qualquer um que alcance a pasta de destino pode ler todas as caixas postais nele.</value>
@@ -9638,6 +9647,9 @@ Continuar?</value>
   <data name="Set TlsRptFromAddress in the [Settings] section of hMailServer.ini to a mailbox reports should be sent from. Leaving it empty is a valid choice - it just means the collected statistics are discarded and no reports are ever sent." xml:space="preserve">
     <value>Defina TlsRptFromAddress na seção [Settings] do hMailServer.ini como a caixa a partir da qual os relatórios devem ser enviados. Deixá-lo vazio é uma escolha válida - significa apenas que as estatísticas coletadas são descartadas e nenhum relatório é enviado.</value>
   </data>
+  <data name="Set a new administrator password" xml:space="preserve">
+    <value>Definir uma nova senha de administrador</value>
+  </data>
   <data name="Set a new server administration password." xml:space="preserve">
     <value>Defina uma nova senha de administração do servidor.</value>
   </data>
@@ -10397,6 +10409,9 @@ A próxima mensagem para esse endereço será enviada, e ele só volta à lista 
   <data name="That is greylisting. Exempt the sending address here, or turn greylisting off entirely." xml:space="preserve">
     <value>Isso é greylisting. Isente o endereço remetente aqui, ou desligue o greylisting por completo.</value>
   </data>
+  <data name="That is not the administrator password in use now." xml:space="preserve">
+    <value>Essa não é a senha de administrador atual.</value>
+  </data>
   <data name="That is the accept pipeline stalling after the 354: the stage timings in the debug log say which stage." xml:space="preserve">
     <value>Isso é o pipeline de aceitação travando depois do 354: os tempos de etapa no log de depuração dizem qual etapa.</value>
   </data>
@@ -10570,6 +10585,12 @@ A próxima mensagem para esse endereço será enviada, e ele só volta à lista 
   </data>
   <data name="The administrator password opens everything; a one-time code beside it keeps a leaked password from being enough." xml:space="preserve">
     <value>A senha do administrador abre tudo; um código de uso único ao lado dela impede que uma senha vazada seja suficiente.</value>
+  </data>
+  <data name="The administrator password was changed. Use the new one the next time you sign in, in scripts and in REST API clients." xml:space="preserve">
+    <value>A senha de administrador foi alterada. Use a nova na próxima vez que entrar, nos scripts e nos clientes da API REST.</value>
+  </data>
+  <data name="The administrator password was not changed: {0}" xml:space="preserve">
+    <value>A senha de administrador não foi alterada: {0}</value>
   </data>
   <data name="The administrator password, and a second factor the server itself enforces on every client." xml:space="preserve">
     <value>A senha de administrador, e um segundo fator que o próprio servidor impõe em todos os clientes.</value>
@@ -11052,6 +11073,9 @@ não pôde ser carregado. A mensagem provavelmente já foi entregue e não está
   <data name="The password could not be checked against published data breaches just now, and this server is set to refuse a change it cannot check. Try again later." xml:space="preserve">
     <value>Não foi possível verificar a senha contra vazamentos de dados publicados agora, e este servidor está configurado para recusar uma alteração que não consegue verificar. Tente novamente mais tarde.</value>
   </data>
+  <data name="The password this Control Panel, the REST API and every script that connects through the COM API sign in to the server with. Mailbox passwords are not changed." xml:space="preserve">
+    <value>A senha com que este Control Panel, a API REST e qualquer script que se conecte pela API COM entram no servidor. As senhas das caixas não mudam.</value>
+  </data>
   <data name="The people and the domains this server carries mail for." xml:space="preserve">
     <value>As pessoas e os domínios para os quais este servidor transporta e-mail.</value>
   </data>
@@ -11404,6 +11428,9 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   </data>
   <data name="The two passphrases are not the same. Nothing has been saved." xml:space="preserve">
     <value>As duas frases secretas não são iguais. Nada foi salvo.</value>
+  </data>
+  <data name="The two passwords do not match." xml:space="preserve">
+    <value>As duas senhas não coincidem.</value>
   </data>
   <data name="The update helper has started. This Control Panel closes now so that the installer can replace its files; open it again in a minute to see the outcome." xml:space="preserve">
     <value>O auxiliar de atualização foi iniciado. Este Control Panel fecha agora para que o instalador possa substituir os seus arquivos; abra-o de novo em um minuto para ver o resultado.</value>
@@ -11839,11 +11866,17 @@ Nenhuma mensagem é excluída e nenhuma conta é removida. Continuar?</value>
   <data name="Type a user name to also test the search and, with a password, a real logon." xml:space="preserve">
     <value>Digite um nome de usuário para testar também a busca e, com uma senha, um login real.</value>
   </data>
+  <data name="Type the administrator password in use now." xml:space="preserve">
+    <value>Digite a senha de administrador atual.</value>
+  </data>
   <data name="Type the directory server host name first." xml:space="preserve">
     <value>Digite primeiro o nome do host do servidor de diretório.</value>
   </data>
   <data name="Type the new passphrase first. To remove the stored one, use &quot;Remove stored passphrase&quot;." xml:space="preserve">
     <value>Digite primeiro a nova frase secreta. Para remover a armazenada, use "Remover frase secreta armazenada".</value>
+  </data>
+  <data name="Type the new password." xml:space="preserve">
+    <value>Digite a nova senha.</value>
   </data>
   <data name="Type the user name the password belongs to." xml:space="preserve">
     <value>Digite o nome de usuário ao qual a senha pertence.</value>
@@ -12724,6 +12757,9 @@ Nenhuma mensagem é excluída e nenhuma conta é removida. Continuar?</value>
   <data name="_Create key" xml:space="preserve">
     <value>_Criar chave</value>
   </data>
+  <data name="_Current administrator password" xml:space="preserve">
+    <value>Senha de administrador _atual</value>
+  </data>
   <data name="_Delete" xml:space="preserve">
     <value>E_xcluir</value>
   </data>
@@ -12933,6 +12969,9 @@ Nenhuma mensagem é excluída e nenhuma conta é removida. Continuar?</value>
   </data>
   <data name="_New address (it may be at any domain this server holds)" xml:space="preserve">
     <value>_Novo endereço (pode estar em qualquer domínio deste servidor)</value>
+  </data>
+  <data name="_New password" xml:space="preserve">
+    <value>_Nova senha</value>
   </data>
   <data name="_Newer" xml:space="preserve">
     <value>Mais _recentes</value>

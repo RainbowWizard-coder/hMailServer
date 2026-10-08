@@ -2148,6 +2148,9 @@ Starta om Kontrollpanelen nu? Välj Nej för att försöka fortsätta arbeta.</v
   <data name="C_A certificate bundle (PEM) that client certificates must chain to" xml:space="preserve">
     <value>_CA-certifikatpaket (PEM) som klientcertifikat måste kedja till</value>
   </data>
+  <data name="C_hange the password" xml:space="preserve">
+    <value>Byt _lösenordet</value>
+  </data>
   <data name="C_heck an address…" xml:space="preserve">
     <value>_Kontrollera en adress…</value>
   </data>
@@ -2279,6 +2282,9 @@ Starta om Kontrollpanelen nu? Välj Nej för att försöka fortsätta arbeta.</v
   </data>
   <data name="Change history for synchronising clients" xml:space="preserve">
     <value>Ändringshistorik för synkroniserande klienter</value>
+  </data>
+  <data name="Change the administrator password…" xml:space="preserve">
+    <value>Byt administratörslösenordet…</value>
   </data>
   <data name="Change the language" xml:space="preserve">
     <value>Byt språk</value>
@@ -2576,6 +2582,9 @@ Starta om Kontrollpanelen nu? Välj Nej för att försöka fortsätta arbeta.</v
   </data>
   <data name="Compromised accounts" xml:space="preserve">
     <value>Komprometterade konton</value>
+  </data>
+  <data name="Con_firm the new password" xml:space="preserve">
+    <value>_Bekräfta det nya lösenordet</value>
   </data>
   <data name="Concurrent SMTP, IMAP and POP3 sessions, sampled every 2 seconds." xml:space="preserve">
     <value>Samtidiga SMTP-, IMAP- och POP3-sessioner, mätta varannan sekund.</value>
@@ -6267,9 +6276,6 @@ Inget som redan finns där tas bort.</value>
   <data name="New _password (leave empty to keep current)" xml:space="preserve">
     <value>Nytt _lösenord (lämna tomt för att behålla nuvarande)</value>
   </data>
-  <data name="New administrator password (leave empty to keep the current one)" xml:space="preserve">
-    <value>Nytt administratörslösenord (lämna tomt för att behålla det nuvarande)</value>
-  </data>
   <data name="New passphrase" xml:space="preserve">
     <value>Ny lösenfras</value>
   </data>
@@ -6545,6 +6551,9 @@ Inget som redan finns där tas bort.</value>
   </data>
   <data name="No message is scanned for viruses. Attachment blocking is still stripping {0}, but nothing examines the contents of a message." xml:space="preserve">
     <value>Inget meddelande skannas efter virus. Bilageblockering tar fortfarande bort {0}, men inget undersöker innehållet i ett meddelande.</value>
+  </data>
+  <data name="No one-time code was given, so the password in use now could not be checked." xml:space="preserve">
+    <value>Ingen engångskod angavs, så lösenordet som används nu kunde inte kontrolleras.</value>
   </data>
   <data name="No passphrase is set: the archive is not encrypted, and anyone who can reach the destination folder can read every mailbox in it." xml:space="preserve">
     <value>Ingen lösenfras är satt: arkivet är inte krypterat, och var och en som når målmappen kan läsa varenda brevlåda i det.</value>
@@ -9638,6 +9647,9 @@ Fortsätt?</value>
   <data name="Set TlsRptFromAddress in the [Settings] section of hMailServer.ini to a mailbox reports should be sent from. Leaving it empty is a valid choice - it just means the collected statistics are discarded and no reports are ever sent." xml:space="preserve">
     <value>Sätt TlsRptFromAddress i sektionen [Settings] i hMailServer.ini till en brevlåda rapporter ska skickas från. Att lämna den tom är ett giltigt val - det betyder bara att den insamlade statistiken kastas och inga rapporter någonsin skickas.</value>
   </data>
+  <data name="Set a new administrator password" xml:space="preserve">
+    <value>Ange ett nytt administratörslösenord</value>
+  </data>
   <data name="Set a new server administration password." xml:space="preserve">
     <value>Sätt ett nytt administrationslösenord för servern.</value>
   </data>
@@ -10397,6 +10409,9 @@ Nästa meddelande till adressen skickas, och den hamnar på listan igen först e
   <data name="That is greylisting. Exempt the sending address here, or turn greylisting off entirely." xml:space="preserve">
     <value>Det är gråstlistning. Undanta den sändande adressen här, eller stäng av gråstlistningen helt.</value>
   </data>
+  <data name="That is not the administrator password in use now." xml:space="preserve">
+    <value>Det är inte administratörslösenordet som används nu.</value>
+  </data>
   <data name="That is the accept pipeline stalling after the 354: the stage timings in the debug log say which stage." xml:space="preserve">
     <value>Det är mottagningskedjan som stannar efter 354: stegtiderna i felsökningsloggen säger vilket steg.</value>
   </data>
@@ -10570,6 +10585,12 @@ Nästa meddelande till adressen skickas, och den hamnar på listan igen först e
   </data>
   <data name="The administrator password opens everything; a one-time code beside it keeps a leaked password from being enough." xml:space="preserve">
     <value>Administratörslösenordet öppnar allt; en engångskod bredvid det gör att ett läckt lösenord inte räcker.</value>
+  </data>
+  <data name="The administrator password was changed. Use the new one the next time you sign in, in scripts and in REST API clients." xml:space="preserve">
+    <value>Administratörslösenordet har bytts. Använd det nya nästa gång du loggar in, i skript och i REST API-klienter.</value>
+  </data>
+  <data name="The administrator password was not changed: {0}" xml:space="preserve">
+    <value>Administratörslösenordet byttes inte: {0}</value>
   </data>
   <data name="The administrator password, and a second factor the server itself enforces on every client." xml:space="preserve">
     <value>Administratörslösenordet, och en andra faktor servern själv tvingar på varje klient.</value>
@@ -11052,6 +11073,9 @@ kunde inte läsas in. Meddelandet har troligen levererats och finns inte längre
   <data name="The password could not be checked against published data breaches just now, and this server is set to refuse a change it cannot check. Try again later." xml:space="preserve">
     <value>Lösenordet kunde inte kontrolleras mot publicerade dataläckor just nu, och den här servern är inställd på att avvisa en ändring den inte kan kontrollera. Försök igen senare.</value>
   </data>
+  <data name="The password this Control Panel, the REST API and every script that connects through the COM API sign in to the server with. Mailbox passwords are not changed." xml:space="preserve">
+    <value>Lösenordet som den här Kontrollpanelen, REST API:et och varje skript som ansluter via COM API:et loggar in på servern med. Brevlådelösenord ändras inte.</value>
+  </data>
   <data name="The people and the domains this server carries mail for." xml:space="preserve">
     <value>Människorna och domänerna som den här servern hanterar post för.</value>
   </data>
@@ -11404,6 +11428,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="The two passphrases are not the same. Nothing has been saved." xml:space="preserve">
     <value>De två lösenfraserna är inte lika. Ingenting har sparats.</value>
+  </data>
+  <data name="The two passwords do not match." xml:space="preserve">
+    <value>De två lösenorden stämmer inte överens.</value>
   </data>
   <data name="The update helper has started. This Control Panel closes now so that the installer can replace its files; open it again in a minute to see the outcome." xml:space="preserve">
     <value>Uppdateringshjälpen har startat. Den här Kontrollpanelen stängs nu så att installationsprogrammet kan ersätta dess filer; öppna den igen om en minut för att se resultatet.</value>
@@ -11839,11 +11866,17 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   <data name="Type a user name to also test the search and, with a password, a real logon." xml:space="preserve">
     <value>Skriv in ett användarnamn för att också testa sökningen och, med ett lösenord, en riktig inloggning.</value>
   </data>
+  <data name="Type the administrator password in use now." xml:space="preserve">
+    <value>Skriv administratörslösenordet som används nu.</value>
+  </data>
   <data name="Type the directory server host name first." xml:space="preserve">
     <value>Skriv in katalogserverns värdnamn först.</value>
   </data>
   <data name="Type the new passphrase first. To remove the stored one, use &quot;Remove stored passphrase&quot;." xml:space="preserve">
     <value>Skriv den nya lösenfrasen först. Använd "Ta bort sparad lösenfras" för att ta bort den sparade.</value>
+  </data>
+  <data name="Type the new password." xml:space="preserve">
+    <value>Skriv det nya lösenordet.</value>
   </data>
   <data name="Type the user name the password belongs to." xml:space="preserve">
     <value>Skriv in användarnamnet som lösenordet hör till.</value>
@@ -12724,6 +12757,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   <data name="_Create key" xml:space="preserve">
     <value>_Skapa nyckel</value>
   </data>
+  <data name="_Current administrator password" xml:space="preserve">
+    <value>_Nuvarande administratörslösenord</value>
+  </data>
   <data name="_Delete" xml:space="preserve">
     <value>_Ta bort</value>
   </data>
@@ -12933,6 +12969,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   </data>
   <data name="_New address (it may be at any domain this server holds)" xml:space="preserve">
     <value>_Ny adress (den får ligga i vilken domän som helst på den här servern)</value>
+  </data>
+  <data name="_New password" xml:space="preserve">
+    <value>N_ytt lösenord</value>
   </data>
   <data name="_Newer" xml:space="preserve">
     <value>_Nyare</value>

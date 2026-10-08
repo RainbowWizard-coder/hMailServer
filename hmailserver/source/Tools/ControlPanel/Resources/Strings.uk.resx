@@ -2148,6 +2148,9 @@
   <data name="C_A certificate bundle (PEM) that client certificates must chain to" xml:space="preserve">
     <value>Пакет _сертифікатів ЦС (PEM), до якого мають вибудовувати ланцюжок клієнтські сертифікати</value>
   </data>
+  <data name="C_hange the password" xml:space="preserve">
+    <value>_Змінити пароль</value>
+  </data>
   <data name="C_heck an address…" xml:space="preserve">
     <value>_Перевірити адресу…</value>
   </data>
@@ -2279,6 +2282,9 @@
   </data>
   <data name="Change history for synchronising clients" xml:space="preserve">
     <value>Історія змін для клієнтів, які синхронізуються</value>
+  </data>
+  <data name="Change the administrator password…" xml:space="preserve">
+    <value>Змінити пароль адміністратора…</value>
   </data>
   <data name="Change the language" xml:space="preserve">
     <value>Змінити мову</value>
@@ -2576,6 +2582,9 @@
   </data>
   <data name="Compromised accounts" xml:space="preserve">
     <value>Скомпрометовані облікові записи</value>
+  </data>
+  <data name="Con_firm the new password" xml:space="preserve">
+    <value>Підт_вердження нового пароля</value>
   </data>
   <data name="Concurrent SMTP, IMAP and POP3 sessions, sampled every 2 seconds." xml:space="preserve">
     <value>Одночасні сеанси SMTP, IMAP і POP3, вибірка кожні 2 секунди.</value>
@@ -6267,9 +6276,6 @@
   <data name="New _password (leave empty to keep current)" xml:space="preserve">
     <value>_Новий пароль (залиште порожнім, щоб зберегти поточний)</value>
   </data>
-  <data name="New administrator password (leave empty to keep the current one)" xml:space="preserve">
-    <value>Новий пароль адміністратора (залиште порожнім, щоб зберегти поточний)</value>
-  </data>
   <data name="New passphrase" xml:space="preserve">
     <value>Нова парольна фраза</value>
   </data>
@@ -6545,6 +6551,9 @@
   </data>
   <data name="No message is scanned for viruses. Attachment blocking is still stripping {0}, but nothing examines the contents of a message." xml:space="preserve">
     <value>Жодне повідомлення не сканується на віруси. Блокування вкладень і далі вилучає {0}, але вміст повідомлення ніщо не перевіряє.</value>
+  </data>
+  <data name="No one-time code was given, so the password in use now could not be checked." xml:space="preserve">
+    <value>Одноразовий код не введено, тому поточний пароль перевірити не вдалося.</value>
   </data>
   <data name="No passphrase is set: the archive is not encrypted, and anyone who can reach the destination folder can read every mailbox in it." xml:space="preserve">
     <value>Парольну фразу не задано: архів не шифрується, і будь-хто, хто дістанеться до теки призначення, прочитає в ньому кожну поштову скриньку.</value>
@@ -9638,6 +9647,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Set TlsRptFromAddress in the [Settings] section of hMailServer.ini to a mailbox reports should be sent from. Leaving it empty is a valid choice - it just means the collected statistics are discarded and no reports are ever sent." xml:space="preserve">
     <value>Задайте TlsRptFromAddress у розділі [Settings] файлу hMailServer.ini як поштову скриньку, з якої слід надсилати звіти. Залишити порожнім - припустимий вибір; це просто означає, що зібрана статистика відкидається і звіти ніколи не надсилаються.</value>
   </data>
+  <data name="Set a new administrator password" xml:space="preserve">
+    <value>Новий пароль адміністратора</value>
+  </data>
   <data name="Set a new server administration password." xml:space="preserve">
     <value>Задайте новий пароль адміністрування сервера.</value>
   </data>
@@ -10397,6 +10409,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="That is greylisting. Exempt the sending address here, or turn greylisting off entirely." xml:space="preserve">
     <value>Це сірий список. Звільніть тут адресу відправника або вимкніть сірий список повністю.</value>
   </data>
+  <data name="That is not the administrator password in use now." xml:space="preserve">
+    <value>Це не поточний пароль адміністратора.</value>
+  </data>
   <data name="That is the accept pipeline stalling after the 354: the stage timings in the debug log say which stage." xml:space="preserve">
     <value>Це конвеєр приймання, що зависає після 354: часи етапів у журналі налагодження кажуть, який саме етап.</value>
   </data>
@@ -10570,6 +10585,12 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="The administrator password opens everything; a one-time code beside it keeps a leaked password from being enough." xml:space="preserve">
     <value>Пароль адміністратора відкриває все; одноразовий код поруч із ним не дає витеклому паролю бути достатнім.</value>
+  </data>
+  <data name="The administrator password was changed. Use the new one the next time you sign in, in scripts and in REST API clients." xml:space="preserve">
+    <value>Пароль адміністратора змінено. Використовуйте новий під час наступного входу, у скриптах і в клієнтах REST API.</value>
+  </data>
+  <data name="The administrator password was not changed: {0}" xml:space="preserve">
+    <value>Пароль адміністратора не змінено: {0}</value>
   </data>
   <data name="The administrator password, and a second factor the server itself enforces on every client." xml:space="preserve">
     <value>Пароль адміністратора і другий фактор, який сам сервер вимагає від кожного клієнта.</value>
@@ -11052,6 +11073,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The password could not be checked against published data breaches just now, and this server is set to refuse a change it cannot check. Try again later." xml:space="preserve">
     <value>Зараз не вдалося перевірити пароль за опублікованими витоками даних, а цей сервер налаштовано відхиляти зміну, яку він не може перевірити. Спробуйте пізніше.</value>
   </data>
+  <data name="The password this Control Panel, the REST API and every script that connects through the COM API sign in to the server with. Mailbox passwords are not changed." xml:space="preserve">
+    <value>Пароль, з яким ця Панель керування, REST API і будь-який скрипт, що під'єднується через COM API, входять на сервер. Паролі поштових скриньок не змінюються.</value>
+  </data>
   <data name="The people and the domains this server carries mail for." xml:space="preserve">
     <value>Люди та домени, для яких цей сервер обслуговує пошту.</value>
   </data>
@@ -11404,6 +11428,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="The two passphrases are not the same. Nothing has been saved." xml:space="preserve">
     <value>Дві парольні фрази не збігаються. Нічого не збережено.</value>
+  </data>
+  <data name="The two passwords do not match." xml:space="preserve">
+    <value>Паролі не збігаються.</value>
   </data>
   <data name="The update helper has started. This Control Panel closes now so that the installer can replace its files; open it again in a minute to see the outcome." xml:space="preserve">
     <value>Помічник оновлення запущено. Ця Панель керування зараз закриється, щоб інсталятор міг замінити її файли; відкрийте її знову за хвилину, щоб побачити результат.</value>
@@ -11839,11 +11866,17 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Type a user name to also test the search and, with a password, a real logon." xml:space="preserve">
     <value>Введіть ім'я користувача, щоб перевірити ще й пошук, а з паролем - справжній вхід.</value>
   </data>
+  <data name="Type the administrator password in use now." xml:space="preserve">
+    <value>Введіть поточний пароль адміністратора.</value>
+  </data>
   <data name="Type the directory server host name first." xml:space="preserve">
     <value>Спершу введіть ім'я вузла сервера каталогу.</value>
   </data>
   <data name="Type the new passphrase first. To remove the stored one, use &quot;Remove stored passphrase&quot;." xml:space="preserve">
     <value>Спершу введіть нову парольну фразу. Щоб видалити збережену, скористайтеся «Видалити збережену парольну фразу».</value>
+  </data>
+  <data name="Type the new password." xml:space="preserve">
+    <value>Введіть новий пароль.</value>
   </data>
   <data name="Type the user name the password belongs to." xml:space="preserve">
     <value>Введіть ім'я користувача, якому належить пароль.</value>
@@ -12724,6 +12757,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="_Create key" xml:space="preserve">
     <value>_Створити ключ</value>
   </data>
+  <data name="_Current administrator password" xml:space="preserve">
+    <value>_Поточний пароль адміністратора</value>
+  </data>
   <data name="_Delete" xml:space="preserve">
     <value>В_идалити</value>
   </data>
@@ -12933,6 +12969,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="_New address (it may be at any domain this server holds)" xml:space="preserve">
     <value>_Нова адреса (вона може бути в будь-якому домені цього сервера)</value>
+  </data>
+  <data name="_New password" xml:space="preserve">
+    <value>_Новий пароль</value>
   </data>
   <data name="_Newer" xml:space="preserve">
     <value>Нові_ші</value>
