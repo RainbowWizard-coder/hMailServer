@@ -374,6 +374,14 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   versions that did not check it, they belong to no rule, and the new rule's `Save` stored them as its own.
   `Rules/Rules.cs` saves an action and a criterion through a new rule after its first save, with an action and a
   criterion of no rule in the table, and reads the rule back from the database. Found by the batch's regression gate.
+- **Fixed: the REST API refused a rule's *Reply* with no `from_address`, which COM and the Control Panel save.** A
+  reply with no address goes from the null sender, with the rule's name before an empty `<>` (*Security*, above), and
+  `POST` and `PUT` on the server's, a domain's and an account's rules answered 400, "from_address is required for a
+  reply action" (from 6.3.0, which brought the REST API's rule writes): a rule the Control Panel saved with one could
+  not be saved back over REST as `GET` returned it. A reply with no `from_address`, or an empty one, is now saved as
+  COM saves it, and one that is given is held to a domain's or an account's rule's owner as before.
+  `API/RestApiRules.cs` saves one under a domain's and an account's rules, and the Linux suite delivers one through
+  `AntiSpam/DKIM/ArcSealing.cs`. Found by the batch's regression gate.
 
 ### Downloads and the release
 

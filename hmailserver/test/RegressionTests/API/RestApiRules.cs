@@ -550,12 +550,15 @@ namespace RegressionTests.API
       /// DKIM-Signature is refused under a domain's and an account's routes and saved
       /// under the server's; a reply of a domain's rule goes only from an address of the
       /// domain, and of an account's rule only from one the account may send as. A PUT
-      /// that is refused leaves the rule as it was.
+      /// that is refused leaves the rule as it was. A reply with no from_address, the null
+      /// sender, is saved for either, as COM saves it.
       ///
-      /// Against the unfixed server every POST and PUT below answers 201 or 200.
+      /// Against the unfixed server every POST and PUT below answers 201 or 200; against
+      /// the server before the null sender was accepted here, a reply with no
+      /// from_address answers 400, "from_address is required for a reply action".
       /// </summary>
       [Test]
-      [Description("A domain's or an account's rule may not set From or DKIM-Signature, nor reply from an address that is not its owner's, over REST; the server's rule may set From.")]
+      [Description("A domain's or an account's rule may not set From or DKIM-Signature, nor reply from an address that is not its owner's, over REST, and may reply from no address; the server's rule may set From.")]
       public void ADomainsOrAnAccountsRuleSpeaksOnlyForItsOwner()
       {
          Account owner = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "restruleowner@example.test", "test");
@@ -597,6 +600,23 @@ namespace RegressionTests.API
             RuleBody(name, simple, "{\"type\":\"reply\",\"from_address\":\"restruleceo@example.test\",\"subject\":\"Re\"}", active: false));
          Assert.AreEqual(201, domainStatus, domainBody);
          int domainRuleId = ExtractId(domainBody);
+
+         // No from_address is the null sender, which names nobody: COM and the Control
+         // Panel save it for a rule of any owner, and so does this. It was refused here as
+         // a parameter the reply needs.
+         foreach (string route in new[] { domainRoute, accountRoute })
+         {
+            foreach (string reply in new[]
+                     {
+                        "{\"type\":\"reply\",\"from_name\":\"Away\",\"subject\":\"Re\"}",
+                        "{\"type\":\"reply\",\"from_name\":\"Away\",\"from_address\":\"\",\"subject\":\"Re\"}"
+                     })
+            {
+               (int nullStatus, string nullBody) = Http("POST", route, RuleBody(name + "-null", simple, reply, active: false));
+               Assert.AreEqual(201, nullStatus, route + " " + reply + ": " + nullBody);
+               Assert.AreEqual(200, Http("DELETE", route + "/" + ExtractId(nullBody)).status);
+            }
+         }
 
          // A refused PUT leaves the account's rule as it was.
          (int putStatus, string putBody) = Http("PUT", accountRoute + "/" + accountRuleId,
