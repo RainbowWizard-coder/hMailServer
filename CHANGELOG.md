@@ -831,9 +831,10 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   move the selection - and nothing answered Enter, Delete, a double-click or the right mouse button. Each list now
   opens the selected row's properties on Enter and on a double-click, deletes it on Delete with the confirmation the
   button asks, and offers the same verbs - *Properties…*, *Members…* for a distribution list, *Delete domain*, *Delete
-  account*, *Delete alias* or *Delete list* - on a context menu from Shift+F10, the Menu key or the right mouse button;
-  after each, the keyboard is back on the row that is selected, where the reload that follows used to leave it
-  nowhere. The buttons stay for the mouse, and both roads lead to one method per verb.
+  account*, *Delete alias* or *Delete list* - on a context menu from Shift+F10, the Menu key or the right mouse button,
+  under the selected row from the keyboard and at the pointer from the mouse; after each, the keyboard is back on the
+  row that is selected, where the reload that follows used to leave it nowhere. The buttons stay for the mouse, and
+  both roads lead to one method per verb.
 - **Fixed: the Control Panel's notices were silent to screen readers.** Every notice, loading state, empty state,
   field error and result line declared itself a live region, which only promises an announcement: a reader says the
   region when the element raises the live-region event, and nothing in the Control Panel raised it, so "Released 3

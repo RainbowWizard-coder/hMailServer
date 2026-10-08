@@ -72,7 +72,31 @@ namespace hMailServer.ControlPanel.Views
          {
             bool fromMouse = e.CursorLeft >= 0 && e.CursorTop >= 0;
             if (list.SelectedItem == null || (fromMouse && RowAt_(list, e.OriginalSource as DependencyObject) == null))
+            {
                e.Handled = true;
+               return;
+            }
+
+            // Where the menu opens. From the mouse WPF puts it at the pointer,
+            // over the row the right button selected. From the keyboard WPF
+            // centres it on the menu's owner, which is the whole list - at 1280
+            // by 800 a card some 460 pixels tall - so the menu floated far from
+            // the row it acts on. The menu's own placement is coerced from the
+            // owner's attached one once WPF has set the owner, after this event
+            // (PopupControlService.CoerceProperty), so the row is named there,
+            // and the menu hangs under it like a dropdown. Both are cleared for
+            // the mouse, so that the pointer rules again and a row a reload took
+            // with it is not held.
+            if (fromMouse)
+            {
+               list.ClearValue(ContextMenuService.PlacementTargetProperty);
+               list.ClearValue(ContextMenuService.PlacementProperty);
+            }
+            else
+            {
+               ContextMenuService.SetPlacementTarget(list, list.ItemContainerGenerator.ContainerFromItem(list.SelectedItem) as UIElement ?? list);
+               ContextMenuService.SetPlacement(list, PlacementMode.Bottom);
+            }
          };
 
          list.KeyDown += (_, e) =>

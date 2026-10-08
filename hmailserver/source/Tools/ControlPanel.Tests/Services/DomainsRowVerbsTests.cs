@@ -67,6 +67,16 @@ namespace hMailServer.ControlPanel.Tests.Services
          // part of the list is nobody's.
          Assert.Contains("RowAt_(list, e.OriginalSource as DependencyObject) == null", one, StringComparison.Ordinal);
 
+         // From the keyboard the menu hangs under the selected row, named on the
+         // list's attached placement - what WPF coerces the menu's own from once
+         // it has set the owner, so a target set on the menu would not hold -
+         // and from the mouse it opens at the pointer; WPF's own placement for a
+         // keyboard menu is the centre of the owner, the whole list.
+         Assert.Contains("ContextMenuService.SetPlacementTarget(list, list.ItemContainerGenerator.ContainerFromItem(list.SelectedItem) as UIElement ?? list)", one, StringComparison.Ordinal);
+         Assert.Contains("ContextMenuService.SetPlacement(list, PlacementMode.Bottom)", one, StringComparison.Ordinal);
+         Assert.Contains("list.ClearValue(ContextMenuService.PlacementTargetProperty)", one, StringComparison.Ordinal);
+         Assert.Contains("list.ClearValue(ContextMenuService.PlacementProperty)", one, StringComparison.Ordinal);
+
          // The page builds the wiring as it is made.
          string page = ReadControlPanelFile(Path.Join("Views", "DomainsView.xaml.cs"));
          string ctor = WithheldRowTests.MemberText(page, "public DomainsView()");
