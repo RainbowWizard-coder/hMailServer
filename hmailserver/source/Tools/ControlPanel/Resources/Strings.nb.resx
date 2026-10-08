@@ -5465,6 +5465,9 @@ Det verifiserte installasjonsprogrammet overleveres til oppdateringshjelperen: t
   <data name="Leave empty (or 0) for automatic: 636 when the connection security is LDAPS, 389 otherwise. The port is derived from the security setting so that choosing LDAPS and forgetting the port cannot attempt TLS against the cleartext port, which fails in a way that looks like a certificate problem." xml:space="preserve">
     <value>La stå tom (eller 0) for automatisk: 636 når tilkoblingssikkerheten er LDAPS, ellers 389. Porten utledes fra sikkerhetsinnstillingen slik at det å velge LDAPS og glemme porten ikke kan forsøke TLS mot klartekstporten, som feiler på en måte som ser ut som et sertifikatproblem.</value>
   </data>
+  <data name="Leave empty for any address" xml:space="preserve">
+    <value>La stå tomt for enhver adresse</value>
+  </data>
   <data name="Leave empty for the built-in root anchors" xml:space="preserve">
     <value>La stå tom for de innebygde rotankrene</value>
   </data>
@@ -12828,6 +12831,15 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   </data>
   <data name="Zip archives (*.zip)|*.zip" xml:space="preserve">
     <value>Zip-arkiver (*.zip)|*.zip</value>
+  </data>
+  <data name="_1 year" xml:space="preserve">
+    <value>_1 år</value>
+  </data>
+  <data name="_30 days" xml:space="preserve">
+    <value>_30 dager</value>
+  </data>
+  <data name="_90 days" xml:space="preserve">
+    <value>_90 dager</value>
   </data>
   <data name="_Account address" xml:space="preserve">
     <value>_Kontoadresse</value>

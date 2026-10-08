@@ -14,6 +14,7 @@ using Typography = hMailServer.ControlPanel.Services.Typography;
 using Path = System.Windows.Shapes.Path;
 using Card = hMailServer.ControlPanel.Views.Scaffold.Card;
 using EmptyState = hMailServer.ControlPanel.Views.Scaffold.EmptyState;
+using FieldRow = hMailServer.ControlPanel.Views.Scaffold.FieldRow;
 using InlineNotice = hMailServer.ControlPanel.Views.Scaffold.InlineNotice;
 using PageHeader = hMailServer.ControlPanel.Views.Scaffold.PageHeader;
 using StatusPill = hMailServer.ControlPanel.Views.Scaffold.StatusPill;
@@ -522,34 +523,33 @@ namespace hMailServer.ControlPanel.Views
       public string Domains;
    }
 
+   /// <summary>
+   /// On the standard frame (DialogFrame), as every other dialog is: a heading,
+   /// the "shown once" note as its description, the fields as FieldRows with
+   /// their hints under them, and a value the store would refuse reported on the
+   /// field at fault, with the keyboard put in it, rather than in a message box
+   /// after Create key was pressed. It was the one dialog off the frame: no
+   /// heading, notes at 65 % opacity, and a 200-pixel date picker in the long
+   /// date format, which cut the year off ("Wednesday, January 6, 2").
+   /// </summary>
    internal static class ApiKeyDialog
    {
       public static ApiKeyRequest Ask(Window owner)
       {
-         var dlg = new FluentDialogWindow
-         {
-            Owner = owner,
-            Title = L("Create a REST API key"),
-            Width = 560,
-            SizeToContent = SizeToContent.Height,
-            ResizeMode = ResizeMode.NoResize,
-            WindowStartupLocation = WindowStartupLocation.CenterOwner
-         };
-         dlg.SetResourceReference(Control.BackgroundProperty, "ApplicationBackgroundBrush");
+         var dlg = new FramedDialog { Owner = owner, Title = L("Create a REST API key") };
 
-         var panel = new StackPanel { Margin = new Thickness(20) };
+         var panel = new StackPanel();
 
-         panel.Children.Add(Note_(
-            L("The key is shown once, when it is created, and never again. It is live immediately - the server re-reads its key store on every request.")));
-
-         Field_(panel, L("Label"), L("What this key is for, e.g. \"Grafana probe\""), out TextBox labelBox);
+         var labelBox = new Wpf.Ui.Controls.TextBox { PlaceholderText = L("What this key is for, e.g. \"Grafana probe\"") };
          System.Windows.Automation.AutomationProperties.SetAutomationId(labelBox, "apikeys-dialog-label");
+         FieldRow labelRow = DialogFields.Field(L("Label"), labelBox);
+         panel.Children.Add(labelRow);
 
          // Read-only first and selected by default, matching the server: a create
          // request that names no scope gets a read-only key, because a key is most
          // often minted for something that only reads and the alternative default
          // hands out a credential that can delete accounts.
-         panel.Children.Add(Caption_(L("What it may do")));
+         panel.Children.Add(DialogFields.Caption(L("What it may do")));
          var readOnly = new RadioButton
          {
             Content = L("_Read-only - can list and read; every change is refused"),
@@ -567,74 +567,77 @@ namespace hMailServer.ControlPanel.Views
          System.Windows.Automation.AutomationProperties.SetAutomationId(full, "apikeys-dialog-full");
          panel.Children.Add(full);
 
-         panel.Children.Add(Caption_(L("Expires")));
+         // The short date, which fits, and three quick picks beside it; the
+         // picker and the picks wrap where they do not fit on one line.
          var expires = new DatePicker
          {
             SelectedDate = DateTime.Today.AddDays(ApiKeyStore.DefaultLifetimeDays),
-            Margin = new Thickness(0, 0, 0, 4),
-            HorizontalAlignment = HorizontalAlignment.Left,
+            SelectedDateFormat = DatePickerFormat.Short,
+            VerticalAlignment = VerticalAlignment.Center,
             Width = 200
          };
          System.Windows.Automation.AutomationProperties.SetName(expires, L("Date this key stops working"));
          System.Windows.Automation.AutomationProperties.SetAutomationId(expires, "apikeys-dialog-expires");
-         panel.Children.Add(expires);
-         panel.Children.Add(Note_(
-            F("Defaults to {0} days, which is what the API itself uses when a request does not name one. A key with no expiry is the property that makes the administrator password dangerous, so there is no \"never\" option.", ApiKeyStore.DefaultLifetimeDays)));
+         var expiry = new WrapPanel();
+         expiry.Children.Add(expires);
+         expiry.Children.Add(QuickPick_(L("_30 days"), 30, expires));
+         expiry.Children.Add(QuickPick_(L("_90 days"), 90, expires));
+         expiry.Children.Add(QuickPick_(L("_1 year"), 365, expires));
+         FieldRow expiresRow = DialogFields.Field(L("Expires"), expiry,
+            F("Defaults to {0} days, which is what the API itself uses when a request does not name one. A key with no expiry is the property that makes the administrator password dangerous, so there is no \"never\" option.", ApiKeyStore.DefaultLifetimeDays));
+         panel.Children.Add(expiresRow);
 
-         Field_(panel, L("Domains it may act on (optional)"),
-            L("example.com, example.net - empty means every domain"), out TextBox domainsBox);
+         var domainsBox = new Wpf.Ui.Controls.TextBox { PlaceholderText = L("example.com, example.net - empty means every domain") };
          System.Windows.Automation.AutomationProperties.SetAutomationId(domainsBox, "apikeys-dialog-domains");
-         panel.Children.Add(Note_(
-            L("A key with a domain list is also refused the delivery-queue endpoints, because the queue is server-wide and cannot be filtered by domain.")));
+         FieldRow domainsRow = DialogFields.Field(L("Domains it may act on (optional)"), domainsBox,
+            L("A key with a domain list is also refused the delivery-queue endpoints, because the queue is server-wide and cannot be filtered by domain."));
+         panel.Children.Add(domainsRow);
 
-         Field_(panel, L("Source addresses it may be used from (optional)"),
-            "10.0.0.5, or 10.0.0.0/24, or 10.0.0.1-10.0.0.99", out TextBox sourceBox); // no-loc
+         var sourceBox = new Wpf.Ui.Controls.TextBox { PlaceholderText = "10.0.0.5, or 10.0.0.0/24, or 10.0.0.1-10.0.0.99" }; // no-loc
          System.Windows.Automation.AutomationProperties.SetAutomationId(sourceBox, "apikeys-dialog-source");
+         FieldRow sourceRow = DialogFields.Field(L("Source addresses it may be used from (optional)"), sourceBox, L("Leave empty for any address"));
+         sourceRow.Margin = new Thickness(0);
+         panel.Children.Add(sourceRow);
 
          ApiKeyRequest result = null;
-
-         var buttons = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 8, 0, 0) };
 
          var ok = new Wpf.Ui.Controls.Button
          {
             Content = L("_Create key"),
             Appearance = Wpf.Ui.Controls.ControlAppearance.Primary,
-            Margin = new Thickness(0, 0, 8, 0),
-            MinWidth = 100,
-            IsDefault = true
+            MinWidth = 100
          };
          ok.Click += (s, e) =>
          {
             // Validated here as well as in the store, so a rejected value is a
-            // message beside the box that produced it rather than after the dialog
+            // message on the box that produced it rather than after the dialog
             // has closed and taken the other answers with it.
+            DialogFields.ClearErrors(labelRow, expiresRow, domainsRow, sourceRow);
+
             string error = ApiKeyStore.ValidateLabel(labelBox.Text);
             if (error != null)
             {
-               MessageBox.Show(error, L("Control Panel"));
-               labelBox.Focus();
+               DialogFields.ShowError(labelRow, error);
                return;
             }
 
             if (expires.SelectedDate == null || expires.SelectedDate.Value.Date < DateTime.Today.AddDays(1).Date)
             {
-               MessageBox.Show(L("Choose an expiry date at least a day away. A key that expires today would stop working part-way through the day it was made."), L("Control Panel"));
+               DialogFields.ShowError(expiresRow, L("Choose an expiry date at least a day away. A key that expires today would stop working part-way through the day it was made."));
                return;
             }
 
             ApiKeyStore.NormalizeDomains(domainsBox.Text, out error);
             if (error != null)
             {
-               MessageBox.Show(error, L("Control Panel"));
-               domainsBox.Focus();
+               DialogFields.ShowError(domainsRow, error);
                return;
             }
 
             string source = sourceBox.Text.Trim();
             if (source.Length > 0 && !ApiKeyStore.LooksLikeSourceRestriction(source))
             {
-               MessageBox.Show(L("The source restriction has to be an address (10.0.0.5), a range (10.0.0.1-10.0.0.99) or CIDR (10.0.0.0/24). Leave it empty to accept the key from any address."), L("Control Panel"));
-               sourceBox.Focus();
+               DialogFields.ShowError(sourceRow, L("The source restriction has to be an address (10.0.0.5), a range (10.0.0.1-10.0.0.99) or CIDR (10.0.0.0/24). Leave it empty to accept the key from any address."));
                return;
             }
 
@@ -653,57 +656,23 @@ namespace hMailServer.ControlPanel.Views
             dlg.DialogResult = true;
             dlg.Close();
          };
-         buttons.Children.Add(ok);
 
-         var cancel = new Wpf.Ui.Controls.Button { Content = L("Cancel"), MinWidth = 80, IsCancel = true };
+         var cancel = new Wpf.Ui.Controls.Button { Content = L("Cancel"), MinWidth = 80 };
          cancel.Click += (s, e) => dlg.Close();
-         buttons.Children.Add(cancel);
 
-         panel.Children.Add(buttons);
-         dlg.Content = new ScrollViewer { Content = panel, MaxHeight = 640, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
-
-         labelBox.Loaded += (s, e) => labelBox.Focus();
+         dlg.Frame(L("Create a REST API key"), panel, ok, cancel,
+            L("The key is shown once, when it is created, and never again. It is live immediately - the server re-reads its key store on every request."),
+            width: 560);
 
          return dlg.ShowDialog() == true ? result : null;
       }
 
-      private static TextBlock Caption_(string text)
+      /// <summary>A button that sets the picker to so many days from today.</summary>
+      private static Wpf.Ui.Controls.Button QuickPick_(string caption, int days, DatePicker picker)
       {
-         return new TextBlock
-         {
-            Text = text,
-            FontSize = Typography.Label,
-            Margin = new Thickness(0, 0, 0, 6)
-         };
-      }
-
-      private static TextBlock Note_(string text)
-      {
-         return new TextBlock
-         {
-            Text = text,
-            FontSize = Typography.Caption,
-            TextWrapping = TextWrapping.Wrap,
-            Opacity = 0.65,
-            Margin = new Thickness(0, 0, 0, 12)
-         };
-      }
-
-      private static FrameworkElement Field_(Panel panel, string caption, string placeholder, out TextBox box)
-      {
-         panel.Children.Add(Caption_(caption));
-
-         var created = new Wpf.Ui.Controls.TextBox
-         {
-            PlaceholderText = placeholder,
-            FontSize = Typography.Body,
-            Margin = new Thickness(0, 0, 0, 12)
-         };
-         System.Windows.Automation.AutomationProperties.SetName(created, caption);
-         panel.Children.Add(created);
-
-         box = created;
-         return created;
+         var button = new Wpf.Ui.Controls.Button { Content = caption, Margin = new Thickness(8, 0, 0, 0) };
+         button.Click += (s, e) => picker.SelectedDate = DateTime.Today.AddDays(days);
+         return button;
       }
    }
 }

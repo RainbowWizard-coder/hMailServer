@@ -5465,6 +5465,9 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   <data name="Leave empty (or 0) for automatic: 636 when the connection security is LDAPS, 389 otherwise. The port is derived from the security setting so that choosing LDAPS and forgetting the port cannot attempt TLS against the cleartext port, which fails in a way that looks like a certificate problem." xml:space="preserve">
     <value>Otomatik için boş (veya 0) bırakın: bağlantı güvenliği LDAPS ise 636, değilse 389. Port güvenlik ayarından türetilir; böylece LDAPS seçip portu unutmak düz metin portuna karşı TLS denemesine yol açamaz - bu, sertifika sorunu gibi görünen bir biçimde başarısız olur.</value>
   </data>
+  <data name="Leave empty for any address" xml:space="preserve">
+    <value>Herhangi bir adres için boş bırakın</value>
+  </data>
   <data name="Leave empty for the built-in root anchors" xml:space="preserve">
     <value>Yerleşik kök çapalar için boş bırakın</value>
   </data>
@@ -12828,6 +12831,15 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="Zip archives (*.zip)|*.zip" xml:space="preserve">
     <value>Zip arşivleri (*.zip)|*.zip</value>
+  </data>
+  <data name="_1 year" xml:space="preserve">
+    <value>_1 yıl</value>
+  </data>
+  <data name="_30 days" xml:space="preserve">
+    <value>_30 gün</value>
+  </data>
+  <data name="_90 days" xml:space="preserve">
+    <value>_90 gün</value>
   </data>
   <data name="_Account address" xml:space="preserve">
     <value>_Hesap adresi</value>

@@ -5465,6 +5465,9 @@ Control Panel может читать файлы сообщений только
   <data name="Leave empty (or 0) for automatic: 636 when the connection security is LDAPS, 389 otherwise. The port is derived from the security setting so that choosing LDAPS and forgetting the port cannot attempt TLS against the cleartext port, which fails in a way that looks like a certificate problem." xml:space="preserve">
     <value>Оставьте поле пустым (или 0) для автоматического выбора: 636, когда защита соединения — LDAPS, иначе 389. Порт выводится из параметра защиты, чтобы выбор LDAPS с забытым портом не приводил к попытке TLS на порту открытого текста: такая попытка проваливается так, что это выглядит как проблема с сертификатом.</value>
   </data>
+  <data name="Leave empty for any address" xml:space="preserve">
+    <value>Оставьте пустым для любого адреса</value>
+  </data>
   <data name="Leave empty for the built-in root anchors" xml:space="preserve">
     <value>Оставьте пустым, чтобы использовать встроенные корневые якоря</value>
   </data>
@@ -12828,6 +12831,15 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Zip archives (*.zip)|*.zip" xml:space="preserve">
     <value>Zip-архивы (*.zip)|*.zip</value>
+  </data>
+  <data name="_1 year" xml:space="preserve">
+    <value>_1 год</value>
+  </data>
+  <data name="_30 days" xml:space="preserve">
+    <value>_30 дней</value>
+  </data>
+  <data name="_90 days" xml:space="preserve">
+    <value>_90 дней</value>
   </data>
   <data name="_Account address" xml:space="preserve">
     <value>_Адрес учётной записи</value>

@@ -5465,6 +5465,9 @@
   <data name="Leave empty (or 0) for automatic: 636 when the connection security is LDAPS, 389 otherwise. The port is derived from the security setting so that choosing LDAPS and forgetting the port cannot attempt TLS against the cleartext port, which fails in a way that looks like a certificate problem." xml:space="preserve">
     <value>留空（或 0）表示自动：连接安全为 LDAPS 时使用 636，否则使用 389。端口由安全设置推导，这样选择了 LDAPS 却忘记设置端口时，不会对明文端口尝试 TLS - 那种失败看起来像证书问题。</value>
   </data>
+  <data name="Leave empty for any address" xml:space="preserve">
+    <value>留空表示任意地址均可</value>
+  </data>
   <data name="Leave empty for the built-in root anchors" xml:space="preserve">
     <value>留空则使用内置的根锚点</value>
   </data>
@@ -12828,6 +12831,15 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Zip archives (*.zip)|*.zip" xml:space="preserve">
     <value>Zip 归档 (*.zip)|*.zip</value>
+  </data>
+  <data name="_1 year" xml:space="preserve">
+    <value>1 年(_1)</value>
+  </data>
+  <data name="_30 days" xml:space="preserve">
+    <value>30 天(_3)</value>
+  </data>
+  <data name="_90 days" xml:space="preserve">
+    <value>90 天(_9)</value>
   </data>
   <data name="_Account address" xml:space="preserve">
     <value>账户地址(_A)</value>

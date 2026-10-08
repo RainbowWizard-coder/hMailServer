@@ -791,6 +791,13 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   remote domains grid's headers at every width their fields named - and such a grid keeps its vertical bar, as the
   rules page's list does. A test holds every narrow column whose caption is longer than a few words to a header of
   its own, and every column to its width.
+- **Fixed: the Control Panel's Create a REST API key dialog clipped the expiry's year, had no heading, and reported
+  a refused value in a message box.** Its 200-pixel date picker showed the long date, "Wednesday, January 6, 2" (in
+  German "Mittwoch, 6. Januar 202"), and it was the one dialog off the standard frame: no heading, notes at 65 %
+  opacity, and a label, a date, a domain list or a source address the store would refuse was reported in a message
+  box after Create key was pressed. It is on the frame now, with the "shown once" note as its description, each field
+  a captioned row with its hint under it, the expiry in the short date beside quick picks of 30 days, 90 days and a
+  year, and a refused value said on the field at fault, with the keyboard put in it.
 
 ### IMAP, POP3 and the webmail
 

@@ -5465,6 +5465,9 @@ L'installateur vérifié est remis à l'assistant de mise à jour : le service s
   <data name="Leave empty (or 0) for automatic: 636 when the connection security is LDAPS, 389 otherwise. The port is derived from the security setting so that choosing LDAPS and forgetting the port cannot attempt TLS against the cleartext port, which fails in a way that looks like a certificate problem." xml:space="preserve">
     <value>Laissez vide (ou 0) pour le mode automatique : 636 quand la sécurité de connexion est LDAPS, 389 sinon. Le port est déduit du réglage de sécurité, pour que choisir LDAPS en oubliant le port ne puisse pas tenter du TLS contre le port en clair - ce qui échoue d'une façon qui ressemble à un problème de certificat.</value>
   </data>
+  <data name="Leave empty for any address" xml:space="preserve">
+    <value>Laisser vide pour n'importe quelle adresse</value>
+  </data>
   <data name="Leave empty for the built-in root anchors" xml:space="preserve">
     <value>Laissez vide pour les ancres racine intégrées</value>
   </data>
@@ -12828,6 +12831,15 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   </data>
   <data name="Zip archives (*.zip)|*.zip" xml:space="preserve">
     <value>Archives zip (*.zip)|*.zip</value>
+  </data>
+  <data name="_1 year" xml:space="preserve">
+    <value>_1 an</value>
+  </data>
+  <data name="_30 days" xml:space="preserve">
+    <value>_30 jours</value>
+  </data>
+  <data name="_90 days" xml:space="preserve">
+    <value>_90 jours</value>
   </data>
   <data name="_Account address" xml:space="preserve">
     <value>_Adresse du compte</value>

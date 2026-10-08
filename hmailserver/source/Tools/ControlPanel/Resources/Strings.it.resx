@@ -5465,6 +5465,9 @@ Il programma di installazione verificato viene passato all'helper di aggiornamen
   <data name="Leave empty (or 0) for automatic: 636 when the connection security is LDAPS, 389 otherwise. The port is derived from the security setting so that choosing LDAPS and forgetting the port cannot attempt TLS against the cleartext port, which fails in a way that looks like a certificate problem." xml:space="preserve">
     <value>Lasciare vuoto (o 0) per la scelta automatica: 636 quando la sicurezza della connessione è LDAPS, 389 altrimenti. La porta deriva dall'impostazione di sicurezza affinché scegliere LDAPS e dimenticare la porta non possa tentare il TLS verso la porta in chiaro, cosa che fallisce in un modo che sembra un problema di certificato.</value>
   </data>
+  <data name="Leave empty for any address" xml:space="preserve">
+    <value>Lasciare vuoto per qualsiasi indirizzo</value>
+  </data>
   <data name="Leave empty for the built-in root anchors" xml:space="preserve">
     <value>Lasciare vuoto per le ancore di fiducia radice integrate</value>
   </data>
@@ -12828,6 +12831,15 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   </data>
   <data name="Zip archives (*.zip)|*.zip" xml:space="preserve">
     <value>Archivi zip (*.zip)|*.zip</value>
+  </data>
+  <data name="_1 year" xml:space="preserve">
+    <value>_1 anno</value>
+  </data>
+  <data name="_30 days" xml:space="preserve">
+    <value>_30 giorni</value>
+  </data>
+  <data name="_90 days" xml:space="preserve">
+    <value>_90 giorni</value>
   </data>
   <data name="_Account address" xml:space="preserve">
     <value>_Indirizzo dell'account</value>

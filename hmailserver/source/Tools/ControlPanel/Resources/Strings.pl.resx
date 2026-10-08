@@ -5465,6 +5465,9 @@ Zweryfikowany instalator zostaje przekazany pomocnikowi aktualizacji: usługa je
   <data name="Leave empty (or 0) for automatic: 636 when the connection security is LDAPS, 389 otherwise. The port is derived from the security setting so that choosing LDAPS and forgetting the port cannot attempt TLS against the cleartext port, which fails in a way that looks like a certificate problem." xml:space="preserve">
     <value>Puste pole (lub 0) oznacza wybór automatyczny: 636, gdy zabezpieczeniem połączenia jest LDAPS, w innym razie 389. Port wynika z ustawienia zabezpieczeń, aby wybranie LDAPS i zapomnienie o porcie nie mogło doprowadzić do próby nawiązania TLS na porcie jawnym, co kończy się niepowodzeniem wyglądającym jak problem z certyfikatem.</value>
   </data>
+  <data name="Leave empty for any address" xml:space="preserve">
+    <value>Pozostaw puste dla dowolnego adresu</value>
+  </data>
   <data name="Leave empty for the built-in root anchors" xml:space="preserve">
     <value>Pozostaw puste, aby użyć wbudowanych kotwic zaufania</value>
   </data>
@@ -12828,6 +12831,15 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="Zip archives (*.zip)|*.zip" xml:space="preserve">
     <value>Archiwa zip (*.zip)|*.zip</value>
+  </data>
+  <data name="_1 year" xml:space="preserve">
+    <value>_1 rok</value>
+  </data>
+  <data name="_30 days" xml:space="preserve">
+    <value>_30 dni</value>
+  </data>
+  <data name="_90 days" xml:space="preserve">
+    <value>_90 dni</value>
   </data>
   <data name="_Account address" xml:space="preserve">
     <value>_Adres konta</value>

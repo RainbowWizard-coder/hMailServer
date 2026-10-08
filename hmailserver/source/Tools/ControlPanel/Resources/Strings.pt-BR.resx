@@ -5465,6 +5465,9 @@ O instalador verificado é entregue ao auxiliar de atualização: o serviço par
   <data name="Leave empty (or 0) for automatic: 636 when the connection security is LDAPS, 389 otherwise. The port is derived from the security setting so that choosing LDAPS and forgetting the port cannot attempt TLS against the cleartext port, which fails in a way that looks like a certificate problem." xml:space="preserve">
     <value>Deixe vazio (ou 0) para automático: 636 quando a segurança da conexão for LDAPS, 389 caso contrário. A porta é derivada da configuração de segurança para que escolher LDAPS e esquecer a porta não possa tentar TLS contra a porta em texto claro, o que falha de um jeito que parece um problema de certificado.</value>
   </data>
+  <data name="Leave empty for any address" xml:space="preserve">
+    <value>Deixe em branco para qualquer endereço</value>
+  </data>
   <data name="Leave empty for the built-in root anchors" xml:space="preserve">
     <value>Deixe vazio para as âncoras raiz embutidas</value>
   </data>
@@ -12828,6 +12831,15 @@ Nenhuma mensagem é excluída e nenhuma conta é removida. Continuar?</value>
   </data>
   <data name="Zip archives (*.zip)|*.zip" xml:space="preserve">
     <value>Arquivos zip (*.zip)|*.zip</value>
+  </data>
+  <data name="_1 year" xml:space="preserve">
+    <value>_1 ano</value>
+  </data>
+  <data name="_30 days" xml:space="preserve">
+    <value>_30 dias</value>
+  </data>
+  <data name="_90 days" xml:space="preserve">
+    <value>_90 dias</value>
   </data>
   <data name="_Account address" xml:space="preserve">
     <value>_Endereço da conta</value>

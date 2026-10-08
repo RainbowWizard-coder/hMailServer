@@ -5465,6 +5465,9 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="Leave empty (or 0) for automatic: 636 when the connection security is LDAPS, 389 otherwise. The port is derived from the security setting so that choosing LDAPS and forgetting the port cannot attempt TLS against the cleartext port, which fails in a way that looks like a certificate problem." xml:space="preserve">
     <value>Laat leeg (of 0) voor automatisch: 636 wanneer de verbindingsbeveiliging LDAPS is, anders 389. De poort wordt afgeleid van de beveiligingsinstelling, zodat LDAPS kiezen en de poort vergeten geen TLS kan proberen tegen de poort voor klare tekst, wat mislukt op een manier die op een certificaatprobleem lijkt.</value>
   </data>
+  <data name="Leave empty for any address" xml:space="preserve">
+    <value>Leeg laten voor elk adres</value>
+  </data>
   <data name="Leave empty for the built-in root anchors" xml:space="preserve">
     <value>Laat leeg voor de ingebouwde rootankers</value>
   </data>
@@ -12828,6 +12831,15 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="Zip archives (*.zip)|*.zip" xml:space="preserve">
     <value>Zip-archieven (*.zip)|*.zip</value>
+  </data>
+  <data name="_1 year" xml:space="preserve">
+    <value>_1 jaar</value>
+  </data>
+  <data name="_30 days" xml:space="preserve">
+    <value>_30 dagen</value>
+  </data>
+  <data name="_90 days" xml:space="preserve">
+    <value>_90 dagen</value>
   </data>
   <data name="_Account address" xml:space="preserve">
     <value>_Accountadres</value>

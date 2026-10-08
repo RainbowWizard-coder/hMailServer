@@ -5465,6 +5465,9 @@ Der geprüfte Installer wird dem Update-Helfer übergeben: der Dienst stoppt, di
   <data name="Leave empty (or 0) for automatic: 636 when the connection security is LDAPS, 389 otherwise. The port is derived from the security setting so that choosing LDAPS and forgetting the port cannot attempt TLS against the cleartext port, which fails in a way that looks like a certificate problem." xml:space="preserve">
     <value>Leer lassen (oder 0) für automatisch: 636, wenn die Verbindungssicherheit LDAPS ist, sonst 389. Der Port wird aus der Sicherheitseinstellung abgeleitet, damit die Wahl von LDAPS bei vergessenem Port nicht TLS gegen den Klartext-Port versuchen kann, was auf eine Weise scheitert, die wie ein Zertifikatsproblem aussieht.</value>
   </data>
+  <data name="Leave empty for any address" xml:space="preserve">
+    <value>Leer lassen für jede Adresse</value>
+  </data>
   <data name="Leave empty for the built-in root anchors" xml:space="preserve">
     <value>Leer lassen für die eingebauten Root-Vertrauensanker</value>
   </data>
@@ -12828,6 +12831,15 @@ Es wird keine Nachricht gelöscht und kein Konto entfernt. Fortfahren?</value>
   </data>
   <data name="Zip archives (*.zip)|*.zip" xml:space="preserve">
     <value>Zip-Archive (*.zip)|*.zip</value>
+  </data>
+  <data name="_1 year" xml:space="preserve">
+    <value>_1 Jahr</value>
+  </data>
+  <data name="_30 days" xml:space="preserve">
+    <value>_30 Tage</value>
+  </data>
+  <data name="_90 days" xml:space="preserve">
+    <value>_90 Tage</value>
   </data>
   <data name="_Account address" xml:space="preserve">
     <value>_Kontoadresse</value>

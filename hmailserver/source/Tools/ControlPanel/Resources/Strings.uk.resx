@@ -5465,6 +5465,9 @@
   <data name="Leave empty (or 0) for automatic: 636 when the connection security is LDAPS, 389 otherwise. The port is derived from the security setting so that choosing LDAPS and forgetting the port cannot attempt TLS against the cleartext port, which fails in a way that looks like a certificate problem." xml:space="preserve">
     <value>Залиште порожнім (або 0) для автоматичного вибору: 636, коли захист підключення — LDAPS, інакше 389. Порт виводиться з параметра захисту, щоб вибір LDAPS із забутим портом не спробував TLS на порту відкритого тексту — це завершується помилкою, схожою на проблему з сертифікатом.</value>
   </data>
+  <data name="Leave empty for any address" xml:space="preserve">
+    <value>Залиште порожнім для будь-якої адреси</value>
+  </data>
   <data name="Leave empty for the built-in root anchors" xml:space="preserve">
     <value>Залиште порожнім для вбудованих кореневих якорів</value>
   </data>
@@ -12828,6 +12831,15 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Zip archives (*.zip)|*.zip" xml:space="preserve">
     <value>Zip-архіви (*.zip)|*.zip</value>
+  </data>
+  <data name="_1 year" xml:space="preserve">
+    <value>_1 рік</value>
+  </data>
+  <data name="_30 days" xml:space="preserve">
+    <value>_30 днів</value>
+  </data>
+  <data name="_90 days" xml:space="preserve">
+    <value>_90 днів</value>
   </data>
   <data name="_Account address" xml:space="preserve">
     <value>_Адреса облікового запису</value>

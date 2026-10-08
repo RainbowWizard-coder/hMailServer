@@ -5465,6 +5465,9 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   <data name="Leave empty (or 0) for automatic: 636 when the connection security is LDAPS, 389 otherwise. The port is derived from the security setting so that choosing LDAPS and forgetting the port cannot attempt TLS against the cleartext port, which fails in a way that looks like a certificate problem." xml:space="preserve">
     <value>Nechte prázdné (nebo 0) pro automatickou volbu: 636, když je zabezpečení připojení LDAPS, jinak 389. Port se odvozuje z nastavení zabezpečení, aby volba LDAPS a zapomenutý port nevedly k pokusu o TLS proti portu pro otevřený text, což selhává způsobem, který vypadá jako problém s certifikátem.</value>
   </data>
+  <data name="Leave empty for any address" xml:space="preserve">
+    <value>Ponechte prázdné pro libovolnou adresu</value>
+  </data>
   <data name="Leave empty for the built-in root anchors" xml:space="preserve">
     <value>Pro vestavěné kořenové kotvy nechte prázdné</value>
   </data>
@@ -12828,6 +12831,15 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="Zip archives (*.zip)|*.zip" xml:space="preserve">
     <value>Archivy zip (*.zip)|*.zip</value>
+  </data>
+  <data name="_1 year" xml:space="preserve">
+    <value>_1 rok</value>
+  </data>
+  <data name="_30 days" xml:space="preserve">
+    <value>_30 dní</value>
+  </data>
+  <data name="_90 days" xml:space="preserve">
+    <value>_90 dní</value>
   </data>
   <data name="_Account address" xml:space="preserve">
     <value>_Adresa účtu</value>
