@@ -25,6 +25,7 @@ using MessageBox = hMailServer.ControlPanel.Views.Dialogs;
 // explicitly here rather than imported wholesale.
 using Card = hMailServer.ControlPanel.Views.Scaffold.Card;
 using EmptyState = hMailServer.ControlPanel.Views.Scaffold.EmptyState;
+using FillPanel = hMailServer.ControlPanel.Views.Scaffold.FillPanel;
 using InlineNotice = hMailServer.ControlPanel.Views.Scaffold.InlineNotice;
 using PageHeader = hMailServer.ControlPanel.Views.Scaffold.PageHeader;
 using StatusPill = hMailServer.ControlPanel.Views.Scaffold.StatusPill;
@@ -161,11 +162,11 @@ namespace hMailServer.ControlPanel.Views
          else
             root.SetResourceReference(MarginProperty, "AppPagePadding");
 
-         // The header or the hint, the toolbar (embedded), the notice, then the
-         // grid with the rest of the height. The notice was under the grid, where
-         // a failed read put "Could not load" below three hundred pixels of blank
-         // card; it is above it now, under the header, as on every other list page.
-         root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+         // The header or the hint, the toolbar (embedded), then the notice and
+         // the grid in a FillPanel with the rest of the height. The notice was
+         // under the grid, where a failed read put "Could not load" below three
+         // hundred pixels of blank card; it is above it now, under the header,
+         // as on every other list page.
          root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
          root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
          root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
@@ -224,9 +225,32 @@ namespace hMailServer.ControlPanel.Views
             });
          }
 
-         // Grid in a card
+         // Grid in a card. On a page, the IP ranges shape: the card takes the
+         // height the window has under the header and the notice, down to a
+         // floor of three rows, and below that the page scrolls; the notice
+         // above it keeps its own height. The card was a grid's star row, which
+         // in the narrowest window (760 by 520) left the greylisting bypass list
+         // its header row alone. Embedded in a dialog's tab, whose height the
+         // dialog fixes, the FillPanel is measured at the tab's height and
+         // shares it out the same way.
          var card = new Card { Padding = new Thickness(6) };
-         Grid.SetRow(card, 3);
+         FillPanel parts;
+         if (embedded_)
+         {
+            parts = new FillPanel();
+            Grid.SetRow(parts, 2);
+            root.Children.Add(parts);
+         }
+         else
+         {
+            ScrollViewer scroll = FillPanel.ScrollingPage(out parts);
+            Grid.SetRow(scroll, 2);
+            root.Children.Add(scroll);
+         }
+         // The notice's own style gives it the card gap below, as on the
+         // quarantine page, so it carries no margin of its own here.
+         parts.Children.Add(status_);
+         parts.Children.Add(FillPanel.Filling(card, FillPanel.ListCardFloor));
 
          grid_.AutoGenerateColumns = false;
          grid_.IsReadOnly = true;
@@ -288,10 +312,6 @@ namespace hMailServer.ControlPanel.Views
          host.Children.Add(grid_);
          host.Children.Add(empty_);
          card.Content = host;
-         root.Children.Add(card);
-
-         Grid.SetRow(status_, 2);
-         root.Children.Add(status_);
 
          Content = root;
       }

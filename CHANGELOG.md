@@ -712,6 +712,28 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   picker were not drawn and could not be scrolled to; only Enter in the password box still signed in. The page scrolls
   now, the card stays centred in a window it fits in, a failed sign-in scrolls its notice into view, and the card is 24
   pixels shorter (a smaller logo, a smaller gap under the password), which is that much less to scroll.
+- **Fixed: selecting a certificate on the Control Panel's SSL certificates page collapsed the list to a strip.** The
+  list was a grid's star row between rows sized to their content, so when the details card appeared under it the list
+  shrank to six pixels in a 1280 by 800 window: the selected row, the other certificates and the column headers all
+  vanished while the arrow keys still changed the selection unseen, and the only way back to the list was a taller
+  window; while the first inspection ran, its loading ring was never seen either. The page is laid out by `FillPanel`
+  now, as the IP ranges page is: the list takes the height the details and add cards leave, down to four rows, below
+  which the page scrolls.
+- **Fixed: nine of the Control Panel's list pages lost their list in a short window.** Each put its list in a star
+  row of the page's grid between rows sized to their content, the shape that gave the IP ranges page no list (work item
+  79), so in the smallest window (760 by 520) the TCP/IP ports page had no grid at all between its toolbar and its
+  listener warning, the setting profiles page lost its table and its "What it cannot do" list and nothing scrolled, the
+  diagnostics page's results card had no height and its consistency footer was cut off, the greylisting bypass list and
+  every other collection page (SURBL servers, DNS blacklists, the white lists, blocked senders and attachments, the
+  allow and block list, remote domains, server messages, groups) showed its header row alone, the quarantine, domain
+  white and black list and routes pages one row or half a row, the discovery page's lines had no room for a row, and
+  the suppression list's bounce counts were a sliver. Every one of the nine is laid out by `FillPanel` now: the list
+  takes the height the other parts leave, down to three rows (the discovery page's two lists share it equally, the
+  suppression list and its bounce counts two to one), below which the page scrolls, and every other part - a toolbar,
+  a notice, an add form, the diagnostics inputs and the consistency card - always keeps its own height. The ports,
+  routes and domain white and black list pages' toolbar actions wrap in a narrow window, as the IP ranges page's do,
+  rather than running off the right edge, and the bounce counts are a titled card, as the discovery page's lines are.
+  `ControlPanel.Tests` holds every one of the eleven pages to the shape.
 
 ### IMAP, POP3 and the webmail
 

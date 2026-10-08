@@ -35,6 +35,10 @@ namespace hMailServer.ControlPanel.Views
    {
       private readonly ComboBox profiles_ = new() { MinWidth = 280, Margin = new Thickness(0, 0, 8, 0) };
 
+      // The floor: the column headers, three rows and a pixel for layout
+      // rounding, 136, as the rules page's lists; held by the FillPanel in the
+      // card, so that the card's floor is its summary, its three rows and the
+      // steps under them, and rises with them.
       private readonly DataGrid rows_ = new()
       {
          AutoGenerateColumns = false,
@@ -42,7 +46,7 @@ namespace hMailServer.ControlPanel.Views
          CanUserAddRows = false,
          CanUserDeleteRows = false,
          SelectionMode = DataGridSelectionMode.Single,
-         MinHeight = 200
+         MinHeight = 136
       };
 
       private readonly InlineNotice status_ = new() { Visibility = Visibility.Collapsed };
@@ -494,8 +498,7 @@ namespace hMailServer.ControlPanel.Views
       {
          var root = new Grid();
          root.SetResourceReference(MarginProperty, "AppPagePadding");
-         for (int i = 0; i < 4; i++)
-            root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+         root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
          root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
 
          root.Children.Add(new PageHeader
@@ -504,8 +507,17 @@ namespace hMailServer.ControlPanel.Views
             Subtitle = L("Each profile sets the settings one kind of server needs. Showing one lists every setting beside the value this server holds now; nothing changes until it is applied.")
          });
 
-         Grid.SetRow(applied_, 1);
-         root.Children.Add(applied_);
+         // The IP ranges shape: the card takes the height the parts above it
+         // leave in the window, down to its floor - its summary, three rows of
+         // the table and the steps under them - and below that the page scrolls.
+         // The card was a grid's star row under rows sized to their content,
+         // which in the narrowest window (760 by 520) left no room for the table
+         // or the "What it cannot do" list, and nothing scrolled.
+         ScrollViewer scroll = FillPanel.ScrollingPage(out FillPanel parts);
+         Grid.SetRow(scroll, 1);
+         root.Children.Add(scroll);
+
+         parts.Children.Add(applied_);
 
          var actions = new WrapPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 0, 8) };
          AutomationProperties.SetName(profiles_, L("Setting profiles"));
@@ -520,11 +532,9 @@ namespace hMailServer.ControlPanel.Views
          decline_ = MakeButton(L("Keep the _shipped settings"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => DeclineProfiles());
          actions.Children.Add(decline_);
          actions.Children.Add(MakeButton(L("Re_fresh"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => Reload(null)));
-         Grid.SetRow(actions, 2);
-         root.Children.Add(actions);
+         parts.Children.Add(actions);
 
-         Grid.SetRow(status_, 3);
-         root.Children.Add(status_);
+         parts.Children.Add(status_);
 
          rows_.Columns.Add(Column_(L("Setting"), nameof(RowView.Setting), DataGridLength.Auto));
          rows_.Columns.Add(Column_(L("This server now"), nameof(RowView.Now), DataGridLength.Auto));
@@ -533,9 +543,12 @@ namespace hMailServer.ControlPanel.Views
          rows_.Columns.Add(Column_(L("Asks for a confirmation"), nameof(RowView.Note), new DataGridLength(1, DataGridLengthUnitType.Star)));
          AutomationProperties.SetName(rows_, L("Setting profiles"));
 
-         var body = new DockPanel();
-         DockPanel.SetDock(summary_, Dock.Top);
+         // The card's own FillPanel: the table is its filling part, the summary
+         // above it and the confirmation and steps under it keep their heights,
+         // so the card asks for all three and the table takes the rest.
+         var body = new FillPanel();
          body.Children.Add(summary_);
+         body.Children.Add(FillPanel.Filling(rows_, 0));
          var bottom = new StackPanel();
          bottom.Children.Add(confirm_);
          confirmNote_.SetResourceReference(FrameworkElement.StyleProperty, "TextCaption");
@@ -544,13 +557,10 @@ namespace hMailServer.ControlPanel.Views
          // the box hears what confirming does, as it heard it when the caption said it.
          AutomationProperties.SetHelpText(confirm_, confirmNote_.Text);
          bottom.Children.Add(steps_);
-         DockPanel.SetDock(bottom, Dock.Bottom);
          body.Children.Add(bottom);
-         body.Children.Add(rows_);
 
          var card = new Card { Padding = new Thickness(8), Content = body };
-         Grid.SetRow(card, 4);
-         root.Children.Add(card);
+         parts.Children.Add(FillPanel.Filling(card, 0));
 
          Content = root;
       }

@@ -38,14 +38,15 @@ namespace hMailServer.ControlPanel.Views
    {
       private readonly Toolbar toolbar_ = new() { SearchPlaceholder = L("Domain contains") };
 
+      // No MinHeight of the grid's own: the card around it is floored, and
+      // measured at the height it is given, by the page's FillPanel.
       private readonly DataGrid entries_ = new()
       {
          AutoGenerateColumns = false,
          IsReadOnly = true,
          CanUserAddRows = false,
          CanUserDeleteRows = false,
-         SelectionMode = DataGridSelectionMode.Single,
-         MinHeight = 160
+         SelectionMode = DataGridSelectionMode.Single
       };
 
       private readonly InlineNotice status_ = new() { Visibility = Visibility.Collapsed };
@@ -280,9 +281,6 @@ namespace hMailServer.ControlPanel.Views
          var root = new Grid();
          root.SetResourceReference(MarginProperty, "AppPagePadding");
          root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-         root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-         root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-         root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
          root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
 
          root.Children.Add(new PageHeader
@@ -299,7 +297,17 @@ namespace hMailServer.ControlPanel.Views
 
          toolbar_.PreviewKeyDown += (_, e) => { if (e.Key == System.Windows.Input.Key.Enter) Present_(); };
 
-         var actions = new StackPanel { Orientation = Orientation.Horizontal };
+         // The IP ranges shape: the list takes the height the toolbar and the
+         // notices above it leave in the window, down to a floor of three rows,
+         // and below that the page scrolls. The list was a grid's star row under
+         // rows sized to their content, which in the narrowest window (760 by
+         // 520) left it half a row under the explanation.
+         ScrollViewer scroll = FillPanel.ScrollingPage(out FillPanel parts);
+         Grid.SetRow(scroll, 1);
+         root.Children.Add(scroll);
+
+         // Wraps, rather than cutting Refresh off the right edge in a narrow window.
+         var actions = new WrapPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right };
          addButton_ = MakeButton(L("_Add…"), Wpf.Ui.Controls.ControlAppearance.Primary, (_, _) => AddEntry());
          actions.Children.Add(addButton_);
          var remove = MakeButton(L("_Remove"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => RemoveSelected());
@@ -307,15 +315,14 @@ namespace hMailServer.ControlPanel.Views
          actions.Children.Add(remove);
          SelectionGate.Bind(entries_, remove);
          actions.Children.Add(MakeButton(L("Re_fresh"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => Reload()));
+         foreach (FrameworkElement button in actions.Children)
+            button.Margin = new Thickness(button.Margin.Left, 2, button.Margin.Right, 2);
          toolbar_.Actions = actions;
-         Grid.SetRow(toolbar_, 1);
-         root.Children.Add(toolbar_);
+         parts.Children.Add(toolbar_);
 
-         Grid.SetRow(explanation, 2);
-         root.Children.Add(explanation);
+         parts.Children.Add(explanation);
 
-         Grid.SetRow(status_, 3);
-         root.Children.Add(status_);
+         parts.Children.Add(status_);
 
          BuildColumns_();
          AutomationProperties.SetName(entries_, L("Domain white and black list"));
@@ -324,8 +331,7 @@ namespace hMailServer.ControlPanel.Views
          host.Children.Add(entries_);
          host.Children.Add(empty_);
          var listCard = new Card { Padding = new Thickness(8), Content = host };
-         Grid.SetRow(listCard, 4);
-         root.Children.Add(listCard);
+         parts.Children.Add(FillPanel.Filling(listCard, FillPanel.ListCardFloor));
 
          Content = root;
       }

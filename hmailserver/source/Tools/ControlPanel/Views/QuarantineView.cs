@@ -964,7 +964,6 @@ namespace hMailServer.ControlPanel.Views
          var root = new Grid();
          root.SetResourceReference(MarginProperty, "AppPagePadding");
          root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-         root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
          root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
 
          grouping_.Items.Add(L("Sender domain"));
@@ -999,8 +998,16 @@ namespace hMailServer.ControlPanel.Views
             Actions = actions
          });
 
-         Grid.SetRow(status_, 1);
-         root.Children.Add(status_);
+         // The IP ranges shape: the list takes the height the notice above it
+         // leaves in the window, down to a floor of three rows, and below that
+         // the page scrolls. The list was a grid's star row under rows sized to
+         // their content, which in the narrowest window (760 by 520) left it one
+         // row.
+         ScrollViewer scroll = FillPanel.ScrollingPage(out FillPanel parts);
+         Grid.SetRow(scroll, 1);
+         root.Children.Add(scroll);
+
+         parts.Children.Add(status_);
 
          BuildColumns();
          BuildFlyout();
@@ -1010,8 +1017,7 @@ namespace hMailServer.ControlPanel.Views
          host.Children.Add(list_);
          host.Children.Add(empty_);
          var card = new Card { Padding = new Thickness(8), Content = host };
-         Grid.SetRow(card, 2);
-         root.Children.Add(card);
+         parts.Children.Add(FillPanel.Filling(card, FillPanel.ListCardFloor));
 
          Content = root;
       }

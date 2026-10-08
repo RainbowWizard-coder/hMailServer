@@ -34,14 +34,15 @@ namespace hMailServer.ControlPanel.Views
       private readonly ComboBox domainChoice_ = new() { MinWidth = 220 };
       private readonly Toolbar toolbar_ = new() { SearchPlaceholder = L("Address contains") };
 
+      // No MinHeight of the grids' own: the card around each is floored, and
+      // measured at the height it is given, by the page's FillPanel.
       private readonly DataGrid entries_ = new()
       {
          AutoGenerateColumns = false,
          IsReadOnly = true,
          CanUserAddRows = false,
          CanUserDeleteRows = false,
-         SelectionMode = DataGridSelectionMode.Single,
-         MinHeight = 160
+         SelectionMode = DataGridSelectionMode.Single
       };
 
       private readonly DataGrid counts_ = new()
@@ -50,8 +51,7 @@ namespace hMailServer.ControlPanel.Views
          IsReadOnly = true,
          CanUserAddRows = false,
          CanUserDeleteRows = false,
-         SelectionMode = DataGridSelectionMode.Single,
-         MinHeight = 120
+         SelectionMode = DataGridSelectionMode.Single
       };
 
       private readonly InlineNotice status_ = new() { Visibility = Visibility.Collapsed };
@@ -382,10 +382,6 @@ namespace hMailServer.ControlPanel.Views
          var root = new Grid();
          root.SetResourceReference(MarginProperty, "AppPagePadding");
          root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-         root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-         root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-         root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-         root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(2, GridUnitType.Star) });
          root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
 
          root.Children.Add(new PageHeader
@@ -393,6 +389,16 @@ namespace hMailServer.ControlPanel.Views
             Title = L("Suppression list"),
             Subtitle = L("Addresses a domain no longer sends to because mail to them bounced for good, or because somebody put them here - with the counts behind each one. The list is per sending domain.")
          });
+
+         // The IP ranges shape, with two lists: the list and the bounce counts
+         // share the height the toolbar and the notices leave in the window, two
+         // to one, each down to a floor of three rows, and below that the page
+         // scrolls. The two were a grid's star rows under rows sized to their
+         // content, which in the narrowest window (760 by 520) left the bounce
+         // counts a sliver.
+         ScrollViewer scroll = FillPanel.ScrollingPage(out FillPanel parts);
+         Grid.SetRow(scroll, 1);
+         root.Children.Add(scroll);
 
          AutomationProperties.SetName(domainChoice_, L("Domain"));
          domainChoice_.SelectionChanged += (_, _) => Reload();
@@ -418,14 +424,11 @@ namespace hMailServer.ControlPanel.Views
          foreach (FrameworkElement button in actions.Children)
             button.Margin = new Thickness(button.Margin.Left, 3, button.Margin.Right, 3);
          toolbar_.Actions = actions;
-         Grid.SetRow(toolbar_, 1);
-         root.Children.Add(toolbar_);
+         parts.Children.Add(toolbar_);
 
-         Grid.SetRow(processingOff_, 2);
-         root.Children.Add(processingOff_);
+         parts.Children.Add(processingOff_);
 
-         Grid.SetRow(status_, 3);
-         root.Children.Add(status_);
+         parts.Children.Add(status_);
 
          BuildColumns_();
          AutomationProperties.SetName(entries_, L("Suppression list"));
@@ -435,16 +438,18 @@ namespace hMailServer.ControlPanel.Views
          host.Children.Add(entries_);
          host.Children.Add(empty_);
          var listCard = new Card { Padding = new Thickness(8), Content = host };
-         Grid.SetRow(listCard, 4);
-         root.Children.Add(listCard);
+         parts.Children.Add(FillPanel.Filling(listCard, FillPanel.ListCardFloor, 2));
 
-         var countsPanel = new DockPanel { Margin = new Thickness(0, DesignTokens.Space.Md, 0, 0) };
-         var countsTitle = DialogFields.Caption(L("Bounce counts"));
-         DockPanel.SetDock(countsTitle, Dock.Top);
-         countsPanel.Children.Add(countsTitle);
-         countsPanel.Children.Add(new Card { Padding = new Thickness(8), Content = counts_ });
-         Grid.SetRow(countsPanel, 5);
-         root.Children.Add(countsPanel);
+         // A titled card, as the discovery page's lines are, in place of a
+         // caption over a bare one.
+         var countsCard = new Card
+         {
+            Title = L("Bounce counts"),
+            Padding = new Thickness(8),
+            Margin = new Thickness(0, DesignTokens.Space.Md, 0, 0),
+            Content = counts_
+         };
+         parts.Children.Add(FillPanel.Filling(countsCard, FillPanel.TitledListCardFloor, 1));
 
          Content = root;
       }

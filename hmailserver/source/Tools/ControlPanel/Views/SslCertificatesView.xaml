@@ -15,17 +15,26 @@
     <Grid Margin="{StaticResource AppPagePadding}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <scaffold:PageHeader Title="{loc:L 'SSL certificates'}"
                              Subtitle="{loc:L 'Certificates available for TLS ports, with what this machine can verify about each: the files, the expiry date, and whether the key belongs to the certificate. With ACME enabled, Let\'s Encrypt certificates appear here automatically.'}" />
 
-        <scaffold:Toolbar x:Name="SearchBar" Grid.Row="1" SearchPlaceholder="{loc:L 'Search certificates'}"
+        <!-- The IP ranges shape: the list takes the height the parts under it
+             leave in the window, down to a floor of four rows, and below that
+             the page scrolls; every other part keeps its own height. The list
+             was a grid's star row between rows sized to their content, so that
+             selecting a certificate, which shows the details card under it,
+             shrank the list to a strip of six pixels in a 1280 by 800 window:
+             the selected row, the other certificates and the column headers all
+             vanished while the arrow keys still changed the selection unseen,
+             and the only way back to the list was a taller window. -->
+        <ScrollViewer x:Name="PageScroll" Grid.Row="1" VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled" Focusable="False">
+        <scaffold:FillPanel ViewportHeight="{Binding ViewportHeight, ElementName=PageScroll}">
+
+        <scaffold:Toolbar x:Name="SearchBar" SearchPlaceholder="{loc:L 'Search certificates'}"
                           SearchTextChanged="Search_TextChanged">
             <scaffold:Toolbar.Actions>
                 <ui:Button x:Name="DeleteButton" Content="{loc:L '_Delete selected'}" Appearance="Danger" Click="Delete_Click"
@@ -34,9 +43,14 @@
         </scaffold:Toolbar>
 
         <!-- A load that failed, above the grid rather than in its place. -->
-        <scaffold:InlineNotice x:Name="LoadNotice" Grid.Row="2" Visibility="Collapsed" />
+        <scaffold:InlineNotice x:Name="LoadNotice" Visibility="Collapsed" />
 
-        <scaffold:Card Grid.Row="3" Padding="8">
+        <!-- The floor: four rows need 187 pixels (the card's padding and border,
+             the column headers and four 34-pixel rows) - one more than the IP
+             ranges page's three, so that the selected certificate is seen among
+             its neighbours - and the empty state that takes the rows' place
+             when there are none needs 157. -->
+        <scaffold:Card scaffold:FillPanel.Fill="True" MinHeight="187" Padding="8">
             <Grid>
                 <!-- Row virtualization is off: the status cells are built in code at
                      Loaded time (the badge needs theme-following brushes a XAML
@@ -79,7 +93,7 @@
              could not be, and the one secret this page can write but will never
              read back - the private key passphrase. The card's title is the
              certificate's name, set from code. -->
-        <scaffold:Card Grid.Row="4" x:Name="DetailsCard" Margin="0,12,0,0" Visibility="Collapsed">
+        <scaffold:Card x:Name="DetailsCard" Margin="0,12,0,0" Visibility="Collapsed">
             <StackPanel>
                 <StackPanel x:Name="DetailsLines" Margin="0,0,0,8" />
 
@@ -100,7 +114,7 @@
             </scaffold:Card.Footer>
         </scaffold:Card>
 
-        <scaffold:Card Grid.Row="5" Title="{loc:L 'Add certificate'}" Margin="0,12,0,0">
+        <scaffold:Card Title="{loc:L 'Add certificate'}" Margin="0,12,0,0">
             <StackPanel>
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -156,5 +170,7 @@
                 <scaffold:InlineNotice x:Name="AddHint" Margin="0" Visibility="Collapsed" />
             </StackPanel>
         </scaffold:Card>
+        </scaffold:FillPanel>
+        </ScrollViewer>
     </Grid>
 </UserControl>

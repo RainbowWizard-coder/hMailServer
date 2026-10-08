@@ -511,17 +511,24 @@ namespace hMailServer.ControlPanel.Views
          var grid = new Grid();
          grid.SetResourceReference(MarginProperty, "AppPagePadding");
          grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-         grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
          grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
-         // Auto so the consistency card is only as tall as what it has to say -
-         // a clean scan is one line, and the connectivity output keeps the rest.
-         grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
 
          grid.Children.Add(new PageHeader
          {
             Title = L("Diagnostics"),
             Subtitle = L("Runs the server's built-in connectivity and configuration checks (outbound port 25, MX resolution, backup directory, IP configuration). The message-store consistency scan below is a separate read-only background task - the server runs it at start-up and hourly and records what it found in a recovery report.")
          });
+
+         // The IP ranges shape: the results card takes the height the inputs
+         // above it and the consistency card under it leave in the window, down
+         // to a floor, and below that the page scrolls; the consistency card is
+         // only as tall as what it has to say - a clean scan is one line. The
+         // results card was a grid's star row between rows sized to their
+         // content, which in the narrowest window (760 by 520) gave it no height
+         // and cut the consistency footer off.
+         ScrollViewer scroll = FillPanel.ScrollingPage(out FillPanel parts);
+         Grid.SetRow(scroll, 1);
+         grid.Children.Add(scroll);
 
          var inputRow = new Grid();
          inputRow.SetResourceReference(MarginProperty, "AppCardGap");
@@ -547,8 +554,7 @@ namespace hMailServer.ControlPanel.Views
          actions.Children.Add(copy);
          Grid.SetColumn(actions, 2);
          inputRow.Children.Add(actions);
-         Grid.SetRow(inputRow, 1);
-         grid.Children.Add(inputRow);
+         parts.Children.Add(inputRow);
 
          System.Windows.Automation.AutomationProperties.SetName(output_, L("Diagnostics"));
          var card = new Card
@@ -557,12 +563,9 @@ namespace hMailServer.ControlPanel.Views
             Content = ResultHint.Wrap(output_, L("Nothing has been run yet. Press Run diagnostics and the result of each check appears here, with what to do about any that fails."))
          };
          card.SetResourceReference(MarginProperty, "AppCardGap");
-         Grid.SetRow(card, 2);
-         grid.Children.Add(card);
+         parts.Children.Add(FillPanel.Filling(card, FillPanel.ListCardFloor));
 
-         Card consistencyCard = BuildConsistencySection();
-         Grid.SetRow(consistencyCard, 3);
-         grid.Children.Add(consistencyCard);
+         parts.Children.Add(BuildConsistencySection());
 
          Content = grid;
       }

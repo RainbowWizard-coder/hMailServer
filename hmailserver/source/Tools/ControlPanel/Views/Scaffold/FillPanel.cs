@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using hMailServer.ControlPanel.Services;
 
 namespace hMailServer.ControlPanel.Views.Scaffold
@@ -71,9 +72,65 @@ namespace hMailServer.ControlPanel.Views.Scaffold
          nameof(ViewportHeight), typeof(double), typeof(FillPanel),
          new FrameworkPropertyMetadata(double.NaN, FrameworkPropertyMetadataOptions.AffectsMeasure));
 
+      /// <summary>
+      /// The floor of a card of eight pixels' padding that holds a list and
+      /// nothing else: three rows need 153 pixels (the card's padding and border,
+      /// the column headers and three 34-pixel rows), and the empty state that
+      /// takes the rows' place when there are none needs 157 (its glyph, its
+      /// sentence and their padding, 139, inside the card's padding and border);
+      /// at 154 its sentence was cut off. The IP ranges page's list card was the
+      /// first to be floored so; a page built in code says this where a XAML page
+      /// writes MinHeight="157".
+      /// </summary>
+      public const double ListCardFloor = 157;
+
+      /// <summary>
+      /// The floor of a list card with a title above its list: the title's line
+      /// and the gap under it, 24 pixels, over <see cref="ListCardFloor"/>.
+      /// </summary>
+      public const double TitledListCardFloor = ListCardFloor + 24;
+
       private double[] floors_ = Array.Empty<double>();
       private double[] measuredAt_ = Array.Empty<double>();
       private bool arranging_;
+
+      /// <summary>
+      /// The scrolling part of a page built in code, as the XAML pages write it:
+      /// a ScrollViewer that scrolls up and down and never sideways, is not a tab
+      /// stop, and holds a FillPanel bound to its ViewportHeight, in which the
+      /// page's parts go, under the PageHeader that stays in the page's grid. The
+      /// nine list pages built in code had their list in a star row of the page's
+      /// grid, between rows sized to their content, which is the shape that gave
+      /// the IP ranges page no list in a short window (work item 79): in the
+      /// narrowest window the ports page had no grid at all between its toolbar
+      /// and its warning, the profiles page lost its table and nothing scrolled,
+      /// the diagnostics page's results card had no height, the greylisting bypass
+      /// list showed its header row alone, and the suppression list's bounce
+      /// counts were a sliver.
+      /// </summary>
+      public static ScrollViewer ScrollingPage(out FillPanel parts)
+      {
+         var scroll = new ScrollViewer
+         {
+            VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+            HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
+            Focusable = false
+         };
+         parts = new FillPanel();
+         parts.SetBinding(ViewportHeightProperty, new Binding(nameof(ScrollViewer.ViewportHeight)) { Source = scroll });
+         scroll.Content = parts;
+         return scroll;
+      }
+
+      /// <summary>A page's part that takes the height the others leave, down to <paramref name="floor"/>, its share of it by <paramref name="weight"/>.</summary>
+      public static T Filling<T>(T part, double floor, double weight = 1) where T : FrameworkElement
+      {
+         SetFill(part, true);
+         SetWeight(part, weight);
+         if (floor > 0)
+            part.MinHeight = floor;
+         return part;
+      }
 
       public static bool GetFill(UIElement element)
          => element != null && (bool)element.GetValue(FillProperty);

@@ -14,30 +14,37 @@
     <Grid Margin="{StaticResource AppPagePadding}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <scaffold:PageHeader Title="{loc:L 'Routes'}"
                              Subtitle="{loc:L 'Deliver mail for specific domains through a designated SMTP host instead of MX lookup.'}" />
 
-        <scaffold:Toolbar x:Name="SearchBar" Grid.Row="1" SearchPlaceholder="{loc:L 'Search routes'}"
+        <!-- The IP ranges shape: the list takes the height the add form leaves in
+             the window, down to a floor of three rows, and below that the page
+             scrolls. The list was a grid's star row between rows sized to their
+             content, which in the narrowest window (760 by 520) left it half a
+             row. -->
+        <ScrollViewer x:Name="PageScroll" Grid.Row="1" VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled" Focusable="False">
+        <scaffold:FillPanel ViewportHeight="{Binding ViewportHeight, ElementName=PageScroll}">
+
+        <scaffold:Toolbar x:Name="SearchBar" SearchPlaceholder="{loc:L 'Search routes'}"
                           SearchTextChanged="Search_TextChanged">
             <scaffold:Toolbar.Actions>
-                <StackPanel Orientation="Horizontal">
-                    <ui:Button x:Name="PropertiesButton" Content="{loc:L '_Properties'}" Click="Edit_Click" Margin="0,0,8,0" />
-                    <ui:Button x:Name="DeleteButton" Content="{loc:L '_Delete selected'}" Style="{StaticResource DangerTextButton}" Click="Delete_Click" />
-                </StackPanel>
+                <WrapPanel HorizontalAlignment="Right">
+                    <ui:Button x:Name="PropertiesButton" Content="{loc:L '_Properties'}" Click="Edit_Click" Margin="0,2,8,2" />
+                    <ui:Button x:Name="DeleteButton" Content="{loc:L '_Delete selected'}" Style="{StaticResource DangerTextButton}" Click="Delete_Click" Margin="0,2,0,2" />
+                </WrapPanel>
             </scaffold:Toolbar.Actions>
         </scaffold:Toolbar>
 
         <!-- A read that failed: Critical, with Try again, in place of the empty
              state, which would say there are no routes (Services/ReadFailure). -->
-        <scaffold:InlineNotice x:Name="Notice" Grid.Row="2" Visibility="Collapsed" />
+        <scaffold:InlineNotice x:Name="Notice" Visibility="Collapsed" />
 
-        <scaffold:Card Grid.Row="3" Padding="8">
+        <!-- The floor: three rows and the empty state, as the IP ranges page's list card. -->
+        <scaffold:Card scaffold:FillPanel.Fill="True" MinHeight="157" Padding="8">
             <Grid>
                 <DataGrid x:Name="RouteGrid" AutoGenerateColumns="False" IsReadOnly="True"
                           SelectionMode="Single" MouseDoubleClick="Edit_Click"
@@ -62,7 +69,7 @@
 
         <!-- The add form: three fields in a row and the button that adds, on a
              card of its own under the grid so the grid keeps the height. -->
-        <scaffold:Card Grid.Row="4" Title="{loc:L 'Add route'}" Margin="0,12,0,0">
+        <scaffold:Card Title="{loc:L 'Add route'}" Margin="0,12,0,0">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="2*" />
@@ -83,5 +90,7 @@
                            VerticalAlignment="Bottom" Margin="0" />
             </Grid>
         </scaffold:Card>
+        </scaffold:FillPanel>
+        </ScrollViewer>
     </Grid>
 </UserControl>

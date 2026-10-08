@@ -350,14 +350,15 @@ namespace hMailServer.ControlPanel.Views
          _ => action
       };
 
+      // No MinHeight of the grid's own: the card around each is floored, and
+      // measured at the height it is given, by the page's FillPanel.
       private static DataGrid NewGrid_() => new()
       {
          AutoGenerateColumns = false,
          IsReadOnly = true,
          CanUserAddRows = false,
          CanUserDeleteRows = false,
-         SelectionMode = DataGridSelectionMode.Single,
-         MinHeight = 160
+         SelectionMode = DataGridSelectionMode.Single
       };
 
       private void Build_()
@@ -365,8 +366,6 @@ namespace hMailServer.ControlPanel.Views
          var root = new Grid();
          root.SetResourceReference(MarginProperty, "AppPagePadding");
          root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-         root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-         root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
          root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
 
          var refresh = new Wpf.Ui.Controls.Button { Content = L("_Refresh"), MinWidth = 110 };
@@ -380,8 +379,16 @@ namespace hMailServer.ControlPanel.Views
             Actions = refresh
          });
 
-         Grid.SetRow(status_, 1);
-         root.Children.Add(status_);
+         // The IP ranges shape, with two lists: the cases and the selected case's
+         // lines share the height the notice leaves in the window, equally, each
+         // down to a floor of three rows, and below that the page scrolls. The
+         // two were a grid's star rows under rows sized to their content, which
+         // in the narrowest window (760 by 520) left the lines no room for a row.
+         ScrollViewer scroll = FillPanel.ScrollingPage(out FillPanel parts);
+         Grid.SetRow(scroll, 1);
+         root.Children.Add(scroll);
+
+         parts.Children.Add(status_);
 
          cases_.Columns.Add(Text_(L("Name"), nameof(CaseRow.Name), new DataGridLength(1, DataGridLengthUnitType.Star)));
          cases_.Columns.Add(Text_(L("State"), nameof(CaseRow.State), DataGridLength.Auto));
@@ -398,8 +405,7 @@ namespace hMailServer.ControlPanel.Views
          host.Children.Add(cases_);
          host.Children.Add(empty_);
          var casesCard = new Card { Padding = new Thickness(8), Content = host };
-         Grid.SetRow(casesCard, 2);
-         root.Children.Add(casesCard);
+         parts.Children.Add(FillPanel.Filling(casesCard, FillPanel.ListCardFloor));
 
          lines_.Columns.Add(Text_(L("When"), nameof(LineRow.When), DataGridLength.Auto));
          lines_.Columns.Add(Text_(L("Who"), nameof(LineRow.Who), DataGridLength.Auto));
@@ -417,8 +423,7 @@ namespace hMailServer.ControlPanel.Views
             Margin = new Thickness(0, 12, 0, 0),
             Content = lines_
          };
-         Grid.SetRow(linesCard, 3);
-         root.Children.Add(linesCard);
+         parts.Children.Add(FillPanel.Filling(linesCard, FillPanel.TitledListCardFloor));
 
          Content = root;
       }
