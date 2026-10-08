@@ -555,10 +555,10 @@ namespace hMailServer.ControlPanel.Views
             try
             {
                if (((string)settings.HostName).Length == 0)
-                  count += AddWarning(L("High"), L("No public host name is configured in the SMTP settings."));
+                  count += AddWarning(StatusLevel.Warning, L("No public host name is configured in the SMTP settings."));
 
                if ((bool)settings.DenyMailFromNull)
-                  count += AddWarning(L("High"), L("Mail from an empty sender address is denied. Many servers send bounces from <>, which will be rejected."));
+                  count += AddWarning(StatusLevel.Warning, L("Mail from an empty sender address is denied. Many servers send bounces from <>, which will be rejected."));
 
                dynamic ranges = settings.SecurityRanges;
                int autoban = 0;
@@ -569,10 +569,10 @@ namespace hMailServer.ControlPanel.Views
                   try
                   {
                      if ((bool)range.AllowDeliveryFromRemoteToRemote && !(bool)range.RequireSMTPAuthExternalToExternal)
-                        count += AddWarning(L("Critical"), F("IP range '{0}' allows external-to-external delivery without authentication (open relay risk).", (string)range.Name));
+                        count += AddWarning(StatusLevel.Critical, F("IP range '{0}' allows external-to-external delivery without authentication (open relay risk).", (string)range.Name));
 
                      if ((string)range.LowerIP == "127.0.0.1" && (string)range.UpperIP == "127.0.0.1" && (bool)range.Expires)
-                        count += AddWarning(L("High"), L("Localhost is currently banned in the IP ranges."));
+                        count += AddWarning(StatusLevel.Warning, L("Localhost is currently banned in the IP ranges."));
 
                      if ((bool)range.Expires)
                         autoban++;
@@ -585,7 +585,7 @@ namespace hMailServer.ControlPanel.Views
                ServerSession.Release(ranges);
 
                if (autoban > 0)
-                  count += AddWarning(L("Medium"), F("There is a total of {0} auto-ban IP range(s).", autoban));
+                  count += AddWarning(StatusLevel.Information, F("There is a total of {0} auto-ban IP range(s).", autoban));
             }
             finally
             {
@@ -594,7 +594,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            AddWarning(L("Info"), F("Could not evaluate all warnings: {0}", ex.Message));
+            AddWarning(StatusLevel.Information, F("Could not evaluate all warnings: {0}", ex.Message));
             return;
          }
 
@@ -626,18 +626,26 @@ namespace hMailServer.ControlPanel.Views
       /// And nothing joined the badge to the message, so a reader moving through the
       /// page heard "Critical" and then, as a separate unrelated item, a sentence.
       ///
-      /// It is now an InlineNotice at the level StatusSemantics gives the server's
-      /// word - Critical, Warning or Information - which draws the shape, the word
-      /// and the theme brush in all three themes and puts the word first in its
-      /// accessible name. There is no foreground/background pair left to get wrong,
-      /// because there is no fill; the shape carries the severity for a reader who
-      /// cannot separate the colours.
+      /// It is now an InlineNotice at the level the caller names - Critical,
+      /// Warning or Information - which draws the shape, the word and the theme
+      /// brush in all three themes and puts the word first in its accessible
+      /// name. There is no foreground/background pair left to get wrong, because
+      /// there is no fill; the shape carries the severity for a reader who cannot
+      /// separate the colours.
+      ///
+      /// The level is a <see cref="StatusLevel"/>, not a word. It was a word -
+      /// "Critical", "High", "Medium", "Info" - passed through the catalogue and
+      /// matched back against the English, so in German "Kritisch" and "Mittel"
+      /// matched nothing and fell to the default, Warning: the open relay was
+      /// demoted and the auto-ban count promoted, and Japanese escaped only
+      /// because its catalogue left the words in English. A level cannot be
+      /// translated.
       /// </summary>
-      private int AddWarning(string severity, string text)
+      private int AddWarning(StatusLevel level, string text)
       {
          WarningsPanel.Children.Add(new InlineNotice
          {
-            Level = StatusSemantics.ForConfigurationWarning(severity),
+            Level = level,
             Text = text,
             Margin = new Thickness(0, 0, 0, 8)
          });

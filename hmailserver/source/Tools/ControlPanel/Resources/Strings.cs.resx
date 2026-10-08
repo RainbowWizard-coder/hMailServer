@@ -4815,9 +4815,6 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Hide the new API key" xml:space="preserve">
     <value>Skrýt nový klíč API</value>
   </data>
-  <data name="High" xml:space="preserve">
-    <value>Vysoká</value>
-  </data>
   <data name="Hit rate and memory in use, per cache" xml:space="preserve">
     <value>Míra zásahů a využitá paměť, per cache</value>
   </data>
@@ -5177,9 +5174,6 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="Infected messages are delivered with their attachments stripped rather than deleted. The recipient still receives the message body, which for most malicious mail is the part carrying the instructions telling them what to do next." xml:space="preserve">
     <value>Infikované zprávy se doručují s odstraněnými přílohami místo smazání. Příjemce stále dostane tělo zprávy, což je u většiny škodlivé pošty ta část, která nese pokyny, co dělat dál.</value>
-  </data>
-  <data name="Info" xml:space="preserve">
-    <value>Informace</value>
   </data>
   <data name="Information" xml:space="preserve">
     <value>Informace</value>
@@ -5994,9 +5988,6 @@ Každý odběr Web Push vytvořený se současným párem okamžitě přestane f
   </data>
   <data name="Measured from when the entry was made, so lowering it applies to the entries already there. An entry added by hand keeps its own expiry." xml:space="preserve">
     <value>Měří se od vytvoření záznamu, takže snížení platí i pro záznamy, které už existují. Ručně přidaný záznam si ponechá vlastní vypršení.</value>
-  </data>
-  <data name="Medium" xml:space="preserve">
-    <value>Střední</value>
   </data>
   <data name="Members" xml:space="preserve">
     <value>Členové</value>

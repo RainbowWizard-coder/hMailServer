@@ -4815,9 +4815,6 @@
   <data name="Hide the new API key" xml:space="preserve">
     <value>隐藏新的 API 密钥</value>
   </data>
-  <data name="High" xml:space="preserve">
-    <value>高</value>
-  </data>
   <data name="Hit rate and memory in use, per cache" xml:space="preserve">
     <value>每个缓存的命中率和占用内存</value>
   </data>
@@ -5177,9 +5174,6 @@
   </data>
   <data name="Infected messages are delivered with their attachments stripped rather than deleted. The recipient still receives the message body, which for most malicious mail is the part carrying the instructions telling them what to do next." xml:space="preserve">
     <value>受感染的邮件会在剥除附件后投递，而不是删除。收件人仍会收到邮件正文，而对大多数恶意邮件来说，正文才是告诉他们下一步该做什么的那部分。</value>
-  </data>
-  <data name="Info" xml:space="preserve">
-    <value>信息</value>
   </data>
   <data name="Information" xml:space="preserve">
     <value>信息</value>
@@ -5994,9 +5988,6 @@
   </data>
   <data name="Measured from when the entry was made, so lowering it applies to the entries already there. An entry added by hand keeps its own expiry." xml:space="preserve">
     <value>从条目创建时开始计算，因此调低此值也会作用于已有条目。手动添加的条目保留其自身的过期时间。</value>
-  </data>
-  <data name="Medium" xml:space="preserve">
-    <value>中</value>
   </data>
   <data name="Members" xml:space="preserve">
     <value>成员</value>

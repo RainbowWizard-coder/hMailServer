@@ -505,6 +505,15 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   the branch that says it cannot tell, and its *Preview* and *Apply* stay available, since they run inside the server.
   `IniReadDeniedPageTests` holds both pages to asking before they read, and both state cards to never judging an
   unread file.
+- **Fixed: in German the Server status page showed an open relay as a Warning and the auto-ban count as one too.**
+  Each configuration warning carried its level as a word - "Critical", "High", "Medium", "Info" - passed through the
+  catalogue and then matched back against the English, so in German "Kritisch" and "Mittel" matched nothing and fell
+  to the mapping's default, Warning: the one Critical finding on the page was demoted and the one piece of information
+  promoted, and Japanese escaped only because its catalogue left those words in English. Every warning now carries a
+  `StatusLevel` - the open relay Critical; no host name, an empty sender denied and localhost banned Warnings; the
+  auto-ban count and "could not evaluate" Information - and the word-to-level mapping and its vocabulary are gone,
+  since a level cannot be translated. `StatusWarningLevelTests` holds every warning to a level and the file to no
+  translated severity word.
 
 ### Administration
 

@@ -4815,9 +4815,6 @@
   <data name="Hide the new API key" xml:space="preserve">
     <value>新しい API キーを隠す</value>
   </data>
-  <data name="High" xml:space="preserve">
-    <value>High</value>
-  </data>
   <data name="Hit rate and memory in use, per cache" xml:space="preserve">
     <value>キャッシュごとのヒット率と使用中メモリ</value>
   </data>
@@ -5177,9 +5174,6 @@
   </data>
   <data name="Infected messages are delivered with their attachments stripped rather than deleted. The recipient still receives the message body, which for most malicious mail is the part carrying the instructions telling them what to do next." xml:space="preserve">
     <value>感染したメッセージは、削除されるのではなく添付ファイルを取り除いた状態で配信されます。受信者はメッセージ本文を引き続き受け取りますが、悪意のあるメールの大半では、本文こそが次に何をすべきかを指示する部分です。</value>
-  </data>
-  <data name="Info" xml:space="preserve">
-    <value>Info</value>
   </data>
   <data name="Information" xml:space="preserve">
     <value>情報</value>
@@ -5994,9 +5988,6 @@
   </data>
   <data name="Measured from when the entry was made, so lowering it applies to the entries already there. An entry added by hand keeps its own expiry." xml:space="preserve">
     <value>エントリーが作られた時点から数えるため、値を下げると既存のエントリーにも適用されます。手動で追加したエントリーは独自の有効期限を保ちます。</value>
-  </data>
-  <data name="Medium" xml:space="preserve">
-    <value>Medium</value>
   </data>
   <data name="Members" xml:space="preserve">
     <value>メンバー</value>

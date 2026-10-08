@@ -4815,9 +4815,6 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   <data name="Hide the new API key" xml:space="preserve">
     <value>Ocultar la nueva clave de API</value>
   </data>
-  <data name="High" xml:space="preserve">
-    <value>Alto</value>
-  </data>
   <data name="Hit rate and memory in use, per cache" xml:space="preserve">
     <value>Tasa de aciertos y memoria en uso, por caché</value>
   </data>
@@ -5177,9 +5174,6 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   </data>
   <data name="Infected messages are delivered with their attachments stripped rather than deleted. The recipient still receives the message body, which for most malicious mail is the part carrying the instructions telling them what to do next." xml:space="preserve">
     <value>Los mensajes infectados se entregan con los adjuntos quitados en vez de borrarse. El destinatario sigue recibiendo el cuerpo del mensaje, que en la mayoría del correo malicioso es la parte que lleva las instrucciones de qué hacer a continuación.</value>
-  </data>
-  <data name="Info" xml:space="preserve">
-    <value>Info</value>
   </data>
   <data name="Information" xml:space="preserve">
     <value>Información</value>
@@ -5994,9 +5988,6 @@ Cada suscripción de Web Push hecha con el par actual deja de funcionar al momen
   </data>
   <data name="Measured from when the entry was made, so lowering it applies to the entries already there. An entry added by hand keeps its own expiry." xml:space="preserve">
     <value>Se mide desde que se creó la entrada, así que reducirlo se aplica a las entradas que ya hay. Una entrada añadida a mano conserva su propia caducidad.</value>
-  </data>
-  <data name="Medium" xml:space="preserve">
-    <value>Medio</value>
   </data>
   <data name="Members" xml:space="preserve">
     <value>Miembros</value>

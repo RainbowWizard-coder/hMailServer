@@ -4815,9 +4815,6 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Hide the new API key" xml:space="preserve">
     <value>Dölj den nya API-nyckeln</value>
   </data>
-  <data name="High" xml:space="preserve">
-    <value>Hög</value>
-  </data>
   <data name="Hit rate and memory in use, per cache" xml:space="preserve">
     <value>Träffandel och använt minne, per cache</value>
   </data>
@@ -5177,9 +5174,6 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   </data>
   <data name="Infected messages are delivered with their attachments stripped rather than deleted. The recipient still receives the message body, which for most malicious mail is the part carrying the instructions telling them what to do next." xml:space="preserve">
     <value>Infekterade meddelanden levereras med bilagorna borttagna i stället för att raderas. Mottagaren får ändå meddelandekroppen, som för den mesta skadliga posten är delen som bär instruktionerna om vad de ska göra härnäst.</value>
-  </data>
-  <data name="Info" xml:space="preserve">
-    <value>Info</value>
   </data>
   <data name="Information" xml:space="preserve">
     <value>Information</value>
@@ -5994,9 +5988,6 @@ Varje Web Push-prenumeration under det nuvarande paret slutar fungera direkt, oc
   </data>
   <data name="Measured from when the entry was made, so lowering it applies to the entries already there. An entry added by hand keeps its own expiry." xml:space="preserve">
     <value>Mäts från när posten skapades, så en sänkning gäller även posterna som redan finns. En post som lagts till för hand behåller sin egen tidsgräns.</value>
-  </data>
-  <data name="Medium" xml:space="preserve">
-    <value>Medel</value>
   </data>
   <data name="Members" xml:space="preserve">
     <value>Medlemmar</value>

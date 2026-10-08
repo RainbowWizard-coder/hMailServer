@@ -4815,9 +4815,6 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Hide the new API key" xml:space="preserve">
     <value>Yeni API anahtarını gizle</value>
   </data>
-  <data name="High" xml:space="preserve">
-    <value>Yüksek</value>
-  </data>
   <data name="Hit rate and memory in use, per cache" xml:space="preserve">
     <value>Önbellek başına isabet oranı ve kullanılan bellek</value>
   </data>
@@ -5177,9 +5174,6 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   </data>
   <data name="Infected messages are delivered with their attachments stripped rather than deleted. The recipient still receives the message body, which for most malicious mail is the part carrying the instructions telling them what to do next." xml:space="preserve">
     <value>Virüslü iletiler silinmek yerine ekleri çıkarılarak teslim edilir. Alıcı ileti gövdesini yine alır ki kötü amaçlı postaların çoğunda sonra ne yapacağını söyleyen yönergeleri taşıyan kısım odur.</value>
-  </data>
-  <data name="Info" xml:space="preserve">
-    <value>Bilgi</value>
   </data>
   <data name="Information" xml:space="preserve">
     <value>Bilgi</value>
@@ -5994,9 +5988,6 @@ Geçerli çiftle yapılan her Web Push aboneliği hemen çalışmayı bırakır 
   </data>
   <data name="Measured from when the entry was made, so lowering it applies to the entries already there. An entry added by hand keeps its own expiry." xml:space="preserve">
     <value>Kaydın oluşturulduğu andan itibaren ölçülür, bu yüzden değeri düşürmek zaten var olan kayıtlara da uygulanır. Elle eklenen bir kayıt kendi süresini korur.</value>
-  </data>
-  <data name="Medium" xml:space="preserve">
-    <value>Orta</value>
   </data>
   <data name="Members" xml:space="preserve">
     <value>Üyeler</value>

@@ -4815,9 +4815,6 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Hide the new API key" xml:space="preserve">
     <value>De nieuwe API-sleutel verbergen</value>
   </data>
-  <data name="High" xml:space="preserve">
-    <value>Hoog</value>
-  </data>
   <data name="Hit rate and memory in use, per cache" xml:space="preserve">
     <value>Hit rate en gebruikt geheugen, per cache</value>
   </data>
@@ -5177,9 +5174,6 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   </data>
   <data name="Infected messages are delivered with their attachments stripped rather than deleted. The recipient still receives the message body, which for most malicious mail is the part carrying the instructions telling them what to do next." xml:space="preserve">
     <value>Geïnfecteerde berichten worden bezorgd met hun bijlagen verwijderd in plaats van dat het bericht zelf wordt verwijderd. De ontvanger krijgt nog steeds de inhoud van het bericht, en dat is bij de meeste kwaadaardige mail juist het deel met de aanwijzingen die hem vertellen wat hij vervolgens moet doen.</value>
-  </data>
-  <data name="Info" xml:space="preserve">
-    <value>Info</value>
   </data>
   <data name="Information" xml:space="preserve">
     <value>Informatie</value>
@@ -5994,9 +5988,6 @@ Elk Web Push-abonnement onder het huidige paar werkt meteen niet meer, en iedere
   </data>
   <data name="Measured from when the entry was made, so lowering it applies to the entries already there. An entry added by hand keeps its own expiry." xml:space="preserve">
     <value>Gemeten vanaf het maken van de vermelding, dus een lagere waarde geldt ook voor de vermeldingen die er al zijn. Een met de hand toegevoegde vermelding houdt haar eigen verloopdatum.</value>
-  </data>
-  <data name="Medium" xml:space="preserve">
-    <value>Gemiddeld</value>
   </data>
   <data name="Members" xml:space="preserve">
     <value>Leden</value>

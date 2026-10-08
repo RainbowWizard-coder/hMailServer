@@ -4815,9 +4815,6 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="Hide the new API key" xml:space="preserve">
     <value>Nascondi la nuova chiave API</value>
   </data>
-  <data name="High" xml:space="preserve">
-    <value>Alto</value>
-  </data>
   <data name="Hit rate and memory in use, per cache" xml:space="preserve">
     <value>Tasso di successo e memoria in uso, per ogni cache</value>
   </data>
@@ -5177,9 +5174,6 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   </data>
   <data name="Infected messages are delivered with their attachments stripped rather than deleted. The recipient still receives the message body, which for most malicious mail is the part carrying the instructions telling them what to do next." xml:space="preserve">
     <value>I messaggi infetti vengono consegnati con gli allegati rimossi invece di essere eliminati. Il destinatario riceve comunque il corpo del messaggio, che nella maggior parte della posta malevola è la parte che contiene le istruzioni su cosa fare dopo.</value>
-  </data>
-  <data name="Info" xml:space="preserve">
-    <value>Info</value>
   </data>
   <data name="Information" xml:space="preserve">
     <value>Informazioni</value>
@@ -5994,9 +5988,6 @@ Ogni iscrizione Web Push fatta con la coppia attuale smette subito di funzionare
   </data>
   <data name="Measured from when the entry was made, so lowering it applies to the entries already there. An entry added by hand keeps its own expiry." xml:space="preserve">
     <value>Misurato da quando la voce è stata creata, quindi abbassarlo vale anche per le voci già presenti. Una voce aggiunta a mano mantiene la propria scadenza.</value>
-  </data>
-  <data name="Medium" xml:space="preserve">
-    <value>Medio</value>
   </data>
   <data name="Members" xml:space="preserve">
     <value>Membri</value>

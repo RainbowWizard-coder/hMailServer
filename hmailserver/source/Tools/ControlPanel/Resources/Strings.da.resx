@@ -4815,9 +4815,6 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="Hide the new API key" xml:space="preserve">
     <value>Skjul den nye API-nøgle</value>
   </data>
-  <data name="High" xml:space="preserve">
-    <value>Høj</value>
-  </data>
   <data name="Hit rate and memory in use, per cache" xml:space="preserve">
     <value>Hitrate og hukommelse i brug, pr. cache</value>
   </data>
@@ -5177,9 +5174,6 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   </data>
   <data name="Infected messages are delivered with their attachments stripped rather than deleted. The recipient still receives the message body, which for most malicious mail is the part carrying the instructions telling them what to do next." xml:space="preserve">
     <value>Inficerede meddelelser leveres med deres vedhæftede filer fjernet i stedet for at blive slettet. Modtageren får stadig meddelelsens brødtekst, som for det meste ondsindet post er den del, der bærer instruktionerne om, hvad de skal gøre som det næste.</value>
-  </data>
-  <data name="Info" xml:space="preserve">
-    <value>Info</value>
   </data>
   <data name="Information" xml:space="preserve">
     <value>Information</value>
@@ -5994,9 +5988,6 @@ Hvert Web Push-abonnement under det nuværende par holder straks op med at virke
   </data>
   <data name="Measured from when the entry was made, so lowering it applies to the entries already there. An entry added by hand keeps its own expiry." xml:space="preserve">
     <value>Måles fra, da posten blev oprettet, så en sænkning gælder også de poster, der allerede findes. En manuelt tilføjet post beholder sin egen udløbstid.</value>
-  </data>
-  <data name="Medium" xml:space="preserve">
-    <value>Mellem</value>
   </data>
   <data name="Members" xml:space="preserve">
     <value>Medlemmer</value>

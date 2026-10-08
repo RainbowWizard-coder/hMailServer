@@ -4815,9 +4815,6 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Hide the new API key" xml:space="preserve">
     <value>Piilota uusi API-avain</value>
   </data>
-  <data name="High" xml:space="preserve">
-    <value>Korkea</value>
-  </data>
   <data name="Hit rate and memory in use, per cache" xml:space="preserve">
     <value>Osumaprosentti ja käytössä oleva muisti välimuistia kohden</value>
   </data>
@@ -5177,9 +5174,6 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   </data>
   <data name="Infected messages are delivered with their attachments stripped rather than deleted. The recipient still receives the message body, which for most malicious mail is the part carrying the instructions telling them what to do next." xml:space="preserve">
     <value>Tartunnan saaneet viestit toimitetaan liitteet poistettuina sen sijaan, että ne poistettaisiin. Vastaanottaja saa yhä viestin rungon, joka useimmissa haittapostiviesteissä on se osa, jossa kerrotaan, mitä tehdä seuraavaksi.</value>
-  </data>
-  <data name="Info" xml:space="preserve">
-    <value>Tiedot</value>
   </data>
   <data name="Information" xml:space="preserve">
     <value>Tiedot</value>
@@ -5994,9 +5988,6 @@ Jokainen nykyisellä parilla tehty Web Push -tilaus lakkaa toimimasta heti, ja j
   </data>
   <data name="Measured from when the entry was made, so lowering it applies to the entries already there. An entry added by hand keeps its own expiry." xml:space="preserve">
     <value>Mitataan merkinnän luomisesta, joten arvon laskeminen koskee myös jo olemassa olevia merkintöjä. Käsin lisätty merkintä säilyttää oman vanhenemisensa.</value>
-  </data>
-  <data name="Medium" xml:space="preserve">
-    <value>Keskitaso</value>
   </data>
   <data name="Members" xml:space="preserve">
     <value>Jäsenet</value>
