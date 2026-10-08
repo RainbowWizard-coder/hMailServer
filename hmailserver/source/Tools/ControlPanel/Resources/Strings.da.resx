@@ -6831,8 +6831,11 @@ Intet, der allerede er der, fjernes.</value>
   <data name="Nothing is ever marked as spam: marking needs a mark threshold above 0, and a 0 there means &quot;never&quot; rather than &quot;always&quot;. Messages reaching {0} are still refused." xml:space="preserve">
     <value>Intet markeres nogensinde som spam: markering kræver en markeringstærskel over 0, og 0 dér betyder "aldrig" snarere end "altid". Meddelelser, der når {0}, afvises stadig.</value>
   </data>
-  <data name="Nothing is held. Quarantining is switched off - turn it on under Anti-spam settings - and until it is on, spam over the delete threshold is refused during the SMTP conversation rather than stored." xml:space="preserve">
-    <value>Intet er tilbageholdt. Karantæne er slået fra – slå den til under Antispam-indstillinger – og indtil den er slået til, afvises spam over sletningstærsklen under SMTP-samtalen i stedet for at blive gemt.</value>
+  <data name="Nothing is held right now. A message over the delete threshold after its body has arrived appears here; its sender is told it was accepted." xml:space="preserve">
+    <value>Der tilbageholdes intet lige nu. En meddelelse over sletningstærsklen, efter at dens indhold er modtaget, vises her; afsenderen får at vide, at den blev accepteret.</value>
+  </data>
+  <data name="Nothing is held. Quarantining is switched off: until it is turned on under Anti-spam settings, spam over the delete threshold is refused during the SMTP conversation rather than stored." xml:space="preserve">
+    <value>Der tilbageholdes intet. Karantæne er slået fra: indtil den slås til under Antispam-indstillinger, afvises spam over sletningstærsklen under SMTP-samtalen i stedet for at blive gemt.</value>
   </data>
   <data name="Nothing matched &quot;{0}&quot;. Try what you are trying to achieve (&quot;stop spam&quot;, &quot;let a device send mail&quot;), a page name, or an hMailServer.INI key." xml:space="preserve">
     <value>Intet matchede "{0}". Prøv det, du forsøger at opnå ("stop spam", "lad en enhed sende post"), et sidenavn eller en hMailServer.INI-nøgle.</value>
@@ -13116,6 +13119,9 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   </data>
   <data name="_Older" xml:space="preserve">
     <value>Æl_dre</value>
+  </data>
+  <data name="_Open Anti-spam settings" xml:space="preserve">
+    <value>_Åbn Antispam-indstillinger</value>
   </data>
   <data name="_Open report" xml:space="preserve">
     <value>_Åbn rapport</value>

@@ -6831,8 +6831,11 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="Nothing is ever marked as spam: marking needs a mark threshold above 0, and a 0 there means &quot;never&quot; rather than &quot;always&quot;. Messages reaching {0} are still refused." xml:space="preserve">
     <value>Nic se nikdy neoznačí jako spam: označování vyžaduje práh pro označení vyšší než 0 a 0 tam znamená „nikdy“, ne „vždy“. Zprávy dosahující {0} jsou i tak odmítnuty.</value>
   </data>
-  <data name="Nothing is held. Quarantining is switched off - turn it on under Anti-spam settings - and until it is on, spam over the delete threshold is refused during the SMTP conversation rather than stored." xml:space="preserve">
-    <value>Nic není zadrženo. Karanténa je vypnutá – zapněte ji v Nastavení antispamu – a dokud není zapnutá, spam nad prahem pro smazání je odmítnut během konverzace SMTP místo uložení.</value>
+  <data name="Nothing is held right now. A message over the delete threshold after its body has arrived appears here; its sender is told it was accepted." xml:space="preserve">
+    <value>Právě není nic zadrženo. Zpráva, která po přijetí těla překročí práh pro smazání, se objeví zde; odesílateli je sděleno, že byla přijata.</value>
+  </data>
+  <data name="Nothing is held. Quarantining is switched off: until it is turned on under Anti-spam settings, spam over the delete threshold is refused during the SMTP conversation rather than stored." xml:space="preserve">
+    <value>Není nic zadrženo. Karanténa je vypnutá: dokud ji nezapnete v Nastavení antispamu, je spam nad prahem pro smazání odmítnut během SMTP relace, nikoli uložen.</value>
   </data>
   <data name="Nothing matched &quot;{0}&quot;. Try what you are trying to achieve (&quot;stop spam&quot;, &quot;let a device send mail&quot;), a page name, or an hMailServer.INI key." xml:space="preserve">
     <value>Dotazu „{0}“ nic neodpovídalo. Zkuste popsat, čeho chcete dosáhnout („zastavit spam“, „nechat zařízení odesílat poštu“), název stránky, nebo klíč z hMailServer.INI.</value>
@@ -13116,6 +13119,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="_Older" xml:space="preserve">
     <value>_Starší</value>
+  </data>
+  <data name="_Open Anti-spam settings" xml:space="preserve">
+    <value>_Otevřít Nastavení antispamu</value>
   </data>
   <data name="_Open report" xml:space="preserve">
     <value>_Otevřít hlášení</value>

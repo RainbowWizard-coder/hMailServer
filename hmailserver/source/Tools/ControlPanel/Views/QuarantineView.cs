@@ -69,6 +69,11 @@ namespace hMailServer.ControlPanel.Views
 
       private readonly QuarantineReview review_ = new();
 
+      // QuarantineEnabled, read as the Anti-spam settings page reads it: over
+      // COM when there is a session, from hMailServer.ini otherwise. What an
+      // empty list means depends on it.
+      private readonly IniFeatureStore iniStore_ = new();
+
       private readonly DataGrid list_ = new()
       {
          AutoGenerateColumns = false,
@@ -86,7 +91,9 @@ namespace hMailServer.ControlPanel.Views
       private readonly ComboBox grouping_ = new() { MinWidth = 150, VerticalAlignment = VerticalAlignment.Center };
 
       private readonly InlineNotice status_ = new() { Visibility = Visibility.Collapsed };
-      private readonly EmptyState empty_ = new() { Icon = SymbolRegular.MailWarning24, Visibility = Visibility.Collapsed };
+      // A neutral glyph: an empty quarantine is not a warning, and the warning
+      // glyph it had read as one.
+      private readonly EmptyState empty_ = new() { Icon = SymbolRegular.MailInbox24, Visibility = Visibility.Collapsed };
 
       // The headers and the preview open here, beside the icon that asked.
       private readonly Popup flyout_ = new() { StaysOpen = false, Placement = PlacementMode.Bottom, AllowsTransparency = true };
@@ -205,8 +212,16 @@ namespace hMailServer.ControlPanel.Views
                Rebind_();
 
                ReadFailure.Clear(status_);
-               StatusText.Show(empty_, null, total, null,
-                  L("Nothing is held. Quarantining is switched off - turn it on under Anti-spam settings - and until it is on, spam over the delete threshold is refused during the SMTP conversation rather than stored."));
+
+               // What an empty list means depends on the switch: a message is held
+               // here only while quarantining is on, and an empty list on a server
+               // whose quarantine is on is not a server whose quarantine is off.
+               // The page said "switched off" of both, and never read the switch.
+               bool quarantining = iniStore_.ReadBool("QuarantineEnabled", false);
+               empty_.Action = quarantining ? null : OpenAntiSpamSettings_();
+               StatusText.Show(empty_, null, total, null, quarantining
+                  ? L("Nothing is held right now. A message over the delete threshold after its body has arrived appears here; its sender is told it was accepted.")
+                  : L("Nothing is held. Quarantining is switched off: until it is turned on under Anti-spam settings, spam over the delete threshold is refused during the SMTP conversation rather than stored."));
 
                if (total == 0)
                   status_.Visibility = Visibility.Collapsed;
@@ -230,6 +245,15 @@ namespace hMailServer.ControlPanel.Views
             selectAll_.IsChecked = false;
             ReadFailure.Show(status_, empty_, list_, L("Could not read the quarantine: "), ex, Reload);
          }
+      }
+
+      /// <summary>The empty state's action while quarantining is off: the page that turns it on.</summary>
+      private static Wpf.Ui.Controls.Button OpenAntiSpamSettings_()
+      {
+         var button = new Wpf.Ui.Controls.Button { Content = L("_Open Anti-spam settings") };
+         AutomationProperties.SetAutomationId(button, "quarantine-open-antispam");
+         button.Click += (_, _) => (Application.Current?.MainWindow as MainWindow)?.NavigateTo("antispam");
+         return button;
       }
 
       /// <summary>The rows again, after a regroup, a sort, a fold or a reload - with the sort arrow on its column.</summary>
