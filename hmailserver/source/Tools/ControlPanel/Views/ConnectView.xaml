@@ -15,14 +15,25 @@
     <!-- The first screen anybody sees, on the scaffold: a Card, three FieldRows
          and an InlineNotice for the failure. The rows give the three editors the
          accessible names and Alt keys the placeholders never did. -->
+    <!-- The page scrolls where the window is shorter than the card: in the
+         smallest window the Control Panel allows (760 by 520) the card's bottom
+         edge ran across the password box, and Connect, the failure notice, the
+         two-factor link and the language picker were not drawn and could not be
+         scrolled to; only Enter in the password box still signed in. The card
+         keeps its VerticalAlignment: the viewer arranges it at the viewport's
+         height whenever it fits, so it stays centred in a taller window. -->
+    <ScrollViewer x:Name="PageScroll" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Focusable="False">
     <Grid>
         <scaffold:Card MaxWidth="420" MinWidth="320" Padding="32,28" Margin="20"
                        HorizontalAlignment="Center" VerticalAlignment="Center"
                        AutomationProperties.Name="{loc:L 'Connect to server'}">
             <StackPanel>
-                <Border Width="52" Height="52" CornerRadius="14" Background="{StaticResource BrandGradient}"
-                        HorizontalAlignment="Left" Margin="0,0,0,16">
-                    <TextBlock Text="hM" FontWeight="SemiBold" FontSize="20" Foreground="White"
+                <!-- 40 pixels, not 52, and the password row's gap 12, not 18: the
+                     card is 24 pixels shorter, which is that much less to scroll
+                     in the smallest window. -->
+                <Border Width="40" Height="40" CornerRadius="12" Background="{StaticResource BrandGradient}"
+                        HorizontalAlignment="Left" Margin="0,0,0,12">
+                    <TextBlock Text="hM" FontWeight="SemiBold" FontSize="16" Foreground="White"
                                HorizontalAlignment="Center" VerticalAlignment="Center" />
                 </Border>
 
@@ -47,7 +58,7 @@
                 </scaffold:FieldRow>
                 <!-- The hint answers the first question a new administrator has
                      on this card: which password? -->
-                <scaffold:FieldRow Label="{loc:L '_Password'}" Margin="0,0,0,18"
+                <scaffold:FieldRow Label="{loc:L '_Password'}" Margin="0,0,0,12"
                                    Hint="{loc:L 'The administrator password chosen when hMailServer was installed.'}">
                     <local:PasswordField x:Name="PasswordBox">
                         <local:PasswordField.Icon><ui:SymbolIcon Symbol="Key24" /></local:PasswordField.Icon>
@@ -96,4 +107,5 @@
             </StackPanel>
         </scaffold:Card>
     </Grid>
+    </ScrollViewer>
 </UserControl>

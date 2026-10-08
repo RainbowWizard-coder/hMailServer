@@ -178,6 +178,10 @@ namespace hMailServer.ControlPanel.Views
       {
          ErrorNotice.Text = message;
          ErrorNotice.Visibility = Visibility.Visible;
+         // Under the fold in a window shorter than the card: the page scrolls
+         // the notice into view, so that a failed sign-in is seen as well as
+         // announced.
+         ErrorNotice.BringIntoView();
          SetBusy_(false, null);
          PasswordBox.Focus();
       }

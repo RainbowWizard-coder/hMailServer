@@ -706,6 +706,13 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   columns share the width and end a long value in an ellipsis, seven rows at least and growing with the results
   before it scrolls. A double-click or Enter still chooses the row. Found by the project's own review.
 
+- **Fixed: the Control Panel's sign-in card was cut off in a short window, and nothing scrolled.** The card is about
+  560 pixels tall and the smallest window the Control Panel allows (760 by 520) leaves about 420 for it, so the card's
+  bottom edge ran across the password box, and Connect, the failure notice, the two-factor link and the language
+  picker were not drawn and could not be scrolled to; only Enter in the password box still signed in. The page scrolls
+  now, the card stays centred in a window it fits in, a failed sign-in scrolls its notice into view, and the card is 24
+  pixels shorter (a smaller logo, a smaller gap under the password), which is that much less to scroll.
+
 ### IMAP, POP3 and the webmail
 
 - **Fixed: an answer of the HTTP listeners that its handler returned after the listener's request deadline was cut off
