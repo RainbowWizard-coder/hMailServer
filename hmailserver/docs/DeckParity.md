@@ -17,7 +17,7 @@ The page itself is the webmail's design: one `:root` block declares the palette 
 | over REST but not reached by any Deck view | 0 |
 | assignments left out of the count | 5 |
 | COM interfaces in the IDL | 100 |
-| desktop pages read | 72 |
+| desktop pages read | 73 |
 | REST routes (path and method) | 595, 263 of them writes |
 | Deck views | 40 |
 
@@ -795,7 +795,7 @@ Secondary and looser still: a COM method counts as covered when a non-GET route'
 | Settings | `PreviewDirectorySync` | DirectorySyncView | `DELETE /api/v1/review/{id}`<br>`PUT /api/v1/accounts/{address}/review`<br>`PUT /api/v1/accounts/{address}/directory` |
 | Settings | `RemoveAutoBanNeverBanName` | ServerSettingsView.NeverBanNames | `POST /api/v1/accounts/{address}/move` |
 | Settings | `RevertProfile` | ProfilesView | `POST /api/v1/audit/{id}/revert`<br>`POST /api/v1/settings/profiles/revert` |
-| Settings | `SetAdministratorPassword` | ServerSettingsView | `POST /api/v1/accounts/{address}/password` |
+| Settings | `SetAdministratorPassword` | AdministratorPasswordDialog, ServerSettingsView | `POST /api/v1/accounts/{address}/password` |
 | Settings | `SetSMTPRelayerPassword` | ServerSettingsView | `POST /api/v1/accounts/{address}/password` |
 | Settings | `SetSandboxToken` | ServerSettingsView | - |
 | Settings | `TestBreachCheckEndpoint` | ServerSettingsView | `POST /api/v1/alerts/test`<br>`POST /api/v1/never-ban-names/check`<br>`POST /api/v1/reputation/check`<br>`POST /api/v1/update/check`<br>`POST /api/v1/settings/breach-check/test`<br>`POST /api/v1/webhooks/test` |
