@@ -666,6 +666,26 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   auto-reply's "Reply to colleagues only" has the outside senders' fate under it; the API key's read-only choice reads
   "can list and read; every change is refused"; and the permission entry's "Post" has the Send-As rule under it.
 
+- **The Control Panel's Ctrl+K palette draws the result it will open the way the sidebar draws the page it is on.** The
+  highlighted result was WPF's own solid accent band with the palette's text over it, near-black on blue in the light
+  theme (3.6:1 for the title, 2.7:1 for the caption) and white on light blue in the dark (2.3:1 and 1.9:1) - the one
+  solid accent band in the application, and the hardest text in it to read. The highlighted result now takes the
+  sidebar's selection: a tint of the brand colour so near the page's own that the title and the caption keep their
+  colours at 12:1 and 6:1 or more, and the brand pill at the left edge. A test holds the theme's primary and
+  secondary text to 4.5:1 on that tint over the page, a card and a dialog in both themes. Found by the project's own
+  review.
+- **A selected row looks selected in every list of the Control Panel, and looks the same in all of them.** A selected
+  row of a grid - groups, administrator roles, IP ranges, routes, rules, the queue, every list of entries - was the
+  same light grey as a row under the pointer, 1.08:1 against its neighbours, so with the pointer on another row two
+  rows looked selected while Edit and Delete acted on one of them; the domains page's four lists drew a grey with an
+  outline; the public folders and the member lists of the group, folder permissions and distribution list dialogs
+  drew the solid accent band. All of them now draw one selection, the sidebar's: the brand tint behind the row and
+  the brand pill at its left edge, with hover kept to the grey alone, and under High Contrast no tint but an outline
+  in the highlight. The tint is a design token (`AppSelectionFillBrush`, with `AppSelectionOutlineBrush` for High
+  Contrast) that `docs/ControlPanelDesign.md` names, and the three dialogs' lists sit on a card as the public
+  folders list does. A row the keyboard is on in a list wears the focus ring in the focus colour, as a sidebar row
+  does. Found by the project's own review.
+
 ### IMAP, POP3 and the webmail
 
 - **Fixed: an answer of the HTTP listeners that its handler returned after the listener's request deadline was cut off

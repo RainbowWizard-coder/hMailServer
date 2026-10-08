@@ -40,7 +40,11 @@ namespace hMailServer.ControlPanel.Views
       private readonly int groupId_;
       private readonly string groupName_;
 
-      private readonly ListBox list_ = new() { Height = 260, Margin = new Thickness(0, 0, 0, DesignTokens.Space.Sm) };
+      // On a card with the compact inset, as the public folders list is: the
+      // rows take the application's list row style (the selection fill and the
+      // brand pill, in place of WPF-UI's solid accent band), and the card is the
+      // list's frame.
+      private readonly ListBox list_ = new() { Height = 260, BorderThickness = new Thickness(0), Background = System.Windows.Media.Brushes.Transparent };
 
       /// <summary>Member row database ids, parallel to <see cref="list_"/>.</summary>
       private readonly List<int> memberIds_ = new();
@@ -61,7 +65,12 @@ namespace hMailServer.ControlPanel.Views
 
          AutomationProperties.SetName(list_, F("Accounts in the group {0}", groupName_));
          AutomationProperties.SetAutomationId(list_, "group-members-list");
-         body.Children.Add(list_);
+         body.Children.Add(new Card
+         {
+            Padding = new Thickness(DesignTokens.Space.Sm),
+            Margin = new Thickness(0, 0, 0, DesignTokens.Space.Sm),
+            Content = list_
+         });
          body.Children.Add(status_);
 
          var actions = new StackPanel { Orientation = Orientation.Horizontal };

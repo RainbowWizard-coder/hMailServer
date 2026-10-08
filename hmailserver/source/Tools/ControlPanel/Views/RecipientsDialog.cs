@@ -26,7 +26,11 @@ namespace hMailServer.ControlPanel.Views
    {
       private readonly string domainName_;
       private readonly string listAddress_;
-      private readonly ListBox listBox_ = new() { Height = 240 };
+      // On a card with the compact inset, as the public folders list is: the
+      // rows take the application's list row style (the selection fill and the
+      // brand pill, in place of WPF-UI's solid accent band), and the card is the
+      // list's frame.
+      private readonly ListBox listBox_ = new() { Height = 240, BorderThickness = new Thickness(0), Background = System.Windows.Media.Brushes.Transparent };
       private readonly TextBox addBox_ = new();
       private readonly InlineNotice notice_ = DialogFields.Notice();
 
@@ -49,7 +53,7 @@ namespace hMailServer.ControlPanel.Views
          body.Children.Add(notice_);
 
          AutomationProperties.SetName(listBox_, F("Recipients of {0}", listAddress));
-         body.Children.Add(listBox_);
+         body.Children.Add(new Card { Padding = new Thickness(DesignTokens.Space.Sm), Content = listBox_ });
 
          delivery_.Items.Add(DialogFields.Combo(L("Each message"), 0));
          delivery_.Items.Add(DialogFields.Combo(L("The daily digest"), 1));

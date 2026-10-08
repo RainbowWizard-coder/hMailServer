@@ -39,9 +39,12 @@ namespace hMailServer.ControlPanel.Views
    ///
    /// It is drawn with the design tokens: the card radius and the spacing scale
    /// for the frame, the type ramp's keyed styles for every line of text, and
-   /// the results list on the theme's own implicit ListBox style with nothing
-   /// but its border and background taken away, so that a theme change reaches
-   /// every row.
+   /// the results list on the application's own list styles (App.xaml) with
+   /// nothing but its border and background taken away, so that a theme change
+   /// reaches every row. The rows take the sidebar's selection language from
+   /// those styles - the selection fill near the page's own colour and the brand
+   /// pill - which is what lets each row keep TextBody and TextCaption: on the
+   /// stock accent band those styles' pinned colours measured 3.5:1 and 1.9:1.
    /// </summary>
    public class NavigationPalette : Window
    {
@@ -226,7 +229,10 @@ namespace hMailServer.ControlPanel.Views
                // the tab order if the list ever becomes focusable again.
                IsEnabled = false,
                Focusable = false,
-               Padding = new Thickness(0)
+               Padding = new Thickness(0),
+               // A caption is a line, not a row: the row style's minimum height
+               // would give it a row's room.
+               MinHeight = 0
             };
          }
 

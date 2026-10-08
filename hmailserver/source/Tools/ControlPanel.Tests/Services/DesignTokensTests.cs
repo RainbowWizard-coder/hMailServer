@@ -298,6 +298,72 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.True(DesignTokens.FocusGlowFor(ChartTheme.Dark));
       }
 
+      /// <summary>
+      /// A selected row keeps its own text - the palette's TextBody and
+      /// TextCaption, a grid cell's primary text - so the selection fill has to
+      /// be one that text clears 4.5:1 on, over every surface a row sits on:
+      /// the page, a card, a dialog. The stock accent band it replaces drew the
+      /// palette's title at 3.55:1 (light) and 2.30:1 (dark) and its caption at
+      /// 2.68:1 and 1.87:1. The brand pill beside the fill, a non-text mark,
+      /// clears 3:1 on it. The text colours are WPF-UI's primary and secondary
+      /// as the theme defines them.
+      /// </summary>
+      [Theory]
+      [InlineData(ChartTheme.Light, 0xFFFAFAFAu)]   // the page
+      [InlineData(ChartTheme.Light, 0xFFFEFEFEu)]   // a card on the page
+      [InlineData(ChartTheme.Light, 0xFFF3F3F3u)]   // a dialog, the palette
+      [InlineData(ChartTheme.Dark, 0xFF202020u)]
+      [InlineData(ChartTheme.Dark, 0xFF2D2D2Du)]
+      [InlineData(ChartTheme.Dark, 0xFF1C1C1Cu)]
+      public void TheSelectedRowsTextClearsFourPointFiveToOneOnItsFillAndThePillThreeToOne(ChartTheme theme, uint surface)
+      {
+         DesignTokens.SelectionArgb selection = DesignTokens.Selection(theme, ChartSystemColors.Fallback);
+         Assert.InRange(selection.Fill >> 24, 1u, 0x7Fu);   // a tint, never a solid band
+         Assert.Equal(0u, selection.Outline >> 24);         // no outline but under High Contrast
+
+         uint fill = Over(selection.Fill, (selection.Fill >> 24) / 255.0, surface);
+         (uint primary, uint secondary) = theme == ChartTheme.Light ? (0xE4000000u, 0x9E000000u) : (0xFFFFFFFFu, 0xC5FFFFFFu);
+
+         foreach ((string name, uint text) in new[] { ("primary", primary), ("secondary", secondary) })
+         {
+            uint drawn = Over(text, (text >> 24) / 255.0, fill);
+            double ratio = ChartPalette.ContrastRatio(drawn, fill);
+            Assert.True(ratio >= 4.5, $"{theme} on {surface:X8}: the {name} text is {ratio:F2}:1 on the selected row, under 4.5:1.");
+         }
+
+         uint pill = DesignTokens.Status(theme, ChartSystemColors.Fallback).Brand;
+         double pillRatio = ChartPalette.ContrastRatio(pill, fill);
+         Assert.True(pillRatio >= 3.0, $"{theme} on {surface:X8}: the pill is {pillRatio:F2}:1 on the selected row, under 3:1.");
+      }
+
+      /// <summary>The selection fill is the brand colour itself, at the notice tint's opacity: one tint for the two tinted surfaces.</summary>
+      [Theory]
+      [InlineData(ChartTheme.Light)]
+      [InlineData(ChartTheme.Dark)]
+      public void TheSelectionFillIsTheBrandAtTheNoticeTint(ChartTheme theme)
+      {
+         DesignTokens.SelectionArgb selection = DesignTokens.Selection(theme, ChartSystemColors.Fallback);
+         uint brand = DesignTokens.Status(theme, ChartSystemColors.Fallback).Brand;
+
+         Assert.Equal(brand & 0xFFFFFFu, selection.Fill & 0xFFFFFFu);
+         Assert.Equal((uint)Math.Round(DesignTokens.NoticeTintOpacity * 255), selection.Fill >> 24);
+      }
+
+      /// <summary>
+      /// Under High Contrast a selected row invents no colour: no tint behind it,
+      /// and the outline round it is the highlight, as the pill beside it is.
+      /// </summary>
+      [Fact]
+      public void UnderHighContrastTheSelectionIsAnOutlineInTheHighlightAndNoFill()
+      {
+         var system = new ChartSystemColors(0xFF112233, 0xFFEEDDCC, 0xFF445566, 0xFF778899, 0xFFAABBCC);
+         DesignTokens.SelectionArgb selection = DesignTokens.Selection(ChartTheme.HighContrast, system);
+
+         Assert.Equal(0u, selection.Fill >> 24);
+         Assert.Equal(system.Highlight, selection.Outline);
+         Assert.Equal(system.Highlight, DesignTokens.Status(ChartTheme.HighContrast, system).Brand);
+      }
+
       /// <summary>The glow is strongest beside the ring and fades to nothing at its width; the ring is two pixels.</summary>
       [Fact]
       public void TheGlowFadesOutwardAndEndsAtItsWidth()
@@ -558,6 +624,10 @@ namespace hMailServer.ControlPanel.Tests.Services
          DesignTokens.FocusArgb focus = DesignTokens.Focus(ChartTheme.Dark, ChartSystemColors.Fallback);
          Assert.Equal(focus.Ring.ToString("X8"), Colour("AppFocusBrush"));
          Assert.Equal(focus.Glow.ToString("X8"), Colour("AppFocusGlowBrush"));
+
+         DesignTokens.SelectionArgb selection = DesignTokens.Selection(ChartTheme.Dark, ChartSystemColors.Fallback);
+         Assert.Equal(selection.Fill.ToString("X8"), Colour("AppSelectionFillBrush"));
+         Assert.Equal(selection.Outline.ToString("X8"), Colour("AppSelectionOutlineBrush"));
 
          // The status pill's fills and words, declared with the dark table.
          foreach (StatusLevel level in StatusSemantics.AllLevels)

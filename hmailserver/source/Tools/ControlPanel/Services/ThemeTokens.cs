@@ -324,6 +324,13 @@ namespace hMailServer.ControlPanel.Services
                Application.Current?.Resources.Remove(themeKey);
          }
 
+         // A selected row's fill, and the outline only High Contrast draws
+         // round it (DesignTokens.Selection): the sidebar's selection language,
+         // which App.xaml's row styles give every grid, list box and list view.
+         DesignTokens.SelectionArgb selection = DesignTokens.Selection(CurrentChartTheme, CurrentSystemColors);
+         Publish("AppSelectionFillBrush", FromArgb(selection.Fill));
+         Publish("AppSelectionOutlineBrush", FromArgb(selection.Outline));
+
          Publish("LogDefaultBrush", logDefault);
          Publish("LogSmtpBrush", logSmtp);
          Publish("LogImapBrush", logImap);

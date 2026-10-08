@@ -120,6 +120,13 @@
     <SolidColorBrush x:Key="AppFocusBrush" Color="#B89CFF" />
     <SolidColorBrush x:Key="AppFocusGlowBrush" Color="#47B89CFF" />
 
+    <!-- A selected row in a grid or a list (DesignTokens.Selection): the brand
+         at the notice tint's opacity behind the row, beside the brand pill at
+         its left edge, and the outline only High Contrast draws, where the
+         fill is nothing. Dark values here, the theme's from ThemeTokens. -->
+    <SolidColorBrush x:Key="AppSelectionFillBrush" Color="#1F4C8DFF" />
+    <SolidColorBrush x:Key="AppSelectionOutlineBrush" Color="#00000000" />
+
     <!-- The status pill's box: a fill per level and the colour of the word and
          mark on it (DesignTokens.StatusFill), and the outline only High
          Contrast draws. Dark values here, the theme's from ThemeTokens. -->

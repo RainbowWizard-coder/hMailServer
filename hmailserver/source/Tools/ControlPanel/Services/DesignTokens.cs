@@ -296,6 +296,46 @@ namespace hMailServer.ControlPanel.Services
       public static double StatusFillBorderFor(ChartTheme theme)
          => theme == ChartTheme.HighContrast ? 1 : 0;
 
+      /// <summary>
+      /// A selected row's look, one language for every grid and list - the
+      /// sidebar's: the fill behind the row and the outline round it, as
+      /// 0xAARRGGBB. The fill is the brand colour at the notice tint's opacity
+      /// over whatever the row sits on, so near the card's own that the row's
+      /// text stays what it was - the theme's primary and secondary text clear
+      /// 4.5:1 on it, where the stock accent band drew the palette's at 1.9 to
+      /// 3.5:1 - and the brand pill at the row's left edge says "selected" apart
+      /// from the hover grey, which a selected grid row was the same as (1.08:1
+      /// against its neighbours). Under High Contrast the fill is nothing, as
+      /// the notice tint is - a tinted surface is a colour the user asked
+      /// Windows not to show them - and the outline is the highlight, as the
+      /// pill is; in the other themes the outline is nothing.
+      /// </summary>
+      public readonly struct SelectionArgb
+      {
+         public SelectionArgb(uint fill, uint outline)
+         {
+            Fill = fill;
+            Outline = outline;
+         }
+
+         /// <summary>Behind the selected row; transparent under High Contrast.</summary>
+         public uint Fill { get; }
+
+         /// <summary>The one-pixel outline round it; transparent but under High Contrast.</summary>
+         public uint Outline { get; }
+      }
+
+      /// <summary>The selected row's fill and outline for a theme (<see cref="SelectionArgb"/>).</summary>
+      public static SelectionArgb Selection(ChartTheme theme, ChartSystemColors system)
+      {
+         if (theme == ChartTheme.HighContrast)
+            return new SelectionArgb(0x00000000, system.Highlight);
+
+         uint brand = Status(theme, system).Brand & 0x00FFFFFF;
+         uint alpha = (uint)Math.Round(NoticeTintOpacity * 255);
+         return new SelectionArgb((alpha << 24) | brand, 0x00000000);
+      }
+
       /// <summary>The status palette for one theme, as 0xAARRGGBB.</summary>
       public readonly struct StatusArgb
       {

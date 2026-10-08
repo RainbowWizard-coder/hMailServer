@@ -442,15 +442,80 @@
                 <Setter Property="HorizontalContentAlignment" Value="Right" />
             </Style>
 
+            <!-- A selected row is one language across the application, the
+                 sidebar's: the brand at the notice tint's opacity behind the row
+                 (AppSelectionFillBrush), the 3 x 16 brand pill at its left edge,
+                 and the row's own text, which stays what it was - the fill is so
+                 near the card's own that the primary and secondary text clear
+                 4.5:1 on it (DesignTokensTests holds them to it). Hover keeps the
+                 theme's subtle grey, so a hovered row and the selected one no
+                 longer look the same: the selected row measured 1.08:1 against
+                 its neighbours, exactly as hover did, and Edit and Delete acted
+                 on one of the two. Under High Contrast the fill is nothing and
+                 AppSelectionOutlineBrush draws a one-pixel outline in the
+                 highlight, as the pill is. This style is the grid row's; the
+                 list item styles after the cell style are the same look for
+                 every ListBox and ListView - the palette, the public folders,
+                 the dialogs' member lists, the four lists on the domains page -
+                 which took WPF-UI's solid accent band (the palette's own text
+                 at 1.9 to 3.5:1 on it) or its grey with an outline. -->
             <Style TargetType="DataGridRow">
                 <Setter Property="Background" Value="Transparent" />
                 <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+                <Setter Property="SnapsToDevicePixels" Value="True" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="DataGridRow">
+                            <!-- WPF's own row template - the cells, the details under
+                                 them, the row header the grids keep hidden, in a
+                                 SelectiveScrollingGrid - with the pill and the High
+                                 Contrast outline laid over it. Both scroll vertically
+                                 only, so they stay at the left edge in view while the
+                                 cells scroll sideways. -->
+                            <Border x:Name="DGR_Border" Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"
+                                    SnapsToDevicePixels="True">
+                                <SelectiveScrollingGrid>
+                                    <SelectiveScrollingGrid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </SelectiveScrollingGrid.ColumnDefinitions>
+                                    <SelectiveScrollingGrid.RowDefinitions>
+                                        <RowDefinition Height="*" />
+                                        <RowDefinition Height="Auto" />
+                                    </SelectiveScrollingGrid.RowDefinitions>
+                                    <DataGridCellsPresenter Grid.Column="1" ItemsPanel="{TemplateBinding ItemsPanel}"
+                                                            SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                                    <DataGridDetailsPresenter Grid.Column="1" Grid.Row="1" Visibility="{TemplateBinding DetailsVisibility}"
+                                                              SelectiveScrollingGrid.SelectiveScrollingOrientation="{Binding AreRowDetailsFrozen, ConverterParameter={x:Static SelectiveScrollingOrientation.Vertical}, Converter={x:Static DataGrid.RowDetailsScrollingConverter}, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}" />
+                                    <DataGridRowHeader Grid.RowSpan="2" SelectiveScrollingGrid.SelectiveScrollingOrientation="Vertical"
+                                                       Visibility="{Binding HeadersVisibility, ConverterParameter={x:Static DataGridHeadersVisibility.Row}, Converter={x:Static DataGrid.HeadersVisibilityConverter}, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}" />
+                                    <Rectangle x:Name="Pill" Grid.Column="1" Width="3" Height="16" RadiusX="1.5" RadiusY="1.5"
+                                               HorizontalAlignment="Left" VerticalAlignment="Center" Margin="1,0,0,0"
+                                               Fill="{DynamicResource AppBrandBrush}" Opacity="0" IsHitTestVisible="False"
+                                               SelectiveScrollingGrid.SelectiveScrollingOrientation="Vertical" />
+                                    <Rectangle x:Name="Outline" Grid.ColumnSpan="2" Grid.RowSpan="2" StrokeThickness="1"
+                                               Stroke="{DynamicResource AppSelectionOutlineBrush}" Visibility="Collapsed"
+                                               IsHitTestVisible="False" SelectiveScrollingGrid.SelectiveScrollingOrientation="Vertical" />
+                                </SelectiveScrollingGrid>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsSelected" Value="True">
+                                    <Setter TargetName="Pill" Property="Opacity" Value="1" />
+                                    <Setter TargetName="Outline" Property="Visibility" Value="Visible" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
                 <Style.Triggers>
                     <Trigger Property="IsMouseOver" Value="True">
                         <Setter Property="Background" Value="{DynamicResource SubtleFillColorSecondaryBrush}" />
                     </Trigger>
+                    <!-- After the hover trigger, so that it wins where both hold:
+                         the selected row keeps its fill under the pointer. -->
                     <Trigger Property="IsSelected" Value="True">
-                        <Setter Property="Background" Value="{DynamicResource SubtleFillColorSecondaryBrush}" />
+                        <Setter Property="Background" Value="{DynamicResource AppSelectionFillBrush}" />
                     </Trigger>
                 </Style.Triggers>
             </Style>
@@ -471,6 +536,76 @@
                         </ControlTemplate>
                     </Setter.Value>
                 </Setter>
+            </Style>
+
+            <!-- ============================================================
+                 List rows. The row of every ListBox and ListView, drawn as the
+                 sidebar's row and the grid row above: the control radius, the
+                 subtle grey under the pointer, the selection fill and the brand
+                 pill on the selected row, and a 1.5-pixel ring in the focus
+                 colour round the row the keyboard is on in place of the stock
+                 focus visual - the pill says which row is selected, the ring
+                 where the keyboard is, and the two are not one colour. The
+                 content keeps its own text styles: the palette's TextBody and
+                 TextCaption, the domains page's names, a public folder's name
+                 in the list's own, which is the primary text. The ring and the
+                 outline are drawn over the row, not as the border's thickness,
+                 so that neither changes a row's height. -->
+            <Style TargetType="ListBoxItem">
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+                <Setter Property="Padding" Value="10,6" />
+                <Setter Property="Margin" Value="0,1" />
+                <Setter Property="MinHeight" Value="{DynamicResource AppNavRowHeight}" />
+                <Setter Property="HorizontalContentAlignment" Value="{Binding HorizontalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}" />
+                <Setter Property="VerticalContentAlignment" Value="{Binding VerticalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}" />
+                <Setter Property="SnapsToDevicePixels" Value="True" />
+                <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="ListBoxItem">
+                            <Border x:Name="Bd" CornerRadius="{DynamicResource AppControlCornerRadius}"
+                                    Background="{TemplateBinding Background}" SnapsToDevicePixels="True">
+                                <Grid>
+                                    <ContentPresenter Margin="{TemplateBinding Padding}"
+                                                      HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                                      SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                                    <Rectangle x:Name="Pill" Width="3" Height="16" RadiusX="1.5" RadiusY="1.5"
+                                               HorizontalAlignment="Left" VerticalAlignment="Center" Margin="1,0,0,0"
+                                               Fill="{DynamicResource AppBrandBrush}" Opacity="0" IsHitTestVisible="False" />
+                                    <Rectangle x:Name="Ring" RadiusX="4" RadiusY="4" Stroke="Transparent" StrokeThickness="1.5"
+                                               IsHitTestVisible="False" />
+                                </Grid>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="Bd" Property="Background" Value="{DynamicResource SubtleFillColorSecondaryBrush}" />
+                                </Trigger>
+                                <Trigger Property="IsSelected" Value="True">
+                                    <Setter TargetName="Bd" Property="Background" Value="{DynamicResource AppSelectionFillBrush}" />
+                                    <Setter TargetName="Pill" Property="Opacity" Value="1" />
+                                    <Setter TargetName="Ring" Property="Stroke" Value="{DynamicResource AppSelectionOutlineBrush}" />
+                                    <Setter TargetName="Ring" Property="StrokeThickness" Value="1" />
+                                </Trigger>
+                                <Trigger Property="IsKeyboardFocused" Value="True">
+                                    <Setter TargetName="Ring" Property="Stroke" Value="{DynamicResource AppFocusBrush}" />
+                                    <Setter TargetName="Ring" Property="StrokeThickness" Value="1.5" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <!-- A list view's row is the same control. Its content carries its own
+                 vertical inset - the domains page's rows have a margin of their
+                 own, and their heights are what the page's floors are built on -
+                 so the row adds only the sides: with the row's own four pixels
+                 the content starts where a grid cell's does, past the pill, where
+                 at nothing the pill touched the domain's glyph. -->
+            <Style TargetType="ListViewItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
+                <Setter Property="Padding" Value="6,0" />
             </Style>
         </ResourceDictionary>
     </Application.Resources>

@@ -53,7 +53,11 @@ namespace hMailServer.ControlPanel.Views
       };
 
       private readonly string folderName_;
-      private readonly ListBox list_ = new() { Height = 260, Margin = new Thickness(0, 0, 0, DesignTokens.Space.Md) };
+      // On a card with the compact inset, as the public folders list is: the
+      // rows take the application's list row style (the selection fill and the
+      // brand pill, in place of WPF-UI's solid accent band), and the card is the
+      // list's frame.
+      private readonly ListBox list_ = new() { Height = 260, BorderThickness = new Thickness(0), Background = System.Windows.Media.Brushes.Transparent };
       private readonly List<int> ids_ = new();
       private readonly InlineNotice notice_ = DialogFields.Notice();
 
@@ -67,7 +71,12 @@ namespace hMailServer.ControlPanel.Views
          body.Children.Add(notice_);
 
          AutomationProperties.SetName(list_, F("Access-control entries for {0}", folderName));
-         body.Children.Add(list_);
+         body.Children.Add(new Card
+         {
+            Padding = new Thickness(DesignTokens.Space.Sm),
+            Margin = new Thickness(0, 0, 0, DesignTokens.Space.Md),
+            Content = list_
+         });
 
          var actions = new StackPanel { Orientation = Orientation.Horizontal };
          var add = new Wpf.Ui.Controls.Button { Content = L("_Add"), Appearance = Wpf.Ui.Controls.ControlAppearance.Primary, Margin = new Thickness(0, 0, DesignTokens.Space.Sm, 0), MinWidth = 88 };
