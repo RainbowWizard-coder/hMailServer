@@ -5166,6 +5166,9 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="In the object store" xml:space="preserve">
     <value>In the object store</value>
   </data>
+  <data name="Inactive" xml:space="preserve">
+    <value>Inactive</value>
+  </data>
   <data name="Inbound client certificates - the port needs a CA bundle, the clients need certificates" xml:space="preserve">
     <value>Inbound client certificates - the port needs a CA bundle, the clients need certificates</value>
   </data>
@@ -13759,9 +13762,6 @@ No message is deleted and no account is removed. Continue?</value>
   </data>
   <data name="in {0}" xml:space="preserve">
     <value>in {0}</value>
-  </data>
-  <data name="inactive" xml:space="preserve">
-    <value>inactive</value>
   </data>
   <data name="install a certificate" xml:space="preserve">
     <value>install a certificate</value>

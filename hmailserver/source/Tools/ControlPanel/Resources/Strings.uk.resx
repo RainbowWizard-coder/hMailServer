@@ -5166,6 +5166,9 @@
   <data name="In the object store" xml:space="preserve">
     <value>У сховищі об'єктів</value>
   </data>
+  <data name="Inactive" xml:space="preserve">
+    <value>Неактивний</value>
+  </data>
   <data name="Inbound client certificates - the port needs a CA bundle, the clients need certificates" xml:space="preserve">
     <value>Вхідні клієнтські сертифікати - порту потрібен пакет ЦС, клієнтам потрібні сертифікати</value>
   </data>
@@ -13759,9 +13762,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="in {0}" xml:space="preserve">
     <value>у розділі {0}</value>
-  </data>
-  <data name="inactive" xml:space="preserve">
-    <value>неактивний</value>
   </data>
   <data name="install a certificate" xml:space="preserve">
     <value>установити сертифікат</value>

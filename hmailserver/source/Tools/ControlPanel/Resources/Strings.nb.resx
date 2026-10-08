@@ -5166,6 +5166,9 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="In the object store" xml:space="preserve">
     <value>I objektlageret</value>
   </data>
+  <data name="Inactive" xml:space="preserve">
+    <value>Inaktiv</value>
+  </data>
   <data name="Inbound client certificates - the port needs a CA bundle, the clients need certificates" xml:space="preserve">
     <value>Innkommende klientsertifikater - porten trenger en CA-bunt, klientene trenger sertifikater</value>
   </data>
@@ -13759,9 +13762,6 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   </data>
   <data name="in {0}" xml:space="preserve">
     <value>i {0}</value>
-  </data>
-  <data name="inactive" xml:space="preserve">
-    <value>inaktiv</value>
   </data>
   <data name="install a certificate" xml:space="preserve">
     <value>installer et sertifikat</value>

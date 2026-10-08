@@ -5166,6 +5166,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="In the object store" xml:space="preserve">
     <value>Objektivarastossa</value>
   </data>
+  <data name="Inactive" xml:space="preserve">
+    <value>Ei aktiivinen</value>
+  </data>
   <data name="Inbound client certificates - the port needs a CA bundle, the clients need certificates" xml:space="preserve">
     <value>Saapuvat asiakasvarmenteet - portti tarvitsee CA-paketin, asiakkaat tarvitsevat varmenteet</value>
   </data>
@@ -13759,9 +13762,6 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="in {0}" xml:space="preserve">
     <value>kohdassa {0}</value>
-  </data>
-  <data name="inactive" xml:space="preserve">
-    <value>ei aktiivinen</value>
   </data>
   <data name="install a certificate" xml:space="preserve">
     <value>asenna varmenne</value>

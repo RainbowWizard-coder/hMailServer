@@ -5166,6 +5166,9 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="In the object store" xml:space="preserve">
     <value>Nell'archivio di oggetti</value>
   </data>
+  <data name="Inactive" xml:space="preserve">
+    <value>Inattivo</value>
+  </data>
   <data name="Inbound client certificates - the port needs a CA bundle, the clients need certificates" xml:space="preserve">
     <value>Certificati client in ingresso - la porta richiede un bundle di CA, i client richiedono certificati</value>
   </data>
@@ -13759,9 +13762,6 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   </data>
   <data name="in {0}" xml:space="preserve">
     <value>in {0}</value>
-  </data>
-  <data name="inactive" xml:space="preserve">
-    <value>inattivo</value>
   </data>
   <data name="install a certificate" xml:space="preserve">
     <value>installare un certificato</value>

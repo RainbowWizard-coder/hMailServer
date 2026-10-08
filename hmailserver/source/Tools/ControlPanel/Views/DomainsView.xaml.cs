@@ -107,10 +107,10 @@ namespace hMailServer.ControlPanel.Views
       }
 
       /// <summary>
-      /// A domain in the left-hand list. The template dims an inactive domain and
-      /// appends the word "inactive"; ToString carries the same word to a screen
-      /// reader, because a ListViewItem's accessible name falls back to ToString()
-      /// on the bound object.
+      /// A domain in the left-hand list. The template dims an inactive domain's
+      /// glyph and puts an "Inactive" pill after its name; ToString carries the
+      /// same word to a screen reader, because a ListViewItem's accessible name
+      /// falls back to ToString() on the bound object.
       /// </summary>
       public class DomainRow
       {

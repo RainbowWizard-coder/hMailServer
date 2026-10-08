@@ -5166,6 +5166,9 @@
   <data name="In the object store" xml:space="preserve">
     <value>オブジェクト ストア内</value>
   </data>
+  <data name="Inactive" xml:space="preserve">
+    <value>非アクティブ</value>
+  </data>
   <data name="Inbound client certificates - the port needs a CA bundle, the clients need certificates" xml:space="preserve">
     <value>受信クライアント証明書 - ポートには CA バンドルが、クライアントには証明書が必要です</value>
   </data>
@@ -13759,9 +13762,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="in {0}" xml:space="preserve">
     <value>{0} 内</value>
-  </data>
-  <data name="inactive" xml:space="preserve">
-    <value>非アクティブ</value>
   </data>
   <data name="install a certificate" xml:space="preserve">
     <value>証明書をインストールする</value>

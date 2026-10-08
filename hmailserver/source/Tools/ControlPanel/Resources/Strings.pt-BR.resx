@@ -5166,6 +5166,9 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="In the object store" xml:space="preserve">
     <value>No armazenamento de objetos</value>
   </data>
+  <data name="Inactive" xml:space="preserve">
+    <value>Inativo</value>
+  </data>
   <data name="Inbound client certificates - the port needs a CA bundle, the clients need certificates" xml:space="preserve">
     <value>Certificados de cliente de entrada - a porta precisa de um pacote de certificados de CA, os clientes precisam de certificados</value>
   </data>
@@ -13759,9 +13762,6 @@ Nenhuma mensagem é excluída e nenhuma conta é removida. Continuar?</value>
   </data>
   <data name="in {0}" xml:space="preserve">
     <value>em {0}</value>
-  </data>
-  <data name="inactive" xml:space="preserve">
-    <value>inativo</value>
   </data>
   <data name="install a certificate" xml:space="preserve">
     <value>instalar um certificado</value>

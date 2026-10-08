@@ -5166,6 +5166,9 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   <data name="In the object store" xml:space="preserve">
     <value>W magazynie obiektów</value>
   </data>
+  <data name="Inactive" xml:space="preserve">
+    <value>Nieaktywne</value>
+  </data>
   <data name="Inbound client certificates - the port needs a CA bundle, the clients need certificates" xml:space="preserve">
     <value>Przychodzące certyfikaty klienta - port potrzebuje pakietu certyfikatów CA, a klienty potrzebują certyfikatów</value>
   </data>
@@ -13759,9 +13762,6 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="in {0}" xml:space="preserve">
     <value>w sekcji {0}</value>
-  </data>
-  <data name="inactive" xml:space="preserve">
-    <value>nieaktywne</value>
   </data>
   <data name="install a certificate" xml:space="preserve">
     <value>zainstaluj certyfikat</value>

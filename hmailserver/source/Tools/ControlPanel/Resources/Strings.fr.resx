@@ -5166,6 +5166,9 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="In the object store" xml:space="preserve">
     <value>Dans le stockage d'objets</value>
   </data>
+  <data name="Inactive" xml:space="preserve">
+    <value>Inactif</value>
+  </data>
   <data name="Inbound client certificates - the port needs a CA bundle, the clients need certificates" xml:space="preserve">
     <value>Certificats client entrants - le port a besoin d'un bundle d'AC, les clients ont besoin de certificats</value>
   </data>
@@ -13759,9 +13762,6 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   </data>
   <data name="in {0}" xml:space="preserve">
     <value>dans {0}</value>
-  </data>
-  <data name="inactive" xml:space="preserve">
-    <value>inactif</value>
   </data>
   <data name="install a certificate" xml:space="preserve">
     <value>installer un certificat</value>

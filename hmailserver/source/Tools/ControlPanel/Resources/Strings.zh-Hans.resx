@@ -5166,6 +5166,9 @@
   <data name="In the object store" xml:space="preserve">
     <value>在对象存储中</value>
   </data>
+  <data name="Inactive" xml:space="preserve">
+    <value>非活动</value>
+  </data>
   <data name="Inbound client certificates - the port needs a CA bundle, the clients need certificates" xml:space="preserve">
     <value>入站客户端证书 - 端口需要 CA 证书包，客户端需要证书</value>
   </data>
@@ -13759,9 +13762,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="in {0}" xml:space="preserve">
     <value>位于 {0}</value>
-  </data>
-  <data name="inactive" xml:space="preserve">
-    <value>非活动</value>
   </data>
   <data name="install a certificate" xml:space="preserve">
     <value>安装证书</value>

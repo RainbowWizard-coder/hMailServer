@@ -5166,6 +5166,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="In the object store" xml:space="preserve">
     <value>V úložišti objektů</value>
   </data>
+  <data name="Inactive" xml:space="preserve">
+    <value>Neaktivní</value>
+  </data>
   <data name="Inbound client certificates - the port needs a CA bundle, the clients need certificates" xml:space="preserve">
     <value>Příchozí klientské certifikáty - port potřebuje balíček CA, klienti potřebují certifikáty</value>
   </data>
@@ -13759,9 +13762,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="in {0}" xml:space="preserve">
     <value>v sekci {0}</value>
-  </data>
-  <data name="inactive" xml:space="preserve">
-    <value>neaktivní</value>
   </data>
   <data name="install a certificate" xml:space="preserve">
     <value>nainstalovat certifikát</value>

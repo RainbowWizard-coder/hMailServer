@@ -5166,6 +5166,9 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   <data name="In the object store" xml:space="preserve">
     <value>Im Objektspeicher</value>
   </data>
+  <data name="Inactive" xml:space="preserve">
+    <value>Inaktiv</value>
+  </data>
   <data name="Inbound client certificates - the port needs a CA bundle, the clients need certificates" xml:space="preserve">
     <value>Eingehende Client-Zertifikate - der Port braucht ein CA-Bündel, die Clients brauchen Zertifikate</value>
   </data>
@@ -13759,9 +13762,6 @@ Es wird keine Nachricht gelöscht und kein Konto entfernt. Fortfahren?</value>
   </data>
   <data name="in {0}" xml:space="preserve">
     <value>unter {0}</value>
-  </data>
-  <data name="inactive" xml:space="preserve">
-    <value>inaktiv</value>
   </data>
   <data name="install a certificate" xml:space="preserve">
     <value>ein Zertifikat installieren</value>

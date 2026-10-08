@@ -5166,6 +5166,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="In the object store" xml:space="preserve">
     <value>Nesne deposunda</value>
   </data>
+  <data name="Inactive" xml:space="preserve">
+    <value>Etkin değil</value>
+  </data>
   <data name="Inbound client certificates - the port needs a CA bundle, the clients need certificates" xml:space="preserve">
     <value>Gelen istemci sertifikaları - portun bir CA paketine, istemcilerin sertifikalara ihtiyacı var</value>
   </data>
@@ -13759,9 +13762,6 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="in {0}" xml:space="preserve">
     <value>{0} bölümünde</value>
-  </data>
-  <data name="inactive" xml:space="preserve">
-    <value>etkin değil</value>
   </data>
   <data name="install a certificate" xml:space="preserve">
     <value>sertifika yükle</value>

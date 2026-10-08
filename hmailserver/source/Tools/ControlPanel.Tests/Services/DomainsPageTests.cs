@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using Xunit;
 
@@ -133,19 +134,31 @@ namespace hMailServer.ControlPanel.Tests.Services
       /// A row is the list's width, never wider: scrolled sideways, one long domain
       /// name put every row's Properties and Delete off the list's right edge, and in
       /// the narrowest window every row's. A name longer than the room ends in an
-      /// ellipsis, and is whole in its tool tip.
+      /// ellipsis, and is whole in its tool tip: GridTrimmedText, or a style of the
+      /// page's own based on it (the domain and account names' RowName, which
+      /// also follows the row's Active flag).
       /// </summary>
       [Theory]
       [MemberData(nameof(ListNames))]
       public void ARow_IsTheListsWidth_AndItsNameIsCutShort_SoItsButtonsStayOnIt(string list)
       {
-         XElement view = Named(Page(), list);
+         XElement page = Page();
+         XElement view = Named(page, list);
          Assert.Equal("Disabled", (string)view.Attribute("ScrollViewer.HorizontalScrollBarVisibility"));
 
          XElement template = view.Descendants(Wpf + "DataTemplate").Single();
          XElement name = template.Descendants(Wpf + "TextBlock")
             .Single(t => ((string)t.Attribute("Text") ?? "").StartsWith("{Binding", StringComparison.Ordinal));
-         Assert.Equal("{StaticResource GridTrimmedText}", (string)name.Attribute("Style"));
+         string style = (string)name.Attribute("Style");
+         if (style != "{StaticResource GridTrimmedText}")
+         {
+            Match key = Regex.Match(style ?? "", @"^\{StaticResource (\w+)\}$");
+            Assert.True(key.Success, list + "'s name has no trimming style.");
+            XElement own = page.Element(Wpf + "UserControl.Resources")?.Elements(Wpf + "Style")
+               .SingleOrDefault(s => (string)s.Attribute(X + "Key") == key.Groups[1].Value);
+            Assert.True(own != null, list + "'s name style " + key.Groups[1].Value + " is not a resource of the page.");
+            Assert.Equal("{StaticResource GridTrimmedText}", (string)own.Attribute("BasedOn"));
+         }
          Assert.DoesNotContain(name.Ancestors(), a => a.Name == Wpf + "StackPanel" && (string)a.Attribute("Orientation") == "Horizontal");
       }
 

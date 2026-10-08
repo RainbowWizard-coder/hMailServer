@@ -685,6 +685,18 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   Contrast) that `docs/ControlPanelDesign.md` names, and the three dialogs' lists sit on a card as the public
   folders list does. A row the keyboard is on in a list wears the focus ring in the focus colour, as a sidebar row
   does. Found by the project's own review.
+- **An inactive domain or account on the Control Panel's domains page says so legibly.** The whole row was dimmed to
+  55 %, the word "inactive" in italics with it, which made the word the least legible text on the page (2.4:1 in the
+  light theme) and the name 3.9:1. Only the glyph dims now; the name takes the secondary text, which clears 4.5:1;
+  and the word is an *Inactive* pill after the name, in the neutral box the rest of the Control Panel uses for a state
+  that is not a warning, at full strength on a plain, a hovered and a selected row alike. Found by the project's own
+  review.
+- **Every row delete on the Control Panel's domains page is the same destructive button.** A domain's trash glyph and
+  an account's Delete painted the danger colour as a local colour, which measured 3.3 and 3.5:1 on the button in the
+  dark theme and 1.8:1 on the selected domain, and outranked the button's disabled state; an alias's and a
+  distribution list's trash glyphs had no danger colour at all - four looks for one action on one page. All four take
+  the `DangerTextButton` style the other list pages use, whose shade of the danger colour clears 4.5:1 on the button
+  in both themes and greys when the button cannot be pressed. Found by the project's own review.
 
 ### IMAP, POP3 and the webmail
 

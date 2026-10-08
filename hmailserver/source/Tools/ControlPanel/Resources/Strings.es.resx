@@ -5166,6 +5166,9 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   <data name="In the object store" xml:space="preserve">
     <value>En el almacén de objetos</value>
   </data>
+  <data name="Inactive" xml:space="preserve">
+    <value>Inactivo</value>
+  </data>
   <data name="Inbound client certificates - the port needs a CA bundle, the clients need certificates" xml:space="preserve">
     <value>Certificados de cliente entrantes - el puerto necesita un paquete de CA, los clientes necesitan certificados</value>
   </data>
@@ -13759,9 +13762,6 @@ No se borra ningún mensaje ni se elimina ninguna cuenta. ¿Continuar?</value>
   </data>
   <data name="in {0}" xml:space="preserve">
     <value>en {0}</value>
-  </data>
-  <data name="inactive" xml:space="preserve">
-    <value>inactivo</value>
   </data>
   <data name="install a certificate" xml:space="preserve">
     <value>instalar un certificado</value>

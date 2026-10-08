@@ -5166,6 +5166,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="In the object store" xml:space="preserve">
     <value>In de objectopslag</value>
   </data>
+  <data name="Inactive" xml:space="preserve">
+    <value>Inactief</value>
+  </data>
   <data name="Inbound client certificates - the port needs a CA bundle, the clients need certificates" xml:space="preserve">
     <value>Inkomende clientcertificaten - de poort heeft een CA-bundel nodig, de clients hebben certificaten nodig</value>
   </data>
@@ -13759,9 +13762,6 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="in {0}" xml:space="preserve">
     <value>in {0}</value>
-  </data>
-  <data name="inactive" xml:space="preserve">
-    <value>inactief</value>
   </data>
   <data name="install a certificate" xml:space="preserve">
     <value>een certificaat installeren</value>

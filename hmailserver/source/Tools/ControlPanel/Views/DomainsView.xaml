@@ -12,6 +12,40 @@
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:local="clr-namespace:hMailServer.ControlPanel.Views">
 
+    <UserControl.Resources>
+        <!-- The three parts of a domain or account row that follow its Active
+             flag. An inactive row used to be dimmed whole, at 0.55, with the
+             word "inactive" in italics inside the dimmed part: the word was the
+             least legible text on the page (2.4:1 in the light theme) and the
+             name measured 3.9:1. Now only the glyph dims; the name takes the
+             secondary text, which clears 4.5:1; and the word is a Normal
+             StatusPill at full opacity, whose neutral box reads on a plain, a
+             hovered and a selected row alike. -->
+        <Style x:Key="RowGlyphDimsWhenInactive" TargetType="Border">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Active}" Value="False">
+                    <Setter Property="Opacity" Value="0.55" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="RowInactivePill" TargetType="scaffold:StatusPill" BasedOn="{StaticResource {x:Type scaffold:StatusPill}}">
+            <Setter Property="Visibility" Value="Collapsed" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Active}" Value="False">
+                    <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="RowName" TargetType="TextBlock" BasedOn="{StaticResource GridTrimmedText}">
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Active}" Value="False">
+                    <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
+
     <Grid Margin="{StaticResource AppPagePadding}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -92,44 +126,31 @@
                                                  the list item's, they were drawn near-black on the dark
                                                  theme's card, and a domain that was not selected could
                                                  not be read. -->
-                                            <!-- An inactive domain is dimmed AND says so in words: opacity
+                                            <!-- An inactive domain dims its glyph AND says so in words: opacity
                                                  alone does not survive High Contrast, a projector, or a
                                                  screen reader, and the word alone is easy to scan past.
-                                                 A DockPanel, not a StackPanel, so that the name can be
-                                                 cut short while the word stays right after it. -->
+                                                 The word is a pill and the name stays legible (the styles
+                                                 above). A DockPanel, not a StackPanel, so that the name can
+                                                 be cut short while the pill stays right after it. -->
                                             <DockPanel HorizontalAlignment="Left">
-                                                <DockPanel.Style>
-                                                    <Style TargetType="DockPanel">
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding Active}" Value="False">
-                                                                <Setter Property="Opacity" Value="0.55" />
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </DockPanel.Style>
-                                                <ui:SymbolIcon DockPanel.Dock="Left" Symbol="Globe24" Foreground="{DynamicResource AppBrandBrush}" />
-                                                <TextBlock DockPanel.Dock="Right" Text="{loc:L 'inactive'}" FontSize="12" FontStyle="Italic" Margin="8,0,0,0"
-                                                           VerticalAlignment="Center"
-                                                           Foreground="{DynamicResource TextFillColorSecondaryBrush}">
-                                                    <TextBlock.Style>
-                                                        <Style TargetType="TextBlock">
-                                                            <Setter Property="Visibility" Value="Collapsed" />
-                                                            <Style.Triggers>
-                                                                <DataTrigger Binding="{Binding Active}" Value="False">
-                                                                    <Setter Property="Visibility" Value="Visible" />
-                                                                </DataTrigger>
-                                                            </Style.Triggers>
-                                                        </Style>
-                                                    </TextBlock.Style>
-                                                </TextBlock>
-                                                <TextBlock Text="{Binding Name}" Style="{StaticResource GridTrimmedText}" Margin="10,0,0,0" FontSize="14"
-                                                           VerticalAlignment="Center" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                                                <Border DockPanel.Dock="Left" Style="{StaticResource RowGlyphDimsWhenInactive}">
+                                                    <ui:SymbolIcon Symbol="Globe24" Foreground="{DynamicResource AppBrandBrush}" />
+                                                </Border>
+                                                <scaffold:StatusPill DockPanel.Dock="Right" Level="Normal" Text="{loc:L 'Inactive'}" Margin="8,0,0,0"
+                                                                     Style="{StaticResource RowInactivePill}" />
+                                                <TextBlock Text="{Binding Name}" Style="{StaticResource RowName}" Margin="10,0,0,0" FontSize="14"
+                                                           VerticalAlignment="Center" />
                                             </DockPanel>
                                             <ui:Button Grid.Column="1" Content="{loc:L 'Properties'}" FontSize="12" Padding="8,3" Margin="6,0,6,0"
                                                        Tag="{Binding Name}" Click="EditDomain_Click" />
+                                            <!-- Every row delete on the page is a DangerTextButton: the
+                                                 style's danger fill-text shade clears 4.5:1 on the button
+                                                 in both themes and greys when the button is disabled, where
+                                                 a local AppDangerBrush measured 3.3:1 in the dark theme and
+                                                 outranked the disabled state. -->
                                             <ui:Button Grid.Column="2" Icon="{ui:SymbolIcon Delete24}" Padding="6,3"
+                                                       Style="{StaticResource DangerTextButton}"
                                                        ToolTip="{loc:L 'Delete domain'}" AutomationProperties.Name="{loc:L 'Delete domain'}"
-                                                       Foreground="{DynamicResource AppDangerBrush}"
                                                        Tag="{Binding Name}" Click="DeleteDomain_Click" />
                                         </Grid>
                                     </DataTemplate>
@@ -180,37 +201,17 @@
                                                 <ColumnDefinition Width="Auto" />
                                             </Grid.ColumnDefinitions>
                                             <DockPanel HorizontalAlignment="Left">
-                                                <DockPanel.Style>
-                                                    <Style TargetType="DockPanel">
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding Active}" Value="False">
-                                                                <Setter Property="Opacity" Value="0.55" />
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </DockPanel.Style>
-                                                <ui:SymbolIcon DockPanel.Dock="Left" Symbol="Person24" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
-                                                <TextBlock DockPanel.Dock="Right" Text="{loc:L 'inactive'}" FontSize="12" FontStyle="Italic" Margin="8,0,0,0"
-                                                           VerticalAlignment="Center"
-                                                           Foreground="{DynamicResource TextFillColorSecondaryBrush}">
-                                                    <TextBlock.Style>
-                                                        <Style TargetType="TextBlock">
-                                                            <Setter Property="Visibility" Value="Collapsed" />
-                                                            <Style.Triggers>
-                                                                <DataTrigger Binding="{Binding Active}" Value="False">
-                                                                    <Setter Property="Visibility" Value="Visible" />
-                                                                </DataTrigger>
-                                                            </Style.Triggers>
-                                                        </Style>
-                                                    </TextBlock.Style>
-                                                </TextBlock>
-                                                <TextBlock Text="{Binding Address}" Style="{StaticResource GridTrimmedText}" Margin="10,0,0,0" FontSize="14"
-                                                           VerticalAlignment="Center" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                                                <Border DockPanel.Dock="Left" Style="{StaticResource RowGlyphDimsWhenInactive}">
+                                                    <ui:SymbolIcon Symbol="Person24" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                                                </Border>
+                                                <scaffold:StatusPill DockPanel.Dock="Right" Level="Normal" Text="{loc:L 'Inactive'}" Margin="8,0,0,0"
+                                                                     Style="{StaticResource RowInactivePill}" />
+                                                <TextBlock Text="{Binding Address}" Style="{StaticResource RowName}" Margin="10,0,0,0" FontSize="14"
+                                                           VerticalAlignment="Center" />
                                             </DockPanel>
                                             <ui:Button Grid.Column="1" Content="{loc:L 'Edit'}" FontSize="12" Padding="8,3" Margin="6,0,6,0"
                                                        Tag="{Binding Address}" Click="EditAccount_Click" />
-                                            <ui:Button Grid.Column="2" Content="{loc:L 'Delete'}" Appearance="Secondary" FontSize="12"
-                                                       Foreground="{DynamicResource AppDangerBrush}"
+                                            <ui:Button Grid.Column="2" Content="{loc:L 'Delete'}" Style="{StaticResource DangerTextButton}" FontSize="12"
                                                        Padding="8,3" Tag="{Binding Address}" Click="DeleteAccount_Click" />
                                         </Grid>
                                     </DataTemplate>
@@ -283,6 +284,7 @@
                                                 <TextBlock Text="{Binding Display}" Style="{StaticResource GridTrimmedText}" FontSize="12" VerticalAlignment="Center"
                                                            Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
                                                 <ui:Button Grid.Column="1" Icon="{ui:SymbolIcon Delete24}" Padding="6,2" Margin="6,0,0,0"
+                                                           Style="{StaticResource DangerTextButton}"
                                                            ToolTip="{loc:L 'Delete alias'}" AutomationProperties.Name="{loc:L 'Delete alias'}"
                                                            Tag="{Binding Name}" Click="DeleteAlias_Click" />
                                             </Grid>
@@ -346,6 +348,7 @@
                                                 <ui:Button Grid.Column="2" Content="{loc:L 'Members'}" FontSize="10" Padding="6,2" Margin="0,0,4,0"
                                                            Tag="{Binding}" Click="EditRecipients_Click" />
                                                 <ui:Button Grid.Column="3" Icon="{ui:SymbolIcon Delete24}" Padding="6,2"
+                                                           Style="{StaticResource DangerTextButton}"
                                                            ToolTip="{loc:L 'Delete distribution list'}" AutomationProperties.Name="{loc:L 'Delete distribution list'}"
                                                            Tag="{Binding}" Click="DeleteDistList_Click" />
                                             </Grid>

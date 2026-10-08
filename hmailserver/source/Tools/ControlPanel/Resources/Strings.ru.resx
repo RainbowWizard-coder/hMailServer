@@ -5166,6 +5166,9 @@ Control Panel может читать файлы сообщений только
   <data name="In the object store" xml:space="preserve">
     <value>В хранилище объектов</value>
   </data>
+  <data name="Inactive" xml:space="preserve">
+    <value>Неактивно</value>
+  </data>
   <data name="Inbound client certificates - the port needs a CA bundle, the clients need certificates" xml:space="preserve">
     <value>Входящие клиентские сертификаты — порту нужен набор сертификатов ЦС, а клиентам нужны сертификаты</value>
   </data>
@@ -13759,9 +13762,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="in {0}" xml:space="preserve">
     <value>в разделе {0}</value>
-  </data>
-  <data name="inactive" xml:space="preserve">
-    <value>неактивно</value>
   </data>
   <data name="install a certificate" xml:space="preserve">
     <value>установить сертификат</value>

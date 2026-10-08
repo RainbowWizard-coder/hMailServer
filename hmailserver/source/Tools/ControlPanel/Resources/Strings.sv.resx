@@ -5166,6 +5166,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="In the object store" xml:space="preserve">
     <value>I objektlagringen</value>
   </data>
+  <data name="Inactive" xml:space="preserve">
+    <value>Inaktiv</value>
+  </data>
   <data name="Inbound client certificates - the port needs a CA bundle, the clients need certificates" xml:space="preserve">
     <value>Inkommande klientcertifikat - porten behöver ett CA-paket, klienterna behöver certifikat</value>
   </data>
@@ -13759,9 +13762,6 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   </data>
   <data name="in {0}" xml:space="preserve">
     <value>i {0}</value>
-  </data>
-  <data name="inactive" xml:space="preserve">
-    <value>inaktiv</value>
   </data>
   <data name="install a certificate" xml:space="preserve">
     <value>installera ett certifikat</value>
