@@ -133,7 +133,13 @@ namespace HM
             // administrator asked for.
             pRule->SetSortOrder(iSortOrder);
 
-            if (!PersistentRule::SaveObject(pRule))
+            // The place alone. The whole rule was written as it was in memory, its
+            // criteria and actions with it, so a change made to it over COM and not
+            // saved - an action's Set header value turned to From, a Reply's address
+            // turned to another's - was stored by moving the rule, or the rule beside
+            // it, past what Rule.Save refuses an account's or a domain's rule
+            // (RuleGuard::WhyActionMayNotBeStored).
+            if (pRule->GetID() > 0 && !PersistentRule::SaveSortOrder(pRule))
             {
                ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6096, "Rules::UpdateSortOrder_",
                   Formatter::Format("The sort order of rule {0} could not be saved, so the rules will run in a different order than the one shown.", pRule->GetName()));

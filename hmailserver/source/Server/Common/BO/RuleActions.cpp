@@ -111,9 +111,15 @@ namespace HM
             // this renumbers a whole list and returns void. The order decides which
             // action runs first, so a silent failure changes what a rule does while
             // the administration tool shows the order that was asked for.
+            //
+            // The place alone. The whole action was written as it was in memory, so a
+            // change made to it over COM and not saved - a Set header value turned to
+            // From, a Reply's address turned to another's - was stored by moving it, or
+            // the action beside it, past what RuleAction.Save refuses an account's or a
+            // domain's rule (RuleGuard::WhyActionMayNotBeStored).
             if (pRuleAction->GetID() > 0)
             {
-               if (!PersistentRuleAction::SaveObject(pRuleAction))
+               if (!PersistentRuleAction::SaveSortOrder(pRuleAction))
                {
                   ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6097, "RuleActions::UpdateSortOrder_",
                      Formatter::Format("The sort order of rule action {0} could not be saved, so the actions will run in a different order than the one shown.", pRuleAction->GetID()));

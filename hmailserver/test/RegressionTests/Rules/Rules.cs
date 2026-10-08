@@ -2535,6 +2535,96 @@ namespace RegressionTests.Rules
       }
 
       /// <summary>
+      /// Moving a rule or one of its actions wrote every rule or action whose place changed
+      /// whole, as it was in memory, so a change made over COM and not saved was stored by
+      /// the move without being held to anything: an account could turn a Set header value
+      /// action of its own rule to From or Sender, which RuleAction.Save and Rule.Save refuse
+      /// it, and have it stored by moving the action, or the rule, up. A move now writes the
+      /// place alone, and the change not saved is still the one Rule.Save refuses.
+      ///
+      /// Against the server before the fix the moved action is stored as From and the moved
+      /// rule's action as Sender.
+      /// </summary>
+      [Test]
+      [Description("Moving an account's rule or one of its actions stores the new order and no change that was not saved: an action turned to From or Sender and not saved is not stored by the move.")]
+      public void MovingARuleOrAnActionStoresItsPlaceAlone()
+      {
+         var owner = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "rulemove@example.test", "test");
+
+         var itself = new Application();
+         var signedIn = itself.Authenticate(owner.Address, "test") as Account;
+         Assert.IsNotNull(signedIn, "The account could not sign in to COM.");
+
+         var first = NewRuleMatchingEverything(signedIn, "First");
+         first.Save();
+         var second = NewRuleMatchingEverything(signedIn, "Second");
+         second.Save();
+
+         AddSavedSetHeader(second, "X-Move-Kept");
+         var moved = AddSavedSetHeader(second, "X-Move-Moved");
+
+         // Turned to From, not saved, and moved up past the other action.
+         moved.HeaderName = "From";
+         moved.MoveUp();
+
+         CollectionAssert.AreEqual(new[] { "X-Move-Moved", "X-Move-Kept" }, StoredHeaderNames(owner, second.ID),
+            "Moving an action stored more than its place, or not its place.");
+
+         // A rule whose action was turned to Sender and not saved, moved up past the second.
+         var third = NewRuleMatchingEverything(signedIn, "Third");
+         third.Save();
+         var turned = AddSavedSetHeader(third, "X-Move-Turned");
+         turned.HeaderName = "Sender";
+         third.MoveUp();
+
+         CollectionAssert.AreEqual(new[] { "X-Move-Turned" }, StoredHeaderNames(owner, third.ID),
+            "Moving a rule stored a change to its action that was not saved.");
+         CollectionAssert.AreEqual(new[] { "X-Move-Moved", "X-Move-Kept" }, StoredHeaderNames(owner, second.ID),
+            "Moving a rule stored a change to the action of the rule it passed that was not saved.");
+
+         var storedRules = _application.Domains.get_ItemByName(_domain.Name).Accounts.get_ItemByAddress(owner.Address).Rules;
+         var order = new List<string>();
+         for (int i = 0; i < storedRules.Count; i++)
+            order.Add(storedRules[i].Name);
+         CollectionAssert.AreEqual(new[] { "First", "Third", "Second" }, order,
+            "Moving a rule did not store its place: " + string.Join(", ", order));
+
+         // The changes are still in memory, and saving them is still refused.
+         foreach (var rule in new[] { second, third })
+         {
+            var refused = Assert.Throws<System.Runtime.InteropServices.COMException>(() => rule.Save(),
+               rule.Name + " was saved with an action that sets who the message is from.");
+            StringAssert.Contains("says who the message is from", refused.Message, refused.Message);
+         }
+
+         GC.KeepAlive(itself);
+      }
+
+      private static RuleAction AddSavedSetHeader(Rule rule, string headerName)
+      {
+         var action = rule.Actions.Add();
+         action.Type = eRuleActionType.eRASetHeaderValue;
+         action.HeaderName = headerName;
+         action.Value = "ceo@example.test";
+         action.Save();
+         return action;
+      }
+
+      // The header names of a rule's Set header value actions, in their order, as the
+      // database holds them: read through collections of their own, not the objects the
+      // test changed.
+      private List<string> StoredHeaderNames(Account account, int ruleId)
+      {
+         var stored = _application.Domains.get_ItemByName(_domain.Name).Accounts.get_ItemByAddress(account.Address).Rules
+            .get_ItemByDBID(ruleId);
+
+         var names = new List<string>();
+         for (int i = 0; i < stored.Actions.Count; i++)
+            names.Add(stored.Actions[i].HeaderName);
+         return names;
+      }
+
+      /// <summary>
       /// A rule's reply wrote its name in front of its address as the name stood, so a
       /// name of "x &lt;ceo@...&gt;, ceo@..." added that address to the reply's From, and a
       /// program reading the field took the first address for the sender. The name is

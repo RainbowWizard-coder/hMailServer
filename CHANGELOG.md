@@ -380,6 +380,15 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   COM saves it, and one that is given is held to a domain's or an account's rule's owner as before.
   `API/RestApiRules.cs` saves one under a domain's and an account's rules, and the Linux suite delivers one through
   `AntiSpam/DKIM/ArcSealing.cs`. Found by the batch's regression gate.
+- **Fixed: moving a rule or one of its actions over COM stored changes made to it and not saved, held to nothing.**
+  `Rule.MoveUp`, `Rule.MoveDown`, `RuleAction.MoveUp` and `RuleAction.MoveDown` wrote each rule or action whose place
+  changed whole, as it was in memory - a rule with its criteria and actions - so a change made through the object and
+  not saved went into the database with the move (in every version): an account could turn a *Set header value* of
+  its own rule to `From`, or a *Reply* to another's address, which `Rule.Save` and `RuleAction.Save` refuse it
+  (*Security*, above), and have it stored by moving the action or the rule, or the one beside it, though delivery
+  still skipped it. A move now writes the place alone, and the rules of the owner the rule's row names are read again
+  in their new order. `Rules/Rules.cs` moves an account's action, and its rule, with an action turned to `From` or
+  `Sender` and not saved, and reads both back from the database. Found by the re-check of the batch's fixes.
 
 ### Downloads and the release
 

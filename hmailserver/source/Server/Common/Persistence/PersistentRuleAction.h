@@ -23,6 +23,12 @@ namespace HM
       static bool SaveObject(std::shared_ptr<RuleAction> pRule);
       static bool DeleteObject(std::shared_ptr<RuleAction> pRule);
 
+      // The action's place among its rule's actions, and nothing else of it: what
+      // moving an action writes (RuleActions::UpdateSortOrder_). The action in memory
+      // may hold a change that was not saved, and only RuleAction.Save and Rule.Save
+      // hold such a change to what it must pass (RuleGuard::WhyActionMayNotBeStored).
+      static bool SaveSortOrder(std::shared_ptr<RuleAction> pRuleAction);
+
       static bool DeleteObjects(__int64 iRuleID);
 
       static bool GetExistsFolderReferenceContainingCharacter(String theChar);

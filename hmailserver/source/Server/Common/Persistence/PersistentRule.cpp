@@ -282,14 +282,41 @@ namespace HM
       return true;
    }
 
+   bool
+   PersistentRule::SaveSortOrder(std::shared_ptr<Rule> pRule)
+   {
+      SQLCommand command("update hm_rules set rulesortorder = @SORTORDER where ruleid = @RULEID");
+      command.AddParameter("@SORTORDER", pRule->GetSortOrder());
+      command.AddParameter("@RULEID", pRule->GetID());
+
+      if (!Application::Instance()->GetDBManager()->Execute(command))
+         return false;
+
+      // The rules of the owner the row names, which a move leaves as it was, are read
+      // again in their new order - not those of an owner the rule in memory was given
+      // and not saved under.
+      __int64 accountId = 0;
+      __int64 domainId = 0;
+      if (ReadOwner(pRule->GetID(), accountId, domainId))
+         NotifyReload_(accountId, domainId);
+
+      return true;
+   }
+
    void
    PersistentRule::NotifyReload_(std::shared_ptr<Rule> pRule)
    {
-      if (pRule->GetDomainID() > 0)
-         ObjectCache::Instance()->SetDomainRulesNeedsReload(pRule->GetDomainID());
-      else if (pRule->GetAccountID() == 0)
+      NotifyReload_(pRule->GetAccountID(), pRule->GetDomainID());
+   }
+
+   void
+   PersistentRule::NotifyReload_(__int64 accountId, __int64 domainId)
+   {
+      if (domainId > 0)
+         ObjectCache::Instance()->SetDomainRulesNeedsReload(domainId);
+      else if (accountId == 0)
          ObjectCache::Instance()->SetGlobalRulesNeedsReload();
       else
-         ObjectCache::Instance()->SetAccountRulesNeedsReload(pRule->GetAccountID());
+         ObjectCache::Instance()->SetAccountRulesNeedsReload(accountId);
    }
 }

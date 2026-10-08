@@ -119,6 +119,16 @@ namespace HM
    }
 
    bool
+   PersistentRuleAction::SaveSortOrder(std::shared_ptr<RuleAction> pRuleAction)
+   {
+      SQLCommand command("update hm_rule_actions set actionsortorder = @SORTORDER where actionid = @ACTIONID");
+      command.AddParameter("@SORTORDER", pRuleAction->GetSortOrder());
+      command.AddParameter("@ACTIONID", pRuleAction->GetID());
+
+      return Application::Instance()->GetDBManager()->Execute(command);
+   }
+
+   bool
    PersistentRuleAction::DeleteObject(std::shared_ptr<RuleAction> pRuleAction)
    {
       SQLCommand command("delete from hm_rule_actions where actionid = @ACTIONID");

@@ -23,6 +23,12 @@ namespace HM
       static bool SaveObject(std::shared_ptr<Rule> pRule);
       static bool DeleteObject(std::shared_ptr<Rule> pRule);
 
+      // The rule's place in its list, and nothing else of it: what moving a rule
+      // writes (Rules::UpdateSortOrder_). The rule in memory may hold a change that was
+      // not saved - its name, its owner, a criterion or an action - and only Rule.Save
+      // holds such a change to what it must pass (RuleGuard::WhyActionMayNotBeStored).
+      static bool SaveSortOrder(std::shared_ptr<Rule> pRule);
+
       // The owner of a stored rule, as its row says: the account, the domain, or
       // neither for a global rule. False when there is no such row or it could not be
       // read. What RuleAction.Save holds an action to (RuleGuard::WhyActionMayNotBeStored).
@@ -34,5 +40,6 @@ namespace HM
    private:
 
       static void NotifyReload_(std::shared_ptr<Rule> pRule);
+      static void NotifyReload_(__int64 accountId, __int64 domainId);
    };
 }
