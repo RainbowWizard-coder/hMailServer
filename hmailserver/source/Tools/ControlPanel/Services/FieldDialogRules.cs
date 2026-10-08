@@ -17,8 +17,11 @@ namespace hMailServer.ControlPanel.Services
    /// first, and on an empty Expected result with nothing to say what goes in it,
    /// so a list added and saved was never asked, or never a match (review finding
    /// F174). The tick boxes that lead a spec - Active, Enabled - go after the
-   /// fields that say what the entry is now, and a field the entry is useless
-   /// without is refused empty, on the field. Held by BlockListDialogTests.
+   /// fields that say what the entry is now, on the short specs that ask for it
+   /// (CollectionSpec.TickBoxesLast: an external account's Enabled is the master
+   /// switch of a dialog that scrolls, and stays first), and a field the entry
+   /// is useless without is refused empty, on the field. Held by
+   /// BlockListDialogTests.
    /// </summary>
    public static class FieldDialogRules
    {

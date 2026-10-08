@@ -83,6 +83,15 @@ namespace hMailServer.ControlPanel.Views
          public bool CanAdd = true;
          public bool CanDelete = true;
          public string ItemNoun = L("item");
+
+         // The dialog lays the tick boxes that lead the spec - Active, Enabled,
+         // the grid's first column - after the fields that say what the entry
+         // is, so that an Add dialog opens on the host and not on a tick
+         // (review finding F174). Asked for by the short specs only: on a spec
+         // of twenty fields the leading box is the entry's master switch, and
+         // laid last it is below the fold of an Edit dialog opened to switch
+         // the entry off. The grid keeps the spec's order either way.
+         public bool TickBoxesLast;
       }
 
       internal sealed class Row

@@ -49,10 +49,13 @@ namespace hMailServer.ControlPanel.Views
 
          // The tick boxes that lead a spec - Active, Enabled, the grid's first
          // column - go after the fields that say what the entry is, so that an
-         // Add dialog opens on the host and not on a tick (review finding F174).
-         List<CollectionEditorView.FieldSpec> fields = FieldDialogRules.TickBoxesAfterTheRest(
-            spec.Fields.Where(f => f.Prop != "ID").ToList(),
-            f => f.Kind == CollectionEditorView.FieldKind.Bool);
+         // Add dialog opens on the host and not on a tick (review finding F174):
+         // on the specs that ask for it, which are the short ones. An external
+         // account's Enabled and a remote domain policy's Active are the master
+         // switch of a dialog that scrolls, and stay first, in sight.
+         List<CollectionEditorView.FieldSpec> fields = spec.Fields.Where(f => f.Prop != "ID").ToList();
+         if (spec.TickBoxesLast)
+            fields = FieldDialogRules.TickBoxesAfterTheRest(fields, f => f.Kind == CollectionEditorView.FieldKind.Bool);
 
          // Resolved for the whole dialog at once, the same way the settings pages
          // do it, so that two fields with the same wording are told apart by the

@@ -49,10 +49,11 @@ namespace hMailServer.ControlPanel.Views
          Subtitle = L("Spam URI Realtime Block Lists. Messages whose body links resolve on these hosts gain spam score."),
          ItemNoun = L("SURBL server"),
          GetCollection = () => AntiSpam.SURBLServers,
+         TickBoxesLast = true,
          Fields =
          {
             // A new list starts active, its box after the fields that say what
-            // the list is (FieldDialog): one added and saved was never asked
+            // the list is (TickBoxesLast): one added and saved was never asked
             // (review finding F174). The host is required. The expected result
             // is not: empty, any answer but the list's own error codes is a
             // listing (SURBL.cpp). Each field says what goes in it.
@@ -70,6 +71,7 @@ namespace hMailServer.ControlPanel.Views
          Subtitle = L("Real-time blackhole lists checked against the connecting IP address."),
          ItemNoun = L("blacklist"),
          GetCollection = () => AntiSpam.DNSBlackLists,
+         TickBoxesLast = true,
          Fields =
          {
             // As for a SURBL server, but the expected result is required here:
@@ -277,6 +279,9 @@ namespace hMailServer.ControlPanel.Views
          GetCollection = () => Settings.RemoteDomainPolicies,
          Fields =
          {
+            // First in the dialog as well as the grid: the policy's master
+            // switch, on a dialog of twenty fields that scrolls, where an Edit
+            // opened to switch the policy off must find it in sight.
             new FieldSpec { Prop = "Active", Label = L("Active"), Kind = FieldKind.Bool, GridWidth = 70, Default = true },
             new FieldSpec { Prop = "DomainName", Label = L("Domain or pattern"), GridWidth = 200, Default = "" },
             new FieldSpec { Prop = "OutboundTls", Label = L("Outbound TLS"), Kind = FieldKind.Combo, Options = RemoteTlsOptions, GridWidth = 160, Default = 0 },
@@ -398,6 +403,9 @@ namespace hMailServer.ControlPanel.Views
          },
          Fields =
          {
+            // First in the dialog as well as the grid: the account's master
+            // switch, on a dialog of seventeen fields that scrolls, where an
+            // Edit opened to switch the account off must find it in sight.
             new FieldSpec { Prop = "Enabled", Label = L("Enabled"), Kind = FieldKind.Bool, GridWidth = 70, Default = true },
             new FieldSpec { Prop = "Name", Label = L("Name"), GridWidth = 150, Default = "" },
             new FieldSpec { Prop = "ServerType", Label = L("Server type"), Kind = FieldKind.Combo, Options = ServerTypeOptions, GridWidth = 90, Default = 0 },
@@ -462,6 +470,8 @@ namespace hMailServer.ControlPanel.Views
             ServerSession.Release(account);
             return rules;
          },
+         // Add rule opens on the name, the Active box after it.
+         TickBoxesLast = true,
          Fields =
          {
             new FieldSpec { Prop = "Active", Label = L("Active"), Kind = FieldKind.Bool, GridWidth = 70, Default = true },

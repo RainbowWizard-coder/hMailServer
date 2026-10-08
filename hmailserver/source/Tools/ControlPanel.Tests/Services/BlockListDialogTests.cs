@@ -58,6 +58,7 @@ namespace hMailServer.ControlPanel.Tests.Services
 
             string active = Field(spec, "Active");
             Assert.Contains("Default = true", active, StringComparison.Ordinal);
+            Assert.Contains("TickBoxesLast = true", spec, StringComparison.Ordinal);
 
             string host = Field(spec, "DNSHost");
             Assert.Contains("Required = true", host, StringComparison.Ordinal);
@@ -86,6 +87,48 @@ namespace hMailServer.ControlPanel.Tests.Services
          int written = dialog.IndexOf("Result[prop] = box.Text;", required < 0 ? 0 : required, StringComparison.Ordinal);
          Assert.True(required >= 0 && refused > required && written > refused, "The dialog writes a required text field before it refuses it empty.");
          Assert.Contains("DialogFields.ClearErrors(rows_.ToArray());", dialog, StringComparison.Ordinal);
+      }
+
+      /// <summary>
+      /// The move is asked for by the short specs and by no long one: an external
+      /// account's Enabled and a remote domain policy's Active are the master
+      /// switch of a dialog of seventeen or twenty fields that scrolls, and laid
+      /// last they were below the fold of an Edit opened to switch the entry off.
+      /// The dialog moves the boxes only where the spec asks.
+      /// </summary>
+      [Fact]
+      public void TheTickBoxesGoLast_OnTheShortSpecs_AndAMasterSwitchStaysFirst()
+      {
+         string specs = ReadSource("CollectionSpecs.cs");
+         string dialog = ReadSource("FieldDialog.cs");
+
+         foreach (string factory in new[] { "SurblServers()", "DnsBlackLists()", "AccountRules(" })
+            Assert.Contains("TickBoxesLast = true", Spec(specs, factory), StringComparison.Ordinal);
+
+         foreach ((string factory, string box) in new[] { ("FetchAccounts(", "Enabled"), ("RemoteDomains()", "Active") })
+         {
+            string spec = Spec(specs, factory);
+            Assert.DoesNotContain("TickBoxesLast", spec, StringComparison.Ordinal);
+
+            int first = spec.IndexOf("new FieldSpec {", StringComparison.Ordinal);
+            Assert.True(first >= 0, factory + " has no fields.");
+            int named = spec.IndexOf("Prop = \"" + box + "\"", first, StringComparison.Ordinal);
+            Assert.True(named >= 0 && named < spec.IndexOf("}", first, StringComparison.Ordinal), factory + " does not list its " + box + " box first.");
+         }
+
+         int asks = dialog.IndexOf("if (spec.TickBoxesLast)", StringComparison.Ordinal);
+         int moves = dialog.IndexOf("FieldDialogRules.TickBoxesAfterTheRest(", StringComparison.Ordinal);
+         Assert.True(asks >= 0 && moves > asks, "The dialog lays the tick boxes last whether the spec asks or not.");
+      }
+
+      /// <summary>A spec's text, from its factory's name to the end of its initialiser.</summary>
+      private static string Spec(string specs, string factory)
+      {
+         int at = specs.IndexOf("public static CollectionEditorView " + factory, StringComparison.Ordinal);
+         Assert.True(at >= 0, "No spec " + factory + " in CollectionSpecs.");
+         int end = specs.IndexOf("\n      }", at, StringComparison.Ordinal);
+         Assert.True(end > at, "The spec " + factory + " has no end.");
+         return specs.Substring(at, end - at);
       }
 
       /// <summary>The one FieldSpec initialiser of a spec member that names the property.</summary>
