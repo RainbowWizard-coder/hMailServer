@@ -311,11 +311,12 @@ is "-".
 
 **The full-text index off: measured on server1 on 7 October 2026**, against
 hMailServer 6.3.6 (the tag, e3c448aa6) in a Release build made on the bench,
-with SQL Server Compact 4.0. The machine, as the tools recorded it: an MSI
-MS-7E48, a physical machine with Windows' hypervisor present (Hyper-V and
-virtualisation-based security), with an AMD Ryzen 9 9950X (16 cores, 32
-logical), 61.4 GiB of RAM and Windows 11 Pro 10.0.26200, the data folder on an
-NVMe SSD (CT2000T705SSD3, NTFS); the tools ran on it too, under CPython 3.14.7.
+with SQL Server Compact 4.0. The machine, as the load generator's runs of the
+same day recorded it (PublishedNumbers.md): an MSI MS-7E48, a physical machine
+on which Windows reports a hypervisor present (Hyper-V or virtualisation-based
+security may be on), with one AMD Ryzen 9 9950X (16 cores, 32 logical), 61.4 GiB
+of RAM and Windows 11 Pro 10.0.26200, the data folder on an NVMe SSD
+(CT2000T705SSD3, NTFS, 1862 GiB); the tools ran on it too, under CPython 3.14.7.
 The machine's owner's own programs ran beside them, idle - other processes used
 at most 2.62 % of its logical cores in the samples taken before and after each
 pass - and no gate or pipeline job did. The service was restarted at 00:53:36

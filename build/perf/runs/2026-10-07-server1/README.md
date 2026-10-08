@@ -9,11 +9,12 @@ wrote beside it, as the tools wrote them. Nothing here was edited.
 The machine and the build
 -------------------------
 
-- An MSI MS-7E48, a physical machine with Windows' hypervisor present (Hyper-V
-  and virtualisation-based security); an AMD Ryzen 9 9950X, 16 cores and 32
-  logical; 61.4 GiB of RAM; Windows 11 Pro 10.0.26200; `C:\HMTest\Data` on an
-  NVMe SSD (CT2000T705SSD3, NTFS, 1862 GiB). Every loadgen JSON here carries the
-  same machine block.
+- An MSI MS-7E48, a physical machine on which Windows reports a hypervisor
+  present (Hyper-V or virtualisation-based security may be on: "a hypervisor is
+  present (Hyper-V/VBS may be on ...)", as the JSONs say); one AMD Ryzen 9
+  9950X, 16 cores and 32 logical; 61.4 GiB of RAM; Windows 11 Pro 10.0.26200;
+  `C:\HMTest\Data` on an NVMe SSD (CT2000T705SSD3, NTFS, 1862 GiB). Every
+  loadgen JSON here carries the same machine block.
 - The tools on the same machine, under CPython 3.14.7 outside the PATH.
 - hMailServer 6.3.6, the tag v6.3.6 (e3c448aa66fc310b74d076884d54fae951296915),
   a Release build made on the bench that morning, `hMailServer.exe` SHA-256

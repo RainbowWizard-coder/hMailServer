@@ -364,12 +364,12 @@ virtualisation), to be copied here from the first run:
 | imaptest benchmark: APPEND per second | to be measured | - | to be measured |
 
 On the Windows bench - hMailServer alone. **Measured on server1 on 7 October
-2026**: an MSI MS-7E48, a physical machine with Windows' hypervisor present
-(Hyper-V and virtualisation-based security), with an AMD Ryzen 9 9950X (16 cores,
-32 logical), 61.4 GiB of RAM and Windows 11 Pro 10.0.26200, the data folder on
-an NVMe SSD (CT2000T705SSD3, NTFS), as every run's JSON records it; the generator
-on the same machine under CPython 3.14.7. hMailServer 6.3.6 (the tag, e3c448aa6)
-in a Release build made on the bench, with SQL Server Compact 4.0, logging off,
+2026**: an MSI MS-7E48, a physical machine on which Windows reports a hypervisor
+present (Hyper-V or virtualisation-based security may be on), with one AMD Ryzen 9
+9950X (16 cores, 32 logical), 61.4 GiB of RAM and Windows 11 Pro 10.0.26200, the
+data folder on an NVMe SSD (CT2000T705SSD3, NTFS, 1862 GiB), as every run's JSON
+records it; the generator on the same machine under CPython 3.14.7. hMailServer
+6.3.6 (the tag, e3c448aa6) in a Release build made on the bench, with SQL Server Compact 4.0, logging off,
 `MaxDeliveryThreads` 10 (the shipped default; the bench keeps 50, which was put
 back after), anti-spam and anti-virus off server-wide, the recipe's 32 clients in
 4 processes and its default sizes. Fsync on: SMTP in 04:46 to 04:54 UTC, SMTP out
