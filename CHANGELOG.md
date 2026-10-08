@@ -814,6 +814,16 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   a captioned row with its hint under it, the expiry in the short date beside quick picks of 30 days, 90 days and a
   year, and a refused value said on the field at fault, with the keyboard put in it.
 
+- **Fixed: in a Control Panel window narrower than 1,000 pixels, the navigation rail led nowhere.** Below that width
+  the sidebar is the rail - one glyph per group - whatever the administrator chose, and a glyph's click cleared the
+  choice to collapse it, found the window still too narrow, and expanded the group inside the tree that was not
+  shown: nothing happened on screen, while the glyph stayed marked as if its group held the page. The breadcrumb's
+  group button did the same. In a maximised window narrower than that - 1280 by 800 at 150 % scaling is 853 pixels -
+  the sidebar toggle could not widen the window either, and the only ways to another page were Ctrl+K and the
+  *Related* links. While the rail shows, a glyph now opens the group's pages in a list beside it, and the breadcrumb's
+  group button under itself: the arrow keys move through the list, Enter or a click opens the page, Escape or a click
+  outside closes it and puts the keyboard back on the glyph, and the rail's mark stays on the group of the page on
+  screen. Above the threshold a glyph expands the sidebar on its group, as before.
 - **Fixed: the Control Panel's notices were silent to screen readers.** Every notice, loading state, empty state,
   field error and result line declared itself a live region, which only promises an announcement: a reader says the
   region when the element raises the live-region event, and nothing in the Control Panel raised it, so "Released 3

@@ -124,6 +124,57 @@
                 </Setter>
             </Style>
 
+            <!-- A row of the rail's group flyout (MainWindow.NavFlyout.cs): the
+                 sidebar's page row by another control - AppNavRowHeight, the
+                 control radius, the hover fill, the brand pill on the selected
+                 row and the focus colour round the row the keyboard is on - so
+                 that a page in the flyout reads as the same row it is in the tree. -->
+            <Style x:Key="NavFlyoutItem" TargetType="ListBoxItem">
+                <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+                <Setter Property="FontSize" Value="14" />
+                <Setter Property="Padding" Value="6,0" />
+                <Setter Property="Margin" Value="0,1" />
+                <Setter Property="Cursor" Value="Hand" />
+                <Setter Property="HorizontalContentAlignment" Value="Left" />
+                <Setter Property="VerticalContentAlignment" Value="Center" />
+                <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="ListBoxItem">
+                            <Border x:Name="Bd" CornerRadius="{DynamicResource AppControlCornerRadius}"
+                                    MinHeight="{DynamicResource AppNavRowHeight}" Background="Transparent"
+                                    BorderThickness="1.5" BorderBrush="Transparent" SnapsToDevicePixels="True">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="18" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Rectangle x:Name="Pill" Grid.Column="0" Width="3" Height="16" RadiusX="1.5" RadiusY="1.5"
+                                               HorizontalAlignment="Left" VerticalAlignment="Center" Margin="1,0,0,0"
+                                               Fill="{DynamicResource AppBrandBrush}" Opacity="0" />
+                                    <ContentPresenter Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Center"
+                                                      Margin="{TemplateBinding Padding}" />
+                                </Grid>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger SourceName="Bd" Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="Bd" Property="Background" Value="{DynamicResource SubtleFillColorSecondaryBrush}" />
+                                    <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+                                </Trigger>
+                                <Trigger Property="IsSelected" Value="True">
+                                    <Setter TargetName="Bd" Property="Background" Value="{DynamicResource SubtleFillColorSecondaryBrush}" />
+                                    <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+                                    <Setter TargetName="Pill" Property="Opacity" Value="1" />
+                                </Trigger>
+                                <Trigger Property="IsKeyboardFocused" Value="True">
+                                    <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource AppFocusBrush}" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
             <!-- Settings card: the plain surface, for the pages not yet on the
                  scaffold's Card component. Same tokens as the component, so the
                  two are one surface. -->

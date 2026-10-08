@@ -530,6 +530,7 @@ namespace hMailServer.ControlPanel
             // reveal: its glyph opens it, and the rail stays as it is.
             string title = node.Title;
             string page = node.IsPage ? node.Key : null;
+            NavNode group = node;
             item.Click += (s, e) =>
             {
                if (page != null)
@@ -538,10 +539,23 @@ namespace hMailServer.ControlPanel
                   return;
                }
 
-               sidebarCollapsedByUser_ = false;
-               SaveSidebarPreference_();
-               ApplySidebar_();
-               RevealGroup(title);
+               if (TooNarrowForTree_)
+               {
+                  // The tree cannot be shown at this width, so the group's pages
+                  // open beside the glyph (MainWindow.NavFlyout.cs).
+                  ShowGroupFlyout_(group, item, System.Windows.Controls.Primitives.PlacementMode.Right);
+               }
+               else
+               {
+                  sidebarCollapsedByUser_ = false;
+                  SaveSidebarPreference_();
+                  ApplySidebar_();
+                  RevealGroup(title);
+               }
+
+               // The click checked the glyph. The mark is the page on screen's,
+               // which the click did not change, so it goes back there.
+               UpdateRail_(currentPage_);
             };
 
             railItems_.Add(item);
@@ -806,8 +820,10 @@ namespace hMailServer.ControlPanel
       /// <summary>
       /// A group in the trail. A button rather than a label because a group has
       /// no page of its own: activating it reveals the group in the sidebar, so
-      /// the user can see what else is in the same place. Keyboard reachable like
-      /// any other button, which a plain text breadcrumb would not be.
+      /// the user can see what else is in the same place - or, while the sidebar
+      /// is the rail and the tree is hidden, opens the group's pages under the
+      /// button (MainWindow.NavFlyout.cs). Keyboard reachable like any other
+      /// button, which a plain text breadcrumb would not be.
       /// </summary>
       private FrameworkElement GroupSegment(NavNode group)
       {
@@ -824,7 +840,13 @@ namespace hMailServer.ControlPanel
          };
          System.Windows.Automation.AutomationProperties.SetAutomationId(button, "breadcrumb-group-" + NavigationMap.Slug(group.Title));
          System.Windows.Automation.AutomationProperties.SetName(button, F("Show the group {0} in the navigation", L(group.Title)));
-         button.Click += (s, e) => RevealGroup(group.Title);
+         button.Click += (s, e) =>
+         {
+            if (railShowing_)
+               ShowGroupFlyout_(group, button, System.Windows.Controls.Primitives.PlacementMode.Bottom);
+            else
+               RevealGroup(group.Title);
+         };
          return button;
       }
 
