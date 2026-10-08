@@ -50,6 +50,7 @@
 #include <boost/regex.hpp>
 
 #include <limits>
+#include <type_traits>
 
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -341,7 +342,10 @@ namespace HM
          const wchar_t *text = name.c_str();
          for (size_t position = 0; position < name.size(); position++)
          {
-            const unsigned long character = static_cast<unsigned long>(text[position]);
+            // text[position] as the number it holds, through wchar_t's own unsigned
+            // type, as SURBL's UnitAt_ reads one: a UTF-16 unit on Windows and the code
+            // point elsewhere, where wchar_t is signed.
+            const unsigned long character = static_cast<std::make_unsigned<wchar_t>::type>(text[position]);
             if (character >= 0x20 && character < 0x7F)
             {
                out += static_cast<wchar_t>(character);
@@ -938,20 +942,31 @@ namespace HM
       std::string
       LoopCountValueForMessage(const String &value)
       {
+         static const char digits[] = "0123456789ABCDEF";
+
          std::string out;
          const wchar_t *text = value.c_str();
          for (size_t position = 0; position < value.size(); position++)
          {
-            const unsigned long character = static_cast<unsigned long>(text[position]);
+            // text[position] as the number it holds, through wchar_t's own unsigned
+            // type, as HeaderNameForMessage reads one.
+            const unsigned long character = static_cast<std::make_unsigned<wchar_t>::type>(text[position]);
             if (character >= 0x20 && character < 0x7F)
             {
                out += static_cast<char>(character);
             }
             else
             {
-               char escaped[16];
-               snprintf(escaped, sizeof(escaped), "\\u%04lX", character);
-               out += escaped;
+               // The digits, lowest first: two a byte at most, and four at least, as
+               // HeaderNameForMessage composes them.
+               char escaped[2 * sizeof(character)];
+               size_t count = 0;
+               for (unsigned long rest = character; rest != 0 || count < 4; rest >>= 4)
+                  escaped[count++] = digits[rest & 0xF];
+
+               out += "\\u";
+               while (count > 0)
+                  out += escaped[--count];
             }
          }
 
