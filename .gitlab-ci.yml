@@ -335,6 +335,10 @@ checkers:
       # Token-Permissions against CI files made to pass it and made to break it: a
       # protected-ref clause inside an OR, rules it could misread, a template's token.
       check python3 build/ci/repo-hygiene.py --self-test
+      # The webmail's timing tool (Performance.md), against a REST listener it serves on the
+      # loopback: a 429 waited out and in no time, an ended session signed in again, and a
+      # search cut short recorded while the run goes on.
+      check python3 build/perf/webmail-timing.py --self-test
 
       # Generated source is what its generator writes now.
       check python3 build/add-license-headers.py --check

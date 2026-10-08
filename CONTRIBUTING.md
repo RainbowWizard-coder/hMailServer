@@ -348,7 +348,7 @@ Linux `hmailserver` binary and a database server; the script's header lists the 
 **What GitLab CI runs.** `.gitlab-ci.yml` runs on every push to a branch and on every merge request, on
 GitLab's shared runners. *checkers* (a Python image with git) runs every Python checker below except
 `check-package-manifests.py`, the `--self-test` modes (the release chain's, the release's security gate's, the
-secret scan's and repo-hygiene's among them), `add-license-headers.py --check`, every
+secret scan's, repo-hygiene's and `build/perf/webmail-timing.py`'s among them), `add-license-headers.py --check`, every
 generator's `--check`, `generate-portal-languages.py` and `check-deck-parity.py` held to the files they write
 staying as committed, `renumber-upgrade-items.py --check` (the newest *What changes on upgrade* list of
 `CHANGELOG.md` numbered 1 to n and every reference inside its section naming its item), and
