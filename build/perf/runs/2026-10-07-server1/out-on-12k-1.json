@@ -1,0 +1,131 @@
+{
+  "tool": "build/perf/load/loadgen.py",
+  "format": 1,
+  "mode": "smtp-out",
+  "label": "Windows bench, fsync on, 12,000 messages, run 1",
+  "notes": "MaxDeliveryThreads 10, the shipped default (the bench's regression setup keeps 50); logging off; anti-spam and anti-virus off server-wide",
+  "started": "2026-10-07T05:14:12Z",
+  "target": {
+    "server": "hMailServer 6.3.6, Windows, SQL Server Compact",
+    "host": "127.0.0.1",
+    "port": 25,
+    "tls": "none"
+  },
+  "parameters": {
+    "clients": 32,
+    "messages": 12000,
+    "per_connection": 10,
+    "sizes": "2k:25,8k:35,32k:25,128k:10,1m:5",
+    "mail_from": "load1@example.test",
+    "rcpt_template": "sink{n}@sink.test",
+    "mailboxes": 10,
+    "rcpts_per_message": 1,
+    "auth": false,
+    "pipelining": true,
+    "processes": 4,
+    "seed": 49,
+    "sink": "127.0.0.1:10365"
+  },
+  "machine": {
+    "cpu": {
+      "model": "AMD Ryzen 9 9950X 16-Core Processor",
+      "logical_cores": 32,
+      "physical_cores": 16,
+      "sockets": 1
+    },
+    "memory_bytes": 65939009536,
+    "os": {
+      "pretty": "Microsoft Windows 11 Pro",
+      "kernel": "10.0.26200"
+    },
+    "system_model": "Micro-Star International Co., Ltd. MS-7E48",
+    "virtualisation": "a hypervisor is present (Hyper-V/VBS may be on; the machine itself: Micro-Star International Co., Ltd. MS-7E48)",
+    "disk": {
+      "path": "C:\\HMTest\\Data",
+      "model": "CT2000T705SSD3",
+      "kind": "SSD",
+      "bus": "NVMe",
+      "filesystem": "NTFS",
+      "total_bytes": 1999284203520
+    },
+    "hostname": "Server1",
+    "python": "CPython 3.14.7"
+  },
+  "finished": "2026-10-07T05:15:05Z",
+  "generator": {
+    "processes": 4,
+    "cpu_seconds": [
+      1.14,
+      1.39,
+      1.05,
+      0.98
+    ],
+    "busy_fraction": [
+      0.045,
+      0.054,
+      0.041,
+      0.038
+    ]
+  },
+  "results": {
+    "accepted": 12000,
+    "failed": 0,
+    "errors": {},
+    "seconds": 25.616931915283203,
+    "accepted_per_second": 468.44,
+    "latency_ms": {
+      "n": 12000,
+      "mean": 66.93,
+      "min": 17.84,
+      "max": 429.97,
+      "p50": 64.16,
+      "p90": 76.59,
+      "p95": 90.86,
+      "p99": 109.94
+    },
+    "sink": {
+      "messages": 12000,
+      "run_messages": 12000,
+      "bytes": 898077138,
+      "connections": 12000,
+      "first": 1791350057.6804368,
+      "last": 1791350105.1571205,
+      "busiest_second": 522
+    },
+    "sink_complete": true,
+    "relayed_per_second_at_sink": 252.76,
+    "relayed_per_second_end_to_end": 252.12,
+    "end_to_end_latency_ms": {
+      "n": 12000,
+      "mean": 20002.69,
+      "min": 102.24,
+      "max": 41975.05,
+      "p50": 20801.29,
+      "p90": 31116.26,
+      "p95": 33508.6,
+      "p99": 38487.83
+    },
+    "server": {
+      "sampler": {
+        "method": "powershell",
+        "names": [
+          "hmailserver"
+        ],
+        "pids": [],
+        "include_children": false,
+        "cgroups": [],
+        "interval_seconds": 2.0,
+        "problem": null
+      },
+      "window": {
+        "samples": 28,
+        "processes": 1,
+        "rss_bytes_mean": 175039926,
+        "rss_bytes_peak": 175439872,
+        "private_bytes_mean": 145947940,
+        "private_bytes_peak": 146694144,
+        "cpu_cores_used": 2.537
+      }
+    }
+  }
+}

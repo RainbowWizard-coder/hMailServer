@@ -1,0 +1,27 @@
+95a96,98
+>         self.retry_after = 0.0
+>         self.rate_limited = 0
+>         self.rate_limited_seconds = 0.0
+102a106,119
+>         """_request_once, repeated after the server's Retry-After while it
+>         answers 429 (the REST API's per-credential rate limit). Only the
+>         request that is answered is timed; the waits are counted."""
+>         while True:
+>             status, data, seconds, size = self._request_once(method, path, body, headers)
+>             if status != 429 or self.rate_limited >= 1000:
+>                 return status, data, seconds, size
+>             wait = self.retry_after or 10.0
+>             self.rate_limited += 1
+>             self.rate_limited_seconds += wait
+>             sys.stderr.write("429 on %s %s: waiting %.1f s (Retry-After) and asking again\n" % (method, path.split("?")[0], wait))
+>             time.sleep(wait + 0.25)
+> 
+>     def _request_once(self, method, path, body=None, headers=None):
+130a148,151
+>             try:
+>                 self.retry_after = float(response.getheader("Retry-After", "0") or 0)
+>             except ValueError:
+>                 self.retry_after = 0.0
+298a320,321
+>     result["rate_limited"] = {"refusals_waited_out": client.rate_limited, "seconds_waited": round(client.rate_limited_seconds, 1),
+>                               "note": "429s repeated after Retry-After; neither the refusal nor the wait is in any time above"}

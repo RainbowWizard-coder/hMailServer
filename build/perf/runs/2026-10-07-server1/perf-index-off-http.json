@@ -1,0 +1,133 @@
+{
+  "label": "bench, SQL CE, 100k, index off",
+  "when": "2026-10-07T00:58:47Z",
+  "base": "http://127.0.0.1:9530",
+  "folder": "INBOX",
+  "client": "Windows-11-10.0.26200-SP0",
+  "http": {
+    "open": {
+      "folder_id": 51913,
+      "total": 100000,
+      "page_rows": 200,
+      "page_bytes": 136076,
+      "first_ms": 36.5,
+      "warm": {
+        "n": 5,
+        "total_ms": 41.1,
+        "median_ms": 8.0,
+        "p95_ms": 9.2,
+        "max_ms": 9.2
+      },
+      "folder_tree_first_ms": 1542.8,
+      "folder_tree": {
+        "n": 5,
+        "total_ms": 7.6,
+        "median_ms": 1.5,
+        "p95_ms": 1.6,
+        "max_ms": 1.6
+      },
+      "change_probe": {
+        "n": 5,
+        "total_ms": 6.7,
+        "median_ms": 1.3,
+        "p95_ms": 1.4,
+        "max_ms": 1.4
+      }
+    },
+    "scroll": {
+      "oldest_ms": 34.2,
+      "oldest_rows": 200,
+      "walk": {
+        "n": 500,
+        "total_ms": 16851.3,
+        "median_ms": 33.5,
+        "p95_ms": 37.2,
+        "max_ms": 41.1
+      },
+      "walk_rows": 100000,
+      "walk_wall_ms": 37639.5,
+      "walk_reached_end": true
+    },
+    "search": {
+      "body_word_in_folder": {
+        "requests": 50,
+        "first_ms": 241.4,
+        "all": {
+          "n": 50,
+          "total_ms": 12146.7,
+          "median_ms": 242.2,
+          "p95_ms": 254.0,
+          "max_ms": 259.9
+        },
+        "hits": 100,
+        "scanned": 100000,
+        "complete": true
+      },
+      "body_word_everywhere": {
+        "requests": 50,
+        "first_ms": 248.3,
+        "all": {
+          "n": 50,
+          "total_ms": 12238.6,
+          "median_ms": 244.5,
+          "p95_ms": 255.1,
+          "max_ms": 262.2
+        },
+        "hits": 100,
+        "scanned": 100000,
+        "complete": true
+      },
+      "subject_word_in_folder": {
+        "requests": 50,
+        "first_ms": 247.3,
+        "all": {
+          "n": 50,
+          "total_ms": 12220.5,
+          "median_ms": 243.9,
+          "p95_ms": 257.6,
+          "max_ms": 260.4
+        },
+        "hits": 1000,
+        "scanned": 100000,
+        "complete": true
+      }
+    },
+    "select_all": {
+      "flag": "keyword",
+      "max_uid": 100000,
+      "set": {
+        "wall_ms": 38225.4,
+        "requests": 100,
+        "per_request": {
+          "n": 100,
+          "total_ms": 38221.5,
+          "median_ms": 341.1,
+          "p95_ms": 485.3,
+          "max_ms": 491.3
+        },
+        "done": 100000,
+        "unchanged": 0,
+        "failed": 0
+      },
+      "cleared": {
+        "wall_ms": 37817.1,
+        "requests": 100,
+        "per_request": {
+          "n": 100,
+          "total_ms": 37813.3,
+          "median_ms": 340.0,
+          "p95_ms": 503.3,
+          "max_ms": 516.4
+        },
+        "done": 100000,
+        "unchanged": 0,
+        "failed": 0
+      }
+    },
+    "rate_limited": {
+      "refusals_waited_out": 2,
+      "seconds_waited": 20.0,
+      "note": "429s repeated after Retry-After; neither the refusal nor the wait is in any time above"
+    }
+  }
+}

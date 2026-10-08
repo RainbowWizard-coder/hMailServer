@@ -6,8 +6,8 @@ rather than assumed: how long it takes to open the folder, to reach its end, to
 search it and to select all of it and change every message. This page is the
 method, the tools that make and time such a folder, and the table the numbers go
 in. **The table is filled in from the bench and from nowhere else**: a cell that
-says *to be measured on the bench* has not been measured, and no number on this
-page was estimated.
+says *to be measured on the bench* has no measurement that may stand there yet -
+the results say why - and no number on this page was estimated.
 
 The four operations, and what each costs the server
 ---------------------------------------------------
@@ -140,18 +140,37 @@ subject of every 100th (1,000 hits).
 the REST calls the page makes, timed from the client with nothing else in the
 way; and `--mode browser`, the page itself in headless Chromium through
 Playwright, from an action to the rows it asked for being drawn. Its header
-lists exactly what each measure is. The HTTP select-all adds a keyword to every
-message and takes it off again, so the folder is left as it was; the browser's
-presses *Mark as read*, which leaves the folder read, after which a second
-*Mark as read* changes nothing ("a message that already has the flag is left alone
-and costs nothing"). So the browser's select-all runs once, last, with the index
-on - the index takes no part in a flag change - and the index-off pass leaves it
-out (`--no-bulk`). The browser runs with the account's inbox in one list, its
-`inbox` preference set for the run and put back afterwards: in tabs, an account's
-default, the box selects the open tab alone, and *Mark as read* would change the
-Primary tab's messages, three in five of the folder at seed 49, not the folder's.
-It signs in again to put the preference back when its first session has ended
-while the browser ran, and says so on standard error when it cannot.
+lists exactly what each measure is. It asks for the folder tree before the
+folder's first page, as the page does, and after a restart that request is the
+one that reads the folder from the database - the tree counts each folder - so
+the cold read is in the row *folder tree, first time*, and the first page after
+it is already warm.
+
+The REST API refuses a credential's 201st request in ten seconds with 429
+(`RestApiServer.cpp`), and the HTTP pass's walk of 500 pages passes that: the
+tool asks again after the answer's `Retry-After`, keeps the refused request and
+the wait out of every time, wall times included, and says so under its table
+and in the JSON's `waits`. A session that has ended is signed in again and the
+request asked again, the same way. A search that fails - an answer cut short, a
+timeout, a status other than 200 - is recorded in its cells ("failed at request
+N after T ms") and the run goes on, the tool ending with 1 once it has written
+everything; the browser loads the page again, signing in again if it asks,
+before its select-all. Until 8 October 2026 a 429 or a failed search ended the
+run. `webmail-timing.py --self-test` puts all of this against a REST listener of
+its own on the loopback.
+
+The HTTP select-all adds a keyword to every message and takes it off again, so
+the folder is left as it was; the browser's presses *Mark as read*, which leaves
+the folder read, after which a second *Mark as read* changes nothing ("a message
+that already has the flag is left alone and costs nothing"). So the browser's
+select-all runs once, last, with the index on - the index takes no part in a
+flag change - and the index-off pass leaves it out (`--no-bulk`). The browser
+runs with the account's inbox in one list, its `inbox` preference set for the
+run and put back afterwards: in tabs, an account's default, the box selects the
+open tab alone, and *Mark as read* would change the Primary tab's messages,
+three in five of the folder at seed 49, not the folder's. It signs in again to
+put the preference back when its first session has ended while the browser ran,
+and says so on standard error when it cannot.
 
 Record with the numbers: the machine, the database (SQL Server Compact, MySQL,
 PostgreSQL or SQL Server), the message store (disk, encrypted, object store),
@@ -176,7 +195,10 @@ PowerShell 7, as an administrator:
 # Python Software Foundation's own package on nuget.org, at the version and SHA-256
 # libraries\get-libpq-tools.ps1 pins, unpacked into a folder of its own; nothing is
 # installed. Then, for --mode browser, Playwright, pinned with every file's hash,
-# and its Chromium.
+# and its Chromium - under C:\perf, never in the administrator's profile: the install
+# removes, from the folder it installs into, the browsers of every other Playwright
+# version, and on server1 on 7 October 2026 it removed the machine's owner's own.
+# PLAYWRIGHT_BROWSERS_PATH is set again in any other session that runs --mode browser.
 $ProgressPreference = 'SilentlyContinue'
 New-Item -ItemType Directory -Force C:\perf\results | Out-Null
 $nupkg = "$env:TEMP\python.3.14.7.zip"
@@ -186,6 +208,7 @@ Expand-Archive $nupkg C:\perf\python-package; Move-Item C:\perf\python-package\t
 $py = 'C:\perf\python\python.exe'
 & $py -m ensurepip --default-pip
 & $py -m pip install --require-hashes -r build\requirements-dev.txt
+$env:PLAYWRIGHT_BROWSERS_PATH = 'C:\perf\ms-playwright'
 & $py -m playwright install chromium
 
 # The REST listener on 127.0.0.1:9530 and a throwaway account, as the README shots use.
@@ -212,10 +235,11 @@ Restart-Service hMailServer; Start-Sleep -Seconds 300
 & $py build\perf\webmail-timing.py --user self@uicheck.test --mode browser --no-bulk `
     --label "bench, SQL CE, 100k, index off" --json C:\perf\results\perf-index-off-browser.json --markdown C:\perf\results\perf-index-off-browser.md
 
-# Index on: message indexing and the full-text index. Run the probe until the JSON's
-# http.search.body_word_in_folder says "complete": true, "hits": 100 and "opened": 100
-# - the search followed to its end opened no message but the hundred that hold the
-# word, so the index has read every other one (why: under the recipe). Not
+# Index on: message indexing and the full-text index. Run the probe every ten minutes,
+# not more often, until the JSON's http.search.body_word_in_folder says
+# "complete": true, "hits": 100 and "opened": 100 - the search followed to its end
+# opened no message but the hundred that hold the word, so the index has read every
+# other one (why, and why ten minutes: under the recipe). Not
 # MessageIndexing.TotalIndexedCount: that counts the metadata index, which reaches the
 # folder's size long before the full-text index has read it.
 $app = New-Object -ComObject hMailServer.Application; $null = $app.Authenticate('Administrator', 'testar')
@@ -254,6 +278,14 @@ request asked the whole account's index first; a request now asks it two hundred
 messages at a time under its own clock, so on SQL Server Compact a hundred
 thousand take several requests whether the index has caught up or not.
 
+Why ten minutes: SQL Server Compact has one connection, and the probe's searches
+share it with the indexer. On 6.3.6, where each of those searches held it for 75
+to 180 seconds, a probe a minute stalled the indexer - 47 `HM5180` and `HM6260`
+errors - and a probe every ten minutes let it work. On the fixed build a probe of
+all three searches took 38 to 132 seconds while the index was being built, and
+one about every six and a half minutes left the indexer without an error until it
+had caught up, 2,343 seconds after it was turned on (server1, 7 October 2026).
+
 **On Linux** the same two scripts run unchanged against a server with the REST
 listener on, with the same `HMPERF_PASSWORD`: `--base https://host:port --insecure`
 for a listener with its own certificate, `--port 993 --tls --insecure` for IMAPS.
@@ -272,37 +304,82 @@ Windows bench, SQL Server Compact, message store on disk, 100,000 messages in
 the inbox (seed 49), logging off. The rows are the ones `webmail-timing.py
 --markdown` writes, in its order; it writes one *Result* column a run, so each
 column here is copied, cell by cell, from that pass's two tables, HTTP and
-browser. The first time is the first after a restart, as the recipe runs it. The
-browser's select-all is measured once, with the index on; its index-off cell is
-"-".
+browser. The HTTP pass's first time is the first after a restart, as the recipe
+runs it; the browser pass follows it without one, so its first time is not cold.
+The browser's select-all is measured once, with the index on; its index-off cell
+is "-".
+
+**The full-text index off: measured on server1 on 7 October 2026**, against
+hMailServer 6.3.6 (the tag, e3c448aa6) in a Release build made on the bench,
+with SQL Server Compact 4.0. The machine, as the tools recorded it: an MSI
+MS-7E48, a physical machine with Windows' hypervisor present (Hyper-V and
+virtualisation-based security), with an AMD Ryzen 9 9950X (16 cores, 32
+logical), 61.4 GiB of RAM and Windows 11 Pro 10.0.26200, the data folder on an
+NVMe SSD (CT2000T705SSD3, NTFS); the tools ran on it too, under CPython 3.14.7.
+The machine's owner's own programs ran beside them, idle - other processes used
+at most 2.62 % of its logical cores in the samples taken before and after each
+pass - and no gate or pipeline job did. The service was restarted at 00:53:36
+UTC and left five minutes; `--mode http` ran from 00:58:47 to 01:01:19 and
+`--mode browser --no-bulk` from 01:01:29 to 01:01:48. Each pass's JSON and table
+are kept in `build/perf/runs/2026-10-07-server1/` (`perf-index-off-http`,
+`perf-index-off-browser`), with the seeding's summary (`seed.json`).
 
 | Operation | Mode | Measure | Full-text index off | Full-text index on |
 |---|---|---|---|---|
-| Open | HTTP | first page, first time (ms) | to be measured on the bench | to be measured on the bench |
-| Open | HTTP | first page, warm median (ms) | to be measured on the bench | to be measured on the bench |
-| Open | HTTP | folder tree, warm median (ms) | to be measured on the bench | to be measured on the bench |
-| Scroll | HTTP | Oldest page in one step (ms) | to be measured on the bench | to be measured on the bench |
-| Scroll | HTTP | every page by Older: pages / total (ms) | to be measured on the bench | to be measured on the bench |
-| Scroll | HTTP | one Older page, median / p95 (ms) | to be measured on the bench | to be measured on the bench |
-| Search | HTTP | body word, folder: first answer (ms) | to be measured on the bench | to be measured on the bench |
-| Search | HTTP | body word, folder: to the end - requests / total (ms) / hits | to be measured on the bench | to be measured on the bench |
-| Search | HTTP | body word, every folder: first answer (ms) | to be measured on the bench | to be measured on the bench |
-| Search | HTTP | body word, every folder: to the end - requests / total (ms) / hits | to be measured on the bench | to be measured on the bench |
-| Search | HTTP | subject word, folder: first answer (ms) | to be measured on the bench | to be measured on the bench |
-| Search | HTTP | subject word, folder: to the end - requests / total (ms) / hits | to be measured on the bench | to be measured on the bench |
-| Select-all + flag | HTTP | keyword set: requests / wall (ms) / changed | to be measured on the bench | to be measured on the bench |
-| Select-all + flag | HTTP | keyword cleared: requests / wall (ms) | to be measured on the bench | to be measured on the bench |
-| Open | Browser | rows drawn, first time (ms) | to be measured on the bench | to be measured on the bench |
-| Open | Browser | rows drawn, warm median (ms) | to be measured on the bench | to be measured on the bench |
-| Scroll | Browser | list to its foot (ms) | to be measured on the bench | to be measured on the bench |
-| Scroll | Browser | Oldest pressed to rows drawn (ms) | to be measured on the bench | to be measured on the bench |
-| Scroll | Browser | one Older press, median (ms) | to be measured on the bench | to be measured on the bench |
-| Search | Browser | first answer drawn (ms) | to be measured on the bench | to be measured on the bench |
-| Search | Browser | to the end (ms) / continuations | to be measured on the bench | to be measured on the bench |
+| Open | HTTP | folder tree, first time (ms) | 1542.8 [a] | to be measured on the bench |
+| Open | HTTP | first page, first time (ms) | 36.5 [a] | to be measured on the bench |
+| Open | HTTP | first page, warm median (ms) | 8.0 | to be measured on the bench |
+| Open | HTTP | folder tree, warm median (ms) | 1.5 | to be measured on the bench |
+| Scroll | HTTP | Oldest page in one step (ms) | 34.2 | to be measured on the bench |
+| Scroll | HTTP | every page by Older: pages / total (ms) | 500 / 16851.3 [b] | to be measured on the bench |
+| Scroll | HTTP | one Older page, median / p95 (ms) | 33.5 / 37.2 | to be measured on the bench |
+| Search | HTTP | body word, folder: first answer (ms) | 241.4 | to be measured on the bench |
+| Search | HTTP | body word, folder: to the end - requests / total (ms) / hits | 50 / 12146.7 / 100 | to be measured on the bench |
+| Search | HTTP | body word, every folder: first answer (ms) | 248.3 | to be measured on the bench |
+| Search | HTTP | body word, every folder: to the end - requests / total (ms) / hits | 50 / 12238.6 / 100 | to be measured on the bench |
+| Search | HTTP | subject word, folder: first answer (ms) | 247.3 | to be measured on the bench |
+| Search | HTTP | subject word, folder: to the end - requests / total (ms) / hits | 50 / 12220.5 / 1000 | to be measured on the bench |
+| Select-all + flag | HTTP | keyword set: requests / wall (ms) / changed | 100 / 38225.4 / 100000 | to be measured on the bench |
+| Select-all + flag | HTTP | keyword cleared: requests / wall (ms) | 100 / 37817.1 | to be measured on the bench |
+| Open | Browser | rows drawn, first time (ms) | 75.3 | to be measured on the bench |
+| Open | Browser | rows drawn, warm median (ms) | 82.4 | to be measured on the bench |
+| Scroll | Browser | list to its foot (ms) | 5.2 | to be measured on the bench |
+| Scroll | Browser | Oldest pressed to rows drawn (ms) | 128.2 | to be measured on the bench |
+| Scroll | Browser | one Older press, median (ms) | 134.0 | to be measured on the bench |
+| Search | Browser | first answer drawn (ms) | 329.1 | to be measured on the bench |
+| Search | Browser | to the end (ms) / continuations | 15146.3 / 49 | to be measured on the bench |
 | Select-all + flag | Browser | Mark as read over the folder, wall (ms) | - | to be measured on the bench |
 
-Seeding itself, for the record: messages a second over one connection
-(`per_second` in `seed-folder.py`'s summary), and the bytes stored, read from the
-server afterwards (`(Get-ChildItem <DataFolder>\uicheck.test -Recurse -File |
+[a] The cold read is in the folder tree's first request, which the HTTP pass
+makes before the folder's first page, as the page does: it read the folder from
+the database. The tool of 6.3.6 recorded it in its JSON (`folder_tree_first_ms`)
+and left it out of its table, where it has been since 8 October 2026; its cell
+here is read from the pass's JSON. The first page's first time came after it,
+warm, and is not the cold open.
+
+[b] 6.3.6's tool ended at the first 429, and the walk reached one: the REST API
+refuses a credential's 201st request in ten seconds. The HTTP pass ran the tool
+with one change, the wait for `Retry-After` that the tool now makes itself: the
+walk was refused twice and waited out 20 seconds, which are in no time here, and
+its total is the sum of the 500 answered requests' times, the tool's own
+definition. The browser pass ran the tool of 6.3.6 as it was. A first attempt at
+the pass, whose HTTP half had ended at the 429, was set aside, and the whole
+pass made again after a fresh restart.
+
+**The full-text index on is to be measured.** On 6.3.6 with SQL Server Compact a
+search with the index on took 75 to 180 seconds a request, and the listener's
+request deadline then cut an answer over 64 KB after its first 64 KB: the eight
+search cells failed, and the browser's search never drew. Both are fixed since
+(`CHANGELOG.md`, Unreleased, and "Searching" above). The other fourteen cells
+were measured that day, but the probe never answered complete - on that build it
+could not - so the recipe's condition that the index had caught up was never
+shown, and they are not published. The column waits for a run of the recipe on a
+build with the fixes, from a fresh seed: the browser's *Mark as read* left that
+folder read.
+
+Seeding itself, for the record: 436.1 messages a second over one connection
+(`per_second` in `seed-folder.py`'s summary, 229.3 seconds for the hundred
+thousand), and 1,322,787,827 bytes stored in 100,000 files, read from the server
+afterwards (`(Get-ChildItem <DataFolder>\uicheck.test -Recurse -File |
 Measure-Object Length -Sum).Sum`, the `DataFolder` of `hMailServer.ini`,
-`C:\HMTest\Data` on bench150) - *to be measured on the bench*.
+`C:\HMTest\Data` on the Windows benches) - the bytes `--dry-run` predicted.

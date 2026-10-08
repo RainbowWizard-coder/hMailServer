@@ -1,0 +1,795 @@
+{
+  "tool": "build/perf/load/loadgen.py",
+  "format": 1,
+  "mode": "imap-sessions",
+  "label": "Windows bench, run 0",
+  "notes": "MaxDeliveryThreads 10, the shipped default (the bench's regression setup keeps 50); logging off; anti-spam and anti-virus off server-wide",
+  "started": "2026-10-07T05:22:01Z",
+  "target": {
+    "server": "hMailServer 6.3.6, Windows, SQL Server Compact",
+    "host": "127.0.0.1",
+    "port": 143,
+    "tls": "none"
+  },
+  "parameters": {
+    "steps": [
+      25,
+      50,
+      100,
+      200,
+      400,
+      800,
+      1600
+    ],
+    "step_seconds": 30.0,
+    "settle_seconds": 5.0,
+    "ops": "noop:3,fetch-flags:3,fetch-header:2,fetch-body:1,idle:1",
+    "think_ms": 1000.0,
+    "idle_seconds": 5.0,
+    "users": 50,
+    "user_template": "load{n}@example.test",
+    "connect_rate": 50.0,
+    "latency_limit_ms": 200.0,
+    "latency_percentile": 95.0,
+    "max_error_rate": 0.0,
+    "processes": 4,
+    "seed": 49
+  },
+  "machine": {
+    "cpu": {
+      "model": "AMD Ryzen 9 9950X 16-Core Processor",
+      "logical_cores": 32,
+      "physical_cores": 16,
+      "sockets": 1
+    },
+    "memory_bytes": 65939009536,
+    "os": {
+      "pretty": "Microsoft Windows 11 Pro",
+      "kernel": "10.0.26200"
+    },
+    "system_model": "Micro-Star International Co., Ltd. MS-7E48",
+    "virtualisation": "a hypervisor is present (Hyper-V/VBS may be on; the machine itself: Micro-Star International Co., Ltd. MS-7E48)",
+    "disk": {
+      "path": "C:\\HMTest\\Data",
+      "model": "CT2000T705SSD3",
+      "kind": "SSD",
+      "bus": "NVMe",
+      "filesystem": "NTFS",
+      "total_bytes": 1999284203520
+    },
+    "hostname": "Server1",
+    "python": "CPython 3.14.7"
+  },
+  "finished": "2026-10-07T05:27:00Z",
+  "generator": {
+    "processes": 4,
+    "cpu_seconds": [
+      8.69,
+      7.53,
+      8.02,
+      8.27
+    ],
+    "busy_fraction": [
+      0.03,
+      0.026,
+      0.028,
+      0.028
+    ]
+  },
+  "results": {
+    "server_cores": 32,
+    "best_sessions": 1600,
+    "sessions_per_core": 50.0,
+    "memory_per_session_bytes": 253691,
+    "memory_figure": "private bytes",
+    "memory_points": [
+      [
+        0,
+        146038784
+      ],
+      [
+        25,
+        161091037
+      ],
+      [
+        50,
+        172662784
+      ],
+      [
+        100,
+        182592307
+      ],
+      [
+        200,
+        206427477
+      ],
+      [
+        400,
+        256061986
+      ],
+      [
+        800,
+        356178329
+      ],
+      [
+        1600,
+        560564360
+      ]
+    ],
+    "baseline": {
+      "samples": 3,
+      "processes": 1,
+      "rss_bytes_mean": 174796800,
+      "rss_bytes_peak": 174796800,
+      "private_bytes_mean": 146038784,
+      "private_bytes_peak": 146038784,
+      "cpu_cores_used": 0.0
+    },
+    "steps": [
+      {
+        "sessions": 25,
+        "alive": 25,
+        "open_failures": 0,
+        "operations": 490,
+        "operations_per_second": 16.33,
+        "failed_operations": 0,
+        "errors": {},
+        "error_rate": 0.0,
+        "latency_ms": {
+          "n": 490,
+          "mean": 0.6,
+          "min": 0.09,
+          "max": 2.41,
+          "p50": 0.46,
+          "p90": 1.51,
+          "p95": 1.61,
+          "p99": 1.75
+        },
+        "latency_by_operation_ms": {
+          "fetch-body": {
+            "n": 55,
+            "mean": 0.6,
+            "min": 0.39,
+            "max": 2.41,
+            "p50": 0.53,
+            "p90": 0.65,
+            "p95": 0.77,
+            "p99": 2.34
+          },
+          "fetch-flags": {
+            "n": 117,
+            "mean": 1.49,
+            "min": 1.23,
+            "max": 1.83,
+            "p50": 1.48,
+            "p90": 1.66,
+            "p95": 1.72,
+            "p99": 1.78
+          },
+          "fetch-header": {
+            "n": 109,
+            "mean": 0.54,
+            "min": 0.38,
+            "max": 1.12,
+            "p50": 0.5,
+            "p90": 0.63,
+            "p95": 0.87,
+            "p99": 1.03
+          },
+          "idle": {
+            "n": 54,
+            "mean": 0.14,
+            "min": 0.09,
+            "max": 0.2,
+            "p50": 0.13,
+            "p90": 0.18,
+            "p95": 0.2,
+            "p99": 0.2
+          },
+          "noop": {
+            "n": 155,
+            "mean": 0.14,
+            "min": 0.09,
+            "max": 0.23,
+            "p50": 0.14,
+            "p90": 0.19,
+            "p95": 0.21,
+            "p99": 0.22
+          }
+        },
+        "login_ms": {
+          "n": 25,
+          "mean": 1028.57,
+          "min": 212.98,
+          "max": 1386.14,
+          "p50": 1016.86,
+          "p90": 1349.94,
+          "p95": 1360.46,
+          "p99": 1380.29
+        },
+        "percentile_measured_ms": 1.61,
+        "passed": true,
+        "server": {
+          "samples": 15,
+          "processes": 1,
+          "rss_bytes_mean": 189024119,
+          "rss_bytes_peak": 189038592,
+          "private_bytes_mean": 161091037,
+          "private_bytes_peak": 161095680,
+          "cpu_cores_used": 0.009
+        }
+      },
+      {
+        "sessions": 50,
+        "alive": 50,
+        "open_failures": 0,
+        "operations": 979,
+        "operations_per_second": 32.63,
+        "failed_operations": 0,
+        "errors": {},
+        "error_rate": 0.0,
+        "latency_ms": {
+          "n": 979,
+          "mean": 0.66,
+          "min": 0.06,
+          "max": 12.41,
+          "p50": 0.45,
+          "p90": 1.51,
+          "p95": 1.6,
+          "p99": 1.93
+        },
+        "latency_by_operation_ms": {
+          "fetch-body": {
+            "n": 85,
+            "mean": 0.59,
+            "min": 0.4,
+            "max": 2.22,
+            "p50": 0.49,
+            "p90": 0.6,
+            "p95": 1.78,
+            "p99": 2.19
+          },
+          "fetch-flags": {
+            "n": 289,
+            "mean": 1.47,
+            "min": 1.23,
+            "max": 2.55,
+            "p50": 1.45,
+            "p90": 1.63,
+            "p95": 1.69,
+            "p99": 2.05
+          },
+          "fetch-header": {
+            "n": 202,
+            "mean": 0.57,
+            "min": 0.32,
+            "max": 12.41,
+            "p50": 0.48,
+            "p90": 0.61,
+            "p95": 0.67,
+            "p99": 1.08
+          },
+          "idle": {
+            "n": 104,
+            "mean": 0.12,
+            "min": 0.07,
+            "max": 0.21,
+            "p50": 0.12,
+            "p90": 0.15,
+            "p95": 0.17,
+            "p99": 0.21
+          },
+          "noop": {
+            "n": 299,
+            "mean": 0.13,
+            "min": 0.06,
+            "max": 0.43,
+            "p50": 0.13,
+            "p90": 0.18,
+            "p95": 0.2,
+            "p99": 0.22
+          }
+        },
+        "login_ms": {
+          "n": 25,
+          "mean": 960.16,
+          "min": 164.07,
+          "max": 1423.23,
+          "p50": 1006.73,
+          "p90": 1314.09,
+          "p95": 1345.93,
+          "p99": 1406.34
+        },
+        "percentile_measured_ms": 1.6,
+        "passed": true,
+        "server": {
+          "samples": 15,
+          "processes": 1,
+          "rss_bytes_mean": 199995665,
+          "rss_bytes_peak": 200003584,
+          "private_bytes_mean": 172662784,
+          "private_bytes_peak": 172666880,
+          "cpu_cores_used": 0.021
+        }
+      },
+      {
+        "sessions": 100,
+        "alive": 100,
+        "open_failures": 0,
+        "operations": 1987,
+        "operations_per_second": 66.23,
+        "failed_operations": 0,
+        "errors": {},
+        "error_rate": 0.0,
+        "latency_ms": {
+          "n": 1987,
+          "mean": 0.62,
+          "min": 0.05,
+          "max": 8.21,
+          "p50": 0.43,
+          "p90": 1.44,
+          "p95": 1.51,
+          "p99": 1.74
+        },
+        "latency_by_operation_ms": {
+          "fetch-body": {
+            "n": 215,
+            "mean": 0.52,
+            "min": 0.35,
+            "max": 2.62,
+            "p50": 0.47,
+            "p90": 0.59,
+            "p95": 0.65,
+            "p99": 2.14
+          },
+          "fetch-flags": {
+            "n": 586,
+            "mean": 1.43,
+            "min": 1.16,
+            "max": 8.21,
+            "p50": 1.39,
+            "p90": 1.56,
+            "p95": 1.65,
+            "p99": 1.81
+          },
+          "fetch-header": {
+            "n": 395,
+            "mean": 0.48,
+            "min": 0.35,
+            "max": 1.15,
+            "p50": 0.44,
+            "p90": 0.55,
+            "p95": 0.88,
+            "p99": 1.05
+          },
+          "idle": {
+            "n": 208,
+            "mean": 0.11,
+            "min": 0.05,
+            "max": 0.22,
+            "p50": 0.11,
+            "p90": 0.14,
+            "p95": 0.15,
+            "p99": 0.18
+          },
+          "noop": {
+            "n": 583,
+            "mean": 0.12,
+            "min": 0.06,
+            "max": 0.27,
+            "p50": 0.11,
+            "p90": 0.14,
+            "p95": 0.16,
+            "p99": 0.19
+          }
+        },
+        "login_ms": {
+          "n": 50,
+          "mean": 309.99,
+          "min": 96.46,
+          "max": 657.39,
+          "p50": 333.83,
+          "p90": 437.11,
+          "p95": 492.41,
+          "p99": 611.68
+        },
+        "percentile_measured_ms": 1.51,
+        "passed": true,
+        "server": {
+          "samples": 15,
+          "processes": 1,
+          "rss_bytes_mean": 209443498,
+          "rss_bytes_peak": 209940480,
+          "private_bytes_mean": 182592307,
+          "private_bytes_peak": 182673408,
+          "cpu_cores_used": 0.057
+        }
+      },
+      {
+        "sessions": 200,
+        "alive": 200,
+        "open_failures": 0,
+        "operations": 3991,
+        "operations_per_second": 133.03,
+        "failed_operations": 0,
+        "errors": {},
+        "error_rate": 0.0,
+        "latency_ms": {
+          "n": 3991,
+          "mean": 0.61,
+          "min": 0.06,
+          "max": 6.06,
+          "p50": 0.41,
+          "p90": 1.44,
+          "p95": 1.52,
+          "p99": 1.75
+        },
+        "latency_by_operation_ms": {
+          "fetch-body": {
+            "n": 402,
+            "mean": 0.55,
+            "min": 0.29,
+            "max": 6.06,
+            "p50": 0.44,
+            "p90": 0.56,
+            "p95": 1.84,
+            "p99": 2.14
+          },
+          "fetch-flags": {
+            "n": 1194,
+            "mean": 1.41,
+            "min": 1.16,
+            "max": 2.13,
+            "p50": 1.39,
+            "p90": 1.56,
+            "p95": 1.63,
+            "p99": 1.82
+          },
+          "fetch-header": {
+            "n": 803,
+            "mean": 0.45,
+            "min": 0.3,
+            "max": 1.24,
+            "p50": 0.42,
+            "p90": 0.52,
+            "p95": 0.59,
+            "p99": 1.02
+          },
+          "idle": {
+            "n": 399,
+            "mean": 0.1,
+            "min": 0.06,
+            "max": 0.22,
+            "p50": 0.1,
+            "p90": 0.13,
+            "p95": 0.14,
+            "p99": 0.17
+          },
+          "noop": {
+            "n": 1193,
+            "mean": 0.11,
+            "min": 0.06,
+            "max": 0.24,
+            "p50": 0.11,
+            "p90": 0.14,
+            "p95": 0.15,
+            "p99": 0.18
+          }
+        },
+        "login_ms": {
+          "n": 100,
+          "mean": 483.74,
+          "min": 73.25,
+          "max": 1057.93,
+          "p50": 500.5,
+          "p90": 762.33,
+          "p95": 857.97,
+          "p99": 951.52
+        },
+        "percentile_measured_ms": 1.52,
+        "passed": true,
+        "server": {
+          "samples": 15,
+          "processes": 1,
+          "rss_bytes_mean": 231059456,
+          "rss_bytes_peak": 231153664,
+          "private_bytes_mean": 206427477,
+          "private_bytes_peak": 206512128,
+          "cpu_cores_used": 0.09
+        }
+      },
+      {
+        "sessions": 400,
+        "alive": 400,
+        "open_failures": 0,
+        "operations": 8071,
+        "operations_per_second": 269.03,
+        "failed_operations": 0,
+        "errors": {},
+        "error_rate": 0.0,
+        "latency_ms": {
+          "n": 8071,
+          "mean": 0.6,
+          "min": 0.05,
+          "max": 2.59,
+          "p50": 0.39,
+          "p90": 1.42,
+          "p95": 1.52,
+          "p99": 1.8
+        },
+        "latency_by_operation_ms": {
+          "fetch-body": {
+            "n": 819,
+            "mean": 0.52,
+            "min": 0.33,
+            "max": 2.59,
+            "p50": 0.43,
+            "p90": 0.55,
+            "p95": 1.85,
+            "p99": 2.25
+          },
+          "fetch-flags": {
+            "n": 2463,
+            "mean": 1.39,
+            "min": 1.08,
+            "max": 2.47,
+            "p50": 1.36,
+            "p90": 1.57,
+            "p95": 1.66,
+            "p99": 1.87
+          },
+          "fetch-header": {
+            "n": 1606,
+            "mean": 0.44,
+            "min": 0.3,
+            "max": 1.2,
+            "p50": 0.4,
+            "p90": 0.52,
+            "p95": 0.86,
+            "p99": 1.0
+          },
+          "idle": {
+            "n": 798,
+            "mean": 0.1,
+            "min": 0.05,
+            "max": 0.38,
+            "p50": 0.1,
+            "p90": 0.12,
+            "p95": 0.13,
+            "p99": 0.15
+          },
+          "noop": {
+            "n": 2385,
+            "mean": 0.1,
+            "min": 0.05,
+            "max": 0.32,
+            "p50": 0.1,
+            "p90": 0.13,
+            "p95": 0.14,
+            "p99": 0.17
+          }
+        },
+        "login_ms": {
+          "n": 200,
+          "mean": 811.68,
+          "min": 77.69,
+          "max": 1663.88,
+          "p50": 819.77,
+          "p90": 1291.18,
+          "p95": 1381.35,
+          "p99": 1490.12
+        },
+        "percentile_measured_ms": 1.52,
+        "passed": true,
+        "server": {
+          "samples": 15,
+          "processes": 1,
+          "rss_bytes_mean": 277032413,
+          "rss_bytes_peak": 277532672,
+          "private_bytes_mean": 256061986,
+          "private_bytes_peak": 256585728,
+          "cpu_cores_used": 0.158
+        }
+      },
+      {
+        "sessions": 800,
+        "alive": 800,
+        "open_failures": 0,
+        "operations": 15996,
+        "operations_per_second": 533.2,
+        "failed_operations": 0,
+        "errors": {},
+        "error_rate": 0.0,
+        "latency_ms": {
+          "n": 15996,
+          "mean": 0.58,
+          "min": 0.05,
+          "max": 3.33,
+          "p50": 0.38,
+          "p90": 1.41,
+          "p95": 1.52,
+          "p99": 1.77
+        },
+        "latency_by_operation_ms": {
+          "fetch-body": {
+            "n": 1615,
+            "mean": 0.5,
+            "min": 0.27,
+            "max": 3.33,
+            "p50": 0.41,
+            "p90": 0.53,
+            "p95": 1.62,
+            "p99": 1.98
+          },
+          "fetch-flags": {
+            "n": 4767,
+            "mean": 1.38,
+            "min": 0.99,
+            "max": 2.4,
+            "p50": 1.35,
+            "p90": 1.58,
+            "p95": 1.67,
+            "p99": 1.89
+          },
+          "fetch-header": {
+            "n": 3188,
+            "mean": 0.43,
+            "min": 0.28,
+            "max": 1.82,
+            "p50": 0.39,
+            "p90": 0.49,
+            "p95": 0.57,
+            "p99": 1.01
+          },
+          "idle": {
+            "n": 1590,
+            "mean": 0.09,
+            "min": 0.05,
+            "max": 0.19,
+            "p50": 0.09,
+            "p90": 0.12,
+            "p95": 0.12,
+            "p99": 0.14
+          },
+          "noop": {
+            "n": 4836,
+            "mean": 0.09,
+            "min": 0.05,
+            "max": 1.48,
+            "p50": 0.09,
+            "p90": 0.12,
+            "p95": 0.13,
+            "p99": 0.15
+          }
+        },
+        "login_ms": {
+          "n": 400,
+          "mean": 1574.49,
+          "min": 77.65,
+          "max": 3231.19,
+          "p50": 1584.29,
+          "p90": 2697.43,
+          "p95": 2838.16,
+          "p99": 2978.16
+        },
+        "percentile_measured_ms": 1.52,
+        "passed": true,
+        "server": {
+          "samples": 15,
+          "processes": 1,
+          "rss_bytes_mean": 370986734,
+          "rss_bytes_peak": 371322880,
+          "private_bytes_mean": 356178329,
+          "private_bytes_peak": 356212736,
+          "cpu_cores_used": 0.338
+        }
+      },
+      {
+        "sessions": 1600,
+        "alive": 1600,
+        "open_failures": 0,
+        "operations": 32304,
+        "operations_per_second": 1076.8,
+        "failed_operations": 0,
+        "errors": {},
+        "error_rate": 0.0,
+        "latency_ms": {
+          "n": 32304,
+          "mean": 0.6,
+          "min": 0.04,
+          "max": 3.13,
+          "p50": 0.37,
+          "p90": 1.46,
+          "p95": 1.62,
+          "p99": 2.04
+        },
+        "latency_by_operation_ms": {
+          "fetch-body": {
+            "n": 3219,
+            "mean": 0.49,
+            "min": 0.29,
+            "max": 2.71,
+            "p50": 0.4,
+            "p90": 0.52,
+            "p95": 0.74,
+            "p99": 2.12
+          },
+          "fetch-flags": {
+            "n": 9805,
+            "mean": 1.42,
+            "min": 0.98,
+            "max": 3.13,
+            "p50": 1.36,
+            "p90": 1.71,
+            "p95": 1.88,
+            "p99": 2.31
+          },
+          "fetch-header": {
+            "n": 6481,
+            "mean": 0.42,
+            "min": 0.24,
+            "max": 1.6,
+            "p50": 0.38,
+            "p90": 0.49,
+            "p95": 0.63,
+            "p99": 0.98
+          },
+          "idle": {
+            "n": 3127,
+            "mean": 0.09,
+            "min": 0.05,
+            "max": 0.42,
+            "p50": 0.08,
+            "p90": 0.11,
+            "p95": 0.12,
+            "p99": 0.15
+          },
+          "noop": {
+            "n": 9672,
+            "mean": 0.09,
+            "min": 0.04,
+            "max": 1.58,
+            "p50": 0.09,
+            "p90": 0.12,
+            "p95": 0.13,
+            "p99": 0.15
+          }
+        },
+        "login_ms": {
+          "n": 800,
+          "mean": 2713.01,
+          "min": 83.9,
+          "max": 5595.85,
+          "p50": 2615.31,
+          "p90": 4882.51,
+          "p95": 5145.89,
+          "p99": 5413.35
+        },
+        "percentile_measured_ms": 1.62,
+        "passed": true,
+        "server": {
+          "samples": 15,
+          "processes": 1,
+          "rss_bytes_mean": 563460778,
+          "rss_bytes_peak": 568213504,
+          "private_bytes_mean": 560564360,
+          "private_bytes_peak": 568471552,
+          "cpu_cores_used": 0.629
+        }
+      }
+    ],
+    "server": {
+      "sampler": {
+        "method": "powershell",
+        "names": [
+          "hmailserver"
+        ],
+        "pids": [],
+        "include_children": false,
+        "cgroups": [],
+        "interval_seconds": 2.0,
+        "problem": null
+      }
+    }
+  }
+}

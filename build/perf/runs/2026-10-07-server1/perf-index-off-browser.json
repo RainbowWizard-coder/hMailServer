@@ -1,0 +1,37 @@
+{
+  "label": "bench, SQL CE, 100k, index off",
+  "when": "2026-10-07T01:01:29Z",
+  "base": "http://127.0.0.1:9530",
+  "folder": "INBOX",
+  "client": "Windows-11-10.0.26200-SP0",
+  "browser": {
+    "view": "one list",
+    "open": {
+      "first_ms": 75.3,
+      "warm": {
+        "n": 5,
+        "total_ms": 438.0,
+        "median_ms": 82.4,
+        "p95_ms": 116.8,
+        "max_ms": 116.8
+      },
+      "rows_drawn": 165
+    },
+    "scroll": {
+      "list_to_foot_ms": 5.2,
+      "oldest_ms": 128.2,
+      "older_presses": {
+        "n": 10,
+        "total_ms": 1363.0,
+        "median_ms": 134.0,
+        "p95_ms": 161.4,
+        "max_ms": 161.4
+      }
+    },
+    "search": {
+      "first_answer_ms": 329.1,
+      "to_the_end_ms": 15146.3,
+      "continuations": 49
+    }
+  }
+}

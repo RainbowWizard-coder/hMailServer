@@ -800,6 +800,30 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   `RestApiSelfService.TheFullTextIndexNarrowsTheWebmailSearchAWindowAtATime` through both of the webmail's searches,
   which with the index caught up open the five messages that hold the word and no other.
   `build/perf/webmail-timing.py` records the files a search opened.
+- **`build/perf/webmail-timing.py` reaches the end of a run on a folder of a hundred thousand messages, and its times
+  hold the server's work alone.** The REST API refuses a credential's 201st request in ten seconds with 429, and the
+  HTTP pass's walk of 500 pages met it, which ended the run: the tool now asks again after `Retry-After`, keeps the
+  refused request and the wait out of every time, a wall time included, says each wait on standard error and counts them
+  in the JSON's `waits` and under its table. A request whose session has ended signs in again, once, untimed. A search
+  whose request fails - an answer cut short, a timeout, a status other than 200 - is recorded in its cells and the run
+  goes on to the next measure, the tool ending with 1 once it has written everything; the browser loads the page again,
+  and signs in again if it asks, before its select-all. A request went out a second time after any failure before; now
+  only when a kept-alive connection the server had closed fails before an answer, so a search cut short is not asked
+  for, and timed, twice. The folder tree's first request, which after a restart is the one that reads the folder from
+  the database, has a row of its own, *folder tree, first time*, where it was in the JSON alone and *first page, first
+  time* read as the cold open. `--self-test`, which `checkers` runs, puts HTTP mode against a REST listener of its own
+  that refuses one request with 429, ends the session once and cuts a search's answer short, and each of those three,
+  taken out of the tool, fails it.
+- **The load generator's `prepare-hmailserver` gives the generator's IP range a priority above every range holding its
+  address**, at least 20 as before: a connection takes the range of the highest priority, and every installation has *My
+  computer*, 127.0.0.1 at priority 30 with spam and virus protection on, which passed over the range for a generator on
+  the server's own machine - the Windows bench. **`imap-sessions` takes its idle point once the server's memory has
+  stopped falling** (`--idle-wait`, 120 seconds at most by default; 0 takes it at once, as before), and its table says
+  the memory per session is not valid when the idle point is still above the first step's memory: on server1 two runs
+  begun ten seconds after the one before took 526 MiB of private bytes for idle against 238 and 271 MiB at 25 sessions.
+  A run that passes its last step says so, the limit not reached. `smtp-out` warns on Windows when asked for more than
+  12,000 messages with the sink on the server's own machine. `loadgen.py self-test` holds the range's priority, the idle
+  point, the last step and what a sink on the loopback is.
 
 ### Documentation
 
@@ -825,6 +849,24 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   in one request before, which a request no longer gives on SQL Server Compact however far the index has got, since it
   asks the index two hundred messages at a time under its own clock; the margin after the probe goes with it.
   "Searching" says how a search asks the index now and what that costs on SQL Server Compact.
+- **Performance.md and PublishedNumbers.md carry the first numbers measured on the Windows bench**: server1, 6.3.6 and
+  SQL Server Compact, 7 October 2026, each run's JSON and table kept in `build/perf/runs/2026-10-07-server1/`.
+  Performance.md's column with the full-text index off is filled - the folder's cold read 1.5 s, a page in 8 to 37 ms
+  wherever it lies, a search to the end in 50 requests and some 12 s, a keyword set over the hundred thousand in 38 s -
+  and its column with the index on is not, with the reasons: on 6.3.6 every search with the index on failed (fixed
+  above), and the probe that shows the index caught up never passed. Six of the seven cells of PublishedNumbers.md's
+  Windows table are filled, SMTP out at 12,000 messages a run, since 20,000 cannot complete on Windows with the sink on
+  the same machine - each relay holds one of the loopback's 16,384 dynamic ports in TIME_WAIT for two minutes, and some
+  4.5 % bounced - and IMAP's 50 sessions a core is the last of the default steps; memory per session is left to be
+  measured, its runs having taken a busy server for idle; the linix comparison is not yet run. The recipes change with
+  what the run found: Playwright's browsers go under `C:\perf` (`PLAYWRIGHT_BROWSERS_PATH`), since the install removes
+  from the folder it installs into - otherwise the administrator's own profile - the browsers of every other Playwright
+  version, and on server1 it removed the machine's owner's; the index probe runs every ten minutes, since on SQL Server
+  Compact it shares the one connection with the indexer; the Windows load runs set `MaxDeliveryThreads` to the shipped
+  10, where a gate leaves 50, and put back the bench's value and its `MessageStoreFsync` as they were, not deleted; SMTP
+  out waits 130 seconds before each run for the ports; and an empty folder of the load domain, which the bench's
+  pre-flight takes for an orphan, is removed. Rule 5 says the generator's range now outranks *My computer*, and the
+  Windows table says that its "fsync on" has a database that flushes every ten seconds.
 
 ---
 
