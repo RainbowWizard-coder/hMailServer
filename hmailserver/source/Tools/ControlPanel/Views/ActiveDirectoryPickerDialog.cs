@@ -21,13 +21,35 @@ namespace hMailServer.ControlPanel.Views
    /// and to bulk-import members into groups / distribution lists. On the standard
    /// frame: the query row above the list, the status line under it, Select and
    /// Cancel in the footer.
+   ///
+   /// The results are a read-only DataGrid on the application's implicit grid
+   /// styles, as every other list of rows in the Control Panel is. It was the one
+   /// ListView with a GridView in the application, and that took WPF's stock
+   /// look rather than the theme's: a white list body with light column headers,
+   /// separators and an empty filler column inside the dark theme's dialog, and a
+   /// dark one-pixel outline with centred headers in the light theme.
    /// </summary>
    public class ActiveDirectoryPickerDialog : FluentDialogWindow
    {
       private readonly bool multiSelect_;
       private readonly ComboBox domainBox_ = new() { MinWidth = 240 };
       private readonly TextBox searchBox_ = new();
-      private readonly ListView list_ = new() { Height = 300 };
+
+      // Seven rows at least, and it grows with the results to eleven or so
+      // before it scrolls, so that the query row above it and the status line
+      // under it stay in view however many accounts a search finds; the frame
+      // sizes the dialog to it within the work area. It was fixed at 300.
+      private readonly DataGrid list_ = new()
+      {
+         MinHeight = 240,
+         MaxHeight = 400,
+         AutoGenerateColumns = false,
+         IsReadOnly = true,
+         CanUserAddRows = false,
+         CanUserDeleteRows = false,
+         CanUserReorderColumns = false,
+         SelectionUnit = DataGridSelectionUnit.FullRow
+      };
 
       private readonly TextBlock status_ = DialogFields.Note("");
 
@@ -142,13 +164,17 @@ namespace hMailServer.ControlPanel.Views
 
       private void BuildList()
       {
-         list_.SelectionMode = multiSelect_ ? SelectionMode.Extended : SelectionMode.Single;
+         list_.SelectionMode = multiSelect_ ? DataGridSelectionMode.Extended : DataGridSelectionMode.Single;
 
-         var gridView = new GridView();
-         gridView.Columns.Add(new GridViewColumn { Header = L("Account"), DisplayMemberBinding = new System.Windows.Data.Binding(nameof(AdUser.SamAccountName)), Width = 160 });
-         gridView.Columns.Add(new GridViewColumn { Header = L("Name"), DisplayMemberBinding = new System.Windows.Data.Binding(nameof(AdUser.DisplayName)), Width = 200 });
-         gridView.Columns.Add(new GridViewColumn { Header = L("E-mail"), DisplayMemberBinding = new System.Windows.Data.Binding(nameof(AdUser.Email)), Width = 240 });
-         list_.View = gridView;
+         // The columns share the width, so there is nothing to scroll sideways
+         // to, and a value wider than its column ends in an ellipsis and is whole
+         // in its tool tip. A grid of shared columns and a horizontal bar that
+         // can appear is the shape whose two bars took turns for ever at some
+         // scalings (see the grids' note in docs/ControlPanelDesign.md).
+         list_.Columns.Add(Column(L("Account"), nameof(AdUser.SamAccountName), 1));
+         list_.Columns.Add(Column(L("Name"), nameof(AdUser.DisplayName), 1.2));
+         list_.Columns.Add(Column(L("E-mail"), nameof(AdUser.Email), 1.4));
+         ScrollViewer.SetHorizontalScrollBarVisibility(list_, ScrollBarVisibility.Disabled);
 
          AutomationProperties.SetName(list_, multiSelect_
             ? L("Matching Active Directory accounts. Select one or more.")
@@ -159,8 +185,10 @@ namespace hMailServer.ControlPanel.Views
 
          // The keyboard equivalent of the double-click above. Without it the only
          // way to commit a highlighted row was to tab out of the list and back to
-         // the Select button - and Enter is what every list in Windows does.
-         list_.KeyDown += (s, e) =>
+         // the Select button - and Enter is what every list in Windows does. On
+         // the preview, because the grid itself takes Enter first, to move to the
+         // next row, and marks it handled before a handler on KeyDown sees it.
+         list_.PreviewKeyDown += (s, e) =>
          {
             if (e.Key != Key.Enter || list_.SelectedItems.Count == 0)
                return;
@@ -169,6 +197,15 @@ namespace hMailServer.ControlPanel.Views
             e.Handled = true;
          };
       }
+
+      /// <summary>A column of the results, taking <paramref name="stars"/> shares of the width.</summary>
+      private static DataGridTextColumn Column(string header, string property, double stars)
+         => GridStyles.Trimmed(new DataGridTextColumn
+         {
+            Header = header,
+            Binding = new System.Windows.Data.Binding(property),
+            Width = new DataGridLength(stars, DataGridLengthUnitType.Star)
+         });
 
       private void LoadDomains()
       {

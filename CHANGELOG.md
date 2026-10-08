@@ -697,6 +697,13 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   distribution list's trash glyphs had no danger colour at all - four looks for one action on one page. All four take
   the `DangerTextButton` style the other list pages use, whose shade of the danger colour clears 4.5:1 on the button
   in both themes and greys when the button cannot be pressed. Found by the project's own review.
+- **The Control Panel's Browse Active Directory dialog lists the accounts it finds in the theme's own grid.** The
+  results were the one stock Windows list view in the application: in the dark theme a white box with light column
+  headers, separators and an empty filler column inside the dark dialog, in the light theme a dark outline and centred
+  headers, unlike every other list of rows, and fixed at 300 pixels. They are a read-only grid on the Control Panel's
+  grid styles now - the same headers, hairlines, hover and selection as the groups or routes pages - whose three
+  columns share the width and end a long value in an ellipsis, seven rows at least and growing with the results
+  before it scrolls. A double-click or Enter still chooses the row. Found by the project's own review.
 
 ### IMAP, POP3 and the webmail
 
