@@ -2473,99 +2473,65 @@ namespace RegressionTests.Rules
       /// then stored by nothing but another Rule.Save, and RuleAction.Save held such an
       /// action to no owner's limits (OnlyAGlobalRuleMaySetWhoTheMessageIsFrom). They are
       /// bound to the id the save gives the rule, and an action or a criterion made before
-      /// that save and saved after it is stored under the rule too, not as a row of rule
-      /// id 0. Nor does a rule not yet saved read the rows of rule id 0, which are no
-      /// rule's - a rule whose own insert failed left them - and which its Save stored as
-      /// its own.
+      /// that save and saved after it is stored under the rule too: with the rule id 0 it
+      /// was made with, the foreign key on its table would refuse it.
       ///
-      /// Against the server before the fix the actions and criteria saved after the rule's
-      /// first save are not stored, and the new rule takes the action and the criterion of
-      /// no rule as its own.
+      /// Against the server before the fix none of the actions and criteria saved after
+      /// the rule's first save is stored.
       /// </summary>
       [Test]
-      [Description("An action or a criterion saved through a new rule after the rule's first save is stored under it at once, and a new rule takes in no action or criterion of no rule.")]
-      public void ANewRulesPartsAreStoredUnderItAndNoOthers()
+      [Description("An action or a criterion saved through a new rule after the rule's first save, made before that save or after it, is stored under the rule at once.")]
+      public void ANewRulesPartsAreStoredUnderIt()
       {
          var account = SingletonProvider<TestSetup>.Instance.AddAccount(_domain, "ruleparts@example.test", "test");
 
-         // An action and a criterion of no rule.
-         var orphaned = NewRuleMatchingEverything(account, "To be left with no rule");
-         var orphanedCriterion = orphaned.Criterias.Add();
-         orphanedCriterion.UsePredefined = true;
-         orphanedCriterion.PredefinedField = eRulePredefinedField.eFTSubject;
-         orphanedCriterion.MatchType = eRuleMatchType.eMTContains;
-         orphanedCriterion.MatchValue = "criterion-of-no-rule";
-         orphanedCriterion.Save();
-         var orphanedAction = orphaned.Actions.Add();
-         orphanedAction.Type = eRuleActionType.eRASetHeaderValue;
-         orphanedAction.HeaderName = "X-Action-Of-No-Rule";
-         orphanedAction.Value = "1";
-         orphanedAction.Save();
-         orphaned.Save();
+         var rule = NewRuleMatchingEverything(account, "Parts saved after the rule");
 
-         try
-         {
-            _application.Database.ExecuteSQL(
-               "update hm_rule_criterias set criteriaruleid = 0 where criteriamatchvalue = 'criterion-of-no-rule'");
-            _application.Database.ExecuteSQL(
-               "update hm_rule_actions set actionruleid = 0 where actionheader = 'X-Action-Of-No-Rule'");
+         // Made before the rule's first save and saved after it.
+         var early = rule.Actions.Add();
+         early.Type = eRuleActionType.eRASetHeaderValue;
+         early.HeaderName = "X-Rule-Early";
+         early.Value = "stored";
+         var earlyCriterion = rule.Criterias.Add();
+         earlyCriterion.UsePredefined = true;
+         earlyCriterion.PredefinedField = eRulePredefinedField.eFTSubject;
+         earlyCriterion.MatchType = eRuleMatchType.eMTContains;
+         earlyCriterion.MatchValue = "early criterion";
 
-            var rule = NewRuleMatchingEverything(account, "Parts saved after the rule");
+         rule.Save();
+         early.Save();
+         earlyCriterion.Save();
 
-            // Made before the rule's first save and saved after it: stored under the rule,
-            // not as a row of rule id 0.
-            var early = rule.Actions.Add();
-            early.Type = eRuleActionType.eRASetHeaderValue;
-            early.HeaderName = "X-Rule-Early";
-            early.Value = "stored";
-            var earlyCriterion = rule.Criterias.Add();
-            earlyCriterion.UsePredefined = true;
-            earlyCriterion.PredefinedField = eRulePredefinedField.eFTSubject;
-            earlyCriterion.MatchType = eRuleMatchType.eMTContains;
-            earlyCriterion.MatchValue = "early criterion";
+         // Made and saved after it.
+         var note = rule.Actions.Add();
+         note.Type = eRuleActionType.eRASetHeaderValue;
+         note.HeaderName = "X-Rule-Note";
+         note.Value = "stored";
+         note.Save();
 
-            rule.Save();
-            early.Save();
-            earlyCriterion.Save();
+         var second = rule.Criterias.Add();
+         second.UsePredefined = true;
+         second.PredefinedField = eRulePredefinedField.eFTSubject;
+         second.MatchType = eRuleMatchType.eMTContains;
+         second.MatchValue = "second criterion";
+         second.Save();
 
-            var note = rule.Actions.Add();
-            note.Type = eRuleActionType.eRASetHeaderValue;
-            note.HeaderName = "X-Rule-Note";
-            note.Value = "stored";
-            note.Save();
+         // As stored: the rule read again from the database, through collections of their
+         // own, and not the Rule object above.
+         var stored = _application.Domains.get_ItemByName(_domain.Name).Accounts.get_ItemByAddress(account.Address).Rules
+            .get_ItemByDBID(rule.ID);
 
-            var second = rule.Criterias.Add();
-            second.UsePredefined = true;
-            second.PredefinedField = eRulePredefinedField.eFTSubject;
-            second.MatchType = eRuleMatchType.eMTContains;
-            second.MatchValue = "second criterion";
-            second.Save();
+         var actions = new List<string>();
+         for (int i = 0; i < stored.Actions.Count; i++)
+            actions.Add(stored.Actions[i].HeaderName);
+         var criteria = new List<string>();
+         for (int i = 0; i < stored.Criterias.Count; i++)
+            criteria.Add(stored.Criterias[i].MatchValue);
 
-            // As stored: the rule read again from the database, through collections of
-            // their own, and not the Rule object above.
-            var stored = _application.Domains.get_ItemByName(_domain.Name).Accounts.get_ItemByAddress(account.Address).Rules
-               .get_ItemByDBID(rule.ID);
-
-            var actions = new List<string>();
-            for (int i = 0; i < stored.Actions.Count; i++)
-               actions.Add(stored.Actions[i].HeaderName);
-            var criteria = new List<string>();
-            for (int i = 0; i < stored.Criterias.Count; i++)
-               criteria.Add(stored.Criterias[i].MatchValue);
-
-            CollectionAssert.AreEqual(new[] { "X-Rule-Early", "X-Rule-Note" }, actions,
-               "The actions stored under the rule are not the two saved through it after its first save: " + string.Join(", ", actions));
-            CollectionAssert.AreEqual(new[] { "0", "early criterion", "second criterion" }, criteria,
-               "The criteria stored under the rule are not the three saved through it: " + string.Join(", ", criteria));
-         }
-         finally
-         {
-            // The planted rows, and any a failing server wrote under no rule.
-            _application.Database.ExecuteSQL("delete from hm_rule_criterias where criteriamatchvalue = 'criterion-of-no-rule' or " +
-               "(criteriaruleid = 0 and criteriamatchvalue in ('early criterion', 'second criterion'))");
-            _application.Database.ExecuteSQL("delete from hm_rule_actions where actionheader = 'X-Action-Of-No-Rule' or " +
-               "(actionruleid = 0 and actionheader in ('X-Rule-Early', 'X-Rule-Note'))");
-         }
+         CollectionAssert.AreEqual(new[] { "X-Rule-Early", "X-Rule-Note" }, actions,
+            "The actions stored under the rule are not the two saved through it after its first save: " + string.Join(", ", actions));
+         CollectionAssert.AreEqual(new[] { "0", "early criterion", "second criterion" }, criteria,
+            "The criteria stored under the rule are not the three saved through it: " + string.Join(", ", criteria));
       }
 
       /// <summary>

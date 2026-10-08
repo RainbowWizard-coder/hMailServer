@@ -94,7 +94,8 @@ STDMETHODIMP InterfaceRuleAction::Save()
       {
          // An action made by Rule.Actions.Add before its rule had an id carries rule id
          // 0, and is stored under the rule its collection now belongs to
-         // (PersistentRule::SaveObject binds the collection), not as a row of no rule.
+         // (PersistentRule::SaveObject binds the collection): a row of rule id 0 is no
+         // rule's, and the foreign key every database holds hm_rule_actions to refuses it.
          if (object_->GetRuleID() <= 0)
             object_->SetRuleID(parent_collection_->GetRuleID());
 
